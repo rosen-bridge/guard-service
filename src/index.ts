@@ -1,8 +1,10 @@
 import express from "express";
 import { Request, Response } from 'express';
 import { PaymentTransaction, EventTrigger } from "./models/Models";
-import CardanoChain from "./chains/cardano/CardanoChain";
 import { EventTriggerModel, PaymentTransactionJsonModel } from "./models/Interfaces";
+import EventProcessor from "./guard/EventProcessor";
+
+const eventProcessor = new EventProcessor()
 
 const app = express();
 const port = 8080;
@@ -28,8 +30,7 @@ app.post("/generate/", async (req: Request, res: Response) => {
         eventJson.sourceBlockId,
         eventJson.WIDs
     )
-    const cardanoChain = new CardanoChain()
-    const paymentTx = await cardanoChain.generateTransaction(event)
+    const paymentTx = await eventProcessor.createEventPayment(event)
 
     res.send({
         txId: paymentTx.txId,
@@ -64,8 +65,7 @@ app.post("/verify/", async (req: Request, res: Response) => {
         Buffer.from(paymentTxJson.txBytes, "hex")
     )
 
-    const cardanoChain = new CardanoChain()
-    const isValid = cardanoChain.verifyTransactionWithEvent(paymentTx, event)
+    const isValid = eventProcessor.verifyPaymentTransactionWithEvent(paymentTx, event)
 
     res.send({
         txId: paymentTx.txId,
