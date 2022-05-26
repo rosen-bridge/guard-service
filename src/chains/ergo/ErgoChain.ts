@@ -19,6 +19,7 @@ import ExplorerApi from "./network/ExplorerApi";
 import Utils from "./helpers/Utils";
 import NodeApi from "./network/NodeApi";
 import { AssetMap, InBoxesInfo } from "./models/Interfaces";
+import { JsonBI } from "../../network/NetworkModels";
 
 
 class ErgoChain implements BaseChain<ReducedTransaction> {
@@ -124,7 +125,7 @@ class ErgoChain implements BaseChain<ReducedTransaction> {
         const inErgAmount: bigint = paymentAmount + ErgoConfigs.minimumErg + ErgoConfigs.txFee
 
         // calculate needed amount of assets and get input boxes
-        const bankBoxes = await ExplorerApi.getCoveringErgAndTokenForAddress(
+        const bankBoxes = await ExplorerApi.getCoveringErgAndTokenForErgoTree(
             this.bankErgoTree,
             inErgAmount
         )
@@ -195,7 +196,7 @@ class ErgoChain implements BaseChain<ReducedTransaction> {
         const paymentTokenAmount: bigint = BigInt(event.amount) - (BigInt(event.bridgeFee)) - (BigInt(event.networkFee))
 
         // calculate needed amount of assets and get input boxes
-        const bankBoxes = await ExplorerApi.getCoveringErgAndTokenForAddress(
+        const bankBoxes = await ExplorerApi.getCoveringErgAndTokenForErgoTree(
             this.bankErgoTree,
             inErgAmount,
             {

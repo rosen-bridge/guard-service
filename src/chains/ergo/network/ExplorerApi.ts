@@ -29,7 +29,7 @@ class ExplorerApi {
      * @param tokens needed tokens
      * @param filter condition to filter boxes
      */
-    static getCoveringErgAndTokenForAddress = async (
+    static getCoveringErgAndTokenForErgoTree = async (
         tree: string,
         ergAmount: bigint,
         tokens: AssetMap = {},

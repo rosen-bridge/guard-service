@@ -1,6 +1,7 @@
 import axios from "axios";
 import config from "config";
 import { BlockHeaders, ErgoStateContext, PreHeader } from "ergo-lib-wasm-nodejs";
+import { ErgoBlockHeader } from "../models/Interfaces";
 
 
 class NodeApi {
@@ -21,7 +22,7 @@ class NodeApi {
     /**
      * gets 10 last blocks of blockchain
      */
-    static getLastBlockHeader = () => {
+    static getLastBlockHeader = (): Promise<ErgoBlockHeader[]> => {
         return this.nodeClient.get("/blocks/lastHeaders/10").then(
             res => res.data
         )

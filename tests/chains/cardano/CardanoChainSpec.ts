@@ -1,4 +1,4 @@
-import mockGetAddressBoxes from "./mocked/mockedKoios";
+import mockGetAddressBoxes from "./mocked/MockedKoios";
 import CardanoChain from "../../../src/chains/cardano/CardanoChain";
 import { EventTrigger } from "../../../src/models/Models";
 import TestBoxes from "./testUtils/TestBoxes";
@@ -45,7 +45,7 @@ describe("CardanoChain", async () => {
          *    It should also verify it successfully
          */
         it("should generate an Asset payment tx and verify it successfully", async () => {
-            // mock ada payment event
+            // mock asset payment event
             const mockedEvent: EventTrigger = TestBoxes.mockAssetPaymentEventTrigger()
 
             // run test
@@ -87,7 +87,7 @@ describe("CardanoChain", async () => {
          *    It should NOT verify the transaction
          */
         it("should reject an Asset payment tx with no asset transferring", async () => {
-            // mock ada payment event
+            // mock asset payment event
             const mockedEvent: EventTrigger = TestBoxes.mockAssetPaymentEventTrigger()
             const tx = TestBoxes.mockNoAssetsTransferringPaymentTransaction(mockedEvent, testBankAddress)
 
@@ -105,7 +105,7 @@ describe("CardanoChain", async () => {
          *    It should NOT verify the transaction
          */
         it("should reject an Asset payment tx that transferring multiple asset with same policyId", async () => {
-            // mock ada payment event
+            // mock asset payment event
             const mockedEvent: EventTrigger = TestBoxes.mockAssetPaymentEventTrigger()
             const tx = TestBoxes.mockMultiAssetsTransferringPaymentTransaction(mockedEvent, testBankAddress)
 
@@ -123,7 +123,7 @@ describe("CardanoChain", async () => {
          *    It should NOT verify the transaction
          */
         it("should reject an Asset payment tx that transferring multiple asset with different policyId", async () => {
-            // mock ada payment event
+            // mock asset payment event
             const mockedEvent: EventTrigger = TestBoxes.mockAssetPaymentEventTrigger()
             const tx = TestBoxes.mockTwoAssetsTransferringPaymentTransaction(mockedEvent, testBankAddress)
 
