@@ -1,17 +1,15 @@
 import { EventTrigger, PaymentTransaction } from "../../../../src/models/Models";
 import TestUtils from "../../../testUtils/TestUtils";
-import { Utxo } from "../../../../src/chains/cardano/models/Models";
+import { Utxo } from "../../../../src/chains/cardano/models/Interfaces";
 import {
     Address, AssetName, Assets,
-    BigNum, hash_transaction,
+    BigNum,
     MultiAsset,
-    ScriptHash, Transaction, TransactionBuilder, TransactionHash, TransactionInput,
+    ScriptHash, Transaction, TransactionBuilder,
     TransactionOutput, TransactionWitnessSet,
     Value
 } from "@emurgo/cardano-serialization-lib-nodejs";
 import CardanoConfigs from "../../../../src/chains/cardano/helpers/CardanoConfigs";
-import KoiosApi from "../../../../src/chains/cardano/network/KoiosApi";
-import BlockFrostApi from "../../../../src/chains/cardano/network/BlockFrostApi";
 
 class TestBoxes {
 

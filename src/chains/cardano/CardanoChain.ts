@@ -11,7 +11,7 @@ import { PaymentTransaction, EventTrigger } from "../../models/Models";
 import BaseChain from "../BaseChains";
 import CardanoConfigs from "./helpers/CardanoConfigs";
 import BlockFrostApi from "./network/BlockFrostApi";
-import { Utxo } from "./models/Models";
+import { Utxo, UtxoBoxesAssets } from "./models/Interfaces";
 
 
 class CardanoChain implements BaseChain<Transaction> {
@@ -66,12 +66,18 @@ class CardanoChain implements BaseChain<Transaction> {
 
     /**
      * verifies the payment transaction data with the event
+     *  1. checks address of all boxes except payment box
+     *  2. checks amount of lovelace in payment box
+     *  3. checks number of multiAssets in payment box
+     *  4. checks number of assets in payment box paymentMultiAsset (asset payment)
+     *  5. checks amount for paymentAsset in payment box (asset payment)
+     *  6. checks address of payment box
      * @param paymentTx the payment transaction
      * @param event the event trigger model
      * @return true if tx verified
      */
     verifyTransactionWithEvent = (paymentTx: PaymentTransaction, event: EventTrigger): boolean => {
-        const tx = Transaction.from_bytes(paymentTx.txBytes) // TODO: change this to this.deserialize
+        const tx = this.deserialize(paymentTx.txBytes)
         const outputBoxes = tx.body().outputs()
 
         // verify that all other boxes belong to bank
@@ -150,34 +156,9 @@ class CardanoChain implements BaseChain<Transaction> {
         )
 
         // calculate assets and lovelace of change box
-        const multiAsset = MultiAsset.new()
-        let changeBoxLovelace: BigNum = BigNum.zero()
-        inBoxes.forEach(box => {
-            changeBoxLovelace = changeBoxLovelace.checked_add(BigNum.from_str(box.value))
-
-            box.asset_list.forEach(boxAsset => {
-                const policyId = ScriptHash.from_bytes(Buffer.from(boxAsset.policy_id, "hex"))
-                const assetName = AssetName.new(Buffer.from(boxAsset.asset_name, "hex"))
-
-                const policyAssets = multiAsset.get(policyId)
-                if (!policyAssets) {
-                    const assetList = Assets.new()
-                    assetList.insert(assetName, BigNum.from_str(boxAsset.quantity))
-                    multiAsset.insert(policyId, assetList)
-                } else {
-                    const asset = policyAssets.get(assetName)
-                    if (!asset) {
-                        policyAssets.insert(assetName, BigNum.from_str(boxAsset.quantity))
-                        multiAsset.insert(policyId, policyAssets)
-                    } else {
-                        const amount = asset.checked_add(BigNum.from_str(boxAsset.quantity))
-                        policyAssets.insert(assetName, amount)
-                        multiAsset.insert(policyId, policyAssets)
-                    }
-                }
-
-            })
-        })
+        const changeBoxAssets = this.calculateInputBoxesAssets(inBoxes)
+        const multiAsset = changeBoxAssets.assets
+        let changeBoxLovelace: BigNum = changeBoxAssets.lovelace
 
         // reduce fee and payment amount from change box lovelace
         changeBoxLovelace = changeBoxLovelace.checked_sub(CardanoConfigs.txFee)
@@ -222,9 +203,33 @@ class CardanoChain implements BaseChain<Transaction> {
         )
 
         // calculate assets and lovelace of change box
+        const changeBoxAssets = this.calculateInputBoxesAssets(inBoxes)
+        const multiAsset = changeBoxAssets.assets
+        let changeBoxLovelace: BigNum = changeBoxAssets.lovelace
+
+        // reduce fee and payment amount from change box lovelace
+        changeBoxLovelace = changeBoxLovelace.checked_sub(CardanoConfigs.txFee)
+            .checked_sub(lovelacePaymentAmount)
+
+        const paymentAssetAmount: BigNum = multiAsset.get_asset(paymentAssetPolicyId, paymentAssetAssetName)
+        multiAsset.set_asset(paymentAssetPolicyId, paymentAssetAssetName, paymentAssetAmount.checked_sub(assetPaymentAmount))
+
+        // create change box
+        const changeAmount: Value = Value.new(changeBoxLovelace)
+        changeAmount.set_multiasset(multiAsset)
+        const changeBox = TransactionOutput.new(this.bankAddress, changeAmount)
+
+        return [paymentBox, changeBox]
+    }
+
+    /**
+     * calculates amount of lovelace and assets in utxo boxes
+     * @param boxes the utxo boxes
+     */
+    calculateInputBoxesAssets = (boxes: Utxo[]): UtxoBoxesAssets => {
         const multiAsset = MultiAsset.new()
         let changeBoxLovelace: BigNum = BigNum.zero()
-        inBoxes.forEach(box => {
+        boxes.forEach(box => {
             changeBoxLovelace = changeBoxLovelace.checked_add(BigNum.from_str(box.value))
 
             box.asset_list.forEach(boxAsset => {
@@ -247,23 +252,12 @@ class CardanoChain implements BaseChain<Transaction> {
                         multiAsset.insert(policyId, policyAssets)
                     }
                 }
-
             })
         })
-
-        // reduce fee and payment amount from change box lovelace
-        changeBoxLovelace = changeBoxLovelace.checked_sub(CardanoConfigs.txFee)
-            .checked_sub(lovelacePaymentAmount)
-
-        const paymentAssetAmount: BigNum = multiAsset.get_asset(paymentAssetPolicyId, paymentAssetAssetName)
-        multiAsset.set_asset(paymentAssetPolicyId, paymentAssetAssetName, paymentAssetAmount.checked_sub(assetPaymentAmount))
-
-        // create change box
-        const changeAmount: Value = Value.new(changeBoxLovelace)
-        changeAmount.set_multiasset(multiAsset)
-        const changeBox = TransactionOutput.new(this.bankAddress, changeAmount)
-
-        return [paymentBox, changeBox]
+        return {
+            lovelace: changeBoxLovelace,
+            assets: multiAsset
+        }
     }
 
 }

@@ -1,6 +1,6 @@
 import axios from "axios";
 import config from "config";
-import { Utxo } from "../models/Models";
+import { Utxo } from "../models/Interfaces";
 
 
 class KoiosApi {
@@ -11,7 +11,10 @@ class KoiosApi {
         headers: {"Content-Type": "application/json"}
     });
 
-    // TODO: add doc string
+    /**
+     * gets utxo boxes owned by the address
+     * @param address
+     */
     static getAddressBoxes = (address: string): Promise<Utxo[]> => {
         return this.koios.post('/address_info', {"_address": address})
             .then(res => res.data[0].utxo_set)
