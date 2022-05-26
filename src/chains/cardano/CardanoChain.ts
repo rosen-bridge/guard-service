@@ -71,7 +71,7 @@ class CardanoChain implements BaseChain<Transaction> {
      * @return true if tx verified
      */
     verifyTransactionWithEvent = (paymentTx: PaymentTransaction, event: EventTrigger): boolean => {
-        const tx = Transaction.from_bytes(paymentTx.txBytes)
+        const tx = Transaction.from_bytes(paymentTx.txBytes) // TODO: change this to this.deserialize
         const outputBoxes = tx.body().outputs()
 
         // verify that all other boxes belong to bank

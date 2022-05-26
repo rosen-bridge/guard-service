@@ -11,6 +11,7 @@ class KoiosApi {
         headers: {"Content-Type": "application/json"}
     });
 
+    // TODO: add doc string
     static getAddressBoxes = (address: string): Promise<Utxo[]> => {
         return this.koios.post('/address_info', {"_address": address})
             .then(res => res.data[0].utxo_set)

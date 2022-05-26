@@ -9,6 +9,7 @@ class BlockFrostApi {
         isTestnet: config.get?.('blockFrost.isTestnet'),
     });
 
+    // TODO: add doc string
     static currentSlot = async (): Promise<number> => {
         const block = await this.blockFrost.blocksLatest()
         const slot = block.slot
