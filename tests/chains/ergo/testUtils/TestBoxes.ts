@@ -1,8 +1,19 @@
-import { EventTrigger } from "../../../../src/models/Models";
+import { EventTrigger, PaymentTransaction } from "../../../../src/models/Models";
 import TestUtils from "../../../testUtils/TestUtils";
 import { CoveringErgoBoxes } from "../../../../src/chains/ergo/models/Interfaces";
-import { BoxValue, ErgoBox, I64, Token, TokenAmount, TokenId, Tokens, TxId } from "ergo-lib-wasm-nodejs";
+import {
+    BoxValue,
+    ErgoBox, ErgoBoxes,
+    I64, ReducedTransaction,
+    Token,
+    TokenAmount,
+    TokenId,
+    Tokens,
+    TxId,
+    UnsignedTransaction
+} from "ergo-lib-wasm-nodejs";
 import Utils from "../../../../src/chains/ergo/helpers/Utils";
+import TestData from "./TestData";
 
 class TestBoxes {
 
@@ -78,6 +89,114 @@ class TestBoxes {
                 boxes: [box1, box2, box3]
             })
         })
+    }
+
+    /**
+     * generates a mocked payment transaction that transfers a token
+     * @param event token payment event trigger
+     */
+    static mockTokenTransferringPaymentTransaction = async (event: EventTrigger): Promise<PaymentTransaction> => {
+        const targetAddressErgoTree: string = Utils.addressStringToErgoTreeString(event.toAddress)
+        const bankAddressErgoTree: string = Utils.addressStringToErgoTreeString(this.testBankAddress)
+
+        const inBoxes = ErgoBoxes.empty()
+        const bankBoxes = await this.mockBankBoxes()
+        bankBoxes.boxes.forEach(box => inBoxes.add(box))
+
+        const txJsonString: string = TestData.tokenTransferringErgPaymentTransactionString(
+            bankBoxes.boxes.map(box => box.box_id().to_str()),
+            targetAddressErgoTree,
+            bankAddressErgoTree
+        )
+        const tx = UnsignedTransaction.from_json(txJsonString)
+
+        const reducedTx = ReducedTransaction.from_unsigned_tx(tx, inBoxes, ErgoBoxes.empty(), TestData.mockedErgoStateContext)
+
+        const txBytes = reducedTx.sigma_serialize_bytes()
+        const txId = tx.id().to_str()
+        const eventId = event.sourceTxId
+        return new PaymentTransaction(txId, eventId, txBytes)
+    }
+
+    /**
+     * generates a mocked payment transaction that only transfers erg
+     * @param event erg payment event trigger
+     */
+    static mockErgTransferringPaymentTransaction = async (event: EventTrigger): Promise<PaymentTransaction> => {
+        const targetAddressErgoTree: string = Utils.addressStringToErgoTreeString(event.toAddress)
+        const bankAddressErgoTree: string = Utils.addressStringToErgoTreeString(this.testBankAddress)
+
+        const inBoxes = ErgoBoxes.empty()
+        const bankBoxes = await this.mockBankBoxes()
+        bankBoxes.boxes.forEach(box => inBoxes.add(box))
+
+        const txJsonString: string = TestData.ergOnlyTokenPaymentTransactionString(
+            bankBoxes.boxes.map(box => box.box_id().to_str()),
+            targetAddressErgoTree,
+            bankAddressErgoTree
+        )
+        const tx = UnsignedTransaction.from_json(txJsonString)
+
+        const reducedTx = ReducedTransaction.from_unsigned_tx(tx, inBoxes, ErgoBoxes.empty(), TestData.mockedErgoStateContext)
+
+        const txBytes = reducedTx.sigma_serialize_bytes()
+        const txId = tx.id().to_str()
+        const eventId = event.sourceTxId
+        return new PaymentTransaction(txId, eventId, txBytes)
+    }
+
+    /**
+     * generates a mocked payment transaction that transfers two tokens
+     * @param event token payment event trigger
+     */
+    static mockMultipleTokensTransferringPaymentTransaction = async (event: EventTrigger): Promise<PaymentTransaction> => {
+        const targetAddressErgoTree: string = Utils.addressStringToErgoTreeString(event.toAddress)
+        const bankAddressErgoTree: string = Utils.addressStringToErgoTreeString(this.testBankAddress)
+
+        const inBoxes = ErgoBoxes.empty()
+        const bankBoxes = await this.mockBankBoxes()
+        bankBoxes.boxes.forEach(box => inBoxes.add(box))
+
+        const txJsonString: string = TestData.multipleTokenTransferringTokenPaymentTransactionString(
+            bankBoxes.boxes.map(box => box.box_id().to_str()),
+            targetAddressErgoTree,
+            bankAddressErgoTree
+        )
+        const tx = UnsignedTransaction.from_json(txJsonString)
+
+        const reducedTx = ReducedTransaction.from_unsigned_tx(tx, inBoxes, ErgoBoxes.empty(), TestData.mockedErgoStateContext)
+
+        const txBytes = reducedTx.sigma_serialize_bytes()
+        const txId = tx.id().to_str()
+        const eventId = event.sourceTxId
+        return new PaymentTransaction(txId, eventId, txBytes)
+    }
+
+    /**
+     * generates a mocked payment transaction that transfers wrong token
+     * @param event token payment event trigger
+     */
+    static mockWrongTokenTransferringPaymentTransaction = async (event: EventTrigger): Promise<PaymentTransaction> => {
+        const targetAddressErgoTree: string = Utils.addressStringToErgoTreeString(event.toAddress)
+        const bankAddressErgoTree: string = Utils.addressStringToErgoTreeString(this.testBankAddress)
+
+        const inBoxes = ErgoBoxes.empty()
+        const bankBoxes = await this.mockBankBoxes()
+        bankBoxes.boxes.forEach(box => inBoxes.add(box))
+
+        const txJsonString: string = TestData.wrongTokenTransferringTokenPaymentTransactionString(
+            bankBoxes.boxes.map(box => box.box_id().to_str()),
+            targetAddressErgoTree,
+            bankAddressErgoTree
+        )
+        const tx = UnsignedTransaction.from_json(txJsonString)
+
+        const reducedTx = ReducedTransaction.from_unsigned_tx(tx, inBoxes, ErgoBoxes.empty(), TestData.mockedErgoStateContext)
+
+        const txBytes = reducedTx.sigma_serialize_bytes()
+        const txId = tx.id().to_str()
+        const eventId = event.sourceTxId
+        return new PaymentTransaction(txId, eventId, txBytes)
     }
 
 }

@@ -61,4 +61,80 @@ describe("ErgoChain", async () => {
 
     })
 
+    describe("verifyTransactionWithEvent", async () => {
+
+        /**
+         * Target: testing generateTransaction
+         * Dependencies:
+         *    -
+         * Expected Output:
+         *    It should NOT verify the transaction
+         */
+        it("should reject an Erg payment tx that transferring token", async () => {
+            // mock erg payment event
+            const mockedEvent: EventTrigger = TestBoxes.mockErgPaymentEventTrigger()
+            const tx = await TestBoxes.mockTokenTransferringPaymentTransaction(mockedEvent)
+
+            // run test
+            const ergoChain: ErgoChain = new ErgoChain()
+            const isValid = ergoChain.verifyTransactionWithEvent(tx, mockedEvent)
+            expect(isValid).to.be.false
+        })
+
+        /**
+         * Target: testing generateTransaction
+         * Dependencies:
+         *    -
+         * Expected Output:
+         *    It should NOT verify the transaction
+         */
+        it("should reject a token payment tx with no token transferring", async () => {
+            // mock token payment event
+            const mockedEvent: EventTrigger = TestBoxes.mockTokenPaymentEventTrigger()
+            const tx = await TestBoxes.mockErgTransferringPaymentTransaction(mockedEvent)
+
+            // run test
+            const ergoChain: ErgoChain = new ErgoChain()
+            const isValid = ergoChain.verifyTransactionWithEvent(tx, mockedEvent)
+            expect(isValid).to.be.false
+        })
+
+        /**
+         * Target: testing generateTransaction
+         * Dependencies:
+         *    -
+         * Expected Output:
+         *    It should NOT verify the transaction
+         */
+        it("should reject a token payment tx that transferring multiple tokens", async () => {
+            // mock token payment event
+            const mockedEvent: EventTrigger = TestBoxes.mockTokenPaymentEventTrigger()
+            const tx = await TestBoxes.mockMultipleTokensTransferringPaymentTransaction(mockedEvent)
+
+            // run test
+            const ergoChain: ErgoChain = new ErgoChain()
+            const isValid = ergoChain.verifyTransactionWithEvent(tx, mockedEvent)
+            expect(isValid).to.be.false
+        })
+
+        /**
+         * Target: testing generateTransaction
+         * Dependencies:
+         *    -
+         * Expected Output:
+         *    It should NOT verify the transaction
+         */
+        it("should reject a token payment tx that transferring wrong token", async () => {
+            // mock token payment event
+            const mockedEvent: EventTrigger = TestBoxes.mockTokenPaymentEventTrigger()
+            const tx = await TestBoxes.mockWrongTokenTransferringPaymentTransaction(mockedEvent)
+
+            // run test
+            const ergoChain: ErgoChain = new ErgoChain()
+            const isValid = ergoChain.verifyTransactionWithEvent(tx, mockedEvent)
+            expect(isValid).to.be.false
+        })
+
+    })
+
 })
