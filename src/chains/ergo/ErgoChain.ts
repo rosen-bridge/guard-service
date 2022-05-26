@@ -19,7 +19,6 @@ import ExplorerApi from "./network/ExplorerApi";
 import Utils from "./helpers/Utils";
 import NodeApi from "./network/NodeApi";
 import { AssetMap, InBoxesInfo } from "./models/Interfaces";
-import { JsonBI } from "../../network/NetworkModels";
 
 
 class ErgoChain implements BaseChain<ReducedTransaction> {
