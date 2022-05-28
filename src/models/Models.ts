@@ -67,7 +67,7 @@ class PaymentTransaction implements PaymentTransactionModel {
      * @param creatorId id of the creator guard
      * @return signature
      */
-    signMetaData: (creatorId: number) => string // TODO: implement this (when migrating service from scala to ts)
+    declare signMetaData: (creatorId: number) => string // TODO: implement this (when migrating service from scala to ts)
 
     /**
      * verifies the signature over json data alongside guardId
@@ -76,7 +76,7 @@ class PaymentTransaction implements PaymentTransactionModel {
      * @param msgSignature hex string signature over json data alongside guardId
      * @return true if signature verified
      */
-    verifyMetaDataSignature: (creatorId: number, signerId: number, msgSignature: string) => boolean // TODO: implement this (when migrating service from scala to ts)
+    declare verifyMetaDataSignature: (creatorId: number, signerId: number, msgSignature: string) => boolean // TODO: implement this (when migrating service from scala to ts)
 
 }
 
