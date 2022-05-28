@@ -11,4 +11,4 @@ interface Utxo {
     asset_list: Asset[]
 }
 
-export { Utxo, Asset };
+export type { Utxo, Asset };
