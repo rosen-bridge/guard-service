@@ -141,7 +141,7 @@ class ErgoChain implements BaseChain<ReducedTransaction> {
         // calculate assets of change box
         const changeBoxInfo = this.calculateInputBoxesAssets(bankBoxes.boxes)
         const inErgoBoxes = changeBoxInfo.inBoxes
-        let changeErgAmount: bigint = changeBoxInfo.ergs - paymentAmount - ErgoConfigs.txFee
+        const changeErgAmount: bigint = changeBoxInfo.ergs - paymentAmount - ErgoConfigs.txFee
         const changeTokens: AssetMap = changeBoxInfo.tokens
 
         // create the change box
@@ -216,7 +216,7 @@ class ErgoChain implements BaseChain<ReducedTransaction> {
         // calculate assets of change box
         const changeBoxInfo = this.calculateInputBoxesAssets(bankBoxes.boxes)
         const inErgoBoxes = changeBoxInfo.inBoxes
-        let changeErgAmount: bigint = changeBoxInfo.ergs - paymentErgAmount - ErgoConfigs.txFee
+        const changeErgAmount: bigint = changeBoxInfo.ergs - paymentErgAmount - ErgoConfigs.txFee
         const changeTokens: AssetMap = changeBoxInfo.tokens
         changeTokens[event.targetChainTokenId] -= paymentTokenAmount
 

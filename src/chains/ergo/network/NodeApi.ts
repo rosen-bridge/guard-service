@@ -6,6 +6,7 @@ import { ErgoBlockHeader } from "../models/Interfaces";
 
 class NodeApi {
 
+    // TODO: improve config file tree
     static nodeClient = axios.create({
         baseURL: config.get?.('node.url'),
         timeout: config.get?.('node.timeout'),

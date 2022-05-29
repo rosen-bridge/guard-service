@@ -4,16 +4,18 @@ import TestBoxes from "./testUtils/TestBoxes";
 import { expect } from "chai";
 import { CoveringErgoBoxes } from "../../../src/chains/ergo/models/Interfaces";
 import Utils from "../../../src/chains/ergo/helpers/Utils";
-import mockGetCoveringErgAndTokenForErgoTree from "./mocked/MockedExplorer";
+import { mockGetCoveringErgAndTokenForErgoTree, resetMockedExplorerApi } from "./mocked/MockedExplorer";
+import { spy } from "ts-mockito";
+import ExplorerApi from "../../../src/chains/ergo/network/ExplorerApi";
 
 describe("ErgoChain", async () => {
     const testBankAddress: string = "9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD"
     const testBankErgoTree: string = Utils.addressStringToErgoTreeString(testBankAddress)
 
     describe("generateTransaction", async () => {
+        const mockedExplorer = spy(ExplorerApi)
         // mock getting bankBoxes
         const bankBoxes: Promise<CoveringErgoBoxes> = TestBoxes.mockBankBoxes()
-        mockGetCoveringErgAndTokenForErgoTree(testBankErgoTree, bankBoxes)
 
         /**
          * Target: testing generateTransaction
@@ -25,6 +27,8 @@ describe("ErgoChain", async () => {
          *    It should also verify it successfully
          */
         it("should generate an Erg payment tx and verify it successfully", async () => {
+            resetMockedExplorerApi(mockedExplorer)
+            mockGetCoveringErgAndTokenForErgoTree(testBankErgoTree, bankBoxes, mockedExplorer)
             // mock erg payment event
             const mockedEvent: EventTrigger = TestBoxes.mockErgPaymentEventTrigger()
 
@@ -47,6 +51,8 @@ describe("ErgoChain", async () => {
          *    It should also verify it successfully
          */
         it("should generate an token payment tx and verify it successfully", async () => {
+            resetMockedExplorerApi(mockedExplorer)
+            mockGetCoveringErgAndTokenForErgoTree(testBankErgoTree, bankBoxes, mockedExplorer)
             // mock token payment event
             const mockedEvent: EventTrigger = TestBoxes.mockTokenPaymentEventTrigger()
 

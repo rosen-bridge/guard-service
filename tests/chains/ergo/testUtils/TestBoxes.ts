@@ -1,6 +1,6 @@
 import { EventTrigger, PaymentTransaction } from "../../../../src/models/Models";
 import TestUtils from "../../../testUtils/TestUtils";
-import { CoveringErgoBoxes } from "../../../../src/chains/ergo/models/Interfaces";
+import { CoveringErgoBoxes, ErgoBlockHeader } from "../../../../src/chains/ergo/models/Interfaces";
 import {
     BoxValue,
     ErgoBox, ErgoBoxes,
@@ -197,6 +197,73 @@ class TestBoxes {
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
         return new PaymentTransaction(txId, eventId, txBytes)
+    }
+
+    /**
+     * generates 14 input boxes for ergo bank address
+     */
+    static mockManyBankBoxes = (): Promise<CoveringErgoBoxes> => {
+        return new Promise<CoveringErgoBoxes>((resolve, reject) => {
+            const targetTokenId: string = "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e"
+            const secondTokenId: string = "068354ba0c3990e387a815278743577d8b2d098cad21c95dc795e3ae721cf906"
+            const randomTokenId: string = TestUtils.generateRandomId()
+
+            const box1Tokens: Tokens = new Tokens()
+            box1Tokens.add(new Token(TokenId.from_str(targetTokenId), TokenAmount.from_i64(I64.from_str("44"))))
+            box1Tokens.add(new Token(TokenId.from_str(secondTokenId), TokenAmount.from_i64(I64.from_str("100"))))
+            const box1: ErgoBox = new ErgoBox(
+                this.ergToBoxValue(30),
+                this.testBlockchainHeight + 5,
+                Utils.addressStringToContract(this.testBankAddress),
+                TxId.from_str(TestUtils.generateRandomId()),
+                0,
+                box1Tokens
+            )
+            const box2Tokens: Tokens = new Tokens()
+            box2Tokens.add(new Token(TokenId.from_str(targetTokenId), TokenAmount.from_i64(I64.from_str("35"))))
+            box2Tokens.add(new Token(TokenId.from_str(randomTokenId), TokenAmount.from_i64(I64.from_str("100"))))
+            const box2: ErgoBox = new ErgoBox(
+                this.ergToBoxValue(100),
+                this.testBlockchainHeight,
+                Utils.addressStringToContract(this.testBankAddress),
+                TxId.from_str(TestUtils.generateRandomId()),
+                0,
+                box2Tokens
+            )
+            const box3Tokens: Tokens = new Tokens()
+            box3Tokens.add(new Token(TokenId.from_str(secondTokenId), TokenAmount.from_i64(I64.from_str("123456789123456789"))))
+            const box3: ErgoBox = new ErgoBox(
+                this.ergToBoxValue(10),
+                this.testBlockchainHeight + 20,
+                Utils.addressStringToContract(this.testBankAddress),
+                TxId.from_str(TestUtils.generateRandomId()),
+                2,
+                new Tokens()
+            )
+            const middleBoxesArray: ErgoBox[] = Array.apply(null, Array(10)).map((_: ErgoBlockHeader) => {
+                return new ErgoBox(
+                    this.ergToBoxValue(10),
+                    this.testBlockchainHeight + 20,
+                    Utils.addressStringToContract(this.testBankAddress),
+                    TxId.from_str(TestUtils.generateRandomId()),
+                    2,
+                    new Tokens()
+                )
+            })
+            // same as box2
+            const box14: ErgoBox = new ErgoBox(
+                this.ergToBoxValue(1),
+                this.testBlockchainHeight,
+                Utils.addressStringToContract(this.testBankAddress),
+                TxId.from_str(TestUtils.generateRandomId()),
+                0,
+                box2Tokens
+            )
+            resolve({
+                covered: true,
+                boxes: [box1, box2, box3].concat(middleBoxesArray).concat([box14])
+            })
+        })
     }
 
 }

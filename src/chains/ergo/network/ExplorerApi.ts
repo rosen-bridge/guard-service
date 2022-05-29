@@ -43,11 +43,13 @@ class ExplorerApi {
 
         const res: Box[] = []
         const boxesItems = await this.getBoxesForErgoTree(tree, 0, 1)
+        console.log(`\t|ret value len: ${boxesItems.total}`)
         const total = boxesItems.total
         let offset = 0
 
         while (offset < total && remaining()) {
             const boxes = await this.getBoxesForErgoTree(tree, offset, 10)
+            console.log(`\t|ret value len: ${boxes.total}`)
             for (const box of boxes.items) {
                 if (filter(box)) {
                     res.push(box)
