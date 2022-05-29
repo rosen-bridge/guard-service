@@ -12,6 +12,7 @@ import {
 import CardanoConfigs from "../../../../src/chains/cardano/helpers/CardanoConfigs";
 import KoiosApi from "../../../../src/chains/cardano/network/KoiosApi";
 import BlockFrostApi from "../../../../src/chains/cardano/network/BlockFrostApi";
+import CardanoUtils from "../../../../src/chains/cardano/helpers/CardanoUtils";
 
 class TestBoxes {
 
@@ -185,7 +186,7 @@ class TestBoxes {
             .checked_sub(BigNum.from_str(event.bridgeFee))
             .checked_sub(BigNum.from_str(event.networkFee))
 
-        const paymentAssetUnit: Uint8Array = CardanoConfigs.assetFingerprintUnitTuples.get(event.targetChainTokenId)
+        const paymentAssetUnit: Uint8Array = CardanoUtils.getAssetUnitFromConfigFingerPrintMap(event.targetChainTokenId)
         const paymentAssetPolicyId: ScriptHash = ScriptHash.from_bytes(paymentAssetUnit.slice(0, 28))
         const paymentAssetAssetName: AssetName = AssetName.new(paymentAssetUnit.slice(28))
         const illegalAssetAssetName: AssetName = AssetName.new(Buffer.from("7369676d61", "hex"))
@@ -223,7 +224,7 @@ class TestBoxes {
             .checked_sub(BigNum.from_str(event.bridgeFee))
             .checked_sub(BigNum.from_str(event.networkFee))
 
-        const paymentAssetUnit: Uint8Array = CardanoConfigs.assetFingerprintUnitTuples.get(event.targetChainTokenId)
+        const paymentAssetUnit: Uint8Array = CardanoUtils.getAssetUnitFromConfigFingerPrintMap(event.targetChainTokenId)
         const illegalAssetUnit: Uint8Array = Buffer.from(TestUtils.generateRandomId(), "hex")
         const paymentAssetPolicyId: ScriptHash = ScriptHash.from_bytes(paymentAssetUnit.slice(0, 28))
         const paymentAssetAssetName: AssetName = AssetName.new(paymentAssetUnit.slice(28))
