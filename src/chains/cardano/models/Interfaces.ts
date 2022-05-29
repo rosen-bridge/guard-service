@@ -18,4 +18,4 @@ interface UtxoBoxesAssets {
     assets: MultiAsset
 }
 
-export { Utxo, Asset, UtxoBoxesAssets };
+export type { Utxo, Asset, UtxoBoxesAssets };

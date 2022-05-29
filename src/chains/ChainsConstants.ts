@@ -1,6 +1,8 @@
 class ChainsConstants {
 
-    static cardano: string = "cardano"
-    static ergo: string = "ergo"
+    static cardano = "cardano"
+    static ergo = "ergo"
 
 }
+
+export default ChainsConstants

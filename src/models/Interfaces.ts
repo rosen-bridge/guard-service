@@ -55,7 +55,7 @@ interface PaymentTransactionJsonModel {
     txBytes: string
 }
 
-export {
+export type {
     EventTriggerModel,
     PaymentTransactionModel,
     PaymentTransactionJsonModel
