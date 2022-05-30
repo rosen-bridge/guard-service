@@ -12,6 +12,7 @@ import BaseChain from "../BaseChains";
 import CardanoConfigs from "./helpers/CardanoConfigs";
 import BlockFrostApi from "./network/BlockFrostApi";
 import { Utxo } from "./models/Models";
+import CardanoUtils from "./helpers/CardanoUtils";
 
 
 class CardanoChain implements BaseChain<Transaction> {
@@ -97,17 +98,18 @@ class CardanoChain implements BaseChain<Transaction> {
             const sizeOfMultiAssets: number | undefined = paymentBox.amount().multiasset()?.len()
             if (sizeOfMultiAssets === undefined || sizeOfMultiAssets !== 1) return false
             else {
-                const multiAssets = paymentBox.amount().multiasset()
-                const multiAssetPolicyId = multiAssets.keys().get(0)
-                if (multiAssets.get(multiAssetPolicyId).len() !== 1) return false
+                const multiAssets = paymentBox.amount().multiasset()!
+                const multiAssetPolicyId: ScriptHash = multiAssets.keys().get(0)!
+                if (multiAssets.get(multiAssetPolicyId)!.len() !== 1) return false
             }
 
-            const paymentAssetUnit: Uint8Array = CardanoConfigs.assetFingerprintUnitTuples.get(event.targetChainTokenId)
+            const paymentAssetUnit: Uint8Array = CardanoUtils.getAssetUnitFromConfigFingerPrintMap(event.targetChainTokenId)
             const paymentAssetPolicyId: ScriptHash = ScriptHash.from_bytes(paymentAssetUnit.slice(0, 28))
             const paymentAssetAssetName: AssetName = AssetName.new(paymentAssetUnit.slice(28))
-            const paymentAssetAmount: BigNum = paymentBox.amount().multiasset().get_asset(paymentAssetPolicyId, paymentAssetAssetName)
+            const paymentAssetAmount: BigNum | undefined = paymentBox.amount().multiasset()?.get_asset(paymentAssetPolicyId, paymentAssetAssetName)
 
             return paymentBox.amount().coin().compare(lovelacePaymentAmount) === 0 &&
+                paymentAssetAmount !== undefined &&
                 paymentAssetAmount.compare(assetPaymentAmount) === 0 &&
                 paymentBox.address().to_bech32() === event.toAddress;
         }
@@ -205,7 +207,7 @@ class CardanoChain implements BaseChain<Transaction> {
             .checked_sub(BigNum.from_str(event.bridgeFee))
             .checked_sub(BigNum.from_str(event.networkFee))
 
-        const paymentAssetUnit: Uint8Array = CardanoConfigs.assetFingerprintUnitTuples.get(event.targetChainTokenId)
+        const paymentAssetUnit: Uint8Array = CardanoUtils.getAssetUnitFromConfigFingerPrintMap(event.targetChainTokenId)
         const paymentAssetPolicyId: ScriptHash = ScriptHash.from_bytes(paymentAssetUnit.slice(0, 28))
         const paymentAssetAssetName: AssetName = AssetName.new(paymentAssetUnit.slice(28))
         const paymentMultiAsset = MultiAsset.new()

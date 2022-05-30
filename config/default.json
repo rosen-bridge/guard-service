@@ -1,0 +1,16 @@
+{
+    "koios": {
+        "url": "https://testnet.koios.rest/api/v0",
+        "timeout": 8000
+    },
+    "blockFrost": {
+        "projectId": "change me",
+        "isTestnet": true
+    },
+    "cardano": {
+        "bankAddress": "addr_test1qrm4haxxgl55kqzhpp3sda8h979gxd4cast340v0eh0p4qzp3vkcrhjqavv9uzsvq86mglwnwe8xp87q3rv8ve54kasqlf7xgl",
+        "txMinimumLovelace": "1310316",
+        "txFee": "200000",
+        "txTtl": 100000
+    }
+}

@@ -5,8 +5,8 @@ import config from "config";
 class BlockFrostApi {
 
     static blockFrost = new BlockFrostAPI({
-        projectId: config.get?.('blockFrost.projectId'),
-        isTestnet: config.get?.('blockFrost.isTestnet'),
+        projectId: config.get<string>('blockFrost.projectId'),
+        isTestnet: config.get<boolean>('blockFrost.isTestnet')
     });
 
     static currentSlot = async (): Promise<number> => {

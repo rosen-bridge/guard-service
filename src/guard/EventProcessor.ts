@@ -1,6 +1,7 @@
 import { EventTrigger, PaymentTransaction } from "../models/Models";
 import BaseChain from "../chains/BaseChains";
 import CardanoChain from "../chains/cardano/CardanoChain";
+import ChainsConstants from "../chains/ChainsConstants";
 
 
 class EventProcessor {

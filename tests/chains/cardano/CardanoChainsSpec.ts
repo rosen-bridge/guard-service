@@ -6,7 +6,7 @@ import { expect } from "chai";
 import { Utxo } from "../../../src/chains/cardano/models/Models";
 
 describe("CardanoChain", async () => {
-    const testBankAddress: string = "addr_test1qrm4haxxgl55kqzhpp3sda8h979gxd4cast340v0eh0p4qzp3vkcrhjqavv9uzsvq86mglwnwe8xp87q3rv8ve54kasqlf7xgl"
+    const testBankAddress = "addr_test1qrm4haxxgl55kqzhpp3sda8h979gxd4cast340v0eh0p4qzp3vkcrhjqavv9uzsvq86mglwnwe8xp87q3rv8ve54kasqlf7xgl"
 
     describe("generateTransaction", async () => {
         // mock getting bankBoxes
