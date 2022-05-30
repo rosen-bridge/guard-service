@@ -4,8 +4,8 @@ class ErgoConfigs {
 
     // service configs
     static bankAddress: string = config.get?.('ergo.bankAddress')
-    static minimumErg: bigint = BigInt(config.get?.('ergo.minimumErg'))
-    static txFee: bigint = BigInt(config.get?.('ergo.txFee'))
+    static minimumErg = BigInt(config.get?.('ergo.minimumErg'))
+    static txFee = BigInt(config.get?.('ergo.txFee'))
 
 }
 

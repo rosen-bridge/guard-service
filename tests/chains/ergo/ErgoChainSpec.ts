@@ -7,15 +7,20 @@ import Utils from "../../../src/chains/ergo/helpers/Utils";
 import { mockGetCoveringErgAndTokenForErgoTree, resetMockedExplorerApi } from "./mocked/MockedExplorer";
 import { spy } from "ts-mockito";
 import ExplorerApi from "../../../src/chains/ergo/network/ExplorerApi";
+import { beforeEach } from "mocha";
 
 describe("ErgoChain", async () => {
-    const testBankAddress: string = "9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD"
+    const testBankAddress = "9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD"
     const testBankErgoTree: string = Utils.addressStringToErgoTreeString(testBankAddress)
 
     describe("generateTransaction", async () => {
-        const mockedExplorer = spy(ExplorerApi)
         // mock getting bankBoxes
-        const bankBoxes: Promise<CoveringErgoBoxes> = TestBoxes.mockBankBoxes()
+        const bankBoxes: CoveringErgoBoxes = TestBoxes.mockBankBoxes()
+
+        beforeEach("mock ExplorerApi", function() {
+            resetMockedExplorerApi()
+            mockGetCoveringErgAndTokenForErgoTree(testBankErgoTree, bankBoxes)
+        })
 
         /**
          * Target: testing generateTransaction
@@ -27,8 +32,6 @@ describe("ErgoChain", async () => {
          *    It should also verify it successfully
          */
         it("should generate an Erg payment tx and verify it successfully", async () => {
-            resetMockedExplorerApi(mockedExplorer)
-            mockGetCoveringErgAndTokenForErgoTree(testBankErgoTree, bankBoxes, mockedExplorer)
             // mock erg payment event
             const mockedEvent: EventTrigger = TestBoxes.mockErgPaymentEventTrigger()
 
@@ -50,9 +53,7 @@ describe("ErgoChain", async () => {
          *    The function should construct a valid tx successfully
          *    It should also verify it successfully
          */
-        it("should generate an token payment tx and verify it successfully", async () => {
-            resetMockedExplorerApi(mockedExplorer)
-            mockGetCoveringErgAndTokenForErgoTree(testBankErgoTree, bankBoxes, mockedExplorer)
+        it("should generate a token payment tx and verify it successfully", async () => {
             // mock token payment event
             const mockedEvent: EventTrigger = TestBoxes.mockTokenPaymentEventTrigger()
 
@@ -67,7 +68,7 @@ describe("ErgoChain", async () => {
 
     })
 
-    describe("verifyTransactionWithEvent", async () => {
+    describe("verifyTransactionWithEvent", () => {
 
         /**
          * Target: testing generateTransaction
@@ -76,10 +77,10 @@ describe("ErgoChain", async () => {
          * Expected Output:
          *    It should NOT verify the transaction
          */
-        it("should reject an Erg payment tx that transferring token", async () => {
+        it("should reject an Erg payment tx that transferring token", () => {
             // mock erg payment event
             const mockedEvent: EventTrigger = TestBoxes.mockErgPaymentEventTrigger()
-            const tx = await TestBoxes.mockTokenTransferringPaymentTransaction(mockedEvent)
+            const tx = TestBoxes.mockTokenTransferringPaymentTransaction(mockedEvent)
 
             // run test
             const ergoChain: ErgoChain = new ErgoChain()
@@ -94,10 +95,10 @@ describe("ErgoChain", async () => {
          * Expected Output:
          *    It should NOT verify the transaction
          */
-        it("should reject a token payment tx with no token transferring", async () => {
+        it("should reject a token payment tx with no token transferring", () => {
             // mock token payment event
             const mockedEvent: EventTrigger = TestBoxes.mockTokenPaymentEventTrigger()
-            const tx = await TestBoxes.mockErgTransferringPaymentTransaction(mockedEvent)
+            const tx = TestBoxes.mockErgTransferringPaymentTransaction(mockedEvent)
 
             // run test
             const ergoChain: ErgoChain = new ErgoChain()
@@ -112,10 +113,10 @@ describe("ErgoChain", async () => {
          * Expected Output:
          *    It should NOT verify the transaction
          */
-        it("should reject a token payment tx that transferring multiple tokens", async () => {
+        it("should reject a token payment tx that transferring multiple tokens", () => {
             // mock token payment event
             const mockedEvent: EventTrigger = TestBoxes.mockTokenPaymentEventTrigger()
-            const tx = await TestBoxes.mockMultipleTokensTransferringPaymentTransaction(mockedEvent)
+            const tx = TestBoxes.mockMultipleTokensTransferringPaymentTransaction(mockedEvent)
 
             // run test
             const ergoChain: ErgoChain = new ErgoChain()
@@ -130,10 +131,10 @@ describe("ErgoChain", async () => {
          * Expected Output:
          *    It should NOT verify the transaction
          */
-        it("should reject a token payment tx that transferring wrong token", async () => {
+        it("should reject a token payment tx that transferring wrong token", () => {
             // mock token payment event
             const mockedEvent: EventTrigger = TestBoxes.mockTokenPaymentEventTrigger()
-            const tx = await TestBoxes.mockWrongTokenTransferringPaymentTransaction(mockedEvent)
+            const tx = TestBoxes.mockWrongTokenTransferringPaymentTransaction(mockedEvent)
 
             // run test
             const ergoChain: ErgoChain = new ErgoChain()

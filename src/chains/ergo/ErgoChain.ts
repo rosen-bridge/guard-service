@@ -260,7 +260,7 @@ class ErgoChain implements BaseChain<ReducedTransaction> {
      */
     calculateInputBoxesAssets = (boxes: ErgoBox[]): InBoxesInfo => {
         const inErgoBoxes = ErgoBoxes.empty()
-        let changeErgAmount: bigint = BigInt(0)
+        let changeErgAmount = BigInt(0)
         const changeTokens: AssetMap = {}
 
         boxes.forEach(box => {
@@ -268,7 +268,7 @@ class ErgoChain implements BaseChain<ReducedTransaction> {
             const tokenSize = box.tokens().len()
             for (let i = 0; i < tokenSize; i++) {
                 const token = box.tokens().get(i)
-                if (changeTokens.hasOwnProperty(token.id().to_str()))
+                if (Object.prototype.hasOwnProperty.call(changeTokens, token.id().to_str()))
                     changeTokens[token.id().to_str()] += Utils.bigintFromI64(token.amount().as_i64())
                 else
                     changeTokens[token.id().to_str()] = Utils.bigintFromI64(token.amount().as_i64())

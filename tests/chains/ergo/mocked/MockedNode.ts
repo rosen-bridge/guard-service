@@ -4,7 +4,7 @@ import { ErgoStateContext } from "ergo-lib-wasm-nodejs";
 import TestData from "../testUtils/TestData";
 
 // test configs
-const testBlockchainHeight: number = 100000
+const testBlockchainHeight = 100000
 const testErgoStateContext: ErgoStateContext = TestData.mockedErgoStateContext
 
 const mockedNode = spy(NodeApi)

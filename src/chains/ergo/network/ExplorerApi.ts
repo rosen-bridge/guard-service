@@ -33,7 +33,7 @@ class ExplorerApi {
         tree: string,
         ergAmount: bigint,
         tokens: AssetMap = {},
-        filter: (box: any) => boolean = () => true
+        filter: (box: Box) => boolean = () => true
     ): Promise<CoveringErgoBoxes> => {
 
         const remaining = () => {
@@ -43,19 +43,17 @@ class ExplorerApi {
 
         const res: Box[] = []
         const boxesItems = await this.getBoxesForErgoTree(tree, 0, 1)
-        console.log(`\t|ret value len: ${boxesItems.total}`)
         const total = boxesItems.total
         let offset = 0
 
         while (offset < total && remaining()) {
             const boxes = await this.getBoxesForErgoTree(tree, offset, 10)
-            console.log(`\t|ret value len: ${boxes.total}`)
             for (const box of boxes.items) {
                 if (filter(box)) {
                     res.push(box)
                     ergAmount -= box.value;
                     box.assets.map((asset: any) => {
-                        if (tokens.hasOwnProperty(asset.tokenId)) {
+                        if (Object.prototype.hasOwnProperty.call(tokens, asset.tokenId)) {
                             tokens[asset.tokenId] -= asset.amount
                         }
                     })
