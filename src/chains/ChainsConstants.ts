@@ -1,6 +1,7 @@
 class ChainsConstants {
 
     static cardano = "cardano"
+    static ergo = "ergo"
 
 }
 

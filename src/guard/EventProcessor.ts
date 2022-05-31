@@ -1,12 +1,14 @@
 import { EventTrigger, PaymentTransaction } from "../models/Models";
 import BaseChain from "../chains/BaseChains";
 import CardanoChain from "../chains/cardano/CardanoChain";
+import ErgoChain from "../chains/ergo/ErgoChain";
 import ChainsConstants from "../chains/ChainsConstants";
 
 
 class EventProcessor {
 
     cardanoChain = new CardanoChain()
+    ergoChain = new ErgoChain()
 
     /**
      * returns chain object for target chain of the event trigger
@@ -14,6 +16,7 @@ class EventProcessor {
      */
     getDestinationChainObject = (event: EventTrigger): BaseChain<any> => {
         if (event.toChain === ChainsConstants.cardano) return this.cardanoChain
+        else if (event.toChain === ChainsConstants.ergo) return this.ergoChain
         else throw new Error(`chain [${event.toChain}] not implemented.`)
     }
 

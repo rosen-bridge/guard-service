@@ -9,6 +9,9 @@ class BlockFrostApi {
         isTestnet: config.get<boolean>('blockFrost.isTestnet')
     });
 
+    /**
+     * gets current slot of blockchain
+     */
     static currentSlot = async (): Promise<number> => {
         const block = await this.blockFrost.blocksLatest()
         const slot = block.slot
