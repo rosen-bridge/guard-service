@@ -1,12 +1,11 @@
 import Utils from "../../../../src/chains/ergo/helpers/Utils";
 import { Boxes } from "../../../../src/chains/ergo/models/Interfaces";
 import {
-    mockGetBoxesForErgoTree, mockGetCoveringErgAndTokenForErgoTree,
+    mockGetBoxesForErgoTree,
     resetMockedExplorerApi
 } from "../mocked/MockedExplorer";
 import { expect } from "chai";
 import ExplorerApi from "../../../../src/chains/ergo/network/ExplorerApi";
-import { spy } from "ts-mockito";
 import { beforeEach } from "mocha";
 import TestBoxes from "../testUtils/TestBoxes";
 

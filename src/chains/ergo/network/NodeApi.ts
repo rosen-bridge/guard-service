@@ -6,10 +6,9 @@ import { ErgoBlockHeader } from "../models/Interfaces";
 
 class NodeApi {
 
-    // TODO: improve config file tree
     static nodeClient = axios.create({
-        baseURL: config.get?.('node.url'),
-        timeout: config.get?.('node.timeout'),
+        baseURL: config.get?.('ergo.node.url'),
+        timeout: config.get?.('ergo.node.timeout'),
         headers: {"Content-Type": "application/json"}
     });
 
@@ -17,7 +16,7 @@ class NodeApi {
      * gets blockchain height
      */
     static getHeight = async (): Promise<number> => {
-        return this.nodeClient.get("/info").then((info: any) => info.data.fullHeight)
+        return this.nodeClient.get("/info").then(info => info.data.fullHeight)
     }
 
     /**

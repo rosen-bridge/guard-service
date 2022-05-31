@@ -5,8 +5,6 @@ import { expect } from "chai";
 import { CoveringErgoBoxes } from "../../../src/chains/ergo/models/Interfaces";
 import Utils from "../../../src/chains/ergo/helpers/Utils";
 import { mockGetCoveringErgAndTokenForErgoTree, resetMockedExplorerApi } from "./mocked/MockedExplorer";
-import { spy } from "ts-mockito";
-import ExplorerApi from "../../../src/chains/ergo/network/ExplorerApi";
 import { beforeEach } from "mocha";
 
 describe("ErgoChain", async () => {

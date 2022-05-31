@@ -1,6 +1,6 @@
 import { EventTrigger, PaymentTransaction } from "../../../../src/models/Models";
 import TestUtils from "../../../testUtils/TestUtils";
-import { Asset, Box, Boxes, CoveringErgoBoxes, ErgoBlockHeader } from "../../../../src/chains/ergo/models/Interfaces";
+import { Asset, Box, Boxes, CoveringErgoBoxes } from "../../../../src/chains/ergo/models/Interfaces";
 import {
     BoxValue,
     ErgoBox, ErgoBoxes,

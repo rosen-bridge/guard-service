@@ -10,7 +10,7 @@ describe("CardanoChain", async () => {
 
     describe("generateTransaction", async () => {
         // mock getting bankBoxes
-        const bankBoxes: Promise<Utxo[]> = TestBoxes.mockBankBoxes()
+        const bankBoxes: Utxo[] = TestBoxes.mockBankBoxes()
         mockGetAddressBoxes(testBankAddress, bankBoxes)
 
         /**

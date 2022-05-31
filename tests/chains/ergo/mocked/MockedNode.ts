@@ -8,9 +8,5 @@ const testBlockchainHeight = 100000
 const testErgoStateContext: ErgoStateContext = TestData.mockedErgoStateContext
 
 const mockedNode = spy(NodeApi)
-when(mockedNode.getHeight()).thenReturn(new Promise<number>((resolve, reject) => {
-    resolve(testBlockchainHeight)
-}))
-when(mockedNode.getErgoStateContext()).thenReturn(new Promise<ErgoStateContext>((resolve, reject) => {
-    resolve(testErgoStateContext)
-}))
+when(mockedNode.getHeight()).thenResolve(testBlockchainHeight)
+when(mockedNode.getErgoStateContext()).thenResolve(testErgoStateContext)

@@ -5,8 +5,8 @@ import config from "config";
 class BlockFrostApi {
 
     static blockFrost = new BlockFrostAPI({
-        projectId: config.get<string>('blockFrost.projectId'),
-        isTestnet: config.get<boolean>('blockFrost.isTestnet')
+        projectId: config.get<string>('cardano.blockFrost.projectId'),
+        isTestnet: config.get<boolean>('cardano.blockFrost.isTestnet')
     });
 
     /**
