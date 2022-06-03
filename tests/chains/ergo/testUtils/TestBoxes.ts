@@ -2,7 +2,7 @@ import { EventTrigger, PaymentTransaction } from "../../../../src/models/Models"
 import TestUtils from "../../../testUtils/TestUtils";
 import { Asset, Box, Boxes, CoveringErgoBoxes } from "../../../../src/chains/ergo/models/Interfaces";
 import {
-    BoxValue,
+    BoxValue, Contract,
     ErgoBox, ErgoBoxes,
     I64, ReducedTransaction,
     Token,
@@ -15,6 +15,7 @@ import {
 import Utils from "../../../../src/chains/ergo/helpers/Utils";
 import TestData from "./TestData";
 import { JsonBI } from "../../../../src/network/NetworkModels";
+import ErgoConfigs from "../../../../src/chains/ergo/helpers/ErgoConfigs";
 
 class TestBoxes {
 
@@ -32,13 +33,19 @@ class TestBoxes {
     static ergToNanoErgString = (erg: number): string => (BigInt(erg) * BigInt(1000000000)).toString()
 
     /**
+     * converts an ErgoBox object to Box interface
+     */
+    static convertErgoBoxToBoxObject = (ergoBox: ErgoBox): Box => JsonBI.parse(ergoBox.to_json())
+
+    /**
      * generates a mocked event trigger for Erg payment in ergo chain
      */
     static mockErgPaymentEventTrigger = (): EventTrigger => {
         return new EventTrigger("", "ergo", "",
             "9hCPp7N4foJ68kPEwMMEa8tCsXVTDoLvXbdkm8s5Ht7Dpnc3L2t",
             "50000000000", "1000000000", "1500000", "",
-            "erg", TestUtils.generateRandomId(), "", []
+            "erg", TestUtils.generateRandomId(), "",
+            Array(5).fill(0).map(() => TestUtils.generateRandomId())
         )
     }
 
@@ -49,7 +56,8 @@ class TestBoxes {
         return new EventTrigger("", "ergo", "",
             "9hCPp7N4foJ68kPEwMMEa8tCsXVTDoLvXbdkm8s5Ht7Dpnc3L2t",
             "80", "10", "5", "",
-            "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e", TestUtils.generateRandomId(), "", []
+            "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e", TestUtils.generateRandomId(), "",
+            Array(5).fill(0).map(() => TestUtils.generateRandomId())
         )
     }
 
@@ -204,24 +212,32 @@ class TestBoxes {
     }
 
     /**
-     * generates an input box for ergo bank address
+     * generates an input box for arbitrary address
      */
-    static mockSingleBankBox = (value: number, assets: Asset[]): Box => {
+    static mockSingleBox = (value: number, assets: Asset[], addressContract: Contract): ErgoBox => {
         const boxTokens: Tokens = new Tokens()
         assets.forEach(asset =>
             boxTokens.add(new Token(TokenId.from_str(asset.tokenId), TokenAmount.from_i64(Utils.i64FromBigint(asset.amount))))
         )
 
-        const boxJson = new ErgoBox(
+        return new ErgoBox(
             this.ergToBoxValue(value),
             this.testBlockchainHeight,
-            Utils.addressStringToContract(this.testBankAddress),
+            addressContract,
             TxId.from_str(TestUtils.generateRandomId()),
             0,
             boxTokens
-        ).to_json()
-        return JsonBI.parse(boxJson)
+        )
     }
+
+    /**
+     * generates an input box for ergo bank address
+     */
+    static mockSingleBankBox = (value: number, assets: Asset[]): ErgoBox => this.mockSingleBox(
+        value,
+        assets,
+        Utils.addressStringToContract(this.testBankAddress)
+    )
 
     /**
      * generates 14 input boxes for ergo bank address
@@ -231,7 +247,7 @@ class TestBoxes {
         const secondTokenId = "068354ba0c3990e387a815278743577d8b2d098cad21c95dc795e3ae721cf906"
         const randomTokenId: string = TestUtils.generateRandomId()
 
-        const box1: Box = this.mockSingleBankBox(
+        const box1: ErgoBox = this.mockSingleBankBox(
             30,
             [
                 {
@@ -245,7 +261,7 @@ class TestBoxes {
             ]
         )
 
-        const box2: Box = this.mockSingleBankBox(
+        const box2: ErgoBox = this.mockSingleBankBox(
             100,
             [
                 {
@@ -259,7 +275,7 @@ class TestBoxes {
             ]
         )
 
-        const box3: Box = this.mockSingleBankBox(
+        const box3: ErgoBox = this.mockSingleBankBox(
             10,
             [
                 {
@@ -269,9 +285,9 @@ class TestBoxes {
             ]
         )
 
-        const middleBoxesArray: Box[] = Array(10).fill(this.mockSingleBankBox(10, []))
+        const middleBoxesArray: ErgoBox[] = Array(10).fill(0).map(() => this.mockSingleBankBox(10, []))
 
-        const box14: Box = this.mockSingleBankBox(
+        const box14: ErgoBox = this.mockSingleBankBox(
             1,
             [
                 {
@@ -286,9 +302,37 @@ class TestBoxes {
         )
 
         return {
-            items: [box1, box2, box3].concat(middleBoxesArray).concat([box14]),
+            items: [box1, box2, box3].concat(middleBoxesArray).concat([box14]).map(box => this.convertErgoBoxToBoxObject(box)),
             total: 14
         }
+    }
+
+    /**
+     * generates an event box with 5 WIDs and 2 commitment boxes
+     */
+    static mockEventBoxWithSomeCommitments = (): ErgoBox[] => {
+        const rwtTokenId: string = TestUtils.generateRandomId()
+        const eventBox: ErgoBox = this.mockSingleBox(
+            5 * 100000,
+            [
+                {
+                    tokenId: rwtTokenId,
+                    amount: BigInt("5")
+                }
+            ],
+            Utils.addressStringToContract(this.testBankAddress) // TODO: change this to trigger event contract
+        )
+        const commitmentBoxes: ErgoBox[] = Array(2).fill(0).map(() => this.mockSingleBox(
+            100000,
+            [
+                {
+                    tokenId: rwtTokenId,
+                    amount: BigInt("1")
+                }
+            ],
+            Utils.addressStringToContract(this.testBankAddress) // TODO: change this to commitment contract
+        ))
+        return [eventBox].concat(commitmentBoxes)
     }
 
 }
