@@ -1,11 +1,11 @@
-import config from "config";
+import Configs from "../../../helpers/Configs";
 
 class ErgoConfigs {
 
     // service configs
-    static bankAddress: string = config.get<string>('ergo.bankAddress')
-    static minimumErg = BigInt(config.get<string>('ergo.minimumErg'))
-    static txFee = BigInt(config.get<string>('ergo.txFee'))
+    static bankAddress: string = Configs.ergo.bankAddress
+    static minimumErg = Configs.ergo.minimumErg
+    static txFee = Configs.ergo.txFee
 
 }
 

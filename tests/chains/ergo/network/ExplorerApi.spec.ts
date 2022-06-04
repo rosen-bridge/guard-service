@@ -8,7 +8,6 @@ import { expect } from "chai";
 import ExplorerApi from "../../../../src/chains/ergo/network/ExplorerApi";
 import { beforeEach } from "mocha";
 import TestBoxes from "../testUtils/TestBoxes";
-import config from "config";
 
 describe("ExplorerApi", async () => {
     const testBankAddress = TestBoxes.testBankAddress

@@ -1,14 +1,14 @@
 import axios from "axios";
-import config from "config";
 import { BlockHeaders, ErgoStateContext, PreHeader } from "ergo-lib-wasm-nodejs";
 import { ErgoBlockHeader } from "../models/Interfaces";
+import Configs from "../../../helpers/Configs";
 
 
 class NodeApi {
 
     static nodeClient = axios.create({
-        baseURL: config.get<string>('ergo.node.url'),
-        timeout: config.get<number>('ergo.node.timeout'),
+        baseURL: Configs.ergo.node.url,
+        timeout: Configs.ergo.node.timeout,
         headers: {"Content-Type": "application/json"}
     });
 

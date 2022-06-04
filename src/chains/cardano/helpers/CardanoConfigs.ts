@@ -1,6 +1,6 @@
 import * as CardanoWasm from '@emurgo/cardano-serialization-lib-nodejs';
 import { BigNum, TransactionBuilderConfig } from "@emurgo/cardano-serialization-lib-nodejs";
-import config from "config";
+import Configs from "../../../helpers/Configs";
 
 class CardanoConfigs {
 
@@ -30,10 +30,10 @@ class CardanoConfigs {
         .build();
 
     // service configs
-    static bankAddress: string = config.get<string>('cardano.bankAddress')
-    static txMinimumLovelace: BigNum = BigNum.from_str(config.get<string>('cardano.txMinimumLovelace')) // TODO: improve this?
-    static txFee: BigNum  = BigNum.from_str(config.get<string>('cardano.txFee')) // TODO: improve this?
-    static txTtl: number  = config.get<number>('cardano.txTtl')
+    static bankAddress: string = Configs.cardano.bankAddress
+    static txMinimumLovelace: BigNum = BigNum.from_str(Configs.cardano.txMinimumLovelace) // TODO: improve this?
+    static txFee: BigNum  = BigNum.from_str(Configs.cardano.txFee) // TODO: improve this?
+    static txTtl: number  = Configs.cardano.txTtl
 
     static assetFingerprintUnitTuples: Map<string, Uint8Array> = new Map([
         ["assetFingerPrint", Buffer.from("assetUnitHexString", "hex")]
