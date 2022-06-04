@@ -2,7 +2,7 @@ import {
     Address,
     BoxSelection, Constant,
     ErgoBox,
-    ErgoBoxAssetsDataList, ErgoBoxCandidate,
+    ErgoBoxAssetsDataList,
     ErgoBoxCandidateBuilder,
     ErgoBoxCandidates,
     ErgoBoxes,
@@ -10,7 +10,7 @@ import {
     ReducedTransaction,
     TokenAmount,
     TokenId,
-    TxBuilder
+    TxBuilder, UnsignedInputs
 } from "ergo-lib-wasm-nodejs";
 import { PaymentTransaction, EventTrigger } from "../../models/Models";
 import BaseChain from "../BaseChains";
@@ -21,6 +21,7 @@ import NodeApi from "./network/NodeApi";
 import { AssetMap, InBoxesInfo } from "./models/Interfaces";
 import Contracts from "../../contracts/Contracts";
 import RewardBoxes from "./helpers/RewardBoxes";
+import Configs from "../../helpers/Configs";
 
 
 class Reward implements BaseChain<ReducedTransaction> {
@@ -59,7 +60,7 @@ class Reward implements BaseChain<ReducedTransaction> {
      *  2. checks ergoTree of all boxes
      *  3. checks number of tokens in watcher and guards boxes
      *  4. checks rwt tokens of watchers
-     *  5. checks if input boxes contains all valid commitment boxes and first input box is the event box TODO
+     *  5. checks if input boxes contains all valid commitment boxes and first input box is the event box
      *  4. checks id of token in watcher and guards boxes (token payment)
      *  5. checks amount of token in watcher and guards boxes (token payment)
      *  6. checks if output boxes contains all WIDs in input boxes
@@ -74,6 +75,7 @@ class Reward implements BaseChain<ReducedTransaction> {
         // get eventBox and remaining valid commitments
         const eventBox: ErgoBox = RewardBoxes.getEventBox(event)
         const commitmentBoxes: ErgoBox[] = RewardBoxes.getEventValidCommitments(event)
+        if (!this.verifyInputs(tx.inputs(), eventBox, commitmentBoxes)) return false
 
         // verify number of output boxes
         const outputLength = outputBoxes.len()
@@ -94,7 +96,7 @@ class Reward implements BaseChain<ReducedTransaction> {
         const guardsBridgeFeeShare: bigint = BigInt(event.bridgeFee) - (BigInt(watchersLen) * watcherShare)
         const guardsNetworkFeeShare: bigint = BigInt(event.networkFee)
 
-        const rwtToken = "" // TODO: get RWT token
+        const rwtToken = Configs.ergoRWT
         const outputBoxesWIDs: Uint8Array[] = []
         if (event.sourceChainTokenId === "erg") { // Erg payment case
             const sizeOfGuardsBoxesTokens: number = guardsBridgeFeeBox.tokens().len() + guardsNetworkFeeBox.tokens().len()
@@ -191,6 +193,27 @@ class Reward implements BaseChain<ReducedTransaction> {
      */
     deserialize = (txBytes: Uint8Array): ReducedTransaction => {
         return ReducedTransaction.sigma_parse_bytes(txBytes)
+    }
+
+    /**
+     * checks if input boxes contain all valid commitments and the event box
+     * @param inputBoxes the transaction input boxes
+     * @param eventBox the event trigger box
+     * @param commitmentBoxes the event valid commitment boxes that didn't merge
+     */
+    verifyInputs = (inputBoxes: UnsignedInputs, eventBox: ErgoBox, commitmentBoxes: ErgoBox[]): boolean => {
+        const sizeOfInputs = inputBoxes.len()
+        if (inputBoxes.get(0).box_id().to_str() !== eventBox.box_id().to_str()) return false
+
+        const inputBoxIds: string[] = []
+        for (let i = 1; i < sizeOfInputs; i++)
+            inputBoxIds.push(inputBoxes.get(i).box_id().to_str())
+
+        commitmentBoxes.forEach(box => {
+            if (!inputBoxIds.includes(box.box_id().to_str())) return false
+        })
+
+        return true
     }
 
     /**
@@ -329,7 +352,7 @@ class Reward implements BaseChain<ReducedTransaction> {
         // calculate assets of payment box
         const watchersLen: number = event.WIDs.length + commitmentBoxes.length
         const inErgAmount: bigint = 3n * ErgoConfigs.minimumErg + ErgoConfigs.txFee
-        const paymentTokenId: TokenId = TokenId.from_str(event.targetChainTokenId)
+        const paymentTokenId: TokenId = TokenId.from_str(event.sourceChainTokenId)
         const watcherShare: bigint = BigInt(event.bridgeFee) * ErgoConfigs.watchersSharePercent / 100n / BigInt(watchersLen)
         const guardsBridgeFeeShare: bigint = BigInt(event.bridgeFee) - (BigInt(watchersLen) * watcherShare)
         const guardsNetworkFeeShare: bigint = BigInt(event.networkFee)
@@ -339,11 +362,11 @@ class Reward implements BaseChain<ReducedTransaction> {
             this.bankErgoTree,
             inErgAmount,
             {
-                [event.targetChainTokenId]: BigInt(event.bridgeFee) + BigInt(event.networkFee)
+                [event.sourceChainTokenId]: BigInt(event.bridgeFee) + BigInt(event.networkFee)
             }
         )
         if (!bankBoxes.covered)
-            throw new Error(`Bank boxes didn't cover needed amount of erg: ${inErgAmount.toString()}, or token: [id: ${event.targetChainTokenId}] amount: ${BigInt(event.bridgeFee) + BigInt(event.networkFee)}`)
+            throw new Error(`Bank boxes didn't cover needed amount of erg: ${inErgAmount.toString()}, or token: [id: ${event.sourceChainTokenId}] amount: ${BigInt(event.bridgeFee) + BigInt(event.networkFee)}`)
         console.log(`\t[*] step token 2`)
 
         // create the output boxes
@@ -402,7 +425,7 @@ class Reward implements BaseChain<ReducedTransaction> {
         const changeBoxInfo = this.calculateBankBoxesAssets(bankBoxes.boxes, inErgoBoxes)
         const changeErgAmount: bigint = changeBoxInfo.ergs - (2n * ErgoConfigs.minimumErg) - ErgoConfigs.txFee
         const changeTokens: AssetMap = changeBoxInfo.tokens
-        changeTokens[event.targetChainTokenId] -= BigInt(event.bridgeFee) + BigInt(event.networkFee)
+        changeTokens[event.sourceChainTokenId] -= BigInt(event.bridgeFee) + BigInt(event.networkFee)
         console.log(`\t[*] step token 6.1`)
 
         // create the change box
