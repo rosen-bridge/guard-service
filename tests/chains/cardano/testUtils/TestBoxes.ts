@@ -11,8 +11,11 @@ import {
 } from "@emurgo/cardano-serialization-lib-nodejs";
 import CardanoConfigs from "../../../../src/chains/cardano/helpers/CardanoConfigs";
 import CardanoUtils from "../../../../src/chains/cardano/helpers/CardanoUtils";
+import config from "config";
 
 class TestBoxes {
+
+    static testBankAddress = config.get<string>('cardano.bankAddress')
 
     /**
      * returns string representation for arbitrary amount of ADA in lovelace unit

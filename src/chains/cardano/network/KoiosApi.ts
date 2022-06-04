@@ -6,8 +6,8 @@ import { Utxo } from "../models/Interfaces";
 class KoiosApi {
 
     static koios = axios.create({
-        baseURL: config.get?.('cardano.koios.url'),
-        timeout: config.get?.('cardano.koios.timeout'),
+        baseURL: config.get<string>('cardano.koios.url'),
+        timeout: config.get<number>('cardano.koios.timeout'),
         headers: {"Content-Type": "application/json"}
     });
 

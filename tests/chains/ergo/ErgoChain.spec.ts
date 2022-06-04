@@ -8,7 +8,7 @@ import { mockGetCoveringErgAndTokenForErgoTree, resetMockedExplorerApi } from ".
 import { beforeEach } from "mocha";
 
 describe("ErgoChain", async () => {
-    const testBankAddress = "9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD"
+    const testBankAddress = TestBoxes.testBankAddress
     const testBankErgoTree: string = Utils.addressStringToErgoTreeString(testBankAddress)
 
     describe("generateTransaction", async () => {

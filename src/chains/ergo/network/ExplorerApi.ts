@@ -8,8 +8,8 @@ import { JsonBI } from "../../../network/NetworkModels";
 class ExplorerApi {
 
     static explorerApi = axios.create({
-        baseURL: config.get?.('ergo.explorer.url'),
-        timeout: config.get?.('ergo.explorer.timeout')
+        baseURL: config.get<string>('ergo.explorer.url'),
+        timeout: config.get<number>('ergo.explorer.timeout')
     })
 
     /**

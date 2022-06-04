@@ -1,8 +1,10 @@
 import { spy, when } from "ts-mockito";
 import BlockFrostApi from "../../../../src/chains/cardano/network/BlockFrostApi";
+import config from "config";
+
 
 // test configs
-const testCurrentSlot: Promise<number> = new Promise<number>((resolve, ) => resolve(8040020))
+const testCurrentSlot: number = config.get<number>('cardano.currentSlot')
 
 const mockedBlockFrost = spy(BlockFrostApi)
-when(mockedBlockFrost.currentSlot()).thenReturn(testCurrentSlot)
+when(mockedBlockFrost.currentSlot()).thenResolve(testCurrentSlot)

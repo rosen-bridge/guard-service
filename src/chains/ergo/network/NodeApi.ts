@@ -7,8 +7,8 @@ import { ErgoBlockHeader } from "../models/Interfaces";
 class NodeApi {
 
     static nodeClient = axios.create({
-        baseURL: config.get?.('ergo.node.url'),
-        timeout: config.get?.('ergo.node.timeout'),
+        baseURL: config.get<string>('ergo.node.url'),
+        timeout: config.get<number>('ergo.node.timeout'),
         headers: {"Content-Type": "application/json"}
     });
 
