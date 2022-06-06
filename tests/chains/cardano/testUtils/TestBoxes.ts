@@ -14,6 +14,8 @@ import CardanoUtils from "../../../../src/chains/cardano/helpers/CardanoUtils";
 
 class TestBoxes {
 
+    static testBankAddress = CardanoConfigs.bankAddress
+
     /**
      * returns string representation for arbitrary amount of ADA in lovelace unit
      */
@@ -44,45 +46,43 @@ class TestBoxes {
     /**
      * generates 3 Utxo for cardano bank address
      */
-    static mockBankBoxes = (): Promise<Utxo[]> => {
-        return new Promise<Utxo[]>((resolve, reject) => {
-            const box1: Utxo = {
-                tx_hash: TestUtils.generateRandomId(),
-                tx_index: 0,
-                value: this.adaToLovelaceString(30),
-                asset_list: [
-                    {
-                        policy_id: "7eae28af2208be856f7a119668ae52a49b73725e326dc16579dcc373",
-                        asset_name: "",
-                        quantity: "100"
-                    },
-                    {
-                        policy_id: "7eae28af2208be856f7a119668ae52a49b73725e326dc16579dcc37e",
-                        asset_name: "",
-                        quantity: "50"
-                    }
-                ]
-            }
-            const box2: Utxo = {
-                tx_hash: TestUtils.generateRandomId(),
-                tx_index: 0,
-                value: this.adaToLovelaceString(100),
-                asset_list: [
-                    {
-                        policy_id: "7eae28af2208be856f7a119668ae52a49b73725e326dc16579dcc37e",
-                        asset_name: "",
-                        quantity: "45"
-                    }
-                ]
-            }
-            const box3: Utxo = {
-                tx_hash: TestUtils.generateRandomId(),
-                tx_index: 2,
-                value: this.adaToLovelaceString(10),
-                asset_list: []
-            }
-            resolve([box1, box2, box3])
-        })
+    static mockBankBoxes = (): Utxo[] => {
+        const box1: Utxo = {
+            tx_hash: TestUtils.generateRandomId(),
+            tx_index: 0,
+            value: this.adaToLovelaceString(30),
+            asset_list: [
+                {
+                    policy_id: "7eae28af2208be856f7a119668ae52a49b73725e326dc16579dcc373",
+                    asset_name: "",
+                    quantity: "100"
+                },
+                {
+                    policy_id: "7eae28af2208be856f7a119668ae52a49b73725e326dc16579dcc37e",
+                    asset_name: "",
+                    quantity: "50"
+                }
+            ]
+        }
+        const box2: Utxo = {
+            tx_hash: TestUtils.generateRandomId(),
+            tx_index: 0,
+            value: this.adaToLovelaceString(100),
+            asset_list: [
+                {
+                    policy_id: "7eae28af2208be856f7a119668ae52a49b73725e326dc16579dcc37e",
+                    asset_name: "",
+                    quantity: "45"
+                }
+            ]
+        }
+        const box3: Utxo = {
+            tx_hash: TestUtils.generateRandomId(),
+            tx_index: 2,
+            value: this.adaToLovelaceString(10),
+            asset_list: []
+        }
+        return [box1, box2, box3]
     }
 
     /**

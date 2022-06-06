@@ -2,8 +2,6 @@ import { spy, when } from "ts-mockito";
 import KoiosApi from "../../../../src/chains/cardano/network/KoiosApi";
 import { Utxo } from "../../../../src/chains/cardano/models/Interfaces";
 
-// test configs
-const testBankAddress = "addr_test1qrm4haxxgl55kqzhpp3sda8h979gxd4cast340v0eh0p4qzp3vkcrhjqavv9uzsvq86mglwnwe8xp87q3rv8ve54kasqlf7xgl"
 
 const mockedKoios = spy(KoiosApi)
 
@@ -12,7 +10,7 @@ const mockedKoios = spy(KoiosApi)
  * @param address
  * @param returnBoxes
  */
-const mockGetAddressBoxes = (address: string, returnBoxes: Promise<Utxo[]>): void => {
-    when(mockedKoios.getAddressBoxes(address)).thenReturn(returnBoxes)
+const mockGetAddressBoxes = (address: string, returnBoxes: Utxo[]): void => {
+    when(mockedKoios.getAddressBoxes(address)).thenResolve(returnBoxes)
 }
 export default mockGetAddressBoxes

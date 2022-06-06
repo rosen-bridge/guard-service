@@ -1,15 +1,14 @@
 import axios from "axios";
-import config from "config";
 import { BlockHeaders, ErgoStateContext, PreHeader } from "ergo-lib-wasm-nodejs";
 import { ErgoBlockHeader } from "../models/Interfaces";
+import ErgoConfigs from "../helpers/ErgoConfigs";
 
 
 class NodeApi {
 
-    // TODO: improve config file tree
     static nodeClient = axios.create({
-        baseURL: config.get?.('node.url'),
-        timeout: config.get?.('node.timeout'),
+        baseURL: ErgoConfigs.node.url,
+        timeout: ErgoConfigs.node.timeout,
         headers: {"Content-Type": "application/json"}
     });
 
@@ -17,7 +16,7 @@ class NodeApi {
      * gets blockchain height
      */
     static getHeight = async (): Promise<number> => {
-        return this.nodeClient.get("/info").then((info: any) => info.data.fullHeight)
+        return this.nodeClient.get("/info").then(info => info.data.fullHeight)
     }
 
     /**

@@ -1,17 +1,16 @@
 import Utils from "../../../../src/chains/ergo/helpers/Utils";
 import { Boxes } from "../../../../src/chains/ergo/models/Interfaces";
 import {
-    mockGetBoxesForErgoTree, mockGetCoveringErgAndTokenForErgoTree,
+    mockGetBoxesForErgoTree,
     resetMockedExplorerApi
 } from "../mocked/MockedExplorer";
 import { expect } from "chai";
 import ExplorerApi from "../../../../src/chains/ergo/network/ExplorerApi";
-import { spy } from "ts-mockito";
 import { beforeEach } from "mocha";
 import TestBoxes from "../testUtils/TestBoxes";
 
 describe("ExplorerApi", async () => {
-    const testBankAddress = "9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD"
+    const testBankAddress = TestBoxes.testBankAddress
     const testBankErgoTree: string = Utils.addressStringToErgoTreeString(testBankAddress)
 
     describe("getCoveringErgAndTokenForErgoTree", async () => {

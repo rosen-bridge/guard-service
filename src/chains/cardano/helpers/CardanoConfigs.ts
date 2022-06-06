@@ -30,10 +30,18 @@ class CardanoConfigs {
         .build();
 
     // service configs
-    static bankAddress: string = config.get?.('cardano.bankAddress')
-    static txMinimumLovelace: BigNum = BigNum.from_str(config.get?.('cardano.txMinimumLovelace')) // TODO: improve this?
-    static txFee: BigNum  = BigNum.from_str(config.get?.('cardano.txFee')) // TODO: improve this?
-    static txTtl: number  = config.get?.('cardano.txTtl')
+    static koios = {
+        url: config.get<string>('cardano.koios.url'),
+        timeout: config.get<number>('cardano.koios.timeout')
+    }
+    static blockFrost = {
+        projectId: config.get<string>('cardano.blockFrost.projectId'),
+        isTestnet: config.get<boolean>('cardano.blockFrost.isTestnet')
+    }
+    static bankAddress = config.get<string>('cardano.bankAddress')
+    static txMinimumLovelace = BigNum.from_str(config.get<string>('cardano.txMinimumLovelace')) // TODO: improve this?
+    static txFee = BigNum.from_str(config.get<string>('cardano.txFee')) // TODO: improve this?
+    static txTtl = config.get<number>('cardano.txTtl')
 
     static assetFingerprintUnitTuples: Map<string, Uint8Array> = new Map([
         ["assetFingerPrint", Buffer.from("assetUnitHexString", "hex")]

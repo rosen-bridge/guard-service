@@ -1,5 +1,4 @@
 import { ErgoBlockHeader } from "../../../../src/chains/ergo/models/Interfaces";
-import TestUtils from "../../../testUtils/TestUtils";
 import { BlockHeaders, ErgoStateContext, PreHeader } from "ergo-lib-wasm-nodejs";
 
 class TestData {

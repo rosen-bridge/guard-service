@@ -1,15 +1,15 @@
 import axios from "axios";
-import config from "config";
 import { ErgoBox } from "ergo-lib-wasm-nodejs";
-import { AssetMap, Box, Boxes, CoveringErgoBoxes } from "../models/Interfaces";
+import { Asset, AssetMap, Box, Boxes, CoveringErgoBoxes } from "../models/Interfaces";
 import { JsonBI } from "../../../network/NetworkModels";
+import ErgoConfigs from "../helpers/ErgoConfigs";
 
 
 class ExplorerApi {
 
     static explorerApi = axios.create({
-        baseURL: config.get?.('explorer.url'),
-        timeout: config.get?.('explorer.timeout')
+        baseURL: ErgoConfigs.explorer.url,
+        timeout: ErgoConfigs.explorer.timeout
     })
 
     /**
@@ -37,7 +37,7 @@ class ExplorerApi {
     ): Promise<CoveringErgoBoxes> => {
 
         const remaining = () => {
-            const isAnyTokenRemain = Object.entries(tokens).map(([_, amount]) => amount > 0).reduce((a, b) => a || b, false)
+            const isAnyTokenRemain = Object.entries(tokens).map(([, amount]) => amount > 0).reduce((a, b) => a || b, false)
             return isAnyTokenRemain || ergAmount > 0;
         }
 
@@ -52,7 +52,7 @@ class ExplorerApi {
                 if (filter(box)) {
                     res.push(box)
                     ergAmount -= box.value;
-                    box.assets.map((asset: any) => {
+                    box.assets.map((asset: Asset) => {
                         if (Object.prototype.hasOwnProperty.call(tokens, asset.tokenId)) {
                             tokens[asset.tokenId] -= asset.amount
                         }
