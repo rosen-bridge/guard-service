@@ -1,12 +1,12 @@
 import { BlockFrostAPI } from "@blockfrost/blockfrost-js";
-import Configs from "../../../helpers/Configs";
+import CardanoConfigs from "../helpers/CardanoConfigs";
 
 
 class BlockFrostApi {
 
     static blockFrost = new BlockFrostAPI({
-        projectId: Configs.cardano.blockFrost.projectId,
-        isTestnet: Configs.cardano.blockFrost.isTestnet
+        projectId: CardanoConfigs.blockFrost.projectId,
+        isTestnet: CardanoConfigs.blockFrost.isTestnet
     });
 
     /**

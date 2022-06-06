@@ -1,13 +1,13 @@
 import axios from "axios";
 import { Utxo } from "../models/Interfaces";
-import Configs from "../../../helpers/Configs";
+import CardanoConfigs from "../helpers/CardanoConfigs";
 
 
 class KoiosApi {
 
     static koios = axios.create({
-        baseURL: Configs.cardano.koios.url,
-        timeout: Configs.cardano.koios.timeout,
+        baseURL: CardanoConfigs.koios.url,
+        timeout: CardanoConfigs.koios.timeout,
         headers: {"Content-Type": "application/json"}
     });
 

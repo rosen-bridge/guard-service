@@ -15,12 +15,12 @@ import {
 import Utils from "../../../../src/chains/ergo/helpers/Utils";
 import TestData from "./TestData";
 import { JsonBI } from "../../../../src/network/NetworkModels";
-import Configs from "../../../../src/helpers/Configs";
 import TestConfigs from "../../../testUtils/TestConfigs";
+import ErgoConfigs from "../../../../src/chains/ergo/helpers/ErgoConfigs";
 
 class TestBoxes {
 
-    static testBankAddress = Configs.ergo.bankAddress
+    static testBankAddress = ErgoConfigs.bankAddress
     static testBlockchainHeight = TestConfigs.ergo.blockchainHeight
 
     /**
