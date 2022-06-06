@@ -35,11 +35,13 @@ class Reward implements BaseChain<ReducedTransaction> {
      * @return the generated payment transaction
      */
     generateTransaction = async (event: EventTrigger): Promise<PaymentTransaction> => {
+        console.log(`\t[*] step -1`)
         // get eventBox and remaining valid commitments
         const eventBox: ErgoBox = RewardBoxes.getEventBox(event)
         const commitmentBoxes: ErgoBox[] = RewardBoxes.getEventValidCommitments(event)
 
         // create the transaction
+        console.log(`\t[*] step 0`)
         const reducedTx: ReducedTransaction = (event.sourceChainTokenId === "erg") ?
             await this.ergRewardTransaction(event, eventBox, commitmentBoxes) :
             await this.tokenRewardTransaction(event, eventBox, commitmentBoxes)
@@ -94,7 +96,7 @@ class Reward implements BaseChain<ReducedTransaction> {
         const watchersLen = event.WIDs.length + commitmentBoxes.length
         const watcherShare: bigint = BigInt(event.bridgeFee) * ErgoConfigs.watchersSharePercent / 100n / BigInt(watchersLen)
         const guardsBridgeFeeShare: bigint = BigInt(event.bridgeFee) - (BigInt(watchersLen) * watcherShare)
-        const guardsNetworkFeeShare: bigint = BigInt(event.networkFee)
+        const guardsNetworkFeeShare = BigInt(event.networkFee)
 
         const rwtToken = Configs.ergoRWT
         const outputBoxesWIDs: Uint8Array[] = []
@@ -233,7 +235,7 @@ class Reward implements BaseChain<ReducedTransaction> {
         const inErgAmount: bigint = ErgoConfigs.txFee + BigInt(event.bridgeFee) + BigInt(event.networkFee)
         const watcherShare: bigint = BigInt(event.bridgeFee) * ErgoConfigs.watchersSharePercent / 100n / BigInt(watchersLen)
         const guardsBridgeFeeShare: bigint = BigInt(event.bridgeFee) - (BigInt(watchersLen) * watcherShare)
-        const guardsNetworkFeeShare: bigint = BigInt(event.networkFee)
+        const guardsNetworkFeeShare = BigInt(event.networkFee)
 
         // calculate needed amount of assets and get input boxes
         const bankBoxes = await ExplorerApi.getCoveringErgAndTokenForErgoTree(
@@ -355,7 +357,7 @@ class Reward implements BaseChain<ReducedTransaction> {
         const paymentTokenId: TokenId = TokenId.from_str(event.sourceChainTokenId)
         const watcherShare: bigint = BigInt(event.bridgeFee) * ErgoConfigs.watchersSharePercent / 100n / BigInt(watchersLen)
         const guardsBridgeFeeShare: bigint = BigInt(event.bridgeFee) - (BigInt(watchersLen) * watcherShare)
-        const guardsNetworkFeeShare: bigint = BigInt(event.networkFee)
+        const guardsNetworkFeeShare = BigInt(event.networkFee)
 
         // calculate needed amount of assets and get input boxes
         const bankBoxes = await ExplorerApi.getCoveringErgAndTokenForErgoTree(

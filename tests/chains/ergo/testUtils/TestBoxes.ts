@@ -15,7 +15,6 @@ import {
 import Utils from "../../../../src/chains/ergo/helpers/Utils";
 import TestData from "./TestData";
 import { JsonBI } from "../../../../src/network/NetworkModels";
-import ErgoConfigs from "../../../../src/chains/ergo/helpers/ErgoConfigs";
 
 class TestBoxes {
 
@@ -57,6 +56,30 @@ class TestBoxes {
             "9hCPp7N4foJ68kPEwMMEa8tCsXVTDoLvXbdkm8s5Ht7Dpnc3L2t",
             "80", "10", "5", "",
             "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e", TestUtils.generateRandomId(), "",
+            Array(5).fill(0).map(() => TestUtils.generateRandomId())
+        )
+    }
+
+    /**
+     * generates a mocked event trigger for Erg payment in ergo chain
+     */
+    static mockErgRewardEventTrigger = (): EventTrigger => {
+        return new EventTrigger("ergo", "", "",
+            "9hCPp7N4foJ68kPEwMMEa8tCsXVTDoLvXbdkm8s5Ht7Dpnc3L2t",
+            "50000000000", "1000000000", "1500000", "erg",
+            "", TestUtils.generateRandomId(), "",
+            Array(5).fill(0).map(() => TestUtils.generateRandomId())
+        )
+    }
+
+    /**
+     * generates a mocked event trigger for token payment in ergo chain
+     */
+    static mockTokenRewardEventTrigger = (): EventTrigger => {
+        return new EventTrigger("ergo", "", "",
+            "9hCPp7N4foJ68kPEwMMEa8tCsXVTDoLvXbdkm8s5Ht7Dpnc3L2t",
+            "80", "10", "5", "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e",
+            "", TestUtils.generateRandomId(), "",
             Array(5).fill(0).map(() => TestUtils.generateRandomId())
         )
     }

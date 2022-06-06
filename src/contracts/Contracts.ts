@@ -1,6 +1,5 @@
-import { Address, Contract } from "ergo-lib-wasm-nodejs";
+import { Contract } from "ergo-lib-wasm-nodejs";
 import Utils from "../chains/ergo/helpers/Utils";
-import Scripts from "./Scripts";
 
 class Contracts {
 

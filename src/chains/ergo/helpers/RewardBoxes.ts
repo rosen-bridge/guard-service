@@ -1,11 +1,12 @@
 import { EventTrigger } from "../../../models/Models";
 import {
+    BoxValue,
     Constant,
     ErgoBox,
     ErgoBoxCandidate,
-    ErgoBoxCandidateBuilder,
+    ErgoBoxCandidateBuilder, I64,
     TokenAmount,
-    TokenId
+    TokenId, Tokens, TxId
 } from "ergo-lib-wasm-nodejs";
 import Utils from "./Utils";
 import ErgoConfigs from "./ErgoConfigs";
@@ -17,8 +18,15 @@ class RewardBoxes {
      * @param event the event trigger model
      * @return the corresponding box of the event trigger
      */
-    static getEventBox = (event: EventTrigger): ErgoBox => {
-        return ErgoBox.from_json("") // TODO: implement this
+    static getEventBox = (event: EventTrigger): ErgoBox => { // TODO: implement this
+        return new ErgoBox(
+            BoxValue.from_i64(I64.from_str("4000000000")),
+            5,
+            Utils.addressStringToContract(ErgoConfigs.bankAddress),
+            TxId.from_str("0000000000000000000000000000000000000000000000000000000000000000"),
+            0,
+            new Tokens()
+        )
     }
 
     /**

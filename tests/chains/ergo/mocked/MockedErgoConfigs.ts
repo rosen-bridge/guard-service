@@ -1,6 +1,5 @@
 import { spy, when } from "ts-mockito";
 import ErgoConfigs from "../../../../src/chains/ergo/helpers/ErgoConfigs";
-import config from "config";
 
 // TODO: read these parameters from test version of config file ?
 // test configs
@@ -8,8 +7,8 @@ const testBankAddress = "9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD"
 const testMinimumErg = BigInt("100000")
 const testTxFee = BigInt("1500000")
 
-const bridgeFeeRepoAddress: string = "9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD"
-const networkFeeRepoAddress: string = "9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD"
+const bridgeFeeRepoAddress = "9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD"
+const networkFeeRepoAddress = "9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD"
 const watchersSharePercent = 50n
 
 const mockedCardanoConfigs = spy(ErgoConfigs)
