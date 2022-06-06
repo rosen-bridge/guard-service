@@ -1,15 +1,15 @@
 import axios from "axios";
-import config from "config";
 import { ErgoBox } from "ergo-lib-wasm-nodejs";
 import { Asset, AssetMap, Box, Boxes, CoveringErgoBoxes } from "../models/Interfaces";
 import { JsonBI } from "../../../network/NetworkModels";
+import ErgoConfigs from "../helpers/ErgoConfigs";
 
 
 class ExplorerApi {
 
     static explorerApi = axios.create({
-        baseURL: config.get?.('ergo.explorer.url'),
-        timeout: config.get?.('ergo.explorer.timeout')
+        baseURL: ErgoConfigs.explorer.url,
+        timeout: ErgoConfigs.explorer.timeout
     })
 
     /**

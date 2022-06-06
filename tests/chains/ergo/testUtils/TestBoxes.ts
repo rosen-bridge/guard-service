@@ -15,11 +15,13 @@ import {
 import Utils from "../../../../src/chains/ergo/helpers/Utils";
 import TestData from "./TestData";
 import { JsonBI } from "../../../../src/network/NetworkModels";
+import TestConfigs from "../../../testUtils/TestConfigs";
+import ErgoConfigs from "../../../../src/chains/ergo/helpers/ErgoConfigs";
 
 class TestBoxes {
 
-    static testBankAddress = "9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD"
-    static testBlockchainHeight = 100000
+    static testBankAddress = ErgoConfigs.bankAddress
+    static testBlockchainHeight = TestConfigs.ergo.blockchainHeight
 
     /**
      * returns BoxValue object for arbitrary amount of Erg

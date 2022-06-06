@@ -14,6 +14,8 @@ import CardanoUtils from "../../../../src/chains/cardano/helpers/CardanoUtils";
 
 class TestBoxes {
 
+    static testBankAddress = CardanoConfigs.bankAddress
+
     /**
      * returns string representation for arbitrary amount of ADA in lovelace unit
      */

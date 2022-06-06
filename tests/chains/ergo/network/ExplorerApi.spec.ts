@@ -10,7 +10,7 @@ import { beforeEach } from "mocha";
 import TestBoxes from "../testUtils/TestBoxes";
 
 describe("ExplorerApi", async () => {
-    const testBankAddress = "9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD"
+    const testBankAddress = TestBoxes.testBankAddress
     const testBankErgoTree: string = Utils.addressStringToErgoTreeString(testBankAddress)
 
     describe("getCoveringErgAndTokenForErgoTree", async () => {
