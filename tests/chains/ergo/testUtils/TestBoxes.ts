@@ -1,22 +1,25 @@
 import { EventTrigger, PaymentTransaction } from "../../../../src/models/Models";
 import TestUtils from "../../../testUtils/TestUtils";
-import { Asset, Box, Boxes, CoveringErgoBoxes } from "../../../../src/chains/ergo/models/Interfaces";
+import { Asset, Box, Boxes, CoveringErgoBoxes, Register } from "../../../../src/chains/ergo/models/Interfaces";
 import {
-    BoxValue, Contract,
-    ErgoBox, ErgoBoxes,
-    I64, ReducedTransaction,
+    BoxSelection,
+    BoxValue, Constant, Contract,
+    ErgoBox, ErgoBoxAssetsDataList, ErgoBoxCandidateBuilder, ErgoBoxCandidates, ErgoBoxes,
+    I64, ReducedTransaction, SecretKey, SecretKeys,
     Token,
     TokenAmount,
     TokenId,
-    Tokens,
+    Tokens, TxBuilder,
     TxId,
-    UnsignedTransaction
+    UnsignedTransaction, Wallet
 } from "ergo-lib-wasm-nodejs";
 import Utils from "../../../../src/chains/ergo/helpers/Utils";
 import TestData from "./TestData";
 import { JsonBI } from "../../../../src/network/NetworkModels";
 import TestConfigs from "../../../testUtils/TestConfigs";
 import ErgoConfigs from "../../../../src/chains/ergo/helpers/ErgoConfigs";
+import Contracts from "../../../../src/contracts/Contracts";
+import Configs from "../../../../src/helpers/Configs";
 
 class TestBoxes {
 
@@ -80,7 +83,7 @@ class TestBoxes {
     static mockTokenRewardEventTrigger = (): EventTrigger => {
         return new EventTrigger("ergo", "", "",
             "9hCPp7N4foJ68kPEwMMEa8tCsXVTDoLvXbdkm8s5Ht7Dpnc3L2t",
-            "80", "10", "5", "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e",
+            "90", "20", "5", "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e",
             "", TestUtils.generateRandomId(), "",
             Array(5).fill(0).map(() => TestUtils.generateRandomId())
         )
@@ -256,6 +259,61 @@ class TestBoxes {
     }
 
     /**
+     * generates an input box with registers for arbitrary address
+     */
+    static mockErgoBoxWithRegisters = (value: number, assets: Asset[], boxContract: Contract, registers: Register[]): ErgoBox => {
+        // generate a random wallet
+        const secrets = new SecretKeys()
+        secrets.add(SecretKey.random_dlog())
+        const wallet = Wallet.from_secrets(secrets)
+        const address = secrets.get(0).get_address()
+
+        // generate a fake box
+        const boxTokens: Tokens = new Tokens()
+        assets.forEach(asset =>
+            boxTokens.add(new Token(TokenId.from_str(asset.tokenId), TokenAmount.from_i64(Utils.i64FromBigint(asset.amount))))
+        )
+        const fakeInBox = new ErgoBox(
+            this.ergToBoxValue(value + 1),
+            this.testBlockchainHeight,
+            Utils.addressToContract(address),
+            TxId.from_str(TestUtils.generateRandomId()),
+            0,
+            boxTokens
+        )
+
+        // create the commitment box
+        const inBox = new ErgoBoxCandidateBuilder(
+            this.ergToBoxValue(value),
+            boxContract,
+            this.testBlockchainHeight
+        )
+        assets.forEach(asset =>
+            inBox.add_token(TokenId.from_str(asset.tokenId), TokenAmount.from_i64(Utils.i64FromBigint(asset.amount)))
+        )
+        registers.forEach(register =>
+            inBox.set_register_value(register.registerId, register.value)
+        )
+        const wid = Buffer.from(TestUtils.generateRandomId(), "hex")
+        inBox.set_register_value(4, Constant.from_coll_coll_byte([wid]))
+
+        // create fake tx
+        const inBoxes = new BoxSelection(new ErgoBoxes(fakeInBox), new ErgoBoxAssetsDataList())
+        const tx = TxBuilder.new(
+            inBoxes,
+            new ErgoBoxCandidates(inBox.build()),
+            this.testBlockchainHeight + 10,
+            this.ergToBoxValue(1),
+            address,
+            this.ergToBoxValue(1)
+        ).build()
+
+        // sign fake tx
+        const fakeTx = wallet.sign_transaction(TestData.mockedErgoStateContext, tx, new ErgoBoxes(fakeInBox), ErgoBoxes.empty())
+        return fakeTx.outputs().get(0)
+    }
+
+    /**
      * generates an input box for ergo bank address
      */
     static mockSingleBankBox = (value: number, assets: Asset[]): ErgoBox => this.mockSingleBox(
@@ -336,8 +394,9 @@ class TestBoxes {
      * generates an event box with 5 WIDs and 2 commitment boxes
      */
     static mockEventBoxWithSomeCommitments = (): ErgoBox[] => {
-        const rwtTokenId: string = TestUtils.generateRandomId()
-        const eventBox: ErgoBox = this.mockSingleBox(
+        const rwtTokenId = Configs.ergoRWT
+        const wids = Array(5).fill(0).map(() => Buffer.from(TestUtils.generateRandomId(), "hex"))
+        const eventBox: ErgoBox = this.mockErgoBoxWithRegisters(
             5 * 100000,
             [
                 {
@@ -345,9 +404,15 @@ class TestBoxes {
                     amount: BigInt("5")
                 }
             ],
-            Utils.addressStringToContract(this.testBankAddress) // TODO: change this to trigger event contract
+            Contracts.triggerEventContract,
+            [
+                {
+                    registerId: 4,
+                    value: Constant.from_coll_coll_byte(wids)
+                }
+            ]
         )
-        const commitmentBoxes: ErgoBox[] = Array(2).fill(0).map(() => this.mockSingleBox(
+        const commitmentBoxes: ErgoBox[] = Array(2).fill(0).map(() => this.mockErgoBoxWithRegisters(
             100000,
             [
                 {
@@ -355,7 +420,13 @@ class TestBoxes {
                     amount: BigInt("1")
                 }
             ],
-            Utils.addressStringToContract(this.testBankAddress) // TODO: change this to commitment contract
+            Contracts.watcherPermitContract,
+            [
+                {
+                    registerId: 4,
+                    value: Constant.from_coll_coll_byte([Buffer.from(TestUtils.generateRandomId(), "hex")])
+                }
+            ]
         ))
         return [eventBox].concat(commitmentBoxes)
     }

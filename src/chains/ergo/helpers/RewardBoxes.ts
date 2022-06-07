@@ -52,10 +52,10 @@ class RewardBoxes {
      * reads WID from register r4 of the commitment box (box type is ErgoBoxCandidate)
      * @param box the commitment box
      */
-    static getBoxCandidateWID = (box: ErgoBoxCandidate): Uint8Array => {
+    static getBoxCandidateWIDString = (box: ErgoBoxCandidate): string => {
         const wid = box.register_value(4)?.to_coll_coll_byte()[0]
         if (wid === undefined) throw new Error(`failed to read WID from register R4 of box candidate`)
-        return wid!
+        return Buffer.from(wid!).toString("hex")
     }
 
     /**

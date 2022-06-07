@@ -35,13 +35,11 @@ class Reward implements BaseChain<ReducedTransaction> {
      * @return the generated payment transaction
      */
     generateTransaction = async (event: EventTrigger): Promise<PaymentTransaction> => {
-        console.log(`\t[*] step -1`)
         // get eventBox and remaining valid commitments
         const eventBox: ErgoBox = RewardBoxes.getEventBox(event)
         const commitmentBoxes: ErgoBox[] = RewardBoxes.getEventValidCommitments(event)
 
         // create the transaction
-        console.log(`\t[*] step 0`)
         const reducedTx: ReducedTransaction = (event.sourceChainTokenId === "erg") ?
             await this.ergRewardTransaction(event, eventBox, commitmentBoxes) :
             await this.tokenRewardTransaction(event, eventBox, commitmentBoxes)
@@ -79,27 +77,27 @@ class Reward implements BaseChain<ReducedTransaction> {
         const commitmentBoxes: ErgoBox[] = RewardBoxes.getEventValidCommitments(event)
         if (!this.verifyInputs(tx.inputs(), eventBox, commitmentBoxes)) return false
 
-        // verify number of output boxes
+        // verify number of output boxes (number of watchers + 2 box for guards + 1 change box + 1 tx fee box)
         const outputLength = outputBoxes.len()
-        if (outputLength !== event.WIDs.length + commitmentBoxes.length + 2) return false
+        const watchersLen = event.WIDs.length + commitmentBoxes.length
+        if (outputLength !== watchersLen + 4) return false
 
         // verify guards and change boxes ergoTree
-        const guardsBridgeFeeBox = outputBoxes.get(outputLength - 3)
-        const guardsNetworkFeeBox = outputBoxes.get(outputLength - 2)
+        const guardsBridgeFeeBox = outputBoxes.get(outputLength - 4)
+        const guardsNetworkFeeBox = outputBoxes.get(outputLength - 3)
         if (
             guardsBridgeFeeBox.ergo_tree().to_base16_bytes() !== Utils.addressStringToErgoTreeString(ErgoConfigs.bridgeFeeRepoAddress) ||
             guardsNetworkFeeBox.ergo_tree().to_base16_bytes() !== Utils.addressStringToErgoTreeString(ErgoConfigs.networkFeeRepoAddress) ||
-            outputBoxes.get(outputLength - 1).ergo_tree().to_base16_bytes() !== this.bankErgoTree
+            outputBoxes.get(outputLength - 2).ergo_tree().to_base16_bytes() !== this.bankErgoTree
         ) return false;
 
         // verify event condition
-        const watchersLen = event.WIDs.length + commitmentBoxes.length
         const watcherShare: bigint = BigInt(event.bridgeFee) * ErgoConfigs.watchersSharePercent / 100n / BigInt(watchersLen)
         const guardsBridgeFeeShare: bigint = BigInt(event.bridgeFee) - (BigInt(watchersLen) * watcherShare)
         const guardsNetworkFeeShare = BigInt(event.networkFee)
 
         const rwtToken = Configs.ergoRWT
-        const outputBoxesWIDs: Uint8Array[] = []
+        const outputBoxesWIDs: string[] = []
         if (event.sourceChainTokenId === "erg") { // Erg payment case
             const sizeOfGuardsBoxesTokens: number = guardsBridgeFeeBox.tokens().len() + guardsNetworkFeeBox.tokens().len()
 
@@ -111,7 +109,7 @@ class Reward implements BaseChain<ReducedTransaction> {
             ) return false;
 
             // iterate over permit boxes (last four boxes are guardsBridgeFee, guardsNetworkFee, change and fee boxes)
-            for (let i = 0; i < outputLength - 4; i++) {
+            for (let i = 0; i < watchersLen; i++) {
                 const box = outputBoxes.get(i)
                 if (
                     box.ergo_tree().to_base16_bytes() !== Utils.contractStringToErgoTreeString(Contracts.watcherPermitContract) ||
@@ -127,7 +125,7 @@ class Reward implements BaseChain<ReducedTransaction> {
                 ) return false;
 
                 // add box wid to collection
-                outputBoxesWIDs.push(RewardBoxes.getBoxCandidateWID(box))
+                outputBoxesWIDs.push(RewardBoxes.getBoxCandidateWIDString(box))
             }
         }
         else { // Token payment case
@@ -151,7 +149,7 @@ class Reward implements BaseChain<ReducedTransaction> {
             ) return false;
 
             // iterate over permit boxes (last four boxes are guardsBridgeFee, guardsNetworkFee, change and fee boxes)
-            for (let i = 0; i < outputLength - 4; i++) {
+            for (let i = 0; i < watchersLen; i++) {
                 const box = outputBoxes.get(i)
                 if (
                     box.ergo_tree().to_base16_bytes() !== Utils.contractStringToErgoTreeString(Contracts.watcherPermitContract) ||
@@ -170,7 +168,7 @@ class Reward implements BaseChain<ReducedTransaction> {
                 ) return false;
 
                 // add box wid to collection
-                outputBoxesWIDs.push(RewardBoxes.getBoxCandidateWID(box))
+                outputBoxesWIDs.push(RewardBoxes.getBoxCandidateWIDString(box))
             }
         }
 
@@ -228,7 +226,6 @@ class Reward implements BaseChain<ReducedTransaction> {
     ergRewardTransaction = async (event: EventTrigger, eventBox: ErgoBox, commitmentBoxes: ErgoBox[]): Promise<ReducedTransaction> => {
         // get network current height
         const currentHeight = await NodeApi.getHeight()
-        console.log(`\t[*] step 1`)
 
         // calculate assets of payment box
         const watchersLen: number = event.WIDs.length + commitmentBoxes.length
@@ -244,7 +241,6 @@ class Reward implements BaseChain<ReducedTransaction> {
         )
         if (!bankBoxes.covered)
             throw new Error(`Bank boxes didn't cover needed amount of erg: ${inErgAmount.toString()}`)
-        console.log(`\t[*] step 2`)
 
         // create the output boxes
         const outBoxes = ErgoBoxCandidates.empty()
@@ -261,7 +257,6 @@ class Reward implements BaseChain<ReducedTransaction> {
             watcherBox.set_register_value(4, Constant.from_coll_coll_byte([Utils.hexStringToUint8Array(wid)]))
             outBoxes.add(watcherBox.build())
         })
-        console.log(`\t[*] step 3.1`)
 
         // commitment boxes watchers
         commitmentBoxes.forEach(box => {
@@ -275,7 +270,6 @@ class Reward implements BaseChain<ReducedTransaction> {
             watcherBox.set_register_value(4, Constant.from_coll_coll_byte([wid]))
             outBoxes.add(watcherBox.build())
         })
-        console.log(`\t[*] step 3.2`)
 
         // guardsBridgeFeeBox
         outBoxes.add(new ErgoBoxCandidateBuilder(
@@ -283,7 +277,6 @@ class Reward implements BaseChain<ReducedTransaction> {
             Utils.addressStringToContract(ErgoConfigs.bridgeFeeRepoAddress),
             currentHeight
         ).build())
-        console.log(`\t[*] step 4.1`)
 
         // guardsNetworkFeeBox
         outBoxes.add(new ErgoBoxCandidateBuilder(
@@ -291,18 +284,15 @@ class Reward implements BaseChain<ReducedTransaction> {
             Utils.addressStringToContract(ErgoConfigs.networkFeeRepoAddress),
             currentHeight
         ).build())
-        console.log(`\t[*] step 4.2`)
 
         // add input boxes
         const inErgoBoxes = new ErgoBoxes(eventBox)
         commitmentBoxes.forEach(box => inErgoBoxes.add(box))
-        console.log(`\t[*] step 5`)
 
         // calculate assets of change box
         const changeBoxInfo = this.calculateBankBoxesAssets(bankBoxes.boxes, inErgoBoxes)
         const changeErgAmount: bigint = changeBoxInfo.ergs - (guardsBridgeFeeShare + guardsNetworkFeeShare) - ErgoConfigs.txFee
         const changeTokens: AssetMap = changeBoxInfo.tokens
-        console.log(`\t[*] step 6.1`)
 
         // create the change box
         const changeBox = new ErgoBoxCandidateBuilder(
@@ -314,10 +304,10 @@ class Reward implements BaseChain<ReducedTransaction> {
             if (amount !== BigInt(0))
                 changeBox.add_token(TokenId.from_str(id), TokenAmount.from_i64(I64.from_str(amount.toString())))
         })
-        console.log(`\t[*] step 6.2`)
 
         // create the transaction
         const inBoxes = new BoxSelection(inErgoBoxes, new ErgoBoxAssetsDataList())
+        outBoxes.add(changeBox.build())
         const tx = TxBuilder.new(
             inBoxes,
             outBoxes,
@@ -326,7 +316,6 @@ class Reward implements BaseChain<ReducedTransaction> {
             this.bankAddress,
             Utils.boxValueFromBigint(ErgoConfigs.minimumErg)
         ).build()
-        console.log(`\t[*] step 7`)
 
         // create ReducedTransaction object
         const ctx = await NodeApi.getErgoStateContext()
@@ -349,7 +338,6 @@ class Reward implements BaseChain<ReducedTransaction> {
     tokenRewardTransaction = async (event: EventTrigger, eventBox: ErgoBox, commitmentBoxes: ErgoBox[]): Promise<ReducedTransaction> => {
         // get network current height
         const currentHeight = await NodeApi.getHeight()
-        console.log(`\t[*] step token 1`)
 
         // calculate assets of payment box
         const watchersLen: number = event.WIDs.length + commitmentBoxes.length
@@ -369,7 +357,6 @@ class Reward implements BaseChain<ReducedTransaction> {
         )
         if (!bankBoxes.covered)
             throw new Error(`Bank boxes didn't cover needed amount of erg: ${inErgAmount.toString()}, or token: [id: ${event.sourceChainTokenId}] amount: ${BigInt(event.bridgeFee) + BigInt(event.networkFee)}`)
-        console.log(`\t[*] step token 2`)
 
         // create the output boxes
         const outBoxes = ErgoBoxCandidates.empty()
@@ -383,7 +370,6 @@ class Reward implements BaseChain<ReducedTransaction> {
             watcherShare,
             Utils.hexStringToUint8Array(wid)
         )))
-        console.log(`\t[*] step token 3.1`)
 
         // commitment boxes watchers
         commitmentBoxes.forEach(box => {
@@ -396,7 +382,6 @@ class Reward implements BaseChain<ReducedTransaction> {
                 wid
             ))
         })
-        console.log(`\t[*] step token 3.2`)
 
         // guardsBridgeFeeBox
         const guardsBridgeFeeBox = new ErgoBoxCandidateBuilder(
@@ -406,7 +391,6 @@ class Reward implements BaseChain<ReducedTransaction> {
         )
         guardsBridgeFeeBox.add_token(paymentTokenId, TokenAmount.from_i64(Utils.i64FromBigint(guardsBridgeFeeShare)))
         outBoxes.add(guardsBridgeFeeBox.build())
-        console.log(`\t[*] step token 4.1`)
 
         // guardsNetworkFeeBox
         const guardsNetworkFeeBox = new ErgoBoxCandidateBuilder(
@@ -416,19 +400,16 @@ class Reward implements BaseChain<ReducedTransaction> {
         )
         guardsNetworkFeeBox.add_token(paymentTokenId, TokenAmount.from_i64(Utils.i64FromBigint(guardsNetworkFeeShare)))
         outBoxes.add(guardsNetworkFeeBox.build())
-        console.log(`\t[*] step token 4.2`)
 
         // add input boxes
         const inErgoBoxes = new ErgoBoxes(eventBox)
         commitmentBoxes.forEach(box => inErgoBoxes.add(box))
-        console.log(`\t[*] step token 5`)
 
         // calculate assets of change box
         const changeBoxInfo = this.calculateBankBoxesAssets(bankBoxes.boxes, inErgoBoxes)
         const changeErgAmount: bigint = changeBoxInfo.ergs - (2n * ErgoConfigs.minimumErg) - ErgoConfigs.txFee
         const changeTokens: AssetMap = changeBoxInfo.tokens
         changeTokens[event.sourceChainTokenId] -= BigInt(event.bridgeFee) + BigInt(event.networkFee)
-        console.log(`\t[*] step token 6.1`)
 
         // create the change box
         const changeBox = new ErgoBoxCandidateBuilder(
@@ -440,7 +421,6 @@ class Reward implements BaseChain<ReducedTransaction> {
             if (amount !== BigInt(0))
                 changeBox.add_token(TokenId.from_str(id), TokenAmount.from_i64(I64.from_str(amount.toString())))
         })
-        console.log(`\t[*] step token 6.2`)
 
         // create the transaction
         const inBoxes = new BoxSelection(inErgoBoxes, new ErgoBoxAssetsDataList())
@@ -453,7 +433,6 @@ class Reward implements BaseChain<ReducedTransaction> {
             this.bankAddress,
             Utils.boxValueFromString(ErgoConfigs.minimumErg.toString())
         ).build()
-        console.log(`\t[*] step 7`)
 
         // create ReducedTransaction object
         const ctx = await NodeApi.getErgoStateContext()
