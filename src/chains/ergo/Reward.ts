@@ -202,18 +202,19 @@ class Reward implements BaseChain<ReducedTransaction> {
      * @param commitmentBoxes the event valid commitment boxes that didn't merge
      */
     verifyInputs = (inputBoxes: UnsignedInputs, eventBox: ErgoBox, commitmentBoxes: ErgoBox[]): boolean => {
+        let isValid = true
         const sizeOfInputs = inputBoxes.len()
-        if (inputBoxes.get(0).box_id().to_str() !== eventBox.box_id().to_str()) return false
+        if (inputBoxes.get(0).box_id().to_str() !== eventBox.box_id().to_str()) isValid = false
 
         const inputBoxIds: string[] = []
         for (let i = 1; i < sizeOfInputs; i++)
             inputBoxIds.push(inputBoxes.get(i).box_id().to_str())
 
         commitmentBoxes.forEach(box => {
-            if (!inputBoxIds.includes(box.box_id().to_str())) return false
+            if (!inputBoxIds.includes(box.box_id().to_str())) isValid = false
         })
 
-        return true
+        return isValid
     }
 
     /**
@@ -248,27 +249,23 @@ class Reward implements BaseChain<ReducedTransaction> {
         // event trigger box watchers
         const rwtTokenId: TokenId = eventBox.tokens().get(0).id()
         event.WIDs.forEach(wid => {
-            const watcherBox = new ErgoBoxCandidateBuilder(
-                Utils.boxValueFromBigint(watcherShare + ErgoConfigs.minimumErg),
-                Contracts.watcherPermitContract,
-                currentHeight
-            )
-            watcherBox.add_token(rwtTokenId, TokenAmount.from_i64(Utils.i64FromBigint(1n)))
-            watcherBox.set_register_value(4, Constant.from_coll_coll_byte([Utils.hexStringToUint8Array(wid)]))
-            outBoxes.add(watcherBox.build())
+            outBoxes.add(RewardBoxes.createErgRewardBox(
+                currentHeight,
+                rwtTokenId,
+                watcherShare,
+                Utils.hexStringToUint8Array(wid)
+            ))
         })
 
         // commitment boxes watchers
         commitmentBoxes.forEach(box => {
             const wid = RewardBoxes.getErgoBoxWID(box)
-            const watcherBox = new ErgoBoxCandidateBuilder(
-                Utils.boxValueFromBigint(watcherShare + ErgoConfigs.minimumErg),
-                Contracts.watcherPermitContract,
-                currentHeight
-            )
-            watcherBox.add_token(rwtTokenId, TokenAmount.from_i64(Utils.i64FromBigint(1n)))
-            watcherBox.set_register_value(4, Constant.from_coll_coll_byte([wid]))
-            outBoxes.add(watcherBox.build())
+            outBoxes.add(RewardBoxes.createErgRewardBox(
+                currentHeight,
+                rwtTokenId,
+                watcherShare,
+                wid
+            ))
         })
 
         // guardsBridgeFeeBox
@@ -291,7 +288,7 @@ class Reward implements BaseChain<ReducedTransaction> {
 
         // calculate assets of change box
         const changeBoxInfo = this.calculateBankBoxesAssets(bankBoxes.boxes, inErgoBoxes)
-        const changeErgAmount: bigint = changeBoxInfo.ergs - (guardsBridgeFeeShare + guardsNetworkFeeShare) - ErgoConfigs.txFee
+        const changeErgAmount: bigint = changeBoxInfo.ergs - (BigInt(event.bridgeFee) + BigInt(event.networkFee)) - ErgoConfigs.txFee
         const changeTokens: AssetMap = changeBoxInfo.tokens
 
         // create the change box
@@ -363,7 +360,7 @@ class Reward implements BaseChain<ReducedTransaction> {
 
         // event trigger box watchers
         const rwtTokenId: TokenId = eventBox.tokens().get(0).id()
-        event.WIDs.forEach(wid => outBoxes.add(RewardBoxes.createWatcherPermitBox(
+        event.WIDs.forEach(wid => outBoxes.add(RewardBoxes.createTokenRewardBox(
             currentHeight,
             rwtTokenId,
             paymentTokenId,
@@ -374,7 +371,7 @@ class Reward implements BaseChain<ReducedTransaction> {
         // commitment boxes watchers
         commitmentBoxes.forEach(box => {
             const wid = RewardBoxes.getErgoBoxWID(box)
-            outBoxes.add(RewardBoxes.createWatcherPermitBox(
+            outBoxes.add(RewardBoxes.createTokenRewardBox(
                 currentHeight,
                 rwtTokenId,
                 paymentTokenId,

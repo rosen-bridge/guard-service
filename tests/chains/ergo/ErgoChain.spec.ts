@@ -69,7 +69,7 @@ describe("ErgoChain",  () => {
     describe("verifyTransactionWithEvent", () => {
 
         /**
-         * Target: testing generateTransaction
+         * Target: testing verifyTransactionWithEvent
          * Dependencies:
          *    -
          * Expected Output:
@@ -87,7 +87,7 @@ describe("ErgoChain",  () => {
         })
 
         /**
-         * Target: testing generateTransaction
+         * Target: testing verifyTransactionWithEvent
          * Dependencies:
          *    -
          * Expected Output:
@@ -105,7 +105,7 @@ describe("ErgoChain",  () => {
         })
 
         /**
-         * Target: testing generateTransaction
+         * Target: testing verifyTransactionWithEvent
          * Dependencies:
          *    -
          * Expected Output:
@@ -123,7 +123,7 @@ describe("ErgoChain",  () => {
         })
 
         /**
-         * Target: testing generateTransaction
+         * Target: testing verifyTransactionWithEvent
          * Dependencies:
          *    -
          * Expected Output:

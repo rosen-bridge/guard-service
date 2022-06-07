@@ -92,11 +92,12 @@ class Utils {
      * @param target second array
      */
     static doArraysHaveSameElements = (source: any[], target: any[]): boolean => {
-        if (source.length !== target.length) return false
+        let isEqual = true
+        if (source.length !== target.length) isEqual = false
         source.forEach(value => {
-            if (!target.includes(value)) return false
+            if (!target.includes(value)) isEqual = false
         })
-        return true
+        return isEqual
     }
 
 }

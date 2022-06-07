@@ -62,7 +62,7 @@ describe("CardanoChain", () => {
     describe("verifyTransactionWithEvent", () => {
 
         /**
-         * Target: testing generateTransaction
+         * Target: testing verifyTransactionWithEvent
          * Dependencies:
          *    -
          * Expected Output:
@@ -80,7 +80,7 @@ describe("CardanoChain", () => {
         })
 
         /**
-         * Target: testing generateTransaction
+         * Target: testing verifyTransactionWithEvent
          * Dependencies:
          *    -
          * Expected Output:
@@ -98,7 +98,7 @@ describe("CardanoChain", () => {
         })
 
         /**
-         * Target: testing generateTransaction
+         * Target: testing verifyTransactionWithEvent
          * Dependencies:
          *    -
          * Expected Output:
@@ -116,7 +116,7 @@ describe("CardanoChain", () => {
         })
 
         /**
-         * Target: testing generateTransaction
+         * Target: testing verifyTransactionWithEvent
          * Dependencies:
          *    -
          * Expected Output:

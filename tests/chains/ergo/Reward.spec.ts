@@ -14,7 +14,7 @@ describe("Reward", () => {
     const testBankErgoTree: string = Utils.addressStringToErgoTreeString(testBankAddress)
 
     describe("generateTransaction", () => {
-        // mock getting bankBoxes
+        // mock getting boxes
         const bankBoxes: CoveringErgoBoxes = TestBoxes.mockBankBoxes()
         const eventBoxAndCommitments = TestBoxes.mockEventBoxWithSomeCommitments()
 
@@ -68,6 +68,90 @@ describe("Reward", () => {
             // verify tx
             const isValid = reward.verifyTransactionWithEvent(tx, mockedEvent)
             expect(isValid).to.be.true
+        })
+
+    })
+
+    describe("verifyTransactionWithEvent", () => {
+        // mock getting boxes
+        const eventBoxAndCommitments = TestBoxes.mockEventBoxWithSomeCommitments()
+
+        beforeEach("mock ExplorerApi", function() {
+            resetMockedRewardBoxes()
+            mockGetEventBox(anything(), eventBoxAndCommitments[0])
+            mockGetEventValidCommitments(anything(), eventBoxAndCommitments.slice(1))
+        })
+
+        /**
+         * Target: testing verifyTransactionWithEvent
+         * Dependencies:
+         *    RewardBoxes
+         * Expected Output:
+         *    It should NOT verify the transaction
+         */
+        it("should reject an erg reward distribution tx that transferring token", () => {
+            // mock erg payment event
+            const mockedEvent: EventTrigger = TestBoxes.mockErgRewardEventTrigger()
+            const tx = TestBoxes.mockTokenTransferringErgDistributionTransaction(mockedEvent, eventBoxAndCommitments)
+
+            // run test
+            const reward = new Reward()
+            const isValid = reward.verifyTransactionWithEvent(tx, mockedEvent)
+            expect(isValid).to.be.false
+        })
+
+        /**
+         * Target: testing verifyTransactionWithEvent
+         * Dependencies:
+         *    RewardBoxes
+         * Expected Output:
+         *    It should NOT verify the transaction
+         */
+        it("should reject a reward distribution tx that transferring to wrong WID", () => {
+            // mock erg payment event
+            const mockedEvent: EventTrigger = TestBoxes.mockTokenRewardEventTrigger()
+            const tx = TestBoxes.mockTransferToIllegalWIDDistributionTransaction(mockedEvent, eventBoxAndCommitments)
+
+            // run test
+            const reward = new Reward()
+            const isValid = reward.verifyTransactionWithEvent(tx, mockedEvent)
+            expect(isValid).to.be.false
+        })
+
+        /**
+         * Target: testing verifyTransactionWithEvent
+         * Dependencies:
+         *    RewardBoxes
+         * Expected Output:
+         *    It should NOT verify the transaction
+         */
+        it("should reject a reward distribution tx that missing a valid commitment box when distributing rewards", () => {
+            // mock erg payment event
+            const mockedEvent: EventTrigger = TestBoxes.mockTokenRewardEventTrigger()
+            const tx = TestBoxes.mockMissingValidCommitmentDistributionTransaction(mockedEvent, eventBoxAndCommitments.slice(0, eventBoxAndCommitments.length - 1))
+
+            // run test
+            const reward = new Reward()
+            const isValid = reward.verifyTransactionWithEvent(tx, mockedEvent)
+            expect(isValid).to.be.false
+        })
+
+        /**
+         * Target: testing verifyTransactionWithEvent
+         * Dependencies:
+         *    RewardBoxes
+         * Expected Output:
+         *    It should NOT verify the transaction
+         */
+        it("should reject a reward distribution tx that change box address is not bank address", () => {
+            // mock erg payment event
+            const mockedEvent: EventTrigger = TestBoxes.mockTokenRewardEventTrigger()
+            const tx = TestBoxes.mockIllegalChangeBoxDistributionTransaction(mockedEvent, eventBoxAndCommitments)
+
+            // run test
+            const reward = new Reward()
+            const isValid = reward.verifyTransactionWithEvent(tx, mockedEvent)
+            expect(isValid).to.be.false
         })
 
     })
