@@ -1,4 +1,3 @@
-import Configs from "../../../helpers/Configs";
 import config from "config";
 
 class ErgoConfigs {

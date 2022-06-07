@@ -9,11 +9,11 @@ import Utils from "../../../src/chains/ergo/helpers/Utils";
 import { mockGetEventBox, mockGetEventValidCommitments, resetMockedRewardBoxes } from "./mocked/MockedRewardBoxes";
 import { anything } from "ts-mockito";
 
-describe("Reward", async () => {
+describe("Reward", () => {
     const testBankAddress = "9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD" // TODO: use test config
     const testBankErgoTree: string = Utils.addressStringToErgoTreeString(testBankAddress)
 
-    describe("generateTransaction", async () => {
+    describe("generateTransaction", () => {
         // mock getting bankBoxes
         const bankBoxes: CoveringErgoBoxes = TestBoxes.mockBankBoxes()
         const eventBoxAndCommitments = TestBoxes.mockEventBoxWithSomeCommitments()

@@ -71,7 +71,7 @@ app.post("/verify/", async (req: Request, res: Response) => {
         txId: paymentTx.txId,
         eventId: paymentTx.eventId,
         txBytes: paymentTx.getTxHexString(),
-        isValid
+        isValid: isValid
     })
 });
 
