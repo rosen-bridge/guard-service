@@ -1,6 +1,6 @@
 import axios from "axios";
 import config from "config";
-import {JsonBI} from "../utils/parser";
+import {JsonBI} from "../helpers/parser";
 
 export interface SubscribeChannel {
     (msg: any, channel: string, sender: string): void;
