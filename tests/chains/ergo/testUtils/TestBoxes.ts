@@ -602,7 +602,7 @@ class TestBoxes {
     }
 
     /**
-     * generates a mocked reward distribution tx that miss a valid commitment box in tx generation
+     * generates a mocked reward distribution tx with wrong ergoTree for the change box
      * @param event token reward event trigger
      * @param eventBoxes event box and valid commitment boxes
      */
@@ -657,7 +657,7 @@ class TestBoxes {
     }
 
     /**
-     * generates a mocked reward distribution tx that miss a valid commitment box in tx generation
+     * generates a mocked reward distribution tx that transferring wront token
      * @param event token reward event trigger
      * @param eventBoxes event box and valid commitment boxes
      */
@@ -712,7 +712,7 @@ class TestBoxes {
     }
 
     /**
-     * generates a mocked reward distribution tx that miss a valid commitment box in tx generation
+     * generates a mocked reward distribution tx that transferring wrong amount of token
      * @param event token reward event trigger
      * @param eventBoxes event box and valid commitment boxes
      */
