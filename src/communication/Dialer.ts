@@ -23,7 +23,9 @@ class Dialer {
   private _SUBSCRIBED_CHANNELS: any = {};
   private _PENDING_MESSAGE: any[] = [];
 
-  private constructor() { }
+  private constructor() {
+    console.log("Create Dialer Instance!")
+  }
 
   public static getInstance = async (): Promise<Dialer> => {
     if (!Dialer.instance) {
@@ -44,7 +46,7 @@ class Dialer {
    * @param url: string for apiCallbackFunction
    */
   subscribeChannel = (channel: string, callback: SubscribeChannel, url?: string): void => {
-    let callbackObj: any = {
+    const callbackObj: any = {
       func: callback
     }
     if(url) callbackObj.url = url
