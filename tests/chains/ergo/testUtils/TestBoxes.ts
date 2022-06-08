@@ -656,6 +656,116 @@ class TestBoxes {
         return new PaymentTransaction(txId, eventId, txBytes)
     }
 
+    /**
+     * generates a mocked reward distribution tx that miss a valid commitment box in tx generation
+     * @param event token reward event trigger
+     * @param eventBoxes event box and valid commitment boxes
+     */
+    static mockWrongTokenDistributionTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): PaymentTransaction => {
+        const bridgeFeeErgoTree: string = Utils.addressStringToErgoTreeString(ErgoConfigs.bridgeFeeRepoAddress)
+        const networkFeeErgoTree: string = Utils.addressStringToErgoTreeString(ErgoConfigs.networkFeeRepoAddress)
+        const bankAddressErgoTree: string = Utils.addressStringToErgoTreeString(this.testBankAddress)
+
+        const inBoxes = ErgoBoxes.empty()
+        eventBoxes.forEach(box => inBoxes.add(box))
+
+        const rwtTokenId = Configs.ergoRWT
+        const watcherBoxes = event.WIDs
+            .map(wid => Utils.hexStringToUint8Array(wid))
+            .concat(eventBoxes.slice(1).map(box => RewardBoxes.getErgoBoxWID(box)))
+            .map(wid => TestData.mockWatcherPermitBox(
+                100000n,
+                [
+                    {
+                        tokenId: rwtTokenId,
+                        amount: BigInt("1")
+                    },
+                    {
+                        tokenId: "e2b7b6ab2a7c6dfc6a82cc648f3b16b76db1cf19e93b7ac35a4898c06e4d08ce",
+                        amount: BigInt("1")
+                    }
+                ],
+                Utils.contractStringToErgoTreeString(Contracts.triggerEventContract),
+                [
+                    {
+                        registerId: 4,
+                        value: Constant.from_coll_coll_byte([wid])
+                    }
+                ]
+            ))
+
+        const txJsonString: string = TestData.wrongTokenRewardDistributionTxString(
+            eventBoxes.map(box => box.box_id().to_str()),
+            watcherBoxes,
+            bridgeFeeErgoTree,
+            networkFeeErgoTree,
+            bankAddressErgoTree
+        )
+        const tx = UnsignedTransaction.from_json(txJsonString)
+
+        const reducedTx = ReducedTransaction.from_unsigned_tx(tx, inBoxes, ErgoBoxes.empty(), TestData.mockedErgoStateContext)
+
+        const txBytes = reducedTx.sigma_serialize_bytes()
+        const txId = tx.id().to_str()
+        const eventId = event.sourceTxId
+        return new PaymentTransaction(txId, eventId, txBytes)
+    }
+
+    /**
+     * generates a mocked reward distribution tx that miss a valid commitment box in tx generation
+     * @param event token reward event trigger
+     * @param eventBoxes event box and valid commitment boxes
+     */
+    static mockWrongAmountTokenDistributionTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): PaymentTransaction => {
+        const bridgeFeeErgoTree: string = Utils.addressStringToErgoTreeString(ErgoConfigs.bridgeFeeRepoAddress)
+        const networkFeeErgoTree: string = Utils.addressStringToErgoTreeString(ErgoConfigs.networkFeeRepoAddress)
+        const bankAddressErgoTree: string = Utils.addressStringToErgoTreeString(this.testBankAddress)
+
+        const inBoxes = ErgoBoxes.empty()
+        eventBoxes.forEach(box => inBoxes.add(box))
+
+        const rwtTokenId = Configs.ergoRWT
+        const watcherBoxes = event.WIDs
+            .map(wid => Utils.hexStringToUint8Array(wid))
+            .concat(eventBoxes.slice(1).map(box => RewardBoxes.getErgoBoxWID(box)))
+            .map(wid => TestData.mockWatcherPermitBox(
+                100000n,
+                [
+                    {
+                        tokenId: rwtTokenId,
+                        amount: BigInt("1")
+                    },
+                    {
+                        tokenId: "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e",
+                        amount: BigInt("2")
+                    }
+                ],
+                Utils.contractStringToErgoTreeString(Contracts.triggerEventContract),
+                [
+                    {
+                        registerId: 4,
+                        value: Constant.from_coll_coll_byte([wid])
+                    }
+                ]
+            ))
+
+        const txJsonString: string = TestData.wrongTokenAmountRewardDistributionTxString(
+            eventBoxes.map(box => box.box_id().to_str()),
+            watcherBoxes,
+            bridgeFeeErgoTree,
+            networkFeeErgoTree,
+            bankAddressErgoTree
+        )
+        const tx = UnsignedTransaction.from_json(txJsonString)
+
+        const reducedTx = ReducedTransaction.from_unsigned_tx(tx, inBoxes, ErgoBoxes.empty(), TestData.mockedErgoStateContext)
+
+        const txBytes = reducedTx.sigma_serialize_bytes()
+        const txId = tx.id().to_str()
+        const eventId = event.sourceTxId
+        return new PaymentTransaction(txId, eventId, txBytes)
+    }
+
 }
 
 export default TestBoxes

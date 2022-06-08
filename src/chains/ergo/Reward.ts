@@ -61,9 +61,9 @@ class Reward implements BaseChain<ReducedTransaction> {
      *  3. checks number of tokens in watcher and guards boxes
      *  4. checks rwt tokens of watchers
      *  5. checks if input boxes contains all valid commitment boxes and first input box is the event box
-     *  4. checks id of token in watcher and guards boxes (token payment)
-     *  5. checks amount of token in watcher and guards boxes (token payment)
-     *  6. checks if output boxes contains all WIDs in input boxes
+     *  6. checks id of token in watcher and guards boxes (token payment)
+     *  7. checks amount of token in watcher and guards boxes (token payment)
+     *  8. checks if output boxes contains all WIDs in input boxes
      * @param paymentTx the payment transaction
      * @param event the event trigger model
      * @return true if tx verified

@@ -337,6 +337,104 @@ class TestData {
         ]
     }`
 
+    static wrongTokenRewardDistributionTxString = (boxIds: string[], watcherBoxes: string[], bridgeFeeErgoTree: string, networkFeeErgoTree: string, bankAddressErgoTree: string): string  => `{
+        "inputs": ${this.mockTransactionInputBoxes(boxIds)},
+        "dataInputs": [],
+        "outputs": [
+            ${watcherBoxes.join(",")},
+            {
+                "value": 100000,
+                "ergoTree": "${bridgeFeeErgoTree}",
+                "assets": [
+                    {
+                        "tokenId": "e2b7b6ab2a7c6dfc6a82cc648f3b16b76db1cf19e93b7ac35a4898c06e4d08ce",
+                        "amount": 13
+                    }
+                ],
+                "additionalRegisters": {},
+                "creationHeight": 100000
+            },
+            {
+                "value": 100000,
+                "ergoTree": "${networkFeeErgoTree}",
+                "assets": [
+                    {   
+                        "tokenId": "e2b7b6ab2a7c6dfc6a82cc648f3b16b76db1cf19e93b7ac35a4898c06e4d08ce",
+                        "amount": 5
+                    }
+                ],
+                "additionalRegisters": {},
+                "creationHeight": 100000
+            },
+            {
+                "value": 139998700000,
+                "ergoTree": "${bankAddressErgoTree}",
+                "assets": [
+                    {
+                        "tokenId": "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e",
+                        "amount": 79
+                    },
+                    {
+                        "tokenId": "e2b7b6ab2a7c6dfc6a82cc648f3b16b76db1cf19e93b7ac35a4898c06e4d08ce",
+                        "amount": 73
+                    }
+                ],
+                "additionalRegisters": {},
+                "creationHeight": 100000
+            },
+            ${this.mockTransactionFeeBox}
+        ]
+    }`
+
+    static wrongTokenAmountRewardDistributionTxString = (boxIds: string[], watcherBoxes: string[], bridgeFeeErgoTree: string, networkFeeErgoTree: string, bankAddressErgoTree: string): string  => `{
+        "inputs": ${this.mockTransactionInputBoxes(boxIds)},
+        "dataInputs": [],
+        "outputs": [
+            ${watcherBoxes.join(",")},
+            {
+                "value": 100000,
+                "ergoTree": "${bridgeFeeErgoTree}",
+                "assets": [
+                    {
+                        "tokenId": "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e",
+                        "amount": 13
+                    }
+                ],
+                "additionalRegisters": {},
+                "creationHeight": 100000
+            },
+            {
+                "value": 100000,
+                "ergoTree": "${networkFeeErgoTree}",
+                "assets": [
+                    {   
+                        "tokenId": "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e",
+                        "amount": 5
+                    }
+                ],
+                "additionalRegisters": {},
+                "creationHeight": 100000
+            },
+            {
+                "value": 139998700000,
+                "ergoTree": "${bankAddressErgoTree}",
+                "assets": [
+                    {
+                        "tokenId": "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e",
+                        "amount": 47
+                    },
+                    {
+                        "tokenId": "e2b7b6ab2a7c6dfc6a82cc648f3b16b76db1cf19e93b7ac35a4898c06e4d08ce",
+                        "amount": 100
+                    }
+                ],
+                "additionalRegisters": {},
+                "creationHeight": 100000
+            },
+            ${this.mockTransactionFeeBox}
+        ]
+    }`
+
     static mockWatcherPermitBox = (value: bigint, assets: Asset[], boxErgoTree: string, registers: Register[]): string => `{
         "value": ${value.toString()},
         "ergoTree": "${boxErgoTree}",
