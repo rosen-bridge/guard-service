@@ -1,8 +1,8 @@
 import {
     Address,
-    BoxSelection, Constant,
+    BoxSelection,
     ErgoBox,
-    ErgoBoxAssetsDataList,
+    ErgoBoxAssetsDataList, ErgoBoxCandidate,
     ErgoBoxCandidateBuilder,
     ErgoBoxCandidates,
     ErgoBoxes,
@@ -69,6 +69,99 @@ class Reward implements BaseChain<ReducedTransaction> {
      * @return true if tx verified
      */
     verifyTransactionWithEvent = (paymentTx: PaymentTransaction, event: EventTrigger): boolean => {
+
+        /**
+         * method to verify watcher permit box contract
+         */
+        const verifyWatcherPermitBoxErgoTree = (box: ErgoBoxCandidate): boolean => {
+            return box.ergo_tree().to_base16_bytes() === Utils.contractStringToErgoTreeString(Contracts.watcherPermitContract)
+        }
+
+        /**
+         * method to verify watcher permit box contract
+         */
+        const verifyBoxRWTToken = (box: ErgoBoxCandidate): boolean => {
+            const boxToken = box.tokens().get(0)
+            return boxToken.id().to_str() === rwtToken && Utils.bigintFromI64(boxToken.amount().as_i64()) === 1n
+        }
+
+        /**
+         * method to verify transaction conditions where it distributes erg
+         */
+        const verifyErgDistribution = (): boolean => {
+            const sizeOfGuardsBoxesTokens: number = guardsBridgeFeeBox.tokens().len() + guardsNetworkFeeBox.tokens().len()
+
+            // verify size of tokens and value of guards boxes
+            if (
+                Utils.bigintFromBoxValue(guardsBridgeFeeBox.value()) !== guardsBridgeFeeShare ||
+                Utils.bigintFromBoxValue(guardsNetworkFeeBox.value()) !== guardsNetworkFeeShare ||
+                sizeOfGuardsBoxesTokens !== 0
+            ) return false;
+
+            // iterate over permit boxes (last four boxes are guardsBridgeFee, guardsNetworkFee, change and fee boxes)
+            for (let i = 0; i < watchersLen; i++) {
+                const box = outputBoxes.get(i)
+                if (
+                    !verifyWatcherPermitBoxErgoTree(box) ||
+                    Utils.bigintFromBoxValue(box.value()) !== watcherShare + ErgoConfigs.minimumErg ||
+                    box.tokens().len() !== 1
+                ) return false;
+
+                // checks rwt token
+                if (!verifyBoxRWTToken(box)) return false;
+
+                // add box wid to collection
+                outputBoxesWIDs.push(RewardBoxes.getBoxCandidateWIDString(box))
+            }
+            return true
+        }
+
+        /**
+         * method to verify transaction conditions where it distributes token
+         */
+        const verifyTokenDistribution = (): boolean => {
+            // verify size of tokens and value of guards boxes
+            const rewardTokenId = event.sourceChainTokenId
+            if (
+                Utils.bigintFromBoxValue(guardsBridgeFeeBox.value()) !== ErgoConfigs.minimumErg ||
+                Utils.bigintFromBoxValue(guardsNetworkFeeBox.value()) !== ErgoConfigs.minimumErg ||
+                guardsBridgeFeeBox.tokens().len() !== 1 ||
+                guardsNetworkFeeBox.tokens().len() !== 1
+            ) return false;
+
+            // checks payment token
+            const guardsBridgeFeeToken = guardsBridgeFeeBox.tokens().get(0)
+            const guardsNetworkFeeToken = guardsNetworkFeeBox.tokens().get(0)
+            if (
+                guardsBridgeFeeToken.id().to_str() !== rewardTokenId ||
+                guardsNetworkFeeToken.id().to_str() !== rewardTokenId ||
+                Utils.bigintFromI64(guardsBridgeFeeToken.amount().as_i64()) !== guardsBridgeFeeShare ||
+                Utils.bigintFromI64(guardsNetworkFeeToken.amount().as_i64()) !== guardsNetworkFeeShare
+            ) return false;
+
+            // iterate over permit boxes (last four boxes are guardsBridgeFee, guardsNetworkFee, change and fee boxes)
+            for (let i = 0; i < watchersLen; i++) {
+                const box = outputBoxes.get(i)
+                if (
+                    !verifyWatcherPermitBoxErgoTree(box) ||
+                    Utils.bigintFromBoxValue(box.value()) !== ErgoConfigs.minimumErg ||
+                    box.tokens().len() !== 2
+                ) return false;
+
+                // checks rwt and reward tokens
+                const boxRewardToken = box.tokens().get(1)
+                if (
+                    !verifyBoxRWTToken(box) ||
+                    boxRewardToken.id().to_str() !== rewardTokenId ||
+                    Utils.bigintFromI64(boxRewardToken.amount().as_i64()) !== watcherShare
+                ) return false;
+
+                // add box wid to collection
+                outputBoxesWIDs.push(RewardBoxes.getBoxCandidateWIDString(box))
+            }
+            return true
+        }
+
         const tx = this.deserialize(paymentTx.txBytes).unsigned_tx()
         const outputBoxes = tx.output_candidates()
 
@@ -98,83 +191,17 @@ class Reward implements BaseChain<ReducedTransaction> {
 
         const rwtToken = Configs.ergoRWT
         const outputBoxesWIDs: string[] = []
-        if (event.sourceChainTokenId === "erg") { // Erg payment case
-            const sizeOfGuardsBoxesTokens: number = guardsBridgeFeeBox.tokens().len() + guardsNetworkFeeBox.tokens().len()
 
-            // verify size of tokens and value of guards boxes
-            if (
-                Utils.bigintFromBoxValue(guardsBridgeFeeBox.value()) !== guardsBridgeFeeShare ||
-                Utils.bigintFromBoxValue(guardsNetworkFeeBox.value()) !== guardsNetworkFeeShare ||
-                sizeOfGuardsBoxesTokens !== 0
-            ) return false;
-
-            // iterate over permit boxes (last four boxes are guardsBridgeFee, guardsNetworkFee, change and fee boxes)
-            for (let i = 0; i < watchersLen; i++) {
-                const box = outputBoxes.get(i)
-                if (
-                    box.ergo_tree().to_base16_bytes() !== Utils.contractStringToErgoTreeString(Contracts.watcherPermitContract) ||
-                    Utils.bigintFromBoxValue(box.value()) !== watcherShare + ErgoConfigs.minimumErg ||
-                    box.tokens().len() !== 1
-                ) return false;
-
-                // checks rwt token
-                const boxToken = box.tokens().get(0)
-                if (
-                    boxToken.id().to_str() !== rwtToken ||
-                    Utils.bigintFromI64(boxToken.amount().as_i64()) !== 1n
-                ) return false;
-
-                // add box wid to collection
-                outputBoxesWIDs.push(RewardBoxes.getBoxCandidateWIDString(box))
-            }
+        if (event.sourceChainTokenId === "erg") {
+            if (!verifyErgDistribution()) return false
         }
-        else { // Token payment case
-            // verify size of tokens and value of guards boxes
-            const rewardTokenId = event.sourceChainTokenId
-            if (
-                Utils.bigintFromBoxValue(guardsBridgeFeeBox.value()) !== ErgoConfigs.minimumErg ||
-                Utils.bigintFromBoxValue(guardsNetworkFeeBox.value()) !== ErgoConfigs.minimumErg ||
-                guardsBridgeFeeBox.tokens().len() !== 1 ||
-                guardsNetworkFeeBox.tokens().len() !== 1
-            ) return false;
-
-            // checks payment token
-            const guardsBridgeFeeToken = guardsBridgeFeeBox.tokens().get(0)
-            const guardsNetworkFeeToken = guardsNetworkFeeBox.tokens().get(0)
-            if (
-                guardsBridgeFeeToken.id().to_str() !== rewardTokenId ||
-                guardsNetworkFeeToken.id().to_str() !== rewardTokenId ||
-                Utils.bigintFromI64(guardsBridgeFeeToken.amount().as_i64()) !== guardsBridgeFeeShare ||
-                Utils.bigintFromI64(guardsNetworkFeeToken.amount().as_i64()) !== guardsNetworkFeeShare
-            ) return false;
-
-            // iterate over permit boxes (last four boxes are guardsBridgeFee, guardsNetworkFee, change and fee boxes)
-            for (let i = 0; i < watchersLen; i++) {
-                const box = outputBoxes.get(i)
-                if (
-                    box.ergo_tree().to_base16_bytes() !== Utils.contractStringToErgoTreeString(Contracts.watcherPermitContract) ||
-                    Utils.bigintFromBoxValue(box.value()) !== ErgoConfigs.minimumErg ||
-                    box.tokens().len() !== 2
-                ) return false;
-
-                // checks rwt and reward tokens
-                const boxRwtToken = box.tokens().get(0)
-                const boxRewardToken = box.tokens().get(1)
-                if (
-                    boxRwtToken.id().to_str() !== rwtToken ||
-                    boxRewardToken.id().to_str() !== rewardTokenId ||
-                    Utils.bigintFromI64(boxRwtToken.amount().as_i64()) !== 1n ||
-                    Utils.bigintFromI64(boxRewardToken.amount().as_i64()) !== watcherShare
-                ) return false;
-
-                // add box wid to collection
-                outputBoxesWIDs.push(RewardBoxes.getBoxCandidateWIDString(box))
-            }
+        else {
+            if (!verifyTokenDistribution()) return false
         }
 
         // verify if all inputs WIDs exist in output boxes
         const inputWIDs = event.WIDs.concat(commitmentBoxes.map(box => Utils.Uint8ArrayToHexString(RewardBoxes.getErgoBoxWID(box))))
-        return Utils.doArraysHaveSameElements(inputWIDs, outputBoxesWIDs)
+        return Utils.doArraysHaveSameStrings(inputWIDs, outputBoxesWIDs)
     }
 
     /**
@@ -202,11 +229,11 @@ class Reward implements BaseChain<ReducedTransaction> {
      * @param commitmentBoxes the event valid commitment boxes that didn't merge
      */
     verifyInputs = (inputBoxes: UnsignedInputs, eventBox: ErgoBox, commitmentBoxes: ErgoBox[]): boolean => {
-        let isValid = true
         const sizeOfInputs = inputBoxes.len()
-        if (inputBoxes.get(0).box_id().to_str() !== eventBox.box_id().to_str()) isValid = false
+        if (inputBoxes.get(0).box_id().to_str() !== eventBox.box_id().to_str()) return false
 
         const inputBoxIds: string[] = []
+        let isValid = true
         for (let i = 1; i < sizeOfInputs; i++)
             inputBoxIds.push(inputBoxes.get(i).box_id().to_str())
 

@@ -30,13 +30,22 @@ app.post("/generate/", async (req: Request, res: Response) => {
         eventJson.sourceBlockId,
         eventJson.WIDs
     )
-    const paymentTx = await eventProcessor.createEventPayment(event)
+    try {
+        const paymentTx = await eventProcessor.createEventPayment(event)
 
-    res.send({
-        txId: paymentTx.txId,
-        eventId: paymentTx.eventId,
-        txBytes: paymentTx.getTxHexString()
-    })
+        res.send({
+            txId: paymentTx.txId,
+            eventId: paymentTx.eventId,
+            txBytes: paymentTx.getTxHexString()
+        })
+    }
+    catch (e) {
+        console.log(`An error occurred while generating tx for event [${event.getId()}]: ${e.message}`)
+        res.status(500).send({
+            message: e.message
+        })
+    }
+
 });
 
 /**
@@ -65,14 +74,22 @@ app.post("/verify/", async (req: Request, res: Response) => {
         Buffer.from(paymentTxJson.txBytes, "hex")
     )
 
-    const isValid = eventProcessor.verifyPaymentTransactionWithEvent(paymentTx, event)
+    try {
+        const isValid = eventProcessor.verifyPaymentTransactionWithEvent(paymentTx, event)
 
-    res.send({
-        txId: paymentTx.txId,
-        eventId: paymentTx.eventId,
-        txBytes: paymentTx.getTxHexString(),
-        isValid: isValid
-    })
+        res.send({
+            txId: paymentTx.txId,
+            eventId: paymentTx.eventId,
+            txBytes: paymentTx.getTxHexString(),
+            isValid: isValid
+        })
+    }
+    catch (e) {
+        console.log(`An error occurred while verifying tx for event [${event.getId()}]: ${e.message}`)
+        res.status(500).send({
+            message: e.message
+        })
+    }
 });
 
 app.listen(port, () => {
