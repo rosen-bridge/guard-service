@@ -11,7 +11,7 @@ export const apiCallBack = function (msg: any, channel: string, sender: string, 
     const data = axios.post(
         url,
         {
-            "msg": msg,
+            "message": msg,
             "channel": channel,
             "sender": sender
         },
