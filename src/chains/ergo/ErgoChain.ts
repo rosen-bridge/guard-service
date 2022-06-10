@@ -20,7 +20,6 @@ import Utils from "./helpers/Utils";
 import NodeApi from "./network/NodeApi";
 import { AssetMap, InBoxesInfo } from "./models/Interfaces";
 
-
 class ErgoChain implements BaseChain<ReducedTransaction> {
 
     bankAddress = Address.from_base58(ErgoConfigs.bankAddress)
@@ -133,7 +132,7 @@ class ErgoChain implements BaseChain<ReducedTransaction> {
 
         // create the payment box
         const paymentBox = new ErgoBoxCandidateBuilder(
-            Utils.boxValueFromString(paymentAmount.toString()),
+            Utils.boxValueFromBigint(paymentAmount),
             Utils.addressStringToContract(event.toAddress),
             currentHeight
         )
@@ -146,7 +145,7 @@ class ErgoChain implements BaseChain<ReducedTransaction> {
 
         // create the change box
         const changeBox = new ErgoBoxCandidateBuilder(
-            Utils.boxValueFromString(changeErgAmount.toString()),
+            Utils.boxValueFromBigint(changeErgAmount),
             Utils.addressToContract(this.bankAddress),
             currentHeight
         )
@@ -163,9 +162,9 @@ class ErgoChain implements BaseChain<ReducedTransaction> {
             inBoxes,
             outBoxes,
             currentHeight,
-            Utils.boxValueFromString(ErgoConfigs.txFee.toString()),
+            Utils.boxValueFromBigint(ErgoConfigs.txFee),
             this.bankAddress,
-            Utils.boxValueFromString(ErgoConfigs.minimumErg.toString())
+            Utils.boxValueFromBigint(ErgoConfigs.minimumErg)
         ).build()
 
         // create ReducedTransaction object
@@ -207,7 +206,7 @@ class ErgoChain implements BaseChain<ReducedTransaction> {
 
         // create the payment box
         const paymentBox = new ErgoBoxCandidateBuilder(
-            Utils.boxValueFromString(paymentErgAmount.toString()),
+            Utils.boxValueFromBigint(paymentErgAmount),
             Utils.addressStringToContract(event.toAddress),
             currentHeight
         )
@@ -222,7 +221,7 @@ class ErgoChain implements BaseChain<ReducedTransaction> {
 
         // create the change box
         const changeBox = new ErgoBoxCandidateBuilder(
-            Utils.boxValueFromString(changeErgAmount.toString()),
+            Utils.boxValueFromBigint(changeErgAmount),
             Utils.addressToContract(this.bankAddress),
             currentHeight
         )
@@ -239,9 +238,9 @@ class ErgoChain implements BaseChain<ReducedTransaction> {
             inBoxes,
             outBoxes,
             currentHeight,
-            Utils.boxValueFromString(ErgoConfigs.txFee.toString()),
+            Utils.boxValueFromBigint(ErgoConfigs.txFee),
             this.bankAddress,
-            Utils.boxValueFromString(ErgoConfigs.minimumErg.toString())
+            Utils.boxValueFromBigint(ErgoConfigs.minimumErg)
         ).build()
 
         // create ReducedTransaction object

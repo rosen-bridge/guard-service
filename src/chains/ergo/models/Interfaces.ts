@@ -1,8 +1,13 @@
-import { ErgoBox, ErgoBoxes } from "ergo-lib-wasm-nodejs";
+import { Constant, ErgoBox, ErgoBoxes } from "ergo-lib-wasm-nodejs";
 
 interface Asset {
     tokenId: string,
     amount: bigint
+}
+
+interface Register {
+    registerId: number,
+    value: Constant
 }
 
 interface Box {
@@ -60,6 +65,7 @@ interface ErgoBlockHeader {
 
 export {
     Asset,
+    Register,
     Box,
     Boxes,
     CoveringErgoBoxes,

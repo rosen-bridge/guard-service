@@ -7,11 +7,11 @@ import Utils from "../../../src/chains/ergo/helpers/Utils";
 import { mockGetCoveringErgAndTokenForErgoTree, resetMockedExplorerApi } from "./mocked/MockedExplorer";
 import { beforeEach } from "mocha";
 
-describe("ErgoChain", async () => {
+describe("ErgoChain",  () => {
     const testBankAddress = TestBoxes.testBankAddress
     const testBankErgoTree: string = Utils.addressStringToErgoTreeString(testBankAddress)
 
-    describe("generateTransaction", async () => {
+    describe("generateTransaction", () => {
         // mock getting bankBoxes
         const bankBoxes: CoveringErgoBoxes = TestBoxes.mockBankBoxes()
 
@@ -69,7 +69,7 @@ describe("ErgoChain", async () => {
     describe("verifyTransactionWithEvent", () => {
 
         /**
-         * Target: testing generateTransaction
+         * Target: testing verifyTransactionWithEvent
          * Dependencies:
          *    -
          * Expected Output:
@@ -87,7 +87,7 @@ describe("ErgoChain", async () => {
         })
 
         /**
-         * Target: testing generateTransaction
+         * Target: testing verifyTransactionWithEvent
          * Dependencies:
          *    -
          * Expected Output:
@@ -105,7 +105,7 @@ describe("ErgoChain", async () => {
         })
 
         /**
-         * Target: testing generateTransaction
+         * Target: testing verifyTransactionWithEvent
          * Dependencies:
          *    -
          * Expected Output:
@@ -123,7 +123,7 @@ describe("ErgoChain", async () => {
         })
 
         /**
-         * Target: testing generateTransaction
+         * Target: testing verifyTransactionWithEvent
          * Dependencies:
          *    -
          * Expected Output:

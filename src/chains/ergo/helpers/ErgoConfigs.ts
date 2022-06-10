@@ -1,4 +1,3 @@
-import Configs from "../../../helpers/Configs";
 import config from "config";
 
 class ErgoConfigs {
@@ -15,6 +14,10 @@ class ErgoConfigs {
     static bankAddress = config.get<string>('ergo.bankAddress')
     static minimumErg = BigInt(config.get<string>('ergo.minimumErg'))
     static txFee = BigInt(config.get<string>('ergo.txFee'))
+
+    static bridgeFeeRepoAddress: string = config.get?.('reward.bridgeFeeRepoAddress')
+    static networkFeeRepoAddress: string = config.get?.('reward.networkFeeRepoAddress')
+    static watchersSharePercent = BigInt(config.get?.('reward.watchersSharePercent'))
 
 }
 

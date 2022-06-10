@@ -9,11 +9,11 @@ import ExplorerApi from "../../../../src/chains/ergo/network/ExplorerApi";
 import { beforeEach } from "mocha";
 import TestBoxes from "../testUtils/TestBoxes";
 
-describe("ExplorerApi", async () => {
+describe("ExplorerApi", () => {
     const testBankAddress = TestBoxes.testBankAddress
     const testBankErgoTree: string = Utils.addressStringToErgoTreeString(testBankAddress)
 
-    describe("getCoveringErgAndTokenForErgoTree", async () => {
+    describe("getCoveringErgAndTokenForErgoTree", () => {
         // mock getting bankBoxes
         const bankBoxes: Boxes = TestBoxes.mockManyBankBoxes()
 
