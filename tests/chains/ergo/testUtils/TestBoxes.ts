@@ -26,6 +26,9 @@ class TestBoxes {
 
     static testBankAddress = ErgoConfigs.bankAddress
     static testBlockchainHeight = TestConfigs.ergo.blockchainHeight
+    static bridgeFeeErgoTree: string = Utils.addressStringToErgoTreeString(ErgoConfigs.bridgeFeeRepoAddress)
+    static networkFeeErgoTree: string = Utils.addressStringToErgoTreeString(ErgoConfigs.networkFeeRepoAddress)
+    static bankAddressErgoTree: string = Utils.addressStringToErgoTreeString(this.testBankAddress)
 
     /**
      * returns BoxValue object for arbitrary amount of Erg
@@ -135,19 +138,45 @@ class TestBoxes {
     /**
      * generates a mocked payment transaction that transfers a token
      * @param event token payment event trigger
+     * @param eventBoxes event box and valid commitment boxes
      */
-    static mockTokenTransferringPaymentTransaction = (event: EventTrigger): PaymentTransaction => {
+    static mockTokenTransferringPaymentTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): PaymentTransaction => {
         const targetAddressErgoTree: string = Utils.addressStringToErgoTreeString(event.toAddress)
-        const bankAddressErgoTree: string = Utils.addressStringToErgoTreeString(this.testBankAddress)
 
         const inBoxes = ErgoBoxes.empty()
-        const bankBoxes = this.mockBankBoxes()
-        bankBoxes.boxes.forEach(box => inBoxes.add(box))
+        eventBoxes.forEach(box => inBoxes.add(box))
+
+        const rwtTokenId = Configs.ergoRWT
+        const watcherBoxes = event.WIDs.map(wid => Utils.hexStringToUint8Array(wid))
+            .concat(eventBoxes.slice(1).map(box => RewardBoxes.getErgoBoxWID(box)))
+            .map(wid => TestData.mockWatcherPermitBox(
+                100000n,
+                [
+                    {
+                        tokenId: rwtTokenId,
+                        amount: BigInt("1")
+                    },
+                    {
+                        tokenId: "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e",
+                        amount: BigInt("1")
+                    }
+                ],
+                Utils.contractStringToErgoTreeString(Contracts.triggerEventContract),
+                [
+                    {
+                        registerId: 4,
+                        value: Constant.from_coll_coll_byte([wid])
+                    }
+                ]
+            ))
 
         const txJsonString: string = TestData.tokenTransferringErgPaymentTransactionString(
-            bankBoxes.boxes.map(box => box.box_id().to_str()),
+            eventBoxes.map(box => box.box_id().to_str()),
             targetAddressErgoTree,
-            bankAddressErgoTree
+            watcherBoxes,
+            this.bridgeFeeErgoTree,
+            this.networkFeeErgoTree,
+            this.bankAddressErgoTree
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
 
@@ -162,19 +191,45 @@ class TestBoxes {
     /**
      * generates a mocked payment transaction that only transfers erg
      * @param event erg payment event trigger
+     * @param eventBoxes event box and valid commitment boxes
      */
-    static mockErgTransferringPaymentTransaction = (event: EventTrigger): PaymentTransaction => {
+    static mockErgTransferringPaymentTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): PaymentTransaction => {
         const targetAddressErgoTree: string = Utils.addressStringToErgoTreeString(event.toAddress)
-        const bankAddressErgoTree: string = Utils.addressStringToErgoTreeString(this.testBankAddress)
 
         const inBoxes = ErgoBoxes.empty()
-        const bankBoxes = this.mockBankBoxes()
-        bankBoxes.boxes.forEach(box => inBoxes.add(box))
+        eventBoxes.forEach(box => inBoxes.add(box))
+
+        const rwtTokenId = Configs.ergoRWT
+        const watcherBoxes = event.WIDs.map(wid => Utils.hexStringToUint8Array(wid))
+            .concat(eventBoxes.slice(1).map(box => RewardBoxes.getErgoBoxWID(box)))
+            .map(wid => TestData.mockWatcherPermitBox(
+                100000n,
+                [
+                    {
+                        tokenId: rwtTokenId,
+                        amount: BigInt("1")
+                    },
+                    {
+                        tokenId: "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e",
+                        amount: BigInt("1")
+                    }
+                ],
+                Utils.contractStringToErgoTreeString(Contracts.triggerEventContract),
+                [
+                    {
+                        registerId: 4,
+                        value: Constant.from_coll_coll_byte([wid])
+                    }
+                ]
+            ))
 
         const txJsonString: string = TestData.ergOnlyTokenPaymentTransactionString(
-            bankBoxes.boxes.map(box => box.box_id().to_str()),
+            eventBoxes.map(box => box.box_id().to_str()),
             targetAddressErgoTree,
-            bankAddressErgoTree
+            watcherBoxes,
+            this.bridgeFeeErgoTree,
+            this.networkFeeErgoTree,
+            this.bankAddressErgoTree
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
 
@@ -189,19 +244,45 @@ class TestBoxes {
     /**
      * generates a mocked payment transaction that transfers two tokens
      * @param event token payment event trigger
+     * @param eventBoxes event box and valid commitment boxes
      */
-    static mockMultipleTokensTransferringPaymentTransaction = (event: EventTrigger): PaymentTransaction => {
+    static mockMultipleTokensTransferringPaymentTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): PaymentTransaction => {
         const targetAddressErgoTree: string = Utils.addressStringToErgoTreeString(event.toAddress)
-        const bankAddressErgoTree: string = Utils.addressStringToErgoTreeString(this.testBankAddress)
 
         const inBoxes = ErgoBoxes.empty()
-        const bankBoxes = this.mockBankBoxes()
-        bankBoxes.boxes.forEach(box => inBoxes.add(box))
+        eventBoxes.forEach(box => inBoxes.add(box))
+
+        const rwtTokenId = Configs.ergoRWT
+        const watcherBoxes = event.WIDs.map(wid => Utils.hexStringToUint8Array(wid))
+            .concat(eventBoxes.slice(1).map(box => RewardBoxes.getErgoBoxWID(box)))
+            .map(wid => TestData.mockWatcherPermitBox(
+                100000n,
+                [
+                    {
+                        tokenId: rwtTokenId,
+                        amount: BigInt("1")
+                    },
+                    {
+                        tokenId: "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e",
+                        amount: BigInt("1")
+                    }
+                ],
+                Utils.contractStringToErgoTreeString(Contracts.triggerEventContract),
+                [
+                    {
+                        registerId: 4,
+                        value: Constant.from_coll_coll_byte([wid])
+                    }
+                ]
+            ))
 
         const txJsonString: string = TestData.multipleTokenTransferringTokenPaymentTransactionString(
-            bankBoxes.boxes.map(box => box.box_id().to_str()),
+            eventBoxes.map(box => box.box_id().to_str()),
             targetAddressErgoTree,
-            bankAddressErgoTree
+            watcherBoxes,
+            this.bridgeFeeErgoTree,
+            this.networkFeeErgoTree,
+            this.bankAddressErgoTree
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
 
@@ -216,19 +297,153 @@ class TestBoxes {
     /**
      * generates a mocked payment transaction that transfers wrong token
      * @param event token payment event trigger
+     * @param eventBoxes event box and valid commitment boxes
      */
-    static mockWrongTokenTransferringPaymentTransaction = (event: EventTrigger): PaymentTransaction => {
+    static mockWrongTokenTransferringPaymentTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): PaymentTransaction => {
         const targetAddressErgoTree: string = Utils.addressStringToErgoTreeString(event.toAddress)
-        const bankAddressErgoTree: string = Utils.addressStringToErgoTreeString(this.testBankAddress)
 
         const inBoxes = ErgoBoxes.empty()
-        const bankBoxes = this.mockBankBoxes()
-        bankBoxes.boxes.forEach(box => inBoxes.add(box))
+        eventBoxes.forEach(box => inBoxes.add(box))
+
+        const rwtTokenId = Configs.ergoRWT
+        const watcherBoxes = event.WIDs.map(wid => Utils.hexStringToUint8Array(wid))
+            .concat(eventBoxes.slice(1).map(box => RewardBoxes.getErgoBoxWID(box)))
+            .map(wid => TestData.mockWatcherPermitBox(
+                100000n,
+                [
+                    {
+                        tokenId: rwtTokenId,
+                        amount: BigInt("1")
+                    },
+                    {
+                        tokenId: "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e",
+                        amount: BigInt("1")
+                    }
+                ],
+                Utils.contractStringToErgoTreeString(Contracts.triggerEventContract),
+                [
+                    {
+                        registerId: 4,
+                        value: Constant.from_coll_coll_byte([wid])
+                    }
+                ]
+            ))
 
         const txJsonString: string = TestData.wrongTokenTransferringTokenPaymentTransactionString(
-            bankBoxes.boxes.map(box => box.box_id().to_str()),
+            eventBoxes.map(box => box.box_id().to_str()),
             targetAddressErgoTree,
-            bankAddressErgoTree
+            watcherBoxes,
+            this.bridgeFeeErgoTree,
+            this.networkFeeErgoTree,
+            this.bankAddressErgoTree
+        )
+        const tx = UnsignedTransaction.from_json(txJsonString)
+
+        const reducedTx = ReducedTransaction.from_unsigned_tx(tx, inBoxes, ErgoBoxes.empty(), TestData.mockedErgoStateContext)
+
+        const txBytes = reducedTx.sigma_serialize_bytes()
+        const txId = tx.id().to_str()
+        const eventId = event.sourceTxId
+        return new PaymentTransaction(txId, eventId, txBytes)
+    }
+
+    /**
+     * generates a mocked reward distribution tx that change a WID in tx generation
+     * @param event token reward event trigger
+     * @param eventBoxes event box and valid commitment boxes
+     */
+    static mockTransferToIllegalWIDTokenPaymentTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): PaymentTransaction => {
+        const targetAddressErgoTree: string = Utils.addressStringToErgoTreeString(event.toAddress)
+
+        const inBoxes = ErgoBoxes.empty()
+        eventBoxes.forEach(box => inBoxes.add(box))
+
+        const rwtTokenId = Configs.ergoRWT
+        const watcherBoxes = event.WIDs.slice(1).concat([TestUtils.generateRandomId()])
+            .map(wid => Utils.hexStringToUint8Array(wid))
+            .concat(eventBoxes.slice(1).map(box => RewardBoxes.getErgoBoxWID(box)))
+            .map(wid => TestData.mockWatcherPermitBox(
+                100000n,
+                [
+                    {
+                        tokenId: rwtTokenId,
+                        amount: BigInt("1")
+                    },
+                    {
+                        tokenId: "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e",
+                        amount: BigInt("1")
+                    }
+                ],
+                Utils.contractStringToErgoTreeString(Contracts.triggerEventContract),
+                [
+                    {
+                        registerId: 4,
+                        value: Constant.from_coll_coll_byte([wid])
+                    }
+                ]
+            ))
+
+        const txJsonString: string = TestData.tokenTransferringErgPaymentTransactionString(
+            eventBoxes.map(box => box.box_id().to_str()),
+            targetAddressErgoTree,
+            watcherBoxes,
+            this.bridgeFeeErgoTree,
+            this.networkFeeErgoTree,
+            this.bankAddressErgoTree
+        )
+        const tx = UnsignedTransaction.from_json(txJsonString)
+
+        const reducedTx = ReducedTransaction.from_unsigned_tx(tx, inBoxes, ErgoBoxes.empty(), TestData.mockedErgoStateContext)
+
+        const txBytes = reducedTx.sigma_serialize_bytes()
+        const txId = tx.id().to_str()
+        const eventId = event.sourceTxId
+        return new PaymentTransaction(txId, eventId, txBytes)
+    }
+
+    /**
+     * generates a mocked reward distribution tx that miss a valid commitment box in tx generation
+     * @param event token reward event trigger
+     * @param eventBoxes event box and valid commitment boxes
+     */
+    static mockMissingValidCommitmentTokenPaymentTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): PaymentTransaction => {
+        const targetAddressErgoTree: string = Utils.addressStringToErgoTreeString(event.toAddress)
+
+        const inBoxes = ErgoBoxes.empty()
+        eventBoxes.forEach(box => inBoxes.add(box))
+
+        const rwtTokenId = Configs.ergoRWT
+        const watcherBoxes = event.WIDs.slice(1).concat([TestUtils.generateRandomId()])
+            .map(wid => Utils.hexStringToUint8Array(wid))
+            .concat(eventBoxes.slice(1).map(box => RewardBoxes.getErgoBoxWID(box)))
+            .map(wid => TestData.mockWatcherPermitBox(
+                100000n,
+                [
+                    {
+                        tokenId: rwtTokenId,
+                        amount: BigInt("1")
+                    },
+                    {
+                        tokenId: "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e",
+                        amount: BigInt("1")
+                    }
+                ],
+                Utils.contractStringToErgoTreeString(Contracts.triggerEventContract),
+                [
+                    {
+                        registerId: 4,
+                        value: Constant.from_coll_coll_byte([wid])
+                    }
+                ]
+            ))
+
+        const txJsonString: string = TestData.tokenTransferringErgPaymentTransactionString(
+            eventBoxes.map(box => box.box_id().to_str()),
+            targetAddressErgoTree,
+            watcherBoxes,
+            this.bridgeFeeErgoTree,
+            this.networkFeeErgoTree,
+            this.bankAddressErgoTree
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
 
@@ -443,10 +658,6 @@ class TestBoxes {
      * @param eventBoxes event box and valid commitment boxes
      */
     static mockTokenTransferringErgDistributionTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): PaymentTransaction => {
-        const bridgeFeeErgoTree: string = Utils.addressStringToErgoTreeString(ErgoConfigs.bridgeFeeRepoAddress)
-        const networkFeeErgoTree: string = Utils.addressStringToErgoTreeString(ErgoConfigs.networkFeeRepoAddress)
-        const bankAddressErgoTree: string = Utils.addressStringToErgoTreeString(this.testBankAddress)
-
         const inBoxes = ErgoBoxes.empty()
         eventBoxes.forEach(box => inBoxes.add(box))
 
@@ -477,9 +688,9 @@ class TestBoxes {
         const txJsonString: string = TestData.tokenTransferringErgRewardDistributionTxString(
             eventBoxes.map(box => box.box_id().to_str()),
             watcherBoxes,
-            bridgeFeeErgoTree,
-            networkFeeErgoTree,
-            bankAddressErgoTree
+            this.bridgeFeeErgoTree,
+            this.networkFeeErgoTree,
+            this.bankAddressErgoTree
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
 
@@ -497,10 +708,6 @@ class TestBoxes {
      * @param eventBoxes event box and valid commitment boxes
      */
     static mockTransferToIllegalWIDDistributionTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): PaymentTransaction => {
-        const bridgeFeeErgoTree: string = Utils.addressStringToErgoTreeString(ErgoConfigs.bridgeFeeRepoAddress)
-        const networkFeeErgoTree: string = Utils.addressStringToErgoTreeString(ErgoConfigs.networkFeeRepoAddress)
-        const bankAddressErgoTree: string = Utils.addressStringToErgoTreeString(this.testBankAddress)
-
         const inBoxes = ErgoBoxes.empty()
         eventBoxes.forEach(box => inBoxes.add(box))
 
@@ -532,9 +739,9 @@ class TestBoxes {
         const txJsonString: string = TestData.tokenRewardDistributionTxString(
             eventBoxes.map(box => box.box_id().to_str()),
             watcherBoxes,
-            bridgeFeeErgoTree,
-            networkFeeErgoTree,
-            bankAddressErgoTree
+            this.bridgeFeeErgoTree,
+            this.networkFeeErgoTree,
+            this.bankAddressErgoTree
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
 
@@ -552,10 +759,6 @@ class TestBoxes {
      * @param eventBoxes event box and valid commitment boxes
      */
     static mockMissingValidCommitmentDistributionTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): PaymentTransaction => {
-        const bridgeFeeErgoTree: string = Utils.addressStringToErgoTreeString(ErgoConfigs.bridgeFeeRepoAddress)
-        const networkFeeErgoTree: string = Utils.addressStringToErgoTreeString(ErgoConfigs.networkFeeRepoAddress)
-        const bankAddressErgoTree: string = Utils.addressStringToErgoTreeString(this.testBankAddress)
-
         const inBoxes = ErgoBoxes.empty()
         eventBoxes.forEach(box => inBoxes.add(box))
 
@@ -587,9 +790,9 @@ class TestBoxes {
         const txJsonString: string = TestData.tokenRewardDistributionTxString(
             eventBoxes.map(box => box.box_id().to_str()),
             watcherBoxes,
-            bridgeFeeErgoTree,
-            networkFeeErgoTree,
-            bankAddressErgoTree
+            this.bridgeFeeErgoTree,
+            this.networkFeeErgoTree,
+            this.bankAddressErgoTree
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
 
@@ -607,10 +810,6 @@ class TestBoxes {
      * @param eventBoxes event box and valid commitment boxes
      */
     static mockIllegalChangeBoxDistributionTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): PaymentTransaction => {
-        const bridgeFeeErgoTree: string = Utils.addressStringToErgoTreeString(ErgoConfigs.bridgeFeeRepoAddress)
-        const networkFeeErgoTree: string = Utils.addressStringToErgoTreeString(ErgoConfigs.networkFeeRepoAddress)
-        const bankAddressErgoTree: string = Utils.addressToErgoTreeString(SecretKey.random_dlog().get_address())
-
         const inBoxes = ErgoBoxes.empty()
         eventBoxes.forEach(box => inBoxes.add(box))
 
@@ -642,9 +841,9 @@ class TestBoxes {
         const txJsonString: string = TestData.tokenRewardDistributionTxString(
             eventBoxes.map(box => box.box_id().to_str()),
             watcherBoxes,
-            bridgeFeeErgoTree,
-            networkFeeErgoTree,
-            bankAddressErgoTree
+            this.bridgeFeeErgoTree,
+            this.networkFeeErgoTree,
+            this.bankAddressErgoTree
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
 
@@ -662,10 +861,6 @@ class TestBoxes {
      * @param eventBoxes event box and valid commitment boxes
      */
     static mockWrongTokenDistributionTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): PaymentTransaction => {
-        const bridgeFeeErgoTree: string = Utils.addressStringToErgoTreeString(ErgoConfigs.bridgeFeeRepoAddress)
-        const networkFeeErgoTree: string = Utils.addressStringToErgoTreeString(ErgoConfigs.networkFeeRepoAddress)
-        const bankAddressErgoTree: string = Utils.addressStringToErgoTreeString(this.testBankAddress)
-
         const inBoxes = ErgoBoxes.empty()
         eventBoxes.forEach(box => inBoxes.add(box))
 
@@ -697,9 +892,9 @@ class TestBoxes {
         const txJsonString: string = TestData.wrongTokenRewardDistributionTxString(
             eventBoxes.map(box => box.box_id().to_str()),
             watcherBoxes,
-            bridgeFeeErgoTree,
-            networkFeeErgoTree,
-            bankAddressErgoTree
+            this.bridgeFeeErgoTree,
+            this.networkFeeErgoTree,
+            this.bankAddressErgoTree
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
 
@@ -717,10 +912,6 @@ class TestBoxes {
      * @param eventBoxes event box and valid commitment boxes
      */
     static mockWrongAmountTokenDistributionTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): PaymentTransaction => {
-        const bridgeFeeErgoTree: string = Utils.addressStringToErgoTreeString(ErgoConfigs.bridgeFeeRepoAddress)
-        const networkFeeErgoTree: string = Utils.addressStringToErgoTreeString(ErgoConfigs.networkFeeRepoAddress)
-        const bankAddressErgoTree: string = Utils.addressStringToErgoTreeString(this.testBankAddress)
-
         const inBoxes = ErgoBoxes.empty()
         eventBoxes.forEach(box => inBoxes.add(box))
 
@@ -752,9 +943,9 @@ class TestBoxes {
         const txJsonString: string = TestData.wrongTokenAmountRewardDistributionTxString(
             eventBoxes.map(box => box.box_id().to_str()),
             watcherBoxes,
-            bridgeFeeErgoTree,
-            networkFeeErgoTree,
-            bankAddressErgoTree
+            this.bridgeFeeErgoTree,
+            this.networkFeeErgoTree,
+            this.bankAddressErgoTree
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
 
