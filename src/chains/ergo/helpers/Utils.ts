@@ -31,10 +31,24 @@ class Utils {
     }
 
     /**
+     * converts Ergo Contract to string representation of it's ergoTree
+     */
+    static contractStringToErgoTreeString = (contract: Contract): string => {
+        return contract.ergo_tree().to_base16_bytes()
+    }
+
+    /**
      * converts string representation of number to BoxValue
      */
     static boxValueFromString = (amount: string): BoxValue => {
         return BoxValue.from_i64(I64.from_str(amount))
+    }
+
+    /**
+     * converts bigint to BoxValue
+     */
+    static boxValueFromBigint = (amount: bigint): BoxValue => {
+        return this.boxValueFromString(amount.toString())
     }
 
     /**
@@ -56,6 +70,35 @@ class Utils {
      */
     static i64FromBigint = (amount: bigint): I64 => {
         return I64.from_str(amount.toString())
+    }
+
+    /**
+     * converts hex string to bytearray
+     */
+    static hexStringToUint8Array = (str: string): Uint8Array => {
+        return Buffer.from(str, "hex")
+    }
+
+    /**
+     * converts bytearray to hex string
+     */
+    static Uint8ArrayToHexString = (bytes: Uint8Array): string => {
+        return Buffer.from(bytes).toString("hex")
+    }
+
+    /**
+     * checks if two arrays have same values
+     * @param source first array
+     * @param target second array
+     */
+    static doArraysHaveSameStrings = (source: string[], target: string[]): boolean => {
+        if (source.length !== target.length) return false
+
+        let isEqual = true
+        source.forEach(value => {
+            if (!target.includes(value)) isEqual = false
+        })
+        return isEqual
     }
 
 }

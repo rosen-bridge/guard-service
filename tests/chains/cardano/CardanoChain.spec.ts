@@ -5,10 +5,10 @@ import TestBoxes from "./testUtils/TestBoxes";
 import { expect } from "chai";
 import { Utxo } from "../../../src/chains/cardano/models/Interfaces";
 
-describe("CardanoChain", async () => {
+describe("CardanoChain", () => {
     const testBankAddress = TestBoxes.testBankAddress
 
-    describe("generateTransaction", async () => {
+    describe("generateTransaction", () => {
         // mock getting bankBoxes
         const bankBoxes: Utxo[] = TestBoxes.mockBankBoxes()
         mockGetAddressBoxes(testBankAddress, bankBoxes)
@@ -59,10 +59,10 @@ describe("CardanoChain", async () => {
 
     })
 
-    describe("verifyTransactionWithEvent", async () => {
+    describe("verifyTransactionWithEvent", () => {
 
         /**
-         * Target: testing generateTransaction
+         * Target: testing verifyTransactionWithEvent
          * Dependencies:
          *    -
          * Expected Output:
@@ -80,7 +80,7 @@ describe("CardanoChain", async () => {
         })
 
         /**
-         * Target: testing generateTransaction
+         * Target: testing verifyTransactionWithEvent
          * Dependencies:
          *    -
          * Expected Output:
@@ -98,7 +98,7 @@ describe("CardanoChain", async () => {
         })
 
         /**
-         * Target: testing generateTransaction
+         * Target: testing verifyTransactionWithEvent
          * Dependencies:
          *    -
          * Expected Output:
@@ -116,7 +116,7 @@ describe("CardanoChain", async () => {
         })
 
         /**
-         * Target: testing generateTransaction
+         * Target: testing verifyTransactionWithEvent
          * Dependencies:
          *    -
          * Expected Output:
