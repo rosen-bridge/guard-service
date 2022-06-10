@@ -1,5 +1,4 @@
 {
-    "extends": "@istanbuljs/nyc-config-typescript",
     "check-coverage": false,
     "cache": false,
     "sourceMap": true,
@@ -8,6 +7,5 @@
         "text",
         "text-summary"
     ],
-    "all": true,
-    "instrument": true
+    "all": true
 }
