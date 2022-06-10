@@ -10,7 +10,7 @@ import {
     ReducedTransaction,
     TokenAmount,
     TokenId,
-    TxBuilder, UnsignedInputs
+    TxBuilder
 } from "ergo-lib-wasm-nodejs";
 import { PaymentTransaction, EventTrigger } from "../../models/Models";
 import BaseChain from "../BaseChains";
@@ -168,7 +168,7 @@ class Reward implements BaseChain<ReducedTransaction> {
         // get eventBox and remaining valid commitments
         const eventBox: ErgoBox = RewardBoxes.getEventBox(event)
         const commitmentBoxes: ErgoBox[] = RewardBoxes.getEventValidCommitments(event)
-        if (!this.verifyInputs(tx.inputs(), eventBox, commitmentBoxes)) return false
+        if (!RewardBoxes.verifyInputs(tx.inputs(), eventBox, commitmentBoxes)) return false
 
         // verify number of output boxes (number of watchers + 2 box for guards + 1 change box + 1 tx fee box)
         const outputLength = outputBoxes.len()
@@ -220,28 +220,6 @@ class Reward implements BaseChain<ReducedTransaction> {
      */
     deserialize = (txBytes: Uint8Array): ReducedTransaction => {
         return ReducedTransaction.sigma_parse_bytes(txBytes)
-    }
-
-    /**
-     * checks if input boxes contain all valid commitments and the event box
-     * @param inputBoxes the transaction input boxes
-     * @param eventBox the event trigger box
-     * @param commitmentBoxes the event valid commitment boxes that didn't merge
-     */
-    verifyInputs = (inputBoxes: UnsignedInputs, eventBox: ErgoBox, commitmentBoxes: ErgoBox[]): boolean => {
-        const sizeOfInputs = inputBoxes.len()
-        if (inputBoxes.get(0).box_id().to_str() !== eventBox.box_id().to_str()) return false
-
-        const inputBoxIds: string[] = []
-        let isValid = true
-        for (let i = 1; i < sizeOfInputs; i++)
-            inputBoxIds.push(inputBoxes.get(i).box_id().to_str())
-
-        commitmentBoxes.forEach(box => {
-            if (!inputBoxIds.includes(box.box_id().to_str())) isValid = false
-        })
-
-        return isValid
     }
 
     /**

@@ -60,7 +60,7 @@ class TestBoxes {
     static mockTokenPaymentEventTrigger = (): EventTrigger => {
         return new EventTrigger("", "ergo", "",
             "9hCPp7N4foJ68kPEwMMEa8tCsXVTDoLvXbdkm8s5Ht7Dpnc3L2t",
-            "80", "10", "5", "",
+            "90", "20", "5", "",
             "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e", TestUtils.generateRandomId(), "",
             Array(5).fill(0).map(() => TestUtils.generateRandomId())
         )
@@ -98,7 +98,7 @@ class TestBoxes {
         const randomTokenId: string = TestUtils.generateRandomId()
 
         const box1Tokens: Tokens = new Tokens()
-        box1Tokens.add(new Token(TokenId.from_str(targetTokenId), TokenAmount.from_i64(I64.from_str("44"))))
+        box1Tokens.add(new Token(TokenId.from_str(targetTokenId), TokenAmount.from_i64(I64.from_str("54"))))
         box1Tokens.add(new Token(TokenId.from_str(randomTokenId), TokenAmount.from_i64(I64.from_str("100"))))
         const box1: ErgoBox = new ErgoBox(
             this.ergToBoxValue(30),
@@ -109,7 +109,7 @@ class TestBoxes {
             box1Tokens
         )
         const box2Tokens: Tokens = new Tokens()
-        box2Tokens.add(new Token(TokenId.from_str(targetTokenId), TokenAmount.from_i64(I64.from_str("35"))))
+        box2Tokens.add(new Token(TokenId.from_str(targetTokenId), TokenAmount.from_i64(I64.from_str("45"))))
         const box2: ErgoBox = new ErgoBox(
             this.ergToBoxValue(100),
             this.testBlockchainHeight,

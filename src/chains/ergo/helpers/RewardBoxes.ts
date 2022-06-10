@@ -6,7 +6,7 @@ import {
     ErgoBoxCandidate,
     ErgoBoxCandidateBuilder, I64,
     TokenAmount,
-    TokenId, Tokens, TxId
+    TokenId, Tokens, TxId, UnsignedInputs
 } from "ergo-lib-wasm-nodejs";
 import Utils from "./Utils";
 import ErgoConfigs from "./ErgoConfigs";
@@ -94,6 +94,28 @@ class RewardBoxes {
         watcherBox.add_token(paymentTokenId, TokenAmount.from_i64(Utils.i64FromBigint(paymentTokenAmount)))
         watcherBox.set_register_value(4, Constant.from_coll_coll_byte([wid]))
         return watcherBox.build()
+    }
+
+    /**
+     * checks if input boxes contain all valid commitments and the event box
+     * @param inputBoxes the transaction input boxes
+     * @param eventBox the event trigger box
+     * @param commitmentBoxes the event valid commitment boxes that didn't merge
+     */
+    static verifyInputs = (inputBoxes: UnsignedInputs, eventBox: ErgoBox, commitmentBoxes: ErgoBox[]): boolean => {
+        const sizeOfInputs = inputBoxes.len()
+        if (inputBoxes.get(0).box_id().to_str() !== eventBox.box_id().to_str()) return false
+
+        const inputBoxIds: string[] = []
+        let isValid = true
+        for (let i = 1; i < sizeOfInputs; i++)
+            inputBoxIds.push(inputBoxes.get(i).box_id().to_str())
+
+        commitmentBoxes.forEach(box => {
+            if (!inputBoxIds.includes(box.box_id().to_str())) isValid = false
+        })
+
+        return isValid
     }
 
 }
