@@ -256,6 +256,7 @@ class Reward implements BaseChain<ReducedTransaction> {
         event.WIDs.forEach(wid => {
             outBoxes.add(RewardBoxes.createErgRewardBox(
                 currentHeight,
+                Utils.bigintFromBoxValue(eventBox.value()) / BigInt(event.WIDs.length),
                 rwtTokenId,
                 watcherShare,
                 Utils.hexStringToUint8Array(wid)
@@ -267,6 +268,7 @@ class Reward implements BaseChain<ReducedTransaction> {
             const wid = RewardBoxes.getErgoBoxWID(box)
             outBoxes.add(RewardBoxes.createErgRewardBox(
                 currentHeight,
+                Utils.bigintFromBoxValue(box.value()),
                 rwtTokenId,
                 watcherShare,
                 wid
@@ -367,6 +369,7 @@ class Reward implements BaseChain<ReducedTransaction> {
         const rwtTokenId: TokenId = eventBox.tokens().get(0).id()
         event.WIDs.forEach(wid => outBoxes.add(RewardBoxes.createTokenRewardBox(
             currentHeight,
+            Utils.bigintFromBoxValue(eventBox.value()) / BigInt(event.WIDs.length),
             rwtTokenId,
             paymentTokenId,
             watcherShare,
@@ -378,6 +381,7 @@ class Reward implements BaseChain<ReducedTransaction> {
             const wid = RewardBoxes.getErgoBoxWID(box)
             outBoxes.add(RewardBoxes.createTokenRewardBox(
                 currentHeight,
+                Utils.bigintFromBoxValue(box.value()),
                 rwtTokenId,
                 paymentTokenId,
                 watcherShare,

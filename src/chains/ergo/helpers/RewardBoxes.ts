@@ -61,13 +61,14 @@ class RewardBoxes {
     /**
      * creates an ErgoBox with watcher-permit contract containing event reward (reward is erg)
      * @param height current height of blockchain
+     * @param ergValue minimum erg in event or commitment box
      * @param rwtTokenId RWT token id of the source chain
      * @param watcherShare reward erg amount
      * @param wid watcher id
      */
-    static createErgRewardBox = (height: number, rwtTokenId: TokenId, watcherShare: bigint, wid: Uint8Array): ErgoBoxCandidate => {
+    static createErgRewardBox = (height: number, ergValue: bigint, rwtTokenId: TokenId, watcherShare: bigint, wid: Uint8Array): ErgoBoxCandidate => {
         const watcherBox = new ErgoBoxCandidateBuilder(
-            Utils.boxValueFromBigint(watcherShare + ErgoConfigs.minimumErg),
+            Utils.boxValueFromBigint(watcherShare + ergValue),
             Contracts.watcherPermitContract,
             height
         )
@@ -79,14 +80,15 @@ class RewardBoxes {
     /**
      * creates an ErgoBox with watcher-permit contract containing event reward (reward is token)
      * @param height current height of blockchain
+     * @param ergValue minimum erg in event or commitment box
      * @param rwtTokenId RWT token id of the source chain
      * @param paymentTokenId reward token id
      * @param paymentTokenAmount reward token amount
      * @param wid watcher id
      */
-    static createTokenRewardBox = (height: number, rwtTokenId: TokenId, paymentTokenId: TokenId, paymentTokenAmount: bigint, wid: Uint8Array): ErgoBoxCandidate => {
+    static createTokenRewardBox = (height: number, ergValue: bigint, rwtTokenId: TokenId, paymentTokenId: TokenId, paymentTokenAmount: bigint, wid: Uint8Array): ErgoBoxCandidate => {
         const watcherBox = new ErgoBoxCandidateBuilder(
-            Utils.boxValueFromBigint(ErgoConfigs.minimumErg),
+            Utils.boxValueFromBigint(ergValue),
             Contracts.watcherPermitContract,
             height
         )
