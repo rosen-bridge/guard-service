@@ -413,7 +413,7 @@ class Reward implements BaseChain<ReducedTransaction> {
 
         // calculate assets of change box
         const changeBoxInfo = this.calculateBankBoxesAssets(bankBoxes.boxes, inErgoBoxes)
-        const changeErgAmount: bigint = changeBoxInfo.ergs - (2n * ErgoConfigs.minimumErg) - ErgoConfigs.txFee
+        const changeErgAmount: bigint = changeBoxInfo.ergs - (2n * ErgoConfigs.minimumErg) - ErgoConfigs.txFee // reduce other boxes ergs (two guards boxes)
         const changeTokens: AssetMap = changeBoxInfo.tokens
         changeTokens[event.sourceChainTokenId] -= BigInt(event.bridgeFee) + BigInt(event.networkFee)
 

@@ -479,7 +479,7 @@ class ErgoChain implements BaseChain<ReducedTransaction> {
 
         // calculate assets of change box
         const changeBoxInfo = this.calculateBankBoxesAssets(bankBoxes.boxes, inErgoBoxes)
-        const changeErgAmount: bigint = changeBoxInfo.ergs - (3n * ErgoConfigs.minimumErg) - ErgoConfigs.txFee
+        const changeErgAmount: bigint = changeBoxInfo.ergs - (3n * ErgoConfigs.minimumErg) - ErgoConfigs.txFee // reduce other boxes ergs (payment box and two guards boxes)
         const changeTokens: AssetMap = changeBoxInfo.tokens
         changeTokens[event.targetChainTokenId] -= BigInt(event.amount)
 
