@@ -298,7 +298,7 @@ class Reward implements BaseChain<ReducedTransaction> {
 
         // create the change box
         const changeBox = new ErgoBoxCandidateBuilder(
-            Utils.boxValueFromString(changeErgAmount.toString()),
+            Utils.boxValueFromBigint(changeErgAmount),
             Utils.addressToContract(this.bankAddress),
             currentHeight
         )
@@ -343,7 +343,7 @@ class Reward implements BaseChain<ReducedTransaction> {
 
         // calculate assets of payment box
         const watchersLen: number = event.WIDs.length + commitmentBoxes.length
-        const inErgAmount: bigint = 3n * ErgoConfigs.minimumErg + ErgoConfigs.txFee
+        const inErgAmount: bigint = 3n * ErgoConfigs.minimumErg + ErgoConfigs.txFee // 3 minimum erg for two guards boxes and change box
         const paymentTokenId: TokenId = TokenId.from_str(event.sourceChainTokenId)
         const watcherShare: bigint = BigInt(event.bridgeFee) * ErgoConfigs.watchersSharePercent / 100n / BigInt(watchersLen)
         const guardsBridgeFeeShare: bigint = BigInt(event.bridgeFee) - (BigInt(watchersLen) * watcherShare)
@@ -415,7 +415,7 @@ class Reward implements BaseChain<ReducedTransaction> {
 
         // create the change box
         const changeBox = new ErgoBoxCandidateBuilder(
-            Utils.boxValueFromString(changeErgAmount.toString()),
+            Utils.boxValueFromBigint(changeErgAmount),
             Utils.addressToContract(this.bankAddress),
             currentHeight
         )
@@ -431,9 +431,9 @@ class Reward implements BaseChain<ReducedTransaction> {
             inBoxes,
             outBoxes,
             currentHeight,
-            Utils.boxValueFromString(ErgoConfigs.txFee.toString()),
+            Utils.boxValueFromBigint(ErgoConfigs.txFee),
             this.bankAddress,
-            Utils.boxValueFromString(ErgoConfigs.minimumErg.toString())
+            Utils.boxValueFromBigint(ErgoConfigs.minimumErg)
         ).build()
 
         // create ReducedTransaction object
