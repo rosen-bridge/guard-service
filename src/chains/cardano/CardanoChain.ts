@@ -4,7 +4,7 @@ import {
     MultiAsset, ScriptHash,
     Transaction, TransactionBuilder, TransactionHash, TransactionInput,
     TransactionOutput, TransactionWitnessSet,
-    Value
+    Value, Vkeywitness, Vkeywitnesses
 } from "@emurgo/cardano-serialization-lib-nodejs";
 import KoiosApi from "./network/KoiosApi";
 import { PaymentTransaction, EventTrigger } from "../../models/Models";
@@ -13,6 +13,7 @@ import CardanoConfigs from "./helpers/CardanoConfigs";
 import BlockFrostApi from "./network/BlockFrostApi";
 import { Utxo, UtxoBoxesAssets } from "./models/Interfaces";
 import CardanoUtils from "./helpers/CardanoUtils";
+import TssSigner from "../../guard/TssSigner";
 
 
 class CardanoChain implements BaseChain<Transaction> {
@@ -259,6 +260,46 @@ class CardanoChain implements BaseChain<Transaction> {
         return {
             lovelace: changeBoxLovelace,
             assets: multiAsset
+        }
+    }
+
+    /**
+     * signs a cardano transaction
+     * @param tx the transaction
+     */
+    signTransaction = async (tx: Transaction): Promise<Transaction> => {
+        const txHash = hash_transaction(tx.body()).to_bytes()
+        const signedTxHash = await TssSigner.signTxHash(txHash)
+
+        // make vkey witness: 825840 + publicKey + 5840 + signedTxHash
+        const vkeyWitness = Vkeywitness.from_bytes(Buffer.from(
+            `825820${CardanoConfigs.tssPublicKey}5840${signedTxHash}`
+        , "hex"))
+
+        const vkeyWitnesses = Vkeywitnesses.new();
+        vkeyWitnesses.add(vkeyWitness);
+        const witnesses = TransactionWitnessSet.new();
+        witnesses.set_vkeys(vkeyWitnesses);
+
+        return Transaction.new(
+            tx.body(),
+            witnesses
+        )
+    }
+
+    /**
+     * submit a cardano transaction to network
+     * @param tx the transaction
+     */
+    submitTransaction = async (tx: Transaction): Promise<boolean> => {
+        try {
+            const response = await BlockFrostApi.txSubmit(tx)
+            console.log(`Cardano Transaction submitted. txId: ${response}`)
+            return true
+        }
+        catch (e) {
+            console.log(`An error occurred while submitting Cardano transaction: ${e.message}`)
+            return false
         }
     }
 
