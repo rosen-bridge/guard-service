@@ -1,0 +1,18 @@
+{
+  "roots": [
+    "<rootDir>",
+    "/Users/moein/projects/Ergo/rosen-bridge/ts-guard-service/"
+  ],
+  "modulePaths": [
+    "<rootDir>/",
+    "<rootDir>/src/",
+    "<rootDir>/node_modules/"
+  ],
+  "verbose": true,
+  "preset": "ts-jest/presets/default-esm",
+
+  "moduleFileExtensions": [
+    "json", "js", "jsx", "ts", "tsx", "vue", "cjs"],
+  "moduleDirectories": ["node_modules"],
+  "testEnvironment": "node"
+}

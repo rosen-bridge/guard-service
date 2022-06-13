@@ -1,4 +1,4 @@
-import {createLibp2p, Libp2p} from 'libp2p'
+import * as xx from 'libp2p'
 import { WebSockets } from '@libp2p/websockets'
 import { Noise } from '@chainsafe/libp2p-noise'
 import { Mplex } from '@libp2p/mplex'
@@ -15,10 +15,11 @@ import {Connection, Stream} from "@libp2p/interfaces/src/connection";
 import {SubscribeChannel} from "./CallbackUtils";
 
 
+
 class Dialer {
   private static instance: Dialer;
 
-  private _NODE: Libp2p | undefined;
+  private _NODE: xx.Libp2p | undefined;
   private _RELAY_CONN: Connection | undefined;
   private _SUBSCRIBED_CHANNELS: any = {};
   private _PENDING_MESSAGE: any[] = [];
@@ -63,7 +64,7 @@ class Dialer {
    * establish connection to relay
    * @param node: Libp2p
    */
-  private createRelayConnection = async (node: Libp2p) : Promise<void> => {
+  private createRelayConnection = async (node: xx.Libp2p) : Promise<void> => {
     if(!this._RELAY_CONN){
       const remoteAddr: Multiaddr = await new Multiaddr(CommunicationConfig.relay)
       const conn = await node.dial(remoteAddr)
@@ -79,7 +80,7 @@ class Dialer {
    */
   private startDialer = async (): Promise<void> => {
 
-    const node = await createLibp2p({
+    const node = await xx.createLibp2p({
       transports: [
         new WebSockets()
       ],
