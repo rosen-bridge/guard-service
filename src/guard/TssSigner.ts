@@ -6,7 +6,7 @@ class TssSigner {
      * @param txHash
      * @return bytes of signed message
      */
-    static signTxHash = (txHash: Uint8Array): Uint8Array => {
+    static signTxHash = async (txHash: Uint8Array): Promise<Uint8Array> => {
         return Buffer.from("00", "hex") // TODO: implement this
     }
 

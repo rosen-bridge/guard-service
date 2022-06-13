@@ -14,6 +14,7 @@ import BlockFrostApi from "./network/BlockFrostApi";
 import { Utxo, UtxoBoxesAssets } from "./models/Interfaces";
 import CardanoUtils from "./helpers/CardanoUtils";
 import TssSigner from "../../guard/TssSigner";
+import Utils from "../ergo/helpers/Utils";
 
 
 class CardanoChain implements BaseChain<Transaction> {
@@ -271,13 +272,13 @@ class CardanoChain implements BaseChain<Transaction> {
         const txHash = hash_transaction(tx.body()).to_bytes()
         const signedTxHash = await TssSigner.signTxHash(txHash)
 
-        // make vkey witness: 825840 + publicKey + 5840 + signedTxHash
-        const vkeyWitness = Vkeywitness.from_bytes(Buffer.from(
-            `825820${CardanoConfigs.tssPublicKey}5840${signedTxHash}`
+        // make vKey witness: 825840 + publicKey + 5840 + signedTxHash
+        const vKeyWitness = Vkeywitness.from_bytes(Buffer.from(
+            `825820${CardanoConfigs.tssPublicKey}5840${Utils.Uint8ArrayToHexString(signedTxHash)}`
         , "hex"))
 
         const vkeyWitnesses = Vkeywitnesses.new();
-        vkeyWitnesses.add(vkeyWitness);
+        vkeyWitnesses.add(vKeyWitness);
         const witnesses = TransactionWitnessSet.new();
         witnesses.set_vkeys(vkeyWitnesses);
 
