@@ -49,6 +49,7 @@
         "ergo-lib-wasm-nodejs": "^0.16.1",
         "eslint": "^8.16.0",
         "jest": "^28.1.1",
+        "jest-runner-tsc": "^1.6.0",
         "json-bigint": "^1.0.0",
         "mocha": "^10.0.0",
         "nodemon": "^2.0.16",
