@@ -265,13 +265,27 @@ class CardanoChain implements BaseChain<Transaction> {
     }
 
     /**
-     * signs a cardano transaction
+     * requests TSS service to sign a cardano transaction
      * @param tx the transaction
      */
-    signTransaction = async (tx: Transaction): Promise<Transaction> => {
-        const txHash = hash_transaction(tx.body()).to_bytes()
-        const signedTxHash = await TssSigner.signTxHash(txHash)
+    requestToSignTransaction = async (tx: Transaction): Promise<void> => {
+        try {
+            const txHash = hash_transaction(tx.body()).to_bytes()
+            await TssSigner.signTxHash(txHash)
 
+            // TODO: add tx data to db
+        }
+        catch (e) {
+            console.log(`An error occurred while requesting TSS service to sign Cardano tx: ${e.message}`)
+        }
+    }
+
+    /**
+     * signs a cardano transaction
+     * @param tx the transaction
+     * @param signedTxHash signed hash of the transaction
+     */
+    signTransaction = async (tx: Transaction, signedTxHash: Uint8Array): Promise<Transaction> => {
         // make vKey witness: 825840 + publicKey + 5840 + signedTxHash
         const vKeyWitness = Vkeywitness.from_bytes(Buffer.from(
             `825820${CardanoConfigs.tssPublicKey}5840${Utils.Uint8ArrayToHexString(signedTxHash)}`

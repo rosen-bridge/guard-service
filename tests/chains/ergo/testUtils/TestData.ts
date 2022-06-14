@@ -1,5 +1,5 @@
 import { Asset, ErgoBlockHeader, Register } from "../../../../src/chains/ergo/models/Interfaces";
-import { BlockHeaders, Contract, ErgoStateContext, PreHeader } from "ergo-lib-wasm-nodejs";
+import { BlockHeaders, ErgoStateContext, PreHeader } from "ergo-lib-wasm-nodejs";
 
 class TestData {
 
