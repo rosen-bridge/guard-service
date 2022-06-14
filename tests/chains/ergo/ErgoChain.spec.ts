@@ -6,6 +6,9 @@ import { CoveringErgoBoxes } from "../../../src/chains/ergo/models/Interfaces";
 import Utils from "../../../src/chains/ergo/helpers/Utils";
 import { mockGetCoveringErgAndTokenForErgoTree, resetMockedExplorerApi } from "./mocked/MockedExplorer";
 import { beforeEach } from "mocha";
+import { mockGetEventBox, mockGetEventValidCommitments, resetMockedRewardBoxes } from "./mocked/MockedRewardBoxes";
+import { anything } from "ts-mockito";
+import Reward from "../../../src/chains/ergo/Reward";
 
 describe("ErgoChain",  () => {
     const testBankAddress = TestBoxes.testBankAddress
@@ -14,10 +17,14 @@ describe("ErgoChain",  () => {
     describe("generateTransaction", () => {
         // mock getting bankBoxes
         const bankBoxes: CoveringErgoBoxes = TestBoxes.mockBankBoxes()
+        const eventBoxAndCommitments = TestBoxes.mockEventBoxWithSomeCommitments()
 
         beforeEach("mock ExplorerApi", function() {
             resetMockedExplorerApi()
             mockGetCoveringErgAndTokenForErgoTree(testBankErgoTree, bankBoxes)
+            resetMockedRewardBoxes()
+            mockGetEventBox(anything(), eventBoxAndCommitments[0])
+            mockGetEventValidCommitments(anything(), eventBoxAndCommitments.slice(1))
         })
 
         /**
@@ -67,6 +74,14 @@ describe("ErgoChain",  () => {
     })
 
     describe("verifyTransactionWithEvent", () => {
+        // mock getting boxes
+        const eventBoxAndCommitments = TestBoxes.mockEventBoxWithSomeCommitments()
+
+        beforeEach("mock ExplorerApi", function() {
+            resetMockedRewardBoxes()
+            mockGetEventBox(anything(), eventBoxAndCommitments[0])
+            mockGetEventValidCommitments(anything(), eventBoxAndCommitments.slice(1))
+        })
 
         /**
          * Target: testing verifyTransactionWithEvent
@@ -78,7 +93,7 @@ describe("ErgoChain",  () => {
         it("should reject an Erg payment tx that transferring token", () => {
             // mock erg payment event
             const mockedEvent: EventTrigger = TestBoxes.mockErgPaymentEventTrigger()
-            const tx = TestBoxes.mockTokenTransferringPaymentTransaction(mockedEvent)
+            const tx = TestBoxes.mockTokenTransferringPaymentTransaction(mockedEvent, eventBoxAndCommitments)
 
             // run test
             const ergoChain: ErgoChain = new ErgoChain()
@@ -96,7 +111,7 @@ describe("ErgoChain",  () => {
         it("should reject a token payment tx with no token transferring", () => {
             // mock token payment event
             const mockedEvent: EventTrigger = TestBoxes.mockTokenPaymentEventTrigger()
-            const tx = TestBoxes.mockErgTransferringPaymentTransaction(mockedEvent)
+            const tx = TestBoxes.mockErgTransferringPaymentTransaction(mockedEvent, eventBoxAndCommitments)
 
             // run test
             const ergoChain: ErgoChain = new ErgoChain()
@@ -114,7 +129,7 @@ describe("ErgoChain",  () => {
         it("should reject a token payment tx that transferring multiple tokens", () => {
             // mock token payment event
             const mockedEvent: EventTrigger = TestBoxes.mockTokenPaymentEventTrigger()
-            const tx = TestBoxes.mockMultipleTokensTransferringPaymentTransaction(mockedEvent)
+            const tx = TestBoxes.mockMultipleTokensTransferringPaymentTransaction(mockedEvent, eventBoxAndCommitments)
 
             // run test
             const ergoChain: ErgoChain = new ErgoChain()
@@ -132,11 +147,47 @@ describe("ErgoChain",  () => {
         it("should reject a token payment tx that transferring wrong token", () => {
             // mock token payment event
             const mockedEvent: EventTrigger = TestBoxes.mockTokenPaymentEventTrigger()
-            const tx = TestBoxes.mockWrongTokenTransferringPaymentTransaction(mockedEvent)
+            const tx = TestBoxes.mockWrongTokenTransferringPaymentTransaction(mockedEvent, eventBoxAndCommitments)
 
             // run test
             const ergoChain: ErgoChain = new ErgoChain()
             const isValid = ergoChain.verifyTransactionWithEvent(tx, mockedEvent)
+            expect(isValid).to.be.false
+        })
+
+        /**
+         * Target: testing verifyTransactionWithEvent
+         * Dependencies:
+         *    RewardBoxes
+         * Expected Output:
+         *    It should NOT verify the transaction
+         */
+        it("should reject a token payment tx that distributing reward to wrong WID", () => {
+            // mock erg payment event
+            const mockedEvent: EventTrigger = TestBoxes.mockTokenRewardEventTrigger()
+            const tx = TestBoxes.mockTransferToIllegalWIDTokenPaymentTransaction(mockedEvent, eventBoxAndCommitments)
+
+            // run test
+            const reward = new Reward()
+            const isValid = reward.verifyTransactionWithEvent(tx, mockedEvent)
+            expect(isValid).to.be.false
+        })
+
+        /**
+         * Target: testing verifyTransactionWithEvent
+         * Dependencies:
+         *    RewardBoxes
+         * Expected Output:
+         *    It should NOT verify the transaction
+         */
+        it("should reject a token payment tx that missing a valid commitment box when distributing rewards", () => {
+            // mock erg payment event
+            const mockedEvent: EventTrigger = TestBoxes.mockTokenRewardEventTrigger()
+            const tx = TestBoxes.mockMissingValidCommitmentTokenPaymentTransaction(mockedEvent, eventBoxAndCommitments.slice(0, eventBoxAndCommitments.length - 1))
+
+            // run test
+            const reward = new Reward()
+            const isValid = reward.verifyTransactionWithEvent(tx, mockedEvent)
             expect(isValid).to.be.false
         })
 
