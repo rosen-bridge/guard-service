@@ -105,19 +105,14 @@ class RewardBoxes {
      * @param commitmentBoxes the event valid commitment boxes that didn't merge
      */
     static verifyInputs = (inputBoxes: UnsignedInputs, eventBox: ErgoBox, commitmentBoxes: ErgoBox[]): boolean => {
-        const sizeOfInputs = inputBoxes.len()
         if (inputBoxes.get(0).box_id().to_str() !== eventBox.box_id().to_str()) return false
 
         const inputBoxIds: string[] = []
-        let isValid = true
+        const sizeOfInputs = inputBoxes.len()
         for (let i = 1; i < sizeOfInputs; i++)
             inputBoxIds.push(inputBoxes.get(i).box_id().to_str())
 
-        commitmentBoxes.forEach(box => {
-            if (!inputBoxIds.includes(box.box_id().to_str())) isValid = false
-        })
-
-        return isValid
+        return !commitmentBoxes.some(box => !inputBoxIds.includes(box.box_id().to_str()))
     }
 
 }

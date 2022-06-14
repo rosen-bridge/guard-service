@@ -112,7 +112,7 @@ class ErgoChain implements BaseChain<ReducedTransaction> {
          * method to verify watcher permit box contract
          */
         const verifyWatcherPermitBoxErgoTree = (box: ErgoBoxCandidate): boolean => {
-            return box.ergo_tree().to_base16_bytes() === Utils.contractStringToErgoTreeString(Contracts.watcherPermitContract)
+            return box.ergo_tree().to_base16_bytes() === Contracts.watcherPermitErgoTree
         }
 
         /**

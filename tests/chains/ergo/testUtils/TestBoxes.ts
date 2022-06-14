@@ -161,7 +161,7 @@ class TestBoxes {
                         amount: BigInt("1")
                     }
                 ],
-                Utils.contractStringToErgoTreeString(Contracts.triggerEventContract),
+                Contracts.triggerEventErgoTree,
                 [
                     {
                         registerId: 4,
@@ -214,7 +214,7 @@ class TestBoxes {
                         amount: BigInt("1")
                     }
                 ],
-                Utils.contractStringToErgoTreeString(Contracts.triggerEventContract),
+                Contracts.triggerEventErgoTree,
                 [
                     {
                         registerId: 4,
@@ -267,7 +267,7 @@ class TestBoxes {
                         amount: BigInt("1")
                     }
                 ],
-                Utils.contractStringToErgoTreeString(Contracts.triggerEventContract),
+                Contracts.triggerEventErgoTree,
                 [
                     {
                         registerId: 4,
@@ -320,7 +320,7 @@ class TestBoxes {
                         amount: BigInt("1")
                     }
                 ],
-                Utils.contractStringToErgoTreeString(Contracts.triggerEventContract),
+                Contracts.triggerEventErgoTree,
                 [
                     {
                         registerId: 4,
@@ -374,7 +374,7 @@ class TestBoxes {
                         amount: BigInt("1")
                     }
                 ],
-                Utils.contractStringToErgoTreeString(Contracts.triggerEventContract),
+                Contracts.triggerEventErgoTree,
                 [
                     {
                         registerId: 4,
@@ -428,7 +428,7 @@ class TestBoxes {
                         amount: BigInt("1")
                     }
                 ],
-                Utils.contractStringToErgoTreeString(Contracts.triggerEventContract),
+                Contracts.triggerEventErgoTree,
                 [
                     {
                         registerId: 4,
@@ -676,7 +676,7 @@ class TestBoxes {
                     amount: BigInt("1")
                 }
             ],
-            Utils.contractStringToErgoTreeString(Contracts.triggerEventContract),
+            Contracts.triggerEventErgoTree,
             [
                 {
                     registerId: 4,
@@ -727,7 +727,7 @@ class TestBoxes {
                         amount: BigInt("1")
                     }
                 ],
-                Utils.contractStringToErgoTreeString(Contracts.triggerEventContract),
+                Contracts.triggerEventErgoTree,
                 [
                     {
                         registerId: 4,
@@ -778,7 +778,7 @@ class TestBoxes {
                         amount: BigInt("1")
                     }
                 ],
-                Utils.contractStringToErgoTreeString(Contracts.triggerEventContract),
+                Contracts.triggerEventErgoTree,
                 [
                     {
                         registerId: 4,
@@ -829,7 +829,7 @@ class TestBoxes {
                         amount: BigInt("1")
                     }
                 ],
-                Utils.contractStringToErgoTreeString(Contracts.triggerEventContract),
+                Contracts.triggerEventErgoTree,
                 [
                     {
                         registerId: 4,
@@ -880,7 +880,7 @@ class TestBoxes {
                         amount: BigInt("1")
                     }
                 ],
-                Utils.contractStringToErgoTreeString(Contracts.triggerEventContract),
+                Contracts.triggerEventErgoTree,
                 [
                     {
                         registerId: 4,
@@ -931,7 +931,7 @@ class TestBoxes {
                         amount: BigInt("2")
                     }
                 ],
-                Utils.contractStringToErgoTreeString(Contracts.triggerEventContract),
+                Contracts.triggerEventErgoTree,
                 [
                     {
                         registerId: 4,
