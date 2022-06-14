@@ -1,5 +1,5 @@
 import { Asset, ErgoBlockHeader, Register } from "../../../../src/chains/ergo/models/Interfaces";
-import { BlockHeaders, Contract, ErgoStateContext, PreHeader } from "ergo-lib-wasm-nodejs";
+import { BlockHeaders, ErgoStateContext, PreHeader } from "ergo-lib-wasm-nodejs";
 
 class TestData {
 
@@ -51,12 +51,14 @@ class TestData {
         "creationHeight": 100000
     }`
 
-    static tokenTransferringErgPaymentTransactionString = (boxIds: string[], targetAddressErgoTree: string, bankAddressErgoTree: string): string  => `{
+    static tokenTransferringErgPaymentTransactionString = (boxIds: string[], targetAddressErgoTree: string,
+                                                           watcherBoxes: string[], bridgeFeeErgoTree: string,
+                                                           networkFeeErgoTree: string, bankAddressErgoTree: string): string  => `{
         "inputs": ${this.mockTransactionInputBoxes(boxIds)},
         "dataInputs": [],
         "outputs": [
             {
-                "value": 48998500000,
+                "value": 100000,
                 "ergoTree": "${targetAddressErgoTree}",
                 "assets": [
                     {
@@ -67,16 +69,41 @@ class TestData {
                 "additionalRegisters": {},
                 "creationHeight": 100000
             },
+            ${watcherBoxes.join(",")},
             {
-                "value": 91000000000,
+                "value": 100000,
+                "ergoTree": "${bridgeFeeErgoTree}",
+                "assets": [
+                    {
+                        "tokenId": "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e",
+                        "amount": 13
+                    }
+                ],
+                "additionalRegisters": {},
+                "creationHeight": 100000
+            },
+            {
+                "value": 100000,
+                "ergoTree": "${networkFeeErgoTree}",
+                "assets": [
+                    {   
+                        "tokenId": "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e",
+                        "amount": 5
+                    }
+                ],
+                "additionalRegisters": {},
+                "creationHeight": 100000
+            },
+            {
+                "value": 139998600000,
                 "ergoTree": "${bankAddressErgoTree}",
                 "assets": [
                     {
                         "tokenId": "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e",
-                        "amount": 14
+                        "amount": 9
                     },
                     {
-                        "tokenId": "3b9950fe883e60232e7f7bf2bfd24c73ab2c3635dc2b6aeb56c9819adfd97503",
+                        "tokenId": "e2b7b6ab2a7c6dfc6a82cc648f3b16b76db1cf19e93b7ac35a4898c06e4d08ce",
                         "amount": 100
                     }
                 ],
@@ -87,7 +114,9 @@ class TestData {
         ]
     }`
 
-    static ergOnlyTokenPaymentTransactionString = (boxIds: string[], targetAddressErgoTree: string, bankAddressErgoTree: string): string  => `{
+    static ergOnlyTokenPaymentTransactionString = (boxIds: string[], targetAddressErgoTree: string,
+                                                   watcherBoxes: string[], bridgeFeeErgoTree: string,
+                                                   networkFeeErgoTree: string, bankAddressErgoTree: string): string  => `{
         "inputs": ${this.mockTransactionInputBoxes(boxIds)},
         "dataInputs": [],
         "outputs": [
@@ -98,16 +127,41 @@ class TestData {
                 "additionalRegisters": {},
                 "creationHeight": 100000
             },
+            ${watcherBoxes.join(",")},
             {
-                "value": 139998400000,
+                "value": 100000,
+                "ergoTree": "${bridgeFeeErgoTree}",
+                "assets": [
+                    {
+                        "tokenId": "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e",
+                        "amount": 13
+                    }
+                ],
+                "additionalRegisters": {},
+                "creationHeight": 100000
+            },
+            {
+                "value": 100000,
+                "ergoTree": "${networkFeeErgoTree}",
+                "assets": [
+                    {   
+                        "tokenId": "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e",
+                        "amount": 5
+                    }
+                ],
+                "additionalRegisters": {},
+                "creationHeight": 100000
+            },
+            {
+                "value": 139998600000,
                 "ergoTree": "${bankAddressErgoTree}",
                 "assets": [
                     {
                         "tokenId": "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e",
-                        "amount": 79
+                        "amount": 74
                     },
                     {
-                        "tokenId": "c5995b75b3e85aea4ccd64fdec0b47f138bb56aeb569df250f9c338d9820c4a0",
+                        "tokenId": "e2b7b6ab2a7c6dfc6a82cc648f3b16b76db1cf19e93b7ac35a4898c06e4d08ce",
                         "amount": 100
                     }
                 ],
@@ -118,7 +172,9 @@ class TestData {
         ]
     }`
 
-    static multipleTokenTransferringTokenPaymentTransactionString = (boxIds: string[], targetAddressErgoTree: string, bankAddressErgoTree: string): string  => `{
+    static multipleTokenTransferringTokenPaymentTransactionString = (boxIds: string[], targetAddressErgoTree: string,
+                                                                     watcherBoxes: string[], bridgeFeeErgoTree: string,
+                                                                     networkFeeErgoTree: string, bankAddressErgoTree: string): string  => `{
         "inputs": ${this.mockTransactionInputBoxes(boxIds)},
         "dataInputs": [],
         "outputs": [
@@ -131,20 +187,49 @@ class TestData {
                         "amount": 65
                     },
                     {
-                        "tokenId": "3b9950fe883e60232e7f7bf2bfd24c73ab2c3635dc2b6aeb56c9819adfd97503",
-                        "amount": 100
+                        "tokenId": "e2b7b6ab2a7c6dfc6a82cc648f3b16b76db1cf19e93b7ac35a4898c06e4d08ce",
+                        "amount": 10
+                    }
+                ],
+                "additionalRegisters": {},
+                "creationHeight": 100000
+            },
+            ${watcherBoxes.join(",")},
+            {
+                "value": 100000,
+                "ergoTree": "${bridgeFeeErgoTree}",
+                "assets": [
+                    {
+                        "tokenId": "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e",
+                        "amount": 13
                     }
                 ],
                 "additionalRegisters": {},
                 "creationHeight": 100000
             },
             {
-                "value": 139998400000,
+                "value": 100000,
+                "ergoTree": "${networkFeeErgoTree}",
+                "assets": [
+                    {   
+                        "tokenId": "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e",
+                        "amount": 5
+                    }
+                ],
+                "additionalRegisters": {},
+                "creationHeight": 100000
+            },
+            {
+                "value": 139998600000,
                 "ergoTree": "${bankAddressErgoTree}",
                 "assets": [
                     {
                         "tokenId": "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e",
-                        "amount": 14
+                        "amount": 9
+                    },
+                    {
+                        "tokenId": "e2b7b6ab2a7c6dfc6a82cc648f3b16b76db1cf19e93b7ac35a4898c06e4d08ce",
+                        "amount": 90
                     }
                 ],
                 "additionalRegisters": {},
@@ -154,7 +239,9 @@ class TestData {
         ]
     }`
 
-    static wrongTokenTransferringTokenPaymentTransactionString = (boxIds: string[], targetAddressErgoTree: string, bankAddressErgoTree: string): string  => `{
+    static wrongTokenTransferringTokenPaymentTransactionString = (boxIds: string[], targetAddressErgoTree: string,
+                                                                  watcherBoxes: string[], bridgeFeeErgoTree: string,
+                                                                  networkFeeErgoTree: string, bankAddressErgoTree: string): string  => `{
         "inputs": ${this.mockTransactionInputBoxes(boxIds)},
         "dataInputs": [],
         "outputs": [
@@ -163,23 +250,48 @@ class TestData {
                 "ergoTree": "${targetAddressErgoTree}",
                 "assets": [
                     {
-                        "tokenId": "3b9950fe883e60232e7f7bf2bfd24c73ab2c3635dc2b6aeb56c9819adfd97503",
+                        "tokenId": "e2b7b6ab2a7c6dfc6a82cc648f3b16b76db1cf19e93b7ac35a4898c06e4d08ce",
                         "amount": 65
                     }
                 ],
                 "additionalRegisters": {},
                 "creationHeight": 100000
             },
+            ${watcherBoxes.join(",")},
             {
-                "value": 139998400000,
+                "value": 100000,
+                "ergoTree": "${bridgeFeeErgoTree}",
+                "assets": [
+                    {
+                        "tokenId": "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e",
+                        "amount": 13
+                    }
+                ],
+                "additionalRegisters": {},
+                "creationHeight": 100000
+            },
+            {
+                "value": 100000,
+                "ergoTree": "${networkFeeErgoTree}",
+                "assets": [
+                    {   
+                        "tokenId": "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e",
+                        "amount": 5
+                    }
+                ],
+                "additionalRegisters": {},
+                "creationHeight": 100000
+            },
+            {
+                "value": 139998600000,
                 "ergoTree": "${bankAddressErgoTree}",
                 "assets": [
                     {
                         "tokenId": "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e",
-                        "amount": 79
+                        "amount": 74
                     },
                     {
-                        "tokenId": "3b9950fe883e60232e7f7bf2bfd24c73ab2c3635dc2b6aeb56c9819adfd97503",
+                        "tokenId": "e2b7b6ab2a7c6dfc6a82cc648f3b16b76db1cf19e93b7ac35a4898c06e4d08ce",
                         "amount": 35
                     }
                 ],

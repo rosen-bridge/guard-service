@@ -94,11 +94,7 @@ class Utils {
     static doArraysHaveSameStrings = (source: string[], target: string[]): boolean => {
         if (source.length !== target.length) return false
 
-        let isEqual = true
-        source.forEach(value => {
-            if (!target.includes(value)) isEqual = false
-        })
-        return isEqual
+        return !source.some(value => !target.includes(value))
     }
 
 }
