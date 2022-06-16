@@ -4,7 +4,7 @@
         "esModuleInterop": true,
         "target": "esnext",
         "moduleResolution": "node",
-        "sourceMap": true,
+        "sourceMap": false,
         "outDir": "dist",
         "baseUrl": ".",
         "paths": {
@@ -19,8 +19,12 @@
         "strict": true,
         "noImplicitAny": true,
         "useUnknownInCatchVariables": false,
-        "inlineSourceMap": true,
-        "skipLibCheck": true
+        "inlineSourceMap": false,
+        "skipLibCheck": true,
+        "strictPropertyInitialization": false,
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "rootDir": "./"
     },
     "include": [
         "./**/*.ts"

@@ -9,13 +9,18 @@
         "build": "ts-node --experimental-specifier-resolution=node ./src/index.ts",
         "start": "nodemon .",
         "test": "NODE_ENV=\"test\" mocha --slow 3000",
-        "coverage": "c8 npm run test"
+        "coverage": "c8 npm run test",
+        "typeorm": "node --require ts-node/register ./node_modules/typeorm/cli.js",
+        "typeorm:migrate": "typeorm migration:create src/migrations/migration",
+        "typeorm:generate:sign": "rm -rf dist/ && tsc && typeorm migration:generate src/migrations/migration -d dist/config/signOrmConfig.js"
     },
     "author": "",
     "license": "ISC",
     "dependencies": {
         "config": "^3.3.7",
-        "express": "^4.18.1"
+        "express": "^4.18.1",
+        "reflect-metadata": "^0.1.13",
+        "sqlite3": "^5.0.8"
     },
     "devDependencies": {
         "@blockfrost/blockfrost-js": "^4.1.0",
@@ -39,6 +44,7 @@
         "nodemon": "^2.0.16",
         "ts-mockito": "^2.6.1",
         "ts-node": "^10.7.0",
+        "typeorm": "^0.3.6",
         "typescript": "^4.7.2"
     }
 }
