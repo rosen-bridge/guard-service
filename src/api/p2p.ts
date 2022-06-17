@@ -1,7 +1,7 @@
 import {Request, Response, Router} from "express";
 import {apiCallBack} from "../communication/CallbackUtils";
 import Dialer from "../communication/Dialer";
-import assert from "assert";
+import assert, {AssertionError} from "assert";
 
 export const p2pRouter = Router();
 const dialer = await Dialer.getInstance()
@@ -24,7 +24,7 @@ p2pRouter.post("/send", async (req: Request, res: Response) => {
         res.send({message: "ok"})
     }
     catch (error) {
-        res.status(400).send({message: error.message})
+        res.status(error instanceof AssertionError ? 400 : 500).send({message: error.message})
     }
 });
 
@@ -39,6 +39,6 @@ p2pRouter.post("/channel/subscribe", async (req: Request, res: Response) => {
         res.send({message: "ok"})
     }
     catch (error) {
-        res.status(400).send({message: error.message})
+        res.status(error instanceof AssertionError ? 400 : 500).send({message: error.message})
     }
 });
