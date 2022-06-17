@@ -38,10 +38,10 @@
         "GuardNFT": "3333333333333333333333333333333333333333333333333333333333333333",
         "CleanupNFT": "4444444444444444444444444444444444444444444444444444444444444444"
     },
-    "relay": {
+    "p2p": {
         "address": "change me",
         "bootstrapInterval": 60e3,
-        "pubsubInterval": 1000
-    },
-    "callbackTimeout": 8000
+        "pubsubInterval": 1000,
+        "apiCallbackTimeout": 8000
+    }
 }

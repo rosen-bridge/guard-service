@@ -1,6 +1,7 @@
 import axios from "axios";
 import config from "config";
 import {JsonBI} from "../helpers/parser";
+import CommunicationConfig from "./CommunicationConfig";
 
 export interface SubscribeChannel {
     (msg: any, channel: string, sender: string): void;
@@ -16,7 +17,7 @@ export const apiCallBack = function (msg: any, channel: string, sender: string, 
             "sender": sender
         },
         {
-            timeout: config.get<number>('callbackTimeout'),
+            timeout: CommunicationConfig.apiCallbackTimeout,
             headers: {
                 'Content-Type': 'application/json',
                 Accept: 'application/json',
