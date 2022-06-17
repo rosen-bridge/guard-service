@@ -27,6 +27,9 @@ class Dialer {
         console.log("Create Dialer Instance!")
     }
 
+    /**
+     * @return a Dialer instance (create if it doesn't exist)
+     */
     public static getInstance = async (): Promise<Dialer> => {
         if (!Dialer.instance) {
             Dialer.instance = new Dialer();
@@ -35,6 +38,9 @@ class Dialer {
         return Dialer.instance;
     }
 
+    /**
+     * @return list of subscribed channels' name
+     */
     getSubscribedChannels = (): string[] => {
         return Object.keys(this._SUBSCRIBED_CHANNELS)
     }
