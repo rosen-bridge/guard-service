@@ -6,7 +6,7 @@ import {
     ErgoBoxCandidate,
     ErgoBoxCandidateBuilder, I64,
     TokenAmount,
-    TokenId, Tokens, TxId
+    TokenId, Tokens, TxId, UnsignedInputs
 } from "ergo-lib-wasm-nodejs";
 import Utils from "./Utils";
 import ErgoConfigs from "./ErgoConfigs";
@@ -61,13 +61,14 @@ class RewardBoxes {
     /**
      * creates an ErgoBox with watcher-permit contract containing event reward (reward is erg)
      * @param height current height of blockchain
+     * @param ergValue minimum erg in event or commitment box
      * @param rwtTokenId RWT token id of the source chain
      * @param watcherShare reward erg amount
      * @param wid watcher id
      */
-    static createErgRewardBox = (height: number, rwtTokenId: TokenId, watcherShare: bigint, wid: Uint8Array): ErgoBoxCandidate => {
+    static createErgRewardBox = (height: number, ergValue: bigint, rwtTokenId: TokenId, watcherShare: bigint, wid: Uint8Array): ErgoBoxCandidate => {
         const watcherBox = new ErgoBoxCandidateBuilder(
-            Utils.boxValueFromBigint(watcherShare + ErgoConfigs.minimumErg),
+            Utils.boxValueFromBigint(watcherShare + ergValue),
             Contracts.watcherPermitContract,
             height
         )
@@ -79,14 +80,15 @@ class RewardBoxes {
     /**
      * creates an ErgoBox with watcher-permit contract containing event reward (reward is token)
      * @param height current height of blockchain
+     * @param ergValue minimum erg in event or commitment box
      * @param rwtTokenId RWT token id of the source chain
      * @param paymentTokenId reward token id
      * @param paymentTokenAmount reward token amount
      * @param wid watcher id
      */
-    static createTokenRewardBox = (height: number, rwtTokenId: TokenId, paymentTokenId: TokenId, paymentTokenAmount: bigint, wid: Uint8Array): ErgoBoxCandidate => {
+    static createTokenRewardBox = (height: number, ergValue: bigint, rwtTokenId: TokenId, paymentTokenId: TokenId, paymentTokenAmount: bigint, wid: Uint8Array): ErgoBoxCandidate => {
         const watcherBox = new ErgoBoxCandidateBuilder(
-            Utils.boxValueFromBigint(ErgoConfigs.minimumErg),
+            Utils.boxValueFromBigint(ergValue),
             Contracts.watcherPermitContract,
             height
         )
@@ -94,6 +96,23 @@ class RewardBoxes {
         watcherBox.add_token(paymentTokenId, TokenAmount.from_i64(Utils.i64FromBigint(paymentTokenAmount)))
         watcherBox.set_register_value(4, Constant.from_coll_coll_byte([wid]))
         return watcherBox.build()
+    }
+
+    /**
+     * checks if input boxes contain all valid commitments and the event box
+     * @param inputBoxes the transaction input boxes
+     * @param eventBox the event trigger box
+     * @param commitmentBoxes the event valid commitment boxes that didn't merge
+     */
+    static verifyInputs = (inputBoxes: UnsignedInputs, eventBox: ErgoBox, commitmentBoxes: ErgoBox[]): boolean => {
+        if (inputBoxes.get(0).box_id().to_str() !== eventBox.box_id().to_str()) return false
+
+        const inputBoxIds: string[] = []
+        const sizeOfInputs = inputBoxes.len()
+        for (let i = 1; i < sizeOfInputs; i++)
+            inputBoxIds.push(inputBoxes.get(i).box_id().to_str())
+
+        return !commitmentBoxes.some(box => !inputBoxIds.includes(box.box_id().to_str()))
     }
 
 }

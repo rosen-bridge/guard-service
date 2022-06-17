@@ -3,8 +3,13 @@ import Utils from "../chains/ergo/helpers/Utils";
 
 class Contracts {
 
-    static watcherPermitContract: Contract = Utils.addressStringToContract("9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD") // TODO: implement this
-    static triggerEventContract: Contract = Utils.addressStringToContract("9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD") // TODO: implement this
+    static watcherPermitAddress = "9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD" // TODO: implement this
+    static watcherPermitErgoTree = Utils.addressStringToErgoTreeString(this.watcherPermitAddress)
+    static watcherPermitContract = Utils.addressStringToContract(this.watcherPermitAddress)
+
+    static triggerEventAddress = "9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD" // TODO: implement this
+    static triggerEventErgoTree = Utils.addressStringToErgoTreeString(this.triggerEventAddress)
+    static triggerEventContract = Utils.addressStringToContract(this.triggerEventAddress)
 
 }
 
