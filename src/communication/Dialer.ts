@@ -12,7 +12,7 @@ import { Multiaddr } from '@multiformats/multiaddr'
 import CommunicationConfig from "./CommunicationConfig";
 import {JsonBI} from "../network/NetworkModels"
 import {Connection, Stream} from "@libp2p/interfaces/src/connection";
-import {SubscribeChannel} from "./CallbackUtils";
+import {ReceiveDataCommunication, SendDataCommunication, SubscribeChannel} from "./Interfaces";
 
 
 class Dialer {
@@ -86,15 +86,19 @@ class Dialer {
     private startDialer = async (): Promise<void> => {
 
         const node = await createLibp2p({
+            // Type of communication
             transports: [
                 new WebSockets()
             ],
+            // Enable module encryption message
             connectionEncryption: [
                 new Noise()
             ],
+            // Mplex is a Stream Multiplexer protocol
             streamMuxers: [
                 new Mplex()
             ],
+            // Active peer discovery and bootstrap peers
             pubsub: new FloodSub(),
             peerDiscovery: [
                 new Bootstrap({
@@ -116,7 +120,7 @@ class Dialer {
                 for await (const data of stream.source) {
                     receivedDataObj = uint8ArrayToString(data)
                 }
-                const receivedData: any = await JsonBI.parse(receivedDataObj)
+                const receivedData: ReceiveDataCommunication = await JsonBI.parse(receivedDataObj)
 
                 const runSubscribeCallback = async (value: any): Promise<void> => {
                     value.url ?
@@ -127,6 +131,7 @@ class Dialer {
                     console.log(`a message received in subscribed channel ${receivedData.channel} from ${receivedData.sender}`)
                     this._SUBSCRIBED_CHANNELS[receivedData.channel].forEach(runSubscribeCallback)
                 }
+                else console.warn(`received a message from ${receivedData.sender} in a unsubscribed channel ${receivedData.channel}`)
             }
         ))
 
@@ -136,7 +141,7 @@ class Dialer {
         this._NODE = await node
         await this.createRelayConnection(node)
 
-        const resendMessage = async (value: any): Promise<void> => {
+        const resendMessage = async (value: SendDataCommunication): Promise<void> => {
             await value.receiver ?
                 await this.sendMessage(value.channel, value.msg, value.receiver) :
                 await this.sendMessage(value.channel, value.msg)
@@ -154,7 +159,7 @@ class Dialer {
      * @param receiver optional
      */
     sendMessage = async (channel: string, msg: any, receiver?: string): Promise<void> => {
-        const data: any = {
+        const data: SendDataCommunication = {
             "msg": msg,
             "channel": channel
         }
@@ -167,7 +172,7 @@ class Dialer {
 
         const {stream} = await this._RELAY_CONN.newStream(['/broadcast'])
         await pipe(
-            [await uint8ArrayFromString(`${(JsonBI.stringify(data))}`)],
+            [uint8ArrayFromString(`${(JsonBI.stringify(data))}`)],
             stream
         )
         await stream.close()

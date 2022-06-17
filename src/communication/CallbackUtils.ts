@@ -1,11 +1,7 @@
 import axios from "axios";
 import {JsonBI} from "../network/NetworkModels";
 import CommunicationConfig from "./CommunicationConfig";
-
-interface SubscribeChannel {
-    (msg: any, channel: string, sender: string): void;
-    (msg: any, channel: string, sender: string, url: string): void;
-}
+import {SubscribeChannel} from "./Interfaces";
 
 const apiCallBack = function (msg: any, channel: string, sender: string, url: string): void {
     const data = axios.post(
@@ -34,4 +30,4 @@ const apiCallBack = function (msg: any, channel: string, sender: string, url: st
     });
 } as SubscribeChannel
 
-export {SubscribeChannel, apiCallBack}
+export {apiCallBack}
