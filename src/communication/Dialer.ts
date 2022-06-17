@@ -10,7 +10,7 @@ import { PubSubPeerDiscovery } from '@libp2p/pubsub-peer-discovery'
 import { FloodSub } from '@libp2p/floodsub'
 import { Multiaddr } from '@multiformats/multiaddr'
 import CommunicationConfig from "./CommunicationConfig";
-import {JsonBI} from "../helpers/parser"
+import {JsonBI} from "../network/NetworkModels"
 import {Connection, Stream} from "@libp2p/interfaces/src/connection";
 import {SubscribeChannel} from "./CallbackUtils";
 

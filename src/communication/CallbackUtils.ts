@@ -1,6 +1,5 @@
 import axios from "axios";
-import config from "config";
-import {JsonBI} from "../helpers/parser";
+import {JsonBI} from "../network/NetworkModels";
 import CommunicationConfig from "./CommunicationConfig";
 
 interface SubscribeChannel {
