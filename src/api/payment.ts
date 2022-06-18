@@ -1,6 +1,6 @@
-import {Request, Response, Router} from "express";
-import {EventTriggerModel, PaymentTransactionJsonModel} from "../models/Interfaces";
-import {EventTrigger, PaymentTransaction} from "../models/Models";
+import { Request, Response, Router } from "express";
+import { EventTriggerModel, PaymentTransactionJsonModel } from "../models/Interfaces";
+import { EventTrigger, PaymentTransaction } from "../models/Models";
 import EventProcessor from "../guard/EventProcessor";
 
 export const paymentRouter = Router();
@@ -36,8 +36,7 @@ paymentRouter.post("/generate/", async (req: Request, res: Response) => {
             eventId: paymentTx.eventId,
             txBytes: paymentTx.getTxHexString()
         })
-    }
-    catch (e) {
+    } catch (e) {
         console.log(`An error occurred while generating tx for event [${event.getId()}]: ${e.message}`)
         res.status(500).send({
             message: e.message
@@ -81,8 +80,7 @@ paymentRouter.post("/verify/", async (req: Request, res: Response) => {
             txBytes: paymentTx.getTxHexString(),
             isValid: isValid
         })
-    }
-    catch (e) {
+    } catch (e) {
         console.log(`An error occurred while verifying tx for event [${event.getId()}]: ${e.message}`)
         res.status(500).send({
             message: e.message

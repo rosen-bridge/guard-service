@@ -1,4 +1,4 @@
-import {createLibp2p, Libp2p} from 'libp2p'
+import { createLibp2p, Libp2p } from 'libp2p'
 import { WebSockets } from '@libp2p/websockets'
 import { Noise } from '@chainsafe/libp2p-noise'
 import { Mplex } from '@libp2p/mplex'
@@ -10,9 +10,9 @@ import { PubSubPeerDiscovery } from '@libp2p/pubsub-peer-discovery'
 import { FloodSub } from '@libp2p/floodsub'
 import { Multiaddr } from '@multiformats/multiaddr'
 import CommunicationConfig from "./CommunicationConfig";
-import {JsonBI} from "../network/NetworkModels"
-import {Connection, Stream} from "@libp2p/interfaces/src/connection";
-import {ReceiveDataCommunication, SendDataCommunication, SubscribeChannel} from "./Interfaces";
+import { JsonBI } from "../network/NetworkModels"
+import { Connection, Stream } from "@libp2p/interfaces/src/connection";
+import { ReceiveDataCommunication, SendDataCommunication, SubscribeChannel } from "./Interfaces";
 
 
 // TODO: Need to write test for This package
@@ -56,9 +56,9 @@ class Dialer {
         const callbackObj: any = {
             func: callback
         }
-        if(url) callbackObj.url = url
+        if (url) callbackObj.url = url
 
-        if(this._SUBSCRIBED_CHANNELS[channel])
+        if (this._SUBSCRIBED_CHANNELS[channel])
             this._SUBSCRIBED_CHANNELS[channel].push(callbackObj)
         else {
             this._SUBSCRIBED_CHANNELS[channel] = []
@@ -70,8 +70,8 @@ class Dialer {
      * establish connection to relay
      * @param node: Libp2p
      */
-    private createRelayConnection = async (node: Libp2p) : Promise<void> => {
-        if(!this._RELAY_CONN){
+    private createRelayConnection = async (node: Libp2p): Promise<void> => {
+        if (!this._RELAY_CONN) {
             const remoteAddr: Multiaddr = await new Multiaddr(CommunicationConfig.relay)
             const conn = await node.dial(remoteAddr)
             console.log(`Connected to the auto relay node via ${conn.remoteAddr.toString()}`)
@@ -128,11 +128,10 @@ class Dialer {
                         value.func(receivedData.msg, receivedData.channel, receivedData.sender, value.url) :
                         value.func(receivedData.msg, receivedData.channel, receivedData.sender)
                 }
-                if(this._SUBSCRIBED_CHANNELS[receivedData.channel]){
+                if (this._SUBSCRIBED_CHANNELS[receivedData.channel]) {
                     console.log(`a message received in subscribed channel ${receivedData.channel} from ${receivedData.sender}`)
                     this._SUBSCRIBED_CHANNELS[receivedData.channel].forEach(runSubscribeCallback)
-                }
-                else console.warn(`received a message from ${receivedData.sender} in a unsubscribed channel ${receivedData.channel}`)
+                } else console.warn(`received a message from ${receivedData.sender} in a unsubscribed channel ${receivedData.channel}`)
             }
         ))
 
@@ -148,7 +147,7 @@ class Dialer {
                 await this.sendMessage(value.channel, value.msg)
         }
 
-        if(this._PENDING_MESSAGE.length > 0){
+        if (this._PENDING_MESSAGE.length > 0) {
             await this._PENDING_MESSAGE.forEach(await resendMessage)
         }
     }
@@ -164,8 +163,8 @@ class Dialer {
             "msg": msg,
             "channel": channel
         }
-        if(receiver) data.receiver = receiver
-        if(!this._RELAY_CONN){
+        if (receiver) data.receiver = receiver
+        if (!this._RELAY_CONN) {
             this._PENDING_MESSAGE.push(await data)
             console.warn("Message added to pending list due to dialer connection isn't ready")
             return

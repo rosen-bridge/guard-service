@@ -1,6 +1,6 @@
-import express, {Router} from "express";
-import {p2pRouter} from "./api/p2p";
-import {paymentRouter} from "./api/payment";
+import express, { Router } from "express";
+import { p2pRouter } from "./api/p2p";
+import { paymentRouter } from "./api/payment";
 
 const app = express();
 const port = 8080;
