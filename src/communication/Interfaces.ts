@@ -4,13 +4,13 @@ interface SubscribeChannel {
 }
 
 interface SendDataCommunication {
-    msg: string
+    msg: any
     channel: string
     receiver?: string
 }
 
 interface ReceiveDataCommunication {
-    msg: string
+    msg: any
     channel: string
     sender: string
     receiver?: string

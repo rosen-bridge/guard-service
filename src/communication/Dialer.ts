@@ -15,13 +15,14 @@ import {Connection, Stream} from "@libp2p/interfaces/src/connection";
 import {ReceiveDataCommunication, SendDataCommunication, SubscribeChannel} from "./Interfaces";
 
 
+// TODO: Need to write test for This package
 class Dialer {
     private static instance: Dialer;
 
     private _NODE: Libp2p | undefined;
     private _RELAY_CONN: Connection | undefined;
     private _SUBSCRIBED_CHANNELS: any = {};
-    private _PENDING_MESSAGE: any[] = [];
+    private _PENDING_MESSAGE: SendDataCommunication[] = [];
 
     private constructor() {
         console.log("Create Dialer Instance!")
