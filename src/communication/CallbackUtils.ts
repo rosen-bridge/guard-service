@@ -14,8 +14,8 @@ const apiCallBack = function (msg: any, channel: string, sender: string, url: st
         {
             timeout: CommunicationConfig.apiCallbackTimeout,
             headers: {
-                'Content-Type': 'application/json',
-                Accept: 'application/json',
+                "Content-Type": "application/json",
+                "Accept": "application/json"
             }
         }
     );
