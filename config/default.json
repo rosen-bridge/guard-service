@@ -43,5 +43,11 @@
         "url": "https://example.com",
         "timeout": 8000,
         "callBackBaseUrl": "https://example.com"
+    },
+    "p2p": {
+        "address": "change me",
+        "bootstrapInterval": 60e3,
+        "pubsubInterval": 1000,
+        "apiCallbackTimeout": 8000
     }
 }

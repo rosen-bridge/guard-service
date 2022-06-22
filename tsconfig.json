@@ -4,7 +4,6 @@
         "esModuleInterop": true,
         "target": "esnext",
         "moduleResolution": "node",
-        "sourceMap": false,
         "outDir": "dist",
         "baseUrl": ".",
         "paths": {
