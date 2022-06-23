@@ -47,6 +47,16 @@ class Dialer {
     }
 
     /**
+     * @return string of PeerID
+     */
+    getPeerId = (): string => {
+        if(!this._NODE)
+            throw Error("Dialer node isn't ready, please try later")
+        else
+            return this._NODE.peerId.toString()
+    }
+
+    /**
      * establish connection to relay
      * @param channel: string desire channel for subscription
      * @param callback: a callback function for subscribed channel
