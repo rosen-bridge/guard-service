@@ -15,6 +15,7 @@ import { Utxo, UtxoBoxesAssets } from "./models/Interfaces";
 import CardanoUtils from "./helpers/CardanoUtils";
 import TssSigner from "../../guard/TssSigner";
 import Utils from "../ergo/helpers/Utils";
+import { tssSignAction } from "../../db/models/sign/TssSignModel";
 
 
 class CardanoChain implements BaseChain<Transaction> {
@@ -273,7 +274,9 @@ class CardanoChain implements BaseChain<Transaction> {
             const txHash = hash_transaction(tx.body()).to_bytes()
             await TssSigner.signTxHash(txHash)
 
-            // TODO: add tx data to db
+            const txId = Utils.Uint8ArrayToHexString(txHash)
+            const serializedTx = Utils.Uint8ArrayToHexString(this.serialize(tx))
+            await tssSignAction.insertSignRequest(txId, serializedTx)
         }
         catch (e) {
             console.log(`An error occurred while requesting TSS service to sign Cardano tx: ${e.message}`)
@@ -282,13 +285,24 @@ class CardanoChain implements BaseChain<Transaction> {
 
     /**
      * signs a cardano transaction
-     * @param tx the transaction
+     * @param txId the transaction id
      * @param signedTxHash signed hash of the transaction
      */
-    signTransaction = async (tx: Transaction, signedTxHash: Uint8Array): Promise<Transaction> => {
+    signTransaction = async (txId: string, signedTxHash: string): Promise<Transaction | null> => {
+        // get tx from db
+        let tx: Transaction | null = null
+        try {
+            const txBytes = Utils.hexStringToUint8Array(await tssSignAction.getTxById(txId))
+            tx = this.deserialize(txBytes)
+        }
+        catch (e) {
+            console.log(`An error occurred while getting Cardano tx with id [${txId}] from db: ${e.message}`)
+            return null
+        }
+
         // make vKey witness: 825840 + publicKey + 5840 + signedTxHash
         const vKeyWitness = Vkeywitness.from_bytes(Buffer.from(
-            `825820${CardanoConfigs.tssPublicKey}5840${Utils.Uint8ArrayToHexString(signedTxHash)}`
+            `825820${CardanoConfigs.tssPublicKey}5840${signedTxHash}`
         , "hex"))
 
         const vkeyWitnesses = Vkeywitnesses.new();
@@ -296,10 +310,20 @@ class CardanoChain implements BaseChain<Transaction> {
         const witnesses = TransactionWitnessSet.new();
         witnesses.set_vkeys(vkeyWitnesses);
 
-        return Transaction.new(
+        const signedTx = Transaction.new(
             tx.body(),
             witnesses
         )
+
+        // update database
+        const signedTxBytes = this.serialize(signedTx)
+        await tssSignAction.updateSignature(
+            txId,
+            Utils.Uint8ArrayToHexString(signedTxBytes),
+            signedTxHash
+        )
+
+        return signedTx
     }
 
     /**

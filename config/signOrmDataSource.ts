@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export const signOrmConfig = new DataSource({
+export const signOrmDataSource = new DataSource({
     type: "sqlite",
     database: __dirname + "/../sqlite/sign.sqlite",
     entities: ['src/db/entities/sign/*.ts'],

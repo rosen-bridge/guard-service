@@ -1,5 +1,6 @@
 import {Request, Response, Router} from "express";
 import assert from "assert";
+import CardanoChain from "../chains/cardano/CardanoChain";
 
 export const tssRouter = Router();
 
@@ -10,21 +11,19 @@ export const tssRouter = Router();
  * @bodyParam {string}
  */
 tssRouter.post("/tssSign", async (req: Request, res: Response) => {
+    let signedTxHash = ""
+    let txHash = ""
     try {
         assert(req.body.signature, "key signature is required!")
         assert(req.body.m, "key m is required!")
 
-        const signedTxHash: string = req.body.signature
-        const txHash: string = req.body.m
-
-        // TODO:
-        //  1. get txBytes from db using txHash
-        //  2. convert txBytes to Transaction object
-        //  3. call async signTransaction(tx, signedTxHash)
-
-        res.send({message: "ok"})
+        signedTxHash = req.body.signature
+        txHash = req.body.m
     }
     catch (error) {
         res.status(400).send({message: error.message})
     }
+
+    new CardanoChain().signTransaction(txHash, signedTxHash)
+    res.send({message: "ok"})
 });
