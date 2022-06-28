@@ -142,16 +142,51 @@ describe("CardanoChain", () => {
 
     })
 
-    describe("signTransaction", () => {
+    describe("requestToSignTransaction", () => {
 
-        beforeEach("reset MockedBlockFrost", async () => {
+        beforeEach("clear test sign database Cardano signs table", async () => {
             await clearCardanoSignTable()
         })
 
         /**
          * Target: testing signTransaction
          * Dependencies:
-         *    tssSignAction
+         *    -
+         * Expected Output:
+         *    It should insert right record into database
+         */
+        it("should insert request into db successfully", async () => {
+            // create test data
+            const cardanoChain: CardanoChain = new CardanoChain()
+            const tx = cardanoChain.deserialize(TestBoxes.mockTwoAssetsTransferringPaymentTransaction(
+                TestBoxes.mockAssetPaymentEventTrigger(), testBankAddress).txBytes)
+            const expectedTxId = Utils.Uint8ArrayToHexString(hash_transaction(tx.body()).to_bytes())
+            const expectedTxBytes = Utils.Uint8ArrayToHexString(tx.to_bytes())
+            const expectedSignedHash = ""
+
+            // run test
+            await cardanoChain.requestToSignTransaction(tx)
+
+            // verify db changes
+            const signRecords = await allCardanoSignRecords()
+            expect(signRecords.length).to.equal(1)
+            expect(signRecords[0].txId).to.equal(expectedTxId)
+            expect(signRecords[0].txBytes).to.equal(expectedTxBytes)
+            expect(signRecords[0].signedHash).to.equal(expectedSignedHash)
+        })
+
+    })
+
+    describe("signTransaction", () => {
+
+        beforeEach("clear test sign database Cardano signs table", async () => {
+            await clearCardanoSignTable()
+        })
+
+        /**
+         * Target: testing signTransaction
+         * Dependencies:
+         *    -
          * Expected Output:
          *    It should return the signed tx with the same body and the signature as it's witness
          */
@@ -160,12 +195,12 @@ describe("CardanoChain", () => {
             const mockedSignTxHash = "4d9794972a26d36ebc35c819ef3c8eea80bd451e497ac89a7303dd3025714cb235fcad6621778fdbd99b56753e6493ea646ac7ade8f30fed7dca7138c741fe02"
             const expectedResult = "825820bcb07faa6c0f19e2f2587aa9ef6f43a68fc0135321216a71dc87c8527af4ca6a58404d9794972a26d36ebc35c819ef3c8eea80bd451e497ac89a7303dd3025714cb235fcad6621778fdbd99b56753e6493ea646ac7ade8f30fed7dca7138c741fe02"
 
-            // create test data and mock CardanoChain SubmitTransaction method
+            // create test data
             const cardanoChain: CardanoChain = new CardanoChain()
             const tx = cardanoChain.deserialize(TestBoxes.mockTwoAssetsTransferringPaymentTransaction(
                 TestBoxes.mockAssetPaymentEventTrigger(), testBankAddress).txBytes)
 
-            // mock db return value
+            // insert required test data in db
             const txId = Utils.Uint8ArrayToHexString(hash_transaction(tx.body()).to_bytes())
             const serializedTx = Utils.Uint8ArrayToHexString(tx.to_bytes())
             await insertCardanoSignRecord(txId, serializedTx, "")
