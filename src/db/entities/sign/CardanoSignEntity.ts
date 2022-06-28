@@ -1,7 +1,7 @@
 import { Column, Entity, PrimaryColumn } from "typeorm";
 
 @Entity()
-export class TssSignEntity {
+export class CardanoSignEntity {
     @PrimaryColumn()
     txId: string
 

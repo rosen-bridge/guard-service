@@ -15,7 +15,7 @@ import { Utxo, UtxoBoxesAssets } from "./models/Interfaces";
 import CardanoUtils from "./helpers/CardanoUtils";
 import TssSigner from "../../guard/TssSigner";
 import Utils from "../ergo/helpers/Utils";
-import { tssSignAction } from "../../db/models/sign/TssSignModel";
+import { tssSignAction } from "../../db/models/sign/SignModel";
 
 
 class CardanoChain implements BaseChain<Transaction> {
@@ -288,7 +288,7 @@ class CardanoChain implements BaseChain<Transaction> {
      * @param txId the transaction id
      * @param signedTxHash signed hash of the transaction
      */
-    signTransaction = async (txId: string, signedTxHash: string): Promise<Transaction | null> => {
+    signTransaction = async (txId: string, signedTxHash: string): Promise<void> => {
         // get tx from db
         let tx: Transaction | null = null
         try {
@@ -297,7 +297,7 @@ class CardanoChain implements BaseChain<Transaction> {
         }
         catch (e) {
             console.log(`An error occurred while getting Cardano tx with id [${txId}] from db: ${e.message}`)
-            return null
+            return
         }
 
         // make vKey witness: 825840 + publicKey + 5840 + signedTxHash
@@ -322,8 +322,6 @@ class CardanoChain implements BaseChain<Transaction> {
             Utils.Uint8ArrayToHexString(signedTxBytes),
             signedTxHash
         )
-
-        return signedTx
     }
 
     /**

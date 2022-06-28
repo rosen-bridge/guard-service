@@ -1,14 +1,14 @@
 import { DataSource, Repository } from "typeorm";
-import { TssSignEntity } from "../../entities/sign/TssSignEntity";
+import { CardanoSignEntity } from "../../entities/sign/CardanoSignEntity";
 import { signOrmDataSource } from "../../../../config/signOrmDataSource";
 
-class TssSignDataBase {
+class SignDataBase {
     dataSource: DataSource;
-    tssSignRepository: Repository<TssSignEntity>;
+    CardanoSignRepository: Repository<CardanoSignEntity>;
 
     constructor(dataSource: DataSource) {
         this.dataSource = dataSource;
-        this.tssSignRepository = this.dataSource.getRepository(TssSignEntity);
+        this.CardanoSignRepository = this.dataSource.getRepository(CardanoSignEntity);
     }
 
     /**
@@ -17,7 +17,7 @@ class TssSignDataBase {
      * @param txBytes serialized bytes of the transaction
      */
     insertSignRequest = async (txId: string, txBytes: string): Promise<void> => {
-        await this.tssSignRepository.createQueryBuilder()
+        await this.CardanoSignRepository.createQueryBuilder()
             .insert()
             .values({
                 txId: txId,
@@ -34,7 +34,7 @@ class TssSignDataBase {
      * @param signature the signature
      */
     updateSignature = async (txId: string, signedTxBytes: string, signature: string): Promise<void> => {
-        await this.tssSignRepository.createQueryBuilder()
+        await this.CardanoSignRepository.createQueryBuilder()
             .update()
             .set({
                 txBytes: signedTxBytes,
@@ -49,7 +49,7 @@ class TssSignDataBase {
      * @return serialized bytes of the transaction
      */
     getTxById = async (txId: string): Promise<string> => {
-        return await this.tssSignRepository.createQueryBuilder()
+        return await this.CardanoSignRepository.createQueryBuilder()
             .select()
             .where("txId = :id", {id: txId})
             .getOneOrFail()
@@ -58,4 +58,9 @@ class TssSignDataBase {
 
 }
 
-export const tssSignAction = new TssSignDataBase(signOrmDataSource)
+const tssSignAction = new SignDataBase(signOrmDataSource)
+
+export {
+    SignDataBase,
+    tssSignAction
+}
