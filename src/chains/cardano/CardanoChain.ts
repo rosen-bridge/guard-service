@@ -271,12 +271,14 @@ class CardanoChain implements BaseChain<Transaction> {
      */
     requestToSignTransaction = async (tx: Transaction): Promise<void> => {
         try {
+            // insert request into db
             const txHash = hash_transaction(tx.body()).to_bytes()
-            await TssSigner.signTxHash(txHash)
-
             const txId = Utils.Uint8ArrayToHexString(txHash)
             const serializedTx = Utils.Uint8ArrayToHexString(this.serialize(tx))
             await tssSignAction.insertSignRequest(txId, serializedTx)
+
+            // send tx to sign
+            await TssSigner.signTxHash(txHash)
         }
         catch (e) {
             console.log(`An error occurred while requesting TSS service to sign Cardano tx: ${e.message}`)
@@ -288,16 +290,16 @@ class CardanoChain implements BaseChain<Transaction> {
      * @param txId the transaction id
      * @param signedTxHash signed hash of the transaction
      */
-    signTransaction = async (txId: string, signedTxHash: string): Promise<void> => {
+    signTransaction = async (txId: string, signedTxHash: string): Promise<Transaction | null> => {
         // get tx from db
         let tx: Transaction | null = null
         try {
-            const txBytes = Utils.hexStringToUint8Array(await tssSignAction.getTxById(txId))
+            const txBytes = Utils.hexStringToUint8Array((await tssSignAction.getById(txId)).txBytes)
             tx = this.deserialize(txBytes)
         }
         catch (e) {
             console.log(`An error occurred while getting Cardano tx with id [${txId}] from db: ${e.message}`)
-            return
+            return null
         }
 
         // make vKey witness: 825840 + publicKey + 5840 + signedTxHash
@@ -322,6 +324,8 @@ class CardanoChain implements BaseChain<Transaction> {
             Utils.Uint8ArrayToHexString(signedTxBytes),
             signedTxHash
         )
+
+        return signedTx
     }
 
     /**

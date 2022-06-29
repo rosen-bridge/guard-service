@@ -8,7 +8,9 @@ export class CardanoSignEntity {
     @Column()
     txBytes: string
 
-    @Column()
+    @Column({
+        nullable: true
+    })
     signedHash: string
 
 }

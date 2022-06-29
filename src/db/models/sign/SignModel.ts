@@ -21,8 +21,7 @@ class SignDataBase {
             .insert()
             .values({
                 txId: txId,
-                txBytes: txBytes,
-                signedHash: ""
+                txBytes: txBytes
             })
             .execute()
     }
@@ -46,14 +45,13 @@ class SignDataBase {
 
     /**
      * @param txId the transaction id
-     * @return serialized bytes of the transaction
+     * @return the request to sign the transaction
      */
-    getTxById = async (txId: string): Promise<string> => {
+    getById = async (txId: string): Promise<CardanoSignEntity> => {
         return await this.CardanoSignRepository.createQueryBuilder()
             .select()
             .where("txId = :id", {id: txId})
             .getOneOrFail()
-            .then(res => res.txBytes)
     }
 
 }

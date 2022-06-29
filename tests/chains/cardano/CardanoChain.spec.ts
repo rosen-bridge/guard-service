@@ -162,7 +162,7 @@ describe("CardanoChain", () => {
                 TestBoxes.mockAssetPaymentEventTrigger(), testBankAddress).txBytes)
             const expectedTxId = Utils.Uint8ArrayToHexString(hash_transaction(tx.body()).to_bytes())
             const expectedTxBytes = Utils.Uint8ArrayToHexString(tx.to_bytes())
-            const expectedSignedHash = ""
+            const expectedSignedHash = null
 
             // run test
             await cardanoChain.requestToSignTransaction(tx)

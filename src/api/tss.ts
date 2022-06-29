@@ -24,6 +24,9 @@ tssRouter.post("/tssSign", async (req: Request, res: Response) => {
         res.status(400).send({message: error.message})
     }
 
-    new CardanoChain().signTransaction(txHash, signedTxHash)
+    const cardanoChain = new CardanoChain()
+    cardanoChain.signTransaction(txHash, signedTxHash).then(signedTx => {
+        if (signedTx !== null) cardanoChain.submitTransaction(signedTx)
+    })
     res.send({message: "ok"})
 });

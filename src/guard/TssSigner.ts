@@ -4,7 +4,7 @@ import Configs from "../helpers/Configs";
 class TssSigner {
 
     static tssApi = axios.create({
-        baseURL: Configs.tssUrl,
+        baseURL: Configs.tssUrl + `:${Configs.tssPort}`,
         timeout: Configs.tssTimeout
     })
     static tssCallBackUrl = Configs.tssCallBackUrl

@@ -32,7 +32,7 @@ const testSignDataBase = new SignDataBase(testSignOrmDataSource)
 let mockedTssSignAction = spy(tssSignAction)
 when(mockedTssSignAction.updateSignature(anything(), anything(), anything())).thenCall(testSignDataBase.updateSignature)
 when(mockedTssSignAction.insertSignRequest(anything(), anything())).thenCall(testSignDataBase.insertSignRequest)
-when(mockedTssSignAction.getTxById(anything())).thenCall(testSignDataBase.getTxById)
+when(mockedTssSignAction.getById(anything())).thenCall(testSignDataBase.getById)
 
 /**
  * deletes every record in CardanoSign table in SignDatabase

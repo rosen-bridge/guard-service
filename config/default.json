@@ -40,9 +40,9 @@
         "CleanupNFT": "4444444444444444444444444444444444444444444444444444444444444444"
     },
     "tss": {
-        "url": "https://example.com",
-        "timeout": 8000,
-        "callBackBaseUrl": "https://example.com"
+        "url": "localhost",
+        "port": 9000,
+        "timeout": 8000
     },
     "p2p": {
         "address": "change me",

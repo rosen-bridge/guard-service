@@ -8,7 +8,7 @@
         "prebuild": "eslint --fix .",
         "build": "ts-node --experimental-specifier-resolution=node ./src/index.ts",
         "start": "nodemon .",
-        "test": "NODE_ENV=\"test\" mocha --slow 3000",
+        "test": "NODE_ENV=\"test\" mocha --slow 3000 && rm -rf tests/db/sqlite/test",
         "coverage": "c8 npm run test",
         "typeorm": "typeorm-ts-node-esm",
         "typeorm:update:sign": "typeorm-ts-node-esm migration:generate src/db/migrations/sign/sign -d config/signOrmDataSource.ts",

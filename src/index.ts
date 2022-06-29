@@ -3,13 +3,14 @@ import express, { Router } from "express";
 import { p2pRouter } from "./api/p2p";
 import { paymentRouter } from "./api/payment";
 import { initDataSources } from "./helpers/dataSources";
+import Configs from "./helpers/Configs";
 
 // initialize all data sources
 await initDataSources()
 
 // run express app
 const app = express();
-const port = 8080;
+const port = Configs.expressPort;
 
 // add express api routers
 app.use(express.json())
