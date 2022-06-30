@@ -1,4 +1,5 @@
 import { Address, BoxValue, Contract, I64 } from "ergo-lib-wasm-nodejs";
+import { AssetMap } from "../models/Interfaces";
 
 class Utils {
 
@@ -95,6 +96,33 @@ class Utils {
         if (source.length !== target.length) return false
 
         return !source.some(value => !target.includes(value))
+    }
+
+    /**
+     * checks if two AssetMaps have same tokens with same amounts
+     * @param source
+     * @param target
+     */
+    static areAssetsEqual = (source: AssetMap, target: AssetMap): boolean => {
+        // checks if every token in source exists in target
+        for (let tokenId in source) {
+            const amount = source[tokenId]
+            if (
+                !Object.prototype.hasOwnProperty.call(target, tokenId) ||
+                amount !== target[tokenId]
+            ) return false
+        }
+
+        // checks if every token in target exists in source
+        for (let tokenId in target) {
+            const amount = target[tokenId]
+            if (
+                !Object.prototype.hasOwnProperty.call(source, tokenId) ||
+                amount !== source[tokenId]
+            ) return false
+        }
+
+        return true
     }
 
 }

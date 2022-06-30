@@ -185,7 +185,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new PaymentTransaction(txId, eventId, txBytes)
+        return new PaymentTransaction(txId, eventId, txBytes, [])
     }
 
     /**
@@ -238,7 +238,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new PaymentTransaction(txId, eventId, txBytes)
+        return new PaymentTransaction(txId, eventId, txBytes, [])
     }
 
     /**
@@ -291,7 +291,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new PaymentTransaction(txId, eventId, txBytes)
+        return new PaymentTransaction(txId, eventId, txBytes, [])
     }
 
     /**
@@ -344,7 +344,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new PaymentTransaction(txId, eventId, txBytes)
+        return new PaymentTransaction(txId, eventId, txBytes, [])
     }
 
     /**
@@ -398,7 +398,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new PaymentTransaction(txId, eventId, txBytes)
+        return new PaymentTransaction(txId, eventId, txBytes, [])
     }
 
     /**
@@ -452,7 +452,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new PaymentTransaction(txId, eventId, txBytes)
+        return new PaymentTransaction(txId, eventId, txBytes, [])
     }
 
     /**
@@ -699,7 +699,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new PaymentTransaction(txId, eventId, txBytes)
+        return new PaymentTransaction(txId, eventId, txBytes, [])
     }
 
     /**
@@ -750,7 +750,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new PaymentTransaction(txId, eventId, txBytes)
+        return new PaymentTransaction(txId, eventId, txBytes, [])
     }
 
     /**
@@ -801,7 +801,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new PaymentTransaction(txId, eventId, txBytes)
+        return new PaymentTransaction(txId, eventId, txBytes, [])
     }
 
     /**
@@ -852,7 +852,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new PaymentTransaction(txId, eventId, txBytes)
+        return new PaymentTransaction(txId, eventId, txBytes, [])
     }
 
     /**
@@ -903,7 +903,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new PaymentTransaction(txId, eventId, txBytes)
+        return new PaymentTransaction(txId, eventId, txBytes, [])
     }
 
     /**
@@ -954,7 +954,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new PaymentTransaction(txId, eventId, txBytes)
+        return new PaymentTransaction(txId, eventId, txBytes, [])
     }
 
 }

@@ -109,7 +109,7 @@ class TestBoxes {
         const txId = TestUtils.generateRandomId()
         const eventId = TestUtils.generateRandomId()
         const txBytes = tx.to_bytes()
-        return new PaymentTransaction(txId, eventId, txBytes)
+        return new PaymentTransaction(txId, eventId, txBytes, [])
     }
 
     /**

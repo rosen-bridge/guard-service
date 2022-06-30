@@ -10,7 +10,7 @@ import {
     ReducedTransaction,
     TokenAmount,
     TokenId,
-    TxBuilder
+    TxBuilder, UnsignedTransaction
 } from "ergo-lib-wasm-nodejs";
 import { PaymentTransaction, EventTrigger } from "../../models/Models";
 import BaseChain from "../BaseChains";
@@ -40,17 +40,32 @@ class Reward implements BaseChain<ReducedTransaction> {
         const commitmentBoxes: ErgoBox[] = RewardBoxes.getEventValidCommitments(event)
 
         // create the transaction
-        const reducedTx: ReducedTransaction = (event.sourceChainTokenId === "erg") ?
+        const eventTxData = (event.sourceChainTokenId === "erg") ?
             await this.ergRewardTransaction(event, eventBox, commitmentBoxes) :
             await this.tokenRewardTransaction(event, eventBox, commitmentBoxes)
+
+        // create ReducedTransaction object
+        const ctx = await NodeApi.getErgoStateContext()
+        const reducedTx = ReducedTransaction.from_unsigned_tx(
+            eventTxData[0],
+            eventTxData[1],
+            ErgoBoxes.empty(),
+            ctx
+        )
+
+        // parse tx input boxes
+        const inBoxes: Uint8Array[] = []
+        const inBoxesLen = eventTxData[1].len()
+        for (let i = 0; i < inBoxesLen; i++)
+            inBoxes.push(eventTxData[1].get(i).sigma_serialize_bytes())
 
         // create PaymentTransaction object
         const txBytes = this.serialize(reducedTx)
         const txId = reducedTx.unsigned_tx().id().to_str()
         const eventId = event.sourceTxId
-        const tx = new PaymentTransaction(txId, eventId, txBytes)
+        const tx = new PaymentTransaction(txId, eventId, txBytes, inBoxes)
 
-        console.log(`Payment transaction for event [${tx.eventId}] generated. TxId: ${tx.txId}`)
+        console.log(`Reward distribution for event [${tx.eventId}] generated. TxId: ${tx.txId}`)
         return tx
     }
 
@@ -162,6 +177,64 @@ class Reward implements BaseChain<ReducedTransaction> {
             return true
         }
 
+        /**
+         * method to check if all tokens in inputs exists in output (no token burned)
+         */
+        const verifyNoTokenBurned = (): boolean => {
+            try {
+                // verify object inputs are same as tx inputs
+                const objectInIds: string[] = []
+                const txInIds: string[] = []
+
+                // calculate inputs tokens
+                const inBoxesBytes = paymentTx.inputBoxes
+                const inputTokens: AssetMap = {}
+                inBoxesBytes.forEach(boxBytes => {
+                    const box = ErgoBox.sigma_parse_bytes(boxBytes)
+                    const boxTokensLen = box.tokens().len()
+
+                    for (let i = 0; i < boxTokensLen; i++) {
+                        const tokenId = box.tokens().get(i).id().to_str()
+                        if (Object.prototype.hasOwnProperty.call(inputTokens, tokenId))
+                            inputTokens[tokenId] += Utils.bigintFromI64(box.tokens().get(i).amount().as_i64())
+                        else
+                            inputTokens[tokenId] = Utils.bigintFromI64(box.tokens().get(i).amount().as_i64())
+                    }
+                    objectInIds.push(box.box_id().to_str())
+                })
+
+                // calculate tx input boxes ids
+                const txInputs = tx.inputs()
+                const inputsLen = txInputs.len()
+                if (inputsLen != inBoxesBytes.length) return false
+                for (let i = 0; i < inputsLen; i++) txInIds.push(txInputs.get(i).box_id().to_str())
+
+                // reject tx if input boxes in PaymentTransaction object are not same as tx inputs
+                if (!Utils.doArraysHaveSameStrings(objectInIds, txInIds)) return false
+
+                // calculate outputs tokens
+                const outputTokens: AssetMap = {}
+                for (let i = 0; i < outputLength; i++) {
+                    const box = outputBoxes.get(i)
+                    const boxTokensLen = box.tokens().len()
+
+                    for (let j = 0; j < boxTokensLen; j++) {
+                        const tokenId = box.tokens().get(j).id().to_str()
+                        if (Object.prototype.hasOwnProperty.call(outputTokens, tokenId))
+                            outputTokens[tokenId] += Utils.bigintFromI64(box.tokens().get(j).amount().as_i64())
+                        else
+                            outputTokens[tokenId] = Utils.bigintFromI64(box.tokens().get(j).amount().as_i64())
+                    }
+                }
+
+                return Utils.areAssetsEqual(inputTokens, outputTokens)
+            }
+            catch (e) {
+                console.log(`An error occurred while parsing Ergo tx inputs to verify no token burn: ${e.message}. Rejecting tx`)
+                return false
+            }
+        }
+
         const tx = this.deserialize(paymentTx.txBytes).unsigned_tx()
         const outputBoxes = tx.output_candidates()
 
@@ -201,7 +274,7 @@ class Reward implements BaseChain<ReducedTransaction> {
 
         // verify if all inputs WIDs exist in output boxes
         const inputWIDs = event.WIDs.concat(commitmentBoxes.map(box => Utils.Uint8ArrayToHexString(RewardBoxes.getErgoBoxWID(box))))
-        return Utils.doArraysHaveSameStrings(inputWIDs, outputBoxesWIDs)
+        return Utils.doArraysHaveSameStrings(inputWIDs, outputBoxesWIDs) && verifyNoTokenBurned()
     }
 
     /**
@@ -229,7 +302,7 @@ class Reward implements BaseChain<ReducedTransaction> {
      * @param commitmentBoxes the not-merged valid commitment boxes for the event
      * @return the generated reward reduced transaction
      */
-    ergRewardTransaction = async (event: EventTrigger, eventBox: ErgoBox, commitmentBoxes: ErgoBox[]): Promise<ReducedTransaction> => {
+    ergRewardTransaction = async (event: EventTrigger, eventBox: ErgoBox, commitmentBoxes: ErgoBox[]): Promise<[UnsignedTransaction, ErgoBoxes]> => {
         // get network current height
         const currentHeight = await NodeApi.getHeight()
 
@@ -321,14 +394,7 @@ class Reward implements BaseChain<ReducedTransaction> {
             Utils.boxValueFromBigint(ErgoConfigs.minimumErg)
         ).build()
 
-        // create ReducedTransaction object
-        const ctx = await NodeApi.getErgoStateContext()
-        return ReducedTransaction.from_unsigned_tx(
-            tx,
-            inErgoBoxes,
-            ErgoBoxes.empty(),
-            ctx
-        )
+        return [tx, inErgoBoxes]
     }
 
 
@@ -339,7 +405,7 @@ class Reward implements BaseChain<ReducedTransaction> {
      * @param commitmentBoxes the not-merged valid commitment boxes for the event
      * @return the generated reward reduced transaction
      */
-    tokenRewardTransaction = async (event: EventTrigger, eventBox: ErgoBox, commitmentBoxes: ErgoBox[]): Promise<ReducedTransaction> => {
+    tokenRewardTransaction = async (event: EventTrigger, eventBox: ErgoBox, commitmentBoxes: ErgoBox[]): Promise<[UnsignedTransaction, ErgoBoxes]> => {
         // get network current height
         const currentHeight = await NodeApi.getHeight()
 
@@ -440,14 +506,7 @@ class Reward implements BaseChain<ReducedTransaction> {
             Utils.boxValueFromBigint(ErgoConfigs.minimumErg)
         ).build()
 
-        // create ReducedTransaction object
-        const ctx = await NodeApi.getErgoStateContext()
-        return ReducedTransaction.from_unsigned_tx(
-            tx,
-            inErgoBoxes,
-            ErgoBoxes.empty(),
-            ctx
-        )
+        return [tx, inErgoBoxes]
     }
 
     /**
