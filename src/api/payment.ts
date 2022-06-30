@@ -6,6 +6,7 @@ import EventProcessor from "../guard/EventProcessor";
 export const paymentRouter = Router();
 const eventProcessor = new EventProcessor()
 
+// TODO: remove these APIs. Replace with a class that request to scala app
 /**
  * Api for generating payment transaction for an event
  */
@@ -68,7 +69,8 @@ paymentRouter.post("/verify/", async (req: Request, res: Response) => {
     const paymentTx = new PaymentTransaction(
         paymentTxJson.txId,
         paymentTxJson.eventId,
-        Buffer.from(paymentTxJson.txBytes, "hex")
+        Buffer.from(paymentTxJson.txBytes, "hex"),
+        []
     )
 
     try {

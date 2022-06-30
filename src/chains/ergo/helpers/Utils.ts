@@ -105,7 +105,7 @@ class Utils {
      */
     static areAssetsEqual = (source: AssetMap, target: AssetMap): boolean => {
         // checks if every token in source exists in target
-        for (let tokenId in source) {
+        for (const tokenId in source) {
             const amount = source[tokenId]
             if (
                 !Object.prototype.hasOwnProperty.call(target, tokenId) ||
@@ -114,7 +114,7 @@ class Utils {
         }
 
         // checks if every token in target exists in source
-        for (let tokenId in target) {
+        for (const tokenId in target) {
             const amount = target[tokenId]
             if (
                 !Object.prototype.hasOwnProperty.call(source, tokenId) ||

@@ -22,6 +22,7 @@ import { AssetMap, InBoxesInfo } from "./models/Interfaces";
 import Contracts from "../../contracts/Contracts";
 import RewardBoxes from "./helpers/RewardBoxes";
 import Configs from "../../helpers/Configs";
+import { JsonBI } from "../../network/NetworkModels";
 
 
 class Reward implements BaseChain<ReducedTransaction> {

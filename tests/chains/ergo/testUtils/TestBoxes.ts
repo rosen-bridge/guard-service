@@ -957,6 +957,262 @@ class TestBoxes {
         return new PaymentTransaction(txId, eventId, txBytes, [])
     }
 
+    /**
+     * generates a mocked token payment tx that burns some token
+     * @param event token reward event trigger
+     * @param eventBoxes event box and valid commitment boxes
+     */
+    static mockTokenBurningTokenPaymentTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): PaymentTransaction => {
+        const targetAddressErgoTree: string = Utils.addressStringToErgoTreeString(event.toAddress)
+        const paymentTxInputBoxes: Uint8Array[] = []
+        const txInputBoxes: string[] = []
+
+        const inBoxes = ErgoBoxes.empty()
+        eventBoxes.forEach(box => {
+            inBoxes.add(box)
+            paymentTxInputBoxes.push(box.sigma_serialize_bytes())
+            txInputBoxes.push(box.box_id().to_str())
+        })
+        const bankBoxes = this.mockBankBoxes()
+        bankBoxes.boxes.forEach(box => {
+            inBoxes.add(box)
+            paymentTxInputBoxes.push(box.sigma_serialize_bytes())
+            txInputBoxes.push(box.box_id().to_str())
+        })
+
+        const rwtTokenId = Configs.ergoRWT
+        const watcherBoxes = event.WIDs
+            .map(wid => Utils.hexStringToUint8Array(wid))
+            .concat(eventBoxes.slice(1).map(box => RewardBoxes.getErgoBoxWID(box)))
+            .map(wid => TestData.mockWatcherPermitBox(
+                100000n,
+                [
+                    {
+                        tokenId: rwtTokenId,
+                        amount: BigInt("1")
+                    },
+                    {
+                        tokenId: "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e",
+                        amount: BigInt("1")
+                    }
+                ],
+                Contracts.triggerEventErgoTree,
+                [
+                    {
+                        registerId: 4,
+                        value: Constant.from_coll_coll_byte([wid])
+                    }
+                ]
+            ))
+
+        const txJsonString: string = TestData.tokenPaymentTransactionString(
+            txInputBoxes,
+            targetAddressErgoTree,
+            watcherBoxes,
+            this.bridgeFeeErgoTree,
+            this.networkFeeErgoTree,
+            this.bankAddressErgoTree,
+            bankBoxes.boxes[0].tokens().get(1).id().to_str()
+        )
+        const tx = UnsignedTransaction.from_json(txJsonString)
+
+        const reducedTx = ReducedTransaction.from_unsigned_tx(tx, inBoxes, ErgoBoxes.empty(), TestData.mockedErgoStateContext)
+
+        const txBytes = reducedTx.sigma_serialize_bytes()
+        const txId = tx.id().to_str()
+        const eventId = event.sourceTxId
+        return new PaymentTransaction(txId, eventId, txBytes, paymentTxInputBoxes)
+    }
+
+    /**
+     * generates a mocked erg payment tx that burns some token
+     * @param event token reward event trigger
+     * @param eventBoxes event box and valid commitment boxes
+     */
+    static mockTokenBurningErgPaymentTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): PaymentTransaction => {
+        const targetAddressErgoTree: string = Utils.addressStringToErgoTreeString(event.toAddress)
+        const paymentTxInputBoxes: Uint8Array[] = []
+        const txInputBoxes: string[] = []
+
+        const inBoxes = ErgoBoxes.empty()
+        eventBoxes.forEach(box => {
+            inBoxes.add(box)
+            paymentTxInputBoxes.push(box.sigma_serialize_bytes())
+            txInputBoxes.push(box.box_id().to_str())
+        })
+        const bankBoxes = this.mockBankBoxes()
+        bankBoxes.boxes.forEach(box => {
+            inBoxes.add(box)
+            paymentTxInputBoxes.push(box.sigma_serialize_bytes())
+            txInputBoxes.push(box.box_id().to_str())
+        })
+
+        const rwtTokenId = Configs.ergoRWT
+        const watcherBoxes = event.WIDs
+            .map(wid => Utils.hexStringToUint8Array(wid))
+            .concat(eventBoxes.slice(1).map(box => RewardBoxes.getErgoBoxWID(box)))
+            .map(wid => TestData.mockWatcherPermitBox(
+                71528571n,
+                [
+                    {
+                        tokenId: rwtTokenId,
+                        amount: BigInt("1")
+                    }
+                ],
+                Contracts.triggerEventErgoTree,
+                [
+                    {
+                        registerId: 4,
+                        value: Constant.from_coll_coll_byte([wid])
+                    }
+                ]
+            ))
+
+        const txJsonString: string = TestData.ergPaymentTransactionString(
+            txInputBoxes,
+            targetAddressErgoTree,
+            watcherBoxes,
+            this.bridgeFeeErgoTree,
+            this.networkFeeErgoTree,
+            this.bankAddressErgoTree,
+            bankBoxes.boxes[0].tokens().get(1).id().to_str()
+        )
+        const tx = UnsignedTransaction.from_json(txJsonString)
+
+        const reducedTx = ReducedTransaction.from_unsigned_tx(tx, inBoxes, ErgoBoxes.empty(), TestData.mockedErgoStateContext)
+
+        const txBytes = reducedTx.sigma_serialize_bytes()
+        const txId = tx.id().to_str()
+        const eventId = event.sourceTxId
+        return new PaymentTransaction(txId, eventId, txBytes, paymentTxInputBoxes)
+    }
+
+    /**
+     * generates a mocked token reward distribution tx that burns some token
+     * @param event token reward event trigger
+     * @param eventBoxes event box and valid commitment boxes
+     */
+    static mockTokenBurningTokenDistributionTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): PaymentTransaction => {
+        const rewardTxInputBoxes: Uint8Array[] = []
+        const txInputBoxes: string[] = []
+
+        const inBoxes = ErgoBoxes.empty()
+        eventBoxes.forEach(box => {
+            inBoxes.add(box)
+            rewardTxInputBoxes.push(box.sigma_serialize_bytes())
+            txInputBoxes.push(box.box_id().to_str())
+        })
+        const bankBoxes = this.mockBankBoxes()
+        bankBoxes.boxes.forEach(box => {
+            inBoxes.add(box)
+            rewardTxInputBoxes.push(box.sigma_serialize_bytes())
+            txInputBoxes.push(box.box_id().to_str())
+        })
+
+        const rwtTokenId = Configs.ergoRWT
+        const watcherBoxes = event.WIDs
+            .map(wid => Utils.hexStringToUint8Array(wid))
+            .concat(eventBoxes.slice(1).map(box => RewardBoxes.getErgoBoxWID(box)))
+            .map(wid => TestData.mockWatcherPermitBox(
+                100000n,
+                [
+                    {
+                        tokenId: rwtTokenId,
+                        amount: BigInt("1")
+                    },
+                    {
+                        tokenId: "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e",
+                        amount: BigInt("1")
+                    }
+                ],
+                Contracts.triggerEventErgoTree,
+                [
+                    {
+                        registerId: 4,
+                        value: Constant.from_coll_coll_byte([wid])
+                    }
+                ]
+            ))
+
+        const txJsonString: string = TestData.tokenDistributionTxString(
+            txInputBoxes,
+            watcherBoxes,
+            this.bridgeFeeErgoTree,
+            this.networkFeeErgoTree,
+            this.bankAddressErgoTree,
+            bankBoxes.boxes[0].tokens().get(1).id().to_str()
+        )
+        const tx = UnsignedTransaction.from_json(txJsonString)
+
+        const reducedTx = ReducedTransaction.from_unsigned_tx(tx, inBoxes, ErgoBoxes.empty(), TestData.mockedErgoStateContext)
+
+        const txBytes = reducedTx.sigma_serialize_bytes()
+        const txId = tx.id().to_str()
+        const eventId = event.sourceTxId
+        return new PaymentTransaction(txId, eventId, txBytes, rewardTxInputBoxes)
+    }
+
+    /**
+     * generates a mocked erg reward distribution tx that burns some token
+     * @param event token reward event trigger
+     * @param eventBoxes event box and valid commitment boxes
+     */
+    static mockTokenBurningErgDistributionTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): PaymentTransaction => {
+        const rewardTxInputBoxes: Uint8Array[] = []
+        const txInputBoxes: string[] = []
+
+        const inBoxes = ErgoBoxes.empty()
+        eventBoxes.forEach(box => {
+            inBoxes.add(box)
+            rewardTxInputBoxes.push(box.sigma_serialize_bytes())
+            txInputBoxes.push(box.box_id().to_str())
+        })
+        const bankBoxes = this.mockBankBoxes()
+        bankBoxes.boxes.forEach(box => {
+            inBoxes.add(box)
+            rewardTxInputBoxes.push(box.sigma_serialize_bytes())
+            txInputBoxes.push(box.box_id().to_str())
+        })
+
+        const rwtTokenId = Configs.ergoRWT
+        const watcherBoxes = event.WIDs
+            .map(wid => Utils.hexStringToUint8Array(wid))
+            .concat(eventBoxes.slice(1).map(box => RewardBoxes.getErgoBoxWID(box)))
+            .map(wid => TestData.mockWatcherPermitBox(
+                71528571n,
+                [
+                    {
+                        tokenId: rwtTokenId,
+                        amount: BigInt("1")
+                    }
+                ],
+                Contracts.triggerEventErgoTree,
+                [
+                    {
+                        registerId: 4,
+                        value: Constant.from_coll_coll_byte([wid])
+                    }
+                ]
+            ))
+
+        const txJsonString: string = TestData.ergDistributionTxString(
+            txInputBoxes,
+            watcherBoxes,
+            this.bridgeFeeErgoTree,
+            this.networkFeeErgoTree,
+            this.bankAddressErgoTree,
+            bankBoxes.boxes[0].tokens().get(1).id().to_str()
+        )
+        const tx = UnsignedTransaction.from_json(txJsonString)
+
+        const reducedTx = ReducedTransaction.from_unsigned_tx(tx, inBoxes, ErgoBoxes.empty(), TestData.mockedErgoStateContext)
+
+        const txBytes = reducedTx.sigma_serialize_bytes()
+        const txId = tx.id().to_str()
+        const eventId = event.sourceTxId
+        return new PaymentTransaction(txId, eventId, txBytes, rewardTxInputBoxes)
+    }
+
 }
 
 export default TestBoxes
