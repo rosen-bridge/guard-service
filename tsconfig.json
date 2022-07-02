@@ -18,7 +18,7 @@
         "strict": true,
         "noImplicitAny": true,
         "useUnknownInCatchVariables": false,
-        "inlineSourceMap": false,
+        "inlineSourceMap": true,
         "skipLibCheck": true,
         "strictPropertyInitialization": false,
         "experimentalDecorators": true,
