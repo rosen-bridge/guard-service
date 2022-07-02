@@ -4,7 +4,7 @@ import {
     MultiAsset, ScriptHash,
     Transaction, TransactionBuilder, TransactionHash, TransactionInput,
     TransactionOutput, TransactionWitnessSet,
-    Value
+    Value, Vkeywitness, Vkeywitnesses
 } from "@emurgo/cardano-serialization-lib-nodejs";
 import KoiosApi from "./network/KoiosApi";
 import { PaymentTransaction, EventTrigger } from "../../models/Models";
@@ -13,6 +13,9 @@ import CardanoConfigs from "./helpers/CardanoConfigs";
 import BlockFrostApi from "./network/BlockFrostApi";
 import { Utxo, UtxoBoxesAssets } from "./models/Interfaces";
 import CardanoUtils from "./helpers/CardanoUtils";
+import TssSigner from "../../guard/TssSigner";
+import Utils from "../ergo/helpers/Utils";
+import { tssSignAction } from "../../db/models/sign/SignModel";
 
 
 class CardanoChain implements BaseChain<Transaction> {
@@ -259,6 +262,85 @@ class CardanoChain implements BaseChain<Transaction> {
         return {
             lovelace: changeBoxLovelace,
             assets: multiAsset
+        }
+    }
+
+    /**
+     * requests TSS service to sign a cardano transaction
+     * @param tx the transaction
+     */
+    requestToSignTransaction = async (tx: Transaction): Promise<void> => {
+        try {
+            // insert request into db
+            const txHash = hash_transaction(tx.body()).to_bytes()
+            const txId = Utils.Uint8ArrayToHexString(txHash)
+            const serializedTx = Utils.Uint8ArrayToHexString(this.serialize(tx))
+            await tssSignAction.insertSignRequest(txId, serializedTx)
+
+            // send tx to sign
+            await TssSigner.signTxHash(txHash)
+        }
+        catch (e) {
+            console.log(`An error occurred while requesting TSS service to sign Cardano tx: ${e.message}`)
+        }
+    }
+
+    /**
+     * signs a cardano transaction
+     * @param txId the transaction id
+     * @param signedTxHash signed hash of the transaction
+     */
+    signTransaction = async (txId: string, signedTxHash: string): Promise<Transaction | null> => {
+        // get tx from db
+        let tx: Transaction | null = null
+        try {
+            const txBytes = Utils.hexStringToUint8Array((await tssSignAction.getById(txId)).txBytes)
+            tx = this.deserialize(txBytes)
+        }
+        catch (e) {
+            console.log(`An error occurred while getting Cardano tx with id [${txId}] from db: ${e.message}`)
+            return null
+        }
+
+        // make vKey witness: 825840 + publicKey + 5840 + signedTxHash
+        const vKeyWitness = Vkeywitness.from_bytes(Buffer.from(
+            `825820${CardanoConfigs.tssPublicKey}5840${signedTxHash}`
+        , "hex"))
+
+        const vkeyWitnesses = Vkeywitnesses.new();
+        vkeyWitnesses.add(vKeyWitness);
+        const witnesses = TransactionWitnessSet.new();
+        witnesses.set_vkeys(vkeyWitnesses);
+
+        const signedTx = Transaction.new(
+            tx.body(),
+            witnesses
+        )
+
+        // update database
+        const signedTxBytes = this.serialize(signedTx)
+        await tssSignAction.updateSignature(
+            txId,
+            Utils.Uint8ArrayToHexString(signedTxBytes),
+            signedTxHash
+        )
+
+        return signedTx
+    }
+
+    /**
+     * submit a cardano transaction to network
+     * @param tx the transaction
+     */
+    submitTransaction = async (tx: Transaction): Promise<boolean> => {
+        try {
+            const response = await BlockFrostApi.txSubmit(tx)
+            console.log(`Cardano Transaction submitted. txId: ${response}`)
+            return true
+        }
+        catch (e) {
+            console.log(`An error occurred while submitting Cardano transaction: ${e.message}`)
+            return false
         }
     }
 

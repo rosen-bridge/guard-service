@@ -19,7 +19,11 @@
         "noImplicitAny": true,
         "useUnknownInCatchVariables": false,
         "inlineSourceMap": true,
-        "skipLibCheck": true
+        "skipLibCheck": true,
+        "strictPropertyInitialization": false,
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "rootDir": "./"
     },
     "include": [
         "./**/*.ts"
