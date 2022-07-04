@@ -104,6 +104,8 @@ class Utils {
      * @param target
      */
     static areAssetsEqual = (source: AssetMap, target: AssetMap): boolean => {
+        if (source.length !== target.length) return false
+
         // checks if every token in source exists in target
         for (const tokenId in source) {
             const amount = source[tokenId]

@@ -22,7 +22,6 @@ import { AssetMap, InBoxesInfo } from "./models/Interfaces";
 import RewardBoxes from "./helpers/RewardBoxes";
 import Contracts from "../../contracts/Contracts";
 import Configs from "../../helpers/Configs";
-import { JsonBI } from "../../network/NetworkModels";
 
 class ErgoChain implements BaseChain<ReducedTransaction> {
 
@@ -216,64 +215,6 @@ class ErgoChain implements BaseChain<ReducedTransaction> {
             return true
         }
 
-        /**
-         * method to check if all tokens in inputs exists in output (no token burned)
-         */
-        const verifyNoTokenBurned = (): boolean => {
-            try {
-                // verify object inputs are same as tx inputs
-                const objectInIds: string[] = []
-                const txInIds: string[] = []
-
-                // calculate inputs tokens
-                const inBoxesBytes = paymentTx.inputBoxes
-                const inputTokens: AssetMap = {}
-                inBoxesBytes.forEach(boxBytes => {
-                    const box = ErgoBox.sigma_parse_bytes(boxBytes)
-                    const boxTokensLen = box.tokens().len()
-
-                    for (let i = 0; i < boxTokensLen; i++) {
-                        const tokenId = box.tokens().get(i).id().to_str()
-                        if (Object.prototype.hasOwnProperty.call(inputTokens, tokenId))
-                            inputTokens[tokenId] += Utils.bigintFromI64(box.tokens().get(i).amount().as_i64())
-                        else
-                            inputTokens[tokenId] = Utils.bigintFromI64(box.tokens().get(i).amount().as_i64())
-                    }
-                    objectInIds.push(box.box_id().to_str())
-                })
-
-                // calculate tx input boxes ids
-                const txInputs = tx.inputs()
-                const inputsLen = txInputs.len()
-                if (inputsLen != inBoxesBytes.length) return false
-                for (let i = 0; i < inputsLen; i++) txInIds.push(txInputs.get(i).box_id().to_str())
-
-                // reject tx if input boxes in PaymentTransaction object are not same as tx inputs
-                if (!Utils.doArraysHaveSameStrings(objectInIds, txInIds)) return false
-
-                // calculate outputs tokens
-                const outputTokens: AssetMap = {}
-                for (let i = 0; i < outputLength; i++) {
-                    const box = outputBoxes.get(i)
-                    const boxTokensLen = box.tokens().len()
-
-                    for (let j = 0; j < boxTokensLen; j++) {
-                        const tokenId = box.tokens().get(j).id().to_str()
-                        if (Object.prototype.hasOwnProperty.call(outputTokens, tokenId))
-                            outputTokens[tokenId] += Utils.bigintFromI64(box.tokens().get(j).amount().as_i64())
-                        else
-                            outputTokens[tokenId] = Utils.bigintFromI64(box.tokens().get(j).amount().as_i64())
-                    }
-                }
-
-                return Utils.areAssetsEqual(inputTokens, outputTokens)
-            }
-            catch (e) {
-                console.log(`An error occurred while parsing Ergo tx inputs to verify no token burn: ${e.message}. Rejecting tx`)
-                return false
-            }
-        }
-
         const tx = this.deserialize(paymentTx.txBytes).unsigned_tx()
         const outputBoxes = tx.output_candidates()
 
@@ -321,7 +262,7 @@ class ErgoChain implements BaseChain<ReducedTransaction> {
 
         // verify if all inputs WIDs exist in output boxes
         const inputWIDs = event.WIDs.concat(commitmentBoxes.map(box => Utils.Uint8ArrayToHexString(RewardBoxes.getErgoBoxWID(box))))
-        return Utils.doArraysHaveSameStrings(inputWIDs, outputBoxesWIDs) && verifyNoTokenBurned()
+        return Utils.doArraysHaveSameStrings(inputWIDs, outputBoxesWIDs) && RewardBoxes.verifyNoTokenBurned(tx.inputs(), paymentTx.inputBoxes, outputBoxes)
     }
 
     /**
