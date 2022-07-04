@@ -13,7 +13,6 @@ import CommunicationConfig from "./CommunicationConfig";
 import { JsonBI } from "../network/NetworkModels"
 import { Connection, Stream } from "@libp2p/interfaces/src/connection";
 import { ReceiveDataCommunication, SendDataCommunication, SubscribeChannel } from "./Interfaces";
-import { apiCallBack } from "./CallbackUtils";
 
 
 // TODO: Need to write test for This package
