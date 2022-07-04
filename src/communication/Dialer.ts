@@ -13,6 +13,7 @@ import CommunicationConfig from "./CommunicationConfig";
 import { JsonBI } from "../network/NetworkModels"
 import { Connection, Stream } from "@libp2p/interfaces/src/connection";
 import { ReceiveDataCommunication, SendDataCommunication, SubscribeChannel } from "./Interfaces";
+import { apiCallBack } from "./CallbackUtils";
 
 
 // TODO: Need to write test for This package
@@ -43,6 +44,7 @@ class Dialer {
      * @return list of subscribed channels' name
      */
     getSubscribedChannels = (): string[] => {
+        console.log(this._SUBSCRIBED_CHANNELS)
         return Object.keys(this._SUBSCRIBED_CHANNELS)
     }
 
@@ -68,8 +70,16 @@ class Dialer {
         }
         if (url) callbackObj.url = url
 
-        if (this._SUBSCRIBED_CHANNELS[channel])
+        if (this._SUBSCRIBED_CHANNELS[channel]){
+            if (this._SUBSCRIBED_CHANNELS[channel].find(
+                (sub: { func: SubscribeChannel, url: string | undefined }) =>
+                    sub.func.name === callback.name && sub.url === url
+            )) {
+                console.log("a redundant subscribed channel detected !")
+                return
+            }
             this._SUBSCRIBED_CHANNELS[channel].push(callbackObj)
+        }
         else {
             this._SUBSCRIBED_CHANNELS[channel] = []
             this._SUBSCRIBED_CHANNELS[channel].push(callbackObj)
