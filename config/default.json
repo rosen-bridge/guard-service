@@ -1,4 +1,8 @@
 {
+    "express": {
+        "port": 8080,
+        "jsonBodyLimit": 50
+    },
     "cardano": {
         "koios": {
             "url": "https://testnet.koios.rest/api/v0",
