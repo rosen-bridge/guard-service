@@ -68,8 +68,16 @@ class Dialer {
         }
         if (url) callbackObj.url = url
 
-        if (this._SUBSCRIBED_CHANNELS[channel])
+        if (this._SUBSCRIBED_CHANNELS[channel]){
+            if (this._SUBSCRIBED_CHANNELS[channel].find(
+                (sub: { func: SubscribeChannel, url: string | undefined }) =>
+                    sub.func.name === callback.name && sub.url === url
+            )) {
+                console.log("a redundant subscribed channel detected !")
+                return
+            }
             this._SUBSCRIBED_CHANNELS[channel].push(callbackObj)
+        }
         else {
             this._SUBSCRIBED_CHANNELS[channel] = []
             this._SUBSCRIBED_CHANNELS[channel].push(callbackObj)
