@@ -7,7 +7,7 @@ import {
     Value, Vkeywitness, Vkeywitnesses
 } from "@emurgo/cardano-serialization-lib-nodejs";
 import KoiosApi from "./network/KoiosApi";
-import { PaymentTransaction, EventTrigger } from "../../models/Models";
+import { EventTrigger } from "../../models/Models";
 import BaseChain from "../BaseChains";
 import CardanoConfigs from "./helpers/CardanoConfigs";
 import BlockFrostApi from "./network/BlockFrostApi";
@@ -16,9 +16,10 @@ import CardanoUtils from "./helpers/CardanoUtils";
 import TssSigner from "../../guard/TssSigner";
 import Utils from "../ergo/helpers/Utils";
 import { tssSignAction } from "../../db/models/sign/SignModel";
+import CardanoTransaction from "./models/CardanoTransaction";
 
 
-class CardanoChain implements BaseChain<Transaction> {
+class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
 
     bankAddress = Address.from_bech32(CardanoConfigs.bankAddress)
 
@@ -27,7 +28,7 @@ class CardanoChain implements BaseChain<Transaction> {
      * @param event the event trigger model
      * @return the generated payment transaction
      */
-    generateTransaction = async (event: EventTrigger): Promise<PaymentTransaction> => {
+    generateTransaction = async (event: EventTrigger): Promise<CardanoTransaction> => {
         const txBuilder = TransactionBuilder.new(CardanoConfigs.txBuilderConfig)
 
         // TODO: take amount of boxes needed for tx, not more
@@ -62,7 +63,7 @@ class CardanoChain implements BaseChain<Transaction> {
         const txBytes = tx.to_bytes()
         const txId = Buffer.from(hash_transaction(txBody).to_bytes()).toString('hex')
         const eventId = event.sourceTxId
-        const paymentTx = new PaymentTransaction(txId, eventId, txBytes, []) // we don't need inputBoxes in PaymentTransaction for Cardano tx
+        const paymentTx = new CardanoTransaction(txId, eventId, txBytes) // we don't need inputBoxes in PaymentTransaction for Cardano tx
 
         console.log(`Payment transaction for event [${eventId}] generated. TxId: ${txId}`)
         return paymentTx
@@ -80,7 +81,7 @@ class CardanoChain implements BaseChain<Transaction> {
      * @param event the event trigger model
      * @return true if tx verified
      */
-    verifyTransactionWithEvent = (paymentTx: PaymentTransaction, event: EventTrigger): boolean => {
+    verifyTransactionWithEvent = (paymentTx: CardanoTransaction, event: EventTrigger): boolean => {
         const tx = this.deserialize(paymentTx.txBytes)
         const outputBoxes = tx.body().outputs()
 

@@ -21,6 +21,7 @@ import ErgoConfigs from "../../../../src/chains/ergo/helpers/ErgoConfigs";
 import Contracts from "../../../../src/contracts/Contracts";
 import Configs from "../../../../src/helpers/Configs";
 import RewardBoxes from "../../../../src/chains/ergo/helpers/RewardBoxes";
+import ErgoTransaction from "../../../../src/chains/ergo/models/ErgoTransaction";
 
 class TestBoxes {
 
@@ -140,7 +141,7 @@ class TestBoxes {
      * @param event token payment event trigger
      * @param eventBoxes event box and valid commitment boxes
      */
-    static mockTokenTransferringPaymentTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): PaymentTransaction => {
+    static mockTokenTransferringPaymentTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): ErgoTransaction => {
         const targetAddressErgoTree: string = Utils.addressStringToErgoTreeString(event.toAddress)
 
         const inBoxes = ErgoBoxes.empty()
@@ -185,7 +186,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new PaymentTransaction(txId, eventId, txBytes, [])
+        return new ErgoTransaction(txId, eventId, txBytes, [])
     }
 
     /**
@@ -193,7 +194,7 @@ class TestBoxes {
      * @param event erg payment event trigger
      * @param eventBoxes event box and valid commitment boxes
      */
-    static mockErgTransferringPaymentTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): PaymentTransaction => {
+    static mockErgTransferringPaymentTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): ErgoTransaction => {
         const targetAddressErgoTree: string = Utils.addressStringToErgoTreeString(event.toAddress)
 
         const inBoxes = ErgoBoxes.empty()
@@ -238,7 +239,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new PaymentTransaction(txId, eventId, txBytes, [])
+        return new ErgoTransaction(txId, eventId, txBytes, [])
     }
 
     /**
@@ -246,7 +247,7 @@ class TestBoxes {
      * @param event token payment event trigger
      * @param eventBoxes event box and valid commitment boxes
      */
-    static mockMultipleTokensTransferringPaymentTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): PaymentTransaction => {
+    static mockMultipleTokensTransferringPaymentTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): ErgoTransaction => {
         const targetAddressErgoTree: string = Utils.addressStringToErgoTreeString(event.toAddress)
 
         const inBoxes = ErgoBoxes.empty()
@@ -291,7 +292,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new PaymentTransaction(txId, eventId, txBytes, [])
+        return new ErgoTransaction(txId, eventId, txBytes, [])
     }
 
     /**
@@ -299,7 +300,7 @@ class TestBoxes {
      * @param event token payment event trigger
      * @param eventBoxes event box and valid commitment boxes
      */
-    static mockWrongTokenTransferringPaymentTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): PaymentTransaction => {
+    static mockWrongTokenTransferringPaymentTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): ErgoTransaction => {
         const targetAddressErgoTree: string = Utils.addressStringToErgoTreeString(event.toAddress)
 
         const inBoxes = ErgoBoxes.empty()
@@ -344,7 +345,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new PaymentTransaction(txId, eventId, txBytes, [])
+        return new ErgoTransaction(txId, eventId, txBytes, [])
     }
 
     /**
@@ -352,7 +353,7 @@ class TestBoxes {
      * @param event token reward event trigger
      * @param eventBoxes event box and valid commitment boxes
      */
-    static mockTransferToIllegalWIDTokenPaymentTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): PaymentTransaction => {
+    static mockTransferToIllegalWIDTokenPaymentTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): ErgoTransaction => {
         const targetAddressErgoTree: string = Utils.addressStringToErgoTreeString(event.toAddress)
 
         const inBoxes = ErgoBoxes.empty()
@@ -398,7 +399,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new PaymentTransaction(txId, eventId, txBytes, [])
+        return new ErgoTransaction(txId, eventId, txBytes, [])
     }
 
     /**
@@ -406,7 +407,7 @@ class TestBoxes {
      * @param event token reward event trigger
      * @param eventBoxes event box and valid commitment boxes
      */
-    static mockMissingValidCommitmentTokenPaymentTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): PaymentTransaction => {
+    static mockMissingValidCommitmentTokenPaymentTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): ErgoTransaction => {
         const targetAddressErgoTree: string = Utils.addressStringToErgoTreeString(event.toAddress)
 
         const inBoxes = ErgoBoxes.empty()
@@ -452,7 +453,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new PaymentTransaction(txId, eventId, txBytes, [])
+        return new ErgoTransaction(txId, eventId, txBytes, [])
     }
 
     /**
@@ -657,7 +658,7 @@ class TestBoxes {
      * @param event token reward event trigger
      * @param eventBoxes event box and valid commitment boxes
      */
-    static mockTokenTransferringErgDistributionTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): PaymentTransaction => {
+    static mockTokenTransferringErgDistributionTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): ErgoTransaction => {
         const inBoxes = ErgoBoxes.empty()
         eventBoxes.forEach(box => inBoxes.add(box))
 
@@ -699,7 +700,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new PaymentTransaction(txId, eventId, txBytes, [])
+        return new ErgoTransaction(txId, eventId, txBytes, [])
     }
 
     /**
@@ -707,7 +708,7 @@ class TestBoxes {
      * @param event token reward event trigger
      * @param eventBoxes event box and valid commitment boxes
      */
-    static mockTransferToIllegalWIDDistributionTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): PaymentTransaction => {
+    static mockTransferToIllegalWIDDistributionTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): ErgoTransaction => {
         const inBoxes = ErgoBoxes.empty()
         eventBoxes.forEach(box => inBoxes.add(box))
 
@@ -750,7 +751,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new PaymentTransaction(txId, eventId, txBytes, [])
+        return new ErgoTransaction(txId, eventId, txBytes, [])
     }
 
     /**
@@ -758,7 +759,7 @@ class TestBoxes {
      * @param event token reward event trigger
      * @param eventBoxes event box and valid commitment boxes
      */
-    static mockMissingValidCommitmentDistributionTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): PaymentTransaction => {
+    static mockMissingValidCommitmentDistributionTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): ErgoTransaction => {
         const inBoxes = ErgoBoxes.empty()
         eventBoxes.forEach(box => inBoxes.add(box))
 
@@ -801,7 +802,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new PaymentTransaction(txId, eventId, txBytes, [])
+        return new ErgoTransaction(txId, eventId, txBytes, [])
     }
 
     /**
@@ -809,7 +810,7 @@ class TestBoxes {
      * @param event token reward event trigger
      * @param eventBoxes event box and valid commitment boxes
      */
-    static mockIllegalChangeBoxDistributionTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): PaymentTransaction => {
+    static mockIllegalChangeBoxDistributionTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): ErgoTransaction => {
         const inBoxes = ErgoBoxes.empty()
         eventBoxes.forEach(box => inBoxes.add(box))
 
@@ -852,7 +853,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new PaymentTransaction(txId, eventId, txBytes, [])
+        return new ErgoTransaction(txId, eventId, txBytes, [])
     }
 
     /**
@@ -860,7 +861,7 @@ class TestBoxes {
      * @param event token reward event trigger
      * @param eventBoxes event box and valid commitment boxes
      */
-    static mockWrongTokenDistributionTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): PaymentTransaction => {
+    static mockWrongTokenDistributionTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): ErgoTransaction => {
         const inBoxes = ErgoBoxes.empty()
         eventBoxes.forEach(box => inBoxes.add(box))
 
@@ -903,7 +904,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new PaymentTransaction(txId, eventId, txBytes, [])
+        return new ErgoTransaction(txId, eventId, txBytes, [])
     }
 
     /**
@@ -911,7 +912,7 @@ class TestBoxes {
      * @param event token reward event trigger
      * @param eventBoxes event box and valid commitment boxes
      */
-    static mockWrongAmountTokenDistributionTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): PaymentTransaction => {
+    static mockWrongAmountTokenDistributionTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): ErgoTransaction => {
         const inBoxes = ErgoBoxes.empty()
         eventBoxes.forEach(box => inBoxes.add(box))
 
@@ -954,7 +955,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new PaymentTransaction(txId, eventId, txBytes, [])
+        return new ErgoTransaction(txId, eventId, txBytes, [])
     }
 
     /**
@@ -962,7 +963,7 @@ class TestBoxes {
      * @param event token reward event trigger
      * @param eventBoxes event box and valid commitment boxes
      */
-    static mockTokenBurningTokenPaymentTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): PaymentTransaction => {
+    static mockTokenBurningTokenPaymentTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): ErgoTransaction => {
         const targetAddressErgoTree: string = Utils.addressStringToErgoTreeString(event.toAddress)
         const paymentTxInputBoxes: Uint8Array[] = []
         const txInputBoxes: string[] = []
@@ -1021,7 +1022,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new PaymentTransaction(txId, eventId, txBytes, paymentTxInputBoxes)
+        return new ErgoTransaction(txId, eventId, txBytes, paymentTxInputBoxes)
     }
 
     /**
@@ -1029,7 +1030,7 @@ class TestBoxes {
      * @param event token reward event trigger
      * @param eventBoxes event box and valid commitment boxes
      */
-    static mockTokenBurningErgPaymentTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): PaymentTransaction => {
+    static mockTokenBurningErgPaymentTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): ErgoTransaction => {
         const targetAddressErgoTree: string = Utils.addressStringToErgoTreeString(event.toAddress)
         const paymentTxInputBoxes: Uint8Array[] = []
         const txInputBoxes: string[] = []
@@ -1084,7 +1085,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new PaymentTransaction(txId, eventId, txBytes, paymentTxInputBoxes)
+        return new ErgoTransaction(txId, eventId, txBytes, paymentTxInputBoxes)
     }
 
     /**
@@ -1092,7 +1093,7 @@ class TestBoxes {
      * @param event token reward event trigger
      * @param eventBoxes event box and valid commitment boxes
      */
-    static mockTokenBurningTokenDistributionTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): PaymentTransaction => {
+    static mockTokenBurningTokenDistributionTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): ErgoTransaction => {
         const rewardTxInputBoxes: Uint8Array[] = []
         const txInputBoxes: string[] = []
 
@@ -1149,7 +1150,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new PaymentTransaction(txId, eventId, txBytes, rewardTxInputBoxes)
+        return new ErgoTransaction(txId, eventId, txBytes, rewardTxInputBoxes)
     }
 
     /**
@@ -1157,7 +1158,7 @@ class TestBoxes {
      * @param event token reward event trigger
      * @param eventBoxes event box and valid commitment boxes
      */
-    static mockTokenBurningErgDistributionTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): PaymentTransaction => {
+    static mockTokenBurningErgDistributionTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): ErgoTransaction => {
         const rewardTxInputBoxes: Uint8Array[] = []
         const txInputBoxes: string[] = []
 
@@ -1210,7 +1211,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new PaymentTransaction(txId, eventId, txBytes, rewardTxInputBoxes)
+        return new ErgoTransaction(txId, eventId, txBytes, rewardTxInputBoxes)
     }
 
 }

@@ -4,7 +4,7 @@ import { EventTrigger } from "../../../src/models/Models";
 import TestBoxes from "./testUtils/TestBoxes";
 import { expect } from "chai";
 import { Utxo } from "../../../src/chains/cardano/models/Interfaces";
-import { anything, spy, when } from "ts-mockito";
+import { anything } from "ts-mockito";
 import { hash_transaction } from "@emurgo/cardano-serialization-lib-nodejs";
 import Utils from "../../../src/chains/ergo/helpers/Utils";
 import MockedBlockFrost from "./mocked/MockedBlockFrost";

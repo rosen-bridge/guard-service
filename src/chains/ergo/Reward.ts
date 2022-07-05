@@ -12,7 +12,7 @@ import {
     TokenId,
     TxBuilder, UnsignedTransaction
 } from "ergo-lib-wasm-nodejs";
-import { PaymentTransaction, EventTrigger } from "../../models/Models";
+import { EventTrigger } from "../../models/Models";
 import BaseChain from "../BaseChains";
 import ErgoConfigs from "./helpers/ErgoConfigs";
 import ExplorerApi from "./network/ExplorerApi";
@@ -22,9 +22,10 @@ import { AssetMap, InBoxesInfo } from "./models/Interfaces";
 import Contracts from "../../contracts/Contracts";
 import RewardBoxes from "./helpers/RewardBoxes";
 import Configs from "../../helpers/Configs";
+import ErgoTransaction from "./models/ErgoTransaction";
 
 
-class Reward implements BaseChain<ReducedTransaction> {
+class Reward implements BaseChain<ReducedTransaction, ErgoTransaction> {
 
     bankAddress = Address.from_base58(ErgoConfigs.bankAddress)
     bankErgoTree = Utils.addressToErgoTreeString(this.bankAddress)
@@ -34,7 +35,7 @@ class Reward implements BaseChain<ReducedTransaction> {
      * @param event the event trigger model
      * @return the generated payment transaction
      */
-    generateTransaction = async (event: EventTrigger): Promise<PaymentTransaction> => {
+    generateTransaction = async (event: EventTrigger): Promise<ErgoTransaction> => {
         // get eventBox and remaining valid commitments
         const eventBox: ErgoBox = RewardBoxes.getEventBox(event)
         const commitmentBoxes: ErgoBox[] = RewardBoxes.getEventValidCommitments(event)
@@ -63,7 +64,7 @@ class Reward implements BaseChain<ReducedTransaction> {
         const txBytes = this.serialize(reducedTx)
         const txId = reducedTx.unsigned_tx().id().to_str()
         const eventId = event.sourceTxId
-        const tx = new PaymentTransaction(txId, eventId, txBytes, inBoxes)
+        const tx = new ErgoTransaction(txId, eventId, txBytes, inBoxes)
 
         console.log(`Reward distribution for event [${tx.eventId}] generated. TxId: ${tx.txId}`)
         return tx
@@ -83,7 +84,7 @@ class Reward implements BaseChain<ReducedTransaction> {
      * @param event the event trigger model
      * @return true if tx verified
      */
-    verifyTransactionWithEvent = (paymentTx: PaymentTransaction, event: EventTrigger): boolean => {
+    verifyTransactionWithEvent = (paymentTx: ErgoTransaction, event: EventTrigger): boolean => {
 
         /**
          * method to verify watcher permit box contract
