@@ -43,7 +43,6 @@ class Dialer {
      * @return list of subscribed channels' name
      */
     getSubscribedChannels = (): string[] => {
-        console.log(this._SUBSCRIBED_CHANNELS)
         return Object.keys(this._SUBSCRIBED_CHANNELS)
     }
 
