@@ -2,7 +2,9 @@ import config from "config";
 
 class Configs {
 
-    static expressPort = 8080
+    static expressPort = config.get<number>('express.port')
+    private static expressBodyLimitValue = config.get<number>('express.jsonBodyLimit')
+    static expressBodyLimit = `${this.expressBodyLimitValue}mb`
 
     // token configs
     static ergoRWT = config.get<string>('tokens.ergoRWT')
