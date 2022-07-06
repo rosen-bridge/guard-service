@@ -11,6 +11,7 @@ import {
 } from "@emurgo/cardano-serialization-lib-nodejs";
 import CardanoConfigs from "../../../../src/chains/cardano/helpers/CardanoConfigs";
 import CardanoUtils from "../../../../src/chains/cardano/helpers/CardanoUtils";
+import CardanoTransaction from "../../../../src/chains/cardano/models/CardanoTransaction";
 
 class TestBoxes {
 
@@ -109,7 +110,7 @@ class TestBoxes {
         const txId = TestUtils.generateRandomId()
         const eventId = TestUtils.generateRandomId()
         const txBytes = tx.to_bytes()
-        return new PaymentTransaction(txId, eventId, txBytes)
+        return new CardanoTransaction(txId, eventId, txBytes)
     }
 
     /**

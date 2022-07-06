@@ -191,6 +191,42 @@ describe("ErgoChain",  () => {
             expect(isValid).to.be.false
         })
 
+        /**
+         * Target: testing verifyTransactionWithEvent
+         * Dependencies:
+         *    -
+         * Expected Output:
+         *    It should NOT verify the transaction
+         */
+        it("should reject a token payment tx that burning some token", () => {
+            // mock token payment event
+            const mockedEvent: EventTrigger = TestBoxes.mockTokenPaymentEventTrigger()
+            const tx = TestBoxes.mockTokenBurningTokenPaymentTransaction(mockedEvent, eventBoxAndCommitments)
+
+            // run test
+            const ergoChain: ErgoChain = new ErgoChain()
+            const isValid = ergoChain.verifyTransactionWithEvent(tx, mockedEvent)
+            expect(isValid).to.be.false
+        })
+
+        /**
+         * Target: testing verifyTransactionWithEvent
+         * Dependencies:
+         *    -
+         * Expected Output:
+         *    It should NOT verify the transaction
+         */
+        it("should reject a erg payment tx that burning some token", () => {
+            // mock token payment event
+            const mockedEvent: EventTrigger = TestBoxes.mockErgPaymentEventTrigger()
+            const tx = TestBoxes.mockTokenBurningErgPaymentTransaction(mockedEvent, eventBoxAndCommitments)
+
+            // run test
+            const ergoChain: ErgoChain = new ErgoChain()
+            const isValid = ergoChain.verifyTransactionWithEvent(tx, mockedEvent)
+            expect(isValid).to.be.false
+        })
+
     })
 
 })
