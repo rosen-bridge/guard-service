@@ -1,4 +1,5 @@
 {
+    "secret": "3e600b60d82da99c55959df4bb4ceb139cbe434a948251b371c6d9eeb73cb723",
     "cardano": {
         "koios": {
             "url": "https://testnet.koios.rest/api/v0",
@@ -39,7 +40,7 @@
         "CleanupNFT": "4444444444444444444444444444444444444444444444444444444444444444"
     },
     "p2p": {
-        "address": "change me",
+        "address": "/ip4/10.10.9.6/tcp/8000/ws/p2p/Qma3GsJmB47xYuyahPZPSadh1avvxfyYQwk8R3UnFrQ6aP",
         "bootstrapInterval": 60e3,
         "pubsubInterval": 1000,
         "apiCallbackTimeout": 8000
