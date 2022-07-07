@@ -169,6 +169,7 @@ class Dialer {
      * @param receiver optional
      */
     sendMessage = async (channel: string, msg: any, receiver?: string): Promise<void> => {
+        console.log("in dialer", JSON.stringify(msg))
         const data: SendDataCommunication = {
             "msg": msg,
             "channel": channel

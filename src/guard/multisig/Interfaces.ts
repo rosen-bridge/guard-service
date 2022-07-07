@@ -45,6 +45,7 @@ interface TxQueued {
     resolve?: (value: (wasm.Transaction | PromiseLike<wasm.Transaction>)) => void;
     reject?: (reason?: never) => void;
     createTime: number;
+    requiredSigner: number;
 }
 
 interface GeneralPayload {

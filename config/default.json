@@ -16,11 +16,11 @@
     },
     "ergo": {
         "explorer": {
-            "url": "https://testnet.koios.rest/api/v0",
+            "url": "https://api-testnet.ergoplatform.com/api/v1",
             "timeout": 8000
         },
         "node": {
-            "url": "https://testnet.koios.rest/api/v0",
+            "url": "http://10.10.9.3:9052",
             "timeout": 8000
         },
         "bankAddress": "9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD",
@@ -44,5 +44,6 @@
         "bootstrapInterval": 60e3,
         "pubsubInterval": 1000,
         "apiCallbackTimeout": 8000
-    }
+    },
+    "multiSigTimeout": null
 }
