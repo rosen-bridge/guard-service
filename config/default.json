@@ -53,5 +53,17 @@
         "bootstrapInterval": 60e3,
         "pubsubInterval": 1000,
         "apiCallbackTimeout": 8000
-    }
+    },
+    "guard": {
+        "guardId": 0,
+        "secret": "4444444444444444444444444444444444444444444444444444444444444444",
+        "guardsLen": 6,
+        "guards": [
+            {
+                "guardId": 0,
+                "guardPubKey": "pub guard 0"
+            }
+        ]
+    },
+    "agreementFloor": 5
 }

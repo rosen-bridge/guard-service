@@ -14,7 +14,7 @@ class EventProcessor {
      * returns chain object for target chain of the event trigger
      * @param event the event trigger
      */
-    getDestinationChainObject = (event: EventTrigger): BaseChain<any> => {
+    getDestinationChainObject = (event: EventTrigger): BaseChain<any, any> => {
         if (event.toChain === ChainsConstants.cardano) return this.cardanoChain
         else if (event.toChain === ChainsConstants.ergo) return this.ergoChain
         else throw new Error(`chain [${event.toChain}] not implemented.`)

@@ -1,0 +1,209 @@
+import { PaymentTransaction } from "../../models/Models";
+import {
+    AgreementMessage,
+    AgreementPayload, CandidateTransaction,
+    GuardsAgreement,
+    TransactionApproved
+} from "./Interfaces";
+import Configs from "../../helpers/Configs";
+import Dialer from "../../communication/Dialer";
+import Utils from "../../helpers/Utils";
+
+const dialer = await Dialer.getInstance();
+
+class TxAgreement {
+
+    private static CHANNEL = "tx-agreement"
+    private transactions: Map<string, PaymentTransaction>
+    private transactionApprovals: Map<string, AgreementPayload[]>
+
+    constructor() {
+        dialer.subscribeChannel(TxAgreement.CHANNEL, this.handleMessage)
+    }
+
+    /**
+     * handles received message from tx-agreement channel
+     * @param messageStr
+     * @param channel
+     * @param sender
+     */
+    handleMessage = (messageStr: string, channel: string, sender: string) => {
+        const message = JSON.parse(messageStr) as AgreementMessage;
+
+        switch (message.type) {
+            case "request":
+                const candidate = message.payload as CandidateTransaction
+                const tx = JSON.parse(candidate.txJson) as PaymentTransaction
+                this.processTransactionRequest(tx, candidate.guardId, candidate.signature, sender)
+                break;
+            case "response":
+                const response = message.payload as GuardsAgreement
+                this.processAgreementResponse(response.txId, response.agreed, response.guardId, response.signature)
+                break;
+            case "approval":
+                const approval = message.payload as TransactionApproved
+                this.processApprovalMessage(approval.txId, approval.guardsSignatures, sender)
+                break
+        }
+    }
+
+
+    /**
+     * interacts with other guards to agree on created payment transaction
+     * @param tx the created payment transaction
+     * @return true if enough guards agreed with transaction
+     */
+    startAgreementProcess = (tx: PaymentTransaction): void => {
+        const creatorId = Configs.guardId
+        const guardSignature = tx.signMetaData()
+
+        const candidatePayload = {
+            "tx": tx.toJson(),
+            "guardId": creatorId,
+            "signature": guardSignature
+        }
+
+        const message = {
+            "type": "request",
+            "payload": candidatePayload
+        }
+
+        const creatorAgreement = {
+            "guardId": creatorId,
+            "signature": guardSignature
+        }
+
+        this.transactions.set(tx.txId, tx)
+        this.transactionApprovals.set(tx.txId, [creatorAgreement])
+
+        // broadcast the transaction
+        dialer.sendMessage(TxAgreement.CHANNEL, message).then(() => null)
+    }
+
+    /**
+     * verifies the transaction sent by other guards, agree if conditions met, otherwise reject
+     * @param tx the created payment transaction
+     * @param creatorId id of the guard that created the transaction
+     * @param signature signature of creator guard over request data (txJson and creatorId)
+     * @param receiver the guard who will receive this response
+     */
+    processTransactionRequest = (tx: PaymentTransaction, creatorId: number, signature: string, receiver: string): void => {
+        const eventId = tx.eventId
+        let agreementPayload: GuardsAgreement = {
+            "guardId": Configs.guardId,
+            "signature": "",
+            "txId": tx.txId,
+            "agreed": false
+        }
+        if (
+            tx.verifyMetaDataSignature(creatorId, signature) &&
+            Utils.guardTurn() === creatorId
+            // dbConnector.isEventHasTransaction(eventId) // TODO: check if there is another tx for this event
+            // TODO: verify event tx
+        ) {
+            agreementPayload.agreed = true
+            agreementPayload.signature = tx.signMetaData()
+        }
+
+        const message = {
+            "type": "response",
+            "payload": agreementPayload
+        }
+
+        // send response to creator guard
+        dialer.sendMessage(TxAgreement.CHANNEL, message, receiver).then(() => null)
+    }
+
+
+    /**
+     * verifies the agreement response sent by other guards, save their signature if they agreed
+     * @param txId the payment transaction id
+     * @param agreed the response (if he agreed or not)
+     * @param signerId id of the guard that sent the response
+     * @param signature signature of creator guard over request data (txJson and creatorId)
+     */
+    processAgreementResponse = (txId: string, agreed: boolean, signerId: number, signature: string): void => {
+
+        /**
+         * saves guard agree response with his signature in transactionApprovals
+         * @param txId
+         * @param guardId
+         * @param signature
+         */
+        const pushGuardApproval = (txId: string, guardId: number, signature: string): void => {
+            const txApprovals = this.transactionApprovals.get(txId)
+            if (txApprovals === undefined) throw new Error(`Unexpected Error: TxId: ${txId} not found in approvals list while it was in transaction list`)
+
+            const guardApproval = txApprovals.find(approval => approval.guardId === guardId)
+            if (guardApproval === undefined) txApprovals.push({
+                "guardId": guardId,
+                "signature": signature
+            })
+            else guardApproval.signature = signature
+        }
+
+        const tx = this.transactions.get(txId)
+        if (tx === undefined) return
+
+        if (agreed) {
+            if (!tx.verifyMetaDataSignature(signerId, signature)) {
+                console.warn(`Received guard ${signerId} agreement for txId: ${txId} but signature didn't verify`)
+                return
+            }
+
+            console.log(`Guard ${signerId} Agreed with transaction with txId: ${txId}`)
+            pushGuardApproval(txId, signerId, signature)
+
+            if (this.transactionApprovals.get(txId)!.length >= Configs.agreementFloor) {
+                console.log(`Majority of guards agreed with txId ${txId}`)
+
+                const txApproval: TransactionApproved = {
+                    "txId": txId,
+                    "guardsSignatures": this.transactionApprovals.get(txId)!
+                }
+                const message = {
+                    "type": "approval",
+                    "payload": txApproval
+                }
+                dialer.sendMessage(TxAgreement.CHANNEL, message).then(() => null)
+
+                this.setTxAsApproved(txId)
+            }
+        }
+        else
+            console.log(`Guard ${signerId} Disagreed with transaction with txId: ${tx.txId}`)
+    }
+
+    /**
+     * verifies approval message sent by other guards, set tx as approved if enough guards agreed with tx
+     * @param txId
+     * @param guardsSignatures
+     * @param sender
+     */
+    processApprovalMessage = (txId: string, guardsSignatures: AgreementPayload[], sender: string): void => {
+        const tx = this.transactions.get(txId)
+        if (tx === undefined) return
+
+        if (guardsSignatures.some(approval => !tx.verifyMetaDataSignature(approval.guardId, approval.signature))) {
+            console.warn(`Received approval message for txId: ${txId} from sender: ${sender} but at least one signature doesn't verify`)
+            return
+        }
+
+        this.setTxAsApproved(txId)
+    }
+
+    /**
+     * set the transaction as approved in db
+     * @param txId
+     */
+    setTxAsApproved = (txId: string): void => {
+
+        // TODO: set tx as approved
+
+        this.transactions.delete(txId)
+        this.transactionApprovals.delete(txId)
+    }
+
+}
+
+export default TxAgreement

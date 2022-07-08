@@ -1,4 +1,6 @@
 import { PaymentTransactionModel, EventTriggerModel } from "./Interfaces";
+import Codecs from "../helpers/Codecs";
+import Configs from "../helpers/Configs";
 
 
 /* tslint:disable:max-classes-per-file */
@@ -66,19 +68,47 @@ class PaymentTransaction implements PaymentTransactionModel {
 
     /**
      * signs the json data alongside guardId
-     * @param creatorId id of the creator guard
      * @return signature
      */
-    declare signMetaData: (creatorId: number) => string // TODO: implement this (when migrating service from scala to ts)
+    signMetaData = (): string => {
+        const idBuffer = Codecs.numberToByte(Configs.guardId)
+        const data = Buffer.concat([this.txBytes, idBuffer]).toString("hex")
+
+        const signature  = Codecs.sign(data, Buffer.from(Configs.guardSecret, "hex"))
+        return Buffer.from(signature).toString("hex")
+    }
 
     /**
      * verifies the signature over json data alongside guardId
-     * @param creatorId id of the creator guard
      * @param signerId id of the signer guard
      * @param msgSignature hex string signature over json data alongside guardId
      * @return true if signature verified
      */
-    declare verifyMetaDataSignature: (creatorId: number, signerId: number, msgSignature: string) => boolean // TODO: implement this (when migrating service from scala to ts)
+    verifyMetaDataSignature = (signerId: number, msgSignature: string): boolean => {
+        const idBuffer = Codecs.numberToByte(signerId)
+        const data = Buffer.concat([this.txBytes, idBuffer]).toString("hex")
+        const signatureBytes = Buffer.from(msgSignature, "hex")
+
+        const publicKey = Configs.guards.find(guard => guard.guardId == signerId)?.guardPubKey
+        if (publicKey === undefined) {
+            console.warn(`no guard found with id ${signerId}`)
+            return false
+        }
+
+        return Codecs.verify(data, signatureBytes, Buffer.from(publicKey, "hex"))
+    }
+
+    /**
+     * @return json representation of the transaction
+     */
+    toJson = (): string => {
+        return JSON.stringify({
+            "network": this.network,
+            "txId": this.txId,
+            "eventId": this.eventId,
+            "txBytes": this.getTxHexString()
+        })
+    }
 
 }
 

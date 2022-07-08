@@ -41,12 +41,11 @@ interface PaymentTransactionModel {
 
     /**
      * verifies the signature over json data alongside guardId
-     * @param creatorId id of the creator guard
      * @param signerId id of the signer guard
      * @param msgSignature hex string signature over json data alongside guardId
      * @return true if signature verified
      */
-    verifyMetaDataSignature: (creatorId: number, signerId: number, msgSignature: string) => boolean
+    verifyMetaDataSignature: (signerId: number, msgSignature: string) => boolean
 
 }
 
