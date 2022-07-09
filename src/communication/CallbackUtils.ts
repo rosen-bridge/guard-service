@@ -3,7 +3,7 @@ import { JsonBI } from "../network/NetworkModels";
 import CommunicationConfig from "./CommunicationConfig";
 import { SubscribeChannel } from "./Interfaces";
 
-const apiCallBack = function (msg: any, channel: string, sender: string, url: string): void {
+const apiCallBack = function (msg: string, channel: string, sender: string, url: string): void {
     const data = axios.post(
         url,
         {

@@ -1,17 +1,16 @@
 interface SubscribeChannel {
-    (msg: any, channel: string, sender: string): void;
-
-    (msg: any, channel: string, sender: string, url: string): void;
+    (msg: string, channel: string, sender: string): void;
+    (msg: string, channel: string, sender: string, url: string): void;
 }
 
 interface SendDataCommunication {
-    msg: any
+    msg: string
     channel: string
     receiver?: string
 }
 
 interface ReceiveDataCommunication {
-    msg: any
+    msg: string
     channel: string
     sender: string
     receiver?: string
