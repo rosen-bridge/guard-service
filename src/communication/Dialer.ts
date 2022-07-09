@@ -68,8 +68,16 @@ class Dialer {
         }
         if (url) callbackObj.url = url
 
-        if (this._SUBSCRIBED_CHANNELS[channel])
+        if (this._SUBSCRIBED_CHANNELS[channel]){
+            if (this._SUBSCRIBED_CHANNELS[channel].find(
+                (sub: { func: SubscribeChannel, url: string | undefined }) =>
+                    sub.func.name === callback.name && sub.url === url
+            )) {
+                console.log("a redundant subscribed channel detected !")
+                return
+            }
             this._SUBSCRIBED_CHANNELS[channel].push(callbackObj)
+        }
         else {
             this._SUBSCRIBED_CHANNELS[channel] = []
             this._SUBSCRIBED_CHANNELS[channel].push(callbackObj)
@@ -165,11 +173,10 @@ class Dialer {
     /**
      * send message to specific peer or broadcast it
      * @param channel: String
-     * @param msg: any (JsonBI)
+     * @param msg: string
      * @param receiver optional
      */
-    sendMessage = async (channel: string, msg: any, receiver?: string): Promise<void> => {
-        console.log("in dialer", JSON.stringify(msg))
+    sendMessage = async (channel: string, msg: string, receiver?: string): Promise<void> => {
         const data: SendDataCommunication = {
             "msg": msg,
             "channel": channel

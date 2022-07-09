@@ -1,5 +1,6 @@
 import { BlockFrostAPI } from "@blockfrost/blockfrost-js";
 import CardanoConfigs from "../helpers/CardanoConfigs";
+import { Transaction } from "@emurgo/cardano-serialization-lib-nodejs";
 
 
 class BlockFrostApi {
@@ -17,6 +18,14 @@ class BlockFrostApi {
         const slot = block.slot
         if (!slot) throw new Error("failed to fetch current slot")
         return slot
+    }
+
+    /**
+     * submits the transaction to network
+     * @param tx the transaction
+     */
+    static txSubmit = async (tx: Transaction): Promise<string> => {
+        return this.blockFrost.txSubmit(tx.to_bytes())
     }
 
 }

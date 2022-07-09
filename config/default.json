@@ -1,5 +1,9 @@
 {
     "secret": "3e600b60d82da99c55959df4bb4ceb139cbe434a948251b371c6d9eeb73cb723",
+    "express": {
+        "port": 8080,
+        "jsonBodyLimit": 50
+    },
     "cardano": {
         "koios": {
             "url": "https://testnet.koios.rest/api/v0",
@@ -10,6 +14,7 @@
             "isTestnet": true
         },
         "bankAddress": "addr_test1qrm4haxxgl55kqzhpp3sda8h979gxd4cast340v0eh0p4qzp3vkcrhjqavv9uzsvq86mglwnwe8xp87q3rv8ve54kasqlf7xgl",
+        "tssPublicKey": "1111111111111111111111111111111111111111111111111111111111111111",
         "txMinimumLovelace": "1310316",
         "txFee": "200000",
         "txTtl": 100000
@@ -38,6 +43,11 @@
         "RepoNFT": "2222222222222222222222222222222222222222222222222222222222222222",
         "GuardNFT": "3333333333333333333333333333333333333333333333333333333333333333",
         "CleanupNFT": "4444444444444444444444444444444444444444444444444444444444444444"
+    },
+    "tss": {
+        "url": "localhost",
+        "port": 9000,
+        "timeout": 8000
     },
     "p2p": {
         "address": "/ip4/10.10.9.6/tcp/8000/ws/p2p/Qma3GsJmB47xYuyahPZPSadh1avvxfyYQwk8R3UnFrQ6aP",

@@ -13,4 +13,5 @@ const mockedKoios = spy(KoiosApi)
 const mockGetAddressBoxes = (address: string, returnBoxes: Utxo[]): void => {
     when(mockedKoios.getAddressBoxes(address)).thenResolve(returnBoxes)
 }
+
 export default mockGetAddressBoxes

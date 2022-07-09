@@ -22,6 +22,7 @@ interface EventTriggerModel {
 
 interface PaymentTransactionModel {
 
+    network: string
     txId: string
     eventId: string
     txBytes: Uint8Array
@@ -50,6 +51,7 @@ interface PaymentTransactionModel {
 }
 
 interface PaymentTransactionJsonModel {
+    network: string
     txId: string
     eventId: string
     txBytes: string

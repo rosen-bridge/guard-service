@@ -45,11 +45,13 @@ class EventTrigger implements EventTriggerModel {
 
 class PaymentTransaction implements PaymentTransactionModel {
 
+    network: string
     txId: string
     eventId: string
     txBytes: Uint8Array
 
-    constructor(txId: string, eventId: string, txBytes: Uint8Array) {
+    constructor(network: string, txId: string, eventId: string, txBytes: Uint8Array) {
+        this.network = network
         this.txId = txId
         this.eventId = eventId
         this.txBytes = txBytes

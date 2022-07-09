@@ -190,6 +190,42 @@ describe("Reward", () => {
             expect(isValid).to.be.false
         })
 
+        /**
+         * Target: testing verifyTransactionWithEvent
+         * Dependencies:
+         *    RewardBoxes
+         * Expected Output:
+         *    It should NOT verify the transaction
+         */
+        it("should reject a token reward distribution tx that that burning some token", () => {
+            // mock erg payment event
+            const mockedEvent: EventTrigger = TestBoxes.mockTokenRewardEventTrigger()
+            const tx = TestBoxes.mockTokenBurningTokenDistributionTransaction(mockedEvent, eventBoxAndCommitments)
+
+            // run test
+            const reward = new Reward()
+            const isValid = reward.verifyTransactionWithEvent(tx, mockedEvent)
+            expect(isValid).to.be.false
+        })
+
+        /**
+         * Target: testing verifyTransactionWithEvent
+         * Dependencies:
+         *    RewardBoxes
+         * Expected Output:
+         *    It should NOT verify the transaction
+         */
+        it("should reject a erg reward distribution tx that that burning some token", () => {
+            // mock erg payment event
+            const mockedEvent: EventTrigger = TestBoxes.mockErgRewardEventTrigger()
+            const tx = TestBoxes.mockTokenBurningErgDistributionTransaction(mockedEvent, eventBoxAndCommitments)
+
+            // run test
+            const reward = new Reward()
+            const isValid = reward.verifyTransactionWithEvent(tx, mockedEvent)
+            expect(isValid).to.be.false
+        })
+
     })
 
 })
