@@ -1,4 +1,4 @@
-import { PaymentTransaction } from "../../models/Models";
+import { EventTrigger, PaymentTransaction } from "../../models/Models";
 import {
     AgreementMessage,
     AgreementPayload, CandidateTransaction,
@@ -8,6 +8,8 @@ import {
 import Configs from "../../helpers/Configs";
 import Dialer from "../../communication/Dialer";
 import Utils from "../../helpers/Utils";
+import { eventProcessor } from "../EventProcessor";
+import { scannerAction } from "../../db/models/scanner/ScannerModel";
 
 const dialer = await Dialer.getInstance();
 
@@ -27,23 +29,26 @@ class TxAgreement {
      * @param channel
      * @param sender
      */
-    handleMessage = (messageStr: string, channel: string, sender: string) => {
+    handleMessage = (messageStr: string, channel: string, sender: string): void => {
         const message = JSON.parse(messageStr) as AgreementMessage;
 
         switch (message.type) {
-            case "request":
+            case "request": {
                 const candidate = message.payload as CandidateTransaction
                 const tx = JSON.parse(candidate.txJson) as PaymentTransaction
                 this.processTransactionRequest(tx, candidate.guardId, candidate.signature, sender)
                 break;
-            case "response":
+            }
+            case "response": {
                 const response = message.payload as GuardsAgreement
                 this.processAgreementResponse(response.txId, response.agreed, response.guardId, response.signature)
                 break;
-            case "approval":
+            }
+            case "approval": {
                 const approval = message.payload as TransactionApproved
                 this.processApprovalMessage(approval.txId, approval.guardsSignatures, sender)
                 break
+            }
         }
     }
 
@@ -87,9 +92,14 @@ class TxAgreement {
      * @param signature signature of creator guard over request data (txJson and creatorId)
      * @param receiver the guard who will receive this response
      */
-    processTransactionRequest = (tx: PaymentTransaction, creatorId: number, signature: string, receiver: string): void => {
-        const eventId = tx.eventId
-        let agreementPayload: GuardsAgreement = {
+    processTransactionRequest = async (tx: PaymentTransaction, creatorId: number, signature: string, receiver: string): Promise<void> => {
+        const eventEntity = await scannerAction.getEventById(tx.eventId)
+        if (eventEntity === null) return
+        const event = EventTrigger.fromEntity(eventEntity)
+        if(!await eventProcessor.isEventConfirmedEnough(event)) return
+
+        const eventTx = (await scannerAction.getEventTxInfoById(tx.eventId))
+        const agreementPayload: GuardsAgreement = {
             "guardId": Configs.guardId,
             "signature": "",
             "txId": tx.txId,
@@ -97,9 +107,9 @@ class TxAgreement {
         }
         if (
             tx.verifyMetaDataSignature(creatorId, signature) &&
-            Utils.guardTurn() === creatorId
-            // dbConnector.isEventHasTransaction(eventId) // TODO: check if there is another tx for this event
-            // TODO: verify event tx
+            Utils.guardTurn() === creatorId &&
+            (eventTx === null || eventTx.txId === tx.txId) &&
+            eventProcessor.verifyPaymentTransactionWithEvent(tx, event)
         ) {
             agreementPayload.agreed = true
             agreementPayload.signature = tx.signMetaData()
@@ -122,7 +132,7 @@ class TxAgreement {
      * @param signerId id of the guard that sent the response
      * @param signature signature of creator guard over request data (txJson and creatorId)
      */
-    processAgreementResponse = (txId: string, agreed: boolean, signerId: number, signature: string): void => {
+    processAgreementResponse = async (txId: string, agreed: boolean, signerId: number, signature: string): Promise<void> => {
 
         /**
          * saves guard agree response with his signature in transactionApprovals
@@ -165,9 +175,10 @@ class TxAgreement {
                     "type": "approval",
                     "payload": txApproval
                 }
+                // broadcast approval message
                 dialer.sendMessage(TxAgreement.CHANNEL, message).then(() => null)
 
-                this.setTxAsApproved(txId)
+                await this.setTxAsApproved(txId)
             }
         }
         else
@@ -180,7 +191,7 @@ class TxAgreement {
      * @param guardsSignatures
      * @param sender
      */
-    processApprovalMessage = (txId: string, guardsSignatures: AgreementPayload[], sender: string): void => {
+    processApprovalMessage = async (txId: string, guardsSignatures: AgreementPayload[], sender: string): Promise<void> => {
         const tx = this.transactions.get(txId)
         if (tx === undefined) return
 
@@ -189,17 +200,15 @@ class TxAgreement {
             return
         }
 
-        this.setTxAsApproved(txId)
+        await this.setTxAsApproved(txId)
     }
 
     /**
      * set the transaction as approved in db
      * @param txId
      */
-    setTxAsApproved = (txId: string): void => {
-
-        // TODO: set tx as approved
-
+    setTxAsApproved = async (txId: string): Promise<void> => {
+        await scannerAction.setEventTxAsApproved(txId)
         this.transactions.delete(txId)
         this.transactionApprovals.delete(txId)
     }

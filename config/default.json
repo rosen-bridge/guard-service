@@ -16,7 +16,8 @@
         "tssPublicKey": "1111111111111111111111111111111111111111111111111111111111111111",
         "txMinimumLovelace": "1310316",
         "txFee": "200000",
-        "txTtl": 100000
+        "txTtl": 100000,
+        "requiredConfirmation": 20
     },
     "ergo": {
         "explorer": {
@@ -29,7 +30,8 @@
         },
         "bankAddress": "9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD",
         "minimumErg": "100000",
-        "txFee": "1100000"
+        "txFee": "1100000",
+        "requiredConfirmation": 20
     },
     "reward": {
         "bridgeFeeRepoAddress": "9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD",

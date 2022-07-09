@@ -1,6 +1,7 @@
 import { PaymentTransactionModel, EventTriggerModel } from "./Interfaces";
 import Codecs from "../helpers/Codecs";
 import Configs from "../helpers/Configs";
+import { EventTriggerEntity } from "../db/entities/scanner/EventTriggerEntity";
 
 
 /* tslint:disable:max-classes-per-file */
@@ -34,6 +35,27 @@ class EventTrigger implements EventTriggerModel {
         this.sourceTxId = sourceTxId
         this.sourceBlockId = sourceBlockId
         this.WIDs = WIDs
+    }
+
+    /**
+     * creates EventTrigger object from its database scheme
+     * @param eventEntity
+     */
+    static fromEntity = (eventEntity: EventTriggerEntity): EventTrigger => {
+        return new EventTrigger(
+            eventEntity.fromChain,
+            eventEntity.toChain,
+            eventEntity.fromAddress,
+            eventEntity.toAddress,
+            eventEntity.amount,
+            eventEntity.bridgeFee,
+            eventEntity.networkFee,
+            eventEntity.sourceChainTokenId,
+            eventEntity.targetChainTokenId,
+            eventEntity.sourceTxId,
+            eventEntity.sourceBlockId,
+            eventEntity.WIDs
+        )
     }
 
     /**
