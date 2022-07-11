@@ -79,7 +79,13 @@ class MultiSigHandler {
                     toRemoveKeys.push(key)
                 }
             }
-            toRemoveKeys.forEach(key => this.transactions.delete(key))
+            toRemoveKeys.forEach(key => {
+                const tx = this.transactions.get(key)
+                if(tx && tx.reject) {
+                    tx.reject("Timed out")
+                }
+                this.transactions.delete(key)
+            })
             release()
         })
     }

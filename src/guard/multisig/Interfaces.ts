@@ -43,7 +43,7 @@ interface TxQueued {
     sign?: Sign;
     commitments: Array<PublishedCommitment | undefined>;
     resolve?: (value: (wasm.Transaction | PromiseLike<wasm.Transaction>)) => void;
-    reject?: (reason?: never) => void;
+    reject?: (reason?: any) => void;
     createTime: number;
     requiredSigner: number;
 }
