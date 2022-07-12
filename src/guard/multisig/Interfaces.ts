@@ -55,11 +55,13 @@ interface GeneralPayload {
 
 interface RegisterPayload extends GeneralPayload {
     nonce: string;
+    myId: string;
 }
 
 interface ApprovePayload extends GeneralPayload {
     nonce: string;
     nonceToSign?: string;
+    myId: string;
 }
 
 interface PublishedCommitment {

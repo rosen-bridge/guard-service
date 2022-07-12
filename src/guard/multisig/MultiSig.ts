@@ -34,6 +34,14 @@ class MultiSigHandler {
         }));
         dialer.subscribeChannel(MultiSigHandler.CHANNEL, this.handleMessage);
         this.secret = secretHex ? Uint8Array.from(Buffer.from(secretHex, "hex")) : Configs.secret
+        const nonce = crypto.randomBytes(32).toString("base64");
+        this.sendMessage({
+            type: "register",
+            payload: {
+                nonce: nonce,
+                myId: dialer.getPeerId(),
+            }
+        })
     }
 
     private getIndex = (): number => {
@@ -81,7 +89,7 @@ class MultiSigHandler {
             }
             toRemoveKeys.forEach(key => {
                 const tx = this.transactions.get(key)
-                if(tx && tx.reject) {
+                if (tx && tx.reject) {
                     tx.reject("Timed out")
                 }
                 this.transactions.delete(key)
@@ -108,10 +116,12 @@ class MultiSigHandler {
             queued.secret = this.getProver().generate_commitments_for_reduced_transaction(queued.tx)
             // publish commitment
             const commitmentJson: CommitmentJson = queued.secret.to_json() as CommitmentJson;
+            console.log(JSON.stringify(queued.secret.to_json()))
             const publicHints = commitmentJson.publicHints
             const publishCommitments: { [index: string]: { a: string; position: string } } = {}
             Object.keys(publicHints).forEach(inputIndex => {
                 const inputHints = publicHints[inputIndex].filter(item => !item.secret);
+                console.log(inputHints)
                 if (inputHints) {
                     publishCommitments[inputIndex] = {"a": inputHints[0].a, position: inputHints[0].position}
                 }
@@ -209,7 +219,7 @@ class MultiSigHandler {
                             transaction.resolve(signedTx)
                         }
                     }
-                }catch (e) {
+                } catch (e) {
                     console.log(e)
                 }
             }
@@ -222,7 +232,6 @@ class MultiSigHandler {
         payload.id = this.getPeerId();
         const payloadStr = JSON.stringify(message.payload)
         message.sign = sign(payloadStr, Buffer.from(this.secret)).toString("base64");
-        console.log(`sending message: ${JSON.stringify(message)} to ${receivers}`)
         if (receivers && receivers.length) {
             receivers.map(receiver => dialer.sendMessage(MultiSigHandler.CHANNEL, JSON.stringify(message), receiver).then(() => null))
         } else {
@@ -240,20 +249,32 @@ class MultiSigHandler {
                 sign: "",
                 payload: {
                     nonce: payload.nonce,
-                    nonceToSign: nonce
+                    nonceToSign: nonce,
+                    myId: this.getPeerId()
                 }
             })
         }
     }
 
     handleApprove = (sender: string, payload: ApprovePayload) => {
-        if (payload.index) {
+        if (payload.index && sender === payload.myId) {
             const nonce = payload.nonce;
             const peer = this.peers[payload.index];
             const unapproved = peer.unapproved.filter(item => item.id === sender && item.challenge === nonce)
             if (unapproved.length > 0) {
                 peer.id = sender;
                 peer.unapproved = peer.unapproved.filter(item => unapproved.indexOf(item) === -1)
+                if(payload.nonceToSign){
+                    this.sendMessage({
+                        type: "approve",
+                        sign: "",
+                        payload: {
+                            nonce: payload.nonceToSign,
+                            myId: this.getPeerId(),
+                            nonceToSign: ""
+                        }
+                    })
+                }
             }
         }
     }
@@ -283,7 +304,7 @@ class MultiSigHandler {
             const index = payload.index
             this.getQueuedTransaction(payload.txId).then(transaction => {
                 transaction.commitments[index] = payload.commitment;
-                if(transaction.requiredSigner > 0) {
+                if (transaction.requiredSigner > 0) {
                     if (transaction.commitments.filter(item => item !== undefined).length >= transaction.requiredSigner - 1) {
                         this.generateSign(payload.txId)
                     }
@@ -297,12 +318,12 @@ class MultiSigHandler {
             this.getQueuedTransaction(payload.txId).then(transaction => {
                 const myPub = this.peers[this.getIndex()].pub
                 let updateSign = true;
-                if(transaction.sign) {
-                    if(payload.signed.filter(item => item !== myPub).length <= transaction.sign.signed.filter(item => item !== myPub).length){
+                if (transaction.sign) {
+                    if (payload.signed.filter(item => item !== myPub).length <= transaction.sign.signed.filter(item => item !== myPub).length) {
                         updateSign = false
                     }
                 }
-                if(updateSign){
+                if (updateSign) {
                     // no signed data. we store this data
                     transaction.sign = {
                         signed: payload.signed,
@@ -310,7 +331,7 @@ class MultiSigHandler {
                         transaction: wasm.Transaction.sigma_parse_bytes(Uint8Array.from(Buffer.from(payload.tx)))
                     }
                 }
-                if(transaction.sign?.signed.indexOf(myPub) === -1){
+                if (transaction.sign?.signed.indexOf(myPub) === -1) {
                     this.generateSign(payload.txId)
                 }
             })
@@ -318,7 +339,6 @@ class MultiSigHandler {
     }
 
     handleMessage = (messageStr: string, channel: string, sender: string) => {
-        console.log(`received message from ${sender}. message is: ${messageStr}`)
         const message = JSON.parse(messageStr) as CommunicationMessage;
         if (message.payload.index && message.payload.id && message.sign) {
             if (sender !== message.payload.id) {
@@ -329,7 +349,6 @@ class MultiSigHandler {
             const signature = Buffer.from(message.sign, "base64");
             // verify signature
             const payloadStr = JSON.stringify(message.payload);
-            console.log(signature.length)
             if (verify(payloadStr, signature, publicKey)) {
                 switch (message.type) {
                     case "register":

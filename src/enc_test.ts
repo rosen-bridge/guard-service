@@ -1,8 +1,8 @@
 import * as wasm from 'ergo-lib-wasm-nodejs';
 import { MultiSigHandler } from "./guard/multisig/MultiSig";
-import { PublishedCommitment } from "./guard/multisig/Interfaces";
-import { convertToHintBag } from "./guard/multisig/utils";
 import nodeApi from "./chains/ergo/network/NodeApi";
+
+
 
 // Test Scenario
 // create address
@@ -84,5 +84,5 @@ const reduced = wasm.ReducedTransaction.from_unsigned_tx(tx, boxes, wasm.ErgoBox
 // const tx: wasm.ReducedTransaction;
 setTimeout(() => {
     handler.sign(reduced, 3, [box]).then(transaction => console.log(transaction.to_json())).catch(e => console.log(e))
-}, 1000)
+}, 5000)
 
