@@ -57,15 +57,35 @@
         "apiCallbackTimeout": 8000
     },
     "guard": {
-        "guardId": 0,
+        "guardId": 1,
         "secret": "4444444444444444444444444444444444444444444444444444444444444444",
-        "guardsLen": 6,
+        "guardsLen": 7,
         "guards": [
             {
                 "guardId": 0,
                 "guardPubKey": "pub guard 0"
+            },
+            {
+                "guardId": 2,
+                "guardPubKey": "pub guard 2"
+            },
+            {
+                "guardId": 3,
+                "guardPubKey": "pub guard 3"
+            },
+            {
+                "guardId": 4,
+                "guardPubKey": "pub guard 4"
+            },
+            {
+                "guardId": 5,
+                "guardPubKey": "pub guard 5"
+            },
+            {
+                "guardId": 6,
+                "guardPubKey": "pub guard 6"
             }
         ]
     },
-    "agreementFloor": 5
+    "minimumAgreement": 5
 }

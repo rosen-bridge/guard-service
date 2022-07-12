@@ -18,8 +18,12 @@ class TxAgreement {
     private static CHANNEL = "tx-agreement"
     private transactions: Map<string, PaymentTransaction>
     private transactionApprovals: Map<string, AgreementPayload[]>
+    private rejectedResponses: Map<string, number[]>
 
     constructor() {
+        this.transactions = new Map()
+        this.transactionApprovals = new Map()
+        this.rejectedResponses = new Map()
         dialer.subscribeChannel(TxAgreement.CHANNEL, this.handleMessage)
     }
 
@@ -61,7 +65,24 @@ class TxAgreement {
     startAgreementProcess = (tx: PaymentTransaction): void => {
         const creatorId = Configs.guardId
         const guardSignature = tx.signMetaData()
+        const creatorAgreement = {
+            "guardId": creatorId,
+            "signature": guardSignature
+        }
 
+        this.transactions.set(tx.txId, tx)
+        this.transactionApprovals.set(tx.txId, [creatorAgreement])
+
+        this.broadcastTransactionRequest(tx, creatorId, guardSignature)
+    }
+
+    /**
+     * sends request to all other guards to agree on a transaction
+     * @param tx the created payment transaction
+     * @param creatorId the guard id
+     * @param guardSignature the guard signature on tx metadata
+     */
+    broadcastTransactionRequest = (tx: PaymentTransaction, creatorId: number, guardSignature: string): void => {
         const candidatePayload = {
             "tx": tx.toJson(),
             "guardId": creatorId,
@@ -73,16 +94,8 @@ class TxAgreement {
             "payload": candidatePayload
         }
 
-        const creatorAgreement = {
-            "guardId": creatorId,
-            "signature": guardSignature
-        }
-
-        this.transactions.set(tx.txId, tx)
-        this.transactionApprovals.set(tx.txId, [creatorAgreement])
-
         // broadcast the transaction
-        dialer.sendMessage(TxAgreement.CHANNEL, message).then(() => null)
+        dialer.sendMessage(TxAgreement.CHANNEL, message)
     }
 
     /**
@@ -121,7 +134,7 @@ class TxAgreement {
         }
 
         // send response to creator guard
-        dialer.sendMessage(TxAgreement.CHANNEL, message, receiver).then(() => null)
+        dialer.sendMessage(TxAgreement.CHANNEL, message, receiver)
     }
 
 
@@ -164,8 +177,8 @@ class TxAgreement {
             console.log(`Guard ${signerId} Agreed with transaction with txId: ${txId}`)
             pushGuardApproval(txId, signerId, signature)
 
-            if (this.transactionApprovals.get(txId)!.length >= Configs.agreementFloor) {
-                console.log(`Majority of guards agreed with txId ${txId}`)
+            if (this.transactionApprovals.get(txId)!.length >= Configs.minimumAgreement) {
+                console.log(`The majority of guards agreed with txId ${txId}`)
 
                 const txApproval: TransactionApproved = {
                     "txId": txId,
@@ -176,13 +189,23 @@ class TxAgreement {
                     "payload": txApproval
                 }
                 // broadcast approval message
-                dialer.sendMessage(TxAgreement.CHANNEL, message).then(() => null)
+                dialer.sendMessage(TxAgreement.CHANNEL, message)
 
                 await this.setTxAsApproved(txId)
             }
         }
-        else
+        else {
             console.log(`Guard ${signerId} Disagreed with transaction with txId: ${tx.txId}`)
+            if (this.rejectedResponses.get(txId) === undefined) this.rejectedResponses.set(txId, [])
+            this.rejectedResponses.get(txId)!.push(signerId)
+
+            if (this.rejectedResponses.get(txId)!.length > Configs.guardsLen - Configs.minimumAgreement) {
+                console.log(`Lots of guards Disagreed with transaction with txId: ${tx.txId}. Aborting tx...`)
+                this.transactions.delete(txId)
+                if (this.transactionApprovals.get(txId) !== undefined) this.transactionApprovals.delete(txId)
+                this.rejectedResponses.delete(txId)
+            }
+        }
     }
 
     /**
@@ -204,13 +227,34 @@ class TxAgreement {
     }
 
     /**
-     * set the transaction as approved in db
+     * sets the transaction as approved in db
      * @param txId
      */
     setTxAsApproved = async (txId: string): Promise<void> => {
         await scannerAction.setEventTxAsApproved(txId)
         this.transactions.delete(txId)
         this.transactionApprovals.delete(txId)
+        if (this.rejectedResponses.get(txId) !== undefined) this.rejectedResponses.delete(txId)
+    }
+
+    /**
+     * iterates over active transaction and resend its request
+     */
+    resendTransactionRequests = (): void => {
+        const creatorId = Configs.guardId
+        this.transactions.forEach(tx => {
+            const guardSignature = tx.signMetaData()
+            this.broadcastTransactionRequest(tx, creatorId, guardSignature)
+        })
+    }
+
+    /**
+     * clears all pending for agreement txs in memory
+     */
+    clearTransactions = (): void => {
+        this.transactions.clear()
+        this.transactionApprovals.clear()
+        this.rejectedResponses.clear()
     }
 
 }

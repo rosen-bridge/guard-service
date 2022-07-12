@@ -23,8 +23,8 @@ class Configs {
     static guardsLen = config.get<number>('guard.guardsLen')
     static guards = config.get<GuardInfo[]>('guard.guards')
 
-    // agreement configs (minimum number of guards that needs to agree to tx get approved)
-    static agreementFloor = config.get<number>('agreementFloor')
+    // agreement configs (minimum number of guards that needs to agree with tx to get approved)
+    static minimumAgreement = config.get<number>('minimumAgreement')
 
 }
 
