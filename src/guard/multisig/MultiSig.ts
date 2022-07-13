@@ -48,6 +48,7 @@ class MultiSigHandler {
         if (this.index === undefined) {
             const ergoTree = wasm.SecretKey.dlog_from_bytes(this.secret).get_address().to_ergo_tree().to_base16_bytes();
             const publicKey = ergoTree.substring(ergoTree.length - 66);
+            console.log(this.peers.map((peer, index) => [peer.pub, index]).filter(row => row[0] === publicKey))
             this.index = this.peers.map((peer, index) => [peer.pub, index]).filter(row => row[0] === publicKey)[0][1] as number
         }
         if (this.index !== undefined)
@@ -116,14 +117,13 @@ class MultiSigHandler {
             queued.secret = this.getProver().generate_commitments_for_reduced_transaction(queued.tx)
             // publish commitment
             const commitmentJson: CommitmentJson = queued.secret.to_json() as CommitmentJson;
-            console.log(JSON.stringify(queued.secret.to_json()))
+            console.log("my commitments are:", JSON.stringify(queued.secret.to_json()))
             const publicHints = commitmentJson.publicHints
-            const publishCommitments: { [index: string]: { a: string; position: string } } = {}
+            const publishCommitments: { [index: string]: Array<{ a: string; position: string }> } = {}
             Object.keys(publicHints).forEach(inputIndex => {
                 const inputHints = publicHints[inputIndex].filter(item => !item.secret);
-                console.log(inputHints)
                 if (inputHints) {
-                    publishCommitments[inputIndex] = {"a": inputHints[0].a, position: inputHints[0].position}
+                    publishCommitments[inputIndex] = inputHints.map(item => ({"a": item.a, position: item.position}))
                 }
             })
             this.sendMessage({
@@ -196,6 +196,8 @@ class MultiSigHandler {
                 }
                 console.log("here 19")
                 try {
+                    console.log(JSON.stringify(hints.to_json()))
+                    console.log(transaction.tx.unsigned_tx().to_json())
                     const signedTx = prover.sign_reduced_transaction_multi(transaction.tx, hints)
                     console.log("here 20")
                     const tx = Buffer.from(signedTx.sigma_serialize_bytes()).toString("base64")
@@ -230,6 +232,7 @@ class MultiSigHandler {
         const payload = message.payload;
         payload.index = this.getIndex();
         payload.id = this.getPeerId();
+        console.log("message to send: ", JSON.stringify(message))
         const payloadStr = JSON.stringify(message.payload)
         message.sign = sign(payloadStr, Buffer.from(this.secret)).toString("base64");
         if (receivers && receivers.length) {

@@ -65,10 +65,10 @@ interface ApprovePayload extends GeneralPayload {
 }
 
 interface PublishedCommitment {
-    [index: string]: {
+    [index: string]: Array<{
         a: string;
         position: string
-    }
+    }>
 }
 
 interface CommitmentPayload extends GeneralPayload {

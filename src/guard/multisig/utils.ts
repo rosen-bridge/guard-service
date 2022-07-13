@@ -8,7 +8,7 @@ const publicKeyToProposition = (pubKeys: Array<string>): wasm.Propositions => {
     pubKeys.forEach(item => {
         res.add_proposition_from_byte(Uint8Array.from(Buffer.from('cd' + item, 'hex')));
     });
-    return  res
+    return res
 }
 
 const extract_hints = async (
@@ -57,20 +57,22 @@ const convertToHintBag = (
         publicHints: {}
     }
     Object.keys(commitments).forEach((key) => {
-        const commitment = commitments[key]
+        const inputCommitments = commitments[key]
         resultJson.secretHints[key] = []
-        if(!resultJson.publicHints[key]){
+        if (!resultJson.publicHints[key]) {
             resultJson.publicHints[key] = []
         }
-        resultJson.publicHints[key].push({
-            a: commitment.a,
-            hint:"cmtReal",
-            position: commitment.position,
-            type: "dlog",
-            pubkey: {
-                op: "205",
-                h: pubKey
-            }
+        inputCommitments.forEach(commitment => {
+            resultJson.publicHints[key].push({
+                a: commitment.a,
+                hint: "cmtReal",
+                position: commitment.position,
+                type: "dlog",
+                pubkey: {
+                    op: "205",
+                    h: pubKey
+                }
+            })
         })
     })
     return wasm.TransactionHintsBag.from_json(JSON.stringify(resultJson))
