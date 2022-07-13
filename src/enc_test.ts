@@ -3,7 +3,6 @@ import { MultiSigHandler } from "./guard/multisig/MultiSig";
 import nodeApi from "./chains/ergo/network/NodeApi";
 
 
-
 // Test Scenario
 // create address
 // create a transaction
@@ -12,16 +11,17 @@ import nodeApi from "./chains/ergo/network/NodeApi";
 // wait until signing completed
 
 const publicKeys: Array<string> = [
-    "021f332d5c9c9ad17d5e014640080d4ac05b7139fd4757d29381148fb36b2cacf1",
-    "03a84064eeb481d281a19e50e55948c4697a5e18118d16d26a735ae917a377f272",
-    "0383680ddc08ba85aafbe7b88ce2e29be72d17cf99e615471f8af457038e488343",
-    "03afc774ebd132021093eea87d7b01ae2a666b07e8ba39ba380326671c12de6dba",
+    "0302e57ca7ebf8cfa1802d4bc79a455008307a936b4f50f0629d9bef484fdd5189",
+    "0399f5724bbc4d08c6e146d61449c05a3e0546868b1d4f83411f325187d5ca4f85",
+    "024e06e6c6073e13a03fa4629882a69108cd60e0a9fbb2e0fcc898ce68a7051b66",
+    "027a069cc972fc7816539a316ba1cfc0164656d63dd1873ee407670b0e8195f3bd",
 ]
+
 const secrets = [
-    "7e7bd8b8c1274d50d39b117df52c581191ef5144ad43d657fe45b76968f72e14",
-    "c85fd86e38968ed6aefca67139ea879da2b7c4921c63f0a8ed1dedcb3c1f9b44",
-    "da8622657a64bdc7ee140fd6ddfa289a5a273254cc58c369579555f036d19c24",
-    "bff57a77fa07d579f635d0eac75e3eb48d220a7be94cb0745e889d0818126587",
+    "00eda6c0e9fc808d4cf050fc4e98705372b9f0786a6b63aa4013d1a20539b104",
+    "cc2e48e5e53059e0d68866eff97a6037cb39945ea9f09f40fcec82d12cd8cb8b",
+    "c97250f41cfa8d545c2f8d75b2ee24002b5feec32340c2bb81fa4e2d4c7527d3",
+    "53ceef0ece83401cf5cd853fd0c1a9bbfab750d76f278b3187f1a14768d6e9c4",
 ]
 
 secrets.forEach(item => {
@@ -34,43 +34,23 @@ console.log(secret)
 
 const handler = new MultiSigHandler(publicKeys, secret)
 
-const box1 = wasm.ErgoBox.sigma_parse_bytes(Uint8Array.from(Buffer.from("80ade204100504000400040004000402d804d601b2a5730000d602e4c6a7041ad603e4c6a70510d604ad7202d901040ecdee7204ea02d19683020193c27201c2a7938cb2db63087201730100018cb2db6308a773020001eb02ea02d19683020193e4c67201041a720293e4c672010510720398b27203730300720498b272037304007204888a0f01a6ac381e6fa99929fd1477b3ba9499790a775e91d4c14c5aa86e9a118dfac85301021a0421021f332d5c9c9ad17d5e014640080d4ac05b7139fd4757d29381148fb36b2cacf12103a84064eeb481d281a19e50e55948c4697a5e18118d16d26a735ae917a377f272210383680ddc08ba85aafbe7b88ce2e29be72d17cf99e615471f8af457038e4883432103afc774ebd132021093eea87d7b01ae2a666b07e8ba39ba380326671c12de6dba10020608c869b73a80f771af6beb8b08ad7b6efce3fac8c1730755ea55520246a9aefcb100", "hex")))
-const box2 = wasm.ErgoBox.sigma_parse_bytes(Uint8Array.from(Buffer.from("80c8afa02510010e20a6ac381e6fa99929fd1477b3ba9499790a775e91d4c14c5aa86e9a118dfac853d1aea4d9010163aedb63087201d901034d0e938c7203017300888a0f0000e7378c2a50d1a44b13a22ba16d0f45c28d9761a48ab290493e3292f1678a907301", "hex")))
+const box1 = wasm.ErgoBox.sigma_parse_bytes(Uint8Array.from(Buffer.from("80ade204100504000400040004000402d804d601b2a5730000d602e4c6a7041ad603e4c6a70510d604ad7202d901040ecdee7204ea02d19683020193c27201c2a7938cb2db63087201730100018cb2db6308a773020001eb02ea02d19683020193e4c67201041a720293e4c672010510720398b27203730300720498b272037304007204d18b0f01a6ac381e6fa99929fd1477b3ba9499790a775e91d4c14c5aa86e9a118dfac85301021a04210302e57ca7ebf8cfa1802d4bc79a455008307a936b4f50f0629d9bef484fdd5189210399f5724bbc4d08c6e146d61449c05a3e0546868b1d4f83411f325187d5ca4f8521024e06e6c6073e13a03fa4629882a69108cd60e0a9fbb2e0fcc898ce68a7051b6621027a069cc972fc7816539a316ba1cfc0164656d63dd1873ee407670b0e8195f3bd1002060865c7e0d4a77ccd605b3e4812d38140f7e68fdf740cb6cdc1d8957b75138d1e4c00", "hex")))
+const box2 = wasm.ErgoBox.sigma_parse_bytes(Uint8Array.from(Buffer.from("80c8afa02510010e20a6ac381e6fa99929fd1477b3ba9499790a775e91d4c14c5aa86e9a118dfac853d1aea4d9010163aedb63087201d901034d0e938c7203017300d18b0f00002eca6f88ea99fb4fe313d94cb05c576b1b7a94ec7166aec958b36bcea4b8ff1a01", "hex")))
 const boxes = wasm.ErgoBoxes.empty()
 boxes.add(box1)
 boxes.add(box2)
+console.log(box1.to_json())
+console.log(box2.to_json())
 
-// const address = wasm.Address.from_base58("9gH92yjsJCBHwx4fDbXe6j8jLdDBMX3dm6nqwiHhUqyxgNKXmoK")
-// const output = new wasm.ErgoBoxCandidateBuilder(
-//     wasm.BoxValue.from_i64(wasm.I64.from_str("10000000")),
-//     wasm.Contract.pay_to_address(address),
-//     0
-// ).build()
+const reduced = wasm.ReducedTransaction.sigma_parse_bytes(Uint8Array.from(Buffer.from("ce04022f4cd0df4db787875b3a071e098b72ba4923bd2460e08184b34359563febe04700005e8269c8e2b975a43dc6e74a9c5b10b273313c6d32c1dd40c171fc0a8852ca0100000001a6ac381e6fa99929fd1477b3ba9499790a775e91d4c14c5aa86e9a118dfac8530480ade204100504000400040004000402d804d601b2a5730000d602e4c6a7041ad603e4c6a70510d604ad7202d901040ecdee7204ea02d19683020193c27201c2a7938cb2db63087201730100018cb2db6308a773020001eb02ea02d19683020193e4c67201041a720293e4c672010510720398b27203730300720498b272037304007204d18b0f010001021a04210302e57ca7ebf8cfa1802d4bc79a455008307a936b4f50f0629d9bef484fdd5189210399f5724bbc4d08c6e146d61449c05a3e0546868b1d4f83411f325187d5ca4f8521024e06e6c6073e13a03fa4629882a69108cd60e0a9fbb2e0fcc898ce68a7051b6621027a069cc972fc7816539a316ba1cfc0164656d63dd1873ee407670b0e8195f3bd100206088094ebdc030008cd0314368e16c9c99c5a6e20dda917aeb826b3a908becff543b3a36b38e6b3355ff5d18b0f0000c0843d1005040004000e36100204a00b08cd0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798ea02d192a39a8cc7a701730073011001020402d19683030193a38cc7b2a57300000193c2b2a57301007473027303830108cdeeac93b1a57304d18b0f0000c0af87c3210008cd0314368e16c9c99c5a6e20dda917aeb826b3a908becff543b3a36b38e6b3355ff5d18b0f00009702980304cd0302e57ca7ebf8cfa1802d4bc79a455008307a936b4f50f0629d9bef484fdd5189cd0399f5724bbc4d08c6e146d61449c05a3e0546868b1d4f83411f325187d5ca4f85cd024e06e6c6073e13a03fa4629882a69108cd60e0a9fbb2e0fcc898ce68a7051b66cd027a069cc972fc7816539a316ba1cfc0164656d63dd1873ee407670b0e8195f3bd9604cd0302e57ca7ebf8cfa1802d4bc79a455008307a936b4f50f0629d9bef484fdd5189cd0399f5724bbc4d08c6e146d61449c05a3e0546868b1d4f83411f325187d5ca4f85cd024e06e6c6073e13a03fa4629882a69108cd60e0a9fbb2e0fcc898ce68a7051b66cd027a069cc972fc7816539a316ba1cfc0164656d63dd1873ee407670b0e8195f3bdf39b03d3cb9e02d073", "hex")))
+const sks = new wasm.SecretKeys()
+secrets.forEach(item => sks.add(wasm.SecretKey.dlog_from_bytes(Uint8Array.from(Buffer.from(item, "hex")))))
+const prover = wasm.Wallet.from_secrets(sks)
+const signed = prover.sign_reduced_transaction(reduced)
+console.log(JSON.stringify(signed.to_json()))
+
+// box1.register_value(4)?.to_coll_coll_byte().forEach(item => console.log(Buffer.from(item).toString("hex")))
+// setTimeout(() => {
+//     handler.sign(reduced, 3, [box1, box2]).then(transaction => console.log(transaction.to_json())).catch(e => console.log(e))
+// }, 5000)
 //
-// const selector = new wasm.SimpleBoxSelector()
-// const selection = selector.select(boxes, wasm.BoxValue.from_i64(wasm.I64.from_str("11000000")), new wasm.Tokens())
-// const tx = wasm.TxBuilder.new(
-//     selection,
-//     new wasm.ErgoBoxCandidates(output),
-//     0,
-//     wasm.BoxValue.from_i64(wasm.I64.from_str("1000000")),
-//     address,
-//     wasm.BoxValue.SAFE_USER_MIN()
-// ).build()
-// // const tx = wasm.UnsignedTransaction.from_json(txJson)
-// const context = await nodeApi.getErgoStateContext()
-// const reduced = wasm.ReducedTransaction.from_unsigned_tx(tx, boxes, wasm.ErgoBoxes.empty(), context)
-const reduced = wasm.ReducedTransaction.sigma_parse_bytes(Uint8Array.from(Buffer.from("ce0402121d3b2917152438ad64d6668e60c903c13e0fa1f85536c1dbd7ac3276d86bdc0000c753139f655ddcb65866180ab9ee4f1a615b0fc92c3cd788e7447439eb9fabd100000001a6ac381e6fa99929fd1477b3ba9499790a775e91d4c14c5aa86e9a118dfac8530480ade204100504000400040004000402d804d601b2a5730000d602e4c6a7041ad603e4c6a70510d604ad7202d901040ecdee7204ea02d19683020193c27201c2a7938cb2db63087201730100018cb2db6308a773020001eb02ea02d19683020193e4c67201041a720293e4c672010510720398b27203730300720498b272037304007204888a0f010001021a0421021f332d5c9c9ad17d5e014640080d4ac05b7139fd4757d29381148fb36b2cacf12103a84064eeb481d281a19e50e55948c4697a5e18118d16d26a735ae917a377f272210383680ddc08ba85aafbe7b88ce2e29be72d17cf99e615471f8af457038e4883432103afc774ebd132021093eea87d7b01ae2a666b07e8ba39ba380326671c12de6dba100206088094ebdc030008cd03e57d499dd90774bdae191813ebb320b81670887b315deaa7b3bd01292fcb9dcc888a0f0000c0843d1005040004000e36100204a00b08cd0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798ea02d192a39a8cc7a701730073011001020402d19683030193a38cc7b2a57300000193c2b2a57301007473027303830108cdeeac93b1a57304888a0f0000c0af87c3210008cd03e57d499dd90774bdae191813ebb320b81670887b315deaa7b3bd01292fcb9dcc888a0f00009702980304cd021f332d5c9c9ad17d5e014640080d4ac05b7139fd4757d29381148fb36b2cacf1cd03a84064eeb481d281a19e50e55948c4697a5e18118d16d26a735ae917a377f272cd0383680ddc08ba85aafbe7b88ce2e29be72d17cf99e615471f8af457038e488343cd03afc774ebd132021093eea87d7b01ae2a666b07e8ba39ba380326671c12de6dba9604cd021f332d5c9c9ad17d5e014640080d4ac05b7139fd4757d29381148fb36b2cacf1cd03a84064eeb481d281a19e50e55948c4697a5e18118d16d26a735ae917a377f272cd0383680ddc08ba85aafbe7b88ce2e29be72d17cf99e615471f8af457038e488343cd03afc774ebd132021093eea87d7b01ae2a666b07e8ba39ba380326671c12de6dbaf39b03d3cb9e02d073", "hex")))
-// const sks = new wasm.SecretKeys()
-// secrets.forEach(item => sks.add(wasm.SecretKey.dlog_from_bytes(Uint8Array.from(Buffer.from(item, "hex")))))
-// Array(sks.len()).fill("").forEach((item, index) => console.log(sks.get(index).get_address().to_base58(wasm.NetworkPrefix.Mainnet)))
-// const prover = wasm.Wallet.from_secrets(sks)
-// const commitments = prover.generate_commitments_for_reduced_transaction(reduced)
-// // console.log(JSON.stringify(commitments.to_json()))
-// const signed = prover.sign_reduced_transaction(reduced)
-// console.log(JSON.stringify(signed.to_json()))
-box1.register_value(4)?.to_coll_coll_byte().forEach(item => console.log(Buffer.from(item).toString("hex")))
-setTimeout(() => {
-    handler.sign(reduced, 3, [box1, box2]).then(transaction => console.log(transaction.to_json())).catch(e => console.log(e))
-}, 5000)
-
