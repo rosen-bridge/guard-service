@@ -128,7 +128,7 @@ class TxAgreement {
             agreementPayload.agreed = true
             agreementPayload.signature = tx.signMetaData()
             this.agreedTransactions.set(tx.txId, tx)
-            // set event tx in db
+            await scannerAction.setEventTx(event.sourceTxId, tx.txId, tx.toJson())
         }
 
         const message = {
@@ -168,6 +168,17 @@ class TxAgreement {
             else guardApproval.signature = signature
         }
 
+        /**
+         * saves guard reject response with in rejectedResponses
+         * @param txId
+         * @param guardId
+         */
+        const pushGuardReject = (txId: string, guardId: number): void => {
+            const txRejects = this.rejectedResponses.get(txId)
+            if (txRejects === undefined) throw new Error(`Unexpected Error: TxId: ${txId} not found in rejects list while it was in transaction list`)
+            if (!txRejects.includes(guardId)) txRejects.push(guardId)
+        }
+
         const tx = this.transactions.get(txId)
         if (tx === undefined) return
 
@@ -200,15 +211,14 @@ class TxAgreement {
         else {
             console.log(`Guard ${signerId} Disagreed with transaction with txId: ${tx.txId}`)
             if (this.rejectedResponses.get(txId) === undefined) this.rejectedResponses.set(txId, [])
-            this.rejectedResponses.get(txId)!.push(signerId)
+            pushGuardReject(txId, signerId)
 
             if (this.rejectedResponses.get(txId)!.length > Configs.guardsLen - Configs.minimumAgreement) {
                 console.log(`Lots of guards Disagreed with transaction with txId: ${tx.txId}. Aborting tx...`)
+                await scannerAction.removeEventTx(txId)
                 this.transactions.delete(txId)
                 if (this.transactionApprovals.get(txId) !== undefined) this.transactionApprovals.delete(txId)
                 this.rejectedResponses.delete(txId)
-
-                // TODO: remove tx data from event info in db
             }
         }
     }
@@ -238,6 +248,7 @@ class TxAgreement {
     setTxAsApproved = async (txId: string): Promise<void> => {
         await scannerAction.setEventTxAsApproved(txId)
         this.transactions.delete(txId)
+        this.agreedTransactions.delete(txId)
         this.transactionApprovals.delete(txId)
         if (this.rejectedResponses.get(txId) !== undefined) this.rejectedResponses.delete(txId)
     }
@@ -262,7 +273,13 @@ class TxAgreement {
         this.rejectedResponses.clear()
     }
 
-    // TODO: clear tx in db which didn't get approved by the end of turn
+    /**
+     * clears all pending for approval txs in memory and db
+     */
+    clearAgreedTransactions = async (): Promise<void> => {
+        this.agreedTransactions.clear()
+        await scannerAction.removeAgreedTx()
+    }
 
 }
 

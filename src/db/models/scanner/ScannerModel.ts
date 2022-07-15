@@ -36,6 +36,55 @@ class ScannerDataBase {
             .getOne()
     }
 
+    /**
+     * updates the txId and txJson of an event
+     * @param eventId the event trigger id
+     * @param txId the transaction id
+     * @param txJson json serialized of the transaction
+     */
+    setEventTx = async (eventId: string, txId: string, txJson: string): Promise<void> => {
+        await this.EventRepository.createQueryBuilder()
+            .update()
+            .set({
+                status: "agreed",
+                txId: txId,
+                paymentTxJson: txJson
+            })
+            .where("sourceTxId = :id", {id: eventId})
+            .execute()
+    }
+
+    /**
+     * removes the transaction of an event with its transaction id
+     * @param txId the transaction id
+     */
+    removeEventTx = async (txId: string): Promise<void> => {
+        await this.EventRepository.createQueryBuilder()
+            .update()
+            .set({
+                status: "",
+                txId: "",
+                paymentTxJson: ""
+            })
+            .where("txId = :id", {id: txId})
+            .execute()
+    }
+
+    /**
+     * removes all transactions with 'agreed' status
+     */
+    removeAgreedTx = async (): Promise<void> => {
+        await this.EventRepository.createQueryBuilder()
+            .update()
+            .set({
+                status: "",
+                txId: "",
+                paymentTxJson: ""
+            })
+            .where("status = :status", {status: "agreed"})
+            .execute()
+    }
+
 }
 
 const scannerAction = new ScannerDataBase(scannerOrmDataSource)

@@ -105,6 +105,9 @@ describe("TxAgreement", () => {
                     "agreed": true
                 }
             }, receiver)
+            const dbEvents = await allEventRecords()
+            expect(dbEvents.map(event => [event.sourceTxId, event.status, event.txId, event.paymentTxJson])[0])
+                .to.deep.equal([mockedEvent.sourceTxId, "agreed", tx.txId, tx.toJson()])
         })
 
         /**
@@ -147,6 +150,8 @@ describe("TxAgreement", () => {
                     "agreed": false
                 }
             }, receiver)
+            const dbEvents = await allEventRecords()
+            expect(dbEvents.length).to.equal(0)
         })
 
         /**
@@ -194,6 +199,9 @@ describe("TxAgreement", () => {
                     "agreed": false
                 }
             }, receiver)
+            const dbEvents = await allEventRecords()
+            expect(dbEvents.map(event => [event.sourceTxId, event.status, event.txId, event.paymentTxJson])[0])
+                .to.deep.equal([mockedEvent.sourceTxId, "", null, null])
         })
 
         /**
@@ -233,6 +241,9 @@ describe("TxAgreement", () => {
                     "agreed": false
                 }
             }, receiver)
+            const dbEvents = await allEventRecords()
+            expect(dbEvents.map(event => [event.sourceTxId, event.status, event.txId, event.paymentTxJson])[0])
+                .to.deep.equal([mockedEvent.sourceTxId, "", null, null])
         })
 
         /**
@@ -275,6 +286,9 @@ describe("TxAgreement", () => {
                     "agreed": false
                 }
             }, receiver)
+            const dbEvents = await allEventRecords()
+            expect(dbEvents.map(event => [event.sourceTxId, event.status, event.txId, event.paymentTxJson])[0])
+                .to.deep.equal([mockedEvent.sourceTxId, "", null, null])
         })
 
         /**
@@ -290,7 +304,8 @@ describe("TxAgreement", () => {
             // mock event and tx
             const mockedEvent: EventTrigger = ErgoTestBoxes.mockTokenPaymentEventTrigger()
             const tx = ErgoTestBoxes.mockMissingValidCommitmentDistributionTransaction(mockedEvent, eventBoxAndCommitments)
-            await insertEventRecord(mockedEvent, "", TestUtils.generateRandomId(), "")
+            const previousTxId = TestUtils.generateRandomId()
+            await insertEventRecord(mockedEvent, "", previousTxId, "testTx")
 
             // mock isConfirmedEnough
             mockIsEventConfirmedEnough(mockedEvent, true)
@@ -317,6 +332,9 @@ describe("TxAgreement", () => {
                     "agreed": false
                 }
             }, receiver)
+            const dbEvents = await allEventRecords()
+            expect(dbEvents.map(event => [event.sourceTxId, event.status, event.txId, event.paymentTxJson])[0])
+                .to.deep.equal([mockedEvent.sourceTxId, "", previousTxId, "testTx"])
         })
 
         /**
@@ -330,7 +348,7 @@ describe("TxAgreement", () => {
             // mock event and tx
             const mockedEvent: EventTrigger = ErgoTestBoxes.mockTokenPaymentEventTrigger()
             const tx = ErgoTestBoxes.mockTransferToIllegalWIDDistributionTransaction(mockedEvent, eventBoxAndCommitments)
-            await insertEventRecord(mockedEvent, "", tx.txId, tx.toJson())
+            await insertEventRecord(mockedEvent, "")
 
             // mock isConfirmedEnough
             mockIsEventConfirmedEnough(mockedEvent, true)
@@ -358,11 +376,18 @@ describe("TxAgreement", () => {
                     "agreed": false
                 }
             }, receiver)
+            const dbEvents = await allEventRecords()
+            expect(dbEvents.map(event => [event.sourceTxId, event.status, event.txId, event.paymentTxJson])[0])
+                .to.deep.equal([mockedEvent.sourceTxId, "", null, null])
         })
 
     })
 
     describe("processAgreementResponse", () => {
+
+        beforeEach("clear scanner database tables", () => {
+            clearEventTable()
+        })
 
         /**
          * Target: testing processAgreementResponse
@@ -419,7 +444,8 @@ describe("TxAgreement", () => {
                 }
             })
             const dbEvents = await allEventRecords()
-            expect(dbEvents.map(event => [event.sourceTxId, event.txId, event.status])[0]).to.equal([mockedEvent.sourceTxId, tx.txId, "approved"])
+            expect(dbEvents.map(event => [event.sourceTxId, event.txId, event.status])[0])
+                .to.deep.equal([mockedEvent.sourceTxId, tx.txId, "approved"])
         })
 
         /**
@@ -469,12 +495,18 @@ describe("TxAgreement", () => {
                 }
             })
             const dbEvents = await allEventRecords()
-            expect(dbEvents.map(event => [event.sourceTxId, event.txId, event.status])[0]).to.equal([mockedEvent.sourceTxId, "", ""])
+            expect(dbEvents.map(event => [event.sourceTxId, event.txId, event.status])[0])
+                .to.deep.equal([mockedEvent.sourceTxId, "", ""])
         })
 
     })
 
     describe("processApprovalMessage", () => {
+
+        beforeEach("clear scanner database tables", () => {
+            clearEventTable()
+            resetMockedEventProcessor()
+        })
 
         /**
          * Target: testing processApprovalMessage
@@ -518,7 +550,8 @@ describe("TxAgreement", () => {
 
             // verify
             const dbEvents = await allEventRecords()
-            expect(dbEvents.map(event => [event.sourceTxId, event.txId, event.status])[0]).to.equal([mockedEvent.sourceTxId, tx.txId, "approved"])
+            expect(dbEvents.map(event => [event.sourceTxId, event.txId, event.status])[0])
+                .to.deep.equal([mockedEvent.sourceTxId, tx.txId, "approved"])
         })
 
         /**
@@ -572,7 +605,8 @@ describe("TxAgreement", () => {
 
             // verify
             const dbEvents = await allEventRecords()
-            expect(dbEvents.map(event => [event.sourceTxId, event.txId, event.status])[0]).to.equal([mockedEvent.sourceTxId, tx.txId, ""])
+            expect(dbEvents.map(event => [event.sourceTxId, event.txId, event.status])[0])
+                .to.deep.equal([mockedEvent.sourceTxId, tx.txId, ""])
         })
 
     })
