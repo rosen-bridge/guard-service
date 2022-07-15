@@ -54,7 +54,7 @@ class EventTrigger implements EventTriggerModel {
             eventEntity.targetChainTokenId,
             eventEntity.sourceTxId,
             eventEntity.sourceBlockId,
-            eventEntity.WIDs
+            eventEntity.WIDs.split(",").filter(wid => wid !== "")
         )
     }
 

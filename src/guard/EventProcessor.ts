@@ -11,14 +11,14 @@ import ErgoConfigs from "../chains/ergo/helpers/ErgoConfigs";
 
 class EventProcessor {
 
-    cardanoChain = new CardanoChain()
-    ergoChain = new ErgoChain()
+    static cardanoChain = new CardanoChain()
+    static ergoChain = new ErgoChain()
 
     /**
      * returns chain object for target chain of the event trigger
      * @param event the event trigger
      */
-    getDestinationChainObject = (event: EventTrigger): BaseChain<any, any> => {
+    static getDestinationChainObject = (event: EventTrigger): BaseChain<any, any> => {
         if (event.toChain === ChainsConstants.cardano) return this.cardanoChain
         else if (event.toChain === ChainsConstants.ergo) return this.ergoChain
         else throw new Error(`chain [${event.toChain}] not implemented.`)
@@ -30,7 +30,7 @@ class EventProcessor {
      * @param event the event trigger
      * @return true if payment transaction verified
      */
-    verifyPaymentTransactionWithEvent = (paymentTx: PaymentTransaction, event: EventTrigger): boolean => {
+    static verifyPaymentTransactionWithEvent = (paymentTx: PaymentTransaction, event: EventTrigger): boolean => {
         return this.getDestinationChainObject(event).verifyTransactionWithEvent(paymentTx, event)
     }
 
@@ -39,7 +39,7 @@ class EventProcessor {
      * @param event the event trigger
      * @return created unsigned transaction
      */
-    createEventPayment = (event: EventTrigger): Promise<PaymentTransaction> => {
+    static createEventPayment = (event: EventTrigger): Promise<PaymentTransaction> => {
         return this.getDestinationChainObject(event).generateTransaction(event)
     }
 
@@ -47,7 +47,7 @@ class EventProcessor {
      * checks if event source tx confirmed enough
      * @param event the event trigger
      */
-    isEventConfirmedEnough = async (event: EventTrigger): Promise<boolean> => {
+    static isEventConfirmedEnough = async (event: EventTrigger): Promise<boolean> => {
         if (event.fromChain === ChainsConstants.cardano) {
             const confirmation = await KoiosApi.getTxConfirmation(event.sourceTxId)
             return confirmation >= CardanoConfigs.requiredConfirmation
@@ -61,8 +61,4 @@ class EventProcessor {
 
 }
 
-const eventProcessor = new EventProcessor()
-
-export {
-    eventProcessor
-}
+export default EventProcessor

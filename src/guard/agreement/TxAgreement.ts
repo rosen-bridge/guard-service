@@ -8,7 +8,7 @@ import {
 import Configs from "../../helpers/Configs";
 import Dialer from "../../communication/Dialer";
 import Utils from "../../helpers/Utils";
-import { eventProcessor } from "../EventProcessor";
+import EventProcessor from "../EventProcessor";
 import { scannerAction } from "../../db/models/scanner/ScannerModel";
 
 const dialer = await Dialer.getInstance();
@@ -109,9 +109,8 @@ class TxAgreement {
         const eventEntity = await scannerAction.getEventById(tx.eventId)
         if (eventEntity === null) return
         const event = EventTrigger.fromEntity(eventEntity)
-        if(!await eventProcessor.isEventConfirmedEnough(event)) return
+        if (!await EventProcessor.isEventConfirmedEnough(event)) return
 
-        const eventTx = (await scannerAction.getEventTxInfoById(tx.eventId))
         const agreementPayload: GuardsAgreement = {
             "guardId": Configs.guardId,
             "signature": "",
@@ -121,8 +120,8 @@ class TxAgreement {
         if (
             tx.verifyMetaDataSignature(creatorId, signature) &&
             Utils.guardTurn() === creatorId &&
-            (eventTx === null || eventTx.txId === tx.txId) &&
-            eventProcessor.verifyPaymentTransactionWithEvent(tx, event)
+            eventEntity.txId === tx.txId &&
+            EventProcessor.verifyPaymentTransactionWithEvent(tx, event)
         ) {
             agreementPayload.agreed = true
             agreementPayload.signature = tx.signMetaData()

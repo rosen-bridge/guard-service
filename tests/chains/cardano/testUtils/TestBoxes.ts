@@ -89,8 +89,9 @@ class TestBoxes {
     /**
      * generates a mocked payment transaction with given outBoxes
      * @param outBoxes output Utxos in the transaction
+     * @param eventId the event trigger id
      */
-    static mockPaymentTransaction = (outBoxes: TransactionOutput[]): PaymentTransaction => {
+    static mockPaymentTransaction = (outBoxes: TransactionOutput[], eventId: string): PaymentTransaction => {
         const txBuilder = TransactionBuilder.new(CardanoConfigs.txBuilderConfig)
         outBoxes.forEach(box => txBuilder.add_output(box))
 
@@ -108,7 +109,6 @@ class TestBoxes {
 
         // create PaymentTransaction object
         const txId = TestUtils.generateRandomId()
-        const eventId = TestUtils.generateRandomId()
         const txBytes = tx.to_bytes()
         return new CardanoTransaction(txId, eventId, txBytes)
     }
@@ -146,7 +146,7 @@ class TestBoxes {
             Value.new(BigNum.from_str(this.adaToLovelaceString(10)))
         )
 
-        return this.mockPaymentTransaction([paymentBox, changeBox])
+        return this.mockPaymentTransaction([paymentBox, changeBox], event.sourceTxId)
     }
 
     /**
@@ -171,7 +171,7 @@ class TestBoxes {
             Value.new(BigNum.from_str(this.adaToLovelaceString(10)))
         )
 
-        return this.mockPaymentTransaction([paymentBox, changeBox])
+        return this.mockPaymentTransaction([paymentBox, changeBox], event.sourceTxId)
     }
 
     /**
@@ -209,7 +209,7 @@ class TestBoxes {
             Value.new(BigNum.from_str(this.adaToLovelaceString(10)))
         )
 
-        return this.mockPaymentTransaction([paymentBox, changeBox])
+        return this.mockPaymentTransaction([paymentBox, changeBox], event.sourceTxId)
     }
 
     /**
@@ -251,7 +251,7 @@ class TestBoxes {
             Value.new(BigNum.from_str(this.adaToLovelaceString(10)))
         )
 
-        return this.mockPaymentTransaction([paymentBox, changeBox])
+        return this.mockPaymentTransaction([paymentBox, changeBox], event.sourceTxId)
     }
 
 }

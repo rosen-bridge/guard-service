@@ -29,6 +29,16 @@ export class EventTriggerEntity {
     @Column()
     sourceBlockId: string
     @Column()
-    WIDs: string[]
+    WIDs: string
+
+    @Column({
+        nullable: true
+    })
+    txId: string
+
+    @Column({
+        nullable: true
+    })
+    paymentTxJson: string
 
 }

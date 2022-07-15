@@ -1,7 +1,6 @@
 interface GuardInfo {
     guardId: number
     guardPubKey: string
-    guardConnection: string
 }
 
 interface AgreementPayload {

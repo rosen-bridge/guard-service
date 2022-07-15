@@ -11,7 +11,9 @@
         "test": "NODE_ENV=\"test\" mocha --slow 3000 && rm -rf tests/db/sqlite/test",
         "coverage": "c8 npm run test",
         "typeorm:update:sign": "typeorm-ts-node-esm migration:generate src/db/migrations/sign/sign -d config/signOrmDataSource.ts",
-        "typeorm:migrate:sign": "typeorm-ts-node-esm migration:run -d config/signOrmDataSource.ts"
+        "typeorm:update:scanner": "typeorm-ts-node-esm migration:generate src/db/migrations/scanner/scanner -d config/scannerOrmDataSource.ts",
+        "typeorm:migrate:sign": "typeorm-ts-node-esm migration:run -d config/signOrmDataSource.ts",
+        "typeorm:migrate:scanner": "typeorm-ts-node-esm migration:run -d config/scannerOrmDataSource.ts"
     },
     "author": "",
     "license": "ISC",
