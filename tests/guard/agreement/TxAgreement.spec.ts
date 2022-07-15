@@ -6,10 +6,7 @@ import ErgoTestBoxes from "../../chains/ergo/testUtils/TestBoxes";
 import { EventTrigger } from "../../../src/models/Models";
 import TxAgreement from "../../../src/guard/agreement/TxAgreement";
 import { anything } from "ts-mockito";
-import { Utxo } from "../../../src/chains/cardano/models/Interfaces";
 import CardanoTestBoxes from "../../chains/cardano/testUtils/TestBoxes";
-import mockGetAddressBoxes from "../../chains/cardano/mocked/MockedKoios";
-import CardanoChain from "../../../src/chains/cardano/CardanoChain";
 import Configs from "../../../src/helpers/Configs";
 import TestUtils from "../../testUtils/TestUtils";
 import {
@@ -23,9 +20,7 @@ import {
     resetMockedEventProcessor
 } from "../mocked/MockedEventProcessor";
 import { mockGuardTurn } from "../../testUtils/MockedUtils";
-import { scannerAction } from "../../../src/db/models/scanner/ScannerModel";
-import eventProcessor from "../../../src/guard/EventProcessor";
-import EventProcessor from "../../../src/guard/EventProcessor";
+import { AgreementPayload, TransactionApproved } from "../../../src/guard/agreement/Interfaces";
 
 describe("TxAgreement", () => {
     const eventBoxAndCommitments = ErgoTestBoxes.mockEventBoxWithSomeCommitments()
@@ -365,52 +360,112 @@ describe("TxAgreement", () => {
 
     })
 
-    // describe("processAgreementResponse", () => {
-    //
-    //     /**
-    //      * Target: testing processAgreementResponse
-    //      * Dependencies:
-    //      *    ExplorerApi
-    //      * Expected Output:
-    //      *    The function should set tx as approved
-    //      */
-    //     it("should set the transaction as approved when the majority of guards agreed", () => {
-    //         // mock token payment event
-    //         const mockedEvent: EventTrigger = TestBoxes.mockTokenPaymentEventTrigger()
-    //         const tx = TestBoxes.mockTokenBurningTokenPaymentTransaction(mockedEvent, eventBoxAndCommitments)
-    //
-    //         // initialize tx array
-    //         const txAgreement = new TxAgreement()
-    //         txAgreement.startAgreementProcess(tx)
-    //         // call handleMessage multiple times
-    //
-    //         // run test TODO
-    //         // call handleMessage as the last request and verify changes
-    //     })
-    //
-    //     /**
-    //      * Target: testing processAgreementResponse
-    //      * Dependencies:
-    //      *    ExplorerApi
-    //      * Expected Output:
-    //      *    The function should set tx as approved
-    //      */
-    //     it("should not set the transaction as approved when it is impossible that minimum guards agree with it", () => {
-    //         // mock token payment event
-    //         const mockedEvent: EventTrigger = TestBoxes.mockTokenPaymentEventTrigger()
-    //         const tx = TestBoxes.mockTokenBurningTokenPaymentTransaction(mockedEvent, eventBoxAndCommitments)
-    //
-    //         // initialize tx array
-    //         const txAgreement = new TxAgreement()
-    //         txAgreement.startAgreementProcess(tx)
-    //         // call handleMessage multiple times
-    //
-    //         // run test TODO
-    //         // call handleMessage as the last request and verify changes
-    //     })
-    //
-    // })
-    //
+    describe("processAgreementResponse", () => {
+
+        /**
+         * Target: testing processAgreementResponse
+         * Dependencies:
+         *    ExplorerApi
+         * Expected Output:
+         *    The function should set tx as approved
+         */
+        it("should set the transaction as approved when the majority of guards agreed", () => {
+            // mock token payment event
+            const mockedEvent: EventTrigger = ErgoTestBoxes.mockTokenPaymentEventTrigger()
+            const tx = ErgoTestBoxes.mockTokenTransferringErgDistributionTransaction(mockedEvent, eventBoxAndCommitments)
+
+            // initialize tx array
+            const txAgreement = new TxAgreement()
+            txAgreement.startAgreementProcess(tx)
+            const agreements: AgreementPayload[] = [{
+                "guardId": Configs.guardId,
+                "signature": tx.signMetaData()
+            }]
+
+            // simulate 4 agreements
+            for (let i = 0; i < 4; i++) {
+                if (i == 1) continue
+                const senderId = i
+                const guardSignature = TestUtils.signTxMetaData(tx.txBytes, senderId)
+                txAgreement.processAgreementResponse(tx.txId, true, senderId, guardSignature)
+                agreements.push({
+                    "guardId": senderId,
+                    "signature": guardSignature
+                })
+            }
+            // simulate duplicate agreement
+            let senderId = 2
+            let guardSignature = TestUtils.signTxMetaData(tx.txBytes, senderId)
+            txAgreement.processAgreementResponse(tx.txId, true, senderId, guardSignature)
+
+            // run test
+            senderId = 6
+            guardSignature = TestUtils.signTxMetaData(tx.txBytes, senderId)
+            txAgreement.processAgreementResponse(tx.txId, true, senderId, guardSignature)
+            agreements.push({
+                "guardId": senderId,
+                "signature": guardSignature
+            })
+
+            // verify
+            verifySendMessageCalledOnce("tx-agreement", {
+                "type": "approval",
+                "payload": {
+                    "txId": tx.txId,
+                    "guardsSignatures": agreements
+                }
+            })
+        })
+
+        /**
+         * Target: testing processAgreementResponse
+         * Dependencies:
+         *    ExplorerApi
+         * Expected Output:
+         *    The function should set tx as approved
+         */
+        it("should not set the transaction as approved when it is impossible that minimum guards agree with it", () => {
+            // mock token payment event
+            const mockedEvent: EventTrigger = ErgoTestBoxes.mockTokenPaymentEventTrigger()
+            const tx = ErgoTestBoxes.mockTokenBurningErgDistributionTransaction(mockedEvent, eventBoxAndCommitments)
+
+            // initialize tx array
+            const txAgreement = new TxAgreement()
+            txAgreement.startAgreementProcess(tx)
+            const rejects = []
+
+            // simulate 2 reject response
+            for (let i = 0; i < 3; i++) {
+                if (i == 1) continue
+                const senderId = i
+                txAgreement.processAgreementResponse(tx.txId, false, senderId, "")
+                rejects.push(senderId)
+            }
+            // simulate 1 agreement
+            let senderId = 4
+            let guardSignature = TestUtils.signTxMetaData(tx.txBytes, senderId)
+            txAgreement.processAgreementResponse(tx.txId, true, senderId, guardSignature)
+            // simulate duplicate reject
+            senderId = 2
+            txAgreement.processAgreementResponse(tx.txId, false, senderId, "")
+
+            // run test
+            senderId = 6
+            txAgreement.processAgreementResponse(tx.txId, false, senderId, "")
+            rejects.push(senderId)
+
+            // verify
+            verifySendMessageDidntGetCalled("tx-agreement", {
+                "type": "approval",
+                "payload": {
+                    "txId": tx.txId,
+                    "guardsSignatures": anything()
+                }
+            })
+        })
+
+    })
+
     // describe("processApprovalMessage", () => {
     //
     //     /**
