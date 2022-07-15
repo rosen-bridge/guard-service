@@ -6,7 +6,7 @@ let mockedEventProcessor = spy(EventProcessor)
 
 /**
  * mocks eventProcessor isEventConfirmed method to return result when called for an event
- * TODO: currently, specifying argument does not work. ts-mockito deepEqual malfunction with EventTrigger type
+ *  Note: currently, specifying argument does not work. ts-mockito deepEqual malfunctions with EventTrigger type.
  * @param event
  * @param result
  */
@@ -16,7 +16,7 @@ const mockIsEventConfirmedEnough = (event: EventTrigger, result: boolean): void 
 
 /**
  * mocks eventProcessor verifyPaymentTransactionWithEvent method to return result when called for an event
- * TODO: currently, specifying argument does not work. ts-mockito deepEqual malfunction with EventTrigger type
+ *  Note: currently, specifying argument does not work. ts-mockito deepEqual malfunctions with EventTrigger type.
  * @param tx
  * @param event
  * @param result

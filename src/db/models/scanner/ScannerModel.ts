@@ -16,13 +16,12 @@ class ScannerDataBase {
      * @param txId the transaction id
      */
     setEventTxAsApproved = async (txId: string): Promise<void> => {
-        await this.EventRepository.createQueryBuilder("events")
-            .innerJoinAndSelect("eventTxs", "txs", "events.sourceTxId = txs.eventId")
+        await this.EventRepository.createQueryBuilder()
             .update()
             .set({
                 status: "approved"
             })
-            .where("txs.txId = :id", {id: txId})
+            .where("txId = :id", {id: txId})
             .execute()
     }
 

@@ -17,11 +17,13 @@ class TxAgreement {
 
     private static CHANNEL = "tx-agreement"
     private transactions: Map<string, PaymentTransaction>
+    private agreedTransactions: Map<string, PaymentTransaction>
     private transactionApprovals: Map<string, AgreementPayload[]>
     private rejectedResponses: Map<string, number[]>
 
     constructor() {
         this.transactions = new Map()
+        this.agreedTransactions = new Map()
         this.transactionApprovals = new Map()
         this.rejectedResponses = new Map()
         dialer.subscribeChannel(TxAgreement.CHANNEL, this.handleMessage)
@@ -125,6 +127,8 @@ class TxAgreement {
         ) {
             agreementPayload.agreed = true
             agreementPayload.signature = tx.signMetaData()
+            this.agreedTransactions.set(tx.txId, tx)
+            // set event tx in db
         }
 
         const message = {
@@ -203,6 +207,8 @@ class TxAgreement {
                 this.transactions.delete(txId)
                 if (this.transactionApprovals.get(txId) !== undefined) this.transactionApprovals.delete(txId)
                 this.rejectedResponses.delete(txId)
+
+                // TODO: remove tx data from event info in db
             }
         }
     }
@@ -214,7 +220,7 @@ class TxAgreement {
      * @param sender
      */
     processApprovalMessage = async (txId: string, guardsSignatures: AgreementPayload[], sender: string): Promise<void> => {
-        const tx = this.transactions.get(txId)
+        const tx = this.agreedTransactions.get(txId)
         if (tx === undefined) return
 
         if (guardsSignatures.some(approval => !tx.verifyMetaDataSignature(approval.guardId, approval.signature))) {
@@ -255,6 +261,8 @@ class TxAgreement {
         this.transactionApprovals.clear()
         this.rejectedResponses.clear()
     }
+
+    // TODO: clear tx in db which didn't get approved by the end of turn
 
 }
 
