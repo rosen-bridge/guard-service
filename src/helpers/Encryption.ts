@@ -1,7 +1,7 @@
 import { blake2b } from 'blakejs';
 import pkg from "secp256k1";
 
-class Codecs {
+class Encryption {
 
     /**
      * signs message using ECDSA
@@ -25,16 +25,6 @@ class Codecs {
         return pkg.ecdsaVerify(Uint8Array.from(signature), Uint8Array.from(bytes), Uint8Array.from(publicKey))
     }
 
-    /**
-     * converts number to 1 byte Uint8Array
-     * @param num
-     */
-    static numberToByte = (num: number): Uint8Array => {
-        const buffer = Buffer.alloc(1, 0)
-        buffer.writeUint8(num)
-        return buffer
-    }
-
 }
 
-export default Codecs
+export default Encryption

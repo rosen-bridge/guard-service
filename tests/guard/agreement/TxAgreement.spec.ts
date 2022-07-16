@@ -57,7 +57,6 @@ describe("TxAgreement", () => {
 
     })
 
-    // TODO: verify db change in all tests of this group
     describe("processTransactionRequest", () => {
 
         beforeEach("clear scanner database tables", () => {

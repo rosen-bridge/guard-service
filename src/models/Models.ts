@@ -1,7 +1,8 @@
 import { PaymentTransactionModel, EventTriggerModel } from "./Interfaces";
-import Codecs from "../helpers/Codecs";
+import Encryption from "../helpers/Encryption";
 import Configs from "../helpers/Configs";
 import { EventTriggerEntity } from "../db/entities/scanner/EventTriggerEntity";
+import Utils from "../helpers/Utils";
 
 
 /* tslint:disable:max-classes-per-file */
@@ -93,10 +94,10 @@ class PaymentTransaction implements PaymentTransactionModel {
      * @return signature
      */
     signMetaData = (): string => {
-        const idBuffer = Codecs.numberToByte(Configs.guardId)
+        const idBuffer = Utils.numberToByte(Configs.guardId)
         const data = Buffer.concat([this.txBytes, idBuffer]).toString("hex")
 
-        const signature  = Codecs.sign(data, Buffer.from(Configs.guardSecret, "hex"))
+        const signature  = Encryption.sign(data, Buffer.from(Configs.guardSecret, "hex"))
         return Buffer.from(signature).toString("hex")
     }
 
@@ -107,7 +108,7 @@ class PaymentTransaction implements PaymentTransactionModel {
      * @return true if signature verified
      */
     verifyMetaDataSignature = (signerId: number, msgSignature: string): boolean => {
-        const idBuffer = Codecs.numberToByte(signerId)
+        const idBuffer = Utils.numberToByte(signerId)
         const data = Buffer.concat([this.txBytes, idBuffer]).toString("hex")
         const signatureBytes = Buffer.from(msgSignature, "hex")
 
@@ -117,7 +118,7 @@ class PaymentTransaction implements PaymentTransactionModel {
             return false
         }
 
-        return Codecs.verify(data, signatureBytes, Buffer.from(publicKey, "hex"))
+        return Encryption.verify(data, signatureBytes, Buffer.from(publicKey, "hex"))
     }
 
     /**
