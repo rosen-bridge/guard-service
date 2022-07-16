@@ -35,25 +35,25 @@ class TxAgreement {
      * @param channel
      * @param sender
      */
-    handleMessage = (messageStr: string, channel: string, sender: string): void => {
+    handleMessage = async (messageStr: string, channel: string, sender: string): Promise<void> => {
         const message = JSON.parse(messageStr) as AgreementMessage;
 
         switch (message.type) {
             case "request": {
                 const candidate = message.payload as CandidateTransaction
-                const tx = JSON.parse(candidate.txJson) as PaymentTransaction
-                this.processTransactionRequest(tx, candidate.guardId, candidate.signature, sender)
+                const tx = PaymentTransaction.fromJson(candidate.txJson)
+                await this.processTransactionRequest(tx, candidate.guardId, candidate.signature, sender)
                 break;
             }
             case "response": {
                 const response = message.payload as GuardsAgreement
-                this.processAgreementResponse(response.txId, response.agreed, response.guardId, response.signature)
+                await this.processAgreementResponse(response.txId, response.agreed, response.guardId, response.signature)
                 break;
             }
             case "approval": {
                 const approval = message.payload as TransactionApproved
                 const tx = JSON.parse(approval.txJson) as PaymentTransaction
-                this.processApprovalMessage(tx, approval.guardsSignatures, sender)
+                await this.processApprovalMessage(tx, approval.guardsSignatures, sender)
                 break
             }
         }
@@ -87,7 +87,7 @@ class TxAgreement {
      */
     broadcastTransactionRequest = (tx: PaymentTransaction, creatorId: number, guardSignature: string): void => {
         const candidatePayload = {
-            "tx": tx.toJson(),
+            "txJson": tx.toJson(),
             "guardId": creatorId,
             "signature": guardSignature
         }

@@ -5,7 +5,7 @@ import {
 import ErgoTestBoxes from "../../chains/ergo/testUtils/TestBoxes";
 import { EventTrigger } from "../../../src/models/Models";
 import TxAgreement from "../../../src/guard/agreement/TxAgreement";
-import { anything } from "ts-mockito";
+import { anything, deepEqual, reset, spy, verify, when } from "ts-mockito";
 import CardanoTestBoxes from "../../chains/cardano/testUtils/TestBoxes";
 import Configs from "../../../src/helpers/Configs";
 import TestUtils from "../../testUtils/TestUtils";
@@ -20,7 +20,7 @@ import {
     resetMockedEventProcessor
 } from "../mocked/MockedEventProcessor";
 import { mockGuardTurn } from "../../testUtils/MockedUtils";
-import { AgreementPayload } from "../../../src/guard/agreement/Interfaces";
+import { AgreementPayload, GuardsAgreement, TransactionApproved } from "../../../src/guard/agreement/Interfaces";
 import { expect } from "chai";
 
 describe("TxAgreement", () => {
@@ -31,7 +31,7 @@ describe("TxAgreement", () => {
         /**
          * Target: testing startAgreementProcess
          * Dependencies:
-         *    Dialer
+         *    -
          * Expected Output:
          *    The function should broadcast tx agreement request to other guards
          */
@@ -48,7 +48,7 @@ describe("TxAgreement", () => {
             verifySendMessageCalledOnce("tx-agreement", {
                 "type": "request",
                 "payload": {
-                    "tx": tx.toJson(),
+                    "txJson": tx.toJson(),
                     "guardId": 1,
                     "signature": anything()
                 }
@@ -157,7 +157,7 @@ describe("TxAgreement", () => {
          * Target: testing processTransactionRequest
          * Dependencies:
          *    scannerAction
-         *    eventProcessor
+         *    EventProcessor
          * Expected Output:
          *    The function should not respond to request
          */
@@ -207,7 +207,7 @@ describe("TxAgreement", () => {
          * Target: testing processTransactionRequest
          * Dependencies:
          *    scannerAction
-         *    eventProcessor
+         *    EventProcessor
          * Expected Output:
          *    The function should reject the request
          */
@@ -339,7 +339,9 @@ describe("TxAgreement", () => {
         /**
          * Target: testing processTransactionRequest
          * Dependencies:
-         *    ExplorerApi
+         *    scannerAction
+         *    EventProcessor
+         *    Utils
          * Expected Output:
          *    The function should reject the request
          */
@@ -391,7 +393,7 @@ describe("TxAgreement", () => {
         /**
          * Target: testing processAgreementResponse
          * Dependencies:
-         *    ExplorerApi
+         *    scannerAction
          * Expected Output:
          *    The function should set tx as approved
          */
@@ -450,7 +452,9 @@ describe("TxAgreement", () => {
         /**
          * Target: testing processAgreementResponse
          * Dependencies:
-         *    ExplorerApi
+         *    scannerAction
+         *    EventProcessor
+         *    Utils
          * Expected Output:
          *    The function should set tx as approved
          */
@@ -509,7 +513,9 @@ describe("TxAgreement", () => {
         /**
          * Target: testing processApprovalMessage
          * Dependencies:
-         *    ExplorerApi
+         *    scannerAction
+         *    EventProcessor
+         *    Utils
          * Expected Output:
          *    The function should set tx as approved
          */
@@ -555,7 +561,9 @@ describe("TxAgreement", () => {
         /**
          * Target: testing processApprovalMessage
          * Dependencies:
-         *    ExplorerApi
+         *    scannerAction
+         *    EventProcessor
+         *    Utils
          * Expected Output:
          *    The function should set tx as approved
          */
@@ -595,7 +603,9 @@ describe("TxAgreement", () => {
         /**
          * Target: testing processApprovalMessage
          * Dependencies:
-         *    ExplorerApi
+         *    scannerAction
+         *    EventProcessor
+         *    Utils
          * Expected Output:
          *    The function should set tx as approved
          */
@@ -654,7 +664,7 @@ describe("TxAgreement", () => {
         /**
          * Target: testing resendTransactionRequests
          * Dependencies:
-         *    ExplorerApi
+         *    -
          * Expected Output:
          *    The function should resend tx request
          */
@@ -677,7 +687,7 @@ describe("TxAgreement", () => {
             verifySendMessageCalledTwice("tx-agreement", {
                 "type": "request",
                 "payload": {
-                    "tx": tx1.toJson(),
+                    "txJson": tx1.toJson(),
                     "guardId": 1,
                     "signature": anything()
                 }
@@ -685,11 +695,178 @@ describe("TxAgreement", () => {
             verifySendMessageCalledTwice("tx-agreement", {
                 "type": "request",
                 "payload": {
-                    "tx": tx2.toJson(),
+                    "txJson": tx2.toJson(),
                     "guardId": 1,
                     "signature": anything()
                 }
             })
+        })
+
+    })
+
+    describe("clearAgreedTransactions", () => {
+
+        beforeEach("clear scanner database tables", () => {
+            clearEventTable()
+        })
+
+        /**
+         * Target: testing clearAgreedTransactions
+         * Dependencies:
+         *    scannerAction
+         * Expected Output:
+         *    The function should delete some tx from db
+         */
+        it("should remove agreed status, txId and txJson for all event with agreed status", async () => {
+            // mock token payment event
+            const mockedEvent1: EventTrigger = CardanoTestBoxes.mockAssetPaymentEventTrigger()
+            const tx1 = CardanoTestBoxes.mockNoAssetsTransferringPaymentTransaction(mockedEvent1, CardanoTestBoxes.testBankAddress)
+            await insertEventRecord(mockedEvent1, "agreed", tx1.txId, tx1.toJson())
+
+            const mockedEvent2: EventTrigger = CardanoTestBoxes.mockAssetPaymentEventTrigger()
+            const tx2 = CardanoTestBoxes.mockMultiAssetsTransferringPaymentTransaction(mockedEvent2, CardanoTestBoxes.testBankAddress)
+            await insertEventRecord(mockedEvent2, "agreed", tx2.txId, tx2.toJson())
+
+            const mockedEvent3: EventTrigger = CardanoTestBoxes.mockAssetPaymentEventTrigger()
+            const tx3 = CardanoTestBoxes.mockTwoAssetsTransferringPaymentTransaction(mockedEvent3, CardanoTestBoxes.testBankAddress)
+            await insertEventRecord(mockedEvent3, "approved", tx3.txId, tx3.toJson())
+
+            const mockedEvent4: EventTrigger = CardanoTestBoxes.mockAssetPaymentEventTrigger()
+            await insertEventRecord(mockedEvent4, "")
+
+            // run test
+            const txAgreement = new TxAgreement()
+            await txAgreement.clearAgreedTransactions()
+
+            // verify
+            const dbEvents = await allEventRecords()
+            expect(dbEvents.filter(event => event.status === "agreed").length).to.equal(0)
+            expect(dbEvents.filter(event => event.status === "approved").length).to.equal(1)
+            expect(dbEvents.filter(event => event.status === "").length).to.equal(3)
+        })
+
+    })
+
+    describe("handleMessage", () => {
+        const channel = "tx-agreement"
+
+        /**
+         * Target: testing handleMessage
+         * Dependencies:
+         *    scannerAction
+         * Expected Output:
+         *    The function should call corresponding handler method
+         */
+        it("should call processTransactionRequest for request type messages", async () => {
+            // mock token payment event
+            const mockedEvent: EventTrigger = CardanoTestBoxes.mockAssetPaymentEventTrigger()
+            const tx = CardanoTestBoxes.mockNoAssetsTransferringPaymentTransaction(mockedEvent, CardanoTestBoxes.testBankAddress)
+
+            // generate test data
+            const signature = "guardSignature"
+            const sender = "testSender"
+            const candidatePayload = {
+                "txJson": tx.toJson(),
+                "guardId": 0,
+                "signature": signature
+            }
+            const message = {
+                "type": "request",
+                "payload": candidatePayload
+            }
+
+            // run test
+            const txAgreement = new TxAgreement()
+            const spiedTxAgreement = spy(txAgreement)
+            when(spiedTxAgreement.processTransactionRequest(anything(), anything(), anything(), anything())).thenResolve()
+            await txAgreement.handleMessage(JSON.stringify(message), channel, sender)
+
+            // verify
+            //  Note: deepEqual doesn't work for PaymentTransaction object either. So, anything() used.
+            verify(spiedTxAgreement.processTransactionRequest(anything(), 0, signature, sender)).once()
+            reset(spiedTxAgreement)
+        })
+
+        /**
+         * Target: testing handleMessage
+         * Dependencies:
+         *    scannerAction
+         * Expected Output:
+         *    The function should call corresponding handler method
+         */
+        it("should call processAgreementResponse for response type messages", async () => {
+            // mock token payment event
+            const mockedEvent: EventTrigger = CardanoTestBoxes.mockAssetPaymentEventTrigger()
+            const tx = CardanoTestBoxes.mockNoAssetsTransferringPaymentTransaction(mockedEvent, CardanoTestBoxes.testBankAddress)
+
+            // generate test data
+            const signature = "guardSignature"
+            const sender = "testSender"
+            const agreementPayload: GuardsAgreement = {
+                "guardId": 0,
+                "signature": signature,
+                "txId": tx.txId,
+                "agreed": true
+            }
+            const message = {
+                "type": "response",
+                "payload": agreementPayload
+            }
+
+            // run test
+            const txAgreement = new TxAgreement()
+            const spiedTxAgreement = spy(txAgreement)
+            when(spiedTxAgreement.processAgreementResponse(anything(), anything(), anything(), anything())).thenResolve()
+            await txAgreement.handleMessage(JSON.stringify(message), channel, sender)
+
+            // verify
+            verify(spiedTxAgreement.processAgreementResponse(tx.txId, true, 0, signature)).once()
+            reset(spiedTxAgreement)
+        })
+
+        /**
+         * Target: testing handleMessage
+         * Dependencies:
+         *    scannerAction
+         * Expected Output:
+         *    The function should call corresponding handler method
+         */
+        it("should call processAgreementResponse for response type messages", async () => {
+            // mock token payment event
+            const mockedEvent: EventTrigger = CardanoTestBoxes.mockAssetPaymentEventTrigger()
+            const tx = CardanoTestBoxes.mockNoAssetsTransferringPaymentTransaction(mockedEvent, CardanoTestBoxes.testBankAddress)
+
+            // generate test data
+            const signatures = [
+                {
+                    "guardId": 0,
+                    "signature": "sig0"
+                },
+                {
+                    "guardId": 1,
+                    "signature": "sig1"
+                }
+            ]
+            const sender = "testSender"
+            const txApproval: TransactionApproved = {
+                "txJson": tx.toJson(),
+                "guardsSignatures": signatures
+            }
+            const message = {
+                "type": "approval",
+                "payload": txApproval
+            }
+
+            // run test
+            const txAgreement = new TxAgreement()
+            const spiedTxAgreement = spy(txAgreement)
+            when(spiedTxAgreement.processApprovalMessage(anything(), anything(), anything())).thenResolve()
+            await txAgreement.handleMessage(JSON.stringify(message), channel, sender)
+
+            // verify
+            //  Note: deepEqual doesn't work for PaymentTransaction object either. So, anything() used.
+            verify(spiedTxAgreement.processApprovalMessage(anything(), deepEqual(signatures), sender)).once()
+            reset(spiedTxAgreement)
         })
 
     })

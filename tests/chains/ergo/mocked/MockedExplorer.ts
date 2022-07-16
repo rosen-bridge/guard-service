@@ -1,4 +1,4 @@
-import { anything, reset, spy, when } from "ts-mockito";
+import { anything, reset, spy, verify, when } from "ts-mockito";
 import ExplorerApi from "../../../../src/chains/ergo/network/ExplorerApi";
 import { Boxes, CoveringErgoBoxes } from "../../../../src/chains/ergo/models/Interfaces";
 
@@ -44,6 +44,15 @@ const mockGetBoxesForErgoTree = (ergoTree: string, returnBoxes: Boxes): void => 
 }
 
 /**
+ * mocks ExplorerApi getTxConfirmation method to return confirmation when called for txId
+ * @param txId
+ * @param confirmation
+ */
+const mockExplorerGetTxConfirmationCalledOnce = (txId: string, confirmation: number): void => {
+    when(mockedExplorer.getTxConfirmation(txId)).thenResolve(confirmation)
+}
+
+/**
  * resets mocked methods of ExplorerApi
  */
 const resetMockedExplorerApi = (): void => {
@@ -51,4 +60,9 @@ const resetMockedExplorerApi = (): void => {
     mockedExplorer = spy(ExplorerApi)
 }
 
-export { mockGetCoveringErgAndTokenForErgoTree, mockGetBoxesForErgoTree, resetMockedExplorerApi }
+export {
+    mockGetCoveringErgAndTokenForErgoTree,
+    mockGetBoxesForErgoTree,
+    mockExplorerGetTxConfirmationCalledOnce,
+    resetMockedExplorerApi
+}

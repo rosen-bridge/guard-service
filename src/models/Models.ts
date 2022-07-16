@@ -1,8 +1,9 @@
-import { PaymentTransactionModel, EventTriggerModel } from "./Interfaces";
+import { PaymentTransactionModel, EventTriggerModel, PaymentTransactionJsonModel } from "./Interfaces";
 import Encryption from "../helpers/Encryption";
 import Configs from "../helpers/Configs";
 import { EventTriggerEntity } from "../db/entities/scanner/EventTriggerEntity";
 import Utils from "../helpers/Utils";
+import ErgoUtils from "../chains/ergo/helpers/Utils"
 
 
 /* tslint:disable:max-classes-per-file */
@@ -80,6 +81,16 @@ class PaymentTransaction implements PaymentTransactionModel {
         this.txId = txId
         this.eventId = eventId
         this.txBytes = txBytes
+    }
+
+    static fromJson = (jsonString: string): PaymentTransaction => {
+        const obj = JSON.parse(jsonString) as PaymentTransactionJsonModel
+        return new PaymentTransaction(
+            obj.network,
+            obj.txId,
+            obj.eventId,
+            ErgoUtils.hexStringToUint8Array(obj.txBytes)
+        )
     }
 
     /**

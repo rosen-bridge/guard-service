@@ -31,12 +31,18 @@ const testScannerDataBase = new ScannerDataBase(testScannerOrmDataSource)
 
 // mock all tssSignAction methods to call test database methods
 const mockedScannerAction = spy(scannerAction)
-when(mockedScannerAction.getEventById(anything())).thenCall(testScannerDataBase.getEventById)
-when(mockedScannerAction.setEventTxAsApproved(anything())).thenCall(testScannerDataBase.setEventTxAsApproved)
-when(mockedScannerAction.setEventTx(anything(), anything(), anything(), anything())).thenCall(testScannerDataBase.setEventTx)
-when(mockedScannerAction.setEventTx(anything(), anything(), anything())).thenCall(testScannerDataBase.setEventTx)
-when(mockedScannerAction.removeEventTx(anything())).thenCall(testScannerDataBase.removeEventTx)
-when(mockedScannerAction.removeAgreedTx()).thenCall(testScannerDataBase.removeAgreedTx)
+when(mockedScannerAction.getEventById(anything()))
+    .thenCall(testScannerDataBase.getEventById)
+when(mockedScannerAction.setEventTxAsApproved(anything()))
+    .thenCall(testScannerDataBase.setEventTxAsApproved)
+when(mockedScannerAction.setEventTx(anything(), anything(), anything(), anything()))
+    .thenCall(testScannerDataBase.setEventTx)
+when(mockedScannerAction.setEventTx(anything(), anything(), anything()))
+    .thenCall(testScannerDataBase.setEventTx)
+when(mockedScannerAction.removeEventTx(anything()))
+    .thenCall(testScannerDataBase.removeEventTx)
+when(mockedScannerAction.removeAgreedTx())
+    .thenCall(testScannerDataBase.removeAgreedTx)
 
 /**
  * deletes every record in Event table in ScannerDatabase

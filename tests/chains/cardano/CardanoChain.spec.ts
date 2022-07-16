@@ -1,4 +1,4 @@
-import mockGetAddressBoxes from "./mocked/MockedKoios";
+import { mockGetAddressBoxes } from "./mocked/MockedKoios";
 import CardanoChain from "../../../src/chains/cardano/CardanoChain";
 import { EventTrigger } from "../../../src/models/Models";
 import TestBoxes from "./testUtils/TestBoxes";
