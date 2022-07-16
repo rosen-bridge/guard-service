@@ -1,10 +1,12 @@
 import { DataSource, Repository } from "typeorm";
 import { EventTriggerEntity } from "../../entities/scanner/EventTriggerEntity";
 import { scannerOrmDataSource } from "../../../../config/scannerOrmDataSource";
+import { Semaphore } from "await-semaphore";
 
 class ScannerDataBase {
     dataSource: DataSource;
     EventRepository: Repository<EventTriggerEntity>;
+    private semaphore = new Semaphore(1)
 
     constructor(dataSource: DataSource) {
         this.dataSource = dataSource;
@@ -44,15 +46,22 @@ class ScannerDataBase {
      * @param status status of the process
      */
     setEventTx = async (eventId: string, txId: string, txJson: string, status: string = "agreed"): Promise<void> => {
-        await this.EventRepository.createQueryBuilder()
-            .update()
-            .set({
-                status: status,
-                txId: txId,
-                paymentTxJson: txJson
-            })
-            .where("sourceTxId = :id", {id: eventId})
-            .execute()
+        await this.semaphore.acquire().then(async (release) => {
+            const event = await this.getEventById(eventId)
+            if (event === null) return
+            else if (event.txId === null || event.txId <= txId) {
+                await this.EventRepository.createQueryBuilder()
+                    .update()
+                    .set({
+                        status: status,
+                        txId: txId,
+                        paymentTxJson: txJson
+                    })
+                    .where("sourceTxId = :id", {id: eventId})
+                    .execute()
+            }
+            release()
+        })
     }
 
     /**
