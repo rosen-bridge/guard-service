@@ -16,15 +16,15 @@ const testSignOrmDataSource = new DataSource({
     logging: false
 });
 
-await testSignOrmDataSource
-    .initialize()
-    .then(async () => {
-        await testSignOrmDataSource.runMigrations()
-        console.log("Test Sign Data Source has been initialized!");
-    })
-    .catch((err) => {
-        console.error("Error during Test Sign Data Source initialization:", err);
-    });
+
+try {
+    await testSignOrmDataSource.initialize()
+    await testSignOrmDataSource.runMigrations()
+    console.log("Test Sign Data Source has been initialized!");
+}
+catch(err) {
+    console.error("Error during Test Sign Data Source initialization:", err);
+}
 
 const testSignDataBase = new SignDataBase(testSignOrmDataSource)
 

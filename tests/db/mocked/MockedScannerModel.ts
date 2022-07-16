@@ -17,15 +17,15 @@ const testScannerOrmDataSource = new DataSource({
     logging: false
 });
 
-await testScannerOrmDataSource
-    .initialize()
-    .then(async () => {
-        await testScannerOrmDataSource.runMigrations()
-        console.log("Test Scanner Data Source has been initialized!");
-    })
-    .catch((err) => {
-        console.error("Error during Test Scanner Data Source initialization:", err);
-    });
+
+try {
+    await testScannerOrmDataSource.initialize()
+    await testScannerOrmDataSource.runMigrations()
+    console.log("Test Scanner Data Source has been initialized!");
+}
+catch(err) {
+    console.error("Error during Test Scanner Data Source initialization:", err);
+}
 
 const testScannerDataBase = new ScannerDataBase(testScannerOrmDataSource)
 

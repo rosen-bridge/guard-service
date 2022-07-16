@@ -415,7 +415,7 @@ describe("TxAgreement", () => {
                 if (i == 1) continue
                 const senderId = i
                 const guardSignature = TestUtils.signTxMetaData(tx.txBytes, senderId)
-                txAgreement.processAgreementResponse(tx.txId, true, senderId, guardSignature)
+                await txAgreement.processAgreementResponse(tx.txId, true, senderId, guardSignature)
                 agreements.push({
                     "guardId": senderId,
                     "signature": guardSignature
@@ -424,12 +424,12 @@ describe("TxAgreement", () => {
             // simulate duplicate agreement
             let senderId = 2
             let guardSignature = TestUtils.signTxMetaData(tx.txBytes, senderId)
-            txAgreement.processAgreementResponse(tx.txId, true, senderId, guardSignature)
+            await txAgreement.processAgreementResponse(tx.txId, true, senderId, guardSignature)
 
             // run test
             senderId = 6
             guardSignature = TestUtils.signTxMetaData(tx.txBytes, senderId)
-            txAgreement.processAgreementResponse(tx.txId, true, senderId, guardSignature)
+            await txAgreement.processAgreementResponse(tx.txId, true, senderId, guardSignature)
             agreements.push({
                 "guardId": senderId,
                 "signature": guardSignature
@@ -470,20 +470,19 @@ describe("TxAgreement", () => {
             for (let i = 0; i < 3; i++) {
                 if (i == 1) continue
                 const senderId = i
-                txAgreement.processAgreementResponse(tx.txId, false, senderId, "")
+                await txAgreement.processAgreementResponse(tx.txId, false, senderId, "")
                 rejects.push(senderId)
             }
             // simulate 1 agreement
             let senderId = 4
-            let guardSignature = TestUtils.signTxMetaData(tx.txBytes, senderId)
-            txAgreement.processAgreementResponse(tx.txId, true, senderId, guardSignature)
+            await txAgreement.processAgreementResponse(tx.txId, true, senderId, TestUtils.signTxMetaData(tx.txBytes, senderId))
             // simulate duplicate reject
             senderId = 2
-            txAgreement.processAgreementResponse(tx.txId, false, senderId, "")
+            await txAgreement.processAgreementResponse(tx.txId, false, senderId, "")
 
             // run test
             senderId = 6
-            txAgreement.processAgreementResponse(tx.txId, false, senderId, "")
+            await txAgreement.processAgreementResponse(tx.txId, false, senderId, "")
             rejects.push(senderId)
 
             // verify
