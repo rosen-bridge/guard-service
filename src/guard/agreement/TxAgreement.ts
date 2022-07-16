@@ -52,7 +52,8 @@ class TxAgreement {
             }
             case "approval": {
                 const approval = message.payload as TransactionApproved
-                this.processApprovalMessage(approval.txId, approval.guardsSignatures, sender)
+                const tx = JSON.parse(approval.txJson) as PaymentTransaction
+                this.processApprovalMessage(tx, approval.guardsSignatures, sender)
                 break
             }
         }
@@ -122,7 +123,7 @@ class TxAgreement {
         if (
             tx.verifyMetaDataSignature(creatorId, signature) &&
             Utils.guardTurn() === creatorId &&
-            eventEntity.txId === tx.txId &&
+            (eventEntity.txId === null || eventEntity.txId === tx.txId) &&
             EventProcessor.verifyPaymentTransactionWithEvent(tx, event)
         ) {
             agreementPayload.agreed = true
@@ -195,7 +196,7 @@ class TxAgreement {
                 console.log(`The majority of guards agreed with txId ${txId}`)
 
                 const txApproval: TransactionApproved = {
-                    "txId": txId,
+                    "txJson": tx.toJson(),
                     "guardsSignatures": this.transactionApprovals.get(txId)!
                 }
                 const message = {
@@ -225,20 +226,26 @@ class TxAgreement {
 
     /**
      * verifies approval message sent by other guards, set tx as approved if enough guards agreed with tx
-     * @param txId
+     * @param tx
      * @param guardsSignatures
      * @param sender
      */
-    processApprovalMessage = async (txId: string, guardsSignatures: AgreementPayload[], sender: string): Promise<void> => {
-        const tx = this.agreedTransactions.get(txId)
-        if (tx === undefined) return
+    processApprovalMessage = async (tx: PaymentTransaction, guardsSignatures: AgreementPayload[], sender: string): Promise<void> => {
+        const agreedTx = this.agreedTransactions.get(tx.txId)
 
         if (guardsSignatures.some(approval => !tx.verifyMetaDataSignature(approval.guardId, approval.signature))) {
-            console.warn(`Received approval message for txId: ${txId} from sender: ${sender} but at least one signature doesn't verify`)
+            console.warn(`Received approval message for txId: ${tx.txId} from sender: ${sender} but at least one signature doesn't verify`)
             return
         }
 
-        await this.setTxAsApproved(txId)
+        if (agreedTx === undefined) {
+            console.log(`Other guards [${guardsSignatures.map(approval => approval.guardId)}] agreed on tx with id: ${tx.txId}`)
+            await scannerAction.setEventTx(tx.eventId, tx.txId, tx.toJson(), "approved")
+        }
+        else {
+            console.log(`Transaction with txId: ${tx.txId} approved.`)
+            await this.setTxAsApproved(tx.txId)
+        }
     }
 
     /**

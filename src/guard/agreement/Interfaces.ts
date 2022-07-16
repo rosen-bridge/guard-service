@@ -18,7 +18,7 @@ interface GuardsAgreement extends AgreementPayload {
 }
 
 interface TransactionApproved {
-    txId: string,
+    txJson: string,
     guardsSignatures: AgreementPayload[]
 }
 

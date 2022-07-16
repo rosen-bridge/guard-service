@@ -41,12 +41,13 @@ class ScannerDataBase {
      * @param eventId the event trigger id
      * @param txId the transaction id
      * @param txJson json serialized of the transaction
+     * @param status status of the process
      */
-    setEventTx = async (eventId: string, txId: string, txJson: string): Promise<void> => {
+    setEventTx = async (eventId: string, txId: string, txJson: string, status: string = "agreed"): Promise<void> => {
         await this.EventRepository.createQueryBuilder()
             .update()
             .set({
-                status: "agreed",
+                status: status,
                 txId: txId,
                 paymentTxJson: txJson
             })
