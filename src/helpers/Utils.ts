@@ -4,7 +4,6 @@ class Utils {
 
     private static readonly guardsLen = Configs.guardsLen
     private static readonly guardId = Configs.guardId
-    private static readonly INITIAL_DELAY = 5 * 60 // 5 minutes
     private static readonly TURNS_LENGTH = 3 * 60 // 3 minutes
     private static readonly UP_TIME_LENGTH = 2 * 60 // 2 minutes
     private static readonly FULL_PERIOD = this.guardsLen * this.TURNS_LENGTH
@@ -14,15 +13,15 @@ class Utils {
      * splits timestamp into guardsLen * TURNS_LENGTH groups. calculates starting group.
      * calculates guard turn starting group by multiplying each TURNS_LENGTH by guard id and adding 1 second for insurance.
      * calculates differ from current group and guard turn starting group.
-     * uses reminder in FULL_PERIOD to calculates remaining time to next turn in 1 period (uses double reminder to prevent negative number).
+     * uses reminder in FULL_PERIOD to calculates remaining time to next turn in 1 period.
      * @return seconds to the guard next turn (plus 1 second for insurance)
      */
     static secondsToNextTurn = (): number => {
-        const startingTimeStamp = Date.now() + this.INITIAL_DELAY
-        const currentTurn = startingTimeStamp % (this.guardsLen * this.TURNS_LENGTH)
+        const startingTimeStamp = Date.now()
+        const currentTurn = startingTimeStamp % this.FULL_PERIOD
         const guardTurn = this.guardId * this.TURNS_LENGTH + 1 // (plus 1 second for insurance)
 
-        return ((guardTurn - currentTurn) % this.FULL_PERIOD + this.FULL_PERIOD) % this.FULL_PERIOD
+        return (guardTurn - currentTurn + this.FULL_PERIOD) % this.FULL_PERIOD
     }
 
     /**
@@ -34,7 +33,7 @@ class Utils {
      */
     static guardTurn = (): number => {
         const currentTimeStamp = Date.now()
-        const currentTurn = currentTimeStamp % (this.guardsLen * this.TURNS_LENGTH)
+        const currentTurn = currentTimeStamp % this.FULL_PERIOD
 
         if (currentTurn % this.TURNS_LENGTH > this.UP_TIME_LENGTH) return -1
         else return (currentTurn / this.guardsLen)
