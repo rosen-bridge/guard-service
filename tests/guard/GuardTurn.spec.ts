@@ -12,7 +12,7 @@ describe("guard turn methods", () => {
 
         // run test
         const result = Utils.secondsToNextTurn()
-        expect(result).to.equal(354)
+        expect(result).to.equal(654)
 
         // reset mocked Date object
         reset(date)
