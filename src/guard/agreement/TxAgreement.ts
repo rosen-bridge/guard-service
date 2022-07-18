@@ -290,4 +290,7 @@ class TxAgreement {
 
 }
 
+const txAgreement = new TxAgreement()
+
 export default TxAgreement
+export { txAgreement }

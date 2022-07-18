@@ -481,6 +481,19 @@ class Reward implements BaseChain<ReducedTransaction, ErgoTransaction> {
         }
     }
 
+    /**
+     * requests Multisig service to sign an ergo transaction
+     * @param tx the transaction
+     */
+    requestToSignTransaction = async (tx: ReducedTransaction): Promise<void> => {
+        try {
+            // TODO: implement this (Integration with Multisig service).
+        }
+        catch (e) {
+            console.log(`An error occurred while requesting Multisig service to sign Ergo tx: ${e.message}`)
+        }
+    }
+
 }
 
 export default Reward
