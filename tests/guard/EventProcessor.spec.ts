@@ -4,10 +4,15 @@ import { EventTrigger } from "../../src/models/Models";
 import TestUtils from "../testUtils/TestUtils";
 import EventProcessor from "../../src/guard/EventProcessor";
 import { mockKoiosGetTxConfirmationCalledOnce } from "../chains/cardano/mocked/MockedKoios";
+import { resetMockedEventProcessor } from "./mocked/MockedEventProcessor";
 
 describe("EventProcessor", () => {
 
     describe("isEventConfirmedEnough", () => {
+
+        beforeEach("reset isEventConfirmedEnough mock", () => {
+            resetMockedEventProcessor()
+        })
 
         /**
          * Target: testing isEventConfirmedEnough

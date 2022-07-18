@@ -1,4 +1,4 @@
-import { spy, when } from "ts-mockito";
+import { reset, spy, when } from "ts-mockito";
 import Utils from "../../src/helpers/Utils";
 
 let mockedUtils = spy(Utils)
@@ -11,6 +11,14 @@ const mockGuardTurn = (result: number): void => {
     when(mockedUtils.guardTurn()).thenReturn(result)
 }
 
+/**
+ * reset mocks methods of Utils
+ */
+const resetGuardTurn = (): void => {
+    reset(mockedUtils)
+}
+
 export {
-    mockGuardTurn
+    mockGuardTurn,
+    resetGuardTurn
 }

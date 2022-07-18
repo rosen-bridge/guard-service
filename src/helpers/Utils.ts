@@ -36,7 +36,7 @@ class Utils {
         const currentTurn = currentTimeStamp % this.FULL_PERIOD
 
         if (currentTurn % this.TURNS_LENGTH > this.UP_TIME_LENGTH) return -1
-        else return (currentTurn / this.guardsLen)
+        else return Math.floor(currentTurn / this.TURNS_LENGTH) % this.guardsLen
     }
 
     /**
