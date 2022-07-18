@@ -12,7 +12,12 @@ import { Multiaddr } from '@multiformats/multiaddr'
 import CommunicationConfig from "./CommunicationConfig";
 import { JsonBI } from "../network/NetworkModels"
 import { Connection, Stream } from "@libp2p/interfaces/src/connection";
-import { ReceiveDataCommunication, SendDataCommunication, SubscribeChannel } from "./Interfaces";
+import {
+    ReceiveDataCommunication,
+    SendDataCommunication,
+    SubscribeChannel,
+    SubscribeChannelFunction, SubscribeChannels
+} from "./Interfaces";
 
 
 // TODO: Need to write test for This package
@@ -21,7 +26,7 @@ class Dialer {
 
     private _NODE: Libp2p | undefined;
     private _RELAY_CONN: Connection | undefined;
-    private _SUBSCRIBED_CHANNELS: any = {};
+    private _SUBSCRIBED_CHANNELS: SubscribeChannels = {};
     private _PENDING_MESSAGE: SendDataCommunication[] = [];
 
     private constructor() {
@@ -62,15 +67,15 @@ class Dialer {
      * @param callback: a callback function for subscribed channel
      * @param url: string for apiCallbackFunction
      */
-    subscribeChannel = (channel: string, callback: SubscribeChannel, url?: string): void => {
-        const callbackObj: any = {
+    subscribeChannel = (channel: string, callback: SubscribeChannelFunction, url?: string): void => {
+        const callbackObj: SubscribeChannel = {
             func: callback
         }
         if (url) callbackObj.url = url
 
         if (this._SUBSCRIBED_CHANNELS[channel]){
             if (this._SUBSCRIBED_CHANNELS[channel].find(
-                (sub: { func: SubscribeChannel, url: string | undefined }) =>
+                (sub: SubscribeChannel) =>
                     sub.func.name === callback.name && sub.url === url
             )) {
                 console.log("a redundant subscribed channel detected !")
