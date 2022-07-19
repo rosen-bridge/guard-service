@@ -48,7 +48,7 @@ class EventProcessor {
             await scannerAction.setEventStatus(event.sourceTxId, "rejected")
             return
         }
-        console.log(`processing event ${event.getId}`)
+        console.log(`processing event ${event.sourceTxId}`)
 
         const tx = await this.createEventPayment(event)
         txAgreement.startAgreementProcess(tx)

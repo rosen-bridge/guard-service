@@ -43,6 +43,10 @@ when(mockedScannerAction.removeEventTx(anything()))
     .thenCall(testScannerDataBase.removeEventTx)
 when(mockedScannerAction.removeAgreedTx())
     .thenCall(testScannerDataBase.removeAgreedTx)
+when(mockedScannerAction.setEventStatus(anything(), anything()))
+    .thenCall(testScannerDataBase.setEventStatus)
+when(mockedScannerAction.getEventsByStatus(anything()))
+    .thenCall(testScannerDataBase.getEventsByStatus)
 
 /**
  * deletes every record in Event table in ScannerDatabase
