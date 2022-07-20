@@ -20,6 +20,15 @@ class KoiosApi {
             .then(res => res.data[0].utxo_set)
     }
 
+    /**
+     * gets tx confirmation
+     * @param txId
+     */
+    static getTxConfirmation = (txId: string): Promise<number> => {
+        return this.koios.post('/tx_status', {"_tx_hashes": [txId]})
+            .then(res => res.data[0].num_confirmations)
+    }
+
 }
 
 export default KoiosApi

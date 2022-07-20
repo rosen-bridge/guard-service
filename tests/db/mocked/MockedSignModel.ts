@@ -16,23 +16,26 @@ const testSignOrmDataSource = new DataSource({
     logging: false
 });
 
-await testSignOrmDataSource
-    .initialize()
-    .then(async () => {
-        await testSignOrmDataSource.runMigrations()
-        console.log("Test Sign Data Source has been initialized!");
-    })
-    .catch((err) => {
-        console.error("Error during Test Sign Data Source initialization:", err);
-    });
+
+try {
+    await testSignOrmDataSource.initialize()
+    await testSignOrmDataSource.runMigrations()
+    console.log("Test Sign Data Source has been initialized!");
+}
+catch(err) {
+    console.error("Error during Test Sign Data Source initialization:", err);
+}
 
 const testSignDataBase = new SignDataBase(testSignOrmDataSource)
 
 // mock all tssSignAction methods to call test database methods
 const mockedTssSignAction = spy(tssSignAction)
-when(mockedTssSignAction.updateSignature(anything(), anything(), anything())).thenCall(testSignDataBase.updateSignature)
-when(mockedTssSignAction.insertSignRequest(anything(), anything())).thenCall(testSignDataBase.insertSignRequest)
-when(mockedTssSignAction.getById(anything())).thenCall(testSignDataBase.getById)
+when(mockedTssSignAction.updateSignature(anything(), anything(), anything()))
+    .thenCall(testSignDataBase.updateSignature)
+when(mockedTssSignAction.insertSignRequest(anything(), anything()))
+    .thenCall(testSignDataBase.insertSignRequest)
+when(mockedTssSignAction.getById(anything()))
+    .thenCall(testSignDataBase.getById)
 
 /**
  * deletes every record in CardanoSign table in SignDatabase

@@ -230,7 +230,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
 
     /**
      * calculates amount of lovelace and assets in utxo boxes
-     * @param boxes the utxo boxes
+     * @param boxes the utxogenerateTransaction boxes
      */
     calculateInputBoxesAssets = (boxes: Utxo[]): UtxoBoxesAssets => {
         const multiAsset = MultiAsset.new()
