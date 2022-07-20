@@ -253,11 +253,16 @@ class TxAgreement {
      * @param txId
      */
     setTxAsApproved = async (txId: string): Promise<void> => {
-        await scannerAction.setEventTxAsApproved(txId)
-        this.transactions.delete(txId)
-        this.agreedTransactions.delete(txId)
-        this.transactionApprovals.delete(txId)
-        if (this.rejectedResponses.get(txId) !== undefined) this.rejectedResponses.delete(txId)
+        try {
+            await scannerAction.setEventTxAsApproved(txId)
+            this.transactions.delete(txId)
+            this.agreedTransactions.delete(txId)
+            this.transactionApprovals.delete(txId)
+            if (this.rejectedResponses.get(txId) !== undefined) this.rejectedResponses.delete(txId)
+        }
+        catch (e) {
+            console.log(`Unexpected Error occurred while setting tx [${txId}] as approved: ${e}`)
+        }
     }
 
     /**

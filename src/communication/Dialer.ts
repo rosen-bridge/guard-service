@@ -173,10 +173,10 @@ class Dialer {
     /**
      * send message to specific peer or broadcast it
      * @param channel: String
-     * @param msg: any (JsonBI)
+     * @param msg: string
      * @param receiver optional
      */
-    sendMessage = async (channel: string, msg: any, receiver?: string): Promise<void> => {
+    sendMessage = async (channel: string, msg: string, receiver?: string): Promise<void> => {
         const data: SendDataCommunication = {
             "msg": msg,
             "channel": channel

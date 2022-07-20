@@ -24,7 +24,7 @@ class Configs {
     static guards = config.get<GuardInfo[]>('guard.guards')
 
     // agreement configs (minimum number of guards that needs to agree with tx to get approved)
-    static minimumAgreement = config.get<number>('minimumAgreement')
+    static minimumAgreement = config.get<number>('minimumAgreement') // TODO: get this from config box in blockchain
 
 }
 
