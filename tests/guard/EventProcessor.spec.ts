@@ -20,6 +20,7 @@ import MockedCardanoChain from "../chains/mocked/MockedCardanoChain";
 import MockedErgoChain from "../chains/mocked/MockedErgoChain";
 import ErgoTestBoxes from "../chains/ergo/testUtils/TestBoxes";
 import TestBoxes from "../chains/ergo/testUtils/TestBoxes";
+import { scannerAction } from "../../src/db/models/scanner/ScannerModel";
 
 describe("EventProcessor", () => {
     const cardanoTestBankAddress = CardanoTestBoxes.testBankAddress
@@ -146,7 +147,7 @@ describe("EventProcessor", () => {
 
             // mock tx
             const tx = CardanoTestBoxes.mockMultiAssetsTransferringPaymentTransaction(mockedEvent, cardanoTestBankAddress)
-            mockedCardanoChain.mockGenerateTransactionCalledOnce(mockedEvent, tx)
+            mockedCardanoChain.mockGenerateTransaction(mockedEvent, tx)
             mockStartAgreementProcess(tx)
 
             // run test
@@ -176,7 +177,7 @@ describe("EventProcessor", () => {
 
             // mock tx
             const tx = ErgoTestBoxes.mockTokenBurningTokenDistributionTransaction(mockedEvent, ergoEventBoxAndCommitments)
-            mockedErgoChain.mockGenerateTransactionCalledOnce(mockedEvent, tx)
+            mockedErgoChain.mockGenerateTransaction(mockedEvent, tx)
             mockStartAgreementProcess(tx)
 
             // run test
@@ -185,6 +186,48 @@ describe("EventProcessor", () => {
             // verify
             verifyCreateEventPaymentCalledOnce(mockedEvent)
             verifyStartAgreementProcessCalledOnce(tx)
+        })
+
+    })
+
+    describe("signApprovedEvents", () => {
+
+        beforeEach("reset isEventConfirmedEnough mock", () => {
+            clearEventTable()
+            resetMockedEventProcessor()
+        })
+
+        /**
+         * Target: testing signApprovedEvents
+         * Dependencies:
+         *    EventProcessor
+         * Expected Output:
+         *    The function should do nothing
+         */
+        it("should send request to sign tx just for all approved events", async () => {
+            // mock events
+            const mockedEvent1: EventTrigger = CardanoTestBoxes.mockAssetPaymentEventTrigger()
+            const tx1 = CardanoTestBoxes.mockMultiAssetsTransferringPaymentTransaction(mockedEvent1, cardanoTestBankAddress)
+            const mockedEvent2: EventTrigger = CardanoTestBoxes.mockAssetPaymentEventTrigger()
+            const tx2 = CardanoTestBoxes.mockMultiAssetsTransferringPaymentTransaction(mockedEvent2, cardanoTestBankAddress)
+            const mockedEvent3: EventTrigger = ErgoTestBoxes.mockErgPaymentEventTrigger()
+            const tx3 = ErgoTestBoxes.mockTokenBurningTokenDistributionTransaction(mockedEvent3, ergoEventBoxAndCommitments)
+            await Promise.all([
+                insertEventRecord(mockedEvent1, "approved", tx1.txId, tx1.toJson()),
+                insertEventRecord(mockedEvent2, "agreed", tx2.txId, tx2.toJson()),
+                insertEventRecord(mockedEvent3, "approved", tx3.txId, tx3.toJson())
+            ])
+            mockedCardanoChain.mockRequestToSignTransaction(tx1)
+            mockedCardanoChain.mockRequestToSignTransaction(tx2)
+            mockedErgoChain.mockRequestToSignTransaction(tx3)
+
+            // run test
+            await EventProcessor.signApprovedEvents()
+
+            // verify
+            mockedCardanoChain.verifyRequestToSignTransactionCalledOnce(tx1)
+            mockedCardanoChain.verifyRequestToSignTransactionDidntCalled(tx2)
+            mockedErgoChain.verifyRequestToSignTransactionCalledOnce(tx3)
         })
 
     })

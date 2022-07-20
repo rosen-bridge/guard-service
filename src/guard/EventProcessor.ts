@@ -117,7 +117,7 @@ class EventProcessor {
 
         for (const event of events) {
             try {
-                const paymentTx = event.paymentTxJson
+                const paymentTx = PaymentTransaction.fromJson(event.paymentTxJson)
                 await this.getDestinationChainObject(EventTrigger.fromEntity(event)).requestToSignTransaction(paymentTx)
             }
             catch (e) {

@@ -12,7 +12,7 @@ import {
     TokenId,
     TxBuilder, UnsignedTransaction
 } from "ergo-lib-wasm-nodejs";
-import { EventTrigger } from "../../models/Models";
+import { EventTrigger, PaymentTransaction } from "../../models/Models";
 import BaseChain from "../BaseChains";
 import ErgoConfigs from "./helpers/ErgoConfigs";
 import ExplorerApi from "./network/ExplorerApi";
@@ -483,14 +483,15 @@ class Reward implements BaseChain<ReducedTransaction, ErgoTransaction> {
 
     /**
      * requests Multisig service to sign an ergo transaction
-     * @param tx the transaction
+     * @param paymentTx the transaction
      */
-    requestToSignTransaction = async (tx: ReducedTransaction): Promise<void> => {
+    requestToSignTransaction = async (paymentTx: PaymentTransaction): Promise<void> => {
+        const tx = this.deserialize(paymentTx.txBytes)
         try {
             // TODO: implement this (Integration with Multisig service).
         }
         catch (e) {
-            console.log(`An error occurred while requesting Multisig service to sign Ergo tx: ${e.message}`)
+            console.log(`An error occurred while requesting Multisig service to sign Reward tx: ${e.message}`)
         }
     }
 
