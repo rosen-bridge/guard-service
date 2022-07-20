@@ -47,20 +47,29 @@ class ScannerDataBase {
      */
     setEventTx = async (eventId: string, txId: string, txJson: string, status: string = "agreed"): Promise<void> => {
         await this.semaphore.acquire().then(async (release) => {
-            const event = await this.getEventById(eventId)
-            if (event === null) return
-            else if (event.txId === null || event.txId <= txId) {
-                await this.EventRepository.createQueryBuilder()
-                    .update()
-                    .set({
-                        status: status,
-                        txId: txId,
-                        paymentTxJson: txJson
-                    })
-                    .where("sourceTxId = :id", {id: eventId})
-                    .execute()
+            try {
+                const event = await this.getEventById(eventId)
+                if (event === null) {
+                    release()
+                    return
+                }
+                else if (event.txId === null || event.txId <= txId) {
+                    await this.EventRepository.createQueryBuilder()
+                        .update()
+                        .set({
+                            status: status,
+                            txId: txId,
+                            paymentTxJson: txJson
+                        })
+                        .where("sourceTxId = :id", {id: eventId})
+                        .execute()
+                }
+                release()
             }
-            release()
+            catch (e) {
+                console.log(`Unexpected Error occurred while setting tx [${txId}] for event [${eventId}] as approved: ${e}`)
+                release()
+            }
         })
     }
 
