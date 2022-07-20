@@ -158,7 +158,8 @@ describe("CardanoChain", () => {
         it("should insert request into db successfully", async () => {
             // create test data
             const cardanoChain: CardanoChain = new CardanoChain()
-            const paymentTx = TestBoxes.mockTwoAssetsTransferringPaymentTransaction(TestBoxes.mockAssetPaymentEventTrigger(), testBankAddress)
+            const paymentTx = TestBoxes.mockTwoAssetsTransferringPaymentTransaction(
+                TestBoxes.mockAssetPaymentEventTrigger(), testBankAddress)
             const tx = cardanoChain.deserialize(paymentTx.txBytes)
             const expectedTxId = Utils.Uint8ArrayToHexString(hash_transaction(tx.body()).to_bytes())
             const expectedTxBytes = Utils.Uint8ArrayToHexString(tx.to_bytes())

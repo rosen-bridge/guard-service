@@ -45,14 +45,14 @@ describe("TxAgreement", () => {
             txAgreement.startAgreementProcess(tx)
 
             // verify out request
-            verifySendMessageCalledOnce("tx-agreement", {
+            verifySendMessageCalledOnce("tx-agreement", JSON.stringify({
                 "type": "request",
                 "payload": {
                     "txJson": tx.toJson(),
                     "guardId": 1,
-                    "signature": anything()
+                    "signature": tx.signMetaData()
                 }
-            })
+            }))
         })
 
     })
@@ -95,7 +95,7 @@ describe("TxAgreement", () => {
             await txAgreement.processTransactionRequest(tx, senderId, guardSignature, receiver)
 
             // verify out request
-            verifySendMessageWithReceiverCalledOnce("tx-agreement", {
+            verifySendMessageWithReceiverCalledOnce("tx-agreement", JSON.stringify({
                 "type": "response",
                 "payload": {
                     "guardId": Configs.guardId,
@@ -103,7 +103,7 @@ describe("TxAgreement", () => {
                     "txId": tx.txId,
                     "agreed": true
                 }
-            }, receiver)
+            }), receiver)
             const dbEvents = await allEventRecords()
             expect(dbEvents.map(event => [event.sourceTxId, event.status, event.txId, event.paymentTxJson])[0])
                 .to.deep.equal([mockedEvent.sourceTxId, "agreed", tx.txId, tx.toJson()])
@@ -131,7 +131,7 @@ describe("TxAgreement", () => {
             await txAgreement.processTransactionRequest(tx, senderId, guardSignature, receiver)
 
             // verify no agree or reject out request
-            verifySendMessageDidntGetCalled("tx-agreement", {
+            verifySendMessageDidntGetCalled("tx-agreement", JSON.stringify({
                 "type": "response",
                 "payload": {
                     "guardId": Configs.guardId,
@@ -139,8 +139,8 @@ describe("TxAgreement", () => {
                     "txId": tx.txId,
                     "agreed": true
                 }
-            }, receiver)
-            verifySendMessageDidntGetCalled("tx-agreement", {
+            }), receiver)
+            verifySendMessageDidntGetCalled("tx-agreement", JSON.stringify({
                 "type": "response",
                 "payload": {
                     "guardId": Configs.guardId,
@@ -148,7 +148,7 @@ describe("TxAgreement", () => {
                     "txId": tx.txId,
                     "agreed": false
                 }
-            }, receiver)
+            }), receiver)
             const dbEvents = await allEventRecords()
             expect(dbEvents.length).to.equal(0)
         })
@@ -180,7 +180,7 @@ describe("TxAgreement", () => {
             await txAgreement.processTransactionRequest(tx, senderId, guardSignature, receiver)
 
             // verify no agree or reject out request
-            verifySendMessageDidntGetCalled("tx-agreement", {
+            verifySendMessageDidntGetCalled("tx-agreement", JSON.stringify({
                 "type": "response",
                 "payload": {
                     "guardId": Configs.guardId,
@@ -188,8 +188,8 @@ describe("TxAgreement", () => {
                     "txId": tx.txId,
                     "agreed": true
                 }
-            }, receiver)
-            verifySendMessageDidntGetCalled("tx-agreement", {
+            }), receiver)
+            verifySendMessageDidntGetCalled("tx-agreement", JSON.stringify({
                 "type": "response",
                 "payload": {
                     "guardId": Configs.guardId,
@@ -197,7 +197,7 @@ describe("TxAgreement", () => {
                     "txId": tx.txId,
                     "agreed": false
                 }
-            }, receiver)
+            }), receiver)
             const dbEvents = await allEventRecords()
             expect(dbEvents.map(event => [event.sourceTxId, event.status, event.txId, event.paymentTxJson])[0])
                 .to.deep.equal([mockedEvent.sourceTxId, "", null, null])
@@ -231,7 +231,7 @@ describe("TxAgreement", () => {
             await txAgreement.processTransactionRequest(tx, senderId, guardSignature, receiver)
 
             // verify out request
-            verifySendMessageWithReceiverCalledOnce("tx-agreement", {
+            verifySendMessageWithReceiverCalledOnce("tx-agreement", JSON.stringify({
                 "type": "response",
                 "payload": {
                     "guardId": Configs.guardId,
@@ -239,7 +239,7 @@ describe("TxAgreement", () => {
                     "txId": tx.txId,
                     "agreed": false
                 }
-            }, receiver)
+            }), receiver)
             const dbEvents = await allEventRecords()
             expect(dbEvents.map(event => [event.sourceTxId, event.status, event.txId, event.paymentTxJson])[0])
                 .to.deep.equal([mockedEvent.sourceTxId, "", null, null])
@@ -276,7 +276,7 @@ describe("TxAgreement", () => {
             await txAgreement.processTransactionRequest(tx, senderId, guardSignature, receiver)
 
             // verify out request
-            verifySendMessageWithReceiverCalledOnce("tx-agreement", {
+            verifySendMessageWithReceiverCalledOnce("tx-agreement", JSON.stringify({
                 "type": "response",
                 "payload": {
                     "guardId": Configs.guardId,
@@ -284,7 +284,7 @@ describe("TxAgreement", () => {
                     "txId": tx.txId,
                     "agreed": false
                 }
-            }, receiver)
+            }), receiver)
             const dbEvents = await allEventRecords()
             expect(dbEvents.map(event => [event.sourceTxId, event.status, event.txId, event.paymentTxJson])[0])
                 .to.deep.equal([mockedEvent.sourceTxId, "", null, null])
@@ -322,7 +322,7 @@ describe("TxAgreement", () => {
             await txAgreement.processTransactionRequest(tx, senderId, guardSignature, receiver)
 
             // verify out request
-            verifySendMessageWithReceiverCalledOnce("tx-agreement", {
+            verifySendMessageWithReceiverCalledOnce("tx-agreement", JSON.stringify({
                 "type": "response",
                 "payload": {
                     "guardId": Configs.guardId,
@@ -330,7 +330,7 @@ describe("TxAgreement", () => {
                     "txId": tx.txId,
                     "agreed": false
                 }
-            }, receiver)
+            }), receiver)
             const dbEvents = await allEventRecords()
             expect(dbEvents.map(event => [event.sourceTxId, event.status, event.txId, event.paymentTxJson])[0])
                 .to.deep.equal([mockedEvent.sourceTxId, "", previousTxId, "testTx"])
@@ -368,7 +368,7 @@ describe("TxAgreement", () => {
             await txAgreement.processTransactionRequest(tx, senderId, guardSignature, receiver)
 
             // verify out request
-            verifySendMessageWithReceiverCalledOnce("tx-agreement", {
+            verifySendMessageWithReceiverCalledOnce("tx-agreement", JSON.stringify({
                 "type": "response",
                 "payload": {
                     "guardId": Configs.guardId,
@@ -376,7 +376,7 @@ describe("TxAgreement", () => {
                     "txId": tx.txId,
                     "agreed": false
                 }
-            }, receiver)
+            }), receiver)
             const dbEvents = await allEventRecords()
             expect(dbEvents.map(event => [event.sourceTxId, event.status, event.txId, event.paymentTxJson])[0])
                 .to.deep.equal([mockedEvent.sourceTxId, "", null, null])
@@ -437,13 +437,13 @@ describe("TxAgreement", () => {
             })
 
             // verify
-            verifySendMessageCalledOnce("tx-agreement", {
+            verifySendMessageCalledOnce("tx-agreement", JSON.stringify({
                 "type": "approval",
                 "payload": {
                     "txJson": tx.toJson(),
                     "guardsSignatures": agreements
                 }
-            })
+            }))
             const dbEvents = await allEventRecords()
             expect(dbEvents.map(event => [event.sourceTxId, event.txId, event.status])[0])
                 .to.deep.equal([mockedEvent.sourceTxId, tx.txId, "approved"])
@@ -489,13 +489,13 @@ describe("TxAgreement", () => {
             rejects.push(senderId)
 
             // verify
-            verifySendMessageDidntGetCalled("tx-agreement", {
+            verifySendMessageDidntGetCalled("tx-agreement", JSON.stringify({
                 "type": "approval",
                 "payload": {
                     "txId": tx.txId,
-                    "guardsSignatures": anything()
+                    "guardsSignatures": tx.signMetaData()
                 }
-            })
+            }))
             const dbEvents = await allEventRecords()
             expect(dbEvents.map(event => [event.sourceTxId, event.txId, event.status])[0])
                 .to.deep.equal([mockedEvent.sourceTxId, "", ""])
@@ -684,22 +684,22 @@ describe("TxAgreement", () => {
             txAgreement.resendTransactionRequests()
 
             // verify
-            verifySendMessageCalledTwice("tx-agreement", {
+            verifySendMessageCalledTwice("tx-agreement", JSON.stringify({
                 "type": "request",
                 "payload": {
                     "txJson": tx1.toJson(),
                     "guardId": 1,
-                    "signature": anything()
+                    "signature": tx1.signMetaData()
                 }
-            })
-            verifySendMessageCalledTwice("tx-agreement", {
+            }))
+            verifySendMessageCalledTwice("tx-agreement", JSON.stringify({
                 "type": "request",
                 "payload": {
                     "txJson": tx2.toJson(),
                     "guardId": 1,
-                    "signature": anything()
+                    "signature": tx2.signMetaData()
                 }
-            })
+            }))
         })
 
     })
@@ -770,16 +770,16 @@ describe("TxAgreement", () => {
                 "guardId": 0,
                 "signature": signature
             }
-            const message = {
+            const message = JSON.stringify({
                 "type": "request",
                 "payload": candidatePayload
-            }
+            })
 
             // run test
             const txAgreement = new TxAgreement()
             const spiedTxAgreement = spy(txAgreement)
             when(spiedTxAgreement.processTransactionRequest(anything(), anything(), anything(), anything())).thenResolve()
-            await txAgreement.handleMessage(JSON.stringify(message), channel, sender)
+            await txAgreement.handleMessage(message, channel, sender)
 
             // verify
             //  Note: deepEqual doesn't work for PaymentTransaction object either. So, anything() used.
@@ -808,16 +808,16 @@ describe("TxAgreement", () => {
                 "txId": tx.txId,
                 "agreed": true
             }
-            const message = {
+            const message = JSON.stringify({
                 "type": "response",
                 "payload": agreementPayload
-            }
+            })
 
             // run test
             const txAgreement = new TxAgreement()
             const spiedTxAgreement = spy(txAgreement)
             when(spiedTxAgreement.processAgreementResponse(anything(), anything(), anything(), anything())).thenResolve()
-            await txAgreement.handleMessage(JSON.stringify(message), channel, sender)
+            await txAgreement.handleMessage(message, channel, sender)
 
             // verify
             verify(spiedTxAgreement.processAgreementResponse(tx.txId, true, 0, signature)).once()
@@ -852,16 +852,16 @@ describe("TxAgreement", () => {
                 "txJson": tx.toJson(),
                 "guardsSignatures": signatures
             }
-            const message = {
+            const message = JSON.stringify({
                 "type": "approval",
                 "payload": txApproval
-            }
+            })
 
             // run test
             const txAgreement = new TxAgreement()
             const spiedTxAgreement = spy(txAgreement)
             when(spiedTxAgreement.processApprovalMessage(anything(), anything(), anything())).thenResolve()
-            await txAgreement.handleMessage(JSON.stringify(message), channel, sender)
+            await txAgreement.handleMessage(message, channel, sender)
 
             // verify
             //  Note: deepEqual doesn't work for PaymentTransaction object either. So, anything() used.

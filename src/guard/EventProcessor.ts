@@ -41,14 +41,14 @@ class EventProcessor {
      * @param event the trigger event
      */
     static processEvent = async (event: EventTrigger): Promise<void> => {
+        console.log(`processing event [${event.sourceTxId}]`)
         if (!await this.isEventConfirmedEnough(event)) return
 
         if (!await this.verifyEvent(event)) {
-            console.log(`event [${event.sourceTxId}] didn't verify.`)
+            console.log(`event didn't verify.`)
             await scannerAction.setEventStatus(event.sourceTxId, "rejected")
             return
         }
-        console.log(`processing event ${event.sourceTxId}`)
 
         const tx = await this.createEventPayment(event)
         txAgreement.startAgreementProcess(tx)
