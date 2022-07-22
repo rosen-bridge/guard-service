@@ -2,15 +2,18 @@ import { DataSource, Repository } from "typeorm";
 import { EventTriggerEntity } from "../../entities/scanner/EventTriggerEntity";
 import { scannerOrmDataSource } from "../../../../config/scannerOrmDataSource";
 import { Semaphore } from "await-semaphore";
+import { TransactionEntity } from "../../entities/scanner/TransactionEntity";
 
 class ScannerDataBase {
     dataSource: DataSource;
     EventRepository: Repository<EventTriggerEntity>;
+    TransactionRepository: Repository<TransactionEntity>;
     private semaphore = new Semaphore(1)
 
     constructor(dataSource: DataSource) {
         this.dataSource = dataSource;
         this.EventRepository = this.dataSource.getRepository(EventTriggerEntity);
+        this.TransactionRepository = this.dataSource.getRepository(TransactionEntity);
     }
 
     /**
@@ -127,6 +130,30 @@ class ScannerDataBase {
                 paymentTxJson: ""
             })
             .where("status = :status", {status: "agreed"})
+            .execute()
+    }
+
+    /**
+     * @return incomplete the transaction
+     */
+    getActiveTransactions = async (): Promise<TransactionEntity[]> => {
+        return await this.TransactionRepository.createQueryBuilder()
+            .select()
+            .where("status != :status", {status: "completed"})
+            .getMany()
+    }
+
+    /**
+     * updates the status of a tx with its id
+     * @param txId the transaction id
+     */
+    setTxAsCompleted = async (txId: string): Promise<void> => {
+        await this.EventRepository.createQueryBuilder()
+            .update()
+            .set({
+                status: "completed"
+            })
+            .where("txId = :id", {id: txId})
             .execute()
     }
 
