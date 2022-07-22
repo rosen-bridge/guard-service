@@ -126,6 +126,17 @@ class EventProcessor {
         }
     }
 
+    /**
+     * sends a transaction to target chain
+     * @param paymentTx the payment transaction
+     * @param chain target chain
+     */
+    static submitTransactionToChain = async (paymentTx: PaymentTransaction, chain: string): Promise<void> => {
+        if (chain === ChainsConstants.cardano) await this.cardanoChain.submitTransaction(paymentTx)
+        else if (chain === ChainsConstants.ergo) await this.ergoChain.submitTransaction(paymentTx)
+        else throw new Error(`chain [${chain}] not implemented.`)
+    }
+
 }
 
 export default EventProcessor

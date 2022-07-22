@@ -26,6 +26,6 @@ export class TransactionEntity {
         "sourceTxId",
         {cascade: true}
     )
-    eventId: Relation<EventTriggerEntity>
+    event: Relation<EventTriggerEntity>
 
 }

@@ -21,6 +21,16 @@ class BlockFrostApi {
     }
 
     /**
+     * gets current height of blockchain
+     */
+    static currentHeight = async (): Promise<number> => {
+        const block = await this.blockFrost.blocksLatest()
+        const height = block.height
+        if (!height) throw new Error("failed to fetch current slot")
+        return height
+    }
+
+    /**
      * submits the transaction to network
      * @param tx the transaction
      */

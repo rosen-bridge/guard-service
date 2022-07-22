@@ -23,6 +23,7 @@ import RewardBoxes from "./helpers/RewardBoxes";
 import Contracts from "../../contracts/Contracts";
 import Configs from "../../helpers/Configs";
 import ErgoTransaction from "./models/ErgoTransaction";
+import BlockFrostApi from "../cardano/network/BlockFrostApi";
 
 class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
 
@@ -559,6 +560,16 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         catch (e) {
             console.log(`An error occurred while requesting Multisig service to sign Ergo tx: ${e.message}`)
         }
+    }
+
+    /**
+     * submit an ergo transaction to network
+     * @param paymentTx the payment transaction
+     */
+    submitTransaction = async (paymentTx: PaymentTransaction): Promise<void> => {
+        const tx = this.deserialize(paymentTx.txBytes)
+        const response = await NodeApi.sendTx(tx.unsigned_tx().to_json())
+        console.log(`Cardano Transaction submitted. txId: ${response}`)
     }
 
 }

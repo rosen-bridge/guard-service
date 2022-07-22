@@ -146,14 +146,47 @@ class ScannerDataBase {
     /**
      * updates the status of a tx with its id
      * @param txId the transaction id
+     * @param status tx status
      */
-    setTxAsCompleted = async (txId: string): Promise<void> => {
+    setTxStatus = async (txId: string, status: string): Promise<void> => {
+        await this.TransactionRepository.createQueryBuilder()
+            .update()
+            .set({
+                status: status
+            })
+            .where("txId = :id", {id: txId})
+            .execute()
+    }
+
+    /**
+     * updates the status of a tx with its id
+     * @param txId the transaction id
+     * @param currentHeight current height of the blockchain
+     */
+    updateTxLastCheck = async (txId: string, currentHeight: number): Promise<void> => {
+        await this.TransactionRepository.createQueryBuilder()
+            .update()
+            .set({
+                lastCheck: currentHeight
+            })
+            .where("txId = :id", {id: txId})
+            .execute()
+    }
+
+    /**
+     * updates the status of an event and clear its tx info
+     * @param eventId the event trigger id
+     * @param status status of the process
+     */
+    resetEventTx = async (eventId: string, status: string): Promise<void> => {
         await this.EventRepository.createQueryBuilder()
             .update()
             .set({
-                status: "completed"
+                status: status,
+                txId: "",
+                paymentTxJson: ""
             })
-            .where("txId = :id", {id: txId})
+            .where("sourceTxId = :id", {id: eventId})
             .execute()
     }
 
