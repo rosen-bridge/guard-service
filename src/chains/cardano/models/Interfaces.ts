@@ -7,10 +7,18 @@ interface Asset {
 }
 
 interface Utxo {
+    payment_addr: {
+        bech32: string
+    },
     tx_hash: string,
     tx_index: number,
     value: string,
-    asset_list: Asset[]
+    asset_list: Array<Asset>
+}
+
+interface Tx {
+    utxosOutput: Array<Utxo>
+    utxosInput: Array<Utxo>
 }
 
 interface UtxoBoxesAssets {
@@ -18,4 +26,23 @@ interface UtxoBoxesAssets {
     assets: MultiAsset
 }
 
-export type { Utxo, Asset, UtxoBoxesAssets };
+
+interface MetaData {
+    0: RosenData,
+}
+
+interface RosenData {
+    to: string,
+    bridgeFee: string,
+    networkFee: string,
+    targetChainTokenId: string,
+    toAddress: string,
+    fromAddress: string,
+}
+
+interface TxMetaData {
+    tx_hash: string,
+    metadata: object,
+}
+
+export type { Utxo, Tx, Asset, UtxoBoxesAssets, RosenData, TxMetaData, MetaData };

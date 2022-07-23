@@ -564,7 +564,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
     }
 
     /**
-     * verified the event payment in the ErgoSide
+     * verified the event payment in the Ergo
      * @param event
      */
     verifyEventWithPayment = async (event: EventTrigger): Promise<boolean> => {

@@ -37,10 +37,4 @@ export default interface BaseChain<TransactionType, SerializedType extends Payme
      */
     requestToSignTransaction: (tx: PaymentTransaction) => Promise<void>
 
-    /**
-     * confirms event data with lock transaction in source chain
-     * @param event
-     */
-    verifyEventWithPayment: (event: EventTrigger) => Promise<boolean>
-
 }

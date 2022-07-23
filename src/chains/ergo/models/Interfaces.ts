@@ -71,18 +71,6 @@ interface ErgoTransactionJsonModel {
     inputBoxes: string[]
 }
 
-export {
-    Asset,
-    Register,
-    Box,
-    Boxes,
-    CoveringErgoBoxes,
-    InBoxesInfo,
-    AssetMap,
-    ErgoBlockHeader,
-    ErgoTransactionJsonModel
-}
-
 interface ExplorerRegister {
     serializedValue: string,
     sigmaType: string,
@@ -112,7 +100,7 @@ interface ExplorerInputBox {
     spentTransactionId: string;
 }
 
-export interface ExplorerOutputBox {
+interface ExplorerOutputBox {
     boxId: string;
     transactionId: string;
     blockId: string,
@@ -126,10 +114,24 @@ export interface ExplorerOutputBox {
     spentTransactionId: string;
 }
 
-export interface ExplorerTransaction {
+interface ExplorerTransaction {
     id: string,
     creationTimestamp: number,
     numConfirmations: number,
     inputs: ExplorerInputBox[],
     outputs: ExplorerOutputBox[],
+}
+
+export {
+    Asset,
+    Register,
+    Box,
+    Boxes,
+    CoveringErgoBoxes,
+    InBoxesInfo,
+    AssetMap,
+    ErgoBlockHeader,
+    ErgoTransactionJsonModel,
+    ExplorerOutputBox,
+    ExplorerTransaction
 }

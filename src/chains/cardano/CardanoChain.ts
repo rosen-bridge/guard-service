@@ -4,8 +4,9 @@ import {
     MultiAsset, ScriptHash,
     Transaction, TransactionBuilder, TransactionHash, TransactionInput,
     TransactionOutput, TransactionWitnessSet,
-    Value, Vkeywitness, Vkeywitnesses
+    Value, Vkeywitness, Vkeywitnesses,
 } from "@emurgo/cardano-serialization-lib-nodejs";
+import AssetFingerprint from "@emurgo/cip14-js";
 import KoiosApi from "./network/KoiosApi";
 import { EventTrigger, PaymentTransaction } from "../../models/Models";
 import BaseChain from "../BaseChains";
@@ -17,6 +18,8 @@ import TssSigner from "../../guard/TssSigner";
 import Utils from "../ergo/helpers/Utils";
 import { tssSignAction } from "../../db/models/sign/SignModel";
 import CardanoTransaction from "./models/CardanoTransaction";
+import { Buffer } from "buffer";
+import ChainsConstants from "../ChainsConstants";
 
 
 class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
@@ -346,8 +349,41 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         }
     }
 
+    /**
+     * verified the event payment in the Cardano
+     * @param event
+     */
     verifyEventWithPayment = async (event: EventTrigger): Promise<boolean> => {
-        return true
+        const tx = (await KoiosApi.getTxUtxos([event.sourceTxId]))[0];
+        const utxos = tx.utxosOutput.filter((utxo: Utxo) => {
+            return CardanoConfigs.lockAddresses.find(address => address === utxo.payment_addr.bech32) != undefined;
+        });
+        if(utxos) {
+            const txMetaData = (await KoiosApi.getTxMetaData([event.sourceTxId]))[0];
+            const metaData = txMetaData.metadata;
+            if (CardanoUtils.isRosenMetaData(metaData) && CardanoUtils.isRosenData(metaData["0"])) {
+                if (utxos[0].asset_list.length !== 0) {
+                    const asset = utxos[0].asset_list[0];
+                    const assetFingerprint = AssetFingerprint.fromParts(
+                        Buffer.from(asset.policy_id, 'hex'),
+                        Buffer.from(asset.asset_name, 'hex'),
+                    );
+                    const data = metaData["0"];
+                    return (
+                        event.fromChain == ChainsConstants.cardano &&
+                        event.toChain == data.to &&
+                        event.networkFee == data.networkFee &&
+                        event.bridgeFee == data.bridgeFee &&
+                        event.amount == asset.quantity &&
+                        event.sourceChainTokenId == assetFingerprint.fingerprint() &&
+                        event.targetChainTokenId == data.targetChainTokenId &&
+                        event.toAddress == data.toAddress &&
+                        event.fromAddress == tx.utxosInput[0].payment_addr.bech32
+                    )
+                }
+            }
+        }
+        return false
     }
 
 }

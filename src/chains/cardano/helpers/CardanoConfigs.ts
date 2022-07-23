@@ -49,7 +49,7 @@ class CardanoConfigs {
     ])
 
     static requiredConfirmation = config.get<number>('cardano.requiredConfirmation')
-
+    static lockAddresses = config.get<Array<string>>('cardano.lockAddresses')
 }
 
 export default CardanoConfigs
