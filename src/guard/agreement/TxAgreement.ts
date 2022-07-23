@@ -92,10 +92,10 @@ class TxAgreement {
             "signature": guardSignature
         }
 
-        const message = {
+        const message = JSON.stringify({
             "type": "request",
             "payload": candidatePayload
-        }
+        })
 
         // broadcast the transaction
         dialer.sendMessage(TxAgreement.CHANNEL, message)
@@ -132,10 +132,10 @@ class TxAgreement {
             await scannerAction.setEventTx(event.sourceTxId, tx.txId, tx.toJson())
         }
 
-        const message = {
+        const message = JSON.stringify({
             "type": "response",
             "payload": agreementPayload
-        }
+        })
 
         // send response to creator guard
         dialer.sendMessage(TxAgreement.CHANNEL, message, receiver)
@@ -199,10 +199,10 @@ class TxAgreement {
                     "txJson": tx.toJson(),
                     "guardsSignatures": this.transactionApprovals.get(txId)!
                 }
-                const message = {
+                const message = JSON.stringify({
                     "type": "approval",
                     "payload": txApproval
-                }
+                })
                 // broadcast approval message
                 dialer.sendMessage(TxAgreement.CHANNEL, message)
 
@@ -295,4 +295,7 @@ class TxAgreement {
 
 }
 
+const txAgreement = new TxAgreement()
+
 export default TxAgreement
+export { txAgreement }

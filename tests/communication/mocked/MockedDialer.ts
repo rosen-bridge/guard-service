@@ -1,4 +1,4 @@
-import { anything, deepEqual, instance, mock, reset, spy, verify, when } from "ts-mockito";
+import { anything, deepEqual, instance, mock, spy, verify, when } from "ts-mockito";
 import Dialer from "../../../src/communication/Dialer";
 
 let mockedDialerInstance = mock(Dialer)
@@ -42,7 +42,7 @@ const verifySendMessageWithReceiverCalledOnce = (channel: string, message: any, 
  * @param receiver
  */
 const verifySendMessageDidntGetCalled = (channel: string, message: any, receiver?: string): void => {
-    verify(mockedDialerInstance.sendMessage(channel, deepEqual(message))).times(0)
+    verify(mockedDialerInstance.sendMessage(channel, deepEqual(message))).never()
 }
 
 export {

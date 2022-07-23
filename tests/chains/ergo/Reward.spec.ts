@@ -10,7 +10,7 @@ import { mockGetEventBox, mockGetEventValidCommitments, resetMockedRewardBoxes }
 import { anything } from "ts-mockito";
 
 describe("Reward", () => {
-    const testBankAddress = "9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD" // TODO: use test config
+    const testBankAddress = TestBoxes.testBankAddress
     const testBankErgoTree: string = Utils.addressStringToErgoTreeString(testBankAddress)
 
     describe("generateTransaction", () => {

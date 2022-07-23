@@ -28,14 +28,40 @@ class ScannerDataBase {
     }
 
     /**
+     * updates the status of an event by id
      * @param eventId the event trigger id
-     * @return the request to sign the transaction
+     * @param status the event trigger status
+     */
+    setEventStatus = async (eventId: string, status: string): Promise<void> => {
+        await this.EventRepository.createQueryBuilder()
+            .update()
+            .set({
+                status: status
+            })
+            .where("sourceTxId = :id", {id: eventId})
+            .execute()
+    }
+
+    /**
+     * @param eventId the event trigger id
+     * @return the event trigger
      */
     getEventById = async (eventId: string): Promise<EventTriggerEntity | null> => {
         return await this.EventRepository.createQueryBuilder()
             .select()
             .where("sourceTxId = :id", {id: eventId})
             .getOne()
+    }
+
+    /**
+     * @param status the event trigger status
+     * @return the event triggers with corresponding status
+     */
+    getEventsByStatus = async (status: string): Promise<EventTriggerEntity[]> => {
+        return await this.EventRepository.createQueryBuilder()
+            .select()
+            .where("status = :status", {status: status})
+            .getMany()
     }
 
     /**
