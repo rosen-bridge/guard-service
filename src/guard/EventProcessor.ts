@@ -65,6 +65,16 @@ class EventProcessor {
     }
 
     /**
+     * returns chain object for source chain of the event trigger
+     * @param event the event trigger
+     */
+    static getSourceChainObject = (event: EventTrigger): BaseChain<any, any> => {
+        if (event.fromChain === ChainsConstants.cardano) return this.cardanoChain
+        else if (event.fromChain === ChainsConstants.ergo) return this.ergoChain
+        else throw new Error(`chain [${event.toChain}] not implemented.`)
+    }
+
+    /**
      * conforms payment transaction with the event trigger data
      * @param paymentTx the payment transaction
      * @param event the event trigger
@@ -75,7 +85,7 @@ class EventProcessor {
     }
 
     /**
-     * conforms event data with lock transaction in source chain
+     * confirms event data with lock transaction in source chain
      * @param event the trigger event
      * @return true if event data verified
      */

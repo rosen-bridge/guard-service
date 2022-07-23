@@ -23,6 +23,8 @@ import RewardBoxes from "./helpers/RewardBoxes";
 import Contracts from "../../contracts/Contracts";
 import Configs from "../../helpers/Configs";
 import ErgoTransaction from "./models/ErgoTransaction";
+import { Buffer } from "buffer";
+import ChainsConstants from "../ChainsConstants";
 
 class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
 
@@ -559,6 +561,45 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         catch (e) {
             console.log(`An error occurred while requesting Multisig service to sign Ergo tx: ${e.message}`)
         }
+    }
+
+    /**
+     * verified the event payment in the ErgoSide
+     * @param event
+     */
+    verifyEventWithPayment = async (event: EventTrigger): Promise<boolean> => {
+        const paymentTx = await ExplorerApi.getConfirmedTx(event.sourceTxId)
+        if(paymentTx) {
+            const payment = paymentTx.outputs.filter((box) =>
+                ErgoConfigs.lockAddress == box.address
+            ).filter(box => Utils.isRosenData(box))[0]
+            if (payment) {
+                const r4 = Utils.decodeCollColl(payment.additionalRegisters['R4'].serializedValue)
+                const toChain = Buffer.from(r4[0]).toString()
+                const networkFee = Buffer.from(r4[2]).toString()
+                const bridgeFee = Buffer.from(r4[3]).toString()
+                const toAddress = Buffer.from(r4[1]).toString()
+                const amount = payment.assets[0].amount.toString()
+                const tokenId = payment.assets[0].tokenId
+                const blockId = payment.blockId
+                // TODO: fix fromAddress when it was fixed in the watcher side
+                const inputAddress = "fromAddress"
+                return (
+                    event.fromChain == ChainsConstants.ergo &&
+                    event.toChain == toChain &&
+                    event.networkFee == networkFee &&
+                    event.bridgeFee == bridgeFee &&
+                    event.amount == amount &&
+                    event.sourceChainTokenId == tokenId &&
+                    // TODO: Is it needed?
+                    // event.targetChainTokenId == "" &&
+                    event.sourceBlockId == blockId &&
+                    event.toAddress == toAddress &&
+                    event.fromAddress == inputAddress
+                )
+            }
+        }
+        return false
     }
 
 }

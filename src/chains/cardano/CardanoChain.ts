@@ -346,6 +346,10 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         }
     }
 
+    verifyEventWithPayment = async (event: EventTrigger): Promise<boolean> => {
+        return true
+    }
+
 }
 
 export default CardanoChain

@@ -1,5 +1,5 @@
-import { Address, BoxValue, Contract, I64 } from "ergo-lib-wasm-nodejs";
-import { AssetMap } from "../models/Interfaces";
+import { Address, BoxValue, Contract, I64, Constant } from "ergo-lib-wasm-nodejs";
+import { AssetMap, ExplorerOutputBox } from "../models/Interfaces";
 
 class Utils {
 
@@ -88,6 +88,14 @@ class Utils {
     }
 
     /**
+     * decodes register coll[coll[Byte]] value from str
+     * @param str
+     */
+    static decodeCollColl = (str: string): Uint8Array[] => {
+        return Constant.decode_from_base16(str).to_coll_coll_byte()
+    }
+
+    /**
      * checks if two arrays have same values
      * @param source first array
      * @param target second array
@@ -125,6 +133,15 @@ class Utils {
         }
 
         return true
+    }
+
+    /**
+     * returns true if the box format is like rosen bridge observations
+     * @param box
+     */
+    static isRosenData = (box: ExplorerOutputBox) : boolean => {
+        const r4 = this.decodeCollColl(box.additionalRegisters['R4'].serializedValue)
+        return box.assets.length > 0 && r4.length >= 4
     }
 
 }
