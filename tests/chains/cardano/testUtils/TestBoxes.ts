@@ -49,6 +49,7 @@ class TestBoxes {
      */
     static mockBankBoxes = (): Utxo[] => {
         const box1: Utxo = {
+            payment_addr: { "bech32": ""},
             tx_hash: TestUtils.generateRandomId(),
             tx_index: 0,
             value: this.adaToLovelaceString(30),
@@ -66,6 +67,7 @@ class TestBoxes {
             ]
         }
         const box2: Utxo = {
+            payment_addr: { "bech32": ""},
             tx_hash: TestUtils.generateRandomId(),
             tx_index: 0,
             value: this.adaToLovelaceString(100),
@@ -78,6 +80,7 @@ class TestBoxes {
             ]
         }
         const box3: Utxo = {
+            payment_addr: { "bech32": ""},
             tx_hash: TestUtils.generateRandomId(),
             tx_index: 2,
             value: this.adaToLovelaceString(10),
