@@ -251,7 +251,7 @@ describe("CardanoChain", () => {
             MockedBlockFrost.mockTxSubmit(anything(), TestUtils.generateRandomId())
 
             // run test
-            const result = await cardanoChain.submitTransaction(tx)
+            await cardanoChain.submitTransaction(tx)
             MockedBlockFrost.verifyTxSubmitCalledOnce(cardanoChain.deserialize(tx.txBytes))
         })
 
@@ -270,7 +270,7 @@ describe("CardanoChain", () => {
             MockedBlockFrost.mockTxSubmitError(anything())
 
             // run test
-            const result = await cardanoChain.submitTransaction(tx)
+            await cardanoChain.submitTransaction(tx)
             MockedBlockFrost.verifyTxSubmitCalledOnce(cardanoChain.deserialize(tx.txBytes))
         })
 

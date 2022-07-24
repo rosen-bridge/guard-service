@@ -6,9 +6,11 @@ import { Transaction } from "@emurgo/cardano-serialization-lib-nodejs";
 
 // test configs
 const testCurrentSlot: number = TestConfigs.cardano.currentSlot
+const testBlockchainHeight: number = TestConfigs.cardano.blockchainHeight
 
 let mockedBlockFrost = spy(BlockFrostApi)
 when(mockedBlockFrost.currentSlot()).thenResolve(testCurrentSlot)
+when(mockedBlockFrost.currentHeight()).thenResolve(testBlockchainHeight)
 
 /**
  * mocks BlockFrostApi txSubmit method to return returnBoxes when called for tx
@@ -43,6 +45,7 @@ const resetMockedBlockFrostApi = (): void => {
     reset(mockedBlockFrost)
     mockedBlockFrost = spy(BlockFrostApi)
     when(mockedBlockFrost.currentSlot()).thenResolve(testCurrentSlot)
+    when(mockedBlockFrost.currentHeight()).thenResolve(testBlockchainHeight)
 }
 
 export default {

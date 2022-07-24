@@ -1,4 +1,4 @@
-import { Column, Entity, OneToOne, PrimaryColumn, Relation } from "typeorm";
+import { Column, Entity, OneToOne, PrimaryColumn, Relation, RelationId, JoinColumn, ManyToOne } from "typeorm";
 import { EventTriggerEntity } from "./EventTriggerEntity";
 
 @Entity()
@@ -21,11 +21,11 @@ export class TransactionEntity {
     @Column()
     lastCheck: number
 
-    @OneToOne(
+    @ManyToOne(
         "EventTriggerEntity",
         "sourceTxId",
         {cascade: true}
     )
-    event: Relation<EventTriggerEntity>
+    event: EventTriggerEntity
 
 }

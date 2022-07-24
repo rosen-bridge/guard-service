@@ -6,7 +6,8 @@ class TestConfigs {
 
     // cardano configs
     static cardano = {
-        currentSlot: config.get<number>('cardano.currentSlot')
+        currentSlot: config.get<number>('cardano.currentSlot'),
+        blockchainHeight: config.get<number>('cardano.blockchainHeight')
     }
 
     // ergo configs

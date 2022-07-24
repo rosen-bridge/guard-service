@@ -1,4 +1,4 @@
-import { DataSource, Repository } from "typeorm";
+import { DataSource, Not, Repository } from "typeorm";
 import { EventTriggerEntity } from "../../entities/scanner/EventTriggerEntity";
 import { scannerOrmDataSource } from "../../../../config/scannerOrmDataSource";
 import { Semaphore } from "await-semaphore";
@@ -137,10 +137,12 @@ class ScannerDataBase {
      * @return incomplete the transaction
      */
     getActiveTransactions = async (): Promise<TransactionEntity[]> => {
-        return await this.TransactionRepository.createQueryBuilder()
-            .select()
-            .where("status != :status", {status: "completed"})
-            .getMany()
+        return await this.TransactionRepository.find({
+            relations: ["event"],
+            where: {
+                "status": Not("completed")
+            }
+        })
     }
 
     /**

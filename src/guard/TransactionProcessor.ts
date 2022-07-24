@@ -46,7 +46,6 @@ class TransactionProcessor {
 
     /**
      * processes the transaction
-     *  1.
      */
     static processSentTx = async (tx: TransactionEntity): Promise<void> => {
 
@@ -67,6 +66,10 @@ class TransactionProcessor {
                     // set event as complete
                     await scannerAction.setEventStatus(tx.event.sourceTxId, "completed")
                 }
+            }
+            else if (confirmation === null) {
+                // checking tx inputs
+                await processCardanoTxInputs()
             }
             else {
                 // tx is mined, but not enough confirmation. updating last check...
@@ -105,9 +108,9 @@ class TransactionProcessor {
         }
 
         /**
-         * process ergo transaction
+         * process cardano transaction inputs TODO
          */
-        const processErgoTxInputs = async (): Promise<void> => {
+        const processCardanoTxInputs = async (): Promise<void> => {
             const ergoTx = ErgoTransaction.fromJson(tx.txJson)
             const boxes = ergoTx.inputBoxes.map(boxBytes => ErgoBox.sigma_parse_bytes(boxBytes))
             let valid = true
@@ -127,6 +130,30 @@ class TransactionProcessor {
                         await scannerAction.resetEventTx(tx.event.sourceTxId, "pending-payment")
                     else
                         await scannerAction.resetEventTx(tx.event.sourceTxId, "pending-reward")
+                }
+            }
+        }
+
+        /**
+         * process ergo transaction inputs
+         */
+        const processErgoTxInputs = async (): Promise<void> => {
+            const ergoTx = ErgoTransaction.fromJson(tx.txJson)
+            const boxes = ergoTx.inputBoxes.map(boxBytes => ErgoBox.sigma_parse_bytes(boxBytes))
+            let valid = true
+            for (const box of boxes) {
+                valid = valid && await ExplorerApi.isBoxUnspentAndValid(box.box_id().to_str())
+            }
+            if (valid) {
+                // tx is valid. resending...
+                await EventProcessor.submitTransactionToChain(ergoTx, ChainsConstants.ergo)
+            }
+            else {
+                // tx is invalid. reset status if enough blocks past.
+                const height = await NodeApi.getHeight()
+                if (height - tx.lastCheck >= ErgoConfigs.requiredConfirmation) {
+                    await scannerAction.setTxStatus(tx.txId, "invalid")
+                    await scannerAction.resetEventTx(tx.event.sourceTxId, "pending-payment")
                 }
             }
         }
