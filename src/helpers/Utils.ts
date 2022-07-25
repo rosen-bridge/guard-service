@@ -49,6 +49,20 @@ class Utils {
         return buffer
     }
 
+    /**
+     * converts hex string to bytearray
+     */
+    static hexStringToUint8Array = (str: string): Uint8Array => {
+        return Buffer.from(str, "hex")
+    }
+
+    /**
+     * converts bytearray to hex string
+     */
+    static Uint8ArrayToHexString = (bytes: Uint8Array): string => {
+        return Buffer.from(bytes).toString("hex")
+    }
+
 }
 
 export default Utils

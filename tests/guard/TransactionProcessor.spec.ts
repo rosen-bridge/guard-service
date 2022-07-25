@@ -16,15 +16,17 @@ import {
 import TestConfigs from "../testUtils/TestConfigs";
 import TransactionProcessor from "../../src/guard/TransactionProcessor";
 import { ErgoBox } from "ergo-lib-wasm-nodejs";
-import {
-    mockSubmitTransactionToChain,
-    resetMockedEventProcessor,
-    verifySubmitTransactionToChainCalledOnce
-} from "./mocked/MockedEventProcessor";
+import { resetMockedEventProcessor } from "./mocked/MockedEventProcessor";
 import CardanoTestBoxes from "../chains/cardano/testUtils/TestBoxes";
 import { mockKoiosGetTxConfirmation } from "../chains/cardano/mocked/MockedKoios";
+import MockedErgoChain from "../chains/mocked/MockedErgoChain";
+import MockedCardanoChain from "../chains/mocked/MockedCardanoChain";
+import EventProcessor from "../../src/guard/EventProcessor";
 
 describe("TransactionProcessor", () => {
+
+    const mockedCardanoChain = new MockedCardanoChain(EventProcessor.cardanoChain)
+    const mockedErgoChain = new MockedErgoChain(TransactionProcessor.ergoChain)
 
     describe("processSentTx", () => {
 
@@ -135,19 +137,19 @@ describe("TransactionProcessor", () => {
                 await insertTxRecord(tx, "payment", "ergo", "sent", ergoBlockchainHeight - 2, tx.eventId)
                 mockExplorerGetTxConfirmation(tx.txId, -1)
                 mockIsTxInMempool(tx.txId, false)
+                mockedErgoChain.mockSubmitTransaction(tx)
 
                 // mock validation of tx input boxes
                 tx.inputBoxes.map(boxBytes => {
                     const box = ErgoBox.sigma_parse_bytes(boxBytes)
                     mockIsBoxUnspentAndValid(box.box_id().to_str(), true)
                 })
-                mockSubmitTransactionToChain(tx, "ergo")
 
                 // run test
                 await TransactionProcessor.processTransactions()
 
                 // verify
-                verifySubmitTransactionToChainCalledOnce(tx, "ergo")
+                mockedErgoChain.verifySubmitTransactionCalledOnce(tx)
             })
 
         })

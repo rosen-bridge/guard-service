@@ -1,6 +1,8 @@
 import { BlockFrostAPI } from "@blockfrost/blockfrost-js";
 import CardanoConfigs from "../helpers/CardanoConfigs";
 import { Transaction } from "@emurgo/cardano-serialization-lib-nodejs";
+import { components } from "@blockfrost/blockfrost-js/lib/types/OpenApi";
+import { AddressUtxos, TxUtxos } from "../models/Interfaces";
 
 
 class BlockFrostApi {
@@ -36,6 +38,22 @@ class BlockFrostApi {
      */
     static txSubmit = async (tx: Transaction): Promise<string> => {
         return this.blockFrost.txSubmit(tx.to_bytes())
+    }
+
+    /**
+     * gets tx utxos
+     * @param txId the transaction id
+     */
+    static getTxUtxos = async (txId: string): Promise<TxUtxos> => {
+        return await this.blockFrost.txsUtxos(txId)
+    }
+
+    /**
+     * gets address utxos
+     * @param address the address
+     */
+    static getAddressUtxos = async (address: string): Promise<AddressUtxos> => {
+        return await this.blockFrost.addressesUtxos(address)
     }
 
 }

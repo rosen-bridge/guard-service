@@ -36,16 +36,6 @@ const mockVerifyPaymentTransactionWithEvent = (tx: PaymentTransaction, event: Ev
 }
 
 /**
- * mocks EventProcessor submitTransactionToChain method when called for tx and chain
- *  Note: currently, specifying argument does not work. ts-mockito deepEqual malfunctions with EventTrigger type.
- * @param tx
- * @param chain
- */
-const mockSubmitTransactionToChain = (tx: PaymentTransaction, chain: string): void => {
-    when(mockedEventProcessor.submitTransactionToChain(anything(), chain)).thenResolve()
-}
-
-/**
  * verifies EventProcessor createEventPayment method called once for event
  *  Note: currently, specifying argument does not work. ts-mockito deepEqual malfunctions with EventTrigger type.
  * @param event
@@ -64,16 +54,6 @@ const verifyCreateEventPaymentDidntGetCalled = (event: EventTrigger): void => {
 }
 
 /**
- * verifies EventProcessor submitTransactionToChain method called once for tx
- *  Note: currently, specifying argument does not work. ts-mockito deepEqual malfunctions with EventTrigger type.
- * @param tx
- * @param chain
- */
-const verifySubmitTransactionToChainCalledOnce = (tx: PaymentTransaction, chain: string): void => {
-    verify(mockedEventProcessor.submitTransactionToChain(anything(), chain)).once()
-}
-
-/**
  * resets mocked methods of EventProcessor
  */
 const resetMockedEventProcessor = (): void => {
@@ -85,9 +65,7 @@ export {
     mockIsEventConfirmedEnough,
     mockVerifyPaymentTransactionWithEvent,
     mockVerifyEvent,
-    mockSubmitTransactionToChain,
     verifyCreateEventPaymentCalledOnce,
     verifyCreateEventPaymentDidntGetCalled,
-    verifySubmitTransactionToChainCalledOnce,
     resetMockedEventProcessor
 }

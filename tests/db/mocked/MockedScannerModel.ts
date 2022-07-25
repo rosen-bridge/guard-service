@@ -4,8 +4,6 @@ import path from "path";
 import { DataSource } from "typeorm";
 import { scannerAction, ScannerDataBase } from "../../../src/db/models/scanner/ScannerModel";
 import { EventTrigger, PaymentTransaction } from "../../../src/models/Models";
-import { EventTriggerEntity } from "../../../src/db/entities/scanner/EventTriggerEntity";
-import { TransactionEntity } from "../../../src/db/entities/scanner/TransactionEntity";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
