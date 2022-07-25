@@ -2,13 +2,18 @@ import ErgoChain from "../../../src/chains/ergo/ErgoChain";
 import { EventTrigger } from "../../../src/models/Models";
 import TestBoxes from "./testUtils/TestBoxes";
 import { expect } from "chai";
-import { CoveringErgoBoxes } from "../../../src/chains/ergo/models/Interfaces";
+import { CoveringErgoBoxes, ExplorerTransaction } from "../../../src/chains/ergo/models/Interfaces";
 import Utils from "../../../src/chains/ergo/helpers/Utils";
-import { mockGetCoveringErgAndTokenForErgoTree, resetMockedExplorerApi } from "./mocked/MockedExplorer";
+import {
+    mockExplorerGetConfirmedTx,
+    mockGetCoveringErgAndTokenForErgoTree,
+    resetMockedExplorerApi
+} from "./mocked/MockedExplorer";
 import { beforeEach } from "mocha";
 import { mockGetEventBox, mockGetEventValidCommitments, resetMockedRewardBoxes } from "./mocked/MockedRewardBoxes";
 import { anything } from "ts-mockito";
 import Reward from "../../../src/chains/ergo/Reward";
+import TestData from "./testUtils/TestData";
 
 describe("ErgoChain",  () => {
     const testBankAddress = TestBoxes.testBankAddress
@@ -18,6 +23,7 @@ describe("ErgoChain",  () => {
         // mock getting bankBoxes
         const bankBoxes: CoveringErgoBoxes = TestBoxes.mockBankBoxes()
         const eventBoxAndCommitments = TestBoxes.mockEventBoxWithSomeCommitments()
+        const observationTx = JSON.parse(TestData.mockedObservationTx)
 
         beforeEach("mock ExplorerApi", function() {
             resetMockedExplorerApi()
@@ -25,6 +31,7 @@ describe("ErgoChain",  () => {
             resetMockedRewardBoxes()
             mockGetEventBox(anything(), eventBoxAndCommitments[0])
             mockGetEventValidCommitments(anything(), eventBoxAndCommitments.slice(1))
+            mockExplorerGetConfirmedTx(observationTx.id, observationTx)
         })
 
         /**
@@ -227,6 +234,17 @@ describe("ErgoChain",  () => {
             expect(isValid).to.be.false
         })
 
+    })
+
+    describe("verifyEventWithPayment", () => {
+        it("should return true because the event is correct", async () => {
+            const mockedEvent: EventTrigger = TestBoxes.mockValidEventTrigger()
+
+            // run test
+            const ergoChain: ErgoChain = new ErgoChain()
+            const isValid = await ergoChain.verifyEventWithPayment(mockedEvent)
+            expect(isValid).to.be.true
+        })
     })
 
 })

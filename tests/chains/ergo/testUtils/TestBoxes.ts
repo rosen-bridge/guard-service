@@ -95,6 +95,20 @@ class TestBoxes {
     }
 
     /**
+     * generates a mocked event trigger for token payment in ergo chain
+     */
+    static mockValidEventTrigger = (): EventTrigger => {
+        return new EventTrigger("Ergo", "ADA", "fromAddress",
+            "toAddress4", "2", "2500","100000",
+            "0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95",
+            "f6a69529b12a7e2326acffee8383e0c44408f87a872886fadf410fe8498006d3",
+            "d04fc93dc15a28a1f0e50b0fffc94f360037dcedddaf8a2e25905a892cd48378",
+            "6e74499171d828ee51266d3b65011cf958afe551ce7a0d74e5f6aba9029ae90c",
+            Array(5).fill(0).map(() => TestUtils.generateRandomId())
+        )
+    }
+
+    /**
      * generates 3 input boxes for ergo bank address
      */
     static mockBankBoxes = (): CoveringErgoBoxes => {

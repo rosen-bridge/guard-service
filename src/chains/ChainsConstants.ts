@@ -1,7 +1,7 @@
 class ChainsConstants {
 
-    static cardano = "cardano"
-    static ergo = "ergo"
+    static cardano = "Cardano"
+    static ergo = "Ergo"
 
     static chainsNativeAssetsList = [this.ergo, this.cardano]
 

@@ -81,9 +81,6 @@ interface ExplorerToken {
     tokenId: string;
     index: number;
     amount: number;
-    name: string;
-    decimals: number;
-    type: string;
 }
 
 interface ExplorerInputBox {
@@ -92,12 +89,10 @@ interface ExplorerInputBox {
     outputTransactionId: string;
     outputBlockId: string,
     outputIndex: number;
-    creationHeight: number;
     ergoTree: string;
     address: string;
     assets: ExplorerToken[];
     additionalRegisters: {[key: string]: ExplorerRegister};
-    spentTransactionId: string;
 }
 
 interface ExplorerOutputBox {
@@ -111,12 +106,10 @@ interface ExplorerOutputBox {
     address: string;
     assets: ExplorerToken[];
     additionalRegisters: {[key: string]: ExplorerRegister};
-    spentTransactionId: string;
 }
 
 interface ExplorerTransaction {
     id: string,
-    creationTimestamp: number,
     numConfirmations: number,
     inputs: ExplorerInputBox[],
     outputs: ExplorerOutputBox[],
