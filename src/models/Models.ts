@@ -1,4 +1,9 @@
-import { PaymentTransactionModel, EventTriggerModel } from "./Interfaces";
+import { PaymentTransactionModel, EventTriggerModel, PaymentTransactionJsonModel } from "./Interfaces";
+import Encryption from "../helpers/Encryption";
+import Configs from "../helpers/Configs";
+import { EventTriggerEntity } from "../db/entities/scanner/EventTriggerEntity";
+import Utils from "../helpers/Utils";
+import ErgoUtils from "../chains/ergo/helpers/Utils"
 
 
 /* tslint:disable:max-classes-per-file */
@@ -35,6 +40,27 @@ class EventTrigger implements EventTriggerModel {
     }
 
     /**
+     * creates EventTrigger object from its database scheme
+     * @param eventEntity
+     */
+    static fromEntity = (eventEntity: EventTriggerEntity): EventTrigger => {
+        return new EventTrigger(
+            eventEntity.fromChain,
+            eventEntity.toChain,
+            eventEntity.fromAddress,
+            eventEntity.toAddress,
+            eventEntity.amount,
+            eventEntity.bridgeFee,
+            eventEntity.networkFee,
+            eventEntity.sourceChainTokenId,
+            eventEntity.targetChainTokenId,
+            eventEntity.sourceTxId,
+            eventEntity.sourceBlockId,
+            eventEntity.WIDs.split(",").filter(wid => wid !== "")
+        )
+    }
+
+    /**
      * @return id of event trigger
      */
     getId = () => {
@@ -57,6 +83,16 @@ class PaymentTransaction implements PaymentTransactionModel {
         this.txBytes = txBytes
     }
 
+    static fromJson = (jsonString: string): PaymentTransaction => {
+        const obj = JSON.parse(jsonString) as PaymentTransactionJsonModel
+        return new PaymentTransaction(
+            obj.network,
+            obj.txId,
+            obj.eventId,
+            ErgoUtils.hexStringToUint8Array(obj.txBytes)
+        )
+    }
+
     /**
      * @return transaction hex string
      */
@@ -66,19 +102,47 @@ class PaymentTransaction implements PaymentTransactionModel {
 
     /**
      * signs the json data alongside guardId
-     * @param creatorId id of the creator guard
      * @return signature
      */
-    declare signMetaData: (creatorId: number) => string // TODO: implement this (when migrating service from scala to ts)
+    signMetaData = (): string => {
+        const idBuffer = Utils.numberToByte(Configs.guardId)
+        const data = Buffer.concat([this.txBytes, idBuffer]).toString("hex")
+
+        const signature  = Encryption.sign(data, Buffer.from(Configs.guardSecret, "hex"))
+        return Buffer.from(signature).toString("hex")
+    }
 
     /**
      * verifies the signature over json data alongside guardId
-     * @param creatorId id of the creator guard
      * @param signerId id of the signer guard
      * @param msgSignature hex string signature over json data alongside guardId
      * @return true if signature verified
      */
-    declare verifyMetaDataSignature: (creatorId: number, signerId: number, msgSignature: string) => boolean // TODO: implement this (when migrating service from scala to ts)
+    verifyMetaDataSignature = (signerId: number, msgSignature: string): boolean => {
+        const idBuffer = Utils.numberToByte(signerId)
+        const data = Buffer.concat([this.txBytes, idBuffer]).toString("hex")
+        const signatureBytes = Buffer.from(msgSignature, "hex")
+
+        const publicKey = Configs.guards.find(guard => guard.guardId == signerId)?.guardPubKey
+        if (publicKey === undefined) {
+            console.warn(`no guard found with id ${signerId}`)
+            return false
+        }
+
+        return Encryption.verify(data, signatureBytes, Buffer.from(publicKey, "hex"))
+    }
+
+    /**
+     * @return json representation of the transaction
+     */
+    toJson = (): string => {
+        return JSON.stringify({
+            "network": this.network,
+            "txId": this.txId,
+            "eventId": this.eventId,
+            "txBytes": this.getTxHexString()
+        })
+    }
 
 }
 

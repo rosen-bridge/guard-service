@@ -1,4 +1,5 @@
 import config from "config";
+import { GuardInfo } from "../guard/agreement/Interfaces";
 
 class Configs {
 
@@ -15,6 +16,15 @@ class Configs {
     static tssPort = config.get<string>('tss.port')
     static tssTimeout = config.get<number>('tss.timeout')
     static tssCallBackUrl = `localhost:${this.expressPort}/tssSign`
+
+    // guards configs
+    static guardId = config.get<number>('guard.guardId')
+    static guardSecret = config.get<string>('guard.secret')
+    static guardsLen = config.get<number>('guard.guardsLen')
+    static guards = config.get<GuardInfo[]>('guard.guards')
+
+    // agreement configs (minimum number of guards that needs to agree with tx to get approved)
+    static minimumAgreement = config.get<number>('minimumAgreement') // TODO: get this from config box in blockchain
 
 }
 

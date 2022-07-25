@@ -1,4 +1,5 @@
 import config from "config";
+import { GuardSecretInfo } from "./TestInterfaces";
 
 
 class TestConfigs {
@@ -12,6 +13,9 @@ class TestConfigs {
     static ergo = {
         blockchainHeight: config.get<number>('ergo.blockchainHeight')
     }
+
+    // guards configs
+    static guardsSecret = config.get<GuardSecretInfo[]>('guard.guardsSecret')
 
 }
 

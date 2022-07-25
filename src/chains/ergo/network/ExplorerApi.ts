@@ -69,6 +69,14 @@ class ExplorerApi {
         }
     }
 
+    /**
+     * gets tx confirmation
+     * @param txId
+     */
+    static getTxConfirmation = async (txId: string): Promise<number> => {
+        return this.explorerApi.get(`/v1/transactions/${txId}`).then(res => res.data.numConfirmations);
+    }
+
 }
 
 export default ExplorerApi
