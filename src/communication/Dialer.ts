@@ -18,6 +18,9 @@ import {
     SubscribeChannel,
     SubscribeChannelFunction, SubscribeChannels
 } from "./Interfaces";
+import { PeerId } from "@libp2p/interface-peer-id";
+import { createEd25519PeerId, createFromJSON } from "@libp2p/peer-id-factory";
+import * as fs from "fs";
 
 
 // TODO: Need to write test for This package
@@ -59,6 +62,42 @@ class Dialer {
             throw Error("Dialer node isn't ready, please try later")
         else
             return this._NODE.peerId.toString()
+    }
+
+    /**
+     * return PeerID or create PeerID if it doesn't exist
+     * @return PeerID
+     */
+    private getOrCreatePeerID = async (): Promise<PeerId> => {
+        if (!fs.existsSync(CommunicationConfig.peerIdFilePath)){
+            const peerId = await createEd25519PeerId()
+
+            let privateKey: Uint8Array
+            let publicKey: Uint8Array
+            if (peerId.privateKey && peerId.publicKey) {
+                privateKey = peerId.privateKey
+                publicKey = peerId.publicKey
+            }
+            else throw Error("PrivateKey for p2p is required")
+
+            const peerIdDialerJson =  {
+                "id": peerId.toString(),
+                "privKey": uint8ArrayToString(privateKey, "base64pad"),
+                "pubKey": uint8ArrayToString(publicKey, "base64pad"),
+            }
+            const jsonData = JSON.stringify(peerIdDialerJson)
+            fs.writeFile(CommunicationConfig.peerIdFilePath, jsonData, 'utf8', function(err) {
+                if (err) throw err;
+                console.log('PeerId created!');
+            })
+
+            return peerId
+        }
+        else {
+            const jsonData: string = fs.readFileSync(CommunicationConfig.peerIdFilePath, 'utf8')
+            const peerIdDialerJson = await JSON.parse(jsonData)
+            return await createFromJSON(peerIdDialerJson)
+        }
     }
 
     /**
@@ -110,6 +149,8 @@ class Dialer {
     private startDialer = async (): Promise<void> => {
 
         const node = await createLibp2p({
+            // get or create new PeerID if it doesn't exist
+            peerId: await this.getOrCreatePeerID(),
             // Type of communication
             transports: [
                 new WebSockets()
