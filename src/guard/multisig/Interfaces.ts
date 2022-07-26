@@ -4,7 +4,7 @@ import * as wasm from "ergo-lib-wasm-nodejs";
 interface Sign {
     signed: Array<string>;
     simulated: Array<string>;
-    transaction: wasm.Transaction;
+    transaction: Uint8Array;
 }
 
 interface ApproveSigner {

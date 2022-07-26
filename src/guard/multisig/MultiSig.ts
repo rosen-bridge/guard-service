@@ -167,7 +167,7 @@ class MultiSigHandler {
                     if (signed.indexOf(myPub) === -1) {
                         console.log("here 9")
                         hints = await extract_hints(
-                            transaction.sign.transaction,
+                            wasm.Transaction.sigma_parse_bytes(transaction.sign.transaction),
                             transaction.boxes,
                             transaction.dataBoxes,
                             signed,
@@ -336,7 +336,7 @@ class MultiSigHandler {
                     transaction.sign = {
                         signed: payload.signed,
                         simulated: payload.simulated,
-                        transaction: wasm.Transaction.sigma_parse_bytes(Uint8Array.from(Buffer.from(payload.tx, "base64")))
+                        transaction: Uint8Array.from(Buffer.from(payload.tx, "base64"))
                     }
                 }
                 if (transaction.sign?.signed.indexOf(myPub) === -1) {
