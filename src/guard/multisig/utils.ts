@@ -18,6 +18,12 @@ const extract_hints = async (
     signed: Array<string>,
     simulated: Array<string>
 ) => {
+    console.log("in extract hints")
+    console.log(tx)
+    console.log(boxes)
+    console.log(dataBoxes)
+    console.log(signed)
+    console.log(simulated)
     const simulatedPropositions = publicKeyToProposition(simulated);
     const realPropositions = publicKeyToProposition(signed);
     const inputBoxes = wasm.ErgoBoxes.empty();

@@ -21,6 +21,7 @@ class MultiSigHandler {
     private readonly transactions: Map<string, TxQueued>
     private readonly peers: Array<Signer>;
     private readonly secret: Uint8Array;
+    private nonce: string;
     private prover?: wasm.Wallet;
     private index?: number;
     private peerId?: string;
@@ -34,11 +35,15 @@ class MultiSigHandler {
         }));
         dialer.subscribeChannel(MultiSigHandler.CHANNEL, this.handleMessage);
         this.secret = secretHex ? Uint8Array.from(Buffer.from(secretHex, "hex")) : Configs.secret
-        const nonce = crypto.randomBytes(32).toString("base64");
+        this.sendRegister().then(() => null);
+    }
+
+    public sendRegister = async () : Promise<void> => {
+        this.nonce = crypto.randomBytes(32).toString("base64");
         this.sendMessage({
             type: "register",
             payload: {
-                nonce: nonce,
+                nonce: this.nonce,
                 myId: dialer.getPeerId(),
             }
         })
@@ -111,6 +116,10 @@ class MultiSigHandler {
         throw Error("Can not create prover")
     }
 
+    verifyIndex = (index: number) => {
+        return index >= 0 && index < this.peers.length;
+    }
+
     generateCommitment = (id: string) => {
         const queued = this.transactions.get(id)
         if (queued && !queued.secret && queued.tx) {
@@ -164,59 +173,54 @@ class MultiSigHandler {
                             signed,
                             simulated
                         )
-                        console.log("here 0")
                     }
                 } else {
-                    console.log("here 11")
+                    console.log("here 10")
                     simulated = transaction.commitments.map((item, index) => {
-                        if (item !== undefined) {
+                        if (item === undefined) {
                             return this.peers[index].pub
                         }
                         return ""
-                    }).filter(item => !!item)
+                    }).filter(item => !!item && item !== myPub)
+                    console.log("here 11")
                     signed = [myPub]
-                    console.log("here 12")
+                    console.log(signed, simulated)
                 }
-                console.log("here 13")
+                console.log("here 12")
                 add_hints(hints, transaction.secret, transaction.tx)
-                console.log("here 14")
+                console.log("here 13")
                 for (let index = 0; index < transaction.commitments.length; index++) {
-                    console.log("here 15")
                     const commitment = transaction.commitments[index];
-                    console.log("here 16")
                     if (commitment && this.peers.length > index) {
-                        console.log("here 17")
                         const peer = this.peers[index];
-                        console.log("here 18")
                         if (signed.indexOf(this.peers[index].pub) === -1) {
                             const publicHints = convertToHintBag(commitment, peer.pub)
                             add_hints(hints, publicHints, transaction.tx)
                         }
                     }
                 }
-                console.log("here 19")
                 try {
-                    console.log(JSON.stringify(hints.to_json()))
-                    console.log(transaction.tx.unsigned_tx().to_json())
+                    console.log("here 14")
                     const signedTx = prover.sign_reduced_transaction_multi(transaction.tx, hints)
-                    console.log("here 20")
+                    console.log("here 15")
                     const tx = Buffer.from(signedTx.sigma_serialize_bytes()).toString("base64")
+                    console.log("here 16")
                     // broadcast signed invalid transaction to all other
-                    console.log("here 21")
                     const payload: SignPayload = {
                         tx: tx,
                         txId: signedTx.id().to_str(),
                         signed: signed,
                         simulated: simulated
                     }
-                    console.log("here 22")
+                    console.log("here 17")
                     const peers = this.peers.map(item => item.id ? item.id : "").filter(item => {
                         return item !== "" && simulated.indexOf(item) === -1 && signed.indexOf(item) === -1
                     })
-                    console.log("here 23")
                     if (peers.length > 0) {
+                        console.log("transaction signed partially")
                         this.sendMessage({type: "sign", payload: payload}, peers)
                     } else {
+                        console.log("transaction completed")
                         if (transaction.resolve) {
                             transaction.resolve(signedTx)
                         }
@@ -232,7 +236,6 @@ class MultiSigHandler {
         const payload = message.payload;
         payload.index = this.getIndex();
         payload.id = this.getPeerId();
-        console.log("message to send: ", JSON.stringify(message))
         const payloadStr = JSON.stringify(message.payload)
         message.sign = sign(payloadStr, Buffer.from(this.secret)).toString("base64");
         if (receivers && receivers.length) {
@@ -243,7 +246,7 @@ class MultiSigHandler {
     }
 
     handleRegister = (sender: string, payload: RegisterPayload) => {
-        if (payload.index) {
+        if (payload.index !== undefined && this.verifyIndex(payload.index)) {
             const peer = this.peers[payload.index];
             const nonce = crypto.randomBytes(32).toString("base64");
             peer.unapproved.push({id: sender, challenge: nonce})
@@ -260,24 +263,26 @@ class MultiSigHandler {
     }
 
     handleApprove = (sender: string, payload: ApprovePayload) => {
-        if (payload.index && sender === payload.myId) {
+        if (payload.index !== undefined && this.verifyIndex(payload.index) && sender === payload.myId) {
             const nonce = payload.nonce;
             const peer = this.peers[payload.index];
             const unapproved = peer.unapproved.filter(item => item.id === sender && item.challenge === nonce)
             if (unapproved.length > 0) {
                 peer.id = sender;
                 peer.unapproved = peer.unapproved.filter(item => unapproved.indexOf(item) === -1)
-                if(payload.nonceToSign){
-                    this.sendMessage({
-                        type: "approve",
-                        sign: "",
-                        payload: {
-                            nonce: payload.nonceToSign,
-                            myId: this.getPeerId(),
-                            nonceToSign: ""
-                        }
-                    })
-                }
+            }else if(this.nonce == payload.nonce){
+                peer.id = sender;
+            }
+            if(payload.nonceToSign){
+                this.sendMessage({
+                    type: "approve",
+                    sign: "",
+                    payload: {
+                        nonce: payload.nonceToSign,
+                        myId: this.getPeerId(),
+                        nonceToSign: ""
+                    }
+                })
             }
         }
     }
@@ -331,7 +336,7 @@ class MultiSigHandler {
                     transaction.sign = {
                         signed: payload.signed,
                         simulated: payload.simulated,
-                        transaction: wasm.Transaction.sigma_parse_bytes(Uint8Array.from(Buffer.from(payload.tx)))
+                        transaction: wasm.Transaction.sigma_parse_bytes(Uint8Array.from(Buffer.from(payload.tx, "base64")))
                     }
                 }
                 if (transaction.sign?.signed.indexOf(myPub) === -1) {
@@ -343,7 +348,7 @@ class MultiSigHandler {
 
     handleMessage = (messageStr: string, channel: string, sender: string) => {
         const message = JSON.parse(messageStr) as CommunicationMessage;
-        if (message.payload.index && message.payload.id && message.sign) {
+        if (message.payload.index !== undefined && message.payload.index >= 0 && message.payload.index < this.peers.length && message.payload.id && message.sign) {
             if (sender !== message.payload.id) {
                 return
             }
