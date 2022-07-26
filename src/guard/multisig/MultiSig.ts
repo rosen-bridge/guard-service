@@ -38,7 +38,7 @@ class MultiSigHandler {
         this.sendRegister().then(() => null);
     }
 
-    public sendRegister = async () : Promise<void> => {
+    public sendRegister = async (): Promise<void> => {
         this.nonce = crypto.randomBytes(32).toString("base64");
         this.sendMessage({
             type: "register",
@@ -162,7 +162,7 @@ class MultiSigHandler {
                     console.log("here 6")
                     simulated = transaction.sign.simulated;
                     console.log("here 7")
-                    signed = transaction.sign.signed;
+                    signed = [myPub, ...transaction.sign.signed];
                     console.log("here 8")
                     if (signed.indexOf(myPub) === -1) {
                         console.log("here 9")
@@ -270,10 +270,10 @@ class MultiSigHandler {
             if (unapproved.length > 0) {
                 peer.id = sender;
                 peer.unapproved = peer.unapproved.filter(item => unapproved.indexOf(item) === -1)
-            }else if(this.nonce == payload.nonce){
+            } else if (this.nonce == payload.nonce) {
                 peer.id = sender;
             }
-            if(payload.nonceToSign){
+            if (payload.nonceToSign) {
                 this.sendMessage({
                     type: "approve",
                     sign: "",
