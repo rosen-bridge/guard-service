@@ -100,6 +100,7 @@ class EventProcessor {
     static isEventConfirmedEnough = async (event: EventTrigger): Promise<boolean> => {
         if (event.fromChain === ChainsConstants.cardano) {
             const confirmation = await KoiosApi.getTxConfirmation(event.sourceTxId)
+            if (confirmation === null) return false
             return confirmation >= CardanoConfigs.requiredConfirmation
         }
         else if (event.fromChain === ChainsConstants.ergo) {

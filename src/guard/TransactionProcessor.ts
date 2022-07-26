@@ -60,7 +60,11 @@ class TransactionProcessor {
          */
         const processCardanoTx = async (): Promise<void> => {
             const confirmation = await KoiosApi.getTxConfirmation(tx.txId)
-            if (confirmation >= CardanoConfigs.requiredConfirmation) {
+            if (confirmation === null) {
+                // checking tx inputs
+                await processCardanoTxInputs()
+            }
+            else if (confirmation >= CardanoConfigs.requiredConfirmation) {
                 // tx confirmed enough. proceed to next process.
                 await scannerAction.setTxStatus(tx.txId, "completed")
 
@@ -74,10 +78,6 @@ class TransactionProcessor {
                     await scannerAction.setEventStatus(tx.event.sourceTxId, "completed")
                     console.log(`tx [${tx.txId}] is confirmed. event [${tx.event.sourceTxId}] is complete.`)
                 }
-            }
-            else if (confirmation === null) {
-                // checking tx inputs
-                await processCardanoTxInputs()
             }
             else {
                 // tx is mined, but not enough confirmation. updating last check...
@@ -120,7 +120,7 @@ class TransactionProcessor {
         }
 
         /**
-         * process cardano transaction inputs TODO
+         * process cardano transaction inputs
          */
         const processCardanoTxInputs = async (): Promise<void> => {
             const paymentTx = CardanoTransaction.fromJson(tx.txJson)
@@ -145,13 +145,13 @@ class TransactionProcessor {
                     }
                 }
 
-                const address = sourceTxs.get(sourceTxId)!.inputs[box.index()].address
+                const address = sourceTxs.get(sourceTxId)!.outputs[box.index()].address
                 if (!addressUtxos.has(address)) {
                     const utxos = await BlockFrostApi.getAddressUtxos(address)
                     addressUtxos.set(address, utxos)
                 }
 
-                const utxo = addressUtxos.get(address)!.find(utxo => utxo.tx_hash == sourceTxId && utxo.output_index == box.index())
+                const utxo = addressUtxos.get(address)!.find(utxo => utxo.tx_hash === sourceTxId && utxo.output_index === box.index())
                 valid = valid && (utxo !== undefined)
             }
             if (valid) {
@@ -164,14 +164,8 @@ class TransactionProcessor {
                 const height = await BlockFrostApi.currentHeight()
                 if (height - tx.lastCheck >= CardanoConfigs.requiredConfirmation) {
                     await scannerAction.setTxStatus(tx.txId, "invalid")
-                    if (tx.type === "payment") {
-                        await scannerAction.resetEventTx(tx.event.sourceTxId, "pending-payment")
-                        console.log(`tx [${tx.txId}] is invalid. event [${tx.event.sourceTxId}] is now waiting for payment.`)
-                    }
-                    else {
-                        await scannerAction.resetEventTx(tx.event.sourceTxId, "pending-reward")
-                        console.log(`tx [${tx.txId}] is invalid. event [${tx.event.sourceTxId}] is now waiting for reward distribution.`)
-                    }
+                    await scannerAction.resetEventTx(tx.event.sourceTxId, "pending-payment")
+                    console.log(`tx [${tx.txId}] is invalid. event [${tx.event.sourceTxId}] is now waiting for payment.`)
                 }
                 else {
                     console.log(`tx [${tx.txId}] is invalid. waiting for enough confirmation of this proposition.`)
@@ -199,8 +193,14 @@ class TransactionProcessor {
                 const height = await NodeApi.getHeight()
                 if (height - tx.lastCheck >= ErgoConfigs.requiredConfirmation) {
                     await scannerAction.setTxStatus(tx.txId, "invalid")
-                    await scannerAction.resetEventTx(tx.event.sourceTxId, "pending-payment")
-                    console.log(`tx [${tx.txId}] is invalid. event [${tx.event.sourceTxId}] is now waiting for payment.`)
+                    if (tx.type === "payment") {
+                        await scannerAction.resetEventTx(tx.event.sourceTxId, "pending-payment")
+                        console.log(`tx [${tx.txId}] is invalid. event [${tx.event.sourceTxId}] is now waiting for payment.`)
+                    }
+                    else {
+                        await scannerAction.resetEventTx(tx.event.sourceTxId, "pending-reward")
+                        console.log(`tx [${tx.txId}] is invalid. event [${tx.event.sourceTxId}] is now waiting for reward distribution.`)
+                    }
                 }
                 else {
                     console.log(`tx [${tx.txId}] is invalid. waiting for enough confirmation of this proposition.`)

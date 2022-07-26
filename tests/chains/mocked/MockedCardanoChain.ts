@@ -6,9 +6,12 @@ import CardanoTransaction from "../../../src/chains/cardano/models/CardanoTransa
 class MockedCardanoChain {
 
     mockedObject: CardanoChain
+    realCardanoChain = new CardanoChain()
 
     constructor(cardanoChain: CardanoChain) {
         this.mockedObject = spy(cardanoChain)
+        when(this.mockedObject.deserialize(anything())).thenCall(this.realCardanoChain.deserialize)
+        when(this.mockedObject.serialize(anything())).thenCall(this.realCardanoChain.serialize)
     }
 
     /**
