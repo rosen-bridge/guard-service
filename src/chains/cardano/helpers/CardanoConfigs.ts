@@ -1,8 +1,10 @@
 import * as CardanoWasm from '@emurgo/cardano-serialization-lib-nodejs';
 import { BigNum, TransactionBuilderConfig } from "@emurgo/cardano-serialization-lib-nodejs";
 import config from "config";
+import tokens from '../../../../config/tokens.json' assert { type: "json" };
+import { TokenMap } from "../../../../../tokens/dist/lib";
 
-class CardanoConfigs {
+class CardanoConfigs{
 
     // txBuilder configs: Cardano protocol parameters
     static protocolParameters = {
@@ -47,6 +49,7 @@ class CardanoConfigs {
     static assetFingerprintUnitTuples: Map<string, Uint8Array> = new Map([
         ["assetFingerPrint", Buffer.from("assetUnitHexString", "hex")]
     ])
+    static tokenMap = new TokenMap(tokens);
 
     static requiredConfirmation = config.get<number>('cardano.requiredConfirmation')
 
