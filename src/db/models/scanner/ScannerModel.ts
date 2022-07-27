@@ -74,7 +74,7 @@ class ScannerDataBase {
      * @param txJson json serialized of the transaction
      * @param status status of the process
      */
-    setEventTx = async (eventId: string, txId: string, txJson: string, status: string = "agreed"): Promise<void> => {
+    setEventTx = async (eventId: string, txId: string, txJson: string, status = "agreed"): Promise<void> => {
         await this.semaphore.acquire().then(async (release) => {
             try {
                 const event = await this.getEventById(eventId)

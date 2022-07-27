@@ -1,10 +1,10 @@
 import { anything, deepEqual, instance, mock, spy, verify, when } from "ts-mockito";
 import Dialer from "../../../src/communication/Dialer";
 
-let mockedDialerInstance = mock(Dialer)
+const mockedDialerInstance = mock(Dialer)
 when(mockedDialerInstance.sendMessage(anything(), anything(), anything())).thenResolve()
 
-let mockedDialer = spy(Dialer)
+const mockedDialer = spy(Dialer)
 when(mockedDialer.getInstance()).thenResolve(instance(mockedDialerInstance))
 
 /**

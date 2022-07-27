@@ -29,7 +29,7 @@ catch(err) {
 
 const testScannerDataBase = new ScannerDataBase(testScannerOrmDataSource)
 
-// mock all tssSignAction methods to call test database methods
+// mock all scannerAction methods to call test database methods
 const mockedScannerAction = spy(scannerAction)
 when(mockedScannerAction.setEventTxAsApproved(anything()))
     .thenCall(testScannerDataBase.setEventTxAsApproved)
