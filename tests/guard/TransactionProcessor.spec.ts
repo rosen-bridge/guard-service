@@ -391,4 +391,71 @@ describe("TransactionProcessor", () => {
 
     })
 
+    describe("processApprovedTx", () => {
+
+        describe("for Ergo txs", () => {
+
+            beforeEach("clear database tables", async () => {
+                await clearTxTable()
+                await clearEventTable()
+            })
+
+        })
+
+        describe("for Cardano txs", () => {
+
+            beforeEach("clear database tables", async () => {
+                await clearTxTable()
+                await clearEventTable()
+            })
+
+            /**
+             * Target: testing processApprovedTx
+             * Dependencies:
+             *    scannerAction
+             * Expected Output:
+             *    The function should send request
+             */
+            it("should send Cardano tx to CardanoChain for sign", async () => {
+                // mock erg payment event
+                const mockedEvent: EventTrigger = CardanoTestBoxes.mockADAPaymentEventTrigger()
+                await insertEventRecord(mockedEvent, "in-payment")
+                const tx = CardanoTestBoxes.mockADAPaymentTransaction(mockedEvent)
+                await insertTxRecord(tx, "payment", "cardano", "approved", 0, tx.eventId)
+                mockedCardanoChain.mockRequestToSignTransaction(tx)
+
+                // run test
+                await TransactionProcessor.processTransactions()
+
+                // verify
+                mockedCardanoChain.verifyRequestToSignTransactionCalledOnce(tx)
+            })
+
+            /**
+             * Target: testing processApprovedTx
+             * Dependencies:
+             *    scannerAction
+             * Expected Output:
+             *    The function should send request
+             */
+            it("should send Ergo tx to ErgoChain for sign", async () => {
+                // mock erg payment event
+                const mockedEvent: EventTrigger = ErgoTestBoxes.mockTokenRewardEventTrigger()
+                await insertEventRecord(mockedEvent, "in-payment")
+                const eventBoxAndCommitments = ErgoTestBoxes.mockEventBoxWithSomeCommitments()
+                const tx = ErgoTestBoxes.mockTokenBurningTokenDistributionTransaction(mockedEvent, eventBoxAndCommitments)
+                await insertTxRecord(tx, "payment", "ergo", "approved", 0, tx.eventId)
+                mockedErgoChain.mockRequestToSignTransaction(tx)
+
+                // run test
+                await TransactionProcessor.processTransactions()
+
+                // verify
+                mockedErgoChain.verifyRequestToSignTransactionCalledOnce(tx)
+            })
+
+        })
+
+    })
+
 })

@@ -5,7 +5,7 @@ import {
     Address,
     AssetName,
     Assets,
-    BigNum,
+    BigNum, hash_transaction,
     MultiAsset,
     ScriptHash,
     Transaction,
@@ -18,6 +18,7 @@ import CardanoConfigs from "../../../../src/chains/cardano/helpers/CardanoConfig
 import CardanoUtils from "../../../../src/chains/cardano/helpers/CardanoUtils";
 import CardanoTransaction from "../../../../src/chains/cardano/models/CardanoTransaction";
 import TestData from "./TestData";
+import Utils from "../../../../src/chains/ergo/helpers/Utils";
 
 class TestBoxes {
 
@@ -114,7 +115,7 @@ class TestBoxes {
         );
 
         // create PaymentTransaction object
-        const txId = TestUtils.generateRandomId()
+        const txId = Utils.Uint8ArrayToHexString(hash_transaction(tx.body()).to_bytes())
         const txBytes = tx.to_bytes()
         return new CardanoTransaction(txId, eventId, txBytes)
     }

@@ -55,6 +55,10 @@ when(mockedScannerAction.updateTxLastCheck(anything(), anything()))
     .thenCall(testScannerDataBase.updateTxLastCheck)
 when(mockedScannerAction.resetEventTx(anything(), anything()))
     .thenCall(testScannerDataBase.resetEventTx)
+when(mockedScannerAction.getTxById(anything()))
+    .thenCall(testScannerDataBase.getTxById)
+when(mockedScannerAction.updateWithSignedTx(anything(), anything()))
+    .thenCall(testScannerDataBase.updateWithSignedTx)
 
 /**
  * deletes every record in Event table in ScannerDatabase

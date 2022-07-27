@@ -14,6 +14,7 @@ import CardanoChain from "../chains/cardano/CardanoChain";
 import ErgoChain from "../chains/ergo/ErgoChain";
 import { AddressUtxos, TxUtxos } from "../chains/cardano/models/Interfaces";
 import Utils from "../helpers/Utils";
+import { PaymentTransaction } from "../models/Models";
 
 class TransactionProcessor {
 
@@ -36,6 +37,10 @@ class TransactionProcessor {
                         await this.processSentTx(tx)
                         break;
                     }
+                    case "approved": {
+                        await this.processApprovedTx(tx)
+                        break;
+                    }
                     case "signed": {
                         break;
                     }
@@ -51,7 +56,7 @@ class TransactionProcessor {
     }
 
     /**
-     * processes the transaction
+     * processes the transaction that has been sent before
      */
     static processSentTx = async (tx: TransactionEntity): Promise<void> => {
 
@@ -213,6 +218,20 @@ class TransactionProcessor {
         }
         else if (tx.chain === ChainsConstants.ergo) {
             await processErgoTx()
+        }
+        else throw new Error(`chain [${tx.chain}] not implemented.`)
+    }
+
+    /**
+     * sends request to sign tx
+     */
+    static processApprovedTx = async (tx: TransactionEntity): Promise<void> => {
+        const paymentTx = PaymentTransaction.fromJson(tx.txJson)
+        if (tx.chain === ChainsConstants.cardano) {
+            await this.cardanoChain.requestToSignTransaction(paymentTx)
+        }
+        else if (tx.chain === ChainsConstants.ergo) {
+            await this.ergoChain.requestToSignTransaction(paymentTx)
         }
         else throw new Error(`chain [${tx.chain}] not implemented.`)
     }

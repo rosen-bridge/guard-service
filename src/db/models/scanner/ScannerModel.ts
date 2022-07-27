@@ -192,6 +192,35 @@ class ScannerDataBase {
             .execute()
     }
 
+    /**
+     * @param txId the transaction id
+     * @return the event trigger
+     */
+    getTxById = async (txId: string): Promise<TransactionEntity> => {
+        return await this.TransactionRepository.findOneOrFail({
+            relations: ["event"],
+            where: {
+                "txId": txId
+            }
+        })
+    }
+
+    /**
+     * updates the status of a tx with its id
+     * @param txId the transaction id
+     * @param txJson tx json
+     */
+    updateWithSignedTx = async (txId: string, txJson: string): Promise<void> => {
+        await this.TransactionRepository.createQueryBuilder()
+            .update()
+            .set({
+                txJson: txJson,
+                status: "signed"
+            })
+            .where("txId = :id", {id: txId})
+            .execute()
+    }
+
 }
 
 const scannerAction = new ScannerDataBase(scannerOrmDataSource)
