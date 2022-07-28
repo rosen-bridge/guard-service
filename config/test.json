@@ -101,5 +101,8 @@
             }
         ]
     },
-    "minimumAgreement": 5
+    "minimumAgreement": 5,
+    "p2p": {
+        "peerIdFilePath": "./peer-dialer.json"
+    }
 }

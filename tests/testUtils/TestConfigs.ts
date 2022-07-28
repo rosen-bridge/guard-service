@@ -17,6 +17,11 @@ class TestConfigs {
     // guards configs
     static guardsSecret = config.get<GuardSecretInfo[]>('guard.guardsSecret')
 
+    // guards configs
+    static p2p = {
+        peerIdFilePath: config.get<string>('p2p.peerIdFilePath')
+    }
+
 }
 
 export default TestConfigs

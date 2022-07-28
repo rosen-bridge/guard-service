@@ -3,10 +3,12 @@ import express, { Router } from "express";
 import { p2pRouter } from "./api/p2p";
 import { initDataSources } from "./helpers/dataSources";
 import Configs from "./helpers/Configs";
+import Dialer from "./communication/Dialer";
 
 // initialize all data sources
 await initDataSources()
-
+// create dialer Instance
+await Dialer.getInstance()
 // run express app
 const app = express();
 const port = Configs.expressPort;
