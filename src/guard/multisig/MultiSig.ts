@@ -202,11 +202,10 @@ class MultiSigHandler {
                             simulated: simulated
                         }
                         const peers = this.peers.filter(item => {
-                            return simulated.indexOf(item.pub) === -1 && signed.indexOf(item.pub) === -1
+                            return simulated.indexOf(item.pub) === -1
                         }).map(item => item.id ? item.id : "").filter(item => item !== "")
-                        if (peers.length > 0) {
-                            this.sendMessage({type: "sign", payload: payload}, peers)
-                        } else {
+                        this.sendMessage({type: "sign", payload: payload}, peers)
+                        if(signed.length >= transaction.requiredSigner) {
                             if (transaction.resolve) {
                                 transaction.resolve(signedTx)
                             }
