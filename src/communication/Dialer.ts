@@ -20,7 +20,7 @@ import {
 } from "./Interfaces";
 import { PeerId } from "@libp2p/interface-peer-id";
 import { createEd25519PeerId, createFromJSON } from "@libp2p/peer-id-factory";
-import * as fs from "fs";
+import fs from "fs";
 
 
 // TODO: Need to write test for This package
@@ -68,10 +68,30 @@ class Dialer {
      * return PeerID or create PeerID if it doesn't exist
      * @return PeerID
      */
-    private getOrCreatePeerID = async (): Promise<PeerId> => {
+    static getOrCreatePeerID = async (): Promise<{ peerId: PeerId; exist: boolean }> => {
         if (!fs.existsSync(CommunicationConfig.peerIdFilePath)){
-            const peerId = await createEd25519PeerId()
+            return {
+                peerId: await createEd25519PeerId(),
+                exist: false
+            } as const
+        }
+        else {
+            const jsonData: string = fs.readFileSync(CommunicationConfig.peerIdFilePath, 'utf8')
+            const peerIdDialerJson = await JSON.parse(jsonData)
+            return {
+                peerId: await createFromJSON(peerIdDialerJson),
+                exist: true
+            }
+        }
+    }
 
+    /**
+     * If it didn't exist PeerID file, this function try to create a file and save peerId into that
+     * @param peerObj { peerId: PeerId; exist: boolean }
+     */
+    static savePeerIdIfNeed = async (peerObj: { peerId: PeerId; exist: boolean }): Promise<void> => {
+        if (!peerObj.exist){
+            const peerId = peerObj.peerId
             let privateKey: Uint8Array
             let publicKey: Uint8Array
             if (peerId.privateKey && peerId.publicKey) {
@@ -90,13 +110,6 @@ class Dialer {
                 if (err) throw err;
                 console.log('PeerId created!');
             })
-
-            return peerId
-        }
-        else {
-            const jsonData: string = fs.readFileSync(CommunicationConfig.peerIdFilePath, 'utf8')
-            const peerIdDialerJson = await JSON.parse(jsonData)
-            return await createFromJSON(peerIdDialerJson)
         }
     }
 
@@ -147,10 +160,10 @@ class Dialer {
      * @return a Libp2p object after start node
      */
     private startDialer = async (): Promise<void> => {
-
+        const peerId = await Dialer.getOrCreatePeerID()
         const node = await createLibp2p({
             // get or create new PeerID if it doesn't exist
-            peerId: await this.getOrCreatePeerID(),
+            peerId: peerId.peerId,
             // Type of communication
             transports: [
                 new WebSockets()
@@ -204,6 +217,8 @@ class Dialer {
 
         this._NODE = await node
         await this.createRelayConnection(node)
+        // this should call after createRelayConnection duo to peerId should save after create relay connection
+        await Dialer.savePeerIdIfNeed(peerId)
 
         const resendMessage = async (value: SendDataCommunication): Promise<void> => {
             await value.receiver ?
