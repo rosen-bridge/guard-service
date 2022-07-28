@@ -147,25 +147,17 @@ class MultiSigHandler {
 
     generateSign = (id: string) => {
         const prover = this.getProver();
+        let needSign = false;
         this.getQueuedTransaction(id).then(async (transaction) => {
             if (transaction.tx && transaction.secret) {
-                console.log("here 1")
                 const myPub = this.peers[this.getIndex()].pub
-                console.log("here 2")
                 let signed: Array<string> = [];
-                console.log("here 3")
                 let simulated: Array<string> = [];
-                console.log("here 4")
                 let hints: wasm.TransactionHintsBag = wasm.TransactionHintsBag.empty();
-                console.log("here 5")
                 if (transaction.sign) {
-                    console.log("here 6")
                     simulated = transaction.sign.simulated;
-                    console.log("here 7")
-                    signed = [myPub, ...transaction.sign.signed];
-                    console.log("here 8")
+                    signed = transaction.sign.signed;
                     if (signed.indexOf(myPub) === -1) {
-                        console.log("here 9")
                         hints = await extract_hints(
                             wasm.Transaction.sigma_parse_bytes(transaction.sign.transaction),
                             transaction.boxes,
@@ -173,60 +165,55 @@ class MultiSigHandler {
                             signed,
                             simulated
                         )
+                        signed = [myPub, ...signed]
+                        needSign = true
                     }
                 } else {
-                    console.log("here 10")
                     simulated = transaction.commitments.map((item, index) => {
                         if (item === undefined) {
                             return this.peers[index].pub
                         }
                         return ""
                     }).filter(item => !!item && item !== myPub)
-                    console.log("here 11")
                     signed = [myPub]
-                    console.log(signed, simulated)
+                    needSign = true
                 }
-                console.log("here 12")
-                add_hints(hints, transaction.secret, transaction.tx)
-                console.log("here 13")
-                for (let index = 0; index < transaction.commitments.length; index++) {
-                    const commitment = transaction.commitments[index];
-                    if (commitment && this.peers.length > index) {
-                        const peer = this.peers[index];
-                        if (signed.indexOf(this.peers[index].pub) === -1) {
-                            const publicHints = convertToHintBag(commitment, peer.pub)
-                            add_hints(hints, publicHints, transaction.tx)
+                if(needSign) {
+                    add_hints(hints, transaction.secret, transaction.tx)
+                    for (let index = 0; index < transaction.commitments.length; index++) {
+                        const commitment = transaction.commitments[index];
+                        if (commitment && this.peers.length > index) {
+                            const peer = this.peers[index];
+                            if (signed.indexOf(this.peers[index].pub) === -1) {
+                                const publicHints = convertToHintBag(commitment, peer.pub)
+                                add_hints(hints, publicHints, transaction.tx)
+                                console.log(JSON.stringify(hints.to_json()))
+                            }
                         }
                     }
-                }
-                try {
-                    console.log("here 14")
-                    const signedTx = prover.sign_reduced_transaction_multi(transaction.tx, hints)
-                    console.log("here 15")
-                    const tx = Buffer.from(signedTx.sigma_serialize_bytes()).toString("base64")
-                    console.log("here 16")
-                    // broadcast signed invalid transaction to all other
-                    const payload: SignPayload = {
-                        tx: tx,
-                        txId: signedTx.id().to_str(),
-                        signed: signed,
-                        simulated: simulated
-                    }
-                    console.log("here 17")
-                    const peers = this.peers.map(item => item.id ? item.id : "").filter(item => {
-                        return item !== "" && simulated.indexOf(item) === -1 && signed.indexOf(item) === -1
-                    })
-                    if (peers.length > 0) {
-                        console.log("transaction signed partially")
-                        this.sendMessage({type: "sign", payload: payload}, peers)
-                    } else {
-                        console.log("transaction completed")
-                        if (transaction.resolve) {
-                            transaction.resolve(signedTx)
+                    try {
+                        const signedTx = prover.sign_reduced_transaction_multi(transaction.tx, hints)
+                        const tx = Buffer.from(signedTx.sigma_serialize_bytes()).toString("base64")
+                        // broadcast signed invalid transaction to all other
+                        const payload: SignPayload = {
+                            tx: tx,
+                            txId: signedTx.id().to_str(),
+                            signed: signed,
+                            simulated: simulated
                         }
+                        const peers = this.peers.filter(item => {
+                            return simulated.indexOf(item.pub) === -1 && signed.indexOf(item.pub) === -1
+                        }).map(item => item.id ? item.id : "").filter(item => item !== "")
+                        if (peers.length > 0) {
+                            this.sendMessage({type: "sign", payload: payload}, peers)
+                        } else {
+                            if (transaction.resolve) {
+                                transaction.resolve(signedTx)
+                            }
+                        }
+                    } catch (e) {
+                        console.log(e)
                     }
-                } catch (e) {
-                    console.log(e)
                 }
             }
         })
