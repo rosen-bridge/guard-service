@@ -1,4 +1,4 @@
-import { EventTrigger, PaymentTransaction } from "../../../../src/models/Models";
+import { EventTrigger } from "../../../../src/models/Models";
 import TestUtils from "../../../testUtils/TestUtils";
 import { Asset, Box, Boxes, CoveringErgoBoxes, Register } from "../../../../src/chains/ergo/models/Interfaces";
 import {

@@ -7,7 +7,7 @@ import {
     Value, Vkeywitness, Vkeywitnesses
 } from "@emurgo/cardano-serialization-lib-nodejs";
 import KoiosApi from "./network/KoiosApi";
-import { EventTrigger } from "../../models/Models";
+import { EventTrigger, PaymentTransaction } from "../../models/Models";
 import BaseChain from "../BaseChains";
 import CardanoConfigs from "./helpers/CardanoConfigs";
 import BlockFrostApi from "./network/BlockFrostApi";
@@ -230,7 +230,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
 
     /**
      * calculates amount of lovelace and assets in utxo boxes
-     * @param boxes the utxo boxes
+     * @param boxes the utxogenerateTransaction boxes
      */
     calculateInputBoxesAssets = (boxes: Utxo[]): UtxoBoxesAssets => {
         const multiAsset = MultiAsset.new()
@@ -268,9 +268,10 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
 
     /**
      * requests TSS service to sign a cardano transaction
-     * @param tx the transaction
+     * @param paymentTx the payment transaction
      */
-    requestToSignTransaction = async (tx: Transaction): Promise<void> => {
+    requestToSignTransaction = async (paymentTx: PaymentTransaction): Promise<void> => {
+        const tx = this.deserialize(paymentTx.txBytes)
         try {
             // insert request into db
             const txHash = hash_transaction(tx.body()).to_bytes()

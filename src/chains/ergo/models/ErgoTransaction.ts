@@ -9,6 +9,26 @@ class ErgoTransaction extends PaymentTransaction {
         this.inputBoxes = inputBoxes
     }
 
+    /**
+     * @return transaction hex string
+     */
+    getInputBoxesString = (): string[] => {
+        return this.inputBoxes.map(box => Buffer.from(box).toString('hex'))
+    }
+
+    /**
+     * @return json representation of the transaction
+     */
+    override toJson = (): string => {
+        return JSON.stringify({
+            "network": this.network,
+            "txId": this.txId,
+            "eventId": this.eventId,
+            "txBytes": this.getTxHexString(),
+            "inputBoxes": this.getInputBoxesString()
+        })
+    }
+
 }
 
 export default ErgoTransaction

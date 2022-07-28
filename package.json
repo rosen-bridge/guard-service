@@ -12,7 +12,9 @@
         "test": "NODE_ENV=\"test\" mocha --slow 3000 && rm -rf tests/db/sqlite/test",
         "coverage": "c8 npm run test",
         "typeorm:update:sign": "typeorm-ts-node-esm migration:generate src/db/migrations/sign/sign -d config/signOrmDataSource.ts",
-        "typeorm:migrate:sign": "typeorm-ts-node-esm migration:run -d config/signOrmDataSource.ts"
+        "typeorm:update:scanner": "typeorm-ts-node-esm migration:generate src/db/migrations/scanner/scanner -d config/scannerOrmDataSource.ts",
+        "typeorm:migrate:sign": "typeorm-ts-node-esm migration:run -d config/signOrmDataSource.ts",
+        "typeorm:migrate:scanner": "typeorm-ts-node-esm migration:run -d config/scannerOrmDataSource.ts"
     },
     "author": "",
     "license": "ISC",
@@ -52,6 +54,7 @@
         "@typescript-eslint/parser": "^5.26.0",
         "axios": "^0.27.2",
         "big-integer": "^1.6.51",
+        "blakejs": "^1.2.1",
         "c8": "^7.11.3",
         "chai": "^4.3.6",
         "ergo-lib-wasm-nodejs": "^0.19.0-alpha-704e748",
@@ -59,6 +62,7 @@
         "json-bigint": "^1.0.0",
         "mocha": "^10.0.0",
         "nodemon": "^2.0.16",
+        "secp256k1": "^4.0.3",
         "ts-mockito": "^2.6.1",
         "ts-node": "^10.7.0",
         "typeorm": "^0.3.6",

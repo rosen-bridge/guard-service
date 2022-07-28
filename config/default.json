@@ -17,7 +17,8 @@
         "tssPublicKey": "1111111111111111111111111111111111111111111111111111111111111111",
         "txMinimumLovelace": "1310316",
         "txFee": "200000",
-        "txTtl": 100000
+        "txTtl": 100000,
+        "requiredConfirmation": 20
     },
     "ergo": {
         "explorer": {
@@ -30,7 +31,8 @@
         },
         "bankAddress": "9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD",
         "minimumErg": "100000",
-        "txFee": "1100000"
+        "txFee": "1100000",
+        "requiredConfirmation": 20
     },
     "reward": {
         "bridgeFeeRepoAddress": "9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD",
@@ -55,5 +57,37 @@
         "pubsubInterval": 1000,
         "apiCallbackTimeout": 8000
     },
-    "multiSigTimeout": null
+    "multiSigTimeout": null,
+    "guard": {
+        "guardId": 1,
+        "secret": "4444444444444444444444444444444444444444444444444444444444444444",
+        "guardsLen": 7,
+        "guards": [
+            {
+                "guardId": 0,
+                "guardPubKey": "pub guard 0"
+            },
+            {
+                "guardId": 2,
+                "guardPubKey": "pub guard 2"
+            },
+            {
+                "guardId": 3,
+                "guardPubKey": "pub guard 3"
+            },
+            {
+                "guardId": 4,
+                "guardPubKey": "pub guard 4"
+            },
+            {
+                "guardId": 5,
+                "guardPubKey": "pub guard 5"
+            },
+            {
+                "guardId": 6,
+                "guardPubKey": "pub guard 6"
+            }
+        ]
+    },
+    "minimumAgreement": 5
 }

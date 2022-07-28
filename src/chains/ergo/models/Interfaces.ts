@@ -63,6 +63,14 @@ interface ErgoBlockHeader {
     parentId: string
 }
 
+interface ErgoTransactionJsonModel {
+    network: string
+    txId: string
+    eventId: string
+    txBytes: string
+    inputBoxes: string[]
+}
+
 export {
     Asset,
     Register,
@@ -71,5 +79,6 @@ export {
     CoveringErgoBoxes,
     InBoxesInfo,
     AssetMap,
-    ErgoBlockHeader
+    ErgoBlockHeader,
+    ErgoTransactionJsonModel
 }

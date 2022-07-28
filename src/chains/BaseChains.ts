@@ -31,4 +31,10 @@ export default interface BaseChain<TransactionType, SerializedType extends Payme
      */
     deserialize: (txBytes: Uint8Array) => TransactionType
 
+    /**
+     * starts signing process in corresponding service for a transaction
+     * @param tx the transaction
+     */
+    requestToSignTransaction: (tx: PaymentTransaction) => Promise<void>
+
 }

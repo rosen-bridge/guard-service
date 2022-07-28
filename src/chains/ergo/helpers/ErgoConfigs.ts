@@ -19,6 +19,8 @@ class ErgoConfigs {
     static networkFeeRepoAddress: string = config.get?.('reward.networkFeeRepoAddress')
     static watchersSharePercent = BigInt(config.get?.('reward.watchersSharePercent'))
 
+    static requiredConfirmation = config.get<number>('ergo.requiredConfirmation')
+
 }
 
 export default ErgoConfigs

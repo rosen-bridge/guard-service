@@ -48,6 +48,8 @@ class CardanoConfigs {
         ["assetFingerPrint", Buffer.from("assetUnitHexString", "hex")]
     ])
 
+    static requiredConfirmation = config.get<number>('cardano.requiredConfirmation')
+
 }
 
 export default CardanoConfigs
