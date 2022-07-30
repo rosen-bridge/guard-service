@@ -1,9 +1,9 @@
 import axios from "axios";
 import { JsonBI } from "../network/NetworkModels";
 import CommunicationConfig from "./CommunicationConfig";
-import { SubscribeChannel } from "./Interfaces";
+import { SubscribeChannelFunction } from "./Interfaces";
 
-const apiCallBack = function (msg: string, channel: string, sender: string, url: string): void {
+const apiCallBack: SubscribeChannelFunction = (msg: string, channel: string, sender: string, url: string): void => {
     const data = axios.post(
         url,
         {
@@ -28,6 +28,6 @@ const apiCallBack = function (msg: string, channel: string, sender: string, url:
             console.error('unexpected error: ', error);
         }
     });
-} as SubscribeChannel
+}
 
 export { apiCallBack }
