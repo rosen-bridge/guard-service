@@ -5,8 +5,8 @@ class Utils {
     private static readonly guardsLen = Configs.guardsLen
     private static readonly guardId = Configs.guardId
     private static readonly TURNS_LENGTH = 3 * 60 // 3 minutes
-    private static readonly UP_TIME_LENGTH = 2 * 60 // 2 minutes
-    private static readonly FULL_PERIOD = this.guardsLen * this.TURNS_LENGTH
+    static readonly UP_TIME_LENGTH = 2 * 60 // 2 minutes
+    static readonly FULL_PERIOD = this.guardsLen * this.TURNS_LENGTH
 
     /**
      * calculates starting time by getting current time and adding INITIAL_DELAY to it.
@@ -47,6 +47,12 @@ class Utils {
         const buffer = Buffer.alloc(1, 0)
         buffer.writeUint8(num)
         return buffer
+    }
+
+    static secondsToReset = () => {
+        const startingTimeStamp = Date.now()
+        const currentPoint = startingTimeStamp % this.TURNS_LENGTH
+        return currentPoint - this.UP_TIME_LENGTH
     }
 
 }

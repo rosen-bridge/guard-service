@@ -31,7 +31,8 @@
         "bankAddress": "9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD",
         "minimumErg": "100000",
         "txFee": "1100000",
-        "requiredConfirmation": 20
+        "requiredConfirmation": 20,
+        "requiredSigns": 3
     },
     "reward": {
         "bridgeFeeRepoAddress": "9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD",
@@ -88,5 +89,6 @@
             }
         ]
     },
-    "minimumAgreement": 5
+    "minimumAgreement": 5,
+    "signInterval": 180
 }
