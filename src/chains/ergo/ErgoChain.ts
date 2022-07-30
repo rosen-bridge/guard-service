@@ -25,6 +25,8 @@ import Configs from "../../helpers/Configs";
 import ErgoTransaction from "./models/ErgoTransaction";
 import { Buffer } from "buffer";
 import ChainsConstants from "../ChainsConstants";
+import CardanoConfigs from "../cardano/helpers/CardanoConfigs";
+import * as pUtil from "../../helpers/Utils";
 
 class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
 
@@ -570,6 +572,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
     verifyEventWithPayment = async (event: EventTrigger): Promise<boolean> => {
         const paymentTx = await ExplorerApi.getConfirmedTx(event.sourceTxId)
         if(paymentTx) {
+            console.log("here")
             const payment = paymentTx.outputs.filter((box) =>
                 ErgoConfigs.lockAddress == box.address
             ).filter(box => Utils.isRosenData(box))[0]
@@ -582,6 +585,12 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
                 const amount = payment.assets[0].amount.toString()
                 const tokenId = payment.assets[0].tokenId
                 const blockId = payment.blockId
+                const token = CardanoConfigs.tokenMap.search(
+                    'ergo',
+                    {
+                        tokenID: event.sourceChainTokenId
+                    })
+                const targetTokenId = pUtil.default.targetTokenIdByChain(token[0], event.toChain)
                 // TODO: fix fromAddress when it was fixed in the watcher side
                 const inputAddress = "fromAddress"
                 return (
@@ -591,8 +600,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
                     event.bridgeFee == bridgeFee &&
                     event.amount == amount &&
                     event.sourceChainTokenId == tokenId &&
-                    // TODO: Is it needed?
-                    // event.targetChainTokenId == "" &&
+                    event.targetChainTokenId == targetTokenId &&
                     event.sourceBlockId == blockId &&
                     event.toAddress == toAddress &&
                     event.fromAddress == inputAddress

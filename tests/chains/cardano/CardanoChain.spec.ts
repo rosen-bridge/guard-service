@@ -1,4 +1,4 @@
-import { mockGetAddressBoxes } from "./mocked/MockedKoios";
+import { mockGetAddressBoxes, mockKoiosGetTxMetadata, mockKoiosGetTxUtxos } from "./mocked/MockedKoios";
 import CardanoChain from "../../../src/chains/cardano/CardanoChain";
 import { EventTrigger } from "../../../src/models/Models";
 import TestBoxes from "./testUtils/TestBoxes";
@@ -11,6 +11,7 @@ import MockedBlockFrost from "./mocked/MockedBlockFrost";
 import TestUtils from "../../testUtils/TestUtils";
 import { beforeEach } from "mocha";
 import { allCardanoSignRecords, clearCardanoSignTable, insertCardanoSignRecord } from "../../db/mocked/MockedSignModel";
+import { testData } from "./testUtils/testData";
 
 describe("CardanoChain", () => {
     const testBankAddress = TestBoxes.testBankAddress
@@ -278,6 +279,45 @@ describe("CardanoChain", () => {
             MockedBlockFrost.verifyTxSubmitCalledOnce(tx)
         })
 
+    })
+
+    describe("verifyEventWithPayment", () => {
+        beforeEach("reset MockedBlockFrost", () => {
+            mockKoiosGetTxUtxos(testData.tx.tx_hash, testData.tx)
+            mockKoiosGetTxMetadata(testData.txMetaData.tx_hash, testData.txMetaData)
+        })
+
+        /**
+         * Target: testing verifyEventWithPayment
+         * Dependencies:
+         *    -
+         * Expected Output:
+         *    It should verify the event
+         */
+        it("should return true when the event is correct", async () => {
+            const mockedEvent: EventTrigger = TestBoxes.mockValidEventTrigger()
+
+            // run test
+            const cardanoChain: CardanoChain = new CardanoChain()
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            expect(isValid).to.be.true
+        })
+
+        /**
+         * Target: testing verifyEventWithPayment
+         * Dependencies:
+         *    -
+         * Expected Output:
+         *    It should NOT verify the event
+         */
+        it("should return false when the event is incorrect", async () => {
+            const mockedEvent: EventTrigger = TestBoxes.mockInvalidEventTrigger()
+
+            // run test
+            const cardanoChain: CardanoChain = new CardanoChain()
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            expect(isValid).to.be.false
+        })
     })
 
 })

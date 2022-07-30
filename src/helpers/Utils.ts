@@ -1,4 +1,6 @@
 import Configs from "./Configs";
+import ChainsConstants from "../chains/ChainsConstants";
+import chainsConstants from "../chains/ChainsConstants";
 
 class Utils {
 
@@ -47,6 +49,14 @@ class Utils {
         const buffer = Buffer.alloc(1, 0)
         buffer.writeUint8(num)
         return buffer
+    }
+
+    static targetTokenIdByChain = (token: { [key: string]: { [key: string]: string; }}, targetChain: string): string => {
+        if(targetChain == ChainsConstants.ergo) return token[chainsConstants.ergo]['tokenID']
+        else if(targetChain == ChainsConstants.cardano) return token[chainsConstants.cardano]['fingerprint']
+        else {
+            throw new Error("target chain "+ targetChain +" is not implemented yet")
+        }
     }
 
 }

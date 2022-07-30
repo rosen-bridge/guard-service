@@ -844,7 +844,7 @@ class TestData {
           ],
           "additionalRegisters": {
             "R4": {
-              "serializedValue": "1a04034144410a746f4164647265737334063130303030300432353030",
+              "serializedValue": "1a040763617264616e6f0a746f4164647265737334063130303030300432353030",
               "sigmaType": "Coll[Coll[SByte]]",
               "renderedValue": "[414441,746f4164647265737334,313030303030,32353030]"
             }

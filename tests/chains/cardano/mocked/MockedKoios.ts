@@ -1,6 +1,6 @@
-import { spy, verify, when } from "ts-mockito";
+import { anything, spy, verify, when } from "ts-mockito";
 import KoiosApi from "../../../../src/chains/cardano/network/KoiosApi";
-import { Utxo } from "../../../../src/chains/cardano/models/Interfaces";
+import { MetaData, TxMetaData, Utxo } from "../../../../src/chains/cardano/models/Interfaces";
 
 
 const mockedKoios = spy(KoiosApi)
@@ -23,7 +23,25 @@ const mockKoiosGetTxConfirmationCalledOnce = (txId: string, confirmation: number
     when(mockedKoios.getTxConfirmation(txId)).thenResolve(confirmation)
 }
 
+/**
+ * mocks KoiosApi getTxUtxos method to return the required tx information
+ * @param txId
+ * @param tx
+ */
+const mockKoiosGetTxUtxos = (txId: string, tx: { inputs: Array<Utxo>, outputs: Array<Utxo> }) => {
+    when(mockedKoios.getTxUtxos(anything())).thenResolve([{
+        utxosOutput: tx.outputs,
+        utxosInput: tx.inputs,
+    }])
+}
+
+const mockKoiosGetTxMetadata = (txId: string, txMetaData: TxMetaData) => {
+    when(mockedKoios.getTxMetaData(anything())).thenResolve([txMetaData])
+}
+
 export {
     mockGetAddressBoxes,
-    mockKoiosGetTxConfirmationCalledOnce
+    mockKoiosGetTxConfirmationCalledOnce,
+    mockKoiosGetTxUtxos,
+    mockKoiosGetTxMetadata
 }

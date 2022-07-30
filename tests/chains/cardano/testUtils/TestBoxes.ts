@@ -45,6 +45,32 @@ class TestBoxes {
     }
 
     /**
+     * generates a mocked event trigger for event verification in cardano chain
+     */
+    static mockValidEventTrigger = (): EventTrigger => {
+        return new EventTrigger("cardano", "ergo",
+            "addr_test1vzg07d2qp3xje0w77f982zkhqey50gjxrsdqh89yx8r7nasu97hr0", "ergoAddress",
+            "10", "10000", "10000", "asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3",
+            "0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95",
+            "cf32ad374daefdce563e3391effc4fc42eb0e74bbec8afe16a46eeea69e3b2aa",
+            "93395496d590ec6db0f2fd13a7bcf91e82a9f230ef677f6216ea8c9f57df6ab3", []
+        )
+    }
+
+    /**
+     * generates an invalid mocked event trigger for event verification in cardano chain
+     */
+    static mockInvalidEventTrigger = (): EventTrigger => {
+        return new EventTrigger("cardano", "ergo",
+            "addr_test1vzg07d2qp3xje0w77f982zkhqey50gjxrsdqh89yx8r7nasu97hr0", "ergoAddress",
+            "1", "10000", "10000", "asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3",
+            "0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95",
+            "cf32ad374daefdce563e3391effc4fc42eb0e74bbec8afe16a46eeea69e3b2aa",
+            "93395496d590ec6db0f2fd13a7bcf91e82a9f230ef677f6216ea8c9f57df6ab3", []
+        )
+    }
+
+    /**
      * generates 3 Utxo for cardano bank address
      */
     static mockBankBoxes = (): Utxo[] => {
