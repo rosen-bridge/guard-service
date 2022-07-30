@@ -364,10 +364,13 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
             if (CardanoUtils.isRosenMetaData(metaData) && CardanoUtils.isRosenData(metaData["0"])) {
                 if (utxos[0].asset_list.length !== 0) {
                     const asset = utxos[0].asset_list[0];
-                    const assetFingerprint = AssetFingerprint.fromParts(
-                        Buffer.from(asset.policy_id, 'hex'),
-                        Buffer.from(asset.asset_name, 'hex'),
-                    );
+                    const token = CardanoConfigs.tokenMap.search(
+                        'cardano',
+                        {
+                            policyID: asset.policy_id,
+                            assetID: asset.asset_name
+                        });
+                    const assetFingerprint = token[0]['cardano']['fingerprint'];
                     const data = metaData["0"];
                     return (
                         event.fromChain == ChainsConstants.cardano &&
@@ -375,7 +378,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
                         event.networkFee == data.networkFee &&
                         event.bridgeFee == data.bridgeFee &&
                         event.amount == asset.quantity &&
-                        event.sourceChainTokenId == assetFingerprint.fingerprint() &&
+                        event.sourceChainTokenId == assetFingerprint &&
                         event.targetChainTokenId == data.targetChainTokenId &&
                         event.toAddress == data.toAddress &&
                         event.fromAddress == tx.utxosInput[0].payment_addr.bech32
