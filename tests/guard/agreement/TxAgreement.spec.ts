@@ -960,4 +960,105 @@ describe("TxAgreement", () => {
 
     })
 
+    describe("isEventHasDifferentTransaction", () => {
+
+        beforeEach("clear scanner database tables", async () => {
+            await clearTxTable()
+            await clearEventTable()
+        })
+
+        /**
+         * Target: testing isEventHasDifferentTransaction
+         * Dependencies:
+         *    scannerAction
+         * Expected Output:
+         *    The function should return true
+         */
+        it("should return true when there is another tx for this event in memory with the same type", async () => {
+            const txAgreement = new TestTxAgreement()
+
+            // mock token payment event
+            const mockedEvent: EventTrigger = CardanoTestBoxes.mockAssetPaymentEventTrigger()
+            const tx = CardanoTestBoxes.mockNoAssetsTransferringPaymentTransaction(mockedEvent, CardanoTestBoxes.testBankAddress)
+            txAgreement.insertTransactions(tx.txId, tx)
+            txAgreement.insertEventAgreedTransactions(tx.eventId, tx.txId)
+
+            // run test
+            const result = await txAgreement.isEventHasDifferentTransaction(tx.eventId, TestUtils.generateRandomId(), tx.type)
+
+            // verify
+            expect(result).to.be.true
+        })
+
+        /**
+         * Target: testing isEventHasDifferentTransaction
+         * Dependencies:
+         *    scannerAction
+         * Expected Output:
+         *    The function should return true
+         */
+        it("should return true when there is another tx for this event in database with the same type", async () => {
+            const txAgreement = new TestTxAgreement()
+
+            // mock token payment event
+            const mockedEvent: EventTrigger = CardanoTestBoxes.mockAssetPaymentEventTrigger()
+            await insertEventRecord(mockedEvent, "pending-payment")
+            const tx = CardanoTestBoxes.mockNoAssetsTransferringPaymentTransaction(mockedEvent, CardanoTestBoxes.testBankAddress)
+            await insertTxRecord(tx, tx.type, "cardano", "approved", 0, tx.eventId)
+
+            // run test
+            const result = await txAgreement.isEventHasDifferentTransaction(tx.eventId, TestUtils.generateRandomId(), tx.type)
+
+            // verify
+            expect(result).to.be.true
+        })
+
+        /**
+         * Target: testing isEventHasDifferentTransaction
+         * Dependencies:
+         *    scannerAction
+         * Expected Output:
+         *    The function should return false
+         */
+        it("should return false when there is another tx for this event in database but with different type", async () => {
+            const txAgreement = new TestTxAgreement()
+
+            // mock token payment event
+            const mockedEvent: EventTrigger = CardanoTestBoxes.mockAssetPaymentEventTrigger()
+            await insertEventRecord(mockedEvent, "pending-payment")
+            const tx = CardanoTestBoxes.mockNoAssetsTransferringPaymentTransaction(mockedEvent, CardanoTestBoxes.testBankAddress)
+            await insertTxRecord(tx, tx.type, "cardano", "approved", 0, tx.eventId)
+
+            // run test
+            const result = await txAgreement.isEventHasDifferentTransaction(tx.eventId, TestUtils.generateRandomId(), "reward")
+
+            // verify
+            expect(result).to.be.false
+        })
+
+        /**
+         * Target: testing isEventHasDifferentTransaction
+         * Dependencies:
+         *    scannerAction
+         * Expected Output:
+         *    The function should return false
+         */
+        it("should return false when there is another tx for this event in database but with invalid status", async () => {
+            const txAgreement = new TestTxAgreement()
+
+            // mock token payment event
+            const mockedEvent: EventTrigger = CardanoTestBoxes.mockAssetPaymentEventTrigger()
+            await insertEventRecord(mockedEvent, "pending-payment")
+            const tx = CardanoTestBoxes.mockNoAssetsTransferringPaymentTransaction(mockedEvent, CardanoTestBoxes.testBankAddress)
+            await insertTxRecord(tx, tx.type, "cardano", "invalid", 0, tx.eventId)
+
+            // run test
+            const result = await txAgreement.isEventHasDifferentTransaction(tx.eventId, TestUtils.generateRandomId(), tx.type)
+
+            // verify
+            expect(result).to.be.false
+        })
+
+    })
+
 })
