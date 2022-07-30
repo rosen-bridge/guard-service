@@ -74,7 +74,39 @@ class ExplorerApi {
      * @param txId
      */
     static getTxConfirmation = async (txId: string): Promise<number> => {
-        return this.explorerApi.get(`/v1/transactions/${txId}`).then(res => res.data.numConfirmations);
+        try {
+            return this.explorerApi.get(`/v1/transactions/${txId}`).then(res => res.data.numConfirmations);
+        }
+        catch (e) {
+            console.warn(`An error occurred while getting confirmation for tx [${txId}]: ${e}`)
+            return -1
+        }
+    }
+
+    /**
+     * checks if tx is in mempool
+     * @param txId
+     */
+    static isTxInMempool = async (txId: string): Promise<boolean> => {
+        return this.explorerApi.get(`/v0/transactions/unconfirmed/${txId}`)
+            .then(_ => true)
+            .catch(e => {
+                console.warn(`An error occurred while checking if tx [${txId}] exists in mempool: ${e}`)
+                return false
+            })
+    }
+
+    /**
+     * checks if box is in network and unspent
+     * @param boxId
+     */
+    static isBoxUnspentAndValid = async (boxId: string): Promise<boolean> => {
+        return this.explorerApi.get(`/v1/boxes/${boxId}`)
+            .then(res => res.data.spentTransactionId === null)
+            .catch(e => {
+                console.warn(`An error occurred while checking if box [${boxId}] is unspent and valid: ${e}`)
+                return false
+            })
     }
 
 }

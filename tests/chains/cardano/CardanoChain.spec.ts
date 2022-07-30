@@ -243,18 +243,16 @@ describe("CardanoChain", () => {
          * Expected Output:
          *    It should return true and submit tx without problem
          */
-        it("should return true when submit a transaction successfully", async () => {
+        it("should has called Blockfrost.submit when submit a transaction successfully", async () => {
             const cardanoChain: CardanoChain = new CardanoChain()
-            const tx = cardanoChain.deserialize(TestBoxes.mockTwoAssetsTransferringPaymentTransaction(
-                TestBoxes.mockAssetPaymentEventTrigger(), testBankAddress).txBytes)
+            const tx = TestBoxes.mockTwoAssetsTransferringPaymentTransaction(TestBoxes.mockAssetPaymentEventTrigger(), testBankAddress)
 
             // mock tx submit method
             MockedBlockFrost.mockTxSubmit(anything(), TestUtils.generateRandomId())
 
             // run test
-            const result = await cardanoChain.submitTransaction(tx)
-            expect(result).to.be.true
-            MockedBlockFrost.verifyTxSubmitCalledOnce(tx)
+            await cardanoChain.submitTransaction(tx)
+            MockedBlockFrost.verifyTxSubmitCalledOnce(cardanoChain.deserialize(tx.txBytes))
         })
 
         /**
@@ -264,18 +262,16 @@ describe("CardanoChain", () => {
          * Expected Output:
          *    It should try to submit and return false
          */
-        it("should return false when catch an error while submitting a transaction", async () => {
+        it("should has called Blockfrost.submit when catch an error while submitting a transaction", async () => {
             const cardanoChain: CardanoChain = new CardanoChain()
-            const tx = cardanoChain.deserialize(TestBoxes.mockTwoAssetsTransferringPaymentTransaction(
-                TestBoxes.mockAssetPaymentEventTrigger(), testBankAddress).txBytes)
+            const tx = TestBoxes.mockTwoAssetsTransferringPaymentTransaction(TestBoxes.mockAssetPaymentEventTrigger(), testBankAddress)
 
             // mock tx submit method
             MockedBlockFrost.mockTxSubmitError(anything())
 
             // run test
-            const result = await cardanoChain.submitTransaction(tx)
-            expect(result).to.be.false
-            MockedBlockFrost.verifyTxSubmitCalledOnce(tx)
+            await cardanoChain.submitTransaction(tx)
+            MockedBlockFrost.verifyTxSubmitCalledOnce(cardanoChain.deserialize(tx.txBytes))
         })
 
     })

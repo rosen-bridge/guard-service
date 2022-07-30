@@ -25,7 +25,7 @@ const mockVerifyEvent = (event: EventTrigger, result: boolean): void => {
 }
 
 /**
- * mocks EventProcessor verifyPaymentTransactionWithEvent method to return result when called for an event
+ * mocks EventProcessor verifyPaymentTransactionWithEvent method to return result when called for tx and event
  *  Note: currently, specifying argument does not work. ts-mockito deepEqual malfunctions with EventTrigger type.
  * @param tx
  * @param event
@@ -36,7 +36,7 @@ const mockVerifyPaymentTransactionWithEvent = (tx: PaymentTransaction, event: Ev
 }
 
 /**
- * verifies EventProcessor createEventPayment method called once for tx
+ * verifies EventProcessor createEventPayment method called once for event
  *  Note: currently, specifying argument does not work. ts-mockito deepEqual malfunctions with EventTrigger type.
  * @param event
  */
@@ -45,7 +45,7 @@ const verifyCreateEventPaymentCalledOnce = (event: EventTrigger): void => {
 }
 
 /**
- * verifies EventProcessor createEventPayment method didn't get called once for tx
+ * verifies EventProcessor createEventPayment method didn't get called once for event
  *  Note: currently, specifying argument does not work. ts-mockito deepEqual malfunctions with EventTrigger type.
  * @param event
  */

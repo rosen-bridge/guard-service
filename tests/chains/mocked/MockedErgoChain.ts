@@ -44,6 +44,22 @@ class MockedErgoChain {
         verify(this.mockedObject.requestToSignTransaction(deepEqual(tx))).never()
     }
 
+    /**
+     * mocks ErgoChain submitTransaction method when called for a tx
+     * @param tx
+     */
+    mockSubmitTransaction = (tx: PaymentTransaction): void => {
+        when(this.mockedObject.submitTransaction(anything())).thenResolve()
+    }
+
+    /**
+     * verifies ErgoChain submitTransaction method called once for tx
+     * @param tx
+     */
+    verifySubmitTransactionCalledOnce = (tx: PaymentTransaction): void => {
+        verify(this.mockedObject.submitTransaction(anything())).once()
+    }
+
 }
 
 export default MockedErgoChain
