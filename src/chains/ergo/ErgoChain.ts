@@ -10,7 +10,8 @@ import {
     ReducedTransaction, Token,
     TokenAmount,
     TokenId,
-    TxBuilder, UnsignedTransaction
+    TxBuilder, UnsignedTransaction,
+    Transaction
 } from "ergo-lib-wasm-nodejs";
 import { EventTrigger, PaymentTransaction } from "../../models/Models";
 import BaseChain from "../BaseChains";
@@ -23,11 +24,15 @@ import RewardBoxes from "./helpers/RewardBoxes";
 import Contracts from "../../contracts/Contracts";
 import Configs from "../../helpers/Configs";
 import ErgoTransaction from "./models/ErgoTransaction";
+import ergoConfigs from "./helpers/ErgoConfigs";
+import { mockedMultiSig } from "../../mocked";
+
+// const multiSigObj = mockedMultiSig.getInstance()
 
 class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
 
     bankAddress = Address.from_base58(ErgoConfigs.bankAddress)
-    bankErgoTree = Utils.addressToErgoTreeString(this.bankAddress)
+    bankErgoTree = Utils.addressToErgoTreeString(Address.from_base58(ErgoConfigs.bankAddress))
 
     /**
      * generates unsigned transaction of the event from multi-sig address in ergo chain
@@ -553,8 +558,12 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
      */
     requestToSignTransaction = async (paymentTx: PaymentTransaction): Promise<void> => {
         const tx = this.deserialize(paymentTx.txBytes)
+        const ergoTx = paymentTx as ErgoTransaction
+        console.log(ergoTx.inputBoxes)
         try {
             // TODO: implement this (Integration with Multisig service).
+            const signedTx = mockedMultiSig.getInstance().sign(tx, ergoConfigs.requiredSigns, [], [])
+            // TODO: Add signedTx to txQueue
         }
         catch (e) {
             console.log(`An error occurred while requesting Multisig service to sign Ergo tx: ${e.message}`)

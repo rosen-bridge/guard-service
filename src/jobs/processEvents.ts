@@ -4,7 +4,8 @@ import { txAgreement } from "../guard/agreement/TxAgreement";
 import eventProcessor from "../guard/EventProcessor";
 import Configs from "../helpers/Configs";
 
-const resendTxInterval = 30
+
+const resendTxInterval = 30 // seconds
 let resendCount = 0
 let resendInterval: NodeJS.Timer
 
@@ -13,6 +14,7 @@ const resendTxJob = () => {
     resendCount += 1
     if(resendCount >= 3) {
         clearInterval(resendInterval)
+        resendCount = 0
     }
 }
 

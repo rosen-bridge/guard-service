@@ -9,6 +9,7 @@ import { beforeEach } from "mocha";
 import { mockGetEventBox, mockGetEventValidCommitments, resetMockedRewardBoxes } from "./mocked/MockedRewardBoxes";
 import { anything } from "ts-mockito";
 import Reward from "../../../src/chains/ergo/Reward";
+import { accountsWithdrawalsAll } from "@blockfrost/blockfrost-js/lib/endpoints/api/accounts";
 
 describe("ErgoChain",  () => {
     const testBankAddress = TestBoxes.testBankAddress
@@ -228,5 +229,15 @@ describe("ErgoChain",  () => {
         })
 
     })
+
+    // describe("requestToSignTransaction ergo", () => {
+    //     it("test", async () => {
+    //         const mockedEvent: EventTrigger = TestBoxes.mockTokenRewardEventTrigger()
+    //         const eventBoxAndCommitments = TestBoxes.mockEventBoxWithSomeCommitments()
+    //         const tx = TestBoxes.mockTokenBurningTokenDistributionTransaction(mockedEvent, eventBoxAndCommitments)
+    //         const ergoChain: ErgoChain = new ErgoChain()
+    //         await ergoChain.requestToSignTransaction(tx)
+    //     })
+    // })
 
 })
