@@ -54,7 +54,8 @@
         "address": "change me",
         "bootstrapInterval": 60e3,
         "pubsubInterval": 1000,
-        "apiCallbackTimeout": 8000
+        "apiCallbackTimeout": 8000,
+        "peerIdFilePath": "./peer-dialer.json"
     },
     "guard": {
         "guardId": 1,
