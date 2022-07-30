@@ -11,7 +11,7 @@ import MockedBlockFrost from "./mocked/MockedBlockFrost";
 import TestUtils from "../../testUtils/TestUtils";
 import { beforeEach } from "mocha";
 import TssSigner from "../../../src/guard/TssSigner";
-import { allTxRecords, clearTxTable, insertTxRecord } from "../../db/mocked/MockedScannerModel";
+import { allTxRecords, clearTables, insertTxRecord } from "../../db/mocked/MockedScannerModel";
 import CardanoTransaction from "../../../src/chains/cardano/models/CardanoTransaction";
 
 describe("CardanoChain", () => {
@@ -147,7 +147,7 @@ describe("CardanoChain", () => {
     describe("requestToSignTransaction", () => {
 
         beforeEach("clear database tables", async () => {
-            await clearTxTable()
+            await clearTables()
         })
 
         /**
@@ -182,7 +182,7 @@ describe("CardanoChain", () => {
     describe("signTransaction", () => {
 
         beforeEach("clear test sign database Cardano signs table", async () => {
-            await clearTxTable()
+            await clearTables()
         })
 
         /**

@@ -7,9 +7,7 @@ import {
 import { EventTrigger } from "../../src/models/Models";
 import ErgoTestBoxes from "../chains/ergo/testUtils/TestBoxes";
 import {
-    allEventRecords, allTxRecords,
-    clearEventTable,
-    clearTxTable,
+    allEventRecords, allTxRecords, clearTables,
     insertEventRecord,
     insertTxRecord
 } from "../db/mocked/MockedScannerModel";
@@ -37,10 +35,10 @@ describe("TransactionProcessor", () => {
             const eventBoxAndCommitments = ErgoTestBoxes.mockEventBoxWithSomeCommitments()
 
             beforeEach("clear database tables", async () => {
-                await clearTxTable()
-                await clearEventTable()
+                await clearTables()
                 resetMockedExplorerApi()
                 resetMockedEventProcessor()
+                mockedErgoChain.resetMockCalls()
             })
 
             /**
@@ -239,9 +237,9 @@ describe("TransactionProcessor", () => {
             const testBankAddress = CardanoTestBoxes.testBankAddress
 
             beforeEach("clear database tables", async () => {
-                await clearTxTable()
-                await clearEventTable()
+                await clearTables()
                 resetMockedEventProcessor()
+                mockedCardanoChain.resetMockCalls()
             })
 
             /**
@@ -393,67 +391,110 @@ describe("TransactionProcessor", () => {
 
     describe("processApprovedTx", () => {
 
-        describe("for Ergo txs", () => {
-
-            beforeEach("clear database tables", async () => {
-                await clearTxTable()
-                await clearEventTable()
-            })
-
+        beforeEach("clear database tables", async () => {
+            await clearTables()
+            mockedCardanoChain.resetMockCalls()
+            mockedErgoChain.resetMockCalls()
         })
 
-        describe("for Cardano txs", () => {
+        /**
+         * Target: testing processApprovedTx
+         * Dependencies:
+         *    scannerAction
+         * Expected Output:
+         *    The function should send request
+         */
+        it("should send Cardano reward distribution tx to ErgoChain for sign", async () => {
+            // mock erg payment event
+            const mockedEvent: EventTrigger = ErgoTestBoxes.mockTokenRewardEventTrigger()
+            await insertEventRecord(mockedEvent, "in-reward")
+            const eventBoxAndCommitments = ErgoTestBoxes.mockEventBoxWithSomeCommitments()
+            const tx = ErgoTestBoxes.mockTokenBurningErgDistributionTransaction(mockedEvent, eventBoxAndCommitments)
+            await insertTxRecord(tx, "reward", "ergo", "approved", 0, tx.eventId)
+            mockedErgoChain.mockRequestToSignTransaction(tx)
 
-            beforeEach("clear database tables", async () => {
-                await clearTxTable()
-                await clearEventTable()
-            })
+            // run test
+            await TransactionProcessor.processTransactions()
 
-            /**
-             * Target: testing processApprovedTx
-             * Dependencies:
-             *    scannerAction
-             * Expected Output:
-             *    The function should send request
-             */
-            it("should send Cardano tx to CardanoChain for sign", async () => {
-                // mock erg payment event
-                const mockedEvent: EventTrigger = CardanoTestBoxes.mockADAPaymentEventTrigger()
-                await insertEventRecord(mockedEvent, "in-payment")
-                const tx = CardanoTestBoxes.mockADAPaymentTransaction(mockedEvent)
-                await insertTxRecord(tx, "payment", "cardano", "approved", 0, tx.eventId)
-                mockedCardanoChain.mockRequestToSignTransaction(tx)
+            // verify
+            mockedErgoChain.verifyRequestToSignTransactionCalledOnce(tx)
+        })
 
-                // run test
-                await TransactionProcessor.processTransactions()
+        /**
+         * Target: testing processApprovedTx
+         * Dependencies:
+         *    scannerAction
+         * Expected Output:
+         *    The function should send request
+         */
+        it("should send Cardano tx to CardanoChain for sign", async () => {
+            // mock erg payment event
+            const mockedEvent: EventTrigger = CardanoTestBoxes.mockADAPaymentEventTrigger()
+            await insertEventRecord(mockedEvent, "in-payment")
+            const tx = CardanoTestBoxes.mockADAPaymentTransaction(mockedEvent)
+            await insertTxRecord(tx, "payment", "cardano", "approved", 0, tx.eventId)
+            mockedCardanoChain.mockRequestToSignTransaction(tx)
 
-                // verify
-                mockedCardanoChain.verifyRequestToSignTransactionCalledOnce(tx)
-            })
+            // run test
+            await TransactionProcessor.processTransactions()
 
-            /**
-             * Target: testing processApprovedTx
-             * Dependencies:
-             *    scannerAction
-             * Expected Output:
-             *    The function should send request
-             */
-            it("should send Ergo tx to ErgoChain for sign", async () => {
-                // mock erg payment event
-                const mockedEvent: EventTrigger = ErgoTestBoxes.mockTokenRewardEventTrigger()
-                await insertEventRecord(mockedEvent, "in-payment")
-                const eventBoxAndCommitments = ErgoTestBoxes.mockEventBoxWithSomeCommitments()
-                const tx = ErgoTestBoxes.mockTokenBurningTokenDistributionTransaction(mockedEvent, eventBoxAndCommitments)
-                await insertTxRecord(tx, "payment", "ergo", "approved", 0, tx.eventId)
-                mockedErgoChain.mockRequestToSignTransaction(tx)
+            // verify
+            mockedCardanoChain.verifyRequestToSignTransactionCalledOnce(tx)
+        })
 
-                // run test
-                await TransactionProcessor.processTransactions()
+    })
 
-                // verify
-                mockedErgoChain.verifyRequestToSignTransactionCalledOnce(tx)
-            })
+    describe("processSignedTx", () => {
 
+        beforeEach("clear database tables", async () => {
+            await clearTables()
+            mockedErgoChain.resetMockCalls()
+            mockedCardanoChain.resetMockCalls()
+        })
+
+        /**
+         * Target: testing processSignedTx
+         * Dependencies:
+         *    scannerAction
+         * Expected Output:
+         *    The function should send request
+         */
+        it("should submit Ergo tx to network", async () => {
+            // mock erg payment event
+            const mockedEvent: EventTrigger = ErgoTestBoxes.mockTokenRewardEventTrigger()
+            await insertEventRecord(mockedEvent, "in-reward")
+            const eventBoxAndCommitments = ErgoTestBoxes.mockEventBoxWithSomeCommitments()
+            const tx = ErgoTestBoxes.mockTokenBurningErgDistributionTransaction(mockedEvent, eventBoxAndCommitments)
+            await insertTxRecord(tx, "reward", "ergo", "signed", 0, tx.eventId)
+            mockedErgoChain.mockSubmitTransaction(tx)
+
+            // run test
+            await TransactionProcessor.processTransactions()
+
+            // verify
+            mockedErgoChain.verifySubmitTransactionCalledOnce(tx)
+        })
+
+        /**
+         * Target: testing processSignedTx
+         * Dependencies:
+         *    scannerAction
+         * Expected Output:
+         *    The function should send request
+         */
+        it("should submit Cardano tx to network", async () => {
+            // mock erg payment event
+            const mockedEvent: EventTrigger = CardanoTestBoxes.mockADAPaymentEventTrigger()
+            await insertEventRecord(mockedEvent, "in-payment")
+            const tx = CardanoTestBoxes.mockADAPaymentTransaction(mockedEvent)
+            await insertTxRecord(tx, "payment", "cardano", "signed", 0, tx.eventId)
+            mockedCardanoChain.mockSubmitTransaction(tx)
+
+            // run test
+            await TransactionProcessor.processTransactions()
+
+            // verify
+            mockedCardanoChain.verifySubmitTransactionCalledOnce(tx)
         })
 
     })

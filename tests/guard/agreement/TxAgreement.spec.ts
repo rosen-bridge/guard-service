@@ -10,8 +10,7 @@ import Configs from "../../../src/helpers/Configs";
 import TestUtils from "../../testUtils/TestUtils";
 import {
     allEventRecords,
-    allTxRecords,
-    clearEventTable, clearTxTable,
+    allTxRecords, clearTables,
     insertEventRecord, insertTxRecord
 } from "../../db/mocked/MockedScannerModel";
 import {
@@ -72,8 +71,7 @@ describe("TxAgreement", () => {
     describe("processTransactionRequest", () => {
 
         beforeEach("clear scanner database tables", async () => {
-            await clearTxTable()
-            await clearEventTable()
+            await clearTables()
             resetMockedEventProcessor()
         })
 
@@ -396,8 +394,7 @@ describe("TxAgreement", () => {
     describe("processAgreementResponse", () => {
 
         beforeEach("clear scanner database tables", async () => {
-            await clearTxTable()
-            await clearEventTable()
+            await clearTables()
         })
 
         /**
@@ -529,8 +526,7 @@ describe("TxAgreement", () => {
     describe("processApprovalMessage", () => {
 
         beforeEach("clear scanner database tables", async () => {
-            await clearTxTable()
-            await clearEventTable()
+            await clearTables()
             resetMockedEventProcessor()
         })
 
@@ -747,8 +743,7 @@ describe("TxAgreement", () => {
     describe("clearTransactions", () => {
 
         beforeEach("clear scanner database tables", async () => {
-            await clearTxTable()
-            await clearEventTable()
+            await clearTables()
         })
 
         /**
@@ -801,8 +796,7 @@ describe("TxAgreement", () => {
     describe("clearAgreedTransactions", () => {
 
         beforeEach("clear scanner database tables", async () => {
-            await clearTxTable()
-            await clearEventTable()
+            await clearTables()
         })
 
         /**
@@ -963,8 +957,7 @@ describe("TxAgreement", () => {
     describe("isEventHasDifferentTransaction", () => {
 
         beforeEach("clear scanner database tables", async () => {
-            await clearTxTable()
-            await clearEventTable()
+            await clearTables()
         })
 
         /**

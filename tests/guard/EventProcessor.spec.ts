@@ -10,7 +10,7 @@ import {
     verifyCreateEventPaymentDidntGetCalled
 } from "./mocked/MockedEventProcessor";
 import CardanoTestBoxes from "../chains/cardano/testUtils/TestBoxes";
-import { allEventRecords, clearEventTable, insertEventRecord } from "../db/mocked/MockedScannerModel";
+import { allEventRecords, clearTables, insertEventRecord } from "../db/mocked/MockedScannerModel";
 import {
     mockStartAgreementProcess,
     resetMockedTxAgreement,
@@ -20,7 +20,6 @@ import MockedCardanoChain from "../chains/mocked/MockedCardanoChain";
 import MockedErgoChain from "../chains/mocked/MockedErgoChain";
 import ErgoTestBoxes from "../chains/ergo/testUtils/TestBoxes";
 import TestBoxes from "../chains/ergo/testUtils/TestBoxes";
-import { scannerAction } from "../../src/db/models/scanner/ScannerModel";
 
 describe("EventProcessor", () => {
     const cardanoTestBankAddress = CardanoTestBoxes.testBankAddress
@@ -80,7 +79,7 @@ describe("EventProcessor", () => {
     describe("processEvent", () => {
 
         beforeEach("reset isEventConfirmedEnough mock", async () => {
-            await clearEventTable()
+            await clearTables()
             resetMockedEventProcessor()
             resetMockedTxAgreement()
         })

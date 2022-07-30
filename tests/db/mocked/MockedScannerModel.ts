@@ -55,17 +55,11 @@ when(mockedScannerAction.getEventTxsByType(anything(), anything()))
     .thenCall(testScannerDataBase.getEventTxsByType)
 
 /**
- * deletes every record in Event table in ScannerDatabase
+ * deletes every record in Event and Transaction table in ScannerDatabase
  */
-const clearEventTable = async () => {
-    await testScannerDataBase.EventRepository.clear()
-}
-
-/**
- * deletes every record in Transaction table in ScannerDatabase
- */
-const clearTxTable = async () => {
+const clearTables = async () => {
     await testScannerDataBase.TransactionRepository.clear()
+    await testScannerDataBase.EventRepository.clear()
 }
 
 /**
@@ -134,8 +128,7 @@ const allTxRecords = async () => {
 }
 
 export {
-    clearEventTable,
-    clearTxTable,
+    clearTables,
     insertEventRecord,
     insertTxRecord,
     allEventRecords,
