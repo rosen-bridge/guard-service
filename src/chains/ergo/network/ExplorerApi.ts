@@ -77,7 +77,8 @@ class ExplorerApi {
         try {
             return this.explorerApi.get(`/v1/transactions/${txId}`).then(res => res.data.numConfirmations);
         }
-        catch (_) {
+        catch (e) {
+            console.warn(`An error occurred while getting confirmation for tx [${txId}]: ${e}`)
             return -1
         }
     }
@@ -89,7 +90,10 @@ class ExplorerApi {
     static isTxInMempool = async (txId: string): Promise<boolean> => {
         return this.explorerApi.get(`/v0/transactions/unconfirmed/${txId}`)
             .then(_ => true)
-            .catch(_ => false)
+            .catch(e => {
+                console.warn(`An error occurred while checking if tx [${txId}] exists in mempool: ${e}`)
+                return false
+            })
     }
 
     /**
@@ -99,7 +103,10 @@ class ExplorerApi {
     static isBoxUnspentAndValid = async (boxId: string): Promise<boolean> => {
         return this.explorerApi.get(`/v1/boxes/${boxId}`)
             .then(res => res.data.spentTransactionId === null)
-            .catch(_ => false)
+            .catch(e => {
+                console.warn(`An error occurred while checking if box [${boxId}] is unspent and valid: ${e}`)
+                return false
+            })
     }
 
 }
