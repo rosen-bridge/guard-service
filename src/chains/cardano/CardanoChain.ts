@@ -62,7 +62,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         const txBytes = tx.to_bytes()
         const txId = Buffer.from(hash_transaction(txBody).to_bytes()).toString('hex')
         const eventId = event.sourceTxId
-        const paymentTx = new CardanoTransaction(txId, eventId, txBytes) // we don't need inputBoxes in PaymentTransaction for Cardano tx
+        const paymentTx = new CardanoTransaction(txId, eventId, txBytes, "payment") // we don't need inputBoxes in PaymentTransaction for Cardano tx
 
         console.log(`Payment transaction for event [${eventId}] generated. TxId: ${txId}`)
         return paymentTx
@@ -322,7 +322,8 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         const signedPaymentTx = new CardanoTransaction(
             txId,
             paymentTx.eventId,
-            this.serialize(signedTx)
+            this.serialize(signedTx),
+            paymentTx.type
         )
         await scannerAction.updateWithSignedTx(
             txId,

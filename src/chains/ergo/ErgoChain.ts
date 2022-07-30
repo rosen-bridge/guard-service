@@ -64,7 +64,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         const txBytes = this.serialize(reducedTx)
         const txId = reducedTx.unsigned_tx().id().to_str()
         const eventId = event.sourceTxId
-        const tx = new ErgoTransaction(txId, eventId, txBytes, inBoxes)
+        const tx = new ErgoTransaction(txId, eventId, txBytes, inBoxes, "payment")
 
         console.log(`Payment transaction for event [${tx.eventId}] generated. TxId: ${tx.txId}`)
         return tx

@@ -1,5 +1,4 @@
 import { PaymentTransaction } from "../../../models/Models";
-import { PaymentTransactionJsonModel } from "../../../models/Interfaces";
 import ErgoUtils from "../helpers/Utils";
 import { ErgoTransactionJsonModel } from "./Interfaces";
 import Utils from "../helpers/Utils";
@@ -8,8 +7,8 @@ class ErgoTransaction extends PaymentTransaction {
 
     inputBoxes: Uint8Array[]
 
-    constructor(txId: string, eventId: string, txBytes: Uint8Array, inputBoxes: Uint8Array[]) {
-        super("ergo", txId, eventId, txBytes);
+    constructor(txId: string, eventId: string, txBytes: Uint8Array, inputBoxes: Uint8Array[], type: string) {
+        super("ergo", txId, eventId, txBytes, type);
         this.inputBoxes = inputBoxes
     }
 
@@ -19,7 +18,8 @@ class ErgoTransaction extends PaymentTransaction {
             obj.txId,
             obj.eventId,
             ErgoUtils.hexStringToUint8Array(obj.txBytes),
-            obj.inputBoxes.map(box => Utils.hexStringToUint8Array(box))
+            obj.inputBoxes.map(box => Utils.hexStringToUint8Array(box)),
+            obj.type
         )
     }
 

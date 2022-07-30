@@ -117,7 +117,7 @@ class TestBoxes {
         // create PaymentTransaction object
         const txId = Utils.Uint8ArrayToHexString(hash_transaction(tx.body()).to_bytes())
         const txBytes = tx.to_bytes()
-        return new CardanoTransaction(txId, eventId, txBytes)
+        return new CardanoTransaction(txId, eventId, txBytes, "payment")
     }
 
     /**

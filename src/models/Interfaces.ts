@@ -54,6 +54,7 @@ interface PaymentTransactionJsonModel {
     txId: string
     eventId: string
     txBytes: string
+    type: string
 }
 
 export type {

@@ -15,6 +15,7 @@ import ErgoChain from "../chains/ergo/ErgoChain";
 import { AddressUtxos, TxUtxos } from "../chains/cardano/models/Interfaces";
 import Utils from "../helpers/Utils";
 import { PaymentTransaction } from "../models/Models";
+import BaseChain from "../chains/BaseChains";
 
 class TransactionProcessor {
 
@@ -23,6 +24,16 @@ class TransactionProcessor {
 
     static cardanoChain = new CardanoChain()
     static ergoChain = new ErgoChain()
+
+    /**
+     * returns chain object
+     * @param chain the chain name
+     */
+    static getChainObject = (chain: string): BaseChain<any, any> => {
+        if (chain === ChainsConstants.cardano) return this.cardanoChain
+        else if (chain === ChainsConstants.ergo) return this.ergoChain
+        else throw new Error(`chain [${chain}] not implemented.`)
+    }
 
     /**
      * processes all transactions in the database
@@ -37,15 +48,13 @@ class TransactionProcessor {
                         await this.processSentTx(tx)
                         break;
                     }
+                    case "signed": {
+                        await this.processSignedTx(tx)
+                        break;
+                    }
                     case "approved": {
                         await this.processApprovedTx(tx)
                         break;
-                    }
-                    case "signed": {
-                        break;
-                    }
-                    case "": {
-                        break
                     }
                 }
             }
@@ -227,13 +236,15 @@ class TransactionProcessor {
      */
     static processApprovedTx = async (tx: TransactionEntity): Promise<void> => {
         const paymentTx = PaymentTransaction.fromJson(tx.txJson)
-        if (tx.chain === ChainsConstants.cardano) {
-            await this.cardanoChain.requestToSignTransaction(paymentTx)
-        }
-        else if (tx.chain === ChainsConstants.ergo) {
-            await this.ergoChain.requestToSignTransaction(paymentTx)
-        }
-        else throw new Error(`chain [${tx.chain}] not implemented.`)
+        await this.getChainObject(tx.chain).requestToSignTransaction(paymentTx)
+    }
+
+    /**
+     * submits tx to corresponding chain
+     */
+    static processSignedTx = async (tx: TransactionEntity): Promise<void> => {
+        const paymentTx = PaymentTransaction.fromJson(tx.txJson)
+        await this.getChainObject(tx.chain).submitTransaction(paymentTx)
     }
 
 }
