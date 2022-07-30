@@ -16,7 +16,7 @@ import { add_hints, convertToHintBag, extract_hints } from "./utils";
 
 const dialer = await Dialer.getInstance();
 
-class MultiSigHandler {
+class MultiSigHandler{
     private static CHANNEL = "multi-sig"
     private readonly transactions: Map<string, TxQueued>
     private readonly peers: Array<Signer>;
@@ -49,7 +49,7 @@ class MultiSigHandler {
         })
     }
 
-    private getIndex = (): number => {
+    getIndex = (): number => {
         if (this.index === undefined) {
             const ergoTree = wasm.SecretKey.dlog_from_bytes(this.secret).get_address().to_ergo_tree().to_base16_bytes();
             const publicKey = ergoTree.substring(ergoTree.length - 66);
@@ -77,7 +77,7 @@ class MultiSigHandler {
         })
     }
 
-    private getPeerId = (): string => {
+    getPeerId = (): string => {
         const peerId = dialer.getPeerId();
         if (this.peerId !== peerId) {
             // TODO must call all other guards to update peerId
@@ -104,7 +104,7 @@ class MultiSigHandler {
         })
     }
 
-    private getProver = (): wasm.Wallet => {
+     getProver = (): wasm.Wallet => {
         if (!this.prover) {
             const secret = wasm.SecretKey.dlog_from_bytes(this.secret)
             const secretKeys = new wasm.SecretKeys();
@@ -178,7 +178,7 @@ class MultiSigHandler {
                     signed = [myPub]
                     needSign = true
                 }
-                if(needSign) {
+                if (needSign) {
                     add_hints(hints, transaction.secret, transaction.tx)
                     for (let index = 0; index < transaction.commitments.length; index++) {
                         const commitment = transaction.commitments[index];
@@ -205,7 +205,7 @@ class MultiSigHandler {
                             return simulated.indexOf(item.pub) === -1
                         }).map(item => item.id ? item.id : "").filter(item => item !== "")
                         this.sendMessage({type: "sign", payload: payload}, peers)
-                        if(signed.length >= transaction.requiredSigner) {
+                        if (signed.length >= transaction.requiredSigner) {
                             if (transaction.resolve) {
                                 transaction.resolve(signedTx)
                             }
@@ -227,7 +227,7 @@ class MultiSigHandler {
         if (receivers && receivers.length) {
             receivers.map(receiver => dialer.sendMessage(MultiSigHandler.CHANNEL, JSON.stringify(message), receiver).then(() => null))
         } else {
-            dialer.sendMessage(MultiSigHandler.CHANNEL, JSON.stringify(message)).then(() => null)
+            dialer.sendMessage(MultiSigHandler.CHANNEL, JSON.stringify(message))
         }
     }
 
@@ -338,6 +338,8 @@ class MultiSigHandler {
             if (sender !== message.payload.id) {
                 return
             }
+            console.log("*****************")
+            console.log(messageStr)
             const index = message.payload.index;
             const publicKey = Buffer.from(this.peers[index].pub, "hex");
             const signature = Buffer.from(message.sign, "base64");
