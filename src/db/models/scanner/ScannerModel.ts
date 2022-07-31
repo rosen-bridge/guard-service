@@ -151,7 +151,7 @@ class ScannerDataBase {
             throw Error(`impossible case, event [${newTx.eventId}] has already more than 1 (${txs.length}) active ${newTx.txType} tx`)
         else if (txs.length === 1) {
             const tx = txs[0]
-            if (tx.type === TransactionStatus.approved) {
+            if (tx.status === TransactionStatus.approved) {
                 if (newTx.txId < tx.txId) {
                     console.log(`replacing tx [${tx.txId}] with new transaction [${newTx.txId}] due to lower txId`)
                     await this.replaceTx(tx.txId, newTx)
