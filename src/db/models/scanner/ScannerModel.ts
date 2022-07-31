@@ -2,7 +2,7 @@ import { DataSource, Not, Repository } from "typeorm";
 import { EventTriggerEntity } from "../../entities/scanner/EventTriggerEntity";
 import { scannerOrmDataSource } from "../../../../config/scannerOrmDataSource";
 import { TransactionEntity } from "../../entities/scanner/TransactionEntity";
-import { PaymentTransaction } from "../../../models/Models";
+import { PaymentTransaction, TransactionStatus } from "../../../models/Models";
 
 class ScannerDataBase {
     dataSource: DataSource;
@@ -59,7 +59,7 @@ class ScannerDataBase {
         return await this.TransactionRepository.find({
             relations: ["event"],
             where: {
-                "status": Not("completed")
+                "status": Not(TransactionStatus.completed)
             }
         })
     }
@@ -132,7 +132,7 @@ class ScannerDataBase {
             .update()
             .set({
                 txJson: txJson,
-                status: "signed"
+                status: TransactionStatus.signed
             })
             .where("txId = :id", {id: txId})
             .execute()
@@ -143,32 +143,27 @@ class ScannerDataBase {
      * @param newTx the transaction
      */
     insertTx = async (newTx: PaymentTransaction): Promise<void> => {
-        try {
-            const event = await this.getEventById(newTx.eventId)
-            if (event === null) throw Error(`event [${newTx.eventId}] not found`)
+        const event = await this.getEventById(newTx.eventId)
+        if (event === null) throw Error(`event [${newTx.eventId}] not found`)
 
-            const txs = (await this.getEventTxsByType(event.sourceTxId, newTx.txType)).filter(tx => tx.status !== "invalid")
-            if (txs.length > 1)
-                throw Error(`impossible case, event [${newTx.eventId}] has already more than 1 (${txs.length}) active ${newTx.txType} tx`)
-            else if (txs.length === 1) {
-                const tx = txs[0]
-                if (tx.type === "approved") {
-                    if (newTx.txId < tx.txId) {
-                        console.log(`replacing tx [${tx.txId}] with new transaction [${newTx.txId}] due to lower txId`)
-                        await this.replaceTx(tx.txId, newTx)
-                    }
-                    else
-                        console.log(`ignoring tx [${newTx.txId}] due to higher txId, comparing to [${tx.txId}]`)
+        const txs = (await this.getEventTxsByType(event.sourceTxId, newTx.txType)).filter(tx => tx.status !== TransactionStatus.invalid)
+        if (txs.length > 1)
+            throw Error(`impossible case, event [${newTx.eventId}] has already more than 1 (${txs.length}) active ${newTx.txType} tx`)
+        else if (txs.length === 1) {
+            const tx = txs[0]
+            if (tx.type === TransactionStatus.approved) {
+                if (newTx.txId < tx.txId) {
+                    console.log(`replacing tx [${tx.txId}] with new transaction [${newTx.txId}] due to lower txId`)
+                    await this.replaceTx(tx.txId, newTx)
                 }
                 else
-                    console.warn(`received approval for tx [${newTx.txId}] where its event [${event.sourceTxId}] has already a completed transaction [${tx.txId}]`)
+                    console.log(`ignoring tx [${newTx.txId}] due to higher txId, comparing to [${tx.txId}]`)
             }
             else
-                await this.insertNewTx(newTx, event)
+                console.warn(`received approval for tx [${newTx.txId}] where its event [${event.sourceTxId}] has already a completed transaction [${tx.txId}]`)
         }
-        catch (e) {
-            console.log(`Unexpected Error occurred while inserting tx [${newTx.txId}]: ${e}`)
-        }
+        else
+            await this.insertNewTx(newTx, event)
     }
 
     /**
@@ -202,7 +197,7 @@ class ScannerDataBase {
                 txJson: tx.toJson(),
                 type: tx.txType,
                 chain: tx.network,
-                status: "approved",
+                status: TransactionStatus.approved,
                 lastCheck: 0
             })
             .where("txId = :id", {id: previousTxId})
@@ -219,7 +214,7 @@ class ScannerDataBase {
                 txJson: paymentTx.toJson(),
                 type: paymentTx.txType,
                 chain: paymentTx.network,
-                status: "approved",
+                status: TransactionStatus.approved,
                 lastCheck: 0,
                 event: event!
             })

@@ -3,7 +3,7 @@ import {
     verifySendMessageWithReceiverCalledOnce
 } from "../../communication/mocked/MockedDialer";
 import ErgoTestBoxes from "../../chains/ergo/testUtils/TestBoxes";
-import { EventTrigger } from "../../../src/models/Models";
+import { EventStatus, EventTrigger, TransactionStatus } from "../../../src/models/Models";
 import TxAgreement from "../../../src/guard/agreement/TxAgreement";
 import CardanoTestBoxes from "../../chains/cardano/testUtils/TestBoxes";
 import Configs from "../../../src/helpers/Configs";
@@ -23,6 +23,7 @@ import { expect } from "chai";
 import TestTxAgreement from "./TestTxAgreement";
 import { AgreementPayload, GuardsAgreement, TransactionApproved } from "../../../src/guard/agreement/Interfaces";
 import { anything, deepEqual, reset, spy, verify, when } from "ts-mockito";
+import ChainsConstants from "../../../src/chains/ChainsConstants";
 
 describe("TxAgreement", () => {
     const eventBoxAndCommitments = ErgoTestBoxes.mockEventBoxWithSomeCommitments()
@@ -87,7 +88,7 @@ describe("TxAgreement", () => {
             // mock event and tx
             const mockedEvent: EventTrigger = CardanoTestBoxes.mockADAPaymentEventTrigger()
             const tx = CardanoTestBoxes.mockAssetTransferringPaymentTransaction(mockedEvent, CardanoTestBoxes.testBankAddress)
-            await insertEventRecord(mockedEvent, "pending-payment")
+            await insertEventRecord(mockedEvent, EventStatus.pendingPayment)
 
             // mock isConfirmedEnough
             mockIsEventConfirmedEnough(mockedEvent, true)
@@ -175,7 +176,7 @@ describe("TxAgreement", () => {
         it("should not respond to request when event doesn't confirmed enough", async () => {
             // mock event and tx
             const mockedEvent: EventTrigger = ErgoTestBoxes.mockTokenPaymentEventTrigger()
-            await insertEventRecord(mockedEvent, "pending-payment")
+            await insertEventRecord(mockedEvent, EventStatus.pendingPayment)
             const tx = ErgoTestBoxes.mockWrongAmountTokenDistributionTransaction(mockedEvent, eventBoxAndCommitments)
 
             // mock isConfirmedEnough
@@ -312,8 +313,8 @@ describe("TxAgreement", () => {
             const mockedEvent: EventTrigger = ErgoTestBoxes.mockTokenPaymentEventTrigger()
             const tx = ErgoTestBoxes.mockMissingValidCommitmentDistributionTransaction(mockedEvent, eventBoxAndCommitments)
             const previousTx = ErgoTestBoxes.mockIllegalChangeBoxDistributionTransaction(mockedEvent, eventBoxAndCommitments)
-            await insertEventRecord(mockedEvent, "pending-reward")
-            await insertTxRecord(previousTx, "reward", "cardano", "approved", 0, tx.eventId)
+            await insertEventRecord(mockedEvent, EventStatus.pendingReward)
+            await insertTxRecord(previousTx, "reward", ChainsConstants.cardano, TransactionStatus.approved, 0, tx.eventId)
 
             // mock isConfirmedEnough
             mockIsEventConfirmedEnough(mockedEvent, true)
@@ -357,7 +358,7 @@ describe("TxAgreement", () => {
             // mock event and tx
             const mockedEvent: EventTrigger = ErgoTestBoxes.mockTokenPaymentEventTrigger()
             const tx = ErgoTestBoxes.mockTransferToIllegalWIDDistributionTransaction(mockedEvent, eventBoxAndCommitments)
-            await insertEventRecord(mockedEvent, "pending-reward")
+            await insertEventRecord(mockedEvent, EventStatus.pendingReward)
 
             // mock isConfirmedEnough
             mockIsEventConfirmedEnough(mockedEvent, true)
@@ -408,7 +409,7 @@ describe("TxAgreement", () => {
             // mock token payment event
             const mockedEvent: EventTrigger = ErgoTestBoxes.mockTokenPaymentEventTrigger()
             const tx = ErgoTestBoxes.mockTokenTransferringErgDistributionTransaction(mockedEvent, eventBoxAndCommitments)
-            await insertEventRecord(mockedEvent, "pending-reward")
+            await insertEventRecord(mockedEvent, EventStatus.pendingReward)
 
             // initialize tx array
             const txAgreement = new TestTxAgreement()
@@ -453,10 +454,10 @@ describe("TxAgreement", () => {
             }))
             const dbEvents = await allEventRecords()
             expect(dbEvents.map(event => [event.sourceTxId, event.status])[0])
-                .to.deep.equal([mockedEvent.sourceTxId, "in-reward"])
+                .to.deep.equal([mockedEvent.sourceTxId, EventStatus.inReward])
             const dbTxs = await allTxRecords()
             expect(dbTxs.map(tx => [tx.txId, tx.status])[0])
-                .to.deep.equal([tx.txId, "approved"])
+                .to.deep.equal([tx.txId, TransactionStatus.approved])
             expect(Array.from(txAgreement.getTransactions()).length).to.equal(0)
             expect(Array.from(txAgreement.getTransactionApprovals()).length).to.equal(0)
             expect(Array.from(txAgreement.getTransactions()).length).to.equal(0)
@@ -476,7 +477,7 @@ describe("TxAgreement", () => {
             // mock token payment event
             const mockedEvent: EventTrigger = ErgoTestBoxes.mockTokenPaymentEventTrigger()
             const tx = ErgoTestBoxes.mockTokenBurningErgDistributionTransaction(mockedEvent, eventBoxAndCommitments)
-            await insertEventRecord(mockedEvent, "pending-reward")
+            await insertEventRecord(mockedEvent, EventStatus.pendingReward)
 
             // initialize tx array
             const txAgreement = new TestTxAgreement()
@@ -512,7 +513,7 @@ describe("TxAgreement", () => {
             }))
             const dbEvents = await allEventRecords()
             expect(dbEvents.map(event => [event.sourceTxId, event.status])[0])
-                .to.deep.equal([mockedEvent.sourceTxId, "pending-reward"])
+                .to.deep.equal([mockedEvent.sourceTxId, EventStatus.pendingReward])
             const dbTxs = await allTxRecords()
             expect(dbTxs.length).to.equal(0)
             expect(Array.from(txAgreement.getTransactions()).length).to.equal(0)
@@ -543,7 +544,7 @@ describe("TxAgreement", () => {
             // mock event and tx
             const mockedEvent: EventTrigger = CardanoTestBoxes.mockADAPaymentEventTrigger()
             const tx = CardanoTestBoxes.mockNoAssetsTransferringPaymentTransaction(mockedEvent, CardanoTestBoxes.testBankAddress)
-            await insertEventRecord(mockedEvent, "pending-payment")
+            await insertEventRecord(mockedEvent, EventStatus.pendingPayment)
 
             // mock isConfirmedEnough
             mockIsEventConfirmedEnough(mockedEvent, true)
@@ -575,10 +576,10 @@ describe("TxAgreement", () => {
             // verify
             const dbEvents = await allEventRecords()
             expect(dbEvents.map(event => [event.sourceTxId, event.status])[0])
-            .to.deep.equal([mockedEvent.sourceTxId, "in-payment"])
+            .to.deep.equal([mockedEvent.sourceTxId, EventStatus.inPayment])
             const dbTxs = await allTxRecords()
             expect(dbTxs.map(tx => [tx.txId, tx.status])[0])
-                .to.deep.equal([tx.txId, "approved"])
+                .to.deep.equal([tx.txId, TransactionStatus.approved])
             expect(Array.from(txAgreement.getTransactions()).length).to.equal(0)
             expect(Array.from(txAgreement.getTransactionApprovals()).length).to.equal(0)
             expect(Array.from(txAgreement.getTransactions()).length).to.equal(0)
@@ -598,7 +599,7 @@ describe("TxAgreement", () => {
             // mock event and tx
             const mockedEvent: EventTrigger = CardanoTestBoxes.mockADAPaymentEventTrigger()
             const tx = CardanoTestBoxes.mockNoAssetsTransferringPaymentTransaction(mockedEvent, CardanoTestBoxes.testBankAddress)
-            await insertEventRecord(mockedEvent, "pending-payment")
+            await insertEventRecord(mockedEvent, EventStatus.pendingPayment)
 
             // mock isConfirmedEnough
             mockIsEventConfirmedEnough(mockedEvent, true)
@@ -624,10 +625,10 @@ describe("TxAgreement", () => {
             // verify
             const dbEvents = await allEventRecords()
             expect(dbEvents.map(event => [event.sourceTxId, event.status])[0])
-                .to.deep.equal([mockedEvent.sourceTxId, "in-payment"])
+                .to.deep.equal([mockedEvent.sourceTxId, EventStatus.inPayment])
             const dbTxs = await allTxRecords()
             expect(dbTxs.map(tx => [tx.txId, tx.status])[0])
-                .to.deep.equal([tx.txId, "approved"])
+                .to.deep.equal([tx.txId, TransactionStatus.approved])
             expect(Array.from(txAgreement.getTransactions()).length).to.equal(0)
             expect(Array.from(txAgreement.getTransactionApprovals()).length).to.equal(0)
             expect(Array.from(txAgreement.getTransactions()).length).to.equal(0)
@@ -647,7 +648,7 @@ describe("TxAgreement", () => {
             // mock token payment event
             const mockedEvent: EventTrigger = ErgoTestBoxes.mockTokenPaymentEventTrigger()
             const tx = ErgoTestBoxes.mockTokenBurningErgPaymentTransaction(mockedEvent, eventBoxAndCommitments)
-            await insertEventRecord(mockedEvent, "pending-payment")
+            await insertEventRecord(mockedEvent, EventStatus.pendingPayment)
 
             // mock isConfirmedEnough
             mockIsEventConfirmedEnough(mockedEvent, true)
@@ -688,7 +689,7 @@ describe("TxAgreement", () => {
             // verify
             const dbEvents = await allEventRecords()
             expect(dbEvents.map(event => [event.sourceTxId, event.status])[0])
-                .to.deep.equal([mockedEvent.sourceTxId, "pending-payment"])
+                .to.deep.equal([mockedEvent.sourceTxId, EventStatus.pendingPayment])
             const dbTxs = await allTxRecords()
             expect(dbTxs.length).to.equal(0)
         })
@@ -995,9 +996,9 @@ describe("TxAgreement", () => {
 
             // mock token payment event
             const mockedEvent: EventTrigger = CardanoTestBoxes.mockAssetPaymentEventTrigger()
-            await insertEventRecord(mockedEvent, "pending-payment")
+            await insertEventRecord(mockedEvent, EventStatus.pendingPayment)
             const tx = CardanoTestBoxes.mockNoAssetsTransferringPaymentTransaction(mockedEvent, CardanoTestBoxes.testBankAddress)
-            await insertTxRecord(tx, tx.txType, "cardano", "approved", 0, tx.eventId)
+            await insertTxRecord(tx, tx.txType, ChainsConstants.cardano, TransactionStatus.approved, 0, tx.eventId)
 
             // run test
             const result = await txAgreement.isEventHasDifferentTransaction(tx.eventId, TestUtils.generateRandomId(), tx.txType)
@@ -1018,9 +1019,9 @@ describe("TxAgreement", () => {
 
             // mock token payment event
             const mockedEvent: EventTrigger = CardanoTestBoxes.mockAssetPaymentEventTrigger()
-            await insertEventRecord(mockedEvent, "pending-payment")
+            await insertEventRecord(mockedEvent, EventStatus.pendingPayment)
             const tx = CardanoTestBoxes.mockNoAssetsTransferringPaymentTransaction(mockedEvent, CardanoTestBoxes.testBankAddress)
-            await insertTxRecord(tx, tx.txType, "cardano", "approved", 0, tx.eventId)
+            await insertTxRecord(tx, tx.txType, ChainsConstants.cardano, TransactionStatus.approved, 0, tx.eventId)
 
             // run test
             const result = await txAgreement.isEventHasDifferentTransaction(tx.eventId, TestUtils.generateRandomId(), "reward")
@@ -1041,9 +1042,9 @@ describe("TxAgreement", () => {
 
             // mock token payment event
             const mockedEvent: EventTrigger = CardanoTestBoxes.mockAssetPaymentEventTrigger()
-            await insertEventRecord(mockedEvent, "pending-payment")
+            await insertEventRecord(mockedEvent, EventStatus.pendingPayment)
             const tx = CardanoTestBoxes.mockNoAssetsTransferringPaymentTransaction(mockedEvent, CardanoTestBoxes.testBankAddress)
-            await insertTxRecord(tx, tx.txType, "cardano", "invalid", 0, tx.eventId)
+            await insertTxRecord(tx, tx.txType, ChainsConstants.cardano, TransactionStatus.invalid, 0, tx.eventId)
 
             // run test
             const result = await txAgreement.isEventHasDifferentTransaction(tx.eventId, TestUtils.generateRandomId(), tx.txType)

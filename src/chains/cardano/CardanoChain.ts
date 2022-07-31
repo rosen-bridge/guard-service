@@ -7,7 +7,7 @@ import {
     Value, Vkeywitness, Vkeywitnesses
 } from "@emurgo/cardano-serialization-lib-nodejs";
 import KoiosApi from "./network/KoiosApi";
-import { EventTrigger, PaymentTransaction } from "../../models/Models";
+import { EventTrigger, PaymentTransaction, TransactionStatus } from "../../models/Models";
 import BaseChain from "../BaseChains";
 import CardanoConfigs from "./helpers/CardanoConfigs";
 import BlockFrostApi from "./network/BlockFrostApi";
@@ -274,7 +274,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         try {
             // insert request into db
             const txHash = hash_transaction(tx.body()).to_bytes()
-            await scannerAction.setTxStatus(paymentTx.txId, "in-sign")
+            await scannerAction.setTxStatus(paymentTx.txId, TransactionStatus.inSign)
 
             // send tx to sign
             await TssSigner.signTxHash(txHash)
@@ -340,7 +340,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
     submitTransaction = async (paymentTx: PaymentTransaction): Promise<void> => {
         const tx = this.deserialize(paymentTx.txBytes)
         try {
-            await scannerAction.setTxStatus(paymentTx.txId, "sent")
+            await scannerAction.setTxStatus(paymentTx.txId, TransactionStatus.sent)
             const response = await BlockFrostApi.txSubmit(tx)
             console.log(`Cardano Transaction submitted. txId: ${response}`)
         }

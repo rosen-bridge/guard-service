@@ -1,6 +1,6 @@
 import { mockGetAddressBoxes } from "./mocked/MockedKoios";
 import CardanoChain from "../../../src/chains/cardano/CardanoChain";
-import { EventTrigger } from "../../../src/models/Models";
+import { EventTrigger, TransactionStatus } from "../../../src/models/Models";
 import TestBoxes from "./testUtils/TestBoxes";
 import { expect } from "chai";
 import { Utxo } from "../../../src/chains/cardano/models/Interfaces";
@@ -13,6 +13,7 @@ import { beforeEach } from "mocha";
 import TssSigner from "../../../src/guard/TssSigner";
 import { allTxRecords, clearTables, insertTxRecord } from "../../db/mocked/MockedScannerModel";
 import CardanoTransaction from "../../../src/chains/cardano/models/CardanoTransaction";
+import ChainsConstants from "../../../src/chains/ChainsConstants";
 
 describe("CardanoChain", () => {
     const testBankAddress = TestBoxes.testBankAddress
@@ -162,7 +163,7 @@ describe("CardanoChain", () => {
             const cardanoChain: CardanoChain = new CardanoChain()
             const tx = TestBoxes.mockTwoAssetsTransferringPaymentTransaction(
                 TestBoxes.mockAssetPaymentEventTrigger(), testBankAddress)
-            await insertTxRecord(tx, "payment", "cardano", "approved", 0, tx.eventId)
+            await insertTxRecord(tx, "payment", ChainsConstants.cardano, TransactionStatus.approved, 0, tx.eventId)
             const mockedTssSigner = spy(TssSigner)
             const txHash = hash_transaction(cardanoChain.deserialize(tx.txBytes).body()).to_bytes()
             when(mockedTssSigner.signTxHash(anything())).thenResolve()
@@ -174,7 +175,7 @@ describe("CardanoChain", () => {
             verify(mockedTssSigner.signTxHash(deepEqual(txHash))).once()
             const dbTxs = await allTxRecords()
             expect(dbTxs.map(tx => [tx.txId, tx.status])[0])
-                .to.deep.equal([tx.txId, "in-sign"])
+                .to.deep.equal([tx.txId, TransactionStatus.inSign])
         })
 
     })
@@ -201,7 +202,7 @@ describe("CardanoChain", () => {
             const cardanoChain: CardanoChain = new CardanoChain()
             const cardanoTx = TestBoxes.mockTwoAssetsTransferringPaymentTransaction(
                 TestBoxes.mockAssetPaymentEventTrigger(), testBankAddress)
-            await insertTxRecord(cardanoTx, "payment", "cardano", "in-sign", 0, cardanoTx.eventId)
+            await insertTxRecord(cardanoTx, "payment", ChainsConstants.cardano, TransactionStatus.inSign, 0, cardanoTx.eventId)
 
             // run test
             await cardanoChain.signTransaction(cardanoTx.txId, mockedSignTxHash)
@@ -209,7 +210,7 @@ describe("CardanoChain", () => {
             // verify db changes
             const dbTxs = await allTxRecords()
             expect(dbTxs.map(tx => [tx.txId, tx.status])[0])
-                .to.deep.equal([cardanoTx.txId, "signed"])
+                .to.deep.equal([cardanoTx.txId, TransactionStatus.signed])
             const newCardanoTx = CardanoTransaction.fromJson(dbTxs[0].txJson)
 
             // verify signedTx txId

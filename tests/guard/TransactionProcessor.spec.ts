@@ -4,7 +4,7 @@ import {
     mockIsTxInMempool,
     resetMockedExplorerApi
 } from "../chains/ergo/mocked/MockedExplorer";
-import { EventTrigger } from "../../src/models/Models";
+import { EventStatus, EventTrigger, TransactionStatus } from "../../src/models/Models";
 import ErgoTestBoxes from "../chains/ergo/testUtils/TestBoxes";
 import {
     allEventRecords, allTxRecords, clearTables,
@@ -22,6 +22,7 @@ import MockedCardanoChain from "../chains/mocked/MockedCardanoChain";
 import ErgoConfigs from "../../src/chains/ergo/helpers/ErgoConfigs";
 import MockedBlockFrost from "../chains/cardano/mocked/MockedBlockFrost";
 import CardanoConfigs from "../../src/chains/cardano/helpers/CardanoConfigs";
+import ChainsConstants from "../../src/chains/ChainsConstants";
 
 describe("TransactionProcessor", () => {
 
@@ -52,9 +53,9 @@ describe("TransactionProcessor", () => {
             it("should set tx and event as completed when tx confirmed enough", async () => {
                 // mock erg payment event
                 const mockedEvent: EventTrigger = ErgoTestBoxes.mockTokenRewardEventTrigger()
-                await insertEventRecord(mockedEvent, "in-payment")
+                await insertEventRecord(mockedEvent, EventStatus.inPayment)
                 const tx = ErgoTestBoxes.mockTokenBurningTokenDistributionTransaction(mockedEvent, eventBoxAndCommitments)
-                await insertTxRecord(tx, "payment", "ergo", "sent", ergoBlockchainHeight - 2, tx.eventId)
+                await insertTxRecord(tx, "payment", ChainsConstants.ergo, TransactionStatus.sent, ergoBlockchainHeight - 2, tx.eventId)
                 mockExplorerGetTxConfirmation(tx.txId, 30)
 
                 // run test
@@ -63,10 +64,10 @@ describe("TransactionProcessor", () => {
                 // verify
                 const dbEvents = await allEventRecords()
                 expect(dbEvents.map(event => [event.sourceTxId, event.status])[0])
-                    .to.deep.equal([mockedEvent.sourceTxId, "completed"])
+                    .to.deep.equal([mockedEvent.sourceTxId, EventStatus.completed])
                 const dbTxs = await allTxRecords()
                 expect(dbTxs.map(tx => [tx.txId, tx.status])[0])
-                    .to.deep.equal([tx.txId, "completed"])
+                    .to.deep.equal([tx.txId, TransactionStatus.completed])
             })
 
             /**
@@ -80,9 +81,9 @@ describe("TransactionProcessor", () => {
             it("should update lastCheck when tx is mined but isn't confirmed enough", async () => {
                 // mock erg payment event
                 const mockedEvent: EventTrigger = ErgoTestBoxes.mockTokenRewardEventTrigger()
-                await insertEventRecord(mockedEvent, "in-payment")
+                await insertEventRecord(mockedEvent, EventStatus.inPayment)
                 const tx = ErgoTestBoxes.mockTokenBurningTokenDistributionTransaction(mockedEvent, eventBoxAndCommitments)
-                await insertTxRecord(tx, "payment", "ergo", "sent", ergoBlockchainHeight - 2, tx.eventId)
+                await insertTxRecord(tx, "payment", ChainsConstants.ergo, TransactionStatus.sent, ergoBlockchainHeight - 2, tx.eventId)
                 mockExplorerGetTxConfirmation(tx.txId, 5)
 
                 // run test
@@ -91,7 +92,7 @@ describe("TransactionProcessor", () => {
                 // verify
                 const dbTxs = await allTxRecords()
                 expect(dbTxs.map(tx => [tx.txId, tx.status, tx.lastCheck])[0])
-                    .to.deep.equal([tx.txId, "sent", ergoBlockchainHeight])
+                    .to.deep.equal([tx.txId, TransactionStatus.sent, ergoBlockchainHeight])
             })
 
             /**
@@ -105,9 +106,9 @@ describe("TransactionProcessor", () => {
             it("should update lastCheck when tx is in mempool", async () => {
                 // mock erg payment event
                 const mockedEvent: EventTrigger = ErgoTestBoxes.mockTokenRewardEventTrigger()
-                await insertEventRecord(mockedEvent, "in-payment")
+                await insertEventRecord(mockedEvent, EventStatus.inPayment)
                 const tx = ErgoTestBoxes.mockTokenBurningTokenDistributionTransaction(mockedEvent, eventBoxAndCommitments)
-                await insertTxRecord(tx, "payment", "ergo", "sent", ergoBlockchainHeight - 2, tx.eventId)
+                await insertTxRecord(tx, "payment", ChainsConstants.ergo, TransactionStatus.sent, ergoBlockchainHeight - 2, tx.eventId)
                 mockExplorerGetTxConfirmation(tx.txId, -1)
                 mockIsTxInMempool(tx.txId, true)
 
@@ -117,7 +118,7 @@ describe("TransactionProcessor", () => {
                 // verify
                 const dbTxs = await allTxRecords()
                 expect(dbTxs.map(tx => [tx.txId, tx.status, tx.lastCheck])[0])
-                    .to.deep.equal([tx.txId, "sent", ergoBlockchainHeight])
+                    .to.deep.equal([tx.txId, TransactionStatus.sent, ergoBlockchainHeight])
             })
 
             /**
@@ -132,9 +133,9 @@ describe("TransactionProcessor", () => {
             it("should resend tx when it isn't in mempool but all inputs are valid", async () => {
                 // mock erg payment event
                 const mockedEvent: EventTrigger = ErgoTestBoxes.mockTokenRewardEventTrigger()
-                await insertEventRecord(mockedEvent, "in-payment")
+                await insertEventRecord(mockedEvent, EventStatus.inPayment)
                 const tx = ErgoTestBoxes.mockTokenBurningTokenDistributionTransaction(mockedEvent, eventBoxAndCommitments)
-                await insertTxRecord(tx, "payment", "ergo", "sent", ergoBlockchainHeight - 2, tx.eventId)
+                await insertTxRecord(tx, "payment", ChainsConstants.ergo, TransactionStatus.sent, ergoBlockchainHeight - 2, tx.eventId)
                 mockExplorerGetTxConfirmation(tx.txId, -1)
                 mockIsTxInMempool(tx.txId, false)
                 mockedErgoChain.mockSubmitTransaction(tx)
@@ -164,10 +165,10 @@ describe("TransactionProcessor", () => {
             it("should set tx as invalid and set event as pending-payment when one input is spent", async () => {
                 // mock erg payment event
                 const mockedEvent: EventTrigger = ErgoTestBoxes.mockTokenRewardEventTrigger()
-                await insertEventRecord(mockedEvent, "in-payment")
+                await insertEventRecord(mockedEvent, EventStatus.inPayment)
                 const tx = ErgoTestBoxes.mockTokenBurningTokenDistributionTransaction(mockedEvent, eventBoxAndCommitments)
                 const lastCheck = ergoBlockchainHeight - ErgoConfigs.requiredConfirmation - 1
-                await insertTxRecord(tx, "payment", "ergo", "sent", lastCheck, tx.eventId)
+                await insertTxRecord(tx, "payment", ChainsConstants.ergo, TransactionStatus.sent, lastCheck, tx.eventId)
                 mockExplorerGetTxConfirmation(tx.txId, -1)
                 mockIsTxInMempool(tx.txId, false)
                 mockedErgoChain.mockSubmitTransaction(tx)
@@ -185,10 +186,10 @@ describe("TransactionProcessor", () => {
                 // verify
                 const dbEvents = await allEventRecords()
                 expect(dbEvents.map(event => [event.sourceTxId, event.status])[0])
-                    .to.deep.equal([mockedEvent.sourceTxId, "pending-payment"])
+                    .to.deep.equal([mockedEvent.sourceTxId, EventStatus.pendingPayment])
                 const dbTxs = await allTxRecords()
                 expect(dbTxs.map(tx => [tx.txId, tx.status])[0])
-                    .to.deep.equal([tx.txId, "invalid"])
+                    .to.deep.equal([tx.txId, TransactionStatus.invalid])
             })
 
             /**
@@ -203,10 +204,10 @@ describe("TransactionProcessor", () => {
             it("should set reward distribution tx as invalid and set event as pending-reward when one input is spent", async () => {
                 // mock erg payment event
                 const mockedEvent: EventTrigger = ErgoTestBoxes.mockTokenRewardEventTrigger()
-                await insertEventRecord(mockedEvent, "in-payment")
+                await insertEventRecord(mockedEvent, EventStatus.inPayment)
                 const tx = ErgoTestBoxes.mockTokenBurningTokenDistributionTransaction(mockedEvent, eventBoxAndCommitments)
                 const lastCheck = ergoBlockchainHeight - ErgoConfigs.requiredConfirmation - 1
-                await insertTxRecord(tx, "reward", "ergo", "sent", lastCheck, tx.eventId)
+                await insertTxRecord(tx, "reward", ChainsConstants.ergo, TransactionStatus.sent, lastCheck, tx.eventId)
                 mockExplorerGetTxConfirmation(tx.txId, -1)
                 mockIsTxInMempool(tx.txId, false)
                 mockedErgoChain.mockSubmitTransaction(tx)
@@ -224,10 +225,10 @@ describe("TransactionProcessor", () => {
                 // verify
                 const dbEvents = await allEventRecords()
                 expect(dbEvents.map(event => [event.sourceTxId, event.status])[0])
-                    .to.deep.equal([mockedEvent.sourceTxId, "pending-reward"])
+                    .to.deep.equal([mockedEvent.sourceTxId, EventStatus.pendingReward])
                 const dbTxs = await allTxRecords()
                 expect(dbTxs.map(tx => [tx.txId, tx.status])[0])
-                    .to.deep.equal([tx.txId, "invalid"])
+                    .to.deep.equal([tx.txId, TransactionStatus.invalid])
             })
 
         })
@@ -253,9 +254,9 @@ describe("TransactionProcessor", () => {
             it("should set tx as completed and set event as pending-reward when payment tx confirmed enough", async () => {
                 // mock erg payment event
                 const mockedEvent: EventTrigger = CardanoTestBoxes.mockADAPaymentEventTrigger()
-                await insertEventRecord(mockedEvent, "in-payment")
+                await insertEventRecord(mockedEvent, EventStatus.inPayment)
                 const tx = CardanoTestBoxes.mockAssetTransferringPaymentTransaction(mockedEvent, testBankAddress)
-                await insertTxRecord(tx, "payment", "cardano", "sent", cardanoBlockchainHeight - 2, tx.eventId)
+                await insertTxRecord(tx, "payment", ChainsConstants.cardano, TransactionStatus.sent, cardanoBlockchainHeight - 2, tx.eventId)
                 mockKoiosGetTxConfirmation(tx.txId, 30)
 
                 // run test
@@ -264,10 +265,10 @@ describe("TransactionProcessor", () => {
                 // verify
                 const dbEvents = await allEventRecords()
                 expect(dbEvents.map(event => [event.sourceTxId, event.status])[0])
-                    .to.deep.equal([mockedEvent.sourceTxId, "pending-reward"])
+                    .to.deep.equal([mockedEvent.sourceTxId, EventStatus.pendingReward])
                 const dbTxs = await allTxRecords()
                 expect(dbTxs.map(tx => [tx.txId, tx.status])[0])
-                    .to.deep.equal([tx.txId, "completed"])
+                    .to.deep.equal([tx.txId, TransactionStatus.completed])
             })
 
             /**
@@ -281,9 +282,9 @@ describe("TransactionProcessor", () => {
             it("should set tx and event as completed when reward tx confirmed enough", async () => {
                 // mock erg payment event
                 const mockedEvent: EventTrigger = CardanoTestBoxes.mockADAPaymentEventTrigger()
-                await insertEventRecord(mockedEvent, "in-reward")
+                await insertEventRecord(mockedEvent, EventStatus.inReward)
                 const tx = CardanoTestBoxes.mockAssetTransferringPaymentTransaction(mockedEvent, testBankAddress)
-                await insertTxRecord(tx, "reward", "cardano", "sent", cardanoBlockchainHeight - 2, tx.eventId)
+                await insertTxRecord(tx, "reward", ChainsConstants.cardano, TransactionStatus.sent, cardanoBlockchainHeight - 2, tx.eventId)
                 mockKoiosGetTxConfirmation(tx.txId, 30)
 
                 // run test
@@ -292,10 +293,10 @@ describe("TransactionProcessor", () => {
                 // verify
                 const dbEvents = await allEventRecords()
                 expect(dbEvents.map(event => [event.sourceTxId, event.status])[0])
-                    .to.deep.equal([mockedEvent.sourceTxId, "completed"])
+                    .to.deep.equal([mockedEvent.sourceTxId, EventStatus.completed])
                 const dbTxs = await allTxRecords()
                 expect(dbTxs.map(tx => [tx.txId, tx.status])[0])
-                    .to.deep.equal([tx.txId, "completed"])
+                    .to.deep.equal([tx.txId, TransactionStatus.completed])
             })
 
             /**
@@ -309,9 +310,9 @@ describe("TransactionProcessor", () => {
             it("should update lastCheck when tx is mined but isn't confirmed enough", async () => {
                 // mock erg payment event
                 const mockedEvent: EventTrigger = CardanoTestBoxes.mockADAPaymentEventTrigger()
-                await insertEventRecord(mockedEvent, "in-payment")
+                await insertEventRecord(mockedEvent, EventStatus.inPayment)
                 const tx = CardanoTestBoxes.mockAssetTransferringPaymentTransaction(mockedEvent, testBankAddress)
-                await insertTxRecord(tx, "payment", "cardano", "sent", cardanoBlockchainHeight - 2, tx.eventId)
+                await insertTxRecord(tx, "payment", ChainsConstants.cardano, TransactionStatus.sent, cardanoBlockchainHeight - 2, tx.eventId)
                 mockKoiosGetTxConfirmation(tx.txId, 5)
 
                 // run test
@@ -320,7 +321,7 @@ describe("TransactionProcessor", () => {
                 // verify
                 const dbTxs = await allTxRecords()
                 expect(dbTxs.map(tx => [tx.txId, tx.status, tx.lastCheck])[0])
-                    .to.deep.equal([tx.txId, "sent", cardanoBlockchainHeight])
+                    .to.deep.equal([tx.txId, TransactionStatus.sent, cardanoBlockchainHeight])
             })
 
             /**
@@ -335,9 +336,9 @@ describe("TransactionProcessor", () => {
             it("should resend tx when it does not found but all inputs are valid", async () => {
                 // mock erg payment event
                 const mockedEvent: EventTrigger = CardanoTestBoxes.mockADAPaymentEventTrigger()
-                await insertEventRecord(mockedEvent, "in-payment")
+                await insertEventRecord(mockedEvent, EventStatus.inPayment)
                 const tx = CardanoTestBoxes.mockADAPaymentTransaction(mockedEvent)
-                await insertTxRecord(tx, "payment", "cardano", "sent", cardanoBlockchainHeight - 2, tx.eventId)
+                await insertTxRecord(tx, "payment", ChainsConstants.cardano, TransactionStatus.sent, cardanoBlockchainHeight - 2, tx.eventId)
                 mockKoiosGetTxConfirmation(tx.txId, null)
                 mockedCardanoChain.mockSubmitTransaction(tx)
 
@@ -363,10 +364,10 @@ describe("TransactionProcessor", () => {
             it("should set payment tx as invalid and set event as pending-payment when one input is spent", async () => {
                 // mock erg payment event
                 const mockedEvent: EventTrigger = CardanoTestBoxes.mockADAPaymentEventTrigger()
-                await insertEventRecord(mockedEvent, "in-payment")
+                await insertEventRecord(mockedEvent, EventStatus.inPayment)
                 const tx = CardanoTestBoxes.mockADAPaymentTransaction(mockedEvent)
                 const lastCheck = cardanoBlockchainHeight - CardanoConfigs.requiredConfirmation - 1
-                await insertTxRecord(tx, "payment", "cardano", "sent", lastCheck, tx.eventId)
+                await insertTxRecord(tx, "payment", ChainsConstants.cardano, TransactionStatus.sent, lastCheck, tx.eventId)
                 mockKoiosGetTxConfirmation(tx.txId, null)
                 mockedCardanoChain.mockSubmitTransaction(tx)
 
@@ -379,10 +380,10 @@ describe("TransactionProcessor", () => {
                 // verify
                 const dbEvents = await allEventRecords()
                 expect(dbEvents.map(event => [event.sourceTxId, event.status])[0])
-                    .to.deep.equal([mockedEvent.sourceTxId, "pending-payment"])
+                    .to.deep.equal([mockedEvent.sourceTxId, EventStatus.pendingPayment])
                 const dbTxs = await allTxRecords()
                 expect(dbTxs.map(tx => [tx.txId, tx.status])[0])
-                    .to.deep.equal([tx.txId, "invalid"])
+                    .to.deep.equal([tx.txId, TransactionStatus.invalid])
             })
 
         })
@@ -407,10 +408,10 @@ describe("TransactionProcessor", () => {
         it("should send Cardano reward distribution tx to ErgoChain for sign", async () => {
             // mock erg payment event
             const mockedEvent: EventTrigger = ErgoTestBoxes.mockTokenRewardEventTrigger()
-            await insertEventRecord(mockedEvent, "in-reward")
+            await insertEventRecord(mockedEvent, EventStatus.inReward)
             const eventBoxAndCommitments = ErgoTestBoxes.mockEventBoxWithSomeCommitments()
             const tx = ErgoTestBoxes.mockTokenBurningErgDistributionTransaction(mockedEvent, eventBoxAndCommitments)
-            await insertTxRecord(tx, "reward", "ergo", "approved", 0, tx.eventId)
+            await insertTxRecord(tx, "reward", ChainsConstants.ergo, TransactionStatus.approved, 0, tx.eventId)
             mockedErgoChain.mockRequestToSignTransaction(tx)
 
             // run test
@@ -430,9 +431,9 @@ describe("TransactionProcessor", () => {
         it("should send Cardano tx to CardanoChain for sign", async () => {
             // mock erg payment event
             const mockedEvent: EventTrigger = CardanoTestBoxes.mockADAPaymentEventTrigger()
-            await insertEventRecord(mockedEvent, "in-payment")
+            await insertEventRecord(mockedEvent, EventStatus.inPayment)
             const tx = CardanoTestBoxes.mockADAPaymentTransaction(mockedEvent)
-            await insertTxRecord(tx, "payment", "cardano", "approved", 0, tx.eventId)
+            await insertTxRecord(tx, "payment", ChainsConstants.cardano, TransactionStatus.approved, 0, tx.eventId)
             mockedCardanoChain.mockRequestToSignTransaction(tx)
 
             // run test
@@ -462,10 +463,10 @@ describe("TransactionProcessor", () => {
         it("should submit Ergo tx to network", async () => {
             // mock erg payment event
             const mockedEvent: EventTrigger = ErgoTestBoxes.mockTokenRewardEventTrigger()
-            await insertEventRecord(mockedEvent, "in-reward")
+            await insertEventRecord(mockedEvent, EventStatus.inReward)
             const eventBoxAndCommitments = ErgoTestBoxes.mockEventBoxWithSomeCommitments()
             const tx = ErgoTestBoxes.mockTokenBurningErgDistributionTransaction(mockedEvent, eventBoxAndCommitments)
-            await insertTxRecord(tx, "reward", "ergo", "signed", 0, tx.eventId)
+            await insertTxRecord(tx, "reward", ChainsConstants.ergo, TransactionStatus.signed, 0, tx.eventId)
             mockedErgoChain.mockSubmitTransaction(tx)
 
             // run test
@@ -485,9 +486,9 @@ describe("TransactionProcessor", () => {
         it("should submit Cardano tx to network", async () => {
             // mock erg payment event
             const mockedEvent: EventTrigger = CardanoTestBoxes.mockADAPaymentEventTrigger()
-            await insertEventRecord(mockedEvent, "in-payment")
+            await insertEventRecord(mockedEvent, EventStatus.inPayment)
             const tx = CardanoTestBoxes.mockADAPaymentTransaction(mockedEvent)
-            await insertTxRecord(tx, "payment", "cardano", "signed", 0, tx.eventId)
+            await insertTxRecord(tx, "payment", ChainsConstants.cardano, TransactionStatus.signed, 0, tx.eventId)
             mockedCardanoChain.mockSubmitTransaction(tx)
 
             // run test

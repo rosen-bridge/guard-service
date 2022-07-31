@@ -150,7 +150,30 @@ class PaymentTransaction implements PaymentTransactionModel {
 
 }
 
+class EventStatus {
+
+    static pendingPayment = "pending-payment"
+    static pendingReward = "pending-reward"
+    static inPayment = "in-payment"
+    static inReward = "in-reward"
+    static completed = "completed"
+
+}
+
+class TransactionStatus {
+
+    static approved = "approved"
+    static inSign = "in-sign"
+    static signed = "signed"
+    static sent = "sent"
+    static invalid = "invalid"
+    static completed = "completed"
+
+}
+
 export {
     EventTrigger,
-    PaymentTransaction
+    PaymentTransaction,
+    EventStatus,
+    TransactionStatus
 }

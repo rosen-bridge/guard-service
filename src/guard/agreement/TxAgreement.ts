@@ -1,4 +1,4 @@
-import { EventTrigger, PaymentTransaction } from "../../models/Models";
+import { EventStatus, EventTrigger, PaymentTransaction, TransactionStatus } from "../../models/Models";
 import {
     AgreementMessage,
     AgreementPayload, CandidateTransaction,
@@ -162,7 +162,7 @@ class TxAgreement {
             return true
 
         const eventTxs = await scannerAction.getEventTxsByType(eventId, txType)
-        return eventTxs.find(tx => tx.status != "invalid") !== undefined;
+        return eventTxs.find(tx => tx.status != TransactionStatus.invalid) !== undefined;
     }
 
 
@@ -261,8 +261,14 @@ class TxAgreement {
         if (agreedTx === undefined) {
             console.log(`Other guards [${guardsSignatures.map(approval => approval.guardId)}] agreed on tx with id: ${tx.txId}`)
             await TransactionProcessor.signSemaphore.acquire().then(async (release) => {
-                await scannerAction.insertTx(tx)
-                release()
+                try {
+                    await scannerAction.insertTx(tx)
+                    release()
+                }
+                catch (e) {
+                    release()
+                    throw e
+                }
             })
             await this.updateEventOfApprovedTx(tx)
         }
@@ -279,8 +285,14 @@ class TxAgreement {
     setTxAsApproved = async (tx: PaymentTransaction): Promise<void> => {
         try {
             await TransactionProcessor.signSemaphore.acquire().then(async (release) => {
-                await scannerAction.insertTx(tx)
-                release()
+                try {
+                    await scannerAction.insertTx(tx)
+                    release()
+                }
+                catch (e) {
+                    release()
+                    throw e
+                }
             })
             await this.updateEventOfApprovedTx(tx)
             this.transactions.delete(tx.txId)
@@ -300,9 +312,9 @@ class TxAgreement {
     updateEventOfApprovedTx = async (tx: PaymentTransaction): Promise<void> => {
         try {
             if (tx.txType === "payment")
-                await scannerAction.setEventStatus(tx.eventId, "in-payment")
+                await scannerAction.setEventStatus(tx.eventId, EventStatus.inPayment)
             else
-                await scannerAction.setEventStatus(tx.eventId, "in-reward")
+                await scannerAction.setEventStatus(tx.eventId, EventStatus.inReward)
         }
         catch (e) {
             console.log(`Unexpected Error occurred while updating event [${tx.eventId}] status: ${e}`)
