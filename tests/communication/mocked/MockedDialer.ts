@@ -1,11 +1,13 @@
-import { anything, capture, deepEqual, instance, mock, spy, verify, when } from "ts-mockito";
+import { reset, anything, capture, deepEqual, instance, mock, spy, verify, when } from "ts-mockito";
 import Dialer from "../../../src/communication/Dialer";
+import fs from "fs";
+import TestConfigs from "../../testUtils/TestConfigs";
 
-let mockedDialerInstance = mock(Dialer)
+const mockedDialerInstance = mock(Dialer)
 when(mockedDialerInstance.sendMessage(anything(), anything(), anything())).thenResolve()
 when(mockedDialerInstance.getPeerId()).thenReturn("peerId")
 
-let mockedDialer = spy(Dialer)
+const mockedDialer = spy(Dialer)
 when(mockedDialer.getInstance()).thenResolve(instance(mockedDialerInstance))
 
 const sendMessagePayloadArguments = (keys: Array<string>): void => {
@@ -14,6 +16,30 @@ const sendMessagePayloadArguments = (keys: Array<string>): void => {
     keys.forEach(key => {
         if (!(key in json.payload)) throw("key is not in the dialer message")
     })
+}
+
+let mockedFS = spy(fs)
+
+/**
+ * mocks existsSync function to check exist peerIdFile or no
+ */
+const mockExistsSync = (exist: boolean): void => {
+    when(mockedFS.existsSync(TestConfigs.p2p.peerIdFilePath)).thenReturn(exist)
+}
+
+/**
+ * mocks readFileSync function to read peerIdFile data
+ */
+const mockReadFileSync = (peerIdJson: any): void => {
+    when(mockedFS.readFileSync(TestConfigs.p2p.peerIdFilePath, 'utf8')).thenReturn(JSON.stringify(peerIdJson))
+}
+
+/**
+ * resets mocked FS in getOrCreatePeerID of Dialer
+ */
+const resetMockedFS = (): void => {
+    reset(mockedFS)
+    mockedFS = spy(fs)
 }
 
 /**
@@ -56,6 +82,9 @@ const verifySendMessageDidntGetCalled = (channel: string, message: any, receiver
 
 export {
     sendMessagePayloadArguments,
+    mockExistsSync,
+    mockReadFileSync,
+    resetMockedFS,
     verifySendMessageCalledOnce,
     verifySendMessageCalledTwice,
     verifySendMessageWithReceiverCalledOnce,

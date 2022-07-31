@@ -1,6 +1,14 @@
+type SubscribeChannelFunction =
+    ((msg: string, channel: string, sender: string) => void) |
+    ((msg: string, channel: string, sender: string, url: string) => void)
+
 interface SubscribeChannel {
-    (msg: string, channel: string, sender: string): void;
-    (msg: string, channel: string, sender: string, url: string): void;
+    func: SubscribeChannelFunction
+    url?: string
+}
+
+interface SubscribeChannels {
+    [id: string]: Array<SubscribeChannel>
 }
 
 interface SendDataCommunication {
@@ -16,4 +24,4 @@ interface ReceiveDataCommunication {
     receiver?: string
 }
 
-export { SubscribeChannel, SendDataCommunication, ReceiveDataCommunication }
+export { SubscribeChannelFunction, SendDataCommunication, ReceiveDataCommunication, SubscribeChannels, SubscribeChannel }

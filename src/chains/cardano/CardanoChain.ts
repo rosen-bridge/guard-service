@@ -332,17 +332,16 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
 
     /**
      * submit a cardano transaction to network
-     * @param tx the transaction
+     * @param paymentTx the payment transaction
      */
-    submitTransaction = async (tx: Transaction): Promise<boolean> => {
+    submitTransaction = async (paymentTx: PaymentTransaction): Promise<void> => {
+        const tx = this.deserialize(paymentTx.txBytes)
         try {
             const response = await BlockFrostApi.txSubmit(tx)
             console.log(`Cardano Transaction submitted. txId: ${response}`)
-            return true
         }
         catch (e) {
             console.log(`An error occurred while submitting Cardano transaction: ${e.message}`)
-            return false
         }
     }
 

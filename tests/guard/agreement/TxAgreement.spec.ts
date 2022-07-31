@@ -11,7 +11,7 @@ import Configs from "../../../src/helpers/Configs";
 import TestUtils from "../../testUtils/TestUtils";
 import {
     allEventRecords,
-    clearEventTable,
+    clearEventTable, clearTxTable,
     insertEventRecord
 } from "../../db/mocked/MockedScannerModel";
 import {
@@ -59,8 +59,9 @@ describe("TxAgreement", () => {
 
     describe("processTransactionRequest", () => {
 
-        beforeEach("clear scanner database tables", () => {
-            clearEventTable()
+        beforeEach("clear scanner database tables", async () => {
+            await clearTxTable()
+            await clearEventTable()
             resetMockedEventProcessor()
         })
 
@@ -386,8 +387,9 @@ describe("TxAgreement", () => {
 
     describe("processAgreementResponse", () => {
 
-        beforeEach("clear scanner database tables", () => {
-            clearEventTable()
+        beforeEach("clear scanner database tables", async () => {
+            await clearTxTable()
+            await clearEventTable()
         })
 
         /**
@@ -505,8 +507,9 @@ describe("TxAgreement", () => {
 
     describe("processApprovalMessage", () => {
 
-        beforeEach("clear scanner database tables", () => {
-            clearEventTable()
+        beforeEach("clear scanner database tables", async () => {
+            await clearTxTable()
+            await clearEventTable()
             resetMockedEventProcessor()
         })
 
@@ -706,8 +709,9 @@ describe("TxAgreement", () => {
 
     describe("clearAgreedTransactions", () => {
 
-        beforeEach("clear scanner database tables", () => {
-            clearEventTable()
+        beforeEach("clear scanner database tables", async () => {
+            await clearTxTable()
+            await clearEventTable()
         })
 
         /**

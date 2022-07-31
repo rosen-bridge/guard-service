@@ -38,6 +38,18 @@ class NodeApi {
         return new ErgoStateContext(preHeader, blockHeaders);
     }
 
+    /**
+     * sending a transaction(json) to the network
+     */
+    static sendTx = (txJson: string): Promise<string | void> => {
+        return this.nodeClient.post("/transactions", txJson)
+            .then(response => response.data)
+            .catch(exp => {
+                console.log(`An error occurred while submitting transaction to Node: ${exp.response.data}`)
+            })
+    }
+
+
 }
 
 export default NodeApi

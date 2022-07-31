@@ -1,4 +1,5 @@
 import { BigNum, MultiAsset } from "@emurgo/cardano-serialization-lib-nodejs";
+import { components } from "@blockfrost/blockfrost-js/lib/types/OpenApi";
 
 interface Asset {
     policy_id: string,
@@ -18,4 +19,14 @@ interface UtxoBoxesAssets {
     assets: MultiAsset
 }
 
-export type { Utxo, Asset, UtxoBoxesAssets };
+type TxUtxos = components['schemas']['tx_content_utxo']
+
+type AddressUtxos = components['schemas']['address_utxo_content']
+
+export type {
+    Utxo,
+    Asset,
+    UtxoBoxesAssets,
+    TxUtxos,
+    AddressUtxos
+};

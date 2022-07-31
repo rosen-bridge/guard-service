@@ -1,4 +1,8 @@
 import { PaymentTransaction } from "../../../models/Models";
+import { PaymentTransactionJsonModel } from "../../../models/Interfaces";
+import ErgoUtils from "../helpers/Utils";
+import { ErgoTransactionJsonModel } from "./Interfaces";
+import Utils from "../helpers/Utils";
 
 class ErgoTransaction extends PaymentTransaction {
 
@@ -7,6 +11,16 @@ class ErgoTransaction extends PaymentTransaction {
     constructor(txId: string, eventId: string, txBytes: Uint8Array, inputBoxes: Uint8Array[]) {
         super("ergo", txId, eventId, txBytes);
         this.inputBoxes = inputBoxes
+    }
+
+    static fromJson = (jsonString: string): ErgoTransaction => {
+        const obj = JSON.parse(jsonString) as ErgoTransactionJsonModel
+        return new ErgoTransaction(
+            obj.txId,
+            obj.eventId,
+            ErgoUtils.hexStringToUint8Array(obj.txBytes),
+            obj.inputBoxes.map(box => Utils.hexStringToUint8Array(box))
+        )
     }
 
     /**

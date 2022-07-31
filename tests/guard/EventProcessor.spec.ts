@@ -1,9 +1,9 @@
-import { mockExplorerGetTxConfirmationCalledOnce } from "../chains/ergo/mocked/MockedExplorer";
+import { mockExplorerGetTxConfirmation } from "../chains/ergo/mocked/MockedExplorer";
 import { expect } from "chai";
 import { EventTrigger } from "../../src/models/Models";
 import TestUtils from "../testUtils/TestUtils";
 import EventProcessor from "../../src/guard/EventProcessor";
-import { mockKoiosGetTxConfirmationCalledOnce } from "../chains/cardano/mocked/MockedKoios";
+import { mockKoiosGetTxConfirmation } from "../chains/cardano/mocked/MockedKoios";
 import {
     mockIsEventConfirmedEnough, mockVerifyEvent,
     resetMockedEventProcessor, verifyCreateEventPaymentCalledOnce,
@@ -48,7 +48,7 @@ describe("EventProcessor", () => {
                 "", "", "", "", "",
                 "", txId, "", []
             )
-            mockExplorerGetTxConfirmationCalledOnce(txId, 30)
+            mockExplorerGetTxConfirmation(txId, 30)
 
             // run test
             const result = await EventProcessor.isEventConfirmedEnough(fromErgoEventTrigger)
@@ -68,7 +68,7 @@ describe("EventProcessor", () => {
                 "", "", "", "", "",
                 "", txId, "", []
             )
-            mockKoiosGetTxConfirmationCalledOnce(txId, 30)
+            mockKoiosGetTxConfirmation(txId, 30)
 
             // run test
             const result = await EventProcessor.isEventConfirmedEnough(fromCardanoEventTrigger)
@@ -79,8 +79,8 @@ describe("EventProcessor", () => {
 
     describe("processEvent", () => {
 
-        beforeEach("reset isEventConfirmedEnough mock", () => {
-            clearEventTable()
+        beforeEach("reset isEventConfirmedEnough mock", async () => {
+            await clearEventTable()
             resetMockedEventProcessor()
             resetMockedTxAgreement()
         })
@@ -192,8 +192,8 @@ describe("EventProcessor", () => {
 
     describe("signApprovedEvents", () => {
 
-        beforeEach("reset isEventConfirmedEnough mock", () => {
-            clearEventTable()
+        beforeEach("reset isEventConfirmedEnough mock", async () => {
+            await clearEventTable()
             resetMockedEventProcessor()
         })
 

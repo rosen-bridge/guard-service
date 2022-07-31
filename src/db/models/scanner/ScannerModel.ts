@@ -1,16 +1,19 @@
-import { DataSource, Repository } from "typeorm";
+import { DataSource, Not, Repository } from "typeorm";
 import { EventTriggerEntity } from "../../entities/scanner/EventTriggerEntity";
 import { scannerOrmDataSource } from "../../../../config/scannerOrmDataSource";
 import { Semaphore } from "await-semaphore";
+import { TransactionEntity } from "../../entities/scanner/TransactionEntity";
 
 class ScannerDataBase {
     dataSource: DataSource;
     EventRepository: Repository<EventTriggerEntity>;
+    TransactionRepository: Repository<TransactionEntity>;
     private semaphore = new Semaphore(1)
 
     constructor(dataSource: DataSource) {
         this.dataSource = dataSource;
         this.EventRepository = this.dataSource.getRepository(EventTriggerEntity);
+        this.TransactionRepository = this.dataSource.getRepository(TransactionEntity);
     }
 
     /**
@@ -71,7 +74,7 @@ class ScannerDataBase {
      * @param txJson json serialized of the transaction
      * @param status status of the process
      */
-    setEventTx = async (eventId: string, txId: string, txJson: string, status: string = "agreed"): Promise<void> => {
+    setEventTx = async (eventId: string, txId: string, txJson: string, status = "agreed"): Promise<void> => {
         await this.semaphore.acquire().then(async (release) => {
             try {
                 const event = await this.getEventById(eventId)
@@ -127,6 +130,65 @@ class ScannerDataBase {
                 paymentTxJson: ""
             })
             .where("status = :status", {status: "agreed"})
+            .execute()
+    }
+
+    /**
+     * @return incomplete the transaction
+     */
+    getActiveTransactions = async (): Promise<TransactionEntity[]> => {
+        return await this.TransactionRepository.find({
+            relations: ["event"],
+            where: {
+                "status": Not("completed")
+            }
+        })
+    }
+
+    /**
+     * updates the status of a tx with its id
+     * @param txId the transaction id
+     * @param status tx status
+     */
+    setTxStatus = async (txId: string, status: string): Promise<void> => {
+        await this.TransactionRepository.createQueryBuilder()
+            .update()
+            .set({
+                status: status
+            })
+            .where("txId = :id", {id: txId})
+            .execute()
+    }
+
+    /**
+     * updates the status of a tx with its id
+     * @param txId the transaction id
+     * @param currentHeight current height of the blockchain
+     */
+    updateTxLastCheck = async (txId: string, currentHeight: number): Promise<void> => {
+        await this.TransactionRepository.createQueryBuilder()
+            .update()
+            .set({
+                lastCheck: currentHeight
+            })
+            .where("txId = :id", {id: txId})
+            .execute()
+    }
+
+    /**
+     * updates the status of an event and clear its tx info
+     * @param eventId the event trigger id
+     * @param status status of the process
+     */
+    resetEventTx = async (eventId: string, status: string): Promise<void> => {
+        await this.EventRepository.createQueryBuilder()
+            .update()
+            .set({
+                status: status,
+                txId: "",
+                paymentTxJson: ""
+            })
+            .where("sourceTxId = :id", {id: eventId})
             .execute()
     }
 
