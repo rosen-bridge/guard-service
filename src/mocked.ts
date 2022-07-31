@@ -1,4 +1,4 @@
-import { ErgoBox, ReducedTransaction } from "ergo-lib-wasm-nodejs";
+import { ErgoBox, ReducedTransaction, Transaction } from "ergo-lib-wasm-nodejs";
 
 export class mockedMultiSig {
     private static instance: mockedMultiSig;
@@ -8,8 +8,8 @@ export class mockedMultiSig {
         return mockedMultiSig.instance
     }
 
-    sign = async (reducedTx: ReducedTransaction, requiredSign: number, boxes: Array<ErgoBox>, dataInputs: Array<ErgoBox>) => {
-        return Promise.resolve("Sign")
+    sign = async (reducedTx: ReducedTransaction, requiredSign: number, boxes: Array<ErgoBox>, dataInputs: Array<ErgoBox>): Promise<Transaction> => {
+        return new Transaction()
     }
 
     cleanup = async () => {

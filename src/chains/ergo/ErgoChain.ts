@@ -24,7 +24,6 @@ import RewardBoxes from "./helpers/RewardBoxes";
 import Contracts from "../../contracts/Contracts";
 import Configs from "../../helpers/Configs";
 import ErgoTransaction from "./models/ErgoTransaction";
-import ergoConfigs from "./helpers/ErgoConfigs";
 import { mockedMultiSig } from "../../mocked";
 
 // const multiSigObj = mockedMultiSig.getInstance()
@@ -276,7 +275,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
      * @param tx the transaction model in the chain library
      * @return bytearray representation of the transaction
      */
-    serialize = (tx: ReducedTransaction): Uint8Array => {
+    serialize = (tx: ReducedTransaction | Transaction): Uint8Array => {
         return tx.sigma_serialize_bytes()
     }
 
@@ -287,6 +286,24 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
      */
     deserialize = (txBytes: Uint8Array): ReducedTransaction => {
         return ReducedTransaction.sigma_parse_bytes(txBytes)
+    }
+
+    /**
+     * converts the signed transaction model in the chain to bytearray
+     * @param tx the transaction model in the chain library
+     * @return bytearray representation of the transaction
+     */
+    signedSerialize = (tx: Transaction): Uint8Array => {
+        return tx.sigma_serialize_bytes()
+    }
+
+    /**
+     * converts bytearray representation of the signed transaction to the transaction model in the chain
+     * @param txBytes bytearray representation of the transaction
+     * @return the transaction model in the chain library
+     */
+    signedDeserialize = (txBytes: Uint8Array): Transaction => {
+        return Transaction.sigma_parse_bytes(txBytes)
     }
 
     /**
@@ -559,15 +576,25 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
     requestToSignTransaction = async (paymentTx: PaymentTransaction): Promise<void> => {
         const tx = this.deserialize(paymentTx.txBytes)
         const ergoTx = paymentTx as ErgoTransaction
-        console.log(ergoTx.inputBoxes)
-        try {
-            // TODO: implement this (Integration with Multisig service).
-            const signedTx = mockedMultiSig.getInstance().sign(tx, ergoConfigs.requiredSigns, [], [])
-            // TODO: Add signedTx to txQueue
-        }
-        catch (e) {
-            console.log(`An error occurred while requesting Multisig service to sign Ergo tx: ${e.message}`)
-        }
+        const txInputs = ergoTx.inputBoxes.map(boxBytes => ErgoBox.sigma_parse_bytes(boxBytes))
+
+        mockedMultiSig.getInstance().sign(tx, ErgoConfigs.requiredSigns, txInputs, [])
+            .then( async (signedTx) => {
+                const inputBoxes = ErgoBoxes.empty()
+                txInputs.forEach(box => inputBoxes.add(box))
+
+                const signedPaymentTx = new ErgoTransaction(
+                    ergoTx.txId,
+                    ergoTx.eventId,
+                    this.signedSerialize(signedTx),
+                    ergoTx.inputBoxes
+                )
+
+                // TODO: Add signedTx to txQueue
+            })
+            .catch(e => {
+                console.log(`An error occurred while requesting Multisig service to sign Ergo tx: ${e}`)
+            })
     }
 
 }
