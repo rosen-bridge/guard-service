@@ -7,13 +7,12 @@ import {
     Signer, SignPayload,
     TxQueued
 } from "./Interfaces";
-import { sign, verify } from "./Enc";
 import * as crypto from "crypto";
 import Dialer from "../../communication/Dialer";
 import Configs from "../../helpers/Configs";
 import { Semaphore } from 'await-semaphore';
 import { add_hints, convertToHintBag, extract_hints } from "./utils";
-
+import Encryption from '../../helpers/Encryption';
 const dialer = await Dialer.getInstance();
 
 class MultiSigHandler{
@@ -223,7 +222,7 @@ class MultiSigHandler{
         payload.index = this.getIndex();
         payload.id = this.getPeerId();
         const payloadStr = JSON.stringify(message.payload)
-        message.sign = sign(payloadStr, Buffer.from(this.secret)).toString("base64");
+        message.sign = Buffer.from(Encryption.sign(payloadStr, Buffer.from(this.secret))).toString("base64");
         if (receivers && receivers.length) {
             receivers.map(receiver => dialer.sendMessage(MultiSigHandler.CHANNEL, JSON.stringify(message), receiver).then(() => null))
         } else {
@@ -345,7 +344,7 @@ class MultiSigHandler{
             const signature = Buffer.from(message.sign, "base64");
             // verify signature
             const payloadStr = JSON.stringify(message.payload);
-            if (verify(payloadStr, signature, publicKey)) {
+            if (Encryption.verify(payloadStr, signature, publicKey)) {
                 switch (message.type) {
                     case "register":
                         this.handleRegister(sender, message.payload as RegisterPayload)
