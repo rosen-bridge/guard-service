@@ -1,7 +1,6 @@
 import { DataSource, Not, Repository } from "typeorm";
 import { EventTriggerEntity } from "../../entities/scanner/EventTriggerEntity";
 import { scannerOrmDataSource } from "../../../../config/scannerOrmDataSource";
-import { Semaphore } from "await-semaphore";
 import { TransactionEntity } from "../../entities/scanner/TransactionEntity";
 import { PaymentTransaction } from "../../../models/Models";
 
@@ -9,7 +8,6 @@ class ScannerDataBase {
     dataSource: DataSource;
     EventRepository: Repository<EventTriggerEntity>;
     TransactionRepository: Repository<TransactionEntity>;
-    private semaphore = new Semaphore(1)
 
     constructor(dataSource: DataSource) {
         this.dataSource = dataSource;
@@ -145,37 +143,32 @@ class ScannerDataBase {
      * @param newTx the transaction
      */
     insertTx = async (newTx: PaymentTransaction): Promise<void> => {
-        await this.semaphore.acquire().then(async (release) => {
-            try {
-                const event = await this.getEventById(newTx.eventId)
-                if (event === null) throw Error(`event [${newTx.eventId}] not found`)
+        try {
+            const event = await this.getEventById(newTx.eventId)
+            if (event === null) throw Error(`event [${newTx.eventId}] not found`)
 
-                const txs = (await this.getEventTxsByType(event.sourceTxId, newTx.txType)).filter(tx => tx.status !== "invalid")
-                if (txs.length > 1)
-                    throw Error(`impossible case, event [${newTx.eventId}] has already more than 1 (${txs.length}) active ${newTx.txType} tx`)
-                else if (txs.length === 1) {
-                    const tx = txs[0]
-                    if (tx.type === "approved") {
-                        if (newTx.txId < tx.txId) {
-                            console.log(`replacing tx [${tx.txId}] with new transaction [${newTx.txId}] due to lower txId`)
-                            await this.replaceTx(tx.txId, newTx)
-                        }
-                        else
-                            console.log(`ignoring tx [${newTx.txId}] due to higher txId, comparing to [${tx.txId}]`)
+            const txs = (await this.getEventTxsByType(event.sourceTxId, newTx.txType)).filter(tx => tx.status !== "invalid")
+            if (txs.length > 1)
+                throw Error(`impossible case, event [${newTx.eventId}] has already more than 1 (${txs.length}) active ${newTx.txType} tx`)
+            else if (txs.length === 1) {
+                const tx = txs[0]
+                if (tx.type === "approved") {
+                    if (newTx.txId < tx.txId) {
+                        console.log(`replacing tx [${tx.txId}] with new transaction [${newTx.txId}] due to lower txId`)
+                        await this.replaceTx(tx.txId, newTx)
                     }
                     else
-                        console.warn(`received approval for tx [${newTx.txId}] where its event [${event.sourceTxId}] has already a completed transaction [${tx.txId}]`)
+                        console.log(`ignoring tx [${newTx.txId}] due to higher txId, comparing to [${tx.txId}]`)
                 }
                 else
-                    await this.insertNewTx(newTx, event)
-
-                release()
+                    console.warn(`received approval for tx [${newTx.txId}] where its event [${event.sourceTxId}] has already a completed transaction [${tx.txId}]`)
             }
-            catch (e) {
-                console.log(`Unexpected Error occurred while inserting tx [${newTx.txId}]: ${e}`)
-                release()
-            }
-        })
+            else
+                await this.insertNewTx(newTx, event)
+        }
+        catch (e) {
+            console.log(`Unexpected Error occurred while inserting tx [${newTx.txId}]: ${e}`)
+        }
     }
 
     /**

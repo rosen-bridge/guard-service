@@ -10,6 +10,7 @@ import Dialer from "../../communication/Dialer";
 import Utils from "../../helpers/Utils";
 import EventProcessor from "../EventProcessor";
 import { scannerAction } from "../../db/models/scanner/ScannerModel";
+import TransactionProcessor from "../TransactionProcessor";
 
 const dialer = await Dialer.getInstance();
 
@@ -259,7 +260,10 @@ class TxAgreement {
         const agreedTx = this.transactions.get(tx.txId)
         if (agreedTx === undefined) {
             console.log(`Other guards [${guardsSignatures.map(approval => approval.guardId)}] agreed on tx with id: ${tx.txId}`)
-            await scannerAction.insertTx(tx)
+            await TransactionProcessor.signSemaphore.acquire().then(async (release) => {
+                await scannerAction.insertTx(tx)
+                release()
+            })
             await this.updateEventOfApprovedTx(tx)
         }
         else {
@@ -274,7 +278,10 @@ class TxAgreement {
      */
     setTxAsApproved = async (tx: PaymentTransaction): Promise<void> => {
         try {
-            await scannerAction.insertTx(tx)
+            await TransactionProcessor.signSemaphore.acquire().then(async (release) => {
+                await scannerAction.insertTx(tx)
+                release()
+            })
             await this.updateEventOfApprovedTx(tx)
             this.transactions.delete(tx.txId)
             this.transactionApprovals.delete(tx.txId)

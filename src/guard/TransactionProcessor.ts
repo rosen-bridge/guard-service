@@ -16,6 +16,7 @@ import { AddressUtxos, TxUtxos } from "../chains/cardano/models/Interfaces";
 import Utils from "../helpers/Utils";
 import { PaymentTransaction } from "../models/Models";
 import BaseChain from "../chains/BaseChains";
+import { Semaphore } from "await-semaphore";
 
 class TransactionProcessor {
 
@@ -24,6 +25,8 @@ class TransactionProcessor {
 
     static cardanoChain = new CardanoChain()
     static ergoChain = new ErgoChain()
+
+    static signSemaphore = new Semaphore(1)
 
     /**
      * returns chain object
@@ -234,8 +237,17 @@ class TransactionProcessor {
      * sends request to sign tx
      */
     static processApprovedTx = async (tx: TransactionEntity): Promise<void> => {
-        const paymentTx = PaymentTransaction.fromJson(tx.txJson)
-        await this.getChainObject(tx.chain).requestToSignTransaction(paymentTx)
+        await this.signSemaphore.acquire().then(async (release) => {
+            try {
+                const paymentTx = PaymentTransaction.fromJson(tx.txJson)
+                await this.getChainObject(tx.chain).requestToSignTransaction(paymentTx)
+                release()
+            }
+            catch (e) {
+                console.log(`Unexpected Error occurred while sending tx [${tx.txId}] to sign: ${e}`)
+                release()
+            }
+        })
     }
 
     /**
