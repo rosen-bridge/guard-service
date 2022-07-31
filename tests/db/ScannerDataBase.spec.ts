@@ -68,7 +68,7 @@ describe("ScannerDataBase", () => {
             const mockedEvent: EventTrigger = CardanoTestBoxes.mockADAPaymentEventTrigger()
             await insertEventRecord(mockedEvent, EventStatus.inPayment)
             const tx = CardanoTestBoxes.mockADAPaymentTransaction(mockedEvent)
-            await insertTxRecord(tx, "payment", ChainsConstants.cardano, TransactionStatus.signed, 0, tx.eventId)
+            await insertTxRecord(tx, "payment", ChainsConstants.cardano, TransactionStatus.approved, 0, tx.eventId)
 
             const higherTxId = tx.txId.slice(0, tx.txId.length - 4) + "ffff"
             const newTx = new PaymentTransaction(
