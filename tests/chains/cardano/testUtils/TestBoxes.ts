@@ -1,17 +1,23 @@
 import { EventTrigger, PaymentTransaction } from "../../../../src/models/Models";
 import TestUtils from "../../../testUtils/TestUtils";
-import { Utxo } from "../../../../src/chains/cardano/models/Interfaces";
+import { AddressUtxos, TxUtxos, Utxo } from "../../../../src/chains/cardano/models/Interfaces";
 import {
-    Address, AssetName, Assets,
+    Address,
+    AssetName,
+    Assets,
     BigNum,
     MultiAsset,
-    ScriptHash, Transaction, TransactionBuilder,
-    TransactionOutput, TransactionWitnessSet,
+    ScriptHash,
+    Transaction,
+    TransactionBuilder,
+    TransactionOutput,
+    TransactionWitnessSet,
     Value
 } from "@emurgo/cardano-serialization-lib-nodejs";
 import CardanoConfigs from "../../../../src/chains/cardano/helpers/CardanoConfigs";
 import CardanoUtils from "../../../../src/chains/cardano/helpers/CardanoUtils";
 import CardanoTransaction from "../../../../src/chains/cardano/models/CardanoTransaction";
+import TestData from "./TestData";
 
 class TestBoxes {
 
@@ -252,6 +258,27 @@ class TestBoxes {
         )
 
         return this.mockPaymentTransaction([paymentBox, changeBox], event.sourceTxId)
+    }
+
+    /**
+     * generates a mocked TxUtxos
+     */
+    static mockTxUtxos = (txId: string, boxesLen: number, boxAddr: string): TxUtxos => {
+        return JSON.parse(TestData.mockTxUtxo(txId, boxesLen, boxAddr)) as TxUtxos
+    }
+
+    /**
+     * generates a mocked AddressUtxos
+     */
+    static mockAddressUtxos = (boxTxs: string[], boxIndexes: number[]): AddressUtxos => {
+        return JSON.parse(TestData.mockAddressUtxo(boxTxs, boxIndexes)) as AddressUtxos
+    }
+
+    /**
+     * generates a mocked ADA payment transaction
+     */
+    static mockADAPaymentTransaction = (event: EventTrigger): PaymentTransaction => {
+        return PaymentTransaction.fromJson(TestData.adaPaymentTransaction(event.sourceTxId))
     }
 
 }

@@ -597,6 +597,16 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
             })
     }
 
+    /**
+     * submit an ergo transaction to network
+     * @param paymentTx the payment transaction
+     */
+    submitTransaction = async (paymentTx: PaymentTransaction): Promise<void> => {
+        const tx = this.deserialize(paymentTx.txBytes)
+        const response = await NodeApi.sendTx(tx.unsigned_tx().to_json())
+        console.log(`Cardano Transaction submitted. txId: ${response}`)
+    }
+
 }
 
 export default ErgoChain

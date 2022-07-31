@@ -49,10 +49,27 @@ class Utils {
         return buffer
     }
 
+    /**
+     * @return remaining seconds to current guard turn
+     */
     static secondsToReset = () => {
         const startingTimeStamp = Date.now()
         const currentPoint = startingTimeStamp % this.TURNS_LENGTH
         return currentPoint - this.UP_TIME_LENGTH
+    }
+
+    /**
+     * converts hex string to bytearray
+     */
+    static hexStringToUint8Array = (str: string): Uint8Array => {
+        return Buffer.from(str, "hex")
+    }
+
+    /**
+     * converts bytearray to hex string
+     */
+    static Uint8ArrayToHexString = (bytes: Uint8Array): string => {
+        return Buffer.from(bytes).toString("hex")
     }
 
 }
