@@ -90,5 +90,5 @@
         ]
     },
     "minimumAgreement": 5,
-    "signInterval": 180
+    "txProcessorInterval": 180
 }

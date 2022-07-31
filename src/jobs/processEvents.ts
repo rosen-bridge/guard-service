@@ -1,8 +1,8 @@
 import EventProcessor from "../guard/EventProcessor";
 import Utils from "../helpers/Utils";
 import { txAgreement } from "../guard/agreement/TxAgreement";
-import eventProcessor from "../guard/EventProcessor";
 import Configs from "../helpers/Configs";
+import TransactionProcessor from "../guard/TransactionProcessor";
 
 
 const resendTxInterval = 30 // seconds
@@ -28,12 +28,12 @@ const resetJob = () => {
     txAgreement.clearAgreedTransactions().then(() => setTimeout(resetJob, Utils.secondsToReset()))
 }
 
-export const signJob = () => {
-    eventProcessor.signApprovedEvents().then(() => setTimeout(signJob, Configs.signInterval))
+export const transactionJob = () => {
+    TransactionProcessor.processTransactions().then(() => setTimeout(transactionJob, Configs.txProcessorInterval))
 }
 
 export const processEvents = () => {
     setTimeout(processJob, Utils.secondsToNextTurn())
     setTimeout(resetJob, Utils.secondsToReset())
-    signJob()
+    transactionJob()
 }

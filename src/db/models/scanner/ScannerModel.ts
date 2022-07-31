@@ -57,13 +57,13 @@ class ScannerDataBase {
     }
 
     /**
-     * @param status the event trigger status
-     * @return the event triggers with corresponding status
+     * @return the event triggers pending to payment or reward
      */
-    getEventsByStatus = async (status: string): Promise<EventTriggerEntity[]> => {
+    getPendingEvents = async (): Promise<EventTriggerEntity[]> => {
         return await this.EventRepository.createQueryBuilder()
             .select()
-            .where("status = :status", {status: status})
+            .where("status = :status", {status: "pending-payment"})
+            .orWhere("status = :status", {status: "pending-reward"})
             .getMany()
     }
 
