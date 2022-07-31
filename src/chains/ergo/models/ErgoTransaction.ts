@@ -7,8 +7,8 @@ class ErgoTransaction extends PaymentTransaction {
 
     inputBoxes: Uint8Array[]
 
-    constructor(txId: string, eventId: string, txBytes: Uint8Array, inputBoxes: Uint8Array[], type: string) {
-        super("ergo", txId, eventId, txBytes, type);
+    constructor(txId: string, eventId: string, txBytes: Uint8Array, inputBoxes: Uint8Array[], txType: string) {
+        super("ergo", txId, eventId, txBytes, txType);
         this.inputBoxes = inputBoxes
     }
 
@@ -19,7 +19,7 @@ class ErgoTransaction extends PaymentTransaction {
             obj.eventId,
             ErgoUtils.hexStringToUint8Array(obj.txBytes),
             obj.inputBoxes.map(box => Utils.hexStringToUint8Array(box)),
-            obj.type
+            obj.txType
         )
     }
 
@@ -39,6 +39,7 @@ class ErgoTransaction extends PaymentTransaction {
             "txId": this.txId,
             "eventId": this.eventId,
             "txBytes": this.getTxHexString(),
+            "txType": this.txType,
             "inputBoxes": this.getInputBoxesString()
         })
     }

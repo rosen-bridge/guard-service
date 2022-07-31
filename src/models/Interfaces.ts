@@ -26,6 +26,7 @@ interface PaymentTransactionModel {
     txId: string
     eventId: string
     txBytes: Uint8Array
+    txType: string
 
     /**
      * @return transaction hex string
@@ -54,7 +55,7 @@ interface PaymentTransactionJsonModel {
     txId: string
     eventId: string
     txBytes: string
-    type: string
+    txType: string
 }
 
 export type {

@@ -75,14 +75,14 @@ class PaymentTransaction implements PaymentTransactionModel {
     txId: string
     eventId: string
     txBytes: Uint8Array
-    type: string
+    txType: string
 
-    constructor(network: string, txId: string, eventId: string, txBytes: Uint8Array, type: string) {
+    constructor(network: string, txId: string, eventId: string, txBytes: Uint8Array, txType: string) {
         this.network = network
         this.txId = txId
         this.eventId = eventId
         this.txBytes = txBytes
-        this.type = type
+        this.txType = txType
     }
 
     static fromJson = (jsonString: string): PaymentTransaction => {
@@ -92,7 +92,7 @@ class PaymentTransaction implements PaymentTransactionModel {
             obj.txId,
             obj.eventId,
             ErgoUtils.hexStringToUint8Array(obj.txBytes),
-            obj.type
+            obj.txType
         )
     }
 
@@ -144,7 +144,7 @@ class PaymentTransaction implements PaymentTransactionModel {
             "txId": this.txId,
             "eventId": this.eventId,
             "txBytes": this.getTxHexString(),
-            "type": this.type
+            "txType": this.txType
         })
     }
 

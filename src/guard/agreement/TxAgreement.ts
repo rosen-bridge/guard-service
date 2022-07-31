@@ -129,7 +129,7 @@ class TxAgreement {
         if (
             tx.verifyMetaDataSignature(creatorId, signature) &&
             Utils.guardTurn() === creatorId &&
-            !(await this.isEventHasDifferentTransaction(tx.eventId, tx.txId, tx.type)) &&
+            !(await this.isEventHasDifferentTransaction(tx.eventId, tx.txId, tx.txType)) &&
             EventProcessor.verifyPaymentTransactionWithEvent(tx, event)
         ) {
             agreementPayload.agreed = true
@@ -292,7 +292,7 @@ class TxAgreement {
      */
     updateEventOfApprovedTx = async (tx: PaymentTransaction): Promise<void> => {
         try {
-            if (tx.type === "payment")
+            if (tx.txType === "payment")
                 await scannerAction.setEventStatus(tx.eventId, "in-payment")
             else
                 await scannerAction.setEventStatus(tx.eventId, "in-reward")

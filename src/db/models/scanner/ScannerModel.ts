@@ -150,9 +150,9 @@ class ScannerDataBase {
                 const event = await this.getEventById(newTx.eventId)
                 if (event === null) throw Error(`event [${newTx.eventId}] not found`)
 
-                const txs = (await this.getEventTxsByType(event.sourceTxId, newTx.type)).filter(tx => tx.status !== "invalid")
+                const txs = (await this.getEventTxsByType(event.sourceTxId, newTx.txType)).filter(tx => tx.status !== "invalid")
                 if (txs.length > 1)
-                    throw Error(`impossible case, event [${newTx.eventId}] has already more than 1 (${txs.length}) active ${newTx.type} tx`)
+                    throw Error(`impossible case, event [${newTx.eventId}] has already more than 1 (${txs.length}) active ${newTx.txType} tx`)
                 else if (txs.length === 1) {
                     const tx = txs[0]
                     if (tx.type === "approved") {
@@ -207,7 +207,7 @@ class ScannerDataBase {
             .set({
                 txId: tx.txId,
                 txJson: tx.toJson(),
-                type: tx.type,
+                type: tx.txType,
                 chain: tx.network,
                 status: "approved",
                 lastCheck: 0
@@ -224,7 +224,7 @@ class ScannerDataBase {
             .insert({
                 txId: paymentTx.txId,
                 txJson: paymentTx.toJson(),
-                type: paymentTx.type,
+                type: paymentTx.txType,
                 chain: paymentTx.network,
                 status: "approved",
                 lastCheck: 0,

@@ -323,7 +323,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
             txId,
             paymentTx.eventId,
             this.serialize(signedTx),
-            paymentTx.type
+            paymentTx.txType
         )
         await scannerAction.updateWithSignedTx(
             txId,

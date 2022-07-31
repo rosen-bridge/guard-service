@@ -977,7 +977,7 @@ describe("TxAgreement", () => {
             txAgreement.insertEventAgreedTransactions(tx.eventId, tx.txId)
 
             // run test
-            const result = await txAgreement.isEventHasDifferentTransaction(tx.eventId, TestUtils.generateRandomId(), tx.type)
+            const result = await txAgreement.isEventHasDifferentTransaction(tx.eventId, TestUtils.generateRandomId(), tx.txType)
 
             // verify
             expect(result).to.be.true
@@ -997,10 +997,10 @@ describe("TxAgreement", () => {
             const mockedEvent: EventTrigger = CardanoTestBoxes.mockAssetPaymentEventTrigger()
             await insertEventRecord(mockedEvent, "pending-payment")
             const tx = CardanoTestBoxes.mockNoAssetsTransferringPaymentTransaction(mockedEvent, CardanoTestBoxes.testBankAddress)
-            await insertTxRecord(tx, tx.type, "cardano", "approved", 0, tx.eventId)
+            await insertTxRecord(tx, tx.txType, "cardano", "approved", 0, tx.eventId)
 
             // run test
-            const result = await txAgreement.isEventHasDifferentTransaction(tx.eventId, TestUtils.generateRandomId(), tx.type)
+            const result = await txAgreement.isEventHasDifferentTransaction(tx.eventId, TestUtils.generateRandomId(), tx.txType)
 
             // verify
             expect(result).to.be.true
@@ -1020,7 +1020,7 @@ describe("TxAgreement", () => {
             const mockedEvent: EventTrigger = CardanoTestBoxes.mockAssetPaymentEventTrigger()
             await insertEventRecord(mockedEvent, "pending-payment")
             const tx = CardanoTestBoxes.mockNoAssetsTransferringPaymentTransaction(mockedEvent, CardanoTestBoxes.testBankAddress)
-            await insertTxRecord(tx, tx.type, "cardano", "approved", 0, tx.eventId)
+            await insertTxRecord(tx, tx.txType, "cardano", "approved", 0, tx.eventId)
 
             // run test
             const result = await txAgreement.isEventHasDifferentTransaction(tx.eventId, TestUtils.generateRandomId(), "reward")
@@ -1043,10 +1043,10 @@ describe("TxAgreement", () => {
             const mockedEvent: EventTrigger = CardanoTestBoxes.mockAssetPaymentEventTrigger()
             await insertEventRecord(mockedEvent, "pending-payment")
             const tx = CardanoTestBoxes.mockNoAssetsTransferringPaymentTransaction(mockedEvent, CardanoTestBoxes.testBankAddress)
-            await insertTxRecord(tx, tx.type, "cardano", "invalid", 0, tx.eventId)
+            await insertTxRecord(tx, tx.txType, "cardano", "invalid", 0, tx.eventId)
 
             // run test
-            const result = await txAgreement.isEventHasDifferentTransaction(tx.eventId, TestUtils.generateRandomId(), tx.type)
+            const result = await txAgreement.isEventHasDifferentTransaction(tx.eventId, TestUtils.generateRandomId(), tx.txType)
 
             // verify
             expect(result).to.be.false
