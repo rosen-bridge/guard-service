@@ -7,16 +7,15 @@ import {
     Value, Vkeywitness, Vkeywitnesses
 } from "@emurgo/cardano-serialization-lib-nodejs";
 import KoiosApi from "./network/KoiosApi";
-import { EventTrigger, PaymentTransaction } from "../../models/Models";
+import { EventTrigger, PaymentTransaction, TransactionStatus, TransactionTypes } from "../../models/Models";
 import BaseChain from "../BaseChains";
 import CardanoConfigs from "./helpers/CardanoConfigs";
 import BlockFrostApi from "./network/BlockFrostApi";
 import { Utxo, UtxoBoxesAssets } from "./models/Interfaces";
 import CardanoUtils from "./helpers/CardanoUtils";
 import TssSigner from "../../guard/TssSigner";
-import Utils from "../ergo/helpers/Utils";
-import { tssSignAction } from "../../db/models/sign/SignModel";
 import CardanoTransaction from "./models/CardanoTransaction";
+import { scannerAction } from "../../db/models/scanner/ScannerModel";
 
 
 class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
@@ -63,7 +62,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         const txBytes = tx.to_bytes()
         const txId = Buffer.from(hash_transaction(txBody).to_bytes()).toString('hex')
         const eventId = event.sourceTxId
-        const paymentTx = new CardanoTransaction(txId, eventId, txBytes) // we don't need inputBoxes in PaymentTransaction for Cardano tx
+        const paymentTx = new CardanoTransaction(txId, eventId, txBytes, TransactionTypes.payment) // we don't need inputBoxes in PaymentTransaction for Cardano tx
 
         console.log(`Payment transaction for event [${eventId}] generated. TxId: ${txId}`)
         return paymentTx
@@ -275,9 +274,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         try {
             // insert request into db
             const txHash = hash_transaction(tx.body()).to_bytes()
-            const txId = Utils.Uint8ArrayToHexString(txHash)
-            const serializedTx = Utils.Uint8ArrayToHexString(this.serialize(tx))
-            await tssSignAction.insertSignRequest(txId, serializedTx)
+            await scannerAction.setTxStatus(paymentTx.txId, TransactionStatus.inSign)
 
             // send tx to sign
             await TssSigner.signTxHash(txHash)
@@ -292,12 +289,14 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
      * @param txId the transaction id
      * @param signedTxHash signed hash of the transaction
      */
-    signTransaction = async (txId: string, signedTxHash: string): Promise<Transaction | null> => {
+    signTransaction = async (txId: string, signedTxHash: string): Promise<CardanoTransaction | null> => {
         // get tx from db
         let tx: Transaction | null = null
+        let paymentTx: PaymentTransaction | null = null
         try {
-            const txBytes = Utils.hexStringToUint8Array((await tssSignAction.getById(txId)).txBytes)
-            tx = this.deserialize(txBytes)
+            const txEntity = await scannerAction.getTxById(txId)
+            paymentTx = PaymentTransaction.fromJson(txEntity.txJson)
+            tx = this.deserialize(paymentTx.txBytes)
         }
         catch (e) {
             console.log(`An error occurred while getting Cardano tx with id [${txId}] from db: ${e.message}`)
@@ -320,14 +319,18 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         )
 
         // update database
-        const signedTxBytes = this.serialize(signedTx)
-        await tssSignAction.updateSignature(
+        const signedPaymentTx = new CardanoTransaction(
             txId,
-            Utils.Uint8ArrayToHexString(signedTxBytes),
-            signedTxHash
+            paymentTx.eventId,
+            this.serialize(signedTx),
+            paymentTx.txType
+        )
+        await scannerAction.updateWithSignedTx(
+            txId,
+            signedPaymentTx.toJson()
         )
 
-        return signedTx
+        return signedPaymentTx
     }
 
     /**
@@ -337,6 +340,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
     submitTransaction = async (paymentTx: PaymentTransaction): Promise<void> => {
         const tx = this.deserialize(paymentTx.txBytes)
         try {
+            await scannerAction.setTxStatus(paymentTx.txId, TransactionStatus.sent)
             const response = await BlockFrostApi.txSubmit(tx)
             console.log(`Cardano Transaction submitted. txId: ${response}`)
         }

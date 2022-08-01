@@ -1,4 +1,4 @@
-import { Column, Entity, OneToOne, PrimaryColumn, Relation, RelationId, JoinColumn, ManyToOne } from "typeorm";
+import { Column, Entity, PrimaryColumn, ManyToOne, Relation } from "typeorm";
 import { EventTriggerEntity } from "./EventTriggerEntity";
 
 @Entity()
@@ -26,6 +26,6 @@ export class TransactionEntity {
         "sourceTxId",
         {cascade: true}
     )
-    event: EventTriggerEntity
+    event: Relation<EventTriggerEntity>
 
 }

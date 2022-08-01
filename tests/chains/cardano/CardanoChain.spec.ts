@@ -1,16 +1,19 @@
 import { mockGetAddressBoxes } from "./mocked/MockedKoios";
 import CardanoChain from "../../../src/chains/cardano/CardanoChain";
-import { EventTrigger } from "../../../src/models/Models";
+import { EventTrigger, TransactionStatus, TransactionTypes } from "../../../src/models/Models";
 import TestBoxes from "./testUtils/TestBoxes";
 import { expect } from "chai";
 import { Utxo } from "../../../src/chains/cardano/models/Interfaces";
-import { anything } from "ts-mockito";
+import { anything, deepEqual, spy, verify, when } from "ts-mockito";
 import { hash_transaction } from "@emurgo/cardano-serialization-lib-nodejs";
 import Utils from "../../../src/chains/ergo/helpers/Utils";
 import MockedBlockFrost from "./mocked/MockedBlockFrost";
 import TestUtils from "../../testUtils/TestUtils";
 import { beforeEach } from "mocha";
-import { allCardanoSignRecords, clearCardanoSignTable, insertCardanoSignRecord } from "../../db/mocked/MockedSignModel";
+import TssSigner from "../../../src/guard/TssSigner";
+import { allTxRecords, clearTables, insertTxRecord } from "../../db/mocked/MockedScannerModel";
+import CardanoTransaction from "../../../src/chains/cardano/models/CardanoTransaction";
+import ChainsConstants from "../../../src/chains/ChainsConstants";
 
 describe("CardanoChain", () => {
     const testBankAddress = TestBoxes.testBankAddress
@@ -144,36 +147,35 @@ describe("CardanoChain", () => {
 
     describe("requestToSignTransaction", () => {
 
-        beforeEach("clear test sign database Cardano signs table", async () => {
-            await clearCardanoSignTable()
+        beforeEach("clear database tables", async () => {
+            await clearTables()
         })
 
         /**
-         * Target: testing signTransaction
+         * Target: testing requestToSignTransaction
          * Dependencies:
          *    -
          * Expected Output:
          *    It should insert right record into database
          */
-        it("should insert request into db successfully", async () => {
+        it("should update tx status in db and send request to TSS signer successfully", async () => {
             // create test data
             const cardanoChain: CardanoChain = new CardanoChain()
-            const paymentTx = TestBoxes.mockTwoAssetsTransferringPaymentTransaction(
+            const tx = TestBoxes.mockTwoAssetsTransferringPaymentTransaction(
                 TestBoxes.mockAssetPaymentEventTrigger(), testBankAddress)
-            const tx = cardanoChain.deserialize(paymentTx.txBytes)
-            const expectedTxId = Utils.Uint8ArrayToHexString(hash_transaction(tx.body()).to_bytes())
-            const expectedTxBytes = Utils.Uint8ArrayToHexString(tx.to_bytes())
-            const expectedSignedHash = null
+            await insertTxRecord(tx, TransactionTypes.payment, ChainsConstants.cardano, TransactionStatus.approved, 0, tx.eventId)
+            const mockedTssSigner = spy(TssSigner)
+            const txHash = hash_transaction(cardanoChain.deserialize(tx.txBytes).body()).to_bytes()
+            when(mockedTssSigner.signTxHash(anything())).thenResolve()
 
             // run test
-            await cardanoChain.requestToSignTransaction(paymentTx)
+            await cardanoChain.requestToSignTransaction(tx)
 
             // verify db changes
-            const signRecords = await allCardanoSignRecords()
-            expect(signRecords.length).to.equal(1)
-            expect(signRecords[0].txId).to.equal(expectedTxId)
-            expect(signRecords[0].txBytes).to.equal(expectedTxBytes)
-            expect(signRecords[0].signedHash).to.equal(expectedSignedHash)
+            verify(mockedTssSigner.signTxHash(deepEqual(txHash))).once()
+            const dbTxs = await allTxRecords()
+            expect(dbTxs.map(tx => [tx.txId, tx.status])[0])
+                .to.deep.equal([tx.txId, TransactionStatus.inSign])
         })
 
     })
@@ -181,7 +183,7 @@ describe("CardanoChain", () => {
     describe("signTransaction", () => {
 
         beforeEach("clear test sign database Cardano signs table", async () => {
-            await clearCardanoSignTable()
+            await clearTables()
         })
 
         /**
@@ -198,28 +200,24 @@ describe("CardanoChain", () => {
 
             // create test data
             const cardanoChain: CardanoChain = new CardanoChain()
-            const tx = cardanoChain.deserialize(TestBoxes.mockTwoAssetsTransferringPaymentTransaction(
-                TestBoxes.mockAssetPaymentEventTrigger(), testBankAddress).txBytes)
-
-            // insert required test data in db
-            const txId = Utils.Uint8ArrayToHexString(hash_transaction(tx.body()).to_bytes())
-            const serializedTx = Utils.Uint8ArrayToHexString(tx.to_bytes())
-            await insertCardanoSignRecord(txId, serializedTx, "")
+            const cardanoTx = TestBoxes.mockTwoAssetsTransferringPaymentTransaction(
+                TestBoxes.mockAssetPaymentEventTrigger(), testBankAddress)
+            await insertTxRecord(cardanoTx, TransactionTypes.payment, ChainsConstants.cardano, TransactionStatus.inSign, 0, cardanoTx.eventId)
 
             // run test
-            await cardanoChain.signTransaction(txId, mockedSignTxHash)
+            await cardanoChain.signTransaction(cardanoTx.txId, mockedSignTxHash)
 
             // verify db changes
-            const signRecords = await allCardanoSignRecords()
-            expect(signRecords.length).to.equal(1)
-            const signature = signRecords[0].signedHash
-            expect(signature).to.equal(mockedSignTxHash)
+            const dbTxs = await allTxRecords()
+            expect(dbTxs.map(tx => [tx.txId, tx.status])[0])
+                .to.deep.equal([cardanoTx.txId, TransactionStatus.signed])
+            const newCardanoTx = CardanoTransaction.fromJson(dbTxs[0].txJson)
 
             // verify signedTx txId
-            const signedTx = cardanoChain.deserialize(Utils.hexStringToUint8Array(signRecords[0].txBytes))
+            const signedTx = cardanoChain.deserialize(newCardanoTx.txBytes)
             expect(signedTx).to.not.equal(null)
             const signedTxId = Utils.Uint8ArrayToHexString(hash_transaction(signedTx!.body()).to_bytes())
-            expect(signedTxId).to.equal(txId)
+            expect(signedTxId).to.equal(cardanoTx.txId)
 
             // verify signedTx signature
             const vKeyWitness = signedTx!.witness_set().vkeys()?.get(0)
