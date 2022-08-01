@@ -94,7 +94,7 @@ class RewardBoxes {
             height
         )
         watcherBox.add_token(rwtTokenId, TokenAmount.from_i64(Utils.i64FromBigint(1n)))
-        watcherBox.add_token(paymentTokenId, TokenAmount.from_i64(Utils.i64FromBigint(paymentTokenAmount)))
+        if (paymentTokenAmount > 0) watcherBox.add_token(paymentTokenId, TokenAmount.from_i64(Utils.i64FromBigint(paymentTokenAmount)))
         watcherBox.set_register_value(4, Constant.from_coll_coll_byte([wid]))
         return watcherBox.build()
     }

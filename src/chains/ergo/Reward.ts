@@ -12,8 +12,7 @@ import {
     TokenId,
     TxBuilder, UnsignedTransaction
 } from "ergo-lib-wasm-nodejs";
-import { EventTrigger, PaymentTransaction, TransactionTypes } from "../../models/Models";
-import BaseChain from "../BaseChains";
+import { EventTrigger, TransactionTypes } from "../../models/Models";
 import ErgoConfigs from "./helpers/ErgoConfigs";
 import ExplorerApi from "./network/ExplorerApi";
 import Utils from "./helpers/Utils";
@@ -25,7 +24,7 @@ import Configs from "../../helpers/Configs";
 import ErgoTransaction from "./models/ErgoTransaction";
 
 
-class Reward implements BaseChain<ReducedTransaction, ErgoTransaction> {
+class Reward {
 
     bankAddress = Address.from_base58(ErgoConfigs.bankAddress)
     bankErgoTree = Utils.addressToErgoTreeString(this.bankAddress)
@@ -70,7 +69,7 @@ class Reward implements BaseChain<ReducedTransaction, ErgoTransaction> {
         return tx
     }
 
-    /**
+    /** TODO: if watcherShare for tokens is zero, does it run successfully ? check it
      * verifies the reward transaction data with the event
      *  1. checks number of output boxes
      *  2. checks ergoTree of all boxes
@@ -251,7 +250,7 @@ class Reward implements BaseChain<ReducedTransaction, ErgoTransaction> {
 
         // calculate assets of payment box
         const watchersLen: number = event.WIDs.length + commitmentBoxes.length
-        const inErgAmount: bigint = ErgoConfigs.txFee + BigInt(event.bridgeFee) + BigInt(event.networkFee)
+        const inErgAmount: bigint = ErgoConfigs.txFee + BigInt(event.bridgeFee) + BigInt(event.networkFee) + ErgoConfigs.minimumErg
         const watcherShare: bigint = BigInt(event.bridgeFee) * ErgoConfigs.watchersSharePercent / 100n / BigInt(watchersLen)
         const guardsBridgeFeeShare: bigint = BigInt(event.bridgeFee) - (BigInt(watchersLen) * watcherShare)
         const guardsNetworkFeeShare = BigInt(event.networkFee)
@@ -321,7 +320,7 @@ class Reward implements BaseChain<ReducedTransaction, ErgoTransaction> {
             currentHeight
         )
         Object.entries(changeTokens).forEach(([id, amount]) => {
-            if (amount !== BigInt(0))
+            if (amount > BigInt(0))
                 changeBox.add_token(TokenId.from_str(id), TokenAmount.from_i64(I64.from_str(amount.toString())))
         })
 
@@ -433,7 +432,7 @@ class Reward implements BaseChain<ReducedTransaction, ErgoTransaction> {
             currentHeight
         )
         Object.entries(changeTokens).forEach(([id, amount]) => {
-            if (amount !== BigInt(0))
+            if (amount > BigInt(0))
                 changeBox.add_token(TokenId.from_str(id), TokenAmount.from_i64(I64.from_str(amount.toString())))
         })
 
@@ -479,30 +478,6 @@ class Reward implements BaseChain<ReducedTransaction, ErgoTransaction> {
             ergs: changeErgAmount,
             tokens: changeTokens
         }
-    }
-
-    /**
-     * requests Multisig service to sign an ergo transaction
-     * @param paymentTx the transaction
-     */
-    requestToSignTransaction = async (paymentTx: PaymentTransaction): Promise<void> => {
-        const tx = this.deserialize(paymentTx.txBytes)
-        try {
-            // TODO: implement this (Integration with Multisig service).
-        }
-        catch (e) {
-            console.log(`An error occurred while requesting Multisig service to sign Reward tx: ${e.message}`)
-        }
-    }
-
-    /**
-     * submit an ergo transaction to network
-     * @param paymentTx the payment transaction
-     */
-    submitTransaction = async (paymentTx: PaymentTransaction): Promise<void> => {
-        const tx = this.deserialize(paymentTx.txBytes)
-        const response = await NodeApi.sendTx(tx.unsigned_tx().to_json())
-        console.log(`Cardano Transaction submitted. txId: ${response}`)
     }
 
 }

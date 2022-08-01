@@ -377,7 +377,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
             currentHeight
         )
         Object.entries(changeTokens).forEach(([id, amount]) => {
-            if (amount !== BigInt(0))
+            if (amount > BigInt(0))
                 changeBox.add_token(TokenId.from_str(id), TokenAmount.from_i64(I64.from_str(amount.toString())))
         })
 
@@ -500,7 +500,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
             currentHeight
         )
         Object.entries(changeTokens).forEach(([id, amount]) => {
-            if (amount !== BigInt(0))
+            if (amount > BigInt(0))
                 changeBox.add_token(TokenId.from_str(id), TokenAmount.from_i64(I64.from_str(amount.toString())))
         })
 
