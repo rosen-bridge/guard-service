@@ -1,4 +1,4 @@
-import { EventTrigger, PaymentTransaction } from "../../../../src/models/Models";
+import { EventTrigger, PaymentTransaction, TransactionTypes } from "../../../../src/models/Models";
 import TestUtils from "../../../testUtils/TestUtils";
 import { AddressUtxos, TxUtxos, Utxo } from "../../../../src/chains/cardano/models/Interfaces";
 import {
@@ -118,7 +118,7 @@ class TestBoxes {
         // create PaymentTransaction object
         const txId = Utils.Uint8ArrayToHexString(hash_transaction(tx.body()).to_bytes())
         const txBytes = tx.to_bytes()
-        return new CardanoTransaction(txId, eventId, txBytes, "payment")
+        return new CardanoTransaction(txId, eventId, txBytes, TransactionTypes.payment)
     }
 
     /**

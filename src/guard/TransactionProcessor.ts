@@ -14,14 +14,11 @@ import CardanoChain from "../chains/cardano/CardanoChain";
 import ErgoChain from "../chains/ergo/ErgoChain";
 import { AddressUtxos, TxUtxos } from "../chains/cardano/models/Interfaces";
 import Utils from "../helpers/Utils";
-import { EventStatus, PaymentTransaction, TransactionStatus } from "../models/Models";
+import { EventStatus, PaymentTransaction, TransactionStatus, TransactionTypes } from "../models/Models";
 import BaseChain from "../chains/BaseChains";
 import { Semaphore } from "await-semaphore";
 
 class TransactionProcessor {
-
-    static readonly PAYMENT_TX_TYPE = "payment"
-    static readonly REWARD_TX_TYPE = "reward"
 
     static cardanoChain = new CardanoChain()
     static ergoChain = new ErgoChain()
@@ -93,7 +90,7 @@ class TransactionProcessor {
             // tx confirmed enough. proceed to next process.
             await scannerAction.setTxStatus(tx.txId, TransactionStatus.completed)
 
-            if (tx.type === this.PAYMENT_TX_TYPE) {
+            if (tx.type === TransactionTypes.payment) {
                 // set event status, to start reward distribution.
                 await scannerAction.setEventStatus(tx.event.sourceTxId, EventStatus.pendingReward)
                 console.log(`tx [${tx.txId}] is confirmed. event [${tx.event.sourceTxId}] is ready for reward distribution.`)
@@ -218,7 +215,7 @@ class TransactionProcessor {
             const height = await NodeApi.getHeight()
             if (height - tx.lastCheck >= ErgoConfigs.requiredConfirmation) {
                 await scannerAction.setTxStatus(tx.txId, TransactionStatus.invalid)
-                if (tx.type === "payment") {
+                if (tx.type === TransactionTypes.payment) {
                     await scannerAction.resetEventTx(tx.event.sourceTxId, EventStatus.pendingPayment)
                     console.log(`tx [${tx.txId}] is invalid. event [${tx.event.sourceTxId}] is now waiting for payment.`)
                 }

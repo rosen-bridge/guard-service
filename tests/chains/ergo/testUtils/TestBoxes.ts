@@ -1,4 +1,4 @@
-import { EventTrigger } from "../../../../src/models/Models";
+import { EventTrigger, TransactionTypes } from "../../../../src/models/Models";
 import TestUtils from "../../../testUtils/TestUtils";
 import { Asset, Box, Boxes, CoveringErgoBoxes, Register } from "../../../../src/chains/ergo/models/Interfaces";
 import {
@@ -187,7 +187,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new ErgoTransaction(txId, eventId, txBytes, [], "payment")
+        return new ErgoTransaction(txId, eventId, txBytes, [], TransactionTypes.payment)
     }
 
     /**
@@ -240,7 +240,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new ErgoTransaction(txId, eventId, txBytes, [], "payment")
+        return new ErgoTransaction(txId, eventId, txBytes, [], TransactionTypes.payment)
     }
 
     /**
@@ -293,7 +293,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new ErgoTransaction(txId, eventId, txBytes, [], "payment")
+        return new ErgoTransaction(txId, eventId, txBytes, [], TransactionTypes.payment)
     }
 
     /**
@@ -346,7 +346,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new ErgoTransaction(txId, eventId, txBytes, [], "payment")
+        return new ErgoTransaction(txId, eventId, txBytes, [], TransactionTypes.payment)
     }
 
     /**
@@ -400,7 +400,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new ErgoTransaction(txId, eventId, txBytes, [], "payment")
+        return new ErgoTransaction(txId, eventId, txBytes, [], TransactionTypes.payment)
     }
 
     /**
@@ -454,7 +454,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new ErgoTransaction(txId, eventId, txBytes, [], "payment")
+        return new ErgoTransaction(txId, eventId, txBytes, [], TransactionTypes.payment)
     }
 
     /**
@@ -701,7 +701,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new ErgoTransaction(txId, eventId, txBytes, [], "reward")
+        return new ErgoTransaction(txId, eventId, txBytes, [], TransactionTypes.reward)
     }
 
     /**
@@ -752,7 +752,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new ErgoTransaction(txId, eventId, txBytes, [], "reward")
+        return new ErgoTransaction(txId, eventId, txBytes, [], TransactionTypes.reward)
     }
 
     /**
@@ -803,7 +803,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new ErgoTransaction(txId, eventId, txBytes, [], "reward")
+        return new ErgoTransaction(txId, eventId, txBytes, [], TransactionTypes.reward)
     }
 
     /**
@@ -854,7 +854,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new ErgoTransaction(txId, eventId, txBytes, [], "reward")
+        return new ErgoTransaction(txId, eventId, txBytes, [], TransactionTypes.reward)
     }
 
     /**
@@ -905,7 +905,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new ErgoTransaction(txId, eventId, txBytes, [], "reward")
+        return new ErgoTransaction(txId, eventId, txBytes, [], TransactionTypes.reward)
     }
 
     /**
@@ -956,7 +956,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new ErgoTransaction(txId, eventId, txBytes, [], "reward")
+        return new ErgoTransaction(txId, eventId, txBytes, [], TransactionTypes.reward)
     }
 
     /**
@@ -1023,7 +1023,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new ErgoTransaction(txId, eventId, txBytes, paymentTxInputBoxes, "payment")
+        return new ErgoTransaction(txId, eventId, txBytes, paymentTxInputBoxes, TransactionTypes.payment)
     }
 
     /**
@@ -1086,7 +1086,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new ErgoTransaction(txId, eventId, txBytes, paymentTxInputBoxes, "payment")
+        return new ErgoTransaction(txId, eventId, txBytes, paymentTxInputBoxes, TransactionTypes.payment)
     }
 
     /**
@@ -1151,7 +1151,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new ErgoTransaction(txId, eventId, txBytes, rewardTxInputBoxes, "reward")
+        return new ErgoTransaction(txId, eventId, txBytes, rewardTxInputBoxes, TransactionTypes.reward)
     }
 
     /**
@@ -1212,7 +1212,7 @@ class TestBoxes {
         const txBytes = reducedTx.sigma_serialize_bytes()
         const txId = tx.id().to_str()
         const eventId = event.sourceTxId
-        return new ErgoTransaction(txId, eventId, txBytes, rewardTxInputBoxes, "reward")
+        return new ErgoTransaction(txId, eventId, txBytes, rewardTxInputBoxes, TransactionTypes.reward)
     }
 
 }

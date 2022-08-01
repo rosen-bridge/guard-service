@@ -7,7 +7,7 @@ import {
     Value, Vkeywitness, Vkeywitnesses
 } from "@emurgo/cardano-serialization-lib-nodejs";
 import KoiosApi from "./network/KoiosApi";
-import { EventTrigger, PaymentTransaction, TransactionStatus } from "../../models/Models";
+import { EventTrigger, PaymentTransaction, TransactionStatus, TransactionTypes } from "../../models/Models";
 import BaseChain from "../BaseChains";
 import CardanoConfigs from "./helpers/CardanoConfigs";
 import BlockFrostApi from "./network/BlockFrostApi";
@@ -62,7 +62,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         const txBytes = tx.to_bytes()
         const txId = Buffer.from(hash_transaction(txBody).to_bytes()).toString('hex')
         const eventId = event.sourceTxId
-        const paymentTx = new CardanoTransaction(txId, eventId, txBytes, "payment") // we don't need inputBoxes in PaymentTransaction for Cardano tx
+        const paymentTx = new CardanoTransaction(txId, eventId, txBytes, TransactionTypes.payment) // we don't need inputBoxes in PaymentTransaction for Cardano tx
 
         console.log(`Payment transaction for event [${eventId}] generated. TxId: ${txId}`)
         return paymentTx

@@ -12,7 +12,7 @@ import {
     TokenId,
     TxBuilder, UnsignedTransaction
 } from "ergo-lib-wasm-nodejs";
-import { EventTrigger, PaymentTransaction } from "../../models/Models";
+import { EventTrigger, PaymentTransaction, TransactionTypes } from "../../models/Models";
 import BaseChain from "../BaseChains";
 import ErgoConfigs from "./helpers/ErgoConfigs";
 import ExplorerApi from "./network/ExplorerApi";
@@ -64,7 +64,7 @@ class Reward implements BaseChain<ReducedTransaction, ErgoTransaction> {
         const txBytes = this.serialize(reducedTx)
         const txId = reducedTx.unsigned_tx().id().to_str()
         const eventId = event.sourceTxId
-        const tx = new ErgoTransaction(txId, eventId, txBytes, inBoxes, "reward")
+        const tx = new ErgoTransaction(txId, eventId, txBytes, inBoxes, TransactionTypes.reward)
 
         console.log(`Reward distribution for event [${tx.eventId}] generated. TxId: ${tx.txId}`)
         return tx

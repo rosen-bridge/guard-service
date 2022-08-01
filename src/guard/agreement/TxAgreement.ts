@@ -1,4 +1,10 @@
-import { EventStatus, EventTrigger, PaymentTransaction, TransactionStatus } from "../../models/Models";
+import {
+    EventStatus,
+    EventTrigger,
+    PaymentTransaction,
+    TransactionStatus,
+    TransactionTypes
+} from "../../models/Models";
 import {
     AgreementMessage,
     AgreementPayload, CandidateTransaction,
@@ -311,7 +317,7 @@ class TxAgreement {
      */
     updateEventOfApprovedTx = async (tx: PaymentTransaction): Promise<void> => {
         try {
-            if (tx.txType === "payment")
+            if (tx.txType === TransactionTypes.payment)
                 await scannerAction.setEventStatus(tx.eventId, EventStatus.inPayment)
             else
                 await scannerAction.setEventStatus(tx.eventId, EventStatus.inReward)

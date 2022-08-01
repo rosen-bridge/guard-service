@@ -3,7 +3,7 @@ import {
     verifySendMessageWithReceiverCalledOnce
 } from "../../communication/mocked/MockedDialer";
 import ErgoTestBoxes from "../../chains/ergo/testUtils/TestBoxes";
-import { EventStatus, EventTrigger, TransactionStatus } from "../../../src/models/Models";
+import { EventStatus, EventTrigger, TransactionStatus, TransactionTypes } from "../../../src/models/Models";
 import TxAgreement from "../../../src/guard/agreement/TxAgreement";
 import CardanoTestBoxes from "../../chains/cardano/testUtils/TestBoxes";
 import Configs from "../../../src/helpers/Configs";
@@ -314,7 +314,7 @@ describe("TxAgreement", () => {
             const tx = ErgoTestBoxes.mockMissingValidCommitmentDistributionTransaction(mockedEvent, eventBoxAndCommitments)
             const previousTx = ErgoTestBoxes.mockIllegalChangeBoxDistributionTransaction(mockedEvent, eventBoxAndCommitments)
             await insertEventRecord(mockedEvent, EventStatus.pendingReward)
-            await insertTxRecord(previousTx, "reward", ChainsConstants.cardano, TransactionStatus.approved, 0, tx.eventId)
+            await insertTxRecord(previousTx, TransactionTypes.reward, ChainsConstants.cardano, TransactionStatus.approved, 0, tx.eventId)
 
             // mock isConfirmedEnough
             mockIsEventConfirmedEnough(mockedEvent, true)
@@ -1024,7 +1024,7 @@ describe("TxAgreement", () => {
             await insertTxRecord(tx, tx.txType, ChainsConstants.cardano, TransactionStatus.approved, 0, tx.eventId)
 
             // run test
-            const result = await txAgreement.isEventHasDifferentTransaction(tx.eventId, TestUtils.generateRandomId(), "reward")
+            const result = await txAgreement.isEventHasDifferentTransaction(tx.eventId, TestUtils.generateRandomId(), TransactionTypes.reward)
 
             // verify
             expect(result).to.be.false

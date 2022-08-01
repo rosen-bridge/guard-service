@@ -1,5 +1,11 @@
 import { allTxRecords, clearTables, insertEventRecord, insertTxRecord } from "./mocked/MockedScannerModel";
-import { EventStatus, EventTrigger, PaymentTransaction, TransactionStatus } from "../../src/models/Models";
+import {
+    EventStatus,
+    EventTrigger,
+    PaymentTransaction,
+    TransactionStatus,
+    TransactionTypes
+} from "../../src/models/Models";
 import CardanoTestBoxes from "../chains/cardano/testUtils/TestBoxes";
 import ChainsConstants from "../../src/chains/ChainsConstants";
 import { scannerAction } from "../../src/db/models/scanner/ScannerModel";
@@ -18,7 +24,7 @@ describe("ScannerDataBase", () => {
             const mockedEvent: EventTrigger = CardanoTestBoxes.mockADAPaymentEventTrigger()
             await insertEventRecord(mockedEvent, EventStatus.inPayment)
             const tx = CardanoTestBoxes.mockADAPaymentTransaction(mockedEvent)
-            await insertTxRecord(tx, "payment", ChainsConstants.cardano, TransactionStatus.approved, 0, tx.eventId)
+            await insertTxRecord(tx, TransactionTypes.payment, ChainsConstants.cardano, TransactionStatus.approved, 0, tx.eventId)
 
             const lowerTxId = tx.txId.slice(0, tx.txId.length - 4) + "0000"
             const newTx = new PaymentTransaction(
@@ -43,7 +49,7 @@ describe("ScannerDataBase", () => {
             const mockedEvent: EventTrigger = CardanoTestBoxes.mockADAPaymentEventTrigger()
             await insertEventRecord(mockedEvent, EventStatus.inPayment)
             const tx = CardanoTestBoxes.mockADAPaymentTransaction(mockedEvent)
-            await insertTxRecord(tx, "payment", ChainsConstants.cardano, TransactionStatus.signed, 0, tx.eventId)
+            await insertTxRecord(tx, TransactionTypes.payment, ChainsConstants.cardano, TransactionStatus.signed, 0, tx.eventId)
 
             const lowerTxId = tx.txId.slice(0, tx.txId.length - 4) + "0000"
             const newTx = new PaymentTransaction(
@@ -68,7 +74,7 @@ describe("ScannerDataBase", () => {
             const mockedEvent: EventTrigger = CardanoTestBoxes.mockADAPaymentEventTrigger()
             await insertEventRecord(mockedEvent, EventStatus.inPayment)
             const tx = CardanoTestBoxes.mockADAPaymentTransaction(mockedEvent)
-            await insertTxRecord(tx, "payment", ChainsConstants.cardano, TransactionStatus.approved, 0, tx.eventId)
+            await insertTxRecord(tx, TransactionTypes.payment, ChainsConstants.cardano, TransactionStatus.approved, 0, tx.eventId)
 
             const higherTxId = tx.txId.slice(0, tx.txId.length - 4) + "ffff"
             const newTx = new PaymentTransaction(

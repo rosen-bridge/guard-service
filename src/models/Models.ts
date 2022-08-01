@@ -171,9 +171,17 @@ class TransactionStatus {
 
 }
 
+class TransactionTypes {
+
+    static payment = "payment"
+    static reward = "reward"
+
+}
+
 export {
     EventTrigger,
     PaymentTransaction,
     EventStatus,
-    TransactionStatus
+    TransactionStatus,
+    TransactionTypes
 }
