@@ -6,21 +6,19 @@ import TransactionProcessor from "../guard/TransactionProcessor";
 
 
 const resendTxInterval = 30 // seconds
-let resendCount = 0
-let resendInterval: NodeJS.Timer
 
 const resendTxJob = () => {
-    txAgreement.resendTransactionRequests()
-    resendCount += 1
-    if(resendCount >= 3) {
-        clearInterval(resendInterval)
-        resendCount = 0
+    if (Utils.secondsToReset() < Utils.UP_TIME_LENGTH) {
+        txAgreement.resendTransactionRequests()
+        setTimeout(resendTxJob, resendTxInterval * 1000)
     }
 }
 
 const processJob = () => {
-    EventProcessor.processEvents().then(() => setTimeout(processJob, Utils.secondsToNextTurn()))
-    resendInterval = setInterval(resendTxJob, resendTxInterval * 1000)
+    EventProcessor.processEvents().then(() => {
+        setTimeout(processJob, Utils.secondsToNextTurn())
+        setTimeout(resendTxJob, resendTxInterval * 1000)
+    })
     setTimeout(txAgreement.clearTransactions, Utils.UP_TIME_LENGTH * 1000)
 }
 

@@ -36,4 +36,17 @@ describe("guard turn methods", () => {
         reset(date)
     })
 
+    it("secondsToReset should return seconds to end of current guard turn successfully", () => {
+        // mock Date
+        const date = spy(Date)
+        when(date.now()).thenReturn(currentTimeStamp)
+
+        // run test
+        const result = Utils.guardTurn()
+        expect(result).to.equal(4)
+
+        // reset mocked Date object
+        reset(date)
+    })
+
 })

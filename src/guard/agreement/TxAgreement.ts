@@ -271,8 +271,13 @@ class TxAgreement {
     resendTransactionRequests = (): void => {
         const creatorId = Configs.guardId
         this.transactions.forEach(tx => {
-            const guardSignature = tx.signMetaData()
-            this.broadcastTransactionRequest(tx, creatorId, guardSignature)
+            try {
+                const guardSignature = tx.signMetaData()
+                this.broadcastTransactionRequest(tx, creatorId, guardSignature)
+            }
+            catch (e) {
+                console.log(`Unexpected Error occurred while resending tx [${tx.txId}]: ${e}`)
+            }
         })
     }
 

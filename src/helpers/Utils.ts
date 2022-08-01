@@ -40,6 +40,15 @@ class Utils {
     }
 
     /**
+     * @return remaining seconds to current guard turn
+     */
+    static secondsToReset = () => {
+        const currentTimeStamp = Date.now()
+        const currentPoint = currentTimeStamp % this.TURNS_LENGTH
+        return (this.UP_TIME_LENGTH - currentPoint + this.TURNS_LENGTH) % this.TURNS_LENGTH
+    }
+
+    /**
      * converts number to 1 byte Uint8Array
      * @param num
      */
@@ -47,15 +56,6 @@ class Utils {
         const buffer = Buffer.alloc(1, 0)
         buffer.writeUint8(num)
         return buffer
-    }
-
-    /**
-     * @return remaining seconds to current guard turn
-     */
-    static secondsToReset = () => {
-        const startingTimeStamp = Date.now()
-        const currentPoint = startingTimeStamp % this.TURNS_LENGTH
-        return currentPoint - this.UP_TIME_LENGTH
     }
 
     /**
