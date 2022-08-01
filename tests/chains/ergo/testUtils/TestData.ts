@@ -46,7 +46,7 @@ class TestData {
     static mockTransactionFeeBox = `{
         "value": 1500000,
         "ergoTree": "1005040004000e36100204a00b08cd0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798ea02d192a39a8cc7a701730073011001020402d19683030193a38cc7b2a57300000193c2b2a57301007473027303830108cdeeac93b1a57304",
-        "assets": null,
+        "assets": [],
         "additionalRegisters": {},
         "creationHeight": 100000
     }`
@@ -123,7 +123,7 @@ class TestData {
             {
                 "value": 100000,
                 "ergoTree": "${targetAddressErgoTree}",
-                "assets": null,
+                "assets": [],
                 "additionalRegisters": {},
                 "creationHeight": 100000
             },
@@ -636,7 +636,7 @@ class TestData {
             {
                 "value": 48998500000,
                 "ergoTree": "${targetAddressErgoTree}",
-                "assets": null,
+                "assets": [],
                 "additionalRegisters": {},
                 "creationHeight": 100000
             },
@@ -644,14 +644,14 @@ class TestData {
             {
                 "value": 500000003,
                 "ergoTree": "${bridgeFeeErgoTree}",
-                "assets": null,
+                "assets": [],
                 "additionalRegisters": {},
                 "creationHeight": 100000
             },
             {
                 "value": 1500000,
                 "ergoTree": "${networkFeeErgoTree}",
-                "assets": null,
+                "assets": [],
                 "additionalRegisters": {},
                 "creationHeight": 100000
             },
@@ -736,14 +736,14 @@ class TestData {
             {
                 "value": 500000003,
                 "ergoTree": "${bridgeFeeErgoTree}",
-                "assets": null,
+                "assets": [],
                 "additionalRegisters": {},
                 "creationHeight": 100000
             },
             {
                 "value": 1500000,
                 "ergoTree": "${networkFeeErgoTree}",
-                "assets": null,
+                "assets": [],
                 "additionalRegisters": {},
                 "creationHeight": 100000
             },

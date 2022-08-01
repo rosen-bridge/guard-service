@@ -52,7 +52,7 @@ class MultiSigHandler{
         if (this.index === undefined) {
             const ergoTree = wasm.SecretKey.dlog_from_bytes(this.secret).get_address().to_ergo_tree().to_base16_bytes();
             const publicKey = ergoTree.substring(ergoTree.length - 66);
-            console.log(this.peers.map((peer, index) => [peer.pub, index]).filter(row => row[0] === publicKey))
+            // console.log(this.peers.map((peer, index) => [peer.pub, index]).filter(row => row[0] === publicKey))
             this.index = this.peers.map((peer, index) => [peer.pub, index]).filter(row => row[0] === publicKey)[0][1] as number
         }
         if (this.index !== undefined)
