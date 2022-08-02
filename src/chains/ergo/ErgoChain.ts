@@ -56,6 +56,8 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
             ctx
         )
 
+        // console.log(eventTxData[0].to_json())
+
         // parse tx input boxes
         const inBoxes: Uint8Array[] = []
         const inBoxesLen = eventTxData[1].len()
@@ -72,7 +74,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         return tx
     }
 
-    /** TODO: verify rsn in watchers and guards boxes
+    /**
      * verifies the payment transaction data with the event
      *  1. checks ergoTree of all boxes
      *  2. checks amount of erg in payment box

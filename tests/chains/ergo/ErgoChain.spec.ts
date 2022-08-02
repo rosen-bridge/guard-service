@@ -137,9 +137,9 @@ describe("ErgoChain",  () => {
          *    The function should construct a valid tx successfully
          *    It should also verify it successfully
          */
-        it("should generate an only RSN distribution tx and verify it successfully", async () => {
+        it("should generate an only RSN payment tx and verify it successfully", async () => {
             // mock token payment event
-            const mockedEvent: EventTrigger = TestBoxes.mockTokenPaymentEventTrigger()
+            const mockedEvent: EventTrigger = TestBoxes.mockErgPaymentEventTrigger()
             const spiedErgoConfig = spy(ErgoConfigs)
             mockGetRSNRatioCoef(anything(), [BigInt(47), BigInt(100000)])
             when(spiedErgoConfig.watchersRSNSharePercent).thenReturn(40n)
@@ -304,6 +304,28 @@ describe("ErgoChain",  () => {
             // mock token payment event
             const mockedEvent: EventTrigger = TestBoxes.mockErgPaymentEventTrigger()
             const tx = TestBoxes.mockTokenBurningErgPaymentTransaction(mockedEvent, eventBoxAndCommitments)
+
+            // run test
+            const ergoChain: ErgoChain = new ErgoChain()
+            const isValid = await ergoChain.verifyTransactionWithEvent(tx, mockedEvent)
+            expect(isValid).to.be.false
+        })
+
+        /**
+         * Target: testing verifyTransactionWithEvent
+         * Dependencies:
+         *    -
+         * Expected Output:
+         *    It should NOT verify the transaction
+         */
+        it("should reject an only RSN payment tx that transferring wrong amount", async () => {
+            // mock token payment event
+            const mockedEvent: EventTrigger = TestBoxes.mockErgPaymentEventTrigger()
+            const tx = TestBoxes.mockWrongAmountRSNOnlyPaymentTransaction(mockedEvent, eventBoxAndCommitments)
+            const spiedErgoConfig = spy(ErgoConfigs)
+            mockGetRSNRatioCoef(anything(), [BigInt(47), BigInt(100000)])
+            when(spiedErgoConfig.watchersRSNSharePercent).thenReturn(40n)
+            when(spiedErgoConfig.watchersSharePercent).thenReturn(0n)
 
             // run test
             const ergoChain: ErgoChain = new ErgoChain()

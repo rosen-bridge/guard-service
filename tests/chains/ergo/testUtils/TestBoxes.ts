@@ -1218,6 +1218,143 @@ class TestBoxes {
         return new ErgoTransaction(txId, eventId, txBytes, rewardTxInputBoxes, TransactionTypes.reward)
     }
 
+    /**
+     * generates a mocked reward distribution tx that distributes only RSN with wrong amount
+     * @param event token reward event trigger
+     * @param eventBoxes event box and valid commitment boxes
+     */
+    static mockWrongAmountRSNOnlyDistributionTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): ErgoTransaction => {
+        const rewardTxInputBoxes: Uint8Array[] = []
+        const rsnTokenId = Configs.rsn
+        const txInputBoxes: string[] = []
+
+        const inBoxes = ErgoBoxes.empty()
+        eventBoxes.forEach(box => {
+            inBoxes.add(box)
+            rewardTxInputBoxes.push(box.sigma_serialize_bytes())
+            txInputBoxes.push(box.box_id().to_str())
+        })
+        const bankBoxes = this.mockBankBoxes()
+        bankBoxes.boxes.forEach(box => {
+            inBoxes.add(box)
+            rewardTxInputBoxes.push(box.sigma_serialize_bytes())
+            txInputBoxes.push(box.box_id().to_str())
+        })
+
+        const rwtTokenId = Configs.ergoRWT
+        const watcherBoxes = event.WIDs
+            .map(wid => Utils.hexStringToUint8Array(wid))
+            .concat(eventBoxes.slice(1).map(box => RewardBoxes.getErgoBoxWID(box)))
+            .map(wid => TestData.mockWatcherPermitBox(
+                100000n,
+                [
+                    {
+                        tokenId: rwtTokenId,
+                        amount: BigInt("1")
+                    },
+                    {
+                        tokenId: rsnTokenId,
+                        amount: BigInt("26857")
+                    }
+                ],
+                Contracts.triggerEventErgoTree,
+                [
+                    {
+                        registerId: 4,
+                        value: Constant.from_coll_coll_byte([wid])
+                    }
+                ]
+            ))
+
+        const txJsonString: string = TestData.mockWrongAmountRSNOnlyRewardTx(
+            txInputBoxes,
+            watcherBoxes,
+            this.bridgeFeeErgoTree,
+            this.networkFeeErgoTree,
+            this.bankAddressErgoTree,
+            bankBoxes.boxes[0].tokens().get(1).id().to_str(),
+            rsnTokenId
+        )
+        const tx = UnsignedTransaction.from_json(txJsonString)
+
+        const reducedTx = ReducedTransaction.from_unsigned_tx(tx, inBoxes, ErgoBoxes.empty(), TestData.mockedErgoStateContext)
+
+        const txBytes = reducedTx.sigma_serialize_bytes()
+        const txId = tx.id().to_str()
+        const eventId = event.sourceTxId
+        return new ErgoTransaction(txId, eventId, txBytes, rewardTxInputBoxes, TransactionTypes.reward)
+    }
+
+    /**
+     * generates a mocked payment transaction that transfers only RSN with wrong amount
+     * @param event token reward event trigger
+     * @param eventBoxes event box and valid commitment boxes
+     */
+    static mockWrongAmountRSNOnlyPaymentTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): ErgoTransaction => {
+        const paymentTxInputBoxes: Uint8Array[] = []
+        const targetAddressErgoTree: string = Utils.addressStringToErgoTreeString(event.toAddress)
+        const rsnTokenId = Configs.rsn
+
+        const txInputBoxes: string[] = []
+
+        const inBoxes = ErgoBoxes.empty()
+        eventBoxes.forEach(box => {
+            inBoxes.add(box)
+            paymentTxInputBoxes.push(box.sigma_serialize_bytes())
+            txInputBoxes.push(box.box_id().to_str())
+        })
+        const bankBoxes = this.mockBankBoxes()
+        bankBoxes.boxes.forEach(box => {
+            inBoxes.add(box)
+            paymentTxInputBoxes.push(box.sigma_serialize_bytes())
+            txInputBoxes.push(box.box_id().to_str())
+        })
+
+        const rwtTokenId = Configs.ergoRWT
+        const watcherBoxes = event.WIDs
+            .map(wid => Utils.hexStringToUint8Array(wid))
+            .concat(eventBoxes.slice(1).map(box => RewardBoxes.getErgoBoxWID(box)))
+            .map(wid => TestData.mockWatcherPermitBox(
+                100000n,
+                [
+                    {
+                        tokenId: rwtTokenId,
+                        amount: BigInt("1")
+                    },
+                    {
+                        tokenId: "db6df45d3ed738ff4ff48d3cdf50ba0e5c3018bc088430a33e700073d2390ba4",
+                        amount: BigInt("26857")
+                    }
+                ],
+                Contracts.triggerEventErgoTree,
+                [
+                    {
+                        registerId: 4,
+                        value: Constant.from_coll_coll_byte([wid])
+                    }
+                ]
+            ))
+
+        const txJsonString: string = TestData.mockWrongAmountRSNOnlyPaymentTx(
+            txInputBoxes,
+            targetAddressErgoTree,
+            watcherBoxes,
+            this.bridgeFeeErgoTree,
+            this.networkFeeErgoTree,
+            this.bankAddressErgoTree,
+            bankBoxes.boxes[0].tokens().get(1).id().to_str(),
+            rsnTokenId
+        )
+        const tx = UnsignedTransaction.from_json(txJsonString)
+
+        const reducedTx = ReducedTransaction.from_unsigned_tx(tx, inBoxes, ErgoBoxes.empty(), TestData.mockedErgoStateContext)
+
+        const txBytes = reducedTx.sigma_serialize_bytes()
+        const txId = tx.id().to_str()
+        const eventId = event.sourceTxId
+        return new ErgoTransaction(txId, eventId, txBytes, paymentTxInputBoxes, TransactionTypes.payment)
+    }
+
 }
 
 export default TestBoxes

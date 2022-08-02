@@ -139,7 +139,7 @@ describe("Reward", () => {
          */
         it("should generate an only RSN distribution tx and verify it successfully", async () => {
             // mock token payment event
-            const mockedEvent: EventTrigger = TestBoxes.mockTokenRewardEventTrigger()
+            const mockedEvent: EventTrigger = TestBoxes.mockErgRewardEventTrigger()
             const spiedErgoConfig = spy(ErgoConfigs)
             mockGetRSNRatioCoef(anything(), [BigInt(47), BigInt(100000)])
             when(spiedErgoConfig.watchersRSNSharePercent).thenReturn(40n)
@@ -304,6 +304,28 @@ describe("Reward", () => {
             // mock erg payment event
             const mockedEvent: EventTrigger = TestBoxes.mockErgRewardEventTrigger()
             const tx = TestBoxes.mockTokenBurningErgDistributionTransaction(mockedEvent, eventBoxAndCommitments)
+
+            // run test
+            const reward = new Reward()
+            const isValid = await reward.verifyTransactionWithEvent(tx, mockedEvent)
+            expect(isValid).to.be.false
+        })
+
+        /**
+         * Target: testing verifyTransactionWithEvent
+         * Dependencies:
+         *    RewardBoxes
+         * Expected Output:
+         *    It should NOT verify the transaction
+         */
+        it("should reject an only RSN distribution tx that transferring wrong amount", async () => {
+            // mock erg payment event
+            const mockedEvent: EventTrigger = TestBoxes.mockErgRewardEventTrigger()
+            const tx = TestBoxes.mockWrongAmountRSNOnlyDistributionTransaction(mockedEvent, eventBoxAndCommitments)
+            const spiedErgoConfig = spy(ErgoConfigs)
+            mockGetRSNRatioCoef(anything(), [BigInt(47), BigInt(100000)])
+            when(spiedErgoConfig.watchersRSNSharePercent).thenReturn(40n)
+            when(spiedErgoConfig.watchersSharePercent).thenReturn(0n)
 
             // run test
             const reward = new Reward()
