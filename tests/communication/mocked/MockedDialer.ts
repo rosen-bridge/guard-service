@@ -1,4 +1,4 @@
-import { anything, capture, deepEqual, instance, mock, spy, verify, when } from "ts-mockito";
+import { anything, capture, deepEqual, instance, mock, reset, spy, verify, when } from "ts-mockito";
 import Dialer from "../../../src/communication/Dialer";
 import fs from "fs";
 import TestConfigs from "../../testUtils/TestConfigs";
@@ -10,15 +10,23 @@ when(mockedDialerInstance.getPeerId()).thenReturn("peerId")
 const mockedDialer = spy(Dialer)
 when(mockedDialer.getInstance()).thenResolve(instance(mockedDialerInstance))
 
-const sendMessageBodyAndPayloadArguments = (bodyKeys: Array<string>, payloadKeys: Array<string>): void => {
+/**
+ *
+ * @param bodyKeys
+ * @param payloadKeys
+ */
+const sendMessageBodyAndPayloadArguments = (bodyKeys: Array<string>, payloadKeys: Array<string>, type: string = "approve"): void => {
     const message = capture(mockedDialerInstance.sendMessage).first()[1];
     const json = JSON.parse(message);
-    payloadKeys.forEach(key => {
-        if (!(key in json.payload)) throw("key is not in the dialer payload message")
-    })
-    bodyKeys.forEach(key => {
-        if (!(key in json)) throw("key is not in the message")
-    })
+    if(json.type === type){
+        payloadKeys.forEach(key => {
+            console.log(key)
+            if (!(key in json.payload)) throw("key is not in the dialer payload message")
+        })
+        bodyKeys.forEach(key => {
+            if (!(key in json)) throw("key is not in the message")
+        })
+    }
 }
 
 let mockedFS = spy(fs)

@@ -34,7 +34,7 @@ class MultiSigHandler{
         }));
         dialer.subscribeChannel(MultiSigHandler.CHANNEL, this.handleMessage);
         this.secret = secretHex ? Uint8Array.from(Buffer.from(secretHex, "hex")) : Configs.secret
-        this.sendRegister().then(() => {});
+        // this.sendRegister().then(() => {});
     }
 
     public sendRegister = async (): Promise<void> => {
