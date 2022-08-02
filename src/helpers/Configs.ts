@@ -10,6 +10,8 @@ class Configs {
     // token configs
     static ergoRWT = config.get<string>('tokens.ergoRWT')
     static cardanoRWT = config.get<string>('tokens.cardanoRWT')
+    static rsn = config.get<string>('tokens.RSN')
+    static rsnRatioNFT = config.get<string>('tokens.RSNRatioNFT')
 
     // tss configs
     static tssUrl = config.get<string>('tss.url')

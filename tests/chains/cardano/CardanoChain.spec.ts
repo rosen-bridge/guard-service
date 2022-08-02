@@ -41,7 +41,7 @@ describe("CardanoChain", () => {
             const tx = await cardanoChain.generateTransaction(mockedEvent)
 
             // verify tx
-            const isValid = cardanoChain.verifyTransactionWithEvent(tx, mockedEvent)
+            const isValid = await cardanoChain.verifyTransactionWithEvent(tx, mockedEvent)
             expect(isValid).to.be.true
         })
 
@@ -63,7 +63,7 @@ describe("CardanoChain", () => {
             const tx = await cardanoChain.generateTransaction(mockedEvent)
 
             // verify tx
-            const isValid = cardanoChain.verifyTransactionWithEvent(tx, mockedEvent)
+            const isValid = await cardanoChain.verifyTransactionWithEvent(tx, mockedEvent)
             expect(isValid).to.be.true
         })
 
@@ -85,7 +85,7 @@ describe("CardanoChain", () => {
 
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
-            const isValid = cardanoChain.verifyTransactionWithEvent(tx, mockedEvent)
+            const isValid = await cardanoChain.verifyTransactionWithEvent(tx, mockedEvent)
             expect(isValid).to.be.false
         })
 
@@ -103,7 +103,7 @@ describe("CardanoChain", () => {
 
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
-            const isValid = cardanoChain.verifyTransactionWithEvent(tx, mockedEvent)
+            const isValid = await cardanoChain.verifyTransactionWithEvent(tx, mockedEvent)
             expect(isValid).to.be.false
         })
 
@@ -121,7 +121,7 @@ describe("CardanoChain", () => {
 
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
-            const isValid = cardanoChain.verifyTransactionWithEvent(tx, mockedEvent)
+            const isValid = await cardanoChain.verifyTransactionWithEvent(tx, mockedEvent)
             expect(isValid).to.be.false
         })
 
@@ -139,7 +139,7 @@ describe("CardanoChain", () => {
 
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
-            const isValid = cardanoChain.verifyTransactionWithEvent(tx, mockedEvent)
+            const isValid = await cardanoChain.verifyTransactionWithEvent(tx, mockedEvent)
             expect(isValid).to.be.false
         })
 

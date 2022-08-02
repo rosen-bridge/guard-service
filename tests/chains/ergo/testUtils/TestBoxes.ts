@@ -100,6 +100,7 @@ class TestBoxes {
      */
     static mockBankBoxes = (): CoveringErgoBoxes => {
         const targetTokenId = "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e"
+        const rsnTokenId = Configs.rsn
         const randomTokenId: string = TestUtils.generateRandomId()
 
         const box1Tokens: Tokens = new Tokens()
@@ -123,13 +124,15 @@ class TestBoxes {
             0,
             box2Tokens
         )
+        const box3Tokens: Tokens = new Tokens()
+        box3Tokens.add(new Token(TokenId.from_str(rsnTokenId), TokenAmount.from_i64(I64.from_str("10000000000"))))
         const box3: ErgoBox = new ErgoBox(
             this.ergToBoxValue(10),
             this.testBlockchainHeight + 20,
             Utils.addressStringToContract(this.testBankAddress),
             TxId.from_str(TestUtils.generateRandomId()),
             2,
-            new Tokens()
+            box3Tokens
         )
         return {
             covered: true,

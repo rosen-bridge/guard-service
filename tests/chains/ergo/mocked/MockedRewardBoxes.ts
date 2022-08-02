@@ -24,6 +24,15 @@ const mockGetEventValidCommitments = (event: EventTrigger, returnBoxes: ErgoBox[
 }
 
 /**
+ * mocks RewardBoxes getRSNRatioCoef method to return coefs when called for a tokenId
+ * @param tokenId
+ * @param coefs
+ */
+const mockGetRSNRatioCoef = (tokenId: string, coefs: [bigint, bigint]): void => {
+    when(mockedRewardBoxes.getRSNRatioCoef(tokenId)).thenResolve(coefs)
+}
+
+/**
  * resets mocked methods of RewardBoxes
  */
 const resetMockedRewardBoxes = (): void => {
@@ -31,4 +40,9 @@ const resetMockedRewardBoxes = (): void => {
     mockedRewardBoxes = spy(RewardBoxes)
 }
 
-export { mockGetEventBox, mockGetEventValidCommitments, resetMockedRewardBoxes }
+export {
+    mockGetEventBox,
+    mockGetEventValidCommitments,
+    mockGetRSNRatioCoef,
+    resetMockedRewardBoxes
+}

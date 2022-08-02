@@ -12,6 +12,9 @@ import { AssetMap } from "../models/Interfaces";
 import Utils from "./Utils";
 import ErgoConfigs from "./ErgoConfigs";
 import Contracts from "../../../contracts/Contracts";
+import ExplorerApi from "../network/ExplorerApi";
+import Configs from "../../../helpers/Configs";
+import { JsonBI } from "../../../network/NetworkModels";
 
 class RewardBoxes {
 
@@ -37,6 +40,28 @@ class RewardBoxes {
      */
     static getEventValidCommitments = (event: EventTrigger): ErgoBox[] => {
         return [] // TODO: implement this
+    }
+
+    /**
+     * @param tokenId reward tokenId
+     * @return RSN ratio for the corresponding tokenId
+     */
+    static getRSNRatioCoef = async (tokenId: string): Promise<[bigint, bigint]> => {
+        const boxes = await ExplorerApi.getBoxesByTokenId(Configs.rsnRatioNFT)
+        if (boxes.total !== 1) throw Error(`impossible case, found ${boxes.total} boxes containing rsnRationNFT [${Configs.rsnRatioNFT}]`)
+        const box = ErgoBox.from_json(JsonBI.stringify(boxes.items[0]))
+        const boxId = box.box_id().to_str()
+
+        const tokenIds = box.register_value(4)?.to_coll_coll_byte()
+        const ratios = box.register_value(5)?.to_i64_str_array()
+        const decimalCoef = box.register_value(6)?.to_i64()
+
+        if (tokenIds === undefined) throw Error(`failed to fetch tokenIds from box [${boxId}]`)
+        if (ratios === undefined || decimalCoef === undefined) throw Error(`failed to fetch ratios or decimal coefficient from box [${boxId}]`)
+
+        const tokenIndex = tokenIds?.map(idBytes => Utils.Uint8ArrayToHexString(idBytes))?.indexOf(tokenId)
+        if (tokenIndex === undefined) throw Error(`tokenId [${tokenId}] not found in box [${boxId}]`)
+        return [BigInt(ratios[tokenIndex]), BigInt(decimalCoef.to_str())]
     }
 
     /**
@@ -66,14 +91,18 @@ class RewardBoxes {
      * @param rwtTokenId RWT token id of the source chain
      * @param watcherShare reward erg amount
      * @param wid watcher id
+     * @param rsnTokenId RSN token id
+     * @param rsnTokenAmount RSN token amount
      */
-    static createErgRewardBox = (height: number, ergValue: bigint, rwtTokenId: TokenId, watcherShare: bigint, wid: Uint8Array): ErgoBoxCandidate => {
+    static createErgRewardBox = (height: number, ergValue: bigint, rwtTokenId: TokenId, watcherShare: bigint
+                                 , wid: Uint8Array, rsnTokenId: TokenId, rsnTokenAmount: bigint): ErgoBoxCandidate => {
         const watcherBox = new ErgoBoxCandidateBuilder(
             Utils.boxValueFromBigint(watcherShare + ergValue),
             Contracts.watcherPermitContract,
             height
         )
         watcherBox.add_token(rwtTokenId, TokenAmount.from_i64(Utils.i64FromBigint(1n)))
+        if (rsnTokenAmount > 0n) watcherBox.add_token(rsnTokenId, TokenAmount.from_i64(Utils.i64FromBigint(rsnTokenAmount)))
         watcherBox.set_register_value(4, Constant.from_coll_coll_byte([wid]))
         return watcherBox.build()
     }
@@ -86,15 +115,19 @@ class RewardBoxes {
      * @param paymentTokenId reward token id
      * @param paymentTokenAmount reward token amount
      * @param wid watcher id
+     * @param rsnTokenId RSN token id
+     * @param rsnTokenAmount RSN token amount
      */
-    static createTokenRewardBox = (height: number, ergValue: bigint, rwtTokenId: TokenId, paymentTokenId: TokenId, paymentTokenAmount: bigint, wid: Uint8Array): ErgoBoxCandidate => {
+    static createTokenRewardBox = (height: number, ergValue: bigint, rwtTokenId: TokenId, paymentTokenId: TokenId,
+                                   paymentTokenAmount: bigint, wid: Uint8Array, rsnTokenId: TokenId, rsnTokenAmount: bigint): ErgoBoxCandidate => {
         const watcherBox = new ErgoBoxCandidateBuilder(
             Utils.boxValueFromBigint(ergValue),
             Contracts.watcherPermitContract,
             height
         )
         watcherBox.add_token(rwtTokenId, TokenAmount.from_i64(Utils.i64FromBigint(1n)))
-        if (paymentTokenAmount > 0) watcherBox.add_token(paymentTokenId, TokenAmount.from_i64(Utils.i64FromBigint(paymentTokenAmount)))
+        if (paymentTokenAmount > 0n) watcherBox.add_token(paymentTokenId, TokenAmount.from_i64(Utils.i64FromBigint(paymentTokenAmount)))
+        if (rsnTokenAmount > 0n) watcherBox.add_token(rsnTokenId, TokenAmount.from_i64(Utils.i64FromBigint(rsnTokenAmount)))
         watcherBox.set_register_value(4, Constant.from_coll_coll_byte([wid]))
         return watcherBox.build()
     }

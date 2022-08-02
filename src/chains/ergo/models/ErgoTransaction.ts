@@ -7,6 +7,7 @@ import ChainsConstants from "../../ChainsConstants";
 class ErgoTransaction extends PaymentTransaction {
 
     inputBoxes: Uint8Array[]
+    // TODO: add data inputs
 
     constructor(txId: string, eventId: string, txBytes: Uint8Array, inputBoxes: Uint8Array[], txType: string) {
         super(ChainsConstants.ergo, txId, eventId, txBytes, txType);

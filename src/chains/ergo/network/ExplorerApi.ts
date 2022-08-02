@@ -23,6 +23,14 @@ class ExplorerApi {
     }
 
     /**
+     * gets boxes containing tokenId
+     * @param tokenId the address ergoTree
+     */
+    static getBoxesByTokenId = async (tokenId: string): Promise<Boxes> => {
+        return this.explorerApi.get(`/v1/boxes/unspent/byTokenId/${tokenId}`).then(res => res.data);
+    }
+
+    /**
      * gets enough boxes of an ergoTree to satisfy needed amount of erg and tokens
      * @param tree the address ergoTree
      * @param ergAmount needed amount of erg
