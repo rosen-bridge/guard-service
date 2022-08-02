@@ -28,7 +28,7 @@ import ChainsConstants from "../ChainsConstants";
 import CardanoConfigs from "../cardano/helpers/CardanoConfigs";
 import * as pUtil from "../../helpers/Utils";
 
-class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
+class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction>{
 
     bankAddress = Address.from_base58(ErgoConfigs.bankAddress)
     bankErgoTree = Utils.addressToErgoTreeString(this.bankAddress)
@@ -257,8 +257,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
                 !verifyErgPayment() ||
                 !verifyErgDistribution()
             ) return false
-        }
-        else {
+        } else {
             if (
                 !verifyTokenPayment() ||
                 !verifyTokenDistribution()
@@ -559,8 +558,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         const tx = this.deserialize(paymentTx.txBytes)
         try {
             // TODO: implement this (Integration with Multisig service).
-        }
-        catch (e) {
+        } catch (e) {
             console.log(`An error occurred while requesting Multisig service to sign Ergo tx: ${e.message}`)
         }
     }
@@ -571,20 +569,19 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
      */
     verifyEventWithPayment = async (event: EventTrigger): Promise<boolean> => {
         const paymentTx = await ExplorerApi.getConfirmedTx(event.sourceTxId)
-        if(paymentTx) {
+        if (paymentTx) {
             console.log("here")
             const payment = paymentTx.outputs.filter((box) =>
-                ErgoConfigs.lockAddress == box.address
-            ).filter(box => Utils.isRosenData(box))[0]
+                ErgoConfigs.lockAddress === box.address
+            ).map(box => Utils.getRosenData(box)).filter(box => box !== undefined)[0]
             if (payment) {
-                const r4 = Utils.decodeCollColl(payment.additionalRegisters['R4'].serializedValue)
-                const toChain = Buffer.from(r4[0]).toString()
-                const networkFee = Buffer.from(r4[2]).toString()
-                const bridgeFee = Buffer.from(r4[3]).toString()
-                const toAddress = Buffer.from(r4[1]).toString()
-                const amount = payment.assets[0].amount.toString()
-                const tokenId = payment.assets[0].tokenId
-                const blockId = payment.blockId
+                const toChain = payment.toChain;
+                const networkFee = payment.networkFee;
+                const bridgeFee = payment.bridgeFee;
+                const toAddress = payment.toAddress;
+                const amount = payment.amount;
+                const tokenId = payment.tokenId;
+                const blockId = payment.blockId;
                 const token = CardanoConfigs.tokenMap.search(
                     'ergo',
                     {

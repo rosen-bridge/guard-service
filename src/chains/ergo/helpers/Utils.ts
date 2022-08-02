@@ -1,7 +1,10 @@
 import { Address, BoxValue, Contract, I64, Constant } from "ergo-lib-wasm-nodejs";
 import { AssetMap, ExplorerOutputBox } from "../models/Interfaces";
+import { Buffer } from "buffer";
+import CardanoConfigs from "../../cardano/helpers/CardanoConfigs";
+import * as pUtil from "../../../helpers/Utils";
 
-class Utils {
+class Utils{
 
     /**
      * converts ergo address object to string representation of it's ergoTree
@@ -139,10 +142,52 @@ class Utils {
      * returns true if the box format is like rosen bridge observations
      * @param box
      */
-    static isRosenData = (box: ExplorerOutputBox) : boolean => {
+    static isRosenData = (box: ExplorerOutputBox): boolean => {
         const r4 = this.decodeCollColl(box.additionalRegisters['R4'].serializedValue)
         return box.assets.length > 0 && r4.length >= 4
     }
+
+    /**
+     * return undefined if the box format is like rosen bridge observation else
+     *  returns rosen data format {
+     *  toChain:string,
+     *  toAddress:string,
+     *  networkFee:string,
+     *  bridgeFee:string,
+     *  amount:string,
+     *  tokenId:string,
+     *  blockId:string,
+     *  }
+     * @param box
+     */
+    static getRosenData = (box: ExplorerOutputBox) => {
+        try {
+            const R4 = Utils.decodeCollColl(box.additionalRegisters['R4'].serializedValue);
+            if (box.assets.length > 0 && R4.length >= 4) {
+                const toChain: string = Buffer.from(R4[0]).toString();
+                const toAddress: string = Buffer.from(R4[1]).toString();
+                const networkFee: string = Buffer.from(R4[2]).toString();
+                const bridgeFee: string = Buffer.from(R4[3]).toString();
+                const amount: string = box.assets[0].amount.toString();
+                const tokenId: string = box.assets[0].tokenId;
+                const blockId: string = box.blockId;
+                return {
+                    toChain: toChain,
+                    toAddress: toAddress,
+                    networkFee: networkFee,
+                    bridgeFee: bridgeFee,
+                    amount: amount,
+                    tokenId: tokenId,
+                    blockId: blockId
+                };
+            } else {
+                return undefined;
+            }
+        } catch (e) {
+            return undefined;
+        }
+    }
+
 
 }
 
