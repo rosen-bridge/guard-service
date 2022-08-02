@@ -55,7 +55,8 @@
         "address": "/ip4/10.10.9.6/tcp/8000/ws/p2p/Qma3GsJmB47xYuyahPZPSadh1avvxfyYQwk8R3UnFrQ6aP",
         "bootstrapInterval": 60e3,
         "pubsubInterval": 1000,
-        "apiCallbackTimeout": 8000
+        "apiCallbackTimeout": 8000,
+        "peerIdFilePath": "./peer-dialer.json"
     },
     "multiSigTimeout": null,
     "guard": {

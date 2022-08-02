@@ -1,7 +1,7 @@
 import { reset, spy, when } from "ts-mockito";
 import Utils from "../../src/helpers/Utils";
 
-let mockedUtils = spy(Utils)
+const mockedUtils = spy(Utils)
 
 /**
  * mocks Utils guardTurn method to return result when called

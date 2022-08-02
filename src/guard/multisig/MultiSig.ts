@@ -7,13 +7,12 @@ import {
     Signer, SignPayload,
     TxQueued
 } from "./Interfaces";
-import { sign, verify } from "./Enc";
 import * as crypto from "crypto";
 import Dialer from "../../communication/Dialer";
 import Configs from "../../helpers/Configs";
 import { Semaphore } from 'await-semaphore';
 import { add_hints, convertToHintBag, extract_hints } from "./utils";
-
+import Encryption from '../../helpers/Encryption';
 const dialer = await Dialer.getInstance();
 
 class MultiSigHandler{
@@ -53,7 +52,7 @@ class MultiSigHandler{
         if (this.index === undefined) {
             const ergoTree = wasm.SecretKey.dlog_from_bytes(this.secret).get_address().to_ergo_tree().to_base16_bytes();
             const publicKey = ergoTree.substring(ergoTree.length - 66);
-            console.log(this.peers.map((peer, index) => [peer.pub, index]).filter(row => row[0] === publicKey))
+            // console.log(this.peers.map((peer, index) => [peer.pub, index]).filter(row => row[0] === publicKey))
             this.index = this.peers.map((peer, index) => [peer.pub, index]).filter(row => row[0] === publicKey)[0][1] as number
         }
         if (this.index !== undefined)
@@ -223,7 +222,7 @@ class MultiSigHandler{
         payload.index = this.getIndex();
         payload.id = this.getPeerId();
         const payloadStr = JSON.stringify(message.payload)
-        message.sign = sign(payloadStr, Buffer.from(this.secret)).toString("base64");
+        message.sign = Buffer.from(Encryption.sign(payloadStr, Buffer.from(this.secret))).toString("base64");
         if (receivers && receivers.length) {
             receivers.map(receiver => dialer.sendMessage(MultiSigHandler.CHANNEL, JSON.stringify(message), receiver).then(() => null))
         } else {
@@ -343,7 +342,7 @@ class MultiSigHandler{
             const signature = Buffer.from(message.sign, "base64");
             // verify signature
             const payloadStr = JSON.stringify(message.payload);
-            if (verify(payloadStr, signature, publicKey)) {
+            if (Encryption.verify(payloadStr, signature, publicKey)) {
                 switch (message.type) {
                     case "register":
                         this.handleRegister(sender, message.payload as RegisterPayload)

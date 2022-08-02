@@ -12,7 +12,15 @@ import { Multiaddr } from '@multiformats/multiaddr'
 import CommunicationConfig from "./CommunicationConfig";
 import { JsonBI } from "../network/NetworkModels"
 import { Connection, Stream } from "@libp2p/interfaces/src/connection";
-import { ReceiveDataCommunication, SendDataCommunication, SubscribeChannel } from "./Interfaces";
+import {
+    ReceiveDataCommunication,
+    SendDataCommunication,
+    SubscribeChannel,
+    SubscribeChannelFunction, SubscribeChannels
+} from "./Interfaces";
+import { PeerId } from "@libp2p/interface-peer-id";
+import { createEd25519PeerId, createFromJSON } from "@libp2p/peer-id-factory";
+import fs from "fs";
 
 
 // TODO: Need to write test for This package
@@ -21,7 +29,7 @@ class Dialer {
 
     private _NODE: Libp2p | undefined;
     private _RELAY_CONN: Connection | undefined;
-    private _SUBSCRIBED_CHANNELS: any = {};
+    private _SUBSCRIBED_CHANNELS: SubscribeChannels = {};
     private _PENDING_MESSAGE: SendDataCommunication[] = [];
 
     private constructor() {
@@ -57,20 +65,69 @@ class Dialer {
     }
 
     /**
+     * return PeerID or create PeerID if it doesn't exist
+     * @return PeerID
+     */
+    static getOrCreatePeerID = async (): Promise<{ peerId: PeerId; exist: boolean }> => {
+        if (!fs.existsSync(CommunicationConfig.peerIdFilePath)){
+            return {
+                peerId: await createEd25519PeerId(),
+                exist: false
+            } as const
+        }
+        else {
+            const jsonData: string = fs.readFileSync(CommunicationConfig.peerIdFilePath, 'utf8')
+            const peerIdDialerJson = await JSON.parse(jsonData)
+            return {
+                peerId: await createFromJSON(peerIdDialerJson),
+                exist: true
+            }
+        }
+    }
+
+    /**
+     * If it didn't exist PeerID file, this function try to create a file and save peerId into that
+     * @param peerObj { peerId: PeerId; exist: boolean }
+     */
+    static savePeerIdIfNeed = async (peerObj: { peerId: PeerId; exist: boolean }): Promise<void> => {
+        if (!peerObj.exist){
+            const peerId = peerObj.peerId
+            let privateKey: Uint8Array
+            let publicKey: Uint8Array
+            if (peerId.privateKey && peerId.publicKey) {
+                privateKey = peerId.privateKey
+                publicKey = peerId.publicKey
+            }
+            else throw Error("PrivateKey for p2p is required")
+
+            const peerIdDialerJson =  {
+                "id": peerId.toString(),
+                "privKey": uint8ArrayToString(privateKey, "base64pad"),
+                "pubKey": uint8ArrayToString(publicKey, "base64pad"),
+            }
+            const jsonData = JSON.stringify(peerIdDialerJson)
+            fs.writeFile(CommunicationConfig.peerIdFilePath, jsonData, 'utf8', function(err) {
+                if (err) throw err;
+                console.log('PeerId created!');
+            })
+        }
+    }
+
+    /**
      * establish connection to relay
      * @param channel: string desire channel for subscription
      * @param callback: a callback function for subscribed channel
      * @param url: string for apiCallbackFunction
      */
-    subscribeChannel = (channel: string, callback: SubscribeChannel, url?: string): void => {
-        const callbackObj: any = {
+    subscribeChannel = (channel: string, callback: SubscribeChannelFunction, url?: string): void => {
+        const callbackObj: SubscribeChannel = {
             func: callback
         }
         if (url) callbackObj.url = url
 
         if (this._SUBSCRIBED_CHANNELS[channel]){
             if (this._SUBSCRIBED_CHANNELS[channel].find(
-                (sub: { func: SubscribeChannel, url: string | undefined }) =>
+                (sub: SubscribeChannel) =>
                     sub.func.name === callback.name && sub.url === url
             )) {
                 console.log("a redundant subscribed channel detected !")
@@ -103,8 +160,10 @@ class Dialer {
      * @return a Libp2p object after start node
      */
     private startDialer = async (): Promise<void> => {
-
+        const peerId = await Dialer.getOrCreatePeerID()
         const node = await createLibp2p({
+            // get or create new PeerID if it doesn't exist
+            peerId: peerId.peerId,
             // Type of communication
             transports: [
                 new WebSockets()
@@ -158,6 +217,8 @@ class Dialer {
 
         this._NODE = await node
         await this.createRelayConnection(node)
+        // this should call after createRelayConnection duo to peerId should save after create relay connection
+        await Dialer.savePeerIdIfNeed(peerId)
 
         const resendMessage = async (value: SendDataCommunication): Promise<void> => {
             await value.receiver ?
