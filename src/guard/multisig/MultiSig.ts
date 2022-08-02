@@ -17,15 +17,15 @@ import { add_hints, convertToHintBag, extract_hints } from "./utils";
 const dialer = await Dialer.getInstance();
 
 class MultiSigHandler{
-    private static CHANNEL = "multi-sig"
-    private readonly transactions: Map<string, TxQueued>
-    private readonly peers: Array<Signer>;
-    private readonly secret: Uint8Array;
-    private nonce: string;
-    private prover?: wasm.Wallet;
-    private index?: number;
-    private peerId?: string;
-    private semaphore = new Semaphore(1);
+    public static CHANNEL = "multi-sig"
+    public readonly transactions: Map<string, TxQueued>
+    public readonly peers: Array<Signer>;
+    public readonly secret: Uint8Array;
+    public nonce: string;
+    public prover?: wasm.Wallet;
+    public index?: number;
+    public peerId?: string;
+    public semaphore = new Semaphore(1);
 
     constructor(publicKeys: Array<string>, secretHex?: string) {
         this.transactions = new Map<string, TxQueued>();
@@ -35,7 +35,7 @@ class MultiSigHandler{
         }));
         dialer.subscribeChannel(MultiSigHandler.CHANNEL, this.handleMessage);
         this.secret = secretHex ? Uint8Array.from(Buffer.from(secretHex, "hex")) : Configs.secret
-        this.sendRegister().then(() => null);
+        this.sendRegister().then(() => {});
     }
 
     public sendRegister = async (): Promise<void> => {
@@ -85,7 +85,7 @@ class MultiSigHandler{
         return peerId;
     }
 
-    private cleanup = () => {
+    cleanup = () => {
         this.semaphore.acquire().then(release => {
             const toRemoveKeys: Array<string> = []
             for (const [key, transaction] of this.transactions.entries()) {
@@ -332,14 +332,12 @@ class MultiSigHandler{
         }
     }
 
-    handleMessage = (messageStr: string, channel: string, sender: string) => {
+    handleMessage =  (messageStr: string, channel: string, sender: string) => {
         const message = JSON.parse(messageStr) as CommunicationMessage;
         if (message.payload.index !== undefined && message.payload.index >= 0 && message.payload.index < this.peers.length && message.payload.id && message.sign) {
             if (sender !== message.payload.id) {
                 return
             }
-            console.log("*****************")
-            console.log(messageStr)
             const index = message.payload.index;
             const publicKey = Buffer.from(this.peers[index].pub, "hex");
             const signature = Buffer.from(message.sign, "base64");
