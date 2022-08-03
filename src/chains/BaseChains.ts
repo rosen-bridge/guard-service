@@ -37,4 +37,10 @@ export default interface BaseChain<TransactionType, SerializedType extends Payme
      */
     requestToSignTransaction: (tx: PaymentTransaction) => Promise<void>
 
+    /**
+     * sends a transaction to target chain
+     * @param tx the transaction
+     */
+    submitTransaction: (tx: PaymentTransaction) => Promise<void>
+
 }

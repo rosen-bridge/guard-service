@@ -1,12 +1,27 @@
 import { PaymentTransaction } from "../../../models/Models";
+import ErgoUtils from "../helpers/Utils";
+import { ErgoTransactionJsonModel } from "./Interfaces";
+import Utils from "../helpers/Utils";
+import ChainsConstants from "../../ChainsConstants";
 
 class ErgoTransaction extends PaymentTransaction {
 
     inputBoxes: Uint8Array[]
 
-    constructor(txId: string, eventId: string, txBytes: Uint8Array, inputBoxes: Uint8Array[]) {
-        super("ergo", txId, eventId, txBytes);
+    constructor(txId: string, eventId: string, txBytes: Uint8Array, inputBoxes: Uint8Array[], txType: string) {
+        super(ChainsConstants.ergo, txId, eventId, txBytes, txType);
         this.inputBoxes = inputBoxes
+    }
+
+    static fromJson = (jsonString: string): ErgoTransaction => {
+        const obj = JSON.parse(jsonString) as ErgoTransactionJsonModel
+        return new ErgoTransaction(
+            obj.txId,
+            obj.eventId,
+            ErgoUtils.hexStringToUint8Array(obj.txBytes),
+            obj.inputBoxes.map(box => Utils.hexStringToUint8Array(box)),
+            obj.txType
+        )
     }
 
     /**
@@ -25,6 +40,7 @@ class ErgoTransaction extends PaymentTransaction {
             "txId": this.txId,
             "eventId": this.eventId,
             "txBytes": this.getTxHexString(),
+            "txType": this.txType,
             "inputBoxes": this.getInputBoxesString()
         })
     }

@@ -1,30 +1,18 @@
-import { DataSource, Repository } from "typeorm";
+import { DataSource, Not, Repository } from "typeorm";
 import { EventTriggerEntity } from "../../entities/scanner/EventTriggerEntity";
 import { scannerOrmDataSource } from "../../../../config/scannerOrmDataSource";
-import { Semaphore } from "await-semaphore";
+import { TransactionEntity } from "../../entities/scanner/TransactionEntity";
+import { PaymentTransaction, TransactionStatus } from "../../../models/Models";
 
 class ScannerDataBase {
     dataSource: DataSource;
     EventRepository: Repository<EventTriggerEntity>;
-    private semaphore = new Semaphore(1)
+    TransactionRepository: Repository<TransactionEntity>;
 
     constructor(dataSource: DataSource) {
         this.dataSource = dataSource;
         this.EventRepository = this.dataSource.getRepository(EventTriggerEntity);
-    }
-
-    /**
-     * updates the status of an event with its transaction id
-     * @param txId the transaction id
-     */
-    setEventTxAsApproved = async (txId: string): Promise<void> => {
-        await this.EventRepository.createQueryBuilder()
-            .update()
-            .set({
-                status: "approved"
-            })
-            .where("txId = :id", {id: txId})
-            .execute()
+        this.TransactionRepository = this.dataSource.getRepository(TransactionEntity);
     }
 
     /**
@@ -65,69 +53,171 @@ class ScannerDataBase {
     }
 
     /**
-     * updates the txId and txJson of an event
-     * @param eventId the event trigger id
-     * @param txId the transaction id
-     * @param txJson json serialized of the transaction
-     * @param status status of the process
+     * @return incomplete the transaction
      */
-    setEventTx = async (eventId: string, txId: string, txJson: string, status = "agreed"): Promise<void> => {
-        await this.semaphore.acquire().then(async (release) => {
-            try {
-                const event = await this.getEventById(eventId)
-                if (event === null) {
-                    release()
-                    return
-                }
-                else if (event.txId === null || event.txId <= txId) {
-                    await this.EventRepository.createQueryBuilder()
-                        .update()
-                        .set({
-                            status: status,
-                            txId: txId,
-                            paymentTxJson: txJson
-                        })
-                        .where("sourceTxId = :id", {id: eventId})
-                        .execute()
-                }
-                release()
-            }
-            catch (e) {
-                console.log(`Unexpected Error occurred while setting tx [${txId}] for event [${eventId}] as approved: ${e}`)
-                release()
+    getActiveTransactions = async (): Promise<TransactionEntity[]> => {
+        return await this.TransactionRepository.find({
+            relations: ["event"],
+            where: {
+                "status": Not(TransactionStatus.completed)
             }
         })
     }
 
     /**
-     * removes the transaction of an event with its transaction id
+     * updates the status of a tx with its id
      * @param txId the transaction id
+     * @param status tx status
      */
-    removeEventTx = async (txId: string): Promise<void> => {
-        await this.EventRepository.createQueryBuilder()
+    setTxStatus = async (txId: string, status: string): Promise<void> => {
+        await this.TransactionRepository.createQueryBuilder()
             .update()
             .set({
-                status: "",
-                txId: "",
-                paymentTxJson: ""
+                status: status
             })
             .where("txId = :id", {id: txId})
             .execute()
     }
 
     /**
-     * removes all transactions with 'agreed' status
+     * updates the status of a tx with its id
+     * @param txId the transaction id
+     * @param currentHeight current height of the blockchain
      */
-    removeAgreedTx = async (): Promise<void> => {
+    updateTxLastCheck = async (txId: string, currentHeight: number): Promise<void> => {
+        await this.TransactionRepository.createQueryBuilder()
+            .update()
+            .set({
+                lastCheck: currentHeight
+            })
+            .where("txId = :id", {id: txId})
+            .execute()
+    }
+
+    /**
+     * updates the status of an event and clear its tx info
+     * @param eventId the event trigger id
+     * @param status status of the process
+     */
+    resetEventTx = async (eventId: string, status: string): Promise<void> => {
         await this.EventRepository.createQueryBuilder()
             .update()
             .set({
-                status: "",
-                txId: "",
-                paymentTxJson: ""
+                status: status
             })
-            .where("status = :status", {status: "agreed"})
+            .where("sourceTxId = :id", {id: eventId})
             .execute()
+    }
+
+    /**
+     * @param txId the transaction id
+     * @return the transaction
+     */
+    getTxById = async (txId: string): Promise<TransactionEntity> => {
+        return await this.TransactionRepository.findOneOrFail({
+            relations: ["event"],
+            where: {
+                "txId": txId
+            }
+        })
+    }
+
+    /**
+     * updates the tx and set status as signed
+     * @param txId the transaction id
+     * @param txJson tx json
+     */
+    updateWithSignedTx = async (txId: string, txJson: string): Promise<void> => {
+        await this.TransactionRepository.createQueryBuilder()
+            .update()
+            .set({
+                txJson: txJson,
+                status: TransactionStatus.signed
+            })
+            .where("txId = :id", {id: txId})
+            .execute()
+    }
+
+    /**
+     * inserts a new approved tx into Transaction table (if already another approved tx exists, keeps the one with loser txId)
+     * @param newTx the transaction
+     */
+    insertTx = async (newTx: PaymentTransaction): Promise<void> => {
+        const event = await this.getEventById(newTx.eventId)
+        if (event === null) throw Error(`event [${newTx.eventId}] not found`)
+
+        const txs = (await this.getEventTxsByType(event.sourceTxId, newTx.txType)).filter(tx => tx.status !== TransactionStatus.invalid)
+        if (txs.length > 1)
+            throw Error(`impossible case, event [${newTx.eventId}] has already more than 1 (${txs.length}) active ${newTx.txType} tx`)
+        else if (txs.length === 1) {
+            const tx = txs[0]
+            if (tx.status === TransactionStatus.approved) {
+                if (newTx.txId < tx.txId) {
+                    console.log(`replacing tx [${tx.txId}] with new transaction [${newTx.txId}] due to lower txId`)
+                    await this.replaceTx(tx.txId, newTx)
+                }
+                else
+                    console.log(`ignoring tx [${newTx.txId}] due to higher txId, comparing to [${tx.txId}]`)
+            }
+            else
+                console.warn(`received approval for tx [${newTx.txId}] where its event [${event.sourceTxId}] has already a completed transaction [${tx.txId}]`)
+        }
+        else
+            await this.insertNewTx(newTx, event)
+    }
+
+    /**
+     * returns all transaction for corresponding event
+     * @param eventId the event trigger id
+     * @param type the transaction type
+     */
+    getEventTxsByType = async (eventId: string, type: string): Promise<TransactionEntity[]> => {
+        const event = await this.getEventById(eventId)
+        if (event === null) throw Error(`event [${eventId}] not found`)
+        return await this.TransactionRepository
+            .find({
+                relations: ["event"],
+                where: {
+                    "event": event,
+                    "type": type
+                }
+            })
+    }
+
+    /**
+     * replaces a transaction with a new one
+     * @param previousTxId the previous transaction id
+     * @param tx the new transaction
+     */
+    replaceTx = async (previousTxId: string, tx: PaymentTransaction): Promise<void> => {
+        await this.TransactionRepository.createQueryBuilder()
+            .update()
+            .set({
+                txId: tx.txId,
+                txJson: tx.toJson(),
+                type: tx.txType,
+                chain: tx.network,
+                status: TransactionStatus.approved,
+                lastCheck: 0
+            })
+            .where("txId = :id", {id: previousTxId})
+            .execute()
+    }
+
+    /**
+     * inserts a tx record into transactions table
+     */
+    private insertNewTx = async (paymentTx: PaymentTransaction, event: EventTriggerEntity): Promise<void> => {
+        await this.TransactionRepository
+            .insert({
+                txId: paymentTx.txId,
+                txJson: paymentTx.toJson(),
+                type: paymentTx.txType,
+                chain: paymentTx.network,
+                status: TransactionStatus.approved,
+                lastCheck: 0,
+                event: event!
+            })
     }
 
 }

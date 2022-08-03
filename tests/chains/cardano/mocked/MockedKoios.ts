@@ -19,7 +19,7 @@ const mockGetAddressBoxes = (address: string, returnBoxes: Utxo[]): void => {
  * @param txId
  * @param confirmation
  */
-const mockKoiosGetTxConfirmationCalledOnce = (txId: string, confirmation: number): void => {
+const mockKoiosGetTxConfirmation = (txId: string, confirmation: number | null): void => {
     when(mockedKoios.getTxConfirmation(txId)).thenResolve(confirmation)
 }
 
@@ -41,7 +41,7 @@ const mockKoiosGetTxMetadata = (txId: string, txMetaData: TxMetaData) => {
 
 export {
     mockGetAddressBoxes,
-    mockKoiosGetTxConfirmationCalledOnce,
     mockKoiosGetTxUtxos,
-    mockKoiosGetTxMetadata
+    mockKoiosGetTxMetadata,
+    mockKoiosGetTxConfirmation
 }

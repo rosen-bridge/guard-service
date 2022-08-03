@@ -52,11 +52,25 @@ class Utils {
     }
 
     static targetTokenIdByChain = (token: { [key: string]: { [key: string]: string; }}, targetChain: string): string => {
-        if(targetChain == ChainsConstants.ergo) return token[chainsConstants.ergo]['tokenID']
-        else if(targetChain == ChainsConstants.cardano) return token[chainsConstants.cardano]['fingerprint']
+        if (targetChain == ChainsConstants.ergo) return token[chainsConstants.ergo]['tokenID']
+        else if (targetChain == ChainsConstants.cardano) return token[chainsConstants.cardano]['fingerprint']
         else {
-            throw new Error("target chain "+ targetChain +" is not implemented yet")
+            throw new Error("target chain " + targetChain + " is not implemented yet")
         }
+    }
+
+    /**
+     * converts hex string to bytearray
+     */
+    static hexStringToUint8Array = (str: string): Uint8Array => {
+        return Buffer.from(str, "hex")
+    }
+
+    /**
+     * converts bytearray to hex string
+     */
+    static Uint8ArrayToHexString = (bytes: Uint8Array): string => {
+        return Buffer.from(bytes).toString("hex")
     }
 
 }

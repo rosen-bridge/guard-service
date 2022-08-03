@@ -1,4 +1,4 @@
-import { anything, deepEqual, spy, verify, when } from "ts-mockito";
+import { anything, deepEqual, reset, resetCalls, spy, verify, when } from "ts-mockito";
 import { EventTrigger, PaymentTransaction } from "../../../src/models/Models";
 import CardanoChain from "../../../src/chains/cardano/CardanoChain";
 import CardanoTransaction from "../../../src/chains/cardano/models/CardanoTransaction";
@@ -6,9 +6,12 @@ import CardanoTransaction from "../../../src/chains/cardano/models/CardanoTransa
 class MockedCardanoChain {
 
     mockedObject: CardanoChain
+    realCardanoChain = new CardanoChain()
 
     constructor(cardanoChain: CardanoChain) {
         this.mockedObject = spy(cardanoChain)
+        when(this.mockedObject.deserialize(anything())).thenCall(this.realCardanoChain.deserialize)
+        when(this.mockedObject.serialize(anything())).thenCall(this.realCardanoChain.serialize)
     }
 
     /**
@@ -44,6 +47,29 @@ class MockedCardanoChain {
      */
     verifyRequestToSignTransactionDidntCalled = (tx: PaymentTransaction): void => {
         verify(this.mockedObject.requestToSignTransaction(deepEqual(tx))).never()
+    }
+
+    /**
+     * mocks CardanoChain submitTransaction method when called for a tx
+     * @param tx
+     */
+    mockSubmitTransaction = (tx: PaymentTransaction): void => {
+        when(this.mockedObject.submitTransaction(anything())).thenResolve()
+    }
+
+    /**
+     * verifies CardanoChain submitTransaction method called once for tx
+     * @param tx
+     */
+    verifySubmitTransactionCalledOnce = (tx: PaymentTransaction): void => {
+        verify(this.mockedObject.submitTransaction(anything())).once()
+    }
+
+    /**
+     * reset call counts for mocked methods
+     */
+    resetMockCalls = (): void => {
+        resetCalls(this.mockedObject)
     }
 
 }

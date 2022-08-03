@@ -103,6 +103,7 @@ class EventProcessor {
     static isEventConfirmedEnough = async (event: EventTrigger): Promise<boolean> => {
         if (event.fromChain === ChainsConstants.cardano) {
             const confirmation = await KoiosApi.getTxConfirmation(event.sourceTxId)
+            if (confirmation === null) return false
             return confirmation >= CardanoConfigs.requiredConfirmation
         }
         else if (event.fromChain === ChainsConstants.ergo) {
@@ -110,23 +111,6 @@ class EventProcessor {
             return confirmation >= ErgoConfigs.requiredConfirmation
         }
         else throw new Error(`chain [${event.fromChain}] not implemented.`)
-    }
-
-    /**
-     * sends request to sign tx for all events with approved tx
-     */
-    static signApprovedEvents = async (): Promise<void> => {
-        const events = await scannerAction.getEventsByStatus("approved")
-
-        for (const event of events) {
-            try {
-                const paymentTx = PaymentTransaction.fromJson(event.paymentTxJson)
-                await this.getDestinationChainObject(EventTrigger.fromEntity(event)).requestToSignTransaction(paymentTx)
-            }
-            catch (e) {
-                console.log(`An error occurred while sending event [${event.sourceTxId}] tx to sign: ${e}`)
-            }
-        }
     }
 
 }

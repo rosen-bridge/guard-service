@@ -12,7 +12,7 @@ import {
     TokenId,
     TxBuilder, UnsignedTransaction
 } from "ergo-lib-wasm-nodejs";
-import { EventTrigger, PaymentTransaction } from "../../models/Models";
+import { EventTrigger, PaymentTransaction, TransactionStatus, TransactionTypes } from "../../models/Models";
 import BaseChain from "../BaseChains";
 import ErgoConfigs from "./helpers/ErgoConfigs";
 import ExplorerApi from "./network/ExplorerApi";
@@ -27,6 +27,7 @@ import { Buffer } from "buffer";
 import ChainsConstants from "../ChainsConstants";
 import CardanoConfigs from "../cardano/helpers/CardanoConfigs";
 import * as pUtil from "../../helpers/Utils";
+import { scannerAction } from "../../db/models/scanner/ScannerModel";
 
 class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction>{
 
@@ -67,7 +68,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction>{
         const txBytes = this.serialize(reducedTx)
         const txId = reducedTx.unsigned_tx().id().to_str()
         const eventId = event.sourceTxId
-        const tx = new ErgoTransaction(txId, eventId, txBytes, inBoxes)
+        const tx = new ErgoTransaction(txId, eventId, txBytes, inBoxes, TransactionTypes.payment)
 
         console.log(`Payment transaction for event [${tx.eventId}] generated. TxId: ${tx.txId}`)
         return tx
@@ -605,6 +606,22 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction>{
             }
         }
         return false
+    }
+
+    /**
+     * submit an ergo transaction to network
+     * @param paymentTx the payment transaction
+     */
+    submitTransaction = async (paymentTx: PaymentTransaction): Promise<void> => {
+        const tx = this.deserialize(paymentTx.txBytes)
+        try {
+            await scannerAction.setTxStatus(paymentTx.txId, TransactionStatus.sent)
+            const response = await NodeApi.sendTx(tx.unsigned_tx().to_json())
+            console.log(`Cardano Transaction submitted. txId: ${response}`)
+        }
+        catch (e) {
+            console.log(`An error occurred while submitting Ergo transaction: ${e.message}`)
+        }
     }
 
 }

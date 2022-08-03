@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class scanner1657743014133 implements MigrationInterface {
-    name = 'scanner1657743014133'
+export class scanner1659170456333 implements MigrationInterface {
+    name = 'scanner1659170456333'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`
@@ -18,14 +18,29 @@ export class scanner1657743014133 implements MigrationInterface {
                 "sourceChainTokenId" varchar NOT NULL, 
                 "targetChainTokenId" varchar NOT NULL, 
                 "sourceBlockId" varchar NOT NULL, 
-                "WIDs" varchar NOT NULL, 
-                "txId" varchar, 
-                "paymentTxJson" varchar
+                "WIDs" varchar NOT NULL
+            )
+        `);
+        await queryRunner.query(`
+            CREATE TABLE "transaction_entity" (
+                "txId" varchar PRIMARY KEY NOT NULL, 
+                "txJson" varchar NOT NULL, 
+                "type" varchar NOT NULL, 
+                "chain" varchar NOT NULL, 
+                "status" varchar NOT NULL, 
+                "lastCheck" integer NOT NULL, 
+                "eventSourceTxId" varchar, 
+                CONSTRAINT "FK_dd01d6b3b463d1182ed8bb2a947" 
+                    FOREIGN KEY ("eventSourceTxId") 
+                    REFERENCES "event_trigger_entity" ("sourceTxId") 
+                        ON DELETE NO ACTION 
+                        ON UPDATE NO ACTION
             )
         `);
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
+        await queryRunner.query(`DROP TABLE "transaction_entity"`);
         await queryRunner.query(`DROP TABLE "event_trigger_entity"`);
     }
 

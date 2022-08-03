@@ -48,7 +48,7 @@ const mockGetBoxesForErgoTree = (ergoTree: string, returnBoxes: Boxes): void => 
  * @param txId
  * @param confirmation
  */
-const mockExplorerGetTxConfirmationCalledOnce = (txId: string, confirmation: number): void => {
+const mockExplorerGetTxConfirmation = (txId: string, confirmation: number): void => {
     when(mockedExplorer.getTxConfirmation(txId)).thenResolve(confirmation)
 }
 
@@ -62,6 +62,24 @@ const mockExplorerGetConfirmedTx = (txId: string, tx: ExplorerTransaction): void
 }
 
 /**
+ * mocks ExplorerApi isTxInMempool method to return result when called for txId
+ * @param txId
+ * @param result
+ */
+const mockIsTxInMempool = (txId: string, result: boolean): void => {
+    when(mockedExplorer.isTxInMempool(txId)).thenResolve(result)
+}
+
+/**
+ * mocks ExplorerApi isBoxUnspentAndValid method to return result when called for boxId
+ * @param boxId
+ * @param result
+ */
+const mockIsBoxUnspentAndValid = (boxId: string, result: boolean): void => {
+    when(mockedExplorer.isBoxUnspentAndValid(boxId)).thenResolve(result)
+}
+
+/**
  * resets mocked methods of ExplorerApi
  */
 const resetMockedExplorerApi = (): void => {
@@ -72,7 +90,9 @@ const resetMockedExplorerApi = (): void => {
 export {
     mockGetCoveringErgAndTokenForErgoTree,
     mockGetBoxesForErgoTree,
-    mockExplorerGetTxConfirmationCalledOnce,
-    resetMockedExplorerApi,
     mockExplorerGetConfirmedTx,
+    mockExplorerGetTxConfirmation,
+    mockIsTxInMempool,
+    mockIsBoxUnspentAndValid,
+    resetMockedExplorerApi
 }

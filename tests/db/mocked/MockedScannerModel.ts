@@ -3,7 +3,7 @@ import { fileURLToPath } from "url";
 import path from "path";
 import { DataSource } from "typeorm";
 import { scannerAction, ScannerDataBase } from "../../../src/db/models/scanner/ScannerModel";
-import { EventTrigger } from "../../../src/models/Models";
+import { EventTrigger, PaymentTransaction } from "../../../src/models/Models";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -29,29 +29,36 @@ catch(err) {
 
 const testScannerDataBase = new ScannerDataBase(testScannerOrmDataSource)
 
-// mock all tssSignAction methods to call test database methods
+// mock all scannerAction methods to call test database methods
 const mockedScannerAction = spy(scannerAction)
-when(mockedScannerAction.getEventById(anything()))
-    .thenCall(testScannerDataBase.getEventById)
-when(mockedScannerAction.setEventTxAsApproved(anything()))
-    .thenCall(testScannerDataBase.setEventTxAsApproved)
-when(mockedScannerAction.setEventTx(anything(), anything(), anything(), anything()))
-    .thenCall(testScannerDataBase.setEventTx)
-when(mockedScannerAction.setEventTx(anything(), anything(), anything()))
-    .thenCall(testScannerDataBase.setEventTx)
-when(mockedScannerAction.removeEventTx(anything()))
-    .thenCall(testScannerDataBase.removeEventTx)
-when(mockedScannerAction.removeAgreedTx())
-    .thenCall(testScannerDataBase.removeAgreedTx)
 when(mockedScannerAction.setEventStatus(anything(), anything()))
     .thenCall(testScannerDataBase.setEventStatus)
+when(mockedScannerAction.getEventById(anything()))
+    .thenCall(testScannerDataBase.getEventById)
 when(mockedScannerAction.getEventsByStatus(anything()))
     .thenCall(testScannerDataBase.getEventsByStatus)
+when(mockedScannerAction.getActiveTransactions())
+    .thenCall(testScannerDataBase.getActiveTransactions)
+when(mockedScannerAction.setTxStatus(anything(), anything()))
+    .thenCall(testScannerDataBase.setTxStatus)
+when(mockedScannerAction.updateTxLastCheck(anything(), anything()))
+    .thenCall(testScannerDataBase.updateTxLastCheck)
+when(mockedScannerAction.resetEventTx(anything(), anything()))
+    .thenCall(testScannerDataBase.resetEventTx)
+when(mockedScannerAction.getTxById(anything()))
+    .thenCall(testScannerDataBase.getTxById)
+when(mockedScannerAction.updateWithSignedTx(anything(), anything()))
+    .thenCall(testScannerDataBase.updateWithSignedTx)
+when(mockedScannerAction.insertTx(anything()))
+    .thenCall(testScannerDataBase.insertTx)
+when(mockedScannerAction.getEventTxsByType(anything(), anything()))
+    .thenCall(testScannerDataBase.getEventTxsByType)
 
 /**
- * deletes every record in Event table in ScannerDatabase
+ * deletes every record in Event and Transaction table in ScannerDatabase
  */
-const clearEventTable = async () => {
+const clearTables = async () => {
+    await testScannerDataBase.TransactionRepository.clear()
     await testScannerDataBase.EventRepository.clear()
 }
 
@@ -59,10 +66,8 @@ const clearEventTable = async () => {
  * inserts a record to Event table in ScannerDatabase
  * @param event
  * @param status
- * @param txId
- * @param paymentTx
  */
-const insertEventRecord = async (event: EventTrigger, status: string, txId?: string, paymentTx?: string) => {
+const insertEventRecord = async (event: EventTrigger, status: string) => {
     await testScannerDataBase.EventRepository.createQueryBuilder()
         .insert()
         .values({
@@ -78,11 +83,34 @@ const insertEventRecord = async (event: EventTrigger, status: string, txId?: str
             sourceChainTokenId: event.sourceChainTokenId,
             targetChainTokenId: event.targetChainTokenId,
             sourceBlockId: event.sourceBlockId,
-            WIDs: event.WIDs.join(","),
-            txId: txId,
-            paymentTxJson: paymentTx,
+            WIDs: event.WIDs.join(",")
         })
         .execute()
+}
+
+/**
+ * inserts a record to Event table in ScannerDatabase
+ * @param paymentTx
+ * @param type
+ * @param chain
+ * @param status
+ * @param lastCheck
+ * @param eventId
+ */
+const insertTxRecord = async (paymentTx: PaymentTransaction, type: string, chain: string, status: string, lastCheck: number, eventId: string) => {
+    const event = await testScannerDataBase.EventRepository.findOneBy({
+        "sourceTxId": eventId
+    })
+    await testScannerDataBase.TransactionRepository
+        .insert({
+            txId: paymentTx.txId,
+            txJson: paymentTx.toJson(),
+            type: type,
+            chain: chain,
+            status: status,
+            lastCheck: lastCheck,
+            event: event!
+        })
 }
 
 /**
@@ -92,8 +120,17 @@ const allEventRecords = async () => {
     return await testScannerDataBase.EventRepository.createQueryBuilder().select().getMany()
 }
 
+/**
+ * returns all records in Transaction table in ScannerDatabase
+ */
+const allTxRecords = async () => {
+    return await testScannerDataBase.TransactionRepository.find({relations: ["event"]})
+}
+
 export {
-    clearEventTable,
+    clearTables,
     insertEventRecord,
-    allEventRecords
+    insertTxRecord,
+    allEventRecords,
+    allTxRecords
 }
