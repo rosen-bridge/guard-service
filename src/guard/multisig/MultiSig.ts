@@ -11,20 +11,22 @@ import * as crypto from "crypto";
 import Dialer from "../../communication/Dialer";
 import Configs from "../../helpers/Configs";
 import { Semaphore } from 'await-semaphore';
-import { add_hints, convertToHintBag, extract_hints } from "./utils";
 import Encryption from '../../helpers/Encryption';
+import { MultiSigUtils } from "./utils";
+
 const dialer = await Dialer.getInstance();
 
 class MultiSigHandler{
-    public static CHANNEL = "multi-sig"
-    public readonly transactions: Map<string, TxQueued>
-    public readonly peers: Array<Signer>;
-    public readonly secret: Uint8Array;
-    public nonce: string;
-    public prover?: wasm.Wallet;
-    public index?: number;
-    public peerId?: string;
-    public semaphore = new Semaphore(1);
+    private static CHANNEL = "multi-sig"
+    private readonly transactions: Map<string, TxQueued>
+    private readonly peers: Array<Signer>;
+    private readonly secret: Uint8Array;
+    private nonce: string;
+    private prover?: wasm.Wallet;
+    private index?: number;
+    private peerId?: string;
+    private semaphore = new Semaphore(1);
+    private static instance: MultiSigHandler;
 
     constructor(publicKeys: Array<string>, secretHex?: string) {
         this.transactions = new Map<string, TxQueued>();
@@ -34,9 +36,24 @@ class MultiSigHandler{
         }));
         dialer.subscribeChannel(MultiSigHandler.CHANNEL, this.handleMessage);
         this.secret = secretHex ? Uint8Array.from(Buffer.from(secretHex, "hex")) : Configs.secret
-        // this.sendRegister().then(() => {});
     }
 
+    /**
+     * getting the singleton instance of the class
+     * @param publicKeys
+     * @param secretHex
+     */
+    public static getInstance = (publicKeys: Array<string>, secretHex?: string) => {
+        if (!MultiSigHandler.instance) {
+            MultiSigHandler.instance = new MultiSigHandler(publicKeys, secretHex);
+            // this.sendRegister().then(()=>{})
+        }
+        return MultiSigHandler.instance;
+    }
+
+    /**
+     * sending register message to the network
+     */
     public sendRegister = async (): Promise<void> => {
         this.nonce = crypto.randomBytes(32).toString("base64");
         this.sendMessage({
@@ -48,11 +65,13 @@ class MultiSigHandler{
         })
     }
 
+    /**
+     * getting the index of the guard
+     */
     getIndex = (): number => {
         if (this.index === undefined) {
             const ergoTree = wasm.SecretKey.dlog_from_bytes(this.secret).get_address().to_ergo_tree().to_base16_bytes();
             const publicKey = ergoTree.substring(ergoTree.length - 66);
-            // console.log(this.peers.map((peer, index) => [peer.pub, index]).filter(row => row[0] === publicKey))
             this.index = this.peers.map((peer, index) => [peer.pub, index]).filter(row => row[0] === publicKey)[0][1] as number
         }
         if (this.index !== undefined)
@@ -60,7 +79,12 @@ class MultiSigHandler{
         throw Error("My index not found in guard public keys")
     }
 
-    public sign = (tx: wasm.ReducedTransaction, requiredSign: number, boxes: Array<wasm.ErgoBox>, dataBoxes?: Array<wasm.ErgoBox>) => {
+    public sign = (
+        tx: wasm.ReducedTransaction,
+        requiredSign: number,
+        boxes: Array<wasm.ErgoBox>,
+        dataBoxes?: Array<wasm.ErgoBox>
+    ): Promise<wasm.Transaction> => {
         return new Promise<wasm.Transaction>((resolve, reject) => {
             this.getQueuedTransaction(tx.unsigned_tx().id().to_str()).then(transaction => {
                 transaction.tx = tx;
@@ -84,7 +108,7 @@ class MultiSigHandler{
         return peerId;
     }
 
-    cleanup = () => {
+    cleanup = (): void => {
         this.semaphore.acquire().then(release => {
             const toRemoveKeys: Array<string> = []
             for (const [key, transaction] of this.transactions.entries()) {
@@ -103,7 +127,10 @@ class MultiSigHandler{
         })
     }
 
-     getProver = (): wasm.Wallet => {
+    /**
+     * getting prover that makes with guard secrets
+     */
+    getProver = (): wasm.Wallet => {
         if (!this.prover) {
             const secret = wasm.SecretKey.dlog_from_bytes(this.secret)
             const secretKeys = new wasm.SecretKeys();
@@ -115,17 +142,16 @@ class MultiSigHandler{
         throw Error("Can not create prover")
     }
 
-    verifyIndex = (index: number) => {
+    verifyIndex = (index: number): boolean => {
         return index >= 0 && index < this.peers.length;
     }
 
-    generateCommitment = (id: string) => {
+    generateCommitment = (id: string): void => {
         const queued = this.transactions.get(id)
         if (queued && !queued.secret && queued.tx) {
             queued.secret = this.getProver().generate_commitments_for_reduced_transaction(queued.tx)
             // publish commitment
             const commitmentJson: CommitmentJson = queued.secret.to_json() as CommitmentJson;
-            console.log("my commitments are:", JSON.stringify(queued.secret.to_json()))
             const publicHints = commitmentJson.publicHints
             const publishCommitments: { [index: string]: Array<{ a: string; position: string }> } = {}
             Object.keys(publicHints).forEach(inputIndex => {
@@ -144,7 +170,7 @@ class MultiSigHandler{
         }
     }
 
-    generateSign = (id: string) => {
+    generateSign = (id: string): void => {
         const prover = this.getProver();
         let needSign = false;
         this.getQueuedTransaction(id).then(async (transaction) => {
@@ -157,7 +183,7 @@ class MultiSigHandler{
                     simulated = transaction.sign.simulated;
                     signed = transaction.sign.signed;
                     if (signed.indexOf(myPub) === -1) {
-                        hints = await extract_hints(
+                        hints = await MultiSigUtils.extract_hints(
                             wasm.Transaction.sigma_parse_bytes(transaction.sign.transaction),
                             transaction.boxes,
                             transaction.dataBoxes,
@@ -178,14 +204,14 @@ class MultiSigHandler{
                     needSign = true
                 }
                 if (needSign) {
-                    add_hints(hints, transaction.secret, transaction.tx)
+                    MultiSigUtils.add_hints(hints, transaction.secret, transaction.tx)
                     for (let index = 0; index < transaction.commitments.length; index++) {
                         const commitment = transaction.commitments[index];
                         if (commitment && this.peers.length > index) {
                             const peer = this.peers[index];
                             if (signed.indexOf(this.peers[index].pub) === -1) {
-                                const publicHints = convertToHintBag(commitment, peer.pub)
-                                add_hints(hints, publicHints, transaction.tx)
+                                const publicHints = MultiSigUtils.convertToHintBag(commitment, peer.pub)
+                                MultiSigUtils.add_hints(hints, publicHints, transaction.tx)
                                 console.log(JSON.stringify(hints.to_json()))
                             }
                         }
@@ -217,7 +243,7 @@ class MultiSigHandler{
         })
     }
 
-    sendMessage = (message: CommunicationMessage, receivers?: Array<string>) => {
+    sendMessage = (message: CommunicationMessage, receivers?: Array<string>): void => {
         const payload = message.payload;
         payload.index = this.getIndex();
         payload.id = this.getPeerId();
@@ -230,7 +256,7 @@ class MultiSigHandler{
         }
     }
 
-    handleRegister = (sender: string, payload: RegisterPayload) => {
+    handleRegister = (sender: string, payload: RegisterPayload): void => {
         if (payload.index !== undefined && this.verifyIndex(payload.index)) {
             const peer = this.peers[payload.index];
             const nonce = crypto.randomBytes(32).toString("base64");
@@ -247,7 +273,7 @@ class MultiSigHandler{
         }
     }
 
-    handleApprove = (sender: string, payload: ApprovePayload) => {
+    handleApprove = (sender: string, payload: ApprovePayload): void => {
         if (payload.index !== undefined && this.verifyIndex(payload.index) && sender === payload.myId) {
             const nonce = payload.nonce;
             const peer = this.peers[payload.index];
@@ -292,7 +318,7 @@ class MultiSigHandler{
         })
     }
 
-    handleCommitment = (sender: string, payload: CommitmentPayload) => {
+    handleCommitment = (sender: string, payload: CommitmentPayload): void => {
         if (payload.index && payload.txId) {
             const index = payload.index
             this.getQueuedTransaction(payload.txId).then(transaction => {
@@ -306,7 +332,7 @@ class MultiSigHandler{
         }
     }
 
-    handleSign = (sender: string, payload: SignPayload) => {
+    handleSign = (sender: string, payload: SignPayload): void => {
         if (payload.txId) {
             this.getQueuedTransaction(payload.txId).then(transaction => {
                 const myPub = this.peers[this.getIndex()].pub
@@ -331,7 +357,7 @@ class MultiSigHandler{
         }
     }
 
-    handleMessage =  (messageStr: string, channel: string, sender: string) => {
+    handleMessage = (messageStr: string, channel: string, sender: string): void => {
         const message = JSON.parse(messageStr) as CommunicationMessage;
         if (message.payload.index !== undefined && message.payload.index >= 0 && message.payload.index < this.peers.length && message.payload.id && message.sign) {
             if (sender !== message.payload.id) {
