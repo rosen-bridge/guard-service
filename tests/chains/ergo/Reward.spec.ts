@@ -14,6 +14,7 @@ import {
 } from "./mocked/MockedInputBoxes";
 import { anything, spy, when } from "ts-mockito";
 import ErgoConfigs from "../../../src/chains/ergo/helpers/ErgoConfigs";
+import { JsonBI } from "../../../src/network/NetworkModels";
 
 describe("Reward", () => {
     const testBankAddress = TestBoxes.testBankAddress

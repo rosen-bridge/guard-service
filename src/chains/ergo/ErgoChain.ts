@@ -21,7 +21,6 @@ import InputBoxes from "./boxes/InputBoxes";
 import OutputBoxes from "./boxes/OutputBoxes";
 import ChainsConstants from "../ChainsConstants";
 import Reward from "./Reward";
-import { JsonBI } from "../../network/NetworkModels";
 
 class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
 
@@ -230,7 +229,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         const paymentTokenId = event.targetChainTokenId
 
         // create output boxes
-        const outBoxes: ErgoBoxCandidate[] = Reward.ergEventRewardBoxes(event, eventBox, commitmentBoxes, rsnCoef, currentHeight)
+        const outBoxes: ErgoBoxCandidate[] = Reward.ergEventRewardBoxes(event, eventBox, commitmentBoxes, rsnCoef, currentHeight, paymentTokenId)
         const paymentBox = OutputBoxes.createPaymentBox(
             currentHeight,
             event.toAddress,
@@ -266,7 +265,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         const paymentTokenId = event.targetChainTokenId
 
         // create output boxes
-        const outBoxes: ErgoBoxCandidate[] = Reward.tokenEventRewardBoxes(event, eventBox, commitmentBoxes, rsnCoef, currentHeight)
+        const outBoxes: ErgoBoxCandidate[] = Reward.tokenEventRewardBoxes(event, eventBox, commitmentBoxes, rsnCoef, currentHeight, paymentTokenId)
         const paymentBox = OutputBoxes.createPaymentBox(
             currentHeight,
             event.toAddress,
