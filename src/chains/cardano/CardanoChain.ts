@@ -354,6 +354,10 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
 
     /**
      * verified the event payment in the Cardano
+     * conditions that checks:
+     *  1- having atLeast 1 asset in the first output of the transaction
+     *  2- the asset should be listed on the tokenMap config
+     *  3- tx metaData should have "0" key
      * @param event
      */
     verifyEventWithPayment = async (event: EventTrigger): Promise<boolean> => {
