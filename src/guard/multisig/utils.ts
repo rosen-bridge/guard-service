@@ -4,7 +4,7 @@ import { CommitmentJson, PublishedCommitment } from "./Interfaces";
 import { TransactionHintsBag } from "ergo-lib-wasm-nodejs";
 
 
-export class MultiSigUtils{
+class MultiSigUtils{
     /**
      * gets public keys hex string and convert them to the Propositions
      * @param pubKeys
@@ -104,3 +104,4 @@ export class MultiSigUtils{
     }
 }
 
+export default MultiSigUtils;

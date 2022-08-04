@@ -146,10 +146,17 @@ class MultiSigHandler{
         throw Error("Can not create prover")
     }
 
+    /**
+     * checks index of the tx is valid
+     * @param index
+     */
     verifyIndex = (index: number): boolean => {
         return index >= 0 && index < this.peers.length;
     }
-
+    /**
+     * generating commitment for transaction in the queue by id
+     * @param id
+     */
     generateCommitment = (id: string): void => {
         const queued = this.transactions.get(id)
         if (queued && !queued.secret && queued.tx) {
@@ -174,6 +181,10 @@ class MultiSigHandler{
         }
     }
 
+    /**
+     * generating sign for transaction in the queue by the id of the transaction
+     * @param id
+     */
     generateSign = (id: string): void => {
         const prover = this.getProver();
         let needSign = false;
@@ -304,21 +315,25 @@ class MultiSigHandler{
 
     getQueuedTransaction = (txId: string): Promise<TxQueued> => {
         return this.semaphore.acquire().then(release => {
-            const transaction = this.transactions.get(txId);
-            if (transaction) {
+            try {
+                const transaction = this.transactions.get(txId);
+                if (transaction) {
+                    release()
+                    return transaction
+                }
+                const newTransaction: TxQueued = {
+                    boxes: [],
+                    dataBoxes: [],
+                    commitments: this.peers.map(() => undefined),
+                    createTime: new Date().getTime(),
+                    requiredSigner: 0,
+                }
+                this.transactions.set(txId, newTransaction);
                 release()
-                return transaction
+                return newTransaction;
+            } catch (e) {
+                release()
             }
-            const newTransaction: TxQueued = {
-                boxes: [],
-                dataBoxes: [],
-                commitments: this.peers.map(() => undefined),
-                createTime: new Date().getTime(),
-                requiredSigner: 0,
-            }
-            this.transactions.set(txId, newTransaction);
-            release()
-            return newTransaction;
         })
     }
 
