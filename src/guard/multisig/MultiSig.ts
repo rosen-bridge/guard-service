@@ -46,9 +46,7 @@ class MultiSigHandler {
     public static getInstance = (publicKeys: Array<string>, secretHex?: string) => {
         if (!MultiSigHandler.instance) {
             MultiSigHandler.instance = new MultiSigHandler(publicKeys, secretHex);
-            MultiSigHandler.instance.sendRegister().then(() => {
-                console.log("Register sent")
-            })
+            MultiSigHandler.instance.sendRegister().then(() => null)
         }
         return MultiSigHandler.instance;
     }
