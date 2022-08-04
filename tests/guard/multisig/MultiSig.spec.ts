@@ -5,6 +5,7 @@ import {
     sendMessageBodyAndPayloadArguments,
 } from "../../communication/mocked/MockedDialer";
 import * as wasm from 'ergo-lib-wasm-nodejs';
+import exp from "constants";
 
 
 const publicKeys = [
@@ -187,5 +188,22 @@ describe("MultiSigHandler", () => {
             sinon.stub(handler, 'getQueuedTransaction').withArgs('txid').returns(Promise.resolve(obj));
             handler.handleCommitment('sender', {commitment: {index: [{a: "3", position: "1-1"}]}, txId: "1"})
         })
+    })
+
+    describe("cleanup", () => {
+        /**
+         * add two instance of transaction to multi-sig handler using getTransaction
+         * then clean called.
+         * one of them must removed from txQueue. so create time must differ
+         */
+        it("checks that cleanup remove element from txQueue", async() => {
+            const handler = new MultiSigHandler(publicKeys, "5bc1d17d0612e696a9138ab8e85ca2a02d0171440ec128a9ad557c28bd5ea046")
+            const tx1 = await handler.getQueuedTransaction("tx1")
+            Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 3000);
+            const tx2 = await handler.getQueuedTransaction("tx2")
+            handler.cleanup()
+            expect(await handler.getQueuedTransaction("tx2")).to.be.eql(tx2)
+            expect(await handler.getQueuedTransaction("tx1")).to.not.be.eql(tx1)
+        }).timeout(5000)
     })
 })

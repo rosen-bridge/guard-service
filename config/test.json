@@ -73,6 +73,7 @@
             }
         ]
     },
+    "multiSigTimeout": 1,
     "minimumAgreement": 5,
     "p2p": {
         "peerIdFilePath": "./peer-dialer.json"

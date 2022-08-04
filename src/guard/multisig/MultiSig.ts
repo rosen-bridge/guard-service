@@ -12,11 +12,11 @@ import Dialer from "../../communication/Dialer";
 import Configs from "../../helpers/Configs";
 import { Semaphore } from 'await-semaphore';
 import Encryption from '../../helpers/Encryption';
-import { MultiSigUtils } from "./utils";
+import MultiSigUtils from "./utils";
 
 const dialer = await Dialer.getInstance();
 
-class MultiSigHandler{
+class MultiSigHandler {
     private static CHANNEL = "multi-sig"
     private readonly transactions: Map<string, TxQueued>
     private readonly peers: Array<Signer>;
@@ -47,6 +47,7 @@ class MultiSigHandler{
         if (!MultiSigHandler.instance) {
             MultiSigHandler.instance = new MultiSigHandler(publicKeys, secretHex);
             MultiSigHandler.instance.sendRegister().then(() => {
+                console.log("Register sent")
             })
         }
         return MultiSigHandler.instance;
@@ -80,6 +81,13 @@ class MultiSigHandler{
         throw Error("My index not found in guard public keys")
     }
 
+    /**
+     * begin sign a multi-sig transaction.
+     * @param tx: reduced transaction for multi-sig transaction
+     * @param requiredSign: number of required signs
+     * @param boxes: input boxes for transaction
+     * @param dataBoxes: data input boxes for transaction
+     */
     public sign = (
         tx: wasm.ReducedTransaction,
         requiredSign: number,
@@ -101,6 +109,9 @@ class MultiSigHandler{
         })
     }
 
+    /**
+     * get my peer id
+     */
     getPeerId = (): string => {
         const peerId = dialer.getPeerId();
         if (this.peerId !== peerId) {
@@ -114,20 +125,25 @@ class MultiSigHandler{
      */
     cleanup = (): void => {
         this.semaphore.acquire().then(release => {
-            const toRemoveKeys: Array<string> = []
-            for (const [key, transaction] of this.transactions.entries()) {
-                if (transaction.createTime < new Date().getTime() - Configs.multiSigTimeout) {
-                    toRemoveKeys.push(key)
+            try {
+                const toRemoveKeys: Array<string> = []
+                for (const [key, transaction] of this.transactions.entries()) {
+                    if (transaction.createTime < new Date().getTime() - Configs.multiSigTimeout) {
+                        toRemoveKeys.push(key)
+                    }
                 }
+                toRemoveKeys.forEach(key => {
+                    const tx = this.transactions.get(key)
+                    if (tx && tx.reject) {
+                        tx.reject("Timed out")
+                    }
+                    this.transactions.delete(key)
+                })
+                release()
+            } catch (e) {
+                release()
+                throw e
             }
-            toRemoveKeys.forEach(key => {
-                const tx = this.transactions.get(key)
-                if (tx && tx.reject) {
-                    tx.reject("Timed out")
-                }
-                this.transactions.delete(key)
-            })
-            release()
         })
     }
 
@@ -153,6 +169,7 @@ class MultiSigHandler{
     verifyIndex = (index: number): boolean => {
         return index >= 0 && index < this.peers.length;
     }
+
     /**
      * generating commitment for transaction in the queue by id
      * @param id
@@ -258,6 +275,11 @@ class MultiSigHandler{
         })
     }
 
+    /**
+     * send a message to other guards. it can be sent to all guards or specific guard
+     * @param message message
+     * @param receivers if set we sent to this list of guards only. otherwise, broadcast it.
+     */
     sendMessage = (message: CommunicationMessage, receivers?: Array<string>): void => {
         const payload = message.payload;
         payload.index = this.getIndex();
@@ -271,6 +293,11 @@ class MultiSigHandler{
         }
     }
 
+    /**
+     * handle verified register message from other guards
+     * @param sender
+     * @param payload
+     */
     handleRegister = (sender: string, payload: RegisterPayload): void => {
         if (payload.index !== undefined && this.verifyIndex(payload.index)) {
             const peer = this.peers[payload.index];
@@ -288,6 +315,11 @@ class MultiSigHandler{
         }
     }
 
+    /**
+     * handle verified approve message from other guards
+     * @param sender
+     * @param payload
+     */
     handleApprove = (sender: string, payload: ApprovePayload): void => {
         if (payload.index !== undefined && this.verifyIndex(payload.index) && sender === payload.myId) {
             const nonce = payload.nonce;
@@ -313,6 +345,10 @@ class MultiSigHandler{
         }
     }
 
+    /**
+     * get a transaction object from queued transactions.
+     * @param txId
+     */
     getQueuedTransaction = (txId: string): Promise<TxQueued> => {
         return this.semaphore.acquire().then(release => {
             try {
@@ -333,10 +369,16 @@ class MultiSigHandler{
                 return newTransaction;
             } catch (e) {
                 release()
+                throw e
             }
         })
     }
 
+    /**
+     * handle verified commitment message from other guards
+     * @param sender
+     * @param payload
+     */
     handleCommitment = (sender: string, payload: CommitmentPayload): void => {
         if (payload.index && payload.txId) {
             const index = payload.index
@@ -351,6 +393,11 @@ class MultiSigHandler{
         }
     }
 
+    /**
+     * handle verified sign message from other guards
+     * @param sender
+     * @param payload
+     */
     handleSign = (sender: string, payload: SignPayload): void => {
         if (payload.txId) {
             this.getQueuedTransaction(payload.txId).then(transaction => {
@@ -376,6 +423,13 @@ class MultiSigHandler{
         }
     }
 
+    /**
+     * handle new message from other guards. first verify message sign
+     * then if sign is valid pass to handler message according to message.type
+     * @param messageStr
+     * @param channel
+     * @param sender
+     */
     handleMessage = (messageStr: string, channel: string, sender: string): void => {
         const message = JSON.parse(messageStr) as CommunicationMessage;
         if (message.payload.index !== undefined && message.payload.index >= 0 && message.payload.index < this.peers.length && message.payload.id && message.sign) {
@@ -406,8 +460,6 @@ class MultiSigHandler{
         }
     }
 }
-
-// const MultiSig = new MultiSigHandler();
 
 export {
     MultiSigHandler
