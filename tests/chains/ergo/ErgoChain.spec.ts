@@ -3,22 +3,21 @@ import { EventTrigger } from "../../../src/models/Models";
 import TestBoxes from "./testUtils/TestBoxes";
 import { expect } from "chai";
 import { CoveringErgoBoxes } from "../../../src/chains/ergo/models/Interfaces";
-import Utils from "../../../src/chains/ergo/helpers/Utils";
+import ErgoUtils from "../../../src/chains/ergo/helpers/ErgoUtils";
 import { mockGetCoveringErgAndTokenForErgoTree, resetMockedExplorerApi } from "./mocked/MockedExplorer";
 import { beforeEach } from "mocha";
 import {
     mockGetEventBox,
     mockGetEventValidCommitments,
     mockGetRSNRatioCoef,
-    resetMockedRewardBoxes
-} from "./mocked/MockedRewardBoxes";
+    resetMockedInputBoxes
+} from "./mocked/MockedInputBoxes";
 import { anything, spy, when } from "ts-mockito";
-import Reward from "../../../src/chains/ergo/Reward";
 import ErgoConfigs from "../../../src/chains/ergo/helpers/ErgoConfigs";
 
 describe("ErgoChain",  () => {
     const testBankAddress = TestBoxes.testBankAddress
-    const testBankErgoTree: string = Utils.addressStringToErgoTreeString(testBankAddress)
+    const testBankErgoTree: string = ErgoUtils.addressStringToErgoTreeString(testBankAddress)
 
     describe("generateTransaction", () => {
         // mock getting bankBoxes
@@ -28,7 +27,7 @@ describe("ErgoChain",  () => {
         beforeEach("mock ExplorerApi", function() {
             resetMockedExplorerApi()
             mockGetCoveringErgAndTokenForErgoTree(testBankErgoTree, bankBoxes)
-            resetMockedRewardBoxes()
+            resetMockedInputBoxes()
             mockGetEventBox(anything(), eventBoxAndCommitments[0])
             mockGetEventValidCommitments(anything(), eventBoxAndCommitments.slice(1))
             mockGetRSNRatioCoef(anything(), [BigInt(0), BigInt(100000)])
@@ -161,7 +160,7 @@ describe("ErgoChain",  () => {
         const eventBoxAndCommitments = TestBoxes.mockEventBoxWithSomeCommitments()
 
         beforeEach("mock ExplorerApi", function() {
-            resetMockedRewardBoxes()
+            resetMockedInputBoxes()
             mockGetEventBox(anything(), eventBoxAndCommitments[0])
             mockGetEventValidCommitments(anything(), eventBoxAndCommitments.slice(1))
             mockGetRSNRatioCoef(anything(), [BigInt(0), BigInt(100000)])
@@ -252,8 +251,8 @@ describe("ErgoChain",  () => {
             const tx = TestBoxes.mockTransferToIllegalWIDTokenPaymentTransaction(mockedEvent, eventBoxAndCommitments)
 
             // run test
-            const reward = new Reward()
-            const isValid = await reward.verifyTransactionWithEvent(tx, mockedEvent)
+            const ergoChain: ErgoChain = new ErgoChain()
+            const isValid = await ergoChain.verifyTransactionWithEvent(tx, mockedEvent)
             expect(isValid).to.be.false
         })
 
@@ -270,8 +269,8 @@ describe("ErgoChain",  () => {
             const tx = TestBoxes.mockMissingValidCommitmentTokenPaymentTransaction(mockedEvent, eventBoxAndCommitments.slice(0, eventBoxAndCommitments.length - 1))
 
             // run test
-            const reward = new Reward()
-            const isValid = await reward.verifyTransactionWithEvent(tx, mockedEvent)
+            const ergoChain: ErgoChain = new ErgoChain()
+            const isValid = await ergoChain.verifyTransactionWithEvent(tx, mockedEvent)
             expect(isValid).to.be.false
         })
 

@@ -1,4 +1,4 @@
-import Utils from "../../../../src/chains/ergo/helpers/Utils";
+import ErgoUtils from "../../../../src/chains/ergo/helpers/ErgoUtils";
 import { Boxes } from "../../../../src/chains/ergo/models/Interfaces";
 import {
     mockGetBoxesForErgoTree,
@@ -11,7 +11,7 @@ import TestBoxes from "../testUtils/TestBoxes";
 
 describe("ExplorerApi", () => {
     const testBankAddress = TestBoxes.testBankAddress
-    const testBankErgoTree: string = Utils.addressStringToErgoTreeString(testBankAddress)
+    const testBankErgoTree: string = ErgoUtils.addressStringToErgoTreeString(testBankAddress)
 
     describe("getCoveringErgAndTokenForErgoTree", () => {
         // mock getting bankBoxes

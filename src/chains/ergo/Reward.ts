@@ -1,296 +1,179 @@
 import {
     Address,
-    BoxSelection,
+    BoxSelection, DataInputs,
     ErgoBox,
     ErgoBoxAssetsDataList, ErgoBoxCandidate,
-    ErgoBoxCandidateBuilder,
     ErgoBoxCandidates,
     ErgoBoxes,
-    I64,
     ReducedTransaction,
-    TokenAmount,
-    TokenId,
-    TxBuilder, UnsignedTransaction
+    TxBuilder
 } from "ergo-lib-wasm-nodejs";
 import { EventTrigger, TransactionTypes } from "../../models/Models";
 import ErgoConfigs from "./helpers/ErgoConfigs";
 import ExplorerApi from "./network/ExplorerApi";
-import Utils from "./helpers/Utils";
+import ErgoUtils from "./helpers/ErgoUtils";
 import NodeApi from "./network/NodeApi";
-import { AssetMap, InBoxesInfo } from "./models/Interfaces";
-import Contracts from "../../contracts/Contracts";
-import RewardBoxes from "./helpers/RewardBoxes";
-import Configs from "../../helpers/Configs";
 import ErgoTransaction from "./models/ErgoTransaction";
+import InputBoxes from "./boxes/InputBoxes";
+import OutputBoxes from "./boxes/OutputBoxes";
+import ChainsConstants from "../ChainsConstants";
+import Utils from "../../helpers/Utils";
+import BoxVerifications from "./boxes/BoxVerifications";
 
 
 class Reward {
 
-    bankAddress = Address.from_base58(ErgoConfigs.bankAddress)
-    bankErgoTree = Utils.addressToErgoTreeString(this.bankAddress)
+    static bankAddress = Address.from_base58(ErgoConfigs.bankAddress)
+    static bankErgoTree = ErgoUtils.addressToErgoTreeString(this.bankAddress)
 
-    /**
-     * generates unsigned transaction to distribute rewards from multi-sig address in ergo chain
-     * @param event the event trigger model
-     * @return the generated payment transaction
-     */
-    generateTransaction = async (event: EventTrigger): Promise<ErgoTransaction> => {
+    static generateTransaction = async (event: EventTrigger): Promise<ErgoTransaction> => {
+        // get current height of network
+        const currentHeight = await NodeApi.getHeight()
+
         // get eventBox and remaining valid commitments
-        const eventBox: ErgoBox = RewardBoxes.getEventBox(event)
-        const commitmentBoxes: ErgoBox[] = RewardBoxes.getEventValidCommitments(event)
+        const eventBox: ErgoBox = InputBoxes.getEventBox(event)
+        const commitmentBoxes: ErgoBox[] = InputBoxes.getEventValidCommitments(event)
 
-        const rsnCoef = await RewardBoxes.getRSNRatioCoef(event.sourceChainTokenId)
+        const rsnCoef = await InputBoxes.getRSNRatioCoef(event.sourceChainTokenId)
+
+        // create transaction output boxes
+        const outBoxes = (event.sourceChainTokenId === ChainsConstants.ergoNativeAsset) ?
+            this.ergEventRewardBoxes(event, eventBox, commitmentBoxes, rsnCoef, currentHeight) :
+            this.tokenEventRewardBoxes(event, eventBox, commitmentBoxes, rsnCoef, currentHeight)
+
+        // calculate required assets
+        const outBoxesAssets = ErgoUtils.calculateBoxesAssets(outBoxes)
+        const requiredAssets = ErgoUtils.reduceUsedAssets(
+            outBoxesAssets,
+            ErgoUtils.calculateBoxesAssets([eventBox, ...commitmentBoxes])
+        )
+
+        // get required boxes for transaction input
+        const coveringBoxes = await ExplorerApi.getCoveringErgAndTokenForErgoTree(
+            this.bankErgoTree,
+            requiredAssets.ergs + ErgoConfigs.minimumErg, // required amount of Erg plus minimumErg for change box
+            requiredAssets.tokens
+        )
+
+        if (!coveringBoxes.covered)
+            throw Error(`Bank boxes didn't cover required amount of Erg: ${requiredAssets.ergs.toString()}`)
+
+        // calculate input boxes and assets
+        const inBoxes = [eventBox, ...commitmentBoxes, ...coveringBoxes.boxes]
+        const inBoxesAssets = ErgoUtils.calculateBoxesAssets(inBoxes)
+        const inErgoBoxes = ErgoBoxes.empty()
+        inBoxes.forEach(box => inErgoBoxes.add(box))
+
+        // create change box and add to outBoxes
+        outBoxes.push(OutputBoxes.createChangeBox(
+            currentHeight,
+            ErgoConfigs.bankAddress,
+            inBoxesAssets,
+            outBoxesAssets,
+            ErgoConfigs.txFee
+        ))
+
+        // get guards info box
+        const guardInfoBox = await InputBoxes.getGuardsInfoBox()
+
+        // create the box arguments in tx builder
+        const inBoxSelection = new BoxSelection(inErgoBoxes, new ErgoBoxAssetsDataList())
+        const outBoxCandidates = ErgoBoxCandidates.empty()
+        outBoxes.forEach(box => outBoxCandidates.add(box))
+        const dataInputs = new DataInputs()
+        dataInputs.add(guardInfoBox)
 
         // create the transaction
-        const eventTxData = (event.sourceChainTokenId === "erg") ?
-            await this.ergRewardTransaction(event, eventBox, commitmentBoxes, rsnCoef) :
-            await this.tokenRewardTransaction(event, eventBox, commitmentBoxes, rsnCoef)
+        const txCandidate = TxBuilder.new(
+            inBoxSelection,
+            outBoxCandidates,
+            currentHeight,
+            ErgoUtils.boxValueFromBigint(ErgoConfigs.txFee),
+            this.bankAddress,
+            ErgoUtils.boxValueFromBigint(ErgoConfigs.minimumErg)
+        )
+        txCandidate.set_data_inputs(dataInputs)
+        const tx = txCandidate.build()
 
         // create ReducedTransaction object
         const ctx = await NodeApi.getErgoStateContext()
         const reducedTx = ReducedTransaction.from_unsigned_tx(
-            eventTxData[0],
-            eventTxData[1],
+            tx,
+            inErgoBoxes,
             ErgoBoxes.empty(),
             ctx
         )
-
-        // parse tx input boxes
-        const inBoxes: Uint8Array[] = []
-        const inBoxesLen = eventTxData[1].len()
-        for (let i = 0; i < inBoxesLen; i++)
-            inBoxes.push(eventTxData[1].get(i).sigma_serialize_bytes())
 
         // create PaymentTransaction object
         const txBytes = this.serialize(reducedTx)
         const txId = reducedTx.unsigned_tx().id().to_str()
         const eventId = event.sourceTxId
-        const tx = new ErgoTransaction(txId, eventId, txBytes, inBoxes, TransactionTypes.reward)
+        const ergoTx = new ErgoTransaction(
+            txId,
+            eventId,
+            txBytes,
+            inBoxes.map(box => box.sigma_serialize_bytes()),
+            [guardInfoBox].map(box => box.sigma_serialize_bytes()),
+            TransactionTypes.payment
+        )
 
-        console.log(`Reward distribution for event [${tx.eventId}] generated. TxId: ${tx.txId}`)
-        return tx
+        console.log(`Payment transaction for event [${eventId}] generated. TxId: ${txId}`)
+        return ergoTx
     }
 
     /**
      * verifies the reward transaction data with the event
      *  1. checks number of output boxes
-     *  2. checks ergoTree of all boxes
-     *  3. checks number of tokens in watcher and guards boxes
-     *  4. checks rwt tokens of watchers
-     *  5. checks if input boxes contains all valid commitment boxes and first input box is the event box
-     *  6. checks id of token in watcher and guards boxes (token payment)
-     *  7. checks amount of token in watcher and guards boxes (token payment)
-     *  8. checks if output boxes contains all WIDs in input boxes
+     *  2. checks change box ergoTree
+     *  3. checks assets, contracts and R4 of output boxes (expect last two) are same as the one we generated
+     *  4. checks transaction fee (last box erg value)
+     *  5. checks assets of inputs are same as assets of output (no token burned)
      * @param paymentTx the payment transaction
      * @param event the event trigger model
      * @return true if tx verified
      */
-    verifyTransactionWithEvent = async (paymentTx: ErgoTransaction, event: EventTrigger): Promise<boolean> => {
-
-        /**
-         * method to verify watcher permit box contract
-         */
-        const verifyWatcherPermitBoxErgoTree = (box: ErgoBoxCandidate): boolean => {
-            return box.ergo_tree().to_base16_bytes() === Contracts.watcherPermitErgoTree
-        }
-
-        /**
-         * method to verify watcher permit box contract
-         */
-        const verifyBoxRWTToken = (box: ErgoBoxCandidate): boolean => {
-            const boxToken = box.tokens().get(0)
-            return boxToken.id().to_str() === rwtToken && Utils.bigintFromI64(boxToken.amount().as_i64()) === 1n
-        }
-
-        /**
-         * method to verify transaction conditions where it distributes erg
-         */
-        const verifyErgDistribution = (): boolean => {
-            // verify size of tokens and value of guards boxes
-            if (
-                Utils.bigintFromBoxValue(guardsBridgeFeeBox.value()) !== guardsBridgeFeeShare ||
-                Utils.bigintFromBoxValue(guardsNetworkFeeBox.value()) !== guardsNetworkFeeShare ||
-                guardsNetworkFeeBox.tokens().len() !== 0
-            ) return false;
-
-            if (guardsRSNShare !== 0n) {
-                if (guardsBridgeFeeBox.tokens().len() !== 1) return false;
-                // verify guards rsn token
-                const guardRSNToken = guardsBridgeFeeBox.tokens().get(0)
-                if (
-                    guardRSNToken.id().to_str() !== Configs.rsn ||
-                    Utils.bigintFromI64(guardRSNToken.amount().as_i64()) !== guardsRSNShare
-                ) return false;
-            }
-            else {
-                if (guardsBridgeFeeBox.tokens().len() !== 0) return false;
-            }
-
-            // iterate over permit boxes (last four boxes are guardsBridgeFee, guardsNetworkFee, change and fee boxes)
-            for (let i = 0; i < watchersLen; i++) {
-                const box = outputBoxes.get(i)
-                if (
-                    !verifyWatcherPermitBoxErgoTree(box) ||
-                    Utils.bigintFromBoxValue(box.value()) !== watcherShare + ErgoConfigs.minimumErg
-                ) return false;
-
-                if (watcherRSNShare !== 0n) {
-                    if (box.tokens().len() !== 2) return false;
-                    // checks rwt and rsn tokens
-                    const boxRSNToken = box.tokens().get(1)
-                    if (
-                        !verifyBoxRWTToken(box) ||
-                        boxRSNToken.id().to_str() !== Configs.rsn ||
-                        Utils.bigintFromI64(boxRSNToken.amount().as_i64()) !== watcherRSNShare
-                    ) return false;
-                }
-                else {
-                    // checks rwt
-                    if (
-                        box.tokens().len() !== 1 ||
-                        !verifyBoxRWTToken(box)
-                    ) return false;
-                }
-
-                // add box wid to collection
-                outputBoxesWIDs.push(RewardBoxes.getBoxCandidateWIDString(box))
-            }
-            return true
-        }
-
-        /**
-         * method to verify transaction conditions where it distributes token
-         */
-        const verifyTokenDistribution = (): boolean => {
-            // verify size of tokens and value of guards boxes
-            const rewardTokenId = event.sourceChainTokenId
-            if (
-                Utils.bigintFromBoxValue(guardsBridgeFeeBox.value()) !== ErgoConfigs.minimumErg ||
-                Utils.bigintFromBoxValue(guardsNetworkFeeBox.value()) !== ErgoConfigs.minimumErg ||
-                guardsNetworkFeeBox.tokens().len() !== 1
-            ) return false;
-
-            if (guardsRSNShare !== 0n) {
-                if (guardsBridgeFeeBox.tokens().len() !== 2) return false;
-                // verify guards rsn token
-                const guardRSNToken = guardsBridgeFeeBox.tokens().get(1)
-                if (
-                    guardRSNToken.id().to_str() !== Configs.rsn ||
-                    Utils.bigintFromI64(guardRSNToken.amount().as_i64()) !== guardsRSNShare
-                ) return false;
-            }
-            else {
-                if (guardsBridgeFeeBox.tokens().len() !== 1) return false;
-            }
-
-            // checks payment token
-            const guardsBridgeFeeToken = guardsBridgeFeeBox.tokens().get(0)
-            const guardsNetworkFeeToken = guardsNetworkFeeBox.tokens().get(0)
-            if (
-                guardsBridgeFeeToken.id().to_str() !== rewardTokenId ||
-                guardsNetworkFeeToken.id().to_str() !== rewardTokenId ||
-                Utils.bigintFromI64(guardsBridgeFeeToken.amount().as_i64()) !== guardsBridgeFeeShare ||
-                Utils.bigintFromI64(guardsNetworkFeeToken.amount().as_i64()) !== guardsNetworkFeeShare
-            ) return false;
-
-            // iterate over permit boxes (last four boxes are guardsBridgeFee, guardsNetworkFee, change and fee boxes)
-            for (let i = 0; i < watchersLen; i++) {
-                const box = outputBoxes.get(i)
-                if (
-                    !verifyWatcherPermitBoxErgoTree(box) ||
-                    Utils.bigintFromBoxValue(box.value()) !== ErgoConfigs.minimumErg
-                ) return false;
-
-                if (watcherShare === 0n && watcherRSNShare === 0n) {
-                    if (box.tokens().len() !== 1) return false;
-                }
-                else if (watcherShare !== 0n && watcherRSNShare !== 0n) {
-                    if (box.tokens().len() !== 3) return false;
-
-                    // checks rwt, reward and rsn tokens
-                    const boxRewardToken = box.tokens().get(1)
-                    const boxRSNToken = box.tokens().get(2)
-                    if (
-                        !verifyBoxRWTToken(box) ||
-                        boxRewardToken.id().to_str() !== rewardTokenId ||
-                        Utils.bigintFromI64(boxRewardToken.amount().as_i64()) !== watcherShare ||
-                        boxRSNToken.id().to_str() !== Configs.rsn ||
-                        Utils.bigintFromI64(boxRSNToken.amount().as_i64()) !== watcherRSNShare
-                    ) return false;
-                }
-                else {
-                    if (box.tokens().len() !== 2) return false;
-
-                    if (watcherShare !== 0n) {
-                        // checks rwt and reward tokens
-                        const boxRewardToken = box.tokens().get(1)
-                        if (
-                            !verifyBoxRWTToken(box) ||
-                            boxRewardToken.id().to_str() !== rewardTokenId ||
-                            Utils.bigintFromI64(boxRewardToken.amount().as_i64()) !== watcherShare
-                        ) return false;
-                    }
-                    else {
-                        // checks rwt and rsn tokens
-                        const boxRSNToken = box.tokens().get(1)
-                        if (
-                            !verifyBoxRWTToken(box) ||
-                            boxRSNToken.id().to_str() !== Configs.rsn ||
-                            Utils.bigintFromI64(boxRSNToken.amount().as_i64()) !== watcherRSNShare
-                        ) return false;
-                    }
-                }
-
-                // add box wid to collection
-                outputBoxesWIDs.push(RewardBoxes.getBoxCandidateWIDString(box))
-            }
-            return true
-        }
+    static verifyTransactionWithEvent = async (paymentTx: ErgoTransaction, event: EventTrigger): Promise<boolean> => {
 
         const tx = this.deserialize(paymentTx.txBytes).unsigned_tx()
         const outputBoxes = tx.output_candidates()
 
+        // get current height of network (not important, just for creation of expected boxes)
+        const currentHeight = await NodeApi.getHeight()
+
         // get eventBox and remaining valid commitments
-        const eventBox: ErgoBox = RewardBoxes.getEventBox(event)
-        const commitmentBoxes: ErgoBox[] = RewardBoxes.getEventValidCommitments(event)
-        if (!RewardBoxes.verifyInputs(tx.inputs(), eventBox, commitmentBoxes)) return false
+        const eventBox: ErgoBox = InputBoxes.getEventBox(event)
+        const commitmentBoxes: ErgoBox[] = InputBoxes.getEventValidCommitments(event)
+        const rsnCoef = await InputBoxes.getRSNRatioCoef(event.sourceChainTokenId)
+        if (!BoxVerifications.verifyInputs(tx.inputs(), eventBox, commitmentBoxes, paymentTx.inputBoxes)) return false
 
         // verify number of output boxes (number of watchers + 2 box for guards + 1 change box + 1 tx fee box)
         const outputLength = outputBoxes.len()
         const watchersLen = event.WIDs.length + commitmentBoxes.length
         if (outputLength !== watchersLen + 4) return false
 
-        // verify guards and change boxes ergoTree
-        const guardsBridgeFeeBox = outputBoxes.get(outputLength - 4)
-        const guardsNetworkFeeBox = outputBoxes.get(outputLength - 3)
-        if (
-            guardsBridgeFeeBox.ergo_tree().to_base16_bytes() !== Utils.addressStringToErgoTreeString(ErgoConfigs.bridgeFeeRepoAddress) ||
-            guardsNetworkFeeBox.ergo_tree().to_base16_bytes() !== Utils.addressStringToErgoTreeString(ErgoConfigs.networkFeeRepoAddress) ||
-            outputBoxes.get(outputLength - 2).ergo_tree().to_base16_bytes() !== this.bankErgoTree
-        ) return false;
+        // verify change box address
+        if (outputBoxes.get(outputLength - 2).ergo_tree().to_base16_bytes() !== this.bankErgoTree) return false;
 
-        // verify event condition
-        const watcherShare: bigint = BigInt(event.bridgeFee) * ErgoConfigs.watchersSharePercent / 100n / BigInt(watchersLen)
-        const guardsBridgeFeeShare: bigint = BigInt(event.bridgeFee) - (BigInt(watchersLen) * watcherShare)
-        const guardsNetworkFeeShare = BigInt(event.networkFee)
-        const rsnCoef = await RewardBoxes.getRSNRatioCoef(event.sourceChainTokenId)
-        const rsnFee = BigInt(event.bridgeFee) * rsnCoef[0]  / rsnCoef[1]
-        const watcherRSNShare: bigint = rsnFee * ErgoConfigs.watchersRSNSharePercent / 100n / BigInt(watchersLen)
-        const guardsRSNShare: bigint = rsnFee - (BigInt(watchersLen) * watcherRSNShare)
+        // verify reward boxes
+        const expectedRewardBoxes = (event.sourceChainTokenId === ChainsConstants.ergoNativeAsset) ?
+            this.ergEventRewardBoxes(event, eventBox, commitmentBoxes, rsnCoef, currentHeight) :
+            this.tokenEventRewardBoxes(event, eventBox, commitmentBoxes, rsnCoef, currentHeight)
 
-        const rwtToken = Configs.ergoRWT
-        const outputBoxesWIDs: string[] = []
+        const rewardBoxes: ErgoBoxCandidate[] = []
+        for (let i = 0; i < watchersLen + 2; i++) // watchers + 2 box for guards
+            rewardBoxes.push(outputBoxes.get(i))
 
-        if (event.sourceChainTokenId === "erg") {
-            if (!verifyErgDistribution()) return false
-        }
-        else {
-            if (!verifyTokenDistribution()) return false
-        }
+        // verify guards boxes and watcher permit boxes conditions
+        if (!BoxVerifications.verifyOutputBoxesList(
+            rewardBoxes.sort(InputBoxes.compareTwoBoxCandidate),
+            expectedRewardBoxes.sort(InputBoxes.compareTwoBoxCandidate)
+        )) return false
 
-        // verify if all inputs WIDs exist in output boxes
-        const inputWIDs = event.WIDs.concat(commitmentBoxes.map(box => Utils.Uint8ArrayToHexString(RewardBoxes.getErgoBoxWID(box))))
-        return Utils.doArraysHaveSameStrings(inputWIDs, outputBoxesWIDs) && RewardBoxes.verifyNoTokenBurned(tx.inputs(), paymentTx.inputBoxes, outputBoxes)
+        // verify tx fee
+        if (ErgoUtils.bigintFromBoxValue(outputBoxes.get(outputLength - 1).value()) !== ErgoConfigs.txFee) return false
+
+        // verify no token burned
+        return BoxVerifications.verifyNoTokenBurned(paymentTx.inputBoxes, outputBoxes)
     }
 
     /**
@@ -298,7 +181,7 @@ class Reward {
      * @param tx the transaction model in the chain library
      * @return bytearray representation of the transaction
      */
-    serialize = (tx: ReducedTransaction): Uint8Array => {
+    static serialize = (tx: ReducedTransaction): Uint8Array => {
         return tx.sigma_serialize_bytes()
     }
 
@@ -307,278 +190,113 @@ class Reward {
      * @param txBytes bytearray representation of the transaction
      * @return the transaction model in the chain library
      */
-    deserialize = (txBytes: Uint8Array): ReducedTransaction => {
+    static deserialize = (txBytes: Uint8Array): ReducedTransaction => {
         return ReducedTransaction.sigma_parse_bytes(txBytes)
     }
 
     /**
-     * generates unsigned transaction (to pay Erg) of the event from multi-sig address in ergo chain
+     * generates outputs of payment and reward distribution tx for an Erg-Distribution event in ergo chain
      * @param event the event trigger model
      * @param eventBox the event trigger box
      * @param commitmentBoxes the not-merged valid commitment boxes for the event
      * @param rsnCoef rsn fee ratio
+     * @param currentHeight current height of blockchain
      * @return the generated reward reduced transaction
      */
-    ergRewardTransaction = async (event: EventTrigger, eventBox: ErgoBox, commitmentBoxes: ErgoBox[], rsnCoef: [bigint, bigint]): Promise<[UnsignedTransaction, ErgoBoxes]> => {
-        // get network current height
-        const currentHeight = await NodeApi.getHeight()
-
-        // calculate assets of payment box
+    static ergEventRewardBoxes = (
+        event: EventTrigger,
+        eventBox: ErgoBox,
+        commitmentBoxes: ErgoBox[],
+        rsnCoef: [bigint, bigint],
+        currentHeight: number
+    ): ErgoBoxCandidate[] => {
         const watchersLen: number = event.WIDs.length + commitmentBoxes.length
-        const inErgAmount: bigint = ErgoConfigs.txFee + BigInt(event.bridgeFee) + BigInt(event.networkFee) + ErgoConfigs.minimumErg
-        const watcherShare: bigint = BigInt(event.bridgeFee) * ErgoConfigs.watchersSharePercent / 100n / BigInt(watchersLen)
-        const guardsBridgeFeeShare: bigint = BigInt(event.bridgeFee) - (BigInt(watchersLen) * watcherShare)
-        const guardsNetworkFeeShare = BigInt(event.networkFee)
         const rsnFee = BigInt(event.bridgeFee) * rsnCoef[0]  / rsnCoef[1]
-        const watcherRSNShare: bigint = rsnFee * ErgoConfigs.watchersRSNSharePercent / 100n / BigInt(watchersLen)
-        const guardsRSNShare: bigint = rsnFee - (BigInt(watchersLen) * watcherRSNShare)
 
-        // calculate needed amount of assets and get input boxes
-        const bankBoxes = await ExplorerApi.getCoveringErgAndTokenForErgoTree(
-            this.bankErgoTree,
-            inErgAmount,
-            {
-                [Configs.rsn]: rsnFee
-            }
-        )
-        if (!bankBoxes.covered)
-            throw new Error(`Bank boxes didn't cover needed amount of erg: ${inErgAmount.toString()}`)
+        // calculate assets of reward boxes
+        const watcherErgAmount: bigint = BigInt(event.bridgeFee) * ErgoConfigs.watchersSharePercent / 100n / BigInt(watchersLen)
+        const watcherTokenAmount: bigint = 0n
+        const watcherRsnAmount: bigint = rsnFee * ErgoConfigs.watchersRSNSharePercent / 100n / BigInt(watchersLen)
+        const guardBridgeFeeErgAmount: bigint = BigInt(event.bridgeFee) - (BigInt(watchersLen) * watcherErgAmount)
+        const guardBridgeFeeTokenAmount: bigint = 0n
+        const guardRsnAmount: bigint = rsnFee - (BigInt(watchersLen) * watcherRsnAmount)
+        const guardNetworkErgAmount: bigint = BigInt(event.networkFee)
+        const guardNetworkTokenAmount: bigint = 0n
+        const rwtTokenId = eventBox.tokens().get(0).id().to_str()
+        const paymentTokenId = event.sourceChainTokenId
+        const wids: Uint8Array[] = [
+            ...event.WIDs.map(Utils.hexStringToUint8Array),
+            ...commitmentBoxes.map(box => InputBoxes.getErgoBoxWID(box))
+        ]
 
-        // create the output boxes
-        const outBoxes = ErgoBoxCandidates.empty()
-
-        // event trigger box watchers
-        const rwtTokenId: TokenId = eventBox.tokens().get(0).id()
-        const rsnTokenId = TokenId.from_str(Configs.rsn)
-        event.WIDs.forEach(wid => {
-            outBoxes.add(RewardBoxes.createErgRewardBox(
-                currentHeight,
-                Utils.bigintFromBoxValue(eventBox.value()) / BigInt(event.WIDs.length),
-                rwtTokenId,
-                watcherShare,
-                Utils.hexStringToUint8Array(wid),
-                rsnTokenId,
-                watcherRSNShare
-            ))
-        })
-
-        // commitment boxes watchers
-        commitmentBoxes.forEach(box => {
-            const wid = RewardBoxes.getErgoBoxWID(box)
-            outBoxes.add(RewardBoxes.createErgRewardBox(
-                currentHeight,
-                Utils.bigintFromBoxValue(box.value()),
-                rwtTokenId,
-                watcherShare,
-                wid,
-                rsnTokenId,
-                watcherRSNShare
-            ))
-        })
-
-        // guardsBridgeFeeBox
-        const guardsBridgeFeeBox = new ErgoBoxCandidateBuilder(
-            Utils.boxValueFromBigint(guardsBridgeFeeShare),
-            Utils.addressStringToContract(ErgoConfigs.bridgeFeeRepoAddress),
-            currentHeight
-        )
-        if (guardsRSNShare > 0n) guardsBridgeFeeBox.add_token(rsnTokenId, TokenAmount.from_i64(Utils.i64FromBigint(guardsRSNShare)))
-        outBoxes.add(guardsBridgeFeeBox.build())
-
-        // guardsNetworkFeeBox
-        outBoxes.add(new ErgoBoxCandidateBuilder(
-            Utils.boxValueFromBigint(guardsNetworkFeeShare),
-            Utils.addressStringToContract(ErgoConfigs.networkFeeRepoAddress),
-            currentHeight
-        ).build())
-
-        // add input boxes
-        const inErgoBoxes = new ErgoBoxes(eventBox)
-        commitmentBoxes.forEach(box => inErgoBoxes.add(box))
-
-        // calculate assets of change box
-        const changeBoxInfo = this.calculateBankBoxesAssets(bankBoxes.boxes, inErgoBoxes)
-        const changeErgAmount: bigint = changeBoxInfo.ergs - (BigInt(event.bridgeFee) + BigInt(event.networkFee)) - ErgoConfigs.txFee
-        const changeTokens: AssetMap = changeBoxInfo.tokens
-        changeTokens[Configs.rsn] -= rsnFee
-
-        // create the change box
-        const changeBox = new ErgoBoxCandidateBuilder(
-            Utils.boxValueFromBigint(changeErgAmount),
-            Utils.addressToContract(this.bankAddress),
-            currentHeight
-        )
-        Object.entries(changeTokens).forEach(([id, amount]) => {
-            if (amount > BigInt(0))
-                changeBox.add_token(TokenId.from_str(id), TokenAmount.from_i64(I64.from_str(amount.toString())))
-        })
-
-        // create the transaction
-        const inBoxes = new BoxSelection(inErgoBoxes, new ErgoBoxAssetsDataList())
-        outBoxes.add(changeBox.build())
-        const tx = TxBuilder.new(
-            inBoxes,
-            outBoxes,
+        // create output boxes
+        return OutputBoxes.createRewardDistributionBoxes(
             currentHeight,
-            Utils.boxValueFromBigint(ErgoConfigs.txFee),
-            this.bankAddress,
-            Utils.boxValueFromBigint(ErgoConfigs.minimumErg)
-        ).build()
-
-        return [tx, inErgoBoxes]
-    }
-
-
-    /**
-     * generates unsigned transaction (to pay token) of the event from multi-sig address in ergo chain
-     * @param event the event trigger model
-     * @param eventBox the event trigger box
-     * @param commitmentBoxes the not-merged valid commitment boxes for the event
-     * @param rsnCoef rsn fee ratio
-     * @return the generated reward reduced transaction
-     */
-    tokenRewardTransaction = async (event: EventTrigger, eventBox: ErgoBox, commitmentBoxes: ErgoBox[], rsnCoef: [bigint, bigint]): Promise<[UnsignedTransaction, ErgoBoxes]> => {
-        // get network current height
-        const currentHeight = await NodeApi.getHeight()
-
-        // calculate assets of payment box
-        const watchersLen: number = event.WIDs.length + commitmentBoxes.length
-        const inErgAmount: bigint = 3n * ErgoConfigs.minimumErg + ErgoConfigs.txFee // 3 minimum erg for two guards boxes and change box
-        const paymentTokenId: TokenId = TokenId.from_str(event.sourceChainTokenId)
-        const watcherShare: bigint = BigInt(event.bridgeFee) * ErgoConfigs.watchersSharePercent / 100n / BigInt(watchersLen)
-        const guardsBridgeFeeShare: bigint = BigInt(event.bridgeFee) - (BigInt(watchersLen) * watcherShare)
-        const guardsNetworkFeeShare = BigInt(event.networkFee)
-        const rsnFee = BigInt(event.bridgeFee) * rsnCoef[0]  / rsnCoef[1]
-        const watcherRSNShare: bigint = rsnFee * ErgoConfigs.watchersRSNSharePercent / 100n / BigInt(watchersLen)
-        const guardsRSNShare: bigint = rsnFee - (BigInt(watchersLen) * watcherRSNShare)
-
-        // calculate needed amount of assets and get input boxes
-        const bankBoxes = await ExplorerApi.getCoveringErgAndTokenForErgoTree(
-            this.bankErgoTree,
-            inErgAmount,
-            {
-                [event.sourceChainTokenId]: BigInt(event.bridgeFee) + BigInt(event.networkFee),
-                [Configs.rsn]: rsnFee
-            }
-        )
-        if (!bankBoxes.covered)
-            throw new Error(`Bank boxes didn't cover needed amount of erg: ${inErgAmount.toString()}, or token: [id: ${event.sourceChainTokenId}] amount: ${BigInt(event.bridgeFee) + BigInt(event.networkFee)}`)
-
-        // create the output boxes
-        const outBoxes = ErgoBoxCandidates.empty()
-
-        // event trigger box watchers
-        const rwtTokenId: TokenId = eventBox.tokens().get(0).id()
-        const rsnTokenId = TokenId.from_str(Configs.rsn)
-        event.WIDs.forEach(wid => outBoxes.add(RewardBoxes.createTokenRewardBox(
-            currentHeight,
-            Utils.bigintFromBoxValue(eventBox.value()) / BigInt(event.WIDs.length),
+            watcherErgAmount,
+            watcherTokenAmount,
+            watcherRsnAmount,
+            guardBridgeFeeErgAmount,
+            guardBridgeFeeTokenAmount,
+            guardRsnAmount,
+            guardNetworkErgAmount,
+            guardNetworkTokenAmount,
             rwtTokenId,
             paymentTokenId,
-            watcherShare,
-            Utils.hexStringToUint8Array(wid),
-            rsnTokenId,
-            watcherRSNShare
-        )))
-
-        // commitment boxes watchers
-        commitmentBoxes.forEach(box => {
-            const wid = RewardBoxes.getErgoBoxWID(box)
-            outBoxes.add(RewardBoxes.createTokenRewardBox(
-                currentHeight,
-                Utils.bigintFromBoxValue(box.value()),
-                rwtTokenId,
-                paymentTokenId,
-                watcherShare,
-                wid,
-                rsnTokenId,
-                watcherRSNShare
-            ))
-        })
-
-        // guardsBridgeFeeBox
-        const guardsBridgeFeeBox = new ErgoBoxCandidateBuilder(
-            Utils.boxValueFromBigint(ErgoConfigs.minimumErg),
-            Utils.addressStringToContract(ErgoConfigs.bridgeFeeRepoAddress),
-            currentHeight
+            wids,
         )
-        guardsBridgeFeeBox.add_token(paymentTokenId, TokenAmount.from_i64(Utils.i64FromBigint(guardsBridgeFeeShare)))
-        if (guardsRSNShare > 0n) guardsBridgeFeeBox.add_token(rsnTokenId, TokenAmount.from_i64(Utils.i64FromBigint(guardsRSNShare)))
-        outBoxes.add(guardsBridgeFeeBox.build())
-
-        // guardsNetworkFeeBox
-        const guardsNetworkFeeBox = new ErgoBoxCandidateBuilder(
-            Utils.boxValueFromBigint(ErgoConfigs.minimumErg),
-            Utils.addressStringToContract(ErgoConfigs.networkFeeRepoAddress),
-            currentHeight
-        )
-        guardsNetworkFeeBox.add_token(paymentTokenId, TokenAmount.from_i64(Utils.i64FromBigint(guardsNetworkFeeShare)))
-        outBoxes.add(guardsNetworkFeeBox.build())
-
-        // add input boxes
-        const inErgoBoxes = new ErgoBoxes(eventBox)
-        commitmentBoxes.forEach(box => inErgoBoxes.add(box))
-
-        // calculate assets of change box
-        const changeBoxInfo = this.calculateBankBoxesAssets(bankBoxes.boxes, inErgoBoxes)
-        const changeErgAmount: bigint = changeBoxInfo.ergs - (2n * ErgoConfigs.minimumErg) - ErgoConfigs.txFee // reduce other boxes ergs (two guards boxes)
-        const changeTokens: AssetMap = changeBoxInfo.tokens
-        changeTokens[event.sourceChainTokenId] -= BigInt(event.bridgeFee) + BigInt(event.networkFee)
-        changeTokens[Configs.rsn] -= rsnFee
-
-        // create the change box
-        const changeBox = new ErgoBoxCandidateBuilder(
-            Utils.boxValueFromBigint(changeErgAmount),
-            Utils.addressToContract(this.bankAddress),
-            currentHeight
-        )
-        Object.entries(changeTokens).forEach(([id, amount]) => {
-            if (amount > BigInt(0))
-                changeBox.add_token(TokenId.from_str(id), TokenAmount.from_i64(I64.from_str(amount.toString())))
-        })
-
-        // create the transaction
-        const inBoxes = new BoxSelection(inErgoBoxes, new ErgoBoxAssetsDataList())
-        outBoxes.add(changeBox.build())
-        const tx = TxBuilder.new(
-            inBoxes,
-            outBoxes,
-            currentHeight,
-            Utils.boxValueFromBigint(ErgoConfigs.txFee),
-            this.bankAddress,
-            Utils.boxValueFromBigint(ErgoConfigs.minimumErg)
-        ).build()
-
-        return [tx, inErgoBoxes]
     }
 
+
     /**
-     * calculates amount of ergs and tokens in ergo input boxes
-     * @param boxes the ergo input boxes
-     * @param inErgoBoxes the other input boxes
+     * generates outputs of payment and reward distribution tx for a Token-Distribution event in ergo chain
+     * @param event the event trigger model
+     * @param eventBox the event trigger box
+     * @param commitmentBoxes the not-merged valid commitment boxes for the event
+     * @param rsnCoef rsn fee ratio
+     * @param currentHeight current height of blockchain
+     * @return the generated reward reduced transaction
      */
-    calculateBankBoxesAssets = (boxes: ErgoBox[], inErgoBoxes: ErgoBoxes): InBoxesInfo => {
-        let changeErgAmount = BigInt(0)
-        const changeTokens: AssetMap = {}
+    static tokenEventRewardBoxes = (
+        event: EventTrigger,
+        eventBox: ErgoBox,
+        commitmentBoxes: ErgoBox[],
+        rsnCoef: [bigint, bigint],
+        currentHeight: number
+    ): ErgoBoxCandidate[] => {
+        const watchersLen: number = event.WIDs.length + commitmentBoxes.length
+        const rsnFee = BigInt(event.bridgeFee) * rsnCoef[0]  / rsnCoef[1]
 
-        boxes.forEach(box => {
-            changeErgAmount += Utils.bigintFromI64(box.value().as_i64())
-            const tokenSize = box.tokens().len()
-            for (let i = 0; i < tokenSize; i++) {
-                const token = box.tokens().get(i)
-                if (Object.prototype.hasOwnProperty.call(changeTokens, token.id().to_str()))
-                    changeTokens[token.id().to_str()] += Utils.bigintFromI64(token.amount().as_i64())
-                else
-                    changeTokens[token.id().to_str()] = Utils.bigintFromI64(token.amount().as_i64())
-            }
+        // calculate assets of reward boxes
+        const watcherErgAmount: bigint = ErgoConfigs.minimumErg
+        const watcherTokenAmount: bigint = BigInt(event.bridgeFee) * ErgoConfigs.watchersSharePercent / 100n / BigInt(watchersLen)
+        const watcherRsnAmount: bigint = rsnFee * ErgoConfigs.watchersRSNSharePercent / 100n / BigInt(watchersLen)
+        const guardBridgeFeeErgAmount: bigint = ErgoConfigs.minimumErg
+        const guardBridgeFeeTokenAmount: bigint = BigInt(event.bridgeFee) - (BigInt(watchersLen) * watcherErgAmount)
+        const guardRsnAmount: bigint = rsnFee - (BigInt(watchersLen) * watcherRsnAmount)
+        const guardNetworkErgAmount: bigint = ErgoConfigs.minimumErg
+        const guardNetworkTokenAmount: bigint = BigInt(event.networkFee)
+        const rwtTokenId = eventBox.tokens().get(0).id().to_str()
+        const paymentTokenId = event.targetChainTokenId
+        const wids: Uint8Array[] = [
+            ...event.WIDs.map(Utils.hexStringToUint8Array),
+            ...commitmentBoxes.map(box => InputBoxes.getErgoBoxWID(box))
+        ]
 
-            inErgoBoxes.add(box)
-        })
-        return {
-            inBoxes: inErgoBoxes,
-            ergs: changeErgAmount,
-            tokens: changeTokens
-        }
+        // create output boxes
+        return OutputBoxes.createRewardDistributionBoxes(
+            currentHeight,
+            watcherErgAmount,
+            watcherTokenAmount,
+            watcherRsnAmount,
+            guardBridgeFeeErgAmount,
+            guardBridgeFeeTokenAmount,
+            guardRsnAmount,
+            guardNetworkErgAmount,
+            guardNetworkTokenAmount,
+            rwtTokenId,
+            paymentTokenId,
+            wids,
+        )
     }
 
 }

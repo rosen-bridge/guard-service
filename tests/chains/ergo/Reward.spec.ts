@@ -5,19 +5,19 @@ import { expect } from "chai";
 import { CoveringErgoBoxes } from "../../../src/chains/ergo/models/Interfaces";
 import { beforeEach } from "mocha";
 import { mockGetCoveringErgAndTokenForErgoTree, resetMockedExplorerApi } from "./mocked/MockedExplorer";
-import Utils from "../../../src/chains/ergo/helpers/Utils";
+import ErgoUtils from "../../../src/chains/ergo/helpers/ErgoUtils";
 import {
     mockGetEventBox,
     mockGetEventValidCommitments,
     mockGetRSNRatioCoef,
-    resetMockedRewardBoxes
-} from "./mocked/MockedRewardBoxes";
+    resetMockedInputBoxes
+} from "./mocked/MockedInputBoxes";
 import { anything, spy, when } from "ts-mockito";
 import ErgoConfigs from "../../../src/chains/ergo/helpers/ErgoConfigs";
 
 describe("Reward", () => {
     const testBankAddress = TestBoxes.testBankAddress
-    const testBankErgoTree: string = Utils.addressStringToErgoTreeString(testBankAddress)
+    const testBankErgoTree: string = ErgoUtils.addressStringToErgoTreeString(testBankAddress)
 
     describe("generateTransaction", () => {
         // mock getting boxes
@@ -27,7 +27,7 @@ describe("Reward", () => {
         beforeEach("mock ExplorerApi", function() {
             resetMockedExplorerApi()
             mockGetCoveringErgAndTokenForErgoTree(testBankErgoTree, bankBoxes)
-            resetMockedRewardBoxes()
+            resetMockedInputBoxes()
             mockGetEventBox(anything(), eventBoxAndCommitments[0])
             mockGetEventValidCommitments(anything(), eventBoxAndCommitments.slice(1))
             mockGetRSNRatioCoef(anything(), [BigInt(0), BigInt(100000)])
@@ -45,14 +45,12 @@ describe("Reward", () => {
         it("should generate an erg distribution tx and verify it successfully", async () => {
             // mock erg payment event
             const mockedEvent: EventTrigger = TestBoxes.mockErgRewardEventTrigger()
-            const spiedErgoConfig = spy(ErgoConfigs)
 
             // run test
-            const reward = new Reward()
-            const tx = await reward.generateTransaction(mockedEvent)
+            const tx = await Reward.generateTransaction(mockedEvent)
 
             // verify tx
-            const isValid = await reward.verifyTransactionWithEvent(tx, mockedEvent)
+            const isValid = await Reward.verifyTransactionWithEvent(tx, mockedEvent)
             expect(isValid).to.be.true
         })
 
@@ -70,11 +68,10 @@ describe("Reward", () => {
             const mockedEvent: EventTrigger = TestBoxes.mockTokenRewardEventTrigger()
 
             // run test
-            const reward = new Reward()
-            const tx = await reward.generateTransaction(mockedEvent)
+            const tx = await Reward.generateTransaction(mockedEvent)
 
             // verify tx
-            const isValid = await reward.verifyTransactionWithEvent(tx, mockedEvent)
+            const isValid = await Reward.verifyTransactionWithEvent(tx, mockedEvent)
             expect(isValid).to.be.true
         })
 
@@ -95,11 +92,10 @@ describe("Reward", () => {
             when(spiedErgoConfig.watchersRSNSharePercent).thenReturn(40n)
 
             // run test
-            const reward = new Reward()
-            const tx = await reward.generateTransaction(mockedEvent)
+            const tx = await Reward.generateTransaction(mockedEvent)
 
             // verify tx
-            const isValid = await reward.verifyTransactionWithEvent(tx, mockedEvent)
+            const isValid = await Reward.verifyTransactionWithEvent(tx, mockedEvent)
             expect(isValid).to.be.true
         })
 
@@ -120,11 +116,10 @@ describe("Reward", () => {
             when(spiedErgoConfig.watchersRSNSharePercent).thenReturn(40n)
 
             // run test
-            const reward = new Reward()
-            const tx = await reward.generateTransaction(mockedEvent)
+            const tx = await Reward.generateTransaction(mockedEvent)
 
             // verify tx
-            const isValid = await reward.verifyTransactionWithEvent(tx, mockedEvent)
+            const isValid = await Reward.verifyTransactionWithEvent(tx, mockedEvent)
             expect(isValid).to.be.true
         })
 
@@ -146,11 +141,10 @@ describe("Reward", () => {
             when(spiedErgoConfig.watchersSharePercent).thenReturn(0n)
 
             // run test
-            const reward = new Reward()
-            const tx = await reward.generateTransaction(mockedEvent)
+            const tx = await Reward.generateTransaction(mockedEvent)
 
             // verify tx
-            const isValid = await reward.verifyTransactionWithEvent(tx, mockedEvent)
+            const isValid = await Reward.verifyTransactionWithEvent(tx, mockedEvent)
             expect(isValid).to.be.true
         })
 
@@ -161,7 +155,7 @@ describe("Reward", () => {
         const eventBoxAndCommitments = TestBoxes.mockEventBoxWithSomeCommitments()
 
         beforeEach("mock ExplorerApi", function() {
-            resetMockedRewardBoxes()
+            resetMockedInputBoxes()
             mockGetEventBox(anything(), eventBoxAndCommitments[0])
             mockGetEventValidCommitments(anything(), eventBoxAndCommitments.slice(1))
             mockGetRSNRatioCoef(anything(), [BigInt(0), BigInt(100000)])
@@ -180,8 +174,7 @@ describe("Reward", () => {
             const tx = TestBoxes.mockTokenTransferringErgDistributionTransaction(mockedEvent, eventBoxAndCommitments)
 
             // run test
-            const reward = new Reward()
-            const isValid = await reward.verifyTransactionWithEvent(tx, mockedEvent)
+            const isValid = await Reward.verifyTransactionWithEvent(tx, mockedEvent)
             expect(isValid).to.be.false
         })
 
@@ -198,8 +191,7 @@ describe("Reward", () => {
             const tx = TestBoxes.mockTransferToIllegalWIDDistributionTransaction(mockedEvent, eventBoxAndCommitments)
 
             // run test
-            const reward = new Reward()
-            const isValid = await reward.verifyTransactionWithEvent(tx, mockedEvent)
+            const isValid = await Reward.verifyTransactionWithEvent(tx, mockedEvent)
             expect(isValid).to.be.false
         })
 
@@ -216,8 +208,7 @@ describe("Reward", () => {
             const tx = TestBoxes.mockMissingValidCommitmentDistributionTransaction(mockedEvent, eventBoxAndCommitments.slice(0, eventBoxAndCommitments.length - 1))
 
             // run test
-            const reward = new Reward()
-            const isValid = await reward.verifyTransactionWithEvent(tx, mockedEvent)
+            const isValid = await Reward.verifyTransactionWithEvent(tx, mockedEvent)
             expect(isValid).to.be.false
         })
 
@@ -234,8 +225,7 @@ describe("Reward", () => {
             const tx = TestBoxes.mockIllegalChangeBoxDistributionTransaction(mockedEvent, eventBoxAndCommitments)
 
             // run test
-            const reward = new Reward()
-            const isValid = await reward.verifyTransactionWithEvent(tx, mockedEvent)
+            const isValid = await Reward.verifyTransactionWithEvent(tx, mockedEvent)
             expect(isValid).to.be.false
         })
 
@@ -252,8 +242,7 @@ describe("Reward", () => {
             const tx = TestBoxes.mockWrongTokenDistributionTransaction(mockedEvent, eventBoxAndCommitments)
 
             // run test
-            const reward = new Reward()
-            const isValid = await reward.verifyTransactionWithEvent(tx, mockedEvent)
+            const isValid = await Reward.verifyTransactionWithEvent(tx, mockedEvent)
             expect(isValid).to.be.false
         })
 
@@ -270,8 +259,7 @@ describe("Reward", () => {
             const tx = TestBoxes.mockWrongAmountTokenDistributionTransaction(mockedEvent, eventBoxAndCommitments)
 
             // run test
-            const reward = new Reward()
-            const isValid = await reward.verifyTransactionWithEvent(tx, mockedEvent)
+            const isValid = await Reward.verifyTransactionWithEvent(tx, mockedEvent)
             expect(isValid).to.be.false
         })
 
@@ -288,8 +276,7 @@ describe("Reward", () => {
             const tx = TestBoxes.mockTokenBurningTokenDistributionTransaction(mockedEvent, eventBoxAndCommitments)
 
             // run test
-            const reward = new Reward()
-            const isValid = await reward.verifyTransactionWithEvent(tx, mockedEvent)
+            const isValid = await Reward.verifyTransactionWithEvent(tx, mockedEvent)
             expect(isValid).to.be.false
         })
 
@@ -306,8 +293,7 @@ describe("Reward", () => {
             const tx = TestBoxes.mockTokenBurningErgDistributionTransaction(mockedEvent, eventBoxAndCommitments)
 
             // run test
-            const reward = new Reward()
-            const isValid = await reward.verifyTransactionWithEvent(tx, mockedEvent)
+            const isValid = await Reward.verifyTransactionWithEvent(tx, mockedEvent)
             expect(isValid).to.be.false
         })
 
@@ -328,8 +314,7 @@ describe("Reward", () => {
             when(spiedErgoConfig.watchersSharePercent).thenReturn(0n)
 
             // run test
-            const reward = new Reward()
-            const isValid = await reward.verifyTransactionWithEvent(tx, mockedEvent)
+            const isValid = await Reward.verifyTransactionWithEvent(tx, mockedEvent)
             expect(isValid).to.be.false
         })
 

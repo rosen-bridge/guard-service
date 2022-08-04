@@ -12,6 +12,7 @@ class Configs {
     static cardanoRWT = config.get<string>('tokens.cardanoRWT')
     static rsn = config.get<string>('tokens.RSN')
     static rsnRatioNFT = config.get<string>('tokens.RSNRatioNFT')
+    static guardNFT = config.get<string>('tokens.GuardNFT')
 
     // tss configs
     static tssUrl = config.get<string>('tss.url')

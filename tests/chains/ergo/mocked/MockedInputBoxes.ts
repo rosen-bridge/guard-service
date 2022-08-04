@@ -1,9 +1,11 @@
 import { reset, spy, when } from "ts-mockito";
-import RewardBoxes from "../../../../src/chains/ergo/helpers/RewardBoxes";
 import { EventTrigger } from "../../../../src/models/Models";
 import { ErgoBox } from "ergo-lib-wasm-nodejs";
+import InputBoxes from "../../../../src/chains/ergo/boxes/InputBoxes";
+import TestBoxes from "../testUtils/TestBoxes";
 
-let mockedRewardBoxes = spy(RewardBoxes)
+let mockedInputBoxes = spy(InputBoxes)
+when(mockedInputBoxes.getGuardsInfoBox()).thenResolve(TestBoxes.guardNFTBox)
 
 /**
  * mocks RewardBoxes getEventBox method to return returnBox when called for an event
@@ -11,7 +13,7 @@ let mockedRewardBoxes = spy(RewardBoxes)
  * @param returnBox
  */
 const mockGetEventBox = (event: EventTrigger, returnBox: ErgoBox): void => {
-    when(mockedRewardBoxes.getEventBox(event)).thenReturn(returnBox)
+    when(mockedInputBoxes.getEventBox(event)).thenReturn(returnBox)
 }
 
 /**
@@ -20,7 +22,7 @@ const mockGetEventBox = (event: EventTrigger, returnBox: ErgoBox): void => {
  * @param returnBoxes
  */
 const mockGetEventValidCommitments = (event: EventTrigger, returnBoxes: ErgoBox[]): void => {
-    when(mockedRewardBoxes.getEventValidCommitments(event)).thenReturn(returnBoxes)
+    when(mockedInputBoxes.getEventValidCommitments(event)).thenReturn(returnBoxes)
 }
 
 /**
@@ -29,20 +31,21 @@ const mockGetEventValidCommitments = (event: EventTrigger, returnBoxes: ErgoBox[
  * @param coefs
  */
 const mockGetRSNRatioCoef = (tokenId: string, coefs: [bigint, bigint]): void => {
-    when(mockedRewardBoxes.getRSNRatioCoef(tokenId)).thenResolve(coefs)
+    when(mockedInputBoxes.getRSNRatioCoef(tokenId)).thenResolve(coefs)
 }
 
 /**
  * resets mocked methods of RewardBoxes
  */
-const resetMockedRewardBoxes = (): void => {
-    reset(mockedRewardBoxes)
-    mockedRewardBoxes = spy(RewardBoxes)
+const resetMockedInputBoxes = (): void => {
+    reset(mockedInputBoxes)
+    mockedInputBoxes = spy(InputBoxes)
+    when(mockedInputBoxes.getGuardsInfoBox()).thenResolve(TestBoxes.guardNFTBox)
 }
 
 export {
     mockGetEventBox,
     mockGetEventValidCommitments,
     mockGetRSNRatioCoef,
-    resetMockedRewardBoxes
+    resetMockedInputBoxes
 }
