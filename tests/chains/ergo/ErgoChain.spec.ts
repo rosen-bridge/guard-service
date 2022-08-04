@@ -14,7 +14,6 @@ import {
 } from "./mocked/MockedInputBoxes";
 import { anything, spy, when } from "ts-mockito";
 import ErgoConfigs from "../../../src/chains/ergo/helpers/ErgoConfigs";
-import { JsonBI } from "../../../src/network/NetworkModels";
 
 describe("ErgoChain",  () => {
     const testBankAddress = TestBoxes.testBankAddress
@@ -31,7 +30,6 @@ describe("ErgoChain",  () => {
             resetMockedInputBoxes()
             mockGetEventBox(anything(), eventBoxAndCommitments[0])
             mockGetEventValidCommitments(anything(), eventBoxAndCommitments.slice(1))
-            mockGetRSNRatioCoef(anything(), [BigInt(0), BigInt(100000)])
         })
 
         /**
@@ -46,6 +44,7 @@ describe("ErgoChain",  () => {
         it("should generate an Erg payment tx and verify it successfully", async () => {
             // mock erg payment event
             const mockedEvent: EventTrigger = TestBoxes.mockErgPaymentEventTrigger()
+            mockGetRSNRatioCoef(anything(), [BigInt(0), BigInt(100000)])
 
             // run test
             const ergoChain: ErgoChain = new ErgoChain()
@@ -68,6 +67,7 @@ describe("ErgoChain",  () => {
         it("should generate a token payment tx and verify it successfully", async () => {
             // mock token payment event
             const mockedEvent: EventTrigger = TestBoxes.mockTokenPaymentEventTrigger()
+            mockGetRSNRatioCoef(anything(), [BigInt(0), BigInt(100000)])
 
             // run test
             const ergoChain: ErgoChain = new ErgoChain()
@@ -90,8 +90,8 @@ describe("ErgoChain",  () => {
         it("should generate an Erg payment tx with RSN and verify it successfully", async () => {
             // mock erg payment event
             const mockedEvent: EventTrigger = TestBoxes.mockErgPaymentEventTrigger()
-            const spiedErgoConfig = spy(ErgoConfigs)
             mockGetRSNRatioCoef(anything(), [BigInt(47), BigInt(100000)])
+            const spiedErgoConfig = spy(ErgoConfigs)
             when(spiedErgoConfig.watchersRSNSharePercent).thenReturn(40n)
 
             // run test
@@ -115,8 +115,8 @@ describe("ErgoChain",  () => {
         it("should generate a token payment tx with RSN and verify it successfully", async () => {
             // mock token payment event
             const mockedEvent: EventTrigger = TestBoxes.mockTokenPaymentEventTrigger()
+            mockGetRSNRatioCoef(anything(), [BigInt(47), BigInt(10)])
             const spiedErgoConfig = spy(ErgoConfigs)
-            mockGetRSNRatioCoef(anything(), [BigInt(47), BigInt(100000)])
             when(spiedErgoConfig.watchersRSNSharePercent).thenReturn(40n)
 
             // run test
@@ -140,8 +140,8 @@ describe("ErgoChain",  () => {
         it("should generate an only RSN payment tx and verify it successfully", async () => {
             // mock token payment event
             const mockedEvent: EventTrigger = TestBoxes.mockErgPaymentEventTrigger()
-            const spiedErgoConfig = spy(ErgoConfigs)
             mockGetRSNRatioCoef(anything(), [BigInt(47), BigInt(100000)])
+            const spiedErgoConfig = spy(ErgoConfigs)
             when(spiedErgoConfig.watchersRSNSharePercent).thenReturn(40n)
             when(spiedErgoConfig.watchersSharePercent).thenReturn(0n)
 

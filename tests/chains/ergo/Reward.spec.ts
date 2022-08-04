@@ -14,7 +14,6 @@ import {
 } from "./mocked/MockedInputBoxes";
 import { anything, spy, when } from "ts-mockito";
 import ErgoConfigs from "../../../src/chains/ergo/helpers/ErgoConfigs";
-import { JsonBI } from "../../../src/network/NetworkModels";
 
 describe("Reward", () => {
     const testBankAddress = TestBoxes.testBankAddress
@@ -113,7 +112,7 @@ describe("Reward", () => {
             // mock token payment event
             const mockedEvent: EventTrigger = TestBoxes.mockTokenRewardEventTrigger()
             const spiedErgoConfig = spy(ErgoConfigs)
-            mockGetRSNRatioCoef(anything(), [BigInt(47), BigInt(100000)])
+            mockGetRSNRatioCoef(anything(), [BigInt(47), BigInt(10)])
             when(spiedErgoConfig.watchersRSNSharePercent).thenReturn(40n)
 
             // run test

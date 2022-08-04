@@ -123,12 +123,6 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
             TransactionTypes.payment
         )
 
-        // console.log(`================================================================`)
-        // console.log(JsonBI.stringify(event, undefined, 4))
-        // console.log(`================================================================`)
-        // console.log(tx.to_json())
-        // console.log(`================================================================`)
-
         console.log(`Payment transaction for event [${eventId}] generated. TxId: ${txId}`)
         return ergoTx
     }
