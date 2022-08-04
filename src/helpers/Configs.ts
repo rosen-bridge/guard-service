@@ -3,9 +3,13 @@ import { GuardInfo } from "../guard/agreement/Interfaces";
 
 class Configs {
 
+    // express config
     static expressPort = config.get<number>('express.port')
     private static expressBodyLimitValue = config.get<number>('express.jsonBodyLimit')
     static expressBodyLimit = `${this.expressBodyLimitValue}mb`
+
+    // config of API's route
+    static MAX_LENGTH_CHANNEL_SIZE = 200
 
     // token configs
     static ergoRWT = config.get<string>('tokens.ergoRWT')
