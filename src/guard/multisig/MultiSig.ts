@@ -46,7 +46,8 @@ class MultiSigHandler{
     public static getInstance = (publicKeys: Array<string>, secretHex?: string) => {
         if (!MultiSigHandler.instance) {
             MultiSigHandler.instance = new MultiSigHandler(publicKeys, secretHex);
-            // this.sendRegister().then(()=>{})
+            MultiSigHandler.instance.sendRegister().then(() => {
+            })
         }
         return MultiSigHandler.instance;
     }
