@@ -109,6 +109,9 @@ class MultiSigHandler{
         return peerId;
     }
 
+    /**
+     * cleaning unsigned transaction after multiSigTimeout if the transaction still exist in queue
+     */
     cleanup = (): void => {
         this.semaphore.acquire().then(release => {
             const toRemoveKeys: Array<string> = []
