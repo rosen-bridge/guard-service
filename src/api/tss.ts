@@ -14,8 +14,7 @@ export const tssRouter = Router();
 tssRouter.post("/tssSign",
     body("signature")
         .notEmpty().withMessage("key signature is required!")
-        .isString()
-        .isLength({max: Configs.MAX_LENGTH_CHANNEL_SIZE}),
+        .isString(),
     body("m")
         .notEmpty().withMessage("key m is required!")
         .isString(),
