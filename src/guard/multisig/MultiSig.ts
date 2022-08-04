@@ -126,19 +126,14 @@ class MultiSigHandler {
     cleanup = (): void => {
         this.semaphore.acquire().then(release => {
             try {
-                const toRemoveKeys: Array<string> = []
                 for (const [key, transaction] of this.transactions.entries()) {
                     if (transaction.createTime < new Date().getTime() - Configs.multiSigTimeout) {
-                        toRemoveKeys.push(key)
+                        if(transaction.reject){
+                            transaction.reject("Timed out")
+                        }
+                        this.transactions.delete(key)
                     }
                 }
-                toRemoveKeys.forEach(key => {
-                    const tx = this.transactions.get(key)
-                    if (tx && tx.reject) {
-                        tx.reject("Timed out")
-                    }
-                    this.transactions.delete(key)
-                })
                 release()
             } catch (e) {
                 release()
@@ -244,7 +239,6 @@ class MultiSigHandler {
                             if (signed.indexOf(this.peers[index].pub) === -1) {
                                 const publicHints = MultiSigUtils.convertToHintBag(commitment, peer.pub)
                                 MultiSigUtils.add_hints(hints, publicHints, transaction.tx)
-                                console.log(JSON.stringify(hints.to_json()))
                             }
                         }
                     }
@@ -268,7 +262,7 @@ class MultiSigHandler {
                             }
                         }
                     } catch (e) {
-                        console.log(e)
+                        console.log(`An error occurred during generate sign: ${e}`)
                     }
                 }
             }
