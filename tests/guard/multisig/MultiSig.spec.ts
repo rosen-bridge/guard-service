@@ -5,7 +5,6 @@ import {
     sendMessageBodyAndPayloadArguments,
 } from "../../communication/mocked/MockedDialer";
 import * as wasm from 'ergo-lib-wasm-nodejs';
-import exp from "constants";
 
 
 const publicKeys = [
@@ -49,7 +48,7 @@ describe("MultiSigHandler", () => {
          *  Expected:
          *      that getIndex should return 0
          */
-        it("should return 0", () => {
+        it("should returns 0", () => {
             const handler = new MultiSigHandler(publicKeys, "5bc1d17d0612e696a9138ab8e85ca2a02d0171440ec128a9ad557c28bd5ea046")
             expect(handler.getIndex()).to.be.equal(0);
         })
@@ -63,7 +62,7 @@ describe("MultiSigHandler", () => {
          *  Expected:
          *      getProver throw no error
          */
-        it("should return prover with no error", () => {
+        it("should runs with no error", () => {
             const handler = new MultiSigHandler(publicKeys, "5bc1d17d0612e696a9138ab8e85ca2a02d0171440ec128a9ad557c28bd5ea046")
             const wallet = handler.getProver();
         })
@@ -93,7 +92,7 @@ describe("MultiSigHandler", () => {
          *  -
          *  Expected: handleCommitment called and other handlers don't call
          */
-        it("checks that handleCommitment should called", () => {
+        it("checks that handleCommitment called", () => {
             const handler = new MultiSigHandler(
                 publicKeys,
                 "168e8fee8ac6965832d6c1c17cdf60c1b582b09f293d8bd88231e32740e3b24f"
@@ -120,7 +119,7 @@ describe("MultiSigHandler", () => {
          *  -
          *  Expected: handleCommitment called and other handlers don't call
          */
-        it("checks that handleApprove should called", () => {
+        it("checks that handleApprove called", () => {
             const handler = new MultiSigHandler(
                 publicKeys,
                 "168e8fee8ac6965832d6c1c17cdf60c1b582b09f293d8bd88231e32740e3b24f"
@@ -147,7 +146,7 @@ describe("MultiSigHandler", () => {
          *  -
          *  Expected: handleRegister called and other handlers don't call
          */
-        it("checks that handleRegister should called", () => {
+        it("checks that handleRegister called", () => {
             const handler = new MultiSigHandler(
                 publicKeys,
                 "168e8fee8ac6965832d6c1c17cdf60c1b582b09f293d8bd88231e32740e3b24f"
@@ -174,7 +173,7 @@ describe("MultiSigHandler", () => {
          *  -
          *  Expected: handleSign called and other handlers don't call
          */
-        it("checks that handleSign should called", () => {
+        it("checks that handleSign called", () => {
             const handler = new MultiSigHandler(
                 publicKeys,
                 "168e8fee8ac6965832d6c1c17cdf60c1b582b09f293d8bd88231e32740e3b24f"
@@ -205,7 +204,7 @@ describe("MultiSigHandler", () => {
          *  -
          *  Expected: getPeerId return 'peerId' as peerId
          */
-        it("checks peerId should be peerId", () => {
+        it("checks peerId should be equal to 'peerId'", () => {
             const handler = new MultiSigHandler(publicKeys, "5bc1d17d0612e696a9138ab8e85ca2a02d0171440ec128a9ad557c28bd5ea046")
             expect(handler.getPeerId()).to.be.eql("peerId");
         })
@@ -219,7 +218,7 @@ describe("MultiSigHandler", () => {
          *  -
          *  Expected: sendMessage called once
          */
-        it("checks that handle register called without error", () => {
+        it("checks that handle register called with no error", () => {
             const handler = new MultiSigHandler(publicKeys, "5bc1d17d0612e696a9138ab8e85ca2a02d0171440ec128a9ad557c28bd5ea046")
             const spiedSendMessage = sinon.spy(handler, "sendMessage");
             handler.handleRegister('sender', {index: 1, nonce: 'nonce', myId: "myId"})
