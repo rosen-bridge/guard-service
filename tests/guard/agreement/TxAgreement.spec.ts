@@ -3,16 +3,15 @@ import {
     verifySendMessageWithReceiverCalledOnce
 } from "../../communication/mocked/MockedDialer";
 import ErgoTestBoxes from "../../chains/ergo/testUtils/TestBoxes";
-import { EventTrigger } from "../../../src/models/Models";
+import { EventStatus, EventTrigger, TransactionStatus, TransactionTypes } from "../../../src/models/Models";
 import TxAgreement from "../../../src/guard/agreement/TxAgreement";
-import { anything, deepEqual, reset, spy, verify, when } from "ts-mockito";
 import CardanoTestBoxes from "../../chains/cardano/testUtils/TestBoxes";
 import Configs from "../../../src/helpers/Configs";
 import TestUtils from "../../testUtils/TestUtils";
 import {
     allEventRecords,
-    clearEventTable, clearTxTable,
-    insertEventRecord
+    allTxRecords, clearTables,
+    insertEventRecord, insertTxRecord
 } from "../../db/mocked/MockedScannerModel";
 import {
     mockIsEventConfirmedEnough,
@@ -20,8 +19,11 @@ import {
     resetMockedEventProcessor
 } from "../mocked/MockedEventProcessor";
 import { mockGuardTurn } from "../../testUtils/MockedUtils";
-import { AgreementPayload, GuardsAgreement, TransactionApproved } from "../../../src/guard/agreement/Interfaces";
 import { expect } from "chai";
+import TestTxAgreement from "./TestTxAgreement";
+import { AgreementPayload, GuardsAgreement, TransactionApproved } from "../../../src/guard/agreement/Interfaces";
+import { anything, deepEqual, reset, spy, verify, when } from "ts-mockito";
+import ChainsConstants from "../../../src/chains/ChainsConstants";
 
 describe("TxAgreement", () => {
     const eventBoxAndCommitments = ErgoTestBoxes.mockEventBoxWithSomeCommitments()
@@ -40,8 +42,16 @@ describe("TxAgreement", () => {
             const mockedEvent: EventTrigger = ErgoTestBoxes.mockTokenPaymentEventTrigger()
             const tx = ErgoTestBoxes.mockTokenBurningTokenPaymentTransaction(mockedEvent, eventBoxAndCommitments)
 
+            // generate test data
+            const guardId = Configs.guardId
+            const signature = tx.signMetaData()
+            const creatorAgreement = {
+                "guardId": guardId,
+                "signature": signature
+            }
+
             // run test
-            const txAgreement = new TxAgreement()
+            const txAgreement = new TestTxAgreement()
             txAgreement.startAgreementProcess(tx)
 
             // verify out request
@@ -49,10 +59,12 @@ describe("TxAgreement", () => {
                 "type": "request",
                 "payload": {
                     "txJson": tx.toJson(),
-                    "guardId": 1,
-                    "signature": tx.signMetaData()
+                    "guardId": guardId,
+                    "signature": signature
                 }
             }))
+            expect(txAgreement.getTransactions().get(tx.txId)).to.deep.equal(tx)
+            expect(txAgreement.getTransactionApprovals().get(tx.txId)).to.deep.equal([creatorAgreement])
         })
 
     })
@@ -60,8 +72,7 @@ describe("TxAgreement", () => {
     describe("processTransactionRequest", () => {
 
         beforeEach("clear scanner database tables", async () => {
-            await clearTxTable()
-            await clearEventTable()
+            await clearTables()
             resetMockedEventProcessor()
         })
 
@@ -77,7 +88,7 @@ describe("TxAgreement", () => {
             // mock event and tx
             const mockedEvent: EventTrigger = CardanoTestBoxes.mockADAPaymentEventTrigger()
             const tx = CardanoTestBoxes.mockAssetTransferringPaymentTransaction(mockedEvent, CardanoTestBoxes.testBankAddress)
-            await insertEventRecord(mockedEvent, "", tx.txId, tx.toJson())
+            await insertEventRecord(mockedEvent, EventStatus.pendingPayment)
 
             // mock isConfirmedEnough
             mockIsEventConfirmedEnough(mockedEvent, true)
@@ -92,7 +103,7 @@ describe("TxAgreement", () => {
             const receiver = "testReceiver"
 
             // run test
-            const txAgreement = new TxAgreement()
+            const txAgreement = new TestTxAgreement()
             await txAgreement.processTransactionRequest(tx, senderId, guardSignature, receiver)
 
             // verify out request
@@ -105,9 +116,8 @@ describe("TxAgreement", () => {
                     "agreed": true
                 }
             }), receiver)
-            const dbEvents = await allEventRecords()
-            expect(dbEvents.map(event => [event.sourceTxId, event.status, event.txId, event.paymentTxJson])[0])
-                .to.deep.equal([mockedEvent.sourceTxId, "agreed", tx.txId, tx.toJson()])
+            expect(txAgreement.getTransactions().get(tx.txId)).to.deep.equal(tx)
+            expect(txAgreement.getEventAgreedTransactions().get(tx.eventId)).to.deep.equal(tx.txId)
         })
 
         /**
@@ -124,18 +134,19 @@ describe("TxAgreement", () => {
 
             // generate test data
             const senderId = 0
+            const guardId = Configs.guardId
             const guardSignature = TestUtils.signTxMetaData(tx.txBytes, senderId)
             const receiver = "testReceiver"
 
             // run test
-            const txAgreement = new TxAgreement()
+            const txAgreement = new TestTxAgreement()
             await txAgreement.processTransactionRequest(tx, senderId, guardSignature, receiver)
 
             // verify no agree or reject out request
             verifySendMessageDidntGetCalled("tx-agreement", JSON.stringify({
                 "type": "response",
                 "payload": {
-                    "guardId": Configs.guardId,
+                    "guardId": guardId,
                     "signature": tx.signMetaData(),
                     "txId": tx.txId,
                     "agreed": true
@@ -144,14 +155,14 @@ describe("TxAgreement", () => {
             verifySendMessageDidntGetCalled("tx-agreement", JSON.stringify({
                 "type": "response",
                 "payload": {
-                    "guardId": Configs.guardId,
+                    "guardId": guardId,
                     "signature": "",
                     "txId": tx.txId,
                     "agreed": false
                 }
             }), receiver)
-            const dbEvents = await allEventRecords()
-            expect(dbEvents.length).to.equal(0)
+            expect(Array.from(txAgreement.getTransactions()).length).to.equal(0)
+            expect(Array.from(txAgreement.getEventAgreedTransactions()).length).to.equal(0)
         })
 
         /**
@@ -165,7 +176,7 @@ describe("TxAgreement", () => {
         it("should not respond to request when event doesn't confirmed enough", async () => {
             // mock event and tx
             const mockedEvent: EventTrigger = ErgoTestBoxes.mockTokenPaymentEventTrigger()
-            await insertEventRecord(mockedEvent, "")
+            await insertEventRecord(mockedEvent, EventStatus.pendingPayment)
             const tx = ErgoTestBoxes.mockWrongAmountTokenDistributionTransaction(mockedEvent, eventBoxAndCommitments)
 
             // mock isConfirmedEnough
@@ -177,7 +188,7 @@ describe("TxAgreement", () => {
             const receiver = "testReceiver"
 
             // run test
-            const txAgreement = new TxAgreement()
+            const txAgreement = new TestTxAgreement()
             await txAgreement.processTransactionRequest(tx, senderId, guardSignature, receiver)
 
             // verify no agree or reject out request
@@ -199,9 +210,8 @@ describe("TxAgreement", () => {
                     "agreed": false
                 }
             }), receiver)
-            const dbEvents = await allEventRecords()
-            expect(dbEvents.map(event => [event.sourceTxId, event.status, event.txId, event.paymentTxJson])[0])
-                .to.deep.equal([mockedEvent.sourceTxId, "", null, null])
+            expect(Array.from(txAgreement.getTransactions()).length).to.equal(0)
+            expect(Array.from(txAgreement.getEventAgreedTransactions()).length).to.equal(0)
         })
 
         /**
@@ -228,7 +238,7 @@ describe("TxAgreement", () => {
             const receiver = "testReceiver"
 
             // run test
-            const txAgreement = new TxAgreement()
+            const txAgreement = new TestTxAgreement()
             await txAgreement.processTransactionRequest(tx, senderId, guardSignature, receiver)
 
             // verify out request
@@ -241,9 +251,8 @@ describe("TxAgreement", () => {
                     "agreed": false
                 }
             }), receiver)
-            const dbEvents = await allEventRecords()
-            expect(dbEvents.map(event => [event.sourceTxId, event.status, event.txId, event.paymentTxJson])[0])
-                .to.deep.equal([mockedEvent.sourceTxId, "", null, null])
+            expect(Array.from(txAgreement.getTransactions()).length).to.equal(0)
+            expect(Array.from(txAgreement.getEventAgreedTransactions()).length).to.equal(0)
         })
 
         /**
@@ -273,7 +282,7 @@ describe("TxAgreement", () => {
             const receiver = "testReceiver"
 
             // run test
-            const txAgreement = new TxAgreement()
+            const txAgreement = new TestTxAgreement()
             await txAgreement.processTransactionRequest(tx, senderId, guardSignature, receiver)
 
             // verify out request
@@ -286,9 +295,8 @@ describe("TxAgreement", () => {
                     "agreed": false
                 }
             }), receiver)
-            const dbEvents = await allEventRecords()
-            expect(dbEvents.map(event => [event.sourceTxId, event.status, event.txId, event.paymentTxJson])[0])
-                .to.deep.equal([mockedEvent.sourceTxId, "", null, null])
+            expect(Array.from(txAgreement.getTransactions()).length).to.equal(0)
+            expect(Array.from(txAgreement.getEventAgreedTransactions()).length).to.equal(0)
         })
 
         /**
@@ -304,8 +312,9 @@ describe("TxAgreement", () => {
             // mock event and tx
             const mockedEvent: EventTrigger = ErgoTestBoxes.mockTokenPaymentEventTrigger()
             const tx = ErgoTestBoxes.mockMissingValidCommitmentDistributionTransaction(mockedEvent, eventBoxAndCommitments)
-            const previousTxId = TestUtils.generateRandomId()
-            await insertEventRecord(mockedEvent, "", previousTxId, "testTx")
+            const previousTx = ErgoTestBoxes.mockIllegalChangeBoxDistributionTransaction(mockedEvent, eventBoxAndCommitments)
+            await insertEventRecord(mockedEvent, EventStatus.pendingReward)
+            await insertTxRecord(previousTx, TransactionTypes.reward, ChainsConstants.cardano, TransactionStatus.approved, 0, tx.eventId)
 
             // mock isConfirmedEnough
             mockIsEventConfirmedEnough(mockedEvent, true)
@@ -319,7 +328,7 @@ describe("TxAgreement", () => {
             const receiver = "testReceiver"
 
             // run test
-            const txAgreement = new TxAgreement()
+            const txAgreement = new TestTxAgreement()
             await txAgreement.processTransactionRequest(tx, senderId, guardSignature, receiver)
 
             // verify out request
@@ -332,9 +341,8 @@ describe("TxAgreement", () => {
                     "agreed": false
                 }
             }), receiver)
-            const dbEvents = await allEventRecords()
-            expect(dbEvents.map(event => [event.sourceTxId, event.status, event.txId, event.paymentTxJson])[0])
-                .to.deep.equal([mockedEvent.sourceTxId, "", previousTxId, "testTx"])
+            expect(Array.from(txAgreement.getTransactions()).length).to.equal(0)
+            expect(Array.from(txAgreement.getEventAgreedTransactions()).length).to.equal(0)
         })
 
         /**
@@ -350,7 +358,7 @@ describe("TxAgreement", () => {
             // mock event and tx
             const mockedEvent: EventTrigger = ErgoTestBoxes.mockTokenPaymentEventTrigger()
             const tx = ErgoTestBoxes.mockTransferToIllegalWIDDistributionTransaction(mockedEvent, eventBoxAndCommitments)
-            await insertEventRecord(mockedEvent, "")
+            await insertEventRecord(mockedEvent, EventStatus.pendingReward)
 
             // mock isConfirmedEnough
             mockIsEventConfirmedEnough(mockedEvent, true)
@@ -365,7 +373,7 @@ describe("TxAgreement", () => {
             const receiver = "testReceiver"
 
             // run test
-            const txAgreement = new TxAgreement()
+            const txAgreement = new TestTxAgreement()
             await txAgreement.processTransactionRequest(tx, senderId, guardSignature, receiver)
 
             // verify out request
@@ -378,9 +386,8 @@ describe("TxAgreement", () => {
                     "agreed": false
                 }
             }), receiver)
-            const dbEvents = await allEventRecords()
-            expect(dbEvents.map(event => [event.sourceTxId, event.status, event.txId, event.paymentTxJson])[0])
-                .to.deep.equal([mockedEvent.sourceTxId, "", null, null])
+            expect(Array.from(txAgreement.getTransactions()).length).to.equal(0)
+            expect(Array.from(txAgreement.getEventAgreedTransactions()).length).to.equal(0)
         })
 
     })
@@ -388,8 +395,7 @@ describe("TxAgreement", () => {
     describe("processAgreementResponse", () => {
 
         beforeEach("clear scanner database tables", async () => {
-            await clearTxTable()
-            await clearEventTable()
+            await clearTables()
         })
 
         /**
@@ -399,14 +405,14 @@ describe("TxAgreement", () => {
          * Expected Output:
          *    The function should set tx as approved
          */
-        it("should set the transaction as approved when the majority of guards agreed", async () => {
+        it("should insert the transaction into database when the majority of guards agreed", async () => {
             // mock token payment event
             const mockedEvent: EventTrigger = ErgoTestBoxes.mockTokenPaymentEventTrigger()
             const tx = ErgoTestBoxes.mockTokenTransferringErgDistributionTransaction(mockedEvent, eventBoxAndCommitments)
-            await insertEventRecord(mockedEvent, "", tx.txId, tx.toJson())
+            await insertEventRecord(mockedEvent, EventStatus.pendingReward)
 
             // initialize tx array
-            const txAgreement = new TxAgreement()
+            const txAgreement = new TestTxAgreement()
             txAgreement.startAgreementProcess(tx)
             const agreements: AgreementPayload[] = [{
                 "guardId": Configs.guardId,
@@ -447,8 +453,15 @@ describe("TxAgreement", () => {
                 }
             }))
             const dbEvents = await allEventRecords()
-            expect(dbEvents.map(event => [event.sourceTxId, event.txId, event.status])[0])
-                .to.deep.equal([mockedEvent.sourceTxId, tx.txId, "approved"])
+            expect(dbEvents.map(event => [event.sourceTxId, event.status])[0])
+                .to.deep.equal([mockedEvent.sourceTxId, EventStatus.inReward])
+            const dbTxs = await allTxRecords()
+            expect(dbTxs.map(tx => [tx.txId, tx.status])[0])
+                .to.deep.equal([tx.txId, TransactionStatus.approved])
+            expect(Array.from(txAgreement.getTransactions()).length).to.equal(0)
+            expect(Array.from(txAgreement.getTransactionApprovals()).length).to.equal(0)
+            expect(Array.from(txAgreement.getTransactions()).length).to.equal(0)
+            expect(Array.from(txAgreement.getRejectedResponses()).length).to.equal(0)
         })
 
         /**
@@ -460,14 +473,14 @@ describe("TxAgreement", () => {
          * Expected Output:
          *    The function should set tx as approved
          */
-        it("should not set the transaction as approved when it is impossible that minimum guards agree with it", async () => {
+        it("should not insert the transaction into database when it is impossible that minimum guards agree with it", async () => {
             // mock token payment event
             const mockedEvent: EventTrigger = ErgoTestBoxes.mockTokenPaymentEventTrigger()
             const tx = ErgoTestBoxes.mockTokenBurningErgDistributionTransaction(mockedEvent, eventBoxAndCommitments)
-            await insertEventRecord(mockedEvent, "", tx.txId, tx.toJson())
+            await insertEventRecord(mockedEvent, EventStatus.pendingReward)
 
             // initialize tx array
-            const txAgreement = new TxAgreement()
+            const txAgreement = new TestTxAgreement()
             txAgreement.startAgreementProcess(tx)
             const rejects = []
 
@@ -499,8 +512,14 @@ describe("TxAgreement", () => {
                 }
             }))
             const dbEvents = await allEventRecords()
-            expect(dbEvents.map(event => [event.sourceTxId, event.txId, event.status])[0])
-                .to.deep.equal([mockedEvent.sourceTxId, "", ""])
+            expect(dbEvents.map(event => [event.sourceTxId, event.status])[0])
+                .to.deep.equal([mockedEvent.sourceTxId, EventStatus.pendingReward])
+            const dbTxs = await allTxRecords()
+            expect(dbTxs.length).to.equal(0)
+            expect(Array.from(txAgreement.getTransactions()).length).to.equal(0)
+            expect(Array.from(txAgreement.getTransactionApprovals()).length).to.equal(0)
+            expect(Array.from(txAgreement.getTransactions()).length).to.equal(0)
+            expect(Array.from(txAgreement.getRejectedResponses()).length).to.equal(0)
         })
 
     })
@@ -508,8 +527,7 @@ describe("TxAgreement", () => {
     describe("processApprovalMessage", () => {
 
         beforeEach("clear scanner database tables", async () => {
-            await clearTxTable()
-            await clearEventTable()
+            await clearTables()
             resetMockedEventProcessor()
         })
 
@@ -522,11 +540,11 @@ describe("TxAgreement", () => {
          * Expected Output:
          *    The function should set tx as approved
          */
-        it("should set the transaction as approved when the majority of guards signatures verify", async () => {
+        it("should insert the transaction into database when the majority of guards signatures verify", async () => {
             // mock event and tx
             const mockedEvent: EventTrigger = CardanoTestBoxes.mockADAPaymentEventTrigger()
             const tx = CardanoTestBoxes.mockNoAssetsTransferringPaymentTransaction(mockedEvent, CardanoTestBoxes.testBankAddress)
-            await insertEventRecord(mockedEvent, "")
+            await insertEventRecord(mockedEvent, EventStatus.pendingPayment)
 
             // mock isConfirmedEnough
             mockIsEventConfirmedEnough(mockedEvent, true)
@@ -541,7 +559,7 @@ describe("TxAgreement", () => {
             const receiver = "testReceiver"
 
             // initialize tx array
-            const txAgreement = new TxAgreement()
+            const txAgreement = new TestTxAgreement()
             await txAgreement.processTransactionRequest(tx, senderId, guardSignature, receiver)
 
             const agreements: AgreementPayload[] = []
@@ -557,8 +575,15 @@ describe("TxAgreement", () => {
 
             // verify
             const dbEvents = await allEventRecords()
-            expect(dbEvents.map(event => [event.sourceTxId, event.txId, event.status])[0])
-            .to.deep.equal([mockedEvent.sourceTxId, tx.txId, "approved"])
+            expect(dbEvents.map(event => [event.sourceTxId, event.status])[0])
+            .to.deep.equal([mockedEvent.sourceTxId, EventStatus.inPayment])
+            const dbTxs = await allTxRecords()
+            expect(dbTxs.map(tx => [tx.txId, tx.status])[0])
+                .to.deep.equal([tx.txId, TransactionStatus.approved])
+            expect(Array.from(txAgreement.getTransactions()).length).to.equal(0)
+            expect(Array.from(txAgreement.getTransactionApprovals()).length).to.equal(0)
+            expect(Array.from(txAgreement.getTransactions()).length).to.equal(0)
+            expect(Array.from(txAgreement.getRejectedResponses()).length).to.equal(0)
         })
 
         /**
@@ -570,11 +595,11 @@ describe("TxAgreement", () => {
          * Expected Output:
          *    The function should set tx as approved
          */
-        it("should set the transaction as approved even when the majority of other guards agreed", async () => {
+        it("should insert the transaction into database even when the majority of other guards agreed", async () => {
             // mock event and tx
             const mockedEvent: EventTrigger = CardanoTestBoxes.mockADAPaymentEventTrigger()
             const tx = CardanoTestBoxes.mockNoAssetsTransferringPaymentTransaction(mockedEvent, CardanoTestBoxes.testBankAddress)
-            await insertEventRecord(mockedEvent, "")
+            await insertEventRecord(mockedEvent, EventStatus.pendingPayment)
 
             // mock isConfirmedEnough
             mockIsEventConfirmedEnough(mockedEvent, true)
@@ -584,7 +609,7 @@ describe("TxAgreement", () => {
             mockGuardTurn(0)
 
             // initialize tx array
-            const txAgreement = new TxAgreement()
+            const txAgreement = new TestTxAgreement()
 
             const agreements: AgreementPayload[] = []
             for (let i = 2; i < 7; i++) {
@@ -599,8 +624,15 @@ describe("TxAgreement", () => {
 
             // verify
             const dbEvents = await allEventRecords()
-            expect(dbEvents.map(event => [event.sourceTxId, event.txId, event.status])[0])
-                .to.deep.equal([mockedEvent.sourceTxId, tx.txId, "approved"])
+            expect(dbEvents.map(event => [event.sourceTxId, event.status])[0])
+                .to.deep.equal([mockedEvent.sourceTxId, EventStatus.inPayment])
+            const dbTxs = await allTxRecords()
+            expect(dbTxs.map(tx => [tx.txId, tx.status])[0])
+                .to.deep.equal([tx.txId, TransactionStatus.approved])
+            expect(Array.from(txAgreement.getTransactions()).length).to.equal(0)
+            expect(Array.from(txAgreement.getTransactionApprovals()).length).to.equal(0)
+            expect(Array.from(txAgreement.getTransactions()).length).to.equal(0)
+            expect(Array.from(txAgreement.getRejectedResponses()).length).to.equal(0)
         })
 
         /**
@@ -612,11 +644,11 @@ describe("TxAgreement", () => {
          * Expected Output:
          *    The function should set tx as approved
          */
-        it("should not set the transaction as approved when at least one guard signature doesn't verify", async () => {
+        it("should insert the transaction into database when at least one guard signature doesn't verify", async () => {
             // mock token payment event
             const mockedEvent: EventTrigger = ErgoTestBoxes.mockTokenPaymentEventTrigger()
             const tx = ErgoTestBoxes.mockTokenBurningErgPaymentTransaction(mockedEvent, eventBoxAndCommitments)
-            await insertEventRecord(mockedEvent, "")
+            await insertEventRecord(mockedEvent, EventStatus.pendingPayment)
 
             // mock isConfirmedEnough
             mockIsEventConfirmedEnough(mockedEvent, true)
@@ -656,8 +688,10 @@ describe("TxAgreement", () => {
 
             // verify
             const dbEvents = await allEventRecords()
-            expect(dbEvents.map(event => [event.sourceTxId, event.txId, event.status])[0])
-                .to.deep.equal([mockedEvent.sourceTxId, tx.txId, "agreed"])
+            expect(dbEvents.map(event => [event.sourceTxId, event.status])[0])
+                .to.deep.equal([mockedEvent.sourceTxId, EventStatus.pendingPayment])
+            const dbTxs = await allTxRecords()
+            expect(dbTxs.length).to.equal(0)
         })
 
     })
@@ -679,7 +713,7 @@ describe("TxAgreement", () => {
             const tx2 = CardanoTestBoxes.mockMultiAssetsTransferringPaymentTransaction(mockedEvent2, CardanoTestBoxes.testBankAddress)
 
             // initialize tx array
-            const txAgreement = new TxAgreement()
+            const txAgreement = new TestTxAgreement()
             txAgreement.startAgreementProcess(tx1)
             txAgreement.startAgreementProcess(tx2)
 
@@ -707,46 +741,92 @@ describe("TxAgreement", () => {
 
     })
 
+    describe("clearTransactions", () => {
+
+        beforeEach("clear scanner database tables", async () => {
+            await clearTables()
+        })
+
+        /**
+         * Target: testing clearTransactions
+         * Dependencies:
+         *    -
+         * Expected Output:
+         *    The function should delete all tx in memory
+         */
+        it("should remove agreed status, txId and txJson for all event with agreed status", async () => {
+            const txAgreement = new TestTxAgreement()
+
+            // mock token payment event
+            const mockedEvent1: EventTrigger = CardanoTestBoxes.mockAssetPaymentEventTrigger()
+            const tx1 = CardanoTestBoxes.mockNoAssetsTransferringPaymentTransaction(mockedEvent1, CardanoTestBoxes.testBankAddress)
+            txAgreement.insertTransactions(tx1.txId, tx1)
+            txAgreement.insertTransactionApprovals(tx1.eventId, [
+                {
+                    "guardId": 0,
+                    "signature": "guardSignature"
+                },
+                {
+                    "guardId": 1,
+                    "signature": "guardSignature"
+                }
+            ])
+
+            const mockedEvent2: EventTrigger = CardanoTestBoxes.mockAssetPaymentEventTrigger()
+            const tx2 = CardanoTestBoxes.mockMultiAssetsTransferringPaymentTransaction(mockedEvent2, CardanoTestBoxes.testBankAddress)
+            txAgreement.insertTransactions(tx2.txId, tx2)
+            txAgreement.insertTransactionApprovals(tx2.eventId, [
+                {
+                    "guardId": 0,
+                    "signature": "guardSignature"
+                }
+            ])
+            txAgreement.insertRejectedResponses(tx1.eventId, [3, 1])
+
+            // run test
+            await txAgreement.clearTransactions()
+
+            // verify
+            expect(Array.from(txAgreement.getTransactions()).length).to.equal(0)
+            expect(Array.from(txAgreement.getTransactionApprovals()).length).to.equal(0)
+            expect(Array.from(txAgreement.getRejectedResponses()).length).to.equal(0)
+        })
+
+    })
+
     describe("clearAgreedTransactions", () => {
 
         beforeEach("clear scanner database tables", async () => {
-            await clearTxTable()
-            await clearEventTable()
+            await clearTables()
         })
 
         /**
          * Target: testing clearAgreedTransactions
          * Dependencies:
-         *    scannerAction
+         *    -
          * Expected Output:
-         *    The function should delete some tx from db
+         *    The function should delete all tx in memory
          */
         it("should remove agreed status, txId and txJson for all event with agreed status", async () => {
+            const txAgreement = new TestTxAgreement()
+
             // mock token payment event
             const mockedEvent1: EventTrigger = CardanoTestBoxes.mockAssetPaymentEventTrigger()
             const tx1 = CardanoTestBoxes.mockNoAssetsTransferringPaymentTransaction(mockedEvent1, CardanoTestBoxes.testBankAddress)
-            await insertEventRecord(mockedEvent1, "agreed", tx1.txId, tx1.toJson())
+            txAgreement.insertTransactions(tx1.txId, tx1)
+            txAgreement.insertEventAgreedTransactions(tx1.eventId, tx1.txId)
 
             const mockedEvent2: EventTrigger = CardanoTestBoxes.mockAssetPaymentEventTrigger()
             const tx2 = CardanoTestBoxes.mockMultiAssetsTransferringPaymentTransaction(mockedEvent2, CardanoTestBoxes.testBankAddress)
-            await insertEventRecord(mockedEvent2, "agreed", tx2.txId, tx2.toJson())
-
-            const mockedEvent3: EventTrigger = CardanoTestBoxes.mockAssetPaymentEventTrigger()
-            const tx3 = CardanoTestBoxes.mockTwoAssetsTransferringPaymentTransaction(mockedEvent3, CardanoTestBoxes.testBankAddress)
-            await insertEventRecord(mockedEvent3, "approved", tx3.txId, tx3.toJson())
-
-            const mockedEvent4: EventTrigger = CardanoTestBoxes.mockAssetPaymentEventTrigger()
-            await insertEventRecord(mockedEvent4, "")
+            txAgreement.insertTransactions(tx2.txId, tx2)
+            txAgreement.insertEventAgreedTransactions(tx2.eventId, tx2.txId)
 
             // run test
-            const txAgreement = new TxAgreement()
             await txAgreement.clearAgreedTransactions()
 
             // verify
-            const dbEvents = await allEventRecords()
-            expect(dbEvents.filter(event => event.status === "agreed").length).to.equal(0)
-            expect(dbEvents.filter(event => event.status === "approved").length).to.equal(1)
-            expect(dbEvents.filter(event => event.status === "").length).to.equal(3)
+            expect(Array.from(txAgreement.getTransactions()).length).to.equal(0)
+            expect(Array.from(txAgreement.getEventAgreedTransactions()).length).to.equal(0)
         })
 
     })
@@ -871,6 +951,106 @@ describe("TxAgreement", () => {
             //  Note: deepEqual doesn't work for PaymentTransaction object either. So, anything() used.
             verify(spiedTxAgreement.processApprovalMessage(anything(), deepEqual(signatures), sender)).once()
             reset(spiedTxAgreement)
+        })
+
+    })
+
+    describe("isEventHasDifferentTransaction", () => {
+
+        beforeEach("clear scanner database tables", async () => {
+            await clearTables()
+        })
+
+        /**
+         * Target: testing isEventHasDifferentTransaction
+         * Dependencies:
+         *    scannerAction
+         * Expected Output:
+         *    The function should return true
+         */
+        it("should return true when there is another tx for this event in memory with the same type", async () => {
+            const txAgreement = new TestTxAgreement()
+
+            // mock token payment event
+            const mockedEvent: EventTrigger = CardanoTestBoxes.mockAssetPaymentEventTrigger()
+            const tx = CardanoTestBoxes.mockNoAssetsTransferringPaymentTransaction(mockedEvent, CardanoTestBoxes.testBankAddress)
+            txAgreement.insertTransactions(tx.txId, tx)
+            txAgreement.insertEventAgreedTransactions(tx.eventId, tx.txId)
+
+            // run test
+            const result = await txAgreement.isEventHasDifferentTransaction(tx.eventId, TestUtils.generateRandomId(), tx.txType)
+
+            // verify
+            expect(result).to.be.true
+        })
+
+        /**
+         * Target: testing isEventHasDifferentTransaction
+         * Dependencies:
+         *    scannerAction
+         * Expected Output:
+         *    The function should return true
+         */
+        it("should return true when there is another tx for this event in database with the same type", async () => {
+            const txAgreement = new TestTxAgreement()
+
+            // mock token payment event
+            const mockedEvent: EventTrigger = CardanoTestBoxes.mockAssetPaymentEventTrigger()
+            await insertEventRecord(mockedEvent, EventStatus.pendingPayment)
+            const tx = CardanoTestBoxes.mockNoAssetsTransferringPaymentTransaction(mockedEvent, CardanoTestBoxes.testBankAddress)
+            await insertTxRecord(tx, tx.txType, ChainsConstants.cardano, TransactionStatus.approved, 0, tx.eventId)
+
+            // run test
+            const result = await txAgreement.isEventHasDifferentTransaction(tx.eventId, TestUtils.generateRandomId(), tx.txType)
+
+            // verify
+            expect(result).to.be.true
+        })
+
+        /**
+         * Target: testing isEventHasDifferentTransaction
+         * Dependencies:
+         *    scannerAction
+         * Expected Output:
+         *    The function should return false
+         */
+        it("should return false when there is another tx for this event in database but with different type", async () => {
+            const txAgreement = new TestTxAgreement()
+
+            // mock token payment event
+            const mockedEvent: EventTrigger = CardanoTestBoxes.mockAssetPaymentEventTrigger()
+            await insertEventRecord(mockedEvent, EventStatus.pendingPayment)
+            const tx = CardanoTestBoxes.mockNoAssetsTransferringPaymentTransaction(mockedEvent, CardanoTestBoxes.testBankAddress)
+            await insertTxRecord(tx, tx.txType, ChainsConstants.cardano, TransactionStatus.approved, 0, tx.eventId)
+
+            // run test
+            const result = await txAgreement.isEventHasDifferentTransaction(tx.eventId, TestUtils.generateRandomId(), TransactionTypes.reward)
+
+            // verify
+            expect(result).to.be.false
+        })
+
+        /**
+         * Target: testing isEventHasDifferentTransaction
+         * Dependencies:
+         *    scannerAction
+         * Expected Output:
+         *    The function should return false
+         */
+        it("should return false when there is another tx for this event in database but with invalid status", async () => {
+            const txAgreement = new TestTxAgreement()
+
+            // mock token payment event
+            const mockedEvent: EventTrigger = CardanoTestBoxes.mockAssetPaymentEventTrigger()
+            await insertEventRecord(mockedEvent, EventStatus.pendingPayment)
+            const tx = CardanoTestBoxes.mockNoAssetsTransferringPaymentTransaction(mockedEvent, CardanoTestBoxes.testBankAddress)
+            await insertTxRecord(tx, tx.txType, ChainsConstants.cardano, TransactionStatus.invalid, 0, tx.eventId)
+
+            // run test
+            const result = await txAgreement.isEventHasDifferentTransaction(tx.eventId, TestUtils.generateRandomId(), tx.txType)
+
+            // verify
+            expect(result).to.be.false
         })
 
     })

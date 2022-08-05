@@ -1,7 +1,8 @@
 import { Request, Response, Router } from "express";
 import { apiCallBack } from "../communication/CallbackUtils";
 import Dialer from "../communication/Dialer";
-import assert, { AssertionError } from "assert";
+import { body, validationResult } from "express-validator";
+import Configs from "../helpers/Configs";
 
 export const p2pRouter = Router();
 const dialer = await Dialer.getInstance()
@@ -13,30 +14,53 @@ const dialer = await Dialer.getInstance()
  * @bodyParam {object}
  * @bodyParam {string}
  */
-p2pRouter.post("/send", async (req: Request, res: Response) => {
+p2pRouter.post("/send",
+    body('channel')
+        .notEmpty().withMessage('key channel is required!')
+        .isString()
+        .isLength({max: Configs.MAX_LENGTH_CHANNEL_SIZE}),
+    body('message')
+        .notEmpty().withMessage('key message is required!')
+        .isString(),
+    body('receiver')
+        .optional()
+        .isString(),
+    async (req: Request, res: Response) => {
     try {
-        assert(req.body.channel, "key channel is required!")
-        assert(req.body.message, "key message is required!")
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
+        }
         req.body.receiver ?
             dialer.sendMessage(req.body.channel, req.body.message, req.body.receiver) :
             dialer.sendMessage(req.body.channel, req.body.message)
 
         res.send({message: "ok"})
     } catch (error) {
-        res.status(error instanceof AssertionError ? 400 : 500).send({message: error.message})
+        res.status(500).send({message: error.message})
     }
 });
 
 /**
  * Api for send a message over p2p protocol
  */
-p2pRouter.post("/channel/subscribe", async (req: Request, res: Response) => {
-    try {
-        assert(req.body.channel, "key channel is required!")
-        assert(req.body.url, "key url is required!")
+p2pRouter.post("/channel/subscribe",
+    body('channel')
+        .notEmpty().withMessage('key channel is required!')
+        .isString()
+        .isLength({max: Configs.MAX_LENGTH_CHANNEL_SIZE}),
+    body('url')
+        .notEmpty().withMessage('key url is required!')
+        .isString(),
+    async (req: Request, res: Response) => {
+        try {
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                return res.status(400).json({ errors: errors.array() });
+            }
         dialer.subscribeChannel(req.body.channel, apiCallBack, req.body.url)
         res.send({message: "ok"})
     } catch (error) {
-        res.status(error instanceof AssertionError ? 400 : 500).send({message: error.message})
+            res.status(500).send({message: error.message})
     }
 });

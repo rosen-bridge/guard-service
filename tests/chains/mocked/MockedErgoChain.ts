@@ -1,4 +1,4 @@
-import { anything, deepEqual, spy, verify, when } from "ts-mockito";
+import { anything, deepEqual, reset, resetCalls, spy, verify, when } from "ts-mockito";
 import { EventTrigger, PaymentTransaction } from "../../../src/models/Models";
 import ErgoChain from "../../../src/chains/ergo/ErgoChain";
 import ErgoTransaction from "../../../src/chains/ergo/models/ErgoTransaction";
@@ -58,6 +58,13 @@ class MockedErgoChain {
      */
     verifySubmitTransactionCalledOnce = (tx: PaymentTransaction): void => {
         verify(this.mockedObject.submitTransaction(anything())).once()
+    }
+
+    /**
+     * reset call counts for mocked methods
+     */
+    resetMockCalls = (): void => {
+        resetCalls(this.mockedObject)
     }
 
 }

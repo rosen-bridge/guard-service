@@ -14,14 +14,26 @@ import CardanoChain from "../chains/cardano/CardanoChain";
 import ErgoChain from "../chains/ergo/ErgoChain";
 import { AddressUtxos, TxUtxos } from "../chains/cardano/models/Interfaces";
 import Utils from "../helpers/Utils";
+import { EventStatus, PaymentTransaction, TransactionStatus, TransactionTypes } from "../models/Models";
+import BaseChain from "../chains/BaseChains";
+import { Semaphore } from "await-semaphore";
 
 class TransactionProcessor {
 
-    static readonly PAYMENT_TX_TYPE = "payment"
-    static readonly REWARD_TX_TYPE = "reward"
-
     static cardanoChain = new CardanoChain()
     static ergoChain = new ErgoChain()
+
+    static signSemaphore = new Semaphore(1)
+
+    /**
+     * returns chain object
+     * @param chain the chain name
+     */
+    static getChainObject = (chain: string): BaseChain<any, any> => {
+        if (chain === ChainsConstants.cardano) return this.cardanoChain
+        else if (chain === ChainsConstants.ergo) return this.ergoChain
+        else throw new Error(`chain [${chain}] not implemented.`)
+    }
 
     /**
      * processes all transactions in the database
@@ -32,8 +44,16 @@ class TransactionProcessor {
         for (const tx of txs) {
             try {
                 switch (tx.status) {
-                    case "sent": {
+                    case TransactionStatus.sent: {
                         await this.processSentTx(tx)
+                        break;
+                    }
+                    case TransactionStatus.signed: {
+                        await this.processSignedTx(tx)
+                        break;
+                    }
+                    case TransactionStatus.approved: {
+                        await this.processApprovedTx(tx)
                         break;
                     }
                 }
@@ -45,7 +65,7 @@ class TransactionProcessor {
     }
 
     /**
-     * processes the transaction
+     * processes the transaction that has been sent before
      */
     static processSentTx = async (tx: TransactionEntity): Promise<void> => {
         if (tx.chain === ChainsConstants.cardano) {
@@ -68,16 +88,16 @@ class TransactionProcessor {
         }
         else if (confirmation >= CardanoConfigs.requiredConfirmation) {
             // tx confirmed enough. proceed to next process.
-            await scannerAction.setTxStatus(tx.txId, "completed")
+            await scannerAction.setTxStatus(tx.txId, TransactionStatus.completed)
 
-            if (tx.type === this.PAYMENT_TX_TYPE) {
+            if (tx.type === TransactionTypes.payment) {
                 // set event status, to start reward distribution.
-                await scannerAction.setEventStatus(tx.event.sourceTxId, "pending-reward")
+                await scannerAction.setEventStatus(tx.event.sourceTxId, EventStatus.pendingReward)
                 console.log(`tx [${tx.txId}] is confirmed. event [${tx.event.sourceTxId}] is ready for reward distribution.`)
             }
             else {
                 // set event as complete
-                await scannerAction.setEventStatus(tx.event.sourceTxId, "completed")
+                await scannerAction.setEventStatus(tx.event.sourceTxId, EventStatus.completed)
                 console.log(`tx [${tx.txId}] is confirmed. event [${tx.event.sourceTxId}] is complete.`)
             }
         }
@@ -96,8 +116,8 @@ class TransactionProcessor {
         const confirmation = await ExplorerApi.getTxConfirmation(tx.txId)
         if (confirmation >= ErgoConfigs.requiredConfirmation) {
             // tx confirmed enough. event is done.
-            await scannerAction.setTxStatus(tx.txId, "completed")
-            await scannerAction.setEventStatus(tx.event.sourceTxId, "completed")
+            await scannerAction.setTxStatus(tx.txId, TransactionStatus.completed)
+            await scannerAction.setEventStatus(tx.event.sourceTxId, EventStatus.completed)
             console.log(`tx [${tx.txId}] is confirmed. event [${tx.event.sourceTxId}] is complete.`)
         }
         else if (confirmation === -1) {
@@ -165,8 +185,8 @@ class TransactionProcessor {
             // tx is invalid. reset status if enough blocks past.
             const height = await BlockFrostApi.currentHeight()
             if (height - tx.lastCheck >= CardanoConfigs.requiredConfirmation) {
-                await scannerAction.setTxStatus(tx.txId, "invalid")
-                await scannerAction.resetEventTx(tx.event.sourceTxId, "pending-payment")
+                await scannerAction.setTxStatus(tx.txId, TransactionStatus.invalid)
+                await scannerAction.resetEventTx(tx.event.sourceTxId, EventStatus.pendingPayment)
                 console.log(`tx [${tx.txId}] is invalid. event [${tx.event.sourceTxId}] is now waiting for payment.`)
             }
             else {
@@ -194,13 +214,13 @@ class TransactionProcessor {
             // tx is invalid. reset status if enough blocks past.
             const height = await NodeApi.getHeight()
             if (height - tx.lastCheck >= ErgoConfigs.requiredConfirmation) {
-                await scannerAction.setTxStatus(tx.txId, "invalid")
-                if (tx.type === "payment") {
-                    await scannerAction.resetEventTx(tx.event.sourceTxId, "pending-payment")
+                await scannerAction.setTxStatus(tx.txId, TransactionStatus.invalid)
+                if (tx.type === TransactionTypes.payment) {
+                    await scannerAction.resetEventTx(tx.event.sourceTxId, EventStatus.pendingPayment)
                     console.log(`tx [${tx.txId}] is invalid. event [${tx.event.sourceTxId}] is now waiting for payment.`)
                 }
                 else {
-                    await scannerAction.resetEventTx(tx.event.sourceTxId, "pending-reward")
+                    await scannerAction.resetEventTx(tx.event.sourceTxId, EventStatus.pendingReward)
                     console.log(`tx [${tx.txId}] is invalid. event [${tx.event.sourceTxId}] is now waiting for reward distribution.`)
                 }
             }
@@ -208,6 +228,31 @@ class TransactionProcessor {
                 console.log(`tx [${tx.txId}] is invalid. waiting for enough confirmation of this proposition.`)
             }
         }
+    }
+
+    /**
+     * sends request to sign tx
+     */
+    static processApprovedTx = async (tx: TransactionEntity): Promise<void> => {
+        await this.signSemaphore.acquire().then(async (release) => {
+            try {
+                const paymentTx = PaymentTransaction.fromJson(tx.txJson)
+                await this.getChainObject(tx.chain).requestToSignTransaction(paymentTx)
+                release()
+            }
+            catch (e) {
+                console.log(`Unexpected Error occurred while sending tx [${tx.txId}] to sign: ${e}`)
+                release()
+            }
+        })
+    }
+
+    /**
+     * submits tx to corresponding chain
+     */
+    static processSignedTx = async (tx: TransactionEntity): Promise<void> => {
+        const paymentTx = PaymentTransaction.fromJson(tx.txJson)
+        await this.getChainObject(tx.chain).submitTransaction(paymentTx)
     }
 
 }

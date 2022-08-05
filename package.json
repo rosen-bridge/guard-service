@@ -29,6 +29,7 @@
         "blakejs": "^1.2.1",
         "config": "^3.3.7",
         "express": "^4.18.1",
+        "express-validator": "^6.14.2",
         "it-pipe": "2.0.3",
         "json-bigint": "^1.0.0",
         "libp2p": "0.37.3",

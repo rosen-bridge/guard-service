@@ -1,11 +1,11 @@
-import { EventTrigger, PaymentTransaction } from "../../../../src/models/Models";
+import { EventTrigger, PaymentTransaction, TransactionTypes } from "../../../../src/models/Models";
 import TestUtils from "../../../testUtils/TestUtils";
 import { AddressUtxos, TxUtxos, Utxo } from "../../../../src/chains/cardano/models/Interfaces";
 import {
     Address,
     AssetName,
     Assets,
-    BigNum,
+    BigNum, hash_transaction,
     MultiAsset,
     ScriptHash,
     Transaction,
@@ -18,6 +18,8 @@ import CardanoConfigs from "../../../../src/chains/cardano/helpers/CardanoConfig
 import CardanoUtils from "../../../../src/chains/cardano/helpers/CardanoUtils";
 import CardanoTransaction from "../../../../src/chains/cardano/models/CardanoTransaction";
 import TestData from "./TestData";
+import Utils from "../../../../src/chains/ergo/helpers/Utils";
+import ChainsConstants from "../../../../src/chains/ChainsConstants";
 
 class TestBoxes {
 
@@ -32,7 +34,7 @@ class TestBoxes {
      * generates a mocked event trigger for ADA payment in cardano chain
      */
     static mockADAPaymentEventTrigger = (): EventTrigger => {
-        return new EventTrigger("", "cardano", "",
+        return new EventTrigger("", ChainsConstants.cardano, "",
             "addr_test1qqn3eyyydsztynkk2f3x4hsfz46klqf6xncp2em92mgt3qtvvz7nw9gmznn65g4ksrrfvyzhz52knc3mqxdyya47gz2qppk5jd",
             "51300000", "1000000", "300000", "",
             "lovelace", TestUtils.generateRandomId(), "", []
@@ -43,7 +45,7 @@ class TestBoxes {
      * generates a mocked event trigger for asset payment in cardano chain
      */
     static mockAssetPaymentEventTrigger = (): EventTrigger => {
-        return new EventTrigger("", "cardano", "",
+        return new EventTrigger("", ChainsConstants.cardano, "",
             "addr_test1qqn3eyyydsztynkk2f3x4hsfz46klqf6xncp2em92mgt3qtvvz7nw9gmznn65g4ksrrfvyzhz52knc3mqxdyya47gz2qppk5jd",
             "80", "10", "5", "",
             "asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3", TestUtils.generateRandomId(), "", []
@@ -114,9 +116,9 @@ class TestBoxes {
         );
 
         // create PaymentTransaction object
-        const txId = TestUtils.generateRandomId()
+        const txId = Utils.Uint8ArrayToHexString(hash_transaction(tx.body()).to_bytes())
         const txBytes = tx.to_bytes()
-        return new CardanoTransaction(txId, eventId, txBytes)
+        return new CardanoTransaction(txId, eventId, txBytes, TransactionTypes.payment)
     }
 
     /**
