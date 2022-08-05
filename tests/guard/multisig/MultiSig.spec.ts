@@ -48,7 +48,8 @@ describe("MultiSigHandler", () => {
     describe("handleApprove", () => {
         it("checks handler approve called without error", () => {
             const handler = new MultiSigHandler(publicKeys, "5bc1d17d0612e696a9138ab8e85ca2a02d0171440ec128a9ad557c28bd5ea046")
-            handler.handleApprove('sender', {nonce: 'nonce', myId: "myId"})
+            handler.handleApprove('sender', {index: 1, nonce: 'nonce', myId: "sender", nonceToSign: "1"});
+            sendMessageBodyAndPayloadArguments(['type', 'sign', 'payload'], ['nonceToSign']);
         })
     })
 
@@ -182,11 +183,15 @@ describe("MultiSigHandler", () => {
                 dataBoxes: [dataBox],
                 commitments: [undefined],
                 createTime: 0,
-                requiredSigner: 1
+                requiredSigner: 2
             }
             const handler = new MultiSigHandler(publicKeys, "5bc1d17d0612e696a9138ab8e85ca2a02d0171440ec128a9ad557c28bd5ea046")
             sinon.stub(handler, 'getQueuedTransaction').withArgs('txid').returns(Promise.resolve(obj));
-            handler.handleCommitment('sender', {commitment: {index: [{a: "3", position: "1-1"}]}, txId: "1"})
+            handler.handleCommitment('sender', {
+                commitment: {index: [{a: "3", position: "1-1"}]},
+                txId: "txid",
+                index: 1
+            })
         })
     })
 
@@ -196,7 +201,7 @@ describe("MultiSigHandler", () => {
          * then clean called.
          * one of them must removed from txQueue. so create time must differ
          */
-        it("checks that cleanup remove element from txQueue", async() => {
+        it("checks that cleanup remove element from txQueue", async () => {
             const handler = new MultiSigHandler(publicKeys, "5bc1d17d0612e696a9138ab8e85ca2a02d0171440ec128a9ad557c28bd5ea046")
             const tx1 = await handler.getQueuedTransaction("tx1")
             Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 3000);

@@ -16,7 +16,7 @@ import MultiSigUtils from "./utils";
 
 const dialer = await Dialer.getInstance();
 
-class MultiSigHandler {
+class MultiSigHandler{
     private static CHANNEL = "multi-sig"
     private readonly transactions: Map<string, TxQueued>
     private readonly peers: Array<Signer>;
