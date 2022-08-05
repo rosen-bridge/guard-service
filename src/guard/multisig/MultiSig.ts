@@ -12,7 +12,7 @@ import Dialer from "../../communication/Dialer";
 import Configs from "../../helpers/Configs";
 import { Semaphore } from 'await-semaphore';
 import Encryption from '../../helpers/Encryption';
-import MultiSigUtils from "./utils";
+import MultiSigUtils from "./multiSigUtils";
 
 const dialer = await Dialer.getInstance();
 
