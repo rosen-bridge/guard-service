@@ -7,7 +7,6 @@
     "scripts": {
         "prebuild": "eslint --fix .",
         "build": "ts-node --experimental-specifier-resolution=node ./src/index.ts",
-        "enc": "ts-node --experimental-specifier-resolution=node ./src/enc_test.ts",
         "start": "nodemon .",
         "test": "NODE_ENV=\"test\" mocha --slow 3000 && rm -rf tests/db/sqlite/test",
         "coverage": "c8 npm run test",
