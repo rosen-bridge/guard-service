@@ -29,6 +29,9 @@ class Configs {
     static ergoRWT = config.get<string>('tokens.ergoRWT')
     static cardanoRWT = config.get<string>('tokens.cardanoRWT')
     static multiSigTimeout: number = getConfigIntKeyOrDefault('multiSigTimeout', 15 * 60 * 1000)
+    static rsn = config.get<string>('tokens.RSN')
+    static rsnRatioNFT = config.get<string>('tokens.RSNRatioNFT')
+    static guardNFT = config.get<string>('tokens.GuardNFT')
 
     // tss configs
     static tssUrl = config.get<string>('tss.url')

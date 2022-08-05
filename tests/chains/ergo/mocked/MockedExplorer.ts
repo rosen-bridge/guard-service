@@ -1,4 +1,4 @@
-import { anything, reset, spy, verify, when } from "ts-mockito";
+import { anything, reset, spy, when } from "ts-mockito";
 import ExplorerApi from "../../../../src/chains/ergo/network/ExplorerApi";
 import { Boxes, CoveringErgoBoxes } from "../../../../src/chains/ergo/models/Interfaces";
 
