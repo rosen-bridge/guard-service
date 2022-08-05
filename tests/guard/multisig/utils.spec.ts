@@ -1,4 +1,4 @@
-import MultiSigUtils from "../../../src/guard/multisig/multiSigUtils";
+import MultiSigUtils from "../../../src/guard/multisig/MultiSigUtils";
 
 describe('MultiSigUtils', () => {
     describe('publicKeyToProposition', () => {

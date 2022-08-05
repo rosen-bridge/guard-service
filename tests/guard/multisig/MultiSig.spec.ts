@@ -26,7 +26,7 @@ describe("MultiSigHandler", () => {
          *      the sendMessage should send json string that have "sign" & "payload" key in the main body
          *          and have "index", "id", "nonce" and "myId" in the payload key object.
          */
-        it("checks that correct message is sent over p2p or not", () => {
+        it("should send message with specific keys that written in test doc string", () => {
             const handler = new MultiSigHandler(publicKeys, "5bc1d17d0612e696a9138ab8e85ca2a02d0171440ec128a9ad557c28bd5ea046")
             sendMessageBodyAndPayloadArguments(['sign'], ['index', 'id', 'nonce', 'myId'])
             handler.sendMessage({
@@ -77,7 +77,7 @@ describe("MultiSigHandler", () => {
          *      handleApprove should send json message with 'type', 'sign', 'payload' body key
          *      'nonceToSign' payload key
          */
-        it("checks handler approve called without error", () => {
+        it("should send message with specific keys that written in test doc string", () => {
             const handler = new MultiSigHandler(publicKeys, "5bc1d17d0612e696a9138ab8e85ca2a02d0171440ec128a9ad557c28bd5ea046")
             handler.handleApprove('sender', {index: 1, nonce: 'nonce', myId: "sender", nonceToSign: "1"});
             sendMessageBodyAndPayloadArguments(['type', 'sign', 'payload'], ['nonceToSign']);
@@ -92,7 +92,7 @@ describe("MultiSigHandler", () => {
          *  -
          *  Expected: handleCommitment called and other handlers don't call
          */
-        it("checks that handleCommitment called", () => {
+        it("should call handleCommitment handle function", () => {
             const handler = new MultiSigHandler(
                 publicKeys,
                 "168e8fee8ac6965832d6c1c17cdf60c1b582b09f293d8bd88231e32740e3b24f"
@@ -117,9 +117,9 @@ describe("MultiSigHandler", () => {
          * Target: testing handleMessage calling correct handle function
          * Dependencies:
          *  -
-         *  Expected: handleCommitment called and other handlers don't call
+         *  Expected: handleApprove called and other handlers don't call
          */
-        it("checks that handleApprove called", () => {
+        it("should call handleApprove handle function", () => {
             const handler = new MultiSigHandler(
                 publicKeys,
                 "168e8fee8ac6965832d6c1c17cdf60c1b582b09f293d8bd88231e32740e3b24f"
@@ -146,7 +146,7 @@ describe("MultiSigHandler", () => {
          *  -
          *  Expected: handleRegister called and other handlers don't call
          */
-        it("checks that handleRegister called", () => {
+        it("should call handleRegister handle function", () => {
             const handler = new MultiSigHandler(
                 publicKeys,
                 "168e8fee8ac6965832d6c1c17cdf60c1b582b09f293d8bd88231e32740e3b24f"
@@ -173,7 +173,7 @@ describe("MultiSigHandler", () => {
          *  -
          *  Expected: handleSign called and other handlers don't call
          */
-        it("checks that handleSign called", () => {
+        it("should call handle sign handle function", () => {
             const handler = new MultiSigHandler(
                 publicKeys,
                 "168e8fee8ac6965832d6c1c17cdf60c1b582b09f293d8bd88231e32740e3b24f"
@@ -204,7 +204,7 @@ describe("MultiSigHandler", () => {
          *  -
          *  Expected: getPeerId return 'peerId' as peerId
          */
-        it("checks peerId should be equal to 'peerId'", () => {
+        it("it should return peerId equal to 'peerId'", () => {
             const handler = new MultiSigHandler(publicKeys, "5bc1d17d0612e696a9138ab8e85ca2a02d0171440ec128a9ad557c28bd5ea046")
             expect(handler.getPeerId()).to.be.eql("peerId");
         })
@@ -218,7 +218,7 @@ describe("MultiSigHandler", () => {
          *  -
          *  Expected: sendMessage called once
          */
-        it("checks that handle register called with no error", () => {
+        it("should call handle register without no error", () => {
             const handler = new MultiSigHandler(publicKeys, "5bc1d17d0612e696a9138ab8e85ca2a02d0171440ec128a9ad557c28bd5ea046")
             const spiedSendMessage = sinon.spy(handler, "sendMessage");
             handler.handleRegister('sender', {index: 1, nonce: 'nonce', myId: "myId"})
@@ -235,7 +235,7 @@ describe("MultiSigHandler", () => {
          *  -
          *  Expected: tests runs with no error
          */
-        it("checks that handleSign called with no error with updateSign set to true", () => {
+        it("handleSign should call with no error with updateSign set to true", () => {
             //TODO: should check that generateSign called for now it checks that functions runs without error
             const box1Hex = '80a8d6b907100304000e20a6ac381e6fa99929fd1477b3ba9499790a775e91d4c14c5aa86e9a118dfac8530400d801d601b2db6501fe730000ea02d1aedb63087201d901024d0e938c720201730198b2e4c672010510730200ade4c67201041ad901020ecdee72028cc10f00003a4f8dac9bbe80fffaf400edd5779b7ccd5628beceab06c41b5b7b3e091e963501'
             const dataBoxHex = '80ade2041006040004000400040004000402d804d601b2a5730000d602e4c6a7041ad603e4c6a70510d604ad7202d901040ecdee7204ea02d19683020193c27201c2a7938cb2db63087201730100018cb2db6308a773020001eb02ea02d19683020193e4c67201041a720293e4c672010510720398b2e4c6b2db6501fe7303000510730400720498b2720373050072048cc10f01a6ac381e6fa99929fd1477b3ba9499790a775e91d4c14c5aa86e9a118dfac85301021a0421028d938d67befbb8ab3513c44886c16c2bcd62ed4595b9b216b20ef03eb8fb8fb82103074e09c476bb215dc3aeff908d0b7691895a99dfc3bd950fa629defe541e0364210300e8750a242ee7d78f5b458e1f7474bd884d2b7894676412ba6b5f319d2ee41021023a5b48c87cd9fece23f5acd08cb464ceb9d76e3c1ddac08206980a295546bb2e100206081d827c338829135cc5c7d7f03ad9ba8ecffc6f5cddf63a2655c55922786230c000'
@@ -260,7 +260,7 @@ describe("MultiSigHandler", () => {
          *  -
          *  Expected: tests runs with no error
          */
-        it("checks that handleSign called with no error with updateSign set to false", () => {
+        it("handleSign should call with no error with updateSign set to false", () => {
             //TODO: should check that generateSign called for now it checks that functions runs without error
             const box1Hex = '80a8d6b907100304000e20a6ac381e6fa99929fd1477b3ba9499790a775e91d4c14c5aa86e9a118dfac8530400d801d601b2db6501fe730000ea02d1aedb63087201d901024d0e938c720201730198b2e4c672010510730200ade4c67201041ad901020ecdee72028cc10f00003a4f8dac9bbe80fffaf400edd5779b7ccd5628beceab06c41b5b7b3e091e963501'
             const dataBoxHex = '80ade2041006040004000400040004000402d804d601b2a5730000d602e4c6a7041ad603e4c6a70510d604ad7202d901040ecdee7204ea02d19683020193c27201c2a7938cb2db63087201730100018cb2db6308a773020001eb02ea02d19683020193e4c67201041a720293e4c672010510720398b2e4c6b2db6501fe7303000510730400720498b2720373050072048cc10f01a6ac381e6fa99929fd1477b3ba9499790a775e91d4c14c5aa86e9a118dfac85301021a0421028d938d67befbb8ab3513c44886c16c2bcd62ed4595b9b216b20ef03eb8fb8fb82103074e09c476bb215dc3aeff908d0b7691895a99dfc3bd950fa629defe541e0364210300e8750a242ee7d78f5b458e1f7474bd884d2b7894676412ba6b5f319d2ee41021023a5b48c87cd9fece23f5acd08cb464ceb9d76e3c1ddac08206980a295546bb2e100206081d827c338829135cc5c7d7f03ad9ba8ecffc6f5cddf63a2655c55922786230c000'
@@ -289,7 +289,7 @@ describe("MultiSigHandler", () => {
          *  -
          *  Expected: test runs with no error
          */
-        it("checks that handleCommitment called with no error", () => {
+        it("handleCommitment should call with no error", () => {
             //TODO: should check that generateSign called for now it checks that functions runs without error
             const box1Hex = '80a8d6b907100304000e20a6ac381e6fa99929fd1477b3ba9499790a775e91d4c14c5aa86e9a118dfac8530400d801d601b2db6501fe730000ea02d1aedb63087201d901024d0e938c720201730198b2e4c672010510730200ade4c67201041ad901020ecdee72028cc10f00003a4f8dac9bbe80fffaf400edd5779b7ccd5628beceab06c41b5b7b3e091e963501'
             const dataBoxHex = '80ade2041006040004000400040004000402d804d601b2a5730000d602e4c6a7041ad603e4c6a70510d604ad7202d901040ecdee7204ea02d19683020193c27201c2a7938cb2db63087201730100018cb2db6308a773020001eb02ea02d19683020193e4c67201041a720293e4c672010510720398b2e4c6b2db6501fe7303000510730400720498b2720373050072048cc10f01a6ac381e6fa99929fd1477b3ba9499790a775e91d4c14c5aa86e9a118dfac85301021a0421028d938d67befbb8ab3513c44886c16c2bcd62ed4595b9b216b20ef03eb8fb8fb82103074e09c476bb215dc3aeff908d0b7691895a99dfc3bd950fa629defe541e0364210300e8750a242ee7d78f5b458e1f7474bd884d2b7894676412ba6b5f319d2ee41021023a5b48c87cd9fece23f5acd08cb464ceb9d76e3c1ddac08206980a295546bb2e100206081d827c338829135cc5c7d7f03ad9ba8ecffc6f5cddf63a2655c55922786230c000'
@@ -319,7 +319,7 @@ describe("MultiSigHandler", () => {
          * then clean called.
          * one of them must removed from txQueue. so create time must differ
          */
-        it("checks that cleanup remove element from txQueue", async () => {
+        it("should remove element from txQueue", async () => {
             const handler = new MultiSigHandler(publicKeys, "5bc1d17d0612e696a9138ab8e85ca2a02d0171440ec128a9ad557c28bd5ea046")
             const tx1 = await handler.getQueuedTransaction("tx1")
             Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 3000);
