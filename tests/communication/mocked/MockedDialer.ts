@@ -14,14 +14,14 @@ when(mockedDialer.getInstance()).thenResolve(instance(mockedDialerInstance))
  *
  * @param bodyKeys
  * @param payloadKeys
+ * @param messageType
  */
-const sendMessageBodyAndPayloadArguments = (bodyKeys: Array<string>, payloadKeys: Array<string>, type: string = "approve"): void => {
+const sendMessageBodyAndPayloadArguments = (bodyKeys: Array<string>, payloadKeys: Array<string>, messageType = "approve"): void => {
     const message = capture(mockedDialerInstance.sendMessage).first()[1];
     const json = JSON.parse(message);
-    if(json.type === type){
+    if(json.type === messageType){
         payloadKeys.forEach(key => {
-            console.log(key)
-            if (!(key in json.payload)) throw("key is not in the dialer payload message")
+            if (!(key in json.payload)) throw(`key "${key}" is not in the dialer payload message`)
         })
         bodyKeys.forEach(key => {
             if (!(key in json)) throw("key is not in the message")
