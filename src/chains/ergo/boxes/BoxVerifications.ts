@@ -61,22 +61,6 @@ class BoxVerifications {
     }
 
     /**
-     * method to verify watcher permit box contract
-     */
-    static verifyWatcherPermitBoxErgoTree = (box: ErgoBoxCandidate): boolean => {
-        return box.ergo_tree().to_base16_bytes() === Contracts.watcherPermitErgoTree
-    }
-
-    /**
-     * method to verify watcher permit box contract
-     */
-    static verifyBoxRWTToken = (box: ErgoBoxCandidate, sourceChain: string): boolean => {
-        const rwtTokenId = (sourceChain === ChainsConstants.ergo) ? Configs.ergoRWT : Configs.cardanoRWT
-        const boxToken = box.tokens().get(0)
-        return boxToken.id().to_str() === rwtTokenId && ErgoUtils.bigintFromI64(boxToken.amount().as_i64()) === 1n
-    }
-
-    /**
      * method to verify boxes contract, erg value, tokens and register 4, one to one
      * @param boxes
      * @param expectedBoxes
