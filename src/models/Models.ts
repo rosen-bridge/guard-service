@@ -3,7 +3,6 @@ import Encryption from "../helpers/Encryption";
 import Configs from "../helpers/Configs";
 import { EventTriggerEntity } from "../db/entities/scanner/EventTriggerEntity";
 import Utils from "../helpers/Utils";
-import ErgoUtils from "../chains/ergo/helpers/Utils"
 
 
 /* tslint:disable:max-classes-per-file */
@@ -91,7 +90,7 @@ class PaymentTransaction implements PaymentTransactionModel {
             obj.network,
             obj.txId,
             obj.eventId,
-            ErgoUtils.hexStringToUint8Array(obj.txBytes),
+            Utils.hexStringToUint8Array(obj.txBytes),
             obj.txType
         )
     }

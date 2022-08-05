@@ -15,7 +15,7 @@ export default interface BaseChain<TransactionType, SerializedType extends Payme
      * @param event the event trigger model
      * @return true if tx verified
      */
-    verifyTransactionWithEvent: (tx: SerializedType, event: EventTrigger) => boolean
+    verifyTransactionWithEvent: (tx: SerializedType, event: EventTrigger) => Promise<boolean>
 
     /**
      * converts the transaction model in the chain to bytearray

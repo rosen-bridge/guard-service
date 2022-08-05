@@ -18,6 +18,7 @@ class ErgoConfigs {
     static bridgeFeeRepoAddress: string = config.get?.('reward.bridgeFeeRepoAddress')
     static networkFeeRepoAddress: string = config.get?.('reward.networkFeeRepoAddress')
     static watchersSharePercent = BigInt(config.get?.('reward.watchersSharePercent'))
+    static watchersRSNSharePercent = BigInt(config.get?.('reward.watchersRSNSharePercent'))
 
     static requiredConfirmation = config.get<number>('ergo.requiredConfirmation')
 

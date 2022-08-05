@@ -80,7 +80,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
      * @param event the event trigger model
      * @return true if tx verified
      */
-    verifyTransactionWithEvent = (paymentTx: CardanoTransaction, event: EventTrigger): boolean => {
+    verifyTransactionWithEvent = async (paymentTx: CardanoTransaction, event: EventTrigger): Promise<boolean> => {
         const tx = this.deserialize(paymentTx.txBytes)
         const outputBoxes = tx.body().outputs()
 
