@@ -372,7 +372,7 @@ class MultiSigHandler {
      * @param payload
      */
     handleCommitment = (sender: string, payload: CommitmentPayload): void => {
-        if (payload.index && payload.txId) {
+        if (payload.index !== undefined && payload.txId) {
             const index = payload.index
             this.getQueuedTransaction(payload.txId).then(transaction => {
                 transaction.commitments[index] = payload.commitment;
