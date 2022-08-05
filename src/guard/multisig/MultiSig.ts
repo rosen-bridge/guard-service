@@ -126,7 +126,7 @@ class MultiSigHandler{
             try {
                 for (const [key, transaction] of this.transactions.entries()) {
                     if (transaction.createTime < new Date().getTime() - Configs.multiSigTimeout) {
-                        if(transaction.reject){
+                        if (transaction.reject) {
                             transaction.reject("Timed out")
                         }
                         this.transactions.delete(key)
@@ -378,7 +378,7 @@ class MultiSigHandler{
                 transaction.commitments[index] = payload.commitment;
                 if (transaction.requiredSigner > 0) {
                     if (transaction.commitments.filter(item => item !== undefined).length >= transaction.requiredSigner - 1) {
-                        this.generateSign(payload.txId)
+                        this.generateSign(payload.txId);
                     }
                 }
             })
