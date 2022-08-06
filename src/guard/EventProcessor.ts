@@ -70,8 +70,8 @@ class EventProcessor {
      * @param event the event trigger
      * @return true if payment transaction verified
      */
-    static verifyPaymentTransactionWithEvent = (paymentTx: PaymentTransaction, event: EventTrigger): boolean => {
-        return this.getDestinationChainObject(event).verifyTransactionWithEvent(paymentTx, event)
+    static verifyPaymentTransactionWithEvent = async (paymentTx: PaymentTransaction, event: EventTrigger): Promise<boolean> => {
+        return await this.getDestinationChainObject(event).verifyTransactionWithEvent(paymentTx, event)
     }
 
     /**

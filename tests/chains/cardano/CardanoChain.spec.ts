@@ -7,7 +7,6 @@ import { expect } from "chai";
 import { Utxo } from "../../../src/chains/cardano/models/Interfaces";
 import { anything, deepEqual, spy, verify, when } from "ts-mockito";
 import { hash_transaction } from "@emurgo/cardano-serialization-lib-nodejs";
-import Utils from "../../../src/chains/ergo/helpers/Utils";
 import MockedBlockFrost from "./mocked/MockedBlockFrost";
 import TestUtils from "../../testUtils/TestUtils";
 import { beforeEach } from "mocha";
@@ -15,6 +14,7 @@ import TssSigner from "../../../src/guard/TssSigner";
 import { allTxRecords, clearTables, insertTxRecord } from "../../db/mocked/MockedScannerModel";
 import CardanoTransaction from "../../../src/chains/cardano/models/CardanoTransaction";
 import ChainsConstants from "../../../src/chains/ChainsConstants";
+import Utils from "../../../src/helpers/Utils";
 
 describe("CardanoChain", () => {
     const testBankAddress = TestBoxes.testBankAddress
@@ -42,7 +42,7 @@ describe("CardanoChain", () => {
             const tx = await cardanoChain.generateTransaction(mockedEvent)
 
             // verify tx
-            const isValid = cardanoChain.verifyTransactionWithEvent(tx, mockedEvent)
+            const isValid = await cardanoChain.verifyTransactionWithEvent(tx, mockedEvent)
             expect(isValid).to.be.true
         })
 
@@ -64,7 +64,7 @@ describe("CardanoChain", () => {
             const tx = await cardanoChain.generateTransaction(mockedEvent)
 
             // verify tx
-            const isValid = cardanoChain.verifyTransactionWithEvent(tx, mockedEvent)
+            const isValid = await cardanoChain.verifyTransactionWithEvent(tx, mockedEvent)
             expect(isValid).to.be.true
         })
 
@@ -86,7 +86,7 @@ describe("CardanoChain", () => {
 
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
-            const isValid = cardanoChain.verifyTransactionWithEvent(tx, mockedEvent)
+            const isValid = await cardanoChain.verifyTransactionWithEvent(tx, mockedEvent)
             expect(isValid).to.be.false
         })
 
@@ -104,7 +104,7 @@ describe("CardanoChain", () => {
 
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
-            const isValid = cardanoChain.verifyTransactionWithEvent(tx, mockedEvent)
+            const isValid = await cardanoChain.verifyTransactionWithEvent(tx, mockedEvent)
             expect(isValid).to.be.false
         })
 
@@ -122,7 +122,7 @@ describe("CardanoChain", () => {
 
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
-            const isValid = cardanoChain.verifyTransactionWithEvent(tx, mockedEvent)
+            const isValid = await cardanoChain.verifyTransactionWithEvent(tx, mockedEvent)
             expect(isValid).to.be.false
         })
 
@@ -140,7 +140,7 @@ describe("CardanoChain", () => {
 
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
-            const isValid = cardanoChain.verifyTransactionWithEvent(tx, mockedEvent)
+            const isValid = await cardanoChain.verifyTransactionWithEvent(tx, mockedEvent)
             expect(isValid).to.be.false
         })
 

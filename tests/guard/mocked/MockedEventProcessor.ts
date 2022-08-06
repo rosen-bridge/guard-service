@@ -32,7 +32,7 @@ const mockVerifyEvent = (event: EventTrigger, result: boolean): void => {
  * @param result
  */
 const mockVerifyPaymentTransactionWithEvent = (tx: PaymentTransaction, event: EventTrigger, result: boolean): void => {
-    when(mockedEventProcessor.verifyPaymentTransactionWithEvent(tx, anything())).thenReturn(result)
+    when(mockedEventProcessor.verifyPaymentTransactionWithEvent(tx, anything())).thenResolve(result)
 }
 
 /**

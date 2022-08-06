@@ -134,10 +134,11 @@ class TxAgreement {
             "agreed": false
         }
         if (
+            await EventProcessor.verifyEvent(event) &&
             tx.verifyMetaDataSignature(creatorId, signature) &&
             Utils.guardTurn() === creatorId &&
             !(await this.isEventHasDifferentTransaction(tx.eventId, tx.txId, tx.txType)) &&
-            EventProcessor.verifyPaymentTransactionWithEvent(tx, event)
+            (await EventProcessor.verifyPaymentTransactionWithEvent(tx, event))
         ) {
             agreementPayload.agreed = true
             agreementPayload.signature = tx.signMetaData()

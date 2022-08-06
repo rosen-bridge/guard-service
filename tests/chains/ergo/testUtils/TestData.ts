@@ -46,7 +46,7 @@ class TestData {
     static mockTransactionFeeBox = `{
         "value": 1500000,
         "ergoTree": "1005040004000e36100204a00b08cd0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798ea02d192a39a8cc7a701730073011001020402d19683030193a38cc7b2a57300000193c2b2a57301007473027303830108cdeeac93b1a57304",
-        "assets": null,
+        "assets": [],
         "additionalRegisters": {},
         "creationHeight": 100000
     }`
@@ -123,7 +123,7 @@ class TestData {
             {
                 "value": 100000,
                 "ergoTree": "${targetAddressErgoTree}",
-                "assets": null,
+                "assets": [],
                 "additionalRegisters": {},
                 "creationHeight": 100000
             },
@@ -636,7 +636,7 @@ class TestData {
             {
                 "value": 48998500000,
                 "ergoTree": "${targetAddressErgoTree}",
-                "assets": null,
+                "assets": [],
                 "additionalRegisters": {},
                 "creationHeight": 100000
             },
@@ -644,14 +644,14 @@ class TestData {
             {
                 "value": 500000003,
                 "ergoTree": "${bridgeFeeErgoTree}",
-                "assets": null,
+                "assets": [],
                 "additionalRegisters": {},
                 "creationHeight": 100000
             },
             {
                 "value": 1500000,
                 "ergoTree": "${networkFeeErgoTree}",
-                "assets": null,
+                "assets": [],
                 "additionalRegisters": {},
                 "creationHeight": 100000
             },
@@ -736,14 +736,14 @@ class TestData {
             {
                 "value": 500000003,
                 "ergoTree": "${bridgeFeeErgoTree}",
-                "assets": null,
+                "assets": [],
                 "additionalRegisters": {},
                 "creationHeight": 100000
             },
             {
                 "value": 1500000,
                 "ergoTree": "${networkFeeErgoTree}",
-                "assets": null,
+                "assets": [],
                 "additionalRegisters": {},
                 "creationHeight": 100000
             },
@@ -911,6 +911,114 @@ class TestData {
         }
       ],
       "size": 456
+    }`
+
+    static mockWrongAmountRSNOnlyRewardTx = (boxIds: string[], watcherBoxes: string[], bridgeFeeErgoTree: string,
+                                             networkFeeErgoTree: string, bankAddressErgoTree: string,
+                                             tokenId: string, rsnTokenId: string): string  => `{
+        "inputs": ${this.mockTransactionInputBoxes(boxIds)},
+        "dataInputs": [],
+        "outputs": [
+            ${watcherBoxes.join(",")},
+            {
+                "value": 1000000000,
+                "ergoTree": "${bridgeFeeErgoTree}",
+                "assets": [
+                    {
+                        "tokenId": "${rsnTokenId}",
+                        "amount": 282011
+                    }
+                ],
+                "additionalRegisters": {},
+                "creationHeight": 100000
+            },
+            {
+                "value": 1500000,
+                "ergoTree": "${networkFeeErgoTree}",
+                "assets": [],
+                "additionalRegisters": {},
+                "creationHeight": 100000
+            },
+            {
+                "value": 138997400000,
+                "ergoTree": "${bankAddressErgoTree}",
+                "assets": [
+                    {
+                        "tokenId": "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e",
+                        "amount": 99
+                    },
+                    {
+                        "tokenId": "${tokenId}",
+                        "amount": 100
+                    },
+                    {
+                        "tokenId": "${rsnTokenId}",
+                        "amount": 9999529990
+                    }
+                ],
+                "additionalRegisters": {},
+                "creationHeight": 100000
+            },
+            ${this.mockTransactionFeeBox}
+        ]
+    }`
+
+    static mockWrongAmountRSNOnlyPaymentTx = (boxIds: string[], targetAddressErgoTree: string,
+                                                           watcherBoxes: string[], bridgeFeeErgoTree: string,
+                                                           networkFeeErgoTree: string, bankAddressErgoTree: string,
+                                                           tokenId: string, rsnTokenId: string): string  => `{
+        "inputs": ${this.mockTransactionInputBoxes(boxIds)},
+        "dataInputs": [],
+        "outputs": [
+            {
+                "value": 48998500000,
+                "ergoTree": "${targetAddressErgoTree}",
+                "assets": [],
+                "additionalRegisters": {},
+                "creationHeight": 100000
+            },
+            ${watcherBoxes.join(",")},
+            {
+                "value": 1000000000,
+                "ergoTree": "${bridgeFeeErgoTree}",
+                "assets": [
+                    {
+                        "tokenId": "db6df45d3ed738ff4ff48d3cdf50ba0e5c3018bc088430a33e700073d2390ba4",
+                        "amount": 283001
+                    }
+                ],
+                "additionalRegisters": {},
+                "creationHeight": 100000
+            },
+            {
+                "value": 1500000,
+                "ergoTree": "${networkFeeErgoTree}",
+                "assets": [],
+                "additionalRegisters": {},
+                "creationHeight": 100000
+            },
+            {
+                "value": 89998900000,
+                "ergoTree": "${bankAddressErgoTree}",
+                "assets": [
+                    {
+                        "tokenId": "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e",
+                        "amount": 99
+                    },
+                    {
+                        "tokenId": "${tokenId}",
+                        "amount": 100
+                    },
+                    {
+                        "tokenId": "${rsnTokenId}",
+                        "amount": 9999529000
+                    }
+                ],
+                "additionalRegisters": {},
+                "creationHeight": 100000
+            },
+            ${this.mockTransactionFeeBox}
+        ]
     }`
 
 }

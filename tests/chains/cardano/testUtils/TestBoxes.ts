@@ -18,8 +18,8 @@ import CardanoConfigs from "../../../../src/chains/cardano/helpers/CardanoConfig
 import CardanoUtils from "../../../../src/chains/cardano/helpers/CardanoUtils";
 import CardanoTransaction from "../../../../src/chains/cardano/models/CardanoTransaction";
 import TestData from "./TestData";
-import Utils from "../../../../src/chains/ergo/helpers/Utils";
 import ChainsConstants from "../../../../src/chains/ChainsConstants";
+import Utils from "../../../../src/helpers/Utils";
 
 class TestBoxes {
 

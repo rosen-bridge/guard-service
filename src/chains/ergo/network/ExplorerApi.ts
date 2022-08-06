@@ -19,7 +19,31 @@ class ExplorerApi {
      * @param limit
      */
     static getBoxesForErgoTree = async (ergoTree: string, offset = 0, limit = 100): Promise<Boxes> => {
-        return this.explorerApi.get(`/v1/boxes/unspent/byErgoTree/${ergoTree}?offset=${offset}&limit=${limit}`).then(res => res.data);
+        return this.explorerApi.get(`/v1/boxes/unspent/byErgoTree/${ergoTree}?offset=${offset}&limit=${limit}`)
+            .then(res => res.data)
+            .catch(e => {
+                console.warn(`An error occurred while getting boxes for ErgoTree [${ergoTree}]: ${e}`)
+                return {
+                    items: [],
+                    total: 0
+                }
+            })
+    }
+
+    /**
+     * gets boxes containing tokenId
+     * @param tokenId the address ergoTree
+     */
+    static getBoxesByTokenId = async (tokenId: string): Promise<Boxes> => {
+        return this.explorerApi.get(`/v1/boxes/unspent/byTokenId/${tokenId}`)
+            .then(res => res.data)
+            .catch(e => {
+                console.warn(`An error occurred while getting boxes containing token [${tokenId}]: ${e}`)
+                return {
+                    items: [],
+                    total: 0
+                }
+            })
     }
 
     /**
