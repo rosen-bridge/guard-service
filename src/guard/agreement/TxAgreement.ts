@@ -1,4 +1,10 @@
-import { EventTrigger, PaymentTransaction } from "../../models/Models";
+import {
+    EventStatus,
+    EventTrigger,
+    PaymentTransaction,
+    TransactionStatus,
+    TransactionTypes
+} from "../../models/Models";
 import {
     AgreementMessage,
     AgreementPayload, CandidateTransaction,
@@ -10,20 +16,21 @@ import Dialer from "../../communication/Dialer";
 import Utils from "../../helpers/Utils";
 import EventProcessor from "../EventProcessor";
 import { scannerAction } from "../../db/models/scanner/ScannerModel";
+import TransactionProcessor from "../TransactionProcessor";
 
 const dialer = await Dialer.getInstance();
 
 class TxAgreement {
 
-    private static CHANNEL = "tx-agreement"
-    private transactions: Map<string, PaymentTransaction>
-    private agreedTransactions: Map<string, PaymentTransaction>
-    private transactionApprovals: Map<string, AgreementPayload[]>
-    private rejectedResponses: Map<string, number[]>
+    protected static CHANNEL = "tx-agreement"
+    protected transactions: Map<string, PaymentTransaction>
+    protected eventAgreedTransactions: Map<string, string>
+    protected transactionApprovals: Map<string, AgreementPayload[]>
+    protected rejectedResponses: Map<string, number[]>
 
     constructor() {
         this.transactions = new Map()
-        this.agreedTransactions = new Map()
+        this.eventAgreedTransactions = new Map()
         this.transactionApprovals = new Map()
         this.rejectedResponses = new Map()
         dialer.subscribeChannel(TxAgreement.CHANNEL, this.handleMessage)
@@ -72,7 +79,7 @@ class TxAgreement {
             "guardId": creatorId,
             "signature": guardSignature
         }
-
+        
         this.transactions.set(tx.txId, tx)
         this.transactionApprovals.set(tx.txId, [creatorAgreement])
 
@@ -110,9 +117,15 @@ class TxAgreement {
      */
     processTransactionRequest = async (tx: PaymentTransaction, creatorId: number, signature: string, receiver: string): Promise<void> => {
         const eventEntity = await scannerAction.getEventById(tx.eventId)
-        if (eventEntity === null) return
+        if (eventEntity === null) {
+            console.info(`received tx [${tx.txId}] for event [${tx.eventId}] but event not found`)
+            return
+        }
         const event = EventTrigger.fromEntity(eventEntity)
-        if (!await EventProcessor.isEventConfirmedEnough(event)) return
+        if (!await EventProcessor.isEventConfirmedEnough(event)) {
+            console.info(`received tx [${tx.txId}] for event [${tx.eventId}] but event is not confirmed enough`)
+            return
+        }
 
         const agreementPayload: GuardsAgreement = {
             "guardId": Configs.guardId,
@@ -121,16 +134,20 @@ class TxAgreement {
             "agreed": false
         }
         if (
+            await EventProcessor.verifyEvent(event) &&
             tx.verifyMetaDataSignature(creatorId, signature) &&
             Utils.guardTurn() === creatorId &&
-            (eventEntity.txId === null || eventEntity.txId === tx.txId) &&
-            EventProcessor.verifyPaymentTransactionWithEvent(tx, event)
+            !(await this.isEventHasDifferentTransaction(tx.eventId, tx.txId, tx.txType)) &&
+            (await EventProcessor.verifyPaymentTransactionWithEvent(tx, event))
         ) {
             agreementPayload.agreed = true
             agreementPayload.signature = tx.signMetaData()
-            this.agreedTransactions.set(tx.txId, tx)
-            await scannerAction.setEventTx(event.sourceTxId, tx.txId, tx.toJson())
+            this.transactions.set(tx.txId, tx)
+            this.eventAgreedTransactions.set(tx.eventId, tx.txId)
+            console.info(`agreed with tx [${tx.txId}] for event [${tx.eventId}]`)
         }
+        else
+            console.info(`rejected tx [${tx.txId}] for event [${tx.eventId}]`)
 
         const message = JSON.stringify({
             "type": "response",
@@ -139,6 +156,20 @@ class TxAgreement {
 
         // send response to creator guard
         dialer.sendMessage(TxAgreement.CHANNEL, message, receiver)
+    }
+
+    /**
+     * checks if another transaction exists for this event that is still valid
+     * @param eventId the event trigger id
+     * @param txId current transaction id
+     * @param txType type of the transaction
+     */
+    isEventHasDifferentTransaction = async (eventId: string, txId: string, txType: string): Promise<boolean> => {
+        if (this.eventAgreedTransactions.has(eventId) && this.eventAgreedTransactions.get(eventId) !== txId)
+            return true
+
+        const eventTxs = await scannerAction.getEventTxsByType(eventId, txType)
+        return eventTxs.find(tx => tx.status != TransactionStatus.invalid) !== undefined;
     }
 
 
@@ -206,7 +237,7 @@ class TxAgreement {
                 // broadcast approval message
                 dialer.sendMessage(TxAgreement.CHANNEL, message)
 
-                await this.setTxAsApproved(txId)
+                await this.setTxAsApproved(tx)
             }
         }
         else {
@@ -216,10 +247,7 @@ class TxAgreement {
 
             if (this.rejectedResponses.get(txId)!.length > Configs.guardsLen - Configs.minimumAgreement) {
                 console.log(`Lots of guards Disagreed with transaction with txId: ${tx.txId}. Aborting tx...`)
-                await scannerAction.removeEventTx(txId)
-                this.transactions.delete(txId)
-                if (this.transactionApprovals.get(txId) !== undefined) this.transactionApprovals.delete(txId)
-                this.rejectedResponses.delete(txId)
+                this.removeRejectedTx(tx)
             }
         }
     }
@@ -231,37 +259,88 @@ class TxAgreement {
      * @param sender
      */
     processApprovalMessage = async (tx: PaymentTransaction, guardsSignatures: AgreementPayload[], sender: string): Promise<void> => {
-        const agreedTx = this.agreedTransactions.get(tx.txId)
-
         if (guardsSignatures.some(approval => !tx.verifyMetaDataSignature(approval.guardId, approval.signature))) {
             console.warn(`Received approval message for txId: ${tx.txId} from sender: ${sender} but at least one signature doesn't verify`)
             return
         }
 
+        const agreedTx = this.transactions.get(tx.txId)
         if (agreedTx === undefined) {
             console.log(`Other guards [${guardsSignatures.map(approval => approval.guardId)}] agreed on tx with id: ${tx.txId}`)
-            await scannerAction.setEventTx(tx.eventId, tx.txId, tx.toJson(), "approved")
+            await TransactionProcessor.signSemaphore.acquire().then(async (release) => {
+                try {
+                    await scannerAction.insertTx(tx)
+                    release()
+                }
+                catch (e) {
+                    release()
+                    throw e
+                }
+            })
+            await this.updateEventOfApprovedTx(tx)
         }
         else {
-            console.log(`Transaction with txId: ${tx.txId} approved.`)
-            await this.setTxAsApproved(tx.txId)
+            console.log(`Transaction with txId: ${tx.txId} approved`)
+            await this.setTxAsApproved(tx)
         }
     }
 
     /**
-     * sets the transaction as approved in db
-     * @param txId
+     * sets the transaction as approved in db and removes it from memory
+     * @param tx
      */
-    setTxAsApproved = async (txId: string): Promise<void> => {
+    setTxAsApproved = async (tx: PaymentTransaction): Promise<void> => {
         try {
-            await scannerAction.setEventTxAsApproved(txId)
-            this.transactions.delete(txId)
-            this.agreedTransactions.delete(txId)
-            this.transactionApprovals.delete(txId)
-            if (this.rejectedResponses.get(txId) !== undefined) this.rejectedResponses.delete(txId)
+            await TransactionProcessor.signSemaphore.acquire().then(async (release) => {
+                try {
+                    await scannerAction.insertTx(tx)
+                    release()
+                }
+                catch (e) {
+                    release()
+                    throw e
+                }
+            })
+            await this.updateEventOfApprovedTx(tx)
+            this.transactions.delete(tx.txId)
+            this.transactionApprovals.delete(tx.txId)
+            if (this.eventAgreedTransactions.has(tx.eventId)) this.eventAgreedTransactions.delete(tx.eventId)
+            if (this.rejectedResponses.has(tx.txId)) this.rejectedResponses.delete(tx.txId)
         }
         catch (e) {
-            console.log(`Unexpected Error occurred while setting tx [${txId}] as approved: ${e}`)
+            console.log(`Unexpected Error occurred while setting tx [${tx.txId}] as approved: ${e}`)
+        }
+    }
+
+    /**
+     * updates event status for a tx
+     * @param tx
+     */
+    updateEventOfApprovedTx = async (tx: PaymentTransaction): Promise<void> => {
+        try {
+            if (tx.txType === TransactionTypes.payment)
+                await scannerAction.setEventStatus(tx.eventId, EventStatus.inPayment)
+            else
+                await scannerAction.setEventStatus(tx.eventId, EventStatus.inReward)
+        }
+        catch (e) {
+            console.log(`Unexpected Error occurred while updating event [${tx.eventId}] status: ${e}`)
+        }
+    }
+
+    /**
+     * removes tx data from memory
+     * @param tx
+     */
+    removeRejectedTx = (tx: PaymentTransaction): void => {
+        try {
+            this.transactions.delete(tx.txId)
+            this.rejectedResponses.delete(tx.txId)
+            if (this.transactionApprovals.get(tx.txId) !== undefined) this.transactionApprovals.delete(tx.txId)
+            if (this.eventAgreedTransactions.has(tx.eventId)) this.eventAgreedTransactions.delete(tx.eventId)
+        }
+        catch (e) {
+            console.log(`Unexpected Error occurred while removing rejected tx [${tx.txId}]: ${e}`)
         }
     }
 
@@ -289,8 +368,8 @@ class TxAgreement {
      * clears all pending for approval txs in memory and db
      */
     clearAgreedTransactions = async (): Promise<void> => {
-        this.agreedTransactions.clear()
-        await scannerAction.removeAgreedTx()
+        this.transactions.clear()
+        this.eventAgreedTransactions.clear()
     }
 
 }

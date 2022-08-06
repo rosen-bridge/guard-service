@@ -70,8 +70,8 @@ class EventProcessor {
      * @param event the event trigger
      * @return true if payment transaction verified
      */
-    static verifyPaymentTransactionWithEvent = (paymentTx: PaymentTransaction, event: EventTrigger): boolean => {
-        return this.getDestinationChainObject(event).verifyTransactionWithEvent(paymentTx, event)
+    static verifyPaymentTransactionWithEvent = async (paymentTx: PaymentTransaction, event: EventTrigger): Promise<boolean> => {
+        return await this.getDestinationChainObject(event).verifyTransactionWithEvent(paymentTx, event)
     }
 
     /**
@@ -108,23 +108,6 @@ class EventProcessor {
             return confirmation >= ErgoConfigs.requiredConfirmation
         }
         else throw new Error(`chain [${event.fromChain}] not implemented.`)
-    }
-
-    /**
-     * sends request to sign tx for all events with approved tx
-     */
-    static signApprovedEvents = async (): Promise<void> => {
-        const events = await scannerAction.getEventsByStatus("approved")
-
-        for (const event of events) {
-            try {
-                const paymentTx = PaymentTransaction.fromJson(event.paymentTxJson)
-                await this.getDestinationChainObject(EventTrigger.fromEntity(event)).requestToSignTransaction(paymentTx)
-            }
-            catch (e) {
-                console.log(`An error occurred while sending event [${event.sourceTxId}] tx to sign: ${e}`)
-            }
-        }
     }
 
 }

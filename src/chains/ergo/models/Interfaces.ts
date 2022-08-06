@@ -1,4 +1,5 @@
-import { Constant, ErgoBox, ErgoBoxes } from "ergo-lib-wasm-nodejs";
+import { Constant, ErgoBox } from "ergo-lib-wasm-nodejs";
+import { PaymentTransactionJsonModel } from "../../../models/Interfaces";
 
 interface Asset {
     tokenId: string,
@@ -14,7 +15,7 @@ interface Box {
     boxId: string,
     ergoTree: string,
     address: string,
-    value: bigint
+    value: bigint,
     assets: Asset[]
 }
 
@@ -28,8 +29,7 @@ interface CoveringErgoBoxes {
     boxes: ErgoBox[]
 }
 
-interface InBoxesInfo {
-    inBoxes: ErgoBoxes,
+interface BoxesAssets {
     ergs: bigint,
     tokens: AssetMap
 }
@@ -63,12 +63,9 @@ interface ErgoBlockHeader {
     parentId: string
 }
 
-interface ErgoTransactionJsonModel {
-    network: string
-    txId: string
-    eventId: string
-    txBytes: string
+interface ErgoTransactionJsonModel extends PaymentTransactionJsonModel {
     inputBoxes: string[]
+    dataInputs: string[]
 }
 
 export {
@@ -77,7 +74,7 @@ export {
     Box,
     Boxes,
     CoveringErgoBoxes,
-    InBoxesInfo,
+    BoxesAssets,
     AssetMap,
     ErgoBlockHeader,
     ErgoTransactionJsonModel

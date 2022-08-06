@@ -254,10 +254,8 @@ class MultiSigHandler{
                             return simulated.indexOf(item.pub) === -1
                         }).map(item => item.id ? item.id : "").filter(item => item !== "")
                         this.sendMessage({type: "sign", payload: payload}, peers)
-                        if (signed.length >= transaction.requiredSigner) {
-                            if (transaction.resolve) {
-                                transaction.resolve(signedTx)
-                            }
+                        if (signed.length >= transaction.requiredSigner && transaction.resolve) {
+                            transaction.resolve(signedTx)
                         }
                     } catch (e) {
                         console.log(`An error occurred during generate sign: ${e}`)

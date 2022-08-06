@@ -3,7 +3,6 @@ import Encryption from "../helpers/Encryption";
 import Configs from "../helpers/Configs";
 import { EventTriggerEntity } from "../db/entities/scanner/EventTriggerEntity";
 import Utils from "../helpers/Utils";
-import ErgoUtils from "../chains/ergo/helpers/Utils"
 
 
 /* tslint:disable:max-classes-per-file */
@@ -75,12 +74,14 @@ class PaymentTransaction implements PaymentTransactionModel {
     txId: string
     eventId: string
     txBytes: Uint8Array
+    txType: string
 
-    constructor(network: string, txId: string, eventId: string, txBytes: Uint8Array) {
+    constructor(network: string, txId: string, eventId: string, txBytes: Uint8Array, txType: string) {
         this.network = network
         this.txId = txId
         this.eventId = eventId
         this.txBytes = txBytes
+        this.txType = txType
     }
 
     static fromJson = (jsonString: string): PaymentTransaction => {
@@ -89,7 +90,8 @@ class PaymentTransaction implements PaymentTransactionModel {
             obj.network,
             obj.txId,
             obj.eventId,
-            ErgoUtils.hexStringToUint8Array(obj.txBytes)
+            Utils.hexStringToUint8Array(obj.txBytes),
+            obj.txType
         )
     }
 
@@ -140,13 +142,45 @@ class PaymentTransaction implements PaymentTransactionModel {
             "network": this.network,
             "txId": this.txId,
             "eventId": this.eventId,
-            "txBytes": this.getTxHexString()
+            "txBytes": this.getTxHexString(),
+            "txType": this.txType
         })
     }
 
 }
 
+class EventStatus {
+
+    static pendingPayment = "pending-payment"
+    static pendingReward = "pending-reward"
+    static inPayment = "in-payment"
+    static inReward = "in-reward"
+    static completed = "completed"
+
+}
+
+class TransactionStatus {
+
+    static approved = "approved"
+    static inSign = "in-sign"
+    static signed = "signed"
+    static sent = "sent"
+    static invalid = "invalid"
+    static completed = "completed"
+
+}
+
+class TransactionTypes {
+
+    static payment = "payment"
+    static reward = "reward"
+
+}
+
 export {
     EventTrigger,
-    PaymentTransaction
+    PaymentTransaction,
+    EventStatus,
+    TransactionStatus,
+    TransactionTypes
 }
