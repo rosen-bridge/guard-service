@@ -288,12 +288,15 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction>{
 
     /**
      * verified the event payment in the Ergo
+     * conditions that checks:
+     *  1- having atLeast 1 asset in the first output of the transaction
+     *  2- the asset should be listed on the tokenMap config
+     *  3- R4 should have length at least
      * @param event
      */
     verifyEventWithPayment = async (event: EventTrigger): Promise<boolean> => {
         const paymentTx = await ExplorerApi.getConfirmedTx(event.sourceTxId)
         if (paymentTx) {
-            console.log("here")
             const payment = paymentTx.outputs.filter((box) =>
                 ErgoConfigs.lockAddress === box.address
             ).map(box => ErgoUtils.getRosenData(box)).filter(box => box !== undefined)[0]
