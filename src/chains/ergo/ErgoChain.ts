@@ -313,7 +313,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction>{
                     {
                         tokenID: event.sourceChainTokenId
                     })
-                const targetTokenId = pUtil.default.targetTokenIdByChain(token[0], event.toChain)
+                const targetTokenId = CardanoConfigs.tokenMap.getID(token[0], event.toChain)
                 // TODO: fix fromAddress when it was fixed in the watcher side
                 const inputAddress = "fromAddress"
                 return (

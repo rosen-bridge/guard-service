@@ -378,7 +378,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
                         })
                     const eventAssetPolicyId = eventToken[0]['cardano']['policyID']
                     const eventAssetId = eventToken[0]['cardano']['assetID']
-                    const targetTokenId = pUtil.default.targetTokenIdByChain(eventToken[0], event.toChain)
+                    const targetTokenId = CardanoConfigs.tokenMap.getID(eventToken[0], event.toChain)
                     const data = metaData["0"];
                     return (
                         event.fromChain == ChainsConstants.cardano &&

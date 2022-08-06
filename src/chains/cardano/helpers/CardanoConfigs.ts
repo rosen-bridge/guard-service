@@ -1,7 +1,7 @@
 import * as CardanoWasm from '@emurgo/cardano-serialization-lib-nodejs';
 import { BigNum, TransactionBuilderConfig } from "@emurgo/cardano-serialization-lib-nodejs";
 import config from "config";
-import tokens from '../../../../config/tokens.json' assert { type: "json" };
+import tokens from '../../../../config/tokens.test.json' assert { type: "json" };
 import { TokenMap } from "@rosen-bridge/tokens";
 
 class CardanoConfigs{
