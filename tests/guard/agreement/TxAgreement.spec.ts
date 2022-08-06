@@ -14,7 +14,7 @@ import {
     insertEventRecord, insertTxRecord
 } from "../../db/mocked/MockedScannerModel";
 import {
-    mockIsEventConfirmedEnough,
+    mockIsEventConfirmedEnough, mockVerifyEvent,
     mockVerifyPaymentTransactionWithEvent,
     resetMockedEventProcessor
 } from "../mocked/MockedEventProcessor";
@@ -92,6 +92,7 @@ describe("TxAgreement", () => {
 
             // mock isConfirmedEnough
             mockIsEventConfirmedEnough(mockedEvent, true)
+            mockVerifyEvent(mockedEvent, true)
             mockVerifyPaymentTransactionWithEvent(tx, mockedEvent,true)
 
             // mock guard turn
@@ -230,11 +231,53 @@ describe("TxAgreement", () => {
 
             // mock isConfirmedEnough
             mockIsEventConfirmedEnough(mockedEvent, true)
+            mockVerifyEvent(mockedEvent, true)
 
             // generate test data
             const senderId = 0
             const wrongSenderId = 2
             const guardSignature = TestUtils.signTxMetaData(tx.txBytes, wrongSenderId)
+            const receiver = "testReceiver"
+
+            // run test
+            const txAgreement = new TestTxAgreement()
+            await txAgreement.processTransactionRequest(tx, senderId, guardSignature, receiver)
+
+            // verify out request
+            verifySendMessageWithReceiverCalledOnce("tx-agreement", JSON.stringify({
+                "type": "response",
+                "payload": {
+                    "guardId": Configs.guardId,
+                    "signature": "",
+                    "txId": tx.txId,
+                    "agreed": false
+                }
+            }), receiver)
+            expect(Array.from(txAgreement.getTransactions()).length).to.equal(0)
+            expect(Array.from(txAgreement.getEventAgreedTransactions()).length).to.equal(0)
+        })
+
+        /**
+         * Target: testing processTransactionRequest
+         * Dependencies:
+         *    scannerAction
+         *    EventProcessor
+         * Expected Output:
+         *    The function should reject the request
+         */
+        it("should reject the request when event doesn't verify", async () => {
+            // mock event and tx
+            const mockedEvent: EventTrigger = ErgoTestBoxes.mockTokenPaymentEventTrigger()
+            await insertEventRecord(mockedEvent, "")
+            const tx = ErgoTestBoxes.mockWrongTokenDistributionTransaction(mockedEvent, eventBoxAndCommitments)
+
+            // mock isConfirmedEnough
+            mockIsEventConfirmedEnough(mockedEvent, true)
+            mockVerifyEvent(mockedEvent, false)
+
+            // generate test data
+            const senderId = 0
+            const guardSignature = TestUtils.signTxMetaData(tx.txBytes, senderId)
             const receiver = "testReceiver"
 
             // run test
@@ -272,6 +315,7 @@ describe("TxAgreement", () => {
 
             // mock isConfirmedEnough
             mockIsEventConfirmedEnough(mockedEvent, true)
+            mockVerifyEvent(mockedEvent, true)
 
             // mock guard turn
             mockGuardTurn(1)
@@ -318,6 +362,7 @@ describe("TxAgreement", () => {
 
             // mock isConfirmedEnough
             mockIsEventConfirmedEnough(mockedEvent, true)
+            mockVerifyEvent(mockedEvent, true)
 
             // mock guard turn
             mockGuardTurn(0)
@@ -362,6 +407,7 @@ describe("TxAgreement", () => {
 
             // mock isConfirmedEnough
             mockIsEventConfirmedEnough(mockedEvent, true)
+            mockVerifyEvent(mockedEvent, true)
             mockVerifyPaymentTransactionWithEvent(tx, mockedEvent,false)
 
             // mock guard turn
