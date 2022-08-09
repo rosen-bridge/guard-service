@@ -522,4 +522,50 @@ describe("TransactionProcessor", () => {
 
     })
 
+    describe("processSignFailedTx", () => {
+        const ergoBlockchainHeight = TestConfigs.ergo.blockchainHeight
+        const eventBoxAndCommitments = ErgoTestBoxes.mockEventBoxWithSomeCommitments()
+
+        beforeEach("clear database tables", async () => {
+            await clearTables()
+            resetMockedExplorerApi()
+        })
+
+        /**
+         * Target: testing processSentTx (processErgoTxInputs)
+         * Dependencies:
+         *    ExplorerApi
+         *    scannerAction
+         * Expected Output:
+         *    The function should update db
+         */
+        it("should set tx as invalid and set event as pending-payment when sign failed and one input is spent", async () => {
+            // mock erg payment event
+            const mockedEvent: EventTrigger = ErgoTestBoxes.mockTokenRewardEventTrigger()
+            await insertEventRecord(mockedEvent, EventStatus.inPayment)
+            const tx = ErgoTestBoxes.mockTokenBurningTokenDistributionTransaction(mockedEvent, eventBoxAndCommitments)
+            const lastCheck = ergoBlockchainHeight - ErgoConfigs.requiredConfirmation - 1
+            await insertTxRecord(tx, TransactionTypes.payment, ChainsConstants.ergo, TransactionStatus.signFailed, lastCheck, tx.eventId)
+
+            // mock validation of tx input boxes
+            for (let i = 0; i < tx.inputBoxes.length; i++) {
+                const boxBytes = tx.inputBoxes[i]
+                const box = ErgoBox.sigma_parse_bytes(boxBytes)
+                mockIsBoxUnspentAndValid(box.box_id().to_str(), i !== tx.inputBoxes.length - 1)
+            }
+
+            // run test
+            await TransactionProcessor.processTransactions()
+
+            // verify
+            const dbEvents = await allEventRecords()
+            expect(dbEvents.map(event => [event.sourceTxId, event.status])[0])
+                .to.deep.equal([mockedEvent.sourceTxId, EventStatus.pendingPayment])
+            const dbTxs = await allTxRecords()
+            expect(dbTxs.map(tx => [tx.txId, tx.status])[0])
+                .to.deep.equal([tx.txId, TransactionStatus.invalid])
+        })
+
+    })
+
 })

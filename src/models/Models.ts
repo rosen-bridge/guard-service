@@ -163,6 +163,7 @@ class TransactionStatus {
 
     static approved = "approved"
     static inSign = "in-sign"
+    static signFailed = "sign-failed"
     static signed = "signed"
     static sent = "sent"
     static invalid = "invalid"

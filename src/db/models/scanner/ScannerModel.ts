@@ -1,4 +1,4 @@
-import { DataSource, Not, Repository } from "typeorm";
+import { DataSource, In, Repository } from "typeorm";
 import { EventTriggerEntity } from "../../entities/scanner/EventTriggerEntity";
 import { scannerOrmDataSource } from "../../../../config/scannerOrmDataSource";
 import { TransactionEntity } from "../../entities/scanner/TransactionEntity";
@@ -59,7 +59,12 @@ class ScannerDataBase {
         return await this.TransactionRepository.find({
             relations: ["event"],
             where: {
-                "status": Not(TransactionStatus.completed)
+                "status": In([
+                    TransactionStatus.sent,
+                    TransactionStatus.signed,
+                    TransactionStatus.approved,
+                    TransactionStatus.signFailed
+                ])
             }
         })
     }
