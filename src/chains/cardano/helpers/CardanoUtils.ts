@@ -1,5 +1,5 @@
-import CardanoConfigs from "./CardanoConfigs";
 import { MetaData, RosenData } from "../models/Interfaces";
+import Configs from "../../../helpers/Configs";
 
 class CardanoUtils{
 
@@ -8,31 +8,40 @@ class CardanoUtils{
      * @param fingerprint asset fingerprint
      */
     static getAssetUnitFromConfigFingerPrintMap = (fingerprint: string): Uint8Array => {
-        const token=CardanoConfigs.tokenMap.search('cardano',{fingerprint:fingerprint});
+        const token = Configs.tokenMap.search('cardano',{fingerprint:fingerprint});
         if(token.length===0)throw new Error(`asset fingerprint [${fingerprint}] not found in config`)
         return Buffer.from(token[0]['cardano']['unit'],'hex');
     }
 
     /**
-     * check if the object is the rosen bridge data type or not
-     * @param data
-     * @return boolean
+     * returns rosenData object if the box format is like rosen bridge observations otherwise returns undefined
+     * @param metaDataArray
      */
-    static isRosenData(data: object): data is RosenData {
-        return 'to' in data &&
-            'bridgeFee' in data &&
-            'networkFee' in data &&
-            'targetChainTokenId' in data &&
-            'toAddress' in data;
-    }
-
-    /**
-     * check if the metadata of cardano transaction have `0` key or not
-     * @param metaData
-     * @return boolean
-     */
-    static isRosenMetaData(metaData: object): metaData is MetaData {
-        return "0" in metaData;
+    static getRosenData = (metaDataArray: Array<MetaData>): RosenData | undefined => {
+        if (metaDataArray.length > 0 && Object.hasOwnProperty.call(metaDataArray[0], "0")) {
+            const metaData = metaDataArray[0].json;
+            console.log(metaData)
+            if ('to' in metaData
+                && 'bridgeFee' in metaData
+                && 'networkFee' in metaData
+                && 'toAddress' in metaData) {
+                console.log("here")
+                const rosenData = metaData as unknown as {
+                    to: string;
+                    bridgeFee: string;
+                    networkFee: string;
+                    toAddress: string;
+                }
+                return {
+                    toChain: rosenData.to,
+                    bridgeFee: rosenData.bridgeFee,
+                    networkFee: rosenData.networkFee,
+                    toAddress: rosenData.toAddress
+                }
+            }
+            return undefined
+        }
+        return undefined
     }
 
 }

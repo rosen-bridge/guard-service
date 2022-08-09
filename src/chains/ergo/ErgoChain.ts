@@ -23,6 +23,7 @@ import InputBoxes from "./boxes/InputBoxes";
 import OutputBoxes from "./boxes/OutputBoxes";
 import ChainsConstants from "../ChainsConstants";
 import Reward from "./Reward";
+import Configs from "../../helpers/Configs";
 
 class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction>{
 
@@ -97,8 +98,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction>{
             outBoxCandidates,
             currentHeight,
             ErgoUtils.boxValueFromBigint(ErgoConfigs.txFee),
-            this.bankAddress,
-            ErgoUtils.boxValueFromBigint(ErgoConfigs.minimumErg)
+            this.bankAddress
         )
         txCandidate.set_data_inputs(dataInputs)
         const tx = txCandidate.build()
@@ -308,12 +308,18 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction>{
                 const amount = payment.amount;
                 const tokenId = payment.tokenId;
                 const blockId = payment.blockId;
-                const token = CardanoConfigs.tokenMap.search(
+                const token = Configs.tokenMap.search(
                     'ergo',
                     {
                         tokenID: event.sourceChainTokenId
                     })
-                const targetTokenId = CardanoConfigs.tokenMap.getID(token[0], event.toChain)
+                let targetTokenId
+                try {
+                    targetTokenId = Configs.tokenMap.getID(token[0], event.toChain)
+                } catch (e) {
+                    console.log("token or chain is undefined")
+                    return false
+                }
                 // TODO: fix fromAddress when it was fixed in the watcher side
                 const inputAddress = "fromAddress"
                 return (

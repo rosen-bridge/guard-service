@@ -29,16 +29,15 @@ interface UtxoBoxesAssets {
 
 
 interface MetaData {
-    0: RosenData,
+    key: string;
+    json: JSON;
 }
 
 interface RosenData {
-    to: string,
+    toChain: string,
+    toAddress: string,
     bridgeFee: string,
     networkFee: string,
-    targetChainTokenId: string,
-    toAddress: string,
-    fromAddress: string,
 }
 
 interface TxMetaData {

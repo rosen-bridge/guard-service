@@ -11,14 +11,14 @@ import { EventTrigger, PaymentTransaction, TransactionStatus, TransactionTypes }
 import BaseChain from "../BaseChains";
 import CardanoConfigs from "./helpers/CardanoConfigs";
 import BlockFrostApi from "./network/BlockFrostApi";
-import { Utxo, UtxoBoxesAssets } from "./models/Interfaces";
+import { MetaData, Utxo, UtxoBoxesAssets } from "./models/Interfaces";
 import CardanoUtils from "./helpers/CardanoUtils";
 import TssSigner from "../../guard/TssSigner";
 import CardanoTransaction from "./models/CardanoTransaction";
 import { Buffer } from "buffer";
 import ChainsConstants from "../ChainsConstants";
-import * as pUtil from "../../helpers/Utils"
 import { scannerAction } from "../../db/models/scanner/ScannerModel";
+import Configs from "../../helpers/Configs";
 
 
 class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
@@ -367,22 +367,23 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         });
         if(utxos) {
             const txMetaData = (await KoiosApi.getTxMetaData([event.sourceTxId]))[0];
-            const metaData = txMetaData.metadata;
-            if (CardanoUtils.isRosenMetaData(metaData) && CardanoUtils.isRosenData(metaData["0"])) {
+            const metaData = txMetaData.metadata as MetaData;
+            // TODO: Fix metadata api
+            const data = CardanoUtils.getRosenData([metaData])
+            if (data) {
                 if (utxos[0].asset_list.length !== 0) {
                     const asset = utxos[0].asset_list[0];
-                    const eventToken = CardanoConfigs.tokenMap.search(
+                    const eventToken = Configs.tokenMap.search(
                         'cardano',
                         {
                             fingerprint: event.sourceChainTokenId
                         })
                     const eventAssetPolicyId = eventToken[0]['cardano']['policyID']
                     const eventAssetId = eventToken[0]['cardano']['assetID']
-                    const targetTokenId = CardanoConfigs.tokenMap.getID(eventToken[0], event.toChain)
-                    const data = metaData["0"];
+                    const targetTokenId = Configs.tokenMap.getID(eventToken[0], event.toChain)
                     return (
                         event.fromChain == ChainsConstants.cardano &&
-                        event.toChain == data.to &&
+                        event.toChain == data.toChain &&
                         event.networkFee == data.networkFee &&
                         event.bridgeFee == data.bridgeFee &&
                         event.amount == asset.quantity &&

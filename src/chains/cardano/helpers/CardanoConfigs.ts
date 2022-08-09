@@ -1,8 +1,6 @@
 import * as CardanoWasm from '@emurgo/cardano-serialization-lib-nodejs';
 import { BigNum, TransactionBuilderConfig } from "@emurgo/cardano-serialization-lib-nodejs";
 import config from "config";
-import tokens from '../../../../config/tokens.test.json' assert { type: "json" };
-import { TokenMap } from "@rosen-bridge/tokens";
 
 class CardanoConfigs{
 
@@ -49,7 +47,6 @@ class CardanoConfigs{
     static assetFingerprintUnitTuples: Map<string, Uint8Array> = new Map([
         ["assetFingerPrint", Buffer.from("assetUnitHexString", "hex")]
     ])
-    static tokenMap = new TokenMap(tokens);
 
     static requiredConfirmation = config.get<number>('cardano.requiredConfirmation')
     static lockAddresses = config.get<Array<string>>('cardano.lockAddresses')
