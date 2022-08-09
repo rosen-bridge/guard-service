@@ -83,8 +83,21 @@ class TransactionProcessor {
     static processCardanoTx = async (tx: TransactionEntity): Promise<void> => {
         const confirmation = await KoiosApi.getTxConfirmation(tx.txId)
         if (confirmation === null) {
-            // checking tx inputs
-            await this.processCardanoTxInputs(tx)
+            // check if ttl passed
+            const paymentTx = CardanoTransaction.fromJson(tx.txJson)
+            const cardanoTx = this.cardanoChain.deserialize(paymentTx.txBytes)
+            const txTtl = cardanoTx.body().ttl()
+            if (txTtl === undefined) throw Error(`for tx [${tx.txId}], TTL is undefined.`)
+            const currentSlot = await BlockFrostApi.currentSlot()
+
+            if (currentSlot > txTtl) {
+                // tx is dead. reset status if enough blocks past.
+                await this.resetCardanoStatus(tx, "dead")
+            }
+            else {
+                // tx is still alive, checking tx inputs
+                await this.processCardanoTxInputs(tx)
+            }
         }
         else if (confirmation >= CardanoConfigs.requiredConfirmation) {
             // tx confirmed enough. proceed to next process.
@@ -183,15 +196,7 @@ class TransactionProcessor {
         }
         else {
             // tx is invalid. reset status if enough blocks past.
-            const height = await BlockFrostApi.currentHeight()
-            if (height - tx.lastCheck >= CardanoConfigs.requiredConfirmation) {
-                await scannerAction.setTxStatus(tx.txId, TransactionStatus.invalid)
-                await scannerAction.resetEventTx(tx.event.sourceTxId, EventStatus.pendingPayment)
-                console.log(`tx [${tx.txId}] is invalid. event [${tx.event.sourceTxId}] is now waiting for payment.`)
-            }
-            else {
-                console.log(`tx [${tx.txId}] is invalid. waiting for enough confirmation of this proposition.`)
-            }
+            await this.resetCardanoStatus(tx, "invalid")
         }
     }
 
@@ -253,6 +258,21 @@ class TransactionProcessor {
     static processSignedTx = async (tx: TransactionEntity): Promise<void> => {
         const paymentTx = PaymentTransaction.fromJson(tx.txJson)
         await this.getChainObject(tx.chain).submitTransaction(paymentTx)
+    }
+
+    /**
+     * resets status of event and set tx as invalid if enough blocks past from last check
+     */
+    static resetCardanoStatus = async (tx: TransactionEntity, invalidStatus: string): Promise<void> => {
+        const height = await BlockFrostApi.currentHeight()
+        if (height - tx.lastCheck >= CardanoConfigs.requiredConfirmation) {
+            await scannerAction.setTxStatus(tx.txId, TransactionStatus.invalid)
+            await scannerAction.resetEventTx(tx.event.sourceTxId, EventStatus.pendingPayment)
+            console.log(`tx [${tx.txId}] is ${invalidStatus}. event [${tx.event.sourceTxId}] is now waiting for payment.`)
+        }
+        else {
+            console.log(`tx [${tx.txId}] is ${invalidStatus}. waiting for enough confirmation of this proposition.`)
+        }
     }
 
 }

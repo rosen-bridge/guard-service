@@ -14,7 +14,6 @@ import {
 import TestConfigs from "../testUtils/TestConfigs";
 import TransactionProcessor from "../../src/guard/TransactionProcessor";
 import { ErgoBox } from "ergo-lib-wasm-nodejs";
-import { resetMockedEventProcessor } from "./mocked/MockedEventProcessor";
 import CardanoTestBoxes from "../chains/cardano/testUtils/TestBoxes";
 import { mockKoiosGetTxConfirmation } from "../chains/cardano/mocked/MockedKoios";
 import MockedErgoChain from "../chains/mocked/MockedErgoChain";
@@ -38,7 +37,6 @@ describe("TransactionProcessor", () => {
             beforeEach("clear database tables", async () => {
                 await clearTables()
                 resetMockedExplorerApi()
-                resetMockedEventProcessor()
                 mockedErgoChain.resetMockCalls()
             })
 
@@ -126,7 +124,7 @@ describe("TransactionProcessor", () => {
              * Dependencies:
              *    ExplorerApi
              *    scannerAction
-             *    EventProcessor
+             *    ErgoChain
              * Expected Output:
              *    The function should send request
              */
@@ -158,7 +156,6 @@ describe("TransactionProcessor", () => {
              * Dependencies:
              *    ExplorerApi
              *    scannerAction
-             *    EventProcessor
              * Expected Output:
              *    The function should update db
              */
@@ -171,7 +168,6 @@ describe("TransactionProcessor", () => {
                 await insertTxRecord(tx, TransactionTypes.payment, ChainsConstants.ergo, TransactionStatus.sent, lastCheck, tx.eventId)
                 mockExplorerGetTxConfirmation(tx.txId, -1)
                 mockIsTxInMempool(tx.txId, false)
-                mockedErgoChain.mockSubmitTransaction(tx)
 
                 // mock validation of tx input boxes
                 for (let i = 0; i < tx.inputBoxes.length; i++) {
@@ -195,11 +191,10 @@ describe("TransactionProcessor", () => {
             /**
              * Target: testing processSentTx (processCardanoTxInputs)
              * Dependencies:
-             *    KoiosApi
-             *    BlockFrostApi
+             *    ExplorerApi
              *    scannerAction
              * Expected Output:
-             *    The function should send request
+             *    The function should update db
              */
             it("should set reward distribution tx as invalid and set event as pending-reward when one input is spent", async () => {
                 // mock erg payment event
@@ -210,7 +205,6 @@ describe("TransactionProcessor", () => {
                 await insertTxRecord(tx, TransactionTypes.reward, ChainsConstants.ergo, TransactionStatus.sent, lastCheck, tx.eventId)
                 mockExplorerGetTxConfirmation(tx.txId, -1)
                 mockIsTxInMempool(tx.txId, false)
-                mockedErgoChain.mockSubmitTransaction(tx)
 
                 // mock validation of tx input boxes
                 for (let i = 0; i < tx.inputBoxes.length; i++) {
@@ -239,14 +233,13 @@ describe("TransactionProcessor", () => {
 
             beforeEach("clear database tables", async () => {
                 await clearTables()
-                resetMockedEventProcessor()
                 mockedCardanoChain.resetMockCalls()
             })
 
             /**
              * Target: testing processSentTx (processCardanoTx)
              * Dependencies:
-             *    ExplorerApi
+             *    KoiosApi
              *    scannerAction
              * Expected Output:
              *    The function should update db
@@ -325,11 +318,41 @@ describe("TransactionProcessor", () => {
             })
 
             /**
+             * Target: testing processSentTx
+             * Dependencies:
+             *    KoiosApi
+             *    scannerAction
+             * Expected Output:
+             *    The function should send request
+             */
+            it("should set payment tx as invalid and set event as pending-payment when tx ttl past", async () => {
+                // mock erg payment event
+                const mockedEvent: EventTrigger = CardanoTestBoxes.mockADAPaymentEventTrigger()
+                await insertEventRecord(mockedEvent, EventStatus.inPayment)
+                const tx = CardanoTestBoxes.mockTTLPastAssetPaymentTx(mockedEvent)
+                const lastCheck = cardanoBlockchainHeight - CardanoConfigs.requiredConfirmation - 1
+                await insertTxRecord(tx, TransactionTypes.payment, ChainsConstants.cardano, TransactionStatus.sent, lastCheck, tx.eventId)
+                mockKoiosGetTxConfirmation(tx.txId, null)
+
+                // run test
+                await TransactionProcessor.processTransactions()
+
+                // verify
+                const dbEvents = await allEventRecords()
+                expect(dbEvents.map(event => [event.sourceTxId, event.status])[0])
+                    .to.deep.equal([mockedEvent.sourceTxId, EventStatus.pendingPayment])
+                const dbTxs = await allTxRecords()
+                expect(dbTxs.map(tx => [tx.txId, tx.status])[0])
+                    .to.deep.equal([tx.txId, TransactionStatus.invalid])
+            })
+
+            /**
              * Target: testing processSentTx (processCardanoTxInputs)
              * Dependencies:
              *    KoiosApi
              *    BlockFrostApi
              *    scannerAction
+             *    CardanoChain
              * Expected Output:
              *    The function should send request
              */
@@ -359,7 +382,7 @@ describe("TransactionProcessor", () => {
              *    BlockFrostApi
              *    scannerAction
              * Expected Output:
-             *    The function should send request
+             *    The function should update db
              */
             it("should set payment tx as invalid and set event as pending-payment when one input is spent", async () => {
                 // mock erg payment event
@@ -369,7 +392,6 @@ describe("TransactionProcessor", () => {
                 const lastCheck = cardanoBlockchainHeight - CardanoConfigs.requiredConfirmation - 1
                 await insertTxRecord(tx, TransactionTypes.payment, ChainsConstants.cardano, TransactionStatus.sent, lastCheck, tx.eventId)
                 mockKoiosGetTxConfirmation(tx.txId, null)
-                mockedCardanoChain.mockSubmitTransaction(tx)
 
                 const cardanoTx = TransactionProcessor.cardanoChain.deserialize(tx.txBytes)
                 MockedBlockFrost.mockInputProcessingMethods(cardanoTx, false)

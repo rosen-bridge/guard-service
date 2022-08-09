@@ -283,6 +283,13 @@ class TestBoxes {
         return PaymentTransaction.fromJson(TestData.adaPaymentTransaction(event.sourceTxId))
     }
 
+    /**
+     * generates a mocked Asset payment transaction that its ttl is less than current slot
+     */
+    static mockTTLPastAssetPaymentTx = (event: EventTrigger): PaymentTransaction => {
+        return PaymentTransaction.fromJson(TestData.tllPastAssetPaymentTx(event.sourceTxId))
+    }
+
 }
 
 export default TestBoxes
