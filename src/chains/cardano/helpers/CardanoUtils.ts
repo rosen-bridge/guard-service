@@ -18,14 +18,12 @@ class CardanoUtils{
      * @param metaDataArray
      */
     static getRosenData = (metaDataArray: Array<MetaData>): RosenData | undefined => {
-        if (metaDataArray.length > 0 && Object.hasOwnProperty.call(metaDataArray[0], "0")) {
+        if (metaDataArray.length > 0 && metaDataArray[0].key === "0") {
             const metaData = metaDataArray[0].json;
-            console.log(metaData)
             if ('to' in metaData
                 && 'bridgeFee' in metaData
                 && 'networkFee' in metaData
                 && 'toAddress' in metaData) {
-                console.log("here")
                 const rosenData = metaData as unknown as {
                     to: string;
                     bridgeFee: string;

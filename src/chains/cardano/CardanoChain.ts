@@ -361,26 +361,33 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
      * @param event
      */
     verifyEventWithPayment = async (event: EventTrigger): Promise<boolean> => {
-        const tx = (await KoiosApi.getTxUtxos([event.sourceTxId]))[0];
-        const utxos = tx.utxosOutput.filter((utxo: Utxo) => {
+        const txInfo = (await KoiosApi.getTxInformation([event.sourceTxId]))[0];
+        const payment = txInfo.outputs.filter((utxo: Utxo) => {
             return CardanoConfigs.lockAddresses.find(address => address === utxo.payment_addr.bech32) != undefined;
         });
-        if(utxos) {
-            const txMetaData = (await KoiosApi.getTxMetaData([event.sourceTxId]))[0];
-            const metaData = txMetaData.metadata as MetaData;
-            // TODO: Fix metadata api
-            const data = CardanoUtils.getRosenData([metaData])
+        if(payment) {
+            if(!txInfo.metadata) {
+                console.log("No transaction metadata")
+                return false
+            }
+            const data = CardanoUtils.getRosenData(txInfo.metadata)
             if (data) {
-                if (utxos[0].asset_list.length !== 0) {
-                    const asset = utxos[0].asset_list[0];
-                    const eventToken = Configs.tokenMap.search(
-                        'cardano',
-                        {
-                            fingerprint: event.sourceChainTokenId
-                        })
-                    const eventAssetPolicyId = eventToken[0]['cardano']['policyID']
-                    const eventAssetId = eventToken[0]['cardano']['assetID']
-                    const targetTokenId = Configs.tokenMap.getID(eventToken[0], event.toChain)
+                if (payment[0].asset_list.length !== 0) {
+                    let targetTokenId, asset, eventAssetId, eventAssetPolicyId
+                    try {
+                        asset = payment[0].asset_list[0];
+                        const eventToken = Configs.tokenMap.search(
+                            'cardano',
+                            {
+                                fingerprint: event.sourceChainTokenId
+                            })
+                        eventAssetPolicyId = eventToken[0]['cardano']['policyID']
+                        eventAssetId = eventToken[0]['cardano']['assetID']
+                        targetTokenId = Configs.tokenMap.getID(eventToken[0], event.toChain)
+                    } catch (e) {
+                        console.log("token or chain is undefined")
+                        return false
+                    }
                     return (
                         event.fromChain == ChainsConstants.cardano &&
                         event.toChain == data.toChain &&
@@ -391,7 +398,8 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
                         eventAssetId == asset.asset_name &&
                         event.targetChainTokenId == targetTokenId &&
                         event.toAddress == data.toAddress &&
-                        event.fromAddress == tx.utxosInput[0].payment_addr.bech32
+                        event.fromAddress == txInfo.inputs[0].payment_addr.bech32 &&
+                        event.sourceBlockId == txInfo.block_hash
                     )
                 }
             }

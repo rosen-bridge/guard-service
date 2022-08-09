@@ -90,28 +90,54 @@ class TestData {
         }`
     }
 
-    static tx = {
-        "tx_hash": "cf32ad374daefdce563e3391effc4fc42eb0e74bbec8afe16a46eeea69e3b2aa",
+    static observationTxInfo = {
+        "tx_hash": "928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b",
+        "block_hash": "f75fea40852ed7d7f539d008e45255725daef8553ae7162750836f279570813a",
+        "block_height": 3338631,
+        "epoch": 188,
+        "epoch_slot": 250266,
+        "absolute_slot": 51096666,
+        "tx_timestamp": 1645465882,
+        "tx_block_index": 0,
+        "tx_size": 665,
+        "total_output": "53796752",
+        "fee": "184861",
+        "deposit": "0",
+        "invalid_before": null,
+        "invalid_after": null,
+        "collaterals": [],
         "inputs": [
             {
                 "payment_addr": {
-                    "bech32": "addr_test1vzg07d2qp3xje0w77f982zkhqey50gjxrsdqh89yx8r7nasu97hr0",
-                    "cred": "90ff35400c4d2cbddef24a750ad7064947a2461c1a0b9ca431c7e9f6"
+                    "bech32": "addr_test1qzf9uxs6xgprx4zt20qtsasxut8uw6quv34xlkmd26yuk5xe70s0yf5c3sefnrft6gdajkpz29t8lsn0kcr5xqsf34qqxd6n4f",
+                    "cred": "925e1a1a320233544b53c0b87606e2cfc7681c646a6fdb6d5689cb50"
                 },
-                "stake_addr": null,
-                "tx_hash": "9f00d372e930d685c3b410a10f2bd035cd9a927c4fd8ef8e419c79b210af7ba6",
-                "tx_index": 1,
-                "value": "979445417",
+                "stake_addr": "stake_test1urvl8c8jy6vgcv5e354ayx7etq39z4nlcfhmvp6rqgyc6sqpdzt63",
+                "tx_hash": "c37fa6d7147eeca2838f4312491dd75ac5b7c5dc5d784ff741afd797a46f7536",
+                "tx_index": 2,
+                "value": "51981613",
                 "asset_list": [
                     {
-                        "policy_id": "ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2",
-                        "asset_name": "646f6765",
-                        "quantity": "10000000"
-                    },
+                        "policy_id": "b07de2ce2a86f890410d4504d491b1df423f7e3e20973663a819d1a1",
+                        "asset_name": "455448",
+                        "quantity": "13060"
+                    }
+                ]
+            },
+            {
+                "payment_addr": {
+                    "bech32": "addr_test1qzf9uxs6xgprx4zt20qtsasxut8uw6quv34xlkmd26yuk5xe70s0yf5c3sefnrft6gdajkpz29t8lsn0kcr5xqsf34qqxd6n4f",
+                    "cred": "925e1a1a320233544b53c0b87606e2cfc7681c646a6fdb6d5689cb50"
+                },
+                "stake_addr": "stake_test1urvl8c8jy6vgcv5e354ayx7etq39z4nlcfhmvp6rqgyc6sqpdzt63",
+                "tx_hash": "d9f8f52825238a17f802bc54831bbdb10f427b2f20f8cf8c3613f710e59615e5",
+                "tx_index": 7,
+                "value": "2000000",
+                "asset_list": [
                     {
-                        "policy_id": "ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2",
-                        "asset_name": "7369676d61",
-                        "quantity": "9999978"
+                        "policy_id": "22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130",
+                        "asset_name": "016dee4ce565a31af501894406ec61d78a87f0c53de1e7cc6d52d156b3f5b155",
+                        "quantity": "15829495"
                     }
                 ]
             }
@@ -120,58 +146,79 @@ class TestData {
             {
                 "payment_addr": {
                     "bech32": "addr_test1vze7yqqlg8cjlyhz7jzvsg0f3fhxpuu6m3llxrajfzqecggw704re",
-                    "cred": "b3e2001f41f12f92e2f484c821e98a6e60f39adc7ff30fb248819c21"
+                    "cred": "925e1a1a320233544b53c0b87606e2cfc7681c646a6fdb6d5689cb50"
                 },
-                "stake_addr": null,
-                "tx_hash": "cf32ad374daefdce563e3391effc4fc42eb0e74bbec8afe16a46eeea69e3b2aa",
-                "tx_index": 0,
-                "value": "10000000",
+                "stake_addr": "stake_test1urvl8c8jy6vgcv5e354ayx7etq39z4nlcfhmvp6rqgyc6sqpdzt63",
+                "tx_hash": "928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b",
+                "tx_index": 1,
+                "value": "49796752",
                 "asset_list": [
                     {
                         "policy_id": "ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2",
                         "asset_name": "7369676d61",
-                        "quantity": "10"
+                        "quantity": "13060"
                     }
                 ]
             },
             {
                 "payment_addr": {
-                    "bech32": "addr_test1vzg07d2qp3xje0w77f982zkhqey50gjxrsdqh89yx8r7nasu97hr0",
-                    "cred": "90ff35400c4d2cbddef24a750ad7064947a2461c1a0b9ca431c7e9f6"
+                    "bech32": "addr_test1wphyve8r76kvfr5yn6k0fcmq0mn2uf6c6mvtsrafmr7awcg0vnzpg",
+                    "cred": "6e4664e3f6acc48e849eacf4e3607ee6ae2758d6d8b80fa9d8fdd761"
                 },
                 "stake_addr": null,
-                "tx_hash": "cf32ad374daefdce563e3391effc4fc42eb0e74bbec8afe16a46eeea69e3b2aa",
-                "tx_index": 1,
-                "value": "969261084",
+                "tx_hash": "928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b",
+                "tx_index": 0,
+                "value": "4000000",
                 "asset_list": [
                     {
-                        "policy_id": "ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2",
-                        "asset_name": "646f6765",
-                        "quantity": "10000000"
-                    },
-                    {
-                        "policy_id": "ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2",
-                        "asset_name": "7369676d61",
-                        "quantity": "9999968"
+                        "policy_id": "22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130",
+                        "asset_name": "016dee4ce565a31af501894406ec61d78a87f0c53de1e7cc6d52d156b3f5b155",
+                        "quantity": "15829495"
                     }
                 ]
             }
-        ]
-    }
-
-    static txMetaData = {
-        "tx_hash": "cf32ad374daefdce563e3391effc4fc42eb0e74bbec8afe16a46eeea69e3b2aa",
-        "metadata": {
-            "0": {
-                "to": "ergo",
-                "bridgeFee": "10000",
-                "networkFee": "10000",
-                "toAddress": "ergoAddress",
-                "targetChainTokenId": "cardanoTokenId"
+        ],
+        "withdrawals": [],
+        "assets_minted": [],
+        "metadata": [
+            {
+                "key": "0",
+                "json": JSON.parse(`{
+                    "to": "ergo",
+                    "bridgeFee": "250",
+                    "networkFee": "10000",
+                    "toAddress": "ergoAddress",
+                    "targetChainTokenId": "cardanoTokenId"
+                }`)
             }
-        }
+        ],
+        "certificates": [],
+        "native_scripts": [],
+        "plutus_contracts": []
     }
 
+    static nonObservationTxInfo = {
+        "tx_hash": "0f32ad374daefdce563e3391effc4fc42eb0e74bbec8afe16a46eeea69e3b2aa",
+        "block_hash": "f75fea40852ed7d7f539d008e45255725daef8553ae7162750836f279570813a",
+        "inputs": [],
+        "outputs": [{
+            "payment_addr": {
+                "bech32": "addr_test1wphyve8r76kvfr5yn6k0fcmq0mn2uf6c6mvtsrafmr7awcg0vnzpg",
+                "cred": "6e4664e3f6acc48e849eacf4e3607ee6ae2758d6d8b80fa9d8fdd761"
+            },
+            "stake_addr": null,
+            "tx_hash": "928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b",
+            "tx_index": 0,
+            "value": "4000000",
+            "asset_list": [
+                {
+                    "policy_id": "22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130",
+                    "asset_name": "016dee4ce565a31af501894406ec61d78a87f0c53de1e7cc6d52d156b3f5b155",
+                    "quantity": "15829495"
+                }
+            ]
+        }]
+    }
 }
 
 export default TestData

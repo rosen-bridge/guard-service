@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Tx, TxMetaData, Utxo } from "../models/Interfaces";
+import { KoiosTransaction, Utxo } from "../models/Interfaces";
 import CardanoConfigs from "../helpers/CardanoConfigs";
 
 
@@ -30,28 +30,11 @@ class KoiosApi {
     }
 
     /**
-     * returns transaction input and output utxos
-     * @param txHashes
-     */
-    static getTxUtxos = (txHashes: Array<string>): Promise<Array<Tx>> => {
-        return this.koios.post<Array<{ inputs: Array<Utxo>, outputs: Array<Utxo> }>>(
-            '/tx_utxos', {"_tx_hashes": txHashes}
-        ).then(res => {
-            return res.data.map((tx: { inputs: Array<Utxo>, outputs: Array<Utxo> }) => {
-                return {
-                    utxosOutput: tx.outputs,
-                    utxosInput: tx.inputs,
-                }
-            });
-        });
-    }
-
-    /**
      * returns tx meta data
      * @param txHashes
      */
-    static getTxMetaData = (txHashes: Array<string>): Promise<Array<TxMetaData>> => {
-        return this.koios.post<Array<TxMetaData>>("/tx_metadata", {"_tx_hashes": txHashes}).then(
+    static getTxInformation = (txHashes: Array<string>): Promise<Array<KoiosTransaction>> => {
+        return this.koios.post<Array<KoiosTransaction>>("/tx_info", {"_tx_hashes": txHashes}).then(
             res => res.data
         )
     }

@@ -17,11 +17,6 @@ interface Utxo {
     asset_list: Array<Asset>
 }
 
-interface Tx {
-    utxosOutput: Array<Utxo>
-    utxosInput: Array<Utxo>
-}
-
 interface UtxoBoxesAssets {
     lovelace: BigNum,
     assets: MultiAsset
@@ -40,9 +35,12 @@ interface RosenData {
     networkFee: string,
 }
 
-interface TxMetaData {
-    tx_hash: string,
-    metadata: object,
+interface KoiosTransaction {
+    tx_hash: string;
+    block_hash: string;
+    inputs: Array<Utxo>;
+    outputs: Array<Utxo>;
+    metadata?: Array<MetaData>;
 }
 
 type TxUtxos = components['schemas']['tx_content_utxo']
@@ -55,8 +53,7 @@ export type {
     UtxoBoxesAssets,
     TxUtxos,
     AddressUtxos,
-    TxMetaData,
+    KoiosTransaction,
     MetaData,
-    Tx,
     RosenData
 };
