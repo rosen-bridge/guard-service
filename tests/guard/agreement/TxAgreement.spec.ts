@@ -594,6 +594,7 @@ describe("TxAgreement", () => {
 
             // mock isConfirmedEnough
             mockIsEventConfirmedEnough(mockedEvent, true)
+            mockVerifyEvent(mockedEvent, true)
             mockVerifyPaymentTransactionWithEvent(tx, mockedEvent,true)
 
             // mock guard turn
@@ -698,6 +699,7 @@ describe("TxAgreement", () => {
 
             // mock isConfirmedEnough
             mockIsEventConfirmedEnough(mockedEvent, true)
+            mockVerifyEvent(mockedEvent, true)
             mockVerifyPaymentTransactionWithEvent(tx, mockedEvent,true)
 
             // mock guard turn
