@@ -1,6 +1,4 @@
 import Configs from "./Configs";
-import ChainsConstants from "../chains/ChainsConstants";
-import chainsConstants from "../chains/ChainsConstants";
 
 class Utils {
 

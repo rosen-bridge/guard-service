@@ -1,7 +1,6 @@
 import { BlockFrostAPI } from "@blockfrost/blockfrost-js";
 import CardanoConfigs from "../helpers/CardanoConfigs";
 import { Transaction } from "@emurgo/cardano-serialization-lib-nodejs";
-import { components } from "@blockfrost/blockfrost-js/lib/types/OpenApi";
 import { AddressUtxos, TxUtxos } from "../models/Interfaces";
 
 

@@ -2,7 +2,7 @@ import * as CardanoWasm from '@emurgo/cardano-serialization-lib-nodejs';
 import { BigNum, TransactionBuilderConfig } from "@emurgo/cardano-serialization-lib-nodejs";
 import config from "config";
 
-class CardanoConfigs{
+class CardanoConfigs {
 
     // txBuilder configs: Cardano protocol parameters
     static protocolParameters = {

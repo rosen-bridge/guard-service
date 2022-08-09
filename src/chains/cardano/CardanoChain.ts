@@ -4,18 +4,17 @@ import {
     MultiAsset, ScriptHash,
     Transaction, TransactionBuilder, TransactionHash, TransactionInput,
     TransactionOutput, TransactionWitnessSet,
-    Value, Vkeywitness, Vkeywitnesses,
+    Value, Vkeywitness, Vkeywitnesses
 } from "@emurgo/cardano-serialization-lib-nodejs";
 import KoiosApi from "./network/KoiosApi";
 import { EventTrigger, PaymentTransaction, TransactionStatus, TransactionTypes } from "../../models/Models";
 import BaseChain from "../BaseChains";
 import CardanoConfigs from "./helpers/CardanoConfigs";
 import BlockFrostApi from "./network/BlockFrostApi";
-import { MetaData, Utxo, UtxoBoxesAssets } from "./models/Interfaces";
+import { Utxo, UtxoBoxesAssets } from "./models/Interfaces";
 import CardanoUtils from "./helpers/CardanoUtils";
 import TssSigner from "../../guard/TssSigner";
 import CardanoTransaction from "./models/CardanoTransaction";
-import { Buffer } from "buffer";
 import ChainsConstants from "../ChainsConstants";
 import { scannerAction } from "../../db/models/scanner/ScannerModel";
 import Configs from "../../helpers/Configs";

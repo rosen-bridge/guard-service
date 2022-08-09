@@ -1,6 +1,15 @@
 import { Buffer } from "buffer";
-import { Address, BoxValue, Contract, ErgoBox, ErgoBoxCandidate, I64, TokenAmount, Constant } from "ergo-lib-wasm-nodejs";
-import { AssetMap, BoxesAssets , ExplorerOutputBox} from "../models/Interfaces";
+import {
+    Address,
+    BoxValue,
+    Contract,
+    ErgoBox,
+    ErgoBoxCandidate,
+    I64,
+    TokenAmount,
+    Constant
+} from "ergo-lib-wasm-nodejs";
+import { AssetMap, BoxesAssets, ExplorerOutputBox } from "../models/Interfaces";
 
 class ErgoUtils {
     /**
@@ -146,15 +155,6 @@ class ErgoUtils {
 
     /**
      * return undefined if the box format is like rosen bridge observation else
-     *  returns rosen data format {
-     *  toChain:string,
-     *  toAddress:string,
-     *  networkFee:string,
-     *  bridgeFee:string,
-     *  amount:string,
-     *  tokenId:string,
-     *  blockId:string,
-     *  }
      * @param box
      */
     static getRosenData = (box: ExplorerOutputBox) => {
@@ -229,8 +229,7 @@ class ErgoUtils {
                 tokens[id] -= usedAssets.tokens[id]
                 if (tokens[id] < 0n)
                     throw Error(`not enough token [${id}] in input assets [Current: ${inAssets.tokens[id]}] [Require: ${usedAssets.tokens[id]}]`)
-            }
-            else
+            } else
                 throw Error(`not enough token [${id}] in input assets [Current: 0] [Require: ${usedAssets.tokens[id]}]`)
         })
 

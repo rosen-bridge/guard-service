@@ -16,8 +16,6 @@ import ErgoUtils from "./helpers/ErgoUtils";
 import NodeApi from "./network/NodeApi";
 import BoxVerifications from "./boxes/BoxVerifications";
 import ErgoTransaction from "./models/ErgoTransaction";
-import CardanoConfigs from "../cardano/helpers/CardanoConfigs";
-import * as pUtil from "../../helpers/Utils";
 import { scannerAction } from "../../db/models/scanner/ScannerModel";
 import InputBoxes from "./boxes/InputBoxes";
 import OutputBoxes from "./boxes/OutputBoxes";
@@ -25,7 +23,7 @@ import ChainsConstants from "../ChainsConstants";
 import Reward from "./Reward";
 import Configs from "../../helpers/Configs";
 
-class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction>{
+class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
 
     bankAddress = Address.from_base58(ErgoConfigs.bankAddress)
     bankErgoTree = ErgoUtils.addressToErgoTreeString(this.bankAddress)
@@ -349,8 +347,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction>{
             await scannerAction.setTxStatus(paymentTx.txId, TransactionStatus.sent)
             const response = await NodeApi.sendTx(tx.unsigned_tx().to_json())
             console.log(`Cardano Transaction submitted. txId: ${response}`)
-        }
-        catch (e) {
+        } catch (e) {
             console.log(`An error occurred while submitting Ergo transaction: ${e.message}`)
         }
     }

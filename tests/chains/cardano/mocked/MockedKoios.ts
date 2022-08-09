@@ -1,4 +1,4 @@
-import { anything, deepEqual, spy, verify, when } from "ts-mockito";
+import { deepEqual, spy, when } from "ts-mockito";
 import KoiosApi from "../../../../src/chains/cardano/network/KoiosApi";
 import { KoiosTransaction, Utxo } from "../../../../src/chains/cardano/models/Interfaces";
 
