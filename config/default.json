@@ -1,4 +1,5 @@
 {
+    "secret": "3e600b60d82da99c55959df4bb4ceb139cbe434a948251b371c6d9eeb73cb723",
     "express": {
         "port": 8080,
         "jsonBodyLimit": 50
@@ -24,11 +25,11 @@
     },
     "ergo": {
         "explorer": {
-            "url": "https://testnet.koios.rest/api/v0",
+            "url": "https://api-testnet.ergoplatform.com/api/v1",
             "timeout": 8000
         },
         "node": {
-            "url": "https://testnet.koios.rest/api/v0",
+            "url": "",
             "timeout": 8000
         },
         "bankAddress": "9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD",
@@ -64,6 +65,7 @@
         "apiCallbackTimeout": 8000,
         "peerIdFilePath": "./peer-dialer.json"
     },
+    "multiSigTimeout": null,
     "guard": {
         "guardId": 1,
         "secret": "4444444444444444444444444444444444444444444444444444444444444444",
