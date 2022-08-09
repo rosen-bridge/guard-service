@@ -1,4 +1,4 @@
-import { anything, capture, deepEqual, instance, mock, reset, spy, verify, when } from "ts-mockito";
+import { anything, capture, deepEqual, instance, mock, reset, resetCalls, spy, verify, when } from "ts-mockito";
 import Dialer from "../../../src/communication/Dialer";
 import fs from "fs";
 import TestConfigs from "../../testUtils/TestConfigs";
@@ -91,6 +91,13 @@ const verifySendMessageDidntGetCalled = (channel: string, message: any, receiver
     verify(mockedDialerInstance.sendMessage(channel, deepEqual(message))).never()
 }
 
+/**
+ * reset call counts for mockedDialerInstance
+ */
+const resetDialerCalls = (): void => {
+    resetCalls(mockedDialerInstance)
+}
+
 export {
     mockExistsSync,
     mockReadFileSync,
@@ -99,5 +106,6 @@ export {
     verifySendMessageCalledOnce,
     verifySendMessageCalledTwice,
     verifySendMessageWithReceiverCalledOnce,
-    verifySendMessageDidntGetCalled
+    verifySendMessageDidntGetCalled,
+    resetDialerCalls
 }

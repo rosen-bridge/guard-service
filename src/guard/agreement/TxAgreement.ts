@@ -26,13 +26,11 @@ class TxAgreement {
     protected transactions: Map<string, PaymentTransaction>
     protected eventAgreedTransactions: Map<string, string>
     protected transactionApprovals: Map<string, AgreementPayload[]>
-    protected rejectedResponses: Map<string, number[]>
 
     constructor() {
         this.transactions = new Map()
         this.eventAgreedTransactions = new Map()
         this.transactionApprovals = new Map()
-        this.rejectedResponses = new Map()
         dialer.subscribeChannel(TxAgreement.CHANNEL, this.handleMessage)
     }
 
@@ -126,13 +124,6 @@ class TxAgreement {
             console.info(`received tx [${tx.txId}] for event [${tx.eventId}] but event is not confirmed enough`)
             return
         }
-
-        const agreementPayload: GuardsAgreement = {
-            "guardId": Configs.guardId,
-            "signature": "",
-            "txId": tx.txId,
-            "agreed": false
-        }
         if (
             await EventProcessor.verifyEvent(event) &&
             tx.verifyMetaDataSignature(creatorId, signature) &&
@@ -140,22 +131,27 @@ class TxAgreement {
             !(await this.isEventHasDifferentTransaction(tx.eventId, tx.txId, tx.txType)) &&
             (await EventProcessor.verifyPaymentTransactionWithEvent(tx, event))
         ) {
-            agreementPayload.agreed = true
-            agreementPayload.signature = tx.signMetaData()
             this.transactions.set(tx.txId, tx)
             this.eventAgreedTransactions.set(tx.eventId, tx.txId)
             console.info(`agreed with tx [${tx.txId}] for event [${tx.eventId}]`)
+
+            const agreementPayload: GuardsAgreement = {
+                "guardId": Configs.guardId,
+                "signature": tx.signMetaData(),
+                "txId": tx.txId,
+                "agreed": true
+            }
+
+            const message = JSON.stringify({
+                "type": "response",
+                "payload": agreementPayload
+            })
+
+            // send response to creator guard
+            dialer.sendMessage(TxAgreement.CHANNEL, message, receiver)
         }
         else
             console.info(`rejected tx [${tx.txId}] for event [${tx.eventId}]`)
-
-        const message = JSON.stringify({
-            "type": "response",
-            "payload": agreementPayload
-        })
-
-        // send response to creator guard
-        dialer.sendMessage(TxAgreement.CHANNEL, message, receiver)
     }
 
     /**
@@ -200,17 +196,6 @@ class TxAgreement {
             else guardApproval.signature = signature
         }
 
-        /**
-         * saves guard reject response with in rejectedResponses
-         * @param txId
-         * @param guardId
-         */
-        const pushGuardReject = (txId: string, guardId: number): void => {
-            const txRejects = this.rejectedResponses.get(txId)
-            if (txRejects === undefined) throw new Error(`Unexpected Error: TxId: ${txId} not found in rejects list while it was in transaction list`)
-            if (!txRejects.includes(guardId)) txRejects.push(guardId)
-        }
-
         const tx = this.transactions.get(txId)
         if (tx === undefined) return
 
@@ -240,16 +225,6 @@ class TxAgreement {
                 await this.setTxAsApproved(tx)
             }
         }
-        else {
-            console.log(`Guard ${signerId} Disagreed with transaction with txId: ${tx.txId}`)
-            if (this.rejectedResponses.get(txId) === undefined) this.rejectedResponses.set(txId, [])
-            pushGuardReject(txId, signerId)
-
-            if (this.rejectedResponses.get(txId)!.length > Configs.guardsLen - Configs.minimumAgreement) {
-                console.log(`Lots of guards Disagreed with transaction with txId: ${tx.txId}. Aborting tx...`)
-                this.removeRejectedTx(tx)
-            }
-        }
     }
 
     /**
@@ -267,17 +242,6 @@ class TxAgreement {
         const agreedTx = this.transactions.get(tx.txId)
         if (agreedTx === undefined) {
             console.log(`Other guards [${guardsSignatures.map(approval => approval.guardId)}] agreed on tx with id: ${tx.txId}`)
-            await TransactionProcessor.signSemaphore.acquire().then(async (release) => {
-                try {
-                    await scannerAction.insertTx(tx)
-                    release()
-                }
-                catch (e) {
-                    release()
-                    throw e
-                }
-            })
-            await this.updateEventOfApprovedTx(tx)
         }
         else {
             console.log(`Transaction with txId: ${tx.txId} approved`)
@@ -305,7 +269,6 @@ class TxAgreement {
             this.transactions.delete(tx.txId)
             this.transactionApprovals.delete(tx.txId)
             if (this.eventAgreedTransactions.has(tx.eventId)) this.eventAgreedTransactions.delete(tx.eventId)
-            if (this.rejectedResponses.has(tx.txId)) this.rejectedResponses.delete(tx.txId)
         }
         catch (e) {
             console.log(`Unexpected Error occurred while setting tx [${tx.txId}] as approved: ${e}`)
@@ -329,22 +292,6 @@ class TxAgreement {
     }
 
     /**
-     * removes tx data from memory
-     * @param tx
-     */
-    removeRejectedTx = (tx: PaymentTransaction): void => {
-        try {
-            this.transactions.delete(tx.txId)
-            this.rejectedResponses.delete(tx.txId)
-            if (this.transactionApprovals.get(tx.txId) !== undefined) this.transactionApprovals.delete(tx.txId)
-            if (this.eventAgreedTransactions.has(tx.eventId)) this.eventAgreedTransactions.delete(tx.eventId)
-        }
-        catch (e) {
-            console.log(`Unexpected Error occurred while removing rejected tx [${tx.txId}]: ${e}`)
-        }
-    }
-
-    /**
      * iterates over active transaction and resend its request
      */
     resendTransactionRequests = (): void => {
@@ -361,7 +308,6 @@ class TxAgreement {
     clearTransactions = (): void => {
         this.transactions.clear()
         this.transactionApprovals.clear()
-        this.rejectedResponses.clear()
     }
 
     /**

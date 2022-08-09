@@ -89,8 +89,7 @@ class Reward {
             outBoxCandidates,
             currentHeight,
             ErgoUtils.boxValueFromBigint(ErgoConfigs.txFee),
-            this.bankAddress,
-            ErgoUtils.boxValueFromBigint(ErgoConfigs.minimumErg)
+            this.bankAddress
         )
 
         txCandidate.set_data_inputs(dataInputs)
