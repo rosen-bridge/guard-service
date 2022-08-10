@@ -16,10 +16,6 @@ class TestTxAgreement extends TxAgreement {
         return this.transactionApprovals
     }
 
-    getRejectedResponses = (): Map<string, number[]> => {
-        return this.rejectedResponses
-    }
-
     insertTransactions = (key: string, value: PaymentTransaction): void => {
         this.transactions.set(key, value)
     }
@@ -30,10 +26,6 @@ class TestTxAgreement extends TxAgreement {
 
     insertTransactionApprovals = (key: string, value: AgreementPayload[]): void => {
         this.transactionApprovals.set(key, value)
-    }
-
-    insertRejectedResponses = (key: string, value: number[]): void => {
-        this.rejectedResponses.set(key, value)
     }
 
 }

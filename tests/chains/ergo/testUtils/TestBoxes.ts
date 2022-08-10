@@ -511,8 +511,7 @@ class TestBoxes {
             new ErgoBoxCandidates(this.mockErgoBoxCandidate(value, assets, boxContract, registers)),
             this.testBlockchainHeight + 10,
             ErgoUtils.boxValueFromBigint(1100000n),
-            address,
-            this.ergToBoxValue(1)
+            address
         ).build()
 
         // sign fake tx

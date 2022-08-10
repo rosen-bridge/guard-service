@@ -1,4 +1,5 @@
 import {
+    resetDialerCalls,
     verifySendMessageCalledOnce, verifySendMessageCalledTwice, verifySendMessageDidntGetCalled,
     verifySendMessageWithReceiverCalledOnce
 } from "../../communication/mocked/MockedDialer";
@@ -70,10 +71,12 @@ describe("TxAgreement", () => {
     })
 
     describe("processTransactionRequest", () => {
+        const senderId = 0
 
         beforeEach("clear scanner database tables", async () => {
             await clearTables()
             resetMockedEventProcessor()
+            resetDialerCalls()
         })
 
         /**
@@ -98,7 +101,6 @@ describe("TxAgreement", () => {
             mockGuardTurn(0)
 
             // generate test data
-            const senderId = 0
             const guardSignature = TestUtils.signTxMetaData(tx.txBytes, senderId)
             const receiver = "testReceiver"
 
@@ -133,8 +135,6 @@ describe("TxAgreement", () => {
             const tx = ErgoTestBoxes.mockWrongAmountTokenDistributionTransaction(mockedEvent, eventBoxAndCommitments)
 
             // generate test data
-            const senderId = 0
-            const guardId = Configs.guardId
             const guardSignature = TestUtils.signTxMetaData(tx.txBytes, senderId)
             const receiver = "testReceiver"
 
@@ -143,24 +143,7 @@ describe("TxAgreement", () => {
             await txAgreement.processTransactionRequest(tx, senderId, guardSignature, receiver)
 
             // verify no agree or reject out request
-            verifySendMessageDidntGetCalled("tx-agreement", JSON.stringify({
-                "type": "response",
-                "payload": {
-                    "guardId": guardId,
-                    "signature": tx.signMetaData(),
-                    "txId": tx.txId,
-                    "agreed": true
-                }
-            }), receiver)
-            verifySendMessageDidntGetCalled("tx-agreement", JSON.stringify({
-                "type": "response",
-                "payload": {
-                    "guardId": guardId,
-                    "signature": "",
-                    "txId": tx.txId,
-                    "agreed": false
-                }
-            }), receiver)
+            verifySendMessageDidntGetCalled("tx-agreement", anything(), anything())
             expect(Array.from(txAgreement.getTransactions()).length).to.equal(0)
             expect(Array.from(txAgreement.getEventAgreedTransactions()).length).to.equal(0)
         })
@@ -183,7 +166,6 @@ describe("TxAgreement", () => {
             mockIsEventConfirmedEnough(mockedEvent, false)
 
             // generate test data
-            const senderId = 0
             const guardSignature = TestUtils.signTxMetaData(tx.txBytes, senderId)
             const receiver = "testReceiver"
 
@@ -192,24 +174,7 @@ describe("TxAgreement", () => {
             await txAgreement.processTransactionRequest(tx, senderId, guardSignature, receiver)
 
             // verify no agree or reject out request
-            verifySendMessageDidntGetCalled("tx-agreement", JSON.stringify({
-                "type": "response",
-                "payload": {
-                    "guardId": Configs.guardId,
-                    "signature": tx.signMetaData(),
-                    "txId": tx.txId,
-                    "agreed": true
-                }
-            }), receiver)
-            verifySendMessageDidntGetCalled("tx-agreement", JSON.stringify({
-                "type": "response",
-                "payload": {
-                    "guardId": Configs.guardId,
-                    "signature": "",
-                    "txId": tx.txId,
-                    "agreed": false
-                }
-            }), receiver)
+            verifySendMessageDidntGetCalled("tx-agreement", anything(), anything())
             expect(Array.from(txAgreement.getTransactions()).length).to.equal(0)
             expect(Array.from(txAgreement.getEventAgreedTransactions()).length).to.equal(0)
         })
@@ -232,7 +197,6 @@ describe("TxAgreement", () => {
             mockIsEventConfirmedEnough(mockedEvent, true)
 
             // generate test data
-            const senderId = 0
             const wrongSenderId = 2
             const guardSignature = TestUtils.signTxMetaData(tx.txBytes, wrongSenderId)
             const receiver = "testReceiver"
@@ -242,15 +206,7 @@ describe("TxAgreement", () => {
             await txAgreement.processTransactionRequest(tx, senderId, guardSignature, receiver)
 
             // verify out request
-            verifySendMessageWithReceiverCalledOnce("tx-agreement", JSON.stringify({
-                "type": "response",
-                "payload": {
-                    "guardId": Configs.guardId,
-                    "signature": "",
-                    "txId": tx.txId,
-                    "agreed": false
-                }
-            }), receiver)
+            verifySendMessageDidntGetCalled("tx-agreement", anything(), anything())
             expect(Array.from(txAgreement.getTransactions()).length).to.equal(0)
             expect(Array.from(txAgreement.getEventAgreedTransactions()).length).to.equal(0)
         })
@@ -277,7 +233,6 @@ describe("TxAgreement", () => {
             mockGuardTurn(1)
 
             // generate test data
-            const senderId = 0
             const guardSignature = TestUtils.signTxMetaData(tx.txBytes, senderId)
             const receiver = "testReceiver"
 
@@ -286,15 +241,7 @@ describe("TxAgreement", () => {
             await txAgreement.processTransactionRequest(tx, senderId, guardSignature, receiver)
 
             // verify out request
-            verifySendMessageWithReceiverCalledOnce("tx-agreement", JSON.stringify({
-                "type": "response",
-                "payload": {
-                    "guardId": Configs.guardId,
-                    "signature": "",
-                    "txId": tx.txId,
-                    "agreed": false
-                }
-            }), receiver)
+            verifySendMessageDidntGetCalled("tx-agreement", anything(), anything())
             expect(Array.from(txAgreement.getTransactions()).length).to.equal(0)
             expect(Array.from(txAgreement.getEventAgreedTransactions()).length).to.equal(0)
         })
@@ -323,7 +270,6 @@ describe("TxAgreement", () => {
             mockGuardTurn(0)
 
             // generate test data
-            const senderId = 0
             const guardSignature = TestUtils.signTxMetaData(tx.txBytes, senderId)
             const receiver = "testReceiver"
 
@@ -332,15 +278,7 @@ describe("TxAgreement", () => {
             await txAgreement.processTransactionRequest(tx, senderId, guardSignature, receiver)
 
             // verify out request
-            verifySendMessageWithReceiverCalledOnce("tx-agreement", JSON.stringify({
-                "type": "response",
-                "payload": {
-                    "guardId": Configs.guardId,
-                    "signature": "",
-                    "txId": tx.txId,
-                    "agreed": false
-                }
-            }), receiver)
+            verifySendMessageDidntGetCalled("tx-agreement", anything(), anything())
             expect(Array.from(txAgreement.getTransactions()).length).to.equal(0)
             expect(Array.from(txAgreement.getEventAgreedTransactions()).length).to.equal(0)
         })
@@ -368,7 +306,6 @@ describe("TxAgreement", () => {
             mockGuardTurn(0)
 
             // generate test data
-            const senderId = 0
             const guardSignature = TestUtils.signTxMetaData(tx.txBytes, senderId)
             const receiver = "testReceiver"
 
@@ -377,15 +314,7 @@ describe("TxAgreement", () => {
             await txAgreement.processTransactionRequest(tx, senderId, guardSignature, receiver)
 
             // verify out request
-            verifySendMessageWithReceiverCalledOnce("tx-agreement", JSON.stringify({
-                "type": "response",
-                "payload": {
-                    "guardId": Configs.guardId,
-                    "signature": "",
-                    "txId": tx.txId,
-                    "agreed": false
-                }
-            }), receiver)
+            verifySendMessageDidntGetCalled("tx-agreement", anything(), anything())
             expect(Array.from(txAgreement.getTransactions()).length).to.equal(0)
             expect(Array.from(txAgreement.getEventAgreedTransactions()).length).to.equal(0)
         })
@@ -461,65 +390,6 @@ describe("TxAgreement", () => {
             expect(Array.from(txAgreement.getTransactions()).length).to.equal(0)
             expect(Array.from(txAgreement.getTransactionApprovals()).length).to.equal(0)
             expect(Array.from(txAgreement.getTransactions()).length).to.equal(0)
-            expect(Array.from(txAgreement.getRejectedResponses()).length).to.equal(0)
-        })
-
-        /**
-         * Target: testing processAgreementResponse
-         * Dependencies:
-         *    scannerAction
-         *    EventProcessor
-         *    Utils
-         * Expected Output:
-         *    The function should set tx as approved
-         */
-        it("should not insert the transaction into database when it is impossible that minimum guards agree with it", async () => {
-            // mock token payment event
-            const mockedEvent: EventTrigger = ErgoTestBoxes.mockTokenPaymentEventTrigger()
-            const tx = ErgoTestBoxes.mockTokenBurningErgDistributionTransaction(mockedEvent, eventBoxAndCommitments)
-            await insertEventRecord(mockedEvent, EventStatus.pendingReward)
-
-            // initialize tx array
-            const txAgreement = new TestTxAgreement()
-            txAgreement.startAgreementProcess(tx)
-            const rejects = []
-
-            // simulate 2 reject response
-            for (let i = 0; i < 3; i++) {
-                if (i == 1) continue
-                const senderId = i
-                await txAgreement.processAgreementResponse(tx.txId, false, senderId, "")
-                rejects.push(senderId)
-            }
-            // simulate 1 agreement
-            let senderId = 4
-            await txAgreement.processAgreementResponse(tx.txId, true, senderId, TestUtils.signTxMetaData(tx.txBytes, senderId))
-            // simulate duplicate reject
-            senderId = 2
-            await txAgreement.processAgreementResponse(tx.txId, false, senderId, "")
-
-            // run test
-            senderId = 6
-            await txAgreement.processAgreementResponse(tx.txId, false, senderId, "")
-            rejects.push(senderId)
-
-            // verify
-            verifySendMessageDidntGetCalled("tx-agreement", JSON.stringify({
-                "type": "approval",
-                "payload": {
-                    "txId": tx.txId,
-                    "guardsSignatures": tx.signMetaData()
-                }
-            }))
-            const dbEvents = await allEventRecords()
-            expect(dbEvents.map(event => [event.sourceTxId, event.status])[0])
-                .to.deep.equal([mockedEvent.sourceTxId, EventStatus.pendingReward])
-            const dbTxs = await allTxRecords()
-            expect(dbTxs.length).to.equal(0)
-            expect(Array.from(txAgreement.getTransactions()).length).to.equal(0)
-            expect(Array.from(txAgreement.getTransactionApprovals()).length).to.equal(0)
-            expect(Array.from(txAgreement.getTransactions()).length).to.equal(0)
-            expect(Array.from(txAgreement.getRejectedResponses()).length).to.equal(0)
         })
 
     })
@@ -583,7 +453,6 @@ describe("TxAgreement", () => {
             expect(Array.from(txAgreement.getTransactions()).length).to.equal(0)
             expect(Array.from(txAgreement.getTransactionApprovals()).length).to.equal(0)
             expect(Array.from(txAgreement.getTransactions()).length).to.equal(0)
-            expect(Array.from(txAgreement.getRejectedResponses()).length).to.equal(0)
         })
 
         /**
@@ -595,7 +464,7 @@ describe("TxAgreement", () => {
          * Expected Output:
          *    The function should set tx as approved
          */
-        it("should insert the transaction into database even when the majority of other guards agreed", async () => {
+        it("shouldn't insert the transaction into database when the majority of other guards agreed", async () => {
             // mock event and tx
             const mockedEvent: EventTrigger = CardanoTestBoxes.mockADAPaymentEventTrigger()
             const tx = CardanoTestBoxes.mockNoAssetsTransferringPaymentTransaction(mockedEvent, CardanoTestBoxes.testBankAddress)
@@ -625,14 +494,9 @@ describe("TxAgreement", () => {
             // verify
             const dbEvents = await allEventRecords()
             expect(dbEvents.map(event => [event.sourceTxId, event.status])[0])
-                .to.deep.equal([mockedEvent.sourceTxId, EventStatus.inPayment])
+                .to.deep.equal([mockedEvent.sourceTxId, EventStatus.pendingPayment])
             const dbTxs = await allTxRecords()
-            expect(dbTxs.map(tx => [tx.txId, tx.status])[0])
-                .to.deep.equal([tx.txId, TransactionStatus.approved])
-            expect(Array.from(txAgreement.getTransactions()).length).to.equal(0)
-            expect(Array.from(txAgreement.getTransactionApprovals()).length).to.equal(0)
-            expect(Array.from(txAgreement.getTransactions()).length).to.equal(0)
-            expect(Array.from(txAgreement.getRejectedResponses()).length).to.equal(0)
+            expect(dbTxs.length).to.equal(0)
         })
 
         /**
@@ -644,7 +508,7 @@ describe("TxAgreement", () => {
          * Expected Output:
          *    The function should set tx as approved
          */
-        it("should insert the transaction into database when at least one guard signature doesn't verify", async () => {
+        it("shouldn't insert the transaction into database when at least one guard signature doesn't verify", async () => {
             // mock token payment event
             const mockedEvent: EventTrigger = ErgoTestBoxes.mockTokenPaymentEventTrigger()
             const tx = ErgoTestBoxes.mockTokenBurningErgPaymentTransaction(mockedEvent, eventBoxAndCommitments)
@@ -781,7 +645,6 @@ describe("TxAgreement", () => {
                     "signature": "guardSignature"
                 }
             ])
-            txAgreement.insertRejectedResponses(tx1.eventId, [3, 1])
 
             // run test
             await txAgreement.clearTransactions()
@@ -789,7 +652,6 @@ describe("TxAgreement", () => {
             // verify
             expect(Array.from(txAgreement.getTransactions()).length).to.equal(0)
             expect(Array.from(txAgreement.getTransactionApprovals()).length).to.equal(0)
-            expect(Array.from(txAgreement.getRejectedResponses()).length).to.equal(0)
         })
 
     })

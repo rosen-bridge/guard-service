@@ -95,8 +95,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
             outBoxCandidates,
             currentHeight,
             ErgoUtils.boxValueFromBigint(ErgoConfigs.txFee),
-            this.bankAddress,
-            ErgoUtils.boxValueFromBigint(ErgoConfigs.minimumErg)
+            this.bankAddress
         )
         txCandidate.set_data_inputs(dataInputs)
         const tx = txCandidate.build()
