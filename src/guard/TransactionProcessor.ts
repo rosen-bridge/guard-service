@@ -57,7 +57,7 @@ class TransactionProcessor {
                         break;
                     }
                     case TransactionStatus.signFailed: {
-                    await this.processSignFailedTx(tx)
+                        await this.processSignFailedTx(tx)
                         break;
                     }
                 }
@@ -270,6 +270,7 @@ class TransactionProcessor {
 
     /**
      * resets status of event and set Ergo tx as invalid if enough blocks past from last check
+     * @param tx the transaction
      */
     static resetErgoStatus = async (tx: TransactionEntity): Promise<void> => {
         const height = await NodeApi.getHeight()
@@ -304,6 +305,7 @@ class TransactionProcessor {
 
     /**
      * set tx as invalid if at least one input is invalid
+     * @param tx the transaction
      */
     static processSignFailedTx = async (tx: TransactionEntity): Promise<void> => {
         if (tx.chain === ChainsConstants.cardano) {

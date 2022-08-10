@@ -584,6 +584,13 @@ describe("TransactionProcessor", () => {
          * Dependencies:
          *    ExplorerApi
          *    scannerAction
+         * Scenario:
+         *    Mock an Ergo event trigger and insert into db
+         *    Mock an Ergo payment transaction based on mocked event and insert into db
+         *    Mock ExplorerApi for all input boxes of the tx so at least one of them be spent or invalid
+         *    Run test (execute processTransactions method of TransactionProcessor)
+         *    Check events in db. Mocked event status should be updated to pendingPayment
+         *    Check transactions in db. Mocked transaction status should be updated to invalid
          * Expected Output:
          *    The function should update db
          */
