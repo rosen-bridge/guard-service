@@ -322,8 +322,15 @@ describe("TransactionProcessor", () => {
              * Dependencies:
              *    KoiosApi
              *    scannerAction
+             * Scenario:
+             *    Mock a Cardano event trigger and insert into db
+             *    Mock a Cardano payment transaction based on mocked event and insert into db
+             *    Mock KoiosApi to return null when requested tx confirmation
+             *    Run test (execute processTransactions method of TransactionProcessor)
+             *    Check events in db. Mocked event status should be updated to pendingPayment
+             *    Check transactions in db. Mocked transaction status should be updated to invalid
              * Expected Output:
-             *    The function should send request
+             *    The function should update db
              */
             it("should set payment tx as invalid and set event as pending-payment when tx ttl past", async () => {
                 // mock erg payment event
@@ -406,6 +413,47 @@ describe("TransactionProcessor", () => {
                 const dbTxs = await allTxRecords()
                 expect(dbTxs.map(tx => [tx.txId, tx.status])[0])
                     .to.deep.equal([tx.txId, TransactionStatus.invalid])
+            })
+
+            /**
+             * Target: testing processSentTx (processCardanoTxInputs)
+             * Dependencies:
+             *    KoiosApi
+             *    BlockFrostApi
+             *    scannerAction
+             * Scenario:
+             *    Mock a Cardano event trigger and insert into db
+             *    Mock a Cardano payment transaction based on mocked event and insert into db
+             *    Mock KoiosApi to return null when requested tx confirmation
+             *    Mock BlockFrost for all inputs of the tx so at least one of them be spent or invalid
+             *    Run test (execute processTransactions method of TransactionProcessor)
+             *    Check events in db. Mocked event status should remain unchanged
+             *    Check transactions in db. Mocked transaction status and lastcheck should remain unchanged
+             * Expected Output:
+             *    The function should do nothing
+             */
+            it("should do nothing when one input is spent but not enough blocks passed", async () => {
+                // mock erg payment event
+                const mockedEvent: EventTrigger = CardanoTestBoxes.mockADAPaymentEventTrigger()
+                await insertEventRecord(mockedEvent, EventStatus.inPayment)
+                const tx = CardanoTestBoxes.mockADAPaymentTransaction(mockedEvent)
+                const lastCheck = cardanoBlockchainHeight - 1
+                await insertTxRecord(tx, TransactionTypes.payment, ChainsConstants.cardano, TransactionStatus.sent, lastCheck, tx.eventId)
+                mockKoiosGetTxConfirmation(tx.txId, null)
+
+                const cardanoTx = TransactionProcessor.cardanoChain.deserialize(tx.txBytes)
+                MockedBlockFrost.mockInputProcessingMethods(cardanoTx, false)
+
+                // run test
+                await TransactionProcessor.processTransactions()
+
+                // verify
+                const dbEvents = await allEventRecords()
+                expect(dbEvents.map(event => [event.sourceTxId, event.status])[0])
+                    .to.deep.equal([mockedEvent.sourceTxId, EventStatus.inPayment])
+                const dbTxs = await allTxRecords()
+                expect(dbTxs.map(tx => [tx.txId, tx.status, tx.lastCheck])[0])
+                    .to.deep.equal([tx.txId, TransactionStatus.sent, lastCheck])
             })
 
         })
