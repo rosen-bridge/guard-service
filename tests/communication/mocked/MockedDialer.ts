@@ -1,13 +1,33 @@
-import { anything, deepEqual, instance, mock, reset, spy, verify, when } from "ts-mockito";
+import { anything, capture, deepEqual, instance, mock, reset, resetCalls, spy, verify, when } from "ts-mockito";
 import Dialer from "../../../src/communication/Dialer";
 import fs from "fs";
 import TestConfigs from "../../testUtils/TestConfigs";
 
 const mockedDialerInstance = mock(Dialer)
 when(mockedDialerInstance.sendMessage(anything(), anything(), anything())).thenResolve()
+when(mockedDialerInstance.getPeerId()).thenReturn("peerId")
 
 const mockedDialer = spy(Dialer)
 when(mockedDialer.getInstance()).thenResolve(instance(mockedDialerInstance))
+
+/**
+ *
+ * @param bodyKeys
+ * @param payloadKeys
+ * @param messageType
+ */
+const sendMessageBodyAndPayloadArguments = (bodyKeys: Array<string>, payloadKeys: Array<string>, messageType = "approve"): void => {
+    const message = capture(mockedDialerInstance.sendMessage).first()[1];
+    const json = JSON.parse(message);
+    if(json.type === messageType){
+        payloadKeys.forEach(key => {
+            if (!(key in json.payload)) throw(`key "${key}" is not in the dialer payload message`)
+        })
+        bodyKeys.forEach(key => {
+            if (!(key in json)) throw("key is not in the message")
+        })
+    }
+}
 
 let mockedFS = spy(fs)
 
@@ -71,12 +91,21 @@ const verifySendMessageDidntGetCalled = (channel: string, message: any, receiver
     verify(mockedDialerInstance.sendMessage(channel, deepEqual(message))).never()
 }
 
+/**
+ * reset call counts for mockedDialerInstance
+ */
+const resetDialerCalls = (): void => {
+    resetCalls(mockedDialerInstance)
+}
+
 export {
     mockExistsSync,
     mockReadFileSync,
     resetMockedFS,
+    sendMessageBodyAndPayloadArguments,
     verifySendMessageCalledOnce,
     verifySendMessageCalledTwice,
     verifySendMessageWithReceiverCalledOnce,
-    verifySendMessageDidntGetCalled
+    verifySendMessageDidntGetCalled,
+    resetDialerCalls
 }

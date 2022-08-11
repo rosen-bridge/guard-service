@@ -29,24 +29,14 @@ catch(err) {
 
 const testScannerDataBase = new ScannerDataBase(testScannerOrmDataSource)
 
-// mock all tssSignAction methods to call test database methods
+// mock all scannerAction methods to call test database methods
 const mockedScannerAction = spy(scannerAction)
-when(mockedScannerAction.setEventTxAsApproved(anything()))
-    .thenCall(testScannerDataBase.setEventTxAsApproved)
 when(mockedScannerAction.setEventStatus(anything(), anything()))
     .thenCall(testScannerDataBase.setEventStatus)
 when(mockedScannerAction.getEventById(anything()))
     .thenCall(testScannerDataBase.getEventById)
 when(mockedScannerAction.getPendingEvents())
     .thenCall(testScannerDataBase.getPendingEvents)
-when(mockedScannerAction.setEventTx(anything(), anything(), anything(), anything()))
-    .thenCall(testScannerDataBase.setEventTx)
-when(mockedScannerAction.setEventTx(anything(), anything(), anything()))
-    .thenCall(testScannerDataBase.setEventTx)
-when(mockedScannerAction.removeEventTx(anything()))
-    .thenCall(testScannerDataBase.removeEventTx)
-when(mockedScannerAction.removeAgreedTx())
-    .thenCall(testScannerDataBase.removeAgreedTx)
 when(mockedScannerAction.getActiveTransactions())
     .thenCall(testScannerDataBase.getActiveTransactions)
 when(mockedScannerAction.setTxStatus(anything(), anything()))
@@ -55,29 +45,31 @@ when(mockedScannerAction.updateTxLastCheck(anything(), anything()))
     .thenCall(testScannerDataBase.updateTxLastCheck)
 when(mockedScannerAction.resetEventTx(anything(), anything()))
     .thenCall(testScannerDataBase.resetEventTx)
+when(mockedScannerAction.getTxById(anything()))
+    .thenCall(testScannerDataBase.getTxById)
+when(mockedScannerAction.updateWithSignedTx(anything(), anything()))
+    .thenCall(testScannerDataBase.updateWithSignedTx)
+when(mockedScannerAction.insertTx(anything()))
+    .thenCall(testScannerDataBase.insertTx)
+when(mockedScannerAction.getEventTxsByType(anything(), anything()))
+    .thenCall(testScannerDataBase.getEventTxsByType)
+when(mockedScannerAction.replaceTx(anything(), anything()))
+    .thenCall(testScannerDataBase.replaceTx)
 
 /**
- * deletes every record in Event table in ScannerDatabase
+ * deletes every record in Event and Transaction table in ScannerDatabase
  */
-const clearEventTable = async () => {
-    await testScannerDataBase.EventRepository.clear()
-}
-
-/**
- * deletes every record in Transaction table in ScannerDatabase
- */
-const clearTxTable = async () => {
+const clearTables = async () => {
     await testScannerDataBase.TransactionRepository.clear()
+    await testScannerDataBase.EventRepository.clear()
 }
 
 /**
  * inserts a record to Event table in ScannerDatabase
  * @param event
  * @param status
- * @param txId
- * @param paymentTx
  */
-const insertEventRecord = async (event: EventTrigger, status: string, txId?: string, paymentTx?: string) => {
+const insertEventRecord = async (event: EventTrigger, status: string) => {
     await testScannerDataBase.EventRepository.createQueryBuilder()
         .insert()
         .values({
@@ -93,9 +85,7 @@ const insertEventRecord = async (event: EventTrigger, status: string, txId?: str
             sourceChainTokenId: event.sourceChainTokenId,
             targetChainTokenId: event.targetChainTokenId,
             sourceBlockId: event.sourceBlockId,
-            WIDs: event.WIDs.join(","),
-            txId: txId,
-            paymentTxJson: paymentTx,
+            WIDs: event.WIDs.join(",")
         })
         .execute()
 }
@@ -140,8 +130,7 @@ const allTxRecords = async () => {
 }
 
 export {
-    clearEventTable,
-    clearTxTable,
+    clearTables,
     insertEventRecord,
     insertTxRecord,
     allEventRecords,

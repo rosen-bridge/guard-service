@@ -10,7 +10,7 @@ import {
     verifyCreateEventPaymentDidntGetCalled
 } from "./mocked/MockedEventProcessor";
 import CardanoTestBoxes from "../chains/cardano/testUtils/TestBoxes";
-import { allEventRecords, clearEventTable, insertEventRecord } from "../db/mocked/MockedScannerModel";
+import { allEventRecords, clearTables, insertEventRecord } from "../db/mocked/MockedScannerModel";
 import {
     mockStartAgreementProcess,
     resetMockedTxAgreement,
@@ -20,6 +20,7 @@ import MockedCardanoChain from "../chains/mocked/MockedCardanoChain";
 import MockedErgoChain from "../chains/mocked/MockedErgoChain";
 import ErgoTestBoxes from "../chains/ergo/testUtils/TestBoxes";
 import TestBoxes from "../chains/ergo/testUtils/TestBoxes";
+import ChainsConstants from "../../src/chains/ChainsConstants";
 
 describe("EventProcessor", () => {
     const cardanoTestBankAddress = CardanoTestBoxes.testBankAddress
@@ -43,7 +44,7 @@ describe("EventProcessor", () => {
          */
         it("should return true when event confirmed enough in ergo", async () => {
             const txId = TestUtils.generateRandomId()
-            const fromErgoEventTrigger = new EventTrigger("ergo", "", "",
+            const fromErgoEventTrigger = new EventTrigger(ChainsConstants.ergo, "", "",
                 "", "", "", "", "",
                 "", txId, "", []
             )
@@ -63,7 +64,7 @@ describe("EventProcessor", () => {
          */
         it("should return true when event confirmed enough in cardano", async () => {
             const txId = TestUtils.generateRandomId()
-            const fromCardanoEventTrigger = new EventTrigger("cardano", "", "",
+            const fromCardanoEventTrigger = new EventTrigger(ChainsConstants.cardano, "", "",
                 "", "", "", "", "",
                 "", txId, "", []
             )
@@ -79,7 +80,7 @@ describe("EventProcessor", () => {
     describe("processEvent", () => {
 
         beforeEach("reset isEventConfirmedEnough mock", async () => {
-            await clearEventTable()
+            await clearTables()
             resetMockedEventProcessor()
             resetMockedTxAgreement()
         })

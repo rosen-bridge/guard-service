@@ -41,14 +41,4 @@ export class EventTriggerEntity {
     @Column()
     WIDs: string
 
-    @Column({
-        nullable: true
-    })
-    txId: string
-
-    @Column({
-        nullable: true
-    })
-    paymentTxJson: string
-
 }

@@ -1,16 +1,17 @@
 import { PaymentTransaction } from "../../../models/Models";
-import { PaymentTransactionJsonModel } from "../../../models/Interfaces";
-import ErgoUtils from "../helpers/Utils";
 import { ErgoTransactionJsonModel } from "./Interfaces";
-import Utils from "../helpers/Utils";
+import ChainsConstants from "../../ChainsConstants";
+import Utils from "../../../helpers/Utils";
 
 class ErgoTransaction extends PaymentTransaction {
 
     inputBoxes: Uint8Array[]
+    dataInputs: Uint8Array[]
 
-    constructor(txId: string, eventId: string, txBytes: Uint8Array, inputBoxes: Uint8Array[]) {
-        super("ergo", txId, eventId, txBytes);
+    constructor(txId: string, eventId: string, txBytes: Uint8Array, inputBoxes: Uint8Array[], dataInputs: Uint8Array[], txType: string) {
+        super(ChainsConstants.ergo, txId, eventId, txBytes, txType);
         this.inputBoxes = inputBoxes
+        this.dataInputs = dataInputs
     }
 
     static fromJson = (jsonString: string): ErgoTransaction => {
@@ -18,20 +19,29 @@ class ErgoTransaction extends PaymentTransaction {
         return new ErgoTransaction(
             obj.txId,
             obj.eventId,
-            ErgoUtils.hexStringToUint8Array(obj.txBytes),
-            obj.inputBoxes.map(box => Utils.hexStringToUint8Array(box))
+            Utils.hexStringToUint8Array(obj.txBytes),
+            obj.inputBoxes.map(box => Utils.hexStringToUint8Array(box)),
+            obj.dataInputs.map(box => Utils.hexStringToUint8Array(box)),
+            obj.txType
         )
     }
 
     /**
-     * @return transaction hex string
+     * @return list of inputBoxes serialized bytes in hex string
      */
     getInputBoxesString = (): string[] => {
         return this.inputBoxes.map(box => Buffer.from(box).toString('hex'))
     }
 
     /**
-     * @return json representation of the transaction
+     * @return list of dataInput boxes serialized bytes in hex string
+     */
+    getDataInputsString = (): string[] => {
+        return this.dataInputs.map(box => Buffer.from(box).toString('hex'))
+    }
+
+    /**
+     * @return json representation of the serialized transaction
      */
     override toJson = (): string => {
         return JSON.stringify({
@@ -39,7 +49,9 @@ class ErgoTransaction extends PaymentTransaction {
             "txId": this.txId,
             "eventId": this.eventId,
             "txBytes": this.getTxHexString(),
-            "inputBoxes": this.getInputBoxesString()
+            "txType": this.txType,
+            "inputBoxes": this.getInputBoxesString(),
+            "dataInputs": this.getDataInputsString()
         })
     }
 

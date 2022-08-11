@@ -16,14 +16,12 @@ class EventProcessor {
 
     static cardanoChain = new CardanoChain()
     static ergoChain = new ErgoChain()
-    static reward = new Reward()
 
     /**
      * processes pending event triggers in the database
      */
     static processEvents = async (): Promise<void> => {
         const events = await scannerAction.getPendingEvents()
-        // TODO: get only pending events
 
         for (const event of events) {
             try {
@@ -71,7 +69,7 @@ class EventProcessor {
         if (event.toChain === ChainsConstants.ergo)
             throw Error(`Events with Ergo as target chain will distribute rewards in a single transaction with payment`)
 
-        const tx = await this.reward.generateTransaction(event)
+        const tx = await Reward.generateTransaction(event)
         txAgreement.startAgreementProcess(tx)
     }
 
@@ -91,8 +89,8 @@ class EventProcessor {
      * @param event the event trigger
      * @return true if payment transaction verified
      */
-    static verifyPaymentTransactionWithEvent = (paymentTx: PaymentTransaction, event: EventTrigger): boolean => {
-        return this.getDestinationChainObject(event).verifyTransactionWithEvent(paymentTx, event)
+    static verifyPaymentTransactionWithEvent = async (paymentTx: PaymentTransaction, event: EventTrigger): Promise<boolean> => {
+        return await this.getDestinationChainObject(event).verifyTransactionWithEvent(paymentTx, event)
     }
 
     /**
