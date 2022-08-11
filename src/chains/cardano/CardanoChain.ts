@@ -272,11 +272,11 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
     requestToSignTransaction = async (paymentTx: PaymentTransaction): Promise<void> => {
         const tx = this.deserialize(paymentTx.txBytes)
         try {
-            // insert request into db
-            const txHash = hash_transaction(tx.body()).to_bytes()
+            // change tx status to inSign
             await scannerAction.setTxStatus(paymentTx.txId, TransactionStatus.inSign)
 
             // send tx to sign
+            const txHash = hash_transaction(tx.body()).to_bytes()
             await TssSigner.signTxHash(txHash)
         }
         catch (e) {

@@ -451,6 +451,4 @@ class MultiSigHandler{
     }
 }
 
-export {
-    MultiSigHandler
-}
+export default MultiSigHandler

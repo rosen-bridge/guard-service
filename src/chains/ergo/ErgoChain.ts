@@ -17,12 +17,13 @@ import ErgoUtils from "./helpers/ErgoUtils";
 import NodeApi from "./network/NodeApi";
 import BoxVerifications from "./boxes/BoxVerifications";
 import ErgoTransaction from "./models/ErgoTransaction";
-import { mockedMultiSig } from "../../mocked";
 import { scannerAction } from "../../db/models/scanner/ScannerModel";
 import InputBoxes from "./boxes/InputBoxes";
 import OutputBoxes from "./boxes/OutputBoxes";
 import ChainsConstants from "../ChainsConstants";
 import Reward from "./Reward";
+import MultiSigHandler from "../../guard/multisig/MultiSig";
+import Configs from "../../helpers/Configs";
 
 class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
 
@@ -202,7 +203,6 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
     }
 
     /**
-<<<<<<< HEAD
      * converts the signed transaction model in the chain to bytearray
      * @param tx the transaction model in the chain library
      * @return bytearray representation of the transaction
@@ -222,9 +222,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
 
     /**
      * generates unsigned transaction (to pay Erg) payment and reward of the event from multi-sig address in ergo chain
-=======
      * generates outputs of payment and reward distribution tx for an Erg-Payment event in ergo chain
->>>>>>> f18b19d5cfd5ca89b89a8d7e6addffd5136bff5a
      * @param event the event trigger model
      * @param eventBox the event trigger box
      * @param commitmentBoxes the not-merged valid commitment boxes for the event
@@ -302,12 +300,21 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         const tx = this.deserialize(paymentTx.txBytes)
         const ergoTx = paymentTx as ErgoTransaction
         const txInputs = ergoTx.inputBoxes.map(boxBytes => ErgoBox.sigma_parse_bytes(boxBytes))
+        const txDataInputs = ergoTx.dataInputs.map(boxBytes => ErgoBox.sigma_parse_bytes(boxBytes))
 
-        mockedMultiSig.getInstance().sign(tx, ErgoConfigs.requiredSigns, txInputs, [])
+        // change tx status to inSign
+        await scannerAction.setTxStatus(paymentTx.txId, TransactionStatus.inSign)
+
+        // send tx to sign
+        MultiSigHandler.getInstance(
+            Configs.guardsPublicKeys,
+            Configs.guardSecret
+        ).sign(tx, ErgoConfigs.requiredSigns, txInputs, txDataInputs)
             .then( async (signedTx) => {
                 const inputBoxes = ErgoBoxes.empty()
                 txInputs.forEach(box => inputBoxes.add(box))
 
+                // update database
                 const signedPaymentTx = new ErgoTransaction(
                     ergoTx.txId,
                     ergoTx.eventId,
@@ -316,11 +323,14 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
                     ergoTx.dataInputs,
                     ergoTx.txType
                 )
-
-                // TODO: Add signedTx to txQueue
+                await scannerAction.updateWithSignedTx(
+                    ergoTx.txId,
+                    signedPaymentTx.toJson()
+                )
             })
-            .catch(e => {
+            .catch( async (e) => {
                 console.log(`An error occurred while requesting Multisig service to sign Ergo tx: ${e}`)
+                await scannerAction.setTxStatus(paymentTx.txId, TransactionStatus.signFailed)
             })
     }
 
@@ -329,10 +339,10 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
      * @param paymentTx the payment transaction
      */
     submitTransaction = async (paymentTx: PaymentTransaction): Promise<void> => {
-        const tx = this.deserialize(paymentTx.txBytes)
+        const tx = this.signedDeserialize(paymentTx.txBytes)
         try {
             await scannerAction.setTxStatus(paymentTx.txId, TransactionStatus.sent)
-            const response = await NodeApi.sendTx(tx.unsigned_tx().to_json())
+            const response = await NodeApi.sendTx(tx.to_json())
             console.log(`Cardano Transaction submitted. txId: ${response}`)
         }
         catch (e) {

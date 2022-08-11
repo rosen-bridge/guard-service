@@ -4,9 +4,8 @@ import { initializeMultiSigJobs } from "./jobs/multiSig";
 import { initExpress } from "./jobs/express";
 import { tssInstance } from "./jobs/tss";
 import { processEvents } from "./jobs/processEvents";
-import { mockedMultiSig } from "./mocked";
-
-export let multiSigObj: mockedMultiSig; // TODO: multiSigObject type
+import MultiSigHandler from "./guard/multisig/MultiSig";
+import Configs from "./helpers/Configs";
 
 
 const init = async () => {
@@ -18,7 +17,7 @@ const init = async () => {
     await initExpress()
 
     // initialize tss multiSig object
-    mockedMultiSig.getInstance()
+    MultiSigHandler.getInstance(Configs.guardsPublicKeys, Configs.guardSecret)
     initializeMultiSigJobs()
 
     // run tss instance
