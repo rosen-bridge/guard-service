@@ -56,6 +56,10 @@ class TransactionProcessor {
                         await this.processApprovedTx(tx)
                         break;
                     }
+                    case TransactionStatus.signFailed: {
+                        await this.processSignFailedTx(tx)
+                        break;
+                    }
                 }
             }
             catch (e) {
@@ -210,33 +214,14 @@ class TransactionProcessor {
      */
     static processErgoTxInputs = async (tx: TransactionEntity): Promise<void> => {
         const ergoTx = ErgoTransaction.fromJson(tx.txJson)
-        const boxes = ergoTx.inputBoxes.map(boxBytes => ErgoBox.sigma_parse_bytes(boxBytes))
-        let valid = true
-        for (const box of boxes) {
-            valid = valid && await ExplorerApi.isBoxUnspentAndValid(box.box_id().to_str())
-        }
-        if (valid) {
+        if (await this.isErgoTxInputsValid(ergoTx)) {
             // tx is valid. resending...
             console.log(`tx [${tx.txId}] is lost but inputs are still valid. resending tx...`)
             await this.ergoChain.submitTransaction(ergoTx)
         }
         else {
             // tx is invalid. reset status if enough blocks past.
-            const height = await NodeApi.getHeight()
-            if (height - tx.lastCheck >= ErgoConfigs.requiredConfirmation) {
-                await scannerAction.setTxStatus(tx.txId, TransactionStatus.invalid)
-                if (tx.type === TransactionTypes.payment) {
-                    await scannerAction.resetEventTx(tx.event.sourceTxId, EventStatus.pendingPayment)
-                    console.log(`tx [${tx.txId}] is invalid. event [${tx.event.sourceTxId}] is now waiting for payment.`)
-                }
-                else {
-                    await scannerAction.resetEventTx(tx.event.sourceTxId, EventStatus.pendingReward)
-                    console.log(`tx [${tx.txId}] is invalid. event [${tx.event.sourceTxId}] is now waiting for reward distribution.`)
-                }
-            }
-            else {
-                console.log(`tx [${tx.txId}] is invalid. waiting for enough confirmation of this proposition.`)
-            }
+            await this.resetErgoStatus(tx)
         }
     }
 
@@ -268,7 +253,7 @@ class TransactionProcessor {
     }
 
     /**
-     * resets status of event and set tx as invalid if enough blocks past from last check
+     * resets status of event and set Cardano tx as invalid if enough blocks past from last check
      * @param tx the transaction
      */
     static resetCardanoStatus = async (tx: TransactionEntity): Promise<void> => {
@@ -281,6 +266,64 @@ class TransactionProcessor {
         else {
             console.log(`tx [${tx.txId}] is invalid. waiting for enough confirmation of this proposition.`)
         }
+    }
+
+    /**
+     * resets status of event and set Ergo tx as invalid if enough blocks past from last check
+     * @param tx the transaction
+     */
+    static resetErgoStatus = async (tx: TransactionEntity): Promise<void> => {
+        const height = await NodeApi.getHeight()
+        if (height - tx.lastCheck >= ErgoConfigs.requiredConfirmation) {
+            await scannerAction.setTxStatus(tx.txId, TransactionStatus.invalid)
+            if (tx.type === TransactionTypes.payment) {
+                await scannerAction.resetEventTx(tx.event.sourceTxId, EventStatus.pendingPayment)
+                console.log(`tx [${tx.txId}] is invalid. event [${tx.event.sourceTxId}] is now waiting for payment.`)
+            }
+            else {
+                await scannerAction.resetEventTx(tx.event.sourceTxId, EventStatus.pendingReward)
+                console.log(`tx [${tx.txId}] is invalid. event [${tx.event.sourceTxId}] is now waiting for reward distribution.`)
+            }
+        }
+        else {
+            console.log(`tx [${tx.txId}] is invalid. waiting for enough confirmation of this proposition.`)
+        }
+    }
+
+    /**
+     * checks if all inputs of the transaction is still unspent and valid
+     * @param ergoTx
+     */
+    static isErgoTxInputsValid = async (ergoTx: ErgoTransaction): Promise<boolean> => {
+        const boxes = ergoTx.inputBoxes.map(boxBytes => ErgoBox.sigma_parse_bytes(boxBytes))
+        let valid = true
+        for (const box of boxes) {
+            valid = valid && await ExplorerApi.isBoxUnspentAndValid(box.box_id().to_str())
+        }
+        return valid
+    }
+
+    /**
+     * set tx as invalid if at least one input is invalid
+     * @param tx the transaction
+     */
+    static processSignFailedTx = async (tx: TransactionEntity): Promise<void> => {
+        if (tx.chain === ChainsConstants.cardano) {
+            // TODO: implement this process when TSS has failure response
+            throw new Error(`processSignFailedTx has no implementation for [${tx.chain}] chain.`)
+        }
+        else if (tx.chain === ChainsConstants.ergo) {
+            const ergoTx = ErgoTransaction.fromJson(tx.txJson)
+            if (await this.isErgoTxInputsValid(ergoTx)) {
+                // tx is valid. ignoring till become invalid...
+                console.log(`tx [${tx.txId}] failed in signing process but inputs are still valid. ignoring...`)
+            }
+            else {
+                // tx is invalid. reset status if enough blocks past.
+                await this.resetErgoStatus(tx)
+            }
+        }
+        else throw new Error(`chain [${tx.chain}] not implemented.`)
     }
 
 }
