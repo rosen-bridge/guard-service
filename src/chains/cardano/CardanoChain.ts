@@ -18,6 +18,8 @@ import CardanoTransaction from "./models/CardanoTransaction";
 import ChainsConstants from "../ChainsConstants";
 import { scannerAction } from "../../db/models/scanner/ScannerModel";
 import Configs from "../../helpers/Configs";
+import { Buffer } from "buffer";
+import { blake2b } from "blakejs";
 
 
 class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
@@ -361,48 +363,64 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
      */
     verifyEventWithPayment = async (event: EventTrigger): Promise<boolean> => {
         const txInfo = (await KoiosApi.getTxInformation([event.sourceTxId]))[0];
+        const eventId = Buffer.from(blake2b(event.sourceTxId, undefined, 32)).toString("hex")
         const payment = txInfo.outputs.filter((utxo: Utxo) => {
-            return CardanoConfigs.lockAddresses.find(address => address === utxo.payment_addr.bech32) != undefined;
-        });
+            return CardanoConfigs.lockAddresses.find(address => address === utxo.payment_addr.bech32) !== undefined;
+        })[0];
         if(payment) {
             if(!txInfo.metadata) {
-                console.log("No transaction metadata")
+                console.log(`event [${eventId}] is not valid, tx [${event.sourceTxId}] has no transaction metadata`)
                 return false
             }
             const data = CardanoUtils.getRosenData(txInfo.metadata)
             if (data) {
-                if (payment[0].asset_list.length !== 0) {
-                    let targetTokenId, asset, eventAssetId, eventAssetPolicyId
+                let tokenCheck = false, eventToken, targetTokenId, amount
+                try {
+                    eventToken = Configs.tokenMap.search(
+                        'cardano',
+                        {
+                            fingerprint: event.sourceChainTokenId
+                        })
+                    targetTokenId = Configs.tokenMap.getID(eventToken[0], event.toChain)
+                } catch (e) {
+                    console.log(`event [${eventId}] is not valid, tx [${event.sourceTxId}] token or chainId is invalid`)
+                    return false
+                }
+                if (event.sourceChainTokenId == ChainsConstants.cardanoNativeAsset){
+                    amount = payment.value
+                    tokenCheck = true
+                }
+                else if (payment.asset_list.length !== 0) {
                     try {
-                        asset = payment[0].asset_list[0];
-                        const eventToken = Configs.tokenMap.search(
-                            'cardano',
-                            {
-                                fingerprint: event.sourceChainTokenId
-                            })
-                        eventAssetPolicyId = eventToken[0]['cardano']['policyID']
-                        eventAssetId = eventToken[0]['cardano']['assetID']
-                        targetTokenId = Configs.tokenMap.getID(eventToken[0], event.toChain)
+                        const asset = payment.asset_list[0];
+                        const eventAssetPolicyId = eventToken[0]['cardano']['policyID']
+                        const eventAssetId = eventToken[0]['cardano']['assetID']
+                        amount = asset.quantity
+                        if (!(eventAssetPolicyId == asset.policy_id && eventAssetId == asset.asset_name)){
+                            console.log(`event [${eventId}] is not valid, tx [${event.sourceTxId}] asset credential is incorrect`)
+                            return false
+                        }
+                        tokenCheck = true
                     } catch (e) {
-                        console.log("token or chain is undefined")
+                        console.log(`event [${eventId}] is not valid, tx [${event.sourceTxId}] token or chainId is invalid`)
                         return false
                     }
-                    return (
-                        event.fromChain == ChainsConstants.cardano &&
-                        event.toChain == data.toChain &&
-                        event.networkFee == data.networkFee &&
-                        event.bridgeFee == data.bridgeFee &&
-                        event.amount == asset.quantity &&
-                        eventAssetPolicyId == asset.policy_id &&
-                        eventAssetId == asset.asset_name &&
-                        event.targetChainTokenId == targetTokenId &&
-                        event.toAddress == data.toAddress &&
-                        event.fromAddress == txInfo.inputs[0].payment_addr.bech32 &&
-                        event.sourceBlockId == txInfo.block_hash
-                    )
                 }
+                return (
+                    tokenCheck &&
+                    event.fromChain == ChainsConstants.cardano &&
+                    event.toChain == data.toChain &&
+                    event.networkFee == data.networkFee &&
+                    event.bridgeFee == data.bridgeFee &&
+                    event.targetChainTokenId == targetTokenId &&
+                    event.amount == amount &&
+                    event.toAddress == data.toAddress &&
+                    event.fromAddress == txInfo.inputs[0].payment_addr.bech32 &&
+                    event.sourceBlockId == txInfo.block_hash
+                )
             }
         }
+        console.log(`event [${eventId}] is not valid, payment with tx [${event.sourceTxId}] is not available in network`)
         return false
     }
 

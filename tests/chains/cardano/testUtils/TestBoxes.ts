@@ -72,6 +72,25 @@ class TestBoxes {
     }
 
     /**
+     * generates a mocked event trigger for event verification in cardano chain locking Ada
+     */
+    static mockValidAdaEventTrigger = (): EventTrigger => {
+        return new EventTrigger("cardano",
+            "ergo",
+            "addr_test1qzf9uxs6xgprx4zt20qtsasxut8uw6quv34xlkmd26yuk5xe70s0yf5c3sefnrft6gdajkpz29t8lsn0kcr5xqsf34qqxd6n4f",
+            "ergoAddress",
+            "49796752",
+            "250",
+            "10000",
+            "lovelace",
+            "064c58ea394d41fada074a3c560a132467adf4ca1512c409c014c625ca285e9c",
+            "00ee077854471a04fbef18a5a971b50fb39f52fc6f6b3b8d0682ce2c48f6ebef",
+            "f75fea40852ed7d7f539d008e45255725daef8553ae7162750836f279570813a",
+            []
+        )
+    }
+
+    /**
      * generates a mocked invalid event trigger for event verification in cardano chain with invalid toChain
      */
     static mockInvalidToChainEventTrigger = (): EventTrigger => {

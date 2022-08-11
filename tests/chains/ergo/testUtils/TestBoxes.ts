@@ -116,6 +116,25 @@ class TestBoxes {
     }
 
     /**
+     * generates a mocked event trigger for token payment in ergo chain locking Erg
+     */
+    static mockValidErgEventTrigger = (): EventTrigger => {
+        return new EventTrigger("ergo",
+            "cardano",
+            "fromAddress",
+            "toAddress4",
+            "11100000",
+            "2500",
+            "100000",
+            "erg",
+            "asset1nl000000000000000000000000000000000000",
+            "000fc93dc15a28a1f0e50b0fffc94f360037dcedddaf8a2e25905a892cd48378",
+            "6e74499171d828ee51266d3b65011cf958afe551ce7a0d74e5f6aba9029ae90c",
+            Array(5).fill(0).map(() => TestUtils.generateRandomId())
+        )
+    }
+
+    /**
      * generates a mocked invalid event trigger for token payment in ergo chain with invalid ToChain
      */
     static mockInvalidToChainEventTrigger = (): EventTrigger => {

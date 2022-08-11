@@ -197,6 +197,108 @@ class TestData {
         "plutus_contracts": []
     }
 
+    static adaObservationTxInfo = {
+        "tx_hash": "00ee077854471a04fbef18a5a971b50fb39f52fc6f6b3b8d0682ce2c48f6ebef",
+        "block_hash": "f75fea40852ed7d7f539d008e45255725daef8553ae7162750836f279570813a",
+        "block_height": 3338631,
+        "epoch": 188,
+        "epoch_slot": 250266,
+        "absolute_slot": 51096666,
+        "tx_timestamp": 1645465882,
+        "tx_block_index": 0,
+        "tx_size": 665,
+        "total_output": "53796752",
+        "fee": "184861",
+        "deposit": "0",
+        "invalid_before": null,
+        "invalid_after": null,
+        "collaterals": [],
+        "inputs": [
+            {
+                "payment_addr": {
+                    "bech32": "addr_test1qzf9uxs6xgprx4zt20qtsasxut8uw6quv34xlkmd26yuk5xe70s0yf5c3sefnrft6gdajkpz29t8lsn0kcr5xqsf34qqxd6n4f",
+                    "cred": "925e1a1a320233544b53c0b87606e2cfc7681c646a6fdb6d5689cb50"
+                },
+                "stake_addr": "stake_test1urvl8c8jy6vgcv5e354ayx7etq39z4nlcfhmvp6rqgyc6sqpdzt63",
+                "tx_hash": "c37fa6d7147eeca2838f4312491dd75ac5b7c5dc5d784ff741afd797a46f7536",
+                "tx_index": 2,
+                "value": "51981613",
+                "asset_list": [
+                    {
+                        "policy_id": "b07de2ce2a86f890410d4504d491b1df423f7e3e20973663a819d1a1",
+                        "asset_name": "455448",
+                        "quantity": "13060"
+                    }
+                ]
+            },
+            {
+                "payment_addr": {
+                    "bech32": "addr_test1qzf9uxs6xgprx4zt20qtsasxut8uw6quv34xlkmd26yuk5xe70s0yf5c3sefnrft6gdajkpz29t8lsn0kcr5xqsf34qqxd6n4f",
+                    "cred": "925e1a1a320233544b53c0b87606e2cfc7681c646a6fdb6d5689cb50"
+                },
+                "stake_addr": "stake_test1urvl8c8jy6vgcv5e354ayx7etq39z4nlcfhmvp6rqgyc6sqpdzt63",
+                "tx_hash": "d9f8f52825238a17f802bc54831bbdb10f427b2f20f8cf8c3613f710e59615e5",
+                "tx_index": 7,
+                "value": "2000000",
+                "asset_list": [
+                    {
+                        "policy_id": "22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130",
+                        "asset_name": "016dee4ce565a31af501894406ec61d78a87f0c53de1e7cc6d52d156b3f5b155",
+                        "quantity": "15829495"
+                    }
+                ]
+            }
+        ],
+        "outputs": [
+            {
+                "payment_addr": {
+                    "bech32": "addr_test1vze7yqqlg8cjlyhz7jzvsg0f3fhxpuu6m3llxrajfzqecggw704re",
+                    "cred": "925e1a1a320233544b53c0b87606e2cfc7681c646a6fdb6d5689cb50"
+                },
+                "stake_addr": "stake_test1urvl8c8jy6vgcv5e354ayx7etq39z4nlcfhmvp6rqgyc6sqpdzt63",
+                "tx_hash": "928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b",
+                "tx_index": 1,
+                "value": "49796752",
+                "asset_list": [
+                ]
+            },
+            {
+                "payment_addr": {
+                    "bech32": "addr_test1wphyve8r76kvfr5yn6k0fcmq0mn2uf6c6mvtsrafmr7awcg0vnzpg",
+                    "cred": "6e4664e3f6acc48e849eacf4e3607ee6ae2758d6d8b80fa9d8fdd761"
+                },
+                "stake_addr": null,
+                "tx_hash": "928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b",
+                "tx_index": 0,
+                "value": "4000000",
+                "asset_list": [
+                    {
+                        "policy_id": "22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130",
+                        "asset_name": "016dee4ce565a31af501894406ec61d78a87f0c53de1e7cc6d52d156b3f5b155",
+                        "quantity": "15829495"
+                    }
+                ]
+            }
+        ],
+        "withdrawals": [],
+        "assets_minted": [],
+        "metadata": [
+            {
+                "key": "0",
+                "json": JSON.parse(`{
+                    "to": "ergo",
+                    "bridgeFee": "250",
+                    "networkFee": "10000",
+                    "toAddress": "ergoAddress",
+                    "targetChainTokenId": "cardanoTokenId"
+                }`)
+            }
+        ],
+        "certificates": [],
+        "native_scripts": [],
+        "plutus_contracts": []
+    }
+
     static nonObservationTxInfo = {
         "tx_hash": "0f32ad374daefdce563e3391effc4fc42eb0e74bbec8afe16a46eeea69e3b2aa",
         "block_hash": "f75fea40852ed7d7f539d008e45255725daef8553ae7162750836f279570813a",

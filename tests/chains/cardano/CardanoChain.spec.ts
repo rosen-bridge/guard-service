@@ -19,7 +19,6 @@ import CardanoTransaction from "../../../src/chains/cardano/models/CardanoTransa
 import ChainsConstants from "../../../src/chains/ChainsConstants";
 import Utils from "../../../src/helpers/Utils";
 import sinon from "sinon";
-import ErgoUtils from "../../../src/chains/ergo/helpers/ErgoUtils";
 import CardanoUtils from "../../../src/chains/cardano/helpers/CardanoUtils";
 
 describe("CardanoChain", () => {
@@ -282,9 +281,10 @@ describe("CardanoChain", () => {
     })
 
     describe("verifyEventWithPayment", () => {
-        beforeEach("reset MockedBlockFrost", () => {
+        beforeEach("reset mocked koios api", () => {
             mockKoiosGetTxInfo(TestData.observationTxInfo.tx_hash, TestData.observationTxInfo)
             mockKoiosGetTxInfo(TestData.nonObservationTxInfo.tx_hash, TestData.nonObservationTxInfo)
+            mockKoiosGetTxInfo(TestData.adaObservationTxInfo.tx_hash, TestData.adaObservationTxInfo)
         })
 
         /**
@@ -308,9 +308,25 @@ describe("CardanoChain", () => {
          * Dependencies:
          *    -
          * Expected Output:
+         *    It should verify the event
+         */
+        it("should return true when the event is correct locking ada", async () => {
+            const mockedEvent: EventTrigger = TestBoxes.mockValidAdaEventTrigger()
+
+            // run test
+            const cardanoChain: CardanoChain = new CardanoChain()
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            expect(isValid).to.be.true
+        })
+
+        /**
+         * Target: testing verifyEventWithPayment
+         * Dependencies:
+         *    -
+         * Expected Output:
          *    It should NOT verify the event
          */
-        it("should return false when the event has incorrect to chain", async () => {
+        it("should return false when the event has incorrect toChain", async () => {
             const mockedEvent: EventTrigger = TestBoxes.mockInvalidToChainEventTrigger()
 
             // run test
@@ -326,7 +342,7 @@ describe("CardanoChain", () => {
          * Expected Output:
          *    It should NOT verify the event
          */
-        it("should return false when the event has incorrect from address", async () => {
+        it("should return false when the event has incorrect fromAddress", async () => {
             const mockedEvent: EventTrigger = TestBoxes.mockInvalidFromAddressEventTrigger()
 
             // run test
@@ -342,8 +358,8 @@ describe("CardanoChain", () => {
          * Expected Output:
          *    It should NOT verify the event
          */
-        it("should return false when the event has incorrect to address", async () => {
-            const mockedEvent: EventTrigger = TestBoxes.mockInvalidToChainEventTrigger()
+        it("should return false when the event has incorrect toAddress", async () => {
+            const mockedEvent: EventTrigger = TestBoxes.mockInvalidToAddressEventTrigger()
 
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
@@ -374,7 +390,7 @@ describe("CardanoChain", () => {
          * Expected Output:
          *    It should NOT verify the event
          */
-        it("should return false when the event has incorrect network fee", async () => {
+        it("should return false when the event has incorrect networkFee", async () => {
             const mockedEvent: EventTrigger = TestBoxes.mockInvalidNetworkFeeEventTrigger()
 
             // run test
@@ -390,7 +406,7 @@ describe("CardanoChain", () => {
          * Expected Output:
          *    It should NOT verify the event
          */
-        it("should return false when the event has incorrect bridge fee", async () => {
+        it("should return false when the event has incorrect bridgeFee", async () => {
             const mockedEvent: EventTrigger = TestBoxes.mockInvalidBridgeFeeEventTrigger()
 
             // run test
@@ -406,7 +422,7 @@ describe("CardanoChain", () => {
          * Expected Output:
          *    It should NOT verify the event
          */
-        it("should return false when the event has incorrect source token", async () => {
+        it("should return false when the event has incorrect sourceTokenId", async () => {
             const mockedEvent: EventTrigger = TestBoxes.mockInvalidSourceTokenEventTrigger()
 
             // run test
@@ -422,7 +438,7 @@ describe("CardanoChain", () => {
          * Expected Output:
          *    It should NOT verify the event
          */
-        it("should return false when the event has incorrect target token", async () => {
+        it("should return false when the event has incorrect targetTokenId", async () => {
             const mockedEvent: EventTrigger = TestBoxes.mockInvalidTargetTokenEventTrigger()
 
             // run test
@@ -438,7 +454,7 @@ describe("CardanoChain", () => {
          * Expected Output:
          *    It should NOT verify the event
          */
-        it("should return false when the event has incorrect block id", async () => {
+        it("should return false when the event has incorrect blockId", async () => {
             const mockedEvent: EventTrigger = TestBoxes.mockInvalidBlockEventTrigger()
 
             // run test
@@ -454,7 +470,7 @@ describe("CardanoChain", () => {
          * Expected Output:
          *    It should NOT verify the event
          */
-        it("should return false when the event has incorrect tx id", async () => {
+        it("should return false when the event has incorrect sourceTxId", async () => {
             const mockedEvent: EventTrigger = TestBoxes.mockInvalidSourceTxEventTrigger()
 
             // run test
@@ -466,7 +482,7 @@ describe("CardanoChain", () => {
         /**
          * Target: testing verifyEventWithPayment
          * Dependencies:
-         *    -
+         *    CardanoUtils
          * Expected Output:
          *    It should NOT verify the event
          */

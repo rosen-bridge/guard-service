@@ -23,6 +23,11 @@ const mockKoiosGetTxConfirmation = (txId: string, confirmation: number | null): 
     when(mockedKoios.getTxConfirmation(txId)).thenResolve(confirmation)
 }
 
+/**
+ * mocks KoiosApi getTxInformation method to return transactionInfo when called for txId
+ * @param txId
+ * @param tx
+ */
 const mockKoiosGetTxInfo = (txId: string, tx: KoiosTransaction) => {
     when(mockedKoios.getTxInformation(deepEqual([txId]))).thenResolve([tx])
 }

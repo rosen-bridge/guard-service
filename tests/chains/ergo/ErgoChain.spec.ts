@@ -344,11 +344,13 @@ describe("ErgoChain",  () => {
     describe("verifyEventWithPayment", () => {
         const observationTx = JSON.parse(TestData.mockedObservationTx)
         const nonObservationTx = JSON.parse(TestData.mockedNonObservationTx)
+        const ergObservationTx = JSON.parse(TestData.mockedErgObservationTx)
 
         beforeEach("mock ExplorerApi", function () {
             resetMockedExplorerApi()
             mockExplorerGetConfirmedTx(observationTx.id, observationTx)
             mockExplorerGetConfirmedTx(nonObservationTx.id, nonObservationTx)
+            mockExplorerGetConfirmedTx(ergObservationTx.id, ergObservationTx)
         })
 
         /**
@@ -360,6 +362,22 @@ describe("ErgoChain",  () => {
          */
         it("should return true when the event is correct", async () => {
             const mockedEvent: EventTrigger = TestBoxes.mockValidEventTrigger()
+
+            // run test
+            const ergoChain: ErgoChain = new ErgoChain()
+            const isValid = await ergoChain.verifyEventWithPayment(mockedEvent)
+            expect(isValid).to.be.true
+        })
+
+        /**
+         * Target: testing verifyEventWithPayment
+         * Dependencies:
+         *    -
+         * Expected Output:
+         *    It should verify the event
+         */
+        it("should return true when the event locking erg is correct", async () => {
+            const mockedEvent: EventTrigger = TestBoxes.mockValidErgEventTrigger()
 
             // run test
             const ergoChain: ErgoChain = new ErgoChain()
@@ -454,7 +472,7 @@ describe("ErgoChain",  () => {
          * Expected Output:
          *    It should NOT verify the event
          */
-        it("should return false when the event is incorrect with source token id", async () => {
+        it("should return false when the event is incorrect with sourceTokenId", async () => {
             const mockedEvent: EventTrigger = TestBoxes.mockInvalidSourceTokenEventTrigger()
 
             // run test
@@ -470,7 +488,7 @@ describe("ErgoChain",  () => {
          * Expected Output:
          *    It should NOT verify the event
          */
-        it("should return false when the event is incorrect with target token id", async () => {
+        it("should return false when the event is incorrect with targetTokenId", async () => {
             const mockedEvent: EventTrigger = TestBoxes.mockInvalidTargetTokenEventTrigger()
 
             // run test
@@ -486,7 +504,7 @@ describe("ErgoChain",  () => {
          * Expected Output:
          *    It should NOT verify the event
          */
-        it("should return false when the event is incorrect with block id", async () => {
+        it("should return false when the event is incorrect with blockId", async () => {
             const mockedEvent: EventTrigger = TestBoxes.mockInvalidBlockEventTrigger()
 
             // run test
@@ -502,7 +520,7 @@ describe("ErgoChain",  () => {
          * Expected Output:
          *    It should NOT verify the event
          */
-        it("should return false when the event is incorrect with tx id", async () => {
+        it("should return false when the event is incorrect with sourceTxId", async () => {
             const mockedEvent: EventTrigger = TestBoxes.mockInvalidTxEventTrigger()
 
             // run test
@@ -514,7 +532,7 @@ describe("ErgoChain",  () => {
         /**
          * Target: testing verifyEventWithPayment
          * Dependencies:
-         *    -
+         *    ErgoUtils
          * Expected Output:
          *    It should NOT verify the event
          */

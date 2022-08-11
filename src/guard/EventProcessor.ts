@@ -75,7 +75,7 @@ class EventProcessor {
     }
 
     /**
-     * confirms event data with lock transaction in source chain
+     * conforms event data with lock transaction in source chain
      * @param event the trigger event
      * @return true if event data verified
      */

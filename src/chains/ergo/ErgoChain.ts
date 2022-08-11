@@ -22,6 +22,8 @@ import OutputBoxes from "./boxes/OutputBoxes";
 import ChainsConstants from "../ChainsConstants";
 import Reward from "./Reward";
 import Configs from "../../helpers/Configs";
+import { Buffer } from "buffer";
+import { blake2b } from "blakejs";
 
 class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
 
@@ -294,18 +296,12 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
      */
     verifyEventWithPayment = async (event: EventTrigger): Promise<boolean> => {
         const paymentTx = await ExplorerApi.getConfirmedTx(event.sourceTxId)
+        const eventId = Buffer.from(blake2b(event.sourceTxId, undefined, 32)).toString("hex")
         if (paymentTx) {
             const payment = paymentTx.outputs.filter((box) =>
                 ErgoConfigs.lockAddress === box.address
-            ).map(box => ErgoUtils.getRosenData(box)).filter(box => box !== undefined)[0]
+            ).map(box => ErgoUtils.getRosenData(box, event.sourceChainTokenId)).filter(box => box !== undefined)[0]
             if (payment) {
-                const toChain = payment.toChain;
-                const networkFee = payment.networkFee;
-                const bridgeFee = payment.bridgeFee;
-                const toAddress = payment.toAddress;
-                const amount = payment.amount;
-                const tokenId = payment.tokenId;
-                const blockId = payment.blockId;
                 const token = Configs.tokenMap.search(
                     'ergo',
                     {
@@ -315,25 +311,26 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
                 try {
                     targetTokenId = Configs.tokenMap.getID(token[0], event.toChain)
                 } catch (e) {
-                    console.log("token or chain is undefined")
+                    console.log(`event [${eventId}] is not valid, tx [${event.sourceTxId}] token or chainId is invalid`)
                     return false
                 }
                 // TODO: fix fromAddress when it was fixed in the watcher side
                 const inputAddress = "fromAddress"
                 return (
                     event.fromChain == ChainsConstants.ergo &&
-                    event.toChain == toChain &&
-                    event.networkFee == networkFee &&
-                    event.bridgeFee == bridgeFee &&
-                    event.amount == amount &&
-                    event.sourceChainTokenId == tokenId &&
+                    event.toChain == payment.toChain &&
+                    event.networkFee == payment.networkFee &&
+                    event.bridgeFee == payment.bridgeFee &&
+                    event.amount == payment.amount &&
+                    event.sourceChainTokenId == payment.tokenId &&
                     event.targetChainTokenId == targetTokenId &&
-                    event.sourceBlockId == blockId &&
-                    event.toAddress == toAddress &&
+                    event.sourceBlockId == payment.blockId &&
+                    event.toAddress == payment.toAddress &&
                     event.fromAddress == inputAddress
                 )
             }
         }
+        console.log(`event [${eventId}] is not valid, payment with tx [${event.sourceTxId}] is not available in network`)
         return false
     }
 

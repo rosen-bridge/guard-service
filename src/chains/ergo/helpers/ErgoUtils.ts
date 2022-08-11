@@ -10,6 +10,9 @@ import {
     Constant
 } from "ergo-lib-wasm-nodejs";
 import { AssetMap, BoxesAssets, ExplorerOutputBox } from "../models/Interfaces";
+import ChainsConstants from "../../ChainsConstants";
+import Configs from "../../../helpers/Configs";
+import ErgoConfigs from "./ErgoConfigs";
 
 class ErgoUtils {
     /**
@@ -145,37 +148,30 @@ class ErgoUtils {
     }
 
     /**
-     * returns true if the box format is like rosen bridge observations
-     * @param box
-     */
-    static isRosenData = (box: ExplorerOutputBox): boolean => {
-        const r4 = this.decodeCollColl(box.additionalRegisters['R4'].serializedValue)
-        return box.assets.length > 0 && r4.length >= 4
-    }
-
-    /**
      * return undefined if the box format is like rosen bridge observation else
      * @param box
+     * @param sourceTokenId
      */
-    static getRosenData = (box: ExplorerOutputBox) => {
+    static getRosenData = (box: ExplorerOutputBox, sourceTokenId: string) => {
         try {
             const R4 = ErgoUtils.decodeCollColl(box.additionalRegisters['R4'].serializedValue);
-            if (box.assets.length > 0 && R4.length >= 4) {
-                const toChain: string = Buffer.from(R4[0]).toString();
-                const toAddress: string = Buffer.from(R4[1]).toString();
-                const networkFee: string = Buffer.from(R4[2]).toString();
-                const bridgeFee: string = Buffer.from(R4[3]).toString();
-                const amount: string = box.assets[0].amount.toString();
-                const tokenId: string = box.assets[0].tokenId;
-                const blockId: string = box.blockId;
+            if ((sourceTokenId == ChainsConstants.ergoNativeAsset || box.assets.length > 0) && R4.length >= 4) {
+                let tokenId, amount
+                if(sourceTokenId == ChainsConstants.ergoNativeAsset){
+                    amount = box.value.toString()
+                    tokenId = ChainsConstants.ergoNativeAsset
+                } else {
+                    amount = box.assets[0].amount.toString()
+                    tokenId = box.assets[0].tokenId
+                }
                 return {
-                    toChain: toChain,
-                    toAddress: toAddress,
-                    networkFee: networkFee,
-                    bridgeFee: bridgeFee,
+                    toChain: Buffer.from(R4[0]).toString(),
+                    toAddress: Buffer.from(R4[1]).toString(),
+                    networkFee: Buffer.from(R4[2]).toString(),
+                    bridgeFee: Buffer.from(R4[3]).toString(),
                     amount: amount,
                     tokenId: tokenId,
-                    blockId: blockId
+                    blockId: box.blockId
                 };
             } else {
                 return undefined;
