@@ -36,7 +36,7 @@
         "minimumErg": "100000",
         "txFee": "1100000",
         "requiredConfirmation": 20,
-        "lockAddress": "change-me   "
+        "lockAddress": "change-me"
     },
     "reward": {
         "bridgeFeeRepoAddress": "9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD",

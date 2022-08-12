@@ -362,63 +362,67 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
      * @param event
      */
     verifyEventWithPayment = async (event: EventTrigger): Promise<boolean> => {
-        const txInfo = (await KoiosApi.getTxInformation([event.sourceTxId]))[0];
         const eventId = Buffer.from(blake2b(event.sourceTxId, undefined, 32)).toString("hex")
-        const payment = txInfo.outputs.filter((utxo: Utxo) => {
-            return CardanoConfigs.lockAddresses.find(address => address === utxo.payment_addr.bech32) !== undefined;
-        })[0];
-        if(payment) {
-            if(!txInfo.metadata) {
-                console.log(`event [${eventId}] is not valid, tx [${event.sourceTxId}] has no transaction metadata`)
-                return false
-            }
-            const data = CardanoUtils.getRosenData(txInfo.metadata)
-            if (data) {
-                let tokenCheck = false, eventToken, targetTokenId, amount
-                try {
-                    eventToken = Configs.tokenMap.search(
-                        ChainsConstants.cardano,
-                        {
-                            fingerprint: event.sourceChainTokenId
-                        })
-                    targetTokenId = Configs.tokenMap.getID(eventToken[0], event.toChain)
-                } catch (e) {
-                    console.log(`event [${eventId}] is not valid, tx [${event.sourceTxId}] token or chainId is invalid`)
+        try {
+            const txInfo = (await KoiosApi.getTxInformation([event.sourceTxId]))[0];
+            const payment = txInfo.outputs.filter((utxo: Utxo) => {
+                return CardanoConfigs.lockAddresses.find(address => address === utxo.payment_addr.bech32) !== undefined;
+            })[0];
+            if (payment) {
+                if (!txInfo.metadata) {
+                    console.log(`event [${eventId}] is not valid, tx [${event.sourceTxId}] has no transaction metadata`)
                     return false
                 }
-                if (event.sourceChainTokenId == ChainsConstants.cardanoNativeAsset){
-                    amount = payment.value
-                    tokenCheck = true
-                }
-                else if (payment.asset_list.length !== 0) {
-                    const asset = payment.asset_list[0];
-                    const eventAssetPolicyId = eventToken[0][ChainsConstants.cardano]['policyID']
-                    const eventAssetId = eventToken[0][ChainsConstants.cardano]['assetID']
-                    amount = asset.quantity
-                    if (!(eventAssetPolicyId == asset.policy_id && eventAssetId == asset.asset_name)){
-                        console.log(`event [${eventId}] is not valid, tx [${event.sourceTxId}] asset credential is incorrect`)
+                const data = CardanoUtils.getRosenData(txInfo.metadata)
+                if (data) {
+                    let tokenCheck = false, eventToken, targetTokenId, amount
+                    try {
+                        eventToken = Configs.tokenMap.search(
+                            ChainsConstants.cardano,
+                            {
+                                fingerprint: event.sourceChainTokenId
+                            })
+                        targetTokenId = Configs.tokenMap.getID(eventToken[0], event.toChain)
+                    } catch (e) {
+                        console.log(`event [${eventId}] is not valid, tx [${event.sourceTxId}] token or chainId is invalid`)
                         return false
                     }
-                    tokenCheck = true
-                }
-                if (tokenCheck &&
-                    event.fromChain == ChainsConstants.cardano &&
-                    event.toChain == data.toChain &&
-                    event.networkFee == data.networkFee &&
-                    event.bridgeFee == data.bridgeFee &&
-                    event.targetChainTokenId == targetTokenId &&
-                    event.amount == amount &&
-                    event.toAddress == data.toAddress &&
-                    event.fromAddress == txInfo.inputs[0].payment_addr.bech32 &&
-                    event.sourceBlockId == txInfo.block_hash
-                ) {
-                    console.log(`event [${eventId}] has been successfully validated`)
-                    return true
+                    if (event.sourceChainTokenId == ChainsConstants.cardanoNativeAsset) {
+                        amount = payment.value
+                        tokenCheck = true
+                    } else if (payment.asset_list.length !== 0) {
+                        const asset = payment.asset_list[0];
+                        const eventAssetPolicyId = eventToken[0][ChainsConstants.cardano]['policyID']
+                        const eventAssetId = eventToken[0][ChainsConstants.cardano]['assetID']
+                        amount = asset.quantity
+                        if (!(eventAssetPolicyId == asset.policy_id && eventAssetId == asset.asset_name)) {
+                            console.log(`event [${eventId}] is not valid, tx [${event.sourceTxId}] asset credential is incorrect`)
+                            return false
+                        }
+                        tokenCheck = true
+                    }
+                    if (tokenCheck &&
+                        event.fromChain == ChainsConstants.cardano &&
+                        event.toChain == data.toChain &&
+                        event.networkFee == data.networkFee &&
+                        event.bridgeFee == data.bridgeFee &&
+                        event.targetChainTokenId == targetTokenId &&
+                        event.amount == amount &&
+                        event.toAddress == data.toAddress &&
+                        event.fromAddress == txInfo.inputs[0].payment_addr.bech32 &&
+                        event.sourceBlockId == txInfo.block_hash
+                    ) {
+                        console.log(`event [${eventId}] has been successfully validated`)
+                        return true
+                    }
                 }
             }
+            console.log(`event [${eventId}] is not valid, payment with tx [${event.sourceTxId}] is not available in network`)
+            return false
+        } catch(e) {
+            console.log(`event [${eventId}] validation failed with this error: [${e}]`)
+            return false
         }
-        console.log(`event [${eventId}] is not valid, payment with tx [${event.sourceTxId}] is not available in network`)
-        return false
     }
 
 }

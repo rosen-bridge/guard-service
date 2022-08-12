@@ -295,46 +295,51 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
      * @param event
      */
     verifyEventWithPayment = async (event: EventTrigger): Promise<boolean> => {
-        const paymentTx = await ExplorerApi.getConfirmedTx(event.sourceTxId)
         const eventId = Buffer.from(blake2b(event.sourceTxId, undefined, 32)).toString("hex")
-        if (paymentTx) {
-            const payment = paymentTx.outputs.filter((box) =>
-                ErgoConfigs.lockAddress === box.address
-            ).map(box => ErgoUtils.getRosenData(box, event.sourceChainTokenId)).filter(box => box !== undefined)[0]
-            if (payment) {
-                const token = Configs.tokenMap.search(
-                    ChainsConstants.ergo,
-                    {
-                        tokenID: event.sourceChainTokenId
-                    })
-                let targetTokenId
-                try {
-                    targetTokenId = Configs.tokenMap.getID(token[0], event.toChain)
-                } catch (e) {
-                    console.log(`event [${eventId}] is not valid, tx [${event.sourceTxId}] token or chainId is invalid`)
-                    return false
-                }
-                // TODO: fix fromAddress when it was fixed in the watcher side
-                const inputAddress = "fromAddress"
-                if (
-                    event.fromChain == ChainsConstants.ergo &&
-                    event.toChain == payment.toChain &&
-                    event.networkFee == payment.networkFee &&
-                    event.bridgeFee == payment.bridgeFee &&
-                    event.amount == payment.amount &&
-                    event.sourceChainTokenId == payment.tokenId &&
-                    event.targetChainTokenId == targetTokenId &&
-                    event.sourceBlockId == payment.blockId &&
-                    event.toAddress == payment.toAddress &&
-                    event.fromAddress == inputAddress
-                ){
-                    console.log(`event [${eventId}] has been successfully validated`)
-                    return true
+        try {
+            const paymentTx = await ExplorerApi.getConfirmedTx(event.sourceTxId)
+            if (paymentTx) {
+                const payment = paymentTx.outputs.filter((box) =>
+                    ErgoConfigs.lockAddress === box.address
+                ).map(box => ErgoUtils.getRosenData(box, event.sourceChainTokenId)).filter(box => box !== undefined)[0]
+                if (payment) {
+                    const token = Configs.tokenMap.search(
+                        ChainsConstants.ergo,
+                        {
+                            tokenID: event.sourceChainTokenId
+                        })
+                    let targetTokenId
+                    try {
+                        targetTokenId = Configs.tokenMap.getID(token[0], event.toChain)
+                    } catch (e) {
+                        console.log(`event [${eventId}] is not valid, tx [${event.sourceTxId}] token or chainId is invalid`)
+                        return false
+                    }
+                    // TODO: fix fromAddress when it was fixed in the watcher side
+                    const inputAddress = "fromAddress"
+                    if (
+                        event.fromChain == ChainsConstants.ergo &&
+                        event.toChain == payment.toChain &&
+                        event.networkFee == payment.networkFee &&
+                        event.bridgeFee == payment.bridgeFee &&
+                        event.amount == payment.amount &&
+                        event.sourceChainTokenId == payment.tokenId &&
+                        event.targetChainTokenId == targetTokenId &&
+                        event.sourceBlockId == payment.blockId &&
+                        event.toAddress == payment.toAddress &&
+                        event.fromAddress == inputAddress
+                    ) {
+                        console.log(`event [${eventId}] has been successfully validated`)
+                        return true
+                    }
                 }
             }
+            console.log(`event [${eventId}] is not valid, payment with tx [${event.sourceTxId}] is not available in network`)
+            return false
+        } catch (e) {
+            console.log(`event [${eventId}] validation failed with this error: [${e}]`)
+            return false
         }
-        console.log(`event [${eventId}] is not valid, payment with tx [${event.sourceTxId}] is not available in network`)
-        return false
     }
 
     /**
