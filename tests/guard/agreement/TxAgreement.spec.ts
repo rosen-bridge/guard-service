@@ -241,15 +241,7 @@ describe("TxAgreement", () => {
             await txAgreement.processTransactionRequest(tx, senderId, guardSignature, receiver)
 
             // verify out request
-            verifySendMessageWithReceiverCalledOnce("tx-agreement", JSON.stringify({
-                "type": "response",
-                "payload": {
-                    "guardId": Configs.guardId,
-                    "signature": "",
-                    "txId": tx.txId,
-                    "agreed": false
-                }
-            }), receiver)
+            verifySendMessageDidntGetCalled("tx-agreement", anything(), anything())
             expect(Array.from(txAgreement.getTransactions()).length).to.equal(0)
             expect(Array.from(txAgreement.getEventAgreedTransactions()).length).to.equal(0)
         })
