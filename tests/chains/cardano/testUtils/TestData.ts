@@ -321,6 +321,64 @@ class TestData {
             ]
         }]
     }
+
+    static noMetadataTxInfo = {
+        "tx_hash": "028052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b",
+        "block_hash": "f75fea40852ed7d7f539d008e45255725daef8553ae7162750836f279570813a",
+        "inputs": [],
+        "outputs": [{
+            "payment_addr": {
+                "bech32": "addr_test1vze7yqqlg8cjlyhz7jzvsg0f3fhxpuu6m3llxrajfzqecggw704re",
+                "cred": "925e1a1a320233544b53c0b87606e2cfc7681c646a6fdb6d5689cb50"
+            },
+            "stake_addr": "stake_test1urvl8c8jy6vgcv5e354ayx7etq39z4nlcfhmvp6rqgyc6sqpdzt63",
+            "tx_hash": "928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b",
+            "tx_index": 1,
+            "value": "49796752",
+            "asset_list": [
+                {
+                    "policy_id": "ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2",
+                    "asset_name": "7369676d61",
+                    "quantity": "13060"
+                }
+            ]
+        }]
+    }
+
+    static fakeTokenObservationTxInfo = {
+        "tx_hash": "128052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b",
+        "block_hash": "f75fea40852ed7d7f539d008e45255725daef8553ae7162750836f279570813a",
+        "inputs": [],
+        "outputs": [{
+            "payment_addr": {
+                "bech32": "addr_test1vze7yqqlg8cjlyhz7jzvsg0f3fhxpuu6m3llxrajfzqecggw704re",
+                "cred": "925e1a1a320233544b53c0b87606e2cfc7681c646a6fdb6d5689cb50"
+            },
+            "stake_addr": "stake_test1urvl8c8jy6vgcv5e354ayx7etq39z4nlcfhmvp6rqgyc6sqpdzt63",
+            "tx_hash": "928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b",
+            "tx_index": 1,
+            "value": "49796752",
+            "asset_list": [
+                {
+                    "policy_id": "ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2",
+                    "asset_name": "1369676d60",
+                    "quantity": "13060"
+                }
+            ]
+        }],
+        "metadata": [
+            {
+                "key": "0",
+                "json": JSON.parse(`{
+                    "to": "ergo",
+                    "bridgeFee": "250",
+                    "networkFee": "10000",
+                    "toAddress": "ergoAddress",
+                    "targetChainTokenId": "cardanoTokenId"
+                }`)
+            }
+        ]
+    }
 }
 
 export default TestData

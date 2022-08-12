@@ -1,5 +1,6 @@
 import { MetaData, RosenData } from "../models/Interfaces";
 import Configs from "../../../helpers/Configs";
+import ChainsConstants from "../../ChainsConstants";
 
 class CardanoUtils {
 
@@ -8,9 +9,9 @@ class CardanoUtils {
      * @param fingerprint asset fingerprint
      */
     static getAssetUnitFromConfigFingerPrintMap = (fingerprint: string): Uint8Array => {
-        const token = Configs.tokenMap.search('cardano', {fingerprint: fingerprint});
+        const token = Configs.tokenMap.search(ChainsConstants.cardano, {fingerprint: fingerprint});
         if (token.length === 0) throw new Error(`asset fingerprint [${fingerprint}] not found in config`)
-        return Buffer.from(token[0]['cardano']['unit'], 'hex');
+        return Buffer.from(token[0][ChainsConstants.cardano]['unit'], 'hex');
     }
 
     /**
@@ -37,7 +38,6 @@ class CardanoUtils {
                     toAddress: rosenData.toAddress
                 }
             }
-            return undefined
         }
         return undefined
     }

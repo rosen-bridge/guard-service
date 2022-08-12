@@ -303,7 +303,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
             ).map(box => ErgoUtils.getRosenData(box, event.sourceChainTokenId)).filter(box => box !== undefined)[0]
             if (payment) {
                 const token = Configs.tokenMap.search(
-                    'ergo',
+                    ChainsConstants.ergo,
                     {
                         tokenID: event.sourceChainTokenId
                     })
@@ -316,7 +316,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
                 }
                 // TODO: fix fromAddress when it was fixed in the watcher side
                 const inputAddress = "fromAddress"
-                return (
+                if (
                     event.fromChain == ChainsConstants.ergo &&
                     event.toChain == payment.toChain &&
                     event.networkFee == payment.networkFee &&
@@ -327,7 +327,10 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
                     event.sourceBlockId == payment.blockId &&
                     event.toAddress == payment.toAddress &&
                     event.fromAddress == inputAddress
-                )
+                ){
+                    console.log(`event [${eventId}] has been successfully validated`)
+                    return true
+                }
             }
         }
         console.log(`event [${eventId}] is not valid, payment with tx [${event.sourceTxId}] is not available in network`)

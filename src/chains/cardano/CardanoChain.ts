@@ -377,7 +377,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
                 let tokenCheck = false, eventToken, targetTokenId, amount
                 try {
                     eventToken = Configs.tokenMap.search(
-                        'cardano',
+                        ChainsConstants.cardano,
                         {
                             fingerprint: event.sourceChainTokenId
                         })
@@ -391,23 +391,17 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
                     tokenCheck = true
                 }
                 else if (payment.asset_list.length !== 0) {
-                    try {
-                        const asset = payment.asset_list[0];
-                        const eventAssetPolicyId = eventToken[0]['cardano']['policyID']
-                        const eventAssetId = eventToken[0]['cardano']['assetID']
-                        amount = asset.quantity
-                        if (!(eventAssetPolicyId == asset.policy_id && eventAssetId == asset.asset_name)){
-                            console.log(`event [${eventId}] is not valid, tx [${event.sourceTxId}] asset credential is incorrect`)
-                            return false
-                        }
-                        tokenCheck = true
-                    } catch (e) {
-                        console.log(`event [${eventId}] is not valid, tx [${event.sourceTxId}] token or chainId is invalid`)
+                    const asset = payment.asset_list[0];
+                    const eventAssetPolicyId = eventToken[0][ChainsConstants.cardano]['policyID']
+                    const eventAssetId = eventToken[0][ChainsConstants.cardano]['assetID']
+                    amount = asset.quantity
+                    if (!(eventAssetPolicyId == asset.policy_id && eventAssetId == asset.asset_name)){
+                        console.log(`event [${eventId}] is not valid, tx [${event.sourceTxId}] asset credential is incorrect`)
                         return false
                     }
+                    tokenCheck = true
                 }
-                return (
-                    tokenCheck &&
+                if (tokenCheck &&
                     event.fromChain == ChainsConstants.cardano &&
                     event.toChain == data.toChain &&
                     event.networkFee == data.networkFee &&
@@ -417,7 +411,10 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
                     event.toAddress == data.toAddress &&
                     event.fromAddress == txInfo.inputs[0].payment_addr.bech32 &&
                     event.sourceBlockId == txInfo.block_hash
-                )
+                ) {
+                    console.log(`event [${eventId}] has been successfully validated`)
+                    return true
+                }
             }
         }
         console.log(`event [${eventId}] is not valid, payment with tx [${event.sourceTxId}] is not available in network`)

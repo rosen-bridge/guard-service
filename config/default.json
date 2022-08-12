@@ -20,7 +20,7 @@
         "txTtl": 100000,
         "requiredConfirmation": 20,
         "lockAddresses": [
-            "addr_test1vze7yqqlg8cjlyhz7jzvsg0f3fhxpuu6m3llxrajfzqecggw704re"
+            "change-me"
         ]
     },
     "ergo": {
@@ -36,7 +36,7 @@
         "minimumErg": "100000",
         "txFee": "1100000",
         "requiredConfirmation": 20,
-        "lockAddress": "2CBjjwbY9Rokj7Ue9qT2pbMR2WhLDmdcL2V9pRgCEEMks9QRXiQ7K73wNANLAczY1XLimkNBu6Nt3hW1zACrk4zQxu"
+        "lockAddress": "change-me   "
     },
     "reward": {
         "bridgeFeeRepoAddress": "9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD",

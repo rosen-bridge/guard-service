@@ -285,6 +285,8 @@ describe("CardanoChain", () => {
             mockKoiosGetTxInfo(TestData.observationTxInfo.tx_hash, TestData.observationTxInfo)
             mockKoiosGetTxInfo(TestData.nonObservationTxInfo.tx_hash, TestData.nonObservationTxInfo)
             mockKoiosGetTxInfo(TestData.adaObservationTxInfo.tx_hash, TestData.adaObservationTxInfo)
+            mockKoiosGetTxInfo(TestData.noMetadataTxInfo.tx_hash, TestData.noMetadataTxInfo)
+            mockKoiosGetTxInfo(TestData.fakeTokenObservationTxInfo.tx_hash, TestData.fakeTokenObservationTxInfo)
         })
 
         /**
@@ -317,6 +319,38 @@ describe("CardanoChain", () => {
             const cardanoChain: CardanoChain = new CardanoChain()
             const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
             expect(isValid).to.be.true
+        })
+
+        /**
+         * Target: testing verifyEventWithPayment
+         * Dependencies:
+         *    -
+         * Expected Output:
+         *    It should NOT verify the event
+         */
+        it("should return false when the event has no metadata", async () => {
+            const mockedEvent: EventTrigger = TestBoxes.mockInValidMetadataEventTrigger()
+
+            // run test
+            const cardanoChain: CardanoChain = new CardanoChain()
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            expect(isValid).to.be.false
+        })
+
+        /**
+         * Target: testing verifyEventWithPayment
+         * Dependencies:
+         *    -
+         * Expected Output:
+         *    It should NOT verify the event
+         */
+        it("should return false when the event token doesn't match", async () => {
+            const mockedEvent: EventTrigger = TestBoxes.mockInValidTokenEventTrigger()
+
+            // run test
+            const cardanoChain: CardanoChain = new CardanoChain()
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            expect(isValid).to.be.false
         })
 
         /**
