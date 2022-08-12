@@ -3,9 +3,14 @@ import { EventTrigger } from "../../../src/models/Models";
 import TestBoxes from "./testUtils/TestBoxes";
 import { expect } from "chai";
 import { CoveringErgoBoxes } from "../../../src/chains/ergo/models/Interfaces";
-import ErgoUtils from "../../../src/chains/ergo/helpers/ErgoUtils";
-import { mockGetCoveringErgAndTokenForErgoTree, resetMockedExplorerApi } from "./mocked/MockedExplorer";
+import {
+    mockExplorerGetConfirmedTx,
+    mockGetCoveringErgAndTokenForErgoTree,
+    resetMockedExplorerApi
+} from "./mocked/MockedExplorer";
 import { beforeEach } from "mocha";
+import TestData from "./testUtils/TestData";
+import ErgoUtils from "../../../src/chains/ergo/helpers/ErgoUtils";
 import {
     mockGetEventBox,
     mockGetEventValidCommitments,
@@ -14,6 +19,7 @@ import {
 } from "./mocked/MockedInputBoxes";
 import { anything, spy, when } from "ts-mockito";
 import ErgoConfigs from "../../../src/chains/ergo/helpers/ErgoConfigs";
+import sinon from "sinon";
 
 describe("ErgoChain",  () => {
     const testBankAddress = TestBoxes.testBankAddress
@@ -335,4 +341,209 @@ describe("ErgoChain",  () => {
 
     })
 
+    describe("verifyEventWithPayment", () => {
+        const observationTx = JSON.parse(TestData.mockedObservationTx)
+        const nonObservationTx = JSON.parse(TestData.mockedNonObservationTx)
+        const ergObservationTx = JSON.parse(TestData.mockedErgObservationTx)
+
+        beforeEach("mock ExplorerApi", function () {
+            resetMockedExplorerApi()
+            mockExplorerGetConfirmedTx(observationTx.id, observationTx)
+            mockExplorerGetConfirmedTx(nonObservationTx.id, nonObservationTx)
+            mockExplorerGetConfirmedTx(ergObservationTx.id, ergObservationTx)
+        })
+
+        /**
+         * Target: testing verifyEventWithPayment
+         * Dependencies:
+         *    -
+         * Expected Output:
+         *    It should verify the event
+         */
+        it("should return true when the event is correct", async () => {
+            const mockedEvent: EventTrigger = TestBoxes.mockValidEventTrigger()
+
+            // run test
+            const ergoChain: ErgoChain = new ErgoChain()
+            const isValid = await ergoChain.verifyEventWithPayment(mockedEvent)
+            expect(isValid).to.be.true
+        })
+
+        /**
+         * Target: testing verifyEventWithPayment
+         * Dependencies:
+         *    -
+         * Expected Output:
+         *    It should verify the event
+         */
+        it("should return true when the event locking erg is correct", async () => {
+            const mockedEvent: EventTrigger = TestBoxes.mockValidErgEventTrigger()
+
+            // run test
+            const ergoChain: ErgoChain = new ErgoChain()
+            const isValid = await ergoChain.verifyEventWithPayment(mockedEvent)
+            expect(isValid).to.be.true
+        })
+
+        /**
+         * Target: testing verifyEventWithPayment
+         * Dependencies:
+         *    -
+         * Expected Output:
+         *    It should NOT verify the event
+         */
+        it("should return false when the event is incorrect with toChain", async () => {
+            const mockedEvent: EventTrigger = TestBoxes.mockInvalidToChainEventTrigger()
+
+            // run test
+            const ergoChain: ErgoChain = new ErgoChain()
+            const isValid = await ergoChain.verifyEventWithPayment(mockedEvent)
+            expect(isValid).to.be.false
+        })
+
+        /**
+         * Target: testing verifyEventWithPayment
+         * Dependencies:
+         *    -
+         * Expected Output:
+         *    It should NOT verify the event
+         */
+        it("should return false when the event is incorrect with toAddress", async () => {
+            const mockedEvent: EventTrigger = TestBoxes.mockInvalidToAddressEventTrigger()
+
+            // run test
+            const ergoChain: ErgoChain = new ErgoChain()
+            const isValid = await ergoChain.verifyEventWithPayment(mockedEvent)
+            expect(isValid).to.be.false
+        })
+
+        /**
+         * Target: testing verifyEventWithPayment
+         * Dependencies:
+         *    -
+         * Expected Output:
+         *    It should NOT verify the event
+         */
+        it("should return false when the event is incorrect with amount", async () => {
+            const mockedEvent: EventTrigger = TestBoxes.mockInvalidAmountEventTrigger()
+
+            // run test
+            const ergoChain: ErgoChain = new ErgoChain()
+            const isValid = await ergoChain.verifyEventWithPayment(mockedEvent)
+            expect(isValid).to.be.false
+        })
+
+        /**
+         * Target: testing verifyEventWithPayment
+         * Dependencies:
+         *    -
+         * Expected Output:
+         *    It should NOT verify the event
+         */
+        it("should return false when the event is incorrect with bridgeFee", async () => {
+            const mockedEvent: EventTrigger = TestBoxes.mockInvalidBridgeFeeEventTrigger()
+
+            // run test
+            const ergoChain: ErgoChain = new ErgoChain()
+            const isValid = await ergoChain.verifyEventWithPayment(mockedEvent)
+            expect(isValid).to.be.false
+        })
+
+        /**
+         * Target: testing verifyEventWithPayment
+         * Dependencies:
+         *    -
+         * Expected Output:
+         *    It should NOT verify the event
+         */
+        it("should return false when the event is incorrect with networkFee", async () => {
+            const mockedEvent: EventTrigger = TestBoxes.mockInvalidNetworkFeeEventTrigger()
+
+            // run test
+            const ergoChain: ErgoChain = new ErgoChain()
+            const isValid = await ergoChain.verifyEventWithPayment(mockedEvent)
+            expect(isValid).to.be.false
+        })
+
+        /**
+         * Target: testing verifyEventWithPayment
+         * Dependencies:
+         *    -
+         * Expected Output:
+         *    It should NOT verify the event
+         */
+        it("should return false when the event is incorrect with sourceTokenId", async () => {
+            const mockedEvent: EventTrigger = TestBoxes.mockInvalidSourceTokenEventTrigger()
+
+            // run test
+            const ergoChain: ErgoChain = new ErgoChain()
+            const isValid = await ergoChain.verifyEventWithPayment(mockedEvent)
+            expect(isValid).to.be.false
+        })
+
+        /**
+         * Target: testing verifyEventWithPayment
+         * Dependencies:
+         *    -
+         * Expected Output:
+         *    It should NOT verify the event
+         */
+        it("should return false when the event is incorrect with targetTokenId", async () => {
+            const mockedEvent: EventTrigger = TestBoxes.mockInvalidTargetTokenEventTrigger()
+
+            // run test
+            const ergoChain: ErgoChain = new ErgoChain()
+            const isValid = await ergoChain.verifyEventWithPayment(mockedEvent)
+            expect(isValid).to.be.false
+        })
+
+        /**
+         * Target: testing verifyEventWithPayment
+         * Dependencies:
+         *    -
+         * Expected Output:
+         *    It should NOT verify the event
+         */
+        it("should return false when the event is incorrect with blockId", async () => {
+            const mockedEvent: EventTrigger = TestBoxes.mockInvalidBlockEventTrigger()
+
+            // run test
+            const ergoChain: ErgoChain = new ErgoChain()
+            const isValid = await ergoChain.verifyEventWithPayment(mockedEvent)
+            expect(isValid).to.be.false
+        })
+
+        /**
+         * Target: testing verifyEventWithPayment
+         * Dependencies:
+         *    -
+         * Expected Output:
+         *    It should NOT verify the event
+         */
+        it("should return false when the event is incorrect with sourceTxId", async () => {
+            const mockedEvent: EventTrigger = TestBoxes.mockInvalidTxEventTrigger()
+
+            // run test
+            const ergoChain: ErgoChain = new ErgoChain()
+            const isValid = await ergoChain.verifyEventWithPayment(mockedEvent)
+            expect(isValid).to.be.false
+        })
+
+        /**
+         * Target: testing verifyEventWithPayment
+         * Dependencies:
+         *    ErgoUtils
+         * Expected Output:
+         *    It should NOT verify the event
+         */
+        it("should return false when the event can not recovered from tx", async () => {
+            const mockedEvent: EventTrigger = TestBoxes.mockValidEventTrigger()
+            sinon.stub(ErgoUtils, "getRosenData").returns(undefined)
+
+            // run test
+            const ergoChain: ErgoChain = new ErgoChain()
+            const isValid = await ergoChain.verifyEventWithPayment(mockedEvent)
+            expect(isValid).to.be.false
+        })
+    })
 })

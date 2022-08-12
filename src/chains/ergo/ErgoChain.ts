@@ -21,6 +21,9 @@ import InputBoxes from "./boxes/InputBoxes";
 import OutputBoxes from "./boxes/OutputBoxes";
 import ChainsConstants from "../ChainsConstants";
 import Reward from "./Reward";
+import Configs from "../../helpers/Configs";
+import { Buffer } from "buffer";
+import { blake2b } from "blakejs";
 
 class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
 
@@ -218,7 +221,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
 
         // calculate assets of payemnt box
         const paymentErgAmount: bigint = BigInt(event.amount) - BigInt(event.bridgeFee) - BigInt(event.networkFee)
-        const paymentTokenAmount: bigint = 0n
+        const paymentTokenAmount = 0n
         const paymentTokenId = event.targetChainTokenId
 
         // create output boxes
@@ -278,9 +281,64 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         const tx = this.deserialize(paymentTx.txBytes)
         try {
             // TODO: implement this (Integration with Multisig service).
-        }
-        catch (e) {
+        } catch (e) {
             console.log(`An error occurred while requesting Multisig service to sign Ergo tx: ${e.message}`)
+        }
+    }
+
+    /**
+     * verified the event payment in the Ergo
+     * conditions that checks:
+     *  1- having atLeast 1 asset in the first output of the transaction
+     *  2- the asset should be listed on the tokenMap config
+     *  3- R4 should have length at least
+     * @param event
+     */
+    verifyEventWithPayment = async (event: EventTrigger): Promise<boolean> => {
+        const eventId = Buffer.from(blake2b(event.sourceTxId, undefined, 32)).toString("hex")
+        try {
+            const paymentTx = await ExplorerApi.getConfirmedTx(event.sourceTxId)
+            if (paymentTx) {
+                const payment = paymentTx.outputs.filter((box) =>
+                    ErgoConfigs.lockAddress === box.address
+                ).map(box => ErgoUtils.getRosenData(box, event.sourceChainTokenId)).filter(box => box !== undefined)[0]
+                if (payment) {
+                    const token = Configs.tokenMap.search(
+                        ChainsConstants.ergo,
+                        {
+                            tokenID: event.sourceChainTokenId
+                        })
+                    let targetTokenId
+                    try {
+                        targetTokenId = Configs.tokenMap.getID(token[0], event.toChain)
+                    } catch (e) {
+                        console.log(`event [${eventId}] is not valid, tx [${event.sourceTxId}] token or chainId is invalid`)
+                        return false
+                    }
+                    // TODO: fix fromAddress when it was fixed in the watcher side
+                    const inputAddress = "fromAddress"
+                    if (
+                        event.fromChain == ChainsConstants.ergo &&
+                        event.toChain == payment.toChain &&
+                        event.networkFee == payment.networkFee &&
+                        event.bridgeFee == payment.bridgeFee &&
+                        event.amount == payment.amount &&
+                        event.sourceChainTokenId == payment.tokenId &&
+                        event.targetChainTokenId == targetTokenId &&
+                        event.sourceBlockId == payment.blockId &&
+                        event.toAddress == payment.toAddress &&
+                        event.fromAddress == inputAddress
+                    ) {
+                        console.log(`event [${eventId}] has been successfully validated`)
+                        return true
+                    }
+                }
+            }
+            console.log(`event [${eventId}] is not valid, payment with tx [${event.sourceTxId}] is not available in network`)
+            return false
+        } catch (e) {
+            console.log(`event [${eventId}] validation failed with this error: [${e}]`)
+            return false
         }
     }
 
@@ -294,8 +352,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
             await scannerAction.setTxStatus(paymentTx.txId, TransactionStatus.sent)
             const response = await NodeApi.sendTx(tx.unsigned_tx().to_json())
             console.log(`Cardano Transaction submitted. txId: ${response}`)
-        }
-        catch (e) {
+        } catch (e) {
             console.log(`An error occurred while submitting Ergo transaction: ${e.message}`)
         }
     }

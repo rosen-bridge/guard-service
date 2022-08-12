@@ -1,6 +1,6 @@
-import { spy, verify, when } from "ts-mockito";
+import { deepEqual, spy, when } from "ts-mockito";
 import KoiosApi from "../../../../src/chains/cardano/network/KoiosApi";
-import { Utxo } from "../../../../src/chains/cardano/models/Interfaces";
+import { KoiosTransaction, Utxo } from "../../../../src/chains/cardano/models/Interfaces";
 
 
 const mockedKoios = spy(KoiosApi)
@@ -23,7 +23,17 @@ const mockKoiosGetTxConfirmation = (txId: string, confirmation: number | null): 
     when(mockedKoios.getTxConfirmation(txId)).thenResolve(confirmation)
 }
 
+/**
+ * mocks KoiosApi getTxInformation method to return transactionInfo when called for txId
+ * @param txId
+ * @param tx
+ */
+const mockKoiosGetTxInfo = (txId: string, tx: KoiosTransaction) => {
+    when(mockedKoios.getTxInformation(deepEqual([txId]))).thenResolve([tx])
+}
+
 export {
     mockGetAddressBoxes,
+    mockKoiosGetTxInfo,
     mockKoiosGetTxConfirmation
 }

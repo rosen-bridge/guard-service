@@ -1,7 +1,11 @@
-import { mockGetAddressBoxes } from "./mocked/MockedKoios";
+import {
+    mockGetAddressBoxes,
+    mockKoiosGetTxInfo,
+} from "./mocked/MockedKoios";
 import CardanoChain from "../../../src/chains/cardano/CardanoChain";
 import { EventTrigger, TransactionStatus, TransactionTypes } from "../../../src/models/Models";
 import TestBoxes from "./testUtils/TestBoxes";
+import TestData from "./testUtils/TestData";
 import { expect } from "chai";
 import { Utxo } from "../../../src/chains/cardano/models/Interfaces";
 import { anything, deepEqual, spy, verify, when } from "ts-mockito";
@@ -14,6 +18,8 @@ import { allTxRecords, clearTables, insertTxRecord } from "../../db/mocked/Mocke
 import CardanoTransaction from "../../../src/chains/cardano/models/CardanoTransaction";
 import ChainsConstants from "../../../src/chains/ChainsConstants";
 import Utils from "../../../src/helpers/Utils";
+import sinon from "sinon";
+import CardanoUtils from "../../../src/chains/cardano/helpers/CardanoUtils";
 
 describe("CardanoChain", () => {
     const testBankAddress = TestBoxes.testBankAddress
@@ -272,6 +278,257 @@ describe("CardanoChain", () => {
             MockedBlockFrost.verifyTxSubmitCalledOnce(cardanoChain.deserialize(tx.txBytes))
         })
 
+    })
+
+    describe("verifyEventWithPayment", () => {
+        beforeEach("reset mocked koios api", () => {
+            mockKoiosGetTxInfo(TestData.observationTxInfo.tx_hash, TestData.observationTxInfo)
+            mockKoiosGetTxInfo(TestData.nonObservationTxInfo.tx_hash, TestData.nonObservationTxInfo)
+            mockKoiosGetTxInfo(TestData.adaObservationTxInfo.tx_hash, TestData.adaObservationTxInfo)
+            mockKoiosGetTxInfo(TestData.noMetadataTxInfo.tx_hash, TestData.noMetadataTxInfo)
+            mockKoiosGetTxInfo(TestData.fakeTokenObservationTxInfo.tx_hash, TestData.fakeTokenObservationTxInfo)
+        })
+
+        /**
+         * Target: testing verifyEventWithPayment
+         * Dependencies:
+         *    -
+         * Expected Output:
+         *    It should verify the event
+         */
+        it("should return true when the event is correct", async () => {
+            const mockedEvent: EventTrigger = TestBoxes.mockValidEventTrigger()
+
+            // run test
+            const cardanoChain: CardanoChain = new CardanoChain()
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            expect(isValid).to.be.true
+        })
+
+        /**
+         * Target: testing verifyEventWithPayment
+         * Dependencies:
+         *    -
+         * Expected Output:
+         *    It should verify the event
+         */
+        it("should return true when the event is correct locking ada", async () => {
+            const mockedEvent: EventTrigger = TestBoxes.mockValidAdaEventTrigger()
+
+            // run test
+            const cardanoChain: CardanoChain = new CardanoChain()
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            expect(isValid).to.be.true
+        })
+
+        /**
+         * Target: testing verifyEventWithPayment
+         * Dependencies:
+         *    -
+         * Expected Output:
+         *    It should NOT verify the event
+         */
+        it("should return false when the event has no metadata", async () => {
+            const mockedEvent: EventTrigger = TestBoxes.mockInValidMetadataEventTrigger()
+
+            // run test
+            const cardanoChain: CardanoChain = new CardanoChain()
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            expect(isValid).to.be.false
+        })
+
+        /**
+         * Target: testing verifyEventWithPayment
+         * Dependencies:
+         *    -
+         * Expected Output:
+         *    It should NOT verify the event
+         */
+        it("should return false when the event token doesn't match", async () => {
+            const mockedEvent: EventTrigger = TestBoxes.mockInValidTokenEventTrigger()
+
+            // run test
+            const cardanoChain: CardanoChain = new CardanoChain()
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            expect(isValid).to.be.false
+        })
+
+        /**
+         * Target: testing verifyEventWithPayment
+         * Dependencies:
+         *    -
+         * Expected Output:
+         *    It should NOT verify the event
+         */
+        it("should return false when the event has incorrect toChain", async () => {
+            const mockedEvent: EventTrigger = TestBoxes.mockInvalidToChainEventTrigger()
+
+            // run test
+            const cardanoChain: CardanoChain = new CardanoChain()
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            expect(isValid).to.be.false
+        })
+
+        /**
+         * Target: testing verifyEventWithPayment
+         * Dependencies:
+         *    -
+         * Expected Output:
+         *    It should NOT verify the event
+         */
+        it("should return false when the event has incorrect fromAddress", async () => {
+            const mockedEvent: EventTrigger = TestBoxes.mockInvalidFromAddressEventTrigger()
+
+            // run test
+            const cardanoChain: CardanoChain = new CardanoChain()
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            expect(isValid).to.be.false
+        })
+
+        /**
+         * Target: testing verifyEventWithPayment
+         * Dependencies:
+         *    -
+         * Expected Output:
+         *    It should NOT verify the event
+         */
+        it("should return false when the event has incorrect toAddress", async () => {
+            const mockedEvent: EventTrigger = TestBoxes.mockInvalidToAddressEventTrigger()
+
+            // run test
+            const cardanoChain: CardanoChain = new CardanoChain()
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            expect(isValid).to.be.false
+        })
+
+        /**
+         * Target: testing verifyEventWithPayment
+         * Dependencies:
+         *    -
+         * Expected Output:
+         *    It should NOT verify the event
+         */
+        it("should return false when the event has incorrect amount", async () => {
+            const mockedEvent: EventTrigger = TestBoxes.mockInvalidAmountEventTrigger()
+
+            // run test
+            const cardanoChain: CardanoChain = new CardanoChain()
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            expect(isValid).to.be.false
+        })
+
+        /**
+         * Target: testing verifyEventWithPayment
+         * Dependencies:
+         *    -
+         * Expected Output:
+         *    It should NOT verify the event
+         */
+        it("should return false when the event has incorrect networkFee", async () => {
+            const mockedEvent: EventTrigger = TestBoxes.mockInvalidNetworkFeeEventTrigger()
+
+            // run test
+            const cardanoChain: CardanoChain = new CardanoChain()
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            expect(isValid).to.be.false
+        })
+
+        /**
+         * Target: testing verifyEventWithPayment
+         * Dependencies:
+         *    -
+         * Expected Output:
+         *    It should NOT verify the event
+         */
+        it("should return false when the event has incorrect bridgeFee", async () => {
+            const mockedEvent: EventTrigger = TestBoxes.mockInvalidBridgeFeeEventTrigger()
+
+            // run test
+            const cardanoChain: CardanoChain = new CardanoChain()
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            expect(isValid).to.be.false
+        })
+
+        /**
+         * Target: testing verifyEventWithPayment
+         * Dependencies:
+         *    -
+         * Expected Output:
+         *    It should NOT verify the event
+         */
+        it("should return false when the event has incorrect sourceTokenId", async () => {
+            const mockedEvent: EventTrigger = TestBoxes.mockInvalidSourceTokenEventTrigger()
+
+            // run test
+            const cardanoChain: CardanoChain = new CardanoChain()
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            expect(isValid).to.be.false
+        })
+
+        /**
+         * Target: testing verifyEventWithPayment
+         * Dependencies:
+         *    -
+         * Expected Output:
+         *    It should NOT verify the event
+         */
+        it("should return false when the event has incorrect targetTokenId", async () => {
+            const mockedEvent: EventTrigger = TestBoxes.mockInvalidTargetTokenEventTrigger()
+
+            // run test
+            const cardanoChain: CardanoChain = new CardanoChain()
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            expect(isValid).to.be.false
+        })
+
+        /**
+         * Target: testing verifyEventWithPayment
+         * Dependencies:
+         *    -
+         * Expected Output:
+         *    It should NOT verify the event
+         */
+        it("should return false when the event has incorrect blockId", async () => {
+            const mockedEvent: EventTrigger = TestBoxes.mockInvalidBlockEventTrigger()
+
+            // run test
+            const cardanoChain: CardanoChain = new CardanoChain()
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            expect(isValid).to.be.false
+        })
+
+        /**
+         * Target: testing verifyEventWithPayment
+         * Dependencies:
+         *    -
+         * Expected Output:
+         *    It should NOT verify the event
+         */
+        it("should return false when the event has incorrect sourceTxId", async () => {
+            const mockedEvent: EventTrigger = TestBoxes.mockInvalidSourceTxEventTrigger()
+
+            // run test
+            const cardanoChain: CardanoChain = new CardanoChain()
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            expect(isValid).to.be.false
+        })
+
+        /**
+         * Target: testing verifyEventWithPayment
+         * Dependencies:
+         *    CardanoUtils
+         * Expected Output:
+         *    It should NOT verify the event
+         */
+        it("should return false when the event can not be retrieved from tx info", async () => {
+            const mockedEvent: EventTrigger = TestBoxes.mockValidEventTrigger()
+            sinon.stub(CardanoUtils, "getRosenData").returns(undefined)
+
+            // run test
+            const cardanoChain: CardanoChain = new CardanoChain()
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            expect(isValid).to.be.false
+        })
     })
 
 })

@@ -1,6 +1,6 @@
 import { anything, reset, spy, when } from "ts-mockito";
 import ExplorerApi from "../../../../src/chains/ergo/network/ExplorerApi";
-import { Boxes, CoveringErgoBoxes } from "../../../../src/chains/ergo/models/Interfaces";
+import { Boxes, CoveringErgoBoxes, ExplorerTransaction } from "../../../../src/chains/ergo/models/Interfaces";
 
 
 let mockedExplorer = spy(ExplorerApi)
@@ -53,6 +53,15 @@ const mockExplorerGetTxConfirmation = (txId: string, confirmation: number): void
 }
 
 /**
+ * mocks ExplorerApi getConfirmedTx method to return transaction when called for txId
+ * @param txId
+ * @param tx
+ */
+const mockExplorerGetConfirmedTx = (txId: string, tx: ExplorerTransaction): void => {
+    when(mockedExplorer.getConfirmedTx(txId)).thenResolve(tx)
+}
+
+/**
  * mocks ExplorerApi isTxInMempool method to return result when called for txId
  * @param txId
  * @param result
@@ -81,6 +90,7 @@ const resetMockedExplorerApi = (): void => {
 export {
     mockGetCoveringErgAndTokenForErgoTree,
     mockGetBoxesForErgoTree,
+    mockExplorerGetConfirmedTx,
     mockExplorerGetTxConfirmation,
     mockIsTxInMempool,
     mockIsBoxUnspentAndValid,

@@ -213,7 +213,7 @@ class Reward {
         paymentTokenId: string
     ): ErgoBoxCandidate[] => {
         const watchersLen: number = event.WIDs.length + commitmentBoxes.length
-        const rsnFee = BigInt(event.bridgeFee) * rsnCoef[0]  / rsnCoef[1]
+        const rsnFee = BigInt(event.bridgeFee) * rsnCoef[0] / rsnCoef[1]
 
         // calculate assets of reward boxes
         const watcherErgAmount: bigint = BigInt(event.bridgeFee) * ErgoConfigs.watchersSharePercent / 100n / BigInt(watchersLen) + ErgoConfigs.minimumErg
@@ -268,7 +268,7 @@ class Reward {
     ): ErgoBoxCandidate[] => {
 
         const watchersLen: number = event.WIDs.length + commitmentBoxes.length
-        const rsnFee = BigInt(event.bridgeFee) * rsnCoef[0]  / rsnCoef[1]
+        const rsnFee = BigInt(event.bridgeFee) * rsnCoef[0] / rsnCoef[1]
 
         // calculate assets of reward boxes
         const watcherErgAmount: bigint = ErgoConfigs.minimumErg

@@ -53,10 +53,277 @@ class TestBoxes {
     }
 
     /**
+     * generates a mocked event trigger for event verification in cardano chain
+     */
+    static mockValidEventTrigger = (): EventTrigger => {
+        return new EventTrigger("cardano",
+            "ergo",
+            "addr_test1qzf9uxs6xgprx4zt20qtsasxut8uw6quv34xlkmd26yuk5xe70s0yf5c3sefnrft6gdajkpz29t8lsn0kcr5xqsf34qqxd6n4f",
+            "ergoAddress",
+            "13060",
+            "250",
+            "10000",
+            "asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3",
+            "0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95",
+            "928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b",
+            "f75fea40852ed7d7f539d008e45255725daef8553ae7162750836f279570813a",
+            []
+        )
+    }
+
+    /**
+     * generates a mocked event trigger for event verification in cardano chain
+     */
+    static mockInValidMetadataEventTrigger = (): EventTrigger => {
+        return new EventTrigger("cardano",
+            "ergo",
+            "addr_test1qzf9uxs6xgprx4zt20qtsasxut8uw6quv34xlkmd26yuk5xe70s0yf5c3sefnrft6gdajkpz29t8lsn0kcr5xqsf34qqxd6n4f",
+            "ergoAddress",
+            "13060",
+            "250",
+            "10000",
+            "asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3",
+            "0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95",
+            "028052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b",
+            "f75fea40852ed7d7f539d008e45255725daef8553ae7162750836f279570813a",
+            []
+        )
+    }
+
+    /**
+     * generates a mocked event trigger for event verification in cardano chain
+     */
+    static mockInValidTokenEventTrigger = (): EventTrigger => {
+        return new EventTrigger("cardano",
+            "ergo",
+            "addr_test1qzf9uxs6xgprx4zt20qtsasxut8uw6quv34xlkmd26yuk5xe70s0yf5c3sefnrft6gdajkpz29t8lsn0kcr5xqsf34qqxd6n4f",
+            "ergoAddress",
+            "13060",
+            "250",
+            "10000",
+            "asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3",
+            "0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95",
+            "128052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b",
+            "f75fea40852ed7d7f539d008e45255725daef8553ae7162750836f279570813a",
+            []
+        )
+    }
+
+    /**
+     * generates a mocked event trigger for event verification in cardano chain locking Ada
+     */
+    static mockValidAdaEventTrigger = (): EventTrigger => {
+        return new EventTrigger("cardano",
+            "ergo",
+            "addr_test1qzf9uxs6xgprx4zt20qtsasxut8uw6quv34xlkmd26yuk5xe70s0yf5c3sefnrft6gdajkpz29t8lsn0kcr5xqsf34qqxd6n4f",
+            "ergoAddress",
+            "49796752",
+            "250",
+            "10000",
+            "lovelace",
+            "064c58ea394d41fada074a3c560a132467adf4ca1512c409c014c625ca285e9c",
+            "00ee077854471a04fbef18a5a971b50fb39f52fc6f6b3b8d0682ce2c48f6ebef",
+            "f75fea40852ed7d7f539d008e45255725daef8553ae7162750836f279570813a",
+            []
+        )
+    }
+
+    /**
+     * generates a mocked invalid event trigger for event verification in cardano chain with invalid toChain
+     */
+    static mockInvalidToChainEventTrigger = (): EventTrigger => {
+        return new EventTrigger("cardano",
+            "erg",
+            "addr_test1qzf9uxs6xgprx4zt20qtsasxut8uw6quv34xlkmd26yuk5xe70s0yf5c3sefnrft6gdajkpz29t8lsn0kcr5xqsf34qqxd6n4f",
+            "ergoAddress",
+            "13060",
+            "250",
+            "10000",
+            "asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3",
+            "0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95",
+            "928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b",
+            "f75fea40852ed7d7f539d008e45255725daef8553ae7162750836f279570813a",
+            []
+        )
+    }
+
+    /**
+     * generates a mocked invalid event trigger for event verification in cardano chain with invalid fromAddress
+     */
+    static mockInvalidFromAddressEventTrigger = (): EventTrigger => {
+        return new EventTrigger("cardano",
+            "ergo",
+            "addr_test1vze7yqqlg8cjlyhz7jzvsg0f3fhxpuu6m3llxrajfzqecggw704re",
+            "ergoAddress",
+            "13060",
+            "250",
+            "10000",
+            "asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3",
+            "0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95",
+            "928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b",
+            "f75fea40852ed7d7f539d008e45255725daef8553ae7162750836f279570813a",
+            []
+        )
+    }
+
+    /**
+     * generates a mocked invalid event trigger for event verification in cardano chain with invalid toAddress
+     */
+    static mockInvalidToAddressEventTrigger = (): EventTrigger => {
+        return new EventTrigger("cardano",
+            "ergo",
+            "addr_test1qzf9uxs6xgprx4zt20qtsasxut8uw6quv34xlkmd26yuk5xe70s0yf5c3sefnrft6gdajkpz29t8lsn0kcr5xqsf34qqxd6n4f",
+            "ergoAddressFake",
+            "13060",
+            "250",
+            "10000",
+            "asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3",
+            "0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95",
+            "928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b",
+            "f75fea40852ed7d7f539d008e45255725daef8553ae7162750836f279570813a",
+            []
+        )
+    }
+
+    /**
+     * generates a mocked invalid event trigger for event verification in cardano chain with invalid amount
+     */
+    static mockInvalidAmountEventTrigger = (): EventTrigger => {
+        return new EventTrigger("cardano",
+            "ergo",
+            "addr_test1qzf9uxs6xgprx4zt20qtsasxut8uw6quv34xlkmd26yuk5xe70s0yf5c3sefnrft6gdajkpz29t8lsn0kcr5xqsf34qqxd6n4f",
+            "ergoAddress",
+            "13",
+            "250",
+            "10000",
+            "asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3",
+            "0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95",
+            "928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b",
+            "f75fea40852ed7d7f539d008e45255725daef8553ae7162750836f279570813a",
+            []
+        )
+    }
+
+    /**
+     * generates a mocked invalid event trigger for event verification in cardano chain with invalid bridge fee
+     */
+    static mockInvalidBridgeFeeEventTrigger = (): EventTrigger => {
+        return new EventTrigger("cardano",
+            "ergo",
+            "addr_test1qzf9uxs6xgprx4zt20qtsasxut8uw6quv34xlkmd26yuk5xe70s0yf5c3sefnrft6gdajkpz29t8lsn0kcr5xqsf34qqxd6n4f",
+            "ergoAddress",
+            "13060",
+            "25",
+            "10000",
+            "asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3",
+            "0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95",
+            "928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b",
+            "f75fea40852ed7d7f539d008e45255725daef8553ae7162750836f279570813a",
+            []
+        )
+    }
+
+    /**
+     * generates a mocked invalid event trigger for event verification in cardano chain with invalid network fee
+     */
+    static mockInvalidNetworkFeeEventTrigger = (): EventTrigger => {
+        return new EventTrigger("cardano",
+            "ergo",
+            "addr_test1qzf9uxs6xgprx4zt20qtsasxut8uw6quv34xlkmd26yuk5xe70s0yf5c3sefnrft6gdajkpz29t8lsn0kcr5xqsf34qqxd6n4f",
+            "ergoAddress",
+            "13060",
+            "250",
+            "1000",
+            "asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3",
+            "0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95",
+            "928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b",
+            "f75fea40852ed7d7f539d008e45255725daef8553ae7162750836f279570813a",
+            []
+        )
+    }
+
+    /**
+     * generates a mocked invalid event trigger for event verification in cardano chain with invalid source token
+     */
+    static mockInvalidSourceTokenEventTrigger = (): EventTrigger => {
+        return new EventTrigger("cardano",
+            "ergo",
+            "addr_test1qzf9uxs6xgprx4zt20qtsasxut8uw6quv34xlkmd26yuk5xe70s0yf5c3sefnrft6gdajkpz29t8lsn0kcr5xqsf34qqxd6n4f",
+            "ergoAddress",
+            "13060",
+            "250",
+            "10000",
+            "asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw4",
+            "0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95",
+            "928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b",
+            "f75fea40852ed7d7f539d008e45255725daef8553ae7162750836f279570813a",
+            []
+        )
+    }
+
+    /**
+     * generates a mocked invalid event trigger for event verification in cardano chain with invalid target token
+     */
+    static mockInvalidTargetTokenEventTrigger = (): EventTrigger => {
+        return new EventTrigger("cardano",
+            "ergo",
+            "addr_test1qzf9uxs6xgprx4zt20qtsasxut8uw6quv34xlkmd26yuk5xe70s0yf5c3sefnrft6gdajkpz29t8lsn0kcr5xqsf34qqxd6n4f",
+            "ergoAddress",
+            "13060",
+            "250",
+            "10000",
+            "asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3",
+            "1034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95",
+            "928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b",
+            "f75fea40852ed7d7f539d008e45255725daef8553ae7162750836f279570813a",
+            []
+        )
+    }
+
+    /**
+     * generates a mocked invalid event trigger for event verification in cardano chain with invalid source tx
+     */
+    static mockInvalidSourceTxEventTrigger = (): EventTrigger => {
+        return new EventTrigger("cardano",
+            "ergo",
+            "addr_test1qzf9uxs6xgprx4zt20qtsasxut8uw6quv34xlkmd26yuk5xe70s0yf5c3sefnrft6gdajkpz29t8lsn0kcr5xqsf34qqxd6n4f",
+            "ergoAddress",
+            "13060",
+            "250",
+            "10000",
+            "asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3",
+            "0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95",
+            "0f32ad374daefdce563e3391effc4fc42eb0e74bbec8afe16a46eeea69e3b2aa",
+            "f75fea40852ed7d7f539d008e45255725daef8553ae7162750836f279570813a",
+            []
+        )
+    }
+
+    /**
+     * generates a mocked invalid event trigger for event verification in cardano chain with invalid block
+     */
+    static mockInvalidBlockEventTrigger = (): EventTrigger => {
+        return new EventTrigger("cardano",
+            "ergo",
+            "addr_test1qzf9uxs6xgprx4zt20qtsasxut8uw6quv34xlkmd26yuk5xe70s0yf5c3sefnrft6gdajkpz29t8lsn0kcr5xqsf34qqxd6n4f",
+            "ergoAddress",
+            "13060",
+            "250",
+            "10000",
+            "asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3",
+            "0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95",
+            "928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b",
+            "03395496d590ec6db0f2fd13a7bcf91e82a9f230ef677f6216ea8c9f57df6ab3",
+            []
+        )
+    }
+
+    /**
      * generates 3 Utxo for cardano bank address
      */
     static mockBankBoxes = (): Utxo[] => {
         const box1: Utxo = {
+            payment_addr: { "bech32": ""},
             tx_hash: TestUtils.generateRandomId(),
             tx_index: 0,
             value: this.adaToLovelaceString(30),
@@ -74,6 +341,7 @@ class TestBoxes {
             ]
         }
         const box2: Utxo = {
+            payment_addr: { "bech32": ""},
             tx_hash: TestUtils.generateRandomId(),
             tx_index: 0,
             value: this.adaToLovelaceString(100),
@@ -86,6 +354,7 @@ class TestBoxes {
             ]
         }
         const box3: Utxo = {
+            payment_addr: { "bech32": ""},
             tx_hash: TestUtils.generateRandomId(),
             tx_index: 2,
             value: this.adaToLovelaceString(10),

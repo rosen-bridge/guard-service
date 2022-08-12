@@ -1,8 +1,20 @@
-import { Address, BoxValue, Contract, ErgoBox, ErgoBoxCandidate, I64, TokenAmount } from "ergo-lib-wasm-nodejs";
-import { AssetMap, BoxesAssets } from "../models/Interfaces";
+import { Buffer } from "buffer";
+import {
+    Address,
+    BoxValue,
+    Contract,
+    ErgoBox,
+    ErgoBoxCandidate,
+    I64,
+    TokenAmount,
+    Constant
+} from "ergo-lib-wasm-nodejs";
+import { AssetMap, BoxesAssets, ExplorerOutputBox } from "../models/Interfaces";
+import ChainsConstants from "../../ChainsConstants";
+import Configs from "../../../helpers/Configs";
+import ErgoConfigs from "./ErgoConfigs";
 
 class ErgoUtils {
-
     /**
      * converts ergo address object to string representation of it's ergoTree
      */
@@ -88,6 +100,14 @@ class ErgoUtils {
     }
 
     /**
+     * decodes register coll[coll[Byte]] value from str
+     * @param str
+     */
+    static decodeCollColl = (str: string): Uint8Array[] => {
+        return Constant.decode_from_base16(str).to_coll_coll_byte()
+    }
+
+    /**
      * checks if two arrays have same values
      * @param source first array
      * @param target second array
@@ -126,6 +146,41 @@ class ErgoUtils {
 
         return true
     }
+
+    /**
+     * return undefined if the box format is like rosen bridge observation else
+     * @param box
+     * @param sourceTokenId
+     */
+    static getRosenData = (box: ExplorerOutputBox, sourceTokenId: string) => {
+        try {
+            const R4 = ErgoUtils.decodeCollColl(box.additionalRegisters['R4'].serializedValue);
+            if ((sourceTokenId === ChainsConstants.ergoNativeAsset || box.assets.length > 0) && R4.length >= 4) {
+                let tokenId, amount
+                if(sourceTokenId == ChainsConstants.ergoNativeAsset){
+                    amount = box.value.toString()
+                    tokenId = ChainsConstants.ergoNativeAsset
+                } else {
+                    amount = box.assets[0].amount.toString()
+                    tokenId = box.assets[0].tokenId
+                }
+                return {
+                    toChain: Buffer.from(R4[0]).toString(),
+                    toAddress: Buffer.from(R4[1]).toString(),
+                    networkFee: Buffer.from(R4[2]).toString(),
+                    bridgeFee: Buffer.from(R4[3]).toString(),
+                    amount: amount,
+                    tokenId: tokenId,
+                    blockId: box.blockId
+                };
+            } else {
+                return undefined;
+            }
+        } catch (e) {
+            return undefined;
+        }
+    }
+
 
     /**
      * calculates amount of Erg and tokens in boxes
@@ -170,8 +225,7 @@ class ErgoUtils {
                 tokens[id] -= usedAssets.tokens[id]
                 if (tokens[id] < 0n)
                     throw Error(`not enough token [${id}] in input assets [Current: ${inAssets.tokens[id]}] [Require: ${usedAssets.tokens[id]}]`)
-            }
-            else
+            } else
                 throw Error(`not enough token [${id}] in input assets [Current: 0] [Require: ${usedAssets.tokens[id]}]`)
         })
 
@@ -180,7 +234,6 @@ class ErgoUtils {
             tokens: tokens
         }
     }
-
 }
 
 export default ErgoUtils

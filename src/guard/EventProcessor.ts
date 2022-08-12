@@ -80,8 +80,11 @@ class EventProcessor {
      * @return true if event data verified
      */
     static verifyEvent = async (event: EventTrigger): Promise<boolean> => {
-        // TODO: verify event with lock transaction
-        return true
+        if (event.fromChain === ChainsConstants.cardano)
+            return this.cardanoChain.verifyEventWithPayment(event)
+        else if (event.fromChain === ChainsConstants.ergo)
+            return this.ergoChain.verifyEventWithPayment(event)
+        else throw new Error(`chain [${event.fromChain}] not implemented.`)
     }
 
     /**

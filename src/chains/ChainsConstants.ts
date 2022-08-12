@@ -4,6 +4,7 @@ class ChainsConstants {
     static ergo = "ergo"
 
     static ergoNativeAsset = "erg"
+    static cardanoNativeAsset = "lovelace"
 
 }
 
