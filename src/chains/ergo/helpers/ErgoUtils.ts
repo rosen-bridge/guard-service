@@ -155,7 +155,7 @@ class ErgoUtils {
     static getRosenData = (box: ExplorerOutputBox, sourceTokenId: string) => {
         try {
             const R4 = ErgoUtils.decodeCollColl(box.additionalRegisters['R4'].serializedValue);
-            if ((sourceTokenId == ChainsConstants.ergoNativeAsset || box.assets.length > 0) && R4.length >= 4) {
+            if ((sourceTokenId === ChainsConstants.ergoNativeAsset || box.assets.length > 0) && R4.length >= 4) {
                 let tokenId, amount
                 if(sourceTokenId == ChainsConstants.ergoNativeAsset){
                     amount = box.value.toString()
