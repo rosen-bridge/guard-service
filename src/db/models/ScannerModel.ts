@@ -1,17 +1,17 @@
 import { DataSource, In, Repository } from "typeorm";
-import { EventTriggerEntity } from "../../entities/scanner/EventTriggerEntity";
-import { scannerOrmDataSource } from "../../../../config/scannerOrmDataSource";
-import { TransactionEntity } from "../../entities/scanner/TransactionEntity";
-import { PaymentTransaction, TransactionStatus } from "../../../models/Models";
+import { VerifiedEventEntity } from "../entities/VerifiedEventEntity";
+import { scannerOrmDataSource } from "../../../config/scannerOrmDataSource";
+import { TransactionEntity } from "../entities/TransactionEntity";
+import { PaymentTransaction, TransactionStatus } from "../../models/Models";
 
 class ScannerDataBase {
     dataSource: DataSource;
-    EventRepository: Repository<EventTriggerEntity>;
+    EventRepository: Repository<VerifiedEventEntity>;
     TransactionRepository: Repository<TransactionEntity>;
 
     constructor(dataSource: DataSource) {
         this.dataSource = dataSource;
-        this.EventRepository = this.dataSource.getRepository(EventTriggerEntity);
+        this.EventRepository = this.dataSource.getRepository(VerifiedEventEntity);
         this.TransactionRepository = this.dataSource.getRepository(TransactionEntity);
     }
 
@@ -34,7 +34,7 @@ class ScannerDataBase {
      * @param eventId the event trigger id
      * @return the event trigger
      */
-    getEventById = async (eventId: string): Promise<EventTriggerEntity | null> => {
+    getEventById = async (eventId: string): Promise<VerifiedEventEntity | null> => {
         return await this.EventRepository.createQueryBuilder()
             .select()
             .where("sourceTxId = :id", {id: eventId})
@@ -45,7 +45,7 @@ class ScannerDataBase {
      * @param status the event trigger status
      * @return the event triggers with corresponding status
      */
-    getEventsByStatus = async (status: string): Promise<EventTriggerEntity[]> => {
+    getEventsByStatus = async (status: string): Promise<VerifiedEventEntity[]> => {
         return await this.EventRepository.createQueryBuilder()
             .select()
             .where("status = :status", {status: status})
@@ -212,7 +212,7 @@ class ScannerDataBase {
     /**
      * inserts a tx record into transactions table
      */
-    private insertNewTx = async (paymentTx: PaymentTransaction, event: EventTriggerEntity): Promise<void> => {
+    private insertNewTx = async (paymentTx: PaymentTransaction, event: VerifiedEventEntity): Promise<void> => {
         await this.TransactionRepository
             .insert({
                 txId: paymentTx.txId,

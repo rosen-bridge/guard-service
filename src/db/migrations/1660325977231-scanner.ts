@@ -1,11 +1,11 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class scanner1659170456333 implements MigrationInterface {
-    name = 'scanner1659170456333'
+export class scanner1660325977231 implements MigrationInterface {
+    name = 'scanner1660325977231'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`
-            CREATE TABLE "event_trigger_entity" (
+            CREATE TABLE "verified_event_entity" (
                 "sourceTxId" varchar PRIMARY KEY NOT NULL, 
                 "status" varchar NOT NULL, 
                 "fromChain" varchar NOT NULL, 
@@ -32,7 +32,7 @@ export class scanner1659170456333 implements MigrationInterface {
                 "eventSourceTxId" varchar, 
                 CONSTRAINT "FK_dd01d6b3b463d1182ed8bb2a947" 
                     FOREIGN KEY ("eventSourceTxId") 
-                    REFERENCES "event_trigger_entity" ("sourceTxId") 
+                    REFERENCES "verified_event_entity" ("sourceTxId") 
                         ON DELETE NO ACTION 
                         ON UPDATE NO ACTION
             )
@@ -41,7 +41,7 @@ export class scanner1659170456333 implements MigrationInterface {
 
     public async down(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`DROP TABLE "transaction_entity"`);
-        await queryRunner.query(`DROP TABLE "event_trigger_entity"`);
+        await queryRunner.query(`DROP TABLE "verified_event_entity"`);
     }
 
 }

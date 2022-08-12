@@ -8,7 +8,7 @@ import {
 } from "../../src/models/Models";
 import CardanoTestBoxes from "../chains/cardano/testUtils/TestBoxes";
 import ChainsConstants from "../../src/chains/ChainsConstants";
-import { scannerAction } from "../../src/db/models/scanner/ScannerModel";
+import { scannerAction } from "../../src/db/models/ScannerModel";
 import { expect } from "chai";
 
 describe("ScannerDataBase", () => {

@@ -1,5 +1,5 @@
-import { scannerAction } from "../db/models/scanner/ScannerModel";
-import { TransactionEntity } from "../db/entities/scanner/TransactionEntity";
+import { scannerAction } from "../db/models/ScannerModel";
+import { TransactionEntity } from "../db/entities/TransactionEntity";
 import ChainsConstants from "../chains/ChainsConstants";
 import KoiosApi from "../chains/cardano/network/KoiosApi";
 import CardanoConfigs from "../chains/cardano/helpers/CardanoConfigs";

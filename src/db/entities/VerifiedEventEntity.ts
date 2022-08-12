@@ -1,9 +1,20 @@
-import { Column, Entity, PrimaryColumn } from "typeorm";
+import { Column, Entity, OneToOne, PrimaryColumn, Relation } from "typeorm";
 
 @Entity()
-export class EventTriggerEntity {
+export class VerifiedEventEntity {
     @PrimaryColumn()
     sourceTxId: string
+
+    // @OneToOne( // TODO: relation to eventTrigger extractor table
+    //     "EventTriggerEntity",
+    //     "id",
+    //     {cascade: true}
+    // )
+    // event: Relation<EventTriggerEntity>
+
+    // TODO: remove all below columns
+    // @Column()
+    // sourceTxId: string
 
     @Column()
     status: string
@@ -40,5 +51,6 @@ export class EventTriggerEntity {
 
     @Column()
     WIDs: string
+
 
 }

@@ -1,7 +1,7 @@
 import { PaymentTransactionModel, EventTriggerModel, PaymentTransactionJsonModel } from "./Interfaces";
 import Encryption from "../helpers/Encryption";
 import Configs from "../helpers/Configs";
-import { EventTriggerEntity } from "../db/entities/scanner/EventTriggerEntity";
+import { VerifiedEventEntity } from "../db/entities/VerifiedEventEntity";
 import Utils from "../helpers/Utils";
 
 
@@ -42,7 +42,7 @@ class EventTrigger implements EventTriggerModel {
      * creates EventTrigger object from its database scheme
      * @param eventEntity
      */
-    static fromEntity = (eventEntity: EventTriggerEntity): EventTrigger => {
+    static fromEntity = (eventEntity: VerifiedEventEntity): EventTrigger => {
         return new EventTrigger(
             eventEntity.fromChain,
             eventEntity.toChain,

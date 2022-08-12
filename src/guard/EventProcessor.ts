@@ -7,7 +7,7 @@ import KoiosApi from "../chains/cardano/network/KoiosApi";
 import CardanoConfigs from "../chains/cardano/helpers/CardanoConfigs";
 import ExplorerApi from "../chains/ergo/network/ExplorerApi";
 import ErgoConfigs from "../chains/ergo/helpers/ErgoConfigs";
-import { scannerAction } from "../db/models/scanner/ScannerModel";
+import { scannerAction } from "../db/models/ScannerModel";
 import { txAgreement } from "./agreement/TxAgreement";
 
 

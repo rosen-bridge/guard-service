@@ -16,7 +16,7 @@ import CardanoUtils from "./helpers/CardanoUtils";
 import TssSigner from "../../guard/TssSigner";
 import CardanoTransaction from "./models/CardanoTransaction";
 import ChainsConstants from "../ChainsConstants";
-import { scannerAction } from "../../db/models/scanner/ScannerModel";
+import { scannerAction } from "../../db/models/ScannerModel";
 import Configs from "../../helpers/Configs";
 import { Buffer } from "buffer";
 import { blake2b } from "blakejs";

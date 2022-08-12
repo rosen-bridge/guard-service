@@ -16,7 +16,7 @@ import ErgoUtils from "./helpers/ErgoUtils";
 import NodeApi from "./network/NodeApi";
 import BoxVerifications from "./boxes/BoxVerifications";
 import ErgoTransaction from "./models/ErgoTransaction";
-import { scannerAction } from "../../db/models/scanner/ScannerModel";
+import { scannerAction } from "../../db/models/ScannerModel";
 import InputBoxes from "./boxes/InputBoxes";
 import OutputBoxes from "./boxes/OutputBoxes";
 import ChainsConstants from "../ChainsConstants";

@@ -2,7 +2,7 @@ import { anything, spy, when } from "ts-mockito";
 import { fileURLToPath } from "url";
 import path from "path";
 import { DataSource } from "typeorm";
-import { scannerAction, ScannerDataBase } from "../../../src/db/models/scanner/ScannerModel";
+import { scannerAction, ScannerDataBase } from "../../../src/db/models/ScannerModel";
 import { EventTrigger, PaymentTransaction } from "../../../src/models/Models";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -11,8 +11,8 @@ const __dirname = path.dirname(__filename);
 const testScannerOrmDataSource = new DataSource({
     type: "sqlite",
     database: __dirname + "/../sqlite/test/scanner.sqlite",
-    entities: ['src/db/entities/scanner/*.ts'],
-    migrations: ['src/db/migrations/scanner/*.ts'],
+    entities: ['src/db/entities/*.ts'],
+    migrations: ['src/db/migrations/*.ts'],
     synchronize: false,
     logging: false
 });

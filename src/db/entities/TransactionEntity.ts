@@ -1,5 +1,5 @@
 import { Column, Entity, PrimaryColumn, ManyToOne, Relation } from "typeorm";
-import { EventTriggerEntity } from "./EventTriggerEntity";
+import { VerifiedEventEntity } from "./VerifiedEventEntity";
 
 @Entity()
 export class TransactionEntity {
@@ -22,10 +22,10 @@ export class TransactionEntity {
     lastCheck: number
 
     @ManyToOne(
-        "EventTriggerEntity",
+        "VerifiedEventEntity",
         "sourceTxId",
         {cascade: true}
     )
-    event: Relation<EventTriggerEntity>
+    event: Relation<VerifiedEventEntity>
 
 }

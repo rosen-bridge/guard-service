@@ -15,7 +15,7 @@ import Configs from "../../helpers/Configs";
 import Dialer from "../../communication/Dialer";
 import Utils from "../../helpers/Utils";
 import EventProcessor from "../EventProcessor";
-import { scannerAction } from "../../db/models/scanner/ScannerModel";
+import { scannerAction } from "../../db/models/ScannerModel";
 import TransactionProcessor from "../TransactionProcessor";
 
 const dialer = await Dialer.getInstance();
