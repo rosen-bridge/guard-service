@@ -31,7 +31,7 @@ class ScannerDataBase {
             .set({
                 status: status
             })
-            .where("sourceTxId = :id", {id: eventId})
+            .where("id = :id", {id: eventId})
             .execute()
     }
 
@@ -40,10 +40,12 @@ class ScannerDataBase {
      * @return the event trigger
      */
     getEventById = async (eventId: string): Promise<VerifiedEventEntity | null> => {
-        return await this.VerifiedEventRepository.createQueryBuilder()
-            .select()
-            .where("sourceTxId = :id", {id: eventId})
-            .getOne()
+        return await this.VerifiedEventRepository.findOne({
+            relations: ["eventData"],
+            where: {
+                "id": eventId
+            }
+        })
     }
 
     /**
@@ -51,10 +53,12 @@ class ScannerDataBase {
      * @return the event triggers with corresponding status
      */
     getEventsByStatus = async (status: string): Promise<VerifiedEventEntity[]> => {
-        return await this.VerifiedEventRepository.createQueryBuilder()
-            .select()
-            .where("status = :status", {status: status})
-            .getMany()
+        return await this.VerifiedEventRepository.find({
+            relations: ["eventData"],
+            where: {
+                "status": status
+            }
+        })
     }
 
     /**
@@ -115,7 +119,7 @@ class ScannerDataBase {
             .set({
                 status: status
             })
-            .where("sourceTxId = :id", {id: eventId})
+            .where("id = :id", {id: eventId})
             .execute()
     }
 

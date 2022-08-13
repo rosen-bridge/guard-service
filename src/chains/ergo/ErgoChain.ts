@@ -114,7 +114,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         // create PaymentTransaction object
         const txBytes = this.serialize(reducedTx)
         const txId = reducedTx.unsigned_tx().id().to_str()
-        const eventId = event.sourceTxId
+        const eventId = event.getId()
         const ergoTx = new ErgoTransaction(
             txId,
             eventId,

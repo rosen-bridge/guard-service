@@ -423,7 +423,7 @@ class TestBoxes {
             Value.new(BigNum.from_str(this.adaToLovelaceString(10)))
         )
 
-        return this.mockPaymentTransaction([paymentBox, changeBox], event.sourceTxId)
+        return this.mockPaymentTransaction([paymentBox, changeBox], event.getId())
     }
 
     /**
@@ -448,7 +448,7 @@ class TestBoxes {
             Value.new(BigNum.from_str(this.adaToLovelaceString(10)))
         )
 
-        return this.mockPaymentTransaction([paymentBox, changeBox], event.sourceTxId)
+        return this.mockPaymentTransaction([paymentBox, changeBox], event.getId())
     }
 
     /**
@@ -486,7 +486,7 @@ class TestBoxes {
             Value.new(BigNum.from_str(this.adaToLovelaceString(10)))
         )
 
-        return this.mockPaymentTransaction([paymentBox, changeBox], event.sourceTxId)
+        return this.mockPaymentTransaction([paymentBox, changeBox], event.getId())
     }
 
     /**
@@ -528,7 +528,7 @@ class TestBoxes {
             Value.new(BigNum.from_str(this.adaToLovelaceString(10)))
         )
 
-        return this.mockPaymentTransaction([paymentBox, changeBox], event.sourceTxId)
+        return this.mockPaymentTransaction([paymentBox, changeBox], event.getId())
     }
 
     /**
@@ -549,14 +549,14 @@ class TestBoxes {
      * generates a mocked ADA payment transaction
      */
     static mockADAPaymentTransaction = (event: EventTrigger): PaymentTransaction => {
-        return PaymentTransaction.fromJson(TestData.adaPaymentTransaction(event.sourceTxId))
+        return PaymentTransaction.fromJson(TestData.adaPaymentTransaction(event.getId()))
     }
 
     /**
      * generates a mocked Asset payment transaction that its ttl is less than current slot
      */
     static mockTTLPastAssetPaymentTx = (event: EventTrigger): PaymentTransaction => {
-        return PaymentTransaction.fromJson(TestData.tllPastAssetPaymentTx(event.sourceTxId))
+        return PaymentTransaction.fromJson(TestData.tllPastAssetPaymentTx(event.getId()))
     }
 
 }

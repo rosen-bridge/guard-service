@@ -8,6 +8,7 @@ import Utils from "../helpers/Utils";
 /* tslint:disable:max-classes-per-file */
 class EventTrigger implements EventTriggerModel {
 
+    eventId: string
     fromChain: string
     toChain: string
     fromAddress: string
@@ -24,6 +25,7 @@ class EventTrigger implements EventTriggerModel {
     constructor(fromChain: string, toChain: string, fromAddress: string, toAddress: string, amount: string,
                 bridgeFee: string, networkFee: string, sourceChainTokenId: string, targetChainTokenId: string,
                 sourceTxId: string, sourceBlockId: string, WIDs: string[]) {
+        this.eventId = Utils.txIdToEventId(sourceTxId)
         this.fromChain = fromChain
         this.toChain = toChain
         this.fromAddress = fromAddress
@@ -64,7 +66,7 @@ class EventTrigger implements EventTriggerModel {
      * @return id of event trigger
      */
     getId = () => {
-        return this.sourceTxId
+        return this.eventId
     }
 
 }

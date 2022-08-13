@@ -65,7 +65,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         // create PaymentTransaction object
         const txBytes = tx.to_bytes()
         const txId = Buffer.from(hash_transaction(txBody).to_bytes()).toString('hex')
-        const eventId = event.sourceTxId
+        const eventId = event.getId()
         const paymentTx = new CardanoTransaction(txId, eventId, txBytes, TransactionTypes.payment) // we don't need inputBoxes in PaymentTransaction for Cardano tx
 
         console.log(`Payment transaction for event [${eventId}] generated. TxId: ${txId}`)
