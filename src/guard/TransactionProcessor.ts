@@ -111,13 +111,13 @@ class TransactionProcessor {
 
             if (tx.type === TransactionTypes.payment) {
                 // set event status, to start reward distribution.
-                await scannerAction.setEventStatus(tx.event.sourceTxId, EventStatus.pendingReward)
-                console.log(`tx [${tx.txId}] is confirmed. event [${tx.event.sourceTxId}] is ready for reward distribution.`)
+                await scannerAction.setEventStatus(tx.event.id, EventStatus.pendingReward)
+                console.log(`tx [${tx.txId}] is confirmed. event [${tx.event.id}] is ready for reward distribution.`)
             }
             else {
                 // set event as complete
-                await scannerAction.setEventStatus(tx.event.sourceTxId, EventStatus.completed)
-                console.log(`tx [${tx.txId}] is confirmed. event [${tx.event.sourceTxId}] is complete.`)
+                await scannerAction.setEventStatus(tx.event.id, EventStatus.completed)
+                console.log(`tx [${tx.txId}] is confirmed. event [${tx.event.id}] is complete.`)
             }
         }
         else {
@@ -137,8 +137,8 @@ class TransactionProcessor {
         if (confirmation >= ErgoConfigs.requiredConfirmation) {
             // tx confirmed enough. event is done.
             await scannerAction.setTxStatus(tx.txId, TransactionStatus.completed)
-            await scannerAction.setEventStatus(tx.event.sourceTxId, EventStatus.completed)
-            console.log(`tx [${tx.txId}] is confirmed. event [${tx.event.sourceTxId}] is complete.`)
+            await scannerAction.setEventStatus(tx.event.id, EventStatus.completed)
+            console.log(`tx [${tx.txId}] is confirmed. event [${tx.event.id}] is complete.`)
         }
         else if (confirmation === -1) {
             // tx is not mined. checking mempool...
@@ -260,8 +260,8 @@ class TransactionProcessor {
         const height = await BlockFrostApi.currentHeight()
         if (height - tx.lastCheck >= CardanoConfigs.requiredConfirmation) {
             await scannerAction.setTxStatus(tx.txId, TransactionStatus.invalid)
-            await scannerAction.resetEventTx(tx.event.sourceTxId, EventStatus.pendingPayment)
-            console.log(`tx [${tx.txId}] is invalid. event [${tx.event.sourceTxId}] is now waiting for payment.`)
+            await scannerAction.resetEventTx(tx.event.id, EventStatus.pendingPayment)
+            console.log(`tx [${tx.txId}] is invalid. event [${tx.event.id}] is now waiting for payment.`)
         }
         else {
             console.log(`tx [${tx.txId}] is invalid. waiting for enough confirmation of this proposition.`)
@@ -277,12 +277,12 @@ class TransactionProcessor {
         if (height - tx.lastCheck >= ErgoConfigs.requiredConfirmation) {
             await scannerAction.setTxStatus(tx.txId, TransactionStatus.invalid)
             if (tx.type === TransactionTypes.payment) {
-                await scannerAction.resetEventTx(tx.event.sourceTxId, EventStatus.pendingPayment)
-                console.log(`tx [${tx.txId}] is invalid. event [${tx.event.sourceTxId}] is now waiting for payment.`)
+                await scannerAction.resetEventTx(tx.event.id, EventStatus.pendingPayment)
+                console.log(`tx [${tx.txId}] is invalid. event [${tx.event.id}] is now waiting for payment.`)
             }
             else {
-                await scannerAction.resetEventTx(tx.event.sourceTxId, EventStatus.pendingReward)
-                console.log(`tx [${tx.txId}] is invalid. event [${tx.event.sourceTxId}] is now waiting for reward distribution.`)
+                await scannerAction.resetEventTx(tx.event.id, EventStatus.pendingReward)
+                console.log(`tx [${tx.txId}] is invalid. event [${tx.event.id}] is now waiting for reward distribution.`)
             }
         }
         else {

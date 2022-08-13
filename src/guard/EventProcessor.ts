@@ -27,7 +27,7 @@ class EventProcessor {
                 await this.processEvent(EventTrigger.fromEntity(event))
             }
             catch (e) {
-                console.log(`An error occurred while processing event [${event.sourceTxId}]: ${e}`)
+                console.log(`An error occurred while processing event [${event.id}]: ${e}`)
             }
         }
     }

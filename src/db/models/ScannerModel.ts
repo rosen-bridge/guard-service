@@ -3,15 +3,20 @@ import { VerifiedEventEntity } from "../entities/VerifiedEventEntity";
 import { scannerOrmDataSource } from "../../../config/scannerOrmDataSource";
 import { TransactionEntity } from "../entities/TransactionEntity";
 import { PaymentTransaction, TransactionStatus } from "../../models/Models";
+import { CommitmentEntity, EventTriggerEntity } from "@rosen-bridge/watcher-data-extractor";
 
 class ScannerDataBase {
     dataSource: DataSource;
-    EventRepository: Repository<VerifiedEventEntity>;
+    CommitmentRepository: Repository<CommitmentEntity>;
+    EventRepository: Repository<EventTriggerEntity>;
+    VerifiedEventRepository: Repository<VerifiedEventEntity>;
     TransactionRepository: Repository<TransactionEntity>;
 
     constructor(dataSource: DataSource) {
         this.dataSource = dataSource;
-        this.EventRepository = this.dataSource.getRepository(VerifiedEventEntity);
+        this.CommitmentRepository = this.dataSource.getRepository(CommitmentEntity);
+        this.EventRepository = this.dataSource.getRepository(EventTriggerEntity);
+        this.VerifiedEventRepository = this.dataSource.getRepository(VerifiedEventEntity);
         this.TransactionRepository = this.dataSource.getRepository(TransactionEntity);
     }
 
@@ -21,7 +26,7 @@ class ScannerDataBase {
      * @param status the event trigger status
      */
     setEventStatus = async (eventId: string, status: string): Promise<void> => {
-        await this.EventRepository.createQueryBuilder()
+        await this.VerifiedEventRepository.createQueryBuilder()
             .update()
             .set({
                 status: status
@@ -35,7 +40,7 @@ class ScannerDataBase {
      * @return the event trigger
      */
     getEventById = async (eventId: string): Promise<VerifiedEventEntity | null> => {
-        return await this.EventRepository.createQueryBuilder()
+        return await this.VerifiedEventRepository.createQueryBuilder()
             .select()
             .where("sourceTxId = :id", {id: eventId})
             .getOne()
@@ -46,7 +51,7 @@ class ScannerDataBase {
      * @return the event triggers with corresponding status
      */
     getEventsByStatus = async (status: string): Promise<VerifiedEventEntity[]> => {
-        return await this.EventRepository.createQueryBuilder()
+        return await this.VerifiedEventRepository.createQueryBuilder()
             .select()
             .where("status = :status", {status: status})
             .getMany()
@@ -105,7 +110,7 @@ class ScannerDataBase {
      * @param status status of the process
      */
     resetEventTx = async (eventId: string, status: string): Promise<void> => {
-        await this.EventRepository.createQueryBuilder()
+        await this.VerifiedEventRepository.createQueryBuilder()
             .update()
             .set({
                 status: status
@@ -151,7 +156,7 @@ class ScannerDataBase {
         const event = await this.getEventById(newTx.eventId)
         if (event === null) throw Error(`event [${newTx.eventId}] not found`)
 
-        const txs = (await this.getEventTxsByType(event.sourceTxId, newTx.txType)).filter(tx => tx.status !== TransactionStatus.invalid)
+        const txs = (await this.getEventTxsByType(event.id, newTx.txType)).filter(tx => tx.status !== TransactionStatus.invalid)
         if (txs.length > 1)
             throw Error(`impossible case, event [${newTx.eventId}] has already more than 1 (${txs.length}) active ${newTx.txType} tx`)
         else if (txs.length === 1) {
@@ -165,7 +170,7 @@ class ScannerDataBase {
                     console.log(`ignoring tx [${newTx.txId}] due to higher txId, comparing to [${tx.txId}]`)
             }
             else
-                console.warn(`received approval for tx [${newTx.txId}] where its event [${event.sourceTxId}] has already a completed transaction [${tx.txId}]`)
+                console.warn(`received approval for tx [${newTx.txId}] where its event [${event.id}] has already a completed transaction [${tx.txId}]`)
         }
         else
             await this.insertNewTx(newTx, event)

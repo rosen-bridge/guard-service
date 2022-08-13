@@ -1,7 +1,6 @@
 import path from 'path';
 import { DataSource } from "typeorm";
 import { fileURLToPath } from 'url';
-import { BlockEntity, migrations } from "@rosen-bridge/scanner";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

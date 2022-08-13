@@ -19,7 +19,7 @@ import ChainsConstants from "../ChainsConstants";
 import { scannerAction } from "../../db/models/ScannerModel";
 import Configs from "../../helpers/Configs";
 import { Buffer } from "buffer";
-import { blake2b } from "blakejs";
+import Utils from "../../helpers/Utils";
 
 
 class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
@@ -362,7 +362,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
      * @param event
      */
     verifyEventWithPayment = async (event: EventTrigger): Promise<boolean> => {
-        const eventId = Buffer.from(blake2b(event.sourceTxId, undefined, 32)).toString("hex")
+        const eventId = Utils.txIdToEventId(event.sourceTxId)
         try {
             const txInfo = (await KoiosApi.getTxInformation([event.sourceTxId]))[0];
             const payment = txInfo.outputs.filter((utxo: Utxo) => {

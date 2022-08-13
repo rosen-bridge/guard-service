@@ -124,7 +124,7 @@ describe("EventProcessor", () => {
             // verify
             verifyCreateEventPaymentDidntGetCalled(mockedEvent)
             const dbEvents = await allEventRecords()
-            expect(dbEvents.map(event => [event.sourceTxId, event.status])[0])
+            expect(dbEvents.map(event => [event.id, event.status])[0])
                 .to.deep.equal([mockedEvent.sourceTxId, "rejected"])
         })
 

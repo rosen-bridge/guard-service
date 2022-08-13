@@ -23,7 +23,7 @@ export class TransactionEntity {
 
     @ManyToOne(
         "VerifiedEventEntity",
-        "sourceTxId",
+        "eventId",
         {cascade: true}
     )
     event: Relation<VerifiedEventEntity>

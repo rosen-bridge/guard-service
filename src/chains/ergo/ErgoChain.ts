@@ -22,8 +22,7 @@ import OutputBoxes from "./boxes/OutputBoxes";
 import ChainsConstants from "../ChainsConstants";
 import Reward from "./Reward";
 import Configs from "../../helpers/Configs";
-import { Buffer } from "buffer";
-import { blake2b } from "blakejs";
+import Utils from "../../helpers/Utils";
 
 class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
 
@@ -295,7 +294,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
      * @param event
      */
     verifyEventWithPayment = async (event: EventTrigger): Promise<boolean> => {
-        const eventId = Buffer.from(blake2b(event.sourceTxId, undefined, 32)).toString("hex")
+        const eventId = Utils.txIdToEventId(event.sourceTxId)
         try {
             const paymentTx = await ExplorerApi.getConfirmedTx(event.sourceTxId)
             if (paymentTx) {

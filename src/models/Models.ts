@@ -40,9 +40,10 @@ class EventTrigger implements EventTriggerModel {
 
     /**
      * creates EventTrigger object from its database scheme
-     * @param eventEntity
+     * @param verifiedEvent
      */
-    static fromEntity = (eventEntity: VerifiedEventEntity): EventTrigger => {
+    static fromEntity = (verifiedEvent: VerifiedEventEntity): EventTrigger => {
+        const eventEntity = verifiedEvent.eventData
         return new EventTrigger(
             eventEntity.fromChain,
             eventEntity.toChain,
