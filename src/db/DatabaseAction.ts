@@ -49,7 +49,8 @@ class DatabaseAction {
     }
 
     /**
-     * @return the event triggers pending to payment or reward
+     * @param status the event trigger status
+     * @return the event triggers with corresponding status
      */
     getPendingEvents = async (): Promise<VerifiedEventEntity[]> => {
         return await this.VerifiedEventRepository.find({
