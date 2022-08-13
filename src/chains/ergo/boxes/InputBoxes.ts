@@ -6,6 +6,10 @@ import ExplorerApi from "../network/ExplorerApi";
 import Configs from "../../../helpers/Configs";
 import { JsonBI } from "../../../network/NetworkModels";
 import Utils from "../../../helpers/Utils";
+import { commitmentRepository, eventTriggerRepository } from "../../../jobs/initScanner";
+import Encryption from "../../../helpers/Encryption";
+import { Buffer } from "buffer";
+import { EventTriggerEntity } from "@rosen-bridge/watcher-data-extractor";
 
 class InputBoxes {
 
@@ -29,8 +33,19 @@ class InputBoxes {
      * @param event the event trigger model
      * @return the valid commitment boxes
      */
-    static getEventValidCommitments = (event: EventTrigger): ErgoBox[] => {
-        return [] // TODO: implement this
+    static getEventValidCommitments = async (event: EventTrigger): ErgoBox[] => {
+        const eventId = Buffer.from(Encryption.blake2bHash(event.sourceTxId)).toString("hex")
+        const eventTrigger: EventTriggerEntity = await eventTriggerRepository.find({
+            where: {
+                sourceTxId: event.sourceTxId,
+            }
+        })
+        const commitments = commitmentRepository.find({
+            where: {
+                eventId: eventId,
+                height: eventTrigger
+            }
+        })
     }
 
     /**

@@ -1,4 +1,5 @@
-import {multiSigObj} from "../index";
+import MultiSigHandler from "../guard/multisig/MultiSig";
+import Configs from "../helpers/Configs";
 
 const multiSigInterval = 30 * 1000
 
@@ -8,7 +9,8 @@ const multiSigInterval = 30 * 1000
 // }
 
 const multiSigCleanupJob = () => {
-    multiSigObj.cleanup().then(() => setTimeout(multiSigCleanupJob, multiSigInterval))
+    MultiSigHandler.getInstance(Configs.guardsPublicKeys, Configs.guardSecret).cleanup()
+    setTimeout(multiSigCleanupJob, multiSigInterval)
 }
 
 export const initializeMultiSigJobs = () => {
