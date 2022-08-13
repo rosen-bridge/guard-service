@@ -217,13 +217,13 @@ class Reward {
 
         // calculate assets of reward boxes
         const watcherErgAmount: bigint = BigInt(event.bridgeFee) * ErgoConfigs.watchersSharePercent / 100n / BigInt(watchersLen) + ErgoConfigs.minimumErg
-        const watcherTokenAmount: bigint = 0n
+        const watcherTokenAmount = 0n
         const watcherRsnAmount: bigint = rsnFee * ErgoConfigs.watchersRSNSharePercent / 100n / BigInt(watchersLen)
         const guardBridgeFeeErgAmount: bigint = BigInt(event.bridgeFee) - (BigInt(watchersLen) * watcherErgAmount)
-        const guardBridgeFeeTokenAmount: bigint = 0n
+        const guardBridgeFeeTokenAmount = 0n
         const guardRsnAmount: bigint = rsnFee - (BigInt(watchersLen) * watcherRsnAmount)
-        const guardNetworkErgAmount: bigint = BigInt(event.networkFee)
-        const guardNetworkTokenAmount: bigint = 0n
+        const guardNetworkErgAmount = BigInt(event.networkFee)
+        const guardNetworkTokenAmount = 0n
         const rwtTokenId = eventBox.tokens().get(0).id().to_str()
         const wids: Uint8Array[] = [
             ...event.WIDs.map(Utils.hexStringToUint8Array),
@@ -278,7 +278,7 @@ class Reward {
         const guardBridgeFeeTokenAmount: bigint = BigInt(event.bridgeFee) - (BigInt(watchersLen) * watcherErgAmount)
         const guardRsnAmount: bigint = rsnFee - (BigInt(watchersLen) * watcherRsnAmount)
         const guardNetworkErgAmount: bigint = ErgoConfigs.minimumErg
-        const guardNetworkTokenAmount: bigint = BigInt(event.networkFee)
+        const guardNetworkTokenAmount = BigInt(event.networkFee)
         const rwtTokenId = eventBox.tokens().get(0).id().to_str()
         const wids: Uint8Array[] = [
             ...event.WIDs.map(Utils.hexStringToUint8Array),

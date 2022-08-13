@@ -1,16 +1,17 @@
 import { Column, Entity, OneToOne, PrimaryColumn, Relation } from "typeorm";
+import { EventTriggerEntity } from "@rosen-bridge/watcher-data-extractor";
 
 @Entity()
 export class VerifiedEventEntity {
     @PrimaryColumn()
     sourceTxId: string
 
-    // @OneToOne( // TODO: relation to eventTrigger extractor table
-    //     "EventTriggerEntity",
-    //     "id",
-    //     {cascade: true}
-    // )
-    // event: Relation<EventTriggerEntity>
+    @OneToOne( // TODO: relation to eventTrigger extractor table
+        "EventTriggerEntity",
+        "id",
+        {cascade: true}
+    )
+    event: Relation<EventTriggerEntity>
 
     // TODO: remove all below columns
     // @Column()
