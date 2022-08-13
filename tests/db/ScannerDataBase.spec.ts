@@ -8,7 +8,7 @@ import {
 } from "../../src/models/Models";
 import CardanoTestBoxes from "../chains/cardano/testUtils/TestBoxes";
 import ChainsConstants from "../../src/chains/ChainsConstants";
-import { scannerAction } from "../../src/db/models/ScannerModel";
+import { dbAction } from "../../src/db/DatabaseAction";
 import { expect } from "chai";
 
 describe("ScannerDataBase", () => {
@@ -36,7 +36,7 @@ describe("ScannerDataBase", () => {
             )
 
             // run test
-            await scannerAction.insertTx(newTx)
+            await dbAction.insertTx(newTx)
 
             // verify
             const dbTxs = await allTxRecords()
@@ -61,7 +61,7 @@ describe("ScannerDataBase", () => {
             )
 
             // run test
-            await scannerAction.insertTx(newTx)
+            await dbAction.insertTx(newTx)
 
             // verify
             const dbTxs = await allTxRecords()
@@ -86,7 +86,7 @@ describe("ScannerDataBase", () => {
             )
 
             // run test
-            await scannerAction.insertTx(newTx)
+            await dbAction.insertTx(newTx)
 
             // verify
             const dbTxs = await allTxRecords()

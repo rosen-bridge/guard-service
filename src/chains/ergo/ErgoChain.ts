@@ -16,7 +16,7 @@ import ErgoUtils from "./helpers/ErgoUtils";
 import NodeApi from "./network/NodeApi";
 import BoxVerifications from "./boxes/BoxVerifications";
 import ErgoTransaction from "./models/ErgoTransaction";
-import { scannerAction } from "../../db/models/ScannerModel";
+import { dbAction } from "../../db/DatabaseAction";
 import InputBoxes from "./boxes/InputBoxes";
 import OutputBoxes from "./boxes/OutputBoxes";
 import ChainsConstants from "../ChainsConstants";
@@ -348,7 +348,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
     submitTransaction = async (paymentTx: PaymentTransaction): Promise<void> => {
         const tx = this.deserialize(paymentTx.txBytes)
         try {
-            await scannerAction.setTxStatus(paymentTx.txId, TransactionStatus.sent)
+            await dbAction.setTxStatus(paymentTx.txId, TransactionStatus.sent)
             const response = await NodeApi.sendTx(tx.unsigned_tx().to_json())
             console.log(`Cardano Transaction submitted. txId: ${response}`)
         } catch (e) {

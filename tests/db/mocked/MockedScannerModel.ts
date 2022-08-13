@@ -2,7 +2,7 @@ import { anything, spy, when } from "ts-mockito";
 import { fileURLToPath } from "url";
 import path from "path";
 import { DataSource } from "typeorm";
-import { scannerAction, ScannerDataBase } from "../../../src/db/models/ScannerModel";
+import { dbAction, DatabaseAction } from "../../../src/db/DatabaseAction";
 import { EventTrigger, PaymentTransaction } from "../../../src/models/Models";
 import Utils from "../../../src/helpers/Utils";
 
@@ -28,10 +28,10 @@ catch(err) {
     console.error("Error during Test Scanner Data Source initialization:", err);
 }
 
-const testScannerDataBase = new ScannerDataBase(testScannerOrmDataSource)
+const testScannerDataBase = new DatabaseAction(testScannerOrmDataSource)
 
 // mock all scannerAction methods to call test database methods
-const mockedScannerAction = spy(scannerAction)
+const mockedScannerAction = spy(dbAction)
 when(mockedScannerAction.setEventStatus(anything(), anything()))
     .thenCall(testScannerDataBase.setEventStatus)
 when(mockedScannerAction.getEventById(anything()))

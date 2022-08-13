@@ -7,7 +7,7 @@ import KoiosApi from "../chains/cardano/network/KoiosApi";
 import CardanoConfigs from "../chains/cardano/helpers/CardanoConfigs";
 import ExplorerApi from "../chains/ergo/network/ExplorerApi";
 import ErgoConfigs from "../chains/ergo/helpers/ErgoConfigs";
-import { scannerAction } from "../db/models/ScannerModel";
+import { dbAction } from "../db/DatabaseAction";
 import { txAgreement } from "./agreement/TxAgreement";
 
 
@@ -20,7 +20,7 @@ class EventProcessor {
      * processes all trigger events in the database
      */
     static processEvents = async (): Promise<void> => {
-        const events = await scannerAction.getEventsByStatus("")
+        const events = await dbAction.getEventsByStatus("")
 
         for (const event of events) {
             try {
@@ -46,7 +46,7 @@ class EventProcessor {
 
         if (!await this.verifyEvent(event)) {
             console.log(`event didn't verify.`)
-            await scannerAction.setEventStatus(event.getId(), "rejected")
+            await dbAction.setEventStatus(event.getId(), "rejected")
             return
         }
 

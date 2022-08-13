@@ -1,11 +1,11 @@
 import { DataSource, In, Repository } from "typeorm";
-import { VerifiedEventEntity } from "../entities/VerifiedEventEntity";
-import { scannerOrmDataSource } from "../../../config/scannerOrmDataSource";
-import { TransactionEntity } from "../entities/TransactionEntity";
-import { PaymentTransaction, TransactionStatus } from "../../models/Models";
+import { VerifiedEventEntity } from "./entities/VerifiedEventEntity";
+import { ormDataSource } from "../../config/ormDataSource";
+import { TransactionEntity } from "./entities/TransactionEntity";
+import { PaymentTransaction, TransactionStatus } from "../models/Models";
 import { CommitmentEntity, EventTriggerEntity } from "@rosen-bridge/watcher-data-extractor";
 
-class ScannerDataBase {
+class DatabaseAction {
     dataSource: DataSource;
     CommitmentRepository: Repository<CommitmentEntity>;
     EventRepository: Repository<EventTriggerEntity>;
@@ -236,9 +236,9 @@ class ScannerDataBase {
 
 }
 
-const scannerAction = new ScannerDataBase(scannerOrmDataSource)
+const dbAction = new DatabaseAction(ormDataSource)
 
 export {
-    ScannerDataBase,
-    scannerAction
+    DatabaseAction,
+    dbAction
 }

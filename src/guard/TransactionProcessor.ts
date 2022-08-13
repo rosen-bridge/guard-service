@@ -1,4 +1,4 @@
-import { scannerAction } from "../db/models/ScannerModel";
+import { dbAction } from "../db/DatabaseAction";
 import { TransactionEntity } from "../db/entities/TransactionEntity";
 import ChainsConstants from "../chains/ChainsConstants";
 import KoiosApi from "../chains/cardano/network/KoiosApi";
@@ -39,7 +39,7 @@ class TransactionProcessor {
      * processes all transactions in the database
      */
     static processTransactions = async (): Promise<void> => {
-        const txs = await scannerAction.getActiveTransactions()
+        const txs = await dbAction.getActiveTransactions()
 
         for (const tx of txs) {
             try {
@@ -107,23 +107,23 @@ class TransactionProcessor {
         }
         else if (confirmation >= CardanoConfigs.requiredConfirmation) {
             // tx confirmed enough. proceed to next process.
-            await scannerAction.setTxStatus(tx.txId, TransactionStatus.completed)
+            await dbAction.setTxStatus(tx.txId, TransactionStatus.completed)
 
             if (tx.type === TransactionTypes.payment) {
                 // set event status, to start reward distribution.
-                await scannerAction.setEventStatus(tx.event.id, EventStatus.pendingReward)
+                await dbAction.setEventStatus(tx.event.id, EventStatus.pendingReward)
                 console.log(`tx [${tx.txId}] is confirmed. event [${tx.event.id}] is ready for reward distribution.`)
             }
             else {
                 // set event as complete
-                await scannerAction.setEventStatus(tx.event.id, EventStatus.completed)
+                await dbAction.setEventStatus(tx.event.id, EventStatus.completed)
                 console.log(`tx [${tx.txId}] is confirmed. event [${tx.event.id}] is complete.`)
             }
         }
         else {
             // tx is mined, but not enough confirmation. updating last check...
             const height = await BlockFrostApi.currentHeight()
-            await scannerAction.updateTxLastCheck(tx.txId, height)
+            await dbAction.updateTxLastCheck(tx.txId, height)
             console.log(`tx [${tx.txId}] is in confirmation process [${confirmation}/${CardanoConfigs.requiredConfirmation}].`)
         }
     }
@@ -136,8 +136,8 @@ class TransactionProcessor {
         const confirmation = await ExplorerApi.getTxConfirmation(tx.txId)
         if (confirmation >= ErgoConfigs.requiredConfirmation) {
             // tx confirmed enough. event is done.
-            await scannerAction.setTxStatus(tx.txId, TransactionStatus.completed)
-            await scannerAction.setEventStatus(tx.event.id, EventStatus.completed)
+            await dbAction.setTxStatus(tx.txId, TransactionStatus.completed)
+            await dbAction.setEventStatus(tx.event.id, EventStatus.completed)
             console.log(`tx [${tx.txId}] is confirmed. event [${tx.event.id}] is complete.`)
         }
         else if (confirmation === -1) {
@@ -145,7 +145,7 @@ class TransactionProcessor {
             if (await ExplorerApi.isTxInMempool(tx.txId)) {
                 // tx is in mempool. updating last check...
                 const height = await NodeApi.getHeight()
-                await scannerAction.updateTxLastCheck(tx.txId, height)
+                await dbAction.updateTxLastCheck(tx.txId, height)
                 console.log(`tx [${tx.txId}] is in mempool.`)
             }
             else {
@@ -156,7 +156,7 @@ class TransactionProcessor {
         else {
             // tx is mined, but not enough confirmation. updating last check...
             const height = await NodeApi.getHeight()
-            await scannerAction.updateTxLastCheck(tx.txId, height)
+            await dbAction.updateTxLastCheck(tx.txId, height)
             console.log(`tx [${tx.txId}] is in confirmation process [${confirmation}/${CardanoConfigs.requiredConfirmation}].`)
         }
     }
@@ -259,8 +259,8 @@ class TransactionProcessor {
     static resetCardanoStatus = async (tx: TransactionEntity): Promise<void> => {
         const height = await BlockFrostApi.currentHeight()
         if (height - tx.lastCheck >= CardanoConfigs.requiredConfirmation) {
-            await scannerAction.setTxStatus(tx.txId, TransactionStatus.invalid)
-            await scannerAction.resetEventTx(tx.event.id, EventStatus.pendingPayment)
+            await dbAction.setTxStatus(tx.txId, TransactionStatus.invalid)
+            await dbAction.resetEventTx(tx.event.id, EventStatus.pendingPayment)
             console.log(`tx [${tx.txId}] is invalid. event [${tx.event.id}] is now waiting for payment.`)
         }
         else {
@@ -275,13 +275,13 @@ class TransactionProcessor {
     static resetErgoStatus = async (tx: TransactionEntity): Promise<void> => {
         const height = await NodeApi.getHeight()
         if (height - tx.lastCheck >= ErgoConfigs.requiredConfirmation) {
-            await scannerAction.setTxStatus(tx.txId, TransactionStatus.invalid)
+            await dbAction.setTxStatus(tx.txId, TransactionStatus.invalid)
             if (tx.type === TransactionTypes.payment) {
-                await scannerAction.resetEventTx(tx.event.id, EventStatus.pendingPayment)
+                await dbAction.resetEventTx(tx.event.id, EventStatus.pendingPayment)
                 console.log(`tx [${tx.txId}] is invalid. event [${tx.event.id}] is now waiting for payment.`)
             }
             else {
-                await scannerAction.resetEventTx(tx.event.id, EventStatus.pendingReward)
+                await dbAction.resetEventTx(tx.event.id, EventStatus.pendingReward)
                 console.log(`tx [${tx.txId}] is invalid. event [${tx.event.id}] is now waiting for reward distribution.`)
             }
         }
