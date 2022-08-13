@@ -8,15 +8,39 @@ interface Asset {
 }
 
 interface Utxo {
+    payment_addr: {
+        bech32: string
+    },
     tx_hash: string,
     tx_index: number,
     value: string,
-    asset_list: Asset[]
+    asset_list: Array<Asset>
 }
 
 interface UtxoBoxesAssets {
     lovelace: BigNum,
     assets: MultiAsset
+}
+
+
+interface MetaData {
+    key: string;
+    json: JSON;
+}
+
+interface RosenData {
+    toChain: string,
+    toAddress: string,
+    bridgeFee: string,
+    networkFee: string,
+}
+
+interface KoiosTransaction {
+    tx_hash: string;
+    block_hash: string;
+    inputs: Array<Utxo>;
+    outputs: Array<Utxo>;
+    metadata?: Array<MetaData>;
 }
 
 type TxUtxos = components['schemas']['tx_content_utxo']
@@ -28,5 +52,8 @@ export type {
     Asset,
     UtxoBoxesAssets,
     TxUtxos,
-    AddressUtxos
+    AddressUtxos,
+    KoiosTransaction,
+    MetaData,
+    RosenData
 };

@@ -1,17 +1,22 @@
 import { DataSource, In, Repository } from "typeorm";
-import { EventTriggerEntity } from "../../entities/scanner/EventTriggerEntity";
-import { scannerOrmDataSource } from "../../../../config/scannerOrmDataSource";
-import { TransactionEntity } from "../../entities/scanner/TransactionEntity";
-import { PaymentTransaction, TransactionStatus } from "../../../models/Models";
+import { VerifiedEventEntity } from "./entities/VerifiedEventEntity";
+import { ormDataSource } from "../../config/ormDataSource";
+import { TransactionEntity } from "./entities/TransactionEntity";
+import { EventStatus, PaymentTransaction, TransactionStatus } from "../models/Models";
+import { CommitmentEntity, EventTriggerEntity } from "@rosen-bridge/watcher-data-extractor";
 
-class ScannerDataBase {
+class DatabaseAction {
     dataSource: DataSource;
+    CommitmentRepository: Repository<CommitmentEntity>;
     EventRepository: Repository<EventTriggerEntity>;
+    VerifiedEventRepository: Repository<VerifiedEventEntity>;
     TransactionRepository: Repository<TransactionEntity>;
 
     constructor(dataSource: DataSource) {
         this.dataSource = dataSource;
+        this.CommitmentRepository = this.dataSource.getRepository(CommitmentEntity);
         this.EventRepository = this.dataSource.getRepository(EventTriggerEntity);
+        this.VerifiedEventRepository = this.dataSource.getRepository(VerifiedEventEntity);
         this.TransactionRepository = this.dataSource.getRepository(TransactionEntity);
     }
 
@@ -21,12 +26,12 @@ class ScannerDataBase {
      * @param status the event trigger status
      */
     setEventStatus = async (eventId: string, status: string): Promise<void> => {
-        await this.EventRepository.createQueryBuilder()
+        await this.VerifiedEventRepository.createQueryBuilder()
             .update()
             .set({
                 status: status
             })
-            .where("sourceTxId = :id", {id: eventId})
+            .where("id = :id", {id: eventId})
             .execute()
     }
 
@@ -34,22 +39,30 @@ class ScannerDataBase {
      * @param eventId the event trigger id
      * @return the event trigger
      */
-    getEventById = async (eventId: string): Promise<EventTriggerEntity | null> => {
-        return await this.EventRepository.createQueryBuilder()
-            .select()
-            .where("sourceTxId = :id", {id: eventId})
-            .getOne()
+    getEventById = async (eventId: string): Promise<VerifiedEventEntity | null> => {
+        return await this.VerifiedEventRepository.findOne({
+            relations: ["eventData"],
+            where: {
+                "id": eventId
+            }
+        })
     }
 
     /**
      * @return the event triggers pending to payment or reward
      */
-    getPendingEvents = async (): Promise<EventTriggerEntity[]> => {
-        return await this.EventRepository.createQueryBuilder()
-            .select()
-            .where("status = :status", {status: "pending-payment"})
-            .orWhere("status = :status", {status: "pending-reward"})
-            .getMany()
+    getPendingEvents = async (): Promise<VerifiedEventEntity[]> => {
+        return await this.VerifiedEventRepository.find({
+            relations: ["eventData"],
+            where: [
+                {
+                    "status": EventStatus.pendingPayment
+                },
+                {
+                    "status": EventStatus.pendingReward
+                }
+            ]
+        })
     }
 
     /**
@@ -105,12 +118,12 @@ class ScannerDataBase {
      * @param status status of the process
      */
     resetEventTx = async (eventId: string, status: string): Promise<void> => {
-        await this.EventRepository.createQueryBuilder()
+        await this.VerifiedEventRepository.createQueryBuilder()
             .update()
             .set({
                 status: status
             })
-            .where("sourceTxId = :id", {id: eventId})
+            .where("id = :id", {id: eventId})
             .execute()
     }
 
@@ -151,7 +164,7 @@ class ScannerDataBase {
         const event = await this.getEventById(newTx.eventId)
         if (event === null) throw Error(`event [${newTx.eventId}] not found`)
 
-        const txs = (await this.getEventTxsByType(event.sourceTxId, newTx.txType)).filter(tx => tx.status !== TransactionStatus.invalid)
+        const txs = (await this.getEventTxsByType(event.id, newTx.txType)).filter(tx => tx.status !== TransactionStatus.invalid)
         if (txs.length > 1)
             throw Error(`impossible case, event [${newTx.eventId}] has already more than 1 (${txs.length}) active ${newTx.txType} tx`)
         else if (txs.length === 1) {
@@ -165,7 +178,7 @@ class ScannerDataBase {
                     console.log(`ignoring tx [${newTx.txId}] due to higher txId, comparing to [${tx.txId}]`)
             }
             else
-                console.warn(`received approval for tx [${newTx.txId}] where its event [${event.sourceTxId}] has already a completed transaction [${tx.txId}]`)
+                console.warn(`received approval for tx [${newTx.txId}] where its event [${event.id}] has already a completed transaction [${tx.txId}]`)
         }
         else
             await this.insertNewTx(newTx, event)
@@ -212,7 +225,7 @@ class ScannerDataBase {
     /**
      * inserts a tx record into transactions table
      */
-    private insertNewTx = async (paymentTx: PaymentTransaction, event: EventTriggerEntity): Promise<void> => {
+    private insertNewTx = async (paymentTx: PaymentTransaction, event: VerifiedEventEntity): Promise<void> => {
         await this.TransactionRepository
             .insert({
                 txId: paymentTx.txId,
@@ -227,9 +240,9 @@ class ScannerDataBase {
 
 }
 
-const scannerAction = new ScannerDataBase(scannerOrmDataSource)
+const dbAction = new DatabaseAction(ormDataSource)
 
 export {
-    ScannerDataBase,
-    scannerAction
+    DatabaseAction,
+    dbAction
 }

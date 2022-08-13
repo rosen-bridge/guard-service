@@ -23,7 +23,8 @@
         "strictPropertyInitialization": false,
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true,
-        "rootDir": "./"
+        "rootDir": "./",
+        "resolveJsonModule": true
     },
     "include": [
         "./**/*.ts"

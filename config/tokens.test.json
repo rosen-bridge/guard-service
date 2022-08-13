@@ -1,0 +1,44 @@
+{
+  "idKeys": {
+    "ergo": "tokenID",
+    "cardano": "fingerprint"
+  },
+  "tokens": [
+    {
+      "ergo": {
+        "tokenID": "0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95",
+        "tokenName": "test token3"
+      },
+      "cardano": {
+        "fingerprint": "asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3",
+        "policyID": "ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2",
+        "assetID": "7369676d61",
+        "unit": "7eae28af2208be856f7a119668ae52a49b73725e326dc16579dcc37e"
+      }
+    },
+    {
+      "ergo": {
+        "tokenID": "erg",
+        "tokenName": "test erg"
+      },
+      "cardano": {
+        "fingerprint": "asset1nl000000000000000000000000000000000000",
+        "policyID": "22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130",
+        "assetID": "1111111111",
+        "unit": "7777777777777777777777777777777777777777777777777777777"
+      }
+    },
+    {
+      "ergo": {
+        "tokenID": "064c58ea394d41fada074a3c560a132467adf4ca1512c409c014c625ca285e9c",
+        "tokenName": "test token4"
+      },
+      "cardano": {
+        "fingerprint": "lovelace",
+        "policyID": "",
+        "assetID": "",
+        "unit": ""
+      }
+    }
+  ]
+}

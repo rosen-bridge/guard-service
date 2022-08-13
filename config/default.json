@@ -18,7 +18,10 @@
         "txMinimumLovelace": "1310316",
         "txFee": "200000",
         "txTtl": 100000,
-        "requiredConfirmation": 20
+        "requiredConfirmation": 20,
+        "lockAddresses": [
+            "change-me"
+        ]
     },
     "ergo": {
         "explorer": {
@@ -33,7 +36,8 @@
         "minimumErg": "100000",
         "txFee": "1100000",
         "requiredConfirmation": 20,
-        "requiredSigns": 3
+        "requiredSigns": 3,
+        "lockAddress": "change-me"
     },
     "reward": {
         "bridgeFeeRepoAddress": "9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD",

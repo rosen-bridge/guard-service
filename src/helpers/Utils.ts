@@ -1,4 +1,6 @@
 import Configs from "./Configs";
+import { Buffer } from "buffer";
+import Encryption from "./Encryption";
 
 class Utils {
 
@@ -70,6 +72,14 @@ class Utils {
      */
     static Uint8ArrayToHexString = (bytes: Uint8Array): string => {
         return Buffer.from(bytes).toString("hex")
+    }
+
+    /**
+     * converts sourceTxId to eventId (calculates blake2b hash of it)
+     * @param txId
+     */
+    static txIdToEventId = (txId: string): string => {
+        return Buffer.from(Encryption.blake2bHash(txId)).toString("hex")
     }
 
 }

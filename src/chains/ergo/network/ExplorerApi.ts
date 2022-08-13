@@ -1,6 +1,6 @@
 import axios from "axios";
 import { ErgoBox } from "ergo-lib-wasm-nodejs";
-import { Asset, AssetMap, Box, Boxes, CoveringErgoBoxes } from "../models/Interfaces";
+import { Asset, AssetMap, Box, Boxes, CoveringErgoBoxes, ExplorerTransaction } from "../models/Interfaces";
 import { JsonBI } from "../../../network/NetworkModels";
 import ErgoConfigs from "../helpers/ErgoConfigs";
 
@@ -131,6 +131,19 @@ class ExplorerApi {
                 console.warn(`An error occurred while checking if box [${boxId}] is unspent and valid: ${e}`)
                 return false
             })
+    }
+
+    /**
+     * Searches for a confirmed tx with the specified txId
+     * @param txId, the requested txId
+     */
+    static getConfirmedTx = (txId: string): Promise<ExplorerTransaction | null> => {
+        return this.explorerApi.get(`/api/v1/transactions/${txId}`).then(res => {
+            return res.data
+        }).catch(e => {
+            console.warn(`An error occurred while fetching confirmed tx [${txId}] : ${e}`)
+            return null
+        })
     }
 
 }

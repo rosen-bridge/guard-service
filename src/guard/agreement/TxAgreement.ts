@@ -15,7 +15,7 @@ import Configs from "../../helpers/Configs";
 import Dialer from "../../communication/Dialer";
 import Utils from "../../helpers/Utils";
 import EventProcessor from "../EventProcessor";
-import { scannerAction } from "../../db/models/scanner/ScannerModel";
+import { dbAction } from "../../db/DatabaseAction";
 import TransactionProcessor from "../TransactionProcessor";
 
 const dialer = await Dialer.getInstance();
@@ -114,7 +114,7 @@ class TxAgreement {
      * @param receiver the guard who will receive this response
      */
     processTransactionRequest = async (tx: PaymentTransaction, creatorId: number, signature: string, receiver: string): Promise<void> => {
-        const eventEntity = await scannerAction.getEventById(tx.eventId)
+        const eventEntity = await dbAction.getEventById(tx.eventId)
         if (eventEntity === null) {
             console.info(`received tx [${tx.txId}] for event [${tx.eventId}] but event not found`)
             return
@@ -164,7 +164,7 @@ class TxAgreement {
         if (this.eventAgreedTransactions.has(eventId) && this.eventAgreedTransactions.get(eventId) !== txId)
             return true
 
-        const eventTxs = await scannerAction.getEventTxsByType(eventId, txType)
+        const eventTxs = await dbAction.getEventTxsByType(eventId, txType)
         return eventTxs.find(tx => tx.status != TransactionStatus.invalid) !== undefined;
     }
 
@@ -257,7 +257,7 @@ class TxAgreement {
         try {
             await TransactionProcessor.signSemaphore.acquire().then(async (release) => {
                 try {
-                    await scannerAction.insertTx(tx)
+                    await dbAction.insertTx(tx)
                     release()
                 }
                 catch (e) {
@@ -282,9 +282,9 @@ class TxAgreement {
     updateEventOfApprovedTx = async (tx: PaymentTransaction): Promise<void> => {
         try {
             if (tx.txType === TransactionTypes.payment)
-                await scannerAction.setEventStatus(tx.eventId, EventStatus.inPayment)
+                await dbAction.setEventStatus(tx.eventId, EventStatus.inPayment)
             else
-                await scannerAction.setEventStatus(tx.eventId, EventStatus.inReward)
+                await dbAction.setEventStatus(tx.eventId, EventStatus.inReward)
         }
         catch (e) {
             console.log(`Unexpected Error occurred while updating event [${tx.eventId}] status: ${e}`)

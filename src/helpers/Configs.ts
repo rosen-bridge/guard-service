@@ -1,5 +1,7 @@
 import config from "config";
 import { GuardInfo } from "../guard/agreement/Interfaces";
+import tokens from '../../config/tokens.test.json' assert { type: "json" };
+import { TokenMap } from "@rosen-bridge/tokens";
 
 const getConfigIntKeyOrDefault = (key: string, defaultValue: number) => {
     const val: string = config.get(key)
@@ -50,6 +52,7 @@ class Configs {
     static minimumAgreement = config.get<number>('minimumAgreement') // TODO: get this from config box in blockchain
     static txProcessorInterval = config.get<number>('txProcessorInterval')
 
+    static tokenMap = new TokenMap(tokens);
 }
 
 export default Configs

@@ -17,13 +17,14 @@ import ErgoUtils from "./helpers/ErgoUtils";
 import NodeApi from "./network/NodeApi";
 import BoxVerifications from "./boxes/BoxVerifications";
 import ErgoTransaction from "./models/ErgoTransaction";
-import { scannerAction } from "../../db/models/scanner/ScannerModel";
+import { dbAction } from "../../db/DatabaseAction";
 import InputBoxes from "./boxes/InputBoxes";
 import OutputBoxes from "./boxes/OutputBoxes";
 import ChainsConstants from "../ChainsConstants";
 import Reward from "./Reward";
 import MultiSigHandler from "../../guard/multisig/MultiSig";
 import Configs from "../../helpers/Configs";
+import Utils from "../../helpers/Utils";
 
 class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
 
@@ -115,7 +116,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         // create PaymentTransaction object
         const txBytes = this.serialize(reducedTx)
         const txId = reducedTx.unsigned_tx().id().to_str()
-        const eventId = event.sourceTxId
+        const eventId = event.getId()
         const ergoTx = new ErgoTransaction(
             txId,
             eventId,
@@ -240,7 +241,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
 
         // calculate assets of payemnt box
         const paymentErgAmount: bigint = BigInt(event.amount) - BigInt(event.bridgeFee) - BigInt(event.networkFee)
-        const paymentTokenAmount: bigint = 0n
+        const paymentTokenAmount = 0n
         const paymentTokenId = event.targetChainTokenId
 
         // create output boxes
@@ -303,7 +304,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         const txDataInputs = ergoTx.dataInputs.map(boxBytes => ErgoBox.sigma_parse_bytes(boxBytes))
 
         // change tx status to inSign
-        await scannerAction.setTxStatus(paymentTx.txId, TransactionStatus.inSign)
+        await dbAction.setTxStatus(paymentTx.txId, TransactionStatus.inSign)
 
         // send tx to sign
         MultiSigHandler.getInstance(
@@ -323,15 +324,71 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
                     ergoTx.dataInputs,
                     ergoTx.txType
                 )
-                await scannerAction.updateWithSignedTx(
+                await dbAction.updateWithSignedTx(
                     ergoTx.txId,
                     signedPaymentTx.toJson()
                 )
             })
             .catch( async (e) => {
                 console.log(`An error occurred while requesting Multisig service to sign Ergo tx: ${e}`)
-                await scannerAction.setTxStatus(paymentTx.txId, TransactionStatus.signFailed)
+                await dbAction.setTxStatus(paymentTx.txId, TransactionStatus.signFailed)
             })
+    }
+
+    /**
+     * verified the event payment in the Ergo
+     * conditions that checks:
+     *  1- having atLeast 1 asset in the first output of the transaction
+     *  2- the asset should be listed on the tokenMap config
+     *  3- R4 should have length at least
+     * @param event
+     */
+    verifyEventWithPayment = async (event: EventTrigger): Promise<boolean> => {
+        const eventId = Utils.txIdToEventId(event.sourceTxId)
+        try {
+            const paymentTx = await ExplorerApi.getConfirmedTx(event.sourceTxId)
+            if (paymentTx) {
+                const payment = paymentTx.outputs.filter((box) =>
+                    ErgoConfigs.lockAddress === box.address
+                ).map(box => ErgoUtils.getRosenData(box, event.sourceChainTokenId)).filter(box => box !== undefined)[0]
+                if (payment) {
+                    const token = Configs.tokenMap.search(
+                        ChainsConstants.ergo,
+                        {
+                            tokenID: event.sourceChainTokenId
+                        })
+                    let targetTokenId
+                    try {
+                        targetTokenId = Configs.tokenMap.getID(token[0], event.toChain)
+                    } catch (e) {
+                        console.log(`event [${eventId}] is not valid, tx [${event.sourceTxId}] token or chainId is invalid`)
+                        return false
+                    }
+                    // TODO: fix fromAddress when it was fixed in the watcher side
+                    const inputAddress = "fromAddress"
+                    if (
+                        event.fromChain == ChainsConstants.ergo &&
+                        event.toChain == payment.toChain &&
+                        event.networkFee == payment.networkFee &&
+                        event.bridgeFee == payment.bridgeFee &&
+                        event.amount == payment.amount &&
+                        event.sourceChainTokenId == payment.tokenId &&
+                        event.targetChainTokenId == targetTokenId &&
+                        event.sourceBlockId == payment.blockId &&
+                        event.toAddress == payment.toAddress &&
+                        event.fromAddress == inputAddress
+                    ) {
+                        console.log(`event [${eventId}] has been successfully validated`)
+                        return true
+                    }
+                }
+            }
+            console.log(`event [${eventId}] is not valid, payment with tx [${event.sourceTxId}] is not available in network`)
+            return false
+        } catch (e) {
+            console.log(`event [${eventId}] validation failed with this error: [${e}]`)
+            return false
+        }
     }
 
     /**
@@ -341,11 +398,10 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
     submitTransaction = async (paymentTx: PaymentTransaction): Promise<void> => {
         const tx = this.signedDeserialize(paymentTx.txBytes)
         try {
-            await scannerAction.setTxStatus(paymentTx.txId, TransactionStatus.sent)
+            await dbAction.setTxStatus(paymentTx.txId, TransactionStatus.sent)
             const response = await NodeApi.sendTx(tx.to_json())
             console.log(`Cardano Transaction submitted. txId: ${response}`)
-        }
-        catch (e) {
+        } catch (e) {
             console.log(`An error occurred while submitting Ergo transaction: ${e.message}`)
         }
     }

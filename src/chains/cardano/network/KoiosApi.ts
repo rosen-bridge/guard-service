@@ -1,5 +1,5 @@
 import axios from "axios";
-import { Utxo } from "../models/Interfaces";
+import { KoiosTransaction, Utxo } from "../models/Interfaces";
 import CardanoConfigs from "../helpers/CardanoConfigs";
 
 
@@ -27,6 +27,16 @@ class KoiosApi {
     static getTxConfirmation = (txId: string): Promise<number | null> => {
         return this.koios.post('/tx_status', {"_tx_hashes": [txId]})
             .then(res => res.data[0].num_confirmations)
+    }
+
+    /**
+     * returns tx meta data
+     * @param txHashes
+     */
+    static getTxInformation = (txHashes: Array<string>): Promise<Array<KoiosTransaction>> => {
+        return this.koios.post<Array<KoiosTransaction>>("/tx_info", {"_tx_hashes": txHashes}).then(
+            res => res.data
+        )
     }
 
 }

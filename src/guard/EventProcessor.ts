@@ -7,7 +7,7 @@ import KoiosApi from "../chains/cardano/network/KoiosApi";
 import CardanoConfigs from "../chains/cardano/helpers/CardanoConfigs";
 import ExplorerApi from "../chains/ergo/network/ExplorerApi";
 import ErgoConfigs from "../chains/ergo/helpers/ErgoConfigs";
-import { scannerAction } from "../db/models/scanner/ScannerModel";
+import { dbAction } from "../db/DatabaseAction";
 import { txAgreement } from "./agreement/TxAgreement";
 import Reward from "../chains/ergo/Reward";
 
@@ -21,7 +21,7 @@ class EventProcessor {
      * processes pending event triggers in the database
      */
     static processEvents = async (): Promise<void> => {
-        const events = await scannerAction.getPendingEvents()
+        const events = await dbAction.getPendingEvents()
 
         for (const event of events) {
             try {
@@ -30,10 +30,10 @@ class EventProcessor {
                 else if (event.status === "pending-reward")
                     await this.processRewardEvent(EventTrigger.fromEntity(event))
                 else
-                    console.warn(`impossible case, received event [${event.sourceTxId}] with status [${event.status}]`)
+                    console.warn(`impossible case, received event [${event.id}] with status [${event.status}]`)
             }
             catch (e) {
-                console.log(`An error occurred while processing event [${event.sourceTxId}]: ${e}`)
+                console.log(`An error occurred while processing event [${event.id}]: ${e}`)
             }
         }
     }
@@ -47,12 +47,12 @@ class EventProcessor {
      * @param event the event trigger
      */
     static processPaymentEvent = async (event: EventTrigger): Promise<void> => {
-        console.log(`processing event [${event.sourceTxId}]`)
+        console.log(`processing event [${event.getId()}]`)
         if (!await this.isEventConfirmedEnough(event)) return
 
         if (!await this.verifyEvent(event)) {
             console.log(`event didn't verify.`)
-            await scannerAction.setEventStatus(event.sourceTxId, "rejected")
+            await dbAction.setEventStatus(event.getId(), "rejected")
             return
         }
 
@@ -99,8 +99,11 @@ class EventProcessor {
      * @return true if event data verified
      */
     static verifyEvent = async (event: EventTrigger): Promise<boolean> => {
-        // TODO: verify event with lock transaction
-        return true
+        if (event.fromChain === ChainsConstants.cardano)
+            return this.cardanoChain.verifyEventWithPayment(event)
+        else if (event.fromChain === ChainsConstants.ergo)
+            return this.ergoChain.verifyEventWithPayment(event)
+        else throw new Error(`chain [${event.fromChain}] not implemented.`)
     }
 
     /**

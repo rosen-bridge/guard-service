@@ -68,6 +68,50 @@ interface ErgoTransactionJsonModel extends PaymentTransactionJsonModel {
     dataInputs: string[]
 }
 
+interface ExplorerRegister {
+    serializedValue: string,
+    sigmaType: string,
+    renderedValue: string
+}
+
+interface ExplorerToken {
+    tokenId: string;
+    index: number;
+    amount: number;
+}
+
+interface ExplorerInputBox {
+    boxId: string;
+    value: number;
+    outputTransactionId: string;
+    outputBlockId: string,
+    outputIndex: number;
+    ergoTree: string;
+    address: string;
+    assets: ExplorerToken[];
+    additionalRegisters: {[key: string]: ExplorerRegister};
+}
+
+interface ExplorerOutputBox {
+    boxId: string;
+    transactionId: string;
+    blockId: string,
+    value: number;
+    index: number;
+    creationHeight: number;
+    ergoTree: string;
+    address: string;
+    assets: ExplorerToken[];
+    additionalRegisters: {[key: string]: ExplorerRegister};
+}
+
+interface ExplorerTransaction {
+    id: string,
+    numConfirmations: number,
+    inputs: ExplorerInputBox[],
+    outputs: ExplorerOutputBox[],
+}
+
 export {
     Asset,
     Register,
@@ -77,5 +121,7 @@ export {
     BoxesAssets,
     AssetMap,
     ErgoBlockHeader,
-    ErgoTransactionJsonModel
+    ErgoTransactionJsonModel,
+    ExplorerOutputBox,
+    ExplorerTransaction
 }
