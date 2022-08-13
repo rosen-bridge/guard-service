@@ -16,14 +16,13 @@ import ErgoUtils from "./helpers/ErgoUtils";
 import NodeApi from "./network/NodeApi";
 import BoxVerifications from "./boxes/BoxVerifications";
 import ErgoTransaction from "./models/ErgoTransaction";
-import { scannerAction } from "../../db/models/scanner/ScannerModel";
+import { dbAction } from "../../db/DatabaseAction";
 import InputBoxes from "./boxes/InputBoxes";
 import OutputBoxes from "./boxes/OutputBoxes";
 import ChainsConstants from "../ChainsConstants";
 import Reward from "./Reward";
 import Configs from "../../helpers/Configs";
-import { Buffer } from "buffer";
-import { blake2b } from "blakejs";
+import Utils from "../../helpers/Utils";
 
 class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
 
@@ -115,7 +114,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         // create PaymentTransaction object
         const txBytes = this.serialize(reducedTx)
         const txId = reducedTx.unsigned_tx().id().to_str()
-        const eventId = event.sourceTxId
+        const eventId = event.getId()
         const ergoTx = new ErgoTransaction(
             txId,
             eventId,
@@ -295,7 +294,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
      * @param event
      */
     verifyEventWithPayment = async (event: EventTrigger): Promise<boolean> => {
-        const eventId = Buffer.from(blake2b(event.sourceTxId, undefined, 32)).toString("hex")
+        const eventId = Utils.txIdToEventId(event.sourceTxId)
         try {
             const paymentTx = await ExplorerApi.getConfirmedTx(event.sourceTxId)
             if (paymentTx) {
@@ -349,7 +348,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
     submitTransaction = async (paymentTx: PaymentTransaction): Promise<void> => {
         const tx = this.deserialize(paymentTx.txBytes)
         try {
-            await scannerAction.setTxStatus(paymentTx.txId, TransactionStatus.sent)
+            await dbAction.setTxStatus(paymentTx.txId, TransactionStatus.sent)
             const response = await NodeApi.sendTx(tx.unsigned_tx().to_json())
             console.log(`Cardano Transaction submitted. txId: ${response}`)
         } catch (e) {

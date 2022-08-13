@@ -61,8 +61,8 @@ describe("TransactionProcessor", () => {
 
                 // verify
                 const dbEvents = await allEventRecords()
-                expect(dbEvents.map(event => [event.sourceTxId, event.status])[0])
-                    .to.deep.equal([mockedEvent.sourceTxId, EventStatus.completed])
+                expect(dbEvents.map(event => [event.id, event.status])[0])
+                    .to.deep.equal([mockedEvent.getId(), EventStatus.completed])
                 const dbTxs = await allTxRecords()
                 expect(dbTxs.map(tx => [tx.txId, tx.status])[0])
                     .to.deep.equal([tx.txId, TransactionStatus.completed])
@@ -181,8 +181,8 @@ describe("TransactionProcessor", () => {
 
                 // verify
                 const dbEvents = await allEventRecords()
-                expect(dbEvents.map(event => [event.sourceTxId, event.status])[0])
-                    .to.deep.equal([mockedEvent.sourceTxId, EventStatus.pendingPayment])
+                expect(dbEvents.map(event => [event.id, event.status])[0])
+                    .to.deep.equal([mockedEvent.getId(), EventStatus.pendingPayment])
                 const dbTxs = await allTxRecords()
                 expect(dbTxs.map(tx => [tx.txId, tx.status])[0])
                     .to.deep.equal([tx.txId, TransactionStatus.invalid])
@@ -218,8 +218,8 @@ describe("TransactionProcessor", () => {
 
                 // verify
                 const dbEvents = await allEventRecords()
-                expect(dbEvents.map(event => [event.sourceTxId, event.status])[0])
-                    .to.deep.equal([mockedEvent.sourceTxId, EventStatus.pendingReward])
+                expect(dbEvents.map(event => [event.id, event.status])[0])
+                    .to.deep.equal([mockedEvent.getId(), EventStatus.pendingReward])
                 const dbTxs = await allTxRecords()
                 expect(dbTxs.map(tx => [tx.txId, tx.status])[0])
                     .to.deep.equal([tx.txId, TransactionStatus.invalid])
@@ -257,8 +257,8 @@ describe("TransactionProcessor", () => {
 
                 // verify
                 const dbEvents = await allEventRecords()
-                expect(dbEvents.map(event => [event.sourceTxId, event.status])[0])
-                    .to.deep.equal([mockedEvent.sourceTxId, EventStatus.pendingReward])
+                expect(dbEvents.map(event => [event.id, event.status])[0])
+                    .to.deep.equal([mockedEvent.getId(), EventStatus.pendingReward])
                 const dbTxs = await allTxRecords()
                 expect(dbTxs.map(tx => [tx.txId, tx.status])[0])
                     .to.deep.equal([tx.txId, TransactionStatus.completed])
@@ -285,8 +285,8 @@ describe("TransactionProcessor", () => {
 
                 // verify
                 const dbEvents = await allEventRecords()
-                expect(dbEvents.map(event => [event.sourceTxId, event.status])[0])
-                    .to.deep.equal([mockedEvent.sourceTxId, EventStatus.completed])
+                expect(dbEvents.map(event => [event.id, event.status])[0])
+                    .to.deep.equal([mockedEvent.getId(), EventStatus.completed])
                 const dbTxs = await allTxRecords()
                 expect(dbTxs.map(tx => [tx.txId, tx.status])[0])
                     .to.deep.equal([tx.txId, TransactionStatus.completed])
@@ -346,8 +346,8 @@ describe("TransactionProcessor", () => {
 
                 // verify
                 const dbEvents = await allEventRecords()
-                expect(dbEvents.map(event => [event.sourceTxId, event.status])[0])
-                    .to.deep.equal([mockedEvent.sourceTxId, EventStatus.pendingPayment])
+                expect(dbEvents.map(event => [event.id, event.status])[0])
+                    .to.deep.equal([mockedEvent.getId(), EventStatus.pendingPayment])
                 const dbTxs = await allTxRecords()
                 expect(dbTxs.map(tx => [tx.txId, tx.status])[0])
                     .to.deep.equal([tx.txId, TransactionStatus.invalid])
@@ -408,8 +408,8 @@ describe("TransactionProcessor", () => {
 
                 // verify
                 const dbEvents = await allEventRecords()
-                expect(dbEvents.map(event => [event.sourceTxId, event.status])[0])
-                    .to.deep.equal([mockedEvent.sourceTxId, EventStatus.pendingPayment])
+                expect(dbEvents.map(event => [event.id, event.status])[0])
+                    .to.deep.equal([mockedEvent.getId(), EventStatus.pendingPayment])
                 const dbTxs = await allTxRecords()
                 expect(dbTxs.map(tx => [tx.txId, tx.status])[0])
                     .to.deep.equal([tx.txId, TransactionStatus.invalid])
@@ -449,8 +449,8 @@ describe("TransactionProcessor", () => {
 
                 // verify
                 const dbEvents = await allEventRecords()
-                expect(dbEvents.map(event => [event.sourceTxId, event.status])[0])
-                    .to.deep.equal([mockedEvent.sourceTxId, EventStatus.inPayment])
+                expect(dbEvents.map(event => [event.id, event.status])[0])
+                    .to.deep.equal([mockedEvent.getId(), EventStatus.inPayment])
                 const dbTxs = await allTxRecords()
                 expect(dbTxs.map(tx => [tx.txId, tx.status, tx.lastCheck])[0])
                     .to.deep.equal([tx.txId, TransactionStatus.sent, lastCheck])
@@ -614,8 +614,8 @@ describe("TransactionProcessor", () => {
 
             // verify
             const dbEvents = await allEventRecords()
-            expect(dbEvents.map(event => [event.sourceTxId, event.status])[0])
-                .to.deep.equal([mockedEvent.sourceTxId, EventStatus.pendingPayment])
+            expect(dbEvents.map(event => [event.id, event.status])[0])
+                .to.deep.equal([mockedEvent.getId(), EventStatus.pendingPayment])
             const dbTxs = await allTxRecords()
             expect(dbTxs.map(tx => [tx.txId, tx.status])[0])
                 .to.deep.equal([tx.txId, TransactionStatus.invalid])

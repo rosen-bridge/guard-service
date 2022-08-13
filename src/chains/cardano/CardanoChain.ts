@@ -16,10 +16,10 @@ import CardanoUtils from "./helpers/CardanoUtils";
 import TssSigner from "../../guard/TssSigner";
 import CardanoTransaction from "./models/CardanoTransaction";
 import ChainsConstants from "../ChainsConstants";
-import { scannerAction } from "../../db/models/scanner/ScannerModel";
+import { dbAction } from "../../db/DatabaseAction";
 import Configs from "../../helpers/Configs";
 import { Buffer } from "buffer";
-import { blake2b } from "blakejs";
+import Utils from "../../helpers/Utils";
 
 
 class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
@@ -65,7 +65,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         // create PaymentTransaction object
         const txBytes = tx.to_bytes()
         const txId = Buffer.from(hash_transaction(txBody).to_bytes()).toString('hex')
-        const eventId = event.sourceTxId
+        const eventId = event.getId()
         const paymentTx = new CardanoTransaction(txId, eventId, txBytes, TransactionTypes.payment) // we don't need inputBoxes in PaymentTransaction for Cardano tx
 
         console.log(`Payment transaction for event [${eventId}] generated. TxId: ${txId}`)
@@ -278,7 +278,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         try {
             // insert request into db
             const txHash = hash_transaction(tx.body()).to_bytes()
-            await scannerAction.setTxStatus(paymentTx.txId, TransactionStatus.inSign)
+            await dbAction.setTxStatus(paymentTx.txId, TransactionStatus.inSign)
 
             // send tx to sign
             await TssSigner.signTxHash(txHash)
@@ -298,7 +298,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         let tx: Transaction | null = null
         let paymentTx: PaymentTransaction | null = null
         try {
-            const txEntity = await scannerAction.getTxById(txId)
+            const txEntity = await dbAction.getTxById(txId)
             paymentTx = PaymentTransaction.fromJson(txEntity.txJson)
             tx = this.deserialize(paymentTx.txBytes)
         }
@@ -329,7 +329,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
             this.serialize(signedTx),
             paymentTx.txType
         )
-        await scannerAction.updateWithSignedTx(
+        await dbAction.updateWithSignedTx(
             txId,
             signedPaymentTx.toJson()
         )
@@ -344,7 +344,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
     submitTransaction = async (paymentTx: PaymentTransaction): Promise<void> => {
         const tx = this.deserialize(paymentTx.txBytes)
         try {
-            await scannerAction.setTxStatus(paymentTx.txId, TransactionStatus.sent)
+            await dbAction.setTxStatus(paymentTx.txId, TransactionStatus.sent)
             const response = await BlockFrostApi.txSubmit(tx)
             console.log(`Cardano Transaction submitted. txId: ${response}`)
         }
@@ -362,7 +362,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
      * @param event
      */
     verifyEventWithPayment = async (event: EventTrigger): Promise<boolean> => {
-        const eventId = Buffer.from(blake2b(event.sourceTxId, undefined, 32)).toString("hex")
+        const eventId = Utils.txIdToEventId(event.sourceTxId)
         try {
             const txInfo = (await KoiosApi.getTxInformation([event.sourceTxId]))[0];
             const payment = txInfo.outputs.filter((utxo: Utxo) => {

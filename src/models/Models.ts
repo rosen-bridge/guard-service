@@ -1,13 +1,14 @@
 import { PaymentTransactionModel, EventTriggerModel, PaymentTransactionJsonModel } from "./Interfaces";
 import Encryption from "../helpers/Encryption";
 import Configs from "../helpers/Configs";
-import { EventTriggerEntity } from "../db/entities/scanner/EventTriggerEntity";
+import { VerifiedEventEntity } from "../db/entities/VerifiedEventEntity";
 import Utils from "../helpers/Utils";
 
 
 /* tslint:disable:max-classes-per-file */
 class EventTrigger implements EventTriggerModel {
 
+    eventId: string
     fromChain: string
     toChain: string
     fromAddress: string
@@ -24,6 +25,7 @@ class EventTrigger implements EventTriggerModel {
     constructor(fromChain: string, toChain: string, fromAddress: string, toAddress: string, amount: string,
                 bridgeFee: string, networkFee: string, sourceChainTokenId: string, targetChainTokenId: string,
                 sourceTxId: string, sourceBlockId: string, WIDs: string[]) {
+        this.eventId = Utils.txIdToEventId(sourceTxId)
         this.fromChain = fromChain
         this.toChain = toChain
         this.fromAddress = fromAddress
@@ -40,9 +42,10 @@ class EventTrigger implements EventTriggerModel {
 
     /**
      * creates EventTrigger object from its database scheme
-     * @param eventEntity
+     * @param verifiedEvent
      */
-    static fromEntity = (eventEntity: EventTriggerEntity): EventTrigger => {
+    static fromEntity = (verifiedEvent: VerifiedEventEntity): EventTrigger => {
+        const eventEntity = verifiedEvent.eventData
         return new EventTrigger(
             eventEntity.fromChain,
             eventEntity.toChain,
@@ -63,7 +66,7 @@ class EventTrigger implements EventTriggerModel {
      * @return id of event trigger
      */
     getId = () => {
-        return this.sourceTxId
+        return this.eventId
     }
 
 }

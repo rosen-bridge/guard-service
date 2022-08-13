@@ -2,17 +2,21 @@ import { anything, spy, when } from "ts-mockito";
 import { fileURLToPath } from "url";
 import path from "path";
 import { DataSource } from "typeorm";
-import { scannerAction, ScannerDataBase } from "../../../src/db/models/scanner/ScannerModel";
+import { dbAction, DatabaseAction } from "../../../src/db/DatabaseAction";
 import { EventTrigger, PaymentTransaction } from "../../../src/models/Models";
+import Utils from "../../../src/helpers/Utils";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// TODO: datasource config
+//  fix entities directories
+//  fix migrations (use package migrations)
 const testScannerOrmDataSource = new DataSource({
     type: "sqlite",
-    database: __dirname + "/../sqlite/test/scanner.sqlite",
-    entities: ['src/db/entities/scanner/*.ts'],
-    migrations: ['src/db/migrations/scanner/*.ts'],
+    database: __dirname + "/../sqlite/test/db.sqlite",
+    entities: ['src/db/entities/*.ts', 'node_modules/@rosen-bridge/scanner/dist/entities/*.js', 'node_modules/@rosen-bridge/watcher-data-extractor/dist/entities/*.js'],
+    migrations: ['src/db/migrations/*.ts'],
     synchronize: false,
     logging: false
 });
@@ -27,10 +31,10 @@ catch(err) {
     console.error("Error during Test Scanner Data Source initialization:", err);
 }
 
-const testScannerDataBase = new ScannerDataBase(testScannerOrmDataSource)
+const testScannerDataBase = new DatabaseAction(testScannerOrmDataSource)
 
 // mock all scannerAction methods to call test database methods
-const mockedScannerAction = spy(scannerAction)
+const mockedScannerAction = spy(dbAction)
 when(mockedScannerAction.setEventStatus(anything(), anything()))
     .thenCall(testScannerDataBase.setEventStatus)
 when(mockedScannerAction.getEventById(anything()))
@@ -59,7 +63,7 @@ when(mockedScannerAction.getEventTxsByType(anything(), anything()))
  */
 const clearTables = async () => {
     await testScannerDataBase.TransactionRepository.clear()
-    await testScannerDataBase.EventRepository.clear()
+    await testScannerDataBase.VerifiedEventRepository.clear()
 }
 
 /**
@@ -71,8 +75,10 @@ const insertEventRecord = async (event: EventTrigger, status: string) => {
     await testScannerDataBase.EventRepository.createQueryBuilder()
         .insert()
         .values({
-            sourceTxId: event.sourceTxId,
-            status: status,
+            extractor: "extractor",
+            boxId: "boxId",
+            boxSerialized: "boxSerialized",
+            blockId: "blockId",
             fromChain: event.fromChain,
             toChain: event.toChain,
             fromAddress: event.fromAddress,
@@ -82,8 +88,21 @@ const insertEventRecord = async (event: EventTrigger, status: string) => {
             networkFee: event.networkFee,
             sourceChainTokenId: event.sourceChainTokenId,
             targetChainTokenId: event.targetChainTokenId,
+            sourceTxId: event.sourceTxId,
             sourceBlockId: event.sourceBlockId,
             WIDs: event.WIDs.join(",")
+        })
+        .execute()
+    const eventData = await testScannerDataBase.EventRepository.createQueryBuilder()
+        .select()
+        .where("sourceTxId = :id", {id: event.sourceTxId})
+        .getOne()
+    await testScannerDataBase.VerifiedEventRepository.createQueryBuilder()
+        .insert()
+        .values({
+            id: Utils.txIdToEventId(event.sourceTxId),
+            eventData: eventData!,
+            status: status,
         })
         .execute()
 }
@@ -98,8 +117,8 @@ const insertEventRecord = async (event: EventTrigger, status: string) => {
  * @param eventId
  */
 const insertTxRecord = async (paymentTx: PaymentTransaction, type: string, chain: string, status: string, lastCheck: number, eventId: string) => {
-    const event = await testScannerDataBase.EventRepository.findOneBy({
-        "sourceTxId": eventId
+    const event = await testScannerDataBase.VerifiedEventRepository.findOneBy({
+        "id": eventId
     })
     await testScannerDataBase.TransactionRepository
         .insert({
@@ -117,7 +136,7 @@ const insertTxRecord = async (paymentTx: PaymentTransaction, type: string, chain
  * returns all records in Event table in ScannerDatabase
  */
 const allEventRecords = async () => {
-    return await testScannerDataBase.EventRepository.createQueryBuilder().select().getMany()
+    return await testScannerDataBase.VerifiedEventRepository.createQueryBuilder().select().getMany()
 }
 
 /**

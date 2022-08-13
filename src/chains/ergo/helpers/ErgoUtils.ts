@@ -187,7 +187,7 @@ class ErgoUtils {
      * @param boxes
      */
     static calculateBoxesAssets = (boxes: ErgoBoxCandidate[] | ErgoBox[]): BoxesAssets => {
-        let ergs: bigint = 0n
+        let ergs = 0n
         const tokens: AssetMap = {}
 
         boxes.forEach(box => {
