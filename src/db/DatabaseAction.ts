@@ -48,7 +48,7 @@ class DatabaseAction {
         })
     }
 
-    /**
+    /** // TODO: replace this method with getPendingEvents
      * @param status the event trigger status
      * @return the event triggers with corresponding status
      */
