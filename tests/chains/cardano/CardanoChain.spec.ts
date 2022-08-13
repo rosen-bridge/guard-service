@@ -187,6 +187,7 @@ describe("CardanoChain", () => {
     })
 
     describe("signTransaction", () => {
+        const aggregatedPublicKey = "bcb07faa6c0f19e2f2587aa9ef6f43a68fc0135321216a71dc87c8527af4ca6a"
 
         beforeEach("clear test sign database Cardano signs table", async () => {
             await clearTables()
@@ -211,7 +212,7 @@ describe("CardanoChain", () => {
             await insertTxRecord(cardanoTx, TransactionTypes.payment, ChainsConstants.cardano, TransactionStatus.inSign, 0, cardanoTx.eventId)
 
             // run test
-            await cardanoChain.signTransaction(cardanoTx.txId, mockedSignTxHash)
+            await cardanoChain.signTransaction(cardanoTx.txId, mockedSignTxHash, aggregatedPublicKey)
 
             // verify db changes
             const dbTxs = await allTxRecords()

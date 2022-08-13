@@ -1,7 +1,6 @@
 import {Request, Response, Router} from "express";
 import CardanoChain from "../chains/cardano/CardanoChain";
 import { body, validationResult } from "express-validator";
-import Configs from "../helpers/Configs";
 
 export const tssRouter = Router();
 
@@ -18,18 +17,20 @@ tssRouter.post("/tssSign",
     body("m")
         .notEmpty().withMessage("key m is required!")
         .isString(),
+    body("pubKey")
+        .notEmpty().withMessage("key pubKey is required!")
+        .isString(),
     async (req: Request, res: Response) => {
-        let signedTxHash = ""
-        let txHash = ""
         try {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
                 return res.status(400).json({ errors: errors.array() });
             }
-            signedTxHash = req.body.signature
-            txHash = req.body.m
+            const signedTxHash = req.body.signature
+            const txHash = req.body.m
+            const pubKey = req.body.pubKey
             const cardanoChain = new CardanoChain()
-            cardanoChain.signTransaction(txHash, signedTxHash).then(signedTx => {
+            cardanoChain.signTransaction(txHash, signedTxHash, pubKey).then(signedTx => {
                 if (signedTx !== null) cardanoChain.submitTransaction(signedTx)
             })
             res.send({message: "ok"})
