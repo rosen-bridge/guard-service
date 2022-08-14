@@ -1,22 +1,23 @@
-import { DataSource, In, Repository } from "typeorm";
-import { VerifiedEventEntity } from "./entities/VerifiedEventEntity";
+import { DataSource, In, IsNull, LessThan, Not, Repository } from "typeorm";
+import { ConfirmedEventEntity } from "./entities/ConfirmedEventEntity";
 import { ormDataSource } from "../../config/ormDataSource";
 import { TransactionEntity } from "./entities/TransactionEntity";
 import { EventStatus, PaymentTransaction, TransactionStatus } from "../models/Models";
 import { CommitmentEntity, EventTriggerEntity } from "@rosen-bridge/watcher-data-extractor";
+import Utils from "../helpers/Utils";
 
 class DatabaseAction {
     dataSource: DataSource;
     CommitmentRepository: Repository<CommitmentEntity>;
     EventRepository: Repository<EventTriggerEntity>;
-    VerifiedEventRepository: Repository<VerifiedEventEntity>;
+    ConfirmedEventRepository: Repository<ConfirmedEventEntity>;
     TransactionRepository: Repository<TransactionEntity>;
 
     constructor(dataSource: DataSource) {
         this.dataSource = dataSource;
         this.CommitmentRepository = this.dataSource.getRepository(CommitmentEntity);
         this.EventRepository = this.dataSource.getRepository(EventTriggerEntity);
-        this.VerifiedEventRepository = this.dataSource.getRepository(VerifiedEventEntity);
+        this.ConfirmedEventRepository = this.dataSource.getRepository(ConfirmedEventEntity);
         this.TransactionRepository = this.dataSource.getRepository(TransactionEntity);
     }
 
@@ -26,7 +27,7 @@ class DatabaseAction {
      * @param status the event trigger status
      */
     setEventStatus = async (eventId: string, status: string): Promise<void> => {
-        await this.VerifiedEventRepository.createQueryBuilder()
+        await this.ConfirmedEventRepository.createQueryBuilder()
             .update()
             .set({
                 status: status
@@ -39,8 +40,8 @@ class DatabaseAction {
      * @param eventId the event trigger id
      * @return the event trigger
      */
-    getEventById = async (eventId: string): Promise<VerifiedEventEntity | null> => {
-        return await this.VerifiedEventRepository.findOne({
+    getEventById = async (eventId: string): Promise<ConfirmedEventEntity | null> => {
+        return await this.ConfirmedEventRepository.findOne({
             relations: ["eventData"],
             where: {
                 "id": eventId
@@ -49,11 +50,10 @@ class DatabaseAction {
     }
 
     /**
-     * @param status the event trigger status
      * @return the event triggers with corresponding status
      */
-    getPendingEvents = async (): Promise<VerifiedEventEntity[]> => {
-        return await this.VerifiedEventRepository.find({
+    getPendingEvents = async (): Promise<ConfirmedEventEntity[]> => {
+        return await this.ConfirmedEventRepository.find({
             relations: ["eventData"],
             where: [
                 {
@@ -119,7 +119,7 @@ class DatabaseAction {
      * @param status status of the process
      */
     resetEventTx = async (eventId: string, status: string): Promise<void> => {
-        await this.VerifiedEventRepository.createQueryBuilder()
+        await this.ConfirmedEventRepository.createQueryBuilder()
             .update()
             .set({
                 status: status
@@ -226,7 +226,7 @@ class DatabaseAction {
     /**
      * inserts a tx record into transactions table
      */
-    private insertNewTx = async (paymentTx: PaymentTransaction, event: VerifiedEventEntity): Promise<void> => {
+    private insertNewTx = async (paymentTx: PaymentTransaction, event: ConfirmedEventEntity): Promise<void> => {
         await this.TransactionRepository
             .insert({
                 txId: paymentTx.txId,
@@ -237,6 +237,43 @@ class DatabaseAction {
                 lastCheck: 0,
                 event: event!
             })
+    }
+
+    /**
+     * @param eventId the event trigger id
+     * @param eventBoxHeight the event trigger box mined height
+     * @return the event trigger
+     */
+    getValidCommitments = async (eventId: string, eventBoxHeight: number): Promise<CommitmentEntity[]> => {
+        return await this.CommitmentRepository.find({
+            where: {
+                eventId: eventId,
+                height: LessThan(eventBoxHeight),
+                spendBlockHash: Not(IsNull())
+            }
+        })
+    }
+
+    /** TODO: when extractor is able to capture spent status of events, update query to just get unspent events
+     * @return all event triggers with no spent block
+     */
+    getUnspentEvents = async (): Promise<EventTriggerEntity[]> => {
+        return await this.EventRepository.find()
+    }
+
+    /**
+     * inserts a confirmed event into table
+     * @param eventData
+     */
+    insertConfirmedEvent = async (eventData: EventTriggerEntity): Promise<void> => {
+        await this.ConfirmedEventRepository.createQueryBuilder()
+            .insert()
+            .values({
+                id: Utils.txIdToEventId(eventData.sourceTxId),
+                eventData: eventData,
+                status: EventStatus.pendingPayment,
+            })
+            .execute()
     }
 
 }

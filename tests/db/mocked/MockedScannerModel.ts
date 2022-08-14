@@ -25,10 +25,10 @@ const testScannerOrmDataSource = new DataSource({
 try {
     await testScannerOrmDataSource.initialize()
     await testScannerOrmDataSource.runMigrations()
-    console.log("Test Scanner Data Source has been initialized!");
+    console.log("Test Data Source has been initialized!");
 }
 catch(err) {
-    console.error("Error during Test Scanner Data Source initialization:", err);
+    console.error("Error during Test Data Source initialization:", err);
 }
 
 const testScannerDataBase = new DatabaseAction(testScannerOrmDataSource)
@@ -59,28 +59,39 @@ when(mockedScannerAction.getEventTxsByType(anything(), anything()))
     .thenCall(testScannerDataBase.getEventTxsByType)
 when(mockedScannerAction.replaceTx(anything(), anything()))
     .thenCall(testScannerDataBase.replaceTx)
+when(mockedScannerAction.getValidCommitments(anything(), anything()))
+    .thenCall(testScannerDataBase.getValidCommitments)
+when(mockedScannerAction.getUnspentEvents())
+    .thenCall(testScannerDataBase.getUnspentEvents)
+when(mockedScannerAction.insertConfirmedEvent(anything()))
+    .thenCall(testScannerDataBase.insertConfirmedEvent)
 
 /**
  * deletes every record in Event and Transaction table in ScannerDatabase
  */
 const clearTables = async () => {
+    await testScannerDataBase.CommitmentRepository.clear()
+    await testScannerDataBase.EventRepository.clear()
     await testScannerDataBase.TransactionRepository.clear()
-    await testScannerDataBase.VerifiedEventRepository.clear()
+    await testScannerDataBase.ConfirmedEventRepository.clear()
 }
 
 /**
- * inserts a record to Event table in ScannerDatabase
+ * inserts a record to Event and ConfirmedEvent tables in db
  * @param event
  * @param status
+ * @param boxSerialized
+ * @param height
  */
-const insertEventRecord = async (event: EventTrigger, status: string) => {
+const insertEventRecord = async (event: EventTrigger, status: string, boxSerialized: string = "boxSerialized", height: number = 200) => {
     await testScannerDataBase.EventRepository.createQueryBuilder()
         .insert()
         .values({
             extractor: "extractor",
             boxId: "boxId",
-            boxSerialized: "boxSerialized",
+            boxSerialized: boxSerialized,
             blockId: "blockId",
+            height: height,
             fromChain: event.fromChain,
             toChain: event.toChain,
             fromAddress: event.fromAddress,
@@ -99,12 +110,43 @@ const insertEventRecord = async (event: EventTrigger, status: string) => {
         .select()
         .where("sourceTxId = :id", {id: event.sourceTxId})
         .getOne()
-    await testScannerDataBase.VerifiedEventRepository.createQueryBuilder()
+    await testScannerDataBase.ConfirmedEventRepository.createQueryBuilder()
         .insert()
         .values({
             id: Utils.txIdToEventId(event.sourceTxId),
             eventData: eventData!,
             status: status,
+        })
+        .execute()
+}
+
+/**
+ * inserts a record only to Event table in db
+ * @param event
+ * @param boxSerialized
+ * @param height
+ */
+const insertOnyEventDataRecord = async (event: EventTrigger, boxSerialized: string = "boxSerialized", height: number = 200) => {
+    await testScannerDataBase.EventRepository.createQueryBuilder()
+        .insert()
+        .values({
+            extractor: "extractor",
+            boxId: "boxId",
+            boxSerialized: boxSerialized,
+            blockId: "blockId",
+            height: height,
+            fromChain: event.fromChain,
+            toChain: event.toChain,
+            fromAddress: event.fromAddress,
+            toAddress: event.toAddress,
+            amount: event.amount,
+            bridgeFee: event.bridgeFee,
+            networkFee: event.networkFee,
+            sourceChainTokenId: event.sourceChainTokenId,
+            targetChainTokenId: event.targetChainTokenId,
+            sourceTxId: event.sourceTxId,
+            sourceBlockId: event.sourceBlockId,
+            WIDs: event.WIDs.join(",")
         })
         .execute()
 }
@@ -119,7 +161,7 @@ const insertEventRecord = async (event: EventTrigger, status: string) => {
  * @param eventId
  */
 const insertTxRecord = async (paymentTx: PaymentTransaction, type: string, chain: string, status: string, lastCheck: number, eventId: string) => {
-    const event = await testScannerDataBase.VerifiedEventRepository.findOneBy({
+    const event = await testScannerDataBase.ConfirmedEventRepository.findOneBy({
         "id": eventId
     })
     await testScannerDataBase.TransactionRepository
@@ -135,10 +177,31 @@ const insertTxRecord = async (paymentTx: PaymentTransaction, type: string, chain
 }
 
 /**
+ * inserts a record to Event table in ScannerDatabase
+ * @param boxSerialized
+ * @param height
+ */
+const insertCommitmentBoxRecord = async (boxSerialized: string, height: number) => {
+    await testScannerDataBase.CommitmentRepository.createQueryBuilder()
+        .insert()
+        .values({
+            extractor: "extractor",
+            eventId: "eventId",
+            commitment: "commitment",
+            WID: "WID",
+            commitmentBoxId: "commitmentBoxId",
+            blockId: "blockId",
+            boxSerialized: boxSerialized,
+            height: height
+        })
+        .execute()
+}
+
+/**
  * returns all records in Event table in ScannerDatabase
  */
 const allEventRecords = async () => {
-    return await testScannerDataBase.VerifiedEventRepository.createQueryBuilder().select().getMany()
+    return await testScannerDataBase.ConfirmedEventRepository.createQueryBuilder().select().getMany()
 }
 
 /**
@@ -151,7 +214,9 @@ const allTxRecords = async () => {
 export {
     clearTables,
     insertEventRecord,
+    insertOnyEventDataRecord,
     insertTxRecord,
+    insertCommitmentBoxRecord,
     allEventRecords,
     allTxRecords
 }

@@ -13,7 +13,7 @@ when(mockedInputBoxes.getGuardsInfoBox()).thenResolve(TestBoxes.guardNFTBox)
  * @param returnBox
  */
 const mockGetEventBox = (event: EventTrigger, returnBox: ErgoBox): void => {
-    when(mockedInputBoxes.getEventBox(event)).thenReturn(returnBox)
+    when(mockedInputBoxes.getEventBox(event)).thenResolve(returnBox)
 }
 
 /**
@@ -22,7 +22,7 @@ const mockGetEventBox = (event: EventTrigger, returnBox: ErgoBox): void => {
  * @param returnBoxes
  */
 const mockGetEventValidCommitments = (event: EventTrigger, returnBoxes: ErgoBox[]): void => {
-    when(mockedInputBoxes.getEventValidCommitments(event)).thenReturn(returnBoxes)
+    when(mockedInputBoxes.getEventValidCommitments(event)).thenResolve(returnBoxes)
 }
 
 /**

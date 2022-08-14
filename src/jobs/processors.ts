@@ -15,7 +15,7 @@ const resendTxJob = () => {
 }
 
 const processJob = () => {
-    EventProcessor.processEvents().then(() => {
+    EventProcessor.processConfirmedEvents().then(() => {
         setTimeout(processJob, Utils.secondsToNextTurn())
         setTimeout(resendTxJob, resendTxInterval * 1000)
     })
@@ -30,7 +30,7 @@ export const transactionJob = () => {
     TransactionProcessor.processTransactions().then(() => setTimeout(transactionJob, Configs.txProcessorInterval))
 }
 
-export const processEvents = () => {
+export const processors = () => {
     setTimeout(processJob, Utils.secondsToNextTurn())
     setTimeout(resetJob, Utils.secondsToReset())
     transactionJob()

@@ -41,8 +41,8 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         const currentHeight = await NodeApi.getHeight()
 
         // get eventBox and remaining valid commitments
-        const eventBox: ErgoBox = InputBoxes.getEventBox(event)
-        const commitmentBoxes: ErgoBox[] = InputBoxes.getEventValidCommitments(event)
+        const eventBox: ErgoBox = await InputBoxes.getEventBox(event)
+        const commitmentBoxes: ErgoBox[] = await InputBoxes.getEventValidCommitments(event)
 
         const rsnCoef = await InputBoxes.getRSNRatioCoef(event.targetChainTokenId)
 
@@ -150,8 +150,8 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         const currentHeight = await NodeApi.getHeight()
 
         // get eventBox and remaining valid commitments
-        const eventBox: ErgoBox = InputBoxes.getEventBox(event)
-        const commitmentBoxes: ErgoBox[] = InputBoxes.getEventValidCommitments(event)
+        const eventBox: ErgoBox = await InputBoxes.getEventBox(event)
+        const commitmentBoxes: ErgoBox[] = await InputBoxes.getEventValidCommitments(event)
         const rsnCoef = await InputBoxes.getRSNRatioCoef(event.sourceChainTokenId)
         if (!BoxVerifications.verifyInputs(tx.inputs(), eventBox, commitmentBoxes, paymentTx.inputBoxes)) return false
 

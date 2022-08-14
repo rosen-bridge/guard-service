@@ -75,6 +75,20 @@ class Utils {
     }
 
     /**
+     * converts base64 string to bytearray
+     */
+    static base64StringToUint8Array = (str: string): Uint8Array => {
+        return Buffer.from(str, "base64")
+    }
+
+    /**
+     * converts bytearray to base64 string
+     */
+    static Uint8ArrayToBase64String = (bytes: Uint8Array): string => {
+        return Buffer.from(bytes).toString("base64")
+    }
+
+    /**
      * converts sourceTxId to eventId (calculates blake2b hash of it)
      * @param txId
      */

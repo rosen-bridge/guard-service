@@ -10,6 +10,7 @@ import ErgoConfigs from "../chains/ergo/helpers/ErgoConfigs";
 import { dbAction } from "../db/DatabaseAction";
 import { txAgreement } from "./agreement/TxAgreement";
 import Reward from "../chains/ergo/Reward";
+import Utils from "../helpers/Utils";
 
 
 class EventProcessor {
@@ -17,18 +18,37 @@ class EventProcessor {
     static cardanoChain = new CardanoChain()
     static ergoChain = new ErgoChain()
 
+    /** TODO: implement a job to run this
+     * process captured events by scanner, insert new confirmed ones to ConfirmedEvents table
+     */
+    static processScannedEvents = async (): Promise<void> => {
+        const rawEvents = await dbAction.getUnspentEvents()
+        for (const event of rawEvents) {
+            try {
+                const eventId = Utils.txIdToEventId(event.sourceTxId)
+                const confirmedEvent = await dbAction.getEventById(eventId)
+                if (confirmedEvent !== null && await this.isEventConfirmedEnough(EventTrigger.fromEntity(event))) {
+                    console.log(`event with txId [${event.sourceTxId}] confirmed. eventId: ${eventId}`)
+                    await dbAction.insertConfirmedEvent(event)
+                }
+            }
+            catch (e) {
+                console.log(`An error occurred while processing event [${event.id}]: ${e}`)
+            }
+        }
+    }
+
     /**
      * processes pending event triggers in the database
      */
-    static processEvents = async (): Promise<void> => {
-        const events = await dbAction.getPendingEvents()
-
-        for (const event of events) {
+    static processConfirmedEvents = async (): Promise<void> => {
+        const confirmedEvents = await dbAction.getPendingEvents()
+        for (const event of confirmedEvents) {
             try {
                 if (event.status === "pending-payment")
-                    await this.processPaymentEvent(EventTrigger.fromEntity(event))
+                    await this.processPaymentEvent(EventTrigger.fromConfirmedEntity(event))
                 else if (event.status === "pending-reward")
-                    await this.processRewardEvent(EventTrigger.fromEntity(event))
+                    await this.processRewardEvent(EventTrigger.fromConfirmedEntity(event))
                 else
                     console.warn(`impossible case, received event [${event.id}] with status [${event.status}]`)
             }
@@ -40,16 +60,13 @@ class EventProcessor {
 
     /**
      * processes the event trigger to create payment transaction
-     *  1. verify that event confirmed enough in source chain
-     *  2. verify event data with lock tx in source chain
-     *  3. create transaction
-     *  4. start agreement process on transaction
+     *  1. verify event data with lock tx in source chain
+     *  2. create transaction
+     *  3. start agreement process on transaction
      * @param event the event trigger
      */
     static processPaymentEvent = async (event: EventTrigger): Promise<void> => {
         console.log(`processing event [${event.getId()}]`)
-        if (!await this.isEventConfirmedEnough(event)) return
-
         if (!await this.verifyEvent(event)) {
             console.log(`event didn't verify.`)
             await dbAction.setEventStatus(event.getId(), "rejected")

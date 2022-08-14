@@ -119,7 +119,7 @@ class TxAgreement {
             console.info(`received tx [${tx.txId}] for event [${tx.eventId}] but event not found`)
             return
         }
-        const event = EventTrigger.fromEntity(eventEntity)
+        const event = EventTrigger.fromConfirmedEntity(eventEntity)
         if (!await EventProcessor.isEventConfirmedEnough(event)) {
             console.info(`received tx [${tx.txId}] for event [${tx.eventId}] but event is not confirmed enough`)
             return

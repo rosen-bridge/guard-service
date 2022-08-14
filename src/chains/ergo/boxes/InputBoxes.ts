@@ -1,15 +1,11 @@
 import { EventTrigger } from "../../../models/Models";
-import { BoxValue, ErgoBox, ErgoBoxCandidate, I64, Tokens, TxId } from "ergo-lib-wasm-nodejs";
-import ErgoUtils from "../helpers/ErgoUtils";
-import ErgoConfigs from "../helpers/ErgoConfigs";
+import { ErgoBox, ErgoBoxCandidate } from "ergo-lib-wasm-nodejs";
 import ExplorerApi from "../network/ExplorerApi";
 import Configs from "../../../helpers/Configs";
 import { JsonBI } from "../../../network/NetworkModels";
 import Utils from "../../../helpers/Utils";
-import { commitmentRepository, eventTriggerRepository } from "../../../jobs/initScanner";
-import Encryption from "../../../helpers/Encryption";
 import { Buffer } from "buffer";
-import { EventTriggerEntity } from "@rosen-bridge/watcher-data-extractor";
+import { dbAction } from "../../../db/DatabaseAction";
 
 class InputBoxes {
 
@@ -17,15 +13,10 @@ class InputBoxes {
      * @param event the event trigger model
      * @return the corresponding box of the event trigger
      */
-    static getEventBox = (event: EventTrigger): ErgoBox => { // TODO: implement this
-        return new ErgoBox(
-            BoxValue.from_i64(I64.from_str("4000000000")),
-            5,
-            ErgoUtils.addressStringToContract(ErgoConfigs.bankAddress),
-            TxId.from_str("0000000000000000000000000000000000000000000000000000000000000000"),
-            0,
-            new Tokens()
-        )
+    static getEventBox = async (event: EventTrigger): Promise<ErgoBox> => {
+        const eventData = (await dbAction.getEventById(event.getId()))?.eventData
+        if (eventData === undefined) throw Error(`event [${event.getId()}] not found`)
+        return ErgoBox.sigma_parse_bytes(Utils.base64StringToUint8Array(eventData.boxSerialized))
     }
 
     /**
@@ -33,19 +24,14 @@ class InputBoxes {
      * @param event the event trigger model
      * @return the valid commitment boxes
      */
-    static getEventValidCommitments = async (event: EventTrigger): ErgoBox[] => {
-        const eventId = Buffer.from(Encryption.blake2bHash(event.sourceTxId)).toString("hex")
-        const eventTrigger: EventTriggerEntity = await eventTriggerRepository.find({
-            where: {
-                sourceTxId: event.sourceTxId,
-            }
-        })
-        const commitments = commitmentRepository.find({
-            where: {
-                eventId: eventId,
-                height: eventTrigger
-            }
-        })
+    static getEventValidCommitments = async (event: EventTrigger): Promise<ErgoBox[]> => {
+        const eventData = (await dbAction.getEventById(event.getId()))?.eventData
+        if (eventData === undefined) throw Error(`event [${event.getId()}] not found`)
+        const eventBoxHeight = eventData.height
+        const commitments = await dbAction.getValidCommitments(event.getId(), eventBoxHeight)
+        return commitments.map(commitment =>
+            ErgoBox.sigma_parse_bytes(Utils.base64StringToUint8Array(commitment.boxSerialized))
+        )
     }
 
     /**

@@ -2,18 +2,15 @@ import { ErgoScanner } from "@rosen-bridge/scanner";
 import ergoConfigs from "../chains/ergo/helpers/ErgoConfigs";
 import { ormDataSource } from "../../config/ormDataSource";
 import {
-    CommitmentEntity,
     CommitmentExtractor,
-    EventTriggerEntity,
     EventTriggerExtractor
 } from "@rosen-bridge/watcher-data-extractor";
-import { Repository } from "typeorm";
+import Configs from "../helpers/Configs";
+import Contracts from "../contracts/Contracts";
 
 let ergoScanner: ErgoScanner
-let commitmentRepository: Repository<CommitmentEntity>
-let eventTriggerRepository: Repository<EventTriggerEntity>
 
-const ergoScannerJob = async () => {
+const ergoScannerJob = () => {
     ergoScanner.update().then(() => setTimeout(ergoScannerJob, ergoConfigs.scannerInterval* 1000))
 }
 
@@ -25,13 +22,16 @@ const initScanner = () => {
         dataSource: ormDataSource,
     }
     ergoScanner = new ErgoScanner(scannerConfig);
-    const commitmentExtractor = new CommitmentExtractor("1", [], "rwt", ormDataSource)
-    const eventTriggerExtractor = new EventTriggerExtractor("1", ormDataSource, "address", "rwt")
-    ergoScanner.registerExtractor(commitmentExtractor)
-    ergoScanner.registerExtractor(eventTriggerExtractor)
-    ergoScanner.blockRepository.find()
-    commitmentRepository = ormDataSource.getRepository(CommitmentEntity)
-    eventTriggerRepository = ormDataSource.getRepository(EventTriggerEntity)
+    const cardanoCommitmentExtractor = new CommitmentExtractor("0", [Contracts.commitmentAddress], Configs.cardanoRWT, ormDataSource)
+    const cardanoEventTriggerExtractor = new EventTriggerExtractor("1", ormDataSource, Contracts.commitmentAddress, Configs.cardanoRWT)
+    const ergoCommitmentExtractor = new CommitmentExtractor("2", [Contracts.commitmentAddress], Configs.ergoRWT, ormDataSource)
+    const ergoEventTriggerExtractor = new EventTriggerExtractor("3", ormDataSource, Contracts.commitmentAddress, Configs.ergoRWT)
+    ergoScanner.registerExtractor(cardanoCommitmentExtractor)
+    ergoScanner.registerExtractor(cardanoEventTriggerExtractor)
+    ergoScanner.registerExtractor(ergoCommitmentExtractor)
+    ergoScanner.registerExtractor(ergoEventTriggerExtractor)
+
+    ergoScannerJob()
 }
 
-export { initScanner, commitmentRepository, eventTriggerRepository }
+export { initScanner }

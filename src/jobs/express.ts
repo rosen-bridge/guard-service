@@ -5,7 +5,7 @@ import Dialer from "../communication/Dialer";
 
 export const initExpress = async () => {
     // start the dialer
-    // await Dialer.getInstance()
+    await Dialer.getInstance()
 
     // run express app
     const app = express();
