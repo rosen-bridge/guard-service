@@ -20,7 +20,7 @@
 // import { anything, spy, when } from "ts-mockito";
 // import ErgoConfigs from "../../../src/chains/ergo/helpers/ErgoConfigs";
 // import sinon from "sinon";
-//
+// // TODO: fix problem caused by MultiSig usage in ErgoChain and uncomment these tests
 // describe("ErgoChain",  () => {
 //     const testBankAddress = TestBoxes.testBankAddress
 //     const testBankErgoTree: string = ErgoUtils.addressStringToErgoTreeString(testBankAddress)
