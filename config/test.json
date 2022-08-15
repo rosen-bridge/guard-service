@@ -9,6 +9,7 @@
             "isTestnet": true
         },
         "bankAddress": "addr_test1qrm4haxxgl55kqzhpp3sda8h979gxd4cast340v0eh0p4qzp3vkcrhjqavv9uzsvq86mglwnwe8xp87q3rv8ve54kasqlf7xgl",
+        "bankPublicKey": "bcb07faa6c0f19e2f2587aa9ef6f43a68fc0135321216a71dc87c8527af4ca6a",
         "txMinimumLovelace": "1517208",
         "txFee": "200000",
         "txTtl": 1000000,

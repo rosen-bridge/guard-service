@@ -39,6 +39,7 @@ class CardanoConfigs {
         isTestnet: config.get<boolean>('cardano.blockFrost.isTestnet')
     }
     static bankAddress = config.get<string>('cardano.bankAddress')
+    static aggregatedPublicKey = config.get<string>('cardano.bankPublicKey')
     static txMinimumLovelace = BigNum.from_str(config.get<string>('cardano.txMinimumLovelace')) // TODO: improve this?
     static txFee = BigNum.from_str(config.get<string>('cardano.txFee')) // TODO: improve this?
     static txTtl = config.get<number>('cardano.txTtl')

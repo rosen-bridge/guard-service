@@ -17,9 +17,6 @@ tssRouter.post("/tssSign",
     body("m")
         .notEmpty().withMessage("key m is required!")
         .isString(),
-    body("pubKey")
-        .notEmpty().withMessage("key pubKey is required!")
-        .isString(),
     async (req: Request, res: Response) => {
         try {
             const errors = validationResult(req);
@@ -28,9 +25,8 @@ tssRouter.post("/tssSign",
             }
             const signedTxHash = req.body.signature
             const txHash = req.body.m
-            const pubKey = req.body.pubKey
             const cardanoChain = new CardanoChain()
-            cardanoChain.signTransaction(txHash, signedTxHash, pubKey).then(signedTx => {
+            cardanoChain.signTransaction(txHash, signedTxHash).then(signedTx => {
                 if (signedTx !== null) cardanoChain.submitTransaction(signedTx)
             })
             res.send({message: "ok"})

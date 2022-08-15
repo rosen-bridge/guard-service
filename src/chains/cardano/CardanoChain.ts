@@ -292,9 +292,8 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
      * signs a cardano transaction
      * @param txId the transaction id
      * @param signedTxHash signed hash of the transaction
-     * @param aggregatedPublicKey aggregated public key returned by tss service
      */
-    signTransaction = async (txId: string, signedTxHash: string, aggregatedPublicKey: string): Promise<CardanoTransaction | null> => {
+    signTransaction = async (txId: string, signedTxHash: string): Promise<CardanoTransaction | null> => {
         // get tx from db
         let tx: Transaction | null = null
         let paymentTx: PaymentTransaction | null = null
@@ -310,7 +309,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
 
         // make vKey witness: 825840 + publicKey + 5840 + signedTxHash
         const vKeyWitness = Vkeywitness.from_bytes(Buffer.from(
-            `825820${aggregatedPublicKey}5840${signedTxHash}`
+            `825820${CardanoConfigs.aggregatedPublicKey}5840${signedTxHash}`
         , "hex"))
 
         const vkeyWitnesses = Vkeywitnesses.new();
