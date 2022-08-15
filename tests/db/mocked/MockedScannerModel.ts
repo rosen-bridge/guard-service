@@ -71,9 +71,9 @@ when(mockedScannerAction.insertConfirmedEvent(anything()))
  */
 const clearTables = async () => {
     await testScannerDataBase.CommitmentRepository.clear()
-    await testScannerDataBase.EventRepository.clear()
     await testScannerDataBase.TransactionRepository.clear()
     await testScannerDataBase.ConfirmedEventRepository.clear()
+    await testScannerDataBase.EventRepository.clear()
 }
 
 /**
@@ -177,16 +177,17 @@ const insertTxRecord = async (paymentTx: PaymentTransaction, type: string, chain
 }
 
 /**
- * inserts a record to Event table in ScannerDatabase
+ * inserts a record to Event table in
+ * @param eventId
  * @param boxSerialized
  * @param height
  */
-const insertCommitmentBoxRecord = async (boxSerialized: string, height: number) => {
+const insertCommitmentBoxRecord = async (eventId: string, boxSerialized: string, height: number) => {
     await testScannerDataBase.CommitmentRepository.createQueryBuilder()
         .insert()
         .values({
             extractor: "extractor",
-            eventId: "eventId",
+            eventId: eventId,
             commitment: "commitment",
             WID: "WID",
             commitmentBoxId: "commitmentBoxId",

@@ -27,7 +27,7 @@ class EventProcessor {
             try {
                 const eventId = Utils.txIdToEventId(event.sourceTxId)
                 const confirmedEvent = await dbAction.getEventById(eventId)
-                if (confirmedEvent !== null && await this.isEventConfirmedEnough(EventTrigger.fromEntity(event))) {
+                if (confirmedEvent === null && await this.isEventConfirmedEnough(EventTrigger.fromEntity(event))) {
                     console.log(`event with txId [${event.sourceTxId}] confirmed. eventId: ${eventId}`)
                     await dbAction.insertConfirmedEvent(event)
                 }

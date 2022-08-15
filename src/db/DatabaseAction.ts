@@ -1,4 +1,4 @@
-import { DataSource, In, IsNull, LessThan, Not, Repository } from "typeorm";
+import { DataSource, In, IsNull, LessThan, Repository } from "typeorm";
 import { ConfirmedEventEntity } from "./entities/ConfirmedEventEntity";
 import { ormDataSource } from "../../config/ormDataSource";
 import { TransactionEntity } from "./entities/TransactionEntity";
@@ -242,14 +242,14 @@ class DatabaseAction {
     /**
      * @param eventId the event trigger id
      * @param eventBoxHeight the event trigger box mined height
-     * @return the event trigger
+     * @return commitments that created before event trigger and didn't spent yet
      */
     getValidCommitments = async (eventId: string, eventBoxHeight: number): Promise<CommitmentEntity[]> => {
         return await this.CommitmentRepository.find({
             where: {
                 eventId: eventId,
                 height: LessThan(eventBoxHeight),
-                spendBlockHash: Not(IsNull())
+                spendBlockHash: IsNull()
             }
         })
     }

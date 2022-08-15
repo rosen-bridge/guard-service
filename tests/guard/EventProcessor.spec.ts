@@ -26,7 +26,11 @@ import MockedErgoChain from "../chains/mocked/MockedErgoChain";
 import ErgoTestBoxes from "../chains/ergo/testUtils/TestBoxes";
 import TestBoxes from "../chains/ergo/testUtils/TestBoxes";
 import ChainsConstants from "../../src/chains/ChainsConstants";
-import { mockRewardGenerateTransaction, resetMockedReward } from "../chains/mocked/MockedReward";
+import {
+    mockRewardGenerateTransaction,
+    resetMockedReward,
+    verifyRewardGenerateTransactionCalledOnce
+} from "../chains/mocked/MockedReward";
 
 describe("EventProcessor", () => {
     const cardanoTestBankAddress = CardanoTestBoxes.testBankAddress
@@ -178,8 +182,8 @@ describe("EventProcessor", () => {
 
         beforeEach("clear db tables", async () => {
             await clearTables()
-            resetMockedEventProcessor()
             resetMockedReward()
+            resetMockedTxAgreement()
         })
 
         /**
@@ -205,7 +209,7 @@ describe("EventProcessor", () => {
             await EventProcessor.processConfirmedEvents()
 
             // verify
-            verifyCreateEventPaymentCalledOnce(mockedEvent)
+            verifyRewardGenerateTransactionCalledOnce(mockedEvent)
             verifyStartAgreementProcessCalledOnce(tx)
         })
 
@@ -224,28 +228,24 @@ describe("EventProcessor", () => {
          *    isEventConfirmedEnough
          *    dbAction
          * Scenario:
-         *    Insert two mocked event box into db
-         *    Mock one of them as confirmed and the other as not confirmed
+         *    Insert a mocked event box into db
+         *    Mock it as not confirmed
          *    Run test
-         *    Expect to see only confirmed event in ConfirmedEvent table of db
+         *    Expect no insertion into table of db
          * Expected Output:
-         *    The function should insert just one event into db
+         *    The function should NOT insert event into db
          */
-        it("should inserts confirmed events into ConfirmedEvent table", async () => {
-            const mockedEvent1 = TestBoxes.mockErgPaymentEventTrigger()
-            const mockedEvent2 = TestBoxes.mockErgPaymentEventTrigger()
-            await insertOnyEventDataRecord(mockedEvent1)
-            mockIsEventConfirmedEnough(mockedEvent1, true)
-            await insertOnyEventDataRecord(mockedEvent2)
-            mockIsEventConfirmedEnough(mockedEvent2, false)
+        it("should NOT inserts not confirmed events into ConfirmedEvent table", async () => {
+            const mockedEvent = TestBoxes.mockErgPaymentEventTrigger()
+            await insertOnyEventDataRecord(mockedEvent)
+            mockIsEventConfirmedEnough(mockedEvent, false)
 
             // run test
             await EventProcessor.processScannedEvents()
 
             // verify
             const dbEvents = await allEventRecords()
-            expect(dbEvents.length).to.equal(1)
-            expect(dbEvents[0].id).to.equal(mockedEvent1.getId())
+            expect(dbEvents.length).to.equal(0)
         })
 
         /**

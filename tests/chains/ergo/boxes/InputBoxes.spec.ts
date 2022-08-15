@@ -60,8 +60,8 @@ describe("InputBoxes", () => {
          */
         it("should return ErgoBox objects of valid commitments successfully", async () => {
             await insertEventRecord(mockedEvent, "", Utils.Uint8ArrayToBase64String(eventBox.sigma_serialize_bytes()), 200)
-            await insertCommitmentBoxRecord(Utils.Uint8ArrayToBase64String(commitmentBoxes[0].sigma_serialize_bytes()), 201)
-            await insertCommitmentBoxRecord(Utils.Uint8ArrayToBase64String(commitmentBoxes[1].sigma_serialize_bytes()), 199)
+            await insertCommitmentBoxRecord(mockedEvent.getId(), Utils.Uint8ArrayToBase64String(commitmentBoxes[0].sigma_serialize_bytes()), 201)
+            await insertCommitmentBoxRecord(mockedEvent.getId(), Utils.Uint8ArrayToBase64String(commitmentBoxes[1].sigma_serialize_bytes()), 199)
 
             // run test
             const result = await InputBoxes.getEventValidCommitments(mockedEvent)
