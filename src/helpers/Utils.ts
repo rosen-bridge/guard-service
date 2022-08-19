@@ -19,7 +19,7 @@ class Utils {
      * @return seconds to the guard next turn (plus 1 second for insurance)
      */
     static secondsToNextTurn = (): number => {
-        const startingTimeStamp = Date.now()
+        const startingTimeStamp = Math.round(Date.now() / 1000)
         const currentTurn = startingTimeStamp % this.FULL_PERIOD
         const guardTurn = this.guardId * this.TURNS_LENGTH + 1 // (plus 1 second for insurance)
 
@@ -34,7 +34,7 @@ class Utils {
      * @return which guard should create in current turn (-1 if it's in gap, i.e. last minute of each guard turn)
      */
     static guardTurn = (): number => {
-        const currentTimeStamp = Date.now()
+        const currentTimeStamp = Math.round(Date.now() / 1000)
         const currentTurn = currentTimeStamp % this.FULL_PERIOD
 
         if (currentTurn % this.TURNS_LENGTH > this.UP_TIME_LENGTH) return -1

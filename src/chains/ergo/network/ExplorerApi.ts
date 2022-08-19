@@ -138,7 +138,7 @@ class ExplorerApi {
      * @param txId, the requested txId
      */
     static getConfirmedTx = (txId: string): Promise<ExplorerTransaction | null> => {
-        return this.explorerApi.get(`/api/v1/transactions/${txId}`).then(res => {
+        return this.explorerApi.get(`/v1/transactions/${txId}`).then(res => {
             return res.data
         }).catch(e => {
             console.warn(`An error occurred while fetching confirmed tx [${txId}] : ${e}`)

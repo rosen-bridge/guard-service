@@ -79,6 +79,10 @@
                 "guardPubKey": "pub guard 0"
             },
             {
+                "guardId": 1,
+                "guardPubKey": "pub guard 1"
+            },
+            {
                 "guardId": 2,
                 "guardPubKey": "pub guard 2"
             },

@@ -18,7 +18,7 @@ class EventProcessor {
     static cardanoChain = new CardanoChain()
     static ergoChain = new ErgoChain()
 
-    /** TODO: implement a job to run this
+    /**
      * process captured events by scanner, insert new confirmed ones to ConfirmedEvents table
      */
     static processScannedEvents = async (): Promise<void> => {

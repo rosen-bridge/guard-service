@@ -10,10 +10,16 @@ import Contracts from "../contracts/Contracts";
 
 let ergoScanner: ErgoScanner
 
+/**
+ * runs ergo block scanner
+ */
 const ergoScannerJob = () => {
-    ergoScanner.update().then(() => setTimeout(ergoScannerJob, ergoConfigs.scannerInterval* 1000))
+    ergoScanner.update().then(() => setTimeout(ergoScannerJob, ergoConfigs.scannerInterval * 1000))
 }
 
+/**
+ * initialize ergo scanner and extractors
+ */
 const initScanner = () => {
     const scannerConfig = {
         nodeUrl: ergoConfigs.node.url,
