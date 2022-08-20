@@ -21,9 +21,9 @@ class Utils {
     static secondsToNextTurn = (): number => {
         const startingTimeStamp = Math.round(Date.now() / 1000)
         const currentTurn = startingTimeStamp % this.FULL_PERIOD
-        const guardTurn = this.guardId * this.TURNS_LENGTH + 1 // (plus 1 second for insurance)
+        const guardTurn = this.guardId * this.TURNS_LENGTH
 
-        return (guardTurn - currentTurn + this.FULL_PERIOD) % this.FULL_PERIOD
+        return (guardTurn - currentTurn + this.FULL_PERIOD) % this.FULL_PERIOD + 1 // (plus 1 second for insurance)
     }
 
     /**
@@ -47,7 +47,7 @@ class Utils {
     static secondsToReset = () => {
         const currentTimeStamp = Math.round(Date.now() / 1000)
         const currentPoint = currentTimeStamp % this.TURNS_LENGTH
-        return (this.UP_TIME_LENGTH - currentPoint + this.TURNS_LENGTH) % this.TURNS_LENGTH
+        return (this.UP_TIME_LENGTH - currentPoint + this.TURNS_LENGTH) % this.TURNS_LENGTH + 1 // (plus 1 second for insurance)
     }
 
     /**
