@@ -61,7 +61,7 @@ class Configs {
     static guardSecret = config.get<string>('guard.secret')
     static guardsLen = config.get<number>('guard.guardsLen')
     static guards = config.get<GuardInfo[]>('guard.guards')
-    static guardsPublicKeys = this.guards.sort(guardsInfoCompareFunction).map(guard => guard.guardPubKey)
+    static guardsPublicKeys = [...this.guards].sort(guardsInfoCompareFunction).map(guard => guard.guardPubKey)
 
     // agreement configs (minimum number of guards that needs to agree with tx to get approved)
     static minimumAgreement = config.get<number>('minimumAgreement') // TODO: get this from config box in blockchain

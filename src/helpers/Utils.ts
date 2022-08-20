@@ -45,7 +45,7 @@ class Utils {
      * @return remaining seconds to current guard turn
      */
     static secondsToReset = () => {
-        const currentTimeStamp = Date.now()
+        const currentTimeStamp = Math.round(Date.now() / 1000)
         const currentPoint = currentTimeStamp % this.TURNS_LENGTH
         return (this.UP_TIME_LENGTH - currentPoint + this.TURNS_LENGTH) % this.TURNS_LENGTH
     }

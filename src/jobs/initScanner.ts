@@ -31,7 +31,7 @@ const initScanner = () => {
     const cardanoCommitmentExtractor = new CommitmentExtractor("0", [Contracts.commitmentAddress], Configs.cardanoRWT, ormDataSource)
     const cardanoEventTriggerExtractor = new EventTriggerExtractor("1", ormDataSource, Contracts.commitmentAddress, Configs.cardanoRWT)
     const ergoCommitmentExtractor = new CommitmentExtractor("2", [Contracts.commitmentAddress], Configs.ergoRWT, ormDataSource)
-    const ergoEventTriggerExtractor = new EventTriggerExtractor("3", ormDataSource, Contracts.commitmentAddress, Configs.ergoRWT)
+    const ergoEventTriggerExtractor = new EventTriggerExtractor("3", ormDataSource, Contracts.eventTriggerAddress, Configs.ergoRWT)
     ergoScanner.registerExtractor(cardanoCommitmentExtractor)
     ergoScanner.registerExtractor(cardanoEventTriggerExtractor)
     ergoScanner.registerExtractor(ergoCommitmentExtractor)
