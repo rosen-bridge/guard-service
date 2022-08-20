@@ -122,6 +122,7 @@ class MultiSigHandler{
      * cleaning unsigned transaction after multiSigTimeout if the transaction still exist in queue
      */
     cleanup = (): void => {
+        console.log(`cleaning unsigned transactions in MultiSig queue`)
         this.semaphore.acquire().then(release => {
             try {
                 for (const [key, transaction] of this.transactions.entries()) {

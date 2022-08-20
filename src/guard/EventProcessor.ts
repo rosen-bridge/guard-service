@@ -22,6 +22,7 @@ class EventProcessor {
      * process captured events by scanner, insert new confirmed ones to ConfirmedEvents table
      */
     static processScannedEvents = async (): Promise<void> => {
+        console.log(`processing scanned events`)
         const rawEvents = await dbAction.getUnspentEvents()
         for (const event of rawEvents) {
             try {
@@ -33,7 +34,7 @@ class EventProcessor {
                 }
             }
             catch (e) {
-                console.log(`An error occurred while processing event [${event.id}]: ${e}`)
+                console.log(`An error occurred while processing event with txId [${event.sourceTxId}]: ${e}`)
             }
         }
     }
@@ -42,6 +43,7 @@ class EventProcessor {
      * processes pending event triggers in the database
      */
     static processConfirmedEvents = async (): Promise<void> => {
+        console.log(`processing confirmed events`)
         const confirmedEvents = await dbAction.getPendingEvents()
         for (const event of confirmedEvents) {
             try {
@@ -82,7 +84,7 @@ class EventProcessor {
      * @param event the event trigger
      */
     static processRewardEvent = async (event: EventTrigger): Promise<void> => {
-        console.log(`processing event [${event.sourceTxId}]`)
+        console.log(`processing event [${event.getId()}]`)
         if (event.toChain === ChainsConstants.ergo)
             throw Error(`Events with Ergo as target chain will distribute rewards in a single transaction with payment`)
 

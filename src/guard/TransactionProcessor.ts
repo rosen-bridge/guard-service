@@ -39,6 +39,7 @@ class TransactionProcessor {
      * processes all transactions in the database
      */
     static processTransactions = async (): Promise<void> => {
+        console.log(`processing transactions`)
         const txs = await dbAction.getActiveTransactions()
 
         for (const tx of txs) {

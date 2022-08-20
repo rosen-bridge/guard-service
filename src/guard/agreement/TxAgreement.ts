@@ -295,6 +295,7 @@ class TxAgreement {
      * iterates over active transaction and resend its request
      */
     resendTransactionRequests = (): void => {
+        console.log(`resending generated transactions for agreement: ${this.transactions.size}`)
         const creatorId = Configs.guardId
         this.transactions.forEach(tx => {
             try {
@@ -311,6 +312,7 @@ class TxAgreement {
      * clears all pending for agreement txs in memory
      */
     clearTransactions = (): void => {
+        console.log(`clearing generated transactions from memory: ${this.transactions.size}`)
         this.transactions.clear()
         this.transactionApprovals.clear()
     }
@@ -319,6 +321,7 @@ class TxAgreement {
      * clears all pending for approval txs in memory and db
      */
     clearAgreedTransactions = async (): Promise<void> => {
+        console.log(`clearing agreed transactions from memory: ${this.transactions.size}`)
         this.transactions.clear()
         this.eventAgreedTransactions.clear()
     }
