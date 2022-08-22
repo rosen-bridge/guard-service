@@ -11,8 +11,9 @@ const startTssInstance = function() {
     exec(tssPath, function(err, data) {
         console.log(err)
         console.log(data.toString());
-        // TODO: Add delay before restarting?
-        startTssInstance()
+
+        // wait 5 seconds to start again
+        setTimeout(startTssInstance, 5000)
     });
     console.log("Tss instance started");
 }
