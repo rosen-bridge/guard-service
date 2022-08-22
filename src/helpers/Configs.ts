@@ -51,6 +51,8 @@ class Configs {
     static guardNFT = config.get<string>('tokens.GuardNFT')
 
     // tss configs
+    static tssExecutionPath = config.get<string>('tss.path')
+    static tssConfigPath = config.get<string>('tss.configPath')
     static tssUrl = config.get<string>('tss.url')
     static tssPort = config.get<string>('tss.port')
     static tssTimeout = config.get<number>('tss.timeout')
