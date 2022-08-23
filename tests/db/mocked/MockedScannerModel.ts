@@ -5,6 +5,7 @@ import { DataSource } from "typeorm";
 import { dbAction, DatabaseAction } from "../../../src/db/DatabaseAction";
 import { EventTrigger, PaymentTransaction } from "../../../src/models/Models";
 import Utils from "../../../src/helpers/Utils";
+import TestUtils from "../../testUtils/TestUtils";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -88,9 +89,9 @@ const insertEventRecord = async (event: EventTrigger, status: string, boxSeriali
         .insert()
         .values({
             extractor: "extractor",
-            boxId: "boxId",
+            boxId: TestUtils.generateRandomId(),
             boxSerialized: boxSerialized,
-            blockId: "blockId",
+            block: "blockId",
             height: height,
             fromChain: event.fromChain,
             toChain: event.toChain,
@@ -131,9 +132,9 @@ const insertOnyEventDataRecord = async (event: EventTrigger, boxSerialized: stri
         .insert()
         .values({
             extractor: "extractor",
-            boxId: "boxId",
+            boxId: TestUtils.generateRandomId(),
             boxSerialized: boxSerialized,
-            blockId: "blockId",
+            block: "blockId",
             height: height,
             fromChain: event.fromChain,
             toChain: event.toChain,
@@ -190,8 +191,8 @@ const insertCommitmentBoxRecord = async (eventId: string, boxSerialized: string,
             eventId: eventId,
             commitment: "commitment",
             WID: "WID",
-            commitmentBoxId: "commitmentBoxId",
-            blockId: "blockId",
+            boxId: TestUtils.generateRandomId(),
+            block: "blockId",
             boxSerialized: boxSerialized,
             height: height
         })

@@ -43,7 +43,7 @@ describe("guard turn methods", () => {
 
         // run test
         const result = Utils.secondsToReset()
-        expect(result).to.equal(89)
+        expect(result).to.equal(90)
 
         // reset mocked Date object
         reset(date)

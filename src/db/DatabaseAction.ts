@@ -249,7 +249,7 @@ class DatabaseAction {
             where: {
                 eventId: eventId,
                 height: LessThan(eventBoxHeight),
-                spendBlockHash: IsNull()
+                spendBlock: IsNull()
             }
         })
     }
