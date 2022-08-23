@@ -116,9 +116,9 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
                 if (multiAssets.get(multiAssetPolicyId)!.len() !== 1) return false
             }
 
-            const paymentAssetUnit: Uint8Array = CardanoUtils.getAssetUnitFromConfigFingerPrintMap(event.targetChainTokenId)
-            const paymentAssetPolicyId: ScriptHash = ScriptHash.from_bytes(paymentAssetUnit.slice(0, 28))
-            const paymentAssetAssetName: AssetName = AssetName.new(paymentAssetUnit.slice(28))
+            const paymentAssetUnit = CardanoUtils.getAssetPolicyAndNameFromConfigFingerPrintMap(event.targetChainTokenId)
+            const paymentAssetPolicyId: ScriptHash = ScriptHash.from_bytes(paymentAssetUnit[0])
+            const paymentAssetAssetName: AssetName = AssetName.new(paymentAssetUnit[1])
             const paymentAssetAmount: BigNum | undefined = paymentBox.amount().multiasset()?.get_asset(paymentAssetPolicyId, paymentAssetAssetName)
 
             return paymentBox.amount().coin().compare(lovelacePaymentAmount) === 0 &&
@@ -195,9 +195,9 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
             .checked_sub(BigNum.from_str(event.bridgeFee))
             .checked_sub(BigNum.from_str(event.networkFee))
 
-        const paymentAssetUnit: Uint8Array = CardanoUtils.getAssetUnitFromConfigFingerPrintMap(event.targetChainTokenId)
-        const paymentAssetPolicyId: ScriptHash = ScriptHash.from_bytes(paymentAssetUnit.slice(0, 28))
-        const paymentAssetAssetName: AssetName = AssetName.new(paymentAssetUnit.slice(28))
+        const paymentAssetUnit = CardanoUtils.getAssetPolicyAndNameFromConfigFingerPrintMap(event.targetChainTokenId)
+        const paymentAssetPolicyId: ScriptHash = ScriptHash.from_bytes(paymentAssetUnit[0])
+        const paymentAssetAssetName: AssetName = AssetName.new(paymentAssetUnit[1])
         const paymentMultiAsset = MultiAsset.new()
         const paymentAssets = Assets.new()
         paymentAssets.insert(paymentAssetAssetName, assetPaymentAmount)
@@ -383,14 +383,16 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
                                 fingerprint: event.sourceChainTokenId
                             })
                         targetTokenId = Configs.tokenMap.getID(eventToken[0], event.toChain)
-                    } catch (e) {
+                    }
+                    catch (e) {
                         console.log(`event [${eventId}] is not valid, tx [${event.sourceTxId}] token or chainId is invalid`)
                         return false
                     }
                     if (event.sourceChainTokenId == ChainsConstants.cardanoNativeAsset) {
                         amount = payment.value
                         tokenCheck = true
-                    } else if (payment.asset_list.length !== 0) {
+                    }
+                    else if (payment.asset_list.length !== 0) {
                         const asset = payment.asset_list[0];
                         const eventAssetPolicyId = eventToken[0][ChainsConstants.cardano]['policyID']
                         const eventAssetId = eventToken[0][ChainsConstants.cardano]['assetID']
@@ -415,11 +417,22 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
                         console.log(`event [${eventId}] has been successfully validated`)
                         return true
                     }
+                    else {
+                        console.log(`event [${eventId}] is not valid, event data does not match with lock tx [${event.sourceTxId}]`)
+                        return false
+                    }
+                }
+                else {
+                    console.log(`event [${eventId}] is not valid, lock tx [${event.sourceTxId}] locked no box`)
+                    return false
                 }
             }
-            console.log(`event [${eventId}] is not valid, payment with tx [${event.sourceTxId}] is not available in network`)
-            return false
-        } catch(e) {
+            else {
+                console.log(`event [${eventId}] is not valid, lock tx [${event.sourceTxId}] is not available in network`)
+                return false
+            }
+        }
+        catch(e) {
             console.log(`event [${eventId}] validation failed with this error: [${e}]`)
             return false
         }

@@ -360,7 +360,8 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
                     let targetTokenId
                     try {
                         targetTokenId = Configs.tokenMap.getID(token[0], event.toChain)
-                    } catch (e) {
+                    }
+                    catch (e) {
                         console.log(`event [${eventId}] is not valid, tx [${event.sourceTxId}] token or chainId is invalid`)
                         return false
                     }
@@ -381,11 +382,22 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
                         console.log(`event [${eventId}] has been successfully validated`)
                         return true
                     }
+                    else {
+                        console.log(`event [${eventId}] is not valid, event data does not match with lock tx [${event.sourceTxId}]`)
+                        return false
+                    }
+                }
+                else {
+                    console.log(`event [${eventId}] is not valid, failed to extract Rosen data from lock tx [${event.sourceTxId}]`)
+                    return false
                 }
             }
-            console.log(`event [${eventId}] is not valid, payment with tx [${event.sourceTxId}] is not available in network`)
-            return false
-        } catch (e) {
+            else {
+                console.log(`event [${eventId}] is not valid, lock tx [${event.sourceTxId}] is not available in network`)
+                return false
+            }
+        }
+        catch (e) {
             console.log(`event [${eventId}] validation failed with this error: [${e}]`)
             return false
         }
