@@ -71,6 +71,7 @@ class Configs {
     static tokenMap = new TokenMap(tokens);
 
     // jobs configs
+    static scannedEventProcessorInterval = 120 // seconds, 2 minutes
     static txProcessorInterval = config.get<number>('txProcessorInterval') // seconds
     static txResendInterval = 30 // seconds
     static multiSigCleanUpInterval = 30 // seconds

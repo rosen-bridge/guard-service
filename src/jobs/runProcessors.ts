@@ -15,19 +15,23 @@ const resendTxJob = () => {
 }
 
 /**
- * runs EventProcessor job to process scanned and confirmed events
+ * runs EventProcessor job to process confirmed events
  */
-const eventProcessorJob = () => {
-    // process scanned events
-    EventProcessor.processScannedEvents().then(() => {
-        // process confirmed events
-        EventProcessor.processConfirmedEvents().then(() => {
-            setTimeout(eventProcessorJob, Utils.secondsToNextTurn() * 1000)
-            setTimeout(resendTxJob, Configs.txResendInterval * 1000)
-        })
+const confirmedEventsJob = () => {
+    // process confirmed events
+    EventProcessor.processConfirmedEvents().then(() => {
+        setTimeout(confirmedEventsJob, Utils.secondsToNextTurn() * 1000)
+        setTimeout(resendTxJob, Configs.txResendInterval * 1000)
     })
     // clear generated transactions when turn is over
     setTimeout(txAgreement.clearTransactions, Utils.UP_TIME_LENGTH * 1000)
+}
+
+/**
+ * runs EventProcessor job to process scanned events
+ */
+const scannedEventsJob = () => {
+    EventProcessor.processScannedEvents().then(() => setTimeout(scannedEventsJob, Configs.scannedEventProcessorInterval * 1000))
 }
 
 /**
@@ -48,7 +52,7 @@ const transactionJob = () => {
  * runs all processors and their related jobs
  */
 const runProcessors = () => {
-    setTimeout(eventProcessorJob, Utils.secondsToNextTurn() * 1000)
+    setTimeout(confirmedEventsJob, Utils.secondsToNextTurn() * 1000)
     setTimeout(resetJob, Utils.secondsToReset() * 1000)
     transactionJob()
 }
