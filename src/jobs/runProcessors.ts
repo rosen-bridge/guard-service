@@ -52,6 +52,7 @@ const transactionJob = () => {
  * runs all processors and their related jobs
  */
 const runProcessors = () => {
+    scannedEventsJob()
     setTimeout(confirmedEventsJob, Utils.secondsToNextTurn() * 1000)
     setTimeout(resetJob, Utils.secondsToReset() * 1000)
     transactionJob()

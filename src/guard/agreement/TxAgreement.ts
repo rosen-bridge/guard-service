@@ -57,7 +57,7 @@ class TxAgreement {
             }
             case "approval": {
                 const approval = message.payload as TransactionApproved
-                const tx = JSON.parse(approval.txJson) as PaymentTransaction
+                const tx = PaymentTransaction.fromJson(approval.txJson)
                 await this.processApprovalMessage(tx, approval.guardsSignatures, sender)
                 break
             }
