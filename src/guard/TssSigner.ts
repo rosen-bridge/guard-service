@@ -1,5 +1,6 @@
 import axios from "axios";
 import Configs from "../helpers/Configs";
+import Utils from "../helpers/Utils";
 
 class TssSigner {
 
@@ -16,8 +17,8 @@ class TssSigner {
      */
     static signTxHash = async (txHash: Uint8Array): Promise<void> => {
         this.tssApi.post("/sign", {
-            "crypto" :"eddsa",
-            "message" : txHash,
+            "crypto" : "eddsa",
+            "message" : Utils.Uint8ArrayToHexString(txHash),
             "callBackUrl": this.tssCallBackUrl
         }).then(res => {
             if (res.status !== 200) throw new Error(`failed to connect to TSS service. Status code: ${res.status}`)

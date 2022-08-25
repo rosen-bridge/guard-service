@@ -59,7 +59,7 @@
     "tss": {
         "path": "./bin/tss.exe",
         "configPath": "./bin/conf/conf.env",
-        "url": "localhost",
+        "url": "http://localhost",
         "port": 9000,
         "timeout": 8000
     },
