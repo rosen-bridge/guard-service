@@ -84,7 +84,7 @@ const clearTables = async () => {
  * @param boxSerialized
  * @param height
  */
-const insertEventRecord = async (event: EventTrigger, status: string, boxSerialized: string = "boxSerialized", height: number = 200) => {
+const insertEventRecord = async (event: EventTrigger, status: string, boxSerialized = "boxSerialized", height = 200) => {
     await testScannerDataBase.EventRepository.createQueryBuilder()
         .insert()
         .values({
@@ -127,7 +127,7 @@ const insertEventRecord = async (event: EventTrigger, status: string, boxSeriali
  * @param boxSerialized
  * @param height
  */
-const insertOnyEventDataRecord = async (event: EventTrigger, boxSerialized: string = "boxSerialized", height: number = 200) => {
+const insertOnyEventDataRecord = async (event: EventTrigger, boxSerialized = "boxSerialized", height = 200) => {
     await testScannerDataBase.EventRepository.createQueryBuilder()
         .insert()
         .values({

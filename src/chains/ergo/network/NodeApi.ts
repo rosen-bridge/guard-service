@@ -16,16 +16,22 @@ class NodeApi {
      * gets blockchain height
      */
     static getHeight = async (): Promise<number> => {
-        return this.nodeClient.get("/info").then(info => info.data.fullHeight)
+        return this.nodeClient.get("/info")
+            .then(info => info.data.fullHeight)
+            .catch(exp => {
+                console.warn(`An error occurred while getting blockchain height: ${exp.response.data}`)
+            })
     }
 
     /**
      * gets 10 last blocks of blockchain
      */
     static getLastBlockHeader = (): Promise<ErgoBlockHeader[]> => {
-        return this.nodeClient.get("/blocks/lastHeaders/10").then(
-            res => res.data
-        )
+        return this.nodeClient.get("/blocks/lastHeaders/10")
+            .then(res => res.data)
+            .catch(exp => {
+                console.warn(`An error occurred while getting last block header: ${exp.response.data}`)
+            })
     }
 
     /**
@@ -45,7 +51,7 @@ class NodeApi {
         return this.nodeClient.post("/transactions", txJson)
             .then(response => response.data)
             .catch(exp => {
-                console.log(`An error occurred while submitting transaction to Node: ${exp.response.data}`)
+                console.warn(`An error occurred while submitting transaction to Node: ${exp.response.data}`)
             })
     }
 
