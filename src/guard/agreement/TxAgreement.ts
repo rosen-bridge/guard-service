@@ -17,6 +17,7 @@ import Utils from "../../helpers/Utils";
 import EventProcessor from "../EventProcessor";
 import { dbAction } from "../../db/DatabaseAction";
 import TransactionProcessor from "../TransactionProcessor";
+import { txJsonParser } from "../../chains/TxJsonParser";
 
 const dialer = await Dialer.getInstance();
 
@@ -46,7 +47,7 @@ class TxAgreement {
         switch (message.type) {
             case "request": {
                 const candidate = message.payload as CandidateTransaction
-                const tx = PaymentTransaction.fromJson(candidate.txJson)
+                const tx = txJsonParser(candidate.txJson)
                 await this.processTransactionRequest(tx, candidate.guardId, candidate.signature, sender)
                 break;
             }
@@ -57,7 +58,7 @@ class TxAgreement {
             }
             case "approval": {
                 const approval = message.payload as TransactionApproved
-                const tx = PaymentTransaction.fromJson(approval.txJson)
+                const tx = txJsonParser(approval.txJson)
                 await this.processApprovalMessage(tx, approval.guardsSignatures, sender)
                 break
             }

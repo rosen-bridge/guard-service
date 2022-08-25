@@ -17,6 +17,7 @@ import Utils from "../helpers/Utils";
 import { EventStatus, PaymentTransaction, TransactionStatus, TransactionTypes } from "../models/Models";
 import BaseChain from "../chains/BaseChains";
 import { Semaphore } from "await-semaphore";
+import { txJsonParser } from "../chains/TxJsonParser";
 
 class TransactionProcessor {
 
@@ -233,7 +234,7 @@ class TransactionProcessor {
     static processApprovedTx = async (tx: TransactionEntity): Promise<void> => {
         await this.signSemaphore.acquire().then(async (release) => {
             try {
-                const paymentTx = PaymentTransaction.fromJson(tx.txJson)
+                const paymentTx = txJsonParser(tx.txJson)
                 await this.getChainObject(tx.chain).requestToSignTransaction(paymentTx)
                 release()
             }
