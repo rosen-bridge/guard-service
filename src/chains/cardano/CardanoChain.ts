@@ -333,6 +333,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
             txId,
             signedPaymentTx.toJson()
         )
+        console.log(`Cardano tx [${txId}] signed successfully`)
 
         return signedPaymentTx
     }

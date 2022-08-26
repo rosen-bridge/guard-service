@@ -328,6 +328,8 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
                     ergoTx.txId,
                     signedPaymentTx.toJson()
                 )
+                console.log(`Ergo tx [${ergoTx.txId}] signed successfully`)
+
             })
             .catch( async (e) => {
                 console.log(`An error occurred while requesting Multisig service to sign Ergo tx: ${e}`)

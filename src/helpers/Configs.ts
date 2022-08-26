@@ -74,7 +74,7 @@ class Configs {
     static scannedEventProcessorInterval = 120 // seconds, 2 minutes
     static txProcessorInterval = config.get<number>('txProcessorInterval') // seconds
     static txResendInterval = 30 // seconds
-    static multiSigCleanUpInterval = 30 // seconds
+    static multiSigCleanUpInterval = 120 // seconds
     static multiSigTimeout = getConfigIntKeyOrDefault('multiSigTimeout', 15 * 60 * 1000) // milliseconds
 }
 
