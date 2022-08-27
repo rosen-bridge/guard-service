@@ -10,7 +10,7 @@ export const tssRouter = Router();
  * @bodyParam {object}
  * @bodyParam {string}
  */
-tssRouter.post("/tssSign",
+tssRouter.post("/sign",
     body("signature")
         .notEmpty().withMessage("key signature is required!")
         .isString(),
