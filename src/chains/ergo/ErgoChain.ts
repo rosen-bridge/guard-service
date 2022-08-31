@@ -25,6 +25,7 @@ import Reward from "./Reward";
 import MultiSigHandler from "../../guard/multisig/MultiSig";
 import Configs from "../../helpers/Configs";
 import Utils from "../../helpers/Utils";
+import { JsonBI } from "../../network/NetworkModels";
 
 class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
 
@@ -55,7 +56,8 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         const outBoxesAssets = ErgoUtils.calculateBoxesAssets(outBoxes)
         const requiredAssets = ErgoUtils.reduceUsedAssets(
             outBoxesAssets,
-            ErgoUtils.calculateBoxesAssets([eventBox, ...commitmentBoxes])
+            ErgoUtils.calculateBoxesAssets([eventBox, ...commitmentBoxes]),
+            true
         )
 
         // get required boxes for transaction input
@@ -66,7 +68,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         )
 
         if (!coveringBoxes.covered)
-            throw Error(`Bank boxes didn't cover required amount of Erg: ${requiredAssets.ergs.toString()}`)
+            throw Error(`Bank boxes didn't cover required assets. Erg: ${(requiredAssets.ergs + ErgoConfigs.minimumErg).toString()}, Tokens: ${JsonBI.stringify(requiredAssets.tokens)}`)
 
         // calculate input boxes and assets
         const inBoxes = [eventBox, ...commitmentBoxes, ...coveringBoxes.boxes]

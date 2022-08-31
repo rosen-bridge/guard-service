@@ -19,6 +19,7 @@ import OutputBoxes from "./boxes/OutputBoxes";
 import ChainsConstants from "../ChainsConstants";
 import Utils from "../../helpers/Utils";
 import BoxVerifications from "./boxes/BoxVerifications";
+import { JsonBI } from "../../network/NetworkModels";
 
 
 class Reward {
@@ -45,7 +46,8 @@ class Reward {
         const outBoxesAssets = ErgoUtils.calculateBoxesAssets(outBoxes)
         const requiredAssets = ErgoUtils.reduceUsedAssets(
             outBoxesAssets,
-            ErgoUtils.calculateBoxesAssets([eventBox, ...commitmentBoxes])
+            ErgoUtils.calculateBoxesAssets([eventBox, ...commitmentBoxes]),
+            true
         )
 
         // get required boxes for transaction input
@@ -56,7 +58,7 @@ class Reward {
         )
 
         if (!coveringBoxes.covered)
-            throw Error(`Bank boxes didn't cover required amount of Erg: ${requiredAssets.ergs.toString()}`)
+            throw Error(`Bank boxes didn't cover required assets. Erg: ${(requiredAssets.ergs + ErgoConfigs.minimumErg).toString()}, Tokens: ${JsonBI.stringify(requiredAssets.tokens)}`)
 
         // calculate input boxes and assets
         const inBoxes = [eventBox, ...commitmentBoxes, ...coveringBoxes.boxes]

@@ -209,15 +209,20 @@ class ErgoUtils {
     }
 
     /**
-     * reduces used assets of a BoxesAssets from another one
+     * reduces used assets of BoxesAssets from another one
      * @param inAssetsOrg
      * @param usedAssets
+     * @param allowMoreErgUsage if true, does not trow exception when Erg amount of usedAssets is more than Erg amount of inAssets
      */
-    static reduceUsedAssets = (inAssetsOrg: BoxesAssets, usedAssets: BoxesAssets): BoxesAssets => {
+    static reduceUsedAssets = (inAssetsOrg: BoxesAssets, usedAssets: BoxesAssets, allowMoreErgUsage = false): BoxesAssets => {
         const inAssets = {...inAssetsOrg, tokens: {...inAssetsOrg.tokens}}
-        const ergs = inAssets.ergs - usedAssets.ergs
-        if (ergs < 0n)
-            throw Error(`not enough Erg in input assets [Current: ${inAssets.ergs}] [Require: ${usedAssets.ergs}]`)
+        let ergs = inAssets.ergs - usedAssets.ergs
+        if (ergs < 0n) {
+            if (allowMoreErgUsage)
+                ergs = 0n
+            else
+                throw Error(`not enough Erg in input assets [Current: ${inAssets.ergs}] [Require: ${usedAssets.ergs}]`)
+        }
         const tokens: AssetMap = inAssets.tokens
 
         Object.keys(usedAssets.tokens).forEach(id => {
