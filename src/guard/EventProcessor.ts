@@ -1,4 +1,4 @@
-import { EventTrigger, PaymentTransaction } from "../models/Models";
+import { EventStatus, EventTrigger, PaymentTransaction } from "../models/Models";
 import BaseChain from "../chains/BaseChains";
 import CardanoChain from "../chains/cardano/CardanoChain";
 import ErgoChain from "../chains/ergo/ErgoChain";
@@ -47,9 +47,9 @@ class EventProcessor {
         const confirmedEvents = await dbAction.getPendingEvents()
         for (const event of confirmedEvents) {
             try {
-                if (event.status === "pending-payment")
+                if (event.status === EventStatus.pendingPayment)
                     await this.processPaymentEvent(EventTrigger.fromConfirmedEntity(event))
-                else if (event.status === "pending-reward")
+                else if (event.status === EventStatus.pendingReward)
                     await this.processRewardEvent(EventTrigger.fromConfirmedEntity(event))
                 else
                     console.warn(`impossible case, received event [${event.id}] with status [${event.status}]`)

@@ -39,7 +39,7 @@ class ExplorerApi {
      * @param tokenId the address ergoTree
      */
     static getBoxesByTokenId = async (tokenId: string): Promise<Boxes> => {
-        return this.explorerApi.get(`/v1/boxes/unspent/byTokenId/${tokenId}`)
+        return this.explorerApi.get<Boxes>(`/v1/boxes/unspent/byTokenId/${tokenId}`)
             .then(res => res.data)
             .catch(e => {
                 console.warn(`An error occurred while getting boxes containing token [${tokenId}]: ${e}`)
@@ -103,7 +103,8 @@ class ExplorerApi {
      */
     static getTxConfirmation = async (txId: string): Promise<number> => {
         try {
-            return this.explorerApi.get(`/v1/transactions/${txId}`).then(res => res.data.numConfirmations);
+            return this.explorerApi.get<{ numConfirmations: number }>(`/v1/transactions/${txId}`)
+                .then(res => res.data.numConfirmations);
         }
         catch (e) {
             console.warn(`An error occurred while getting confirmation for tx [${txId}]: ${e}`)
@@ -142,7 +143,7 @@ class ExplorerApi {
      * @param txId, the requested txId
      */
     static getConfirmedTx = (txId: string): Promise<ExplorerTransaction | null> => {
-        return this.explorerApi.get(`/v1/transactions/${txId}`).then(res => {
+        return this.explorerApi.get<ExplorerTransaction>(`/v1/transactions/${txId}`).then(res => {
             return res.data
         }).catch(e => {
             console.warn(`An error occurred while fetching confirmed tx [${txId}] : ${e}`)

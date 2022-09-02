@@ -28,10 +28,10 @@ const initScanner = () => {
         dataSource: ormDataSource,
     }
     ergoScanner = new ErgoScanner(scannerConfig);
-    const cardanoCommitmentExtractor = new CommitmentExtractor("0", [Contracts.commitmentAddress], Configs.cardanoRWT, ormDataSource)
-    const cardanoEventTriggerExtractor = new EventTriggerExtractor("1", ormDataSource, Contracts.eventTriggerAddress, Configs.cardanoRWT)
-    const ergoCommitmentExtractor = new CommitmentExtractor("2", [Contracts.commitmentAddress], Configs.ergoRWT, ormDataSource)
-    const ergoEventTriggerExtractor = new EventTriggerExtractor("3", ormDataSource, Contracts.eventTriggerAddress, Configs.ergoRWT)
+    const cardanoCommitmentExtractor = new CommitmentExtractor("cardanoCommitment", [Contracts.commitmentAddress], Configs.cardanoRWT, ormDataSource)
+    const cardanoEventTriggerExtractor = new EventTriggerExtractor("cardanoEventTrigger", ormDataSource, Contracts.eventTriggerAddress, Configs.cardanoRWT)
+    const ergoCommitmentExtractor = new CommitmentExtractor("ergoCommitment", [Contracts.commitmentAddress], Configs.ergoRWT, ormDataSource)
+    const ergoEventTriggerExtractor = new EventTriggerExtractor("ergoEventTrigger", ormDataSource, Contracts.eventTriggerAddress, Configs.ergoRWT)
     ergoScanner.registerExtractor(cardanoCommitmentExtractor)
     ergoScanner.registerExtractor(cardanoEventTriggerExtractor)
     ergoScanner.registerExtractor(ergoCommitmentExtractor)
