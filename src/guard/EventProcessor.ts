@@ -1,4 +1,4 @@
-import { EventStatus, EventTrigger, PaymentTransaction } from "../models/Models";
+import { EventStatus, EventTrigger, PaymentTransaction, TransactionTypes } from "../models/Models";
 import BaseChain from "../chains/BaseChains";
 import CardanoChain from "../chains/cardano/CardanoChain";
 import ErgoChain from "../chains/ergo/ErgoChain";
@@ -11,6 +11,7 @@ import { dbAction } from "../db/DatabaseAction";
 import { txAgreement } from "./agreement/TxAgreement";
 import Reward from "../chains/ergo/Reward";
 import Utils from "../helpers/Utils";
+import ErgoTransaction from "../chains/ergo/models/ErgoTransaction";
 
 
 class EventProcessor {
@@ -93,23 +94,26 @@ class EventProcessor {
     }
 
     /**
-     * returns chain object for target chain of the event trigger
-     * @param event the event trigger
+     * returns chain object
+     * @param chain the chain name
      */
-    static getDestinationChainObject = (event: EventTrigger): BaseChain<any, any> => {
-        if (event.toChain === ChainsConstants.cardano) return this.cardanoChain
-        else if (event.toChain === ChainsConstants.ergo) return this.ergoChain
-        else throw new Error(`chain [${event.toChain}] not implemented.`)
+    static getChainObject = (chain: string): BaseChain<any, any> => {
+        if (chain === ChainsConstants.cardano) return this.cardanoChain
+        else if (chain === ChainsConstants.ergo) return this.ergoChain
+        else throw new Error(`chain [${chain}] not implemented.`)
     }
 
     /**
-     * conforms payment transaction with the event trigger data
+     * conforms transaction with the event trigger data
      * @param paymentTx the payment transaction
      * @param event the event trigger
      * @return true if payment transaction verified
      */
     static verifyPaymentTransactionWithEvent = async (paymentTx: PaymentTransaction, event: EventTrigger): Promise<boolean> => {
-        return await this.getDestinationChainObject(event).verifyTransactionWithEvent(paymentTx, event)
+        if (paymentTx.txType === TransactionTypes.payment)
+            return await this.getChainObject(paymentTx.network).verifyTransactionWithEvent(paymentTx, event)
+        else
+            return await Reward.verifyTransactionWithEvent(paymentTx as ErgoTransaction, event)
     }
 
     /**
@@ -131,7 +135,7 @@ class EventProcessor {
      * @return created unsigned transaction
      */
     static createEventPayment = (event: EventTrigger): Promise<PaymentTransaction> => {
-        return this.getDestinationChainObject(event).generateTransaction(event)
+        return this.getChainObject(event.toChain).generateTransaction(event)
     }
 
     /**
