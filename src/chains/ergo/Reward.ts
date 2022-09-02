@@ -116,7 +116,7 @@ class Reward {
             txBytes,
             inBoxes.map(box => box.sigma_serialize_bytes()),
             [guardInfoBox].map(box => box.sigma_serialize_bytes()),
-            TransactionTypes.payment
+            TransactionTypes.reward
         )
 
         console.log(`Payment transaction for event [${eventId}] generated. TxId: ${txId}`)
