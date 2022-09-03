@@ -424,12 +424,12 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
                     }
                 }
                 else {
-                    console.log(`event [${eventId}] is not valid, lock tx [${event.sourceTxId}] locked no box`)
+                    console.log(`event [${eventId}] is not valid, failed to get rosen data from lock tx [${event.sourceTxId}]`)
                     return false
                 }
             }
             else {
-                console.log(`event [${eventId}] is not valid, lock tx [${event.sourceTxId}] is not available in network`)
+                console.log(`event [${eventId}] is not valid, no lock box found in tx [${event.sourceTxId}]`)
                 return false
             }
         }
