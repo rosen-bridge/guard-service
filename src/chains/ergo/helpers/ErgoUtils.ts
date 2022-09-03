@@ -11,8 +11,6 @@ import {
 } from "ergo-lib-wasm-nodejs";
 import { AssetMap, BoxesAssets, ExplorerOutputBox } from "../models/Interfaces";
 import ChainsConstants from "../../ChainsConstants";
-import Configs from "../../../helpers/Configs";
-import ErgoConfigs from "./ErgoConfigs";
 
 class ErgoUtils {
     /**

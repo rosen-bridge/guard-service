@@ -2,7 +2,6 @@ import { anything, reset, spy, verify, when } from "ts-mockito";
 import BlockFrostApi from "../../../../src/chains/cardano/network/BlockFrostApi";
 import TestConfigs from "../../../testUtils/TestConfigs";
 import { Transaction } from "@emurgo/cardano-serialization-lib-nodejs";
-import { PaymentTransaction } from "../../../../src/models/Models";
 import TestBoxes from "../testUtils/TestBoxes";
 import Utils from "../../../../src/helpers/Utils";
 

@@ -118,7 +118,7 @@ class ExplorerApi {
      */
     static isTxInMempool = async (txId: string): Promise<boolean> => {
         return this.explorerApi.get(`/v0/transactions/unconfirmed/${txId}`)
-            .then(_ => true)
+            .then(() => true)
             .catch(e => {
                 console.warn(`An error occurred while checking if tx [${txId}] exists in mempool: ${e}`)
                 return false
