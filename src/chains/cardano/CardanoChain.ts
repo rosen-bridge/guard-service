@@ -108,11 +108,10 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
             const assetPaymentAmount: BigNum = BigNum.from_str(event.amount)
                 .checked_sub(BigNum.from_str(event.bridgeFee))
                 .checked_sub(BigNum.from_str(event.networkFee))
-            const sizeOfMultiAssets: number | undefined = paymentBox.amount().multiasset()?.len()
-            if (sizeOfMultiAssets === undefined || sizeOfMultiAssets !== 1) return false
+            const multiAssets = paymentBox.amount().multiasset()
+            if (multiAssets === undefined || multiAssets.len() !== 1) return false
             else {
-                const multiAssets = paymentBox.amount().multiasset()!
-                const multiAssetPolicyId: ScriptHash = multiAssets.keys().get(0)!
+                const multiAssetPolicyId: ScriptHash = multiAssets.keys().get(0)
                 if (multiAssets.get(multiAssetPolicyId)!.len() !== 1) return false
             }
 

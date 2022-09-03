@@ -11,7 +11,7 @@ import { FloodSub } from '@libp2p/floodsub'
 import { Multiaddr } from '@multiformats/multiaddr'
 import CommunicationConfig from "./CommunicationConfig";
 import { JsonBI } from "../network/NetworkModels"
-import { Connection, Stream } from "@libp2p/interfaces/src/connection";
+import { Connection } from "@libp2p/interfaces/src/connection";
 import {
     ReceiveDataCommunication,
     SendDataCommunication,

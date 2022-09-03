@@ -63,7 +63,7 @@ class InputBoxes {
     static getErgoBoxWID = (box: ErgoBox): Uint8Array => {
         const wid = box.register_value(4)?.to_coll_coll_byte()[0]
         if (wid === undefined) throw new Error(`failed to read WID from register R4 of box [${box.box_id().to_str()}]`)
-        return wid!
+        return wid
     }
 
     /**
@@ -73,7 +73,7 @@ class InputBoxes {
     static getBoxCandidateWIDString = (box: ErgoBoxCandidate): string => {
         const wid = box.register_value(4)?.to_coll_coll_byte()[0]
         if (wid === undefined) throw new Error(`failed to read WID from register R4 of box candidate`)
-        return Buffer.from(wid!).toString("hex")
+        return Buffer.from(wid).toString("hex")
     }
 
     /**

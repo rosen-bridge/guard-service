@@ -222,11 +222,11 @@ describe("CardanoChain", () => {
             // verify signedTx txId
             const signedTx = cardanoChain.deserialize(newCardanoTx.txBytes)
             expect(signedTx).to.not.equal(null)
-            const signedTxId = Utils.Uint8ArrayToHexString(hash_transaction(signedTx!.body()).to_bytes())
+            const signedTxId = Utils.Uint8ArrayToHexString(hash_transaction(signedTx.body()).to_bytes())
             expect(signedTxId).to.equal(cardanoTx.txId)
 
             // verify signedTx signature
-            const vKeyWitness = signedTx!.witness_set().vkeys()?.get(0)
+            const vKeyWitness = signedTx.witness_set().vkeys()?.get(0)
             expect(vKeyWitness).to.not.equal(undefined)
             const vKeyWitnessHex = Utils.Uint8ArrayToHexString(vKeyWitness!.to_bytes())
             expect(vKeyWitnessHex).to.equal(expectedResult)

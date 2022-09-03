@@ -235,7 +235,7 @@ class DatabaseAction {
                 chain: paymentTx.network,
                 status: TransactionStatus.approved,
                 lastCheck: 0,
-                event: event!
+                event: event
             })
     }
 
