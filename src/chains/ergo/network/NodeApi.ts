@@ -19,7 +19,7 @@ class NodeApi {
         return this.nodeClient.get<{ fullHeight: number }>("/info")
             .then(info => info.data.fullHeight)
             .catch(exp => {
-                console.warn(`An error occurred while getting blockchain height: ${exp.response.data}`)
+                console.warn(`An error occurred while getting blockchain height: ${exp}`)
                 throw exp
             })
     }
@@ -31,7 +31,7 @@ class NodeApi {
         return this.nodeClient.get<ErgoBlockHeader[]>("/blocks/lastHeaders/10")
             .then(res => res.data)
             .catch(exp => {
-                console.warn(`An error occurred while getting last block header: ${exp.response.data}`)
+                console.warn(`An error occurred while getting last block header: ${exp}`)
                 throw exp
             })
     }
@@ -53,7 +53,7 @@ class NodeApi {
         return this.nodeClient.post<string>("/transactions", txJson)
             .then(response => response.data)
             .catch(exp => {
-                console.warn(`An error occurred while submitting transaction to Node: ${exp.response.data}`)
+                console.warn(`An error occurred while submitting transaction to Node: ${exp}`)
             })
     }
 
