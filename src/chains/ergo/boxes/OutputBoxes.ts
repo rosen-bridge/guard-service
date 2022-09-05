@@ -3,9 +3,9 @@ import ErgoUtils from "../helpers/ErgoUtils";
 import Configs from "../../../helpers/Configs";
 import NodeApi from "../network/NodeApi";
 import ErgoConfigs from "../helpers/ErgoConfigs";
-import Contracts from "../../../contracts/Contracts";
 import { AssetMap, BoxesAssets } from "../models/Interfaces";
 import { JsonBI } from "../../../network/NetworkModels";
+import { rosenConfig } from "../../../helpers/RosenConfig";
 
 class OutputBoxes {
 
@@ -49,7 +49,7 @@ class OutputBoxes {
         wids: Uint8Array[]
     ): ErgoBoxCandidate[] => {
         const outBoxes: ErgoBoxCandidate[] = []
-        const rsnTokenId = Configs.rsn
+        const rsnTokenId = rosenConfig.RSN
 
         // create watchers boxes
         wids.forEach(wid => outBoxes.push(this.createWatcherRewardBox(
@@ -59,7 +59,7 @@ class OutputBoxes {
             rwtTokenId,
             paymentTokenId,
             watcherTokenAmount,
-            Configs.rsn,
+            rosenConfig.RSN,
             watcherRsnAmount
         )))
 
@@ -109,7 +109,7 @@ class OutputBoxes {
         // create box
         const watcherBox = new ErgoBoxCandidateBuilder(
             ErgoUtils.boxValueFromBigint(ergAmount),
-            Contracts.watcherPermitContract,
+            ErgoConfigs.ergoContractConfig().permitContract,
             height
         )
         // add box tokens

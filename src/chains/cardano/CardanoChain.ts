@@ -20,6 +20,7 @@ import { dbAction } from "../../db/DatabaseAction";
 import Configs from "../../helpers/Configs";
 import { Buffer } from "buffer";
 import Utils from "../../helpers/Utils";
+import { rosenConfig } from "../../helpers/RosenConfig";
 
 
 class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {

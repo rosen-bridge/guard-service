@@ -1,4 +1,6 @@
 import config from "config";
+import { rosenConfig } from "../../../helpers/RosenConfig";
+import ChainsConstants from "../../ChainsConstants";
 
 class ErgoConfigs {
 
@@ -12,7 +14,6 @@ class ErgoConfigs {
         timeout: config.get<number>('ergo.node.timeout')
     }
     static bankAddress = config.get<string>('ergo.bankAddress')
-    static lockAddress = config.get<string>('ergo.lockAddress')
     static minimumErg = BigInt(config.get<string>('ergo.minimumErg'))
     static txFee = BigInt(config.get<string>('ergo.txFee'))
 
@@ -23,6 +24,14 @@ class ErgoConfigs {
 
     static requiredConfirmation = config.get<number>('ergo.requiredConfirmation')
 
+    /**
+     * returns the ergo-related contract, addresses and tokens in rosen bridge
+     */
+    static ergoContractConfig = () => {
+        const contracts = rosenConfig.contracts.get(ChainsConstants.ergo)
+        if(!contracts) throw Error("ergo contracts and token config is not set")
+        return contracts
+    }
 }
 
 export default ErgoConfigs

@@ -6,6 +6,7 @@ import ExplorerApi from "../network/ExplorerApi";
 import Configs from "../../../helpers/Configs";
 import { JsonBI } from "../../../network/NetworkModels";
 import Utils from "../../../helpers/Utils";
+import { rosenConfig } from "../../../helpers/RosenConfig";
 
 class InputBoxes {
 
@@ -79,8 +80,8 @@ class InputBoxes {
      * @return ErgoBox containing guards public keys
      */
     static getGuardsInfoBox = async (): Promise<ErgoBox> => {
-        const boxes = await ExplorerApi.getBoxesByTokenId(Configs.guardNFT)
-        if (boxes.total !== 1) throw Error(`impossible case, found ${boxes.total} boxes containing guardNFT [${Configs.guardNFT}]`)
+        const boxes = await ExplorerApi.getBoxesByTokenId(rosenConfig.guardNFT)
+        if (boxes.total !== 1) throw Error(`impossible case, found ${boxes.total} boxes containing guardNFT [${rosenConfig.guardNFT}]`)
         return ErgoBox.from_json(JsonBI.stringify(boxes.items[0]))
     }
 

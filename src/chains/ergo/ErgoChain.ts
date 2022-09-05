@@ -23,6 +23,7 @@ import ChainsConstants from "../ChainsConstants";
 import Reward from "./Reward";
 import Configs from "../../helpers/Configs";
 import Utils from "../../helpers/Utils";
+import { rosenConfig } from "../../helpers/RosenConfig";
 
 class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
 
@@ -298,8 +299,9 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         try {
             const paymentTx = await ExplorerApi.getConfirmedTx(event.sourceTxId)
             if (paymentTx) {
+                const lockAddress = ErgoConfigs.ergoContractConfig().lockAddress
                 const payment = paymentTx.outputs.filter((box) =>
-                    ErgoConfigs.lockAddress === box.address
+                    lockAddress === box.address
                 ).map(box => ErgoUtils.getRosenData(box, event.sourceChainTokenId)).filter(box => box !== undefined)[0]
                 if (payment) {
                     const token = Configs.tokenMap.search(
