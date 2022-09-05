@@ -22,7 +22,7 @@
         "@libp2p/mplex": "^1.2.1",
         "@libp2p/pubsub-peer-discovery": "^6.0.0",
         "@libp2p/websockets": "^1.0.9",
-        "@rosen-bridge/scanner": "0.1.7-alpha-2",
+        "@rosen-bridge/scanner": "0.1.9-alpha",
         "@rosen-bridge/watcher-data-extractor": "0.1.0-alpha-5",
         "@rosen-bridge/tokens": "^0.1.5",
         "await-semaphore": "^0.1.3",
