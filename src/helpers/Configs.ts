@@ -63,10 +63,14 @@ class Configs {
     static guardSecret = config.get<string>('guard.secret')
     static guardsLen = config.get<number>('guard.guardsLen')
     static guards = config.get<GuardInfo[]>('guard.guards')
+    // TODO: get this from config box in blockchain
+    //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/24
     static guardsPublicKeys = [...this.guards].sort(guardsInfoCompareFunction).map(guard => guard.guardPubKey)
 
     // agreement configs (minimum number of guards that needs to agree with tx to get approved)
-    static minimumAgreement = config.get<number>('minimumAgreement') // TODO: get this from config box in blockchain
+    // TODO: get this from config box in blockchain
+    //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/24
+    static minimumAgreement = config.get<number>('minimumAgreement')
 
     static tokenMap = new TokenMap(tokens);
 
@@ -75,7 +79,7 @@ class Configs {
     static txProcessorInterval = config.get<number>('txProcessorInterval') // seconds
     static txResendInterval = 30 // seconds
     static multiSigCleanUpInterval = 120 // seconds
-    static multiSigTimeout = getConfigIntKeyOrDefault('multiSigTimeout', 15 * 60 * 1000) // milliseconds
+    static multiSigTimeout = getConfigIntKeyOrDefault('multiSigTimeout', 5 * 60) // seconds
 }
 
 export default Configs

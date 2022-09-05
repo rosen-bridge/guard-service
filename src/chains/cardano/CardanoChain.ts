@@ -35,6 +35,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         const txBuilder = TransactionBuilder.new(CardanoConfigs.txBuilderConfig)
 
         // TODO: take amount of boxes needed for tx, not more
+        //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/20
         const bankBoxes = await KoiosApi.getAddressBoxes(CardanoConfigs.bankAddress)
 
         // add input boxes

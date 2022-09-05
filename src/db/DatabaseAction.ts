@@ -254,10 +254,12 @@ class DatabaseAction {
         })
     }
 
-    /** TODO: when extractor is able to capture spent status of events, update query to just get unspent events
+    /**
      * @return all event triggers with no spent block
      */
     getUnspentEvents = async (): Promise<EventTriggerEntity[]> => {
+        // TODO: when extractor is able to capture spent status of events, update this query to just get unspent events
+        //  https://git.ergopool.io/ergo/rosen-bridge/scanner/watcher-data-extractor/-/issues/5
         return await this.EventRepository.find()
     }
 

@@ -1,3 +1,5 @@
+// TODO: fix problem caused by MultiSig usage in ErgoChain and uncomment these tests
+//  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/15
 // import ErgoChain from "../../../src/chains/ergo/ErgoChain";
 // import { EventTrigger } from "../../../src/models/Models";
 // import TestBoxes from "./testUtils/TestBoxes";
@@ -20,7 +22,6 @@
 // import { anything, spy, when } from "ts-mockito";
 // import ErgoConfigs from "../../../src/chains/ergo/helpers/ErgoConfigs";
 // import sinon from "sinon";
-// // TODO: fix problem caused by MultiSig usage in ErgoChain and uncomment these tests
 // describe("ErgoChain",  () => {
 //     const testBankAddress = TestBoxes.testBankAddress
 //     const testBankErgoTree: string = ErgoUtils.addressStringToErgoTreeString(testBankAddress)

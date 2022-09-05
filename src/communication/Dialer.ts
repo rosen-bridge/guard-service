@@ -24,6 +24,7 @@ import fs from "fs";
 
 
 // TODO: Need to write test for This package
+//  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/21
 class Dialer {
     private static instance: Dialer;
 

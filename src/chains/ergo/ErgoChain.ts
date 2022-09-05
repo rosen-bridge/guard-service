@@ -370,6 +370,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
                         return false
                     }
                     // TODO: fix fromAddress when it was fixed in the watcher side
+                    //  https://git.ergopool.io/ergo/rosen-bridge/watcher/-/issues/8
                     const inputAddress = "fromAddress"
                     if (
                         event.fromChain == ChainsConstants.ergo &&

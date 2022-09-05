@@ -312,6 +312,7 @@ class TransactionProcessor {
     static processSignFailedTx = async (tx: TransactionEntity): Promise<void> => {
         if (tx.chain === ChainsConstants.cardano) {
             // TODO: implement this process when TSS has failure response
+            //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/23
             throw new Error(`processSignFailedTx has no implementation for [${tx.chain}] chain.`)
         }
         else if (tx.chain === ChainsConstants.ergo) {

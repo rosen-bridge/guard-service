@@ -114,6 +114,7 @@ class MultiSigHandler{
         const peerId = dialer.getPeerId();
         if (this.peerId !== peerId) {
             // TODO must call all other guards to update peerId
+            //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/22
         }
         return peerId;
     }
@@ -126,7 +127,7 @@ class MultiSigHandler{
         this.semaphore.acquire().then(release => {
             try {
                 for (const [key, transaction] of this.transactions.entries()) {
-                    if (transaction.createTime < new Date().getTime() - Configs.multiSigTimeout) {
+                    if (transaction.createTime < new Date().getTime() - (Configs.multiSigTimeout * 1000)) { // milliseconds
                         if (transaction.reject) {
                             transaction.reject("Timed out")
                         }
