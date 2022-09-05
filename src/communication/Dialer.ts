@@ -181,11 +181,11 @@ class Dialer {
             pubsub: new FloodSub(),
             peerDiscovery: [
                 new Bootstrap({
-                    interval: CommunicationConfig.bootstrapInterval,
+                    interval: CommunicationConfig.bootstrapInterval * 1000,
                     list: [CommunicationConfig.relay]
                 }),
                 new PubSubPeerDiscovery({
-                    interval: CommunicationConfig.pubsubInterval
+                    interval: CommunicationConfig.pubsubInterval * 1000
                 })
             ]
         })

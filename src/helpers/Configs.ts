@@ -55,7 +55,7 @@ class Configs {
     static tssConfigPath = config.get<string>('tss.configPath')
     static tssUrl = config.get<string>('tss.url')
     static tssPort = config.get<string>('tss.port')
-    static tssTimeout = config.get<number>('tss.timeout')
+    static tssTimeout = config.get<number>('tss.timeout') // seconds
     static tssCallBackUrl = `http://localhost:${this.expressPort}/tss/sign`
 
     // guards configs

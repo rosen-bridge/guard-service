@@ -5,11 +5,11 @@ class ErgoConfigs {
     // service configs
     static explorer = {
         url: config.get<string>('ergo.explorer.url'),
-        timeout: config.get<number>('ergo.explorer.timeout')
+        timeout: config.get<number>('ergo.explorer.timeout') // seconds
     }
     static node = {
         url: config.get<string>('ergo.node.url'),
-        timeout: config.get<number>('ergo.node.timeout')
+        timeout: config.get<number>('ergo.node.timeout') // seconds
     }
     static bankAddress = config.get<string>('ergo.bankAddress')
     static lockAddress = config.get<string>('ergo.lockAddress')

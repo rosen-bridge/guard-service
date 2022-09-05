@@ -8,7 +8,7 @@ class NodeApi {
 
     static nodeClient = axios.create({
         baseURL: ErgoConfigs.node.url,
-        timeout: ErgoConfigs.node.timeout,
+        timeout: ErgoConfigs.node.timeout * 1000,
         headers: {"Content-Type": "application/json"}
     });
 

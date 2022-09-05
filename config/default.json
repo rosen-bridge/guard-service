@@ -7,7 +7,7 @@
     "cardano": {
         "koios": {
             "url": "https://testnet.koios.rest/api/v0",
-            "timeout": 8000
+            "timeout": 8
         },
         "blockFrost": {
             "projectId": "change me",
@@ -26,11 +26,11 @@
     "ergo": {
         "explorer": {
             "url": "https://api-testnet.ergoplatform.com/api/v1",
-            "timeout": 8000
+            "timeout": 8
         },
         "node": {
             "url": "",
-            "timeout": 8000
+            "timeout": 8
         },
         "bankAddress": "9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD",
         "minimumErg": "100000",
@@ -61,13 +61,13 @@
         "configPath": "./bin/conf/conf.env",
         "url": "http://localhost",
         "port": 9000,
-        "timeout": 8000
+        "timeout": 8
     },
     "p2p": {
         "address": "change me",
-        "bootstrapInterval": 60e3,
-        "pubsubInterval": 1000,
-        "apiCallbackTimeout": 8000,
+        "bootstrapInterval": 60,
+        "pubsubInterval": 1,
+        "apiCallbackTimeout": 8,
         "peerIdFilePath": "./peer-dialer.json"
     },
     "multiSigTimeout": null,

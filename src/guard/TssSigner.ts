@@ -6,7 +6,7 @@ class TssSigner {
 
     static tssApi = axios.create({
         baseURL: Configs.tssUrl + `:${Configs.tssPort}`,
-        timeout: Configs.tssTimeout
+        timeout: Configs.tssTimeout * 1000
     })
     static tssCallBackUrl = Configs.tssCallBackUrl
 

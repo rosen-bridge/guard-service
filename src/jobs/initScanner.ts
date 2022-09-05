@@ -23,7 +23,7 @@ const ergoScannerJob = () => {
 const initScanner = () => {
     const scannerConfig = {
         nodeUrl: ergoConfigs.node.url,
-        timeout: ergoConfigs.node.timeout,
+        timeout: ergoConfigs.node.timeout * 1000,
         initialHeight: ergoConfigs.initialHeight,
         dataSource: ormDataSource,
     }

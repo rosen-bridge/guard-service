@@ -32,7 +32,7 @@ class CardanoConfigs {
     // service configs
     static koios = {
         url: config.get<string>('cardano.koios.url'),
-        timeout: config.get<number>('cardano.koios.timeout')
+        timeout: config.get<number>('cardano.koios.timeout') // seconds
     }
     static blockFrost = {
         projectId: config.get<string>('cardano.blockFrost.projectId'),

@@ -9,7 +9,7 @@ class ExplorerApi {
 
     static explorerApi = axios.create({
         baseURL: ErgoConfigs.explorer.url,
-        timeout: ErgoConfigs.explorer.timeout
+        timeout: ErgoConfigs.explorer.timeout * 1000
     })
 
     /**

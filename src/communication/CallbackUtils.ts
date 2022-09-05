@@ -12,7 +12,7 @@ const apiCallBack: SubscribeChannelFunction = (msg: string, channel: string, sen
             "sender": sender
         },
         {
-            timeout: CommunicationConfig.apiCallbackTimeout,
+            timeout: CommunicationConfig.apiCallbackTimeout * 1000,
             headers: {
                 "Content-Type": "application/json",
                 "Accept": "application/json"

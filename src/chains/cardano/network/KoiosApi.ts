@@ -7,7 +7,7 @@ class KoiosApi {
 
     static koios = axios.create({
         baseURL: CardanoConfigs.koios.url,
-        timeout: CardanoConfigs.koios.timeout,
+        timeout: CardanoConfigs.koios.timeout * 1000,
         headers: {"Content-Type": "application/json"}
     });
 
