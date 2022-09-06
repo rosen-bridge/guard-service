@@ -20,7 +20,7 @@ import { dbAction } from "../../db/DatabaseAction";
 import Configs from "../../helpers/Configs";
 import { Buffer } from "buffer";
 import Utils from "../../helpers/Utils";
-import { rosenConfig } from "../../helpers/RosenConfig";
+import inputBoxes from "../ergo/boxes/InputBoxes";
 
 
 class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
@@ -365,6 +365,12 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
      */
     verifyEventWithPayment = async (event: EventTrigger): Promise<boolean> => {
         const eventId = Utils.txIdToEventId(event.sourceTxId)
+        // Verifying watcher RWTs
+        const eventBox = await inputBoxes.getEventBox(event)
+        const RWTId = eventBox.tokens().get(0).id().to_str()
+        if(RWTId !== CardanoConfigs.cardanoContractConfig().RWTId) {
+            console.log(`The event [${eventId}] is not valid, event RWT is not compatible with the cardano RWT id`)
+        }
         try {
             const txInfo = (await KoiosApi.getTxInformation([event.sourceTxId]))[0];
             const payment = txInfo.outputs.filter((utxo: Utxo) => {

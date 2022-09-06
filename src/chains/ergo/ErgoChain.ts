@@ -26,6 +26,7 @@ import MultiSigHandler from "../../guard/multisig/MultiSig";
 import Configs from "../../helpers/Configs";
 import Utils from "../../helpers/Utils";
 import { JsonBI } from "../../network/NetworkModels";
+import inputBoxes from "./boxes/InputBoxes";
 
 class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
 
@@ -349,6 +350,12 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
      */
     verifyEventWithPayment = async (event: EventTrigger): Promise<boolean> => {
         const eventId = Utils.txIdToEventId(event.sourceTxId)
+        // Verifying watcher RWTs
+        const eventBox = await inputBoxes.getEventBox(event)
+        const RWTId = eventBox.tokens().get(0).id().to_str()
+        if(RWTId !== ErgoConfigs.ergoContractConfig().RWTId) {
+            console.log(`The event [${eventId}] is not valid, event RWT is not compatible with the ergo RWT id`)
+        }
         try {
             const paymentTx = await ExplorerApi.getConfirmedTx(event.sourceTxId)
             if (paymentTx) {

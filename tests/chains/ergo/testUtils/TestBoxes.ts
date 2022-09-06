@@ -23,6 +23,7 @@ import ChainsConstants from "../../../../src/chains/ChainsConstants";
 import Utils from "../../../../src/helpers/Utils";
 import InputBoxes from "../../../../src/chains/ergo/boxes/InputBoxes";
 import { rosenConfig } from "../../../../src/helpers/RosenConfig";
+import CardanoConfigs from "../../../../src/chains/cardano/helpers/CardanoConfigs";
 
 
 class TestBoxes {
@@ -47,6 +48,52 @@ class TestBoxes {
      * converts an ErgoBox object to Box interface
      */
     static convertErgoBoxToBoxObject = (ergoBox: ErgoBox): Box => JsonBI.parse(ergoBox.to_json())
+
+    /**
+     * Returns a mocked event box for ergo chain
+     */
+    static mockedValidErgTriggerBox = (): ErgoBox => {
+        const wids = Array(5).fill(0).map(() => Buffer.from(TestUtils.generateRandomId(), "hex"))
+        return this.mockErgoBoxWithRegisters(
+            500000n,
+            [
+                {
+                    tokenId: ErgoConfigs.ergoContractConfig().RWTId,
+                    amount: BigInt("5")
+                }
+            ],
+            ErgoConfigs.ergoContractConfig().eventTriggerContract,
+            [
+                {
+                    registerId: 4,
+                    value: Constant.from_coll_coll_byte(wids)
+                }
+            ]
+        )
+    }
+
+    /**
+     * Returns a mocked event box for cardano chain
+     **/
+    static mockedValidCardanoTriggerBox = (): ErgoBox => {
+        const wids = Array(5).fill(0).map(() => Buffer.from(TestUtils.generateRandomId(), "hex"))
+        return this.mockErgoBoxWithRegisters(
+            500000n,
+            [
+                {
+                    tokenId: CardanoConfigs.cardanoContractConfig().RWTId,
+                    amount: BigInt("5")
+                }
+            ],
+            CardanoConfigs.cardanoContractConfig().eventTriggerContract,
+            [
+                {
+                    registerId: 4,
+                    value: Constant.from_coll_coll_byte(wids)
+                }
+            ]
+        )
+    }
 
     /**
      * generates a mocked event trigger for Erg payment in ergo chain

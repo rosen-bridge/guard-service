@@ -22,6 +22,9 @@
 // import { anything, spy, when } from "ts-mockito";
 // import ErgoConfigs from "../../../src/chains/ergo/helpers/ErgoConfigs";
 // import sinon from "sinon";
+// import InputBoxes from "../../../src/chains/ergo/boxes/InputBoxes";
+// import ErgoTestBoxes from "./testUtils/TestBoxes";
+//
 // describe("ErgoChain",  () => {
 //     const testBankAddress = TestBoxes.testBankAddress
 //     const testBankErgoTree: string = ErgoUtils.addressStringToErgoTreeString(testBankAddress)
@@ -352,6 +355,8 @@
 //             mockExplorerGetConfirmedTx(observationTx.id, observationTx)
 //             mockExplorerGetConfirmedTx(nonObservationTx.id, nonObservationTx)
 //             mockExplorerGetConfirmedTx(ergObservationTx.id, ergObservationTx)
+//             const boxes = spy(InputBoxes)
+//             when(boxes.getEventBox(anything())).thenResolve(ErgoTestBoxes.mockedValidErgTriggerBox())
 //         })
 //
 //         /**
@@ -540,6 +545,24 @@
 //         it("should return false when the event can not recovered from tx", async () => {
 //             const mockedEvent: EventTrigger = TestBoxes.mockValidEventTrigger()
 //             sinon.stub(ErgoUtils, "getRosenData").returns(undefined)
+//
+//             // run test
+//             const ergoChain: ErgoChain = new ErgoChain()
+//             const isValid = await ergoChain.verifyEventWithPayment(mockedEvent)
+//             expect(isValid).to.be.false
+//         })
+//
+//         /**
+//          * Target: testing verifyEventWithPayment
+//          * Dependencies:
+//          *    ErgoUtils
+//          * Expected Output:
+//          *    It should NOT verify the event
+//          */
+//         it("should return false when the event can not recovered from tx", async () => {
+//             const mockedEvent: EventTrigger = TestBoxes.mockValidEventTrigger()
+//             const boxes2 = spy(InputBoxes)
+//             when(boxes2.getEventBox(anything())).thenResolve(ErgoTestBoxes.mockedValidCardanoTriggerBox())
 //
 //             // run test
 //             const ergoChain: ErgoChain = new ErgoChain()
