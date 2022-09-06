@@ -187,7 +187,6 @@ describe("CardanoChain", () => {
     })
 
     describe("signTransaction", () => {
-        const aggregatedPublicKey = "bcb07faa6c0f19e2f2587aa9ef6f43a68fc0135321216a71dc87c8527af4ca6a"
 
         beforeEach("clear test sign database Cardano signs table", async () => {
             await clearTables()
@@ -212,7 +211,7 @@ describe("CardanoChain", () => {
             await insertTxRecord(cardanoTx, TransactionTypes.payment, ChainsConstants.cardano, TransactionStatus.inSign, 0, cardanoTx.eventId)
 
             // run test
-            await cardanoChain.signTransaction(cardanoTx.txId, mockedSignTxHash, aggregatedPublicKey)
+            await cardanoChain.signTransaction(cardanoTx.txId, mockedSignTxHash)
 
             // verify db changes
             const dbTxs = await allTxRecords()
@@ -223,11 +222,11 @@ describe("CardanoChain", () => {
             // verify signedTx txId
             const signedTx = cardanoChain.deserialize(newCardanoTx.txBytes)
             expect(signedTx).to.not.equal(null)
-            const signedTxId = Utils.Uint8ArrayToHexString(hash_transaction(signedTx!.body()).to_bytes())
+            const signedTxId = Utils.Uint8ArrayToHexString(hash_transaction(signedTx.body()).to_bytes())
             expect(signedTxId).to.equal(cardanoTx.txId)
 
             // verify signedTx signature
-            const vKeyWitness = signedTx!.witness_set().vkeys()?.get(0)
+            const vKeyWitness = signedTx.witness_set().vkeys()?.get(0)
             expect(vKeyWitness).to.not.equal(undefined)
             const vKeyWitnessHex = Utils.Uint8ArrayToHexString(vKeyWitness!.to_bytes())
             expect(vKeyWitnessHex).to.equal(expectedResult)

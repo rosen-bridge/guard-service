@@ -1,4 +1,4 @@
-import { anything, deepEqual, reset, spy, verify, when } from "ts-mockito";
+import { anything, reset, spy, verify, when } from "ts-mockito";
 import EventProcessor from "../../../src/guard/EventProcessor";
 import { EventTrigger, PaymentTransaction } from "../../../src/models/Models";
 

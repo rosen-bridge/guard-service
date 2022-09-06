@@ -14,6 +14,7 @@ import {
 } from "./mocked/MockedInputBoxes";
 import { anything, spy, when } from "ts-mockito";
 import ErgoConfigs from "../../../src/chains/ergo/helpers/ErgoConfigs";
+import { resetMockedReward } from "../mocked/MockedReward";
 
 describe("Reward", () => {
     const testBankAddress = TestBoxes.testBankAddress
@@ -25,6 +26,7 @@ describe("Reward", () => {
         const eventBoxAndCommitments = TestBoxes.mockEventBoxWithSomeCommitments()
 
         beforeEach("mock ExplorerApi", function() {
+            resetMockedReward()
             resetMockedExplorerApi()
             mockGetCoveringErgAndTokenForErgoTree(testBankErgoTree, bankBoxes)
             resetMockedInputBoxes()
@@ -155,6 +157,7 @@ describe("Reward", () => {
         const eventBoxAndCommitments = TestBoxes.mockEventBoxWithSomeCommitments()
 
         beforeEach("mock ExplorerApi", function() {
+            resetMockedReward()
             resetMockedInputBoxes()
             mockGetEventBox(anything(), eventBoxAndCommitments[0])
             mockGetEventValidCommitments(anything(), eventBoxAndCommitments.slice(1))

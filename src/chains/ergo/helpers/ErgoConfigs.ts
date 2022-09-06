@@ -7,11 +7,11 @@ class ErgoConfigs {
     // service configs
     static explorer = {
         url: config.get<string>('ergo.explorer.url'),
-        timeout: config.get<number>('ergo.explorer.timeout')
+        timeout: config.get<number>('ergo.explorer.timeout') // seconds
     }
     static node = {
         url: config.get<string>('ergo.node.url'),
-        timeout: config.get<number>('ergo.node.timeout')
+        timeout: config.get<number>('ergo.node.timeout') // seconds
     }
     static bankAddress = config.get<string>('ergo.bankAddress')
     static minimumErg = BigInt(config.get<string>('ergo.minimumErg'))
@@ -23,6 +23,9 @@ class ErgoConfigs {
     static watchersRSNSharePercent = BigInt(config.get?.('reward.watchersRSNSharePercent'))
 
     static requiredConfirmation = config.get<number>('ergo.requiredConfirmation')
+    static requiredSigns = config.get<number>('ergo.requiredSigns')
+    static initialHeight = config.get<number>('ergo.initialHeight')
+    static scannerInterval = config.get<number>('ergo.scannerInterval')
 
     /**
      * returns the ergo-related contract, addresses and tokens in rosen bridge

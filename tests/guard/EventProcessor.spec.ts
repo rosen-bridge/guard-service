@@ -10,7 +10,12 @@ import {
     verifyCreateEventPaymentDidntGetCalled
 } from "./mocked/MockedEventProcessor";
 import CardanoTestBoxes from "../chains/cardano/testUtils/TestBoxes";
-import { allEventRecords, clearTables, insertEventRecord } from "../db/mocked/MockedScannerModel";
+import {
+    allEventRecords,
+    clearTables,
+    insertEventRecord,
+    insertOnyEventDataRecord
+} from "../db/mocked/MockedScannerModel";
 import {
     mockStartAgreementProcess,
     resetMockedTxAgreement,
@@ -21,6 +26,11 @@ import MockedErgoChain from "../chains/mocked/MockedErgoChain";
 import ErgoTestBoxes from "../chains/ergo/testUtils/TestBoxes";
 import TestBoxes from "../chains/ergo/testUtils/TestBoxes";
 import ChainsConstants from "../../src/chains/ChainsConstants";
+import {
+    mockRewardGenerateTransaction,
+    resetMockedReward,
+    verifyRewardGenerateTransactionCalledOnce
+} from "../chains/mocked/MockedReward";
 
 describe("EventProcessor", () => {
     const cardanoTestBankAddress = CardanoTestBoxes.testBankAddress
@@ -86,26 +96,7 @@ describe("EventProcessor", () => {
         })
 
         /**
-         * Target: testing processEvent
-         * Dependencies:
-         *    EventProcessor
-         * Expected Output:
-         *    The function should do nothing
-         */
-        it("should do nothing when event is not confirmed enough", async () => {
-            // mock token payment event
-            const mockedEvent: EventTrigger = CardanoTestBoxes.mockAssetPaymentEventTrigger()
-            mockIsEventConfirmedEnough(mockedEvent, false)
-
-            // run test
-            await EventProcessor.processEvent(mockedEvent)
-
-            // verify
-            verifyCreateEventPaymentDidntGetCalled(mockedEvent)
-        })
-
-        /**
-         * Target: testing processEvent
+         * Target: testing processPaymentEvent
          * Dependencies:
          *    EventProcessor
          * Expected Output:
@@ -114,12 +105,11 @@ describe("EventProcessor", () => {
         it("should mark event as rejected when didn't verify on source chain", async () => {
             // mock token payment event
             const mockedEvent: EventTrigger = CardanoTestBoxes.mockAssetPaymentEventTrigger()
-            await insertEventRecord(mockedEvent, "")
-            mockIsEventConfirmedEnough(mockedEvent, true)
+            await insertEventRecord(mockedEvent, "pending-payment")
             mockVerifyEvent(mockedEvent, false)
 
             // run test
-            await EventProcessor.processEvent(mockedEvent)
+            await EventProcessor.processConfirmedEvents()
 
             // verify
             verifyCreateEventPaymentDidntGetCalled(mockedEvent)
@@ -129,7 +119,7 @@ describe("EventProcessor", () => {
         })
 
         /**
-         * Target: testing processEvent
+         * Target: testing processPaymentEvent
          * Dependencies:
          *    EventProcessor
          *    CardanoChain
@@ -141,8 +131,7 @@ describe("EventProcessor", () => {
         it("should create cardano tx for event and send to agreement process", async () => {
             // mock token payment event
             const mockedEvent: EventTrigger = CardanoTestBoxes.mockAssetPaymentEventTrigger()
-            await insertEventRecord(mockedEvent, "")
-            mockIsEventConfirmedEnough(mockedEvent, true)
+            await insertEventRecord(mockedEvent, "pending-payment")
             mockVerifyEvent(mockedEvent, true)
 
             // mock tx
@@ -151,7 +140,7 @@ describe("EventProcessor", () => {
             mockStartAgreementProcess(tx)
 
             // run test
-            await EventProcessor.processEvent(mockedEvent)
+            await EventProcessor.processPaymentEvent(mockedEvent)
 
             // verify
             verifyCreateEventPaymentCalledOnce(mockedEvent)
@@ -159,7 +148,7 @@ describe("EventProcessor", () => {
         })
 
         /**
-         * Target: testing processEvent
+         * Target: testing processPaymentEvent
          * Dependencies:
          *    EventProcessor
          *    ErgoChain
@@ -171,8 +160,7 @@ describe("EventProcessor", () => {
         it("should create ergo tx for event and send to agreement process", async () => {
             // mock token payment event
             const mockedEvent: EventTrigger = ErgoTestBoxes.mockTokenPaymentEventTrigger()
-            await insertEventRecord(mockedEvent, "")
-            mockIsEventConfirmedEnough(mockedEvent, true)
+            await insertEventRecord(mockedEvent, "pending-payment")
             mockVerifyEvent(mockedEvent, true)
 
             // mock tx
@@ -181,11 +169,111 @@ describe("EventProcessor", () => {
             mockStartAgreementProcess(tx)
 
             // run test
-            await EventProcessor.processEvent(mockedEvent)
+            await EventProcessor.processPaymentEvent(mockedEvent)
 
             // verify
             verifyCreateEventPaymentCalledOnce(mockedEvent)
             verifyStartAgreementProcessCalledOnce(tx)
+        })
+
+    })
+
+    describe("processRewardEvent", () => {
+
+        beforeEach("clear db tables", async () => {
+            await clearTables()
+            resetMockedReward()
+            resetMockedTxAgreement()
+        })
+
+        /**
+         * Target: testing processRewardEvent
+         * Dependencies:
+         *    Reward
+         *    txAgreement
+         * Expected Output:
+         *    The function should create tx
+         *    The function should start agreement process
+         */
+        it("should create reward distribution tx for event and send to agreement process", async () => {
+            // mock token payment event
+            const mockedEvent: EventTrigger = ErgoTestBoxes.mockTokenRewardEventTrigger()
+            await insertEventRecord(mockedEvent, "pending-reward")
+
+            // mock tx
+            const tx = ErgoTestBoxes.mockTokenBurningTokenDistributionTransaction(mockedEvent, ergoEventBoxAndCommitments)
+            mockRewardGenerateTransaction(mockedEvent, tx)
+            mockStartAgreementProcess(tx)
+
+            // run test
+            await EventProcessor.processConfirmedEvents()
+
+            // verify
+            verifyRewardGenerateTransactionCalledOnce(mockedEvent)
+            verifyStartAgreementProcessCalledOnce(tx)
+        })
+
+    })
+
+    describe("processScannedEvents", () => {
+
+        beforeEach("clear db tables", async () => {
+            await clearTables()
+            resetMockedEventProcessor()
+        })
+
+        /**
+         * Target: testing processScannedEvents
+         * Dependencies:
+         *    isEventConfirmedEnough
+         *    dbAction
+         * Scenario:
+         *    Insert a mocked event box into db
+         *    Mock it as not confirmed
+         *    Run test
+         *    Expect no insertion into table of db
+         * Expected Output:
+         *    The function should NOT insert event into db
+         */
+        it("should NOT inserts not confirmed events into ConfirmedEvent table", async () => {
+            const mockedEvent = TestBoxes.mockErgPaymentEventTrigger()
+            await insertOnyEventDataRecord(mockedEvent)
+            mockIsEventConfirmedEnough(mockedEvent, false)
+
+            // run test
+            await EventProcessor.processScannedEvents()
+
+            // verify
+            const dbEvents = await allEventRecords()
+            expect(dbEvents.length).to.equal(0)
+        })
+
+        /**
+         * Target: testing processScannedEvents
+         * Dependencies:
+         *    isEventConfirmedEnough
+         *    dbAction
+         * Scenario:
+         *    Insert a mocked event box into db twice
+         *    Mock it as confirmed
+         *    Run test
+         *    Expect to see only confirmed event in ConfirmedEvent table of db
+         * Expected Output:
+         *    The function should insert just one event into db
+         */
+        it("should only inserts one event per sourceTxId into ConfirmedEvent table", async () => {
+            const mockedEvent = TestBoxes.mockErgPaymentEventTrigger()
+            await insertOnyEventDataRecord(mockedEvent)
+            await insertOnyEventDataRecord(mockedEvent)
+            mockIsEventConfirmedEnough(mockedEvent, true)
+
+            // run test
+            await EventProcessor.processScannedEvents()
+
+            // verify
+            const dbEvents = await allEventRecords()
+            expect(dbEvents.length).to.equal(1)
+            expect(dbEvents[0].id).to.equal(mockedEvent.getId())
         })
 
     })

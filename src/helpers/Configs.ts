@@ -4,6 +4,11 @@ import tokens from '../../config/tokens.json' assert { type: "json" };
 import testTokens from '../../config/tokens.test.json' assert { type: "json" };
 import { RosenTokens, TokenMap } from "@rosen-bridge/tokens";
 
+/**
+ * reads a config, set default value if it does not exits
+ * @param key
+ * @param defaultValue
+ */
 const getConfigIntKeyOrDefault = (key: string, defaultValue: number) => {
     const val: string = config.get(key)
     if (val) {
@@ -14,6 +19,17 @@ const getConfigIntKeyOrDefault = (key: string, defaultValue: number) => {
         return valNum
     }
     return defaultValue
+}
+
+/**
+ * compare function for sorting guards public keys based on their indexes
+ * @param a
+ * @param b
+ */
+const guardsInfoCompareFunction = (a: GuardInfo, b: GuardInfo): number => {
+    if (a.guardId < b.guardId) return -1
+    else if (a.guardId > b.guardId) return 1
+    else return 0
 }
 
 class Configs {
@@ -29,7 +45,6 @@ class Configs {
     static MAX_LENGTH_CHANNEL_SIZE = 200
 
     // token configs
-    static multiSigTimeout: number = getConfigIntKeyOrDefault('multiSigTimeout', 15 * 60 * 1000)
     static rsnRatioNFT = config.get<string>('tokens.RSNRatioNFT')
 
     // network and contract config
@@ -37,19 +52,26 @@ class Configs {
     static contractVersion = config.get<string>('contractVersion')
 
     // tss configs
+    static tssExecutionPath = config.get<string>('tss.path')
+    static tssConfigPath = config.get<string>('tss.configPath')
     static tssUrl = config.get<string>('tss.url')
     static tssPort = config.get<string>('tss.port')
-    static tssTimeout = config.get<number>('tss.timeout')
-    static tssCallBackUrl = `localhost:${this.expressPort}/tssSign`
+    static tssTimeout = config.get<number>('tss.timeout') // seconds
+    static tssCallBackUrl = `http://localhost:${this.expressPort}/tss/sign`
 
     // guards configs
     static guardId = config.get<number>('guard.guardId')
     static guardSecret = config.get<string>('guard.secret')
     static guardsLen = config.get<number>('guard.guardsLen')
     static guards = config.get<GuardInfo[]>('guard.guards')
+    // TODO: get this from config box in blockchain
+    //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/24
+    static guardsPublicKeys = [...this.guards].sort(guardsInfoCompareFunction).map(guard => guard.guardPubKey)
 
     // agreement configs (minimum number of guards that needs to agree with tx to get approved)
-    static minimumAgreement = config.get<number>('minimumAgreement') // TODO: get this from config box in blockchain
+    // TODO: get this from config box in blockchain
+    //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/24
+    static minimumAgreement = config.get<number>('minimumAgreement')
 
     static tokenJson = (): RosenTokens => {
         if (process.env.NODE_ENV === undefined || process.env.NODE_ENV !== "test") {
@@ -59,6 +81,13 @@ class Configs {
         }
     }
     static tokenMap = new TokenMap(Configs.tokenJson());
+
+    // jobs configs
+    static scannedEventProcessorInterval = 120 // seconds, 2 minutes
+    static txProcessorInterval = config.get<number>('txProcessorInterval') // seconds
+    static txResendInterval = 30 // seconds
+    static multiSigCleanUpInterval = 120 // seconds
+    static multiSigTimeout = getConfigIntKeyOrDefault('multiSigTimeout', 5 * 60) // seconds
 }
 
 export default Configs

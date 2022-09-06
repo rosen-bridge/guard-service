@@ -13,7 +13,7 @@
   <a name="headers"/>
 
 ## Description
-A guard is a trusted party performing final actions in the system. Actually, a set of trusted guards are needed to transfer money between chains. The guard set is a small set including real parties. Each guard individually verifies the events and performs the required action. However, all (or a quorum of) guards should agree on one event to make the final operation.
+A guard is a well-known party performing final actions in the system. Actually, a set of trusted guards are needed to transfer money between chains. The guard set is a group of well-known entities. Each guard individually verifies the events and performs the required action. However, all (or a quorum of) guards should agree on one event to make the final operation.
 
 ## Components
 Guard-Service composed of these components:

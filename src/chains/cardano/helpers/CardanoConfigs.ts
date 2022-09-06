@@ -32,16 +32,19 @@ class CardanoConfigs {
     // service configs
     static koios = {
         url: config.get<string>('cardano.koios.url'),
-        timeout: config.get<number>('cardano.koios.timeout')
+        timeout: config.get<number>('cardano.koios.timeout') // seconds
     }
     static blockFrost = {
         projectId: config.get<string>('cardano.blockFrost.projectId'),
         isTestnet: config.get<boolean>('cardano.blockFrost.isTestnet')
     }
     static bankAddress = config.get<string>('cardano.bankAddress')
-    static txMinimumLovelace = BigNum.from_str(config.get<string>('cardano.txMinimumLovelace')) // TODO: improve this?
-    static txFee = BigNum.from_str(config.get<string>('cardano.txFee')) // TODO: improve this?
+    static aggregatedPublicKey = config.get<string>('cardano.bankPublicKey')
     static txTtl = config.get<number>('cardano.txTtl')
+    // TODO: improve these two parameters: txMinimumLovelace and txFee
+    //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/19
+    static txMinimumLovelace = BigNum.from_str(config.get<string>('cardano.txMinimumLovelace'))
+    static txFee = BigNum.from_str(config.get<string>('cardano.txFee'))
 
     static assetFingerprintUnitTuples: Map<string, Uint8Array> = new Map([
         ["assetFingerPrint", Buffer.from("assetUnitHexString", "hex")]

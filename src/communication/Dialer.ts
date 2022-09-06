@@ -11,7 +11,7 @@ import { FloodSub } from '@libp2p/floodsub'
 import { Multiaddr } from '@multiformats/multiaddr'
 import CommunicationConfig from "./CommunicationConfig";
 import { JsonBI } from "../network/NetworkModels"
-import { Connection, Stream } from "@libp2p/interfaces/src/connection";
+import { Connection } from "@libp2p/interfaces/src/connection";
 import {
     ReceiveDataCommunication,
     SendDataCommunication,
@@ -24,6 +24,7 @@ import fs from "fs";
 
 
 // TODO: Need to write test for This package
+//  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/21
 class Dialer {
     private static instance: Dialer;
 
@@ -180,11 +181,11 @@ class Dialer {
             pubsub: new FloodSub(),
             peerDiscovery: [
                 new Bootstrap({
-                    interval: CommunicationConfig.bootstrapInterval,
+                    interval: CommunicationConfig.bootstrapInterval * 1000,
                     list: [CommunicationConfig.relay]
                 }),
                 new PubSubPeerDiscovery({
-                    interval: CommunicationConfig.pubsubInterval
+                    interval: CommunicationConfig.pubsubInterval * 1000
                 })
             ]
         })

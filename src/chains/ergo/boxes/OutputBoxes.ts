@@ -1,10 +1,7 @@
-import { Constant, ErgoBox, ErgoBoxCandidate, ErgoBoxCandidateBuilder, TokenId } from "ergo-lib-wasm-nodejs";
+import { Constant, ErgoBoxCandidate, ErgoBoxCandidateBuilder, TokenId } from "ergo-lib-wasm-nodejs";
 import ErgoUtils from "../helpers/ErgoUtils";
-import Configs from "../../../helpers/Configs";
-import NodeApi from "../network/NodeApi";
 import ErgoConfigs from "../helpers/ErgoConfigs";
-import { AssetMap, BoxesAssets } from "../models/Interfaces";
-import { JsonBI } from "../../../network/NetworkModels";
+import { BoxesAssets } from "../models/Interfaces";
 import { rosenConfig } from "../../../helpers/RosenConfig";
 
 class OutputBoxes {
