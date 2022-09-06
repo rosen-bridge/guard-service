@@ -5,6 +5,7 @@ import {
     ErgoBoxAssetsDataList, ErgoBoxCandidate,
     ErgoBoxCandidates,
     ErgoBoxes,
+    Transaction,
     ReducedTransaction,
     TxBuilder,
 } from "ergo-lib-wasm-nodejs";
@@ -21,13 +22,15 @@ import InputBoxes from "./boxes/InputBoxes";
 import OutputBoxes from "./boxes/OutputBoxes";
 import ChainsConstants from "../ChainsConstants";
 import Reward from "./Reward";
+import MultiSigHandler from "../../guard/multisig/MultiSig";
 import Configs from "../../helpers/Configs";
 import Utils from "../../helpers/Utils";
+import { JsonBI } from "../../network/NetworkModels";
 
 class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
 
     bankAddress = Address.from_base58(ErgoConfigs.bankAddress)
-    bankErgoTree = ErgoUtils.addressToErgoTreeString(this.bankAddress)
+    bankErgoTree = ErgoUtils.addressToErgoTreeString(Address.from_base58(ErgoConfigs.bankAddress))
 
     /**
      * generates unsigned transaction of the event from multi-sig address in ergo chain
@@ -39,8 +42,8 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         const currentHeight = await NodeApi.getHeight()
 
         // get eventBox and remaining valid commitments
-        const eventBox: ErgoBox = InputBoxes.getEventBox(event)
-        const commitmentBoxes: ErgoBox[] = InputBoxes.getEventValidCommitments(event)
+        const eventBox: ErgoBox = await InputBoxes.getEventBox(event)
+        const commitmentBoxes: ErgoBox[] = await InputBoxes.getEventValidCommitments(event)
 
         const rsnCoef = await InputBoxes.getRSNRatioCoef(event.targetChainTokenId)
 
@@ -53,7 +56,8 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         const outBoxesAssets = ErgoUtils.calculateBoxesAssets(outBoxes)
         const requiredAssets = ErgoUtils.reduceUsedAssets(
             outBoxesAssets,
-            ErgoUtils.calculateBoxesAssets([eventBox, ...commitmentBoxes])
+            ErgoUtils.calculateBoxesAssets([eventBox, ...commitmentBoxes]),
+            true
         )
 
         // get required boxes for transaction input
@@ -64,7 +68,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         )
 
         if (!coveringBoxes.covered)
-            throw Error(`Bank boxes didn't cover required amount of Erg: ${requiredAssets.ergs.toString()}`)
+            throw Error(`Bank boxes didn't cover required assets. Erg: ${(requiredAssets.ergs + ErgoConfigs.minimumErg).toString()}, Tokens: ${JsonBI.stringify(requiredAssets.tokens)}`)
 
         // calculate input boxes and assets
         const inBoxes = [eventBox, ...commitmentBoxes, ...coveringBoxes.boxes]
@@ -148,8 +152,8 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         const currentHeight = await NodeApi.getHeight()
 
         // get eventBox and remaining valid commitments
-        const eventBox: ErgoBox = InputBoxes.getEventBox(event)
-        const commitmentBoxes: ErgoBox[] = InputBoxes.getEventValidCommitments(event)
+        const eventBox: ErgoBox = await InputBoxes.getEventBox(event)
+        const commitmentBoxes: ErgoBox[] = await InputBoxes.getEventValidCommitments(event)
         const rsnCoef = await InputBoxes.getRSNRatioCoef(event.sourceChainTokenId)
         if (!BoxVerifications.verifyInputs(tx.inputs(), eventBox, commitmentBoxes, paymentTx.inputBoxes)) return false
 
@@ -188,7 +192,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
      * @param tx the transaction model in the chain library
      * @return bytearray representation of the transaction
      */
-    serialize = (tx: ReducedTransaction): Uint8Array => {
+    serialize = (tx: ReducedTransaction | Transaction): Uint8Array => {
         return tx.sigma_serialize_bytes()
     }
 
@@ -202,6 +206,25 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
     }
 
     /**
+     * converts the signed transaction model in the chain to bytearray
+     * @param tx the transaction model in the chain library
+     * @return bytearray representation of the transaction
+     */
+    signedSerialize = (tx: Transaction): Uint8Array => {
+        return tx.sigma_serialize_bytes()
+    }
+
+    /**
+     * converts bytearray representation of the signed transaction to the transaction model in the chain
+     * @param txBytes bytearray representation of the transaction
+     * @return the transaction model in the chain library
+     */
+    signedDeserialize = (txBytes: Uint8Array): Transaction => {
+        return Transaction.sigma_parse_bytes(txBytes)
+    }
+
+    /**
+     * generates unsigned transaction (to pay Erg) payment and reward of the event from multi-sig address in ergo chain
      * generates outputs of payment and reward distribution tx for an Erg-Payment event in ergo chain
      * @param event the event trigger model
      * @param eventBox the event trigger box
@@ -278,11 +301,42 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
      */
     requestToSignTransaction = async (paymentTx: PaymentTransaction): Promise<void> => {
         const tx = this.deserialize(paymentTx.txBytes)
-        try {
-            // TODO: implement this (Integration with Multisig service).
-        } catch (e) {
-            console.log(`An error occurred while requesting Multisig service to sign Ergo tx: ${e.message}`)
-        }
+        const ergoTx = paymentTx as ErgoTransaction
+        const txInputs = ergoTx.inputBoxes.map(boxBytes => ErgoBox.sigma_parse_bytes(boxBytes))
+        const txDataInputs = ergoTx.dataInputs.map(boxBytes => ErgoBox.sigma_parse_bytes(boxBytes))
+
+        // change tx status to inSign
+        await dbAction.setTxStatus(paymentTx.txId, TransactionStatus.inSign)
+
+        // send tx to sign
+        MultiSigHandler.getInstance(
+            Configs.guardsPublicKeys,
+            Configs.guardSecret
+        ).sign(tx, ErgoConfigs.requiredSigns, txInputs, txDataInputs)
+            .then( async (signedTx) => {
+                const inputBoxes = ErgoBoxes.empty()
+                txInputs.forEach(box => inputBoxes.add(box))
+
+                // update database
+                const signedPaymentTx = new ErgoTransaction(
+                    ergoTx.txId,
+                    ergoTx.eventId,
+                    this.signedSerialize(signedTx),
+                    ergoTx.inputBoxes,
+                    ergoTx.dataInputs,
+                    ergoTx.txType
+                )
+                await dbAction.updateWithSignedTx(
+                    ergoTx.txId,
+                    signedPaymentTx.toJson()
+                )
+                console.log(`Ergo tx [${ergoTx.txId}] signed successfully`)
+
+            })
+            .catch( async (e) => {
+                console.log(`An error occurred while requesting Multisig service to sign Ergo tx: ${e}`)
+                await dbAction.setTxStatus(paymentTx.txId, TransactionStatus.signFailed)
+            })
     }
 
     /**
@@ -310,11 +364,13 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
                     let targetTokenId
                     try {
                         targetTokenId = Configs.tokenMap.getID(token[0], event.toChain)
-                    } catch (e) {
+                    }
+                    catch (e) {
                         console.log(`event [${eventId}] is not valid, tx [${event.sourceTxId}] token or chainId is invalid`)
                         return false
                     }
                     // TODO: fix fromAddress when it was fixed in the watcher side
+                    //  https://git.ergopool.io/ergo/rosen-bridge/watcher/-/issues/8
                     const inputAddress = "fromAddress"
                     if (
                         event.fromChain == ChainsConstants.ergo &&
@@ -331,11 +387,22 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
                         console.log(`event [${eventId}] has been successfully validated`)
                         return true
                     }
+                    else {
+                        console.log(`event [${eventId}] is not valid, event data does not match with lock tx [${event.sourceTxId}]`)
+                        return false
+                    }
+                }
+                else {
+                    console.log(`event [${eventId}] is not valid, failed to extract Rosen data from lock tx [${event.sourceTxId}]`)
+                    return false
                 }
             }
-            console.log(`event [${eventId}] is not valid, payment with tx [${event.sourceTxId}] is not available in network`)
-            return false
-        } catch (e) {
+            else {
+                console.log(`event [${eventId}] is not valid, lock tx [${event.sourceTxId}] is not available in network`)
+                return false
+            }
+        }
+        catch (e) {
             console.log(`event [${eventId}] validation failed with this error: [${e}]`)
             return false
         }
@@ -346,10 +413,10 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
      * @param paymentTx the payment transaction
      */
     submitTransaction = async (paymentTx: PaymentTransaction): Promise<void> => {
-        const tx = this.deserialize(paymentTx.txBytes)
+        const tx = this.signedDeserialize(paymentTx.txBytes)
         try {
             await dbAction.setTxStatus(paymentTx.txId, TransactionStatus.sent)
-            const response = await NodeApi.sendTx(tx.unsigned_tx().to_json())
+            const response = await NodeApi.sendTx(tx.to_json())
             console.log(`Cardano Transaction submitted. txId: ${response}`)
         } catch (e) {
             console.log(`An error occurred while submitting Ergo transaction: ${e.message}`)

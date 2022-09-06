@@ -41,6 +41,7 @@ describe("Dialer", () => {
      *    The function should return peerID (peerIdFile don't exist) and called fs.writeFile() file
      *
      * TODO: There is a problem in ts-mockito for mock or verify single method such as `createEd25519PeerId` and verifying called fs.writeFile() need to rewrite this test with other packages
+     *  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/21
      */
     // it("should call return PeerId when peerIdFile don't exist", async () => {
     //     // mock existsSync of fs in getOrCreatePeerID of Dialer

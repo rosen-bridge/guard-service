@@ -334,8 +334,8 @@ class TestBoxes {
                     quantity: "100"
                 },
                 {
-                    policy_id: "7eae28af2208be856f7a119668ae52a49b73725e326dc16579dcc37e",
-                    asset_name: "",
+                    policy_id: "ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2",
+                    asset_name: "7369676d61",
                     quantity: "50"
                 }
             ]
@@ -347,8 +347,8 @@ class TestBoxes {
             value: this.adaToLovelaceString(100),
             asset_list: [
                 {
-                    policy_id: "7eae28af2208be856f7a119668ae52a49b73725e326dc16579dcc37e",
-                    asset_name: "",
+                    policy_id: "ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2",
+                    asset_name: "7369676d61",
                     quantity: "45"
                 }
             ]
@@ -462,9 +462,9 @@ class TestBoxes {
             .checked_sub(BigNum.from_str(event.bridgeFee))
             .checked_sub(BigNum.from_str(event.networkFee))
 
-        const paymentAssetUnit: Uint8Array = CardanoUtils.getAssetUnitFromConfigFingerPrintMap(event.targetChainTokenId)
-        const paymentAssetPolicyId: ScriptHash = ScriptHash.from_bytes(paymentAssetUnit.slice(0, 28))
-        const paymentAssetAssetName: AssetName = AssetName.new(paymentAssetUnit.slice(28))
+        const paymentAssetUnit = CardanoUtils.getAssetPolicyAndNameFromConfigFingerPrintMap(event.targetChainTokenId)
+        const paymentAssetPolicyId: ScriptHash = ScriptHash.from_bytes(paymentAssetUnit[0])
+        const paymentAssetAssetName: AssetName = AssetName.new(paymentAssetUnit[1])
         const illegalAssetAssetName: AssetName = AssetName.new(Buffer.from("7369676d61", "hex"))
         const paymentMultiAsset = MultiAsset.new()
         const paymentAssets = Assets.new()
@@ -500,10 +500,10 @@ class TestBoxes {
             .checked_sub(BigNum.from_str(event.bridgeFee))
             .checked_sub(BigNum.from_str(event.networkFee))
 
-        const paymentAssetUnit: Uint8Array = CardanoUtils.getAssetUnitFromConfigFingerPrintMap(event.targetChainTokenId)
+        const paymentAssetUnit = CardanoUtils.getAssetPolicyAndNameFromConfigFingerPrintMap(event.targetChainTokenId)
+        const paymentAssetPolicyId: ScriptHash = ScriptHash.from_bytes(paymentAssetUnit[0])
+        const paymentAssetAssetName: AssetName = AssetName.new(paymentAssetUnit[1])
         const illegalAssetUnit: Uint8Array = Buffer.from(TestUtils.generateRandomId(), "hex")
-        const paymentAssetPolicyId: ScriptHash = ScriptHash.from_bytes(paymentAssetUnit.slice(0, 28))
-        const paymentAssetAssetName: AssetName = AssetName.new(paymentAssetUnit.slice(28))
         const illegalAssetPolicyId: ScriptHash = ScriptHash.from_bytes(illegalAssetUnit.slice(0, 28))
         const illegalAssetAssetName: AssetName = AssetName.new(illegalAssetUnit.slice(28))
         const paymentMultiAsset = MultiAsset.new()

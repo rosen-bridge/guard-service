@@ -1,4 +1,4 @@
-import { EventTrigger, PaymentTransaction } from "../models/Models";
+import { EventStatus, EventTrigger, PaymentTransaction, TransactionTypes } from "../models/Models";
 import BaseChain from "../chains/BaseChains";
 import CardanoChain from "../chains/cardano/CardanoChain";
 import ErgoChain from "../chains/ergo/ErgoChain";
@@ -9,6 +9,9 @@ import ExplorerApi from "../chains/ergo/network/ExplorerApi";
 import ErgoConfigs from "../chains/ergo/helpers/ErgoConfigs";
 import { dbAction } from "../db/DatabaseAction";
 import { txAgreement } from "./agreement/TxAgreement";
+import Reward from "../chains/ergo/Reward";
+import Utils from "../helpers/Utils";
+import ErgoTransaction from "../chains/ergo/models/ErgoTransaction";
 
 
 class EventProcessor {
@@ -17,14 +20,40 @@ class EventProcessor {
     static ergoChain = new ErgoChain()
 
     /**
-     * processes all trigger events in the database
+     * process captured events by scanner, insert new confirmed ones to ConfirmedEvents table
      */
-    static processEvents = async (): Promise<void> => {
-        const events = await dbAction.getEventsByStatus("")
-
-        for (const event of events) {
+    static processScannedEvents = async (): Promise<void> => {
+        console.log(`processing scanned events`)
+        const rawEvents = await dbAction.getUnspentEvents()
+        for (const event of rawEvents) {
             try {
-                await this.processEvent(EventTrigger.fromEntity(event))
+                const eventId = Utils.txIdToEventId(event.sourceTxId)
+                const confirmedEvent = await dbAction.getEventById(eventId)
+                if (confirmedEvent === null && await this.isEventConfirmedEnough(EventTrigger.fromEntity(event))) {
+                    console.log(`event with txId [${event.sourceTxId}] confirmed. eventId: ${eventId}`)
+                    await dbAction.insertConfirmedEvent(event)
+                }
+            }
+            catch (e) {
+                console.log(`An error occurred while processing event with txId [${event.sourceTxId}]: ${e}`)
+            }
+        }
+    }
+
+    /**
+     * processes pending event triggers in the database
+     */
+    static processConfirmedEvents = async (): Promise<void> => {
+        console.log(`processing confirmed events`)
+        const confirmedEvents = await dbAction.getPendingEvents()
+        for (const event of confirmedEvents) {
+            try {
+                if (event.status === EventStatus.pendingPayment)
+                    await this.processPaymentEvent(EventTrigger.fromConfirmedEntity(event))
+                else if (event.status === EventStatus.pendingReward)
+                    await this.processRewardEvent(EventTrigger.fromConfirmedEntity(event))
+                else
+                    console.warn(`impossible case, received event [${event.id}] with status [${event.status}]`)
             }
             catch (e) {
                 console.log(`An error occurred while processing event [${event.id}]: ${e}`)
@@ -33,17 +62,14 @@ class EventProcessor {
     }
 
     /**
-     * processes the trigger event
-     *  1. verify that event confirmed enough in source chain
-     *  2. verify event data with lock tx in source chain
-     *  3. create transaction
-     *  4. start agreement process on transaction
-     * @param event the trigger event
+     * processes the event trigger to create payment transaction
+     *  1. verify event data with lock tx in source chain
+     *  2. create transaction
+     *  3. start agreement process on transaction
+     * @param event the event trigger
      */
-    static processEvent = async (event: EventTrigger): Promise<void> => {
+    static processPaymentEvent = async (event: EventTrigger): Promise<void> => {
         console.log(`processing event [${event.getId()}]`)
-        if (!await this.isEventConfirmedEnough(event)) return
-
         if (!await this.verifyEvent(event)) {
             console.log(`event didn't verify.`)
             await dbAction.setEventStatus(event.getId(), "rejected")
@@ -55,23 +81,39 @@ class EventProcessor {
     }
 
     /**
-     * returns chain object for target chain of the event trigger
+     * processes the event trigger to create reward distribution transaction
      * @param event the event trigger
      */
-    static getDestinationChainObject = (event: EventTrigger): BaseChain<any, any> => {
-        if (event.toChain === ChainsConstants.cardano) return this.cardanoChain
-        else if (event.toChain === ChainsConstants.ergo) return this.ergoChain
-        else throw new Error(`chain [${event.toChain}] not implemented.`)
+    static processRewardEvent = async (event: EventTrigger): Promise<void> => {
+        console.log(`processing event [${event.getId()}]`)
+        if (event.toChain === ChainsConstants.ergo)
+            throw Error(`Events with Ergo as target chain will distribute rewards in a single transaction with payment`)
+
+        const tx = await Reward.generateTransaction(event)
+        txAgreement.startAgreementProcess(tx)
     }
 
     /**
-     * conforms payment transaction with the event trigger data
+     * returns chain object
+     * @param chain the chain name
+     */
+    static getChainObject = (chain: string): BaseChain<any, any> => {
+        if (chain === ChainsConstants.cardano) return this.cardanoChain
+        else if (chain === ChainsConstants.ergo) return this.ergoChain
+        else throw new Error(`chain [${chain}] not implemented.`)
+    }
+
+    /**
+     * conforms transaction with the event trigger data
      * @param paymentTx the payment transaction
      * @param event the event trigger
      * @return true if payment transaction verified
      */
     static verifyPaymentTransactionWithEvent = async (paymentTx: PaymentTransaction, event: EventTrigger): Promise<boolean> => {
-        return await this.getDestinationChainObject(event).verifyTransactionWithEvent(paymentTx, event)
+        if (paymentTx.txType === TransactionTypes.payment)
+            return await this.getChainObject(paymentTx.network).verifyTransactionWithEvent(paymentTx, event)
+        else
+            return await Reward.verifyTransactionWithEvent(paymentTx as ErgoTransaction, event)
     }
 
     /**
@@ -93,7 +135,7 @@ class EventProcessor {
      * @return created unsigned transaction
      */
     static createEventPayment = (event: EventTrigger): Promise<PaymentTransaction> => {
-        return this.getDestinationChainObject(event).generateTransaction(event)
+        return this.getChainObject(event.toChain).generateTransaction(event)
     }
 
     /**
@@ -103,8 +145,7 @@ class EventProcessor {
     static isEventConfirmedEnough = async (event: EventTrigger): Promise<boolean> => {
         if (event.fromChain === ChainsConstants.cardano) {
             const confirmation = await KoiosApi.getTxConfirmation(event.sourceTxId)
-            if (confirmation === null) return false
-            return confirmation >= CardanoConfigs.requiredConfirmation
+            return (confirmation !== null && confirmation >= CardanoConfigs.requiredConfirmation)
         }
         else if (event.fromChain === ChainsConstants.ergo) {
             const confirmation = await ExplorerApi.getTxConfirmation(event.sourceTxId)

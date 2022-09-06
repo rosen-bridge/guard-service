@@ -1,4 +1,4 @@
-import { anything, deepEqual, reset, resetCalls, spy, verify, when } from "ts-mockito";
+import { anything, deepEqual, resetCalls, spy, verify, when } from "ts-mockito";
 import { EventTrigger, PaymentTransaction } from "../../../src/models/Models";
 import ErgoChain from "../../../src/chains/ergo/ErgoChain";
 import ErgoTransaction from "../../../src/chains/ergo/models/ErgoTransaction";

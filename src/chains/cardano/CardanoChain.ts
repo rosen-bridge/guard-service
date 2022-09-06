@@ -35,6 +35,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         const txBuilder = TransactionBuilder.new(CardanoConfigs.txBuilderConfig)
 
         // TODO: take amount of boxes needed for tx, not more
+        //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/20
         const bankBoxes = await KoiosApi.getAddressBoxes(CardanoConfigs.bankAddress)
 
         // add input boxes
@@ -108,17 +109,16 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
             const assetPaymentAmount: BigNum = BigNum.from_str(event.amount)
                 .checked_sub(BigNum.from_str(event.bridgeFee))
                 .checked_sub(BigNum.from_str(event.networkFee))
-            const sizeOfMultiAssets: number | undefined = paymentBox.amount().multiasset()?.len()
-            if (sizeOfMultiAssets === undefined || sizeOfMultiAssets !== 1) return false
+            const multiAssets = paymentBox.amount().multiasset()
+            if (multiAssets === undefined || multiAssets.len() !== 1) return false
             else {
-                const multiAssets = paymentBox.amount().multiasset()!
-                const multiAssetPolicyId: ScriptHash = multiAssets.keys().get(0)!
+                const multiAssetPolicyId: ScriptHash = multiAssets.keys().get(0)
                 if (multiAssets.get(multiAssetPolicyId)!.len() !== 1) return false
             }
 
-            const paymentAssetUnit: Uint8Array = CardanoUtils.getAssetUnitFromConfigFingerPrintMap(event.targetChainTokenId)
-            const paymentAssetPolicyId: ScriptHash = ScriptHash.from_bytes(paymentAssetUnit.slice(0, 28))
-            const paymentAssetAssetName: AssetName = AssetName.new(paymentAssetUnit.slice(28))
+            const paymentAssetUnit = CardanoUtils.getAssetPolicyAndNameFromConfigFingerPrintMap(event.targetChainTokenId)
+            const paymentAssetPolicyId: ScriptHash = ScriptHash.from_bytes(paymentAssetUnit[0])
+            const paymentAssetAssetName: AssetName = AssetName.new(paymentAssetUnit[1])
             const paymentAssetAmount: BigNum | undefined = paymentBox.amount().multiasset()?.get_asset(paymentAssetPolicyId, paymentAssetAssetName)
 
             return paymentBox.amount().coin().compare(lovelacePaymentAmount) === 0 &&
@@ -195,9 +195,9 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
             .checked_sub(BigNum.from_str(event.bridgeFee))
             .checked_sub(BigNum.from_str(event.networkFee))
 
-        const paymentAssetUnit: Uint8Array = CardanoUtils.getAssetUnitFromConfigFingerPrintMap(event.targetChainTokenId)
-        const paymentAssetPolicyId: ScriptHash = ScriptHash.from_bytes(paymentAssetUnit.slice(0, 28))
-        const paymentAssetAssetName: AssetName = AssetName.new(paymentAssetUnit.slice(28))
+        const paymentAssetUnit = CardanoUtils.getAssetPolicyAndNameFromConfigFingerPrintMap(event.targetChainTokenId)
+        const paymentAssetPolicyId: ScriptHash = ScriptHash.from_bytes(paymentAssetUnit[0])
+        const paymentAssetAssetName: AssetName = AssetName.new(paymentAssetUnit[1])
         const paymentMultiAsset = MultiAsset.new()
         const paymentAssets = Assets.new()
         paymentAssets.insert(paymentAssetAssetName, assetPaymentAmount)
@@ -276,11 +276,11 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
     requestToSignTransaction = async (paymentTx: PaymentTransaction): Promise<void> => {
         const tx = this.deserialize(paymentTx.txBytes)
         try {
-            // insert request into db
-            const txHash = hash_transaction(tx.body()).to_bytes()
+            // change tx status to inSign
             await dbAction.setTxStatus(paymentTx.txId, TransactionStatus.inSign)
 
             // send tx to sign
+            const txHash = hash_transaction(tx.body()).to_bytes()
             await TssSigner.signTxHash(txHash)
         }
         catch (e) {
@@ -292,9 +292,8 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
      * signs a cardano transaction
      * @param txId the transaction id
      * @param signedTxHash signed hash of the transaction
-     * @param aggregatedPublicKey aggregated public key returned by tss service
      */
-    signTransaction = async (txId: string, signedTxHash: string, aggregatedPublicKey: string): Promise<CardanoTransaction | null> => {
+    signTransaction = async (txId: string, signedTxHash: string): Promise<CardanoTransaction | null> => {
         // get tx from db
         let tx: Transaction | null = null
         let paymentTx: PaymentTransaction | null = null
@@ -310,7 +309,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
 
         // make vKey witness: 825840 + publicKey + 5840 + signedTxHash
         const vKeyWitness = Vkeywitness.from_bytes(Buffer.from(
-            `825820${aggregatedPublicKey}5840${signedTxHash}`
+            `825820${CardanoConfigs.aggregatedPublicKey}5840${signedTxHash}`
         , "hex"))
 
         const vkeyWitnesses = Vkeywitnesses.new();
@@ -334,6 +333,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
             txId,
             signedPaymentTx.toJson()
         )
+        console.log(`Cardano tx [${txId}] signed successfully`)
 
         return signedPaymentTx
     }
@@ -384,14 +384,16 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
                                 fingerprint: event.sourceChainTokenId
                             })
                         targetTokenId = Configs.tokenMap.getID(eventToken[0], event.toChain)
-                    } catch (e) {
+                    }
+                    catch (e) {
                         console.log(`event [${eventId}] is not valid, tx [${event.sourceTxId}] token or chainId is invalid`)
                         return false
                     }
                     if (event.sourceChainTokenId == ChainsConstants.cardanoNativeAsset) {
                         amount = payment.value
                         tokenCheck = true
-                    } else if (payment.asset_list.length !== 0) {
+                    }
+                    else if (payment.asset_list.length !== 0) {
                         const asset = payment.asset_list[0];
                         const eventAssetPolicyId = eventToken[0][ChainsConstants.cardano]['policyID']
                         const eventAssetId = eventToken[0][ChainsConstants.cardano]['assetID']
@@ -416,11 +418,22 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
                         console.log(`event [${eventId}] has been successfully validated`)
                         return true
                     }
+                    else {
+                        console.log(`event [${eventId}] is not valid, event data does not match with lock tx [${event.sourceTxId}]`)
+                        return false
+                    }
+                }
+                else {
+                    console.log(`event [${eventId}] is not valid, failed to get rosen data from lock tx [${event.sourceTxId}]`)
+                    return false
                 }
             }
-            console.log(`event [${eventId}] is not valid, payment with tx [${event.sourceTxId}] is not available in network`)
-            return false
-        } catch(e) {
+            else {
+                console.log(`event [${eventId}] is not valid, no lock box found in tx [${event.sourceTxId}]`)
+                return false
+            }
+        }
+        catch(e) {
             console.log(`event [${eventId}] validation failed with this error: [${e}]`)
             return false
         }

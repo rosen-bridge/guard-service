@@ -1,4 +1,4 @@
-import { MultiSigHandler } from "../../../src/guard/multisig/MultiSig";
+import MultiSigHandler from "../../../src/guard/multisig/MultiSig";
 import { expect } from "chai";
 import sinon from 'sinon';
 import {
@@ -67,7 +67,7 @@ describe("MultiSigHandler", () => {
          */
         it("should runs with no error", () => {
             const handler = new MultiSigHandler(publicKeys, "5bc1d17d0612e696a9138ab8e85ca2a02d0171440ec128a9ad557c28bd5ea046")
-            const wallet = handler.getProver();
+            handler.getProver();
         })
     })
 

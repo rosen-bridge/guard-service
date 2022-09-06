@@ -7,13 +7,14 @@
     "cardano": {
         "koios": {
             "url": "https://testnet.koios.rest/api/v0",
-            "timeout": 8000
+            "timeout": 8
         },
         "blockFrost": {
             "projectId": "change me",
             "isTestnet": true
         },
         "bankAddress": "addr_test1qrm4haxxgl55kqzhpp3sda8h979gxd4cast340v0eh0p4qzp3vkcrhjqavv9uzsvq86mglwnwe8xp87q3rv8ve54kasqlf7xgl",
+        "bankPublicKey": "4444444444444444444444444444444444444444444444444444444444444444",
         "txMinimumLovelace": "1310316",
         "txFee": "200000",
         "txTtl": 100000,
@@ -25,17 +26,20 @@
     "ergo": {
         "explorer": {
             "url": "https://api-testnet.ergoplatform.com/api/v1",
-            "timeout": 8000
+            "timeout": 8
         },
         "node": {
             "url": "",
-            "timeout": 8000
+            "timeout": 8
         },
         "bankAddress": "9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD",
         "minimumErg": "100000",
         "txFee": "1100000",
         "requiredConfirmation": 20,
-        "lockAddress": "change-me"
+        "requiredSigns": 3,
+        "lockAddress": "change-me",
+        "initialHeight": 10000,
+        "scannerInterval": 30
     },
     "reward": {
         "bridgeFeeRepoAddress": "9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD",
@@ -53,15 +57,17 @@
         "RSNRatioNFT": "6666666666666666666666666666666666666666666666666666666666666666"
     },
     "tss": {
-        "url": "localhost",
+        "path": "./bin/tss.exe",
+        "configPath": "./bin/conf/conf.env",
+        "url": "http://localhost",
         "port": 9000,
-        "timeout": 8000
+        "timeout": 8
     },
     "p2p": {
         "address": "change me",
-        "bootstrapInterval": 60e3,
-        "pubsubInterval": 1000,
-        "apiCallbackTimeout": 8000,
+        "bootstrapInterval": 60,
+        "pubsubInterval": 1,
+        "apiCallbackTimeout": 8,
         "peerIdFilePath": "./peer-dialer.json"
     },
     "multiSigTimeout": null,
@@ -73,6 +79,10 @@
             {
                 "guardId": 0,
                 "guardPubKey": "pub guard 0"
+            },
+            {
+                "guardId": 1,
+                "guardPubKey": "pub guard 1"
             },
             {
                 "guardId": 2,
@@ -96,5 +106,6 @@
             }
         ]
     },
-    "minimumAgreement": 5
+    "minimumAgreement": 5,
+    "txProcessorInterval": 180
 }

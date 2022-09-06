@@ -1,11 +1,11 @@
 import { EventTrigger } from "../../../models/Models";
-import { BoxValue, ErgoBox, ErgoBoxCandidate, I64, Tokens, TxId } from "ergo-lib-wasm-nodejs";
-import ErgoUtils from "../helpers/ErgoUtils";
-import ErgoConfigs from "../helpers/ErgoConfigs";
+import { ErgoBox, ErgoBoxCandidate } from "ergo-lib-wasm-nodejs";
 import ExplorerApi from "../network/ExplorerApi";
 import Configs from "../../../helpers/Configs";
 import { JsonBI } from "../../../network/NetworkModels";
 import Utils from "../../../helpers/Utils";
+import { Buffer } from "buffer";
+import { dbAction } from "../../../db/DatabaseAction";
 
 class InputBoxes {
 
@@ -13,15 +13,10 @@ class InputBoxes {
      * @param event the event trigger model
      * @return the corresponding box of the event trigger
      */
-    static getEventBox = (event: EventTrigger): ErgoBox => { // TODO: implement this
-        return new ErgoBox(
-            BoxValue.from_i64(I64.from_str("4000000000")),
-            5,
-            ErgoUtils.addressStringToContract(ErgoConfigs.bankAddress),
-            TxId.from_str("0000000000000000000000000000000000000000000000000000000000000000"),
-            0,
-            new Tokens()
-        )
+    static getEventBox = async (event: EventTrigger): Promise<ErgoBox> => {
+        const eventData = (await dbAction.getEventById(event.getId()))?.eventData
+        if (eventData === undefined) throw Error(`event [${event.getId()}] not found`)
+        return ErgoBox.sigma_parse_bytes(Utils.base64StringToUint8Array(eventData.boxSerialized))
     }
 
     /**
@@ -29,8 +24,14 @@ class InputBoxes {
      * @param event the event trigger model
      * @return the valid commitment boxes
      */
-    static getEventValidCommitments = (event: EventTrigger): ErgoBox[] => {
-        return [] // TODO: implement this
+    static getEventValidCommitments = async (event: EventTrigger): Promise<ErgoBox[]> => {
+        const eventData = (await dbAction.getEventById(event.getId()))?.eventData
+        if (eventData === undefined) throw Error(`event [${event.getId()}] not found`)
+        const eventBoxHeight = eventData.height
+        const commitments = await dbAction.getValidCommitments(event.getId(), eventBoxHeight)
+        return commitments.map(commitment =>
+            ErgoBox.sigma_parse_bytes(Utils.base64StringToUint8Array(commitment.boxSerialized))
+        )
     }
 
     /**
@@ -62,7 +63,7 @@ class InputBoxes {
     static getErgoBoxWID = (box: ErgoBox): Uint8Array => {
         const wid = box.register_value(4)?.to_coll_coll_byte()[0]
         if (wid === undefined) throw new Error(`failed to read WID from register R4 of box [${box.box_id().to_str()}]`)
-        return wid!
+        return wid
     }
 
     /**
@@ -72,7 +73,7 @@ class InputBoxes {
     static getBoxCandidateWIDString = (box: ErgoBoxCandidate): string => {
         const wid = box.register_value(4)?.to_coll_coll_byte()[0]
         if (wid === undefined) throw new Error(`failed to read WID from register R4 of box candidate`)
-        return Buffer.from(wid!).toString("hex")
+        return Buffer.from(wid).toString("hex")
     }
 
     /**

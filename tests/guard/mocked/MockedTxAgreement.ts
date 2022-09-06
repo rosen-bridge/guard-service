@@ -1,4 +1,4 @@
-import { deepEqual, reset, spy, verify, when } from "ts-mockito";
+import { anything, deepEqual, reset, spy, verify, when } from "ts-mockito";
 import { PaymentTransaction } from "../../../src/models/Models";
 import { txAgreement } from "../../../src/guard/agreement/TxAgreement";
 
@@ -17,7 +17,7 @@ const mockStartAgreementProcess = (tx: PaymentTransaction): void => {
  * @param tx
  */
 const verifyStartAgreementProcessCalledOnce = (tx: PaymentTransaction): void => {
-    verify(mockedTxAgreement.startAgreementProcess(deepEqual(tx))).once()
+    verify(mockedTxAgreement.startAgreementProcess(anything())).once()
 }
 
 /**

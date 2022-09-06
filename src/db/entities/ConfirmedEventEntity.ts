@@ -3,7 +3,7 @@ import { EventTriggerEntity } from "@rosen-bridge/watcher-data-extractor";
 
 
 @Entity()
-export class VerifiedEventEntity {
+export class ConfirmedEventEntity {
     @PrimaryColumn()
     id: string
 

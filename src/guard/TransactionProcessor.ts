@@ -17,6 +17,7 @@ import Utils from "../helpers/Utils";
 import { EventStatus, PaymentTransaction, TransactionStatus, TransactionTypes } from "../models/Models";
 import BaseChain from "../chains/BaseChains";
 import { Semaphore } from "await-semaphore";
+import { txJsonParser } from "../chains/TxJsonParser";
 
 class TransactionProcessor {
 
@@ -39,6 +40,7 @@ class TransactionProcessor {
      * processes all transactions in the database
      */
     static processTransactions = async (): Promise<void> => {
+        console.log(`processing transactions`)
         const txs = await dbAction.getActiveTransactions()
 
         for (const tx of txs) {
@@ -232,7 +234,7 @@ class TransactionProcessor {
     static processApprovedTx = async (tx: TransactionEntity): Promise<void> => {
         await this.signSemaphore.acquire().then(async (release) => {
             try {
-                const paymentTx = PaymentTransaction.fromJson(tx.txJson)
+                const paymentTx = txJsonParser(tx.txJson)
                 await this.getChainObject(tx.chain).requestToSignTransaction(paymentTx)
                 release()
             }
@@ -310,6 +312,7 @@ class TransactionProcessor {
     static processSignFailedTx = async (tx: TransactionEntity): Promise<void> => {
         if (tx.chain === ChainsConstants.cardano) {
             // TODO: implement this process when TSS has failure response
+            //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/23
             throw new Error(`processSignFailedTx has no implementation for [${tx.chain}] chain.`)
         }
         else if (tx.chain === ChainsConstants.ergo) {

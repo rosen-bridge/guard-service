@@ -1,8 +1,9 @@
 import { PaymentTransactionModel, EventTriggerModel, PaymentTransactionJsonModel } from "./Interfaces";
 import Encryption from "../helpers/Encryption";
 import Configs from "../helpers/Configs";
-import { VerifiedEventEntity } from "../db/entities/VerifiedEventEntity";
+import { ConfirmedEventEntity } from "../db/entities/ConfirmedEventEntity";
 import Utils from "../helpers/Utils";
+import { EventTriggerEntity } from "@rosen-bridge/watcher-data-extractor";
 
 
 /* tslint:disable:max-classes-per-file */
@@ -41,11 +42,18 @@ class EventTrigger implements EventTriggerModel {
     }
 
     /**
-     * creates EventTrigger object from its database scheme
+     * creates EventTrigger object from ConfirmedEventEntity scheme
      * @param verifiedEvent
      */
-    static fromEntity = (verifiedEvent: VerifiedEventEntity): EventTrigger => {
-        const eventEntity = verifiedEvent.eventData
+    static fromConfirmedEntity = (verifiedEvent: ConfirmedEventEntity): EventTrigger => {
+        return EventTrigger.fromEntity(verifiedEvent.eventData)
+    }
+
+    /**
+     * creates EventTrigger object from EventTriggerEntity scheme
+     * @param eventEntity
+     */
+    static fromEntity = (eventEntity: EventTriggerEntity): EventTrigger => {
         return new EventTrigger(
             eventEntity.fromChain,
             eventEntity.toChain,

@@ -17,6 +17,7 @@ import Utils from "../../helpers/Utils";
 import EventProcessor from "../EventProcessor";
 import { dbAction } from "../../db/DatabaseAction";
 import TransactionProcessor from "../TransactionProcessor";
+import { txJsonParser } from "../../chains/TxJsonParser";
 
 const dialer = await Dialer.getInstance();
 
@@ -46,7 +47,7 @@ class TxAgreement {
         switch (message.type) {
             case "request": {
                 const candidate = message.payload as CandidateTransaction
-                const tx = PaymentTransaction.fromJson(candidate.txJson)
+                const tx = txJsonParser(candidate.txJson)
                 await this.processTransactionRequest(tx, candidate.guardId, candidate.signature, sender)
                 break;
             }
@@ -57,7 +58,7 @@ class TxAgreement {
             }
             case "approval": {
                 const approval = message.payload as TransactionApproved
-                const tx = JSON.parse(approval.txJson) as PaymentTransaction
+                const tx = txJsonParser(approval.txJson)
                 await this.processApprovalMessage(tx, approval.guardsSignatures, sender)
                 break
             }
@@ -119,7 +120,7 @@ class TxAgreement {
             console.info(`received tx [${tx.txId}] for event [${tx.eventId}] but event not found`)
             return
         }
-        const event = EventTrigger.fromEntity(eventEntity)
+        const event = EventTrigger.fromConfirmedEntity(eventEntity)
         if (!await EventProcessor.isEventConfirmedEnough(event)) {
             console.info(`received tx [${tx.txId}] for event [${tx.eventId}] but event is not confirmed enough`)
             return
@@ -295,10 +296,16 @@ class TxAgreement {
      * iterates over active transaction and resend its request
      */
     resendTransactionRequests = (): void => {
+        console.log(`resending generated transactions for agreement: ${this.transactions.size}`)
         const creatorId = Configs.guardId
         this.transactions.forEach(tx => {
-            const guardSignature = tx.signMetaData()
-            this.broadcastTransactionRequest(tx, creatorId, guardSignature)
+            try {
+                const guardSignature = tx.signMetaData()
+                this.broadcastTransactionRequest(tx, creatorId, guardSignature)
+            }
+            catch (e) {
+                console.log(`Unexpected Error occurred while resending tx [${tx.txId}]: ${e}`)
+            }
         })
     }
 
@@ -306,6 +313,7 @@ class TxAgreement {
      * clears all pending for agreement txs in memory
      */
     clearTransactions = (): void => {
+        console.log(`clearing generated transactions from memory: ${this.transactions.size}`)
         this.transactions.clear()
         this.transactionApprovals.clear()
     }
@@ -314,6 +322,7 @@ class TxAgreement {
      * clears all pending for approval txs in memory and db
      */
     clearAgreedTransactions = async (): Promise<void> => {
+        console.log(`clearing agreed transactions from memory: ${this.transactions.size}`)
         this.transactions.clear()
         this.eventAgreedTransactions.clear()
     }

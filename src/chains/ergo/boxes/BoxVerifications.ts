@@ -4,9 +4,6 @@ import {
     UnsignedInputs
 } from "ergo-lib-wasm-nodejs";
 import ErgoUtils from "../helpers/ErgoUtils";
-import Contracts from "../../../contracts/Contracts";
-import ChainsConstants from "../../ChainsConstants";
-import Configs from "../../../helpers/Configs";
 
 class BoxVerifications {
 
