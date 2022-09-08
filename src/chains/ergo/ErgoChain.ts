@@ -256,7 +256,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
             paymentTokenAmount,
         )
 
-        return [paymentBox, ...outBoxes]
+        return [...outBoxes, paymentBox]
     }
 
 
@@ -292,7 +292,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
             paymentTokenAmount,
         )
 
-        return [paymentBox, ...outBoxes]
+        return [...outBoxes, paymentBox]
     }
 
     /**
