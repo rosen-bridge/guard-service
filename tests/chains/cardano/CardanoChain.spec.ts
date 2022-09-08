@@ -243,6 +243,11 @@ describe("CardanoChain", () => {
          * Target: testing signTransaction
          * Dependencies:
          *    -
+         * Scenario:
+         *    Mock a Cardano event trigger and insert into db
+         *    Mock a Cardano payment transaction based on mocked event and insert into db
+         *    Run test (execute signTransaction method of cardanoChain with a failed message)
+         *    Check transactions in db. Mocked transaction status should be updated to sign-failed
          * Expected Output:
          *    It should mark the tx as sign-failed
          */
