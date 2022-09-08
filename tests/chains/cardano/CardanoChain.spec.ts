@@ -20,6 +20,7 @@ import ChainsConstants from "../../../src/chains/ChainsConstants";
 import Utils from "../../../src/helpers/Utils";
 import sinon from "sinon";
 import CardanoUtils from "../../../src/chains/cardano/helpers/CardanoUtils";
+import { TssFailedSign, TssSuccessfulSign } from "../../../src/models/Interfaces";
 
 describe("CardanoChain", () => {
     const testBankAddress = TestBoxes.testBankAddress
@@ -209,9 +210,15 @@ describe("CardanoChain", () => {
             const cardanoTx = TestBoxes.mockTwoAssetsTransferringPaymentTransaction(
                 TestBoxes.mockAssetPaymentEventTrigger(), testBankAddress)
             await insertTxRecord(cardanoTx, TransactionTypes.payment, ChainsConstants.cardano, TransactionStatus.inSign, 0, cardanoTx.eventId)
+            const mockedResponse: TssSuccessfulSign = {
+                signature: mockedSignTxHash,
+                r: "",
+                s: "",
+                m: cardanoTx.txId
+            }
 
             // run test
-            await cardanoChain.signTransaction(cardanoTx.txId, mockedSignTxHash)
+            await cardanoChain.signTransaction(JSON.stringify(mockedResponse), "ok")
 
             // verify db changes
             const dbTxs = await allTxRecords()
@@ -230,6 +237,33 @@ describe("CardanoChain", () => {
             expect(vKeyWitness).to.not.equal(undefined)
             const vKeyWitnessHex = Utils.Uint8ArrayToHexString(vKeyWitness!.to_bytes())
             expect(vKeyWitnessHex).to.equal(expectedResult)
+        })
+
+        /**
+         * Target: testing signTransaction
+         * Dependencies:
+         *    -
+         * Expected Output:
+         *    It should mark the tx as sign-failed
+         */
+        it("should update the transaction status to sign-failed in db", async () => {
+            // create test data
+            const cardanoChain: CardanoChain = new CardanoChain()
+            const cardanoTx = TestBoxes.mockTwoAssetsTransferringPaymentTransaction(
+                TestBoxes.mockAssetPaymentEventTrigger(), testBankAddress)
+            await insertTxRecord(cardanoTx, TransactionTypes.payment, ChainsConstants.cardano, TransactionStatus.inSign, 0, cardanoTx.eventId)
+            const mockedResponse: TssFailedSign = {
+                error: "error message",
+                m: cardanoTx.txId
+            }
+
+            // run test
+            await cardanoChain.signTransaction(JSON.stringify(mockedResponse), "error")
+
+            // verify db changes
+            const dbTxs = await allTxRecords()
+            expect(dbTxs.map(tx => [tx.txId, tx.status])[0])
+                .to.deep.equal([cardanoTx.txId, TransactionStatus.signFailed])
         })
 
     })
