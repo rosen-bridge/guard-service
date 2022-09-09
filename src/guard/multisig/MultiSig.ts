@@ -244,20 +244,23 @@ class MultiSigHandler{
                     }
                     try {
                         const signedTx = prover.sign_reduced_transaction_multi(transaction.tx, hints)
-                        const tx = Buffer.from(signedTx.sigma_serialize_bytes()).toString("base64")
+                        const txBytes = Buffer.from(signedTx.sigma_serialize_bytes())
                         // broadcast signed invalid transaction to all other
                         const payload: SignPayload = {
-                            tx: tx,
+                            tx: txBytes.toString("base64"),
                             txId: signedTx.id().to_str(),
                             signed: signed,
                             simulated: simulated
                         }
+                        const completed = transaction.sign && transaction.sign.signed.length >= transaction.requiredSigner
                         const peers = this.peers.filter(item => {
-                            return simulated.indexOf(item.pub) === -1
+                            return simulated.indexOf(item.pub) === -1 || completed // if transaction sign completed we broadcast transaction to all peers not only signers
                         }).map(item => item.id ? item.id : "").filter(item => item !== "")
                         this.sendMessage({type: "sign", payload: payload}, peers)
-                        if (signed.length >= transaction.requiredSigner && transaction.resolve) {
-                            transaction.resolve(signedTx)
+                        transaction.sign = {
+                            signed: signed,
+                            simulated: simulated,
+                            transaction: txBytes
                         }
                     } catch (e) {
                         console.log(`An error occurred during generate sign: ${e}`)
@@ -265,6 +268,14 @@ class MultiSigHandler{
                 }
             }
         })
+    }
+
+    processResolve = (transaction: TxQueued) => {
+        if(transaction.sign && transaction.sign.signed.length >= transaction.requiredSigner && transaction.tx){
+            if(transaction.resolve) {
+                transaction.resolve(wasm.Transaction.sigma_parse_bytes(transaction.sign.transaction))
+            }
+        }
     }
 
     /**
@@ -281,7 +292,7 @@ class MultiSigHandler{
         if (receivers && receivers.length) {
             receivers.map(receiver => dialer.sendMessage(MultiSigHandler.CHANNEL, JSON.stringify(message), receiver).then(() => null))
         } else {
-            dialer.sendMessage(MultiSigHandler.CHANNEL, JSON.stringify(message))
+            dialer.sendMessage(MultiSigHandler.CHANNEL, JSON.stringify(message)).then(() => null)
         }
     }
 
@@ -411,6 +422,7 @@ class MultiSigHandler{
                 if (transaction.sign?.signed.indexOf(myPub) === -1) {
                     this.generateSign(payload.txId)
                 }
+                this.processResolve(transaction)
             })
         }
     }
