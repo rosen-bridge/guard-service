@@ -419,8 +419,10 @@ class MultiSigHandler{
                         transaction: Uint8Array.from(Buffer.from(payload.tx, "base64"))
                     }
                 }
-                if (transaction.sign?.signed.indexOf(myPub) === -1) {
-                    this.generateSign(payload.txId)
+                if(transaction.sign) {
+                    if (transaction.sign.signed.indexOf(myPub) === -1 && transaction.sign.simulated.indexOf(myPub) !== -1) {
+                        this.generateSign(payload.txId)
+                    }
                 }
                 this.processResolve(transaction)
             })
