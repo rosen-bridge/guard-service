@@ -45,9 +45,6 @@
         "watchersSharePercent": 50,
         "watchersRSNSharePercent": 0
     },
-    "tokens": {
-        "RSNRatioNFT": "6666666666666666666666666666666666666666666666666666666666666666"
-    },
     "tss": {
         "path": "./bin/tss.exe",
         "configPath": "./bin/conf/conf.env",

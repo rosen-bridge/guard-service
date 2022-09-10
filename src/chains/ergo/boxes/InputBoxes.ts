@@ -40,8 +40,8 @@ class InputBoxes {
      * @return RSN ratio for the corresponding tokenId
      */
     static getRSNRatioCoef = async (tokenId: string): Promise<[bigint, bigint]> => {
-        const boxes = await ExplorerApi.getBoxesByTokenId(Configs.rsnRatioNFT)
-        if (boxes.total !== 1) throw Error(`impossible case, found ${boxes.total} boxes containing rsnRationNFT [${Configs.rsnRatioNFT}]`)
+        const boxes = await ExplorerApi.getBoxesByTokenId(rosenConfig.rsnRatioNFT)
+        if (boxes.total !== 1) throw Error(`impossible case, found ${boxes.total} boxes containing rsnRationNFT [${rosenConfig.rsnRatioNFT}]`)
         const box = ErgoBox.from_json(JsonBI.stringify(boxes.items[0]))
         const boxId = box.box_id().to_str()
 

@@ -310,34 +310,34 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         await dbAction.setTxStatus(paymentTx.txId, TransactionStatus.inSign)
 
         // send tx to sign
-        // MultiSigHandler.getInstance(
-        //     Configs.guardsPublicKeys,
-        //     Configs.guardSecret
-        // ).sign(tx, ErgoConfigs.requiredSigns, txInputs, txDataInputs)
-        //     .then( async (signedTx) => {
-        //         const inputBoxes = ErgoBoxes.empty()
-        //         txInputs.forEach(box => inputBoxes.add(box))
-        //
-        //         // update database
-        //         const signedPaymentTx = new ErgoTransaction(
-        //             ergoTx.txId,
-        //             ergoTx.eventId,
-        //             this.signedSerialize(signedTx),
-        //             ergoTx.inputBoxes,
-        //             ergoTx.dataInputs,
-        //             ergoTx.txType
-        //         )
-        //         await dbAction.updateWithSignedTx(
-        //             ergoTx.txId,
-        //             signedPaymentTx.toJson()
-        //         )
-        //         console.log(`Ergo tx [${ergoTx.txId}] signed successfully`)
-        //
-        //     })
-        //     .catch( async (e) => {
-        //         console.log(`An error occurred while requesting Multisig service to sign Ergo tx: ${e}`)
-        //         await dbAction.setTxStatus(paymentTx.txId, TransactionStatus.signFailed)
-        //     })
+        MultiSigHandler.getInstance(
+            Configs.guardsPublicKeys,
+            Configs.guardSecret
+        ).sign(tx, ErgoConfigs.requiredSigns, txInputs, txDataInputs)
+            .then( async (signedTx) => {
+                const inputBoxes = ErgoBoxes.empty()
+                txInputs.forEach(box => inputBoxes.add(box))
+
+                // update database
+                const signedPaymentTx = new ErgoTransaction(
+                    ergoTx.txId,
+                    ergoTx.eventId,
+                    this.signedSerialize(signedTx),
+                    ergoTx.inputBoxes,
+                    ergoTx.dataInputs,
+                    ergoTx.txType
+                )
+                await dbAction.updateWithSignedTx(
+                    ergoTx.txId,
+                    signedPaymentTx.toJson()
+                )
+                console.log(`Ergo tx [${ergoTx.txId}] signed successfully`)
+
+            })
+            .catch( async (e) => {
+                console.log(`An error occurred while requesting Multisig service to sign Ergo tx: ${e}`)
+                await dbAction.setTxStatus(paymentTx.txId, TransactionStatus.signFailed)
+            })
     }
 
     /**

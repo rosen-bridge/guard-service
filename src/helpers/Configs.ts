@@ -43,9 +43,6 @@ class Configs {
     // config of API's route
     static MAX_LENGTH_CHANNEL_SIZE = 200
 
-    // token configs
-    static rsnRatioNFT = config.get<string>('tokens.RSNRatioNFT')
-
     // network and contract config
     static networks = config.get<Array<string>>('networks')
 

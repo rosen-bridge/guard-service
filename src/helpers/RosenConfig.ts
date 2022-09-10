@@ -46,6 +46,7 @@ class ContractConfig {
 class RosenConfig {
     readonly RSN: string
     readonly guardNFT: string
+    readonly rsnRatioNFT: string
     readonly contracts: Map<string, ContractConfig>
 
     constructor() {
@@ -59,6 +60,7 @@ class RosenConfig {
             const config = JSON.parse(configJson)
             this.RSN = config.tokens.RSN
             this.guardNFT = config.tokens.GuardNFT
+            this.rsnRatioNFT = config.tokens.RsnRatioNFT
         }
         supportingNetworks.forEach(network => {
             const networkName = network.split("-")[0].toLowerCase()
