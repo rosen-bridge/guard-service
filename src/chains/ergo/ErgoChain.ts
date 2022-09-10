@@ -30,8 +30,8 @@ import inputBoxes from "./boxes/InputBoxes";
 
 class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
 
-    bankAddress = Address.from_base58(ErgoConfigs.bankAddress)
-    bankErgoTree = ErgoUtils.addressToErgoTreeString(Address.from_base58(ErgoConfigs.bankAddress))
+    lockAddress = Address.from_base58(ErgoConfigs.ergoContractConfig().lockAddress)
+    lockErgoTree = ErgoUtils.addressToErgoTreeString(this.lockAddress)
 
     /**
      * generates unsigned transaction of the event from multi-sig address in ergo chain
@@ -63,7 +63,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
 
         // get required boxes for transaction input
         const coveringBoxes = await ExplorerApi.getCoveringErgAndTokenForErgoTree(
-            this.bankErgoTree,
+            this.lockErgoTree,
             requiredAssets.ergs + ErgoConfigs.minimumErg, // required amount of Erg plus minimumErg for change box
             requiredAssets.tokens
         )
@@ -80,7 +80,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         // create change box and add to outBoxes
         outBoxes.push(OutputBoxes.createChangeBox(
             currentHeight,
-            ErgoConfigs.bankAddress,
+            ErgoConfigs.ergoContractConfig().lockAddress,
             inBoxesAssets,
             outBoxesAssets,
             ErgoConfigs.txFee
@@ -102,7 +102,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
             outBoxCandidates,
             currentHeight,
             ErgoUtils.boxValueFromBigint(ErgoConfigs.txFee),
-            this.bankAddress
+            this.lockAddress
         )
         txCandidate.set_data_inputs(dataInputs)
         const tx = txCandidate.build()
@@ -164,7 +164,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         if (outputLength !== watchersLen + 5) return false
 
         // verify change box address
-        if (outputBoxes.get(outputLength - 2).ergo_tree().to_base16_bytes() !== this.bankErgoTree) return false;
+        if (outputBoxes.get(outputLength - 2).ergo_tree().to_base16_bytes() !== this.lockErgoTree) return false;
 
         // verify payment box + reward boxes
         const outBoxes = (event.targetChainTokenId === ChainsConstants.ergoNativeAsset) ?
@@ -248,7 +248,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         const paymentTokenId = event.targetChainTokenId
 
         // create output boxes
-        const outBoxes: ErgoBoxCandidate[] = Reward.ergEventRewardBoxes(event, eventBox, commitmentBoxes, rsnCoef, currentHeight, paymentTokenId)
+        const outBoxes: ErgoBoxCandidate[] = Reward.ergEventRewardBoxes(event, eventBox, commitmentBoxes, rsnCoef, currentHeight, paymentTokenId, ChainsConstants.ergo)
         const paymentBox = OutputBoxes.createPaymentBox(
             currentHeight,
             event.toAddress,
@@ -284,7 +284,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         const paymentTokenId = event.targetChainTokenId
 
         // create output boxes
-        const outBoxes: ErgoBoxCandidate[] = Reward.tokenEventRewardBoxes(event, eventBox, commitmentBoxes, rsnCoef, currentHeight, paymentTokenId)
+        const outBoxes: ErgoBoxCandidate[] = Reward.tokenEventRewardBoxes(event, eventBox, commitmentBoxes, rsnCoef, currentHeight, paymentTokenId, ChainsConstants.ergo)
         const paymentBox = OutputBoxes.createPaymentBox(
             currentHeight,
             event.toAddress,
@@ -310,34 +310,34 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         await dbAction.setTxStatus(paymentTx.txId, TransactionStatus.inSign)
 
         // send tx to sign
-        MultiSigHandler.getInstance(
-            Configs.guardsPublicKeys,
-            Configs.guardSecret
-        ).sign(tx, ErgoConfigs.requiredSigns, txInputs, txDataInputs)
-            .then( async (signedTx) => {
-                const inputBoxes = ErgoBoxes.empty()
-                txInputs.forEach(box => inputBoxes.add(box))
-
-                // update database
-                const signedPaymentTx = new ErgoTransaction(
-                    ergoTx.txId,
-                    ergoTx.eventId,
-                    this.signedSerialize(signedTx),
-                    ergoTx.inputBoxes,
-                    ergoTx.dataInputs,
-                    ergoTx.txType
-                )
-                await dbAction.updateWithSignedTx(
-                    ergoTx.txId,
-                    signedPaymentTx.toJson()
-                )
-                console.log(`Ergo tx [${ergoTx.txId}] signed successfully`)
-
-            })
-            .catch( async (e) => {
-                console.log(`An error occurred while requesting Multisig service to sign Ergo tx: ${e}`)
-                await dbAction.setTxStatus(paymentTx.txId, TransactionStatus.signFailed)
-            })
+        // MultiSigHandler.getInstance(
+        //     Configs.guardsPublicKeys,
+        //     Configs.guardSecret
+        // ).sign(tx, ErgoConfigs.requiredSigns, txInputs, txDataInputs)
+        //     .then( async (signedTx) => {
+        //         const inputBoxes = ErgoBoxes.empty()
+        //         txInputs.forEach(box => inputBoxes.add(box))
+        //
+        //         // update database
+        //         const signedPaymentTx = new ErgoTransaction(
+        //             ergoTx.txId,
+        //             ergoTx.eventId,
+        //             this.signedSerialize(signedTx),
+        //             ergoTx.inputBoxes,
+        //             ergoTx.dataInputs,
+        //             ergoTx.txType
+        //         )
+        //         await dbAction.updateWithSignedTx(
+        //             ergoTx.txId,
+        //             signedPaymentTx.toJson()
+        //         )
+        //         console.log(`Ergo tx [${ergoTx.txId}] signed successfully`)
+        //
+        //     })
+        //     .catch( async (e) => {
+        //         console.log(`An error occurred while requesting Multisig service to sign Ergo tx: ${e}`)
+        //         await dbAction.setTxStatus(paymentTx.txId, TransactionStatus.signFailed)
+        //     })
     }
 
     /**
@@ -347,14 +347,14 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
      *  2- the asset should be listed on the tokenMap config
      *  3- R4 should have length at least
      * @param event
+     * @param RWTId
      */
-    verifyEventWithPayment = async (event: EventTrigger): Promise<boolean> => {
+    verifyEventWithPayment = async (event: EventTrigger, RWTId: string): Promise<boolean> => {
         const eventId = Utils.txIdToEventId(event.sourceTxId)
         // Verifying watcher RWTs
-        const eventBox = await inputBoxes.getEventBox(event)
-        const RWTId = eventBox.tokens().get(0).id().to_str()
         if(RWTId !== ErgoConfigs.ergoContractConfig().RWTId) {
             console.log(`The event [${eventId}] is not valid, event RWT is not compatible with the ergo RWT id`)
+            return false
         }
         try {
             const paymentTx = await ExplorerApi.getConfirmedTx(event.sourceTxId)

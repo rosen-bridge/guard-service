@@ -362,14 +362,15 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
      *  2- the asset should be listed on the tokenMap config
      *  3- tx metaData should have "0" key
      * @param event
+     * @param RWTId
      */
-    verifyEventWithPayment = async (event: EventTrigger): Promise<boolean> => {
+    verifyEventWithPayment = async (event: EventTrigger, RWTId: string): Promise<boolean> => {
         const eventId = Utils.txIdToEventId(event.sourceTxId)
+        console.log(RWTId, CardanoConfigs.cardanoContractConfig().RWTId)
         // Verifying watcher RWTs
-        const eventBox = await inputBoxes.getEventBox(event)
-        const RWTId = eventBox.tokens().get(0).id().to_str()
         if(RWTId !== CardanoConfigs.cardanoContractConfig().RWTId) {
             console.log(`The event [${eventId}] is not valid, event RWT is not compatible with the cardano RWT id`)
+            return false
         }
         try {
             const txInfo = (await KoiosApi.getTxInformation([event.sourceTxId]))[0];

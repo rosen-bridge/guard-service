@@ -28,11 +28,11 @@ import CardanoConfigs from "../../../../src/chains/cardano/helpers/CardanoConfig
 
 class TestBoxes {
 
-    static testBankAddress = ErgoConfigs.bankAddress
+    static testLockAddress = ErgoConfigs.ergoContractConfig().lockAddress
     static testBlockchainHeight = TestConfigs.ergo.blockchainHeight
     static bridgeFeeErgoTree: string = ErgoUtils.addressStringToErgoTreeString(ErgoConfigs.bridgeFeeRepoAddress)
     static networkFeeErgoTree: string = ErgoUtils.addressStringToErgoTreeString(ErgoConfigs.networkFeeRepoAddress)
-    static bankAddressErgoTree: string = ErgoUtils.addressStringToErgoTreeString(this.testBankAddress)
+    static testLockErgoTree: string = ErgoUtils.addressStringToErgoTreeString(this.testLockAddress)
 
     /**
      * returns BoxValue object for arbitrary amount of Erg
@@ -48,52 +48,6 @@ class TestBoxes {
      * converts an ErgoBox object to Box interface
      */
     static convertErgoBoxToBoxObject = (ergoBox: ErgoBox): Box => JsonBI.parse(ergoBox.to_json())
-
-    /**
-     * Returns a mocked event box for ergo chain
-     */
-    static mockedValidErgTriggerBox = (): ErgoBox => {
-        const wids = Array(5).fill(0).map(() => Buffer.from(TestUtils.generateRandomId(), "hex"))
-        return this.mockErgoBoxWithRegisters(
-            500000n,
-            [
-                {
-                    tokenId: ErgoConfigs.ergoContractConfig().RWTId,
-                    amount: BigInt("5")
-                }
-            ],
-            ErgoConfigs.ergoContractConfig().eventTriggerContract,
-            [
-                {
-                    registerId: 4,
-                    value: Constant.from_coll_coll_byte(wids)
-                }
-            ]
-        )
-    }
-
-    /**
-     * Returns a mocked event box for cardano chain
-     **/
-    static mockedValidCardanoTriggerBox = (): ErgoBox => {
-        const wids = Array(5).fill(0).map(() => Buffer.from(TestUtils.generateRandomId(), "hex"))
-        return this.mockErgoBoxWithRegisters(
-            500000n,
-            [
-                {
-                    tokenId: CardanoConfigs.cardanoContractConfig().RWTId,
-                    amount: BigInt("5")
-                }
-            ],
-            CardanoConfigs.cardanoContractConfig().eventTriggerContract,
-            [
-                {
-                    registerId: 4,
-                    value: Constant.from_coll_coll_byte(wids)
-                }
-            ]
-        )
-    }
 
     /**
      * generates a mocked event trigger for Erg payment in ergo chain
@@ -366,7 +320,7 @@ class TestBoxes {
         const box1: ErgoBox = new ErgoBox(
             this.ergToBoxValue(30),
             this.testBlockchainHeight + 5,
-            ErgoUtils.addressStringToContract(this.testBankAddress),
+            ErgoUtils.addressStringToContract(this.testLockAddress),
             TxId.from_str(TestUtils.generateRandomId()),
             0,
             box1Tokens
@@ -376,7 +330,7 @@ class TestBoxes {
         const box2: ErgoBox = new ErgoBox(
             this.ergToBoxValue(100),
             this.testBlockchainHeight,
-            ErgoUtils.addressStringToContract(this.testBankAddress),
+            ErgoUtils.addressStringToContract(this.testLockAddress),
             TxId.from_str(TestUtils.generateRandomId()),
             0,
             box2Tokens
@@ -386,7 +340,7 @@ class TestBoxes {
         const box3: ErgoBox = new ErgoBox(
             this.ergToBoxValue(10),
             this.testBlockchainHeight + 20,
-            ErgoUtils.addressStringToContract(this.testBankAddress),
+            ErgoUtils.addressStringToContract(this.testLockAddress),
             TxId.from_str(TestUtils.generateRandomId()),
             2,
             box3Tokens
@@ -437,7 +391,7 @@ class TestBoxes {
             watcherBoxes,
             this.bridgeFeeErgoTree,
             this.networkFeeErgoTree,
-            this.bankAddressErgoTree
+            this.testLockErgoTree
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
 
@@ -489,7 +443,7 @@ class TestBoxes {
             watcherBoxes,
             this.bridgeFeeErgoTree,
             this.networkFeeErgoTree,
-            this.bankAddressErgoTree
+            this.testLockErgoTree
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
 
@@ -540,7 +494,7 @@ class TestBoxes {
             watcherBoxes,
             this.bridgeFeeErgoTree,
             this.networkFeeErgoTree,
-            this.bankAddressErgoTree
+            this.testLockErgoTree
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
 
@@ -591,7 +545,7 @@ class TestBoxes {
             watcherBoxes,
             this.bridgeFeeErgoTree,
             this.networkFeeErgoTree,
-            this.bankAddressErgoTree
+            this.testLockErgoTree
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
 
@@ -643,7 +597,7 @@ class TestBoxes {
             watcherBoxes,
             this.bridgeFeeErgoTree,
             this.networkFeeErgoTree,
-            this.bankAddressErgoTree
+            this.testLockErgoTree
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
 
@@ -695,7 +649,7 @@ class TestBoxes {
             watcherBoxes,
             this.bridgeFeeErgoTree,
             this.networkFeeErgoTree,
-            this.bankAddressErgoTree
+            this.testLockErgoTree
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
 
@@ -790,7 +744,7 @@ class TestBoxes {
     static mockSingleBankBox = (value: number, assets: Asset[]): ErgoBox => this.mockSingleBox(
         value,
         assets,
-        ErgoUtils.addressStringToContract(this.testBankAddress)
+        ErgoUtils.addressStringToContract(this.testLockAddress)
     )
 
     /**
@@ -938,7 +892,7 @@ class TestBoxes {
             watcherBoxes,
             this.bridgeFeeErgoTree,
             this.networkFeeErgoTree,
-            this.bankAddressErgoTree
+            this.testLockErgoTree
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
 
@@ -987,7 +941,7 @@ class TestBoxes {
             watcherBoxes,
             this.bridgeFeeErgoTree,
             this.networkFeeErgoTree,
-            this.bankAddressErgoTree
+            this.testLockErgoTree
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
 
@@ -1036,7 +990,7 @@ class TestBoxes {
             watcherBoxes,
             this.bridgeFeeErgoTree,
             this.networkFeeErgoTree,
-            this.bankAddressErgoTree
+            this.testLockErgoTree
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
 
@@ -1085,7 +1039,7 @@ class TestBoxes {
             watcherBoxes,
             this.bridgeFeeErgoTree,
             this.networkFeeErgoTree,
-            this.bankAddressErgoTree
+            this.testLockErgoTree
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
 
@@ -1134,7 +1088,7 @@ class TestBoxes {
             watcherBoxes,
             this.bridgeFeeErgoTree,
             this.networkFeeErgoTree,
-            this.bankAddressErgoTree
+            this.testLockErgoTree
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
 
@@ -1183,7 +1137,7 @@ class TestBoxes {
             watcherBoxes,
             this.bridgeFeeErgoTree,
             this.networkFeeErgoTree,
-            this.bankAddressErgoTree
+            this.testLockErgoTree
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
 
@@ -1247,7 +1201,7 @@ class TestBoxes {
             watcherBoxes,
             this.bridgeFeeErgoTree,
             this.networkFeeErgoTree,
-            this.bankAddressErgoTree,
+            this.testLockErgoTree,
             bankBoxes.boxes[0].tokens().get(1).id().to_str()
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
@@ -1308,7 +1262,7 @@ class TestBoxes {
             watcherBoxes,
             this.bridgeFeeErgoTree,
             this.networkFeeErgoTree,
-            this.bankAddressErgoTree,
+            this.testLockErgoTree,
             bankBoxes.boxes[0].tokens().get(1).id().to_str()
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
@@ -1371,7 +1325,7 @@ class TestBoxes {
             watcherBoxes,
             this.bridgeFeeErgoTree,
             this.networkFeeErgoTree,
-            this.bankAddressErgoTree,
+            this.testLockErgoTree,
             bankBoxes.boxes[0].tokens().get(1).id().to_str()
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
@@ -1430,7 +1384,7 @@ class TestBoxes {
             watcherBoxes,
             this.bridgeFeeErgoTree,
             this.networkFeeErgoTree,
-            this.bankAddressErgoTree,
+            this.testLockErgoTree,
             bankBoxes.boxes[0].tokens().get(1).id().to_str()
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
@@ -1494,7 +1448,7 @@ class TestBoxes {
             watcherBoxes,
             this.bridgeFeeErgoTree,
             this.networkFeeErgoTree,
-            this.bankAddressErgoTree,
+            this.testLockErgoTree,
             bankBoxes.boxes[0].tokens().get(1).id().to_str(),
             rsnTokenId
         )
@@ -1562,7 +1516,7 @@ class TestBoxes {
             watcherBoxes,
             this.bridgeFeeErgoTree,
             this.networkFeeErgoTree,
-            this.bankAddressErgoTree,
+            this.testLockErgoTree,
             bankBoxes.boxes[0].tokens().get(1).id().to_str(),
             rsnTokenId
         )

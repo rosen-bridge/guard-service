@@ -12,6 +12,7 @@ import { txAgreement } from "./agreement/TxAgreement";
 import Reward from "../chains/ergo/Reward";
 import Utils from "../helpers/Utils";
 import ErgoTransaction from "../chains/ergo/models/ErgoTransaction";
+import inputBoxes from "../chains/ergo/boxes/InputBoxes";
 
 
 class EventProcessor {
@@ -122,10 +123,12 @@ class EventProcessor {
      * @return true if event data verified
      */
     static verifyEvent = async (event: EventTrigger): Promise<boolean> => {
+        const eventBox = await inputBoxes.getEventBox(event)
+        const RWTId = eventBox.tokens().get(0).id().to_str()
         if (event.fromChain === ChainsConstants.cardano)
-            return this.cardanoChain.verifyEventWithPayment(event)
+            return this.cardanoChain.verifyEventWithPayment(event, RWTId)
         else if (event.fromChain === ChainsConstants.ergo)
-            return this.ergoChain.verifyEventWithPayment(event)
+            return this.ergoChain.verifyEventWithPayment(event, RWTId)
         else throw new Error(`chain [${event.fromChain}] not implemented.`)
     }
 

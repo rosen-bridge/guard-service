@@ -60,7 +60,7 @@ class CardanoConfigs {
      */
     static cardanoContractConfig = () => {
         const contracts = rosenConfig.contracts.get(ChainsConstants.cardano)
-        if(!contracts) throw Error("ergo contracts and token config is not set")
+        if(!contracts) throw Error("Cardano contracts and token config is not set")
         return contracts
     }
 }

@@ -17,7 +17,7 @@ import ErgoConfigs from "../../../src/chains/ergo/helpers/ErgoConfigs";
 import { resetMockedReward } from "../mocked/MockedReward";
 
 describe("Reward", () => {
-    const testBankAddress = TestBoxes.testBankAddress
+    const testBankAddress = TestBoxes.testLockAddress
     const testBankErgoTree: string = ErgoUtils.addressStringToErgoTreeString(testBankAddress)
 
     describe("generateTransaction", () => {

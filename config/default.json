@@ -32,12 +32,10 @@
             "url": "",
             "timeout": 8
         },
-        "bankAddress": "9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD",
         "minimumErg": "100000",
         "txFee": "1100000",
         "requiredConfirmation": 20,
         "requiredSigns": 3,
-        "lockAddress": "change-me",
         "initialHeight": 10000,
         "scannerInterval": 30
     },
@@ -105,6 +103,5 @@
         "ergo-testnet",
         "cardano-testnet"
     ],
-    "contractVersion": "1.0.1",
     "txProcessorInterval": 180
 }

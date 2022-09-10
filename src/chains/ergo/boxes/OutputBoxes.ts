@@ -3,6 +3,7 @@ import ErgoUtils from "../helpers/ErgoUtils";
 import ErgoConfigs from "../helpers/ErgoConfigs";
 import { BoxesAssets } from "../models/Interfaces";
 import { rosenConfig } from "../../../helpers/RosenConfig";
+import ChainsConstants from "../../ChainsConstants";
 
 class OutputBoxes {
 
@@ -27,7 +28,7 @@ class OutputBoxes {
      * @param guardRsnAmount amount of Erg in guard bridge fee box
      * @param guardNetworkErgAmount amount of Erg in guard network fee box
      * @param guardNetworkTokenAmount amount of payment token in guard network fee box
-     * @param rwtTokenId RWT token id
+     * @param network
      * @param paymentTokenId payment token id
      * @param wids list of watcher ids
      */
@@ -41,7 +42,7 @@ class OutputBoxes {
         guardRsnAmount: bigint,
         guardNetworkErgAmount: bigint,
         guardNetworkTokenAmount: bigint,
-        rwtTokenId: string,
+        network: string,
         paymentTokenId: string,
         wids: Uint8Array[]
     ): ErgoBoxCandidate[] => {
@@ -53,7 +54,7 @@ class OutputBoxes {
             height,
             wid,
             watcherErgAmount,
-            rwtTokenId,
+            network,
             paymentTokenId,
             watcherTokenAmount,
             rosenConfig.RSN,
@@ -87,7 +88,7 @@ class OutputBoxes {
      * @param height current height of blockchain
      * @param wid watcher id
      * @param ergAmount amount of Erg in box
-     * @param rwtTokenId RWT token id of the source chain
+     * @param network
      * @param paymentTokenId reward token id
      * @param paymentTokenAmount reward token amount
      * @param rsnTokenId RSN token id
@@ -97,20 +98,22 @@ class OutputBoxes {
         height: number,
         wid: Uint8Array,
         ergAmount: bigint,
-        rwtTokenId: string,
+        network: string,
         paymentTokenId: string,
         paymentTokenAmount: bigint,
         rsnTokenId: string,
         rsnTokenAmount: bigint
     ): ErgoBoxCandidate => {
+        const contracts = rosenConfig.contracts.get(network)
+        if(!contracts) throw Error(`${network} contracts and token config is not set`)
         // create box
         const watcherBox = new ErgoBoxCandidateBuilder(
             ErgoUtils.boxValueFromBigint(ergAmount),
-            ErgoConfigs.ergoContractConfig().permitContract,
+            contracts.permitContract,
             height
         )
         // add box tokens
-        this.addTokenToBoxBuilder(watcherBox, rwtTokenId, 1n)
+        this.addTokenToBoxBuilder(watcherBox, contracts.RWTId, 1n)
         this.addTokenToBoxBuilder(watcherBox, paymentTokenId, paymentTokenAmount)
         this.addTokenToBoxBuilder(watcherBox, rsnTokenId, rsnTokenAmount)
         // add box registers

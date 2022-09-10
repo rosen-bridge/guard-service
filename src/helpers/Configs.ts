@@ -1,8 +1,7 @@
 import config from "config";
 import { GuardInfo } from "../guard/agreement/Interfaces";
 import tokens from '../../config/tokens.json' assert { type: "json" };
-import testTokens from '../../config/tokens.test.json' assert { type: "json" };
-import { RosenTokens, TokenMap } from "@rosen-bridge/tokens";
+import { TokenMap } from "@rosen-bridge/tokens";
 
 /**
  * reads a config, set default value if it does not exits
@@ -49,7 +48,6 @@ class Configs {
 
     // network and contract config
     static networks = config.get<Array<string>>('networks')
-    static contractVersion = config.get<string>('contractVersion')
 
     // tss configs
     static tssExecutionPath = config.get<string>('tss.path')
@@ -73,14 +71,14 @@ class Configs {
     //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/24
     static minimumAgreement = config.get<number>('minimumAgreement')
 
-    static tokenJson = (): RosenTokens => {
-        if (process.env.NODE_ENV === undefined || process.env.NODE_ENV !== "test") {
-            return tokens
-        } else {
-            return testTokens
-        }
-    }
-    static tokenMap = new TokenMap(Configs.tokenJson());
+    // static tokenJson = (): RosenTokens => {
+    //     if (process.env.NODE_ENV === undefined || process.env.NODE_ENV !== "test") {
+    //         return tokens
+    //     } else {
+    //         return testTokens
+    //     }
+    // }
+    static tokenMap = new TokenMap(tokens);
 
     // jobs configs
     static scannedEventProcessorInterval = 120 // seconds, 2 minutes

@@ -13,7 +13,6 @@ class ErgoConfigs {
         url: config.get<string>('ergo.node.url'),
         timeout: config.get<number>('ergo.node.timeout') // seconds
     }
-    static bankAddress = config.get<string>('ergo.bankAddress')
     static minimumErg = BigInt(config.get<string>('ergo.minimumErg'))
     static txFee = BigInt(config.get<string>('ergo.txFee'))
 

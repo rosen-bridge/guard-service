@@ -8,7 +8,7 @@ class ContractConfig {
     readonly cleanupConfirm: number
     readonly permitAddress: string
     readonly permitErgoTree: string
-    readonly permitContract: Contract 
+    readonly permitContract: Contract
     readonly eventTriggerAddress: string
     readonly eventTriggerErgoTree: string
     readonly eventTriggerContract: Contract
@@ -51,8 +51,7 @@ class RosenConfig {
     constructor() {
         const supportingNetworks = Configs.networks
         this.contracts = new Map<string, ContractConfig>()
-        const version = Configs.contractVersion
-        const rosenConfigPath = this.getAddress(supportingNetworks[0], version)
+        const rosenConfigPath = this.getAddress(supportingNetworks[0])
         if (!fs.existsSync(rosenConfigPath)) {
             throw new Error(`rosenConfig file with path ${rosenConfigPath} doesn't exist`)
         } else {
@@ -63,20 +62,16 @@ class RosenConfig {
         }
         supportingNetworks.forEach(network => {
             const networkName = network.split("-")[0].toLowerCase()
-            const contractConfig = new ContractConfig(this.getAddress(network, version))
+            const contractConfig = new ContractConfig(this.getAddress(network))
             this.contracts.set(networkName, contractConfig)
         })
     }
 
-    getAddress = (network: string, version: string) => {
-        if (process.env.NODE_ENV === undefined || process.env.NODE_ENV !== "test") {
-            return `config/addresses/contracts-${network}-${version}.json`
-        } else {
-            return `config/addresses/test-contracts-${network}.json`
-        }
+    getAddress = (network: string) => {
+        return `config/addresses/contracts-${network}.json`
     }
 }
 
 
 export const rosenConfig = new RosenConfig()
-export {RosenConfig}
+export { ContractConfig }

@@ -22,7 +22,8 @@ import sinon from "sinon";
 import CardanoUtils from "../../../src/chains/cardano/helpers/CardanoUtils";
 import InputBoxes from "../../../src/chains/ergo/boxes/InputBoxes";
 import ErgoTestBoxes from "../ergo/testUtils/TestBoxes"
-import { Spy } from "ts-mockito/lib/Spy";
+import { rosenConfig } from "../../../src/helpers/RosenConfig";
+import CardanoConfigs from "../../../src/chains/cardano/helpers/CardanoConfigs";
 
 describe("CardanoChain", () => {
     const testBankAddress = TestBoxes.testBankAddress
@@ -290,8 +291,6 @@ describe("CardanoChain", () => {
             mockKoiosGetTxInfo(TestData.adaObservationTxInfo.tx_hash, TestData.adaObservationTxInfo)
             mockKoiosGetTxInfo(TestData.noMetadataTxInfo.tx_hash, TestData.noMetadataTxInfo)
             mockKoiosGetTxInfo(TestData.fakeTokenObservationTxInfo.tx_hash, TestData.fakeTokenObservationTxInfo)
-            const boxes = spy(InputBoxes)
-            when(boxes.getEventBox(anything())).thenResolve(ErgoTestBoxes.mockedValidCardanoTriggerBox())
         })
 
         /**
@@ -306,7 +305,7 @@ describe("CardanoChain", () => {
 
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
-            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent, CardanoConfigs.cardanoContractConfig().RWTId)
             expect(isValid).to.be.true
         })
 
@@ -322,7 +321,7 @@ describe("CardanoChain", () => {
 
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
-            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent, CardanoConfigs.cardanoContractConfig().RWTId)
             expect(isValid).to.be.true
         })
 
@@ -338,7 +337,7 @@ describe("CardanoChain", () => {
 
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
-            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent, CardanoConfigs.cardanoContractConfig().RWTId)
             expect(isValid).to.be.false
         })
 
@@ -354,7 +353,7 @@ describe("CardanoChain", () => {
 
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
-            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent, CardanoConfigs.cardanoContractConfig().RWTId)
             expect(isValid).to.be.false
         })
 
@@ -370,7 +369,7 @@ describe("CardanoChain", () => {
 
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
-            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent, CardanoConfigs.cardanoContractConfig().RWTId)
             expect(isValid).to.be.false
         })
 
@@ -386,7 +385,7 @@ describe("CardanoChain", () => {
 
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
-            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent, CardanoConfigs.cardanoContractConfig().RWTId)
             expect(isValid).to.be.false
         })
 
@@ -402,7 +401,7 @@ describe("CardanoChain", () => {
 
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
-            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent, CardanoConfigs.cardanoContractConfig().RWTId)
             expect(isValid).to.be.false
         })
 
@@ -418,7 +417,7 @@ describe("CardanoChain", () => {
 
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
-            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent, CardanoConfigs.cardanoContractConfig().RWTId)
             expect(isValid).to.be.false
         })
 
@@ -434,7 +433,7 @@ describe("CardanoChain", () => {
 
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
-            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent, CardanoConfigs.cardanoContractConfig().RWTId)
             expect(isValid).to.be.false
         })
 
@@ -450,7 +449,7 @@ describe("CardanoChain", () => {
 
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
-            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent, CardanoConfigs.cardanoContractConfig().RWTId)
             expect(isValid).to.be.false
         })
 
@@ -466,7 +465,7 @@ describe("CardanoChain", () => {
 
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
-            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent, CardanoConfigs.cardanoContractConfig().RWTId)
             expect(isValid).to.be.false
         })
 
@@ -482,7 +481,7 @@ describe("CardanoChain", () => {
 
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
-            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent, CardanoConfigs.cardanoContractConfig().RWTId)
             expect(isValid).to.be.false
         })
 
@@ -498,7 +497,7 @@ describe("CardanoChain", () => {
 
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
-            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent, CardanoConfigs.cardanoContractConfig().RWTId)
             expect(isValid).to.be.false
         })
 
@@ -514,7 +513,7 @@ describe("CardanoChain", () => {
 
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
-            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent, CardanoConfigs.cardanoContractConfig().RWTId)
             expect(isValid).to.be.false
         })
 
@@ -531,25 +530,27 @@ describe("CardanoChain", () => {
 
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
-            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent, CardanoConfigs.cardanoContractConfig().RWTId)
             expect(isValid).to.be.false
+            sinon.restore()
         })
 
         /**
          * Target: testing verifyEventWithPayment
          * Dependencies:
-         *    CardanoUtils
+         *    -
+         * Scenario:
+         *    Mock a valid eventTrigger
+         *    Pass the valid trigger event with an invalid RWTId
          * Expected Output:
          *    It should NOT verify the event
          */
         it("should return false when the event RWT is not compatible with cardano rwt", async () => {
             const mockedEvent: EventTrigger = TestBoxes.mockValidEventTrigger()
-            const boxes2 = spy(InputBoxes)
-            when(boxes2.getEventBox(anything())).thenResolve(ErgoTestBoxes.mockedValidErgTriggerBox())
 
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
-            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent, "fake")
             expect(isValid).to.be.false
         })
     })
