@@ -100,5 +100,7 @@
         "ergo-testnet",
         "cardano-testnet"
     ],
-    "txProcessorInterval": 180
+    "txProcessorInterval": 180,
+    "addressesBasePath": "config/addresses/",
+    "tokensPath": "config/tokens.json"
 }

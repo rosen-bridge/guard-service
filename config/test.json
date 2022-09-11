@@ -75,5 +75,11 @@
     "minimumAgreement": 5,
     "p2p": {
         "peerIdFilePath": "./peer-dialer.json"
-    }
+    },
+    "networks": [
+        "ergo-testnet",
+        "cardano-testnet"
+    ],
+    "addressesBasePath": "tests/config/addresses/",
+    "tokensPath": "tests/config/tokens.test.json"
 }

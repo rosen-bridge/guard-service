@@ -1,7 +1,7 @@
 import config from "config";
 import { GuardInfo } from "../guard/agreement/Interfaces";
-import tokens from '../../config/tokens.json' assert { type: "json" };
-import { TokenMap } from "@rosen-bridge/tokens";
+import { RosenTokens, TokenMap } from "@rosen-bridge/tokens";
+import fs from "fs";
 
 /**
  * reads a config, set default value if it does not exits
@@ -68,14 +68,18 @@ class Configs {
     //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/24
     static minimumAgreement = config.get<number>('minimumAgreement')
 
-    // static tokenJson = (): RosenTokens => {
-    //     if (process.env.NODE_ENV === undefined || process.env.NODE_ENV !== "test") {
-    //         return tokens
-    //     } else {
-    //         return testTokens
-    //     }
-    // }
-    static tokenMap = new TokenMap(tokens);
+    // contract, addresses and tokens config
+    static addressesBasePath = config.get<string>('addressesBasePath')
+    static tokens = (): RosenTokens => {
+        const tokensPath = config.get<string>('tokensPath')
+        if (!fs.existsSync(tokensPath)) {
+            throw new Error(`tokens config file with path ${tokensPath} doesn't exist`)
+        } else {
+            const configJson: string = fs.readFileSync(tokensPath, 'utf8')
+            return JSON.parse(configJson)
+        }
+    }
+    static tokenMap = new TokenMap(this.tokens());
 
     // jobs configs
     static scannedEventProcessorInterval = 120 // seconds, 2 minutes
@@ -83,6 +87,7 @@ class Configs {
     static txResendInterval = 30 // seconds
     static multiSigCleanUpInterval = 120 // seconds
     static multiSigTimeout = getConfigIntKeyOrDefault('multiSigTimeout', 5 * 60) // seconds
+
 }
 
 export default Configs

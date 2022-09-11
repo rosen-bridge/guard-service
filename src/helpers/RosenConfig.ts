@@ -70,7 +70,7 @@ class RosenConfig {
     }
 
     getAddress = (network: string) => {
-        return `config/addresses/contracts-${network}.json`
+        return Configs.addressesBasePath + `contracts-${network}.json`
     }
 }
 
