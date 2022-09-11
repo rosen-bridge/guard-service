@@ -1,6 +1,7 @@
 import config from "config";
-import { rosenConfig } from "../../../helpers/RosenConfig";
+import { RosenConfig, rosenConfig } from "../../../helpers/RosenConfig";
 import ChainsConstants from "../../ChainsConstants";
+import Configs from "../../../helpers/Configs";
 
 class ErgoConfigs {
 
@@ -29,11 +30,7 @@ class ErgoConfigs {
     /**
      * returns the ergo-related contract, addresses and tokens in rosen bridge
      */
-    static ergoContractConfig = () => {
-        const contracts = rosenConfig.contracts.get(ChainsConstants.ergo)
-        if(!contracts) throw Error("ergo contracts and token config is not set")
-        return contracts
-    }
+    static ergoContractConfig = RosenConfig.contractReader(ChainsConstants.ergo)
 }
 
 export default ErgoConfigs

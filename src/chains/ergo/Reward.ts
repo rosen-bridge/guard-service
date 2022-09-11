@@ -25,7 +25,7 @@ import { network } from "@blockfrost/blockfrost-js/lib/endpoints/api/network";
 
 class Reward {
 
-    static lockAddress = Address.from_base58(ErgoConfigs.ergoContractConfig().lockAddress)
+    static lockAddress = Address.from_base58(ErgoConfigs.ergoContractConfig.lockAddress)
     static lockErgoTree = ErgoUtils.addressToErgoTreeString(this.lockAddress)
 
     static generateTransaction = async (event: EventTrigger): Promise<ErgoTransaction> => {
@@ -70,7 +70,7 @@ class Reward {
         // create change box and add to outBoxes
         outBoxes.push(OutputBoxes.createChangeBox(
             currentHeight,
-            ErgoConfigs.ergoContractConfig().lockAddress,
+            ErgoConfigs.ergoContractConfig.lockAddress,
             inBoxesAssets,
             outBoxesAssets,
             ErgoConfigs.txFee

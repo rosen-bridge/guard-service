@@ -28,7 +28,7 @@ import CardanoConfigs from "../../../../src/chains/cardano/helpers/CardanoConfig
 
 class TestBoxes {
 
-    static testLockAddress = ErgoConfigs.ergoContractConfig().lockAddress
+    static testLockAddress = ErgoConfigs.ergoContractConfig.lockAddress
     static testBlockchainHeight = TestConfigs.ergo.blockchainHeight
     static bridgeFeeErgoTree: string = ErgoUtils.addressStringToErgoTreeString(ErgoConfigs.bridgeFeeRepoAddress)
     static networkFeeErgoTree: string = ErgoUtils.addressStringToErgoTreeString(ErgoConfigs.networkFeeRepoAddress)
@@ -368,7 +368,7 @@ class TestBoxes {
                 100000n,
                 [
                     {
-                        tokenId: ErgoConfigs.ergoContractConfig().RWTId,
+                        tokenId: ErgoConfigs.ergoContractConfig.RWTId,
                         amount: BigInt("1")
                     },
                     {
@@ -376,7 +376,7 @@ class TestBoxes {
                         amount: BigInt("1")
                     }
                 ],
-                ErgoConfigs.ergoContractConfig().eventTriggerErgoTree,
+                ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
                 [
                     {
                         registerId: 4,
@@ -420,7 +420,7 @@ class TestBoxes {
                 100000n,
                 [
                     {
-                        tokenId: ErgoConfigs.ergoContractConfig().RWTId,
+                        tokenId: ErgoConfigs.ergoContractConfig.RWTId,
                         amount: BigInt("1")
                     },
                     {
@@ -428,7 +428,7 @@ class TestBoxes {
                         amount: BigInt("1")
                     }
                 ],
-                ErgoConfigs.ergoContractConfig().eventTriggerErgoTree,
+                ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
                 [
                     {
                         registerId: 4,
@@ -471,7 +471,7 @@ class TestBoxes {
                 100000n,
                 [
                     {
-                        tokenId: ErgoConfigs.ergoContractConfig().RWTId,
+                        tokenId: ErgoConfigs.ergoContractConfig.RWTId,
                         amount: BigInt("1")
                     },
                     {
@@ -479,7 +479,7 @@ class TestBoxes {
                         amount: BigInt("1")
                     }
                 ],
-                ErgoConfigs.ergoContractConfig().eventTriggerErgoTree,
+                ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
                 [
                     {
                         registerId: 4,
@@ -522,7 +522,7 @@ class TestBoxes {
                 100000n,
                 [
                     {
-                        tokenId: ErgoConfigs.ergoContractConfig().RWTId,
+                        tokenId: ErgoConfigs.ergoContractConfig.RWTId,
                         amount: BigInt("1")
                     },
                     {
@@ -530,7 +530,7 @@ class TestBoxes {
                         amount: BigInt("1")
                     }
                 ],
-                ErgoConfigs.ergoContractConfig().eventTriggerErgoTree,
+                ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
                 [
                     {
                         registerId: 4,
@@ -574,7 +574,7 @@ class TestBoxes {
                 100000n,
                 [
                     {
-                        tokenId: ErgoConfigs.ergoContractConfig().RWTId,
+                        tokenId: ErgoConfigs.ergoContractConfig.RWTId,
                         amount: BigInt("1")
                     },
                     {
@@ -582,7 +582,7 @@ class TestBoxes {
                         amount: BigInt("1")
                     }
                 ],
-                ErgoConfigs.ergoContractConfig().eventTriggerErgoTree,
+                ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
                 [
                     {
                         registerId: 4,
@@ -626,7 +626,7 @@ class TestBoxes {
                 100000n,
                 [
                     {
-                        tokenId: ErgoConfigs.ergoContractConfig().RWTId,
+                        tokenId: ErgoConfigs.ergoContractConfig.RWTId,
                         amount: BigInt("1")
                     },
                     {
@@ -634,7 +634,7 @@ class TestBoxes {
                         amount: BigInt("1")
                     }
                 ],
-                ErgoConfigs.ergoContractConfig().eventTriggerErgoTree,
+                ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
                 [
                     {
                         registerId: 4,
@@ -824,11 +824,11 @@ class TestBoxes {
             500000n,
             [
                 {
-                    tokenId: ErgoConfigs.ergoContractConfig().RWTId,
+                    tokenId: ErgoConfigs.ergoContractConfig.RWTId,
                     amount: BigInt("5")
                 }
             ],
-            ErgoConfigs.ergoContractConfig().eventTriggerContract,
+            ErgoConfigs.ergoContractConfig.eventTriggerContract,
             [
                 {
                     registerId: 4,
@@ -840,11 +840,11 @@ class TestBoxes {
             100000n,
             [
                 {
-                    tokenId: ErgoConfigs.ergoContractConfig().RWTId,
+                    tokenId: ErgoConfigs.ergoContractConfig.RWTId,
                     amount: BigInt("1")
                 }
             ],
-            ErgoConfigs.ergoContractConfig().permitContract,
+            ErgoConfigs.ergoContractConfig.permitContract,
             [
                 {
                     registerId: 4,
@@ -870,7 +870,7 @@ class TestBoxes {
             100000n,
             [
                 {
-                    tokenId: ErgoConfigs.ergoContractConfig().RWTId,
+                    tokenId: ErgoConfigs.ergoContractConfig.RWTId,
                     amount: BigInt("1")
                 },
                 {
@@ -878,7 +878,7 @@ class TestBoxes {
                     amount: BigInt("1")
                 }
             ],
-            ErgoConfigs.ergoContractConfig().eventTriggerErgoTree,
+            ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
             [
                 {
                     registerId: 4,
@@ -919,7 +919,7 @@ class TestBoxes {
                 100000n,
                 [
                     {
-                        tokenId: ErgoConfigs.ergoContractConfig().RWTId,
+                        tokenId: ErgoConfigs.ergoContractConfig.RWTId,
                         amount: BigInt("1")
                     },
                     {
@@ -927,7 +927,7 @@ class TestBoxes {
                         amount: BigInt("1")
                     }
                 ],
-                ErgoConfigs.ergoContractConfig().eventTriggerErgoTree,
+                ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
                 [
                     {
                         registerId: 4,
@@ -968,7 +968,7 @@ class TestBoxes {
                 100000n,
                 [
                     {
-                        tokenId: ErgoConfigs.ergoContractConfig().RWTId,
+                        tokenId: ErgoConfigs.ergoContractConfig.RWTId,
                         amount: BigInt("1")
                     },
                     {
@@ -976,7 +976,7 @@ class TestBoxes {
                         amount: BigInt("1")
                     }
                 ],
-                ErgoConfigs.ergoContractConfig().eventTriggerErgoTree,
+                ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
                 [
                     {
                         registerId: 4,
@@ -1017,7 +1017,7 @@ class TestBoxes {
                 100000n,
                 [
                     {
-                        tokenId: ErgoConfigs.ergoContractConfig().RWTId,
+                        tokenId: ErgoConfigs.ergoContractConfig.RWTId,
                         amount: BigInt("1")
                     },
                     {
@@ -1025,7 +1025,7 @@ class TestBoxes {
                         amount: BigInt("1")
                     }
                 ],
-                ErgoConfigs.ergoContractConfig().eventTriggerErgoTree,
+                ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
                 [
                     {
                         registerId: 4,
@@ -1066,7 +1066,7 @@ class TestBoxes {
                 100000n,
                 [
                     {
-                        tokenId: ErgoConfigs.ergoContractConfig().RWTId,
+                        tokenId: ErgoConfigs.ergoContractConfig.RWTId,
                         amount: BigInt("1")
                     },
                     {
@@ -1074,7 +1074,7 @@ class TestBoxes {
                         amount: BigInt("1")
                     }
                 ],
-                ErgoConfigs.ergoContractConfig().eventTriggerErgoTree,
+                ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
                 [
                     {
                         registerId: 4,
@@ -1115,7 +1115,7 @@ class TestBoxes {
                 100000n,
                 [
                     {
-                        tokenId: ErgoConfigs.ergoContractConfig().RWTId,
+                        tokenId: ErgoConfigs.ergoContractConfig.RWTId,
                         amount: BigInt("1")
                     },
                     {
@@ -1123,7 +1123,7 @@ class TestBoxes {
                         amount: BigInt("2")
                     }
                 ],
-                ErgoConfigs.ergoContractConfig().eventTriggerErgoTree,
+                ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
                 [
                     {
                         registerId: 4,
@@ -1178,7 +1178,7 @@ class TestBoxes {
                 100000n,
                 [
                     {
-                        tokenId: ErgoConfigs.ergoContractConfig().RWTId,
+                        tokenId: ErgoConfigs.ergoContractConfig.RWTId,
                         amount: BigInt("1")
                     },
                     {
@@ -1186,7 +1186,7 @@ class TestBoxes {
                         amount: BigInt("1")
                     }
                 ],
-                ErgoConfigs.ergoContractConfig().eventTriggerErgoTree,
+                ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
                 [
                     {
                         registerId: 4,
@@ -1243,11 +1243,11 @@ class TestBoxes {
                 71528571n,
                 [
                     {
-                        tokenId: ErgoConfigs.ergoContractConfig().RWTId,
+                        tokenId: ErgoConfigs.ergoContractConfig.RWTId,
                         amount: BigInt("1")
                     }
                 ],
-                ErgoConfigs.ergoContractConfig().eventTriggerErgoTree,
+                ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
                 [
                     {
                         registerId: 4,
@@ -1303,7 +1303,7 @@ class TestBoxes {
                 100000n,
                 [
                     {
-                        tokenId: ErgoConfigs.ergoContractConfig().RWTId,
+                        tokenId: ErgoConfigs.ergoContractConfig.RWTId,
                         amount: BigInt("1")
                     },
                     {
@@ -1311,7 +1311,7 @@ class TestBoxes {
                         amount: BigInt("1")
                     }
                 ],
-                ErgoConfigs.ergoContractConfig().eventTriggerErgoTree,
+                ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
                 [
                     {
                         registerId: 4,
@@ -1366,11 +1366,11 @@ class TestBoxes {
                 71528571n,
                 [
                     {
-                        tokenId: ErgoConfigs.ergoContractConfig().RWTId,
+                        tokenId: ErgoConfigs.ergoContractConfig.RWTId,
                         amount: BigInt("1")
                     }
                 ],
-                ErgoConfigs.ergoContractConfig().eventTriggerErgoTree,
+                ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
                 [
                     {
                         registerId: 4,
@@ -1426,7 +1426,7 @@ class TestBoxes {
                 100000n,
                 [
                     {
-                        tokenId: ErgoConfigs.ergoContractConfig().RWTId,
+                        tokenId: ErgoConfigs.ergoContractConfig.RWTId,
                         amount: BigInt("1")
                     },
                     {
@@ -1434,7 +1434,7 @@ class TestBoxes {
                         amount: BigInt("26857")
                     }
                 ],
-                ErgoConfigs.ergoContractConfig().eventTriggerErgoTree,
+                ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
                 [
                     {
                         registerId: 4,
@@ -1493,7 +1493,7 @@ class TestBoxes {
                 100000n,
                 [
                     {
-                        tokenId: ErgoConfigs.ergoContractConfig().RWTId,
+                        tokenId: ErgoConfigs.ergoContractConfig.RWTId,
                         amount: BigInt("1")
                     },
                     {
@@ -1501,7 +1501,7 @@ class TestBoxes {
                         amount: BigInt("26857")
                     }
                 ],
-                ErgoConfigs.ergoContractConfig().eventTriggerErgoTree,
+                ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
                 [
                     {
                         registerId: 4,

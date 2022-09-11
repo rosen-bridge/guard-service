@@ -367,7 +367,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
     verifyEventWithPayment = async (event: EventTrigger, RWTId: string): Promise<boolean> => {
         const eventId = Utils.txIdToEventId(event.sourceTxId)
         // Verifying watcher RWTs
-        if(RWTId !== CardanoConfigs.cardanoContractConfig().RWTId) {
+        if(RWTId !== CardanoConfigs.cardanoContractConfig.RWTId) {
             console.log(`The event [${eventId}] is not valid, event RWT is not compatible with the cardano RWT id`)
             return false
         }

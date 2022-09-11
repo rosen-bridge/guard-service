@@ -369,7 +369,7 @@
 //
 //             // run test
 //             const ergoChain: ErgoChain = new ErgoChain()
-//             const isValid = await ergoChain.verifyEventWithPayment(mockedEvent, ErgoConfigs.ergoContractConfig().RWTId)
+//             const isValid = await ergoChain.verifyEventWithPayment(mockedEvent, ErgoConfigs.ergoContractConfig.RWTId)
 //             expect(isValid).to.be.true
 //         })
 //
@@ -385,7 +385,7 @@
 //
 //             // run test
 //             const ergoChain: ErgoChain = new ErgoChain()
-//             const isValid = await ergoChain.verifyEventWithPayment(mockedEvent, ErgoConfigs.ergoContractConfig().RWTId)
+//             const isValid = await ergoChain.verifyEventWithPayment(mockedEvent, ErgoConfigs.ergoContractConfig.RWTId)
 //             expect(isValid).to.be.true
 //         })
 //
@@ -401,7 +401,7 @@
 //
 //             // run test
 //             const ergoChain: ErgoChain = new ErgoChain()
-//             const isValid = await ergoChain.verifyEventWithPayment(mockedEvent, ErgoConfigs.ergoContractConfig().RWTId)
+//             const isValid = await ergoChain.verifyEventWithPayment(mockedEvent, ErgoConfigs.ergoContractConfig.RWTId)
 //             expect(isValid).to.be.false
 //         })
 //
@@ -417,7 +417,7 @@
 //
 //             // run test
 //             const ergoChain: ErgoChain = new ErgoChain()
-//             const isValid = await ergoChain.verifyEventWithPayment(mockedEvent, ErgoConfigs.ergoContractConfig().RWTId)
+//             const isValid = await ergoChain.verifyEventWithPayment(mockedEvent, ErgoConfigs.ergoContractConfig.RWTId)
 //             expect(isValid).to.be.false
 //         })
 //
@@ -433,7 +433,7 @@
 //
 //             // run test
 //             const ergoChain: ErgoChain = new ErgoChain()
-//             const isValid = await ergoChain.verifyEventWithPayment(mockedEvent, ErgoConfigs.ergoContractConfig().RWTId)
+//             const isValid = await ergoChain.verifyEventWithPayment(mockedEvent, ErgoConfigs.ergoContractConfig.RWTId)
 //             expect(isValid).to.be.false
 //         })
 //
@@ -449,7 +449,7 @@
 //
 //             // run test
 //             const ergoChain: ErgoChain = new ErgoChain()
-//             const isValid = await ergoChain.verifyEventWithPayment(mockedEvent, ErgoConfigs.ergoContractConfig().RWTId)
+//             const isValid = await ergoChain.verifyEventWithPayment(mockedEvent, ErgoConfigs.ergoContractConfig.RWTId)
 //             expect(isValid).to.be.false
 //         })
 //
@@ -465,7 +465,7 @@
 //
 //             // run test
 //             const ergoChain: ErgoChain = new ErgoChain()
-//             const isValid = await ergoChain.verifyEventWithPayment(mockedEvent, ErgoConfigs.ergoContractConfig().RWTId)
+//             const isValid = await ergoChain.verifyEventWithPayment(mockedEvent, ErgoConfigs.ergoContractConfig.RWTId)
 //             expect(isValid).to.be.false
 //         })
 //
@@ -481,7 +481,7 @@
 //
 //             // run test
 //             const ergoChain: ErgoChain = new ErgoChain()
-//             const isValid = await ergoChain.verifyEventWithPayment(mockedEvent, ErgoConfigs.ergoContractConfig().RWTId)
+//             const isValid = await ergoChain.verifyEventWithPayment(mockedEvent, ErgoConfigs.ergoContractConfig.RWTId)
 //             expect(isValid).to.be.false
 //         })
 //
@@ -497,7 +497,7 @@
 //
 //             // run test
 //             const ergoChain: ErgoChain = new ErgoChain()
-//             const isValid = await ergoChain.verifyEventWithPayment(mockedEvent, ErgoConfigs.ergoContractConfig().RWTId)
+//             const isValid = await ergoChain.verifyEventWithPayment(mockedEvent, ErgoConfigs.ergoContractConfig.RWTId)
 //             expect(isValid).to.be.false
 //         })
 //
@@ -513,7 +513,7 @@
 //
 //             // run test
 //             const ergoChain: ErgoChain = new ErgoChain()
-//             const isValid = await ergoChain.verifyEventWithPayment(mockedEvent, ErgoConfigs.ergoContractConfig().RWTId)
+//             const isValid = await ergoChain.verifyEventWithPayment(mockedEvent, ErgoConfigs.ergoContractConfig.RWTId)
 //             expect(isValid).to.be.false
 //         })
 //
@@ -529,7 +529,7 @@
 //
 //             // run test
 //             const ergoChain: ErgoChain = new ErgoChain()
-//             const isValid = await ergoChain.verifyEventWithPayment(mockedEvent, ErgoConfigs.ergoContractConfig().RWTId)
+//             const isValid = await ergoChain.verifyEventWithPayment(mockedEvent, ErgoConfigs.ergoContractConfig.RWTId)
 //             expect(isValid).to.be.false
 //         })
 //
@@ -546,7 +546,7 @@
 //
 //             // run test
 //             const ergoChain: ErgoChain = new ErgoChain()
-//             const isValid = await ergoChain.verifyEventWithPayment(mockedEvent, ErgoConfigs.ergoContractConfig().RWTId)
+//             const isValid = await ergoChain.verifyEventWithPayment(mockedEvent, ErgoConfigs.ergoContractConfig.RWTId)
 //             expect(isValid).to.be.false
 //             sinon.restore()
 //         })

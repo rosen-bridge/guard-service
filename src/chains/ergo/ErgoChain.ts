@@ -30,7 +30,7 @@ import inputBoxes from "./boxes/InputBoxes";
 
 class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
 
-    lockAddress = Address.from_base58(ErgoConfigs.ergoContractConfig().lockAddress)
+    lockAddress = Address.from_base58(ErgoConfigs.ergoContractConfig.lockAddress)
     lockErgoTree = ErgoUtils.addressToErgoTreeString(this.lockAddress)
 
     /**
@@ -80,7 +80,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         // create change box and add to outBoxes
         outBoxes.push(OutputBoxes.createChangeBox(
             currentHeight,
-            ErgoConfigs.ergoContractConfig().lockAddress,
+            ErgoConfigs.ergoContractConfig.lockAddress,
             inBoxesAssets,
             outBoxesAssets,
             ErgoConfigs.txFee
@@ -352,14 +352,14 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
     verifyEventWithPayment = async (event: EventTrigger, RWTId: string): Promise<boolean> => {
         const eventId = Utils.txIdToEventId(event.sourceTxId)
         // Verifying watcher RWTs
-        if(RWTId !== ErgoConfigs.ergoContractConfig().RWTId) {
+        if(RWTId !== ErgoConfigs.ergoContractConfig.RWTId) {
             console.log(`The event [${eventId}] is not valid, event RWT is not compatible with the ergo RWT id`)
             return false
         }
         try {
             const paymentTx = await ExplorerApi.getConfirmedTx(event.sourceTxId)
             if (paymentTx) {
-                const lockAddress = ErgoConfigs.ergoContractConfig().lockAddress
+                const lockAddress = ErgoConfigs.ergoContractConfig.lockAddress
                 const payment = paymentTx.outputs.filter((box) =>
                     lockAddress === box.address
                 ).map(box => ErgoUtils.getRosenData(box, event.sourceChainTokenId)).filter(box => box !== undefined)[0]

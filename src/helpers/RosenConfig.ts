@@ -69,11 +69,25 @@ class RosenConfig {
         })
     }
 
+    /**
+     * returns the address of contractConfig for the related network
+     * @param network
+     */
     getAddress = (network: string) => {
         return Configs.addressesBasePath + `contracts-${network}.json`
+    }
+
+    /**
+     * Returns the ContractConfig of the related network
+     * @param network
+     */
+    static contractReader = (network: string) => {
+        const contracts = rosenConfig.contracts.get(network)
+        if(!contracts) throw Error(`${network} contracts and token config is not set`)
+        return contracts
     }
 }
 
 
 export const rosenConfig = new RosenConfig()
-export { ContractConfig }
+export { ContractConfig, RosenConfig }

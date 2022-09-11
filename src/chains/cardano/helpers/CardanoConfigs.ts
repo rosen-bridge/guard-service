@@ -1,8 +1,9 @@
 import * as CardanoWasm from '@emurgo/cardano-serialization-lib-nodejs';
 import { BigNum, TransactionBuilderConfig } from "@emurgo/cardano-serialization-lib-nodejs";
 import config from "config";
-import { rosenConfig } from "../../../helpers/RosenConfig";
+import { RosenConfig, rosenConfig } from "../../../helpers/RosenConfig";
 import ChainsConstants from "../../ChainsConstants";
+import Configs from "../../../helpers/Configs";
 
 class CardanoConfigs {
 
@@ -58,11 +59,7 @@ class CardanoConfigs {
     /**
      * returns the ergo-related contract, addresses and tokens in rosen bridge
      */
-    static cardanoContractConfig = () => {
-        const contracts = rosenConfig.contracts.get(ChainsConstants.cardano)
-        if(!contracts) throw Error("Cardano contracts and token config is not set")
-        return contracts
-    }
+    static cardanoContractConfig = RosenConfig.contractReader(ChainsConstants.cardano)
 }
 
 export default CardanoConfigs

@@ -2,8 +2,8 @@ import { Constant, ErgoBoxCandidate, ErgoBoxCandidateBuilder, TokenId } from "er
 import ErgoUtils from "../helpers/ErgoUtils";
 import ErgoConfigs from "../helpers/ErgoConfigs";
 import { BoxesAssets } from "../models/Interfaces";
-import { rosenConfig } from "../../../helpers/RosenConfig";
-import ChainsConstants from "../../ChainsConstants";
+import { RosenConfig, rosenConfig } from "../../../helpers/RosenConfig";
+import Configs from "../../../helpers/Configs";
 
 class OutputBoxes {
 
@@ -104,8 +104,7 @@ class OutputBoxes {
         rsnTokenId: string,
         rsnTokenAmount: bigint
     ): ErgoBoxCandidate => {
-        const contracts = rosenConfig.contracts.get(network)
-        if(!contracts) throw Error(`${network} contracts and token config is not set`)
+        const contracts = RosenConfig.contractReader(network)
         // create box
         const watcherBox = new ErgoBoxCandidateBuilder(
             ErgoUtils.boxValueFromBigint(ergAmount),
