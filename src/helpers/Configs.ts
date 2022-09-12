@@ -1,7 +1,7 @@
 import config from "config";
 import { GuardInfo } from "../guard/agreement/Interfaces";
-import tokens from '../../config/tokens.test.json' assert { type: "json" };
-import { TokenMap } from "@rosen-bridge/tokens";
+import { RosenTokens, TokenMap } from "@rosen-bridge/tokens";
+import fs from "fs";
 
 /**
  * reads a config, set default value if it does not exits
@@ -43,13 +43,6 @@ class Configs {
     // config of API's route
     static MAX_LENGTH_CHANNEL_SIZE = 200
 
-    // token configs
-    static ergoRWT = config.get<string>('tokens.ergoRWT')
-    static cardanoRWT = config.get<string>('tokens.cardanoRWT')
-    static rsn = config.get<string>('tokens.RSN')
-    static rsnRatioNFT = config.get<string>('tokens.RSNRatioNFT')
-    static guardNFT = config.get<string>('tokens.GuardNFT')
-
     // tss configs
     static tssExecutionPath = config.get<string>('tss.path')
     static tssConfigPath = config.get<string>('tss.configPath')
@@ -72,7 +65,19 @@ class Configs {
     //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/24
     static minimumAgreement = config.get<number>('minimumAgreement')
 
-    static tokenMap = new TokenMap(tokens);
+    // contract, addresses and tokens config
+    static networks = config.get<Array<string>>('contracts.networks')
+    static addressesBasePath = config.get<string>('contracts.addressesBasePath')
+    static tokens = (): RosenTokens => {
+        const tokensPath = config.get<string>('tokensPath')
+        if (!fs.existsSync(tokensPath)) {
+            throw new Error(`tokens config file with path ${tokensPath} doesn't exist`)
+        } else {
+            const configJson: string = fs.readFileSync(tokensPath, 'utf8')
+            return JSON.parse(configJson)
+        }
+    }
+    static tokenMap = new TokenMap(this.tokens());
 
     // jobs configs
     static scannedEventProcessorInterval = 120 // seconds, 2 minutes
@@ -80,6 +85,7 @@ class Configs {
     static txResendInterval = 30 // seconds
     static multiSigCleanUpInterval = 120 // seconds
     static multiSigTimeout = getConfigIntKeyOrDefault('multiSigTimeout', 5 * 60) // seconds
+
 }
 
 export default Configs
