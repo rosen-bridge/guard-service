@@ -104,7 +104,7 @@ class OutputBoxes {
         rsnTokenId: string,
         rsnTokenAmount: bigint
     ): ErgoBoxCandidate => {
-        const contracts = RosenConfig.contractReader(network)
+        const contracts = rosenConfig.contractReader(network)
         // create box
         const watcherBox = new ErgoBoxCandidateBuilder(
             ErgoUtils.boxValueFromBigint(ergAmount),

@@ -30,7 +30,7 @@ class ErgoConfigs {
     /**
      * returns the ergo-related contract, addresses and tokens in rosen bridge
      */
-    static ergoContractConfig = RosenConfig.contractReader(ChainsConstants.ergo)
+    static ergoContractConfig = rosenConfig.contractReader(ChainsConstants.ergo)
 }
 
 export default ErgoConfigs

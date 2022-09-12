@@ -59,7 +59,7 @@ class CardanoConfigs {
     /**
      * returns the ergo-related contract, addresses and tokens in rosen bridge
      */
-    static cardanoContractConfig = RosenConfig.contractReader(ChainsConstants.cardano)
+    static cardanoContractConfig = rosenConfig.contractReader(ChainsConstants.cardano)
 }
 
 export default CardanoConfigs

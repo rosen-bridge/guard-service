@@ -81,8 +81,8 @@ class RosenConfig {
      * Returns the ContractConfig of the related network
      * @param network
      */
-    static contractReader = (network: string) => {
-        const contracts = rosenConfig.contracts.get(network)
+    contractReader = (network: string) => {
+        const contracts = this.contracts.get(network)
         if(!contracts) throw Error(`${network} contracts and token config is not set`)
         return contracts
     }
