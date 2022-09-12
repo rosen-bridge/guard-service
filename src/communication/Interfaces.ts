@@ -1,3 +1,5 @@
+import { Connection, Stream } from "@libp2p/interface-connection";
+
 type SubscribeChannelFunction =
     ((msg: string, channel: string, sender: string) => void) |
     ((msg: string, channel: string, sender: string, url: string) => void)
@@ -20,8 +22,25 @@ interface SendDataCommunication {
 interface ReceiveDataCommunication {
     msg: string
     channel: string
-    sender: string
     receiver?: string
 }
 
-export { SubscribeChannelFunction, SendDataCommunication, ReceiveDataCommunication, SubscribeChannels, SubscribeChannel }
+interface ConnectionStream {
+    connection: Connection
+    stream: Stream
+}
+
+interface RelayInfo {
+    peerId: string
+    address: string
+}
+
+export {
+    SubscribeChannelFunction,
+    SendDataCommunication,
+    ReceiveDataCommunication,
+    SubscribeChannels,
+    SubscribeChannel,
+    ConnectionStream,
+    RelayInfo
+}

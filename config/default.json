@@ -64,10 +64,17 @@
         "timeout": 8
     },
     "p2p": {
-        "address": "change me",
+        "addresses": [
+            {
+                "peerId": "changeme",
+                "address": "changeme"
+            }
+        ],
         "bootstrapInterval": 60,
         "pubsubInterval": 1,
         "apiCallbackTimeout": 8,
+        "timeToFlushStream": 0.1,
+        "sendPendingMessage": 15,
         "peerIdFilePath": "./peer-dialer.json"
     },
     "multiSigTimeout": null,
