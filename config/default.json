@@ -96,11 +96,13 @@
         ]
     },
     "minimumAgreement": 5,
-    "networks": [
-        "ergo-testnet",
-        "cardano-testnet"
-    ],
+    "contracts": {
+        "networks": [
+            "ergo-testnet",
+            "cardano-testnet"
+        ],
+        "addressesBasePath": "config/addresses/"
+    },
     "txProcessorInterval": 180,
-    "addressesBasePath": "config/addresses/",
     "tokensPath": "config/tokens.json"
 }

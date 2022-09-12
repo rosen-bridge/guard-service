@@ -27,11 +27,9 @@
             "url": "https://testnet.koios.rest/api/v0",
             "timeout": 8000
         },
-        "bankAddress": "9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD",
         "minimumErg": "100000",
         "txFee": "1100000",
-        "requiredConfirmation": 20,
-        "lockAddress": "2CBjjwbY9Rokj7Ue9qT2pbMR2WhLDmdcL2V9pRgCEEMks9QRXiQ7K73wNANLAczY1XLimkNBu6Nt3hW1zACrk4zQxu"
+        "requiredConfirmation": 20
     },
     "reward": {
         "bridgeFeeRepoAddress": "9gtQHPp8yh2SC7z5ZLMHnK2NNW1DUW11hBKbUEADzqCSrECoQQM",
@@ -76,10 +74,12 @@
     "p2p": {
         "peerIdFilePath": "./peer-dialer.json"
     },
-    "networks": [
-        "ergo-testnet",
-        "cardano-testnet"
-    ],
-    "addressesBasePath": "tests/config/addresses/",
+    "contracts": {
+        "networks": [
+            "ergo-testnet",
+            "cardano-testnet"
+        ],
+        "addressesBasePath": "tests/config/addresses/"
+    },
     "tokensPath": "tests/config/tokens.test.json"
 }

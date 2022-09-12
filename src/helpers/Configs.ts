@@ -43,9 +43,6 @@ class Configs {
     // config of API's route
     static MAX_LENGTH_CHANNEL_SIZE = 200
 
-    // network and contract config
-    static networks = config.get<Array<string>>('networks')
-
     // tss configs
     static tssExecutionPath = config.get<string>('tss.path')
     static tssConfigPath = config.get<string>('tss.configPath')
@@ -69,7 +66,8 @@ class Configs {
     static minimumAgreement = config.get<number>('minimumAgreement')
 
     // contract, addresses and tokens config
-    static addressesBasePath = config.get<string>('addressesBasePath')
+    static networks = config.get<Array<string>>('contracts.networks')
+    static addressesBasePath = config.get<string>('contracts.addressesBasePath')
     static tokens = (): RosenTokens => {
         const tokensPath = config.get<string>('tokensPath')
         if (!fs.existsSync(tokensPath)) {
