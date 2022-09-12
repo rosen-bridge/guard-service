@@ -54,16 +54,8 @@ class Configs {
     // guards configs
     static guardId = config.get<number>('guard.guardId')
     static guardSecret = config.get<string>('guard.secret')
-    static guardsLen = config.get<number>('guard.guardsLen')
     static guards = config.get<GuardInfo[]>('guard.guards')
-    // TODO: get this from config box in blockchain
-    //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/24
-    static guardsPublicKeys = [...this.guards].sort(guardsInfoCompareFunction).map(guard => guard.guardPubKey)
-
-    // agreement configs (minimum number of guards that needs to agree with tx to get approved)
-    // TODO: get this from config box in blockchain
-    //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/24
-    static minimumAgreement = config.get<number>('minimumAgreement')
+    static guardConfigUpdateInterval = config.get<number>('guard.configUpdateInterval')
 
     // contract, addresses and tokens config
     static networks = config.get<Array<string>>('contracts.networks')

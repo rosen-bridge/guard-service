@@ -23,7 +23,6 @@ class ErgoConfigs {
     static watchersRSNSharePercent = BigInt(config.get?.('reward.watchersRSNSharePercent'))
 
     static requiredConfirmation = config.get<number>('ergo.requiredConfirmation')
-    static requiredSigns = config.get<number>('ergo.requiredSigns')
     static initialHeight = config.get<number>('ergo.initialHeight')
     static scannerInterval = config.get<number>('ergo.scannerInterval')
 

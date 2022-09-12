@@ -18,6 +18,7 @@ import EventProcessor from "../EventProcessor";
 import { dbAction } from "../../db/DatabaseAction";
 import TransactionProcessor from "../TransactionProcessor";
 import { txJsonParser } from "../../chains/TxJsonParser";
+import { guardConfig } from "../../helpers/GuardConfig";
 
 const dialer = await Dialer.getInstance();
 
@@ -209,7 +210,7 @@ class TxAgreement {
             console.log(`Guard ${signerId} Agreed with transaction with txId: ${txId}`)
             pushGuardApproval(txId, signerId, signature)
 
-            if (this.transactionApprovals.get(txId)!.length >= Configs.minimumAgreement) {
+            if (this.transactionApprovals.get(txId)!.length >= guardConfig.requiredSign) {
                 console.log(`The majority of guards agreed with txId ${txId}`)
 
                 const txApproval: TransactionApproved = {

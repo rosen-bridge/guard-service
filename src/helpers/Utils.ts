@@ -1,10 +1,11 @@
 import Configs from "./Configs";
 import { Buffer } from "buffer";
 import Encryption from "./Encryption";
+import { guardConfig } from "./GuardConfig";
 
 class Utils {
 
-    private static readonly guardsLen = Configs.guardsLen
+    private static readonly guardsLen = guardConfig.guardsLen
     private static readonly guardId = Configs.guardId
     private static readonly TURNS_LENGTH = 3 * 60 // 3 minutes
     static readonly UP_TIME_LENGTH = 2 * 60 // 2 minutes

@@ -25,7 +25,7 @@
     },
     "ergo": {
         "explorer": {
-            "url": "https://api-testnet.ergoplatform.com/api/v1",
+            "url": "https://api-testnet.ergoplatform.com/api",
             "timeout": 8
         },
         "node": {
@@ -35,7 +35,6 @@
         "minimumErg": "100000",
         "txFee": "1100000",
         "requiredConfirmation": 20,
-        "requiredSigns": 3,
         "initialHeight": 10000,
         "scannerInterval": 30
     },
@@ -63,7 +62,7 @@
     "guard": {
         "guardId": 1,
         "secret": "4444444444444444444444444444444444444444444444444444444444444444",
-        "guardsLen": 7,
+        "configUpdateInterval": 180,
         "guards": [
             {
                 "guardId": 0,
@@ -95,7 +94,6 @@
             }
         ]
     },
-    "minimumAgreement": 5,
     "contracts": {
         "networks": [
             "ergo-testnet",

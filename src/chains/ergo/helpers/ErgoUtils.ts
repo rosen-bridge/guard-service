@@ -106,6 +106,14 @@ class ErgoUtils {
     }
 
     /**
+     * decodes register coll[Int] value from str
+     * @param str
+     */
+    static decodeCollInt = (str: string): Int32Array => {
+        return Constant.decode_from_base16(str).to_i32_array()
+    }
+
+    /**
      * checks if two arrays have same values
      * @param source first array
      * @param target second array

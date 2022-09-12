@@ -27,6 +27,7 @@ import Configs from "../../helpers/Configs";
 import Utils from "../../helpers/Utils";
 import { JsonBI } from "../../network/NetworkModels";
 import inputBoxes from "./boxes/InputBoxes";
+import { guardConfig } from "../../helpers/GuardConfig";
 
 class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
 
@@ -311,9 +312,9 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
 
         // send tx to sign
         MultiSigHandler.getInstance(
-            Configs.guardsPublicKeys,
+            guardConfig.publicKeys,
             Configs.guardSecret
-        ).sign(tx, ErgoConfigs.requiredSigns, txInputs, txDataInputs)
+        ).sign(tx, guardConfig.requiredSign, txInputs, txDataInputs)
             .then( async (signedTx) => {
                 const inputBoxes = ErgoBoxes.empty()
                 txInputs.forEach(box => inputBoxes.add(box))

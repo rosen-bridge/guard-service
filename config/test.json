@@ -41,7 +41,6 @@
         "guardId": 1,
         "secret": "79a25ff592e5a96dc5381d0649fb6bd61ba0ff67d934057812f1ad09a9d554eb",
         "pubKey": "025ea4af07fee449c8c2458f64c271fc979e871d9b8125e4d89e0543531bf41572",
-        "guardsLen": 7,
         "guards": [
             {
                 "guardId": 0,
@@ -70,7 +69,6 @@
         ]
     },
     "multiSigTimeout": 1,
-    "minimumAgreement": 5,
     "p2p": {
         "peerIdFilePath": "./peer-dialer.json"
     },
@@ -79,7 +77,7 @@
             "ergo-testnet",
             "cardano-testnet"
         ],
-        "addressesBasePath": "tests/config/addresses/"
+        "addressesBasePath": "tests/_config/addresses/"
     },
-    "tokensPath": "tests/config/tokens.test.json"
+    "tokensPath": "tests/_config/tokens.test.json"
 }
