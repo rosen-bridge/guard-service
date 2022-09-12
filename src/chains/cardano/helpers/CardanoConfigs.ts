@@ -1,6 +1,9 @@
 import * as CardanoWasm from '@emurgo/cardano-serialization-lib-nodejs';
 import { BigNum, TransactionBuilderConfig } from "@emurgo/cardano-serialization-lib-nodejs";
 import config from "config";
+import { RosenConfig, rosenConfig } from "../../../helpers/RosenConfig";
+import ChainsConstants from "../../ChainsConstants";
+import Configs from "../../../helpers/Configs";
 
 class CardanoConfigs {
 
@@ -52,6 +55,11 @@ class CardanoConfigs {
 
     static requiredConfirmation = config.get<number>('cardano.requiredConfirmation')
     static lockAddresses = config.get<Array<string>>('cardano.lockAddresses')
+
+    /**
+     * returns the ergo-related contract, addresses and tokens in rosen bridge
+     */
+    static cardanoContractConfig = rosenConfig.contractReader(ChainsConstants.cardano)
 }
 
 export default CardanoConfigs

@@ -18,20 +18,21 @@ import TestData from "./TestData";
 import { JsonBI } from "../../../../src/network/NetworkModels";
 import TestConfigs from "../../../testUtils/TestConfigs";
 import ErgoConfigs from "../../../../src/chains/ergo/helpers/ErgoConfigs";
-import Contracts from "../../../../src/contracts/Contracts";
-import Configs from "../../../../src/helpers/Configs";
 import ErgoTransaction from "../../../../src/chains/ergo/models/ErgoTransaction";
 import ChainsConstants from "../../../../src/chains/ChainsConstants";
 import Utils from "../../../../src/helpers/Utils";
 import InputBoxes from "../../../../src/chains/ergo/boxes/InputBoxes";
+import { rosenConfig } from "../../../../src/helpers/RosenConfig";
+import CardanoConfigs from "../../../../src/chains/cardano/helpers/CardanoConfigs";
+
 
 class TestBoxes {
 
-    static testBankAddress = ErgoConfigs.bankAddress
+    static testLockAddress = ErgoConfigs.ergoContractConfig.lockAddress
     static testBlockchainHeight = TestConfigs.ergo.blockchainHeight
     static bridgeFeeErgoTree: string = ErgoUtils.addressStringToErgoTreeString(ErgoConfigs.bridgeFeeRepoAddress)
     static networkFeeErgoTree: string = ErgoUtils.addressStringToErgoTreeString(ErgoConfigs.networkFeeRepoAddress)
-    static bankAddressErgoTree: string = ErgoUtils.addressStringToErgoTreeString(this.testBankAddress)
+    static testLockErgoTree: string = ErgoUtils.addressStringToErgoTreeString(this.testLockAddress)
 
     /**
      * returns BoxValue object for arbitrary amount of Erg
@@ -310,7 +311,7 @@ class TestBoxes {
      */
     static mockBankBoxes = (): CoveringErgoBoxes => {
         const targetTokenId = "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e"
-        const rsnTokenId = Configs.rsn
+        const rsnTokenId = rosenConfig.RSN
         const randomTokenId: string = TestUtils.generateRandomId()
 
         const box1Tokens: Tokens = new Tokens()
@@ -319,7 +320,7 @@ class TestBoxes {
         const box1: ErgoBox = new ErgoBox(
             this.ergToBoxValue(30),
             this.testBlockchainHeight + 5,
-            ErgoUtils.addressStringToContract(this.testBankAddress),
+            ErgoUtils.addressStringToContract(this.testLockAddress),
             TxId.from_str(TestUtils.generateRandomId()),
             0,
             box1Tokens
@@ -329,7 +330,7 @@ class TestBoxes {
         const box2: ErgoBox = new ErgoBox(
             this.ergToBoxValue(100),
             this.testBlockchainHeight,
-            ErgoUtils.addressStringToContract(this.testBankAddress),
+            ErgoUtils.addressStringToContract(this.testLockAddress),
             TxId.from_str(TestUtils.generateRandomId()),
             0,
             box2Tokens
@@ -339,7 +340,7 @@ class TestBoxes {
         const box3: ErgoBox = new ErgoBox(
             this.ergToBoxValue(10),
             this.testBlockchainHeight + 20,
-            ErgoUtils.addressStringToContract(this.testBankAddress),
+            ErgoUtils.addressStringToContract(this.testLockAddress),
             TxId.from_str(TestUtils.generateRandomId()),
             2,
             box3Tokens
@@ -361,14 +362,13 @@ class TestBoxes {
         const inBoxes = ErgoBoxes.empty()
         eventBoxes.forEach(box => inBoxes.add(box))
 
-        const rwtTokenId = Configs.ergoRWT
         const watcherBoxes = event.WIDs.map(wid => Utils.hexStringToUint8Array(wid))
             .concat(eventBoxes.slice(1).map(box => InputBoxes.getErgoBoxWID(box)))
             .map(wid => TestData.mockWatcherPermitBox(
                 100000n,
                 [
                     {
-                        tokenId: rwtTokenId,
+                        tokenId: ErgoConfigs.ergoContractConfig.RWTId,
                         amount: BigInt("1")
                     },
                     {
@@ -376,7 +376,7 @@ class TestBoxes {
                         amount: BigInt("1")
                     }
                 ],
-                Contracts.eventTriggerErgoTree,
+                ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
                 [
                     {
                         registerId: 4,
@@ -391,7 +391,7 @@ class TestBoxes {
             watcherBoxes,
             this.bridgeFeeErgoTree,
             this.networkFeeErgoTree,
-            this.bankAddressErgoTree
+            this.testLockErgoTree
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
 
@@ -413,14 +413,14 @@ class TestBoxes {
         const inBoxes = ErgoBoxes.empty()
         eventBoxes.forEach(box => inBoxes.add(box))
 
-        const rwtTokenId = Configs.ergoRWT
+        
         const watcherBoxes = event.WIDs.map(wid => Utils.hexStringToUint8Array(wid))
             .concat(eventBoxes.slice(1).map(box => InputBoxes.getErgoBoxWID(box)))
             .map(wid => TestData.mockWatcherPermitBox(
                 100000n,
                 [
                     {
-                        tokenId: rwtTokenId,
+                        tokenId: ErgoConfigs.ergoContractConfig.RWTId,
                         amount: BigInt("1")
                     },
                     {
@@ -428,7 +428,7 @@ class TestBoxes {
                         amount: BigInt("1")
                     }
                 ],
-                Contracts.eventTriggerErgoTree,
+                ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
                 [
                     {
                         registerId: 4,
@@ -443,7 +443,7 @@ class TestBoxes {
             watcherBoxes,
             this.bridgeFeeErgoTree,
             this.networkFeeErgoTree,
-            this.bankAddressErgoTree
+            this.testLockErgoTree
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
 
@@ -465,14 +465,13 @@ class TestBoxes {
         const inBoxes = ErgoBoxes.empty()
         eventBoxes.forEach(box => inBoxes.add(box))
 
-        const rwtTokenId = Configs.ergoRWT
         const watcherBoxes = event.WIDs.map(wid => Utils.hexStringToUint8Array(wid))
             .concat(eventBoxes.slice(1).map(box => InputBoxes.getErgoBoxWID(box)))
             .map(wid => TestData.mockWatcherPermitBox(
                 100000n,
                 [
                     {
-                        tokenId: rwtTokenId,
+                        tokenId: ErgoConfigs.ergoContractConfig.RWTId,
                         amount: BigInt("1")
                     },
                     {
@@ -480,7 +479,7 @@ class TestBoxes {
                         amount: BigInt("1")
                     }
                 ],
-                Contracts.eventTriggerErgoTree,
+                ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
                 [
                     {
                         registerId: 4,
@@ -495,7 +494,7 @@ class TestBoxes {
             watcherBoxes,
             this.bridgeFeeErgoTree,
             this.networkFeeErgoTree,
-            this.bankAddressErgoTree
+            this.testLockErgoTree
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
 
@@ -516,15 +515,14 @@ class TestBoxes {
 
         const inBoxes = ErgoBoxes.empty()
         eventBoxes.forEach(box => inBoxes.add(box))
-
-        const rwtTokenId = Configs.ergoRWT
+        
         const watcherBoxes = event.WIDs.map(wid => Utils.hexStringToUint8Array(wid))
             .concat(eventBoxes.slice(1).map(box => InputBoxes.getErgoBoxWID(box)))
             .map(wid => TestData.mockWatcherPermitBox(
                 100000n,
                 [
                     {
-                        tokenId: rwtTokenId,
+                        tokenId: ErgoConfigs.ergoContractConfig.RWTId,
                         amount: BigInt("1")
                     },
                     {
@@ -532,7 +530,7 @@ class TestBoxes {
                         amount: BigInt("1")
                     }
                 ],
-                Contracts.eventTriggerErgoTree,
+                ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
                 [
                     {
                         registerId: 4,
@@ -547,7 +545,7 @@ class TestBoxes {
             watcherBoxes,
             this.bridgeFeeErgoTree,
             this.networkFeeErgoTree,
-            this.bankAddressErgoTree
+            this.testLockErgoTree
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
 
@@ -568,8 +566,7 @@ class TestBoxes {
 
         const inBoxes = ErgoBoxes.empty()
         eventBoxes.forEach(box => inBoxes.add(box))
-
-        const rwtTokenId = Configs.ergoRWT
+        
         const watcherBoxes = event.WIDs.slice(1).concat([TestUtils.generateRandomId()])
             .map(wid => Utils.hexStringToUint8Array(wid))
             .concat(eventBoxes.slice(1).map(box => InputBoxes.getErgoBoxWID(box)))
@@ -577,7 +574,7 @@ class TestBoxes {
                 100000n,
                 [
                     {
-                        tokenId: rwtTokenId,
+                        tokenId: ErgoConfigs.ergoContractConfig.RWTId,
                         amount: BigInt("1")
                     },
                     {
@@ -585,7 +582,7 @@ class TestBoxes {
                         amount: BigInt("1")
                     }
                 ],
-                Contracts.eventTriggerErgoTree,
+                ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
                 [
                     {
                         registerId: 4,
@@ -600,7 +597,7 @@ class TestBoxes {
             watcherBoxes,
             this.bridgeFeeErgoTree,
             this.networkFeeErgoTree,
-            this.bankAddressErgoTree
+            this.testLockErgoTree
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
 
@@ -621,8 +618,7 @@ class TestBoxes {
 
         const inBoxes = ErgoBoxes.empty()
         eventBoxes.forEach(box => inBoxes.add(box))
-
-        const rwtTokenId = Configs.ergoRWT
+        
         const watcherBoxes = event.WIDs.slice(1).concat([TestUtils.generateRandomId()])
             .map(wid => Utils.hexStringToUint8Array(wid))
             .concat(eventBoxes.slice(1).map(box => InputBoxes.getErgoBoxWID(box)))
@@ -630,7 +626,7 @@ class TestBoxes {
                 100000n,
                 [
                     {
-                        tokenId: rwtTokenId,
+                        tokenId: ErgoConfigs.ergoContractConfig.RWTId,
                         amount: BigInt("1")
                     },
                     {
@@ -638,7 +634,7 @@ class TestBoxes {
                         amount: BigInt("1")
                     }
                 ],
-                Contracts.eventTriggerErgoTree,
+                ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
                 [
                     {
                         registerId: 4,
@@ -653,7 +649,7 @@ class TestBoxes {
             watcherBoxes,
             this.bridgeFeeErgoTree,
             this.networkFeeErgoTree,
-            this.bankAddressErgoTree
+            this.testLockErgoTree
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
 
@@ -748,7 +744,7 @@ class TestBoxes {
     static mockSingleBankBox = (value: number, assets: Asset[]): ErgoBox => this.mockSingleBox(
         value,
         assets,
-        ErgoUtils.addressStringToContract(this.testBankAddress)
+        ErgoUtils.addressStringToContract(this.testLockAddress)
     )
 
     /**
@@ -823,17 +819,16 @@ class TestBoxes {
      * generates an event box with 5 WIDs and 2 commitment boxes
      */
     static mockEventBoxWithSomeCommitments = (): ErgoBox[] => {
-        const rwtTokenId = Configs.ergoRWT
         const wids = Array(5).fill(0).map(() => Buffer.from(TestUtils.generateRandomId(), "hex"))
         const eventBox: ErgoBox = this.mockErgoBoxWithRegisters(
             500000n,
             [
                 {
-                    tokenId: rwtTokenId,
+                    tokenId: ErgoConfigs.ergoContractConfig.RWTId,
                     amount: BigInt("5")
                 }
             ],
-            Contracts.eventTriggerContract,
+            ErgoConfigs.ergoContractConfig.eventTriggerContract,
             [
                 {
                     registerId: 4,
@@ -845,11 +840,11 @@ class TestBoxes {
             100000n,
             [
                 {
-                    tokenId: rwtTokenId,
+                    tokenId: ErgoConfigs.ergoContractConfig.RWTId,
                     amount: BigInt("1")
                 }
             ],
-            Contracts.watcherPermitContract,
+            ErgoConfigs.ergoContractConfig.permitContract,
             [
                 {
                     registerId: 4,
@@ -868,15 +863,14 @@ class TestBoxes {
     static mockTokenTransferringErgDistributionTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): ErgoTransaction => {
         const inBoxes = ErgoBoxes.empty()
         eventBoxes.forEach(box => inBoxes.add(box))
-
-        const rwtTokenId = Configs.ergoRWT
+        
         const watcherBoxes = event.WIDs.map(wid => Utils.hexStringToUint8Array(wid))
             .concat(eventBoxes.slice(1).map(box => InputBoxes.getErgoBoxWID(box)))
             .map(wid => TestData.mockWatcherPermitBox(
             100000n,
             [
                 {
-                    tokenId: rwtTokenId,
+                    tokenId: ErgoConfigs.ergoContractConfig.RWTId,
                     amount: BigInt("1")
                 },
                 {
@@ -884,7 +878,7 @@ class TestBoxes {
                     amount: BigInt("1")
                 }
             ],
-            Contracts.eventTriggerErgoTree,
+            ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
             [
                 {
                     registerId: 4,
@@ -898,7 +892,7 @@ class TestBoxes {
             watcherBoxes,
             this.bridgeFeeErgoTree,
             this.networkFeeErgoTree,
-            this.bankAddressErgoTree
+            this.testLockErgoTree
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
 
@@ -917,8 +911,7 @@ class TestBoxes {
     static mockTransferToIllegalWIDDistributionTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): ErgoTransaction => {
         const inBoxes = ErgoBoxes.empty()
         eventBoxes.forEach(box => inBoxes.add(box))
-
-        const rwtTokenId = Configs.ergoRWT
+        
         const watcherBoxes = event.WIDs.slice(1).concat([TestUtils.generateRandomId()])
             .map(wid => Utils.hexStringToUint8Array(wid))
             .concat(eventBoxes.slice(1).map(box => InputBoxes.getErgoBoxWID(box)))
@@ -926,7 +919,7 @@ class TestBoxes {
                 100000n,
                 [
                     {
-                        tokenId: rwtTokenId,
+                        tokenId: ErgoConfigs.ergoContractConfig.RWTId,
                         amount: BigInt("1")
                     },
                     {
@@ -934,7 +927,7 @@ class TestBoxes {
                         amount: BigInt("1")
                     }
                 ],
-                Contracts.eventTriggerErgoTree,
+                ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
                 [
                     {
                         registerId: 4,
@@ -948,7 +941,7 @@ class TestBoxes {
             watcherBoxes,
             this.bridgeFeeErgoTree,
             this.networkFeeErgoTree,
-            this.bankAddressErgoTree
+            this.testLockErgoTree
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
 
@@ -967,8 +960,7 @@ class TestBoxes {
     static mockMissingValidCommitmentDistributionTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): ErgoTransaction => {
         const inBoxes = ErgoBoxes.empty()
         eventBoxes.forEach(box => inBoxes.add(box))
-
-        const rwtTokenId = Configs.ergoRWT
+        
         const watcherBoxes = event.WIDs.slice(1).concat([TestUtils.generateRandomId()])
             .map(wid => Utils.hexStringToUint8Array(wid))
             .concat(eventBoxes.slice(1).map(box => InputBoxes.getErgoBoxWID(box)))
@@ -976,7 +968,7 @@ class TestBoxes {
                 100000n,
                 [
                     {
-                        tokenId: rwtTokenId,
+                        tokenId: ErgoConfigs.ergoContractConfig.RWTId,
                         amount: BigInt("1")
                     },
                     {
@@ -984,7 +976,7 @@ class TestBoxes {
                         amount: BigInt("1")
                     }
                 ],
-                Contracts.eventTriggerErgoTree,
+                ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
                 [
                     {
                         registerId: 4,
@@ -998,7 +990,7 @@ class TestBoxes {
             watcherBoxes,
             this.bridgeFeeErgoTree,
             this.networkFeeErgoTree,
-            this.bankAddressErgoTree
+            this.testLockErgoTree
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
 
@@ -1017,8 +1009,7 @@ class TestBoxes {
     static mockIllegalChangeBoxDistributionTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): ErgoTransaction => {
         const inBoxes = ErgoBoxes.empty()
         eventBoxes.forEach(box => inBoxes.add(box))
-
-        const rwtTokenId = Configs.ergoRWT
+        
         const watcherBoxes = event.WIDs.slice(1).concat([TestUtils.generateRandomId()])
             .map(wid => Utils.hexStringToUint8Array(wid))
             .concat(eventBoxes.slice(1).map(box => InputBoxes.getErgoBoxWID(box)))
@@ -1026,7 +1017,7 @@ class TestBoxes {
                 100000n,
                 [
                     {
-                        tokenId: rwtTokenId,
+                        tokenId: ErgoConfigs.ergoContractConfig.RWTId,
                         amount: BigInt("1")
                     },
                     {
@@ -1034,7 +1025,7 @@ class TestBoxes {
                         amount: BigInt("1")
                     }
                 ],
-                Contracts.eventTriggerErgoTree,
+                ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
                 [
                     {
                         registerId: 4,
@@ -1048,7 +1039,7 @@ class TestBoxes {
             watcherBoxes,
             this.bridgeFeeErgoTree,
             this.networkFeeErgoTree,
-            this.bankAddressErgoTree
+            this.testLockErgoTree
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
 
@@ -1067,8 +1058,7 @@ class TestBoxes {
     static mockWrongTokenDistributionTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): ErgoTransaction => {
         const inBoxes = ErgoBoxes.empty()
         eventBoxes.forEach(box => inBoxes.add(box))
-
-        const rwtTokenId = Configs.ergoRWT
+        
         const watcherBoxes = event.WIDs
             .map(wid => Utils.hexStringToUint8Array(wid))
             .concat(eventBoxes.slice(1).map(box => InputBoxes.getErgoBoxWID(box)))
@@ -1076,7 +1066,7 @@ class TestBoxes {
                 100000n,
                 [
                     {
-                        tokenId: rwtTokenId,
+                        tokenId: ErgoConfigs.ergoContractConfig.RWTId,
                         amount: BigInt("1")
                     },
                     {
@@ -1084,7 +1074,7 @@ class TestBoxes {
                         amount: BigInt("1")
                     }
                 ],
-                Contracts.eventTriggerErgoTree,
+                ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
                 [
                     {
                         registerId: 4,
@@ -1098,7 +1088,7 @@ class TestBoxes {
             watcherBoxes,
             this.bridgeFeeErgoTree,
             this.networkFeeErgoTree,
-            this.bankAddressErgoTree
+            this.testLockErgoTree
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
 
@@ -1117,8 +1107,7 @@ class TestBoxes {
     static mockWrongAmountTokenDistributionTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): ErgoTransaction => {
         const inBoxes = ErgoBoxes.empty()
         eventBoxes.forEach(box => inBoxes.add(box))
-
-        const rwtTokenId = Configs.ergoRWT
+        
         const watcherBoxes = event.WIDs
             .map(wid => Utils.hexStringToUint8Array(wid))
             .concat(eventBoxes.slice(1).map(box => InputBoxes.getErgoBoxWID(box)))
@@ -1126,7 +1115,7 @@ class TestBoxes {
                 100000n,
                 [
                     {
-                        tokenId: rwtTokenId,
+                        tokenId: ErgoConfigs.ergoContractConfig.RWTId,
                         amount: BigInt("1")
                     },
                     {
@@ -1134,7 +1123,7 @@ class TestBoxes {
                         amount: BigInt("2")
                     }
                 ],
-                Contracts.eventTriggerErgoTree,
+                ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
                 [
                     {
                         registerId: 4,
@@ -1148,7 +1137,7 @@ class TestBoxes {
             watcherBoxes,
             this.bridgeFeeErgoTree,
             this.networkFeeErgoTree,
-            this.bankAddressErgoTree
+            this.testLockErgoTree
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
 
@@ -1181,8 +1170,7 @@ class TestBoxes {
             paymentTxInputBoxes.push(box.sigma_serialize_bytes())
             txInputBoxes.push(box.box_id().to_str())
         })
-
-        const rwtTokenId = Configs.ergoRWT
+        
         const watcherBoxes = event.WIDs
             .map(wid => Utils.hexStringToUint8Array(wid))
             .concat(eventBoxes.slice(1).map(box => InputBoxes.getErgoBoxWID(box)))
@@ -1190,7 +1178,7 @@ class TestBoxes {
                 100000n,
                 [
                     {
-                        tokenId: rwtTokenId,
+                        tokenId: ErgoConfigs.ergoContractConfig.RWTId,
                         amount: BigInt("1")
                     },
                     {
@@ -1198,7 +1186,7 @@ class TestBoxes {
                         amount: BigInt("1")
                     }
                 ],
-                Contracts.eventTriggerErgoTree,
+                ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
                 [
                     {
                         registerId: 4,
@@ -1213,7 +1201,7 @@ class TestBoxes {
             watcherBoxes,
             this.bridgeFeeErgoTree,
             this.networkFeeErgoTree,
-            this.bankAddressErgoTree,
+            this.testLockErgoTree,
             bankBoxes.boxes[0].tokens().get(1).id().to_str()
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
@@ -1247,8 +1235,7 @@ class TestBoxes {
             paymentTxInputBoxes.push(box.sigma_serialize_bytes())
             txInputBoxes.push(box.box_id().to_str())
         })
-
-        const rwtTokenId = Configs.ergoRWT
+        
         const watcherBoxes = event.WIDs
             .map(wid => Utils.hexStringToUint8Array(wid))
             .concat(eventBoxes.slice(1).map(box => InputBoxes.getErgoBoxWID(box)))
@@ -1256,11 +1243,11 @@ class TestBoxes {
                 71528571n,
                 [
                     {
-                        tokenId: rwtTokenId,
+                        tokenId: ErgoConfigs.ergoContractConfig.RWTId,
                         amount: BigInt("1")
                     }
                 ],
-                Contracts.eventTriggerErgoTree,
+                ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
                 [
                     {
                         registerId: 4,
@@ -1275,7 +1262,7 @@ class TestBoxes {
             watcherBoxes,
             this.bridgeFeeErgoTree,
             this.networkFeeErgoTree,
-            this.bankAddressErgoTree,
+            this.testLockErgoTree,
             bankBoxes.boxes[0].tokens().get(1).id().to_str()
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
@@ -1308,8 +1295,7 @@ class TestBoxes {
             rewardTxInputBoxes.push(box.sigma_serialize_bytes())
             txInputBoxes.push(box.box_id().to_str())
         })
-
-        const rwtTokenId = Configs.ergoRWT
+        
         const watcherBoxes = event.WIDs
             .map(wid => Utils.hexStringToUint8Array(wid))
             .concat(eventBoxes.slice(1).map(box => InputBoxes.getErgoBoxWID(box)))
@@ -1317,7 +1303,7 @@ class TestBoxes {
                 100000n,
                 [
                     {
-                        tokenId: rwtTokenId,
+                        tokenId: ErgoConfigs.ergoContractConfig.RWTId,
                         amount: BigInt("1")
                     },
                     {
@@ -1325,7 +1311,7 @@ class TestBoxes {
                         amount: BigInt("1")
                     }
                 ],
-                Contracts.eventTriggerErgoTree,
+                ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
                 [
                     {
                         registerId: 4,
@@ -1339,7 +1325,7 @@ class TestBoxes {
             watcherBoxes,
             this.bridgeFeeErgoTree,
             this.networkFeeErgoTree,
-            this.bankAddressErgoTree,
+            this.testLockErgoTree,
             bankBoxes.boxes[0].tokens().get(1).id().to_str()
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
@@ -1372,8 +1358,7 @@ class TestBoxes {
             rewardTxInputBoxes.push(box.sigma_serialize_bytes())
             txInputBoxes.push(box.box_id().to_str())
         })
-
-        const rwtTokenId = Configs.ergoRWT
+        
         const watcherBoxes = event.WIDs
             .map(wid => Utils.hexStringToUint8Array(wid))
             .concat(eventBoxes.slice(1).map(box => InputBoxes.getErgoBoxWID(box)))
@@ -1381,11 +1366,11 @@ class TestBoxes {
                 71528571n,
                 [
                     {
-                        tokenId: rwtTokenId,
+                        tokenId: ErgoConfigs.ergoContractConfig.RWTId,
                         amount: BigInt("1")
                     }
                 ],
-                Contracts.eventTriggerErgoTree,
+                ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
                 [
                     {
                         registerId: 4,
@@ -1399,7 +1384,7 @@ class TestBoxes {
             watcherBoxes,
             this.bridgeFeeErgoTree,
             this.networkFeeErgoTree,
-            this.bankAddressErgoTree,
+            this.testLockErgoTree,
             bankBoxes.boxes[0].tokens().get(1).id().to_str()
         )
         const tx = UnsignedTransaction.from_json(txJsonString)
@@ -1418,7 +1403,7 @@ class TestBoxes {
      */
     static mockWrongAmountRSNOnlyDistributionTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): ErgoTransaction => {
         const rewardTxInputBoxes: Uint8Array[] = []
-        const rsnTokenId = Configs.rsn
+        const rsnTokenId = rosenConfig.RSN
         const txInputBoxes: string[] = []
 
         const inBoxes = ErgoBoxes.empty()
@@ -1433,8 +1418,7 @@ class TestBoxes {
             rewardTxInputBoxes.push(box.sigma_serialize_bytes())
             txInputBoxes.push(box.box_id().to_str())
         })
-
-        const rwtTokenId = Configs.ergoRWT
+        
         const watcherBoxes = event.WIDs
             .map(wid => Utils.hexStringToUint8Array(wid))
             .concat(eventBoxes.slice(1).map(box => InputBoxes.getErgoBoxWID(box)))
@@ -1442,7 +1426,7 @@ class TestBoxes {
                 100000n,
                 [
                     {
-                        tokenId: rwtTokenId,
+                        tokenId: ErgoConfigs.ergoContractConfig.RWTId,
                         amount: BigInt("1")
                     },
                     {
@@ -1450,7 +1434,7 @@ class TestBoxes {
                         amount: BigInt("26857")
                     }
                 ],
-                Contracts.eventTriggerErgoTree,
+                ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
                 [
                     {
                         registerId: 4,
@@ -1464,7 +1448,7 @@ class TestBoxes {
             watcherBoxes,
             this.bridgeFeeErgoTree,
             this.networkFeeErgoTree,
-            this.bankAddressErgoTree,
+            this.testLockErgoTree,
             bankBoxes.boxes[0].tokens().get(1).id().to_str(),
             rsnTokenId
         )
@@ -1485,7 +1469,7 @@ class TestBoxes {
     static mockWrongAmountRSNOnlyPaymentTransaction = (event: EventTrigger, eventBoxes: ErgoBox[]): ErgoTransaction => {
         const paymentTxInputBoxes: Uint8Array[] = []
         const targetAddressErgoTree: string = ErgoUtils.addressStringToErgoTreeString(event.toAddress)
-        const rsnTokenId = Configs.rsn
+        const rsnTokenId = rosenConfig.RSN
 
         const txInputBoxes: string[] = []
 
@@ -1501,8 +1485,7 @@ class TestBoxes {
             paymentTxInputBoxes.push(box.sigma_serialize_bytes())
             txInputBoxes.push(box.box_id().to_str())
         })
-
-        const rwtTokenId = Configs.ergoRWT
+        
         const watcherBoxes = event.WIDs
             .map(wid => Utils.hexStringToUint8Array(wid))
             .concat(eventBoxes.slice(1).map(box => InputBoxes.getErgoBoxWID(box)))
@@ -1510,7 +1493,7 @@ class TestBoxes {
                 100000n,
                 [
                     {
-                        tokenId: rwtTokenId,
+                        tokenId: ErgoConfigs.ergoContractConfig.RWTId,
                         amount: BigInt("1")
                     },
                     {
@@ -1518,7 +1501,7 @@ class TestBoxes {
                         amount: BigInt("26857")
                     }
                 ],
-                Contracts.eventTriggerErgoTree,
+                ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
                 [
                     {
                         registerId: 4,
@@ -1533,7 +1516,7 @@ class TestBoxes {
             watcherBoxes,
             this.bridgeFeeErgoTree,
             this.networkFeeErgoTree,
-            this.bankAddressErgoTree,
+            this.testLockErgoTree,
             bankBoxes.boxes[0].tokens().get(1).id().to_str(),
             rsnTokenId
         )

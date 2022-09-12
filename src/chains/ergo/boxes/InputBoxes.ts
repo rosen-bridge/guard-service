@@ -4,6 +4,7 @@ import ExplorerApi from "../network/ExplorerApi";
 import Configs from "../../../helpers/Configs";
 import { JsonBI } from "../../../network/NetworkModels";
 import Utils from "../../../helpers/Utils";
+import { rosenConfig } from "../../../helpers/RosenConfig";
 import { Buffer } from "buffer";
 import { dbAction } from "../../../db/DatabaseAction";
 
@@ -39,8 +40,8 @@ class InputBoxes {
      * @return RSN ratio for the corresponding tokenId
      */
     static getRSNRatioCoef = async (tokenId: string): Promise<[bigint, bigint]> => {
-        const boxes = await ExplorerApi.getBoxesByTokenId(Configs.rsnRatioNFT)
-        if (boxes.total !== 1) throw Error(`impossible case, found ${boxes.total} boxes containing rsnRationNFT [${Configs.rsnRatioNFT}]`)
+        const boxes = await ExplorerApi.getBoxesByTokenId(rosenConfig.rsnRatioNFT)
+        if (boxes.total !== 1) throw Error(`impossible case, found ${boxes.total} boxes containing rsnRationNFT [${rosenConfig.rsnRatioNFT}]`)
         const box = ErgoBox.from_json(JsonBI.stringify(boxes.items[0]))
         const boxId = box.box_id().to_str()
 
@@ -80,8 +81,8 @@ class InputBoxes {
      * @return ErgoBox containing guards public keys
      */
     static getGuardsInfoBox = async (): Promise<ErgoBox> => {
-        const boxes = await ExplorerApi.getBoxesByTokenId(Configs.guardNFT)
-        if (boxes.total !== 1) throw Error(`impossible case, found ${boxes.total} boxes containing guardNFT [${Configs.guardNFT}]`)
+        const boxes = await ExplorerApi.getBoxesByTokenId(rosenConfig.guardNFT)
+        if (boxes.total !== 1) throw Error(`impossible case, found ${boxes.total} boxes containing guardNFT [${rosenConfig.guardNFT}]`)
         return ErgoBox.from_json(JsonBI.stringify(boxes.items[0]))
     }
 
