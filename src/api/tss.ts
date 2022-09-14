@@ -23,7 +23,7 @@ tssRouter.post("/sign",
                 console.warn(`Received bad request from TSS Cardano tx sign callback. Errors ${JSON.stringify(errors.array())}`)
                 return res.status(400).json({ message: JSON.stringify(errors.array()) });
             }
-            const message = req.body.message
+            const message = JSON.stringify(req.body.message)
             const status = req.body.status
             const cardanoChain = new CardanoChain()
             cardanoChain.signTransaction(message, status).then(() => res.send({message: "ok"}))
