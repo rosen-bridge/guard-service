@@ -20,6 +20,7 @@ import { dbAction } from "../../db/DatabaseAction";
 import Configs from "../../helpers/Configs";
 import { Buffer } from "buffer";
 import Utils from "../../helpers/Utils";
+import inputBoxes from "../ergo/boxes/InputBoxes";
 
 
 class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
@@ -361,9 +362,15 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
      *  2- the asset should be listed on the tokenMap config
      *  3- tx metaData should have "0" key
      * @param event
+     * @param RWTId
      */
-    verifyEventWithPayment = async (event: EventTrigger): Promise<boolean> => {
+    verifyEventWithPayment = async (event: EventTrigger, RWTId: string): Promise<boolean> => {
         const eventId = Utils.txIdToEventId(event.sourceTxId)
+        // Verifying watcher RWTs
+        if(RWTId !== CardanoConfigs.cardanoContractConfig.RWTId) {
+            console.log(`The event [${eventId}] is not valid, event RWT is not compatible with the cardano RWT id`)
+            return false
+        }
         try {
             const txInfo = (await KoiosApi.getTxInformation([event.sourceTxId]))[0];
             const payment = txInfo.outputs.filter((utxo: Utxo) => {
