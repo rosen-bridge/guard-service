@@ -12,8 +12,7 @@ export const tssRouter = Router();
  */
 tssRouter.post("/sign",
     body("message")
-        .notEmpty().withMessage("key message is required!")
-        .isString(),
+        .notEmpty().withMessage("key message is required!"),
     body("status")
         .notEmpty().withMessage("key status is required!")
         .isString(),
