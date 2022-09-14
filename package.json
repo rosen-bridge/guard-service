@@ -25,6 +25,7 @@
         "@libp2p/mplex": "^5.0.0",
         "@libp2p/pubsub-peer-discovery": "^6.0.2",
         "@libp2p/websockets": "^3.0.2",
+        "@blockfrost/blockfrost-js": "^4.1.0",
         "@rosen-bridge/scanner": "0.1.9-alpha",
         "@rosen-bridge/tokens": "^0.1.5",
         "@rosen-bridge/watcher-data-extractor": "0.1.2-alpha",
