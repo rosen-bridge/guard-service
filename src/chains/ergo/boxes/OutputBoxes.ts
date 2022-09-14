@@ -1,9 +1,9 @@
 import { Constant, ErgoBoxCandidate, ErgoBoxCandidateBuilder, TokenId } from "ergo-lib-wasm-nodejs";
 import ErgoUtils from "../helpers/ErgoUtils";
-import Configs from "../../../helpers/Configs";
 import ErgoConfigs from "../helpers/ErgoConfigs";
-import Contracts from "../../../contracts/Contracts";
 import { BoxesAssets } from "../models/Interfaces";
+import { RosenConfig, rosenConfig } from "../../../helpers/RosenConfig";
+import Configs from "../../../helpers/Configs";
 
 class OutputBoxes {
 
@@ -28,7 +28,7 @@ class OutputBoxes {
      * @param guardRsnAmount amount of Erg in guard bridge fee box
      * @param guardNetworkErgAmount amount of Erg in guard network fee box
      * @param guardNetworkTokenAmount amount of payment token in guard network fee box
-     * @param rwtTokenId RWT token id
+     * @param network
      * @param paymentTokenId payment token id
      * @param wids list of watcher ids
      */
@@ -42,22 +42,22 @@ class OutputBoxes {
         guardRsnAmount: bigint,
         guardNetworkErgAmount: bigint,
         guardNetworkTokenAmount: bigint,
-        rwtTokenId: string,
+        network: string,
         paymentTokenId: string,
         wids: Uint8Array[]
     ): ErgoBoxCandidate[] => {
         const outBoxes: ErgoBoxCandidate[] = []
-        const rsnTokenId = Configs.rsn
+        const rsnTokenId = rosenConfig.RSN
 
         // create watchers boxes
         wids.forEach(wid => outBoxes.push(this.createWatcherRewardBox(
             height,
             wid,
             watcherErgAmount,
-            rwtTokenId,
+            network,
             paymentTokenId,
             watcherTokenAmount,
-            Configs.rsn,
+            rosenConfig.RSN,
             watcherRsnAmount
         )))
 
@@ -88,7 +88,7 @@ class OutputBoxes {
      * @param height current height of blockchain
      * @param wid watcher id
      * @param ergAmount amount of Erg in box
-     * @param rwtTokenId RWT token id of the source chain
+     * @param network
      * @param paymentTokenId reward token id
      * @param paymentTokenAmount reward token amount
      * @param rsnTokenId RSN token id
@@ -98,20 +98,21 @@ class OutputBoxes {
         height: number,
         wid: Uint8Array,
         ergAmount: bigint,
-        rwtTokenId: string,
+        network: string,
         paymentTokenId: string,
         paymentTokenAmount: bigint,
         rsnTokenId: string,
         rsnTokenAmount: bigint
     ): ErgoBoxCandidate => {
+        const contracts = rosenConfig.contractReader(network)
         // create box
         const watcherBox = new ErgoBoxCandidateBuilder(
             ErgoUtils.boxValueFromBigint(ergAmount),
-            Contracts.watcherPermitContract,
+            contracts.permitContract,
             height
         )
         // add box tokens
-        this.addTokenToBoxBuilder(watcherBox, rwtTokenId, 1n)
+        this.addTokenToBoxBuilder(watcherBox, contracts.RWTId, 1n)
         this.addTokenToBoxBuilder(watcherBox, paymentTokenId, paymentTokenAmount)
         this.addTokenToBoxBuilder(watcherBox, rsnTokenId, rsnTokenAmount)
         // add box registers

@@ -32,12 +32,10 @@
             "url": "",
             "timeout": 8
         },
-        "bankAddress": "9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD",
         "minimumErg": "100000",
         "txFee": "1100000",
         "requiredConfirmation": 20,
         "requiredSigns": 3,
-        "lockAddress": "change-me",
         "initialHeight": 10000,
         "scannerInterval": 30
     },
@@ -46,15 +44,6 @@
         "networkFeeRepoAddress": "9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD",
         "watchersSharePercent": 50,
         "watchersRSNSharePercent": 0
-    },
-    "tokens": {
-        "ergoRWT": "0000000000000000000000000000000000000000000000000000000000000000",
-        "cardanoRWT": "1111111111111111111111111111111111111111111111111111111111111111",
-        "RepoNFT": "2222222222222222222222222222222222222222222222222222222222222222",
-        "GuardNFT": "3333333333333333333333333333333333333333333333333333333333333333",
-        "CleanupNFT": "4444444444444444444444444444444444444444444444444444444444444444",
-        "RSN": "5555555555555555555555555555555555555555555555555555555555555555",
-        "RSNRatioNFT": "6666666666666666666666666666666666666666666666666666666666666666"
     },
     "tss": {
         "path": "./bin/tss.exe",
@@ -114,5 +103,13 @@
         ]
     },
     "minimumAgreement": 5,
-    "txProcessorInterval": 180
+    "contracts": {
+        "networks": [
+            "ergo-testnet",
+            "cardano-testnet"
+        ],
+        "addressesBasePath": "config/addresses/"
+    },
+    "txProcessorInterval": 180,
+    "tokensPath": "config/tokens.json"
 }
