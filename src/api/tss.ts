@@ -23,10 +23,10 @@ tssRouter.post("/sign",
                 console.warn(`Received bad request from TSS Cardano tx sign callback. Errors ${JSON.stringify(errors.array())}`)
                 return res.status(400).json({ message: JSON.stringify(errors.array()) });
             }
-            const signedTxHash = req.body.message
-            const txHash = req.body.status
+            const message = req.body.message
+            const status = req.body.status
             const cardanoChain = new CardanoChain()
-            cardanoChain.signTransaction(txHash, signedTxHash).then(() => res.send({message: "ok"}))
+            cardanoChain.signTransaction(message, status).then(() => res.send({message: "ok"}))
         }
         catch (error) {
             console.log(`An error occurred while processing TSS Cardano tx sign callback: ${error.message}`)
