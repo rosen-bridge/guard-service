@@ -21,6 +21,7 @@ import Utils from "../../../src/helpers/Utils";
 import sinon from "sinon";
 import CardanoUtils from "../../../src/chains/cardano/helpers/CardanoUtils";
 import { TssFailedSign, TssSuccessfulSign } from "../../../src/models/Interfaces";
+import CardanoConfigs from "../../../src/chains/cardano/helpers/CardanoConfigs";
 
 describe("CardanoChain", () => {
     const testBankAddress = TestBoxes.testBankAddress
@@ -340,7 +341,7 @@ describe("CardanoChain", () => {
 
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
-            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent, CardanoConfigs.cardanoContractConfig.RWTId)
             expect(isValid).to.be.true
         })
 
@@ -356,7 +357,7 @@ describe("CardanoChain", () => {
 
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
-            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent, CardanoConfigs.cardanoContractConfig.RWTId)
             expect(isValid).to.be.true
         })
 
@@ -372,7 +373,7 @@ describe("CardanoChain", () => {
 
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
-            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent, CardanoConfigs.cardanoContractConfig.RWTId)
             expect(isValid).to.be.false
         })
 
@@ -388,7 +389,7 @@ describe("CardanoChain", () => {
 
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
-            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent, CardanoConfigs.cardanoContractConfig.RWTId)
             expect(isValid).to.be.false
         })
 
@@ -404,7 +405,7 @@ describe("CardanoChain", () => {
 
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
-            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent, CardanoConfigs.cardanoContractConfig.RWTId)
             expect(isValid).to.be.false
         })
 
@@ -420,7 +421,7 @@ describe("CardanoChain", () => {
 
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
-            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent, CardanoConfigs.cardanoContractConfig.RWTId)
             expect(isValid).to.be.false
         })
 
@@ -436,7 +437,7 @@ describe("CardanoChain", () => {
 
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
-            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent, CardanoConfigs.cardanoContractConfig.RWTId)
             expect(isValid).to.be.false
         })
 
@@ -452,7 +453,7 @@ describe("CardanoChain", () => {
 
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
-            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent, CardanoConfigs.cardanoContractConfig.RWTId)
             expect(isValid).to.be.false
         })
 
@@ -468,7 +469,7 @@ describe("CardanoChain", () => {
 
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
-            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent, CardanoConfigs.cardanoContractConfig.RWTId)
             expect(isValid).to.be.false
         })
 
@@ -484,7 +485,7 @@ describe("CardanoChain", () => {
 
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
-            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent, CardanoConfigs.cardanoContractConfig.RWTId)
             expect(isValid).to.be.false
         })
 
@@ -500,7 +501,7 @@ describe("CardanoChain", () => {
 
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
-            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent, CardanoConfigs.cardanoContractConfig.RWTId)
             expect(isValid).to.be.false
         })
 
@@ -516,7 +517,7 @@ describe("CardanoChain", () => {
 
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
-            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent, CardanoConfigs.cardanoContractConfig.RWTId)
             expect(isValid).to.be.false
         })
 
@@ -532,7 +533,7 @@ describe("CardanoChain", () => {
 
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
-            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent, CardanoConfigs.cardanoContractConfig.RWTId)
             expect(isValid).to.be.false
         })
 
@@ -548,7 +549,7 @@ describe("CardanoChain", () => {
 
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
-            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent, CardanoConfigs.cardanoContractConfig.RWTId)
             expect(isValid).to.be.false
         })
 
@@ -565,7 +566,27 @@ describe("CardanoChain", () => {
 
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
-            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent)
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent, CardanoConfigs.cardanoContractConfig.RWTId)
+            expect(isValid).to.be.false
+            sinon.restore()
+        })
+
+        /**
+         * Target: testing verifyEventWithPayment
+         * Dependencies:
+         *    -
+         * Scenario:
+         *    Mock a valid eventTrigger
+         *    Pass the valid trigger event with an invalid RWTId
+         * Expected Output:
+         *    It should NOT verify the event
+         */
+        it("should return false when the event RWT is not compatible with cardano rwt", async () => {
+            const mockedEvent: EventTrigger = TestBoxes.mockValidEventTrigger()
+
+            // run test
+            const cardanoChain: CardanoChain = new CardanoChain()
+            const isValid = await cardanoChain.verifyEventWithPayment(mockedEvent, "fake")
             expect(isValid).to.be.false
         })
     })

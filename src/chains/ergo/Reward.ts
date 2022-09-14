@@ -20,12 +20,13 @@ import ChainsConstants from "../ChainsConstants";
 import Utils from "../../helpers/Utils";
 import BoxVerifications from "./boxes/BoxVerifications";
 import { JsonBI } from "../../network/NetworkModels";
+import { network } from "@blockfrost/blockfrost-js/lib/endpoints/api/network";
 
 
 class Reward {
 
-    static bankAddress = Address.from_base58(ErgoConfigs.bankAddress)
-    static bankErgoTree = ErgoUtils.addressToErgoTreeString(this.bankAddress)
+    static lockAddress = Address.from_base58(ErgoConfigs.ergoContractConfig.lockAddress)
+    static lockErgoTree = ErgoUtils.addressToErgoTreeString(this.lockAddress)
 
     static generateTransaction = async (event: EventTrigger): Promise<ErgoTransaction> => {
         // get current height of network
@@ -39,8 +40,8 @@ class Reward {
 
         // create transaction output boxes
         const outBoxes = (event.sourceChainTokenId === ChainsConstants.ergoNativeAsset) ?
-            this.ergEventRewardBoxes(event, eventBox, commitmentBoxes, rsnCoef, currentHeight, event.sourceChainTokenId) :
-            this.tokenEventRewardBoxes(event, eventBox, commitmentBoxes, rsnCoef, currentHeight, event.sourceChainTokenId)
+            this.ergEventRewardBoxes(event, eventBox, commitmentBoxes, rsnCoef, currentHeight, event.sourceChainTokenId, ChainsConstants.cardano) :
+            this.tokenEventRewardBoxes(event, eventBox, commitmentBoxes, rsnCoef, currentHeight, event.sourceChainTokenId, ChainsConstants.cardano)
 
         // calculate required assets
         const outBoxesAssets = ErgoUtils.calculateBoxesAssets(outBoxes)
@@ -52,7 +53,7 @@ class Reward {
 
         // get required boxes for transaction input
         const coveringBoxes = await ExplorerApi.getCoveringErgAndTokenForErgoTree(
-            this.bankErgoTree,
+            this.lockErgoTree,
             requiredAssets.ergs + ErgoConfigs.minimumErg, // required amount of Erg plus minimumErg for change box
             requiredAssets.tokens
         )
@@ -69,7 +70,7 @@ class Reward {
         // create change box and add to outBoxes
         outBoxes.push(OutputBoxes.createChangeBox(
             currentHeight,
-            ErgoConfigs.bankAddress,
+            ErgoConfigs.ergoContractConfig.lockAddress,
             inBoxesAssets,
             outBoxesAssets,
             ErgoConfigs.txFee
@@ -91,7 +92,7 @@ class Reward {
             outBoxCandidates,
             currentHeight,
             ErgoUtils.boxValueFromBigint(ErgoConfigs.txFee),
-            this.bankAddress
+            this.lockAddress
         )
 
         txCandidate.set_data_inputs(dataInputs)
@@ -154,12 +155,12 @@ class Reward {
         if (outputLength !== watchersLen + 4) return false
 
         // verify change box address
-        if (outputBoxes.get(outputLength - 2).ergo_tree().to_base16_bytes() !== this.bankErgoTree) return false;
+        if (outputBoxes.get(outputLength - 2).ergo_tree().to_base16_bytes() !== this.lockErgoTree) return false;
 
         // verify reward boxes
         const expectedRewardBoxes = (event.sourceChainTokenId === ChainsConstants.ergoNativeAsset) ?
-            this.ergEventRewardBoxes(event, eventBox, commitmentBoxes, rsnCoef, currentHeight, event.sourceChainTokenId) :
-            this.tokenEventRewardBoxes(event, eventBox, commitmentBoxes, rsnCoef, currentHeight, event.sourceChainTokenId)
+            this.ergEventRewardBoxes(event, eventBox, commitmentBoxes, rsnCoef, currentHeight, event.sourceChainTokenId, ChainsConstants.cardano) :
+            this.tokenEventRewardBoxes(event, eventBox, commitmentBoxes, rsnCoef, currentHeight, event.sourceChainTokenId, ChainsConstants.cardano)
 
         const rewardBoxes: ErgoBoxCandidate[] = []
         for (let i = 0; i < watchersLen + 2; i++) // watchers + 2 box for guards
@@ -204,6 +205,7 @@ class Reward {
      * @param rsnCoef rsn fee ratio
      * @param currentHeight current height of blockchain
      * @param paymentTokenId the payment token id
+     * @param network
      * @return the generated reward reduced transaction
      */
     static ergEventRewardBoxes = (
@@ -212,7 +214,8 @@ class Reward {
         commitmentBoxes: ErgoBox[],
         rsnCoef: [bigint, bigint],
         currentHeight: number,
-        paymentTokenId: string
+        paymentTokenId: string,
+        network: string,
     ): ErgoBoxCandidate[] => {
         const watchersLen: number = event.WIDs.length + commitmentBoxes.length
         const rsnFee = BigInt(event.bridgeFee) * rsnCoef[0] / rsnCoef[1]
@@ -226,7 +229,6 @@ class Reward {
         const guardRsnAmount: bigint = rsnFee - (BigInt(watchersLen) * watcherRsnAmount)
         const guardNetworkErgAmount = BigInt(event.networkFee)
         const guardNetworkTokenAmount = 0n
-        const rwtTokenId = eventBox.tokens().get(0).id().to_str()
         const wids: Uint8Array[] = [
             ...event.WIDs.map(Utils.hexStringToUint8Array),
             ...commitmentBoxes.map(box => InputBoxes.getErgoBoxWID(box))
@@ -243,7 +245,7 @@ class Reward {
             guardRsnAmount,
             guardNetworkErgAmount,
             guardNetworkTokenAmount,
-            rwtTokenId,
+            network,
             paymentTokenId,
             wids,
         )
@@ -258,6 +260,7 @@ class Reward {
      * @param rsnCoef rsn fee ratio
      * @param currentHeight current height of blockchain
      * @param paymentTokenId the payment token id
+     * @param network
      * @return the generated reward reduced transaction
      */
     static tokenEventRewardBoxes = (
@@ -266,7 +269,8 @@ class Reward {
         commitmentBoxes: ErgoBox[],
         rsnCoef: [bigint, bigint],
         currentHeight: number,
-        paymentTokenId: string
+        paymentTokenId: string,
+        network: string
     ): ErgoBoxCandidate[] => {
 
         const watchersLen: number = event.WIDs.length + commitmentBoxes.length
@@ -281,7 +285,6 @@ class Reward {
         const guardRsnAmount: bigint = rsnFee - (BigInt(watchersLen) * watcherRsnAmount)
         const guardNetworkErgAmount: bigint = ErgoConfigs.minimumErg
         const guardNetworkTokenAmount = BigInt(event.networkFee)
-        const rwtTokenId = eventBox.tokens().get(0).id().to_str()
         const wids: Uint8Array[] = [
             ...event.WIDs.map(Utils.hexStringToUint8Array),
             ...commitmentBoxes.map(box => InputBoxes.getErgoBoxWID(box))
@@ -298,7 +301,7 @@ class Reward {
             guardRsnAmount,
             guardNetworkErgAmount,
             guardNetworkTokenAmount,
-            rwtTokenId,
+            network,
             paymentTokenId,
             wids,
         )

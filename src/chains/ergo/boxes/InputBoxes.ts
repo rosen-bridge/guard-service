@@ -4,6 +4,7 @@ import ExplorerApi from "../network/ExplorerApi";
 import Configs from "../../../helpers/Configs";
 import { JsonBI } from "../../../network/NetworkModels";
 import Utils from "../../../helpers/Utils";
+import { rosenConfig } from "../../../helpers/RosenConfig";
 import { Buffer } from "buffer";
 import { dbAction } from "../../../db/DatabaseAction";
 
@@ -39,8 +40,8 @@ class InputBoxes {
      * @return RSN ratio for the corresponding tokenId
      */
     static getRSNRatioCoef = async (tokenId: string): Promise<[bigint, bigint]> => {
-        const boxes = await ExplorerApi.getBoxesByTokenId(Configs.rsnRatioNFT)
-        if (boxes.total !== 1) throw Error(`impossible case, found ${boxes.total} boxes containing rsnRationNFT [${Configs.rsnRatioNFT}]`)
+        const boxes = await ExplorerApi.getBoxesByTokenId(rosenConfig.rsnRatioNFT)
+        if (boxes.total !== 1) throw Error(`impossible case, found ${boxes.total} boxes containing rsnRationNFT [${rosenConfig.rsnRatioNFT}]`)
         const box = ErgoBox.from_json(JsonBI.stringify(boxes.items[0]))
         const boxId = box.box_id().to_str()
 
@@ -51,8 +52,8 @@ class InputBoxes {
         if (tokenIds === undefined) throw Error(`failed to fetch tokenIds from box [${boxId}]`)
         if (ratios === undefined || decimalCoef === undefined) throw Error(`failed to fetch ratios or decimal coefficient from box [${boxId}]`)
 
-        const tokenIndex = tokenIds?.map(idBytes => Utils.Uint8ArrayToHexString(idBytes))?.indexOf(tokenId)
-        if (tokenIndex === undefined) throw Error(`tokenId [${tokenId}] not found in box [${boxId}]`)
+        const tokenIndex = tokenIds.map(idBytes => Utils.Uint8ArrayToHexString(idBytes)).indexOf(tokenId)
+        if (tokenIndex === -1) throw Error(`tokenId [${tokenId}] not found in box [${boxId}]`)
         return [BigInt(ratios[tokenIndex]), BigInt(decimalCoef.to_str())]
     }
 
@@ -80,8 +81,8 @@ class InputBoxes {
      * @return ErgoBox containing guards public keys
      */
     static getGuardsInfoBox = async (): Promise<ErgoBox> => {
-        const boxes = await ExplorerApi.getBoxesByTokenId(Configs.guardNFT)
-        if (boxes.total !== 1) throw Error(`impossible case, found ${boxes.total} boxes containing guardNFT [${Configs.guardNFT}]`)
+        const boxes = await ExplorerApi.getBoxesByTokenId(rosenConfig.guardNFT)
+        if (boxes.total !== 1) throw Error(`impossible case, found ${boxes.total} boxes containing guardNFT [${rosenConfig.guardNFT}]`)
         return ErgoBox.from_json(JsonBI.stringify(boxes.items[0]))
     }
 

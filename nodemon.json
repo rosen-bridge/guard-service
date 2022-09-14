@@ -4,6 +4,6 @@
     ],
     "ext": ".ts,.js",
     "ignore": [],
-    "exec": "npm run build && node ."
+    "exec": "ts-node --experimental-specifier-resolution=node ./src/index.ts"
 }
 
