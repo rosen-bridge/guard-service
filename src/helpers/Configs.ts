@@ -66,7 +66,8 @@ class Configs {
     static minimumAgreement = config.get<number>('minimumAgreement')
 
     // contract, addresses and tokens config
-    static networks = config.get<Array<string>>('contracts.networks')
+    static networks = config.get<Array<string>>('networks')
+    static networksType = Configs.networks.map(network => config.get<string>(`${network}.networkType`).toLowerCase())
     static addressesBasePath = config.get<string>('contracts.addressesBasePath')
     static tokens = (): RosenTokens => {
         const tokensPath = config.get<string>('tokensPath')
