@@ -160,7 +160,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         // get eventBox and remaining valid commitments
         const eventBox: ErgoBox = await InputBoxes.getEventBox(event)
         const commitmentBoxes: ErgoBox[] = await InputBoxes.getEventValidCommitments(event)
-        const rsnCoef = await InputBoxes.getRSNRatioCoef(event.sourceChainTokenId)
+        const rsnCoef = await InputBoxes.getRSNRatioCoef(event.targetChainTokenId)
         if (!BoxVerifications.verifyInputs(tx.inputs(), eventBox, commitmentBoxes, paymentTx.inputBoxes)) return false
 
         // verify number of output boxes (1 payment box + number of watchers + 2 box for guards + 1 change box + 1 tx fee box)
@@ -262,7 +262,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
             paymentTokenAmount,
         )
 
-        return [paymentBox, ...outBoxes]
+        return [...outBoxes, paymentBox]
     }
 
 
@@ -298,7 +298,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
             paymentTokenAmount,
         )
 
-        return [paymentBox, ...outBoxes]
+        return [...outBoxes, paymentBox]
     }
 
     /**

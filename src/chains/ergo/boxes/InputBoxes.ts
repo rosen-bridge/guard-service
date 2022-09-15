@@ -73,8 +73,8 @@ class InputBoxes {
             throw Error(`failed to fetch ratios or decimal coefficient from box [${boxId}]`)
         }
 
-        const tokenIndex = tokenIds?.map(idBytes => Utils.Uint8ArrayToHexString(idBytes))?.indexOf(tokenId)
-        if (tokenIndex === undefined) {
+        const tokenIndex = tokenIds.map(idBytes => Utils.Uint8ArrayToHexString(idBytes)).indexOf(tokenId)
+        if (tokenIndex === -1) {
             logger.error('tokenId not found in box', {tokenId: tokenId, boxId: boxId})
             throw Error(`tokenId [${tokenId}] not found in box [${boxId}]`)
         }
