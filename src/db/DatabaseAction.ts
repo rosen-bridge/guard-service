@@ -5,6 +5,7 @@ import { TransactionEntity } from "./entities/TransactionEntity";
 import { EventStatus, PaymentTransaction, TransactionStatus } from "../models/Models";
 import { CommitmentEntity, EventTriggerEntity } from "@rosen-bridge/watcher-data-extractor";
 import Utils from "../helpers/Utils";
+import { logger } from "../log/Logger";
 
 class DatabaseAction {
     dataSource: DataSource;
@@ -163,23 +164,42 @@ class DatabaseAction {
      */
     insertTx = async (newTx: PaymentTransaction): Promise<void> => {
         const event = await this.getEventById(newTx.eventId)
-        if (event === null) throw Error(`event [${newTx.eventId}] not found`)
+        if (event === null) {
+            logger.error("event not found in db", {eventId: newTx.eventId})
+            throw Error(`event [${newTx.eventId}] not found`)
+        }
 
         const txs = (await this.getEventTxsByType(event.id, newTx.txType)).filter(tx => tx.status !== TransactionStatus.invalid)
-        if (txs.length > 1)
+        if (txs.length > 1){
+            logger.error('impossible case, event has already more than 1 active tx', {
+                eventId: newTx.eventId,
+                txCount: txs.length,
+                txType: newTx.txType
+            })
             throw Error(`impossible case, event [${newTx.eventId}] has already more than 1 (${txs.length}) active ${newTx.txType} tx`)
+        }
         else if (txs.length === 1) {
             const tx = txs[0]
             if (tx.status === TransactionStatus.approved) {
                 if (newTx.txId < tx.txId) {
-                    console.log(`replacing tx [${tx.txId}] with new transaction [${newTx.txId}] due to lower txId`)
+                    logger.info('replacing tx with new transaction due to lower txId', {
+                        oldTx: tx.txId,
+                        newTx: newTx.txId
+                    })
                     await this.replaceTx(tx.txId, newTx)
                 }
                 else
-                    console.log(`ignoring tx [${newTx.txId}] due to higher txId, comparing to [${tx.txId}]`)
+                    logger.info(`ignoring new tx due to higher txId, comparing to oldTx`, {
+                        oldTx: tx.txId,
+                        newTx: newTx.txId
+                    })
             }
             else
-                console.warn(`received approval for tx [${newTx.txId}] where its event [${event.id}] has already a completed transaction [${tx.txId}]`)
+                logger.warn(`received approval for newTx where its event has already a completed oldTx`, {
+                    newTx: newTx.txId,
+                    oldTx: tx.txId,
+                    eventId: event.id
+                })
         }
         else
             await this.insertNewTx(newTx, event)

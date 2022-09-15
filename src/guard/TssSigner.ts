@@ -1,6 +1,7 @@
 import axios from "axios";
 import Configs from "../helpers/Configs";
 import Utils from "../helpers/Utils";
+import { logger } from "../log/Logger";
 
 class TssSigner {
 
@@ -21,7 +22,10 @@ class TssSigner {
             "message" : Utils.Uint8ArrayToHexString(txHash),
             "callBackUrl": this.tssCallBackUrl
         }).then(res => {
-            if (res.status !== 200) throw new Error(`failed to connect to TSS service. Status code: ${res.status}`)
+            if (res.status !== 200) {
+                logger.error('failed to connect to TSS service. with status code status', {status: res.status})
+                throw new Error(`failed to connect to TSS service. Status code: ${res.status}`)
+            }
         })
     }
 

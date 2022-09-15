@@ -13,6 +13,7 @@ import Configs from "../../helpers/Configs";
 import { Semaphore } from 'await-semaphore';
 import Encryption from '../../helpers/Encryption';
 import MultiSigUtils from "./MultiSigUtils";
+import { logger } from "../../log/Logger";
 
 const dialer = await Dialer.getInstance();
 
@@ -76,6 +77,7 @@ class MultiSigHandler{
         }
         if (this.index !== undefined)
             return this.index;
+        logger.log('fatal', 'My index not found in guard public keys')
         throw Error("My index not found in guard public keys")
     }
 
@@ -102,6 +104,7 @@ class MultiSigHandler{
                 transaction.requiredSigner = requiredSign;
                 this.generateCommitment(tx.unsigned_tx().id().to_str())
             }).catch((e) => {
+                logger.error('Error in signing MultiSig transaction', {error: e})
                 reject(e)
             })
         })
@@ -123,7 +126,7 @@ class MultiSigHandler{
      * cleaning unsigned transaction after multiSigTimeout if the transaction still exist in queue
      */
     cleanup = (): void => {
-        console.log(`cleaning unsigned transactions in MultiSig queue`)
+        logger.info('cleaning unsigned transactions in MultiSig queue')
         this.semaphore.acquire().then(release => {
             try {
                 for (const [key, transaction] of this.transactions.entries()) {
@@ -137,6 +140,7 @@ class MultiSigHandler{
                 release()
             } catch (e) {
                 release()
+                logger.error('error in cleaning unsigned transaction in MultiSig queue', {error: e})
                 throw e
             }
         })
@@ -154,6 +158,7 @@ class MultiSigHandler{
         }
         if (this.prover)
             return this.prover;
+        logger.log('fatal', 'Can not create prover in MultiSig')
         throw Error("Can not create prover")
     }
 
@@ -260,7 +265,7 @@ class MultiSigHandler{
                             transaction.resolve(signedTx)
                         }
                     } catch (e) {
-                        console.log(`An error occurred during generate sign: ${e}`)
+                        logger.error('An error occurred during generate sign', {error: e})
                     }
                 }
             }
@@ -361,6 +366,7 @@ class MultiSigHandler{
                 return newTransaction;
             } catch (e) {
                 release()
+                logger.error('Error in getting queued transaction', {error: e})
                 throw e
             }
         })

@@ -104,5 +104,8 @@
         "addressesBasePath": "config/addresses/"
     },
     "txProcessorInterval": 180,
-    "tokensPath": "config/tokens.json"
+    "tokensPath": "config/tokens.json",
+    "logsPath": "logs/",
+    "maxLogSize": "20m",
+    "maxLogFiles": "14d"
 }

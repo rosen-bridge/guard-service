@@ -1,6 +1,7 @@
 import {Request, Response, Router} from "express";
 import CardanoChain from "../chains/cardano/CardanoChain";
 import { body, validationResult } from "express-validator";
+import { logger } from "../log/Logger";
 
 export const tssRouter = Router();
 
@@ -21,7 +22,7 @@ tssRouter.post("/sign",
         try {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
-                console.warn(`Received bad request from TSS Cardano tx sign callback. Errors ${JSON.stringify(errors.array())}`)
+                logger.error('Received bad request from TSS Cardano tx sign callback', {error: JSON.stringify(errors.array())})
                 return res.status(400).json({ message: JSON.stringify(errors.array()) });
             }
             const signedTxHash = req.body.signature
@@ -33,7 +34,7 @@ tssRouter.post("/sign",
             res.send({message: "ok"})
         }
         catch (error) {
-            console.log(`An error occurred while processing TSS Cardano tx sign callback: ${error.message}`)
+            logger.error('An error occurred while processing TSS Cardano tx sign callback', {error: error.message})
             res.status(400).send({message: error.message})
         }
     }

@@ -2,6 +2,7 @@ import axios from "axios";
 import { JsonBI } from "../network/NetworkModels";
 import CommunicationConfig from "./CommunicationConfig";
 import { SubscribeChannelFunction } from "./Interfaces";
+import { logger } from "../log/Logger";
 
 const apiCallBack: SubscribeChannelFunction = (msg: string, channel: string, sender: string, url: string): void => {
     const data = axios.post(
@@ -19,13 +20,11 @@ const apiCallBack: SubscribeChannelFunction = (msg: string, channel: string, sen
             }
         }
     );
-    data.then(
-        res => console.log("api callback response ", JsonBI.stringify(res.data, null, 4))
-    ).catch(error => {
+    data.catch(error => {
         if (axios.isAxiosError(error)) {
-            console.warn('error message: ', error.message);
+            logger.error('error message', {error: error.message})
         } else {
-            console.error('unexpected error: ', error);
+            logger.log('fatal', 'unexpected error', {error: error})
         }
     });
 }

@@ -1,12 +1,13 @@
 import { ormDataSource } from "../../config/ormDataSource";
+import { logger } from "../log/Logger";
 
 const initDataSources = async (): Promise<void> => {
     try {
         await ormDataSource.initialize();
         await ormDataSource.runMigrations();
-        console.log("Data Source has been initialized!")
+        logger.info('Data Source has been initialized!')
     } catch (err) {
-        console.error("Error during Data Source initialization:", err);
+        logger.log('fatal', 'Error during Data Source initialization', {error: err})
     }
 }
 

@@ -2,6 +2,7 @@ import fs from "fs"
 import ErgoUtils from "../chains/ergo/helpers/ErgoUtils"
 import { Contract } from "ergo-lib-wasm-nodejs"
 import Configs from "./Configs"
+import { logger } from "../log/Logger";
 
 class ContractConfig {
     readonly cleanupNFT: string
@@ -21,6 +22,7 @@ class ContractConfig {
 
     constructor(path: string) {
         if (!fs.existsSync(path)) {
+            logger.log('fatal', `networkConfig file doesn't exist with reported path`, {path: path})
             throw new Error(`networkConfig file with path ${path} doesn't exist`)
         } else {
             const configJson: string = fs.readFileSync(path, 'utf8')
@@ -54,6 +56,7 @@ class RosenConfig {
         this.contracts = new Map<string, ContractConfig>()
         const rosenConfigPath = this.getAddress(supportingNetworks[0])
         if (!fs.existsSync(rosenConfigPath)) {
+            logger.log('fatal', `rosenConfig with reported path doesn't exist`, {path: rosenConfigPath})
             throw new Error(`rosenConfig file with path ${rosenConfigPath} doesn't exist`)
         } else {
             const configJson: string = fs.readFileSync(rosenConfigPath, 'utf8')
@@ -83,7 +86,10 @@ class RosenConfig {
      */
     contractReader = (network: string) => {
         const contracts = this.contracts.get(network)
-        if(!contracts) throw Error(`${network} contracts and token config is not set`)
+        if(!contracts){
+            logger.log('fatal', `contract and token config is not set for network`, {network: network})
+            throw Error(`${network} contracts and token config is not set`)
+        }
         return contracts
     }
 }

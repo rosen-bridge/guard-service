@@ -11,6 +11,7 @@ import {
 } from "ergo-lib-wasm-nodejs";
 import { AssetMap, BoxesAssets, ExplorerOutputBox } from "../models/Interfaces";
 import ChainsConstants from "../../ChainsConstants";
+import { logger } from "../../../log/Logger";
 
 class ErgoUtils {
     /**
@@ -218,18 +219,32 @@ class ErgoUtils {
         if (ergs < 0n) {
             if (allowMoreErgUsage)
                 ergs = 0n
-            else
+            else{
+                logger.error('not enough Erg in input assets', {current: inAssets.ergs, require: usedAssets.ergs})
                 throw Error(`not enough Erg in input assets [Current: ${inAssets.ergs}] [Require: ${usedAssets.ergs}]`)
+            }
         }
         const tokens: AssetMap = inAssets.tokens
 
         Object.keys(usedAssets.tokens).forEach(id => {
             if (Object.prototype.hasOwnProperty.call(tokens, id)) {
                 tokens[id] -= usedAssets.tokens[id]
-                if (tokens[id] < 0n)
+                if (tokens[id] < 0n){
+                    logger.error('not enough token in input assets', {
+                        tokenId: id,
+                        current: inAssets.tokens[id],
+                        require: usedAssets.tokens[id]
+                    })
                     throw Error(`not enough token [${id}] in input assets [Current: ${inAssets.tokens[id]}] [Require: ${usedAssets.tokens[id]}]`)
-            } else
+                }
+            } else{
+                logger.error('not enough token in input assets', {
+                    tokenId: id,
+                    current: 0,
+                    require: usedAssets.tokens[id]
+                })
                 throw Error(`not enough token [${id}] in input assets [Current: 0] [Require: ${usedAssets.tokens[id]}]`)
+            }
         })
 
         return {

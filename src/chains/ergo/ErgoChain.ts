@@ -27,6 +27,7 @@ import Configs from "../../helpers/Configs";
 import Utils from "../../helpers/Utils";
 import { JsonBI } from "../../network/NetworkModels";
 import inputBoxes from "./boxes/InputBoxes";
+import { logger } from "../../log/Logger";
 
 class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
 
@@ -68,8 +69,12 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
             requiredAssets.tokens
         )
 
-        if (!coveringBoxes.covered)
-            throw Error(`Bank boxes didn't cover required assets. Erg: ${(requiredAssets.ergs + ErgoConfigs.minimumErg).toString()}, Tokens: ${JsonBI.stringify(requiredAssets.tokens)}`)
+        if (!coveringBoxes.covered) {
+            const Erg = (requiredAssets.ergs + ErgoConfigs.minimumErg).toString()
+            const Tokens = JsonBI.stringify(requiredAssets.tokens)
+            logger.error("Bank boxes didn't cover required assets", {Erg: Erg, Tokens: Tokens})
+            throw Error(`Bank boxes didn't cover required assets. Erg: ${Erg}, Tokens: ${Tokens}`)
+        }
 
         // calculate input boxes and assets
         const inBoxes = [eventBox, ...commitmentBoxes, ...coveringBoxes.boxes]
@@ -129,7 +134,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
             TransactionTypes.payment
         )
 
-        console.log(`Payment transaction for event [${eventId}] generated. TxId: ${txId}`)
+        logger.info("Payment Transaction for event generated", {eventId: [eventId], txId: {txId}})
         return ergoTx
     }
 
@@ -331,11 +336,11 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
                     ergoTx.txId,
                     signedPaymentTx.toJson()
                 )
-                console.log(`Ergo tx [${ergoTx.txId}] signed successfully`)
+                logger.info("Ergo tx signed successfully", {txId: ergoTx.txId})
 
             })
             .catch( async (e) => {
-                console.log(`An error occurred while requesting Multisig service to sign Ergo tx: ${e}`)
+                logger.warn("An error occurred while requesting Multisig service to sign Ergo tx", {error: e})
                 await dbAction.setTxStatus(paymentTx.txId, TransactionStatus.signFailed)
             })
     }
@@ -353,7 +358,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         const eventId = Utils.txIdToEventId(event.sourceTxId)
         // Verifying watcher RWTs
         if(RWTId !== ErgoConfigs.ergoContractConfig.RWTId) {
-            console.log(`The event [${eventId}] is not valid, event RWT is not compatible with the ergo RWT id`)
+            logger.info("the event is not valid, event RWT is not compatible with the ergo RWT id", {eventId: eventId})
             return false
         }
         try {
@@ -374,7 +379,10 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
                         targetTokenId = Configs.tokenMap.getID(token[0], event.toChain)
                     }
                     catch (e) {
-                        console.log(`event [${eventId}] is not valid, tx [${event.sourceTxId}] token or chainId is invalid`)
+                        logger.info('event is not valid,transaction token or chainId is invalid', {
+                            eventId: eventId,
+                            txId: event.sourceTxId
+                        })
                         return false
                     }
                     // TODO: fix fromAddress when it was fixed in the watcher side
@@ -392,26 +400,38 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
                         event.toAddress == payment.toAddress &&
                         event.fromAddress == inputAddress
                     ) {
-                        console.log(`event [${eventId}] has been successfully validated`)
+                        logger.info('event has been successfully validated', {eventId: eventId})
                         return true
                     }
                     else {
-                        console.log(`event [${eventId}] is not valid, event data does not match with lock tx [${event.sourceTxId}]`)
+                        logger.info('event is not valid, event data does not match with lock tx', {
+                            eventId: eventId,
+                            txId: event.sourceTxId
+                        })
                         return false
                     }
                 }
                 else {
-                    console.log(`event [${eventId}] is not valid, failed to extract Rosen data from lock tx [${event.sourceTxId}]`)
+                    logger.info('event is not valid, failed to extract Rosen data from lock tx', {
+                        eventId: eventId,
+                        txId: event.sourceTxId
+                    })
                     return false
                 }
             }
             else {
-                console.log(`event [${eventId}] is not valid, lock tx [${event.sourceTxId}] is not available in network`)
+                logger.info('event is not valid, lock tx is not available in network', {
+                    eventId: eventId,
+                    txId: event.sourceTxId
+                })
                 return false
             }
         }
         catch (e) {
-            console.log(`event [${eventId}] validation failed with this error: [${e}]`)
+            logger.error('event validation failed', {
+                eventId: eventId,
+                error: e
+            })
             return false
         }
     }
@@ -425,9 +445,11 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         try {
             await dbAction.setTxStatus(paymentTx.txId, TransactionStatus.sent)
             const response = await NodeApi.sendTx(tx.to_json())
-            console.log(`Cardano Transaction submitted. txId: ${response}`)
+            logger.info('Cardano Transaction submitted', {
+                response: response,
+            })
         } catch (e) {
-            console.log(`An error occurred while submitting Ergo transaction: ${e.message}`)
+            logger.error('An error occurred while submitting Ergo transaction', {error: e.message})
         }
     }
 

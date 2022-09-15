@@ -2,6 +2,7 @@ import axios from "axios";
 import { BlockHeaders, ErgoStateContext, PreHeader } from "ergo-lib-wasm-nodejs";
 import { ErgoBlockHeader } from "../models/Interfaces";
 import ErgoConfigs from "../helpers/ErgoConfigs";
+import { logger } from "../../../log/Logger";
 
 
 class NodeApi {
@@ -19,7 +20,7 @@ class NodeApi {
         return this.nodeClient.get<{ fullHeight: number }>("/info")
             .then(info => info.data.fullHeight)
             .catch(e => {
-                console.warn(`An error occurred while getting blockchain height: ${e}`)
+                logger.error('An error occurred while getting blockchain height', {error: e})
                 throw e
             })
     }
@@ -31,7 +32,7 @@ class NodeApi {
         return this.nodeClient.get<ErgoBlockHeader[]>("/blocks/lastHeaders/10")
             .then(res => res.data)
             .catch(e => {
-                console.warn(`An error occurred while getting last block header: ${e}`)
+                logger.error('An error occurred while getting last block header', {error: e})
                 throw e
             })
     }
@@ -53,7 +54,7 @@ class NodeApi {
         return this.nodeClient.post<string>("/transactions", txJson)
             .then(response => response.data)
             .catch(e => {
-                console.warn(`An error occurred while submitting transaction to Node: ${e}`)
+                logger.error('An error occurred while submitting transaction to Node', {error: e})
             })
     }
 

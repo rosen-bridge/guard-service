@@ -2,6 +2,7 @@ import { BlockFrostAPI } from "@blockfrost/blockfrost-js";
 import CardanoConfigs from "../helpers/CardanoConfigs";
 import { Transaction } from "@emurgo/cardano-serialization-lib-nodejs";
 import { AddressUtxos, TxUtxos } from "../models/Interfaces";
+import { logger } from "../../../log/Logger";
 
 
 class BlockFrostApi {
@@ -17,7 +18,10 @@ class BlockFrostApi {
     static currentSlot = async (): Promise<number> => {
         const block = await this.blockFrost.blocksLatest()
         const slot = block.slot
-        if (!slot) throw new Error("failed to fetch current slot")
+        if (!slot) {
+            logger.error('failed to fetch current slot')
+            throw new Error("failed to fetch current slot")
+        }
         return slot
     }
 
@@ -27,7 +31,10 @@ class BlockFrostApi {
     static currentHeight = async (): Promise<number> => {
         const block = await this.blockFrost.blocksLatest()
         const height = block.height
-        if (!height) throw new Error("failed to fetch current slot")
+        if (!height) {
+            logger.error('failed to fetch current slot')
+            throw new Error("failed to fetch current slot")
+        }
         return height
     }
 
