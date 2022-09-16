@@ -472,8 +472,9 @@ class MultiSigHandler {
                         transaction.commitments[commitment.index] = commitment.commitment
                         transaction.commitmentSigns[commitment.index] = commitment.sign
                     })
-                    payload.signed = Array.from((new Set(payload.signed)).values())
-                    payload.simulated = Array.from((new Set(payload.simulated)).values())
+                    const guardsKeys = this.peers.map(item => item.pub)
+                    payload.signed = Array.from((new Set(payload.signed)).values()).filter(item => guardsKeys.indexOf(item) !== -1)
+                    payload.simulated = Array.from((new Set(payload.simulated)).values()).filter(item => guardsKeys.indexOf(item) !== -1)
                     const myPub = this.peers[this.getIndex()].pub
                     let updateSign = true;
                     if (
