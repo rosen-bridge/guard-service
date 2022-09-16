@@ -52,7 +52,7 @@ class RosenConfig {
     readonly contracts: Map<string, ContractConfig>
 
     constructor() {
-        const supportingNetworks = Configs.networks
+        const supportingNetworks = Configs.networks.map((network, index) => `${network}-${Configs.networksType[index]}`)
         this.contracts = new Map<string, ContractConfig>()
         const rosenConfigPath = this.getAddress(supportingNetworks[0])
         if (!fs.existsSync(rosenConfigPath)) {

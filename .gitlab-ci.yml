@@ -1,22 +1,11 @@
-image: node:latest
+image: node:16.17
 
 stages:
-  - installation
   - test
 
-cache:
-  paths:
-    - node_modules/
-
-install_dependencies:
-  stage: installation
-  script:
-    - npm install
-  artifacts:
-    paths:
-      - node_modules/
 test:
   script:
+    - npm install
     - npm run coverage
   artifacts:
     reports:

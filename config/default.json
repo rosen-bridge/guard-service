@@ -5,13 +5,13 @@
         "jsonBodyLimit": 50
     },
     "cardano": {
+        "networkType": "testnet",
         "koios": {
             "url": "https://testnet.koios.rest/api/v0",
             "timeout": 8
         },
         "blockFrost": {
-            "projectId": "change me",
-            "isTestnet": true
+            "projectId": "change me"
         },
         "bankAddress": "addr_test1qrm4haxxgl55kqzhpp3sda8h979gxd4cast340v0eh0p4qzp3vkcrhjqavv9uzsvq86mglwnwe8xp87q3rv8ve54kasqlf7xgl",
         "bankPublicKey": "4444444444444444444444444444444444444444444444444444444444444444",
@@ -24,6 +24,7 @@
         ]
     },
     "ergo": {
+        "networkType": "testnet",
         "explorer": {
             "url": "https://api-testnet.ergoplatform.com/api/v1",
             "timeout": 8
@@ -97,12 +98,12 @@
     },
     "minimumAgreement": 5,
     "contracts": {
-        "networks": [
-            "ergo-testnet",
-            "cardano-testnet"
-        ],
         "addressesBasePath": "config/addresses/"
     },
+    "networks": [
+        "ergo",
+        "cardano"
+    ],
     "txProcessorInterval": 180,
     "tokensPath": "config/tokens.json",
     "logsPath": "logs/",

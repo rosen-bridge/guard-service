@@ -38,8 +38,7 @@ class CardanoConfigs {
         timeout: config.get<number>('cardano.koios.timeout') // seconds
     }
     static blockFrost = {
-        projectId: config.get<string>('cardano.blockFrost.projectId'),
-        isTestnet: config.get<boolean>('cardano.blockFrost.isTestnet')
+        projectId: config.get<string>('cardano.blockFrost.projectId')
     }
     static bankAddress = config.get<string>('cardano.bankAddress')
     static aggregatedPublicKey = config.get<string>('cardano.bankPublicKey')
