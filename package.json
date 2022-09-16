@@ -8,7 +8,7 @@
         "prebuild": "eslint --fix .",
         "build": "rimraf dist && tsc",
         "start": "nodemon .",
-        "test": "NODE_ENV=\"test\" mocha --slow 3000; rm -rf tests/db/sqlite/test",
+        "test": "NODE_ENV=\"test\" mocha --slow 3000 && rm -rf tests/db/sqlite/test",
         "coverage": "c8 npm run test",
         "typeorm:update": "typeorm-ts-node-esm migration:generate src/db/migrations/migration -d config/ormDataSource.ts",
         "typeorm:migrate": "typeorm-ts-node-esm migration:run -d config/ormDataSource.ts"
