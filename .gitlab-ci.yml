@@ -1,23 +1,19 @@
 image: node:latest
 
 stages:
-  - installation
   - test
 
+# This folder is cached between builds
+# https://docs.gitlab.com/ee/ci/yaml/index.html#cache
 cache:
   paths:
     - node_modules/
 
-install_dependencies:
-  stage: installation
-  script:
-    - npm install
-  artifacts:
-    paths:
-      - node_modules/
 test:
   script:
+    - npm install
     - npm run coverage
   artifacts:
     reports:
       cobertura: coverage/cobertura-coverage.xml
+
