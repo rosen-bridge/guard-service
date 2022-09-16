@@ -118,12 +118,12 @@ class TxAgreement {
     processTransactionRequest = async (tx: PaymentTransaction, creatorId: number, signature: string, receiver: string): Promise<void> => {
         const eventEntity = await dbAction.getEventById(tx.eventId)
         if (eventEntity === null) {
-            logger.info('received tx for event but event not found', {txId: tx.txId, eventId: tx.eventId})
+            logger.info('Received tx for event but event not found', {txId: tx.txId, eventId: tx.eventId})
             return
         }
         const event = EventTrigger.fromConfirmedEntity(eventEntity)
         if (!await EventProcessor.isEventConfirmedEnough(event)) {
-            logger.info('received tx for event but event is not confirmed enough', {txId: tx.txId, eventId: tx.eventId})
+            logger.info('Received tx for event but event is not confirmed enough', {txId: tx.txId, eventId: tx.eventId})
             return
         }
         if (
@@ -135,7 +135,7 @@ class TxAgreement {
         ) {
             this.transactions.set(tx.txId, tx)
             this.eventAgreedTransactions.set(tx.eventId, tx.txId)
-            logger.info('agreed with tx for event', {txId: tx.txId, eventId: tx.eventId})
+            logger.info('Agreed with tx for event', {txId: tx.txId, eventId: tx.eventId})
 
             const agreementPayload: GuardsAgreement = {
                 "guardId": Configs.guardId,
@@ -153,7 +153,7 @@ class TxAgreement {
             dialer.sendMessage(TxAgreement.CHANNEL, message, receiver)
         }
         else
-            logger.info(`rejected tx for event`, {txId: tx.txId, eventId: tx.eventId})
+            logger.info(`Rejected tx for event`, {txId: tx.txId, eventId: tx.eventId})
     }
 
     /**
@@ -276,7 +276,7 @@ class TxAgreement {
                 }
                 catch (e) {
                     release()
-                    logger.error('error in inserting tx to db', {error: e})
+                    logger.error('An error occurred while inserting tx to db', {error: e})
                     throw e
                 }
             })
@@ -310,7 +310,7 @@ class TxAgreement {
      * iterates over active transaction and resend its request
      */
     resendTransactionRequests = (): void => {
-        console.log(`resending generated transactions for agreement: ${this.transactions.size}`)
+        logger.info('Resending generated transactions for agreement', {txsCount: this.transactions.size})
         const creatorId = Configs.guardId
         this.transactions.forEach(tx => {
             try {
@@ -327,7 +327,7 @@ class TxAgreement {
      * clears all pending for agreement txs in memory
      */
     clearTransactions = (): void => {
-        logger.info(`clearing generated transactions from memory`, {count: this.transactions.size})
+        logger.info(`Clearing generated transactions from memory`, {count: this.transactions.size})
         this.transactions.clear()
         this.transactionApprovals.clear()
     }
@@ -336,7 +336,7 @@ class TxAgreement {
      * clears all pending for approval txs in memory and db
      */
     clearAgreedTransactions = async (): Promise<void> => {
-        logger.info(`clearing agreed transactions from memory`, {count: this.transactions.size})
+        logger.info(`Clearing agreed transactions from memory`, {count: this.transactions.size})
         this.transactions.clear()
         this.eventAgreedTransactions.clear()
     }

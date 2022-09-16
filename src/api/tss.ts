@@ -22,7 +22,7 @@ tssRouter.post("/sign",
         try {
             const errors = validationResult(req);
             if (!errors.isEmpty()) {
-                logger.error('Received bad request from TSS Cardano tx sign callback', {error: JSON.stringify(errors.array())})
+                logger.warn('Received bad request from TSS Cardano tx sign callback', {error: JSON.stringify(errors.array())})
                 return res.status(400).json({ message: JSON.stringify(errors.array()) });
             }
             const signedTxHash = req.body.signature

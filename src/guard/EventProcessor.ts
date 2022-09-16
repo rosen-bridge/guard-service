@@ -14,7 +14,6 @@ import Utils from "../helpers/Utils";
 import ErgoTransaction from "../chains/ergo/models/ErgoTransaction";
 import inputBoxes from "../chains/ergo/boxes/InputBoxes";
 import { logger } from "../log/Logger";
-import { EventTriggerEntity } from "@rosen-bridge/watcher-data-extractor";
 
 
 class EventProcessor {
@@ -26,33 +25,30 @@ class EventProcessor {
      * process captured events by scanner, insert new confirmed ones to ConfirmedEvents table
      */
     static processScannedEvents = async (): Promise<void> => {
-        logger.info('processing scanned events')
+        logger.info('Processing scanned events')
         const rawEvents = await dbAction.getUnspentEvents()
-        let processedEvents = 0
         for (const event of rawEvents) {
             try {
                 const eventId = Utils.txIdToEventId(event.sourceTxId)
                 const confirmedEvent = await dbAction.getEventById(eventId)
                 if (confirmedEvent === null && await this.isEventConfirmedEnough(EventTrigger.fromEntity(event))) {
-                    logger.info('event with txId confirmed', {eventId: eventId, txId: event.sourceTxId})
+                    logger.info('Event with txId confirmed', {eventId: eventId, txId: event.sourceTxId})
                     await dbAction.insertConfirmedEvent(event)
                 }
-                processedEvents++
             }
             catch (e) {
-                console.log(`An error occurred while processing event with txId [${event.sourceTxId}]: ${e}`)
+                logger.info('An error occurred while processing event', {txId: event.sourceTxId, error: e})
             }
         }
-        logger.info("Processed Events", {count: processedEvents})
+        logger.info("Processed Events", {count: rawEvents.length})
     }
 
     /**
      * processes pending event triggers in the database
      */
     static processConfirmedEvents = async (): Promise<void> => {
-        logger.info('processing confirmed events')
+        logger.info('Processing confirmed events')
         const confirmedEvents = await dbAction.getPendingEvents()
-        let confirmedEventsProcessedCount = 0
         for (const event of confirmedEvents) {
             try {
                 if (event.status === EventStatus.pendingPayment)
@@ -60,17 +56,16 @@ class EventProcessor {
                 else if (event.status === EventStatus.pendingReward)
                     await this.processRewardEvent(EventTrigger.fromConfirmedEntity(event))
                 else
-                    logger.error('impossible case, received event eventId with status', {
+                    logger.error('Impossible case, received event eventId with status', {
                         eventId: event.id,
                         status: event.status
                     })
-                confirmedEventsProcessedCount++
             }
             catch (e) {
-                logger.error('An error occurred while processing event', {eventId: event.id, error: e})
+                logger.info('An error occurred while processing event', {eventId: event.id, error: e})
             }
         }
-        logger.info("Confirmed Events processed", {count: confirmedEventsProcessedCount})
+        logger.info("Confirmed Events processed", {count: confirmedEvents.length})
     }
 
     /**
@@ -81,9 +76,9 @@ class EventProcessor {
      * @param event the event trigger
      */
     static processPaymentEvent = async (event: EventTrigger): Promise<void> => {
-        logger.info('processing event', {eventId: event.getId()})
+        logger.info('Processing event', {eventId: event.getId()})
         if (!await this.verifyEvent(event)) {
-            logger.info(`event didn't verify.`)
+            logger.info(`Event didn't verify.`)
             await dbAction.setEventStatus(event.getId(), "rejected")
             return
         }
@@ -97,7 +92,7 @@ class EventProcessor {
      * @param event the event trigger
      */
     static processRewardEvent = async (event: EventTrigger): Promise<void> => {
-        logger.info(`processing event`, {eventId: event.getId()})
+        logger.info(`Processing event`, {eventId: event.getId()})
         if (event.toChain === ChainsConstants.ergo){
             logger.error('Events with Ergo as target chain will distribute rewards in a single transaction with payment')
             throw Error(`Events with Ergo as target chain will distribute rewards in a single transaction with payment`)
@@ -115,8 +110,8 @@ class EventProcessor {
         if (chain === ChainsConstants.cardano) return this.cardanoChain
         else if (chain === ChainsConstants.ergo) return this.ergoChain
         else {
-            logger.log('fatal', 'chain not implemented', {chain: chain})
-            throw new Error(`chain [${chain}] not implemented.`)
+            logger.log('fatal', 'Chain not implemented', {chain: chain})
+            throw new Error(`Chain [${chain}] not implemented.`)
         }
     }
 
@@ -146,8 +141,8 @@ class EventProcessor {
         else if (event.fromChain === ChainsConstants.ergo)
             return this.ergoChain.verifyEventWithPayment(event, RWTId)
         else {
-            logger.log('fatal', 'chain not implemented', {chain: event.fromChain})
-            throw new Error(`chain [${event.fromChain}] not implemented.`)
+            logger.log('fatal', 'Chain not implemented', {chain: event.fromChain})
+            throw new Error(`Chain [${event.fromChain}] not implemented.`)
         }
     }
 
@@ -173,8 +168,8 @@ class EventProcessor {
             const confirmation = await ExplorerApi.getTxConfirmation(event.sourceTxId)
             return confirmation >= ErgoConfigs.requiredConfirmation
         } else {
-            logger.log('fatal', 'chain not implemented', {chain: event.fromChain})
-            throw new Error(`chain [${event.fromChain}] not implemented.`)
+            logger.log('fatal', 'Chain not implemented', {chain: event.fromChain})
+            throw new Error(`Chain [${event.fromChain}] not implemented.`)
         }
     }
 

@@ -428,7 +428,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
             }
         }
         catch (e) {
-            logger.error('event validation failed', {
+            logger.info('event validation failed', {
                 eventId: eventId,
                 error: e
             })

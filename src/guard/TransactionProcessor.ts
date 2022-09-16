@@ -35,8 +35,8 @@ class TransactionProcessor {
         if (chain === ChainsConstants.cardano) return this.cardanoChain
         else if (chain === ChainsConstants.ergo) return this.ergoChain
         else {
-            logger.log('fatal', 'chain not implemented', {chain: chain})
-            throw new Error(`chain [${chain}] not implemented.`)
+            logger.log('fatal', 'Chain not implemented', {chain: chain})
+            throw new Error(`Chain [${chain}] not implemented.`)
         }
     }
 
@@ -44,9 +44,8 @@ class TransactionProcessor {
      * processes all transactions in the database
      */
     static processTransactions = async (): Promise<void> => {
-        logger.info(`processing transactions`)
+        logger.info(`Processing transactions`)
         const txs = await dbAction.getActiveTransactions()
-        let processedTxCount = 0
         for (const tx of txs) {
             try {
                 switch (tx.status) {
@@ -67,13 +66,12 @@ class TransactionProcessor {
                         break;
                     }
                 }
-                processedTxCount++
             }
             catch (e) {
-                logger.error(`An error occurred while processing tx`, {txId: tx.txId, error: e})
+                logger.info(`An error occurred while processing tx`, {txId: tx.txId, error: e})
             }
         }
-        logger.info("Transactions Processed", {count: processedTxCount})
+        logger.info("Transactions Processed", {count: txs.length})
     }
 
     /**
@@ -87,8 +85,8 @@ class TransactionProcessor {
         else if (tx.chain === ChainsConstants.ergo) {
             await this.processErgoTx(tx)
         } else {
-            logger.log('fatal', 'chain not implemented', {chain: tx.chain})
-            throw new Error(`chain [${tx.chain}] not implemented.`)
+            logger.log('fatal', 'Chain not implemented', {chain: tx.chain})
+            throw new Error(`Chain [${tx.chain}] not implemented.`)
         }
     }
 
@@ -105,7 +103,7 @@ class TransactionProcessor {
             const txTtl = cardanoTx.body().ttl()
             if (txTtl === undefined) {
                 logger.error('TTL is undefined for tx', {txId: tx.txId})
-                throw Error(`for tx [${tx.txId}], TTL is undefined.`)
+                throw Error(`For tx [${tx.txId}], TTL is undefined.`)
             }
             const currentSlot = await BlockFrostApi.currentSlot()
 
@@ -125,7 +123,7 @@ class TransactionProcessor {
             if (tx.type === TransactionTypes.payment) {
                 // set event status, to start reward distribution.
                 await dbAction.setEventStatus(tx.event.id, EventStatus.pendingReward)
-                logger.info('tx is confirmed. event is ready for reward distribution', {
+                logger.info('Tx is confirmed. event is ready for reward distribution', {
                     txId: tx.txId,
                     eventId: tx.event.id
                 })
@@ -133,7 +131,7 @@ class TransactionProcessor {
             else {
                 // set event as complete
                 await dbAction.setEventStatus(tx.event.id, EventStatus.completed)
-                logger.info('tx is confirmed. event is complete', {
+                logger.info('Tx is confirmed. event is complete', {
                     txId: tx.txId,
                     eventId: tx.event.id
                 })
@@ -143,7 +141,7 @@ class TransactionProcessor {
             // tx is mined, but not enough confirmation. updating last check...
             const height = await BlockFrostApi.currentHeight()
             await dbAction.updateTxLastCheck(tx.txId, height)
-            logger.info('tx is in confirmation process', {
+            logger.info('Tx is in confirmation process', {
                 txId: tx.txId,
                 requiredConfirmation: CardanoConfigs.requiredConfirmation,
                 confirmation: confirmation
@@ -161,7 +159,7 @@ class TransactionProcessor {
             // tx confirmed enough. event is done.
             await dbAction.setTxStatus(tx.txId, TransactionStatus.completed)
             await dbAction.setEventStatus(tx.event.id, EventStatus.completed)
-            logger.info('tx is confirmed. event is complete', {txId: tx.txId, eventId: tx.event.id})
+            logger.info('Tx is confirmed. event is complete', {txId: tx.txId, eventId: tx.event.id})
         }
         else if (confirmation === -1) {
             // tx is not mined. checking mempool...
@@ -169,7 +167,7 @@ class TransactionProcessor {
                 // tx is in mempool. updating last check...
                 const height = await NodeApi.getHeight()
                 await dbAction.updateTxLastCheck(tx.txId, height)
-                logger.info('tx is in mempool', {txId: tx.txId})
+                logger.info('Tx is in mempool', {txId: tx.txId})
             }
             else {
                 // tx is not in mempool. checking inputs
@@ -180,7 +178,7 @@ class TransactionProcessor {
             // tx is mined, but not enough confirmation. updating last check...
             const height = await NodeApi.getHeight()
             await dbAction.updateTxLastCheck(tx.txId, height)
-            logger.info('tx in confirmation process', {
+            logger.info('Tx in confirmation process', {
                 txId: tx.txId,
                 requiredConfirmation: CardanoConfigs.requiredConfirmation,
                 confirmation: confirmation
@@ -288,10 +286,10 @@ class TransactionProcessor {
         if (height - tx.lastCheck >= CardanoConfigs.requiredConfirmation) {
             await dbAction.setTxStatus(tx.txId, TransactionStatus.invalid)
             await dbAction.resetEventTx(tx.event.id, EventStatus.pendingPayment)
-            logger.info('tx is invalid. event is now waiting for payment', {txId: tx.txId, eventId: tx.event.id})
+            logger.info('Tx is invalid. event is now waiting for payment', {txId: tx.txId, eventId: tx.event.id})
         }
         else {
-            logger.info('tx is invalid. waiting for enough confirmation of this proposition', {txId: tx.txId})
+            logger.info('Tx is invalid. waiting for enough confirmation of this proposition', {txId: tx.txId})
         }
     }
 
@@ -305,18 +303,18 @@ class TransactionProcessor {
             await dbAction.setTxStatus(tx.txId, TransactionStatus.invalid)
             if (tx.type === TransactionTypes.payment) {
                 await dbAction.resetEventTx(tx.event.id, EventStatus.pendingPayment)
-                logger.info('tx is invalid. event is now waiting for payment', {txId: tx.txId, eventId: tx.event.id})
+                logger.info('Tx is invalid. event is now waiting for payment', {txId: tx.txId, eventId: tx.event.id})
             }
             else {
                 await dbAction.resetEventTx(tx.event.id, EventStatus.pendingReward)
-                logger.info('tx is invalid. event is now waiting for reward distribution', {
+                logger.info('Tx is invalid. event is now waiting for reward distribution', {
                     txId: tx.txId,
                     eventId: tx.event.id
                 })
             }
         }
         else {
-            logger.info('tx is invalid. waiting for enough confirmation of this proposition', {txId: tx.txId})
+            logger.info('Tx is invalid. waiting for enough confirmation of this proposition', {txId: tx.txId})
         }
     }
 
@@ -341,22 +339,22 @@ class TransactionProcessor {
         if (tx.chain === ChainsConstants.cardano) {
             // TODO: implement this process when TSS has failure response
             //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/23
-            logger.error('processSignFailedTx has no implementation for chain', {chain: tx.chain})
-            throw new Error(`processSignFailedTx has no implementation for [${tx.chain}] chain.`)
+            logger.error('ProcessSignFailedTx has no implementation for chain', {chain: tx.chain})
+            throw new Error(`ProcessSignFailedTx has no implementation for [${tx.chain}] chain.`)
         }
         else if (tx.chain === ChainsConstants.ergo) {
             const ergoTx = ErgoTransaction.fromJson(tx.txJson)
             if (await this.isErgoTxInputsValid(ergoTx)) {
                 // tx is valid. ignoring till become invalid...
-                logger.info('tx failed in signing process but inputs are still valid. ignoring...', {txId: tx.txId})
+                logger.info('Tx failed in signing process but inputs are still valid. ignoring...', {txId: tx.txId})
             }
             else {
                 // tx is invalid. reset status if enough blocks past.
                 await this.resetErgoStatus(tx)
             }
         } else {
-            logger.log('fatal', 'chain not implemented', {chain: tx.chain})
-            throw new Error(`chain [${tx.chain}] not implemented.`)
+            logger.log('fatal', 'Chain not implemented', {chain: tx.chain})
+            throw new Error(`Chain [${tx.chain}] not implemented.`)
         }
     }
 

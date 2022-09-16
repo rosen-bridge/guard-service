@@ -165,37 +165,40 @@ class DatabaseAction {
     insertTx = async (newTx: PaymentTransaction): Promise<void> => {
         const event = await this.getEventById(newTx.eventId)
         if (event === null) {
-            logger.error("event not found in db", {eventId: newTx.eventId})
-            throw Error(`event [${newTx.eventId}] not found`)
+            logger.error("Event not found in db", {eventId: newTx.eventId})
+            throw Error(`Event [${newTx.eventId}] not found`)
         }
 
         const txs = (await this.getEventTxsByType(event.id, newTx.txType)).filter(tx => tx.status !== TransactionStatus.invalid)
         if (txs.length > 1){
-            logger.error('impossible case, event has already more than 1 active tx', {
+            logger.error('Impossible case, event has already more than 1 active tx', {
                 eventId: newTx.eventId,
                 txCount: txs.length,
                 txType: newTx.txType
             })
-            throw Error(`impossible case, event [${newTx.eventId}] has already more than 1 (${txs.length}) active ${newTx.txType} tx`)
+            throw Error(`Impossible case, event [${newTx.eventId}] has already more than 1 (${txs.length}) active ${newTx.txType} tx`)
         }
         else if (txs.length === 1) {
             const tx = txs[0]
             if (tx.status === TransactionStatus.approved) {
                 if (newTx.txId < tx.txId) {
-                    logger.info('replacing tx with new transaction due to lower txId', {
+                    logger.info('Replacing tx with new transaction due to lower txId', {
                         oldTx: tx.txId,
                         newTx: newTx.txId
                     })
                     await this.replaceTx(tx.txId, newTx)
-                }
-                else
-                    logger.info(`ignoring new tx due to higher txId, comparing to oldTx`, {
+                } else if (newTx.txId === tx.txId) {
+                    logger.info(`Ignoring tx, already exists in database`, {
+                        txId: tx.txId
+                    })
+                } else
+                    logger.info(`Ignoring new tx due to higher txId, comparing to oldTx`, {
                         oldTx: tx.txId,
                         newTx: newTx.txId
                     })
             }
             else
-                logger.warn(`received approval for newTx where its event has already a completed oldTx`, {
+                logger.warn(`Received approval for newTx where its event has already a completed oldTx`, {
                     newTx: newTx.txId,
                     oldTx: tx.txId,
                     eventId: event.id
@@ -212,7 +215,7 @@ class DatabaseAction {
      */
     getEventTxsByType = async (eventId: string, type: string): Promise<TransactionEntity[]> => {
         const event = await this.getEventById(eventId)
-        if (event === null) throw Error(`event [${eventId}] not found`)
+        if (event === null) throw Error(`Event [${eventId}] not found`)
         return await this.TransactionRepository
             .find({
                 relations: ["event"],

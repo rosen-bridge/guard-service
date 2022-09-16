@@ -18,8 +18,8 @@ class BlockFrostApi {
         const block = await this.blockFrost.blocksLatest()
         const slot = block.slot
         if (!slot) {
-            logger.error('failed to fetch current slot')
-            throw new Error("failed to fetch current slot")
+            logger.error('Failed to fetch current slot from BlockFrost')
+            throw new Error("Failed to fetch current slot from BlockFrost")
         }
         return slot
     }
@@ -31,8 +31,8 @@ class BlockFrostApi {
         const block = await this.blockFrost.blocksLatest()
         const height = block.height
         if (!height) {
-            logger.error('failed to fetch current slot')
-            throw new Error("failed to fetch current slot")
+            logger.error('Failed to fetch current slot from BlockFrost')
+            throw new Error("Failed to fetch current slot from BlockFrost")
         }
         return height
     }
@@ -42,7 +42,12 @@ class BlockFrostApi {
      * @param tx the transaction
      */
     static txSubmit = async (tx: Transaction): Promise<string> => {
-        return this.blockFrost.txSubmit(tx.to_bytes())
+        try {
+            return this.blockFrost.txSubmit(tx.to_bytes())
+        } catch (e) {
+            logger.error('An error occurred while submitting tx using BlockFrost')
+            throw new Error('An error occurred while submitting tx using BlockFrost')
+        }
     }
 
     /**
@@ -50,7 +55,12 @@ class BlockFrostApi {
      * @param txId the transaction id
      */
     static getTxUtxos = async (txId: string): Promise<TxUtxos> => {
-        return await this.blockFrost.txsUtxos(txId)
+        try {
+            return await this.blockFrost.txsUtxos(txId)
+        } catch (e) {
+            logger.error('An error occurred while getting transaction utxos using BlockFrost', {txId: txId})
+            throw new Error('An error occurred while getting transaction utxos using BlockFrost')
+        }
     }
 
     /**
@@ -58,7 +68,12 @@ class BlockFrostApi {
      * @param address the address
      */
     static getAddressUtxos = async (address: string): Promise<AddressUtxos> => {
-        return await this.blockFrost.addressesUtxos(address)
+        try {
+            return await this.blockFrost.addressesUtxos(address)
+        } catch (e) {
+            logger.error('An error occurred while getting address utxos using BlockFrost', {address: address})
+            throw new Error('An error occurred while getting address utxos using BlockFrost')
+        }
     }
 
 }

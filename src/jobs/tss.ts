@@ -15,9 +15,14 @@ const startTssInstance = function() {
 
     exec(tssPath, function(err, data) {
         if (err !== null) {
-            logger.error('Failed to start TSS instance', {error: err, data: data})
+            const timeout = Configs.tssInstanceRestartTimeout
+            logger.error(`TSS instance failed unexpectedly, TSS will be started in 'Timeout' `, {
+                error: err,
+                data: data,
+                timeout: timeout
+            })
             // wait 5 seconds to start again
-            setTimeout(startTssInstance, 5000)
+            setTimeout(startTssInstance, timeout * 1000)
         }
         logger.info("TSS instance started")
     });

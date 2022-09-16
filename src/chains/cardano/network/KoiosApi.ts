@@ -33,7 +33,7 @@ class KoiosApi {
         return this.koios.post<{ num_confirmations: number }[]>('/tx_status', {"_tx_hashes": [txId]})
             .then(res => res.data[0].num_confirmations)
             .catch(e => {
-                logger.error('An error occurred while getting confirmation for tx', {txId: txId, error: e})
+                logger.error('An error occurred while getting confirmation for tx from Koios', {txId: txId, error: e})
                 throw e
             })
     }
@@ -46,7 +46,7 @@ class KoiosApi {
         return this.koios.post<KoiosTransaction[]>("/tx_info", {"_tx_hashes": txHashes})
             .then(res => res.data)
             .catch(e => {
-                logger.error('An error occurred while getting information of txs', {
+                logger.error('An error occurred while getting information of txs from Koios', {
                     txHashes: JSON.stringify(txHashes),
                     error: e
                 })

@@ -139,7 +139,7 @@ class PaymentTransaction implements PaymentTransactionModel {
 
         const publicKey = Configs.guards.find(guard => guard.guardId == signerId)?.guardPubKey
         if (publicKey === undefined) {
-            logger.warn('no guard found with id', {signerId: signerId})
+            logger.warn('No guard found with id', {signerId: signerId})
             return false
         }
 

@@ -115,7 +115,7 @@ class Dialer {
             const jsonData = JSON.stringify(peerIdDialerJson)
             fs.writeFile(CommunicationConfig.peerIdFilePath, jsonData, 'utf8', function(err) {
                 if (err) {
-                    logger.log('fatal', 'error in writing created PeerId to the file')
+                    logger.log('fatal', 'An error occurred, in writing created PeerId to the file')
                     throw err;
                 }
                 logger.info("PeerId created!")
@@ -140,7 +140,7 @@ class Dialer {
                 (sub: SubscribeChannel) =>
                     sub.func.name === callback.name && sub.url === url
             )) {
-                logger.info('a redundant subscribed channel detected !')
+                logger.info('A redundant subscribed channel detected !')
                 return
             }
             this._SUBSCRIBED_CHANNELS[channel].push(callbackObj)
@@ -217,7 +217,7 @@ class Dialer {
                 }
                 if (this._SUBSCRIBED_CHANNELS[receivedData.channel]) {
                     this._SUBSCRIBED_CHANNELS[receivedData.channel].forEach(runSubscribeCallback)
-                } else logger.warn(`received a message from sender in a unsubscribed channel`, {
+                } else logger.warn(`Received a message from sender in a unsubscribed channel`, {
                     sender: receivedData.sender,
                     channel: receivedData.channel
                 })
