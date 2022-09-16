@@ -11,8 +11,7 @@
             "timeout": 8
         },
         "blockFrost": {
-            "projectId": "change me",
-            "isTestnet": true
+            "projectId": "change me"
         },
         "bankAddress": "addr_test1qrm4haxxgl55kqzhpp3sda8h979gxd4cast340v0eh0p4qzp3vkcrhjqavv9uzsvq86mglwnwe8xp87q3rv8ve54kasqlf7xgl",
         "bankPublicKey": "4444444444444444444444444444444444444444444444444444444444444444",
