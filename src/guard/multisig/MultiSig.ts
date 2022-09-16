@@ -16,7 +16,7 @@ import MultiSigUtils from "./MultiSigUtils";
 
 const dialer = await Dialer.getInstance();
 
-class MultiSigHandler{
+class MultiSigHandler {
     private static CHANNEL = "multi-sig"
     private readonly transactions: Map<string, TxQueued>
     private readonly peers: Array<Signer>;
@@ -93,7 +93,7 @@ class MultiSigHandler{
         dataBoxes?: Array<wasm.ErgoBox>
     ): Promise<wasm.Transaction> => {
         return new Promise<wasm.Transaction>((resolve, reject) => {
-            this.getQueuedTransaction(tx.unsigned_tx().id().to_str()).then(transaction => {
+            this.getQueuedTransaction(tx.unsigned_tx().id().to_str()).then(({transaction, release}) => {
                 transaction.tx = tx;
                 transaction.boxes = boxes;
                 transaction.dataBoxes = dataBoxes ? dataBoxes : [];
@@ -101,6 +101,7 @@ class MultiSigHandler{
                 transaction.reject = reject;
                 transaction.requiredSigner = requiredSign;
                 this.generateCommitment(tx.unsigned_tx().id().to_str())
+                release();
             }).catch((e) => {
                 reject(e)
             })
@@ -117,6 +118,19 @@ class MultiSigHandler{
             //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/22
         }
         return peerId;
+    }
+
+    /**
+     * verify that if selected guard sign message or not
+     * @param signBase64: signed string encoded as base64
+     * @param guardIndex: signed guard index
+     * @param data: signed data
+     */
+    verifySign = (signBase64: string, guardIndex: number, data: string): boolean => {
+        const publicKey = Buffer.from(this.peers[guardIndex].pub, "hex");
+        const signature = Buffer.from(signBase64, "base64");
+        // verify signature
+        return Encryption.verify(data, signature, publicKey)
     }
 
     /**
@@ -194,77 +208,121 @@ class MultiSigHandler{
     }
 
     /**
+     * process resolve transaction and call callback function
+     * @param transaction
+     */
+    processResolve = (transaction: TxQueued) => {
+        if (transaction.sign && transaction.sign.signed.length >= transaction.requiredSigner && transaction.tx) {
+            if (transaction.resolve) {
+                transaction.resolve(wasm.Transaction.sigma_parse_bytes(transaction.sign.transaction))
+                // remove transaction from queue
+                transaction.tx = undefined
+                transaction.sign = undefined
+                transaction.reject = undefined
+            }else{
+                console.log(`No resolve method for transaction ${JSON.stringify(transaction)}`)
+            }
+        }
+    }
+
+
+    /**
      * generating sign for transaction in the queue by the id of the transaction
      * @param id
+     * @param transaction
      */
-    generateSign = (id: string): void => {
+    generateSign = async (id: string, transaction: TxQueued): Promise<void> => {
         const prover = this.getProver();
         let needSign = false;
-        this.getQueuedTransaction(id).then(async (transaction) => {
-            if (transaction.tx && transaction.secret) {
-                const myPub = this.peers[this.getIndex()].pub
-                let signed: Array<string> = [];
-                let simulated: Array<string> = [];
-                let hints: wasm.TransactionHintsBag = wasm.TransactionHintsBag.empty();
-                if (transaction.sign) {
-                    simulated = transaction.sign.simulated;
-                    signed = transaction.sign.signed;
-                    if (signed.indexOf(myPub) === -1) {
-                        hints = await MultiSigUtils.extract_hints(
-                            wasm.Transaction.sigma_parse_bytes(transaction.sign.transaction),
-                            transaction.boxes,
-                            transaction.dataBoxes,
-                            signed,
-                            simulated
-                        )
-                        signed = [myPub, ...signed]
-                        needSign = true
-                    }
-                } else {
-                    simulated = transaction.commitments.map((item, index) => {
-                        if (item === undefined) {
-                            return this.peers[index].pub
-                        }
-                        return ""
-                    }).filter(item => !!item && item !== myPub)
-                    signed = [myPub]
+        if (transaction.tx && transaction.secret) {
+            const myPub = this.peers[this.getIndex()].pub
+            let signed: Array<string> = [];
+            let simulated: Array<string> = [];
+            let hints: wasm.TransactionHintsBag = wasm.TransactionHintsBag.empty();
+            if (transaction.sign) {
+                simulated = transaction.sign.simulated;
+                signed = transaction.sign.signed;
+                if (signed.indexOf(myPub) === -1) {
+                    hints = await MultiSigUtils.extract_hints(
+                        wasm.Transaction.sigma_parse_bytes(transaction.sign.transaction),
+                        transaction.boxes,
+                        transaction.dataBoxes,
+                        signed,
+                        simulated
+                    )
+                    signed = [myPub, ...signed]
                     needSign = true
                 }
-                if (needSign) {
-                    MultiSigUtils.add_hints(hints, transaction.secret, transaction.tx)
-                    for (let index = 0; index < transaction.commitments.length; index++) {
-                        const commitment = transaction.commitments[index];
-                        if (commitment && this.peers.length > index) {
-                            const peer = this.peers[index];
-                            if (signed.indexOf(this.peers[index].pub) === -1) {
-                                const publicHints = MultiSigUtils.convertToHintBag(commitment, peer.pub)
-                                MultiSigUtils.add_hints(hints, publicHints, transaction.tx)
-                            }
-                        }
+            } else {
+                simulated = transaction.commitments.map((item, index) => {
+                    if (item === undefined) {
+                        return this.peers[index].pub
                     }
-                    try {
-                        const signedTx = prover.sign_reduced_transaction_multi(transaction.tx, hints)
-                        const tx = Buffer.from(signedTx.sigma_serialize_bytes()).toString("base64")
-                        // broadcast signed invalid transaction to all other
-                        const payload: SignPayload = {
-                            tx: tx,
-                            txId: signedTx.id().to_str(),
-                            signed: signed,
-                            simulated: simulated
+                    return ""
+                }).filter(item => !!item && item !== myPub)
+                // add extra simulated to list of simulated nodes. this is cause of sigma-rust bug
+                const committed = transaction.commitments.map((item, index) => {
+                    if (item !== undefined) {
+                        return this.peers[index].pub
+                    }
+                    return ""
+                }).filter(item => !!item && item !== myPub)
+                if (committed.length > transaction.requiredSigner - 1) {
+                    simulated = [...simulated, ...committed.slice(transaction.requiredSigner - 1)]
+                }
+                signed = [myPub]
+                needSign = true
+            }
+            if (needSign) {
+                MultiSigUtils.add_hints(hints, transaction.secret, transaction.tx)
+                for (let index = 0; index < transaction.commitments.length; index++) {
+                    const commitment = transaction.commitments[index];
+                    if (commitment && this.peers.length > index) {
+                        const peer = this.peers[index];
+                        if (signed.indexOf(this.peers[index].pub) === -1 && simulated.indexOf(this.peers[index].pub) === -1) {
+                            const publicHints = MultiSigUtils.convertToHintBag(commitment, peer.pub)
+                            MultiSigUtils.add_hints(hints, publicHints, transaction.tx)
                         }
-                        const peers = this.peers.filter(item => {
-                            return simulated.indexOf(item.pub) === -1
-                        }).map(item => item.id ? item.id : "").filter(item => item !== "")
-                        this.sendMessage({type: "sign", payload: payload}, peers)
-                        if (signed.length >= transaction.requiredSigner && transaction.resolve) {
-                            transaction.resolve(signedTx)
-                        }
-                    } catch (e) {
-                        console.log(`An error occurred during generate sign: ${e}`)
                     }
                 }
+                try {
+                    const signedTx = prover.sign_reduced_transaction_multi(transaction.tx, hints)
+                    const txBytes = Buffer.from(signedTx.sigma_serialize_bytes())
+                    // broadcast signed invalid transaction to all other
+                    const payload: SignPayload = {
+                        tx: txBytes.toString("base64"),
+                        txId: signedTx.id().to_str(),
+                        signed: signed,
+                        simulated: simulated,
+                        commitments: []
+                    }
+                    const completed = signed.length >= transaction.requiredSigner
+                    if (!completed) {
+                        transaction.commitments.map((item, index) => {
+                            const commitment = transaction.commitments[index]
+                            if (transaction.commitmentSigns[index] && commitment) {
+                                payload.commitments.push({
+                                    sign: transaction.commitmentSigns[index],
+                                    index: index,
+                                    commitment: commitment
+                                })
+                            }
+                        })
+                    }
+                    const peers = this.peers.filter(item => {
+                        return simulated.indexOf(item.pub) === -1 || completed // if transaction sign completed we broadcast transaction to all peers not only signers
+                    }).map(item => item.id ? item.id : "").filter(item => item !== "")
+                    this.sendMessage({type: "sign", payload: payload}, peers)
+                    transaction.sign = {
+                        signed: signed,
+                        simulated: simulated,
+                        transaction: txBytes
+                    }
+                } catch (e) {
+                    console.log(`An error occurred during multi-sig generate sign: ${e}`)
+                }
             }
-        })
+        }
     }
 
     /**
@@ -303,7 +361,7 @@ class MultiSigHandler{
                     nonceToSign: nonce,
                     myId: this.getPeerId()
                 }
-            })
+            }, [sender])
         }
     }
 
@@ -332,7 +390,7 @@ class MultiSigHandler{
                         myId: this.getPeerId(),
                         nonceToSign: ""
                     }
-                })
+                }, [sender])
             }
         }
     }
@@ -341,24 +399,23 @@ class MultiSigHandler{
      * get a transaction object from queued transactions.
      * @param txId
      */
-    getQueuedTransaction = (txId: string): Promise<TxQueued> => {
+    getQueuedTransaction = (txId: string): Promise<{ transaction: TxQueued, release: () => void }> => {
         return this.semaphore.acquire().then(release => {
             try {
                 const transaction = this.transactions.get(txId);
                 if (transaction) {
-                    release()
-                    return transaction
+                    return {transaction, release}
                 }
                 const newTransaction: TxQueued = {
                     boxes: [],
                     dataBoxes: [],
                     commitments: this.peers.map(() => undefined),
+                    commitmentSigns: this.peers.map(() => ""),
                     createTime: new Date().getTime(),
                     requiredSigner: 0,
                 }
                 this.transactions.set(txId, newTransaction);
-                release()
-                return newTransaction;
+                return {transaction: newTransaction, release};
             } catch (e) {
                 release()
                 throw e
@@ -368,19 +425,27 @@ class MultiSigHandler{
 
     /**
      * handle verified commitment message from other guards
-     * @param sender
-     * @param payload
+     * @param sender: sender for this commitment
+     * @param payload: user commitment
+     * @param sign: signature for this commitment message
      */
-    handleCommitment = (sender: string, payload: CommitmentPayload): void => {
+    handleCommitment = (sender: string, payload: CommitmentPayload, sign: string): void => {
         if (payload.index !== undefined && payload.txId) {
             const index = payload.index
-            this.getQueuedTransaction(payload.txId).then(transaction => {
-                transaction.commitments[index] = payload.commitment;
-                if (transaction.requiredSigner > 0) {
-                    if (transaction.commitments.filter(item => item !== undefined).length >= transaction.requiredSigner - 1) {
-                        this.generateSign(payload.txId);
+            this.getQueuedTransaction(payload.txId).then(async ({transaction, release}) => {
+                try {
+                    transaction.commitments[index] = payload.commitment;
+                    transaction.commitmentSigns[index] = sign;
+                    if (transaction.requiredSigner > 0) {
+                        if (transaction.commitments.filter(item => item !== undefined).length >= transaction.requiredSigner - 1) {
+                            await this.generateSign(payload.txId, transaction);
+                        }
                     }
+                    this.processResolve(transaction);
+                } catch (e) {
+                    console.log(`An unknown exception occurred during handle commitment from other peer: ${e}`)
                 }
+                release();
             })
         }
     }
@@ -392,25 +457,53 @@ class MultiSigHandler{
      */
     handleSign = (sender: string, payload: SignPayload): void => {
         if (payload.txId) {
-            this.getQueuedTransaction(payload.txId).then(transaction => {
-                const myPub = this.peers[this.getIndex()].pub
-                let updateSign = true;
-                if (transaction.sign) {
-                    if (payload.signed.filter(item => item !== myPub).length <= transaction.sign.signed.filter(item => item !== myPub).length) {
+            this.getQueuedTransaction(payload.txId).then(async ({transaction, release}) => {
+                try {
+                    payload.commitments.filter(commitment => {
+                        if (transaction.commitments[commitment.index] !== undefined) {
+                            return false
+                        }
+                        const payloadToSign = {
+                            txId: payload.txId,
+                            commitment: commitment.commitment
+                        }
+                        return this.verifySign(commitment.sign, commitment.index, JSON.stringify(payloadToSign))
+                    }).forEach(commitment => {
+                        transaction.commitments[commitment.index] = commitment.commitment
+                        transaction.commitmentSigns[commitment.index] = commitment.sign
+                    })
+                    const guardsKeys = this.peers.map(item => item.pub)
+                    payload.signed = Array.from((new Set(payload.signed)).values()).filter(item => guardsKeys.indexOf(item) !== -1)
+                    payload.simulated = Array.from((new Set(payload.simulated)).values()).filter(item => guardsKeys.indexOf(item) !== -1)
+                    const myPub = this.peers[this.getIndex()].pub
+                    let updateSign = true;
+                    if (
+                        transaction.sign &&
+                        payload.signed.filter(item => item !== myPub).length <= transaction.sign.signed.filter(item => item !== myPub).length
+                    ) {
                         updateSign = false
                     }
-                }
-                if (updateSign) {
-                    // no signed data. we store this data
-                    transaction.sign = {
-                        signed: payload.signed,
-                        simulated: payload.simulated,
-                        transaction: Uint8Array.from(Buffer.from(payload.tx, "base64"))
+                    if (updateSign) {
+                        // Arrived transaction is better and has more signatures. store it.
+                        transaction.sign = {
+                            signed: payload.signed,
+                            simulated: payload.simulated,
+                            transaction: Uint8Array.from(Buffer.from(payload.tx, "base64"))
+                        }
                     }
+                    if (
+                        transaction.sign &&
+                        transaction.sign.signed.indexOf(myPub) === -1 &&
+                        transaction.sign.simulated.indexOf(myPub) === -1 &&
+                        transaction.sign.signed.length < transaction.requiredSigner
+                    ) {
+                        await this.generateSign(payload.txId, transaction)
+                    }
+                    this.processResolve(transaction)
+                } catch (e) {
+                    console.log(`An unknown exception occurred during handle sign from another peer: ${e}`)
                 }
-                if (transaction.sign?.signed.indexOf(myPub) === -1) {
-                    this.generateSign(payload.txId)
-                }
+                release();
             })
         }
     }
@@ -429,11 +522,7 @@ class MultiSigHandler{
                 return
             }
             const index = message.payload.index;
-            const publicKey = Buffer.from(this.peers[index].pub, "hex");
-            const signature = Buffer.from(message.sign, "base64");
-            // verify signature
-            const payloadStr = JSON.stringify(message.payload);
-            if (Encryption.verify(payloadStr, signature, publicKey)) {
+            if (this.verifySign(message.sign, index, JSON.stringify(message.payload))) {
                 switch (message.type) {
                     case "register":
                         this.handleRegister(sender, message.payload as RegisterPayload)
@@ -442,12 +531,14 @@ class MultiSigHandler{
                         this.handleApprove(sender, message.payload as ApprovePayload)
                         break;
                     case "commitment":
-                        this.handleCommitment(sender, message.payload as CommitmentPayload)
+                        this.handleCommitment(sender, message.payload as CommitmentPayload, message.sign)
                         break
                     case "sign":
                         this.handleSign(sender, message.payload as SignPayload)
                         break
                 }
+            }else{
+                console.log("Ignoring received message in multi-sig. Signature didn't verify")
             }
         }
     }
