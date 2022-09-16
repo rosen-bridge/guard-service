@@ -52,8 +52,8 @@ class InputBoxes {
         if (tokenIds === undefined) throw Error(`failed to fetch tokenIds from box [${boxId}]`)
         if (ratios === undefined || decimalCoef === undefined) throw Error(`failed to fetch ratios or decimal coefficient from box [${boxId}]`)
 
-        const tokenIndex = tokenIds?.map(idBytes => Utils.Uint8ArrayToHexString(idBytes))?.indexOf(tokenId)
-        if (tokenIndex === undefined) throw Error(`tokenId [${tokenId}] not found in box [${boxId}]`)
+        const tokenIndex = tokenIds.map(idBytes => Utils.Uint8ArrayToHexString(idBytes)).indexOf(tokenId)
+        if (tokenIndex === -1) throw Error(`tokenId [${tokenId}] not found in box [${boxId}]`)
         return [BigInt(ratios[tokenIndex]), BigInt(decimalCoef.to_str())]
     }
 

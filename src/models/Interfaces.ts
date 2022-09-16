@@ -58,8 +58,22 @@ interface PaymentTransactionJsonModel {
     txType: string
 }
 
+interface TssSuccessfulSign {
+    signature: string,
+    r: string,
+    s: string,
+    m: string
+}
+
+interface TssFailedSign {
+    error: string,
+    m: string
+}
+
 export type {
     EventTriggerModel,
     PaymentTransactionModel,
-    PaymentTransactionJsonModel
+    PaymentTransactionJsonModel,
+    TssSuccessfulSign,
+    TssFailedSign
 }

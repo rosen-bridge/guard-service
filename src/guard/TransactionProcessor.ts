@@ -169,37 +169,7 @@ class TransactionProcessor {
      */
     static processCardanoTxInputs = async (tx: TransactionEntity): Promise<void> => {
         const paymentTx = CardanoTransaction.fromJson(tx.txJson)
-        const cardanoTx = this.cardanoChain.deserialize(paymentTx.txBytes)
-        const boxes = cardanoTx.body().inputs()
-
-        const sourceTxs: Map<string, TxUtxos> = new Map()
-        const addressUtxos: Map<string, AddressUtxos> = new Map()
-
-        let valid = true
-        for (let i = 0; i < boxes.len(); i++) {
-            const box = boxes.get(i)
-            const sourceTxId = Utils.Uint8ArrayToHexString(box.transaction_id().to_bytes())
-            if (!sourceTxs.has(sourceTxId)) {
-                try {
-                    const txUtxos = await BlockFrostApi.getTxUtxos(sourceTxId)
-                    sourceTxs.set(sourceTxId, txUtxos)
-                }
-                catch (e) {
-                    console.log(`An error occurred while fetching tx [${sourceTxId}]: ${e}`)
-                    valid = false
-                }
-            }
-
-            const address = sourceTxs.get(sourceTxId)!.outputs[box.index()].address
-            if (!addressUtxos.has(address)) {
-                const utxos = await BlockFrostApi.getAddressUtxos(address)
-                addressUtxos.set(address, utxos)
-            }
-
-            const utxo = addressUtxos.get(address)!.find(utxo => utxo.tx_hash === sourceTxId && utxo.output_index === box.index())
-            valid = valid && (utxo !== undefined)
-        }
-        if (valid) {
+        if (await this.isCardanoTxInputsValid(paymentTx)) {
             // tx is valid. resending...
             console.log(`tx [${tx.txId}] is lost but inputs are still valid. resending tx...`)
             await this.cardanoChain.submitTransaction(paymentTx)
@@ -294,6 +264,43 @@ class TransactionProcessor {
 
     /**
      * checks if all inputs of the transaction is still unspent and valid
+     * @param paymentTx
+     */
+    static isCardanoTxInputsValid = async (paymentTx: PaymentTransaction): Promise<boolean> => {
+        const boxes = this.cardanoChain.deserialize(paymentTx.txBytes).body().inputs()
+
+        const sourceTxs: Map<string, TxUtxos> = new Map()
+        const addressUtxos: Map<string, AddressUtxos> = new Map()
+
+        let valid = true
+        for (let i = 0; i < boxes.len(); i++) {
+            const box = boxes.get(i)
+            const sourceTxId = Utils.Uint8ArrayToHexString(box.transaction_id().to_bytes())
+            if (!sourceTxs.has(sourceTxId)) {
+                try {
+                    const txUtxos = await BlockFrostApi.getTxUtxos(sourceTxId)
+                    sourceTxs.set(sourceTxId, txUtxos)
+                }
+                catch (e) {
+                    console.log(`An error occurred while fetching tx [${sourceTxId}]: ${e}`)
+                    valid = false
+                }
+            }
+
+            const address = sourceTxs.get(sourceTxId)!.outputs[box.index()].address
+            if (!addressUtxos.has(address)) {
+                const utxos = await BlockFrostApi.getAddressUtxos(address)
+                addressUtxos.set(address, utxos)
+            }
+
+            const utxo = addressUtxos.get(address)!.find(utxo => utxo.tx_hash === sourceTxId && utxo.output_index === box.index())
+            valid = valid && (utxo !== undefined)
+        }
+        return valid
+    }
+
+    /**
+     * checks if all inputs of the transaction is still unspent and valid
      * @param ergoTx
      */
     static isErgoTxInputsValid = async (ergoTx: ErgoTransaction): Promise<boolean> => {
@@ -311,15 +318,21 @@ class TransactionProcessor {
      */
     static processSignFailedTx = async (tx: TransactionEntity): Promise<void> => {
         if (tx.chain === ChainsConstants.cardano) {
-            // TODO: implement this process when TSS has failure response
-            //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/23
-            throw new Error(`processSignFailedTx has no implementation for [${tx.chain}] chain.`)
+            const paymentTx = PaymentTransaction.fromJson(tx.txJson)
+            if (await this.isCardanoTxInputsValid(paymentTx)) {
+                // tx is valid. ignoring till become invalid...
+                console.log(`Cardano tx [${tx.txId}] failed in signing process but inputs are still valid. ignoring...`)
+            }
+            else {
+                // tx is invalid. reset status if enough blocks past.
+                await this.resetCardanoStatus(tx)
+            }
         }
         else if (tx.chain === ChainsConstants.ergo) {
             const ergoTx = ErgoTransaction.fromJson(tx.txJson)
             if (await this.isErgoTxInputsValid(ergoTx)) {
                 // tx is valid. ignoring till become invalid...
-                console.log(`tx [${tx.txId}] failed in signing process but inputs are still valid. ignoring...`)
+                console.log(`Ergo tx [${tx.txId}] failed in signing process but inputs are still valid. ignoring...`)
             }
             else {
                 // tx is invalid. reset status if enough blocks past.

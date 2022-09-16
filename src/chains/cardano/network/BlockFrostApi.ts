@@ -7,8 +7,7 @@ import { AddressUtxos, TxUtxos } from "../models/Interfaces";
 class BlockFrostApi {
 
     static blockFrost = new BlockFrostAPI({
-        projectId: CardanoConfigs.blockFrost.projectId,
-        isTestnet: CardanoConfigs.blockFrost.isTestnet
+        projectId: CardanoConfigs.blockFrost.projectId
     });
 
     /**

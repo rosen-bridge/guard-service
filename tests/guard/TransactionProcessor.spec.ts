@@ -571,6 +571,8 @@ describe("TransactionProcessor", () => {
     })
 
     describe("processSignFailedTx", () => {
+        const cardanoBlockchainHeight = TestConfigs.cardano.blockchainHeight
+        const cardanoBankAddress = CardanoTestBoxes.testBankAddress
         const ergoBlockchainHeight = TestConfigs.ergo.blockchainHeight
         const eventBoxAndCommitments = ErgoTestBoxes.mockEventBoxWithSomeCommitments()
 
@@ -580,7 +582,46 @@ describe("TransactionProcessor", () => {
         })
 
         /**
-         * Target: testing processSentTx (processErgoTxInputs)
+         * Target: testing processSignFailedTx
+         * Dependencies:
+         *    ExplorerApi
+         *    scannerAction
+         * Scenario:
+         *    Mock a Cardano event trigger and insert into db
+         *    Mock a Cardano payment transaction based on mocked event and insert into db
+         *    Mock BlockFrost for all inputs of the tx so at least one of them be spent or invalid
+         *    Run test (execute processTransactions method of TransactionProcessor)
+         *    Check events in db. Mocked event status should be updated to pendingPayment
+         *    Check transactions in db. Mocked transaction status should be updated to invalid
+         * Expected Output:
+         *    The function should update db
+         */
+        it("should set Cardano tx as invalid and set event as pending-payment when sign failed and one input is spent", async () => {
+            // mock erg payment event
+            const mockedEvent: EventTrigger = CardanoTestBoxes.mockAssetPaymentEventTrigger()
+            await insertEventRecord(mockedEvent, EventStatus.inPayment)
+            const tx = CardanoTestBoxes.mockADAPaymentTransaction(mockedEvent)
+            const lastCheck = cardanoBlockchainHeight - ErgoConfigs.requiredConfirmation - 1
+            await insertTxRecord(tx, TransactionTypes.payment, ChainsConstants.cardano, TransactionStatus.signFailed, lastCheck, tx.eventId)
+
+            // mock validation of tx input boxes
+            const cardanoTx = TransactionProcessor.cardanoChain.deserialize(tx.txBytes)
+            MockedBlockFrost.mockInputProcessingMethods(cardanoTx, false)
+
+            // run test
+            await TransactionProcessor.processTransactions()
+
+            // verify
+            const dbEvents = await allEventRecords()
+            expect(dbEvents.map(event => [event.id, event.status])[0])
+                .to.deep.equal([mockedEvent.getId(), EventStatus.pendingPayment])
+            const dbTxs = await allTxRecords()
+            expect(dbTxs.map(tx => [tx.txId, tx.status])[0])
+                .to.deep.equal([tx.txId, TransactionStatus.invalid])
+        })
+
+        /**
+         * Target: testing processSignFailedTx
          * Dependencies:
          *    ExplorerApi
          *    scannerAction
@@ -594,7 +635,7 @@ describe("TransactionProcessor", () => {
          * Expected Output:
          *    The function should update db
          */
-        it("should set tx as invalid and set event as pending-payment when sign failed and one input is spent", async () => {
+        it("should set Ergo tx as invalid and set event as pending-payment when sign failed and one input is spent", async () => {
             // mock erg payment event
             const mockedEvent: EventTrigger = ErgoTestBoxes.mockTokenRewardEventTrigger()
             await insertEventRecord(mockedEvent, EventStatus.inPayment)

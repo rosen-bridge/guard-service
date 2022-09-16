@@ -11,11 +11,10 @@ export const tssRouter = Router();
  * @bodyParam {string}
  */
 tssRouter.post("/sign",
-    body("signature")
-        .notEmpty().withMessage("key signature is required!")
-        .isString(),
-    body("m")
-        .notEmpty().withMessage("key m is required!")
+    body("message")
+        .notEmpty().withMessage("key message is required!"),
+    body("status")
+        .notEmpty().withMessage("key status is required!")
         .isString(),
     async (req: Request, res: Response) => {
         try {
@@ -24,17 +23,14 @@ tssRouter.post("/sign",
                 console.warn(`Received bad request from TSS Cardano tx sign callback. Errors ${JSON.stringify(errors.array())}`)
                 return res.status(400).json({ message: JSON.stringify(errors.array()) });
             }
-            const signedTxHash = req.body.signature
-            const txHash = req.body.m
+            const message = JSON.stringify(req.body.message)
+            const status = req.body.status
             const cardanoChain = new CardanoChain()
-            cardanoChain.signTransaction(txHash, signedTxHash).then(signedTx => {
-                if (signedTx !== null) cardanoChain.submitTransaction(signedTx)
-            })
-            res.send({message: "ok"})
+            cardanoChain.signTransaction(message, status).then(() => res.send({message: "ok"}))
         }
         catch (error) {
             console.log(`An error occurred while processing TSS Cardano tx sign callback: ${error.message}`)
-            res.status(400).send({message: error.message})
+            res.status(500).send({message: error.message})
         }
     }
 );

@@ -20,7 +20,7 @@ import { dbAction } from "../../db/DatabaseAction";
 import Configs from "../../helpers/Configs";
 import { Buffer } from "buffer";
 import Utils from "../../helpers/Utils";
-import inputBoxes from "../ergo/boxes/InputBoxes";
+import { TssFailedSign, TssSuccessfulSign } from "../../models/Interfaces";
 
 
 class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
@@ -291,10 +291,25 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
 
     /**
      * signs a cardano transaction
-     * @param txId the transaction id
-     * @param signedTxHash signed hash of the transaction
+     * @param message response message
+     * @param status signed hash of the transaction
      */
-    signTransaction = async (txId: string, signedTxHash: string): Promise<CardanoTransaction | null> => {
+    signTransaction = async (message: string, status: string): Promise<CardanoTransaction | null> => {
+        if (status !== "ok") {
+            const response = JSON.parse(message) as TssFailedSign
+            const txId = response.m
+            const errorMessage = response.error
+
+            console.log(`TSS failed to sign txId [${txId}]: ${errorMessage}`)
+            await dbAction.setTxStatus(txId, TransactionStatus.signFailed)
+
+            return null
+        }
+
+        const response = JSON.parse(message) as TssSuccessfulSign
+        const txId = response.m
+        const signedTxHash = response.signature
+
         // get tx from db
         let tx: Transaction | null = null
         let paymentTx: PaymentTransaction | null = null
