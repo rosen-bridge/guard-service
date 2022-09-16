@@ -319,7 +319,7 @@ class MultiSigHandler {
                         transaction: txBytes
                     }
                 } catch (e) {
-                    console.log(`An error occurred during generate sign: ${e}`)
+                    console.log(`An error occurred during multi-sig generate sign: ${e}`)
                 }
             }
         }
@@ -535,7 +535,7 @@ class MultiSigHandler {
                         break
                 }
             }else{
-                console.log("message signature is invalid")
+                console.log("Ignoring received message in multi-sig. Signature didn't verify")
             }
         }
     }
