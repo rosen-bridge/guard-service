@@ -21,7 +21,7 @@ const initExpress = async () => {
 
     app.use(router)
     app.listen(port, () => {
-        logger.info('guard service started at', {at: `http://localhost:${port}`})
+        logger.info(`guard service started at http://localhost:${port}`)
     });
 }
 

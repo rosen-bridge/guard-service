@@ -61,8 +61,9 @@ class Dialer {
      */
     getPeerId = (): string => {
         if (!this._NODE) {
-            logger.log('fatal', "Dialer node isn't ready, please try later")
-            throw Error("Dialer node isn't ready, please try later")
+            const errorMessage = "Dialer node isn't ready, please try later"
+            logger.log('fatal', errorMessage)
+            throw Error(errorMessage)
         }
         else
             return this._NODE.peerId.toString()
@@ -103,8 +104,9 @@ class Dialer {
                 publicKey = peerId.publicKey
             }
             else{
-                logger.log('fatal', 'PrivateKey for p2p is required')
-                throw Error("PrivateKey for p2p is required")
+                const errorMessage = 'PrivateKey for p2p is required'
+                logger.log('fatal', errorMessage)
+                throw Error(errorMessage)
             }
 
             const peerIdDialerJson =  {
@@ -159,7 +161,7 @@ class Dialer {
         if (!this._RELAY_CONN) {
             const remoteAddr: Multiaddr = await new Multiaddr(CommunicationConfig.relay)
             const conn = await node.dial(remoteAddr)
-            logger.info('Connected to the auto relay node', {address: conn.remoteAddr.toString()})
+            logger.info(`Connected to the auto relay node [${conn.remoteAddr.toString()}]`)
             this._RELAY_CONN = conn
         }
     }
@@ -217,15 +219,12 @@ class Dialer {
                 }
                 if (this._SUBSCRIBED_CHANNELS[receivedData.channel]) {
                     this._SUBSCRIBED_CHANNELS[receivedData.channel].forEach(runSubscribeCallback)
-                } else logger.warn(`Received a message from sender in a unsubscribed channel`, {
-                    sender: receivedData.sender,
-                    channel: receivedData.channel
-                })
+                } else logger.warn(`Received a message from ${receivedData.sender} in a unsubscribed channel [${receivedData.channel}]`)
             }
         ))
 
         node.start()
-        logger.info(`Dialer node started`, {peerId: node.peerId.toString()})
+        logger.info(`Dialer node started peerId: ${node.peerId.toString()}`)
 
         this._NODE = await node
         await this.createRelayConnection(node)

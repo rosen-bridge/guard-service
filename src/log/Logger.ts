@@ -1,6 +1,7 @@
-import winston from "winston";
+import winston, { format } from "winston";
 import 'winston-daily-rotate-file';
 import Configs from "../helpers/Configs";
+import printf = format.printf;
 
 class Logger{
     logger: winston.Logger;
@@ -11,12 +12,15 @@ class Logger{
         maxSize: Configs.maxLogSize,
         maxFiles: Configs.maxLogFiles,
     }
+    private readonly logFormat = printf(({level, message, timestamp}) => {
+        return `${timestamp} ${level} ${message}`;
+    });
 
     constructor() {
         this.logger = winston.createLogger({
             format: winston.format.combine(
                 winston.format.timestamp(),
-                winston.format.json()
+                this.logFormat,
             ),
             transports: [
 

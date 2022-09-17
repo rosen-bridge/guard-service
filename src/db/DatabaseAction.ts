@@ -171,38 +171,23 @@ class DatabaseAction {
 
         const txs = (await this.getEventTxsByType(event.id, newTx.txType)).filter(tx => tx.status !== TransactionStatus.invalid)
         if (txs.length > 1){
-            logger.error('Impossible case, event has already more than 1 active tx', {
-                eventId: newTx.eventId,
-                txCount: txs.length,
-                txType: newTx.txType
-            })
-            throw Error(`Impossible case, event [${newTx.eventId}] has already more than 1 (${txs.length}) active ${newTx.txType} tx`)
+            const errorMessage = `Impossible case, event [${newTx.eventId}] has already more than 1 (${txs.length}) active ${newTx.txType} tx`
+            logger.error(errorMessage)
+            throw Error(errorMessage)
         }
         else if (txs.length === 1) {
             const tx = txs[0]
             if (tx.status === TransactionStatus.approved) {
                 if (newTx.txId < tx.txId) {
-                    logger.info('Replacing tx with new transaction due to lower txId', {
-                        oldTx: tx.txId,
-                        newTx: newTx.txId
-                    })
+                    logger.info(`Replacing tx [${tx.txId}] with new transaction [${newTx.txId}] due to lower txId`)
                     await this.replaceTx(tx.txId, newTx)
                 } else if (newTx.txId === tx.txId) {
-                    logger.info(`Ignoring tx, already exists in database`, {
-                        txId: tx.txId
-                    })
+                    logger.info(`Ignoring tx [${tx.txId}], already exists in database`)
                 } else
-                    logger.info(`Ignoring new tx due to higher txId, comparing to oldTx`, {
-                        oldTx: tx.txId,
-                        newTx: newTx.txId
-                    })
+                    logger.info(`Ignoring new tx [${newTx.txId}] due to higher txId, comparing to [${tx.txId}]`)
             }
             else
-                logger.warn(`Received approval for newTx where its event has already a completed oldTx`, {
-                    newTx: newTx.txId,
-                    oldTx: tx.txId,
-                    eventId: event.id
-                })
+                logger.warn(`Received approval for newTx [${newTx.txId}] where its event [${event.id}] has already a completed oldTx [${tx.txId}]`)
         }
         else
             await this.insertNewTx(newTx, event)

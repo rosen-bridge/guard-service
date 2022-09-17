@@ -14,6 +14,7 @@ import { Semaphore } from 'await-semaphore';
 import Encryption from '../../helpers/Encryption';
 import MultiSigUtils from "./MultiSigUtils";
 import { logger } from "../../log/Logger";
+import clean = Mocha.utils.clean;
 
 const dialer = await Dialer.getInstance();
 
@@ -77,8 +78,9 @@ class MultiSigHandler {
         }
         if (this.index !== undefined)
             return this.index;
-        logger.log('fatal', 'My index not found in guard public keys')
-        throw Error("My index not found in guard public keys")
+        const errorMessage = 'My index not found in guard public keys'
+        logger.log('fatal', errorMessage)
+        throw Error(errorMessage)
     }
 
     /**
@@ -105,7 +107,7 @@ class MultiSigHandler {
                 this.generateCommitment(tx.unsigned_tx().id().to_str())
                 release();
             }).catch((e) => {
-                logger.error('Error in signing MultiSig transaction', {error: e})
+                logger.error(`Error in signing MultiSig transaction: ${e}`)
                 reject(e)
             })
         })
@@ -156,10 +158,10 @@ class MultiSigHandler {
                 release()
             } catch (e) {
                 release()
-                logger.error('An error occurred, in cleaning unsigned transaction in MultiSig queue', {error: e})
+                logger.error(`An error occurred, in cleaning unsigned transaction in MultiSig queue : ${e}`)
                 throw e
             }
-            logger.info('Unsigned transaction cleaned from MultiSig queue', {count: cleanedTransactionCount})
+            logger.info(`${cleanedTransactionCount} Unsigned transaction cleaned from MultiSig queue`)
         })
     }
 
@@ -175,8 +177,9 @@ class MultiSigHandler {
         }
         if (this.prover)
             return this.prover;
-        logger.log('fatal', 'Can not create prover in MultiSig')
-        throw Error("Can not create prover")
+        const errorMessage = 'Can not create prover in MultiSig'
+        logger.log('fatal', errorMessage)
+        throw Error(errorMessage)
     }
 
     /**
@@ -228,7 +231,7 @@ class MultiSigHandler {
                 transaction.sign = undefined
                 transaction.reject = undefined
             }else{
-                logger.warn(`No resolve method for transaction`, {transaction: transaction})
+                logger.warn(`No resolve method for transaction [${transaction}]`)
             }
         }
     }
@@ -327,7 +330,7 @@ class MultiSigHandler {
                         transaction: txBytes
                     }
                 } catch (e) {
-                    logger.error(`An error occurred during multi-sig generate sign`, {error: e})
+                    logger.error(`An error occurred during multi-sig generate sign: ${e}`)
                 }
             }
         }
@@ -451,7 +454,7 @@ class MultiSigHandler {
                     }
                     this.processResolve(transaction);
                 } catch (e) {
-                    logger.error('An unknown exception occurred during handle commitment from other peer', {error: e})
+                    logger.error(`An unknown exception occurred during handle commitment from other peer: ${e}`)
                 }
             })
         }
@@ -508,7 +511,7 @@ class MultiSigHandler {
                     }
                     this.processResolve(transaction)
                 } catch (e) {
-                    logger.error('An unknown exception occurred during handle sign from another peer', {error: e})
+                    logger.error(`An unknown exception occurred during handle sign from another peer: ${e}`)
                 }
                 release();
             })

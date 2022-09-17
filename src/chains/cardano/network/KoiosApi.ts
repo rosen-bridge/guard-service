@@ -20,7 +20,7 @@ class KoiosApi {
         return this.koios.post<{ utxo_set: Utxo[] }[]>('/address_info', {"_address": address})
             .then(res => res.data[0].utxo_set)
             .catch(e => {
-                logger.error('An error occurred while getting boxes from Koios', {address: address, error: e})
+                logger.error(`An error occurred while getting address [${address}] boxes from Koios: [${e}]`)
                 throw e
             })
     }
@@ -33,7 +33,7 @@ class KoiosApi {
         return this.koios.post<{ num_confirmations: number }[]>('/tx_status', {"_tx_hashes": [txId]})
             .then(res => res.data[0].num_confirmations)
             .catch(e => {
-                logger.error('An error occurred while getting confirmation for tx from Koios', {txId: txId, error: e})
+                logger.error(`An error occurred while getting confirmation for tx [${txId}] from Koios: [${e}]`)
                 throw e
             })
     }
@@ -46,10 +46,7 @@ class KoiosApi {
         return this.koios.post<KoiosTransaction[]>("/tx_info", {"_tx_hashes": txHashes})
             .then(res => res.data)
             .catch(e => {
-                logger.error('An error occurred while getting information of txs from Koios', {
-                    txHashes: JSON.stringify(txHashes),
-                    error: e
-                })
+                logger.error(`An error occurred while getting information of txs [${JSON.stringify(txHashes)}] from Koios: [${e}]`)
                 return []
             })
     }

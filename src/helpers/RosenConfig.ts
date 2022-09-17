@@ -22,8 +22,9 @@ class ContractConfig {
 
     constructor(path: string) {
         if (!fs.existsSync(path)) {
-            logger.log('fatal', `networkConfig file doesn't exist with reported path`, {path: path})
-            throw new Error(`networkConfig file with path ${path} doesn't exist`)
+            const errorMessage = `networkConfig file with path ${path} doesn't exist`
+            logger.log('fatal', errorMessage)
+            throw new Error(errorMessage)
         } else {
             const configJson: string = fs.readFileSync(path, 'utf8')
             const config = JSON.parse(configJson)
@@ -56,8 +57,9 @@ class RosenConfig {
         this.contracts = new Map<string, ContractConfig>()
         const rosenConfigPath = this.getAddress(supportingNetworks[0])
         if (!fs.existsSync(rosenConfigPath)) {
-            logger.log('fatal', `rosenConfig with reported path doesn't exist`, {path: rosenConfigPath})
-            throw new Error(`rosenConfig file with path ${rosenConfigPath} doesn't exist`)
+            const errorMessage = `rosenConfig file with path ${rosenConfigPath} doesn't exist`
+            logger.log('fatal', errorMessage)
+            throw new Error(errorMessage)
         } else {
             const configJson: string = fs.readFileSync(rosenConfigPath, 'utf8')
             const config = JSON.parse(configJson)
@@ -87,8 +89,9 @@ class RosenConfig {
     contractReader = (network: string) => {
         const contracts = this.contracts.get(network)
         if(!contracts){
-            logger.log('fatal', `contract and token config is not set for network`, {network: network})
-            throw Error(`${network} contracts and token config is not set`)
+            const errorMessage = `${network} contracts and token config is not set`
+            logger.log('fatal', errorMessage)
+            throw Error(errorMessage)
         }
         return contracts
     }

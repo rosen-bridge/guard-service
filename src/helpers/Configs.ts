@@ -73,8 +73,9 @@ class Configs {
     static tokens = (): RosenTokens => {
         const tokensPath = config.get<string>('tokensPath')
         if (!fs.existsSync(tokensPath)) {
-            logger.log('fatal', `Tokens config file with reported path doesn't exist`, {path: tokensPath})
-            throw new Error(`Tokens config file with path ${tokensPath} doesn't exist`)
+            const errorMessage = `Tokens config file with path ${tokensPath} doesn't exist`
+            logger.log('fatal', errorMessage)
+            throw new Error(errorMessage)
         } else {
             const configJson: string = fs.readFileSync(tokensPath, 'utf8')
             return JSON.parse(configJson)
@@ -88,12 +89,12 @@ class Configs {
     static txResendInterval = 30 // seconds
     static multiSigCleanUpInterval = 120 // seconds
     static multiSigTimeout = getConfigIntKeyOrDefault('multiSigTimeout', 5 * 60) // seconds
-    static tssInstanceRestartTimeout = 5 // seconds
+    static tssInstanceRestartGap = 5 // seconds
 
     //logs configs
-    static logsPath = config.get<string>('logsPath')
-    static maxLogSize = config.get<string>('maxLogSize')
-    static maxLogFiles = config.get<string>('maxLogFiles')
+    static logsPath = config.get<string>('logs.path')
+    static maxLogSize = config.get<string>('logs.maxSize')
+    static maxLogFiles = config.get<string>('logs.maxFiles')
 
 }
 

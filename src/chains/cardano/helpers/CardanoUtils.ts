@@ -12,8 +12,9 @@ class CardanoUtils {
     static getAssetPolicyAndNameFromConfigFingerPrintMap = (fingerprint: string): [Uint8Array, Uint8Array] => {
         const token = Configs.tokenMap.search(ChainsConstants.cardano, {fingerprint: fingerprint});
         if (token.length === 0){
-            logger.error('Asset fingerprint not found in config', {fingerprint: fingerprint})
-            throw new Error(`Asset fingerprint [${fingerprint}] not found in config`)
+            const errorMessage = `Asset fingerprint [${fingerprint}] not found in config`
+            logger.error(errorMessage)
+            throw new Error(errorMessage)
         }
         return [
             Buffer.from(token[0][ChainsConstants.cardano]['policyID'], 'hex'),

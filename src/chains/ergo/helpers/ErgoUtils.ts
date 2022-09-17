@@ -220,8 +220,9 @@ class ErgoUtils {
             if (allowMoreErgUsage)
                 ergs = 0n
             else{
-                logger.error('not enough Erg in input assets', {current: inAssets.ergs, require: usedAssets.ergs})
-                throw Error(`not enough Erg in input assets [Current: ${inAssets.ergs}] [Require: ${usedAssets.ergs}]`)
+                const errorMessage = `not enough Erg in input assets [Current: ${inAssets.ergs}] [Require: ${usedAssets.ergs}]`
+                logger.error(errorMessage)
+                throw Error(errorMessage)
             }
         }
         const tokens: AssetMap = inAssets.tokens
@@ -230,20 +231,14 @@ class ErgoUtils {
             if (Object.prototype.hasOwnProperty.call(tokens, id)) {
                 tokens[id] -= usedAssets.tokens[id]
                 if (tokens[id] < 0n){
-                    logger.error('not enough token in input assets', {
-                        tokenId: id,
-                        current: inAssets.tokens[id],
-                        require: usedAssets.tokens[id]
-                    })
-                    throw Error(`not enough token [${id}] in input assets [Current: ${inAssets.tokens[id]}] [Require: ${usedAssets.tokens[id]}]`)
+                    const errorMessage = `not enough token [${id}] in input assets [Current: ${inAssets.tokens[id]}] [Require: ${usedAssets.tokens[id]}]`
+                    logger.error(errorMessage)
+                    throw Error(errorMessage)
                 }
             } else{
-                logger.error('not enough token in input assets', {
-                    tokenId: id,
-                    current: 0,
-                    require: usedAssets.tokens[id]
-                })
-                throw Error(`not enough token [${id}] in input assets [Current: 0] [Require: ${usedAssets.tokens[id]}]`)
+                const errorMessage = `not enough token [${id}] in input assets [Current: 0] [Require: ${usedAssets.tokens[id]}]`
+                logger.error(errorMessage)
+                throw Error(errorMessage)
             }
         })
 

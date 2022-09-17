@@ -23,8 +23,9 @@ class TssSigner {
             "callBackUrl": this.tssCallBackUrl
         }).then(res => {
             if (res.status !== 200) {
-                logger.error('Failed to connect to TSS service. with status code status', {status: res.status})
-                throw new Error(`Failed to connect to TSS service. Status code: ${res.status}`)
+                const errorMessage = `Failed to connect to TSS service. Status code: [${res.status}]`
+                logger.error(errorMessage)
+                throw new Error(errorMessage)
             }
         })
     }

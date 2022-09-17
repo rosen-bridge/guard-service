@@ -3,6 +3,7 @@ import CardanoConfigs from "../helpers/CardanoConfigs";
 import { Transaction } from "@emurgo/cardano-serialization-lib-nodejs";
 import { AddressUtxos, TxUtxos } from "../models/Interfaces";
 import { logger } from "../../../log/Logger";
+import { isBlockfrostErrorResponse } from "@blockfrost/blockfrost-js/lib/utils/errors";
 
 
 class BlockFrostApi {
@@ -18,8 +19,9 @@ class BlockFrostApi {
         const block = await this.blockFrost.blocksLatest()
         const slot = block.slot
         if (!slot) {
-            logger.error('Failed to fetch current slot from BlockFrost')
-            throw new Error("Failed to fetch current slot from BlockFrost")
+            const errorMessage = 'Failed to fetch current slot from BlockFrost'
+            logger.error(errorMessage)
+            throw new Error(errorMessage)
         }
         return slot
     }
@@ -31,8 +33,9 @@ class BlockFrostApi {
         const block = await this.blockFrost.blocksLatest()
         const height = block.height
         if (!height) {
-            logger.error('Failed to fetch current slot from BlockFrost')
-            throw new Error("Failed to fetch current slot from BlockFrost")
+            const errorMessage = 'Failed to fetch current slot from BlockFrost'
+            logger.error(errorMessage)
+            throw new Error(errorMessage)
         }
         return height
     }
@@ -45,8 +48,9 @@ class BlockFrostApi {
         try {
             return this.blockFrost.txSubmit(tx.to_bytes())
         } catch (e) {
-            logger.error('An error occurred while submitting tx using BlockFrost')
-            throw new Error('An error occurred while submitting tx using BlockFrost')
+            const errorMessage = 'An error occurred while submitting tx using BlockFrost'
+            logger.error(errorMessage)
+            throw new Error(errorMessage)
         }
     }
 
@@ -58,8 +62,9 @@ class BlockFrostApi {
         try {
             return await this.blockFrost.txsUtxos(txId)
         } catch (e) {
-            logger.error('An error occurred while getting transaction utxos using BlockFrost', {txId: txId})
-            throw new Error('An error occurred while getting transaction utxos using BlockFrost')
+            const errorMessage = `An error occurred while getting transaction [${txId}] utxos using BlockFrost`
+            logger.error(errorMessage)
+            throw new Error(errorMessage)
         }
     }
 
@@ -71,8 +76,9 @@ class BlockFrostApi {
         try {
             return await this.blockFrost.addressesUtxos(address)
         } catch (e) {
-            logger.error('An error occurred while getting address utxos using BlockFrost', {address: address})
-            throw new Error('An error occurred while getting address utxos using BlockFrost')
+            const errorMessage = `An error occurred while getting address [${address}] utxos using BlockFrost`
+            logger.error(errorMessage)
+            throw new Error(errorMessage)
         }
     }
 

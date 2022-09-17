@@ -72,8 +72,9 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         if (!coveringBoxes.covered) {
             const Erg = (requiredAssets.ergs + ErgoConfigs.minimumErg).toString()
             const Tokens = JsonBI.stringify(requiredAssets.tokens)
-            logger.error("Bank boxes didn't cover required assets", {Erg: Erg, Tokens: Tokens})
-            throw Error(`Bank boxes didn't cover required assets. Erg: ${Erg}, Tokens: ${Tokens}`)
+            const message = `Bank boxes didn't cover required assets. Erg: ${Erg}, Tokens: ${Tokens}`;
+            logger.error(message)
+            throw Error(message)
         }
 
         // calculate input boxes and assets
@@ -134,7 +135,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
             TransactionTypes.payment
         )
 
-        logger.info("Payment Transaction for event generated", {eventId: [eventId], txId: {txId}})
+        logger.info(`Payment Transaction with txId:${txId} for event:${eventId} generated`)
         return ergoTx
     }
 
@@ -336,11 +337,11 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
                     ergoTx.txId,
                     signedPaymentTx.toJson()
                 )
-                logger.info("Ergo tx signed successfully", {txId: ergoTx.txId})
+                logger.info(`Ergo tx wit txId:${ergoTx.txId} signed successfully`)
 
             })
             .catch( async (e) => {
-                logger.warn("An error occurred while requesting Multisig service to sign Ergo tx", {error: e})
+                logger.warn(`An error occurred while requesting Multisig service to sign Ergo tx: [${e}]`)
                 await dbAction.setTxStatus(paymentTx.txId, TransactionStatus.signFailed)
             })
     }
@@ -358,7 +359,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         const eventId = Utils.txIdToEventId(event.sourceTxId)
         // Verifying watcher RWTs
         if(RWTId !== ErgoConfigs.ergoContractConfig.RWTId) {
-            logger.info("the event is not valid, event RWT is not compatible with the ergo RWT id", {eventId: eventId})
+            logger.info(`the event with eventId[${eventId}] is not valid, event RWT is not compatible with the ergo RWT id`)
             return false
         }
         try {
@@ -379,10 +380,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
                         targetTokenId = Configs.tokenMap.getID(token[0], event.toChain)
                     }
                     catch (e) {
-                        logger.info('event is not valid,transaction token or chainId is invalid', {
-                            eventId: eventId,
-                            txId: event.sourceTxId
-                        })
+                        logger.info(`event [${eventId}] is not valid,tx [${event.sourceTxId}] token or chainId is invalid`)
                         return false
                     }
                     // TODO: fix fromAddress when it was fixed in the watcher side
@@ -400,38 +398,26 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
                         event.toAddress == payment.toAddress &&
                         event.fromAddress == inputAddress
                     ) {
-                        logger.info('event has been successfully validated', {eventId: eventId})
+                        logger.info(`event [${eventId}] has been successfully validated`)
                         return true
                     }
                     else {
-                        logger.info('event is not valid, event data does not match with lock tx', {
-                            eventId: eventId,
-                            txId: event.sourceTxId
-                        })
+                        logger.info(`event [${eventId}] is not valid, event data does not match with lock tx [${event.sourceTxId}]`)
                         return false
                     }
                 }
                 else {
-                    logger.info('event is not valid, failed to extract Rosen data from lock tx', {
-                        eventId: eventId,
-                        txId: event.sourceTxId
-                    })
+                    logger.info(`event [${eventId}] is not valid, failed to extract Rosen data from lock tx [${event.sourceTxId}]`)
                     return false
                 }
             }
             else {
-                logger.info('event is not valid, lock tx is not available in network', {
-                    eventId: eventId,
-                    txId: event.sourceTxId
-                })
+                logger.info(`event [${eventId}] is not valid, lock tx [${event.sourceTxId}] is not available in network`)
                 return false
             }
         }
         catch (e) {
-            logger.info('event validation failed', {
-                eventId: eventId,
-                error: e
-            })
+            logger.info(`event [${eventId}] validation failed: [${e}]`)
             return false
         }
     }
@@ -445,11 +431,9 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         try {
             await dbAction.setTxStatus(paymentTx.txId, TransactionStatus.sent)
             const response = await NodeApi.sendTx(tx.to_json())
-            logger.info('Cardano Transaction submitted', {
-                response: response,
-            })
+            logger.info(`Cardano Transaction submitted: [${response}]`)
         } catch (e) {
-            logger.error('An error occurred while submitting Ergo transaction', {error: e.message})
+            logger.error(`An error occurred while submitting Ergo transaction: [${e.message}]`)
         }
     }
 

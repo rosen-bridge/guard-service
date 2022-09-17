@@ -35,8 +35,9 @@ class TransactionProcessor {
         if (chain === ChainsConstants.cardano) return this.cardanoChain
         else if (chain === ChainsConstants.ergo) return this.ergoChain
         else {
-            logger.log('fatal', 'Chain not implemented', {chain: chain})
-            throw new Error(`Chain [${chain}] not implemented.`)
+            const errorMessage = `Chain [${chain}] not implemented.`
+            logger.log('fatal', errorMessage)
+            throw new Error(errorMessage)
         }
     }
 

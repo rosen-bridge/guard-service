@@ -104,9 +104,11 @@
         "ergo",
         "cardano"
     ],
+    "logs": {
+        "path": "logs/",
+        "maxSize": "20m",
+        "maxFiles": "14d"
+    },
     "txProcessorInterval": 180,
-    "tokensPath": "config/tokens.json",
-    "logsPath": "logs/",
-    "maxLogSize": "20m",
-    "maxLogFiles": "14d"
+    "tokensPath": "config/tokens.json"
 }

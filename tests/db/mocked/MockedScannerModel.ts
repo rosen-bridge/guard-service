@@ -6,6 +6,7 @@ import { dbAction, DatabaseAction } from "../../../src/db/DatabaseAction";
 import { EventTrigger, PaymentTransaction } from "../../../src/models/Models";
 import Utils from "../../../src/helpers/Utils";
 import TestUtils from "../../testUtils/TestUtils";
+import { logger } from "../../../src/log/Logger";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -27,10 +28,10 @@ const testScannerOrmDataSource = new DataSource({
 try {
     await testScannerOrmDataSource.initialize()
     await testScannerOrmDataSource.runMigrations()
-    console.log("Test Data Source has been initialized!");
+    logger.info("Test Data Source has been initialized!");
 }
 catch(err) {
-    console.error("Error during Test Data Source initialization:", err);
+    logger.error("Error during Test Data Source initialization:", {error: err});
 }
 
 const testScannerDataBase = new DatabaseAction(testScannerOrmDataSource)

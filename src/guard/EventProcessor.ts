@@ -32,15 +32,15 @@ class EventProcessor {
                 const eventId = Utils.txIdToEventId(event.sourceTxId)
                 const confirmedEvent = await dbAction.getEventById(eventId)
                 if (confirmedEvent === null && await this.isEventConfirmedEnough(EventTrigger.fromEntity(event))) {
-                    logger.info('Event with txId confirmed', {eventId: eventId, txId: event.sourceTxId})
+                    logger.info(`Event [${eventId}] with txId [${event.sourceTxId}] confirmed`)
                     await dbAction.insertConfirmedEvent(event)
                 }
             }
             catch (e) {
-                logger.info('An error occurred while processing event', {txId: event.sourceTxId, error: e})
+                logger.info(`An error occurred while processing event txId:[${event.sourceTxId}] : [${e}]`)
             }
         }
-        logger.info("Processed Events", {count: rawEvents.length})
+        logger.info(`Processed [${rawEvents.length}] Events`)
     }
 
     /**
@@ -56,16 +56,13 @@ class EventProcessor {
                 else if (event.status === EventStatus.pendingReward)
                     await this.processRewardEvent(EventTrigger.fromConfirmedEntity(event))
                 else
-                    logger.error('Impossible case, received event eventId with status', {
-                        eventId: event.id,
-                        status: event.status
-                    })
+                    logger.error(`Impossible case, received event [${event.id}] with status [${event.status}]`)
             }
             catch (e) {
-                logger.info('An error occurred while processing event', {eventId: event.id, error: e})
+                logger.info(`An error occurred while processing event [${event.id}] : [${e}]`)
             }
         }
-        logger.info("Confirmed Events processed", {count: confirmedEvents.length})
+        logger.info(`[${confirmedEvents.length}] Confirmed Events processed`)
     }
 
     /**
@@ -94,8 +91,9 @@ class EventProcessor {
     static processRewardEvent = async (event: EventTrigger): Promise<void> => {
         logger.info(`Processing event`, {eventId: event.getId()})
         if (event.toChain === ChainsConstants.ergo){
-            logger.error('Events with Ergo as target chain will distribute rewards in a single transaction with payment')
-            throw Error(`Events with Ergo as target chain will distribute rewards in a single transaction with payment`)
+            const errorMessage = 'Events with Ergo as target chain will distribute rewards in a single transaction with payment'
+            logger.error(errorMessage)
+            throw Error(errorMessage)
         }
 
         const tx = await Reward.generateTransaction(event)
@@ -110,8 +108,9 @@ class EventProcessor {
         if (chain === ChainsConstants.cardano) return this.cardanoChain
         else if (chain === ChainsConstants.ergo) return this.ergoChain
         else {
-            logger.log('fatal', 'Chain not implemented', {chain: chain})
-            throw new Error(`Chain [${chain}] not implemented.`)
+            const errorMessage = `Chain [${chain}] not implemented.`
+            logger.log('fatal', errorMessage)
+            throw new Error(errorMessage)
         }
     }
 
@@ -141,8 +140,9 @@ class EventProcessor {
         else if (event.fromChain === ChainsConstants.ergo)
             return this.ergoChain.verifyEventWithPayment(event, RWTId)
         else {
-            logger.log('fatal', 'Chain not implemented', {chain: event.fromChain})
-            throw new Error(`Chain [${event.fromChain}] not implemented.`)
+            const errorMessage = `Chain [${event.fromChain}] not implemented.`
+            logger.log('fatal', errorMessage)
+            throw new Error(errorMessage)
         }
     }
 
@@ -168,8 +168,9 @@ class EventProcessor {
             const confirmation = await ExplorerApi.getTxConfirmation(event.sourceTxId)
             return confirmation >= ErgoConfigs.requiredConfirmation
         } else {
-            logger.log('fatal', 'Chain not implemented', {chain: event.fromChain})
-            throw new Error(`Chain [${event.fromChain}] not implemented.`)
+            const errorMessage = `Chain [${event.fromChain}] not implemented.`
+            logger.log('fatal', errorMessage)
+            throw new Error(errorMessage)
         }
     }
 
