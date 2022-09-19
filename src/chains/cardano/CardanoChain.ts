@@ -11,7 +11,7 @@ import { EventTrigger, PaymentTransaction, TransactionStatus, TransactionTypes }
 import BaseChain from "../BaseChains";
 import CardanoConfigs from "./helpers/CardanoConfigs";
 import BlockFrostApi from "./network/BlockFrostApi";
-import { Utxo, UtxoBoxesAssets } from "./models/Interfaces";
+import { Asset, Utxo, UtxoBoxesAssets } from "./models/Interfaces";
 import CardanoUtils from "./helpers/CardanoUtils";
 import TssSigner from "../../guard/TssSigner";
 import CardanoTransaction from "./models/CardanoTransaction";
@@ -21,7 +21,6 @@ import Configs from "../../helpers/Configs";
 import { Buffer } from "buffer";
 import Utils from "../../helpers/Utils";
 import { TssFailedSign, TssSuccessfulSign } from "../../models/Interfaces";
-import { fromHex } from "multiformats/types/src/bytes";
 
 
 class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
@@ -29,55 +28,114 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
     bankAddress = Address.from_bech32(CardanoConfigs.bankAddress)
 
 
-    coveringUtxo = (utxos: Array<Utxo>, event: EventTrigger): Array<Utxo> => {
-        const lovelacePaymentAmount: BigNum = CardanoConfigs.txMinimumLovelace
-        const assetPaymentAmount: BigNum = BigNum.from_str(event.amount)
-            .checked_sub(BigNum.from_str(event.bridgeFee))
-            .checked_sub(BigNum.from_str(event.networkFee))
-        const paymentAssetUnit = CardanoUtils.getAssetPolicyAndNameFromConfigFingerPrintMap(event.targetChainTokenId)
-        const assetPolicyId = Utils.Uint8ArrayToHexString(paymentAssetUnit[0])
-        const assetAssetName = Utils.Uint8ArrayToHexString(paymentAssetUnit[1])
+    coveringUtxo = (addressBoxes: Array<Utxo>, event: EventTrigger): Array<Utxo> => {
+        const result: Array<Utxo> = []
+        const coveredLovelace = BigNum.from_str('0')
+        if (event.targetChainTokenId === "lovelace") {
+            const paymentAmount: BigNum = BigNum.from_str(event.amount)
+                .checked_sub(BigNum.from_str(event.bridgeFee))
+                .checked_sub(BigNum.from_str(event.networkFee))
+            const utxos = addressBoxes.sort((first, second) => {
+                const firstValue = BigInt(first.value)
+                const secondValue = BigInt(second.value)
+                if (firstValue > secondValue) return 1
+                else if (firstValue < secondValue) return -1
+                else return 0
+            })
 
-        const utxosWithAsset = utxos.filter(
-            utxo =>
-                utxo.asset_list.some(
+            for (let i = 0; i < utxos.length && paymentAmount.compare(coveredLovelace) > 0; i++) {
+                const utxo = utxos[i]
+                result.push(utxo)
+                coveredLovelace.checked_add(BigNum.from_str(utxo.value))
+            }
+        } else {
+            const lovelacePaymentAmount: BigNum = CardanoConfigs.txMinimumLovelace
+            const assetPaymentAmount: BigNum = BigNum.from_str(event.amount)
+                .checked_sub(BigNum.from_str(event.bridgeFee))
+                .checked_sub(BigNum.from_str(event.networkFee))
+            const paymentAssetUnit = CardanoUtils.getAssetPolicyAndNameFromConfigFingerPrintMap(event.targetChainTokenId)
+            const assetPolicyId = Utils.Uint8ArrayToHexString(paymentAssetUnit[0])
+            const assetAssetName = Utils.Uint8ArrayToHexString(paymentAssetUnit[1])
+
+            const utxosWithAsset: Array<Utxo> = []
+            const utxosWithOtherAsset: Array<Utxo> = []
+            const utxosWithLovelace: Array<Utxo> = []
+
+            addressBoxes.forEach(utxo => {
+                if (utxo.asset_list.length === 0) utxosWithLovelace.push(utxo)
+                else if (utxo.asset_list.some(
                     asset =>
                         asset.asset_name === assetAssetName && asset.policy_id === assetPolicyId
                 )
-        )
-        const utxos = utxosWithAsset.map((utxo, index) => {
-            const assetIndex = utxo.asset_list.findIndex(
-                (asset) =>
-                    asset.asset_name === assetAssetName && asset.policy_id === assetPolicyId
-            );
-            const asset = utxo.asset_list[assetIndex]
-            return {value: utxo.value, asset: asset, index: index}
-        }).sort(
-            (first, second) => {
-                const firstQuantity = BigInt(first.asset.quantity)
-                const secondQuantity = BigInt(second.asset.quantity)
-                if (firstQuantity > secondQuantity) return 1
-                else if (firstQuantity < secondQuantity) return -1
-                else return 0
+                ) utxosWithAsset.push(utxo)
+                else utxosWithOtherAsset.push(utxo)
+            })
+
+
+            const utxos = utxosWithAsset.map((utxo: Utxo, index: number) => {
+                const assetIndex = utxo.asset_list.findIndex(
+                    (asset) =>
+                        asset.asset_name === assetAssetName && asset.policy_id === assetPolicyId
+                );
+                const asset = utxo.asset_list[assetIndex]
+                return {value: utxo.value, asset: asset, index: index}
+            }).sort(
+                (first: { asset: Asset, index: number, value: string }, second: { asset: Asset, index: number, value: string }) => {
+                    const firstQuantity = BigInt(first.asset.quantity)
+                    const secondQuantity = BigInt(second.asset.quantity)
+                    if (firstQuantity > secondQuantity) return 1
+                    else if (firstQuantity < secondQuantity) return -1
+                    else return 0
+                }
+            )
+
+            let pivot: number = utxos.findIndex(
+                utxo =>
+                    assetPaymentAmount <= BigNum.from_str(utxo.asset.quantity)
+            )
+
+            if (pivot === -1) {
+                const covered = BigNum.from_str('0')
+                for (let i = utxosWithAsset.length - 1; i >= 0 && assetPaymentAmount.compare(covered) > 0; i--) {
+                    result.push(utxosWithAsset[i])
+                    covered.checked_add(BigNum.from_str(utxos[i].asset.quantity))
+                    coveredLovelace.checked_add(BigNum.from_str(utxos[i].value))
+                    pivot = i - 1
+                }
+                if (covered < assetPaymentAmount) {
+                    throw new Error(`An error occurred, theres is no enough asset [${event.targetChainTokenId}] in the bank`)
+                }
+            } else {
+                result.push(utxosWithAsset[pivot])
+                pivot = utxosWithAsset.length - 2
             }
-        )
-        let pivot: number = utxos.findIndex(
-            utxo =>
-                assetPaymentAmount <= BigNum.from_str(utxo.asset.quantity)
-        )
-        const result: Array<Utxo> = []
-        if (pivot === -1) {
-            const covered = BigNum.from_str('0')
-            for (let i = utxosWithAsset.length - 1; i >= 0 && covered < assetPaymentAmount; i--) {
-                result.push(utxosWithAsset[i])
-                covered.checked_add(utxos[i].asset.quantity)
+
+
+            for (let i = 0; i < utxosWithLovelace.length && lovelacePaymentAmount.compare(coveredLovelace) > 0; i++) {
+                const utxo = utxosWithLovelace[i]
+                result.push(utxo)
+                coveredLovelace.checked_add(BigNum.from_str(utxo.value))
             }
-        } else {
-            result.push(utxosWithAsset[pivot])
+
+            for (let i = pivot; i >= 0 && lovelacePaymentAmount.compare(coveredLovelace) > 0; i--) {
+                const utxo = utxosWithAsset[i]
+                result.push(utxo)
+                coveredLovelace.checked_add(BigNum.from_str(utxo.value))
+            }
+
+            for (let i = 0; i < utxosWithOtherAsset.length && lovelacePaymentAmount.compare(coveredLovelace) > 0; i++) {
+                const utxo = utxosWithOtherAsset[i]
+                result.push(utxo)
+                coveredLovelace.checked_add(BigNum.from_str(utxo.value))
+            }
+
+            if (coveredLovelace < lovelacePaymentAmount) {
+                throw new Error(`An error occurred, theres is no enough lovelace in the bank`)
+            }
+            console.log(result)
         }
 
-
-
+        return result
     }
 
     /**
@@ -90,7 +148,11 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
 
         // TODO: take amount of boxes needed for tx, not more
         //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/20
-        const bankBoxes = await KoiosApi.getAddressBoxes(CardanoConfigs.bankAddress)
+        // const bankBoxes = await KoiosApi.getAddressBoxes(CardanoConfigs.bankAddress)
+
+        const bankBoxes = this.coveringUtxo(await KoiosApi.getAddressBoxes(CardanoConfigs.bankAddress), event)
+        console.log("*********************")
+        console.log(bankBoxes.length)
 
         // add input boxes
         bankBoxes.forEach(box => {

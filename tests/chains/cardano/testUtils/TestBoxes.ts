@@ -360,7 +360,37 @@ class TestBoxes {
             value: this.adaToLovelaceString(10),
             asset_list: []
         }
-        return [box1, box2, box3]
+
+        const box4:Utxo = {
+            payment_addr: { "bech32": ""},
+            tx_hash: TestUtils.generateRandomId(),
+            tx_index: 5,
+            value: this.adaToLovelaceString(5),
+            asset_list: []
+        }
+
+        const box5:Utxo = {
+            payment_addr: { "bech32": ""},
+            tx_hash: TestUtils.generateRandomId(),
+            tx_index: 2,
+            value: this.adaToLovelaceString(1),
+            asset_list: []
+        }
+
+        const box6: Utxo = {
+            payment_addr: { "bech32": ""},
+            tx_hash: TestUtils.generateRandomId(),
+            tx_index: 0,
+            value: this.adaToLovelaceString(100),
+            asset_list: [
+                {
+                    policy_id: "ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2",
+                    asset_name: "7369676d61",
+                    quantity: "55"
+                }
+            ]
+        }
+        return [box1, box2, box3,box4,box5,box6]
     }
 
     /**
