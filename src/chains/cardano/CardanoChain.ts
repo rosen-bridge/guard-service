@@ -77,11 +77,12 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
     /**
      * verifies the payment transaction data with the event
      *  1. checks address of all boxes except payment box
-     *  2. checks amount of lovelace in payment box
-     *  3. checks number of multiAssets in payment box
-     *  4. checks number of assets in payment box paymentMultiAsset (asset payment)
-     *  5. checks amount for paymentAsset in payment box (asset payment)
-     *  6. checks address of payment box
+     *  2. checks transaction metadata
+     *  3. checks amount of lovelace in payment box
+     *  4. checks number of multiAssets in payment box
+     *  5. checks number of assets in payment box paymentMultiAsset (asset payment)
+     *  6. checks amount for paymentAsset in payment box (asset payment)
+     *  7. checks address of payment box
      * @param paymentTx the payment transaction
      * @param event the event trigger model
      * @return true if tx verified
@@ -93,6 +94,9 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         // verify that all other boxes belong to bank
         for (let i = 1; i < outputBoxes.len(); i++)
             if (outputBoxes.get(i).address().to_bech32() !== this.bankAddress.to_bech32()) return false;
+
+        // verify all bank boxes have no metadata
+        if(tx.auxiliary_data()) return false;
 
         // verify event conditions
         const paymentBox = outputBoxes.get(0)
