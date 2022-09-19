@@ -287,7 +287,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
             await TssSigner.signTxHash(txHash)
         }
         catch (e) {
-            logger.error(`An error occurred while requesting TSS service to sign Cardano tx: [${e.message}]`)
+            logger.warn(`An error occurred while requesting TSS service to sign Cardano tx: [${e.message}]`)
         }
     }
 
@@ -321,7 +321,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
             tx = this.deserialize(paymentTx.txBytes)
         }
         catch (e) {
-            logger.error(`An error occurred while getting Cardano tx [${txId}] from db: [${e.message}]`)
+            logger.info(`An error occurred while getting Cardano tx [${txId}] from db: [${e.message}]`)
             return null
         }
 
@@ -368,7 +368,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
             logger.info('Cardano Transaction submitted', {txId: response})
         }
         catch (e) {
-            logger.error(`An error occurred while submitting Cardano transaction: [${e.message}]`)
+            logger.info(`An error occurred while submitting Cardano transaction: [${e.message}]`)
         }
     }
 

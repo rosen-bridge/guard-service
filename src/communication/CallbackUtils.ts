@@ -22,7 +22,7 @@ const apiCallBack: SubscribeChannelFunction = (msg: string, channel: string, sen
     );
     data.catch(error => {
         if (axios.isAxiosError(error)) {
-            logger.error(`An error occurred, ${error.message}`)
+            logger.warn(`An error occurred, ${error.message}`)
         } else {
             logger.log('fatal', `Unexpected error, ${error}`)
         }

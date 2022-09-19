@@ -330,7 +330,7 @@ class MultiSigHandler {
                         transaction: txBytes
                     }
                 } catch (e) {
-                    logger.error(`An error occurred during multi-sig generate sign: ${e}`)
+                    logger.info(`An error occurred during multi-sig generate sign: ${e}`)
                 }
             }
         }
@@ -454,7 +454,7 @@ class MultiSigHandler {
                     }
                     this.processResolve(transaction);
                 } catch (e) {
-                    logger.error(`An unknown exception occurred during handle commitment from other peer: ${e}`)
+                    logger.info(`An unknown exception occurred during handle commitment from other peer: ${e}`)
                 }
             })
         }
@@ -511,7 +511,7 @@ class MultiSigHandler {
                     }
                     this.processResolve(transaction)
                 } catch (e) {
-                    logger.error(`An unknown exception occurred during handle sign from another peer: ${e}`)
+                    logger.info(`An unknown exception occurred during handle sign from another peer: ${e}`)
                 }
                 release();
             })

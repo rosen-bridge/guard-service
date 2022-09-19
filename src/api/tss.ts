@@ -30,7 +30,7 @@ tssRouter.post("/sign",
             cardanoChain.signTransaction(message, status).then(() => res.send({message: "ok"}))
         }
         catch (error) {
-            logger.error(`An error occurred while processing TSS Cardano tx sign callback [${error.message}]`)
+            logger.info(`An error occurred while processing TSS Cardano tx sign callback [${error.message}]`)
             res.status(500).send({message: error.message})
         }
     }

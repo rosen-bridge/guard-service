@@ -341,7 +341,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
 
             })
             .catch( async (e) => {
-                logger.warn(`An error occurred while requesting Multisig service to sign Ergo tx: [${e}]`)
+                logger.info(`An error occurred while requesting Multisig service to sign Ergo tx: [${e}]`)
                 await dbAction.setTxStatus(paymentTx.txId, TransactionStatus.signFailed)
             })
     }
@@ -431,9 +431,9 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         try {
             await dbAction.setTxStatus(paymentTx.txId, TransactionStatus.sent)
             const response = await NodeApi.sendTx(tx.to_json())
-            logger.info(`Cardano Transaction submitted: [${response}]`)
+            logger.info(`Ergo Transaction submitted: [${response}]`)
         } catch (e) {
-            logger.error(`An error occurred while submitting Ergo transaction: [${e.message}]`)
+            logger.info(`An error occurred while submitting Ergo transaction: [${e.message}]`)
         }
     }
 

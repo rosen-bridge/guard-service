@@ -219,7 +219,7 @@ class Dialer {
                 }
                 if (this._SUBSCRIBED_CHANNELS[receivedData.channel]) {
                     this._SUBSCRIBED_CHANNELS[receivedData.channel].forEach(runSubscribeCallback)
-                } else logger.warn(`Received a message from ${receivedData.sender} in a unsubscribed channel [${receivedData.channel}]`)
+                } else logger.warn(`Received a message from [${receivedData.sender}] in a unsubscribed channel [${receivedData.channel}]`)
             }
         ))
 
@@ -256,7 +256,7 @@ class Dialer {
         if (receiver) data.receiver = receiver
         if (!this._RELAY_CONN) {
             this._PENDING_MESSAGE.push(await data)
-            logger.error("Message added to pending list due to dialer connection isn't ready")
+            logger.warn("Message added to pending list due to dialer connection isn't ready")
             return
         }
 

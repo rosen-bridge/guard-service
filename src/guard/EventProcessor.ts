@@ -40,7 +40,7 @@ class EventProcessor {
                 logger.info(`An error occurred while processing event txId:[${event.sourceTxId}] : [${e}]`)
             }
         }
-        logger.info(`Processed [${rawEvents.length}] Events`)
+        logger.info(`Processed [${rawEvents.length}] scanned events`)
     }
 
     /**
@@ -56,7 +56,7 @@ class EventProcessor {
                 else if (event.status === EventStatus.pendingReward)
                     await this.processRewardEvent(EventTrigger.fromConfirmedEntity(event))
                 else
-                    logger.error(`Impossible case, received event [${event.id}] with status [${event.status}]`)
+                    logger.warn(`Impossible case, received event [${event.id}] with status [${event.status}]`)
             }
             catch (e) {
                 logger.info(`An error occurred while processing event [${event.id}] : [${e}]`)

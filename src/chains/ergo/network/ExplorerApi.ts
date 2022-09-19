@@ -27,7 +27,7 @@ class ExplorerApi {
             }
         ).then(res => res.data)
         .catch(e => {
-            logger.error(`An error occurred while getting boxes for ErgoTree [${ergoTree}] from Ergo Explorer: [${e}]`)
+            logger.warn(`An error occurred while getting boxes for ErgoTree [${ergoTree}] from Ergo Explorer: [${e}]`)
             return {
                 items: [],
                 total: 0
@@ -43,7 +43,7 @@ class ExplorerApi {
         return this.explorerApi.get<Boxes>(`/v1/boxes/unspent/byTokenId/${tokenId}`)
             .then(res => res.data)
             .catch(e => {
-                logger.error(`An error occurred while getting boxes containing token [${tokenId}] from Ergo Explorer: [${e}]`)
+                logger.warn(`An error occurred while getting boxes containing token [${tokenId}] from Ergo Explorer: [${e}]`)
                 return {
                     items: [],
                     total: 0
@@ -108,7 +108,7 @@ class ExplorerApi {
                 .then(res => res.data.numConfirmations);
         }
         catch (e) {
-            logger.error(`An error occurred while getting confirmation for tx [${txId}] from Ergo Explorer: [${e}]`)
+            logger.warn(`An error occurred while getting confirmation for tx [${txId}] from Ergo Explorer: [${e}]`)
             return -1
         }
     }
@@ -121,7 +121,7 @@ class ExplorerApi {
         return this.explorerApi.get(`/v0/transactions/unconfirmed/${txId}`)
             .then(() => true)
             .catch(e => {
-                logger.error(`An error occurred while checking if tx [${txId}] exist in mempool from Ergo Explorer: [${e}]`)
+                logger.warn(`An error occurred while checking if tx [${txId}] exist in mempool from Ergo Explorer: [${e}]`)
                 return false
             })
     }
@@ -134,7 +134,7 @@ class ExplorerApi {
         return this.explorerApi.get(`/v1/boxes/${boxId}`)
             .then(res => res.data.spentTransactionId === null)
             .catch(e => {
-                logger.error(`An error occurred while checking if box [${boxId}] is unspent and valid from Ergo Explorer: [${e}]`)
+                logger.warn(`An error occurred while checking if box [${boxId}] is unspent and valid from Ergo Explorer: [${e}]`)
                 return false
             })
     }
@@ -147,7 +147,7 @@ class ExplorerApi {
         return this.explorerApi.get<ExplorerTransaction>(`/v1/transactions/${txId}`).then(res => {
             return res.data
         }).catch(e => {
-            logger.error(`An error occurred while fetching confirmed tx [${txId}] from Ergo Explorer: [${e}]`)
+            logger.warn(`An error occurred while fetching confirmed tx [${txId}] from Ergo Explorer: [${e}]`)
             return null
         })
     }

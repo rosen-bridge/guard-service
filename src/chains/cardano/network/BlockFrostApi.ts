@@ -33,7 +33,7 @@ class BlockFrostApi {
         const block = await this.blockFrost.blocksLatest()
         const height = block.height
         if (!height) {
-            const errorMessage = 'Failed to fetch current slot from BlockFrost'
+            const errorMessage = 'Failed to fetch current height from BlockFrost'
             logger.error(errorMessage)
             throw new Error(errorMessage)
         }

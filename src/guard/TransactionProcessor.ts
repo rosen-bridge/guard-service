@@ -233,7 +233,7 @@ class TransactionProcessor {
                 release()
             }
             catch (e) {
-                logger.error('Unexpected Error occurred while sending tx to sign', {txId: tx.txId, error: e})
+                logger.info('Unexpected Error occurred while sending tx to sign', {txId: tx.txId, error: e})
                 release()
             }
         })
@@ -309,7 +309,7 @@ class TransactionProcessor {
                     sourceTxs.set(sourceTxId, txUtxos)
                 }
                 catch (e) {
-                    logger.error(`An error occurred while fetching tx`, {txId: sourceTxId, error: e})
+                    logger.info(`An error occurred while fetching tx`, {txId: sourceTxId, error: e})
                     valid = false
                 }
             }
