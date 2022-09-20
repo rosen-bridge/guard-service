@@ -1,7 +1,3 @@
-interface GuardInfo {
-    guardId: number
-    guardPubKey: string
-}
 
 interface AgreementPayload {
     guardId: number
@@ -28,7 +24,6 @@ interface AgreementMessage {
 }
 
 export type {
-    GuardInfo,
     AgreementPayload,
     CandidateTransaction,
     GuardsAgreement,

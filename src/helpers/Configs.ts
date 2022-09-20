@@ -1,8 +1,7 @@
 import config from "config";
-import { GuardInfo } from "../guard/agreement/Interfaces";
 import { RosenTokens, TokenMap } from "@rosen-bridge/tokens";
 import fs from "fs";
-import { logger, logThrowError } from "../log/Logger";
+import { logger } from "../log/Logger";
 
 /**
  * reads a config, set default value if it does not exits
@@ -19,17 +18,6 @@ const getConfigIntKeyOrDefault = (key: string, defaultValue: number) => {
         return valNum
     }
     return defaultValue
-}
-
-/**
- * compare function for sorting guards public keys based on their indexes
- * @param a
- * @param b
- */
-const guardsInfoCompareFunction = (a: GuardInfo, b: GuardInfo): number => {
-    if (a.guardId < b.guardId) return -1
-    else if (a.guardId > b.guardId) return 1
-    else return 0
 }
 
 class Configs {
@@ -53,18 +41,8 @@ class Configs {
     static tssCallBackUrl = `http://localhost:${this.expressPort}/tss/sign`
 
     // guards configs
-    static guardId = config.get<number>('guard.guardId')
     static guardSecret = config.get<string>('guard.secret')
-    static guardsLen = config.get<number>('guard.guardsLen')
-    static guards = config.get<GuardInfo[]>('guard.guards')
-    // TODO: get this from config box in blockchain
-    //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/24
-    static guardsPublicKeys = [...this.guards].sort(guardsInfoCompareFunction).map(guard => guard.guardPubKey)
-
-    // agreement configs (minimum number of guards that needs to agree with tx to get approved)
-    // TODO: get this from config box in blockchain
-    //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/24
-    static minimumAgreement = config.get<number>('minimumAgreement')
+    static guardConfigUpdateInterval = config.get<number>('guard.configUpdateInterval')
 
     // contract, addresses and tokens config
     static networks = config.get<Array<string>>('networks')

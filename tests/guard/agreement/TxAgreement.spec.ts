@@ -7,7 +7,6 @@ import ErgoTestBoxes from "../../chains/ergo/testUtils/TestBoxes";
 import { EventStatus, EventTrigger, TransactionStatus, TransactionTypes } from "../../../src/models/Models";
 import TxAgreement from "../../../src/guard/agreement/TxAgreement";
 import CardanoTestBoxes from "../../chains/cardano/testUtils/TestBoxes";
-import Configs from "../../../src/helpers/Configs";
 import TestUtils from "../../testUtils/TestUtils";
 import {
     allEventRecords,
@@ -25,6 +24,7 @@ import TestTxAgreement from "./TestTxAgreement";
 import { AgreementPayload, GuardsAgreement, TransactionApproved } from "../../../src/guard/agreement/Interfaces";
 import { anything, deepEqual, reset, spy, verify, when } from "ts-mockito";
 import ChainsConstants from "../../../src/chains/ChainsConstants";
+import { guardConfig } from "../../../src/helpers/GuardConfig";
 
 describe("TxAgreement", () => {
     const eventBoxAndCommitments = ErgoTestBoxes.mockEventBoxWithSomeCommitments()
@@ -44,7 +44,7 @@ describe("TxAgreement", () => {
             const tx = ErgoTestBoxes.mockTokenBurningTokenPaymentTransaction(mockedEvent, eventBoxAndCommitments)
 
             // generate test data
-            const guardId = Configs.guardId
+            const guardId = guardConfig.guardId
             const signature = tx.signMetaData()
             const creatorAgreement = {
                 "guardId": guardId,
@@ -113,7 +113,7 @@ describe("TxAgreement", () => {
             verifySendMessageWithReceiverCalledOnce("tx-agreement", JSON.stringify({
                 "type": "response",
                 "payload": {
-                    "guardId": Configs.guardId,
+                    "guardId": guardConfig.guardId,
                     "signature": tx.signMetaData(),
                     "txId": tx.txId,
                     "agreed": true
@@ -382,7 +382,7 @@ describe("TxAgreement", () => {
             const txAgreement = new TestTxAgreement()
             txAgreement.startAgreementProcess(tx)
             const agreements: AgreementPayload[] = [{
-                "guardId": Configs.guardId,
+                "guardId": guardConfig.guardId,
                 "signature": tx.signMetaData()
             }]
 

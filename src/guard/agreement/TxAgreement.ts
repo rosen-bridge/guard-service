@@ -11,13 +11,13 @@ import {
     GuardsAgreement,
     TransactionApproved
 } from "./Interfaces";
-import Configs from "../../helpers/Configs";
 import Dialer from "../../communication/Dialer";
 import Utils from "../../helpers/Utils";
 import EventProcessor from "../EventProcessor";
 import { dbAction } from "../../db/DatabaseAction";
 import TransactionProcessor from "../TransactionProcessor";
 import { txJsonParser } from "../../chains/TxJsonParser";
+import { guardConfig } from "../../helpers/GuardConfig";
 import { logger, logThrowError } from "../../log/Logger";
 
 const dialer = await Dialer.getInstance();
@@ -73,7 +73,7 @@ class TxAgreement {
      * @return true if enough guards agreed with transaction
      */
     startAgreementProcess = (tx: PaymentTransaction): void => {
-        const creatorId = Configs.guardId
+        const creatorId = guardConfig.guardId
         const guardSignature = tx.signMetaData()
         const creatorAgreement = {
             "guardId": creatorId,
@@ -138,7 +138,7 @@ class TxAgreement {
             logger.info(`Agreed with tx [${tx.txId}] for event [${tx.eventId}]`)
 
             const agreementPayload: GuardsAgreement = {
-                "guardId": Configs.guardId,
+                "guardId": guardConfig.guardId,
                 "signature": tx.signMetaData(),
                 "txId": tx.txId,
                 "agreed": true
@@ -212,7 +212,7 @@ class TxAgreement {
             logger.info(`Guard [${signerId}] Agreed with transaction [${txId}]`)
             pushGuardApproval(txId, signerId, signature)
 
-            if (this.transactionApprovals.get(txId)!.length >= Configs.minimumAgreement) {
+            if (this.transactionApprovals.get(txId)!.length >= guardConfig.requiredSign) {
                 logger.info(`The majority of guards agreed with transaction [${txId}]`)
 
                 const txApproval: TransactionApproved = {
@@ -300,8 +300,8 @@ class TxAgreement {
      * iterates over active transaction and resend its request
      */
     resendTransactionRequests = (): void => {
+        const creatorId = guardConfig.guardId
         logger.info(`Resending generated transactions for agreement: [${this.transactions.size}]`)
-        const creatorId = Configs.guardId
         this.transactions.forEach(tx => {
             try {
                 const guardSignature = tx.signMetaData()

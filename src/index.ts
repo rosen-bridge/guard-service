@@ -7,9 +7,13 @@ import { runProcessors } from "./jobs/runProcessors";
 import MultiSigHandler from "./guard/multisig/MultiSig";
 import Configs from "./helpers/Configs";
 import { initScanner } from "./jobs/initScanner";
+import { guardConfigUpdate } from "./jobs/guardConfigUpdate";
+import { guardConfig } from "./helpers/GuardConfig";
 
 
 const init = async () => {
+    // init guards config
+    await guardConfig.setConfig()
 
     // initialize all data sources
     await initDataSources()
@@ -17,8 +21,11 @@ const init = async () => {
     // initialize express Apis
     await initExpress()
 
+    // guard config update job
+    guardConfigUpdate()
+
     // initialize tss multiSig object
-    MultiSigHandler.getInstance(Configs.guardsPublicKeys, Configs.guardSecret)
+    MultiSigHandler.getInstance(guardConfig.publicKeys, Configs.guardSecret)
     initializeMultiSigJobs()
 
     // start tss instance
