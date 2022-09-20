@@ -42,6 +42,7 @@ interface TxQueued {
     secret?: wasm.TransactionHintsBag;
     sign?: Sign;
     commitments: Array<PublishedCommitment | undefined>;
+    commitmentSigns: Array<string>;
     resolve?: (value: (wasm.Transaction | PromiseLike<wasm.Transaction>)) => void;
     reject?: (reason?: any) => void;
     createTime: number;
@@ -76,11 +77,18 @@ interface CommitmentPayload extends GeneralPayload {
     commitment: PublishedCommitment
 }
 
+interface SignedCommitment {
+    index: number;
+    commitment: PublishedCommitment;
+    sign: string;
+}
+
 interface SignPayload extends GeneralPayload {
     tx: string;
     txId: string;
     signed: Array<string>;
     simulated: Array<string>;
+    commitments: Array<SignedCommitment>;
 }
 
 type Payload = RegisterPayload | ApprovePayload | CommitmentPayload | SignPayload;

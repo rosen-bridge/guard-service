@@ -4,6 +4,7 @@ import ErgoUtils from "../chains/ergo/helpers/ErgoUtils";
 import { Buffer } from "buffer";
 import pkg from "secp256k1";
 import Configs from "./Configs";
+import { logger } from "../log/Logger";
 
 class GuardConfig {
     publicKeys: Array<string>
@@ -32,14 +33,14 @@ class GuardConfig {
                     }
                 }
                 if(this.guardId == -1) throw new Error("The guard public key doesn't exist in current service guard config")
-                console.log("Guard config updated successfully")
+                logger.log("Guard config updated successfully")
                 return
             } catch(e) {
-                console.log(`Guard Config updated encountered an error: (${e})`)
+                logger.log(`Guard Config updated encountered an error: (${e})`)
                 throw new Error("Guard box format is incorrect")
             }
         }
-        console.log("Guard Sign box is not available, check the guard NFT to be correct")
+        logger.log("Guard Sign box is not available, check the guard NFT to be correct")
         throw new Error("Guard Sign box is not available")
     }
 }

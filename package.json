@@ -2,13 +2,13 @@
     "name": "guard-service",
     "version": "1.0.0",
     "description": "",
-    "main": "dist/index.js",
+    "main": "dist/src/index.js",
     "type": "module",
     "scripts": {
         "prebuild": "eslint --fix .",
-        "build": "ts-node --experimental-specifier-resolution=node ./src/index.ts",
-        "start": "nodemon .",
-        "test": "NODE_ENV=\"test\" mocha --slow 3000; rm -rf tests/db/sqlite/test",
+        "build": "rimraf dist && tsc",
+        "start": "NODE_ENV=\"development\" nodemon .",
+        "test": "NODE_ENV=\"test\" mocha --slow 3000 && rimraf tests/db/sqlite/test",
         "coverage": "c8 npm run test",
         "typeorm:update": "typeorm-ts-node-esm migration:generate src/db/migrations/migration -d config/ormDataSource.ts",
         "typeorm:migrate": "typeorm-ts-node-esm migration:run -d config/ormDataSource.ts"
@@ -16,7 +16,7 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
-        "@blockfrost/blockfrost-js": "^4.1.0",
+        "@blockfrost/blockfrost-js": "^5.0.0",
         "@chainsafe/libp2p-noise": "^6.2.0",
         "@emurgo/cardano-serialization-lib-nodejs": "^10.0.4",
         "@libp2p/bootstrap": "^1.0.6",
@@ -32,7 +32,7 @@
         "big-integer": "^1.6.51",
         "blakejs": "^1.2.1",
         "config": "^3.3.7",
-        "ergo-lib-wasm-nodejs": "^0.19.0-alpha-704e748",
+        "ergo-lib-wasm-nodejs": "^0.20.1",
         "express": "^4.18.1",
         "express-validator": "^6.14.2",
         "it-pipe": "2.0.3",
@@ -45,7 +45,9 @@
         "secp256k1": "^4.0.3",
         "sqlite3": "^5.0.8",
         "typeorm": "^0.3.6",
-        "uint8arrays": "^3.0.0"
+        "uint8arrays": "^3.0.0",
+        "winston": "^3.8.2",
+        "winston-daily-rotate-file": "^4.7.1"
     },
     "devDependencies": {
         "@types/chai": "^4.3.1",
@@ -64,6 +66,7 @@
         "eslint": "^8.16.0",
         "mocha": "^10.0.0",
         "nodemon": "^2.0.16",
+        "rimraf": "^3.0.2",
         "sinon": "^14.0.0",
         "ts-mockito": "^2.6.1",
         "ts-node": "^10.7.0",

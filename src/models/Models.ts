@@ -5,6 +5,7 @@ import { ConfirmedEventEntity } from "../db/entities/ConfirmedEventEntity";
 import Utils from "../helpers/Utils";
 import { EventTriggerEntity } from "@rosen-bridge/watcher-data-extractor";
 import { guardConfig } from "../helpers/GuardConfig";
+import { logger } from "../log/Logger";
 
 
 /* tslint:disable:max-classes-per-file */
@@ -138,12 +139,12 @@ class PaymentTransaction implements PaymentTransactionModel {
         const signatureBytes = Buffer.from(msgSignature, "hex")
 
         if(signerId >= guardConfig.guardsLen){
-            console.warn(`only ${guardConfig.guardsLen} exists in the network while accessing guard with id ${signerId}`)
+            logger.warn(`only ${guardConfig.guardsLen} exists in the network while accessing guard with id ${signerId}`)
             return false
         }
         const publicKey = guardConfig.publicKeys[signerId]
         if (publicKey === undefined) {
-            console.warn(`no guard found with id ${signerId}`)
+            logger.warn(`No guard [${signerId}] found with id`)
             return false
         }
 
