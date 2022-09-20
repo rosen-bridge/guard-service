@@ -8,6 +8,9 @@ const configUpdateJob = () => {
     guardConfig.setConfig().then(() => setTimeout(configUpdateJob, Configs.guardConfigUpdateInterval * 1000))
 }
 
+/**
+ * initializing update job
+ */
 const guardConfigUpdate = () => {
     configUpdateJob()
 }
