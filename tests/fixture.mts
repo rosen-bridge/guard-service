@@ -1,6 +1,6 @@
 import { spy, when } from "ts-mockito";
 import { guardConfig } from "../src/helpers/GuardConfig";
-import { guardPks } from "./config/testData";
+import { guardPks } from "./helpers/testData";
 
 export async function mochaGlobalSetup() {
     const spyGuardConfig = spy(guardConfig)
