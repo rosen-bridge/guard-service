@@ -6,7 +6,20 @@ import { expect } from "chai";
 import { guardBox, guardPks } from "./testData";
 
 describe("GuardConfig tests", () => {
+
     describe('setConfig',  () => {
+
+        /**
+         * Target: testing setConfig
+         * Dependencies:
+         *    ExplorerAPI
+         * Scenario:
+         *    mock explorer api
+         *    Run test
+         *    Expect to have updated config from the box
+         * Expected Output:
+         *    The function should update and set the correct config from guard box
+         */
         it('should return the correct config', async () => {
             const spiedExplorer = spy(ExplorerApi)
             when(spiedExplorer.getBoxesByTokenId(rosenConfig.guardNFT)).thenResolve(guardBox)
