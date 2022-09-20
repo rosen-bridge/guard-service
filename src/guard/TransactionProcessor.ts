@@ -18,7 +18,7 @@ import { EventStatus, PaymentTransaction, TransactionStatus, TransactionTypes } 
 import BaseChain from "../chains/BaseChains";
 import { Semaphore } from "await-semaphore";
 import { txJsonParser } from "../chains/TxJsonParser";
-import { logger } from "../log/Logger";
+import { logger, logThrowError } from "../log/Logger";
 
 class TransactionProcessor {
 
@@ -86,8 +86,7 @@ class TransactionProcessor {
         else if (tx.chain === ChainsConstants.ergo) {
             await this.processErgoTx(tx)
         } else {
-            logger.log('fatal', 'Chain not implemented', {chain: tx.chain})
-            throw new Error(`Chain [${tx.chain}] not implemented.`)
+            logThrowError(`Chain [${tx.chain}] not implemented.`,'fatal')
         }
     }
 
@@ -103,12 +102,11 @@ class TransactionProcessor {
             const cardanoTx = this.cardanoChain.deserialize(paymentTx.txBytes)
             const txTtl = cardanoTx.body().ttl()
             if (txTtl === undefined) {
-                logger.error('TTL is undefined for tx', {txId: tx.txId})
-                throw Error(`For tx [${tx.txId}], TTL is undefined.`)
+                logThrowError(`For tx [${tx.txId}], TTL is undefined.`)
             }
             const currentSlot = await BlockFrostApi.currentSlot()
 
-            if (currentSlot > txTtl) {
+            if (currentSlot > txTtl!) {
                 // tx is dead. reset status if enough blocks past.
                 await this.resetCardanoStatus(tx)
             }

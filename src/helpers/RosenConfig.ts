@@ -2,7 +2,7 @@ import fs from "fs"
 import ErgoUtils from "../chains/ergo/helpers/ErgoUtils"
 import { Contract } from "ergo-lib-wasm-nodejs"
 import Configs from "./Configs"
-import { logger } from "../log/Logger";
+import { logger, logThrowError } from "../log/Logger";
 
 class ContractConfig {
     readonly cleanupNFT: string
@@ -22,9 +22,7 @@ class ContractConfig {
 
     constructor(path: string) {
         if (!fs.existsSync(path)) {
-            const errorMessage = `networkConfig file with path ${path} doesn't exist`
-            logger.log('fatal', errorMessage)
-            throw new Error(errorMessage)
+            logThrowError(`networkConfig file with path ${path} doesn't exist`)
         } else {
             const configJson: string = fs.readFileSync(path, 'utf8')
             const config = JSON.parse(configJson)
@@ -57,9 +55,7 @@ class RosenConfig {
         this.contracts = new Map<string, ContractConfig>()
         const rosenConfigPath = this.getAddress(supportingNetworks[0])
         if (!fs.existsSync(rosenConfigPath)) {
-            const errorMessage = `rosenConfig file with path ${rosenConfigPath} doesn't exist`
-            logger.log('fatal', errorMessage)
-            throw new Error(errorMessage)
+            logThrowError(`rosenConfig file with path ${rosenConfigPath} doesn't exist`)
         } else {
             const configJson: string = fs.readFileSync(rosenConfigPath, 'utf8')
             const config = JSON.parse(configJson)

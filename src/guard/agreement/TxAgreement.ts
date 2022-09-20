@@ -18,7 +18,7 @@ import EventProcessor from "../EventProcessor";
 import { dbAction } from "../../db/DatabaseAction";
 import TransactionProcessor from "../TransactionProcessor";
 import { txJsonParser } from "../../chains/TxJsonParser";
-import { logger } from "../../log/Logger";
+import { logger, logThrowError } from "../../log/Logger";
 
 const dialer = await Dialer.getInstance();
 
@@ -189,13 +189,11 @@ class TxAgreement {
         const pushGuardApproval = (txId: string, guardId: number, signature: string): void => {
             const txApprovals = this.transactionApprovals.get(txId)
             if (txApprovals === undefined){
-                const errorMessage = `Unexpected Error: TxId: ${txId} not found in approvals list while it was in transaction list`
-                logger.error(errorMessage)
-                throw new Error(errorMessage)
+                logThrowError(`Unexpected Error: TxId: ${txId} not found in approvals list while it was in transaction list`)
             }
 
-            const guardApproval = txApprovals.find(approval => approval.guardId === guardId)
-            if (guardApproval === undefined) txApprovals.push({
+            const guardApproval = txApprovals!.find(approval => approval.guardId === guardId)
+            if (guardApproval === undefined) txApprovals!.push({
                 "guardId": guardId,
                 "signature": signature
             })

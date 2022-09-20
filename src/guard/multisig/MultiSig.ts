@@ -13,7 +13,7 @@ import Configs from "../../helpers/Configs";
 import { Semaphore } from 'await-semaphore';
 import Encryption from '../../helpers/Encryption';
 import MultiSigUtils from "./MultiSigUtils";
-import { logger } from "../../log/Logger";
+import { logger, logThrowError } from "../../log/Logger";
 import clean = Mocha.utils.clean;
 
 const dialer = await Dialer.getInstance();

@@ -27,7 +27,7 @@ import Configs from "../../helpers/Configs";
 import Utils from "../../helpers/Utils";
 import { JsonBI } from "../../network/NetworkModels";
 import inputBoxes from "./boxes/InputBoxes";
-import { logger } from "../../log/Logger";
+import { logger, logThrowError } from "../../log/Logger";
 
 class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
 
@@ -72,9 +72,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         if (!coveringBoxes.covered) {
             const Erg = (requiredAssets.ergs + ErgoConfigs.minimumErg).toString()
             const Tokens = JsonBI.stringify(requiredAssets.tokens)
-            const message = `Bank boxes didn't cover required assets. Erg: ${Erg}, Tokens: ${Tokens}`;
-            logger.error(message)
-            throw Error(message)
+            logThrowError(`Bank boxes didn't cover required assets. Erg: ${Erg}, Tokens: ${Tokens}`)
         }
 
         // calculate input boxes and assets

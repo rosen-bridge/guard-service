@@ -21,7 +21,7 @@ import {
 import { PeerId } from "@libp2p/interface-peer-id";
 import { createEd25519PeerId, createFromJSON } from "@libp2p/peer-id-factory";
 import fs from "fs";
-import { logger } from "../log/Logger";
+import { logger, logThrowError } from "../log/Logger";
 
 
 // TODO: Need to write test for This package
@@ -61,12 +61,9 @@ class Dialer {
      */
     getPeerId = (): string => {
         if (!this._NODE) {
-            const errorMessage = "Dialer node isn't ready, please try later"
-            logger.log('fatal', errorMessage)
-            throw Error(errorMessage)
+            logThrowError("Dialer node isn't ready, please try later", 'fatal')
         }
-        else
-            return this._NODE.peerId.toString()
+        return this._NODE!.peerId.toString()
     }
 
     /**
@@ -104,15 +101,13 @@ class Dialer {
                 publicKey = peerId.publicKey
             }
             else{
-                const errorMessage = 'PrivateKey for p2p is required'
-                logger.log('fatal', errorMessage)
-                throw Error(errorMessage)
+                logThrowError('PrivateKey for p2p is required', 'fatal')
             }
 
             const peerIdDialerJson =  {
                 "id": peerId.toString(),
-                "privKey": uint8ArrayToString(privateKey, "base64pad"),
-                "pubKey": uint8ArrayToString(publicKey, "base64pad"),
+                "privKey": uint8ArrayToString(privateKey!, "base64pad"),
+                "pubKey": uint8ArrayToString(publicKey!, "base64pad"),
             }
             const jsonData = JSON.stringify(peerIdDialerJson)
             fs.writeFile(CommunicationConfig.peerIdFilePath, jsonData, 'utf8', function(err) {

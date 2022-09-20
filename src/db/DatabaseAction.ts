@@ -5,7 +5,7 @@ import { TransactionEntity } from "./entities/TransactionEntity";
 import { EventStatus, PaymentTransaction, TransactionStatus } from "../models/Models";
 import { CommitmentEntity, EventTriggerEntity } from "@rosen-bridge/watcher-data-extractor";
 import Utils from "../helpers/Utils";
-import { logger } from "../log/Logger";
+import { logger, logThrowError } from "../log/Logger";
 
 class DatabaseAction {
     dataSource: DataSource;
@@ -165,15 +165,12 @@ class DatabaseAction {
     insertTx = async (newTx: PaymentTransaction): Promise<void> => {
         const event = await this.getEventById(newTx.eventId)
         if (event === null) {
-            logger.error("Event not found in db", {eventId: newTx.eventId})
-            throw Error(`Event [${newTx.eventId}] not found`)
+            logThrowError(`Event [${newTx.eventId}] not found`)
         }
 
-        const txs = (await this.getEventTxsByType(event.id, newTx.txType)).filter(tx => tx.status !== TransactionStatus.invalid)
+        const txs = (await this.getEventTxsByType(event!.id, newTx.txType)).filter(tx => tx.status !== TransactionStatus.invalid)
         if (txs.length > 1){
-            const errorMessage = `Impossible case, event [${newTx.eventId}] has already more than 1 (${txs.length}) active ${newTx.txType} tx`
-            logger.error(errorMessage)
-            throw Error(errorMessage)
+            logThrowError(`Impossible case, event [${newTx.eventId}] has already more than 1 (${txs.length}) active ${newTx.txType} tx`)
         }
         else if (txs.length === 1) {
             const tx = txs[0]
@@ -187,10 +184,10 @@ class DatabaseAction {
                     logger.info(`Ignoring new tx [${newTx.txId}] due to higher txId, comparing to [${tx.txId}]`)
             }
             else
-                logger.warn(`Received approval for newTx [${newTx.txId}] where its event [${event.id}] has already a completed oldTx [${tx.txId}]`)
+                logger.warn(`Received approval for newTx [${newTx.txId}] where its event [${event!.id}] has already a completed oldTx [${tx.txId}]`)
         }
         else
-            await this.insertNewTx(newTx, event)
+            await this.insertNewTx(newTx, event!)
     }
 
     /**

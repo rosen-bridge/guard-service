@@ -20,7 +20,6 @@ import { dbAction } from "../../db/DatabaseAction";
 import Configs from "../../helpers/Configs";
 import { Buffer } from "buffer";
 import Utils from "../../helpers/Utils";
-import inputBoxes from "../ergo/boxes/InputBoxes";
 import { logger } from "../../log/Logger";
 import { TssFailedSign, TssSuccessfulSign } from "../../models/Interfaces";
 

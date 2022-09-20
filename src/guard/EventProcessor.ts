@@ -13,7 +13,7 @@ import Reward from "../chains/ergo/Reward";
 import Utils from "../helpers/Utils";
 import ErgoTransaction from "../chains/ergo/models/ErgoTransaction";
 import inputBoxes from "../chains/ergo/boxes/InputBoxes";
-import { logger } from "../log/Logger";
+import { logger, logThrowError } from "../log/Logger";
 
 
 class EventProcessor {
@@ -91,11 +91,8 @@ class EventProcessor {
     static processRewardEvent = async (event: EventTrigger): Promise<void> => {
         logger.info(`Processing event`, {eventId: event.getId()})
         if (event.toChain === ChainsConstants.ergo){
-            const errorMessage = 'Events with Ergo as target chain will distribute rewards in a single transaction with payment'
-            logger.error(errorMessage)
-            throw Error(errorMessage)
+            logThrowError('Events with Ergo as target chain will distribute rewards in a single transaction with payment')
         }
-
         const tx = await Reward.generateTransaction(event)
         txAgreement.startAgreementProcess(tx)
     }

@@ -64,6 +64,12 @@ class Logger{
     }
 }
 
+
 const logger = new Logger().logger;
 
-export { logger }
+const logThrowError = (message: string, type = 'error') => {
+    logger.log(type, message)
+    throw new Error(message)
+}
+
+export { logger, logThrowError }

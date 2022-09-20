@@ -7,7 +7,7 @@ import Utils from "../../../helpers/Utils";
 import { rosenConfig } from "../../../helpers/RosenConfig";
 import { Buffer } from "buffer";
 import { dbAction } from "../../../db/DatabaseAction";
-import { logger } from "../../../log/Logger";
+import { logger, logThrowError } from "../../../log/Logger";
 
 class InputBoxes {
 
@@ -19,11 +19,9 @@ class InputBoxes {
         const eventData = (await dbAction.getEventById(event.getId()))?.eventData
         if (eventData === undefined) {
             const eventId = event.getId()
-            const errorMessage = `event [${eventId}] not found`
-            logger.error(errorMessage)
-            throw Error(errorMessage)
+            logThrowError(`event [${eventId}] not found`)
         }
-        return ErgoBox.sigma_parse_bytes(Utils.base64StringToUint8Array(eventData.boxSerialized))
+        return ErgoBox.sigma_parse_bytes(Utils.base64StringToUint8Array(eventData!.boxSerialized))
     }
 
     /**
@@ -35,11 +33,9 @@ class InputBoxes {
         const eventData = (await dbAction.getEventById(event.getId()))?.eventData
         if (eventData === undefined) {
             const eventId = event.getId()
-            const errorMessage = `event [${eventId}] not found`
-            logger.error(errorMessage)
-            throw Error(errorMessage)
+            logThrowError(`event [${eventId}] not found`)
         }
-        const eventBoxHeight = eventData.height
+        const eventBoxHeight = eventData!.height
         const commitments = await dbAction.getValidCommitments(event.getId(), eventBoxHeight)
         return commitments.map(commitment =>
             ErgoBox.sigma_parse_bytes(Utils.base64StringToUint8Array(commitment.boxSerialized))
@@ -52,36 +48,19 @@ class InputBoxes {
      */
     static getRSNRatioCoef = async (tokenId: string): Promise<[bigint, bigint]> => {
         const boxes = await ExplorerApi.getBoxesByTokenId(rosenConfig.rsnRatioNFT)
-        if (boxes.total !== 1){
-            const errorMessage = `impossible case, found ${boxes.total} boxes containing rsnRatioNFT [${rosenConfig.rsnRatioNFT}]`
-            logger.error(errorMessage)
-            throw Error(errorMessage)
-        }
+        if (boxes.total !== 1) logThrowError(`impossible case, found ${boxes.total} boxes containing rsnRatioNFT [${rosenConfig.rsnRatioNFT}]`)
         const box = ErgoBox.from_json(JsonBI.stringify(boxes.items[0]))
         const boxId = box.box_id().to_str()
 
         const tokenIds = box.register_value(4)?.to_coll_coll_byte()
         const ratios = box.register_value(5)?.to_i64_str_array()
         const decimalCoef = box.register_value(6)?.to_i64()
+        if (tokenIds === undefined) logThrowError(`failed to fetch tokenIds from box [${boxId}]`)
+        if (ratios === undefined || decimalCoef === undefined) logThrowError(`failed to fetch ratios or decimal coefficient from box [${boxId}]`)
+        const tokenIndex = tokenIds!.map(idBytes => Utils.Uint8ArrayToHexString(idBytes)).indexOf(tokenId)
+        if (tokenIndex === -1) logThrowError(`tokenId [${tokenId}] not found in box [${boxId}]`)
 
-        if (tokenIds === undefined) {
-            const errorMessage = `failed to fetch tokenIds from box [${boxId}]`
-            logger.error(errorMessage)
-            throw Error(errorMessage)
-        }
-        if (ratios === undefined || decimalCoef === undefined){
-            const errorMessage = `failed to fetch ratios or decimal coefficient from box [${boxId}]`
-            logger.error(errorMessage)
-            throw Error(errorMessage)
-        }
-
-        const tokenIndex = tokenIds.map(idBytes => Utils.Uint8ArrayToHexString(idBytes)).indexOf(tokenId)
-        if (tokenIndex === -1) {
-            const errorMessage = `tokenId [${tokenId}] not found in box [${boxId}]`
-            logger.error(errorMessage)
-            throw Error(errorMessage)
-        }
-        return [BigInt(ratios[tokenIndex]), BigInt(decimalCoef.to_str())]
+        return [BigInt(ratios![tokenIndex]), BigInt(decimalCoef!.to_str())]
     }
 
     /**
@@ -92,11 +71,9 @@ class InputBoxes {
         const wid = box.register_value(4)?.to_coll_coll_byte()[0]
         if (wid === undefined) {
             const boxId = box.box_id().to_str()
-            const errorMessage = `failed to read WID from register R4 of box [${boxId}]`
-            logger.error(errorMessage)
-            throw new Error(errorMessage)
+            logThrowError(`failed to read WID from register R4 of box [${boxId}]`)
         }
-        return wid
+        return wid!
     }
 
     /**
@@ -106,11 +83,9 @@ class InputBoxes {
     static getBoxCandidateWIDString = (box: ErgoBoxCandidate): string => {
         const wid = box.register_value(4)?.to_coll_coll_byte()[0]
         if (wid === undefined) {
-            const errorMessage = 'failed to read WID from register R4 of box candidate'
-            logger.error(errorMessage)
-            throw new Error(errorMessage)
+            logThrowError('failed to read WID from register R4 of box candidate')
         }
-        return Buffer.from(wid).toString("hex")
+        return Buffer.from(wid!).toString("hex")
     }
 
     /**
@@ -123,9 +98,7 @@ class InputBoxes {
                 boxCount: boxes.total,
                 guardNFT: rosenConfig.guardNFT
             })
-            const errorMessage = `impossible case, found ${boxes.total} boxes containing guardNFT [${rosenConfig.guardNFT}]`
-            logger.error(errorMessage)
-            throw Error(errorMessage)
+            logThrowError(`impossible case, found ${boxes.total} boxes containing guardNFT [${rosenConfig.guardNFT}]`)
         }
         return ErgoBox.from_json(JsonBI.stringify(boxes.items[0]))
     }
