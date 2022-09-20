@@ -4,6 +4,7 @@ import Configs from "../helpers/Configs";
 import { ConfirmedEventEntity } from "../db/entities/ConfirmedEventEntity";
 import Utils from "../helpers/Utils";
 import { EventTriggerEntity } from "@rosen-bridge/watcher-data-extractor";
+import { guardConfig } from "../helpers/GuardConfig";
 
 
 /* tslint:disable:max-classes-per-file */
@@ -118,7 +119,7 @@ class PaymentTransaction implements PaymentTransactionModel {
      * @return signature
      */
     signMetaData = (): string => {
-        const idBuffer = Utils.numberToByte(Configs.guardId)
+        const idBuffer = Utils.numberToByte(guardConfig.guardId)
         const data = Buffer.concat([this.txBytes, idBuffer]).toString("hex")
 
         const signature  = Encryption.sign(data, Buffer.from(Configs.guardSecret, "hex"))
@@ -136,7 +137,11 @@ class PaymentTransaction implements PaymentTransactionModel {
         const data = Buffer.concat([this.txBytes, idBuffer]).toString("hex")
         const signatureBytes = Buffer.from(msgSignature, "hex")
 
-        const publicKey = Configs.guards.find(guard => guard.guardId == signerId)?.guardPubKey
+        if(signerId >= guardConfig.guardsLen){
+            console.warn(`only ${guardConfig.guardsLen} exists in the network while accessing guard with id ${signerId}`)
+            return false
+        }
+        const publicKey = guardConfig.publicKeys[signerId]
         if (publicKey === undefined) {
             console.warn(`no guard found with id ${signerId}`)
             return false

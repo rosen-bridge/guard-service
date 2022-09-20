@@ -38,35 +38,7 @@
         "watchersRSNSharePercent": 0
     },
     "guard": {
-        "guardId": 1,
-        "secret": "79a25ff592e5a96dc5381d0649fb6bd61ba0ff67d934057812f1ad09a9d554eb",
-        "pubKey": "025ea4af07fee449c8c2458f64c271fc979e871d9b8125e4d89e0543531bf41572",
-        "guards": [
-            {
-                "guardId": 0,
-                "guardPubKey": "021865b3f14e3aa9a6845a773c11c6cb1be60370ea5547fd5ebf3d00951cc8c72b"
-            },
-            {
-                "guardId": 2,
-                "guardPubKey": "03a6ac9cfb90dac2b1b11b2f43cdfc5f28fbc91aebd0476cab631ac1c13f7b47f5"
-            },
-            {
-                "guardId": 3,
-                "guardPubKey": "020ebc48143f8a76cfb7c5cdf7ee12f8af7ef0979b35578f0d417817e6c401afca"
-            },
-            {
-                "guardId": 4,
-                "guardPubKey": "0304d2bb1ba1d96c0eccedb0944bced5eb802b7c6783c7009f47ee39173a44e656"
-            },
-            {
-                "guardId": 5,
-                "guardPubKey": "0205e9f3b6f854d151c187a2281172c978cd635226cd26751ab2adf72b6f5f6780"
-            },
-            {
-                "guardId": 6,
-                "guardPubKey": "02afc76df1afc42990f0f2f3c3f6265b14498468189666cd5de35002a55eed3e7a"
-            }
-        ]
+        "secret": "79a25ff592e5a96dc5381d0649fb6bd61ba0ff67d934057812f1ad09a9d554eb"
     },
     "multiSigTimeout": 1,
     "p2p": {
@@ -77,7 +49,7 @@
             "ergo-testnet",
             "cardano-testnet"
         ],
-        "addressesBasePath": "tests/_config/addresses/"
+        "addressesBasePath": "tests/config/addresses/"
     },
-    "tokensPath": "tests/_config/tokens.test.json"
+    "tokensPath": "tests/config/tokens.test.json"
 }

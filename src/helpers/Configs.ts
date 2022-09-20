@@ -20,17 +20,6 @@ const getConfigIntKeyOrDefault = (key: string, defaultValue: number) => {
     return defaultValue
 }
 
-/**
- * compare function for sorting guards public keys based on their indexes
- * @param a
- * @param b
- */
-const guardsInfoCompareFunction = (a: GuardInfo, b: GuardInfo): number => {
-    if (a.guardId < b.guardId) return -1
-    else if (a.guardId > b.guardId) return 1
-    else return 0
-}
-
 class Configs {
 
     static secret: Uint8Array = Uint8Array.from(Buffer.from(config.get?.('secret') as string, 'hex'))
@@ -52,9 +41,7 @@ class Configs {
     static tssCallBackUrl = `http://localhost:${this.expressPort}/tss/sign`
 
     // guards configs
-    static guardId = config.get<number>('guard.guardId')
     static guardSecret = config.get<string>('guard.secret')
-    static guards = config.get<GuardInfo[]>('guard.guards')
     static guardConfigUpdateInterval = config.get<number>('guard.configUpdateInterval')
 
     // contract, addresses and tokens config

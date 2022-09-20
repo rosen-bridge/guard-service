@@ -11,7 +11,6 @@ import {
     GuardsAgreement,
     TransactionApproved
 } from "./Interfaces";
-import Configs from "../../helpers/Configs";
 import Dialer from "../../communication/Dialer";
 import Utils from "../../helpers/Utils";
 import EventProcessor from "../EventProcessor";
@@ -73,7 +72,7 @@ class TxAgreement {
      * @return true if enough guards agreed with transaction
      */
     startAgreementProcess = (tx: PaymentTransaction): void => {
-        const creatorId = Configs.guardId
+        const creatorId = guardConfig.guardId
         const guardSignature = tx.signMetaData()
         const creatorAgreement = {
             "guardId": creatorId,
@@ -138,7 +137,7 @@ class TxAgreement {
             console.info(`agreed with tx [${tx.txId}] for event [${tx.eventId}]`)
 
             const agreementPayload: GuardsAgreement = {
-                "guardId": Configs.guardId,
+                "guardId": guardConfig.guardId,
                 "signature": tx.signMetaData(),
                 "txId": tx.txId,
                 "agreed": true
@@ -298,7 +297,7 @@ class TxAgreement {
      */
     resendTransactionRequests = (): void => {
         console.log(`resending generated transactions for agreement: ${this.transactions.size}`)
-        const creatorId = Configs.guardId
+        const creatorId = guardConfig.guardId
         this.transactions.forEach(tx => {
             try {
                 const guardSignature = tx.signMetaData()

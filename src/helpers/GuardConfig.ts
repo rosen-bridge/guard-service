@@ -2,11 +2,14 @@ import ExplorerApi from "../chains/ergo/network/ExplorerApi";
 import { rosenConfig } from "./RosenConfig";
 import ErgoUtils from "../chains/ergo/helpers/ErgoUtils";
 import { Buffer } from "buffer";
+import pkg from "secp256k1";
+import Configs from "./Configs";
 
 class GuardConfig {
     publicKeys: Array<string>
     requiredSign: number
     guardsLen: number
+    guardId: number
 
     /**
      * Sets the guard public keys and required sign config
@@ -20,9 +23,19 @@ class GuardConfig {
                 this.publicKeys = r4.map(pk => Buffer.from(pk).toString('hex'))
                 this.guardsLen = r4.length
                 this.requiredSign = r5[0]
+                const guardPk = Buffer.from(pkg.publicKeyCreate(Buffer.from(Configs.guardSecret, "hex"))).toString('hex')
+                this.guardId = -1
+                for (const [i, value] of this.publicKeys.entries()) {
+                    if(guardPk == value){
+                        this.guardId = i
+                        break
+                    }
+                }
+                if(this.guardId == -1) throw new Error("The guard public key doesn't exist in current service guard config")
+                console.log("Guard config updated successfully")
                 return
-            } catch {
-                console.log("Guard box format is incorrect, check the guard NFT to be correct")
+            } catch(e) {
+                console.log(`Guard Config updated encountered an error: (${e})`)
                 throw new Error("Guard box format is incorrect")
             }
         }
@@ -32,4 +45,4 @@ class GuardConfig {
 }
 
 const guardConfig = new GuardConfig()
-export { guardConfig }
+export { guardConfig, GuardConfig }
