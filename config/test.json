@@ -49,7 +49,7 @@
             "ergo-testnet",
             "cardano-testnet"
         ],
-        "addressesBasePath": "tests/config/addresses/"
+        "addressesBasePath": "tests/helpers/addresses/"
     },
-    "tokensPath": "tests/config/tokens.test.json"
+    "tokensPath": "tests/helpers/tokens.test.json"
 }

@@ -33,14 +33,14 @@ class GuardConfig {
                     }
                 }
                 if(this.guardId == -1) throw new Error("The guard public key doesn't exist in current service guard config")
-                logger.log("Guard config updated successfully")
+                logger.info("Guard config updated successfully")
                 return
             } catch(e) {
-                logger.log(`Guard Config updated encountered an error: (${e})`)
+                logger.info(`Guard Config updated encountered an error: (${e})`)
                 throw new Error("Guard box format is incorrect")
             }
         }
-        logger.log("Guard Sign box is not available, check the guard NFT to be correct")
+        logger.info("Guard Sign box is not available, check the guard NFT to be correct")
         throw new Error("Guard Sign box is not available")
     }
 }

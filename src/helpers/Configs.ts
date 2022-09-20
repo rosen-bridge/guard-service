@@ -1,8 +1,7 @@
 import config from "config";
-import { GuardInfo } from "../guard/agreement/Interfaces";
 import { RosenTokens, TokenMap } from "@rosen-bridge/tokens";
 import fs from "fs";
-import { logger, logThrowError } from "../log/Logger";
+import { logger } from "../log/Logger";
 
 /**
  * reads a config, set default value if it does not exits
