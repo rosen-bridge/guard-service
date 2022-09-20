@@ -419,7 +419,6 @@ class TestBoxes {
             TransactionWitnessSet.new(),
             txData, // transaction metadata
         );
-        console.log(tx.auxiliary_data())
 
         // create PaymentTransaction object
         const txId = Utils.Uint8ArrayToHexString(hash_transaction(tx.body()).to_bytes())
