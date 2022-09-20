@@ -13,6 +13,8 @@ import Configs from "../../helpers/Configs";
 import { Semaphore } from 'await-semaphore';
 import Encryption from '../../helpers/Encryption';
 import MultiSigUtils from "./MultiSigUtils";
+import { logger, logThrowError } from "../../log/Logger";
+import clean = Mocha.utils.clean;
 
 const dialer = await Dialer.getInstance();
 
@@ -76,7 +78,9 @@ class MultiSigHandler {
         }
         if (this.index !== undefined)
             return this.index;
-        throw Error("My index not found in guard public keys")
+        const errorMessage = 'My index not found in guard public keys'
+        logger.log('fatal', errorMessage)
+        throw Error(errorMessage)
     }
 
     /**
@@ -103,6 +107,7 @@ class MultiSigHandler {
                 this.generateCommitment(tx.unsigned_tx().id().to_str())
                 release();
             }).catch((e) => {
+                logger.error(`Error in signing MultiSig transaction: ${e}`)
                 reject(e)
             })
         })
@@ -137,7 +142,8 @@ class MultiSigHandler {
      * cleaning unsigned transaction after multiSigTimeout if the transaction still exist in queue
      */
     cleanup = (): void => {
-        console.log(`cleaning unsigned transactions in MultiSig queue`)
+        logger.info('Cleaning unsigned transactions in MultiSig queue')
+        let cleanedTransactionCount = 0;
         this.semaphore.acquire().then(release => {
             try {
                 for (const [key, transaction] of this.transactions.entries()) {
@@ -146,13 +152,16 @@ class MultiSigHandler {
                             transaction.reject("Timed out")
                         }
                         this.transactions.delete(key)
+                        cleanedTransactionCount++
                     }
                 }
                 release()
             } catch (e) {
                 release()
+                logger.error(`An error occurred, in cleaning unsigned transaction in MultiSig queue : ${e}`)
                 throw e
             }
+            logger.info(`${cleanedTransactionCount} Unsigned transaction cleaned from MultiSig queue`)
         })
     }
 
@@ -168,7 +177,9 @@ class MultiSigHandler {
         }
         if (this.prover)
             return this.prover;
-        throw Error("Can not create prover")
+        const errorMessage = 'Can not create prover in MultiSig'
+        logger.log('fatal', errorMessage)
+        throw Error(errorMessage)
     }
 
     /**
@@ -220,7 +231,7 @@ class MultiSigHandler {
                 transaction.sign = undefined
                 transaction.reject = undefined
             }else{
-                console.log(`No resolve method for transaction ${JSON.stringify(transaction)}`)
+                logger.warn(`No resolve method for transaction [${transaction}]`)
             }
         }
     }
@@ -319,7 +330,7 @@ class MultiSigHandler {
                         transaction: txBytes
                     }
                 } catch (e) {
-                    console.log(`An error occurred during multi-sig generate sign: ${e}`)
+                    logger.info(`An error occurred during multi-sig generate sign: ${e}`)
                 }
             }
         }
@@ -443,9 +454,8 @@ class MultiSigHandler {
                     }
                     this.processResolve(transaction);
                 } catch (e) {
-                    console.log(`An unknown exception occurred during handle commitment from other peer: ${e}`)
+                    logger.info(`An unknown exception occurred during handle commitment from other peer: ${e}`)
                 }
-                release();
             })
         }
     }
@@ -501,7 +511,7 @@ class MultiSigHandler {
                     }
                     this.processResolve(transaction)
                 } catch (e) {
-                    console.log(`An unknown exception occurred during handle sign from another peer: ${e}`)
+                    logger.info(`An unknown exception occurred during handle sign from another peer: ${e}`)
                 }
                 release();
             })
@@ -538,7 +548,7 @@ class MultiSigHandler {
                         break
                 }
             }else{
-                console.log("Ignoring received message in multi-sig. Signature didn't verify")
+                logger.warn('Ignoring received message in multi-sig. Signature didn\'t verify')
             }
         }
     }

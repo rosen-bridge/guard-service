@@ -21,6 +21,7 @@ import {
 import { PeerId } from "@libp2p/interface-peer-id";
 import { createEd25519PeerId, createFromJSON } from "@libp2p/peer-id-factory";
 import fs from "fs";
+import { logger, logThrowError } from "../log/Logger";
 
 
 // TODO: Need to write test for This package
@@ -34,7 +35,7 @@ class Dialer {
     private _PENDING_MESSAGE: SendDataCommunication[] = [];
 
     private constructor() {
-        console.log("Create Dialer Instance!")
+        logger.info('Create Dialer Instance!')
     }
 
     /**
@@ -59,10 +60,10 @@ class Dialer {
      * @return string of PeerID
      */
     getPeerId = (): string => {
-        if(!this._NODE)
-            throw Error("Dialer node isn't ready, please try later")
-        else
-            return this._NODE.peerId.toString()
+        if (!this._NODE) {
+            logThrowError("Dialer node isn't ready, please try later", 'fatal')
+        }
+        return this._NODE!.peerId.toString()
     }
 
     /**
@@ -99,17 +100,22 @@ class Dialer {
                 privateKey = peerId.privateKey
                 publicKey = peerId.publicKey
             }
-            else throw Error("PrivateKey for p2p is required")
+            else{
+                logThrowError('PrivateKey for p2p is required', 'fatal')
+            }
 
             const peerIdDialerJson =  {
                 "id": peerId.toString(),
-                "privKey": uint8ArrayToString(privateKey, "base64pad"),
-                "pubKey": uint8ArrayToString(publicKey, "base64pad"),
+                "privKey": uint8ArrayToString(privateKey!, "base64pad"),
+                "pubKey": uint8ArrayToString(publicKey!, "base64pad"),
             }
             const jsonData = JSON.stringify(peerIdDialerJson)
             fs.writeFile(CommunicationConfig.peerIdFilePath, jsonData, 'utf8', function(err) {
-                if (err) throw err;
-                console.log('PeerId created!');
+                if (err) {
+                    logger.log('fatal', 'An error occurred, in writing created PeerId to the file')
+                    throw err;
+                }
+                logger.info("PeerId created!")
             })
         }
     }
@@ -131,7 +137,7 @@ class Dialer {
                 (sub: SubscribeChannel) =>
                     sub.func.name === callback.name && sub.url === url
             )) {
-                console.log("a redundant subscribed channel detected !")
+                logger.info('A redundant subscribed channel detected !')
                 return
             }
             this._SUBSCRIBED_CHANNELS[channel].push(callbackObj)
@@ -150,7 +156,7 @@ class Dialer {
         if (!this._RELAY_CONN) {
             const remoteAddr: Multiaddr = await new Multiaddr(CommunicationConfig.relay)
             const conn = await node.dial(remoteAddr)
-            console.log(`Connected to the auto relay node via ${conn.remoteAddr.toString()}`)
+            logger.info(`Connected to the auto relay node [${conn.remoteAddr.toString()}]`)
             this._RELAY_CONN = conn
         }
     }
@@ -207,14 +213,13 @@ class Dialer {
                         value.func(receivedData.msg, receivedData.channel, receivedData.sender)
                 }
                 if (this._SUBSCRIBED_CHANNELS[receivedData.channel]) {
-                    console.log(`a message received in subscribed channel ${receivedData.channel} from ${receivedData.sender}`)
                     this._SUBSCRIBED_CHANNELS[receivedData.channel].forEach(runSubscribeCallback)
-                } else console.warn(`received a message from ${receivedData.sender} in a unsubscribed channel ${receivedData.channel}`)
+                } else logger.warn(`Received a message from [${receivedData.sender}] in a unsubscribed channel [${receivedData.channel}]`)
             }
         ))
 
         node.start()
-        console.log(`Dialer node started with id ${node.peerId.toString()}`)
+        logger.info(`Dialer node started peerId: ${node.peerId.toString()}`)
 
         this._NODE = await node
         await this.createRelayConnection(node)
@@ -246,7 +251,7 @@ class Dialer {
         if (receiver) data.receiver = receiver
         if (!this._RELAY_CONN) {
             this._PENDING_MESSAGE.push(await data)
-            console.warn("Message added to pending list due to dialer connection isn't ready")
+            logger.warn("Message added to pending list due to dialer connection isn't ready")
             return
         }
 

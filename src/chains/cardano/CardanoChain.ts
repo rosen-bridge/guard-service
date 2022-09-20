@@ -20,6 +20,7 @@ import { dbAction } from "../../db/DatabaseAction";
 import Configs from "../../helpers/Configs";
 import { Buffer } from "buffer";
 import Utils from "../../helpers/Utils";
+import { logger } from "../../log/Logger";
 import { TssFailedSign, TssSuccessfulSign } from "../../models/Interfaces";
 
 
@@ -70,7 +71,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         const eventId = event.getId()
         const paymentTx = new CardanoTransaction(txId, eventId, txBytes, TransactionTypes.payment) // we don't need inputBoxes in PaymentTransaction for Cardano tx
 
-        console.log(`Payment transaction for event [${eventId}] generated. TxId: ${txId}`)
+        logger.info(`Payment transaction [${txId}] for event [${eventId}] generated`)
         return paymentTx
     }
 
@@ -285,7 +286,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
             await TssSigner.signTxHash(txHash)
         }
         catch (e) {
-            console.log(`An error occurred while requesting TSS service to sign Cardano tx: ${e.message}`)
+            logger.warn(`An error occurred while requesting TSS service to sign Cardano tx: [${e.message}]`)
         }
     }
 
@@ -300,7 +301,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
             const txId = response.m
             const errorMessage = response.error
 
-            console.log(`TSS failed to sign txId [${txId}]: ${errorMessage}`)
+            logger.error(`TSS failed to sign tx [${txId}]: [${errorMessage}]`)
             await dbAction.setTxStatus(txId, TransactionStatus.signFailed)
 
             return null
@@ -319,7 +320,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
             tx = this.deserialize(paymentTx.txBytes)
         }
         catch (e) {
-            console.log(`An error occurred while getting Cardano tx with id [${txId}] from db: ${e.message}`)
+            logger.info(`An error occurred while getting Cardano tx [${txId}] from db: [${e.message}]`)
             return null
         }
 
@@ -349,7 +350,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
             txId,
             signedPaymentTx.toJson()
         )
-        console.log(`Cardano tx [${txId}] signed successfully`)
+        logger.info(`Cardano tx [${txId}] signed successfully`)
 
         return signedPaymentTx
     }
@@ -363,10 +364,10 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         try {
             await dbAction.setTxStatus(paymentTx.txId, TransactionStatus.sent)
             const response = await BlockFrostApi.txSubmit(tx)
-            console.log(`Cardano Transaction submitted. txId: ${response}`)
+            logger.info('Cardano Transaction submitted', {txId: response})
         }
         catch (e) {
-            console.log(`An error occurred while submitting Cardano transaction: ${e.message}`)
+            logger.info(`An error occurred while submitting Cardano transaction: [${e.message}]`)
         }
     }
 
@@ -383,7 +384,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         const eventId = Utils.txIdToEventId(event.sourceTxId)
         // Verifying watcher RWTs
         if(RWTId !== CardanoConfigs.cardanoContractConfig.RWTId) {
-            console.log(`The event [${eventId}] is not valid, event RWT is not compatible with the cardano RWT id`)
+            logger.info(`The event [${eventId}] is not valid, event RWT is not compatible with cardano RWT id`)
             return false
         }
         try {
@@ -393,7 +394,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
             })[0];
             if (payment) {
                 if (!txInfo.metadata) {
-                    console.log(`event [${eventId}] is not valid, tx [${event.sourceTxId}] has no transaction metadata`)
+                    logger.info(`The event [${eventId}] is not valid, tx [${event.sourceTxId}] has no transaction metadata`)
                     return false
                 }
                 const data = CardanoUtils.getRosenData(txInfo.metadata)
@@ -408,7 +409,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
                         targetTokenId = Configs.tokenMap.getID(eventToken[0], event.toChain)
                     }
                     catch (e) {
-                        console.log(`event [${eventId}] is not valid, tx [${event.sourceTxId}] token or chainId is invalid`)
+                        logger.info(`Event [${eventId}] is not valid, tx [${event.sourceTxId}] token or chainId is invalid`)
                         return false
                     }
                     if (event.sourceChainTokenId == ChainsConstants.cardanoNativeAsset) {
@@ -421,7 +422,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
                         const eventAssetId = eventToken[0][ChainsConstants.cardano]['assetID']
                         amount = asset.quantity
                         if (!(eventAssetPolicyId == asset.policy_id && eventAssetId == asset.asset_name)) {
-                            console.log(`event [${eventId}] is not valid, tx [${event.sourceTxId}] asset credential is incorrect`)
+                            logger.info(`Event [${eventId}] is not valid, tx [${event.sourceTxId}] asset credential is incorrect`)
                             return false
                         }
                         tokenCheck = true
@@ -437,26 +438,26 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
                         event.fromAddress == txInfo.inputs[0].payment_addr.bech32 &&
                         event.sourceBlockId == txInfo.block_hash
                     ) {
-                        console.log(`event [${eventId}] has been successfully validated`)
+                        logger.info(`Event [${eventId}] has been successfully validated`)
                         return true
                     }
                     else {
-                        console.log(`event [${eventId}] is not valid, event data does not match with lock tx [${event.sourceTxId}]`)
+                        logger.info(`Event [${eventId}] is not valid, event data does not match with lock tx [${event.sourceTxId}]`)
                         return false
                     }
                 }
                 else {
-                    console.log(`event [${eventId}] is not valid, failed to get rosen data from lock tx [${event.sourceTxId}]`)
+                    logger.info(`Event [${eventId}] is not valid, failed to get rosen data from lock tx [${event.sourceTxId}]`)
                     return false
                 }
             }
             else {
-                console.log(`event [${eventId}] is not valid, no lock box found in tx [${event.sourceTxId}]`)
+                logger.info(`Event [${eventId}] is not valid, no lock box found in tx [${event.sourceTxId}]`)
                 return false
             }
         }
         catch(e) {
-            console.log(`event [${eventId}] validation failed with this error: [${e}]`)
+            logger.info('Event [${eventId}] validation failed with this error: [${e}]')
             return false
         }
     }

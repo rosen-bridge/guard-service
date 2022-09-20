@@ -2,6 +2,7 @@ import config from "config";
 import { GuardInfo } from "../guard/agreement/Interfaces";
 import { RosenTokens, TokenMap } from "@rosen-bridge/tokens";
 import fs from "fs";
+import { logger, logThrowError } from "../log/Logger";
 
 /**
  * reads a config, set default value if it does not exits
@@ -72,7 +73,9 @@ class Configs {
     static tokens = (): RosenTokens => {
         const tokensPath = config.get<string>('tokensPath')
         if (!fs.existsSync(tokensPath)) {
-            throw new Error(`tokens config file with path ${tokensPath} doesn't exist`)
+            const errorMessage = `Tokens config file with path ${tokensPath} doesn't exist`
+            logger.log('fatal', errorMessage)
+            throw new Error(errorMessage)
         } else {
             const configJson: string = fs.readFileSync(tokensPath, 'utf8')
             return JSON.parse(configJson)
@@ -86,6 +89,12 @@ class Configs {
     static txResendInterval = 30 // seconds
     static multiSigCleanUpInterval = 120 // seconds
     static multiSigTimeout = getConfigIntKeyOrDefault('multiSigTimeout', 5 * 60) // seconds
+    static tssInstanceRestartGap = 5 // seconds
+
+    //logs configs
+    static logsPath = config.get<string>('logs.path')
+    static maxLogSize = config.get<string>('logs.maxSize')
+    static maxLogFiles = config.get<string>('logs.maxFiles')
 
 }
 

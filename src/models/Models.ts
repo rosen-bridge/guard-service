@@ -4,6 +4,7 @@ import Configs from "../helpers/Configs";
 import { ConfirmedEventEntity } from "../db/entities/ConfirmedEventEntity";
 import Utils from "../helpers/Utils";
 import { EventTriggerEntity } from "@rosen-bridge/watcher-data-extractor";
+import { logger } from "../log/Logger";
 
 
 /* tslint:disable:max-classes-per-file */
@@ -138,7 +139,7 @@ class PaymentTransaction implements PaymentTransactionModel {
 
         const publicKey = Configs.guards.find(guard => guard.guardId == signerId)?.guardPubKey
         if (publicKey === undefined) {
-            console.warn(`no guard found with id ${signerId}`)
+            logger.warn(`No guard [${signerId}] found with id`)
             return false
         }
 

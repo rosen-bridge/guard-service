@@ -1,5 +1,6 @@
 import * as childProcess from "child_process"
 import Configs from "../helpers/Configs";
+import { logger } from "../log/Logger";
 const exec = childProcess.exec
 
 /**
@@ -14,10 +15,12 @@ const startTssInstance = function() {
 
     exec(tssPath, function(err, data) {
         if (err !== null) {
-            console.log(`Failed to start TSS instance: [${err}] [${data}]`)
+            const timeout = Configs.tssInstanceRestartGap
+            logger.error(`TSS instance failed unexpectedly, TSS will be started in ${timeout} : ${err}, ${data}`)
             // wait 5 seconds to start again
-            setTimeout(startTssInstance, 5000)
+            setTimeout(startTssInstance, timeout * 1000)
         }
+        logger.info("TSS instance started")
     });
 }
 

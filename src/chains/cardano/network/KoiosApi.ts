@@ -1,6 +1,7 @@
 import axios from "axios";
 import { KoiosTransaction, Utxo } from "../models/Interfaces";
 import CardanoConfigs from "../helpers/CardanoConfigs";
+import { logger } from "../../../log/Logger";
 
 
 class KoiosApi {
@@ -19,7 +20,7 @@ class KoiosApi {
         return this.koios.post<{ utxo_set: Utxo[] }[]>('/address_info', {"_address": address})
             .then(res => res.data[0].utxo_set)
             .catch(e => {
-                console.warn(`An error occurred while getting boxes of address [${address}] from Koios: ${e}`)
+                logger.warn(`An error occurred while getting address [${address}] boxes from Koios: [${e}]`)
                 throw e
             })
     }
@@ -32,7 +33,7 @@ class KoiosApi {
         return this.koios.post<{ num_confirmations: number }[]>('/tx_status', {"_tx_hashes": [txId]})
             .then(res => res.data[0].num_confirmations)
             .catch(e => {
-                console.warn(`An error occurred while getting confirmation for tx [${txId}]: ${e}`)
+                logger.warn(`An error occurred while getting confirmation for tx [${txId}] from Koios: [${e}]`)
                 throw e
             })
     }
@@ -45,7 +46,7 @@ class KoiosApi {
         return this.koios.post<KoiosTransaction[]>("/tx_info", {"_tx_hashes": txHashes})
             .then(res => res.data)
             .catch(e => {
-                console.warn(`An error occurred while getting information of txs ${JSON.stringify(txHashes)}: ${e}`)
+                logger.warn(`An error occurred while getting information of txs [${JSON.stringify(txHashes)}] from Koios: [${e}]`)
                 return []
             })
     }
