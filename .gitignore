@@ -8,6 +8,7 @@ coverage
 dir
 build
 dist
+logs
 
 peer-dialer.json
 bin/tss.exe

@@ -1,109 +1,76 @@
 {
-    "secret": "3e600b60d82da99c55959df4bb4ceb139cbe434a948251b371c6d9eeb73cb723",
-    "express": {
-        "port": 8080,
-        "jsonBodyLimit": 50
+  "secret": "3e600b60d82da99c55959df4bb4ceb139cbe434a948251b371c6d9eeb73cb723",
+  "express": {
+    "port": 8080,
+    "jsonBodyLimit": 50
+  },
+  "cardano": {
+    "networkType": "testnet",
+    "koios": {
+      "url": "https://testnet.koios.rest/api/v0",
+      "timeout": 8
     },
-    "cardano": {
-        "networkType": "testnet",
-        "koios": {
-            "url": "https://testnet.koios.rest/api/v0",
-            "timeout": 8
-        },
-        "blockFrost": {
-            "projectId": "change me"
-        },
-        "bankAddress": "addr_test1qrm4haxxgl55kqzhpp3sda8h979gxd4cast340v0eh0p4qzp3vkcrhjqavv9uzsvq86mglwnwe8xp87q3rv8ve54kasqlf7xgl",
-        "bankPublicKey": "4444444444444444444444444444444444444444444444444444444444444444",
-        "txMinimumLovelace": "1310316",
-        "txFee": "200000",
-        "txTtl": 100000,
-        "requiredConfirmation": 20,
-        "lockAddresses": [
-            "change-me"
-        ]
+    "blockFrost": {
+      "projectId": "change me"
     },
-    "ergo": {
-        "networkType": "testnet",
-        "explorer": {
-            "url": "https://api-testnet.ergoplatform.com/api/v1",
-            "timeout": 8
-        },
-        "node": {
-            "url": "",
-            "timeout": 8
-        },
-        "minimumErg": "100000",
-        "txFee": "1100000",
-        "requiredConfirmation": 20,
-        "requiredSigns": 3,
-        "initialHeight": 10000,
-        "scannerInterval": 30
+    "bankAddress": "addr_test1qrm4haxxgl55kqzhpp3sda8h979gxd4cast340v0eh0p4qzp3vkcrhjqavv9uzsvq86mglwnwe8xp87q3rv8ve54kasqlf7xgl",
+    "bankPublicKey": "4444444444444444444444444444444444444444444444444444444444444444",
+    "txMinimumLovelace": "1310316",
+    "txFee": "200000",
+    "txTtl": 100000,
+    "requiredConfirmation": 20,
+    "lockAddresses": ["change-me"]
+  },
+  "ergo": {
+    "networkType": "testnet",
+    "explorer": {
+      "url": "https://api-testnet.ergoplatform.com/api",
+      "timeout": 8
     },
-    "reward": {
-        "bridgeFeeRepoAddress": "9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD",
-        "networkFeeRepoAddress": "9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD",
-        "watchersSharePercent": 50,
-        "watchersRSNSharePercent": 0
+    "node": {
+      "url": "",
+      "timeout": 8
     },
-    "tss": {
-        "path": "./bin/tss.exe",
-        "configPath": "./bin/conf/conf.env",
-        "url": "http://localhost",
-        "port": 9000,
-        "timeout": 8
-    },
-    "p2p": {
-        "address": "change me",
-        "bootstrapInterval": 60,
-        "pubsubInterval": 1,
-        "apiCallbackTimeout": 8,
-        "peerIdFilePath": "./peer-dialer.json"
-    },
-    "multiSigTimeout": null,
-    "guard": {
-        "guardId": 1,
-        "secret": "4444444444444444444444444444444444444444444444444444444444444444",
-        "guardsLen": 7,
-        "guards": [
-            {
-                "guardId": 0,
-                "guardPubKey": "pub guard 0"
-            },
-            {
-                "guardId": 1,
-                "guardPubKey": "pub guard 1"
-            },
-            {
-                "guardId": 2,
-                "guardPubKey": "pub guard 2"
-            },
-            {
-                "guardId": 3,
-                "guardPubKey": "pub guard 3"
-            },
-            {
-                "guardId": 4,
-                "guardPubKey": "pub guard 4"
-            },
-            {
-                "guardId": 5,
-                "guardPubKey": "pub guard 5"
-            },
-            {
-                "guardId": 6,
-                "guardPubKey": "pub guard 6"
-            }
-        ]
-    },
-    "minimumAgreement": 5,
-    "contracts": {
-        "addressesBasePath": "config/addresses/"
-    },
-    "networks": [
-        "ergo",
-        "cardano"
-    ],
-    "txProcessorInterval": 180,
-    "tokensPath": "config/tokens.json"
+    "minimumErg": "100000",
+    "txFee": "1100000",
+    "requiredConfirmation": 20,
+    "initialHeight": 10000,
+    "scannerInterval": 30
+  },
+  "reward": {
+    "bridgeFeeRepoAddress": "9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD",
+    "networkFeeRepoAddress": "9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD",
+    "watchersSharePercent": 50,
+    "watchersRSNSharePercent": 0
+  },
+  "tss": {
+    "path": "./bin/tss.exe",
+    "configPath": "./bin/conf/conf.env",
+    "url": "http://localhost",
+    "port": 9000,
+    "timeout": 8
+  },
+  "p2p": {
+    "address": "change me",
+    "bootstrapInterval": 60,
+    "pubsubInterval": 1,
+    "apiCallbackTimeout": 8,
+    "peerIdFilePath": "./peer-dialer.json"
+  },
+  "multiSigTimeout": null,
+  "guard": {
+    "secret": "4444444444444444444444444444444444444444444444444444444444444444",
+    "configUpdateInterval": 180
+  },
+  "contracts": {
+    "addressesBasePath": "config/addresses/"
+  },
+  "networks": ["ergo", "cardano"],
+  "logs": {
+    "path": "logs/",
+    "maxSize": "20m",
+    "maxFiles": "14d"
+  },
+  "txProcessorInterval": 180,
+  "tokensPath": "config/tokens.json"
 }

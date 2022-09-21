@@ -1,22 +1,25 @@
 # Guard-Service
 
-
 ### Table of Contents
+
 - [Description](#description)
 - [Components](#components)
 - [How to Run the Guard-Service](#how-to-run-the-guard-service)
-    - [Set configs](#set-configs)
-    - [Run in development mode](#run-in-development-mode)
-    - [Run in production mode](#run-in-production-mode)
+  - [Set configs](#set-configs)
+  - [Run in development mode](#run-in-development-mode)
+  - [Run in production mode](#run-in-production-mode)
 - [Contributing](#contributing)
 - [License](#license)
   <a name="headers"/>
 
 ## Description
+
 A guard is a well-known party performing final actions in the system. Actually, a set of trusted guards are needed to transfer money between chains. The guard set is a group of well-known entities. Each guard individually verifies the events and performs the required action. However, all (or a quorum of) guards should agree on one event to make the final operation.
 
 ## Components
+
 Guard-Service composed of these components:
+
 - **Scanner** & **Extractor**: A blockchain scanner on Ergo chain and Rosen-Bridge watcher data extractor to extract commitment and event trigger data from scanned blocks
 - **P2P**: A service for communication of guards
 - **EventProcessor**: Process every event captures by extractor, verify and generate tx for it
@@ -28,10 +31,13 @@ Guard-Service composed of these components:
 - **Reward**: A service for generating and verifying reward distribution transactions in Ergo chain
 
 ## How to Run the Guard-Service
+
 This project is written in node-js using Esnext module and typeorm database. In order to run the project follow these steps.
 
 ### Set configs
+
 Before starting project, there are multiple configs need to be set, which are:
+
 - Cardano network configs
   - `koios.url`: API url to [Koios](https://api.koios.rest/) (care about testnet and mainnet)
   - `blockFrost.projectId`: projectId provided by [BlockFrost](https://blockfrost.io/)
@@ -58,19 +64,23 @@ Before starting project, there are multiple configs need to be set, which are:
     - `guardPubKey`: public key of thet guard
 
 ### Run in development mode
+
 ```shell
 npm install
 npm run start:dev
 ```
 
 ### Run in production mode
+
 ```shell
 npm install
 npm run start
 ```
 
 ## Contributing
+
 TBD
 
 ## License
+
 TBD
