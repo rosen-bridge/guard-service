@@ -26,6 +26,100 @@ import CardanoConfigs from "../../../src/chains/cardano/helpers/CardanoConfigs";
 describe("CardanoChain", () => {
     const testBankAddress = TestBoxes.testBankAddress
 
+    describe("getCoveringUtxo", () => {
+        // mock getting bankBoxes
+        const bankBoxes: Utxo[] = TestBoxes.mockBankBoxes()
+        const bankBoxesCopy = JSON.parse(JSON.stringify(bankBoxes))
+
+        /**
+         * Target: testing getCoveringUtxo
+         * Dependencies:
+         *    BlockFrostApi
+         *    KoiosApi
+         * Expected Output:
+         *    The function should return 1 specific box
+         */
+        it("should return 1 boxes for ADA payment", async () => {
+            // mock ada payment event
+            const mockedEvent: EventTrigger = TestBoxes.mockADAPaymentEventTrigger()
+
+            // run test
+            const cardanoChain: CardanoChain = new CardanoChain()
+            const boxes = cardanoChain.getCoveringUtxo(bankBoxesCopy, mockedEvent)
+
+            // verify output boxes
+            expect(boxes.length).to.equal(1)
+            expect(boxes[0].tx_hash).to.equal(bankBoxes[5].tx_hash)
+
+        })
+
+        /**
+         * Target: testing getCoveringUtxo
+         * Dependencies:
+         *    BlockFrostApi
+         *    KoiosApi
+         * Expected Output:
+         *    The function should return 2 specific box
+         */
+        it('should return 2 boxes for ADA payment', async () => {
+            // mock ada payment event
+            const mockedEvent: EventTrigger = TestBoxes.mockADAPaymentEventTrigger()
+            mockedEvent.amount = "111300000"
+
+            // run test
+            const cardanoChain: CardanoChain = new CardanoChain()
+            const boxes = cardanoChain.getCoveringUtxo(bankBoxesCopy, mockedEvent)
+
+            // verify output boxes
+            expect(boxes.length).to.equal(2)
+            expect(boxes[0].tx_hash).to.equal(bankBoxes[5].tx_hash)
+            expect(boxes[1].tx_hash).to.equal(bankBoxes[1].tx_hash)
+        })
+
+        /**
+         * Target: testing getCoveringUtxo
+         * Dependencies:
+         *    BlockFrostApi
+         *    KoiosApi
+         * Expected Output:
+         *    The function should return 2 specific box
+         */
+        it('should return 2 box for asset payment', async () => {
+            const mockedEvent: EventTrigger = TestBoxes.mockAssetPaymentEventTrigger()
+            mockedEvent.targetChainTokenId = "asset1nl000000000000000000000000000000000000"
+            // run test
+            const cardanoChain: CardanoChain = new CardanoChain()
+            const boxes = cardanoChain.getCoveringUtxo(bankBoxesCopy, mockedEvent)
+
+            // verify output boxes
+            expect(boxes.length).to.be.equal(2)
+            expect(boxes[0].tx_hash).to.be.equal(bankBoxes[6].tx_hash)
+            expect(boxes[1].tx_hash).to.be.equal(bankBoxes[2].tx_hash)
+        })
+
+        /**
+         * Target: testing getCoveringUtxo
+         * Dependencies:
+         *    BlockFrostApi
+         *    KoiosApi
+         * Expected Output:
+         *    The function should return 3 specific box
+         */
+        it('should return 3 box for asset payment', async () => {
+            const mockedEvent: EventTrigger = TestBoxes.mockAssetPaymentEventTrigger()
+            mockedEvent.targetChainTokenId = "asset1nl000000000000000000000000000000000000"
+            mockedEvent.amount = "17300000"
+
+            // run test
+            const cardanoChain: CardanoChain = new CardanoChain()
+            const boxes = cardanoChain.getCoveringUtxo([bankBoxesCopy[5], bankBoxesCopy[6], bankBoxesCopy[7]], mockedEvent)
+
+            // verify output boxes
+            expect(boxes.length).to.be.equal(3)
+        })
+
+    })
+
     describe("generateTransaction", () => {
         // mock getting bankBoxes
         const bankBoxes: Utxo[] = TestBoxes.mockBankBoxes()
@@ -65,7 +159,6 @@ describe("CardanoChain", () => {
         it("should generate an Asset payment tx and verify it successfully", async () => {
             // mock asset payment event
             const mockedEvent: EventTrigger = TestBoxes.mockAssetPaymentEventTrigger()
-
             // run test
             const cardanoChain: CardanoChain = new CardanoChain()
             const tx = await cardanoChain.generateTransaction(mockedEvent)

@@ -381,7 +381,7 @@ class TestBoxes {
             payment_addr: { "bech32": ""},
             tx_hash: TestUtils.generateRandomId(),
             tx_index: 0,
-            value: this.adaToLovelaceString(100),
+            value: this.adaToLovelaceString(101),
             asset_list: [
                 {
                     policy_id: "ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2",
@@ -390,7 +390,30 @@ class TestBoxes {
                 }
             ]
         }
-        return [box1, box2, box3,box4,box5,box6]
+
+        const box7: Utxo = {
+            payment_addr: { "bech32": ""},
+            tx_hash: TestUtils.generateRandomId(),
+            tx_index: 0,
+            value: "1000",
+            asset_list: [
+                {
+                    policy_id: "22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130",
+                    asset_name: "1111111111",
+                    quantity: "55"
+                }
+            ]
+        }
+
+        const box8:Utxo = {
+            payment_addr: { "bech32": ""},
+            tx_hash: TestUtils.generateRandomId(),
+            tx_index: 2,
+            value: "1000",
+            asset_list: []
+        }
+
+        return [box1, box2, box3, box4, box5, box6, box7, box8]
     }
 
     /**

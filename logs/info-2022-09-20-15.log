@@ -1,0 +1,138 @@
+2022-09-20T10:52:11.211Z info Test Data Source has been initialized!
+2022-09-20T10:56:56.415Z info Test Data Source has been initialized!
+2022-09-20T10:57:11.171Z info Test Data Source has been initialized!
+2022-09-20T10:57:49.839Z info Test Data Source has been initialized!
+2022-09-20T10:58:47.987Z info Test Data Source has been initialized!
+2022-09-20T10:59:08.651Z info Test Data Source has been initialized!
+2022-09-20T10:59:34.554Z info Test Data Source has been initialized!
+2022-09-20T10:59:51.712Z info Test Data Source has been initialized!
+2022-09-20T11:00:37.843Z info Test Data Source has been initialized!
+2022-09-20T11:01:02.596Z info Test Data Source has been initialized!
+2022-09-20T11:01:37.062Z info Test Data Source has been initialized!
+2022-09-20T11:01:52.098Z info Test Data Source has been initialized!
+2022-09-20T11:02:08.180Z info Test Data Source has been initialized!
+2022-09-20T11:02:27.531Z info Test Data Source has been initialized!
+2022-09-20T11:02:49.677Z info Test Data Source has been initialized!
+2022-09-20T11:03:05.630Z info Test Data Source has been initialized!
+2022-09-20T11:03:09.466Z info Payment transaction [e76c5adb00887661ad219f74b7bcc1057f2fbee90832a803c0f8595bc9ed8db7] for event [31827716338b4542e90851453d11c94261c009633f30756cea20843b8c068fa7] generated
+2022-09-20T11:03:09.469Z info Payment transaction [2b2cc05b381ec6fe521bebac8155dd504df233530ea882301a59ee2838b61e01] for event [61e538607bf31f195bbf965668108f5ff137378838c12e90547d09d92074c3c0] generated
+2022-09-20T11:03:09.686Z info Cardano tx [13a4af40a368e809183cfa7504c73600cf8ab5bf30f69b75009db996f5bd33f5] signed successfully
+2022-09-20T11:03:09.762Z error TSS failed to sign tx [bcab0b18490e39b98932cb8105e1814f19cd10a95b75946b01dd0a8f510f1c90]: [error message]
+2022-09-20T11:03:09.797Z info Cardano Transaction submitted
+2022-09-20T11:03:09.804Z info An error occurred while submitting Cardano transaction: [test error...]
+2022-09-20T11:03:09.810Z info Event [8764555a7a660982380a83c8bf67f38dbf819cc6778ebfd1741bf5e8749c21ae] has been successfully validated
+2022-09-20T11:03:09.815Z info Event [72199df79be2d69ae97be77b5ae8af136565e08f0dbff20d8fa566633840eb06] has been successfully validated
+2022-09-20T11:03:09.819Z info The event [8fd9a14c20f04cb9cb273bb0e03aa5b0e0b6ea5360eb600d6779f90e856eb034] is not valid, tx [028052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b] has no transaction metadata
+2022-09-20T11:03:09.821Z info Event [4a94fae5f955abffd36803094fa284c3c5cbff16ad3d5d8c8ab4e789fddd9872] is not valid, tx [128052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b] asset credential is incorrect
+2022-09-20T11:03:09.822Z info Event [8764555a7a660982380a83c8bf67f38dbf819cc6778ebfd1741bf5e8749c21ae] is not valid, tx [928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b] token or chainId is invalid
+2022-09-20T11:03:09.824Z info Event [8764555a7a660982380a83c8bf67f38dbf819cc6778ebfd1741bf5e8749c21ae] is not valid, event data does not match with lock tx [928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b]
+2022-09-20T11:03:09.825Z info Event [8764555a7a660982380a83c8bf67f38dbf819cc6778ebfd1741bf5e8749c21ae] is not valid, event data does not match with lock tx [928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b]
+2022-09-20T11:03:09.827Z info Event [8764555a7a660982380a83c8bf67f38dbf819cc6778ebfd1741bf5e8749c21ae] is not valid, event data does not match with lock tx [928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b]
+2022-09-20T11:03:09.828Z info Event [8764555a7a660982380a83c8bf67f38dbf819cc6778ebfd1741bf5e8749c21ae] is not valid, event data does not match with lock tx [928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b]
+2022-09-20T11:03:09.829Z info Event [8764555a7a660982380a83c8bf67f38dbf819cc6778ebfd1741bf5e8749c21ae] is not valid, event data does not match with lock tx [928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b]
+2022-09-20T11:03:09.831Z info Event [8764555a7a660982380a83c8bf67f38dbf819cc6778ebfd1741bf5e8749c21ae] is not valid, tx [928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b] token or chainId is invalid
+2022-09-20T11:03:09.832Z info Event [8764555a7a660982380a83c8bf67f38dbf819cc6778ebfd1741bf5e8749c21ae] is not valid, event data does not match with lock tx [928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b]
+2022-09-20T11:03:09.833Z info Event [8764555a7a660982380a83c8bf67f38dbf819cc6778ebfd1741bf5e8749c21ae] is not valid, event data does not match with lock tx [928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b]
+2022-09-20T11:03:09.834Z info Event [deafd8d129a9e8cc3bfd94ef096850eab17a3cc997b00371153f0d47cc05ead2] is not valid, no lock box found in tx [0f32ad374daefdce563e3391effc4fc42eb0e74bbec8afe16a46eeea69e3b2aa]
+2022-09-20T11:03:09.838Z info Event [8764555a7a660982380a83c8bf67f38dbf819cc6778ebfd1741bf5e8749c21ae] is not valid, failed to get rosen data from lock tx [928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b]
+2022-09-20T11:03:09.839Z info The event [8764555a7a660982380a83c8bf67f38dbf819cc6778ebfd1741bf5e8749c21ae] is not valid, event RWT is not compatible with cardano RWT id
+2022-09-20T11:03:10.141Z info Payment Transaction [9ce5ae058ad054cc7e51b67cdf3e516bca04f6d4bb6fee34fb0e8734f5b18f75] for event [69500526f5e967760f485e7a4eb09f3157c079155cf17da9fe95f029a382c05f] generated
+2022-09-20T11:03:10.160Z info Payment Transaction [3dd91c6b321367e97be371931144390e385cd02dc5446d22b701387f5160becf] for event [ad809abe0515b06cbb9e12f2487b36801ad1ed91fc042a4168ff676c8195fd4e] generated
+2022-09-20T11:03:10.171Z info Payment Transaction [59c9a06ad69f1421a378d29f44085ac9cf4ce2ba7db26e4acdfb275cf7dbda54] for event [45b80ba6601e62221eba5d431b870b9a6118f2aad180f470d8c152634ee98d9b] generated
+2022-09-20T11:03:10.182Z info Payment Transaction [4f9e99a55369711b8183821810efe1b0467d839ea41e37b8873247640ed4b175] for event [ed2c8223ed22b7e9cbb0afe76e1be80cb13279ee36892028bad006c0e3371e14] generated
+2022-09-20T11:03:10.193Z info Payment Transaction [cf55e987618f59850767604594fa70d4820acee2c04b487bca56865c3a3dc7e0] for event [71b3586a73d033f905b80d0877325a419af552e523eee7be4cf17292fe34c8f0] generated
+2022-09-20T11:03:10.421Z info Replacing tx [0f5ace462cf496b32c4f05a051e8a9bee2f4d6c95087e77cb6170f27d55752d0] with new transaction [0f5ace462cf496b32c4f05a051e8a9bee2f4d6c95087e77cb6170f27d5570000] due to lower txId
+2022-09-20T11:03:10.618Z warn Received approval for newTx [0f5ace462cf496b32c4f05a051e8a9bee2f4d6c95087e77cb6170f27d5570000] where its event [0b5b1d3386d74b95cb2f0c52f5851c1de8bd05f7dd7eac27c334727a168f4346] has already a completed oldTx [0f5ace462cf496b32c4f05a051e8a9bee2f4d6c95087e77cb6170f27d55752d0]
+2022-09-20T11:03:10.789Z info Ignoring new tx [0f5ace462cf496b32c4f05a051e8a9bee2f4d6c95087e77cb6170f27d557ffff] due to higher txId, comparing to [0f5ace462cf496b32c4f05a051e8a9bee2f4d6c95087e77cb6170f27d55752d0]
+2022-09-20T11:03:10.959Z info Agreed with tx [540d68db0abb133210eca7ee97cbf73544c03e7ae34124813258c6516f8cc519] for event [66179c414d2fdfd1e4744d008e54d7d6e48656e418bebc9ecc2ab56f23b9d3b9]
+2022-09-20T11:03:11.041Z info Received tx [cb686adb6be0d29998792c9ab1250897405ef6c044a0c95cc517168c0ba7bbdb] for event [c851eae50dd0eeab705a5a11f40cd74fb7c9a5cd1391ebfb56b4f4c4201a8bcd] but event not found
+2022-09-20T11:03:11.129Z info Received tx [6924a7089cbec4f7cda17d9557bc58bd9e89e5e3cedff7adfb4f5c2101f53393] for event but event [dcf8b3fb3fdbd9ed77856ab35c44c828d52bfe003d34d9b446a62497c1e41955] is not confirmed enough
+2022-09-20T11:03:11.261Z info Rejected tx [2bfc7bc32e079a879372708c71e7ea55d267223e0795daf19145c14e8a54ef9a] for event [d7aff7ae4b9fb51012bfe405f4d124dc5370af3ec191b1f06290d549ea638558]
+2022-09-20T11:03:11.392Z info Rejected tx [728eff9eb5831985ace6d6b104c73f75be78a2403c59c461d8a71fb491fab4e8] for event [ea2c09608d5af76741bd25acba0721356342c0f71de8baa6edea349fb649702a]
+2022-09-20T11:03:11.525Z info Rejected tx [f490e5974d2f73a801b9a5954dfa946c774b3834adc27459507b24d1a13564ee] for event [f3d98f4eb9f9e49abc997e247870bc35fb75b5cbdeacf823baee76fbba41d0e6]
+2022-09-20T11:03:11.685Z info Rejected tx [e95f5fd5a8b172acb4227eefd2e956a01b435bd934a6f4827a25781f8371565c] for event [2b81d5d4e8ff3ee27f4a7a2bce9a5b55a9c4d1debd1e5b50b93855f2a3182bac]
+2022-09-20T11:03:11.843Z info Rejected tx [899104eb37b1be84a735d4b50c046ae242df7e240939fcef11ca66f30fc7280d] for event [c13d2e03c059ae0bf747e0abae2a868bade085c50908d4cc06496d96acab9918]
+2022-09-20T11:03:11.974Z info Guard [0] Agreed with transaction [8d3bcfacdfddff4dabe72d21363727b10db9302fd534135001359e6a954dabfc]
+2022-09-20T11:03:11.977Z info Guard [2] Agreed with transaction [8d3bcfacdfddff4dabe72d21363727b10db9302fd534135001359e6a954dabfc]
+2022-09-20T11:03:11.979Z info Guard [3] Agreed with transaction [8d3bcfacdfddff4dabe72d21363727b10db9302fd534135001359e6a954dabfc]
+2022-09-20T11:03:11.982Z info Guard [2] Agreed with transaction [8d3bcfacdfddff4dabe72d21363727b10db9302fd534135001359e6a954dabfc]
+2022-09-20T11:03:11.984Z info Guard [6] Agreed with transaction [8d3bcfacdfddff4dabe72d21363727b10db9302fd534135001359e6a954dabfc]
+2022-09-20T11:03:11.984Z info The majority of guards agreed with transaction [8d3bcfacdfddff4dabe72d21363727b10db9302fd534135001359e6a954dabfc]
+2022-09-20T11:03:12.192Z info Agreed with tx [f8ee2ca390dec5124d09753aea348efb4bff9f45e881ab9d9bf5006714ed0de2] for event [bb49f68f3d4e5ef347ded4c52e6eea7691e17dd9d7d98b94eff7a9c0eb0ecf1a]
+2022-09-20T11:03:12.197Z info Transaction [f8ee2ca390dec5124d09753aea348efb4bff9f45e881ab9d9bf5006714ed0de2] approved
+2022-09-20T11:03:12.392Z info Other guards [2,3,4,5,6] agreed on tx with id: f8ee2ca390dec5124d09753aea348efb4bff9f45e881ab9d9bf5006714ed0de2
+2022-09-20T11:03:12.543Z info Agreed with tx [a0346e2e9812fb5a50dfe92099904db05d927544fa34a3e0056f6396b5b2a8ac] for event [576b1847e74e52b0b5c580d200d5eaf6fd26e6dbf02a3eb3f2941ae629466929]
+2022-09-20T11:03:12.553Z warn Received approval message for txId [a0346e2e9812fb5a50dfe92099904db05d927544fa34a3e0056f6396b5b2a8ac] from sender [testSender] but at least one signature doesn't verify
+2022-09-20T11:03:12.559Z info Resending generated transactions for agreement: [2]
+2022-09-20T11:03:12.626Z info Clearing generated transactions from memory: [2]
+2022-09-20T11:03:12.653Z info Clearing agreed transactions from memory: [2]
+2022-09-20T11:03:13.258Z info Processing confirmed events
+2022-09-20T11:03:13.262Z info Processing event
+2022-09-20T11:03:13.262Z info Event didn't verify.
+2022-09-20T11:03:13.284Z info [1] Confirmed Events processed
+2022-09-20T11:03:13.392Z info Processing event
+2022-09-20T11:03:13.523Z info Processing event
+2022-09-20T11:03:13.651Z info Processing confirmed events
+2022-09-20T11:03:13.654Z info Processing event
+2022-09-20T11:03:13.654Z info [1] Confirmed Events processed
+2022-09-20T11:03:13.743Z info Processing scanned events
+2022-09-20T11:03:13.748Z info Processed [1] scanned events
+2022-09-20T11:03:13.840Z info Processing scanned events
+2022-09-20T11:03:13.845Z info Event [13c686ad3d20708bc4e43ee408dd9ea86cd77607cece13ce67bf3f563dd46496] with txId [f9acff91459059999e5a52001a6a31c9148319c520140987fec1518b512cf4a8] confirmed
+2022-09-20T11:03:13.872Z info Processed [2] scanned events
+2022-09-20T11:03:13.908Z info An unknown exception occurred during handle sign from another peer: TypeError: Cannot read properties of undefined (reading 'filter')
+2022-09-20T11:03:17.229Z info Cleaning unsigned transactions in MultiSig queue
+2022-09-20T11:03:17.230Z info 1 Unsigned transaction cleaned from MultiSig queue
+2022-09-20T11:03:17.394Z info Processing transactions
+2022-09-20T11:03:17.442Z info Tx is confirmed. event is complete
+2022-09-20T11:03:17.442Z info Transactions Processed
+2022-09-20T11:03:17.617Z info Processing transactions
+2022-09-20T11:03:17.643Z info Tx in confirmation process
+2022-09-20T11:03:17.643Z info Transactions Processed
+2022-09-20T11:03:17.810Z info Processing transactions
+2022-09-20T11:03:17.832Z info Tx is in mempool
+2022-09-20T11:03:17.833Z info Transactions Processed
+2022-09-20T11:03:17.988Z info Processing transactions
+2022-09-20T11:03:17.990Z info Ergo tx is lost but inputs are still valid. resending tx...
+2022-09-20T11:03:17.990Z info Transactions Processed
+2022-09-20T11:03:18.135Z info Processing transactions
+2022-09-20T11:03:18.178Z info Tx is invalid. event is now waiting for payment
+2022-09-20T11:03:18.178Z info Transactions Processed
+2022-09-20T11:03:18.354Z info Processing transactions
+2022-09-20T11:03:18.408Z info Tx is invalid. event is now waiting for reward distribution
+2022-09-20T11:03:18.408Z info Transactions Processed
+2022-09-20T11:03:18.555Z info Processing transactions
+2022-09-20T11:03:18.597Z info Tx is confirmed. event is ready for reward distribution
+2022-09-20T11:03:18.597Z info Transactions Processed
+2022-09-20T11:03:18.757Z info Processing transactions
+2022-09-20T11:03:18.798Z info Tx is confirmed. event is complete
+2022-09-20T11:03:18.799Z info Transactions Processed
+2022-09-20T11:03:18.942Z info Processing transactions
+2022-09-20T11:03:18.963Z info Tx is in confirmation process
+2022-09-20T11:03:18.964Z info Transactions Processed
+2022-09-20T11:03:19.114Z info Processing transactions
+2022-09-20T11:03:19.171Z info Tx is invalid. event is now waiting for payment
+2022-09-20T11:03:19.171Z info Transactions Processed
+2022-09-20T11:03:19.316Z info Processing transactions
+2022-09-20T11:03:19.319Z info Cardano tx is lost but inputs are still valid. resending tx...
+2022-09-20T11:03:19.319Z info Transactions Processed
+2022-09-20T11:03:19.469Z info Processing transactions
+2022-09-20T11:03:19.510Z info Tx is invalid. event is now waiting for payment
+2022-09-20T11:03:19.510Z info Transactions Processed
+2022-09-20T11:03:19.650Z info Processing transactions
+2022-09-20T11:03:19.651Z info Tx is invalid. waiting for enough confirmation of this proposition
+2022-09-20T11:03:19.651Z info Transactions Processed
+2022-09-20T11:03:19.800Z info Processing transactions
+2022-09-20T11:03:19.801Z info Transactions Processed
+2022-09-20T11:03:19.940Z info Processing transactions
+2022-09-20T11:03:19.941Z info Transactions Processed
+2022-09-20T11:03:20.105Z info Processing transactions
+2022-09-20T11:03:20.107Z info Transactions Processed
+2022-09-20T11:03:20.258Z info Processing transactions
+2022-09-20T11:03:20.261Z info Transactions Processed
+2022-09-20T11:03:20.418Z info Processing transactions
+2022-09-20T11:03:20.465Z info Tx is invalid. event is now waiting for payment
+2022-09-20T11:03:20.465Z info Transactions Processed
+2022-09-20T11:03:20.641Z info Processing transactions
+2022-09-20T11:03:20.689Z info Tx is invalid. event is now waiting for payment
+2022-09-20T11:03:20.689Z info Transactions Processed
