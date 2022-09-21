@@ -2,13 +2,14 @@ import { BlockFrostAPI } from "@blockfrost/blockfrost-js";
 import CardanoConfigs from "../helpers/CardanoConfigs";
 import { Transaction } from "@emurgo/cardano-serialization-lib-nodejs";
 import { AddressUtxos, TxUtxos } from "../models/Interfaces";
+import { logger, logThrowError } from "../../../log/Logger";
+import { isBlockfrostErrorResponse } from "@blockfrost/blockfrost-js/lib/utils/errors";
 
 
 class BlockFrostApi {
 
     static blockFrost = new BlockFrostAPI({
-        projectId: CardanoConfigs.blockFrost.projectId,
-        isTestnet: CardanoConfigs.blockFrost.isTestnet
+        projectId: CardanoConfigs.blockFrost.projectId
     });
 
     /**
@@ -17,8 +18,8 @@ class BlockFrostApi {
     static currentSlot = async (): Promise<number> => {
         const block = await this.blockFrost.blocksLatest()
         const slot = block.slot
-        if (!slot) throw new Error("failed to fetch current slot")
-        return slot
+        if (!slot) logThrowError('Failed to fetch current slot from BlockFrost')
+        return slot!
     }
 
     /**
@@ -27,8 +28,8 @@ class BlockFrostApi {
     static currentHeight = async (): Promise<number> => {
         const block = await this.blockFrost.blocksLatest()
         const height = block.height
-        if (!height) throw new Error("failed to fetch current slot")
-        return height
+        if (!height) logThrowError('Failed to fetch current height from BlockFrost')
+        return height!
     }
 
     /**
@@ -36,7 +37,13 @@ class BlockFrostApi {
      * @param tx the transaction
      */
     static txSubmit = async (tx: Transaction): Promise<string> => {
-        return this.blockFrost.txSubmit(tx.to_bytes())
+        try {
+            return this.blockFrost.txSubmit(tx.to_bytes())
+        } catch (e) {
+            const errorMessage = 'An error occurred while submitting tx using BlockFrost'
+            logger.error(errorMessage)
+            throw new Error(errorMessage)
+        }
     }
 
     /**
@@ -44,7 +51,13 @@ class BlockFrostApi {
      * @param txId the transaction id
      */
     static getTxUtxos = async (txId: string): Promise<TxUtxos> => {
-        return await this.blockFrost.txsUtxos(txId)
+        try {
+            return await this.blockFrost.txsUtxos(txId)
+        } catch (e) {
+            const errorMessage = `An error occurred while getting transaction [${txId}] utxos using BlockFrost`
+            logger.error(errorMessage)
+            throw new Error(errorMessage)
+        }
     }
 
     /**
@@ -52,7 +65,13 @@ class BlockFrostApi {
      * @param address the address
      */
     static getAddressUtxos = async (address: string): Promise<AddressUtxos> => {
-        return await this.blockFrost.addressesUtxos(address)
+        try {
+            return await this.blockFrost.addressesUtxos(address)
+        } catch (e) {
+            const errorMessage = `An error occurred while getting address [${address}] utxos using BlockFrost`
+            logger.error(errorMessage)
+            throw new Error(errorMessage)
+        }
     }
 
 }

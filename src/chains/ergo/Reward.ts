@@ -20,7 +20,7 @@ import ChainsConstants from "../ChainsConstants";
 import Utils from "../../helpers/Utils";
 import BoxVerifications from "./boxes/BoxVerifications";
 import { JsonBI } from "../../network/NetworkModels";
-import { network } from "@blockfrost/blockfrost-js/lib/endpoints/api/network";
+import { logger, logThrowError } from "../../log/Logger";
 
 
 class Reward {
@@ -58,8 +58,11 @@ class Reward {
             requiredAssets.tokens
         )
 
-        if (!coveringBoxes.covered)
-            throw Error(`Bank boxes didn't cover required assets. Erg: ${(requiredAssets.ergs + ErgoConfigs.minimumErg).toString()}, Tokens: ${JsonBI.stringify(requiredAssets.tokens)}`)
+        if (!coveringBoxes.covered){
+            const Erg = (requiredAssets.ergs + ErgoConfigs.minimumErg).toString()
+            const Tokens = JsonBI.stringify(requiredAssets.tokens)
+            logThrowError(`Bank boxes didn't cover required assets. Erg: ${Erg}, Tokens: ${Tokens}`)
+        }
 
         // calculate input boxes and assets
         const inBoxes = [eventBox, ...commitmentBoxes, ...coveringBoxes.boxes]
@@ -120,7 +123,7 @@ class Reward {
             TransactionTypes.reward
         )
 
-        console.log(`Payment transaction for event [${eventId}] generated. TxId: ${txId}`)
+        logger.info(`Payment Transaction [${txId}] for event [${eventId}] generated`)
         return ergoTx
     }
 

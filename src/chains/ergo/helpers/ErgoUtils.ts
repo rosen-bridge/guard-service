@@ -11,6 +11,7 @@ import {
 } from "ergo-lib-wasm-nodejs";
 import { AssetMap, BoxesAssets, ExplorerOutputBox } from "../models/Interfaces";
 import ChainsConstants from "../../ChainsConstants";
+import { logThrowError } from "../../../log/Logger";
 
 class ErgoUtils {
     /**
@@ -103,6 +104,14 @@ class ErgoUtils {
      */
     static decodeCollColl = (str: string): Uint8Array[] => {
         return Constant.decode_from_base16(str).to_coll_coll_byte()
+    }
+
+    /**
+     * decodes register coll[Int] value from str
+     * @param str
+     */
+    static decodeCollInt = (str: string): Int32Array => {
+        return Constant.decode_from_base16(str).to_i32_array()
     }
 
     /**
@@ -218,18 +227,15 @@ class ErgoUtils {
         if (ergs < 0n) {
             if (allowMoreErgUsage)
                 ergs = 0n
-            else
-                throw Error(`not enough Erg in input assets [Current: ${inAssets.ergs}] [Require: ${usedAssets.ergs}]`)
+            else logThrowError(`not enough Erg in input assets [Current: ${inAssets.ergs}] [Require: ${usedAssets.ergs}]`)
         }
         const tokens: AssetMap = inAssets.tokens
 
         Object.keys(usedAssets.tokens).forEach(id => {
             if (Object.prototype.hasOwnProperty.call(tokens, id)) {
                 tokens[id] -= usedAssets.tokens[id]
-                if (tokens[id] < 0n)
-                    throw Error(`not enough token [${id}] in input assets [Current: ${inAssets.tokens[id]}] [Require: ${usedAssets.tokens[id]}]`)
-            } else
-                throw Error(`not enough token [${id}] in input assets [Current: 0] [Require: ${usedAssets.tokens[id]}]`)
+                if (tokens[id] < 0n) logThrowError(`not enough token [${id}] in input assets [Current: ${inAssets.tokens[id]}] [Require: ${usedAssets.tokens[id]}]`)
+            } else logThrowError(`not enough token [${id}] in input assets [Current: 0] [Require: ${usedAssets.tokens[id]}]`)
         })
 
         return {

@@ -3,6 +3,7 @@ import Configs from "../helpers/Configs";
 import { p2pRouter } from "../api/p2p";
 import Dialer from "../communication/Dialer";
 import { tssRouter } from "../api/tss";
+import { logger } from "../log/Logger";
 
 const initExpress = async () => {
     // start the dialer
@@ -20,7 +21,7 @@ const initExpress = async () => {
 
     app.use(router)
     app.listen(port, () => {
-        console.log(`guard service started at http://localhost:${port}`);
+        logger.info(`guard service started at http://localhost:${port}`)
     });
 }
 

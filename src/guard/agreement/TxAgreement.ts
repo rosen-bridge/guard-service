@@ -11,13 +11,14 @@ import {
     GuardsAgreement,
     TransactionApproved
 } from "./Interfaces";
-import Configs from "../../helpers/Configs";
 import Dialer from "../../communication/Dialer";
 import Utils from "../../helpers/Utils";
 import EventProcessor from "../EventProcessor";
 import { dbAction } from "../../db/DatabaseAction";
 import TransactionProcessor from "../TransactionProcessor";
 import { txJsonParser } from "../../chains/TxJsonParser";
+import { guardConfig } from "../../helpers/GuardConfig";
+import { logger, logThrowError } from "../../log/Logger";
 
 const dialer = await Dialer.getInstance();
 
@@ -72,7 +73,7 @@ class TxAgreement {
      * @return true if enough guards agreed with transaction
      */
     startAgreementProcess = (tx: PaymentTransaction): void => {
-        const creatorId = Configs.guardId
+        const creatorId = guardConfig.guardId
         const guardSignature = tx.signMetaData()
         const creatorAgreement = {
             "guardId": creatorId,
@@ -117,12 +118,12 @@ class TxAgreement {
     processTransactionRequest = async (tx: PaymentTransaction, creatorId: number, signature: string, receiver: string): Promise<void> => {
         const eventEntity = await dbAction.getEventById(tx.eventId)
         if (eventEntity === null) {
-            console.info(`received tx [${tx.txId}] for event [${tx.eventId}] but event not found`)
+            logger.info(`Received tx [${tx.txId}] for event [${tx.eventId}] but event not found`)
             return
         }
         const event = EventTrigger.fromConfirmedEntity(eventEntity)
         if (!await EventProcessor.isEventConfirmedEnough(event)) {
-            console.info(`received tx [${tx.txId}] for event [${tx.eventId}] but event is not confirmed enough`)
+            logger.info(`Received tx [${tx.txId}] for event but event [${tx.eventId}] is not confirmed enough`)
             return
         }
         if (
@@ -134,10 +135,10 @@ class TxAgreement {
         ) {
             this.transactions.set(tx.txId, tx)
             this.eventAgreedTransactions.set(tx.eventId, tx.txId)
-            console.info(`agreed with tx [${tx.txId}] for event [${tx.eventId}]`)
+            logger.info(`Agreed with tx [${tx.txId}] for event [${tx.eventId}]`)
 
             const agreementPayload: GuardsAgreement = {
-                "guardId": Configs.guardId,
+                "guardId": guardConfig.guardId,
                 "signature": tx.signMetaData(),
                 "txId": tx.txId,
                 "agreed": true
@@ -152,7 +153,7 @@ class TxAgreement {
             dialer.sendMessage(TxAgreement.CHANNEL, message, receiver)
         }
         else
-            console.info(`rejected tx [${tx.txId}] for event [${tx.eventId}]`)
+            logger.info(`Rejected tx [${tx.txId}] for event [${tx.eventId}]`)
     }
 
     /**
@@ -187,10 +188,12 @@ class TxAgreement {
          */
         const pushGuardApproval = (txId: string, guardId: number, signature: string): void => {
             const txApprovals = this.transactionApprovals.get(txId)
-            if (txApprovals === undefined) throw new Error(`Unexpected Error: TxId: ${txId} not found in approvals list while it was in transaction list`)
+            if (txApprovals === undefined){
+                logThrowError(`Unexpected Error: TxId: ${txId} not found in approvals list while it was in transaction list`)
+            }
 
-            const guardApproval = txApprovals.find(approval => approval.guardId === guardId)
-            if (guardApproval === undefined) txApprovals.push({
+            const guardApproval = txApprovals!.find(approval => approval.guardId === guardId)
+            if (guardApproval === undefined) txApprovals!.push({
                 "guardId": guardId,
                 "signature": signature
             })
@@ -202,15 +205,15 @@ class TxAgreement {
 
         if (agreed) {
             if (!tx.verifyMetaDataSignature(signerId, signature)) {
-                console.warn(`Received guard ${signerId} agreement for txId: ${txId} but signature didn't verify`)
+                logger.warn(`Received guard [${signerId}] agreement for txId [${txId}] but signature didn't verify`)
                 return
             }
 
-            console.log(`Guard ${signerId} Agreed with transaction with txId: ${txId}`)
+            logger.info(`Guard [${signerId}] Agreed with transaction [${txId}]`)
             pushGuardApproval(txId, signerId, signature)
 
-            if (this.transactionApprovals.get(txId)!.length >= Configs.minimumAgreement) {
-                console.log(`The majority of guards agreed with txId ${txId}`)
+            if (this.transactionApprovals.get(txId)!.length >= guardConfig.requiredSign) {
+                logger.info(`The majority of guards agreed with transaction [${txId}]`)
 
                 const txApproval: TransactionApproved = {
                     "txJson": tx.toJson(),
@@ -236,16 +239,16 @@ class TxAgreement {
      */
     processApprovalMessage = async (tx: PaymentTransaction, guardsSignatures: AgreementPayload[], sender: string): Promise<void> => {
         if (guardsSignatures.some(approval => !tx.verifyMetaDataSignature(approval.guardId, approval.signature))) {
-            console.warn(`Received approval message for txId: ${tx.txId} from sender: ${sender} but at least one signature doesn't verify`)
+            logger.warn(`Received approval message for txId [${tx.txId}] from sender [${sender}] but at least one signature doesn't verify`)
             return
         }
 
         const agreedTx = this.transactions.get(tx.txId)
         if (agreedTx === undefined) {
-            console.log(`Other guards [${guardsSignatures.map(approval => approval.guardId)}] agreed on tx with id: ${tx.txId}`)
+            logger.info(`Other guards [${guardsSignatures.map(approval => approval.guardId)}] agreed on tx with id: ${tx.txId}`)
         }
         else {
-            console.log(`Transaction with txId: ${tx.txId} approved`)
+            logger.info(`Transaction [${tx.txId}] approved`)
             await this.setTxAsApproved(tx)
         }
     }
@@ -263,6 +266,7 @@ class TxAgreement {
                 }
                 catch (e) {
                     release()
+                    logger.error(`An error occurred while inserting tx to db: ${e}`)
                     throw e
                 }
             })
@@ -272,7 +276,7 @@ class TxAgreement {
             if (this.eventAgreedTransactions.has(tx.eventId)) this.eventAgreedTransactions.delete(tx.eventId)
         }
         catch (e) {
-            console.log(`Unexpected Error occurred while setting tx [${tx.txId}] as approved: ${e}`)
+            logger.info(`Unexpected Error occurred while setting tx [${tx.txId}] as approved: ${e}`)
         }
     }
 
@@ -288,7 +292,7 @@ class TxAgreement {
                 await dbAction.setEventStatus(tx.eventId, EventStatus.inReward)
         }
         catch (e) {
-            console.log(`Unexpected Error occurred while updating event [${tx.eventId}] status: ${e}`)
+            logger.info(`Unexpected Error occurred while updating event [${tx.eventId}] with status: [${e}]`)
         }
     }
 
@@ -296,15 +300,15 @@ class TxAgreement {
      * iterates over active transaction and resend its request
      */
     resendTransactionRequests = (): void => {
-        console.log(`resending generated transactions for agreement: ${this.transactions.size}`)
-        const creatorId = Configs.guardId
+        const creatorId = guardConfig.guardId
+        logger.info(`Resending generated transactions for agreement: [${this.transactions.size}]`)
         this.transactions.forEach(tx => {
             try {
                 const guardSignature = tx.signMetaData()
                 this.broadcastTransactionRequest(tx, creatorId, guardSignature)
             }
             catch (e) {
-                console.log(`Unexpected Error occurred while resending tx [${tx.txId}]: ${e}`)
+                logger.info(`Unexpected Error occurred while resending tx [${tx.txId}]: ${e}`)
             }
         })
     }
@@ -313,7 +317,7 @@ class TxAgreement {
      * clears all pending for agreement txs in memory
      */
     clearTransactions = (): void => {
-        console.log(`clearing generated transactions from memory: ${this.transactions.size}`)
+        logger.info(`Clearing generated transactions from memory: [${this.transactions.size}]`)
         this.transactions.clear()
         this.transactionApprovals.clear()
     }
@@ -322,7 +326,7 @@ class TxAgreement {
      * clears all pending for approval txs in memory and db
      */
     clearAgreedTransactions = async (): Promise<void> => {
-        console.log(`clearing agreed transactions from memory: ${this.transactions.size}`)
+        logger.info(`Clearing agreed transactions from memory: [${this.transactions.size}]`)
         this.transactions.clear()
         this.eventAgreedTransactions.clear()
     }

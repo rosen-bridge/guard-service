@@ -16,7 +16,8 @@ interface Box {
     ergoTree: string,
     address: string,
     value: bigint,
-    assets: Asset[]
+    assets: Asset[],
+    additionalRegisters: {[key: string]: ExplorerRegister};
 }
 
 interface Boxes {
