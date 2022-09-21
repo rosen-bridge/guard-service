@@ -1,6 +1,6 @@
 interface GuardSecretInfo {
-    guardId: number
-    secretKey: string
+  guardId: number;
+  secretKey: string;
 }
 
-export { GuardSecretInfo }
+export { GuardSecretInfo };
