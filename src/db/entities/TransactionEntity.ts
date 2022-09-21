@@ -1,31 +1,26 @@
-import { Column, Entity, PrimaryColumn, ManyToOne, Relation } from "typeorm";
-import { ConfirmedEventEntity } from "./ConfirmedEventEntity";
+import { Column, Entity, PrimaryColumn, ManyToOne, Relation } from 'typeorm';
+import { ConfirmedEventEntity } from './ConfirmedEventEntity';
 
 @Entity()
 export class TransactionEntity {
-    @PrimaryColumn()
-    txId: string
+  @PrimaryColumn()
+  txId: string;
 
-    @Column()
-    txJson: string
+  @Column()
+  txJson: string;
 
-    @Column()
-    type: string
+  @Column()
+  type: string;
 
-    @Column()
-    chain: string
+  @Column()
+  chain: string;
 
-    @Column()
-    status: string
+  @Column()
+  status: string;
 
-    @Column()
-    lastCheck: number
+  @Column()
+  lastCheck: number;
 
-    @ManyToOne(
-        "ConfirmedEventEntity",
-        "eventId",
-        {cascade: true}
-    )
-    event: Relation<ConfirmedEventEntity>
-
+  @ManyToOne('ConfirmedEventEntity', 'eventId', { cascade: true })
+  event: Relation<ConfirmedEventEntity>;
 }
