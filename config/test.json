@@ -1,55 +1,52 @@
 {
-    "cardano": {
-        "koios": {
-            "url": "https://testnet.koios.rest/api/v0",
-            "timeout": 8000
-        },
-        "blockFrost": {
-            "projectId": "change me",
-            "isTestnet": true
-        },
-        "bankAddress": "addr_test1qrm4haxxgl55kqzhpp3sda8h979gxd4cast340v0eh0p4qzp3vkcrhjqavv9uzsvq86mglwnwe8xp87q3rv8ve54kasqlf7xgl",
-        "bankPublicKey": "bcb07faa6c0f19e2f2587aa9ef6f43a68fc0135321216a71dc87c8527af4ca6a",
-        "txMinimumLovelace": "1551690",
-        "txFee": "200000",
-        "txTtl": 1000000,
-        "requiredConfirmation": 20,
-        "lockAddresses": [
-            "addr_test1vze7yqqlg8cjlyhz7jzvsg0f3fhxpuu6m3llxrajfzqecggw704re"
-        ]
+  "cardano": {
+    "koios": {
+      "url": "https://testnet.koios.rest/api/v0",
+      "timeout": 8000
     },
-    "ergo": {
-        "explorer": {
-            "url": "https://testnet.koios.rest/api/v0",
-            "timeout": 8000
-        },
-        "node": {
-            "url": "https://testnet.koios.rest/api/v0",
-            "timeout": 8000
-        },
-        "minimumErg": "100000",
-        "txFee": "1100000",
-        "requiredConfirmation": 20
+    "blockFrost": {
+      "projectId": "change me",
+      "isTestnet": true
     },
-    "reward": {
-        "bridgeFeeRepoAddress": "9gtQHPp8yh2SC7z5ZLMHnK2NNW1DUW11hBKbUEADzqCSrECoQQM",
-        "networkFeeRepoAddress": "9es3xKFSehNNwCpuNpY31ScAubDqeLbSWwaCysjN1ee51bgHKTq",
-        "watchersSharePercent": 50,
-        "watchersRSNSharePercent": 0
+    "bankAddress": "addr_test1qrm4haxxgl55kqzhpp3sda8h979gxd4cast340v0eh0p4qzp3vkcrhjqavv9uzsvq86mglwnwe8xp87q3rv8ve54kasqlf7xgl",
+    "bankPublicKey": "bcb07faa6c0f19e2f2587aa9ef6f43a68fc0135321216a71dc87c8527af4ca6a",
+    "txMinimumLovelace": "1551690",
+    "txFee": "200000",
+    "txTtl": 1000000,
+    "requiredConfirmation": 20,
+    "lockAddresses": [
+      "addr_test1vze7yqqlg8cjlyhz7jzvsg0f3fhxpuu6m3llxrajfzqecggw704re"
+    ]
+  },
+  "ergo": {
+    "explorer": {
+      "url": "https://testnet.koios.rest/api/v0",
+      "timeout": 8000
     },
-    "guard": {
-        "secret": "79a25ff592e5a96dc5381d0649fb6bd61ba0ff67d934057812f1ad09a9d554eb"
+    "node": {
+      "url": "https://testnet.koios.rest/api/v0",
+      "timeout": 8000
     },
-    "multiSigTimeout": 1,
-    "p2p": {
-        "peerIdFilePath": "./peer-dialer.json"
-    },
-    "contracts": {
-        "networks": [
-            "ergo-testnet",
-            "cardano-testnet"
-        ],
-        "addressesBasePath": "tests/helpers/addresses/"
-    },
-    "tokensPath": "tests/helpers/tokens.test.json"
+    "minimumErg": "100000",
+    "txFee": "1100000",
+    "requiredConfirmation": 20
+  },
+  "reward": {
+    "bridgeFeeRepoAddress": "9gtQHPp8yh2SC7z5ZLMHnK2NNW1DUW11hBKbUEADzqCSrECoQQM",
+    "networkFeeRepoAddress": "9es3xKFSehNNwCpuNpY31ScAubDqeLbSWwaCysjN1ee51bgHKTq",
+    "watchersSharePercent": 50,
+    "watchersRSNSharePercent": 0
+  },
+  "guard": {
+    "secret": "79a25ff592e5a96dc5381d0649fb6bd61ba0ff67d934057812f1ad09a9d554eb"
+  },
+  "multiSigTimeout": 1,
+  "p2p": {
+    "peerIdFilePath": "./peer-dialer.json"
+  },
+  "contracts": {
+    "networks": ["ergo-testnet", "cardano-testnet"],
+    "addressesBasePath": "tests/helpers/addresses/"
+  },
+  "tokensPath": "tests/helpers/tokens.test.json"
 }

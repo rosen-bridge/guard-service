@@ -1,10 +1,10 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class migration1661258303072 implements MigrationInterface {
-    name = 'migration1661258303072'
+  name = 'migration1661258303072';
 
-    public async up(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`
+  public async up(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`
             CREATE TABLE "block_entity" (
                 "id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, 
                 "height" integer NOT NULL, 
@@ -20,7 +20,7 @@ export class migration1661258303072 implements MigrationInterface {
                     UNIQUE ("height", "scanner")
             )
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE TABLE "permit_entity" (
                 "id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, 
                 "extractor" varchar NOT NULL, 
@@ -35,7 +35,7 @@ export class migration1661258303072 implements MigrationInterface {
                     UNIQUE ("boxId", "extractor")
             )
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE TABLE "event_trigger_entity" (
                 "id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, 
                 "extractor" varchar NOT NULL, 
@@ -59,7 +59,7 @@ export class migration1661258303072 implements MigrationInterface {
                     UNIQUE ("boxId", "extractor")
             )
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE TABLE "commitment_entity" (
                 "id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, 
                 "extractor" varchar NOT NULL, 
@@ -76,7 +76,7 @@ export class migration1661258303072 implements MigrationInterface {
                     UNIQUE ("boxId", "extractor")
             )
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE TABLE "confirmed_event_entity" (
                 "id" varchar PRIMARY KEY NOT NULL, 
                 "status" varchar NOT NULL, 
@@ -90,7 +90,7 @@ export class migration1661258303072 implements MigrationInterface {
                         ON UPDATE NO ACTION
             )
         `);
-        await queryRunner.query(`
+    await queryRunner.query(`
             CREATE TABLE "transaction_entity" (
                 "txId" varchar PRIMARY KEY NOT NULL, 
                 "txJson" varchar NOT NULL, 
@@ -106,15 +106,14 @@ export class migration1661258303072 implements MigrationInterface {
                         ON UPDATE NO ACTION
             )
         `);
-    }
+  }
 
-    public async down(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`DROP TABLE "commitment_entity"`);
-        await queryRunner.query(`DROP TABLE "event_trigger_entity"`);
-        await queryRunner.query(`DROP TABLE "permit_entity"`);
-        await queryRunner.query(`DROP TABLE "transaction_entity"`);
-        await queryRunner.query(`DROP TABLE "confirmed_event_entity"`);
-        await queryRunner.query(`DROP TABLE "block_entity"`);
-    }
-
+  public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(`DROP TABLE "commitment_entity"`);
+    await queryRunner.query(`DROP TABLE "event_trigger_entity"`);
+    await queryRunner.query(`DROP TABLE "permit_entity"`);
+    await queryRunner.query(`DROP TABLE "transaction_entity"`);
+    await queryRunner.query(`DROP TABLE "confirmed_event_entity"`);
+    await queryRunner.query(`DROP TABLE "block_entity"`);
+  }
 }

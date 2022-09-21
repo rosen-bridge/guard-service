@@ -1,59 +1,58 @@
-import { BigNum, MultiAsset } from "@emurgo/cardano-serialization-lib-nodejs";
-import { components } from "@blockfrost/blockfrost-js/lib/types/OpenApi";
+import { BigNum, MultiAsset } from '@emurgo/cardano-serialization-lib-nodejs';
+import { components } from '@blockfrost/blockfrost-js/lib/types/OpenApi';
 
 interface Asset {
-    policy_id: string,
-    asset_name: string,
-    quantity: string
+  policy_id: string;
+  asset_name: string;
+  quantity: string;
 }
 
 interface Utxo {
-    payment_addr: {
-        bech32: string
-    },
-    tx_hash: string,
-    tx_index: number,
-    value: string,
-    asset_list: Array<Asset>
+  payment_addr: {
+    bech32: string;
+  };
+  tx_hash: string;
+  tx_index: number;
+  value: string;
+  asset_list: Array<Asset>;
 }
 
 interface UtxoBoxesAssets {
-    lovelace: BigNum,
-    assets: MultiAsset
+  lovelace: BigNum;
+  assets: MultiAsset;
 }
 
-
 interface MetaData {
-    key: string;
-    json: JSON;
+  key: string;
+  json: JSON;
 }
 
 interface RosenData {
-    toChain: string,
-    toAddress: string,
-    bridgeFee: string,
-    networkFee: string,
+  toChain: string;
+  toAddress: string;
+  bridgeFee: string;
+  networkFee: string;
 }
 
 interface KoiosTransaction {
-    tx_hash: string;
-    block_hash: string;
-    inputs: Array<Utxo>;
-    outputs: Array<Utxo>;
-    metadata?: Array<MetaData>;
+  tx_hash: string;
+  block_hash: string;
+  inputs: Array<Utxo>;
+  outputs: Array<Utxo>;
+  metadata?: Array<MetaData>;
 }
 
-type TxUtxos = components['schemas']['tx_content_utxo']
+type TxUtxos = components['schemas']['tx_content_utxo'];
 
-type AddressUtxos = components['schemas']['address_utxo_content']
+type AddressUtxos = components['schemas']['address_utxo_content'];
 
 export type {
-    Utxo,
-    Asset,
-    UtxoBoxesAssets,
-    TxUtxos,
-    AddressUtxos,
-    KoiosTransaction,
-    MetaData,
-    RosenData
+  Utxo,
+  Asset,
+  UtxoBoxesAssets,
+  TxUtxos,
+  AddressUtxos,
+  KoiosTransaction,
+  MetaData,
+  RosenData,
 };

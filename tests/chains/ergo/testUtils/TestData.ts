@@ -1,59 +1,85 @@
-import { Asset, ErgoBlockHeader, Register } from "../../../../src/chains/ergo/models/Interfaces";
-import { BlockHeaders, ErgoStateContext, PreHeader } from "ergo-lib-wasm-nodejs";
+import {
+  Asset,
+  ErgoBlockHeader,
+  Register,
+} from '../../../../src/chains/ergo/models/Interfaces';
+import {
+  BlockHeaders,
+  ErgoStateContext,
+  PreHeader,
+} from 'ergo-lib-wasm-nodejs';
 
 class TestData {
+  /**
+   * a mocked data that represents 10 block headers
+   */
+  static mockedBlockHeaderJson: ErgoBlockHeader[] = Array(10).fill({
+    extensionId:
+      '0000000000000000000000000000000000000000000000000000000000000000',
+    difficulty: '5275058176',
+    votes: '000000',
+    timestamp: 0,
+    size: 220,
+    stateRoot:
+      '000000000000000000000000000000000000000000000000000000000000000000',
+    height: 100000,
+    nBits: 0,
+    version: 2,
+    id: '0000000000000000000000000000000000000000000000000000000000000000',
+    adProofsRoot:
+      '0000000000000000000000000000000000000000000000000000000000000000',
+    transactionsRoot:
+      '0000000000000000000000000000000000000000000000000000000000000000',
+    extensionHash:
+      '0000000000000000000000000000000000000000000000000000000000000000',
+    powSolutions: {
+      pk: '03702266cae8daf75b7f09d4c23ad9cdc954849ee280eefae0d67bd97db4a68f6a',
+      w: '0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798',
+      n: '000000019cdfb631',
+      d: 0,
+    },
+    adProofsId:
+      '0000000000000000000000000000000000000000000000000000000000000000',
+    transactionsId:
+      '0000000000000000000000000000000000000000000000000000000000000000',
+    parentId:
+      '0000000000000000000000000000000000000000000000000000000000000000',
+  });
+  static mockedBlockHeaders = BlockHeaders.from_json(
+    TestData.mockedBlockHeaderJson
+  );
+  static mockedErgoStateContext: ErgoStateContext = new ErgoStateContext(
+    PreHeader.from_block_header(this.mockedBlockHeaders.get(0)),
+    this.mockedBlockHeaders
+  );
 
-    /**
-     * a mocked data that represents 10 block headers
-     */
-    static mockedBlockHeaderJson: ErgoBlockHeader[] = Array(10).fill({
-        "extensionId": "0000000000000000000000000000000000000000000000000000000000000000",
-        "difficulty": "5275058176",
-        "votes": "000000",
-        "timestamp": 0,
-        "size": 220,
-        "stateRoot": "000000000000000000000000000000000000000000000000000000000000000000",
-        "height": 100000,
-        "nBits": 0,
-        "version": 2,
-        "id": "0000000000000000000000000000000000000000000000000000000000000000",
-        "adProofsRoot": "0000000000000000000000000000000000000000000000000000000000000000",
-        "transactionsRoot": "0000000000000000000000000000000000000000000000000000000000000000",
-        "extensionHash": "0000000000000000000000000000000000000000000000000000000000000000",
-        "powSolutions": {
-            "pk": "03702266cae8daf75b7f09d4c23ad9cdc954849ee280eefae0d67bd97db4a68f6a",
-            "w": "0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798",
-            "n": "000000019cdfb631",
-            "d": 0
-        },
-        "adProofsId": "0000000000000000000000000000000000000000000000000000000000000000",
-        "transactionsId": "0000000000000000000000000000000000000000000000000000000000000000",
-        "parentId": "0000000000000000000000000000000000000000000000000000000000000000"
-    })
-    static mockedBlockHeaders = BlockHeaders.from_json(TestData.mockedBlockHeaderJson)
-    static mockedErgoStateContext: ErgoStateContext = new ErgoStateContext(
-        PreHeader.from_block_header(this.mockedBlockHeaders.get(0)),
-        this.mockedBlockHeaders
-    )
-
-    static mockTransactionInputBoxes = (boxIds: string[]): string => `[
-        ${boxIds.map(id => `{
+  static mockTransactionInputBoxes = (boxIds: string[]): string => `[
+        ${boxIds
+          .map(
+            (id) => `{
             "boxId": "${id}",
             "extension": {}
-        }`).join(",")}
-    ]`
+        }`
+          )
+          .join(',')}
+    ]`;
 
-    static mockTransactionFeeBox = `{
+  static mockTransactionFeeBox = `{
         "value": 1500000,
         "ergoTree": "1005040004000e36100204a00b08cd0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798ea02d192a39a8cc7a701730073011001020402d19683030193a38cc7b2a57300000193c2b2a57301007473027303830108cdeeac93b1a57304",
         "assets": [],
         "additionalRegisters": {},
         "creationHeight": 100000
-    }`
+    }`;
 
-    static tokenTransferringErgPaymentTransactionString = (boxIds: string[], targetAddressErgoTree: string,
-                                                           watcherBoxes: string[], bridgeFeeErgoTree: string,
-                                                           networkFeeErgoTree: string, bankAddressErgoTree: string): string  => `{
+  static tokenTransferringErgPaymentTransactionString = (
+    boxIds: string[],
+    targetAddressErgoTree: string,
+    watcherBoxes: string[],
+    bridgeFeeErgoTree: string,
+    networkFeeErgoTree: string,
+    bankAddressErgoTree: string
+  ): string => `{
         "inputs": ${this.mockTransactionInputBoxes(boxIds)},
         "dataInputs": [],
         "outputs": [
@@ -69,7 +95,7 @@ class TestData {
                 "additionalRegisters": {},
                 "creationHeight": 100000
             },
-            ${watcherBoxes.join(",")},
+            ${watcherBoxes.join(',')},
             {
                 "value": 100000,
                 "ergoTree": "${bridgeFeeErgoTree}",
@@ -112,11 +138,16 @@ class TestData {
             },
             ${this.mockTransactionFeeBox}
         ]
-    }`
+    }`;
 
-    static ergOnlyTokenPaymentTransactionString = (boxIds: string[], targetAddressErgoTree: string,
-                                                   watcherBoxes: string[], bridgeFeeErgoTree: string,
-                                                   networkFeeErgoTree: string, bankAddressErgoTree: string): string  => `{
+  static ergOnlyTokenPaymentTransactionString = (
+    boxIds: string[],
+    targetAddressErgoTree: string,
+    watcherBoxes: string[],
+    bridgeFeeErgoTree: string,
+    networkFeeErgoTree: string,
+    bankAddressErgoTree: string
+  ): string => `{
         "inputs": ${this.mockTransactionInputBoxes(boxIds)},
         "dataInputs": [],
         "outputs": [
@@ -127,7 +158,7 @@ class TestData {
                 "additionalRegisters": {},
                 "creationHeight": 100000
             },
-            ${watcherBoxes.join(",")},
+            ${watcherBoxes.join(',')},
             {
                 "value": 100000,
                 "ergoTree": "${bridgeFeeErgoTree}",
@@ -170,11 +201,16 @@ class TestData {
             },
             ${this.mockTransactionFeeBox}
         ]
-    }`
+    }`;
 
-    static multipleTokenTransferringTokenPaymentTransactionString = (boxIds: string[], targetAddressErgoTree: string,
-                                                                     watcherBoxes: string[], bridgeFeeErgoTree: string,
-                                                                     networkFeeErgoTree: string, bankAddressErgoTree: string): string  => `{
+  static multipleTokenTransferringTokenPaymentTransactionString = (
+    boxIds: string[],
+    targetAddressErgoTree: string,
+    watcherBoxes: string[],
+    bridgeFeeErgoTree: string,
+    networkFeeErgoTree: string,
+    bankAddressErgoTree: string
+  ): string => `{
         "inputs": ${this.mockTransactionInputBoxes(boxIds)},
         "dataInputs": [],
         "outputs": [
@@ -194,7 +230,7 @@ class TestData {
                 "additionalRegisters": {},
                 "creationHeight": 100000
             },
-            ${watcherBoxes.join(",")},
+            ${watcherBoxes.join(',')},
             {
                 "value": 100000,
                 "ergoTree": "${bridgeFeeErgoTree}",
@@ -237,11 +273,16 @@ class TestData {
             },
             ${this.mockTransactionFeeBox}
         ]
-    }`
+    }`;
 
-    static wrongTokenTransferringTokenPaymentTransactionString = (boxIds: string[], targetAddressErgoTree: string,
-                                                                  watcherBoxes: string[], bridgeFeeErgoTree: string,
-                                                                  networkFeeErgoTree: string, bankAddressErgoTree: string): string  => `{
+  static wrongTokenTransferringTokenPaymentTransactionString = (
+    boxIds: string[],
+    targetAddressErgoTree: string,
+    watcherBoxes: string[],
+    bridgeFeeErgoTree: string,
+    networkFeeErgoTree: string,
+    bankAddressErgoTree: string
+  ): string => `{
         "inputs": ${this.mockTransactionInputBoxes(boxIds)},
         "dataInputs": [],
         "outputs": [
@@ -257,7 +298,7 @@ class TestData {
                 "additionalRegisters": {},
                 "creationHeight": 100000
             },
-            ${watcherBoxes.join(",")},
+            ${watcherBoxes.join(',')},
             {
                 "value": 100000,
                 "ergoTree": "${bridgeFeeErgoTree}",
@@ -300,13 +341,19 @@ class TestData {
             },
             ${this.mockTransactionFeeBox}
         ]
-    }`
+    }`;
 
-    static tokenTransferringErgRewardDistributionTxString = (boxIds: string[], watcherBoxes: string[], bridgeFeeErgoTree: string, networkFeeErgoTree: string, bankAddressErgoTree: string): string  => `{
+  static tokenTransferringErgRewardDistributionTxString = (
+    boxIds: string[],
+    watcherBoxes: string[],
+    bridgeFeeErgoTree: string,
+    networkFeeErgoTree: string,
+    bankAddressErgoTree: string
+  ): string => `{
         "inputs": ${this.mockTransactionInputBoxes(boxIds)},
         "dataInputs": [],
         "outputs": [
-            ${watcherBoxes.join(",")},
+            ${watcherBoxes.join(',')},
             {
                 "value": 500000003,
                 "ergoTree": "${bridgeFeeErgoTree}",
@@ -349,13 +396,19 @@ class TestData {
             },
             ${this.mockTransactionFeeBox}
         ]
-    }`
+    }`;
 
-    static tokenRewardDistributionTxString = (boxIds: string[], watcherBoxes: string[], bridgeFeeErgoTree: string, networkFeeErgoTree: string, bankAddressErgoTree: string): string  => `{
+  static tokenRewardDistributionTxString = (
+    boxIds: string[],
+    watcherBoxes: string[],
+    bridgeFeeErgoTree: string,
+    networkFeeErgoTree: string,
+    bankAddressErgoTree: string
+  ): string => `{
         "inputs": ${this.mockTransactionInputBoxes(boxIds)},
         "dataInputs": [],
         "outputs": [
-            ${watcherBoxes.join(",")},
+            ${watcherBoxes.join(',')},
             {
                 "value": 100000,
                 "ergoTree": "${bridgeFeeErgoTree}",
@@ -398,13 +451,19 @@ class TestData {
             },
             ${this.mockTransactionFeeBox}
         ]
-    }`
+    }`;
 
-    static illegalChangeBoxTokenRewardDistributionTxString = (boxIds: string[], watcherBoxes: string[], bridgeFeeErgoTree: string, networkFeeErgoTree: string, nonBankAddressErgoTree: string): string  => `{
+  static illegalChangeBoxTokenRewardDistributionTxString = (
+    boxIds: string[],
+    watcherBoxes: string[],
+    bridgeFeeErgoTree: string,
+    networkFeeErgoTree: string,
+    nonBankAddressErgoTree: string
+  ): string => `{
         "inputs": ${this.mockTransactionInputBoxes(boxIds)},
         "dataInputs": [],
         "outputs": [
-            ${watcherBoxes.join(",")},
+            ${watcherBoxes.join(',')},
             {
                 "value": 100000,
                 "ergoTree": "${bridgeFeeErgoTree}",
@@ -447,13 +506,19 @@ class TestData {
             },
             ${this.mockTransactionFeeBox}
         ]
-    }`
+    }`;
 
-    static wrongTokenRewardDistributionTxString = (boxIds: string[], watcherBoxes: string[], bridgeFeeErgoTree: string, networkFeeErgoTree: string, bankAddressErgoTree: string): string  => `{
+  static wrongTokenRewardDistributionTxString = (
+    boxIds: string[],
+    watcherBoxes: string[],
+    bridgeFeeErgoTree: string,
+    networkFeeErgoTree: string,
+    bankAddressErgoTree: string
+  ): string => `{
         "inputs": ${this.mockTransactionInputBoxes(boxIds)},
         "dataInputs": [],
         "outputs": [
-            ${watcherBoxes.join(",")},
+            ${watcherBoxes.join(',')},
             {
                 "value": 100000,
                 "ergoTree": "${bridgeFeeErgoTree}",
@@ -496,13 +561,19 @@ class TestData {
             },
             ${this.mockTransactionFeeBox}
         ]
-    }`
+    }`;
 
-    static wrongTokenAmountRewardDistributionTxString = (boxIds: string[], watcherBoxes: string[], bridgeFeeErgoTree: string, networkFeeErgoTree: string, bankAddressErgoTree: string): string  => `{
+  static wrongTokenAmountRewardDistributionTxString = (
+    boxIds: string[],
+    watcherBoxes: string[],
+    bridgeFeeErgoTree: string,
+    networkFeeErgoTree: string,
+    bankAddressErgoTree: string
+  ): string => `{
         "inputs": ${this.mockTransactionInputBoxes(boxIds)},
         "dataInputs": [],
         "outputs": [
-            ${watcherBoxes.join(",")},
+            ${watcherBoxes.join(',')},
             {
                 "value": 100000,
                 "ergoTree": "${bridgeFeeErgoTree}",
@@ -545,27 +616,46 @@ class TestData {
             },
             ${this.mockTransactionFeeBox}
         ]
-    }`
+    }`;
 
-    static mockWatcherPermitBox = (value: bigint, assets: Asset[], boxErgoTree: string, registers: Register[]): string => `{
+  static mockWatcherPermitBox = (
+    value: bigint,
+    assets: Asset[],
+    boxErgoTree: string,
+    registers: Register[]
+  ): string => `{
         "value": ${value.toString()},
         "ergoTree": "${boxErgoTree}",
         "assets": [
-            ${assets.map(asset => `{
+            ${assets
+              .map(
+                (asset) => `{
                 "tokenId": "${asset.tokenId}",
                 "amount": ${asset.amount}
-            }`).join(",")}
+            }`
+              )
+              .join(',')}
         ],
         "additionalRegisters": {
-            ${registers.map(reg => `"R${reg.registerId}": "${reg.value.encode_to_base16()}"`).join(",")}
+            ${registers
+              .map(
+                (reg) =>
+                  `"R${reg.registerId}": "${reg.value.encode_to_base16()}"`
+              )
+              .join(',')}
         },
         "creationHeight": 100000
-    }`
+    }`;
 
-    static tokenPaymentTransactionString = (boxIds: string[], targetAddressErgoTree: string,
-                                            watcherBoxes: string[], bridgeFeeErgoTree: string,
-                                            networkFeeErgoTree: string, bankAddressErgoTree: string,
-                                            tokenId: string): string  => `{
+  static tokenPaymentTransactionString = (
+    boxIds: string[],
+    targetAddressErgoTree: string,
+    watcherBoxes: string[],
+    bridgeFeeErgoTree: string,
+    networkFeeErgoTree: string,
+    bankAddressErgoTree: string,
+    tokenId: string
+  ): string => `{
         "inputs": ${this.mockTransactionInputBoxes(boxIds)},
         "dataInputs": [],
         "outputs": [
@@ -581,7 +671,7 @@ class TestData {
                 "additionalRegisters": {},
                 "creationHeight": 100000
             },
-            ${watcherBoxes.join(",")},
+            ${watcherBoxes.join(',')},
             {
                 "value": 100000,
                 "ergoTree": "${bridgeFeeErgoTree}",
@@ -624,12 +714,17 @@ class TestData {
             },
             ${this.mockTransactionFeeBox}
         ]
-    }`
+    }`;
 
-    static ergPaymentTransactionString = (boxIds: string[], targetAddressErgoTree: string,
-                                            watcherBoxes: string[], bridgeFeeErgoTree: string,
-                                            networkFeeErgoTree: string, bankAddressErgoTree: string,
-                                            tokenId: string): string  => `{
+  static ergPaymentTransactionString = (
+    boxIds: string[],
+    targetAddressErgoTree: string,
+    watcherBoxes: string[],
+    bridgeFeeErgoTree: string,
+    networkFeeErgoTree: string,
+    bankAddressErgoTree: string,
+    tokenId: string
+  ): string => `{
         "inputs": ${this.mockTransactionInputBoxes(boxIds)},
         "dataInputs": [],
         "outputs": [
@@ -640,7 +735,7 @@ class TestData {
                 "additionalRegisters": {},
                 "creationHeight": 100000
             },
-            ${watcherBoxes.join(",")},
+            ${watcherBoxes.join(',')},
             {
                 "value": 500000003,
                 "ergoTree": "${bridgeFeeErgoTree}",
@@ -673,15 +768,20 @@ class TestData {
             },
             ${this.mockTransactionFeeBox}
         ]
-    }`
+    }`;
 
-    static tokenDistributionTxString = (boxIds: string[], watcherBoxes: string[], bridgeFeeErgoTree: string,
-                                        networkFeeErgoTree: string, bankAddressErgoTree: string,
-                                        tokenId: string): string  => `{
+  static tokenDistributionTxString = (
+    boxIds: string[],
+    watcherBoxes: string[],
+    bridgeFeeErgoTree: string,
+    networkFeeErgoTree: string,
+    bankAddressErgoTree: string,
+    tokenId: string
+  ): string => `{
         "inputs": ${this.mockTransactionInputBoxes(boxIds)},
         "dataInputs": [],
         "outputs": [
-            ${watcherBoxes.join(",")},
+            ${watcherBoxes.join(',')},
             {
                 "value": 100000,
                 "ergoTree": "${bridgeFeeErgoTree}",
@@ -724,15 +824,20 @@ class TestData {
             },
             ${this.mockTransactionFeeBox}
         ]
-    }`
+    }`;
 
-    static ergDistributionTxString = (boxIds: string[], watcherBoxes: string[], bridgeFeeErgoTree: string,
-                                        networkFeeErgoTree: string, bankAddressErgoTree: string,
-                                        tokenId: string): string  => `{
+  static ergDistributionTxString = (
+    boxIds: string[],
+    watcherBoxes: string[],
+    bridgeFeeErgoTree: string,
+    networkFeeErgoTree: string,
+    bankAddressErgoTree: string,
+    tokenId: string
+  ): string => `{
         "inputs": ${this.mockTransactionInputBoxes(boxIds)},
         "dataInputs": [],
         "outputs": [
-            ${watcherBoxes.join(",")},
+            ${watcherBoxes.join(',')},
             {
                 "value": 500000003,
                 "ergoTree": "${bridgeFeeErgoTree}",
@@ -765,9 +870,9 @@ class TestData {
             },
             ${this.mockTransactionFeeBox}
         ]
-    }`
+    }`;
 
-    static mockedObservationTx = `
+  static mockedObservationTx = `
     {
       "id": "d04fc93dc15a28a1f0e50b0fffc94f360037dcedddaf8a2e25905a892cd48378",
       "blockId": "6e74499171d828ee51266d3b65011cf958afe551ce7a0d74e5f6aba9029ae90c",
@@ -911,9 +1016,9 @@ class TestData {
         }
       ],
       "size": 456
-    }`
+    }`;
 
-    static mockedErgObservationTx = `
+  static mockedErgObservationTx = `
     {
       "id": "000fc93dc15a28a1f0e50b0fffc94f360037dcedddaf8a2e25905a892cd48378",
       "blockId": "6e74499171d828ee51266d3b65011cf958afe551ce7a0d74e5f6aba9029ae90c",
@@ -1049,9 +1154,9 @@ class TestData {
         }
       ],
       "size": 456
-    }`
+    }`;
 
-    static mockedNonObservationTx = `
+  static mockedNonObservationTx = `
     {
       "id": "004fc93dc15a28a1f0e50b0fffc94f360037dcedddaf8a2e25905a892cd48378",
       "blockId": "6e74499171d828ee51266d3b65011cf958afe551ce7a0d74e5f6aba9029ae90c",
@@ -1164,15 +1269,21 @@ class TestData {
         }
       ],
       "size": 456
-    }`
+    }`;
 
-    static mockWrongAmountRSNOnlyRewardTx = (boxIds: string[], watcherBoxes: string[], bridgeFeeErgoTree: string,
-                                             networkFeeErgoTree: string, bankAddressErgoTree: string,
-                                             tokenId: string, rsnTokenId: string): string  => `{
+  static mockWrongAmountRSNOnlyRewardTx = (
+    boxIds: string[],
+    watcherBoxes: string[],
+    bridgeFeeErgoTree: string,
+    networkFeeErgoTree: string,
+    bankAddressErgoTree: string,
+    tokenId: string,
+    rsnTokenId: string
+  ): string => `{
         "inputs": ${this.mockTransactionInputBoxes(boxIds)},
         "dataInputs": [],
         "outputs": [
-            ${watcherBoxes.join(",")},
+            ${watcherBoxes.join(',')},
             {
                 "value": 1000000000,
                 "ergoTree": "${bridgeFeeErgoTree}",
@@ -1214,12 +1325,18 @@ class TestData {
             },
             ${this.mockTransactionFeeBox}
         ]
-    }`
+    }`;
 
-    static mockWrongAmountRSNOnlyPaymentTx = (boxIds: string[], targetAddressErgoTree: string,
-                                                           watcherBoxes: string[], bridgeFeeErgoTree: string,
-                                                           networkFeeErgoTree: string, bankAddressErgoTree: string,
-                                                           tokenId: string, rsnTokenId: string): string  => `{
+  static mockWrongAmountRSNOnlyPaymentTx = (
+    boxIds: string[],
+    targetAddressErgoTree: string,
+    watcherBoxes: string[],
+    bridgeFeeErgoTree: string,
+    networkFeeErgoTree: string,
+    bankAddressErgoTree: string,
+    tokenId: string,
+    rsnTokenId: string
+  ): string => `{
         "inputs": ${this.mockTransactionInputBoxes(boxIds)},
         "dataInputs": [],
         "outputs": [
@@ -1230,7 +1347,7 @@ class TestData {
                 "additionalRegisters": {},
                 "creationHeight": 100000
             },
-            ${watcherBoxes.join(",")},
+            ${watcherBoxes.join(',')},
             {
                 "value": 1000000000,
                 "ergoTree": "${bridgeFeeErgoTree}",
@@ -1272,8 +1389,7 @@ class TestData {
             },
             ${this.mockTransactionFeeBox}
         ]
-    }`
-
+    }`;
 }
 
-export default TestData
+export default TestData;
