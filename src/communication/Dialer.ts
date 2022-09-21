@@ -123,7 +123,6 @@ class Dialer {
     }
   };
 
-
   /**
    * @return list of subscribed channels' name
    */
@@ -285,7 +284,6 @@ class Dialer {
         logger.warn(
           "Message added to pending list due to dialer node isn't ready"
         );
-
       });
     }
 
@@ -369,16 +367,16 @@ class Dialer {
         if (this._SUBSCRIBED_CHANNELS[receivedData.channel]) {
           logger.info(
             `Received a message from [${connection.remotePeer.toString()}]
-             in a subscribed channel [${
-              receivedData.channel
-            } ]`
+             in a subscribed channel [${receivedData.channel} ]`
           );
           this._SUBSCRIBED_CHANNELS[receivedData.channel].forEach(
             runSubscribeCallback
           );
         } else
           logger.warn(
-            `Received a message from [${connection.remotePeer.toString()}] in a unsubscribed channel [${receivedData.channel}]`
+            `Received a message from [${connection.remotePeer.toString()}] in a unsubscribed channel [${
+              receivedData.channel
+            }]`
           );
       })
     );
