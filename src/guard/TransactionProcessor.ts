@@ -239,7 +239,7 @@ class TransactionProcessor {
       } catch (e) {
         logger.info('Unexpected Error occurred while sending tx to sign', {
           txId: tx.txId,
-          error: e,
+          error: e.message,
         });
         release();
       }
@@ -336,7 +336,7 @@ class TransactionProcessor {
         } catch (e) {
           logger.info(`An error occurred while fetching tx`, {
             txId: sourceTxId,
-            error: e,
+            error: e.message,
           });
           return false;
         }
