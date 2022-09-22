@@ -55,7 +55,7 @@ class Logger {
     });
 
     //in case of development environment logs should be written in console
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
       this.logger.add(
         new winston.transports.Console({
           format: winston.format.simple(),

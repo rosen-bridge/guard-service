@@ -807,16 +807,18 @@ describe('TransactionProcessor', () => {
     beforeEach('clear database tables', async () => {
       await clearTables();
       resetMockedExplorerApi();
+      MockedBlockFrost.resetMockedBlockFrostApi();
     });
 
     /**
      * Target: testing processSignFailedTx
      * Dependencies:
-     *    ExplorerApi
+     *    KoiosApi
      *    scannerAction
      * Scenario:
      *    Mock a Cardano event trigger and insert into db
      *    Mock a Cardano payment transaction based on mocked event and insert into db
+     *    Mock KoiosApi to return null when requested tx confirmation
      *    Mock BlockFrost for all inputs of the tx so at least one of them be spent or invalid
      *    Run test (execute processTransactions method of TransactionProcessor)
      *    Check events in db. Mocked event status should be updated to pendingPayment
@@ -825,13 +827,13 @@ describe('TransactionProcessor', () => {
      *    The function should update db
      */
     it('should set Cardano tx as invalid and set event as pending-payment when sign failed and one input is spent', async () => {
-      // mock erg payment event
+      // mock cardano payment event
       const mockedEvent: EventTrigger =
         CardanoTestBoxes.mockAssetPaymentEventTrigger();
       await insertEventRecord(mockedEvent, EventStatus.inPayment);
       const tx = CardanoTestBoxes.mockADAPaymentTransaction(mockedEvent);
       const lastCheck =
-        cardanoBlockchainHeight - ErgoConfigs.requiredConfirmation - 1;
+        cardanoBlockchainHeight - CardanoConfigs.requiredConfirmation - 1;
       await insertTxRecord(
         tx,
         TransactionTypes.payment,
@@ -840,6 +842,8 @@ describe('TransactionProcessor', () => {
         lastCheck,
         tx.eventId
       );
+
+      mockKoiosGetTxConfirmation(tx.txId, null);
 
       // mock validation of tx input boxes
       const cardanoTx = TransactionProcessor.cardanoChain.deserialize(
@@ -870,6 +874,8 @@ describe('TransactionProcessor', () => {
      * Scenario:
      *    Mock an Ergo event trigger and insert into db
      *    Mock an Ergo payment transaction based on mocked event and insert into db
+     *    Mock ExplorerApi to return -1 when requested tx confirmation
+     *    Mock ExplorerApi to return false when requested if tx exists in mempool
      *    Mock ExplorerApi for all input boxes of the tx so at least one of them be spent or invalid
      *    Run test (execute processTransactions method of TransactionProcessor)
      *    Check events in db. Mocked event status should be updated to pendingPayment
@@ -896,6 +902,9 @@ describe('TransactionProcessor', () => {
         lastCheck,
         tx.eventId
       );
+
+      mockExplorerGetTxConfirmation(tx.txId, -1)
+      mockIsTxInMempool(tx.txId, false)
 
       // mock validation of tx input boxes
       for (let i = 0; i < tx.inputBoxes.length; i++) {
