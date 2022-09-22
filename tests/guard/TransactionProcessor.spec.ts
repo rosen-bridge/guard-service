@@ -814,6 +814,7 @@ describe('TransactionProcessor', () => {
      * Target: testing processSignFailedTx
      * Dependencies:
      *    KoiosApi
+     *    BlockFrostApi
      *    scannerAction
      * Scenario:
      *    Mock a Cardano event trigger and insert into db
@@ -869,6 +870,99 @@ describe('TransactionProcessor', () => {
     /**
      * Target: testing processSignFailedTx
      * Dependencies:
+     *    KoiosApi
+     *    BlockFrostApi
+     *    scannerAction
+     * Scenario:
+     *    Mock a Cardano event trigger and insert into db
+     *    Mock a Cardano payment transaction based on mocked event and insert into db
+     *    Mock KoiosApi to return null when requested tx confirmation
+     *    Mock BlockFrost for all inputs of the tx to be unspent and valid
+     *    Run test (execute processTransactions method of TransactionProcessor)
+     *    Check CardanoChain requestToSignTransaction method. It should have called 1 time with mocked tx
+     * Expected Output:
+     *    The function should send tx to sign
+     */
+    it('should resend Cardano tx to sign when sign failed but all inputs are still unspent and valid', async () => {
+      // mock cardano payment event
+      const mockedEvent: EventTrigger =
+        CardanoTestBoxes.mockAssetPaymentEventTrigger();
+      await insertEventRecord(mockedEvent, EventStatus.inPayment);
+      const tx = CardanoTestBoxes.mockADAPaymentTransaction(mockedEvent);
+      const lastCheck =
+        cardanoBlockchainHeight - CardanoConfigs.requiredConfirmation - 1;
+      await insertTxRecord(
+        tx,
+        TransactionTypes.payment,
+        ChainsConstants.cardano,
+        TransactionStatus.signFailed,
+        lastCheck,
+        tx.eventId
+      );
+
+      mockKoiosGetTxConfirmation(tx.txId, null);
+
+      // mock validation of tx input boxes
+      const cardanoTx = TransactionProcessor.cardanoChain.deserialize(
+        tx.txBytes
+      );
+      MockedBlockFrost.mockInputProcessingMethods(cardanoTx, true);
+      mockedCardanoChain.mockRequestToSignTransaction(tx);
+
+      // run test
+      await TransactionProcessor.processTransactions();
+
+      // verify
+      mockedCardanoChain.verifyRequestToSignTransactionCalledOnce(tx);
+    });
+
+    /**
+     * Target: testing processSignFailedTx
+     * Dependencies:
+     *    KoiosApi
+     *    scannerAction
+     * Scenario:
+     *    Mock a Cardano event trigger and insert into db
+     *    Mock a Cardano payment transaction based on mocked event and insert into db
+     *    Mock KoiosApi to return 2 when requested tx confirmation
+     *    Run test (execute processTransactions method of TransactionProcessor)
+     *    Check transactions in db. Mocked transaction status should be updated to sent
+     * Expected Output:
+     *    The function should update db
+     */
+    it('should set Cardano tx as sent when sign failed but tx found in network', async () => {
+      // mock cardano payment event
+      const mockedEvent: EventTrigger =
+        CardanoTestBoxes.mockAssetPaymentEventTrigger();
+      await insertEventRecord(mockedEvent, EventStatus.inPayment);
+      const tx = CardanoTestBoxes.mockADAPaymentTransaction(mockedEvent);
+      const lastCheck =
+        cardanoBlockchainHeight - CardanoConfigs.requiredConfirmation - 1;
+      await insertTxRecord(
+        tx,
+        TransactionTypes.payment,
+        ChainsConstants.cardano,
+        TransactionStatus.signFailed,
+        lastCheck,
+        tx.eventId
+      );
+
+      mockKoiosGetTxConfirmation(tx.txId, 2);
+
+      // run test
+      await TransactionProcessor.processTransactions();
+
+      // verify
+      const dbTxs = await allTxRecords();
+      expect(dbTxs.map((tx) => [tx.txId, tx.status])[0]).to.deep.equal([
+        tx.txId,
+        TransactionStatus.sent,
+      ]);
+    });
+
+    /**
+     * Target: testing processSignFailedTx
+     * Dependencies:
      *    ExplorerApi
      *    scannerAction
      * Scenario:
@@ -903,8 +997,8 @@ describe('TransactionProcessor', () => {
         tx.eventId
       );
 
-      mockExplorerGetTxConfirmation(tx.txId, -1)
-      mockIsTxInMempool(tx.txId, false)
+      mockExplorerGetTxConfirmation(tx.txId, -1);
+      mockIsTxInMempool(tx.txId, false);
 
       // mock validation of tx input boxes
       for (let i = 0; i < tx.inputBoxes.length; i++) {
@@ -928,6 +1022,157 @@ describe('TransactionProcessor', () => {
       expect(dbTxs.map((tx) => [tx.txId, tx.status])[0]).to.deep.equal([
         tx.txId,
         TransactionStatus.invalid,
+      ]);
+    });
+
+    /**
+     * Target: testing processSignFailedTx
+     * Dependencies:
+     *    ExplorerApi
+     *    scannerAction
+     * Scenario:
+     *    Mock an Ergo event trigger and insert into db
+     *    Mock an Ergo payment transaction based on mocked event and insert into db
+     *    Mock ExplorerApi to return -1 when requested tx confirmation
+     *    Mock ExplorerApi to return false when requested if tx exists in mempool
+     *    Mock ExplorerApi for all input boxes of the tx to be unspent and valid
+     *    Run test (execute processTransactions method of TransactionProcessor)
+     *    Check ErgoChain requestToSignTransaction method. It should have called 1 time with mocked tx
+     * Expected Output:
+     *    The function should send tx to sign
+     */
+    it('should resend Ergo tx to sign when sign failed but all inputs are still unspent and valid', async () => {
+      // mock erg payment event
+      const mockedEvent: EventTrigger =
+        ErgoTestBoxes.mockTokenRewardEventTrigger();
+      await insertEventRecord(mockedEvent, EventStatus.inPayment);
+      const tx = ErgoTestBoxes.mockTokenBurningTokenDistributionTransaction(
+        mockedEvent,
+        eventBoxAndCommitments
+      );
+      const lastCheck =
+        ergoBlockchainHeight - ErgoConfigs.requiredConfirmation - 1;
+      await insertTxRecord(
+        tx,
+        TransactionTypes.payment,
+        ChainsConstants.ergo,
+        TransactionStatus.signFailed,
+        lastCheck,
+        tx.eventId
+      );
+
+      mockExplorerGetTxConfirmation(tx.txId, -1);
+      mockIsTxInMempool(tx.txId, false);
+
+      // mock validation of tx input boxes
+      for (let i = 0; i < tx.inputBoxes.length; i++) {
+        const boxBytes = tx.inputBoxes[i];
+        const box = ErgoBox.sigma_parse_bytes(boxBytes);
+        mockIsBoxUnspentAndValid(box.box_id().to_str(), true);
+      }
+      mockedErgoChain.mockRequestToSignTransaction(tx);
+
+      // run test
+      await TransactionProcessor.processTransactions();
+
+      // verify
+      mockedErgoChain.verifyRequestToSignTransactionCalledOnce(tx);
+    });
+
+    /**
+     * Target: testing processSignFailedTx
+     * Dependencies:
+     *    ExplorerApi
+     *    scannerAction
+     * Scenario:
+     *    Mock an Ergo event trigger and insert into db
+     *    Mock an Ergo payment transaction based on mocked event and insert into db
+     *    Mock ExplorerApi to return 2 when requested tx confirmation
+     *    Run test (execute processTransactions method of TransactionProcessor)
+     *    Check events in db. Mocked event status should be updated to pendingPayment
+     *    Check transactions in db. Mocked transaction status should be updated to sent
+     * Expected Output:
+     *    The function should update db
+     */
+    it('should set Ergo tx as sent when sign failed but tx found in network', async () => {
+      // mock erg payment event
+      const mockedEvent: EventTrigger =
+        ErgoTestBoxes.mockTokenRewardEventTrigger();
+      await insertEventRecord(mockedEvent, EventStatus.inPayment);
+      const tx = ErgoTestBoxes.mockTokenBurningTokenDistributionTransaction(
+        mockedEvent,
+        eventBoxAndCommitments
+      );
+      const lastCheck =
+        ergoBlockchainHeight - ErgoConfigs.requiredConfirmation - 1;
+      await insertTxRecord(
+        tx,
+        TransactionTypes.payment,
+        ChainsConstants.ergo,
+        TransactionStatus.signFailed,
+        lastCheck,
+        tx.eventId
+      );
+
+      mockExplorerGetTxConfirmation(tx.txId, 2);
+
+      // run test
+      await TransactionProcessor.processTransactions();
+
+      // verify
+      const dbTxs = await allTxRecords();
+      expect(dbTxs.map((tx) => [tx.txId, tx.status])[0]).to.deep.equal([
+        tx.txId,
+        TransactionStatus.sent,
+      ]);
+    });
+
+    /**
+     * Target: testing processSignFailedTx
+     * Dependencies:
+     *    ExplorerApi
+     *    scannerAction
+     * Scenario:
+     *    Mock an Ergo event trigger and insert into db
+     *    Mock an Ergo payment transaction based on mocked event and insert into db
+     *    Mock ExplorerApi to return -1 when requested tx confirmation
+     *    Mock ExplorerApi to return true when requested if tx exists in mempool
+     *    Run test (execute processTransactions method of TransactionProcessor)
+     *    Check transactions in db. Mocked transaction status should be updated to sent
+     * Expected Output:
+     *    The function should update db
+     */
+    it('should set Ergo tx as sent when sign failed but tx is in mempool', async () => {
+      // mock erg payment event
+      const mockedEvent: EventTrigger =
+        ErgoTestBoxes.mockTokenRewardEventTrigger();
+      await insertEventRecord(mockedEvent, EventStatus.inPayment);
+      const tx = ErgoTestBoxes.mockTokenBurningTokenDistributionTransaction(
+        mockedEvent,
+        eventBoxAndCommitments
+      );
+      const lastCheck =
+        ergoBlockchainHeight - ErgoConfigs.requiredConfirmation - 1;
+      await insertTxRecord(
+        tx,
+        TransactionTypes.payment,
+        ChainsConstants.ergo,
+        TransactionStatus.signFailed,
+        lastCheck,
+        tx.eventId
+      );
+
+      mockExplorerGetTxConfirmation(tx.txId, -1);
+      mockIsTxInMempool(tx.txId, true);
+
+      // run test
+      await TransactionProcessor.processTransactions();
+
+      // verify
+      const dbTxs = await allTxRecords();
+      expect(dbTxs.map((tx) => [tx.txId, tx.status])[0]).to.deep.equal([
+        tx.txId,
+        TransactionStatus.sent,
       ]);
     });
   });

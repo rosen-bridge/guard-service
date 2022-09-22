@@ -389,10 +389,9 @@ class TransactionProcessor {
         const paymentTx = PaymentTransaction.fromJson(tx.txJson);
         if (await this.isCardanoTxInputsValid(paymentTx)) {
           // tx is valid. resending to sign...
-          logger.info(
-              `Resending Cardano tx to sign process`,
-              { txId: tx.txId }
-          );
+          logger.info(`Resending Cardano tx to sign process`, {
+            txId: tx.txId,
+          });
           await this.processApprovedTx(tx);
         } else {
           // tx is invalid. reset status if enough blocks past.
@@ -400,10 +399,9 @@ class TransactionProcessor {
         }
       } else {
         // tx found in network. set status as sent
-        logger.info(
-            `Cardano tx found in blockchain. updating status to sent`,
-            { txId: tx.txId }
-        );
+        logger.info(`Cardano tx found in blockchain. updating status to sent`, {
+          txId: tx.txId,
+        });
         await dbAction.setTxStatus(tx.txId, TransactionStatus.sent);
       }
     } else if (tx.chain === ChainsConstants.ergo) {
@@ -412,10 +410,7 @@ class TransactionProcessor {
         const ergoTx = ErgoTransaction.fromJson(tx.txJson);
         if (await this.isErgoTxInputsValid(ergoTx)) {
           // tx is valid. resending to sign...
-          logger.info(
-              `Resending Ergo tx to sign process`,
-              { txId: tx.txId }
-          );
+          logger.info(`Resending Ergo tx to sign process`, { txId: tx.txId });
           await this.processApprovedTx(tx);
         } else {
           // tx is invalid. reset status if enough blocks past.
@@ -423,10 +418,9 @@ class TransactionProcessor {
         }
       } else {
         // tx found in network. set status as sent
-        logger.info(
-            `Ergo tx found in blockchain. updating status to sent`,
-            { txId: tx.txId }
-        );
+        logger.info(`Ergo tx found in blockchain. updating status to sent`, {
+          txId: tx.txId,
+        });
         await dbAction.setTxStatus(tx.txId, TransactionStatus.sent);
       }
     } else {

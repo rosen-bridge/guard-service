@@ -39,8 +39,7 @@ class BlockFrostApi {
     try {
       return this.blockFrost.txSubmit(tx.to_bytes());
     } catch (e) {
-      const errorMessage =
-        `An error occurred while submitting tx using BlockFrost: ${e}`;
+      const errorMessage = `An error occurred while submitting tx using BlockFrost: ${e}`;
       logger.error(errorMessage);
       throw new Error(errorMessage);
     }

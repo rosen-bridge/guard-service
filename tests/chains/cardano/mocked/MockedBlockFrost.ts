@@ -4,7 +4,7 @@ import TestConfigs from '../../../testUtils/TestConfigs';
 import { Transaction } from '@emurgo/cardano-serialization-lib-nodejs';
 import TestBoxes from '../testUtils/TestBoxes';
 import Utils from '../../../../src/helpers/Utils';
-import { BlockfrostServerError } from "@blockfrost/blockfrost-js";
+import { BlockfrostServerError } from '@blockfrost/blockfrost-js';
 
 // test configs
 const testCurrentSlot: number = TestConfigs.cardano.currentSlot;
@@ -53,18 +53,19 @@ const mockInputProcessingMethods = (tx: Transaction, valid: boolean): void => {
   const boxIndexes: number[] = [];
   for (let i = 0; i < inputs.len(); i++) {
     const txHash = Utils.Uint8ArrayToHexString(
-        inputs.get(i).transaction_id().to_bytes()
+      inputs.get(i).transaction_id().to_bytes()
     );
 
     if (i === 0 && !valid) {
-      when(mockedBlockFrost.getTxUtxos(txHash)).thenThrow(new BlockfrostServerError({
-        status_code: 404,
-        message: "The requested component has not been found.",
-        error: "Not Found",
-        url: `unitTestUrl/txs/${txHash}`
-      }));
-    }
-    else {
+      when(mockedBlockFrost.getTxUtxos(txHash)).thenThrow(
+        new BlockfrostServerError({
+          status_code: 404,
+          message: 'The requested component has not been found.',
+          error: 'Not Found',
+          url: `unitTestUrl/txs/${txHash}`,
+        })
+      );
+    } else {
       const index = inputs.get(i).index();
       const mockedTx = TestBoxes.mockTxUtxos(txHash, index + 1, testAddress);
 
@@ -72,7 +73,6 @@ const mockInputProcessingMethods = (tx: Transaction, valid: boolean): void => {
       boxTxs.push(txHash);
       boxIndexes.push(index);
     }
-
   }
   const mockedAddress = TestBoxes.mockAddressUtxos(boxTxs, boxIndexes);
   when(mockedBlockFrost.getAddressUtxos(testAddress)).thenResolve(
