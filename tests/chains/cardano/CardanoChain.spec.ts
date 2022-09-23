@@ -190,6 +190,64 @@ describe('CardanoChain', () => {
       );
       expect(isValid).to.be.false;
     });
+
+    /**
+     * Target: testing verifyTransactionWithEvent
+     * Dependencies:
+     *    -
+     * Scenario:
+     *    Mock a valid eventTrigger
+     *    Create a valid mock payment transaction for the eventTrigger
+     *    Validates the transaction
+     * Expected Output:
+     *    It should verify the transaction
+     */
+    it('should accept a valid payment tx', async () => {
+      // mock asset payment event
+      const mockedEvent: EventTrigger =
+        TestBoxes.mockAssetPaymentEventTrigger();
+      const tx = TestBoxes.mockValidPaymentTransaction(
+        mockedEvent,
+        testBankAddress
+      );
+
+      // run test
+      const cardanoChain: CardanoChain = new CardanoChain();
+      const isValid = await cardanoChain.verifyTransactionWithEvent(
+        tx,
+        mockedEvent
+      );
+      expect(isValid).to.be.true;
+    });
+
+    /**
+     * Target: testing verifyTransactionWithEvent
+     * Dependencies:
+     *    -
+     * Scenario:
+     *    Mock a valid eventTrigger
+     *    Create an invalid mock payment transaction with metadata
+     *    Validates the transaction to false
+     * Expected Output:
+     *    It should NOT verify the transaction
+     */
+    it('should reject an invalid payment tx containing metadata', async () => {
+      // mock asset payment event
+      const mockedEvent: EventTrigger =
+        TestBoxes.mockAssetPaymentEventTrigger();
+      const tx = TestBoxes.mockPaymentTransactionWithMetadata(
+        mockedEvent,
+        testBankAddress
+      );
+
+      // run test
+      const cardanoChain: CardanoChain = new CardanoChain();
+      const isValid = await cardanoChain.verifyTransactionWithEvent(
+        tx,
+        mockedEvent
+      );
+      expect(isValid).to.be.false;
+    });
   });
 
   describe('requestToSignTransaction', () => {
