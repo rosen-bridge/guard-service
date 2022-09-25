@@ -72,7 +72,7 @@ class TransactionProcessor {
           }
         }
       } catch (e) {
-        logger.info(`An error occurred while processing tx`, {
+        logger.warn(`An error occurred while processing tx`, {
           txId: tx.txId,
           error: e.message,
         });
@@ -237,7 +237,7 @@ class TransactionProcessor {
         await this.getChainObject(tx.chain).requestToSignTransaction(paymentTx);
         release();
       } catch (e) {
-        logger.info('Unexpected Error occurred while sending tx to sign', {
+        logger.warn('Unexpected Error occurred while sending tx to sign', {
           txId: tx.txId,
           error: e.message,
         });
@@ -334,7 +334,7 @@ class TransactionProcessor {
           const txUtxos = await BlockFrostApi.getTxUtxos(sourceTxId);
           sourceTxs.set(sourceTxId, txUtxos);
         } catch (e) {
-          logger.info(`An error occurred while fetching tx`, {
+          logger.warn(`An error occurred while fetching tx`, {
             txId: sourceTxId,
             error: e.message,
           });
