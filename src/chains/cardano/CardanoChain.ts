@@ -35,7 +35,7 @@ import { dbAction } from '../../db/DatabaseAction';
 import Configs from '../../helpers/Configs';
 import { Buffer } from 'buffer';
 import Utils from '../../helpers/Utils';
-import { logger } from '../../log/Logger';
+import { logger, logThrowError } from '../../log/Logger';
 import { TssFailedSign, TssSuccessfulSign } from '../../models/Interfaces';
 
 class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
@@ -78,12 +78,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
           BigNum.from_str(utxo.value)
         );
       }
-
-      if (coveredLovelace < paymentAmount) {
-        throw new Error(
-          `An error occurred, theres is no enough lovelace in the bank`
-        );
-      }
+      if (coveredLovelace < paymentAmount) logThrowError(`An error occurred, theres is no enough lovelace in the bank`)
     } else {
       const lovelacePaymentAmount: BigNum = CardanoConfigs.txMinimumLovelace;
       const assetPaymentAmount: BigNum = BigNum.from_str(event.amount)
@@ -154,11 +149,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
           );
         }
         utxosWithAsset.splice(i, utxosWithAsset.length - i);
-        if (covered < assetPaymentAmount) {
-          throw new Error(
-            `An error occurred, theres is not enough asset [${event.targetChainTokenId}] in the bank`
-          );
-        }
+        if (covered < assetPaymentAmount) logThrowError(`An error occurred, theres is not enough asset [${event.targetChainTokenId}] in the bank`)
       } else {
         result.push(utxosWithAsset[pivot]);
         coveredLovelace = coveredLovelace.checked_add(
