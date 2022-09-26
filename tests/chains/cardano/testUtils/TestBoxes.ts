@@ -457,7 +457,21 @@ class TestBoxes {
       asset_list: [],
     };
 
-    return [box1, box2, box3, box4, box5, box6, box7, box8];
+    const box9: Utxo = {
+      payment_addr: {bech32: ''},
+      tx_hash: TestUtils.generateRandomId(),
+      tx_index: 0,
+      value: '100',
+      asset_list: [
+        {
+          policy_id: '22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130',
+          asset_name: '1111111111',
+          quantity: '11',
+        },
+      ],
+    };
+
+    return [box1, box2, box3, box4, box5, box6, box7, box8, box9];
   };
 
   /**
