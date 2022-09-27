@@ -103,8 +103,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
               asset.asset_name === assetAssetName &&
               asset.policy_id === assetPolicyId
           )
-        )
-          utxosWithAsset.push(utxo);
+        ) utxosWithAsset.push(utxo);
         else utxosWithOtherAsset.push(utxo);
       });
 
@@ -135,7 +134,6 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         (utxo) =>
           assetPaymentAmount.compare(BigNum.from_str(utxo.asset.quantity)) <= 0
       );
-
       if (pivot === -1) {
         let covered = BigNum.from_str('0');
         let i = utxosWithAsset.length - 1;
@@ -148,7 +146,8 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
             BigNum.from_str(utxos[i].value)
           );
         }
-        utxosWithAsset.splice(i, utxosWithAsset.length - i);
+        if (i === -1) utxosWithAsset.splice(0, utxosWithAsset.length);
+        else  utxosWithAsset.splice(i, utxosWithAsset.length - i);
         if (covered < assetPaymentAmount) logThrowError(`An error occurred, theres is not enough asset [${event.targetChainTokenId}] in the bank`)
       } else {
         result.push(utxosWithAsset[pivot]);
@@ -197,11 +196,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         );
       }
 
-      if (coveredLovelace < lovelacePaymentAmount) {
-        throw new Error(
-          `An error occurred, theres is no enough lovelace in the bank`
-        );
-      }
+      if (coveredLovelace < lovelacePaymentAmount) logThrowError(`An error occurred, theres is no enough lovelace in the bank`)
     }
 
     return result;

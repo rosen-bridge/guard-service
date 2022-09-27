@@ -461,7 +461,7 @@ class TestBoxes {
       payment_addr: {bech32: ''},
       tx_hash: TestUtils.generateRandomId(),
       tx_index: 0,
-      value: '100',
+      value: '10000',
       asset_list: [
         {
           policy_id: '22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130',
