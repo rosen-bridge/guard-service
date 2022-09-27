@@ -77,7 +77,7 @@ class RosenConfig {
       const config = JSON.parse(configJson);
       this.RSN = config.tokens.RSN;
       this.guardNFT = config.tokens.GuardNFT;
-      this.rsnRatioNFT = config.tokens.RsnRatioNFT;
+      this.rsnRatioNFT = config.tokens.RSNRatioNFT;
     }
     supportingNetworks.forEach((network) => {
       const networkName = network.split('-')[0].toLowerCase();

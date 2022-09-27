@@ -72,9 +72,9 @@ class TransactionProcessor {
           }
         }
       } catch (e) {
-        logger.info(`An error occurred while processing tx`, {
+        logger.warn(`An error occurred while processing tx`, {
           txId: tx.txId,
-          error: e,
+          error: e.message,
         });
       }
     }
@@ -237,9 +237,9 @@ class TransactionProcessor {
         await this.getChainObject(tx.chain).requestToSignTransaction(paymentTx);
         release();
       } catch (e) {
-        logger.info('Unexpected Error occurred while sending tx to sign', {
+        logger.warn('Unexpected Error occurred while sending tx to sign', {
           txId: tx.txId,
-          error: e,
+          error: e.message,
         });
         release();
       }
@@ -334,11 +334,11 @@ class TransactionProcessor {
           const txUtxos = await BlockFrostApi.getTxUtxos(sourceTxId);
           sourceTxs.set(sourceTxId, txUtxos);
         } catch (e) {
-          logger.info(`An error occurred while fetching tx`, {
+          logger.warn(`An error occurred while fetching tx`, {
             txId: sourceTxId,
-            error: e,
+            error: e.message,
           });
-          valid = false;
+          return false;
         }
       }
 
@@ -384,28 +384,44 @@ class TransactionProcessor {
    */
   static processSignFailedTx = async (tx: TransactionEntity): Promise<void> => {
     if (tx.chain === ChainsConstants.cardano) {
-      const paymentTx = PaymentTransaction.fromJson(tx.txJson);
-      if (await this.isCardanoTxInputsValid(paymentTx)) {
-        // tx is valid. ignoring till become invalid...
-        logger.info(
-          `Cardano tx failed in signing process but inputs are still valid. ignoring...`,
-          { txId: tx.txId }
-        );
+      const confirmation = await KoiosApi.getTxConfirmation(tx.txId);
+      if (confirmation === null) {
+        const paymentTx = PaymentTransaction.fromJson(tx.txJson);
+        if (await this.isCardanoTxInputsValid(paymentTx)) {
+          // tx is valid. resending to sign...
+          logger.info(`Resending Cardano tx to sign process`, {
+            txId: tx.txId,
+          });
+          await this.processApprovedTx(tx);
+        } else {
+          // tx is invalid. reset status if enough blocks past.
+          await this.resetCardanoStatus(tx);
+        }
       } else {
-        // tx is invalid. reset status if enough blocks past.
-        await this.resetCardanoStatus(tx);
+        // tx found in network. set status as sent
+        logger.info(`Cardano tx found in blockchain. updating status to sent`, {
+          txId: tx.txId,
+        });
+        await dbAction.setTxStatus(tx.txId, TransactionStatus.sent);
       }
     } else if (tx.chain === ChainsConstants.ergo) {
-      const ergoTx = ErgoTransaction.fromJson(tx.txJson);
-      if (await this.isErgoTxInputsValid(ergoTx)) {
-        // tx is valid. ignoring till become invalid...
-        logger.info(
-          `Ergo tx failed in signing process but inputs are still valid. ignoring...`,
-          { txId: tx.txId }
-        );
+      const confirmation = await ExplorerApi.getTxConfirmation(tx.txId);
+      if (confirmation === -1 && !(await ExplorerApi.isTxInMempool(tx.txId))) {
+        const ergoTx = ErgoTransaction.fromJson(tx.txJson);
+        if (await this.isErgoTxInputsValid(ergoTx)) {
+          // tx is valid. resending to sign...
+          logger.info(`Resending Ergo tx to sign process`, { txId: tx.txId });
+          await this.processApprovedTx(tx);
+        } else {
+          // tx is invalid. reset status if enough blocks past.
+          await this.resetErgoStatus(tx);
+        }
       } else {
-        // tx is invalid. reset status if enough blocks past.
-        await this.resetErgoStatus(tx);
+        // tx found in network. set status as sent
+        logger.info(`Ergo tx found in blockchain. updating status to sent`, {
+          txId: tx.txId,
+        });
+        await dbAction.setTxStatus(tx.txId, TransactionStatus.sent);
       }
     } else {
       logger.error('Chain not implemented', { chain: tx.chain });

@@ -39,8 +39,7 @@ class BlockFrostApi {
     try {
       return this.blockFrost.txSubmit(tx.to_bytes());
     } catch (e) {
-      const errorMessage =
-        'An error occurred while submitting tx using BlockFrost';
+      const errorMessage = `An error occurred while submitting tx using BlockFrost: ${e}`;
       logger.error(errorMessage);
       throw new Error(errorMessage);
     }
@@ -54,7 +53,7 @@ class BlockFrostApi {
     try {
       return await this.blockFrost.txsUtxos(txId);
     } catch (e) {
-      const errorMessage = `An error occurred while getting transaction [${txId}] utxos using BlockFrost`;
+      const errorMessage = `An error occurred while getting transaction [${txId}] utxos using BlockFrost: ${e}`;
       logger.error(errorMessage);
       throw new Error(errorMessage);
     }
@@ -68,7 +67,7 @@ class BlockFrostApi {
     try {
       return await this.blockFrost.addressesUtxos(address);
     } catch (e) {
-      const errorMessage = `An error occurred while getting address [${address}] utxos using BlockFrost`;
+      const errorMessage = `An error occurred while getting address [${address}] utxos using BlockFrost: ${e}`;
       logger.error(errorMessage);
       throw new Error(errorMessage);
     }
