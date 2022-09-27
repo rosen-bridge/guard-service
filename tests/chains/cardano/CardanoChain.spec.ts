@@ -147,6 +147,7 @@ describe('CardanoChain', () => {
       mockedEvent.targetChainTokenId =
         'asset1nl000000000000000000000000000000000000';
       mockedEvent.amount = '17300000';
+      const bankBoxesCopy = JSON.parse(JSON.stringify(bankBoxes));
 
       // run test
       const cardanoChain: CardanoChain = new CardanoChain();
@@ -173,6 +174,7 @@ describe('CardanoChain', () => {
           TestBoxes.mockAssetPaymentEventTrigger();
       mockedEvent.targetChainTokenId =
           'asset1nl000000000000000000000000000000000000';
+      const bankBoxesCopy = JSON.parse(JSON.stringify(bankBoxes));
 
       // run test
       const cardanoChain: CardanoChain = new CardanoChain();
@@ -180,7 +182,6 @@ describe('CardanoChain', () => {
           [bankBoxesCopy[8], bankBoxesCopy[6], bankBoxesCopy[5]],
           mockedEvent
       );
-
       // verify output boxes
       expect(boxes.length).to.be.equal(3);
     });
