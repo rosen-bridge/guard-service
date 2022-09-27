@@ -67,3 +67,20 @@ p2pRouter.post(
     }
   }
 );
+
+/**
+ * Api for send peer IDs
+ */
+p2pRouter.get('/getPeerIDs', async (req: Request, res: Response) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    const peerIDs = dialer.getPeerIds();
+    res.status(200).json(peerIDs);
+  } catch (e) {
+    console.warn(e);
+    res.status(500).send({ message: e.message });
+  }
+});

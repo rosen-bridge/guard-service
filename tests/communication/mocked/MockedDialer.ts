@@ -18,7 +18,7 @@ const mockedDialerInstance = mock(Dialer);
 when(
   mockedDialerInstance.sendMessage(anything(), anything(), anything())
 ).thenResolve();
-when(mockedDialerInstance.getPeerId()).thenReturn('peerId');
+when(mockedDialerInstance.getDialerId()).thenReturn('peerId');
 
 const mockedDialer = spy(Dialer);
 when(mockedDialer.getInstance()).thenResolve(instance(mockedDialerInstance));

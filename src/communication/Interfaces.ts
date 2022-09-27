@@ -25,6 +25,10 @@ interface ReceiveDataCommunication {
   receiver?: string;
 }
 
+interface ReceivePeers {
+  peerIds: string[];
+}
+
 interface ConnectionStream {
   connection: Connection;
   stream: Stream;
@@ -43,4 +47,5 @@ export {
   SubscribeChannel,
   ConnectionStream,
   RelayInfo,
+  ReceivePeers,
 };

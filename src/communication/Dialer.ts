@@ -7,25 +7,26 @@ import { toString as uint8ArrayToString } from 'uint8arrays/to-string';
 import { Bootstrap } from '@libp2p/bootstrap';
 import { PubSubPeerDiscovery } from '@libp2p/pubsub-peer-discovery';
 import { FloodSub } from '@libp2p/floodsub';
-import CommunicationConfig from './CommunicationConfig';
-import { JsonBI } from '../network/NetworkModels';
 import { Connection, Stream } from '@libp2p/interface-connection';
 import { OPEN } from '@libp2p/interface-connection/status';
 import * as lp from 'it-length-prefixed';
-
+import { PeerId } from '@libp2p/interface-peer-id';
+import { createEd25519PeerId, createFromJSON } from '@libp2p/peer-id-factory';
+import * as multiaddr from '@multiformats/multiaddr';
+import fs from 'fs';
+import { PassThrough } from 'stream';
+import { JsonBI } from '../network/NetworkModels';
 import {
   ConnectionStream,
   ReceiveDataCommunication,
+  ReceivePeers,
   SendDataCommunication,
   SubscribeChannel,
   SubscribeChannelFunction,
   SubscribeChannels,
 } from './Interfaces';
-import { PeerId } from '@libp2p/interface-peer-id';
-import { createEd25519PeerId, createFromJSON } from '@libp2p/peer-id-factory';
-import fs from 'fs';
-import { PassThrough } from 'stream';
 import { logger, logThrowError } from '../log/Logger';
+import CommunicationConfig from './CommunicationConfig';
 
 // TODO: Need to write test for This package
 //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/21
@@ -39,7 +40,8 @@ class Dialer {
     string,
     PassThrough
   >();
-  private readonly _SUPPORTED_PROTOCOL: string = '/broadcast';
+  private readonly _SUPPORTED_PROTOCOL_MSG: string = '/broadcast';
+  private readonly _SUPPORTED_PROTOCOL_PEERS: string = '/get-peers';
 
   private constructor() {
     logger.info('Create Dialer Instance!');
@@ -131,11 +133,23 @@ class Dialer {
   };
 
   /**
+   * @return Dialer's Id
+   */
+  getDialerId = (): string => {
+    if (!this._NODE) {
+      logThrowError("Dialer node isn't ready, please try later", 'fatal');
+    }
+    return this._NODE!.peerId.toString();
+  };
+
+  /**
    * @return string of PeerID
    */
-  getPeerId = (): string => {
-    if (!this._NODE) throw Error("Dialer node isn't ready, please try later");
-    else return this._NODE.peerId.toString();
+  getPeerIds = (): string[] => {
+    if (!this._NODE) {
+      logThrowError("Dialer node isn't ready, please try later", 'fatal');
+    }
+    return this._NODE!.getPeers().map((peer) => peer.toString());
   };
 
   /**
@@ -203,10 +217,49 @@ class Dialer {
       const peers = this._NODE
         .getPeers()
         .filter(
-          (peer) => peer.toString()! in CommunicationConfig.relays.peerIDs
+          (peer) =>
+            !CommunicationConfig.relays.peerIDs.includes(peer.toString())
         );
       for (const peer of peers) {
         this.streamForPeer(this._NODE, peer, data);
+      }
+    }
+  };
+
+  /**
+   * resend pending messages
+   */
+  sendPendingMessage = async (): Promise<void> => {
+    const resendMessage = async (
+      value: SendDataCommunication
+    ): Promise<void> => {
+      (await value.receiver)
+        ? await this.sendMessage(value.channel, value.msg, value.receiver)
+        : await this.sendMessage(value.channel, value.msg);
+    };
+
+    if (this._PENDING_MESSAGE.length > 0) {
+      await this._PENDING_MESSAGE.forEach(await resendMessage);
+    }
+  };
+
+  /**
+   * store relay's peerIDs to PeerStore
+   * @param peers id of peers
+   */
+  storePeers = async (peers: string[]): Promise<void> => {
+    if (this._NODE) {
+      for (const peer of peers) {
+        for (const addr of CommunicationConfig.relays.multiaddrs) {
+          const multi = multiaddr.multiaddr(
+            addr.concat(`/p2p-circuit/p2p/${peer}`)
+          );
+          this._NODE?.peerStore.addressBook.set(
+            await createFromJSON({ id: `${peer}` }),
+            [multi]
+          );
+          await this._NODE?.dial(multi);
+        }
       }
     }
   };
@@ -264,11 +317,11 @@ class Dialer {
     const connStream = await this.getOpenStream(
       node,
       peer,
-      this._SUPPORTED_PROTOCOL
+      this._SUPPORTED_PROTOCOL_MSG
     );
-    const passThroughName = `${peer.toString()}-${this._SUPPORTED_PROTOCOL}-${
-      connStream.stream.id
-    }`;
+    const passThroughName = `${peer.toString()}-${
+      this._SUPPORTED_PROTOCOL_MSG
+    }-${connStream.stream.id}`;
 
     if (this._OUTPUT_STREAMS.has(passThroughName)) {
       outputStream = this._OUTPUT_STREAMS.get(passThroughName);
@@ -339,7 +392,7 @@ class Dialer {
     });
 
     // Define protocol for node
-    await node.handle(this._SUPPORTED_PROTOCOL, ({ stream, connection }) =>
+    await node.handle(this._SUPPORTED_PROTOCOL_MSG, ({ stream, connection }) =>
       pipe(stream.source, async () => {
         let receivedDataObj = '';
         // For each chunk of data
@@ -381,6 +434,34 @@ class Dialer {
       })
     );
 
+    // Define protocol for node
+    await node.handle(
+      this._SUPPORTED_PROTOCOL_PEERS,
+      ({ stream, connection }) =>
+        pipe(stream.source, async () => {
+          if (
+            CommunicationConfig.relays.peerIDs.includes(
+              connection.remotePeer.toString()
+            )
+          ) {
+            let receivedDataObj = '';
+            // For each chunk of data
+            for await (const data of stream.source) {
+              receivedDataObj = uint8ArrayToString(data.subarray());
+            }
+            const receivedData: ReceivePeers = await JsonBI.parse(
+              receivedDataObj
+            );
+            const nodePeerIds = node.getPeers().map((peer) => peer.toString());
+            this.storePeers(
+              receivedData.peerIds.filter(
+                (mainPeer) => !nodePeerIds.includes(mainPeer)
+              )
+            );
+          }
+        })
+    );
+
     node.start();
     logger.info(`Dialer node started peerId: ${node.peerId.toString()}`);
 
@@ -395,20 +476,6 @@ class Dialer {
         CommunicationConfig.sendPendingMessage * 1000
       )
     );
-  };
-
-  sendPendingMessage = async (): Promise<void> => {
-    const resendMessage = async (
-      value: SendDataCommunication
-    ): Promise<void> => {
-      (await value.receiver)
-        ? await this.sendMessage(value.channel, value.msg, value.receiver)
-        : await this.sendMessage(value.channel, value.msg);
-    };
-
-    if (this._PENDING_MESSAGE.length > 0) {
-      await this._PENDING_MESSAGE.forEach(await resendMessage);
-    }
   };
 }
 
