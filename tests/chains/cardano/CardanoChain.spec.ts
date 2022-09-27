@@ -93,9 +93,9 @@ describe('CardanoChain', () => {
      */
     it('should return 3 box for asset payment', async () => {
       const mockedEvent: EventTrigger =
-        TestBoxes.mockAssetPaymentEventTrigger();
+          TestBoxes.mockAssetPaymentEventTrigger();
       mockedEvent.targetChainTokenId =
-        'asset1nl000000000000000000000000000000000000';
+          'asset1nl000000000000000000000000000000000000';
 
       // run test
       const cardanoChain: CardanoChain = new CardanoChain();
@@ -114,9 +114,9 @@ describe('CardanoChain', () => {
      *    BlockFrostApi
      *    KoiosApi
      * Expected Output:
-     *    The function should return 3 specific box
+     *    The function should return 2 specific box
      */
-    it('should return 3 box for asset payment', async () => {
+    it('should return 2 box for asset payment', async () => {
       const mockedEvent: EventTrigger =
           TestBoxes.mockAssetPaymentEventTrigger();
       mockedEvent.targetChainTokenId =
@@ -143,17 +143,17 @@ describe('CardanoChain', () => {
      */
     it('should return 3 box for asset payment', async () => {
       const mockedEvent: EventTrigger =
-        TestBoxes.mockAssetPaymentEventTrigger();
+          TestBoxes.mockAssetPaymentEventTrigger();
       mockedEvent.targetChainTokenId =
-        'asset1nl000000000000000000000000000000000000';
+          'asset1nl000000000000000000000000000000000000';
       mockedEvent.amount = '17300000';
       const bankBoxesCopy = JSON.parse(JSON.stringify(bankBoxes));
 
       // run test
       const cardanoChain: CardanoChain = new CardanoChain();
       const boxes = cardanoChain.getCoveringUtxo(
-        [bankBoxesCopy[5], bankBoxesCopy[6], bankBoxesCopy[7]],
-        mockedEvent
+          [bankBoxesCopy[5], bankBoxesCopy[6], bankBoxesCopy[7]],
+          mockedEvent
       );
 
       // verify output boxes
@@ -199,7 +199,7 @@ describe('CardanoChain', () => {
           TestBoxes.mockAssetPaymentEventTrigger();
       mockedEvent.targetChainTokenId =
           'asset1nl000000000000000000000000000000000000';
-      mockedEvent.amount='20'
+      mockedEvent.amount = '20'
       const bankBoxesCopy = JSON.parse(JSON.stringify(bankBoxes));
 
       // run test
