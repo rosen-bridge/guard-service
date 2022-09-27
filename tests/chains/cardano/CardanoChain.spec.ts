@@ -186,6 +186,32 @@ describe('CardanoChain', () => {
       expect(boxes.length).to.be.equal(3);
     });
 
+    /**
+     * Target: testing getCoveringUtxo
+     * Dependencies:
+     *    BlockFrostApi
+     *    KoiosApi
+     * Expected Output:
+     *    The function should return 3 specific box
+     */
+    it('should return 3 box for asset payment', async () => {
+      const mockedEvent: EventTrigger =
+          TestBoxes.mockAssetPaymentEventTrigger();
+      mockedEvent.targetChainTokenId =
+          'asset1nl000000000000000000000000000000000000';
+      mockedEvent.amount='20'
+      const bankBoxesCopy = JSON.parse(JSON.stringify(bankBoxes));
+
+      // run test
+      const cardanoChain: CardanoChain = new CardanoChain();
+      const boxes = cardanoChain.getCoveringUtxo(
+          [bankBoxesCopy[6], bankBoxesCopy[8], bankBoxesCopy[5]],
+          mockedEvent
+      );
+      // verify output boxes
+      expect(boxes.length).to.be.equal(3);
+    });
+
   });
 
   describe('generateTransaction', () => {
