@@ -1,7 +1,7 @@
 import { spy, when } from 'ts-mockito';
 import { guardConfig } from '../src/helpers/GuardConfig';
 import { guardPks } from './helpers/testData';
-import { resetDialerCalls } from "./communication/mocked/MockedDialer";
+import { resetDialerCalls } from './communication/mocked/MockedDialer';
 
 export async function mochaGlobalSetup() {
   const spyGuardConfig = spy(guardConfig);
@@ -10,5 +10,5 @@ export async function mochaGlobalSetup() {
   when(spyGuardConfig.guardsLen).thenReturn(7);
   when(spyGuardConfig.guardId).thenReturn(1);
 
-  resetDialerCalls()
+  resetDialerCalls();
 }
