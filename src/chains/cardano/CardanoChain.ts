@@ -383,7 +383,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
       await TssSigner.signTxHash(txHash);
     } catch (e) {
       logger.warn(
-        `An error occurred while requesting TSS service to sign Cardano tx: [${e.message}]`
+        `An error occurred while requesting TSS service to sign Cardano tx: [${e}]`
       );
     }
   };
@@ -402,7 +402,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
       const txId = response.m;
       const errorMessage = response.error;
 
-      logger.error(`TSS failed to sign tx [${txId}]: [${errorMessage}]`);
+      logger.info(`TSS failed to sign tx [${txId}]: ${errorMessage}`);
       await dbAction.setTxStatus(txId, TransactionStatus.signFailed);
 
       return null;
@@ -420,8 +420,8 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
       paymentTx = PaymentTransaction.fromJson(txEntity.txJson);
       tx = this.deserialize(paymentTx.txBytes);
     } catch (e) {
-      logger.info(
-        `An error occurred while getting Cardano tx [${txId}] from db: [${e.message}]`
+      logger.warn(
+        `An error occurred while getting Cardano tx [${txId}] from db: ${e}`
       );
       return null;
     }
@@ -465,8 +465,8 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
       const response = await BlockFrostApi.txSubmit(tx);
       logger.info('Cardano Transaction submitted', { txId: response });
     } catch (e) {
-      logger.info(
-        `An error occurred while submitting Cardano transaction: [${e.message}]`
+      logger.warn(
+        `An error occurred while submitting Cardano transaction: ${e}`
       );
     }
   };
@@ -584,8 +584,8 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         return false;
       }
     } catch (e) {
-      logger.info(
-        'Event [${eventId}] validation failed with this error: [${e}]'
+      logger.warn(
+        `Event [${eventId}] validation failed: ${e}`
       );
       return false;
     }

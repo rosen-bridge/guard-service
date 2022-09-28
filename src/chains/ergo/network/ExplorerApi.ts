@@ -39,7 +39,7 @@ class ExplorerApi {
       .then((res) => res.data)
       .catch((e) => {
         logger.warn(
-          `An error occurred while getting boxes for ErgoTree [${ergoTree}] from Ergo Explorer: [${e}]`
+          `An error occurred while getting boxes for ErgoTree [${ergoTree}] from Ergo Explorer: ${e}`
         );
         return {
           items: [],
@@ -58,7 +58,7 @@ class ExplorerApi {
       .then((res) => res.data)
       .catch((e) => {
         logger.warn(
-          `An error occurred while getting boxes containing token [${tokenId}] from Ergo Explorer: [${e}]`
+          `An error occurred while getting boxes containing token [${tokenId}] from Ergo Explorer: ${e}`
         );
         return {
           items: [],
@@ -126,7 +126,7 @@ class ExplorerApi {
         .then((res) => res.data.numConfirmations);
     } catch (e) {
       logger.warn(
-        `An error occurred while getting confirmation for tx [${txId}] from Ergo Explorer: [${e}]`
+        `An error occurred while getting confirmation for tx [${txId}] from Ergo Explorer: ${e}`
       );
       return -1;
     }
@@ -142,7 +142,7 @@ class ExplorerApi {
       .then(() => true)
       .catch((e) => {
         logger.warn(
-          `An error occurred while checking if tx [${txId}] exist in mempool from Ergo Explorer: [${e}]`
+          `An error occurred while checking if tx [${txId}] exist in mempool from Ergo Explorer: ${e}`
         );
         return false;
       });
@@ -158,7 +158,7 @@ class ExplorerApi {
       .then((res) => res.data.spentTransactionId === null)
       .catch((e) => {
         logger.warn(
-          `An error occurred while checking if box [${boxId}] is unspent and valid from Ergo Explorer: [${e}]`
+          `An error occurred while checking if box [${boxId}] is unspent and valid from Ergo Explorer: ${e}`
         );
         return false;
       });
@@ -178,7 +178,7 @@ class ExplorerApi {
       })
       .catch((e) => {
         logger.warn(
-          `An error occurred while fetching confirmed tx [${txId}] from Ergo Explorer: [${e}]`
+          `An error occurred while fetching confirmed tx [${txId}] from Ergo Explorer: ${e}`
         );
         return null;
       });

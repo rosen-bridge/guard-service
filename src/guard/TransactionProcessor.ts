@@ -23,7 +23,7 @@ import {
 import BaseChain from '../chains/BaseChains';
 import { Semaphore } from 'await-semaphore';
 import { txJsonParser } from '../chains/TxJsonParser';
-import { logger, logThrowError } from '../log/Logger';
+import { logger } from '../log/Logger';
 
 class TransactionProcessor {
   static cardanoChain = new CardanoChain();
@@ -38,11 +38,7 @@ class TransactionProcessor {
   static getChainObject = (chain: string): BaseChain<any, any> => {
     if (chain === ChainsConstants.cardano) return this.cardanoChain;
     else if (chain === ChainsConstants.ergo) return this.ergoChain;
-    else {
-      const errorMessage = `Chain [${chain}] not implemented.`;
-      logger.log('fatal', errorMessage);
-      throw new Error(errorMessage);
-    }
+    else throw new Error(`Chain [${chain}] not implemented.`);
   };
 
   /**
@@ -91,7 +87,7 @@ class TransactionProcessor {
     } else if (tx.chain === ChainsConstants.ergo) {
       await this.processErgoTx(tx);
     } else {
-      logThrowError(`Chain [${tx.chain}] not implemented.`, 'fatal');
+      throw new Error(`Chain [${tx.chain}] not implemented.`);
     }
   };
 
@@ -107,7 +103,7 @@ class TransactionProcessor {
       const cardanoTx = this.cardanoChain.deserialize(paymentTx.txBytes);
       const txTtl = cardanoTx.body().ttl();
       if (txTtl === undefined) {
-        logThrowError(`For tx [${tx.txId}], TTL is undefined.`);
+        throw new Error(`For tx [${tx.txId}], TTL is undefined.`);
       }
       const currentSlot = await BlockFrostApi.currentSlot();
 
@@ -125,14 +121,14 @@ class TransactionProcessor {
       if (tx.type === TransactionTypes.payment) {
         // set event status, to start reward distribution.
         await dbAction.setEventStatus(tx.event.id, EventStatus.pendingReward);
-        logger.info('Tx is confirmed. event is ready for reward distribution', {
+        logger.info('Tx is confirmed. Event is ready for reward distribution', {
           txId: tx.txId,
           eventId: tx.event.id,
         });
       } else {
         // set event as complete
         await dbAction.setEventStatus(tx.event.id, EventStatus.completed);
-        logger.info('Tx is confirmed. event is complete', {
+        logger.info('Tx is confirmed. Event is complete', {
           txId: tx.txId,
           eventId: tx.event.id,
         });
@@ -159,7 +155,7 @@ class TransactionProcessor {
       // tx confirmed enough. event is done.
       await dbAction.setTxStatus(tx.txId, TransactionStatus.completed);
       await dbAction.setEventStatus(tx.event.id, EventStatus.completed);
-      logger.info('Tx is confirmed. event is complete', {
+      logger.info('Tx is confirmed. Event is complete', {
         txId: tx.txId,
         eventId: tx.event.id,
       });
@@ -197,7 +193,7 @@ class TransactionProcessor {
     if (await this.isCardanoTxInputsValid(paymentTx)) {
       // tx is valid. resending...
       logger.info(
-        'Cardano tx is lost but inputs are still valid. resending tx...',
+        'Cardano tx is lost but inputs are still valid. Resending tx...',
         { txId: tx.txId }
       );
       await this.cardanoChain.submitTransaction(paymentTx);
@@ -216,7 +212,7 @@ class TransactionProcessor {
     if (await this.isErgoTxInputsValid(ergoTx)) {
       // tx is valid. resending...
       logger.info(
-        'Ergo tx is lost but inputs are still valid. resending tx...',
+        'Ergo tx is lost but inputs are still valid. Resending tx...',
         { txId: tx.txId }
       );
       await this.ergoChain.submitTransaction(ergoTx);
@@ -237,7 +233,7 @@ class TransactionProcessor {
         await this.getChainObject(tx.chain).requestToSignTransaction(paymentTx);
         release();
       } catch (e) {
-        logger.warn('Unexpected Error occurred while sending tx to sign', {
+        logger.warn('Unexpected error occurred while sending tx to sign', {
           txId: tx.txId,
           error: e.message,
         });
@@ -264,13 +260,13 @@ class TransactionProcessor {
     if (height - tx.lastCheck >= CardanoConfigs.requiredConfirmation) {
       await dbAction.setTxStatus(tx.txId, TransactionStatus.invalid);
       await dbAction.resetEventTx(tx.event.id, EventStatus.pendingPayment);
-      logger.info('Tx is invalid. event is now waiting for payment', {
+      logger.info('Tx is invalid. Event is now waiting for payment', {
         txId: tx.txId,
         eventId: tx.event.id,
       });
     } else {
       logger.info(
-        'Tx is invalid. waiting for enough confirmation of this proposition',
+        'Tx is invalid. Waiting for enough confirmation of this proposition',
         { txId: tx.txId }
       );
     }
@@ -399,7 +395,7 @@ class TransactionProcessor {
         }
       } else {
         // tx found in network. set status as sent
-        logger.info(`Cardano tx found in blockchain. updating status to sent`, {
+        logger.info(`Cardano tx found in blockchain. Updating status to sent`, {
           txId: tx.txId,
         });
         await dbAction.setTxStatus(tx.txId, TransactionStatus.sent);
@@ -418,13 +414,12 @@ class TransactionProcessor {
         }
       } else {
         // tx found in network. set status as sent
-        logger.info(`Ergo tx found in blockchain. updating status to sent`, {
+        logger.info(`Ergo tx found in blockchain. Updating status to sent`, {
           txId: tx.txId,
         });
         await dbAction.setTxStatus(tx.txId, TransactionStatus.sent);
       }
     } else {
-      logger.error('Chain not implemented', { chain: tx.chain });
       throw new Error(`chain [${tx.chain}] not implemented.`);
     }
   };

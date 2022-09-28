@@ -23,7 +23,7 @@ import ChainsConstants from '../ChainsConstants';
 import Utils from '../../helpers/Utils';
 import BoxVerifications from './boxes/BoxVerifications';
 import { JsonBI } from '../../network/NetworkModels';
-import { logger, logThrowError } from '../../log/Logger';
+import { logger } from '../../log/Logger';
 
 class Reward {
   static lockAddress = Address.from_base58(
@@ -84,9 +84,7 @@ class Reward {
     if (!coveringBoxes.covered) {
       const Erg = (requiredAssets.ergs + ErgoConfigs.minimumErg).toString();
       const Tokens = JsonBI.stringify(requiredAssets.tokens);
-      logThrowError(
-        `Bank boxes didn't cover required assets. Erg: ${Erg}, Tokens: ${Tokens}`
-      );
+      throw new Error(`Bank boxes didn't cover required assets. Erg: ${Erg}, Tokens: ${Tokens}`);
     }
 
     // calculate input boxes and assets

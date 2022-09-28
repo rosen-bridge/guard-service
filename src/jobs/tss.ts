@@ -20,7 +20,7 @@ const startTssInstance = function () {
     if (err !== null) {
       const timeout = Configs.tssInstanceRestartGap;
       logger.error(
-        `TSS instance failed unexpectedly, TSS will be started in ${timeout} : ${err}, ${data}`
+        `TSS instance failed unexpectedly, TSS will be started in ${timeout}. Error: ${err}, ${data}`
       );
       // wait 5 seconds to start again
       setTimeout(startTssInstance, timeout * 1000);

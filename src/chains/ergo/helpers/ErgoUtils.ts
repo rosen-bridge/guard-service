@@ -11,7 +11,6 @@ import {
 } from 'ergo-lib-wasm-nodejs';
 import { AssetMap, BoxesAssets, ExplorerOutputBox } from '../models/Interfaces';
 import ChainsConstants from '../../ChainsConstants';
-import { logThrowError } from '../../../log/Logger';
 
 class ErgoUtils {
   /**
@@ -247,7 +246,7 @@ class ErgoUtils {
     if (ergs < 0n) {
       if (allowMoreErgUsage) ergs = 0n;
       else
-        logThrowError(
+        throw new Error(
           `not enough Erg in input assets [Current: ${inAssets.ergs}] [Require: ${usedAssets.ergs}]`
         );
     }
@@ -257,11 +256,11 @@ class ErgoUtils {
       if (Object.prototype.hasOwnProperty.call(tokens, id)) {
         tokens[id] -= usedAssets.tokens[id];
         if (tokens[id] < 0n)
-          logThrowError(
+          throw new Error(
             `not enough token [${id}] in input assets [Current: ${inAssets.tokens[id]}] [Require: ${usedAssets.tokens[id]}]`
           );
       } else
-        logThrowError(
+        throw new Error(
           `not enough token [${id}] in input assets [Current: 0] [Require: ${usedAssets.tokens[id]}]`
         );
     });

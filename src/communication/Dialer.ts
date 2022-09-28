@@ -22,7 +22,7 @@ import {
 import { PeerId } from '@libp2p/interface-peer-id';
 import { createEd25519PeerId, createFromJSON } from '@libp2p/peer-id-factory';
 import fs from 'fs';
-import { logger, logThrowError } from '../log/Logger';
+import { logger } from '../log/Logger';
 
 // TODO: Need to write test for This package
 //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/21
@@ -61,7 +61,7 @@ class Dialer {
    */
   getPeerId = (): string => {
     if (!this._NODE) {
-      logThrowError("Dialer node isn't ready, please try later", 'fatal');
+      throw new Error("Dialer node isn't ready, please try later");
     }
     return this._NODE!.peerId.toString();
   };
@@ -108,7 +108,7 @@ class Dialer {
         privateKey = peerId.privateKey;
         publicKey = peerId.publicKey;
       } else {
-        logThrowError('PrivateKey for p2p is required', 'fatal');
+        throw new Error('PrivateKey for p2p is required');
       }
 
       const peerIdDialerJson = {
@@ -123,9 +123,8 @@ class Dialer {
         'utf8',
         function (err) {
           if (err) {
-            logger.log(
-              'fatal',
-              'An error occurred, in writing created PeerId to the file'
+            logger.error(
+              `An error occurred, in writing created PeerId to the file: ${err}`
             );
             throw err;
           }
@@ -158,7 +157,7 @@ class Dialer {
             sub.func.name === callback.name && sub.url === url
         )
       ) {
-        logger.info('A redundant subscribed channel detected !');
+        logger.info('A redundant subscribed channel detected!');
         return;
       }
       this._SUBSCRIBED_CHANNELS[channel].push(callbackObj);

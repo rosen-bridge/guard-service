@@ -35,7 +35,7 @@ import Configs from '../../helpers/Configs';
 import Utils from '../../helpers/Utils';
 import { JsonBI } from '../../network/NetworkModels';
 import { guardConfig } from '../../helpers/GuardConfig';
-import { logger, logThrowError } from '../../log/Logger';
+import { logger } from '../../log/Logger';
 
 class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
   lockAddress = Address.from_base58(ErgoConfigs.ergoContractConfig.lockAddress);
@@ -95,9 +95,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
     if (!coveringBoxes.covered) {
       const Erg = (requiredAssets.ergs + ErgoConfigs.minimumErg).toString();
       const Tokens = JsonBI.stringify(requiredAssets.tokens);
-      logThrowError(
-        `Bank boxes didn't cover required assets. Erg: ${Erg}, Tokens: ${Tokens}`
-      );
+      throw new Error(`Bank boxes didn't cover required assets. Erg: ${Erg}, Tokens: ${Tokens}`);
     }
 
     // calculate input boxes and assets
@@ -435,7 +433,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
       })
       .catch(async (e) => {
         logger.info(
-          `An error occurred while requesting Multisig service to sign Ergo tx: [${e}]`
+          `An error occurred while requesting Multisig service to sign Ergo tx: ${e}`
         );
         await dbAction.setTxStatus(
           paymentTx.txId,
@@ -522,7 +520,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         return false;
       }
     } catch (e) {
-      logger.info(`event [${eventId}] validation failed: [${e}]`);
+      logger.warn(`event [${eventId}] validation failed: ${e}`);
       return false;
     }
   };
@@ -538,8 +536,8 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
       const response = await NodeApi.sendTx(tx.to_json());
       logger.info(`Ergo Transaction submitted: [${response}]`);
     } catch (e) {
-      logger.info(
-        `An error occurred while submitting Ergo transaction: [${e.message}]`
+      logger.warn(
+        `An error occurred while submitting Ergo transaction: ${e}`
       );
     }
   };

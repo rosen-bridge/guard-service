@@ -19,7 +19,7 @@ import { dbAction } from '../../db/DatabaseAction';
 import TransactionProcessor from '../TransactionProcessor';
 import { txJsonParser } from '../../chains/TxJsonParser';
 import { guardConfig } from '../../helpers/GuardConfig';
-import { logger, logThrowError } from '../../log/Logger';
+import { logger } from '../../log/Logger';
 
 const dialer = await Dialer.getInstance();
 
@@ -144,14 +144,14 @@ class TxAgreement {
   ): Promise<void> => {
     const eventEntity = await dbAction.getEventById(tx.eventId);
     if (eventEntity === null) {
-      logger.info(
+      logger.warn(
         `Received tx [${tx.txId}] for event [${tx.eventId}] but event not found`
       );
       return;
     }
     const event = EventTrigger.fromConfirmedEntity(eventEntity);
     if (!(await EventProcessor.isEventConfirmedEnough(event))) {
-      logger.info(
+      logger.warn(
         `Received tx [${tx.txId}] for event but event [${tx.eventId}] is not confirmed enough`
       );
       return;
@@ -238,7 +238,7 @@ class TxAgreement {
     ): void => {
       const txApprovals = this.transactionApprovals.get(txId);
       if (txApprovals === undefined) {
-        logThrowError(
+        throw new Error(
           `Unexpected Error: TxId: ${txId} not found in approvals list while it was in transaction list`
         );
       }
@@ -349,8 +349,8 @@ class TxAgreement {
       if (this.eventAgreedTransactions.has(tx.eventId))
         this.eventAgreedTransactions.delete(tx.eventId);
     } catch (e) {
-      logger.info(
-        `Unexpected Error occurred while setting tx [${tx.txId}] as approved: ${e}`
+      logger.warn(
+        `Unexpected error occurred while setting tx [${tx.txId}] as approved: ${e}`
       );
     }
   };
@@ -365,8 +365,8 @@ class TxAgreement {
         await dbAction.setEventStatus(tx.eventId, EventStatus.inPayment);
       else await dbAction.setEventStatus(tx.eventId, EventStatus.inReward);
     } catch (e) {
-      logger.info(
-        `Unexpected Error occurred while updating event [${tx.eventId}] with status: [${e}]`
+      logger.warn(
+        `Unexpected error occurred while updating event [${tx.eventId}] with status: [${e}]`
       );
     }
   };
@@ -384,8 +384,8 @@ class TxAgreement {
         const guardSignature = tx.signMetaData();
         this.broadcastTransactionRequest(tx, creatorId, guardSignature);
       } catch (e) {
-        logger.info(
-          `Unexpected Error occurred while resending tx [${tx.txId}]: ${e}`
+        logger.warn(
+          `Unexpected error occurred while resending tx [${tx.txId}]: ${e}`
         );
       }
     });
@@ -396,7 +396,7 @@ class TxAgreement {
    */
   clearTransactions = (): void => {
     logger.info(
-      `Clearing generated transactions from memory: [${this.transactions.size}]`
+      `Clearing generated transactions from memory: [${this.transactionApprovals.size}]`
     );
     this.transactions.clear();
     this.transactionApprovals.clear();
@@ -407,7 +407,7 @@ class TxAgreement {
    */
   clearAgreedTransactions = async (): Promise<void> => {
     logger.info(
-      `Clearing agreed transactions from memory: [${this.transactions.size}]`
+      `Clearing agreed transactions from memory: [${this.eventAgreedTransactions.size}]`
     );
     this.transactions.clear();
     this.eventAgreedTransactions.clear();
