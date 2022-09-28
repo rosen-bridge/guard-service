@@ -58,7 +58,9 @@ class InputBoxes {
   ): Promise<[bigint, bigint]> => {
     const boxes = await ExplorerApi.getBoxesByTokenId(rosenConfig.rsnRatioNFT);
     if (boxes.total !== 1)
-      throw new Error(`impossible case, found ${boxes.total} boxes containing rsnRatioNFT [${rosenConfig.rsnRatioNFT}]`);
+      throw new Error(
+        `impossible case, found ${boxes.total} boxes containing rsnRatioNFT [${rosenConfig.rsnRatioNFT}]`
+      );
     const box = ErgoBox.from_json(JsonBI.stringify(boxes.items[0]));
     const boxId = box.box_id().to_str();
 

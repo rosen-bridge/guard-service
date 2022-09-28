@@ -105,7 +105,9 @@ class EventProcessor {
    * @param event the event trigger
    */
   static processRewardEvent = async (event: EventTrigger): Promise<void> => {
-    logger.info(`Processing event for reward distribution`, { eventId: event.getId() });
+    logger.info(`Processing event for reward distribution`, {
+      eventId: event.getId(),
+    });
     if (event.toChain === ChainsConstants.ergo) {
       throw new Error(
         'Events with Ergo as target chain will distribute rewards in a single transaction with payment'

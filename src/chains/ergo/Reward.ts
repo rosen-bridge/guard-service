@@ -84,7 +84,9 @@ class Reward {
     if (!coveringBoxes.covered) {
       const Erg = (requiredAssets.ergs + ErgoConfigs.minimumErg).toString();
       const Tokens = JsonBI.stringify(requiredAssets.tokens);
-      throw new Error(`Bank boxes didn't cover required assets. Erg: ${Erg}, Tokens: ${Tokens}`);
+      throw new Error(
+        `Bank boxes didn't cover required assets. Erg: ${Erg}, Tokens: ${Tokens}`
+      );
     }
 
     // calculate input boxes and assets

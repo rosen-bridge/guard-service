@@ -584,9 +584,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         return false;
       }
     } catch (e) {
-      logger.warn(
-        `Event [${eventId}] validation failed: ${e}`
-      );
+      logger.warn(`Event [${eventId}] validation failed: ${e}`);
       return false;
     }
   };

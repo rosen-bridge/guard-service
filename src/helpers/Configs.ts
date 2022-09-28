@@ -58,7 +58,9 @@ class Configs {
   static tokens = (): RosenTokens => {
     const tokensPath = config.get<string>('tokensPath');
     if (!fs.existsSync(tokensPath)) {
-      throw new Error(`Tokens config file with path ${tokensPath} doesn't exist`);
+      throw new Error(
+        `Tokens config file with path ${tokensPath} doesn't exist`
+      );
     } else {
       const configJson: string = fs.readFileSync(tokensPath, 'utf8');
       return JSON.parse(configJson);

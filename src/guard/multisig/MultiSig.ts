@@ -181,9 +181,9 @@ class MultiSigHandler {
         );
         throw e;
       }
-      logger.info(
-        `MultiSig queue cleaned up`, { count: cleanedTransactionCount }
-      );
+      logger.info(`MultiSig queue cleaned up`, {
+        count: cleanedTransactionCount,
+      });
     });
   };
 

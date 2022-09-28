@@ -95,7 +95,9 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
     if (!coveringBoxes.covered) {
       const Erg = (requiredAssets.ergs + ErgoConfigs.minimumErg).toString();
       const Tokens = JsonBI.stringify(requiredAssets.tokens);
-      throw new Error(`Bank boxes didn't cover required assets. Erg: ${Erg}, Tokens: ${Tokens}`);
+      throw new Error(
+        `Bank boxes didn't cover required assets. Erg: ${Erg}, Tokens: ${Tokens}`
+      );
     }
 
     // calculate input boxes and assets
@@ -536,9 +538,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
       const response = await NodeApi.sendTx(tx.to_json());
       logger.info(`Ergo Transaction submitted: [${response}]`);
     } catch (e) {
-      logger.warn(
-        `An error occurred while submitting Ergo transaction: ${e}`
-      );
+      logger.warn(`An error occurred while submitting Ergo transaction: ${e}`);
     }
   };
 }
