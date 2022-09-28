@@ -282,14 +282,14 @@ class TransactionProcessor {
       await dbAction.setTxStatus(tx.txId, TransactionStatus.invalid);
       if (tx.type === TransactionTypes.payment) {
         await dbAction.resetEventTx(tx.event.id, EventStatus.pendingPayment);
-        logger.info('Tx is invalid. event is now waiting for payment', {
+        logger.info('Tx is invalid. Event is now waiting for payment', {
           txId: tx.txId,
           eventId: tx.event.id,
         });
       } else {
         await dbAction.resetEventTx(tx.event.id, EventStatus.pendingReward);
         logger.info(
-          'Tx is invalid. event is now waiting for reward distribution',
+          'Tx is invalid. Event is now waiting for reward distribution',
           {
             txId: tx.txId,
             eventId: tx.event.id,
@@ -298,7 +298,7 @@ class TransactionProcessor {
       }
     } else {
       logger.info(
-        'Tx is invalid. waiting for enough confirmation of this proposition',
+        'Tx is invalid. Waiting for enough confirmation of this proposition',
         { txId: tx.txId }
       );
     }
