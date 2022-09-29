@@ -117,7 +117,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
               (
                   first: { asset: Asset; index: number; value: string },
                   second: { asset: Asset; index: number; value: string }
-              ) => Number(BigInt(first.value) - BigInt(second.value))
+              ) => Number(BigInt(first.asset.quantity) - BigInt(second.asset.quantity))
           );
 
       const pivot: number = utxos.findIndex(

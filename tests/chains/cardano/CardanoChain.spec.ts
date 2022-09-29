@@ -104,7 +104,7 @@ describe('CardanoChain', () => {
       // verify output boxes
       expect(boxes.length).to.be.equal(3);
       expect(boxes[0].tx_hash).to.be.equal(bankBoxes[6].tx_hash);
-      expect(boxes[1].tx_hash).to.be.equal(bankBoxes[8].tx_hash);
+      expect(boxes[1].tx_hash).to.be.equal(bankBoxes[9].tx_hash);
       expect(boxes[2].tx_hash).to.be.equal(bankBoxes[2].tx_hash);
     });
 
