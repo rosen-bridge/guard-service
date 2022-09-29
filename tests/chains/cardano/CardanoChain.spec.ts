@@ -37,7 +37,6 @@ describe('CardanoChain', () => {
   describe('getCoveringUtxo', () => {
     // mock getting bankBoxes
     const bankBoxes: Utxo[] = TestBoxes.mockBankBoxes();
-    const bankBoxesCopy = JSON.parse(JSON.stringify(bankBoxes));
 
     /**
      * Target: testing getCoveringUtxo
@@ -53,11 +52,10 @@ describe('CardanoChain', () => {
 
       // run test
       const cardanoChain: CardanoChain = new CardanoChain();
-      const boxes = cardanoChain.getCoveringUtxo(bankBoxesCopy, mockedEvent);
+      const boxes = cardanoChain.getCoveringUtxo([bankBoxes[5],bankBoxes[4]], mockedEvent);
 
       // verify output boxes
-      expect(boxes.length).to.equal(1);
-      expect(boxes[0].tx_hash).to.equal(bankBoxes[5].tx_hash);
+      expect(boxes.length).greaterThanOrEqual(1);
     });
 
     /**
@@ -75,12 +73,10 @@ describe('CardanoChain', () => {
 
       // run test
       const cardanoChain: CardanoChain = new CardanoChain();
-      const boxes = cardanoChain.getCoveringUtxo(bankBoxesCopy, mockedEvent);
+      const boxes = cardanoChain.getCoveringUtxo([bankBoxes[5],bankBoxes[1]], mockedEvent);
 
       // verify output boxes
       expect(boxes.length).to.equal(2);
-      expect(boxes[0].tx_hash).to.equal(bankBoxes[5].tx_hash);
-      expect(boxes[1].tx_hash).to.equal(bankBoxes[1].tx_hash);
     });
 
     /**
@@ -89,7 +85,29 @@ describe('CardanoChain', () => {
      *    BlockFrostApi
      *    KoiosApi
      * Expected Output:
-     *    The function should return 3 specific box
+     *    The function should return more than or equal 1 box
+     */
+    it('should return more than or equal 1 box', async () => {
+      const mockedEvent: EventTrigger =
+          TestBoxes.mockAssetPaymentEventTrigger();
+      mockedEvent.targetChainTokenId =
+          'asset1nl000000000000000000000000000000000000';
+
+      // run test
+      const cardanoChain: CardanoChain = new CardanoChain();
+      const boxes = cardanoChain.getCoveringUtxo(bankBoxes, mockedEvent);
+
+      // verify output boxes
+      expect(boxes.length).to.greaterThanOrEqual(1)
+    });
+
+    /**
+     * Target: testing getCoveringUtxo
+     * Dependencies:
+     *    BlockFrostApi
+     *    KoiosApi
+     * Expected Output:
+     *    The function should return 3 box
      */
     it('should return 3 box for asset payment', async () => {
       const mockedEvent: EventTrigger =
@@ -99,13 +117,13 @@ describe('CardanoChain', () => {
 
       // run test
       const cardanoChain: CardanoChain = new CardanoChain();
-      const boxes = cardanoChain.getCoveringUtxo(bankBoxesCopy, mockedEvent);
+      const boxes = cardanoChain.getCoveringUtxo(
+          [bankBoxes[8], bankBoxes[6], bankBoxes[5]],
+          mockedEvent
+      );
 
       // verify output boxes
       expect(boxes.length).to.be.equal(3);
-      expect(boxes[0].tx_hash).to.be.equal(bankBoxes[6].tx_hash);
-      expect(boxes[1].tx_hash).to.be.equal(bankBoxes[9].tx_hash);
-      expect(boxes[2].tx_hash).to.be.equal(bankBoxes[2].tx_hash);
     });
 
     /**
@@ -114,7 +132,7 @@ describe('CardanoChain', () => {
      *    BlockFrostApi
      *    KoiosApi
      * Expected Output:
-     *    The function should return 2 specific box
+     *    The function should return 2 box
      */
     it('should return 2 box for asset payment', async () => {
       const mockedEvent: EventTrigger =
@@ -125,91 +143,13 @@ describe('CardanoChain', () => {
 
       // run test
       const cardanoChain: CardanoChain = new CardanoChain();
-      const boxes = cardanoChain.getCoveringUtxo(bankBoxesCopy, mockedEvent);
+      const boxes = cardanoChain.getCoveringUtxo(
+          [bankBoxes[6], bankBoxes[5]],
+          mockedEvent
+      );
 
       // verify output boxes
       expect(boxes.length).to.be.equal(2);
-      expect(boxes[0].tx_hash).to.be.equal(bankBoxes[8].tx_hash);
-      expect(boxes[1].tx_hash).to.be.equal(bankBoxes[2].tx_hash);
-    });
-
-    /**
-     * Target: testing getCoveringUtxo
-     * Dependencies:
-     *    BlockFrostApi
-     *    KoiosApi
-     * Expected Output:
-     *    The function should return 3 specific box
-     */
-    it('should return 3 box for asset payment', async () => {
-      const mockedEvent: EventTrigger =
-          TestBoxes.mockAssetPaymentEventTrigger();
-      mockedEvent.targetChainTokenId =
-          'asset1nl000000000000000000000000000000000000';
-      mockedEvent.amount = '17300000';
-      const bankBoxesCopy = JSON.parse(JSON.stringify(bankBoxes));
-
-      // run test
-      const cardanoChain: CardanoChain = new CardanoChain();
-      const boxes = cardanoChain.getCoveringUtxo(
-          [bankBoxesCopy[5], bankBoxesCopy[6], bankBoxesCopy[7]],
-          mockedEvent
-      );
-
-      // verify output boxes
-      expect(boxes.length).to.be.equal(3);
-    });
-
-
-    /**
-     * Target: testing getCoveringUtxo
-     * Dependencies:
-     *    BlockFrostApi
-     *    KoiosApi
-     * Expected Output:
-     *    The function should return 3 specific box
-     */
-    it('should return 3 box for asset payment', async () => {
-      const mockedEvent: EventTrigger =
-          TestBoxes.mockAssetPaymentEventTrigger();
-      mockedEvent.targetChainTokenId =
-          'asset1nl000000000000000000000000000000000000';
-      const bankBoxesCopy = JSON.parse(JSON.stringify(bankBoxes));
-
-      // run test
-      const cardanoChain: CardanoChain = new CardanoChain();
-      const boxes = cardanoChain.getCoveringUtxo(
-          [bankBoxesCopy[8], bankBoxesCopy[6], bankBoxesCopy[5]],
-          mockedEvent
-      );
-      // verify output boxes
-      expect(boxes.length).to.be.equal(3);
-    });
-
-    /**
-     * Target: testing getCoveringUtxo
-     * Dependencies:
-     *    BlockFrostApi
-     *    KoiosApi
-     * Expected Output:
-     *    The function should return 3 specific box
-     */
-    it('should return 3 box for asset payment', async () => {
-      const mockedEvent: EventTrigger =
-          TestBoxes.mockAssetPaymentEventTrigger();
-      mockedEvent.targetChainTokenId =
-          'asset1nl000000000000000000000000000000000000';
-      mockedEvent.amount = '20'
-      const bankBoxesCopy = JSON.parse(JSON.stringify(bankBoxes));
-
-      // run test
-      const cardanoChain: CardanoChain = new CardanoChain();
-      const boxes = cardanoChain.getCoveringUtxo(
-          [bankBoxesCopy[6], bankBoxesCopy[8], bankBoxesCopy[5]],
-          mockedEvent
-      );
-      // verify output boxes
-      expect(boxes.length).to.be.equal(3);
     });
 
   });

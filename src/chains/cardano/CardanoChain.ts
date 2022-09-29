@@ -48,150 +48,85 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
    * @param event the event trigger model
    * @return minimum required box to be in the input of the transaction
    */
-  getCoveringUtxo = (
-    addressBoxes: Array<Utxo>,
-    event: EventTrigger
-  ): Array<Utxo> => {
+  getCoveringUtxo = (addressBoxes: Array<Utxo>,
+                     event: EventTrigger): Array<Utxo> => {
     const result: Array<Utxo> = [];
     let coveredLovelace = BigNum.from_str('0');
+    const shuffleIndexes = [...Array(addressBoxes.length).keys()]
+    for (let i = shuffleIndexes.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffleIndexes[i], shuffleIndexes[j]] = [shuffleIndexes[j], shuffleIndexes[i]];
+    }
+
     if (event.targetChainTokenId === 'lovelace') {
       const paymentAmount: BigNum = BigNum.from_str(event.amount)
-        .checked_sub(BigNum.from_str(event.bridgeFee))
-        .checked_sub(BigNum.from_str(event.networkFee));
-      const utxos = addressBoxes.sort((first, second) =>
-          //  Descending
-          Number(BigInt(second.value) - BigInt(first.value))
-      );
-
+          .checked_sub(BigNum.from_str(event.bridgeFee))
+          .checked_sub(BigNum.from_str(event.networkFee));
       for (
-        let i = 0;
-        i < utxos.length && paymentAmount.compare(coveredLovelace) > 0;
-        i++
-      ) {
-        const utxo = utxos[i];
-        result.push(utxo);
+          let i = 0;
+          paymentAmount.compare(coveredLovelace) > 0 &&
+          i < addressBoxes.length;
+          i++) {
+        const utxo = addressBoxes[shuffleIndexes[i]]
         coveredLovelace = coveredLovelace.checked_add(
-          BigNum.from_str(utxo.value)
+            BigNum.from_str(utxo.value)
         );
+        result.push(addressBoxes[i]);
       }
-      if (coveredLovelace < paymentAmount) throw new Error(`An error occurred, theres is no enough lovelace in the bank`)
+      if (paymentAmount.compare(coveredLovelace) > 0) throw new Error(`An error occurred, theres is no enough lovelace in the bank`)
+      return result
     } else {
       const lovelacePaymentAmount: BigNum = CardanoConfigs.txMinimumLovelace;
       const assetPaymentAmount: BigNum = BigNum.from_str(event.amount)
-        .checked_sub(BigNum.from_str(event.bridgeFee))
-        .checked_sub(BigNum.from_str(event.networkFee));
+          .checked_sub(BigNum.from_str(event.bridgeFee))
+          .checked_sub(BigNum.from_str(event.networkFee));
       const paymentAssetUnit =
-        CardanoUtils.getAssetPolicyAndNameFromConfigFingerPrintMap(
-          event.targetChainTokenId
-        );
+          CardanoUtils.getAssetPolicyAndNameFromConfigFingerPrintMap(
+              event.targetChainTokenId
+          );
       const assetPolicyId = Utils.Uint8ArrayToHexString(paymentAssetUnit[0]);
       const assetAssetName = Utils.Uint8ArrayToHexString(paymentAssetUnit[1]);
 
-      const utxosWithAsset: Array<Utxo> = [];
-      const utxosWithOtherAsset: Array<Utxo> = [];
-      const utxosWithLovelace: Array<Utxo> = [];
+      let covered = BigNum.from_str('0');
 
-      addressBoxes.forEach((utxo) => {
-        if (utxo.asset_list.length === 0) utxosWithLovelace.push(utxo);
-        else if (
-          utxo.asset_list.some(
-            (asset) =>
-              asset.asset_name === assetAssetName &&
-              asset.policy_id === assetPolicyId
-          )
-        ) utxosWithAsset.push(utxo);
-        else utxosWithOtherAsset.push(utxo);
-      });
-
-      const utxos = utxosWithAsset
-          .map((utxo: Utxo, index: number) => {
-            const assetIndex = utxo.asset_list.findIndex(
-                (asset) =>
-                    asset.asset_name === assetAssetName &&
-                    asset.policy_id === assetPolicyId
-            );
+      for (
+          let i = 0;
+          (assetPaymentAmount.compare(covered) > 0 ||
+              lovelacePaymentAmount.compare(coveredLovelace) > 0) &&
+          i < addressBoxes.length;
+          i++) {
+        let isAdded = false;
+        const utxo = addressBoxes[shuffleIndexes[i]]
+        if (assetPaymentAmount.compare(covered) > 0) {
+          const assetIndex = utxo.asset_list.findIndex(
+              (asset) =>
+                  asset.asset_name === assetAssetName &&
+                  asset.policy_id === assetPolicyId
+          );
+          if (assetIndex !== -1) {
             const asset = utxo.asset_list[assetIndex];
-            return {value: utxo.value, asset: asset, index: index};
-          })
-          .sort(
-              (
-                  first: { asset: Asset; index: number; value: string },
-                  second: { asset: Asset; index: number; value: string }
-              ) => Number(BigInt(first.asset.quantity) - BigInt(second.asset.quantity))
-          );
-
-      const pivot: number = utxos.findIndex(
-        (utxo) =>
-          assetPaymentAmount.compare(BigNum.from_str(utxo.asset.quantity)) <= 0
-      );
-      if (pivot === -1) {
-        let covered = BigNum.from_str('0');
-        let i = utxosWithAsset.length - 1;
-        for (; i >= 0 && assetPaymentAmount.compare(covered) > 0; i--) {
-          result.push(utxosWithAsset[i]);
-          covered = covered.checked_add(
-            BigNum.from_str(utxos[i].asset.quantity)
-          );
-          coveredLovelace = coveredLovelace.checked_add(
-            BigNum.from_str(utxos[i].value)
-          );
+            covered = covered.checked_add(
+                BigNum.from_str(asset.quantity)
+            );
+            coveredLovelace = coveredLovelace.checked_add(
+                BigNum.from_str(utxo.value)
+            );
+            result.push(addressBoxes[i]);
+            isAdded = true;
+          }
         }
-        if (i === -1) utxosWithAsset.splice(0, utxosWithAsset.length);
-        else  utxosWithAsset.splice(i, utxosWithAsset.length - i);
-        if (covered < assetPaymentAmount) throw new Error(
-            `An error occurred, theres is not enough asset [${event.targetChainTokenId}] in the bank`
-        );
-      } else {
-        result.push(utxosWithAsset[pivot]);
-        coveredLovelace = coveredLovelace.checked_add(
-          BigNum.from_str(utxos[pivot].value)
-        );
-        utxosWithAsset.splice(pivot, 1);
-      }
+        if (!isAdded && lovelacePaymentAmount.compare(coveredLovelace) > 0) {
+          coveredLovelace = coveredLovelace.checked_add(
+              BigNum.from_str(utxo.value)
+          );
+          result.push(addressBoxes[i]);
+        }
 
-      for (
-        let i = 0;
-        i < utxosWithLovelace.length &&
-        lovelacePaymentAmount.compare(coveredLovelace) > 0;
-        i++
-      ) {
-        const utxo = utxosWithLovelace[i];
-        result.push(utxo);
-        coveredLovelace = coveredLovelace.checked_add(
-          BigNum.from_str(utxo.value)
-        );
       }
-
-      for (
-        let i = 0;
-        i < utxosWithAsset.length &&
-        lovelacePaymentAmount.compare(coveredLovelace) > 0;
-        i++
-      ) {
-        const utxo = utxosWithAsset[i];
-        result.push(utxo);
-        coveredLovelace = coveredLovelace.checked_add(
-          BigNum.from_str(utxo.value)
-        );
-      }
-
-      for (
-        let i = 0;
-        i < utxosWithOtherAsset.length &&
-        lovelacePaymentAmount.compare(coveredLovelace) > 0;
-        i++
-      ) {
-        const utxo = utxosWithOtherAsset[i];
-        result.push(utxo);
-        coveredLovelace = coveredLovelace.checked_add(
-          BigNum.from_str(utxo.value)
-        );
-      }
-
-      if (coveredLovelace < lovelacePaymentAmount) throw new Error(`An error occurred, theres is no enough lovelace in the bank`)
+      if (lovelacePaymentAmount.compare(coveredLovelace) > 0) throw new Error(`An error occurred, theres is no enough lovelace in the bank`)
+      if (assetPaymentAmount.compare(covered) > 0) throw new Error(`An error occurred, theres is no enough asset in the bank`)
     }
-
-    return result;
+    return result
   };
 
   /**
