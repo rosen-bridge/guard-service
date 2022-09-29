@@ -10,7 +10,7 @@ import { FloodSub } from '@libp2p/floodsub';
 import { Connection, Stream } from '@libp2p/interface-connection';
 import { OPEN } from '@libp2p/interface-connection/status';
 import * as lp from 'it-length-prefixed';
-import map from "it-map";
+import map from 'it-map';
 import { PeerId } from '@libp2p/interface-peer-id';
 import { createEd25519PeerId, createFromJSON } from '@libp2p/peer-id-factory';
 import * as multiaddr from '@multiformats/multiaddr';
@@ -41,9 +41,12 @@ class Dialer {
     string,
     PassThrough
   >();
-  private readonly _SUPPORTED_PROTOCOL: Map<string, string> = new Map<string, string>([
-    ["MSG",  "/broadcast"],
-    ["PEER", "/getpeers"]
+  private readonly _SUPPORTED_PROTOCOL: Map<string, string> = new Map<
+    string,
+    string
+  >([
+    ['MSG', '/broadcast'],
+    ['PEER', '/getpeers'],
   ]);
 
   private constructor() {
@@ -262,14 +265,16 @@ class Dialer {
               await createFromJSON({ id: `${peer}` }),
               [multi]
             );
-            await this._NODE?.dialProtocol(multi, this._SUPPORTED_PROTOCOL.get("PEER")!);
-            logger.info(`a peer with peerID [${peer}] added`)
+            await this._NODE?.dialProtocol(
+              multi,
+              this._SUPPORTED_PROTOCOL.get('PEER')!
+            );
+            logger.info(`a peer with peerID [${peer}] added`);
           }
         }
       }
-    }
-    catch (e) {
-      logger.warn(`an error occurred for store discovered peer: [${e}]`)
+    } catch (e) {
+      logger.warn(`an error occurred for store discovered peer: [${e}]`);
     }
   };
 
@@ -326,11 +331,11 @@ class Dialer {
     const connStream = await this.getOpenStream(
       node,
       peer,
-      this._SUPPORTED_PROTOCOL.get("MSG")!
+      this._SUPPORTED_PROTOCOL.get('MSG')!
     );
-    const passThroughName = `${peer.toString()}-${
-      this._SUPPORTED_PROTOCOL.get("MSG")!
-    }-${connStream.stream.id}`;
+    const passThroughName = `${peer.toString()}-${this._SUPPORTED_PROTOCOL.get(
+      'MSG'
+    )!}-${connStream.stream.id}`;
 
     if (this._OUTPUT_STREAMS.has(passThroughName)) {
       outputStream = this._OUTPUT_STREAMS.get(passThroughName);
@@ -366,7 +371,10 @@ class Dialer {
    * @param stream
    * @param connection
    */
-  private handleBroadcast = async (stream: Stream, connection: Connection): Promise<void> => {
+  private handleBroadcast = async (
+    stream: Stream,
+    connection: Connection
+  ): Promise<void> => {
     try {
       pipe(
         // Read from the stream (the source)
@@ -386,16 +394,16 @@ class Dialer {
             const runSubscribeCallback = async (value: any): Promise<void> => {
               value.url
                 ? value.func(
-                  receivedData.msg,
-                  receivedData.channel,
-                  connection.remotePeer.toString(),
-                  value.url
-                )
+                    receivedData.msg,
+                    receivedData.channel,
+                    connection.remotePeer.toString(),
+                    value.url
+                  )
                 : value.func(
-                  receivedData.msg,
-                  receivedData.channel,
-                  connection.remotePeer.toString()
-                );
+                    receivedData.msg,
+                    receivedData.channel,
+                    connection.remotePeer.toString()
+                  );
             };
             if (this._SUBSCRIBED_CHANNELS[receivedData.channel]) {
               logger.info(
@@ -413,12 +421,13 @@ class Dialer {
               );
           }
         }
-      )
+      );
+    } catch (e) {
+      logger.warn(
+        `an error occurred for handle broadcast protocol stream: [${e}]`
+      );
     }
-    catch (e) {
-      logger.warn(`an error occurred for handle broadcast protocol stream: [${e}]`)
-    }
-  }
+  };
 
   /**
    * handle incoming messages for broadcast protocol
@@ -426,7 +435,11 @@ class Dialer {
    * @param stream
    * @param connection
    */
-  private handlePeerDiscovery = async (node: Libp2p, stream: Stream, connection: Connection): Promise<void> => {
+  private handlePeerDiscovery = async (
+    node: Libp2p,
+    stream: Stream,
+    connection: Connection
+  ): Promise<void> => {
     try {
       pipe(
         // Read from the stream (the source)
@@ -447,7 +460,9 @@ class Dialer {
               const receivedData: ReceivePeers = await JsonBI.parse(
                 msg.toString()
               );
-              const nodePeerIds = node.getPeers().map((peer) => peer.toString());
+              const nodePeerIds = node
+                .getPeers()
+                .map((peer) => peer.toString());
               await this.storePeers(
                 receivedData.peerIds.filter(
                   (mainPeer) => !nodePeerIds.includes(mainPeer)
@@ -456,12 +471,13 @@ class Dialer {
             }
           }
         }
-      )
+      );
+    } catch (e) {
+      logger.warn(
+        `an error occurred for handle getpeers protocol stream: [${e}]`
+      );
     }
-    catch (e) {
-      logger.warn(`an error occurred for handle getpeers protocol stream: [${e}]`)
-    }
-  }
+  };
 
   /**
    *
@@ -506,27 +522,28 @@ class Dialer {
       // Listen for peers disconnecting
       node.connectionManager.addEventListener('peer:disconnect', (evt) => {
         this._OUTPUT_STREAMS.forEach((value, key) => {
-          if(key.includes(evt.detail.remotePeer.toString())) this._OUTPUT_STREAMS.delete(key)
-        })
-      })
-
+          if (key.includes(evt.detail.remotePeer.toString()))
+            this._OUTPUT_STREAMS.delete(key);
+        });
+      });
 
       // Define protocol for node
-      await node.handle(this._SUPPORTED_PROTOCOL.get("MSG")!,
-        async ({stream, connection}) => {
+      await node.handle(
+        this._SUPPORTED_PROTOCOL.get('MSG')!,
+        async ({ stream, connection }) => {
           // Read the stream
-          this.handleBroadcast(stream, connection)
+          this.handleBroadcast(stream, connection);
         }
       );
 
       // Handle messages for the _SUPPORTED_PROTOCOL_PEERS
       await node.handle(
-        this._SUPPORTED_PROTOCOL.get("PEER")!,
-        async ({stream, connection}) => {
+        this._SUPPORTED_PROTOCOL.get('PEER')!,
+        async ({ stream, connection }) => {
           // Read the stream
-          this.handlePeerDiscovery(node, stream, connection)
+          this.handlePeerDiscovery(node, stream, connection);
         }
-      )
+      );
 
       node.start();
       logger.info(`Dialer node started with peerId: ${node.peerId.toString()}`);
@@ -544,17 +561,12 @@ class Dialer {
       );
 
       new Promise(() =>
-        setInterval(
-          () => {
-            logger.info(`peers are [${this.getPeerIds()}]`)
-          },
-          CommunicationConfig.getPeersInterval * 1000
-        )
+        setInterval(() => {
+          logger.info(`peers are [${this.getPeerIds()}]`);
+        }, CommunicationConfig.getPeersInterval * 1000)
       );
-
-    }
-    catch (e) {
-      logger.log('fatal', `an error occurred for start dialer: [${e}]`)
+    } catch (e) {
+      logger.log('fatal', `an error occurred for start dialer: [${e}]`);
     }
   };
 }
