@@ -250,10 +250,10 @@ class Dialer {
   };
 
   /**
-   * store relay's peerIDs to PeerStore
+   * store dialers' peerID to PeerStore
    * @param peers id of peers
    */
-  storePeers = async (peers: string[]): Promise<void> => {
+  addPeers = async (peers: string[]): Promise<void> => {
     try {
       if (this._NODE) {
         for (const peer of peers) {
@@ -463,7 +463,7 @@ class Dialer {
               const nodePeerIds = node
                 .getPeers()
                 .map((peer) => peer.toString());
-              await this.storePeers(
+              await this.addPeers(
                 receivedData.peerIds.filter(
                   (mainPeer) => !nodePeerIds.includes(mainPeer)
                 )
@@ -510,7 +510,7 @@ class Dialer {
         pubsub: new FloodSub(), // Active peer discovery and bootstrap peers
         peerDiscovery: [
           new Bootstrap({
-            interval: CommunicationConfig.bootstrapInterval * 1000,
+            timeout: CommunicationConfig.bootstrapInterval * 1000,
             list: CommunicationConfig.relays.multiaddrs,
           }),
           new PubSubPeerDiscovery({

@@ -57,7 +57,7 @@
         "address": "changeme"
       }
     ],
-    "bootstrapInterval": 60,
+    "bootstrapTimeout": 60,
     "pubsubInterval": 1,
     "apiCallbackTimeout": 8,
     "timeToFlushStream": 0.1,
