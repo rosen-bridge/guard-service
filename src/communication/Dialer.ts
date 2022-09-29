@@ -10,6 +10,7 @@ import { FloodSub } from '@libp2p/floodsub';
 import { Connection, Stream } from '@libp2p/interface-connection';
 import { OPEN } from '@libp2p/interface-connection/status';
 import * as lp from 'it-length-prefixed';
+import map from "it-map";
 import { PeerId } from '@libp2p/interface-peer-id';
 import { createEd25519PeerId, createFromJSON } from '@libp2p/peer-id-factory';
 import * as multiaddr from '@multiformats/multiaddr';
@@ -40,8 +41,10 @@ class Dialer {
     string,
     PassThrough
   >();
-  private readonly _SUPPORTED_PROTOCOL_MSG: string = '/broadcast';
-  private readonly _SUPPORTED_PROTOCOL_PEERS: string = '/get-peers';
+  private readonly _SUPPORTED_PROTOCOL: Map<string, string> = new Map<string, string>([
+    ["MSG",  "/broadcast"],
+    ["PEER", "/getpeers"]
+  ]);
 
   private constructor() {
     logger.info('Create Dialer Instance!');
@@ -115,7 +118,7 @@ class Dialer {
           if (err) {
             logger.log(
               'fatal',
-              'An error occurred, in writing created PeerId to the file'
+              'an error occurred, in writing created PeerId to the file'
             );
             throw err;
           }
@@ -137,7 +140,7 @@ class Dialer {
    */
   getDialerId = (): string => {
     if (!this._NODE) {
-      logThrowError("Dialer node isn't ready, please try later", 'fatal');
+      logThrowError("dialer node isn't ready, please try later", 'fatal');
     }
     return this._NODE!.peerId.toString();
   };
@@ -147,7 +150,7 @@ class Dialer {
    */
   getPeerIds = (): string[] => {
     if (!this._NODE) {
-      logThrowError("Dialer node isn't ready, please try later", 'fatal');
+      logThrowError("dialer node isn't ready, please try later", 'fatal');
     }
     return this._NODE!.getPeers().map((peer) => peer.toString());
   };
@@ -175,7 +178,7 @@ class Dialer {
             sub.func.name === callback.name && sub.url === url
         )
       ) {
-        logger.info('A redundant subscribed channel detected !');
+        logger.info('a redundant subscribed channel detected !');
         return;
       }
       this._SUBSCRIBED_CHANNELS[channel].push(callbackObj);
@@ -204,7 +207,7 @@ class Dialer {
     if (!this._NODE) {
       this._PENDING_MESSAGE.push(data);
       logger.warn(
-        "Message added to pending list due to dialer node isn't ready"
+        "message added to pending list due to dialer node isn't ready"
       );
       return;
     }
@@ -248,19 +251,25 @@ class Dialer {
    * @param peers id of peers
    */
   storePeers = async (peers: string[]): Promise<void> => {
-    if (this._NODE) {
-      for (const peer of peers) {
-        for (const addr of CommunicationConfig.relays.multiaddrs) {
-          const multi = multiaddr.multiaddr(
-            addr.concat(`/p2p-circuit/p2p/${peer}`)
-          );
-          this._NODE?.peerStore.addressBook.set(
-            await createFromJSON({ id: `${peer}` }),
-            [multi]
-          );
-          await this._NODE?.dial(multi);
+    try {
+      if (this._NODE) {
+        for (const peer of peers) {
+          for (const addr of CommunicationConfig.relays.multiaddrs) {
+            const multi = multiaddr.multiaddr(
+              addr.concat(`/p2p-circuit/p2p/${peer}`)
+            );
+            this._NODE?.peerStore.addressBook.set(
+              await createFromJSON({ id: `${peer}` }),
+              [multi]
+            );
+            await this._NODE?.dialProtocol(multi, this._SUPPORTED_PROTOCOL.get("PEER")!);
+            logger.info(`a peer with peerID [${peer}] added`)
+          }
         }
       }
+    }
+    catch (e) {
+      logger.warn(`an error occurred for store discovered peer: [${e}]`)
     }
   };
 
@@ -317,10 +326,10 @@ class Dialer {
     const connStream = await this.getOpenStream(
       node,
       peer,
-      this._SUPPORTED_PROTOCOL_MSG
+      this._SUPPORTED_PROTOCOL.get("MSG")!
     );
     const passThroughName = `${peer.toString()}-${
-      this._SUPPORTED_PROTOCOL_MSG
+      this._SUPPORTED_PROTOCOL.get("MSG")!
     }-${connStream.stream.id}`;
 
     if (this._OUTPUT_STREAMS.has(passThroughName)) {
@@ -335,7 +344,7 @@ class Dialer {
         this._OUTPUT_STREAMS.delete(passThroughName);
         this._PENDING_MESSAGE.push(messageToSend);
         logger.warn(
-          "Message added to pending list due to dialer node isn't ready"
+          "message added to pending list due to dialer node isn't ready"
         );
       });
     }
@@ -353,129 +362,200 @@ class Dialer {
   };
 
   /**
+   * handle incoming messages with broadcast protocol
+   * @param stream
+   * @param connection
+   */
+  private handleBroadcast = async (stream: Stream, connection: Connection): Promise<void> => {
+    try {
+      pipe(
+        // Read from the stream (the source)
+        stream.source,
+        // Decode length-prefixed data
+        lp.decode(),
+        // Turn buffers into strings
+        (source) => map(source, (buf) => uint8ArrayToString(buf.subarray())),
+        // Sink function
+        async (source) => {
+          // For each chunk of data
+          for await (const msg of source) {
+            const receivedData: ReceiveDataCommunication = await JsonBI.parse(
+              msg.toString()
+            );
+
+            const runSubscribeCallback = async (value: any): Promise<void> => {
+              value.url
+                ? value.func(
+                  receivedData.msg,
+                  receivedData.channel,
+                  connection.remotePeer.toString(),
+                  value.url
+                )
+                : value.func(
+                  receivedData.msg,
+                  receivedData.channel,
+                  connection.remotePeer.toString()
+                );
+            };
+            if (this._SUBSCRIBED_CHANNELS[receivedData.channel]) {
+              logger.info(
+                `received a message from [${connection.remotePeer.toString()}]
+             in a subscribed channel [${receivedData.channel} ]`
+              );
+              this._SUBSCRIBED_CHANNELS[receivedData.channel].forEach(
+                runSubscribeCallback
+              );
+            } else
+              logger.warn(
+                `received a message from [${connection.remotePeer.toString()}] in a unsubscribed channel [${
+                  receivedData.channel
+                }]`
+              );
+          }
+        }
+      )
+    }
+    catch (e) {
+      logger.warn(`an error occurred for handle broadcast protocol stream: [${e}]`)
+    }
+  }
+
+  /**
+   * handle incoming messages for broadcast protocol
+   * @param node
+   * @param stream
+   * @param connection
+   */
+  private handlePeerDiscovery = async (node: Libp2p, stream: Stream, connection: Connection): Promise<void> => {
+    try {
+      pipe(
+        // Read from the stream (the source)
+        stream.source,
+        // Decode length-prefixed data
+        lp.decode(),
+        // Turn buffers into strings
+        (source) => map(source, (buf) => uint8ArrayToString(buf.subarray())),
+        // Sink function
+        async (source) => {
+          // For each chunk of data
+          for await (const msg of source) {
+            if (
+              CommunicationConfig.relays.peerIDs.includes(
+                connection.remotePeer.toString()
+              )
+            ) {
+              const receivedData: ReceivePeers = await JsonBI.parse(
+                msg.toString()
+              );
+              const nodePeerIds = node.getPeers().map((peer) => peer.toString());
+              await this.storePeers(
+                receivedData.peerIds.filter(
+                  (mainPeer) => !nodePeerIds.includes(mainPeer)
+                )
+              );
+            }
+          }
+        }
+      )
+    }
+    catch (e) {
+      logger.warn(`an error occurred for handle getpeers protocol stream: [${e}]`)
+    }
+  }
+
+  /**
    *
    * config a dialer node with peerDiscovery
    * @return a Libp2p object after start node
    */
   private startDialer = async (): Promise<void> => {
-    const peerId = await Dialer.getOrCreatePeerID();
-    const node = await createLibp2p({
-      // get or create new PeerID if it doesn't exist
-      peerId: peerId.peerId,
-      // Type of communication
-      transports: [new WebSockets()],
-      // Enable module encryption message
-      connectionEncryption: [new Noise()],
-      streamMuxers: [
-        // Mplex is a Stream Multiplexer protocol
-        new Mplex(),
-      ],
-      relay: {
-        // Circuit Relay options (this config is part of libp2p core configurations)
-        enabled: true, // Allows you to dial and accept relayed connections.
-      },
-      connectionManager: {
-        autoDial: true, // Auto connect to discovered peers (limited by ConnectionManager minConnections)
-        // The `tag` property will be searched when creating the instance of your Peer Discovery service.
-        // The associated object, will be passed to the service when it is instantiated.
-      },
-      pubsub: new FloodSub(), // Active peer discovery and bootstrap peers
-      peerDiscovery: [
-        new Bootstrap({
-          interval: CommunicationConfig.bootstrapInterval * 1000,
-          list: CommunicationConfig.relays.multiaddrs,
-        }),
-        new PubSubPeerDiscovery({
-          interval: CommunicationConfig.pubsubInterval * 1000,
-        }),
-      ],
-    });
+    try {
+      const peerId = await Dialer.getOrCreatePeerID();
+      const node = await createLibp2p({
+        // get or create new PeerID if it doesn't exist
+        peerId: peerId.peerId,
+        // Type of communication
+        transports: [new WebSockets()],
+        // Enable module encryption message
+        connectionEncryption: [new Noise()],
+        streamMuxers: [
+          // Mplex is a Stream Multiplexer protocol
+          new Mplex(),
+        ],
+        relay: {
+          // Circuit Relay options (this config is part of libp2p core configurations)
+          enabled: true, // Allows you to dial and accept relayed connections.
+        },
+        connectionManager: {
+          autoDial: true, // Auto connect to discovered peers (limited by ConnectionManager minConnections)
+          // The `tag` property will be searched when creating the instance of your Peer Discovery service.
+          // The associated object, will be passed to the service when it is instantiated.
+        },
+        pubsub: new FloodSub(), // Active peer discovery and bootstrap peers
+        peerDiscovery: [
+          new Bootstrap({
+            interval: CommunicationConfig.bootstrapInterval * 1000,
+            list: CommunicationConfig.relays.multiaddrs,
+          }),
+          new PubSubPeerDiscovery({
+            interval: CommunicationConfig.pubsubInterval * 1000,
+          }),
+        ],
+      });
 
-    // Define protocol for node
-    await node.handle(this._SUPPORTED_PROTOCOL_MSG, ({ stream, connection }) =>
-      pipe(stream.source, async () => {
-        let receivedDataObj = '';
-        // For each chunk of data
-        for await (const data of stream.source) {
-          receivedDataObj = uint8ArrayToString(data.subarray());
-        }
-        const receivedData: ReceiveDataCommunication = await JsonBI.parse(
-          receivedDataObj
-        );
-
-        const runSubscribeCallback = async (value: any): Promise<void> => {
-          value.url
-            ? value.func(
-                receivedData.msg,
-                receivedData.channel,
-                connection.remotePeer.toString(),
-                value.url
-              )
-            : value.func(
-                receivedData.msg,
-                receivedData.channel,
-                connection.remotePeer.toString()
-              );
-        };
-        if (this._SUBSCRIBED_CHANNELS[receivedData.channel]) {
-          logger.info(
-            `Received a message from [${connection.remotePeer.toString()}]
-             in a subscribed channel [${receivedData.channel} ]`
-          );
-          this._SUBSCRIBED_CHANNELS[receivedData.channel].forEach(
-            runSubscribeCallback
-          );
-        } else
-          logger.warn(
-            `Received a message from [${connection.remotePeer.toString()}] in a unsubscribed channel [${
-              receivedData.channel
-            }]`
-          );
-      })
-    );
-
-    // Define protocol for node
-    await node.handle(
-      this._SUPPORTED_PROTOCOL_PEERS,
-      ({ stream, connection }) =>
-        pipe(stream.source, async () => {
-          if (
-            CommunicationConfig.relays.peerIDs.includes(
-              connection.remotePeer.toString()
-            )
-          ) {
-            let receivedDataObj = '';
-            // For each chunk of data
-            for await (const data of stream.source) {
-              receivedDataObj = uint8ArrayToString(data.subarray());
-            }
-            const receivedData: ReceivePeers = await JsonBI.parse(
-              receivedDataObj
-            );
-            const nodePeerIds = node.getPeers().map((peer) => peer.toString());
-            this.storePeers(
-              receivedData.peerIds.filter(
-                (mainPeer) => !nodePeerIds.includes(mainPeer)
-              )
-            );
-          }
+      // Listen for peers disconnecting
+      node.connectionManager.addEventListener('peer:disconnect', (evt) => {
+        this._OUTPUT_STREAMS.forEach((value, key) => {
+          if(key.includes(evt.detail.remotePeer.toString())) this._OUTPUT_STREAMS.delete(key)
         })
-    );
+      })
 
-    node.start();
-    logger.info(`Dialer node started peerId: ${node.peerId.toString()}`);
 
-    this._NODE = await node;
+      // Define protocol for node
+      await node.handle(this._SUPPORTED_PROTOCOL.get("MSG")!,
+        async ({stream, connection}) => {
+          // Read the stream
+          this.handleBroadcast(stream, connection)
+        }
+      );
 
-    // this should call after createRelayConnection duo to peerId should save after create relay connection
-    await Dialer.savePeerIdIfNeed(peerId);
-
-    new Promise(() =>
-      setInterval(
-        this.sendPendingMessage,
-        CommunicationConfig.sendPendingMessage * 1000
+      // Handle messages for the _SUPPORTED_PROTOCOL_PEERS
+      await node.handle(
+        this._SUPPORTED_PROTOCOL.get("PEER")!,
+        async ({stream, connection}) => {
+          // Read the stream
+          this.handlePeerDiscovery(node, stream, connection)
+        }
       )
-    );
+
+      node.start();
+      logger.info(`Dialer node started with peerId: ${node.peerId.toString()}`);
+
+      this._NODE = await node;
+
+      // this should call after createRelayConnection duo to peerId should save after create relay connection
+      await Dialer.savePeerIdIfNeed(peerId);
+
+      new Promise(() =>
+        setInterval(
+          this.sendPendingMessage,
+          CommunicationConfig.sendPendingMessage * 1000
+        )
+      );
+
+      new Promise(() =>
+        setInterval(
+          () => {
+            logger.info(`peers are [${this.getPeerIds()}]`)
+          },
+          CommunicationConfig.getPeersInterval * 1000
+        )
+      );
+
+    }
+    catch (e) {
+      logger.log('fatal', `an error occurred for start dialer: [${e}]`)
+    }
   };
 }
 

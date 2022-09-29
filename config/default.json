@@ -62,6 +62,7 @@
     "apiCallbackTimeout": 8,
     "timeToFlushStream": 0.1,
     "sendPendingMessage": 15,
+    "getPeersInterval": 60,
     "peerIdFilePath": "./peer-dialer.json"
   },
   "multiSigTimeout": null,

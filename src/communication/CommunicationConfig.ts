@@ -21,6 +21,9 @@ class CommunicationConfig {
   static sendPendingMessage: number = config.get<number>(
     'p2p.sendPendingMessage'
   ); // seconds
+  static getPeersInterval: number = config.get<number>(
+    'p2p.getPeersInterval'
+  ); // seconds
   static peerIdFilePath: string = config.get<string>('p2p.peerIdFilePath');
 }
 
