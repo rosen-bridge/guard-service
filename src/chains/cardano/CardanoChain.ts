@@ -59,13 +59,12 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         .checked_sub(BigNum.from_str(event.bridgeFee))
         .checked_sub(BigNum.from_str(event.networkFee));
       const utxos = addressBoxes.sort((first, second) => {
-        //  Descending
-        const firstValue = BigInt(first.value);
-        const secondValue = BigInt(second.value);
-        if (firstValue > secondValue) return -1;
-        else if (firstValue < secondValue) return 1;
-        else return 0;
-      });
+            //  Descending
+            const firstValue = BigInt(first.value);
+            const secondValue = BigInt(second.value);
+            return (firstValue > secondValue) ? -1 : ((firstValue < secondValue) ? 1 : 0)
+          }
+      );
 
       for (
         let i = 0;
@@ -124,9 +123,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
           ) => {
             const firstQuantity = BigInt(first.asset.quantity);
             const secondQuantity = BigInt(second.asset.quantity);
-            if (firstQuantity > secondQuantity) return 1;
-            else if (firstQuantity < secondQuantity) return -1;
-            else return 0;
+            return (firstQuantity > secondQuantity) ? 1 : ((firstQuantity < secondQuantity) ? -1 : 0)
           }
         );
 
