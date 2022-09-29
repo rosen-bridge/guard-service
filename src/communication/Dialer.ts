@@ -344,7 +344,7 @@ class Dialer {
       this._OUTPUT_STREAMS.set(passThroughName, outStream);
       outputStream = outStream;
       pipe(outputStream, lp.encode(), connStream.stream).catch((e) => {
-        logger.error(e);
+        logger.error(`an error occurred for write to stream [${e}]`);
         connStream.stream.close();
         this._OUTPUT_STREAMS.delete(passThroughName);
         this._PENDING_MESSAGE.push(messageToSend);
