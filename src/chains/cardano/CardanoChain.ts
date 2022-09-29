@@ -58,12 +58,9 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
       const paymentAmount: BigNum = BigNum.from_str(event.amount)
         .checked_sub(BigNum.from_str(event.bridgeFee))
         .checked_sub(BigNum.from_str(event.networkFee));
-      const utxos = addressBoxes.sort((first, second) => {
-            //  Descending
-            const firstValue = BigInt(first.value);
-            const secondValue = BigInt(second.value);
-            return (firstValue > secondValue) ? -1 : ((firstValue < secondValue) ? 1 : 0)
-          }
+      const utxos = addressBoxes.sort((first, second) =>
+          //  Descending
+          Number(BigInt(second.value) - BigInt(first.value))
       );
 
       for (
@@ -107,25 +104,21 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
       });
 
       const utxos = utxosWithAsset
-        .map((utxo: Utxo, index: number) => {
-          const assetIndex = utxo.asset_list.findIndex(
-            (asset) =>
-              asset.asset_name === assetAssetName &&
-              asset.policy_id === assetPolicyId
+          .map((utxo: Utxo, index: number) => {
+            const assetIndex = utxo.asset_list.findIndex(
+                (asset) =>
+                    asset.asset_name === assetAssetName &&
+                    asset.policy_id === assetPolicyId
+            );
+            const asset = utxo.asset_list[assetIndex];
+            return {value: utxo.value, asset: asset, index: index};
+          })
+          .sort(
+              (
+                  first: { asset: Asset; index: number; value: string },
+                  second: { asset: Asset; index: number; value: string }
+              ) => Number(BigInt(first.value) - BigInt(second.value))
           );
-          const asset = utxo.asset_list[assetIndex];
-          return { value: utxo.value, asset: asset, index: index };
-        })
-        .sort(
-          (
-            first: { asset: Asset; index: number; value: string },
-            second: { asset: Asset; index: number; value: string }
-          ) => {
-            const firstQuantity = BigInt(first.asset.quantity);
-            const secondQuantity = BigInt(second.asset.quantity);
-            return (firstQuantity > secondQuantity) ? 1 : ((firstQuantity < secondQuantity) ? -1 : 0)
-          }
-        );
 
       const pivot: number = utxos.findIndex(
         (utxo) =>
