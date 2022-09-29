@@ -10,9 +10,11 @@
     "build": "rimraf dist && tsc",
     "start": "NODE_ENV=\"development\" nodemon .",
     "test": "NODE_ENV=\"test\" mocha --slow 3000 && rimraf tests/db/sqlite/test",
+    "type-check": "tsc --noEmit",
     "coverage": "c8 npm run test",
     "typeorm:update": "typeorm-ts-node-esm migration:generate src/db/migrations/migration -d config/ormDataSource.ts",
-    "typeorm:migrate": "typeorm-ts-node-esm migration:run -d config/ormDataSource.ts"
+    "typeorm:migrate": "typeorm-ts-node-esm migration:run -d config/ormDataSource.ts",
+    "prepare": "husky install"
   },
   "author": "",
   "license": "ISC",
@@ -69,6 +71,8 @@
     "chai": "^4.3.6",
     "eslint": "^8.16.0",
     "eslint-config-prettier": "^8.5.0",
+    "husky": "^8.0.0",
+    "lint-staged": "^13.0.3",
     "mocha": "^10.0.0",
     "nodemon": "^2.0.16",
     "prettier": "2.7.1",
