@@ -35,7 +35,7 @@ import { dbAction } from '../../db/DatabaseAction';
 import Configs from '../../helpers/Configs';
 import { Buffer } from 'buffer';
 import Utils from '../../helpers/Utils';
-import { logger, logThrowError } from '../../log/Logger';
+import { logger } from '../../log/Logger';
 import { TssFailedSign, TssSuccessfulSign } from '../../models/Interfaces';
 
 class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
