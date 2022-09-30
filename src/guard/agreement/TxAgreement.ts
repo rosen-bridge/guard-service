@@ -366,7 +366,7 @@ class TxAgreement {
       else await dbAction.setEventStatus(tx.eventId, EventStatus.inReward);
     } catch (e) {
       logger.warn(
-        `Unexpected error occurred while updating event [${tx.eventId}] with status: [${e}]`
+        `Unexpected error occurred while updating event [${tx.eventId}] with status: ${e}`
       );
     }
   };

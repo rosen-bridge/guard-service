@@ -20,9 +20,9 @@ tssRouter.post(
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         logger.error(
-          `Received bad request from TSS Cardano tx sign callback: [${JSON.stringify(
+          `Received bad request from TSS Cardano tx sign callback: ${JSON.stringify(
             errors.array()
-          )}]`
+          )}`
         );
         return res
           .status(400)
