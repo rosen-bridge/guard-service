@@ -400,9 +400,8 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
     if (status !== 'ok') {
       const response = JSON.parse(message) as TssFailedSign;
       const txId = response.m;
-      const errorMessage = response.error;
 
-      logger.info(`TSS failed to sign tx [${txId}]: ${errorMessage}`);
+      logger.info(`TSS failed to sign tx [${txId}]: ${response.error}`);
       await dbAction.setTxStatus(txId, TransactionStatus.signFailed);
 
       return null;
