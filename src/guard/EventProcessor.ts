@@ -17,8 +17,9 @@ import { txAgreement } from './agreement/TxAgreement';
 import Reward from '../chains/ergo/Reward';
 import Utils from '../helpers/Utils';
 import ErgoTransaction from '../chains/ergo/models/ErgoTransaction';
-import inputBoxes from '../chains/ergo/boxes/InputBoxes';
+import InputBoxes from '../chains/ergo/boxes/InputBoxes';
 import { logger } from '../log/Logger';
+import NodeApi from '../chains/ergo/network/NodeApi';
 
 class EventProcessor {
   static cardanoChain = new CardanoChain();
@@ -154,7 +155,7 @@ class EventProcessor {
    * @return true if event data verified
    */
   static verifyEvent = async (event: EventTrigger): Promise<boolean> => {
-    const eventBox = await inputBoxes.getEventBox(event);
+    const eventBox = await InputBoxes.getEventBox(event);
     const RWTId = eventBox.tokens().get(0).id().to_str();
     if (event.fromChain === ChainsConstants.cardano)
       return this.cardanoChain.verifyEventWithPayment(event, RWTId);
@@ -181,6 +182,18 @@ class EventProcessor {
   static isEventConfirmedEnough = async (
     event: EventTrigger
   ): Promise<boolean> => {
+    // check if the event box in ergo chain confirmed enough
+    const eventBoxCreationHeight = (
+      await InputBoxes.getEventBox(event)
+    ).creation_height();
+    const ergoCurrentHeight = await NodeApi.getHeight();
+    if (
+      ergoCurrentHeight - eventBoxCreationHeight <
+      ErgoConfigs.requiredConfirmation
+    )
+      return false;
+
+    // check if lock transaction in source chain confirmed enough
     if (event.fromChain === ChainsConstants.cardano) {
       const confirmation = await KoiosApi.getTxConfirmation(event.sourceTxId);
       return (
