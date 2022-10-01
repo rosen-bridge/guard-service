@@ -33,7 +33,7 @@ try {
   await testScannerOrmDataSource.runMigrations();
   logger.info('Test Data Source has been initialized!');
 } catch (err) {
-  logger.error('Error during Test Data Source initialization:', { error: err });
+  logger.error(`An error occurred while initializing test datasource: ${err}`);
 }
 
 const testScannerDataBase = new DatabaseAction(testScannerOrmDataSource);

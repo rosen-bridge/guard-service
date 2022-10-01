@@ -12,7 +12,7 @@ import {
   EventTriggerEntity,
 } from '@rosen-bridge/watcher-data-extractor';
 import Utils from '../helpers/Utils';
-import { logger, logThrowError } from '../log/Logger';
+import { logger } from '../log/Logger';
 
 class DatabaseAction {
   dataSource: DataSource;
@@ -179,14 +179,14 @@ class DatabaseAction {
   insertTx = async (newTx: PaymentTransaction): Promise<void> => {
     const event = await this.getEventById(newTx.eventId);
     if (event === null) {
-      logThrowError(`Event [${newTx.eventId}] not found`);
+      throw new Error(`Event [${newTx.eventId}] not found`);
     }
 
     const txs = (await this.getEventTxsByType(event!.id, newTx.txType)).filter(
       (tx) => tx.status !== TransactionStatus.invalid
     );
     if (txs.length > 1) {
-      logThrowError(
+      throw new Error(
         `Impossible case, event [${newTx.eventId}] has already more than 1 (${txs.length}) active ${newTx.txType} tx`
       );
     } else if (txs.length === 1) {

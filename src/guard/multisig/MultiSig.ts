@@ -15,8 +15,7 @@ import Configs from '../../helpers/Configs';
 import { Semaphore } from 'await-semaphore';
 import Encryption from '../../helpers/Encryption';
 import MultiSigUtils from './MultiSigUtils';
-import { logger, logThrowError } from '../../log/Logger';
-import clean = Mocha.utils.clean;
+import { logger } from '../../log/Logger';
 
 const dialer = await Dialer.getInstance();
 
@@ -89,9 +88,7 @@ class MultiSigHandler {
         .filter((row) => row[0] === publicKey)[0][1] as number;
     }
     if (this.index !== undefined) return this.index;
-    const errorMessage = 'My index not found in guard public keys';
-    logger.log('fatal', errorMessage);
-    throw Error(errorMessage);
+    throw Error('Secret key does not match with any guard public keys');
   };
 
   /**
@@ -159,7 +156,7 @@ class MultiSigHandler {
    * cleaning unsigned transaction after multiSigTimeout if the transaction still exist in queue
    */
   cleanup = (): void => {
-    logger.info('Cleaning unsigned transactions in MultiSig queue');
+    logger.info('Cleaning MultiSig queue');
     let cleanedTransactionCount = 0;
     this.semaphore.acquire().then((release) => {
       try {
@@ -180,13 +177,13 @@ class MultiSigHandler {
       } catch (e) {
         release();
         logger.error(
-          `An error occurred, in cleaning unsigned transaction in MultiSig queue : ${e}`
+          `An error occurred while removing unsigned transactions from MultiSig queue: ${e}`
         );
         throw e;
       }
-      logger.info(
-        `${cleanedTransactionCount} Unsigned transaction cleaned from MultiSig queue`
-      );
+      logger.info(`MultiSig queue cleaned up`, {
+        count: cleanedTransactionCount,
+      });
     });
   };
 
@@ -201,9 +198,7 @@ class MultiSigHandler {
       this.prover = wasm.Wallet.from_secrets(secretKeys);
     }
     if (this.prover) return this.prover;
-    const errorMessage = 'Can not create prover in MultiSig';
-    logger.log('fatal', errorMessage);
-    throw Error(errorMessage);
+    throw Error('Cannot create prover in MultiSig');
   };
 
   /**
@@ -394,7 +389,7 @@ class MultiSigHandler {
             transaction: txBytes,
           };
         } catch (e) {
-          logger.info(`An error occurred during multi-sig generate sign: ${e}`);
+          logger.warn(`An error occurred during MultiSig generate sign: ${e}`);
         }
       }
     }
@@ -556,8 +551,8 @@ class MultiSigHandler {
             }
             this.processResolve(transaction);
           } catch (e) {
-            logger.info(
-              `An unknown exception occurred during handle commitment from other peer: ${e}`
+            logger.warn(
+              `An unknown exception occurred while handling commitment from other peer: ${e}`
             );
           }
         }
@@ -629,8 +624,8 @@ class MultiSigHandler {
             }
             this.processResolve(transaction);
           } catch (e) {
-            logger.info(
-              `An unknown exception occurred during handle sign from another peer: ${e}`
+            logger.warn(
+              `An unknown exception occurred while handling sign from another peer: ${e}`
             );
           }
           release();
@@ -686,7 +681,7 @@ class MultiSigHandler {
         }
       } else {
         logger.warn(
-          "Ignoring received message in multi-sig. Signature didn't verify"
+          "Ignoring received message in MultiSig. Signature didn't verify"
         );
       }
     }

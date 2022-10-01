@@ -1,7 +1,6 @@
 import axios from 'axios';
 import Configs from '../helpers/Configs';
 import Utils from '../helpers/Utils';
-import { logThrowError } from '../log/Logger';
 
 class TssSigner {
   static tssApi = axios.create({
@@ -24,7 +23,7 @@ class TssSigner {
       })
       .then((res) => {
         if (res.status !== 200) {
-          logThrowError(
+          throw new Error(
             `Failed to connect to TSS service. Status code: [${res.status}]`
           );
         }

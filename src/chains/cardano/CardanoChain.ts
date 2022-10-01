@@ -26,7 +26,7 @@ import {
 import BaseChain from '../BaseChains';
 import CardanoConfigs from './helpers/CardanoConfigs';
 import BlockFrostApi from './network/BlockFrostApi';
-import { Utxo, UtxoBoxesAssets } from './models/Interfaces';
+import { Asset, Utxo, UtxoBoxesAssets } from './models/Interfaces';
 import CardanoUtils from './helpers/CardanoUtils';
 import TssSigner from '../../guard/TssSigner';
 import CardanoTransaction from './models/CardanoTransaction';
@@ -40,6 +40,94 @@ import { TssFailedSign, TssSuccessfulSign } from '../../models/Interfaces';
 
 class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
   bankAddress = Address.from_bech32(CardanoConfigs.bankAddress);
+
+  /**
+   *  getting all address utxos and return minimum amount of required box to be in the input of transaction
+   *      with respect to the event
+   * @param addressBoxes all utxos of bankAddress
+   * @param event the event trigger model
+   * @return minimum required box to be in the input of the transaction
+   */
+  getCoveringUtxo = (addressBoxes: Array<Utxo>,
+                     event: EventTrigger): Array<Utxo> => {
+    const result: Array<Utxo> = [];
+    let coveredLovelace = BigNum.from_str('0');
+    const shuffleIndexes = [...Array(addressBoxes.length).keys()]
+    for (let i = shuffleIndexes.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffleIndexes[i], shuffleIndexes[j]] = [shuffleIndexes[j], shuffleIndexes[i]];
+    }
+
+    if (event.targetChainTokenId === 'lovelace') {
+      const paymentAmount: BigNum = BigNum.from_str(event.amount)
+          .checked_sub(BigNum.from_str(event.bridgeFee))
+          .checked_sub(BigNum.from_str(event.networkFee));
+      for (
+          let i = 0;
+          paymentAmount.compare(coveredLovelace) > 0 &&
+          i < addressBoxes.length;
+          i++) {
+        const utxo = addressBoxes[shuffleIndexes[i]]
+        coveredLovelace = coveredLovelace.checked_add(
+            BigNum.from_str(utxo.value)
+        );
+        result.push(addressBoxes[i]);
+      }
+      if (paymentAmount.compare(coveredLovelace) > 0) throw new Error(`An error occurred, theres is no enough lovelace in the bank`)
+      return result
+    } else {
+      const lovelacePaymentAmount: BigNum = CardanoConfigs.txMinimumLovelace;
+      const assetPaymentAmount: BigNum = BigNum.from_str(event.amount)
+          .checked_sub(BigNum.from_str(event.bridgeFee))
+          .checked_sub(BigNum.from_str(event.networkFee));
+      const paymentAssetUnit =
+          CardanoUtils.getAssetPolicyAndNameFromConfigFingerPrintMap(
+              event.targetChainTokenId
+          );
+      const assetPolicyId = Utils.Uint8ArrayToHexString(paymentAssetUnit[0]);
+      const assetAssetName = Utils.Uint8ArrayToHexString(paymentAssetUnit[1]);
+
+      let covered = BigNum.from_str('0');
+
+      for (
+          let i = 0;
+          (assetPaymentAmount.compare(covered) > 0 ||
+              lovelacePaymentAmount.compare(coveredLovelace) > 0) &&
+          i < addressBoxes.length;
+          i++) {
+        let isAdded = false;
+        const utxo = addressBoxes[shuffleIndexes[i]]
+        if (assetPaymentAmount.compare(covered) > 0) {
+          const assetIndex = utxo.asset_list.findIndex(
+              (asset) =>
+                  asset.asset_name === assetAssetName &&
+                  asset.policy_id === assetPolicyId
+          );
+          if (assetIndex !== -1) {
+            const asset = utxo.asset_list[assetIndex];
+            covered = covered.checked_add(
+                BigNum.from_str(asset.quantity)
+            );
+            coveredLovelace = coveredLovelace.checked_add(
+                BigNum.from_str(utxo.value)
+            );
+            result.push(addressBoxes[i]);
+            isAdded = true;
+          }
+        }
+        if (!isAdded && lovelacePaymentAmount.compare(coveredLovelace) > 0) {
+          coveredLovelace = coveredLovelace.checked_add(
+              BigNum.from_str(utxo.value)
+          );
+          result.push(addressBoxes[i]);
+        }
+
+      }
+      if (lovelacePaymentAmount.compare(coveredLovelace) > 0) throw new Error(`An error occurred, theres is no enough lovelace in the bank`)
+      if (assetPaymentAmount.compare(covered) > 0) throw new Error(`An error occurred, theres is no enough asset in the bank`)
+    }
+    return result
+  };
 
   /**
    * generates payment transaction of the event from threshold-sig address in target chain
@@ -383,7 +471,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
       await TssSigner.signTxHash(txHash);
     } catch (e) {
       logger.warn(
-        `An error occurred while requesting TSS service to sign Cardano tx: [${e.message}]`
+        `An error occurred while requesting TSS service to sign Cardano tx: [${e}]`
       );
     }
   };
@@ -400,9 +488,8 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
     if (status !== 'ok') {
       const response = JSON.parse(message) as TssFailedSign;
       const txId = response.m;
-      const errorMessage = response.error;
 
-      logger.error(`TSS failed to sign tx [${txId}]: [${errorMessage}]`);
+      logger.info(`TSS failed to sign tx [${txId}]: ${response.error}`);
       await dbAction.setTxStatus(txId, TransactionStatus.signFailed);
 
       return null;
@@ -420,8 +507,8 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
       paymentTx = PaymentTransaction.fromJson(txEntity.txJson);
       tx = this.deserialize(paymentTx.txBytes);
     } catch (e) {
-      logger.info(
-        `An error occurred while getting Cardano tx [${txId}] from db: [${e.message}]`
+      logger.warn(
+        `An error occurred while getting Cardano tx [${txId}] from db: ${e}`
       );
       return null;
     }
@@ -465,8 +552,8 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
       const response = await BlockFrostApi.txSubmit(tx);
       logger.info('Cardano Transaction submitted', { txId: response });
     } catch (e) {
-      logger.info(
-        `An error occurred while submitting Cardano transaction: [${e.message}]`
+      logger.warn(
+        `An error occurred while submitting Cardano transaction: ${e}`
       );
     }
   };
@@ -584,9 +671,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         return false;
       }
     } catch (e) {
-      logger.info(
-        'Event [${eventId}] validation failed with this error: [${e}]'
-      );
+      logger.warn(`Event [${eventId}] validation failed: ${e}`);
       return false;
     }
   };

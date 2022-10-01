@@ -34,6 +34,126 @@ import CardanoConfigs from '../../../src/chains/cardano/helpers/CardanoConfigs';
 describe('CardanoChain', () => {
   const testBankAddress = TestBoxes.testBankAddress;
 
+  describe('getCoveringUtxo', () => {
+    // mock getting bankBoxes
+    const bankBoxes: Utxo[] = TestBoxes.mockBankBoxes();
+
+    /**
+     * Target: testing getCoveringUtxo
+     * Dependencies:
+     *    BlockFrostApi
+     *    KoiosApi
+     * Expected Output:
+     *    The function should return 1 specific box
+     */
+    it('should return 1 boxes for ADA payment', async () => {
+      // mock ada payment event
+      const mockedEvent: EventTrigger = TestBoxes.mockADAPaymentEventTrigger();
+
+      // run test
+      const cardanoChain: CardanoChain = new CardanoChain();
+      const boxes = cardanoChain.getCoveringUtxo([bankBoxes[5],bankBoxes[4]], mockedEvent);
+
+      // verify output boxes
+      expect(boxes.length).greaterThanOrEqual(1);
+    });
+
+    /**
+     * Target: testing getCoveringUtxo
+     * Dependencies:
+     *    BlockFrostApi
+     *    KoiosApi
+     * Expected Output:
+     *    The function should return 2 specific box
+     */
+    it('should return 2 boxes for ADA payment', async () => {
+      // mock ada payment event
+      const mockedEvent: EventTrigger = TestBoxes.mockADAPaymentEventTrigger();
+      mockedEvent.amount = '111300000';
+
+      // run test
+      const cardanoChain: CardanoChain = new CardanoChain();
+      const boxes = cardanoChain.getCoveringUtxo([bankBoxes[5],bankBoxes[1]], mockedEvent);
+
+      // verify output boxes
+      expect(boxes.length).to.equal(2);
+    });
+
+    /**
+     * Target: testing getCoveringUtxo
+     * Dependencies:
+     *    BlockFrostApi
+     *    KoiosApi
+     * Expected Output:
+     *    The function should return more than or equal 1 box
+     */
+    it('should return more than or equal 1 box', async () => {
+      const mockedEvent: EventTrigger =
+          TestBoxes.mockAssetPaymentEventTrigger();
+      mockedEvent.targetChainTokenId =
+          'asset1nl000000000000000000000000000000000000';
+
+      // run test
+      const cardanoChain: CardanoChain = new CardanoChain();
+      const boxes = cardanoChain.getCoveringUtxo(bankBoxes, mockedEvent);
+
+      // verify output boxes
+      expect(boxes.length).to.greaterThanOrEqual(1)
+    });
+
+    /**
+     * Target: testing getCoveringUtxo
+     * Dependencies:
+     *    BlockFrostApi
+     *    KoiosApi
+     * Expected Output:
+     *    The function should return 3 box
+     */
+    it('should return 3 box for asset payment', async () => {
+      const mockedEvent: EventTrigger =
+          TestBoxes.mockAssetPaymentEventTrigger();
+      mockedEvent.targetChainTokenId =
+          'asset1nl000000000000000000000000000000000000';
+
+      // run test
+      const cardanoChain: CardanoChain = new CardanoChain();
+      const boxes = cardanoChain.getCoveringUtxo(
+          [bankBoxes[8], bankBoxes[6], bankBoxes[5]],
+          mockedEvent
+      );
+
+      // verify output boxes
+      expect(boxes.length).to.be.equal(3);
+    });
+
+    /**
+     * Target: testing getCoveringUtxo
+     * Dependencies:
+     *    BlockFrostApi
+     *    KoiosApi
+     * Expected Output:
+     *    The function should return 2 box
+     */
+    it('should return 2 box for asset payment', async () => {
+      const mockedEvent: EventTrigger =
+          TestBoxes.mockAssetPaymentEventTrigger();
+      mockedEvent.targetChainTokenId =
+          'asset1nl000000000000000000000000000000000000';
+      mockedEvent.amount = '20'
+
+      // run test
+      const cardanoChain: CardanoChain = new CardanoChain();
+      const boxes = cardanoChain.getCoveringUtxo(
+          [bankBoxes[6], bankBoxes[5]],
+          mockedEvent
+      );
+
+      // verify output boxes
+      expect(boxes.length).to.be.equal(2);
+    });
+
+  });
+
   describe('generateTransaction', () => {
     // mock getting bankBoxes
     const bankBoxes: Utxo[] = TestBoxes.mockBankBoxes();
