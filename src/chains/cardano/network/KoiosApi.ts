@@ -16,7 +16,7 @@ class KoiosApi {
    */
   static getAddressBoxes = (address: string): Promise<Utxo[]> => {
     return this.koios
-      .post<{ utxo_set: Utxo[] }[]>('/address_info', { _address: address })
+      .post<{ utxo_set: Utxo[] }[]>('/address_info', { _addresses: [address] })
       .then((res) => res.data[0].utxo_set)
       .catch((e) => {
         logger.error(
