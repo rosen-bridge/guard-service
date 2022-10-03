@@ -32,6 +32,7 @@ import CardanoTransaction from '../../../../src/chains/cardano/models/CardanoTra
 import TestData from './TestData';
 import ChainsConstants from '../../../../src/chains/ChainsConstants';
 import Utils from '../../../../src/helpers/Utils';
+import CardanoChain from "../../../../src/chains/cardano/CardanoChain";
 
 class TestBoxes {
   static testBankAddress = CardanoConfigs.bankAddress;
@@ -567,9 +568,7 @@ class TestBoxes {
     bankAddress: string
   ): PaymentTransaction => {
     // calculate assets of payment box
-    const paymentAmount: BigNum = BigNum.from_str(event.amount)
-      .checked_sub(BigNum.from_str(event.bridgeFee))
-      .checked_sub(BigNum.from_str(event.networkFee));
+    const paymentAmount: BigNum = CardanoChain.getPaymentAmount(event);
 
     const illegalAssetUnit: Uint8Array = Buffer.from(
       TestUtils.generateRandomId(),
@@ -641,9 +640,7 @@ class TestBoxes {
     bankAddress: string
   ): PaymentTransaction => {
     const lovelacePaymentAmount: BigNum = CardanoConfigs.txMinimumLovelace;
-    const assetPaymentAmount: BigNum = BigNum.from_str(event.amount)
-      .checked_sub(BigNum.from_str(event.bridgeFee))
-      .checked_sub(BigNum.from_str(event.networkFee));
+    const assetPaymentAmount: BigNum = CardanoChain.getPaymentAmount(event);
 
     const paymentAssetUnit =
       CardanoUtils.getAssetPolicyAndNameFromConfigFingerPrintMap(
@@ -689,9 +686,7 @@ class TestBoxes {
     bankAddress: string
   ): PaymentTransaction => {
     const lovelacePaymentAmount: BigNum = CardanoConfigs.txMinimumLovelace;
-    const assetPaymentAmount: BigNum = BigNum.from_str(event.amount)
-      .checked_sub(BigNum.from_str(event.bridgeFee))
-      .checked_sub(BigNum.from_str(event.networkFee));
+    const assetPaymentAmount: BigNum = CardanoChain.getPaymentAmount(event);
 
     const paymentAssetUnit =
       CardanoUtils.getAssetPolicyAndNameFromConfigFingerPrintMap(
@@ -733,9 +728,7 @@ class TestBoxes {
     bankAddress: string
   ): PaymentTransaction => {
     const lovelacePaymentAmount: BigNum = CardanoConfigs.txMinimumLovelace;
-    const assetPaymentAmount: BigNum = BigNum.from_str(event.amount)
-      .checked_sub(BigNum.from_str(event.bridgeFee))
-      .checked_sub(BigNum.from_str(event.networkFee));
+    const assetPaymentAmount: BigNum = CardanoChain.getPaymentAmount(event);
 
     const paymentAssetUnit =
       CardanoUtils.getAssetPolicyAndNameFromConfigFingerPrintMap(
@@ -780,9 +773,7 @@ class TestBoxes {
     bankAddress: string
   ): PaymentTransaction => {
     const lovelacePaymentAmount: BigNum = CardanoConfigs.txMinimumLovelace;
-    const assetPaymentAmount: BigNum = BigNum.from_str(event.amount)
-      .checked_sub(BigNum.from_str(event.bridgeFee))
-      .checked_sub(BigNum.from_str(event.networkFee));
+    const assetPaymentAmount: BigNum = CardanoChain.getPaymentAmount(event);
 
     const paymentAssetUnit =
       CardanoUtils.getAssetPolicyAndNameFromConfigFingerPrintMap(

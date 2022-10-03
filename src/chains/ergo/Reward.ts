@@ -50,6 +50,8 @@ class Reward {
         ? this.ergEventRewardBoxes(
             event,
             eventBox,
+            this.getBridgeFee(event),
+            this.getNetworkFee(event),
             commitmentBoxes,
             rsnCoef,
             currentHeight,
@@ -59,6 +61,8 @@ class Reward {
         : this.tokenEventRewardBoxes(
             event,
             eventBox,
+            this.getBridgeFee(event),
+            this.getNetworkFee(event),
             commitmentBoxes,
             rsnCoef,
             currentHeight,
@@ -215,6 +219,8 @@ class Reward {
         ? this.ergEventRewardBoxes(
             event,
             eventBox,
+            this.getBridgeFee(event),
+            this.getNetworkFee(event),
             commitmentBoxes,
             rsnCoef,
             currentHeight,
@@ -224,6 +230,8 @@ class Reward {
         : this.tokenEventRewardBoxes(
             event,
             eventBox,
+            this.getBridgeFee(event),
+            this.getNetworkFee(event),
             commitmentBoxes,
             rsnCoef,
             currentHeight,
@@ -285,6 +293,8 @@ class Reward {
    * generates outputs of payment and reward distribution tx for an Erg-Distribution event in ergo chain
    * @param event the event trigger model
    * @param eventBox the event trigger box
+   * @param bridgeFee the bridge of the event
+   * @param networkFee the network of the event
    * @param commitmentBoxes the not-merged valid commitment boxes for the event
    * @param rsnCoef rsn fee ratio
    * @param currentHeight current height of blockchain
@@ -295,6 +305,8 @@ class Reward {
   static ergEventRewardBoxes = (
     event: EventTrigger,
     eventBox: ErgoBox,
+    bridgeFee: bigint,
+    networkFee: bigint,
     commitmentBoxes: ErgoBox[],
     rsnCoef: [bigint, bigint],
     currentHeight: number,
@@ -302,11 +314,11 @@ class Reward {
     network: string
   ): ErgoBoxCandidate[] => {
     const watchersLen: number = event.WIDs.length + commitmentBoxes.length;
-    const rsnFee = (BigInt(event.bridgeFee) * rsnCoef[0]) / rsnCoef[1];
+    const rsnFee = (bridgeFee * rsnCoef[0]) / rsnCoef[1];
 
     // calculate assets of reward boxes
     const watcherErgAmount: bigint =
-      (BigInt(event.bridgeFee) * ErgoConfigs.watchersSharePercent) /
+      (bridgeFee * ErgoConfigs.watchersSharePercent) /
         100n /
         BigInt(watchersLen) +
       ErgoConfigs.minimumErg;
@@ -316,11 +328,11 @@ class Reward {
       100n /
       BigInt(watchersLen);
     const guardBridgeFeeErgAmount: bigint =
-      BigInt(event.bridgeFee) - BigInt(watchersLen) * watcherErgAmount;
+        bridgeFee - BigInt(watchersLen) * watcherErgAmount;
     const guardBridgeFeeTokenAmount = 0n;
     const guardRsnAmount: bigint =
       rsnFee - BigInt(watchersLen) * watcherRsnAmount;
-    const guardNetworkErgAmount = BigInt(event.networkFee);
+    const guardNetworkErgAmount = networkFee;
     const guardNetworkTokenAmount = 0n;
     const wids: Uint8Array[] = [
       ...event.WIDs.map(Utils.hexStringToUint8Array),
@@ -348,6 +360,8 @@ class Reward {
    * generates outputs of payment and reward distribution tx for a Token-Distribution event in ergo chain
    * @param event the event trigger model
    * @param eventBox the event trigger box
+   * @param bridgeFee the bridge of the event
+   * @param networkFee the network of the event
    * @param commitmentBoxes the not-merged valid commitment boxes for the event
    * @param rsnCoef rsn fee ratio
    * @param currentHeight current height of blockchain
@@ -358,6 +372,8 @@ class Reward {
   static tokenEventRewardBoxes = (
     event: EventTrigger,
     eventBox: ErgoBox,
+    bridgeFee: bigint,
+    networkFee: bigint,
     commitmentBoxes: ErgoBox[],
     rsnCoef: [bigint, bigint],
     currentHeight: number,
@@ -365,12 +381,12 @@ class Reward {
     network: string
   ): ErgoBoxCandidate[] => {
     const watchersLen: number = event.WIDs.length + commitmentBoxes.length;
-    const rsnFee = (BigInt(event.bridgeFee) * rsnCoef[0]) / rsnCoef[1];
+    const rsnFee = (bridgeFee * rsnCoef[0]) / rsnCoef[1];
 
     // calculate assets of reward boxes
     const watcherErgAmount: bigint = ErgoConfigs.minimumErg;
     const watcherTokenAmount: bigint =
-      (BigInt(event.bridgeFee) * ErgoConfigs.watchersSharePercent) /
+      (bridgeFee * ErgoConfigs.watchersSharePercent) /
       100n /
       BigInt(watchersLen);
     const watcherRsnAmount: bigint =
@@ -379,11 +395,11 @@ class Reward {
       BigInt(watchersLen);
     const guardBridgeFeeErgAmount: bigint = ErgoConfigs.minimumErg;
     const guardBridgeFeeTokenAmount: bigint =
-      BigInt(event.bridgeFee) - BigInt(watchersLen) * watcherErgAmount;
+        bridgeFee - BigInt(watchersLen) * watcherErgAmount;
     const guardRsnAmount: bigint =
       rsnFee - BigInt(watchersLen) * watcherRsnAmount;
     const guardNetworkErgAmount: bigint = ErgoConfigs.minimumErg;
-    const guardNetworkTokenAmount = BigInt(event.networkFee);
+    const guardNetworkTokenAmount = networkFee;
     const wids: Uint8Array[] = [
       ...event.WIDs.map(Utils.hexStringToUint8Array),
       ...commitmentBoxes.map((box) => InputBoxes.getErgoBoxWID(box)),
@@ -405,6 +421,28 @@ class Reward {
       wids
     );
   };
+
+  /**
+   * returns bridge fee of the event (overwrites fee of the event if it is less than minimum value)
+   * @param event
+   */
+  static getBridgeFee = (event: EventTrigger): bigint => {
+    if (event.sourceChainTokenId === ChainsConstants.ergoNativeAsset)
+      return (BigInt(event.bridgeFee) > ErgoConfigs.minimumErgBridgeFee) ? BigInt(event.bridgeFee) : ErgoConfigs.minimumErgBridgeFee
+    else
+      return (BigInt(event.bridgeFee) > ErgoConfigs.minimumTokenBridgeFee) ? BigInt(event.bridgeFee) : ErgoConfigs.minimumTokenBridgeFee
+  }
+
+  /**
+   * returns network fee of the event (overwrites fee of the event if it is less than minimum value)
+   * @param event
+   */
+  static getNetworkFee = (event: EventTrigger): bigint => {
+    if (event.sourceChainTokenId === ChainsConstants.ergoNativeAsset)
+      return (BigInt(event.networkFee) > ErgoConfigs.minimumErgNetworkFee) ? BigInt(event.networkFee) : ErgoConfigs.minimumErgNetworkFee
+    else
+      return (BigInt(event.networkFee) > ErgoConfigs.minimumTokenNetworkFee) ? BigInt(event.networkFee) : ErgoConfigs.minimumTokenNetworkFee
+  }
 }
 
 export default Reward;

@@ -26,7 +26,7 @@ import {
 import BaseChain from '../BaseChains';
 import CardanoConfigs from './helpers/CardanoConfigs';
 import BlockFrostApi from './network/BlockFrostApi';
-import { Asset, Utxo, UtxoBoxesAssets } from './models/Interfaces';
+import { Utxo, UtxoBoxesAssets } from './models/Interfaces';
 import CardanoUtils from './helpers/CardanoUtils';
 import TssSigner from '../../guard/TssSigner';
 import CardanoTransaction from './models/CardanoTransaction';
@@ -37,6 +37,7 @@ import { Buffer } from 'buffer';
 import Utils from '../../helpers/Utils';
 import { logger } from '../../log/Logger';
 import { TssFailedSign, TssSuccessfulSign } from '../../models/Interfaces';
+import ErgoConfigs from "../ergo/helpers/ErgoConfigs";
 
 class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
   bankAddress = Address.from_bech32(CardanoConfigs.bankAddress);
@@ -59,9 +60,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
     }
 
     if (event.targetChainTokenId === 'lovelace') {
-      const paymentAmount: BigNum = BigNum.from_str(event.amount)
-          .checked_sub(BigNum.from_str(event.bridgeFee))
-          .checked_sub(BigNum.from_str(event.networkFee));
+      const paymentAmount = CardanoChain.getPaymentAmount(event);
       for (
           let i = 0;
           paymentAmount.compare(coveredLovelace) > 0 &&
@@ -73,13 +72,11 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         );
         result.push(addressBoxes[i]);
       }
-      if (paymentAmount.compare(coveredLovelace) > 0) throw new Error(`An error occurred, theres is no enough lovelace in the bank`)
+      if (paymentAmount.compare(coveredLovelace) > 0) throw new Error(`An error occurred, there isn't enough lovelace in the bank`)
       return result
     } else {
       const lovelacePaymentAmount: BigNum = CardanoConfigs.txMinimumLovelace;
-      const assetPaymentAmount: BigNum = BigNum.from_str(event.amount)
-          .checked_sub(BigNum.from_str(event.bridgeFee))
-          .checked_sub(BigNum.from_str(event.networkFee));
+      const assetPaymentAmount: BigNum = CardanoChain.getPaymentAmount(event);
       const paymentAssetUnit =
           CardanoUtils.getAssetPolicyAndNameFromConfigFingerPrintMap(
               event.targetChainTokenId
@@ -123,8 +120,8 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         }
 
       }
-      if (lovelacePaymentAmount.compare(coveredLovelace) > 0) throw new Error(`An error occurred, theres is no enough lovelace in the bank`)
-      if (assetPaymentAmount.compare(covered) > 0) throw new Error(`An error occurred, theres is no enough asset in the bank`)
+      if (lovelacePaymentAmount.compare(coveredLovelace) > 0) throw new Error(`An error occurred, there isn't enough lovelace in the bank`)
+      if (assetPaymentAmount.compare(covered) > 0) throw new Error(`An error occurred, there isn't enough asset in the bank`)
     }
     return result
   };
@@ -236,9 +233,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
     const paymentBox = outputBoxes.get(0);
     if (event.targetChainTokenId === 'lovelace') {
       // ADA payment case
-      const lovelacePaymentAmount: BigNum = BigNum.from_str(event.amount)
-        .checked_sub(BigNum.from_str(event.bridgeFee))
-        .checked_sub(BigNum.from_str(event.networkFee));
+      const lovelacePaymentAmount: BigNum = CardanoChain.getPaymentAmount(event);
       const sizeOfMultiAssets: number | undefined = paymentBox
         .amount()
         .multiasset()
@@ -252,9 +247,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
     } else {
       // Token payment case
       const lovelacePaymentAmount: BigNum = CardanoConfigs.txMinimumLovelace;
-      const assetPaymentAmount: BigNum = BigNum.from_str(event.amount)
-        .checked_sub(BigNum.from_str(event.bridgeFee))
-        .checked_sub(BigNum.from_str(event.networkFee));
+      const assetPaymentAmount: BigNum = CardanoChain.getPaymentAmount(event);
       const multiAssets = paymentBox.amount().multiasset();
       if (multiAssets === undefined || multiAssets.len() !== 1) return false;
       else {
@@ -277,6 +270,9 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         .multiasset()
         ?.get_asset(paymentAssetPolicyId, paymentAssetAssetName);
 
+      logger.info(`\t| step 4`)
+      logger.info(`\t| conditions:`)
+      logger.info(`\t\t| ${paymentAssetAmount?.to_str()} should equal ${assetPaymentAmount?.to_str()}`)
       return (
         paymentBox.amount().coin().compare(lovelacePaymentAmount) === 0 &&
         paymentAssetAmount !== undefined &&
@@ -315,9 +311,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
     inBoxes: Utxo[]
   ): TransactionOutput[] => {
     // calculate assets of payment box
-    const paymentAmount: BigNum = BigNum.from_str(event.amount)
-      .checked_sub(BigNum.from_str(event.bridgeFee))
-      .checked_sub(BigNum.from_str(event.networkFee));
+    const paymentAmount: BigNum = CardanoChain.getPaymentAmount(event);
 
     // create the payment box
     const paymentBox = TransactionOutput.new(
@@ -355,9 +349,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
   ): TransactionOutput[] => {
     // calculate assets of payment box
     const lovelacePaymentAmount: BigNum = CardanoConfigs.txMinimumLovelace;
-    const assetPaymentAmount: BigNum = BigNum.from_str(event.amount)
-      .checked_sub(BigNum.from_str(event.bridgeFee))
-      .checked_sub(BigNum.from_str(event.networkFee));
+    const assetPaymentAmount: BigNum = CardanoChain.getPaymentAmount(event);
 
     const paymentAssetUnit =
       CardanoUtils.getAssetPolicyAndNameFromConfigFingerPrintMap(
@@ -675,6 +667,22 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
       return false;
     }
   };
+
+  /**
+   * subtracts bridge fee and network fee from event amount
+   * @param event
+   */
+  static getPaymentAmount = (event: EventTrigger): BigNum => {
+    const bridgeFee: BigNum = (BigNum.from_str(event.bridgeFee) > BigNum.from_str(ErgoConfigs.minimumTokenBridgeFee.toString()))
+        ? BigNum.from_str(event.bridgeFee)
+        : BigNum.from_str(ErgoConfigs.minimumTokenBridgeFee.toString())
+    const networkFee: BigNum = (BigNum.from_str(event.networkFee) > BigNum.from_str(ErgoConfigs.minimumTokenNetworkFee.toString()))
+        ? BigNum.from_str(event.networkFee)
+        : BigNum.from_str(ErgoConfigs.minimumTokenNetworkFee.toString())
+    return BigNum.from_str(event.amount)
+        .checked_sub(bridgeFee)
+        .checked_sub(networkFee)
+  }
 }
 
 export default CardanoChain;

@@ -322,9 +322,11 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
     rsnCoef: [bigint, bigint],
     currentHeight: number
   ): ErgoBoxCandidate[] => {
-    // calculate assets of payemnt box
+    // calculate assets of payment box
+    const bridgeFee: bigint = (BigInt(event.bridgeFee) > ErgoConfigs.minimumErgBridgeFee) ? BigInt(event.bridgeFee) : ErgoConfigs.minimumErgBridgeFee
+    const networkFee: bigint = (BigInt(event.networkFee) > ErgoConfigs.minimumErgNetworkFee) ? BigInt(event.networkFee) : ErgoConfigs.minimumErgNetworkFee
     const paymentErgAmount: bigint =
-      BigInt(event.amount) - BigInt(event.bridgeFee) - BigInt(event.networkFee);
+      BigInt(event.amount) - bridgeFee - networkFee;
     const paymentTokenAmount = 0n;
     const paymentTokenId = event.targetChainTokenId;
 
@@ -332,6 +334,8 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
     const outBoxes: ErgoBoxCandidate[] = Reward.ergEventRewardBoxes(
       event,
       eventBox,
+      bridgeFee,
+      networkFee,
       commitmentBoxes,
       rsnCoef,
       currentHeight,
@@ -365,16 +369,20 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
     rsnCoef: [bigint, bigint],
     currentHeight: number
   ): ErgoBoxCandidate[] => {
-    // calculate assets of payemnt box
+    // calculate assets of payment box
+    const bridgeFee: bigint = (BigInt(event.bridgeFee) > ErgoConfigs.minimumTokenBridgeFee) ? BigInt(event.bridgeFee) : ErgoConfigs.minimumTokenBridgeFee
+    const networkFee: bigint = (BigInt(event.networkFee) > ErgoConfigs.minimumTokenNetworkFee) ? BigInt(event.networkFee) : ErgoConfigs.minimumTokenNetworkFee
     const paymentErgAmount: bigint = ErgoConfigs.minimumErg;
     const paymentTokenAmount: bigint =
-      BigInt(event.amount) - BigInt(event.bridgeFee) - BigInt(event.networkFee);
+      BigInt(event.amount) - bridgeFee - networkFee;
     const paymentTokenId = event.targetChainTokenId;
 
     // create output boxes
     const outBoxes: ErgoBoxCandidate[] = Reward.tokenEventRewardBoxes(
       event,
       eventBox,
+      bridgeFee,
+      networkFee,
       commitmentBoxes,
       rsnCoef,
       currentHeight,

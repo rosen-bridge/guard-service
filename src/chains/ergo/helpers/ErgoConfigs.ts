@@ -1,7 +1,6 @@
 import config from 'config';
-import { RosenConfig, rosenConfig } from '../../../helpers/RosenConfig';
+import { rosenConfig } from '../../../helpers/RosenConfig';
 import ChainsConstants from '../../ChainsConstants';
-import Configs from '../../../helpers/Configs';
 
 class ErgoConfigs {
   // service configs
@@ -23,10 +22,23 @@ class ErgoConfigs {
     'reward.networkFeeRepoAddress'
   );
   static watchersSharePercent = BigInt(
-    config.get?.('reward.watchersSharePercent')
+    config.get<number>('reward.watchersSharePercent')
   );
   static watchersRSNSharePercent = BigInt(
-    config.get?.('reward.watchersRSNSharePercent')
+    config.get<number>('reward.watchersRSNSharePercent')
+  );
+
+  static minimumErgBridgeFee = BigInt(
+      config.get<string>('reward.minimumErgBridgeFee')
+  );
+  static minimumTokenBridgeFee = BigInt(
+      config.get<string>('reward.minimumTokenBridgeFee')
+  );
+  static minimumErgNetworkFee = BigInt(
+      config.get<string>('reward.minimumErgBridgeFee')
+  );
+  static minimumTokenNetworkFee = BigInt(
+      config.get<string>('reward.minimumTokenBridgeFee')
   );
 
   static requiredConfirmation = config.get<number>('ergo.requiredConfirmation');
