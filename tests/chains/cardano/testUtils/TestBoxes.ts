@@ -363,7 +363,7 @@ class TestBoxes {
   };
 
   /**
-   * generates 3 Utxo for cardano bank address
+   * generates 8 Utxo for cardano bank address
    */
   static mockBankBoxes = (): Utxo[] => {
     const box1: Utxo = {
@@ -404,7 +404,74 @@ class TestBoxes {
       value: this.adaToLovelaceString(10),
       asset_list: [],
     };
-    return [box1, box2, box3];
+
+    const box4: Utxo = {
+      payment_addr: { bech32: '' },
+      tx_hash: TestUtils.generateRandomId(),
+      tx_index: 5,
+      value: this.adaToLovelaceString(5),
+      asset_list: [],
+    };
+
+    const box5: Utxo = {
+      payment_addr: { bech32: '' },
+      tx_hash: TestUtils.generateRandomId(),
+      tx_index: 2,
+      value: this.adaToLovelaceString(1),
+      asset_list: [],
+    };
+
+    const box6: Utxo = {
+      payment_addr: { bech32: '' },
+      tx_hash: TestUtils.generateRandomId(),
+      tx_index: 0,
+      value: this.adaToLovelaceString(101),
+      asset_list: [
+        {
+          policy_id: 'ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2',
+          asset_name: '7369676d61',
+          quantity: '55',
+        },
+      ],
+    };
+
+    const box7: Utxo = {
+      payment_addr: { bech32: '' },
+      tx_hash: TestUtils.generateRandomId(),
+      tx_index: 0,
+      value: '1000',
+      asset_list: [
+        {
+          policy_id: '22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130',
+          asset_name: '1111111111',
+          quantity: '55',
+        },
+      ],
+    };
+
+    const box8: Utxo = {
+      payment_addr: { bech32: '' },
+      tx_hash: TestUtils.generateRandomId(),
+      tx_index: 2,
+      value: '1000',
+      asset_list: [],
+    };
+
+    const box9: Utxo = {
+      payment_addr: { bech32: '' },
+      tx_hash: TestUtils.generateRandomId(),
+      tx_index: 0,
+      value: '10000',
+      asset_list: [
+        {
+          policy_id: '22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130',
+          asset_name: '1111111111',
+          quantity: '11',
+        },
+      ],
+    };
+
+    return [box1, box2, box3, box4, box5, box6, box7, box8, box9];
   };
 
   /**

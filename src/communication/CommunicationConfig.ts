@@ -8,7 +8,7 @@ class CommunicationConfig {
     multiaddrs: this.relaysInfo.map((info) => info.address.concat(info.peerId)),
     peerIDs: this.relaysInfo.map((info) => info.peerId),
   };
-  static bootstrapInterval: number = config.get<number>('p2p.bootstrapTimeout'); // seconds
+  static bootstrapTimeout: number = config.get<number>('p2p.bootstrapTimeout'); // seconds
   static pubsubInterval: number = config.get<number>('p2p.pubsubInterval'); // seconds
   static apiCallbackTimeout: number = config.get<number>(
     'p2p.apiCallbackTimeout'

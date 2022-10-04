@@ -5,12 +5,9 @@ const initDataSources = async (): Promise<void> => {
   try {
     await ormDataSource.initialize();
     await ormDataSource.runMigrations();
-    logger.info('Data Source has been initialized!');
+    logger.info('Datasource has been initialized!');
   } catch (err) {
-    logger.log(
-      'fatal',
-      `An error occurred, during Data Source initialization: [${err}]`
-    );
+    logger.error(`An error occurred while initializing datasource: ${err}`);
   }
 };
 

@@ -19,8 +19,8 @@ class KoiosApi {
       .post<{ utxo_set: Utxo[] }[]>('/address_info', { _address: address })
       .then((res) => res.data[0].utxo_set)
       .catch((e) => {
-        logger.warn(
-          `An error occurred while getting address [${address}] boxes from Koios: [${e}]`
+        logger.error(
+          `An error occurred while getting address [${address}] boxes from Koios: ${e}`
         );
         throw e;
       });
@@ -37,8 +37,8 @@ class KoiosApi {
       })
       .then((res) => res.data[0].num_confirmations)
       .catch((e) => {
-        logger.warn(
-          `An error occurred while getting confirmation for tx [${txId}] from Koios: [${e}]`
+        logger.error(
+          `An error occurred while getting confirmation for tx [${txId}] from Koios: ${e}`
         );
         throw e;
       });
@@ -58,7 +58,7 @@ class KoiosApi {
         logger.warn(
           `An error occurred while getting information of txs [${JSON.stringify(
             txHashes
-          )}] from Koios: [${e}]`
+          )}] from Koios: ${e}`
         );
         return [];
       });

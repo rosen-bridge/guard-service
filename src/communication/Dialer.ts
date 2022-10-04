@@ -26,7 +26,7 @@ import {
   SubscribeChannelFunction,
   SubscribeChannels,
 } from './Interfaces';
-import { logger, logThrowError } from '../log/Logger';
+import { logger } from '../log/Logger';
 import CommunicationConfig from './CommunicationConfig';
 
 // TODO: Need to write test for This package
@@ -119,9 +119,8 @@ class Dialer {
         'utf8',
         function (err) {
           if (err) {
-            logger.log(
-              'fatal',
-              'an error occurred, in writing created PeerId to the file'
+            logger.error(
+              `An error occurred, in writing created PeerId to the file: ${err}`
             );
             throw err;
           }
@@ -143,7 +142,7 @@ class Dialer {
    */
   getDialerId = (): string => {
     if (!this._NODE) {
-      logThrowError("dialer node isn't ready, please try later", 'fatal');
+      throw new Error("Dialer node isn't ready, please try later");
     }
     return this._NODE!.peerId.toString();
   };
@@ -153,7 +152,7 @@ class Dialer {
    */
   getPeerIds = (): string[] => {
     if (!this._NODE) {
-      logThrowError("dialer node isn't ready, please try later", 'fatal');
+      throw new Error("Dialer node isn't ready, please try later");
     }
     return this._NODE!.getPeers().map((peer) => peer.toString());
   };
@@ -181,7 +180,7 @@ class Dialer {
             sub.func.name === callback.name && sub.url === url
         )
       ) {
-        logger.info('a redundant subscribed channel detected !');
+        logger.info('A redundant subscribed channel detected!');
         return;
       }
       this._SUBSCRIBED_CHANNELS[channel].push(callbackObj);
@@ -210,7 +209,7 @@ class Dialer {
     if (!this._NODE) {
       this._PENDING_MESSAGE.push(data);
       logger.warn(
-        "message added to pending list due to dialer node isn't ready"
+        "Message added to pending list due to dialer node isn't ready"
       );
       return;
     }
@@ -274,7 +273,7 @@ class Dialer {
         }
       }
     } catch (e) {
-      logger.warn(`an error occurred for store discovered peer: [${e}]`);
+      logger.warn(`An error occurred for store discovered peer: ${e}`);
     }
   };
 
@@ -344,12 +343,12 @@ class Dialer {
       this._OUTPUT_STREAMS.set(passThroughName, outStream);
       outputStream = outStream;
       pipe(outputStream, lp.encode(), connStream.stream).catch((e) => {
-        logger.error(`an error occurred for write to stream [${e}]`);
+        logger.error(`An error occurred for write to stream ${e}`);
         connStream.stream.close();
         this._OUTPUT_STREAMS.delete(passThroughName);
         this._PENDING_MESSAGE.push(messageToSend);
         logger.warn(
-          "message added to pending list due to dialer node isn't ready"
+          "Message added to pending list due to dialer node isn't ready"
         );
       });
     }
@@ -362,7 +361,7 @@ class Dialer {
       // Send some outgoing data.
       outputStream.write(JsonBI.stringify(messageToSend));
     } else {
-      logger.error(`doesn't exist output pass through for ${passThroughName}`);
+      logger.error(`Doesn't exist output pass through for ${passThroughName}`);
     }
   };
 
@@ -407,7 +406,7 @@ class Dialer {
             };
             if (this._SUBSCRIBED_CHANNELS[receivedData.channel]) {
               logger.info(
-                `received a message from [${connection.remotePeer.toString()}]
+                `Received a message from [${connection.remotePeer.toString()}]
              in a subscribed channel [${receivedData.channel} ]`
               );
               this._SUBSCRIBED_CHANNELS[receivedData.channel].forEach(
@@ -415,7 +414,7 @@ class Dialer {
               );
             } else
               logger.warn(
-                `received a message from [${connection.remotePeer.toString()}] in a unsubscribed channel [${
+                `Received a message from [${connection.remotePeer.toString()}] in a unsubscribed channel [${
                   receivedData.channel
                 }]`
               );
@@ -424,7 +423,7 @@ class Dialer {
       );
     } catch (e) {
       logger.warn(
-        `an error occurred for handle broadcast protocol stream: [${e}]`
+        `An error occurred for handle broadcast protocol stream: ${e}`
       );
     }
   };
@@ -474,7 +473,7 @@ class Dialer {
       );
     } catch (e) {
       logger.warn(
-        `an error occurred for handle getpeers protocol stream: [${e}]`
+        `An error occurred for handle getpeers protocol stream: ${e}`
       );
     }
   };
@@ -510,7 +509,7 @@ class Dialer {
         pubsub: new FloodSub(), // Active peer discovery and bootstrap peers
         peerDiscovery: [
           new Bootstrap({
-            timeout: CommunicationConfig.bootstrapInterval * 1000,
+            timeout: CommunicationConfig.bootstrapTimeout * 1000,
             list: CommunicationConfig.relays.multiaddrs,
           }),
           new PubSubPeerDiscovery({
@@ -566,7 +565,7 @@ class Dialer {
         }, CommunicationConfig.getPeersInterval * 1000)
       );
     } catch (e) {
-      logger.log('fatal', `an error occurred for start dialer: [${e}]`);
+      logger.error(`An error occurred for start dialer: ${e}`);
     }
   };
 }

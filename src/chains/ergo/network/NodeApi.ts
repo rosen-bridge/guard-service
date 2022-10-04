@@ -24,7 +24,7 @@ class NodeApi {
       .then((info) => info.data.fullHeight)
       .catch((e) => {
         logger.warn(
-          `An error occurred while getting blockchain height from Ergo Node: [${e}]`
+          `An error occurred while getting blockchain height from Ergo Node: ${e}`
         );
         throw e;
       });
@@ -39,7 +39,7 @@ class NodeApi {
       .then((res) => res.data)
       .catch((e) => {
         logger.warn(
-          `An error occurred while getting last block header from Ergo Node: [${e}]`
+          `An error occurred while getting last block header from Ergo Node: ${e}`
         );
         throw e;
       });
@@ -64,7 +64,7 @@ class NodeApi {
       .then((response) => response.data)
       .catch((e) => {
         logger.warn(
-          'An error occurred while submitting transaction to Ergo Node: [${e}]'
+          `An error occurred while submitting transaction to Ergo Node: ${e}`
         );
       });
   };

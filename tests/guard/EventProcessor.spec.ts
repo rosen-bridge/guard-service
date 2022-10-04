@@ -33,6 +33,14 @@ import {
   resetMockedReward,
   verifyRewardGenerateTransactionCalledOnce,
 } from '../chains/mocked/MockedReward';
+import { mockGetEventBox } from '../chains/ergo/mocked/MockedInputBoxes';
+import { anything } from 'ts-mockito';
+import ErgoConfigs from '../../src/chains/ergo/helpers/ErgoConfigs';
+import TestConfigs from '../testUtils/TestConfigs';
+import {
+  mockGetHeight,
+  resetMockedNodeApi,
+} from '../chains/ergo/mocked/MockedNode';
 
 describe('EventProcessor', () => {
   const cardanoTestBankAddress = CardanoTestBoxes.testBankAddress;
@@ -45,14 +53,68 @@ describe('EventProcessor', () => {
   const mockedErgoChain = new MockedErgoChain(EventProcessor.ergoChain);
 
   describe('isEventConfirmedEnough', () => {
+    const eventBoxAndCommitments = TestBoxes.mockEventBoxWithSomeCommitments();
+
     beforeEach('reset isEventConfirmedEnough mock', () => {
       resetMockedEventProcessor();
+    });
+
+    afterEach('reset NodeApi mock', () => {
+      resetMockedNodeApi();
     });
 
     /**
      * Target: testing isEventConfirmedEnough
      * Dependencies:
      *    ExplorerApi
+     *    NodeApi
+     *    InputBoxes
+     * Scenario:
+     *    Mock a Cardano event trigger
+     *    Mock a getEventBox to return test event box
+     *    Mock NodeApi to return mocked height of blockchain (so that event box doesn't confirmed enough)
+     *    Run test (execute isEventConfirmedEnough method of EventProcessor)
+     *    Check return value to be false
+     * Expected Output:
+     *    The function should return false
+     */
+    it('should return false when event box does not confirmed enough in ergo', async () => {
+      const fromErgoEventTrigger = new EventTrigger(
+        ChainsConstants.cardano,
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        TestUtils.generateRandomId(),
+        '',
+        []
+      );
+
+      // mock event box and current height
+      mockGetEventBox(anything(), eventBoxAndCommitments[0]);
+      const mockedHeight =
+        TestConfigs.ergo.blockchainHeight +
+        ErgoConfigs.requiredConfirmation -
+        1;
+      mockGetHeight(mockedHeight);
+
+      // run test
+      const result = await EventProcessor.isEventConfirmedEnough(
+        fromErgoEventTrigger
+      );
+      expect(result).to.be.false;
+    });
+
+    /**
+     * Target: testing isEventConfirmedEnough
+     * Dependencies:
+     *    ExplorerApi
+     *    NodeApi
+     *    InputBoxes
      * Expected Output:
      *    The function should return true
      */
@@ -74,6 +136,14 @@ describe('EventProcessor', () => {
       );
       mockExplorerGetTxConfirmation(txId, 30);
 
+      // mock event box and current height
+      mockGetEventBox(anything(), eventBoxAndCommitments[0]);
+      const mockedHeight =
+        TestConfigs.ergo.blockchainHeight +
+        ErgoConfigs.requiredConfirmation +
+        1;
+      mockGetHeight(mockedHeight);
+
       // run test
       const result = await EventProcessor.isEventConfirmedEnough(
         fromErgoEventTrigger
@@ -85,6 +155,8 @@ describe('EventProcessor', () => {
      * Target: testing isEventConfirmedEnough
      * Dependencies:
      *    KoiosApi
+     *    NodeApi
+     *    InputBoxes
      * Expected Output:
      *    The function should return true
      */
@@ -105,6 +177,14 @@ describe('EventProcessor', () => {
         []
       );
       mockKoiosGetTxConfirmation(txId, 30);
+
+      // mock event box and current height
+      mockGetEventBox(anything(), eventBoxAndCommitments[0]);
+      const mockedHeight =
+        TestConfigs.ergo.blockchainHeight +
+        ErgoConfigs.requiredConfirmation +
+        1;
+      mockGetHeight(mockedHeight);
 
       // run test
       const result = await EventProcessor.isEventConfirmedEnough(

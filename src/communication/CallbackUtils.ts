@@ -28,7 +28,7 @@ const apiCallBack: SubscribeChannelFunction = (
     if (axios.isAxiosError(error)) {
       logger.warn(`An error occurred, ${error.message}`);
     } else {
-      logger.log('fatal', `Unexpected error, ${error}`);
+      logger.error(`Unexpected error, ${error}`);
     }
   });
 };

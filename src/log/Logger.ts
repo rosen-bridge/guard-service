@@ -23,16 +23,8 @@ class Logger {
         this.logFormat
       ),
       transports: [
-        //Error logs
         new winston.transports.DailyRotateFile({
-          filename: this.logsPath + 'error-%DATE%.log',
-          ...this.logOptions,
-          level: 'error',
-        }),
-
-        //Info logs
-        new winston.transports.DailyRotateFile({
-          filename: this.logsPath + 'info-%DATE%.log',
+          filename: this.logsPath + 'rosen-%DATE%.log',
           ...this.logOptions,
         }),
       ],
@@ -40,7 +32,7 @@ class Logger {
       //Exception logs
       exceptionHandlers: [
         new winston.transports.DailyRotateFile({
-          filename: this.logsPath + 'exceptions-%DATE%.log',
+          filename: this.logsPath + 'rosen-%DATE%.log',
           ...this.logOptions,
         }),
       ],
@@ -48,7 +40,7 @@ class Logger {
       //Rejection logs
       rejectionHandlers: [
         new winston.transports.DailyRotateFile({
-          filename: this.logsPath + 'rejections-%DATE%.log',
+          filename: this.logsPath + 'rosen-%DATE%.log',
           ...this.logOptions,
         }),
       ],
@@ -70,9 +62,4 @@ class Logger {
 
 const logger = new Logger().logger;
 
-const logThrowError = (message: string, type = 'error') => {
-  logger.log(type, message);
-  throw new Error(message);
-};
-
-export { logger, logThrowError };
+export { logger };
