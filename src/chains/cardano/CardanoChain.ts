@@ -37,7 +37,7 @@ import { Buffer } from 'buffer';
 import Utils from '../../helpers/Utils';
 import { logger } from '../../log/Logger';
 import { TssFailedSign, TssSuccessfulSign } from '../../models/Interfaces';
-import ErgoConfigs from "../ergo/helpers/ErgoConfigs";
+import ErgoConfigs from '../ergo/helpers/ErgoConfigs';
 
 class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
   bankAddress = Address.from_bech32(CardanoConfigs.bankAddress);
@@ -49,64 +49,71 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
    * @param event the event trigger model
    * @return minimum required box to be in the input of the transaction
    */
-  getCoveringUtxo = (addressBoxes: Array<Utxo>,
-                     event: EventTrigger): Array<Utxo> => {
+  getCoveringUtxo = (
+    addressBoxes: Array<Utxo>,
+    event: EventTrigger
+  ): Array<Utxo> => {
     const result: Array<Utxo> = [];
     let coveredLovelace = BigNum.from_str('0');
-    const shuffleIndexes = [...Array(addressBoxes.length).keys()]
+    const shuffleIndexes = [...Array(addressBoxes.length).keys()];
     for (let i = shuffleIndexes.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [shuffleIndexes[i], shuffleIndexes[j]] = [shuffleIndexes[j], shuffleIndexes[i]];
+      [shuffleIndexes[i], shuffleIndexes[j]] = [
+        shuffleIndexes[j],
+        shuffleIndexes[i],
+      ];
     }
 
     if (event.targetChainTokenId === 'lovelace') {
       const paymentAmount = CardanoChain.getPaymentAmount(event);
       for (
-          let i = 0;
-          paymentAmount.compare(coveredLovelace) > 0 &&
-          i < addressBoxes.length;
-          i++) {
-        const utxo = addressBoxes[shuffleIndexes[i]]
+        let i = 0;
+        paymentAmount.compare(coveredLovelace) > 0 && i < addressBoxes.length;
+        i++
+      ) {
+        const utxo = addressBoxes[shuffleIndexes[i]];
         coveredLovelace = coveredLovelace.checked_add(
-            BigNum.from_str(utxo.value)
+          BigNum.from_str(utxo.value)
         );
         result.push(addressBoxes[i]);
       }
-      if (paymentAmount.compare(coveredLovelace) > 0) throw new Error(`An error occurred, there isn't enough lovelace in the bank`)
-      return result
+      if (paymentAmount.compare(coveredLovelace) > 0)
+        throw new Error(
+          `An error occurred, there isn't enough lovelace in the bank`
+        );
+      return result;
     } else {
       const lovelacePaymentAmount: BigNum = CardanoConfigs.txMinimumLovelace;
       const assetPaymentAmount: BigNum = CardanoChain.getPaymentAmount(event);
       const paymentAssetUnit =
-          CardanoUtils.getAssetPolicyAndNameFromConfigFingerPrintMap(
-              event.targetChainTokenId
-          );
+        CardanoUtils.getAssetPolicyAndNameFromConfigFingerPrintMap(
+          event.targetChainTokenId
+        );
       const assetPolicyId = Utils.Uint8ArrayToHexString(paymentAssetUnit[0]);
       const assetAssetName = Utils.Uint8ArrayToHexString(paymentAssetUnit[1]);
 
       let covered = BigNum.from_str('0');
 
       for (
-          let i = 0;
-          (assetPaymentAmount.compare(covered) > 0 ||
-              lovelacePaymentAmount.compare(coveredLovelace) > 0) &&
-          i < addressBoxes.length;
-          i++) {
+        let i = 0;
+        (assetPaymentAmount.compare(covered) > 0 ||
+          lovelacePaymentAmount.compare(coveredLovelace) > 0) &&
+        i < addressBoxes.length;
+        i++
+      ) {
         let isAdded = false;
-        const utxo = addressBoxes[shuffleIndexes[i]]
+        const utxo = addressBoxes[shuffleIndexes[i]];
         if (assetPaymentAmount.compare(covered) > 0) {
           const assetIndex = utxo.asset_list.findIndex(
-              (asset) =>
-                  asset.asset_name === assetAssetName &&
-                  asset.policy_id === assetPolicyId
+            (asset) =>
+              asset.asset_name === assetAssetName &&
+              asset.policy_id === assetPolicyId
           );
           if (assetIndex !== -1) {
             const asset = utxo.asset_list[assetIndex];
-            covered = covered.checked_add(
-                BigNum.from_str(asset.quantity)
-            );
+            covered = covered.checked_add(BigNum.from_str(asset.quantity));
             coveredLovelace = coveredLovelace.checked_add(
-                BigNum.from_str(utxo.value)
+              BigNum.from_str(utxo.value)
             );
             result.push(addressBoxes[i]);
             isAdded = true;
@@ -114,16 +121,21 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         }
         if (!isAdded && lovelacePaymentAmount.compare(coveredLovelace) > 0) {
           coveredLovelace = coveredLovelace.checked_add(
-              BigNum.from_str(utxo.value)
+            BigNum.from_str(utxo.value)
           );
           result.push(addressBoxes[i]);
         }
-
       }
-      if (lovelacePaymentAmount.compare(coveredLovelace) > 0) throw new Error(`An error occurred, there isn't enough lovelace in the bank`)
-      if (assetPaymentAmount.compare(covered) > 0) throw new Error(`An error occurred, there isn't enough asset in the bank`)
+      if (lovelacePaymentAmount.compare(coveredLovelace) > 0)
+        throw new Error(
+          `An error occurred, there isn't enough lovelace in the bank`
+        );
+      if (assetPaymentAmount.compare(covered) > 0)
+        throw new Error(
+          `An error occurred, there isn't enough asset in the bank`
+        );
     }
-    return result
+    return result;
   };
 
   /**
@@ -233,7 +245,8 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
     const paymentBox = outputBoxes.get(0);
     if (event.targetChainTokenId === 'lovelace') {
       // ADA payment case
-      const lovelacePaymentAmount: BigNum = CardanoChain.getPaymentAmount(event);
+      const lovelacePaymentAmount: BigNum =
+        CardanoChain.getPaymentAmount(event);
       const sizeOfMultiAssets: number | undefined = paymentBox
         .amount()
         .multiasset()
@@ -270,9 +283,11 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         .multiasset()
         ?.get_asset(paymentAssetPolicyId, paymentAssetAssetName);
 
-      logger.info(`\t| step 4`)
-      logger.info(`\t| conditions:`)
-      logger.info(`\t\t| ${paymentAssetAmount?.to_str()} should equal ${assetPaymentAmount?.to_str()}`)
+      logger.info(`\t| step 4`);
+      logger.info(`\t| conditions:`);
+      logger.info(
+        `\t\t| ${paymentAssetAmount?.to_str()} should equal ${assetPaymentAmount?.to_str()}`
+      );
       return (
         paymentBox.amount().coin().compare(lovelacePaymentAmount) === 0 &&
         paymentAssetAmount !== undefined &&
@@ -673,16 +688,21 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
    * @param event
    */
   static getPaymentAmount = (event: EventTrigger): BigNum => {
-    const bridgeFee: BigNum = (BigNum.from_str(event.bridgeFee) > BigNum.from_str(ErgoConfigs.minimumTokenBridgeFee.toString()))
+    const bridgeFee: BigNum =
+      BigNum.from_str(event.bridgeFee).compare(
+        BigNum.from_str(ErgoConfigs.minimumTokenBridgeFee.toString())
+      ) > 0
         ? BigNum.from_str(event.bridgeFee)
-        : BigNum.from_str(ErgoConfigs.minimumTokenBridgeFee.toString())
-    const networkFee: BigNum = (BigNum.from_str(event.networkFee) > BigNum.from_str(ErgoConfigs.minimumTokenNetworkFee.toString()))
-        ? BigNum.from_str(event.networkFee)
-        : BigNum.from_str(ErgoConfigs.minimumTokenNetworkFee.toString())
+        : BigNum.from_str(ErgoConfigs.minimumTokenBridgeFee.toString());
+    const networkFee: BigNum = BigNum.from_str(event.networkFee).compare(
+      BigNum.from_str(ErgoConfigs.minimumTokenNetworkFee.toString())
+    )
+      ? BigNum.from_str(event.networkFee)
+      : BigNum.from_str(ErgoConfigs.minimumTokenNetworkFee.toString());
     return BigNum.from_str(event.amount)
-        .checked_sub(bridgeFee)
-        .checked_sub(networkFee)
-  }
+      .checked_sub(bridgeFee)
+      .checked_sub(networkFee);
+  };
 }
 
 export default CardanoChain;
