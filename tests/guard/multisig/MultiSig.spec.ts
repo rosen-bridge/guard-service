@@ -207,7 +207,8 @@ describe('MultiSigHandler', () => {
       const message =
         '{"type":"sign","payload":{"txId":"356ebd85f01ee25c3c241950b77d533ee46bcdc7c3a02a2f24bb25946b9fec96","commitment":{"0":[{"a":"02acf3bf8466386df1cedca127ac8e025223ce1f88f430fc6f1dfabc424857e15c","position":"0-1"}]},"index":1,"id":"12D3KooWSC69DeYqzwjeDYFFXqEgNPUvDxVaypezZpkUXVA8UkR2"},"sign":"+nHOaX5etrB+JI3tMa+EfSsBX7tBKhALubQ7D3iLl4VuzsXFOFfkgpas8tPm5/nrElGW5Y4CpzB+DuWAEvK1sA=="}';
       const spiedCommitment = sinon.spy(handler, 'handleCommitment');
-      const spiedSign = sinon.spy(handler, 'handleSign');
+      const spiedSign = sinon.stub(handler, 'handleSign');
+      spiedSign.returns()
       const spiedRegister = sinon.spy(handler, 'handleRegister');
       const spiedApprove = sinon.spy(handler, 'handleApprove');
       handler.handleMessage(
