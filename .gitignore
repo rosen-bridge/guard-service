@@ -1,0 +1,17 @@
+yarn.lock
+
+sqlite
+.idea
+node_modules
+.nyc_output
+coverage
+dir
+build
+dist
+logs
+
+peer-dialer.json
+bin/tss.exe
+config/addresses/contracts-*
+config/tokens.json
+

@@ -1,0 +1,12 @@
+image: node:16.17
+
+stages:
+  - test
+
+test:
+  script:
+    - npm install
+    - npm run coverage
+  artifacts:
+    reports:
+      cobertura: coverage/cobertura-coverage.xml
