@@ -19,6 +19,7 @@ class Logger {
     error: 0,
     warn: 1,
     info: 2,
+    debug: 3,
   };
   private readonly logLevel = Configs.logLevel;
   constructor() {
@@ -39,24 +40,8 @@ class Logger {
           level: this.logLevel,
         }),
       ],
-
-      //Exception logs
-      exceptionHandlers: [
-        new winston.transports.DailyRotateFile({
-          filename: this.logsPath + 'rosen-%DATE%.log',
-          ...this.logOptions,
-          level: this.logLevel,
-        }),
-      ],
-
-      //Rejection logs
-      rejectionHandlers: [
-        new winston.transports.DailyRotateFile({
-          filename: this.logsPath + 'rosen-%DATE%.log',
-          ...this.logOptions,
-          level: this.logLevel,
-        }),
-      ],
+      handleRejections: true,
+      handleExceptions: true,
     });
   }
 }
