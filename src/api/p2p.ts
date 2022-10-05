@@ -3,6 +3,7 @@ import { apiCallBack } from '../communication/CallbackUtils';
 import Dialer from '../communication/Dialer';
 import { body, validationResult } from 'express-validator';
 import Configs from '../helpers/Configs';
+import { logger } from '../log/Logger';
 
 export const p2pRouter = Router();
 const dialer = await Dialer.getInstance();
@@ -38,6 +39,9 @@ p2pRouter.post(
 
       res.send({ message: 'ok' });
     } catch (error) {
+      logger.error(
+        `An error occurred while send message over p2p: ${error.message}`
+      );
       res.status(500).send({ message: error.message });
     }
   }
@@ -63,6 +67,9 @@ p2pRouter.post(
       dialer.subscribeChannel(req.body.channel, apiCallBack, req.body.url);
       res.send({ message: 'ok' });
     } catch (error) {
+      logger.error(
+        `An error occurred while subscribe channel: ${error.message}`
+      );
       res.status(500).send({ message: error.message });
     }
   }
@@ -79,8 +86,8 @@ p2pRouter.get('/getPeerIDs', async (req: Request, res: Response) => {
     }
     const peerIDs = dialer.getPeerIds();
     res.status(200).json(peerIDs);
-  } catch (e) {
-    console.warn(e);
-    res.status(500).send({ message: e.message });
+  } catch (error) {
+    logger.warn(`An error occurred while return peerIDs: ${error.message}`);
+    res.status(500).send({ message: error.message });
   }
 });

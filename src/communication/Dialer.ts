@@ -48,6 +48,7 @@ class Dialer {
     ['MSG', '/broadcast'],
     ['PEER', '/getpeers'],
   ]);
+  private _DISCONNECTED_PEER: Set<string> = new Set<string>();
 
   private constructor() {
     logger.info('Create Dialer Instance!');
@@ -184,9 +185,11 @@ class Dialer {
         return;
       }
       this._SUBSCRIBED_CHANNELS[channel].push(callbackObj);
+      logger.info(`Channel [${channel}] subscribed!`);
     } else {
       this._SUBSCRIBED_CHANNELS[channel] = [];
       this._SUBSCRIBED_CHANNELS[channel].push(callbackObj);
+      logger.info(`Channel [${channel}] subscribed!`);
     }
   };
 
@@ -213,6 +216,9 @@ class Dialer {
       );
       return;
     }
+
+    // try to connect to disconnected peers
+    await this.addPeers(Array.from(this._DISCONNECTED_PEER));
 
     if (receiver) {
       const receiverPeerId = await createFromJSON({ id: `${receiver}` });
@@ -253,9 +259,9 @@ class Dialer {
    * @param peers id of peers
    */
   addPeers = async (peers: string[]): Promise<void> => {
-    try {
-      if (this._NODE) {
-        for (const peer of peers) {
+    if (this._NODE) {
+      for (const peer of peers) {
+        try {
           for (const addr of CommunicationConfig.relays.multiaddrs) {
             const multi = multiaddr.multiaddr(
               addr.concat(`/p2p-circuit/p2p/${peer}`)
@@ -266,14 +272,15 @@ class Dialer {
             );
             await this._NODE?.dialProtocol(
               multi,
-              this._SUPPORTED_PROTOCOL.get('PEER')!
+              this._SUPPORTED_PROTOCOL.get('MSG')!
             );
+            this._DISCONNECTED_PEER.delete(peer);
             logger.info(`a peer with peerID [${peer}] added`);
           }
+        } catch (e) {
+          logger.warn(`An error occurred for store discovered peer: ${e}`);
         }
       }
-    } catch (e) {
-      logger.warn(`An error occurred for store discovered peer: ${e}`);
     }
   };
 
@@ -332,6 +339,10 @@ class Dialer {
       peer,
       this._SUPPORTED_PROTOCOL.get('MSG')!
     );
+    logger.debug(
+      `Get connection [${connStream.connection}] and stream [${connStream.stream}] for peer [${peer}]`
+    );
+
     const passThroughName = `${peer.toString()}-${this._SUPPORTED_PROTOCOL.get(
       'MSG'
     )!}-${connStream.stream.id}`;
@@ -406,9 +417,11 @@ class Dialer {
             };
             if (this._SUBSCRIBED_CHANNELS[receivedData.channel]) {
               logger.info(
-                `Received a message from [${connection.remotePeer.toString()}]
-             in a subscribed channel [${receivedData.channel} ]`
+                `Received a message from [${connection.remotePeer.toString()}] in a subscribed channel [${
+                  receivedData.channel
+                }]`
               );
+              logger.debug(`Received msg with data [${receivedData.msg}]`);
               this._SUBSCRIBED_CHANNELS[receivedData.channel].forEach(
                 runSubscribeCallback
               );
@@ -520,6 +533,7 @@ class Dialer {
 
       // Listen for peers disconnecting
       node.connectionManager.addEventListener('peer:disconnect', (evt) => {
+        this._DISCONNECTED_PEER.add(evt.detail.remotePeer.toString());
         this._OUTPUT_STREAMS.forEach((value, key) => {
           if (key.includes(evt.detail.remotePeer.toString()))
             this._OUTPUT_STREAMS.delete(key);
@@ -552,6 +566,7 @@ class Dialer {
       // this should call after createRelayConnection duo to peerId should save after create relay connection
       await Dialer.savePeerIdIfNeed(peerId);
 
+      // Job for send pending message
       new Promise(() =>
         setInterval(
           this.sendPendingMessage,
@@ -559,10 +574,18 @@ class Dialer {
         )
       );
 
+      // Job for log all peers
       new Promise(() =>
         setInterval(() => {
           logger.info(`peers are [${this.getPeerIds()}]`);
         }, CommunicationConfig.getPeersInterval * 1000)
+      );
+
+      // Job for connect to disconnected peers
+      new Promise(() =>
+        setInterval(() => {
+          this.addPeers(Array.from(this._DISCONNECTED_PEER));
+        }, CommunicationConfig.connectToDisconnectedPeersInterval * 1000)
       );
     } catch (e) {
       logger.error(`An error occurred for start dialer: ${e}`);
