@@ -58,9 +58,13 @@ class Dialer {
    * @return a Dialer instance (create if it doesn't exist)
    */
   public static getInstance = async (): Promise<Dialer> => {
-    if (!Dialer.instance) {
-      Dialer.instance = new Dialer();
-      await Dialer.instance.startDialer();
+    try {
+      if (!Dialer.instance) {
+        Dialer.instance = new Dialer();
+        await Dialer.instance.startDialer();
+      }
+    } catch (e) {
+      throw Error(`An error occurred for start Dialer: ${e}`);
     }
     return Dialer.instance;
   };
@@ -73,21 +77,25 @@ class Dialer {
     peerId: PeerId;
     exist: boolean;
   }> => {
-    if (!fs.existsSync(CommunicationConfig.peerIdFilePath)) {
-      return {
-        peerId: await createEd25519PeerId(),
-        exist: false,
-      } as const;
-    } else {
-      const jsonData: string = fs.readFileSync(
-        CommunicationConfig.peerIdFilePath,
-        'utf8'
-      );
-      const peerIdDialerJson = await JSON.parse(jsonData);
-      return {
-        peerId: await createFromJSON(peerIdDialerJson),
-        exist: true,
-      };
+    try {
+      if (!fs.existsSync(CommunicationConfig.peerIdFilePath)) {
+        return {
+          peerId: await createEd25519PeerId(),
+          exist: false,
+        } as const;
+      } else {
+        const jsonData: string = fs.readFileSync(
+          CommunicationConfig.peerIdFilePath,
+          'utf8'
+        );
+        const peerIdDialerJson = await JSON.parse(jsonData);
+        return {
+          peerId: await createFromJSON(peerIdDialerJson),
+          exist: true,
+        };
+      }
+    } catch (e) {
+      throw new Error(`Couldn't get or create a PeerID: ${e}`);
     }
   };
 
@@ -106,7 +114,7 @@ class Dialer {
       if (peerId.privateKey && peerId.publicKey) {
         privateKey = peerId.privateKey;
         publicKey = peerId.publicKey;
-      } else throw Error('PrivateKey for p2p is required');
+      } else throw new Error('PrivateKey for p2p is required');
 
       const peerIdDialerJson = {
         id: peerId.toString(),
@@ -332,47 +340,56 @@ class Dialer {
     peer: PeerId,
     messageToSend: SendDataCommunication
   ): Promise<void> => {
-    let outputStream: PassThrough | undefined;
+    try {
+      let outputStream: PassThrough | undefined;
 
-    const connStream = await this.getOpenStream(
-      node,
-      peer,
-      this._SUPPORTED_PROTOCOL.get('MSG')!
-    );
-    logger.debug(
-      `Get connection [${connStream.connection}] and stream [${connStream.stream}] for peer [${peer}]`
-    );
-
-    const passThroughName = `${peer.toString()}-${this._SUPPORTED_PROTOCOL.get(
-      'MSG'
-    )!}-${connStream.stream.id}`;
-
-    if (this._OUTPUT_STREAMS.has(passThroughName)) {
-      outputStream = this._OUTPUT_STREAMS.get(passThroughName);
-    } else {
-      const outStream = new PassThrough();
-      this._OUTPUT_STREAMS.set(passThroughName, outStream);
-      outputStream = outStream;
-      pipe(outputStream, lp.encode(), connStream.stream).catch((e) => {
-        logger.error(`An error occurred for write to stream ${e}`);
-        connStream.stream.close();
-        this._OUTPUT_STREAMS.delete(passThroughName);
-        this._PENDING_MESSAGE.push(messageToSend);
-        logger.warn(
-          "Message added to pending list due to dialer node isn't ready"
-        );
-      });
-    }
-
-    if (outputStream) {
-      // Give time for the stream to flush.
-      await new Promise((resolve) =>
-        setTimeout(resolve, CommunicationConfig.timeToFlushStream * 1000)
+      const connStream = await this.getOpenStream(
+        node,
+        peer,
+        this._SUPPORTED_PROTOCOL.get('MSG')!
       );
-      // Send some outgoing data.
-      outputStream.write(JsonBI.stringify(messageToSend));
-    } else {
-      logger.error(`Doesn't exist output pass through for ${passThroughName}`);
+      logger.debug(
+        `Get connection [${connStream.connection}] and stream [${connStream.stream}] for peer [${peer}]`
+      );
+
+      const passThroughName = `${peer.toString()}-${this._SUPPORTED_PROTOCOL.get(
+        'MSG'
+      )!}-${connStream.stream.id}`;
+
+      if (this._OUTPUT_STREAMS.has(passThroughName)) {
+        outputStream = this._OUTPUT_STREAMS.get(passThroughName);
+      } else {
+        const outStream = new PassThrough();
+        this._OUTPUT_STREAMS.set(passThroughName, outStream);
+        outputStream = outStream;
+        pipe(outputStream, lp.encode(), connStream.stream).catch((e) => {
+          logger.error(`An error occurred for write to stream ${e}`);
+          connStream.stream.close();
+          this._OUTPUT_STREAMS.delete(passThroughName);
+          this._PENDING_MESSAGE.push(messageToSend);
+          logger.warn(
+            "Message added to pending list due to dialer node isn't ready"
+          );
+        });
+      }
+
+      if (outputStream) {
+        // Give time for the stream to flush.
+        await new Promise((resolve) =>
+          setTimeout(resolve, CommunicationConfig.timeToFlushStream * 1000)
+        );
+        // Send some outgoing data.
+        outputStream.write(JsonBI.stringify(messageToSend));
+      } else {
+        logger.error(
+          `Doesn't exist output pass through for ${passThroughName}`
+        );
+      }
+    } catch (e) {
+      logger.error(
+        `An error occurred for write data on stream for peer [${peer}]: ${e}`
+      );
+      logger.debug(`message is [${messageToSend}]`);
     }
   };
 
@@ -385,16 +402,16 @@ class Dialer {
     stream: Stream,
     connection: Connection
   ): Promise<void> => {
-    try {
-      pipe(
-        // Read from the stream (the source)
-        stream.source,
-        // Decode length-prefixed data
-        lp.decode(),
-        // Turn buffers into strings
-        (source) => map(source, (buf) => uint8ArrayToString(buf.subarray())),
-        // Sink function
-        async (source) => {
+    pipe(
+      // Read from the stream (the source)
+      stream.source,
+      // Decode length-prefixed data
+      lp.decode(),
+      // Turn buffers into strings
+      (source) => map(source, (buf) => uint8ArrayToString(buf.subarray())),
+      // Sink function
+      async (source) => {
+        try {
           // For each chunk of data
           for await (const msg of source) {
             const receivedData: ReceiveDataCommunication = await JsonBI.parse(
@@ -432,13 +449,15 @@ class Dialer {
                 }]`
               );
           }
+        } catch (e) {
+          logger.warn(`An error occurred for handle stream callback: ${e}`);
         }
-      );
-    } catch (e) {
+      }
+    ).catch((e) => {
       logger.warn(
         `An error occurred for handle broadcast protocol stream: ${e}`
       );
-    }
+    });
   };
 
   /**
@@ -452,16 +471,16 @@ class Dialer {
     stream: Stream,
     connection: Connection
   ): Promise<void> => {
-    try {
-      pipe(
-        // Read from the stream (the source)
-        stream.source,
-        // Decode length-prefixed data
-        lp.decode(),
-        // Turn buffers into strings
-        (source) => map(source, (buf) => uint8ArrayToString(buf.subarray())),
-        // Sink function
-        async (source) => {
+    pipe(
+      // Read from the stream (the source)
+      stream.source,
+      // Decode length-prefixed data
+      lp.decode(),
+      // Turn buffers into strings
+      (source) => map(source, (buf) => uint8ArrayToString(buf.subarray())),
+      // Sink function
+      async (source) => {
+        try {
           // For each chunk of data
           for await (const msg of source) {
             if (
@@ -482,13 +501,15 @@ class Dialer {
               );
             }
           }
+        } catch (e) {
+          logger.warn(`An error occurred for handle stream callback: ${e}`);
         }
-      );
-    } catch (e) {
+      }
+    ).catch((e) => {
       logger.warn(
         `An error occurred for handle getpeers protocol stream: ${e}`
       );
-    }
+    });
   };
 
   /**
