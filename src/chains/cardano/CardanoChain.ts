@@ -283,11 +283,6 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         .multiasset()
         ?.get_asset(paymentAssetPolicyId, paymentAssetAssetName);
 
-      logger.info(`\t| step 4`);
-      logger.info(`\t| conditions:`);
-      logger.info(
-        `\t\t| ${paymentAssetAmount?.to_str()} should equal ${assetPaymentAmount?.to_str()}`
-      );
       return (
         paymentBox.amount().coin().compare(lovelacePaymentAmount) === 0 &&
         paymentAssetAmount !== undefined &&
