@@ -76,7 +76,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         coveredLovelace = coveredLovelace.checked_add(
           BigNum.from_str(utxo.value)
         );
-        result.push(addressBoxes[i]);
+        result.push(utxo);
       }
       if (paymentAmount.compare(coveredLovelace) > 0)
         throw new Error(
@@ -118,7 +118,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
             coveredLovelace = coveredLovelace.checked_add(
               BigNum.from_str(utxo.value)
             );
-            result.push(addressBoxes[i]);
+            result.push(utxo);
             isAdded = true;
           }
         }
@@ -126,7 +126,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
           coveredLovelace = coveredLovelace.checked_add(
             BigNum.from_str(utxo.value)
           );
-          result.push(addressBoxes[i]);
+          result.push(utxo);
         }
       }
       if (lovelacePaymentAmount.compare(coveredLovelace) > 0)
@@ -325,6 +325,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
     event: EventTrigger,
     inBoxes: Utxo[]
   ): TransactionOutput[] => {
+    console.log('change box computation');
     // calculate assets of payment box
     const paymentAmount: BigNum = BigNum.from_str(event.amount)
       .checked_sub(BigNum.from_str(event.bridgeFee))
@@ -340,12 +341,15 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
     const changeBoxAssets = this.calculateInputBoxesAssets(inBoxes);
     const multiAsset = changeBoxAssets.assets;
     let changeBoxLovelace: BigNum = changeBoxAssets.lovelace;
-
+    console.log('before lovelace change box');
+    console.log('change box lovelace', changeBoxLovelace.to_str());
+    console.log('payment amount', paymentAmount.to_str());
+    console.log('txFee', CardanoConfigs.txFee);
     // reduce fee and payment amount from change box lovelace
     changeBoxLovelace = changeBoxLovelace
       .checked_sub(CardanoConfigs.txFee)
       .checked_sub(paymentAmount);
-
+    console.log('change box lovelace value is: ', changeBoxLovelace.to_str());
     // create change box
     const changeAmount: Value = Value.new(changeBoxLovelace);
     changeAmount.set_multiasset(multiAsset);
