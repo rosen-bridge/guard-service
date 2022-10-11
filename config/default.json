@@ -78,7 +78,8 @@
   "logs": {
     "path": "logs/",
     "maxSize": "20m",
-    "maxFiles": "14d"
+    "maxFiles": "14d",
+    "level": "info"
   },
   "txProcessorInterval": 180,
   "tokensPath": "config/tokens.json"
