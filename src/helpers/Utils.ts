@@ -90,6 +90,13 @@ class Utils {
   /**
    * converts bytearray to base64 string
    */
+  static uint8ArrayToBase64String = (bytes: Uint8Array): string => {
+    return Buffer.from(bytes).toString('base64');
+  };
+
+  /**
+   * converts bytearray to base64 string
+   */
   static Uint8ArrayToBase64String = (bytes: Uint8Array): string => {
     return Buffer.from(bytes).toString('base64');
   };

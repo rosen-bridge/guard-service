@@ -14,9 +14,9 @@ const mockIsEventConfirmedEnough = (
   event: EventTrigger,
   result: boolean
 ): void => {
-  when(mockedEventProcessor.isEventConfirmedEnough(anything())).thenResolve(
-    result
-  );
+  when(
+    mockedEventProcessor.isEventConfirmedEnough(anything(), anything())
+  ).thenResolve(result);
 };
 
 /**

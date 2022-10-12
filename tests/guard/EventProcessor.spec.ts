@@ -41,6 +41,7 @@ import {
   mockGetHeight,
   resetMockedNodeApi,
 } from '../chains/ergo/mocked/MockedNode';
+import ErgoUtils from '../../src/chains/ergo/helpers/ErgoUtils';
 
 describe('EventProcessor', () => {
   const cardanoTestBankAddress = CardanoTestBoxes.testBankAddress;
@@ -104,7 +105,8 @@ describe('EventProcessor', () => {
 
       // run test
       const result = await EventProcessor.isEventConfirmedEnough(
-        fromErgoEventTrigger
+        fromErgoEventTrigger,
+        TestConfigs.ergo.blockchainHeight
       );
       expect(result).to.be.false;
     });
@@ -146,7 +148,8 @@ describe('EventProcessor', () => {
 
       // run test
       const result = await EventProcessor.isEventConfirmedEnough(
-        fromErgoEventTrigger
+        fromErgoEventTrigger,
+        TestConfigs.ergo.blockchainHeight
       );
       expect(result).to.be.true;
     });
@@ -188,7 +191,8 @@ describe('EventProcessor', () => {
 
       // run test
       const result = await EventProcessor.isEventConfirmedEnough(
-        fromCardanoEventTrigger
+        fromCardanoEventTrigger,
+        TestConfigs.ergo.blockchainHeight
       );
       expect(result).to.be.true;
     });
@@ -353,7 +357,14 @@ describe('EventProcessor', () => {
      */
     it('should NOT inserts not confirmed events into ConfirmedEvent table', async () => {
       const mockedEvent = TestBoxes.mockErgPaymentEventTrigger();
-      await insertOnyEventDataRecord(mockedEvent);
+      const boxSerialized = ErgoUtils.ergoBoxToSigmaSerialized(
+        TestBoxes.mockSingleBox(
+          1,
+          [],
+          ErgoUtils.addressStringToContract(TestBoxes.testLockAddress)
+        ) // address doesn't matter in this test
+      );
+      await insertOnyEventDataRecord(mockedEvent, boxSerialized);
       mockIsEventConfirmedEnough(mockedEvent, false);
 
       // run test
@@ -379,8 +390,22 @@ describe('EventProcessor', () => {
      */
     it('should only inserts one event per sourceTxId into ConfirmedEvent table', async () => {
       const mockedEvent = TestBoxes.mockErgPaymentEventTrigger();
-      await insertOnyEventDataRecord(mockedEvent);
-      await insertOnyEventDataRecord(mockedEvent);
+      const boxSerialized1 = ErgoUtils.ergoBoxToSigmaSerialized(
+        TestBoxes.mockSingleBox(
+          1,
+          [],
+          ErgoUtils.addressStringToContract(TestBoxes.testLockAddress)
+        ) // address doesn't matter in this test
+      );
+      const boxSerialized2 = ErgoUtils.ergoBoxToSigmaSerialized(
+        TestBoxes.mockSingleBox(
+          1,
+          [],
+          ErgoUtils.addressStringToContract(TestBoxes.testLockAddress)
+        ) // address doesn't matter in this test
+      );
+      await insertOnyEventDataRecord(mockedEvent, boxSerialized1);
+      await insertOnyEventDataRecord(mockedEvent, boxSerialized2);
       mockIsEventConfirmedEnough(mockedEvent, true);
 
       // run test
