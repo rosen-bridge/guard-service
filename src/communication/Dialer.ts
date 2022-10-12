@@ -274,16 +274,21 @@ class Dialer {
             const multi = multiaddr.multiaddr(
               addr.concat(`/p2p-circuit/p2p/${peer}`)
             );
-            this._NODE?.peerStore.addressBook.set(
-              await createFromJSON({ id: `${peer}` }),
-              [multi]
-            );
-            await this._NODE?.dialProtocol(
-              multi,
-              this._SUPPORTED_PROTOCOL.get('MSG')!
-            );
-            this._DISCONNECTED_PEER.delete(peer);
-            logger.info(`a peer with peerID [${peer}] added`);
+            logger.warn(this.getPeerIds().includes(peer));
+            if (!this.getPeerIds().includes(peer)) {
+              this._NODE?.peerStore.addressBook
+                .set(await createFromJSON({ id: `${peer}` }), [multi])
+                .catch((err) => {
+                  logger.warn(err);
+                });
+              this._NODE
+                ?.dialProtocol(multi, this._SUPPORTED_PROTOCOL.get('MSG')!)
+                .catch((err) => {
+                  logger.warn(err);
+                });
+              this._DISCONNECTED_PEER.delete(peer);
+              logger.info(`a peer with peerID [${peer}] added`);
+            }
           }
         } catch (e) {
           logger.warn(`An error occurred for store discovered peer: ${e}`);
@@ -306,7 +311,7 @@ class Dialer {
     let connection: Connection | undefined = undefined;
     let stream: Stream | undefined = undefined;
     for await (const conn of node.getConnections(peer)) {
-      if (conn.stat.status === OPEN) {
+      if (conn.stat.status === OPEN && conn.stat.direction == 'outbound') {
         for await (const obj of conn.streams) {
           if (obj.stat.protocol === protocol) {
             stream = obj;
@@ -536,9 +541,22 @@ class Dialer {
           enabled: true, // Allows you to dial and accept relayed connections.
         },
         connectionManager: {
-          autoDial: true, // Auto connect to discovered peers (limited by ConnectionManager minConnections)
-          // The `tag` property will be searched when creating the instance of your Peer Discovery service.
-          // The associated object, will be passed to the service when it is instantiated.
+          /**
+           * Auto connect to discovered peers (limited by ConnectionManager minConnections)
+           * The `tag` property will be searched when creating the instance of your Peer Discovery service.
+           * The associated object, will be passed to the service when it is instantiated.
+           */
+          autoDial: true,
+          /**
+           * The total number of connections allowed to be open at one time
+           */
+          maxConnections: 200,
+
+          /**
+           * If the number of open connections goes below this number, the node
+           * will try to connect to nearby peers from the peer store
+           */
+          minConnections: 20,
         },
         pubsub: new FloodSub(), // Active peer discovery and bootstrap peers
         peerDiscovery: [
@@ -554,11 +572,25 @@ class Dialer {
 
       // Listen for peers disconnecting
       node.connectionManager.addEventListener('peer:disconnect', (evt) => {
+        logger.info(`Peer [${evt.detail.remotePeer.toString()}] Disconnected!`);
         this._DISCONNECTED_PEER.add(evt.detail.remotePeer.toString());
         this._OUTPUT_STREAMS.forEach((value, key) => {
           if (key.includes(evt.detail.remotePeer.toString()))
             this._OUTPUT_STREAMS.delete(key);
         });
+      });
+
+      // Listen for new peers
+      node.addEventListener('peer:discovery', (evt) => {
+        logger.info(`Found peer ${evt.detail.id.toString()}`);
+        // dial them when we discover them
+        if (
+          !CommunicationConfig.relays.peerIDs.includes(evt.detail.id.toString())
+        ) {
+          this.addPeers([evt.detail.id.toString()]).catch((err) => {
+            logger.warn(`Could not dial ${evt.detail.id}`, err);
+          });
+        }
       });
 
       // Define protocol for node
@@ -584,6 +616,8 @@ class Dialer {
 
       this._NODE = await node;
 
+      // await node.pubsub.subscribe(this._SUPPORTED_PROTOCOL.get('MSG')!)
+
       // this should call after createRelayConnection duo to peerId should save after create relay connection
       await Dialer.savePeerIdIfNeed(peerId);
 
@@ -602,7 +636,7 @@ class Dialer {
         }, CommunicationConfig.getPeersInterval * 1000)
       );
 
-      // Job for connect to disconnected peers
+      // // Job for connect to disconnected peers
       new Promise(() =>
         setInterval(() => {
           this.addPeers(Array.from(this._DISCONNECTED_PEER));
