@@ -20,6 +20,7 @@ import TransactionProcessor from '../TransactionProcessor';
 import { txJsonParser } from '../../chains/TxJsonParser';
 import { guardConfig } from '../../helpers/GuardConfig';
 import { logger } from '../../log/Logger';
+import InputBoxes from '../../chains/ergo/boxes/InputBoxes';
 
 const dialer = await Dialer.getInstance();
 
@@ -150,7 +151,15 @@ class TxAgreement {
       return;
     }
     const event = EventTrigger.fromConfirmedEntity(eventEntity);
-    if (!(await EventProcessor.isEventConfirmedEnough(event))) {
+    const eventBoxCreationHeight = (
+      await InputBoxes.getEventBox(event)
+    ).creation_height();
+    if (
+      !(await EventProcessor.isEventConfirmedEnough(
+        event,
+        eventBoxCreationHeight
+      ))
+    ) {
       logger.warn(
         `Received tx [${tx.txId}] for event but event [${tx.eventId}] is not confirmed enough`
       );

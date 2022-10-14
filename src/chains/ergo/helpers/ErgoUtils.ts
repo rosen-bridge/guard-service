@@ -11,6 +11,7 @@ import {
 } from 'ergo-lib-wasm-nodejs';
 import { AssetMap, BoxesAssets, ExplorerOutputBox } from '../models/Interfaces';
 import ChainsConstants from '../../ChainsConstants';
+import Utils from '../../../helpers/Utils';
 
 class ErgoUtils {
   /**
@@ -269,6 +270,14 @@ class ErgoUtils {
       ergs: ergs,
       tokens: tokens,
     };
+  };
+
+  /**
+   * encodes ErgoBox to sigma serialized
+   * @param box
+   */
+  static ergoBoxToSigmaSerialized = (box: ErgoBox): string => {
+    return Utils.uint8ArrayToBase64String(box.sigma_serialize_bytes());
   };
 }
 

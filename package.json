@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "prettify": "prettier --write . --ignore-path ./.gitignore",
-    "prebuild": "eslint --fix . && npm run prettify",
+    "lint": "eslint --fix . && npm run prettify",
     "build": "rimraf dist && tsc",
     "start": "NODE_ENV=\"development\" nodemon .",
     "test": "NODE_ENV=\"test\" mocha --slow 3000 && rimraf tests/db/sqlite/test",
