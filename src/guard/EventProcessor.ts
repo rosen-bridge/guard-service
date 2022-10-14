@@ -20,6 +20,7 @@ import ErgoTransaction from '../chains/ergo/models/ErgoTransaction';
 import InputBoxes from '../chains/ergo/boxes/InputBoxes';
 import { logger } from '../log/Logger';
 import NodeApi from '../chains/ergo/network/NodeApi';
+import { ErgoBox } from 'ergo-lib-wasm-nodejs';
 
 class EventProcessor {
   static cardanoChain = new CardanoChain();
@@ -34,10 +35,16 @@ class EventProcessor {
     for (const event of rawEvents) {
       try {
         const eventId = Utils.txIdToEventId(event.sourceTxId);
+        const eventBoxCreationHeight = ErgoBox.sigma_parse_bytes(
+          Utils.base64StringToUint8Array(event.boxSerialized)
+        ).creation_height();
         const confirmedEvent = await dbAction.getEventById(eventId);
         if (
           confirmedEvent === null &&
-          (await this.isEventConfirmedEnough(EventTrigger.fromEntity(event)))
+          (await this.isEventConfirmedEnough(
+            EventTrigger.fromEntity(event),
+            eventBoxCreationHeight
+          ))
         ) {
           logger.info(
             `Event [${eventId}] with txId [${event.sourceTxId}] confirmed`
@@ -178,14 +185,13 @@ class EventProcessor {
   /**
    * checks if event source tx confirmed enough
    * @param event the event trigger
+   * @param eventBoxCreationHeight the creation height of the event box
    */
   static isEventConfirmedEnough = async (
-    event: EventTrigger
+    event: EventTrigger,
+    eventBoxCreationHeight: number
   ): Promise<boolean> => {
     // check if the event box in ergo chain confirmed enough
-    const eventBoxCreationHeight = (
-      await InputBoxes.getEventBox(event)
-    ).creation_height();
     const ergoCurrentHeight = await NodeApi.getHeight();
     if (
       ergoCurrentHeight - eventBoxCreationHeight <
