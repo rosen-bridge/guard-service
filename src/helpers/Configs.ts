@@ -1,7 +1,6 @@
 import config from 'config';
 import { RosenTokens, TokenMap } from '@rosen-bridge/tokens';
 import fs from 'fs';
-import { logger } from '../log/Logger';
 
 /**
  * reads a config, set default value if it does not exits
