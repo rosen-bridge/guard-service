@@ -13,7 +13,6 @@ import {
   TransactionApproved,
 } from './Interfaces';
 import Dialer from '../../communication/Dialer';
-import Utils from '../../helpers/Utils';
 import EventProcessor from '../EventProcessor';
 import { dbAction } from '../../db/DatabaseAction';
 import TransactionProcessor from '../TransactionProcessor';
@@ -21,6 +20,7 @@ import { txJsonParser } from '../../chains/TxJsonParser';
 import { guardConfig } from '../../helpers/GuardConfig';
 import { logger } from '../../log/Logger';
 import InputBoxes from '../../chains/ergo/boxes/InputBoxes';
+import GuardTurn from '../../helpers/GuardTurn';
 
 const dialer = await Dialer.getInstance();
 
@@ -168,7 +168,7 @@ class TxAgreement {
     if (
       (await EventProcessor.verifyEvent(event)) &&
       tx.verifyMetaDataSignature(creatorId, signature) &&
-      Utils.guardTurn() === creatorId &&
+      GuardTurn.guardTurn() === creatorId &&
       !(await this.isEventHasDifferentTransaction(
         tx.eventId,
         tx.txId,

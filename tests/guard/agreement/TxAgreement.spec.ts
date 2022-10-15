@@ -28,7 +28,7 @@ import {
   mockVerifyPaymentTransactionWithEvent,
   resetMockedEventProcessor,
 } from '../mocked/MockedEventProcessor';
-import { mockGuardTurn } from '../../testUtils/MockedUtils';
+import { mockGuardTurn } from '../../testUtils/MockedGuardTurn';
 import { expect } from 'chai';
 import TestTxAgreement from './TestTxAgreement';
 import {
