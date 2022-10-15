@@ -22,12 +22,7 @@ import {
   insertEventRecord,
   insertTxRecord,
 } from '../../db/mocked/MockedScannerModel';
-import {
-  mockIsEventConfirmedEnough,
-  mockVerifyEvent,
-  mockVerifyPaymentTransactionWithEvent,
-  resetMockedEventProcessor,
-} from '../mocked/MockedEventProcessor';
+import { resetMockedEventProcessor } from '../mocked/MockedEventProcessor';
 import { mockGuardTurn } from '../../testUtils/MockedGuardTurn';
 import { expect } from 'chai';
 import TestTxAgreement from './TestTxAgreement';
@@ -39,6 +34,11 @@ import {
 import { anything, deepEqual, reset, spy, verify, when } from 'ts-mockito';
 import ChainsConstants from '../../../src/chains/ChainsConstants';
 import { guardConfig } from '../../../src/helpers/GuardConfig';
+import {
+  mockIsEventConfirmedEnough,
+  mockVerifyEvent,
+  mockVerifyPaymentTransactionWithEvent,
+} from '../mocked/MockedEventVerifier';
 
 describe('TxAgreement', () => {
   const eventBoxAndCommitments =
