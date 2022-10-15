@@ -48,85 +48,97 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
    * @param event the event trigger model
    * @return minimum required box to be in the input of the transaction
    */
-  getCoveringUtxo = (addressBoxes: Array<Utxo>,
-                     event: EventTrigger): Array<Utxo> => {
+  getCoveringUtxo = (
+    addressBoxes: Array<Utxo>,
+    event: EventTrigger
+  ): Array<Utxo> => {
     const result: Array<Utxo> = [];
     let coveredLovelace = BigNum.from_str('0');
-    const shuffleIndexes = [...Array(addressBoxes.length).keys()]
+    const shuffleIndexes = [...Array(addressBoxes.length).keys()];
     for (let i = shuffleIndexes.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [shuffleIndexes[i], shuffleIndexes[j]] = [shuffleIndexes[j], shuffleIndexes[i]];
+      [shuffleIndexes[i], shuffleIndexes[j]] = [
+        shuffleIndexes[j],
+        shuffleIndexes[i],
+      ];
     }
 
     if (event.targetChainTokenId === 'lovelace') {
       const paymentAmount: BigNum = BigNum.from_str(event.amount)
-          .checked_sub(BigNum.from_str(event.bridgeFee))
-          .checked_sub(BigNum.from_str(event.networkFee));
+        .checked_sub(BigNum.from_str(event.bridgeFee))
+        .checked_sub(BigNum.from_str(event.networkFee));
       for (
-          let i = 0;
-          paymentAmount.compare(coveredLovelace) > 0 &&
-          i < addressBoxes.length;
-          i++) {
-        const utxo = addressBoxes[shuffleIndexes[i]]
+        let i = 0;
+        paymentAmount.compare(coveredLovelace) > 0 && i < addressBoxes.length;
+        i++
+      ) {
+        const utxo = addressBoxes[shuffleIndexes[i]];
         coveredLovelace = coveredLovelace.checked_add(
-            BigNum.from_str(utxo.value)
+          BigNum.from_str(utxo.value)
         );
-        result.push(addressBoxes[i]);
+        result.push(utxo);
       }
-      if (paymentAmount.compare(coveredLovelace) > 0) throw new Error(`An error occurred, theres is no enough lovelace in the bank`)
-      return result
+      if (paymentAmount.compare(coveredLovelace) > 0)
+        throw new Error(
+          `An error occurred, theres is no enough lovelace in the bank`
+        );
+      return result;
     } else {
       const lovelacePaymentAmount: BigNum = CardanoConfigs.txMinimumLovelace;
       const assetPaymentAmount: BigNum = BigNum.from_str(event.amount)
-          .checked_sub(BigNum.from_str(event.bridgeFee))
-          .checked_sub(BigNum.from_str(event.networkFee));
+        .checked_sub(BigNum.from_str(event.bridgeFee))
+        .checked_sub(BigNum.from_str(event.networkFee));
       const paymentAssetUnit =
-          CardanoUtils.getAssetPolicyAndNameFromConfigFingerPrintMap(
-              event.targetChainTokenId
-          );
+        CardanoUtils.getAssetPolicyAndNameFromConfigFingerPrintMap(
+          event.targetChainTokenId
+        );
       const assetPolicyId = Utils.Uint8ArrayToHexString(paymentAssetUnit[0]);
       const assetAssetName = Utils.Uint8ArrayToHexString(paymentAssetUnit[1]);
 
       let covered = BigNum.from_str('0');
 
       for (
-          let i = 0;
-          (assetPaymentAmount.compare(covered) > 0 ||
-              lovelacePaymentAmount.compare(coveredLovelace) > 0) &&
-          i < addressBoxes.length;
-          i++) {
+        let i = 0;
+        (assetPaymentAmount.compare(covered) > 0 ||
+          lovelacePaymentAmount.compare(coveredLovelace) > 0) &&
+        i < addressBoxes.length;
+        i++
+      ) {
         let isAdded = false;
-        const utxo = addressBoxes[shuffleIndexes[i]]
+        const utxo = addressBoxes[shuffleIndexes[i]];
         if (assetPaymentAmount.compare(covered) > 0) {
           const assetIndex = utxo.asset_list.findIndex(
-              (asset) =>
-                  asset.asset_name === assetAssetName &&
-                  asset.policy_id === assetPolicyId
+            (asset) =>
+              asset.asset_name === assetAssetName &&
+              asset.policy_id === assetPolicyId
           );
           if (assetIndex !== -1) {
             const asset = utxo.asset_list[assetIndex];
-            covered = covered.checked_add(
-                BigNum.from_str(asset.quantity)
-            );
+            covered = covered.checked_add(BigNum.from_str(asset.quantity));
             coveredLovelace = coveredLovelace.checked_add(
-                BigNum.from_str(utxo.value)
+              BigNum.from_str(utxo.value)
             );
-            result.push(addressBoxes[i]);
+            result.push(utxo);
             isAdded = true;
           }
         }
         if (!isAdded && lovelacePaymentAmount.compare(coveredLovelace) > 0) {
           coveredLovelace = coveredLovelace.checked_add(
-              BigNum.from_str(utxo.value)
+            BigNum.from_str(utxo.value)
           );
-          result.push(addressBoxes[i]);
+          result.push(utxo);
         }
-
       }
-      if (lovelacePaymentAmount.compare(coveredLovelace) > 0) throw new Error(`An error occurred, theres is no enough lovelace in the bank`)
-      if (assetPaymentAmount.compare(covered) > 0) throw new Error(`An error occurred, theres is no enough asset in the bank`)
+      if (lovelacePaymentAmount.compare(coveredLovelace) > 0)
+        throw new Error(
+          `An error occurred, theres is no enough lovelace in the bank`
+        );
+      if (assetPaymentAmount.compare(covered) > 0)
+        throw new Error(
+          `An error occurred, theres is no enough asset in the bank`
+        );
     }
-    return result
+    return result;
   };
 
   /**
@@ -139,10 +151,9 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
   ): Promise<CardanoTransaction> => {
     const txBuilder = TransactionBuilder.new(CardanoConfigs.txBuilderConfig);
 
-    // TODO: take amount of boxes needed for tx, not more
-    //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/20
-    const bankBoxes = await KoiosApi.getAddressBoxes(
-      CardanoConfigs.bankAddress
+    const bankBoxes = this.getCoveringUtxo(
+      await KoiosApi.getAddressBoxes(CardanoConfigs.bankAddress),
+      event
     );
 
     // add input boxes
