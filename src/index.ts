@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { initDataSources } from './helpers/dataSources';
+import { initDataSources } from './jobs/dataSources';
 import { initializeMultiSigJobs } from './jobs/multiSig';
 import { initExpress } from './jobs/express';
 import { startTssInstance } from './jobs/tss';

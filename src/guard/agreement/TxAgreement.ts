@@ -13,14 +13,14 @@ import {
   TransactionApproved,
 } from './Interfaces';
 import Dialer from '../../communication/Dialer';
-import Utils from '../../helpers/Utils';
-import EventProcessor from '../EventProcessor';
 import { dbAction } from '../../db/DatabaseAction';
 import TransactionProcessor from '../TransactionProcessor';
 import { txJsonParser } from '../../chains/TxJsonParser';
 import { guardConfig } from '../../helpers/GuardConfig';
 import { logger } from '../../log/Logger';
 import InputBoxes from '../../chains/ergo/boxes/InputBoxes';
+import GuardTurn from '../../helpers/GuardTurn';
+import EventVerifier from '../event/EventVerifier';
 
 const dialer = await Dialer.getInstance();
 
@@ -155,7 +155,7 @@ class TxAgreement {
       await InputBoxes.getEventBox(event)
     ).creation_height();
     if (
-      !(await EventProcessor.isEventConfirmedEnough(
+      !(await EventVerifier.isEventConfirmedEnough(
         event,
         eventBoxCreationHeight
       ))
@@ -166,15 +166,15 @@ class TxAgreement {
       return;
     }
     if (
-      (await EventProcessor.verifyEvent(event)) &&
+      (await EventVerifier.verifyEvent(event)) &&
       tx.verifyMetaDataSignature(creatorId, signature) &&
-      Utils.guardTurn() === creatorId &&
+      GuardTurn.guardTurn() === creatorId &&
       !(await this.isEventHasDifferentTransaction(
         tx.eventId,
         tx.txId,
         tx.txType
       )) &&
-      (await EventProcessor.verifyPaymentTransactionWithEvent(tx, event))
+      (await EventVerifier.verifyPaymentTransactionWithEvent(tx, event))
     ) {
       this.transactions.set(tx.txId, tx);
       this.eventAgreedTransactions.set(tx.eventId, tx.txId);

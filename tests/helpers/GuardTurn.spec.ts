@@ -1,7 +1,7 @@
 import { reset, spy, when } from 'ts-mockito';
-import Utils from '../../src/helpers/Utils';
 import { expect } from 'chai';
-import { resetGuardTurn } from '../testUtils/MockedUtils';
+import { resetGuardTurn } from '../testUtils/MockedGuardTurn';
+import GuardTurn from '../../src/helpers/GuardTurn';
 
 describe('guard turn methods', () => {
   const currentTimeStamp = 1658005354291000;
@@ -16,7 +16,7 @@ describe('guard turn methods', () => {
     when(date.now()).thenReturn(currentTimeStamp);
 
     // run test
-    const result = Utils.secondsToNextTurn();
+    const result = GuardTurn.secondsToNextTurn();
     expect(result).to.equal(1050);
 
     // reset mocked Date object
@@ -29,7 +29,7 @@ describe('guard turn methods', () => {
     when(date.now()).thenReturn(currentTimeStamp);
 
     // run test
-    const result = Utils.guardTurn();
+    const result = GuardTurn.guardTurn();
     expect(result).to.equal(2);
 
     // reset mocked Date object
@@ -42,7 +42,7 @@ describe('guard turn methods', () => {
     when(date.now()).thenReturn(currentTimeStamp);
 
     // run test
-    const result = Utils.secondsToReset();
+    const result = GuardTurn.secondsToReset();
     expect(result).to.equal(90);
 
     // reset mocked Date object

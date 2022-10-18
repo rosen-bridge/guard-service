@@ -7,6 +7,7 @@
   "scripts": {
     "prettify": "prettier --write . --ignore-path ./.gitignore",
     "lint": "eslint --fix . && npm run prettify",
+    "madge": "npx madge --circular --extensions ts ./",
     "build": "rimraf dist && tsc",
     "start": "NODE_ENV=\"development\" nodemon .",
     "test": "NODE_ENV=\"test\" mocha --slow 3000 && rimraf tests/db/sqlite/test",
@@ -70,6 +71,7 @@
     "eslint-config-prettier": "^8.5.0",
     "husky": "^8.0.0",
     "lint-staged": "^13.0.3",
+    "madge": "^5.0.1",
     "mocha": "^10.0.0",
     "nodemon": "^2.0.16",
     "prettier": "2.7.1",
