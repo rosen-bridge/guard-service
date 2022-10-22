@@ -310,6 +310,12 @@ class Dialer {
   ): Promise<ConnectionStream> => {
     let connection: Connection | undefined = undefined;
     let stream: Stream | undefined = undefined;
+    /**
+     * TODO: To use connections optimally, we can start only one connection between
+     * two guards (instead of current two streams, one inbound and one outbound.)
+     * As connections are bidirectional, we can create a new stream in the
+     * connection, no matter its direction.
+     */
     for await (const conn of node.getConnections(peer)) {
       if (conn.stat.status === OPEN && conn.stat.direction == 'outbound') {
         for await (const obj of conn.streams) {
@@ -321,7 +327,7 @@ class Dialer {
         connection = conn;
         if (stream) break;
         else stream = await conn.newStream([protocol]);
-      } else await conn.close();
+      }
     }
     if (!connection) {
       connection = await node.dial(peer);
