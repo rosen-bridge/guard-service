@@ -82,7 +82,8 @@ class Dialer {
           CommunicationConfig.peerIdFilePath,
           'utf8'
         );
-        const peerIdDialerJson = await JSON.parse(jsonData);
+        const peerIdDialerJson: Parameters<typeof createFromJSON>['0'] =
+          JSON.parse(jsonData);
         return {
           peerId: await createFromJSON(peerIdDialerJson),
           exist: true,
@@ -248,15 +249,15 @@ class Dialer {
   /**
    * resend pending messages
    */
-  sendPendingMessage = async () => {
-    const resendMessage = async (value: SendDataCommunication) => {
-      (await value.receiver)
-        ? await this.sendMessage(value.channel, value.msg, value.receiver)
-        : await this.sendMessage(value.channel, value.msg);
+  sendPendingMessage = () => {
+    const resendMessage = (value: SendDataCommunication) => {
+      value.receiver
+        ? this.sendMessage(value.channel, value.msg, value.receiver)
+        : this.sendMessage(value.channel, value.msg);
     };
 
     if (this._PENDING_MESSAGE.length > 0) {
-      await this._PENDING_MESSAGE.forEach(await resendMessage);
+      this._PENDING_MESSAGE.forEach(resendMessage);
     }
   };
 
@@ -314,9 +315,9 @@ class Dialer {
      * As connections are bidirectional, we can create a new stream in the
      * connection, no matter its direction.
      */
-    for await (const conn of node.getConnections(peer)) {
+    for (const conn of node.getConnections(peer)) {
       if (conn.stat.status === OPEN && conn.stat.direction == 'outbound') {
-        for await (const obj of conn.streams) {
+        for (const obj of conn.streams) {
           if (obj.stat.protocol === protocol) {
             stream = obj;
             break;
@@ -420,7 +421,7 @@ class Dialer {
         try {
           // For each chunk of data
           for await (const msg of source) {
-            const receivedData: ReceiveDataCommunication = await JsonBI.parse(
+            const receivedData: ReceiveDataCommunication = JsonBI.parse(
               msg.toString()
             );
 
@@ -494,9 +495,7 @@ class Dialer {
                 connection.remotePeer.toString()
               )
             ) {
-              const receivedData: ReceivePeers = await JsonBI.parse(
-                msg.toString()
-              );
+              const receivedData: ReceivePeers = JsonBI.parse(msg.toString());
               const nodePeerIds = node
                 .getPeers()
                 .map((peer) => peer.toString());
@@ -615,7 +614,7 @@ class Dialer {
       node.start();
       logger.info(`Dialer node started with peerId: ${node.peerId.toString()}`);
 
-      this._NODE = await node;
+      this._NODE = node;
 
       // await node.pubsub.subscribe(this._SUPPORTED_PROTOCOL.get('MSG')!)
 
@@ -623,26 +622,20 @@ class Dialer {
       await Dialer.savePeerIdIfNeed(peerId);
 
       // Job for send pending message
-      new Promise(() =>
-        setInterval(
-          this.sendPendingMessage,
-          CommunicationConfig.sendPendingMessage * 1000
-        )
+      setInterval(
+        this.sendPendingMessage,
+        CommunicationConfig.sendPendingMessage * 1000
       );
 
       // Job for log all peers
-      new Promise(() =>
-        setInterval(() => {
-          logger.info(`peers are [${this.getPeerIds()}]`);
-        }, CommunicationConfig.getPeersInterval * 1000)
-      );
+      setInterval(() => {
+        logger.info(`peers are [${this.getPeerIds()}]`);
+      }, CommunicationConfig.getPeersInterval * 1000);
 
       // // Job for connect to disconnected peers
-      new Promise(() =>
-        setInterval(() => {
-          this.addPeers(Array.from(this._DISCONNECTED_PEER));
-        }, CommunicationConfig.connectToDisconnectedPeersInterval * 1000)
-      );
+      setInterval(() => {
+        this.addPeers(Array.from(this._DISCONNECTED_PEER));
+      }, CommunicationConfig.connectToDisconnectedPeersInterval * 1000);
     } catch (e) {
       logger.error(`An error occurred for start dialer: ${e}`);
     }
