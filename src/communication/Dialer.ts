@@ -147,7 +147,7 @@ class Dialer {
     if (!this._NODE) {
       throw new Error("Dialer node isn't ready, please try later");
     }
-    return this._NODE!.peerId.toString();
+    return this._NODE.peerId.toString();
   };
 
   /**
@@ -157,7 +157,7 @@ class Dialer {
     if (!this._NODE) {
       throw new Error("Dialer node isn't ready, please try later");
     }
-    return this._NODE!.getPeers().map((peer) => peer.toString());
+    return this._NODE.getPeers().map((peer) => peer.toString());
   };
 
   /**
@@ -352,7 +352,7 @@ class Dialer {
 
       const passThroughName = `${peer.toString()}-${this._SUPPORTED_PROTOCOL.get(
         'MSG'
-      )!}-${connStream.stream.id}`;
+      )}-${connStream.stream.id}`;
 
       if (this._OUTPUT_STREAMS.has(passThroughName)) {
         outputStream = this._OUTPUT_STREAMS.get(passThroughName);
