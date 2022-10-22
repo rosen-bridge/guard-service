@@ -37,18 +37,12 @@ class Dialer {
   private _NODE: Libp2p | undefined;
   private _SUBSCRIBED_CHANNELS: SubscribeChannels = {};
   private _PENDING_MESSAGE: SendDataCommunication[] = [];
-  private _OUTPUT_STREAMS: Map<string, PassThrough> = new Map<
-    string,
-    PassThrough
-  >();
-  private readonly _SUPPORTED_PROTOCOL: Map<string, string> = new Map<
-    string,
-    string
-  >([
+  private _OUTPUT_STREAMS = new Map<string, PassThrough>();
+  private readonly _SUPPORTED_PROTOCOL = new Map<string, string>([
     ['MSG', '/broadcast'],
     ['PEER', '/getpeers'],
   ]);
-  private _DISCONNECTED_PEER: Set<string> = new Set<string>();
+  private _DISCONNECTED_PEER = new Set<string>();
 
   private constructor() {
     logger.info('Create Dialer Instance!');
@@ -57,7 +51,7 @@ class Dialer {
   /**
    * @return a Dialer instance (create if it doesn't exist)
    */
-  public static getInstance = async (): Promise<Dialer> => {
+  public static getInstance = async () => {
     try {
       if (!Dialer.instance) {
         Dialer.instance = new Dialer();
@@ -84,7 +78,7 @@ class Dialer {
           exist: false,
         } as const;
       } else {
-        const jsonData: string = fs.readFileSync(
+        const jsonData = fs.readFileSync(
           CommunicationConfig.peerIdFilePath,
           'utf8'
         );
@@ -106,7 +100,7 @@ class Dialer {
   static savePeerIdIfNeed = async (peerObj: {
     peerId: PeerId;
     exist: boolean;
-  }): Promise<void> => {
+  }) => {
     if (!peerObj.exist) {
       const peerId = peerObj.peerId;
       let privateKey: Uint8Array;
@@ -142,14 +136,14 @@ class Dialer {
   /**
    * @return list of subscribed channels' name
    */
-  getSubscribedChannels = (): string[] => {
+  getSubscribedChannels = () => {
     return Object.keys(this._SUBSCRIBED_CHANNELS);
   };
 
   /**
    * @return Dialer's Id
    */
-  getDialerId = (): string => {
+  getDialerId = () => {
     if (!this._NODE) {
       throw new Error("Dialer node isn't ready, please try later");
     }
@@ -159,7 +153,7 @@ class Dialer {
   /**
    * @return string of PeerID
    */
-  getPeerIds = (): string[] => {
+  getPeerIds = () => {
     if (!this._NODE) {
       throw new Error("Dialer node isn't ready, please try later");
     }
@@ -176,7 +170,7 @@ class Dialer {
     channel: string,
     callback: SubscribeChannelFunction,
     url?: string
-  ): void => {
+  ) => {
     const callbackObj: SubscribeChannel = {
       func: callback,
     };
@@ -185,8 +179,7 @@ class Dialer {
     if (this._SUBSCRIBED_CHANNELS[channel]) {
       if (
         this._SUBSCRIBED_CHANNELS[channel].find(
-          (sub: SubscribeChannel) =>
-            sub.func.name === callback.name && sub.url === url
+          (sub) => sub.func.name === callback.name && sub.url === url
         )
       ) {
         logger.info('A redundant subscribed channel detected!');
@@ -207,11 +200,7 @@ class Dialer {
    * @param msg: string
    * @param receiver optional
    */
-  sendMessage = async (
-    channel: string,
-    msg: string,
-    receiver?: string
-  ): Promise<void> => {
+  sendMessage = async (channel: string, msg: string, receiver?: string) => {
     const data: SendDataCommunication = {
       msg: msg,
       channel: channel,
@@ -248,10 +237,8 @@ class Dialer {
   /**
    * resend pending messages
    */
-  sendPendingMessage = async (): Promise<void> => {
-    const resendMessage = async (
-      value: SendDataCommunication
-    ): Promise<void> => {
+  sendPendingMessage = async () => {
+    const resendMessage = async (value: SendDataCommunication) => {
       (await value.receiver)
         ? await this.sendMessage(value.channel, value.msg, value.receiver)
         : await this.sendMessage(value.channel, value.msg);
@@ -266,7 +253,7 @@ class Dialer {
    * store dialers' peerID to PeerStore
    * @param peers id of peers
    */
-  addPeers = async (peers: string[]): Promise<void> => {
+  addPeers = async (peers: string[]) => {
     if (this._NODE) {
       for (const peer of peers) {
         try {
@@ -350,7 +337,7 @@ class Dialer {
     node: Libp2p,
     peer: PeerId,
     messageToSend: SendDataCommunication
-  ): Promise<void> => {
+  ) => {
     try {
       let outputStream: PassThrough | undefined;
 
@@ -409,10 +396,7 @@ class Dialer {
    * @param stream
    * @param connection
    */
-  private handleBroadcast = async (
-    stream: Stream,
-    connection: Connection
-  ): Promise<void> => {
+  private handleBroadcast = async (stream: Stream, connection: Connection) => {
     pipe(
       // Read from the stream (the source)
       stream.source,
@@ -429,7 +413,7 @@ class Dialer {
               msg.toString()
             );
 
-            const runSubscribeCallback = async (value: any): Promise<void> => {
+            const runSubscribeCallback = async (value: any) => {
               value.url
                 ? value.func(
                     receivedData.msg,
@@ -481,7 +465,7 @@ class Dialer {
     node: Libp2p,
     stream: Stream,
     connection: Connection
-  ): Promise<void> => {
+  ) => {
     pipe(
       // Read from the stream (the source)
       stream.source,
@@ -528,7 +512,7 @@ class Dialer {
    * config a dialer node with peerDiscovery
    * @return a Libp2p object after start node
    */
-  private startDialer = async (): Promise<void> => {
+  private startDialer = async () => {
     try {
       const peerId = await Dialer.getOrCreatePeerID();
       const node = await createLibp2p({
