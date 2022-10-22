@@ -1,13 +1,13 @@
 import { Connection, Stream } from '@libp2p/interface-connection';
 
-type SubscribeChannelFunction =
-  | ((msg: string, channel: string, sender: string) => void)
-  | ((msg: string, channel: string, sender: string, url: string) => void);
-
-interface SubscribeChannel {
-  func: SubscribeChannelFunction;
-  url?: string;
+interface SubscribeChannelWithURL {
+  func: (msg: string, channel: string, sender: string, url: string) => void;
+  url: string;
 }
+interface SubscribeChannelWithoutURL {
+  func: (msg: string, channel: string, sender: string) => void;
+}
+type SubscribeChannel = SubscribeChannelWithURL | SubscribeChannelWithoutURL;
 
 interface SubscribeChannels {
   [id: string]: Array<SubscribeChannel>;
@@ -40,10 +40,11 @@ interface RelayInfo {
 }
 
 export {
-  SubscribeChannelFunction,
   SendDataCommunication,
   ReceiveDataCommunication,
   SubscribeChannels,
+  SubscribeChannelWithURL,
+  SubscribeChannelWithoutURL,
   SubscribeChannel,
   ConnectionStream,
   RelayInfo,

@@ -23,8 +23,8 @@ import {
   ReceivePeers,
   SendDataCommunication,
   SubscribeChannel,
-  SubscribeChannelFunction,
   SubscribeChannels,
+  SubscribeChannelWithURL,
 } from './Interfaces';
 import { logger } from '../log/Logger';
 import CommunicationConfig from './CommunicationConfig';
@@ -134,6 +134,15 @@ class Dialer {
   };
 
   /**
+   * Only used for Typescript narrowing.
+   * @returns if channel has URL
+   */
+  private hasUrl = (
+    channel: SubscribeChannel
+  ): channel is SubscribeChannelWithURL =>
+    !!(channel as SubscribeChannelWithURL).url;
+
+  /**
    * @return list of subscribed channels' name
    */
   getSubscribedChannels = () => {
@@ -168,18 +177,20 @@ class Dialer {
    */
   subscribeChannel = (
     channel: string,
-    callback: SubscribeChannelFunction,
+    callback: SubscribeChannel['func'],
     url?: string
   ) => {
-    const callbackObj: SubscribeChannel = {
+    const callbackObj = {
       func: callback,
-    };
-    if (url) callbackObj.url = url;
+      ...(url && { url }),
+    } as SubscribeChannel;
 
     if (this._SUBSCRIBED_CHANNELS[channel]) {
       if (
         this._SUBSCRIBED_CHANNELS[channel].find(
-          (sub) => sub.func.name === callback.name && sub.url === url
+          (sub) =>
+            sub.func.name === callback.name &&
+            ((this.hasUrl(sub) && sub.url === url) || !url)
         )
       ) {
         logger.info('A redundant subscribed channel detected!');
@@ -413,15 +424,15 @@ class Dialer {
               msg.toString()
             );
 
-            const runSubscribeCallback = async (value: any) => {
-              value.url
-                ? value.func(
+            const runSubscribeCallback = async (channel: SubscribeChannel) => {
+              this.hasUrl(channel)
+                ? channel.func(
                     receivedData.msg,
                     receivedData.channel,
                     connection.remotePeer.toString(),
-                    value.url
+                    channel.url
                   )
-                : value.func(
+                : channel.func(
                     receivedData.msg,
                     receivedData.channel,
                     connection.remotePeer.toString()
