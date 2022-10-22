@@ -6,7 +6,7 @@ import { pipe } from 'it-pipe';
 import { toString as uint8ArrayToString } from 'uint8arrays/to-string';
 import { Bootstrap } from '@libp2p/bootstrap';
 import { PubSubPeerDiscovery } from '@libp2p/pubsub-peer-discovery';
-import { FloodSub } from '@libp2p/floodsub';
+import { GossipSub } from '@chainsafe/libp2p-gossipsub';
 import { Connection, Stream } from '@libp2p/interface-connection';
 import { OPEN } from '@libp2p/interface-connection/status';
 import * as lp from 'it-length-prefixed';
@@ -558,7 +558,7 @@ class Dialer {
            */
           minConnections: 20,
         },
-        pubsub: new FloodSub(), // Active peer discovery and bootstrap peers
+        pubsub: new GossipSub({ allowPublishToZeroPeers: true }),
         peerDiscovery: [
           new Bootstrap({
             timeout: CommunicationConfig.bootstrapTimeout * 1000,
