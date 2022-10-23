@@ -1,38 +1,38 @@
 import { expect } from 'chai';
-import { EventTrigger } from '../../src/models/Models';
-import EventProcessor from '../../src/guard/event/EventProcessor';
+import { EventTrigger } from '../../../src/models/Models';
+import EventProcessor from '../../../src/guard/event/EventProcessor';
 import {
   resetMockedEventProcessor,
   verifyCreateEventPaymentCalledOnce,
   verifyCreateEventPaymentDidntGetCalled,
-} from './mocked/MockedEventProcessor';
-import CardanoTestBoxes from '../chains/cardano/testUtils/TestBoxes';
+} from '../mocked/MockedEventProcessor';
+import CardanoTestBoxes from '../../chains/cardano/testUtils/TestBoxes';
 import {
   allEventRecords,
   clearTables,
   insertEventRecord,
   insertOnyEventDataRecord,
-} from '../db/mocked/MockedScannerModel';
+} from '../../db/mocked/MockedScannerModel';
 import {
   mockStartAgreementProcess,
   resetMockedTxAgreement,
   verifyStartAgreementProcessCalledOnce,
-} from './mocked/MockedTxAgreement';
-import MockedCardanoChain from '../chains/mocked/MockedCardanoChain';
-import MockedErgoChain from '../chains/mocked/MockedErgoChain';
-import ErgoTestBoxes from '../chains/ergo/testUtils/TestBoxes';
-import TestBoxes from '../chains/ergo/testUtils/TestBoxes';
+} from '../mocked/MockedTxAgreement';
+import MockedCardanoChain from '../../chains/mocked/MockedCardanoChain';
+import MockedErgoChain from '../../chains/mocked/MockedErgoChain';
+import ErgoTestBoxes from '../../chains/ergo/testUtils/TestBoxes';
+import TestBoxes from '../../chains/ergo/testUtils/TestBoxes';
 import {
   mockRewardGenerateTransaction,
   resetMockedReward,
   verifyRewardGenerateTransactionCalledOnce,
-} from '../chains/mocked/MockedReward';
-import ErgoUtils from '../../src/chains/ergo/helpers/ErgoUtils';
+} from '../../chains/mocked/MockedReward';
+import ErgoUtils from '../../../src/chains/ergo/helpers/ErgoUtils';
 import {
   mockIsEventConfirmedEnough,
   mockVerifyEvent,
   resetMockedEventVerifier,
-} from './mocked/MockedEventVerifier';
+} from '../mocked/MockedEventVerifier';
 
 describe('EventProcessor', () => {
   const cardanoTestBankAddress = CardanoTestBoxes.testBankAddress;
