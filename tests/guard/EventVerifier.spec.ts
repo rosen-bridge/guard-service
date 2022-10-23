@@ -56,6 +56,7 @@ describe('EventVerifier', () => {
         '',
         TestUtils.generateRandomId(),
         '',
+        TestConfigs.cardano.blockchainHeight - 100,
         []
       );
 
@@ -98,6 +99,7 @@ describe('EventVerifier', () => {
         '',
         txId,
         '',
+        TestConfigs.ergo.blockchainHeight - 40,
         []
       );
       mockExplorerGetTxConfirmation(txId, 30);
@@ -141,6 +143,7 @@ describe('EventVerifier', () => {
         '',
         txId,
         '',
+        TestConfigs.cardano.blockchainHeight - 100,
         []
       );
       mockKoiosGetTxConfirmation(txId, 30);
