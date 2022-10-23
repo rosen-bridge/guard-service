@@ -7,8 +7,7 @@ import {
 import ErgoUtils from '../helpers/ErgoUtils';
 import ErgoConfigs from '../helpers/ErgoConfigs';
 import { BoxesAssets } from '../models/Interfaces';
-import { RosenConfig, rosenConfig } from '../../../helpers/RosenConfig';
-import Configs from '../../../helpers/Configs';
+import { rosenConfig } from '../../../helpers/RosenConfig';
 
 class OutputBoxes {
   /**
