@@ -5,7 +5,7 @@ import EventVerifier from '../../../src/guard/event/EventVerifier';
 let mockedEventVerifier = spy(EventVerifier);
 
 /**
- * mocks EventProcessor isEventConfirmed method to return result when called for an event
+ * mocks EventVerifier isEventConfirmed method to return result when called for an event
  *  Note: currently, specifying argument does not work. ts-mockito deepEqual malfunctions with EventTrigger type.
  * @param event
  * @param result
@@ -20,7 +20,7 @@ const mockIsEventConfirmedEnough = (
 };
 
 /**
- * mocks EventProcessor verifyEvent method to return result when called for an event
+ * mocks EventVerifier verifyEvent method to return result when called for an event
  *  Note: currently, specifying argument does not work. ts-mockito deepEqual malfunctions with EventTrigger type.
  * @param event
  * @param result
@@ -30,7 +30,7 @@ const mockVerifyEvent = (event: EventTrigger, result: boolean): void => {
 };
 
 /**
- * mocks EventProcessor verifyPaymentTransactionWithEvent method to return result when called for tx and event
+ * mocks EventVerifier verifyPaymentTransactionWithEvent method to return result when called for tx and event
  *  Note: currently, specifying argument does not work. ts-mockito deepEqual malfunctions with EventTrigger type.
  * @param tx
  * @param event
@@ -47,7 +47,7 @@ const mockVerifyPaymentTransactionWithEvent = (
 };
 
 /**
- * resets mocked methods of EventProcessor
+ * resets mocked methods of EventVerifier
  */
 const resetMockedEventVerifier = (): void => {
   reset(mockedEventVerifier);

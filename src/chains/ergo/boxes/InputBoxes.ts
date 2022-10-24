@@ -6,7 +6,6 @@ import Utils from '../../../helpers/Utils';
 import { rosenConfig } from '../../../helpers/RosenConfig';
 import { Buffer } from 'buffer';
 import { dbAction } from '../../../db/DatabaseAction';
-import { logger } from '../../../log/Logger';
 
 class InputBoxes {
   /**
@@ -47,39 +46,6 @@ class InputBoxes {
         Utils.base64StringToUint8Array(commitment.boxSerialized)
       )
     );
-  };
-
-  /**
-   * @param tokenId reward tokenId
-   * @return RSN ratio for the corresponding tokenId
-   */
-  static getRSNRatioCoef = async (
-    tokenId: string
-  ): Promise<[bigint, bigint]> => {
-    const boxes = await ExplorerApi.getBoxesByTokenId(rosenConfig.rsnRatioNFT);
-    if (boxes.total !== 1)
-      throw new Error(
-        `impossible case, found ${boxes.total} boxes containing rsnRatioNFT [${rosenConfig.rsnRatioNFT}]`
-      );
-    const box = ErgoBox.from_json(JsonBI.stringify(boxes.items[0]));
-    const boxId = box.box_id().to_str();
-
-    const tokenIds = box.register_value(4)?.to_coll_coll_byte();
-    const ratios = box.register_value(5)?.to_i64_str_array();
-    const decimalCoef = box.register_value(6)?.to_i64();
-    if (tokenIds === undefined)
-      throw new Error(`failed to fetch tokenIds from box [${boxId}]`);
-    if (ratios === undefined || decimalCoef === undefined)
-      throw new Error(
-        `failed to fetch ratios or decimal coefficient from box [${boxId}]`
-      );
-    const tokenIndex = tokenIds!
-      .map((idBytes) => Utils.Uint8ArrayToHexString(idBytes))
-      .indexOf(tokenId);
-    if (tokenIndex === -1)
-      throw new Error(`tokenId [${tokenId}] not found in box [${boxId}]`);
-
-    return [BigInt(ratios![tokenIndex]), BigInt(decimalCoef!.to_str())];
   };
 
   /**

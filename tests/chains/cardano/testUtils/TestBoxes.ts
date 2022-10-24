@@ -69,14 +69,14 @@ class TestBoxes {
    */
   static mockAssetPaymentEventTrigger = (): EventTrigger => {
     return new EventTrigger(
-      '',
+      ChainsConstants.ergo,
       ChainsConstants.cardano,
       '',
       'addr_test1qqn3eyyydsztynkk2f3x4hsfz46klqf6xncp2em92mgt3qtvvz7nw9gmznn65g4ksrrfvyzhz52knc3mqxdyya47gz2qppk5jd',
       '80',
       '10',
       '5',
-      '',
+      '0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95',
       'asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3',
       TestUtils.generateRandomId(),
       '',

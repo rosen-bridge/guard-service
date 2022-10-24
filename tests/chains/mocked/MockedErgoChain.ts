@@ -19,9 +19,9 @@ class MockedErgoChain {
     event: EventTrigger,
     tx: ErgoTransaction
   ): void => {
-    when(this.mockedObject.generateTransaction(deepEqual(event))).thenResolve(
-      tx
-    );
+    when(
+      this.mockedObject.generateTransaction(deepEqual(event), anything())
+    ).thenResolve(tx);
   };
 
   /**

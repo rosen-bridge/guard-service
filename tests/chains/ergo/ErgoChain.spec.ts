@@ -14,12 +14,12 @@ import ErgoUtils from '../../../src/chains/ergo/helpers/ErgoUtils';
 import {
   mockGetEventBox,
   mockGetEventValidCommitments,
-  mockGetRSNRatioCoef,
   resetMockedInputBoxes,
 } from './mocked/MockedInputBoxes';
 import { anything, spy, when } from 'ts-mockito';
 import ErgoConfigs from '../../../src/chains/ergo/helpers/ErgoConfigs';
 import sinon from 'sinon';
+import { Fee } from '@rosen-bridge/minimum-fee';
 
 describe('ErgoChain', () => {
   const testBankAddress = TestBoxes.testLockAddress;
@@ -30,6 +30,11 @@ describe('ErgoChain', () => {
     // mock getting bankBoxes
     const bankBoxes: CoveringErgoBoxes = TestBoxes.mockBankBoxes();
     const eventBoxAndCommitments = TestBoxes.mockEventBoxWithSomeCommitments();
+    const mockedFeeConfig: Fee = {
+      bridgeFee: 0n,
+      networkFee: 0n,
+      rsnRatio: 0n,
+    };
 
     beforeEach('mock ExplorerApi', function () {
       resetMockedExplorerApi();
@@ -51,16 +56,19 @@ describe('ErgoChain', () => {
     it('should generate an Erg payment tx and verify it successfully', async () => {
       // mock erg payment event
       const mockedEvent: EventTrigger = TestBoxes.mockErgPaymentEventTrigger();
-      mockGetRSNRatioCoef(anything(), [BigInt(0), BigInt(100000)]);
 
       // run test
       const ergoChain: ErgoChain = new ErgoChain();
-      const tx = await ergoChain.generateTransaction(mockedEvent);
+      const tx = await ergoChain.generateTransaction(
+        mockedEvent,
+        mockedFeeConfig
+      );
 
       // verify tx
       const isValid = await ergoChain.verifyTransactionWithEvent(
         tx,
-        mockedEvent
+        mockedEvent,
+        mockedFeeConfig
       );
       expect(isValid).to.be.true;
     });
@@ -78,16 +86,19 @@ describe('ErgoChain', () => {
       // mock token payment event
       const mockedEvent: EventTrigger =
         TestBoxes.mockTokenPaymentEventTrigger();
-      mockGetRSNRatioCoef(anything(), [BigInt(0), BigInt(100000)]);
 
       // run test
       const ergoChain: ErgoChain = new ErgoChain();
-      const tx = await ergoChain.generateTransaction(mockedEvent);
+      const tx = await ergoChain.generateTransaction(
+        mockedEvent,
+        mockedFeeConfig
+      );
 
       // verify tx
       const isValid = await ergoChain.verifyTransactionWithEvent(
         tx,
-        mockedEvent
+        mockedEvent,
+        mockedFeeConfig
       );
       expect(isValid).to.be.true;
     });
@@ -104,18 +115,21 @@ describe('ErgoChain', () => {
     it('should generate an Erg payment tx with RSN and verify it successfully', async () => {
       // mock erg payment event
       const mockedEvent: EventTrigger = TestBoxes.mockErgPaymentEventTrigger();
-      mockGetRSNRatioCoef(anything(), [BigInt(47), BigInt(100000)]);
       const spiedErgoConfig = spy(ErgoConfigs);
       when(spiedErgoConfig.watchersRSNSharePercent).thenReturn(40n);
 
       // run test
       const ergoChain: ErgoChain = new ErgoChain();
-      const tx = await ergoChain.generateTransaction(mockedEvent);
+      const tx = await ergoChain.generateTransaction(
+        mockedEvent,
+        mockedFeeConfig
+      );
 
       // verify tx
       const isValid = await ergoChain.verifyTransactionWithEvent(
         tx,
-        mockedEvent
+        mockedEvent,
+        mockedFeeConfig
       );
       expect(isValid).to.be.true;
     });
@@ -133,18 +147,21 @@ describe('ErgoChain', () => {
       // mock token payment event
       const mockedEvent: EventTrigger =
         TestBoxes.mockTokenPaymentEventTrigger();
-      mockGetRSNRatioCoef(anything(), [BigInt(47), BigInt(10)]);
       const spiedErgoConfig = spy(ErgoConfigs);
       when(spiedErgoConfig.watchersRSNSharePercent).thenReturn(40n);
 
       // run test
       const ergoChain: ErgoChain = new ErgoChain();
-      const tx = await ergoChain.generateTransaction(mockedEvent);
+      const tx = await ergoChain.generateTransaction(
+        mockedEvent,
+        mockedFeeConfig
+      );
 
       // verify tx
       const isValid = await ergoChain.verifyTransactionWithEvent(
         tx,
-        mockedEvent
+        mockedEvent,
+        mockedFeeConfig
       );
       expect(isValid).to.be.true;
     });
@@ -161,19 +178,22 @@ describe('ErgoChain', () => {
     it('should generate an only RSN payment tx and verify it successfully', async () => {
       // mock token payment event
       const mockedEvent: EventTrigger = TestBoxes.mockErgPaymentEventTrigger();
-      mockGetRSNRatioCoef(anything(), [BigInt(47), BigInt(100000)]);
       const spiedErgoConfig = spy(ErgoConfigs);
       when(spiedErgoConfig.watchersRSNSharePercent).thenReturn(40n);
       when(spiedErgoConfig.watchersSharePercent).thenReturn(0n);
 
       // run test
       const ergoChain: ErgoChain = new ErgoChain();
-      const tx = await ergoChain.generateTransaction(mockedEvent);
+      const tx = await ergoChain.generateTransaction(
+        mockedEvent,
+        mockedFeeConfig
+      );
 
       // verify tx
       const isValid = await ergoChain.verifyTransactionWithEvent(
         tx,
-        mockedEvent
+        mockedEvent,
+        mockedFeeConfig
       );
       expect(isValid).to.be.true;
     });
@@ -182,12 +202,16 @@ describe('ErgoChain', () => {
   describe('verifyTransactionWithEvent', () => {
     // mock getting boxes
     const eventBoxAndCommitments = TestBoxes.mockEventBoxWithSomeCommitments();
+    const mockedFeeConfig: Fee = {
+      bridgeFee: 0n,
+      networkFee: 0n,
+      rsnRatio: 0n,
+    };
 
     beforeEach('mock ExplorerApi', function () {
       resetMockedInputBoxes();
       mockGetEventBox(anything(), eventBoxAndCommitments[0]);
       mockGetEventValidCommitments(anything(), eventBoxAndCommitments.slice(1));
-      mockGetRSNRatioCoef(anything(), [BigInt(0), BigInt(100000)]);
     });
 
     /**
@@ -209,7 +233,8 @@ describe('ErgoChain', () => {
       const ergoChain: ErgoChain = new ErgoChain();
       const isValid = await ergoChain.verifyTransactionWithEvent(
         tx,
-        mockedEvent
+        mockedEvent,
+        mockedFeeConfig
       );
       expect(isValid).to.be.false;
     });
@@ -234,7 +259,8 @@ describe('ErgoChain', () => {
       const ergoChain: ErgoChain = new ErgoChain();
       const isValid = await ergoChain.verifyTransactionWithEvent(
         tx,
-        mockedEvent
+        mockedEvent,
+        mockedFeeConfig
       );
       expect(isValid).to.be.false;
     });
@@ -259,7 +285,8 @@ describe('ErgoChain', () => {
       const ergoChain: ErgoChain = new ErgoChain();
       const isValid = await ergoChain.verifyTransactionWithEvent(
         tx,
-        mockedEvent
+        mockedEvent,
+        mockedFeeConfig
       );
       expect(isValid).to.be.false;
     });
@@ -284,7 +311,8 @@ describe('ErgoChain', () => {
       const ergoChain: ErgoChain = new ErgoChain();
       const isValid = await ergoChain.verifyTransactionWithEvent(
         tx,
-        mockedEvent
+        mockedEvent,
+        mockedFeeConfig
       );
       expect(isValid).to.be.false;
     });
@@ -308,7 +336,8 @@ describe('ErgoChain', () => {
       const ergoChain: ErgoChain = new ErgoChain();
       const isValid = await ergoChain.verifyTransactionWithEvent(
         tx,
-        mockedEvent
+        mockedEvent,
+        mockedFeeConfig
       );
       expect(isValid).to.be.false;
     });
@@ -332,7 +361,8 @@ describe('ErgoChain', () => {
       const ergoChain: ErgoChain = new ErgoChain();
       const isValid = await ergoChain.verifyTransactionWithEvent(
         tx,
-        mockedEvent
+        mockedEvent,
+        mockedFeeConfig
       );
       expect(isValid).to.be.false;
     });
@@ -357,7 +387,8 @@ describe('ErgoChain', () => {
       const ergoChain: ErgoChain = new ErgoChain();
       const isValid = await ergoChain.verifyTransactionWithEvent(
         tx,
-        mockedEvent
+        mockedEvent,
+        mockedFeeConfig
       );
       expect(isValid).to.be.false;
     });
@@ -381,7 +412,8 @@ describe('ErgoChain', () => {
       const ergoChain: ErgoChain = new ErgoChain();
       const isValid = await ergoChain.verifyTransactionWithEvent(
         tx,
-        mockedEvent
+        mockedEvent,
+        mockedFeeConfig
       );
       expect(isValid).to.be.false;
     });
@@ -401,7 +433,11 @@ describe('ErgoChain', () => {
         eventBoxAndCommitments
       );
       const spiedErgoConfig = spy(ErgoConfigs);
-      mockGetRSNRatioCoef(anything(), [BigInt(47), BigInt(100000)]);
+      const feeConfig = {
+        bridgeFee: 0n,
+        networkFee: 0n,
+        rsnRatio: 47n,
+      };
       when(spiedErgoConfig.watchersRSNSharePercent).thenReturn(40n);
       when(spiedErgoConfig.watchersSharePercent).thenReturn(0n);
 
@@ -409,7 +445,8 @@ describe('ErgoChain', () => {
       const ergoChain: ErgoChain = new ErgoChain();
       const isValid = await ergoChain.verifyTransactionWithEvent(
         tx,
-        mockedEvent
+        mockedEvent,
+        feeConfig
       );
       expect(isValid).to.be.false;
     });

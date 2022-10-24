@@ -33,6 +33,8 @@ import {
   mockVerifyEvent,
   resetMockedEventVerifier,
 } from '../mocked/MockedEventVerifier';
+import { mockGetFee } from '../mocked/MockedMinimumFee';
+import { Fee } from '@rosen-bridge/minimum-fee';
 
 describe('EventProcessor', () => {
   const cardanoTestBankAddress = CardanoTestBoxes.testBankAddress;
@@ -45,11 +47,18 @@ describe('EventProcessor', () => {
   const mockedErgoChain = new MockedErgoChain(EventProcessor.ergoChain);
 
   describe('processEvent', () => {
+    const mockedFeeConfig: Fee = {
+      bridgeFee: 0n,
+      networkFee: 0n,
+      rsnRatio: 0n,
+    };
+
     beforeEach('reset isEventConfirmedEnough mock', async () => {
       await clearTables();
       resetMockedEventVerifier();
       resetMockedEventProcessor();
       resetMockedTxAgreement();
+      mockGetFee(mockedFeeConfig);
     });
 
     /**
@@ -145,10 +154,17 @@ describe('EventProcessor', () => {
   });
 
   describe('processRewardEvent', () => {
+    const mockedFeeConfig: Fee = {
+      bridgeFee: 0n,
+      networkFee: 0n,
+      rsnRatio: 0n,
+    };
+
     beforeEach('clear db tables', async () => {
       await clearTables();
       resetMockedReward();
       resetMockedTxAgreement();
+      mockGetFee(mockedFeeConfig);
     });
 
     /**

@@ -54,6 +54,16 @@ class Utils {
   static txIdToEventId = (txId: string): string => {
     return Buffer.from(Encryption.blake2bHash(txId)).toString('hex');
   };
+
+  /**
+   * returns maximum value between two bigint
+   * @param a bigint number
+   * @param b bigint number
+   */
+  static maxBigint = (a: bigint, b: bigint): bigint => {
+    if (a > b) return a;
+    else return b;
+  };
 }
 
 export default Utils;

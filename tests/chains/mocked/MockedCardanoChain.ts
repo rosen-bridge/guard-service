@@ -26,9 +26,9 @@ class MockedCardanoChain {
     event: EventTrigger,
     tx: CardanoTransaction
   ): void => {
-    when(this.mockedObject.generateTransaction(deepEqual(event))).thenResolve(
-      tx
-    );
+    when(
+      this.mockedObject.generateTransaction(deepEqual(event), anything())
+    ).thenResolve(tx);
   };
 
   /**

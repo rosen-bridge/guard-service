@@ -15,6 +15,8 @@ import ErgoConfigs from '../../chains/ergo/helpers/ErgoConfigs';
 import KoiosApi from '../../chains/cardano/network/KoiosApi';
 import CardanoConfigs from '../../chains/cardano/helpers/CardanoConfigs';
 import ExplorerApi from '../../chains/ergo/network/ExplorerApi';
+import Configs from '../../helpers/Configs';
+import MinimumFee from '../MinimumFee';
 
 class EventVerifier {
   static cardanoChain = new CardanoChain();
@@ -40,15 +42,33 @@ class EventVerifier {
     paymentTx: PaymentTransaction,
     event: EventTrigger
   ): Promise<boolean> => {
-    if (paymentTx.txType === TransactionTypes.payment)
+    const tokenId = Configs.tokenMap.getID(
+      Configs.tokenMap.search(event.fromChain, {
+        tokenID: event.sourceChainTokenId,
+      })[0],
+      ChainsConstants.ergo
+    );
+    if (paymentTx.txType === TransactionTypes.payment) {
+      const feeConfig = await MinimumFee.bridgeMinimumFee.getFee(
+        tokenId,
+        event.toChain,
+        event.height
+      );
       return await this.getChainObject(
         paymentTx.network
-      ).verifyTransactionWithEvent(paymentTx, event);
-    else
+      ).verifyTransactionWithEvent(paymentTx, event, feeConfig);
+    } else {
+      const feeConfig = await MinimumFee.bridgeMinimumFee.getFee(
+        tokenId,
+        ChainsConstants.ergo,
+        event.height
+      );
       return await Reward.verifyTransactionWithEvent(
         paymentTx as ErgoTransaction,
-        event
+        event,
+        feeConfig
       );
+    }
   };
 
   /**

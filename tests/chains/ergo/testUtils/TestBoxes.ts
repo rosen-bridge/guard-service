@@ -101,14 +101,14 @@ class TestBoxes {
    */
   static mockTokenPaymentEventTrigger = (): EventTrigger => {
     return new EventTrigger(
-      '',
+      ChainsConstants.cardano,
       ChainsConstants.ergo,
       '',
       '9hCPp7N4foJ68kPEwMMEa8tCsXVTDoLvXbdkm8s5Ht7Dpnc3L2t',
       '90',
       '20',
       '5',
-      '',
+      'asset1nl000004e2q3wekg969n2auw30000000000000',
       '907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e',
       TestUtils.generateRandomId(),
       '',
@@ -148,14 +148,14 @@ class TestBoxes {
   static mockTokenRewardEventTrigger = (): EventTrigger => {
     return new EventTrigger(
       ChainsConstants.ergo,
-      '',
+      ChainsConstants.cardano,
       '',
       '9hCPp7N4foJ68kPEwMMEa8tCsXVTDoLvXbdkm8s5Ht7Dpnc3L2t',
       '90',
       '20',
       '5',
       '907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e',
-      '',
+      'asset1nl000004e2q3wekg969n2auw30000000000000',
       TestUtils.generateRandomId(),
       '',
       TestConfigs.ergo.blockchainHeight - 40,

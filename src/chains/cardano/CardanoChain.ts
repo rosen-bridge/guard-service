@@ -26,7 +26,7 @@ import {
 import BaseChain from '../BaseChains';
 import CardanoConfigs from './helpers/CardanoConfigs';
 import BlockFrostApi from './network/BlockFrostApi';
-import { Asset, Utxo, UtxoBoxesAssets } from './models/Interfaces';
+import { Utxo, UtxoBoxesAssets } from './models/Interfaces';
 import CardanoUtils from './helpers/CardanoUtils';
 import TssSigner from '../../guard/TssSigner';
 import CardanoTransaction from './models/CardanoTransaction';
@@ -37,6 +37,7 @@ import { Buffer } from 'buffer';
 import Utils from '../../helpers/Utils';
 import { logger } from '../../log/Logger';
 import { TssFailedSign, TssSuccessfulSign } from '../../models/Interfaces';
+import { Fee } from '@rosen-bridge/minimum-fee';
 
 class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
   bankAddress = Address.from_bech32(CardanoConfigs.bankAddress);
@@ -46,11 +47,13 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
    *      with respect to the event
    * @param addressBoxes all utxos of bankAddress
    * @param event the event trigger model
+   * @param feeConfig minimum fee and rsn ratio config for the event
    * @return minimum required box to be in the input of the transaction
    */
   getCoveringUtxo = (
     addressBoxes: Array<Utxo>,
-    event: EventTrigger
+    event: EventTrigger,
+    feeConfig: Fee
   ): Array<Utxo> => {
     const result: Array<Utxo> = [];
     let coveredLovelace = BigNum.from_str('0');
@@ -64,9 +67,10 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
     }
 
     if (event.targetChainTokenId === 'lovelace') {
-      const paymentAmount: BigNum = BigNum.from_str(event.amount)
-        .checked_sub(BigNum.from_str(event.bridgeFee))
-        .checked_sub(BigNum.from_str(event.networkFee));
+      const paymentAmount: BigNum = CardanoChain.getPaymentAmount(
+        event,
+        feeConfig
+      );
       for (
         let i = 0;
         paymentAmount.compare(coveredLovelace) > 0 && i < addressBoxes.length;
@@ -85,9 +89,10 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
       return result;
     } else {
       const lovelacePaymentAmount: BigNum = CardanoConfigs.txMinimumLovelace;
-      const assetPaymentAmount: BigNum = BigNum.from_str(event.amount)
-        .checked_sub(BigNum.from_str(event.bridgeFee))
-        .checked_sub(BigNum.from_str(event.networkFee));
+      const assetPaymentAmount: BigNum = CardanoChain.getPaymentAmount(
+        event,
+        feeConfig
+      );
       const paymentAssetUnit =
         CardanoUtils.getAssetPolicyAndNameFromConfigFingerPrintMap(
           event.targetChainTokenId
@@ -144,16 +149,19 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
   /**
    * generates payment transaction of the event from threshold-sig address in target chain
    * @param event the event trigger model
+   * @param feeConfig minimum fee and rsn ratio config for the event
    * @return the generated payment transaction
    */
   generateTransaction = async (
-    event: EventTrigger
+    event: EventTrigger,
+    feeConfig: Fee
   ): Promise<CardanoTransaction> => {
     const txBuilder = TransactionBuilder.new(CardanoConfigs.txBuilderConfig);
 
     const bankBoxes = this.getCoveringUtxo(
       await KoiosApi.getAddressBoxes(CardanoConfigs.bankAddress),
-      event
+      event,
+      feeConfig
     );
 
     // add input boxes
@@ -171,11 +179,11 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
 
     // add output boxes
     if (event.targetChainTokenId === 'lovelace')
-      this.lovelacePaymentOutputBoxes(event, bankBoxes).forEach((box) =>
-        txBuilder.add_output(box)
+      this.lovelacePaymentOutputBoxes(event, bankBoxes, feeConfig).forEach(
+        (box) => txBuilder.add_output(box)
       );
     else
-      this.assetPaymentOutputBoxes(event, bankBoxes).forEach((box) =>
+      this.assetPaymentOutputBoxes(event, bankBoxes, feeConfig).forEach((box) =>
         txBuilder.add_output(box)
       );
 
@@ -223,11 +231,13 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
    *  7. checks address of payment box
    * @param paymentTx the payment transaction
    * @param event the event trigger model
+   * @param feeConfig minimum fee and rsn ratio config for the event
    * @return true if tx verified
    */
   verifyTransactionWithEvent = async (
     paymentTx: CardanoTransaction,
-    event: EventTrigger
+    event: EventTrigger,
+    feeConfig: Fee
   ): Promise<boolean> => {
     const tx = this.deserialize(paymentTx.txBytes);
     const outputBoxes = tx.body().outputs();
@@ -247,9 +257,10 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
     const paymentBox = outputBoxes.get(0);
     if (event.targetChainTokenId === 'lovelace') {
       // ADA payment case
-      const lovelacePaymentAmount: BigNum = BigNum.from_str(event.amount)
-        .checked_sub(BigNum.from_str(event.bridgeFee))
-        .checked_sub(BigNum.from_str(event.networkFee));
+      const lovelacePaymentAmount: BigNum = CardanoChain.getPaymentAmount(
+        event,
+        feeConfig
+      );
       const sizeOfMultiAssets: number | undefined = paymentBox
         .amount()
         .multiasset()
@@ -263,9 +274,10 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
     } else {
       // Token payment case
       const lovelacePaymentAmount: BigNum = CardanoConfigs.txMinimumLovelace;
-      const assetPaymentAmount: BigNum = BigNum.from_str(event.amount)
-        .checked_sub(BigNum.from_str(event.bridgeFee))
-        .checked_sub(BigNum.from_str(event.networkFee));
+      const assetPaymentAmount: BigNum = CardanoChain.getPaymentAmount(
+        event,
+        feeConfig
+      );
       const multiAssets = paymentBox.amount().multiasset();
       if (multiAssets === undefined || multiAssets.len() !== 1) return false;
       else {
@@ -319,16 +331,19 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
    * generates payment transaction (to pay ADA) of the event from threshold-sig address in cardano chain
    * @param event the event trigger model
    * @param inBoxes threshold-sig address boxes
+   * @param feeConfig minimum fee and rsn ratio config for the event
    * @return the generated payment transaction
    */
   lovelacePaymentOutputBoxes = (
     event: EventTrigger,
-    inBoxes: Utxo[]
+    inBoxes: Utxo[],
+    feeConfig: Fee
   ): TransactionOutput[] => {
     // calculate assets of payment box
-    const paymentAmount: BigNum = BigNum.from_str(event.amount)
-      .checked_sub(BigNum.from_str(event.bridgeFee))
-      .checked_sub(BigNum.from_str(event.networkFee));
+    const paymentAmount: BigNum = CardanoChain.getPaymentAmount(
+      event,
+      feeConfig
+    );
 
     // create the payment box
     const paymentBox = TransactionOutput.new(
@@ -358,17 +373,20 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
    * generates payment transaction (to pay token) of the event from threshold-sig address in cardano chain
    * @param event the event trigger model
    * @param inBoxes threshold-sig address boxes
+   * @param feeConfig minimum fee and rsn ratio config for the event
    * @return the generated payment transaction
    */
   assetPaymentOutputBoxes = (
     event: EventTrigger,
-    inBoxes: Utxo[]
+    inBoxes: Utxo[],
+    feeConfig: Fee
   ): TransactionOutput[] => {
     // calculate assets of payment box
     const lovelacePaymentAmount: BigNum = CardanoConfigs.txMinimumLovelace;
-    const assetPaymentAmount: BigNum = BigNum.from_str(event.amount)
-      .checked_sub(BigNum.from_str(event.bridgeFee))
-      .checked_sub(BigNum.from_str(event.networkFee));
+    const assetPaymentAmount: BigNum = CardanoChain.getPaymentAmount(
+      event,
+      feeConfig
+    );
 
     const paymentAssetUnit =
       CardanoUtils.getAssetPolicyAndNameFromConfigFingerPrintMap(
@@ -685,6 +703,28 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
       logger.warn(`Event [${eventId}] validation failed: ${e}`);
       return false;
     }
+  };
+
+  /**
+   * subtracts bridge fee and network fee from event amount
+   * @param event
+   * @param feeConfig the minimum fee config
+   */
+  static getPaymentAmount = (event: EventTrigger, feeConfig: Fee): BigNum => {
+    const bridgeFee: BigNum =
+      BigNum.from_str(event.bridgeFee).compare(
+        BigNum.from_str(feeConfig.bridgeFee.toString())
+      ) > 0
+        ? BigNum.from_str(event.bridgeFee)
+        : BigNum.from_str(feeConfig.bridgeFee.toString());
+    const networkFee: BigNum = BigNum.from_str(event.networkFee).compare(
+      BigNum.from_str(feeConfig.networkFee.toString())
+    )
+      ? BigNum.from_str(event.networkFee)
+      : BigNum.from_str(feeConfig.networkFee.toString());
+    return BigNum.from_str(event.amount)
+      .checked_sub(bridgeFee)
+      .checked_sub(networkFee);
   };
 }
 

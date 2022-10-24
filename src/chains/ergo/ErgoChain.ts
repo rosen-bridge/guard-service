@@ -36,6 +36,8 @@ import Utils from '../../helpers/Utils';
 import { JsonBI } from '../../network/NetworkModels';
 import { guardConfig } from '../../helpers/GuardConfig';
 import { logger } from '../../log/Logger';
+import { Fee } from '@rosen-bridge/minimum-fee';
+import MinimumFee from '../../guard/MinimumFee';
 
 class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
   lockAddress = Address.from_base58(ErgoConfigs.ergoContractConfig.lockAddress);
@@ -44,10 +46,12 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
   /**
    * generates unsigned transaction of the event from multi-sig address in ergo chain
    * @param event the event trigger model
+   * @param feeConfig minimum fee and rsn ratio config for the event
    * @return the generated payment transaction
    */
   generateTransaction = async (
-    event: EventTrigger
+    event: EventTrigger,
+    feeConfig: Fee
   ): Promise<ErgoTransaction> => {
     // get current height of network
     const currentHeight = await NodeApi.getHeight();
@@ -57,7 +61,10 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
     const commitmentBoxes: ErgoBox[] =
       await InputBoxes.getEventValidCommitments(event);
 
-    const rsnCoef = await InputBoxes.getRSNRatioCoef(event.targetChainTokenId);
+    const rsnCoef: [bigint, bigint] = [
+      feeConfig.rsnRatio,
+      MinimumFee.bridgeMinimumFee.ratioDivisor,
+    ];
 
     // create transaction output boxes
     const outBoxes =
@@ -67,14 +74,18 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
             eventBox,
             commitmentBoxes,
             rsnCoef,
-            currentHeight
+            currentHeight,
+            Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee),
+            Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee)
           )
         : this.tokenEventOutBoxes(
             event,
             eventBox,
             commitmentBoxes,
             rsnCoef,
-            currentHeight
+            currentHeight,
+            Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee),
+            Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee)
           );
 
     // calculate required assets
@@ -178,11 +189,13 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
    *  5. checks assets of inputs are same as assets of output (no token burned)
    * @param paymentTx the payment transaction
    * @param event the event trigger model
+   * @param feeConfig minimum fee and rsn ratio config for the event
    * @return true if tx verified
    */
   verifyTransactionWithEvent = async (
     paymentTx: ErgoTransaction,
-    event: EventTrigger
+    event: EventTrigger,
+    feeConfig: Fee
   ): Promise<boolean> => {
     const tx = this.deserialize(paymentTx.txBytes).unsigned_tx();
     const outputBoxes = tx.output_candidates();
@@ -194,7 +207,10 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
     const eventBox: ErgoBox = await InputBoxes.getEventBox(event);
     const commitmentBoxes: ErgoBox[] =
       await InputBoxes.getEventValidCommitments(event);
-    const rsnCoef = await InputBoxes.getRSNRatioCoef(event.targetChainTokenId);
+    const rsnCoef: [bigint, bigint] = [
+      feeConfig.rsnRatio,
+      MinimumFee.bridgeMinimumFee.ratioDivisor,
+    ];
     if (
       !BoxVerifications.verifyInputs(
         tx.inputs(),
@@ -227,14 +243,18 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
             eventBox,
             commitmentBoxes,
             rsnCoef,
-            currentHeight
+            currentHeight,
+            Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee),
+            Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee)
           )
         : this.tokenEventOutBoxes(
             event,
             eventBox,
             commitmentBoxes,
             rsnCoef,
-            currentHeight
+            currentHeight,
+            Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee),
+            Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee)
           );
 
     const rewardBoxes: ErgoBoxCandidate[] = [];
@@ -313,6 +333,8 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
    * @param commitmentBoxes the not-merged valid commitment boxes for the event
    * @param rsnCoef rsn fee ratio
    * @param currentHeight current height of blockchain
+   * @param bridgeFee event bridge fee
+   * @param networkFee event network fee
    * @return the generated reward reduced transaction
    */
   ergEventOutBoxes = (
@@ -320,11 +342,13 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
     eventBox: ErgoBox,
     commitmentBoxes: ErgoBox[],
     rsnCoef: [bigint, bigint],
-    currentHeight: number
+    currentHeight: number,
+    bridgeFee: bigint,
+    networkFee: bigint
   ): ErgoBoxCandidate[] => {
     // calculate assets of payemnt box
     const paymentErgAmount: bigint =
-      BigInt(event.amount) - BigInt(event.bridgeFee) - BigInt(event.networkFee);
+      BigInt(event.amount) - bridgeFee - networkFee;
     const paymentTokenAmount = 0n;
     const paymentTokenId = event.targetChainTokenId;
 
@@ -336,7 +360,9 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
       rsnCoef,
       currentHeight,
       paymentTokenId,
-      ChainsConstants.ergo
+      ChainsConstants.ergo,
+      bridgeFee,
+      networkFee
     );
     const paymentBox = OutputBoxes.createPaymentBox(
       currentHeight,
@@ -356,6 +382,8 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
    * @param commitmentBoxes the not-merged valid commitment boxes for the event
    * @param rsnCoef rsn fee ratio
    * @param currentHeight current height of blockchain
+   * @param bridgeFee event bridge fee
+   * @param networkFee event network fee
    * @return the generated reward reduced transaction
    */
   tokenEventOutBoxes = (
@@ -363,12 +391,14 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
     eventBox: ErgoBox,
     commitmentBoxes: ErgoBox[],
     rsnCoef: [bigint, bigint],
-    currentHeight: number
+    currentHeight: number,
+    bridgeFee: bigint,
+    networkFee: bigint
   ): ErgoBoxCandidate[] => {
     // calculate assets of payemnt box
     const paymentErgAmount: bigint = ErgoConfigs.minimumErg;
     const paymentTokenAmount: bigint =
-      BigInt(event.amount) - BigInt(event.bridgeFee) - BigInt(event.networkFee);
+      BigInt(event.amount) - bridgeFee - networkFee;
     const paymentTokenId = event.targetChainTokenId;
 
     // create output boxes
@@ -379,7 +409,9 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
       rsnCoef,
       currentHeight,
       paymentTokenId,
-      ChainsConstants.ergo
+      ChainsConstants.ergo,
+      bridgeFee,
+      networkFee
     );
     const paymentBox = OutputBoxes.createPaymentBox(
       currentHeight,
