@@ -20,6 +20,7 @@ import { anything, spy, when } from 'ts-mockito';
 import ErgoConfigs from '../../../src/chains/ergo/helpers/ErgoConfigs';
 import sinon from 'sinon';
 import { Fee } from '@rosen-bridge/minimum-fee';
+import { mockGetFee } from '../../guard/mocked/MockedMinimumFee';
 
 describe('ErgoChain', () => {
   const testBankAddress = TestBoxes.testLockAddress;
@@ -456,12 +457,18 @@ describe('ErgoChain', () => {
     const observationTx = JSON.parse(TestData.mockedObservationTx);
     const nonObservationTx = JSON.parse(TestData.mockedNonObservationTx);
     const ergObservationTx = JSON.parse(TestData.mockedErgObservationTx);
+    const mockedFeeConfig: Fee = {
+      bridgeFee: 0n,
+      networkFee: 0n,
+      rsnRatio: 0n,
+    };
 
     beforeEach('mock ExplorerApi', function () {
       resetMockedExplorerApi();
       mockExplorerGetConfirmedTx(observationTx.id, observationTx);
       mockExplorerGetConfirmedTx(nonObservationTx.id, nonObservationTx);
       mockExplorerGetConfirmedTx(ergObservationTx.id, ergObservationTx);
+      mockGetFee(mockedFeeConfig);
     });
 
     /**
@@ -469,10 +476,10 @@ describe('ErgoChain', () => {
      * Dependencies:
      *    -
      * Expected Output:
-     *    It should verify the event
+     *    It should NOT verify the event
      */
-    it('should return true when the event is correct', async () => {
-      const mockedEvent: EventTrigger = TestBoxes.mockValidEventTrigger();
+    it('should return false when the event amount is less than the event fees', async () => {
+      const mockedEvent: EventTrigger = TestBoxes.mockSmallAmountEventTrigger();
 
       // run test
       const ergoChain: ErgoChain = new ErgoChain();
@@ -480,7 +487,7 @@ describe('ErgoChain', () => {
         mockedEvent,
         ErgoConfigs.ergoContractConfig.RWTId
       );
-      expect(isValid).to.be.true;
+      expect(isValid).to.be.false;
     });
 
     /**
@@ -689,7 +696,7 @@ describe('ErgoChain', () => {
      *    It should NOT verify the event
      */
     it('should return false when the event can not recovered from tx', async () => {
-      const mockedEvent: EventTrigger = TestBoxes.mockValidEventTrigger();
+      const mockedEvent: EventTrigger = TestBoxes.mockSmallAmountEventTrigger();
       sinon.stub(ErgoUtils, 'getRosenData').returns(undefined);
 
       // run test
@@ -713,7 +720,7 @@ describe('ErgoChain', () => {
      *    It should NOT verify the event
      */
     it('should return false when the event can not recovered from tx', async () => {
-      const mockedEvent: EventTrigger = TestBoxes.mockValidEventTrigger();
+      const mockedEvent: EventTrigger = TestBoxes.mockSmallAmountEventTrigger();
 
       // run test
       const ergoChain: ErgoChain = new ErgoChain();

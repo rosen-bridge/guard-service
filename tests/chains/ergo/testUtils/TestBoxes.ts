@@ -78,14 +78,14 @@ class TestBoxes {
    */
   static mockErgPaymentEventTrigger = (): EventTrigger => {
     return new EventTrigger(
-      '',
+      ChainsConstants.cardano,
       ChainsConstants.ergo,
       '',
       '9hCPp7N4foJ68kPEwMMEa8tCsXVTDoLvXbdkm8s5Ht7Dpnc3L2t',
       '50000000000',
       '1000000000',
       '1500000',
-      '',
+      'asset1nl000000000000000000000000000000000000',
       'erg',
       TestUtils.generateRandomId(),
       '',
@@ -125,14 +125,14 @@ class TestBoxes {
   static mockErgRewardEventTrigger = (): EventTrigger => {
     return new EventTrigger(
       ChainsConstants.ergo,
-      '',
+      ChainsConstants.cardano,
       '',
       '9hCPp7N4foJ68kPEwMMEa8tCsXVTDoLvXbdkm8s5Ht7Dpnc3L2t',
       '50000000000',
       '1000000000',
       '1500000',
       'erg',
-      '',
+      'asset1nl000000000000000000000000000000000000',
       TestUtils.generateRandomId(),
       '',
       TestConfigs.ergo.blockchainHeight - 40,
@@ -168,7 +168,7 @@ class TestBoxes {
   /**
    * generates a mocked event trigger for token payment in ergo chain
    */
-  static mockValidEventTrigger = (): EventTrigger => {
+  static mockSmallAmountEventTrigger = (): EventTrigger => {
     return new EventTrigger(
       'ergo',
       'cardano',

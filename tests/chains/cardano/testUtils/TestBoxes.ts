@@ -48,14 +48,14 @@ class TestBoxes {
    */
   static mockADAPaymentEventTrigger = (): EventTrigger => {
     return new EventTrigger(
-      '',
+      ChainsConstants.ergo,
       ChainsConstants.cardano,
       '',
       'addr_test1qqn3eyyydsztynkk2f3x4hsfz46klqf6xncp2em92mgt3qtvvz7nw9gmznn65g4ksrrfvyzhz52knc3mqxdyya47gz2qppk5jd',
       '51300000',
       '1000000',
       '300000',
-      '',
+      '064c58ea394d41fada074a3c560a132467adf4ca1512c409c014c625ca285e9c',
       'lovelace',
       TestUtils.generateRandomId(),
       '',
@@ -90,8 +90,8 @@ class TestBoxes {
    */
   static mockValidEventTrigger = (): EventTrigger => {
     return new EventTrigger(
-      'cardano',
-      'ergo',
+      ChainsConstants.cardano,
+      ChainsConstants.ergo,
       'addr_test1qzf9uxs6xgprx4zt20qtsasxut8uw6quv34xlkmd26yuk5xe70s0yf5c3sefnrft6gdajkpz29t8lsn0kcr5xqsf34qqxd6n4f',
       'ergoAddress',
       '13060',
@@ -111,8 +111,8 @@ class TestBoxes {
    */
   static mockInValidMetadataEventTrigger = (): EventTrigger => {
     return new EventTrigger(
-      'cardano',
-      'ergo',
+      ChainsConstants.cardano,
+      ChainsConstants.ergo,
       'addr_test1qzf9uxs6xgprx4zt20qtsasxut8uw6quv34xlkmd26yuk5xe70s0yf5c3sefnrft6gdajkpz29t8lsn0kcr5xqsf34qqxd6n4f',
       'ergoAddress',
       '13060',
@@ -132,8 +132,8 @@ class TestBoxes {
    */
   static mockInValidTokenEventTrigger = (): EventTrigger => {
     return new EventTrigger(
-      'cardano',
-      'ergo',
+      ChainsConstants.cardano,
+      ChainsConstants.ergo,
       'addr_test1qzf9uxs6xgprx4zt20qtsasxut8uw6quv34xlkmd26yuk5xe70s0yf5c3sefnrft6gdajkpz29t8lsn0kcr5xqsf34qqxd6n4f',
       'ergoAddress',
       '13060',
@@ -153,8 +153,8 @@ class TestBoxes {
    */
   static mockValidAdaEventTrigger = (): EventTrigger => {
     return new EventTrigger(
-      'cardano',
-      'ergo',
+      ChainsConstants.cardano,
+      ChainsConstants.ergo,
       'addr_test1qzf9uxs6xgprx4zt20qtsasxut8uw6quv34xlkmd26yuk5xe70s0yf5c3sefnrft6gdajkpz29t8lsn0kcr5xqsf34qqxd6n4f',
       'ergoAddress',
       '49796752',
@@ -174,8 +174,8 @@ class TestBoxes {
    */
   static mockInvalidToChainEventTrigger = (): EventTrigger => {
     return new EventTrigger(
-      'cardano',
-      'erg',
+      ChainsConstants.cardano,
+      'incorrect_ergo',
       'addr_test1qzf9uxs6xgprx4zt20qtsasxut8uw6quv34xlkmd26yuk5xe70s0yf5c3sefnrft6gdajkpz29t8lsn0kcr5xqsf34qqxd6n4f',
       'ergoAddress',
       '13060',
@@ -195,8 +195,8 @@ class TestBoxes {
    */
   static mockInvalidFromAddressEventTrigger = (): EventTrigger => {
     return new EventTrigger(
-      'cardano',
-      'ergo',
+      ChainsConstants.cardano,
+      ChainsConstants.ergo,
       'addr_test1vze7yqqlg8cjlyhz7jzvsg0f3fhxpuu6m3llxrajfzqecggw704re',
       'ergoAddress',
       '13060',
@@ -216,8 +216,8 @@ class TestBoxes {
    */
   static mockInvalidToAddressEventTrigger = (): EventTrigger => {
     return new EventTrigger(
-      'cardano',
-      'ergo',
+      ChainsConstants.cardano,
+      ChainsConstants.ergo,
       'addr_test1qzf9uxs6xgprx4zt20qtsasxut8uw6quv34xlkmd26yuk5xe70s0yf5c3sefnrft6gdajkpz29t8lsn0kcr5xqsf34qqxd6n4f',
       'ergoAddressFake',
       '13060',
@@ -237,8 +237,8 @@ class TestBoxes {
    */
   static mockInvalidAmountEventTrigger = (): EventTrigger => {
     return new EventTrigger(
-      'cardano',
-      'ergo',
+      ChainsConstants.cardano,
+      ChainsConstants.ergo,
       'addr_test1qzf9uxs6xgprx4zt20qtsasxut8uw6quv34xlkmd26yuk5xe70s0yf5c3sefnrft6gdajkpz29t8lsn0kcr5xqsf34qqxd6n4f',
       'ergoAddress',
       '13',
@@ -258,8 +258,8 @@ class TestBoxes {
    */
   static mockInvalidBridgeFeeEventTrigger = (): EventTrigger => {
     return new EventTrigger(
-      'cardano',
-      'ergo',
+      ChainsConstants.cardano,
+      ChainsConstants.ergo,
       'addr_test1qzf9uxs6xgprx4zt20qtsasxut8uw6quv34xlkmd26yuk5xe70s0yf5c3sefnrft6gdajkpz29t8lsn0kcr5xqsf34qqxd6n4f',
       'ergoAddress',
       '13060',
@@ -279,8 +279,8 @@ class TestBoxes {
    */
   static mockInvalidNetworkFeeEventTrigger = (): EventTrigger => {
     return new EventTrigger(
-      'cardano',
-      'ergo',
+      ChainsConstants.cardano,
+      ChainsConstants.ergo,
       'addr_test1qzf9uxs6xgprx4zt20qtsasxut8uw6quv34xlkmd26yuk5xe70s0yf5c3sefnrft6gdajkpz29t8lsn0kcr5xqsf34qqxd6n4f',
       'ergoAddress',
       '13060',
@@ -300,14 +300,14 @@ class TestBoxes {
    */
   static mockInvalidSourceTokenEventTrigger = (): EventTrigger => {
     return new EventTrigger(
-      'cardano',
-      'ergo',
+      ChainsConstants.cardano,
+      ChainsConstants.ergo,
       'addr_test1qzf9uxs6xgprx4zt20qtsasxut8uw6quv34xlkmd26yuk5xe70s0yf5c3sefnrft6gdajkpz29t8lsn0kcr5xqsf34qqxd6n4f',
       'ergoAddress',
       '13060',
       '250',
       '10000',
-      'asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw4',
+      'asset1nl0puwxm00s8fawxp8nx4e2q3wekg969n2au11',
       '0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95',
       '928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b',
       'f75fea40852ed7d7f539d008e45255725daef8553ae7162750836f279570813a',
@@ -321,8 +321,8 @@ class TestBoxes {
    */
   static mockInvalidTargetTokenEventTrigger = (): EventTrigger => {
     return new EventTrigger(
-      'cardano',
-      'ergo',
+      ChainsConstants.cardano,
+      ChainsConstants.ergo,
       'addr_test1qzf9uxs6xgprx4zt20qtsasxut8uw6quv34xlkmd26yuk5xe70s0yf5c3sefnrft6gdajkpz29t8lsn0kcr5xqsf34qqxd6n4f',
       'ergoAddress',
       '13060',
@@ -342,8 +342,8 @@ class TestBoxes {
    */
   static mockInvalidSourceTxEventTrigger = (): EventTrigger => {
     return new EventTrigger(
-      'cardano',
-      'ergo',
+      ChainsConstants.cardano,
+      ChainsConstants.ergo,
       'addr_test1qzf9uxs6xgprx4zt20qtsasxut8uw6quv34xlkmd26yuk5xe70s0yf5c3sefnrft6gdajkpz29t8lsn0kcr5xqsf34qqxd6n4f',
       'ergoAddress',
       '13060',
@@ -363,8 +363,8 @@ class TestBoxes {
    */
   static mockInvalidBlockEventTrigger = (): EventTrigger => {
     return new EventTrigger(
-      'cardano',
-      'ergo',
+      ChainsConstants.cardano,
+      ChainsConstants.ergo,
       'addr_test1qzf9uxs6xgprx4zt20qtsasxut8uw6quv34xlkmd26yuk5xe70s0yf5c3sefnrft6gdajkpz29t8lsn0kcr5xqsf34qqxd6n4f',
       'ergoAddress',
       '13060',

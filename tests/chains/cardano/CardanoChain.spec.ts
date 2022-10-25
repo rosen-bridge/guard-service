@@ -31,6 +31,7 @@ import {
 } from '../../../src/models/Interfaces';
 import CardanoConfigs from '../../../src/chains/cardano/helpers/CardanoConfigs';
 import { Fee } from '@rosen-bridge/minimum-fee';
+import { mockGetFee } from '../../guard/mocked/MockedMinimumFee';
 
 describe('CardanoChain', () => {
   const testBankAddress = TestBoxes.testBankAddress;
@@ -630,6 +631,12 @@ describe('CardanoChain', () => {
   });
 
   describe('verifyEventWithPayment', () => {
+    const mockedFeeConfig: Fee = {
+      bridgeFee: 0n,
+      networkFee: 0n,
+      rsnRatio: 0n,
+    };
+
     beforeEach('reset mocked koios api', () => {
       mockKoiosGetTxInfo(
         TestData.observationTxInfo.tx_hash,
@@ -651,6 +658,7 @@ describe('CardanoChain', () => {
         TestData.fakeTokenObservationTxInfo.tx_hash,
         TestData.fakeTokenObservationTxInfo
       );
+      mockGetFee(mockedFeeConfig);
     });
 
     /**

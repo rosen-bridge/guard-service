@@ -533,6 +533,29 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
             event.toAddress == payment.toAddress &&
             event.fromAddress == inputAddress
           ) {
+            // check if amount is more than fees
+            const tokenId = Configs.tokenMap.getID(
+              Configs.tokenMap.search(event.fromChain, {
+                [Configs.tokenMap.getIdKey(event.fromChain)]:
+                  event.sourceChainTokenId,
+              })[0],
+              ChainsConstants.ergo
+            );
+            const feeConfig = await MinimumFee.bridgeMinimumFee.getFee(
+              tokenId,
+              ChainsConstants.ergo,
+              event.height
+            );
+            if (
+              BigInt(event.amount) <
+              Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee) +
+                Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee)
+            ) {
+              logger.info(
+                `Event [${eventId}] is not valid, event amount is less than fees`
+              );
+              return false;
+            }
             logger.info(`event [${eventId}] has been successfully validated`);
             return true;
           } else {
