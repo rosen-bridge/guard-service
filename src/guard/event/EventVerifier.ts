@@ -44,7 +44,7 @@ class EventVerifier {
   ): Promise<boolean> => {
     const tokenId = Configs.tokenMap.getID(
       Configs.tokenMap.search(event.fromChain, {
-        tokenID: event.sourceChainTokenId,
+        [Configs.tokenMap.getIdKey(event.fromChain)]: event.sourceChainTokenId,
       })[0],
       ChainsConstants.ergo
     );

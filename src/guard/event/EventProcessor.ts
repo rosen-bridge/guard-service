@@ -128,7 +128,7 @@ class EventProcessor {
     }
     const tokenId = Configs.tokenMap.getID(
       Configs.tokenMap.search(event.fromChain, {
-        tokenID: event.sourceChainTokenId,
+        [Configs.tokenMap.getIdKey(event.fromChain)]: event.sourceChainTokenId,
       })[0],
       ChainsConstants.ergo
     );
@@ -151,7 +151,7 @@ class EventProcessor {
   ): Promise<PaymentTransaction> => {
     const tokenId = Configs.tokenMap.getID(
       Configs.tokenMap.search(event.fromChain, {
-        tokenID: event.sourceChainTokenId,
+        [Configs.tokenMap.getIdKey(event.fromChain)]: event.sourceChainTokenId,
       })[0],
       ChainsConstants.ergo
     );
