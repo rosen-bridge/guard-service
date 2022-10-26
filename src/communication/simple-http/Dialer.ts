@@ -22,8 +22,8 @@ class Dialer {
   private constructor() {
     const secret = wasm.SecretKey.dlog_from_bytes(configs.secret);
     this.peerId = secret.get_address().to_base58(ergoConfigs.networkType);
-    Dialer.instance.communication = new Communication(this.peerId, secret);
-    Dialer.instance.pullMessages().then(() => null);
+    this.communication = new Communication(this.peerId, secret);
+    this.pullMessages().then(() => null);
     logger.info('Create Dialer Instance!');
   }
 
@@ -41,24 +41,29 @@ class Dialer {
    * Get incoming messages from server and handle them
    */
   public pullMessages = async () => {
-    this.communication.fetchMessage().then((messages) => {
-      messages.forEach((message) => {
-        const messageJSON = JSON.parse(
-          message.message
-        ) as SendDataCommunication;
-        const channel = messageJSON.channel;
-        const body = messageJSON.msg;
-        if (channel in this.subscriptions) {
-          const subscriptions = this.subscriptions[channel];
-          subscriptions.urls.forEach((subscription) => {
-            apiCallBack(body, channel, message.sender, subscription.url);
-          });
-          subscriptions.functions.forEach((subscription) => {
-            subscription.func(body, channel, message.sender);
-          });
-        }
+    this.communication
+      .fetchMessage()
+      .then((messages) => {
+        messages.forEach((message) => {
+          const messageJSON = JSON.parse(
+            message.message
+          ) as SendDataCommunication;
+          const channel = messageJSON.channel;
+          const body = messageJSON.msg;
+          if (channel in this.subscriptions) {
+            const subscriptions = this.subscriptions[channel];
+            subscriptions.urls.forEach((subscription) => {
+              apiCallBack(body, channel, message.sender, subscription.url);
+            });
+            subscriptions.functions.forEach((subscription) => {
+              subscription.func(body, channel, message.sender);
+            });
+          }
+        });
+      })
+      .catch((exp) => {
+        logger.error(`can not connect to backend. ${exp}`);
       });
-    });
     this.timeout = setTimeout(
       () => this.pullMessages().then(() => null),
       CommunicationConfig.pullInterval * 1000
