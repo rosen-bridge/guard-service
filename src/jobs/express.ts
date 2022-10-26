@@ -1,7 +1,7 @@
 import express, { Router } from 'express';
 import Configs from '../helpers/Configs';
 import { p2pRouter } from '../api/p2p';
-import Dialer from '../communication/Dialer';
+import Dialer from '../communication/simple-http/Dialer';
 import { tssRouter } from '../api/tss';
 import { logger } from '../log/Logger';
 

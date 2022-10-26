@@ -1,11 +1,11 @@
 import { Request, Response, Router } from 'express';
 import { apiCallBack } from '../communication/CallbackUtils';
-import Dialer from '../communication/Dialer';
 import { body, validationResult } from 'express-validator';
 import Configs from '../helpers/Configs';
+import Dialer from '../communication/simple-http/Dialer';
 
 export const p2pRouter = Router();
-const dialer = await Dialer.getInstance();
+const connector = await Dialer.getInstance();
 
 /**
  * Api for send a message over p2p protocol
@@ -29,12 +29,12 @@ p2pRouter.post(
         return res.status(400).json({ errors: errors.array() });
       }
       req.body.receiver
-        ? dialer.sendMessage(
+        ? connector.sendMessage(
             req.body.channel,
             req.body.message,
             req.body.receiver
           )
-        : dialer.sendMessage(req.body.channel, req.body.message);
+        : connector.sendMessage(req.body.channel, req.body.message);
 
       res.send({ message: 'ok' });
     } catch (error) {
@@ -60,7 +60,7 @@ p2pRouter.post(
       if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
       }
-      dialer.subscribeChannel(req.body.channel, apiCallBack, req.body.url);
+      connector.subscribe({ channel: req.body.channel, url: req.body.url });
       res.send({ message: 'ok' });
     } catch (error) {
       res.status(500).send({ message: error.message });

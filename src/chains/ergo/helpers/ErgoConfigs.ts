@@ -1,7 +1,7 @@
 import config from 'config';
-import { RosenConfig, rosenConfig } from '../../../helpers/RosenConfig';
+import { rosenConfig } from '../../../helpers/RosenConfig';
 import ChainsConstants from '../../ChainsConstants';
-import Configs from '../../../helpers/Configs';
+import * as wasm from 'ergo-lib-wasm-nodejs';
 
 class ErgoConfigs {
   // service configs
@@ -9,6 +9,10 @@ class ErgoConfigs {
     url: config.get<string>('ergo.explorer.url'),
     timeout: config.get<number>('ergo.explorer.timeout'), // seconds
   };
+  static networkType =
+    config.get('ergo.networkType') === 'mainnet'
+      ? wasm.NetworkPrefix.Mainnet
+      : wasm.NetworkPrefix.Testnet;
   static node = {
     url: config.get<string>('ergo.node.url'),
     timeout: config.get<number>('ergo.node.timeout'), // seconds

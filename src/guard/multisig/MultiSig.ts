@@ -10,7 +10,7 @@ import {
   TxQueued,
 } from './Interfaces';
 import * as crypto from 'crypto';
-import Dialer from '../../communication/Dialer';
+import Dialer from '../../communication/simple-http/Dialer';
 import Configs from '../../helpers/Configs';
 import { Semaphore } from 'await-semaphore';
 import Encryption from '../../helpers/Encryption';
@@ -37,7 +37,11 @@ class MultiSigHandler {
       pub: item,
       unapproved: [],
     }));
-    dialer.subscribeChannel(MultiSigHandler.CHANNEL, this.handleMessage);
+    dialer.subscribe({
+      channel: MultiSigHandler.CHANNEL,
+      callback: this.handleMessage,
+      id: 'MultiSig',
+    });
     this.secret = secretHex
       ? Uint8Array.from(Buffer.from(secretHex, 'hex'))
       : Configs.secret;

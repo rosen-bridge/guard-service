@@ -12,7 +12,7 @@ import {
   GuardsAgreement,
   TransactionApproved,
 } from './Interfaces';
-import Dialer from '../../communication/Dialer';
+import Dialer from '../../communication/simple-http/Dialer';
 import { dbAction } from '../../db/DatabaseAction';
 import TransactionProcessor from '../TransactionProcessor';
 import { txJsonParser } from '../../chains/TxJsonParser';
@@ -34,7 +34,11 @@ class TxAgreement {
     this.transactions = new Map();
     this.eventAgreedTransactions = new Map();
     this.transactionApprovals = new Map();
-    dialer.subscribeChannel(TxAgreement.CHANNEL, this.handleMessage);
+    dialer.subscribe({
+      channel: TxAgreement.CHANNEL,
+      callback: this.handleMessage,
+      id: 'TxAgreement',
+    });
   }
 
   /**
