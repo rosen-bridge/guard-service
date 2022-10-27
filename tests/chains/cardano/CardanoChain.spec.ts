@@ -685,6 +685,25 @@ describe('CardanoChain', () => {
      * Dependencies:
      *    -
      * Expected Output:
+     *    It should NOT verify the event
+     */
+    it('should return false when the event amount is less than the event fees', async () => {
+      const mockedEvent: EventTrigger = TestBoxes.mockSmallAmountEventTrigger();
+
+      // run test
+      const cardanoChain: CardanoChain = new CardanoChain();
+      const isValid = await cardanoChain.verifyEventWithPayment(
+        mockedEvent,
+        CardanoConfigs.cardanoContractConfig.RWTId
+      );
+      expect(isValid).to.be.false;
+    });
+
+    /**
+     * Target: testing verifyEventWithPayment
+     * Dependencies:
+     *    -
+     * Expected Output:
      *    It should verify the event
      */
     it('should return true when the event is correct locking ada', async () => {

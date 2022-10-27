@@ -42,26 +42,18 @@ class EventVerifier {
     paymentTx: PaymentTransaction,
     event: EventTrigger
   ): Promise<boolean> => {
-    const tokenId = Configs.tokenMap.getID(
-      Configs.tokenMap.search(event.fromChain, {
-        [Configs.tokenMap.getIdKey(event.fromChain)]: event.sourceChainTokenId,
-      })[0],
-      ChainsConstants.ergo
-    );
     if (paymentTx.txType === TransactionTypes.payment) {
-      const feeConfig = await MinimumFee.bridgeMinimumFee.getFee(
-        tokenId,
-        event.toChain,
-        event.height
+      const feeConfig = await MinimumFee.getEventFeeConfig(
+        event,
+        event.toChain
       );
       return await this.getChainObject(
         paymentTx.network
       ).verifyTransactionWithEvent(paymentTx, event, feeConfig);
     } else {
-      const feeConfig = await MinimumFee.bridgeMinimumFee.getFee(
-        tokenId,
-        ChainsConstants.ergo,
-        event.height
+      const feeConfig = await MinimumFee.getEventFeeConfig(
+        event,
+        ChainsConstants.ergo
       );
       return await Reward.verifyTransactionWithEvent(
         paymentTx as ErgoTransaction,

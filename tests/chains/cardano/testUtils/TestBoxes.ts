@@ -109,6 +109,27 @@ class TestBoxes {
   /**
    * generates a mocked event trigger for event verification in cardano chain
    */
+  static mockSmallAmountEventTrigger = (): EventTrigger => {
+    return new EventTrigger(
+      ChainsConstants.cardano,
+      ChainsConstants.ergo,
+      'addr_test1qzf9uxs6xgprx4zt20qtsasxut8uw6quv34xlkmd26yuk5xe70s0yf5c3sefnrft6gdajkpz29t8lsn0kcr5xqsf34qqxd6n4f',
+      'ergoAddress',
+      '500',
+      '250',
+      '10000',
+      'asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3',
+      '0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95',
+      '928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b',
+      'f75fea40852ed7d7f539d008e45255725daef8553ae7162750836f279570813a',
+      TestConfigs.cardano.blockchainHeight - 100,
+      []
+    );
+  };
+
+  /**
+   * generates a mocked event trigger for event verification in cardano chain
+   */
   static mockInValidMetadataEventTrigger = (): EventTrigger => {
     return new EventTrigger(
       ChainsConstants.cardano,

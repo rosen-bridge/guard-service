@@ -126,16 +126,9 @@ class EventProcessor {
         'Events with Ergo as target chain will distribute rewards in a single transaction with payment'
       );
     }
-    const tokenId = Configs.tokenMap.getID(
-      Configs.tokenMap.search(event.fromChain, {
-        [Configs.tokenMap.getIdKey(event.fromChain)]: event.sourceChainTokenId,
-      })[0],
+    const feeConfig = await MinimumFee.getEventFeeConfig(
+      event,
       ChainsConstants.ergo
-    );
-    const feeConfig = await MinimumFee.bridgeMinimumFee.getFee(
-      tokenId,
-      ChainsConstants.ergo,
-      event.height
     );
     const tx = await Reward.generateTransaction(event, feeConfig);
     txAgreement.startAgreementProcess(tx);
@@ -149,17 +142,7 @@ class EventProcessor {
   static createEventPayment = async (
     event: EventTrigger
   ): Promise<PaymentTransaction> => {
-    const tokenId = Configs.tokenMap.getID(
-      Configs.tokenMap.search(event.fromChain, {
-        [Configs.tokenMap.getIdKey(event.fromChain)]: event.sourceChainTokenId,
-      })[0],
-      ChainsConstants.ergo
-    );
-    const feeConfig = await MinimumFee.bridgeMinimumFee.getFee(
-      tokenId,
-      event.toChain,
-      event.height
-    );
+    const feeConfig = await MinimumFee.getEventFeeConfig(event, event.toChain);
     return this.getChainObject(event.toChain).generateTransaction(
       event,
       feeConfig
