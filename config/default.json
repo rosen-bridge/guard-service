@@ -1,7 +1,7 @@
 {
   "secret": "3e600b60d82da99c55959df4bb4ceb139cbe434a948251b371c6d9eeb73cb723",
   "express": {
-    "port": 8080,
+    "port": 8081,
     "jsonBodyLimit": 50
   },
   "cardano": {
@@ -52,7 +52,7 @@
   },
   "p2p": {
     "pullInterval": 1,
-    "address": "change me",
+    "address": "http://127.0.0.1:8080/",
     "bootstrapInterval": 60,
     "pubsubInterval": 1,
     "apiCallbackTimeout": 8,
