@@ -22,8 +22,6 @@ import InputBoxes from '../../chains/ergo/boxes/InputBoxes';
 import GuardTurn from '../../helpers/GuardTurn';
 import EventVerifier from '../event/EventVerifier';
 
-const dialer = await Dialer.getInstance();
-
 class TxAgreement {
   protected static CHANNEL = 'tx-agreement';
   protected transactions: Map<string, PaymentTransaction>;
@@ -34,7 +32,7 @@ class TxAgreement {
     this.transactions = new Map();
     this.eventAgreedTransactions = new Map();
     this.transactionApprovals = new Map();
-    dialer.subscribe({
+    Dialer.getInstance().subscribe({
       channel: TxAgreement.CHANNEL,
       callback: this.handleMessage,
       id: 'TxAgreement',
@@ -131,7 +129,7 @@ class TxAgreement {
     });
 
     // broadcast the transaction
-    dialer.sendMessage(TxAgreement.CHANNEL, message);
+    Dialer.getInstance().sendMessage(TxAgreement.CHANNEL, message);
   };
 
   /**
@@ -197,7 +195,7 @@ class TxAgreement {
       });
 
       // send response to creator guard
-      dialer.sendMessage(TxAgreement.CHANNEL, message, receiver);
+      Dialer.getInstance().sendMessage(TxAgreement.CHANNEL, message, receiver);
     } else logger.info(`Rejected tx [${tx.txId}] for event [${tx.eventId}]`);
   };
 
@@ -295,7 +293,7 @@ class TxAgreement {
           payload: txApproval,
         });
         // broadcast approval message
-        dialer.sendMessage(TxAgreement.CHANNEL, message);
+        Dialer.getInstance().sendMessage(TxAgreement.CHANNEL, message);
 
         await this.setTxAsApproved(tx);
       }

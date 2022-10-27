@@ -29,10 +29,9 @@ class Dialer {
   /**
    * @return a Dialer instance (create if it doesn't exist)
    */
-  public static getInstance = async (): Promise<Dialer> => {
+  public static getInstance = (): Dialer => {
     if (!Dialer.instance) {
       Dialer.instance = new Dialer();
-      await Dialer.instance.communication.fetchMessage();
       Dialer.instance.pullMessages().then(() => null);
     }
     return Dialer.instance;

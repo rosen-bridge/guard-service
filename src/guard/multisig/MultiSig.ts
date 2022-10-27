@@ -17,8 +17,6 @@ import Encryption from '../../helpers/Encryption';
 import MultiSigUtils from './MultiSigUtils';
 import { logger } from '../../log/Logger';
 
-const dialer = await Dialer.getInstance();
-
 class MultiSigHandler {
   private static CHANNEL = 'multi-sig';
   private readonly transactions: Map<string, TxQueued>;
@@ -37,7 +35,7 @@ class MultiSigHandler {
       pub: item,
       unapproved: [],
     }));
-    dialer.subscribe({
+    Dialer.getInstance().subscribe({
       channel: MultiSigHandler.CHANNEL,
       callback: this.handleMessage,
       id: 'MultiSig',
@@ -72,7 +70,7 @@ class MultiSigHandler {
       type: 'register',
       payload: {
         nonce: this.nonce,
-        myId: dialer.getPeerId(),
+        myId: Dialer.getInstance().getPeerId(),
       },
     });
   };
@@ -131,7 +129,7 @@ class MultiSigHandler {
    * get my peer id
    */
   getPeerId = (): string => {
-    const peerId = dialer.getPeerId();
+    const peerId = Dialer.getInstance().getPeerId();
     if (this.peerId !== peerId) {
       // TODO must call all other guards to update peerId
       //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/22
@@ -417,7 +415,7 @@ class MultiSigHandler {
     ).toString('base64');
     if (receivers && receivers.length) {
       receivers.map((receiver) =>
-        dialer
+        Dialer.getInstance()
           .sendMessage(
             MultiSigHandler.CHANNEL,
             JSON.stringify(message),
@@ -426,7 +424,10 @@ class MultiSigHandler {
           .then(() => null)
       );
     } else {
-      dialer.sendMessage(MultiSigHandler.CHANNEL, JSON.stringify(message));
+      Dialer.getInstance().sendMessage(
+        MultiSigHandler.CHANNEL,
+        JSON.stringify(message)
+      );
     }
   };
 
