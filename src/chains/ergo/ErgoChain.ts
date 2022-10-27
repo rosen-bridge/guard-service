@@ -534,10 +534,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
             event.fromAddress == inputAddress
           ) {
             // check if amount is more than fees
-            const feeConfig = await MinimumFee.getEventFeeConfig(
-              event,
-              ChainsConstants.ergo
-            );
+            const feeConfig = await MinimumFee.getEventFeeConfig(event);
             if (
               BigInt(event.amount) <
               Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee) +

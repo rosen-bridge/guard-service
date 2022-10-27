@@ -126,10 +126,7 @@ class EventProcessor {
         'Events with Ergo as target chain will distribute rewards in a single transaction with payment'
       );
     }
-    const feeConfig = await MinimumFee.getEventFeeConfig(
-      event,
-      ChainsConstants.ergo
-    );
+    const feeConfig = await MinimumFee.getEventFeeConfig(event);
     const tx = await Reward.generateTransaction(event, feeConfig);
     txAgreement.startAgreementProcess(tx);
   };
@@ -142,7 +139,7 @@ class EventProcessor {
   static createEventPayment = async (
     event: EventTrigger
   ): Promise<PaymentTransaction> => {
-    const feeConfig = await MinimumFee.getEventFeeConfig(event, event.toChain);
+    const feeConfig = await MinimumFee.getEventFeeConfig(event);
     return this.getChainObject(event.toChain).generateTransaction(
       event,
       feeConfig

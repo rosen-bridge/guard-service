@@ -13,14 +13,10 @@ class MinimumFee {
   );
 
   /**
-   * gets minimum fee config for an event on the given chain
+   * gets minimum fee config for an event on it's target chain
    * @param event the event trigger
-   * @param chain the given chain
    */
-  static getEventFeeConfig = async (
-    event: EventTrigger,
-    chain: string
-  ): Promise<Fee> => {
+  static getEventFeeConfig = async (event: EventTrigger): Promise<Fee> => {
     const tokenId = Configs.tokenMap.getID(
       Configs.tokenMap.search(event.fromChain, {
         [Configs.tokenMap.getIdKey(event.fromChain)]: event.sourceChainTokenId,
@@ -29,7 +25,7 @@ class MinimumFee {
     );
     return await MinimumFee.bridgeMinimumFee.getFee(
       tokenId,
-      chain,
+      event.toChain,
       event.height
     );
   };

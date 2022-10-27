@@ -681,10 +681,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
             event.sourceBlockId == txInfo.block_hash
           ) {
             // check if amount is more than fees
-            const feeConfig = await MinimumFee.getEventFeeConfig(
-              event,
-              ChainsConstants.ergo
-            );
+            const feeConfig = await MinimumFee.getEventFeeConfig(event);
             if (
               BigInt(event.amount) <
               Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee) +

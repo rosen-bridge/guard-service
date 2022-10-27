@@ -43,18 +43,12 @@ class EventVerifier {
     event: EventTrigger
   ): Promise<boolean> => {
     if (paymentTx.txType === TransactionTypes.payment) {
-      const feeConfig = await MinimumFee.getEventFeeConfig(
-        event,
-        event.toChain
-      );
+      const feeConfig = await MinimumFee.getEventFeeConfig(event);
       return await this.getChainObject(
         paymentTx.network
       ).verifyTransactionWithEvent(paymentTx, event, feeConfig);
     } else {
-      const feeConfig = await MinimumFee.getEventFeeConfig(
-        event,
-        ChainsConstants.ergo
-      );
+      const feeConfig = await MinimumFee.getEventFeeConfig(event);
       return await Reward.verifyTransactionWithEvent(
         paymentTx as ErgoTransaction,
         event,
