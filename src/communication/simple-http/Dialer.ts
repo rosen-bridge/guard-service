@@ -23,7 +23,7 @@ class Dialer {
     const secret = wasm.SecretKey.dlog_from_bytes(configs.secret);
     this.peerId = secret.get_address().to_base58(ergoConfigs.networkType);
     this.communication = new Communication(this.peerId, secret);
-    logger.info('Create Dialer Instance!');
+    logger.info(`Create Dialer Instance! Id: ${this.peerId}`);
   }
 
   /**
