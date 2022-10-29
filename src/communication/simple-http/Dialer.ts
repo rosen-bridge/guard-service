@@ -154,7 +154,11 @@ class Dialer {
     } else {
       await this.communication.putMessage(
         JSON.stringify(data),
-        guardConfig.publicKeys
+        guardConfig.publicKeys.map((item) =>
+          wasm.Address.from_public_key(Buffer.from(item, 'hex')).to_base58(
+            ergoConfigs.networkType
+          )
+        )
       );
     }
     return;
