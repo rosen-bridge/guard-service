@@ -41,7 +41,6 @@ import ChainsConstants from '../../../../src/chains/ChainsConstants';
 import Utils from '../../../../src/helpers/Utils';
 import InputBoxes from '../../../../src/chains/ergo/boxes/InputBoxes';
 import { rosenConfig } from '../../../../src/helpers/RosenConfig';
-import CardanoConfigs from '../../../../src/chains/cardano/helpers/CardanoConfigs';
 
 class TestBoxes {
   static testLockAddress = ErgoConfigs.ergoContractConfig.lockAddress;
@@ -79,17 +78,18 @@ class TestBoxes {
    */
   static mockErgPaymentEventTrigger = (): EventTrigger => {
     return new EventTrigger(
-      '',
+      ChainsConstants.cardano,
       ChainsConstants.ergo,
       '',
       '9hCPp7N4foJ68kPEwMMEa8tCsXVTDoLvXbdkm8s5Ht7Dpnc3L2t',
       '50000000000',
       '1000000000',
       '1500000',
-      '',
+      'asset1nl000000000000000000000000000000000000',
       'erg',
       TestUtils.generateRandomId(),
       '',
+      TestConfigs.cardano.blockchainHeight - 100,
       Array(5)
         .fill(0)
         .map(() => TestUtils.generateRandomId())
@@ -101,17 +101,18 @@ class TestBoxes {
    */
   static mockTokenPaymentEventTrigger = (): EventTrigger => {
     return new EventTrigger(
-      '',
+      ChainsConstants.cardano,
       ChainsConstants.ergo,
       '',
       '9hCPp7N4foJ68kPEwMMEa8tCsXVTDoLvXbdkm8s5Ht7Dpnc3L2t',
       '90',
       '20',
       '5',
-      '',
+      'asset1nl000004e2q3wekg969n2auw30000000000000',
       '907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e',
       TestUtils.generateRandomId(),
       '',
+      TestConfigs.cardano.blockchainHeight - 100,
       Array(5)
         .fill(0)
         .map(() => TestUtils.generateRandomId())
@@ -124,16 +125,17 @@ class TestBoxes {
   static mockErgRewardEventTrigger = (): EventTrigger => {
     return new EventTrigger(
       ChainsConstants.ergo,
-      '',
+      ChainsConstants.cardano,
       '',
       '9hCPp7N4foJ68kPEwMMEa8tCsXVTDoLvXbdkm8s5Ht7Dpnc3L2t',
       '50000000000',
       '1000000000',
       '1500000',
       'erg',
-      '',
+      'asset1nl000000000000000000000000000000000000',
       TestUtils.generateRandomId(),
       '',
+      TestConfigs.ergo.blockchainHeight - 40,
       Array(5)
         .fill(0)
         .map(() => TestUtils.generateRandomId())
@@ -146,16 +148,17 @@ class TestBoxes {
   static mockTokenRewardEventTrigger = (): EventTrigger => {
     return new EventTrigger(
       ChainsConstants.ergo,
-      '',
+      ChainsConstants.cardano,
       '',
       '9hCPp7N4foJ68kPEwMMEa8tCsXVTDoLvXbdkm8s5Ht7Dpnc3L2t',
       '90',
       '20',
       '5',
       '907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e',
-      '',
+      'asset1nl000004e2q3wekg969n2auw30000000000000',
       TestUtils.generateRandomId(),
       '',
+      TestConfigs.ergo.blockchainHeight - 40,
       Array(5)
         .fill(0)
         .map(() => TestUtils.generateRandomId())
@@ -165,7 +168,7 @@ class TestBoxes {
   /**
    * generates a mocked event trigger for token payment in ergo chain
    */
-  static mockValidEventTrigger = (): EventTrigger => {
+  static mockSmallAmountEventTrigger = (): EventTrigger => {
     return new EventTrigger(
       'ergo',
       'cardano',
@@ -178,6 +181,7 @@ class TestBoxes {
       'asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3',
       'd04fc93dc15a28a1f0e50b0fffc94f360037dcedddaf8a2e25905a892cd48378',
       '6e74499171d828ee51266d3b65011cf958afe551ce7a0d74e5f6aba9029ae90c',
+      TestConfigs.ergo.blockchainHeight - 40,
       Array(5)
         .fill(0)
         .map(() => TestUtils.generateRandomId())
@@ -200,6 +204,7 @@ class TestBoxes {
       'asset1nl000000000000000000000000000000000000',
       '000fc93dc15a28a1f0e50b0fffc94f360037dcedddaf8a2e25905a892cd48378',
       '6e74499171d828ee51266d3b65011cf958afe551ce7a0d74e5f6aba9029ae90c',
+      TestConfigs.ergo.blockchainHeight - 40,
       Array(5)
         .fill(0)
         .map(() => TestUtils.generateRandomId())
@@ -222,6 +227,7 @@ class TestBoxes {
       'asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3',
       'd04fc93dc15a28a1f0e50b0fffc94f360037dcedddaf8a2e25905a892cd48378',
       '6e74499171d828ee51266d3b65011cf958afe551ce7a0d74e5f6aba9029ae90c',
+      TestConfigs.ergo.blockchainHeight - 40,
       Array(5)
         .fill(0)
         .map(() => TestUtils.generateRandomId())
@@ -244,6 +250,7 @@ class TestBoxes {
       'asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3',
       'd04fc93dc15a28a1f0e50b0fffc94f360037dcedddaf8a2e25905a892cd48378',
       '6e74499171d828ee51266d3b65011cf958afe551ce7a0d74e5f6aba9029ae90c',
+      TestConfigs.ergo.blockchainHeight - 40,
       Array(5)
         .fill(0)
         .map(() => TestUtils.generateRandomId())
@@ -266,6 +273,7 @@ class TestBoxes {
       'asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3',
       'd04fc93dc15a28a1f0e50b0fffc94f360037dcedddaf8a2e25905a892cd48378',
       '6e74499171d828ee51266d3b65011cf958afe551ce7a0d74e5f6aba9029ae90c',
+      TestConfigs.ergo.blockchainHeight - 40,
       Array(5)
         .fill(0)
         .map(() => TestUtils.generateRandomId())
@@ -288,6 +296,7 @@ class TestBoxes {
       'asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3',
       'd04fc93dc15a28a1f0e50b0fffc94f360037dcedddaf8a2e25905a892cd48378',
       '6e74499171d828ee51266d3b65011cf958afe551ce7a0d74e5f6aba9029ae90c',
+      TestConfigs.ergo.blockchainHeight - 40,
       Array(5)
         .fill(0)
         .map(() => TestUtils.generateRandomId())
@@ -310,6 +319,7 @@ class TestBoxes {
       'asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3',
       'd04fc93dc15a28a1f0e50b0fffc94f360037dcedddaf8a2e25905a892cd48378',
       '6e74499171d828ee51266d3b65011cf958afe551ce7a0d74e5f6aba9029ae90c',
+      TestConfigs.ergo.blockchainHeight - 40,
       Array(5)
         .fill(0)
         .map(() => TestUtils.generateRandomId())
@@ -332,6 +342,7 @@ class TestBoxes {
       'asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3',
       'd04fc93dc15a28a1f0e50b0fffc94f360037dcedddaf8a2e25905a892cd48378',
       '6e74499171d828ee51266d3b65011cf958afe551ce7a0d74e5f6aba9029ae90c',
+      TestConfigs.ergo.blockchainHeight - 40,
       Array(5)
         .fill(0)
         .map(() => TestUtils.generateRandomId())
@@ -354,6 +365,7 @@ class TestBoxes {
       'asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw4',
       'd04fc93dc15a28a1f0e50b0fffc94f360037dcedddaf8a2e25905a892cd48378',
       '6e74499171d828ee51266d3b65011cf958afe551ce7a0d74e5f6aba9029ae90c',
+      TestConfigs.ergo.blockchainHeight - 40,
       Array(5)
         .fill(0)
         .map(() => TestUtils.generateRandomId())
@@ -376,6 +388,7 @@ class TestBoxes {
       'asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3',
       '004fc93dc15a28a1f0e50b0fffc94f360037dcedddaf8a2e25905a892cd48378',
       '6e74499171d828ee51266d3b65011cf958afe551ce7a0d74e5f6aba9029ae90c',
+      TestConfigs.ergo.blockchainHeight - 40,
       Array(5)
         .fill(0)
         .map(() => TestUtils.generateRandomId())
@@ -398,6 +411,7 @@ class TestBoxes {
       'asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3',
       'd04fc93dc15a28a1f0e50b0fffc94f360037dcedddaf8a2e25905a892cd48378',
       '0e74499171d828ee51266d3b65011cf958afe551ce7a0d74e5f6aba9029ae90c',
+      TestConfigs.ergo.blockchainHeight - 40,
       Array(5)
         .fill(0)
         .map(() => TestUtils.generateRandomId())

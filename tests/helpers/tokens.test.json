@@ -39,6 +39,18 @@
         "assetID": "",
         "unit": ""
       }
+    },
+    {
+      "ergo": {
+        "tokenID": "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e",
+        "tokenName": "test token x6"
+      },
+      "cardano": {
+        "fingerprint": "asset1nl000004e2q3wekg969n2auw30000000000000",
+        "policyID": "b88ab86a5b88a78746620de3a84660ce57573df581f1ee2569538130",
+        "assetID": "22",
+        "unit": "9877777777777777777777777777777777777777777777777777789"
+      }
     }
   ]
 }

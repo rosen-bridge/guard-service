@@ -1,7 +1,6 @@
 import config from 'config';
-import { RosenConfig, rosenConfig } from '../../../helpers/RosenConfig';
+import { rosenConfig } from '../../../helpers/RosenConfig';
 import ChainsConstants from '../../ChainsConstants';
-import Configs from '../../../helpers/Configs';
 
 class ErgoConfigs {
   // service configs

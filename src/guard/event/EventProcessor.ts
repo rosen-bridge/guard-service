@@ -14,6 +14,8 @@ import Reward from '../../chains/ergo/Reward';
 import Utils from '../../helpers/Utils';
 import { logger } from '../../log/Logger';
 import { ErgoBox } from 'ergo-lib-wasm-nodejs';
+import Configs from '../../helpers/Configs';
+import MinimumFee from '../MinimumFee';
 
 class EventProcessor {
   static cardanoChain = new CardanoChain();
@@ -124,7 +126,8 @@ class EventProcessor {
         'Events with Ergo as target chain will distribute rewards in a single transaction with payment'
       );
     }
-    const tx = await Reward.generateTransaction(event);
+    const feeConfig = await MinimumFee.getEventFeeConfig(event);
+    const tx = await Reward.generateTransaction(event, feeConfig);
     txAgreement.startAgreementProcess(tx);
   };
 
@@ -133,10 +136,14 @@ class EventProcessor {
    * @param event the event trigger
    * @return created unsigned transaction
    */
-  static createEventPayment = (
+  static createEventPayment = async (
     event: EventTrigger
   ): Promise<PaymentTransaction> => {
-    return this.getChainObject(event.toChain).generateTransaction(event);
+    const feeConfig = await MinimumFee.getEventFeeConfig(event);
+    return this.getChainObject(event.toChain).generateTransaction(
+      event,
+      feeConfig
+    );
   };
 }
 

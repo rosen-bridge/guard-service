@@ -1,4 +1,5 @@
 import { PaymentTransaction, EventTrigger } from '../models/Models';
+import { Fee } from '@rosen-bridge/minimum-fee';
 
 export default interface BaseChain<
   TransactionType,
@@ -7,19 +8,25 @@ export default interface BaseChain<
   /**
    * generates payment transaction of the event from multi-sig address in target chain
    * @param event the event trigger model
+   * @param feeConfig minimum fee and rsn ratio config for the event
    * @return the generated payment transaction
    */
-  generateTransaction: (event: EventTrigger) => Promise<SerializedType>;
+  generateTransaction: (
+    event: EventTrigger,
+    feeConfig: Fee
+  ) => Promise<SerializedType>;
 
   /**
    * verifies the payment transaction data with the event
    * @param tx the payment transaction
    * @param event the event trigger model
+   * @param feeConfig minimum fee and rsn ratio config for the event
    * @return true if tx verified
    */
   verifyTransactionWithEvent: (
     tx: SerializedType,
-    event: EventTrigger
+    event: EventTrigger,
+    feeConfig: Fee
   ) => Promise<boolean>;
 
   /**
