@@ -66,6 +66,9 @@ class Configs {
     }
   };
   static tokenMap = new TokenMap(this.tokens());
+  static minimumFeeConfigBoxTemplateHash = config.get<string>(
+    'ergo.minimumFeeConfigBoxTemplateHash'
+  );
 
   // jobs configs
   static scannedEventProcessorInterval = 120; // seconds, 2 minutes

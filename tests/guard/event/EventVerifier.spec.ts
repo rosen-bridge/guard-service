@@ -1,20 +1,20 @@
-import { mockExplorerGetTxConfirmation } from '../chains/ergo/mocked/MockedExplorer';
+import { mockExplorerGetTxConfirmation } from '../../chains/ergo/mocked/MockedExplorer';
 import { expect } from 'chai';
-import { EventTrigger } from '../../src/models/Models';
-import TestUtils from '../testUtils/TestUtils';
-import { mockKoiosGetTxConfirmation } from '../chains/cardano/mocked/MockedKoios';
-import TestBoxes from '../chains/ergo/testUtils/TestBoxes';
-import ChainsConstants from '../../src/chains/ChainsConstants';
-import { mockGetEventBox } from '../chains/ergo/mocked/MockedInputBoxes';
+import { EventTrigger } from '../../../src/models/Models';
+import TestUtils from '../../testUtils/TestUtils';
+import { mockKoiosGetTxConfirmation } from '../../chains/cardano/mocked/MockedKoios';
+import TestBoxes from '../../chains/ergo/testUtils/TestBoxes';
+import ChainsConstants from '../../../src/chains/ChainsConstants';
+import { mockGetEventBox } from '../../chains/ergo/mocked/MockedInputBoxes';
 import { anything } from 'ts-mockito';
-import ErgoConfigs from '../../src/chains/ergo/helpers/ErgoConfigs';
-import TestConfigs from '../testUtils/TestConfigs';
+import ErgoConfigs from '../../../src/chains/ergo/helpers/ErgoConfigs';
+import TestConfigs from '../../testUtils/TestConfigs';
 import {
   mockGetHeight,
   resetMockedNodeApi,
-} from '../chains/ergo/mocked/MockedNode';
-import EventVerifier from '../../src/guard/event/EventVerifier';
-import { resetMockedEventVerifier } from './mocked/MockedEventVerifier';
+} from '../../chains/ergo/mocked/MockedNode';
+import EventVerifier from '../../../src/guard/event/EventVerifier';
+import { resetMockedEventVerifier } from '../mocked/MockedEventVerifier';
 
 describe('EventVerifier', () => {
   describe('isEventConfirmedEnough', () => {
@@ -56,6 +56,7 @@ describe('EventVerifier', () => {
         '',
         TestUtils.generateRandomId(),
         '',
+        TestConfigs.cardano.blockchainHeight - 100,
         []
       );
 
@@ -98,6 +99,7 @@ describe('EventVerifier', () => {
         '',
         txId,
         '',
+        TestConfigs.ergo.blockchainHeight - 40,
         []
       );
       mockExplorerGetTxConfirmation(txId, 30);
@@ -141,6 +143,7 @@ describe('EventVerifier', () => {
         '',
         txId,
         '',
+        TestConfigs.cardano.blockchainHeight - 100,
         []
       );
       mockKoiosGetTxConfirmation(txId, 30);
