@@ -21,21 +21,31 @@ export class Communication {
 
   fetchMessage = (): Promise<Array<MessageBody>> => {
     const url = `${CommunicationConfig.server}get?user=${this.address}&id=${this.lastId}`;
-    return axios.get<Array<MessageBody>>(url).then((res) => {
-      if (res.data.length) {
-        this.lastId = Math.max(...res.data.map((item) => item.id));
-      }
-      // TODO decrypt data messages
-      return res.data;
-    });
+    return axios
+      .get<Array<MessageBody>>(url)
+      .then((res) => {
+        if (res.data.length) {
+          this.lastId = Math.max(...res.data.map((item) => item.id));
+        }
+        // TODO decrypt data messages
+        return res.data;
+      })
+      .catch((exp) => {
+        console.log(`an error during catch message ${exp}`);
+        return [];
+      });
   };
 
   putMessage = (message: string, receivers: Array<string>) => {
     // TODO sign message here
-    return axios.post(`${CommunicationConfig.server}put`, {
-      sender: this.address,
-      message: message,
-      receiver: receivers,
-    });
+    return axios
+      .post(`${CommunicationConfig.server}put`, {
+        sender: this.address,
+        message: message,
+        receiver: receivers,
+      })
+      .catch((exp) => {
+        console.log(`an error during send message ${exp}`);
+      });
   };
 }

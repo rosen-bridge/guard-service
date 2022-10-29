@@ -10,7 +10,7 @@ import {
   verify,
   when,
 } from 'ts-mockito';
-import Dialer from '../../../src/communication/Dialer';
+import Dialer from '../../../src/communication/simple-http/Dialer';
 import fs from 'fs';
 import TestConfigs from '../../testUtils/TestConfigs';
 
@@ -21,7 +21,7 @@ when(
 when(mockedDialerInstance.getPeerId()).thenReturn('peerId');
 
 const mockedDialer = spy(Dialer);
-when(mockedDialer.getInstance()).thenResolve(instance(mockedDialerInstance));
+when(mockedDialer.getInstance()).thenReturn(instance(mockedDialerInstance));
 
 /**
  *

@@ -8,9 +8,9 @@ import {
   SendDataCommunication,
   Subscription,
 } from './Interfaces';
-import { apiCallBack } from '../CallbackUtils';
 import CommunicationConfig from './CommunicationConfig';
-import { guardConfig, GuardConfig } from '../../helpers/GuardConfig';
+import { guardConfig } from '../../helpers/GuardConfig';
+import axios from 'axios';
 
 class Dialer {
   private static instance: Dialer;
@@ -39,6 +39,37 @@ class Dialer {
     return Dialer.instance;
   };
 
+  protected apiCallback = (
+    url: string,
+    msg: string,
+    channel: string,
+    sender: string
+  ) => {
+    axios
+      .post(
+        url,
+        {
+          message: msg,
+          channel: channel,
+          sender: sender,
+        },
+        {
+          timeout: CommunicationConfig.apiCallbackTimeout * 1000,
+          headers: {
+            'Content-Type': 'application/json',
+            Accept: 'application/json',
+          },
+        }
+      )
+      .catch((error) => {
+        if (axios.isAxiosError(error)) {
+          logger.warn(`An error occurred, ${error.message}`);
+        } else {
+          logger.error(`Unexpected error, ${error}`);
+        }
+      });
+  };
+
   /**
    * Get incoming messages from server and handle them
    */
@@ -55,7 +86,7 @@ class Dialer {
           if (channel in this.subscriptions) {
             const subscriptions = this.subscriptions[channel];
             subscriptions.urls.forEach((subscription) => {
-              apiCallBack(body, channel, message.sender, subscription.url);
+              this.apiCallback(subscription.url, body, channel, message.sender);
             });
             subscriptions.functions.forEach((subscription) => {
               subscription.func(body, channel, message.sender);
