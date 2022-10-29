@@ -32,7 +32,9 @@ class Dialer {
   public static getInstance = (): Dialer => {
     if (!Dialer.instance) {
       Dialer.instance = new Dialer();
-      Dialer.instance.pullMessages().then(() => null);
+      Dialer.instance.communication.fetchMessage().then(() => {
+        Dialer.instance.pullMessages().then(() => null);
+      });
     }
     return Dialer.instance;
   };

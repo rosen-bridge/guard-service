@@ -3,6 +3,7 @@ import { apiCallBack } from '../communication/CallbackUtils';
 import { body, validationResult } from 'express-validator';
 import Configs from '../helpers/Configs';
 import Dialer from '../communication/simple-http/Dialer';
+import { logger } from '../log/Logger';
 
 /**
  * Api for send a message over p2p protocol
@@ -70,6 +71,21 @@ const setupRouter = async () => {
       }
     }
   );
+
+  /**
+   * Api for send peer ID
+   */
+  p2pRouter.get('/getPeerID', async (req: Request, res: Response) => {
+    try {
+      const peerID = connector.getPeerId();
+      res.status(200).send({ message: peerID, status: 'ok' });
+    } catch (error) {
+      logger.error(
+        `An error occurred while returning peerIDs: ${error.message}`
+      );
+      res.status(500).send({ message: error.message, status: 'error' });
+    }
+  });
   return p2pRouter;
 };
 
