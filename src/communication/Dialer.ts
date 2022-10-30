@@ -1,22 +1,29 @@
-import { createLibp2p, Libp2p } from 'libp2p';
-import { WebSockets } from '@libp2p/websockets';
-import { Noise } from '@chainsafe/libp2p-noise';
-import { Mplex } from '@libp2p/mplex';
-import { pipe } from 'it-pipe';
-import { toString as uint8ArrayToString } from 'uint8arrays/to-string';
-import { Bootstrap } from '@libp2p/bootstrap';
-import { PubSubPeerDiscovery } from '@libp2p/pubsub-peer-discovery';
-import { GossipSub } from '@chainsafe/libp2p-gossipsub';
-import { Connection, Stream } from '@libp2p/interface-connection';
-import { OPEN } from '@libp2p/interface-connection/status';
+import fs from 'fs';
 import * as lp from 'it-length-prefixed';
 import map from 'it-map';
+import { pipe } from 'it-pipe';
+import { pushable, Pushable } from 'it-pushable';
+import { createLibp2p, Libp2p } from 'libp2p';
+import {
+  fromString as uint8ArrayFromString,
+  toString as uint8ArrayToString,
+} from 'uint8arrays';
+
+import { GossipSub } from '@chainsafe/libp2p-gossipsub';
+import { Noise } from '@chainsafe/libp2p-noise';
+
+import { Bootstrap } from '@libp2p/bootstrap';
+import { Connection, Stream } from '@libp2p/interface-connection';
+import { OPEN } from '@libp2p/interface-connection/status';
 import { PeerId } from '@libp2p/interface-peer-id';
+import { Mplex } from '@libp2p/mplex';
 import { createEd25519PeerId, createFromJSON } from '@libp2p/peer-id-factory';
+import { PubSubPeerDiscovery } from '@libp2p/pubsub-peer-discovery';
+import { WebSockets } from '@libp2p/websockets';
+
 import * as multiaddr from '@multiformats/multiaddr';
-import fs from 'fs';
-import { PassThrough } from 'stream';
-import { JsonBI } from '../network/NetworkModels';
+
+import CommunicationConfig from './CommunicationConfig';
 import {
   ConnectionStream,
   ReceiveDataCommunication,
@@ -27,7 +34,10 @@ import {
   SubscribeChannelWithURL,
 } from './Interfaces';
 import { logger } from '../log/Logger';
-import CommunicationConfig from './CommunicationConfig';
+import { JsonBI } from '../network/NetworkModels';
+
+const MESSAGE_SENDING_RETRIES_EXPONENTIAL_FACTOR = 5;
+const MESSAGE_SENDING_RETRIES_MAX_COUNT = 3n;
 
 // TODO: Need to write test for This package
 //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/21
@@ -37,12 +47,12 @@ class Dialer {
   private _NODE: Libp2p | undefined;
   private _SUBSCRIBED_CHANNELS: SubscribeChannels = {};
   private _PENDING_MESSAGE: SendDataCommunication[] = [];
-  private _OUTPUT_STREAMS = new Map<string, PassThrough>();
   private readonly _SUPPORTED_PROTOCOL = new Map<string, string>([
     ['MSG', '/broadcast'],
     ['PEER', '/getpeers'],
   ]);
   private _DISCONNECTED_PEER = new Set<string>();
+  private _messageQueue = pushable();
   private _pendingDialPeers: string[] = [];
 
   private constructor() {
@@ -57,6 +67,7 @@ class Dialer {
       if (!Dialer.instance) {
         Dialer.instance = new Dialer();
         await Dialer.instance.startDialer();
+        Dialer.instance.processMessageQueue();
       }
     } catch (e) {
       throw Error(`An error occurred for start Dialer: ${e}`);
@@ -232,7 +243,7 @@ class Dialer {
 
     if (receiver) {
       const receiverPeerId = await createFromJSON({ id: `${receiver}` });
-      this.streamForPeer(this._NODE, receiverPeerId, data);
+      this.pushMessageToMessageQueue(receiverPeerId, data);
     } else {
       // send message for listener peers (not relays)
       const peers = this._NODE
@@ -242,7 +253,7 @@ class Dialer {
             !CommunicationConfig.relays.peerIDs.includes(peer.toString())
         );
       for (const peer of peers) {
-        this.streamForPeer(this._NODE, peer, data);
+        this.pushMessageToMessageQueue(peer, data);
       }
     }
   };
@@ -312,37 +323,43 @@ class Dialer {
    * @param peer create or find stream for peer
    * @param protocol try to create a stream with this protocol
    */
-  private getOpenStream = async (
+  private getOpenStreamAndConnection = async (
     node: Libp2p,
     peer: PeerId,
     protocol: string
   ): Promise<ConnectionStream> => {
     let connection: Connection | undefined = undefined;
     let stream: Stream | undefined = undefined;
-    /**
-     * TODO: To use connections optimally, we can start only one connection between
-     * two guards (instead of current two streams, one inbound and one outbound.)
-     * As connections are bidirectional, we can create a new stream in the
-     * connection, no matter its direction.
-     */
+
     for (const conn of node.getConnections(peer)) {
-      if (conn.stat.status === OPEN && conn.stat.direction == 'outbound') {
+      if (conn.stat.status === OPEN) {
         for (const obj of conn.streams) {
-          if (obj.stat.protocol === protocol) {
+          if (
+            obj.stat.protocol === protocol &&
+            obj.stat.direction === 'outbound'
+          ) {
             stream = obj;
             break;
           }
         }
-        connection = conn;
-        if (stream) break;
-        else stream = await conn.newStream([protocol]);
+        if (stream) {
+          connection = conn;
+          break;
+        }
       }
     }
+
     if (!connection) {
+      if (this._pendingDialPeers.includes(peer.toString())) {
+        throw new Error(
+          'The dial to target peer is still pending, the sending will be retried soon.'
+        );
+      }
       connection = await node.dial(peer);
+    }
+    if (!stream) {
       stream = await connection.newStream([protocol]);
     }
-    if (!stream) stream = await connection.newStream([protocol]);
     return {
       stream: stream,
       connection: connection,
@@ -350,67 +367,19 @@ class Dialer {
   };
 
   /**
-   * write data on stream for a peer
-   * @param node
+   * Pushes a message to the message queue
    * @param peer
    * @param messageToSend
    */
-  private streamForPeer = async (
-    node: Libp2p,
+  private pushMessageToMessageQueue = (
     peer: PeerId,
     messageToSend: SendDataCommunication
   ) => {
-    try {
-      let outputStream: PassThrough | undefined;
-
-      const connStream = await this.getOpenStream(
-        node,
-        peer,
-        this._SUPPORTED_PROTOCOL.get('MSG')!
-      );
-      logger.debug(
-        `Get connection [${connStream.connection}] and stream [${connStream.stream}] for peer [${peer}]`
-      );
-
-      const passThroughName = `${peer.toString()}-${this._SUPPORTED_PROTOCOL.get(
-        'MSG'
-      )}-${connStream.stream.id}`;
-
-      if (this._OUTPUT_STREAMS.has(passThroughName)) {
-        outputStream = this._OUTPUT_STREAMS.get(passThroughName);
-      } else {
-        const outStream = new PassThrough();
-        this._OUTPUT_STREAMS.set(passThroughName, outStream);
-        outputStream = outStream;
-        pipe(outputStream, lp.encode(), connStream.stream).catch((e) => {
-          logger.error(`An error occurred for write to stream ${e}`);
-          connStream.stream.close();
-          this._OUTPUT_STREAMS.delete(passThroughName);
-          this._PENDING_MESSAGE.push(messageToSend);
-          logger.warn(
-            "Message added to pending list due to dialer node isn't ready"
-          );
-        });
-      }
-
-      if (outputStream) {
-        // Give time for the stream to flush.
-        await new Promise((resolve) =>
-          setTimeout(resolve, CommunicationConfig.timeToFlushStream * 1000)
-        );
-        // Send some outgoing data.
-        outputStream.write(JsonBI.stringify(messageToSend));
-      } else {
-        logger.error(
-          `Doesn't exist output pass through for ${passThroughName}`
-        );
-      }
-    } catch (e) {
-      logger.error(
-        `An error occurred for write data on stream for peer [${peer}]: ${e}`
-      );
-      logger.debug(`message is [${messageToSend}]`);
-    }
+    this._messageQueue.push(
+      uint8ArrayFromString(
+        JsonBI.stringify({ peer, messageToSend, retriesCount: 0 })
+      )
+    );
   };
 
   /**
@@ -584,10 +553,6 @@ class Dialer {
       node.connectionManager.addEventListener('peer:disconnect', (evt) => {
         logger.info(`Peer [${evt.detail.remotePeer.toString()}] Disconnected!`);
         this._DISCONNECTED_PEER.add(evt.detail.remotePeer.toString());
-        this._OUTPUT_STREAMS.forEach((value, key) => {
-          if (key.includes(evt.detail.remotePeer.toString()))
-            this._OUTPUT_STREAMS.delete(key);
-        });
         this._pendingDialPeers = this._pendingDialPeers.filter(
           (peer) => peer !== evt.detail.remotePeer.toString()
         );
@@ -655,6 +620,134 @@ class Dialer {
       }, CommunicationConfig.connectToDisconnectedPeersInterval * 1000);
     } catch (e) {
       logger.error(`An error occurred for start dialer: ${e}`);
+    }
+  };
+
+  /**
+   * Processes message queue stream and pipes messages to a correct remote pipe
+   */
+  private processMessageQueue = async () => {
+    interface MessageQueueParsedMessage {
+      peer: string;
+      messageToSend: SendDataCommunication;
+      retriesCount: bigint;
+    }
+
+    const routesInfo: Record<
+      string,
+      {
+        source: Pushable<Uint8Array>;
+        stream: Stream;
+      }
+    > = {};
+
+    /**
+     * Converts a Unit8Array to an object
+     * @param uint8Array
+     */
+    const uint8ArrayToObject = (uint8Array: Uint8Array) =>
+      JsonBI.parse(uint8ArrayToString(uint8Array));
+
+    /**
+     * Converts an object to Uint8Array
+     * @param object
+     */
+    const objectToUint8Array = (object: any) =>
+      uint8ArrayFromString(JsonBI.stringify(object));
+    /**
+     * Returns the source piped to the provided stream
+     * @param stream
+     * @param peer
+     * @returns The source which is piped to the stream
+     */
+    const getStreamSource = (stream: Stream, peer: string) => {
+      if (routesInfo[peer]?.stream === stream) {
+        return routesInfo[peer].source;
+      } else {
+        routesInfo[peer] = {
+          source: pushable(),
+          stream: stream,
+        };
+        const source = routesInfo[peer].source;
+        pipe(source, lp.encode(), stream.sink);
+        return source;
+      }
+    };
+
+    /**
+     * Retries sending message by pushing it to the queue again
+     * @param message
+     */
+    const retrySendingMessage = (message: Uint8Array) => {
+      const { retriesCount, ...rest }: MessageQueueParsedMessage =
+        uint8ArrayToObject(message);
+
+      const newRetriesCount = retriesCount + 1n;
+
+      if (newRetriesCount <= MESSAGE_SENDING_RETRIES_MAX_COUNT) {
+        const timeout =
+          1000 *
+          MESSAGE_SENDING_RETRIES_EXPONENTIAL_FACTOR ** Number(newRetriesCount);
+
+        setTimeout(() => {
+          logger.warn(
+            `Retry #${retriesCount} for sending message ${JsonBI.stringify(
+              rest.messageToSend
+            )}...`
+          );
+
+          this._messageQueue.push(
+            objectToUint8Array({
+              ...rest,
+              retriesCount: newRetriesCount,
+            })
+          );
+        }, timeout);
+      } else {
+        logger.warn(
+          `Failed to send message ${JsonBI.stringify(
+            rest.messageToSend
+          )} after ${MESSAGE_SENDING_RETRIES_MAX_COUNT} retries`
+        );
+      }
+    };
+
+    for await (const message of this._messageQueue) {
+      try {
+        const { peer, messageToSend, retriesCount }: MessageQueueParsedMessage =
+          uint8ArrayToObject(message);
+
+        const connStream = await this.getOpenStreamAndConnection(
+          this._NODE!,
+          await createFromJSON({ id: `${peer}` }),
+          this._SUPPORTED_PROTOCOL.get('MSG')!
+        );
+
+        try {
+          const source = getStreamSource(connStream.stream, peer);
+
+          source.push(objectToUint8Array(messageToSend));
+
+          if (retriesCount) {
+            logger.warn(
+              `Retry #${retriesCount} was successful for message ${JsonBI.stringify(
+                messageToSend
+              )}`
+            );
+          }
+        } catch (error) {
+          logger.error(
+            'An error occurred while trying to get stream source',
+            error
+          );
+        }
+      } catch (error) {
+        logger.warn(
+          'An error occurred while trying to process a message in the messages queue',
+          error
+        );
+        retrySendingMessage(message);
+      }
     }
   };
 }
