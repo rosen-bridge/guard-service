@@ -111,7 +111,7 @@ class Dialer {
    * If it didn't exist PeerID file, this function try to create a file and save peerId into that
    * @param peerObj { peerId: PeerId; exist: boolean }
    */
-  static savePeerIdIfNeed = async (peerObj: {
+  static savePeerIdIfNeeded = async (peerObj: {
     peerId: PeerId;
     exist: boolean;
   }) => {
@@ -602,7 +602,7 @@ class Dialer {
       // await node.pubsub.subscribe(this._SUPPORTED_PROTOCOL.get('MSG')!)
 
       // this should call after createRelayConnection duo to peerId should save after create relay connection
-      await Dialer.savePeerIdIfNeed(peerId);
+      await Dialer.savePeerIdIfNeeded(peerId);
 
       // Job for send pending message
       setInterval(
