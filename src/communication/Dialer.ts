@@ -569,7 +569,7 @@ class Dialer {
         }
       );
 
-      node.start();
+      await node.start();
       logger.info(`Dialer node started with peerId: ${node.peerId.toString()}`);
 
       this._node = node;
