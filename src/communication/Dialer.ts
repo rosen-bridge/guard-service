@@ -48,7 +48,6 @@ class Dialer {
   private _messageQueue = pushable();
   private _node: Libp2p | undefined;
   private _pendingDialPeers: string[] = [];
-  private _pendingMessages: SendDataCommunication[] = [];
   private _subscribedChannels: SubscribeChannels = {};
 
   private readonly _SUPPORTED_PROTOCOL = new Map<string, string>([
@@ -231,43 +230,18 @@ class Dialer {
       channel: channel,
     };
     if (receiver) data.receiver = receiver;
-    if (!this._node) {
-      this._pendingMessages.push(data);
-      logger.warn(
-        "Message added to pending list due to dialer node isn't ready"
-      );
-      return;
-    }
 
     if (receiver) {
       const receiverPeerId = await createFromJSON({ id: `${receiver}` });
       this.pushMessageToMessageQueue(receiverPeerId, data);
     } else {
       // send message for listener peers (not relays)
-      const peers = this._node
-        .getPeers()
-        .filter(
-          (peer) =>
-            !CommunicationConfig.relays.peerIDs.includes(peer.toString())
-        );
+      const peers = this._node!.getPeers().filter(
+        (peer) => !CommunicationConfig.relays.peerIDs.includes(peer.toString())
+      );
       for (const peer of peers) {
         this.pushMessageToMessageQueue(peer, data);
       }
-    }
-  };
-
-  /**
-   * resend pending messages
-   */
-  sendPendingMessage = () => {
-    const resendMessage = (value: SendDataCommunication) => {
-      value.receiver
-        ? this.sendMessage(value.channel, value.msg, value.receiver)
-        : this.sendMessage(value.channel, value.msg);
-    };
-
-    if (this._pendingMessages.length > 0) {
-      this._pendingMessages.forEach(resendMessage);
     }
   };
 
@@ -604,12 +578,6 @@ class Dialer {
 
       // this should call after createRelayConnection duo to peerId should save after create relay connection
       await Dialer.savePeerIdIfNeeded(peerId);
-
-      // Job for send pending message
-      setInterval(
-        this.sendPendingMessage,
-        CommunicationConfig.sendPendingMessage * 1000
-      );
 
       // Job for log all peers
       setInterval(() => {
