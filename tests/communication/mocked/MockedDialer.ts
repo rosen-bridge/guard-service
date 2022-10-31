@@ -1,4 +1,5 @@
 import {
+  anyString,
   anything,
   capture,
   deepEqual,
@@ -15,10 +16,10 @@ import fs from 'fs';
 import TestConfigs from '../../testUtils/TestConfigs';
 
 const mockedDialerInstance = mock(Dialer);
-when(
-  mockedDialerInstance.sendMessage(anything(), anything(), anything())
-).thenResolve();
 when(mockedDialerInstance.getPeerId()).thenReturn('peerId');
+await when(mockedDialerInstance.sendMessage).thenReturn(() => {
+  return Promise.resolve();
+});
 
 const mockedDialer = spy(Dialer);
 when(mockedDialer.getInstance()).thenReturn(instance(mockedDialerInstance));
