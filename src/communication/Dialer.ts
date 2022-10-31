@@ -582,6 +582,10 @@ class Dialer {
         }
       );
 
+      /**
+       * TODO: This is probably no longer needed and should be removed in the near
+       * future if default peer discovery mechanism works as expected
+       */
       // Handle messages for the _SUPPORTED_PROTOCOL_PEERS
       await node.handle(
         this._SUPPORTED_PROTOCOL.get('PEER')!,
