@@ -560,6 +560,7 @@ class MultiSigHandler {
               `An unknown exception occurred while handling commitment from other peer: ${e}`
             );
           }
+          release();
         }
       );
     }
