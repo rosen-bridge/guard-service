@@ -240,7 +240,7 @@ class Dialer {
     }
 
     // try to connect to disconnected peers
-    await this.addPeers(Array.from(this._disconnectedPeers));
+    await this.addAndDialPeer(Array.from(this._disconnectedPeers));
 
     if (receiver) {
       const receiverPeerId = await createFromJSON({ id: `${receiver}` });
@@ -275,10 +275,10 @@ class Dialer {
   };
 
   /**
-   * store dialers' peerID to PeerStore
+   * store dialers' peerID to PeerStore and dials them
    * @param peers id of peers
    */
-  addPeers = async (peers: string[]) => {
+  addAndDialPeer = async (peers: string[]) => {
     if (this._node) {
       for (const peer of peers) {
         try {
@@ -479,7 +479,7 @@ class Dialer {
               const nodePeerIds = node
                 .getPeers()
                 .map((peer) => peer.toString());
-              await this.addPeers(
+              await this.addAndDialPeer(
                 receivedData.peerIds.filter(
                   (mainPeer) => !nodePeerIds.includes(mainPeer)
                 )
@@ -570,7 +570,7 @@ class Dialer {
           !this._pendingDialPeers.includes(evt.detail.id.toString())
         ) {
           this._pendingDialPeers.push(evt.detail.id.toString());
-          this.addPeers([evt.detail.id.toString()]).catch((err) => {
+          this.addAndDialPeer([evt.detail.id.toString()]).catch((err) => {
             logger.warn(`Could not dial ${evt.detail.id}`, err);
           });
         }
@@ -617,7 +617,7 @@ class Dialer {
 
       // // Job for connect to disconnected peers
       setInterval(() => {
-        this.addPeers(Array.from(this._disconnectedPeers));
+        this.addAndDialPeer(Array.from(this._disconnectedPeers));
       }, CommunicationConfig.connectToDisconnectedPeersInterval * 1000);
     } catch (e) {
       logger.error(`An error occurred for start dialer: ${e}`);
