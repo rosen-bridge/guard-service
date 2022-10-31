@@ -239,9 +239,6 @@ class Dialer {
       return;
     }
 
-    // try to connect to disconnected peers
-    await this.addAndDialPeer(Array.from(this._disconnectedPeers));
-
     if (receiver) {
       const receiverPeerId = await createFromJSON({ id: `${receiver}` });
       this.pushMessageToMessageQueue(receiverPeerId, data);
