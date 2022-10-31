@@ -32,6 +32,7 @@
       "timeout": 8
     },
     "minimumErg": "100000",
+    "minimumFeeConfigBoxTemplateHash": "",
     "txFee": "1100000",
     "requiredConfirmation": 20,
     "initialHeight": 10000,

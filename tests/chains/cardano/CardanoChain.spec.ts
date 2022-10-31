@@ -30,6 +30,8 @@ import {
   TssSuccessfulSign,
 } from '../../../src/models/Interfaces';
 import CardanoConfigs from '../../../src/chains/cardano/helpers/CardanoConfigs';
+import { Fee } from '@rosen-bridge/minimum-fee';
+import { mockGetFee } from '../../guard/mocked/MockedMinimumFee';
 
 describe('CardanoChain', () => {
   const testBankAddress = TestBoxes.testBankAddress;
@@ -37,6 +39,11 @@ describe('CardanoChain', () => {
   describe('getCoveringUtxo', () => {
     // mock getting bankBoxes
     const bankBoxes: Utxo[] = TestBoxes.mockBankBoxes();
+    const mockedFeeConfig: Fee = {
+      bridgeFee: 0n,
+      networkFee: 0n,
+      rsnRatio: 0n,
+    };
 
     /**
      * Target: testing getCoveringUtxo
@@ -52,7 +59,11 @@ describe('CardanoChain', () => {
 
       // run test
       const cardanoChain: CardanoChain = new CardanoChain();
-      const boxes = cardanoChain.getCoveringUtxo([bankBoxes[5],bankBoxes[4]], mockedEvent);
+      const boxes = cardanoChain.getCoveringUtxo(
+        [bankBoxes[5], bankBoxes[4]],
+        mockedEvent,
+        mockedFeeConfig
+      );
 
       // verify output boxes
       expect(boxes.length).greaterThanOrEqual(1);
@@ -73,7 +84,11 @@ describe('CardanoChain', () => {
 
       // run test
       const cardanoChain: CardanoChain = new CardanoChain();
-      const boxes = cardanoChain.getCoveringUtxo([bankBoxes[5],bankBoxes[1]], mockedEvent);
+      const boxes = cardanoChain.getCoveringUtxo(
+        [bankBoxes[5], bankBoxes[1]],
+        mockedEvent,
+        mockedFeeConfig
+      );
 
       // verify output boxes
       expect(boxes.length).to.equal(2);
@@ -89,16 +104,20 @@ describe('CardanoChain', () => {
      */
     it('should return more than or equal 1 box', async () => {
       const mockedEvent: EventTrigger =
-          TestBoxes.mockAssetPaymentEventTrigger();
+        TestBoxes.mockAssetPaymentEventTrigger();
       mockedEvent.targetChainTokenId =
-          'asset1nl000000000000000000000000000000000000';
+        'asset1nl000000000000000000000000000000000000';
 
       // run test
       const cardanoChain: CardanoChain = new CardanoChain();
-      const boxes = cardanoChain.getCoveringUtxo(bankBoxes, mockedEvent);
+      const boxes = cardanoChain.getCoveringUtxo(
+        bankBoxes,
+        mockedEvent,
+        mockedFeeConfig
+      );
 
       // verify output boxes
-      expect(boxes.length).to.greaterThanOrEqual(1)
+      expect(boxes.length).to.greaterThanOrEqual(1);
     });
 
     /**
@@ -111,15 +130,16 @@ describe('CardanoChain', () => {
      */
     it('should return 3 box for asset payment', async () => {
       const mockedEvent: EventTrigger =
-          TestBoxes.mockAssetPaymentEventTrigger();
+        TestBoxes.mockAssetPaymentEventTrigger();
       mockedEvent.targetChainTokenId =
-          'asset1nl000000000000000000000000000000000000';
+        'asset1nl000000000000000000000000000000000000';
 
       // run test
       const cardanoChain: CardanoChain = new CardanoChain();
       const boxes = cardanoChain.getCoveringUtxo(
-          [bankBoxes[8], bankBoxes[6], bankBoxes[5]],
-          mockedEvent
+        [bankBoxes[8], bankBoxes[6], bankBoxes[5]],
+        mockedEvent,
+        mockedFeeConfig
       );
 
       // verify output boxes
@@ -136,28 +156,33 @@ describe('CardanoChain', () => {
      */
     it('should return 2 box for asset payment', async () => {
       const mockedEvent: EventTrigger =
-          TestBoxes.mockAssetPaymentEventTrigger();
+        TestBoxes.mockAssetPaymentEventTrigger();
       mockedEvent.targetChainTokenId =
-          'asset1nl000000000000000000000000000000000000';
-      mockedEvent.amount = '20'
+        'asset1nl000000000000000000000000000000000000';
+      mockedEvent.amount = '20';
 
       // run test
       const cardanoChain: CardanoChain = new CardanoChain();
       const boxes = cardanoChain.getCoveringUtxo(
-          [bankBoxes[6], bankBoxes[5]],
-          mockedEvent
+        [bankBoxes[6], bankBoxes[5]],
+        mockedEvent,
+        mockedFeeConfig
       );
 
       // verify output boxes
       expect(boxes.length).to.be.equal(2);
     });
-
   });
 
   describe('generateTransaction', () => {
     // mock getting bankBoxes
     const bankBoxes: Utxo[] = TestBoxes.mockBankBoxes();
     mockGetAddressBoxes(testBankAddress, bankBoxes);
+    const mockedFeeConfig: Fee = {
+      bridgeFee: 0n,
+      networkFee: 0n,
+      rsnRatio: 0n,
+    };
 
     /**
      * Target: testing generateTransaction
@@ -174,12 +199,16 @@ describe('CardanoChain', () => {
 
       // run test
       const cardanoChain: CardanoChain = new CardanoChain();
-      const tx = await cardanoChain.generateTransaction(mockedEvent);
+      const tx = await cardanoChain.generateTransaction(
+        mockedEvent,
+        mockedFeeConfig
+      );
 
       // verify tx
       const isValid = await cardanoChain.verifyTransactionWithEvent(
         tx,
-        mockedEvent
+        mockedEvent,
+        mockedFeeConfig
       );
       expect(isValid).to.be.true;
     });
@@ -200,18 +229,28 @@ describe('CardanoChain', () => {
 
       // run test
       const cardanoChain: CardanoChain = new CardanoChain();
-      const tx = await cardanoChain.generateTransaction(mockedEvent);
+      const tx = await cardanoChain.generateTransaction(
+        mockedEvent,
+        mockedFeeConfig
+      );
 
       // verify tx
       const isValid = await cardanoChain.verifyTransactionWithEvent(
         tx,
-        mockedEvent
+        mockedEvent,
+        mockedFeeConfig
       );
       expect(isValid).to.be.true;
     });
   });
 
   describe('verifyTransactionWithEvent', () => {
+    const mockedFeeConfig: Fee = {
+      bridgeFee: 0n,
+      networkFee: 0n,
+      rsnRatio: 0n,
+    };
+
     /**
      * Target: testing verifyTransactionWithEvent
      * Dependencies:
@@ -231,7 +270,8 @@ describe('CardanoChain', () => {
       const cardanoChain: CardanoChain = new CardanoChain();
       const isValid = await cardanoChain.verifyTransactionWithEvent(
         tx,
-        mockedEvent
+        mockedEvent,
+        mockedFeeConfig
       );
       expect(isValid).to.be.false;
     });
@@ -256,7 +296,8 @@ describe('CardanoChain', () => {
       const cardanoChain: CardanoChain = new CardanoChain();
       const isValid = await cardanoChain.verifyTransactionWithEvent(
         tx,
-        mockedEvent
+        mockedEvent,
+        mockedFeeConfig
       );
       expect(isValid).to.be.false;
     });
@@ -281,7 +322,8 @@ describe('CardanoChain', () => {
       const cardanoChain: CardanoChain = new CardanoChain();
       const isValid = await cardanoChain.verifyTransactionWithEvent(
         tx,
-        mockedEvent
+        mockedEvent,
+        mockedFeeConfig
       );
       expect(isValid).to.be.false;
     });
@@ -306,7 +348,8 @@ describe('CardanoChain', () => {
       const cardanoChain: CardanoChain = new CardanoChain();
       const isValid = await cardanoChain.verifyTransactionWithEvent(
         tx,
-        mockedEvent
+        mockedEvent,
+        mockedFeeConfig
       );
       expect(isValid).to.be.false;
     });
@@ -335,7 +378,8 @@ describe('CardanoChain', () => {
       const cardanoChain: CardanoChain = new CardanoChain();
       const isValid = await cardanoChain.verifyTransactionWithEvent(
         tx,
-        mockedEvent
+        mockedEvent,
+        mockedFeeConfig
       );
       expect(isValid).to.be.true;
     });
@@ -364,7 +408,8 @@ describe('CardanoChain', () => {
       const cardanoChain: CardanoChain = new CardanoChain();
       const isValid = await cardanoChain.verifyTransactionWithEvent(
         tx,
-        mockedEvent
+        mockedEvent,
+        mockedFeeConfig
       );
       expect(isValid).to.be.false;
     });
@@ -586,6 +631,12 @@ describe('CardanoChain', () => {
   });
 
   describe('verifyEventWithPayment', () => {
+    const mockedFeeConfig: Fee = {
+      bridgeFee: 0n,
+      networkFee: 0n,
+      rsnRatio: 0n,
+    };
+
     beforeEach('reset mocked koios api', () => {
       mockKoiosGetTxInfo(
         TestData.observationTxInfo.tx_hash,
@@ -607,6 +658,7 @@ describe('CardanoChain', () => {
         TestData.fakeTokenObservationTxInfo.tx_hash,
         TestData.fakeTokenObservationTxInfo
       );
+      mockGetFee(mockedFeeConfig);
     });
 
     /**
@@ -626,6 +678,25 @@ describe('CardanoChain', () => {
         CardanoConfigs.cardanoContractConfig.RWTId
       );
       expect(isValid).to.be.true;
+    });
+
+    /**
+     * Target: testing verifyEventWithPayment
+     * Dependencies:
+     *    -
+     * Expected Output:
+     *    It should NOT verify the event
+     */
+    it('should return false when the event amount is less than the event fees', async () => {
+      const mockedEvent: EventTrigger = TestBoxes.mockSmallAmountEventTrigger();
+
+      // run test
+      const cardanoChain: CardanoChain = new CardanoChain();
+      const isValid = await cardanoChain.verifyEventWithPayment(
+        mockedEvent,
+        CardanoConfigs.cardanoContractConfig.RWTId
+      );
+      expect(isValid).to.be.false;
     });
 
     /**

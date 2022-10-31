@@ -1,5 +1,4 @@
 import { Request, Response, Router } from 'express';
-import { apiCallBack } from '../communication/CallbackUtils';
 import { body, validationResult } from 'express-validator';
 import Configs from '../helpers/Configs';
 import Dialer from '../communication/simple-http/Dialer';

@@ -15,7 +15,9 @@ const mockRewardGenerateTransaction = (
   event: EventTrigger,
   tx: ErgoTransaction
 ): void => {
-  when(mockedReward.generateTransaction(anything())).thenResolve(tx);
+  when(mockedReward.generateTransaction(anything(), anything())).thenResolve(
+    tx
+  );
 };
 
 /**
@@ -26,7 +28,7 @@ const mockRewardGenerateTransaction = (
 const verifyRewardGenerateTransactionCalledOnce = (
   event: EventTrigger
 ): void => {
-  verify(mockedReward.generateTransaction(anything())).once();
+  verify(mockedReward.generateTransaction(anything(), anything())).once();
 };
 
 /**

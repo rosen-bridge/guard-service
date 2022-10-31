@@ -37,25 +37,27 @@ export class migration1661258303072 implements MigrationInterface {
         `);
     await queryRunner.query(`
             CREATE TABLE "event_trigger_entity" (
-                "id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, 
-                "extractor" varchar NOT NULL, 
-                "boxId" varchar NOT NULL, 
-                "boxSerialized" varchar NOT NULL, 
-                "block" varchar NOT NULL, 
-                "height" integer NOT NULL, 
-                "fromChain" varchar NOT NULL, 
-                "toChain" varchar NOT NULL, 
-                "fromAddress" varchar NOT NULL, 
-                "toAddress" varchar NOT NULL, 
-                "amount" varchar NOT NULL, 
-                "bridgeFee" varchar NOT NULL, 
-                "networkFee" varchar NOT NULL, 
-                "sourceChainTokenId" varchar NOT NULL, 
-                "targetChainTokenId" varchar NOT NULL, 
-                "sourceTxId" varchar NOT NULL, 
-                "sourceBlockId" varchar NOT NULL, 
-                "WIDs" varchar NOT NULL, 
-                CONSTRAINT "UQ_c905f221a1b6271ca4405dbbe5f" 
+                "id" integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+                "extractor" varchar NOT NULL,
+                "boxId" varchar NOT NULL,
+                "boxSerialized" varchar NOT NULL,
+                "block" varchar NOT NULL,
+                "height" integer NOT NULL,
+                "fromChain" varchar NOT NULL,
+                "toChain" varchar NOT NULL,
+                "fromAddress" varchar NOT NULL,
+                "toAddress" varchar NOT NULL,
+                "amount" varchar NOT NULL,
+                "bridgeFee" varchar NOT NULL,
+                "networkFee" varchar NOT NULL,
+                "sourceChainTokenId" varchar NOT NULL,
+                "targetChainTokenId" varchar NOT NULL,
+                "sourceTxId" varchar NOT NULL,
+                "sourceBlockId" varchar NOT NULL,
+                "WIDs" varchar NOT NULL,
+                "spendBlock" varchar,
+                "spendHeight" integer,
+                CONSTRAINT "UQ_c905f221a1b6271ca4405dbbe5f"
                     UNIQUE ("boxId", "extractor")
             )
         `);
