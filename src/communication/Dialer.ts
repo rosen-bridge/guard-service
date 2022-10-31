@@ -44,16 +44,17 @@ const MESSAGE_SENDING_RETRIES_MAX_COUNT = 3n;
 class Dialer {
   private static instance: Dialer;
 
-  private _NODE: Libp2p | undefined;
-  private _SUBSCRIBED_CHANNELS: SubscribeChannels = {};
-  private _PENDING_MESSAGE: SendDataCommunication[] = [];
+  private _disconnectedPeers = new Set<string>();
+  private _messageQueue = pushable();
+  private _node: Libp2p | undefined;
+  private _pendingDialPeers: string[] = [];
+  private _pendingMessages: SendDataCommunication[] = [];
+  private _subscribedChannels: SubscribeChannels = {};
+
   private readonly _SUPPORTED_PROTOCOL = new Map<string, string>([
     ['MSG', '/broadcast'],
     ['PEER', '/getpeers'],
   ]);
-  private _DISCONNECTED_PEER = new Set<string>();
-  private _messageQueue = pushable();
-  private _pendingDialPeers: string[] = [];
 
   private constructor() {
     logger.info('Create Dialer Instance!');
@@ -159,27 +160,27 @@ class Dialer {
    * @return list of subscribed channels' name
    */
   getSubscribedChannels = () => {
-    return Object.keys(this._SUBSCRIBED_CHANNELS);
+    return Object.keys(this._subscribedChannels);
   };
 
   /**
    * @return Dialer's Id
    */
   getDialerId = () => {
-    if (!this._NODE) {
+    if (!this._node) {
       throw new Error("Dialer node isn't ready, please try later");
     }
-    return this._NODE.peerId.toString();
+    return this._node.peerId.toString();
   };
 
   /**
    * @return string of PeerID
    */
   getPeerIds = () => {
-    if (!this._NODE) {
+    if (!this._node) {
       throw new Error("Dialer node isn't ready, please try later");
     }
-    return this._NODE.getPeers().map((peer) => peer.toString());
+    return this._node.getPeers().map((peer) => peer.toString());
   };
 
   /**
@@ -198,9 +199,9 @@ class Dialer {
       ...(url && { url }),
     } as SubscribeChannel;
 
-    if (this._SUBSCRIBED_CHANNELS[channel]) {
+    if (this._subscribedChannels[channel]) {
       if (
-        this._SUBSCRIBED_CHANNELS[channel].find(
+        this._subscribedChannels[channel].find(
           (sub) =>
             sub.func.name === callback.name &&
             ((this.hasUrl(sub) && sub.url === url) || !url)
@@ -209,11 +210,11 @@ class Dialer {
         logger.info('A redundant subscribed channel detected!');
         return;
       }
-      this._SUBSCRIBED_CHANNELS[channel].push(callbackObj);
+      this._subscribedChannels[channel].push(callbackObj);
       logger.info(`Channel [${channel}] subscribed!`);
     } else {
-      this._SUBSCRIBED_CHANNELS[channel] = [];
-      this._SUBSCRIBED_CHANNELS[channel].push(callbackObj);
+      this._subscribedChannels[channel] = [];
+      this._subscribedChannels[channel].push(callbackObj);
       logger.info(`Channel [${channel}] subscribed!`);
     }
   };
@@ -230,8 +231,8 @@ class Dialer {
       channel: channel,
     };
     if (receiver) data.receiver = receiver;
-    if (!this._NODE) {
-      this._PENDING_MESSAGE.push(data);
+    if (!this._node) {
+      this._pendingMessages.push(data);
       logger.warn(
         "Message added to pending list due to dialer node isn't ready"
       );
@@ -239,14 +240,14 @@ class Dialer {
     }
 
     // try to connect to disconnected peers
-    await this.addPeers(Array.from(this._DISCONNECTED_PEER));
+    await this.addPeers(Array.from(this._disconnectedPeers));
 
     if (receiver) {
       const receiverPeerId = await createFromJSON({ id: `${receiver}` });
       this.pushMessageToMessageQueue(receiverPeerId, data);
     } else {
       // send message for listener peers (not relays)
-      const peers = this._NODE
+      const peers = this._node
         .getPeers()
         .filter(
           (peer) =>
@@ -268,8 +269,8 @@ class Dialer {
         : this.sendMessage(value.channel, value.msg);
     };
 
-    if (this._PENDING_MESSAGE.length > 0) {
-      this._PENDING_MESSAGE.forEach(resendMessage);
+    if (this._pendingMessages.length > 0) {
+      this._pendingMessages.forEach(resendMessage);
     }
   };
 
@@ -278,7 +279,7 @@ class Dialer {
    * @param peers id of peers
    */
   addPeers = async (peers: string[]) => {
-    if (this._NODE) {
+    if (this._node) {
       for (const peer of peers) {
         try {
           for (const addr of CommunicationConfig.relays.multiaddrs) {
@@ -287,17 +288,17 @@ class Dialer {
             );
             logger.warn(this.getPeerIds().includes(peer));
             if (!this.getPeerIds().includes(peer)) {
-              this._NODE?.peerStore.addressBook
+              this._node?.peerStore.addressBook
                 .set(await createFromJSON({ id: `${peer}` }), [multi])
                 .catch((err) => {
                   logger.warn(err);
                 });
               try {
-                await this._NODE?.dialProtocol(
+                await this._node?.dialProtocol(
                   multi,
                   this._SUPPORTED_PROTOCOL.get('MSG')!
                 );
-                this._DISCONNECTED_PEER.delete(peer);
+                this._disconnectedPeers.delete(peer);
                 this._pendingDialPeers = this._pendingDialPeers.filter(
                   (innerPeer) => innerPeer !== peer
                 );
@@ -418,14 +419,14 @@ class Dialer {
                     connection.remotePeer.toString()
                   );
             };
-            if (this._SUBSCRIBED_CHANNELS[receivedData.channel]) {
+            if (this._subscribedChannels[receivedData.channel]) {
               logger.info(
                 `Received a message from [${connection.remotePeer.toString()}] in a subscribed channel [${
                   receivedData.channel
                 }]`
               );
               logger.debug(`Received msg with data [${receivedData.msg}]`);
-              this._SUBSCRIBED_CHANNELS[receivedData.channel].forEach(
+              this._subscribedChannels[receivedData.channel].forEach(
                 runSubscribeCallback
               );
             } else
@@ -552,7 +553,7 @@ class Dialer {
       // Listen for peers disconnecting
       node.connectionManager.addEventListener('peer:disconnect', (evt) => {
         logger.info(`Peer [${evt.detail.remotePeer.toString()}] Disconnected!`);
-        this._DISCONNECTED_PEER.add(evt.detail.remotePeer.toString());
+        this._disconnectedPeers.add(evt.detail.remotePeer.toString());
         this._pendingDialPeers = this._pendingDialPeers.filter(
           (peer) => peer !== evt.detail.remotePeer.toString()
         );
@@ -596,7 +597,7 @@ class Dialer {
       node.start();
       logger.info(`Dialer node started with peerId: ${node.peerId.toString()}`);
 
-      this._NODE = node;
+      this._node = node;
 
       // await node.pubsub.subscribe(this._SUPPORTED_PROTOCOL.get('MSG')!)
 
@@ -616,7 +617,7 @@ class Dialer {
 
       // // Job for connect to disconnected peers
       setInterval(() => {
-        this.addPeers(Array.from(this._DISCONNECTED_PEER));
+        this.addPeers(Array.from(this._disconnectedPeers));
       }, CommunicationConfig.connectToDisconnectedPeersInterval * 1000);
     } catch (e) {
       logger.error(`An error occurred for start dialer: ${e}`);
@@ -718,7 +719,7 @@ class Dialer {
           uint8ArrayToObject(message);
 
         const connStream = await this.getOpenStreamAndConnection(
-          this._NODE!,
+          this._node!,
           await createFromJSON({ id: `${peer}` }),
           this._SUPPORTED_PROTOCOL.get('MSG')!
         );
