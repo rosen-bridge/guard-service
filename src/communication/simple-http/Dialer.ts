@@ -173,7 +173,7 @@ class Dialer {
    * @param msg: string
    * @param receiver optional
    */
-  sendMessage = async (
+  sendMessage = (
     channel: string,
     msg: string,
     receiver?: string
@@ -183,18 +183,25 @@ class Dialer {
       channel: channel,
     };
     if (receiver) {
-      await this.communication.putMessage(JSON.stringify(data), [receiver]);
+      return this.communication
+        .putMessage(JSON.stringify(data), [receiver])
+        .then(() => {
+          return;
+        });
     } else {
-      await this.communication.putMessage(
-        JSON.stringify(data),
-        guardConfig.publicKeys.map((item) =>
-          wasm.Address.from_public_key(Buffer.from(item, 'hex')).to_base58(
-            ergoConfigs.networkType
+      return this.communication
+        .putMessage(
+          JSON.stringify(data),
+          guardConfig.publicKeys.map((item) =>
+            wasm.Address.from_public_key(Buffer.from(item, 'hex')).to_base58(
+              ergoConfigs.networkType
+            )
           )
         )
-      );
+        .then(() => {
+          return;
+        });
     }
-    return;
   };
 }
 
