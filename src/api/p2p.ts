@@ -4,15 +4,16 @@ import Configs from '../helpers/Configs';
 import Dialer from '../communication/simple-http/Dialer';
 import { logger } from '../log/Logger';
 
-/**
- * Api for send a message over p2p protocol
- * @bodyParam {string}
- * @bodyParam {object}
- * @bodyParam {string}
- */
 const setupRouter = async () => {
   const p2pRouter = Router();
   const connector = await Dialer.getInstance();
+
+  /**
+   * Api for send a message over p2p protocol
+   * @bodyParam {string}
+   * @bodyParam {object}
+   * @bodyParam {string}
+   */
   p2pRouter.post(
     '/send',
     body('channel')
@@ -32,12 +33,16 @@ const setupRouter = async () => {
           return res.status(400).json({ errors: errors.array() });
         }
         req.body.receiver
-          ? connector.sendMessage(
-              req.body.channel,
-              req.body.message,
-              req.body.receiver
-            )
-          : connector.sendMessage(req.body.channel, req.body.message);
+          ? connector
+              .sendMessage(
+                req.body.channel,
+                req.body.message,
+                req.body.receiver
+              )
+              .then(() => null)
+          : connector
+              .sendMessage(req.body.channel, req.body.message)
+              .then(() => null);
 
         res.send({ message: 'ok' });
       } catch (error) {

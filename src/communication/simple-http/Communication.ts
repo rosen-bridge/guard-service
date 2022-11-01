@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { AxiosInstance } from 'axios';
 import CommunicationConfig from './CommunicationConfig';
 import * as wasm from 'ergo-lib-wasm-nodejs';
 
@@ -12,16 +12,18 @@ export class Communication {
   lastId: number;
   address: string;
   secret: wasm.SecretKey;
+  api: AxiosInstance;
 
   constructor(address: string, secret: wasm.SecretKey) {
     this.lastId = 0;
     this.address = address;
     this.secret = secret;
+    this.api = axios.create({ baseURL: CommunicationConfig.server });
   }
 
   fetchMessage = (): Promise<Array<MessageBody>> => {
-    const url = `${CommunicationConfig.server}get?user=${this.address}&id=${this.lastId}`;
-    return axios
+    const url = `get?user=${this.address}&id=${this.lastId}`;
+    return this.api
       .get<Array<MessageBody>>(url)
       .then((res) => {
         if (res.data.length) {
@@ -38,8 +40,8 @@ export class Communication {
 
   putMessage = (message: string, receivers: Array<string>) => {
     // TODO sign message here
-    return axios
-      .post(`${CommunicationConfig.server}put`, {
+    return this.api
+      .post(`put`, {
         sender: this.address,
         message: message,
         receiver: receivers,

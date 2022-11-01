@@ -50,9 +50,9 @@ class GuardConfig {
         throw new Error('Guard box format is incorrect');
       }
     }
-    // throw new Error(
-    //   'Guard Sign box is not available, check the guard NFT to be correct'
-    // );
+    throw new Error(
+      'Guard Sign box is not available, check the guard NFT to be correct'
+    );
   };
 }
 

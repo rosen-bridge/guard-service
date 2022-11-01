@@ -24,13 +24,6 @@ interface SendDataCommunication {
   receiver?: string;
 }
 
-interface ReceiveDataCommunication {
-  msg: string;
-  channel: string;
-  sender: string;
-  receiver?: string;
-}
-
 export {
   MessageCallback,
   SubscribeFn,
@@ -38,5 +31,4 @@ export {
   SubscribeChannel,
   Subscription,
   SendDataCommunication,
-  ReceiveDataCommunication,
 };
