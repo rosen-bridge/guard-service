@@ -463,7 +463,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
           ergoTx.txId,
           signedPaymentTx.toJson()
         );
-        logger.info(`Ergo tx wit txId:${ergoTx.txId} signed successfully`);
+        logger.info(`Ergo tx [${ergoTx.txId}] signed successfully`);
       })
       .catch(async (e) => {
         logger.info(

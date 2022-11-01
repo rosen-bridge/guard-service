@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { JsonBI } from '../network/NetworkModels';
 import CommunicationConfig from './CommunicationConfig';
 import { SubscribeChannelFunction } from './Interfaces';
 import { logger } from '../log/Logger';

@@ -10,14 +10,12 @@ import {
   TxQueued,
 } from './Interfaces';
 import * as crypto from 'crypto';
-import Dialer from '../../communication/Dialer';
+import Dialer from '../../communication/simple-http/Dialer';
 import Configs from '../../helpers/Configs';
 import { Semaphore } from 'await-semaphore';
 import Encryption from '../../helpers/Encryption';
 import MultiSigUtils from './MultiSigUtils';
 import { logger } from '../../log/Logger';
-
-const dialer = await Dialer.getInstance();
 
 class MultiSigHandler {
   private static CHANNEL = 'multi-sig';
@@ -37,7 +35,11 @@ class MultiSigHandler {
       pub: item,
       unapproved: [],
     }));
-    dialer.subscribeChannel(MultiSigHandler.CHANNEL, this.handleMessage);
+    Dialer.getInstance().subscribe({
+      channel: MultiSigHandler.CHANNEL,
+      callback: this.handleMessage,
+      id: 'MultiSig',
+    });
     this.secret = secretHex
       ? Uint8Array.from(Buffer.from(secretHex, 'hex'))
       : Configs.secret;
@@ -68,7 +70,7 @@ class MultiSigHandler {
       type: 'register',
       payload: {
         nonce: this.nonce,
-        myId: dialer.getPeerId(),
+        myId: Dialer.getInstance().getPeerId(),
       },
     });
   };
@@ -127,7 +129,7 @@ class MultiSigHandler {
    * get my peer id
    */
   getPeerId = (): string => {
-    const peerId = dialer.getPeerId();
+    const peerId = Dialer.getInstance().getPeerId();
     if (this.peerId !== peerId) {
       // TODO must call all other guards to update peerId
       //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/22
@@ -413,7 +415,7 @@ class MultiSigHandler {
     ).toString('base64');
     if (receivers && receivers.length) {
       receivers.map((receiver) =>
-        dialer
+        Dialer.getInstance()
           .sendMessage(
             MultiSigHandler.CHANNEL,
             JSON.stringify(message),
@@ -422,7 +424,10 @@ class MultiSigHandler {
           .then(() => null)
       );
     } else {
-      dialer.sendMessage(MultiSigHandler.CHANNEL, JSON.stringify(message));
+      Dialer.getInstance().sendMessage(
+        MultiSigHandler.CHANNEL,
+        JSON.stringify(message)
+      );
     }
   };
 
@@ -555,6 +560,7 @@ class MultiSigHandler {
               `An unknown exception occurred while handling commitment from other peer: ${e}`
             );
           }
+          release();
         }
       );
     }

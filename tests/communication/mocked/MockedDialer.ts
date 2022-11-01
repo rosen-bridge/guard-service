@@ -1,4 +1,5 @@
 import {
+  anyString,
   anything,
   capture,
   deepEqual,
@@ -10,18 +11,18 @@ import {
   verify,
   when,
 } from 'ts-mockito';
-import Dialer from '../../../src/communication/Dialer';
+import Dialer from '../../../src/communication/simple-http/Dialer';
 import fs from 'fs';
 import TestConfigs from '../../testUtils/TestConfigs';
 
 const mockedDialerInstance = mock(Dialer);
-when(
-  mockedDialerInstance.sendMessage(anything(), anything(), anything())
-).thenResolve();
 when(mockedDialerInstance.getPeerId()).thenReturn('peerId');
+when(
+  mockedDialerInstance.sendMessage(anyString(), anyString(), anything())
+).thenResolve();
 
 const mockedDialer = spy(Dialer);
-when(mockedDialer.getInstance()).thenResolve(instance(mockedDialerInstance));
+when(mockedDialer.getInstance()).thenReturn(instance(mockedDialerInstance));
 
 /**
  *
