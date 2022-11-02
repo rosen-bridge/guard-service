@@ -26,6 +26,7 @@ class CardanoUtils {
    * @param metaData
    */
   static getRosenData = (metaData: MetaData): RosenData | undefined => {
+    // Rosen data type exists with the '0' key on the cardano tx metadata
     if (Object.prototype.hasOwnProperty.call(metaData, '0')) {
       const data = metaData['0'];
       if (
