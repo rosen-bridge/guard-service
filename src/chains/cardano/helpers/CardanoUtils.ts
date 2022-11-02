@@ -23,20 +23,19 @@ class CardanoUtils {
 
   /**
    * returns rosenData object if the box format is like rosen bridge observations otherwise returns undefined
-   * @param metaDataArray
+   * @param metaData
    */
-  static getRosenData = (
-    metaDataArray: Array<MetaData>
-  ): RosenData | undefined => {
-    if (metaDataArray.length > 0 && metaDataArray[0].key === '0') {
-      const metaData = metaDataArray[0].json;
+  static getRosenData = (metaData: MetaData): RosenData | undefined => {
+    // Rosen data type exists with the '0' key on the cardano tx metadata
+    if (Object.prototype.hasOwnProperty.call(metaData, '0')) {
+      const data = metaData['0'];
       if (
-        'to' in metaData &&
-        'bridgeFee' in metaData &&
-        'networkFee' in metaData &&
-        'toAddress' in metaData
+        'to' in data &&
+        'bridgeFee' in data &&
+        'networkFee' in data &&
+        'toAddress' in data
       ) {
-        const rosenData = metaData as unknown as {
+        const rosenData = data as unknown as {
           to: string;
           bridgeFee: string;
           networkFee: string;

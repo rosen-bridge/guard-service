@@ -210,18 +210,15 @@ class TestData {
     ],
     withdrawals: [],
     assets_minted: [],
-    metadata: [
-      {
-        key: '0',
-        json: JSON.parse(`{
+    metadata: {
+      '0': JSON.parse(`{
                     "to": "ergo",
                     "bridgeFee": "250",
                     "networkFee": "10000",
                     "toAddress": "ergoAddress",
                     "targetChainTokenId": "cardanoTokenId"
                 }`),
-      },
-    ],
+    },
     certificates: [],
     native_scripts: [],
     plutus_contracts: [],
@@ -328,18 +325,15 @@ class TestData {
     ],
     withdrawals: [],
     assets_minted: [],
-    metadata: [
-      {
-        key: '0',
-        json: JSON.parse(`{
+    metadata: {
+      '0': JSON.parse(`{
                     "to": "ergo",
                     "bridgeFee": "250",
                     "networkFee": "10000",
                     "toAddress": "ergoAddress",
                     "targetChainTokenId": "cardanoTokenId"
                 }`),
-      },
-    ],
+    },
     certificates: [],
     native_scripts: [],
     plutus_contracts: [],
@@ -433,18 +427,15 @@ class TestData {
         ],
       },
     ],
-    metadata: [
-      {
-        key: '0',
-        json: JSON.parse(`{
+    metadata: {
+      '0': JSON.parse(`{
                     "to": "ergo",
                     "bridgeFee": "250",
                     "networkFee": "10000",
                     "toAddress": "ergoAddress",
                     "targetChainTokenId": "cardanoTokenId"
                 }`),
-      },
-    ],
+    },
   };
 }
 
