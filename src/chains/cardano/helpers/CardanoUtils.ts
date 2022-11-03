@@ -11,7 +11,7 @@ class CardanoUtils {
     fingerprint: string
   ): [Uint8Array, Uint8Array] => {
     const token = Configs.tokenMap.search(ChainsConstants.cardano, {
-      fingerprint: fingerprint,
+      [Configs.tokenMap.getIdKey(ChainsConstants.cardano)]: fingerprint,
     });
     if (token.length === 0)
       throw new Error(`Asset fingerprint [${fingerprint}] not found in config`);
