@@ -633,7 +633,8 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
             amount;
           try {
             eventToken = Configs.tokenMap.search(ChainsConstants.cardano, {
-              fingerprint: event.sourceChainTokenId,
+              [Configs.tokenMap.getIdKey(ChainsConstants.cardano)]:
+                event.sourceChainTokenId,
             });
             targetTokenId = Configs.tokenMap.getID(
               eventToken[0],

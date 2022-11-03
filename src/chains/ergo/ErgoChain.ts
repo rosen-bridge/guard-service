@@ -507,7 +507,8 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
           .filter((box) => box !== undefined)[0];
         if (payment) {
           const token = Configs.tokenMap.search(ChainsConstants.ergo, {
-            tokenID: event.sourceChainTokenId,
+            [Configs.tokenMap.getIdKey(ChainsConstants.ergo)]:
+              event.sourceChainTokenId,
           });
           let targetTokenId;
           try {
