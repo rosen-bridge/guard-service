@@ -25,7 +25,7 @@ class MinimumFee {
     );
     return await MinimumFee.bridgeMinimumFee.getFee(
       tokenId,
-      event.toChain,
+      event.fromChain,
       event.height
     );
   };
