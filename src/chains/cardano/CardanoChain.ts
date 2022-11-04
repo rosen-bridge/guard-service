@@ -652,9 +652,9 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
           } else if (payment.asset_list.length !== 0) {
             const asset = payment.asset_list[0];
             const eventAssetPolicyId =
-              eventToken[0][ChainsConstants.cardano]['policyID'];
+              eventToken[0][ChainsConstants.cardano]['policyId'];
             const eventAssetId =
-              eventToken[0][ChainsConstants.cardano]['assetID'];
+              eventToken[0][ChainsConstants.cardano]['assetName'];
             amount = asset.quantity;
             if (
               !(

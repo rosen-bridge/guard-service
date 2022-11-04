@@ -16,8 +16,8 @@ class CardanoUtils {
     if (token.length === 0)
       throw new Error(`Asset fingerprint [${fingerprint}] not found in config`);
     return [
-      Buffer.from(token[0][ChainsConstants.cardano]['policyID'], 'hex'),
-      Buffer.from(token[0][ChainsConstants.cardano]['assetID'], 'hex'),
+      Buffer.from(token[0][ChainsConstants.cardano]['policyId'], 'hex'),
+      Buffer.from(token[0][ChainsConstants.cardano]['assetName'], 'hex'),
     ];
   };
 
