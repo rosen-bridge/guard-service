@@ -51,38 +51,46 @@ class TxAgreement {
     sender: string
   ): Promise<void> => {
     const message = JSON.parse(messageStr) as AgreementMessage;
-
-    switch (message.type) {
-      case 'request': {
-        const candidate = message.payload as CandidateTransaction;
-        const tx = txJsonParser(candidate.txJson);
-        await this.processTransactionRequest(
-          tx,
-          candidate.guardId,
-          candidate.signature,
-          sender
-        );
-        break;
+    try {
+      switch (message.type) {
+        case 'request': {
+          const candidate = message.payload as CandidateTransaction;
+          const tx = txJsonParser(candidate.txJson);
+          await this.processTransactionRequest(
+            tx,
+            candidate.guardId,
+            candidate.signature,
+            sender
+          );
+          break;
+        }
+        case 'response': {
+          const response = message.payload as GuardsAgreement;
+          await this.processAgreementResponse(
+            response.txId,
+            response.agreed,
+            response.guardId,
+            response.signature
+          );
+          break;
+        }
+        case 'approval': {
+          const approval = message.payload as TransactionApproved;
+          const tx = txJsonParser(approval.txJson);
+          await this.processApprovalMessage(
+            tx,
+            approval.guardsSignatures,
+            sender
+          );
+          break;
+        }
       }
-      case 'response': {
-        const response = message.payload as GuardsAgreement;
-        await this.processAgreementResponse(
-          response.txId,
-          response.agreed,
-          response.guardId,
-          response.signature
-        );
-        break;
-      }
-      case 'approval': {
-        const approval = message.payload as TransactionApproved;
-        const tx = txJsonParser(approval.txJson);
-        await this.processApprovalMessage(
-          tx,
-          approval.guardsSignatures,
-          sender
-        );
-        break;
+    } catch (e) {
+      if (e instanceof Error) {
+        logger.warn(`Error in handling messagees: [${e.message}]`);
+      } else {
+        logger.error('Handling message failed');
+        throw e;
       }
     }
   };
