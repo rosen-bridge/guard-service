@@ -66,7 +66,7 @@ class Reward {
             rsnCoef,
             currentHeight,
             event.sourceChainTokenId,
-            ChainsConstants.cardano,
+            ChainsConstants.ergo,
             Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee),
             Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee)
           )
@@ -77,7 +77,7 @@ class Reward {
             rsnCoef,
             currentHeight,
             event.sourceChainTokenId,
-            ChainsConstants.cardano,
+            ChainsConstants.ergo,
             Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee),
             Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee)
           );
@@ -240,7 +240,7 @@ class Reward {
             rsnCoef,
             currentHeight,
             event.sourceChainTokenId,
-            ChainsConstants.cardano,
+            ChainsConstants.ergo,
             Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee),
             Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee)
           )
@@ -251,7 +251,7 @@ class Reward {
             rsnCoef,
             currentHeight,
             event.sourceChainTokenId,
-            ChainsConstants.cardano,
+            ChainsConstants.ergo,
             Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee),
             Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee)
           );
