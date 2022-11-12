@@ -120,16 +120,15 @@ class ExplorerApi {
    * @param txId
    */
   static getTxConfirmation = async (txId: string): Promise<number> => {
-    try {
-      return this.explorerApi
-        .get<{ numConfirmations: number }>(`/v1/transactions/${txId}`)
-        .then((res) => res.data.numConfirmations);
-    } catch (e) {
-      logger.warn(
-        `An error occurred while getting confirmation for tx [${txId}] from Ergo Explorer: ${e}`
-      );
-      return -1;
-    }
+    return this.explorerApi
+      .get<{ numConfirmations: number }>(`/v1/transactions/${txId}`)
+      .then((res) => res.data.numConfirmations)
+      .catch((e) => {
+        logger.warn(
+          `An error occurred while getting confirmation for tx [${txId}] from Ergo Explorer: ${e}`
+        );
+        return -1;
+      });
   };
 
   /**
