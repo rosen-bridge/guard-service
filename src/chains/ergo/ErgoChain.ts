@@ -360,7 +360,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
       rsnCoef,
       currentHeight,
       paymentTokenId,
-      ChainsConstants.ergo,
+      event.fromChain,
       bridgeFee,
       networkFee
     );
@@ -409,7 +409,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
       rsnCoef,
       currentHeight,
       paymentTokenId,
-      ChainsConstants.ergo,
+      event.fromChain,
       bridgeFee,
       networkFee
     );

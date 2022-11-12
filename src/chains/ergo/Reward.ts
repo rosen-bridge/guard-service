@@ -240,7 +240,7 @@ class Reward {
             rsnCoef,
             currentHeight,
             event.sourceChainTokenId,
-            ChainsConstants.ergo,
+            event.fromChain,
             Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee),
             Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee)
           )
@@ -251,7 +251,7 @@ class Reward {
             rsnCoef,
             currentHeight,
             event.sourceChainTokenId,
-            ChainsConstants.ergo,
+            event.fromChain,
             Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee),
             Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee)
           );
