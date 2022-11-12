@@ -24,7 +24,7 @@ class ExplorerApi {
    * @param offset
    * @param limit
    */
-  static getBoxesForErgoTree = async (
+  static getBoxesForErgoTree = (
     ergoTree: string,
     offset = 0,
     limit = 100
@@ -52,7 +52,7 @@ class ExplorerApi {
    * gets boxes containing tokenId
    * @param tokenId the address ergoTree
    */
-  static getBoxesByTokenId = async (tokenId: string): Promise<Boxes> => {
+  static getBoxesByTokenId = (tokenId: string): Promise<Boxes> => {
     return this.explorerApi
       .get<Boxes>(`/v1/boxes/unspent/byTokenId/${tokenId}`)
       .then((res) => res.data)
@@ -135,7 +135,7 @@ class ExplorerApi {
    * checks if tx is in mempool
    * @param txId
    */
-  static isTxInMempool = async (txId: string): Promise<boolean> => {
+  static isTxInMempool = (txId: string): Promise<boolean> => {
     return this.explorerApi
       .get(`/v0/transactions/unconfirmed/${txId}`)
       .then(() => true)
@@ -151,7 +151,7 @@ class ExplorerApi {
    * checks if box is in network and unspent
    * @param boxId
    */
-  static isBoxUnspentAndValid = async (boxId: string): Promise<boolean> => {
+  static isBoxUnspentAndValid = (boxId: string): Promise<boolean> => {
     return this.explorerApi
       .get(`/v1/boxes/${boxId}`)
       .then((res) => res.data.spentTransactionId === null)
