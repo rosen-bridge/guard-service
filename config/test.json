@@ -13,7 +13,8 @@
     "txMinimumLovelace": "1551690",
     "txFee": "200000",
     "txTtl": 1000000,
-    "requiredConfirmation": 20,
+    "observationConfirmation": 20,
+    "paymentConfirmation": 20,
     "lockAddresses": [
       "addr_test1vze7yqqlg8cjlyhz7jzvsg0f3fhxpuu6m3llxrajfzqecggw704re"
     ]
@@ -30,7 +31,9 @@
     "minimumErg": "100000",
     "minimumFeeConfigBoxTemplateHash": "",
     "txFee": "1100000",
-    "requiredConfirmation": 20
+    "observationConfirmation": 20,
+    "eventConfirmation": 20,
+    "distributionConfirmation": 20
   },
   "reward": {
     "bridgeFeeRepoAddress": "9gtQHPp8yh2SC7z5ZLMHnK2NNW1DUW11hBKbUEADzqCSrECoQQM",

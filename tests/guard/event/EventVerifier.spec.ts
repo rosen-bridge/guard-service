@@ -63,9 +63,7 @@ describe('EventVerifier', () => {
       // mock event box and current height
       mockGetEventBox(anything(), eventBoxAndCommitments[0]);
       const mockedHeight =
-        TestConfigs.ergo.blockchainHeight +
-        ErgoConfigs.requiredConfirmation -
-        1;
+        TestConfigs.ergo.blockchainHeight + ErgoConfigs.eventConfirmation - 1;
       mockGetHeight(mockedHeight);
 
       // run test
@@ -107,9 +105,7 @@ describe('EventVerifier', () => {
       // mock event box and current height
       mockGetEventBox(anything(), eventBoxAndCommitments[0]);
       const mockedHeight =
-        TestConfigs.ergo.blockchainHeight +
-        ErgoConfigs.requiredConfirmation +
-        1;
+        TestConfigs.ergo.blockchainHeight + ErgoConfigs.eventConfirmation + 1;
       mockGetHeight(mockedHeight);
 
       // run test
@@ -151,9 +147,7 @@ describe('EventVerifier', () => {
       // mock event box and current height
       mockGetEventBox(anything(), eventBoxAndCommitments[0]);
       const mockedHeight =
-        TestConfigs.ergo.blockchainHeight +
-        ErgoConfigs.requiredConfirmation +
-        1;
+        TestConfigs.ergo.blockchainHeight + ErgoConfigs.eventConfirmation + 1;
       mockGetHeight(mockedHeight);
 
       // run test

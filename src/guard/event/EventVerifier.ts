@@ -84,7 +84,7 @@ class EventVerifier {
     const ergoCurrentHeight = await NodeApi.getHeight();
     if (
       ergoCurrentHeight - eventBoxCreationHeight <
-      ErgoConfigs.requiredConfirmation
+      ErgoConfigs.eventConfirmation
     )
       return false;
 
@@ -93,13 +93,13 @@ class EventVerifier {
       const confirmation = await KoiosApi.getTxConfirmation(event.sourceTxId);
       return (
         confirmation !== null &&
-        confirmation >= CardanoConfigs.requiredConfirmation
+        confirmation >= CardanoConfigs.observationConfirmation
       );
     } else if (event.fromChain === ChainsConstants.ergo) {
       const confirmation = await ExplorerApi.getTxConfirmation(
         event.sourceTxId
       );
-      return confirmation >= ErgoConfigs.requiredConfirmation;
+      return confirmation >= ErgoConfigs.observationConfirmation;
     } else throw new Error(`Chain [${event.fromChain}] not implemented.`);
   };
 }
