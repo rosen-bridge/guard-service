@@ -56,10 +56,7 @@ class BlockFrostApi {
    */
   static getAddressUtxos = (address: string): Promise<AddressUtxos> => {
     return this.blockFrost.addressesUtxos(address).catch((e) => {
-      logger.error(
-        `An error occurred while getting address [${address}] utxos using BlockFrost: ${e}`
-      );
-      throw e;
+      throw `An error occurred while getting address [${address}] utxos using BlockFrost: ${e}`;
     });
   };
 }

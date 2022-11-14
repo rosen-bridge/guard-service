@@ -340,8 +340,16 @@ class TransactionProcessor {
 
       const address = sourceTxs.get(sourceTxId)!.outputs[box.index()].address;
       if (!addressUtxos.has(address)) {
-        const utxos = await BlockFrostApi.getAddressUtxos(address);
-        addressUtxos.set(address, utxos);
+        try {
+          const utxos = await BlockFrostApi.getAddressUtxos(address);
+          addressUtxos.set(address, utxos);
+        } catch (e) {
+          logger.warn(`An error occurred while fetching Address Utxos`, {
+            txId: sourceTxId,
+            error: e.message,
+          });
+          return false;
+        }
       }
 
       const utxo = addressUtxos
