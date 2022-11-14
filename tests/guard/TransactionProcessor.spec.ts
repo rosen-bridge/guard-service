@@ -74,7 +74,10 @@ describe('TransactionProcessor', () => {
           ergoBlockchainHeight - 2,
           tx.eventId
         );
-        mockExplorerGetTxConfirmation(tx.txId, 30);
+        mockExplorerGetTxConfirmation(
+          tx.txId,
+          ErgoConfigs.distributionConfirmation
+        );
 
         // run test
         await TransactionProcessor.processTransactions();
@@ -362,7 +365,7 @@ describe('TransactionProcessor', () => {
           cardanoBlockchainHeight - 2,
           tx.eventId
         );
-        mockKoiosGetTxConfirmation(tx.txId, 30);
+        mockKoiosGetTxConfirmation(tx.txId, CardanoConfigs.paymentConfirmation);
 
         // run test
         await TransactionProcessor.processTransactions();
@@ -404,7 +407,7 @@ describe('TransactionProcessor', () => {
           cardanoBlockchainHeight - 2,
           tx.eventId
         );
-        mockKoiosGetTxConfirmation(tx.txId, 30);
+        mockKoiosGetTxConfirmation(tx.txId, CardanoConfigs.paymentConfirmation);
 
         // run test
         await TransactionProcessor.processTransactions();
