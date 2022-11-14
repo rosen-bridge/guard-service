@@ -345,7 +345,7 @@ class TransactionProcessor {
           addressUtxos.set(address, utxos);
         } catch (e) {
           logger.warn(`An error occurred while fetching Address Utxos`, {
-            txId: sourceTxId,
+            address: address,
             error: e.message,
           });
           return false;
