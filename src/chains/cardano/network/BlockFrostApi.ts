@@ -36,7 +36,7 @@ class BlockFrostApi {
    */
   static txSubmit = async (tx: Transaction): Promise<string> => {
     try {
-      return this.blockFrost.txSubmit(tx.to_bytes());
+      return await this.blockFrost.txSubmit(tx.to_bytes());
     } catch (e) {
       logger.error(
         `An error occurred while submitting tx using BlockFrost: ${e}`
