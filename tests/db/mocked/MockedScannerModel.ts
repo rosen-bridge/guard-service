@@ -1,12 +1,31 @@
-import { anything, spy, when } from 'ts-mockito';
-import { fileURLToPath } from 'url';
 import path from 'path';
+import { anything, spy, when } from 'ts-mockito';
 import { DataSource } from 'typeorm';
-import { dbAction, DatabaseAction } from '../../../src/db/DatabaseAction';
+import { fileURLToPath } from 'url';
+
+import {
+  BlockEntity,
+  migrations as scannerMigrations,
+} from '@rosen-bridge/scanner';
+import {
+  CommitmentEntity,
+  EventTriggerEntity,
+  migrations as watcherDataExtractorMigrations,
+} from '@rosen-bridge/watcher-data-extractor';
+
+import { ConfirmedEventEntity } from '../../../src/db/entities/ConfirmedEventEntity';
+import { TransactionEntity } from '../../../src/db/entities/TransactionEntity';
+
+import migrations from '../../../src/db/migrations';
+
 import { EventTrigger, PaymentTransaction } from '../../../src/models/Models';
+
+import { dbAction, DatabaseAction } from '../../../src/db/DatabaseAction';
+
 import Utils from '../../../src/helpers/Utils';
-import TestUtils from '../../testUtils/TestUtils';
 import { logger } from '../../../src/log/Logger';
+
+import TestUtils from '../../testUtils/TestUtils';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,11 +38,17 @@ const testScannerOrmDataSource = new DataSource({
   type: 'sqlite',
   database: __dirname + '/../sqlite/test/db.sqlite',
   entities: [
-    'src/db/entities/*.ts',
-    'node_modules/@rosen-bridge/scanner/dist/entities/*.js',
-    'node_modules/@rosen-bridge/watcher-data-extractor/dist/entities/*.js',
+    BlockEntity,
+    CommitmentEntity,
+    ConfirmedEventEntity,
+    EventTriggerEntity,
+    TransactionEntity,
   ],
-  migrations: ['src/db/migrations/*.ts'],
+  migrations: [
+    ...scannerMigrations,
+    ...watcherDataExtractorMigrations,
+    ...migrations,
+  ],
   synchronize: false,
   logging: false,
 });
