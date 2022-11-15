@@ -38,6 +38,12 @@ import { guardConfig } from '../../helpers/GuardConfig';
 import { logger } from '../../log/Logger';
 import { Fee } from '@rosen-bridge/minimum-fee';
 import MinimumFee from '../../guard/MinimumFee';
+import {
+  NetworkError,
+  FailedError,
+  UnexpectedApiError,
+  NotFoundError,
+} from '../../helpers/errors';
 
 class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
   lockAddress = Address.from_base58(ErgoConfigs.ergoContractConfig.lockAddress);
@@ -493,82 +499,90 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
     // Verifying watcher RWTs
     if (RWTId !== ErgoConfigs.ergoContractConfig.RWTId) {
       logger.info(
-        `the event with eventId[${eventId}] is not valid, event RWT is not compatible with the ergo RWT id`
+        `event [${eventId}] is not valid, event RWT is not compatible with the ergo RWT id`
       );
       return false;
     }
     try {
       const paymentTx = await ExplorerApi.getConfirmedTx(event.sourceTxId);
-      if (paymentTx) {
-        const lockAddress = ErgoConfigs.ergoContractConfig.lockAddress;
-        const payment = paymentTx.outputs
-          .filter((box) => lockAddress === box.address)
-          .map((box) => ErgoUtils.getRosenData(box, event.sourceChainTokenId))
-          .filter((box) => box !== undefined)[0];
-        if (payment) {
-          const token = Configs.tokenMap.search(ChainsConstants.ergo, {
-            [Configs.tokenMap.getIdKey(ChainsConstants.ergo)]:
-              event.sourceChainTokenId,
-          });
-          let targetTokenId;
-          try {
-            targetTokenId = Configs.tokenMap.getID(token[0], event.toChain);
-          } catch (e) {
-            logger.info(
-              `event [${eventId}] is not valid,tx [${event.sourceTxId}] token or chainId is invalid`
-            );
-            return false;
-          }
-          // TODO: fix fromAddress when it was fixed in the watcher side
-          //  https://git.ergopool.io/ergo/rosen-bridge/watcher/-/issues/8
-          const inputAddress = 'fromAddress';
+      const lockAddress = ErgoConfigs.ergoContractConfig.lockAddress;
+      const payment = paymentTx.outputs
+        .filter((box) => lockAddress === box.address)
+        .map((box) => ErgoUtils.getRosenData(box, event.sourceChainTokenId))
+        .filter((box) => box !== undefined)[0];
+      if (payment) {
+        const token = Configs.tokenMap.search(ChainsConstants.ergo, {
+          [Configs.tokenMap.getIdKey(ChainsConstants.ergo)]:
+            event.sourceChainTokenId,
+        });
+        let targetTokenId;
+        try {
+          targetTokenId = Configs.tokenMap.getID(token[0], event.toChain);
+        } catch (e) {
+          logger.info(
+            `Event [${eventId}] is not valid,tx [${event.sourceTxId}] token or chainId is invalid`
+          );
+          return false;
+        }
+        // TODO: fix fromAddress when it was fixed in the watcher side
+        //  https://git.ergopool.io/ergo/rosen-bridge/watcher/-/issues/8
+        const inputAddress = 'fromAddress';
+        if (
+          event.fromChain == ChainsConstants.ergo &&
+          event.toChain == payment.toChain &&
+          event.networkFee == payment.networkFee &&
+          event.bridgeFee == payment.bridgeFee &&
+          event.amount == payment.amount &&
+          event.sourceChainTokenId == payment.tokenId &&
+          event.targetChainTokenId == targetTokenId &&
+          event.sourceBlockId == payment.blockId &&
+          event.toAddress == payment.toAddress &&
+          event.fromAddress == inputAddress
+        ) {
+          // check if amount is more than fees
+          const feeConfig = await MinimumFee.getEventFeeConfig(event);
           if (
-            event.fromChain == ChainsConstants.ergo &&
-            event.toChain == payment.toChain &&
-            event.networkFee == payment.networkFee &&
-            event.bridgeFee == payment.bridgeFee &&
-            event.amount == payment.amount &&
-            event.sourceChainTokenId == payment.tokenId &&
-            event.targetChainTokenId == targetTokenId &&
-            event.sourceBlockId == payment.blockId &&
-            event.toAddress == payment.toAddress &&
-            event.fromAddress == inputAddress
+            BigInt(event.amount) <
+            Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee) +
+              Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee)
           ) {
-            // check if amount is more than fees
-            const feeConfig = await MinimumFee.getEventFeeConfig(event);
-            if (
-              BigInt(event.amount) <
-              Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee) +
-                Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee)
-            ) {
-              logger.info(
-                `Event [${eventId}] is not valid, event amount is less than fees`
-              );
-              return false;
-            }
-            logger.info(`event [${eventId}] has been successfully validated`);
-            return true;
-          } else {
             logger.info(
-              `event [${eventId}] is not valid, event data does not match with lock tx [${event.sourceTxId}]`
+              `Event [${eventId}] is not valid, event amount is less than fees`
             );
             return false;
           }
+          logger.info(`Event [${eventId}] has been successfully validated`);
+          return true;
         } else {
           logger.info(
-            `event [${eventId}] is not valid, failed to extract Rosen data from lock tx [${event.sourceTxId}]`
+            `Event [${eventId}] is not valid, event data does not match with lock tx [${event.sourceTxId}]`
           );
           return false;
         }
       } else {
         logger.info(
-          `event [${eventId}] is not valid, lock tx [${event.sourceTxId}] is not available in network`
+          `Event [${eventId}] is not valid, failed to extract Rosen data from lock tx [${event.sourceTxId}]`
         );
         return false;
       }
     } catch (e) {
-      logger.warn(`event [${eventId}] validation failed: ${e}`);
-      return false;
+      if (e instanceof NotFoundError) {
+        logger.info(
+          `Event [${eventId}] is not valid, lock tx [${event.sourceTxId}] is not available in network`
+        );
+        return false;
+      } else if (
+        e instanceof FailedError ||
+        e instanceof NetworkError ||
+        e instanceof UnexpectedApiError
+      ) {
+        throw Error(
+          `Skipping event [${eventId}] validation: An error occurred while fetching confirmed tx [${event.sourceTxId}] from Ergo Explorer: ${e}`
+        );
+      } else {
+        logger.warn(`Event [${eventId}] validation failed: ${e}`);
+        return false;
+      }
     }
   };
 

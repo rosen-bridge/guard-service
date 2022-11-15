@@ -24,6 +24,7 @@ import BaseChain from '../chains/BaseChains';
 import { Semaphore } from 'await-semaphore';
 import { txJsonParser } from '../chains/TxJsonParser';
 import { logger } from '../log/Logger';
+import { NetworkError, UnexpectedApiError } from '../helpers/errors';
 
 class TransactionProcessor {
   static cardanoChain = new CardanoChain();
