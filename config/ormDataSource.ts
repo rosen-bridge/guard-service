@@ -15,6 +15,8 @@ import {
 import { ConfirmedEventEntity } from '../src/db/entities/ConfirmedEventEntity';
 import { TransactionEntity } from '../src/db/entities/TransactionEntity';
 
+import migrations from '../src/db/migrations';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -35,7 +37,7 @@ export const ormDataSource = new DataSource({
   migrations: [
     ...scannerMigrations,
     ...watcherDataExtractorMigrations,
-    'src/db/migrations/*.ts',
+    ...migrations,
   ],
   synchronize: false,
   logging: false,
