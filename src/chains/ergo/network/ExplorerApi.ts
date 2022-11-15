@@ -44,18 +44,19 @@ class ExplorerApi {
       )
       .then((res) => res.data)
       .catch((e) => {
+        const baseError = `Failed to get boxes for ErgoTree [${ergoTree}] from Ergo Explorer: `;
         if (e.response) {
           logger.warn(
-            `Failed to get boxes for ErgoTree [${ergoTree}] from Ergo Explorer: ${e.response.status}: ${e.response.data.reason}`
+            baseError + `${e.response.status}: ${e.response.data.reason}`
           );
           return {
             items: [],
             total: 0,
           };
         } else if (e.request) {
-          throw new NetworkError(e.message);
+          throw new NetworkError(baseError + e.message);
         } else {
-          throw new UnexpectedApiError(e.message);
+          throw new UnexpectedApiError(baseError + e.message);
         }
       });
   };
@@ -69,18 +70,19 @@ class ExplorerApi {
       .get<Boxes>(`/v1/boxes/unspent/byTokenId/${tokenId}`)
       .then((res) => res.data)
       .catch((e) => {
+        const baseError = `Failed to get boxes containing token [${tokenId}] from Ergo Explorer: `;
         if (e.response) {
           logger.warn(
-            `Failed to get boxes containing token [${tokenId}] from Ergo Explorer: ${e.response.status}: ${e.response.data.reason}`
+            baseError + `${e.response.status}: ${e.response.data.reason}`
           );
           return {
             items: [],
             total: 0,
           };
         } else if (e.request) {
-          throw new NetworkError(e.message);
+          throw new NetworkError(baseError + e.message);
         } else {
-          throw new UnexpectedApiError(e.message);
+          throw new UnexpectedApiError(baseError + e.message);
         }
       });
   };
@@ -142,15 +144,16 @@ class ExplorerApi {
       .get<{ numConfirmations: number }>(`/v1/transactions/${txId}`)
       .then((res) => res.data.numConfirmations)
       .catch((e) => {
+        const baseError = `Failed to get tx [${txId}] from Ergo Explorer: `;
         if (e.response) {
           logger.warn(
-            `Failed to get tx [${txId}] from Ergo Explorer: ${e.response.status}: ${e.response.data.reason}`
+            baseError + `${e.response.status}: ${e.response.data.reason}`
           );
           return -1;
         } else if (e.request) {
-          throw new NetworkError(e.message);
+          throw new NetworkError(baseError + e.message);
         } else {
-          throw new UnexpectedApiError(e.message);
+          throw new UnexpectedApiError(baseError + e.message);
         }
       });
   };
@@ -164,15 +167,16 @@ class ExplorerApi {
       .get(`/v0/transactions/unconfirmed/${txId}`)
       .then(() => true)
       .catch((e) => {
+        const baseError = `Failed to get tx [${txId}] from mempool of Ergo Explorer: `;
         if (e.response) {
           logger.warn(
-            `Failed to get tx [${txId}] from mempool of Ergo Explorer: ${e.response.status}: ${e.response.data.reason}`
+            baseError + `${e.response.status}: ${e.response.data.reason}`
           );
           return false;
         } else if (e.request) {
-          throw new NetworkError(e.message);
+          throw new NetworkError(baseError + e.message);
         } else {
-          throw new UnexpectedApiError(e.message);
+          throw new UnexpectedApiError(baseError + e.message);
         }
       });
   };
@@ -186,15 +190,16 @@ class ExplorerApi {
       .get(`/v1/boxes/${boxId}`)
       .then((res) => res.data.spentTransactionId === null)
       .catch((e) => {
+        const baseError = `Failed to get box [${boxId}] from Ergo Explorer: `;
         if (e.response) {
           logger.warn(
-            `Failed to get box [${boxId}] from Ergo Explorer: ${e.response.status}: ${e.response.data.reason}`
+            baseError + `${e.response.status}: ${e.response.data.reason}`
           );
           return false;
         } else if (e.request) {
-          throw new NetworkError(e.message);
+          throw new NetworkError(baseError + e.message);
         } else {
-          throw new UnexpectedApiError(e.message);
+          throw new UnexpectedApiError(baseError + e.message);
         }
       });
   };
@@ -210,14 +215,15 @@ class ExplorerApi {
         return res.data;
       })
       .catch((e) => {
+        const baseError = `Failed to get confirmed tx [${txId}]: `;
         if (e.response) {
           if (e.response.status === 404)
-            throw new NotFoundError(e.response.data.reason);
-          else throw new FailedError(e.response.data.reason);
+            throw new NotFoundError(baseError + e.response.data.reason);
+          else throw new FailedError(baseError + e.response.data.reason);
         } else if (e.request) {
-          throw new NetworkError(e.message);
+          throw new NetworkError(baseError + e.message);
         } else {
-          throw new UnexpectedApiError(e.message);
+          throw new UnexpectedApiError(baseError + e.message);
         }
       });
   };

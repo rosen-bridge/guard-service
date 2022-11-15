@@ -39,6 +39,12 @@ import { logger } from '../../log/Logger';
 import { TssFailedSign, TssSuccessfulSign } from '../../models/Interfaces';
 import { Fee } from '@rosen-bridge/minimum-fee';
 import MinimumFee from '../../guard/MinimumFee';
+import {
+  FailedError,
+  NetworkError,
+  NotFoundError,
+  UnexpectedApiError,
+} from '../../helpers/errors';
 
 class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
   bankAddress = Address.from_bech32(CardanoConfigs.bankAddress);
@@ -714,8 +720,21 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         return false;
       }
     } catch (e) {
-      logger.warn(`Event [${eventId}] validation failed: ${e}`);
-      return false;
+      if (e instanceof NotFoundError) {
+        logger.info(
+          `Event [${eventId}] is not valid, lock tx [${event.sourceTxId}] is not available in network`
+        );
+        return false;
+      } else if (
+        e instanceof FailedError ||
+        e instanceof NetworkError ||
+        e instanceof UnexpectedApiError
+      ) {
+        throw Error(`Skipping event [${eventId}] validation: ${e}`);
+      } else {
+        logger.warn(`Event [${eventId}] validation failed: ${e}`);
+        return false;
+      }
     }
   };
 

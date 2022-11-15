@@ -576,9 +576,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         e instanceof NetworkError ||
         e instanceof UnexpectedApiError
       ) {
-        throw Error(
-          `Skipping event [${eventId}] validation: An error occurred while fetching confirmed tx [${event.sourceTxId}] from Ergo Explorer: ${e}`
-        );
+        throw Error(`Skipping event [${eventId}] validation: ${e}`);
       } else {
         logger.warn(`Event [${eventId}] validation failed: ${e}`);
         return false;
