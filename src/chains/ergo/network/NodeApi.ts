@@ -7,6 +7,12 @@ import {
 import { ErgoBlockHeader } from '../models/Interfaces';
 import ErgoConfigs from '../helpers/ErgoConfigs';
 import { logger } from '../../../log/Logger';
+import {
+  FailedError,
+  NetworkError,
+  NotFoundError,
+  UnexpectedApiError,
+} from '../../../helpers/errors';
 
 class NodeApi {
   static nodeClient = axios.create({
@@ -23,10 +29,14 @@ class NodeApi {
       .get<{ fullHeight: number }>('/info')
       .then((info) => info.data.fullHeight)
       .catch((e) => {
-        logger.warn(
-          `An error occurred while getting blockchain height from Ergo Node: ${e}`
-        );
-        throw e;
+        const baseError = `Failed to get blockchain height from Ergo Node: `;
+        if (e.response) {
+          throw new FailedError(baseError + `${e.response.data.reason}`);
+        } else if (e.request) {
+          throw new NetworkError(baseError + e.message);
+        } else {
+          throw new UnexpectedApiError(baseError + e.message);
+        }
       });
   };
 
@@ -38,10 +48,14 @@ class NodeApi {
       .get<ErgoBlockHeader[]>('/blocks/lastHeaders/10')
       .then((res) => res.data)
       .catch((e) => {
-        logger.warn(
-          `An error occurred while getting last block header from Ergo Node: ${e}`
-        );
-        throw e;
+        const baseError = `Failed to get last block header from Ergo Node: `;
+        if (e.response) {
+          throw new FailedError(baseError + `${e.response.data.reason}`);
+        } else if (e.request) {
+          throw new NetworkError(baseError + e.message);
+        } else {
+          throw new UnexpectedApiError(baseError + e.message);
+        }
       });
   };
 

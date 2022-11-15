@@ -86,12 +86,9 @@ class TxAgreement {
         }
       }
     } catch (e) {
-      if (e instanceof Error) {
-        logger.warn(`Error in handling messagees: [${e.message}]`);
-      } else {
-        logger.error('Handling message failed');
-        throw e;
-      }
+      logger.warn(
+        `An error occurred while handling tx-agreement message: ${e}`
+      );
     }
   };
 
