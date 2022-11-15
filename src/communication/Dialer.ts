@@ -259,6 +259,7 @@ class Dialer {
             );
             logger.warn(this.getPeerIds().includes(peer));
             if (!this.getPeerIds().includes(peer)) {
+              this._pendingDialPeers.push(peer);
               this._node?.peerStore.addressBook
                 .set(await createFromJSON({ id: `${peer}` }), [multi])
                 .catch((err) => {
@@ -270,14 +271,15 @@ class Dialer {
                   this._SUPPORTED_PROTOCOL.get('MSG')!
                 );
                 this._disconnectedPeers.delete(peer);
-                this._pendingDialPeers = this._pendingDialPeers.filter(
-                  (innerPeer) => innerPeer !== peer
-                );
                 logger.info(`a peer with peerID [${peer}] added`);
               } catch (err) {
                 logger.warn(
                   `An error occurred while dialing peer ${peer}: `,
                   err
+                );
+              } finally {
+                this._pendingDialPeers = this._pendingDialPeers.filter(
+                  (innerPeer) => innerPeer !== peer
                 );
               }
             }
@@ -540,7 +542,6 @@ class Dialer {
           ) &&
           !this._pendingDialPeers.includes(evt.detail.id.toString())
         ) {
-          this._pendingDialPeers.push(evt.detail.id.toString());
           this.addAndDialPeer([evt.detail.id.toString()]).catch((err) => {
             logger.warn(`Could not dial ${evt.detail.id}`, err);
           });
