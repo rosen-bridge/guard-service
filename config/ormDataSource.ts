@@ -2,10 +2,14 @@ import path from 'path';
 import { DataSource } from 'typeorm';
 import { fileURLToPath } from 'url';
 
-import { BlockEntity } from '@rosen-bridge/scanner';
+import {
+  BlockEntity,
+  migrations as scannerMigrations,
+} from '@rosen-bridge/scanner';
 import {
   CommitmentEntity,
   EventTriggerEntity,
+  migrations as watcherDataExtractorMigrations,
 } from '@rosen-bridge/watcher-data-extractor';
 
 import { ConfirmedEventEntity } from '../src/db/entities/ConfirmedEventEntity';
@@ -28,7 +32,11 @@ export const ormDataSource = new DataSource({
     EventTriggerEntity,
     TransactionEntity,
   ],
-  migrations: ['src/db/migrations/*.ts'],
+  migrations: [
+    ...scannerMigrations,
+    ...watcherDataExtractorMigrations,
+    'src/db/migrations/*.ts',
+  ],
   synchronize: false,
   logging: false,
 });
