@@ -33,7 +33,13 @@ class ErgoConfigs {
     config.get?.('reward.watchersRSNSharePercent')
   );
 
-  static requiredConfirmation = config.get<number>('ergo.requiredConfirmation');
+  static observationConfirmation = config.get<number>(
+    'ergo.observationConfirmation'
+  );
+  static eventConfirmation = config.get<number>('ergo.eventConfirmation');
+  static distributionConfirmation = config.get<number>(
+    'ergo.distributionConfirmation'
+  );
   static initialHeight = config.get<number>('ergo.initialHeight');
   static scannerInterval = config.get<number>('ergo.scannerInterval');
 

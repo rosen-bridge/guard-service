@@ -57,8 +57,11 @@ class CardanoConfigs {
     ['assetFingerPrint', Buffer.from('assetUnitHexString', 'hex')],
   ]);
 
-  static requiredConfirmation = config.get<number>(
-    'cardano.requiredConfirmation'
+  static observationConfirmation = config.get<number>(
+    'cardano.observationConfirmation'
+  );
+  static paymentConfirmation = config.get<number>(
+    'cardano.paymentConfirmation'
   );
   static lockAddresses = config.get<Array<string>>('cardano.lockAddresses');
 

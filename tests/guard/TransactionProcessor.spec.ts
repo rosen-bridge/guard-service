@@ -74,7 +74,10 @@ describe('TransactionProcessor', () => {
           ergoBlockchainHeight - 2,
           tx.eventId
         );
-        mockExplorerGetTxConfirmation(tx.txId, 30);
+        mockExplorerGetTxConfirmation(
+          tx.txId,
+          ErgoConfigs.distributionConfirmation
+        );
 
         // run test
         await TransactionProcessor.processTransactions();
@@ -235,7 +238,7 @@ describe('TransactionProcessor', () => {
           eventBoxAndCommitments
         );
         const lastCheck =
-          ergoBlockchainHeight - ErgoConfigs.requiredConfirmation - 1;
+          ergoBlockchainHeight - ErgoConfigs.distributionConfirmation - 1;
         await insertTxRecord(
           tx,
           TransactionTypes.payment,
@@ -290,7 +293,7 @@ describe('TransactionProcessor', () => {
           eventBoxAndCommitments
         );
         const lastCheck =
-          ergoBlockchainHeight - ErgoConfigs.requiredConfirmation - 1;
+          ergoBlockchainHeight - ErgoConfigs.distributionConfirmation - 1;
         await insertTxRecord(
           tx,
           TransactionTypes.reward,
@@ -362,7 +365,7 @@ describe('TransactionProcessor', () => {
           cardanoBlockchainHeight - 2,
           tx.eventId
         );
-        mockKoiosGetTxConfirmation(tx.txId, 30);
+        mockKoiosGetTxConfirmation(tx.txId, CardanoConfigs.paymentConfirmation);
 
         // run test
         await TransactionProcessor.processTransactions();
@@ -404,7 +407,7 @@ describe('TransactionProcessor', () => {
           cardanoBlockchainHeight - 2,
           tx.eventId
         );
-        mockKoiosGetTxConfirmation(tx.txId, 30);
+        mockKoiosGetTxConfirmation(tx.txId, CardanoConfigs.paymentConfirmation);
 
         // run test
         await TransactionProcessor.processTransactions();
@@ -484,7 +487,7 @@ describe('TransactionProcessor', () => {
         await insertEventRecord(mockedEvent, EventStatus.inPayment);
         const tx = CardanoTestBoxes.mockTTLPastAssetPaymentTx(mockedEvent);
         const lastCheck =
-          cardanoBlockchainHeight - CardanoConfigs.requiredConfirmation - 1;
+          cardanoBlockchainHeight - CardanoConfigs.paymentConfirmation - 1;
         await insertTxRecord(
           tx,
           TransactionTypes.payment,
@@ -565,7 +568,7 @@ describe('TransactionProcessor', () => {
         await insertEventRecord(mockedEvent, EventStatus.inPayment);
         const tx = CardanoTestBoxes.mockADAPaymentTransaction(mockedEvent);
         const lastCheck =
-          cardanoBlockchainHeight - CardanoConfigs.requiredConfirmation - 1;
+          cardanoBlockchainHeight - CardanoConfigs.paymentConfirmation - 1;
         await insertTxRecord(
           tx,
           TransactionTypes.payment,
@@ -834,7 +837,7 @@ describe('TransactionProcessor', () => {
       await insertEventRecord(mockedEvent, EventStatus.inPayment);
       const tx = CardanoTestBoxes.mockADAPaymentTransaction(mockedEvent);
       const lastCheck =
-        cardanoBlockchainHeight - CardanoConfigs.requiredConfirmation - 1;
+        cardanoBlockchainHeight - CardanoConfigs.paymentConfirmation - 1;
       await insertTxRecord(
         tx,
         TransactionTypes.payment,
@@ -890,7 +893,7 @@ describe('TransactionProcessor', () => {
       await insertEventRecord(mockedEvent, EventStatus.inPayment);
       const tx = CardanoTestBoxes.mockADAPaymentTransaction(mockedEvent);
       const lastCheck =
-        cardanoBlockchainHeight - CardanoConfigs.requiredConfirmation - 1;
+        cardanoBlockchainHeight - CardanoConfigs.paymentConfirmation - 1;
       await insertTxRecord(
         tx,
         TransactionTypes.payment,
@@ -937,7 +940,7 @@ describe('TransactionProcessor', () => {
       await insertEventRecord(mockedEvent, EventStatus.inPayment);
       const tx = CardanoTestBoxes.mockADAPaymentTransaction(mockedEvent);
       const lastCheck =
-        cardanoBlockchainHeight - CardanoConfigs.requiredConfirmation - 1;
+        cardanoBlockchainHeight - CardanoConfigs.paymentConfirmation - 1;
       await insertTxRecord(
         tx,
         TransactionTypes.payment,
@@ -987,7 +990,7 @@ describe('TransactionProcessor', () => {
         eventBoxAndCommitments
       );
       const lastCheck =
-        ergoBlockchainHeight - ErgoConfigs.requiredConfirmation - 1;
+        ergoBlockchainHeight - ErgoConfigs.distributionConfirmation - 1;
       await insertTxRecord(
         tx,
         TransactionTypes.payment,
@@ -1051,7 +1054,7 @@ describe('TransactionProcessor', () => {
         eventBoxAndCommitments
       );
       const lastCheck =
-        ergoBlockchainHeight - ErgoConfigs.requiredConfirmation - 1;
+        ergoBlockchainHeight - ErgoConfigs.distributionConfirmation - 1;
       await insertTxRecord(
         tx,
         TransactionTypes.payment,
@@ -1104,7 +1107,7 @@ describe('TransactionProcessor', () => {
         eventBoxAndCommitments
       );
       const lastCheck =
-        ergoBlockchainHeight - ErgoConfigs.requiredConfirmation - 1;
+        ergoBlockchainHeight - ErgoConfigs.distributionConfirmation - 1;
       await insertTxRecord(
         tx,
         TransactionTypes.payment,
@@ -1152,7 +1155,7 @@ describe('TransactionProcessor', () => {
         eventBoxAndCommitments
       );
       const lastCheck =
-        ergoBlockchainHeight - ErgoConfigs.requiredConfirmation - 1;
+        ergoBlockchainHeight - ErgoConfigs.distributionConfirmation - 1;
       await insertTxRecord(
         tx,
         TransactionTypes.payment,

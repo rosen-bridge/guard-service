@@ -114,7 +114,7 @@ class TransactionProcessor {
         // tx is still alive, checking tx inputs
         await this.processCardanoTxInputs(tx);
       }
-    } else if (confirmation >= CardanoConfigs.requiredConfirmation) {
+    } else if (confirmation >= CardanoConfigs.paymentConfirmation) {
       // tx confirmed enough. proceed to next process.
       await dbAction.setTxStatus(tx.txId, TransactionStatus.completed);
 
@@ -139,7 +139,7 @@ class TransactionProcessor {
       await dbAction.updateTxLastCheck(tx.txId, height);
       logger.info('Tx is in confirmation process', {
         txId: tx.txId,
-        requiredConfirmation: CardanoConfigs.requiredConfirmation,
+        requiredConfirmation: CardanoConfigs.paymentConfirmation,
         confirmation: confirmation,
       });
     }
@@ -151,7 +151,7 @@ class TransactionProcessor {
    */
   static processErgoTx = async (tx: TransactionEntity): Promise<void> => {
     const confirmation = await ExplorerApi.getTxConfirmation(tx.txId);
-    if (confirmation >= ErgoConfigs.requiredConfirmation) {
+    if (confirmation >= ErgoConfigs.distributionConfirmation) {
       // tx confirmed enough. event is done.
       await dbAction.setTxStatus(tx.txId, TransactionStatus.completed);
       await dbAction.setEventStatus(tx.event.id, EventStatus.completed);
@@ -176,7 +176,7 @@ class TransactionProcessor {
       await dbAction.updateTxLastCheck(tx.txId, height);
       logger.info('Tx in confirmation process', {
         txId: tx.txId,
-        requiredConfirmation: CardanoConfigs.requiredConfirmation,
+        requiredConfirmation: CardanoConfigs.paymentConfirmation,
         confirmation: confirmation,
       });
     }
@@ -257,7 +257,7 @@ class TransactionProcessor {
    */
   static resetCardanoStatus = async (tx: TransactionEntity): Promise<void> => {
     const height = await BlockFrostApi.currentHeight();
-    if (height - tx.lastCheck >= CardanoConfigs.requiredConfirmation) {
+    if (height - tx.lastCheck >= CardanoConfigs.paymentConfirmation) {
       await dbAction.setTxStatus(tx.txId, TransactionStatus.invalid);
       await dbAction.resetEventTx(tx.event.id, EventStatus.pendingPayment);
       logger.info('Tx is invalid. Event is now waiting for payment', {
@@ -278,7 +278,7 @@ class TransactionProcessor {
    */
   static resetErgoStatus = async (tx: TransactionEntity): Promise<void> => {
     const height = await NodeApi.getHeight();
-    if (height - tx.lastCheck >= ErgoConfigs.requiredConfirmation) {
+    if (height - tx.lastCheck >= ErgoConfigs.distributionConfirmation) {
       await dbAction.setTxStatus(tx.txId, TransactionStatus.invalid);
       if (tx.type === TransactionTypes.payment) {
         await dbAction.resetEventTx(tx.event.id, EventStatus.pendingPayment);
