@@ -23,8 +23,7 @@ interface UtxoBoxesAssets {
 }
 
 interface MetaData {
-  key: string;
-  json: JSON;
+  [key: string]: JSON;
 }
 
 interface RosenData {
@@ -39,7 +38,7 @@ interface KoiosTransaction {
   block_hash: string;
   inputs: Array<Utxo>;
   outputs: Array<Utxo>;
-  metadata?: Array<MetaData>;
+  metadata?: MetaData;
 }
 
 type TxUtxos = components['schemas']['tx_content_utxo'];

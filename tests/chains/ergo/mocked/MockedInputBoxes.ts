@@ -31,18 +31,6 @@ const mockGetEventValidCommitments = (
 };
 
 /**
- * mocks RewardBoxes getRSNRatioCoef method to return coefs when called for a tokenId
- * @param tokenId
- * @param coefs
- */
-const mockGetRSNRatioCoef = (
-  tokenId: string,
-  coefs: [bigint, bigint]
-): void => {
-  when(mockedInputBoxes.getRSNRatioCoef(tokenId)).thenResolve(coefs);
-};
-
-/**
  * resets mocked methods of RewardBoxes
  */
 const resetMockedInputBoxes = (): void => {
@@ -51,9 +39,4 @@ const resetMockedInputBoxes = (): void => {
   when(mockedInputBoxes.getGuardsInfoBox()).thenResolve(TestBoxes.guardNFTBox);
 };
 
-export {
-  mockGetEventBox,
-  mockGetEventValidCommitments,
-  mockGetRSNRatioCoef,
-  resetMockedInputBoxes,
-};
+export { mockGetEventBox, mockGetEventValidCommitments, resetMockedInputBoxes };

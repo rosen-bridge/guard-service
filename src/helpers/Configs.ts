@@ -1,7 +1,6 @@
 import config from 'config';
 import { RosenTokens, TokenMap } from '@rosen-bridge/tokens';
 import fs from 'fs';
-import { logger } from '../log/Logger';
 
 /**
  * reads a config, set default value if it does not exits
@@ -67,6 +66,9 @@ class Configs {
     }
   };
   static tokenMap = new TokenMap(this.tokens());
+  static minimumFeeConfigBoxTemplateHash = config.get<string>(
+    'ergo.minimumFeeConfigBoxTemplateHash'
+  );
 
   // jobs configs
   static scannedEventProcessorInterval = 120; // seconds, 2 minutes

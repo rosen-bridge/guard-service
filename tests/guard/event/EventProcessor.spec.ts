@@ -1,46 +1,40 @@
-import { mockExplorerGetTxConfirmation } from '../chains/ergo/mocked/MockedExplorer';
 import { expect } from 'chai';
-import { EventTrigger } from '../../src/models/Models';
-import TestUtils from '../testUtils/TestUtils';
-import EventProcessor from '../../src/guard/EventProcessor';
-import { mockKoiosGetTxConfirmation } from '../chains/cardano/mocked/MockedKoios';
+import { EventTrigger } from '../../../src/models/Models';
+import EventProcessor from '../../../src/guard/event/EventProcessor';
 import {
-  mockIsEventConfirmedEnough,
-  mockVerifyEvent,
   resetMockedEventProcessor,
   verifyCreateEventPaymentCalledOnce,
   verifyCreateEventPaymentDidntGetCalled,
-} from './mocked/MockedEventProcessor';
-import CardanoTestBoxes from '../chains/cardano/testUtils/TestBoxes';
+} from '../mocked/MockedEventProcessor';
+import CardanoTestBoxes from '../../chains/cardano/testUtils/TestBoxes';
 import {
   allEventRecords,
   clearTables,
   insertEventRecord,
   insertOnyEventDataRecord,
-} from '../db/mocked/MockedScannerModel';
+} from '../../db/mocked/MockedScannerModel';
 import {
   mockStartAgreementProcess,
   resetMockedTxAgreement,
   verifyStartAgreementProcessCalledOnce,
-} from './mocked/MockedTxAgreement';
-import MockedCardanoChain from '../chains/mocked/MockedCardanoChain';
-import MockedErgoChain from '../chains/mocked/MockedErgoChain';
-import ErgoTestBoxes from '../chains/ergo/testUtils/TestBoxes';
-import TestBoxes from '../chains/ergo/testUtils/TestBoxes';
-import ChainsConstants from '../../src/chains/ChainsConstants';
+} from '../mocked/MockedTxAgreement';
+import MockedCardanoChain from '../../chains/mocked/MockedCardanoChain';
+import MockedErgoChain from '../../chains/mocked/MockedErgoChain';
+import ErgoTestBoxes from '../../chains/ergo/testUtils/TestBoxes';
+import TestBoxes from '../../chains/ergo/testUtils/TestBoxes';
 import {
   mockRewardGenerateTransaction,
   resetMockedReward,
   verifyRewardGenerateTransactionCalledOnce,
-} from '../chains/mocked/MockedReward';
-import { mockGetEventBox } from '../chains/ergo/mocked/MockedInputBoxes';
-import { anything } from 'ts-mockito';
-import ErgoConfigs from '../../src/chains/ergo/helpers/ErgoConfigs';
-import TestConfigs from '../testUtils/TestConfigs';
+} from '../../chains/mocked/MockedReward';
+import ErgoUtils from '../../../src/chains/ergo/helpers/ErgoUtils';
 import {
-  mockGetHeight,
-  resetMockedNodeApi,
-} from '../chains/ergo/mocked/MockedNode';
+  mockIsEventConfirmedEnough,
+  mockVerifyEvent,
+  resetMockedEventVerifier,
+} from '../mocked/MockedEventVerifier';
+import { mockGetFee } from '../mocked/MockedMinimumFee';
+import { Fee } from '@rosen-bridge/minimum-fee';
 
 describe('EventProcessor', () => {
   const cardanoTestBankAddress = CardanoTestBoxes.testBankAddress;
@@ -52,153 +46,19 @@ describe('EventProcessor', () => {
   );
   const mockedErgoChain = new MockedErgoChain(EventProcessor.ergoChain);
 
-  describe('isEventConfirmedEnough', () => {
-    const eventBoxAndCommitments = TestBoxes.mockEventBoxWithSomeCommitments();
-
-    beforeEach('reset isEventConfirmedEnough mock', () => {
-      resetMockedEventProcessor();
-    });
-
-    afterEach('reset NodeApi mock', () => {
-      resetMockedNodeApi();
-    });
-
-    /**
-     * Target: testing isEventConfirmedEnough
-     * Dependencies:
-     *    ExplorerApi
-     *    NodeApi
-     *    InputBoxes
-     * Scenario:
-     *    Mock a Cardano event trigger
-     *    Mock a getEventBox to return test event box
-     *    Mock NodeApi to return mocked height of blockchain (so that event box doesn't confirmed enough)
-     *    Run test (execute isEventConfirmedEnough method of EventProcessor)
-     *    Check return value to be false
-     * Expected Output:
-     *    The function should return false
-     */
-    it('should return false when event box does not confirmed enough in ergo', async () => {
-      const fromErgoEventTrigger = new EventTrigger(
-        ChainsConstants.cardano,
-        '',
-        '',
-        '',
-        '',
-        '',
-        '',
-        '',
-        '',
-        TestUtils.generateRandomId(),
-        '',
-        []
-      );
-
-      // mock event box and current height
-      mockGetEventBox(anything(), eventBoxAndCommitments[0]);
-      const mockedHeight =
-        TestConfigs.ergo.blockchainHeight +
-        ErgoConfigs.requiredConfirmation -
-        1;
-      mockGetHeight(mockedHeight);
-
-      // run test
-      const result = await EventProcessor.isEventConfirmedEnough(
-        fromErgoEventTrigger
-      );
-      expect(result).to.be.false;
-    });
-
-    /**
-     * Target: testing isEventConfirmedEnough
-     * Dependencies:
-     *    ExplorerApi
-     *    NodeApi
-     *    InputBoxes
-     * Expected Output:
-     *    The function should return true
-     */
-    it('should return true when event confirmed enough in ergo', async () => {
-      const txId = TestUtils.generateRandomId();
-      const fromErgoEventTrigger = new EventTrigger(
-        ChainsConstants.ergo,
-        '',
-        '',
-        '',
-        '',
-        '',
-        '',
-        '',
-        '',
-        txId,
-        '',
-        []
-      );
-      mockExplorerGetTxConfirmation(txId, 30);
-
-      // mock event box and current height
-      mockGetEventBox(anything(), eventBoxAndCommitments[0]);
-      const mockedHeight =
-        TestConfigs.ergo.blockchainHeight +
-        ErgoConfigs.requiredConfirmation +
-        1;
-      mockGetHeight(mockedHeight);
-
-      // run test
-      const result = await EventProcessor.isEventConfirmedEnough(
-        fromErgoEventTrigger
-      );
-      expect(result).to.be.true;
-    });
-
-    /**
-     * Target: testing isEventConfirmedEnough
-     * Dependencies:
-     *    KoiosApi
-     *    NodeApi
-     *    InputBoxes
-     * Expected Output:
-     *    The function should return true
-     */
-    it('should return true when event confirmed enough in cardano', async () => {
-      const txId = TestUtils.generateRandomId();
-      const fromCardanoEventTrigger = new EventTrigger(
-        ChainsConstants.cardano,
-        '',
-        '',
-        '',
-        '',
-        '',
-        '',
-        '',
-        '',
-        txId,
-        '',
-        []
-      );
-      mockKoiosGetTxConfirmation(txId, 30);
-
-      // mock event box and current height
-      mockGetEventBox(anything(), eventBoxAndCommitments[0]);
-      const mockedHeight =
-        TestConfigs.ergo.blockchainHeight +
-        ErgoConfigs.requiredConfirmation +
-        1;
-      mockGetHeight(mockedHeight);
-
-      // run test
-      const result = await EventProcessor.isEventConfirmedEnough(
-        fromCardanoEventTrigger
-      );
-      expect(result).to.be.true;
-    });
-  });
-
   describe('processEvent', () => {
+    const mockedFeeConfig: Fee = {
+      bridgeFee: 0n,
+      networkFee: 0n,
+      rsnRatio: 0n,
+    };
+
     beforeEach('reset isEventConfirmedEnough mock', async () => {
       await clearTables();
+      resetMockedEventVerifier();
       resetMockedEventProcessor();
       resetMockedTxAgreement();
+      mockGetFee(mockedFeeConfig);
     });
 
     /**
@@ -294,10 +154,17 @@ describe('EventProcessor', () => {
   });
 
   describe('processRewardEvent', () => {
+    const mockedFeeConfig: Fee = {
+      bridgeFee: 0n,
+      networkFee: 0n,
+      rsnRatio: 0n,
+    };
+
     beforeEach('clear db tables', async () => {
       await clearTables();
       resetMockedReward();
       resetMockedTxAgreement();
+      mockGetFee(mockedFeeConfig);
     });
 
     /**
@@ -353,7 +220,14 @@ describe('EventProcessor', () => {
      */
     it('should NOT inserts not confirmed events into ConfirmedEvent table', async () => {
       const mockedEvent = TestBoxes.mockErgPaymentEventTrigger();
-      await insertOnyEventDataRecord(mockedEvent);
+      const boxSerialized = ErgoUtils.ergoBoxToSigmaSerialized(
+        TestBoxes.mockSingleBox(
+          1,
+          [],
+          ErgoUtils.addressStringToContract(TestBoxes.testLockAddress)
+        ) // address doesn't matter in this test
+      );
+      await insertOnyEventDataRecord(mockedEvent, boxSerialized);
       mockIsEventConfirmedEnough(mockedEvent, false);
 
       // run test
@@ -379,8 +253,22 @@ describe('EventProcessor', () => {
      */
     it('should only inserts one event per sourceTxId into ConfirmedEvent table', async () => {
       const mockedEvent = TestBoxes.mockErgPaymentEventTrigger();
-      await insertOnyEventDataRecord(mockedEvent);
-      await insertOnyEventDataRecord(mockedEvent);
+      const boxSerialized1 = ErgoUtils.ergoBoxToSigmaSerialized(
+        TestBoxes.mockSingleBox(
+          1,
+          [],
+          ErgoUtils.addressStringToContract(TestBoxes.testLockAddress)
+        ) // address doesn't matter in this test
+      );
+      const boxSerialized2 = ErgoUtils.ergoBoxToSigmaSerialized(
+        TestBoxes.mockSingleBox(
+          1,
+          [],
+          ErgoUtils.addressStringToContract(TestBoxes.testLockAddress)
+        ) // address doesn't matter in this test
+      );
+      await insertOnyEventDataRecord(mockedEvent, boxSerialized1);
+      await insertOnyEventDataRecord(mockedEvent, boxSerialized2);
       mockIsEventConfirmedEnough(mockedEvent, true);
 
       // run test

@@ -25,6 +25,7 @@ class EventTrigger implements EventTriggerModel {
   targetChainTokenId: string;
   sourceTxId: string;
   sourceBlockId: string;
+  height: number;
   WIDs: string[];
 
   constructor(
@@ -39,6 +40,7 @@ class EventTrigger implements EventTriggerModel {
     targetChainTokenId: string,
     sourceTxId: string,
     sourceBlockId: string,
+    height: number,
     WIDs: string[]
   ) {
     this.eventId = Utils.txIdToEventId(sourceTxId);
@@ -53,6 +55,7 @@ class EventTrigger implements EventTriggerModel {
     this.targetChainTokenId = targetChainTokenId;
     this.sourceTxId = sourceTxId;
     this.sourceBlockId = sourceBlockId;
+    this.height = height;
     this.WIDs = WIDs;
   }
 
@@ -83,6 +86,7 @@ class EventTrigger implements EventTriggerModel {
       eventEntity.targetChainTokenId,
       eventEntity.sourceTxId,
       eventEntity.sourceBlockId,
+      eventEntity.height,
       eventEntity.WIDs.split(',').filter((wid) => wid !== '')
     );
   };

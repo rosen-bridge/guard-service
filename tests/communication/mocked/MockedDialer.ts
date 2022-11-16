@@ -1,4 +1,5 @@
 import {
+  anyString,
   anything,
   capture,
   deepEqual,

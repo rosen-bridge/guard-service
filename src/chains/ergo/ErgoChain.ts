@@ -36,6 +36,14 @@ import Utils from '../../helpers/Utils';
 import { JsonBI } from '../../network/NetworkModels';
 import { guardConfig } from '../../helpers/GuardConfig';
 import { logger } from '../../log/Logger';
+import { Fee } from '@rosen-bridge/minimum-fee';
+import MinimumFee from '../../guard/MinimumFee';
+import {
+  NetworkError,
+  FailedError,
+  UnexpectedApiError,
+  NotFoundError,
+} from '../../helpers/errors';
 
 class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
   lockAddress = Address.from_base58(ErgoConfigs.ergoContractConfig.lockAddress);
@@ -44,10 +52,12 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
   /**
    * generates unsigned transaction of the event from multi-sig address in ergo chain
    * @param event the event trigger model
+   * @param feeConfig minimum fee and rsn ratio config for the event
    * @return the generated payment transaction
    */
   generateTransaction = async (
-    event: EventTrigger
+    event: EventTrigger,
+    feeConfig: Fee
   ): Promise<ErgoTransaction> => {
     // get current height of network
     const currentHeight = await NodeApi.getHeight();
@@ -57,7 +67,10 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
     const commitmentBoxes: ErgoBox[] =
       await InputBoxes.getEventValidCommitments(event);
 
-    const rsnCoef = await InputBoxes.getRSNRatioCoef(event.targetChainTokenId);
+    const rsnCoef: [bigint, bigint] = [
+      feeConfig.rsnRatio,
+      MinimumFee.bridgeMinimumFee.ratioDivisor,
+    ];
 
     // create transaction output boxes
     const outBoxes =
@@ -67,14 +80,18 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
             eventBox,
             commitmentBoxes,
             rsnCoef,
-            currentHeight
+            currentHeight,
+            Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee),
+            Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee)
           )
         : this.tokenEventOutBoxes(
             event,
             eventBox,
             commitmentBoxes,
             rsnCoef,
-            currentHeight
+            currentHeight,
+            Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee),
+            Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee)
           );
 
     // calculate required assets
@@ -178,11 +195,13 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
    *  5. checks assets of inputs are same as assets of output (no token burned)
    * @param paymentTx the payment transaction
    * @param event the event trigger model
+   * @param feeConfig minimum fee and rsn ratio config for the event
    * @return true if tx verified
    */
   verifyTransactionWithEvent = async (
     paymentTx: ErgoTransaction,
-    event: EventTrigger
+    event: EventTrigger,
+    feeConfig: Fee
   ): Promise<boolean> => {
     const tx = this.deserialize(paymentTx.txBytes).unsigned_tx();
     const outputBoxes = tx.output_candidates();
@@ -194,7 +213,10 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
     const eventBox: ErgoBox = await InputBoxes.getEventBox(event);
     const commitmentBoxes: ErgoBox[] =
       await InputBoxes.getEventValidCommitments(event);
-    const rsnCoef = await InputBoxes.getRSNRatioCoef(event.targetChainTokenId);
+    const rsnCoef: [bigint, bigint] = [
+      feeConfig.rsnRatio,
+      MinimumFee.bridgeMinimumFee.ratioDivisor,
+    ];
     if (
       !BoxVerifications.verifyInputs(
         tx.inputs(),
@@ -227,14 +249,18 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
             eventBox,
             commitmentBoxes,
             rsnCoef,
-            currentHeight
+            currentHeight,
+            Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee),
+            Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee)
           )
         : this.tokenEventOutBoxes(
             event,
             eventBox,
             commitmentBoxes,
             rsnCoef,
-            currentHeight
+            currentHeight,
+            Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee),
+            Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee)
           );
 
     const rewardBoxes: ErgoBoxCandidate[] = [];
@@ -313,6 +339,8 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
    * @param commitmentBoxes the not-merged valid commitment boxes for the event
    * @param rsnCoef rsn fee ratio
    * @param currentHeight current height of blockchain
+   * @param bridgeFee event bridge fee
+   * @param networkFee event network fee
    * @return the generated reward reduced transaction
    */
   ergEventOutBoxes = (
@@ -320,11 +348,13 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
     eventBox: ErgoBox,
     commitmentBoxes: ErgoBox[],
     rsnCoef: [bigint, bigint],
-    currentHeight: number
+    currentHeight: number,
+    bridgeFee: bigint,
+    networkFee: bigint
   ): ErgoBoxCandidate[] => {
     // calculate assets of payemnt box
     const paymentErgAmount: bigint =
-      BigInt(event.amount) - BigInt(event.bridgeFee) - BigInt(event.networkFee);
+      BigInt(event.amount) - bridgeFee - networkFee;
     const paymentTokenAmount = 0n;
     const paymentTokenId = event.targetChainTokenId;
 
@@ -336,7 +366,9 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
       rsnCoef,
       currentHeight,
       paymentTokenId,
-      ChainsConstants.ergo
+      event.fromChain,
+      bridgeFee,
+      networkFee
     );
     const paymentBox = OutputBoxes.createPaymentBox(
       currentHeight,
@@ -356,6 +388,8 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
    * @param commitmentBoxes the not-merged valid commitment boxes for the event
    * @param rsnCoef rsn fee ratio
    * @param currentHeight current height of blockchain
+   * @param bridgeFee event bridge fee
+   * @param networkFee event network fee
    * @return the generated reward reduced transaction
    */
   tokenEventOutBoxes = (
@@ -363,12 +397,14 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
     eventBox: ErgoBox,
     commitmentBoxes: ErgoBox[],
     rsnCoef: [bigint, bigint],
-    currentHeight: number
+    currentHeight: number,
+    bridgeFee: bigint,
+    networkFee: bigint
   ): ErgoBoxCandidate[] => {
     // calculate assets of payemnt box
     const paymentErgAmount: bigint = ErgoConfigs.minimumErg;
     const paymentTokenAmount: bigint =
-      BigInt(event.amount) - BigInt(event.bridgeFee) - BigInt(event.networkFee);
+      BigInt(event.amount) - bridgeFee - networkFee;
     const paymentTokenId = event.targetChainTokenId;
 
     // create output boxes
@@ -379,7 +415,9 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
       rsnCoef,
       currentHeight,
       paymentTokenId,
-      ChainsConstants.ergo
+      event.fromChain,
+      bridgeFee,
+      networkFee
     );
     const paymentBox = OutputBoxes.createPaymentBox(
       currentHeight,
@@ -431,7 +469,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
           ergoTx.txId,
           signedPaymentTx.toJson()
         );
-        logger.info(`Ergo tx wit txId:${ergoTx.txId} signed successfully`);
+        logger.info(`Ergo tx [${ergoTx.txId}] signed successfully`);
       })
       .catch(async (e) => {
         logger.info(
@@ -461,69 +499,88 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
     // Verifying watcher RWTs
     if (RWTId !== ErgoConfigs.ergoContractConfig.RWTId) {
       logger.info(
-        `the event with eventId[${eventId}] is not valid, event RWT is not compatible with the ergo RWT id`
+        `event [${eventId}] is not valid, event RWT is not compatible with the ergo RWT id`
       );
       return false;
     }
     try {
       const paymentTx = await ExplorerApi.getConfirmedTx(event.sourceTxId);
-      if (paymentTx) {
-        const lockAddress = ErgoConfigs.ergoContractConfig.lockAddress;
-        const payment = paymentTx.outputs
-          .filter((box) => lockAddress === box.address)
-          .map((box) => ErgoUtils.getRosenData(box, event.sourceChainTokenId))
-          .filter((box) => box !== undefined)[0];
-        if (payment) {
-          const token = Configs.tokenMap.search(ChainsConstants.ergo, {
-            tokenID: event.sourceChainTokenId,
-          });
-          let targetTokenId;
-          try {
-            targetTokenId = Configs.tokenMap.getID(token[0], event.toChain);
-          } catch (e) {
-            logger.info(
-              `event [${eventId}] is not valid,tx [${event.sourceTxId}] token or chainId is invalid`
-            );
-            return false;
-          }
-          // TODO: fix fromAddress when it was fixed in the watcher side
-          //  https://git.ergopool.io/ergo/rosen-bridge/watcher/-/issues/8
-          const inputAddress = 'fromAddress';
+      const lockAddress = ErgoConfigs.ergoContractConfig.lockAddress;
+      const payment = paymentTx.outputs
+        .filter((box) => lockAddress === box.address)
+        .map((box) => ErgoUtils.getRosenData(box, event.sourceChainTokenId))
+        .filter((box) => box !== undefined)[0];
+      if (payment) {
+        const token = Configs.tokenMap.search(ChainsConstants.ergo, {
+          [Configs.tokenMap.getIdKey(ChainsConstants.ergo)]:
+            event.sourceChainTokenId,
+        });
+        let targetTokenId;
+        try {
+          targetTokenId = Configs.tokenMap.getID(token[0], event.toChain);
+        } catch (e) {
+          logger.info(
+            `Event [${eventId}] is not valid,tx [${event.sourceTxId}] token or chainId is invalid`
+          );
+          return false;
+        }
+        // TODO: fix fromAddress when it was fixed in the watcher side
+        //  https://git.ergopool.io/ergo/rosen-bridge/watcher/-/issues/8
+        const inputAddress = 'fromAddress';
+        if (
+          event.fromChain == ChainsConstants.ergo &&
+          event.toChain == payment.toChain &&
+          event.networkFee == payment.networkFee &&
+          event.bridgeFee == payment.bridgeFee &&
+          event.amount == payment.amount &&
+          event.sourceChainTokenId == payment.tokenId &&
+          event.targetChainTokenId == targetTokenId &&
+          event.sourceBlockId == payment.blockId &&
+          event.toAddress == payment.toAddress &&
+          event.fromAddress == inputAddress
+        ) {
+          // check if amount is more than fees
+          const feeConfig = await MinimumFee.getEventFeeConfig(event);
           if (
-            event.fromChain == ChainsConstants.ergo &&
-            event.toChain == payment.toChain &&
-            event.networkFee == payment.networkFee &&
-            event.bridgeFee == payment.bridgeFee &&
-            event.amount == payment.amount &&
-            event.sourceChainTokenId == payment.tokenId &&
-            event.targetChainTokenId == targetTokenId &&
-            event.sourceBlockId == payment.blockId &&
-            event.toAddress == payment.toAddress &&
-            event.fromAddress == inputAddress
+            BigInt(event.amount) <
+            Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee) +
+              Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee)
           ) {
-            logger.info(`event [${eventId}] has been successfully validated`);
-            return true;
-          } else {
             logger.info(
-              `event [${eventId}] is not valid, event data does not match with lock tx [${event.sourceTxId}]`
+              `Event [${eventId}] is not valid, event amount is less than fees`
             );
             return false;
           }
+          logger.info(`Event [${eventId}] has been successfully validated`);
+          return true;
         } else {
           logger.info(
-            `event [${eventId}] is not valid, failed to extract Rosen data from lock tx [${event.sourceTxId}]`
+            `Event [${eventId}] is not valid, event data does not match with lock tx [${event.sourceTxId}]`
           );
           return false;
         }
       } else {
         logger.info(
-          `event [${eventId}] is not valid, lock tx [${event.sourceTxId}] is not available in network`
+          `Event [${eventId}] is not valid, failed to extract Rosen data from lock tx [${event.sourceTxId}]`
         );
         return false;
       }
     } catch (e) {
-      logger.warn(`event [${eventId}] validation failed: ${e}`);
-      return false;
+      if (e instanceof NotFoundError) {
+        logger.info(
+          `Event [${eventId}] is not valid, lock tx [${event.sourceTxId}] is not available in network`
+        );
+        return false;
+      } else if (
+        e instanceof FailedError ||
+        e instanceof NetworkError ||
+        e instanceof UnexpectedApiError
+      ) {
+        throw Error(`Skipping event [${eventId}] validation: ${e}`);
+      } else {
+        logger.warn(`Event [${eventId}] validation failed: ${e}`);
+        return false;
+      }
     }
   };
 

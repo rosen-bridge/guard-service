@@ -1,14 +1,14 @@
-import EventProcessor from '../guard/EventProcessor';
-import Utils from '../helpers/Utils';
+import EventProcessor from '../guard/event/EventProcessor';
 import { txAgreement } from '../guard/agreement/TxAgreement';
 import Configs from '../helpers/Configs';
 import TransactionProcessor from '../guard/TransactionProcessor';
+import GuardTurn from '../helpers/GuardTurn';
 
 /**
  * resends generated tx for an event
  */
 const resendTxJob = () => {
-  if (Utils.secondsToReset() < Utils.UP_TIME_LENGTH) {
+  if (GuardTurn.secondsToReset() < GuardTurn.UP_TIME_LENGTH) {
     txAgreement.resendTransactionRequests();
     setTimeout(resendTxJob, Configs.txResendInterval * 1000);
   }
@@ -20,11 +20,11 @@ const resendTxJob = () => {
 const confirmedEventsJob = () => {
   // process confirmed events
   EventProcessor.processConfirmedEvents().then(() => {
-    setTimeout(confirmedEventsJob, Utils.secondsToNextTurn() * 1000);
+    setTimeout(confirmedEventsJob, GuardTurn.secondsToNextTurn() * 1000);
     setTimeout(resendTxJob, Configs.txResendInterval * 1000);
   });
   // clear generated transactions when turn is over
-  setTimeout(txAgreement.clearTransactions, Utils.UP_TIME_LENGTH * 1000);
+  setTimeout(txAgreement.clearTransactions, GuardTurn.UP_TIME_LENGTH * 1000);
 };
 
 /**
@@ -42,7 +42,7 @@ const scannedEventsJob = () => {
 const resetJob = () => {
   txAgreement
     .clearAgreedTransactions()
-    .then(() => setTimeout(resetJob, Utils.secondsToReset() * 1000));
+    .then(() => setTimeout(resetJob, GuardTurn.secondsToReset() * 1000));
 };
 
 /**
@@ -59,8 +59,8 @@ const transactionJob = () => {
  */
 const runProcessors = () => {
   scannedEventsJob();
-  setTimeout(confirmedEventsJob, Utils.secondsToNextTurn() * 1000);
-  setTimeout(resetJob, Utils.secondsToReset() * 1000);
+  setTimeout(confirmedEventsJob, GuardTurn.secondsToNextTurn() * 1000);
+  setTimeout(resetJob, GuardTurn.secondsToReset() * 1000);
   transactionJob();
 };
 

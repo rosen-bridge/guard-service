@@ -7,7 +7,7 @@ class Logger {
   logger: winston.Logger;
   private readonly logsPath = Configs.logsPath;
   private readonly logOptions = {
-    datePattern: 'YYYY-MM-DD-HH',
+    datePattern: 'YYYY-MM-DD',
     zippedArchive: true,
     maxSize: Configs.maxLogSize,
     maxFiles: Configs.maxLogFiles,

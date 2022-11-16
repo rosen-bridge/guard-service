@@ -13,13 +13,14 @@ import {
   TransactionApproved,
 } from './Interfaces';
 import Dialer from '../../communication/Dialer';
-import Utils from '../../helpers/Utils';
-import EventProcessor from '../EventProcessor';
 import { dbAction } from '../../db/DatabaseAction';
 import TransactionProcessor from '../TransactionProcessor';
 import { txJsonParser } from '../../chains/TxJsonParser';
 import { guardConfig } from '../../helpers/GuardConfig';
 import { logger } from '../../log/Logger';
+import InputBoxes from '../../chains/ergo/boxes/InputBoxes';
+import GuardTurn from '../../helpers/GuardTurn';
+import EventVerifier from '../event/EventVerifier';
 
 const dialer = await Dialer.getInstance();
 
@@ -48,39 +49,44 @@ class TxAgreement {
     sender: string
   ): Promise<void> => {
     const message = JSON.parse(messageStr) as AgreementMessage;
-
-    switch (message.type) {
-      case 'request': {
-        const candidate = message.payload as CandidateTransaction;
-        const tx = txJsonParser(candidate.txJson);
-        await this.processTransactionRequest(
-          tx,
-          candidate.guardId,
-          candidate.signature,
-          sender
-        );
-        break;
+    try {
+      switch (message.type) {
+        case 'request': {
+          const candidate = message.payload as CandidateTransaction;
+          const tx = txJsonParser(candidate.txJson);
+          await this.processTransactionRequest(
+            tx,
+            candidate.guardId,
+            candidate.signature,
+            sender
+          );
+          break;
+        }
+        case 'response': {
+          const response = message.payload as GuardsAgreement;
+          await this.processAgreementResponse(
+            response.txId,
+            response.agreed,
+            response.guardId,
+            response.signature
+          );
+          break;
+        }
+        case 'approval': {
+          const approval = message.payload as TransactionApproved;
+          const tx = txJsonParser(approval.txJson);
+          await this.processApprovalMessage(
+            tx,
+            approval.guardsSignatures,
+            sender
+          );
+          break;
+        }
       }
-      case 'response': {
-        const response = message.payload as GuardsAgreement;
-        await this.processAgreementResponse(
-          response.txId,
-          response.agreed,
-          response.guardId,
-          response.signature
-        );
-        break;
-      }
-      case 'approval': {
-        const approval = message.payload as TransactionApproved;
-        const tx = txJsonParser(approval.txJson);
-        await this.processApprovalMessage(
-          tx,
-          approval.guardsSignatures,
-          sender
-        );
-        break;
-      }
+    } catch (e) {
+      logger.warn(
+        `An error occurred while handling tx-agreement message: ${e}`
+      );
     }
   };
 
@@ -150,22 +156,30 @@ class TxAgreement {
       return;
     }
     const event = EventTrigger.fromConfirmedEntity(eventEntity);
-    if (!(await EventProcessor.isEventConfirmedEnough(event))) {
+    const eventBoxCreationHeight = (
+      await InputBoxes.getEventBox(event)
+    ).creation_height();
+    if (
+      !(await EventVerifier.isEventConfirmedEnough(
+        event,
+        eventBoxCreationHeight
+      ))
+    ) {
       logger.warn(
         `Received tx [${tx.txId}] for event but event [${tx.eventId}] is not confirmed enough`
       );
       return;
     }
     if (
-      (await EventProcessor.verifyEvent(event)) &&
+      (await EventVerifier.verifyEvent(event)) &&
       tx.verifyMetaDataSignature(creatorId, signature) &&
-      Utils.guardTurn() === creatorId &&
+      GuardTurn.guardTurn() === creatorId &&
       !(await this.isEventHasDifferentTransaction(
         tx.eventId,
         tx.txId,
         tx.txType
       )) &&
-      (await EventProcessor.verifyPaymentTransactionWithEvent(tx, event))
+      (await EventVerifier.verifyPaymentTransactionWithEvent(tx, event))
     ) {
       this.transactions.set(tx.txId, tx);
       this.eventAgreedTransactions.set(tx.eventId, tx.txId);
