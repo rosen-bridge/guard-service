@@ -50,7 +50,7 @@
   },
   "contracts": {
     "networks": ["ergo-testnet", "cardano-testnet"],
-    "addressesBasePath": "tests/helpers/addresses/"
+    "addressesBasePath": "tests/resources/addresses/"
   },
-  "tokensPath": "tests/helpers/tokens.test.json"
+  "tokensPath": "tests/resources/tokens.test.json"
 }
