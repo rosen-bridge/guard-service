@@ -81,5 +81,5 @@
   },
   "txProcessorInterval": 180,
   "tokensPath": "config/tokens.json",
-  "thresholdsPath": "tests/resources/threshold.test.json"
+  "thresholdsPath": "config/thresholds.json"
 }
