@@ -219,12 +219,18 @@ class Dialer {
   };
 
   /**
+   * TODO: This method is not written in arrow form because ts-mockito has some
+   * issues with mocking class fields which are of type arrow function. If you
+   * are going to convert it to an arrow method, make sure all tests pass without
+   * issue.
+   */
+  /**
    * send message to specific peer or broadcast it
    * @param channel: String
    * @param msg: string
    * @param receiver optional
    */
-  sendMessage = async (channel: string, msg: string, receiver?: string) => {
+  async sendMessage(channel: string, msg: string, receiver?: string) {
     const data: SendDataCommunication = {
       msg: msg,
       channel: channel,
@@ -243,7 +249,7 @@ class Dialer {
         this.pushMessageToMessageQueue(peer, data);
       }
     }
-  };
+  }
 
   /**
    * store dialers' peerID to PeerStore and dials them
