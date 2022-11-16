@@ -20,7 +20,8 @@
     "txTtl": 100000,
     "observationConfirmation": 20,
     "paymentConfirmation": 20,
-    "lockAddresses": ["change-me"]
+    "lockAddresses": ["change-me"],
+    "coldStorageAddress": ""
   },
   "ergo": {
     "networkType": "testnet",
@@ -39,7 +40,8 @@
     "eventConfirmation": 20,
     "distributionConfirmation": 20,
     "initialHeight": 10000,
-    "scannerInterval": 30
+    "scannerInterval": 30,
+    "coldStorageAddress": ""
   },
   "reward": {
     "bridgeFeeRepoAddress": "9hPoYNQwVDbtAyt5uhYyKttye7ZPzZ7ePcc6d2rgKr9fiZm6DhD",
@@ -78,5 +80,6 @@
     "level": "info"
   },
   "txProcessorInterval": 180,
-  "tokensPath": "config/tokens.json"
+  "tokensPath": "config/tokens.json",
+  "thresholdsPath": "config/thresholds.json"
 }
