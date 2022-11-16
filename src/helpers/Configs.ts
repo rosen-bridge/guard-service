@@ -1,6 +1,7 @@
 import config from 'config';
 import { RosenTokens, TokenMap } from '@rosen-bridge/tokens';
 import fs from 'fs';
+import { ThresholdConfig } from '../guard/assetThreshold/types';
 
 /**
  * reads a config, set default value if it does not exits
@@ -62,6 +63,17 @@ class Configs {
       );
     } else {
       const configJson: string = fs.readFileSync(tokensPath, 'utf8');
+      return JSON.parse(configJson);
+    }
+  };
+  static thresholds = (): ThresholdConfig => {
+    const thresholdsPath = config.get<string>('thresholdsPath');
+    if (!fs.existsSync(thresholdsPath)) {
+      throw new Error(
+        `Asset thresholds config file with path ${thresholdsPath} doesn't exist`
+      );
+    } else {
+      const configJson: string = fs.readFileSync(thresholdsPath, 'utf8');
       return JSON.parse(configJson);
     }
   };

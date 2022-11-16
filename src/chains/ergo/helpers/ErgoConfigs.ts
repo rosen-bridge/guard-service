@@ -47,6 +47,7 @@ class ErgoConfigs {
    * returns the ergo-related contract, addresses and tokens in rosen bridge
    */
   static ergoContractConfig = rosenConfig.contractReader(ChainsConstants.ergo);
+  static coldAddress: string = config.get<string>('ergo.coldStorageAddress');
 }
 
 export default ErgoConfigs;
