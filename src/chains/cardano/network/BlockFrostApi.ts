@@ -1,4 +1,7 @@
-import { BlockFrostAPI } from '@blockfrost/blockfrost-js';
+import {
+  BlockFrostAPI,
+  BlockfrostServerError,
+} from '@blockfrost/blockfrost-js';
 import CardanoConfigs from '../helpers/CardanoConfigs';
 import { Transaction } from '@emurgo/cardano-serialization-lib-nodejs';
 import { AddressUtxos, TxUtxos } from '../models/Interfaces';
@@ -44,9 +47,7 @@ class BlockFrostApi {
    * @param txId the transaction id
    */
   static getTxUtxos = (txId: string): Promise<TxUtxos> => {
-    return this.blockFrost.txsUtxos(txId).catch((e) => {
-      throw `An error occurred while getting transaction [${txId}] utxos using BlockFrost: ${e}`;
-    });
+    return this.blockFrost.txsUtxos(txId);
   };
 
   /**
@@ -55,7 +56,10 @@ class BlockFrostApi {
    */
   static getAddressUtxos = (address: string): Promise<AddressUtxos> => {
     return this.blockFrost.addressesUtxos(address).catch((e) => {
-      throw `An error occurred while getting address [${address}] utxos using BlockFrost: ${e}`;
+      if (e instanceof BlockfrostServerError && e.status_code === 404)
+        return [];
+      else
+        throw `An error occurred while getting address [${address}] utxos using BlockFrost: ${e}`;
     });
   };
 }
