@@ -1,8 +1,10 @@
-import { BlockFrostAPI } from '@blockfrost/blockfrost-js';
+import {
+  BlockFrostAPI,
+  BlockfrostServerError,
+} from '@blockfrost/blockfrost-js';
 import CardanoConfigs from '../helpers/CardanoConfigs';
 import { Transaction } from '@emurgo/cardano-serialization-lib-nodejs';
 import { AddressUtxos, TxUtxos } from '../models/Interfaces';
-import { logger } from '../../../log/Logger';
 
 class BlockFrostApi {
   static blockFrost = new BlockFrostAPI({
@@ -34,45 +36,31 @@ class BlockFrostApi {
    * submits the transaction to network
    * @param tx the transaction
    */
-  static txSubmit = async (tx: Transaction): Promise<string> => {
-    try {
-      return this.blockFrost.txSubmit(tx.to_bytes());
-    } catch (e) {
-      logger.error(
-        `An error occurred while submitting tx using BlockFrost: ${e}`
-      );
-      throw e;
-    }
+  static txSubmit = (tx: Transaction): Promise<string> => {
+    return this.blockFrost.txSubmit(tx.to_bytes()).catch((e) => {
+      throw `An error occurred while submitting tx using BlockFrost: ${e}`;
+    });
   };
 
   /**
    * gets tx utxos
    * @param txId the transaction id
    */
-  static getTxUtxos = async (txId: string): Promise<TxUtxos> => {
-    try {
-      return await this.blockFrost.txsUtxos(txId);
-    } catch (e) {
-      logger.error(
-        `An error occurred while getting transaction [${txId}] utxos using BlockFrost: ${e}`
-      );
-      throw e;
-    }
+  static getTxUtxos = (txId: string): Promise<TxUtxos> => {
+    return this.blockFrost.txsUtxos(txId);
   };
 
   /**
    * gets address utxos
    * @param address the address
    */
-  static getAddressUtxos = async (address: string): Promise<AddressUtxos> => {
-    try {
-      return await this.blockFrost.addressesUtxos(address);
-    } catch (e) {
-      logger.error(
-        `An error occurred while getting address [${address}] utxos using BlockFrost: ${e}`
-      );
-      throw e;
-    }
+  static getAddressUtxos = (address: string): Promise<AddressUtxos> => {
+    return this.blockFrost.addressesUtxos(address).catch((e) => {
+      if (e instanceof BlockfrostServerError && e.status_code === 404)
+        return [];
+      else
+        throw `An error occurred while getting address [${address}] utxos using BlockFrost: ${e}`;
+    });
   };
 }
 

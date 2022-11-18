@@ -24,6 +24,7 @@ import BaseChain from '../chains/BaseChains';
 import { Semaphore } from 'await-semaphore';
 import { txJsonParser } from '../chains/TxJsonParser';
 import { logger } from '../log/Logger';
+import { BlockfrostServerError } from '@blockfrost/blockfrost-js';
 
 class TransactionProcessor {
   static cardanoChain = new CardanoChain();
@@ -330,11 +331,15 @@ class TransactionProcessor {
           const txUtxos = await BlockFrostApi.getTxUtxos(sourceTxId);
           sourceTxs.set(sourceTxId, txUtxos);
         } catch (e) {
-          logger.warn(`An error occurred while fetching tx`, {
-            txId: sourceTxId,
-            error: e.message,
-          });
-          return false;
+          if (e instanceof BlockfrostServerError && e.status_code === 404) {
+            logger.warn(`An error occurred while fetching tx`, {
+              txId: sourceTxId,
+              error: e.message,
+            });
+            return false;
+          } else {
+            throw e;
+          }
         }
       }
 
