@@ -5,6 +5,8 @@ import {
 } from '../../../../src/models/Models';
 import TestUtils from '../../../testUtils/TestUtils';
 import {
+  AddressInfo,
+  AddressAssets,
   AddressUtxos,
   TxUtxos,
   Utxo,
@@ -33,6 +35,7 @@ import TestData from './TestData';
 import ChainsConstants from '../../../../src/chains/ChainsConstants';
 import Utils from '../../../../src/helpers/Utils';
 import TestConfigs from '../../../testUtils/TestConfigs';
+import { mock } from 'ts-mockito';
 
 class TestBoxes {
   static testBankAddress = CardanoConfigs.bankAddress;
@@ -413,12 +416,14 @@ class TestBoxes {
         {
           policy_id: '7eae28af2208be856f7a119668ae52a49b73725e326dc16579dcc373',
           asset_name: '',
-          quantity: '100',
+          quantity: 100n,
+          fingerprint: 'asset1nl000004e2q4444444444auw30000000000000',
         },
         {
           policy_id: 'ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2',
           asset_name: '7369676d61',
-          quantity: '50',
+          quantity: 50n,
+          fingerprint: 'asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3',
         },
       ],
     };
@@ -431,7 +436,8 @@ class TestBoxes {
         {
           policy_id: 'ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2',
           asset_name: '7369676d61',
-          quantity: '45',
+          quantity: 45n,
+          fingerprint: 'asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3',
         },
       ],
     };
@@ -468,7 +474,8 @@ class TestBoxes {
         {
           policy_id: 'ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2',
           asset_name: '7369676d61',
-          quantity: '55',
+          quantity: 55n,
+          fingerprint: 'asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3',
         },
       ],
     };
@@ -482,7 +489,8 @@ class TestBoxes {
         {
           policy_id: '22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130',
           asset_name: '1111111111',
-          quantity: '55',
+          quantity: 55n,
+          fingerprint: 'asset1nl000000000000000000000000000000000000',
         },
       ],
     };
@@ -504,7 +512,8 @@ class TestBoxes {
         {
           policy_id: '22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130',
           asset_name: '1111111111',
-          quantity: '11',
+          quantity: 11n,
+          fingerprint: 'asset1nl000000000000000000000000000000000000',
         },
       ],
     };
@@ -908,6 +917,61 @@ class TestBoxes {
     return PaymentTransaction.fromJson(
       TestData.tllPastAssetPaymentTx(event.getId())
     );
+  };
+
+  /**
+   * returns a mocked object of CardanoTransaction
+   */
+  static mockCardanoTransaction = (): CardanoTransaction => {
+    return mock(CardanoTransaction);
+  };
+
+  static mediumAddressAssets: AddressAssets = {
+    address: CardanoConfigs.bankAddress,
+    assets: [
+      {
+        policy_id: 'ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2',
+        asset_name: '7369676d61',
+        quantity: 4000000000n,
+        fingerprint: 'asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3',
+      },
+      {
+        policy_id: '22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130',
+        asset_name: '1111111111',
+        quantity: 225000000000n,
+        fingerprint: 'asset1nl000000000000000000000000000000000000',
+      },
+    ],
+  };
+
+  static highAssetAddressAssets: AddressAssets = {
+    address: CardanoConfigs.bankAddress,
+    assets: [
+      {
+        policy_id: 'ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2',
+        asset_name: '7369676d61',
+        quantity: 999000000000n,
+        fingerprint: 'asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3',
+      },
+      {
+        policy_id: '22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130',
+        asset_name: '1111111111',
+        quantity: 225000000000n,
+        fingerprint: 'asset1nl000000000000000000000000000000000000',
+      },
+    ],
+  };
+
+  static mediumLovelaceAddressInfo: AddressInfo = {
+    address: CardanoConfigs.bankAddress,
+    balance: 200000000n,
+    utxo_set: [],
+  };
+
+  static highLovelaceAddressInfo: AddressInfo = {
+    address: CardanoConfigs.bankAddress,
+    balance: 900000000n,
+    utxo_set: [],
   };
 }
 

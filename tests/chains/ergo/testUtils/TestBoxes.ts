@@ -2101,6 +2101,11 @@ class TestBoxes {
           amount: 221000000000n,
         },
         {
+          tokenId:
+            '064c58ea394d41fada074a3c560a132467adf4ca1512c409c014c625ca285e9c',
+          amount: 210000000n,
+        },
+        {
           tokenId: TestUtils.generateRandomId(),
           amount: 2210000000000000n,
         },
@@ -2121,6 +2126,11 @@ class TestBoxes {
           amount: 221000000000n,
         },
         {
+          tokenId:
+            '064c58ea394d41fada074a3c560a132467adf4ca1512c409c014c625ca285e9c',
+          amount: 210000000n,
+        },
+        {
           tokenId: TestUtils.generateRandomId(),
           amount: 2210n,
         },
@@ -2139,6 +2149,11 @@ class TestBoxes {
           tokenId:
             '0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95',
           amount: 999000000000n,
+        },
+        {
+          tokenId:
+            '064c58ea394d41fada074a3c560a132467adf4ca1512c409c014c625ca285e9c',
+          amount: 210000000n,
         },
         {
           tokenId: TestUtils.generateRandomId(),

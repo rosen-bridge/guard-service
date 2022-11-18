@@ -105,7 +105,10 @@ const mockIsBoxUnspentAndValid = (boxId: string, result: boolean): void => {
  * @param address
  * @param result
  */
-const mockGetAddressAssets = (address: string, result: AddressInfo): void => {
+const mockExplorerGetAddressAssets = (
+  address: string,
+  result: AddressInfo
+): void => {
   when(mockedExplorer.getAddressAssets(address)).thenResolve(result);
 };
 
@@ -124,6 +127,6 @@ export {
   mockExplorerGetTxConfirmation,
   mockIsTxInMempool,
   mockIsBoxUnspentAndValid,
-  mockGetAddressAssets,
+  mockExplorerGetAddressAssets,
   resetMockedExplorerApi,
 };

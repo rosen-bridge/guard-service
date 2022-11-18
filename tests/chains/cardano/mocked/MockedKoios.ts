@@ -1,6 +1,8 @@
 import { deepEqual, spy, when } from 'ts-mockito';
 import KoiosApi from '../../../../src/chains/cardano/network/KoiosApi';
 import {
+  AddressInfo,
+  AddressAssets,
   KoiosTransaction,
   Utxo,
 } from '../../../../src/chains/cardano/models/Interfaces';
@@ -37,4 +39,34 @@ const mockKoiosGetTxInfo = (txId: string, tx: KoiosTransaction) => {
   when(mockedKoios.getTxInformation(deepEqual([txId]))).thenResolve([tx]);
 };
 
-export { mockGetAddressBoxes, mockKoiosGetTxInfo, mockKoiosGetTxConfirmation };
+/**
+ * mocks KoiosApi getAddressInfo method to return result when called for address
+ * @param address
+ * @param result
+ */
+const mockKoiosGetAddressInfo = (
+  address: string,
+  result: AddressInfo
+): void => {
+  when(mockedKoios.getAddressInfo(address)).thenResolve(result);
+};
+
+/**
+ * mocks KoiosApi getAddressAssets method to return result when called for address
+ * @param address
+ * @param result
+ */
+const mockKoiosGetAddressAssets = (
+  address: string,
+  result: AddressAssets
+): void => {
+  when(mockedKoios.getAddressAssets(address)).thenResolve(result);
+};
+
+export {
+  mockGetAddressBoxes,
+  mockKoiosGetTxInfo,
+  mockKoiosGetTxConfirmation,
+  mockKoiosGetAddressInfo,
+  mockKoiosGetAddressAssets,
+};
