@@ -113,6 +113,21 @@ interface ExplorerTransaction {
   outputs: ExplorerOutputBox[];
 }
 
+interface AddressInfo {
+  summary: {
+    id: string;
+  };
+  transactions: {
+    confirmedBalance: bigint;
+    confirmedTokensBalance: TokenBalance[];
+  };
+}
+
+interface TokenBalance {
+  tokenId: string;
+  amount: bigint;
+}
+
 export {
   Asset,
   Register,
@@ -125,4 +140,5 @@ export {
   ErgoTransactionJsonModel,
   ExplorerOutputBox,
   ExplorerTransaction,
+  AddressInfo,
 };

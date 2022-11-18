@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { ErgoBox } from 'ergo-lib-wasm-nodejs';
 import {
+  AddressInfo,
   Asset,
   AssetMap,
   Box,
@@ -220,6 +221,28 @@ class ExplorerApi {
           if (e.response.status === 404)
             throw new NotFoundError(baseError + e.response.data.reason);
           else throw new FailedError(baseError + e.response.data.reason);
+        } else if (e.request) {
+          throw new NetworkError(baseError + e.message);
+        } else {
+          throw new UnexpectedApiError(baseError + e.message);
+        }
+      });
+  };
+
+  /**
+   * gets amount of erg and tokens in an address
+   * @param address the address
+   */
+  static getAddressAssets = (address: string): Promise<AddressInfo> => {
+    return this.explorerApi
+      .get<AddressInfo>(`/v0/addresses/${address}`)
+      .then((res) => {
+        return res.data;
+      })
+      .catch((e) => {
+        const baseError = `Failed to get address [${address}] assets: `;
+        if (e.response) {
+          throw new FailedError(baseError + e.response.data.reason);
         } else if (e.request) {
           throw new NetworkError(baseError + e.message);
         } else {

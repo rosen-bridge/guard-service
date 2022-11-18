@@ -1,6 +1,7 @@
 import { EventTrigger, TransactionTypes } from '../../../../src/models/Models';
 import TestUtils from '../../../testUtils/TestUtils';
 import {
+  AddressInfo,
   Asset,
   Box,
   Boxes,
@@ -41,6 +42,7 @@ import ChainsConstants from '../../../../src/chains/ChainsConstants';
 import Utils from '../../../../src/helpers/Utils';
 import InputBoxes from '../../../../src/chains/ergo/boxes/InputBoxes';
 import { rosenConfig } from '../../../../src/helpers/RosenConfig';
+import { mock } from 'ts-mockito';
 
 class TestBoxes {
   static testLockAddress = ErgoConfigs.ergoContractConfig.lockAddress;
@@ -2078,6 +2080,73 @@ class TestBoxes {
         "spentTransactionId": "158642ac22fef3ee08b40b6f78c39564d3c2fb22bf8393ef6083c37225fdf4d8",
         "mainChain": true
     }`);
+
+  /**
+   * returns a mocked object of ErgoTransaction
+   */
+  static mockErgoTransaction = (): ErgoTransaction => {
+    return mock(ErgoTransaction);
+  };
+
+  static mediumAddressAssets: AddressInfo = {
+    summary: {
+      id: ErgoConfigs.ergoContractConfig.lockAddress,
+    },
+    transactions: {
+      confirmedBalance: 223000000000n,
+      confirmedTokensBalance: [
+        {
+          tokenId:
+            '0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95',
+          amount: 221000000000n,
+        },
+        {
+          tokenId: TestUtils.generateRandomId(),
+          amount: 2210000000000000n,
+        },
+      ],
+    },
+  };
+
+  static highErgAddressAssets: AddressInfo = {
+    summary: {
+      id: ErgoConfigs.ergoContractConfig.lockAddress,
+    },
+    transactions: {
+      confirmedBalance: 999000000000n,
+      confirmedTokensBalance: [
+        {
+          tokenId:
+            '0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95',
+          amount: 221000000000n,
+        },
+        {
+          tokenId: TestUtils.generateRandomId(),
+          amount: 2210n,
+        },
+      ],
+    },
+  };
+
+  static highTokenAddressAssets: AddressInfo = {
+    summary: {
+      id: ErgoConfigs.ergoContractConfig.lockAddress,
+    },
+    transactions: {
+      confirmedBalance: 223000000000n,
+      confirmedTokensBalance: [
+        {
+          tokenId:
+            '0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95',
+          amount: 999000000000n,
+        },
+        {
+          tokenId: TestUtils.generateRandomId(),
+          amount: 2210n,
+        },
+      ],
+    },
+  };
 }
 
 export default TestBoxes;

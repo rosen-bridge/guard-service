@@ -1,7 +1,8 @@
 import config from 'config';
 import { RosenTokens, TokenMap } from '@rosen-bridge/tokens';
 import fs from 'fs';
-import { ThresholdConfig } from '../guard/assetThreshold/types';
+import { ThresholdConfig } from '../guard/coldStorage/types';
+import { JsonBI } from '../network/NetworkModels';
 
 /**
  * reads a config, set default value if it does not exits
@@ -74,7 +75,7 @@ class Configs {
       );
     } else {
       const configJson: string = fs.readFileSync(thresholdsPath, 'utf8');
-      return JSON.parse(configJson);
+      return JsonBI.parse(configJson);
     }
   };
   static tokenMap = new TokenMap(this.tokens());
