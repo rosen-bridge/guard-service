@@ -116,7 +116,7 @@ describe('ColdStorage', () => {
       // mock address assets
       mockExplorerGetAddressAssets(
         ErgoConfigs.ergoContractConfig.lockAddress,
-        ErgoTestBoxes.highErgAddressAssets
+        ErgoTestBoxes.highTokenAddressAssets
       );
 
       // mock generateTransaction and startAgreementProcess
