@@ -113,14 +113,9 @@ interface ExplorerTransaction {
   outputs: ExplorerOutputBox[];
 }
 
-interface AddressInfo {
-  summary: {
-    id: string;
-  };
-  transactions: {
-    confirmedBalance: bigint;
-    confirmedTokensBalance: TokenBalance[];
-  };
+interface AddressBalance {
+  nanoErgs: bigint;
+  tokens: TokenBalance[];
 }
 
 interface TokenBalance {
@@ -140,5 +135,5 @@ export {
   ErgoTransactionJsonModel,
   ExplorerOutputBox,
   ExplorerTransaction,
-  AddressInfo,
+  AddressBalance,
 };

@@ -4,7 +4,7 @@ import {
   Boxes,
   CoveringErgoBoxes,
   ExplorerTransaction,
-  AddressInfo,
+  AddressBalance,
 } from '../../../../src/chains/ergo/models/Interfaces';
 
 let mockedExplorer = spy(ExplorerApi);
@@ -107,7 +107,7 @@ const mockIsBoxUnspentAndValid = (boxId: string, result: boolean): void => {
  */
 const mockExplorerGetAddressAssets = (
   address: string,
-  result: AddressInfo
+  result: AddressBalance
 ): void => {
   when(mockedExplorer.getAddressAssets(address)).thenResolve(result);
 };

@@ -27,15 +27,13 @@ class ColdStorage {
       Object.keys(ergoAssets).forEach((tokenId) => {
         if (tokenId === ChainsConstants.ergoNativeAsset) {
           if (
-            assets.transactions.confirmedBalance >
-            ergoAssets[ChainsConstants.ergoNativeAsset].high
+            assets.nanoErgs > ergoAssets[ChainsConstants.ergoNativeAsset].high
           ) {
             ergs =
-              assets.transactions.confirmedBalance -
-              ergoAssets[ChainsConstants.ergoNativeAsset].low;
+              assets.nanoErgs - ergoAssets[ChainsConstants.ergoNativeAsset].low;
           }
         } else {
-          const tokenBalance = assets.transactions.confirmedTokensBalance.find(
+          const tokenBalance = assets.tokens.find(
             (token) => token.tokenId === tokenId
           );
           if (tokenBalance === undefined)

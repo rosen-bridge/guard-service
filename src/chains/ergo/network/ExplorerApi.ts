@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { ErgoBox } from 'ergo-lib-wasm-nodejs';
 import {
-  AddressInfo,
+  AddressBalance,
   Asset,
   AssetMap,
   Box,
@@ -233,9 +233,9 @@ class ExplorerApi {
    * gets amount of erg and tokens in an address
    * @param address the address
    */
-  static getAddressAssets = (address: string): Promise<AddressInfo> => {
+  static getAddressAssets = (address: string): Promise<AddressBalance> => {
     return this.explorerApi
-      .get<AddressInfo>(`/v0/addresses/${address}`)
+      .get<AddressBalance>(`/v1/addresses/${address}/balance/confirmed`)
       .then((res) => {
         return res.data;
       })
