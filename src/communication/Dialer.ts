@@ -263,7 +263,6 @@ class Dialer {
             const multi = multiaddr.multiaddr(
               addr.concat(`/p2p-circuit/p2p/${peer}`)
             );
-            logger.warn(this.getPeerIds().includes(peer));
             if (!this.getPeerIds().includes(peer)) {
               this._pendingDialPeers.push(peer);
               this._node?.peerStore.addressBook
