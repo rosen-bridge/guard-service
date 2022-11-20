@@ -3,23 +3,23 @@ import * as lp from 'it-length-prefixed';
 import map from 'it-map';
 import { pipe } from 'it-pipe';
 import { pushable, Pushable } from 'it-pushable';
-import { createLibp2p, Libp2p } from 'libp2p';
+import { createLibp2p, Libp2p, Libp2pInit } from 'libp2p';
 import {
   fromString as uint8ArrayFromString,
   toString as uint8ArrayToString,
 } from 'uint8arrays';
 
-import { GossipSub } from '@chainsafe/libp2p-gossipsub';
-import { Noise } from '@chainsafe/libp2p-noise';
+import { gossipsub } from '@chainsafe/libp2p-gossipsub';
+import { noise } from '@chainsafe/libp2p-noise';
 
-import { Bootstrap } from '@libp2p/bootstrap';
+import { bootstrap } from '@libp2p/bootstrap';
 import { Connection, Stream } from '@libp2p/interface-connection';
 import { OPEN } from '@libp2p/interface-connection/status';
 import { PeerId } from '@libp2p/interface-peer-id';
-import { Mplex } from '@libp2p/mplex';
+import { mplex } from '@libp2p/mplex';
 import { createEd25519PeerId, createFromJSON } from '@libp2p/peer-id-factory';
-import { PubSubPeerDiscovery } from '@libp2p/pubsub-peer-discovery';
-import { WebSockets } from '@libp2p/websockets';
+import { pubsubPeerDiscovery } from '@libp2p/pubsub-peer-discovery';
+import { webSockets } from '@libp2p/websockets';
 
 import * as multiaddr from '@multiformats/multiaddr';
 
@@ -38,6 +38,17 @@ import { JsonBI } from '../network/NetworkModels';
 
 const MESSAGE_SENDING_RETRIES_EXPONENTIAL_FACTOR = 5;
 const MESSAGE_SENDING_RETRIES_MAX_COUNT = 3n;
+
+/**
+ * TODO: This is needed because of an issue in types of `@libp2p/pubsub-peer-discovery`
+ * which mismatch with types of `libp2p`
+ */
+type PeerDiscoveryArray = Libp2pInit['peerDiscovery'];
+type PeerDiscovery = PeerDiscoveryArray extends
+  | readonly (infer ElementType)[]
+  | undefined
+  ? ElementType
+  : never;
 
 // TODO: Need to write test for This package
 //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/21
@@ -487,12 +498,12 @@ class Dialer {
         // get or create new PeerID if it doesn't exist
         peerId: peerId.peerId,
         // Type of communication
-        transports: [new WebSockets()],
+        transports: [webSockets()],
         // Enable module encryption message
-        connectionEncryption: [new Noise()],
+        connectionEncryption: [noise()],
         streamMuxers: [
-          // Mplex is a Stream Multiplexer protocol
-          new Mplex(),
+          // mplex is a Stream Multiplexer protocol
+          mplex(),
         ],
         relay: {
           // Circuit Relay options (this config is part of libp2p core configurations)
@@ -516,15 +527,15 @@ class Dialer {
            */
           minConnections: 20,
         },
-        pubsub: new GossipSub({ allowPublishToZeroPeers: true }),
+        pubsub: gossipsub({ allowPublishToZeroPeers: true }),
         peerDiscovery: [
-          new Bootstrap({
+          bootstrap({
             timeout: CommunicationConfig.bootstrapTimeout * 1000,
             list: CommunicationConfig.relays.multiaddrs,
           }),
-          new PubSubPeerDiscovery({
+          pubsubPeerDiscovery({
             interval: CommunicationConfig.pubsubInterval * 1000,
-          }),
+          }) as PeerDiscovery,
         ],
       });
 
