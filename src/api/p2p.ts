@@ -91,3 +91,20 @@ p2pRouter.get('/getPeerIDs', async (req: Request, res: Response) => {
     res.status(500).send({ message: error.message });
   }
 });
+
+/**
+ * Api for sending dialer id
+ */
+p2pRouter.get('/getPeerID', async (req: Request, res: Response) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    const dialerId = dialer.getDialerId();
+    res.status(200).json({ message: dialerId, status: 'ok' });
+  } catch (error) {
+    logger.warn(`An error occurred while return peerID: ${error.message}`);
+    res.status(500).send({ message: error.message });
+  }
+});
