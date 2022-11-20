@@ -59,7 +59,7 @@
       }
     ],
     "bootstrapTimeout": 10,
-    "pubsubInterval": 1,
+    "pubsubInterval": 10,
     "apiCallbackTimeout": 8,
     "timeToFlushStream": 0.1,
     "sendPendingMessage": 3,
