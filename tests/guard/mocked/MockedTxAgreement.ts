@@ -19,7 +19,14 @@ const mockStartAgreementProcess = (tx: PaymentTransaction): void => {
 const verifyStartAgreementProcessCalledOnce = (
   tx: PaymentTransaction
 ): void => {
-  verify(mockedTxAgreement.startAgreementProcess(anything())).once();
+  verify(mockedTxAgreement.startAgreementProcess(tx)).once();
+};
+
+/**
+ * verifies txAgreement startAgreementProcess method didn't get called
+ */
+const verifyStartAgreementProcessDidntGetCalled = (): void => {
+  verify(mockedTxAgreement.startAgreementProcess(anything())).never();
 };
 
 /**
@@ -33,5 +40,6 @@ const resetMockedTxAgreement = (): void => {
 export {
   mockStartAgreementProcess,
   verifyStartAgreementProcessCalledOnce,
+  verifyStartAgreementProcessDidntGetCalled,
   resetMockedTxAgreement,
 };

@@ -2,6 +2,7 @@ import { Address } from 'ergo-lib-wasm-nodejs';
 import ErgoConfigs from './helpers/ErgoConfigs';
 import ErgoUtils from './helpers/ErgoUtils';
 import ErgoTransaction from './models/ErgoTransaction';
+import { BoxesAssets } from './models/Interfaces';
 
 class ErgoColdStorage {
   static lockAddress = Address.from_base58(
@@ -15,7 +16,9 @@ class ErgoColdStorage {
    * generates unsigned transaction to transfer assets to cold storage in ergo chain
    * @return the generated asset transfer transaction
    */
-  static generateTransaction = async (): Promise<ErgoTransaction> => {
+  static generateTransaction = async (
+    transferringAssets: BoxesAssets
+  ): Promise<ErgoTransaction> => {
     // TODO: implement this
     //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/work_items/582
     throw Error(`Not implemented yet!`);

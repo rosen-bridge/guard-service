@@ -1,6 +1,7 @@
 import { EventTrigger, TransactionTypes } from '../../../../src/models/Models';
 import TestUtils from '../../../testUtils/TestUtils';
 import {
+  AddressBalance,
   Asset,
   Box,
   Boxes,
@@ -41,6 +42,7 @@ import ChainsConstants from '../../../../src/chains/ChainsConstants';
 import Utils from '../../../../src/helpers/Utils';
 import InputBoxes from '../../../../src/chains/ergo/boxes/InputBoxes';
 import { rosenConfig } from '../../../../src/helpers/RosenConfig';
+import { mock } from 'ts-mockito';
 
 class TestBoxes {
   static testLockAddress = ErgoConfigs.ergoContractConfig.lockAddress;
@@ -2078,6 +2080,73 @@ class TestBoxes {
         "spentTransactionId": "158642ac22fef3ee08b40b6f78c39564d3c2fb22bf8393ef6083c37225fdf4d8",
         "mainChain": true
     }`);
+
+  /**
+   * returns a mocked object of ErgoTransaction
+   */
+  static mockErgoTransaction = (): ErgoTransaction => {
+    return mock(ErgoTransaction);
+  };
+
+  static mediumAddressAssets: AddressBalance = {
+    nanoErgs: 223000000000n,
+    tokens: [
+      {
+        tokenId:
+          '0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95',
+        amount: 221000000000n,
+      },
+      {
+        tokenId:
+          '064c58ea394d41fada074a3c560a132467adf4ca1512c409c014c625ca285e9c',
+        amount: 210000000n,
+      },
+      {
+        tokenId: TestUtils.generateRandomId(),
+        amount: 2210000000000000n,
+      },
+    ],
+  };
+
+  static highTokenAddressAssets: AddressBalance = {
+    nanoErgs: 223000000000n,
+    tokens: [
+      {
+        tokenId:
+          '0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95',
+        amount: 999000000000n,
+      },
+      {
+        tokenId:
+          '064c58ea394d41fada074a3c560a132467adf4ca1512c409c014c625ca285e9c',
+        amount: 210000000n,
+      },
+      {
+        tokenId: TestUtils.generateRandomId(),
+        amount: 2210n,
+      },
+    ],
+  };
+
+  static highErgAddressAssets: AddressBalance = {
+    nanoErgs: 999000000000n,
+    tokens: [
+      {
+        tokenId:
+          '0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95',
+        amount: 221000000000n,
+      },
+      {
+        tokenId:
+          '064c58ea394d41fada074a3c560a132467adf4ca1512c409c014c625ca285e9c',
+        amount: 210000000n,
+      },
+      {
+        tokenId: TestUtils.generateRandomId(),
+        amount: 2210n,
+      },
+    ],
+  };
 }
 
 export default TestBoxes;

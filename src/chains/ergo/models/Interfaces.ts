@@ -113,6 +113,16 @@ interface ExplorerTransaction {
   outputs: ExplorerOutputBox[];
 }
 
+interface AddressBalance {
+  nanoErgs: bigint;
+  tokens: TokenBalance[];
+}
+
+interface TokenBalance {
+  tokenId: string;
+  amount: bigint;
+}
+
 export {
   Asset,
   Register,
@@ -125,4 +135,5 @@ export {
   ErgoTransactionJsonModel,
   ExplorerOutputBox,
   ExplorerTransaction,
+  AddressBalance,
 };

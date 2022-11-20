@@ -4,7 +4,8 @@ import { components } from '@blockfrost/blockfrost-js/lib/types/OpenApi';
 interface Asset {
   policy_id: string;
   asset_name: string;
-  quantity: string;
+  quantity: bigint;
+  fingerprint: string;
 }
 
 interface Utxo {
@@ -41,6 +42,17 @@ interface KoiosTransaction {
   metadata?: MetaData;
 }
 
+interface AddressInfo {
+  address: string;
+  balance: bigint;
+  utxo_set: Utxo[];
+}
+
+interface AddressAssets {
+  address: string;
+  assets: Asset[];
+}
+
 type TxUtxos = components['schemas']['tx_content_utxo'];
 
 type AddressUtxos = components['schemas']['address_utxo_content'];
@@ -54,4 +66,6 @@ export type {
   KoiosTransaction,
   MetaData,
   RosenData,
+  AddressInfo,
+  AddressAssets,
 };

@@ -1,6 +1,7 @@
 import { Address } from '@emurgo/cardano-serialization-lib-nodejs';
 import CardanoConfigs from './helpers/CardanoConfigs';
 import CardanoTransaction from './models/CardanoTransaction';
+import { BoxesAssets } from '../ergo/models/Interfaces';
 
 class CardanoColdStorage {
   static lockAddress = Address.from_bech32(CardanoConfigs.bankAddress);
@@ -10,7 +11,9 @@ class CardanoColdStorage {
    * generates unsigned transaction to transfer assets to cold storage in cardano chain
    * @return the generated asset transfer transaction
    */
-  static generateTransaction = async (): Promise<CardanoTransaction> => {
+  static generateTransaction = async (
+    transferringAssets: BoxesAssets
+  ): Promise<CardanoTransaction> => {
     // TODO: implement this
     //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/work_items/583
     throw Error(`Not implemented yet!`);

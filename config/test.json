@@ -18,7 +18,7 @@
     "lockAddresses": [
       "addr_test1vze7yqqlg8cjlyhz7jzvsg0f3fhxpuu6m3llxrajfzqecggw704re"
     ],
-    "coldStorageAddress": ""
+    "coldStorageAddress": "addr_test1vze7yqqlg8cjlyhz7jzvsg0f3fhxpuu6m3llxrajfzqecggw704re"
   },
   "ergo": {
     "explorer": {
@@ -35,7 +35,7 @@
     "observationConfirmation": 10,
     "eventConfirmation": 15,
     "distributionConfirmation": 20,
-    "coldStorageAddress": ""
+    "coldStorageAddress": "9es3xKFSehNNwCpuNpY31ScAubDqeLbSWwaCysjN1ee51bgHKTq"
   },
   "reward": {
     "bridgeFeeRepoAddress": "9gtQHPp8yh2SC7z5ZLMHnK2NNW1DUW11hBKbUEADzqCSrECoQQM",
