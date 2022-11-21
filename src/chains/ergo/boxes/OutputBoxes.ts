@@ -6,7 +6,7 @@ import {
 } from 'ergo-lib-wasm-nodejs';
 import ErgoUtils from '../helpers/ErgoUtils';
 import ErgoConfigs from '../helpers/ErgoConfigs';
-import { BoxesAssets } from '../models/Interfaces';
+import { AssetMap, BoxesAssets } from '../models/Interfaces';
 import { rosenConfig } from '../../../helpers/RosenConfig';
 
 class OutputBoxes {
@@ -194,6 +194,30 @@ class OutputBoxes {
     );
 
     return changeBox.build();
+  };
+
+  /**
+   * creates an ErgoBox containing transferring assets to cold storage address
+   * @param height current height of blockchain
+   * @param ergAmount amount of Erg in box
+   * @param tokens tokens of the box
+   */
+  static createColdBox = (
+    height: number,
+    ergAmount: bigint,
+    tokens: AssetMap
+  ): ErgoBoxCandidate => {
+    const coldBox = new ErgoBoxCandidateBuilder(
+      ErgoUtils.boxValueFromBigint(ergAmount),
+      ErgoUtils.addressStringToContract(ErgoConfigs.coldAddress),
+      height
+    );
+
+    Object.keys(tokens).forEach((tokenId) => {
+      this.addTokenToBoxBuilder(coldBox, tokenId, tokens[tokenId]);
+    });
+
+    return coldBox.build();
   };
 }
 
