@@ -6,6 +6,7 @@ import {
   EventStatus,
   PaymentTransaction,
   TransactionStatus,
+  TransactionTypes,
 } from '../models/Models';
 import {
   CommitmentEntity,
@@ -178,7 +179,7 @@ class DatabaseAction {
    */
   insertTx = async (newTx: PaymentTransaction): Promise<void> => {
     const event = await this.getEventById(newTx.eventId);
-    if (event === null) {
+    if (event === null && newTx.txType !== TransactionTypes.coldStorage) {
       throw new Error(`Event [${newTx.eventId}] not found`);
     }
 
@@ -262,15 +263,25 @@ class DatabaseAction {
     paymentTx: PaymentTransaction,
     event: ConfirmedEventEntity
   ): Promise<void> => {
-    await this.TransactionRepository.insert({
-      txId: paymentTx.txId,
-      txJson: paymentTx.toJson(),
-      type: paymentTx.txType,
-      chain: paymentTx.network,
-      status: TransactionStatus.approved,
-      lastCheck: 0,
-      event: event,
-    });
+    if (event !== null)
+      await this.TransactionRepository.insert({
+        txId: paymentTx.txId,
+        txJson: paymentTx.toJson(),
+        type: paymentTx.txType,
+        chain: paymentTx.network,
+        status: TransactionStatus.approved,
+        lastCheck: 0,
+        event: event,
+      });
+    else
+      await this.TransactionRepository.insert({
+        txId: paymentTx.txId,
+        txJson: paymentTx.toJson(),
+        type: paymentTx.txType,
+        chain: paymentTx.network,
+        status: TransactionStatus.approved,
+        lastCheck: 0,
+      });
   };
 
   /**
