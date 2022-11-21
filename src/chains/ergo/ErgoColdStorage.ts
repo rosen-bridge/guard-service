@@ -57,26 +57,21 @@ class ErgoColdStorage {
     );
 
     if (!coveringBoxes.covered) {
-      const Erg = (requiredAssets.ergs + ErgoConfigs.minimumErg).toString();
-      const Tokens = JsonBI.stringify(requiredAssets.tokens);
+      const neededErgs = requiredAssets.ergs.toString();
+      const neededTokens = JsonBI.stringify(requiredAssets.tokens);
       throw new Error(
-        `Impossible case: Bank boxes didn't cover required assets. Erg: ${Erg}, Tokens: ${Tokens}`
+        `Impossible case: Bank boxes didn't cover required assets. Erg: ${neededErgs}, Tokens: ${neededTokens}`
       );
     }
 
     // create output boxes
-    const coldBox = OutputBoxes.createColdBox(
-      currentHeight,
-      requiredAssets.ergs - ErgoConfigs.minimumErg,
-      requiredAssets.tokens
-    );
-
-    const coveringAssets = ErgoUtils.calculateBoxesAssets(coveringBoxes.boxes);
     const coldBoxAssets: BoxesAssets = {
-      ergs: requiredAssets.ergs - ErgoConfigs.minimumErg,
+      ergs: requiredAssets.ergs - ErgoConfigs.minimumErg - ErgoConfigs.txFee,
       tokens: requiredAssets.tokens,
     };
+    const coldBox = OutputBoxes.createColdBox(currentHeight, coldBoxAssets);
 
+    const coveringAssets = ErgoUtils.calculateBoxesAssets(coveringBoxes.boxes);
     const changeBox = OutputBoxes.createChangeBox(
       currentHeight,
       ErgoConfigs.ergoContractConfig.lockAddress,
@@ -145,15 +140,17 @@ class ErgoColdStorage {
    * @param ergoTx the transfer transaction
    * @return true if tx verified
    */
-  static verifyTransactionWithEvent = async (
+  static verifyTransaction = async (
     ergoTx: ErgoTransaction
   ): Promise<boolean> => {
     const tx = ErgoColdStorage.deserialize(ergoTx.txBytes).unsigned_tx();
     const outputBoxes = tx.output_candidates();
+    logger.info(`\t| case 1`);
 
     // verify number of output boxes (1 cold box + 1 change box + 1 tx fee box)
     const outputLength = outputBoxes.len();
     if (outputLength !== 3) return false;
+    logger.info(`\t| case 2`);
 
     // verify box addresses
     if (
@@ -161,6 +158,7 @@ class ErgoColdStorage {
       outputBoxes.get(1).ergo_tree().to_base16_bytes() !== this.lockErgoTree
     )
       return false;
+    logger.info(`\t| case 3`);
 
     // verify change box registers (no register allowed)
     if (outputBoxes.get(1).register_value(4) !== undefined) return false;
@@ -186,6 +184,7 @@ class ErgoColdStorage {
       lockAddressAssets,
       outBoxesAssets
     );
+    logger.info(`\t| case 4`);
 
     // verify remaining amount to be within thresholds
     const ergoAssets = Configs.thresholds()[ChainsConstants.ergo];
@@ -197,11 +196,19 @@ class ErgoColdStorage {
       )
         return false;
     });
+    logger.info(`\t| remaining ergs: ${remainingAssets.ergs}`);
+    logger.info(
+      `\t| low thr: ${ergoAssets[ChainsConstants.ergoNativeAsset].low}`
+    );
+    logger.info(
+      `\t| hight thr: ${ergoAssets[ChainsConstants.ergoNativeAsset].high}`
+    );
     if (
       remainingAssets.ergs < ergoAssets[ChainsConstants.ergoNativeAsset].low ||
       remainingAssets.ergs > ergoAssets[ChainsConstants.ergoNativeAsset].high
     )
       return false;
+    logger.info(`\t| case 6`);
 
     // verify transaction fee value (last box erg value)
     return (

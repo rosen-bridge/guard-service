@@ -2147,6 +2147,188 @@ class TestBoxes {
       },
     ],
   };
+
+  /**
+   * generates 3 input boxes for ergo bank address with amount of erg greater than high threshold
+   */
+  static mockHighErgAssetsAndBankBoxes = (): [
+    AddressBalance,
+    CoveringErgoBoxes
+  ] => {
+    const tokenId1 =
+      '0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95';
+    const tokenId2 =
+      '064c58ea394d41fada074a3c560a132467adf4ca1512c409c014c625ca285e9c';
+    const randomTokenId: string = TestUtils.generateRandomId();
+
+    const box1Tokens: Tokens = new Tokens();
+    box1Tokens.add(
+      new Token(
+        TokenId.from_str(tokenId1),
+        TokenAmount.from_i64(I64.from_str('2000000000'))
+      )
+    );
+    box1Tokens.add(
+      new Token(
+        TokenId.from_str(randomTokenId),
+        TokenAmount.from_i64(I64.from_str('1000000000'))
+      )
+    );
+    const box1: ErgoBox = new ErgoBox(
+      this.ergToBoxValue(400),
+      this.testBlockchainHeight + 5,
+      ErgoUtils.addressStringToContract(this.testLockAddress),
+      TxId.from_str(TestUtils.generateRandomId()),
+      0,
+      box1Tokens
+    );
+    const box2Tokens: Tokens = new Tokens();
+    box2Tokens.add(
+      new Token(
+        TokenId.from_str(tokenId2),
+        TokenAmount.from_i64(I64.from_str('110000000'))
+      )
+    );
+    const box2: ErgoBox = new ErgoBox(
+      this.ergToBoxValue(200),
+      this.testBlockchainHeight,
+      ErgoUtils.addressStringToContract(this.testLockAddress),
+      TxId.from_str(TestUtils.generateRandomId()),
+      0,
+      box2Tokens
+    );
+    const box3Tokens: Tokens = new Tokens();
+    box3Tokens.add(
+      new Token(
+        TokenId.from_str(tokenId2),
+        TokenAmount.from_i64(I64.from_str('110000000'))
+      )
+    );
+    const box3: ErgoBox = new ErgoBox(
+      this.ergToBoxValue(200),
+      this.testBlockchainHeight + 20,
+      ErgoUtils.addressStringToContract(this.testLockAddress),
+      TxId.from_str(TestUtils.generateRandomId()),
+      2,
+      box3Tokens
+    );
+
+    const bankAssets: AddressBalance = {
+      nanoErgs: 800000000000n,
+      tokens: [
+        {
+          tokenId:
+            '0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95',
+          amount: 2000000000n,
+        },
+        {
+          tokenId:
+            '064c58ea394d41fada074a3c560a132467adf4ca1512c409c014c625ca285e9c',
+          amount: 220000000n,
+        },
+        {
+          tokenId: randomTokenId,
+          amount: 1000000000n,
+        },
+      ],
+    };
+    const bankBoxes: CoveringErgoBoxes = {
+      covered: true,
+      boxes: [box1, box2, box3],
+    };
+    return [bankAssets, bankBoxes];
+  };
+
+  /**
+   * generates 3 input boxes for ergo bank address with amount of erg greater than high threshold
+   */
+  static mockHighTokenBankAssetsAndBoxes = (): [
+    AddressBalance,
+    CoveringErgoBoxes
+  ] => {
+    const tokenId1 =
+      '0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95';
+    const tokenId2 =
+      '064c58ea394d41fada074a3c560a132467adf4ca1512c409c014c625ca285e9c';
+    const randomTokenId: string = TestUtils.generateRandomId();
+
+    const box1Tokens: Tokens = new Tokens();
+    box1Tokens.add(
+      new Token(
+        TokenId.from_str(tokenId1),
+        TokenAmount.from_i64(I64.from_str('2000000000'))
+      )
+    );
+    box1Tokens.add(
+      new Token(
+        TokenId.from_str(randomTokenId),
+        TokenAmount.from_i64(I64.from_str('1000000000'))
+      )
+    );
+    const box1: ErgoBox = new ErgoBox(
+      this.ergToBoxValue(400),
+      this.testBlockchainHeight + 5,
+      ErgoUtils.addressStringToContract(this.testLockAddress),
+      TxId.from_str(TestUtils.generateRandomId()),
+      0,
+      box1Tokens
+    );
+    const box2Tokens: Tokens = new Tokens();
+    box2Tokens.add(
+      new Token(
+        TokenId.from_str(tokenId2),
+        TokenAmount.from_i64(I64.from_str('280000000'))
+      )
+    );
+    const box2: ErgoBox = new ErgoBox(
+      this.ergToBoxValue(200),
+      this.testBlockchainHeight,
+      ErgoUtils.addressStringToContract(this.testLockAddress),
+      TxId.from_str(TestUtils.generateRandomId()),
+      0,
+      box2Tokens
+    );
+    const box3Tokens: Tokens = new Tokens();
+    box3Tokens.add(
+      new Token(
+        TokenId.from_str(tokenId2),
+        TokenAmount.from_i64(I64.from_str('220000000'))
+      )
+    );
+    const box3: ErgoBox = new ErgoBox(
+      this.ergToBoxValue(200),
+      this.testBlockchainHeight + 20,
+      ErgoUtils.addressStringToContract(this.testLockAddress),
+      TxId.from_str(TestUtils.generateRandomId()),
+      2,
+      box3Tokens
+    );
+
+    const bankAssets: AddressBalance = {
+      nanoErgs: 800000000000n,
+      tokens: [
+        {
+          tokenId:
+            '0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95',
+          amount: 2000000000n,
+        },
+        {
+          tokenId:
+            '064c58ea394d41fada074a3c560a132467adf4ca1512c409c014c625ca285e9c',
+          amount: 500000000n,
+        },
+        {
+          tokenId: randomTokenId,
+          amount: 1000000000n,
+        },
+      ],
+    };
+    const bankBoxes: CoveringErgoBoxes = {
+      covered: true,
+      boxes: [box1, box2, box3],
+    };
+    return [bankAssets, bankBoxes];
+  };
 }
 
 export default TestBoxes;
