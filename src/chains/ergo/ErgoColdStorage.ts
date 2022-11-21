@@ -145,12 +145,10 @@ class ErgoColdStorage {
   ): Promise<boolean> => {
     const tx = ErgoColdStorage.deserialize(ergoTx.txBytes).unsigned_tx();
     const outputBoxes = tx.output_candidates();
-    logger.info(`\t| case 1`);
 
     // verify number of output boxes (1 cold box + 1 change box + 1 tx fee box)
     const outputLength = outputBoxes.len();
     if (outputLength !== 3) return false;
-    logger.info(`\t| case 2`);
 
     // verify box addresses
     if (
@@ -158,7 +156,6 @@ class ErgoColdStorage {
       outputBoxes.get(1).ergo_tree().to_base16_bytes() !== this.lockErgoTree
     )
       return false;
-    logger.info(`\t| case 3`);
 
     // verify change box registers (no register allowed)
     if (outputBoxes.get(1).register_value(4) !== undefined) return false;
@@ -184,31 +181,24 @@ class ErgoColdStorage {
       lockAddressAssets,
       outBoxesAssets
     );
-    logger.info(`\t| case 4`);
 
     // verify remaining amount to be within thresholds
     const ergoAssets = Configs.thresholds()[ChainsConstants.ergo];
-    Object.keys(remainingAssets.tokens).forEach((tokenId) => {
+    const remainingTokenIds = Object.keys(remainingAssets.tokens);
+    for (let i = 0; i < remainingTokenIds.length; i++) {
+      const tokenId = remainingTokenIds[i];
       if (
         Object.prototype.hasOwnProperty.call(ergoAssets, tokenId) &&
         (remainingAssets.tokens[tokenId] < ergoAssets[tokenId].low ||
           remainingAssets.tokens[tokenId] > ergoAssets[tokenId].high)
       )
         return false;
-    });
-    logger.info(`\t| remaining ergs: ${remainingAssets.ergs}`);
-    logger.info(
-      `\t| low thr: ${ergoAssets[ChainsConstants.ergoNativeAsset].low}`
-    );
-    logger.info(
-      `\t| hight thr: ${ergoAssets[ChainsConstants.ergoNativeAsset].high}`
-    );
+    }
     if (
       remainingAssets.ergs < ergoAssets[ChainsConstants.ergoNativeAsset].low ||
       remainingAssets.ergs > ergoAssets[ChainsConstants.ergoNativeAsset].high
     )
       return false;
-    logger.info(`\t| case 6`);
 
     // verify transaction fee value (last box erg value)
     return (

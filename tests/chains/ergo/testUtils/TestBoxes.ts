@@ -2159,7 +2159,8 @@ class TestBoxes {
       '0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95';
     const tokenId2 =
       '064c58ea394d41fada074a3c560a132467adf4ca1512c409c014c625ca285e9c';
-    const randomTokenId: string = TestUtils.generateRandomId();
+    const randomTokenId =
+      '079532f131a0e3b99247c4be2371a34858f3f3134d1c1231b517c4da47ab901a';
 
     const box1Tokens: Tokens = new Tokens();
     box1Tokens.add(
@@ -2217,13 +2218,11 @@ class TestBoxes {
       nanoErgs: 800000000000n,
       tokens: [
         {
-          tokenId:
-            '0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95',
+          tokenId: tokenId1,
           amount: 2000000000n,
         },
         {
-          tokenId:
-            '064c58ea394d41fada074a3c560a132467adf4ca1512c409c014c625ca285e9c',
+          tokenId: tokenId2,
           amount: 220000000n,
         },
         {
@@ -2250,7 +2249,8 @@ class TestBoxes {
       '0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95';
     const tokenId2 =
       '064c58ea394d41fada074a3c560a132467adf4ca1512c409c014c625ca285e9c';
-    const randomTokenId: string = TestUtils.generateRandomId();
+    const randomTokenId =
+      '079532f131a0e3b99247c4be2371a34858f3f3134d1c1231b517c4da47ab901a';
 
     const box1Tokens: Tokens = new Tokens();
     box1Tokens.add(
@@ -2308,13 +2308,11 @@ class TestBoxes {
       nanoErgs: 800000000000n,
       tokens: [
         {
-          tokenId:
-            '0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95',
+          tokenId: tokenId1,
           amount: 2000000000n,
         },
         {
-          tokenId:
-            '064c58ea394d41fada074a3c560a132467adf4ca1512c409c014c625ca285e9c',
+          tokenId: tokenId2,
           amount: 500000000n,
         },
         {
@@ -2328,6 +2326,359 @@ class TestBoxes {
       boxes: [box1, box2, box3],
     };
     return [bankAssets, bankBoxes];
+  };
+
+  /**
+   * generates a mocked cold storage transaction with no problem
+   * @param bankBoxes test bank boxes (used for inputs)
+   */
+  static mockFineColdStorageTransaction = (
+    bankBoxes: ErgoBox[]
+  ): ErgoTransaction => {
+    const coldAddressErgoTree: string =
+      ErgoUtils.addressStringToErgoTreeString(ErgoConfigs.coldAddress);
+
+    const inBoxes = ErgoBoxes.empty();
+    bankBoxes.forEach((box) => inBoxes.add(box));
+
+    const txJsonString: string = TestData.mockFineColdStorageTx(
+      bankBoxes.map((box) => box.box_id().to_str()),
+      coldAddressErgoTree,
+      this.testLockErgoTree
+    );
+    const tx = UnsignedTransaction.from_json(txJsonString);
+
+    const reducedTx = ReducedTransaction.from_unsigned_tx(
+      tx,
+      inBoxes,
+      ErgoBoxes.empty(),
+      TestData.mockedErgoStateContext
+    );
+
+    const txBytes = reducedTx.sigma_serialize_bytes();
+    const txId = tx.id().to_str();
+    return new ErgoTransaction(
+      txId,
+      "",
+      txBytes,
+      bankBoxes.map(box => box.sigma_serialize_bytes()),
+      [],
+      TransactionTypes.coldStorage
+    );
+  };
+
+  /**
+   * generates a mocked cold storage transaction that has additional output box
+   * @param bankBoxes test bank boxes (used for inputs)
+   */
+  static mock4outBoxesColdStorageTransaction = (
+    bankBoxes: ErgoBox[]
+  ): ErgoTransaction => {
+    const coldAddressErgoTree: string =
+      ErgoUtils.addressStringToErgoTreeString(ErgoConfigs.coldAddress);
+
+    const inBoxes = ErgoBoxes.empty();
+    bankBoxes.forEach((box) => inBoxes.add(box));
+
+    const txJsonString: string = TestData.mockAdditionalBoxColdStorageTx(
+      bankBoxes.map((box) => box.box_id().to_str()),
+      coldAddressErgoTree,
+      this.testLockErgoTree
+    );
+    const tx = UnsignedTransaction.from_json(txJsonString);
+
+    const reducedTx = ReducedTransaction.from_unsigned_tx(
+      tx,
+      inBoxes,
+      ErgoBoxes.empty(),
+      TestData.mockedErgoStateContext
+    );
+
+    const txBytes = reducedTx.sigma_serialize_bytes();
+    const txId = tx.id().to_str();
+    return new ErgoTransaction(
+      txId,
+      "",
+      txBytes,
+      bankBoxes.map(box => box.sigma_serialize_bytes()),
+      [],
+      TransactionTypes.coldStorage
+    );
+  };
+
+  /**
+   * generates a mocked cold storage transaction with invalid coldBox ergoTree
+   * @param bankBoxes test bank boxes (used for inputs)
+   */
+  static mockInvalidColdAddressColdStorageTransaction = (
+    bankBoxes: ErgoBox[]
+  ): ErgoTransaction => {
+    const invalidErgoTree: string =
+      ErgoUtils.addressStringToErgoTreeString(ErgoConfigs.bridgeFeeRepoAddress);
+
+    const inBoxes = ErgoBoxes.empty();
+    bankBoxes.forEach((box) => inBoxes.add(box));
+
+    const txJsonString: string = TestData.mockFineColdStorageTx(
+      bankBoxes.map((box) => box.box_id().to_str()),
+      invalidErgoTree,
+      this.testLockErgoTree
+    );
+    const tx = UnsignedTransaction.from_json(txJsonString);
+
+    const reducedTx = ReducedTransaction.from_unsigned_tx(
+      tx,
+      inBoxes,
+      ErgoBoxes.empty(),
+      TestData.mockedErgoStateContext
+    );
+
+    const txBytes = reducedTx.sigma_serialize_bytes();
+    const txId = tx.id().to_str();
+    return new ErgoTransaction(
+      txId,
+      "",
+      txBytes,
+      bankBoxes.map(box => box.sigma_serialize_bytes()),
+      [],
+      TransactionTypes.coldStorage
+    );
+  };
+
+  /**
+   * generates a mocked cold storage transaction with invalid changeBox ergoTree
+   * @param bankBoxes test bank boxes (used for inputs)
+   */
+  static mockInvalidChangeBoxAddressColdStorageTransaction = (
+    bankBoxes: ErgoBox[]
+  ): ErgoTransaction => {
+    const coldAddressErgoTree: string =
+      ErgoUtils.addressStringToErgoTreeString(ErgoConfigs.coldAddress);
+    const invalidErgoTree: string =
+      ErgoUtils.addressStringToErgoTreeString(ErgoConfigs.bridgeFeeRepoAddress);
+
+    const inBoxes = ErgoBoxes.empty();
+    bankBoxes.forEach((box) => inBoxes.add(box));
+
+    const txJsonString: string = TestData.mockFineColdStorageTx(
+      bankBoxes.map((box) => box.box_id().to_str()),
+      coldAddressErgoTree,
+      invalidErgoTree
+    );
+    const tx = UnsignedTransaction.from_json(txJsonString);
+
+    const reducedTx = ReducedTransaction.from_unsigned_tx(
+      tx,
+      inBoxes,
+      ErgoBoxes.empty(),
+      TestData.mockedErgoStateContext
+    );
+
+    const txBytes = reducedTx.sigma_serialize_bytes();
+    const txId = tx.id().to_str();
+    return new ErgoTransaction(
+      txId,
+      "",
+      txBytes,
+      bankBoxes.map(box => box.sigma_serialize_bytes()),
+      [],
+      TransactionTypes.coldStorage
+    );
+  };
+
+  /**
+   * generates a mocked cold storage transaction with changeBox containing register
+   * @param bankBoxes test bank boxes (used for inputs)
+   */
+  static mockColdStorageTransactionWithRegisters = (
+    bankBoxes: ErgoBox[]
+  ): ErgoTransaction => {
+    const coldAddressErgoTree: string =
+      ErgoUtils.addressStringToErgoTreeString(ErgoConfigs.coldAddress);
+
+    const inBoxes = ErgoBoxes.empty();
+    bankBoxes.forEach((box) => inBoxes.add(box));
+
+    const txJsonString: string = TestData.mockColdStorageTxWithRegister(
+      bankBoxes.map((box) => box.box_id().to_str()),
+      coldAddressErgoTree,
+      this.testLockErgoTree
+    );
+    const tx = UnsignedTransaction.from_json(txJsonString);
+
+    const reducedTx = ReducedTransaction.from_unsigned_tx(
+      tx,
+      inBoxes,
+      ErgoBoxes.empty(),
+      TestData.mockedErgoStateContext
+    );
+
+    const txBytes = reducedTx.sigma_serialize_bytes();
+    const txId = tx.id().to_str();
+    return new ErgoTransaction(
+      txId,
+      "",
+      txBytes,
+      bankBoxes.map(box => box.sigma_serialize_bytes()),
+      [],
+      TransactionTypes.coldStorage
+    );
+  };
+
+  /**
+   * generates a mocked cold storage transaction with additional erg for tx fee
+   * @param bankBoxes test bank boxes (used for inputs)
+   */
+  static mockColdStorageTransactionWithAdditionalFee = (
+    bankBoxes: ErgoBox[]
+  ): ErgoTransaction => {
+    const coldAddressErgoTree: string =
+      ErgoUtils.addressStringToErgoTreeString(ErgoConfigs.coldAddress);
+
+    const inBoxes = ErgoBoxes.empty();
+    bankBoxes.forEach((box) => inBoxes.add(box));
+
+    const txJsonString: string = TestData.mockColdStorageTxWithAdditionalFee(
+      bankBoxes.map((box) => box.box_id().to_str()),
+      coldAddressErgoTree,
+      this.testLockErgoTree
+    );
+    const tx = UnsignedTransaction.from_json(txJsonString);
+
+    const reducedTx = ReducedTransaction.from_unsigned_tx(
+      tx,
+      inBoxes,
+      ErgoBoxes.empty(),
+      TestData.mockedErgoStateContext
+    );
+
+    const txBytes = reducedTx.sigma_serialize_bytes();
+    const txId = tx.id().to_str();
+    return new ErgoTransaction(
+      txId,
+      "",
+      txBytes,
+      bankBoxes.map(box => box.sigma_serialize_bytes()),
+      [],
+      TransactionTypes.coldStorage
+    );
+  };
+
+  /**
+   * generates a mocked cold storage transaction resulting in erg less than its low threshold
+   * @param bankBoxes test bank boxes (used for inputs)
+   */
+  static mockLowErgColdStorageTransaction = (
+    bankBoxes: ErgoBox[]
+  ): ErgoTransaction => {
+    const coldAddressErgoTree: string =
+      ErgoUtils.addressStringToErgoTreeString(ErgoConfigs.coldAddress);
+
+    const inBoxes = ErgoBoxes.empty();
+    bankBoxes.forEach((box) => inBoxes.add(box));
+
+    const txJsonString: string = TestData.mockLowErgColdStorageTx(
+      bankBoxes.map((box) => box.box_id().to_str()),
+      coldAddressErgoTree,
+      this.testLockErgoTree
+    );
+    const tx = UnsignedTransaction.from_json(txJsonString);
+
+    const reducedTx = ReducedTransaction.from_unsigned_tx(
+      tx,
+      inBoxes,
+      ErgoBoxes.empty(),
+      TestData.mockedErgoStateContext
+    );
+
+    const txBytes = reducedTx.sigma_serialize_bytes();
+    const txId = tx.id().to_str();
+    return new ErgoTransaction(
+      txId,
+      "",
+      txBytes,
+      bankBoxes.map(box => box.sigma_serialize_bytes()),
+      [],
+      TransactionTypes.coldStorage
+    );
+  };
+
+  /**
+   * generates a mocked cold storage transaction resulting in token less than its low threshold
+   * @param bankBoxes test bank boxes (used for inputs)
+   */
+  static mockLowTokenColdStorageTransaction = (
+    bankBoxes: ErgoBox[]
+  ): ErgoTransaction => {
+    const coldAddressErgoTree: string =
+      ErgoUtils.addressStringToErgoTreeString(ErgoConfigs.coldAddress);
+
+    const inBoxes = ErgoBoxes.empty();
+    bankBoxes.forEach((box) => inBoxes.add(box));
+
+    const txJsonString: string = TestData.mockLowTokenColdStorageTx(
+      bankBoxes.map((box) => box.box_id().to_str()),
+      coldAddressErgoTree,
+      this.testLockErgoTree
+    );
+    const tx = UnsignedTransaction.from_json(txJsonString);
+
+    const reducedTx = ReducedTransaction.from_unsigned_tx(
+      tx,
+      inBoxes,
+      ErgoBoxes.empty(),
+      TestData.mockedErgoStateContext
+    );
+
+    const txBytes = reducedTx.sigma_serialize_bytes();
+    const txId = tx.id().to_str();
+    return new ErgoTransaction(
+      txId,
+      "",
+      txBytes,
+      bankBoxes.map(box => box.sigma_serialize_bytes()),
+      [],
+      TransactionTypes.coldStorage
+    );
+  };
+
+  /**
+   * generates a mocked cold storage transaction resulting in erg more than its high threshold
+   * @param bankBoxes test bank boxes (used for inputs)
+   */
+  static mockHighErgColdStorageTransaction = (
+    bankBoxes: ErgoBox[]
+  ): ErgoTransaction => {
+    const coldAddressErgoTree: string =
+      ErgoUtils.addressStringToErgoTreeString(ErgoConfigs.coldAddress);
+
+    const inBoxes = ErgoBoxes.empty();
+    bankBoxes.forEach((box) => inBoxes.add(box));
+
+    const txJsonString: string = TestData.mockHighErgColdStorageTx(
+      bankBoxes.map((box) => box.box_id().to_str()),
+      coldAddressErgoTree,
+      this.testLockErgoTree
+    );
+    const tx = UnsignedTransaction.from_json(txJsonString);
+
+    const reducedTx = ReducedTransaction.from_unsigned_tx(
+      tx,
+      inBoxes,
+      ErgoBoxes.empty(),
+      TestData.mockedErgoStateContext
+    );
+
+    const txBytes = reducedTx.sigma_serialize_bytes();
+    const txId = tx.id().to_str();
+    return new ErgoTransaction(
+      txId,
+      "",
+      txBytes,
+      bankBoxes.map(box => box.sigma_serialize_bytes()),
+      [],
+      TransactionTypes.coldStorage
+    );
   };
 }
 

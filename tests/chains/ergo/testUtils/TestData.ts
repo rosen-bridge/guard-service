@@ -65,7 +65,7 @@ class TestData {
     ]`;
 
   static mockTransactionFeeBox = `{
-        "value": 1500000,
+        "value": 1100000,
         "ergoTree": "1005040004000e36100204a00b08cd0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798ea02d192a39a8cc7a701730073011001020402d19683030193a38cc7b2a57300000193c2b2a57301007473027303830108cdeeac93b1a57304",
         "assets": [],
         "additionalRegisters": {},
@@ -1389,6 +1389,308 @@ class TestData {
             },
             ${this.mockTransactionFeeBox}
         ]
+    }`;
+
+  static mockAdditionalBoxColdStorageTx = (
+    boxIds: string[],
+    coldAddressErgoTree: string,
+    lockAddressErgoTree: string
+  ): string => `{
+      "inputs": ${this.mockTransactionInputBoxes(boxIds)},
+      "dataInputs": [],
+      "outputs": [
+        {
+          "value": 676998800000,
+          "ergoTree": "${coldAddressErgoTree}",
+          "assets": [],
+          "additionalRegisters": {},
+          "creationHeight": 100000
+        },
+        {
+          "value": 122000100000,
+          "ergoTree": "${lockAddressErgoTree}",
+          "assets": [
+            {
+              "tokenId": "0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95",
+              "amount": 2000000000
+            },
+            {
+              "tokenId": "079532f131a0e3b99247c4be2371a34858f3f3134d1c1231b517c4da47ab901a",
+              "amount": 1000000000
+            },
+            {
+              "tokenId": "064c58ea394d41fada074a3c560a132467adf4ca1512c409c014c625ca285e9c",
+              "amount": 110000000
+            }
+          ],
+          "additionalRegisters": {},
+          "creationHeight": 100000
+        },
+        {
+          "value": 1000000000,
+          "ergoTree": "${lockAddressErgoTree}",
+          "assets": [
+            {
+              "tokenId": "064c58ea394d41fada074a3c560a132467adf4ca1512c409c014c625ca285e9c",
+              "amount": 110000000
+            }
+          ],
+          "additionalRegisters": {},
+          "creationHeight": 100000
+        },
+        ${this.mockTransactionFeeBox}
+      ]
+    }`;
+
+  static mockFineColdStorageTx = (
+    boxIds: string[],
+    coldAddressErgoTree: string,
+    lockAddressErgoTree: string
+  ): string => `{
+      "inputs": ${this.mockTransactionInputBoxes(boxIds)},
+      "dataInputs": [],
+      "outputs": [
+        {
+          "value": 676998800000,
+          "ergoTree": "${coldAddressErgoTree}",
+          "assets": [],
+          "additionalRegisters": {},
+          "creationHeight": 100000
+        },
+        {
+          "value": 123000100000,
+          "ergoTree": "${lockAddressErgoTree}",
+          "assets": [
+            {
+              "tokenId": "0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95",
+              "amount": 2000000000
+            },
+            {
+              "tokenId": "079532f131a0e3b99247c4be2371a34858f3f3134d1c1231b517c4da47ab901a",
+              "amount": 1000000000
+            },
+            {
+              "tokenId": "064c58ea394d41fada074a3c560a132467adf4ca1512c409c014c625ca285e9c",
+              "amount": 220000000
+            }
+          ],
+          "additionalRegisters": {},
+          "creationHeight": 100000
+        },
+        ${this.mockTransactionFeeBox}
+      ]
+    }`;
+
+  static mockColdStorageTxWithRegister = (
+    boxIds: string[],
+    coldAddressErgoTree: string,
+    lockAddressErgoTree: string
+  ): string => `{
+      "inputs": ${this.mockTransactionInputBoxes(boxIds)},
+      "dataInputs": [],
+      "outputs": [
+        {
+          "value": 676998800000,
+          "ergoTree": "${coldAddressErgoTree}",
+          "assets": [],
+          "additionalRegisters": {},
+          "creationHeight": 100000
+        },
+        {
+          "value": 123000100000,
+          "ergoTree": "${lockAddressErgoTree}",
+          "assets": [
+            {
+              "tokenId": "0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95",
+              "amount": 2000000000
+            },
+            {
+              "tokenId": "079532f131a0e3b99247c4be2371a34858f3f3134d1c1231b517c4da47ab901a",
+              "amount": 1000000000
+            },
+            {
+              "tokenId": "064c58ea394d41fada074a3c560a132467adf4ca1512c409c014c625ca285e9c",
+              "amount": 220000000
+            }
+          ],
+          "additionalRegisters": {
+            "R4": {
+              "serializedValue": "1a040763617264616e6f0a746f4164647265737334063130303030300432353030",
+              "sigmaType": "Coll[Coll[SByte]]",
+              "renderedValue": "[414441,746f4164647265737334,313030303030,32353030]"
+            }
+          },
+          "creationHeight": 100000
+        },
+        ${this.mockTransactionFeeBox}
+      ]
+    }`;
+
+  static mockColdStorageTxWithAdditionalFee = (
+    boxIds: string[],
+    coldAddressErgoTree: string,
+    lockAddressErgoTree: string
+  ): string => `{
+      "inputs": ${this.mockTransactionInputBoxes(boxIds)},
+      "dataInputs": [],
+      "outputs": [
+        {
+          "value": 676998800000,
+          "ergoTree": "${coldAddressErgoTree}",
+          "assets": [],
+          "additionalRegisters": {},
+          "creationHeight": 100000
+        },
+        {
+          "value": 123000000000,
+          "ergoTree": "${lockAddressErgoTree}",
+          "assets": [
+            {
+              "tokenId": "0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95",
+              "amount": 2000000000
+            },
+            {
+              "tokenId": "079532f131a0e3b99247c4be2371a34858f3f3134d1c1231b517c4da47ab901a",
+              "amount": 1000000000
+            },
+            {
+              "tokenId": "064c58ea394d41fada074a3c560a132467adf4ca1512c409c014c625ca285e9c",
+              "amount": 220000000
+            }
+          ],
+          "additionalRegisters": {},
+          "creationHeight": 100000
+        },
+        {
+          "value": 1200000,
+          "ergoTree": "1005040004000e36100204a00b08cd0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798ea02d192a39a8cc7a701730073011001020402d19683030193a38cc7b2a57300000193c2b2a57301007473027303830108cdeeac93b1a57304",
+          "assets": [],
+          "additionalRegisters": {},
+          "creationHeight": 100000
+        }
+      ]
+    }`;
+
+  static mockLowErgColdStorageTx = (
+    boxIds: string[],
+    coldAddressErgoTree: string,
+    lockAddressErgoTree: string
+  ): string => `{
+      "inputs": ${this.mockTransactionInputBoxes(boxIds)},
+      "dataInputs": [],
+      "outputs": [
+        {
+          "value": 677998800000,
+          "ergoTree": "${coldAddressErgoTree}",
+          "assets": [],
+          "additionalRegisters": {},
+          "creationHeight": 100000
+        },
+        {
+          "value": 122000100000,
+          "ergoTree": "${lockAddressErgoTree}",
+          "assets": [
+            {
+              "tokenId": "0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95",
+              "amount": 2000000000
+            },
+            {
+              "tokenId": "079532f131a0e3b99247c4be2371a34858f3f3134d1c1231b517c4da47ab901a",
+              "amount": 1000000000
+            },
+            {
+              "tokenId": "064c58ea394d41fada074a3c560a132467adf4ca1512c409c014c625ca285e9c",
+              "amount": 220000000
+            }
+          ],
+          "additionalRegisters": {},
+          "creationHeight": 100000
+        },
+        ${this.mockTransactionFeeBox}
+      ]
+    }`;
+
+  static mockLowTokenColdStorageTx = (
+    boxIds: string[],
+    coldAddressErgoTree: string,
+    lockAddressErgoTree: string
+  ): string => `{
+      "inputs": ${this.mockTransactionInputBoxes(boxIds)},
+      "dataInputs": [],
+      "outputs": [
+        {
+          "value": 676998800000,
+          "ergoTree": "${coldAddressErgoTree}",
+          "assets": [
+            {
+              "tokenId": "0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95",
+              "amount": 1100000000
+            }
+          ],
+          "additionalRegisters": {},
+          "creationHeight": 100000
+        },
+        {
+          "value": 123000100000,
+          "ergoTree": "${lockAddressErgoTree}",
+          "assets": [
+            {
+              "tokenId": "0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95",
+              "amount": 900000000
+            },
+            {
+              "tokenId": "079532f131a0e3b99247c4be2371a34858f3f3134d1c1231b517c4da47ab901a",
+              "amount": 1000000000
+            },
+            {
+              "tokenId": "064c58ea394d41fada074a3c560a132467adf4ca1512c409c014c625ca285e9c",
+              "amount": 220000000
+            }
+          ],
+          "additionalRegisters": {},
+          "creationHeight": 100000
+        },
+        ${this.mockTransactionFeeBox}
+      ]
+    }`;
+
+  static mockHighErgColdStorageTx = (
+    boxIds: string[],
+    coldAddressErgoTree: string,
+    lockAddressErgoTree: string
+  ): string => `{
+      "inputs": ${this.mockTransactionInputBoxes(boxIds)},
+      "dataInputs": [],
+      "outputs": [
+        {
+          "value": 176998800000,
+          "ergoTree": "${coldAddressErgoTree}",
+          "assets": [],
+          "additionalRegisters": {},
+          "creationHeight": 100000
+        },
+        {
+          "value": 623000100000,
+          "ergoTree": "${lockAddressErgoTree}",
+          "assets": [
+            {
+              "tokenId": "0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95",
+              "amount": 2000000000
+            },
+            {
+              "tokenId": "079532f131a0e3b99247c4be2371a34858f3f3134d1c1231b517c4da47ab901a",
+              "amount": 1000000000
+            },
+            {
+              "tokenId": "064c58ea394d41fada074a3c560a132467adf4ca1512c409c014c625ca285e9c",
+              "amount": 220000000
+            }
+          ],
+          "additionalRegisters": {},
+          "creationHeight": 100000
+        },
+        ${this.mockTransactionFeeBox}
+      ]
     }`;
 }
 

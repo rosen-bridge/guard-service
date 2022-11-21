@@ -6,7 +6,7 @@ import {
 } from 'ergo-lib-wasm-nodejs';
 import ErgoUtils from '../helpers/ErgoUtils';
 import ErgoConfigs from '../helpers/ErgoConfigs';
-import { AssetMap, BoxesAssets } from '../models/Interfaces';
+import { BoxesAssets } from '../models/Interfaces';
 import { rosenConfig } from '../../../helpers/RosenConfig';
 
 class OutputBoxes {
