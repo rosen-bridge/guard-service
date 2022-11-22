@@ -60,7 +60,7 @@ class ErgoColdStorage {
       const neededErgs = requiredAssets.ergs.toString();
       const neededTokens = JsonBI.stringify(requiredAssets.tokens);
       throw new Error(
-        `Impossible case: Bank boxes didn't cover required assets. Erg: ${neededErgs}, Tokens: ${neededTokens}`
+        `Bank boxes didn't cover required assets. Erg: ${neededErgs}, Tokens: ${neededTokens}`
       );
     }
 
@@ -202,7 +202,7 @@ class ErgoColdStorage {
 
     // verify transaction fee value (last box erg value)
     return (
-      BigInt(outputBoxes.get(2).value().as_i64().to_str()) === ErgoConfigs.txFee
+      BigInt(outputBoxes.get(2).value().as_i64().to_str()) <= ErgoConfigs.txFee
     );
   };
 

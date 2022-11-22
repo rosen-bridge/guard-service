@@ -263,25 +263,15 @@ class DatabaseAction {
     paymentTx: PaymentTransaction,
     event: ConfirmedEventEntity
   ): Promise<void> => {
-    if (event !== null)
-      await this.TransactionRepository.insert({
-        txId: paymentTx.txId,
-        txJson: paymentTx.toJson(),
-        type: paymentTx.txType,
-        chain: paymentTx.network,
-        status: TransactionStatus.approved,
-        lastCheck: 0,
-        event: event,
-      });
-    else
-      await this.TransactionRepository.insert({
-        txId: paymentTx.txId,
-        txJson: paymentTx.toJson(),
-        type: paymentTx.txType,
-        chain: paymentTx.network,
-        status: TransactionStatus.approved,
-        lastCheck: 0,
-      });
+    await this.TransactionRepository.insert({
+      txId: paymentTx.txId,
+      txJson: paymentTx.toJson(),
+      type: paymentTx.txType,
+      chain: paymentTx.network,
+      status: TransactionStatus.approved,
+      lastCheck: 0,
+      event: event !== null ? event : undefined,
+    });
   };
 
   /**
