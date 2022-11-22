@@ -42,6 +42,8 @@ const MESSAGE_SENDING_RETRIES_MAX_COUNT = 3n;
 /**
  * TODO: This is needed because of an issue in types of `@libp2p/pubsub-peer-discovery`
  * which mismatch with types of `libp2p`
+ *
+ * https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/86
  */
 type PeerDiscoveryArray = Libp2pInit['peerDiscovery'];
 type PeerDiscovery = PeerDiscoveryArray extends
