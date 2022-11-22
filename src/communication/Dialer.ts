@@ -591,8 +591,6 @@ class Dialer {
 
       this._node = node;
 
-      // await node.pubsub.subscribe(this._SUPPORTED_PROTOCOL.get('MSG')!)
-
       // this should call after createRelayConnection duo to peerId should save after create relay connection
       await Dialer.savePeerIdIfNeeded(peerId);
 
