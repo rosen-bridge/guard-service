@@ -5,7 +5,7 @@ import { body, validationResult } from 'express-validator';
 import Configs from '../helpers/Configs';
 import { logger } from '../log/Logger';
 
-export const p2pRouter = Router();
+const p2pRouter = Router();
 const dialer = await Dialer.getInstance();
 
 /**
@@ -108,3 +108,5 @@ p2pRouter.get('/getPeerID', async (req: Request, res: Response) => {
     res.status(500).send({ message: error.message });
   }
 });
+
+export { p2pRouter };
