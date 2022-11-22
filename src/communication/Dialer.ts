@@ -506,24 +506,6 @@ class Dialer {
           // Circuit Relay options (this config is part of libp2p core configurations)
           enabled: true, // Allows you to dial and accept relayed connections.
         },
-        connectionManager: {
-          /**
-           * Auto connect to discovered peers (limited by ConnectionManager minConnections)
-           * The `tag` property will be searched when creating the instance of your Peer Discovery service.
-           * The associated object, will be passed to the service when it is instantiated.
-           */
-          autoDial: true,
-          /**
-           * The total number of connections allowed to be open at one time
-           */
-          maxConnections: 200,
-
-          /**
-           * If the number of open connections goes below this number, the node
-           * will try to connect to nearby peers from the peer store
-           */
-          minConnections: 20,
-        },
         pubsub: gossipsub({ allowPublishToZeroPeers: true }),
         peerDiscovery: [
           bootstrap({
