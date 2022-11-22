@@ -245,9 +245,8 @@ class Dialer {
     const data: SendDataCommunication = {
       msg: msg,
       channel: channel,
+      ...(receiver && { receiver }),
     };
-    if (receiver) data.receiver = receiver;
-
     if (receiver) {
       const receiverPeerId = await createFromJSON({ id: `${receiver}` });
       this.pushMessageToMessageQueue(receiverPeerId, data);
