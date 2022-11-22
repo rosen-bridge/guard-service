@@ -440,6 +440,7 @@ class Dialer {
    * @param node
    * @param stream
    * @param connection
+   * @deprecated since the issues of the guards causing message losses are fixed
    */
   private handlePeerDiscovery = async (
     node: Libp2p,
