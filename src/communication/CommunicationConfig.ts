@@ -16,9 +16,6 @@ class CommunicationConfig {
   static apiCallbackTimeout: number = config.get<number>(
     'p2p.apiCallbackTimeout'
   ); // seconds
-  static timeToFlushStream: number = config.get<number>(
-    'p2p.timeToFlushStream'
-  ); // seconds
   static getPeersInterval: number = config.get<number>('p2p.getPeersInterval'); // seconds
   static peerIdFilePath: string = config.get<string>('p2p.peerIdFilePath');
 }

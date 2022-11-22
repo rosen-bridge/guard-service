@@ -61,8 +61,6 @@
     "bootstrapTimeout": 10,
     "pubsubInterval": 10,
     "apiCallbackTimeout": 8,
-    "timeToFlushStream": 0.1,
-    "sendPendingMessage": 3,
     "connectToDisconnectedPeersInterval": 40,
     "getPeersInterval": 60,
     "peerIdFilePath": "./peer-dialer.json"
