@@ -367,9 +367,7 @@ class Dialer {
     messageToSend: SendDataCommunication
   ) => {
     this._messageQueue.push(
-      uint8ArrayFromString(
-        JsonBI.stringify({ peer, messageToSend, retriesCount: 0 })
-      )
+      this.objectToUint8Array({ peer, messageToSend, retriesCount: 0 })
     );
   };
 
@@ -613,6 +611,20 @@ class Dialer {
   };
 
   /**
+   * Converts a Unit8Array to an object
+   * @param uint8Array
+   */
+  private uint8ArrayToObject = (uint8Array: Uint8Array) =>
+    JsonBI.parse(uint8ArrayToString(uint8Array));
+
+  /**
+   * Converts an object to Uint8Array
+   * @param object
+   */
+  private objectToUint8Array = (object: any) =>
+    uint8ArrayFromString(JsonBI.stringify(object));
+
+  /**
    * Processes message queue stream and pipes messages to a correct remote pipe
    */
   private processMessageQueue = async () => {
@@ -629,20 +641,6 @@ class Dialer {
         stream: Stream;
       }
     > = {};
-
-    /**
-     * Converts a Unit8Array to an object
-     * @param uint8Array
-     */
-    const uint8ArrayToObject = (uint8Array: Uint8Array) =>
-      JsonBI.parse(uint8ArrayToString(uint8Array));
-
-    /**
-     * Converts an object to Uint8Array
-     * @param object
-     */
-    const objectToUint8Array = (object: any) =>
-      uint8ArrayFromString(JsonBI.stringify(object));
     /**
      * Returns the source piped to the provided stream
      * @param stream
@@ -669,7 +667,7 @@ class Dialer {
      */
     const retrySendingMessage = (message: Uint8Array) => {
       const { retriesCount, ...rest }: MessageQueueParsedMessage =
-        uint8ArrayToObject(message);
+        this.uint8ArrayToObject(message);
 
       const newRetriesCount = retriesCount + 1n;
 
@@ -686,7 +684,7 @@ class Dialer {
           );
 
           this._messageQueue.push(
-            objectToUint8Array({
+            this.objectToUint8Array({
               ...rest,
               retriesCount: newRetriesCount,
             })
@@ -704,7 +702,7 @@ class Dialer {
     for await (const message of this._messageQueue) {
       try {
         const { peer, messageToSend, retriesCount }: MessageQueueParsedMessage =
-          uint8ArrayToObject(message);
+          this.uint8ArrayToObject(message);
 
         const connStream = await this.getOpenStreamAndConnection(
           this._node!,
@@ -715,7 +713,7 @@ class Dialer {
         try {
           const source = getStreamSource(connStream.stream, peer);
 
-          source.push(objectToUint8Array(messageToSend));
+          source.push(this.objectToUint8Array(messageToSend));
 
           if (retriesCount) {
             logger.warn(
