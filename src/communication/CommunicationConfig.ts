@@ -18,6 +18,12 @@ class CommunicationConfig {
   ); // seconds
   static getPeersInterval: number = config.get<number>('p2p.getPeersInterval'); // seconds
   static peerIdFilePath: string = config.get<string>('p2p.peerIdFilePath');
+  static messageSendingRetriesExponentialFactor: number = config.get<number>(
+    'p2p.messageSendingRetriesExponentialFactor'
+  );
+  static messageSendingRetriesMaxCount = BigInt(
+    config.get<number>('p2p.messageSendingRetriesMaxCount')
+  );
 }
 
 export default CommunicationConfig;

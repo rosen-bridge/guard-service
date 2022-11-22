@@ -36,9 +36,6 @@ import {
 import { logger } from '../log/Logger';
 import { JsonBI } from '../network/NetworkModels';
 
-const MESSAGE_SENDING_RETRIES_EXPONENTIAL_FACTOR = 5;
-const MESSAGE_SENDING_RETRIES_MAX_COUNT = 3n;
-
 /**
  * TODO: This is needed because of an issue in types of `@libp2p/pubsub-peer-discovery`
  * which mismatch with types of `libp2p`
@@ -669,10 +666,13 @@ class Dialer {
 
       const newRetriesCount = retriesCount + 1n;
 
-      if (newRetriesCount <= MESSAGE_SENDING_RETRIES_MAX_COUNT) {
+      if (
+        newRetriesCount <= CommunicationConfig.messageSendingRetriesMaxCount
+      ) {
         const timeout =
           1000 *
-          MESSAGE_SENDING_RETRIES_EXPONENTIAL_FACTOR ** Number(newRetriesCount);
+          CommunicationConfig.messageSendingRetriesExponentialFactor **
+            Number(newRetriesCount);
 
         setTimeout(() => {
           logger.warn(
@@ -692,7 +692,7 @@ class Dialer {
         logger.warn(
           `Failed to send message ${JsonBI.stringify(
             rest.messageToSend
-          )} after ${MESSAGE_SENDING_RETRIES_MAX_COUNT} retries`
+          )} after ${CommunicationConfig.messageSendingRetriesMaxCount} retries`
         );
       }
     };
