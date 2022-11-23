@@ -195,6 +195,28 @@ class OutputBoxes {
 
     return changeBox.build();
   };
+
+  /**
+   * creates an ErgoBox containing transferring assets to cold storage address
+   * @param height current height of blockchain
+   * @param assets amount of Erg and tokens in box
+   */
+  static createColdBox = (
+    height: number,
+    assets: BoxesAssets
+  ): ErgoBoxCandidate => {
+    const coldBox = new ErgoBoxCandidateBuilder(
+      ErgoUtils.boxValueFromBigint(assets.ergs),
+      ErgoUtils.addressStringToContract(ErgoConfigs.coldAddress),
+      height
+    );
+
+    Object.keys(assets.tokens).forEach((tokenId) => {
+      this.addTokenToBoxBuilder(coldBox, tokenId, assets.tokens[tokenId]);
+    });
+
+    return coldBox.build();
+  };
 }
 
 export default OutputBoxes;

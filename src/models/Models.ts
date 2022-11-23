@@ -221,6 +221,7 @@ class TransactionStatus {
 class TransactionTypes {
   static payment = 'payment';
   static reward = 'reward';
+  static coldStorage = 'cold-storage';
 }
 
 export {

@@ -30,7 +30,7 @@ class CardanoColdStorage {
    * @param tx the transfer transaction
    * @return true if tx verified
    */
-  static verifyTransactionWithEvent = async (
+  static verifyTransaction = async (
     tx: CardanoTransaction
   ): Promise<boolean> => {
     // TODO: implement this
