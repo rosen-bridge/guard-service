@@ -17,7 +17,7 @@ import TestConfigs from '../../testUtils/TestConfigs';
 
 const mockedDialerInstance = mock(Dialer);
 when(
-  mockedDialerInstance.sendMessage(anything(), anything(), anything())
+  mockedDialerInstance.sendMessage(anyString(), anyString(), anything())
 ).thenResolve();
 when(mockedDialerInstance.getDialerId()).thenReturn('peerId');
 
