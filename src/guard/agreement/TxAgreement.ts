@@ -12,7 +12,7 @@ import {
   GuardsAgreement,
   TransactionApproved,
 } from './Interfaces';
-import Dialer from '../../communication/simple-http/Dialer';
+import Dialer from '../../communication/Dialer';
 import { dbAction } from '../../db/DatabaseAction';
 import TransactionProcessor from '../TransactionProcessor';
 import { txJsonParser } from '../../chains/TxJsonParser';
@@ -21,6 +21,8 @@ import { logger } from '../../log/Logger';
 import InputBoxes from '../../chains/ergo/boxes/InputBoxes';
 import GuardTurn from '../../helpers/GuardTurn';
 import EventVerifier from '../event/EventVerifier';
+
+const dialer = await Dialer.getInstance();
 
 class TxAgreement {
   protected static CHANNEL = 'tx-agreement';
@@ -32,11 +34,7 @@ class TxAgreement {
     this.transactions = new Map();
     this.eventAgreedTransactions = new Map();
     this.transactionApprovals = new Map();
-    Dialer.getInstance().subscribe({
-      channel: TxAgreement.CHANNEL,
-      callback: this.handleMessage,
-      id: 'TxAgreement',
-    });
+    dialer.subscribeChannel(TxAgreement.CHANNEL, this.handleMessage);
   }
 
   /**
@@ -134,7 +132,7 @@ class TxAgreement {
     });
 
     // broadcast the transaction
-    Dialer.getInstance().sendMessage(TxAgreement.CHANNEL, message);
+    dialer.sendMessage(TxAgreement.CHANNEL, message);
   };
 
   /**
@@ -200,7 +198,7 @@ class TxAgreement {
       });
 
       // send response to creator guard
-      Dialer.getInstance().sendMessage(TxAgreement.CHANNEL, message, receiver);
+      dialer.sendMessage(TxAgreement.CHANNEL, message, receiver);
     } else logger.info(`Rejected tx [${tx.txId}] for event [${tx.eventId}]`);
   };
 
@@ -298,7 +296,7 @@ class TxAgreement {
           payload: txApproval,
         });
         // broadcast approval message
-        Dialer.getInstance().sendMessage(TxAgreement.CHANNEL, message);
+        dialer.sendMessage(TxAgreement.CHANNEL, message);
 
         await this.setTxAsApproved(tx);
       }

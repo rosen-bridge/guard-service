@@ -1,7 +1,7 @@
 {
   "secret": "3e600b60d82da99c55959df4bb4ceb139cbe434a948251b371c6d9eeb73cb723",
   "express": {
-    "port": 8081,
+    "port": 8080,
     "jsonBodyLimit": 50
   },
   "cardano": {
@@ -55,11 +55,19 @@
     "timeout": 8
   },
   "p2p": {
-    "pullInterval": 1,
-    "address": "http://127.0.0.1:8080/",
-    "bootstrapInterval": 60,
-    "pubsubInterval": 1,
+    "addresses": [
+      {
+        "peerId": "changeme",
+        "address": "changeme"
+      }
+    ],
+    "bootstrapTimeout": 10,
+    "pubsubInterval": 10,
     "apiCallbackTimeout": 8,
+    "connectToDisconnectedPeersInterval": 40,
+    "getPeersInterval": 60,
+    "messageSendingRetriesExponentialFactor": 5,
+    "messageSendingRetriesMaxCount": 3,
     "peerIdFilePath": "./peer-dialer.json"
   },
   "multiSigTimeout": null,
