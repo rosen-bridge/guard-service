@@ -1,6 +1,19 @@
-import { MetaData, RosenData } from '../models/Interfaces';
+import {
+  MetaData,
+  RosenData,
+  Utxo,
+  UtxoBoxesAssets,
+} from '../models/Interfaces';
 import Configs from '../../../helpers/Configs';
 import ChainsConstants from '../../ChainsConstants';
+import {
+  AssetName,
+  Assets,
+  BigNum,
+  MultiAsset,
+  ScriptHash,
+} from '@emurgo/cardano-serialization-lib-nodejs';
+import { Buffer } from 'buffer';
 
 class CardanoUtils {
   /**
@@ -50,6 +63,58 @@ class CardanoUtils {
       }
     }
     return undefined;
+  };
+
+  /**
+   * calculates amount of lovelace and assets in utxo boxes
+   * @param boxes the utxogenerateTransaction boxes
+   */
+  static calculateInputBoxesAssets = (boxes: Utxo[]): UtxoBoxesAssets => {
+    const multiAsset = MultiAsset.new();
+    let changeBoxLovelace: BigNum = BigNum.zero();
+    boxes.forEach((box) => {
+      changeBoxLovelace = changeBoxLovelace.checked_add(
+        BigNum.from_str(box.value)
+      );
+
+      box.asset_list.forEach((boxAsset) => {
+        const policyId = ScriptHash.from_bytes(
+          Buffer.from(boxAsset.policy_id, 'hex')
+        );
+        const assetName = AssetName.new(
+          Buffer.from(boxAsset.asset_name, 'hex')
+        );
+
+        const policyAssets = multiAsset.get(policyId);
+        if (!policyAssets) {
+          const assetList = Assets.new();
+          assetList.insert(
+            assetName,
+            BigNum.from_str(boxAsset.quantity.toString())
+          );
+          multiAsset.insert(policyId, assetList);
+        } else {
+          const asset = policyAssets.get(assetName);
+          if (!asset) {
+            policyAssets.insert(
+              assetName,
+              BigNum.from_str(boxAsset.quantity.toString())
+            );
+            multiAsset.insert(policyId, policyAssets);
+          } else {
+            const amount = asset.checked_add(
+              BigNum.from_str(boxAsset.quantity.toString())
+            );
+            policyAssets.insert(assetName, amount);
+            multiAsset.insert(policyId, policyAssets);
+          }
+        }
+      });
+    });
+    return {
+      lovelace: changeBoxLovelace,
+      assets: multiAsset,
+    };
   };
 }
 
