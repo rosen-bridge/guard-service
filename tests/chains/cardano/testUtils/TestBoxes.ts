@@ -1223,10 +1223,7 @@ class TestBoxes {
    */
   static mock3outBoxColdStorageTx = (): PaymentTransaction => {
     // create the cold box
-    const coldBoxValueJson = `{
-      "coin": "258248310",
-      "multiasset": {}
-    }`;
+    const coldBoxValueJson = TestData.fineColdBoxValueJson;
     const coldBox = TransactionOutput.new(
       Address.from_bech32(CardanoConfigs.coldAddress),
       Value.from_json(coldBoxValueJson)
@@ -1274,30 +1271,14 @@ class TestBoxes {
    */
   static mockInvalidColdAddressColdStorageTx = (): PaymentTransaction => {
     // create the cold box
-    const coldBoxValueJson = `{
-      "coin": "258248310",
-      "multiasset": {}
-    }`;
+    const coldBoxValueJson = TestData.fineColdBoxValueJson;
     const coldBox = TransactionOutput.new(
       Address.from_bech32(this.testBankAddress),
       Value.from_json(coldBoxValueJson)
     );
 
     // create the change box
-    const changeBoxValueJson = `{
-      "coin": "101551690",
-      "multiasset": {
-        "22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130": {
-          "1111111111": "440000000000"
-        },
-        "ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2": {
-          "7369676d61": "43000000000"
-        },
-        "b8aa6f60b48ad4cb0f623edc96eb4dffb652b3a2384287b22c8814ac": {
-          "5659464974": "5000000"
-        }
-      }
-    }`;
+    const changeBoxValueJson = TestData.fineChangeBoxValueJson;
     const changeBox = TransactionOutput.new(
       Address.from_bech32(this.testBankAddress),
       Value.from_json(changeBoxValueJson)
@@ -1311,30 +1292,14 @@ class TestBoxes {
    */
   static mockInvalidChangeAddressColdStorageTx = (): PaymentTransaction => {
     // create the cold box
-    const coldBoxValueJson = `{
-      "coin": "258248310",
-      "multiasset": {}
-    }`;
+    const coldBoxValueJson = TestData.fineColdBoxValueJson;
     const coldBox = TransactionOutput.new(
       Address.from_bech32(CardanoConfigs.coldAddress),
       Value.from_json(coldBoxValueJson)
     );
 
     // create the change box
-    const changeBoxValueJson = `{
-      "coin": "101551690",
-      "multiasset": {
-        "22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130": {
-          "1111111111": "440000000000"
-        },
-        "ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2": {
-          "7369676d61": "43000000000"
-        },
-        "b8aa6f60b48ad4cb0f623edc96eb4dffb652b3a2384287b22c8814ac": {
-          "5659464974": "5000000"
-        }
-      }
-    }`;
+    const changeBoxValueJson = TestData.fineChangeBoxValueJson;
     const changeBox = TransactionOutput.new(
       Address.from_bech32(CardanoConfigs.coldAddress),
       Value.from_json(changeBoxValueJson)
@@ -1404,30 +1369,14 @@ class TestBoxes {
    */
   static mockColdStorageTxWithMetadata = (): PaymentTransaction => {
     // create the cold box
-    const coldBoxValueJson = `{
-      "coin": "258248310",
-      "multiasset": {}
-    }`;
+    const coldBoxValueJson = TestData.fineColdBoxValueJson;
     const coldBox = TransactionOutput.new(
       Address.from_bech32(CardanoConfigs.coldAddress),
       Value.from_json(coldBoxValueJson)
     );
 
     // create the change box
-    const changeBoxValueJson = `{
-      "coin": "101551690",
-      "multiasset": {
-        "22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130": {
-          "1111111111": "440000000000"
-        },
-        "ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2": {
-          "7369676d61": "43000000000"
-        },
-        "b8aa6f60b48ad4cb0f623edc96eb4dffb652b3a2384287b22c8814ac": {
-          "5659464974": "5000000"
-        }
-      }
-    }`;
+    const changeBoxValueJson = TestData.fineChangeBoxValueJson;
     const changeBox = TransactionOutput.new(
       Address.from_bech32(this.testBankAddress),
       Value.from_json(changeBoxValueJson)
@@ -1472,14 +1421,11 @@ class TestBoxes {
   };
 
   /**
-   * generates a mocked cold storage transaction with metadata
+   * generates a mocked cold storage transaction with additional tx fee
    */
   static mockColdStorageTxWithAdditionalFee = (): PaymentTransaction => {
     // create the cold box
-    const coldBoxValueJson = `{
-      "coin": "258248310",
-      "multiasset": {}
-    }`;
+    const coldBoxValueJson = TestData.fineColdBoxValueJson;
     const coldBox = TransactionOutput.new(
       Address.from_bech32(CardanoConfigs.coldAddress),
       Value.from_json(coldBoxValueJson)
@@ -1509,7 +1455,7 @@ class TestBoxes {
   };
 
   /**
-   * generates a mocked cold storage transaction with metadata
+   * generates a mocked cold storage transaction resulting in ada less than its low threshold
    */
   static mockHighAdaColdStorageTx = (): PaymentTransaction => {
     // create the cold box
@@ -1546,7 +1492,7 @@ class TestBoxes {
   };
 
   /**
-   * generates a mocked cold storage transaction with metadata
+   * generates a mocked cold storage transaction resulting in asset less than its low threshold
    */
   static mockHighAssetColdStorageTx = (): PaymentTransaction => {
     // create the cold box
@@ -1587,7 +1533,7 @@ class TestBoxes {
   };
 
   /**
-   * generates a mocked cold storage transaction with metadata
+   * generates a mocked cold storage transaction resulting in ada more than its high threshold
    */
   static mockLowAdaColdStorageTx = (): PaymentTransaction => {
     // create the cold box

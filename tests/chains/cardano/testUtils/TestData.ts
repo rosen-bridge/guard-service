@@ -447,6 +447,26 @@ class TestData {
                 }`),
     },
   };
+
+  static fineColdBoxValueJson = `{
+    "coin": "258248310",
+    "multiasset": {}
+  }`;
+
+  static fineChangeBoxValueJson = `{
+    "coin": "101551690",
+    "multiasset": {
+      "22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130": {
+        "1111111111": "440000000000"
+      },
+      "ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2": {
+        "7369676d61": "43000000000"
+      },
+      "b8aa6f60b48ad4cb0f623edc96eb4dffb652b3a2384287b22c8814ac": {
+        "5659464974": "5000000"
+      }
+    }
+  }`;
 }
 
 export default TestData;
