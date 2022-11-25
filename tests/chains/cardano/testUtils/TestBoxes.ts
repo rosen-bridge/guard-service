@@ -19,6 +19,7 @@ import {
   BigNum,
   GeneralTransactionMetadata,
   hash_transaction,
+  MetadataMap,
   MultiAsset,
   ScriptHash,
   Transaction,
@@ -972,6 +973,654 @@ class TestBoxes {
     address: CardanoConfigs.bankAddress,
     balance: 900000000n,
     utxo_set: [],
+  };
+
+  static mockHighAdaAddressInfoAndAssets = (): [AddressInfo, AddressAssets] => {
+    const box1: Utxo = {
+      payment_addr: { bech32: '' },
+      tx_hash: TestUtils.generateRandomId(),
+      tx_index: 0,
+      value: this.adaToLovelaceString(200),
+      asset_list: [
+        {
+          policy_id: 'ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2',
+          asset_name: '7369676d61',
+          quantity: 43000000000n,
+          fingerprint: 'asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3',
+        },
+        {
+          policy_id: 'b8aa6f60b48ad4cb0f623edc96eb4dffb652b3a2384287b22c8814ac',
+          asset_name: '5659464974',
+          quantity: 5000000n,
+          fingerprint: 'asset16adhl77t3cmca442g4gzy3mdn905yurvljllr4',
+        },
+      ],
+    };
+    const box2: Utxo = {
+      payment_addr: { bech32: '' },
+      tx_hash: TestUtils.generateRandomId(),
+      tx_index: 0,
+      value: this.adaToLovelaceString(80),
+      asset_list: [
+        {
+          policy_id: '22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130',
+          asset_name: '1111111111',
+          quantity: 205000000000n,
+          fingerprint: 'asset1nl000000000000000000000000000000000000',
+        },
+      ],
+    };
+    const box3: Utxo = {
+      payment_addr: { bech32: '' },
+      tx_hash: TestUtils.generateRandomId(),
+      tx_index: 0,
+      value: this.adaToLovelaceString(80),
+      asset_list: [
+        {
+          policy_id: '22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130',
+          asset_name: '1111111111',
+          quantity: 235000000000n,
+          fingerprint: 'asset1nl000000000000000000000000000000000000',
+        },
+      ],
+    };
+
+    const utxoSet = [box1, box2, box3];
+    const addressInfo: AddressInfo = {
+      address: CardanoConfigs.bankAddress,
+      balance: 360000000n,
+      utxo_set: utxoSet,
+    };
+
+    const addressAssets: AddressAssets = {
+      address: CardanoConfigs.bankAddress,
+      assets: [
+        {
+          policy_id: 'ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2',
+          asset_name: '7369676d61',
+          quantity: 43000000000n,
+          fingerprint: 'asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3',
+        },
+        {
+          policy_id: '22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130',
+          asset_name: '1111111111',
+          quantity: 440000000000n,
+          fingerprint: 'asset1nl000000000000000000000000000000000000',
+        },
+        {
+          policy_id: 'b8aa6f60b48ad4cb0f623edc96eb4dffb652b3a2384287b22c8814ac',
+          asset_name: '5659464974',
+          quantity: 5000000n,
+          fingerprint: 'asset16adhl77t3cmca442g4gzy3mdn905yurvljllr4',
+        },
+      ],
+    };
+
+    return [addressInfo, addressAssets];
+  };
+
+  static mockHighAssetAddressInfoAndAssets = (): [
+    AddressInfo,
+    AddressAssets
+  ] => {
+    const box1: Utxo = {
+      payment_addr: { bech32: '' },
+      tx_hash: TestUtils.generateRandomId(),
+      tx_index: 0,
+      value: this.adaToLovelaceString(200),
+      asset_list: [
+        {
+          policy_id: 'ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2',
+          asset_name: '7369676d61',
+          quantity: 43000000000n,
+          fingerprint: 'asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3',
+        },
+        {
+          policy_id: 'b8aa6f60b48ad4cb0f623edc96eb4dffb652b3a2384287b22c8814ac',
+          asset_name: '5659464974',
+          quantity: 5000000n,
+          fingerprint: 'asset16adhl77t3cmca442g4gzy3mdn905yurvljllr4',
+        },
+      ],
+    };
+    const box2: Utxo = {
+      payment_addr: { bech32: '' },
+      tx_hash: TestUtils.generateRandomId(),
+      tx_index: 0,
+      value: this.adaToLovelaceString(80),
+      asset_list: [
+        {
+          policy_id: '22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130',
+          asset_name: '1111111111',
+          quantity: 305000000000n,
+          fingerprint: 'asset1nl000000000000000000000000000000000000',
+        },
+      ],
+    };
+    const box3: Utxo = {
+      payment_addr: { bech32: '' },
+      tx_hash: TestUtils.generateRandomId(),
+      tx_index: 0,
+      value: this.adaToLovelaceString(80),
+      asset_list: [
+        {
+          policy_id: '22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130',
+          asset_name: '1111111111',
+          quantity: 335000000000n,
+          fingerprint: 'asset1nl000000000000000000000000000000000000',
+        },
+      ],
+    };
+
+    const utxoSet = [box1, box2, box3];
+    const addressInfo: AddressInfo = {
+      address: CardanoConfigs.bankAddress,
+      balance: 360000000n,
+      utxo_set: utxoSet,
+    };
+
+    const addressAssets: AddressAssets = {
+      address: CardanoConfigs.bankAddress,
+      assets: [
+        {
+          policy_id: 'ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2',
+          asset_name: '7369676d61',
+          quantity: 43000000000n,
+          fingerprint: 'asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3',
+        },
+        {
+          policy_id: '22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130',
+          asset_name: '1111111111',
+          quantity: 640000000000n,
+          fingerprint: 'asset1nl000000000000000000000000000000000000',
+        },
+        {
+          policy_id: 'b8aa6f60b48ad4cb0f623edc96eb4dffb652b3a2384287b22c8814ac',
+          asset_name: '5659464974',
+          quantity: 5000000n,
+          fingerprint: 'asset16adhl77t3cmca442g4gzy3mdn905yurvljllr4',
+        },
+      ],
+    };
+
+    return [addressInfo, addressAssets];
+  };
+
+  /**
+   * generates a find mocked cold storage transaction with given outBoxes
+   * @param outBoxes output Utxos in the transaction
+   */
+  static mockFineColdStorageTransaction = (
+    outBoxes: TransactionOutput[]
+  ): PaymentTransaction => {
+    const txBuilder = TransactionBuilder.new(CardanoConfigs.txBuilderConfig);
+    outBoxes.forEach((box) => txBuilder.add_output(box));
+
+    // set transaction TTL and Fee
+    txBuilder.set_ttl(CardanoConfigs.txTtl);
+    txBuilder.set_fee(CardanoConfigs.txFee);
+
+    // create the transaction
+    const txBody = txBuilder.build();
+    const tx = Transaction.new(
+      txBody,
+      TransactionWitnessSet.new(),
+      undefined // transaction metadata
+    );
+
+    // create PaymentTransaction object
+    const txId = Utils.Uint8ArrayToHexString(
+      hash_transaction(tx.body()).to_bytes()
+    );
+    const txBytes = tx.to_bytes();
+    return new CardanoTransaction(
+      txId,
+      '',
+      txBytes,
+      TransactionTypes.coldStorage
+    );
+  };
+
+  /**
+   * generates a mocked cold storage transaction with metadata
+   */
+  static mockFineColdStorageTx = (): PaymentTransaction => {
+    // create the cold box
+    const coldBoxValueJson = `{
+      "coin": "258248310",
+      "multiasset": {}
+    }`;
+    const coldBox = TransactionOutput.new(
+      Address.from_bech32(CardanoConfigs.coldAddress),
+      Value.from_json(coldBoxValueJson)
+    );
+
+    // create the change box
+    const changeBoxValueJson = `{
+      "coin": "101551690",
+      "multiasset": {
+        "22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130": {
+          "1111111111": "440000000000"
+        },
+        "ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2": {
+          "7369676d61": "43000000000"
+        },
+        "b8aa6f60b48ad4cb0f623edc96eb4dffb652b3a2384287b22c8814ac": {
+          "5659464974": "5000000"
+        }
+      }
+    }`;
+    const changeBox = TransactionOutput.new(
+      Address.from_bech32(this.testBankAddress),
+      Value.from_json(changeBoxValueJson)
+    );
+
+    return this.mockFineColdStorageTransaction([coldBox, changeBox]);
+  };
+
+  /**
+   * generates a mocked cold storage transaction that has additional output box
+   */
+  static mock3outBoxColdStorageTx = (): PaymentTransaction => {
+    // create the cold box
+    const coldBoxValueJson = `{
+      "coin": "258248310",
+      "multiasset": {}
+    }`;
+    const coldBox = TransactionOutput.new(
+      Address.from_bech32(CardanoConfigs.coldAddress),
+      Value.from_json(coldBoxValueJson)
+    );
+
+    // create the change box
+    const changeBoxValueJson = `{
+      "coin": "91551690",
+      "multiasset": {
+        "22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130": {
+          "1111111111": "440000000000"
+        },
+        "ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2": {
+          "7369676d61": "43000000000"
+        },
+        "b8aa6f60b48ad4cb0f623edc96eb4dffb652b3a2384287b22c8814ac": {
+          "5659464974": "5000000"
+        }
+      }
+    }`;
+    const changeBox = TransactionOutput.new(
+      Address.from_bech32(this.testBankAddress),
+      Value.from_json(changeBoxValueJson)
+    );
+
+    // create the additional box
+    const additionalBoxValueJson = `{
+      "coin": "10000000",
+      "multiasset": {}
+    }`;
+    const additionalBox = TransactionOutput.new(
+      Address.from_bech32(this.testBankAddress),
+      Value.from_json(additionalBoxValueJson)
+    );
+
+    return this.mockFineColdStorageTransaction([
+      coldBox,
+      changeBox,
+      additionalBox,
+    ]);
+  };
+
+  /**
+   * generates a mocked cold storage transaction with invalid coldBox address
+   */
+  static mockInvalidColdAddressColdStorageTx = (): PaymentTransaction => {
+    // create the cold box
+    const coldBoxValueJson = `{
+      "coin": "258248310",
+      "multiasset": {}
+    }`;
+    const coldBox = TransactionOutput.new(
+      Address.from_bech32(this.testBankAddress),
+      Value.from_json(coldBoxValueJson)
+    );
+
+    // create the change box
+    const changeBoxValueJson = `{
+      "coin": "101551690",
+      "multiasset": {
+        "22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130": {
+          "1111111111": "440000000000"
+        },
+        "ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2": {
+          "7369676d61": "43000000000"
+        },
+        "b8aa6f60b48ad4cb0f623edc96eb4dffb652b3a2384287b22c8814ac": {
+          "5659464974": "5000000"
+        }
+      }
+    }`;
+    const changeBox = TransactionOutput.new(
+      Address.from_bech32(this.testBankAddress),
+      Value.from_json(changeBoxValueJson)
+    );
+
+    return this.mockFineColdStorageTransaction([coldBox, changeBox]);
+  };
+
+  /**
+   * generates a mocked cold storage transaction with invalid changeBox address
+   */
+  static mockInvalidChangeAddressColdStorageTx = (): PaymentTransaction => {
+    // create the cold box
+    const coldBoxValueJson = `{
+      "coin": "258248310",
+      "multiasset": {}
+    }`;
+    const coldBox = TransactionOutput.new(
+      Address.from_bech32(CardanoConfigs.coldAddress),
+      Value.from_json(coldBoxValueJson)
+    );
+
+    // create the change box
+    const changeBoxValueJson = `{
+      "coin": "101551690",
+      "multiasset": {
+        "22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130": {
+          "1111111111": "440000000000"
+        },
+        "ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2": {
+          "7369676d61": "43000000000"
+        },
+        "b8aa6f60b48ad4cb0f623edc96eb4dffb652b3a2384287b22c8814ac": {
+          "5659464974": "5000000"
+        }
+      }
+    }`;
+    const changeBox = TransactionOutput.new(
+      Address.from_bech32(CardanoConfigs.coldAddress),
+      Value.from_json(changeBoxValueJson)
+    );
+
+    return this.mockFineColdStorageTransaction([coldBox, changeBox]);
+  };
+
+  /**
+   * generates a mocked cold storage transaction with metadata using given outBoxes
+   * @param outBoxes output Utxos in the transaction
+   */
+  static mockMetadataColdStorageTransaction = (
+    outBoxes: TransactionOutput[]
+  ): PaymentTransaction => {
+    const txBuilder = TransactionBuilder.new(CardanoConfigs.txBuilderConfig);
+    outBoxes.forEach((box) => txBuilder.add_output(box));
+
+    // set transaction TTL and Fee
+    txBuilder.set_ttl(CardanoConfigs.txTtl);
+    txBuilder.set_fee(CardanoConfigs.txFee);
+
+    // Event metadata
+    const map = MetadataMap.new();
+    map.insert(
+      TransactionMetadatum.new_text('to'),
+      TransactionMetadatum.new_text('ergo')
+    );
+    map.insert(
+      TransactionMetadatum.new_text('toAddress'),
+      TransactionMetadatum.new_text('testAddress')
+    );
+
+    const index = BigNum.from_str('0');
+    const metadataMap = TransactionMetadatum.new_map(map);
+
+    const generalMetaData = GeneralTransactionMetadata.new();
+    generalMetaData.insert(index, metadataMap);
+
+    txBuilder.add_metadatum(index, metadataMap);
+    const data = AuxiliaryData.new();
+    data.set_metadata(generalMetaData);
+
+    // create the transaction
+    const txBody = txBuilder.build();
+    const tx = Transaction.new(
+      txBody,
+      TransactionWitnessSet.new(),
+      data // transaction metadata
+    );
+
+    // create PaymentTransaction object
+    const txId = Utils.Uint8ArrayToHexString(
+      hash_transaction(tx.body()).to_bytes()
+    );
+    const txBytes = tx.to_bytes();
+    return new CardanoTransaction(
+      txId,
+      '',
+      txBytes,
+      TransactionTypes.coldStorage
+    );
+  };
+
+  /**
+   * generates a mocked cold storage transaction with metadata
+   */
+  static mockColdStorageTxWithMetadata = (): PaymentTransaction => {
+    // create the cold box
+    const coldBoxValueJson = `{
+      "coin": "258248310",
+      "multiasset": {}
+    }`;
+    const coldBox = TransactionOutput.new(
+      Address.from_bech32(CardanoConfigs.coldAddress),
+      Value.from_json(coldBoxValueJson)
+    );
+
+    // create the change box
+    const changeBoxValueJson = `{
+      "coin": "101551690",
+      "multiasset": {
+        "22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130": {
+          "1111111111": "440000000000"
+        },
+        "ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2": {
+          "7369676d61": "43000000000"
+        },
+        "b8aa6f60b48ad4cb0f623edc96eb4dffb652b3a2384287b22c8814ac": {
+          "5659464974": "5000000"
+        }
+      }
+    }`;
+    const changeBox = TransactionOutput.new(
+      Address.from_bech32(this.testBankAddress),
+      Value.from_json(changeBoxValueJson)
+    );
+
+    return this.mockMetadataColdStorageTransaction([coldBox, changeBox]);
+  };
+
+  /**
+   * generates a find mocked cold storage transaction with given outBoxes
+   * @param outBoxes output Utxos in the transaction
+   */
+  static mockInvalidFeeColdStorageTransaction = (
+    outBoxes: TransactionOutput[]
+  ): PaymentTransaction => {
+    const txBuilder = TransactionBuilder.new(CardanoConfigs.txBuilderConfig);
+    outBoxes.forEach((box) => txBuilder.add_output(box));
+
+    // set transaction TTL and Fee
+    txBuilder.set_ttl(CardanoConfigs.txTtl);
+    txBuilder.set_fee(CardanoConfigs.txFee.checked_add(CardanoConfigs.txFee));
+
+    // create the transaction
+    const txBody = txBuilder.build();
+    const tx = Transaction.new(
+      txBody,
+      TransactionWitnessSet.new(),
+      undefined // transaction metadata
+    );
+
+    // create PaymentTransaction object
+    const txId = Utils.Uint8ArrayToHexString(
+      hash_transaction(tx.body()).to_bytes()
+    );
+    const txBytes = tx.to_bytes();
+    return new CardanoTransaction(
+      txId,
+      '',
+      txBytes,
+      TransactionTypes.coldStorage
+    );
+  };
+
+  /**
+   * generates a mocked cold storage transaction with metadata
+   */
+  static mockColdStorageTxWithAdditionalFee = (): PaymentTransaction => {
+    // create the cold box
+    const coldBoxValueJson = `{
+      "coin": "258248310",
+      "multiasset": {}
+    }`;
+    const coldBox = TransactionOutput.new(
+      Address.from_bech32(CardanoConfigs.coldAddress),
+      Value.from_json(coldBoxValueJson)
+    );
+
+    // create the change box
+    const changeBoxValueJson = `{
+      "coin": "101351690",
+      "multiasset": {
+        "22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130": {
+          "1111111111": "440000000000"
+        },
+        "ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2": {
+          "7369676d61": "43000000000"
+        },
+        "b8aa6f60b48ad4cb0f623edc96eb4dffb652b3a2384287b22c8814ac": {
+          "5659464974": "5000000"
+        }
+      }
+    }`;
+    const changeBox = TransactionOutput.new(
+      Address.from_bech32(this.testBankAddress),
+      Value.from_json(changeBoxValueJson)
+    );
+
+    return this.mockInvalidFeeColdStorageTransaction([coldBox, changeBox]);
+  };
+
+  /**
+   * generates a mocked cold storage transaction with metadata
+   */
+  static mockHighAdaColdStorageTx = (): PaymentTransaction => {
+    // create the cold box
+    const coldBoxValueJson = `{
+      "coin": "260248310",
+      "multiasset": {}
+    }`;
+    const coldBox = TransactionOutput.new(
+      Address.from_bech32(CardanoConfigs.coldAddress),
+      Value.from_json(coldBoxValueJson)
+    );
+
+    // create the change box
+    const changeBoxValueJson = `{
+      "coin": "99551690",
+      "multiasset": {
+        "22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130": {
+          "1111111111": "440000000000"
+        },
+        "ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2": {
+          "7369676d61": "43000000000"
+        },
+        "b8aa6f60b48ad4cb0f623edc96eb4dffb652b3a2384287b22c8814ac": {
+          "5659464974": "5000000"
+        }
+      }
+    }`;
+    const changeBox = TransactionOutput.new(
+      Address.from_bech32(this.testBankAddress),
+      Value.from_json(changeBoxValueJson)
+    );
+
+    return this.mockFineColdStorageTransaction([coldBox, changeBox]);
+  };
+
+  /**
+   * generates a mocked cold storage transaction with metadata
+   */
+  static mockHighAssetColdStorageTx = (): PaymentTransaction => {
+    // create the cold box
+    const coldBoxValueJson = `{
+      "coin": "258248310",
+      "multiasset": {
+        "22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130": {
+          "1111111111": "525000000000"
+        }
+      }
+    }`;
+    const coldBox = TransactionOutput.new(
+      Address.from_bech32(CardanoConfigs.coldAddress),
+      Value.from_json(coldBoxValueJson)
+    );
+
+    // create the change box
+    const changeBoxValueJson = `{
+      "coin": "101551690",
+      "multiasset": {
+        "22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130": {
+          "1111111111": "115000000000"
+        },
+        "ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2": {
+          "7369676d61": "43000000000"
+        },
+        "b8aa6f60b48ad4cb0f623edc96eb4dffb652b3a2384287b22c8814ac": {
+          "5659464974": "5000000"
+        }
+      }
+    }`;
+    const changeBox = TransactionOutput.new(
+      Address.from_bech32(this.testBankAddress),
+      Value.from_json(changeBoxValueJson)
+    );
+
+    return this.mockFineColdStorageTransaction([coldBox, changeBox]);
+  };
+
+  /**
+   * generates a mocked cold storage transaction with metadata
+   */
+  static mockLowAdaColdStorageTx = (): PaymentTransaction => {
+    // create the cold box
+    const coldBoxValueJson = `{
+      "coin": "18248310",
+      "multiasset": {}
+    }`;
+    const coldBox = TransactionOutput.new(
+      Address.from_bech32(CardanoConfigs.coldAddress),
+      Value.from_json(coldBoxValueJson)
+    );
+
+    // create the change box
+    const changeBoxValueJson = `{
+      "coin": "341551690",
+      "multiasset": {
+        "22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130": {
+          "1111111111": "440000000000"
+        },
+        "ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2": {
+          "7369676d61": "43000000000"
+        },
+        "b8aa6f60b48ad4cb0f623edc96eb4dffb652b3a2384287b22c8814ac": {
+          "5659464974": "5000000"
+        }
+      }
+    }`;
+    const changeBox = TransactionOutput.new(
+      Address.from_bech32(this.testBankAddress),
+      Value.from_json(changeBoxValueJson)
+    );
+
+    return this.mockFineColdStorageTransaction([coldBox, changeBox]);
   };
 }
 
