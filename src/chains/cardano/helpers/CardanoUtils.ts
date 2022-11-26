@@ -1,4 +1,5 @@
 import {
+  AssetInfo,
   MetaData,
   RosenData,
   Utxo,
@@ -17,21 +18,26 @@ import { Buffer } from 'buffer';
 
 class CardanoUtils {
   /**
-   * reads asset unit from assets fingerprint unit map in config file, throws error if fingerprint not found
+   * returns asset policy id and asset name from tokenMap, throws error if fingerprint not found
    * @param fingerprint asset fingerprint
    */
-  static getAssetPolicyAndNameFromConfigFingerPrintMap = (
-    fingerprint: string
-  ): [Uint8Array, Uint8Array] => {
+  static getCardanoAssetInfo = (fingerprint: string): AssetInfo => {
     const token = Configs.tokenMap.search(ChainsConstants.cardano, {
       [Configs.tokenMap.getIdKey(ChainsConstants.cardano)]: fingerprint,
     });
     if (token.length === 0)
       throw new Error(`Asset fingerprint [${fingerprint}] not found in config`);
-    return [
-      Buffer.from(token[0][ChainsConstants.cardano]['policyId'], 'hex'),
-      Buffer.from(token[0][ChainsConstants.cardano]['assetName'], 'hex'),
-    ];
+    return {
+      fingerprint: fingerprint,
+      policyId: Buffer.from(
+        token[0][ChainsConstants.cardano]['policyId'],
+        'hex'
+      ),
+      assetName: Buffer.from(
+        token[0][ChainsConstants.cardano]['assetName'],
+        'hex'
+      ),
+    };
   };
 
   /**

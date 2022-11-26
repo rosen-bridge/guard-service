@@ -247,12 +247,9 @@ class CardanoColdStorage {
           )
             return false;
         } else {
-          const AssetUnit =
-            CardanoUtils.getAssetPolicyAndNameFromConfigFingerPrintMap(
-              fingerprint
-            );
-          const policyId = ScriptHash.from_bytes(AssetUnit[0]);
-          const assetName = AssetName.new(AssetUnit[1]);
+          const AssetInfo = CardanoUtils.getCardanoAssetInfo(fingerprint);
+          const policyId = ScriptHash.from_bytes(AssetInfo.policyId);
+          const assetName = AssetName.new(AssetInfo.assetName);
           const assetBalance = BigInt(
             lockAddressMultiAsset.get_asset(policyId, assetName).to_str()
           );

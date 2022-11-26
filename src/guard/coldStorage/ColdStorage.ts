@@ -116,15 +116,12 @@ class ColdStorage {
             const assetQuantity = BigInt(assetBalance.quantity);
             if (assetQuantity > cardanoAssets[fingerprint].high) {
               // insert into multiAsset
-              const token =
-                CardanoUtils.getAssetPolicyAndNameFromConfigFingerPrintMap(
-                  fingerprint
-                );
+              const token = CardanoUtils.getCardanoAssetInfo(fingerprint);
               const policyId = ScriptHash.from_bytes(
-                Buffer.from(Utils.Uint8ArrayToHexString(token[0]), 'hex')
+                Buffer.from(Utils.Uint8ArrayToHexString(token.policyId), 'hex')
               );
               const assetName = AssetName.new(
-                Buffer.from(Utils.Uint8ArrayToHexString(token[1]), 'hex')
+                Buffer.from(Utils.Uint8ArrayToHexString(token.assetName), 'hex')
               );
 
               const policyAssets = transferringTokens.get(policyId);

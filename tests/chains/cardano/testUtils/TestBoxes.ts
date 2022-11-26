@@ -693,14 +693,15 @@ class TestBoxes {
       .checked_sub(BigNum.from_str(event.bridgeFee))
       .checked_sub(BigNum.from_str(event.networkFee));
 
-    const paymentAssetUnit =
-      CardanoUtils.getAssetPolicyAndNameFromConfigFingerPrintMap(
-        event.targetChainTokenId
-      );
-    const paymentAssetPolicyId: ScriptHash = ScriptHash.from_bytes(
-      paymentAssetUnit[0]
+    const paymentAssetInfo = CardanoUtils.getCardanoAssetInfo(
+      event.targetChainTokenId
     );
-    const paymentAssetAssetName: AssetName = AssetName.new(paymentAssetUnit[1]);
+    const paymentAssetPolicyId: ScriptHash = ScriptHash.from_bytes(
+      paymentAssetInfo.policyId
+    );
+    const paymentAssetAssetName: AssetName = AssetName.new(
+      paymentAssetInfo.assetName
+    );
     const illegalAssetAssetName: AssetName = AssetName.new(
       Buffer.from('7369676d61', 'hex')
     );
@@ -741,14 +742,15 @@ class TestBoxes {
       .checked_sub(BigNum.from_str(event.bridgeFee))
       .checked_sub(BigNum.from_str(event.networkFee));
 
-    const paymentAssetUnit =
-      CardanoUtils.getAssetPolicyAndNameFromConfigFingerPrintMap(
-        event.targetChainTokenId
-      );
-    const paymentAssetPolicyId: ScriptHash = ScriptHash.from_bytes(
-      paymentAssetUnit[0]
+    const paymentAssetInfo = CardanoUtils.getCardanoAssetInfo(
+      event.targetChainTokenId
     );
-    const paymentAssetAssetName: AssetName = AssetName.new(paymentAssetUnit[1]);
+    const paymentAssetPolicyId: ScriptHash = ScriptHash.from_bytes(
+      paymentAssetInfo.policyId
+    );
+    const paymentAssetAssetName: AssetName = AssetName.new(
+      paymentAssetInfo.assetName
+    );
     const paymentMultiAsset = MultiAsset.new();
     const paymentAssets = Assets.new();
     paymentAssets.insert(paymentAssetAssetName, assetPaymentAmount);
@@ -785,14 +787,15 @@ class TestBoxes {
       .checked_sub(BigNum.from_str(event.bridgeFee))
       .checked_sub(BigNum.from_str(event.networkFee));
 
-    const paymentAssetUnit =
-      CardanoUtils.getAssetPolicyAndNameFromConfigFingerPrintMap(
-        event.targetChainTokenId
-      );
-    const paymentAssetPolicyId: ScriptHash = ScriptHash.from_bytes(
-      paymentAssetUnit[0]
+    const paymentAssetInfo = CardanoUtils.getCardanoAssetInfo(
+      event.targetChainTokenId
     );
-    const paymentAssetAssetName: AssetName = AssetName.new(paymentAssetUnit[1]);
+    const paymentAssetPolicyId: ScriptHash = ScriptHash.from_bytes(
+      paymentAssetInfo.policyId
+    );
+    const paymentAssetAssetName: AssetName = AssetName.new(
+      paymentAssetInfo.assetName
+    );
     const paymentMultiAsset = MultiAsset.new();
     const paymentAssets = Assets.new();
     paymentAssets.insert(paymentAssetAssetName, assetPaymentAmount);
@@ -832,14 +835,15 @@ class TestBoxes {
       .checked_sub(BigNum.from_str(event.bridgeFee))
       .checked_sub(BigNum.from_str(event.networkFee));
 
-    const paymentAssetUnit =
-      CardanoUtils.getAssetPolicyAndNameFromConfigFingerPrintMap(
-        event.targetChainTokenId
-      );
-    const paymentAssetPolicyId: ScriptHash = ScriptHash.from_bytes(
-      paymentAssetUnit[0]
+    const paymentAssetInfo = CardanoUtils.getCardanoAssetInfo(
+      event.targetChainTokenId
     );
-    const paymentAssetAssetName: AssetName = AssetName.new(paymentAssetUnit[1]);
+    const paymentAssetPolicyId: ScriptHash = ScriptHash.from_bytes(
+      paymentAssetInfo.policyId
+    );
+    const paymentAssetAssetName: AssetName = AssetName.new(
+      paymentAssetInfo.assetName
+    );
     const illegalAssetUnit: Uint8Array = Buffer.from(
       TestUtils.generateRandomId(),
       'hex'
@@ -1109,6 +1113,12 @@ class TestBoxes {
           quantity: 335000000000n,
           fingerprint: 'asset1nl000000000000000000000000000000000000',
         },
+        {
+          policy_id: '22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130',
+          asset_name: '2222222222',
+          quantity: 1000000n,
+          fingerprint: 'asset1nl000000000022220000001111000000000333',
+        },
       ],
     };
 
@@ -1139,6 +1149,12 @@ class TestBoxes {
           asset_name: '5659464974',
           quantity: 5000000n,
           fingerprint: 'asset16adhl77t3cmca442g4gzy3mdn905yurvljllr4',
+        },
+        {
+          policy_id: '22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130',
+          asset_name: '2222222222',
+          quantity: 1000000n,
+          fingerprint: 'asset1nl000000000022220000001111000000000333',
         },
       ],
     };
@@ -1508,13 +1524,13 @@ class TestBoxes {
       Address.from_bech32(CardanoConfigs.coldAddress),
       Value.from_json(coldBoxValueJson)
     );
-
     // create the change box
     const changeBoxValueJson = `{
       "coin": "101551690",
       "multiasset": {
         "22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130": {
-          "1111111111": "115000000000"
+          "1111111111": "115000000000",
+          "2222222222": "1000000"
         },
         "ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2": {
           "7369676d61": "43000000000"

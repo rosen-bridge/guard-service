@@ -100,12 +100,15 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         event,
         feeConfig
       );
-      const paymentAssetUnit =
-        CardanoUtils.getAssetPolicyAndNameFromConfigFingerPrintMap(
-          event.targetChainTokenId
-        );
-      const assetPolicyId = Utils.Uint8ArrayToHexString(paymentAssetUnit[0]);
-      const assetAssetName = Utils.Uint8ArrayToHexString(paymentAssetUnit[1]);
+      const paymentAssetInfo = CardanoUtils.getCardanoAssetInfo(
+        event.targetChainTokenId
+      );
+      const assetPolicyId = Utils.Uint8ArrayToHexString(
+        paymentAssetInfo.policyId
+      );
+      const assetAssetName = Utils.Uint8ArrayToHexString(
+        paymentAssetInfo.assetName
+      );
 
       let covered = BigNum.from_str('0');
 
@@ -294,15 +297,14 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         if (multiAssets.get(multiAssetPolicyId)!.len() !== 1) return false;
       }
 
-      const paymentAssetUnit =
-        CardanoUtils.getAssetPolicyAndNameFromConfigFingerPrintMap(
-          event.targetChainTokenId
-        );
+      const paymentAssetInfo = CardanoUtils.getCardanoAssetInfo(
+        event.targetChainTokenId
+      );
       const paymentAssetPolicyId: ScriptHash = ScriptHash.from_bytes(
-        paymentAssetUnit[0]
+        paymentAssetInfo.policyId
       );
       const paymentAssetAssetName: AssetName = AssetName.new(
-        paymentAssetUnit[1]
+        paymentAssetInfo.assetName
       );
       const paymentAssetAmount: BigNum | undefined = paymentBox
         .amount()
@@ -397,14 +399,15 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
       feeConfig
     );
 
-    const paymentAssetUnit =
-      CardanoUtils.getAssetPolicyAndNameFromConfigFingerPrintMap(
-        event.targetChainTokenId
-      );
-    const paymentAssetPolicyId: ScriptHash = ScriptHash.from_bytes(
-      paymentAssetUnit[0]
+    const paymentAssetInfo = CardanoUtils.getCardanoAssetInfo(
+      event.targetChainTokenId
     );
-    const paymentAssetAssetName: AssetName = AssetName.new(paymentAssetUnit[1]);
+    const paymentAssetPolicyId: ScriptHash = ScriptHash.from_bytes(
+      paymentAssetInfo.policyId
+    );
+    const paymentAssetAssetName: AssetName = AssetName.new(
+      paymentAssetInfo.assetName
+    );
     const paymentMultiAsset = MultiAsset.new();
     const paymentAssets = Assets.new();
     paymentAssets.insert(paymentAssetAssetName, assetPaymentAmount);
