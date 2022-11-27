@@ -23,7 +23,7 @@
   "dependencies": {
     "@blockfrost/blockfrost-js": "^5.0.0",
     "@chainsafe/libp2p-noise": "^6.2.0",
-    "@emurgo/cardano-serialization-lib-nodejs": "^10.0.4",
+    "@emurgo/cardano-serialization-lib-nodejs": "^11.1.0",
     "@libp2p/bootstrap": "^1.0.6",
     "@libp2p/floodsub": "^1.0.7",
     "@libp2p/mplex": "^1.2.1",

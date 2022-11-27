@@ -8,6 +8,12 @@ interface Asset {
   fingerprint: string;
 }
 
+interface AssetInfo {
+  fingerprint: string;
+  policyId: Uint8Array;
+  assetName: Uint8Array;
+}
+
 interface Utxo {
   payment_addr: {
     bech32: string;
@@ -60,6 +66,7 @@ type AddressUtxos = components['schemas']['address_utxo_content'];
 export type {
   Utxo,
   Asset,
+  AssetInfo,
   UtxoBoxesAssets,
   TxUtxos,
   AddressUtxos,

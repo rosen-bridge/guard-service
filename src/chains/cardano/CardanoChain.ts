@@ -26,7 +26,7 @@ import {
 import BaseChain from '../BaseChains';
 import CardanoConfigs from './helpers/CardanoConfigs';
 import BlockFrostApi from './network/BlockFrostApi';
-import { Utxo, UtxoBoxesAssets } from './models/Interfaces';
+import { Utxo } from './models/Interfaces';
 import CardanoUtils from './helpers/CardanoUtils';
 import TssSigner from '../../guard/TssSigner';
 import CardanoTransaction from './models/CardanoTransaction';
@@ -100,12 +100,15 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         event,
         feeConfig
       );
-      const paymentAssetUnit =
-        CardanoUtils.getAssetPolicyAndNameFromConfigFingerPrintMap(
-          event.targetChainTokenId
-        );
-      const assetPolicyId = Utils.Uint8ArrayToHexString(paymentAssetUnit[0]);
-      const assetAssetName = Utils.Uint8ArrayToHexString(paymentAssetUnit[1]);
+      const paymentAssetInfo = CardanoUtils.getCardanoAssetInfo(
+        event.targetChainTokenId
+      );
+      const assetPolicyId = Utils.Uint8ArrayToHexString(
+        paymentAssetInfo.policyId
+      );
+      const assetAssetName = Utils.Uint8ArrayToHexString(
+        paymentAssetInfo.assetName
+      );
 
       let covered = BigNum.from_str('0');
 
@@ -294,15 +297,14 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         if (multiAssets.get(multiAssetPolicyId)!.len() !== 1) return false;
       }
 
-      const paymentAssetUnit =
-        CardanoUtils.getAssetPolicyAndNameFromConfigFingerPrintMap(
-          event.targetChainTokenId
-        );
+      const paymentAssetInfo = CardanoUtils.getCardanoAssetInfo(
+        event.targetChainTokenId
+      );
       const paymentAssetPolicyId: ScriptHash = ScriptHash.from_bytes(
-        paymentAssetUnit[0]
+        paymentAssetInfo.policyId
       );
       const paymentAssetAssetName: AssetName = AssetName.new(
-        paymentAssetUnit[1]
+        paymentAssetInfo.assetName
       );
       const paymentAssetAmount: BigNum | undefined = paymentBox
         .amount()
@@ -361,7 +363,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
     );
 
     // calculate assets and lovelace of change box
-    const changeBoxAssets = this.calculateInputBoxesAssets(inBoxes);
+    const changeBoxAssets = CardanoUtils.calculateInputBoxesAssets(inBoxes);
     const multiAsset = changeBoxAssets.assets;
     let changeBoxLovelace: BigNum = changeBoxAssets.lovelace;
 
@@ -397,14 +399,15 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
       feeConfig
     );
 
-    const paymentAssetUnit =
-      CardanoUtils.getAssetPolicyAndNameFromConfigFingerPrintMap(
-        event.targetChainTokenId
-      );
-    const paymentAssetPolicyId: ScriptHash = ScriptHash.from_bytes(
-      paymentAssetUnit[0]
+    const paymentAssetInfo = CardanoUtils.getCardanoAssetInfo(
+      event.targetChainTokenId
     );
-    const paymentAssetAssetName: AssetName = AssetName.new(paymentAssetUnit[1]);
+    const paymentAssetPolicyId: ScriptHash = ScriptHash.from_bytes(
+      paymentAssetInfo.policyId
+    );
+    const paymentAssetAssetName: AssetName = AssetName.new(
+      paymentAssetInfo.assetName
+    );
     const paymentMultiAsset = MultiAsset.new();
     const paymentAssets = Assets.new();
     paymentAssets.insert(paymentAssetAssetName, assetPaymentAmount);
@@ -419,7 +422,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
     );
 
     // calculate assets and lovelace of change box
-    const changeBoxAssets = this.calculateInputBoxesAssets(inBoxes);
+    const changeBoxAssets = CardanoUtils.calculateInputBoxesAssets(inBoxes);
     const multiAsset = changeBoxAssets.assets;
     let changeBoxLovelace: BigNum = changeBoxAssets.lovelace;
 
@@ -444,58 +447,6 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
     const changeBox = TransactionOutput.new(this.bankAddress, changeAmount);
 
     return [paymentBox, changeBox];
-  };
-
-  /**
-   * calculates amount of lovelace and assets in utxo boxes
-   * @param boxes the utxogenerateTransaction boxes
-   */
-  calculateInputBoxesAssets = (boxes: Utxo[]): UtxoBoxesAssets => {
-    const multiAsset = MultiAsset.new();
-    let changeBoxLovelace: BigNum = BigNum.zero();
-    boxes.forEach((box) => {
-      changeBoxLovelace = changeBoxLovelace.checked_add(
-        BigNum.from_str(box.value)
-      );
-
-      box.asset_list.forEach((boxAsset) => {
-        const policyId = ScriptHash.from_bytes(
-          Buffer.from(boxAsset.policy_id, 'hex')
-        );
-        const assetName = AssetName.new(
-          Buffer.from(boxAsset.asset_name, 'hex')
-        );
-
-        const policyAssets = multiAsset.get(policyId);
-        if (!policyAssets) {
-          const assetList = Assets.new();
-          assetList.insert(
-            assetName,
-            BigNum.from_str(boxAsset.quantity.toString())
-          );
-          multiAsset.insert(policyId, assetList);
-        } else {
-          const asset = policyAssets.get(assetName);
-          if (!asset) {
-            policyAssets.insert(
-              assetName,
-              BigNum.from_str(boxAsset.quantity.toString())
-            );
-            multiAsset.insert(policyId, policyAssets);
-          } else {
-            const amount = asset.checked_add(
-              BigNum.from_str(boxAsset.quantity.toString())
-            );
-            policyAssets.insert(assetName, amount);
-            multiAsset.insert(policyId, policyAssets);
-          }
-        }
-      });
-    });
-    return {
-      lovelace: changeBoxLovelace,
-      assets: multiAsset,
-    };
   };
 
   /**

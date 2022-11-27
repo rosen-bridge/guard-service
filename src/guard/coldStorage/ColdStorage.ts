@@ -9,6 +9,17 @@ import { txAgreement } from '../agreement/TxAgreement';
 import KoiosApi from '../../chains/cardano/network/KoiosApi';
 import CardanoConfigs from '../../chains/cardano/helpers/CardanoConfigs';
 import CardanoColdStorage from '../../chains/cardano/CardanoColdStorage';
+import {
+  AssetName,
+  Assets,
+  BigNum,
+  MultiAsset,
+  ScriptHash,
+} from '@emurgo/cardano-serialization-lib-nodejs';
+import { Buffer } from 'buffer';
+import CardanoUtils from '../../chains/cardano/helpers/CardanoUtils';
+import Utils from '../../helpers/Utils';
+import { UtxoBoxesAssets } from '../../chains/cardano/models/Interfaces';
 
 class ColdStorage {
   /**
@@ -82,7 +93,7 @@ class ColdStorage {
       const cardanoAssets = Configs.thresholds()[ChainsConstants.cardano];
 
       let lovelace = 0n;
-      const transferringTokens: AssetMap = {};
+      const transferringTokens = MultiAsset.new();
       Object.keys(cardanoAssets).forEach((fingerprint) => {
         if (fingerprint === ChainsConstants.cardanoNativeAsset) {
           if (
@@ -104,17 +115,52 @@ class ColdStorage {
           else {
             const assetQuantity = BigInt(assetBalance.quantity);
             if (assetQuantity > cardanoAssets[fingerprint].high) {
-              transferringTokens[fingerprint] =
-                assetQuantity - cardanoAssets[fingerprint].low;
+              // insert into multiAsset
+              const token = CardanoUtils.getCardanoAssetInfo(fingerprint);
+              const policyId = ScriptHash.from_bytes(
+                Buffer.from(Utils.Uint8ArrayToHexString(token.policyId), 'hex')
+              );
+              const assetName = AssetName.new(
+                Buffer.from(Utils.Uint8ArrayToHexString(token.assetName), 'hex')
+              );
+
+              const policyAssets = transferringTokens.get(policyId);
+              if (!policyAssets) {
+                const assetList = Assets.new();
+                assetList.insert(
+                  assetName,
+                  BigNum.from_str(
+                    (assetQuantity - cardanoAssets[fingerprint].low).toString()
+                  )
+                );
+                transferringTokens.insert(policyId, assetList);
+              } else {
+                const asset = policyAssets.get(assetName);
+                if (!asset) {
+                  policyAssets.insert(
+                    assetName,
+                    BigNum.from_str(
+                      (
+                        assetQuantity - cardanoAssets[fingerprint].low
+                      ).toString()
+                    )
+                  );
+                  transferringTokens.insert(policyId, policyAssets);
+                } else {
+                  throw Error(
+                    `Impossible case: Duplicate thresholds found for fingerprint [${fingerprint}]`
+                  );
+                }
+              }
             }
           }
         }
       });
 
-      if (Object.keys(transferringTokens).length > 0 || lovelace > 0) {
-        const transferringAssets: BoxesAssets = {
-          ergs: lovelace,
-          tokens: transferringTokens,
+      if (transferringTokens.len() > 0 || lovelace > 0) {
+        const transferringAssets: UtxoBoxesAssets = {
+          lovelace: BigNum.from_str(lovelace.toString()),
+          assets: transferringTokens,
         };
 
         const tx = await CardanoColdStorage.generateTransaction(

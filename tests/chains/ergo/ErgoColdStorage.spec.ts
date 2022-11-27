@@ -113,11 +113,11 @@ describe('ErgoColdStorage', () => {
      *    ExplorerApi
      * Scenario:
      *    Mock ExplorerApi getAddressAssets to return test assets (only erg greater than high threshold)
-     *    Mock a cold storage transaction containing invalid coldBox (wrong ergoTree)
+     *    Mock a valid cold storage transaction
      *    Run test
      *    Check return value to be false
      * Expected Output:
-     *    It should NOT verify the transaction
+     *    It should verify the transaction
      */
     it('should agree to a fine cold storage tx', async () => {
       const mockedBankAssetsAndBoxes =

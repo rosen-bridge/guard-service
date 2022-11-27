@@ -125,7 +125,7 @@ class ErgoColdStorage {
       TransactionTypes.coldStorage
     );
 
-    logger.info(`ColdStorage Transaction with txId [${txId}] generated`);
+    logger.info(`Ergo coldStorage Transaction with txId [${txId}] generated`);
     return ergoTx;
   };
 
