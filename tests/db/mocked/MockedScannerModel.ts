@@ -49,6 +49,9 @@ when(mockedScannerAction.getEventById(anything())).thenCall(
 when(mockedScannerAction.getPendingEvents()).thenCall(
   testScannerDataBase.getPendingEvents
 );
+when(mockedScannerAction.getWaitingEvents()).thenCall(
+  testScannerDataBase.getWaitingEvents
+);
 when(mockedScannerAction.getActiveTransactions()).thenCall(
   testScannerDataBase.getActiveTransactions
 );
@@ -102,12 +105,14 @@ const clearTables = async () => {
  * @param status
  * @param boxSerialized
  * @param height
+ * @param firstTry
  */
 const insertEventRecord = async (
   event: EventTrigger,
   status: string,
   boxSerialized = 'boxSerialized',
-  height = 200
+  height = 200,
+  firstTry?: string
 ) => {
   await testScannerDataBase.EventRepository.createQueryBuilder()
     .insert()
@@ -142,6 +147,7 @@ const insertEventRecord = async (
       id: Utils.txIdToEventId(event.sourceTxId),
       eventData: eventData!,
       status: status,
+      firstTry: firstTry,
     })
     .execute();
 };

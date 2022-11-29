@@ -90,6 +90,7 @@ class Configs {
   static multiSigCleanUpInterval = 120; // seconds
   static multiSigTimeout = getConfigIntKeyOrDefault('multiSigTimeout', 5 * 60); // seconds
   static tssInstanceRestartGap = 5; // seconds
+  static eventTimeout = 86400; // seconds, 1 day
 
   //logs configs
   static logsPath = config.get<string>('logs.path');

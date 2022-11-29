@@ -16,6 +16,7 @@ import { logger } from '../../log/Logger';
 import { ErgoBox } from 'ergo-lib-wasm-nodejs';
 import MinimumFee from '../MinimumFee';
 import { NotEnoughAssetsError } from '../../helpers/errors';
+import Configs from '../../helpers/Configs';
 
 class EventProcessor {
   static cardanoChain = new CardanoChain();
@@ -103,7 +104,10 @@ class EventProcessor {
     let timeoutEventsCount = 0;
     for (const event of pendingEvents) {
       try {
-        if (Math.round(Date.now() / 1000) > Number(event.firstTry)) {
+        if (
+          Math.round(Date.now() / 1000) >
+          Number(event.firstTry) + Configs.eventTimeout
+        ) {
           await dbAction.setEventStatus(event.id, EventStatus.timeout);
           timeoutEventsCount += 1;
         }
@@ -119,10 +123,10 @@ class EventProcessor {
   };
 
   /**
-   * searches event triggers in the database with more than leftover confirmation and timeout them
+   * updates all waiting events status to pending
    */
   static RequeueWaitingEvents = async (): Promise<void> => {
-    logger.info('Searching for leftover events');
+    logger.info('Processing waiting events ');
     const waitingEvents = await dbAction.getWaitingEvents();
     for (const event of waitingEvents) {
       try {
@@ -131,7 +135,7 @@ class EventProcessor {
             event.id,
             EventStatus.pendingPayment
           );
-        else if (event.status === EventStatus.pendingReward)
+        else if (event.status === EventStatus.rewardWaiting)
           await dbAction.resetEventStatusToPending(
             event.id,
             EventStatus.pendingReward
@@ -169,7 +173,9 @@ class EventProcessor {
       if (tx != undefined) txAgreement.startAgreementProcess(tx);
     } catch (e) {
       if (e instanceof NotEnoughAssetsError) {
-        logger.warn(`Failed to create payment for event [${event.getId()}]: e`);
+        logger.warn(
+          `Failed to create payment for event [${event.getId()}]: ${e}`
+        );
         // TODO: Need to send notification to guard(s)
         //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/81
         await dbAction.setEventStatus(
@@ -201,7 +207,7 @@ class EventProcessor {
     } catch (e) {
       if (e instanceof NotEnoughAssetsError) {
         logger.warn(
-          `Failed to create reward distribution for event [${event.getId()}]: e`
+          `Failed to create reward distribution for event [${event.getId()}]: ${e}`
         );
         // TODO: Need to send notification to guard(s)
         //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/81
