@@ -15,7 +15,10 @@ import Utils from '../../helpers/Utils';
 import { logger } from '../../log/Logger';
 import { ErgoBox } from 'ergo-lib-wasm-nodejs';
 import MinimumFee from '../MinimumFee';
-import { NotEnoughAssetsError } from '../../helpers/errors';
+import {
+  ChainNotImplemented,
+  NotEnoughAssetsError,
+} from '../../helpers/errors';
 import Configs from '../../helpers/Configs';
 
 class EventProcessor {
@@ -29,7 +32,7 @@ class EventProcessor {
   static getChainObject = (chain: string): BaseChain<any, any> => {
     if (chain === ChainsConstants.cardano) return this.cardanoChain;
     else if (chain === ChainsConstants.ergo) return this.ergoChain;
-    else throw new Error(`Chain [${chain}] not implemented.`);
+    else throw new ChainNotImplemented(chain);
   };
 
   /**

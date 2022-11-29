@@ -28,10 +28,17 @@ class NotEnoughAssetsError extends Error {
   }
 }
 
+class ChainNotImplemented extends Error {
+  constructor(chain: string) {
+    super(chain + 'ChainNotImplemented');
+  }
+}
+
 export {
   FailedError,
   NotFoundError,
   NetworkError,
   UnexpectedApiError,
   NotEnoughAssetsError,
+  ChainNotImplemented,
 };

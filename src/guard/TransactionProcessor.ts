@@ -24,6 +24,7 @@ import BaseChain from '../chains/BaseChains';
 import { Semaphore } from 'await-semaphore';
 import { txJsonParser } from '../chains/TxJsonParser';
 import { logger } from '../log/Logger';
+import { ChainNotImplemented } from '../helpers/errors';
 
 class TransactionProcessor {
   static cardanoChain = new CardanoChain();
@@ -38,7 +39,7 @@ class TransactionProcessor {
   static getChainObject = (chain: string): BaseChain<any, any> => {
     if (chain === ChainsConstants.cardano) return this.cardanoChain;
     else if (chain === ChainsConstants.ergo) return this.ergoChain;
-    else throw new Error(`Chain [${chain}] not implemented.`);
+    else throw new ChainNotImplemented(chain);
   };
 
   /**
@@ -87,7 +88,7 @@ class TransactionProcessor {
     } else if (tx.chain === ChainsConstants.ergo) {
       await this.processErgoTx(tx);
     } else {
-      throw new Error(`Chain [${tx.chain}] not implemented.`);
+      throw new ChainNotImplemented(tx.chain);
     }
   };
 
@@ -432,7 +433,7 @@ class TransactionProcessor {
         await dbAction.setTxStatus(tx.txId, TransactionStatus.sent);
       }
     } else {
-      throw new Error(`chain [${tx.chain}] not implemented.`);
+      throw new ChainNotImplemented(tx.chain);
     }
   };
 }

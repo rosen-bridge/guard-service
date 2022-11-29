@@ -17,8 +17,10 @@ import KoiosApi from '../../chains/cardano/network/KoiosApi';
 import CardanoConfigs from '../../chains/cardano/helpers/CardanoConfigs';
 import ExplorerApi from '../../chains/ergo/network/ExplorerApi';
 import MinimumFee from '../MinimumFee';
-import { dbAction } from '../../db/DatabaseAction';
 import { ConfirmedEventEntity } from '../../db/entities/ConfirmedEventEntity';
+import ErgoColdStorage from '../../chains/ergo/ErgoColdStorage';
+import CardanoColdStorage from '../../chains/cardano/CardanoColdStorage';
+import { ChainNotImplemented } from '../../helpers/errors';
 
 class EventVerifier {
   static cardanoChain = new CardanoChain();
@@ -31,7 +33,7 @@ class EventVerifier {
   static getChainObject = (chain: string): BaseChain<any, any> => {
     if (chain === ChainsConstants.cardano) return this.cardanoChain;
     else if (chain === ChainsConstants.ergo) return this.ergoChain;
-    else throw new Error(`Chain [${chain}] not implemented.`);
+    else throw new ChainNotImplemented(chain);
   };
 
   /**
@@ -49,6 +51,16 @@ class EventVerifier {
       return await this.getChainObject(
         paymentTx.network
       ).verifyTransactionWithEvent(paymentTx, event, feeConfig);
+    } else if (paymentTx.txType === TransactionTypes.coldStorage) {
+      if (paymentTx.network === ChainsConstants.ergo)
+        return await ErgoColdStorage.verifyTransaction(
+          paymentTx as ErgoTransaction
+        );
+      else if (paymentTx.network === ChainsConstants.cardano)
+        return await CardanoColdStorage.verifyTransaction(
+          paymentTx as ErgoTransaction
+        );
+      else throw new ChainNotImplemented(paymentTx.network);
     } else {
       return await Reward.verifyTransactionWithEvent(
         paymentTx as ErgoTransaction,
@@ -70,7 +82,7 @@ class EventVerifier {
       return this.cardanoChain.verifyEventWithPayment(event, RWTId);
     else if (event.fromChain === ChainsConstants.ergo)
       return this.ergoChain.verifyEventWithPayment(event, RWTId);
-    else throw new Error(`Chain [${event.fromChain}] not implemented.`);
+    else throw new ChainNotImplemented(event.fromChain);
   };
 
   /**
@@ -125,7 +137,7 @@ class EventVerifier {
         event.sourceTxId
       );
       return confirmation >= ErgoConfigs.observationConfirmation;
-    } else throw new Error(`Chain [${event.fromChain}] not implemented.`);
+    } else throw new ChainNotImplemented(event.fromChain);
   };
 }
 
