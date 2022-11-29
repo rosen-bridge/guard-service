@@ -1,4 +1,5 @@
 import {
+  EventStatus,
   EventTrigger,
   PaymentTransaction,
   TransactionTypes,
@@ -16,6 +17,8 @@ import KoiosApi from '../../chains/cardano/network/KoiosApi';
 import CardanoConfigs from '../../chains/cardano/helpers/CardanoConfigs';
 import ExplorerApi from '../../chains/ergo/network/ExplorerApi';
 import MinimumFee from '../MinimumFee';
+import { dbAction } from '../../db/DatabaseAction';
+import { ConfirmedEventEntity } from '../../db/entities/ConfirmedEventEntity';
 
 class EventVerifier {
   static cardanoChain = new CardanoChain();
@@ -68,6 +71,29 @@ class EventVerifier {
     else if (event.fromChain === ChainsConstants.ergo)
       return this.ergoChain.verifyEventWithPayment(event, RWTId);
     else throw new Error(`Chain [${event.fromChain}] not implemented.`);
+  };
+
+  /**
+   * checks if event status is pending to requested tx type
+   * @param eventEntity the trigger event object in db
+   * @param type the requested tx type
+   * @return true if event data verified
+   */
+  static isEventPendingToType = (
+    eventEntity: ConfirmedEventEntity,
+    type: string
+  ): boolean => {
+    if (
+      eventEntity.status === EventStatus.pendingPayment &&
+      type === TransactionTypes.payment
+    )
+      return true;
+    else if (
+      eventEntity.status === EventStatus.pendingReward &&
+      type === TransactionTypes.reward
+    )
+      return true;
+    else return false;
   };
 
   /**

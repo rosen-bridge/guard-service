@@ -173,8 +173,8 @@ class TxAgreement {
       return;
     }
     if (
-      // TODO: should we check for event status ?
       (await EventVerifier.verifyEvent(event)) &&
+      EventVerifier.isEventPendingToType(eventEntity, tx.txType) &&
       tx.verifyMetaDataSignature(creatorId, signature) &&
       GuardTurn.guardTurn() === creatorId &&
       !(await this.isEventHasDifferentTransaction(
