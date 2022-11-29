@@ -22,4 +22,16 @@ class UnexpectedApiError extends Error {
   }
 }
 
-export { FailedError, NotFoundError, NetworkError, UnexpectedApiError };
+class NotEnoughAssetsError extends Error {
+  constructor(msg: string) {
+    super('NotEnoughAssetsError: ' + msg);
+  }
+}
+
+export {
+  FailedError,
+  NotFoundError,
+  NetworkError,
+  UnexpectedApiError,
+  NotEnoughAssetsError,
+};

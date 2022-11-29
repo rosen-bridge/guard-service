@@ -15,7 +15,6 @@ import ErgoConfigs from '../../chains/ergo/helpers/ErgoConfigs';
 import KoiosApi from '../../chains/cardano/network/KoiosApi';
 import CardanoConfigs from '../../chains/cardano/helpers/CardanoConfigs';
 import ExplorerApi from '../../chains/ergo/network/ExplorerApi';
-import Configs from '../../helpers/Configs';
 import MinimumFee from '../MinimumFee';
 
 class EventVerifier {

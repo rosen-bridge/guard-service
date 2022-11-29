@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { EventTrigger } from '../../../src/models/Models';
+import { EventStatus, EventTrigger } from '../../../src/models/Models';
 import EventProcessor from '../../../src/guard/event/EventProcessor';
 import {
   resetMockedEventProcessor,
@@ -83,7 +83,7 @@ describe('EventProcessor', () => {
       const dbEvents = await allEventRecords();
       expect(
         dbEvents.map((event) => [event.id, event.status])[0]
-      ).to.deep.equal([mockedEvent.getId(), 'rejected']);
+      ).to.deep.equal([mockedEvent.getId(), EventStatus.rejected]);
     });
 
     /**
