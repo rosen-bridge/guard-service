@@ -99,28 +99,23 @@ class EventProcessor {
    */
   static TimeoutLeftoverEvents = async (): Promise<void> => {
     logger.info('Searching for leftover events');
-    const confirmedEvents = await dbAction.getPendingEvents();
-    for (const event of confirmedEvents) {
+    const pendingEvents = await dbAction.getPendingEvents();
+    let timeoutEventsCount = 0;
+    for (const event of pendingEvents) {
       try {
-        if (event.status === EventStatus.pendingPayment)
-          await this.processPaymentEvent(
-            EventTrigger.fromConfirmedEntity(event)
-          );
-        else if (event.status === EventStatus.pendingReward)
-          await this.processRewardEvent(
-            EventTrigger.fromConfirmedEntity(event)
-          );
-        else
-          logger.warn(
-            `Impossible case, received event [${event.id}] with status [${event.status}]`
-          );
+        if (Math.round(Date.now() / 1000) > Number(event.firstTry)) {
+          await dbAction.setEventStatus(event.id, EventStatus.timeout);
+          timeoutEventsCount += 1;
+        }
       } catch (e) {
         logger.warn(
-          `An error occurred while processing event [${event.id}]: ${e}`
+          `An error occurred while processing leftover event [${event.id}]: ${e}`
         );
       }
     }
-    logger.info(`[${confirmedEvents.length}] Confirmed Events processed`);
+    logger.info(
+      `[${pendingEvents.length}] Pending Events processed, timeout [${timeoutEventsCount}] of them`
+    );
   };
 
   /**
@@ -128,16 +123,18 @@ class EventProcessor {
    */
   static RequeueWaitingEvents = async (): Promise<void> => {
     logger.info('Searching for leftover events');
-    const confirmedEvents = await dbAction.getPendingEvents();
-    for (const event of confirmedEvents) {
+    const waitingEvents = await dbAction.getWaitingEvents();
+    for (const event of waitingEvents) {
       try {
-        if (event.status === EventStatus.pendingPayment)
-          await this.processPaymentEvent(
-            EventTrigger.fromConfirmedEntity(event)
+        if (event.status === EventStatus.paymentWaiting)
+          await dbAction.resetEventStatusToPending(
+            event.id,
+            EventStatus.pendingPayment
           );
         else if (event.status === EventStatus.pendingReward)
-          await this.processRewardEvent(
-            EventTrigger.fromConfirmedEntity(event)
+          await dbAction.resetEventStatusToPending(
+            event.id,
+            EventStatus.pendingReward
           );
         else
           logger.warn(
@@ -145,11 +142,11 @@ class EventProcessor {
           );
       } catch (e) {
         logger.warn(
-          `An error occurred while processing event [${event.id}]: ${e}`
+          `An error occurred while processing waiting event [${event.id}]: ${e}`
         );
       }
     }
-    logger.info(`[${confirmedEvents.length}] Confirmed Events processed`);
+    logger.info(`[${waitingEvents.length}] Waiting Events processed`);
   };
 
   /**

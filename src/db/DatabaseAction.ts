@@ -63,7 +63,7 @@ class DatabaseAction {
   };
 
   /**
-   * @return the event triggers with corresponding status
+   * @return the event triggers with pending status
    */
   getPendingEvents = async (): Promise<ConfirmedEventEntity[]> => {
     return await this.ConfirmedEventRepository.find({
@@ -74,6 +74,23 @@ class DatabaseAction {
         },
         {
           status: EventStatus.pendingReward,
+        },
+      ],
+    });
+  };
+
+  /**
+   * @return the event triggers with waiting status
+   */
+  getWaitingEvents = async (): Promise<ConfirmedEventEntity[]> => {
+    return await this.ConfirmedEventRepository.find({
+      relations: ['eventData'],
+      where: [
+        {
+          status: EventStatus.paymentWaiting,
+        },
+        {
+          status: EventStatus.rewardWaiting,
         },
       ],
     });
@@ -130,15 +147,19 @@ class DatabaseAction {
   };
 
   /**
-   * updates the status of an event and clear its tx info
+   * updates the status of an event and sets firstTry columns with current timestamp
    * @param eventId the event trigger id
    * @param status status of the process
    */
-  resetEventTx = async (eventId: string, status: string): Promise<void> => {
+  resetEventStatusToPending = async (
+    eventId: string,
+    status: string
+  ): Promise<void> => {
     await this.ConfirmedEventRepository.createQueryBuilder()
       .update()
       .set({
         status: status,
+        firstTry: String(Math.round(Date.now() / 1000)),
       })
       .where('id = :id', { id: eventId })
       .execute();
@@ -314,6 +335,7 @@ class DatabaseAction {
         id: Utils.txIdToEventId(eventData.sourceTxId),
         eventData: eventData,
         status: EventStatus.pendingPayment,
+        firstTry: String(Math.round(Date.now() / 1000)),
       })
       .execute();
   };

@@ -120,7 +120,10 @@ class TransactionProcessor {
 
       if (tx.type === TransactionTypes.payment) {
         // set event status, to start reward distribution.
-        await dbAction.setEventStatus(tx.event.id, EventStatus.pendingReward);
+        await dbAction.resetEventStatusToPending(
+          tx.event.id,
+          EventStatus.pendingReward
+        );
         logger.info('Tx is confirmed. Event is ready for reward distribution', {
           txId: tx.txId,
           eventId: tx.event.id,
@@ -259,7 +262,10 @@ class TransactionProcessor {
     const height = await BlockFrostApi.currentHeight();
     if (height - tx.lastCheck >= CardanoConfigs.paymentConfirmation) {
       await dbAction.setTxStatus(tx.txId, TransactionStatus.invalid);
-      await dbAction.resetEventTx(tx.event.id, EventStatus.pendingPayment);
+      await dbAction.resetEventStatusToPending(
+        tx.event.id,
+        EventStatus.pendingPayment
+      );
       logger.info('Tx is invalid. Event is now waiting for payment', {
         txId: tx.txId,
         eventId: tx.event.id,
@@ -281,13 +287,19 @@ class TransactionProcessor {
     if (height - tx.lastCheck >= ErgoConfigs.distributionConfirmation) {
       await dbAction.setTxStatus(tx.txId, TransactionStatus.invalid);
       if (tx.type === TransactionTypes.payment) {
-        await dbAction.resetEventTx(tx.event.id, EventStatus.pendingPayment);
+        await dbAction.resetEventStatusToPending(
+          tx.event.id,
+          EventStatus.pendingPayment
+        );
         logger.info('Tx is invalid. Event is now waiting for payment', {
           txId: tx.txId,
           eventId: tx.event.id,
         });
       } else {
-        await dbAction.resetEventTx(tx.event.id, EventStatus.pendingReward);
+        await dbAction.resetEventStatusToPending(
+          tx.event.id,
+          EventStatus.pendingReward
+        );
         logger.info(
           'Tx is invalid. Event is now waiting for reward distribution',
           {
