@@ -83,14 +83,24 @@ class Configs {
     'ergo.minimumFeeConfigBoxTemplateHash'
   );
 
+  // timeout configs
+  static multiSigTimeout = getConfigIntKeyOrDefault('multiSigTimeout', 5 * 60); // seconds
+  static eventTimeout = 86400; // seconds, 1 day
+
   // jobs configs
   static scannedEventProcessorInterval = 120; // seconds, 2 minutes
-  static txProcessorInterval = config.get<number>('txProcessorInterval'); // seconds
+  static txProcessorInterval = config.get<number>(
+    'intervals.txProcessorInterval'
+  ); // seconds
   static txResendInterval = 30; // seconds
   static multiSigCleanUpInterval = 120; // seconds
-  static multiSigTimeout = getConfigIntKeyOrDefault('multiSigTimeout', 5 * 60); // seconds
   static tssInstanceRestartGap = 5; // seconds
-  static eventTimeout = 86400; // seconds, 1 day
+  static timeoutProcessorInterval = config.get<number>(
+    'intervals.timeoutProcessorInterval'
+  ); // seconds
+  static requeueWaitingEventsInterval = config.get<number>(
+    'intervals.requeueWaitingEventsInterval'
+  ); // seconds
 
   //logs configs
   static logsPath = config.get<string>('logs.path');

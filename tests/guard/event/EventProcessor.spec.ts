@@ -389,6 +389,7 @@ describe('EventProcessor', () => {
      * Dependencies:
      *    EventProcessor
      * Scenario:
+     *    Mock Date to return testing currentTimeStamp
      *    Mock four events and insert into db (different in firstTry column and type (payment, reward))
      *    Run test
      *    Check events in db. Two events should got timeout

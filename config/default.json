@@ -79,7 +79,15 @@
     "maxFiles": "14d",
     "level": "info"
   },
-  "txProcessorInterval": 180,
+  "coldStorage": {
+    "startHour": 17,
+    "endHour": 19
+  },
+  "intervals": {
+    "txProcessorInterval": 180,
+    "timeoutProcessorInterval": 3600,
+    "requeueWaitingEventsInterval": 43200
+  },
   "tokensPath": "config/tokens.json",
   "thresholdsPath": "config/thresholds.json"
 }

@@ -54,6 +54,10 @@
     "networks": ["ergo-testnet", "cardano-testnet"],
     "addressesBasePath": "tests/resources/addresses/"
   },
+  "coldStorage": {
+    "startHour": 17,
+    "endHour": 19
+  },
   "tokensPath": "tests/resources/tokens.test.json",
   "thresholdsPath": "tests/resources/threshold.test.json"
 }
