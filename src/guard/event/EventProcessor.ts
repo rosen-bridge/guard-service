@@ -134,12 +134,12 @@ class EventProcessor {
     for (const event of waitingEvents) {
       try {
         if (event.status === EventStatus.paymentWaiting)
-          await dbAction.resetEventStatusToPending(
+          await dbAction.setEventStatusToPending(
             event.id,
             EventStatus.pendingPayment
           );
         else if (event.status === EventStatus.rewardWaiting)
-          await dbAction.resetEventStatusToPending(
+          await dbAction.setEventStatusToPending(
             event.id,
             EventStatus.pendingReward
           );

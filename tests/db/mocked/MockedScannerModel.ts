@@ -62,8 +62,8 @@ when(mockedScannerAction.updateTxLastCheck(anything(), anything())).thenCall(
   testScannerDataBase.updateTxLastCheck
 );
 when(
-  mockedScannerAction.resetEventStatusToPending(anything(), anything())
-).thenCall(testScannerDataBase.resetEventStatusToPending);
+  mockedScannerAction.setEventStatusToPending(anything(), anything())
+).thenCall(testScannerDataBase.setEventStatusToPending);
 when(mockedScannerAction.getTxById(anything())).thenCall(
   testScannerDataBase.getTxById
 );

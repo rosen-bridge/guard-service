@@ -121,7 +121,7 @@ class TransactionProcessor {
 
       if (tx.type === TransactionTypes.payment) {
         // set event status, to start reward distribution.
-        await dbAction.resetEventStatusToPending(
+        await dbAction.setEventStatusToPending(
           tx.event.id,
           EventStatus.pendingReward
         );
@@ -129,10 +129,16 @@ class TransactionProcessor {
           txId: tx.txId,
           eventId: tx.event.id,
         });
-      } else {
+      } else if (tx.type === TransactionTypes.reward) {
         // set event as complete
         await dbAction.setEventStatus(tx.event.id, EventStatus.completed);
         logger.info('Tx is confirmed. Event is complete', {
+          txId: tx.txId,
+          eventId: tx.event.id,
+        });
+      } else {
+        // no need to do anything about event. Just log that tx confirmed
+        logger.info('Cardano coldStorage tx is confirmed', {
           txId: tx.txId,
           eventId: tx.event.id,
         });
@@ -158,11 +164,17 @@ class TransactionProcessor {
     if (confirmation >= ErgoConfigs.distributionConfirmation) {
       // tx confirmed enough. event is done.
       await dbAction.setTxStatus(tx.txId, TransactionStatus.completed);
-      await dbAction.setEventStatus(tx.event.id, EventStatus.completed);
-      logger.info('Tx is confirmed. Event is complete', {
-        txId: tx.txId,
-        eventId: tx.event.id,
-      });
+      if (tx.type != TransactionTypes.coldStorage) {
+        await dbAction.setEventStatus(tx.event.id, EventStatus.completed);
+        logger.info('Tx is confirmed. Event is complete', {
+          txId: tx.txId,
+          eventId: tx.event.id,
+        });
+      } else
+        logger.info('Ergo coldStorage tx is confirmed', {
+          txId: tx.txId,
+          eventId: tx.event.id,
+        });
     } else if (confirmation === -1) {
       // tx is not mined. checking mempool...
       if (await ExplorerApi.isTxInMempool(tx.txId)) {
@@ -263,14 +275,20 @@ class TransactionProcessor {
     const height = await BlockFrostApi.currentHeight();
     if (height - tx.lastCheck >= CardanoConfigs.paymentConfirmation) {
       await dbAction.setTxStatus(tx.txId, TransactionStatus.invalid);
-      await dbAction.resetEventStatusToPending(
-        tx.event.id,
-        EventStatus.pendingPayment
-      );
-      logger.info('Tx is invalid. Event is now waiting for payment', {
-        txId: tx.txId,
-        eventId: tx.event.id,
-      });
+      if (tx.type != TransactionTypes.coldStorage) {
+        await dbAction.setEventStatusToPending(
+          tx.event.id,
+          EventStatus.pendingPayment
+        );
+        logger.info('Tx is invalid. Event is now waiting for payment', {
+          txId: tx.txId,
+          eventId: tx.event.id,
+        });
+      } else
+        logger.info('Cardano coldStorage tx is invalid', {
+          txId: tx.txId,
+          eventId: tx.event.id,
+        });
     } else {
       logger.info(
         'Tx is invalid. Waiting for enough confirmation of this proposition',
@@ -288,7 +306,7 @@ class TransactionProcessor {
     if (height - tx.lastCheck >= ErgoConfigs.distributionConfirmation) {
       await dbAction.setTxStatus(tx.txId, TransactionStatus.invalid);
       if (tx.type === TransactionTypes.payment) {
-        await dbAction.resetEventStatusToPending(
+        await dbAction.setEventStatusToPending(
           tx.event.id,
           EventStatus.pendingPayment
         );
@@ -296,8 +314,8 @@ class TransactionProcessor {
           txId: tx.txId,
           eventId: tx.event.id,
         });
-      } else {
-        await dbAction.resetEventStatusToPending(
+      } else if (tx.type === TransactionTypes.reward) {
+        await dbAction.setEventStatusToPending(
           tx.event.id,
           EventStatus.pendingReward
         );
@@ -308,7 +326,11 @@ class TransactionProcessor {
             eventId: tx.event.id,
           }
         );
-      }
+      } else
+        logger.info('Ergo coldStorage tx is invalid', {
+          txId: tx.txId,
+          eventId: tx.event.id,
+        });
     } else {
       logger.info(
         'Tx is invalid. Waiting for enough confirmation of this proposition',

@@ -34,6 +34,7 @@ class DatabaseAction {
 
   /**
    * updates the status of an event by id
+   *  NOTE: this method does NOT update firstTry column
    * @param eventId the event trigger id
    * @param status the event trigger status
    */
@@ -151,7 +152,7 @@ class DatabaseAction {
    * @param eventId the event trigger id
    * @param status status of the process
    */
-  resetEventStatusToPending = async (
+  setEventStatusToPending = async (
     eventId: string,
     status: string
   ): Promise<void> => {
