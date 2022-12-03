@@ -193,7 +193,7 @@ class ErgoUtils {
           amount: amount,
           tokenId: tokenId,
           blockId: box.blockId,
-          fromChain: Buffer.from(R5[3]).toString(),
+          fromAddress: Buffer.from(R5[3]).toString(),
         };
       } else {
         return undefined;

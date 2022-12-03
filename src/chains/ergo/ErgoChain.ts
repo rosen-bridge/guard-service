@@ -534,7 +534,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
           event.targetChainTokenId == targetTokenId &&
           event.sourceBlockId == payment.blockId &&
           event.toAddress == payment.toAddress &&
-          event.fromAddress == payment.fromChain
+          event.fromAddress == payment.fromAddress
         ) {
           // check if amount is more than fees
           const feeConfig = await MinimumFee.getEventFeeConfig(event);
