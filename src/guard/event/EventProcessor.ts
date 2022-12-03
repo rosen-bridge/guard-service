@@ -14,8 +14,12 @@ import Reward from '../../chains/ergo/Reward';
 import Utils from '../../helpers/Utils';
 import { logger } from '../../log/Logger';
 import { ErgoBox } from 'ergo-lib-wasm-nodejs';
-import Configs from '../../helpers/Configs';
 import MinimumFee from '../MinimumFee';
+import {
+  ChainNotImplemented,
+  NotEnoughAssetsError,
+} from '../../helpers/errors';
+import Configs from '../../helpers/Configs';
 
 class EventProcessor {
   static cardanoChain = new CardanoChain();
@@ -28,7 +32,7 @@ class EventProcessor {
   static getChainObject = (chain: string): BaseChain<any, any> => {
     if (chain === ChainsConstants.cardano) return this.cardanoChain;
     else if (chain === ChainsConstants.ergo) return this.ergoChain;
-    else throw new Error(`Chain [${chain}] not implemented.`);
+    else throw new ChainNotImplemented(chain);
   };
 
   /**
@@ -95,6 +99,64 @@ class EventProcessor {
   };
 
   /**
+   * searches event triggers in the database with more than leftover confirmation and timeout them
+   */
+  static TimeoutLeftoverEvents = async (): Promise<void> => {
+    logger.info('Searching for leftover events');
+    const pendingEvents = await dbAction.getPendingEvents();
+    let timeoutEventsCount = 0;
+    for (const event of pendingEvents) {
+      try {
+        if (
+          Math.round(Date.now() / 1000) >
+          Number(event.firstTry) + Configs.eventTimeout
+        ) {
+          await dbAction.setEventStatus(event.id, EventStatus.timeout);
+          timeoutEventsCount += 1;
+        }
+      } catch (e) {
+        logger.warn(
+          `An error occurred while processing leftover event [${event.id}]: ${e}`
+        );
+      }
+    }
+    logger.info(
+      `[${pendingEvents.length}] Pending Events processed, timeout [${timeoutEventsCount}] of them`
+    );
+  };
+
+  /**
+   * updates all waiting events status to pending
+   */
+  static RequeueWaitingEvents = async (): Promise<void> => {
+    logger.info('Processing waiting events ');
+    const waitingEvents = await dbAction.getWaitingEvents();
+    for (const event of waitingEvents) {
+      try {
+        if (event.status === EventStatus.paymentWaiting)
+          await dbAction.setEventStatusToPending(
+            event.id,
+            EventStatus.pendingPayment
+          );
+        else if (event.status === EventStatus.rewardWaiting)
+          await dbAction.setEventStatusToPending(
+            event.id,
+            EventStatus.pendingReward
+          );
+        else
+          logger.warn(
+            `Impossible case, received event [${event.id}] with status [${event.status}]`
+          );
+      } catch (e) {
+        logger.warn(
+          `An error occurred while processing waiting event [${event.id}]: ${e}`
+        );
+      }
+    }
+    logger.info(`[${waitingEvents.length}] Waiting Events processed`);
+  };
+
+  /**
    * processes the event trigger to create payment transaction
    *  1. verify event data with lock tx in source chain
    *  2. create transaction
@@ -105,12 +167,26 @@ class EventProcessor {
     logger.info('Processing event for payment', { eventId: event.getId() });
     if (!(await EventVerifier.verifyEvent(event))) {
       logger.info(`Event didn't verify.`);
-      await dbAction.setEventStatus(event.getId(), 'rejected');
+      await dbAction.setEventStatus(event.getId(), EventStatus.rejected);
       return;
     }
 
-    const tx = await this.createEventPayment(event);
-    txAgreement.startAgreementProcess(tx);
+    try {
+      const tx = await this.createEventPayment(event);
+      if (tx != undefined) txAgreement.startAgreementProcess(tx);
+    } catch (e) {
+      if (e instanceof NotEnoughAssetsError) {
+        logger.warn(
+          `Failed to create payment for event [${event.getId()}]: ${e}`
+        );
+        // TODO: Need to send notification to guard(s)
+        //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/81
+        await dbAction.setEventStatus(
+          event.getId(),
+          EventStatus.paymentWaiting
+        );
+      } else throw e;
+    }
   };
 
   /**
@@ -127,8 +203,20 @@ class EventProcessor {
       );
     }
     const feeConfig = await MinimumFee.getEventFeeConfig(event);
-    const tx = await Reward.generateTransaction(event, feeConfig);
-    txAgreement.startAgreementProcess(tx);
+
+    try {
+      const tx = await Reward.generateTransaction(event, feeConfig);
+      txAgreement.startAgreementProcess(tx);
+    } catch (e) {
+      if (e instanceof NotEnoughAssetsError) {
+        logger.warn(
+          `Failed to create reward distribution for event [${event.getId()}]: ${e}`
+        );
+        // TODO: Need to send notification to guard(s)
+        //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/81
+        await dbAction.setEventStatus(event.getId(), EventStatus.rewardWaiting);
+      } else throw e;
+    }
   };
 
   /**

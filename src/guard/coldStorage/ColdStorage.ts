@@ -23,6 +23,14 @@ import { UtxoBoxesAssets } from '../../chains/cardano/models/Interfaces';
 
 class ColdStorage {
   /**
+   * runs cold storage process for all chains
+   */
+  static processLockAddressAssets = async (): Promise<void> => {
+    await this.processErgoStorageAssets();
+    await this.processCardanoStorageAssets();
+  };
+
+  /**
    * sends any assets in Ergo lock address that its amount is more than its high threshold to cold storage
    */
   static processErgoStorageAssets = async (): Promise<void> => {

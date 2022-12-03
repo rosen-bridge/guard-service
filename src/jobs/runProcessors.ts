@@ -3,6 +3,8 @@ import { txAgreement } from '../guard/agreement/TxAgreement';
 import Configs from '../helpers/Configs';
 import TransactionProcessor from '../guard/TransactionProcessor';
 import GuardTurn from '../helpers/GuardTurn';
+import ColdStorage from '../guard/coldStorage/ColdStorage';
+import ColdStorageConfig from '../guard/coldStorage/ColdStorageConfig';
 
 /**
  * resends generated tx for an event
@@ -55,13 +57,54 @@ const transactionJob = () => {
 };
 
 /**
+ * runs TimeoutLeftoverEvents job
+ */
+const timeoutProcessorJob = () => {
+  EventProcessor.TimeoutLeftoverEvents().then(() =>
+    setTimeout(timeoutProcessorJob, Configs.timeoutProcessorInterval * 1000)
+  );
+};
+
+/**
+ * runs RequeueWaitingEvents job
+ */
+const requeueWaitingEventsJob = () => {
+  EventProcessor.RequeueWaitingEvents().then(() =>
+    setTimeout(
+      requeueWaitingEventsJob,
+      Configs.requeueWaitingEventsInterval * 1000
+    )
+  );
+};
+
+/**
+ * runs coldStorage jobs
+ */
+const coldStorageJob = () => {
+  if (ColdStorageConfig.isWithinTime()) {
+    // process lock address assets for sending any to cold storage
+    ColdStorage.processLockAddressAssets().then(() => {
+      setTimeout(coldStorageJob, GuardTurn.secondsToNextTurn() * 1000);
+    });
+    // clear generated transactions when turn is over
+    setTimeout(txAgreement.clearTransactions, GuardTurn.UP_TIME_LENGTH * 1000);
+  } else setTimeout(coldStorageJob, GuardTurn.secondsToNextTurn() * 1000);
+};
+
+/**
  * runs all processors and their related jobs
  */
 const runProcessors = () => {
   scannedEventsJob();
   setTimeout(confirmedEventsJob, GuardTurn.secondsToNextTurn() * 1000);
+  setTimeout(coldStorageJob, GuardTurn.secondsToNextTurn() * 1000);
   setTimeout(resetJob, GuardTurn.secondsToReset() * 1000);
   transactionJob();
+  setTimeout(timeoutProcessorJob, Configs.timeoutProcessorInterval * 1000);
+  setTimeout(
+    requeueWaitingEventsJob,
+    Configs.requeueWaitingEventsInterval * 1000
+  );
 };
 
 export { runProcessors };

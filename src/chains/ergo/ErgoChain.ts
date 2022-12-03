@@ -43,6 +43,7 @@ import {
   FailedError,
   UnexpectedApiError,
   NotFoundError,
+  NotEnoughAssetsError,
 } from '../../helpers/errors';
 
 class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
@@ -114,7 +115,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         requiredAssets.ergs + ErgoConfigs.minimumErg
       ).toString();
       const neededTokens = JsonBI.stringify(requiredAssets.tokens);
-      throw new Error(
+      throw new NotEnoughAssetsError(
         `Bank boxes didn't cover required assets. Erg: ${neededErgs}, Tokens: ${neededTokens}`
       );
     }

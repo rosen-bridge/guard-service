@@ -42,6 +42,7 @@ import MinimumFee from '../../guard/MinimumFee';
 import {
   FailedError,
   NetworkError,
+  NotEnoughAssetsError,
   NotFoundError,
   UnexpectedApiError,
 } from '../../helpers/errors';
@@ -147,12 +148,12 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         }
       }
       if (lovelacePaymentAmount.compare(coveredLovelace) > 0)
-        throw new Error(
-          `An error occurred, theres is no enough lovelace in the bank`
+        throw new NotEnoughAssetsError(
+          `Not enough lovelace in the bank. required: ${lovelacePaymentAmount.to_str()}, found ${coveredLovelace.to_str()}`
         );
       if (assetPaymentAmount.compare(covered) > 0)
-        throw new Error(
-          `An error occurred, theres is no enough asset in the bank`
+        throw new NotEnoughAssetsError(
+          `Not enough asset in the bank. required: ${assetPaymentAmount.to_str()}, found ${covered.to_str()}`
         );
     }
     return result;

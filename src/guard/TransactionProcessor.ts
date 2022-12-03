@@ -24,6 +24,7 @@ import BaseChain from '../chains/BaseChains';
 import { Semaphore } from 'await-semaphore';
 import { txJsonParser } from '../chains/TxJsonParser';
 import { logger } from '../log/Logger';
+import { ChainNotImplemented } from '../helpers/errors';
 
 class TransactionProcessor {
   static cardanoChain = new CardanoChain();
@@ -38,7 +39,7 @@ class TransactionProcessor {
   static getChainObject = (chain: string): BaseChain<any, any> => {
     if (chain === ChainsConstants.cardano) return this.cardanoChain;
     else if (chain === ChainsConstants.ergo) return this.ergoChain;
-    else throw new Error(`Chain [${chain}] not implemented.`);
+    else throw new ChainNotImplemented(chain);
   };
 
   /**
@@ -87,7 +88,7 @@ class TransactionProcessor {
     } else if (tx.chain === ChainsConstants.ergo) {
       await this.processErgoTx(tx);
     } else {
-      throw new Error(`Chain [${tx.chain}] not implemented.`);
+      throw new ChainNotImplemented(tx.chain);
     }
   };
 
@@ -120,15 +121,24 @@ class TransactionProcessor {
 
       if (tx.type === TransactionTypes.payment) {
         // set event status, to start reward distribution.
-        await dbAction.setEventStatus(tx.event.id, EventStatus.pendingReward);
+        await dbAction.setEventStatusToPending(
+          tx.event.id,
+          EventStatus.pendingReward
+        );
         logger.info('Tx is confirmed. Event is ready for reward distribution', {
           txId: tx.txId,
           eventId: tx.event.id,
         });
-      } else {
+      } else if (tx.type === TransactionTypes.reward) {
         // set event as complete
         await dbAction.setEventStatus(tx.event.id, EventStatus.completed);
         logger.info('Tx is confirmed. Event is complete', {
+          txId: tx.txId,
+          eventId: tx.event.id,
+        });
+      } else {
+        // no need to do anything about event. Just log that tx confirmed
+        logger.info('Cardano coldStorage tx is confirmed', {
           txId: tx.txId,
           eventId: tx.event.id,
         });
@@ -154,11 +164,17 @@ class TransactionProcessor {
     if (confirmation >= ErgoConfigs.distributionConfirmation) {
       // tx confirmed enough. event is done.
       await dbAction.setTxStatus(tx.txId, TransactionStatus.completed);
-      await dbAction.setEventStatus(tx.event.id, EventStatus.completed);
-      logger.info('Tx is confirmed. Event is complete', {
-        txId: tx.txId,
-        eventId: tx.event.id,
-      });
+      if (tx.type != TransactionTypes.coldStorage) {
+        await dbAction.setEventStatus(tx.event.id, EventStatus.completed);
+        logger.info('Tx is confirmed. Event is complete', {
+          txId: tx.txId,
+          eventId: tx.event.id,
+        });
+      } else
+        logger.info('Ergo coldStorage tx is confirmed', {
+          txId: tx.txId,
+          eventId: tx.event.id,
+        });
     } else if (confirmation === -1) {
       // tx is not mined. checking mempool...
       if (await ExplorerApi.isTxInMempool(tx.txId)) {
@@ -259,11 +275,20 @@ class TransactionProcessor {
     const height = await BlockFrostApi.currentHeight();
     if (height - tx.lastCheck >= CardanoConfigs.paymentConfirmation) {
       await dbAction.setTxStatus(tx.txId, TransactionStatus.invalid);
-      await dbAction.resetEventTx(tx.event.id, EventStatus.pendingPayment);
-      logger.info('Tx is invalid. Event is now waiting for payment', {
-        txId: tx.txId,
-        eventId: tx.event.id,
-      });
+      if (tx.type != TransactionTypes.coldStorage) {
+        await dbAction.setEventStatusToPending(
+          tx.event.id,
+          EventStatus.pendingPayment
+        );
+        logger.info('Tx is invalid. Event is now waiting for payment', {
+          txId: tx.txId,
+          eventId: tx.event.id,
+        });
+      } else
+        logger.info('Cardano coldStorage tx is invalid', {
+          txId: tx.txId,
+          eventId: tx.event.id,
+        });
     } else {
       logger.info(
         'Tx is invalid. Waiting for enough confirmation of this proposition',
@@ -281,13 +306,19 @@ class TransactionProcessor {
     if (height - tx.lastCheck >= ErgoConfigs.distributionConfirmation) {
       await dbAction.setTxStatus(tx.txId, TransactionStatus.invalid);
       if (tx.type === TransactionTypes.payment) {
-        await dbAction.resetEventTx(tx.event.id, EventStatus.pendingPayment);
+        await dbAction.setEventStatusToPending(
+          tx.event.id,
+          EventStatus.pendingPayment
+        );
         logger.info('Tx is invalid. Event is now waiting for payment', {
           txId: tx.txId,
           eventId: tx.event.id,
         });
-      } else {
-        await dbAction.resetEventTx(tx.event.id, EventStatus.pendingReward);
+      } else if (tx.type === TransactionTypes.reward) {
+        await dbAction.setEventStatusToPending(
+          tx.event.id,
+          EventStatus.pendingReward
+        );
         logger.info(
           'Tx is invalid. Event is now waiting for reward distribution',
           {
@@ -295,7 +326,11 @@ class TransactionProcessor {
             eventId: tx.event.id,
           }
         );
-      }
+      } else
+        logger.info('Ergo coldStorage tx is invalid', {
+          txId: tx.txId,
+          eventId: tx.event.id,
+        });
     } else {
       logger.info(
         'Tx is invalid. Waiting for enough confirmation of this proposition',
@@ -420,7 +455,7 @@ class TransactionProcessor {
         await dbAction.setTxStatus(tx.txId, TransactionStatus.sent);
       }
     } else {
-      throw new Error(`chain [${tx.chain}] not implemented.`);
+      throw new ChainNotImplemented(tx.chain);
     }
   };
 }

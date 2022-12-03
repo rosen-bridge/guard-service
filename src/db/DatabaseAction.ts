@@ -1,4 +1,4 @@
-import { DataSource, In, IsNull, LessThan, Repository } from 'typeorm';
+import { DataSource, In, IsNull, LessThan, Not, Repository } from 'typeorm';
 import { ConfirmedEventEntity } from './entities/ConfirmedEventEntity';
 import { ormDataSource } from '../../config/ormDataSource';
 import { TransactionEntity } from './entities/TransactionEntity';
@@ -34,6 +34,7 @@ class DatabaseAction {
 
   /**
    * updates the status of an event by id
+   *  NOTE: this method does NOT update firstTry column
    * @param eventId the event trigger id
    * @param status the event trigger status
    */
@@ -63,7 +64,7 @@ class DatabaseAction {
   };
 
   /**
-   * @return the event triggers with corresponding status
+   * @return the event triggers with pending status
    */
   getPendingEvents = async (): Promise<ConfirmedEventEntity[]> => {
     return await this.ConfirmedEventRepository.find({
@@ -74,6 +75,23 @@ class DatabaseAction {
         },
         {
           status: EventStatus.pendingReward,
+        },
+      ],
+    });
+  };
+
+  /**
+   * @return the event triggers with waiting status
+   */
+  getWaitingEvents = async (): Promise<ConfirmedEventEntity[]> => {
+    return await this.ConfirmedEventRepository.find({
+      relations: ['eventData'],
+      where: [
+        {
+          status: EventStatus.paymentWaiting,
+        },
+        {
+          status: EventStatus.rewardWaiting,
         },
       ],
     });
@@ -130,15 +148,19 @@ class DatabaseAction {
   };
 
   /**
-   * updates the status of an event and clear its tx info
+   * updates the status of an event and sets firstTry columns with current timestamp
    * @param eventId the event trigger id
    * @param status status of the process
    */
-  resetEventTx = async (eventId: string, status: string): Promise<void> => {
+  setEventStatusToPending = async (
+    eventId: string,
+    status: string
+  ): Promise<void> => {
     await this.ConfirmedEventRepository.createQueryBuilder()
       .update()
       .set({
         status: status,
+        firstTry: String(Math.round(Date.now() / 1000)),
       })
       .where('id = :id', { id: eventId })
       .execute();
@@ -314,8 +336,26 @@ class DatabaseAction {
         id: Utils.txIdToEventId(eventData.sourceTxId),
         eventData: eventData,
         status: EventStatus.pendingPayment,
+        firstTry: String(Math.round(Date.now() / 1000)),
       })
       .execute();
+  };
+
+  /**
+   * returns all transaction for cold storage
+   * @param chain the chain of the tx
+   */
+  getNonCompleteColdStorageTxsInChain = async (
+    chain: string
+  ): Promise<TransactionEntity[]> => {
+    return await this.TransactionRepository.find({
+      relations: ['event'],
+      where: {
+        type: TransactionTypes.coldStorage,
+        status: Not(TransactionStatus.completed),
+        chain: chain,
+      },
+    });
   };
 }
 

@@ -49,6 +49,9 @@ when(mockedScannerAction.getEventById(anything())).thenCall(
 when(mockedScannerAction.getPendingEvents()).thenCall(
   testScannerDataBase.getPendingEvents
 );
+when(mockedScannerAction.getWaitingEvents()).thenCall(
+  testScannerDataBase.getWaitingEvents
+);
 when(mockedScannerAction.getActiveTransactions()).thenCall(
   testScannerDataBase.getActiveTransactions
 );
@@ -58,9 +61,9 @@ when(mockedScannerAction.setTxStatus(anything(), anything())).thenCall(
 when(mockedScannerAction.updateTxLastCheck(anything(), anything())).thenCall(
   testScannerDataBase.updateTxLastCheck
 );
-when(mockedScannerAction.resetEventTx(anything(), anything())).thenCall(
-  testScannerDataBase.resetEventTx
-);
+when(
+  mockedScannerAction.setEventStatusToPending(anything(), anything())
+).thenCall(testScannerDataBase.setEventStatusToPending);
 when(mockedScannerAction.getTxById(anything())).thenCall(
   testScannerDataBase.getTxById
 );
@@ -85,6 +88,9 @@ when(mockedScannerAction.getUnspentEvents()).thenCall(
 when(mockedScannerAction.insertConfirmedEvent(anything())).thenCall(
   testScannerDataBase.insertConfirmedEvent
 );
+when(
+  mockedScannerAction.getNonCompleteColdStorageTxsInChain(anything())
+).thenCall(testScannerDataBase.getNonCompleteColdStorageTxsInChain);
 
 /**
  * deletes every record in Event and Transaction table in ScannerDatabase
@@ -102,12 +108,14 @@ const clearTables = async () => {
  * @param status
  * @param boxSerialized
  * @param height
+ * @param firstTry
  */
 const insertEventRecord = async (
   event: EventTrigger,
   status: string,
   boxSerialized = 'boxSerialized',
-  height = 200
+  height = 200,
+  firstTry?: string
 ) => {
   await testScannerDataBase.EventRepository.createQueryBuilder()
     .insert()
@@ -142,6 +150,7 @@ const insertEventRecord = async (
       id: Utils.txIdToEventId(event.sourceTxId),
       eventData: eventData!,
       status: status,
+      firstTry: firstTry,
     })
     .execute();
 };

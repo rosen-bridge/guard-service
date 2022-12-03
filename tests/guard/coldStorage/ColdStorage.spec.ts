@@ -26,6 +26,10 @@ import {
   verifyCardanoColdStorageGenerateTxCalledOnce,
   verifyCardanoColdStorageGenerateTxDidntGetCalled,
 } from '../../chains/mocked/MockedCardanoColdStorage';
+import { reset, spy, when } from 'ts-mockito';
+import GuardTurn from '../../../src/helpers/GuardTurn';
+import { expect } from 'chai';
+import ColdStorageConfig from '../../../src/guard/coldStorage/ColdStorageConfig';
 
 describe('ColdStorage', () => {
   describe('processErgoStorageAssets', () => {
@@ -250,6 +254,37 @@ describe('ColdStorage', () => {
       // verify
       verifyCardanoColdStorageGenerateTxCalledOnce();
       verifyStartAgreementProcessCalledOnce(mockedTx);
+    });
+  });
+
+  describe('ColdStorageConfig', () => {
+    describe('isWithinTime', () => {
+      const currentTimeStamp = 1658005354291000;
+
+      /**
+       * Target: testing ColdStorageConfig.isWithinTime
+       * Dependencies:
+       *    Date.now()
+       * Scenario:
+       *    Mock Date to return testing currentTimeStamp
+       *    Run test
+       *    Check return value. it should be true.
+       *    Reset mocked Date
+       * Expected Output:
+       *    No tx generated
+       */
+      it('should return true when current timestamp is within config hours', async () => {
+        // mock Date
+        const date = spy(Date);
+        when(date.now()).thenReturn(currentTimeStamp);
+
+        // run test
+        const result = ColdStorageConfig.isWithinTime();
+        expect(result).to.equal(true);
+
+        // reset mocked Date object
+        reset(date);
+      });
     });
   });
 });

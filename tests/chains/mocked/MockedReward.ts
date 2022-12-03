@@ -21,6 +21,21 @@ const mockRewardGenerateTransaction = (
 };
 
 /**
+ * mocks Reward generateTransaction method to throw error when called for an event
+ *  Note: currently, specifying argument does not work. ts-mockito deepEqual malfunctions with EventTrigger type.
+ * @param event
+ * @param error
+ */
+const mockRewardGenerateTransactionToThrowError = (
+  event: EventTrigger,
+  error: Error
+): void => {
+  when(mockedReward.generateTransaction(anything(), anything())).thenThrow(
+    error
+  );
+};
+
+/**
  * verifies Reward generateTransaction method called once for event
  *  Note: currently, specifying argument does not work. ts-mockito deepEqual malfunctions with EventTrigger type.
  * @param event
@@ -41,6 +56,7 @@ const resetMockedReward = (): void => {
 
 export {
   mockRewardGenerateTransaction,
+  mockRewardGenerateTransactionToThrowError,
   verifyRewardGenerateTransactionCalledOnce,
   resetMockedReward,
 };

@@ -22,4 +22,23 @@ class UnexpectedApiError extends Error {
   }
 }
 
-export { FailedError, NotFoundError, NetworkError, UnexpectedApiError };
+class NotEnoughAssetsError extends Error {
+  constructor(msg: string) {
+    super('NotEnoughAssetsError: ' + msg);
+  }
+}
+
+class ChainNotImplemented extends Error {
+  constructor(chain: string) {
+    super(chain + 'ChainNotImplemented');
+  }
+}
+
+export {
+  FailedError,
+  NotFoundError,
+  NetworkError,
+  UnexpectedApiError,
+  NotEnoughAssetsError,
+  ChainNotImplemented,
+};
