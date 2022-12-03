@@ -1320,6 +1320,56 @@ describe('TxAgreement', () => {
      * Expected Output:
      *    The function should call corresponding handler method
      */
+    it('should call processColdStorageTransactionRequest for request type messages containing cold storage txs', async () => {
+      // mock cold storage tx
+      const tx = CardanoTestBoxes.mockFineColdStorageTx();
+
+      // generate test data
+      const signature = 'guardSignature';
+      const sender = 'testSender';
+      const candidatePayload = {
+        txJson: tx.toJson(),
+        guardId: 0,
+        signature: signature,
+      };
+      const message = JSON.stringify({
+        type: 'request',
+        payload: candidatePayload,
+      });
+
+      // run test
+      const txAgreement = new TxAgreement();
+      const spiedTxAgreement = spy(txAgreement);
+      when(
+        spiedTxAgreement.processColdStorageTransactionRequest(
+          anything(),
+          anything(),
+          anything(),
+          anything()
+        )
+      ).thenResolve();
+      await txAgreement.handleMessage(message, channel, sender);
+
+      // verify
+      //  Note: deepEqual doesn't work for PaymentTransaction object either. So, anything() used.
+      verify(
+        spiedTxAgreement.processColdStorageTransactionRequest(
+          anything(),
+          0,
+          signature,
+          sender
+        )
+      ).once();
+      reset(spiedTxAgreement);
+    });
+
+    /**
+     * Target: testing handleMessage
+     * Dependencies:
+     *    scannerAction
+     * Expected Output:
+     *    The function should call corresponding handler method
+     */
     it('should call processAgreementResponse for response type messages', async () => {
       // mock token payment event
       const mockedEvent: EventTrigger =
