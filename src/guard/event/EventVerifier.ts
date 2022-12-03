@@ -51,16 +51,6 @@ class EventVerifier {
       return await this.getChainObject(
         paymentTx.network
       ).verifyTransactionWithEvent(paymentTx, event, feeConfig);
-    } else if (paymentTx.txType === TransactionTypes.coldStorage) {
-      if (paymentTx.network === ChainsConstants.ergo)
-        return await ErgoColdStorage.verifyTransaction(
-          paymentTx as ErgoTransaction
-        );
-      else if (paymentTx.network === ChainsConstants.cardano)
-        return await CardanoColdStorage.verifyTransaction(
-          paymentTx as ErgoTransaction
-        );
-      else throw new ChainNotImplemented(paymentTx.network);
     } else {
       return await Reward.verifyTransactionWithEvent(
         paymentTx as ErgoTransaction,
@@ -138,6 +128,25 @@ class EventVerifier {
       );
       return confirmation >= ErgoConfigs.observationConfirmation;
     } else throw new ChainNotImplemented(event.fromChain);
+  };
+
+  /**
+   * conforms a cold storage transaction
+   * @param paymentTx the payment transaction
+   * @return true if cold storage transaction verified
+   */
+  static verifyColdStorageTx = async (
+    paymentTx: PaymentTransaction
+  ): Promise<boolean> => {
+    if (paymentTx.network === ChainsConstants.ergo)
+      return await ErgoColdStorage.verifyTransaction(
+        paymentTx as ErgoTransaction
+      );
+    else if (paymentTx.network === ChainsConstants.cardano)
+      return await CardanoColdStorage.verifyTransaction(
+        paymentTx as ErgoTransaction
+      );
+    else throw new ChainNotImplemented(paymentTx.network);
   };
 }
 

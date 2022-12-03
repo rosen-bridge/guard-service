@@ -1,4 +1,4 @@
-import { DataSource, In, IsNull, LessThan, Repository } from 'typeorm';
+import { DataSource, In, IsNull, LessThan, Not, Repository } from 'typeorm';
 import { ConfirmedEventEntity } from './entities/ConfirmedEventEntity';
 import { ormDataSource } from '../../config/ormDataSource';
 import { TransactionEntity } from './entities/TransactionEntity';
@@ -338,6 +338,23 @@ class DatabaseAction {
         firstTry: String(Math.round(Date.now() / 1000)),
       })
       .execute();
+  };
+
+  /**
+   * returns all transaction for cold storage
+   * @param chain the chain of the tx
+   */
+  getNonCompleteColdStorageTxsInChain = async (
+    chain: string
+  ): Promise<TransactionEntity[]> => {
+    return await this.TransactionRepository.find({
+      relations: ['event'],
+      where: {
+        type: TransactionTypes.coldStorage,
+        status: Not(TransactionStatus.completed),
+        chain: chain,
+      },
+    });
   };
 }
 

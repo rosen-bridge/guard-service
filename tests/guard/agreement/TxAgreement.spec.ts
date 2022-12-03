@@ -36,9 +36,11 @@ import ChainsConstants from '../../../src/chains/ChainsConstants';
 import { guardConfig } from '../../../src/helpers/GuardConfig';
 import {
   mockIsEventConfirmedEnough,
+  mockVerifyColdStorageTx,
   mockVerifyEvent,
   mockVerifyPaymentTransactionWithEvent,
 } from '../mocked/MockedEventVerifier';
+import TestBoxes from '../../chains/ergo/testUtils/TestBoxes';
 
 describe('TxAgreement', () => {
   const eventBoxAndCommitments =
@@ -484,6 +486,314 @@ describe('TxAgreement', () => {
       expect(
         Array.from(txAgreement.getEventAgreedTransactions()).length
       ).to.equal(0);
+    });
+  });
+
+  describe('processColdStorageTransactionRequest', () => {
+    const senderId = 0;
+
+    beforeEach('clear scanner database tables', async () => {
+      await clearTables();
+      resetMockedEventProcessor();
+      resetDialerCalls();
+    });
+
+    /**
+     * Target: testing processColdStorageTransactionRequest
+     * Dependencies:
+     *    EventVerifier
+     * Scenario:
+     *    Mock cold storage tx
+     *    Mock GuardTurn
+     *    Mock cold storage tx verification for test tx
+     *    Mock agreement data (signature, sender and receiver)
+     *    Run test
+     *    Expect one out request, agreed to the transaction
+     *    Check transaction memory on txAgreement class. It should contain agreed tx
+     * Expected Output:
+     *    The function should agree with request
+     */
+    it('should agree with request', async () => {
+      // mock tx
+      const tx = CardanoTestBoxes.mockFineColdStorageTx();
+
+      // mock guard turn
+      mockGuardTurn(0);
+
+      // mock verification
+      mockVerifyColdStorageTx(tx, true);
+
+      // generate test data
+      const guardSignature = TestUtils.signTxMetaData(tx.txBytes, senderId);
+      const receiver = 'testReceiver';
+
+      // run test
+      const txAgreement = new TestTxAgreement();
+      await txAgreement.processColdStorageTransactionRequest(
+        tx,
+        senderId,
+        guardSignature,
+        receiver
+      );
+
+      // verify out request
+      verifySendMessageWithReceiverCalledOnce(
+        'tx-agreement',
+        JSON.stringify({
+          type: 'response',
+          payload: {
+            guardId: guardConfig.guardId,
+            signature: tx.signMetaData(),
+            txId: tx.txId,
+            agreed: true,
+          },
+        }),
+        receiver
+      );
+      expect(txAgreement.getTransactions().get(tx.txId)).to.deep.equal(tx);
+    });
+
+    /**
+     * Target: testing processColdStorageTransactionRequest
+     * Dependencies:
+     *    EventVerifier
+     * Scenario:
+     *    Mock two cold storage txs for different chains (insert one into database)
+     *    Mock GuardTurn
+     *    Mock cold storage tx verification for test tx
+     *    Mock agreement data (signature, sender and receiver)
+     *    Run test
+     *    Expect one out request, agreed to the transaction
+     *    Check transaction memory on txAgreement class. It should contain agreed tx
+     * Expected Output:
+     *    The function should agree with request
+     */
+    it('should agree with request even if there is cold storage tx in progress for another chain', async () => {
+      // mock tx
+      const inProgressTx = ErgoTestBoxes.mockFineColdStorageTransaction(
+        TestBoxes.mockHighErgAssetsAndBankBoxes()[1].boxes
+      );
+      await insertTxRecord(
+        inProgressTx,
+        inProgressTx.txType,
+        inProgressTx.network,
+        TransactionStatus.approved,
+        0,
+        inProgressTx.eventId
+      );
+      const tx = CardanoTestBoxes.mockFineColdStorageTx();
+
+      // mock guard turn
+      mockGuardTurn(0);
+
+      // mock verification
+      mockVerifyColdStorageTx(tx, true);
+
+      // generate test data
+      const guardSignature = TestUtils.signTxMetaData(tx.txBytes, senderId);
+      const receiver = 'testReceiver';
+
+      // run test
+      const txAgreement = new TestTxAgreement();
+      await txAgreement.processColdStorageTransactionRequest(
+        tx,
+        senderId,
+        guardSignature,
+        receiver
+      );
+
+      // verify out request
+      verifySendMessageWithReceiverCalledOnce(
+        'tx-agreement',
+        JSON.stringify({
+          type: 'response',
+          payload: {
+            guardId: guardConfig.guardId,
+            signature: tx.signMetaData(),
+            txId: tx.txId,
+            agreed: true,
+          },
+        }),
+        receiver
+      );
+      expect(txAgreement.getTransactions().get(tx.txId)).to.deep.equal(tx);
+    });
+
+    /**
+     * Target: testing processColdStorageTransactionRequest
+     * Dependencies:
+     *    EventVerifier
+     * Scenario:
+     *    Mock cold storage tx
+     *    Mock agreement data (signature, sender and receiver)
+     *    Run test
+     *    Expect one out request, agreed to the transaction
+     *    Check transaction memory on txAgreement class. It should NOT contain agreed tx
+     * Expected Output:
+     *    The function should reject the request
+     */
+    it("should reject the request when signature doesn't verify", async () => {
+      // mock tx
+      const tx = ErgoTestBoxes.mockFineColdStorageTransaction(
+        TestBoxes.mockHighErgAssetsAndBankBoxes()[1].boxes
+      );
+
+      // generate test data
+      const wrongSenderId = 2;
+      const guardSignature = TestUtils.signTxMetaData(
+        tx.txBytes,
+        wrongSenderId
+      );
+      const receiver = 'testReceiver';
+
+      // run test
+      const txAgreement = new TestTxAgreement();
+      await txAgreement.processColdStorageTransactionRequest(
+        tx,
+        senderId,
+        guardSignature,
+        receiver
+      );
+
+      // verify out request
+      verifySendMessageDidntGetCalled('tx-agreement', anything(), anything());
+      expect(Array.from(txAgreement.getTransactions()).length).to.equal(0);
+    });
+
+    /**
+     * Target: testing processColdStorageTransactionRequest
+     * Dependencies:
+     *    EventVerifier
+     * Scenario:
+     *    Mock cold storage tx
+     *    Mock GuardTurn
+     *    Mock agreement data (signature, sender and receiver)
+     *    Run test
+     *    Expect one out request, agreed to the transaction
+     *    Check transaction memory on txAgreement class. It should NOT contain agreed tx
+     * Expected Output:
+     *    The function should reject the request
+     */
+    it('should reject the request when its not creator guard turn', async () => {
+      // mock tx
+      const tx = ErgoTestBoxes.mockFineColdStorageTransaction(
+        TestBoxes.mockHighErgAssetsAndBankBoxes()[1].boxes
+      );
+
+      // mock guard turn
+      mockGuardTurn(1);
+
+      // generate test data
+      const guardSignature = TestUtils.signTxMetaData(tx.txBytes, senderId);
+      const receiver = 'testReceiver';
+
+      // run test
+      const txAgreement = new TestTxAgreement();
+      await txAgreement.processColdStorageTransactionRequest(
+        tx,
+        senderId,
+        guardSignature,
+        receiver
+      );
+
+      // verify out request
+      verifySendMessageDidntGetCalled('tx-agreement', anything(), anything());
+      expect(Array.from(txAgreement.getTransactions()).length).to.equal(0);
+    });
+
+    /**
+     * Target: testing processColdStorageTransactionRequest
+     * Dependencies:
+     *    EventVerifier
+     * Scenario:
+     *    Mock two cold storage txs (insert one into database)
+     *    Mock GuardTurn
+     *    Mock agreement data (signature, sender and receiver)
+     *    Run test
+     *    Expect one out request, agreed to the transaction
+     *    Check transaction memory on txAgreement class. It should NOT contain agreed tx
+     * Expected Output:
+     *    The function should reject the request
+     */
+    it('should reject the request when there is another cold storage tx in progress on this chain', async () => {
+      // mock tx
+      const inProgressTx = ErgoTestBoxes.mockFineColdStorageTransaction(
+        TestBoxes.mockHighErgAssetsAndBankBoxes()[1].boxes
+      );
+      await insertTxRecord(
+        inProgressTx,
+        inProgressTx.txType,
+        inProgressTx.network,
+        TransactionStatus.approved,
+        0,
+        inProgressTx.eventId
+      );
+      const tx = ErgoTestBoxes.mockFineColdStorageTransaction(
+        TestBoxes.mockHighErgAssetsAndBankBoxes()[1].boxes
+      );
+
+      // mock guard turn
+      mockGuardTurn(0);
+
+      // generate test data
+      const guardSignature = TestUtils.signTxMetaData(tx.txBytes, senderId);
+      const receiver = 'testReceiver';
+
+      // run test
+      const txAgreement = new TestTxAgreement();
+      await txAgreement.processColdStorageTransactionRequest(
+        tx,
+        senderId,
+        guardSignature,
+        receiver
+      );
+
+      // verify out request
+      verifySendMessageDidntGetCalled('tx-agreement', anything(), anything());
+      expect(Array.from(txAgreement.getTransactions()).length).to.equal(0);
+    });
+
+    /**
+     * Target: testing processColdStorageTransactionRequest
+     * Dependencies:
+     *    EventVerifier
+     * Scenario:
+     *    Mock cold storage tx
+     *    Mock GuardTurn
+     *    Mock cold storage tx verification for test tx
+     *    Mock agreement data (signature, sender and receiver)
+     *    Run test
+     *    Expect one out request, agreed to the transaction
+     *    Check transaction memory on txAgreement class. It should NOT contain agreed tx
+     * Expected Output:
+     *    The function should reject the request
+     */
+    it("should reject the request when tx doesn't verify event condition", async () => {
+      // mock tx
+      const tx = CardanoTestBoxes.mockFineColdStorageTx();
+
+      // mock guard turn
+      mockGuardTurn(0);
+
+      // mock verification
+      mockVerifyColdStorageTx(tx, false);
+
+      // generate test data
+      const guardSignature = TestUtils.signTxMetaData(tx.txBytes, senderId);
+      const receiver = 'testReceiver';
+
+      // run test
+      const txAgreement = new TestTxAgreement();
+      await txAgreement.processColdStorageTransactionRequest(
+        tx,
+        senderId,
+        guardSignature,
+        receiver
+      );
+
+      // verify out request
+      verifySendMessageDidntGetCalled('tx-agreement', anything(), anything());
+      expect(Array.from(txAgreement.getTransactions()).length).to.equal(0);
     });
   });
 
