@@ -169,6 +169,9 @@ class ErgoUtils {
       const R4 = ErgoUtils.decodeCollColl(
         box.additionalRegisters['R4'].serializedValue
       );
+      const R5 = ErgoUtils.decodeCollColl(
+        box.additionalRegisters['R5'].serializedValue
+      );
       if (
         (sourceTokenId === ChainsConstants.ergoNativeAsset ||
           box.assets.length > 0) &&
@@ -190,6 +193,7 @@ class ErgoUtils {
           amount: amount,
           tokenId: tokenId,
           blockId: box.blockId,
+          fromChain: Buffer.from(R5[3]).toString(),
         };
       } else {
         return undefined;

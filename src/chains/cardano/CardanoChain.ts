@@ -684,7 +684,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
             event.targetChainTokenId == targetTokenId &&
             event.amount == amount &&
             event.toAddress == data.toAddress &&
-            event.fromAddress == txInfo.inputs[0].payment_addr.bech32 &&
+            event.fromAddress == data.fromAddress &&
             event.sourceBlockId == txInfo.block_hash
           ) {
             // check if amount is more than fees

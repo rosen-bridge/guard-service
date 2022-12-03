@@ -33,19 +33,22 @@ class CardanoUtils {
         'to' in data &&
         'bridgeFee' in data &&
         'networkFee' in data &&
-        'toAddress' in data
+        'toAddress' in data &&
+        'fromAddress' in data
       ) {
         const rosenData = data as unknown as {
           to: string;
           bridgeFee: string;
           networkFee: string;
           toAddress: string;
+          fromAddress: string[];
         };
         return {
           toChain: rosenData.to,
           bridgeFee: rosenData.bridgeFee,
           networkFee: rosenData.networkFee,
           toAddress: rosenData.toAddress,
+          fromAddress: rosenData.fromAddress.join(''),
         };
       }
     }

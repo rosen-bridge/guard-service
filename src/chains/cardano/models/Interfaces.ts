@@ -31,6 +31,7 @@ interface RosenData {
   toAddress: string;
   bridgeFee: string;
   networkFee: string;
+  fromAddress: string;
 }
 
 interface KoiosTransaction {
