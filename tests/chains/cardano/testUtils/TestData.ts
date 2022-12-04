@@ -216,7 +216,11 @@ class TestData {
                     "bridgeFee": "250",
                     "networkFee": "10000",
                     "toAddress": "ergoAddress",
-                    "targetChainTokenId": "cardanoTokenId"
+                    "targetChainTokenId": "cardanoTokenId",
+                    "fromAddress": [
+                      "addr_test1qzf9uxs6xgprx4zt20qtsasxut8uw6quv34xlkmd26yuk",
+                      "5xe70s0yf5c3sefnrft6gdajkpz29t8lsn0kcr5xqsf34qqxd6n4f"
+                    ]
                 }`),
     },
     certificates: [],
@@ -331,7 +335,11 @@ class TestData {
                     "bridgeFee": "250",
                     "networkFee": "10000",
                     "toAddress": "ergoAddress",
-                    "targetChainTokenId": "cardanoTokenId"
+                    "targetChainTokenId": "cardanoTokenId",
+                    "fromAddress": [
+                      "addr_test1qzf9uxs6xgprx4zt20qtsasxut8uw6quv34xlkmd26yuk",
+                      "5xe70s0yf5c3sefnrft6gdajkpz29t8lsn0kcr5xqsf34qqxd6n4f"
+                    ]
                 }`),
     },
     certificates: [],

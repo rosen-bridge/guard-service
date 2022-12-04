@@ -1090,6 +1090,9 @@ class TestData {
               "serializedValue": "1a040763617264616e6f0a746f4164647265737334063130303030300432353030",
               "sigmaType": "Coll[Coll[SByte]]",
               "renderedValue": "[414441,746f4164647265737334,313030303030,32353030]"
+            },
+            "R5": {
+              "serializedValue": "1a040000000b66726f6d41646472657373"
             }
           },
           "spentTransactionId": null,
