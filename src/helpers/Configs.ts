@@ -107,6 +107,8 @@ class Configs {
   static maxLogSize = config.get<string>('logs.maxSize');
   static maxLogFiles = config.get<string>('logs.maxFiles');
   static logLevel = config.get<string>('logs.level');
+
+  static discordWebHookUrl = config.get<string>('discordWebHookUrl');
 }
 
 export default Configs;

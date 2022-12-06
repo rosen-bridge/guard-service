@@ -89,5 +89,6 @@
     "requeueWaitingEventsInterval": 43200
   },
   "tokensPath": "config/tokens.json",
-  "thresholdsPath": "config/thresholds.json"
+  "thresholdsPath": "config/thresholds.json",
+  "discordWebHookUrl": ""
 }

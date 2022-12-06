@@ -46,6 +46,10 @@ import { NotEnoughAssetsError } from '../../../src/helpers/errors';
 import { reset, spy, when } from 'ts-mockito';
 import GuardTurn from '../../../src/helpers/GuardTurn';
 import Configs from '../../../src/helpers/Configs';
+import {
+  resetDiscordNotificationCalls,
+  verifyDiscordSendMessageCalledOnce,
+} from '../../communication/mocked/MockedDiscordNotification';
 
 describe('EventProcessor', () => {
   const cardanoTestBankAddress = CardanoTestBoxes.testBankAddress;
@@ -69,6 +73,7 @@ describe('EventProcessor', () => {
       resetMockedEventVerifier();
       resetMockedEventProcessor();
       resetMockedTxAgreement();
+      resetDiscordNotificationCalls();
       mockGetFee(mockedFeeConfig);
     });
 
@@ -175,6 +180,7 @@ describe('EventProcessor', () => {
      *    Mock generateTransaction to throw NotEnoughAssetError
      *    Run test
      *    Check TxAgreement startAgreementProcess method. It should not have called
+     *    Check DiscordNotification sendMessage method. It should have called one
      *    Check events in db. Mocked event status should be updated to payment-waiting
      * Expected Output:
      *    The function should update event status in db
@@ -197,6 +203,7 @@ describe('EventProcessor', () => {
 
       // verify
       verifyCreateEventPaymentCalledOnce(mockedEvent);
+      verifyDiscordSendMessageCalledOnce();
       verifyStartAgreementProcessDidntGetCalled();
 
       // verify db changes
@@ -218,6 +225,7 @@ describe('EventProcessor', () => {
       await clearTables();
       resetMockedReward();
       resetMockedTxAgreement();
+      resetDiscordNotificationCalls();
       mockGetFee(mockedFeeConfig);
     });
 
@@ -264,6 +272,7 @@ describe('EventProcessor', () => {
      *    Mock generateTransaction to throw NotEnoughAssetError
      *    Run test
      *    Check TxAgreement startAgreementProcess method. It should not have called
+     *    Check DiscordNotification sendMessage method. It should have called one
      *    Check events in db. Mocked event status should be updated to payment-waiting
      * Expected Output:
      *    The function should update event status in db
@@ -285,6 +294,7 @@ describe('EventProcessor', () => {
 
       // verify
       verifyRewardGenerateTransactionCalledOnce(mockedEvent);
+      verifyDiscordSendMessageCalledOnce();
       verifyStartAgreementProcessDidntGetCalled();
 
       // verify db changes
