@@ -20,6 +20,7 @@ import {
   NotEnoughAssetsError,
 } from '../../helpers/errors';
 import Configs from '../../helpers/Configs';
+import DiscordNotification from '../../communication/notification/DiscordNotification';
 
 class EventProcessor {
   static cardanoChain = new CardanoChain();
@@ -179,8 +180,9 @@ class EventProcessor {
         logger.warn(
           `Failed to create payment for event [${event.getId()}]: ${e}`
         );
-        // TODO: Need to send notification to guard(s)
-        //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/81
+        await DiscordNotification.sendMessage(
+          `Failed to create payment for event [${event.getId()}] due to low assets: ${e}`
+        );
         await dbAction.setEventStatus(
           event.getId(),
           EventStatus.paymentWaiting
@@ -212,8 +214,9 @@ class EventProcessor {
         logger.warn(
           `Failed to create reward distribution for event [${event.getId()}]: ${e}`
         );
-        // TODO: Need to send notification to guard(s)
-        //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/81
+        await DiscordNotification.sendMessage(
+          `Failed to create reward distribution for event [${event.getId()}] due to low assets: ${e}`
+        );
         await dbAction.setEventStatus(event.getId(), EventStatus.rewardWaiting);
       } else throw e;
     }
