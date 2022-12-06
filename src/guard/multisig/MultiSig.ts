@@ -10,12 +10,14 @@ import {
   TxQueued,
 } from './Interfaces';
 import * as crypto from 'crypto';
-import Dialer from '../../communication/simple-http/Dialer';
+import Dialer from '../../communication/Dialer';
 import Configs from '../../helpers/Configs';
 import { Semaphore } from 'await-semaphore';
 import Encryption from '../../helpers/Encryption';
 import MultiSigUtils from './MultiSigUtils';
 import { logger } from '../../log/Logger';
+
+const dialer = await Dialer.getInstance();
 
 class MultiSigHandler {
   private static CHANNEL = 'multi-sig';
@@ -35,11 +37,7 @@ class MultiSigHandler {
       pub: item,
       unapproved: [],
     }));
-    Dialer.getInstance().subscribe({
-      channel: MultiSigHandler.CHANNEL,
-      callback: this.handleMessage,
-      id: 'MultiSig',
-    });
+    dialer.subscribeChannel(MultiSigHandler.CHANNEL, this.handleMessage);
     this.secret = secretHex
       ? Uint8Array.from(Buffer.from(secretHex, 'hex'))
       : Configs.secret;
@@ -70,7 +68,7 @@ class MultiSigHandler {
       type: 'register',
       payload: {
         nonce: this.nonce,
-        myId: Dialer.getInstance().getPeerId(),
+        myId: dialer.getDialerId(),
       },
     });
   };
@@ -129,7 +127,7 @@ class MultiSigHandler {
    * get my peer id
    */
   getPeerId = (): string => {
-    const peerId = Dialer.getInstance().getPeerId();
+    const peerId = dialer.getDialerId();
     if (this.peerId !== peerId) {
       // TODO must call all other guards to update peerId
       //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/22
@@ -415,7 +413,7 @@ class MultiSigHandler {
     ).toString('base64');
     if (receivers && receivers.length) {
       receivers.map((receiver) =>
-        Dialer.getInstance()
+        dialer
           .sendMessage(
             MultiSigHandler.CHANNEL,
             JSON.stringify(message),
@@ -424,10 +422,7 @@ class MultiSigHandler {
           .then(() => null)
       );
     } else {
-      Dialer.getInstance().sendMessage(
-        MultiSigHandler.CHANNEL,
-        JSON.stringify(message)
-      );
+      dialer.sendMessage(MultiSigHandler.CHANNEL, JSON.stringify(message));
     }
   };
 

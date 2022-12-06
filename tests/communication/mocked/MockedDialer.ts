@@ -11,18 +11,18 @@ import {
   verify,
   when,
 } from 'ts-mockito';
-import Dialer from '../../../src/communication/simple-http/Dialer';
+import Dialer from '../../../src/communication/Dialer';
 import fs from 'fs';
 import TestConfigs from '../../testUtils/TestConfigs';
 
 const mockedDialerInstance = mock(Dialer);
-when(mockedDialerInstance.getPeerId()).thenReturn('peerId');
 when(
   mockedDialerInstance.sendMessage(anyString(), anyString(), anything())
 ).thenResolve();
+when(mockedDialerInstance.getDialerId()).thenReturn('peerId');
 
 const mockedDialer = spy(Dialer);
-when(mockedDialer.getInstance()).thenReturn(instance(mockedDialerInstance));
+when(mockedDialer.getInstance()).thenResolve(instance(mockedDialerInstance));
 
 /**
  *

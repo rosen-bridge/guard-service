@@ -1,38 +1,69 @@
-import { createLibp2p, Libp2p } from 'libp2p';
-import { WebSockets } from '@libp2p/websockets';
-import { Noise } from '@chainsafe/libp2p-noise';
-import { Mplex } from '@libp2p/mplex';
+import fs from 'fs';
+import * as lp from 'it-length-prefixed';
+import map from 'it-map';
 import { pipe } from 'it-pipe';
-import { fromString as uint8ArrayFromString } from 'uint8arrays/from-string';
-import { toString as uint8ArrayToString } from 'uint8arrays/to-string';
-import { Bootstrap } from '@libp2p/bootstrap';
-import { PubSubPeerDiscovery } from '@libp2p/pubsub-peer-discovery';
-import { FloodSub } from '@libp2p/floodsub';
-import { Multiaddr } from '@multiformats/multiaddr';
-import CommunicationConfig from './CommunicationConfig';
-import { JsonBI } from '../network/NetworkModels';
-import { Connection } from '@libp2p/interfaces/src/connection';
+import { pushable, Pushable } from 'it-pushable';
+import { createLibp2p, Libp2p, Libp2pInit } from 'libp2p';
 import {
+  fromString as uint8ArrayFromString,
+  toString as uint8ArrayToString,
+} from 'uint8arrays';
+
+import { gossipsub } from '@chainsafe/libp2p-gossipsub';
+import { noise } from '@chainsafe/libp2p-noise';
+
+import { bootstrap } from '@libp2p/bootstrap';
+import { Connection, Stream } from '@libp2p/interface-connection';
+import { OPEN } from '@libp2p/interface-connection/status';
+import { PeerId } from '@libp2p/interface-peer-id';
+import { mplex } from '@libp2p/mplex';
+import { createEd25519PeerId, createFromJSON } from '@libp2p/peer-id-factory';
+import { pubsubPeerDiscovery } from '@libp2p/pubsub-peer-discovery';
+import { webSockets } from '@libp2p/websockets';
+
+import * as multiaddr from '@multiformats/multiaddr';
+
+import CommunicationConfig from './CommunicationConfig';
+import {
+  ConnectionStream,
   ReceiveDataCommunication,
+  ReceivePeers,
   SendDataCommunication,
   SubscribeChannel,
-  SubscribeChannelFunction,
   SubscribeChannels,
+  SubscribeChannelWithURL,
 } from './Interfaces';
-import { PeerId } from '@libp2p/interface-peer-id';
-import { createEd25519PeerId, createFromJSON } from '@libp2p/peer-id-factory';
-import fs from 'fs';
 import { logger } from '../log/Logger';
+import { JsonBI } from '../network/NetworkModels';
+
+/**
+ * TODO: This is needed because of an issue in types of `@libp2p/pubsub-peer-discovery`
+ * which mismatch with types of `libp2p`
+ *
+ * https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/86
+ */
+type PeerDiscoveryArray = Libp2pInit['peerDiscovery'];
+type PeerDiscovery = PeerDiscoveryArray extends
+  | readonly (infer ElementType)[]
+  | undefined
+  ? ElementType
+  : never;
 
 // TODO: Need to write test for This package
 //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/21
 class Dialer {
   private static instance: Dialer;
 
-  private _NODE: Libp2p | undefined;
-  private _RELAY_CONN: Connection | undefined;
-  private _SUBSCRIBED_CHANNELS: SubscribeChannels = {};
-  private _PENDING_MESSAGE: SendDataCommunication[] = [];
+  private _disconnectedPeers = new Set<string>();
+  private _messageQueue = pushable();
+  private _node: Libp2p | undefined;
+  private _pendingDialPeers: string[] = [];
+  private _subscribedChannels: SubscribeChannels = {};
+
+  private readonly _SUPPORTED_PROTOCOL = new Map<string, string>([
+    ['MSG', '/broadcast'],
+    ['PEER', '/getpeers'],
+  ]);
 
   private constructor() {
     logger.info('Create Dialer Instance!');
@@ -41,29 +72,17 @@ class Dialer {
   /**
    * @return a Dialer instance (create if it doesn't exist)
    */
-  public static getInstance = async (): Promise<Dialer> => {
-    if (!Dialer.instance) {
-      Dialer.instance = new Dialer();
-      await Dialer.instance.startDialer();
+  public static getInstance = async () => {
+    try {
+      if (!Dialer.instance) {
+        Dialer.instance = new Dialer();
+        await Dialer.instance.startDialer();
+        Dialer.instance.processMessageQueue();
+      }
+    } catch (e) {
+      throw Error(`An error occurred for start Dialer: ${e}`);
     }
     return Dialer.instance;
-  };
-
-  /**
-   * @return list of subscribed channels' name
-   */
-  getSubscribedChannels = (): string[] => {
-    return Object.keys(this._SUBSCRIBED_CHANNELS);
-  };
-
-  /**
-   * @return string of PeerID
-   */
-  getPeerId = (): string => {
-    if (!this._NODE) {
-      throw new Error("Dialer node isn't ready, please try later");
-    }
-    return this._NODE!.peerId.toString();
   };
 
   /**
@@ -74,21 +93,26 @@ class Dialer {
     peerId: PeerId;
     exist: boolean;
   }> => {
-    if (!fs.existsSync(CommunicationConfig.peerIdFilePath)) {
-      return {
-        peerId: await createEd25519PeerId(),
-        exist: false,
-      } as const;
-    } else {
-      const jsonData: string = fs.readFileSync(
-        CommunicationConfig.peerIdFilePath,
-        'utf8'
-      );
-      const peerIdDialerJson = await JSON.parse(jsonData);
-      return {
-        peerId: await createFromJSON(peerIdDialerJson),
-        exist: true,
-      };
+    try {
+      if (!fs.existsSync(CommunicationConfig.peerIdFilePath)) {
+        return {
+          peerId: await createEd25519PeerId(),
+          exist: false,
+        } as const;
+      } else {
+        const jsonData = fs.readFileSync(
+          CommunicationConfig.peerIdFilePath,
+          'utf8'
+        );
+        const peerIdDialerJson: Parameters<typeof createFromJSON>['0'] =
+          JSON.parse(jsonData);
+        return {
+          peerId: await createFromJSON(peerIdDialerJson),
+          exist: true,
+        };
+      }
+    } catch (e) {
+      throw new Error(`Couldn't get or create a PeerID: ${e}`);
     }
   };
 
@@ -96,10 +120,10 @@ class Dialer {
    * If it didn't exist PeerID file, this function try to create a file and save peerId into that
    * @param peerObj { peerId: PeerId; exist: boolean }
    */
-  static savePeerIdIfNeed = async (peerObj: {
+  static savePeerIdIfNeeded = async (peerObj: {
     peerId: PeerId;
     exist: boolean;
-  }): Promise<void> => {
+  }) => {
     if (!peerObj.exist) {
       const peerId = peerObj.peerId;
       let privateKey: Uint8Array;
@@ -107,14 +131,12 @@ class Dialer {
       if (peerId.privateKey && peerId.publicKey) {
         privateKey = peerId.privateKey;
         publicKey = peerId.publicKey;
-      } else {
-        throw new Error('PrivateKey for p2p is required');
-      }
+      } else throw new Error('PrivateKey for p2p is required');
 
       const peerIdDialerJson = {
         id: peerId.toString(),
-        privKey: uint8ArrayToString(privateKey!, 'base64pad'),
-        pubKey: uint8ArrayToString(publicKey!, 'base64pad'),
+        privKey: uint8ArrayToString(privateKey, 'base64pad'),
+        pubKey: uint8ArrayToString(publicKey, 'base64pad'),
       };
       const jsonData = JSON.stringify(peerIdDialerJson);
       fs.writeFile(
@@ -135,6 +157,42 @@ class Dialer {
   };
 
   /**
+   * Only used for Typescript narrowing.
+   * @returns if channel has URL
+   */
+  private hasUrl = (
+    channel: SubscribeChannel
+  ): channel is SubscribeChannelWithURL =>
+    !!(channel as SubscribeChannelWithURL).url;
+
+  /**
+   * @return list of subscribed channels' name
+   */
+  getSubscribedChannels = () => {
+    return Object.keys(this._subscribedChannels);
+  };
+
+  /**
+   * @return Dialer's Id
+   */
+  getDialerId = () => {
+    if (!this._node) {
+      throw new Error("Dialer node isn't ready, please try later");
+    }
+    return this._node.peerId.toString();
+  };
+
+  /**
+   * @return string of PeerID
+   */
+  getPeerIds = () => {
+    if (!this._node) {
+      throw new Error("Dialer node isn't ready, please try later");
+    }
+    return this._node.getPeers().map((peer) => peer.toString());
+  };
+
+  /**
    * establish connection to relay
    * @param channel: string desire channel for subscription
    * @param callback: a callback function for subscribed channel
@@ -142,46 +200,287 @@ class Dialer {
    */
   subscribeChannel = (
     channel: string,
-    callback: SubscribeChannelFunction,
+    callback: SubscribeChannel['func'],
     url?: string
-  ): void => {
-    const callbackObj: SubscribeChannel = {
+  ) => {
+    const callbackObj = {
       func: callback,
-    };
-    if (url) callbackObj.url = url;
+      ...(url && { url }),
+    } as SubscribeChannel;
 
-    if (this._SUBSCRIBED_CHANNELS[channel]) {
+    if (this._subscribedChannels[channel]) {
       if (
-        this._SUBSCRIBED_CHANNELS[channel].find(
-          (sub: SubscribeChannel) =>
-            sub.func.name === callback.name && sub.url === url
+        this._subscribedChannels[channel].find(
+          (sub) =>
+            sub.func.name === callback.name &&
+            ((this.hasUrl(sub) && sub.url === url) || !url)
         )
       ) {
         logger.info('A redundant subscribed channel detected!');
         return;
       }
-      this._SUBSCRIBED_CHANNELS[channel].push(callbackObj);
+      this._subscribedChannels[channel].push(callbackObj);
+      logger.info(`Channel [${channel}] subscribed!`);
     } else {
-      this._SUBSCRIBED_CHANNELS[channel] = [];
-      this._SUBSCRIBED_CHANNELS[channel].push(callbackObj);
+      this._subscribedChannels[channel] = [];
+      this._subscribedChannels[channel].push(callbackObj);
+      logger.info(`Channel [${channel}] subscribed!`);
     }
   };
 
   /**
-   * establish connection to relay
-   * @param node: Libp2p
+   * TODO: This method is not written in arrow form because ts-mockito has some
+   * issues with mocking class fields which are of type arrow function. If you
+   * are going to convert it to an arrow method, make sure all tests pass without
+   * issue.
    */
-  private createRelayConnection = async (node: Libp2p): Promise<void> => {
-    if (!this._RELAY_CONN) {
-      const remoteAddr: Multiaddr = await new Multiaddr(
-        CommunicationConfig.relay
+  /**
+   * send message to specific peer or broadcast it
+   * @param channel: String
+   * @param msg: string
+   * @param receiver optional
+   */
+  async sendMessage(channel: string, msg: string, receiver?: string) {
+    const data: SendDataCommunication = {
+      msg: msg,
+      channel: channel,
+      ...(receiver && { receiver }),
+    };
+    if (receiver) {
+      const receiverPeerId = await createFromJSON({ id: `${receiver}` });
+      this.pushMessageToMessageQueue(receiverPeerId, data);
+    } else {
+      // send message for listener peers (not relays)
+      const peers = this._node!.getPeers().filter(
+        (peer) => !CommunicationConfig.relays.peerIDs.includes(peer.toString())
       );
-      const conn = await node.dial(remoteAddr);
-      logger.info(
-        `Connected to the auto relay node [${conn.remoteAddr.toString()}]`
-      );
-      this._RELAY_CONN = conn;
+      for (const peer of peers) {
+        this.pushMessageToMessageQueue(peer, data);
+      }
     }
+  }
+
+  /**
+   * store dialers' peerID to PeerStore and dials them
+   * @param peers id of peers
+   */
+  addAndDialPeer = async (peers: string[]) => {
+    if (this._node) {
+      for (const peer of peers) {
+        try {
+          for (const addr of CommunicationConfig.relays.multiaddrs) {
+            const multi = multiaddr.multiaddr(
+              addr.concat(`/p2p-circuit/p2p/${peer}`)
+            );
+            if (!this.getPeerIds().includes(peer)) {
+              this._pendingDialPeers.push(peer);
+              this._node?.peerStore.addressBook
+                .set(await createFromJSON({ id: `${peer}` }), [multi])
+                .catch((err) => {
+                  logger.warn(err);
+                });
+              try {
+                await this._node?.dialProtocol(
+                  multi,
+                  this._SUPPORTED_PROTOCOL.get('MSG')!
+                );
+                this._disconnectedPeers.delete(peer);
+                logger.info(`a peer with peerID [${peer}] added`);
+              } catch (err) {
+                logger.warn(
+                  `An error occurred while dialing peer ${peer}: `,
+                  err
+                );
+              } finally {
+                this._pendingDialPeers = this._pendingDialPeers.filter(
+                  (innerPeer) => innerPeer !== peer
+                );
+              }
+            }
+          }
+        } catch (e) {
+          logger.warn(`An error occurred for store discovered peer: ${e}`);
+        }
+      }
+    }
+  };
+
+  /**
+   * create or find an open stream for specific peer and protocol
+   * @param node
+   * @param peer create or find stream for peer
+   * @param protocol try to create a stream with this protocol
+   */
+  private getOpenStreamAndConnection = async (
+    node: Libp2p,
+    peer: PeerId,
+    protocol: string
+  ): Promise<ConnectionStream> => {
+    let connection: Connection | undefined = undefined;
+    let stream: Stream | undefined = undefined;
+
+    for (const conn of node.getConnections(peer)) {
+      if (conn.stat.status === OPEN) {
+        for (const obj of conn.streams) {
+          if (
+            obj.stat.protocol === protocol &&
+            obj.stat.direction === 'outbound'
+          ) {
+            stream = obj;
+            break;
+          }
+        }
+        if (stream) {
+          connection = conn;
+          break;
+        }
+      }
+    }
+
+    if (!connection) {
+      if (this._pendingDialPeers.includes(peer.toString())) {
+        throw new Error(
+          'The dial to target peer is still pending, the sending will be retried soon.'
+        );
+      }
+      connection = await node.dial(peer);
+    }
+    if (!stream) {
+      stream = await connection.newStream([protocol]);
+    }
+    return {
+      stream: stream,
+      connection: connection,
+    };
+  };
+
+  /**
+   * Pushes a message to the message queue
+   * @param peer
+   * @param messageToSend
+   */
+  private pushMessageToMessageQueue = (
+    peer: PeerId,
+    messageToSend: SendDataCommunication
+  ) => {
+    this._messageQueue.push(
+      this.objectToUint8Array({ peer, messageToSend, retriesCount: 0 })
+    );
+  };
+
+  /**
+   * handle incoming messages with broadcast protocol
+   * @param stream
+   * @param connection
+   */
+  private handleBroadcast = async (stream: Stream, connection: Connection) => {
+    pipe(
+      // Read from the stream (the source)
+      stream.source,
+      // Decode length-prefixed data
+      lp.decode(),
+      // Turn buffers into strings
+      (source) => map(source, (buf) => uint8ArrayToString(buf.subarray())),
+      // Sink function
+      async (source) => {
+        try {
+          // For each chunk of data
+          for await (const msg of source) {
+            const receivedData: ReceiveDataCommunication = JsonBI.parse(
+              msg.toString()
+            );
+
+            const runSubscribeCallback = async (channel: SubscribeChannel) => {
+              this.hasUrl(channel)
+                ? channel.func(
+                    receivedData.msg,
+                    receivedData.channel,
+                    connection.remotePeer.toString(),
+                    channel.url
+                  )
+                : channel.func(
+                    receivedData.msg,
+                    receivedData.channel,
+                    connection.remotePeer.toString()
+                  );
+            };
+            if (this._subscribedChannels[receivedData.channel]) {
+              logger.info(
+                `Received a message from [${connection.remotePeer.toString()}] in a subscribed channel [${
+                  receivedData.channel
+                }]`
+              );
+              logger.debug(`Received msg with data [${receivedData.msg}]`);
+              this._subscribedChannels[receivedData.channel].forEach(
+                runSubscribeCallback
+              );
+            } else
+              logger.warn(
+                `Received a message from [${connection.remotePeer.toString()}] in a unsubscribed channel [${
+                  receivedData.channel
+                }]`
+              );
+          }
+        } catch (e) {
+          logger.warn(`An error occurred for handle stream callback: ${e}`);
+        }
+      }
+    ).catch((e) => {
+      logger.warn(
+        `An error occurred for handle broadcast protocol stream: ${e}`
+      );
+    });
+  };
+
+  /**
+   * handle incoming messages for broadcast protocol
+   * @param node
+   * @param stream
+   * @param connection
+   * @deprecated since the issues of the guards causing message losses are fixed
+   */
+  private handlePeerDiscovery = async (
+    node: Libp2p,
+    stream: Stream,
+    connection: Connection
+  ) => {
+    pipe(
+      // Read from the stream (the source)
+      stream.source,
+      // Decode length-prefixed data
+      lp.decode(),
+      // Turn buffers into strings
+      (source) => map(source, (buf) => uint8ArrayToString(buf.subarray())),
+      // Sink function
+      async (source) => {
+        try {
+          // For each chunk of data
+          for await (const msg of source) {
+            if (
+              CommunicationConfig.relays.peerIDs.includes(
+                connection.remotePeer.toString()
+              )
+            ) {
+              const receivedData: ReceivePeers = JsonBI.parse(msg.toString());
+              const nodePeerIds = node
+                .getPeers()
+                .map((peer) => peer.toString());
+              await this.addAndDialPeer(
+                receivedData.peerIds.filter(
+                  (mainPeer) => !nodePeerIds.includes(mainPeer)
+                )
+              );
+            }
+          }
+        } catch (e) {
+          logger.warn(`An error occurred for handle stream callback: ${e}`);
+        }
+      }
+    ).catch((e) => {
+      logger.warn(
+        `An error occurred for handle getpeers protocol stream: ${e}`
+      );
+    });
   };
 
   /**
@@ -189,116 +488,234 @@ class Dialer {
    * config a dialer node with peerDiscovery
    * @return a Libp2p object after start node
    */
-  private startDialer = async (): Promise<void> => {
-    const peerId = await Dialer.getOrCreatePeerID();
-    const node = await createLibp2p({
-      // get or create new PeerID if it doesn't exist
-      peerId: peerId.peerId,
-      // Type of communication
-      transports: [new WebSockets()],
-      // Enable module encryption message
-      connectionEncryption: [new Noise()],
-      // Mplex is a Stream Multiplexer protocol
-      streamMuxers: [new Mplex()],
-      // Active peer discovery and bootstrap peers
-      pubsub: new FloodSub(),
-      peerDiscovery: [
-        new Bootstrap({
-          interval: CommunicationConfig.bootstrapInterval * 1000,
-          list: [CommunicationConfig.relay],
-        }),
-        new PubSubPeerDiscovery({
-          interval: CommunicationConfig.pubsubInterval * 1000,
-        }),
-      ],
-    });
+  private startDialer = async () => {
+    try {
+      const peerId = await Dialer.getOrCreatePeerID();
+      const node = await createLibp2p({
+        // get or create new PeerID if it doesn't exist
+        peerId: peerId.peerId,
+        // Type of communication
+        transports: [webSockets()],
+        // Enable module encryption message
+        connectionEncryption: [noise()],
+        streamMuxers: [
+          // mplex is a Stream Multiplexer protocol
+          mplex(),
+        ],
+        relay: {
+          // Circuit Relay options (this config is part of libp2p core configurations)
+          enabled: true, // Allows you to dial and accept relayed connections.
+        },
+        pubsub: gossipsub({ allowPublishToZeroPeers: true }),
+        peerDiscovery: [
+          bootstrap({
+            timeout: CommunicationConfig.bootstrapTimeout * 1000,
+            list: CommunicationConfig.relays.multiaddrs,
+          }),
+          pubsubPeerDiscovery({
+            interval: CommunicationConfig.pubsubInterval * 1000,
+          }) as PeerDiscovery,
+        ],
+      });
 
-    // Define protocol for node
-    await node.handle('/broadcast', ({ stream }) =>
-      pipe(stream.source, async () => {
-        let receivedDataObj = '';
-        // For each chunk of data
-        for await (const data of stream.source) {
-          receivedDataObj = uint8ArrayToString(data);
-        }
-        const receivedData: ReceiveDataCommunication = await JsonBI.parse(
-          receivedDataObj
+      // Listen for peers disconnecting
+      node.connectionManager.addEventListener('peer:disconnect', (evt) => {
+        logger.info(`Peer [${evt.detail.remotePeer.toString()}] Disconnected!`);
+        this._disconnectedPeers.add(evt.detail.remotePeer.toString());
+        this._pendingDialPeers = this._pendingDialPeers.filter(
+          (peer) => peer !== evt.detail.remotePeer.toString()
         );
+      });
 
-        const runSubscribeCallback = async (value: any): Promise<void> => {
-          value.url
-            ? value.func(
-                receivedData.msg,
-                receivedData.channel,
-                receivedData.sender,
-                value.url
-              )
-            : value.func(
-                receivedData.msg,
-                receivedData.channel,
-                receivedData.sender
-              );
-        };
-        if (this._SUBSCRIBED_CHANNELS[receivedData.channel]) {
-          this._SUBSCRIBED_CHANNELS[receivedData.channel].forEach(
-            runSubscribeCallback
-          );
-        } else
-          logger.warn(
-            `Received a message from [${receivedData.sender}] in a unsubscribed channel [${receivedData.channel}]`
-          );
-      })
-    );
+      // Listen for new peers
+      node.addEventListener('peer:discovery', async (evt) => {
+        logger.info(`Found peer ${evt.detail.id.toString()}`);
+        // dial them when we discover them
+        if (
+          !CommunicationConfig.relays.peerIDs.includes(
+            evt.detail.id.toString()
+          ) &&
+          !this._pendingDialPeers.includes(evt.detail.id.toString())
+        ) {
+          this.addAndDialPeer([evt.detail.id.toString()]).catch((err) => {
+            logger.warn(`Could not dial ${evt.detail.id}`, err);
+          });
+        }
+      });
 
-    node.start();
-    logger.info(`Dialer node started peerId: ${node.peerId.toString()}`);
+      // Define protocol for node
+      await node.handle(
+        this._SUPPORTED_PROTOCOL.get('MSG')!,
+        async ({ stream, connection }) => {
+          // Read the stream
+          this.handleBroadcast(stream, connection);
+        }
+      );
 
-    this._NODE = await node;
-    await this.createRelayConnection(node);
-    // this should call after createRelayConnection duo to peerId should save after create relay connection
-    await Dialer.savePeerIdIfNeed(peerId);
+      /**
+       * TODO: This is probably no longer needed and should be removed in the near
+       * future if default peer discovery mechanism works as expected
+       */
+      // Handle messages for the _SUPPORTED_PROTOCOL_PEERS
+      await node.handle(
+        this._SUPPORTED_PROTOCOL.get('PEER')!,
+        async ({ stream, connection }) => {
+          // Read the stream
+          this.handlePeerDiscovery(node, stream, connection);
+        }
+      );
 
-    const resendMessage = async (
-      value: SendDataCommunication
-    ): Promise<void> => {
-      (await value.receiver)
-        ? await this.sendMessage(value.channel, value.msg, value.receiver)
-        : await this.sendMessage(value.channel, value.msg);
-    };
+      await node.start();
+      logger.info(`Dialer node started with peerId: ${node.peerId.toString()}`);
 
-    if (this._PENDING_MESSAGE.length > 0) {
-      await this._PENDING_MESSAGE.forEach(await resendMessage);
+      this._node = node;
+
+      // this should call after createRelayConnection duo to peerId should save after create relay connection
+      await Dialer.savePeerIdIfNeeded(peerId);
+
+      // Job for log all peers
+      setInterval(() => {
+        logger.info(`peers are [${this.getPeerIds()}]`);
+      }, CommunicationConfig.getPeersInterval * 1000);
+
+      // // Job for connect to disconnected peers
+      setInterval(() => {
+        this.addAndDialPeer(Array.from(this._disconnectedPeers));
+      }, CommunicationConfig.connectToDisconnectedPeersInterval * 1000);
+    } catch (e) {
+      logger.error(`An error occurred for start dialer: ${e}`);
     }
   };
 
   /**
-   * send message to specific peer or broadcast it
-   * @param channel: String
-   * @param msg: string
-   * @param receiver optional
+   * Converts a Unit8Array to an object
+   * @param uint8Array
    */
-  sendMessage = async (
-    channel: string,
-    msg: string,
-    receiver?: string
-  ): Promise<void> => {
-    const data: SendDataCommunication = {
-      msg: msg,
-      channel: channel,
-    };
-    if (receiver) data.receiver = receiver;
-    if (!this._RELAY_CONN) {
-      this._PENDING_MESSAGE.push(await data);
-      logger.warn(
-        "Message added to pending list due to dialer connection isn't ready"
-      );
-      return;
+  private uint8ArrayToObject = (uint8Array: Uint8Array) =>
+    JsonBI.parse(uint8ArrayToString(uint8Array));
+
+  /**
+   * Converts an object to Uint8Array
+   * @param object
+   */
+  private objectToUint8Array = (object: any) =>
+    uint8ArrayFromString(JsonBI.stringify(object));
+
+  /**
+   * Processes message queue stream and pipes messages to a correct remote pipe
+   */
+  private processMessageQueue = async () => {
+    interface MessageQueueParsedMessage {
+      peer: string;
+      messageToSend: SendDataCommunication;
+      retriesCount: bigint;
     }
 
-    const { stream } = await this._RELAY_CONN.newStream(['/broadcast']);
-    await pipe([uint8ArrayFromString(`${JsonBI.stringify(data)}`)], stream);
-    await stream.close();
-    return;
+    const routesInfo: Record<
+      string,
+      {
+        source: Pushable<Uint8Array>;
+        stream: Stream;
+      }
+    > = {};
+    /**
+     * Returns the source piped to the provided stream
+     * @param stream
+     * @param peer
+     * @returns The source which is piped to the stream
+     */
+    const getStreamSource = (stream: Stream, peer: string) => {
+      if (routesInfo[peer]?.stream === stream) {
+        return routesInfo[peer].source;
+      } else {
+        routesInfo[peer] = {
+          source: pushable(),
+          stream: stream,
+        };
+        const source = routesInfo[peer].source;
+        pipe(source, lp.encode(), stream.sink);
+        return source;
+      }
+    };
+
+    /**
+     * Retries sending message by pushing it to the queue again
+     * @param message
+     */
+    const retrySendingMessage = (message: Uint8Array) => {
+      const { retriesCount, ...rest }: MessageQueueParsedMessage =
+        this.uint8ArrayToObject(message);
+
+      const newRetriesCount = retriesCount + 1n;
+
+      if (
+        newRetriesCount <= CommunicationConfig.messageSendingRetriesMaxCount
+      ) {
+        const timeout =
+          1000 *
+          CommunicationConfig.messageSendingRetriesExponentialFactor **
+            Number(newRetriesCount);
+
+        setTimeout(() => {
+          logger.warn(
+            `Retry #${retriesCount} for sending message ${JsonBI.stringify(
+              rest.messageToSend
+            )}...`
+          );
+
+          this._messageQueue.push(
+            this.objectToUint8Array({
+              ...rest,
+              retriesCount: newRetriesCount,
+            })
+          );
+        }, timeout);
+      } else {
+        logger.warn(
+          `Failed to send message ${JsonBI.stringify(
+            rest.messageToSend
+          )} after ${CommunicationConfig.messageSendingRetriesMaxCount} retries`
+        );
+      }
+    };
+
+    for await (const message of this._messageQueue) {
+      try {
+        const { peer, messageToSend, retriesCount }: MessageQueueParsedMessage =
+          this.uint8ArrayToObject(message);
+
+        const connStream = await this.getOpenStreamAndConnection(
+          this._node!,
+          await createFromJSON({ id: `${peer}` }),
+          this._SUPPORTED_PROTOCOL.get('MSG')!
+        );
+
+        try {
+          const source = getStreamSource(connStream.stream, peer);
+
+          source.push(this.objectToUint8Array(messageToSend));
+
+          if (retriesCount) {
+            logger.warn(
+              `Retry #${retriesCount} was successful for message ${JsonBI.stringify(
+                messageToSend
+              )}`
+            );
+          }
+        } catch (error) {
+          logger.error(
+            'An error occurred while trying to get stream source',
+            error
+          );
+        }
+      } catch (error) {
+        logger.warn(
+          'An error occurred while trying to process a message in the messages queue',
+          error
+        );
+        retrySendingMessage(message);
+      }
+    }
   };
 }
 

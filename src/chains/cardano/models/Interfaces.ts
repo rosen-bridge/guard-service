@@ -1,5 +1,5 @@
 import { BigNum, MultiAsset } from '@emurgo/cardano-serialization-lib-nodejs';
-import { components } from '@blockfrost/blockfrost-js/lib/types/OpenApi';
+import { components } from '@blockfrost/openapi';
 
 interface Asset {
   policy_id: string;
@@ -38,6 +38,7 @@ interface RosenData {
   toAddress: string;
   bridgeFee: string;
   networkFee: string;
+  fromAddress: string;
 }
 
 interface KoiosTransaction {

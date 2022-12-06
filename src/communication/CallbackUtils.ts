@@ -1,14 +1,14 @@
 import axios from 'axios';
 import CommunicationConfig from './CommunicationConfig';
-import { SubscribeChannelFunction } from './Interfaces';
+import { SubscribeChannelWithURL } from './Interfaces';
 import { logger } from '../log/Logger';
 
-const apiCallBack: SubscribeChannelFunction = (
-  msg: string,
-  channel: string,
-  sender: string,
-  url: string
-): void => {
+const apiCallBack: SubscribeChannelWithURL['func'] = (
+  msg,
+  channel,
+  sender,
+  url
+) => {
   const data = axios.post(
     url,
     {

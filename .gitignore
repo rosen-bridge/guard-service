@@ -10,7 +10,7 @@ build
 dist
 logs
 
-peer-dialer.json
+peer-dialer*.json
 bin/tss.exe
 config/addresses/contracts-*
 config/tokens.json
