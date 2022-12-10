@@ -4,7 +4,7 @@ import { components } from '@blockfrost/openapi';
 interface Asset {
   policy_id: string;
   asset_name: string;
-  quantity: bigint;
+  quantity: string;
   fingerprint: string;
 }
 

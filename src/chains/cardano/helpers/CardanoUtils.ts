@@ -97,22 +97,16 @@ class CardanoUtils {
         const policyAssets = multiAsset.get(policyId);
         if (!policyAssets) {
           const assetList = Assets.new();
-          assetList.insert(
-            assetName,
-            BigNum.from_str(boxAsset.quantity.toString())
-          );
+          assetList.insert(assetName, BigNum.from_str(boxAsset.quantity));
           multiAsset.insert(policyId, assetList);
         } else {
           const asset = policyAssets.get(assetName);
           if (!asset) {
-            policyAssets.insert(
-              assetName,
-              BigNum.from_str(boxAsset.quantity.toString())
-            );
+            policyAssets.insert(assetName, BigNum.from_str(boxAsset.quantity));
             multiAsset.insert(policyId, policyAssets);
           } else {
             const amount = asset.checked_add(
-              BigNum.from_str(boxAsset.quantity.toString())
+              BigNum.from_str(boxAsset.quantity)
             );
             policyAssets.insert(assetName, amount);
             multiAsset.insert(policyId, policyAssets);

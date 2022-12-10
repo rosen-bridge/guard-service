@@ -130,9 +130,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
           );
           if (assetIndex !== -1) {
             const asset = utxo.asset_list[assetIndex];
-            covered = covered.checked_add(
-              BigNum.from_str(asset.quantity.toString())
-            );
+            covered = covered.checked_add(BigNum.from_str(asset.quantity));
             coveredLovelace = coveredLovelace.checked_add(
               BigNum.from_str(utxo.value)
             );

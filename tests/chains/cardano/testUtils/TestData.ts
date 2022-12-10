@@ -137,7 +137,7 @@ class TestData {
             policy_id:
               'b07de2ce2a86f890410d4504d491b1df423f7e3e20973663a819d1a1',
             asset_name: '455448',
-            quantity: 13060n,
+            quantity: '13060',
             fingerprint: 'asset1nl000000000000000000000000000000000333',
           },
         ],
@@ -160,7 +160,7 @@ class TestData {
               '22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130',
             asset_name:
               '016dee4ce565a31af501894406ec61d78a87f0c53de1e7cc6d52d156b3f5b155',
-            quantity: 15829495n,
+            quantity: '15829495',
             fingerprint: 'asset1nl000000000000000000000000000000000000',
           },
         ],
@@ -184,7 +184,7 @@ class TestData {
             policy_id:
               'ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2',
             asset_name: '7369676d61',
-            quantity: 13060n,
+            quantity: '13060',
             fingerprint: 'asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3',
           },
         ],
@@ -206,7 +206,7 @@ class TestData {
               '22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130',
             asset_name:
               '016dee4ce565a31af501894406ec61d78a87f0c53de1e7cc6d52d156b3f5b155',
-            quantity: 15829495n,
+            quantity: '15829495',
             fingerprint: 'asset1nl000000000000000000000000000000000000',
           },
         ],
@@ -267,7 +267,7 @@ class TestData {
             policy_id:
               'b07de2ce2a86f890410d4504d491b1df423f7e3e20973663a819d1a1',
             asset_name: '455448',
-            quantity: 13060n,
+            quantity: '13060',
             fingerprint: 'asset1nl000000000000000000000000000000000333',
           },
         ],
@@ -290,7 +290,7 @@ class TestData {
               '22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130',
             asset_name:
               '016dee4ce565a31af501894406ec61d78a87f0c53de1e7cc6d52d156b3f5b155',
-            quantity: 15829495n,
+            quantity: '15829495',
             fingerprint: 'asset1nl000000000000000000000000000000000000',
           },
         ],
@@ -328,7 +328,7 @@ class TestData {
               '22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130',
             asset_name:
               '016dee4ce565a31af501894406ec61d78a87f0c53de1e7cc6d52d156b3f5b155',
-            quantity: 15829495n,
+            quantity: '15829495',
             fingerprint: 'asset1nl000000000000000000000000000000000000',
           },
         ],
@@ -377,7 +377,7 @@ class TestData {
               '22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130',
             asset_name:
               '016dee4ce565a31af501894406ec61d78a87f0c53de1e7cc6d52d156b3f5b155',
-            quantity: 15829495n,
+            quantity: '15829495',
             fingerprint: 'asset1nl000000000000000000000000000000000000',
           },
         ],
@@ -408,7 +408,7 @@ class TestData {
             policy_id:
               'ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2',
             asset_name: '7369676d61',
-            quantity: 13060n,
+            quantity: '13060',
             fingerprint: 'asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3',
           },
         ],
@@ -439,7 +439,7 @@ class TestData {
             policy_id:
               'ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2',
             asset_name: '1369676d60',
-            quantity: 13060n,
+            quantity: '13060',
             fingerprint: 'asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3',
           },
         ],

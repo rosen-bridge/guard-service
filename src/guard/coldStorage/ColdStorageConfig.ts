@@ -5,7 +5,7 @@ class ColdStorageConfig {
   static end = config.get<number>('coldStorage.endHour'); // hour (0-23)
 
   /**
-   * checks if now is withing start and end hour of cold storage process time
+   * checks if now is within start and end hour of cold storage process time
    */
   static isWithinTime = (): boolean => {
     const startingTimeStamp = Math.round(Date.now() / 1000);

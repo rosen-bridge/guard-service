@@ -115,7 +115,7 @@ describe('ErgoColdStorage', () => {
      *    Mock ExplorerApi getAddressAssets to return test assets (only erg greater than high threshold)
      *    Mock a valid cold storage transaction
      *    Run test
-     *    Check return value to be false
+     *    Check return value to be true
      * Expected Output:
      *    It should verify the transaction
      */

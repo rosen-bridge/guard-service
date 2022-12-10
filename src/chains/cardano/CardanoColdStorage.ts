@@ -197,7 +197,7 @@ class CardanoColdStorage {
       lockAddressMultiAsset.set_asset(
         ScriptHash.from_hex(asset.policy_id),
         AssetName.new(Utils.hexStringToUint8Array(asset.asset_name)),
-        BigNum.from_str(asset.quantity.toString())
+        BigNum.from_str(asset.quantity)
       )
     );
 
