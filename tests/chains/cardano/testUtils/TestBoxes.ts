@@ -38,6 +38,7 @@ import Utils from '../../../../src/helpers/Utils';
 import TestConfigs from '../../../testUtils/TestConfigs';
 import { mock } from 'ts-mockito';
 
+// TODO: split this file variables and functions into multiple files (#94)
 class TestBoxes {
   static testBankAddress = CardanoConfigs.bankAddress;
 

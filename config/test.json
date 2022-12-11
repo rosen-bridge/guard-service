@@ -60,5 +60,5 @@
   },
   "tokensPath": "tests/resources/tokens.test.json",
   "thresholdsPath": "tests/resources/threshold.test.json",
-  "discordWebHookUrl": "https://discord.com/api/webhooks/1049600985779163186/Uy8ogaQfEAUUDVBefgKfUVGXeZJAkssO2m9CdxCAfhIjhRMjxZ-WDYJUwscNXX42Y3bd"
+  "discordWebHookUrl": "https://discord.com/api/webhooks/1000000000000000000/Uy8ogaQfEAUUDVBefgKfUVGXeZJAkssO2m9CdxCAfhIjhRMjxZ-WDYJUwscNXX42Y3bd"
 }

@@ -44,6 +44,7 @@ import InputBoxes from '../../../../src/chains/ergo/boxes/InputBoxes';
 import { rosenConfig } from '../../../../src/helpers/RosenConfig';
 import { mock } from 'ts-mockito';
 
+// TODO: split this file variables and functions into multiple files (#94)
 class TestBoxes {
   static testLockAddress = ErgoConfigs.ergoContractConfig.lockAddress;
   static testBlockchainHeight = TestConfigs.ergo.blockchainHeight;
@@ -2335,8 +2336,9 @@ class TestBoxes {
   static mockFineColdStorageTransaction = (
     bankBoxes: ErgoBox[]
   ): ErgoTransaction => {
-    const coldAddressErgoTree: string =
-      ErgoUtils.addressStringToErgoTreeString(ErgoConfigs.coldAddress);
+    const coldAddressErgoTree: string = ErgoUtils.addressStringToErgoTreeString(
+      ErgoConfigs.coldAddress
+    );
 
     const inBoxes = ErgoBoxes.empty();
     bankBoxes.forEach((box) => inBoxes.add(box));
@@ -2359,9 +2361,9 @@ class TestBoxes {
     const txId = tx.id().to_str();
     return new ErgoTransaction(
       txId,
-      "",
+      '',
       txBytes,
-      bankBoxes.map(box => box.sigma_serialize_bytes()),
+      bankBoxes.map((box) => box.sigma_serialize_bytes()),
       [],
       TransactionTypes.coldStorage
     );
@@ -2374,8 +2376,9 @@ class TestBoxes {
   static mock4outBoxesColdStorageTransaction = (
     bankBoxes: ErgoBox[]
   ): ErgoTransaction => {
-    const coldAddressErgoTree: string =
-      ErgoUtils.addressStringToErgoTreeString(ErgoConfigs.coldAddress);
+    const coldAddressErgoTree: string = ErgoUtils.addressStringToErgoTreeString(
+      ErgoConfigs.coldAddress
+    );
 
     const inBoxes = ErgoBoxes.empty();
     bankBoxes.forEach((box) => inBoxes.add(box));
@@ -2398,9 +2401,9 @@ class TestBoxes {
     const txId = tx.id().to_str();
     return new ErgoTransaction(
       txId,
-      "",
+      '',
       txBytes,
-      bankBoxes.map(box => box.sigma_serialize_bytes()),
+      bankBoxes.map((box) => box.sigma_serialize_bytes()),
       [],
       TransactionTypes.coldStorage
     );
@@ -2413,8 +2416,9 @@ class TestBoxes {
   static mockInvalidColdAddressColdStorageTransaction = (
     bankBoxes: ErgoBox[]
   ): ErgoTransaction => {
-    const invalidErgoTree: string =
-      ErgoUtils.addressStringToErgoTreeString(ErgoConfigs.bridgeFeeRepoAddress);
+    const invalidErgoTree: string = ErgoUtils.addressStringToErgoTreeString(
+      ErgoConfigs.bridgeFeeRepoAddress
+    );
 
     const inBoxes = ErgoBoxes.empty();
     bankBoxes.forEach((box) => inBoxes.add(box));
@@ -2437,9 +2441,9 @@ class TestBoxes {
     const txId = tx.id().to_str();
     return new ErgoTransaction(
       txId,
-      "",
+      '',
       txBytes,
-      bankBoxes.map(box => box.sigma_serialize_bytes()),
+      bankBoxes.map((box) => box.sigma_serialize_bytes()),
       [],
       TransactionTypes.coldStorage
     );
@@ -2452,10 +2456,12 @@ class TestBoxes {
   static mockInvalidChangeBoxAddressColdStorageTransaction = (
     bankBoxes: ErgoBox[]
   ): ErgoTransaction => {
-    const coldAddressErgoTree: string =
-      ErgoUtils.addressStringToErgoTreeString(ErgoConfigs.coldAddress);
-    const invalidErgoTree: string =
-      ErgoUtils.addressStringToErgoTreeString(ErgoConfigs.bridgeFeeRepoAddress);
+    const coldAddressErgoTree: string = ErgoUtils.addressStringToErgoTreeString(
+      ErgoConfigs.coldAddress
+    );
+    const invalidErgoTree: string = ErgoUtils.addressStringToErgoTreeString(
+      ErgoConfigs.bridgeFeeRepoAddress
+    );
 
     const inBoxes = ErgoBoxes.empty();
     bankBoxes.forEach((box) => inBoxes.add(box));
@@ -2478,9 +2484,9 @@ class TestBoxes {
     const txId = tx.id().to_str();
     return new ErgoTransaction(
       txId,
-      "",
+      '',
       txBytes,
-      bankBoxes.map(box => box.sigma_serialize_bytes()),
+      bankBoxes.map((box) => box.sigma_serialize_bytes()),
       [],
       TransactionTypes.coldStorage
     );
@@ -2493,8 +2499,9 @@ class TestBoxes {
   static mockColdStorageTransactionWithRegisters = (
     bankBoxes: ErgoBox[]
   ): ErgoTransaction => {
-    const coldAddressErgoTree: string =
-      ErgoUtils.addressStringToErgoTreeString(ErgoConfigs.coldAddress);
+    const coldAddressErgoTree: string = ErgoUtils.addressStringToErgoTreeString(
+      ErgoConfigs.coldAddress
+    );
 
     const inBoxes = ErgoBoxes.empty();
     bankBoxes.forEach((box) => inBoxes.add(box));
@@ -2517,9 +2524,9 @@ class TestBoxes {
     const txId = tx.id().to_str();
     return new ErgoTransaction(
       txId,
-      "",
+      '',
       txBytes,
-      bankBoxes.map(box => box.sigma_serialize_bytes()),
+      bankBoxes.map((box) => box.sigma_serialize_bytes()),
       [],
       TransactionTypes.coldStorage
     );
@@ -2532,8 +2539,9 @@ class TestBoxes {
   static mockColdStorageTransactionWithAdditionalFee = (
     bankBoxes: ErgoBox[]
   ): ErgoTransaction => {
-    const coldAddressErgoTree: string =
-      ErgoUtils.addressStringToErgoTreeString(ErgoConfigs.coldAddress);
+    const coldAddressErgoTree: string = ErgoUtils.addressStringToErgoTreeString(
+      ErgoConfigs.coldAddress
+    );
 
     const inBoxes = ErgoBoxes.empty();
     bankBoxes.forEach((box) => inBoxes.add(box));
@@ -2556,9 +2564,9 @@ class TestBoxes {
     const txId = tx.id().to_str();
     return new ErgoTransaction(
       txId,
-      "",
+      '',
       txBytes,
-      bankBoxes.map(box => box.sigma_serialize_bytes()),
+      bankBoxes.map((box) => box.sigma_serialize_bytes()),
       [],
       TransactionTypes.coldStorage
     );
@@ -2571,8 +2579,9 @@ class TestBoxes {
   static mockLowErgColdStorageTransaction = (
     bankBoxes: ErgoBox[]
   ): ErgoTransaction => {
-    const coldAddressErgoTree: string =
-      ErgoUtils.addressStringToErgoTreeString(ErgoConfigs.coldAddress);
+    const coldAddressErgoTree: string = ErgoUtils.addressStringToErgoTreeString(
+      ErgoConfigs.coldAddress
+    );
 
     const inBoxes = ErgoBoxes.empty();
     bankBoxes.forEach((box) => inBoxes.add(box));
@@ -2595,9 +2604,9 @@ class TestBoxes {
     const txId = tx.id().to_str();
     return new ErgoTransaction(
       txId,
-      "",
+      '',
       txBytes,
-      bankBoxes.map(box => box.sigma_serialize_bytes()),
+      bankBoxes.map((box) => box.sigma_serialize_bytes()),
       [],
       TransactionTypes.coldStorage
     );
@@ -2610,8 +2619,9 @@ class TestBoxes {
   static mockLowTokenColdStorageTransaction = (
     bankBoxes: ErgoBox[]
   ): ErgoTransaction => {
-    const coldAddressErgoTree: string =
-      ErgoUtils.addressStringToErgoTreeString(ErgoConfigs.coldAddress);
+    const coldAddressErgoTree: string = ErgoUtils.addressStringToErgoTreeString(
+      ErgoConfigs.coldAddress
+    );
 
     const inBoxes = ErgoBoxes.empty();
     bankBoxes.forEach((box) => inBoxes.add(box));
@@ -2634,9 +2644,9 @@ class TestBoxes {
     const txId = tx.id().to_str();
     return new ErgoTransaction(
       txId,
-      "",
+      '',
       txBytes,
-      bankBoxes.map(box => box.sigma_serialize_bytes()),
+      bankBoxes.map((box) => box.sigma_serialize_bytes()),
       [],
       TransactionTypes.coldStorage
     );
@@ -2649,8 +2659,9 @@ class TestBoxes {
   static mockHighErgColdStorageTransaction = (
     bankBoxes: ErgoBox[]
   ): ErgoTransaction => {
-    const coldAddressErgoTree: string =
-      ErgoUtils.addressStringToErgoTreeString(ErgoConfigs.coldAddress);
+    const coldAddressErgoTree: string = ErgoUtils.addressStringToErgoTreeString(
+      ErgoConfigs.coldAddress
+    );
 
     const inBoxes = ErgoBoxes.empty();
     bankBoxes.forEach((box) => inBoxes.add(box));
@@ -2673,9 +2684,9 @@ class TestBoxes {
     const txId = tx.id().to_str();
     return new ErgoTransaction(
       txId,
-      "",
+      '',
       txBytes,
-      bankBoxes.map(box => box.sigma_serialize_bytes()),
+      bankBoxes.map((box) => box.sigma_serialize_bytes()),
       [],
       TransactionTypes.coldStorage
     );
