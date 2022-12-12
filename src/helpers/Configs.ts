@@ -1,6 +1,8 @@
 import config from 'config';
 import { RosenTokens, TokenMap } from '@rosen-bridge/tokens';
 import fs from 'fs';
+import { ThresholdConfig } from '../guard/coldStorage/types';
+import { JsonBI } from '../network/NetworkModels';
 
 /**
  * reads a config, set default value if it does not exits
@@ -65,24 +67,48 @@ class Configs {
       return JSON.parse(configJson);
     }
   };
+  static thresholds = (): ThresholdConfig => {
+    const thresholdsPath = config.get<string>('thresholdsPath');
+    if (!fs.existsSync(thresholdsPath)) {
+      throw new Error(
+        `Asset thresholds config file with path ${thresholdsPath} doesn't exist`
+      );
+    } else {
+      const configJson: string = fs.readFileSync(thresholdsPath, 'utf8');
+      return JsonBI.parse(configJson);
+    }
+  };
   static tokenMap = new TokenMap(this.tokens());
   static minimumFeeConfigBoxTemplateHash = config.get<string>(
     'ergo.minimumFeeConfigBoxTemplateHash'
   );
 
+  // timeout configs
+  static multiSigTimeout = getConfigIntKeyOrDefault('multiSigTimeout', 5 * 60); // seconds
+  static eventTimeout = 86400; // seconds, 1 day
+
   // jobs configs
   static scannedEventProcessorInterval = 120; // seconds, 2 minutes
-  static txProcessorInterval = config.get<number>('txProcessorInterval'); // seconds
+  static txProcessorInterval = config.get<number>(
+    'intervals.txProcessorInterval'
+  ); // seconds
   static txResendInterval = 30; // seconds
   static multiSigCleanUpInterval = 120; // seconds
-  static multiSigTimeout = getConfigIntKeyOrDefault('multiSigTimeout', 5 * 60); // seconds
   static tssInstanceRestartGap = 5; // seconds
+  static timeoutProcessorInterval = config.get<number>(
+    'intervals.timeoutProcessorInterval'
+  ); // seconds
+  static requeueWaitingEventsInterval = config.get<number>(
+    'intervals.requeueWaitingEventsInterval'
+  ); // seconds
 
   //logs configs
   static logsPath = config.get<string>('logs.path');
   static maxLogSize = config.get<string>('logs.maxSize');
   static maxLogFiles = config.get<string>('logs.maxFiles');
   static logLevel = config.get<string>('logs.level');
+
+  static discordWebHookUrl = config.get<string>('discordWebHookUrl');
 }
 
 export default Configs;

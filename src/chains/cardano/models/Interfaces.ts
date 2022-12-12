@@ -1,10 +1,17 @@
 import { BigNum, MultiAsset } from '@emurgo/cardano-serialization-lib-nodejs';
-import { components } from '@blockfrost/blockfrost-js/lib/types/OpenApi';
+import { components } from '@blockfrost/openapi';
 
 interface Asset {
   policy_id: string;
   asset_name: string;
   quantity: string;
+  fingerprint: string;
+}
+
+interface AssetInfo {
+  fingerprint: string;
+  policyId: Uint8Array;
+  assetName: Uint8Array;
 }
 
 interface Utxo {
@@ -42,6 +49,17 @@ interface KoiosTransaction {
   metadata?: MetaData;
 }
 
+interface AddressInfo {
+  address: string;
+  balance: bigint;
+  utxo_set: Utxo[];
+}
+
+interface AddressAssets {
+  address: string;
+  assets: Asset[];
+}
+
 type TxUtxos = components['schemas']['tx_content_utxo'];
 
 type AddressUtxos = components['schemas']['address_utxo_content'];
@@ -49,10 +67,13 @@ type AddressUtxos = components['schemas']['address_utxo_content'];
 export type {
   Utxo,
   Asset,
+  AssetInfo,
   UtxoBoxesAssets,
   TxUtxos,
   AddressUtxos,
   KoiosTransaction,
   MetaData,
   RosenData,
+  AddressInfo,
+  AddressAssets,
 };

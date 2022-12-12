@@ -19,4 +19,9 @@ export class ConfirmedEventEntity {
 
   @Column()
   status: string;
+
+  @Column({
+    nullable: true,
+  })
+  firstTry: string;
 }

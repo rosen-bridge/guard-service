@@ -54,12 +54,20 @@ class TxAgreement {
         case 'request': {
           const candidate = message.payload as CandidateTransaction;
           const tx = txJsonParser(candidate.txJson);
-          await this.processTransactionRequest(
-            tx,
-            candidate.guardId,
-            candidate.signature,
-            sender
-          );
+          if (tx.txType === TransactionTypes.coldStorage)
+            await this.processColdStorageTransactionRequest(
+              tx,
+              candidate.guardId,
+              candidate.signature,
+              sender
+            );
+          else
+            await this.processTransactionRequest(
+              tx,
+              candidate.guardId,
+              candidate.signature,
+              sender
+            );
           break;
         }
         case 'response': {
@@ -172,6 +180,7 @@ class TxAgreement {
     }
     if (
       (await EventVerifier.verifyEvent(event)) &&
+      EventVerifier.isEventPendingToType(eventEntity, tx.txType) &&
       tx.verifyMetaDataSignature(creatorId, signature) &&
       GuardTurn.guardTurn() === creatorId &&
       !(await this.isEventHasDifferentTransaction(
@@ -200,6 +209,54 @@ class TxAgreement {
       // send response to creator guard
       dialer.sendMessage(TxAgreement.CHANNEL, message, receiver);
     } else logger.info(`Rejected tx [${tx.txId}] for event [${tx.eventId}]`);
+  };
+
+  /**
+   * verifies the cold storage transaction sent by other guards, agree if conditions met, otherwise reject
+   * @param tx the created payment transaction
+   * @param creatorId id of the guard that created the transaction
+   * @param signature signature of creator guard over request data (txJson and creatorId)
+   * @param receiver the guard who will receive this response
+   */
+  processColdStorageTransactionRequest = async (
+    tx: PaymentTransaction,
+    creatorId: number,
+    signature: string,
+    receiver: string
+  ): Promise<void> => {
+    const inProgressColdStorageTxs = (
+      await dbAction.getNonCompleteColdStorageTxsInChain(tx.network)
+    ).filter((tx) => tx.status != TransactionStatus.invalid);
+
+    if (
+      tx.verifyMetaDataSignature(creatorId, signature) &&
+      GuardTurn.guardTurn() === creatorId &&
+      inProgressColdStorageTxs.length === 0 &&
+      (await EventVerifier.verifyColdStorageTx(tx))
+    ) {
+      this.transactions.set(tx.txId, tx);
+      logger.info(
+        `Agreed with cold storage tx [${tx.txId}] on chain [${tx.network}]`
+      );
+
+      const agreementPayload: GuardsAgreement = {
+        guardId: guardConfig.guardId,
+        signature: tx.signMetaData(),
+        txId: tx.txId,
+        agreed: true,
+      };
+
+      const message = JSON.stringify({
+        type: 'response',
+        payload: agreementPayload,
+      });
+
+      // send response to creator guard
+      dialer.sendMessage(TxAgreement.CHANNEL, message, receiver);
+    } else
+      logger.info(
+        `Rejected cold storage tx [${tx.txId}] on chain [${tx.network}]`
+      );
   };
 
   /**
@@ -377,7 +434,8 @@ class TxAgreement {
     try {
       if (tx.txType === TransactionTypes.payment)
         await dbAction.setEventStatus(tx.eventId, EventStatus.inPayment);
-      else await dbAction.setEventStatus(tx.eventId, EventStatus.inReward);
+      else if (tx.txType === TransactionTypes.reward)
+        await dbAction.setEventStatus(tx.eventId, EventStatus.inReward);
     } catch (e) {
       logger.warn(
         `Unexpected error occurred while updating event [${tx.eventId}] with status: ${e}`

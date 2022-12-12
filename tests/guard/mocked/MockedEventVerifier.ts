@@ -47,6 +47,18 @@ const mockVerifyPaymentTransactionWithEvent = (
 };
 
 /**
+ * mocks EventVerifier verifyColdStorageTx method to return result when called for tx and event
+ * @param tx
+ * @param result
+ */
+const mockVerifyColdStorageTx = (
+  tx: PaymentTransaction,
+  result: boolean
+): void => {
+  when(mockedEventVerifier.verifyColdStorageTx(tx)).thenResolve(result);
+};
+
+/**
  * resets mocked methods of EventVerifier
  */
 const resetMockedEventVerifier = (): void => {
@@ -58,5 +70,6 @@ export {
   mockIsEventConfirmedEnough,
   mockVerifyPaymentTransactionWithEvent,
   mockVerifyEvent,
+  mockVerifyColdStorageTx,
   resetMockedEventVerifier,
 };

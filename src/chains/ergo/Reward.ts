@@ -26,6 +26,7 @@ import { JsonBI } from '../../network/NetworkModels';
 import { logger } from '../../log/Logger';
 import { Fee } from '@rosen-bridge/minimum-fee';
 import MinimumFee from '../../guard/MinimumFee';
+import { NotEnoughAssetsError } from '../../helpers/errors';
 
 class Reward {
   static lockAddress = Address.from_base58(
@@ -100,7 +101,7 @@ class Reward {
     if (!coveringBoxes.covered) {
       const Erg = (requiredAssets.ergs + ErgoConfigs.minimumErg).toString();
       const Tokens = JsonBI.stringify(requiredAssets.tokens);
-      throw new Error(
+      throw new NotEnoughAssetsError(
         `Bank boxes didn't cover required assets. Erg: ${Erg}, Tokens: ${Tokens}`
       );
     }

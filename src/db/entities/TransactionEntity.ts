@@ -21,6 +21,9 @@ export class TransactionEntity {
   @Column()
   lastCheck: number;
 
-  @ManyToOne('ConfirmedEventEntity', 'eventId', { cascade: true })
+  @ManyToOne('ConfirmedEventEntity', 'eventId', {
+    cascade: true,
+    nullable: true,
+  })
   event: Relation<ConfirmedEventEntity>;
 }

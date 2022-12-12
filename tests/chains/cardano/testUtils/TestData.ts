@@ -138,6 +138,7 @@ class TestData {
               'b07de2ce2a86f890410d4504d491b1df423f7e3e20973663a819d1a1',
             asset_name: '455448',
             quantity: '13060',
+            fingerprint: 'asset1nl000000000000000000000000000000000333',
           },
         ],
       },
@@ -160,6 +161,7 @@ class TestData {
             asset_name:
               '016dee4ce565a31af501894406ec61d78a87f0c53de1e7cc6d52d156b3f5b155',
             quantity: '15829495',
+            fingerprint: 'asset1nl000000000000000000000000000000000000',
           },
         ],
       },
@@ -183,6 +185,7 @@ class TestData {
               'ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2',
             asset_name: '7369676d61',
             quantity: '13060',
+            fingerprint: 'asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3',
           },
         ],
       },
@@ -204,6 +207,7 @@ class TestData {
             asset_name:
               '016dee4ce565a31af501894406ec61d78a87f0c53de1e7cc6d52d156b3f5b155',
             quantity: '15829495',
+            fingerprint: 'asset1nl000000000000000000000000000000000000',
           },
         ],
       },
@@ -264,6 +268,7 @@ class TestData {
               'b07de2ce2a86f890410d4504d491b1df423f7e3e20973663a819d1a1',
             asset_name: '455448',
             quantity: '13060',
+            fingerprint: 'asset1nl000000000000000000000000000000000333',
           },
         ],
       },
@@ -286,6 +291,7 @@ class TestData {
             asset_name:
               '016dee4ce565a31af501894406ec61d78a87f0c53de1e7cc6d52d156b3f5b155',
             quantity: '15829495',
+            fingerprint: 'asset1nl000000000000000000000000000000000000',
           },
         ],
       },
@@ -323,6 +329,7 @@ class TestData {
             asset_name:
               '016dee4ce565a31af501894406ec61d78a87f0c53de1e7cc6d52d156b3f5b155',
             quantity: '15829495',
+            fingerprint: 'asset1nl000000000000000000000000000000000000',
           },
         ],
       },
@@ -371,6 +378,7 @@ class TestData {
             asset_name:
               '016dee4ce565a31af501894406ec61d78a87f0c53de1e7cc6d52d156b3f5b155',
             quantity: '15829495',
+            fingerprint: 'asset1nl000000000000000000000000000000000000',
           },
         ],
       },
@@ -401,6 +409,7 @@ class TestData {
               'ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2',
             asset_name: '7369676d61',
             quantity: '13060',
+            fingerprint: 'asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3',
           },
         ],
       },
@@ -431,6 +440,7 @@ class TestData {
               'ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2',
             asset_name: '1369676d60',
             quantity: '13060',
+            fingerprint: 'asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3',
           },
         ],
       },
@@ -445,6 +455,26 @@ class TestData {
                 }`),
     },
   };
+
+  static fineColdBoxValueJson = `{
+    "coin": "258248310",
+    "multiasset": {}
+  }`;
+
+  static fineChangeBoxValueJson = `{
+    "coin": "101551690",
+    "multiasset": {
+      "22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130": {
+        "1111111111": "440000000000"
+      },
+      "ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2": {
+        "7369676d61": "43000000000"
+      },
+      "b8aa6f60b48ad4cb0f623edc96eb4dffb652b3a2384287b22c8814ac": {
+        "5659464974": "5000000"
+      }
+    }
+  }`;
 }
 
 export default TestData;

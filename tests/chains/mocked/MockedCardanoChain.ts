@@ -32,6 +32,20 @@ class MockedCardanoChain {
   };
 
   /**
+   * mocks CardanoChain generateTransaction method to throw error when called for an event
+   * @param event
+   * @param error
+   */
+  mockGenerateTransactionToThrowError = (
+    event: EventTrigger,
+    error: Error
+  ): void => {
+    when(
+      this.mockedObject.generateTransaction(deepEqual(event), anything())
+    ).thenThrow(error);
+  };
+
+  /**
    * mocks CardanoChain requestToSignTransaction method when called for a tx
    *  Note: currently, specifying argument does not work. ts-mockito deepEqual malfunctions with PaymentTransaction type.
    * @param tx

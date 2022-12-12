@@ -17,7 +17,8 @@
     "paymentConfirmation": 40,
     "lockAddresses": [
       "addr_test1vze7yqqlg8cjlyhz7jzvsg0f3fhxpuu6m3llxrajfzqecggw704re"
-    ]
+    ],
+    "coldStorageAddress": "addr_test1vze7yqqlg8cjlyhz7jzvsg0f3fhxpuu6m3llxrajfzqecggw704re"
   },
   "ergo": {
     "explorer": {
@@ -33,7 +34,8 @@
     "txFee": "1100000",
     "observationConfirmation": 10,
     "eventConfirmation": 15,
-    "distributionConfirmation": 20
+    "distributionConfirmation": 20,
+    "coldStorageAddress": "9es3xKFSehNNwCpuNpY31ScAubDqeLbSWwaCysjN1ee51bgHKTq"
   },
   "reward": {
     "bridgeFeeRepoAddress": "9gtQHPp8yh2SC7z5ZLMHnK2NNW1DUW11hBKbUEADzqCSrECoQQM",
@@ -50,7 +52,13 @@
   },
   "contracts": {
     "networks": ["ergo-testnet", "cardano-testnet"],
-    "addressesBasePath": "tests/helpers/addresses/"
+    "addressesBasePath": "tests/resources/addresses/"
   },
-  "tokensPath": "tests/helpers/tokens.test.json"
+  "coldStorage": {
+    "startHour": 17,
+    "endHour": 19
+  },
+  "tokensPath": "tests/resources/tokens.test.json",
+  "thresholdsPath": "tests/resources/threshold.test.json",
+  "discordWebHookUrl": "https://discord.com/api/webhooks/1000000000000000000/Uy8ogaQfEAUUDVBefgKfUVGXeZJAkssO2m9CdxCAfhIjhRMjxZ-WDYJUwscNXX42Y3bd"
 }

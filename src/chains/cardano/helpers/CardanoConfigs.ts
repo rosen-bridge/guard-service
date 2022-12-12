@@ -71,6 +71,7 @@ class CardanoConfigs {
   static cardanoContractConfig = rosenConfig.contractReader(
     ChainsConstants.cardano
   );
+  static coldAddress: string = config.get<string>('cardano.coldStorageAddress');
 }
 
 export default CardanoConfigs;

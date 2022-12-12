@@ -206,6 +206,10 @@ class EventStatus {
   static inPayment = 'in-payment';
   static inReward = 'in-reward';
   static completed = 'completed';
+  static rejected = 'rejected';
+  static timeout = 'timeout';
+  static paymentWaiting = 'payment-waiting';
+  static rewardWaiting = 'reward-waiting';
 }
 
 class TransactionStatus {
@@ -221,6 +225,7 @@ class TransactionStatus {
 class TransactionTypes {
   static payment = 'payment';
   static reward = 'reward';
+  static coldStorage = 'cold-storage';
 }
 
 export {

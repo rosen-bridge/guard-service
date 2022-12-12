@@ -14,4 +14,4 @@ peer-dialer*.json
 bin/tss.exe
 config/addresses/contracts-*
 config/tokens.json
-
+config/thresholds.json
