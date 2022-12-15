@@ -495,6 +495,9 @@ class Dialer {
         relay: {
           // Circuit Relay options (this config is part of libp2p core configurations)
           enabled: true, // Allows you to dial and accept relayed connections.
+          autoRelay: {
+            enabled: true,
+          },
         },
         pubsub: gossipsub({ allowPublishToZeroPeers: true }),
         peerDiscovery: [
