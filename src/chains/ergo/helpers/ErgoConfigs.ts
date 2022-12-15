@@ -17,8 +17,8 @@ class ErgoConfigs {
     url: config.get<string>('ergo.node.url'),
     timeout: config.get<number>('ergo.node.timeout'), // seconds
   };
-  static minimumErg = BigInt(config.get<string>('ergo.minimumErg'));
-  static txFee = BigInt(config.get<string>('ergo.txFee'));
+  static minimumErg = BigInt(config.get<string>('ergo.minBoxValue'));
+  static txFee = BigInt(config.get<string>('ergo.fee'));
 
   static bridgeFeeRepoAddress: string = config.get?.(
     'reward.bridgeFeeRepoAddress'
@@ -34,14 +34,14 @@ class ErgoConfigs {
   );
 
   static observationConfirmation = config.get<number>(
-    'ergo.observationConfirmation'
+    'ergo.observation.confirmation'
   );
   static eventConfirmation = config.get<number>('ergo.eventConfirmation');
   static distributionConfirmation = config.get<number>(
     'ergo.distributionConfirmation'
   );
   static initialHeight = config.get<number>('ergo.initialHeight');
-  static scannerInterval = config.get<number>('ergo.scannerInterval');
+  static scannerInterval = config.get<number>('ergo.scanner.interval');
 
   /**
    * returns the ergo-related contract, addresses and tokens in rosen bridge

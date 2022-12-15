@@ -16,9 +16,11 @@
     "bankAddress": "addr_test1qrm4haxxgl55kqzhpp3sda8h979gxd4cast340v0eh0p4qzp3vkcrhjqavv9uzsvq86mglwnwe8xp87q3rv8ve54kasqlf7xgl",
     "bankPublicKey": "4444444444444444444444444444444444444444444444444444444444444444",
     "txMinimumLovelace": "1310316",
-    "txFee": "200000",
+    "fee": "200000",
     "txTtl": 100000,
-    "observationConfirmation": 20,
+    "observation": {
+      "confirmation": 15
+    },
     "paymentConfirmation": 20,
     "lockAddresses": ["change-me"],
     "coldStorageAddress": ""
@@ -33,14 +35,16 @@
       "url": "",
       "timeout": 8
     },
-    "minimumErg": "100000",
+    "minBoxValue": "100000",
     "minimumFeeConfigBoxTemplateHash": "",
-    "txFee": "1100000",
+    "fee": "1100000",
     "observationConfirmation": 20,
     "eventConfirmation": 20,
     "distributionConfirmation": 20,
     "initialHeight": 10000,
-    "scannerInterval": 30,
+    "scanner": {
+      "interval": 30
+    },
     "coldStorageAddress": ""
   },
   "reward": {

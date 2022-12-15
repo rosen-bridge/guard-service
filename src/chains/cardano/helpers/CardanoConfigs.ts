@@ -51,14 +51,14 @@ class CardanoConfigs {
   static txMinimumLovelace = BigNum.from_str(
     config.get<string>('cardano.txMinimumLovelace')
   );
-  static txFee = BigNum.from_str(config.get<string>('cardano.txFee'));
+  static txFee = BigNum.from_str(config.get<string>('cardano.fee'));
 
   static assetFingerprintUnitTuples: Map<string, Uint8Array> = new Map([
     ['assetFingerPrint', Buffer.from('assetUnitHexString', 'hex')],
   ]);
 
   static observationConfirmation = config.get<number>(
-    'cardano.observationConfirmation'
+    'cardano.observation.confirmation'
   );
   static paymentConfirmation = config.get<number>(
     'cardano.paymentConfirmation'
