@@ -79,9 +79,6 @@ class Configs {
     }
   };
   static tokenMap = new TokenMap(this.tokens());
-  static minimumFeeConfigBoxTemplateHash = config.get<string>(
-    'ergo.minimumFeeConfigBoxTemplateHash'
-  );
 
   // timeout configs
   static multiSigTimeout = getConfigIntKeyOrDefault('multiSigTimeout', 5 * 60); // seconds

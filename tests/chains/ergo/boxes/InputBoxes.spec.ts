@@ -69,6 +69,8 @@ describe('InputBoxes', () => {
         mockedEvent,
         '',
         Utils.Uint8ArrayToBase64String(eventBox.sigma_serialize_bytes()),
+        1000,
+        '',
         200
       );
       await insertCommitmentBoxRecord(

@@ -8,7 +8,6 @@ import { EventTrigger } from '../models/Models';
 class MinimumFee {
   static bridgeMinimumFee = new BridgeMinimumFee(
     ErgoConfigs.explorer.url,
-    Configs.minimumFeeConfigBoxTemplateHash,
     rosenConfig.rsnRatioNFT
   );
 
@@ -26,7 +25,7 @@ class MinimumFee {
     return await MinimumFee.bridgeMinimumFee.getFee(
       tokenId,
       event.fromChain,
-      event.height
+      event.sourceChainHeight
     );
   };
 }
