@@ -260,10 +260,11 @@ class Dialer {
   }
 
   /**
-   * store dialers' peerID to PeerStore and dials them
+   * Adds an array of peers to address book. Because `autoDial` is enabled, it
+   * causes those peers to be dialed, too.
    * @param peers id of peers
    */
-  addAndDialPeer = async (peers: string[]) => {
+  addPeerToAddressBook = async (peers: string[]) => {
     if (this._node) {
       for (const peer of peers) {
         try {
@@ -273,23 +274,11 @@ class Dialer {
             );
             if (!this.getPeerIds().includes(peer)) {
               this._node?.peerStore.addressBook
-                .set(await createFromJSON({ id: `${peer}` }), [multi])
+                .add(await createFromJSON({ id: `${peer}` }), [multi])
                 .catch((err) => {
                   logger.warn(err);
                 });
-              try {
-                await this._node?.dialProtocol(
-                  multi,
-                  this._SUPPORTED_PROTOCOL.get('MSG')!
-                );
-                this._disconnectedPeers.delete(peer);
-                logger.info(`a peer with peerID [${peer}] added`);
-              } catch (err) {
-                logger.warn(
-                  `An error occurred while dialing peer ${peer}: `,
-                  err
-                );
-              }
+              this._disconnectedPeers.delete(peer);
             }
           }
         } catch (e) {
@@ -455,7 +444,7 @@ class Dialer {
               const nodePeerIds = node
                 .getPeers()
                 .map((peer) => peer.toString());
-              await this.addAndDialPeer(
+              await this.addPeerToAddressBook(
                 receivedData.peerIds.filter(
                   (mainPeer) => !nodePeerIds.includes(mainPeer)
                 )
@@ -524,7 +513,7 @@ class Dialer {
         if (
           !CommunicationConfig.relays.peerIDs.includes(evt.detail.id.toString())
         ) {
-          this.addAndDialPeer([evt.detail.id.toString()]).catch((err) => {
+          this.addPeerToAddressBook([evt.detail.id.toString()]).catch((err) => {
             logger.warn(`Could not dial ${evt.detail.id}`, err);
           });
         }
@@ -567,7 +556,7 @@ class Dialer {
 
       // // Job for connect to disconnected peers
       setInterval(() => {
-        this.addAndDialPeer(Array.from(this._disconnectedPeers));
+        this.addPeerToAddressBook(Array.from(this._disconnectedPeers));
       }, CommunicationConfig.connectToDisconnectedPeersInterval * 1000);
     } catch (e) {
       logger.error(`An error occurred for start dialer: ${e}`);
