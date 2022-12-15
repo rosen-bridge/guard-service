@@ -501,10 +501,20 @@ class Dialer {
       });
 
       // Listen for peers disconnecting
-      node.connectionManager.addEventListener('peer:disconnect', (evt) => {
-        logger.info(`Peer [${evt.detail.remotePeer.toString()}] Disconnected!`);
-        this._disconnectedPeers.add(evt.detail.remotePeer.toString());
-      });
+      node.connectionManager.addEventListener(
+        'peer:disconnect',
+        async (evt) => {
+          const peer = evt.detail.remotePeer.toString();
+
+          logger.info(`Peer [${peer}] Disconnected!`);
+          this._disconnectedPeers.add(peer);
+          this._node?.peerStore.addressBook
+            .delete(await createFromJSON({ id: `${peer}` }))
+            .catch((err) => {
+              logger.warn(err);
+            });
+        }
+      );
 
       // Listen for new peers
       node.addEventListener('peer:discovery', async (evt) => {
