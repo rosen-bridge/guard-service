@@ -414,12 +414,13 @@ class Dialer {
               this._subscribedChannels[receivedData.channel].forEach(
                 runSubscribeCallback
               );
-            } else
+            } else {
               logger.warn(
                 `Received a message from [${connection.remotePeer.toString()}] in a unsubscribed channel [${
                   receivedData.channel
                 }]`
               );
+            }
           }
         } catch (e) {
           logger.warn(`An error occurred for handle stream callback: ${e}`);
