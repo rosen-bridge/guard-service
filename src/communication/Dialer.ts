@@ -54,7 +54,6 @@ type PeerDiscovery = PeerDiscoveryArray extends
 class Dialer {
   private static instance: Dialer;
 
-  private _disconnectedPeers = new Set<string>();
   private _messageQueue = pushable();
   private _node: Libp2p | undefined;
   private _subscribedChannels: SubscribeChannels = {};
@@ -278,7 +277,6 @@ class Dialer {
                 .catch((err) => {
                   logger.warn(err);
                 });
-              this._disconnectedPeers.delete(peer);
             }
           }
         } catch (e) {
@@ -507,7 +505,6 @@ class Dialer {
           const peer = evt.detail.remotePeer.toString();
 
           logger.info(`Peer [${peer}] Disconnected!`);
-          this._disconnectedPeers.add(peer);
           this._node?.peerStore.addressBook
             .delete(await createFromJSON({ id: `${peer}` }))
             .catch((err) => {
@@ -563,11 +560,6 @@ class Dialer {
       setInterval(() => {
         logger.info(`peers are [${this.getPeerIds()}]`);
       }, CommunicationConfig.getPeersInterval * 1000);
-
-      // // Job for connect to disconnected peers
-      setInterval(() => {
-        this.addPeerToAddressBook(Array.from(this._disconnectedPeers));
-      }, CommunicationConfig.connectToDisconnectedPeersInterval * 1000);
     } catch (e) {
       logger.error(`An error occurred for start dialer: ${e}`);
     }

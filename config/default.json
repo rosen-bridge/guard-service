@@ -66,7 +66,6 @@
     "bootstrapTimeout": 10,
     "pubsubInterval": 10,
     "apiCallbackTimeout": 8,
-    "connectToDisconnectedPeersInterval": 40,
     "getPeersInterval": 60,
     "messageSendingRetriesExponentialFactor": 5,
     "messageSendingRetriesMaxCount": 3,
