@@ -69,7 +69,8 @@
     "getPeersInterval": 60,
     "messageSendingRetriesExponentialFactor": 5,
     "messageSendingRetriesMaxCount": 3,
-    "peerIdFilePath": "./peer-dialer.json"
+    "peerIdFilePath": "./peer-dialer.json",
+    "guardsCount": 30
   },
   "multiSigTimeout": null,
   "guard": {

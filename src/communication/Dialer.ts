@@ -486,6 +486,9 @@ class Dialer {
             enabled: true,
           },
         },
+        connectionManager: {
+          minConnections: CommunicationConfig.guardsCount + 10, // We add 10 to handle relays and other possible connections
+        },
         pubsub: gossipsub({ allowPublishToZeroPeers: true }),
         peerDiscovery: [
           bootstrap({

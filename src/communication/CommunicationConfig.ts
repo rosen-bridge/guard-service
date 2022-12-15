@@ -21,6 +21,7 @@ class CommunicationConfig {
   static messageSendingRetriesMaxCount = BigInt(
     config.get<number>('p2p.messageSendingRetriesMaxCount')
   );
+  static guardsCount: number = config.get<number>('p2p.guardsCount');
 }
 
 export default CommunicationConfig;
