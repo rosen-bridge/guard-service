@@ -57,7 +57,6 @@ class Dialer {
   private _disconnectedPeers = new Set<string>();
   private _messageQueue = pushable();
   private _node: Libp2p | undefined;
-  private _pendingDialPeers: string[] = [];
   private _subscribedChannels: SubscribeChannels = {};
 
   private readonly _SUPPORTED_PROTOCOL = new Map<string, string>([
@@ -273,7 +272,6 @@ class Dialer {
               addr.concat(`/p2p-circuit/p2p/${peer}`)
             );
             if (!this.getPeerIds().includes(peer)) {
-              this._pendingDialPeers.push(peer);
               this._node?.peerStore.addressBook
                 .set(await createFromJSON({ id: `${peer}` }), [multi])
                 .catch((err) => {
@@ -290,10 +288,6 @@ class Dialer {
                 logger.warn(
                   `An error occurred while dialing peer ${peer}: `,
                   err
-                );
-              } finally {
-                this._pendingDialPeers = this._pendingDialPeers.filter(
-                  (innerPeer) => innerPeer !== peer
                 );
               }
             }
@@ -338,11 +332,6 @@ class Dialer {
     }
 
     if (!connection) {
-      if (this._pendingDialPeers.includes(peer.toString())) {
-        throw new Error(
-          'The dial to target peer is still pending, the sending will be retried soon.'
-        );
-      }
       connection = await node.dial(peer);
     }
     if (!stream) {
@@ -523,9 +512,6 @@ class Dialer {
       node.connectionManager.addEventListener('peer:disconnect', (evt) => {
         logger.info(`Peer [${evt.detail.remotePeer.toString()}] Disconnected!`);
         this._disconnectedPeers.add(evt.detail.remotePeer.toString());
-        this._pendingDialPeers = this._pendingDialPeers.filter(
-          (peer) => peer !== evt.detail.remotePeer.toString()
-        );
       });
 
       // Listen for new peers
@@ -533,10 +519,7 @@ class Dialer {
         logger.info(`Found peer ${evt.detail.id.toString()}`);
         // dial them when we discover them
         if (
-          !CommunicationConfig.relays.peerIDs.includes(
-            evt.detail.id.toString()
-          ) &&
-          !this._pendingDialPeers.includes(evt.detail.id.toString())
+          !CommunicationConfig.relays.peerIDs.includes(evt.detail.id.toString())
         ) {
           this.addAndDialPeer([evt.detail.id.toString()]).catch((err) => {
             logger.warn(`Could not dial ${evt.detail.id}`, err);
