@@ -26,6 +26,7 @@ class EventTrigger implements EventTriggerModel {
   sourceTxId: string;
   sourceBlockId: string;
   height: number;
+  sourceChainHeight: number;
   WIDs: string[];
 
   constructor(
@@ -41,6 +42,7 @@ class EventTrigger implements EventTriggerModel {
     sourceTxId: string,
     sourceBlockId: string,
     height: number,
+    sourceChainHeight: number,
     WIDs: string[]
   ) {
     this.eventId = Utils.txIdToEventId(sourceTxId);
@@ -56,6 +58,7 @@ class EventTrigger implements EventTriggerModel {
     this.sourceTxId = sourceTxId;
     this.sourceBlockId = sourceBlockId;
     this.height = height;
+    this.sourceChainHeight = sourceChainHeight;
     this.WIDs = WIDs;
   }
 
@@ -87,6 +90,7 @@ class EventTrigger implements EventTriggerModel {
       eventEntity.sourceTxId,
       eventEntity.sourceBlockId,
       eventEntity.height,
+      eventEntity.sourceChainHeight,
       eventEntity.WIDs.split(',').filter((wid) => wid !== '')
     );
   };
