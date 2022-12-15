@@ -70,7 +70,8 @@
     "messageSendingRetriesExponentialFactor": 5,
     "messageSendingRetriesMaxCount": 3,
     "peerIdFilePath": "./peer-dialer.json",
-    "guardsCount": 30
+    "guardsCount": 30,
+    "allowedStreamsPerGuard": 3
   },
   "multiSigTimeout": null,
   "guard": {

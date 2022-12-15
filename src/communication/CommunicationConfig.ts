@@ -22,6 +22,9 @@ class CommunicationConfig {
     config.get<number>('p2p.messageSendingRetriesMaxCount')
   );
   static guardsCount: number = config.get<number>('p2p.guardsCount');
+  static allowedStreamsPerGuard: number = config.get<number>(
+    'p2p.allowedStreamsPerGuard'
+  );
 }
 
 export default CommunicationConfig;

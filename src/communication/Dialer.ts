@@ -535,6 +535,14 @@ class Dialer {
         async ({ stream, connection }) => {
           // Read the stream
           this.handleBroadcast(stream, connection);
+        },
+        {
+          maxInboundStreams:
+            CommunicationConfig.guardsCount *
+            CommunicationConfig.allowedStreamsPerGuard,
+          maxOutboundStreams:
+            CommunicationConfig.guardsCount *
+            CommunicationConfig.allowedStreamsPerGuard,
         }
       );
 
@@ -558,6 +566,31 @@ class Dialer {
 
       // this should call after createRelayConnection duo to peerId should save after create relay connection
       await Dialer.savePeerIdIfNeeded(peerId);
+
+      /**
+       * TODO: This is not the ideal way to increase the streams limits, but there
+       * seems to be no other way to do it with current libp2p apis. It needs to
+       * be changed if such an api is added in the future.
+       *
+       * Related issues:
+       * - https://github.com/libp2p/js-libp2p/issues/1518
+       * - https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/99
+       */
+      const handler = node.registrar.getHandler('/libp2p/circuit/relay/0.1.0');
+      node.registrar.unhandle('/libp2p/circuit/relay/0.1.0');
+      await node.registrar.handle(
+        '/libp2p/circuit/relay/0.1.0',
+        handler.handler,
+        {
+          ...handler.options,
+          maxInboundStreams:
+            CommunicationConfig.guardsCount *
+            CommunicationConfig.allowedStreamsPerGuard,
+          maxOutboundStreams:
+            CommunicationConfig.guardsCount *
+            CommunicationConfig.allowedStreamsPerGuard,
+        }
+      );
 
       // Job for log all peers
       setInterval(() => {
