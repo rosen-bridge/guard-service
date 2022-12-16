@@ -64,6 +64,7 @@ class TestBoxes {
       'lovelace',
       TestUtils.generateRandomId(),
       '',
+      TestConfigs.ergo.blockchainHeight - 20,
       TestConfigs.ergo.blockchainHeight - 40,
       []
     );
@@ -85,6 +86,7 @@ class TestBoxes {
       'asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3',
       TestUtils.generateRandomId(),
       '',
+      TestConfigs.ergo.blockchainHeight - 20,
       TestConfigs.ergo.blockchainHeight - 40,
       []
     );
@@ -106,6 +108,7 @@ class TestBoxes {
       '0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95',
       '928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b',
       'f75fea40852ed7d7f539d008e45255725daef8553ae7162750836f279570813a',
+      TestConfigs.ergo.blockchainHeight - 20,
       TestConfigs.cardano.blockchainHeight - 100,
       []
     );
@@ -127,6 +130,7 @@ class TestBoxes {
       '0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95',
       '928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b',
       'f75fea40852ed7d7f539d008e45255725daef8553ae7162750836f279570813a',
+      TestConfigs.ergo.blockchainHeight - 20,
       TestConfigs.cardano.blockchainHeight - 100,
       []
     );
@@ -148,6 +152,7 @@ class TestBoxes {
       '0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95',
       '028052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b',
       'f75fea40852ed7d7f539d008e45255725daef8553ae7162750836f279570813a',
+      TestConfigs.ergo.blockchainHeight - 20,
       TestConfigs.cardano.blockchainHeight - 100,
       []
     );
@@ -169,6 +174,7 @@ class TestBoxes {
       '0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95',
       '128052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b',
       'f75fea40852ed7d7f539d008e45255725daef8553ae7162750836f279570813a',
+      TestConfigs.ergo.blockchainHeight - 20,
       TestConfigs.cardano.blockchainHeight - 100,
       []
     );
@@ -190,6 +196,7 @@ class TestBoxes {
       '064c58ea394d41fada074a3c560a132467adf4ca1512c409c014c625ca285e9c',
       '00ee077854471a04fbef18a5a971b50fb39f52fc6f6b3b8d0682ce2c48f6ebef',
       'f75fea40852ed7d7f539d008e45255725daef8553ae7162750836f279570813a',
+      TestConfigs.ergo.blockchainHeight - 20,
       TestConfigs.cardano.blockchainHeight - 100,
       []
     );
@@ -211,6 +218,7 @@ class TestBoxes {
       '0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95',
       '928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b',
       'f75fea40852ed7d7f539d008e45255725daef8553ae7162750836f279570813a',
+      TestConfigs.ergo.blockchainHeight - 20,
       TestConfigs.cardano.blockchainHeight - 100,
       []
     );
@@ -232,6 +240,7 @@ class TestBoxes {
       '0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95',
       '928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b',
       'f75fea40852ed7d7f539d008e45255725daef8553ae7162750836f279570813a',
+      TestConfigs.ergo.blockchainHeight - 20,
       TestConfigs.cardano.blockchainHeight - 100,
       []
     );
@@ -253,6 +262,7 @@ class TestBoxes {
       '0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95',
       '928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b',
       'f75fea40852ed7d7f539d008e45255725daef8553ae7162750836f279570813a',
+      TestConfigs.ergo.blockchainHeight - 20,
       TestConfigs.cardano.blockchainHeight - 100,
       []
     );
@@ -274,6 +284,7 @@ class TestBoxes {
       '0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95',
       '928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b',
       'f75fea40852ed7d7f539d008e45255725daef8553ae7162750836f279570813a',
+      TestConfigs.ergo.blockchainHeight - 20,
       TestConfigs.cardano.blockchainHeight - 100,
       []
     );
@@ -295,6 +306,7 @@ class TestBoxes {
       '0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95',
       '928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b',
       'f75fea40852ed7d7f539d008e45255725daef8553ae7162750836f279570813a',
+      TestConfigs.ergo.blockchainHeight - 20,
       TestConfigs.cardano.blockchainHeight - 100,
       []
     );
@@ -316,6 +328,7 @@ class TestBoxes {
       '0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95',
       '928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b',
       'f75fea40852ed7d7f539d008e45255725daef8553ae7162750836f279570813a',
+      TestConfigs.ergo.blockchainHeight - 20,
       TestConfigs.cardano.blockchainHeight - 100,
       []
     );
@@ -337,6 +350,7 @@ class TestBoxes {
       '0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95',
       '928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b',
       'f75fea40852ed7d7f539d008e45255725daef8553ae7162750836f279570813a',
+      TestConfigs.ergo.blockchainHeight - 20,
       TestConfigs.cardano.blockchainHeight - 100,
       []
     );
@@ -358,6 +372,7 @@ class TestBoxes {
       '1034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95',
       '928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b',
       'f75fea40852ed7d7f539d008e45255725daef8553ae7162750836f279570813a',
+      TestConfigs.ergo.blockchainHeight - 20,
       TestConfigs.cardano.blockchainHeight - 100,
       []
     );
@@ -379,6 +394,7 @@ class TestBoxes {
       '0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95',
       '0f32ad374daefdce563e3391effc4fc42eb0e74bbec8afe16a46eeea69e3b2aa',
       'f75fea40852ed7d7f539d008e45255725daef8553ae7162750836f279570813a',
+      TestConfigs.ergo.blockchainHeight - 20,
       TestConfigs.cardano.blockchainHeight - 100,
       []
     );
@@ -400,6 +416,7 @@ class TestBoxes {
       '0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95',
       '928052b80bfc23801da525a6bf8f805da36f22fa0fd5fec2198b0746eb82b72b',
       '03395496d590ec6db0f2fd13a7bcf91e82a9f230ef677f6216ea8c9f57df6ab3',
+      TestConfigs.ergo.blockchainHeight - 20,
       TestConfigs.cardano.blockchainHeight - 100,
       []
     );

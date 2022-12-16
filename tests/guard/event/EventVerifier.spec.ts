@@ -56,6 +56,7 @@ describe('EventVerifier', () => {
         '',
         TestUtils.generateRandomId(),
         '',
+        TestConfigs.ergo.blockchainHeight - 20,
         TestConfigs.cardano.blockchainHeight - 100,
         []
       );
@@ -97,6 +98,7 @@ describe('EventVerifier', () => {
         '',
         txId,
         '',
+        TestConfigs.ergo.blockchainHeight - 20,
         TestConfigs.ergo.blockchainHeight - 40,
         []
       );
@@ -139,6 +141,7 @@ describe('EventVerifier', () => {
         '',
         txId,
         '',
+        TestConfigs.ergo.blockchainHeight - 20,
         TestConfigs.cardano.blockchainHeight - 100,
         []
       );

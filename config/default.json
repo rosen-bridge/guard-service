@@ -36,7 +36,6 @@
       "timeout": 8
     },
     "minBoxValue": "100000",
-    "minimumFeeConfigBoxTemplateHash": "",
     "fee": "1100000",
     "observationConfirmation": 20,
     "eventConfirmation": 20,

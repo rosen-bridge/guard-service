@@ -132,15 +132,17 @@ const clearTables = async () => {
  * @param event
  * @param status
  * @param boxSerialized
- * @param height
+ * @param sourceChainHeight
  * @param firstTry
+ * @param eventHeight
  */
 const insertEventRecord = async (
   event: EventTrigger,
   status: string,
   boxSerialized = 'boxSerialized',
-  height = 200,
-  firstTry?: string
+  sourceChainHeight = 300,
+  firstTry?: string,
+  eventHeight = 200
 ) => {
   await testScannerDataBase.EventRepository.createQueryBuilder()
     .insert()
@@ -149,7 +151,7 @@ const insertEventRecord = async (
       boxId: TestUtils.generateRandomId(),
       boxSerialized: boxSerialized,
       block: 'blockId',
-      height: height,
+      height: eventHeight,
       fromChain: event.fromChain,
       toChain: event.toChain,
       fromAddress: event.fromAddress,
@@ -162,6 +164,7 @@ const insertEventRecord = async (
       sourceTxId: event.sourceTxId,
       sourceBlockId: event.sourceBlockId,
       WIDs: event.WIDs.join(','),
+      sourceChainHeight: sourceChainHeight,
     })
     .execute();
   const eventData =
@@ -184,13 +187,14 @@ const insertEventRecord = async (
  * inserts a record only to Event table in db
  * @param event
  * @param boxSerialized
- * @param height
+ * @param sourceChainHeight
  */
 const insertOnyEventDataRecord = async (
   event: EventTrigger,
   boxSerialized = 'boxSerialized',
-  height = 200
+  sourceChainHeight = 200
 ) => {
+  const height = 300;
   await testScannerDataBase.EventRepository.createQueryBuilder()
     .insert()
     .values({
@@ -210,6 +214,7 @@ const insertOnyEventDataRecord = async (
       targetChainTokenId: event.targetChainTokenId,
       sourceTxId: event.sourceTxId,
       sourceBlockId: event.sourceBlockId,
+      sourceChainHeight: sourceChainHeight,
       WIDs: event.WIDs.join(','),
     })
     .execute();

@@ -1,4 +1,4 @@
-import { ErgoScanner } from '@rosen-bridge/scanner';
+import { ErgoNodeScanner } from '@rosen-bridge/scanner';
 import ergoConfigs from '../chains/ergo/helpers/ErgoConfigs';
 import { dataSource } from '../../config/dataSource';
 import {
@@ -8,7 +8,7 @@ import {
 import CardanoConfigs from '../chains/cardano/helpers/CardanoConfigs';
 import ErgoConfigs from '../chains/ergo/helpers/ErgoConfigs';
 
-let ergoScanner: ErgoScanner;
+let ergoScanner: ErgoNodeScanner;
 
 /**
  * runs ergo block scanner
@@ -29,7 +29,7 @@ const initScanner = () => {
     initialHeight: ergoConfigs.initialHeight,
     dataSource
   };
-  ergoScanner = new ErgoScanner(scannerConfig);
+  ergoScanner = new ErgoNodeScanner(scannerConfig);
   const cardanoCommitmentExtractor = new CommitmentExtractor(
     'cardanoCommitment',
     [CardanoConfigs.cardanoContractConfig.commitmentAddress],
