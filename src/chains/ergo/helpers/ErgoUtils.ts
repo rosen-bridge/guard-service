@@ -182,11 +182,6 @@ class ErgoUtils {
           amount = box.assets[0].amount.toString();
           tokenId = box.assets[0].tokenId;
         }
-        console.log(`toChain: ${Buffer.from(R4[0]).toString()}`);
-        console.log(`toAddress: ${Buffer.from(R4[1]).toString()}`);
-        console.log(`networkFee: ${Buffer.from(R4[2]).toString()}`);
-        console.log(`bridgeFee: ${Buffer.from(R4[3]).toString()}`);
-        console.log(`fromAddress: ${Buffer.from(R4[4]).toString()}`);
         return {
           toChain: Buffer.from(R4[0]).toString(),
           toAddress: Buffer.from(R4[1]).toString(),
