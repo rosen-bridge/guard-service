@@ -2,7 +2,6 @@ import fs from 'fs';
 import ErgoUtils from '../chains/ergo/helpers/ErgoUtils';
 import { Contract } from 'ergo-lib-wasm-nodejs';
 import Configs from './Configs';
-import { logger } from '../log/Logger';
 
 class ContractConfig {
   readonly cleanupNFT: string;

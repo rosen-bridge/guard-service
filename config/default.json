@@ -11,7 +11,7 @@
       "timeout": 8
     },
     "blockFrost": {
-      "projectId": "change me"
+      "projectId": "change"
     },
     "bankAddress": "addr_test1qrm4haxxgl55kqzhpp3sda8h979gxd4cast340v0eh0p4qzp3vkcrhjqavv9uzsvq86mglwnwe8xp87q3rv8ve54kasqlf7xgl",
     "bankPublicKey": "4444444444444444444444444444444444444444444444444444444444444444",
@@ -22,7 +22,7 @@
       "confirmation": 15
     },
     "paymentConfirmation": 20,
-    "lockAddresses": ["change-me"],
+    "lockAddresses": ["change"],
     "coldStorageAddress": ""
   },
   "ergo": {
@@ -63,8 +63,8 @@
   "p2p": {
     "addresses": [
       {
-        "peerId": "changeme",
-        "address": "changeme"
+        "peerId": "change",
+        "address": "change"
       }
     ],
     "bootstrapTimeout": 10,
