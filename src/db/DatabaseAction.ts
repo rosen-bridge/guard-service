@@ -1,6 +1,6 @@
 import { DataSource, In, IsNull, LessThan, Not, Repository } from 'typeorm';
 import { ConfirmedEventEntity } from './entities/ConfirmedEventEntity';
-import { ormDataSource } from '../../config/ormDataSource';
+import { dataSource } from '../../config/dataSource';
 import { TransactionEntity } from './entities/TransactionEntity';
 import {
   EventStatus,
@@ -359,6 +359,6 @@ class DatabaseAction {
   };
 }
 
-const dbAction = new DatabaseAction(ormDataSource);
+const dbAction = new DatabaseAction(dataSource);
 
 export { DatabaseAction, dbAction };

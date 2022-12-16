@@ -1,6 +1,6 @@
 import { ErgoScanner } from '@rosen-bridge/scanner';
 import ergoConfigs from '../chains/ergo/helpers/ErgoConfigs';
-import { ormDataSource } from '../../config/ormDataSource';
+import { dataSource } from '../../config/dataSource';
 import {
   CommitmentExtractor,
   EventTriggerExtractor,
@@ -27,18 +27,18 @@ const initScanner = () => {
     nodeUrl: ergoConfigs.node.url,
     timeout: ergoConfigs.node.timeout * 1000,
     initialHeight: ergoConfigs.initialHeight,
-    dataSource: ormDataSource,
+    dataSource
   };
   ergoScanner = new ErgoScanner(scannerConfig);
   const cardanoCommitmentExtractor = new CommitmentExtractor(
     'cardanoCommitment',
     [CardanoConfigs.cardanoContractConfig.commitmentAddress],
     CardanoConfigs.cardanoContractConfig.RWTId,
-    ormDataSource
+    dataSource
   );
   const cardanoEventTriggerExtractor = new EventTriggerExtractor(
     'cardanoEventTrigger',
-    ormDataSource,
+    dataSource,
     CardanoConfigs.cardanoContractConfig.eventTriggerAddress,
     CardanoConfigs.cardanoContractConfig.RWTId
   );
@@ -46,11 +46,11 @@ const initScanner = () => {
     'ergoCommitment',
     [ErgoConfigs.ergoContractConfig.commitmentAddress],
     ErgoConfigs.ergoContractConfig.RWTId,
-    ormDataSource
+    dataSource
   );
   const ergoEventTriggerExtractor = new EventTriggerExtractor(
     'ergoEventTrigger',
-    ormDataSource,
+    dataSource,
     ErgoConfigs.ergoContractConfig.eventTriggerAddress,
     ErgoConfigs.ergoContractConfig.RWTId
   );
