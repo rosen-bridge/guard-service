@@ -82,7 +82,7 @@
     "configUpdateInterval": 180
   },
   "contracts": {
-    "addressesBasePath": "config/addresses/"
+    "addressesBasePath": "config/rosen/"
   },
   "networks": ["ergo", "cardano"],
   "logs": {
