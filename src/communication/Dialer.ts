@@ -272,7 +272,7 @@ class Dialer {
               addr.concat(`/p2p-circuit/p2p/${peer}`)
             );
             if (!this.getPeerIds().includes(peer)) {
-              this._node?.peerStore.addressBook
+              this._node.peerStore.addressBook
                 .add(await createFromJSON({ id: `${peer}` }), [multi])
                 .catch((err) => {
                   logger.warn(err);
@@ -282,6 +282,22 @@ class Dialer {
         } catch (e) {
           logger.warn(`An error occurred for store discovered peer: ${e}`);
         }
+      }
+    }
+  };
+
+  /**
+   * Removes a peer from the address book.
+   * @param peer id of peer
+   */
+  removePeerFromAddressBook = async (peer: string) => {
+    if (this._node) {
+      try {
+        await this._node.peerStore.addressBook.delete(
+          await createFromJSON({ id: `${peer}` })
+        );
+      } catch (error) {
+        logger.error(error);
       }
     }
   };
@@ -508,11 +524,7 @@ class Dialer {
           const peer = evt.detail.remotePeer.toString();
 
           logger.info(`Peer [${peer}] Disconnected!`);
-          this._node?.peerStore.addressBook
-            .delete(await createFromJSON({ id: `${peer}` }))
-            .catch((err) => {
-              logger.warn(err);
-            });
+          this.removePeerFromAddressBook(peer);
         }
       );
 
