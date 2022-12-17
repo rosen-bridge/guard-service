@@ -23,12 +23,14 @@ import { EventTrigger, PaymentTransaction } from '../../../src/models/Models';
 import { dbAction, DatabaseAction } from '../../../src/db/DatabaseAction';
 
 import Utils from '../../../src/helpers/Utils';
-import { logger } from '../../../src/log/Logger';
+import { loggerFactory } from '../../../src/log/Logger';
 
 import TestUtils from '../../testUtils/TestUtils';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+const logger = loggerFactory(import.meta.url);
 
 // TODO: datasource config
 //  fix entities directories

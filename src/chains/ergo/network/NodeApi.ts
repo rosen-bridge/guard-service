@@ -6,13 +6,15 @@ import {
 } from 'ergo-lib-wasm-nodejs';
 import { ErgoBlockHeader } from '../models/Interfaces';
 import ErgoConfigs from '../helpers/ErgoConfigs';
-import { logger } from '../../../log/Logger';
+import { loggerFactory } from '../../../log/Logger';
 import {
   FailedError,
   NetworkError,
   NotFoundError,
   UnexpectedApiError,
 } from '../../../helpers/errors';
+
+const logger = loggerFactory(import.meta.url);
 
 class NodeApi {
   static nodeClient = axios.create({

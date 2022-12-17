@@ -4,7 +4,9 @@ import ErgoUtils from '../chains/ergo/helpers/ErgoUtils';
 import { Buffer } from 'buffer';
 import pkg from 'secp256k1';
 import Configs from './Configs';
-import { logger } from '../log/Logger';
+import { loggerFactory } from '../log/Logger';
+
+const logger = loggerFactory(import.meta.url);
 
 class GuardConfig {
   publicKeys: Array<string>;

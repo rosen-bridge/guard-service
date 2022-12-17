@@ -23,9 +23,11 @@ import {
 import BaseChain from '../chains/BaseChains';
 import { Semaphore } from 'await-semaphore';
 import { txJsonParser } from '../chains/TxJsonParser';
-import { logger } from '../log/Logger';
+import { loggerFactory } from '../log/Logger';
 import { ChainNotImplemented } from '../helpers/errors';
 import { BlockfrostServerError } from '@blockfrost/blockfrost-js';
+
+const logger = loggerFactory(import.meta.url);
 
 class TransactionProcessor {
   static cardanoChain = new CardanoChain();

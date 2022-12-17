@@ -1,4 +1,4 @@
-import { logger } from '../../log/Logger';
+import { loggerFactory } from '../../log/Logger';
 import ExplorerApi from '../../chains/ergo/network/ExplorerApi';
 import ErgoConfigs from '../../chains/ergo/helpers/ErgoConfigs';
 import Configs from '../../helpers/Configs';
@@ -20,6 +20,8 @@ import { Buffer } from 'buffer';
 import CardanoUtils from '../../chains/cardano/helpers/CardanoUtils';
 import Utils from '../../helpers/Utils';
 import { UtxoBoxesAssets } from '../../chains/cardano/models/Interfaces';
+
+const logger = loggerFactory(import.meta.url);
 
 class ColdStorage {
   /**

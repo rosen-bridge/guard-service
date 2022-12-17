@@ -12,7 +12,7 @@ import EventVerifier from './EventVerifier';
 import { txAgreement } from '../agreement/TxAgreement';
 import Reward from '../../chains/ergo/Reward';
 import Utils from '../../helpers/Utils';
-import { logger } from '../../log/Logger';
+import { loggerFactory } from '../../log/Logger';
 import { ErgoBox } from 'ergo-lib-wasm-nodejs';
 import MinimumFee from '../MinimumFee';
 import {
@@ -21,6 +21,8 @@ import {
 } from '../../helpers/errors';
 import Configs from '../../helpers/Configs';
 import DiscordNotification from '../../communication/notification/DiscordNotification';
+
+const logger = loggerFactory(import.meta.url);
 
 class EventProcessor {
   static cardanoChain = new CardanoChain();

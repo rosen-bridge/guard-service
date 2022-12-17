@@ -1,6 +1,8 @@
 import { WebhookClient } from 'discord.js';
 import Configs from '../../helpers/Configs';
-import { logger } from '../../log/Logger';
+import { loggerFactory } from '../../log/Logger';
+
+const logger = loggerFactory(import.meta.url);
 
 class DiscordNotification {
   static hookClient = new WebhookClient({

@@ -35,7 +35,7 @@ import Configs from '../../helpers/Configs';
 import Utils from '../../helpers/Utils';
 import { JsonBI } from '../../network/NetworkModels';
 import { guardConfig } from '../../helpers/GuardConfig';
-import { logger } from '../../log/Logger';
+import { loggerFactory } from '../../log/Logger';
 import { Fee } from '@rosen-bridge/minimum-fee';
 import MinimumFee from '../../guard/MinimumFee';
 import {
@@ -45,6 +45,8 @@ import {
   NotFoundError,
   NotEnoughAssetsError,
 } from '../../helpers/errors';
+
+const logger = loggerFactory(import.meta.url);
 
 class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
   lockAddress = Address.from_base58(ErgoConfigs.ergoContractConfig.lockAddress);

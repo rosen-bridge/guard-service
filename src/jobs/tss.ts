@@ -1,7 +1,9 @@
 import * as childProcess from 'child_process';
 import Configs from '../helpers/Configs';
-import { logger } from '../log/Logger';
+import { loggerFactory } from '../log/Logger';
 const exec = childProcess.exec;
+
+const logger = loggerFactory(import.meta.url);
 
 /**
  * starts tss instance

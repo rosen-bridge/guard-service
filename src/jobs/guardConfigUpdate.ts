@@ -1,6 +1,8 @@
 import { guardConfig } from '../helpers/GuardConfig';
 import Configs from '../helpers/Configs';
-import { logger } from '../log/Logger';
+import { loggerFactory } from '../log/Logger';
+
+const logger = loggerFactory(import.meta.url);
 
 /**
  * updates the guard config periodically

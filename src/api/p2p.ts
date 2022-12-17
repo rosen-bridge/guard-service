@@ -3,8 +3,9 @@ import { apiCallBack } from '../communication/CallbackUtils';
 import Dialer from '../communication/Dialer';
 import { body, validationResult } from 'express-validator';
 import Configs from '../helpers/Configs';
-import { logger } from '../log/Logger';
+import { loggerFactory } from '../log/Logger';
 
+const logger = loggerFactory(import.meta.url);
 const p2pRouter = Router();
 const dialer = await Dialer.getInstance();
 

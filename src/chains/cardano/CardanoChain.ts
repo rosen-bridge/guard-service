@@ -35,7 +35,7 @@ import { dbAction } from '../../db/DatabaseAction';
 import Configs from '../../helpers/Configs';
 import { Buffer } from 'buffer';
 import Utils from '../../helpers/Utils';
-import { logger } from '../../log/Logger';
+import { loggerFactory } from '../../log/Logger';
 import { TssFailedSign, TssSuccessfulSign } from '../../models/Interfaces';
 import { Fee } from '@rosen-bridge/minimum-fee';
 import MinimumFee from '../../guard/MinimumFee';
@@ -46,6 +46,8 @@ import {
   NotFoundError,
   UnexpectedApiError,
 } from '../../helpers/errors';
+
+const logger = loggerFactory(import.meta.url);
 
 class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
   bankAddress = Address.from_bech32(CardanoConfigs.bankAddress);

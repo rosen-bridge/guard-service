@@ -9,7 +9,9 @@ import { ConfirmedEventEntity } from '../db/entities/ConfirmedEventEntity';
 import Utils from '../helpers/Utils';
 import { EventTriggerEntity } from '@rosen-bridge/watcher-data-extractor';
 import { guardConfig } from '../helpers/GuardConfig';
-import { logger } from '../log/Logger';
+import { loggerFactory } from '../log/Logger';
+
+const logger = loggerFactory(import.meta.url);
 
 /* tslint:disable:max-classes-per-file */
 class EventTrigger implements EventTriggerModel {
