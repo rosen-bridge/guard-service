@@ -1,16 +1,27 @@
-import ExplorerApi from '../chains/ergo/network/ExplorerApi';
-import { rosenConfig } from './RosenConfig';
-import ErgoUtils from '../chains/ergo/helpers/ErgoUtils';
 import { Buffer } from 'buffer';
 import pkg from 'secp256k1';
-import Configs from './Configs';
+
 import { logger } from '../log/Logger';
+import ErgoUtils from '../chains/ergo/helpers/ErgoUtils';
+import ExplorerApi from '../chains/ergo/network/ExplorerApi';
+import MultiSigHandler from '../guard/multisig/MultiSig';
+
+import { rosenConfig } from './RosenConfig';
+import Configs from './Configs';
 
 class GuardConfig {
   publicKeys: Array<string>;
   requiredSign: number;
   guardsLen: number;
   guardId: number;
+
+  /**
+   * Apply required changes to multi sig as a result of changes in public keys
+   */
+  private handleMultiSigPublicKeysChange = () => {
+    const multiSig = MultiSigHandler.getInstance();
+    multiSig.handlePublicKeysChange(this.publicKeys);
+  };
 
   /**
    * Sets the guard public keys and required sign config
@@ -27,6 +38,9 @@ class GuardConfig {
           guardBox.additionalRegisters['R5'].serializedValue
         );
         this.publicKeys = r4.map((pk) => Buffer.from(pk).toString('hex'));
+
+        this.handleMultiSigPublicKeysChange();
+
         this.guardsLen = r4.length;
         this.requiredSign = r5[0];
         const guardPk = Buffer.from(

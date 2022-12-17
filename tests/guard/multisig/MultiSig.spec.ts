@@ -239,6 +239,41 @@ describe('MultiSigHandler', () => {
     });
   });
 
+  describe('handlePublicKeysChange', () => {
+    const updatedPublicKeys = [
+      '028d938d67befbb8ab3513c44886c16c2bcd62ed4595b9b216b20ef03eb8fb8fb1',
+      '028d938d67befbb8ab3513c44886c16c2bcd62ed4595b9b216b20ef03eb8fb8fb2',
+      '028d938d67befbb8ab3513c44886c16c2bcd62ed4595b9b216b20ef03eb8fb8fb3',
+      '028d938d67befbb8ab3513c44886c16c2bcd62ed4595b9b216b20ef03eb8fb8fb4',
+      '028d938d67befbb8ab3513c44886c16c2bcd62ed4595b9b216b20ef03eb8fb8fb5',
+      '028d938d67befbb8ab3513c44886c16c2bcd62ed4595b9b216b20ef03eb8fb8fb6',
+      '028d938d67befbb8ab3513c44886c16c2bcd62ed4595b9b216b20ef03eb8fb8fb7',
+    ];
+
+    it('should update peers based on new public keys', () => {
+      const handler = new MultiSigHandler(
+        publicKeys,
+        '5bc1d17d0612e696a9138ab8e85ca2a02d0171440ec128a9ad557c28bd5ea046'
+      );
+
+      handler.handlePublicKeysChange(updatedPublicKeys);
+
+      expect(handler.verifyIndex(6)).to.equal(true);
+    });
+
+    it('should call `sendRegister`', () => {
+      const handler = new MultiSigHandler(
+        publicKeys,
+        '5bc1d17d0612e696a9138ab8e85ca2a02d0171440ec128a9ad557c28bd5ea046'
+      );
+
+      const sendRegisterSpy = sinon.spy(handler, 'sendRegister');
+      handler.handlePublicKeysChange(updatedPublicKeys);
+
+      expect(sendRegisterSpy.calledOnce).to.be.true;
+    });
+  });
+
   describe('handleRegister', () => {
     /**
      * Target: test that handleRegister called sendMessage

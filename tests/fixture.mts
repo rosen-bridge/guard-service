@@ -1,7 +1,12 @@
 import { spy, when } from 'ts-mockito';
+
+/**
+ * Please make sure `MockedDialer` import comes before `GuardConfig`, as the
+ * latter depends a mocked `Dialer` to work as expected.
+ */
+import { resetDialerCalls } from './communication/mocked/MockedDialer';
 import { guardConfig } from '../src/helpers/GuardConfig';
 import { guardPks } from './helpers/testData';
-import { resetDialerCalls } from './communication/mocked/MockedDialer';
 
 export async function mochaGlobalSetup() {
   const spyGuardConfig = spy(guardConfig);
