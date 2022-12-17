@@ -10,9 +10,6 @@ class CommunicationConfig {
   };
   static bootstrapTimeout: number = config.get<number>('p2p.bootstrapTimeout'); // seconds
   static pubsubInterval: number = config.get<number>('p2p.pubsubInterval'); // seconds
-  static connectToDisconnectedPeersInterval: number = config.get<number>(
-    'p2p.connectToDisconnectedPeersInterval'
-  ); // seconds
   static apiCallbackTimeout: number = config.get<number>(
     'p2p.apiCallbackTimeout'
   ); // seconds
@@ -23,6 +20,10 @@ class CommunicationConfig {
   );
   static messageSendingRetriesMaxCount = BigInt(
     config.get<number>('p2p.messageSendingRetriesMaxCount')
+  );
+  static guardsCount: number = config.get<number>('p2p.guardsCount');
+  static allowedStreamsPerGuard: number = config.get<number>(
+    'p2p.allowedStreamsPerGuard'
   );
 }
 
