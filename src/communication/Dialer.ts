@@ -263,7 +263,7 @@ class Dialer {
    * causes those peers to be dialed, too.
    * @param peers id of peers
    */
-  addPeerToAddressBook = async (peers: string[]) => {
+  addPeersToAddressBook = async (peers: string[]) => {
     if (this._node) {
       for (const peer of peers) {
         try {
@@ -458,7 +458,7 @@ class Dialer {
               const nodePeerIds = node
                 .getPeers()
                 .map((peer) => peer.toString());
-              await this.addPeerToAddressBook(
+              await this.addPeersToAddressBook(
                 receivedData.peerIds.filter(
                   (mainPeer) => !nodePeerIds.includes(mainPeer)
                 )
@@ -535,9 +535,11 @@ class Dialer {
         if (
           !CommunicationConfig.relays.peerIDs.includes(evt.detail.id.toString())
         ) {
-          this.addPeerToAddressBook([evt.detail.id.toString()]).catch((err) => {
-            logger.warn(`Could not dial ${evt.detail.id}`, err);
-          });
+          this.addPeersToAddressBook([evt.detail.id.toString()]).catch(
+            (err) => {
+              logger.warn(`Could not dial ${evt.detail.id}`, err);
+            }
+          );
         }
       });
 
