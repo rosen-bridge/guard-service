@@ -250,6 +250,19 @@ describe('MultiSigHandler', () => {
       '028d938d67befbb8ab3513c44886c16c2bcd62ed4595b9b216b20ef03eb8fb8fb7',
     ];
 
+    /**
+     * Target:
+     * It should update peers based on new public keys.
+     *
+     * Dependencies:
+     * None
+     *
+     * Scenario:
+     * Create an instance and call `handlePublicKeysChange` with new public keys
+     *
+     * Expected output:
+     * The peers should be changed
+     */
     it('should update peers based on new public keys', () => {
       const handler = new MultiSigHandler(
         publicKeys,
@@ -261,6 +274,19 @@ describe('MultiSigHandler', () => {
       expect(handler.verifyIndex(6)).to.equal(true);
     });
 
+    /**
+     * Target:
+     * It should call `sendRegister`
+     *
+     * Dependencies:
+     * None
+     *
+     * Scenario:
+     * Create an instance and call `handlePublicKeysChange` with new public keys
+     *
+     * Expected output:
+     * The `sendRegister` method should get called
+     */
     it('should call `sendRegister`', () => {
       const handler = new MultiSigHandler(
         publicKeys,
