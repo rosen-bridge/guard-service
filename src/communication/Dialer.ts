@@ -259,6 +259,12 @@ class Dialer {
   }
 
   /**
+   * Creates a `PeerId` object from a string
+   * @param id peer id string
+   */
+  private createFromString = (id: string) => createFromJSON({ id });
+
+  /**
    * Adds an array of peers to address book. Because `autoDial` is enabled, it
    * causes those peers to be dialed, too.
    * @param peers id of peers
@@ -273,7 +279,7 @@ class Dialer {
             );
             if (!this.getPeerIds().includes(peer)) {
               this._node.peerStore.addressBook
-                .add(await createFromJSON({ id: `${peer}` }), [multi])
+                .add(await this.createFromString(peer), [multi])
                 .catch((err) => {
                   logger.warn(err);
                 });
@@ -294,7 +300,7 @@ class Dialer {
     if (this._node) {
       try {
         await this._node.peerStore.addressBook.delete(
-          await createFromJSON({ id: `${peer}` })
+          await this.createFromString(peer)
         );
       } catch (error) {
         logger.error(error);
@@ -714,7 +720,7 @@ class Dialer {
 
         const connStream = await this.getOpenStreamAndConnection(
           this._node!,
-          await createFromJSON({ id: `${peer}` }),
+          await this.createFromString(peer),
           this._SUPPORTED_PROTOCOL.get('MSG')!
         );
 
