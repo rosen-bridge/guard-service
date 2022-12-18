@@ -11,13 +11,15 @@ import {
 } from '../models/Interfaces';
 import { JsonBI } from '../../../network/NetworkModels';
 import ErgoConfigs from '../helpers/ErgoConfigs';
-import { logger } from '../../../log/Logger';
+import { loggerFactory } from '../../../log/Logger';
 import {
   NetworkError,
   FailedError,
   UnexpectedApiError,
   NotFoundError,
 } from '../../../helpers/errors';
+
+const logger = loggerFactory(import.meta.url);
 
 class ExplorerApi {
   static explorerApi = axios.create({

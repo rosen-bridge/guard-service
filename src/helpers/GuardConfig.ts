@@ -1,13 +1,16 @@
 import { Buffer } from 'buffer';
 import pkg from 'secp256k1';
 
-import { logger } from '../log/Logger';
+import { loggerFactory } from '../log/Logger';
+
 import ErgoUtils from '../chains/ergo/helpers/ErgoUtils';
 import ExplorerApi from '../chains/ergo/network/ExplorerApi';
 import MultiSigHandler from '../guard/multisig/MultiSig';
 
-import { rosenConfig } from './RosenConfig';
 import Configs from './Configs';
+import { rosenConfig } from './RosenConfig';
+
+const logger = loggerFactory(import.meta.url);
 
 class GuardConfig {
   publicKeys: Array<string>;

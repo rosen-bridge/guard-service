@@ -1,8 +1,9 @@
 import { Request, Response, Router } from 'express';
 import CardanoChain from '../chains/cardano/CardanoChain';
 import { body, validationResult } from 'express-validator';
-import { logger } from '../log/Logger';
+import { loggerFactory } from '../log/Logger';
 
+const logger = loggerFactory(import.meta.url);
 export const tssRouter = Router();
 
 /**

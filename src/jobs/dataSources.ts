@@ -1,5 +1,7 @@
 import { ormDataSource } from '../../config/ormDataSource';
-import { logger } from '../log/Logger';
+import { loggerFactory } from '../log/Logger';
+
+const logger = loggerFactory(import.meta.url);
 
 const initDataSources = async (): Promise<void> => {
   try {

@@ -1,7 +1,9 @@
 import axios from 'axios';
 import CommunicationConfig from './CommunicationConfig';
 import { SubscribeChannelWithURL } from './Interfaces';
-import { logger } from '../log/Logger';
+import { loggerFactory } from '../log/Logger';
+
+const logger = loggerFactory(import.meta.url);
 
 const apiCallBack: SubscribeChannelWithURL['func'] = (
   msg,

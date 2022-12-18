@@ -33,7 +33,7 @@ import {
   SubscribeChannels,
   SubscribeChannelWithURL,
 } from './Interfaces';
-import { logger } from '../log/Logger';
+import { loggerFactory } from '../log/Logger';
 import { JsonBI } from '../network/NetworkModels';
 
 /**
@@ -48,6 +48,8 @@ type PeerDiscovery = PeerDiscoveryArray extends
   | undefined
   ? ElementType
   : never;
+
+const logger = loggerFactory(import.meta.url);
 
 // TODO: Need to write test for This package
 //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/21

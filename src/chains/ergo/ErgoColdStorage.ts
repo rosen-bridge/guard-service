@@ -18,9 +18,11 @@ import ExplorerApi from './network/ExplorerApi';
 import { JsonBI } from '../../network/NetworkModels';
 import OutputBoxes from './boxes/OutputBoxes';
 import { TransactionTypes } from '../../models/Models';
-import { logger } from '../../log/Logger';
+import { loggerFactory } from '../../log/Logger';
 import Configs from '../../helpers/Configs';
 import ChainsConstants from '../ChainsConstants';
+
+const logger = loggerFactory(import.meta.url);
 
 class ErgoColdStorage {
   static lockAddress = Address.from_base58(

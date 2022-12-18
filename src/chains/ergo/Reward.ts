@@ -23,10 +23,12 @@ import ChainsConstants from '../ChainsConstants';
 import Utils from '../../helpers/Utils';
 import BoxVerifications from './boxes/BoxVerifications';
 import { JsonBI } from '../../network/NetworkModels';
-import { logger } from '../../log/Logger';
+import { loggerFactory } from '../../log/Logger';
 import { Fee } from '@rosen-bridge/minimum-fee';
 import MinimumFee from '../../guard/MinimumFee';
 import { NotEnoughAssetsError } from '../../helpers/errors';
+
+const logger = loggerFactory(import.meta.url);
 
 class Reward {
   static lockAddress = Address.from_base58(

@@ -17,11 +17,12 @@ import { dbAction } from '../../db/DatabaseAction';
 import TransactionProcessor from '../TransactionProcessor';
 import { txJsonParser } from '../../chains/TxJsonParser';
 import { guardConfig } from '../../helpers/GuardConfig';
-import { logger } from '../../log/Logger';
+import { loggerFactory } from '../../log/Logger';
 import InputBoxes from '../../chains/ergo/boxes/InputBoxes';
 import GuardTurn from '../../helpers/GuardTurn';
 import EventVerifier from '../event/EventVerifier';
 
+const logger = loggerFactory(import.meta.url);
 const dialer = await Dialer.getInstance();
 
 class TxAgreement {
