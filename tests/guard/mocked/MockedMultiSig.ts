@@ -15,6 +15,9 @@ when(
 ).thenThrow(Error('multiSig sign mocked to throw this error'));
 
 const mockedMultiSigHandler = spy(MultiSigHandler);
+when(mockedMultiSigHandler.getInstance()).thenReturn(
+  instance(mockedMultiSigHandlerInstance)
+);
 when(mockedMultiSigHandler.getInstance(anything())).thenReturn(
   instance(mockedMultiSigHandlerInstance)
 );
