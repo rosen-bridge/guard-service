@@ -1,5 +1,4 @@
 {
-  "secret": "3e600b60d82da99c55959df4bb4ceb139cbe434a948251b371c6d9eeb73cb723",
   "express": {
     "port": 8080,
     "jsonBodyLimit": 50
@@ -15,12 +14,10 @@
     },
     "bankAddress": "addr_test1qrm4haxxgl55kqzhpp3sda8h979gxd4cast340v0eh0p4qzp3vkcrhjqavv9uzsvq86mglwnwe8xp87q3rv8ve54kasqlf7xgl",
     "bankPublicKey": "4444444444444444444444444444444444444444444444444444444444444444",
-    "txMinimumLovelace": "1310316",
+    "minUtxoValue": "1310316",
     "fee": "200000",
     "txTtl": 100000,
-    "observation": {
-      "confirmation": 15
-    },
+    "observationConfirmation": 15,
     "paymentConfirmation": 20,
     "lockAddresses": ["change"],
     "coldStorageAddress": ""
@@ -41,9 +38,7 @@
     "eventConfirmation": 20,
     "distributionConfirmation": 20,
     "initialHeight": 10000,
-    "scanner": {
-      "interval": 30
-    },
+    "scannerInterval": 30,
     "coldStorageAddress": ""
   },
   "reward": {

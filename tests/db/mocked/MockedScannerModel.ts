@@ -34,7 +34,7 @@ const __dirname = path.dirname(__filename);
 //  fix entities directories
 //  fix migrations (use package migrations)
 //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/18
-const testScannerOrmDataSource = new DataSource({
+const testScannerDataSource = new DataSource({
   type: 'sqlite',
   database: __dirname + '/../sqlite/test/db.sqlite',
   entities: [
@@ -54,14 +54,14 @@ const testScannerOrmDataSource = new DataSource({
 });
 
 try {
-  await testScannerOrmDataSource.initialize();
-  await testScannerOrmDataSource.runMigrations();
+  await testScannerDataSource.initialize();
+  await testScannerDataSource.runMigrations();
   logger.info('Test Data Source has been initialized!');
 } catch (err) {
   logger.error(`An error occurred while initializing test datasource: ${err}`);
 }
 
-const testScannerDataBase = new DatabaseAction(testScannerOrmDataSource);
+const testScannerDataBase = new DatabaseAction(testScannerDataSource);
 
 // mock all scannerAction methods to call test database methods
 const mockedScannerAction = spy(dbAction);

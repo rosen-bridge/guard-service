@@ -34,14 +34,14 @@ class ErgoConfigs {
   );
 
   static observationConfirmation = config.get<number>(
-    'ergo.observation.confirmation'
+    'ergo.observationConfirmation'
   );
   static eventConfirmation = config.get<number>('ergo.eventConfirmation');
   static distributionConfirmation = config.get<number>(
     'ergo.distributionConfirmation'
   );
   static initialHeight = config.get<number>('ergo.initialHeight');
-  static scannerInterval = config.get<number>('ergo.scanner.interval');
+  static scannerInterval = config.get<number>('ergo.scannerInterval');
 
   /**
    * returns the ergo-related contract, addresses and tokens in rosen bridge

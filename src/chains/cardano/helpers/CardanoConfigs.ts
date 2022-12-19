@@ -49,7 +49,7 @@ class CardanoConfigs {
   // TODO: improve these two parameters: txMinimumLovelace and txFee
   //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/19
   static txMinimumLovelace = BigNum.from_str(
-    config.get<string>('cardano.txMinimumLovelace')
+    config.get<string>('cardano.minUtxoValue')
   );
   static txFee = BigNum.from_str(config.get<string>('cardano.fee'));
 
@@ -58,7 +58,7 @@ class CardanoConfigs {
   ]);
 
   static observationConfirmation = config.get<number>(
-    'cardano.observation.confirmation'
+    'cardano.observationConfirmation'
   );
   static paymentConfirmation = config.get<number>(
     'cardano.paymentConfirmation'
