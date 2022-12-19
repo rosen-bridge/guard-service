@@ -32,10 +32,6 @@ const __dirname = path.dirname(__filename);
 
 const logger = loggerFactory(import.meta.url);
 
-// TODO: datasource config
-//  fix entities directories
-//  fix migrations (use package migrations)
-//  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/18
 const testScannerOrmDataSource = new DataSource({
   type: 'sqlite',
   database: __dirname + '/../sqlite/test/db.sqlite',
