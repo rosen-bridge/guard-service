@@ -647,17 +647,26 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
             event.fromAddress == data.fromAddress &&
             event.sourceBlockId == txInfo.block_hash
           ) {
-            // check if amount is more than fees
-            const feeConfig = await MinimumFee.getEventFeeConfig(event);
-            if (
-              BigInt(event.amount) <
-              Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee) +
-                Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee)
-            ) {
-              logger.info(
-                `Event [${eventId}] is not valid, event amount is less than fees`
+            try {
+              // check if amount is more than fees
+              const feeConfig = await MinimumFee.getEventFeeConfig(event);
+              if (
+                BigInt(event.amount) <
+                Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee) +
+                  Utils.maxBigint(
+                    BigInt(event.networkFee),
+                    feeConfig.networkFee
+                  )
+              ) {
+                logger.info(
+                  `Event [${eventId}] is not valid, event amount is less than fees`
+                );
+                return false;
+              }
+            } catch (e) {
+              throw new UnexpectedApiError(
+                `Failed in comparing event amount to fees: ${e}`
               );
-              return false;
             }
             logger.info(`Event [${eventId}] has been successfully validated`);
             return true;
