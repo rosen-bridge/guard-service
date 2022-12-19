@@ -1,4 +1,4 @@
-import { deepEqual, spy, when } from 'ts-mockito';
+import { anything, deepEqual, resetCalls, spy, verify, when } from 'ts-mockito';
 import KoiosApi from '../../../../src/chains/cardano/network/KoiosApi';
 import {
   AddressInfo,
@@ -52,6 +52,13 @@ const mockKoiosGetAddressInfo = (
 };
 
 /**
+ * verifies KoiosApi getAddressInfo method didn't get called
+ */
+const verifyKoiosGetAddressInfoDidntGetCalled = (): void => {
+  verify(mockedKoios.getAddressInfo(anything())).never();
+};
+
+/**
  * mocks KoiosApi getAddressAssets method to return result when called for address
  * @param address
  * @param result
@@ -63,10 +70,19 @@ const mockKoiosGetAddressAssets = (
   when(mockedKoios.getAddressAssets(address)).thenResolve(result);
 };
 
+/**
+ * reset call counts for mockedKoios
+ */
+const resetKoiosApiCalls = (): void => {
+  resetCalls(mockedKoios);
+};
+
 export {
   mockGetAddressBoxes,
   mockKoiosGetTxInfo,
   mockKoiosGetTxConfirmation,
   mockKoiosGetAddressInfo,
   mockKoiosGetAddressAssets,
+  resetKoiosApiCalls,
+  verifyKoiosGetAddressInfoDidntGetCalled,
 };

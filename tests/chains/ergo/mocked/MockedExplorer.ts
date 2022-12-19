@@ -1,4 +1,4 @@
-import { anything, reset, spy, when } from 'ts-mockito';
+import { anything, reset, spy, verify, when } from 'ts-mockito';
 import ExplorerApi from '../../../../src/chains/ergo/network/ExplorerApi';
 import {
   Boxes,
@@ -113,6 +113,13 @@ const mockExplorerGetAddressAssets = (
 };
 
 /**
+ * verifies ExplorerApi getAddressAssets method didn't get called
+ */
+const verifyExplorerGetAddressAssetsDidntGetCalled = (): void => {
+  verify(mockedExplorer.getAddressAssets(anything())).never();
+};
+
+/**
  * resets mocked methods of ExplorerApi
  */
 const resetMockedExplorerApi = (): void => {
@@ -128,5 +135,6 @@ export {
   mockIsTxInMempool,
   mockIsBoxUnspentAndValid,
   mockExplorerGetAddressAssets,
+  verifyExplorerGetAddressAssetsDidntGetCalled,
   resetMockedExplorerApi,
 };

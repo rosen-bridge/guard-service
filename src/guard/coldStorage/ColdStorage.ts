@@ -20,6 +20,8 @@ import { Buffer } from 'buffer';
 import CardanoUtils from '../../chains/cardano/helpers/CardanoUtils';
 import Utils from '../../helpers/Utils';
 import { UtxoBoxesAssets } from '../../chains/cardano/models/Interfaces';
+import { dbAction } from '../../db/DatabaseAction';
+import { TransactionStatus } from '../../models/Models';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -38,6 +40,16 @@ class ColdStorage {
   static processErgoStorageAssets = async (): Promise<void> => {
     try {
       logger.info('Processing assets in Ergo lock address');
+      const inProgressColdStorageTxs = (
+        await dbAction.getNonCompleteColdStorageTxsInChain(ChainsConstants.ergo)
+      ).filter((tx) => tx.status != TransactionStatus.invalid);
+      if (inProgressColdStorageTxs.length !== 0) {
+        logger.info(
+          'There is already an active cold storage transaction for Ergo chain'
+        );
+        return;
+      }
+
       const assets = await ExplorerApi.getAddressAssets(
         ErgoConfigs.ergoContractConfig.lockAddress
       );
@@ -94,6 +106,18 @@ class ColdStorage {
   static processCardanoStorageAssets = async (): Promise<void> => {
     try {
       logger.info('Processing assets in Cardano lock address');
+      const inProgressColdStorageTxs = (
+        await dbAction.getNonCompleteColdStorageTxsInChain(
+          ChainsConstants.cardano
+        )
+      ).filter((tx) => tx.status != TransactionStatus.invalid);
+      if (inProgressColdStorageTxs.length !== 0) {
+        logger.info(
+          'There is already an active cold storage transaction for Cardano chain'
+        );
+        return;
+      }
+
       const assets = (
         await KoiosApi.getAddressAssets(CardanoConfigs.bankAddress)
       ).assets;
