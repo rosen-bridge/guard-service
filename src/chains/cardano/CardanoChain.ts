@@ -650,16 +650,18 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
             try {
               // check if amount is more than fees
               const feeConfig = await MinimumFee.getEventFeeConfig(event);
-              if (
-                BigInt(event.amount) <
-                Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee) +
-                  Utils.maxBigint(
-                    BigInt(event.networkFee),
-                    feeConfig.networkFee
-                  )
-              ) {
+              const eventAmount = BigInt(event.amount);
+              const usedBridgeFee = Utils.maxBigint(
+                BigInt(event.bridgeFee),
+                feeConfig.bridgeFee
+              );
+              const usedNetworkFee = Utils.maxBigint(
+                BigInt(event.networkFee),
+                feeConfig.networkFee
+              );
+              if (eventAmount < usedBridgeFee + usedNetworkFee) {
                 logger.info(
-                  `Event [${eventId}] is not valid, event amount is less than fees`
+                  `Event [${eventId}] is not valid, event amount [${eventAmount}] is less than sum of bridgeFee [${usedBridgeFee}] and networkFee [${usedNetworkFee}]`
                 );
                 return false;
               }
