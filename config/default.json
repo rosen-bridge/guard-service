@@ -1,5 +1,4 @@
 {
-  "secret": "3e600b60d82da99c55959df4bb4ceb139cbe434a948251b371c6d9eeb73cb723",
   "express": {
     "port": 8080,
     "jsonBodyLimit": 50
@@ -11,16 +10,16 @@
       "timeout": 8
     },
     "blockFrost": {
-      "projectId": "change me"
+      "projectId": "change"
     },
     "bankAddress": "addr_test1qrm4haxxgl55kqzhpp3sda8h979gxd4cast340v0eh0p4qzp3vkcrhjqavv9uzsvq86mglwnwe8xp87q3rv8ve54kasqlf7xgl",
     "bankPublicKey": "4444444444444444444444444444444444444444444444444444444444444444",
-    "txMinimumLovelace": "1310316",
-    "txFee": "200000",
+    "minUtxoValue": "1310316",
+    "fee": "200000",
     "txTtl": 100000,
-    "observationConfirmation": 20,
+    "observationConfirmation": 15,
     "paymentConfirmation": 20,
-    "lockAddresses": ["change-me"],
+    "lockAddresses": ["change"],
     "coldStorageAddress": ""
   },
   "ergo": {
@@ -33,8 +32,8 @@
       "url": "",
       "timeout": 8
     },
-    "minimumErg": "100000",
-    "txFee": "1100000",
+    "minBoxValue": "100000",
+    "fee": "1100000",
     "observationConfirmation": 20,
     "eventConfirmation": 20,
     "distributionConfirmation": 20,
@@ -58,8 +57,8 @@
   "p2p": {
     "addresses": [
       {
-        "peerId": "changeme",
-        "address": "changeme"
+        "peerId": "change",
+        "address": "change"
       }
     ],
     "bootstrapTimeout": 10,
@@ -78,7 +77,7 @@
     "configUpdateInterval": 180
   },
   "contracts": {
-    "addressesBasePath": "config/addresses/"
+    "addressesBasePath": "config/rosen/"
   },
   "networks": ["ergo", "cardano"],
   "logs": {

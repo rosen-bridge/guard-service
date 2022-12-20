@@ -49,9 +49,9 @@ class CardanoConfigs {
   // TODO: improve these two parameters: txMinimumLovelace and txFee
   //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/19
   static txMinimumLovelace = BigNum.from_str(
-    config.get<string>('cardano.txMinimumLovelace')
+    config.get<string>('cardano.minUtxoValue')
   );
-  static txFee = BigNum.from_str(config.get<string>('cardano.txFee'));
+  static txFee = BigNum.from_str(config.get<string>('cardano.fee'));
 
   static assetFingerprintUnitTuples: Map<string, Uint8Array> = new Map([
     ['assetFingerPrint', Buffer.from('assetUnitHexString', 'hex')],

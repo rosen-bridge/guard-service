@@ -22,10 +22,6 @@ const getConfigIntKeyOrDefault = (key: string, defaultValue: number) => {
 };
 
 class Configs {
-  static secret: Uint8Array = Uint8Array.from(
-    Buffer.from(config.get?.('secret') as string, 'hex')
-  );
-
   // express config
   static expressPort = config.get<number>('express.port');
   private static expressBodyLimitValue = config.get<number>(

@@ -24,7 +24,7 @@ const __dirname = path.dirname(__filename);
 //  fix entities directories
 //  fix migrations (use package migrations)
 //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/18
-export const ormDataSource = new DataSource({
+export const dataSource = new DataSource({
   type: 'sqlite',
   database: __dirname + '/../sqlite/db.sqlite',
   entities: [

@@ -15,6 +15,7 @@ import Configs from '../../helpers/Configs';
 import { Semaphore } from 'await-semaphore';
 import Encryption from '../../helpers/Encryption';
 import MultiSigUtils from './MultiSigUtils';
+import { default as Utils } from "../../helpers/Utils";
 import { loggerFactory } from '../../log/Logger';
 
 const logger = loggerFactory(import.meta.url);
@@ -52,9 +53,7 @@ class MultiSigHandler {
       unapproved: [],
     }));
     dialer.subscribeChannel(MultiSigHandler.CHANNEL, this.handleMessage);
-    this.secret = secretHex
-      ? Uint8Array.from(Buffer.from(secretHex, 'hex'))
-      : Configs.secret;
+    this.secret = Utils.hexStringToUint8Array(secretHex || Configs.guardSecret);
   }
 
   public static getInstance: MultiSigGetInstance = (

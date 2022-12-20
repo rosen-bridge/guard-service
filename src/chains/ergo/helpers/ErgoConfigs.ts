@@ -17,8 +17,8 @@ class ErgoConfigs {
     url: config.get<string>('ergo.node.url'),
     timeout: config.get<number>('ergo.node.timeout'), // seconds
   };
-  static minimumErg = BigInt(config.get<string>('ergo.minimumErg'));
-  static txFee = BigInt(config.get<string>('ergo.txFee'));
+  static minimumErg = BigInt(config.get<string>('ergo.minBoxValue'));
+  static txFee = BigInt(config.get<string>('ergo.fee'));
 
   static bridgeFeeRepoAddress: string = config.get?.(
     'reward.bridgeFeeRepoAddress'
