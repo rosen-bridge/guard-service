@@ -5,7 +5,11 @@ import {
   verifyStartAgreementProcessCalledOnce,
   verifyStartAgreementProcessDidntGetCalled,
 } from '../mocked/MockedTxAgreement';
-import { mockExplorerGetAddressAssets } from '../../chains/ergo/mocked/MockedExplorer';
+import {
+  mockExplorerGetAddressAssets,
+  resetMockedExplorerApi,
+  verifyExplorerGetAddressAssetsDidntGetCalled,
+} from '../../chains/ergo/mocked/MockedExplorer';
 import ErgoConfigs from '../../../src/chains/ergo/helpers/ErgoConfigs';
 import {
   mockErgoColdStorageGenerateTx,
@@ -19,6 +23,8 @@ import CardanoTestBoxes from '../../chains/cardano/testUtils/TestBoxes';
 import {
   mockKoiosGetAddressAssets,
   mockKoiosGetAddressInfo,
+  resetKoiosApiCalls,
+  verifyKoiosGetAddressInfoDidntGetCalled,
 } from '../../chains/cardano/mocked/MockedKoios';
 import {
   mockCardanoColdStorageGenerateTx,
@@ -27,15 +33,59 @@ import {
   verifyCardanoColdStorageGenerateTxDidntGetCalled,
 } from '../../chains/mocked/MockedCardanoColdStorage';
 import { reset, spy, when } from 'ts-mockito';
-import GuardTurn from '../../../src/helpers/GuardTurn';
 import { expect } from 'chai';
 import ColdStorageConfig from '../../../src/guard/coldStorage/ColdStorageConfig';
+import TestBoxes from '../../chains/ergo/testUtils/TestBoxes';
+import {
+  clearTables,
+  insertTxRecord,
+} from '../../db/mocked/MockedScannerModel';
+import { TransactionStatus } from '../../../src/models/Models';
 
 describe('ColdStorage', () => {
   describe('processErgoStorageAssets', () => {
     beforeEach('reset mocks', async () => {
+      await clearTables();
+      resetMockedExplorerApi();
       resetMockedErgoColdStorage();
       resetMockedTxAgreement();
+    });
+
+    /**
+     * Target: testing processErgoStorageAssets
+     * Dependencies:
+     *    ExplorerApi
+     *    ErgoColdStorage
+     * Scenario:
+     *    Mock a cold storage tx and insert into database
+     *    Run test
+     *    Check ExplorerApi getAddressAssets method. It should not have called
+     *    Check CardanoColdStorage generateTransaction method. It should not have called
+     *    Check TxAgreement startAgreementProcess method. It should not have called
+     * Expected Output:
+     *    No tx generated
+     */
+    it('should not do anything if there is already an active cold storage transaction in progress', async () => {
+      // mock tx
+      const inProgressTx = ErgoTestBoxes.mockFineColdStorageTransaction(
+        TestBoxes.mockHighErgAssetsAndBankBoxes()[1].boxes
+      );
+      await insertTxRecord(
+        inProgressTx,
+        inProgressTx.txType,
+        inProgressTx.network,
+        TransactionStatus.approved,
+        0,
+        inProgressTx.eventId
+      );
+
+      // run test
+      await ColdStorage.processErgoStorageAssets();
+
+      // verify
+      verifyExplorerGetAddressAssetsDidntGetCalled();
+      verifyErgoColdStorageGenerateTxDidntGetCalled();
+      verifyStartAgreementProcessDidntGetCalled();
     });
 
     /**
@@ -139,8 +189,45 @@ describe('ColdStorage', () => {
 
   describe('processCardanoStorageAssets', () => {
     beforeEach('reset mocks', async () => {
+      await clearTables();
+      resetKoiosApiCalls();
       resetMockedCardanoColdStorage();
       resetMockedTxAgreement();
+    });
+
+    /**
+     * Target: testing processCardanoStorageAssets
+     * Dependencies:
+     *    KoiosApi
+     *    CardanoColdStorage
+     * Scenario:
+     *    Mock a cold storage tx and insert into database
+     *    Run test
+     *    Check KoiosApi getAddressInfo method. It should not have called
+     *    Check CardanoColdStorage generateTransaction method. It should not have called
+     *    Check TxAgreement startAgreementProcess method. It should not have called
+     * Expected Output:
+     *    No tx generated
+     */
+    it('should not do anything if there is already an active cold storage transaction in progress', async () => {
+      // mock tx
+      const inProgressTx = CardanoTestBoxes.mockFineColdStorageTx();
+      await insertTxRecord(
+        inProgressTx,
+        inProgressTx.txType,
+        inProgressTx.network,
+        TransactionStatus.approved,
+        0,
+        inProgressTx.eventId
+      );
+
+      // run test
+      await ColdStorage.processCardanoStorageAssets();
+
+      // verify
+      verifyKoiosGetAddressInfoDidntGetCalled();
+      verifyCardanoColdStorageGenerateTxDidntGetCalled();
+      verifyStartAgreementProcessDidntGetCalled();
     });
 
     /**

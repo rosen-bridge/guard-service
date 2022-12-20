@@ -20,11 +20,13 @@ import { Buffer } from 'buffer';
 import { UtxoBoxesAssets } from './models/Interfaces';
 import BlockFrostApi from './network/BlockFrostApi';
 import { TransactionTypes } from '../../models/Models';
-import { logger } from '../../log/Logger';
+import { loggerFactory } from '../../log/Logger';
 import CardanoUtils from './helpers/CardanoUtils';
 import Configs from '../../helpers/Configs';
 import ChainsConstants from '../ChainsConstants';
 import Utils from '../../helpers/Utils';
+
+const logger = loggerFactory(import.meta.url);
 
 class CardanoColdStorage {
   static lockAddress = Address.from_bech32(CardanoConfigs.bankAddress);

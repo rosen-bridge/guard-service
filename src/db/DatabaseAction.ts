@@ -13,7 +13,9 @@ import {
   EventTriggerEntity,
 } from '@rosen-bridge/watcher-data-extractor';
 import Utils from '../helpers/Utils';
-import { logger } from '../log/Logger';
+import { loggerFactory } from '../log/Logger';
+
+const logger = loggerFactory(import.meta.url);
 
 class DatabaseAction {
   dataSource: DataSource;

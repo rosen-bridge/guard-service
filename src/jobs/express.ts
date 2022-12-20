@@ -3,7 +3,9 @@ import Configs from '../helpers/Configs';
 import { p2pRouter } from '../api/p2p';
 import Dialer from '../communication/Dialer';
 import { tssRouter } from '../api/tss';
-import { logger } from '../log/Logger';
+import { loggerFactory } from '../log/Logger';
+
+const logger = loggerFactory(import.meta.url);
 
 const initExpress = async () => {
   // start the dialer

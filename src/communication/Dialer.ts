@@ -33,7 +33,7 @@ import {
   SubscribeChannels,
   SubscribeChannelWithURL,
 } from './Interfaces';
-import { logger } from '../log/Logger';
+import { loggerFactory } from '../log/Logger';
 import { JsonBI } from '../network/NetworkModels';
 
 /**
@@ -49,15 +49,15 @@ type PeerDiscovery = PeerDiscoveryArray extends
   ? ElementType
   : never;
 
+const logger = loggerFactory(import.meta.url);
+
 // TODO: Need to write test for This package
 //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/21
 class Dialer {
   private static instance: Dialer;
 
-  private _disconnectedPeers = new Set<string>();
   private _messageQueue = pushable();
   private _node: Libp2p | undefined;
-  private _pendingDialPeers: string[] = [];
   private _subscribedChannels: SubscribeChannels = {};
 
   private readonly _SUPPORTED_PROTOCOL = new Map<string, string>([
@@ -261,10 +261,17 @@ class Dialer {
   }
 
   /**
-   * store dialers' peerID to PeerStore and dials them
+   * Creates a `PeerId` object from a string
+   * @param id peer id string
+   */
+  private createFromString = (id: string) => createFromJSON({ id });
+
+  /**
+   * Adds an array of peers to address book. Because `autoDial` is enabled, it
+   * causes those peers to be dialed, too.
    * @param peers id of peers
    */
-  addAndDialPeer = async (peers: string[]) => {
+  addPeersToAddressBook = async (peers: string[]) => {
     if (this._node) {
       for (const peer of peers) {
         try {
@@ -273,34 +280,32 @@ class Dialer {
               addr.concat(`/p2p-circuit/p2p/${peer}`)
             );
             if (!this.getPeerIds().includes(peer)) {
-              this._pendingDialPeers.push(peer);
-              this._node?.peerStore.addressBook
-                .set(await createFromJSON({ id: `${peer}` }), [multi])
+              this._node.peerStore.addressBook
+                .add(await this.createFromString(peer), [multi])
                 .catch((err) => {
                   logger.warn(err);
                 });
-              try {
-                await this._node?.dialProtocol(
-                  multi,
-                  this._SUPPORTED_PROTOCOL.get('MSG')!
-                );
-                this._disconnectedPeers.delete(peer);
-                logger.info(`a peer with peerID [${peer}] added`);
-              } catch (err) {
-                logger.warn(
-                  `An error occurred while dialing peer ${peer}: `,
-                  err
-                );
-              } finally {
-                this._pendingDialPeers = this._pendingDialPeers.filter(
-                  (innerPeer) => innerPeer !== peer
-                );
-              }
             }
           }
         } catch (e) {
           logger.warn(`An error occurred for store discovered peer: ${e}`);
         }
+      }
+    }
+  };
+
+  /**
+   * Removes a peer from the address book.
+   * @param peer id of peer
+   */
+  removePeerFromAddressBook = async (peer: string) => {
+    if (this._node) {
+      try {
+        await this._node.peerStore.addressBook.delete(
+          await this.createFromString(peer)
+        );
+      } catch (error) {
+        logger.error(error);
       }
     }
   };
@@ -338,11 +343,6 @@ class Dialer {
     }
 
     if (!connection) {
-      if (this._pendingDialPeers.includes(peer.toString())) {
-        throw new Error(
-          'The dial to target peer is still pending, the sending will be retried soon.'
-        );
-      }
       connection = await node.dial(peer);
     }
     if (!stream) {
@@ -414,12 +414,13 @@ class Dialer {
               this._subscribedChannels[receivedData.channel].forEach(
                 runSubscribeCallback
               );
-            } else
+            } else {
               logger.warn(
                 `Received a message from [${connection.remotePeer.toString()}] in a unsubscribed channel [${
                   receivedData.channel
                 }]`
               );
+            }
           }
         } catch (e) {
           logger.warn(`An error occurred for handle stream callback: ${e}`);
@@ -465,7 +466,7 @@ class Dialer {
               const nodePeerIds = node
                 .getPeers()
                 .map((peer) => peer.toString());
-              await this.addAndDialPeer(
+              await this.addPeersToAddressBook(
                 receivedData.peerIds.filter(
                   (mainPeer) => !nodePeerIds.includes(mainPeer)
                 )
@@ -505,6 +506,12 @@ class Dialer {
         relay: {
           // Circuit Relay options (this config is part of libp2p core configurations)
           enabled: true, // Allows you to dial and accept relayed connections.
+          autoRelay: {
+            enabled: true,
+          },
+        },
+        connectionManager: {
+          minConnections: CommunicationConfig.guardsCount + 10, // We add 10 to handle relays and other possible connections
         },
         pubsub: gossipsub({ allowPublishToZeroPeers: true }),
         peerDiscovery: [
@@ -519,27 +526,28 @@ class Dialer {
       });
 
       // Listen for peers disconnecting
-      node.connectionManager.addEventListener('peer:disconnect', (evt) => {
-        logger.info(`Peer [${evt.detail.remotePeer.toString()}] Disconnected!`);
-        this._disconnectedPeers.add(evt.detail.remotePeer.toString());
-        this._pendingDialPeers = this._pendingDialPeers.filter(
-          (peer) => peer !== evt.detail.remotePeer.toString()
-        );
-      });
+      node.connectionManager.addEventListener(
+        'peer:disconnect',
+        async (evt) => {
+          const peer = evt.detail.remotePeer.toString();
+
+          logger.info(`Peer [${peer}] Disconnected!`);
+          this.removePeerFromAddressBook(peer);
+        }
+      );
 
       // Listen for new peers
       node.addEventListener('peer:discovery', async (evt) => {
         logger.info(`Found peer ${evt.detail.id.toString()}`);
         // dial them when we discover them
         if (
-          !CommunicationConfig.relays.peerIDs.includes(
-            evt.detail.id.toString()
-          ) &&
-          !this._pendingDialPeers.includes(evt.detail.id.toString())
+          !CommunicationConfig.relays.peerIDs.includes(evt.detail.id.toString())
         ) {
-          this.addAndDialPeer([evt.detail.id.toString()]).catch((err) => {
-            logger.warn(`Could not dial ${evt.detail.id}`, err);
-          });
+          this.addPeersToAddressBook([evt.detail.id.toString()]).catch(
+            (err) => {
+              logger.warn(`Could not dial ${evt.detail.id}`, err);
+            }
+          );
         }
       });
 
@@ -549,6 +557,14 @@ class Dialer {
         async ({ stream, connection }) => {
           // Read the stream
           this.handleBroadcast(stream, connection);
+        },
+        {
+          maxInboundStreams:
+            CommunicationConfig.guardsCount *
+            CommunicationConfig.allowedStreamsPerGuard,
+          maxOutboundStreams:
+            CommunicationConfig.guardsCount *
+            CommunicationConfig.allowedStreamsPerGuard,
         }
       );
 
@@ -573,15 +589,35 @@ class Dialer {
       // this should call after createRelayConnection duo to peerId should save after create relay connection
       await Dialer.savePeerIdIfNeeded(peerId);
 
+      /**
+       * TODO: This is not the ideal way to increase the streams limits, but there
+       * seems to be no other way to do it with current libp2p apis. It needs to
+       * be changed if such an api is added in the future.
+       *
+       * Related issues:
+       * - https://github.com/libp2p/js-libp2p/issues/1518
+       * - https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/99
+       */
+      const handler = node.registrar.getHandler('/libp2p/circuit/relay/0.1.0');
+      node.registrar.unhandle('/libp2p/circuit/relay/0.1.0');
+      await node.registrar.handle(
+        '/libp2p/circuit/relay/0.1.0',
+        handler.handler,
+        {
+          ...handler.options,
+          maxInboundStreams:
+            CommunicationConfig.guardsCount *
+            CommunicationConfig.allowedStreamsPerGuard,
+          maxOutboundStreams:
+            CommunicationConfig.guardsCount *
+            CommunicationConfig.allowedStreamsPerGuard,
+        }
+      );
+
       // Job for log all peers
       setInterval(() => {
         logger.info(`peers are [${this.getPeerIds()}]`);
       }, CommunicationConfig.getPeersInterval * 1000);
-
-      // // Job for connect to disconnected peers
-      setInterval(() => {
-        this.addAndDialPeer(Array.from(this._disconnectedPeers));
-      }, CommunicationConfig.connectToDisconnectedPeersInterval * 1000);
     } catch (e) {
       logger.error(`An error occurred for start dialer: ${e}`);
     }
@@ -686,7 +722,7 @@ class Dialer {
 
         const connStream = await this.getOpenStreamAndConnection(
           this._node!,
-          await createFromJSON({ id: `${peer}` }),
+          await this.createFromString(peer),
           this._SUPPORTED_PROTOCOL.get('MSG')!
         );
 

@@ -15,15 +15,29 @@ import Configs from '../../helpers/Configs';
 import { Semaphore } from 'await-semaphore';
 import Encryption from '../../helpers/Encryption';
 import MultiSigUtils from './MultiSigUtils';
-import { logger } from '../../log/Logger';
 import { default as Utils } from "../../helpers/Utils";
+import { loggerFactory } from '../../log/Logger';
 
+const logger = loggerFactory(import.meta.url);
 const dialer = await Dialer.getInstance();
+
+interface MultiSigGetInstance {
+  /**
+   * Create and get a new multi sig singleton instance
+   * @param publicKeys
+   * @param secretHex
+   */
+  (publicKeys: string[], secretHex?: string): MultiSigHandler;
+  /**
+   * Get a previously created multi sig singleton instance
+   */
+  (): MultiSigHandler;
+}
 
 class MultiSigHandler {
   private static CHANNEL = 'multi-sig';
   private readonly transactions: Map<string, TxQueued>;
-  private readonly peers: Array<Signer>;
+  private peers: Array<Signer>;
   private readonly secret: Uint8Array;
   private nonce: string;
   private prover?: wasm.Wallet;
@@ -42,16 +56,16 @@ class MultiSigHandler {
     this.secret = Utils.hexStringToUint8Array(secretHex || Configs.guardSecret);
   }
 
-  /**
-   * getting the singleton instance of the class
-   * @param publicKeys
-   * @param secretHex
-   */
-  public static getInstance = (
-    publicKeys: Array<string>,
+  public static getInstance: MultiSigGetInstance = (
+    publicKeys?: string[],
     secretHex?: string
   ) => {
     if (!MultiSigHandler.instance) {
+      if (!publicKeys) {
+        throw new Error(
+          'MultiSig singleton is not instantiated, so you must provide the `publicKeys` argument.'
+        );
+      }
       MultiSigHandler.instance = new MultiSigHandler(publicKeys, secretHex);
       MultiSigHandler.instance.sendRegister().then(() => null);
     }
@@ -685,6 +699,18 @@ class MultiSigHandler {
         );
       }
     }
+  };
+
+  /**
+   * Apply required changes after changes in public keys
+   * @param publicKeys new public keys
+   */
+  handlePublicKeysChange = (publicKeys: string[]) => {
+    this.peers = publicKeys.map((publicKey) => ({
+      pub: publicKey,
+      unapproved: [],
+    }));
+    this.sendRegister();
   };
 }
 
