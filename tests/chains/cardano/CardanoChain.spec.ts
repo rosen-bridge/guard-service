@@ -688,7 +688,15 @@ describe('CardanoChain', () => {
      *    It should NOT verify the event
      */
     it('should return false when the event amount is less than the event fees', async () => {
-      const mockedEvent: EventTrigger = TestBoxes.mockSmallAmountEventTrigger();
+      const mockedEvent: EventTrigger = TestBoxes.mockValidEventTrigger();
+
+      // mock fee config so that amount is less than event fees
+      const highBridgeFeeConfig: Fee = {
+        bridgeFee: 5000n,
+        networkFee: 0n,
+        rsnRatio: 0n,
+      };
+      mockGetFee(highBridgeFeeConfig);
 
       // run test
       const cardanoChain: CardanoChain = new CardanoChain();

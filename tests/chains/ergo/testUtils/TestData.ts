@@ -949,9 +949,9 @@ class TestData {
           ],
           "additionalRegisters": {
             "R4": {
-              "serializedValue": "1a040763617264616e6f0a746f4164647265737334063130303030300432353030",
+              "serializedValue": "1a050763617264616e6f0a746f41646472657373340631303030303004323530300b66726f6d41646472657373",
               "sigmaType": "Coll[Coll[SByte]]",
-              "renderedValue": "[414441,746f4164647265737334,313030303030,32353030]"
+              "renderedValue": "[63617264616e6f,746f4164647265737334,313030303030,32353030,66726f6d41646472657373]"
             }
           },
           "spentTransactionId": null,

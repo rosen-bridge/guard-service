@@ -172,7 +172,7 @@ class ErgoUtils {
       if (
         (sourceTokenId === ChainsConstants.ergoNativeAsset ||
           box.assets.length > 0) &&
-        R4.length >= 4
+        R4.length >= 5
       ) {
         let tokenId, amount;
         if (sourceTokenId == ChainsConstants.ergoNativeAsset) {
