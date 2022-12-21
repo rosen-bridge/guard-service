@@ -12,7 +12,7 @@ import { guardConfig } from './helpers/GuardConfig';
 
 const init = async () => {
   // init guards config
-  await guardConfig.setConfig();
+  await guardConfig.setConfig(false);
 
   // initialize all data sources
   await initDataSources();
@@ -20,12 +20,12 @@ const init = async () => {
   // initialize express Apis
   await initExpress();
 
-  // guard config update job
-  guardConfigUpdate();
-
   // initialize tss multiSig object
   MultiSigHandler.getInstance(guardConfig.publicKeys, Configs.guardSecret);
   initializeMultiSigJobs();
+
+  // guard config update job
+  guardConfigUpdate();
 
   // start tss instance
   startTssInstance();
