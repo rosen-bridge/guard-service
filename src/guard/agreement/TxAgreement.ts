@@ -21,6 +21,9 @@ import { loggerFactory } from '../../log/Logger';
 import InputBoxes from '../../chains/ergo/boxes/InputBoxes';
 import GuardTurn from '../../helpers/GuardTurn';
 import EventVerifier from '../event/EventVerifier';
+import ChainsConstants from '../../chains/ChainsConstants';
+import ErgoUtils from '../../chains/ergo/helpers/ErgoUtils';
+import ErgoTransaction from '../../chains/ergo/models/ErgoTransaction';
 
 const logger = loggerFactory(import.meta.url);
 const dialer = await Dialer.getInstance();
@@ -484,6 +487,21 @@ class TxAgreement {
     );
     this.transactions.clear();
     this.eventAgreedTransactions.clear();
+  };
+
+  /**
+   * returns list of the inputs boxes in pending transactions of Ergo
+   */
+  getErgoPendingTransactionsInputs = (): string[] => {
+    let boxIds: string[] = [];
+    this.transactions.forEach((paymentTx) => {
+      if (paymentTx.network === ChainsConstants.ergo) {
+        boxIds = boxIds.concat(
+          ErgoUtils.getPaymentTxInputIds(paymentTx as ErgoTransaction)
+        );
+      }
+    });
+    return boxIds;
   };
 }
 

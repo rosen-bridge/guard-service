@@ -359,6 +359,50 @@ class DatabaseAction {
       },
     });
   };
+
+  /**
+   * returns all unsigned transactions for a chain (with status approved or in-sign)
+   * @param chain the chain of the tx
+   */
+  getUnsignedActiveTxsInChain = async (
+    chain: string
+  ): Promise<TransactionEntity[]> => {
+    return await this.TransactionRepository.find({
+      relations: ['event'],
+      where: [
+        {
+          status: TransactionStatus.approved,
+          chain: chain,
+        },
+        {
+          status: TransactionStatus.inSign,
+          chain: chain,
+        },
+      ],
+    });
+  };
+
+  /**
+   * returns all signed transactions for a chain (with status signed or sent)
+   * @param chain the chain of the tx
+   */
+  getSignedActiveTxsInChain = async (
+    chain: string
+  ): Promise<TransactionEntity[]> => {
+    return await this.TransactionRepository.find({
+      relations: ['event'],
+      where: [
+        {
+          status: TransactionStatus.signed,
+          chain: chain,
+        },
+        {
+          status: TransactionStatus.sent,
+          chain: chain,
+        },
+      ],
+    });
+  };
 }
 
 const dbAction = new DatabaseAction(dataSource);

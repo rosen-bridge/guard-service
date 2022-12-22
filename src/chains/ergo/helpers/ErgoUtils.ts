@@ -12,6 +12,7 @@ import {
 import { AssetMap, BoxesAssets, ExplorerOutputBox } from '../models/Interfaces';
 import ChainsConstants from '../../ChainsConstants';
 import Utils from '../../../helpers/Utils';
+import ErgoTransaction from '../models/ErgoTransaction';
 
 class ErgoUtils {
   /**
@@ -279,6 +280,16 @@ class ErgoUtils {
    */
   static ergoBoxToSigmaSerialized = (box: ErgoBox): string => {
     return Utils.uint8ArrayToBase64String(box.sigma_serialize_bytes());
+  };
+
+  /**
+   * returns list of the input box ids in the transaction
+   * @param tx the payment transaction
+   */
+  static getPaymentTxInputIds = (tx: ErgoTransaction): string[] => {
+    return tx.inputBoxes.map((serializedBox) =>
+      ErgoBox.sigma_parse_bytes(serializedBox).box_id().to_str()
+    );
   };
 }
 

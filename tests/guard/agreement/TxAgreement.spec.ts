@@ -1625,4 +1625,44 @@ describe('TxAgreement', () => {
       expect(result).to.be.false;
     });
   });
+
+  describe('getErgoPendingTransactionsInputs', () => {
+    /**
+     * Target: testing getErgoPendingTransactionsInputs
+     * Dependencies:
+     *    -
+     * Scenario:
+     *    Mock Cardano and Ergo payment transaction and insert into tx memory
+     *    Run test
+     * Expected Output:
+     *    The function should return boxIds
+     */
+    it('should return Ergo txs input box ids', async () => {
+      const txAgreement = new TestTxAgreement();
+
+      // mock ergo txs
+      const tx1BankBoxes =
+        ErgoTestBoxes.mockHighErgAssetsAndBankBoxes()[1].boxes;
+      const ergoTx1 =
+        ErgoTestBoxes.mockFineColdStorageTransaction(tx1BankBoxes);
+      txAgreement.insertTransactions(ergoTx1.txId, ergoTx1);
+      const tx2BankBoxes = ErgoTestBoxes.mockBankBoxes().boxes;
+      const ergoTx2 =
+        ErgoTestBoxes.mockFineColdStorageTransaction(tx2BankBoxes);
+      txAgreement.insertTransactions(ergoTx2.txId, ergoTx2);
+
+      // mock cardano txs
+      const cardanoTx = CardanoTestBoxes.mockFineColdStorageTx();
+      txAgreement.insertTransactions(cardanoTx.txId, cardanoTx);
+
+      // run test
+      const res = txAgreement.getErgoPendingTransactionsInputs();
+
+      // verify
+      expect(res).to.deep.equal([
+        ...tx1BankBoxes.map((box) => box.box_id().to_str()),
+        ...tx2BankBoxes.map((box) => box.box_id().to_str()),
+      ]);
+    });
+  });
 });
