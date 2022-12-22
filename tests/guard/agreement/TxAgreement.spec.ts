@@ -40,7 +40,6 @@ import {
   mockVerifyEvent,
   mockVerifyPaymentTransactionWithEvent,
 } from '../mocked/MockedEventVerifier';
-import TestBoxes from '../../chains/ergo/testUtils/TestBoxes';
 
 describe('TxAgreement', () => {
   const eventBoxAndCommitments =
@@ -571,7 +570,7 @@ describe('TxAgreement', () => {
     it('should agree with request even if there is cold storage tx in progress for another chain', async () => {
       // mock tx
       const inProgressTx = ErgoTestBoxes.mockFineColdStorageTransaction(
-        TestBoxes.mockHighErgAssetsAndBankBoxes()[1].boxes
+        ErgoTestBoxes.mockHighErgAssetsAndBankBoxes()[1].boxes
       );
       await insertTxRecord(
         inProgressTx,
@@ -635,7 +634,7 @@ describe('TxAgreement', () => {
     it("should reject the request when signature doesn't verify", async () => {
       // mock tx
       const tx = ErgoTestBoxes.mockFineColdStorageTransaction(
-        TestBoxes.mockHighErgAssetsAndBankBoxes()[1].boxes
+        ErgoTestBoxes.mockHighErgAssetsAndBankBoxes()[1].boxes
       );
 
       // generate test data
@@ -677,7 +676,7 @@ describe('TxAgreement', () => {
     it('should reject the request when its not creator guard turn', async () => {
       // mock tx
       const tx = ErgoTestBoxes.mockFineColdStorageTransaction(
-        TestBoxes.mockHighErgAssetsAndBankBoxes()[1].boxes
+        ErgoTestBoxes.mockHighErgAssetsAndBankBoxes()[1].boxes
       );
 
       // mock guard turn
@@ -718,7 +717,7 @@ describe('TxAgreement', () => {
     it('should reject the request when there is another cold storage tx in progress on this chain', async () => {
       // mock tx
       const inProgressTx = ErgoTestBoxes.mockFineColdStorageTransaction(
-        TestBoxes.mockHighErgAssetsAndBankBoxes()[1].boxes
+        ErgoTestBoxes.mockHighErgAssetsAndBankBoxes()[1].boxes
       );
       await insertTxRecord(
         inProgressTx,
@@ -729,7 +728,7 @@ describe('TxAgreement', () => {
         inProgressTx.eventId
       );
       const tx = ErgoTestBoxes.mockFineColdStorageTransaction(
-        TestBoxes.mockHighErgAssetsAndBankBoxes()[1].boxes
+        ErgoTestBoxes.mockHighErgAssetsAndBankBoxes()[1].boxes
       );
 
       // mock guard turn
