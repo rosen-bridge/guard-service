@@ -7,7 +7,6 @@ import {
 import Reward from '../../chains/ergo/Reward';
 import ErgoTransaction from '../../chains/ergo/models/ErgoTransaction';
 import ChainsConstants from '../../chains/ChainsConstants';
-import CardanoChain from '../../chains/cardano/CardanoChain';
 import InputBoxes from '../../chains/ergo/boxes/InputBoxes';
 import NodeApi from '../../chains/ergo/network/NodeApi';
 import ErgoConfigs from '../../chains/ergo/helpers/ErgoConfigs';
@@ -20,10 +19,9 @@ import ErgoColdStorage from '../../chains/ergo/ErgoColdStorage';
 import CardanoColdStorage from '../../chains/cardano/CardanoColdStorage';
 import { ChainNotImplemented } from '../../helpers/errors';
 import ErgoTxVerifier from '../../chains/ergo/ErgoTxVerifier';
+import CardanoTxVerifier from '../../chains/cardano/CardanoTxVerifier';
 
 class EventVerifier {
-  static cardanoChain = new CardanoChain();
-
   /**
    * conforms transaction with the event trigger data
    * @param paymentTx the payment transaction
@@ -37,7 +35,7 @@ class EventVerifier {
     const feeConfig = await MinimumFee.getEventFeeConfig(event);
     if (paymentTx.txType === TransactionTypes.payment) {
       if (paymentTx.network === ChainsConstants.cardano)
-        return this.cardanoChain.verifyTransactionWithEvent(
+        return CardanoTxVerifier.verifyTransactionWithEvent(
           paymentTx,
           event,
           feeConfig
@@ -67,7 +65,7 @@ class EventVerifier {
     const eventBox = await InputBoxes.getEventBox(event);
     const RWTId = eventBox.tokens().get(0).id().to_str();
     if (event.fromChain === ChainsConstants.cardano)
-      return this.cardanoChain.verifyEventWithPayment(event, RWTId);
+      return CardanoTxVerifier.verifyEventWithPayment(event, RWTId);
     else if (event.fromChain === ChainsConstants.ergo)
       return ErgoTxVerifier.verifyEventWithPayment(event, RWTId);
     else throw new ChainNotImplemented(event.fromChain);
