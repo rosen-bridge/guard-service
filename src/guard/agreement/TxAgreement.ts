@@ -14,7 +14,6 @@ import {
 } from './Interfaces';
 import Dialer from '../../communication/Dialer';
 import { dbAction } from '../../db/DatabaseAction';
-import TransactionProcessor from '../TransactionProcessor';
 import { txJsonParser } from '../../chains/TxJsonParser';
 import { guardConfig } from '../../helpers/GuardConfig';
 import { loggerFactory } from '../../log/Logger';
@@ -406,18 +405,16 @@ class TxAgreement {
    */
   setTxAsApproved = async (tx: PaymentTransaction): Promise<void> => {
     try {
-      await TransactionProcessor.signSemaphore
-        .acquire()
-        .then(async (release) => {
-          try {
-            await dbAction.insertTx(tx);
-            release();
-          } catch (e) {
-            release();
-            logger.error(`An error occurred while inserting tx to db: ${e}`);
-            throw e;
-          }
-        });
+      await dbAction.txSignSemaphore.acquire().then(async (release) => {
+        try {
+          await dbAction.insertTx(tx);
+          release();
+        } catch (e) {
+          release();
+          logger.error(`An error occurred while inserting tx to db: ${e}`);
+          throw e;
+        }
+      });
       await this.updateEventOfApprovedTx(tx);
       this.transactions.delete(tx.txId);
       this.transactionApprovals.delete(tx.txId);
@@ -491,13 +488,17 @@ class TxAgreement {
 
   /**
    * returns list of the inputs boxes in pending transactions of Ergo
+   * @param lockErgoTree lock address ergoTree
    */
-  getErgoPendingTransactionsInputs = (): string[] => {
+  getErgoPendingTransactionsInputs = (lockErgoTree: string): string[] => {
     let boxIds: string[] = [];
     this.transactions.forEach((paymentTx) => {
       if (paymentTx.network === ChainsConstants.ergo) {
         boxIds = boxIds.concat(
-          ErgoUtils.getPaymentTxInputIds(paymentTx as ErgoTransaction)
+          ErgoUtils.getPaymentTxLockInputIds(
+            paymentTx as ErgoTransaction,
+            lockErgoTree
+          )
         );
       }
     });

@@ -14,6 +14,7 @@ import {
 } from '@rosen-bridge/watcher-data-extractor';
 import Utils from '../helpers/Utils';
 import { loggerFactory } from '../log/Logger';
+import { Semaphore } from 'await-semaphore/index';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -23,6 +24,8 @@ class DatabaseAction {
   EventRepository: Repository<EventTriggerEntity>;
   ConfirmedEventRepository: Repository<ConfirmedEventEntity>;
   TransactionRepository: Repository<TransactionEntity>;
+
+  txSignSemaphore = new Semaphore(1);
 
   constructor(dataSource: DataSource) {
     this.dataSource = dataSource;

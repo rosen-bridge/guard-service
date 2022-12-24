@@ -40,6 +40,8 @@ import {
   mockVerifyEvent,
   mockVerifyPaymentTransactionWithEvent,
 } from '../mocked/MockedEventVerifier';
+import TestBoxes from '../../chains/ergo/testUtils/TestBoxes';
+import ErgoUtils from '../../../src/chains/ergo/helpers/ErgoUtils';
 
 describe('TxAgreement', () => {
   const eventBoxAndCommitments =
@@ -1626,6 +1628,10 @@ describe('TxAgreement', () => {
   });
 
   describe('getErgoPendingTransactionsInputs', () => {
+    const testBankErgoTree: string = ErgoUtils.addressStringToErgoTreeString(
+      TestBoxes.testLockAddress
+    );
+
     /**
      * Target: testing getErgoPendingTransactionsInputs
      * Dependencies:
@@ -1655,7 +1661,8 @@ describe('TxAgreement', () => {
       txAgreement.insertTransactions(cardanoTx.txId, cardanoTx);
 
       // run test
-      const res = txAgreement.getErgoPendingTransactionsInputs();
+      const res =
+        txAgreement.getErgoPendingTransactionsInputs(testBankErgoTree);
 
       // verify
       expect(res).to.deep.equal([

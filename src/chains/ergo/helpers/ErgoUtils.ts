@@ -285,11 +285,20 @@ class ErgoUtils {
   /**
    * returns list of the input box ids in the transaction
    * @param tx the payment transaction
+   * @param lockErgoTree lock address ergoTree
    */
-  static getPaymentTxInputIds = (tx: ErgoTransaction): string[] => {
-    return tx.inputBoxes.map((serializedBox) =>
-      ErgoBox.sigma_parse_bytes(serializedBox).box_id().to_str()
-    );
+  static getPaymentTxLockInputIds = (
+    tx: ErgoTransaction,
+    lockErgoTree: string
+  ): string[] => {
+    return tx.inputBoxes
+      .map((serializedBox) => {
+        const box = ErgoBox.sigma_parse_bytes(serializedBox);
+        if (box.ergo_tree().to_base16_bytes() === lockErgoTree)
+          return box.box_id().to_str();
+        else return '';
+      })
+      .filter((id) => id !== '');
   };
 }
 

@@ -38,6 +38,13 @@ import { loggerFactory } from '../../log/Logger';
 import { Fee } from '@rosen-bridge/minimum-fee';
 import MinimumFee from '../../guard/MinimumFee';
 import { NotEnoughAssetsError } from '../../helpers/errors';
+import {
+  Asset,
+  Box,
+  BoxesAssets,
+  CoveringErgoBoxes,
+} from './models/Interfaces';
+import { txAgreement } from '../../guard/agreement/TxAgreement';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -384,6 +391,128 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
     } catch (e) {
       logger.warn(`An error occurred while submitting Ergo transaction: ${e}`);
     }
+  };
+
+  /**
+   * tracks lock boxes with mempool and tx queue and filter used ones
+   * @param required required amount of erg and tokens
+   */
+  tractAndFilterLockBoxes = async (
+    required: BoxesAssets
+  ): Promise<CoveringErgoBoxes> => {
+    let ergAmount = required.ergs;
+    const tokens = { ...required.tokens };
+    const remaining = () => {
+      const isAnyTokenRemain = Object.entries(tokens)
+        .map(([, amount]) => amount > 0)
+        .reduce((a, b) => a || b, false);
+      return isAnyTokenRemain || ergAmount > 0;
+    };
+
+    const trackBoxesMap = new Map<string, ErgoBox | undefined>();
+
+    // generate mempool dictionary
+    const mempoolTxs = await ExplorerApi.getMempoolTxsForAddress(
+      ErgoConfigs.ergoContractConfig.lockAddress
+    );
+    if (mempoolTxs.total !== 0) {
+      mempoolTxs.items.forEach((tx) => {
+        const inputs = tx.inputs.filter(
+          (box) => box.address === ErgoConfigs.ergoContractConfig.lockAddress
+        );
+        const outputs = tx.outputs.filter(
+          (box) => box.address === ErgoConfigs.ergoContractConfig.lockAddress
+        );
+        if (inputs.length >= 1) {
+          inputs.forEach((input) => {
+            const box =
+              outputs.length > 0
+                ? ErgoBox.from_json(JsonBI.stringify(outputs[0]))
+                : undefined;
+            trackBoxesMap.set(input.boxId, box);
+          });
+        }
+      });
+    }
+
+    // generate tx queue dictionary
+    const dbSignedTxs = await dbAction.getSignedActiveTxsInChain(
+      ChainsConstants.ergo
+    );
+    dbSignedTxs.forEach((txEntity) => {
+      const ergoTx = ErgoTransaction.fromJson(txEntity.txJson);
+
+      const inputBoxIds = ErgoUtils.getPaymentTxLockInputIds(
+        ergoTx,
+        this.lockErgoTree
+      );
+      const outputs = this.signedDeserialize(ergoTx.txBytes).outputs();
+      for (let i = 0; i < outputs.len(); i++) {
+        const output = outputs.get(i);
+        const boxErgoTree = output.ergo_tree().to_base16_bytes();
+        if (boxErgoTree === this.lockErgoTree) {
+          inputBoxIds.forEach((inputId) => {
+            trackBoxesMap.set(inputId, output);
+          });
+          break;
+        }
+      }
+    });
+
+    // get unsigned txs input boxes from database
+    const dbUnsignedTxs = await dbAction.getUnsignedActiveTxsInChain(
+      ChainsConstants.ergo
+    );
+    let filterBoxIds = dbUnsignedTxs.flatMap((txEntity) => {
+      const ergoTx = ErgoTransaction.fromJson(txEntity.txJson);
+      return ergoTx.inputBoxes
+        .map((serializedBox) => {
+          const box = ErgoBox.sigma_parse_bytes(serializedBox);
+          if (box.ergo_tree().to_base16_bytes() === this.lockErgoTree)
+            return box.box_id().to_str();
+          else return '';
+        })
+        .filter((id) => id !== '');
+    });
+
+    // get unsigned txs input boxes from txAgreement
+    const txAgreementUsedInputBoxes =
+      txAgreement.getErgoPendingTransactionsInputs(this.lockErgoTree);
+    filterBoxIds = filterBoxIds.concat(txAgreementUsedInputBoxes);
+
+    // covering initialization
+    const total = (
+      await ExplorerApi.getBoxesForErgoTree(this.lockErgoTree, 0, 1)
+    ).total;
+    let offset = 0;
+
+    // get lock boxes, track and filter
+    const result: Box[] = [];
+    while (offset < total && remaining()) {
+      const boxes = await ExplorerApi.getBoxesForErgoTree(
+        this.lockErgoTree,
+        offset,
+        10
+      );
+      for (const box of boxes.items) {
+        if (filterBoxIds.find((id) => id === box.boxId)) {
+          result.push(box);
+          ergAmount -= box.value;
+          box.assets.map((asset: Asset) => {
+            if (Object.prototype.hasOwnProperty.call(tokens, asset.tokenId)) {
+              tokens[asset.tokenId] -= asset.amount;
+            }
+          });
+          if (!remaining()) break;
+        }
+      }
+      offset += 10;
+    }
+
+    return {
+      boxes: result.map((box) => ErgoBox.from_json(JsonBI.stringify(box))),
+      covered: !remaining(),
+    };
   };
 }
 

@@ -8,6 +8,7 @@ import {
   Boxes,
   CoveringErgoBoxes,
   ExplorerTransaction,
+  MempoolTransactions,
 } from '../models/Interfaces';
 import { JsonBI } from '../../../network/NetworkModels';
 import ErgoConfigs from '../helpers/ErgoConfigs';
@@ -243,6 +244,28 @@ class ExplorerApi {
       })
       .catch((e) => {
         const baseError = `Failed to get address [${address}] assets: `;
+        if (e.response) {
+          throw new FailedError(baseError + e.response.data.reason);
+        } else if (e.request) {
+          throw new NetworkError(baseError + e.message);
+        } else {
+          throw new UnexpectedApiError(baseError + e.message);
+        }
+      });
+  };
+
+  /**
+   * gets tx confirmation (returns -1 if tx not found)
+   * @param address
+   */
+  static getMempoolTxsForAddress = (
+    address: string
+  ): Promise<MempoolTransactions> => {
+    return this.explorerApi
+      .get<MempoolTransactions>(`/v1/mempool/transactions/byAddress/${address}`)
+      .then((res) => res.data)
+      .catch((e) => {
+        const baseError = `Failed to get mempool txs for address [${address}] from Ergo Explorer: `;
         if (e.response) {
           throw new FailedError(baseError + e.response.data.reason);
         } else if (e.request) {
