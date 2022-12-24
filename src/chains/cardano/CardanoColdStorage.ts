@@ -46,17 +46,17 @@ class CardanoColdStorage {
       BigNum.from_str('2')
     );
     const requiredAssets: UtxoBoxesAssets = {
-      lovelace: transferringAssets.lovelace.less_than(twoMinBoxLovelace)
+      lovelace: (transferringAssets.lovelace.less_than(twoMinBoxLovelace)
         ? twoMinBoxLovelace
-        : transferringAssets.lovelace,
+        : transferringAssets.lovelace
+      ).checked_add(CardanoConfigs.txFee),
       assets: transferringAssets.assets,
     };
 
-    // TODO: use getCoveringUtxo after fixing it.
-    //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/88
-    const lockBoxes = await KoiosApi.getAddressBoxes(
+    const addressBoxes = await KoiosApi.getAddressBoxes(
       CardanoConfigs.bankAddress
     );
+    const lockBoxes = KoiosApi.getCoveringUtxo(addressBoxes, requiredAssets);
 
     // add input boxes
     lockBoxes.forEach((box) => {

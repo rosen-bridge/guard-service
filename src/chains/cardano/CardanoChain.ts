@@ -26,7 +26,7 @@ import {
 import BaseChain from '../BaseChains';
 import CardanoConfigs from './helpers/CardanoConfigs';
 import BlockFrostApi from './network/BlockFrostApi';
-import { Utxo } from './models/Interfaces';
+import { Utxo, UtxoBoxesAssets } from './models/Interfaces';
 import CardanoUtils from './helpers/CardanoUtils';
 import TssSigner from '../../guard/TssSigner';
 import CardanoTransaction from './models/CardanoTransaction';
@@ -53,113 +53,6 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
   bankAddress = Address.from_bech32(CardanoConfigs.bankAddress);
 
   /**
-   *  getting all address utxos and return minimum amount of required box to be in the input of transaction
-   *      with respect to the event
-   * @param addressBoxes all utxos of bankAddress
-   * @param event the event trigger model
-   * @param feeConfig minimum fee and rsn ratio config for the event
-   * @return minimum required box to be in the input of the transaction
-   */
-  getCoveringUtxo = (
-    addressBoxes: Array<Utxo>,
-    event: EventTrigger,
-    feeConfig: Fee
-  ): Array<Utxo> => {
-    const result: Array<Utxo> = [];
-    let coveredLovelace = BigNum.from_str('0');
-    const shuffleIndexes = [...Array(addressBoxes.length).keys()];
-    for (let i = shuffleIndexes.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffleIndexes[i], shuffleIndexes[j]] = [
-        shuffleIndexes[j],
-        shuffleIndexes[i],
-      ];
-    }
-
-    if (event.targetChainTokenId === 'lovelace') {
-      const paymentAmount: BigNum = CardanoChain.getPaymentAmount(
-        event,
-        feeConfig
-      );
-      for (
-        let i = 0;
-        paymentAmount.compare(coveredLovelace) > 0 && i < addressBoxes.length;
-        i++
-      ) {
-        const utxo = addressBoxes[shuffleIndexes[i]];
-        coveredLovelace = coveredLovelace.checked_add(
-          BigNum.from_str(utxo.value)
-        );
-        result.push(utxo);
-      }
-      if (paymentAmount.compare(coveredLovelace) > 0)
-        throw new Error(
-          `An error occurred, theres is no enough lovelace in the bank`
-        );
-      return result;
-    } else {
-      const lovelacePaymentAmount: BigNum = CardanoConfigs.txMinimumLovelace;
-      const assetPaymentAmount: BigNum = CardanoChain.getPaymentAmount(
-        event,
-        feeConfig
-      );
-      const paymentAssetInfo = CardanoUtils.getCardanoAssetInfo(
-        event.targetChainTokenId
-      );
-      const assetPolicyId = Utils.Uint8ArrayToHexString(
-        paymentAssetInfo.policyId
-      );
-      const assetAssetName = Utils.Uint8ArrayToHexString(
-        paymentAssetInfo.assetName
-      );
-
-      let covered = BigNum.from_str('0');
-
-      for (
-        let i = 0;
-        (assetPaymentAmount.compare(covered) > 0 ||
-          lovelacePaymentAmount.compare(coveredLovelace) > 0) &&
-        i < addressBoxes.length;
-        i++
-      ) {
-        let isAdded = false;
-        const utxo = addressBoxes[shuffleIndexes[i]];
-        if (assetPaymentAmount.compare(covered) > 0) {
-          const assetIndex = utxo.asset_list.findIndex(
-            (asset) =>
-              asset.asset_name === assetAssetName &&
-              asset.policy_id === assetPolicyId
-          );
-          if (assetIndex !== -1) {
-            const asset = utxo.asset_list[assetIndex];
-            covered = covered.checked_add(BigNum.from_str(asset.quantity));
-            coveredLovelace = coveredLovelace.checked_add(
-              BigNum.from_str(utxo.value)
-            );
-            result.push(utxo);
-            isAdded = true;
-          }
-        }
-        if (!isAdded && lovelacePaymentAmount.compare(coveredLovelace) > 0) {
-          coveredLovelace = coveredLovelace.checked_add(
-            BigNum.from_str(utxo.value)
-          );
-          result.push(utxo);
-        }
-      }
-      if (lovelacePaymentAmount.compare(coveredLovelace) > 0)
-        throw new NotEnoughAssetsError(
-          `Not enough lovelace in the bank. required: ${lovelacePaymentAmount.to_str()}, found ${coveredLovelace.to_str()}`
-        );
-      if (assetPaymentAmount.compare(covered) > 0)
-        throw new NotEnoughAssetsError(
-          `Not enough asset in the bank. required: ${assetPaymentAmount.to_str()}, found ${covered.to_str()}`
-        );
-    }
-    return result;
-  };
-
-  /**
    * generates payment transaction of the event from threshold-sig address in target chain
    * @param event the event trigger model
    * @param feeConfig minimum fee and rsn ratio config for the event
@@ -171,10 +64,45 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
   ): Promise<CardanoTransaction> => {
     const txBuilder = TransactionBuilder.new(CardanoConfigs.txBuilderConfig);
 
-    const bankBoxes = this.getCoveringUtxo(
+    const requiredAssets: UtxoBoxesAssets = {
+      lovelace: CardanoConfigs.txMinimumLovelace.checked_add(
+        CardanoConfigs.txFee
+      ),
+      assets: MultiAsset.new(),
+    };
+
+    if (event.targetChainTokenId === 'lovelace') {
+      requiredAssets.lovelace = requiredAssets.lovelace.checked_add(
+        BigNum.from_str(event.amount)
+      );
+    } else {
+      const assetPaymentAmount: BigNum = CardanoChain.getPaymentAmount(
+        event,
+        feeConfig
+      );
+      const paymentAssetInfo = CardanoUtils.getCardanoAssetInfo(
+        event.targetChainTokenId
+      );
+      const policyId = ScriptHash.from_bytes(
+        Buffer.from(
+          Utils.Uint8ArrayToHexString(paymentAssetInfo.policyId),
+          'hex'
+        )
+      );
+      const assetName = AssetName.new(
+        Buffer.from(
+          Utils.Uint8ArrayToHexString(paymentAssetInfo.assetName),
+          'hex'
+        )
+      );
+      const assetList = Assets.new();
+      assetList.insert(assetName, assetPaymentAmount);
+      requiredAssets.assets.insert(policyId, assetList);
+    }
+
+    const bankBoxes = KoiosApi.getCoveringUtxo(
       await KoiosApi.getAddressBoxes(CardanoConfigs.bankAddress),
-      event,
-      feeConfig
+      requiredAssets
     );
 
     // add input boxes

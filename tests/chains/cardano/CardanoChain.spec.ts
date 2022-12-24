@@ -8,9 +8,19 @@ import {
 import TestBoxes from './testUtils/TestBoxes';
 import TestData from './testUtils/TestData';
 import { expect } from 'chai';
-import { Utxo } from '../../../src/chains/cardano/models/Interfaces';
+import {
+  Utxo,
+  UtxoBoxesAssets,
+} from '../../../src/chains/cardano/models/Interfaces';
 import { anything, deepEqual, spy, verify, when } from 'ts-mockito';
-import { hash_transaction } from '@emurgo/cardano-serialization-lib-nodejs';
+import {
+  AssetName,
+  Assets,
+  BigNum,
+  hash_transaction,
+  MultiAsset,
+  ScriptHash,
+} from '@emurgo/cardano-serialization-lib-nodejs';
 import MockedBlockFrost from './mocked/MockedBlockFrost';
 import TestUtils from '../../testUtils/TestUtils';
 import { beforeEach } from 'mocha';
@@ -32,6 +42,8 @@ import {
 import CardanoConfigs from '../../../src/chains/cardano/helpers/CardanoConfigs';
 import { Fee } from '@rosen-bridge/minimum-fee';
 import { mockGetFee } from '../../guard/mocked/MockedMinimumFee';
+import KoiosApi from '../../../src/chains/cardano/network/KoiosApi';
+import { Buffer } from 'buffer';
 
 describe('CardanoChain', () => {
   const testBankAddress = TestBoxes.testBankAddress;
@@ -39,11 +51,22 @@ describe('CardanoChain', () => {
   describe('getCoveringUtxo', () => {
     // mock getting bankBoxes
     const bankBoxes: Utxo[] = TestBoxes.mockBankBoxes();
-    const mockedFeeConfig: Fee = {
-      bridgeFee: 0n,
-      networkFee: 0n,
-      rsnRatio: 0n,
+    const requiredAssets: UtxoBoxesAssets = {
+      lovelace: BigNum.from_str('111300000'),
+      assets: MultiAsset.new(),
     };
+    const paymentAssetInfo = CardanoUtils.getCardanoAssetInfo(
+      'asset1nl000000000000000000000000000000000000'
+    );
+    const policyId = ScriptHash.from_bytes(
+      Buffer.from(Utils.Uint8ArrayToHexString(paymentAssetInfo.policyId), 'hex')
+    );
+    const assetName = AssetName.new(
+      Buffer.from(
+        Utils.Uint8ArrayToHexString(paymentAssetInfo.assetName),
+        'hex'
+      )
+    );
 
     /**
      * Target: testing getCoveringUtxo
@@ -54,15 +77,15 @@ describe('CardanoChain', () => {
      *    The function should return 1 specific box
      */
     it('should return 1 boxes for ADA payment', async () => {
-      // mock ada payment event
-      const mockedEvent: EventTrigger = TestBoxes.mockADAPaymentEventTrigger();
+      const requiredAssets: UtxoBoxesAssets = {
+        lovelace: BigNum.from_str('100000000'),
+        assets: MultiAsset.new(),
+      };
 
       // run test
-      const cardanoChain: CardanoChain = new CardanoChain();
-      const boxes = cardanoChain.getCoveringUtxo(
+      const boxes = KoiosApi.getCoveringUtxo(
         [bankBoxes[5], bankBoxes[4]],
-        mockedEvent,
-        mockedFeeConfig
+        requiredAssets
       );
 
       // verify output boxes
@@ -79,15 +102,15 @@ describe('CardanoChain', () => {
      */
     it('should return 2 boxes for ADA payment', async () => {
       // mock ada payment event
-      const mockedEvent: EventTrigger = TestBoxes.mockADAPaymentEventTrigger();
-      mockedEvent.amount = '111300000';
+      const requiredAssets: UtxoBoxesAssets = {
+        lovelace: BigNum.from_str('111300000'),
+        assets: MultiAsset.new(),
+      };
 
       // run test
-      const cardanoChain: CardanoChain = new CardanoChain();
-      const boxes = cardanoChain.getCoveringUtxo(
+      const boxes = KoiosApi.getCoveringUtxo(
         [bankBoxes[5], bankBoxes[1]],
-        mockedEvent,
-        mockedFeeConfig
+        requiredAssets
       );
 
       // verify output boxes
@@ -103,18 +126,12 @@ describe('CardanoChain', () => {
      *    The function should return more than or equal 1 box
      */
     it('should return more than or equal 1 box', async () => {
-      const mockedEvent: EventTrigger =
-        TestBoxes.mockAssetPaymentEventTrigger();
-      mockedEvent.targetChainTokenId =
-        'asset1nl000000000000000000000000000000000000';
+      const assetList = Assets.new();
+      assetList.insert(assetName, BigNum.from_str('50'));
+      requiredAssets.assets.insert(policyId, assetList);
 
       // run test
-      const cardanoChain: CardanoChain = new CardanoChain();
-      const boxes = cardanoChain.getCoveringUtxo(
-        bankBoxes,
-        mockedEvent,
-        mockedFeeConfig
-      );
+      const boxes = KoiosApi.getCoveringUtxo(bankBoxes, requiredAssets);
 
       // verify output boxes
       expect(boxes.length).to.greaterThanOrEqual(1);
@@ -129,17 +146,14 @@ describe('CardanoChain', () => {
      *    The function should return 3 box
      */
     it('should return 3 box for asset payment', async () => {
-      const mockedEvent: EventTrigger =
-        TestBoxes.mockAssetPaymentEventTrigger();
-      mockedEvent.targetChainTokenId =
-        'asset1nl000000000000000000000000000000000000';
+      const assetList = Assets.new();
+      assetList.insert(assetName, BigNum.from_str('60'));
+      requiredAssets.assets.insert(policyId, assetList);
 
       // run test
-      const cardanoChain: CardanoChain = new CardanoChain();
-      const boxes = cardanoChain.getCoveringUtxo(
+      const boxes = KoiosApi.getCoveringUtxo(
         [bankBoxes[8], bankBoxes[6], bankBoxes[5]],
-        mockedEvent,
-        mockedFeeConfig
+        requiredAssets
       );
 
       // verify output boxes
@@ -155,18 +169,14 @@ describe('CardanoChain', () => {
      *    The function should return 2 box
      */
     it('should return 2 box for asset payment', async () => {
-      const mockedEvent: EventTrigger =
-        TestBoxes.mockAssetPaymentEventTrigger();
-      mockedEvent.targetChainTokenId =
-        'asset1nl000000000000000000000000000000000000';
-      mockedEvent.amount = '20';
+      const assetList = Assets.new();
+      assetList.insert(assetName, BigNum.from_str('20'));
+      requiredAssets.assets.insert(policyId, assetList);
 
       // run test
-      const cardanoChain: CardanoChain = new CardanoChain();
-      const boxes = cardanoChain.getCoveringUtxo(
+      const boxes = KoiosApi.getCoveringUtxo(
         [bankBoxes[6], bankBoxes[5]],
-        mockedEvent,
-        mockedFeeConfig
+        requiredAssets
       );
 
       // verify output boxes

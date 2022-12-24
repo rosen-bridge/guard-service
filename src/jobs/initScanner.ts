@@ -27,7 +27,7 @@ const initScanner = () => {
     nodeUrl: ergoConfigs.node.url,
     timeout: ergoConfigs.node.timeout * 1000,
     initialHeight: ergoConfigs.initialHeight,
-    dataSource
+    dataSource,
   };
   ergoScanner = new ErgoNodeScanner(scannerConfig);
   const cardanoCommitmentExtractor = new CommitmentExtractor(
