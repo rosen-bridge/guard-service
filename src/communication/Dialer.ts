@@ -145,8 +145,8 @@ class Dialer {
         'utf8',
         function (err) {
           if (err) {
-            logger.error(
-              `An error occurred, in writing created PeerId to the file: ${err}`
+            logger.warn(
+              `An error occurred while writing created PeerId to the file: ${err}`
             );
             throw err;
           }
@@ -283,12 +283,14 @@ class Dialer {
               this._node.peerStore.addressBook
                 .add(await this.createFromString(peer), [multi])
                 .catch((err) => {
-                  logger.warn(err);
+                  logger.error(
+                    `An error occurred while trying to add peer to address book: ${err}`
+                  );
                 });
             }
           }
         } catch (e) {
-          logger.warn(`An error occurred for store discovered peer: ${e}`);
+          logger.warn(`An error occurred while storing discovered peer: ${e}`);
         }
       }
     }
@@ -305,7 +307,9 @@ class Dialer {
           await this.createFromString(peer)
         );
       } catch (error) {
-        logger.error(error);
+        logger.warn(
+          `An error occurred while removing peer from address book: ${error}`
+        );
       }
     }
   };
@@ -406,29 +410,33 @@ class Dialer {
             };
             if (this._subscribedChannels[receivedData.channel]) {
               logger.info(
-                `Received a message from [${connection.remotePeer.toString()}] in a subscribed channel [${
+                `Received a message from [${connection.remotePeer.toString()}] in subscribed channel [${
                   receivedData.channel
                 }]`
               );
-              logger.debug(`Received msg with data [${receivedData.msg}]`);
+              logger.debug(
+                `Received message with data:\n[${receivedData.msg}]`
+              );
               this._subscribedChannels[receivedData.channel].forEach(
                 runSubscribeCallback
               );
             } else {
-              logger.warn(
-                `Received a message from [${connection.remotePeer.toString()}] in a unsubscribed channel [${
+              logger.info(
+                `Received a message from [${connection.remotePeer.toString()}] in unsubscribed channel [${
                   receivedData.channel
                 }]`
               );
             }
           }
         } catch (e) {
-          logger.warn(`An error occurred for handle stream callback: ${e}`);
+          logger.error(
+            `An error occurred while handling stream callback: ${e}`
+          );
         }
       }
     ).catch((e) => {
-      logger.warn(
-        `An error occurred for handle broadcast protocol stream: ${e}`
+      logger.error(
+        `An error occurred while handling broadcast protocol stream: ${e}`
       );
     });
   };
@@ -474,12 +482,14 @@ class Dialer {
             }
           }
         } catch (e) {
-          logger.warn(`An error occurred for handle stream callback: ${e}`);
+          logger.error(
+            `An error occurred while handling stream callback: ${e}`
+          );
         }
       }
     ).catch((e) => {
-      logger.warn(
-        `An error occurred for handle getpeers protocol stream: ${e}`
+      logger.error(
+        `An error occurred while handling getpeers protocol stream: ${e}`
       );
     });
   };
@@ -545,7 +555,7 @@ class Dialer {
         ) {
           this.addPeersToAddressBook([evt.detail.id.toString()]).catch(
             (err) => {
-              logger.warn(`Could not dial ${evt.detail.id}`, err);
+              logger.error(`Could not dial ${evt.detail.id}`, err);
             }
           );
         }
@@ -616,10 +626,10 @@ class Dialer {
 
       // Job for log all peers
       setInterval(() => {
-        logger.info(`peers are [${this.getPeerIds()}]`);
+        logger.info(`Peers are [${this.getPeerIds()}]`);
       }, CommunicationConfig.getPeersInterval * 1000);
     } catch (e) {
-      logger.error(`An error occurred for start dialer: ${e}`);
+      logger.error(`An error occurred while starting dialer: ${e}`);
     }
   };
 
@@ -693,7 +703,7 @@ class Dialer {
             Number(newRetriesCount);
 
         setTimeout(() => {
-          logger.warn(
+          logger.info(
             `Retry #${retriesCount} for sending message ${JsonBI.stringify(
               rest.messageToSend
             )}...`
@@ -707,7 +717,7 @@ class Dialer {
           );
         }, timeout);
       } else {
-        logger.warn(
+        logger.error(
           `Failed to send message ${JsonBI.stringify(
             rest.messageToSend
           )} after ${CommunicationConfig.messageSendingRetriesMaxCount} retries`
@@ -732,7 +742,7 @@ class Dialer {
           source.push(this.objectToUint8Array(messageToSend));
 
           if (retriesCount) {
-            logger.warn(
+            logger.info(
               `Retry #${retriesCount} was successful for message ${JsonBI.stringify(
                 messageToSend
               )}`
@@ -740,14 +750,12 @@ class Dialer {
           }
         } catch (error) {
           logger.error(
-            'An error occurred while trying to get stream source',
-            error
+            `An error occurred while trying to get stream source: ${error}`
           );
         }
       } catch (error) {
-        logger.warn(
-          'An error occurred while trying to process a message in the messages queue',
-          error
+        logger.error(
+          `An error occurred while trying to process a message in the messages queue: ${error}`
         );
         retrySendingMessage(message);
       }
