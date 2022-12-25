@@ -14,8 +14,12 @@ class Logger {
     maxFiles: Configs.maxLogFiles,
   };
   private readonly logFormat = printf(
-    ({ level, message, timestamp, fileName }) => {
-      return `${timestamp} ${level}: [${fileName}] ${message}`;
+    ({ level, message, timestamp, fileName, ...context }) => {
+      return `${timestamp} ${level}: [${fileName}] ${message}${
+        context && Object.keys(context).length
+          ? ` ${JSON.stringify(context)}`
+          : ''
+      }`;
     }
   );
   private readonly logLevels = {

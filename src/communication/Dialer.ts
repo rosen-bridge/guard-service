@@ -66,7 +66,7 @@ class Dialer {
   ]);
 
   private constructor() {
-    logger.info('Create Dialer Instance!');
+    logger.info('Dialer constructor called.');
   }
 
   /**
@@ -75,12 +75,14 @@ class Dialer {
   public static getInstance = async () => {
     try {
       if (!Dialer.instance) {
+        logger.debug("Dialer instance didn't exist, creating a new one.");
         Dialer.instance = new Dialer();
         await Dialer.instance.startDialer();
+        logger.debug('Dialer instance started.');
         Dialer.instance.processMessageQueue();
       }
-    } catch (e) {
-      throw Error(`An error occurred for start Dialer: ${e}`);
+    } catch (error) {
+      throw Error(`An error occurred while starting Dialer: ${error}`);
     }
     return Dialer.instance;
   };
@@ -94,25 +96,33 @@ class Dialer {
     exist: boolean;
   }> => {
     try {
-      if (!fs.existsSync(CommunicationConfig.peerIdFilePath)) {
+      const peerIdFilePath = CommunicationConfig.peerIdFilePath;
+      if (!fs.existsSync(peerIdFilePath)) {
+        logger.debug("peerId file didn't exist, generating a new peerId.", {
+          peerIdFilePath,
+        });
         return {
           peerId: await createEd25519PeerId(),
           exist: false,
         } as const;
       } else {
-        const jsonData = fs.readFileSync(
-          CommunicationConfig.peerIdFilePath,
-          'utf8'
+        logger.debug(
+          'peerId file exists, reading and returning the contents of the file as peerId.',
+          {
+            peerIdFilePath,
+          }
         );
+        const jsonData = fs.readFileSync(peerIdFilePath, 'utf8');
         const peerIdDialerJson: Parameters<typeof createFromJSON>['0'] =
           JSON.parse(jsonData);
+        logger.debug('PeerId file read and parsed successfully.');
         return {
           peerId: await createFromJSON(peerIdDialerJson),
           exist: true,
         };
       }
-    } catch (e) {
-      throw new Error(`Couldn't get or create a PeerID: ${e}`);
+    } catch (error) {
+      throw new Error(`Couldn't get or create a PeerID: ${error}`);
     }
   };
 
@@ -143,16 +153,18 @@ class Dialer {
         CommunicationConfig.peerIdFilePath,
         jsonData,
         'utf8',
-        function (err) {
-          if (err) {
+        function (error) {
+          if (error) {
             logger.warn(
-              `An error occurred while writing created PeerId to the file: ${err}`
+              `An error occurred while writing created PeerId to the file: ${error}`
             );
-            throw err;
+            throw error;
           }
-          logger.info('PeerId created!');
+          logger.info('PeerId file created.');
         }
       );
+    } else {
+      logger.debug('PeerId exists, ignored saving to file.', { peerObj });
     }
   };
 
@@ -193,6 +205,23 @@ class Dialer {
   };
 
   /**
+   * @return discovered peers count in the address book
+   */
+  getDiscoveredPeersCount = async () => {
+    if (!this._node) {
+      throw new Error("Dialer node isn't ready, please try later");
+    }
+    return (await this._node.peerStore.all()).length;
+  };
+
+  /**
+   * @returns connected peers count
+   */
+  getConnectedPeersCount = () => {
+    return this.getPeerIds().length;
+  };
+
+  /**
    * establish connection to relay
    * @param channel: string desire channel for subscription
    * @param callback: a callback function for subscribed channel
@@ -216,15 +245,22 @@ class Dialer {
             ((this.hasUrl(sub) && sub.url === url) || !url)
         )
       ) {
-        logger.info('A redundant subscribed channel detected!');
+        logger.info('A redundant subscribed channel detected.', {
+          channel,
+          url,
+        });
         return;
       }
       this._subscribedChannels[channel].push(callbackObj);
-      logger.info(`Channel [${channel}] subscribed!`);
+      logger.info(`Channel [${channel}] subscribed.`, {
+        url,
+      });
     } else {
       this._subscribedChannels[channel] = [];
       this._subscribedChannels[channel].push(callbackObj);
-      logger.info(`Channel [${channel}] subscribed!`);
+      logger.info(`Channel [${channel}] subscribed.`, {
+        url,
+      });
     }
   };
 
@@ -249,6 +285,7 @@ class Dialer {
     if (receiver) {
       const receiverPeerId = await createFromJSON({ id: `${receiver}` });
       this.pushMessageToMessageQueue(receiverPeerId, data);
+      logger.debug('Message pushed to the message queue.', { data });
     } else {
       // send message for listener peers (not relays)
       const peers = this._node!.getPeers().filter(
@@ -256,6 +293,7 @@ class Dialer {
       );
       for (const peer of peers) {
         this.pushMessageToMessageQueue(peer, data);
+        logger.debug('Message pushed to the message queue.', { data, peer });
       }
     }
   }
@@ -282,15 +320,22 @@ class Dialer {
             if (!this.getPeerIds().includes(peer)) {
               this._node.peerStore.addressBook
                 .add(await this.createFromString(peer), [multi])
-                .catch((err) => {
+                .then(() => {
+                  logger.debug(`Peer [${peer}] added to the address book.`);
+                })
+                .catch((error) => {
                   logger.error(
-                    `An error occurred while trying to add peer to address book: ${err}`
+                    `An error occurred while trying to add peer to address book: ${error}`,
+                    { peer }
                   );
                 });
             }
           }
-        } catch (e) {
-          logger.warn(`An error occurred while storing discovered peer: ${e}`);
+        } catch (error) {
+          logger.warn(
+            `An error occurred while storing discovered peer: ${error}`,
+            { peer }
+          );
         }
       }
     }
@@ -306,9 +351,11 @@ class Dialer {
         await this._node.peerStore.addressBook.delete(
           await this.createFromString(peer)
         );
+        logger.debug(`Peer [${peer}] removed from the address book.`);
       } catch (error) {
         logger.warn(
-          `An error occurred while removing peer from address book: ${error}`
+          `An error occurred while removing peer from address book: ${error}`,
+          { peer }
         );
       }
     }
@@ -328,6 +375,8 @@ class Dialer {
     let connection: Connection | undefined = undefined;
     let stream: Stream | undefined = undefined;
 
+    const peerString = peer.toString();
+
     for (const conn of node.getConnections(peer)) {
       if (conn.stat.status === OPEN) {
         for (const obj of conn.streams) {
@@ -341,16 +390,33 @@ class Dialer {
         }
         if (stream) {
           connection = conn;
+          logger.debug(
+            `Found an existing connection and a stream with protocol [${protocol}] to peer [${peerString}].`,
+            { conn, stream }
+          );
           break;
         }
       }
     }
 
     if (!connection) {
+      logger.debug(
+        `Found no connection to peer [${peerString}], trying to dial...`
+      );
       connection = await node.dial(peer);
+      logger.debug(`Peer [${peerString}] dialed successfully.`, {
+        connection,
+      });
     }
     if (!stream) {
+      logger.debug(
+        `Found no stream with protocol [${protocol}] to peer [${peerString}], trying to create a new one...`
+      );
       stream = await connection.newStream([protocol]);
+      logger.debug(
+        `A new stream with protocol [${protocol}] to peer [${peerString}] created successfully.`,
+        { stream }
+      );
     }
     return {
       stream: stream,
@@ -388,10 +454,23 @@ class Dialer {
       // Sink function
       async (source) => {
         try {
+          const broadcastProtocol = this._SUPPORTED_PROTOCOL.get('MSG');
+          logger.debug(
+            `A new message with [${broadcastProtocol}] protocol received from peer [${connection.remotePeer.toString()}], trying to parse...`
+          );
           // For each chunk of data
           for await (const msg of source) {
             const receivedData: ReceiveDataCommunication = JsonBI.parse(
               msg.toString()
+            );
+
+            logger.debug(
+              `The new message with [${broadcastProtocol}] parsed successfully.`,
+              {
+                message: receivedData,
+                subscribedChannels: this._subscribedChannels,
+                fromPeer: connection.remotePeer.toString(),
+              }
             );
 
             const runSubscribeCallback = async (channel: SubscribeChannel) => {
@@ -412,10 +491,7 @@ class Dialer {
               logger.info(
                 `Received a message from [${connection.remotePeer.toString()}] in subscribed channel [${
                   receivedData.channel
-                }]`
-              );
-              logger.debug(
-                `Received message with data:\n[${receivedData.msg}]`
+                }].`
               );
               this._subscribedChannels[receivedData.channel].forEach(
                 runSubscribeCallback
@@ -424,19 +500,19 @@ class Dialer {
               logger.info(
                 `Received a message from [${connection.remotePeer.toString()}] in unsubscribed channel [${
                   receivedData.channel
-                }]`
+                }].`
               );
             }
           }
-        } catch (e) {
+        } catch (error) {
           logger.error(
-            `An error occurred while handling stream callback: ${e}`
+            `An error occurred while handling stream callback: ${error}`
           );
         }
       }
-    ).catch((e) => {
+    ).catch((error) => {
       logger.error(
-        `An error occurred while handling broadcast protocol stream: ${e}`
+        `An error occurred while handling broadcast protocol stream: ${error}`
       );
     });
   };
@@ -481,15 +557,15 @@ class Dialer {
               );
             }
           }
-        } catch (e) {
+        } catch (error) {
           logger.error(
-            `An error occurred while handling stream callback: ${e}`
+            `An error occurred while handling stream callback: ${error}`
           );
         }
       }
-    ).catch((e) => {
+    ).catch((error) => {
       logger.error(
-        `An error occurred while handling getpeers protocol stream: ${e}`
+        `An error occurred while handling getpeers protocol stream: ${error}`
       );
     });
   };
@@ -535,27 +611,30 @@ class Dialer {
         ],
       });
 
+      logger.debug('libp2p instance created.');
+
       // Listen for peers disconnecting
       node.connectionManager.addEventListener(
         'peer:disconnect',
         async (evt) => {
           const peer = evt.detail.remotePeer.toString();
 
-          logger.info(`Peer [${peer}] Disconnected!`);
+          logger.info(`Peer [${peer}] disconnected.`);
           this.removePeerFromAddressBook(peer);
         }
       );
 
       // Listen for new peers
       node.addEventListener('peer:discovery', async (evt) => {
-        logger.info(`Found peer ${evt.detail.id.toString()}`);
-        // dial them when we discover them
         if (
           !CommunicationConfig.relays.peerIDs.includes(evt.detail.id.toString())
         ) {
+          logger.debug(`Found peer [${evt.detail.id.toString()}].`);
           this.addPeersToAddressBook([evt.detail.id.toString()]).catch(
-            (err) => {
-              logger.error(`Could not dial ${evt.detail.id}`, err);
+            (error) => {
+              logger.error(
+                `An error occurred while dialing peer [${evt.detail.id}]: ${error}`
+              );
             }
           );
         }
@@ -592,7 +671,9 @@ class Dialer {
       );
 
       await node.start();
-      logger.info(`Dialer node started with peerId: ${node.peerId.toString()}`);
+      logger.info(
+        `Dialer node started with peerId: ${node.peerId.toString()}.`
+      );
 
       this._node = node;
 
@@ -625,11 +706,27 @@ class Dialer {
       );
 
       // Job for log all peers
-      setInterval(() => {
-        logger.info(`Peers are [${this.getPeerIds()}]`);
+      setInterval(async () => {
+        const requiredPeersCount =
+          CommunicationConfig.guardsCount -
+          1 +
+          CommunicationConfig.relays.peerIDs.length;
+        const discoveredPeersCount = await this.getDiscoveredPeersCount();
+        const connectedPeersCount = this.getConnectedPeersCount();
+        const remainingRequiredDiscoveries =
+          requiredPeersCount - discoveredPeersCount;
+        const remainingRequiredConnections =
+          requiredPeersCount - connectedPeersCount;
+        logger.info(
+          `[${discoveredPeersCount}] peers are discovered. Required discoveries remaining: ${remainingRequiredDiscoveries}`
+        );
+        logger.info(
+          `[${connectedPeersCount}] out of [${discoveredPeersCount}] discovered peers are connected. Required connections remaining: ${remainingRequiredConnections}`
+        );
+        logger.debug(`Connected peers are: [${this.getPeerIds()}].`);
       }, CommunicationConfig.getPeersInterval * 1000);
-    } catch (e) {
-      logger.error(`An error occurred while starting dialer: ${e}`);
+    } catch (error) {
+      logger.error(`An error occurred while starting dialer: ${error}`);
     }
   };
 
@@ -703,11 +800,10 @@ class Dialer {
             Number(newRetriesCount);
 
         setTimeout(() => {
-          logger.info(
-            `Retry #${retriesCount} for sending message ${JsonBI.stringify(
-              rest.messageToSend
-            )}...`
-          );
+          logger.info(`Retry #${retriesCount} for sending a failed message...`);
+          logger.debug(`Message content is: `, {
+            messageToSend: rest.messageToSend,
+          });
 
           this._messageQueue.push(
             this.objectToUint8Array({
@@ -718,10 +814,11 @@ class Dialer {
         }, timeout);
       } else {
         logger.error(
-          `Failed to send message ${JsonBI.stringify(
-            rest.messageToSend
-          )} after ${CommunicationConfig.messageSendingRetriesMaxCount} retries`
+          `Failed to send a message after ${CommunicationConfig.messageSendingRetriesMaxCount} retries, message dropped.`
         );
+        logger.debug(`Message content was: `, {
+          messageToSend: rest.messageToSend,
+        });
       }
     };
 
@@ -742,11 +839,8 @@ class Dialer {
           source.push(this.objectToUint8Array(messageToSend));
 
           if (retriesCount) {
-            logger.info(
-              `Retry #${retriesCount} was successful for message ${JsonBI.stringify(
-                messageToSend
-              )}`
-            );
+            logger.info(`Retry #${retriesCount} was successful for a message.`);
+            logger.debug(`Message was: `, { messageToSend });
           }
         } catch (error) {
           logger.error(
