@@ -1,5 +1,10 @@
 import { Buffer } from 'buffer';
+
+import { get, set } from 'lodash-es';
+
 import Encryption from './Encryption';
+
+import { JsonBI } from '../network/NetworkModels';
 
 class Utils {
   /**
@@ -63,6 +68,25 @@ class Utils {
   static maxBigint = (a: bigint, b: bigint): bigint => {
     if (a > b) return a;
     else return b;
+  };
+
+  /**
+   * Works like `JSON.parse`, but converts all paths in `forceBigIntPaths` to
+   * bigint (if possible, otherwise leaves the value as-is)
+   *
+   * @param string String to parse
+   * @param forceBigIntPaths Array of all paths that should be converted to bigint
+   * @returns parsed value
+   */
+  static parseJson = (string: string, forceBigIntPaths: string[] = []) => {
+    const parsedString = JSON.parse(string);
+    const allBigIntsParsedString = JsonBI.parse(string);
+
+    forceBigIntPaths.forEach((path) => {
+      set(parsedString, path, get(allBigIntsParsedString, path));
+    });
+
+    return parsedString;
   };
 }
 
