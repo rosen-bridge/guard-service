@@ -5,6 +5,7 @@ import {
   CoveringErgoBoxes,
   ExplorerTransaction,
   AddressBalance,
+  MempoolTransactions,
 } from '../../../../src/chains/ergo/models/Interfaces';
 
 let mockedExplorer = spy(ExplorerApi);
@@ -120,6 +121,18 @@ const verifyExplorerGetAddressAssetsDidntGetCalled = (): void => {
 };
 
 /**
+ * mocks ExplorerApi getMempoolTxsForAddress method to return result when called for address
+ * @param address
+ * @param result
+ */
+const mockExplorerGetMempoolTxsForAddress = (
+  address: string,
+  result: MempoolTransactions
+): void => {
+  when(mockedExplorer.getMempoolTxsForAddress(address)).thenResolve(result);
+};
+
+/**
  * resets mocked methods of ExplorerApi
  */
 const resetMockedExplorerApi = (): void => {
@@ -136,5 +149,6 @@ export {
   mockIsBoxUnspentAndValid,
   mockExplorerGetAddressAssets,
   verifyExplorerGetAddressAssetsDidntGetCalled,
+  mockExplorerGetMempoolTxsForAddress,
   resetMockedExplorerApi,
 };

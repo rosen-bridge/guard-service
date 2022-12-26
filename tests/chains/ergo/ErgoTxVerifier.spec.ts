@@ -21,7 +21,7 @@ import { Fee } from '@rosen-bridge/minimum-fee';
 import { mockGetFee } from '../../guard/mocked/MockedMinimumFee';
 import ErgoTxVerifier from '../../../src/chains/ergo/ErgoTxVerifier';
 
-describe('ErgoChain', () => {
+describe('ErgoTxVerifier', () => {
   describe('verifyTransactionWithEvent', () => {
     // mock getting boxes
     const eventBoxAndCommitments = TestBoxes.mockEventBoxWithSomeCommitments();

@@ -1,9 +1,11 @@
 import ErgoChain from '../../../src/chains/ergo/ErgoChain';
-import { EventTrigger } from '../../../src/models/Models';
+import { EventTrigger, TransactionStatus } from '../../../src/models/Models';
 import TestBoxes from './testUtils/TestBoxes';
 import { expect } from 'chai';
 import { CoveringErgoBoxes } from '../../../src/chains/ergo/models/Interfaces';
 import {
+  mockExplorerGetMempoolTxsForAddress,
+  mockGetBoxesForErgoTree,
   mockGetCoveringErgAndTokenForErgoTree,
   resetMockedExplorerApi,
 } from './mocked/MockedExplorer';
@@ -18,6 +20,12 @@ import { anything, spy, when } from 'ts-mockito';
 import ErgoConfigs from '../../../src/chains/ergo/helpers/ErgoConfigs';
 import { Fee } from '@rosen-bridge/minimum-fee';
 import ErgoTxVerifier from '../../../src/chains/ergo/ErgoTxVerifier';
+import TestUtils from '../../testUtils/TestUtils';
+import { ErgoBox, Transaction } from 'ergo-lib-wasm-nodejs';
+import { JsonBI } from '../../../src/network/NetworkModels';
+import CardanoTestBoxes from '../../chains/cardano/testUtils/TestBoxes';
+import { insertTxRecord } from '../../db/mocked/MockedScannerModel';
+import { mockGetErgoPendingTransactionsInputs } from '../../guard/mocked/MockedTxAgreement';
 
 describe('ErgoChain', () => {
   const testBankAddress = TestBoxes.testLockAddress;
@@ -194,6 +202,84 @@ describe('ErgoChain', () => {
         mockedFeeConfig
       );
       expect(isValid).to.be.true;
+    });
+  });
+
+  describe('tractAndFilterLockBoxes', () => {
+    const bankBoxes = TestBoxes.mockManyBankBoxes();
+
+    beforeEach('mock ExplorerApi', function () {
+      resetMockedExplorerApi();
+    });
+
+    /**
+     * Target: testing tractAndFilterLockBoxes
+     * Dependencies:
+     *    ExplorerApi
+     *    txAgreement
+     * Scenario:
+     *    Mock ExplorerApi getBoxesForErgoTree for to return last step boxes
+     *    Mock two mempool tx (one of them contains lock boxes)
+     *    Mock ExplorerApi getMempoolTxsForAddress to return two mocked txs
+     *    Mock one Ergo tx and insert into db as 'approve' status
+     *    Mock txAgreement getErgoPendingTransactionsInputs
+     *    Run test
+     *    Check id of return boxes. It should have tracked and filtered successfully.
+     * Expected Output:
+     *    The function should construct a valid tx successfully
+     *    It should also verify it successfully
+     */
+    it('should track and filter lock boxes successfully', async () => {
+      // mock getBoxesForErgoTree
+      mockGetBoxesForErgoTree(testBankErgoTree, bankBoxes);
+
+      // mock two mempool tx
+      const trackBoxId1 = TestUtils.generateRandomId();
+      const mempoolTxs = TestBoxes.mockTwoMempoolTx(
+        bankBoxes.items[0],
+        trackBoxId1
+      );
+      // mock getMempoolTxsForAddress
+      mockExplorerGetMempoolTxsForAddress(testBankAddress, mempoolTxs);
+
+      // mock one Ergo tx and insert into db
+      const ergoUnsignedTx = TestBoxes.mockFineColdStorageTransaction(
+        bankBoxes.items
+          .slice(10)
+          .map((box) => ErgoBox.from_json(JsonBI.stringify(box)))
+      );
+      await insertTxRecord(
+        ergoUnsignedTx,
+        ergoUnsignedTx.txType,
+        ergoUnsignedTx.network,
+        TransactionStatus.approved,
+        0,
+        ergoUnsignedTx.eventId
+      );
+
+      // mock getErgoPendingTransactionsInputs
+      mockGetErgoPendingTransactionsInputs(
+        bankBoxes.items.slice(8, 10).map((box) => box.boxId)
+      );
+
+      // run test
+      const ergoChain: ErgoChain = new ErgoChain();
+      const result = await ergoChain.trackAndFilterLockBoxes({
+        ergs: 10n,
+        tokens: {
+          '': 10n,
+        },
+      });
+
+      // verify tx
+      console.log(result.boxes.map((box) => box.box_id().to_str()));
+      console.log(`==========`);
+      console.log(bankBoxes.items[0].boxId);
+      console.log(`==========`);
+      console.log([
+        trackBoxId1,
+        ...bankBoxes.items.slice(1, 8).map((box) => box.boxId),
+      ]);
     });
   });
 });

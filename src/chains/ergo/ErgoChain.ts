@@ -38,12 +38,7 @@ import { loggerFactory } from '../../log/Logger';
 import { Fee } from '@rosen-bridge/minimum-fee';
 import MinimumFee from '../../guard/MinimumFee';
 import { NotEnoughAssetsError } from '../../helpers/errors';
-import {
-  Asset,
-  Box,
-  BoxesAssets,
-  CoveringErgoBoxes,
-} from './models/Interfaces';
+import { BoxesAssets, CoveringErgoBoxes } from './models/Interfaces';
 import { txAgreement } from '../../guard/agreement/TxAgreement';
 
 const logger = loggerFactory(import.meta.url);
@@ -394,29 +389,24 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
   };
 
   /**
-   * tracks lock boxes with mempool and tx queue and filter used ones
-   * @param required required amount of erg and tokens
+   * generates mempool tx input dictionary to track boxes and append to trackMap
+   * @param trackMap the dictionary to append to
    */
-  tractAndFilterLockBoxes = async (
-    required: BoxesAssets
-  ): Promise<CoveringErgoBoxes> => {
-    let ergAmount = required.ergs;
-    const tokens = { ...required.tokens };
-    const remaining = () => {
-      const isAnyTokenRemain = Object.entries(tokens)
-        .map(([, amount]) => amount > 0)
-        .reduce((a, b) => a || b, false);
-      return isAnyTokenRemain || ergAmount > 0;
-    };
-
-    const trackBoxesMap = new Map<string, ErgoBox | undefined>();
-
-    // generate mempool dictionary
+  generateMempoolTrackMap = async (
+    trackMap: Map<string, ErgoBox | undefined>
+  ): Promise<void> => {
     const mempoolTxs = await ExplorerApi.getMempoolTxsForAddress(
       ErgoConfigs.ergoContractConfig.lockAddress
     );
+    console.log(`step inner 1`);
     if (mempoolTxs.total !== 0) {
+      console.log(`step inner 2`);
       mempoolTxs.items.forEach((tx) => {
+        console.log(`step inner 3`);
+        console.log(
+          `\t| config lock addr: ${ErgoConfigs.ergoContractConfig.lockAddress}`
+        );
+        tx.inputs.forEach((box) => console.log(`\t| box addr: ${box.address}`));
         const inputs = tx.inputs.filter(
           (box) => box.address === ErgoConfigs.ergoContractConfig.lockAddress
         );
@@ -424,18 +414,28 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
           (box) => box.address === ErgoConfigs.ergoContractConfig.lockAddress
         );
         if (inputs.length >= 1) {
+          console.log(`step inner 4`);
           inputs.forEach((input) => {
+            console.log(`step inner 5`);
             const box =
               outputs.length > 0
                 ? ErgoBox.from_json(JsonBI.stringify(outputs[0]))
                 : undefined;
-            trackBoxesMap.set(input.boxId, box);
+            trackMap.set(input.boxId, box);
           });
         }
       });
     }
+    console.log(`inner map: ${JSON.stringify(trackMap)}`);
+  };
 
-    // generate tx queue dictionary
+  /**
+   * generates mempool tx input dictionary to track boxes and append to trackMap
+   * @param trackMap the dictionary to append to
+   */
+  generateTxQueueTrackMap = async (
+    trackMap: Map<string, ErgoBox | undefined>
+  ): Promise<void> => {
     const dbSignedTxs = await dbAction.getSignedActiveTxsInChain(
       ChainsConstants.ergo
     );
@@ -452,33 +452,55 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         const boxErgoTree = output.ergo_tree().to_base16_bytes();
         if (boxErgoTree === this.lockErgoTree) {
           inputBoxIds.forEach((inputId) => {
-            trackBoxesMap.set(inputId, output);
+            trackMap.set(inputId, output);
           });
           break;
         }
       }
     });
+  };
+
+  /**
+   * tracks lock boxes with mempool and tx queue and filter used ones
+   * @param required required amount of erg and tokens
+   */
+  trackAndFilterLockBoxes = async (
+    required: BoxesAssets
+  ): Promise<CoveringErgoBoxes> => {
+    let ergAmount = required.ergs;
+    const tokens = { ...required.tokens };
+    const remaining = () => {
+      const isAnyTokenRemain = Object.entries(tokens)
+        .map(([, amount]) => amount > 0)
+        .reduce((a, b) => a || b, false);
+      return isAnyTokenRemain || ergAmount > 0;
+    };
+
+    const trackBoxesMap = new Map<string, ErgoBox | undefined>();
+
+    // generate mempool dictionary
+    await this.generateMempoolTrackMap(trackBoxesMap);
+
+    console.log(JSON.stringify(trackBoxesMap));
+
+    // generate tx queue dictionary
+    await this.generateTxQueueTrackMap(trackBoxesMap);
 
     // get unsigned txs input boxes from database
     const dbUnsignedTxs = await dbAction.getUnsignedActiveTxsInChain(
       ChainsConstants.ergo
     );
-    let filterBoxIds = dbUnsignedTxs.flatMap((txEntity) => {
-      const ergoTx = ErgoTransaction.fromJson(txEntity.txJson);
-      return ergoTx.inputBoxes
-        .map((serializedBox) => {
-          const box = ErgoBox.sigma_parse_bytes(serializedBox);
-          if (box.ergo_tree().to_base16_bytes() === this.lockErgoTree)
-            return box.box_id().to_str();
-          else return '';
-        })
-        .filter((id) => id !== '');
-    });
+    let usedBoxIds = dbUnsignedTxs.flatMap((txEntity) =>
+      ErgoUtils.getPaymentTxLockInputIds(
+        ErgoTransaction.fromJson(txEntity.txJson),
+        this.lockErgoTree
+      )
+    );
 
     // get unsigned txs input boxes from txAgreement
     const txAgreementUsedInputBoxes =
       txAgreement.getErgoPendingTransactionsInputs(this.lockErgoTree);
-    filterBoxIds = filterBoxIds.concat(txAgreementUsedInputBoxes);
+    usedBoxIds = usedBoxIds.concat(txAgreementUsedInputBoxes);
 
     // covering initialization
     const total = (
@@ -487,7 +509,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
     let offset = 0;
 
     // get lock boxes, track and filter
-    const result: Box[] = [];
+    const result: ErgoBox[] = [];
     while (offset < total && remaining()) {
       const boxes = await ExplorerApi.getBoxesForErgoTree(
         this.lockErgoTree,
@@ -495,14 +517,34 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         10
       );
       for (const box of boxes.items) {
-        if (filterBoxIds.find((id) => id === box.boxId)) {
-          result.push(box);
-          ergAmount -= box.value;
-          box.assets.map((asset: Asset) => {
-            if (Object.prototype.hasOwnProperty.call(tokens, asset.tokenId)) {
-              tokens[asset.tokenId] -= asset.amount;
+        // check if the box does NOT exist in usedBoxIds list
+        if (!usedBoxIds.find((id) => id === box.boxId)) {
+          // track the box using mempool and txQueue
+          let lastBox = ErgoBox.from_json(JsonBI.stringify(box));
+          while (trackBoxesMap.has(lastBox.box_id().to_str()))
+            lastBox = trackBoxesMap.get(lastBox.box_id().to_str())!;
+
+          if (
+            !result.find(
+              (box) => box.box_id().to_str() === lastBox.box_id().to_str()
+            )
+          ) {
+            result.push(lastBox);
+            ergAmount -= BigInt(lastBox.value().as_i64().to_str());
+            for (let i = 0; i < lastBox.tokens().len(); i++) {
+              const token = lastBox.tokens().get(i);
+              if (
+                Object.prototype.hasOwnProperty.call(
+                  tokens,
+                  token.id().to_str()
+                )
+              ) {
+                tokens[token.id().to_str()] -= BigInt(
+                  token.amount().as_i64().to_str()
+                );
+              }
             }
-          });
+          }
           if (!remaining()) break;
         }
       }
@@ -510,7 +552,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
     }
 
     return {
-      boxes: result.map((box) => ErgoBox.from_json(JsonBI.stringify(box))),
+      boxes: result,
       covered: !remaining(),
     };
   };

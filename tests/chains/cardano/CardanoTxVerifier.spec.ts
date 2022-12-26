@@ -12,7 +12,7 @@ import { Fee } from '@rosen-bridge/minimum-fee';
 import { mockGetFee } from '../../guard/mocked/MockedMinimumFee';
 import CardanoTxVerifier from '../../../src/chains/cardano/CardanoTxVerifier';
 
-describe('CardanoChain', () => {
+describe('CardanoTxVerifier', () => {
   const testBankAddress = TestBoxes.testBankAddress;
 
   describe('verifyTransactionWithEvent', () => {

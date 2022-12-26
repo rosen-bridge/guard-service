@@ -8,6 +8,8 @@ import {
   I64,
   TokenAmount,
   Constant,
+  ErgoTree,
+  NetworkPrefix,
 } from 'ergo-lib-wasm-nodejs';
 import { AssetMap, BoxesAssets, ExplorerOutputBox } from '../models/Interfaces';
 import ChainsConstants from '../../ChainsConstants';
@@ -20,6 +22,17 @@ class ErgoUtils {
    */
   static addressToErgoTreeString = (address: Address): string => {
     return address.to_ergo_tree().to_base16_bytes();
+  };
+
+  /**
+   * converts ergoTree to base58 string address
+   */
+  static ergoTreeToAddress = (
+    ergoTree: ErgoTree,
+    isMainnet = true
+  ): string => {
+    const prefix = isMainnet ? NetworkPrefix.Mainnet : NetworkPrefix.Testnet;
+    return Address.recreate_from_ergo_tree(ergoTree).to_base58(prefix);
   };
 
   /**

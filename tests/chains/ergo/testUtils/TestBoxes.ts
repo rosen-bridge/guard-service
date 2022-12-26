@@ -6,6 +6,8 @@ import {
   Box,
   Boxes,
   CoveringErgoBoxes,
+  MempoolTransaction,
+  MempoolTransactions,
   Register,
 } from '../../../../src/chains/ergo/models/Interfaces';
 import {
@@ -73,8 +75,11 @@ class TestBoxes {
   /**
    * converts an ErgoBox object to Box interface
    */
-  static convertErgoBoxToBoxObject = (ergoBox: ErgoBox): Box =>
-    JsonBI.parse(ergoBox.to_json());
+  static convertErgoBoxToBoxObject = (ergoBox: ErgoBox): Box => {
+    const box = JsonBI.parse(ergoBox.to_json()) as Box;
+    box.address = ErgoUtils.ergoTreeToAddress(ergoBox.ergo_tree(), false);
+    return box;
+  };
 
   /**
    * generates a mocked event trigger for Erg payment in ergo chain
@@ -2705,6 +2710,34 @@ class TestBoxes {
       [],
       TransactionTypes.coldStorage
     );
+  };
+
+  /**
+   * generates an input box with registers for arbitrary address
+   */
+  static mockTwoMempoolTx = (
+    trackingInputBox: Box,
+    targetBoxId: string
+  ): MempoolTransactions => {
+    const randomMempoolTx = JSON.parse(
+      TestData.randomMempoolTx
+    ) as MempoolTransaction;
+    console.log(`\t| trackingInputBox addr: ${trackingInputBox.address}`);
+    const mempoolTx = JSON.parse(
+      TestData.mockMempoolTx(
+        trackingInputBox.boxId,
+        trackingInputBox.ergoTree,
+        trackingInputBox.address,
+        targetBoxId,
+        String(trackingInputBox.value),
+        JsonBI.stringify(trackingInputBox.assets)
+      )
+    ) as MempoolTransaction;
+
+    return {
+      items: [randomMempoolTx, mempoolTx],
+      total: 2,
+    };
   };
 }
 

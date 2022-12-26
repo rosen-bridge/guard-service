@@ -30,6 +30,16 @@ const verifyStartAgreementProcessDidntGetCalled = (): void => {
 };
 
 /**
+ * mocks txAgreement getErgoPendingTransactionsInputs method to return boxIds when called
+ * @param boxIds
+ */
+const mockGetErgoPendingTransactionsInputs = (boxIds: string[]): void => {
+  when(
+    mockedTxAgreement.getErgoPendingTransactionsInputs(anything())
+  ).thenReturn(boxIds);
+};
+
+/**
  * resets mocked methods of txAgreement
  */
 const resetMockedTxAgreement = (): void => {
@@ -41,5 +51,6 @@ export {
   mockStartAgreementProcess,
   verifyStartAgreementProcessCalledOnce,
   verifyStartAgreementProcessDidntGetCalled,
+  mockGetErgoPendingTransactionsInputs,
   resetMockedTxAgreement,
 };
