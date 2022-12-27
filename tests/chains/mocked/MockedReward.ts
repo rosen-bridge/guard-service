@@ -2,6 +2,7 @@ import { anything, reset, spy, verify, when } from 'ts-mockito';
 import Reward from '../../../src/chains/ergo/Reward';
 import { EventTrigger } from '../../../src/models/Models';
 import ErgoTransaction from '../../../src/chains/ergo/models/ErgoTransaction';
+import { CoveringErgoBoxes } from '../../../src/chains/ergo/models/Interfaces';
 
 let mockedReward = spy(Reward);
 
@@ -47,6 +48,14 @@ const verifyRewardGenerateTransactionCalledOnce = (
 };
 
 /**
+ * mocks Reward trackAndFilterLockBoxes method to return boxes when called
+ * @param boxes
+ */
+const mockRewardTrackAndFilterLockBoxes = (boxes: CoveringErgoBoxes): void => {
+  when(mockedReward.trackAndFilterLockBoxes(anything())).thenResolve(boxes);
+};
+
+/**
  * resets mocked methods of ExplorerApi
  */
 const resetMockedReward = (): void => {
@@ -58,5 +67,6 @@ export {
   mockRewardGenerateTransaction,
   mockRewardGenerateTransactionToThrowError,
   verifyRewardGenerateTransactionCalledOnce,
+  mockRewardTrackAndFilterLockBoxes,
   resetMockedReward,
 };

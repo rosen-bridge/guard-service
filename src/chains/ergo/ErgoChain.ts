@@ -99,18 +99,13 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
       ErgoUtils.calculateBoxesAssets([eventBox, ...commitmentBoxes]),
       true
     );
+    requiredAssets.ergs = requiredAssets.ergs + ErgoConfigs.minimumErg; // required amount of Erg plus minimumErg for change box
 
     // get required boxes for transaction input
-    const coveringBoxes = await ExplorerApi.getCoveringErgAndTokenForErgoTree(
-      this.lockErgoTree,
-      requiredAssets.ergs + ErgoConfigs.minimumErg, // required amount of Erg plus minimumErg for change box
-      requiredAssets.tokens
-    );
+    const coveringBoxes = await this.trackAndFilterLockBoxes(requiredAssets);
 
     if (!coveringBoxes.covered) {
-      const neededErgs = (
-        requiredAssets.ergs + ErgoConfigs.minimumErg
-      ).toString();
+      const neededErgs = requiredAssets.ergs.toString();
       const neededTokens = JsonBI.stringify(requiredAssets.tokens);
       throw new NotEnoughAssetsError(
         `Bank boxes didn't cover required assets. Erg: ${neededErgs}, Tokens: ${neededTokens}`

@@ -21,6 +21,7 @@ import { TransactionTypes } from '../../models/Models';
 import { loggerFactory } from '../../log/Logger';
 import Configs from '../../helpers/Configs';
 import ChainsConstants from '../ChainsConstants';
+import Reward from './Reward';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -52,11 +53,7 @@ class ErgoColdStorage {
     };
 
     // get required boxes for transaction input
-    const coveringBoxes = await ExplorerApi.getCoveringErgAndTokenForErgoTree(
-      this.lockErgoTree,
-      requiredAssets.ergs,
-      requiredAssets.tokens
-    );
+    const coveringBoxes = await Reward.trackAndFilterLockBoxes(requiredAssets);
 
     if (!coveringBoxes.covered) {
       const neededErgs = requiredAssets.ergs.toString();

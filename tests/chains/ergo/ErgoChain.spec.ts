@@ -6,7 +6,6 @@ import { CoveringErgoBoxes } from '../../../src/chains/ergo/models/Interfaces';
 import {
   mockExplorerGetMempoolTxsForAddress,
   mockGetBoxesForErgoTree,
-  mockGetCoveringErgAndTokenForErgoTree,
   resetMockedExplorerApi,
 } from './mocked/MockedExplorer';
 import { beforeEach } from 'mocha';
@@ -16,7 +15,7 @@ import {
   mockGetEventValidCommitments,
   resetMockedInputBoxes,
 } from './mocked/MockedInputBoxes';
-import { anything, mock, spy, when } from 'ts-mockito';
+import { anything, spy, when } from 'ts-mockito';
 import ErgoConfigs from '../../../src/chains/ergo/helpers/ErgoConfigs';
 import { Fee } from '@rosen-bridge/minimum-fee';
 import ErgoTxVerifier from '../../../src/chains/ergo/ErgoTxVerifier';
@@ -45,12 +44,16 @@ describe('ErgoChain', () => {
       rsnRatio: 0n,
     };
 
+    // mock trackAndFilterLockBoxes method of ergoChain
+    let ergoChain: ErgoChain = new ErgoChain();
+
     beforeEach('mock ExplorerApi', function () {
       resetMockedExplorerApi();
-      mockGetCoveringErgAndTokenForErgoTree(testBankErgoTree, bankBoxes);
       resetMockedInputBoxes();
       mockGetEventBox(anything(), eventBoxAndCommitments[0]);
       mockGetEventValidCommitments(anything(), eventBoxAndCommitments.slice(1));
+      ergoChain = new ErgoChain();
+      sinon.stub(ergoChain, 'trackAndFilterLockBoxes').resolves(bankBoxes);
     });
 
     /**
@@ -67,7 +70,6 @@ describe('ErgoChain', () => {
       const mockedEvent: EventTrigger = TestBoxes.mockErgPaymentEventTrigger();
 
       // run test
-      const ergoChain: ErgoChain = new ErgoChain();
       const tx = await ergoChain.generateTransaction(
         mockedEvent,
         mockedFeeConfig
@@ -97,7 +99,7 @@ describe('ErgoChain', () => {
         TestBoxes.mockTokenPaymentEventTrigger();
 
       // run test
-      const ergoChain: ErgoChain = new ErgoChain();
+
       const tx = await ergoChain.generateTransaction(
         mockedEvent,
         mockedFeeConfig
@@ -128,7 +130,7 @@ describe('ErgoChain', () => {
       when(spiedErgoConfig.watchersRSNSharePercent).thenReturn(40n);
 
       // run test
-      const ergoChain: ErgoChain = new ErgoChain();
+
       const tx = await ergoChain.generateTransaction(
         mockedEvent,
         mockedFeeConfig
@@ -160,7 +162,7 @@ describe('ErgoChain', () => {
       when(spiedErgoConfig.watchersRSNSharePercent).thenReturn(40n);
 
       // run test
-      const ergoChain: ErgoChain = new ErgoChain();
+
       const tx = await ergoChain.generateTransaction(
         mockedEvent,
         mockedFeeConfig
@@ -192,7 +194,7 @@ describe('ErgoChain', () => {
       when(spiedErgoConfig.watchersSharePercent).thenReturn(0n);
 
       // run test
-      const ergoChain: ErgoChain = new ErgoChain();
+
       const tx = await ergoChain.generateTransaction(
         mockedEvent,
         mockedFeeConfig
