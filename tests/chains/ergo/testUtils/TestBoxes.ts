@@ -2714,7 +2714,7 @@ class TestBoxes {
   };
 
   /**
-   * generates an input box with registers for arbitrary address
+   * mock two transaction as they are pending in mempool
    */
   static mockTwoMempoolTx = (
     trackingInputBox: Box,
@@ -2737,6 +2737,23 @@ class TestBoxes {
     return {
       items: [randomMempoolTx, mempoolTx],
       total: 2,
+    };
+  };
+
+  /**
+   * mock a signed transaction with its lockErgoTree
+   */
+  static mockSignedTxWithLockErgoTree = (): {
+    tx: ErgoTransaction;
+    ergoTree: string;
+  } => {
+    const lockErgoTree =
+      '100304000e20a6ac381e6fa99929fd1477b3ba9499790a775e91d4c14c5aa86e9a118dfac8530400d801d601b2db6501fe730000ea02d1aedb63087201d901024d0e938c720201730198b2e4c672010510730200ade4c67201041ad901020ecdee7202';
+    const ergoTx = ErgoTransaction.fromJson(TestData.signedErgoTransaction);
+
+    return {
+      tx: ergoTx,
+      ergoTree: lockErgoTree,
     };
   };
 }

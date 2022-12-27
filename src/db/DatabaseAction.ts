@@ -364,7 +364,7 @@ class DatabaseAction {
   };
 
   /**
-   * returns all unsigned transactions for a chain (with status approved or in-sign)
+   * returns all unsigned transactions for a chain (with status approved, in-sign or sign-failed)
    * @param chain the chain of the tx
    */
   getUnsignedActiveTxsInChain = async (
@@ -379,6 +379,10 @@ class DatabaseAction {
         },
         {
           status: TransactionStatus.inSign,
+          chain: chain,
+        },
+        {
+          status: TransactionStatus.signFailed,
           chain: chain,
         },
       ],
