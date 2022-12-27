@@ -1,9 +1,5 @@
 import { expect } from 'chai';
-import {
-  EventStatus,
-  EventTrigger,
-  TransactionStatus,
-} from '../../../src/models/Models';
+import { EventStatus, EventTrigger } from '../../../src/models/Models';
 import EventProcessor from '../../../src/guard/event/EventProcessor';
 import {
   resetMockedEventProcessor,
@@ -13,7 +9,6 @@ import {
 import CardanoTestBoxes from '../../chains/cardano/testUtils/TestBoxes';
 import {
   allEventRecords,
-  allTxRecords,
   clearTables,
   insertEventRecord,
   insertOnyEventDataRecord,
@@ -44,7 +39,6 @@ import { mockGetFee } from '../mocked/MockedMinimumFee';
 import { Fee } from '@rosen-bridge/minimum-fee';
 import { NotEnoughAssetsError } from '../../../src/helpers/errors';
 import { reset, spy, when } from 'ts-mockito';
-import GuardTurn from '../../../src/helpers/GuardTurn';
 import Configs from '../../../src/helpers/Configs';
 import {
   resetDiscordNotificationCalls,
@@ -327,11 +321,7 @@ describe('EventProcessor', () => {
     it('should NOT inserts not confirmed events into ConfirmedEvent table', async () => {
       const mockedEvent = TestBoxes.mockErgPaymentEventTrigger();
       const boxSerialized = ErgoUtils.ergoBoxToSigmaSerialized(
-        TestBoxes.mockSingleBox(
-          1,
-          [],
-          ErgoUtils.addressStringToContract(TestBoxes.testLockAddress)
-        ) // address doesn't matter in this test
+        TestBoxes.mockSingleBankBox(1, []) // address doesn't matter in this test
       );
       await insertOnyEventDataRecord(mockedEvent, boxSerialized);
       mockIsEventConfirmedEnough(mockedEvent, false);
@@ -360,18 +350,10 @@ describe('EventProcessor', () => {
     it('should only inserts one event per sourceTxId into ConfirmedEvent table', async () => {
       const mockedEvent = TestBoxes.mockErgPaymentEventTrigger();
       const boxSerialized1 = ErgoUtils.ergoBoxToSigmaSerialized(
-        TestBoxes.mockSingleBox(
-          1,
-          [],
-          ErgoUtils.addressStringToContract(TestBoxes.testLockAddress)
-        ) // address doesn't matter in this test
+        TestBoxes.mockSingleBankBox(1, []) // address doesn't matter in this test
       );
       const boxSerialized2 = ErgoUtils.ergoBoxToSigmaSerialized(
-        TestBoxes.mockSingleBox(
-          1,
-          [],
-          ErgoUtils.addressStringToContract(TestBoxes.testLockAddress)
-        ) // address doesn't matter in this test
+        TestBoxes.mockSingleBankBox(1, []) // address doesn't matter in this test
       );
       await insertOnyEventDataRecord(mockedEvent, boxSerialized1);
       await insertOnyEventDataRecord(mockedEvent, boxSerialized2);

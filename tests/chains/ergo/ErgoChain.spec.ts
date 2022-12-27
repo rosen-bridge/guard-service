@@ -234,11 +234,17 @@ describe('ErgoChain', () => {
       mockGetBoxesForErgoTree(testBankErgoTree, bankBoxes);
 
       // mock two mempool tx
-      const trackBoxId1 = TestUtils.generateRandomId();
-      const mempoolTxs = TestBoxes.mockTwoMempoolTx(
-        bankBoxes.items[0],
-        trackBoxId1
+      const trackingInputBox = bankBoxes.items[0];
+      const targetBox = TestBoxes.mockSingleBox(
+        trackingInputBox.value.toString(),
+        trackingInputBox.assets,
+        ErgoUtils.addressStringToContract(testBankAddress)
       );
+      const mempoolTxs = TestBoxes.mockTwoMempoolTx(
+        trackingInputBox,
+        targetBox
+      );
+
       // mock getMempoolTxsForAddress
       mockExplorerGetMempoolTxsForAddress(testBankAddress, mempoolTxs);
 
@@ -272,12 +278,8 @@ describe('ErgoChain', () => {
       });
 
       // verify tx
-      console.log(result.boxes.map((box) => box.box_id().to_str()));
-      console.log(`==========`);
-      console.log(bankBoxes.items[0].boxId);
-      console.log(`==========`);
-      console.log([
-        trackBoxId1,
+      expect(result.boxes.map((box) => box.box_id().to_str())).to.deep.equal([
+        targetBox.box_id().to_str(),
         ...bankBoxes.items.slice(1, 8).map((box) => box.boxId),
       ]);
     });

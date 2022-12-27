@@ -77,7 +77,7 @@ class TestBoxes {
    */
   static convertErgoBoxToBoxObject = (ergoBox: ErgoBox): Box => {
     const box = JsonBI.parse(ergoBox.to_json()) as Box;
-    box.address = ErgoUtils.ergoTreeToAddress(ergoBox.ergo_tree(), false);
+    box.address = ErgoUtils.ergoTreeToAddress(ergoBox.ergo_tree());
     return box;
   };
 
@@ -948,7 +948,7 @@ class TestBoxes {
    * generates an input box for arbitrary address
    */
   static mockSingleBox = (
-    value: number,
+    value: string,
     assets: Asset[],
     addressContract: Contract
   ): ErgoBox => {
@@ -963,7 +963,7 @@ class TestBoxes {
     );
 
     return new ErgoBox(
-      this.ergToBoxValue(value),
+      ErgoUtils.boxValueFromString(value),
       this.testBlockchainHeight,
       addressContract,
       TxId.from_str(TestUtils.generateRandomId()),
@@ -1062,12 +1062,13 @@ class TestBoxes {
   /**
    * generates an input box for ergo bank address
    */
-  static mockSingleBankBox = (value: number, assets: Asset[]): ErgoBox =>
-    this.mockSingleBox(
-      value,
+  static mockSingleBankBox = (value: number, assets: Asset[]): ErgoBox => {
+    return this.mockSingleBox(
+      this.ergToNanoErgString(value),
       assets,
       ErgoUtils.addressStringToContract(this.testLockAddress)
     );
+  };
 
   /**
    * generates 14 input boxes for ergo bank address
@@ -2717,20 +2718,19 @@ class TestBoxes {
    */
   static mockTwoMempoolTx = (
     trackingInputBox: Box,
-    targetBoxId: string
+    targetBox: ErgoBox
   ): MempoolTransactions => {
     const randomMempoolTx = JSON.parse(
       TestData.randomMempoolTx
     ) as MempoolTransaction;
-    console.log(`\t| trackingInputBox addr: ${trackingInputBox.address}`);
+
     const mempoolTx = JSON.parse(
       TestData.mockMempoolTx(
+        TestUtils.generateRandomId(),
         trackingInputBox.boxId,
         trackingInputBox.ergoTree,
         trackingInputBox.address,
-        targetBoxId,
-        String(trackingInputBox.value),
-        JsonBI.stringify(trackingInputBox.assets)
+        JsonBI.stringify(this.convertErgoBoxToBoxObject(targetBox))
       )
     ) as MempoolTransaction;
 

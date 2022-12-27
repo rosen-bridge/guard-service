@@ -1787,15 +1787,14 @@ class TestData {
   }`;
 
   static mockMempoolTx = (
+    txId: string,
     boxId: string,
     boxErgoTree: string,
     boxAddress: string,
-    targetBoxId: string,
-    boxValue: string,
-    boxAssets: string
+    targetBoxJson: string
   ): string => `
   {
-    "id": "c3f6583a84b4a59efc5627bea013ac15088f736685d1865e865c47eb013bbc66",
+    "id": "${txId}",
     "creationTimestamp": 1664204480902,
     "inputs": [
       {
@@ -1840,19 +1839,7 @@ class TestData {
         "spentTransactionId": "df27a46e82456f036787aea12365b3b8d09618b1efb0918adee89fe0c577816d",
         "mainChain": true
       },
-      {
-        "boxId": "${targetBoxId}",
-        "transactionId": "c3f6583a84b4a59efc5627bea013ac15088f736685d1865e865c47eb013bbc66",
-        "value": ${boxValue},
-        "index": 2,
-        "creationHeight": 295146,
-        "ergoTree": "${boxErgoTree}",
-        "address": "${boxAddress}",
-        "assets": ${boxAssets},
-        "additionalRegisters": {},
-        "spentTransactionId": null,
-        "mainChain": true
-      }
+      ${targetBoxJson}
     ],
     "size": 1185
   }`;

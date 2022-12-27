@@ -398,15 +398,8 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
     const mempoolTxs = await ExplorerApi.getMempoolTxsForAddress(
       ErgoConfigs.ergoContractConfig.lockAddress
     );
-    console.log(`step inner 1`);
     if (mempoolTxs.total !== 0) {
-      console.log(`step inner 2`);
       mempoolTxs.items.forEach((tx) => {
-        console.log(`step inner 3`);
-        console.log(
-          `\t| config lock addr: ${ErgoConfigs.ergoContractConfig.lockAddress}`
-        );
-        tx.inputs.forEach((box) => console.log(`\t| box addr: ${box.address}`));
         const inputs = tx.inputs.filter(
           (box) => box.address === ErgoConfigs.ergoContractConfig.lockAddress
         );
@@ -414,9 +407,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
           (box) => box.address === ErgoConfigs.ergoContractConfig.lockAddress
         );
         if (inputs.length >= 1) {
-          console.log(`step inner 4`);
           inputs.forEach((input) => {
-            console.log(`step inner 5`);
             const box =
               outputs.length > 0
                 ? ErgoBox.from_json(JsonBI.stringify(outputs[0]))
@@ -426,7 +417,6 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         }
       });
     }
-    console.log(`inner map: ${JSON.stringify(trackMap)}`);
   };
 
   /**
@@ -480,8 +470,6 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
 
     // generate mempool dictionary
     await this.generateMempoolTrackMap(trackBoxesMap);
-
-    console.log(JSON.stringify(trackBoxesMap));
 
     // generate tx queue dictionary
     await this.generateTxQueueTrackMap(trackBoxesMap);
