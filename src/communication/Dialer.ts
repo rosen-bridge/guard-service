@@ -318,17 +318,18 @@ class Dialer {
               addr.concat(`/p2p-circuit/p2p/${peer}`)
             );
             if (!this.getPeerIds().includes(peer)) {
-              this._node.peerStore.addressBook
-                .add(await this.createFromString(peer), [multi])
-                .then(() => {
-                  logger.debug(`Peer [${peer}] added to the address book.`);
-                })
-                .catch((error) => {
-                  logger.error(
-                    `An error occurred while trying to add peer to address book: ${error}`,
-                    { peer }
-                  );
-                });
+              try {
+                await this._node.peerStore.addressBook.add(
+                  await this.createFromString(peer),
+                  [multi]
+                );
+                logger.debug(`Peer [${peer}] added to the address book.`);
+              } catch (error) {
+                logger.error(
+                  `An error occurred while trying to add peer to address book: ${error}`,
+                  { peer }
+                );
+              }
             }
           }
         } catch (error) {
