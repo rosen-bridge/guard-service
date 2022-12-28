@@ -8,8 +8,6 @@ import {
   I64,
   TokenAmount,
   Constant,
-  ErgoTree,
-  NetworkPrefix,
 } from 'ergo-lib-wasm-nodejs';
 import { AssetMap, BoxesAssets, ExplorerOutputBox } from '../models/Interfaces';
 import ChainsConstants from '../../ChainsConstants';
@@ -22,17 +20,6 @@ class ErgoUtils {
    */
   static addressToErgoTreeString = (address: Address): string => {
     return address.to_ergo_tree().to_base16_bytes();
-  };
-
-  /**
-   * converts ergoTree to base58 string address
-   */
-  static ergoTreeToAddress = (
-    ergoTree: ErgoTree,
-    isMainnet = true
-  ): string => {
-    const prefix = isMainnet ? NetworkPrefix.Mainnet : NetworkPrefix.Testnet;
-    return Address.recreate_from_ergo_tree(ergoTree).to_base58(prefix);
   };
 
   /**
@@ -304,14 +291,13 @@ class ErgoUtils {
     tx: ErgoTransaction,
     lockErgoTree: string
   ): string[] => {
-    return tx.inputBoxes
-      .map((serializedBox) => {
-        const box = ErgoBox.sigma_parse_bytes(serializedBox);
-        if (box.ergo_tree().to_base16_bytes() === lockErgoTree)
-          return box.box_id().to_str();
-        else return '';
-      })
-      .filter((id) => id !== '');
+    const ids: string[] = [];
+    tx.inputBoxes.forEach((serializedBox) => {
+      const box = ErgoBox.sigma_parse_bytes(serializedBox);
+      if (box.ergo_tree().to_base16_bytes() === lockErgoTree)
+        ids.push(box.box_id().to_str());
+    });
+    return ids;
   };
 }
 

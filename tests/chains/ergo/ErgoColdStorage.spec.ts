@@ -8,9 +8,9 @@ import {
 } from './mocked/MockedExplorer';
 import ErgoColdStorage from '../../../src/chains/ergo/ErgoColdStorage';
 import {
-  mockRewardTrackAndFilterLockBoxes,
-  resetMockedReward,
-} from '../mocked/MockedReward';
+  mockTrackAndFilterLockBoxes,
+  resetMockedErgoTrack,
+} from '../mocked/MockedErgoTrack';
 
 describe('ErgoColdStorage', () => {
   const testBankAddress = TestBoxes.testLockAddress;
@@ -18,7 +18,7 @@ describe('ErgoColdStorage', () => {
   describe('generateTransaction', () => {
     beforeEach('reset mocks', function () {
       resetMockedExplorerApi();
-      resetMockedReward(); // TODO: there is no need to reset reward after refactor (#109)
+      resetMockedErgoTrack();
     });
 
     /**
@@ -43,7 +43,7 @@ describe('ErgoColdStorage', () => {
         tokens: {},
       };
       // mock bank boxes
-      mockRewardTrackAndFilterLockBoxes(mockedBankAssetsAndBoxes[1]);
+      mockTrackAndFilterLockBoxes(mockedBankAssetsAndBoxes[1]);
       mockExplorerGetAddressAssets(
         testBankAddress,
         mockedBankAssetsAndBoxes[0]
@@ -82,7 +82,7 @@ describe('ErgoColdStorage', () => {
         },
       };
       // mock bank boxes and assets
-      mockRewardTrackAndFilterLockBoxes(mockedBankAssetsAndBoxes[1]);
+      mockTrackAndFilterLockBoxes(mockedBankAssetsAndBoxes[1]);
       mockExplorerGetAddressAssets(
         testBankAddress,
         mockedBankAssetsAndBoxes[0]

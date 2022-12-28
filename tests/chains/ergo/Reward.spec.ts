@@ -12,11 +12,9 @@ import {
 } from './mocked/MockedInputBoxes';
 import { anything, spy, when } from 'ts-mockito';
 import ErgoConfigs from '../../../src/chains/ergo/helpers/ErgoConfigs';
-import {
-  mockRewardTrackAndFilterLockBoxes,
-  resetMockedReward,
-} from '../mocked/MockedReward';
+import { resetMockedReward } from '../mocked/MockedReward';
 import { Fee } from '@rosen-bridge/minimum-fee';
+import { mockTrackAndFilterLockBoxes } from '../mocked/MockedErgoTrack';
 
 describe('Reward', () => {
   describe('generateTransaction', () => {
@@ -32,7 +30,7 @@ describe('Reward', () => {
     beforeEach('mock ExplorerApi', function () {
       resetMockedReward();
       resetMockedExplorerApi();
-      mockRewardTrackAndFilterLockBoxes(bankBoxes);
+      mockTrackAndFilterLockBoxes(bankBoxes);
       resetMockedInputBoxes();
       mockGetEventBox(anything(), eventBoxAndCommitments[0]);
       mockGetEventValidCommitments(anything(), eventBoxAndCommitments.slice(1));

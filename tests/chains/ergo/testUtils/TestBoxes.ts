@@ -11,6 +11,7 @@ import {
   Register,
 } from '../../../../src/chains/ergo/models/Interfaces';
 import {
+  Address,
   BoxSelection,
   BoxValue,
   Constant,
@@ -22,6 +23,7 @@ import {
   ErgoBoxCandidates,
   ErgoBoxes,
   I64,
+  NetworkPrefix,
   ReducedTransaction,
   SecretKey,
   SecretKeys,
@@ -77,7 +79,9 @@ class TestBoxes {
    */
   static convertErgoBoxToBoxObject = (ergoBox: ErgoBox): Box => {
     const box = JsonBI.parse(ergoBox.to_json()) as Box;
-    box.address = ErgoUtils.ergoTreeToAddress(ergoBox.ergo_tree());
+    box.address = Address.recreate_from_ergo_tree(
+      ergoBox.ergo_tree()
+    ).to_base58(NetworkPrefix.Mainnet);
     return box;
   };
 
