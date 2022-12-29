@@ -1,5 +1,4 @@
 import { mockKoiosGetTxInfo } from './mocked/MockedKoios';
-import CardanoChain from '../../../src/chains/cardano/CardanoChain';
 import { EventTrigger } from '../../../src/models/Models';
 import TestBoxes from './testUtils/TestBoxes';
 import TestData from './testUtils/TestData';
@@ -181,6 +180,7 @@ describe('CardanoTxVerifier', () => {
   });
 
   describe('verifyEventWithPayment', () => {
+    // TODO: add test for when asset credential is incorrect
     const mockedFeeConfig: Fee = {
       bridgeFee: 0n,
       networkFee: 0n,

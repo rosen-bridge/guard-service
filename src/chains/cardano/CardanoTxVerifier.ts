@@ -26,6 +26,7 @@ import {
 
 const logger = loggerFactory(import.meta.url);
 
+// TODO: include this class in refactor (#109)
 class CardanoTxVerifier {
   static bankAddress = Address.from_bech32(CardanoConfigs.bankAddress);
 
