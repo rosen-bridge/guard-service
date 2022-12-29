@@ -42,7 +42,6 @@ import {
 import CardanoConfigs from '../../../src/chains/cardano/helpers/CardanoConfigs';
 import { Fee } from '@rosen-bridge/minimum-fee';
 import { mockGetFee } from '../../guard/mocked/MockedMinimumFee';
-import KoiosApi from '../../../src/chains/cardano/network/KoiosApi';
 import { Buffer } from 'buffer';
 
 describe('CardanoChain', () => {
@@ -71,8 +70,7 @@ describe('CardanoChain', () => {
     /**
      * Target: testing getCoveringUtxo
      * Dependencies:
-     *    BlockFrostApi
-     *    KoiosApi
+     *    CardanoUtils
      * Expected Output:
      *    The function should return 1 specific box
      */
@@ -83,7 +81,7 @@ describe('CardanoChain', () => {
       };
 
       // run test
-      const boxes = KoiosApi.getCoveringUtxo(
+      const boxes = CardanoUtils.getCoveringUtxo(
         [bankBoxes[5], bankBoxes[4]],
         requiredAssets
       );
@@ -95,8 +93,7 @@ describe('CardanoChain', () => {
     /**
      * Target: testing getCoveringUtxo
      * Dependencies:
-     *    BlockFrostApi
-     *    KoiosApi
+     *    CardanoUtils
      * Expected Output:
      *    The function should return 2 specific box
      */
@@ -108,7 +105,7 @@ describe('CardanoChain', () => {
       };
 
       // run test
-      const boxes = KoiosApi.getCoveringUtxo(
+      const boxes = CardanoUtils.getCoveringUtxo(
         [bankBoxes[5], bankBoxes[1]],
         requiredAssets
       );
@@ -120,8 +117,7 @@ describe('CardanoChain', () => {
     /**
      * Target: testing getCoveringUtxo
      * Dependencies:
-     *    BlockFrostApi
-     *    KoiosApi
+     *    CardanoUtils
      * Expected Output:
      *    The function should return more than or equal 1 box
      */
@@ -131,7 +127,7 @@ describe('CardanoChain', () => {
       requiredAssets.assets.insert(policyId, assetList);
 
       // run test
-      const boxes = KoiosApi.getCoveringUtxo(bankBoxes, requiredAssets);
+      const boxes = CardanoUtils.getCoveringUtxo(bankBoxes, requiredAssets);
 
       // verify output boxes
       expect(boxes.length).to.greaterThanOrEqual(1);
@@ -140,8 +136,7 @@ describe('CardanoChain', () => {
     /**
      * Target: testing getCoveringUtxo
      * Dependencies:
-     *    BlockFrostApi
-     *    KoiosApi
+     *    CardanoUtils
      * Expected Output:
      *    The function should return 3 box
      */
@@ -151,7 +146,7 @@ describe('CardanoChain', () => {
       requiredAssets.assets.insert(policyId, assetList);
 
       // run test
-      const boxes = KoiosApi.getCoveringUtxo(
+      const boxes = CardanoUtils.getCoveringUtxo(
         [bankBoxes[8], bankBoxes[6], bankBoxes[5]],
         requiredAssets
       );
@@ -163,8 +158,7 @@ describe('CardanoChain', () => {
     /**
      * Target: testing getCoveringUtxo
      * Dependencies:
-     *    BlockFrostApi
-     *    KoiosApi
+     *    CardanoUtils
      * Expected Output:
      *    The function should return 2 box
      */
@@ -174,7 +168,7 @@ describe('CardanoChain', () => {
       requiredAssets.assets.insert(policyId, assetList);
 
       // run test
-      const boxes = KoiosApi.getCoveringUtxo(
+      const boxes = CardanoUtils.getCoveringUtxo(
         [bankBoxes[6], bankBoxes[5]],
         requiredAssets
       );

@@ -56,7 +56,7 @@ class CardanoColdStorage {
     const addressBoxes = await KoiosApi.getAddressBoxes(
       CardanoConfigs.bankAddress
     );
-    const lockBoxes = KoiosApi.getCoveringUtxo(addressBoxes, requiredAssets);
+    const lockBoxes = CardanoUtils.getCoveringUtxo(addressBoxes, requiredAssets);
 
     // add input boxes
     lockBoxes.forEach((box) => {

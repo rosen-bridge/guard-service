@@ -100,7 +100,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
       requiredAssets.assets.insert(policyId, assetList);
     }
 
-    const bankBoxes = KoiosApi.getCoveringUtxo(
+    const bankBoxes = CardanoUtils.getCoveringUtxo(
       await KoiosApi.getAddressBoxes(CardanoConfigs.bankAddress),
       requiredAssets
     );
