@@ -134,6 +134,5 @@ class KoiosApi {
         }
       });
   };
-
 }
 export default KoiosApi;

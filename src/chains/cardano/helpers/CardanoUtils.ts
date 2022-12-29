@@ -15,9 +15,9 @@ import {
   ScriptHash,
 } from '@emurgo/cardano-serialization-lib-nodejs';
 import { Buffer } from 'buffer';
-import CardanoConfigs from "./CardanoConfigs";
-import Utils from "../../../helpers/Utils";
-import {NotEnoughAssetsError} from "../../../helpers/errors";
+import CardanoConfigs from './CardanoConfigs';
+import Utils from '../../../helpers/Utils';
+import { NotEnoughAssetsError } from '../../../helpers/errors';
 
 class CardanoUtils {
   /**
@@ -123,7 +123,6 @@ class CardanoUtils {
     };
   };
 
-
   /**
    * getting all address utxos and return minimum amount of required box to be in the input of transaction
    * @param addressBoxes all utxos of bankAddress
@@ -132,8 +131,8 @@ class CardanoUtils {
    * @return minimum required box to be in the input of the transaction
    */
   static getCoveringUtxo = (
-      addressBoxes: Array<Utxo>,
-      requiredAssets: UtxoBoxesAssets
+    addressBoxes: Array<Utxo>,
+    requiredAssets: UtxoBoxesAssets
   ): Array<Utxo> => {
     const result: Array<Utxo> = [];
     let coveredLovelace = BigNum.from_str('0');
@@ -149,25 +148,25 @@ class CardanoUtils {
     if (requiredAssets.assets.len() === 0) {
       const paymentAmount = requiredAssets.lovelace;
       for (
-          let i = 0;
-          paymentAmount.compare(coveredLovelace) > 0 && i < addressBoxes.length;
-          i++
+        let i = 0;
+        paymentAmount.compare(coveredLovelace) > 0 && i < addressBoxes.length;
+        i++
       ) {
         const uTxo = addressBoxes[shuffleIndexes[i]];
         coveredLovelace = coveredLovelace.checked_add(
-            BigNum.from_str(uTxo.value)
+          BigNum.from_str(uTxo.value)
         );
         result.push(uTxo);
       }
       if (paymentAmount.compare(coveredLovelace) > 0)
         throw new Error(
-            `An error occurred, theres is no enough lovelace in the bank`
+          `An error occurred, theres is no enough lovelace in the bank`
         );
     } else {
       const lovelacePaymentAmount =
-          requiredAssets.lovelace > BigNum.zero()
-              ? requiredAssets.lovelace
-              : CardanoConfigs.txMinimumLovelace;
+        requiredAssets.lovelace > BigNum.zero()
+          ? requiredAssets.lovelace
+          : CardanoConfigs.txMinimumLovelace;
       const requiredMultiAssets = requiredAssets.assets;
       const requiredAssetsMap = new Map<AssetInfo, BigNum>();
 
@@ -186,30 +185,30 @@ class CardanoUtils {
             requiredAssetsMap.set(assetInfo, assetAmount);
           } else {
             requiredAssetsMap.set(
-                assetInfo,
-                requiredAssetsMap.get(assetInfo)!.checked_add(assetAmount)
+              assetInfo,
+              requiredAssetsMap.get(assetInfo)!.checked_add(assetAmount)
             );
           }
         }
       }
 
       for (
-          let i = 0;
-          (requiredAssetsMap.size > 0 ||
-              lovelacePaymentAmount.compare(coveredLovelace) > 0) &&
-          i < addressBoxes.length;
-          i++
+        let i = 0;
+        (requiredAssetsMap.size > 0 ||
+          lovelacePaymentAmount.compare(coveredLovelace) > 0) &&
+        i < addressBoxes.length;
+        i++
       ) {
         let isAdded = false;
         const uTxo = addressBoxes[shuffleIndexes[i]];
         if (requiredAssetsMap.size > 0) {
           for (const assetPair of requiredAssetsMap) {
             const assetIndex = uTxo.asset_list.findIndex(
-                (asset) =>
-                    asset.asset_name ===
-                    Utils.Uint8ArrayToHexString(assetPair[0].assetName) &&
-                    asset.policy_id ===
-                    Utils.Uint8ArrayToHexString(assetPair[0].policyId)
+              (asset) =>
+                asset.asset_name ===
+                  Utils.Uint8ArrayToHexString(assetPair[0].assetName) &&
+                asset.policy_id ===
+                  Utils.Uint8ArrayToHexString(assetPair[0].policyId)
             );
             if (assetIndex !== -1) {
               const asset = uTxo.asset_list[assetIndex];
@@ -217,12 +216,12 @@ class CardanoUtils {
                 requiredAssetsMap.delete(assetPair[0]);
               } else {
                 requiredAssetsMap.set(
-                    assetPair[0],
-                    assetPair[1].checked_sub(BigNum.from_str(asset.quantity))
+                  assetPair[0],
+                  assetPair[1].checked_sub(BigNum.from_str(asset.quantity))
                 );
               }
               coveredLovelace = coveredLovelace.checked_add(
-                  BigNum.from_str(uTxo.value)
+                BigNum.from_str(uTxo.value)
               );
               result.push(uTxo);
               isAdded = true;
@@ -231,7 +230,7 @@ class CardanoUtils {
         }
         if (!isAdded && lovelacePaymentAmount.compare(coveredLovelace) > 0) {
           coveredLovelace = coveredLovelace.checked_add(
-              BigNum.from_str(uTxo.value)
+            BigNum.from_str(uTxo.value)
           );
           result.push(uTxo);
         }
@@ -239,13 +238,13 @@ class CardanoUtils {
 
       if (lovelacePaymentAmount.compare(coveredLovelace) > 0)
         throw new NotEnoughAssetsError(
-            `Not enough lovelace in the bank. required: ${lovelacePaymentAmount.to_str()}, found ${coveredLovelace.to_str()}`
+          `Not enough lovelace in the bank. required: ${lovelacePaymentAmount.to_str()}, found ${coveredLovelace.to_str()}`
         );
       if (requiredAssetsMap.size > 0)
         throw new NotEnoughAssetsError(
-            `Not enough asset in the bank. found ${JSON.stringify(
-                result
-            )} shortage ${JSON.stringify(Array.from(requiredAssetsMap))}`
+          `Not enough asset in the bank. found ${JSON.stringify(
+            result
+          )} shortage ${JSON.stringify(Array.from(requiredAssetsMap))}`
         );
     }
     return result;

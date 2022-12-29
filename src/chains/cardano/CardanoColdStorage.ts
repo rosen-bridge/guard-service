@@ -46,17 +46,20 @@ class CardanoColdStorage {
       BigNum.from_str('2')
     );
     const requiredAssets: UtxoBoxesAssets = {
-      lovelace: transferringAssets.lovelace.less_than(twoMinBoxLovelace)
+      lovelace: (transferringAssets.lovelace.less_than(twoMinBoxLovelace)
         ? twoMinBoxLovelace
         : transferringAssets.lovelace
-      ,
+      ).checked_add(CardanoConfigs.txFee),
       assets: transferringAssets.assets,
     };
 
     const addressBoxes = await KoiosApi.getAddressBoxes(
       CardanoConfigs.bankAddress
     );
-    const lockBoxes = CardanoUtils.getCoveringUtxo(addressBoxes, requiredAssets);
+    const lockBoxes = CardanoUtils.getCoveringUtxo(
+      addressBoxes,
+      requiredAssets
+    );
 
     // add input boxes
     lockBoxes.forEach((box) => {
