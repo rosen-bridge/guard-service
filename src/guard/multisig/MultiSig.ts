@@ -130,7 +130,7 @@ class MultiSigHandler {
           release();
         })
         .catch((e) => {
-          logger.error(`Error in signing MultiSig transaction: ${e}`);
+          logger.error(`Error in signing MultiSig transaction: ${e.stack}`);
           reject(e);
         });
     });
@@ -190,7 +190,7 @@ class MultiSigHandler {
       } catch (e) {
         release();
         logger.error(
-          `An error occurred while removing unsigned transactions from MultiSig queue: ${e}`
+          `An error occurred while removing unsigned transactions from MultiSig queue: ${e.stack}`
         );
         throw e;
       }

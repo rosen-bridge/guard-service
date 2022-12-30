@@ -411,7 +411,7 @@ class TxAgreement {
             release();
           } catch (e) {
             release();
-            logger.error(`An error occurred while inserting tx to db: ${e}`);
+            logger.error(`An error occurred while inserting tx to db: ${e.stack}`);
             throw e;
           }
         });

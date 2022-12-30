@@ -41,7 +41,7 @@ p2pRouter.post(
       res.send({ message: 'ok' });
     } catch (error) {
       logger.error(
-        `An error occurred while send message over p2p: ${error.message}`
+        `An error occurred while send message over p2p: ${error.stack}`
       );
       res.status(500).send({ message: error.message });
     }
@@ -69,7 +69,7 @@ p2pRouter.post(
       res.send({ message: 'ok' });
     } catch (error) {
       logger.error(
-        `An error occurred while subscribe channel: ${error.message}`
+        `An error occurred while subscribe channel: ${error.stack}`
       );
       res.status(500).send({ message: error.message });
     }
