@@ -13,7 +13,7 @@ const configUpdateJob = async () => {
     setTimeout(configUpdateJob, Configs.guardConfigUpdateInterval * 1000);
   } catch (e) {
     if (e instanceof Error) {
-      logger.warn(`Updating guard config failed with error: ${e.message}`);
+      logger.warn(`Updating guard config failed with error: ${e.stack}`);
       setTimeout(configUpdateJob, Configs.guardConfigUpdateInterval * 1000);
     } else {
       logger.error('Guard config updating failed');

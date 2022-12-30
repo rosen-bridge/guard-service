@@ -65,7 +65,7 @@ class EventProcessor {
         }
       } catch (e) {
         logger.warn(
-          `An error occurred while processing event txId [${event.sourceTxId}]: ${e}`
+          `An error occurred while processing event txId [${event.sourceTxId}]: ${e.stack}`
         );
       }
     }
@@ -94,7 +94,7 @@ class EventProcessor {
           );
       } catch (e) {
         logger.warn(
-          `An error occurred while processing event [${event.id}]: ${e}`
+          `An error occurred while processing event [${event.id}]: ${e.stack}`
         );
       }
     }
@@ -119,7 +119,7 @@ class EventProcessor {
         }
       } catch (e) {
         logger.warn(
-          `An error occurred while processing leftover event [${event.id}]: ${e}`
+          `An error occurred while processing leftover event [${event.id}]: ${e.stack}`
         );
       }
     }
@@ -152,7 +152,7 @@ class EventProcessor {
           );
       } catch (e) {
         logger.warn(
-          `An error occurred while processing waiting event [${event.id}]: ${e}`
+          `An error occurred while processing waiting event [${event.id}]: ${e.stack}`
         );
       }
     }
@@ -180,7 +180,7 @@ class EventProcessor {
     } catch (e) {
       if (e instanceof NotEnoughAssetsError) {
         logger.warn(
-          `Failed to create payment for event [${event.getId()}]: ${e}`
+          `Failed to create payment for event [${event.getId()}]: ${e.stack}`
         );
         await DiscordNotification.sendMessage(
           `Failed to create payment for event [${event.getId()}] due to low assets: ${e}`
@@ -214,7 +214,7 @@ class EventProcessor {
     } catch (e) {
       if (e instanceof NotEnoughAssetsError) {
         logger.warn(
-          `Failed to create reward distribution for event [${event.getId()}]: ${e}`
+          `Failed to create reward distribution for event [${event.getId()}]: ${e.stack}`
         );
         await DiscordNotification.sendMessage(
           `Failed to create reward distribution for event [${event.getId()}] due to low assets: ${e}`

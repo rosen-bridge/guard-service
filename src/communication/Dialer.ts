@@ -156,7 +156,7 @@ class Dialer {
         function (error) {
           if (error) {
             logger.warn(
-              `An error occurred while writing created PeerId to the file: ${error}`
+              `An error occurred while writing created PeerId to the file: ${error.stack}`
             );
             throw error;
           }
@@ -334,7 +334,7 @@ class Dialer {
           }
         } catch (error) {
           logger.warn(
-            `An error occurred while storing discovered peer: ${error}`,
+            `An error occurred while storing discovered peer: ${error.stack}`,
             { peer }
           );
         }
@@ -355,7 +355,7 @@ class Dialer {
         logger.debug(`Peer [${peer}] removed from the address book.`);
       } catch (error) {
         logger.warn(
-          `An error occurred while removing peer from address book: ${error}`,
+          `An error occurred while removing peer from address book: ${error.stack}`,
           { peer }
         );
       }

@@ -591,7 +591,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
       ) {
         throw Error(`Skipping event [${eventId}] validation: ${e}`);
       } else {
-        logger.warn(`Event [${eventId}] validation failed: ${e}`);
+        logger.warn(`Event [${eventId}] validation failed: ${e.stack}`);
         return false;
       }
     }
@@ -608,7 +608,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
       const response = await NodeApi.sendTx(tx.to_json());
       logger.info(`Ergo Transaction submitted: [${response}]`);
     } catch (e) {
-      logger.warn(`An error occurred while submitting Ergo transaction: ${e}`);
+      logger.warn(`An error occurred while submitting Ergo transaction: ${e.stack}`);
     }
   };
 }

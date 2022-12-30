@@ -467,7 +467,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
       await TssSigner.signTxHash(txHash);
     } catch (e) {
       logger.warn(
-        `An error occurred while requesting TSS service to sign Cardano tx: [${e}]`
+        `An error occurred while requesting TSS service to sign Cardano tx: [${e.stack}]`
       );
     }
   };
@@ -504,7 +504,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
       tx = this.deserialize(paymentTx.txBytes);
     } catch (e) {
       logger.warn(
-        `An error occurred while getting Cardano tx [${txId}] from db: ${e}`
+        `An error occurred while getting Cardano tx [${txId}] from db: ${e.stack}`
       );
       return null;
     }
@@ -549,7 +549,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
       logger.info('Cardano Transaction submitted', { txId: response });
     } catch (e) {
       logger.warn(
-        `An error occurred while submitting Cardano transaction: ${e}`
+        `An error occurred while submitting Cardano transaction: ${e.stack}`
       );
     }
   };
@@ -703,7 +703,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
       ) {
         throw Error(`Skipping event [${eventId}] validation: ${e}`);
       } else {
-        logger.warn(`Event [${eventId}] validation failed: ${e}`);
+        logger.warn(`Event [${eventId}] validation failed: ${e.stack}`);
         return false;
       }
     }
