@@ -220,7 +220,9 @@ class CardanoUtils {
       );
     if (requiredAssetsMap.size > 0)
       throw new NotEnoughAssetsError(
-        `Not enough asset in the bank. Shortage: ${JSON.stringify(Array.from(requiredAssetsMap))}`
+        `Not enough asset in the bank. Shortage: ${JSON.stringify(
+          Array.from(requiredAssetsMap)
+        )}`
       );
     return result;
   };

@@ -46,10 +46,9 @@ class CardanoColdStorage {
       BigNum.from_str('2')
     );
     const requiredAssets: UtxoBoxesAssets = {
-      lovelace: (transferringAssets.lovelace.less_than(twoMinBoxLovelace)
+      lovelace: transferringAssets.lovelace.less_than(twoMinBoxLovelace)
         ? twoMinBoxLovelace
-        : transferringAssets.lovelace
-      ).checked_add(CardanoConfigs.txFee),
+        : transferringAssets.lovelace,
       assets: transferringAssets.assets,
     };
 
