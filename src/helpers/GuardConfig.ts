@@ -29,7 +29,7 @@ class GuardConfig {
   /**
    * Sets the guard public keys and required sign config
    */
-  setConfig = async () => {
+  setConfig = async (isMultiSigInstanceAvailable = true) => {
     const guardBox = (await ExplorerApi.getBoxesByTokenId(rosenConfig.guardNFT))
       .items[0];
     if (guardBox) {
@@ -42,7 +42,9 @@ class GuardConfig {
         );
         this.publicKeys = r4.map((pk) => Buffer.from(pk).toString('hex'));
 
-        this.handleMultiSigPublicKeysChange();
+        if (isMultiSigInstanceAvailable) {
+          this.handleMultiSigPublicKeysChange();
+        }
 
         this.guardsLen = r4.length;
         this.requiredSign = r5[0];
