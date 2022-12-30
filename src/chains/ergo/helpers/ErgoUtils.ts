@@ -283,7 +283,7 @@ class ErgoUtils {
   };
 
   /**
-   * returns list of the input box ids in the transaction
+   * returns list of the input box ids for the lock address in the transaction
    * @param tx the payment transaction
    * @param lockErgoTree lock address ergoTree
    */
