@@ -185,7 +185,9 @@ class ExplorerApi {
    */
   static getAddressAssets = (address: string): Promise<AddressBalance> => {
     return this.explorerApi
-      .get<AddressBalance>(`/v1/addresses/${address}/balance/confirmed`)
+      .get<AddressBalance>(`/v1/addresses/${address}/balance/confirmed`, {
+        transformResponse: (data) => JsonBI.parse(data),
+      })
       .then((res) => {
         return res.data;
       })
@@ -209,12 +211,7 @@ class ExplorerApi {
     address: string
   ): Promise<MempoolTransactions> => {
     return this.explorerApi
-      .get<MempoolTransactions>(
-        `/v1/mempool/transactions/byAddress/${address}`,
-        {
-          transformResponse: (data) => JsonBI.parse(data),
-        }
-      )
+      .get<MempoolTransactions>(`/v1/mempool/transactions/byAddress/${address}`)
       .then((res) => res.data)
       .catch((e) => {
         const baseError = `Failed to get mempool txs for address [${address}] from Ergo Explorer: `;
