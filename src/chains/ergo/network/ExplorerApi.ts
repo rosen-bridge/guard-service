@@ -209,7 +209,12 @@ class ExplorerApi {
     address: string
   ): Promise<MempoolTransactions> => {
     return this.explorerApi
-      .get<MempoolTransactions>(`/v1/mempool/transactions/byAddress/${address}`)
+      .get<MempoolTransactions>(
+        `/v1/mempool/transactions/byAddress/${address}`,
+        {
+          transformResponse: (data) => JsonBI.parse(data),
+        }
+      )
       .then((res) => res.data)
       .catch((e) => {
         const baseError = `Failed to get mempool txs for address [${address}] from Ergo Explorer: `;

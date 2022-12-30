@@ -13,6 +13,7 @@ import {
   UnexpectedApiError,
 } from '../../../helpers/errors';
 import { JsonBI } from '../../../network/NetworkModels';
+import Utils from '../../../helpers/Utils';
 
 class KoiosApi {
   static koios = axios.create({
@@ -27,7 +28,13 @@ class KoiosApi {
    */
   static getAddressInfo = (address: string): Promise<AddressInfo> => {
     return this.koios
-      .post<AddressInfo[]>('/address_info', { _addresses: [address] })
+      .post<AddressInfo[]>(
+        '/address_info',
+        { _addresses: [address] },
+        {
+          transformResponse: (data) => Utils.parseJson(data, ['balance']),
+        }
+      )
       .then((res) => res.data[0])
       .catch((e) => {
         const baseError = `Failed to get address [${address}] info from Koios: `;
