@@ -135,7 +135,7 @@ class CardanoUtils {
     requiredAssets: UtxoBoxesAssets
   ): Array<Utxo> => {
     const result: Array<Utxo> = [];
-    let coveredLovelace = BigNum.from_str('0');
+    let coveredLovelace = BigNum.zero();
     const shuffleIndexes = [...Array(addressBoxes.length).keys()];
     for (let i = shuffleIndexes.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -145,108 +145,83 @@ class CardanoUtils {
       ];
     }
 
-    if (requiredAssets.assets.len() === 0) {
-      const paymentAmount = requiredAssets.lovelace;
-      for (
-        let i = 0;
-        paymentAmount.compare(coveredLovelace) > 0 && i < addressBoxes.length;
-        i++
-      ) {
-        const uTxo = addressBoxes[shuffleIndexes[i]];
+    const requiredADA = requiredAssets.lovelace;
+    const requiredMultiAssets = requiredAssets.assets;
+    const requiredAssetsMap = new Map<AssetInfo, BigNum>();
+    for (let i = 0; i < requiredMultiAssets.keys().len(); i++) {
+      const policyId = requiredMultiAssets.keys().get(i);
+      const assets = requiredMultiAssets.get(policyId)!;
+      for (let j = 0; j < assets.keys().len(); j++) {
+        const assetName = assets.keys().get(j);
+        const assetAmount = assets.get(assetName)!;
+        const assetInfo: AssetInfo = {
+          assetName: assetName.name(),
+          policyId: policyId.to_bytes(),
+          fingerprint: '',
+        };
+        const assetRecord = requiredAssetsMap.get(assetInfo);
+        if (assetRecord === undefined) {
+          requiredAssetsMap.set(assetInfo, assetAmount);
+        } else {
+          throw Error(
+            `Impossible behaviour from Cardano MultiAsset class detected!`
+          );
+        }
+      }
+    }
+
+    for (
+      let i = 0;
+      (requiredAssetsMap.size > 0 ||
+        requiredADA.compare(coveredLovelace) > 0) &&
+      i < addressBoxes.length;
+      i++
+    ) {
+      let isAdded = false;
+      const uTxo = addressBoxes[shuffleIndexes[i]];
+      if (requiredAssetsMap.size > 0) {
+        for (const assetPair of requiredAssetsMap) {
+          const assetIndex = uTxo.asset_list.findIndex(
+            (asset) =>
+              asset.asset_name ===
+                Utils.Uint8ArrayToHexString(assetPair[0].assetName) &&
+              asset.policy_id ===
+                Utils.Uint8ArrayToHexString(assetPair[0].policyId)
+          );
+          if (assetIndex !== -1) {
+            const asset = uTxo.asset_list[assetIndex];
+            if (BigNum.from_str(asset.quantity).compare(assetPair[1]) >= 0) {
+              requiredAssetsMap.delete(assetPair[0]);
+            } else {
+              requiredAssetsMap.set(
+                assetPair[0],
+                assetPair[1].checked_sub(BigNum.from_str(asset.quantity))
+              );
+            }
+            coveredLovelace = coveredLovelace.checked_add(
+              BigNum.from_str(uTxo.value)
+            );
+            result.push(uTxo);
+            isAdded = true;
+          }
+        }
+      }
+      if (!isAdded && requiredADA.compare(coveredLovelace) > 0) {
         coveredLovelace = coveredLovelace.checked_add(
           BigNum.from_str(uTxo.value)
         );
         result.push(uTxo);
       }
-      if (paymentAmount.compare(coveredLovelace) > 0)
-        throw new Error(
-          `An error occurred, theres is no enough lovelace in the bank`
-        );
-    } else {
-      const lovelacePaymentAmount =
-        requiredAssets.lovelace > BigNum.zero()
-          ? requiredAssets.lovelace
-          : CardanoConfigs.txMinimumLovelace;
-      const requiredMultiAssets = requiredAssets.assets;
-      const requiredAssetsMap = new Map<AssetInfo, BigNum>();
-
-      for (let i = 0; i < requiredMultiAssets.keys().len(); i++) {
-        const policyId = requiredMultiAssets.keys().get(i);
-        const assets = requiredMultiAssets.get(policyId)!;
-        for (let j = 0; j < assets.keys().len(); j++) {
-          const assetName = assets.keys().get(j);
-          const assetAmount = assets.get(assetName)!;
-          const assetInfo: AssetInfo = {
-            assetName: assetName.name(),
-            policyId: policyId.to_bytes(),
-            fingerprint: '',
-          };
-          if (requiredAssetsMap.get(assetInfo) === undefined) {
-            requiredAssetsMap.set(assetInfo, assetAmount);
-          } else {
-            requiredAssetsMap.set(
-              assetInfo,
-              requiredAssetsMap.get(assetInfo)!.checked_add(assetAmount)
-            );
-          }
-        }
-      }
-
-      for (
-        let i = 0;
-        (requiredAssetsMap.size > 0 ||
-          lovelacePaymentAmount.compare(coveredLovelace) > 0) &&
-        i < addressBoxes.length;
-        i++
-      ) {
-        let isAdded = false;
-        const uTxo = addressBoxes[shuffleIndexes[i]];
-        if (requiredAssetsMap.size > 0) {
-          for (const assetPair of requiredAssetsMap) {
-            const assetIndex = uTxo.asset_list.findIndex(
-              (asset) =>
-                asset.asset_name ===
-                  Utils.Uint8ArrayToHexString(assetPair[0].assetName) &&
-                asset.policy_id ===
-                  Utils.Uint8ArrayToHexString(assetPair[0].policyId)
-            );
-            if (assetIndex !== -1) {
-              const asset = uTxo.asset_list[assetIndex];
-              if (BigNum.from_str(asset.quantity).compare(assetPair[1]) >= 0) {
-                requiredAssetsMap.delete(assetPair[0]);
-              } else {
-                requiredAssetsMap.set(
-                  assetPair[0],
-                  assetPair[1].checked_sub(BigNum.from_str(asset.quantity))
-                );
-              }
-              coveredLovelace = coveredLovelace.checked_add(
-                BigNum.from_str(uTxo.value)
-              );
-              result.push(uTxo);
-              isAdded = true;
-            }
-          }
-        }
-        if (!isAdded && lovelacePaymentAmount.compare(coveredLovelace) > 0) {
-          coveredLovelace = coveredLovelace.checked_add(
-            BigNum.from_str(uTxo.value)
-          );
-          result.push(uTxo);
-        }
-      }
-
-      if (lovelacePaymentAmount.compare(coveredLovelace) > 0)
-        throw new NotEnoughAssetsError(
-          `Not enough lovelace in the bank. required: ${lovelacePaymentAmount.to_str()}, found ${coveredLovelace.to_str()}`
-        );
-      if (requiredAssetsMap.size > 0)
-        throw new NotEnoughAssetsError(
-          `Not enough asset in the bank. found ${JSON.stringify(
-            result
-          )} shortage ${JSON.stringify(Array.from(requiredAssetsMap))}`
-        );
     }
+
+    if (requiredADA.compare(coveredLovelace) > 0)
+      throw new NotEnoughAssetsError(
+        `Not enough lovelace in the bank. required: ${requiredADA.to_str()}, found ${coveredLovelace.to_str()}`
+      );
+    if (requiredAssetsMap.size > 0)
+      throw new NotEnoughAssetsError(
+        `Not enough asset in the bank. Shortage: ${JSON.stringify(Array.from(requiredAssetsMap))}`
+      );
     return result;
   };
 }

@@ -76,6 +76,9 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         BigNum.from_str(event.amount)
       );
     } else {
+      requiredAssets.lovelace = requiredAssets.lovelace.checked_add(
+          CardanoConfigs.txMinimumLovelace
+      );
       const assetPaymentAmount: BigNum = CardanoChain.getPaymentAmount(
         event,
         feeConfig
@@ -84,16 +87,10 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         event.targetChainTokenId
       );
       const policyId = ScriptHash.from_bytes(
-        Buffer.from(
-          Utils.Uint8ArrayToHexString(paymentAssetInfo.policyId),
-          'hex'
-        )
+        paymentAssetInfo.policyId
       );
       const assetName = AssetName.new(
-        Buffer.from(
-          Utils.Uint8ArrayToHexString(paymentAssetInfo.assetName),
-          'hex'
-        )
+        paymentAssetInfo.assetName
       );
       const assetList = Assets.new();
       assetList.insert(assetName, assetPaymentAmount);
