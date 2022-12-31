@@ -15,7 +15,7 @@ import {
   ScriptHash,
 } from '@emurgo/cardano-serialization-lib-nodejs';
 import { Buffer } from 'buffer';
-import CardanoConfigs from './CardanoConfigs';
+import _ from 'lodash';
 import Utils from '../../../helpers/Utils';
 import { NotEnoughAssetsError } from '../../../helpers/errors';
 
@@ -125,25 +125,17 @@ class CardanoUtils {
 
   /**
    * getting all address utxos and return minimum amount of required box to be in the input of transaction
-   * @param addressBoxes all utxos of bankAddress
+   * @param lockBoxes all utxos of bankAddress
    * @param requiredAssets required assets to be in the input of transaction
-   * @param feeConfig minimum fee and rsn ratio config for the event
    * @return minimum required box to be in the input of the transaction
    */
   static getCoveringUtxo = (
-    addressBoxes: Array<Utxo>,
+    lockBoxes: Array<Utxo>,
     requiredAssets: UtxoBoxesAssets
   ): Array<Utxo> => {
     const result: Array<Utxo> = [];
     let coveredLovelace = BigNum.zero();
-    const shuffleIndexes = [...Array(addressBoxes.length).keys()];
-    for (let i = shuffleIndexes.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffleIndexes[i], shuffleIndexes[j]] = [
-        shuffleIndexes[j],
-        shuffleIndexes[i],
-      ];
-    }
+    const shuffleBoxes = _.shuffle(lockBoxes);
 
     const requiredADA = requiredAssets.lovelace;
     const requiredMultiAssets = requiredAssets.assets;
@@ -174,11 +166,11 @@ class CardanoUtils {
       let i = 0;
       (requiredAssetsMap.size > 0 ||
         requiredADA.compare(coveredLovelace) > 0) &&
-      i < addressBoxes.length;
+      i < lockBoxes.length;
       i++
     ) {
       let isAdded = false;
-      const uTxo = addressBoxes[shuffleIndexes[i]];
+      const uTxo = shuffleBoxes[i];
       if (requiredAssetsMap.size > 0) {
         for (const assetPair of requiredAssetsMap) {
           const assetIndex = uTxo.asset_list.findIndex(
