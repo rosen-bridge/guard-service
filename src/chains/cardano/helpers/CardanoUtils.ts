@@ -198,10 +198,12 @@ class CardanoUtils {
                 assetPair[1].checked_sub(BigNum.from_str(asset.quantity))
               );
             }
-            coveredLovelace = coveredLovelace.checked_add(
-              BigNum.from_str(uTxo.value)
-            );
-            result.push(uTxo);
+            if (!isAdded) {
+              coveredLovelace = coveredLovelace.checked_add(
+                BigNum.from_str(uTxo.value)
+              );
+              result.push(uTxo);
+            }
             isAdded = true;
           }
         }
