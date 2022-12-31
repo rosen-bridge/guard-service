@@ -1,13 +1,9 @@
 import axios from 'axios';
-import { ErgoBox } from 'ergo-lib-wasm-nodejs';
 import {
   AddressBalance,
-  Asset,
-  AssetMap,
-  Box,
   Boxes,
-  CoveringErgoBoxes,
   ExplorerTransaction,
+  MempoolTransactions,
 } from '../models/Interfaces';
 import { JsonBI } from '../../../network/NetworkModels';
 import ErgoConfigs from '../helpers/ErgoConfigs';
@@ -88,54 +84,6 @@ class ExplorerApi {
           throw new UnexpectedApiError(baseError + e.message);
         }
       });
-  };
-
-  /**
-   * gets enough boxes of an ergoTree to satisfy needed amount of erg and tokens
-   * @param tree the address ergoTree
-   * @param ergAmount needed amount of erg
-   * @param tokens needed tokens
-   * @param filter condition to filter boxes
-   */
-  static getCoveringErgAndTokenForErgoTree = async (
-    tree: string,
-    ergAmount: bigint,
-    tokens: AssetMap = {},
-    filter: (box: Box) => boolean = () => true
-  ): Promise<CoveringErgoBoxes> => {
-    const remaining = () => {
-      const isAnyTokenRemain = Object.entries(tokens)
-        .map(([, amount]) => amount > 0)
-        .reduce((a, b) => a || b, false);
-      return isAnyTokenRemain || ergAmount > 0;
-    };
-
-    const res: Box[] = [];
-    const boxesItems = await this.getBoxesForErgoTree(tree, 0, 1);
-    const total = boxesItems.total;
-    let offset = 0;
-
-    while (offset < total && remaining()) {
-      const boxes = await this.getBoxesForErgoTree(tree, offset, 10);
-      for (const box of boxes.items) {
-        if (filter(box)) {
-          res.push(box);
-          ergAmount -= box.value;
-          box.assets.map((asset: Asset) => {
-            if (Object.prototype.hasOwnProperty.call(tokens, asset.tokenId)) {
-              tokens[asset.tokenId] -= asset.amount;
-            }
-          });
-          if (!remaining()) break;
-        }
-      }
-      offset += 10;
-    }
-
-    return {
-      boxes: res.map((box) => ErgoBox.from_json(JsonBI.stringify(box))),
-      covered: !remaining(),
-    };
   };
 
   /**
@@ -243,6 +191,28 @@ class ExplorerApi {
       })
       .catch((e) => {
         const baseError = `Failed to get address [${address}] assets: `;
+        if (e.response) {
+          throw new FailedError(baseError + e.response.data.reason);
+        } else if (e.request) {
+          throw new NetworkError(baseError + e.message);
+        } else {
+          throw new UnexpectedApiError(baseError + e.message);
+        }
+      });
+  };
+
+  /**
+   * gets tx confirmation (returns -1 if tx not found)
+   * @param address
+   */
+  static getMempoolTxsForAddress = (
+    address: string
+  ): Promise<MempoolTransactions> => {
+    return this.explorerApi
+      .get<MempoolTransactions>(`/v1/mempool/transactions/byAddress/${address}`)
+      .then((res) => res.data)
+      .catch((e) => {
+        const baseError = `Failed to get mempool txs for address [${address}] from Ergo Explorer: `;
         if (e.response) {
           throw new FailedError(baseError + e.response.data.reason);
         } else if (e.request) {

@@ -13,7 +13,6 @@ import {
 } from 'ergo-lib-wasm-nodejs';
 import { EventTrigger, TransactionTypes } from '../../models/Models';
 import ErgoConfigs from './helpers/ErgoConfigs';
-import ExplorerApi from './network/ExplorerApi';
 import ErgoUtils from './helpers/ErgoUtils';
 import NodeApi from './network/NodeApi';
 import ErgoTransaction from './models/ErgoTransaction';
@@ -27,6 +26,7 @@ import { loggerFactory } from '../../log/Logger';
 import { Fee } from '@rosen-bridge/minimum-fee';
 import MinimumFee from '../../guard/MinimumFee';
 import { NotEnoughAssetsError } from '../../helpers/errors';
+import ErgoTrack from './ErgoTrack';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -92,19 +92,18 @@ class Reward {
       ErgoUtils.calculateBoxesAssets([eventBox, ...commitmentBoxes]),
       true
     );
+    requiredAssets.ergs = requiredAssets.ergs + ErgoConfigs.minimumErg; // required amount of Erg plus minimumErg for change box
 
     // get required boxes for transaction input
-    const coveringBoxes = await ExplorerApi.getCoveringErgAndTokenForErgoTree(
-      this.lockErgoTree,
-      requiredAssets.ergs + ErgoConfigs.minimumErg, // required amount of Erg plus minimumErg for change box
-      requiredAssets.tokens
+    const coveringBoxes = await ErgoTrack.trackAndFilterLockBoxes(
+      requiredAssets
     );
 
     if (!coveringBoxes.covered) {
-      const Erg = (requiredAssets.ergs + ErgoConfigs.minimumErg).toString();
-      const Tokens = JsonBI.stringify(requiredAssets.tokens);
+      const neededErgs = requiredAssets.ergs.toString();
+      const neededTokens = JsonBI.stringify(requiredAssets.tokens);
       throw new NotEnoughAssetsError(
-        `Bank boxes didn't cover required assets. Erg: ${Erg}, Tokens: ${Tokens}`
+        `Bank boxes didn't cover required assets. Erg: ${neededErgs}, Tokens: ${neededTokens}`
       );
     }
 

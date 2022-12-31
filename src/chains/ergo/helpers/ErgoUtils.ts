@@ -12,6 +12,7 @@ import {
 import { AssetMap, BoxesAssets, ExplorerOutputBox } from '../models/Interfaces';
 import ChainsConstants from '../../ChainsConstants';
 import Utils from '../../../helpers/Utils';
+import ErgoTransaction from '../models/ErgoTransaction';
 
 class ErgoUtils {
   /**
@@ -279,6 +280,24 @@ class ErgoUtils {
    */
   static ergoBoxToSigmaSerialized = (box: ErgoBox): string => {
     return Utils.uint8ArrayToBase64String(box.sigma_serialize_bytes());
+  };
+
+  /**
+   * returns list of the input box ids for the lock address in the transaction
+   * @param tx the payment transaction
+   * @param lockErgoTree lock address ergoTree
+   */
+  static getPaymentTxLockInputIds = (
+    tx: ErgoTransaction,
+    lockErgoTree: string
+  ): string[] => {
+    const ids: string[] = [];
+    tx.inputBoxes.forEach((serializedBox) => {
+      const box = ErgoBox.sigma_parse_bytes(serializedBox);
+      if (box.ergo_tree().to_base16_bytes() === lockErgoTree)
+        ids.push(box.box_id().to_str());
+    });
+    return ids;
   };
 }
 
