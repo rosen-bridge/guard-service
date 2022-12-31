@@ -929,7 +929,7 @@ class TestBoxes {
 
   static mediumAddressAssets: AddressAssets = {
     address: CardanoConfigs.bankAddress,
-    assets: [
+    asset_list: [
       {
         policy_id: 'ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2',
         asset_name: '7369676d61',
@@ -947,7 +947,7 @@ class TestBoxes {
 
   static highAssetAddressAssets: AddressAssets = {
     address: CardanoConfigs.bankAddress,
-    assets: [
+    asset_list: [
       {
         policy_id: 'ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2',
         asset_name: '7369676d61',
@@ -1034,7 +1034,7 @@ class TestBoxes {
 
     const addressAssets: AddressAssets = {
       address: CardanoConfigs.bankAddress,
-      assets: [
+      asset_list: [
         {
           policy_id: 'ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2',
           asset_name: '7369676d61',
@@ -1127,7 +1127,7 @@ class TestBoxes {
 
     const addressAssets: AddressAssets = {
       address: CardanoConfigs.bankAddress,
-      assets: [
+      asset_list: [
         {
           policy_id: 'ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2',
           asset_name: '7369676d61',

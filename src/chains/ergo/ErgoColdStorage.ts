@@ -43,11 +43,11 @@ class ErgoColdStorage {
     // get current height of network
     const currentHeight = await NodeApi.getHeight();
 
-    // add two minimum erg if current transferring ergs is less than that
+    // add two minimum erg and txFee if current transferring ergs is less than that
     const requiredAssets: BoxesAssets = {
       ergs: Utils.maxBigint(
         transferringAssets.ergs,
-        ErgoConfigs.minimumErg * 2n
+        ErgoConfigs.minimumErg * 2n + ErgoConfigs.txFee
       ),
       tokens: transferringAssets.tokens,
     };

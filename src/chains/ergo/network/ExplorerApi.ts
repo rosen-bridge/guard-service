@@ -185,7 +185,9 @@ class ExplorerApi {
    */
   static getAddressAssets = (address: string): Promise<AddressBalance> => {
     return this.explorerApi
-      .get<AddressBalance>(`/v1/addresses/${address}/balance/confirmed`)
+      .get<AddressBalance>(`/v1/addresses/${address}/balance/confirmed`, {
+        transformResponse: (data) => JsonBI.parse(data),
+      })
       .then((res) => {
         return res.data;
       })

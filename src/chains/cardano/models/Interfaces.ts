@@ -57,7 +57,7 @@ interface AddressInfo {
 
 interface AddressAssets {
   address: string;
-  assets: Asset[];
+  asset_list: Asset[];
 }
 
 type TxUtxos = components['schemas']['tx_content_utxo'];

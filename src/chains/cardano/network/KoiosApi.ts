@@ -2,29 +2,18 @@ import axios from 'axios';
 import {
   AddressAssets,
   AddressInfo,
-  AssetInfo,
   KoiosTransaction,
   Utxo,
-  UtxoBoxesAssets,
 } from '../models/Interfaces';
 import CardanoConfigs from '../helpers/CardanoConfigs';
 import {
   FailedError,
   NetworkError,
-  NotEnoughAssetsError,
   NotFoundError,
   UnexpectedApiError,
 } from '../../../helpers/errors';
 import { JsonBI } from '../../../network/NetworkModels';
-import { Fee } from '@rosen-bridge/minimum-fee';
-import {
-  Assets,
-  BigNum,
-  ScriptHash,
-} from '@emurgo/cardano-serialization-lib-nodejs';
-import CardanoUtils from '../helpers/CardanoUtils';
 import Utils from '../../../helpers/Utils';
-import CardanoChain from '../CardanoChain';
 
 class KoiosApi {
   static koios = axios.create({
@@ -39,7 +28,13 @@ class KoiosApi {
    */
   static getAddressInfo = (address: string): Promise<AddressInfo> => {
     return this.koios
-      .post<AddressInfo[]>('/address_info', { _addresses: [address] })
+      .post<AddressInfo[]>(
+        '/address_info',
+        { _addresses: [address] },
+        {
+          transformResponse: (data) => Utils.parseJson(data, ['balance']),
+        }
+      )
       .then((res) => res.data[0])
       .catch((e) => {
         const baseError = `Failed to get address [${address}] info from Koios: `;
