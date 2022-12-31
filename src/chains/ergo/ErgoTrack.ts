@@ -95,14 +95,14 @@ class ErgoTrack {
     trackBoxesMap: Map<string, ErgoBox | undefined>,
     usedBoxIds: string[]
   ): Promise<CoveringErgoBoxes> => {
-    let ergAmount = required.ergs;
-    const tokens = { ...required.tokens };
+    let uncoveredErg = required.ergs;
+    const uncoveredTokens = new Map<string, bigint>();
+    Object.entries(required.tokens).forEach(([tokenId, amount]) => {
+      uncoveredTokens.set(tokenId, amount);
+    });
 
     const remaining = () => {
-      const isAnyTokenRemain = Object.entries(tokens)
-        .map(([, amount]) => amount > 0)
-        .reduce((a, b) => a || b, false);
-      return isAnyTokenRemain || ergAmount > 0;
+      return uncoveredTokens.size > 0 || uncoveredErg > 0n;
     };
 
     const total = (
@@ -131,20 +131,30 @@ class ErgoTrack {
               (box) => box.box_id().to_str() === lastBox.box_id().to_str()
             )
           ) {
-            result.push(lastBox);
-            ergAmount -= BigInt(lastBox.value().as_i64().to_str());
-            for (let i = 0; i < lastBox.tokens().len(); i++) {
-              const token = lastBox.tokens().get(i);
-              if (
-                Object.prototype.hasOwnProperty.call(
-                  tokens,
-                  token.id().to_str()
-                )
-              ) {
-                tokens[token.id().to_str()] -= BigInt(
-                  token.amount().as_i64().to_str()
-                );
+            let isAdded = false;
+            if (uncoveredTokens.size > 0) {
+              for (const asset of box.assets) {
+                const unCoveredAmount = uncoveredTokens.get(asset.tokenId);
+                if (unCoveredAmount) {
+                  if (unCoveredAmount <= asset.amount) {
+                    uncoveredTokens.delete(asset.tokenId);
+                  } else {
+                    uncoveredTokens.set(
+                      asset.tokenId,
+                      unCoveredAmount - asset.amount
+                    );
+                  }
+                  if (!isAdded) {
+                    uncoveredErg -= box.value;
+                    result.push(lastBox);
+                  }
+                  isAdded = true;
+                }
               }
+            }
+            if (!isAdded && uncoveredErg > 0n) {
+              uncoveredErg -= box.value;
+              result.push(lastBox);
             }
           }
           if (!remaining()) break;
