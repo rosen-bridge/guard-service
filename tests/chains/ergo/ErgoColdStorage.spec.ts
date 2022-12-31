@@ -2,22 +2,23 @@ import TestBoxes from './testUtils/TestBoxes';
 import { expect } from 'chai';
 import { BoxesAssets } from '../../../src/chains/ergo/models/Interfaces';
 import { beforeEach } from 'mocha';
-import ErgoUtils from '../../../src/chains/ergo/helpers/ErgoUtils';
 import {
   mockExplorerGetAddressAssets,
-  mockGetCoveringErgAndTokenForErgoTree,
   resetMockedExplorerApi,
 } from './mocked/MockedExplorer';
 import ErgoColdStorage from '../../../src/chains/ergo/ErgoColdStorage';
+import {
+  mockTrackAndFilterLockBoxes,
+  resetMockedErgoTrack,
+} from '../mocked/MockedErgoTrack';
 
 describe('ErgoColdStorage', () => {
   const testBankAddress = TestBoxes.testLockAddress;
-  const testBankErgoTree: string =
-    ErgoUtils.addressStringToErgoTreeString(testBankAddress);
 
   describe('generateTransaction', () => {
     beforeEach('reset mocks', function () {
       resetMockedExplorerApi();
+      resetMockedErgoTrack();
     });
 
     /**
@@ -42,10 +43,7 @@ describe('ErgoColdStorage', () => {
         tokens: {},
       };
       // mock bank boxes
-      mockGetCoveringErgAndTokenForErgoTree(
-        testBankErgoTree,
-        mockedBankAssetsAndBoxes[1]
-      );
+      mockTrackAndFilterLockBoxes(mockedBankAssetsAndBoxes[1]);
       mockExplorerGetAddressAssets(
         testBankAddress,
         mockedBankAssetsAndBoxes[0]
@@ -84,10 +82,7 @@ describe('ErgoColdStorage', () => {
         },
       };
       // mock bank boxes and assets
-      mockGetCoveringErgAndTokenForErgoTree(
-        testBankErgoTree,
-        mockedBankAssetsAndBoxes[1]
-      );
+      mockTrackAndFilterLockBoxes(mockedBankAssetsAndBoxes[1]);
       mockExplorerGetAddressAssets(
         testBankAddress,
         mockedBankAssetsAndBoxes[0]

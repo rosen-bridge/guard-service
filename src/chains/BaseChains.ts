@@ -17,19 +17,6 @@ export default interface BaseChain<
   ) => Promise<SerializedType>;
 
   /**
-   * verifies the payment transaction data with the event
-   * @param tx the payment transaction
-   * @param event the event trigger model
-   * @param feeConfig minimum fee and rsn ratio config for the event
-   * @return true if tx verified
-   */
-  verifyTransactionWithEvent: (
-    tx: SerializedType,
-    event: EventTrigger,
-    feeConfig: Fee
-  ) => Promise<boolean>;
-
-  /**
    * converts the transaction model in the chain to bytearray
    * @param tx the transaction model in the chain library
    * @return bytearray representation of the transaction

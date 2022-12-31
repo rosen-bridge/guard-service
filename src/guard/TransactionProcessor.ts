@@ -21,7 +21,6 @@ import {
   TransactionTypes,
 } from '../models/Models';
 import BaseChain from '../chains/BaseChains';
-import { Semaphore } from 'await-semaphore';
 import { txJsonParser } from '../chains/TxJsonParser';
 import { loggerFactory } from '../log/Logger';
 import { ChainNotImplemented } from '../helpers/errors';
@@ -32,8 +31,6 @@ const logger = loggerFactory(import.meta.url);
 class TransactionProcessor {
   static cardanoChain = new CardanoChain();
   static ergoChain = new ErgoChain();
-
-  static signSemaphore = new Semaphore(1);
 
   /**
    * returns chain object
@@ -246,7 +243,7 @@ class TransactionProcessor {
    * @param tx the transaction
    */
   static processApprovedTx = async (tx: TransactionEntity): Promise<void> => {
-    await this.signSemaphore.acquire().then(async (release) => {
+    await dbAction.txSignSemaphore.acquire().then(async (release) => {
       try {
         const paymentTx = txJsonParser(tx.txJson);
         await this.getChainObject(tx.chain).requestToSignTransaction(paymentTx);

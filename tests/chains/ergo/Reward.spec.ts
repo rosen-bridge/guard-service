@@ -4,11 +4,7 @@ import Reward from '../../../src/chains/ergo/Reward';
 import { expect } from 'chai';
 import { CoveringErgoBoxes } from '../../../src/chains/ergo/models/Interfaces';
 import { beforeEach } from 'mocha';
-import {
-  mockGetCoveringErgAndTokenForErgoTree,
-  resetMockedExplorerApi,
-} from './mocked/MockedExplorer';
-import ErgoUtils from '../../../src/chains/ergo/helpers/ErgoUtils';
+import { resetMockedExplorerApi } from './mocked/MockedExplorer';
 import {
   mockGetEventBox,
   mockGetEventValidCommitments,
@@ -18,12 +14,9 @@ import { anything, spy, when } from 'ts-mockito';
 import ErgoConfigs from '../../../src/chains/ergo/helpers/ErgoConfigs';
 import { resetMockedReward } from '../mocked/MockedReward';
 import { Fee } from '@rosen-bridge/minimum-fee';
+import { mockTrackAndFilterLockBoxes } from '../mocked/MockedErgoTrack';
 
 describe('Reward', () => {
-  const testBankAddress = TestBoxes.testLockAddress;
-  const testBankErgoTree: string =
-    ErgoUtils.addressStringToErgoTreeString(testBankAddress);
-
   describe('generateTransaction', () => {
     // mock getting boxes
     const bankBoxes: CoveringErgoBoxes = TestBoxes.mockBankBoxes();
@@ -37,7 +30,7 @@ describe('Reward', () => {
     beforeEach('mock ExplorerApi', function () {
       resetMockedReward();
       resetMockedExplorerApi();
-      mockGetCoveringErgAndTokenForErgoTree(testBankErgoTree, bankBoxes);
+      mockTrackAndFilterLockBoxes(bankBoxes);
       resetMockedInputBoxes();
       mockGetEventBox(anything(), eventBoxAndCommitments[0]);
       mockGetEventValidCommitments(anything(), eventBoxAndCommitments.slice(1));

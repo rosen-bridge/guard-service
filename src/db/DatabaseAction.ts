@@ -14,6 +14,7 @@ import {
 } from '@rosen-bridge/watcher-data-extractor';
 import Utils from '../helpers/Utils';
 import { loggerFactory } from '../log/Logger';
+import { Semaphore } from 'await-semaphore/index';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -23,6 +24,8 @@ class DatabaseAction {
   EventRepository: Repository<EventTriggerEntity>;
   ConfirmedEventRepository: Repository<ConfirmedEventEntity>;
   TransactionRepository: Repository<TransactionEntity>;
+
+  txSignSemaphore = new Semaphore(1);
 
   constructor(dataSource: DataSource) {
     this.dataSource = dataSource;
@@ -357,6 +360,54 @@ class DatabaseAction {
         status: Not(TransactionStatus.completed),
         chain: chain,
       },
+    });
+  };
+
+  /**
+   * returns all unsigned transactions for a chain (with status approved, in-sign or sign-failed)
+   * @param chain the chain of the tx
+   */
+  getUnsignedActiveTxsInChain = async (
+    chain: string
+  ): Promise<TransactionEntity[]> => {
+    return await this.TransactionRepository.find({
+      relations: ['event'],
+      where: [
+        {
+          status: TransactionStatus.approved,
+          chain: chain,
+        },
+        {
+          status: TransactionStatus.inSign,
+          chain: chain,
+        },
+        {
+          status: TransactionStatus.signFailed,
+          chain: chain,
+        },
+      ],
+    });
+  };
+
+  /**
+   * returns all signed transactions for a chain (with status signed or sent)
+   * @param chain the chain of the tx
+   */
+  getSignedActiveTxsInChain = async (
+    chain: string
+  ): Promise<TransactionEntity[]> => {
+    return await this.TransactionRepository.find({
+      relations: ['event'],
+      where: [
+        {
+          status: TransactionStatus.signed,
+          chain: chain,
+        },
+        {
+          status: TransactionStatus.sent,
+          chain: chain,
+        },
+      ],
     });
   };
 }

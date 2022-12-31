@@ -14,13 +14,15 @@ import {
 } from './Interfaces';
 import Dialer from '../../communication/Dialer';
 import { dbAction } from '../../db/DatabaseAction';
-import TransactionProcessor from '../TransactionProcessor';
 import { txJsonParser } from '../../chains/TxJsonParser';
 import { guardConfig } from '../../helpers/GuardConfig';
 import { loggerFactory } from '../../log/Logger';
 import InputBoxes from '../../chains/ergo/boxes/InputBoxes';
 import GuardTurn from '../../helpers/GuardTurn';
 import EventVerifier from '../event/EventVerifier';
+import ChainsConstants from '../../chains/ChainsConstants';
+import ErgoUtils from '../../chains/ergo/helpers/ErgoUtils';
+import ErgoTransaction from '../../chains/ergo/models/ErgoTransaction';
 
 const logger = loggerFactory(import.meta.url);
 const dialer = await Dialer.getInstance();
@@ -403,18 +405,16 @@ class TxAgreement {
    */
   setTxAsApproved = async (tx: PaymentTransaction): Promise<void> => {
     try {
-      await TransactionProcessor.signSemaphore
-        .acquire()
-        .then(async (release) => {
-          try {
-            await dbAction.insertTx(tx);
-            release();
-          } catch (e) {
-            release();
-            logger.error(`An error occurred while inserting tx to db: ${e.stack}`);
-            throw e;
-          }
-        });
+      await dbAction.txSignSemaphore.acquire().then(async (release) => {
+        try {
+          await dbAction.insertTx(tx);
+          release();
+        } catch (e) {
+          release();
+          logger.error(`An error occurred while inserting tx to db: ${e.stack}`);
+          throw e;
+        }
+      });
       await this.updateEventOfApprovedTx(tx);
       this.transactions.delete(tx.txId);
       this.transactionApprovals.delete(tx.txId);
@@ -484,6 +484,25 @@ class TxAgreement {
     );
     this.transactions.clear();
     this.eventAgreedTransactions.clear();
+  };
+
+  /**
+   * returns list of the inputs boxes in pending transactions of Ergo
+   * @param lockErgoTree lock address ergoTree
+   */
+  getErgoPendingTransactionsInputs = (lockErgoTree: string): string[] => {
+    let boxIds: string[] = [];
+    this.transactions.forEach((paymentTx) => {
+      if (paymentTx.network === ChainsConstants.ergo) {
+        boxIds = boxIds.concat(
+          ErgoUtils.getPaymentTxLockInputIds(
+            paymentTx as ErgoTransaction,
+            lockErgoTree
+          )
+        );
+      }
+    });
+    return boxIds;
   };
 }
 

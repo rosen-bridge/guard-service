@@ -106,11 +106,34 @@ interface ExplorerOutputBox {
   additionalRegisters: { [key: string]: ExplorerRegister };
 }
 
+interface MempoolOutputBox {
+  boxId: string;
+  transactionId: string;
+  value: number;
+  index: number;
+  creationHeight: number;
+  ergoTree: string;
+  address: string;
+  assets: ExplorerToken[];
+  additionalRegisters: { [key: string]: ExplorerRegister };
+}
+
 interface ExplorerTransaction {
   id: string;
   numConfirmations: number;
   inputs: ExplorerInputBox[];
   outputs: ExplorerOutputBox[];
+}
+
+interface MempoolTransaction {
+  id: string;
+  inputs: ExplorerInputBox[];
+  outputs: MempoolOutputBox[];
+}
+
+interface MempoolTransactions {
+  items: MempoolTransaction[];
+  total: number;
 }
 
 interface AddressBalance {
@@ -134,6 +157,9 @@ export {
   ErgoBlockHeader,
   ErgoTransactionJsonModel,
   ExplorerOutputBox,
+  MempoolOutputBox,
   ExplorerTransaction,
+  MempoolTransaction,
+  MempoolTransactions,
   AddressBalance,
 };

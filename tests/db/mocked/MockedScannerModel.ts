@@ -114,6 +114,12 @@ when(mockedScannerAction.insertConfirmedEvent(anything())).thenCall(
 when(
   mockedScannerAction.getNonCompleteColdStorageTxsInChain(anything())
 ).thenCall(testScannerDataBase.getNonCompleteColdStorageTxsInChain);
+when(mockedScannerAction.getUnsignedActiveTxsInChain(anything())).thenCall(
+  testScannerDataBase.getUnsignedActiveTxsInChain
+);
+when(mockedScannerAction.getSignedActiveTxsInChain(anything())).thenCall(
+  testScannerDataBase.getSignedActiveTxsInChain
+);
 
 /**
  * deletes every record in Event and Transaction table in ScannerDatabase
