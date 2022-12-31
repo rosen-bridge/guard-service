@@ -41,7 +41,7 @@ p2pRouter.post(
       res.send({ message: 'ok' });
     } catch (error) {
       logger.error(
-        `An error occurred while send message over p2p: ${error.stack}`
+        `An error occurred while send message over p2p: ${error.message} - ${error.stack}`
       );
       res.status(500).send({ message: error.message });
     }
@@ -69,7 +69,7 @@ p2pRouter.post(
       res.send({ message: 'ok' });
     } catch (error) {
       logger.error(
-        `An error occurred while subscribe channel: ${error.stack}`
+        `An error occurred while subscribe channel: ${error.message} - ${error.stack}`
       );
       res.status(500).send({ message: error.message });
     }
@@ -88,7 +88,7 @@ p2pRouter.get('/getPeerIDs', async (req: Request, res: Response) => {
     const peerIDs = dialer.getPeerIds();
     res.status(200).json(peerIDs);
   } catch (error) {
-    logger.warn(`An error occurred while return peerIDs: ${error.stack}`);
+    logger.warn(`An error occurred while return peerIDs: ${error.message} - ${error.stack}`);
     res.status(500).send({ message: error.message });
   }
 });
@@ -105,7 +105,7 @@ p2pRouter.get('/getPeerID', async (req: Request, res: Response) => {
     const dialerId = dialer.getDialerId();
     res.status(200).json({ message: dialerId, status: 'ok' });
   } catch (error) {
-    logger.warn(`An error occurred while return peerID: ${error.stack}`);
+    logger.warn(`An error occurred while return peerID: ${error.message} - ${error.stack}`);
     res.status(500).send({ message: error.message });
   }
 });

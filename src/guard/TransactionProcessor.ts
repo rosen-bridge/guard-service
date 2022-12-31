@@ -71,7 +71,8 @@ class TransactionProcessor {
       } catch (e) {
         logger.warn(`An error occurred while processing tx`, {
           txId: tx.txId,
-          error: e.stack,
+          error: e.message,
+          stack: e.stack
         });
       }
     }
@@ -251,7 +252,8 @@ class TransactionProcessor {
       } catch (e) {
         logger.warn('Unexpected error occurred while sending tx to sign', {
           txId: tx.txId,
-          error: e.stack,
+          error: e.message,
+          stack: e.stack
         });
         release();
       }
@@ -368,7 +370,8 @@ class TransactionProcessor {
           if (e instanceof BlockfrostServerError && e.status_code === 404) {
             logger.warn(`An error occurred while fetching tx`, {
               txId: sourceTxId,
-              error: e.stack,
+              error: e.message,
+              stack: e.stack
             });
             return false;
           } else {

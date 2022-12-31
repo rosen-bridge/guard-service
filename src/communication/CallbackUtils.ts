@@ -28,7 +28,7 @@ const apiCallBack: SubscribeChannelWithURL['func'] = (
   );
   data.catch((error) => {
     if (axios.isAxiosError(error)) {
-      logger.warn(`An error occurred, ${error.stack}`);
+      logger.warn(`An error occurred, ${error.message} - ${error.stack}`);
     } else {
       logger.error(`Unexpected error, ${error.stack}`);
     }
