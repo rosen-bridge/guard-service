@@ -6,9 +6,12 @@ import {
   Box,
   Boxes,
   CoveringErgoBoxes,
+  MempoolTransaction,
+  MempoolTransactions,
   Register,
 } from '../../../../src/chains/ergo/models/Interfaces';
 import {
+  Address,
   BoxSelection,
   BoxValue,
   Constant,
@@ -20,6 +23,7 @@ import {
   ErgoBoxCandidates,
   ErgoBoxes,
   I64,
+  NetworkPrefix,
   ReducedTransaction,
   SecretKey,
   SecretKeys,
@@ -73,8 +77,13 @@ class TestBoxes {
   /**
    * converts an ErgoBox object to Box interface
    */
-  static convertErgoBoxToBoxObject = (ergoBox: ErgoBox): Box =>
-    JsonBI.parse(ergoBox.to_json());
+  static convertErgoBoxToBoxObject = (ergoBox: ErgoBox): Box => {
+    const box = JsonBI.parse(ergoBox.to_json()) as Box;
+    box.address = Address.recreate_from_ergo_tree(
+      ergoBox.ergo_tree()
+    ).to_base58(NetworkPrefix.Mainnet);
+    return box;
+  };
 
   /**
    * generates a mocked event trigger for Erg payment in ergo chain
@@ -943,7 +952,7 @@ class TestBoxes {
    * generates an input box for arbitrary address
    */
   static mockSingleBox = (
-    value: number,
+    value: string,
     assets: Asset[],
     addressContract: Contract
   ): ErgoBox => {
@@ -958,7 +967,7 @@ class TestBoxes {
     );
 
     return new ErgoBox(
-      this.ergToBoxValue(value),
+      ErgoUtils.boxValueFromString(value),
       this.testBlockchainHeight,
       addressContract,
       TxId.from_str(TestUtils.generateRandomId()),
@@ -1057,12 +1066,13 @@ class TestBoxes {
   /**
    * generates an input box for ergo bank address
    */
-  static mockSingleBankBox = (value: number, assets: Asset[]): ErgoBox =>
-    this.mockSingleBox(
-      value,
+  static mockSingleBankBox = (value: number, assets: Asset[]): ErgoBox => {
+    return this.mockSingleBox(
+      this.ergToNanoErgString(value),
       assets,
       ErgoUtils.addressStringToContract(this.testLockAddress)
     );
+  };
 
   /**
    * generates 14 input boxes for ergo bank address
@@ -2705,6 +2715,50 @@ class TestBoxes {
       [],
       TransactionTypes.coldStorage
     );
+  };
+
+  /**
+   * mock two transaction as they are pending in mempool
+   */
+  static mockTwoMempoolTx = (
+    trackingInputBox: Box,
+    targetBox: ErgoBox
+  ): MempoolTransactions => {
+    const randomMempoolTx = JSON.parse(
+      TestData.randomMempoolTx
+    ) as MempoolTransaction;
+
+    const mempoolTx = JSON.parse(
+      TestData.mockMempoolTx(
+        TestUtils.generateRandomId(),
+        trackingInputBox.boxId,
+        trackingInputBox.ergoTree,
+        trackingInputBox.address,
+        JsonBI.stringify(this.convertErgoBoxToBoxObject(targetBox))
+      )
+    ) as MempoolTransaction;
+
+    return {
+      items: [randomMempoolTx, mempoolTx],
+      total: 2,
+    };
+  };
+
+  /**
+   * mock a signed transaction with its lockErgoTree
+   */
+  static mockSignedTxWithLockErgoTree = (): {
+    tx: ErgoTransaction;
+    ergoTree: string;
+  } => {
+    const lockErgoTree =
+      '100304000e20a6ac381e6fa99929fd1477b3ba9499790a775e91d4c14c5aa86e9a118dfac8530400d801d601b2db6501fe730000ea02d1aedb63087201d901024d0e938c720201730198b2e4c672010510730200ade4c67201041ad901020ecdee7202';
+    const ergoTx = ErgoTransaction.fromJson(TestData.signedErgoTransaction);
+
+    return {
+      tx: ergoTx,
+      ergoTree: lockErgoTree,
+    };
   };
 }
 

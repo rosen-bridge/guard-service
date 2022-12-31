@@ -2,33 +2,12 @@ import { anything, reset, spy, verify, when } from 'ts-mockito';
 import ExplorerApi from '../../../../src/chains/ergo/network/ExplorerApi';
 import {
   Boxes,
-  CoveringErgoBoxes,
   ExplorerTransaction,
   AddressBalance,
+  MempoolTransactions,
 } from '../../../../src/chains/ergo/models/Interfaces';
 
 let mockedExplorer = spy(ExplorerApi);
-
-/**
- * mocks ExplorerApi getCoveringErgAndTokenForAddress method to return returnBoxes when called for an address ergoTree
- * @param ergoTree
- * @param returnBoxes
- */
-const mockGetCoveringErgAndTokenForErgoTree = (
-  ergoTree: string,
-  returnBoxes: CoveringErgoBoxes
-): void => {
-  when(
-    mockedExplorer.getCoveringErgAndTokenForErgoTree(ergoTree, anything())
-  ).thenResolve(returnBoxes);
-  when(
-    mockedExplorer.getCoveringErgAndTokenForErgoTree(
-      ergoTree,
-      anything(),
-      anything()
-    )
-  ).thenResolve(returnBoxes);
-};
 
 /**
  * mocks ExplorerApi getBoxesForErgoTree method to return returnBoxes when called for an address ergoTree
@@ -120,6 +99,18 @@ const verifyExplorerGetAddressAssetsDidntGetCalled = (): void => {
 };
 
 /**
+ * mocks ExplorerApi getMempoolTxsForAddress method to return result when called for address
+ * @param address
+ * @param result
+ */
+const mockExplorerGetMempoolTxsForAddress = (
+  address: string,
+  result: MempoolTransactions
+): void => {
+  when(mockedExplorer.getMempoolTxsForAddress(address)).thenResolve(result);
+};
+
+/**
  * resets mocked methods of ExplorerApi
  */
 const resetMockedExplorerApi = (): void => {
@@ -128,7 +119,6 @@ const resetMockedExplorerApi = (): void => {
 };
 
 export {
-  mockGetCoveringErgAndTokenForErgoTree,
   mockGetBoxesForErgoTree,
   mockExplorerGetConfirmedTx,
   mockExplorerGetTxConfirmation,
@@ -136,5 +126,6 @@ export {
   mockIsBoxUnspentAndValid,
   mockExplorerGetAddressAssets,
   verifyExplorerGetAddressAssetsDidntGetCalled,
+  mockExplorerGetMempoolTxsForAddress,
   resetMockedExplorerApi,
 };
