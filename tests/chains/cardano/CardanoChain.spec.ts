@@ -7,9 +7,19 @@ import {
 } from '../../../src/models/Models';
 import TestBoxes from './testUtils/TestBoxes';
 import { expect } from 'chai';
-import { Utxo } from '../../../src/chains/cardano/models/Interfaces';
+import {
+  Utxo,
+  UtxoBoxesAssets,
+} from '../../../src/chains/cardano/models/Interfaces';
 import { anything, deepEqual, spy, verify, when } from 'ts-mockito';
-import { hash_transaction } from '@emurgo/cardano-serialization-lib-nodejs';
+import {
+  AssetName,
+  Assets,
+  BigNum,
+  hash_transaction,
+  MultiAsset,
+  ScriptHash,
+} from '@emurgo/cardano-serialization-lib-nodejs';
 import MockedBlockFrost from './mocked/MockedBlockFrost';
 import TestUtils from '../../testUtils/TestUtils';
 import { beforeEach } from 'mocha';
@@ -31,144 +41,6 @@ import CardanoTxVerifier from '../../../src/chains/cardano/CardanoTxVerifier';
 
 describe('CardanoChain', () => {
   const testBankAddress = TestBoxes.testBankAddress;
-
-  describe('getCoveringUtxo', () => {
-    // mock getting bankBoxes
-    const bankBoxes: Utxo[] = TestBoxes.mockBankBoxes();
-    const mockedFeeConfig: Fee = {
-      bridgeFee: 0n,
-      networkFee: 0n,
-      rsnRatio: 0n,
-    };
-
-    /**
-     * Target: testing getCoveringUtxo
-     * Dependencies:
-     *    BlockFrostApi
-     *    KoiosApi
-     * Expected Output:
-     *    The function should return 1 specific box
-     */
-    it('should return 1 boxes for ADA payment', async () => {
-      // mock ada payment event
-      const mockedEvent: EventTrigger = TestBoxes.mockADAPaymentEventTrigger();
-
-      // run test
-      const cardanoChain: CardanoChain = new CardanoChain();
-      const boxes = cardanoChain.getCoveringUtxo(
-        [bankBoxes[5], bankBoxes[4]],
-        mockedEvent,
-        mockedFeeConfig
-      );
-
-      // verify output boxes
-      expect(boxes.length).greaterThanOrEqual(1);
-    });
-
-    /**
-     * Target: testing getCoveringUtxo
-     * Dependencies:
-     *    BlockFrostApi
-     *    KoiosApi
-     * Expected Output:
-     *    The function should return 2 specific box
-     */
-    it('should return 2 boxes for ADA payment', async () => {
-      // mock ada payment event
-      const mockedEvent: EventTrigger = TestBoxes.mockADAPaymentEventTrigger();
-      mockedEvent.amount = '111300000';
-
-      // run test
-      const cardanoChain: CardanoChain = new CardanoChain();
-      const boxes = cardanoChain.getCoveringUtxo(
-        [bankBoxes[5], bankBoxes[1]],
-        mockedEvent,
-        mockedFeeConfig
-      );
-
-      // verify output boxes
-      expect(boxes.length).to.equal(2);
-    });
-
-    /**
-     * Target: testing getCoveringUtxo
-     * Dependencies:
-     *    BlockFrostApi
-     *    KoiosApi
-     * Expected Output:
-     *    The function should return more than or equal 1 box
-     */
-    it('should return more than or equal 1 box', async () => {
-      const mockedEvent: EventTrigger =
-        TestBoxes.mockAssetPaymentEventTrigger();
-      mockedEvent.targetChainTokenId =
-        'asset1nl000000000000000000000000000000000000';
-
-      // run test
-      const cardanoChain: CardanoChain = new CardanoChain();
-      const boxes = cardanoChain.getCoveringUtxo(
-        bankBoxes,
-        mockedEvent,
-        mockedFeeConfig
-      );
-
-      // verify output boxes
-      expect(boxes.length).to.greaterThanOrEqual(1);
-    });
-
-    /**
-     * Target: testing getCoveringUtxo
-     * Dependencies:
-     *    BlockFrostApi
-     *    KoiosApi
-     * Expected Output:
-     *    The function should return 3 box
-     */
-    it('should return 3 box for asset payment', async () => {
-      const mockedEvent: EventTrigger =
-        TestBoxes.mockAssetPaymentEventTrigger();
-      mockedEvent.targetChainTokenId =
-        'asset1nl000000000000000000000000000000000000';
-
-      // run test
-      const cardanoChain: CardanoChain = new CardanoChain();
-      const boxes = cardanoChain.getCoveringUtxo(
-        [bankBoxes[8], bankBoxes[6], bankBoxes[5]],
-        mockedEvent,
-        mockedFeeConfig
-      );
-
-      // verify output boxes
-      expect(boxes.length).to.be.equal(3);
-    });
-
-    /**
-     * Target: testing getCoveringUtxo
-     * Dependencies:
-     *    BlockFrostApi
-     *    KoiosApi
-     * Expected Output:
-     *    The function should return 2 box
-     */
-    it('should return 2 box for asset payment', async () => {
-      const mockedEvent: EventTrigger =
-        TestBoxes.mockAssetPaymentEventTrigger();
-      mockedEvent.targetChainTokenId =
-        'asset1nl000000000000000000000000000000000000';
-      mockedEvent.amount = '20';
-
-      // run test
-      const cardanoChain: CardanoChain = new CardanoChain();
-      const boxes = cardanoChain.getCoveringUtxo(
-        [bankBoxes[6], bankBoxes[5]],
-        mockedEvent,
-        mockedFeeConfig
-      );
-
-      // verify output boxes
-      expect(boxes.length).to.be.equal(2);
-    });
-  });
 
   describe('generateTransaction', () => {
     // mock getting bankBoxes

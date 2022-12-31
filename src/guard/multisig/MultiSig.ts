@@ -15,7 +15,7 @@ import Configs from '../../helpers/Configs';
 import { Semaphore } from 'await-semaphore';
 import Encryption from '../../helpers/Encryption';
 import MultiSigUtils from './MultiSigUtils';
-import { default as Utils } from "../../helpers/Utils";
+import { default as Utils } from '../../helpers/Utils';
 import { loggerFactory } from '../../log/Logger';
 
 const logger = loggerFactory(import.meta.url);

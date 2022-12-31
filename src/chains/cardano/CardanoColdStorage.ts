@@ -52,10 +52,12 @@ class CardanoColdStorage {
       assets: transferringAssets.assets,
     };
 
-    // TODO: use getCoveringUtxo after fixing it.
-    //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/88
-    const lockBoxes = await KoiosApi.getAddressBoxes(
+    const addressBoxes = await KoiosApi.getAddressBoxes(
       CardanoConfigs.bankAddress
+    );
+    const lockBoxes = CardanoUtils.getCoveringUtxo(
+      addressBoxes,
+      requiredAssets
     );
 
     // add input boxes
