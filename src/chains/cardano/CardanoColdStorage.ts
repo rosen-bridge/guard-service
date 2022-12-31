@@ -41,13 +41,13 @@ class CardanoColdStorage {
   ): Promise<CardanoTransaction> => {
     const txBuilder = TransactionBuilder.new(CardanoConfigs.txBuilderConfig);
 
-    // add two minimum lovelace if current transferring ergs is less than that
-    const twoMinBoxLovelace = CardanoConfigs.txMinimumLovelace.checked_mul(
-      BigNum.from_str('2')
-    );
+    // add two minimum lovelace and txFee if current transferring lovelace is less than that
+    const txMinimumNeededLovelace = CardanoConfigs.txMinimumLovelace
+      .checked_mul(BigNum.from_str('2'))
+      .checked_add(CardanoConfigs.txFee);
     const requiredAssets: UtxoBoxesAssets = {
-      lovelace: transferringAssets.lovelace.less_than(twoMinBoxLovelace)
-        ? twoMinBoxLovelace
+      lovelace: transferringAssets.lovelace.less_than(txMinimumNeededLovelace)
+        ? txMinimumNeededLovelace
         : transferringAssets.lovelace,
       assets: transferringAssets.assets,
     };
