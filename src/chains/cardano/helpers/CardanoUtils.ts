@@ -15,7 +15,7 @@ import {
   ScriptHash,
 } from '@emurgo/cardano-serialization-lib-nodejs';
 import { Buffer } from 'buffer';
-import _ from 'lodash';
+import { shuffle } from 'lodash-es';
 import Utils from '../../../helpers/Utils';
 import { NotEnoughAssetsError } from '../../../helpers/errors';
 
@@ -135,7 +135,7 @@ class CardanoUtils {
   ): Array<Utxo> => {
     const result: Array<Utxo> = [];
     let coveredLovelace = BigNum.zero();
-    const shuffleBoxes = _.shuffle(lockBoxes);
+    const shuffleBoxes = shuffle(lockBoxes);
 
     const requiredADA = requiredAssets.lovelace;
     const requiredMultiAssets = requiredAssets.assets;
