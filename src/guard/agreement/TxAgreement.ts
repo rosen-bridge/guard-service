@@ -96,7 +96,7 @@ class TxAgreement {
       }
     } catch (e) {
       logger.warn(
-        `An error occurred while handling tx-agreement message: ${e}`
+        `An error occurred while handling tx-agreement message: ${e.stack}`
       );
     }
   };
@@ -411,7 +411,7 @@ class TxAgreement {
           release();
         } catch (e) {
           release();
-          logger.error(`An error occurred while inserting tx to db: ${e}`);
+          logger.error(`An error occurred while inserting tx to db: ${e.stack}`);
           throw e;
         }
       });
@@ -422,7 +422,7 @@ class TxAgreement {
         this.eventAgreedTransactions.delete(tx.eventId);
     } catch (e) {
       logger.warn(
-        `Unexpected error occurred while setting tx [${tx.txId}] as approved: ${e}`
+        `Unexpected error occurred while setting tx [${tx.txId}] as approved: ${e.stack}`
       );
     }
   };
@@ -439,7 +439,7 @@ class TxAgreement {
         await dbAction.setEventStatus(tx.eventId, EventStatus.inReward);
     } catch (e) {
       logger.warn(
-        `Unexpected error occurred while updating event [${tx.eventId}] with status: ${e}`
+        `Unexpected error occurred while updating event [${tx.eventId}] with status: ${e.stack}`
       );
     }
   };
@@ -458,7 +458,7 @@ class TxAgreement {
         this.broadcastTransactionRequest(tx, creatorId, guardSignature);
       } catch (e) {
         logger.warn(
-          `Unexpected error occurred while resending tx [${tx.txId}]: ${e}`
+          `Unexpected error occurred while resending tx [${tx.txId}]: ${e.stack}`
         );
       }
     });

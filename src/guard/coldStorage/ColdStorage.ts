@@ -95,7 +95,7 @@ class ColdStorage {
       }
     } catch (e) {
       logger.warn(
-        `An error occurred while processing assets in Ergo lock address [${ErgoConfigs.ergoContractConfig.lockAddress}]: ${e}`
+        `An error occurred while processing assets in Ergo lock address [${ErgoConfigs.ergoContractConfig.lockAddress}]: ${e.stack}`
       );
     }
   };
@@ -204,7 +204,7 @@ class ColdStorage {
       }
     } catch (e) {
       logger.warn(
-        `An error occurred while processing assets in Cardano lock address [${CardanoConfigs.bankAddress}]: ${e}`
+        `An error occurred while processing assets in Cardano lock address [${CardanoConfigs.bankAddress}]: ${e.stack}`
       );
     }
   };

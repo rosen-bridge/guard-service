@@ -56,7 +56,7 @@ try {
   await testScannerDataSource.runMigrations();
   logger.info('Test Data Source has been initialized!');
 } catch (err) {
-  logger.error(`An error occurred while initializing test datasource: ${err}`);
+  logger.error(`An error occurred while initializing test datasource: ${err.stack}`);
 }
 
 const testScannerDataBase = new DatabaseAction(testScannerDataSource);

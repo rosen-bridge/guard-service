@@ -130,7 +130,7 @@ class MultiSigHandler {
           release();
         })
         .catch((e) => {
-          logger.error(`Error in signing MultiSig transaction: ${e}`);
+          logger.error(`Error in signing MultiSig transaction: ${e.stack}`);
           reject(e);
         });
     });
@@ -190,7 +190,7 @@ class MultiSigHandler {
       } catch (e) {
         release();
         logger.error(
-          `An error occurred while removing unsigned transactions from MultiSig queue: ${e}`
+          `An error occurred while removing unsigned transactions from MultiSig queue: ${e.stack}`
         );
         throw e;
       }
@@ -402,7 +402,7 @@ class MultiSigHandler {
             transaction: txBytes,
           };
         } catch (e) {
-          logger.warn(`An error occurred during MultiSig generate sign: ${e}`);
+          logger.warn(`An error occurred during MultiSig generate sign: ${e.stack}`);
         }
       }
     }
@@ -565,7 +565,7 @@ class MultiSigHandler {
             this.processResolve(transaction);
           } catch (e) {
             logger.warn(
-              `An unknown exception occurred while handling commitment from other peer: ${e}`
+              `An unknown exception occurred while handling commitment from other peer: ${e.stack}`
             );
           }
           release();
@@ -639,7 +639,7 @@ class MultiSigHandler {
             this.processResolve(transaction);
           } catch (e) {
             logger.warn(
-              `An unknown exception occurred while handling sign from another peer: ${e}`
+              `An unknown exception occurred while handling sign from another peer: ${e.stack}`
             );
           }
           release();

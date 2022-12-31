@@ -156,7 +156,7 @@ class Dialer {
         function (error) {
           if (error) {
             logger.warn(
-              `An error occurred while writing created PeerId to the file: ${error}`
+              `An error occurred while writing created PeerId to the file: ${error.stack}`
             );
             throw error;
           }
@@ -326,7 +326,7 @@ class Dialer {
                 logger.debug(`Peer [${peer}] added to the address book.`);
               } catch (error) {
                 logger.error(
-                  `An error occurred while trying to add peer to address book: ${error}`,
+                  `An error occurred while trying to add peer to address book: ${error.stack}`,
                   { peer }
                 );
               }
@@ -334,7 +334,7 @@ class Dialer {
           }
         } catch (error) {
           logger.warn(
-            `An error occurred while storing discovered peer: ${error}`,
+            `An error occurred while storing discovered peer: ${error.stack}`,
             { peer }
           );
         }
@@ -355,7 +355,7 @@ class Dialer {
         logger.debug(`Peer [${peer}] removed from the address book.`);
       } catch (error) {
         logger.warn(
-          `An error occurred while removing peer from address book: ${error}`,
+          `An error occurred while removing peer from address book: ${error.stack}`,
           { peer }
         );
       }
@@ -513,7 +513,7 @@ class Dialer {
       }
     ).catch((error) => {
       logger.error(
-        `An error occurred while handling broadcast protocol stream: ${error}`
+        `An error occurred while handling broadcast protocol stream: ${error.stack}`
       );
     });
   };
@@ -560,13 +560,13 @@ class Dialer {
           }
         } catch (error) {
           logger.error(
-            `An error occurred while handling stream callback: ${error}`
+            `An error occurred while handling stream callback: ${error.stack}`
           );
         }
       }
     ).catch((error) => {
       logger.error(
-        `An error occurred while handling getpeers protocol stream: ${error}`
+        `An error occurred while handling getpeers protocol stream: ${error.stack}`
       );
     });
   };
@@ -634,7 +634,7 @@ class Dialer {
           this.addPeersToAddressBook([evt.detail.id.toString()]).catch(
             (error) => {
               logger.error(
-                `An error occurred while dialing peer [${evt.detail.id}]: ${error}`
+                `An error occurred while dialing peer [${evt.detail.id}]: ${error.stack}`
               );
             }
           );
@@ -727,7 +727,7 @@ class Dialer {
         logger.debug(`Connected peers are: [${this.getPeerIds()}].`);
       }, CommunicationConfig.getPeersInterval * 1000);
     } catch (error) {
-      logger.error(`An error occurred while starting dialer: ${error}`);
+      logger.error(`An error occurred while starting dialer: ${error.stack}`);
     }
   };
 
@@ -850,7 +850,7 @@ class Dialer {
         }
       } catch (error) {
         logger.error(
-          `An error occurred while trying to process a message in the messages queue: ${error}`
+          `An error occurred while trying to process a message in the messages queue: ${error.stack}`
         );
         retrySendingMessage(message);
       }
