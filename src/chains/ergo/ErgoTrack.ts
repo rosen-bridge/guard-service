@@ -86,9 +86,9 @@ class ErgoTrack {
 
   /**
    * get lock boxes from explorer, track to last box and filter used ones
-   * @param required
-   * @param trackBoxesMap
-   * @param usedBoxIds
+   * @param required required assets (erg and tokens)
+   * @param trackBoxesMap mapping for track boxes
+   * @param usedBoxIds list of used boxes
    */
   static getCoveringLockBoxes = async (
     required: BoxesAssets,
@@ -160,7 +160,7 @@ class ErgoTrack {
   };
 
   /**
-   * tracks lock boxes with mempool and tx queue and filter used ones
+   * tracks lock boxes with mempool and tx queue and filter used boxes in unsigned txs of txAgreement and db
    * @param required required amount of erg and tokens
    */
   static trackAndFilterLockBoxes = async (
