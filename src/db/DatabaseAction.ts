@@ -15,6 +15,7 @@ import {
 import Utils from '../helpers/Utils';
 import { loggerFactory } from '../log/Logger';
 import { Semaphore } from 'await-semaphore/index';
+import { ImpossibleBehavior } from '../helpers/errors';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -214,8 +215,8 @@ class DatabaseAction {
       (tx) => tx.status !== TransactionStatus.invalid
     );
     if (txs.length > 1) {
-      throw new Error(
-        `Impossible case, event [${newTx.eventId}] has already more than 1 (${txs.length}) active ${newTx.txType} tx`
+      throw new ImpossibleBehavior(
+        `Event [${newTx.eventId}] has already more than 1 (${txs.length}) active ${newTx.txType} tx`
       );
     } else if (txs.length === 1) {
       const tx = txs[0];

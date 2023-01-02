@@ -17,7 +17,11 @@ import {
 import { Buffer } from 'buffer';
 import { shuffle } from 'lodash-es';
 import Utils from '../../../helpers/Utils';
-import { NotEnoughAssetsError } from '../../../helpers/errors';
+import {
+  ImpossibleBehavior,
+  NotEnoughAssetsError,
+  NotEnoughValidBoxesError,
+} from '../../../helpers/errors';
 
 class CardanoUtils {
   /**
@@ -155,8 +159,8 @@ class CardanoUtils {
         if (assetRecord === undefined) {
           requiredAssetsMap.set(assetInfo, assetAmount);
         } else {
-          throw Error(
-            `Impossible behaviour from Cardano MultiAsset class detected!`
+          throw new ImpossibleBehavior(
+            'MultiAsset contains multiple record for single policyId and assetName'
           );
         }
       }
@@ -209,11 +213,11 @@ class CardanoUtils {
     }
 
     if (requiredADA.compare(coveredLovelace) > 0)
-      throw new NotEnoughAssetsError(
+      throw new NotEnoughValidBoxesError(
         `Not enough lovelace in the bank. required: ${requiredADA.to_str()}, found ${coveredLovelace.to_str()}`
       );
     if (requiredAssetsMap.size > 0)
-      throw new NotEnoughAssetsError(
+      throw new NotEnoughValidBoxesError(
         `Not enough asset in the bank. Shortage: ${JSON.stringify(
           Array.from(requiredAssetsMap)
         )}`

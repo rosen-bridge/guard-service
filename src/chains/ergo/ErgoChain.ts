@@ -36,7 +36,10 @@ import { guardConfig } from '../../helpers/GuardConfig';
 import { loggerFactory } from '../../log/Logger';
 import { Fee } from '@rosen-bridge/minimum-fee';
 import MinimumFee from '../../guard/MinimumFee';
-import { NotEnoughAssetsError } from '../../helpers/errors';
+import {
+  NotEnoughAssetsError,
+  NotEnoughValidBoxesError,
+} from '../../helpers/errors';
 import ErgoTrack from './ErgoTrack';
 
 const logger = loggerFactory(import.meta.url);
@@ -98,6 +101,15 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
     );
     requiredAssets.ergs = requiredAssets.ergs + ErgoConfigs.minimumErg; // required amount of Erg plus minimumErg for change box
 
+    // check if address contains required assets
+    if (!(await ErgoTrack.hasLockAddressEnoughAssets(requiredAssets))) {
+      const neededErgs = requiredAssets.ergs.toString();
+      const neededTokens = JsonBI.stringify(requiredAssets.tokens);
+      throw new NotEnoughAssetsError(
+        `Lock boxes doesn't contain required assets. Erg: ${neededErgs}, Tokens: ${neededTokens}`
+      );
+    }
+
     // get required boxes for transaction input
     const coveringBoxes = await ErgoTrack.trackAndFilterLockBoxes(
       requiredAssets
@@ -106,8 +118,8 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
     if (!coveringBoxes.covered) {
       const neededErgs = requiredAssets.ergs.toString();
       const neededTokens = JsonBI.stringify(requiredAssets.tokens);
-      throw new NotEnoughAssetsError(
-        `Bank boxes didn't cover required assets. Erg: ${neededErgs}, Tokens: ${neededTokens}`
+      throw new NotEnoughValidBoxesError(
+        `Tracked and valid boxes didn't cover required assets. Erg: ${neededErgs}, Tokens: ${neededTokens}`
       );
     }
 
@@ -378,7 +390,9 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
       const response = await NodeApi.sendTx(tx.to_json());
       logger.info(`Ergo Transaction submitted: [${response}]`);
     } catch (e) {
-      logger.warn(`An error occurred while submitting Ergo transaction: ${e.stack}`);
+      logger.warn(
+        `An error occurred while submitting Ergo transaction: ${e.stack}`
+      );
     }
   };
 }

@@ -6,6 +6,7 @@ import Utils from '../../../helpers/Utils';
 import { rosenConfig } from '../../../helpers/RosenConfig';
 import { Buffer } from 'buffer';
 import { dbAction } from '../../../db/DatabaseAction';
+import { ImpossibleBehavior } from '../../../helpers/errors';
 
 class InputBoxes {
   /**
@@ -79,8 +80,8 @@ class InputBoxes {
   static getGuardsInfoBox = async (): Promise<ErgoBox> => {
     const boxes = await ExplorerApi.getBoxesByTokenId(rosenConfig.guardNFT);
     if (boxes.total !== 1) {
-      throw new Error(
-        `impossible case, found ${boxes.total} boxes containing guardNFT [${rosenConfig.guardNFT}]`
+      throw new ImpossibleBehavior(
+        `Found ${boxes.total} boxes containing guardNFT [${rosenConfig.guardNFT}]`
       );
     }
     return ErgoBox.from_json(JsonBI.stringify(boxes.items[0]));
