@@ -1,0 +1,84 @@
+---
+# all time related configs are in seconds (timeout, interval, ...)
+
+express:
+  port: 8080 # service deployment port
+  jsonBodyLimit: 50
+cardano:
+  networkType: 'mainnet' # Cardano network type [testnet, mainnet]
+  koios:
+    url: 'https://api.koios.rest/api/v0'
+    timeout: 8 # connection timeout for Koios API
+  blockFrost:
+    projectId: '' # project id provided by BlockFrost
+  bankAddress: '' # TODO: key should get changed to lockAddress #27
+  bankPublicKey: '' # corresponding public key of lock address
+  minUtxoValue: '1310316' # minimum lovelace for a Utxo (box)
+  fee: '200000' # Cardano transaction fee
+  txTtl: 100000 # Cardano transaction time-to-live
+  observationConfirmation: 15 # required block confirmation so that an observation transaction on Cardano get confirmed
+  paymentConfirmation: 20 # required block confirmation so that a payment transaction on Cardano get confirmed
+  lockAddresses: [''] # Cardano lock address (TODO: should get removed #27)
+  coldStorageAddress: ''
+ergo:
+  networkType: 'mainnet' # Ergo network type [testnet, mainnet]
+  explorer:
+    url: 'https://api.ergoplatform.com/api'
+    timeout: 8 # connection timeout for explorer API
+  node:
+    url: ''
+    timeout: 8 # connection timeout for node API
+  minBoxValue: '100000' # minimum nano-erg for a box
+  fee: '1100000' # Ergo transaction fee
+  observationConfirmation: 20 # required block confirmation so that an observation transaction on Ergo get confirmed
+  eventConfirmation: 20 # required block confirmation so that an event trigger box get confirmed
+  distributionConfirmation: 20 # required block confirmation so that a payment or reward distribution transaction on Ergo get confirmed
+  initialHeight: 10000 # block scanner starting block height
+  scannerInterval: 30 # scanner update interval
+  coldStorageAddress: ''
+reward:
+  bridgeFeeRepoAddress: '' # guards address for receiving bridge fee of events
+  networkFeeRepoAddress: '' # guards address for receiving network fee of events
+  watchersSharePercent: 50 # watchers share for event fees (payed in tokens or native token)
+  watchersRSNSharePercent: 0 # watchers share for event fees (payed in RSN token)
+tss:
+  path: './bin/tss.exe' # path to tss executable file
+  configPath: './bin/conf/conf.env'
+  url: 'http://localhost'
+  port: 9000
+  timeout: 8 # connection timeout for tss API
+p2p:
+  addresses: # relay configs
+    - peerId: ''
+      address: ''
+  bootstrapTimeout: 10 # timeout of connecting to bootstrap nodes (which are relays in our case)
+  pubsubInterval: 10 # interval of publishing peer ids to the network for peer discovery
+  apiCallbackTimeout: 8 # timeout of api calls which happen when subscribing a channel in dialer
+  getPeersInterval: 60 # interval of logging peers info
+  messageSendingRetriesExponentialFactor: 5 # exponential factor for calculating message retries interval
+  messageSendingRetriesMaxCount: 3 # number of retires before dropping a failed message
+  peerIdFilePath: './peer-dialer.json'
+  guardsCount: 30 # total number of guards in the network
+  allowedStreamsPerGuard: 3 # the number of streams allowed for each guard connected
+multiSigTimeout: 300
+guard:
+  secret: ''
+  configUpdateInterval: 180 # guards config box update interval (getting guards configs from the box in Ergo network)
+contracts:
+  addressesBasePath: './config/rosen/'
+networks: ['ergo', 'cardano']
+logs:
+  path: './logs/' # path to log files
+  maxSize: '20m' # maximum size of each log file (20 MB)
+  maxFiles: '14d' # maximum number of log files (14 days)
+  level: 'info' # [debug, info, warn, error]
+coldStorage:
+  startHour: 17 # start of cold storage transaction generation period
+  endHour: 19 # end of cold storage transaction generation period
+intervals:
+  txProcessorInterval: 180
+  timeoutProcessorInterval: 3600 # interval to check if events got timeout
+  requeueWaitingEventsInterval: 43200 # interval for requeue events which are timeout
+tokensPath: './config/tokens.json' # path to supported tokens of bridge
+thresholdsPath: './config/thresholds.json' # path to thresholds of lock address tokens
+discordWebHookUrl: '' # Discord webhook url for sending notifications

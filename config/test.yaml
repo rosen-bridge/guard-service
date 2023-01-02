@@ -1,0 +1,53 @@
+---
+cardano:
+  networkType: 'testnet'
+  koios:
+    url: 'https://testnet.koios.rest/api/v0'
+    timeout: 8000
+  blockFrost:
+    projectId: 'change me'
+  bankAddress: 'addr_test1qrm4haxxgl55kqzhpp3sda8h979gxd4cast340v0eh0p4qzp3vkcrhjqavv9uzsvq86mglwnwe8xp87q3rv8ve54kasqlf7xgl'
+  bankPublicKey: 'bcb07faa6c0f19e2f2587aa9ef6f43a68fc0135321216a71dc87c8527af4ca6a'
+  minUtxoValue: '1551690'
+  fee: '200000'
+  txTtl: 1000000
+  observationConfirmation: 30
+  paymentConfirmation: 40
+  lockAddresses:
+    - 'addr_test1vze7yqqlg8cjlyhz7jzvsg0f3fhxpuu6m3llxrajfzqecggw704re'
+  coldStorageAddress: 'addr_test1vze7yqqlg8cjlyhz7jzvsg0f3fhxpuu6m3llxrajfzqecggw704re'
+ergo:
+  networkType: 'testnet'
+  explorer:
+    url: 'https://testnet.koios.rest/api/v0'
+    timeout: 8000
+  node:
+    url: 'https://testnet.koios.rest/api/v0'
+    timeout: 8000
+  minBoxValue: '100000'
+  fee: '1100000'
+  observationConfirmation: 10
+  eventConfirmation: 15
+  distributionConfirmation: 20
+  coldStorageAddress: '9es3xKFSehNNwCpuNpY31ScAubDqeLbSWwaCysjN1ee51bgHKTq'
+reward:
+  bridgeFeeRepoAddress: '9gtQHPp8yh2SC7z5ZLMHnK2NNW1DUW11hBKbUEADzqCSrECoQQM'
+  networkFeeRepoAddress: '9es3xKFSehNNwCpuNpY31ScAubDqeLbSWwaCysjN1ee51bgHKTq'
+  watchersSharePercent: 50
+  watchersRSNSharePercent: 0
+guard:
+  secret: '79a25ff592e5a96dc5381d0649fb6bd61ba0ff67d934057812f1ad09a9d554eb'
+multiSigTimeout: 1
+p2p:
+  peerIdFilePath: './peer-dialer.json'
+contracts:
+  networks:
+    - 'ergo-testnet'
+    - 'cardano-testnet'
+  addressesBasePath: 'tests/resources/addresses/'
+coldStorage:
+  startHour: 17
+  endHour: 19
+tokensPath: 'tests/resources/tokens.test.json'
+thresholdsPath: 'tests/resources/threshold.test.json'
+discordWebHookUrl: 'https://discord.com/api/webhooks/1000000000000000000/Uy8ogaQfEAUUDVBefgKfUVGXeZJAkssO2m9CdxCAfhIjhRMjxZ-WDYJUwscNXX42Y3bd'
