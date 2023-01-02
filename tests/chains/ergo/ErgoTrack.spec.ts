@@ -293,7 +293,7 @@ describe('ErgoTrack', () => {
      * Dependencies:
      *    ExplorerApi
      * Expected Output:
-     *    The function should return enough boxes
+     *    The function should return all boxes
      */
     it('should return all boxes to cover erg amount', async () => {
       // mock getMempoolTxsForAddress
