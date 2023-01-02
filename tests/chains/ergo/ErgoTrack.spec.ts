@@ -287,6 +287,34 @@ describe('ErgoTrack', () => {
       expect(boxes.covered).to.be.false;
       expect(boxes.boxes.length).to.equal(3);
     });
+
+    /**
+     * Target: testing trackAndFilterLockBoxes
+     * Dependencies:
+     *    ExplorerApi
+     * Expected Output:
+     *    The function should return enough boxes
+     */
+    it('should return all boxes to cover erg amount', async () => {
+      // mock getMempoolTxsForAddress
+      mockExplorerGetMempoolTxsForAddress(testBankAddress, {
+        items: [],
+        total: 0,
+      });
+      // mock getErgoPendingTransactionsInputs
+      mockGetErgoPendingTransactionsInputs([]);
+
+      // run test
+      const boxes = await ErgoTrack.trackAndFilterLockBoxes({
+        ergs: BigInt('241000000000'),
+        tokens: {},
+      });
+
+      console.log('boxes', boxes);
+
+      expect(boxes.covered).to.be.true;
+      expect(boxes.boxes.length).to.equal(14);
+    });
   });
 
   describe('generateTxQueueTrackMap', () => {
