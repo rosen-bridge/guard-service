@@ -1,6 +1,8 @@
 ---
+# all time related configs are in seconds (timeout, interval, ...)
+
 express:
-  port: 8080 # service deployment port (used by p2p api)
+  port: 8080 # service deployment port
   jsonBodyLimit: 50
 cardano:
   networkType: 'mainnet' # Cardano network type (testnet, mainnet)
@@ -16,8 +18,7 @@ cardano:
   txTtl: 100000 # Cardano transaction time-to-live
   observationConfirmation: 15 # required block confirmation so that an observation transaction on Cardano get confirmed
   paymentConfirmation: 20 # required block confirmation so that a payment transaction on Cardano get confirmed
-  lockAddresses:
-    - '' # Cardano lock address (TODO: should get removed #27)
+  lockAddresses: [''] # Cardano lock address (TODO: should get removed #27)
   coldStorageAddress: '' # cold storage address on Cardano
 ergo:
   networkType: 'mainnet' # Ergo network type (testnet, mainnet)
@@ -31,7 +32,7 @@ ergo:
   fee: '1100000' # Ergo transaction fee
   observationConfirmation: 20 # required block confirmation so that an observation transaction on Ergo get confirmed
   eventConfirmation: 20 # required block confirmation so that an event trigger box get confirmed
-  distributionConfirmation: 20 # required block confirmation so that an payment or reward distribution transaction on Ergo get confirmed
+  distributionConfirmation: 20 # required block confirmation so that a payment or reward distribution transaction on Ergo get confirmed
   initialHeight: 10000 # block scanner starting block height
   scannerInterval: 30 # scanner update interval
   coldStorageAddress: '' # cold storage address on Ergo
@@ -41,7 +42,7 @@ reward:
   watchersSharePercent: 50 # watchers share for event fees (payed using tokens or native token)
   watchersRSNSharePercent: 0 # watchers share for event fees (payed using RSN token)
 tss:
-  path: './bin/tss.exe' # path to tss execution file
+  path: './bin/tss.exe' # path to tss executable file
   configPath: './bin/conf/conf.env' # path to tss config file
   url: 'http://localhost' # tss API url
   port: 9000 # tss API port
@@ -64,12 +65,10 @@ guard:
   secret: '' # guard secret
   configUpdateInterval: 180 # guards config box update interval (getting guards configs from the box in Ergo network)
 contracts:
-  addressesBasePath: 'config/rosen/' # path to contracts addresses
-networks:
-  - 'ergo'
-  - 'cardano'
+  addressesBasePath: './config/rosen/' # path to contracts addresses
+networks: ['ergo', 'cardano']
 logs:
-  path: 'logs/' # path to log files
+  path: './logs/' # path to log files
   maxSize: '20m' # maximum size of each log file (20 MB)
   maxFiles: '14d' # maximum number of log files (14 days)
   level: 'info' # log level
@@ -80,6 +79,6 @@ intervals:
   txProcessorInterval: 180 # transaction processor interval
   timeoutProcessorInterval: 3600 # interval to check if events got timeout
   requeueWaitingEventsInterval: 43200 # interval for requeue events which are timeout
-tokensPath: 'config/tokens.json' # path to supported tokens of bridge
-thresholdsPath: 'config/thresholds.json' # path to thresholds of lock address tokens
-discordWebHookUrl: '' # Discord webhook url to send notifications
+tokensPath: './config/tokens.json' # path to supported tokens of bridge
+thresholdsPath: './config/thresholds.json' # path to thresholds of lock address tokens
+discordWebHookUrl: '' # Discord webhook url for sending notifications
