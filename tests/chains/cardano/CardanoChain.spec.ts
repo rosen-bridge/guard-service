@@ -7,19 +7,9 @@ import {
 } from '../../../src/models/Models';
 import TestBoxes from './testUtils/TestBoxes';
 import { expect } from 'chai';
-import {
-  Utxo,
-  UtxoBoxesAssets,
-} from '../../../src/chains/cardano/models/Interfaces';
+import { Utxo } from '../../../src/chains/cardano/models/Interfaces';
 import { anything, deepEqual, spy, verify, when } from 'ts-mockito';
-import {
-  AssetName,
-  Assets,
-  BigNum,
-  hash_transaction,
-  MultiAsset,
-  ScriptHash,
-} from '@emurgo/cardano-serialization-lib-nodejs';
+import { hash_transaction } from '@emurgo/cardano-serialization-lib-nodejs';
 import MockedBlockFrost from './mocked/MockedBlockFrost';
 import TestUtils from '../../testUtils/TestUtils';
 import { beforeEach } from 'mocha';
@@ -38,6 +28,7 @@ import {
 } from '../../../src/models/Interfaces';
 import { Fee } from '@rosen-bridge/minimum-fee';
 import CardanoTxVerifier from '../../../src/chains/cardano/CardanoTxVerifier';
+import { mockCardanoHasLockAddressEnoughAssets } from '../mocked/MockedCardanoTrack';
 
 describe('CardanoChain', () => {
   const testBankAddress = TestBoxes.testBankAddress;
@@ -51,6 +42,10 @@ describe('CardanoChain', () => {
       networkFee: 0n,
       rsnRatio: 0n,
     };
+
+    beforeEach('mock dependencies', () => {
+      mockCardanoHasLockAddressEnoughAssets(true);
+    });
 
     /**
      * Target: testing generateTransaction

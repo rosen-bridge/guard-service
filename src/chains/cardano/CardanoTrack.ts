@@ -38,7 +38,7 @@ class CardanoTrack {
 
       for (let j = 0; j < policyAssets.keys().len(); j++) {
         const assetName = policyAssets.keys().get(j);
-        const hexAssetName = assetName.to_hex();
+        const hexAssetName = assetName.to_js_value();
         const assetAmount = policyAssets.get(assetName);
 
         if (!assetAmount)

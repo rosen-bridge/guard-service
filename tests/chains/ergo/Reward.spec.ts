@@ -14,7 +14,10 @@ import { anything, spy, when } from 'ts-mockito';
 import ErgoConfigs from '../../../src/chains/ergo/helpers/ErgoConfigs';
 import { resetMockedReward } from '../mocked/MockedReward';
 import { Fee } from '@rosen-bridge/minimum-fee';
-import { mockTrackAndFilterLockBoxes } from '../mocked/MockedErgoTrack';
+import {
+  mockErgoHasLockAddressEnoughAssets,
+  mockTrackAndFilterLockBoxes,
+} from '../mocked/MockedErgoTrack';
 
 describe('Reward', () => {
   describe('generateTransaction', () => {
@@ -30,6 +33,7 @@ describe('Reward', () => {
     beforeEach('mock ExplorerApi', function () {
       resetMockedReward();
       resetMockedExplorerApi();
+      mockErgoHasLockAddressEnoughAssets(true);
       mockTrackAndFilterLockBoxes(bankBoxes);
       resetMockedInputBoxes();
       mockGetEventBox(anything(), eventBoxAndCommitments[0]);

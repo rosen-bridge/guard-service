@@ -13,6 +13,16 @@ const mockTrackAndFilterLockBoxes = (boxes: CoveringErgoBoxes): void => {
 };
 
 /**
+ * mocks Reward hasLockAddressEnoughAssets method to return result when called
+ * @param result
+ */
+const mockErgoHasLockAddressEnoughAssets = (result: boolean): void => {
+  when(mockedErgoTrack.hasLockAddressEnoughAssets(anything())).thenResolve(
+    result
+  );
+};
+
+/**
  * resets mocked methods of ExplorerApi
  */
 const resetMockedErgoTrack = (): void => {
@@ -20,4 +30,8 @@ const resetMockedErgoTrack = (): void => {
   mockedErgoTrack = spy(ErgoTrack);
 };
 
-export { mockTrackAndFilterLockBoxes, resetMockedErgoTrack };
+export {
+  mockTrackAndFilterLockBoxes,
+  mockErgoHasLockAddressEnoughAssets,
+  resetMockedErgoTrack,
+};

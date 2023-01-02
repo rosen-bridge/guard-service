@@ -14,7 +14,10 @@ import { anything, spy, when } from 'ts-mockito';
 import ErgoConfigs from '../../../src/chains/ergo/helpers/ErgoConfigs';
 import { Fee } from '@rosen-bridge/minimum-fee';
 import ErgoTxVerifier from '../../../src/chains/ergo/ErgoTxVerifier';
-import { mockTrackAndFilterLockBoxes } from '../mocked/MockedErgoTrack';
+import {
+  mockErgoHasLockAddressEnoughAssets,
+  mockTrackAndFilterLockBoxes,
+} from '../mocked/MockedErgoTrack';
 
 describe('ErgoChain', () => {
   describe('generateTransaction', () => {
@@ -35,6 +38,7 @@ describe('ErgoChain', () => {
       resetMockedInputBoxes();
       mockGetEventBox(anything(), eventBoxAndCommitments[0]);
       mockGetEventValidCommitments(anything(), eventBoxAndCommitments.slice(1));
+      mockErgoHasLockAddressEnoughAssets(true);
       mockTrackAndFilterLockBoxes(bankBoxes);
     });
 
