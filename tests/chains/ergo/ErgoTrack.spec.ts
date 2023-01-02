@@ -310,8 +310,6 @@ describe('ErgoTrack', () => {
         tokens: {},
       });
 
-      console.log('boxes', boxes);
-
       expect(boxes.covered).to.be.true;
       expect(boxes.boxes.length).to.equal(14);
     });
