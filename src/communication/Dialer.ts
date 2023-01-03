@@ -36,19 +36,6 @@ import {
 import { loggerFactory } from '../log/Logger';
 import { JsonBI } from '../network/NetworkModels';
 
-/**
- * TODO: This is needed because of an issue in types of `@libp2p/pubsub-peer-discovery`
- * which mismatch with types of `libp2p`
- *
- * https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/86
- */
-type PeerDiscoveryArray = Libp2pInit['peerDiscovery'];
-type PeerDiscovery = PeerDiscoveryArray extends
-  | readonly (infer ElementType)[]
-  | undefined
-  ? ElementType
-  : never;
-
 const logger = loggerFactory(import.meta.url);
 
 // TODO: Need to write test for This package
@@ -608,7 +595,7 @@ class Dialer {
           }),
           pubsubPeerDiscovery({
             interval: CommunicationConfig.pubsubInterval * 1000,
-          }) as PeerDiscovery,
+          }),
         ],
       });
 
