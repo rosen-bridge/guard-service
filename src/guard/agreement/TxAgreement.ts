@@ -23,6 +23,8 @@ import EventVerifier from '../event/EventVerifier';
 import ChainsConstants from '../../chains/ChainsConstants';
 import ErgoUtils from '../../chains/ergo/helpers/ErgoUtils';
 import ErgoTransaction from '../../chains/ergo/models/ErgoTransaction';
+import { InputUtxo } from '../../chains/cardano/models/Interfaces';
+import CardanoUtils from '../../chains/cardano/helpers/CardanoUtils';
 
 const logger = loggerFactory(import.meta.url);
 const dialer = await Dialer.getInstance();
@@ -411,7 +413,9 @@ class TxAgreement {
           release();
         } catch (e) {
           release();
-          logger.error(`An error occurred while inserting tx to db: ${e.stack}`);
+          logger.error(
+            `An error occurred while inserting tx to db: ${e.stack}`
+          );
           throw e;
         }
       });
@@ -500,6 +504,19 @@ class TxAgreement {
             lockErgoTree
           )
         );
+      }
+    });
+    return boxIds;
+  };
+
+  /**
+   * returns list of the inputs boxes in pending transactions of Cardano
+   */
+  getCardanoPendingTransactionsInputs = (): InputUtxo[] => {
+    let boxIds: InputUtxo[] = [];
+    this.transactions.forEach((paymentTx) => {
+      if (paymentTx.network === ChainsConstants.cardano) {
+        boxIds = boxIds.concat(CardanoUtils.getPaymentTxInputIds(paymentTx));
       }
     });
     return boxIds;

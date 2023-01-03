@@ -1,10 +1,21 @@
 import { anything, reset, spy, when } from 'ts-mockito';
 import CardanoTrack from '../../../src/chains/cardano/CardanoTrack';
+import { Utxo } from '../../../src/chains/cardano/models/Interfaces';
 
 let mockedCardanoTrack = spy(CardanoTrack);
 
 /**
- * mocks Reward hasLockAddressEnoughAssets method to return result when called
+ * mocks CardanoTrack trackAndFilterLockBoxes method to return boxes when called
+ * @param boxes
+ */
+const mockTrackAndFilterLockBoxes = (boxes: Utxo[]): void => {
+  when(mockedCardanoTrack.trackAndFilterLockBoxes(anything())).thenResolve(
+    boxes
+  );
+};
+
+/**
+ * mocks CardanoTrack hasLockAddressEnoughAssets method to return result when called
  * @param result
  */
 const mockCardanoHasLockAddressEnoughAssets = (result: boolean): void => {
@@ -14,11 +25,15 @@ const mockCardanoHasLockAddressEnoughAssets = (result: boolean): void => {
 };
 
 /**
- * resets mocked methods of ExplorerApi
+ * resets mocked methods of CardanoTrack
  */
 const resetMockedCardanoTrack = (): void => {
   reset(mockedCardanoTrack);
   mockedCardanoTrack = spy(CardanoTrack);
 };
 
-export { mockCardanoHasLockAddressEnoughAssets, resetMockedCardanoTrack };
+export {
+  mockTrackAndFilterLockBoxes,
+  mockCardanoHasLockAddressEnoughAssets,
+  resetMockedCardanoTrack,
+};

@@ -26,6 +26,7 @@ import Configs from '../../helpers/Configs';
 import ChainsConstants from '../ChainsConstants';
 import Utils from '../../helpers/Utils';
 import { ImpossibleBehavior } from '../../helpers/errors';
+import CardanoTrack from './CardanoTrack';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -53,11 +54,7 @@ class CardanoColdStorage {
       assets: transferringAssets.assets,
     };
 
-    const addressBoxes = await KoiosApi.getAddressBoxes(
-      CardanoConfigs.bankAddress
-    );
-    const lockBoxes = CardanoUtils.getCoveringUtxo(
-      addressBoxes,
+    const lockBoxes = await CardanoTrack.trackAndFilterLockBoxes(
       requiredAssets
     );
 

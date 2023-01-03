@@ -24,6 +24,11 @@ interface Utxo {
   asset_list: Array<Asset>;
 }
 
+interface InputUtxo {
+  txHash: string;
+  txIndex: number;
+}
+
 interface UtxoBoxesAssets {
   lovelace: BigNum;
   assets: MultiAsset;
@@ -66,6 +71,7 @@ type AddressUtxos = components['schemas']['address_utxo_content'];
 
 export type {
   Utxo,
+  InputUtxo,
   Asset,
   AssetInfo,
   UtxoBoxesAssets,

@@ -54,7 +54,7 @@ class ErgoTrack {
   };
 
   /**
-   * generates mempool tx input dictionary to track boxes and append to trackMap
+   * generates tx input dictionary from tx-queue Ergo transactions to track boxes and append to trackMap
    * @param trackMap the dictionary to append to
    */
   static generateTxQueueTrackMap = async (

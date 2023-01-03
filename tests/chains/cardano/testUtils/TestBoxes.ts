@@ -24,6 +24,8 @@ import {
   ScriptHash,
   Transaction,
   TransactionBuilder,
+  TransactionHash,
+  TransactionInput,
   TransactionMetadatum,
   TransactionOutput,
   TransactionWitnessSet,
@@ -37,6 +39,7 @@ import ChainsConstants from '../../../../src/chains/ChainsConstants';
 import Utils from '../../../../src/helpers/Utils';
 import TestConfigs from '../../../testUtils/TestConfigs';
 import { mock } from 'ts-mockito';
+import { Buffer } from 'buffer';
 
 // TODO: split this file variables and functions into multiple files (#94)
 class TestBoxes {
@@ -401,11 +404,68 @@ class TestBoxes {
   };
 
   /**
-   * generates 8 Utxo for cardano bank address
+   * generates a random Utxo object
+   */
+  static mockRandomBankBox = (): Utxo => {
+    return {
+      payment_addr: {
+        bech32:
+          'addr_test1qzf9uxs6xgprx4zt20qtsasxut8uw6quv34xlkmd26yuk5xe70s0yf5c3sefnrft6gdajkpz29t8lsn0kcr5xqsf34qqxd6n4f',
+      },
+      tx_hash: TestUtils.generateRandomId(),
+      tx_index: 0,
+      value: this.adaToLovelaceString(10),
+      asset_list: [],
+    };
+  };
+
+  /**
+   * generates a random TransactionOutput object with bank address
+   */
+  static mockRandomTransactionOutput = (): TransactionOutput => {
+    return TransactionOutput.new(
+      Address.from_bech32(
+        'addr_test1qzf9uxs6xgprx4zt20qtsasxut8uw6quv34xlkmd26yuk5xe70s0yf5c3sefnrft6gdajkpz29t8lsn0kcr5xqsf34qqxd6n4f'
+      ),
+      Value.new(BigNum.from_str(this.adaToLovelaceString(10)))
+    );
+  };
+
+  /**
+   * generates a TransactionOutput object from a utxo object
+   */
+  static mockTransactionOutputFromUtxo = (utxo: Utxo): TransactionOutput => {
+    // duplicate value and assets
+    const value = Value.new(BigNum.from_str(utxo.value));
+    const multiAsset = MultiAsset.new();
+    utxo.asset_list.forEach((asset) => {
+      const scriptHash = ScriptHash.from_bytes(
+        Utils.hexStringToUint8Array(asset.policy_id)
+      );
+      const assetName = AssetName.new(
+        Utils.hexStringToUint8Array(asset.asset_name)
+      );
+      multiAsset.set_asset(
+        scriptHash,
+        assetName,
+        BigNum.from_str(asset.quantity)
+      );
+    });
+    value.set_multiasset(multiAsset);
+
+    // create TransactionOutput object
+    return TransactionOutput.new(
+      Address.from_bech32(utxo.payment_addr.bech32),
+      value
+    );
+  };
+
+  /**
+   * generates 9 Utxo for cardano bank address
    */
   static mockBankBoxes = (): Utxo[] => {
     const box1: Utxo = {
-      payment_addr: { bech32: '' },
+      payment_addr: { bech32: CardanoConfigs.bankAddress },
       tx_hash: TestUtils.generateRandomId(),
       tx_index: 0,
       value: this.adaToLovelaceString(30),
@@ -425,7 +485,7 @@ class TestBoxes {
       ],
     };
     const box2: Utxo = {
-      payment_addr: { bech32: '' },
+      payment_addr: { bech32: CardanoConfigs.bankAddress },
       tx_hash: TestUtils.generateRandomId(),
       tx_index: 0,
       value: this.adaToLovelaceString(100),
@@ -439,7 +499,7 @@ class TestBoxes {
       ],
     };
     const box3: Utxo = {
-      payment_addr: { bech32: '' },
+      payment_addr: { bech32: CardanoConfigs.bankAddress },
       tx_hash: TestUtils.generateRandomId(),
       tx_index: 2,
       value: this.adaToLovelaceString(10),
@@ -447,7 +507,7 @@ class TestBoxes {
     };
 
     const box4: Utxo = {
-      payment_addr: { bech32: '' },
+      payment_addr: { bech32: CardanoConfigs.bankAddress },
       tx_hash: TestUtils.generateRandomId(),
       tx_index: 5,
       value: this.adaToLovelaceString(5),
@@ -455,7 +515,7 @@ class TestBoxes {
     };
 
     const box5: Utxo = {
-      payment_addr: { bech32: '' },
+      payment_addr: { bech32: CardanoConfigs.bankAddress },
       tx_hash: TestUtils.generateRandomId(),
       tx_index: 2,
       value: this.adaToLovelaceString(1),
@@ -463,7 +523,7 @@ class TestBoxes {
     };
 
     const box6: Utxo = {
-      payment_addr: { bech32: '' },
+      payment_addr: { bech32: CardanoConfigs.bankAddress },
       tx_hash: TestUtils.generateRandomId(),
       tx_index: 0,
       value: this.adaToLovelaceString(101),
@@ -478,7 +538,7 @@ class TestBoxes {
     };
 
     const box7: Utxo = {
-      payment_addr: { bech32: '' },
+      payment_addr: { bech32: CardanoConfigs.bankAddress },
       tx_hash: TestUtils.generateRandomId(),
       tx_index: 0,
       value: '1000',
@@ -493,7 +553,7 @@ class TestBoxes {
     };
 
     const box8: Utxo = {
-      payment_addr: { bech32: '' },
+      payment_addr: { bech32: CardanoConfigs.bankAddress },
       tx_hash: TestUtils.generateRandomId(),
       tx_index: 2,
       value: '1000',
@@ -501,7 +561,7 @@ class TestBoxes {
     };
 
     const box9: Utxo = {
-      payment_addr: { bech32: '' },
+      payment_addr: { bech32: CardanoConfigs.bankAddress },
       tx_hash: TestUtils.generateRandomId(),
       tx_index: 0,
       value: '10000',
@@ -528,6 +588,56 @@ class TestBoxes {
     eventId: string
   ): PaymentTransaction => {
     const txBuilder = TransactionBuilder.new(CardanoConfigs.txBuilderConfig);
+    outBoxes.forEach((box) => txBuilder.add_output(box));
+
+    // set transaction TTL and Fee
+    txBuilder.set_ttl(CardanoConfigs.txTtl);
+    txBuilder.set_fee(CardanoConfigs.txFee);
+
+    // create the transaction
+    const txBody = txBuilder.build();
+    const tx = Transaction.new(
+      txBody,
+      TransactionWitnessSet.new(),
+      undefined // transaction metadata
+    );
+
+    // create PaymentTransaction object
+    const txId = Utils.Uint8ArrayToHexString(
+      hash_transaction(tx.body()).to_bytes()
+    );
+    const txBytes = tx.to_bytes();
+    return new CardanoTransaction(
+      txId,
+      eventId,
+      txBytes,
+      TransactionTypes.payment
+    );
+  };
+
+  /**
+   * generates a mocked payment transaction with given inBoxes and outBoxes
+   * @param inBoxes input Utxos in the transaction
+   * @param outBoxes output Utxos in the transaction
+   * @param eventId the event trigger id (default value is empty string)
+   */
+  static mockPaymentTransactionWithInput = (
+    inBoxes: Utxo[],
+    outBoxes: TransactionOutput[],
+    eventId = ''
+  ): PaymentTransaction => {
+    const txBuilder = TransactionBuilder.new(CardanoConfigs.txBuilderConfig);
+    inBoxes.forEach((box) => {
+      const txHash = TransactionHash.from_bytes(
+        Buffer.from(box.tx_hash, 'hex')
+      );
+      const inputBox = TransactionInput.new(txHash, box.tx_index);
+      txBuilder.add_input(
+        Address.from_bech32(this.testBankAddress),
+        inputBox,
+        Value.new(BigNum.from_str('0'))
+      );
+    });
     outBoxes.forEach((box) => txBuilder.add_output(box));
 
     // set transaction TTL and Fee

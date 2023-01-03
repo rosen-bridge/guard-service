@@ -9,11 +9,11 @@ import {
   ScriptHash,
 } from '@emurgo/cardano-serialization-lib-nodejs';
 import {
-  mockGetAddressBoxes,
   mockKoiosGetAddressAssets,
   mockKoiosGetAddressInfo,
 } from './mocked/MockedKoios';
 import Utils from '../../../src/helpers/Utils';
+import { mockTrackAndFilterLockBoxes } from '../mocked/MockedCardanoTrack';
 
 describe('CardanoColdStorage', () => {
   const testBankAddress = TestBoxes.testBankAddress;
@@ -42,7 +42,7 @@ describe('CardanoColdStorage', () => {
         assets: MultiAsset.new(),
       };
       // mock bank boxes
-      mockGetAddressBoxes(testBankAddress, mockedLockInfoAndAssets[0].utxo_set);
+      mockTrackAndFilterLockBoxes(mockedLockInfoAndAssets[0].utxo_set);
       mockKoiosGetAddressInfo(testBankAddress, mockedLockInfoAndAssets[0]);
       mockKoiosGetAddressAssets(testBankAddress, mockedLockInfoAndAssets[1]);
 
@@ -87,7 +87,7 @@ describe('CardanoColdStorage', () => {
         assets: assets,
       };
       // mock bank boxes
-      mockGetAddressBoxes(testBankAddress, mockedLockInfoAndAssets[0].utxo_set);
+      mockTrackAndFilterLockBoxes(mockedLockInfoAndAssets[0].utxo_set);
       mockKoiosGetAddressInfo(testBankAddress, mockedLockInfoAndAssets[0]);
       mockKoiosGetAddressAssets(testBankAddress, mockedLockInfoAndAssets[1]);
 

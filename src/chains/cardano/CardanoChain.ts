@@ -16,7 +16,6 @@ import {
   Vkeywitness,
   Vkeywitnesses,
 } from '@emurgo/cardano-serialization-lib-nodejs';
-import KoiosApi from './network/KoiosApi';
 import {
   EventTrigger,
   PaymentTransaction,
@@ -95,8 +94,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
     }
 
     // get required utxos for transaction input
-    const bankBoxes = CardanoUtils.getCoveringUtxo(
-      await KoiosApi.getAddressBoxes(CardanoConfigs.bankAddress),
+    const bankBoxes = await CardanoTrack.trackAndFilterLockBoxes(
       requiredAssets
     );
 

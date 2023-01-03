@@ -1,4 +1,3 @@
-import { mockGetAddressBoxes } from './mocked/MockedKoios';
 import CardanoChain from '../../../src/chains/cardano/CardanoChain';
 import {
   EventTrigger,
@@ -28,7 +27,10 @@ import {
 } from '../../../src/models/Interfaces';
 import { Fee } from '@rosen-bridge/minimum-fee';
 import CardanoTxVerifier from '../../../src/chains/cardano/CardanoTxVerifier';
-import { mockCardanoHasLockAddressEnoughAssets } from '../mocked/MockedCardanoTrack';
+import {
+  mockCardanoHasLockAddressEnoughAssets,
+  mockTrackAndFilterLockBoxes,
+} from '../mocked/MockedCardanoTrack';
 
 describe('CardanoChain', () => {
   const testBankAddress = TestBoxes.testBankAddress;
@@ -36,7 +38,6 @@ describe('CardanoChain', () => {
   describe('generateTransaction', () => {
     // mock getting bankBoxes
     const bankBoxes: Utxo[] = TestBoxes.mockBankBoxes();
-    mockGetAddressBoxes(testBankAddress, bankBoxes);
     const mockedFeeConfig: Fee = {
       bridgeFee: 0n,
       networkFee: 0n,
@@ -44,6 +45,7 @@ describe('CardanoChain', () => {
     };
 
     beforeEach('mock dependencies', () => {
+      mockTrackAndFilterLockBoxes(bankBoxes);
       mockCardanoHasLockAddressEnoughAssets(true);
     });
 
