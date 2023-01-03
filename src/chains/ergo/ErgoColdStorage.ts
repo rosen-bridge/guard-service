@@ -1,6 +1,8 @@
 import {
   Address,
   BoxSelection,
+  DataInput,
+  DataInputs,
   ErgoBoxAssetsDataList,
   ErgoBoxCandidates,
   ErgoBoxes,
@@ -22,6 +24,7 @@ import { loggerFactory } from '../../log/Logger';
 import Configs from '../../helpers/Configs';
 import ChainsConstants from '../ChainsConstants';
 import ErgoTrack from './ErgoTrack';
+import InputBoxes from './boxes/InputBoxes';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -90,27 +93,34 @@ class ErgoColdStorage {
     outBoxCandidates.add(coldBox);
     outBoxCandidates.add(changeBox);
 
+    // get guards info box
+    const guardInfoBox = await InputBoxes.getGuardsInfoBox();
+
     // create the box arguments in tx builder
     const inBoxSelection = new BoxSelection(
       inErgoBoxes,
       new ErgoBoxAssetsDataList()
     );
+    const dataInputs = new DataInputs();
+    dataInputs.add(new DataInput(guardInfoBox.box_id()));
 
     // create the transaction
-    const tx = TxBuilder.new(
+    const txCandidate = TxBuilder.new(
       inBoxSelection,
       outBoxCandidates,
       currentHeight,
       ErgoUtils.boxValueFromBigint(ErgoConfigs.txFee),
       this.lockAddress
-    ).build();
+    );
+    txCandidate.set_data_inputs(dataInputs);
+    const tx = txCandidate.build();
 
     // create ReducedTransaction object
     const ctx = await NodeApi.getErgoStateContext();
     const reducedTx = ReducedTransaction.from_unsigned_tx(
       tx,
       inErgoBoxes,
-      ErgoBoxes.empty(),
+      new ErgoBoxes(guardInfoBox),
       ctx
     );
 
