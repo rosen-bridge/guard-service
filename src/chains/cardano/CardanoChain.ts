@@ -87,7 +87,9 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
     // check if address contains required assets
     if (!(await CardanoTrack.hasLockAddressEnoughAssets(requiredAssets))) {
       const neededLovelace = requiredAssets.lovelace.to_str();
-      const neededAssets = JsonBI.stringify(requiredAssets.assets); // TODO: fix this line
+      const neededAssets = JsonBI.stringify(
+        CardanoUtils.multiAssetToAssetMap(requiredAssets.assets)
+      );
       throw new NotEnoughAssetsError(
         `Lock boxes doesn't contain required assets. Lovelace: ${neededLovelace}, Assets: ${neededAssets}`
       );

@@ -34,7 +34,6 @@ class CardanoUtils {
     if (token.length === 0)
       throw new Error(`Asset fingerprint [${fingerprint}] not found in config`);
     return {
-      fingerprint: fingerprint,
       policyId: Buffer.from(
         token[0][ChainsConstants.cardano]['policyId'],
         'hex'
@@ -194,6 +193,41 @@ class CardanoUtils {
       });
     }
     return ids;
+  };
+
+  /**
+   * creates a map from MultiAsset object
+   *  map key is object of the asset policyId and name
+   *  value is amount of the asset
+   * @param multiAsset
+   */
+  static multiAssetToAssetMap = (
+    multiAsset: MultiAsset
+  ): Map<AssetInfo, BigNum> => {
+    const output = new Map<AssetInfo, BigNum>();
+
+    for (let i = 0; i < multiAsset.keys().len(); i++) {
+      const policyId = multiAsset.keys().get(i);
+      const assets = multiAsset.get(policyId)!;
+      for (let j = 0; j < assets.keys().len(); j++) {
+        const assetName = assets.keys().get(j);
+        const assetAmount = assets.get(assetName)!;
+        const assetInfo: AssetInfo = {
+          assetName: assetName.name(),
+          policyId: policyId.to_bytes(),
+        };
+        const assetRecord = output.get(assetInfo);
+        if (assetRecord === undefined) {
+          output.set(assetInfo, assetAmount);
+        } else {
+          throw new ImpossibleBehavior(
+            'MultiAsset contains multiple record for single policyId and assetName'
+          );
+        }
+      }
+    }
+
+    return output;
   };
 }
 

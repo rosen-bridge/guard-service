@@ -9,7 +9,6 @@ interface Asset {
 }
 
 interface AssetInfo {
-  fingerprint: string;
   policyId: Uint8Array;
   assetName: Uint8Array;
 }

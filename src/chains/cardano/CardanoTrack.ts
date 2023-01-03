@@ -111,28 +111,8 @@ class CardanoTrack {
 
     const requiredADA = requiredAssets.lovelace;
     const requiredMultiAssets = requiredAssets.assets;
-    const requiredAssetsMap = new Map<AssetInfo, BigNum>();
-    for (let i = 0; i < requiredMultiAssets.keys().len(); i++) {
-      const policyId = requiredMultiAssets.keys().get(i);
-      const assets = requiredMultiAssets.get(policyId)!;
-      for (let j = 0; j < assets.keys().len(); j++) {
-        const assetName = assets.keys().get(j);
-        const assetAmount = assets.get(assetName)!;
-        const assetInfo: AssetInfo = {
-          assetName: assetName.name(),
-          policyId: policyId.to_bytes(),
-          fingerprint: '',
-        };
-        const assetRecord = requiredAssetsMap.get(assetInfo);
-        if (assetRecord === undefined) {
-          requiredAssetsMap.set(assetInfo, assetAmount);
-        } else {
-          throw new ImpossibleBehavior(
-            'MultiAsset contains multiple record for single policyId and assetName'
-          );
-        }
-      }
-    }
+    const requiredAssetsMap =
+      CardanoUtils.multiAssetToAssetMap(requiredMultiAssets);
 
     for (
       let i = 0;
