@@ -31,6 +31,7 @@ import {
   mockCardanoHasLockAddressEnoughAssets,
   mockTrackAndFilterLockBoxes,
 } from '../mocked/MockedCardanoTrack';
+import { NotEnoughAssetsError } from '../../../src/helpers/errors';
 
 describe('CardanoChain', () => {
   const testBankAddress = TestBoxes.testBankAddress;
@@ -106,6 +107,25 @@ describe('CardanoChain', () => {
         mockedFeeConfig
       );
       expect(isValid).to.be.true;
+    });
+
+    /**
+     * Target: testing generateTransaction
+     * Dependencies:
+     *    KoiosApi
+     * Expected Output:
+     *    The function should throw error
+     */
+    it('should throw NotEnoughAssetsError when there is not enough assets to generate transaction', async () => {
+      // mock ada payment event
+      const mockedEvent: EventTrigger = TestBoxes.mockADAPaymentEventTrigger();
+      mockCardanoHasLockAddressEnoughAssets(false);
+
+      // run test
+      const cardanoChain: CardanoChain = new CardanoChain();
+      await expect(
+        cardanoChain.generateTransaction(mockedEvent, mockedFeeConfig)
+      ).to.eventually.be.rejectedWith(NotEnoughAssetsError);
     });
   });
 

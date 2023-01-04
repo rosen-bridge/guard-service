@@ -1,9 +1,4 @@
-import {
-  AssetInfo,
-  InputUtxo,
-  Utxo,
-  UtxoBoxesAssets,
-} from './models/Interfaces';
+import { InputUtxo, Utxo, UtxoBoxesAssets } from './models/Interfaces';
 import KoiosApi from './network/KoiosApi';
 import CardanoConfigs from './helpers/CardanoConfigs';
 import { BigNum, Transaction } from '@emurgo/cardano-serialization-lib-nodejs';
@@ -16,7 +11,6 @@ import ChainsConstants from '../ChainsConstants';
 import { txAgreement } from '../../guard/agreement/TxAgreement';
 import CardanoTransaction from './models/CardanoTransaction';
 import CardanoUtils from './helpers/CardanoUtils';
-import { shuffle } from 'lodash-es';
 import Utils from '../../helpers/Utils';
 
 // TODO: include this class in refactor (#109)
@@ -107,7 +101,6 @@ class CardanoTrack {
   ): Array<Utxo> => {
     const result: Array<Utxo> = [];
     let coveredLovelace = BigNum.zero();
-    const shuffleBoxes = shuffle(lockBoxes);
 
     const requiredADA = requiredAssets.lovelace;
     const requiredMultiAssets = requiredAssets.assets;
@@ -122,7 +115,7 @@ class CardanoTrack {
       i++
     ) {
       let isAdded = false;
-      const utxo = shuffleBoxes[i];
+      const utxo = lockBoxes[i];
       // check if the box does NOT exist in usedUtxos list
       if (
         !usedUtxos.find(
@@ -198,7 +191,7 @@ class CardanoTrack {
 
     // get unsigned txs input boxes from database
     const dbUnsignedTxs = await dbAction.getUnsignedActiveTxsInChain(
-      ChainsConstants.ergo
+      ChainsConstants.cardano
     );
     let usedBoxIds = dbUnsignedTxs.flatMap((txEntity) =>
       CardanoUtils.getPaymentTxInputIds(

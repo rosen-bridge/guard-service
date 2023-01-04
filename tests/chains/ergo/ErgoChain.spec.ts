@@ -18,6 +18,7 @@ import {
   mockErgoHasLockAddressEnoughAssets,
   mockTrackAndFilterLockBoxes,
 } from '../mocked/MockedErgoTrack';
+import { NotEnoughAssetsError } from '../../../src/helpers/errors';
 
 describe('ErgoChain', () => {
   describe('generateTransaction', () => {
@@ -193,6 +194,25 @@ describe('ErgoChain', () => {
         mockedFeeConfig
       );
       expect(isValid).to.be.true;
+    });
+
+    /**
+     * Target: testing generateTransaction
+     * Dependencies:
+     *    ExplorerApi
+     * Expected Output:
+     *    The function should throw error
+     */
+    it('should throw NotEnoughAssetsError when there is not enough assets to generate transaction', async () => {
+      // mock token payment event
+      const mockedEvent: EventTrigger =
+        TestBoxes.mockTokenPaymentEventTrigger();
+      mockErgoHasLockAddressEnoughAssets(false);
+
+      // run test
+      await expect(
+        ergoChain.generateTransaction(mockedEvent, mockedFeeConfig)
+      ).to.be.rejectedWith(NotEnoughAssetsError);
     });
   });
 });

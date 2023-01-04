@@ -53,16 +53,162 @@ describe('CardanoTrack', () => {
      *    KoiosApi
      *    txAgreement
      * Scenario:
-     *    Mock three txQueue tx (one of them contains lock boxes and one of them is Ergo tx)
      *    Mock one Cardano tx and insert into db as 'approve' status
      *    Mock txAgreement getCardanoPendingTransactionsInputs
      *    Mock required assets
      *    Run test
-     *    Check id of return boxes. It should have tracked and filtered successfully.
+     *    Check id of return boxes
      * Expected Output:
      *    It should track and filter boxes successfully
      */
-    it('should track and filter lock boxes successfully', async () => {
+    it('should filter db unsigned transactions lock boxes successfully', async () => {
+      const cardanoTx2 = TestBoxes.mockPaymentTransactionWithInput(
+        [TestBoxes.mockRandomBankBox(), bankBoxes[0]],
+        [
+          TestBoxes.mockRandomTransactionOutput(),
+          TestBoxes.mockTransactionOutputFromUtxo(bankBoxes[0]),
+        ]
+      );
+      await insertTxRecord(
+        cardanoTx2,
+        cardanoTx2.txType,
+        cardanoTx2.network,
+        TransactionStatus.approved,
+        0,
+        ''
+      );
+
+      // mock getCardanoPendingTransactionsInputs
+      mockGetCardanoPendingTransactionsInputs([]);
+
+      // mock required assets
+      const multiAsset = MultiAsset.new();
+      multiAsset.set_asset(
+        ScriptHash.from_hex(
+          'ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2'
+        ),
+        AssetName.new(Utils.hexStringToUint8Array('7369676d61')),
+        BigNum.from_str('46')
+      );
+      const requiredAssets: UtxoBoxesAssets = {
+        lovelace: BigNum.from_str('10000000'),
+        assets: multiAsset,
+      };
+
+      const expectedResult = [
+        {
+          txHash: bankBoxes[1].tx_hash,
+          txIndex: bankBoxes[1].tx_index,
+        },
+        {
+          txHash: bankBoxes[5].tx_hash,
+          txIndex: bankBoxes[5].tx_index,
+        },
+      ];
+
+      // run test
+      const result = await CardanoTrack.trackAndFilterLockBoxes(requiredAssets);
+
+      // verify box ids
+      expect(
+        result.map((box) => {
+          return {
+            txHash: box.tx_hash,
+            txIndex: box.tx_index,
+          };
+        })
+      ).to.have.deep.members(expectedResult);
+    });
+
+    /**
+     * Target: testing trackAndFilterLockBoxes
+     * Dependencies:
+     *    KoiosApi
+     *    txAgreement
+     * Scenario:
+     *    Mock txAgreement getCardanoPendingTransactionsInputs
+     *    Mock required assets
+     *    Run test
+     *    Check id of return boxes
+     * Expected Output:
+     *    It should track and filter boxes successfully
+     */
+    it('should filter txAgreement transactions lock boxes successfully', async () => {
+      // mock getCardanoPendingTransactionsInputs
+      mockGetCardanoPendingTransactionsInputs(
+        bankBoxes.slice(2, 8).map((box) => {
+          return {
+            txHash: box.tx_hash,
+            txIndex: box.tx_index,
+          };
+        })
+      );
+
+      // mock required assets
+      const multiAsset = MultiAsset.new();
+      multiAsset.set_asset(
+        ScriptHash.from_hex(
+          'ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2'
+        ),
+        AssetName.new(Utils.hexStringToUint8Array('7369676d61')),
+        BigNum.from_str('90')
+      );
+      multiAsset.set_asset(
+        ScriptHash.from_hex(
+          '22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130'
+        ),
+        AssetName.new(Utils.hexStringToUint8Array('1111111111')),
+        BigNum.from_str('10')
+      );
+      const requiredAssets: UtxoBoxesAssets = {
+        lovelace: BigNum.from_str('5000000'),
+        assets: multiAsset,
+      };
+
+      const expectedResult = [
+        {
+          txHash: bankBoxes[0].tx_hash,
+          txIndex: bankBoxes[0].tx_index,
+        },
+        {
+          txHash: bankBoxes[1].tx_hash,
+          txIndex: bankBoxes[1].tx_index,
+        },
+        {
+          txHash: bankBoxes[8].tx_hash,
+          txIndex: bankBoxes[8].tx_index,
+        },
+      ];
+
+      // run test
+      const result = await CardanoTrack.trackAndFilterLockBoxes(requiredAssets);
+
+      // verify box ids
+      expect(
+        result.map((box) => {
+          return {
+            txHash: box.tx_hash,
+            txIndex: box.tx_index,
+          };
+        })
+      ).to.have.deep.members(expectedResult);
+    });
+
+    /**
+     * Target: testing trackAndFilterLockBoxes
+     * Dependencies:
+     *    KoiosApi
+     *    txAgreement
+     * Scenario:
+     *    Mock three txQueue tx (one of them contains lock boxes and one of them is Ergo tx)
+     *    Mock txAgreement getCardanoPendingTransactionsInputs
+     *    Mock required assets
+     *    Run test
+     *    Check id of return boxes
+     * Expected Output:
+     *    It should track and filter boxes successfully
+     */
+    it('should track txQueue lock boxes successfully', async () => {
       // mock Ergo tx
       const ergoTxMockData = ErgoTestBoxes.mockSignedTxWithLockErgoTree();
       await insertTxRecord(
@@ -107,14 +253,7 @@ describe('CardanoTrack', () => {
       );
 
       // mock getCardanoPendingTransactionsInputs
-      mockGetCardanoPendingTransactionsInputs(
-        bankBoxes.slice(2, 8).map((box) => {
-          return {
-            txHash: box.tx_hash,
-            txIndex: box.tx_index,
-          };
-        })
-      );
+      mockGetCardanoPendingTransactionsInputs([]);
 
       // mock required assets
       const multiAsset = MultiAsset.new();
@@ -147,8 +286,8 @@ describe('CardanoTrack', () => {
           txIndex: bankBoxes[1].tx_index,
         },
         {
-          txHash: bankBoxes[8].tx_hash,
-          txIndex: bankBoxes[8].tx_index,
+          txHash: bankBoxes[6].tx_hash,
+          txIndex: bankBoxes[6].tx_index,
         },
       ];
 
