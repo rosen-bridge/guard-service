@@ -98,7 +98,7 @@ class ErgoTrack {
     let uncoveredErg = required.ergs;
     const uncoveredTokens = new Map<string, bigint>();
     Object.entries(required.tokens).forEach(([tokenId, amount]) => {
-      uncoveredTokens.set(tokenId, amount);
+      amount && uncoveredTokens.set(tokenId, amount);
     });
 
     const remaining = () => {
