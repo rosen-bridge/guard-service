@@ -1708,7 +1708,7 @@ describe('TxAgreement', () => {
       const res = txAgreement.getCardanoPendingTransactionsInputs();
 
       // verify
-      expect(res).to.deep.equal(
+      expect(res).to.have.deep.members(
         cardanoBankBoxes.map((box) => {
           return {
             txHash: box.tx_hash,
