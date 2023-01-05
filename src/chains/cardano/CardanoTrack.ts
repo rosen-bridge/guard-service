@@ -258,14 +258,12 @@ class CardanoTrack {
 
         const lockedAmount = assets.find(
           (asset) =>
-            asset.policy_id === hexPolicyId && asset.asset_name === hexAssetName
+            asset.policy_id === hexPolicyId &&
+            asset.asset_name === hexAssetName &&
+            assetAmount?.compare(BigNum.from_str(asset.quantity)) > 0
         );
 
-        if (
-          !lockedAmount ||
-          assetAmount?.compare(BigNum.from_str(lockedAmount.quantity)) > 0
-        )
-          return false;
+        if (!lockedAmount) return false;
       }
     }
 
