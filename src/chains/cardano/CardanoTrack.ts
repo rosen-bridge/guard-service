@@ -260,7 +260,7 @@ class CardanoTrack {
           (asset) =>
             asset.policy_id === hexPolicyId &&
             asset.asset_name === hexAssetName &&
-            assetAmount?.compare(BigNum.from_str(asset.quantity)) > 0
+            BigNum.from_str(asset.quantity).compare(assetAmount) > 0
         );
 
         if (!lockedAmount) return false;
