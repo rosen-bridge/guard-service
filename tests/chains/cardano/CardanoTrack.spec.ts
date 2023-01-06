@@ -32,7 +32,7 @@ import {
 } from '../../db/mocked/MockedScannerModel';
 import ErgoTestBoxes from '../ergo/testUtils/TestBoxes';
 import { TransactionStatus } from '../../../src/models/Models';
-import { mockGetCardanoPendingTransactionsInputs } from '../../guard/mocked/MockedTxAgreement';
+import { mockGetChainPendingTransactions } from '../../guard/mocked/MockedTxAgreement';
 
 describe('CardanoTrack', () => {
   describe('trackAndFilterLockBoxes', () => {
@@ -54,7 +54,7 @@ describe('CardanoTrack', () => {
      *    txAgreement
      * Scenario:
      *    Mock one Cardano tx and insert into db as 'approve' status
-     *    Mock txAgreement getCardanoPendingTransactionsInputs
+     *    Mock txAgreement mockGetChainPendingTransactions
      *    Mock required assets
      *    Run test
      *    Check id of return boxes
@@ -78,8 +78,8 @@ describe('CardanoTrack', () => {
         ''
       );
 
-      // mock getCardanoPendingTransactionsInputs
-      mockGetCardanoPendingTransactionsInputs([]);
+      // mock mockGetChainPendingTransactions
+      mockGetChainPendingTransactions([]);
 
       // mock required assets
       const multiAsset = MultiAsset.new();
@@ -126,7 +126,7 @@ describe('CardanoTrack', () => {
      *    KoiosApi
      *    txAgreement
      * Scenario:
-     *    Mock txAgreement getCardanoPendingTransactionsInputs
+     *    Mock txAgreement mockGetChainPendingTransactions
      *    Mock required assets
      *    Run test
      *    Check id of return boxes
@@ -134,15 +134,12 @@ describe('CardanoTrack', () => {
      *    It should track and filter boxes successfully
      */
     it('should filter txAgreement transactions lock boxes successfully', async () => {
-      // mock getCardanoPendingTransactionsInputs
-      mockGetCardanoPendingTransactionsInputs(
-        bankBoxes.slice(2, 8).map((box) => {
-          return {
-            txHash: box.tx_hash,
-            txIndex: box.tx_index,
-          };
-        })
+      // mock mockGetChainPendingTransactions
+      const cardanoTx = TestBoxes.mockPaymentTransactionWithInput(
+        bankBoxes.slice(2, 8),
+        [TestBoxes.mockRandomTransactionOutput()]
       );
+      mockGetChainPendingTransactions([cardanoTx]);
 
       // mock required assets
       const multiAsset = MultiAsset.new();
@@ -201,7 +198,7 @@ describe('CardanoTrack', () => {
      *    txAgreement
      * Scenario:
      *    Mock three txQueue tx (one of them contains lock boxes and one of them is Ergo tx)
-     *    Mock txAgreement getCardanoPendingTransactionsInputs
+     *    Mock txAgreement mockGetChainPendingTransactions
      *    Mock required assets
      *    Run test
      *    Check id of return boxes
@@ -252,8 +249,8 @@ describe('CardanoTrack', () => {
         ''
       );
 
-      // mock getCardanoPendingTransactionsInputs
-      mockGetCardanoPendingTransactionsInputs([]);
+      // mock mockGetChainPendingTransactions
+      mockGetChainPendingTransactions([]);
 
       // mock required assets
       const multiAsset = MultiAsset.new();

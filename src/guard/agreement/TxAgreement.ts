@@ -20,11 +20,6 @@ import { loggerFactory } from '../../log/Logger';
 import InputBoxes from '../../chains/ergo/boxes/InputBoxes';
 import GuardTurn from '../../helpers/GuardTurn';
 import EventVerifier from '../event/EventVerifier';
-import ChainsConstants from '../../chains/ChainsConstants';
-import ErgoUtils from '../../chains/ergo/helpers/ErgoUtils';
-import ErgoTransaction from '../../chains/ergo/models/ErgoTransaction';
-import { InputUtxo } from '../../chains/cardano/models/Interfaces';
-import CardanoUtils from '../../chains/cardano/helpers/CardanoUtils';
 
 const logger = loggerFactory(import.meta.url);
 const dialer = await Dialer.getInstance();
@@ -491,35 +486,13 @@ class TxAgreement {
   };
 
   /**
-   * returns list of the inputs boxes in pending transactions of Ergo
-   * @param lockErgoTree lock address ergoTree
+   * returns list of pending transactions of a chain
+   * @param chain
    */
-  getErgoPendingTransactionsInputs = (lockErgoTree: string): string[] => {
-    let boxIds: string[] = [];
-    this.transactions.forEach((paymentTx) => {
-      if (paymentTx.network === ChainsConstants.ergo) {
-        boxIds = boxIds.concat(
-          ErgoUtils.getPaymentTxLockInputIds(
-            paymentTx as ErgoTransaction,
-            lockErgoTree
-          )
-        );
-      }
-    });
-    return boxIds;
-  };
-
-  /**
-   * returns list of the inputs boxes in pending transactions of Cardano
-   */
-  getCardanoPendingTransactionsInputs = (): InputUtxo[] => {
-    let boxIds: InputUtxo[] = [];
-    this.transactions.forEach((paymentTx) => {
-      if (paymentTx.network === ChainsConstants.cardano) {
-        boxIds = boxIds.concat(CardanoUtils.getPaymentTxInputIds(paymentTx));
-      }
-    });
-    return boxIds;
+  getChainPendingTransactions = (chain: string): PaymentTransaction[] => {
+    return Array.from(this.transactions.values()).filter(
+      (paymentTx) => paymentTx.network === chain
+    );
   };
 }
 

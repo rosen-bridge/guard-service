@@ -1627,22 +1627,18 @@ describe('TxAgreement', () => {
     });
   });
 
-  describe('getErgoPendingTransactionsInputs', () => {
-    const testBankErgoTree: string = ErgoUtils.addressStringToErgoTreeString(
-      TestBoxes.testLockAddress
-    );
-
+  describe('getChainPendingTransactions', () => {
     /**
-     * Target: testing getErgoPendingTransactionsInputs
+     * Target: testing getChainPendingTransactions
      * Dependencies:
      *    -
      * Scenario:
      *    Mock Cardano and Ergo payment transaction and insert into tx memory
      *    Run test
      * Expected Output:
-     *    The function should return boxIds
+     *    The function should return valid txs
      */
-    it('should return Ergo txs input box ids', async () => {
+    it('should return Ergo txs', async () => {
       const txAgreement = new TestTxAgreement();
 
       // mock ergo txs
@@ -1661,29 +1657,23 @@ describe('TxAgreement', () => {
       txAgreement.insertTransactions(cardanoTx.txId, cardanoTx);
 
       // run test
-      const res =
-        txAgreement.getErgoPendingTransactionsInputs(testBankErgoTree);
+      const res = txAgreement.getChainPendingTransactions(ChainsConstants.ergo);
 
       // verify
-      expect(res).to.deep.equal([
-        ...tx1BankBoxes.map((box) => box.box_id().to_str()),
-        ...tx2BankBoxes.map((box) => box.box_id().to_str()),
-      ]);
+      expect(res).to.deep.equal([ergoTx1, ergoTx2]);
     });
-  });
 
-  describe('getCardanoPendingTransactionsInputs', () => {
     /**
-     * Target: testing getCardanoPendingTransactionsInputs
+     * Target: testing getChainPendingTransactions
      * Dependencies:
      *    -
      * Scenario:
      *    Mock Cardano and Ergo payment transaction and insert into tx memory
      *    Run test
      * Expected Output:
-     *    The function should return boxIds
+     *    The function should return valid txs
      */
-    it('should return Cardano txs input box ids', async () => {
+    it('should return Cardano txs', async () => {
       const txAgreement = new TestTxAgreement();
 
       // mock ergo txs
@@ -1705,17 +1695,12 @@ describe('TxAgreement', () => {
       txAgreement.insertTransactions(cardanoTx.txId, cardanoTx);
 
       // run test
-      const res = txAgreement.getCardanoPendingTransactionsInputs();
+      const res = txAgreement.getChainPendingTransactions(
+        ChainsConstants.cardano
+      );
 
       // verify
-      expect(res).to.have.deep.members(
-        cardanoBankBoxes.map((box) => {
-          return {
-            txHash: box.tx_hash,
-            txIndex: box.tx_index,
-          };
-        })
-      );
+      expect(res).to.deep.equal([cardanoTx]);
     });
   });
 });

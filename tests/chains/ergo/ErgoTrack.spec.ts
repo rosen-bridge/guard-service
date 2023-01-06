@@ -15,7 +15,7 @@ import {
   clearTables,
   insertTxRecord,
 } from '../../db/mocked/MockedScannerModel';
-import { mockGetErgoPendingTransactionsInputs } from '../../guard/mocked/MockedTxAgreement';
+import { mockGetChainPendingTransactions } from '../../guard/mocked/MockedTxAgreement';
 import CardanoTestBoxes from '../cardano/testUtils/TestBoxes';
 import ErgoTrack from '../../../src/chains/ergo/ErgoTrack';
 import { resetMockedErgoTrack } from '../mocked/MockedErgoTrack';
@@ -48,7 +48,7 @@ describe('ErgoTrack', () => {
      *    Mock two mempool tx (one of them contains lock boxes)
      *    Mock ExplorerApi getMempoolTxsForAddress to return two mocked txs
      *    Mock one Ergo tx and insert into db as 'approve' status
-     *    Mock txAgreement getErgoPendingTransactionsInputs
+     *    Mock txAgreement mockGetChainPendingTransactions
      *    Run test
      *    Check id of return boxes. It should have tracked and filtered successfully.
      * Expected Output:
@@ -85,10 +85,13 @@ describe('ErgoTrack', () => {
         ergoUnsignedTx.eventId
       );
 
-      // mock getErgoPendingTransactionsInputs
-      mockGetErgoPendingTransactionsInputs(
-        bankBoxes.items.slice(8, 10).map((box) => box.boxId)
+      // mock mockGetChainPendingTransactions
+      const pendingTx = ErgoTestBoxes.mockFineColdStorageTransaction(
+        bankBoxes.items
+          .slice(8, 10)
+          .map((box) => ErgoBox.from_json(JsonBI.stringify(box)))
       );
+      mockGetChainPendingTransactions([pendingTx]);
 
       // run test
       const result = await ErgoTrack.trackAndFilterLockBoxes({
@@ -119,8 +122,8 @@ describe('ErgoTrack', () => {
         items: [],
         total: 0,
       });
-      // mock getErgoPendingTransactionsInputs
-      mockGetErgoPendingTransactionsInputs([]);
+      // mock mockGetChainPendingTransactions
+      mockGetChainPendingTransactions([]);
 
       // run test
       const boxes = await ErgoTrack.trackAndFilterLockBoxes({
@@ -144,8 +147,8 @@ describe('ErgoTrack', () => {
         items: [],
         total: 0,
       });
-      // mock getErgoPendingTransactionsInputs
-      mockGetErgoPendingTransactionsInputs([]);
+      // mock mockGetChainPendingTransactions
+      mockGetChainPendingTransactions([]);
 
       // run test
       const boxes = await ErgoTrack.trackAndFilterLockBoxes({
@@ -169,8 +172,8 @@ describe('ErgoTrack', () => {
         items: [],
         total: 0,
       });
-      // mock getErgoPendingTransactionsInputs
-      mockGetErgoPendingTransactionsInputs([]);
+      // mock mockGetChainPendingTransactions
+      mockGetChainPendingTransactions([]);
 
       // run test
       const boxes = await ErgoTrack.trackAndFilterLockBoxes({
@@ -197,8 +200,8 @@ describe('ErgoTrack', () => {
         items: [],
         total: 0,
       });
-      // mock getErgoPendingTransactionsInputs
-      mockGetErgoPendingTransactionsInputs([]);
+      // mock mockGetChainPendingTransactions
+      mockGetChainPendingTransactions([]);
 
       // run test
       const boxes = await ErgoTrack.trackAndFilterLockBoxes({
@@ -225,8 +228,8 @@ describe('ErgoTrack', () => {
         items: [],
         total: 0,
       });
-      // mock getErgoPendingTransactionsInputs
-      mockGetErgoPendingTransactionsInputs([]);
+      // mock mockGetChainPendingTransactions
+      mockGetChainPendingTransactions([]);
 
       // run test
       const boxes = await ErgoTrack.trackAndFilterLockBoxes({
@@ -250,8 +253,8 @@ describe('ErgoTrack', () => {
         items: [],
         total: 0,
       });
-      // mock getErgoPendingTransactionsInputs
-      mockGetErgoPendingTransactionsInputs([]);
+      // mock mockGetChainPendingTransactions
+      mockGetChainPendingTransactions([]);
 
       // run test
       const boxes = await ErgoTrack.trackAndFilterLockBoxes({
@@ -275,8 +278,8 @@ describe('ErgoTrack', () => {
         items: [],
         total: 0,
       });
-      // mock getErgoPendingTransactionsInputs
-      mockGetErgoPendingTransactionsInputs([]);
+      // mock mockGetChainPendingTransactions
+      mockGetChainPendingTransactions([]);
 
       // run test
       const boxes = await ErgoTrack.trackAndFilterLockBoxes({

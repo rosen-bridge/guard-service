@@ -1,7 +1,6 @@
 import { anything, deepEqual, reset, spy, verify, when } from 'ts-mockito';
 import { PaymentTransaction } from '../../../src/models/Models';
 import { txAgreement } from '../../../src/guard/agreement/TxAgreement';
-import { InputUtxo } from '../../../src/chains/cardano/models/Interfaces';
 
 let mockedTxAgreement = spy(txAgreement);
 
@@ -31,21 +30,13 @@ const verifyStartAgreementProcessDidntGetCalled = (): void => {
 };
 
 /**
- * mocks txAgreement getErgoPendingTransactionsInputs method to return boxIds when called
- * @param boxIds
+ * mocks txAgreement getChainPendingTransactions method to return txs when called
+ * @param txs
  */
-const mockGetErgoPendingTransactionsInputs = (boxIds: string[]): void => {
-  when(
-    mockedTxAgreement.getErgoPendingTransactionsInputs(anything())
-  ).thenReturn(boxIds);
-};
-
-/**
- * mocks txAgreement getCardanoPendingTransactionsInputs method to return ids when called
- * @param ids
- */
-const mockGetCardanoPendingTransactionsInputs = (ids: InputUtxo[]): void => {
-  when(mockedTxAgreement.getCardanoPendingTransactionsInputs()).thenReturn(ids);
+const mockGetChainPendingTransactions = (txs: PaymentTransaction[]): void => {
+  when(mockedTxAgreement.getChainPendingTransactions(anything())).thenReturn(
+    txs
+  );
 };
 
 /**
@@ -60,7 +51,6 @@ export {
   mockStartAgreementProcess,
   verifyStartAgreementProcessCalledOnce,
   verifyStartAgreementProcessDidntGetCalled,
-  mockGetErgoPendingTransactionsInputs,
-  mockGetCardanoPendingTransactionsInputs,
+  mockGetChainPendingTransactions,
   resetMockedTxAgreement,
 };

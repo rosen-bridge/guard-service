@@ -200,8 +200,9 @@ class CardanoTrack {
     );
 
     // get unsigned txs input boxes from txAgreement
-    const txAgreementUsedInputBoxes =
-      txAgreement.getCardanoPendingTransactionsInputs();
+    const txAgreementUsedInputBoxes = txAgreement
+      .getChainPendingTransactions(ChainsConstants.cardano)
+      .flatMap(CardanoUtils.getPaymentTxInputIds);
     usedBoxIds = usedBoxIds.concat(txAgreementUsedInputBoxes);
 
     // get boxes and apply track and filter

@@ -186,8 +186,14 @@ class ErgoTrack {
     );
 
     // get unsigned txs input boxes from txAgreement
-    const txAgreementUsedInputBoxes =
-      txAgreement.getErgoPendingTransactionsInputs(this.lockErgoTree);
+    const txAgreementUsedInputBoxes = txAgreement
+      .getChainPendingTransactions(ChainsConstants.ergo)
+      .flatMap((paymentTx) =>
+        ErgoUtils.getPaymentTxLockInputIds(
+          paymentTx as ErgoTransaction,
+          this.lockErgoTree
+        )
+      );
     usedBoxIds = usedBoxIds.concat(txAgreementUsedInputBoxes);
 
     // get boxes and apply track and filter
