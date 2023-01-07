@@ -284,7 +284,7 @@ class ErgoUtils {
 
   /**
    * returns list of the input box ids for the lock address in the transaction
-   * @param tx the payment transaction
+   * @param tx the payment transaction (ErgoTransaction)
    * @param lockErgoTree lock address ergoTree
    */
   static getPaymentTxLockInputIds = (

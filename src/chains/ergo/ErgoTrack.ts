@@ -54,7 +54,7 @@ class ErgoTrack {
   };
 
   /**
-   * generates mempool tx input dictionary to track boxes and append to trackMap
+   * generates tx input dictionary from tx-queue Ergo transactions to track boxes and append to trackMap
    * @param trackMap the dictionary to append to
    */
   static generateTxQueueTrackMap = async (
@@ -196,12 +196,42 @@ class ErgoTrack {
     );
 
     // get unsigned txs input boxes from txAgreement
-    const txAgreementUsedInputBoxes =
-      txAgreement.getErgoPendingTransactionsInputs(this.lockErgoTree);
+    const txAgreementUsedInputBoxes = txAgreement
+      .getChainPendingTransactions(ChainsConstants.ergo)
+      .flatMap((paymentTx) =>
+        ErgoUtils.getPaymentTxLockInputIds(
+          paymentTx as ErgoTransaction,
+          this.lockErgoTree
+        )
+      );
     usedBoxIds = usedBoxIds.concat(txAgreementUsedInputBoxes);
 
     // get boxes and apply track and filter
     return this.getCoveringLockBoxes(required, trackBoxesMap, usedBoxIds);
+  };
+
+  /**
+   * checks if lock address assets are more than required assets or not
+   * @param required required amount of erg and tokens
+   */
+  static hasLockAddressEnoughAssets = async (
+    required: BoxesAssets
+  ): Promise<boolean> => {
+    const assets = await ExplorerApi.getAddressAssets(
+      ErgoConfigs.ergoContractConfig.lockAddress
+    );
+
+    if (required.ergs > assets.nanoErgs) return false;
+
+    const requiredTokens = Object.keys(required.tokens);
+    for (let i = 0; i < requiredTokens.length; i++) {
+      const tokenId = requiredTokens[i];
+      const token = assets.tokens.find((token) => token.tokenId === tokenId);
+
+      if (!token || required.tokens[tokenId] > token.amount) return false;
+    }
+
+    return true;
   };
 }
 

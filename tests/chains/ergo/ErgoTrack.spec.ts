@@ -2,6 +2,7 @@ import { TransactionStatus } from '../../../src/models/Models';
 import TestBoxes from './testUtils/TestBoxes';
 import { expect } from 'chai';
 import {
+  mockExplorerGetAddressAssets,
   mockExplorerGetMempoolTxsForAddress,
   mockGetBoxesForErgoTree,
   resetMockedExplorerApi,
@@ -14,11 +15,14 @@ import {
   clearTables,
   insertTxRecord,
 } from '../../db/mocked/MockedScannerModel';
-import { mockGetErgoPendingTransactionsInputs } from '../../guard/mocked/MockedTxAgreement';
+import { mockGetChainPendingTransactions } from '../../guard/mocked/MockedTxAgreement';
 import CardanoTestBoxes from '../cardano/testUtils/TestBoxes';
 import ErgoTrack from '../../../src/chains/ergo/ErgoTrack';
 import { resetMockedErgoTrack } from '../mocked/MockedErgoTrack';
 import sinon from 'sinon';
+import ErgoConfigs from '../../../src/chains/ergo/helpers/ErgoConfigs';
+import ErgoTestBoxes from './testUtils/TestBoxes';
+import { BoxesAssets } from '../../../src/chains/ergo/models/Interfaces';
 
 describe('ErgoTrack', () => {
   const testBankAddress = TestBoxes.testLockAddress;
@@ -44,7 +48,7 @@ describe('ErgoTrack', () => {
      *    Mock two mempool tx (one of them contains lock boxes)
      *    Mock ExplorerApi getMempoolTxsForAddress to return two mocked txs
      *    Mock one Ergo tx and insert into db as 'approve' status
-     *    Mock txAgreement getErgoPendingTransactionsInputs
+     *    Mock txAgreement getChainPendingTransactions
      *    Run test
      *    Check id of return boxes. It should have tracked and filtered successfully.
      * Expected Output:
@@ -81,10 +85,13 @@ describe('ErgoTrack', () => {
         ergoUnsignedTx.eventId
       );
 
-      // mock getErgoPendingTransactionsInputs
-      mockGetErgoPendingTransactionsInputs(
-        bankBoxes.items.slice(8, 10).map((box) => box.boxId)
+      // mock getChainPendingTransactions
+      const pendingTx = ErgoTestBoxes.mockFineColdStorageTransaction(
+        bankBoxes.items
+          .slice(8, 10)
+          .map((box) => ErgoBox.from_json(JsonBI.stringify(box)))
       );
+      mockGetChainPendingTransactions([pendingTx]);
 
       // run test
       const result = await ErgoTrack.trackAndFilterLockBoxes({
@@ -115,8 +122,8 @@ describe('ErgoTrack', () => {
         items: [],
         total: 0,
       });
-      // mock getErgoPendingTransactionsInputs
-      mockGetErgoPendingTransactionsInputs([]);
+      // mock getChainPendingTransactions
+      mockGetChainPendingTransactions([]);
 
       // run test
       const boxes = await ErgoTrack.trackAndFilterLockBoxes({
@@ -140,8 +147,8 @@ describe('ErgoTrack', () => {
         items: [],
         total: 0,
       });
-      // mock getErgoPendingTransactionsInputs
-      mockGetErgoPendingTransactionsInputs([]);
+      // mock getChainPendingTransactions
+      mockGetChainPendingTransactions([]);
 
       // run test
       const boxes = await ErgoTrack.trackAndFilterLockBoxes({
@@ -165,8 +172,8 @@ describe('ErgoTrack', () => {
         items: [],
         total: 0,
       });
-      // mock getErgoPendingTransactionsInputs
-      mockGetErgoPendingTransactionsInputs([]);
+      // mock getChainPendingTransactions
+      mockGetChainPendingTransactions([]);
 
       // run test
       const boxes = await ErgoTrack.trackAndFilterLockBoxes({
@@ -194,8 +201,8 @@ describe('ErgoTrack', () => {
         items: [],
         total: 0,
       });
-      // mock getErgoPendingTransactionsInputs
-      mockGetErgoPendingTransactionsInputs([]);
+      // mock getChainPendingTransactions
+      mockGetChainPendingTransactions([]);
 
       // run test
       const boxes = await ErgoTrack.trackAndFilterLockBoxes({
@@ -222,8 +229,8 @@ describe('ErgoTrack', () => {
         items: [],
         total: 0,
       });
-      // mock getErgoPendingTransactionsInputs
-      mockGetErgoPendingTransactionsInputs([]);
+      // mock getChainPendingTransactions
+      mockGetChainPendingTransactions([]);
 
       // run test
       const boxes = await ErgoTrack.trackAndFilterLockBoxes({
@@ -247,8 +254,8 @@ describe('ErgoTrack', () => {
         items: [],
         total: 0,
       });
-      // mock getErgoPendingTransactionsInputs
-      mockGetErgoPendingTransactionsInputs([]);
+      // mock getChainPendingTransactions
+      mockGetChainPendingTransactions([]);
 
       // run test
       const boxes = await ErgoTrack.trackAndFilterLockBoxes({
@@ -272,8 +279,8 @@ describe('ErgoTrack', () => {
         items: [],
         total: 0,
       });
-      // mock getErgoPendingTransactionsInputs
-      mockGetErgoPendingTransactionsInputs([]);
+      // mock getChainPendingTransactions
+      mockGetChainPendingTransactions([]);
 
       // run test
       const boxes = await ErgoTrack.trackAndFilterLockBoxes({
@@ -301,8 +308,8 @@ describe('ErgoTrack', () => {
         items: [],
         total: 0,
       });
-      // mock getErgoPendingTransactionsInputs
-      mockGetErgoPendingTransactionsInputs([]);
+      // mock getChainPendingTransactions
+      mockGetChainPendingTransactions([]);
 
       // run test
       const boxes = await ErgoTrack.trackAndFilterLockBoxes({
@@ -381,6 +388,122 @@ describe('ErgoTrack', () => {
 
       // release ErgoTrack lockErgoTree mock
       sinon.restore();
+    });
+  });
+
+  describe('hasLockAddressEnoughAssets', () => {
+    beforeEach('mock ExplorerApi', async () => {
+      resetMockedExplorerApi();
+      resetMockedErgoTrack();
+    });
+
+    /**
+     * Target: testing hasLockAddressEnoughAssets
+     * Dependencies:
+     *    ExplorerApi
+     * Scenario:
+     *    Mock ExplorerApi getAddressAssets to return test assets
+     *    Mock required assets
+     *    Run test
+     *    Check return value.
+     * Expected Output:
+     *    It should return false
+     */
+    it('should return false when there is NOT enough erg in address', async () => {
+      // mock address assets
+      mockExplorerGetAddressAssets(
+        ErgoConfigs.ergoContractConfig.lockAddress,
+        ErgoTestBoxes.mediumAddressAssets
+      );
+
+      // mock required assets
+      const requiredAssets: BoxesAssets = {
+        ergs: 923000000000n,
+        tokens: {
+          '0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95':
+            1000000000n,
+          '064c58ea394d41fada074a3c560a132467adf4ca1512c409c014c625ca285e9c':
+            10000000n,
+        },
+      };
+
+      // run test
+      const result = await ErgoTrack.hasLockAddressEnoughAssets(requiredAssets);
+
+      // verify result
+      expect(result).to.be.false;
+    });
+
+    /**
+     * Target: testing hasLockAddressEnoughAssets
+     * Dependencies:
+     *    ExplorerApi
+     * Scenario:
+     *    Mock ExplorerApi getAddressAssets to return test assets
+     *    Mock required assets
+     *    Run test
+     *    Check return value.
+     * Expected Output:
+     *    It should return false
+     */
+    it('should return false when there is NOT enough tokens in address', async () => {
+      // mock address assets
+      mockExplorerGetAddressAssets(
+        ErgoConfigs.ergoContractConfig.lockAddress,
+        ErgoTestBoxes.mediumAddressAssets
+      );
+
+      // mock required assets
+      const requiredAssets: BoxesAssets = {
+        ergs: 23000000000n,
+        tokens: {
+          '0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95':
+            1000000000n,
+          '064c58ea394d41fada074a3c560a132467adf4ca1512c409c014c625ca285e9c':
+            5510000000n,
+        },
+      };
+
+      // run test
+      const result = await ErgoTrack.hasLockAddressEnoughAssets(requiredAssets);
+
+      // verify result
+      expect(result).to.be.false;
+    });
+
+    /**
+     * Target: testing hasLockAddressEnoughAssets
+     * Dependencies:
+     *    ExplorerApi
+     * Scenario:
+     *    Mock ExplorerApi getAddressAssets to return test assets
+     *    Mock required assets
+     *    Run test
+     *    Check return value.
+     * Expected Output:
+     *    It should return true
+     */
+    it('should return true when there is enough assets in address', async () => {
+      // mock address assets
+      mockExplorerGetAddressAssets(
+        ErgoConfigs.ergoContractConfig.lockAddress,
+        ErgoTestBoxes.mediumAddressAssets
+      );
+
+      // mock required assets
+      const requiredAssets: BoxesAssets = {
+        ergs: 23000000000n,
+        tokens: {
+          '064c58ea394d41fada074a3c560a132467adf4ca1512c409c014c625ca285e9c':
+            10000000n,
+        },
+      };
+
+      // run test
+      const result = await ErgoTrack.hasLockAddressEnoughAssets(requiredAssets);
+
+      // verify result
+      expect(result).to.be.true;
     });
   });
 });

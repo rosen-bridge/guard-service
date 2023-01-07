@@ -28,9 +28,21 @@ class NotEnoughAssetsError extends Error {
   }
 }
 
+class NotEnoughValidBoxesError extends Error {
+  constructor(msg: string) {
+    super('NotEnoughValidBoxesError: ' + msg);
+  }
+}
+
 class ChainNotImplemented extends Error {
   constructor(chain: string) {
     super(chain + 'ChainNotImplemented');
+  }
+}
+
+class ImpossibleBehavior extends Error {
+  constructor(msg: string) {
+    super('ImpossibleBehavior: ' + msg);
   }
 }
 
@@ -40,5 +52,7 @@ export {
   NetworkError,
   UnexpectedApiError,
   NotEnoughAssetsError,
+  NotEnoughValidBoxesError,
   ChainNotImplemented,
+  ImpossibleBehavior,
 };

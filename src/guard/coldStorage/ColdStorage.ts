@@ -22,6 +22,7 @@ import Utils from '../../helpers/Utils';
 import { UtxoBoxesAssets } from '../../chains/cardano/models/Interfaces';
 import { dbAction } from '../../db/DatabaseAction';
 import { TransactionStatus } from '../../models/Models';
+import { ImpossibleBehavior } from '../../helpers/errors';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -181,8 +182,8 @@ class ColdStorage {
                   );
                   transferringTokens.insert(policyId, policyAssets);
                 } else {
-                  throw Error(
-                    `Impossible case: Duplicate thresholds found for fingerprint [${fingerprint}]`
+                  throw new ImpossibleBehavior(
+                    `Duplicate thresholds found for fingerprint [${fingerprint}]`
                   );
                 }
               }

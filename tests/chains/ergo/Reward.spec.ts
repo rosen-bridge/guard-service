@@ -14,7 +14,12 @@ import { anything, spy, when } from 'ts-mockito';
 import ErgoConfigs from '../../../src/chains/ergo/helpers/ErgoConfigs';
 import { resetMockedReward } from '../mocked/MockedReward';
 import { Fee } from '@rosen-bridge/minimum-fee';
-import { mockTrackAndFilterLockBoxes } from '../mocked/MockedErgoTrack';
+import {
+  mockErgoHasLockAddressEnoughAssets,
+  mockTrackAndFilterLockBoxes,
+} from '../mocked/MockedErgoTrack';
+import { fail } from 'assert';
+import { NotEnoughAssetsError } from '../../../src/helpers/errors';
 
 describe('Reward', () => {
   describe('generateTransaction', () => {
@@ -30,6 +35,7 @@ describe('Reward', () => {
     beforeEach('mock ExplorerApi', function () {
       resetMockedReward();
       resetMockedExplorerApi();
+      mockErgoHasLockAddressEnoughAssets(true);
       mockTrackAndFilterLockBoxes(bankBoxes);
       resetMockedInputBoxes();
       mockGetEventBox(anything(), eventBoxAndCommitments[0]);
@@ -166,6 +172,24 @@ describe('Reward', () => {
         mockedFeeConfig
       );
       expect(isValid).to.be.true;
+    });
+
+    /**
+     * Target: testing generateTransaction
+     * Dependencies:
+     *    ExplorerApi
+     * Expected Output:
+     *    The function should throw error
+     */
+    it('should throw NotEnoughAssetsError when there is not enough assets to generate transaction', async () => {
+      // mock token payment event
+      const mockedEvent: EventTrigger = TestBoxes.mockErgRewardEventTrigger();
+      mockErgoHasLockAddressEnoughAssets(false);
+
+      // run test
+      await expect(
+        Reward.generateTransaction(mockedEvent, mockedFeeConfig)
+      ).to.be.rejectedWith(NotEnoughAssetsError);
     });
   });
 

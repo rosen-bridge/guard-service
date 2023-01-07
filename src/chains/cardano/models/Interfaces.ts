@@ -9,7 +9,6 @@ interface Asset {
 }
 
 interface AssetInfo {
-  fingerprint: string;
   policyId: Uint8Array;
   assetName: Uint8Array;
 }
@@ -22,6 +21,11 @@ interface Utxo {
   tx_index: number;
   value: string;
   asset_list: Array<Asset>;
+}
+
+interface InputUtxo {
+  txHash: string;
+  txIndex: number;
 }
 
 interface UtxoBoxesAssets {
@@ -66,6 +70,7 @@ type AddressUtxos = components['schemas']['address_utxo_content'];
 
 export type {
   Utxo,
+  InputUtxo,
   Asset,
   AssetInfo,
   UtxoBoxesAssets,

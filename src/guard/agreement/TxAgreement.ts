@@ -20,9 +20,6 @@ import { loggerFactory } from '../../log/Logger';
 import InputBoxes from '../../chains/ergo/boxes/InputBoxes';
 import GuardTurn from '../../helpers/GuardTurn';
 import EventVerifier from '../event/EventVerifier';
-import ChainsConstants from '../../chains/ChainsConstants';
-import ErgoUtils from '../../chains/ergo/helpers/ErgoUtils';
-import ErgoTransaction from '../../chains/ergo/models/ErgoTransaction';
 
 const logger = loggerFactory(import.meta.url);
 const dialer = await Dialer.getInstance();
@@ -411,7 +408,9 @@ class TxAgreement {
           release();
         } catch (e) {
           release();
-          logger.error(`An error occurred while inserting tx to db: ${e.stack}`);
+          logger.error(
+            `An error occurred while inserting tx to db: ${e.stack}`
+          );
           throw e;
         }
       });
@@ -487,22 +486,13 @@ class TxAgreement {
   };
 
   /**
-   * returns list of the inputs boxes in pending transactions of Ergo
-   * @param lockErgoTree lock address ergoTree
+   * returns list of pending transactions of a chain
+   * @param chain
    */
-  getErgoPendingTransactionsInputs = (lockErgoTree: string): string[] => {
-    let boxIds: string[] = [];
-    this.transactions.forEach((paymentTx) => {
-      if (paymentTx.network === ChainsConstants.ergo) {
-        boxIds = boxIds.concat(
-          ErgoUtils.getPaymentTxLockInputIds(
-            paymentTx as ErgoTransaction,
-            lockErgoTree
-          )
-        );
-      }
-    });
-    return boxIds;
+  getChainPendingTransactions = (chain: string): PaymentTransaction[] => {
+    return Array.from(this.transactions.values()).filter(
+      (paymentTx) => paymentTx.network === chain
+    );
   };
 }
 

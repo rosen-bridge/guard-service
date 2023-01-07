@@ -16,7 +16,6 @@ import {
   Vkeywitness,
   Vkeywitnesses,
 } from '@emurgo/cardano-serialization-lib-nodejs';
-import KoiosApi from './network/KoiosApi';
 import {
   EventTrigger,
   PaymentTransaction,
@@ -32,11 +31,12 @@ import TssSigner from '../../guard/TssSigner';
 import CardanoTransaction from './models/CardanoTransaction';
 import { dbAction } from '../../db/DatabaseAction';
 import { Buffer } from 'buffer';
-import Utils from '../../helpers/Utils';
 import { loggerFactory } from '../../log/Logger';
 import { TssFailedSign, TssSuccessfulSign } from '../../models/Interfaces';
 import { Fee } from '@rosen-bridge/minimum-fee';
+import { JsonBI } from '../../network/NetworkModels';
 import { NotEnoughAssetsError } from '../../helpers/errors';
+import CardanoTrack from './CardanoTrack';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -84,8 +84,19 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
       requiredAssets.assets.insert(policyId, assetList);
     }
 
-    const bankBoxes = CardanoUtils.getCoveringUtxo(
-      await KoiosApi.getAddressBoxes(CardanoConfigs.bankAddress),
+    // check if address contains required assets
+    if (!(await CardanoTrack.hasLockAddressEnoughAssets(requiredAssets))) {
+      const neededLovelace = requiredAssets.lovelace.to_str();
+      const neededAssets = JsonBI.stringify(
+        CardanoUtils.multiAssetToAssetMap(requiredAssets.assets)
+      );
+      throw new NotEnoughAssetsError(
+        `Lock boxes doesn't contain required assets. Lovelace: ${neededLovelace}, Assets: ${neededAssets}`
+      );
+    }
+
+    // get required utxos for transaction input
+    const bankBoxes = await CardanoTrack.trackAndFilterLockBoxes(
       requiredAssets
     );
 

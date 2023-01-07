@@ -25,6 +25,8 @@ import CardanoUtils from './helpers/CardanoUtils';
 import Configs from '../../helpers/Configs';
 import ChainsConstants from '../ChainsConstants';
 import Utils from '../../helpers/Utils';
+import { ImpossibleBehavior } from '../../helpers/errors';
+import CardanoTrack from './CardanoTrack';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -52,11 +54,7 @@ class CardanoColdStorage {
       assets: transferringAssets.assets,
     };
 
-    const addressBoxes = await KoiosApi.getAddressBoxes(
-      CardanoConfigs.bankAddress
-    );
-    const lockBoxes = CardanoUtils.getCoveringUtxo(
-      addressBoxes,
+    const lockBoxes = await CardanoTrack.trackAndFilterLockBoxes(
       requiredAssets
     );
 
@@ -96,15 +94,16 @@ class CardanoColdStorage {
       const policyId = requiredAssets.assets.keys().get(i);
       const policyAssets = requiredAssets.assets.get(policyId);
       if (!policyAssets)
-        throw Error(
-          `Impossible behaviour from Cardano MultiAsset class detected!`
+        throw new ImpossibleBehavior(
+          'MultiAsset contains policyId with no assetName'
         );
+
       for (let j = 0; j < policyAssets.len(); j++) {
         const assetName = policyAssets.keys().get(j);
         const assetSpentValue = policyAssets.get(assetName);
         if (!assetSpentValue)
-          throw Error(
-            `Impossible behaviour from Cardano MultiAsset class detected!`
+          throw new ImpossibleBehavior(
+            'MultiAsset contains assetName with no amount'
           );
 
         const targetAssetBalance = changeBoxAssets.assets.get_asset(
@@ -212,15 +211,16 @@ class CardanoColdStorage {
         const policyId = coldBoxMultiAsset.keys().get(i);
         const policyAssets = coldBoxMultiAsset.get(policyId);
         if (!policyAssets)
-          throw Error(
-            `Impossible behaviour from Cardano MultiAsset class detected!`
+          throw new ImpossibleBehavior(
+            'MultiAsset contains policyId with no assetName'
           );
+
         for (let j = 0; j < policyAssets.len(); j++) {
           const assetName = policyAssets.keys().get(j);
           const assetSpentValue = policyAssets.get(assetName);
           if (!assetSpentValue)
-            throw Error(
-              `Impossible behaviour from Cardano MultiAsset class detected!`
+            throw new ImpossibleBehavior(
+              'MultiAsset contains assetName with no amount'
             );
 
           const targetAssetBalance = lockAddressMultiAsset.get_asset(

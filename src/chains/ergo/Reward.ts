@@ -94,6 +94,15 @@ class Reward {
     );
     requiredAssets.ergs = requiredAssets.ergs + ErgoConfigs.minimumErg; // required amount of Erg plus minimumErg for change box
 
+    // check if address contains required assets
+    if (!(await ErgoTrack.hasLockAddressEnoughAssets(requiredAssets))) {
+      const neededErgs = requiredAssets.ergs.toString();
+      const neededTokens = JsonBI.stringify(requiredAssets.tokens);
+      throw new NotEnoughAssetsError(
+        `Lock boxes doesn't contain required assets. Erg: ${neededErgs}, Tokens: ${neededTokens}`
+      );
+    }
+
     // get required boxes for transaction input
     const coveringBoxes = await ErgoTrack.trackAndFilterLockBoxes(
       requiredAssets
