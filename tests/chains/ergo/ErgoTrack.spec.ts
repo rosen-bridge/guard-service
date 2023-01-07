@@ -105,7 +105,7 @@ describe('ErgoTrack', () => {
       // verify box ids
       expect(result.boxes.map((box) => box.box_id().to_str())).to.deep.equal([
         targetBox.box_id().to_str(),
-        ...bankBoxes.items.slice(1, 3).map((box) => box.boxId),
+        bankBoxes.items[2].boxId,
       ]);
     });
 
@@ -183,8 +183,9 @@ describe('ErgoTrack', () => {
             BigInt('123456789123456789'),
         },
       });
+
       expect(boxes.covered).to.be.true;
-      expect(boxes.boxes.length).to.equal(3);
+      expect(boxes.boxes.length).to.equal(2);
     });
 
     /**
@@ -194,7 +195,7 @@ describe('ErgoTrack', () => {
      * Expected Output:
      *    The function should return enough boxes
      */
-    it('should return all boxes with covered flag', async () => {
+    it('should return enough boxes that cover requested erg and token amount', async () => {
       // mock getMempoolTxsForAddress
       mockExplorerGetMempoolTxsForAddress(testBankAddress, {
         items: [],
@@ -212,7 +213,7 @@ describe('ErgoTrack', () => {
         },
       });
       expect(boxes.covered).to.be.true;
-      expect(boxes.boxes.length).to.equal(14);
+      expect(boxes.boxes.length).to.equal(3);
     });
 
     /**
@@ -272,7 +273,7 @@ describe('ErgoTrack', () => {
      * Expected Output:
      *    The function should return enough boxes
      */
-    it("should return all boxes with not-covered flag when can't cover tokens", async () => {
+    it("should return all containing boxes when can't cover tokens", async () => {
       // mock getMempoolTxsForAddress
       mockExplorerGetMempoolTxsForAddress(testBankAddress, {
         items: [],
@@ -289,7 +290,34 @@ describe('ErgoTrack', () => {
             BigInt('500'),
         },
       });
+
       expect(boxes.covered).to.be.false;
+      expect(boxes.boxes.length).to.equal(3);
+    });
+
+    /**
+     * Target: testing trackAndFilterLockBoxes
+     * Dependencies:
+     *    ExplorerApi
+     * Expected Output:
+     *    The function should return all boxes
+     */
+    it('should return all boxes to cover erg amount', async () => {
+      // mock getMempoolTxsForAddress
+      mockExplorerGetMempoolTxsForAddress(testBankAddress, {
+        items: [],
+        total: 0,
+      });
+      // mock getErgoPendingTransactionsInputs
+      mockGetErgoPendingTransactionsInputs([]);
+
+      // run test
+      const boxes = await ErgoTrack.trackAndFilterLockBoxes({
+        ergs: BigInt('241000000000'),
+        tokens: {},
+      });
+
+      expect(boxes.covered).to.be.true;
       expect(boxes.boxes.length).to.equal(14);
     });
   });
