@@ -122,9 +122,9 @@ class ColdStorage {
       const assets = (
         await KoiosApi.getAddressAssets(CardanoConfigs.bankAddress)
       ).asset_list;
-      const lockLovelace = (
-        await KoiosApi.getAddressInfo(CardanoConfigs.bankAddress)
-      ).balance;
+      const lockLovelace = BigInt(
+        (await KoiosApi.getAddressInfo(CardanoConfigs.bankAddress)).balance
+      );
       const cardanoAssets = Configs.thresholds()[ChainsConstants.cardano];
 
       let lovelace = 0n;

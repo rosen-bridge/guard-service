@@ -27,6 +27,12 @@ interface InputUtxo {
   txHash: string;
   txIndex: number;
 }
+interface AddressUtxo {
+  tx_hash: string;
+  tx_index: number;
+  value: string;
+  asset_list: Array<Asset>;
+}
 
 interface UtxoBoxesAssets {
   lovelace: BigNum;
@@ -55,8 +61,14 @@ interface KoiosTransaction {
 
 interface AddressInfo {
   address: string;
-  balance: bigint;
+  balance: string;
   utxo_set: Utxo[];
+}
+
+interface KoiosAddressInfo {
+  address: string;
+  balance: string;
+  utxo_set: AddressUtxo[];
 }
 
 interface AddressAssets {
@@ -80,5 +92,7 @@ export type {
   MetaData,
   RosenData,
   AddressInfo,
+  AddressUtxo,
+  KoiosAddressInfo,
   AddressAssets,
 };

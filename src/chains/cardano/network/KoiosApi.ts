@@ -2,6 +2,8 @@ import axios from 'axios';
 import {
   AddressAssets,
   AddressInfo,
+  AddressUtxo,
+  KoiosAddressInfo,
   KoiosTransaction,
   Utxo,
 } from '../models/Interfaces';
@@ -28,14 +30,22 @@ class KoiosApi {
    */
   static getAddressInfo = (address: string): Promise<AddressInfo> => {
     return this.koios
-      .post<AddressInfo[]>(
+      .post<KoiosAddressInfo[]>(
         '/address_info',
         { _addresses: [address] },
         {
-          transformResponse: (data) => Utils.parseJson(data, ['balance']),
+          transformResponse: (data) => Utils.parseJson(data),
         }
       )
-      .then((res) => res.data[0])
+      .then((res) => ({
+        ...res.data[0],
+        utxo_set: res.data[0].utxo_set.map((utxo) => ({
+          ...utxo,
+          payment_addr: {
+            bech32: address,
+          },
+        })),
+      }))
       .catch((e) => {
         const baseError = `Failed to get address [${address}] info from Koios: `;
         if (e.response) {

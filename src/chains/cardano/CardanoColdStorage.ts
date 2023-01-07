@@ -192,7 +192,7 @@ class CardanoColdStorage {
     // get lockAddress assets
     const assets = (await KoiosApi.getAddressAssets(CardanoConfigs.bankAddress))
       .asset_list;
-    let lockLovelace = (
+    const addressLovelace = (
       await KoiosApi.getAddressInfo(CardanoConfigs.bankAddress)
     ).balance;
     const lockAddressMultiAsset = MultiAsset.new();
@@ -234,8 +234,8 @@ class CardanoColdStorage {
           );
         }
       }
-      lockLovelace =
-        lockLovelace -
+      const lockLovelace =
+        BigInt(addressLovelace) -
         BigInt(outputBoxes.get(0).amount().coin().to_str()) -
         BigInt(tx.body().fee().to_str());
 
