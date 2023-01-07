@@ -1075,13 +1075,13 @@ class TestBoxes {
 
   static mediumLovelaceAddressInfo: AddressInfo = {
     address: CardanoConfigs.bankAddress,
-    balance: 200000000n,
+    balance: '200000000',
     utxo_set: [],
   };
 
   static highLovelaceAddressInfo: AddressInfo = {
     address: CardanoConfigs.bankAddress,
-    balance: 900000000n,
+    balance: '900000000',
     utxo_set: [],
   };
 
@@ -1138,7 +1138,7 @@ class TestBoxes {
     const utxoSet = [box1, box2, box3];
     const addressInfo: AddressInfo = {
       address: CardanoConfigs.bankAddress,
-      balance: 360000000n,
+      balance: '360000000',
       utxo_set: utxoSet,
     };
 
@@ -1231,7 +1231,7 @@ class TestBoxes {
     const utxoSet = [box1, box2, box3];
     const addressInfo: AddressInfo = {
       address: CardanoConfigs.bankAddress,
-      balance: 360000000n,
+      balance: '360000000',
       utxo_set: utxoSet,
     };
 
