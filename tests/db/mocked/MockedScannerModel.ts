@@ -43,8 +43,8 @@ const testScannerDataSource = new DataSource({
     TransactionEntity,
   ],
   migrations: [
-    ...scannerMigrations,
-    ...watcherDataExtractorMigrations,
+    ...scannerMigrations.sqlite,
+    ...watcherDataExtractorMigrations.sqlite,
     ...migrations,
   ],
   synchronize: false,
@@ -56,7 +56,9 @@ try {
   await testScannerDataSource.runMigrations();
   logger.info('Test Data Source has been initialized!');
 } catch (err) {
-  logger.error(`An error occurred while initializing test datasource: ${err.stack}`);
+  logger.error(
+    `An error occurred while initializing test datasource: ${err.stack}`
+  );
 }
 
 const testScannerDataBase = new DatabaseAction(testScannerDataSource);
