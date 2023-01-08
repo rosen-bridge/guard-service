@@ -35,8 +35,8 @@ export const dataSource = new DataSource({
     TransactionEntity,
   ],
   migrations: [
-    ...scannerMigrations,
-    ...watcherDataExtractorMigrations,
+    ...scannerMigrations.sqlite,
+    ...watcherDataExtractorMigrations.sqlite,
     ...migrations,
   ],
   synchronize: false,
