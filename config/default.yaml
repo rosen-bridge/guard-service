@@ -17,7 +17,7 @@ cardano:
   txTtl: 100000 # Cardano transaction time-to-live
   observationConfirmation: 120 # required block confirmation so that an observation transaction on Cardano get confirmed
   paymentConfirmation: 120 # required block confirmation so that a payment transaction on Cardano get confirmed
-  lockAddress: ''
+  lockAddress: '' # Cardano lock address
   coldStorageAddress: ''
 ergo:
   networkType: 'mainnet' # Ergo network type [testnet, mainnet]
