@@ -25,6 +25,9 @@ class CommunicationConfig {
   static allowedStreamsPerGuard: number = config.get<number>(
     'p2p.allowedStreamsPerGuard'
   );
+  static relayReconnectionInterval: number = config.get<number>(
+    'p2p.relayReconnectionInterval'
+  );
 }
 
 export default CommunicationConfig;
