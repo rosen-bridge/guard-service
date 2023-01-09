@@ -325,11 +325,11 @@ describe('CardanoTrack', () => {
     it('should return false when there is NOT enough ada in address', async () => {
       // mock address info and assets
       mockKoiosGetAddressInfo(
-        CardanoConfigs.bankAddress,
+        CardanoConfigs.lockAddress,
         CardanoTestBoxes.mediumLovelaceAddressInfo
       );
       mockKoiosGetAddressAssets(
-        CardanoConfigs.bankAddress,
+        CardanoConfigs.lockAddress,
         CardanoTestBoxes.mediumAddressAssets
       );
 
@@ -379,11 +379,11 @@ describe('CardanoTrack', () => {
     it('should return false when there is NOT enough assets in address', async () => {
       // mock address info and assets
       mockKoiosGetAddressInfo(
-        CardanoConfigs.bankAddress,
+        CardanoConfigs.lockAddress,
         CardanoTestBoxes.mediumLovelaceAddressInfo
       );
       mockKoiosGetAddressAssets(
-        CardanoConfigs.bankAddress,
+        CardanoConfigs.lockAddress,
         CardanoTestBoxes.mediumAddressAssets
       );
 
@@ -433,11 +433,11 @@ describe('CardanoTrack', () => {
     it('should return true when there is enough ada and assets in address', async () => {
       // mock address info and assets
       mockKoiosGetAddressInfo(
-        CardanoConfigs.bankAddress,
+        CardanoConfigs.lockAddress,
         CardanoTestBoxes.mediumLovelaceAddressInfo
       );
       mockKoiosGetAddressAssets(
-        CardanoConfigs.bankAddress,
+        CardanoConfigs.lockAddress,
         CardanoTestBoxes.mediumAddressAssets
       );
 

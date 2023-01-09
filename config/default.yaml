@@ -11,14 +11,13 @@ cardano:
     timeout: 8 # connection timeout for Koios API
   blockFrost:
     projectId: '' # project id provided by BlockFrost
-  bankAddress: '' # TODO: key should get changed to lockAddress #27
   bankPublicKey: '' # corresponding public key of lock address
   minUtxoValue: '3000000' # minimum lovelace for a Utxo (box)
   fee: '400000' # Cardano transaction fee
   txTtl: 100000 # Cardano transaction time-to-live
   observationConfirmation: 120 # required block confirmation so that an observation transaction on Cardano get confirmed
   paymentConfirmation: 120 # required block confirmation so that a payment transaction on Cardano get confirmed
-  lockAddresses: [''] # Cardano lock address (TODO: should get removed #27)
+  lockAddress: ''
   coldStorageAddress: ''
 ergo:
   networkType: 'mainnet' # Ergo network type [testnet, mainnet]

@@ -43,7 +43,7 @@ class CardanoConfigs {
   static blockFrost = {
     projectId: config.get<string>('cardano.blockFrost.projectId'),
   };
-  static bankAddress = config.get<string>('cardano.bankAddress');
+  static lockAddress = config.get<string>('cardano.lockAddress');
   static aggregatedPublicKey = config.get<string>('cardano.bankPublicKey');
   static txTtl = config.get<number>('cardano.txTtl');
   // TODO: improve these two parameters: txMinimumLovelace and txFee
@@ -63,7 +63,6 @@ class CardanoConfigs {
   static paymentConfirmation = config.get<number>(
     'cardano.paymentConfirmation'
   );
-  static lockAddresses = config.get<Array<string>>('cardano.lockAddresses');
 
   /**
    * returns the ergo-related contract, addresses and tokens in rosen bridge

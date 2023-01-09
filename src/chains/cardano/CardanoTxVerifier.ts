@@ -28,7 +28,7 @@ const logger = loggerFactory(import.meta.url);
 
 // TODO: include this class in refactor (#109)
 class CardanoTxVerifier {
-  static bankAddress = Address.from_bech32(CardanoConfigs.bankAddress);
+  static lockAddress = Address.from_bech32(CardanoConfigs.lockAddress);
 
   /**
    * verifies the payment transaction data with the event
@@ -56,7 +56,7 @@ class CardanoTxVerifier {
     for (let i = 1; i < outputBoxes.len(); i++)
       if (
         outputBoxes.get(i).address().to_bech32() !==
-        this.bankAddress.to_bech32()
+        this.lockAddress.to_bech32()
       )
         return false;
 
@@ -161,9 +161,7 @@ class CardanoTxVerifier {
       const txInfo = (await KoiosApi.getTxInformation([event.sourceTxId]))[0];
       const payment = txInfo.outputs.filter((utxo: Utxo) => {
         return (
-          CardanoConfigs.lockAddresses.find(
-            (address) => address === utxo.payment_addr.bech32
-          ) !== undefined
+          CardanoConfigs.lockAddress === utxo.payment_addr.bech32
         );
       })[0];
       if (payment) {

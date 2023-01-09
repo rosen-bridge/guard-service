@@ -41,8 +41,7 @@ Before starting project, there are multiple configs need to be set, which are:
 - Cardano network configs
   - `koios.url`: API url to [Koios](https://api.koios.rest/) (care about testnet and mainnet)
   - `blockFrost.projectId`: projectId provided by [BlockFrost](https://blockfrost.io/)
-  - `bankAddress`: address to repo containing bridge assets in Cardano chain
-  - `lockAddresses`: addresses which bridge users lock their assets to in Cardano chain
+  - `lockAddress`: address which bridge users lock their assets to in Cardano chain
 - Ergo network configs
   - `explorer.url`: API url to Ergo Explorer
   - `node.url`: API url to Ergo Node (public nodes NOT recommended)

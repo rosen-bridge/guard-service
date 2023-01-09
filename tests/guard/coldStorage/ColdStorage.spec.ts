@@ -247,11 +247,11 @@ describe('ColdStorage', () => {
     it('should not generate any transaction if lovelace and all assets are less than their high threshold', async () => {
       // mock address info and assets
       mockKoiosGetAddressInfo(
-        CardanoConfigs.bankAddress,
+        CardanoConfigs.lockAddress,
         CardanoTestBoxes.mediumLovelaceAddressInfo
       );
       mockKoiosGetAddressAssets(
-        CardanoConfigs.bankAddress,
+        CardanoConfigs.lockAddress,
         CardanoTestBoxes.mediumAddressAssets
       );
 
@@ -282,11 +282,11 @@ describe('ColdStorage', () => {
     it('should generate a transaction if only lovelace is more than its high threshold', async () => {
       // mock address info and assets
       mockKoiosGetAddressInfo(
-        CardanoConfigs.bankAddress,
+        CardanoConfigs.lockAddress,
         CardanoTestBoxes.highLovelaceAddressInfo
       );
       mockKoiosGetAddressAssets(
-        CardanoConfigs.bankAddress,
+        CardanoConfigs.lockAddress,
         CardanoTestBoxes.mediumAddressAssets
       );
 
@@ -322,11 +322,11 @@ describe('ColdStorage', () => {
     it('should generate a transaction if at least one asset is more than its high threshold', async () => {
       // mock address info and assets
       mockKoiosGetAddressInfo(
-        CardanoConfigs.bankAddress,
+        CardanoConfigs.lockAddress,
         CardanoTestBoxes.mediumLovelaceAddressInfo
       );
       mockKoiosGetAddressAssets(
-        CardanoConfigs.bankAddress,
+        CardanoConfigs.lockAddress,
         CardanoTestBoxes.highAssetAddressAssets
       );
 
