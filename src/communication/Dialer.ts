@@ -212,12 +212,16 @@ class Dialer {
 
   /**
    * Checks if a peer belongs to a relay
+   *
+   * @param peer
    */
   isPeerTypeRelay = (peer: string) =>
     CommunicationConfig.relays.peerIDs.includes(peer);
 
   /**
    * Checks if a peer belongs to a listener (and not a relay)
+   *
+   * @param peer
    */
   isPeerTypeListener = negate(this.isPeerTypeRelay);
 
