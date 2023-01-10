@@ -3,11 +3,13 @@ import * as lp from 'it-length-prefixed';
 import map from 'it-map';
 import { pipe } from 'it-pipe';
 import { pushable, Pushable } from 'it-pushable';
-import { createLibp2p, Libp2p, Libp2pInit } from 'libp2p';
+import { createLibp2p, Libp2p } from 'libp2p';
 import {
   fromString as uint8ArrayFromString,
   toString as uint8ArrayToString,
 } from 'uint8arrays';
+
+import { negate } from 'lodash-es';
 
 import { gossipsub } from '@chainsafe/libp2p-gossipsub';
 import { noise } from '@chainsafe/libp2p-noise';
@@ -209,6 +211,20 @@ class Dialer {
   };
 
   /**
+   * Checks if a peer belongs to a relay
+   *
+   * @param peer
+   */
+  isRelay = (peer: string) => CommunicationConfig.relays.peerIDs.includes(peer);
+
+  /**
+   * Checks if a peer belongs to a listener (and not a relay)
+   *
+   * @param peer
+   */
+  isListener = negate(this.isRelay);
+
+  /**
    * establish connection to relay
    * @param channel: string desire channel for subscription
    * @param callback: a callback function for subscribed channel
@@ -275,8 +291,8 @@ class Dialer {
       logger.debug('Message pushed to the message queue.', { data });
     } else {
       // send message for listener peers (not relays)
-      const peers = this._node!.getPeers().filter(
-        (peer) => !CommunicationConfig.relays.peerIDs.includes(peer.toString())
+      const peers = this._node!.getPeers().filter((peer) =>
+        this.isListener(peer.toString())
       );
       for (const peer of peers) {
         this.pushMessageToMessageQueue(peer, data);
@@ -529,11 +545,7 @@ class Dialer {
         try {
           // For each chunk of data
           for await (const msg of source) {
-            if (
-              CommunicationConfig.relays.peerIDs.includes(
-                connection.remotePeer.toString()
-              )
-            ) {
+            if (this.isRelay(connection.remotePeer.toString())) {
               const receivedData: ReceivePeers = JsonBI.parse(msg.toString());
               const nodePeerIds = node
                 .getPeers()
@@ -556,6 +568,57 @@ class Dialer {
         `An error occurred while handling getpeers protocol stream: ${error.stack}`
       );
     });
+  };
+
+  /**
+   * Tries to re-connect to a disconnected relay. If the relay is connected, the
+   * corresponding interval is cleared and connection manager event listener is
+   * removed.
+   *
+   * @param peer peer of recently disconnected peer
+   */
+  private tryReconnectingRelay = (peer: string) => {
+    logger.debug(`Trying to re-connect relay ${peer}...`);
+
+    const interval = setInterval(async () => {
+      const multiaddrIndex = CommunicationConfig.relays.peerIDs.findIndex(
+        (id) => id === peer
+      );
+      logger.debug(`Trying to add relay to address book...`, { peer });
+      try {
+        await this._node?.peerStore.addressBook.add(
+          await this.createFromString(peer),
+          [
+            multiaddr.multiaddr(
+              CommunicationConfig.relays.multiaddrs[multiaddrIndex]
+            ),
+          ]
+        );
+        logger.debug(`Relay added to address book successfully.`, { peer });
+      } catch (error) {
+        logger.warn(
+          `An error occurred while trying to add relay [${peer}] to address book: ${error.stack}`
+        );
+      }
+    }, CommunicationConfig.relayReconnectionInterval * 1000);
+
+    const controller = new AbortController();
+
+    this._node?.connectionManager.addEventListener(
+      'peer:connect',
+      async (evt) => {
+        const connectedPeer = evt.detail.remotePeer.toString();
+
+        if (connectedPeer === peer) {
+          logger.info(`Relay ${peer} re-connected successfully.`);
+          clearInterval(interval);
+          logger.debug('Relay re-connection interval cleared.', { peer });
+          controller.abort();
+          logger.debug('Relay re-connection event listener removed.', { peer });
+        }
+      },
+      { signal: controller.signal }
+    );
   };
 
   /**
@@ -607,16 +670,20 @@ class Dialer {
         async (evt) => {
           const peer = evt.detail.remotePeer.toString();
 
-          logger.info(`Peer [${peer}] disconnected.`);
           this.removePeerFromAddressBook(peer);
+
+          if (this.isRelay(peer)) {
+            logger.warn(`Relay [${peer}] disconnected.`);
+            this.tryReconnectingRelay(peer);
+          } else {
+            logger.info(`Peer [${peer}] disconnected.`);
+          }
         }
       );
 
       // Listen for new peers
       node.addEventListener('peer:discovery', async (evt) => {
-        if (
-          !CommunicationConfig.relays.peerIDs.includes(evt.detail.id.toString())
-        ) {
+        if (this.isListener(evt.detail.id.toString())) {
           logger.debug(`Found peer [${evt.detail.id.toString()}].`);
           this.addPeersToAddressBook([evt.detail.id.toString()]).catch(
             (error) => {
