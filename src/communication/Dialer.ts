@@ -215,15 +215,14 @@ class Dialer {
    *
    * @param peer
    */
-  isPeerTypeRelay = (peer: string) =>
-    CommunicationConfig.relays.peerIDs.includes(peer);
+  isRelay = (peer: string) => CommunicationConfig.relays.peerIDs.includes(peer);
 
   /**
    * Checks if a peer belongs to a listener (and not a relay)
    *
    * @param peer
    */
-  isPeerTypeListener = negate(this.isPeerTypeRelay);
+  isListener = negate(this.isRelay);
 
   /**
    * establish connection to relay
@@ -293,7 +292,7 @@ class Dialer {
     } else {
       // send message for listener peers (not relays)
       const peers = this._node!.getPeers().filter((peer) =>
-        this.isPeerTypeListener(peer.toString())
+        this.isListener(peer.toString())
       );
       for (const peer of peers) {
         this.pushMessageToMessageQueue(peer, data);
@@ -546,7 +545,7 @@ class Dialer {
         try {
           // For each chunk of data
           for await (const msg of source) {
-            if (this.isPeerTypeRelay(connection.remotePeer.toString())) {
+            if (this.isRelay(connection.remotePeer.toString())) {
               const receivedData: ReceivePeers = JsonBI.parse(msg.toString());
               const nodePeerIds = node
                 .getPeers()
@@ -673,7 +672,7 @@ class Dialer {
 
           this.removePeerFromAddressBook(peer);
 
-          if (this.isPeerTypeRelay(peer)) {
+          if (this.isRelay(peer)) {
             logger.warn(`Relay [${peer}] disconnected.`);
             this.tryReconnectingRelay(peer);
           } else {
@@ -684,7 +683,7 @@ class Dialer {
 
       // Listen for new peers
       node.addEventListener('peer:discovery', async (evt) => {
-        if (this.isPeerTypeListener(evt.detail.id.toString())) {
+        if (this.isListener(evt.detail.id.toString())) {
           logger.debug(`Found peer [${evt.detail.id.toString()}].`);
           this.addPeersToAddressBook([evt.detail.id.toString()]).catch(
             (error) => {
