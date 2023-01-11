@@ -115,6 +115,7 @@ class DatabaseAction {
           TransactionStatus.signed,
           TransactionStatus.approved,
           TransactionStatus.signFailed,
+          TransactionStatus.inSign,
         ]),
       },
     });
@@ -130,6 +131,7 @@ class DatabaseAction {
       .update()
       .set({
         status: status,
+        lastStatusUpdate: String(Math.round(Date.now() / 1000)),
       })
       .where('txId = :id', { id: txId })
       .execute();
@@ -196,6 +198,7 @@ class DatabaseAction {
       .set({
         txJson: txJson,
         status: TransactionStatus.signed,
+        lastStatusUpdate: String(Math.round(Date.now() / 1000)),
       })
       .where('txId = :id', { id: txId })
       .execute();
@@ -278,6 +281,7 @@ class DatabaseAction {
         type: tx.txType,
         chain: tx.network,
         status: TransactionStatus.approved,
+        lastStatusUpdate: String(Math.round(Date.now() / 1000)),
         lastCheck: 0,
       })
       .where('txId = :id', { id: previousTxId })
@@ -297,6 +301,7 @@ class DatabaseAction {
       type: paymentTx.txType,
       chain: paymentTx.network,
       status: TransactionStatus.approved,
+      lastStatusUpdate: String(Math.round(Date.now() / 1000)),
       lastCheck: 0,
       event: event !== null ? event : undefined,
     });
