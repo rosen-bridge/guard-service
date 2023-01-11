@@ -60,8 +60,7 @@ p2p:
   guardsCount: 30 # total number of guards in the network
   allowedStreamsPerGuard: 3 # the number of streams allowed for each guard connected
   relayReconnectionInterval: 30 # Interval of tries to re-connect a disconnected relay
-multiSigTimeout: 300
-txSignTimeout: 360 # timeout for signing transactions
+txSignTimeout: 300 # timeout for signing transactions
 guard:
   secret: ''
   configUpdateInterval: 180 # guards config box update interval (getting guards configs from the box in Ergo network)

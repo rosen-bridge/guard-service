@@ -176,7 +176,7 @@ class MultiSigHandler {
         for (const [key, transaction] of this.transactions.entries()) {
           if (
             transaction.createTime <
-            new Date().getTime() - Configs.multiSigTimeout * 1000
+            new Date().getTime() - Configs.txSignTimeout * 1000
           ) {
             // milliseconds
             if (transaction.reject) {
@@ -402,7 +402,9 @@ class MultiSigHandler {
             transaction: txBytes,
           };
         } catch (e) {
-          logger.warn(`An error occurred during MultiSig generate sign: ${e.stack}`);
+          logger.warn(
+            `An error occurred during MultiSig generate sign: ${e.stack}`
+          );
         }
       }
     }
