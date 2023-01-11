@@ -44,7 +44,7 @@ class CardanoTrack {
       for (let i = 0; i < outputs.len(); i++) {
         const output = outputs.get(i);
         const address = output.address().to_bech32();
-        if (address === CardanoConfigs.bankAddress) {
+        if (address === CardanoConfigs.lockAddress) {
           inputIds.forEach((inputId) => {
             trackMap.set(
               inputId,
@@ -207,7 +207,7 @@ class CardanoTrack {
 
     // get boxes and apply track and filter
     const addressBoxes = await KoiosApi.getAddressBoxes(
-      CardanoConfigs.bankAddress
+      CardanoConfigs.lockAddress
     );
     return this.getCoveringUtxo(
       addressBoxes,
@@ -226,14 +226,14 @@ class CardanoTrack {
   ): Promise<boolean> => {
     // get lock lovelace
     const lockLovelace = (
-      await KoiosApi.getAddressInfo(CardanoConfigs.bankAddress)
+      await KoiosApi.getAddressInfo(CardanoConfigs.lockAddress)
     ).balance;
 
     if (required.lovelace.compare(BigNum.from_str(lockLovelace.toString())) > 0)
       return false;
 
     // get lock assets
-    const assets = (await KoiosApi.getAddressAssets(CardanoConfigs.bankAddress))
+    const assets = (await KoiosApi.getAddressAssets(CardanoConfigs.lockAddress))
       .asset_list;
 
     // iterate over required assets and compared required amount to locked amount

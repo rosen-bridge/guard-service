@@ -43,7 +43,8 @@ import { Buffer } from 'buffer';
 
 // TODO: split this file variables and functions into multiple files (#94)
 class TestBoxes {
-  static testBankAddress = CardanoConfigs.bankAddress;
+  static testBankAddress = CardanoConfigs.lockAddress;
+  static invalidBankAddress = 'addr_test1qrm4haxxgl55kqzhpp3sda8h979gxd4cast340v0eh0p4qzp3vkcrhjqavv9uzsvq86mglwnwe8xp87q3rv8ve54kasqlf7xgl';
 
   /**
    * returns string representation for arbitrary amount of ADA in lovelace unit
@@ -465,7 +466,7 @@ class TestBoxes {
    */
   static mockBankBoxes = (): Utxo[] => {
     const box1: Utxo = {
-      payment_addr: { bech32: CardanoConfigs.bankAddress },
+      payment_addr: { bech32: CardanoConfigs.lockAddress },
       tx_hash: TestUtils.generateRandomId(),
       tx_index: 0,
       value: this.adaToLovelaceString(30),
@@ -485,7 +486,7 @@ class TestBoxes {
       ],
     };
     const box2: Utxo = {
-      payment_addr: { bech32: CardanoConfigs.bankAddress },
+      payment_addr: { bech32: CardanoConfigs.lockAddress },
       tx_hash: TestUtils.generateRandomId(),
       tx_index: 0,
       value: this.adaToLovelaceString(100),
@@ -499,7 +500,7 @@ class TestBoxes {
       ],
     };
     const box3: Utxo = {
-      payment_addr: { bech32: CardanoConfigs.bankAddress },
+      payment_addr: { bech32: CardanoConfigs.lockAddress },
       tx_hash: TestUtils.generateRandomId(),
       tx_index: 2,
       value: this.adaToLovelaceString(10),
@@ -507,7 +508,7 @@ class TestBoxes {
     };
 
     const box4: Utxo = {
-      payment_addr: { bech32: CardanoConfigs.bankAddress },
+      payment_addr: { bech32: CardanoConfigs.lockAddress },
       tx_hash: TestUtils.generateRandomId(),
       tx_index: 5,
       value: this.adaToLovelaceString(5),
@@ -515,7 +516,7 @@ class TestBoxes {
     };
 
     const box5: Utxo = {
-      payment_addr: { bech32: CardanoConfigs.bankAddress },
+      payment_addr: { bech32: CardanoConfigs.lockAddress },
       tx_hash: TestUtils.generateRandomId(),
       tx_index: 2,
       value: this.adaToLovelaceString(1),
@@ -523,7 +524,7 @@ class TestBoxes {
     };
 
     const box6: Utxo = {
-      payment_addr: { bech32: CardanoConfigs.bankAddress },
+      payment_addr: { bech32: CardanoConfigs.lockAddress },
       tx_hash: TestUtils.generateRandomId(),
       tx_index: 0,
       value: this.adaToLovelaceString(101),
@@ -538,7 +539,7 @@ class TestBoxes {
     };
 
     const box7: Utxo = {
-      payment_addr: { bech32: CardanoConfigs.bankAddress },
+      payment_addr: { bech32: CardanoConfigs.lockAddress },
       tx_hash: TestUtils.generateRandomId(),
       tx_index: 0,
       value: '1000',
@@ -553,7 +554,7 @@ class TestBoxes {
     };
 
     const box8: Utxo = {
-      payment_addr: { bech32: CardanoConfigs.bankAddress },
+      payment_addr: { bech32: CardanoConfigs.lockAddress },
       tx_hash: TestUtils.generateRandomId(),
       tx_index: 2,
       value: '1000',
@@ -561,7 +562,7 @@ class TestBoxes {
     };
 
     const box9: Utxo = {
-      payment_addr: { bech32: CardanoConfigs.bankAddress },
+      payment_addr: { bech32: CardanoConfigs.lockAddress },
       tx_hash: TestUtils.generateRandomId(),
       tx_index: 0,
       value: '10000',
@@ -1038,7 +1039,7 @@ class TestBoxes {
   };
 
   static mediumAddressAssets: AddressAssets = {
-    address: CardanoConfigs.bankAddress,
+    address: CardanoConfigs.lockAddress,
     asset_list: [
       {
         policy_id: 'ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2',
@@ -1056,7 +1057,7 @@ class TestBoxes {
   };
 
   static highAssetAddressAssets: AddressAssets = {
-    address: CardanoConfigs.bankAddress,
+    address: CardanoConfigs.lockAddress,
     asset_list: [
       {
         policy_id: 'ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2',
@@ -1074,13 +1075,13 @@ class TestBoxes {
   };
 
   static mediumLovelaceAddressInfo: AddressInfo = {
-    address: CardanoConfigs.bankAddress,
+    address: CardanoConfigs.lockAddress,
     balance: '200000000',
     utxo_set: [],
   };
 
   static highLovelaceAddressInfo: AddressInfo = {
-    address: CardanoConfigs.bankAddress,
+    address: CardanoConfigs.lockAddress,
     balance: '900000000',
     utxo_set: [],
   };
@@ -1137,13 +1138,13 @@ class TestBoxes {
 
     const utxoSet = [box1, box2, box3];
     const addressInfo: AddressInfo = {
-      address: CardanoConfigs.bankAddress,
+      address: CardanoConfigs.lockAddress,
       balance: '360000000',
       utxo_set: utxoSet,
     };
 
     const addressAssets: AddressAssets = {
-      address: CardanoConfigs.bankAddress,
+      address: CardanoConfigs.lockAddress,
       asset_list: [
         {
           policy_id: 'ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2',
@@ -1230,13 +1231,13 @@ class TestBoxes {
 
     const utxoSet = [box1, box2, box3];
     const addressInfo: AddressInfo = {
-      address: CardanoConfigs.bankAddress,
+      address: CardanoConfigs.lockAddress,
       balance: '360000000',
       utxo_set: utxoSet,
     };
 
     const addressAssets: AddressAssets = {
-      address: CardanoConfigs.bankAddress,
+      address: CardanoConfigs.lockAddress,
       asset_list: [
         {
           policy_id: 'ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2',
@@ -1395,7 +1396,7 @@ class TestBoxes {
     // create the cold box
     const coldBoxValueJson = TestData.fineColdBoxValueJson;
     const coldBox = TransactionOutput.new(
-      Address.from_bech32(this.testBankAddress),
+      Address.from_bech32(this.invalidBankAddress),
       Value.from_json(coldBoxValueJson)
     );
 
@@ -1423,7 +1424,7 @@ class TestBoxes {
     // create the change box
     const changeBoxValueJson = TestData.fineChangeBoxValueJson;
     const changeBox = TransactionOutput.new(
-      Address.from_bech32(CardanoConfigs.coldAddress),
+      Address.from_bech32(this.invalidBankAddress),
       Value.from_json(changeBoxValueJson)
     );
 
