@@ -79,6 +79,7 @@ class Configs {
   // timeout configs
   static multiSigTimeout = getConfigIntKeyOrDefault('multiSigTimeout', 5 * 60); // seconds
   static eventTimeout = 86400; // seconds, 1 day
+  static txSignTimeout = getConfigIntKeyOrDefault('txSignTimeout', 6 * 60); // seconds
 
   // jobs configs
   static scannedEventProcessorInterval = 120; // seconds, 2 minutes
