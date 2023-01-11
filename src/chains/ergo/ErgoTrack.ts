@@ -8,6 +8,9 @@ import ErgoTransaction from './models/ErgoTransaction';
 import ErgoUtils from './helpers/ErgoUtils';
 import { BoxesAssets, CoveringErgoBoxes } from './models/Interfaces';
 import { txAgreement } from '../../guard/agreement/TxAgreement';
+import { loggerFactory } from '../../log/Logger';
+
+const logger = loggerFactory(import.meta.url);
 
 // TODO: include this class in refactor (#109)
 class ErgoTrack {
@@ -226,9 +229,17 @@ class ErgoTrack {
     const requiredTokens = Object.keys(required.tokens);
     for (let i = 0; i < requiredTokens.length; i++) {
       const tokenId = requiredTokens[i];
-      const token = assets.tokens.find((token) => token.tokenId === tokenId);
+      if (required.tokens[tokenId] === 0n) continue;
 
-      if (!token || required.tokens[tokenId] > token.amount) return false;
+      const token = assets.tokens.find((token) => token.tokenId === tokenId);
+      if (!token || required.tokens[tokenId] > token.amount) {
+        logger.debug(
+          `Not enough token [${tokenId}] in lock address. Info: ${JsonBI.stringify(
+            token
+          )}`
+        );
+        return false;
+      }
     }
 
     return true;
