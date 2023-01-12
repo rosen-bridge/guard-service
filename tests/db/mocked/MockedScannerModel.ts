@@ -45,7 +45,7 @@ const testScannerDataSource = new DataSource({
   migrations: [
     ...scannerMigrations.sqlite,
     ...watcherDataExtractorMigrations.sqlite,
-    ...migrations,
+    ...migrations.sqlite,
   ],
   synchronize: false,
   logging: false,

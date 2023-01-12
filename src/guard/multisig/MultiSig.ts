@@ -402,7 +402,9 @@ class MultiSigHandler {
             transaction: txBytes,
           };
         } catch (e) {
-          logger.warn(`An error occurred during MultiSig generate sign: ${e.stack}`);
+          logger.warn(
+            `An error occurred during MultiSig generate sign: ${e.stack}`
+          );
         }
       }
     }

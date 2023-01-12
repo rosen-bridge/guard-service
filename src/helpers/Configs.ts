@@ -10,13 +10,22 @@ import { JsonBI } from '../network/NetworkModels';
  * @param defaultValue
  */
 const getConfigIntKeyOrDefault = (key: string, defaultValue: number) => {
-  const val: string = config.get(key);
-  if (val) {
-    const valNum = parseInt(val);
-    if (isNaN(valNum)) {
-      return defaultValue;
+  if (config.has(key)) {
+    const val: string = config.get(key);
+    if (val) {
+      const valNum = parseInt(val);
+      if (isNaN(valNum)) {
+        return defaultValue;
+      }
+      return valNum;
     }
-    return valNum;
+  }
+  return defaultValue;
+};
+
+const getConfigStringKeyOrDefault = (key: string, defaultValue = '') => {
+  if (config.has(key)) {
+    return config.get<string>(key);
   }
   return defaultValue;
 };
@@ -102,6 +111,15 @@ class Configs {
   static logLevel = config.get<string>('logs.level');
 
   static discordWebHookUrl = config.get<string>('discordWebHookUrl');
+
+  // Database Configs
+  static dbType = getConfigStringKeyOrDefault('database.type');
+  static dbPath = getConfigStringKeyOrDefault('database.path');
+  static dbHost = getConfigStringKeyOrDefault('database.host');
+  static dbPort = getConfigIntKeyOrDefault('database.port', 5432);
+  static dbUser = getConfigStringKeyOrDefault('database.user');
+  static dbPassword = getConfigStringKeyOrDefault('database.password');
+  static dbName = getConfigStringKeyOrDefault('database.name');
 }
 
 export default Configs;

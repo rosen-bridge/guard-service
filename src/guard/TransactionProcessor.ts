@@ -72,7 +72,7 @@ class TransactionProcessor {
         logger.warn(`An error occurred while processing tx`, {
           txId: tx.txId,
           error: e.message,
-          stack: e.stack
+          stack: e.stack,
         });
       }
     }
@@ -253,7 +253,7 @@ class TransactionProcessor {
         logger.warn('Unexpected error occurred while sending tx to sign', {
           txId: tx.txId,
           error: e.message,
-          stack: e.stack
+          stack: e.stack,
         });
         release();
       }
@@ -371,7 +371,7 @@ class TransactionProcessor {
             logger.warn(`An error occurred while fetching tx`, {
               txId: sourceTxId,
               error: e.message,
-              stack: e.stack
+              stack: e.stack,
             });
             return false;
           } else {

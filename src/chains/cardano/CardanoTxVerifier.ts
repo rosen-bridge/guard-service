@@ -160,9 +160,7 @@ class CardanoTxVerifier {
     try {
       const txInfo = (await KoiosApi.getTxInformation([event.sourceTxId]))[0];
       const payment = txInfo.outputs.filter((utxo: Utxo) => {
-        return (
-          CardanoConfigs.lockAddress === utxo.payment_addr.bech32
-        );
+        return CardanoConfigs.lockAddress === utxo.payment_addr.bech32;
       })[0];
       if (payment) {
         if (!txInfo.metadata) {

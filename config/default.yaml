@@ -82,3 +82,11 @@ intervals:
 tokensPath: './config/tokens.json' # path to supported tokens of bridge
 thresholdsPath: './config/thresholds.json' # path to thresholds of lock address tokens
 discordWebHookUrl: '' # Discord webhook url for sending notifications
+database:
+  type: 'sqlite' # options: postgres, sqlite
+  path: './sqlite/guard.sqlite' # database path (for sqlite)
+  # host: '' # database host (for postgres)
+  # port: 5432 # database port (for postgres)
+  # user: '' # database user (for postgres)
+  # password: '' # database password (for postgres)
+  # name: '' # database name (for postgres)
