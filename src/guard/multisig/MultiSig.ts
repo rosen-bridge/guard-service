@@ -166,7 +166,7 @@ class MultiSigHandler {
   };
 
   /**
-   * cleaning unsigned transaction after multiSigTimeout if the transaction still exist in queue
+   * cleaning unsigned transaction after txSignTimeout if the transaction still exist in queue
    */
   cleanup = (): void => {
     logger.info('Cleaning MultiSig queue');
