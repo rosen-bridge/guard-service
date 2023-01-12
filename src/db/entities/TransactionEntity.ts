@@ -26,4 +26,9 @@ export class TransactionEntity {
     nullable: true,
   })
   event: Relation<ConfirmedEventEntity>;
+
+  @Column({
+    nullable: true,
+  })
+  lastStatusUpdate: string;
 }

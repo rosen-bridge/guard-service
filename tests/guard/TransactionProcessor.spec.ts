@@ -30,6 +30,8 @@ import ErgoConfigs from '../../src/chains/ergo/helpers/ErgoConfigs';
 import MockedBlockFrost from '../chains/cardano/mocked/MockedBlockFrost';
 import CardanoConfigs from '../../src/chains/cardano/helpers/CardanoConfigs';
 import ChainsConstants from '../../src/chains/ChainsConstants';
+import { reset, spy, when } from 'ts-mockito';
+import Configs from '../../src/helpers/Configs';
 
 describe('TransactionProcessor', () => {
   const mockedCardanoChain = new MockedCardanoChain(
@@ -1177,6 +1179,75 @@ describe('TransactionProcessor', () => {
         tx.txId,
         TransactionStatus.sent,
       ]);
+    });
+  });
+
+  describe('processInSignTx', () => {
+    const currentTimeStamp = 1658005354291000;
+
+    beforeEach('clear db tables', async () => {
+      await clearTables();
+    });
+
+    /**
+     * Target: testing processInSignTx
+     * Dependencies:
+     *    -
+     * Scenario:
+     *    Mock Date to return testing currentTimeStamp
+     *    Mock two transactions and insert into db (different in lastStatusUpdate column)
+     *    Run test (execute processTransactions method of TransactionProcessor)
+     *    Check transactions in db. One tx should got timeout
+     *    Reset mocked Date
+     * Expected Output:
+     *    The function should update transaction status in db
+     */
+    it('should mark transaction as sign-failed if enough seconds passed from lastStatusUpdate', async () => {
+      // mock Date
+      const date = spy(Date);
+      when(date.now()).thenReturn(currentTimeStamp);
+
+      // mock transactions
+      const lastStatusUpdate1 =
+        Math.round(currentTimeStamp / 1000) - Configs.txSignTimeout - 100;
+      const mockedTx1 = ErgoTestBoxes.mockFineColdStorageTransaction(
+        ErgoTestBoxes.mockEventBoxWithSomeCommitments()
+      );
+      await insertTxRecord(
+        mockedTx1,
+        mockedTx1.txType,
+        mockedTx1.network,
+        TransactionStatus.inSign,
+        0,
+        mockedTx1.eventId,
+        String(lastStatusUpdate1)
+      );
+      const lastStatusUpdate2 =
+        Math.round(currentTimeStamp / 1000) - Configs.txSignTimeout + 100;
+      const mockedTx2 = CardanoTestBoxes.mockFineColdStorageTx();
+      await insertTxRecord(
+        mockedTx2,
+        mockedTx2.txType,
+        mockedTx2.network,
+        TransactionStatus.inSign,
+        0,
+        mockedTx2.eventId,
+        String(lastStatusUpdate2)
+      );
+
+      // run test
+      await TransactionProcessor.processTransactions();
+
+      // verify db changes
+      const dbTxs = (await allTxRecords()).map((tx) => [tx.txId, tx.status]);
+      expect(dbTxs).to.deep.contain([
+        mockedTx1.txId,
+        TransactionStatus.signFailed,
+      ]);
+      expect(dbTxs).to.deep.contain([mockedTx2.txId, TransactionStatus.inSign]);
+
+      // reset mocked Date object
+      reset(date);
     });
   });
 });
