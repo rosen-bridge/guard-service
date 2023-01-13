@@ -20,6 +20,7 @@ import migrations from '../src/db/migrations';
 //  fix entities directories
 //  fix migrations (use package migrations)
 //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/18
+const dbType = Configs.dbType as keyof typeof migrations;
 const dbConfigs = {
   entities: [
     BlockEntity,
@@ -27,6 +28,11 @@ const dbConfigs = {
     ConfirmedEventEntity,
     EventTriggerEntity,
     TransactionEntity,
+  ],
+  migrations: [
+    ...scannerMigrations[dbType],
+    ...watcherDataExtractorMigrations[dbType],
+    ...migrations[dbType],
   ],
   synchronize: false,
   logging: false,
@@ -37,11 +43,6 @@ if (Configs.dbType === 'sqlite') {
     type: 'sqlite',
     database: Configs.dbPath,
     ...dbConfigs,
-    migrations: [
-      ...scannerMigrations.sqlite,
-      ...watcherDataExtractorMigrations.sqlite,
-      ...migrations.sqlite,
-    ],
   });
 } else {
   dataSource = new DataSource({
@@ -52,11 +53,6 @@ if (Configs.dbType === 'sqlite') {
     password: Configs.dbPassword,
     database: Configs.dbName,
     ...dbConfigs,
-    migrations: [
-      ...scannerMigrations.postgres,
-      ...watcherDataExtractorMigrations.postgres,
-      ...migrations.postgres,
-    ],
   });
 }
 
