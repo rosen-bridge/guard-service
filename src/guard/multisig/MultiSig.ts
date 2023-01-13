@@ -166,7 +166,7 @@ class MultiSigHandler {
   };
 
   /**
-   * cleaning unsigned transaction after multiSigTimeout if the transaction still exist in queue
+   * cleaning unsigned transaction after txSignTimeout if the transaction still exist in queue
    */
   cleanup = (): void => {
     logger.info('Cleaning MultiSig queue');
@@ -176,7 +176,7 @@ class MultiSigHandler {
         for (const [key, transaction] of this.transactions.entries()) {
           if (
             transaction.createTime <
-            new Date().getTime() - Configs.multiSigTimeout * 1000
+            new Date().getTime() - Configs.txSignTimeout * 1000
           ) {
             // milliseconds
             if (transaction.reject) {

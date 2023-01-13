@@ -86,8 +86,8 @@ class Configs {
   static tokenMap = new TokenMap(this.tokens());
 
   // timeout configs
-  static multiSigTimeout = getConfigIntKeyOrDefault('multiSigTimeout', 5 * 60); // seconds
   static eventTimeout = 86400; // seconds, 1 day
+  static txSignTimeout = getConfigIntKeyOrDefault('txSignTimeout', 5 * 60); // seconds
 
   // jobs configs
   static scannedEventProcessorInterval = 120; // seconds, 2 minutes

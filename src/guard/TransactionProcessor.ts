@@ -25,6 +25,7 @@ import { txJsonParser } from '../chains/TxJsonParser';
 import { loggerFactory } from '../log/Logger';
 import { ChainNotImplemented } from '../helpers/errors';
 import { BlockfrostServerError } from '@blockfrost/blockfrost-js';
+import Configs from '../helpers/Configs';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -65,6 +66,10 @@ class TransactionProcessor {
           }
           case TransactionStatus.signFailed: {
             await this.processSignFailedTx(tx);
+            break;
+          }
+          case TransactionStatus.inSign: {
+            await this.processInSignTx(tx);
             break;
           }
         }
@@ -463,6 +468,22 @@ class TransactionProcessor {
       }
     } else {
       throw new ChainNotImplemented(tx.chain);
+    }
+  };
+
+  /**
+   * set tx as sign-failed if enough time past from the request to sign
+   * @param tx the transaction
+   */
+  static processInSignTx = async (tx: TransactionEntity): Promise<void> => {
+    if (
+      Math.round(Date.now() / 1000) >
+      Number(tx.lastStatusUpdate) + Configs.txSignTimeout
+    ) {
+      logger.warn(
+        `No response received from signer for tx [${tx.txId}]. Updating status to sign-failed`
+      );
+      await dbAction.setTxStatus(tx.txId, TransactionStatus.signFailed);
     }
   };
 }

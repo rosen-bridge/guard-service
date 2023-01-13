@@ -234,6 +234,7 @@ const insertOnyEventDataRecord = async (
  * @param status
  * @param lastCheck
  * @param eventId
+ * @param lastStatusUpdate
  */
 const insertTxRecord = async (
   paymentTx: PaymentTransaction,
@@ -241,7 +242,8 @@ const insertTxRecord = async (
   chain: string,
   status: string,
   lastCheck: number,
-  eventId: string
+  eventId: string,
+  lastStatusUpdate?: string
 ) => {
   const event = await testScannerDataBase.ConfirmedEventRepository.findOneBy({
     id: eventId,
@@ -254,6 +256,7 @@ const insertTxRecord = async (
     status: status,
     lastCheck: lastCheck,
     event: event!,
+    lastStatusUpdate: lastStatusUpdate,
   });
 };
 

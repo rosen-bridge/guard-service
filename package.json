@@ -14,8 +14,8 @@
     "test": "NODE_ENV=\"test\" mocha --slow 3000 && rimraf tests/db/sqlite/test",
     "type-check": "tsc --noEmit",
     "coverage": "c8 npm run test",
-    "typeorm:update": "npm run typeorm migration:generate src/db/migrations/migration -- -p -d config/ormDataSource.ts",
-    "typeorm:migrate": "npm run typeorm migration:run -- -d config/ormDataSource.ts",
+    "typeorm:update": "npm run typeorm migration:generate src/db/migrations/migration -- -p -d config/dataSource.ts",
+    "typeorm:migrate": "npm run typeorm migration:run -- -d config/dataSource.ts",
     "typeorm": "NODE_OPTIONS=--experimental-specifier-resolution=node typeorm-ts-node-esm",
     "postinstall": "patch-package"
   },
