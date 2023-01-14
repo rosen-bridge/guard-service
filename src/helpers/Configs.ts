@@ -5,7 +5,24 @@ import { ThresholdConfig } from '../guard/coldStorage/types';
 import { JsonBI } from '../network/NetworkModels';
 
 /**
- * reads an optinal config, returns default value if it does not exits
+ * reads a numerical config, set default value if it does not exits
+ * @param key
+ * @param defaultValue
+ */
+const getConfigIntKeyOrDefault = (key: string, defaultValue: number) => {
+  const val: string = config.get(key);
+  if (val) {
+    const valNum = parseInt(val);
+    if (isNaN(valNum)) {
+      return defaultValue;
+    }
+    return valNum;
+  }
+  return defaultValue;
+};
+
+/**
+ * reads an optional config, returns default value if it does not exits
  * @param key
  * @param defaultValue
  */
@@ -73,7 +90,7 @@ class Configs {
 
   // timeout configs
   static eventTimeout = 86400; // seconds, 1 day
-  static txSignTimeout = getOptionalConfig('txSignTimeout', 5 * 60); // seconds
+  static txSignTimeout = getConfigIntKeyOrDefault('txSignTimeout', 5 * 60); // seconds
 
   // jobs configs
   static scannedEventProcessorInterval = 120; // seconds, 2 minutes
