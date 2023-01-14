@@ -21,6 +21,24 @@ const ergoScannerJob = () => {
 };
 
 /**
+ * Creates loggers for scanners and extractors
+ * @returns loggers object
+ */
+const createLoggers = () => ({
+  ergoScannerLogger: loggerFactory('ergo-scanner'),
+  cardanoCommitmentExtractorLogger: loggerFactory(
+    'cardano-commitment-extractor'
+  ),
+  cardanoEventTriggerExtractorLogger: loggerFactory(
+    'cardano-event-trigger-extractor'
+  ),
+  ergoCommitmentExtractorLogger: loggerFactory('ergo-commitment-extractor'),
+  ergoEventTriggerExtractorLogger: loggerFactory(
+    'ergo-event-trigger-extractor'
+  ),
+});
+
+/**
  * initialize ergo scanner and extractors
  */
 const initScanner = () => {
@@ -30,31 +48,37 @@ const initScanner = () => {
     initialHeight: ergoConfigs.initialHeight,
     dataSource,
   };
-  const ergoScannerLogger = loggerFactory('ergo-scanner');
-  ergoScanner = new ErgoNodeScanner(scannerConfig, ergoScannerLogger);
+
+  const loggers = createLoggers();
+
+  ergoScanner = new ErgoNodeScanner(scannerConfig, loggers.ergoScannerLogger);
   const cardanoCommitmentExtractor = new CommitmentExtractor(
     'cardanoCommitment',
     [CardanoConfigs.cardanoContractConfig.commitmentAddress],
     CardanoConfigs.cardanoContractConfig.RWTId,
-    dataSource
+    dataSource,
+    loggers.cardanoCommitmentExtractorLogger
   );
   const cardanoEventTriggerExtractor = new EventTriggerExtractor(
     'cardanoEventTrigger',
     dataSource,
     CardanoConfigs.cardanoContractConfig.eventTriggerAddress,
-    CardanoConfigs.cardanoContractConfig.RWTId
+    CardanoConfigs.cardanoContractConfig.RWTId,
+    loggers.cardanoEventTriggerExtractorLogger
   );
   const ergoCommitmentExtractor = new CommitmentExtractor(
     'ergoCommitment',
     [ErgoConfigs.ergoContractConfig.commitmentAddress],
     ErgoConfigs.ergoContractConfig.RWTId,
-    dataSource
+    dataSource,
+    loggers.ergoCommitmentExtractorLogger
   );
   const ergoEventTriggerExtractor = new EventTriggerExtractor(
     'ergoEventTrigger',
     dataSource,
     ErgoConfigs.ergoContractConfig.eventTriggerAddress,
-    ErgoConfigs.ergoContractConfig.RWTId
+    ErgoConfigs.ergoContractConfig.RWTId,
+    loggers.ergoCommitmentExtractorLogger
   );
   ergoScanner.registerExtractor(cardanoCommitmentExtractor);
   ergoScanner.registerExtractor(cardanoEventTriggerExtractor);
