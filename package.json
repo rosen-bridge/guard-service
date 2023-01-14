@@ -34,7 +34,7 @@
     "@libp2p/websockets": "^5.0.2",
     "@multiformats/multiaddr": "^11.0.3",
     "@rosen-bridge/minimum-fee": "^0.1.4",
-    "@rosen-bridge/scanner": "^0.4.3",
+    "@rosen-bridge/scanner": "^0.4.5",
     "@rosen-bridge/tokens": "^0.1.8",
     "@rosen-bridge/watcher-data-extractor": "^0.2.10",
     "await-semaphore": "^0.1.3",

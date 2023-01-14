@@ -16,10 +16,6 @@ import { TransactionEntity } from '../src/db/entities/TransactionEntity';
 
 import migrations from '../src/db/migrations';
 
-// TODO: datasource config
-//  fix entities directories
-//  fix migrations (use package migrations)
-//  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/18
 const dbType = Configs.dbType as keyof typeof migrations;
 const dbConfigs = {
   entities: [

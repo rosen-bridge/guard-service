@@ -1,6 +1,6 @@
 yarn.lock
 
-/sqlite
+tests/db/sqlite/
 .idea
 node_modules
 .nyc_output
