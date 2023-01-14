@@ -813,8 +813,6 @@ class Dialer {
           }
         }
       });
-
-      // Job for logging relay disconnections (if any)
     } catch (error) {
       logger.error(`An error occurred while starting dialer: ${error.stack}`);
     }
