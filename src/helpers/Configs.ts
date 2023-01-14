@@ -10,22 +10,25 @@ import { JsonBI } from '../network/NetworkModels';
  * @param defaultValue
  */
 const getConfigIntKeyOrDefault = (key: string, defaultValue: number) => {
-  if (config.has(key)) {
-    const val: string = config.get(key);
-    if (val) {
-      const valNum = parseInt(val);
-      if (isNaN(valNum)) {
-        return defaultValue;
-      }
-      return valNum;
+  const val: string = config.get(key);
+  if (val) {
+    const valNum = parseInt(val);
+    if (isNaN(valNum)) {
+      return defaultValue;
     }
+    return valNum;
   }
   return defaultValue;
 };
 
-const getConfigStringKeyOrDefault = (key: string, defaultValue = '') => {
+/**
+ * reads an optinal config, returns default value if it does not exits
+ * @param key
+ * @param defaultValue
+ */
+const getOptionalConfig = <T>(key: string, defaultValue: T) => {
   if (config.has(key)) {
-    return config.get<string>(key);
+    return config.get<T>(key);
   }
   return defaultValue;
 };
@@ -113,13 +116,13 @@ class Configs {
   static discordWebHookUrl = config.get<string>('discordWebHookUrl');
 
   // Database Configs
-  static dbType = getConfigStringKeyOrDefault('database.type');
-  static dbPath = getConfigStringKeyOrDefault('database.path');
-  static dbHost = getConfigStringKeyOrDefault('database.host');
-  static dbPort = getConfigIntKeyOrDefault('database.port', 5432);
-  static dbUser = getConfigStringKeyOrDefault('database.user');
-  static dbPassword = getConfigStringKeyOrDefault('database.password');
-  static dbName = getConfigStringKeyOrDefault('database.name');
+  static dbType = getOptionalConfig('database.type', '');
+  static dbPath = getOptionalConfig('database.path', '');
+  static dbHost = getOptionalConfig('database.host', '');
+  static dbPort = getOptionalConfig('database.port', 5432);
+  static dbUser = getOptionalConfig('database.user', '');
+  static dbPassword = getOptionalConfig('database.password', '');
+  static dbName = getOptionalConfig('database.name', '');
 }
 
 export default Configs;
