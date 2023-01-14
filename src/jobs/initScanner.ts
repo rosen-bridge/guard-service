@@ -7,6 +7,7 @@ import {
 } from '@rosen-bridge/watcher-data-extractor';
 import CardanoConfigs from '../chains/cardano/helpers/CardanoConfigs';
 import ErgoConfigs from '../chains/ergo/helpers/ErgoConfigs';
+import { loggerFactory } from '../log/Logger';
 
 let ergoScanner: ErgoNodeScanner;
 
@@ -29,7 +30,8 @@ const initScanner = () => {
     initialHeight: ergoConfigs.initialHeight,
     dataSource,
   };
-  ergoScanner = new ErgoNodeScanner(scannerConfig);
+  const ergoScannerLogger = loggerFactory('ergo-scanner');
+  ergoScanner = new ErgoNodeScanner(scannerConfig, ergoScannerLogger);
   const cardanoCommitmentExtractor = new CommitmentExtractor(
     'cardanoCommitment',
     [CardanoConfigs.cardanoContractConfig.commitmentAddress],
