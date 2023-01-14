@@ -45,7 +45,7 @@ const testScannerDataSource = new DataSource({
   migrations: [
     ...scannerMigrations.sqlite,
     ...watcherDataExtractorMigrations.sqlite,
-    ...migrations,
+    ...migrations.sqlite,
   ],
   synchronize: false,
   logging: false,
@@ -127,10 +127,18 @@ when(mockedScannerAction.getSignedActiveTxsInChain(anything())).thenCall(
  * deletes every record in Event and Transaction table in ScannerDatabase
  */
 const clearTables = async () => {
-  await testScannerDataBase.CommitmentRepository.clear();
-  await testScannerDataBase.TransactionRepository.clear();
-  await testScannerDataBase.ConfirmedEventRepository.clear();
-  await testScannerDataBase.EventRepository.clear();
+  await testScannerDataBase.CommitmentRepository.createQueryBuilder()
+    .delete()
+    .execute();
+  await testScannerDataBase.TransactionRepository.createQueryBuilder()
+    .delete()
+    .execute();
+  await testScannerDataBase.ConfirmedEventRepository.createQueryBuilder()
+    .delete()
+    .execute();
+  await testScannerDataBase.EventRepository.createQueryBuilder()
+    .delete()
+    .execute();
 };
 
 /**

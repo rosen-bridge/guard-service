@@ -44,7 +44,8 @@ import { Buffer } from 'buffer';
 // TODO: split this file variables and functions into multiple files (#94)
 class TestBoxes {
   static testBankAddress = CardanoConfigs.lockAddress;
-  static invalidBankAddress = 'addr_test1qrm4haxxgl55kqzhpp3sda8h979gxd4cast340v0eh0p4qzp3vkcrhjqavv9uzsvq86mglwnwe8xp87q3rv8ve54kasqlf7xgl';
+  static invalidBankAddress =
+    'addr_test1qrm4haxxgl55kqzhpp3sda8h979gxd4cast340v0eh0p4qzp3vkcrhjqavv9uzsvq86mglwnwe8xp87q3rv8ve54kasqlf7xgl';
 
   /**
    * returns string representation for arbitrary amount of ADA in lovelace unit

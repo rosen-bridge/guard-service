@@ -5,7 +5,7 @@ import { ThresholdConfig } from '../guard/coldStorage/types';
 import { JsonBI } from '../network/NetworkModels';
 
 /**
- * reads a config, set default value if it does not exits
+ * reads a numerical config, set default value if it does not exits
  * @param key
  * @param defaultValue
  */
@@ -17,6 +17,18 @@ const getConfigIntKeyOrDefault = (key: string, defaultValue: number) => {
       return defaultValue;
     }
     return valNum;
+  }
+  return defaultValue;
+};
+
+/**
+ * reads an optional config, returns default value if it does not exits
+ * @param key
+ * @param defaultValue
+ */
+const getOptionalConfig = <T>(key: string, defaultValue: T) => {
+  if (config.has(key)) {
+    return config.get<T>(key);
   }
   return defaultValue;
 };
@@ -102,6 +114,15 @@ class Configs {
   static logLevel = config.get<string>('logs.level');
 
   static discordWebHookUrl = config.get<string>('discordWebHookUrl');
+
+  // Database Configs
+  static dbType = getOptionalConfig('database.type', '');
+  static dbPath = getOptionalConfig('database.path', '');
+  static dbHost = getOptionalConfig('database.host', '');
+  static dbPort = getOptionalConfig('database.port', 5432);
+  static dbUser = getOptionalConfig('database.user', '');
+  static dbPassword = getOptionalConfig('database.password', '');
+  static dbName = getOptionalConfig('database.name', '');
 }
 
 export default Configs;
