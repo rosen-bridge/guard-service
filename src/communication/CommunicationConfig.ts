@@ -13,7 +13,7 @@ class CommunicationConfig {
   static apiCallbackTimeout: number = config.get<number>(
     'p2p.apiCallbackTimeout'
   ); // seconds
-  static getPeersInterval: number = config.get<number>('p2p.getPeersInterval'); // seconds
+  static loggingInterval: number = config.get<number>('p2p.loggingInterval'); // seconds
   static peerIdFilePath: string = config.get<string>('p2p.peerIdFilePath');
   static messageSendingRetriesExponentialFactor: number = config.get<number>(
     'p2p.messageSendingRetriesExponentialFactor'
