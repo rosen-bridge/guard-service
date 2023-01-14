@@ -9,7 +9,7 @@ import {
   toString as uint8ArrayToString,
 } from 'uint8arrays';
 
-import { negate } from 'lodash-es';
+import { groupBy, negate } from 'lodash-es';
 
 import { gossipsub } from '@chainsafe/libp2p-gossipsub';
 import { noise } from '@chainsafe/libp2p-noise';
@@ -571,6 +571,14 @@ class Dialer {
   };
 
   /**
+   * Runs a callback in an interval to log some info
+   * @param callback
+   */
+  private startLoggingInterval = (callback: () => void) => {
+    setInterval(callback, CommunicationConfig.loggingInterval * 1000);
+  };
+
+  /**
    * Tries to re-connect to a disconnected relay. If the relay is connected, the
    * corresponding interval is cleared and connection manager event listener is
    * removed.
@@ -760,8 +768,8 @@ class Dialer {
         }
       );
 
-      // Job for log all peers
-      setInterval(async () => {
+      // Log peers discovery and connection state
+      this.startLoggingInterval(async () => {
         const requiredPeersCount =
           CommunicationConfig.guardsCount -
           1 +
@@ -779,7 +787,34 @@ class Dialer {
           `[${connectedPeersCount}] out of [${discoveredPeersCount}] discovered peers are connected. Required connections remaining: ${remainingRequiredConnections}`
         );
         logger.debug(`Connected peers are: [${this.getPeerIds()}].`);
-      }, CommunicationConfig.getPeersInterval * 1000);
+      });
+
+      // Log relays connection state
+      this.startLoggingInterval(() => {
+        const connectedPeers = this.getPeerIds();
+
+        const relayStates = groupBy(
+          CommunicationConfig.relays.peerIDs,
+          (peer) =>
+            connectedPeers.includes(peer) ? 'connected' : 'notConnected'
+        );
+
+        logger.debug('Relays connection states: ', { relayStates });
+
+        if (relayStates.notConnected?.length) {
+          if (relayStates.connected?.length) {
+            logger.warn(
+              `[${relayStates.notConnected.length}] out of [${CommunicationConfig.relays.peerIDs.length}] relays are not connected.`
+            );
+          } else {
+            logger.error(
+              `None of [${CommunicationConfig.relays.peerIDs.length}] relays are connected. The service won't work properly until at least one relay is connected.`
+            );
+          }
+        }
+      });
+
+      // Job for logging relay disconnections (if any)
     } catch (error) {
       logger.error(`An error occurred while starting dialer: ${error.stack}`);
     }
