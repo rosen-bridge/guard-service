@@ -72,7 +72,7 @@ class TransactionProcessor {
         logger.warn(`An error occurred while processing tx`, {
           txId: tx.txId,
           error: e.message,
-          stack: e.stack
+          stack: e.stack,
         });
       }
     }
@@ -248,12 +248,13 @@ class TransactionProcessor {
       try {
         const paymentTx = txJsonParser(tx.txJson);
         await this.getChainObject(tx.chain).requestToSignTransaction(paymentTx);
+        logger.info(`Tx [${tx.txId}] got sent to the signer`);
         release();
       } catch (e) {
         logger.warn('Unexpected error occurred while sending tx to sign', {
           txId: tx.txId,
           error: e.message,
-          stack: e.stack
+          stack: e.stack,
         });
         release();
       }
@@ -371,7 +372,7 @@ class TransactionProcessor {
             logger.warn(`An error occurred while fetching tx`, {
               txId: sourceTxId,
               error: e.message,
-              stack: e.stack
+              stack: e.stack,
             });
             return false;
           } else {
