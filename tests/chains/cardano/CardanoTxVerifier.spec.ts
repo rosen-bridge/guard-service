@@ -177,6 +177,35 @@ describe('CardanoTxVerifier', () => {
       );
       expect(isValid).to.be.false;
     });
+
+    /**
+     * Target: testing verifyTransactionWithEvent
+     * Dependencies:
+     *    -
+     * Scenario:
+     *    Mock a valid eventTrigger
+     *    Create a valid mock payment transaction for the eventTrigger
+     *    Validates the transaction
+     * Expected Output:
+     *    It should NOT verify the transaction
+     */
+    it('should reject a payment tx with more than config fee', async () => {
+      // mock asset payment event
+      const mockedEvent: EventTrigger =
+        TestBoxes.mockAssetPaymentEventTrigger();
+      const tx = TestBoxes.mockValidPaymentTransaction(
+        mockedEvent,
+        testBankAddress
+      );
+
+      // run test
+      const isValid = await CardanoTxVerifier.verifyTransactionWithEvent(
+        tx,
+        mockedEvent,
+        mockedFeeConfig
+      );
+      expect(isValid).to.be.true;
+    });
   });
 
   describe('verifyEventWithPayment', () => {
