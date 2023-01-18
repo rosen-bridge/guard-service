@@ -184,8 +184,8 @@ describe('CardanoTxVerifier', () => {
      *    -
      * Scenario:
      *    Mock a valid eventTrigger
-     *    Create a valid mock payment transaction for the eventTrigger
-     *    Validates the transaction
+     *    Create a mock payment transaction with double tx fee for the eventTrigger
+     *    Validates the transaction to false
      * Expected Output:
      *    It should NOT verify the transaction
      */
@@ -193,7 +193,7 @@ describe('CardanoTxVerifier', () => {
       // mock asset payment event
       const mockedEvent: EventTrigger =
         TestBoxes.mockAssetPaymentEventTrigger();
-      const tx = TestBoxes.mockValidPaymentTransaction(
+      const tx = TestBoxes.mockPaymentTransactionWithDoubleFee(
         mockedEvent,
         testBankAddress
       );
@@ -204,7 +204,7 @@ describe('CardanoTxVerifier', () => {
         mockedEvent,
         mockedFeeConfig
       );
-      expect(isValid).to.be.true;
+      expect(isValid).to.be.false;
     });
   });
 
