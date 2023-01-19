@@ -584,17 +584,19 @@ class TestBoxes {
    * generates a mocked payment transaction with given outBoxes
    * @param outBoxes output Utxos in the transaction
    * @param eventId the event trigger id
+   * @param txFee the transaction fee
    */
   static mockPaymentTransaction = (
     outBoxes: TransactionOutput[],
-    eventId: string
+    eventId: string,
+    txFee: BigNum = CardanoConfigs.txFee
   ): PaymentTransaction => {
     const txBuilder = TransactionBuilder.new(CardanoConfigs.txBuilderConfig);
     outBoxes.forEach((box) => txBuilder.add_output(box));
 
     // set transaction TTL and Fee
     txBuilder.set_ttl(CardanoConfigs.txTtl);
-    txBuilder.set_fee(CardanoConfigs.txFee);
+    txBuilder.set_fee(txFee);
 
     // create the transaction
     const txBody = txBuilder.build();
@@ -926,6 +928,55 @@ class TestBoxes {
     return this.mockMetaDataPaymentTransaction(
       [paymentBox, changeBox],
       event.getId()
+    );
+  };
+
+  /**
+   * generates a mocked valid payment transaction
+   * @param event asset payment event trigger
+   * @param bankAddress bank address
+   */
+  static mockPaymentTransactionWithDoubleFee = (
+    event: EventTrigger,
+    bankAddress: string
+  ): PaymentTransaction => {
+    const lovelacePaymentAmount: BigNum = CardanoConfigs.txMinimumLovelace;
+    const assetPaymentAmount: BigNum = BigNum.from_str(event.amount)
+      .checked_sub(BigNum.from_str(event.bridgeFee))
+      .checked_sub(BigNum.from_str(event.networkFee));
+
+    const paymentAssetInfo = CardanoUtils.getCardanoAssetInfo(
+      event.targetChainTokenId
+    );
+    const paymentAssetPolicyId: ScriptHash = ScriptHash.from_bytes(
+      paymentAssetInfo.policyId
+    );
+    const paymentAssetAssetName: AssetName = AssetName.new(
+      paymentAssetInfo.assetName
+    );
+    const paymentMultiAsset = MultiAsset.new();
+    const paymentAssets = Assets.new();
+    paymentAssets.insert(paymentAssetAssetName, assetPaymentAmount);
+    paymentMultiAsset.insert(paymentAssetPolicyId, paymentAssets);
+    const paymentValue = Value.new(lovelacePaymentAmount);
+    paymentValue.set_multiasset(paymentMultiAsset);
+
+    // create the payment box
+    const paymentBox = TransactionOutput.new(
+      Address.from_bech32(event.toAddress),
+      paymentValue
+    );
+
+    // create the payment box
+    const changeBox = TransactionOutput.new(
+      Address.from_bech32(bankAddress),
+      Value.new(BigNum.from_str(this.adaToLovelaceString(10)))
+    );
+
+    return this.mockPaymentTransaction(
+      [paymentBox, changeBox],
+      event.getId(),
+      CardanoConfigs.txFee.checked_mul(BigNum.from_str('2'))
     );
   };
 
