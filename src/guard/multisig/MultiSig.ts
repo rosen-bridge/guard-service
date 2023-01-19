@@ -180,11 +180,13 @@ class MultiSigHandler {
             new Date().getTime() - Configs.multiSigTimeout * 1000
           ) {
             // milliseconds
-            logger.debug(
-              `Tx [${transaction.tx
-                ?.unsigned_tx()
-                .id()}] got timeout in MultiSig signing process`
-            );
+            if (transaction.tx) {
+              logger.debug(
+                `Tx [${transaction.tx
+                  .unsigned_tx()
+                  .id()}] got timeout in MultiSig signing process`
+              );
+            }
             if (transaction.reject) {
               transaction.reject('Timed out');
             }
@@ -335,7 +337,7 @@ class MultiSigHandler {
       } else {
         logger.debug(
           `First sign for tx [${transaction.tx.unsigned_tx().id()}]`
-        ); // TODO
+        );
         simulated = transaction.commitments
           .map((item, index) => {
             if (item === undefined) {
