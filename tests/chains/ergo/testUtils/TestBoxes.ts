@@ -2932,6 +2932,87 @@ class TestBoxes {
       TransactionTypes.payment
     );
   };
+
+  /**
+   * generates a valid mocked erg reward distribution tx
+   * @param event token reward event trigger
+   * @param eventBoxes event box and valid commitment boxes
+   */
+  static mockFineTokenDistributionTransaction = (
+    event: EventTrigger,
+    eventBoxes: ErgoBox[]
+  ): ErgoTransaction => {
+    const rewardTxInputBoxes: Uint8Array[] = [];
+    const txInputBoxes: string[] = [];
+
+    const inBoxes = ErgoBoxes.empty();
+    eventBoxes.forEach((box) => {
+      inBoxes.add(box);
+      rewardTxInputBoxes.push(box.sigma_serialize_bytes());
+      txInputBoxes.push(box.box_id().to_str());
+    });
+    const bankBoxes = this.mockBankBoxes();
+    bankBoxes.boxes.forEach((box) => {
+      inBoxes.add(box);
+      rewardTxInputBoxes.push(box.sigma_serialize_bytes());
+      txInputBoxes.push(box.box_id().to_str());
+    });
+
+    const watcherBoxes = event.WIDs.map((wid) =>
+      Utils.hexStringToUint8Array(wid)
+    )
+      .concat(eventBoxes.slice(1).map((box) => InputBoxes.getErgoBoxWID(box)))
+      .map((wid) =>
+        TestData.mockWatcherPermitBox(
+          100000n,
+          [
+            {
+              tokenId: ErgoConfigs.ergoContractConfig.RWTId,
+              amount: BigInt('1'),
+            },
+            {
+              tokenId:
+                '907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e',
+              amount: BigInt('1'),
+            },
+          ],
+          ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
+          [
+            {
+              registerId: 4,
+              value: Constant.from_coll_coll_byte([wid]),
+            },
+          ]
+        )
+      );
+
+    const txJsonString: string = TestData.fineTokenRewardDistributionTxString(
+      txInputBoxes,
+      watcherBoxes,
+      this.bridgeFeeErgoTree,
+      this.networkFeeErgoTree,
+      this.testLockErgoTree
+    );
+    const tx = UnsignedTransaction.from_json(txJsonString);
+
+    const reducedTx = ReducedTransaction.from_unsigned_tx(
+      tx,
+      inBoxes,
+      ErgoBoxes.empty(),
+      TestData.mockedErgoStateContext
+    );
+
+    const txBytes = reducedTx.sigma_serialize_bytes();
+    const txId = tx.id().to_str();
+    return new ErgoTransaction(
+      txId,
+      event.getId(),
+      txBytes,
+      rewardTxInputBoxes,
+      [],
+      TransactionTypes.reward
+    );
+  };
 }
 
 export default TestBoxes;
