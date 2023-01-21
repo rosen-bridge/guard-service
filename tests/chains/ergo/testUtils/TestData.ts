@@ -106,7 +106,7 @@ class TestData {
                     }
                 ],
                 "additionalRegisters": {
-                    "R4": "1a0120001b0f0ca1b87bf9444ff29c39efdf12b0061c67f42826e55f6d34f2479be7aa"
+                    "R4": "1a0100"
                 },
                 "creationHeight": 100000
             },
@@ -128,11 +128,89 @@ class TestData {
                 "assets": [
                     {
                         "tokenId": "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e",
-                        "amount": 9
+                        "amount": 16
                     },
                     {
                         "tokenId": "e2b7b6ab2a7c6dfc6a82cc648f3b16b76db1cf19e93b7ac35a4898c06e4d08ce",
                         "amount": 100
+                    },
+                    {
+                        "tokenId": "a2a6c892c38d508a659caf857dbe29da4343371e597efd42e40f9bc99099a516",
+                        "amount": 10000000000
+                    }
+                ],
+                "additionalRegisters": {},
+                "creationHeight": 100000
+            },
+            ${this.mockTransactionFeeBox}
+        ]
+    }`;
+
+  static wrongR4PaymentTransactionString = (
+    boxIds: string[],
+    targetAddressErgoTree: string,
+    watcherBoxes: string[],
+    bridgeFeeErgoTree: string,
+    networkFeeErgoTree: string,
+    bankAddressErgoTree: string
+  ): string => `{
+        "inputs": ${this.mockTransactionInputBoxes(boxIds)},
+        "dataInputs": [],
+        "outputs": [
+            {
+                "value": 100000,
+                "ergoTree": "${targetAddressErgoTree}",
+                "assets": [
+                    {
+                        "tokenId": "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e",
+                        "amount": 65
+                    }
+                ],
+                "additionalRegisters": {},
+                "creationHeight": 100000
+            },
+            ${watcherBoxes.join(',')},
+            {
+                "value": 100000,
+                "ergoTree": "${bridgeFeeErgoTree}",
+                "assets": [
+                    {
+                        "tokenId": "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e",
+                        "amount": 13
+                    }
+                ],
+                "additionalRegisters": {
+                    "R4": "1a0120001b0f0ca1b87bf9444ff29c39efdf12b0061c67f42826e55f6d34f2479bffff"
+                },
+                "creationHeight": 100000
+            },
+            {
+                "value": 100000,
+                "ergoTree": "${networkFeeErgoTree}",
+                "assets": [
+                    {   
+                        "tokenId": "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e",
+                        "amount": 5
+                    }
+                ],
+                "additionalRegisters": {},
+                "creationHeight": 100000
+            },
+            {
+                "value": 139998600000,
+                "ergoTree": "${bankAddressErgoTree}",
+                "assets": [
+                    {
+                        "tokenId": "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e",
+                        "amount": 16
+                    },
+                    {
+                        "tokenId": "e2b7b6ab2a7c6dfc6a82cc648f3b16b76db1cf19e93b7ac35a4898c06e4d08ce",
+                        "amount": 100
+                    },
+                    {
+                        "tokenId": "a2a6c892c38d508a659caf857dbe29da4343371e597efd42e40f9bc99099a516",
+                        "amount": 10000000000
                     }
                 ],
                 "additionalRegisters": {},
@@ -171,7 +249,7 @@ class TestData {
                     }
                 ],
                 "additionalRegisters": {
-                    "R4": "1a0120001b0f0ca1b87bf9444ff29c39efdf12b0061c67f42826e55f6d34f2479be7aa"
+                    "R4": "1a0100"
                 },
                 "creationHeight": 100000
             },
@@ -245,7 +323,7 @@ class TestData {
                     }
                 ],
                 "additionalRegisters": {
-                    "R4": "1a0120001b0f0ca1b87bf9444ff29c39efdf12b0061c67f42826e55f6d34f2479be7aa"
+                    "R4": "1a0100"
                 },
                 "creationHeight": 100000
             },
@@ -315,7 +393,7 @@ class TestData {
                     }
                 ],
                 "additionalRegisters": {
-                    "R4": "1a0120001b0f0ca1b87bf9444ff29c39efdf12b0061c67f42826e55f6d34f2479be7aa"
+                    "R4": "1a0100"
                 },
                 "creationHeight": 100000
             },
@@ -690,7 +768,7 @@ class TestData {
                     }
                 ],
                 "additionalRegisters": {
-                    "R4": "1a0120001b0f0ca1b87bf9444ff29c39efdf12b0061c67f42826e55f6d34f2479be7aa"
+                    "R4": "1a0100"
                 },
                 "creationHeight": 100000
             },
@@ -751,7 +829,7 @@ class TestData {
                 "ergoTree": "${bridgeFeeErgoTree}",
                 "assets": [],
                 "additionalRegisters": {
-                    "R4": "1a0120001b0f0ca1b87bf9444ff29c39efdf12b0061c67f42826e55f6d34f2479be7aa"
+                    "R4": "1a0100"
                 },
                 "creationHeight": 100000
             },
@@ -1376,7 +1454,7 @@ class TestData {
                     }
                 ],
                 "additionalRegisters": {
-                    "R4": "1a0120001b0f0ca1b87bf9444ff29c39efdf12b0061c67f42826e55f6d34f2479be7aa"
+                    "R4": "1a0100"
                 },
                 "creationHeight": 100000
             },
