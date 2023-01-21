@@ -30,6 +30,7 @@ import {
   insertEventRecord,
   insertTxRecord,
 } from '../../db/mocked/MockedScannerModel';
+import TestUtils from '../../testUtils/TestUtils';
 
 describe('Reward', () => {
   describe('generateTransaction', () => {
@@ -516,6 +517,32 @@ describe('Reward', () => {
       const spiedErgoConfig = spy(ErgoConfigs);
       when(spiedErgoConfig.watchersRSNSharePercent).thenReturn(40n);
       when(spiedErgoConfig.watchersSharePercent).thenReturn(0n);
+
+      // run test
+      const isValid = await Reward.verifyTransactionWithEvent(
+        tx,
+        mockedEvent,
+        mockedFeeConfig
+      );
+      expect(isValid).to.be.false;
+    });
+
+    /**
+     * Target: testing verifyTransactionWithEvent
+     * Dependencies:
+     *    RewardBoxes
+     * Expected Output:
+     *    It should NOT verify the transaction
+     */
+    it('should reject a token reward distribution tx with wrong R4 in bridgeFee box', async () => {
+      // mock erg payment event
+      const mockedEvent: EventTrigger = TestBoxes.mockTokenRewardEventTrigger();
+      const wrongPaymentTxId = TestUtils.generateRandomId();
+      mockGetEventPaymentTransactionId(mockedEvent.getId(), wrongPaymentTxId);
+      const tx = TestBoxes.mockFineTokenDistributionTransaction(
+        mockedEvent,
+        eventBoxAndCommitments
+      );
 
       // run test
       const isValid = await Reward.verifyTransactionWithEvent(
