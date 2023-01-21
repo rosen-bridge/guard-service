@@ -1,3 +1,0 @@
-# In production, instead of changing `default.yaml`, try to add changes to this
-# file. `config` package merges the two files (and probable app-specific configs)
-# automatically.
