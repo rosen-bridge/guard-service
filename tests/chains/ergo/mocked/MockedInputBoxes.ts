@@ -17,6 +17,20 @@ const mockGetEventBox = (event: EventTrigger, returnBox: ErgoBox): void => {
 };
 
 /**
+ * mocks RewardBoxes mockGetEventPaymentTransactionId method to return txId when called for an eventId
+ * @param eventId
+ * @param txId
+ */
+const mockGetEventPaymentTransactionId = (
+  eventId: string,
+  txId: string
+): void => {
+  when(mockedInputBoxes.getEventPaymentTransactionId(eventId)).thenResolve(
+    txId
+  );
+};
+
+/**
  * mocks RewardBoxes getEventValidCommitments method to return returnBoxes when called for an event
  * @param event
  * @param returnBoxes
@@ -39,4 +53,9 @@ const resetMockedInputBoxes = (): void => {
   when(mockedInputBoxes.getGuardsInfoBox()).thenResolve(TestBoxes.guardNFTBox);
 };
 
-export { mockGetEventBox, mockGetEventValidCommitments, resetMockedInputBoxes };
+export {
+  mockGetEventBox,
+  mockGetEventPaymentTransactionId,
+  mockGetEventValidCommitments,
+  resetMockedInputBoxes,
+};

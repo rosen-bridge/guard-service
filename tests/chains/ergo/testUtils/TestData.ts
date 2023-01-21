@@ -791,7 +791,9 @@ class TestData {
                         "amount": 13
                     }
                 ],
-                "additionalRegisters": {},
+                "additionalRegisters": {
+                    "R4": "1a0120001b0f0ca1b87bf9444ff29c39efdf12b0061c67f42826e55f6d34f2479be7aa"
+                },
                 "creationHeight": 100000
             },
             {
@@ -842,7 +844,9 @@ class TestData {
                 "value": 500000003,
                 "ergoTree": "${bridgeFeeErgoTree}",
                 "assets": [],
-                "additionalRegisters": {},
+                "additionalRegisters": {
+                    "R4": "1a0120001b0f0ca1b87bf9444ff29c39efdf12b0061c67f42826e55f6d34f2479be7aa"
+                },
                 "creationHeight": 100000
             },
             {
@@ -1293,7 +1297,9 @@ class TestData {
                         "amount": 282011
                     }
                 ],
-                "additionalRegisters": {},
+                "additionalRegisters": {
+                    "R4": "1a0120001b0f0ca1b87bf9444ff29c39efdf12b0061c67f42826e55f6d34f2479be7aa"
+                },
                 "creationHeight": 100000
             },
             {

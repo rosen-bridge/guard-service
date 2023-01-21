@@ -2760,6 +2760,18 @@ class TestBoxes {
       ergoTree: lockErgoTree,
     };
   };
+
+  /**
+   * generates a mocked payment transaction object
+   */
+  static mockEmptyPaymentTransactionObject = (
+    txType: string,
+    eventId = ''
+  ): ErgoTransaction => {
+    const emptyTxBytes = Buffer.from('');
+    const txId = TestUtils.generateRandomId();
+    return new ErgoTransaction(txId, eventId, emptyTxBytes, [], [], txType);
+  };
 }
 
 export default TestBoxes;
