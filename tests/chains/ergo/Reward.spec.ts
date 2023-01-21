@@ -30,7 +30,6 @@ import {
   insertEventRecord,
   insertTxRecord,
 } from '../../db/mocked/MockedScannerModel';
-import TestUtils from '../../testUtils/TestUtils';
 
 describe('Reward', () => {
   describe('generateTransaction', () => {
