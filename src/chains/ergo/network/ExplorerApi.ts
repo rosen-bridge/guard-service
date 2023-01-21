@@ -45,13 +45,15 @@ class ExplorerApi {
       .catch((e) => {
         const baseError = `Failed to get boxes for ErgoTree [${ergoTree}] from Ergo Explorer: `;
         if (e.response) {
-          logger.warn(
-            baseError + `${e.response.status}: ${e.response.data.reason}`
-          );
-          return {
-            items: [],
-            total: 0,
-          };
+          if (e.response.status === 404)
+            return {
+              items: [],
+              total: 0,
+            };
+          else
+            throw new FailedError(
+              baseError + `${e.response.status}: ${e.response.data.reason}`
+            );
         } else if (e.request) {
           throw new NetworkError(baseError + e.message);
         } else {
@@ -71,13 +73,15 @@ class ExplorerApi {
       .catch((e) => {
         const baseError = `Failed to get boxes containing token [${tokenId}] from Ergo Explorer: `;
         if (e.response) {
-          logger.warn(
-            baseError + `${e.response.status}: ${e.response.data.reason}`
-          );
-          return {
-            items: [],
-            total: 0,
-          };
+          if (e.response.status === 404)
+            return {
+              items: [],
+              total: 0,
+            };
+          else
+            throw new FailedError(
+              baseError + `${e.response.status}: ${e.response.data.reason}`
+            );
         } else if (e.request) {
           throw new NetworkError(baseError + e.message);
         } else {
@@ -97,10 +101,11 @@ class ExplorerApi {
       .catch((e) => {
         const baseError = `Failed to get tx [${txId}] from Ergo Explorer: `;
         if (e.response) {
-          logger.warn(
-            baseError + `${e.response.status}: ${e.response.data.reason}`
-          );
-          return -1;
+          if (e.response.status === 404) return -1;
+          else
+            throw new FailedError(
+              baseError + `${e.response.status}: ${e.response.data.reason}`
+            );
         } else if (e.request) {
           throw new NetworkError(baseError + e.message);
         } else {
@@ -120,10 +125,11 @@ class ExplorerApi {
       .catch((e) => {
         const baseError = `Failed to get tx [${txId}] from mempool of Ergo Explorer: `;
         if (e.response) {
-          logger.warn(
-            baseError + `${e.response.status}: ${e.response.data.reason}`
-          );
-          return false;
+          if (e.response.status === 404) return false;
+          else
+            throw new FailedError(
+              baseError + `${e.response.status}: ${e.response.data.reason}`
+            );
         } else if (e.request) {
           throw new NetworkError(baseError + e.message);
         } else {
@@ -143,10 +149,11 @@ class ExplorerApi {
       .catch((e) => {
         const baseError = `Failed to get box [${boxId}] from Ergo Explorer: `;
         if (e.response) {
-          logger.warn(
-            baseError + `${e.response.status}: ${e.response.data.reason}`
-          );
-          return false;
+          if (e.response.status === 404) return false;
+          else
+            throw new FailedError(
+              baseError + `${e.response.status}: ${e.response.data.reason}`
+            );
         } else if (e.request) {
           throw new NetworkError(baseError + e.message);
         } else {
