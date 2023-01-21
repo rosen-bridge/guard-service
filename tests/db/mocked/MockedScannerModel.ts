@@ -121,6 +121,9 @@ when(mockedScannerAction.getUnsignedActiveTxsInChain(anything())).thenCall(
 when(mockedScannerAction.getSignedActiveTxsInChain(anything())).thenCall(
   testScannerDataBase.getSignedActiveTxsInChain
 );
+when(mockedScannerAction.getEventPaymentTransaction(anything())).thenCall(
+  testScannerDataBase.getEventPaymentTransaction
+);
 
 /**
  * deletes every record in Event and Transaction table in ScannerDatabase

@@ -1,4 +1,9 @@
-import { EventTrigger } from '../../../src/models/Models';
+import {
+  EventStatus,
+  EventTrigger,
+  TransactionStatus,
+  TransactionTypes,
+} from '../../../src/models/Models';
 import TestBoxes from './testUtils/TestBoxes';
 import Reward from '../../../src/chains/ergo/Reward';
 import { expect } from 'chai';
@@ -7,6 +12,7 @@ import { beforeEach } from 'mocha';
 import { resetMockedExplorerApi } from './mocked/MockedExplorer';
 import {
   mockGetEventBox,
+  mockGetEventPaymentTransactionId,
   mockGetEventValidCommitments,
   resetMockedInputBoxes,
 } from './mocked/MockedInputBoxes';
@@ -18,8 +24,13 @@ import {
   mockErgoHasLockAddressEnoughAssets,
   mockTrackAndFilterLockBoxes,
 } from '../mocked/MockedErgoTrack';
-import { fail } from 'assert';
 import { NotEnoughAssetsError } from '../../../src/helpers/errors';
+import {
+  clearTables,
+  insertEventRecord,
+  insertTxRecord,
+} from '../../db/mocked/MockedScannerModel';
+import TestUtils from '../../testUtils/TestUtils';
 
 describe('Reward', () => {
   describe('generateTransaction', () => {
@@ -32,7 +43,8 @@ describe('Reward', () => {
       rsnRatio: 0n,
     };
 
-    beforeEach('mock ExplorerApi', function () {
+    beforeEach('mock ExplorerApi', async function () {
+      await clearTables();
       resetMockedReward();
       resetMockedExplorerApi();
       mockErgoHasLockAddressEnoughAssets(true);
@@ -54,6 +66,19 @@ describe('Reward', () => {
     it('should generate an erg distribution tx and verify it successfully', async () => {
       // mock erg payment event
       const mockedEvent: EventTrigger = TestBoxes.mockErgRewardEventTrigger();
+      await insertEventRecord(mockedEvent, EventStatus.pendingReward);
+      const emptyTx = TestBoxes.mockEmptyPaymentTransactionObject(
+        TransactionTypes.payment,
+        mockedEvent.getId()
+      );
+      await insertTxRecord(
+        emptyTx,
+        emptyTx.txType,
+        emptyTx.network,
+        TransactionStatus.completed,
+        100,
+        mockedEvent.getId()
+      );
 
       // run test
       const tx = await Reward.generateTransaction(mockedEvent, mockedFeeConfig);
@@ -79,6 +104,19 @@ describe('Reward', () => {
     it('should generate a token distribution tx and verify it successfully', async () => {
       // mock token payment event
       const mockedEvent: EventTrigger = TestBoxes.mockTokenRewardEventTrigger();
+      await insertEventRecord(mockedEvent, EventStatus.pendingReward);
+      const emptyTx = TestBoxes.mockEmptyPaymentTransactionObject(
+        TransactionTypes.payment,
+        mockedEvent.getId()
+      );
+      await insertTxRecord(
+        emptyTx,
+        emptyTx.txType,
+        emptyTx.network,
+        TransactionStatus.completed,
+        100,
+        mockedEvent.getId()
+      );
 
       // run test
       const tx = await Reward.generateTransaction(mockedEvent, mockedFeeConfig);
@@ -104,6 +142,20 @@ describe('Reward', () => {
     it('should generate an erg distribution tx with RSN token and verify it successfully', async () => {
       // mock erg payment event
       const mockedEvent: EventTrigger = TestBoxes.mockErgRewardEventTrigger();
+      await insertEventRecord(mockedEvent, EventStatus.pendingReward);
+      const emptyTx = TestBoxes.mockEmptyPaymentTransactionObject(
+        TransactionTypes.payment,
+        mockedEvent.getId()
+      );
+      await insertTxRecord(
+        emptyTx,
+        emptyTx.txType,
+        emptyTx.network,
+        TransactionStatus.completed,
+        100,
+        mockedEvent.getId()
+      );
+
       const spiedErgoConfig = spy(ErgoConfigs);
       when(spiedErgoConfig.watchersRSNSharePercent).thenReturn(40n);
 
@@ -131,6 +183,20 @@ describe('Reward', () => {
     it('should generate a token distribution tx with RSN token and verify it successfully', async () => {
       // mock token payment event
       const mockedEvent: EventTrigger = TestBoxes.mockTokenRewardEventTrigger();
+      await insertEventRecord(mockedEvent, EventStatus.pendingReward);
+      const emptyTx = TestBoxes.mockEmptyPaymentTransactionObject(
+        TransactionTypes.payment,
+        mockedEvent.getId()
+      );
+      await insertTxRecord(
+        emptyTx,
+        emptyTx.txType,
+        emptyTx.network,
+        TransactionStatus.completed,
+        100,
+        mockedEvent.getId()
+      );
+
       const spiedErgoConfig = spy(ErgoConfigs);
       when(spiedErgoConfig.watchersRSNSharePercent).thenReturn(40n);
 
@@ -158,6 +224,20 @@ describe('Reward', () => {
     it('should generate an only RSN distribution tx and verify it successfully', async () => {
       // mock token payment event
       const mockedEvent: EventTrigger = TestBoxes.mockErgRewardEventTrigger();
+      await insertEventRecord(mockedEvent, EventStatus.pendingReward);
+      const emptyTx = TestBoxes.mockEmptyPaymentTransactionObject(
+        TransactionTypes.payment,
+        mockedEvent.getId()
+      );
+      await insertTxRecord(
+        emptyTx,
+        emptyTx.txType,
+        emptyTx.network,
+        TransactionStatus.completed,
+        100,
+        mockedEvent.getId()
+      );
+
       const spiedErgoConfig = spy(ErgoConfigs);
       when(spiedErgoConfig.watchersRSNSharePercent).thenReturn(40n);
       when(spiedErgoConfig.watchersSharePercent).thenReturn(0n);
@@ -184,6 +264,20 @@ describe('Reward', () => {
     it('should throw NotEnoughAssetsError when there is not enough assets to generate transaction', async () => {
       // mock token payment event
       const mockedEvent: EventTrigger = TestBoxes.mockErgRewardEventTrigger();
+      await insertEventRecord(mockedEvent, EventStatus.pendingReward);
+      const emptyTx = TestBoxes.mockEmptyPaymentTransactionObject(
+        TransactionTypes.payment,
+        mockedEvent.getId()
+      );
+      await insertTxRecord(
+        emptyTx,
+        emptyTx.txType,
+        emptyTx.network,
+        TransactionStatus.completed,
+        100,
+        mockedEvent.getId()
+      );
+
       mockErgoHasLockAddressEnoughAssets(false);
 
       // run test
@@ -201,6 +295,8 @@ describe('Reward', () => {
       networkFee: 0n,
       rsnRatio: 0n,
     };
+    const paymentTxId =
+      '001b0f0ca1b87bf9444ff29c39efdf12b0061c67f42826e55f6d34f2479be7aa';
 
     beforeEach('mock ExplorerApi', function () {
       resetMockedReward();
@@ -363,6 +459,7 @@ describe('Reward', () => {
     it('should reject a token reward distribution tx that that burning some token', async () => {
       // mock erg payment event
       const mockedEvent: EventTrigger = TestBoxes.mockTokenRewardEventTrigger();
+      mockGetEventPaymentTransactionId(mockedEvent.getId(), paymentTxId);
       const tx = TestBoxes.mockTokenBurningTokenDistributionTransaction(
         mockedEvent,
         eventBoxAndCommitments
@@ -387,6 +484,7 @@ describe('Reward', () => {
     it('should reject a erg reward distribution tx that that burning some token', async () => {
       // mock erg payment event
       const mockedEvent: EventTrigger = TestBoxes.mockErgRewardEventTrigger();
+      mockGetEventPaymentTransactionId(mockedEvent.getId(), paymentTxId);
       const tx = TestBoxes.mockTokenBurningErgDistributionTransaction(
         mockedEvent,
         eventBoxAndCommitments
@@ -411,6 +509,7 @@ describe('Reward', () => {
     it('should reject an only RSN distribution tx that transferring wrong amount', async () => {
       // mock erg payment event
       const mockedEvent: EventTrigger = TestBoxes.mockErgRewardEventTrigger();
+      mockGetEventPaymentTransactionId(mockedEvent.getId(), paymentTxId);
       const tx = TestBoxes.mockWrongAmountRSNOnlyDistributionTransaction(
         mockedEvent,
         eventBoxAndCommitments

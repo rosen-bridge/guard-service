@@ -28,6 +28,7 @@ import MinimumFee from '../../guard/MinimumFee';
 import {
   NotEnoughAssetsError,
   NotEnoughValidBoxesError,
+  NotFoundError,
 } from '../../helpers/errors';
 import ErgoTrack from './ErgoTrack';
 
@@ -62,6 +63,11 @@ class Reward {
       MinimumFee.bridgeMinimumFee.ratioDivisor,
     ];
 
+    // get event payment transaction id
+    const paymentTxId = await InputBoxes.getEventPaymentTransactionId(
+      event.getId()
+    );
+
     // create transaction output boxes
     const outBoxes =
       event.sourceChainTokenId === ChainsConstants.ergoNativeAsset
@@ -74,7 +80,8 @@ class Reward {
             event.sourceChainTokenId,
             ChainsConstants.ergo,
             Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee),
-            Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee)
+            Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee),
+            paymentTxId
           )
         : this.tokenEventRewardBoxes(
             event,
@@ -85,7 +92,8 @@ class Reward {
             event.sourceChainTokenId,
             ChainsConstants.ergo,
             Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee),
-            Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee)
+            Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee),
+            paymentTxId
           );
 
     // calculate required assets
@@ -193,7 +201,7 @@ class Reward {
    * verifies the reward transaction data with the event
    *  1. checks number of output boxes
    *  2. checks change box ergoTree
-   *  3. checks assets, contracts and R4 of output boxes (expect last two) are same as the one we generated
+   *  3. checks assets, contracts and R4 of output boxes are same as the one we generated
    *  4. checks transaction fee (last box erg value)
    *  5. checks assets of inputs are same as assets of output (no token burned)
    * @param paymentTx the payment transaction
@@ -264,6 +272,21 @@ class Reward {
       return false;
     }
 
+    // get event payment transaction id
+    let paymentTxId = '';
+    try {
+      paymentTxId = await InputBoxes.getEventPaymentTransactionId(
+        event.getId()
+      );
+    } catch (e) {
+      if (e instanceof NotFoundError) {
+        logger.info(
+          `Rejected tx [${paymentTx.txId}]. Reason: Failed to get event payment transaction`
+        );
+        return false;
+      } else throw e;
+    }
+
     // verify reward boxes
     const expectedRewardBoxes =
       event.sourceChainTokenId === ChainsConstants.ergoNativeAsset
@@ -276,7 +299,8 @@ class Reward {
             event.sourceChainTokenId,
             event.fromChain,
             Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee),
-            Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee)
+            Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee),
+            paymentTxId
           )
         : this.tokenEventRewardBoxes(
             event,
@@ -287,7 +311,8 @@ class Reward {
             event.sourceChainTokenId,
             event.fromChain,
             Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee),
-            Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee)
+            Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee),
+            paymentTxId
           );
 
     const rewardBoxes: ErgoBoxCandidate[] = [];
@@ -363,6 +388,7 @@ class Reward {
    * @param network
    * @param bridgeFee event bridge fee
    * @param networkFee event network fee
+   * @param paymentTxId payment transaction id
    * @return the generated reward reduced transaction
    */
   static ergEventRewardBoxes = (
@@ -374,7 +400,8 @@ class Reward {
     paymentTokenId: string,
     network: string,
     bridgeFee: bigint,
-    networkFee: bigint
+    networkFee: bigint,
+    paymentTxId: string
   ): ErgoBoxCandidate[] => {
     const watchersLen: number = event.WIDs.length + commitmentBoxes.length;
     const rsnFee = (bridgeFee * rsnCoef[0]) / rsnCoef[1];
@@ -415,6 +442,7 @@ class Reward {
       guardNetworkTokenAmount,
       network,
       paymentTokenId,
+      paymentTxId,
       wids
     );
   };
@@ -430,6 +458,7 @@ class Reward {
    * @param network
    * @param bridgeFee event bridge fee
    * @param networkFee event network fee
+   * @param paymentTxId payment transaction id
    * @return the generated reward reduced transaction
    */
   static tokenEventRewardBoxes = (
@@ -441,7 +470,8 @@ class Reward {
     paymentTokenId: string,
     network: string,
     bridgeFee: bigint,
-    networkFee: bigint
+    networkFee: bigint,
+    paymentTxId: string
   ): ErgoBoxCandidate[] => {
     const watchersLen: number = event.WIDs.length + commitmentBoxes.length;
     const rsnFee = (bridgeFee * rsnCoef[0]) / rsnCoef[1];
@@ -481,6 +511,7 @@ class Reward {
       guardNetworkTokenAmount,
       network,
       paymentTokenId,
+      paymentTxId,
       wids
     );
   };

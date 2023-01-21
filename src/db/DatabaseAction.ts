@@ -15,7 +15,7 @@ import {
 import Utils from '../helpers/Utils';
 import { loggerFactory } from '../log/Logger';
 import { Semaphore } from 'await-semaphore/index';
-import { ImpossibleBehavior } from '../helpers/errors';
+import { ImpossibleBehavior, NotFoundError } from '../helpers/errors';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -415,6 +415,34 @@ class DatabaseAction {
         },
       ],
     });
+  };
+
+  /**
+   * returns the payment transaction for an event
+   * @param eventId
+   */
+  getEventPaymentTransaction = async (
+    eventId: string
+  ): Promise<TransactionEntity> => {
+    const event = await this.getEventById(eventId);
+    if (event === null) throw new NotFoundError(`Event [${eventId}] not found`);
+    const txs = await this.TransactionRepository.find({
+      relations: ['event'],
+      where: [
+        {
+          event: event,
+          status: TransactionStatus.completed,
+          type: TransactionTypes.payment,
+        },
+      ],
+    });
+    if (txs.length === 0)
+      throw new NotFoundError(`No payment tx found for event [${eventId}]`);
+    else if (txs.length > 1)
+      throw new ImpossibleBehavior(
+        `Found more than one completed payment transaction for event [${eventId}]`
+      );
+    else return txs[0];
   };
 }
 
