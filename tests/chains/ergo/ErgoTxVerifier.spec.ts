@@ -10,7 +10,6 @@ import TestData from './testUtils/TestData';
 import ErgoUtils from '../../../src/chains/ergo/helpers/ErgoUtils';
 import {
   mockGetEventBox,
-  mockGetEventPaymentTransactionId,
   mockGetEventValidCommitments,
   resetMockedInputBoxes,
 } from './mocked/MockedInputBoxes';
@@ -30,8 +29,6 @@ describe('ErgoTxVerifier', () => {
       networkFee: 0n,
       rsnRatio: 0n,
     };
-    const paymentTxId =
-      '001b0f0ca1b87bf9444ff29c39efdf12b0061c67f42826e55f6d34f2479be7aa';
 
     beforeEach('mock ExplorerApi', function () {
       resetMockedInputBoxes();
@@ -49,7 +46,6 @@ describe('ErgoTxVerifier', () => {
     it('should reject an Erg payment tx that transferring token', async () => {
       // mock erg payment event
       const mockedEvent: EventTrigger = TestBoxes.mockErgPaymentEventTrigger();
-      mockGetEventPaymentTransactionId(mockedEvent.getId(), paymentTxId);
       const tx = TestBoxes.mockTokenTransferringPaymentTransaction(
         mockedEvent,
         eventBoxAndCommitments
@@ -75,7 +71,6 @@ describe('ErgoTxVerifier', () => {
       // mock token payment event
       const mockedEvent: EventTrigger =
         TestBoxes.mockTokenPaymentEventTrigger();
-      mockGetEventPaymentTransactionId(mockedEvent.getId(), paymentTxId);
       const tx = TestBoxes.mockErgTransferringPaymentTransaction(
         mockedEvent,
         eventBoxAndCommitments
@@ -101,7 +96,6 @@ describe('ErgoTxVerifier', () => {
       // mock token payment event
       const mockedEvent: EventTrigger =
         TestBoxes.mockTokenPaymentEventTrigger();
-      mockGetEventPaymentTransactionId(mockedEvent.getId(), paymentTxId);
       const tx = TestBoxes.mockMultipleTokensTransferringPaymentTransaction(
         mockedEvent,
         eventBoxAndCommitments
@@ -127,7 +121,6 @@ describe('ErgoTxVerifier', () => {
       // mock token payment event
       const mockedEvent: EventTrigger =
         TestBoxes.mockTokenPaymentEventTrigger();
-      mockGetEventPaymentTransactionId(mockedEvent.getId(), paymentTxId);
       const tx = TestBoxes.mockWrongTokenTransferringPaymentTransaction(
         mockedEvent,
         eventBoxAndCommitments
@@ -152,7 +145,6 @@ describe('ErgoTxVerifier', () => {
     it('should reject a token payment tx that distributing reward to wrong WID', async () => {
       // mock erg payment event
       const mockedEvent: EventTrigger = TestBoxes.mockTokenRewardEventTrigger();
-      mockGetEventPaymentTransactionId(mockedEvent.getId(), paymentTxId);
       const tx = TestBoxes.mockTransferToIllegalWIDTokenPaymentTransaction(
         mockedEvent,
         eventBoxAndCommitments
@@ -177,7 +169,6 @@ describe('ErgoTxVerifier', () => {
     it('should reject a token payment tx that missing a valid commitment box when distributing rewards', async () => {
       // mock erg payment event
       const mockedEvent: EventTrigger = TestBoxes.mockTokenRewardEventTrigger();
-      mockGetEventPaymentTransactionId(mockedEvent.getId(), paymentTxId);
       const tx = TestBoxes.mockMissingValidCommitmentTokenPaymentTransaction(
         mockedEvent,
         eventBoxAndCommitments.slice(0, eventBoxAndCommitments.length - 1)
@@ -203,7 +194,6 @@ describe('ErgoTxVerifier', () => {
       // mock token payment event
       const mockedEvent: EventTrigger =
         TestBoxes.mockTokenPaymentEventTrigger();
-      mockGetEventPaymentTransactionId(mockedEvent.getId(), paymentTxId);
       const tx = TestBoxes.mockTokenBurningTokenPaymentTransaction(
         mockedEvent,
         eventBoxAndCommitments
@@ -228,7 +218,6 @@ describe('ErgoTxVerifier', () => {
     it('should reject a erg payment tx that burning some token', async () => {
       // mock token payment event
       const mockedEvent: EventTrigger = TestBoxes.mockErgPaymentEventTrigger();
-      mockGetEventPaymentTransactionId(mockedEvent.getId(), paymentTxId);
       const tx = TestBoxes.mockTokenBurningErgPaymentTransaction(
         mockedEvent,
         eventBoxAndCommitments
@@ -253,7 +242,6 @@ describe('ErgoTxVerifier', () => {
     it('should reject an only RSN payment tx that transferring wrong amount', async () => {
       // mock token payment event
       const mockedEvent: EventTrigger = TestBoxes.mockErgPaymentEventTrigger();
-      mockGetEventPaymentTransactionId(mockedEvent.getId(), paymentTxId);
       const tx = TestBoxes.mockWrongAmountRSNOnlyPaymentTransaction(
         mockedEvent,
         eventBoxAndCommitments
@@ -275,6 +263,55 @@ describe('ErgoTxVerifier', () => {
       );
       expect(isValid).to.be.false;
     });
+
+    /**
+     * Target: testing verifyTransactionWithEvent
+     * Dependencies:
+     *    RewardBoxes
+     * Expected Output:
+     *    It should NOT verify the transaction
+     */
+    it('should reject a payment tx with wrong R4 in bridgeFee box', async () => {
+      // mock erg payment event
+      const mockedEvent: EventTrigger =
+        TestBoxes.mockTokenPaymentEventTrigger();
+      const tx = TestBoxes.mockWrongR4PaymentTransaction(
+        mockedEvent,
+        eventBoxAndCommitments
+      );
+
+      // run test
+      const isValid = await ErgoTxVerifier.verifyTransactionWithEvent(
+        tx,
+        mockedEvent,
+        mockedFeeConfig
+      );
+      expect(isValid).to.be.false;
+    });
+
+    // /** TODO: uncomment this test after fixing bug in Reward bridgeFee amount calculation (#143)
+    //  * Target: testing verifyTransactionWithEvent
+    //  * Dependencies:
+    //  *    RewardBoxes
+    //  * Expected Output:
+    //  *    It should verify the transaction
+    //  */
+    // it('should accept a valid payment tx', async () => {
+    //   // mock erg payment event
+    //   const mockedEvent: EventTrigger = TestBoxes.mockTokenPaymentEventTrigger();
+    //   const tx = TestBoxes.mockFineTokenPaymentTransaction(
+    //     mockedEvent,
+    //     eventBoxAndCommitments
+    //   );
+    //
+    //   // run test
+    //   const isValid = await ErgoTxVerifier.verifyTransactionWithEvent(
+    //     tx,
+    //     mockedEvent,
+    //     mockedFeeConfig
+    //   );
+    //   expect(isValid).to.be.true;
+    // });
   });
 
   describe('verifyEventWithPayment', () => {
