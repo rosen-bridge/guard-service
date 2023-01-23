@@ -81,7 +81,9 @@ class BoxVerifications {
     expectedBoxes: ErgoBoxCandidate[]
   ): boolean => {
     if (boxes.length !== expectedBoxes.length) {
-      logger.debug(`Box list is not compatible: Wrong number of boxes`);
+      logger.debug(
+        `Box list is not compatible: Found [${boxes.length}] boxes, Expected [${expectedBoxes.length}] boxes`
+      );
       return false;
     }
 
@@ -109,7 +111,13 @@ class BoxVerifications {
         box.tokens().len() !== expectedBox.tokens().len()
       ) {
         logger.debug(
-          `Box is not compatible: Box value or size of tokens are not equal to expected ones`
+          `Box is not compatible: Box value or size of tokens are not equal to expected ones`,
+          {
+            value: ErgoUtils.bigintFromBoxValue(box.value()),
+            expectedValue: ErgoUtils.bigintFromBoxValue(expectedBox.value()),
+            tokenLen: box.tokens().len(),
+            expectedTokenLen: expectedBox.tokens().len(),
+          }
         );
         return false;
       }

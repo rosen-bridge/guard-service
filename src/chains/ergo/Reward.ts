@@ -181,7 +181,7 @@ class Reward {
     );
 
     logger.info(
-      `Payment Transaction [${txId}] for event [${eventId}] generated`
+      `Payment Transaction [${txId}] generated for event [${eventId}]`
     );
     return ergoTx;
   };
@@ -233,7 +233,13 @@ class Reward {
     const outputLength = outputBoxes.len();
     const watchersLen = event.WIDs.length + commitmentBoxes.length;
     if (outputLength !== watchersLen + 4) {
-      logger.debug(`Tx [${paymentTx.txId}] invalid: Wrong number of outputs`);
+      logger.debug(
+        `Tx [${
+          paymentTx.txId
+        }] invalid: Found [${outputLength}] output boxes, Expected [${
+          watchersLen + 4
+        }] output boxes`
+      );
       return false;
     }
 
@@ -313,7 +319,7 @@ class Reward {
           paymentTx.txId
         }] invalid: Transaction fee [${ErgoUtils.bigintFromBoxValue(
           outputBoxes.get(outputLength - 1).value()
-        )}] is more than config fee [${ErgoConfigs.txFee}]`
+        )}] is more than maximum allowed fee [${ErgoConfigs.txFee}]`
       );
       return false;
     }

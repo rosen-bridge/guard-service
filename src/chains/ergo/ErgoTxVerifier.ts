@@ -83,7 +83,13 @@ class ErgoTxVerifier {
     const outputLength = outputBoxes.len();
     const watchersLen = event.WIDs.length + commitmentBoxes.length;
     if (outputLength !== watchersLen + 5) {
-      logger.debug(`Tx [${paymentTx.txId}] invalid: Wrong number of outputs`);
+      logger.debug(
+        `Tx [${
+          paymentTx.txId
+        }] invalid: Found [${outputLength}] output boxes, Expected [${
+          watchersLen + 5
+        }] output boxes`
+      );
       return false;
     }
 
@@ -159,7 +165,7 @@ class ErgoTxVerifier {
           paymentTx.txId
         }] invalid: Transaction fee [${ErgoUtils.bigintFromBoxValue(
           outputBoxes.get(outputLength - 1).value()
-        )}] is more than config fee [${ErgoConfigs.txFee}]`
+        )}] is more than maximum allowed fee [${ErgoConfigs.txFee}]`
       );
       return false;
     }

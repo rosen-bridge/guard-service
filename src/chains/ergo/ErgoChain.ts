@@ -187,7 +187,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
     );
 
     logger.info(
-      `Payment transaction [${txId}] generated for event [${eventId}] in Ergo chain`
+      `Payment transaction [${txId}] generated for event [${eventId}]`
     );
     return ergoTx;
   };
@@ -370,7 +370,8 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
       })
       .catch(async (e) => {
         logger.info(
-          `An error occurred while requesting Multisig service to sign Ergo transaction [${paymentTx.txId}]: ${e}`
+          `An error occurred while requesting Multisig service to sign Ergo transaction [${paymentTx.txId}]: ${e}`,
+          { stack: e.stack }
         );
         await dbAction.setTxStatus(
           paymentTx.txId,
@@ -393,7 +394,8 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
       );
     } catch (e) {
       logger.warn(
-        `An error occurred while submitting Ergo transaction [${paymentTx.txId}]: ${e.stack}`
+        `An error occurred while submitting Ergo transaction [${paymentTx.txId}]: ${e}`,
+        { stack: e.stack }
       );
     }
   };

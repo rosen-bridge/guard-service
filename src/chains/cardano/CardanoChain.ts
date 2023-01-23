@@ -151,7 +151,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
     ); // we don't need inputBoxes in PaymentTransaction for Cardano tx
 
     logger.info(
-      `Payment transaction [${txId}] generated for event [${eventId}] in Cardano chain`
+      `Payment transaction [${txId}] generated for event [${eventId}]`
     );
     return paymentTx;
   };
@@ -386,7 +386,8 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
       );
     } catch (e) {
       logger.warn(
-        `An error occurred while submitting Cardano transaction [${paymentTx.txId}]: ${e.stack}`
+        `An error occurred while submitting Cardano transaction [${paymentTx.txId}]: ${e}`,
+        { stack: e.stack }
       );
     }
   };
