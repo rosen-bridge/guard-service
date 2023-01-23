@@ -1,15 +1,15 @@
 **Issue Description:**
 
-[//]: <> (fill in / leave empty)
+<TBD / N/A>
 
 **Solution:**
 
-[//]: <> (fill in / leave empty)
+<TBD / N/A>
 
 **Acceptance Conditions:**
 
-[//]: <> (fill in / leave empty)
+<TBD / N/A>
 
 **Requierd Unit Tests:**
 
-[//]: <> (fill in / leave empty)
+<TBD / N/A>
