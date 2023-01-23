@@ -289,7 +289,7 @@ describe('ErgoTxVerifier', () => {
       expect(isValid).to.be.false;
     });
 
-    // /** TODO: uncomment this test after fixing bug in Reward bridgeFee amount calculation (#143)
+    // /** TODO: uncomment this test after fixing bug in Reward bridgeFee amount calculation (#144)
     //  * Target: testing verifyTransactionWithEvent
     //  * Dependencies:
     //  *    RewardBoxes
