@@ -74,13 +74,18 @@ class ErgoTxVerifier {
         commitmentBoxes,
         paymentTx.inputBoxes
       )
-    )
+    ) {
+      logger.debug(`Tx [${paymentTx.txId}] invalid: Inputs aren't verified`);
       return false;
+    }
 
     // verify number of output boxes (1 payment box + number of watchers + 2 box for guards + 1 change box + 1 tx fee box)
     const outputLength = outputBoxes.len();
     const watchersLen = event.WIDs.length + commitmentBoxes.length;
-    if (outputLength !== watchersLen + 5) return false;
+    if (outputLength !== watchersLen + 5) {
+      logger.debug(`Tx [${paymentTx.txId}] invalid: Wrong number of outputs`);
+      return false;
+    }
 
     // verify change box address
     if (
@@ -88,8 +93,17 @@ class ErgoTxVerifier {
         .get(outputLength - 2)
         .ergo_tree()
         .to_base16_bytes() !== this.lockErgoTree
-    )
+    ) {
+      logger.debug(
+        `Tx [${paymentTx.txId}] invalid: ChangeBox ergoTree [${outputBoxes
+          .get(outputLength - 2)
+          .ergo_tree()
+          .to_base16_bytes()}] is not equal to lock ergoTree [${
+          this.lockErgoTree
+        }]`
+      );
       return false;
+    }
 
     // verify payment box + reward boxes
     const outBoxes =
@@ -127,22 +141,36 @@ class ErgoTxVerifier {
         rewardBoxes.sort(InputBoxes.compareTwoBoxCandidate),
         outBoxes.sort(InputBoxes.compareTwoBoxCandidate)
       )
-    )
+    ) {
+      logger.debug(
+        `Tx [${paymentTx.txId}] invalid: Guards and watchers boxes are made different`
+      );
       return false;
+    }
 
     // verify tx fee
     if (
       ErgoUtils.bigintFromBoxValue(
         outputBoxes.get(outputLength - 1).value()
       ) !== ErgoConfigs.txFee
-    )
+    ) {
+      logger.debug(
+        `Tx [${
+          paymentTx.txId
+        }] invalid: Transaction fee [${ErgoUtils.bigintFromBoxValue(
+          outputBoxes.get(outputLength - 1).value()
+        )}] is more than config fee [${ErgoConfigs.txFee}]`
+      );
       return false;
+    }
 
     // verify no token burned
-    return BoxVerifications.verifyNoTokenBurned(
-      paymentTx.inputBoxes,
-      outputBoxes
-    );
+    if (BoxVerifications.verifyNoTokenBurned(paymentTx.inputBoxes, outputBoxes))
+      return true;
+    else {
+      logger.debug(`Tx [${paymentTx.txId}] invalid: Some tokens got burned`);
+      return false;
+    }
   };
 
   /**
