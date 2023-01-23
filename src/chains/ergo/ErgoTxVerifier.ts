@@ -161,11 +161,11 @@ class ErgoTxVerifier {
       ) !== ErgoConfigs.txFee
     ) {
       logger.debug(
-        `Tx [${
-          paymentTx.txId
-        }] invalid: Transaction fee [${ErgoUtils.bigintFromBoxValue(
-          outputBoxes.get(outputLength - 1).value()
-        )}] is more than maximum allowed fee [${ErgoConfigs.txFee}]`
+        `Tx [${paymentTx.txId}] invalid: Transaction fee [${outputBoxes
+          .get(outputLength - 1)
+          .value()
+          .as_i64()
+          .to_str()}] is more than maximum allowed fee [${ErgoConfigs.txFee}]`
       );
       return false;
     }

@@ -113,8 +113,8 @@ class BoxVerifications {
         logger.debug(
           `Box is not compatible: Box value or size of tokens are not equal to expected ones`,
           {
-            value: ErgoUtils.bigintFromBoxValue(box.value()),
-            expectedValue: ErgoUtils.bigintFromBoxValue(expectedBox.value()),
+            value: box.value().as_i64().to_str(),
+            expectedValue: expectedBox.value().as_i64().to_str(),
             tokenLen: box.tokens().len(),
             expectedTokenLen: expectedBox.tokens().len(),
           }
