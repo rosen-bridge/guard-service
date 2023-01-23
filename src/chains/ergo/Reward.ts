@@ -451,7 +451,7 @@ class Reward {
       BigInt(watchersLen);
     const guardBridgeFeeErgAmount: bigint = ErgoConfigs.minimumErg;
     const guardBridgeFeeTokenAmount: bigint =
-      bridgeFee - BigInt(watchersLen) * watcherErgAmount;
+      bridgeFee - BigInt(watchersLen) * watcherTokenAmount;
     const guardRsnAmount: bigint =
       rsnFee - BigInt(watchersLen) * watcherRsnAmount;
     const guardNetworkErgAmount: bigint = ErgoConfigs.minimumErg;
