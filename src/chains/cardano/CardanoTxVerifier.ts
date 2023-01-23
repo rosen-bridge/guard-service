@@ -39,6 +39,7 @@ class CardanoTxVerifier {
    *  5. checks number of assets in payment box paymentMultiAsset (asset payment)
    *  6. checks amount for paymentAsset in payment box (asset payment)
    *  7. checks address of payment box
+   *  8. checks transaction fee
    * @param paymentTx the payment transaction
    * @param event the event trigger model
    * @param feeConfig minimum fee and rsn ratio config for the event
@@ -60,7 +61,7 @@ class CardanoTxVerifier {
       )
         return false;
 
-    // verify all bank boxes have no metadata
+    // verify tx has no metadata
     if (tx.auxiliary_data()) return false;
 
     // verify event conditions
@@ -109,12 +110,16 @@ class CardanoTxVerifier {
         .multiasset()
         ?.get_asset(paymentAssetPolicyId, paymentAssetAssetName);
 
-      return (
-        paymentBox.amount().coin().compare(lovelacePaymentAmount) === 0 &&
-        paymentAssetAmount !== undefined &&
-        paymentAssetAmount.compare(assetPaymentAmount) === 0 &&
-        paymentBox.address().to_bech32() === event.toAddress
-      );
+      if (
+        paymentBox.amount().coin().compare(lovelacePaymentAmount) !== 0 ||
+        paymentAssetAmount === undefined ||
+        paymentAssetAmount.compare(assetPaymentAmount) !== 0 ||
+        paymentBox.address().to_bech32() !== event.toAddress
+      )
+        return false;
+
+      // verify tx fee
+      return tx.body().fee().compare(CardanoConfigs.txFee) <= 0;
     }
   };
 
