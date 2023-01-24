@@ -1,5 +1,6 @@
 import config from 'config';
 import { RelayInfo } from './Interfaces';
+import { getConfigIntKeyOrDefault } from '../helpers/Configs';
 
 class CommunicationConfig {
   private static relaysInfo: RelayInfo[] =
@@ -8,25 +9,36 @@ class CommunicationConfig {
     multiaddrs: this.relaysInfo.map((info) => info.address.concat(info.peerId)),
     peerIDs: this.relaysInfo.map((info) => info.peerId),
   };
-  static bootstrapTimeout: number = config.get<number>('p2p.bootstrapTimeout'); // seconds
-  static pubsubInterval: number = config.get<number>('p2p.pubsubInterval'); // seconds
-  static apiCallbackTimeout: number = config.get<number>(
-    'p2p.apiCallbackTimeout'
+  static bootstrapTimeout: number = getConfigIntKeyOrDefault(
+    'p2p.bootstrapTimeout',
+    10
   ); // seconds
-  static loggingInterval: number = config.get<number>('p2p.loggingInterval'); // seconds
+  static pubsubInterval: number = getConfigIntKeyOrDefault(
+    'p2p.pubsubInterval',
+    10
+  ); // seconds
+  static apiCallbackTimeout: number = getConfigIntKeyOrDefault(
+    'p2p.apiCallbackTimeout',
+    8
+  ); // seconds
+  static loggingInterval: number = getConfigIntKeyOrDefault(
+    'p2p.loggingInterval',
+    60
+  ); // seconds
   static peerIdFilePath: string = config.get<string>('p2p.peerIdFilePath');
-  static messageSendingRetriesExponentialFactor: number = config.get<number>(
-    'p2p.messageSendingRetriesExponentialFactor'
-  );
+  static messageSendingRetriesExponentialFactor: number =
+    getConfigIntKeyOrDefault('p2p.messageSendingRetriesExponentialFactor', 5);
   static messageSendingRetriesMaxCount = BigInt(
-    config.get<number>('p2p.messageSendingRetriesMaxCount')
+    getConfigIntKeyOrDefault('p2p.messageSendingRetriesMaxCount', 3)
   );
-  static guardsCount: number = config.get<number>('p2p.guardsCount');
-  static allowedStreamsPerGuard: number = config.get<number>(
-    'p2p.allowedStreamsPerGuard'
+  static guardsCount: number = getConfigIntKeyOrDefault('p2p.guardsCount', 30);
+  static allowedStreamsPerGuard: number = getConfigIntKeyOrDefault(
+    'p2p.allowedStreamsPerGuard',
+    3
   );
-  static relayReconnectionInterval: number = config.get<number>(
-    'p2p.relayReconnectionInterval'
+  static relayReconnectionInterval: number = getConfigIntKeyOrDefault(
+    'p2p.relayReconnectionInterval',
+    30
   );
 }
 
