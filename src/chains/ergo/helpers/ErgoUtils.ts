@@ -13,6 +13,9 @@ import { AssetMap, BoxesAssets, ExplorerOutputBox } from '../models/Interfaces';
 import ChainsConstants from '../../ChainsConstants';
 import Utils from '../../../helpers/Utils';
 import ErgoTransaction from '../models/ErgoTransaction';
+import { loggerFactory } from '../../../log/Logger';
+
+const logger = loggerFactory(import.meta.url);
 
 class ErgoUtils {
   /**
@@ -197,6 +200,12 @@ class ErgoUtils {
         return undefined;
       }
     } catch (e) {
+      logger.debug(
+        `An error occurred while extracting RosenData from Explorer box: ${e}`,
+        {
+          stack: e.stack,
+        }
+      );
       return undefined;
     }
   };

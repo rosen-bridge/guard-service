@@ -151,7 +151,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
     ); // we don't need inputBoxes in PaymentTransaction for Cardano tx
 
     logger.info(
-      `Payment transaction [${txId}] for event [${eventId}] generated`
+      `Payment transaction [${txId}] generated for event [${eventId}]`
     );
     return paymentTx;
   };
@@ -381,10 +381,13 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
     try {
       await dbAction.setTxStatus(paymentTx.txId, TransactionStatus.sent);
       const response = await BlockFrostApi.txSubmit(tx);
-      logger.info('Cardano Transaction submitted', { txId: response });
+      logger.info(
+        `Cardano Transaction [${paymentTx.txId}] submitted. Response: ${response}`
+      );
     } catch (e) {
       logger.warn(
-        `An error occurred while submitting Cardano transaction: ${e.stack}`
+        `An error occurred while submitting Cardano transaction [${paymentTx.txId}]: ${e}`,
+        { stack: e.stack }
       );
     }
   };

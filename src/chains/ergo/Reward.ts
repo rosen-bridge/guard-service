@@ -181,7 +181,7 @@ class Reward {
     );
 
     logger.info(
-      `Payment Transaction [${txId}] for event [${eventId}] generated`
+      `Payment Transaction [${txId}] generated for event [${eventId}]`
     );
     return ergoTx;
   };
@@ -224,13 +224,24 @@ class Reward {
         commitmentBoxes,
         paymentTx.inputBoxes
       )
-    )
+    ) {
+      logger.debug(`Tx [${paymentTx.txId}] invalid: Inputs aren't verified`);
       return false;
+    }
 
     // verify number of output boxes (number of watchers + 2 box for guards + 1 change box + 1 tx fee box)
     const outputLength = outputBoxes.len();
     const watchersLen = event.WIDs.length + commitmentBoxes.length;
-    if (outputLength !== watchersLen + 4) return false;
+    if (outputLength !== watchersLen + 4) {
+      logger.debug(
+        `Tx [${
+          paymentTx.txId
+        }] invalid: Found [${outputLength}] output boxes, Expected [${
+          watchersLen + 4
+        }] output boxes`
+      );
+      return false;
+    }
 
     // verify change box address
     if (
@@ -238,8 +249,17 @@ class Reward {
         .get(outputLength - 2)
         .ergo_tree()
         .to_base16_bytes() !== this.lockErgoTree
-    )
+    ) {
+      logger.debug(
+        `Tx [${paymentTx.txId}] invalid: ChangeBox ergoTree [${outputBoxes
+          .get(outputLength - 2)
+          .ergo_tree()
+          .to_base16_bytes()}] is not equal to lock ergoTree [${
+          this.lockErgoTree
+        }]`
+      );
       return false;
+    }
 
     // verify reward boxes
     const expectedRewardBoxes =
@@ -281,22 +301,34 @@ class Reward {
         rewardBoxes.sort(InputBoxes.compareTwoBoxCandidate),
         expectedRewardBoxes.sort(InputBoxes.compareTwoBoxCandidate)
       )
-    )
+    ) {
+      logger.debug(
+        `Tx [${paymentTx.txId}] invalid: Guards and watchers boxes are made different`
+      );
       return false;
+    }
 
     // verify tx fee
     if (
       ErgoUtils.bigintFromBoxValue(
         outputBoxes.get(outputLength - 1).value()
       ) !== ErgoConfigs.txFee
-    )
+    ) {
+      logger.debug(
+        `Tx [${paymentTx.txId}] invalid: Transaction fee [${outputBoxes
+          .get(outputLength - 1)
+          .value()}] is more than maximum allowed fee [${ErgoConfigs.txFee}]`
+      );
       return false;
+    }
 
     // verify no token burned
-    return BoxVerifications.verifyNoTokenBurned(
-      paymentTx.inputBoxes,
-      outputBoxes
-    );
+    if (BoxVerifications.verifyNoTokenBurned(paymentTx.inputBoxes, outputBoxes))
+      return true;
+    else {
+      logger.debug(`Tx [${paymentTx.txId}] invalid: Some tokens got burned`);
+      return false;
+    }
   };
 
   /**
