@@ -1,4 +1,3 @@
-import ErgoChain from '../../../src/chains/ergo/ErgoChain';
 import { EventTrigger } from '../../../src/models/Models';
 import TestBoxes from './testUtils/TestBoxes';
 import { expect } from 'chai';
@@ -264,6 +263,55 @@ describe('ErgoTxVerifier', () => {
       );
       expect(isValid).to.be.false;
     });
+
+    /**
+     * Target: testing verifyTransactionWithEvent
+     * Dependencies:
+     *    RewardBoxes
+     * Expected Output:
+     *    It should NOT verify the transaction
+     */
+    it('should reject a payment tx with wrong R4 in bridgeFee box', async () => {
+      // mock erg payment event
+      const mockedEvent: EventTrigger =
+        TestBoxes.mockTokenPaymentEventTrigger();
+      const tx = TestBoxes.mockWrongR4PaymentTransaction(
+        mockedEvent,
+        eventBoxAndCommitments
+      );
+
+      // run test
+      const isValid = await ErgoTxVerifier.verifyTransactionWithEvent(
+        tx,
+        mockedEvent,
+        mockedFeeConfig
+      );
+      expect(isValid).to.be.false;
+    });
+
+    // /** TODO: uncomment this test after fixing bug in Reward bridgeFee amount calculation (#144)
+    //  * Target: testing verifyTransactionWithEvent
+    //  * Dependencies:
+    //  *    RewardBoxes
+    //  * Expected Output:
+    //  *    It should verify the transaction
+    //  */
+    // it('should accept a valid payment tx', async () => {
+    //   // mock erg payment event
+    //   const mockedEvent: EventTrigger = TestBoxes.mockTokenPaymentEventTrigger();
+    //   const tx = TestBoxes.mockFineTokenPaymentTransaction(
+    //     mockedEvent,
+    //     eventBoxAndCommitments
+    //   );
+    //
+    //   // run test
+    //   const isValid = await ErgoTxVerifier.verifyTransactionWithEvent(
+    //     tx,
+    //     mockedEvent,
+    //     mockedFeeConfig
+    //   );
+    //   expect(isValid).to.be.true;
+    // });
   });
 
   describe('verifyEventWithPayment', () => {

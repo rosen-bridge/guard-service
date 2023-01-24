@@ -70,6 +70,10 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
       MinimumFee.bridgeMinimumFee.ratioDivisor,
     ];
 
+    // get event payment transaction id
+    //  in CHAIN to Ergo events, payment and reward txs are combined
+    const paymentTxId = '';
+
     // create transaction output boxes
     const outBoxes =
       event.targetChainTokenId === ChainsConstants.ergoNativeAsset
@@ -80,7 +84,8 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
             rsnCoef,
             currentHeight,
             Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee),
-            Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee)
+            Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee),
+            paymentTxId
           )
         : this.tokenEventOutBoxes(
             event,
@@ -89,7 +94,8 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
             rsnCoef,
             currentHeight,
             Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee),
-            Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee)
+            Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee),
+            paymentTxId
           );
 
     // calculate required assets
@@ -238,6 +244,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
    * @param currentHeight current height of blockchain
    * @param bridgeFee event bridge fee
    * @param networkFee event network fee
+   * @param paymentTxId payment transaction id
    * @return the generated reward reduced transaction
    */
   ergEventOutBoxes = (
@@ -247,7 +254,8 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
     rsnCoef: [bigint, bigint],
     currentHeight: number,
     bridgeFee: bigint,
-    networkFee: bigint
+    networkFee: bigint,
+    paymentTxId: string
   ): ErgoBoxCandidate[] => {
     // calculate assets of payemnt box
     const paymentErgAmount: bigint =
@@ -265,7 +273,8 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
       paymentTokenId,
       event.fromChain,
       bridgeFee,
-      networkFee
+      networkFee,
+      paymentTxId
     );
     const paymentBox = OutputBoxes.createPaymentBox(
       currentHeight,
@@ -287,6 +296,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
    * @param currentHeight current height of blockchain
    * @param bridgeFee event bridge fee
    * @param networkFee event network fee
+   * @param paymentTxId payment transaction id
    * @return the generated reward reduced transaction
    */
   tokenEventOutBoxes = (
@@ -296,7 +306,8 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
     rsnCoef: [bigint, bigint],
     currentHeight: number,
     bridgeFee: bigint,
-    networkFee: bigint
+    networkFee: bigint,
+    paymentTxId: string
   ): ErgoBoxCandidate[] => {
     // calculate assets of payemnt box
     const paymentErgAmount: bigint = ErgoConfigs.minimumErg;
@@ -314,7 +325,8 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
       paymentTokenId,
       event.fromChain,
       bridgeFee,
-      networkFee
+      networkFee,
+      paymentTxId
     );
     const paymentBox = OutputBoxes.createPaymentBox(
       currentHeight,
