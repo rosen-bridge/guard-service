@@ -32,8 +32,8 @@ ergo:
   observationConfirmation: 20 # required block confirmation so that an observation transaction on Ergo get confirmed
   eventConfirmation: 20 # required block confirmation so that an event trigger box get confirmed
   distributionConfirmation: 20 # required block confirmation so that a payment or reward distribution transaction on Ergo get confirmed
-  initialHeight: 10000 # block scanner starting block height
-  scannerInterval: 30 # scanner update interval
+  initialHeight: 925000 # block scanner starting block height
+  scannerInterval: 180 # scanner update interval
   coldStorageAddress: ''
 reward:
   bridgeFeeRepoAddress: '' # guards address for receiving bridge fee of events

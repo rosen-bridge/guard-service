@@ -46,8 +46,11 @@ class ErgoConfigs {
     'ergo.distributionConfirmation',
     20
   );
-  static initialHeight = getConfigIntKeyOrDefault('ergo.initialHeight', 10000);
-  static scannerInterval = getConfigIntKeyOrDefault('ergo.scannerInterval', 30);
+  static initialHeight = getConfigIntKeyOrDefault('ergo.initialHeight', 925000);
+  static scannerInterval = getConfigIntKeyOrDefault(
+    'ergo.scannerInterval',
+    180
+  );
 
   /**
    * returns the ergo-related contract, addresses and tokens in rosen bridge
