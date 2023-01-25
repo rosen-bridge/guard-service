@@ -4,9 +4,9 @@ import {
   TransactionBuilderConfig,
 } from '@emurgo/cardano-serialization-lib-nodejs';
 import config from 'config';
-import { RosenConfig, rosenConfig } from '../../../helpers/RosenConfig';
+import { rosenConfig } from '../../../helpers/RosenConfig';
 import ChainsConstants from '../../ChainsConstants';
-import Configs from '../../../helpers/Configs';
+import { getConfigIntKeyOrDefault } from '../../../helpers/Configs';
 
 class CardanoConfigs {
   // txBuilder configs: Cardano protocol parameters
@@ -38,14 +38,14 @@ class CardanoConfigs {
   // service configs
   static koios = {
     url: config.get<string>('cardano.koios.url'),
-    timeout: config.get<number>('cardano.koios.timeout'), // seconds
+    timeout: getConfigIntKeyOrDefault('cardano.koios.timeout', 8), // seconds
   };
   static blockFrost = {
     projectId: config.get<string>('cardano.blockFrost.projectId'),
   };
   static lockAddress = config.get<string>('cardano.lockAddress');
   static aggregatedPublicKey = config.get<string>('cardano.bankPublicKey');
-  static txTtl = config.get<number>('cardano.txTtl');
+  static txTtl = getConfigIntKeyOrDefault('cardano.txTtl', 100000);
   // TODO: improve these two parameters: txMinimumLovelace and txFee
   //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/19
   static txMinimumLovelace = BigNum.from_str(
@@ -57,11 +57,13 @@ class CardanoConfigs {
     ['assetFingerPrint', Buffer.from('assetUnitHexString', 'hex')],
   ]);
 
-  static observationConfirmation = config.get<number>(
-    'cardano.observationConfirmation'
+  static observationConfirmation = getConfigIntKeyOrDefault(
+    'cardano.observationConfirmation',
+    120
   );
-  static paymentConfirmation = config.get<number>(
-    'cardano.paymentConfirmation'
+  static paymentConfirmation = getConfigIntKeyOrDefault(
+    'cardano.paymentConfirmation',
+    120
   );
 
   /**
