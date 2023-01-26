@@ -9,6 +9,7 @@ import {
 import Utils from '../../../../src/helpers/Utils';
 import InputBoxes from '../../../../src/chains/ergo/boxes/InputBoxes';
 import { expect } from 'chai';
+import TestUtils from '../../../testUtils/TestUtils';
 
 describe('InputBoxes', () => {
   const mockedEvent = TestBoxes.mockErgPaymentEventTrigger();
@@ -78,6 +79,7 @@ describe('InputBoxes', () => {
         Utils.Uint8ArrayToBase64String(
           commitmentBoxes[0].sigma_serialize_bytes()
         ),
+        TestUtils.generateRandomId(),
         201
       );
       await insertCommitmentBoxRecord(
@@ -85,6 +87,7 @@ describe('InputBoxes', () => {
         Utils.Uint8ArrayToBase64String(
           commitmentBoxes[1].sigma_serialize_bytes()
         ),
+        TestUtils.generateRandomId(),
         199
       );
 
@@ -93,6 +96,104 @@ describe('InputBoxes', () => {
       expect(result.length).to.equal(1);
       expect(result[0].box_id().to_str()).to.equal(
         commitmentBoxes[1].box_id().to_str()
+      );
+    });
+
+    /**
+     * Target: testing getEventValidCommitments
+     * Dependencies:
+     *    dbAction
+     * Scenario:
+     *    Generate commitment box using a WID of eventBox
+     *    Insert mocked event and commitment boxes into db
+     *    Run test
+     *    Check return value
+     * Expected Output:
+     *    The function should return right boxes
+     */
+    it('should filter commitments which their WIDs are already in event trigger', async () => {
+      // Generate commitment box using a WID of eventBox
+      const invalidCommitmentBox = TestBoxes.mockCommitmentBox(
+        mockedEvent.WIDs[1]
+      ).sigma_serialize_bytes();
+
+      // insert mocked event and commitment boxes into db
+      await insertEventRecord(
+        mockedEvent,
+        '',
+        Utils.Uint8ArrayToBase64String(eventBox.sigma_serialize_bytes()),
+        1000,
+        '',
+        200
+      );
+      await insertCommitmentBoxRecord(
+        mockedEvent.getId(),
+        Utils.Uint8ArrayToBase64String(invalidCommitmentBox),
+        mockedEvent.WIDs[1],
+        199
+      );
+      await insertCommitmentBoxRecord(
+        mockedEvent.getId(),
+        Utils.Uint8ArrayToBase64String(
+          commitmentBoxes[1].sigma_serialize_bytes()
+        ),
+        TestUtils.generateRandomId(),
+        199
+      );
+
+      // run test
+      const result = await InputBoxes.getEventValidCommitments(mockedEvent);
+      expect(result.length).to.equal(1);
+      expect(result[0].box_id().to_str()).to.equal(
+        commitmentBoxes[1].box_id().to_str()
+      );
+    });
+
+    /**
+     * Target: testing getEventValidCommitments
+     * Dependencies:
+     *    dbAction
+     * Scenario:
+     *    Generate two commitment boxes with same WID
+     *    Insert mocked event and commitment boxes into db
+     *    Run test
+     *    Check return value
+     * Expected Output:
+     *    The function should return right boxes
+     */
+    it('should return one commitment per WID', async () => {
+      // Generate commitment box using a WID of eventBox
+      const wid = TestUtils.generateRandomId();
+      const commitmentBox1 = TestBoxes.mockCommitmentBox(wid);
+      const commitmentBox2 = TestBoxes.mockCommitmentBox(wid);
+
+      // insert mocked event and commitment boxes into db
+      await insertEventRecord(
+        mockedEvent,
+        '',
+        Utils.Uint8ArrayToBase64String(eventBox.sigma_serialize_bytes()),
+        1000,
+        '',
+        200
+      );
+      await insertCommitmentBoxRecord(
+        mockedEvent.getId(),
+        Utils.Uint8ArrayToBase64String(commitmentBox1.sigma_serialize_bytes()),
+        wid,
+        199
+      );
+      await insertCommitmentBoxRecord(
+        mockedEvent.getId(),
+        Utils.Uint8ArrayToBase64String(commitmentBox2.sigma_serialize_bytes()),
+        wid,
+        199
+      );
+
+      // run test
+      const result = await InputBoxes.getEventValidCommitments(mockedEvent);
+      expect(result.length).to.equal(1);
+      expect(result[0].box_id().to_str()).to.equal(
+        commitmentBox1.box_id().to_str()
       );
     });
   });

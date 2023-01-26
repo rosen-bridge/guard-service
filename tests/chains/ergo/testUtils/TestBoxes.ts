@@ -1162,27 +1162,30 @@ class TestBoxes {
     );
     const commitmentBoxes: ErgoBox[] = Array(2)
       .fill(0)
-      .map(() =>
-        this.mockErgoBoxWithRegisters(
-          100000n,
-          [
-            {
-              tokenId: ErgoConfigs.ergoContractConfig.RWTId,
-              amount: BigInt('1'),
-            },
-          ],
-          ErgoConfigs.ergoContractConfig.permitContract,
-          [
-            {
-              registerId: 4,
-              value: Constant.from_coll_coll_byte([
-                Buffer.from(TestUtils.generateRandomId(), 'hex'),
-              ]),
-            },
-          ]
-        )
-      );
+      .map(() => this.mockCommitmentBox(TestUtils.generateRandomId()));
     return [eventBox].concat(commitmentBoxes);
+  };
+
+  /**
+   * generates commitment box with WID
+   */
+  static mockCommitmentBox = (wid: string): ErgoBox => {
+    return this.mockErgoBoxWithRegisters(
+      100000n,
+      [
+        {
+          tokenId: ErgoConfigs.ergoContractConfig.RWTId,
+          amount: BigInt('1'),
+        },
+      ],
+      ErgoConfigs.ergoContractConfig.permitContract,
+      [
+        {
+          registerId: 4,
+          value: Constant.from_coll_coll_byte([Buffer.from(wid, 'hex')]),
+        },
+      ]
+    );
   };
 
   /**
