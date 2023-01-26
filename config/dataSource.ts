@@ -1,6 +1,5 @@
-import path from 'path';
 import { DataSource } from 'typeorm';
-import { fileURLToPath } from 'url';
+import Configs from '../src/helpers/Configs';
 
 import {
   BlockEntity,
@@ -17,16 +16,8 @@ import { TransactionEntity } from '../src/db/entities/TransactionEntity';
 
 import migrations from '../src/db/migrations';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// TODO: datasource config
-//  fix entities directories
-//  fix migrations (use package migrations)
-//  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/18
-export const dataSource = new DataSource({
-  type: 'sqlite',
-  database: __dirname + '/../sqlite/db.sqlite',
+const dbType = Configs.dbType as keyof typeof migrations;
+const dbConfigs = {
   entities: [
     BlockEntity,
     CommitmentEntity,
@@ -35,10 +26,30 @@ export const dataSource = new DataSource({
     TransactionEntity,
   ],
   migrations: [
-    ...scannerMigrations.sqlite,
-    ...watcherDataExtractorMigrations.sqlite,
-    ...migrations,
+    ...scannerMigrations[dbType],
+    ...watcherDataExtractorMigrations[dbType],
+    ...migrations[dbType],
   ],
   synchronize: false,
   logging: false,
-});
+};
+let dataSource: DataSource;
+if (Configs.dbType === 'sqlite') {
+  dataSource = new DataSource({
+    type: 'sqlite',
+    database: Configs.dbPath,
+    ...dbConfigs,
+  });
+} else {
+  dataSource = new DataSource({
+    type: 'postgres',
+    host: Configs.dbHost,
+    port: Configs.dbPort,
+    username: Configs.dbUser,
+    password: Configs.dbPassword,
+    database: Configs.dbName,
+    ...dbConfigs,
+  });
+}
+
+export { dataSource };

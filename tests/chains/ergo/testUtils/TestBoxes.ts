@@ -452,7 +452,8 @@ class TestBoxes {
     const targetTokenId =
       '907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e';
     const rsnTokenId = rosenConfig.RSN;
-    const randomTokenId: string = TestUtils.generateRandomId();
+    const randomTokenId =
+      'e2b7b6ab2a7c6dfc6a82cc648f3b16b76db1cf19e93b7ac35a4898c06e4d08ce';
 
     const box1Tokens: Tokens = new Tokens();
     box1Tokens.add(
@@ -2759,6 +2760,258 @@ class TestBoxes {
       tx: ergoTx,
       ergoTree: lockErgoTree,
     };
+  };
+
+  /**
+   * generates a mocked payment transaction object
+   */
+  static mockEmptyPaymentTransactionObject = (
+    txType: string,
+    eventId = ''
+  ): ErgoTransaction => {
+    const emptyTxBytes = Buffer.from('');
+    const txId = TestUtils.generateRandomId();
+    return new ErgoTransaction(txId, eventId, emptyTxBytes, [], [], txType);
+  };
+
+  /**
+   * generates a mocked reward distribution tx
+   * @param event token reward event trigger
+   * @param eventBoxes event box and valid commitment boxes
+   */
+  static mockFineTokenPaymentTransaction = (
+    event: EventTrigger,
+    eventBoxes: ErgoBox[]
+  ): ErgoTransaction => {
+    const targetAddressErgoTree: string =
+      ErgoUtils.addressStringToErgoTreeString(event.toAddress);
+    const paymentTxInputBoxes: Uint8Array[] = [];
+    const txInputBoxes: string[] = [];
+
+    const inBoxes = ErgoBoxes.empty();
+    eventBoxes.forEach((box) => {
+      inBoxes.add(box);
+      paymentTxInputBoxes.push(box.sigma_serialize_bytes());
+      txInputBoxes.push(box.box_id().to_str());
+    });
+    const bankBoxes = this.mockBankBoxes();
+    bankBoxes.boxes.forEach((box) => {
+      inBoxes.add(box);
+      paymentTxInputBoxes.push(box.sigma_serialize_bytes());
+      txInputBoxes.push(box.box_id().to_str());
+    });
+
+    const watcherBoxes = event.WIDs.map((wid) =>
+      Utils.hexStringToUint8Array(wid)
+    )
+      .concat(eventBoxes.slice(1).map((box) => InputBoxes.getErgoBoxWID(box)))
+      .map((wid) =>
+        TestData.mockWatcherPermitBox(
+          100000n,
+          [
+            {
+              tokenId: ErgoConfigs.ergoContractConfig.RWTId,
+              amount: BigInt('1'),
+            },
+          ],
+          ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
+          [
+            {
+              registerId: 4,
+              value: Constant.from_coll_coll_byte([wid]),
+            },
+          ]
+        )
+      );
+
+    const txJsonString: string =
+      TestData.tokenTransferringErgPaymentTransactionString(
+        txInputBoxes,
+        targetAddressErgoTree,
+        watcherBoxes,
+        this.bridgeFeeErgoTree,
+        this.networkFeeErgoTree,
+        this.testLockErgoTree
+      );
+    const tx = UnsignedTransaction.from_json(txJsonString);
+
+    const reducedTx = ReducedTransaction.from_unsigned_tx(
+      tx,
+      inBoxes,
+      ErgoBoxes.empty(),
+      TestData.mockedErgoStateContext
+    );
+
+    const txBytes = reducedTx.sigma_serialize_bytes();
+    const txId = tx.id().to_str();
+    return new ErgoTransaction(
+      txId,
+      event.getId(),
+      txBytes,
+      paymentTxInputBoxes,
+      [],
+      TransactionTypes.payment
+    );
+  };
+
+  /**
+   * generates a mocked payment tx with wrong txId in R4
+   * @param event token reward event trigger
+   * @param eventBoxes event box and valid commitment boxes
+   */
+  static mockWrongR4PaymentTransaction = (
+    event: EventTrigger,
+    eventBoxes: ErgoBox[]
+  ): ErgoTransaction => {
+    const targetAddressErgoTree: string =
+      ErgoUtils.addressStringToErgoTreeString(event.toAddress);
+    const paymentTxInputBoxes: Uint8Array[] = [];
+    const txInputBoxes: string[] = [];
+
+    const inBoxes = ErgoBoxes.empty();
+    eventBoxes.forEach((box) => {
+      inBoxes.add(box);
+      paymentTxInputBoxes.push(box.sigma_serialize_bytes());
+      txInputBoxes.push(box.box_id().to_str());
+    });
+    const bankBoxes = this.mockBankBoxes();
+    bankBoxes.boxes.forEach((box) => {
+      inBoxes.add(box);
+      paymentTxInputBoxes.push(box.sigma_serialize_bytes());
+      txInputBoxes.push(box.box_id().to_str());
+    });
+
+    const watcherBoxes = event.WIDs.map((wid) =>
+      Utils.hexStringToUint8Array(wid)
+    )
+      .concat(eventBoxes.slice(1).map((box) => InputBoxes.getErgoBoxWID(box)))
+      .map((wid) =>
+        TestData.mockWatcherPermitBox(
+          100000n,
+          [
+            {
+              tokenId: ErgoConfigs.ergoContractConfig.RWTId,
+              amount: BigInt('1'),
+            },
+          ],
+          ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
+          [
+            {
+              registerId: 4,
+              value: Constant.from_coll_coll_byte([wid]),
+            },
+          ]
+        )
+      );
+
+    const txJsonString: string = TestData.wrongR4PaymentTransactionString(
+      txInputBoxes,
+      targetAddressErgoTree,
+      watcherBoxes,
+      this.bridgeFeeErgoTree,
+      this.networkFeeErgoTree,
+      this.testLockErgoTree
+    );
+    const tx = UnsignedTransaction.from_json(txJsonString);
+
+    const reducedTx = ReducedTransaction.from_unsigned_tx(
+      tx,
+      inBoxes,
+      ErgoBoxes.empty(),
+      TestData.mockedErgoStateContext
+    );
+
+    const txBytes = reducedTx.sigma_serialize_bytes();
+    const txId = tx.id().to_str();
+    return new ErgoTransaction(
+      txId,
+      event.getId(),
+      txBytes,
+      paymentTxInputBoxes,
+      [],
+      TransactionTypes.payment
+    );
+  };
+
+  /**
+   * generates a valid mocked erg reward distribution tx
+   * @param event token reward event trigger
+   * @param eventBoxes event box and valid commitment boxes
+   */
+  static mockFineTokenDistributionTransaction = (
+    event: EventTrigger,
+    eventBoxes: ErgoBox[]
+  ): ErgoTransaction => {
+    const rewardTxInputBoxes: Uint8Array[] = [];
+    const txInputBoxes: string[] = [];
+
+    const inBoxes = ErgoBoxes.empty();
+    eventBoxes.forEach((box) => {
+      inBoxes.add(box);
+      rewardTxInputBoxes.push(box.sigma_serialize_bytes());
+      txInputBoxes.push(box.box_id().to_str());
+    });
+    const bankBoxes = this.mockBankBoxes();
+    bankBoxes.boxes.forEach((box) => {
+      inBoxes.add(box);
+      rewardTxInputBoxes.push(box.sigma_serialize_bytes());
+      txInputBoxes.push(box.box_id().to_str());
+    });
+
+    const watcherBoxes = event.WIDs.map((wid) =>
+      Utils.hexStringToUint8Array(wid)
+    )
+      .concat(eventBoxes.slice(1).map((box) => InputBoxes.getErgoBoxWID(box)))
+      .map((wid) =>
+        TestData.mockWatcherPermitBox(
+          100000n,
+          [
+            {
+              tokenId: ErgoConfigs.ergoContractConfig.RWTId,
+              amount: BigInt('1'),
+            },
+            {
+              tokenId:
+                '907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e',
+              amount: BigInt('1'),
+            },
+          ],
+          ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
+          [
+            {
+              registerId: 4,
+              value: Constant.from_coll_coll_byte([wid]),
+            },
+          ]
+        )
+      );
+
+    const txJsonString: string = TestData.fineTokenRewardDistributionTxString(
+      txInputBoxes,
+      watcherBoxes,
+      this.bridgeFeeErgoTree,
+      this.networkFeeErgoTree,
+      this.testLockErgoTree
+    );
+    const tx = UnsignedTransaction.from_json(txJsonString);
+
+    const reducedTx = ReducedTransaction.from_unsigned_tx(
+      tx,
+      inBoxes,
+      ErgoBoxes.empty(),
+      TestData.mockedErgoStateContext
+    );
+
+    const txBytes = reducedTx.sigma_serialize_bytes();
+    const txId = tx.id().to_str();
+    return new ErgoTransaction(
+      txId,
+      event.getId(),
+      txBytes,
+      rewardTxInputBoxes,
+      [],
+      TransactionTypes.reward
+    );
   };
 }
 

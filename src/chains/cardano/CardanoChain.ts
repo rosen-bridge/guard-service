@@ -41,7 +41,7 @@ import CardanoTrack from './CardanoTrack';
 const logger = loggerFactory(import.meta.url);
 
 class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
-  bankAddress = Address.from_bech32(CardanoConfigs.bankAddress);
+  lockAddress = Address.from_bech32(CardanoConfigs.lockAddress);
 
   /**
    * generates payment transaction of the event from threshold-sig address in target chain
@@ -107,7 +107,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
       );
       const inputBox = TransactionInput.new(txHash, box.tx_index);
       txBuilder.add_input(
-        this.bankAddress,
+        this.lockAddress,
         inputBox,
         Value.new(BigNum.from_str(event.amount))
       );
@@ -211,7 +211,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
     // create change box
     const changeAmount: Value = Value.new(changeBoxLovelace);
     changeAmount.set_multiasset(multiAsset);
-    const changeBox = TransactionOutput.new(this.bankAddress, changeAmount);
+    const changeBox = TransactionOutput.new(this.lockAddress, changeAmount);
 
     return [paymentBox, changeBox];
   };
@@ -280,7 +280,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
     // create change box
     const changeAmount: Value = Value.new(changeBoxLovelace);
     changeAmount.set_multiasset(multiAsset);
-    const changeBox = TransactionOutput.new(this.bankAddress, changeAmount);
+    const changeBox = TransactionOutput.new(this.lockAddress, changeAmount);
 
     return [paymentBox, changeBox];
   };

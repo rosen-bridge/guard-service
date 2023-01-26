@@ -8,6 +8,7 @@ import ErgoUtils from '../helpers/ErgoUtils';
 import ErgoConfigs from '../helpers/ErgoConfigs';
 import { BoxesAssets } from '../models/Interfaces';
 import { rosenConfig } from '../../../helpers/RosenConfig';
+import Utils from '../../../helpers/Utils';
 
 class OutputBoxes {
   /**
@@ -41,6 +42,7 @@ class OutputBoxes {
    * @param guardNetworkTokenAmount amount of payment token in guard network fee box
    * @param network
    * @param paymentTokenId payment token id
+   * @param paymentTxId payment transaction id
    * @param wids list of watcher ids
    */
   static createRewardDistributionBoxes = (
@@ -55,6 +57,7 @@ class OutputBoxes {
     guardNetworkTokenAmount: bigint,
     network: string,
     paymentTokenId: string,
+    paymentTxId: string,
     wids: Uint8Array[]
   ): ErgoBoxCandidate[] => {
     const outBoxes: ErgoBoxCandidate[] = [];
@@ -88,6 +91,10 @@ class OutputBoxes {
       guardBridgeFeeTokenAmount
     );
     this.addTokenToBoxBuilder(guardsBridgeFeeBox, rsnTokenId, guardRsnAmount);
+    guardsBridgeFeeBox.set_register_value(
+      4,
+      Constant.from_coll_coll_byte([Utils.hexStringToUint8Array(paymentTxId)])
+    );
     outBoxes.push(guardsBridgeFeeBox.build());
 
     // guards network fee box

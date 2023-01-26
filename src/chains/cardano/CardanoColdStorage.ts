@@ -31,7 +31,7 @@ import CardanoTrack from './CardanoTrack';
 const logger = loggerFactory(import.meta.url);
 
 class CardanoColdStorage {
-  static lockAddress = Address.from_bech32(CardanoConfigs.bankAddress);
+  static lockAddress = Address.from_bech32(CardanoConfigs.lockAddress);
   static coldAddress = Address.from_bech32(CardanoConfigs.coldAddress);
 
   /**
@@ -190,10 +190,10 @@ class CardanoColdStorage {
     if (tx.auxiliary_data()) return false;
 
     // get lockAddress assets
-    const assets = (await KoiosApi.getAddressAssets(CardanoConfigs.bankAddress))
+    const assets = (await KoiosApi.getAddressAssets(CardanoConfigs.lockAddress))
       .asset_list;
     const addressLovelace = (
-      await KoiosApi.getAddressInfo(CardanoConfigs.bankAddress)
+      await KoiosApi.getAddressInfo(CardanoConfigs.lockAddress)
     ).balance;
     const lockAddressMultiAsset = MultiAsset.new();
     assets.forEach((asset) =>
