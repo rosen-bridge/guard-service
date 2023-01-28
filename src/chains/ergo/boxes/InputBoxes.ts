@@ -42,11 +42,19 @@ class InputBoxes {
       event.getId(),
       eventBoxHeight
     );
-    return commitments.map((commitment) =>
-      ErgoBox.sigma_parse_bytes(
-        Utils.base64StringToUint8Array(commitment.boxSerialized)
-      )
-    );
+    const usedWIDs = event.WIDs;
+    const commitmentBoxes: ErgoBox[] = [];
+    commitments.forEach((commitment) => {
+      if (!usedWIDs.includes(commitment.WID)) {
+        usedWIDs.push(commitment.WID);
+        commitmentBoxes.push(
+          ErgoBox.sigma_parse_bytes(
+            Utils.base64StringToUint8Array(commitment.boxSerialized)
+          )
+        );
+      }
+    });
+    return commitmentBoxes;
   };
 
   /**
