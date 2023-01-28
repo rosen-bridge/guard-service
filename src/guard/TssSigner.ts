@@ -1,9 +1,6 @@
 import axios from 'axios';
 import Configs from '../helpers/Configs';
 import Utils from '../helpers/Utils';
-import { loggerFactory } from '../log/Logger';
-
-const logger = loggerFactory(import.meta.url);
 
 class TssSigner {
   static tssApi = axios.create({
