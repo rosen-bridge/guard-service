@@ -193,7 +193,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
     );
 
     logger.info(
-      `Payment Transaction with txId:${txId} for event:${eventId} generated`
+      `Payment transaction [${txId}] generated for event [${eventId}]`
     );
     return ergoTx;
   };
@@ -378,11 +378,12 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
           ergoTx.txId,
           signedPaymentTx.toJson()
         );
-        logger.info(`Ergo tx [${ergoTx.txId}] signed successfully`);
+        logger.info(`Ergo transaction [${ergoTx.txId}] signed successfully`);
       })
       .catch(async (e) => {
         logger.info(
-          `An error occurred while requesting Multisig service to sign Ergo tx: ${e}`
+          `An error occurred while requesting Multisig service to sign Ergo transaction [${paymentTx.txId}]: ${e}`,
+          { stack: e.stack }
         );
         await dbAction.setTxStatus(
           paymentTx.txId,
@@ -400,10 +401,13 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
     try {
       await dbAction.setTxStatus(paymentTx.txId, TransactionStatus.sent);
       const response = await NodeApi.sendTx(tx.to_json());
-      logger.info(`Ergo Transaction submitted: [${response}]`);
+      logger.info(
+        `Ergo Transaction [${paymentTx.txId}] submitted. Response: ${response}`
+      );
     } catch (e) {
       logger.warn(
-        `An error occurred while submitting Ergo transaction: ${e.stack}`
+        `An error occurred while submitting Ergo transaction [${paymentTx.txId}]: ${e}`,
+        { stack: e.stack }
       );
     }
   };

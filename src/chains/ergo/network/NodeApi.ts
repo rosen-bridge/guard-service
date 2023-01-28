@@ -80,7 +80,8 @@ class NodeApi {
       .then((response) => response.data)
       .catch((e) => {
         logger.warn(
-          `An error occurred while submitting transaction to Ergo Node: ${e.stack}`
+          `An error occurred while submitting transaction to Ergo Node: ${e}`,
+          { stack: e.stack }
         );
       });
   };

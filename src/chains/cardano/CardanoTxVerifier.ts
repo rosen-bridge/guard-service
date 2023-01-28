@@ -58,11 +58,21 @@ class CardanoTxVerifier {
       if (
         outputBoxes.get(i).address().to_bech32() !==
         this.lockAddress.to_bech32()
-      )
+      ) {
+        logger.debug(
+          `Tx [${paymentTx.txId}] invalid: Outbox address [${outputBoxes
+            .get(i)
+            .address()
+            .to_bech32()}] is not equal to lockAddress [${this.lockAddress.to_bech32()}]`
+        );
         return false;
+      }
 
     // verify tx has no metadata
-    if (tx.auxiliary_data()) return false;
+    if (tx.auxiliary_data()) {
+      logger.debug(`Tx [${paymentTx.txId}] invalid: Contains metadata`);
+      return false;
+    }
 
     // verify event conditions
     const paymentBox = outputBoxes.get(0);
@@ -77,11 +87,18 @@ class CardanoTxVerifier {
         .multiasset()
         ?.len();
 
-      return (
+      if (
         paymentBox.amount().coin().compare(lovelacePaymentAmount) === 0 &&
         (sizeOfMultiAssets === undefined || sizeOfMultiAssets === 0) &&
         paymentBox.address().to_bech32() === event.toAddress
-      );
+      )
+        return true;
+      else {
+        logger.debug(
+          `Tx [${paymentTx.txId}] invalid: PaymentBox conditions are not met`
+        );
+        return false;
+      }
     } else {
       // Token payment case
       const lovelacePaymentAmount: BigNum = CardanoConfigs.txMinimumLovelace;
@@ -115,12 +132,26 @@ class CardanoTxVerifier {
         paymentAssetAmount === undefined ||
         paymentAssetAmount.compare(assetPaymentAmount) !== 0 ||
         paymentBox.address().to_bech32() !== event.toAddress
-      )
+      ) {
+        logger.debug(
+          `Tx [${paymentTx.txId}] invalid: PaymentBox conditions are not met`
+        );
         return false;
-
-      // verify tx fee
-      return tx.body().fee().compare(CardanoConfigs.txFee) <= 0;
+      }
     }
+
+    // verify tx fee
+    if (tx.body().fee().compare(CardanoConfigs.txFee) > 0) {
+      logger.debug(
+        `Tx [${paymentTx.txId}] invalid: Transaction fee [${tx
+          .body()
+          .fee()
+          .to_str()}] is more than maximum allowed fee [${CardanoConfigs.txFee.to_str()}]`
+      );
+      return false;
+    }
+
+    return true;
   };
 
   /**

@@ -74,11 +74,12 @@ class TransactionProcessor {
           }
         }
       } catch (e) {
-        logger.warn(`An error occurred while processing tx`, {
-          txId: tx.txId,
-          error: e.message,
-          stack: e.stack,
-        });
+        logger.warn(
+          `An error occurred while processing tx [${tx.txId}]: ${e}`,
+          {
+            stack: e.stack,
+          }
+        );
       }
     }
     logger.info('Transactions Processed', { count: txs.length });
@@ -131,33 +132,26 @@ class TransactionProcessor {
           tx.event.id,
           EventStatus.pendingReward
         );
-        logger.info('Tx is confirmed. Event is ready for reward distribution', {
-          txId: tx.txId,
-          eventId: tx.event.id,
-        });
+        logger.info(
+          `Tx [${tx.txId}] is confirmed. Event [${tx.event.id}] is ready for reward distribution`
+        );
       } else if (tx.type === TransactionTypes.reward) {
         // set event as complete
         await dbAction.setEventStatus(tx.event.id, EventStatus.completed);
-        logger.info('Tx is confirmed. Event is complete', {
-          txId: tx.txId,
-          eventId: tx.event.id,
-        });
+        logger.info(
+          `Tx [${tx.txId}] is confirmed. Event [${tx.event.id}] is complete`
+        );
       } else {
         // no need to do anything about event. Just log that tx confirmed
-        logger.info('Cardano coldStorage tx is confirmed', {
-          txId: tx.txId,
-          eventId: tx.event.id,
-        });
+        logger.info(`Cardano coldStorage tx [${tx.txId}] is confirmed`);
       }
     } else {
       // tx is mined, but not enough confirmation. updating last check...
       const height = await BlockFrostApi.currentHeight();
       await dbAction.updateTxLastCheck(tx.txId, height);
-      logger.info('Tx is in confirmation process', {
-        txId: tx.txId,
-        requiredConfirmation: CardanoConfigs.paymentConfirmation,
-        confirmation: confirmation,
-      });
+      logger.info(
+        `Tx [${tx.txId}] is in confirmation process [${confirmation}/${CardanoConfigs.paymentConfirmation}]`
+      );
     }
   };
 
@@ -172,22 +166,17 @@ class TransactionProcessor {
       await dbAction.setTxStatus(tx.txId, TransactionStatus.completed);
       if (tx.type != TransactionTypes.coldStorage) {
         await dbAction.setEventStatus(tx.event.id, EventStatus.completed);
-        logger.info('Tx is confirmed. Event is complete', {
-          txId: tx.txId,
-          eventId: tx.event.id,
-        });
-      } else
-        logger.info('Ergo coldStorage tx is confirmed', {
-          txId: tx.txId,
-          eventId: tx.event.id,
-        });
+        logger.info(
+          `Tx [${tx.txId}] is confirmed. Event [${tx.event.id}] is complete`
+        );
+      } else logger.info(`Ergo coldStorage tx [${tx.txId}] is confirmed`);
     } else if (confirmation === -1) {
       // tx is not mined. checking mempool...
       if (await ExplorerApi.isTxInMempool(tx.txId)) {
         // tx is in mempool. updating last check...
         const height = await NodeApi.getHeight();
         await dbAction.updateTxLastCheck(tx.txId, height);
-        logger.info('Tx is in mempool', { txId: tx.txId });
+        logger.info(`Tx [${tx.txId}] is in mempool`);
       } else {
         // tx is not in mempool. checking inputs
         await this.processErgoTxInputs(tx);
@@ -196,11 +185,9 @@ class TransactionProcessor {
       // tx is mined, but not enough confirmation. updating last check...
       const height = await NodeApi.getHeight();
       await dbAction.updateTxLastCheck(tx.txId, height);
-      logger.info('Tx in confirmation process', {
-        txId: tx.txId,
-        requiredConfirmation: CardanoConfigs.paymentConfirmation,
-        confirmation: confirmation,
-      });
+      logger.info(
+        `Tx [${tx.txId}] in confirmation process [${confirmation}/${ErgoConfigs.distributionConfirmation}]`
+      );
     }
   };
 
@@ -215,8 +202,7 @@ class TransactionProcessor {
     if (await this.isCardanoTxInputsValid(paymentTx)) {
       // tx is valid. resending...
       logger.info(
-        'Cardano tx is lost but inputs are still valid. Resending tx...',
-        { txId: tx.txId }
+        `Cardano tx [${tx.txId}] is lost but inputs are still valid. Resending tx...`
       );
       await this.cardanoChain.submitTransaction(paymentTx);
     } else {
@@ -234,8 +220,7 @@ class TransactionProcessor {
     if (await this.isErgoTxInputsValid(ergoTx)) {
       // tx is valid. resending...
       logger.info(
-        'Ergo tx is lost but inputs are still valid. Resending tx...',
-        { txId: tx.txId }
+        `Ergo tx [${tx.txId}] is lost but inputs are still valid. Resending tx...`
       );
       await this.ergoChain.submitTransaction(ergoTx);
     } else {
@@ -253,13 +238,15 @@ class TransactionProcessor {
       try {
         const paymentTx = txJsonParser(tx.txJson);
         await this.getChainObject(tx.chain).requestToSignTransaction(paymentTx);
+        logger.info(`Tx [${tx.txId}] got sent to the signer`);
         release();
       } catch (e) {
-        logger.warn('Unexpected error occurred while sending tx to sign', {
-          txId: tx.txId,
-          error: e.message,
-          stack: e.stack,
-        });
+        logger.warn(
+          `Unexpected error occurred while sending tx [${tx.txId}] to sign: ${e}`,
+          {
+            stack: e.stack,
+          }
+        );
         release();
       }
     });
@@ -287,19 +274,13 @@ class TransactionProcessor {
           tx.event.id,
           EventStatus.pendingPayment
         );
-        logger.info('Tx is invalid. Event is now waiting for payment', {
-          txId: tx.txId,
-          eventId: tx.event.id,
-        });
-      } else
-        logger.info('Cardano coldStorage tx is invalid', {
-          txId: tx.txId,
-          eventId: tx.event.id,
-        });
+        logger.info(
+          `Tx [${tx.txId}] is invalid. Event [${tx.event.id}] is now waiting for payment`
+        );
+      } else logger.info(`Cardano coldStorage tx [${tx.txId}] is invalid`);
     } else {
       logger.info(
-        'Tx is invalid. Waiting for enough confirmation of this proposition',
-        { txId: tx.txId }
+        `Tx [${tx.txId}] is invalid. Waiting for enough confirmation of this proposition`
       );
     }
   };
@@ -317,31 +298,21 @@ class TransactionProcessor {
           tx.event.id,
           EventStatus.pendingPayment
         );
-        logger.info('Tx is invalid. Event is now waiting for payment', {
-          txId: tx.txId,
-          eventId: tx.event.id,
-        });
+        logger.info(
+          `Tx [${tx.txId}] is invalid. Event [${tx.event.id}] is now waiting for payment`
+        );
       } else if (tx.type === TransactionTypes.reward) {
         await dbAction.setEventStatusToPending(
           tx.event.id,
           EventStatus.pendingReward
         );
         logger.info(
-          'Tx is invalid. Event is now waiting for reward distribution',
-          {
-            txId: tx.txId,
-            eventId: tx.event.id,
-          }
+          `Tx [${tx.txId}] is invalid. Event [${tx.event.id}] is now waiting for reward distribution`
         );
-      } else
-        logger.info('Ergo coldStorage tx is invalid', {
-          txId: tx.txId,
-          eventId: tx.event.id,
-        });
+      } else logger.info(`Ergo coldStorage tx [${tx.txId}] is invalid`);
     } else {
       logger.info(
-        'Tx is invalid. Waiting for enough confirmation of this proposition',
-        { txId: tx.txId }
+        `Tx [${tx.txId}] is invalid. Waiting for enough confirmation of this proposition`
       );
     }
   };
@@ -373,11 +344,12 @@ class TransactionProcessor {
           sourceTxs.set(sourceTxId, txUtxos);
         } catch (e) {
           if (e instanceof BlockfrostServerError && e.status_code === 404) {
-            logger.warn(`An error occurred while fetching tx`, {
-              txId: sourceTxId,
-              error: e.message,
-              stack: e.stack,
-            });
+            logger.warn(
+              `An error occurred while fetching tx [${sourceTxId}]: ${e}`,
+              {
+                stack: e.stack,
+              }
+            );
             return false;
           } else {
             throw e;
@@ -432,9 +404,7 @@ class TransactionProcessor {
         const paymentTx = PaymentTransaction.fromJson(tx.txJson);
         if (await this.isCardanoTxInputsValid(paymentTx)) {
           // tx is valid. resending to sign...
-          logger.info(`Resending Cardano tx to sign process`, {
-            txId: tx.txId,
-          });
+          logger.info(`Resending Cardano tx [${tx.txId}] to sign process`);
           await this.processApprovedTx(tx);
         } else {
           // tx is invalid. reset status if enough blocks past.
@@ -442,9 +412,9 @@ class TransactionProcessor {
         }
       } else {
         // tx found in network. set status as sent
-        logger.info(`Cardano tx found in blockchain. Updating status to sent`, {
-          txId: tx.txId,
-        });
+        logger.info(
+          `Cardano tx [${tx.txId}] found in blockchain. Updating status to sent`
+        );
         await dbAction.setTxStatus(tx.txId, TransactionStatus.sent);
       }
     } else if (tx.chain === ChainsConstants.ergo) {
@@ -453,7 +423,7 @@ class TransactionProcessor {
         const ergoTx = ErgoTransaction.fromJson(tx.txJson);
         if (await this.isErgoTxInputsValid(ergoTx)) {
           // tx is valid. resending to sign...
-          logger.info(`Resending Ergo tx to sign process`, { txId: tx.txId });
+          logger.info(`Resending Ergo tx [${tx.txId}] to sign process`);
           await this.processApprovedTx(tx);
         } else {
           // tx is invalid. reset status if enough blocks past.
@@ -461,9 +431,9 @@ class TransactionProcessor {
         }
       } else {
         // tx found in network. set status as sent
-        logger.info(`Ergo tx found in blockchain. Updating status to sent`, {
-          txId: tx.txId,
-        });
+        logger.info(
+          `Ergo tx [${tx.txId}] found in blockchain. Updating status to sent`
+        );
         await dbAction.setTxStatus(tx.txId, TransactionStatus.sent);
       }
     } else {

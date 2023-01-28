@@ -52,6 +52,7 @@ class MultiSigHandler {
       pub: item,
       unapproved: [],
     }));
+    logger.debug(`Subscribing to [${MultiSigHandler.CHANNEL}]`);
     dialer.subscribeChannel(MultiSigHandler.CHANNEL, this.handleMessage);
     this.secret = Utils.hexStringToUint8Array(secretHex || Configs.guardSecret);
   }
@@ -179,6 +180,13 @@ class MultiSigHandler {
             new Date().getTime() - Configs.txSignTimeout * 1000
           ) {
             // milliseconds
+            if (transaction.tx) {
+              logger.debug(
+                `Tx [${transaction.tx
+                  .unsigned_tx()
+                  .id()}] got timeout in MultiSig signing process`
+              );
+            }
             if (transaction.reject) {
               transaction.reject('Timed out');
             }
@@ -251,6 +259,9 @@ class MultiSigHandler {
           }));
         }
       });
+      logger.debug(
+        `Commitment generated for tx [${id}]. Broadcasting to approved peers...`
+      );
       this.sendMessage(
         {
           type: 'commitment',
@@ -277,6 +288,9 @@ class MultiSigHandler {
       transaction.tx
     ) {
       if (transaction.resolve) {
+        logger.debug(
+          `Tx [${transaction.tx.unsigned_tx().id()}] got full-signed`
+        );
         transaction.resolve(
           wasm.Transaction.sigma_parse_bytes(transaction.sign.transaction)
         );
@@ -307,6 +321,9 @@ class MultiSigHandler {
         simulated = transaction.sign.simulated;
         signed = transaction.sign.signed;
         if (signed.indexOf(myPub) === -1) {
+          logger.debug(
+            `Continuing sign for tx [${transaction.tx.unsigned_tx().id()}]`
+          );
           hints = await MultiSigUtils.extract_hints(
             wasm.Transaction.sigma_parse_bytes(transaction.sign.transaction),
             transaction.boxes,
@@ -318,6 +335,9 @@ class MultiSigHandler {
           needSign = true;
         }
       } else {
+        logger.debug(
+          `First sign for tx [${transaction.tx.unsigned_tx().id()}]`
+        );
         simulated = transaction.commitments
           .map((item, index) => {
             if (item === undefined) {
@@ -388,6 +408,17 @@ class MultiSigHandler {
                 });
               }
             });
+            logger.debug(
+              `Tx [${transaction.tx
+                .unsigned_tx()
+                .id()}] got partially signed. Sending to non-simulated peers...`
+            );
+          } else {
+            logger.debug(
+              `Tx [${transaction.tx
+                .unsigned_tx()
+                .id()}] got full-signed. Sending to everyone...`
+            );
           }
           const peers = this.peers
             .filter((item) => {
@@ -451,6 +482,9 @@ class MultiSigHandler {
       const peer = this.peers[payload.index];
       const nonce = crypto.randomBytes(32).toString('base64');
       peer.unapproved.push({ id: sender, challenge: nonce });
+      logger.debug(
+        `Peer [${sender}] claimed to be guard of index [${payload.index}]`
+      );
       this.sendMessage(
         {
           type: 'approve',
@@ -483,14 +517,19 @@ class MultiSigHandler {
         (item) => item.id === sender && item.challenge === nonce
       );
       if (unapproved.length > 0) {
+        logger.debug(`Peer [${sender}] got approved`);
         peer.id = sender;
         peer.unapproved = peer.unapproved.filter(
           (item) => unapproved.indexOf(item) === -1
         );
       } else if (this.nonce == payload.nonce) {
+        logger.debug(
+          `Found peer [${sender}] as guard of index [${payload.index}]`
+        );
         peer.id = sender;
       }
       if (payload.nonceToSign) {
+        logger.debug(`Sending approval message to peer [${sender}] ...`);
         this.sendMessage(
           {
             type: 'approve',
@@ -561,6 +600,9 @@ class MultiSigHandler {
                   .length >=
                 transaction.requiredSigner - 1
               ) {
+                logger.debug(
+                  `Tx [${payload.txId}] has enough commitments. Starting signing...`
+                );
                 await this.generateSign(payload.txId, transaction);
               }
             }
@@ -671,6 +713,9 @@ class MultiSigHandler {
       message.sign
     ) {
       if (sender !== message.payload.id) {
+        logger.warn(
+          `Received message from [${sender}] which using id [${message.payload.id}]`
+        );
         return;
       }
       const index = message.payload.index;
