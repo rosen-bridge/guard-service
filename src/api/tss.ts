@@ -32,9 +32,8 @@ tssRouter.post(
       const message = JSON.stringify(req.body.message);
       const status = req.body.status;
       const cardanoChain = new CardanoChain();
-      cardanoChain
-        .signTransaction(message, status)
-        .then(() => res.send({ message: 'ok' }));
+      await cardanoChain.signTransaction(message, status);
+      res.send({ message: 'ok' });
     } catch (error) {
       logger.error(
         `An error occurred while processing TSS Cardano tx sign callback: ${error.message} - ${error.stack}`
