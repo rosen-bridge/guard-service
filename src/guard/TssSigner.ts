@@ -14,8 +14,8 @@ class TssSigner {
    * @param txHash
    * @return bytes of signed message
    */
-  static signTxHash = async (txHash: Uint8Array): Promise<void> => {
-    this.tssApi
+  static signTxHash = async (txHash: Uint8Array) => {
+    return this.tssApi
       .post('/sign', {
         crypto: 'eddsa',
         message: Utils.Uint8ArrayToHexString(txHash),
