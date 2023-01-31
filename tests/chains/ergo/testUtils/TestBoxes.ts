@@ -579,7 +579,7 @@ class TestBoxes {
       txId,
       event.getId(),
       txBytes,
-      [],
+      eventBoxes.map((box) => box.sigma_serialize_bytes()),
       [],
       TransactionTypes.payment
     );
@@ -651,7 +651,7 @@ class TestBoxes {
       txId,
       event.getId(),
       txBytes,
-      [],
+      eventBoxes.map((box) => box.sigma_serialize_bytes()),
       [],
       TransactionTypes.payment
     );
@@ -724,7 +724,7 @@ class TestBoxes {
       txId,
       event.getId(),
       txBytes,
-      [],
+      eventBoxes.map((box) => box.sigma_serialize_bytes()),
       [],
       TransactionTypes.payment
     );
@@ -797,7 +797,7 @@ class TestBoxes {
       txId,
       event.getId(),
       txBytes,
-      [],
+      eventBoxes.map((box) => box.sigma_serialize_bytes()),
       [],
       TransactionTypes.payment
     );
@@ -870,7 +870,7 @@ class TestBoxes {
       txId,
       event.getId(),
       txBytes,
-      [],
+      eventBoxes.map((box) => box.sigma_serialize_bytes()),
       [],
       TransactionTypes.payment
     );
@@ -943,7 +943,7 @@ class TestBoxes {
       txId,
       event.getId(),
       txBytes,
-      [],
+      eventBoxes.map((box) => box.sigma_serialize_bytes()),
       [],
       TransactionTypes.payment
     );
@@ -1250,7 +1250,7 @@ class TestBoxes {
       txId,
       event.getId(),
       txBytes,
-      [],
+      eventBoxes.map((box) => box.sigma_serialize_bytes()),
       [],
       TransactionTypes.reward
     );
@@ -1318,7 +1318,7 @@ class TestBoxes {
       txId,
       event.getId(),
       txBytes,
-      [],
+      eventBoxes.map((box) => box.sigma_serialize_bytes()),
       [],
       TransactionTypes.reward
     );
@@ -1386,7 +1386,7 @@ class TestBoxes {
       txId,
       event.getId(),
       txBytes,
-      [],
+      eventBoxes.map((box) => box.sigma_serialize_bytes()),
       [],
       TransactionTypes.reward
     );
@@ -1454,7 +1454,7 @@ class TestBoxes {
       txId,
       event.getId(),
       txBytes,
-      [],
+      eventBoxes.map((box) => box.sigma_serialize_bytes()),
       [],
       TransactionTypes.reward
     );
@@ -1522,7 +1522,7 @@ class TestBoxes {
       txId,
       event.getId(),
       txBytes,
-      [],
+      eventBoxes.map((box) => box.sigma_serialize_bytes()),
       [],
       TransactionTypes.reward
     );
@@ -1591,7 +1591,7 @@ class TestBoxes {
       txId,
       event.getId(),
       txBytes,
-      [],
+      eventBoxes.map((box) => box.sigma_serialize_bytes()),
       [],
       TransactionTypes.reward
     );

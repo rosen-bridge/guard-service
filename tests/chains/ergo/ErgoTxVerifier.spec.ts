@@ -144,7 +144,8 @@ describe('ErgoTxVerifier', () => {
      */
     it('should reject a token payment tx that distributing reward to wrong WID', async () => {
       // mock erg payment event
-      const mockedEvent: EventTrigger = TestBoxes.mockTokenRewardEventTrigger();
+      const mockedEvent: EventTrigger =
+        TestBoxes.mockTokenPaymentEventTrigger();
       const tx = TestBoxes.mockTransferToIllegalWIDTokenPaymentTransaction(
         mockedEvent,
         eventBoxAndCommitments
