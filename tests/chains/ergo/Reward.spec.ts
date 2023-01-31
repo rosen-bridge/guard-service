@@ -16,7 +16,7 @@ import {
   mockGetEventValidCommitments,
   resetMockedInputBoxes,
 } from './mocked/MockedInputBoxes';
-import { anything, spy, when } from 'ts-mockito';
+import { anything } from 'ts-mockito';
 import ErgoConfigs from '../../../src/chains/ergo/helpers/ErgoConfigs';
 import { resetMockedReward } from '../mocked/MockedReward';
 import { Fee } from '@rosen-bridge/minimum-fee';
@@ -31,6 +31,7 @@ import {
   insertTxRecord,
 } from '../../db/mocked/MockedScannerModel';
 import TestUtils from '../../testUtils/TestUtils';
+import sinon from 'sinon';
 
 describe('Reward', () => {
   describe('generateTransaction', () => {
@@ -156,19 +157,24 @@ describe('Reward', () => {
         mockedEvent.getId()
       );
 
-      const spiedErgoConfig = spy(ErgoConfigs);
-      when(spiedErgoConfig.watchersRSNSharePercent).thenReturn(40n);
+      const feeConfig = {
+        bridgeFee: 0n,
+        networkFee: 0n,
+        rsnRatio: 47n,
+      };
+      sinon.stub(ErgoConfigs, 'watchersRSNSharePercent').value(40n);
 
       // run test
-      const tx = await Reward.generateTransaction(mockedEvent, mockedFeeConfig);
+      const tx = await Reward.generateTransaction(mockedEvent, feeConfig);
 
       // verify tx
       const isValid = await Reward.verifyTransactionWithEvent(
         tx,
         mockedEvent,
-        mockedFeeConfig
+        feeConfig
       );
       expect(isValid).to.be.true;
+      sinon.restore();
     });
 
     /**
@@ -197,19 +203,24 @@ describe('Reward', () => {
         mockedEvent.getId()
       );
 
-      const spiedErgoConfig = spy(ErgoConfigs);
-      when(spiedErgoConfig.watchersRSNSharePercent).thenReturn(40n);
+      const feeConfig = {
+        bridgeFee: 0n,
+        networkFee: 0n,
+        rsnRatio: 47n,
+      };
+      sinon.stub(ErgoConfigs, 'watchersRSNSharePercent').value(40n);
 
       // run test
-      const tx = await Reward.generateTransaction(mockedEvent, mockedFeeConfig);
+      const tx = await Reward.generateTransaction(mockedEvent, feeConfig);
 
       // verify tx
       const isValid = await Reward.verifyTransactionWithEvent(
         tx,
         mockedEvent,
-        mockedFeeConfig
+        feeConfig
       );
       expect(isValid).to.be.true;
+      sinon.restore();
     });
 
     /**
@@ -238,20 +249,25 @@ describe('Reward', () => {
         mockedEvent.getId()
       );
 
-      const spiedErgoConfig = spy(ErgoConfigs);
-      when(spiedErgoConfig.watchersRSNSharePercent).thenReturn(40n);
-      when(spiedErgoConfig.watchersSharePercent).thenReturn(0n);
+      const feeConfig = {
+        bridgeFee: 0n,
+        networkFee: 0n,
+        rsnRatio: 47n,
+      };
+      sinon.stub(ErgoConfigs, 'watchersRSNSharePercent').value(40n);
+      sinon.stub(ErgoConfigs, 'watchersSharePercent').value(0n);
 
       // run test
-      const tx = await Reward.generateTransaction(mockedEvent, mockedFeeConfig);
+      const tx = await Reward.generateTransaction(mockedEvent, feeConfig);
 
       // verify tx
       const isValid = await Reward.verifyTransactionWithEvent(
         tx,
         mockedEvent,
-        mockedFeeConfig
+        feeConfig
       );
       expect(isValid).to.be.true;
+      sinon.restore();
     });
 
     /**
@@ -315,6 +331,7 @@ describe('Reward', () => {
     it('should reject an erg reward distribution tx that transferring token', async () => {
       // mock erg payment event
       const mockedEvent: EventTrigger = TestBoxes.mockErgRewardEventTrigger();
+      mockGetEventPaymentTransactionId(mockedEvent.getId(), paymentTxId);
       const tx = TestBoxes.mockTokenTransferringErgDistributionTransaction(
         mockedEvent,
         eventBoxAndCommitments
@@ -339,6 +356,7 @@ describe('Reward', () => {
     it('should reject a reward distribution tx that transferring to wrong WID', async () => {
       // mock erg payment event
       const mockedEvent: EventTrigger = TestBoxes.mockTokenRewardEventTrigger();
+      mockGetEventPaymentTransactionId(mockedEvent.getId(), paymentTxId);
       const tx = TestBoxes.mockTransferToIllegalWIDDistributionTransaction(
         mockedEvent,
         eventBoxAndCommitments
@@ -363,6 +381,7 @@ describe('Reward', () => {
     it('should reject a reward distribution tx that missing a valid commitment box when distributing rewards', async () => {
       // mock erg payment event
       const mockedEvent: EventTrigger = TestBoxes.mockTokenRewardEventTrigger();
+      mockGetEventPaymentTransactionId(mockedEvent.getId(), paymentTxId);
       const tx = TestBoxes.mockMissingValidCommitmentDistributionTransaction(
         mockedEvent,
         eventBoxAndCommitments.slice(0, eventBoxAndCommitments.length - 1)
@@ -387,6 +406,7 @@ describe('Reward', () => {
     it('should reject a reward distribution tx that change box address is not bank address', async () => {
       // mock erg payment event
       const mockedEvent: EventTrigger = TestBoxes.mockTokenRewardEventTrigger();
+      mockGetEventPaymentTransactionId(mockedEvent.getId(), paymentTxId);
       const tx = TestBoxes.mockIllegalChangeBoxDistributionTransaction(
         mockedEvent,
         eventBoxAndCommitments
@@ -411,6 +431,7 @@ describe('Reward', () => {
     it('should reject a reward distribution tx that transferring wrong token', async () => {
       // mock erg payment event
       const mockedEvent: EventTrigger = TestBoxes.mockTokenRewardEventTrigger();
+      mockGetEventPaymentTransactionId(mockedEvent.getId(), paymentTxId);
       const tx = TestBoxes.mockWrongTokenDistributionTransaction(
         mockedEvent,
         eventBoxAndCommitments
@@ -435,6 +456,7 @@ describe('Reward', () => {
     it('should reject a reward distribution tx that transferring wrong amount of target token', async () => {
       // mock erg payment event
       const mockedEvent: EventTrigger = TestBoxes.mockTokenRewardEventTrigger();
+      mockGetEventPaymentTransactionId(mockedEvent.getId(), paymentTxId);
       const tx = TestBoxes.mockWrongAmountTokenDistributionTransaction(
         mockedEvent,
         eventBoxAndCommitments
@@ -514,17 +536,22 @@ describe('Reward', () => {
         mockedEvent,
         eventBoxAndCommitments
       );
-      const spiedErgoConfig = spy(ErgoConfigs);
-      when(spiedErgoConfig.watchersRSNSharePercent).thenReturn(40n);
-      when(spiedErgoConfig.watchersSharePercent).thenReturn(0n);
+      const feeConfig = {
+        bridgeFee: 0n,
+        networkFee: 0n,
+        rsnRatio: 47n,
+      };
+      sinon.stub(ErgoConfigs, 'watchersRSNSharePercent').value(40n);
+      sinon.stub(ErgoConfigs, 'watchersSharePercent').value(0n);
 
       // run test
       const isValid = await Reward.verifyTransactionWithEvent(
         tx,
         mockedEvent,
-        mockedFeeConfig
+        feeConfig
       );
       expect(isValid).to.be.false;
+      sinon.restore();
     });
 
     /**

@@ -1437,7 +1437,7 @@ class TestBoxes {
       watcherBoxes,
       this.bridgeFeeErgoTree,
       this.networkFeeErgoTree,
-      this.testLockErgoTree
+      this.networkFeeErgoTree
     );
     const tx = UnsignedTransaction.from_json(txJsonString);
 

@@ -13,7 +13,7 @@ import {
   mockGetEventValidCommitments,
   resetMockedInputBoxes,
 } from './mocked/MockedInputBoxes';
-import { anything, spy, when } from 'ts-mockito';
+import { anything } from 'ts-mockito';
 import ErgoConfigs from '../../../src/chains/ergo/helpers/ErgoConfigs';
 import sinon from 'sinon';
 import { Fee } from '@rosen-bridge/minimum-fee';
@@ -247,14 +247,13 @@ describe('ErgoTxVerifier', () => {
         mockedEvent,
         eventBoxAndCommitments
       );
-      const spiedErgoConfig = spy(ErgoConfigs);
       const feeConfig = {
         bridgeFee: 0n,
         networkFee: 0n,
         rsnRatio: 47n,
       };
-      when(spiedErgoConfig.watchersRSNSharePercent).thenReturn(40n);
-      when(spiedErgoConfig.watchersSharePercent).thenReturn(0n);
+      sinon.stub(ErgoConfigs, 'watchersRSNSharePercent').value(40n);
+      sinon.stub(ErgoConfigs, 'watchersSharePercent').value(0n);
 
       // run test
       const isValid = await ErgoTxVerifier.verifyTransactionWithEvent(
@@ -263,6 +262,7 @@ describe('ErgoTxVerifier', () => {
         feeConfig
       );
       expect(isValid).to.be.false;
+      sinon.restore();
     });
 
     /**
