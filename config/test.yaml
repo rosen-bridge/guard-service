@@ -43,6 +43,8 @@ contracts:
     - 'ergo-testnet'
     - 'cardano-testnet'
   addressesBasePath: 'tests/resources/addresses/'
+logs:
+  level: 'debug'
 coldStorage:
   startHour: 17
   endHour: 19

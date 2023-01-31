@@ -176,7 +176,7 @@ class TestData {
                 "assets": [
                     {
                         "tokenId": "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e",
-                        "amount": 13
+                        "amount": 20
                     }
                 ],
                 "additionalRegisters": {
@@ -825,7 +825,7 @@ class TestData {
             },
             ${watcherBoxes.join(',')},
             {
-                "value": 500000003,
+                "value": 499300003,
                 "ergoTree": "${bridgeFeeErgoTree}",
                 "assets": [],
                 "additionalRegisters": {
@@ -1445,7 +1445,7 @@ class TestData {
             },
             ${watcherBoxes.join(',')},
             {
-                "value": 1000000000,
+                "value": 999300000,
                 "ergoTree": "${bridgeFeeErgoTree}",
                 "assets": [
                     {
