@@ -1,8 +1,12 @@
+import fs from 'fs';
+
 import config from 'config';
 import { RosenTokens, TokenMap } from '@rosen-bridge/tokens';
-import fs from 'fs';
+
 import { ThresholdConfig } from '../guard/coldStorage/types';
 import { JsonBI } from '../network/NetworkModels';
+
+import { RotateFileLogConfig, ConsoleLogConfig } from '../types';
 
 /**
  * reads a config, set default value if it does not exits
@@ -96,10 +100,8 @@ class Configs {
   ); // seconds
 
   //logs configs
-  static logsPath = config.get<string>('logs.path');
-  static maxLogSize = config.get<string>('logs.maxSize');
-  static maxLogFiles = config.get<string>('logs.maxFiles');
-  static logLevel = config.get<string>('logs.level');
+  static rotateFileLogs = config.get<RotateFileLogConfig[]>('logs.rotateFiles');
+  static consoleLogs = config.get<ConsoleLogConfig>('logs.console');
 
   static discordWebHookUrl = config.get<string>('discordWebHookUrl');
 }
