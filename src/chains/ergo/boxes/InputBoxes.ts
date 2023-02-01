@@ -1,10 +1,14 @@
-import { EventTrigger } from '../../../models/Models';
+import { Buffer } from 'buffer';
 import { ErgoBox, ErgoBoxCandidate } from 'ergo-lib-wasm-nodejs';
+import { uniqBy } from 'lodash-es';
+
+import { CommitmentEntity } from '@rosen-bridge/watcher-data-extractor';
+
+import { EventTrigger } from '../../../models/Models';
 import ExplorerApi from '../network/ExplorerApi';
 import { JsonBI } from '../../../network/NetworkModels';
 import Utils from '../../../helpers/Utils';
 import { rosenConfig } from '../../../helpers/RosenConfig';
-import { Buffer } from 'buffer';
 import { dbAction } from '../../../db/DatabaseAction';
 import { ImpossibleBehavior } from '../../../helpers/errors';
 
@@ -25,7 +29,8 @@ class InputBoxes {
   };
 
   /**
-   * gets the commitment boxes which created before the event trigger and didn't merge into it
+   * Get the commitment boxes which are created before the event trigger and
+   * aren't merged into it, while omitting any duplicate commitments
    * @param event the event trigger model
    * @return the valid commitment boxes
    */
@@ -33,27 +38,28 @@ class InputBoxes {
     event: EventTrigger
   ): Promise<ErgoBox[]> => {
     const eventData = (await dbAction.getEventById(event.getId()))?.eventData;
+
     if (eventData === undefined) {
       const eventId = event.getId();
       throw new Error(`event [${eventId}] not found`);
     }
+
     const eventBoxHeight = eventData!.height;
     const commitments = await dbAction.getValidCommitments(
       event.getId(),
       eventBoxHeight
     );
-    const usedWIDs = event.WIDs;
-    const commitmentBoxes: ErgoBox[] = [];
-    commitments.forEach((commitment) => {
-      if (!usedWIDs.includes(commitment.WID)) {
-        usedWIDs.push(commitment.WID);
-        commitmentBoxes.push(
-          ErgoBox.sigma_parse_bytes(
-            Utils.base64StringToUint8Array(commitment.boxSerialized)
-          )
-        );
-      }
-    });
+
+    const rejectSpentCommitments = (commitment: CommitmentEntity) =>
+      !event.WIDs.includes(commitment.WID);
+    const getCommitmentUint8ArrayFromBase64 = (commitment: CommitmentEntity) =>
+      Utils.base64StringToUint8Array(commitment.boxSerialized);
+
+    const commitmentBoxes = uniqBy(commitments, 'WID')
+      .filter(rejectSpentCommitments)
+      .map(getCommitmentUint8ArrayFromBase64)
+      .map(ErgoBox.sigma_parse_bytes);
+
     return commitmentBoxes;
   };
 
