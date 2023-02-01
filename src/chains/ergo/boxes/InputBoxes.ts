@@ -104,21 +104,22 @@ class InputBoxes {
     a: ErgoBoxCandidate,
     b: ErgoBoxCandidate
   ): number => {
-    if (a.ergo_tree().to_base16_bytes() < b.ergo_tree().to_base16_bytes())
-      return -1;
-    else if (a.ergo_tree().to_base16_bytes() > b.ergo_tree().to_base16_bytes())
-      return 1;
-    else {
+    const aErgoTree = a.ergo_tree().to_base16_bytes().toLowerCase();
+    const bErgoTree = b.ergo_tree().to_base16_bytes().toLowerCase();
+
+    if (aErgoTree === bErgoTree) {
       const aR4 = a.register_value(4)?.to_coll_coll_byte()[0];
       const bR4 = b.register_value(4)?.to_coll_coll_byte()[0];
 
       if (aR4 !== undefined && bR4 !== undefined) {
         const aWID = Buffer.from(aR4).toString('hex');
         const bWID = Buffer.from(bR4).toString('hex');
-        if (aWID < bWID) return -1;
-        else if (aWID > bWID) return 1;
-        else return 0;
-      } else return 0;
+        return aWID.localeCompare(bWID);
+      } else {
+        return 0;
+      }
+    } else {
+      return aErgoTree.localeCompare(bErgoTree);
     }
   };
 }
