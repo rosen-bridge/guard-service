@@ -29,7 +29,8 @@ class InputBoxes {
   };
 
   /**
-   * gets the commitment boxes which created before the event trigger and didn't merge into it
+   * Get the commitment boxes which are created before the event trigger and
+   * aren't merged into it, while omitting any duplicate commitments
    * @param event the event trigger model
    * @return the valid commitment boxes
    */
