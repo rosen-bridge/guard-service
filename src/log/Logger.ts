@@ -5,6 +5,7 @@ import winston, { format } from 'winston';
 import 'winston-daily-rotate-file';
 
 import Configs from '../helpers/Configs';
+import { JsonBI } from '../network/NetworkModels';
 
 import printf = format.printf;
 
@@ -19,7 +20,7 @@ const logFormat = printf(
   ({ level, message, timestamp, fileName, ...context }) => {
     return `${timestamp} ${level}: [${fileName}] ${message}${
       context && Object.keys(context).length
-        ? ` ${JSON.stringify(context)}`
+        ? ` ${JsonBI.stringify(context)}`
         : ''
     }`;
   }
