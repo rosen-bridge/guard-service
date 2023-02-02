@@ -203,25 +203,22 @@ describe('InputBoxes', () => {
     });
 
     /**
-     * Target:
-     * It should not mutate the event when filtering duplicate commitments
-     *
+     * Target: testing getEventValidCommitments
      * Dependencies:
-     * - dbAction
-     *
+     *    dbAction
      * Scenario:
-     * - Generate two commitment boxes with same WID
-     * - Insert mocked event and commitment boxes into db
-     *
-     * Expected output:
-     * The event should not be mutated
+     *    Generate two commitment boxes with same WID
+     *    Insert mocked event and commitment boxes into db
+     *    Run test
+     *    Check EventTrigger
+     * Expected Output:
+     *    The event should not be mutated
      */
     it('should not mutate the event when filtering duplicate commitments', async () => {
       const wid = TestUtils.generateRandomId();
       const commitmentBox1 = TestBoxes.mockCommitmentBox(wid);
       const commitmentBox2 = TestBoxes.mockCommitmentBox(wid);
-      const clonedMockedEvent = cloneDeep(mockedEvent);
-      const expected = clonedMockedEvent;
+      const expected = cloneDeep(mockedEvent);
 
       await insertEventRecord(
         mockedEvent,
@@ -244,10 +241,9 @@ describe('InputBoxes', () => {
         199
       );
 
+      // run test
       await InputBoxes.getEventValidCommitments(mockedEvent);
-
-      const actual = mockedEvent;
-      expect(actual).to.deep.equal(expected);
+      expect(mockedEvent).to.deep.equal(expected);
     });
   });
 
