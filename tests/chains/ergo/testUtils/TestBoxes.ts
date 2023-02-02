@@ -1058,8 +1058,6 @@ class TestBoxes {
     registers.forEach((register) =>
       inBox.set_register_value(register.registerId, register.value)
     );
-    const wid = Buffer.from(TestUtils.generateRandomId(), 'hex');
-    inBox.set_register_value(4, Constant.from_coll_coll_byte([wid]));
     return inBox.build();
   };
 

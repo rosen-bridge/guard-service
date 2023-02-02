@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { cloneDeep } from 'lodash-es';
+import { cloneDeep, shuffle } from 'lodash-es';
 import { beforeEach } from 'mocha';
 
 import { resetMockedInputBoxes } from '../mocked/MockedInputBoxes';
@@ -12,6 +12,9 @@ import {
 import Utils from '../../../../src/helpers/Utils';
 import InputBoxes from '../../../../src/chains/ergo/boxes/InputBoxes';
 import TestUtils from '../../../testUtils/TestUtils';
+import ErgoConfigs from '../../../../src/chains/ergo/helpers/ErgoConfigs';
+import { Constant, ErgoBoxCandidate } from 'ergo-lib-wasm-nodejs';
+import ErgoUtils from '../../../../src/chains/ergo/helpers/ErgoUtils';
 
 describe('InputBoxes', () => {
   const mockedEvent = TestBoxes.mockErgPaymentEventTrigger();
@@ -245,6 +248,88 @@ describe('InputBoxes', () => {
 
       const actual = mockedEvent;
       expect(actual).to.deep.equal(expected);
+    });
+  });
+
+  describe('compareTwoBoxCandidate', () => {
+    /**
+     * Target: testing compareTwoBoxCandidate
+     * Dependencies:
+     *    -
+     * Scenario:
+     *    Mock four ErgoBoxCandidate (3 different addresses, with or without register on same address)
+     *    Sort them
+     *    Check sorted list
+     * Expected Output:
+     *    The function should sort the boxes correctly
+     */
+    it('should be able to be used for sorting various boxes', async () => {
+      // mock box with lowest register value for permit address
+      const box1 = TestBoxes.mockErgoBoxCandidate(
+        500000n,
+        [],
+        ErgoConfigs.ergoContractConfig.eventTriggerContract,
+        [
+          {
+            registerId: 4,
+            value: Constant.from_coll_coll_byte([Buffer.from('aaaa')]),
+          },
+        ]
+      );
+      // mock box with permit address
+      const box2 = TestBoxes.mockErgoBoxCandidate(
+        500000n,
+        [],
+        ErgoConfigs.ergoContractConfig.eventTriggerContract,
+        [
+          {
+            registerId: 4,
+            value: Constant.from_coll_coll_byte([Buffer.from('bbbb')]),
+          },
+        ]
+      );
+      // mock box with event trigger address and register
+      const box3 = TestBoxes.mockErgoBoxCandidate(
+        500000n,
+        [],
+        ErgoUtils.addressStringToContract(TestBoxes.testLockAddress),
+        [
+          {
+            registerId: 4,
+            value: Constant.from_coll_coll_byte([Buffer.from('aabb')]),
+          },
+        ]
+      );
+      // mock box with commitment address
+      const box4 = TestBoxes.mockErgoBoxCandidate(
+        500000n,
+        [],
+        ErgoConfigs.ergoContractConfig.commitmentContract,
+        []
+      );
+
+      // mock five ErgoBoxCandidate
+      const expectedList = [box1, box2, box3, box4];
+      const boxes = shuffle([box1, box2, box3, box4]);
+
+      // sort boxes
+      boxes.sort(InputBoxes.compareTwoBoxCandidate);
+
+      // check sorted list
+      //  check ergoTrees
+      const ergoTreeMapMethod = (box: ErgoBoxCandidate) =>
+        box.ergo_tree().to_base16_bytes();
+      expect(boxes.map(ergoTreeMapMethod)).to.deep.equal(
+        expectedList.map(ergoTreeMapMethod)
+      );
+      //  check registers
+      const registerMapMethod = (box: ErgoBoxCandidate) => {
+        const value = box.register_value(4)?.to_coll_coll_byte()[0];
+        return value ? Buffer.from(value).toString() : '';
+      };
+      expect(boxes.map(registerMapMethod)).to.deep.equal(
+        expectedList.map(registerMapMethod)
+      );
     });
   });
 });
