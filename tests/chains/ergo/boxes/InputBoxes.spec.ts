@@ -1,4 +1,7 @@
+import { expect } from 'chai';
+import { cloneDeep } from 'lodash-es';
 import { beforeEach } from 'mocha';
+
 import { resetMockedInputBoxes } from '../mocked/MockedInputBoxes';
 import TestBoxes from '../testUtils/TestBoxes';
 import {
@@ -8,7 +11,6 @@ import {
 } from '../../../db/mocked/MockedScannerModel';
 import Utils from '../../../../src/helpers/Utils';
 import InputBoxes from '../../../../src/chains/ergo/boxes/InputBoxes';
-import { expect } from 'chai';
 import TestUtils from '../../../testUtils/TestUtils';
 
 describe('InputBoxes', () => {
@@ -195,6 +197,54 @@ describe('InputBoxes', () => {
       expect(result[0].box_id().to_str()).to.equal(
         commitmentBox1.box_id().to_str()
       );
+    });
+
+    /**
+     * Target:
+     * It should not mutate the event when filtering duplicate commitments
+     *
+     * Dependencies:
+     * - dbAction
+     *
+     * Scenario:
+     * - Generate two commitment boxes with same WID
+     * - Insert mocked event and commitment boxes into db
+     *
+     * Expected output:
+     * The event should not be mutated
+     */
+    it('should not mutate the event when filtering duplicate commitments', async () => {
+      const wid = TestUtils.generateRandomId();
+      const commitmentBox1 = TestBoxes.mockCommitmentBox(wid);
+      const commitmentBox2 = TestBoxes.mockCommitmentBox(wid);
+      const clonedMockedEvent = cloneDeep(mockedEvent);
+      const expected = clonedMockedEvent;
+
+      await insertEventRecord(
+        mockedEvent,
+        '',
+        Utils.Uint8ArrayToBase64String(eventBox.sigma_serialize_bytes()),
+        1000,
+        '',
+        200
+      );
+      await insertCommitmentBoxRecord(
+        mockedEvent.getId(),
+        Utils.Uint8ArrayToBase64String(commitmentBox1.sigma_serialize_bytes()),
+        wid,
+        199
+      );
+      await insertCommitmentBoxRecord(
+        mockedEvent.getId(),
+        Utils.Uint8ArrayToBase64String(commitmentBox2.sigma_serialize_bytes()),
+        wid,
+        199
+      );
+
+      await InputBoxes.getEventValidCommitments(mockedEvent);
+
+      const actual = mockedEvent;
+      expect(actual).to.deep.equal(expected);
     });
   });
 });
