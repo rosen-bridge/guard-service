@@ -214,7 +214,9 @@ class EventProcessor {
     } catch (e) {
       if (e instanceof NotEnoughAssetsError) {
         logger.warn(
-          `Failed to create reward distribution for event [${event.getId()}]: ${e.stack}`
+          `Failed to create reward distribution for event [${event.getId()}]: ${
+            e.stack
+          }`
         );
         await DiscordNotification.sendMessage(
           `Failed to create reward distribution for event [${event.getId()}] due to low assets: ${e}`

@@ -46,13 +46,22 @@ class ImpossibleBehavior extends Error {
   }
 }
 
+class ConfigError extends Error {
+  constructor(configPath: string, actualValue: any) {
+    super(
+      `unexpected config at path ${configPath}: ${JSON.stringify(actualValue)}`
+    );
+  }
+}
+
 export {
+  ChainNotImplemented,
+  ConfigError,
   FailedError,
-  NotFoundError,
+  ImpossibleBehavior,
   NetworkError,
-  UnexpectedApiError,
   NotEnoughAssetsError,
   NotEnoughValidBoxesError,
-  ChainNotImplemented,
-  ImpossibleBehavior,
+  NotFoundError,
+  UnexpectedApiError,
 };
