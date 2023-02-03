@@ -6,7 +6,9 @@ import { RosenTokens, TokenMap } from '@rosen-bridge/tokens';
 import { ThresholdConfig } from '../guard/coldStorage/types';
 import { JsonBI } from '../network/NetworkModels';
 
-import { RotateFileLogConfig, ConsoleLogConfig } from '../types';
+import { ConfigError } from './errors';
+
+import { LogConfig } from '../types';
 
 /**
  * reads a config, set default value if it does not exits
@@ -99,9 +101,21 @@ class Configs {
     'intervals.requeueWaitingEventsInterval'
   ); // seconds
 
-  //logs configs
-  static rotateFileLogs = config.get<RotateFileLogConfig[]>('logs.rotateFiles');
-  static consoleLogs = config.get<ConsoleLogConfig>('logs.console');
+  // logs configs
+  static logs;
+  static {
+    const logs = config.get<LogConfig[]>('logs');
+    const wrongLogTypeIndex = logs.findIndex(
+      (log) => !['console', 'file'].includes(log.type)
+    );
+    if (wrongLogTypeIndex >= 0) {
+      throw new ConfigError(
+        `logs[${wrongLogTypeIndex}].type`,
+        logs[wrongLogTypeIndex].type
+      );
+    }
+    this.logs = logs;
+  }
 
   static discordWebHookUrl = config.get<string>('discordWebHookUrl');
 }

@@ -7,6 +7,8 @@ import 'winston-daily-rotate-file';
 import Configs from '../helpers/Configs';
 import { JsonBI } from '../network/NetworkModels';
 
+import { ConsoleLogConfig, FileLogConfig, LogConfig } from '../types';
+
 import printf = format.printf;
 
 const logLevels = {
@@ -26,24 +28,42 @@ const logFormat = printf(
   }
 );
 
+interface TransportFactory<T extends LogConfig> {
+  (config: T): winston.transport;
+}
+type LogTransports = {
+  [Key in LogConfig['type']]:
+    | TransportFactory<ConsoleLogConfig>
+    | TransportFactory<FileLogConfig>;
+};
+const logTransports = {
+  console: (config: ConsoleLogConfig) =>
+    new winston.transports.Console({
+      format: winston.format.simple(),
+      level: config.level,
+    }),
+  file: (config: FileLogConfig) =>
+    new winston.transports.DailyRotateFile({
+      filename: `${config.path}rosen-%DATE%.log`,
+      datePattern: 'YYYY-MM-DD',
+      zippedArchive: true,
+      maxSize: config.maxSize,
+      maxFiles: config.maxFiles,
+      level: config.level,
+    }),
+} satisfies LogTransports;
+
 const logger = winston.createLogger({
   levels: logLevels,
   format: winston.format.combine(winston.format.timestamp(), logFormat),
   transports: [
-    ...Configs.rotateFileLogs.map(
-      (config) =>
-        new winston.transports.DailyRotateFile({
-          filename: `${config.path}rosen-%DATE%.log`,
-          datePattern: 'YYYY-MM-DD',
-          zippedArchive: true,
-          maxSize: config.maxSize,
-          maxFiles: config.maxFiles,
-          level: config.level,
-        })
-    ),
-    new winston.transports.Console({
-      format: winston.format.simple(),
-      level: Configs.consoleLogs.level,
+    ...Configs.logs.map((config) => {
+      switch (config.type) {
+        case 'console':
+          return logTransports.console(config);
+        case 'file':
+          return logTransports.file(config);
+      }
     }),
   ],
   handleRejections: true,
