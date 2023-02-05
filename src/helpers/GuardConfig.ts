@@ -66,7 +66,7 @@ class GuardConfig {
         return;
       } catch (e) {
         logger.warn(
-          `An error occurred while updating guard configs: ${e.stack}`
+          `An error occurred while updating guard configs: ${e}\n${e.stack}`
         );
         throw new Error('Guard box format is incorrect');
       }
