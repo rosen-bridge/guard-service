@@ -1,7 +1,7 @@
 import { guardConfig } from '../helpers/GuardConfig';
 import Configs from '../helpers/Configs';
 import { loggerFactory } from '../log/Logger';
-import { AxiosError } from 'axios';
+import axios from 'axios';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -13,7 +13,7 @@ const configUpdateJob = async () => {
     await guardConfig.setConfig();
     setTimeout(configUpdateJob, Configs.guardConfigUpdateInterval * 1000);
   } catch (e) {
-    if (e instanceof AxiosError) {
+    if (axios.isAxiosError(e)) {
       if (e.response) {
         logger.warn(
           `An error occurred while getting boxes from the explorer. The request was made and the server responded with a non-2xx code: ${e}\n${e.stack}`,

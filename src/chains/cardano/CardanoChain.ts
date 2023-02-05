@@ -17,7 +17,7 @@ import {
   Vkeywitnesses,
 } from '@emurgo/cardano-serialization-lib-nodejs';
 import { TypeORMError } from 'typeorm';
-import { AxiosError } from 'axios';
+import axios from 'axios';
 import {
   BlockfrostClientError,
   BlockfrostServerError,
@@ -312,7 +312,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         logger.warn(
           `An error occurred while setting tx [${paymentTx.txId}] status to [${TransactionStatus.inSign}] before requesting TSS service: ${e}\n${e.stack}`
         );
-      } else if (e instanceof AxiosError) {
+      } else if (axios.isAxiosError(e)) {
         if (e.response) {
           logger.warn(
             `An error occurred while requesting TSS service to sign Cardano tx [${paymentTx.txId}]. The request was made and the server responded with a non-2xx code: ${e}\n${e.stack}`,
