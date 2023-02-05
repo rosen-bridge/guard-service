@@ -54,6 +54,12 @@ class ConfigError extends Error {
   }
 }
 
+class NotStartedDialerNodeError extends Error {
+  constructor(message?: string) {
+    super(message);
+  }
+}
+
 export {
   ChainNotImplemented,
   ConfigError,
@@ -63,5 +69,6 @@ export {
   NotEnoughAssetsError,
   NotEnoughValidBoxesError,
   NotFoundError,
+  NotStartedDialerNodeError,
   UnexpectedApiError,
 };

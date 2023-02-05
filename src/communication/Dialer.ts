@@ -37,6 +37,7 @@ import {
 } from './Interfaces';
 import { loggerFactory } from '../log/Logger';
 import { JsonBI } from '../network/NetworkModels';
+import { NotStartedDialerNodeError } from 'src/helpers/errors';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -178,7 +179,9 @@ class Dialer {
    */
   getDialerId = () => {
     if (!this._node) {
-      throw new Error("Dialer node isn't ready, please try later");
+      throw new NotStartedDialerNodeError(
+        "Dialer node isn't ready, please try later"
+      );
     }
     return this._node.peerId.toString();
   };
@@ -188,7 +191,9 @@ class Dialer {
    */
   getPeerIds = () => {
     if (!this._node) {
-      throw new Error("Dialer node isn't ready, please try later");
+      throw new NotStartedDialerNodeError(
+        "Dialer node isn't ready, please try later"
+      );
     }
     return this._node.getPeers().map((peer) => peer.toString());
   };
@@ -198,7 +203,9 @@ class Dialer {
    */
   getDiscoveredPeersCount = async () => {
     if (!this._node) {
-      throw new Error("Dialer node isn't ready, please try later");
+      throw new NotStartedDialerNodeError(
+        "Dialer node isn't ready, please try later"
+      );
     }
     return (await this._node.peerStore.all()).length;
   };
