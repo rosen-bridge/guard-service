@@ -10,7 +10,7 @@ const initDataSources = async (): Promise<void> => {
     logger.info('Datasource has been initialized!');
   } catch (err) {
     logger.error(
-      `An error occurred while initializing datasource: ${err.stack}`
+      `An error occurred while initializing datasource: ${err}\n${err.stack}`
     );
   }
 };
