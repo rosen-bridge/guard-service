@@ -63,16 +63,12 @@ class Dialer {
    * @return a Dialer instance (create if it doesn't exist)
    */
   public static getInstance = async () => {
-    try {
-      if (!Dialer.instance) {
-        logger.debug("Dialer instance didn't exist, creating a new one.");
-        Dialer.instance = new Dialer();
-        await Dialer.instance.startDialer();
-        logger.debug('Dialer instance started.');
-        Dialer.instance.processMessageQueue();
-      }
-    } catch (error) {
-      throw Error(`An error occurred while starting Dialer: ${error}`);
+    if (!Dialer.instance) {
+      logger.debug("Dialer instance didn't exist, creating a new one.");
+      Dialer.instance = new Dialer();
+      await Dialer.instance.startDialer();
+      logger.debug('Dialer instance started.');
+      Dialer.instance.processMessageQueue();
     }
     return Dialer.instance;
   };
@@ -322,31 +318,24 @@ class Dialer {
   addPeersToAddressBook = async (peers: string[]) => {
     if (this._node) {
       for (const peer of peers) {
-        try {
-          for (const addr of CommunicationConfig.relays.multiaddrs) {
+        for (const addr of CommunicationConfig.relays.multiaddrs) {
+          try {
             const multi = multiaddr.multiaddr(
               addr.concat(`/p2p-circuit/p2p/${peer}`)
             );
             if (!this.getPeerIds().includes(peer)) {
-              try {
-                await this._node.peerStore.addressBook.add(
-                  await this.createFromString(peer),
-                  [multi]
-                );
-                logger.debug(`Peer [${peer}] added to the address book.`);
-              } catch (error) {
-                logger.error(
-                  `An error occurred while trying to add peer to address book: ${error.stack}`,
-                  { peer }
-                );
-              }
+              await this._node.peerStore.addressBook.add(
+                await this.createFromString(peer),
+                [multi]
+              );
+              logger.debug(`Peer [${peer}] added to the address book.`);
             }
+          } catch (error) {
+            logger.error(
+              `An error occurred while trying to add peer to address book: ${error}\n${error.stack}`,
+              { peer }
+            );
           }
-        } catch (error) {
-          logger.warn(
-            `An error occurred while storing discovered peer: ${error.stack}`,
-            { peer }
-          );
         }
       }
     }
@@ -365,7 +354,7 @@ class Dialer {
         logger.debug(`Peer [${peer}] removed from the address book.`);
       } catch (error) {
         logger.warn(
-          `An error occurred while removing peer from address book: ${error.stack}`,
+          `An error occurred while removing peer from address book: ${error}\n${error.stack}`,
           { peer }
         );
       }
@@ -517,13 +506,13 @@ class Dialer {
           }
         } catch (error) {
           logger.error(
-            `An error occurred while handling stream callback: ${error}`
+            `An error occurred while handling stream callback: ${error}\n${error.stack}`
           );
         }
       }
     ).catch((error) => {
       logger.error(
-        `An error occurred while handling broadcast protocol stream: ${error.stack}`
+        `An error occurred while handling broadcast protocol stream: ${error}\n${error.stack}`
       );
     });
   };
@@ -566,13 +555,13 @@ class Dialer {
           }
         } catch (error) {
           logger.error(
-            `An error occurred while handling stream callback: ${error.stack}`
+            `An error occurred while handling stream callback: ${error}\n${error.stack}`
           );
         }
       }
     ).catch((error) => {
       logger.error(
-        `An error occurred while handling getpeers protocol stream: ${error.stack}`
+        `An error occurred while handling get peers protocol stream: ${error}\n${error.stack}`
       );
     });
   };
@@ -604,7 +593,7 @@ class Dialer {
         logger.debug(`Relay added to address book successfully.`, { peer });
       } catch (error) {
         logger.warn(
-          `An error occurred while trying to add relay [${peer}] to address book: ${error.stack}`
+          `An error occurred while trying to add relay [${peer}] to address book: ${error}\n${error.stack}`
         );
       }
     }, CommunicationConfig.relayReconnectionInterval * 1000);
