@@ -91,7 +91,8 @@ class Configs {
   static txProcessorInterval = config.get<number>(
     'intervals.txProcessorInterval'
   ); // seconds
-  static txResendInterval = 30; // seconds
+  static txResendInterval = 25; // seconds
+  static approvalResendDelay = 5; // seconds
   static multiSigCleanUpInterval = 120; // seconds
   static tssInstanceRestartGap = 5; // seconds
   static timeoutProcessorInterval = config.get<number>(
