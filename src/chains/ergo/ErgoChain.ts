@@ -42,6 +42,7 @@ import {
 } from '../../helpers/errors';
 import ErgoTrack from './ErgoTrack';
 import { TypeORMError } from 'typeorm';
+import axios from 'axios';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -399,10 +400,34 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         `Ergo Transaction [${paymentTx.txId}] submitted. Response: ${response}`
       );
     } catch (e) {
-      logger.warn(
-        `An error occurred while submitting Ergo transaction [${paymentTx.txId}]: ${e}`,
-        { stack: e.stack }
-      );
+      if (e instanceof TypeORMError) {
+        logger.warn(
+          `An error occurred while setting database tx [${paymentTx.txId}] status to [${TransactionStatus.sent}]: ${e}\n${e.stack}`
+        );
+      } else if (axios.isAxiosError(e)) {
+        if (e.response) {
+          logger.warn(
+            `An error occurred while submitting Ergo tx [${paymentTx.txId}]. The request was made and the server responded with a non-2xx code: ${e}\n${e.stack}`,
+            {
+              code: e.code,
+              data: e.response.data,
+              request: e.request,
+            }
+          );
+        } else if (e.request) {
+          logger.warn(
+            `An error occurred while submitting Ergo tx [${paymentTx.txId}]. The request was made but no response was received. Make sure TSS is up and accessible: ${e}\n${e.stack}`,
+            {
+              code: e.code,
+              request: e.request,
+            }
+          );
+        } else {
+          logger.warn(
+            `An error occurred while submitting Ergo tx [${paymentTx.txId}]. Something happened in setting up the request that triggered the error: ${e}\n${e.stack}`
+          );
+        }
+      }
     }
   };
 }
