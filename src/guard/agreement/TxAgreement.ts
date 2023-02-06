@@ -20,6 +20,7 @@ import { loggerFactory } from '../../log/Logger';
 import InputBoxes from '../../chains/ergo/boxes/InputBoxes';
 import GuardTurn from '../../helpers/GuardTurn';
 import EventVerifier from '../event/EventVerifier';
+import { TypeORMError } from 'typeorm';
 
 const logger = loggerFactory(import.meta.url);
 const dialer = await Dialer.getInstance();
@@ -408,9 +409,6 @@ class TxAgreement {
           release();
         } catch (e) {
           release();
-          logger.error(
-            `An error occurred while inserting tx to db: ${e.stack}`
-          );
           throw e;
         }
       });
@@ -420,9 +418,11 @@ class TxAgreement {
       if (this.eventAgreedTransactions.has(tx.eventId))
         this.eventAgreedTransactions.delete(tx.eventId);
     } catch (e) {
-      logger.warn(
-        `Unexpected error occurred while setting tx [${tx.txId}] as approved: ${e.stack}`
-      );
+      if (e instanceof TypeORMError) {
+        logger.error(
+          `An error occurred while inserting tx [${tx.txId}] to db: ${e}\n${e.stack}`
+        );
+      }
     }
   };
 
@@ -438,7 +438,7 @@ class TxAgreement {
         await dbAction.setEventStatus(tx.eventId, EventStatus.inReward);
     } catch (e) {
       logger.warn(
-        `Unexpected error occurred while updating event [${tx.eventId}] with status: ${e.stack}`
+        `An error occurred while setting database event [${tx.eventId}] status: ${e}\n${e.stack}`
       );
     }
   };
@@ -457,7 +457,7 @@ class TxAgreement {
         this.broadcastTransactionRequest(tx, creatorId, guardSignature);
       } catch (e) {
         logger.warn(
-          `Unexpected error occurred while resending tx [${tx.txId}]: ${e.stack}`
+          `Unexpected error occurred while resending tx [${tx.txId}]: ${e}${e.stack}`
         );
       }
     });
