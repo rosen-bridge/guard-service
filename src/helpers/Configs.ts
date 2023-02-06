@@ -11,7 +11,7 @@ import { ConfigError } from './errors';
 import { LogConfig } from '../types';
 
 /**
- * reads a config, set default value if it does not exits
+ * reads a numerical config, set default value if it does not exits
  * @param key
  * @param defaultValue
  */
@@ -27,11 +27,24 @@ const getConfigIntKeyOrDefault = (key: string, defaultValue: number) => {
   return defaultValue;
 };
 
+/**
+ * reads an optional config, returns default value if it does not exits
+ * @param key
+ * @param defaultValue
+ */
+const getOptionalConfig = <T>(key: string, defaultValue: T) => {
+  if (config.has(key)) {
+    return config.get<T>(key);
+  }
+  return defaultValue;
+};
+
 class Configs {
   // express config
-  static expressPort = config.get<number>('express.port');
-  private static expressBodyLimitValue = config.get<number>(
-    'express.jsonBodyLimit'
+  static expressPort = getConfigIntKeyOrDefault('express.port', 8080);
+  private static expressBodyLimitValue = getConfigIntKeyOrDefault(
+    'express.jsonBodyLimit',
+    50
   );
   static expressBodyLimit = `${this.expressBodyLimitValue}mb`;
 
@@ -43,13 +56,14 @@ class Configs {
   static tssConfigPath = config.get<string>('tss.configPath');
   static tssUrl = config.get<string>('tss.url');
   static tssPort = config.get<string>('tss.port');
-  static tssTimeout = config.get<number>('tss.timeout'); // seconds
+  static tssTimeout = getConfigIntKeyOrDefault('tss.timeout', 8); // seconds
   static tssCallBackUrl = `http://localhost:${this.expressPort}/tss/sign`;
 
   // guards configs
   static guardSecret = config.get<string>('guard.secret');
-  static guardConfigUpdateInterval = config.get<number>(
-    'guard.configUpdateInterval'
+  static guardConfigUpdateInterval = getConfigIntKeyOrDefault(
+    'guard.configUpdateInterval',
+    180
   );
 
   // contract, addresses and tokens config
@@ -88,17 +102,20 @@ class Configs {
 
   // jobs configs
   static scannedEventProcessorInterval = 120; // seconds, 2 minutes
-  static txProcessorInterval = config.get<number>(
-    'intervals.txProcessorInterval'
+  static txProcessorInterval = getConfigIntKeyOrDefault(
+    'intervals.txProcessorInterval',
+    180
   ); // seconds
   static txResendInterval = 30; // seconds
   static multiSigCleanUpInterval = 120; // seconds
   static tssInstanceRestartGap = 5; // seconds
-  static timeoutProcessorInterval = config.get<number>(
-    'intervals.timeoutProcessorInterval'
+  static timeoutProcessorInterval = getConfigIntKeyOrDefault(
+    'intervals.timeoutProcessorInterval',
+    3600
   ); // seconds
-  static requeueWaitingEventsInterval = config.get<number>(
-    'intervals.requeueWaitingEventsInterval'
+  static requeueWaitingEventsInterval = getConfigIntKeyOrDefault(
+    'intervals.requeueWaitingEventsInterval',
+    43200
   ); // seconds
 
   // logs configs
@@ -118,6 +135,16 @@ class Configs {
   }
 
   static discordWebHookUrl = config.get<string>('discordWebHookUrl');
+
+  // Database Configs
+  static dbType = getOptionalConfig('database.type', '');
+  static dbPath = getOptionalConfig('database.path', '');
+  static dbHost = getOptionalConfig('database.host', '');
+  static dbPort = getOptionalConfig('database.port', 5432);
+  static dbUser = getOptionalConfig('database.user', '');
+  static dbPassword = getOptionalConfig('database.password', '');
+  static dbName = getOptionalConfig('database.name', '');
 }
 
 export default Configs;
+export { getConfigIntKeyOrDefault };

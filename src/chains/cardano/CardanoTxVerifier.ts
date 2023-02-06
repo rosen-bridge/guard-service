@@ -28,7 +28,7 @@ const logger = loggerFactory(import.meta.url);
 
 // TODO: include this class in refactor (#109)
 class CardanoTxVerifier {
-  static bankAddress = Address.from_bech32(CardanoConfigs.bankAddress);
+  static lockAddress = Address.from_bech32(CardanoConfigs.lockAddress);
 
   /**
    * verifies the payment transaction data with the event
@@ -39,6 +39,7 @@ class CardanoTxVerifier {
    *  5. checks number of assets in payment box paymentMultiAsset (asset payment)
    *  6. checks amount for paymentAsset in payment box (asset payment)
    *  7. checks address of payment box
+   *  8. checks transaction fee
    * @param paymentTx the payment transaction
    * @param event the event trigger model
    * @param feeConfig minimum fee and rsn ratio config for the event
@@ -56,18 +57,18 @@ class CardanoTxVerifier {
     for (let i = 1; i < outputBoxes.len(); i++)
       if (
         outputBoxes.get(i).address().to_bech32() !==
-        this.bankAddress.to_bech32()
+        this.lockAddress.to_bech32()
       ) {
         logger.debug(
           `Tx [${paymentTx.txId}] invalid: Outbox address [${outputBoxes
             .get(i)
             .address()
-            .to_bech32()}] is not equal to lockAddress [${this.bankAddress.to_bech32()}]`
+            .to_bech32()}] is not equal to lockAddress [${this.lockAddress.to_bech32()}]`
         );
         return false;
       }
 
-    // verify all bank boxes have no metadata
+    // verify tx has no metadata
     if (tx.auxiliary_data()) {
       logger.debug(`Tx [${paymentTx.txId}] invalid: Contains metadata`);
       return false;
@@ -136,19 +137,30 @@ class CardanoTxVerifier {
         ?.get_asset(paymentAssetPolicyId, paymentAssetAssetName);
 
       if (
-        paymentBox.amount().coin().compare(lovelacePaymentAmount) === 0 &&
-        paymentAssetAmount !== undefined &&
-        paymentAssetAmount.compare(assetPaymentAmount) === 0 &&
-        paymentBox.address().to_bech32() === event.toAddress
-      )
-        return true;
-      else {
+        paymentBox.amount().coin().compare(lovelacePaymentAmount) !== 0 ||
+        paymentAssetAmount === undefined ||
+        paymentAssetAmount.compare(assetPaymentAmount) !== 0 ||
+        paymentBox.address().to_bech32() !== event.toAddress
+      ) {
         logger.debug(
           `Tx [${paymentTx.txId}] invalid: PaymentBox conditions are not met`
         );
         return false;
       }
     }
+
+    // verify tx fee
+    if (tx.body().fee().compare(CardanoConfigs.txFee) > 0) {
+      logger.debug(
+        `Tx [${paymentTx.txId}] invalid: Transaction fee [${tx
+          .body()
+          .fee()
+          .to_str()}] is more than maximum allowed fee [${CardanoConfigs.txFee.to_str()}]`
+      );
+      return false;
+    }
+
+    return true;
   };
 
   /**
@@ -193,11 +205,7 @@ class CardanoTxVerifier {
     try {
       const txInfo = (await KoiosApi.getTxInformation([event.sourceTxId]))[0];
       const payment = txInfo.outputs.filter((utxo: Utxo) => {
-        return (
-          CardanoConfigs.lockAddresses.find(
-            (address) => address === utxo.payment_addr.bech32
-          ) !== undefined
-        );
+        return CardanoConfigs.lockAddress === utxo.payment_addr.bech32;
       })[0];
       if (payment) {
         if (!txInfo.metadata) {

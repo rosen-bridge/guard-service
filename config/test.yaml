@@ -6,15 +6,13 @@ cardano:
     timeout: 8000
   blockFrost:
     projectId: 'change me'
-  bankAddress: 'addr_test1qrm4haxxgl55kqzhpp3sda8h979gxd4cast340v0eh0p4qzp3vkcrhjqavv9uzsvq86mglwnwe8xp87q3rv8ve54kasqlf7xgl'
   bankPublicKey: 'bcb07faa6c0f19e2f2587aa9ef6f43a68fc0135321216a71dc87c8527af4ca6a'
   minUtxoValue: '1551690'
   fee: '200000'
   txTtl: 1000000
   observationConfirmation: 30
   paymentConfirmation: 40
-  lockAddresses:
-    - 'addr_test1vze7yqqlg8cjlyhz7jzvsg0f3fhxpuu6m3llxrajfzqecggw704re'
+  lockAddress: 'addr_test1vze7yqqlg8cjlyhz7jzvsg0f3fhxpuu6m3llxrajfzqecggw704re'
   coldStorageAddress: 'addr_test1vze7yqqlg8cjlyhz7jzvsg0f3fhxpuu6m3llxrajfzqecggw704re'
 ergo:
   networkType: 'testnet'
