@@ -19,10 +19,16 @@ import {
 import { Buffer } from 'buffer';
 import CardanoUtils from '../../chains/cardano/helpers/CardanoUtils';
 import Utils from '../../helpers/Utils';
+import {
+  FailedError,
+  NetworkError,
+  UnexpectedApiError,
+} from '../../helpers/errors';
 import { UtxoBoxesAssets } from '../../chains/cardano/models/Interfaces';
 import { dbAction } from '../../db/DatabaseAction';
 import { TransactionStatus } from '../../models/Models';
 import { ImpossibleBehavior } from '../../helpers/errors';
+import { TypeORMError } from 'typeorm';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -95,9 +101,23 @@ class ColdStorage {
         txAgreement.startAgreementProcess(tx);
       }
     } catch (e) {
-      logger.warn(
-        `An error occurred while processing assets in Ergo lock address [${ErgoConfigs.ergoContractConfig.lockAddress}]: ${e.stack}`
-      );
+      if (e instanceof TypeORMError) {
+        logger.warn(
+          `An error occurred while getting incomplete cold storage txs: ${e}\n${e.stack}`
+        );
+      } else if (
+        e instanceof FailedError ||
+        e instanceof NetworkError ||
+        e instanceof UnexpectedApiError
+      ) {
+        logger.warn(
+          `An error occurred while getting address assets: ${e}\n${e.stack}`
+        );
+      } else {
+        logger.warn(
+          `An unexpected error occurred while processing assets in Ergo lock address [${ErgoConfigs.ergoContractConfig.lockAddress}]: ${e}\n${e.stack}`
+        );
+      }
     }
   };
 
@@ -204,9 +224,23 @@ class ColdStorage {
         txAgreement.startAgreementProcess(tx);
       }
     } catch (e) {
-      logger.warn(
-        `An error occurred while processing assets in Cardano lock address [${CardanoConfigs.bankAddress}]: ${e.stack}`
-      );
+      if (e instanceof TypeORMError) {
+        logger.warn(
+          `An error occurred while getting incomplete cold storage txs: ${e}\n${e.stack}`
+        );
+      } else if (
+        e instanceof FailedError ||
+        e instanceof NetworkError ||
+        e instanceof UnexpectedApiError
+      ) {
+        logger.warn(
+          `An error occurred while getting address assets: ${e}\n${e.stack}`
+        );
+      } else {
+        logger.warn(
+          `An unexpected error occurred while processing assets in Cardano lock address [${ErgoConfigs.ergoContractConfig.lockAddress}]: ${e}\n${e.stack}`
+        );
+      }
     }
   };
 }
