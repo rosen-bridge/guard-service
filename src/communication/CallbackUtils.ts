@@ -28,9 +28,28 @@ const apiCallBack: SubscribeChannelWithURL['func'] = (
   );
   data.catch((error) => {
     if (axios.isAxiosError(error)) {
-      logger.warn(`An error occurred, ${error.message} - ${error.stack}`);
-    } else {
-      logger.error(`Unexpected error, ${error.stack}`);
+      if (error.response) {
+        logger.warn(
+          `An error occurred while calling api url ${url}. The request was made and the server responded with a non-2xx code: ${error}\n${error.stack}`,
+          {
+            code: error.code,
+            data: error.response.data,
+            request: error.request,
+          }
+        );
+      } else if (error.request) {
+        logger.warn(
+          `An error occurred while calling api url ${url}. The request was made but no response was received. Make sure TSS is up and accessible: ${error}\n${error.stack}`,
+          {
+            code: error.code,
+            request: error.request,
+          }
+        );
+      } else {
+        logger.warn(
+          `An error occurred while calling api url ${url}. Something happened in setting up the request that triggered the error: ${error}\n${error.stack}`
+        );
+      }
     }
   });
 };
