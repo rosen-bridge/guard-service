@@ -1,3 +1,5 @@
+import { PaymentTransaction } from '../../models/Models';
+
 interface AgreementPayload {
   guardId: number;
   signature: string;
@@ -22,10 +24,16 @@ interface AgreementMessage {
   payload: AgreementPayload | TransactionApproved;
 }
 
+interface AgreementApproved {
+  tx: PaymentTransaction;
+  approvals: AgreementPayload[];
+}
+
 export type {
   AgreementPayload,
   CandidateTransaction,
   GuardsAgreement,
   TransactionApproved,
   AgreementMessage,
+  AgreementApproved,
 };
