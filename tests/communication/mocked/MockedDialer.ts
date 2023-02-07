@@ -84,15 +84,6 @@ const verifySendMessageCalledOnce = (channel: string, message: any): void => {
 };
 
 /**
- * verifies Dialer sendMessage method called twice for tx
- * @param channel
- * @param message
- */
-const verifySendMessageCalledTwice = (channel: string, message: any): void => {
-  verify(mockedDialerInstance.sendMessage(channel, deepEqual(message))).twice();
-};
-
-/**
  * verifies Dialer sendMessage method called once for tx
  * @param channel
  * @param message
@@ -135,7 +126,6 @@ export {
   resetMockedFS,
   sendMessageBodyAndPayloadArguments,
   verifySendMessageCalledOnce,
-  verifySendMessageCalledTwice,
   verifySendMessageWithReceiverCalledOnce,
   verifySendMessageDidntGetCalled,
   resetDialerCalls,

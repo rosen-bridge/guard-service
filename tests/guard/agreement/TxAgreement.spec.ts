@@ -1,7 +1,6 @@
 import {
   resetDialerCalls,
   verifySendMessageCalledOnce,
-  verifySendMessageCalledTwice,
   verifySendMessageDidntGetCalled,
   verifySendMessageWithReceiverCalledOnce,
 } from '../../communication/mocked/MockedDialer';
@@ -40,8 +39,6 @@ import {
   mockVerifyEvent,
   mockVerifyPaymentTransactionWithEvent,
 } from '../mocked/MockedEventVerifier';
-import TestBoxes from '../../chains/ergo/testUtils/TestBoxes';
-import ErgoUtils from '../../../src/chains/ergo/helpers/ErgoUtils';
 
 describe('TxAgreement', () => {
   const eventBoxAndCommitments =
@@ -895,6 +892,12 @@ describe('TxAgreement', () => {
         0
       );
       expect(Array.from(txAgreement.getTransactions()).length).to.equal(0);
+      const approvedTransactions = txAgreement.getApprovedTransactions();
+      expect(Array.from(approvedTransactions).length).to.equal(1);
+      expect(approvedTransactions.get(tx.txId)).to.deep.equal({
+        tx: tx,
+        approvals: agreements,
+      });
     });
   });
 
@@ -1118,14 +1121,14 @@ describe('TxAgreement', () => {
 
       // initialize tx array
       const txAgreement = new TestTxAgreement();
-      txAgreement.startAgreementProcess(tx1);
-      txAgreement.startAgreementProcess(tx2);
+      txAgreement.insertTransactions(tx1.txId, tx1);
+      txAgreement.insertTransactions(tx2.txId, tx2);
 
       // run test
       txAgreement.resendTransactionRequests();
 
       // verify
-      verifySendMessageCalledTwice(
+      verifySendMessageCalledOnce(
         'tx-agreement',
         JSON.stringify({
           type: 'request',
@@ -1136,7 +1139,7 @@ describe('TxAgreement', () => {
           },
         })
       );
-      verifySendMessageCalledTwice(
+      verifySendMessageCalledOnce(
         'tx-agreement',
         JSON.stringify({
           type: 'request',
@@ -1144,6 +1147,182 @@ describe('TxAgreement', () => {
             txJson: tx2.toJson(),
             guardId: 1,
             signature: tx2.signMetaData(),
+          },
+        })
+      );
+    });
+
+    /**
+     * Target: testing resendTransactionRequests
+     * Dependencies:
+     *    -
+     * Scenario:
+     *    Mock two transactions with their approvals
+     *    Insert mock data into TxAgreement memory
+     *    Run test
+     *    Check method calls
+     * Expected Output:
+     *    The function should resend tx request
+     */
+    it('should rebroadcast agreement request for all approved transactions', () => {
+      // mock two transactions with their approvals
+      const mockedEvent1: EventTrigger =
+        CardanoTestBoxes.mockAssetPaymentEventTrigger();
+      const tx1 = CardanoTestBoxes.mockNoAssetsTransferringPaymentTransaction(
+        mockedEvent1,
+        CardanoTestBoxes.testBankAddress
+      );
+      const tx1Approvals = [
+        {
+          guardId: 0,
+          signature: 'guardSignature',
+        },
+        {
+          guardId: 1,
+          signature: 'guardSignature',
+        },
+      ];
+
+      const mockedEvent2: EventTrigger =
+        CardanoTestBoxes.mockAssetPaymentEventTrigger();
+      const tx2 =
+        CardanoTestBoxes.mockMultiAssetsTransferringPaymentTransaction(
+          mockedEvent2,
+          CardanoTestBoxes.testBankAddress
+        );
+      const tx2Approvals = [
+        {
+          guardId: 1,
+          signature: 'guardSignature',
+        },
+        {
+          guardId: 3,
+          signature: 'guardSignature',
+        },
+      ];
+
+      // insert mock data into TxAgreement memory
+      const txAgreement = new TestTxAgreement();
+      txAgreement.insertApprovedTransactions(tx1.txId, {
+        tx: tx1,
+        approvals: tx1Approvals,
+      });
+      txAgreement.insertApprovedTransactions(tx2.txId, {
+        tx: tx2,
+        approvals: tx2Approvals,
+      });
+
+      // run test
+      txAgreement.resendTransactionRequests();
+
+      // verify
+      verifySendMessageCalledOnce(
+        'tx-agreement',
+        JSON.stringify({
+          type: 'request',
+          payload: {
+            txJson: tx1.toJson(),
+            guardId: 1,
+            signature: tx1.signMetaData(),
+          },
+        })
+      );
+      verifySendMessageCalledOnce(
+        'tx-agreement',
+        JSON.stringify({
+          type: 'request',
+          payload: {
+            txJson: tx2.toJson(),
+            guardId: 1,
+            signature: tx2.signMetaData(),
+          },
+        })
+      );
+    });
+  });
+
+  describe('resendApprovalMessages', () => {
+    /**
+     * Target: testing resendApprovalMessages
+     * Dependencies:
+     *    -
+     * Scenario:
+     *    Mock two transactions with their approvals
+     *    Insert mock data into TxAgreement memory
+     *    Run test
+     *    Check method calls
+     * Expected Output:
+     *    The function should resend approval message
+     */
+    it('should rebroadcast approval messages for all approved transactions', () => {
+      // mock two transactions with their approvals
+      const mockedEvent1: EventTrigger =
+        CardanoTestBoxes.mockAssetPaymentEventTrigger();
+      const tx1 = CardanoTestBoxes.mockNoAssetsTransferringPaymentTransaction(
+        mockedEvent1,
+        CardanoTestBoxes.testBankAddress
+      );
+      const tx1Approvals = [
+        {
+          guardId: 0,
+          signature: 'guardSignature',
+        },
+        {
+          guardId: 1,
+          signature: 'guardSignature',
+        },
+      ];
+
+      const mockedEvent2: EventTrigger =
+        CardanoTestBoxes.mockAssetPaymentEventTrigger();
+      const tx2 =
+        CardanoTestBoxes.mockMultiAssetsTransferringPaymentTransaction(
+          mockedEvent2,
+          CardanoTestBoxes.testBankAddress
+        );
+      const tx2Approvals = [
+        {
+          guardId: 1,
+          signature: 'guardSignature',
+        },
+        {
+          guardId: 3,
+          signature: 'guardSignature',
+        },
+      ];
+
+      // insert mock data into TxAgreement memory
+      const txAgreement = new TestTxAgreement();
+      txAgreement.insertApprovedTransactions(tx1.txId, {
+        tx: tx1,
+        approvals: tx1Approvals,
+      });
+      txAgreement.insertApprovedTransactions(tx2.txId, {
+        tx: tx2,
+        approvals: tx2Approvals,
+      });
+
+      // run test
+      txAgreement.resendApprovalMessages();
+
+      // verify
+      verifySendMessageCalledOnce(
+        'tx-agreement',
+        JSON.stringify({
+          type: 'approval',
+          payload: {
+            txJson: tx1.toJson(),
+            guardsSignatures: tx1Approvals,
+          },
+        })
+      );
+      verifySendMessageCalledOnce(
+        'tx-agreement',
+        JSON.stringify({
+          type: 'approval',
+          payload: {
+            txJson: tx2.toJson(),
+            guardsSignatures: tx2Approvals,
           },
         })
       );
