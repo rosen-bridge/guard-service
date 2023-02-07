@@ -111,7 +111,9 @@ class InputBoxes {
   };
 
   /**
-   * compares two ErgoBoxCandidate. Used in sorting permit boxes with their WIDs
+   * compares two ErgoBoxCandidate by ErgoTree and first value of collCollByte formatting of R4
+   *  note: if boxes have same ergoTree but one of them has no R4 or invalid type
+   *  it considers them as equal (returns 0)
    * @param a
    * @param b
    */
