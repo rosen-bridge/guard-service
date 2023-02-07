@@ -275,11 +275,13 @@ const insertTxRecord = async (
  * inserts a record to Event table in
  * @param eventId
  * @param boxSerialized
+ * @param wid
  * @param height
  */
 const insertCommitmentBoxRecord = async (
   eventId: string,
   boxSerialized: string,
+  wid: string,
   height: number
 ) => {
   await testScannerDataBase.CommitmentRepository.createQueryBuilder()
@@ -288,7 +290,7 @@ const insertCommitmentBoxRecord = async (
       extractor: 'extractor',
       eventId: eventId,
       commitment: 'commitment',
-      WID: 'WID',
+      WID: wid,
       boxId: TestUtils.generateRandomId(),
       block: 'blockId',
       boxSerialized: boxSerialized,

@@ -77,13 +77,7 @@ class NodeApi {
   static sendTx = (txJson: string): Promise<string | void> => {
     return this.nodeClient
       .post<string>('/transactions', txJson)
-      .then((response) => response.data)
-      .catch((e) => {
-        logger.warn(
-          `An error occurred while submitting transaction to Ergo Node: ${e}`,
-          { stack: e.stack }
-        );
-      });
+      .then((response) => response.data);
   };
 }
 

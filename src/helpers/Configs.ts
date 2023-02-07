@@ -1,8 +1,14 @@
+import fs from 'fs';
+
 import config from 'config';
 import { RosenTokens, TokenMap } from '@rosen-bridge/tokens';
-import fs from 'fs';
+
 import { ThresholdConfig } from '../guard/coldStorage/types';
 import { JsonBI } from '../network/NetworkModels';
+
+import { ConfigError } from './errors';
+
+import { LogConfig } from '../types';
 
 /**
  * reads a numerical config, set default value if it does not exits
@@ -112,11 +118,21 @@ class Configs {
     43200
   ); // seconds
 
-  //logs configs
-  static logsPath = config.get<string>('logs.path');
-  static maxLogSize = config.get<string>('logs.maxSize');
-  static maxLogFiles = config.get<string>('logs.maxFiles');
-  static logLevel = config.get<string>('logs.level');
+  // logs configs
+  static logs;
+  static {
+    const logs = config.get<LogConfig[]>('logs');
+    const wrongLogTypeIndex = logs.findIndex(
+      (log) => !['console', 'file'].includes(log.type)
+    );
+    if (wrongLogTypeIndex >= 0) {
+      throw new ConfigError(
+        `logs[${wrongLogTypeIndex}].type`,
+        logs[wrongLogTypeIndex].type
+      );
+    }
+    this.logs = logs;
+  }
 
   static discordWebHookUrl = config.get<string>('discordWebHookUrl');
 

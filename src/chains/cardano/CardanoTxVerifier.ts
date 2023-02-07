@@ -107,10 +107,19 @@ class CardanoTxVerifier {
         feeConfig
       );
       const multiAssets = paymentBox.amount().multiasset();
-      if (multiAssets === undefined || multiAssets.len() !== 1) return false;
-      else {
+      if (multiAssets === undefined || multiAssets.len() !== 1) {
+        logger.debug(
+          `Tx [${paymentTx.txId}] invalid: Size of policyIds is invalid`
+        );
+        return false;
+      } else {
         const multiAssetPolicyId: ScriptHash = multiAssets.keys().get(0);
-        if (multiAssets.get(multiAssetPolicyId)!.len() !== 1) return false;
+        if (multiAssets.get(multiAssetPolicyId)!.len() !== 1) {
+          logger.debug(
+            `Tx [${paymentTx.txId}] invalid: Size of assets for the policyId is invalid`
+          );
+          return false;
+        }
       }
 
       const paymentAssetInfo = CardanoUtils.getCardanoAssetInfo(

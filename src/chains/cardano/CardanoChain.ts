@@ -302,7 +302,8 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
       await TssSigner.signTxHash(txHash);
     } catch (e) {
       logger.warn(
-        `An error occurred while requesting TSS service to sign Cardano tx: [${e.stack}]`
+        `An error occurred while requesting TSS service to sign Cardano txId [${paymentTx.txId}]: ${e}`,
+        { stack: e.stack }
       );
     }
   };

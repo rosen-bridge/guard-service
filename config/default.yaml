@@ -68,10 +68,13 @@ contracts:
   addressesBasePath: './config/rosen/'
 networks: ['ergo', 'cardano']
 logs:
-  path: './logs/' # path to log files
-  maxSize: '20m' # maximum size of each log file (20 MB)
-  maxFiles: '14d' # maximum number of log files (14 days)
-  level: 'info' # [debug, info, warn, error]
+  - type: 'file' # [file, console]
+    path: './logs/' # path to log files (only for rotateFile type)
+    maxSize: '20m' # maximum size of each log file (20 MB) (only for rotateFile type)
+    maxFiles: '14d' # maximum number of log files (14 days) (only for rotateFile type)
+    level: 'info' # [debug, info, warn, error]
+  - type: 'console'
+    level: 'info'
 coldStorage:
   startHour: 17 # start of cold storage transaction generation period
   endHour: 19 # end of cold storage transaction generation period

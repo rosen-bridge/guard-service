@@ -124,7 +124,7 @@ class BoxVerifications {
 
       for (let j = 0; j < box.tokens().len(); j++) {
         const token = box.tokens().get(j);
-        const expectedToken = box.tokens().get(j);
+        const expectedToken = expectedBox.tokens().get(j);
         if (
           token.id().to_str() !== expectedToken.id().to_str() ||
           ErgoUtils.bigintFromTokenAmount(token.amount()) !==
@@ -133,7 +133,17 @@ class BoxVerifications {
           logger.debug(
             `Box is not compatible: Value or position of token [${expectedToken
               .id()
-              .to_str()}] is different from expected one`
+              .to_str()}] is different from expected one`,
+            {
+              tokenId: token.id().to_str(),
+              expectedTokenId: expectedToken.id().to_str(),
+              tokenAmount: ErgoUtils.bigintFromTokenAmount(
+                token.amount()
+              ).toString(),
+              expectedTokenAmount: ErgoUtils.bigintFromTokenAmount(
+                expectedToken.amount()
+              ).toString(),
+            }
           );
           return false;
         }
