@@ -332,9 +332,10 @@ class Dialer {
             }
           } catch (error) {
             logger.error(
-              `An error occurred while trying to add peer to address book: ${error}\n${error.stack}`,
+              `An error occurred while trying to add peer to address book: ${error}`,
               { peer }
             );
+            logger.error(`${error.stack}`);
           }
         }
       }
@@ -354,9 +355,10 @@ class Dialer {
         logger.debug(`Peer [${peer}] removed from the address book.`);
       } catch (error) {
         logger.warn(
-          `An error occurred while removing peer from address book: ${error}\n${error.stack}`,
+          `An error occurred while removing peer from address book: ${error}`,
           { peer }
         );
+        logger.warn(`${error.stack}`);
       }
     }
   };
@@ -506,14 +508,16 @@ class Dialer {
           }
         } catch (error) {
           logger.error(
-            `An error occurred while handling stream callback: ${error}\n${error.stack}`
+            `An error occurred while handling stream callback: ${error}`
           );
+          logger.error(`${error.stack}`);
         }
       }
     ).catch((error) => {
       logger.error(
-        `An error occurred while handling broadcast protocol stream: ${error}\n${error.stack}`
+        `An error occurred while handling broadcast protocol stream: ${error}`
       );
+      logger.error(`${error.stack}`);
     });
   };
 
@@ -555,14 +559,16 @@ class Dialer {
           }
         } catch (error) {
           logger.error(
-            `An error occurred while handling stream callback: ${error}\n${error.stack}`
+            `An error occurred while handling stream callback: ${error}`
           );
+          logger.error(`${error.stack}`);
         }
       }
     ).catch((error) => {
       logger.error(
-        `An error occurred while handling get peers protocol stream: ${error}\n${error.stack}`
+        `An error occurred while handling get peers protocol stream: ${error}`
       );
+      logger.error(`${error.stack}`);
     });
   };
 
@@ -593,8 +599,9 @@ class Dialer {
         logger.debug(`Relay added to address book successfully.`, { peer });
       } catch (error) {
         logger.warn(
-          `An error occurred while trying to add relay [${peer}] to address book: ${error}\n${error.stack}`
+          `An error occurred while trying to add relay [${peer}] to address book: ${error}`
         );
+        logger.warn(`${error.stack}`);
       }
     }, CommunicationConfig.relayReconnectionInterval * 1000);
 

@@ -70,24 +70,28 @@ class EventProcessor {
       } catch (e) {
         if (e instanceof TypeORMError) {
           logger.warn(
-            `A database error occurred while processing scanned event with txId [${event.sourceTxId}]: ${e}\n${e.stack}`
+            `A database error occurred while processing scanned event with txId [${event.sourceTxId}]: ${e}`
           );
+          logger.warn(e.stack);
         } else if (
           e instanceof FailedError ||
           e instanceof NetworkError ||
           e instanceof UnexpectedApiError
         ) {
           logger.warn(
-            `An axios error occurred while checking event with txId [${event.sourceTxId}] confirmations: ${e}\n${e.stack}`
+            `An axios error occurred while checking event with txId [${event.sourceTxId}] confirmations: ${e}`
           );
+          logger.warn(e.stack);
         } else if (e instanceof ChainNotImplemented) {
           logger.warn(
-            `An error occurred while processing scanned vent with txId [${event.sourceTxId}] because the corresponding event chain (${e.message}) is not implemented.\n${e.stack}`
+            `An error occurred while processing scanned vent with txId [${event.sourceTxId}] because the corresponding event chain (${e.message}) is not implemented.`
           );
+          logger.warn(e.stack);
         } else {
           logger.warn(
-            `An unexpected error occurred while processing event txId [${event.sourceTxId}]: ${e}\n${e.stack}`
+            `An unexpected error occurred while processing event txId [${event.sourceTxId}]: ${e}`
           );
+          logger.warn(e.stack);
         }
       }
     }
@@ -141,8 +145,9 @@ class EventProcessor {
         }
       } catch (e) {
         logger.warn(
-          `An error occurred while processing leftover event [${event.id}]: ${e}\n${e.stack}`
+          `An error occurred while processing leftover event [${event.id}]: ${e}`
         );
+        logger.warn(e.stack);
       }
     }
     logger.info(
@@ -174,8 +179,9 @@ class EventProcessor {
           );
       } catch (e) {
         logger.warn(
-          `An error occurred while processing waiting event [${event.id}]: ${e}\n${e.stack}`
+          `An error occurred while processing waiting event [${event.id}]: ${e}`
         );
+        logger.warn(e.stack);
       }
     }
     logger.info(`[${waitingEvents.length}] Waiting Events processed`);
@@ -202,10 +208,9 @@ class EventProcessor {
     } catch (e) {
       if (e instanceof NotEnoughAssetsError) {
         logger.warn(
-          `Failed to create payment for event [${event.getId()}]: ${e}\n${
-            e.stack
-          }`
+          `Failed to create payment for event [${event.getId()}]: ${e}`
         );
+        logger.warn(e.stack);
         await DiscordNotification.sendMessage(
           `Failed to create payment for event [${event.getId()}] due to low assets: ${e}`
         );
@@ -238,10 +243,9 @@ class EventProcessor {
     } catch (e) {
       if (e instanceof NotEnoughAssetsError) {
         logger.warn(
-          `Failed to create reward distribution for event [${event.getId()}]: ${e}\n${
-            e.stack
-          }`
+          `Failed to create reward distribution for event [${event.getId()}]: ${e}`
         );
+        logger.warn(e.stack);
         await DiscordNotification.sendMessage(
           `Failed to create reward distribution for event [${event.getId()}] due to low assets: ${e}`
         );

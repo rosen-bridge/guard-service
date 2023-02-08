@@ -420,8 +420,9 @@ class TxAgreement {
     } catch (e) {
       if (e instanceof TypeORMError) {
         logger.error(
-          `An error occurred while inserting tx [${tx.txId}] to db: ${e}\n${e.stack}`
+          `An error occurred while inserting tx [${tx.txId}] to db: ${e}`
         );
+        logger.error(e.stack);
       }
     }
   };
@@ -438,8 +439,9 @@ class TxAgreement {
         await dbAction.setEventStatus(tx.eventId, EventStatus.inReward);
     } catch (e) {
       logger.warn(
-        `An error occurred while setting database event [${tx.eventId}] status: ${e}\n${e.stack}`
+        `An error occurred while setting database event [${tx.eventId}] status: ${e}`
       );
+      logger.warn(e.stack);
     }
   };
 

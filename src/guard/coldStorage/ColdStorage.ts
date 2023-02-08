@@ -103,20 +103,21 @@ class ColdStorage {
     } catch (e) {
       if (e instanceof TypeORMError) {
         logger.warn(
-          `An error occurred while getting incomplete cold storage txs: ${e}\n${e.stack}`
+          `An error occurred while getting incomplete cold storage txs: ${e}`
         );
+        logger.warn(e.stack);
       } else if (
         e instanceof FailedError ||
         e instanceof NetworkError ||
         e instanceof UnexpectedApiError
       ) {
-        logger.warn(
-          `An error occurred while getting address assets: ${e}\n${e.stack}`
-        );
+        logger.warn(`An error occurred while getting address assets: ${e}`);
+        logger.warn(e.stack);
       } else {
         logger.warn(
-          `An unexpected error occurred while processing assets in Ergo lock address [${ErgoConfigs.ergoContractConfig.lockAddress}]: ${e}\n${e.stack}`
+          `An unexpected error occurred while processing assets in Ergo lock address [${ErgoConfigs.ergoContractConfig.lockAddress}]: ${e}`
         );
+        logger.warn(e.stack);
       }
     }
   };
@@ -226,20 +227,21 @@ class ColdStorage {
     } catch (e) {
       if (e instanceof TypeORMError) {
         logger.warn(
-          `An error occurred while getting incomplete cold storage txs: ${e}\n${e.stack}`
+          `An error occurred while getting incomplete cold storage txs: ${e}`
         );
+        logger.warn(e.stack);
       } else if (
         e instanceof FailedError ||
         e instanceof NetworkError ||
         e instanceof UnexpectedApiError
       ) {
-        logger.warn(
-          `An error occurred while getting address assets: ${e}\n${e.stack}`
-        );
+        logger.warn(`An error occurred while getting address assets: ${e}`);
+        logger.warn(e.stack);
       } else {
         logger.warn(
-          `An unexpected error occurred while processing assets in Cardano lock address [${ErgoConfigs.ergoContractConfig.lockAddress}]: ${e}\n${e.stack}`
+          `An unexpected error occurred while processing assets in Cardano lock address [${ErgoConfigs.ergoContractConfig.lockAddress}]: ${e}`
         );
+        logger.warn(e.stack);
       }
     }
   };

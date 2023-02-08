@@ -243,12 +243,14 @@ class TransactionProcessor {
       } catch (e) {
         if (e instanceof ChainNotImplemented) {
           logger.warn(
-            `Cannot process approved tx [${tx.txId}] because the corresponding chain ([${e.message}]) is not implemented.\n${e.stack}`
+            `Cannot process approved tx [${tx.txId}] because the corresponding chain ([${e.message}]) is not implemented.`
           );
+          logger.warn(e.stack);
         } else {
           logger.warn(
-            `An unexpected error occurred while sending tx [${tx.txId}] to sign: ${e}\n${e.stack}`
+            `An unexpected error occurred while sending tx [${tx.txId}] to sign: ${e}`
           );
+          logger.warn(e.stack);
         }
         release();
       }
