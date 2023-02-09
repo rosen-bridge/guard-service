@@ -28,30 +28,29 @@ const apiCallBack: SubscribeChannelWithURL['func'] = (
   );
   data.catch((error) => {
     if (axios.isAxiosError(error)) {
+      logger.warn(`An error occurred while calling api url ${url}: ${error}`);
+      logger.warn(error.stack);
       if (error.response) {
-        logger.warn(
-          `An error occurred while calling api url ${url}. The request was made and the server responded with a non-2xx code: ${error}`,
+        logger.debug(
+          `The request was made and the server responded with a non-2xx code.`,
           {
             code: error.code,
             data: error.response.data,
             request: error.request,
           }
         );
-        logger.warn(`${error.stack}`);
       } else if (error.request) {
-        logger.warn(
-          `An error occurred while calling api url ${url}. The request was made but no response was received. Make sure TSS is up and accessible: ${error}`,
+        logger.debug(
+          `The request was made but no response was received. Make sure TSS is up and accessible.`,
           {
             code: error.code,
             request: error.request,
           }
         );
-        logger.warn(`${error.stack}`);
       } else {
-        logger.warn(
-          `An error occurred while calling api url ${url}. Something happened in setting up the request that triggered the error: ${error}`
+        logger.debug(
+          `Something happened in setting up the request that triggered the error.`
         );
-        logger.warn(`${error.stack}`);
       }
     }
   });

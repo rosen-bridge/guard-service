@@ -371,17 +371,10 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         logger.info(`Ergo transaction [${ergoTx.txId}] signed successfully`);
       })
       .catch(async (e) => {
-        if (e instanceof TypeORMError) {
-          logger.info(
-            `An error occurred while saving signed tx [${ergoTx.txId}] after the sign process: ${e}`
-          );
-          logger.info(e.stack);
-        } else {
-          logger.info(
-            `An error occurred while requesting Multisig service to sign Ergo transaction [${paymentTx.txId}]: ${e}`
-          );
-          logger.info(e.stack);
-        }
+        logger.info(
+          `An error occurred while requesting Multisig service to sign Ergo transaction [${paymentTx.txId}]: ${e}`
+        );
+        logger.info(e.stack);
         await dbAction.setTxStatus(
           paymentTx.txId,
           TransactionStatus.signFailed
@@ -402,38 +395,10 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
         `Ergo Transaction [${paymentTx.txId}] submitted. Response: ${response}`
       );
     } catch (e) {
-      if (e instanceof TypeORMError) {
-        logger.warn(
-          `An error occurred while setting database tx [${paymentTx.txId}] status to [${TransactionStatus.sent}]: ${e}`
-        );
-        logger.warn(e.stack);
-      } else if (axios.isAxiosError(e)) {
-        if (e.response) {
-          logger.warn(
-            `An error occurred while submitting Ergo tx [${paymentTx.txId}]. The request was made and the server responded with a non-2xx code: ${e}`,
-            {
-              code: e.code,
-              data: e.response.data,
-              request: e.request,
-            }
-          );
-          logger.warn(e.stack);
-        } else if (e.request) {
-          logger.warn(
-            `An error occurred while submitting Ergo tx [${paymentTx.txId}]. The request was made but no response was received. Make sure TSS is up and accessible: ${e}`,
-            {
-              code: e.code,
-              request: e.request,
-            }
-          );
-          logger.warn(e.stack);
-        } else {
-          logger.warn(
-            `An error occurred while submitting Ergo tx [${paymentTx.txId}]. Something happened in setting up the request that triggered the error: ${e}`
-          );
-          logger.warn(e.stack);
-        }
-      }
+      logger.warn(
+        `An error occurred while submitting Ergo transaction [${paymentTx.txId}]: ${e}`
+      );
+      logger.warn(e.stack);
     }
   };
 }

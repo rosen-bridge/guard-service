@@ -111,7 +111,9 @@ class ColdStorage {
         e instanceof NetworkError ||
         e instanceof UnexpectedApiError
       ) {
-        logger.warn(`An error occurred while getting address assets: ${e}`);
+        logger.warn(
+          `An error occurred while getting Ergo address assets: ${e}`
+        );
         logger.warn(e.stack);
       } else {
         logger.warn(
@@ -235,11 +237,13 @@ class ColdStorage {
         e instanceof NetworkError ||
         e instanceof UnexpectedApiError
       ) {
-        logger.warn(`An error occurred while getting address assets: ${e}`);
+        logger.warn(
+          `An error occurred while getting Cardano address assets: ${e}`
+        );
         logger.warn(e.stack);
       } else {
         logger.warn(
-          `An unexpected error occurred while processing assets in Cardano lock address [${ErgoConfigs.ergoContractConfig.lockAddress}]: ${e}`
+          `An unexpected error occurred while processing assets in Cardano lock address [${CardanoConfigs.bankAddress}]: ${e}`
         );
         logger.warn(e.stack);
       }

@@ -55,8 +55,8 @@ class ConfigError extends Error {
 }
 
 class NotStartedDialerNodeError extends Error {
-  constructor(message?: string) {
-    super(message);
+  constructor() {
+    super("Dialer node isn't ready, please try later");
   }
 }
 

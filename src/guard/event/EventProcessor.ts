@@ -68,31 +68,10 @@ class EventProcessor {
           await dbAction.insertConfirmedEvent(event);
         }
       } catch (e) {
-        if (e instanceof TypeORMError) {
-          logger.warn(
-            `A database error occurred while processing scanned event with txId [${event.sourceTxId}]: ${e}`
-          );
-          logger.warn(e.stack);
-        } else if (
-          e instanceof FailedError ||
-          e instanceof NetworkError ||
-          e instanceof UnexpectedApiError
-        ) {
-          logger.warn(
-            `An axios error occurred while checking event with txId [${event.sourceTxId}] confirmations: ${e}`
-          );
-          logger.warn(e.stack);
-        } else if (e instanceof ChainNotImplemented) {
-          logger.warn(
-            `An error occurred while processing scanned vent with txId [${event.sourceTxId}] because the corresponding event chain (${e.message}) is not implemented.`
-          );
-          logger.warn(e.stack);
-        } else {
-          logger.warn(
-            `An unexpected error occurred while processing event txId [${event.sourceTxId}]: ${e}`
-          );
-          logger.warn(e.stack);
-        }
+        logger.warn(
+          `An error occurred while processing event txId [${event.sourceTxId}]: ${e}`
+        );
+        logger.warn(e.stack);
       }
     }
     logger.info(`Processed [${rawEvents.length}] scanned events`);
@@ -120,8 +99,9 @@ class EventProcessor {
           );
       } catch (e) {
         logger.warn(
-          `An error occurred while processing event [${event.id}]: ${e}${e.stack}`
+          `An error occurred while processing event [${event.id}]: ${e}`
         );
+        logger.warn(e.stack);
       }
     }
     logger.info(`[${confirmedEvents.length}] Confirmed Events processed`);

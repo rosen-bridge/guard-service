@@ -175,9 +175,7 @@ class Dialer {
    */
   getDialerId = () => {
     if (!this._node) {
-      throw new NotStartedDialerNodeError(
-        "Dialer node isn't ready, please try later"
-      );
+      throw new NotStartedDialerNodeError();
     }
     return this._node.peerId.toString();
   };
@@ -187,9 +185,7 @@ class Dialer {
    */
   getPeerIds = () => {
     if (!this._node) {
-      throw new NotStartedDialerNodeError(
-        "Dialer node isn't ready, please try later"
-      );
+      throw new NotStartedDialerNodeError();
     }
     return this._node.getPeers().map((peer) => peer.toString());
   };
@@ -199,9 +195,7 @@ class Dialer {
    */
   getDiscoveredPeersCount = async () => {
     if (!this._node) {
-      throw new NotStartedDialerNodeError(
-        "Dialer node isn't ready, please try later"
-      );
+      throw new NotStartedDialerNodeError();
     }
     return (await this._node.peerStore.all()).length;
   };

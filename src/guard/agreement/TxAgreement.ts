@@ -93,9 +93,8 @@ class TxAgreement {
         }
       }
     } catch (e) {
-      logger.warn(
-        `An error occurred while handling tx-agreement message: ${e.stack}`
-      );
+      logger.warn(`An error occurred while handling tx-agreement message.`);
+      logger.warn(e.stack);
     }
   };
 
@@ -418,12 +417,10 @@ class TxAgreement {
       if (this.eventAgreedTransactions.has(tx.eventId))
         this.eventAgreedTransactions.delete(tx.eventId);
     } catch (e) {
-      if (e instanceof TypeORMError) {
-        logger.error(
-          `An error occurred while inserting tx [${tx.txId}] to db: ${e}`
-        );
-        logger.error(e.stack);
-      }
+      logger.warn(
+        `Unexpected error occurred while setting tx [${tx.txId}] as approved: ${e}`
+      );
+      logger.warn(e.stack);
     }
   };
 
@@ -459,8 +456,9 @@ class TxAgreement {
         this.broadcastTransactionRequest(tx, creatorId, guardSignature);
       } catch (e) {
         logger.warn(
-          `Unexpected error occurred while resending tx [${tx.txId}]: ${e}${e.stack}`
+          `Unexpected error occurred while resending tx [${tx.txId}]: ${e}`
         );
+        logger.warn(e.stack);
       }
     });
   };
