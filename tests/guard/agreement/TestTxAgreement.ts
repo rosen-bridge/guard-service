@@ -1,6 +1,9 @@
 import TxAgreement from '../../../src/guard/agreement/TxAgreement';
 import { PaymentTransaction } from '../../../src/models/Models';
-import { AgreementPayload } from '../../../src/guard/agreement/Interfaces';
+import {
+  AgreementApproved,
+  AgreementPayload,
+} from '../../../src/guard/agreement/Interfaces';
 
 class TestTxAgreement extends TxAgreement {
   getTransactions = (): Map<string, PaymentTransaction> => {
@@ -13,6 +16,10 @@ class TestTxAgreement extends TxAgreement {
 
   getTransactionApprovals = (): Map<string, AgreementPayload[]> => {
     return this.transactionApprovals;
+  };
+
+  getApprovedTransactions = (): Map<string, AgreementApproved> => {
+    return this.approvedTransactions;
   };
 
   insertTransactions = (key: string, value: PaymentTransaction): void => {
@@ -28,6 +35,13 @@ class TestTxAgreement extends TxAgreement {
     value: AgreementPayload[]
   ): void => {
     this.transactionApprovals.set(key, value);
+  };
+
+  insertApprovedTransactions = (
+    key: string,
+    value: AgreementApproved
+  ): void => {
+    this.approvedTransactions.set(key, value);
   };
 }
 

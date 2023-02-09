@@ -201,11 +201,9 @@ class ErgoUtils {
       }
     } catch (e) {
       logger.debug(
-        `An error occurred while extracting RosenData from Explorer box: ${e}`,
-        {
-          stack: e.stack,
-        }
+        `An error occurred while extracting RosenData from Explorer box: ${e}`
       );
+      logger.debug(e.stack);
       return undefined;
     }
   };

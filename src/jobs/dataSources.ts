@@ -9,9 +9,8 @@ const initDataSources = async (): Promise<void> => {
     await dataSource.runMigrations();
     logger.info('Datasource has been initialized!');
   } catch (err) {
-    logger.error(
-      `An error occurred while initializing datasource: ${err.stack}`
-    );
+    logger.error(`An error occurred while initializing datasource: ${err}`);
+    logger.error(err.stack);
   }
 };
 

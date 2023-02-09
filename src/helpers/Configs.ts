@@ -106,7 +106,8 @@ class Configs {
     'intervals.txProcessorInterval',
     180
   ); // seconds
-  static txResendInterval = 30; // seconds
+  static txResendInterval = 25; // seconds
+  static approvalResendDelay = 5; // seconds
   static multiSigCleanUpInterval = 120; // seconds
   static tssInstanceRestartGap = 5; // seconds
   static timeoutProcessorInterval = getConfigIntKeyOrDefault(
