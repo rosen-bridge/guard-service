@@ -308,43 +308,10 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
       const txHash = hash_transaction(tx.body()).to_bytes();
       await TssSigner.signTxHash(txHash);
     } catch (e) {
-      if (e instanceof TypeORMError) {
-        logger.warn(
-          `An error occurred while setting tx [${paymentTx.txId}] status to [${TransactionStatus.inSign}] before requesting TSS service: ${e}`
-        );
-        logger.warn(e.stack);
-      } else if (axios.isAxiosError(e)) {
-        if (e.response) {
-          logger.warn(
-            `An error occurred while requesting TSS service to sign Cardano tx [${paymentTx.txId}]. The request was made and the server responded with a non-2xx code: ${e}`,
-            {
-              code: e.code,
-              data: e.response.data,
-              request: e.request,
-            }
-          );
-          logger.warn(e.stack);
-        } else if (e.request) {
-          logger.warn(
-            `An error occurred while requesting TSS service to sign Cardano tx [${paymentTx.txId}]. The request was made but no response was received. Make sure TSS is up and accessible: ${e}`,
-            {
-              code: e.code,
-              request: e.request,
-            }
-          );
-          logger.warn(e.stack);
-        } else {
-          logger.warn(
-            `An error occurred while requesting TSS service to sign Cardano tx [${paymentTx.txId}]. Something happened in setting up the request that triggered the error: ${e}`
-          );
-          logger.warn(e.stack);
-        }
-      } else {
-        logger.warn(
-          `A wasm error occurred while hashing tx [${paymentTx.txId}] before requesting TSS service: ${e}`
-        );
-        logger.warn(e.stack);
-      }
+      logger.warn(
+        `An error occurred while requesting TSS service to sign Cardano txId [${paymentTx.txId}]: ${e}`
+      );
+      logger.warn(e.stack);
     }
   };
 
@@ -379,17 +346,10 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
       paymentTx = PaymentTransaction.fromJson(txEntity.txJson);
       tx = this.deserialize(paymentTx.txBytes);
     } catch (e) {
-      if (e instanceof TypeORMError) {
-        logger.warn(
-          `An error occurred while getting Cardano tx [${txId}] from database: ${e}`
-        );
-        logger.warn(e.stack);
-      } else {
-        logger.warn(
-          `An error occurred while deserializing Cardano tx [${txId}]: ${e}`
-        );
-        logger.warn(e.stack);
-      }
+      logger.warn(
+        `An error occurred while getting Cardano tx [${txId}] from db: ${e}`
+      );
+      logger.warn(e.stack);
       return null;
     }
 
@@ -434,38 +394,10 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
         `Cardano Transaction [${paymentTx.txId}] submitted. Response: ${response}`
       );
     } catch (e) {
-      if (e instanceof TypeORMError) {
-        logger.warn(
-          `An error occurred while setting tx [${paymentTx.txId}] status to [${TransactionStatus.sent}]: ${e}`
-        );
-        logger.warn(e.stack);
-      } else if (e instanceof BlockfrostServerError) {
-        logger.warn(
-          `An error occurred while submitting Cardano tx [${paymentTx.txId}]. The request was made and the server responded with a non-2xx code: ${e}`,
-          {
-            code: e.status_code,
-            body: e.body,
-            url: e.url,
-            cause: e.cause,
-          }
-        );
-        logger.warn(e.stack);
-      } else if (e instanceof BlockfrostClientError) {
-        logger.warn(
-          `An error occurred while submitting Cardano tx [${paymentTx.txId}]. The request was made but didn't reach BlockFrost backend: ${e}`,
-          {
-            code: e.code,
-            url: e.url,
-            cause: e.cause,
-          }
-        );
-        logger.warn(e.stack);
-      } else {
-        logger.warn(
-          `An unknown error occurred while submitting Cardano transaction [${paymentTx.txId}]: ${e}`
-        );
-        logger.warn(e.stack);
-      }
+      logger.warn(
+        `An error occurred while submitting Cardano transaction [${paymentTx.txId}]: ${e}`
+      );
+      logger.warn(e.stack);
     }
   };
 
