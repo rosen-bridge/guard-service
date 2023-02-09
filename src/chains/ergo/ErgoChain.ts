@@ -41,6 +41,8 @@ import {
   NotEnoughValidBoxesError,
 } from '../../helpers/errors';
 import ErgoTrack from './ErgoTrack';
+import { TypeORMError } from 'typeorm';
+import axios from 'axios';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -370,9 +372,9 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
       })
       .catch(async (e) => {
         logger.info(
-          `An error occurred while requesting Multisig service to sign Ergo transaction [${paymentTx.txId}]: ${e}`,
-          { stack: e.stack }
+          `An error occurred while requesting Multisig service to sign Ergo transaction [${paymentTx.txId}]: ${e}`
         );
+        logger.info(e.stack);
         await dbAction.setTxStatus(
           paymentTx.txId,
           TransactionStatus.signFailed
@@ -394,9 +396,9 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
       );
     } catch (e) {
       logger.warn(
-        `An error occurred while submitting Ergo transaction [${paymentTx.txId}]: ${e}`,
-        { stack: e.stack }
+        `An error occurred while submitting Ergo transaction [${paymentTx.txId}]: ${e}`
       );
+      logger.warn(e.stack);
     }
   };
 }

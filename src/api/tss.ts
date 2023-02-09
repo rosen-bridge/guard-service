@@ -36,8 +36,9 @@ tssRouter.post(
       res.send({ message: 'ok' });
     } catch (error) {
       logger.error(
-        `An error occurred while processing TSS Cardano tx sign callback: ${error.message} - ${error.stack}`
+        `An error occurred while processing TSS Cardano tx sign callback: ${error}`
       );
+      logger.error(error.stack);
       res.status(500).send({ message: error.message });
     }
   }

@@ -16,6 +16,15 @@ import {
   Vkeywitness,
   Vkeywitnesses,
 } from '@emurgo/cardano-serialization-lib-nodejs';
+import { TypeORMError } from 'typeorm';
+import axios from 'axios';
+import {
+  BlockfrostClientError,
+  BlockfrostServerError,
+} from '@blockfrost/blockfrost-js';
+import { Buffer } from 'buffer';
+import { Fee } from '@rosen-bridge/minimum-fee';
+
 import {
   EventTrigger,
   PaymentTransaction,
@@ -30,10 +39,8 @@ import CardanoUtils from './helpers/CardanoUtils';
 import TssSigner from '../../guard/TssSigner';
 import CardanoTransaction from './models/CardanoTransaction';
 import { dbAction } from '../../db/DatabaseAction';
-import { Buffer } from 'buffer';
 import { loggerFactory } from '../../log/Logger';
 import { TssFailedSign, TssSuccessfulSign } from '../../models/Interfaces';
-import { Fee } from '@rosen-bridge/minimum-fee';
 import { JsonBI } from '../../network/NetworkModels';
 import { NotEnoughAssetsError } from '../../helpers/errors';
 import CardanoTrack from './CardanoTrack';
@@ -302,9 +309,9 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
       await TssSigner.signTxHash(txHash);
     } catch (e) {
       logger.warn(
-        `An error occurred while requesting TSS service to sign Cardano txId [${paymentTx.txId}]: ${e}`,
-        { stack: e.stack }
+        `An error occurred while requesting TSS service to sign Cardano txId [${paymentTx.txId}]: ${e}`
       );
+      logger.warn(e.stack);
     }
   };
 
@@ -340,8 +347,9 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
       tx = this.deserialize(paymentTx.txBytes);
     } catch (e) {
       logger.warn(
-        `An error occurred while getting Cardano tx [${txId}] from db: ${e.stack}`
+        `An error occurred while getting Cardano tx [${txId}] from db: ${e}`
       );
+      logger.warn(e.stack);
       return null;
     }
 
@@ -387,9 +395,9 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
       );
     } catch (e) {
       logger.warn(
-        `An error occurred while submitting Cardano transaction [${paymentTx.txId}]: ${e}`,
-        { stack: e.stack }
+        `An error occurred while submitting Cardano transaction [${paymentTx.txId}]: ${e}`
       );
+      logger.warn(e.stack);
     }
   };
 

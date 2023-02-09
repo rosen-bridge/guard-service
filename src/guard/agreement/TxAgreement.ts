@@ -21,6 +21,7 @@ import { loggerFactory } from '../../log/Logger';
 import InputBoxes from '../../chains/ergo/boxes/InputBoxes';
 import GuardTurn from '../../helpers/GuardTurn';
 import EventVerifier from '../event/EventVerifier';
+import { TypeORMError } from 'typeorm';
 
 const logger = loggerFactory(import.meta.url);
 const dialer = await Dialer.getInstance();
@@ -95,9 +96,8 @@ class TxAgreement {
         }
       }
     } catch (e) {
-      logger.warn(
-        `An error occurred while handling tx-agreement message: ${e.stack}`
-      );
+      logger.warn(`An error occurred while handling tx-agreement message.`);
+      logger.warn(e.stack);
     }
   };
 
@@ -430,9 +430,6 @@ class TxAgreement {
           release();
         } catch (e) {
           release();
-          logger.error(
-            `An error occurred while inserting tx to db: ${e.stack}`
-          );
           throw e;
         }
       });
@@ -443,8 +440,9 @@ class TxAgreement {
         this.eventAgreedTransactions.delete(tx.eventId);
     } catch (e) {
       logger.warn(
-        `Unexpected error occurred while setting tx [${tx.txId}] as approved: ${e.stack}`
+        `Unexpected error occurred while setting tx [${tx.txId}] as approved: ${e}`
       );
+      logger.warn(e.stack);
     }
   };
 
@@ -460,8 +458,9 @@ class TxAgreement {
         await dbAction.setEventStatus(tx.eventId, EventStatus.inReward);
     } catch (e) {
       logger.warn(
-        `Unexpected error occurred while updating event [${tx.eventId}] with status: ${e.stack}`
+        `An error occurred while setting database event [${tx.eventId}] status: ${e}`
       );
+      logger.warn(e.stack);
     }
   };
 
@@ -479,8 +478,9 @@ class TxAgreement {
         this.broadcastTransactionRequest(tx, creatorId, guardSignature);
       } catch (e) {
         logger.warn(
-          `Unexpected error occurred while resending tx [${tx.txId}]: ${e.stack}`
+          `Unexpected error occurred while resending tx [${tx.txId}]: ${e}`
         );
+        logger.warn(e.stack);
       }
     });
 
