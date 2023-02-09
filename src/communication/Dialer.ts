@@ -142,8 +142,9 @@ class Dialer {
         function (error) {
           if (error) {
             logger.warn(
-              `An error occurred while writing created PeerId to the file: ${error.stack}`
+              `An error occurred while writing created PeerId to the file.`
             );
+            logger.warn(error.stack);
             throw error;
           }
           logger.info('PeerId file created.');
@@ -329,7 +330,7 @@ class Dialer {
               `An error occurred while trying to add peer to address book: ${error}`,
               { peer }
             );
-            logger.error(`${error.stack}`);
+            logger.error(error.stack);
           }
         }
       }
@@ -352,7 +353,7 @@ class Dialer {
           `An error occurred while removing peer from address book: ${error}`,
           { peer }
         );
-        logger.warn(`${error.stack}`);
+        logger.warn(error.stack);
       }
     }
   };
@@ -504,14 +505,14 @@ class Dialer {
           logger.error(
             `An error occurred while handling stream callback: ${error}`
           );
-          logger.error(`${error.stack}`);
+          logger.error(error.stack);
         }
       }
     ).catch((error) => {
       logger.error(
         `An error occurred while handling broadcast protocol stream: ${error}`
       );
-      logger.error(`${error.stack}`);
+      logger.error(error.stack);
     });
   };
 
@@ -555,14 +556,14 @@ class Dialer {
           logger.error(
             `An error occurred while handling stream callback: ${error}`
           );
-          logger.error(`${error.stack}`);
+          logger.error(error.stack);
         }
       }
     ).catch((error) => {
       logger.error(
         `An error occurred while handling get peers protocol stream: ${error}`
       );
-      logger.error(`${error.stack}`);
+      logger.error(error.stack);
     });
   };
 
@@ -595,7 +596,7 @@ class Dialer {
         logger.warn(
           `An error occurred while trying to add relay [${peer}] to address book: ${error}`
         );
-        logger.warn(`${error.stack}`);
+        logger.warn(error.stack);
       }
     }, CommunicationConfig.relayReconnectionInterval * 1000);
 
@@ -685,8 +686,9 @@ class Dialer {
           this.addPeersToAddressBook([evt.detail.id.toString()]).catch(
             (error) => {
               logger.error(
-                `An error occurred while dialing peer [${evt.detail.id}]: ${error.stack}`
+                `An error occurred while dialing peer [${evt.detail.id}].`
               );
+              logger.error(error.stack);
             }
           );
         }
@@ -778,7 +780,8 @@ class Dialer {
         logger.debug(`Connected peers are: [${this.getPeerIds()}].`);
       }, CommunicationConfig.getPeersInterval * 1000);
     } catch (error) {
-      logger.error(`An error occurred while starting dialer: ${error.stack}`);
+      logger.error(`An error occurred while starting dialer.`);
+      logger.error(error.stack);
     }
   };
 
@@ -901,8 +904,9 @@ class Dialer {
         }
       } catch (error) {
         logger.error(
-          `An error occurred while trying to process a message in the messages queue: ${error.stack}`
+          `An error occurred while trying to process a message in the messages queue`
         );
+        logger.error(error.stack);
         retrySendingMessage(message);
       }
     }
