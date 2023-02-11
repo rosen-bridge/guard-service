@@ -17,10 +17,14 @@ import { ErgoBox } from 'ergo-lib-wasm-nodejs';
 import MinimumFee from '../MinimumFee';
 import {
   ChainNotImplemented,
+  FailedError,
+  NetworkError,
   NotEnoughAssetsError,
+  UnexpectedApiError,
 } from '../../helpers/errors';
 import Configs from '../../helpers/Configs';
 import DiscordNotification from '../../communication/notification/DiscordNotification';
+import { TypeORMError } from 'typeorm';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -65,8 +69,9 @@ class EventProcessor {
         }
       } catch (e) {
         logger.warn(
-          `An error occurred while processing event txId [${event.sourceTxId}]: ${e.stack}`
+          `An error occurred while processing event txId [${event.sourceTxId}]: ${e}`
         );
+        logger.warn(e.stack);
       }
     }
     logger.info(`Processed [${rawEvents.length}] scanned events`);
@@ -94,8 +99,9 @@ class EventProcessor {
           );
       } catch (e) {
         logger.warn(
-          `An error occurred while processing event [${event.id}]: ${e.stack}`
+          `An error occurred while processing event [${event.id}]: ${e}`
         );
+        logger.warn(e.stack);
       }
     }
     logger.info(`[${confirmedEvents.length}] Confirmed Events processed`);
@@ -119,8 +125,9 @@ class EventProcessor {
         }
       } catch (e) {
         logger.warn(
-          `An error occurred while processing leftover event [${event.id}]: ${e.stack}`
+          `An error occurred while processing leftover event [${event.id}]: ${e}`
         );
+        logger.warn(e.stack);
       }
     }
     logger.info(
@@ -152,8 +159,9 @@ class EventProcessor {
           );
       } catch (e) {
         logger.warn(
-          `An error occurred while processing waiting event [${event.id}]: ${e.stack}`
+          `An error occurred while processing waiting event [${event.id}]: ${e}`
         );
+        logger.warn(e.stack);
       }
     }
     logger.info(`[${waitingEvents.length}] Waiting Events processed`);
@@ -180,8 +188,9 @@ class EventProcessor {
     } catch (e) {
       if (e instanceof NotEnoughAssetsError) {
         logger.warn(
-          `Failed to create payment for event [${event.getId()}]: ${e.stack}`
+          `Failed to create payment for event [${event.getId()}]: ${e}`
         );
+        logger.warn(e.stack);
         await DiscordNotification.sendMessage(
           `Failed to create payment for event [${event.getId()}] due to low assets: ${e}`
         );
@@ -214,10 +223,9 @@ class EventProcessor {
     } catch (e) {
       if (e instanceof NotEnoughAssetsError) {
         logger.warn(
-          `Failed to create reward distribution for event [${event.getId()}]: ${
-            e.stack
-          }`
+          `Failed to create reward distribution for event [${event.getId()}]: ${e}`
         );
+        logger.warn(e.stack);
         await DiscordNotification.sendMessage(
           `Failed to create reward distribution for event [${event.getId()}] due to low assets: ${e}`
         );

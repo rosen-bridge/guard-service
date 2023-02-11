@@ -23,8 +23,9 @@ class DiscordNotification {
       })
       .catch((e) => {
         logger.warn(
-          `An error occurred while sending message to discord webhook: ${e.stack}`
+          `An error occurred while sending message to discord webhook: ${e}`
         );
+        logger.warn(e.stack);
       });
   };
 }

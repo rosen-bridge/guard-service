@@ -6,6 +6,7 @@ import {
   TransactionTypes,
 } from '../../models/Models';
 import {
+  AgreementApproved,
   AgreementMessage,
   AgreementPayload,
   CandidateTransaction,
@@ -20,6 +21,7 @@ import { loggerFactory } from '../../log/Logger';
 import InputBoxes from '../../chains/ergo/boxes/InputBoxes';
 import GuardTurn from '../../helpers/GuardTurn';
 import EventVerifier from '../event/EventVerifier';
+import { TypeORMError } from 'typeorm';
 
 const logger = loggerFactory(import.meta.url);
 const dialer = await Dialer.getInstance();
@@ -29,11 +31,13 @@ class TxAgreement {
   protected transactions: Map<string, PaymentTransaction>;
   protected eventAgreedTransactions: Map<string, string>;
   protected transactionApprovals: Map<string, AgreementPayload[]>;
+  protected approvedTransactions: Map<string, AgreementApproved>;
 
   constructor() {
     this.transactions = new Map();
     this.eventAgreedTransactions = new Map();
     this.transactionApprovals = new Map();
+    this.approvedTransactions = new Map();
     dialer.subscribeChannel(TxAgreement.CHANNEL, this.handleMessage);
   }
 
@@ -92,9 +96,8 @@ class TxAgreement {
         }
       }
     } catch (e) {
-      logger.warn(
-        `An error occurred while handling tx-agreement message: ${e.stack}`
-      );
+      logger.warn(`An error occurred while handling tx-agreement message.`);
+      logger.warn(e.stack);
     }
   };
 
@@ -344,20 +347,39 @@ class TxAgreement {
       ) {
         logger.info(`The majority of guards agreed with transaction [${txId}]`);
 
-        const txApproval: TransactionApproved = {
-          txJson: tx.toJson(),
-          guardsSignatures: this.transactionApprovals.get(txId)!,
-        };
-        const message = JSON.stringify({
-          type: 'approval',
-          payload: txApproval,
-        });
-        // broadcast approval message
-        dialer.sendMessage(TxAgreement.CHANNEL, message);
+        const approvals = this.transactionApprovals.get(txId)!;
+        this.broadcastApprovalMessage(tx, approvals);
 
+        const approvedTx: AgreementApproved = {
+          tx: tx,
+          approvals: approvals,
+        };
+        this.approvedTransactions.set(txId, approvedTx);
         await this.setTxAsApproved(tx);
       }
     }
+  };
+
+  /**
+   * sends approval message to all other guards
+   * @param tx the created payment transaction
+   * @param approvals
+   */
+  broadcastApprovalMessage = (
+    tx: PaymentTransaction,
+    approvals: AgreementPayload[]
+  ): void => {
+    const txApproval: TransactionApproved = {
+      txJson: tx.toJson(),
+      guardsSignatures: approvals,
+    };
+    const message = JSON.stringify({
+      type: 'approval',
+      payload: txApproval,
+    });
+
+    // broadcast the transaction
+    dialer.sendMessage(TxAgreement.CHANNEL, message);
   };
 
   /**
@@ -408,9 +430,6 @@ class TxAgreement {
           release();
         } catch (e) {
           release();
-          logger.error(
-            `An error occurred while inserting tx to db: ${e.stack}`
-          );
           throw e;
         }
       });
@@ -421,8 +440,9 @@ class TxAgreement {
         this.eventAgreedTransactions.delete(tx.eventId);
     } catch (e) {
       logger.warn(
-        `Unexpected error occurred while setting tx [${tx.txId}] as approved: ${e.stack}`
+        `Unexpected error occurred while setting tx [${tx.txId}] as approved: ${e}`
       );
+      logger.warn(e.stack);
     }
   };
 
@@ -438,13 +458,14 @@ class TxAgreement {
         await dbAction.setEventStatus(tx.eventId, EventStatus.inReward);
     } catch (e) {
       logger.warn(
-        `Unexpected error occurred while updating event [${tx.eventId}] with status: ${e.stack}`
+        `An error occurred while setting database event [${tx.eventId}] status: ${e}`
       );
+      logger.warn(e.stack);
     }
   };
 
   /**
-   * iterates over active transaction and resend its request
+   * iterates over active and approved transactions and resend their requests
    */
   resendTransactionRequests = (): void => {
     const creatorId = guardConfig.guardId;
@@ -457,14 +478,48 @@ class TxAgreement {
         this.broadcastTransactionRequest(tx, creatorId, guardSignature);
       } catch (e) {
         logger.warn(
-          `Unexpected error occurred while resending tx [${tx.txId}]: ${e.stack}`
+          `Unexpected error occurred while resending tx [${tx.txId}]: ${e}`
+        );
+        logger.warn(e.stack);
+      }
+    });
+
+    logger.info(
+      `Resending approved transactions: [${this.approvedTransactions.size}]`
+    );
+    this.approvedTransactions.forEach((approved) => {
+      const tx = approved.tx;
+      try {
+        const guardSignature = tx.signMetaData();
+        this.broadcastTransactionRequest(tx, creatorId, guardSignature);
+      } catch (e) {
+        logger.warn(
+          `Unexpected error occurred while resending approved tx [${tx.txId}]: ${e.stack}`
         );
       }
     });
   };
 
   /**
-   * clears all pending for agreement txs in memory
+   * iterates over approved transactions and resend their approval messages
+   */
+  resendApprovalMessages = (): void => {
+    logger.info(
+      `Resending approval messages: [${this.approvedTransactions.size}]`
+    );
+    this.approvedTransactions.forEach((approved) => {
+      try {
+        this.broadcastApprovalMessage(approved.tx, approved.approvals);
+      } catch (e) {
+        logger.warn(
+          `Unexpected error occurred while resending approval message for tx [${approved.tx.txId}]: ${e.stack}`
+        );
+      }
+    });
+  };
+
+  /**
+   * clears all pending for agreement and approved txs in memory
    */
   clearTransactions = (): void => {
     logger.info(
@@ -472,6 +527,7 @@ class TxAgreement {
     );
     this.transactions.clear();
     this.transactionApprovals.clear();
+    this.approvedTransactions.clear();
   };
 
   /**
