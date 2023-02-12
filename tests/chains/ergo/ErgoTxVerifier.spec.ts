@@ -290,29 +290,30 @@ describe('ErgoTxVerifier', () => {
       expect(isValid).to.be.false;
     });
 
-    // /** TODO: uncomment this test after fixing bug in Reward bridgeFee amount calculation (#144)
-    //  * Target: testing verifyTransactionWithEvent
-    //  * Dependencies:
-    //  *    RewardBoxes
-    //  * Expected Output:
-    //  *    It should verify the transaction
-    //  */
-    // it('should accept a valid payment tx', async () => {
-    //   // mock erg payment event
-    //   const mockedEvent: EventTrigger = TestBoxes.mockTokenPaymentEventTrigger();
-    //   const tx = TestBoxes.mockFineTokenPaymentTransaction(
-    //     mockedEvent,
-    //     eventBoxAndCommitments
-    //   );
-    //
-    //   // run test
-    //   const isValid = await ErgoTxVerifier.verifyTransactionWithEvent(
-    //     tx,
-    //     mockedEvent,
-    //     mockedFeeConfig
-    //   );
-    //   expect(isValid).to.be.true;
-    // });
+    /**
+     * Target: testing verifyTransactionWithEvent
+     * Dependencies:
+     *    RewardBoxes
+     * Expected Output:
+     *    It should verify the transaction
+     */
+    it('should accept a valid payment tx', async () => {
+      // mock erg payment event
+      const mockedEvent: EventTrigger =
+        TestBoxes.mockTokenPaymentEventTrigger();
+      const tx = TestBoxes.mockFineTokenPaymentTransaction(
+        mockedEvent,
+        eventBoxAndCommitments
+      );
+
+      // run test
+      const isValid = await ErgoTxVerifier.verifyTransactionWithEvent(
+        tx,
+        mockedEvent,
+        mockedFeeConfig
+      );
+      expect(isValid).to.be.true;
+    });
   });
 
   describe('verifyEventWithPayment', () => {

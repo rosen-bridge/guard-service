@@ -44,7 +44,8 @@ contracts:
     - 'cardano-testnet'
   addressesBasePath: 'tests/resources/addresses/'
 logs:
-  level: 'debug'
+  - type: 'console'
+    level: 'debug'
 coldStorage:
   startHour: 17
   endHour: 19

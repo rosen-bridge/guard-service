@@ -128,7 +128,7 @@ class TestData {
                 "assets": [
                     {
                         "tokenId": "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e",
-                        "amount": 16
+                        "amount": 9
                     },
                     {
                         "tokenId": "e2b7b6ab2a7c6dfc6a82cc648f3b16b76db1cf19e93b7ac35a4898c06e4d08ce",

@@ -2814,6 +2814,11 @@ class TestBoxes {
               tokenId: ErgoConfigs.ergoContractConfig.RWTId,
               amount: BigInt('1'),
             },
+            {
+              tokenId:
+                '907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e',
+              amount: BigInt('1'),
+            },
           ],
           ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
           [

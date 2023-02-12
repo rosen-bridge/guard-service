@@ -6,6 +6,7 @@ import {
 } from 'ergo-lib-wasm-nodejs';
 import ErgoUtils from '../helpers/ErgoUtils';
 import { loggerFactory } from '../../../log/Logger';
+import { JsonBI } from '../../../network/NetworkModels';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -65,10 +66,23 @@ class BoxVerifications {
       outBoxes.push(outputBoxes.get(i));
     const outputAssets = ErgoUtils.calculateBoxesAssets(outBoxes);
 
-    return (
+    if (
       inputAssets.ergs === outputAssets.ergs &&
       ErgoUtils.areAssetsEqual(inputAssets.tokens, outputAssets.tokens)
-    );
+    )
+      return true;
+    else {
+      logger.debug(
+        `Boxes are not compatible: InputAssets does not equal to outputAssets`,
+        {
+          inErg: inputAssets.ergs.toString(),
+          outErg: outputAssets.ergs.toString(),
+          inputAssets: JsonBI.stringify(inputAssets.tokens),
+          outputAssets: JsonBI.stringify(outputAssets.tokens),
+        }
+      );
+      return false;
+    }
   };
 
   /**
