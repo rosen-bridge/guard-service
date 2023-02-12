@@ -12,6 +12,10 @@ import ColdStorageConfig from '../guard/coldStorage/ColdStorageConfig';
 const resendTxJob = () => {
   if (GuardTurn.secondsToReset() < GuardTurn.UP_TIME_LENGTH) {
     txAgreement.resendTransactionRequests();
+    setTimeout(
+      txAgreement.resendApprovalMessages,
+      Configs.approvalResendDelay * 1000
+    );
     setTimeout(resendTxJob, Configs.txResendInterval * 1000);
   }
 };

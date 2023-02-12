@@ -37,9 +37,7 @@ class BlockFrostApi {
    * @param tx the transaction
    */
   static txSubmit = (tx: Transaction): Promise<string> => {
-    return this.blockFrost.txSubmit(tx.to_bytes()).catch((e) => {
-      throw `An error occurred while submitting tx using BlockFrost: ${e}`;
-    });
+    return this.blockFrost.txSubmit(tx.to_bytes());
   };
 
   /**

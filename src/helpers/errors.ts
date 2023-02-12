@@ -54,6 +54,12 @@ class ConfigError extends Error {
   }
 }
 
+class NotStartedDialerNodeError extends Error {
+  constructor() {
+    super("Dialer node isn't ready, please try later");
+  }
+}
+
 export {
   ChainNotImplemented,
   ConfigError,
@@ -63,5 +69,6 @@ export {
   NotEnoughAssetsError,
   NotEnoughValidBoxesError,
   NotFoundError,
+  NotStartedDialerNodeError,
   UnexpectedApiError,
 };

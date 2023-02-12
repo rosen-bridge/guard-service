@@ -37,6 +37,7 @@ import {
 } from './Interfaces';
 import { loggerFactory } from '../log/Logger';
 import { JsonBI } from '../network/NetworkModels';
+import { NotStartedDialerNodeError } from '../helpers/errors';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -62,16 +63,12 @@ class Dialer {
    * @return a Dialer instance (create if it doesn't exist)
    */
   public static getInstance = async () => {
-    try {
-      if (!Dialer.instance) {
-        logger.debug("Dialer instance didn't exist, creating a new one.");
-        Dialer.instance = new Dialer();
-        await Dialer.instance.startDialer();
-        logger.debug('Dialer instance started.');
-        Dialer.instance.processMessageQueue();
-      }
-    } catch (error) {
-      throw Error(`An error occurred while starting Dialer: ${error}`);
+    if (!Dialer.instance) {
+      logger.debug("Dialer instance didn't exist, creating a new one.");
+      Dialer.instance = new Dialer();
+      await Dialer.instance.startDialer();
+      logger.debug('Dialer instance started.');
+      Dialer.instance.processMessageQueue();
     }
     return Dialer.instance;
   };
@@ -145,8 +142,9 @@ class Dialer {
         function (error) {
           if (error) {
             logger.warn(
-              `An error occurred while writing created PeerId to the file: ${error.stack}`
+              `An error occurred while writing created PeerId to the file.`
             );
+            logger.warn(error.stack);
             throw error;
           }
           logger.info('PeerId file created.');
@@ -178,7 +176,7 @@ class Dialer {
    */
   getDialerId = () => {
     if (!this._node) {
-      throw new Error("Dialer node isn't ready, please try later");
+      throw new NotStartedDialerNodeError();
     }
     return this._node.peerId.toString();
   };
@@ -188,7 +186,7 @@ class Dialer {
    */
   getPeerIds = () => {
     if (!this._node) {
-      throw new Error("Dialer node isn't ready, please try later");
+      throw new NotStartedDialerNodeError();
     }
     return this._node.getPeers().map((peer) => peer.toString());
   };
@@ -198,7 +196,7 @@ class Dialer {
    */
   getDiscoveredPeersCount = async () => {
     if (!this._node) {
-      throw new Error("Dialer node isn't ready, please try later");
+      throw new NotStartedDialerNodeError();
     }
     return (await this._node.peerStore.all()).length;
   };
@@ -315,31 +313,25 @@ class Dialer {
   addPeersToAddressBook = async (peers: string[]) => {
     if (this._node) {
       for (const peer of peers) {
-        try {
-          for (const addr of CommunicationConfig.relays.multiaddrs) {
+        for (const addr of CommunicationConfig.relays.multiaddrs) {
+          try {
             const multi = multiaddr.multiaddr(
               addr.concat(`/p2p-circuit/p2p/${peer}`)
             );
             if (!this.getPeerIds().includes(peer)) {
-              try {
-                await this._node.peerStore.addressBook.add(
-                  await this.createFromString(peer),
-                  [multi]
-                );
-                logger.debug(`Peer [${peer}] added to the address book.`);
-              } catch (error) {
-                logger.error(
-                  `An error occurred while trying to add peer to address book: ${error.stack}`,
-                  { peer }
-                );
-              }
+              await this._node.peerStore.addressBook.add(
+                await this.createFromString(peer),
+                [multi]
+              );
+              logger.debug(`Peer [${peer}] added to the address book.`);
             }
+          } catch (error) {
+            logger.error(
+              `An error occurred while trying to add peer to address book: ${error}`,
+              { peer }
+            );
+            logger.error(error.stack);
           }
-        } catch (error) {
-          logger.warn(
-            `An error occurred while storing discovered peer: ${error.stack}`,
-            { peer }
-          );
         }
       }
     }
@@ -358,9 +350,10 @@ class Dialer {
         logger.debug(`Peer [${peer}] removed from the address book.`);
       } catch (error) {
         logger.warn(
-          `An error occurred while removing peer from address book: ${error.stack}`,
+          `An error occurred while removing peer from address book: ${error}`,
           { peer }
         );
+        logger.warn(error.stack);
       }
     }
   };
@@ -512,12 +505,14 @@ class Dialer {
           logger.error(
             `An error occurred while handling stream callback: ${error}`
           );
+          logger.error(error.stack);
         }
       }
     ).catch((error) => {
       logger.error(
-        `An error occurred while handling broadcast protocol stream: ${error.stack}`
+        `An error occurred while handling broadcast protocol stream: ${error}`
       );
+      logger.error(error.stack);
     });
   };
 
@@ -559,14 +554,16 @@ class Dialer {
           }
         } catch (error) {
           logger.error(
-            `An error occurred while handling stream callback: ${error.stack}`
+            `An error occurred while handling stream callback: ${error}`
           );
+          logger.error(error.stack);
         }
       }
     ).catch((error) => {
       logger.error(
-        `An error occurred while handling getpeers protocol stream: ${error.stack}`
+        `An error occurred while handling get peers protocol stream: ${error}`
       );
+      logger.error(error.stack);
     });
   };
 
@@ -605,8 +602,9 @@ class Dialer {
         logger.debug(`Relay added to address book successfully.`, { peer });
       } catch (error) {
         logger.warn(
-          `An error occurred while trying to add relay [${peer}] to address book: ${error.stack}`
+          `An error occurred while trying to add relay [${peer}] to address book: ${error}`
         );
+        logger.warn(error.stack);
       }
     }, CommunicationConfig.relayReconnectionInterval * 1000);
 
@@ -696,8 +694,9 @@ class Dialer {
           this.addPeersToAddressBook([evt.detail.id.toString()]).catch(
             (error) => {
               logger.error(
-                `An error occurred while dialing peer [${evt.detail.id}]: ${error.stack}`
+                `An error occurred while dialing peer [${evt.detail.id}].`
               );
+              logger.error(error.stack);
             }
           );
         }
@@ -814,7 +813,8 @@ class Dialer {
         }
       });
     } catch (error) {
-      logger.error(`An error occurred while starting dialer: ${error.stack}`);
+      logger.error(`An error occurred while starting dialer.`);
+      logger.error(error.stack);
     }
   };
 
@@ -937,8 +937,9 @@ class Dialer {
         }
       } catch (error) {
         logger.error(
-          `An error occurred while trying to process a message in the messages queue: ${error.stack}`
+          `An error occurred while trying to process a message in the messages queue`
         );
+        logger.error(error.stack);
         retrySendingMessage(message);
       }
     }

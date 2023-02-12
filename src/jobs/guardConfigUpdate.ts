@@ -1,6 +1,7 @@
 import { guardConfig } from '../helpers/GuardConfig';
 import Configs from '../helpers/Configs';
 import { loggerFactory } from '../log/Logger';
+import axios from 'axios';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -13,12 +14,12 @@ const configUpdateJob = async () => {
     setTimeout(configUpdateJob, Configs.guardConfigUpdateInterval * 1000);
   } catch (e) {
     if (e instanceof Error) {
-      logger.warn(
-        `Updating guard config failed with error: ${e.message} - ${e.stack}`
-      );
+      logger.warn(`Updating guard config failed with error: ${e}`);
+      logger.warn(e.stack);
       setTimeout(configUpdateJob, Configs.guardConfigUpdateInterval * 1000);
     } else {
       logger.error('Guard config updating failed');
+      logger.error(e.stack);
       throw e;
     }
   }
