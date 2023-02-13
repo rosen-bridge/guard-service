@@ -346,7 +346,7 @@ class ErgoTxVerifier {
           event.amount == payment.amount &&
           event.sourceChainTokenId == payment.tokenId &&
           event.targetChainTokenId == targetTokenId &&
-          event.sourceBlockId == payment.blockId &&
+          event.sourceBlockId == paymentTx.blockId &&
           event.toAddress == payment.toAddress &&
           event.fromAddress == payment.fromAddress
         ) {
