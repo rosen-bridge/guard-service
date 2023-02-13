@@ -128,7 +128,7 @@ class TestData {
                 "assets": [
                     {
                         "tokenId": "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e",
-                        "amount": 16
+                        "amount": 9
                     },
                     {
                         "tokenId": "e2b7b6ab2a7c6dfc6a82cc648f3b16b76db1cf19e93b7ac35a4898c06e4d08ce",
@@ -504,7 +504,9 @@ class TestData {
                         "amount": 13
                     }
                 ],
-                "additionalRegisters": {},
+                "additionalRegisters": {
+                    "R4": "1a0120001b0f0ca1b87bf9444ff29c39efdf12b0061c67f42826e55f6d34f2479be7aa"
+                },
                 "creationHeight": 100000
             },
             {
@@ -669,7 +671,9 @@ class TestData {
                         "amount": 13
                     }
                 ],
-                "additionalRegisters": {},
+                "additionalRegisters": {
+                    "R4": "1a0120001b0f0ca1b87bf9444ff29c39efdf12b0061c67f42826e55f6d34f2479be7aa"
+                },
                 "creationHeight": 100000
             },
             {
@@ -825,7 +829,7 @@ class TestData {
             },
             ${watcherBoxes.join(',')},
             {
-                "value": 500000003,
+                "value": 499300003,
                 "ergoTree": "${bridgeFeeErgoTree}",
                 "assets": [],
                 "additionalRegisters": {
@@ -931,7 +935,7 @@ class TestData {
         "outputs": [
             ${watcherBoxes.join(',')},
             {
-                "value": 500000003,
+                "value": 499300003,
                 "ergoTree": "${bridgeFeeErgoTree}",
                 "assets": [],
                 "additionalRegisters": {
@@ -1379,7 +1383,7 @@ class TestData {
         "outputs": [
             ${watcherBoxes.join(',')},
             {
-                "value": 1000000000,
+                "value": 999300000,
                 "ergoTree": "${bridgeFeeErgoTree}",
                 "assets": [
                     {
@@ -1445,7 +1449,7 @@ class TestData {
             },
             ${watcherBoxes.join(',')},
             {
-                "value": 1000000000,
+                "value": 999300000,
                 "ergoTree": "${bridgeFeeErgoTree}",
                 "assets": [
                     {
