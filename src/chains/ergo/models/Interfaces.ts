@@ -120,6 +120,7 @@ interface MempoolOutputBox {
 
 interface ExplorerTransaction {
   id: string;
+  blockId: string;
   numConfirmations: number;
   inputs: ExplorerInputBox[];
   outputs: ExplorerOutputBox[];
