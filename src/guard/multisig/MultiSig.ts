@@ -17,6 +17,7 @@ import Encryption from '../../helpers/Encryption';
 import MultiSigUtils from './MultiSigUtils';
 import { default as Utils } from '../../helpers/Utils';
 import { loggerFactory } from '../../log/Logger';
+import deepEqual from 'deep-equal';
 
 const logger = loggerFactory(import.meta.url);
 const dialer = await Dialer.getInstance();
@@ -246,21 +247,8 @@ class MultiSigHandler {
       // publish commitment
       const commitmentJson: CommitmentJson =
         queued.secret.to_json() as CommitmentJson;
-      const publicHints = commitmentJson.publicHints;
-      const publishCommitments: {
-        [index: string]: Array<{ a: string; position: string }>;
-      } = {};
-      Object.keys(publicHints).forEach((inputIndex) => {
-        const inputHints = publicHints[inputIndex].filter(
-          (item) => !item.secret
-        );
-        if (inputHints) {
-          publishCommitments[inputIndex] = inputHints.map((item) => ({
-            a: item.a,
-            position: item.position,
-          }));
-        }
-      });
+      const publishCommitments =
+        MultiSigUtils.generatedCommitmentToPublishCommitment(commitmentJson);
       logger.debug(
         `Commitment generated for tx [${id}]. Broadcasting to approved peers...`
       );
@@ -593,8 +581,10 @@ class MultiSigHandler {
       this.getQueuedTransaction(payload.txId).then(
         async ({ transaction, release }) => {
           try {
-            transaction.commitments[index] = payload.commitment;
-            transaction.commitmentSigns[index] = sign;
+            if (this.getIndex() !== index) {
+              transaction.commitments[index] = payload.commitment;
+              transaction.commitmentSigns[index] = sign;
+            }
             if (transaction.requiredSigner > 0) {
               if (
                 transaction.commitments.filter((item) => item !== undefined)
@@ -632,18 +622,55 @@ class MultiSigHandler {
           try {
             payload.commitments
               .filter((commitment) => {
-                if (transaction.commitments[commitment.index] !== undefined) {
-                  return false;
-                }
                 const payloadToSign = {
                   txId: payload.txId,
                   commitment: commitment.commitment,
                 };
-                return this.verifySign(
+                const verifySign = this.verifySign(
                   commitment.sign,
                   commitment.index,
                   JSON.stringify(payloadToSign)
                 );
+                if (
+                  commitment.index === this.getIndex() &&
+                  verifySign &&
+                  transaction.secret
+                ) {
+                  const commitmentJson: CommitmentJson =
+                    transaction.secret.to_json() as CommitmentJson;
+                  if (
+                    !deepEqual(
+                      transaction.commitments[commitment.index],
+                      MultiSigUtils.generatedCommitmentToPublishCommitment(
+                        commitmentJson
+                      ),
+                      { strict: true }
+                    )
+                  ) {
+                    throw new Error(
+                      `Commitments in the message are not the same with saved commitment index:${commitment.index}`
+                    );
+                  }
+                }
+                if (
+                  transaction.commitments[commitment.index] !== undefined &&
+                  verifySign
+                ) {
+                  if (
+                    !deepEqual(
+                      transaction.commitments[commitment.index],
+                      commitment.commitment,
+                      { strict: true }
+                    )
+                  ) {
+                    throw new Error(
+                      `Commitments in the message are not the same with saved commitment index:${commitment.index}`
+                    );
+                  } else {
+                    return false;
+                  }
+                }
+                return verifySign;
               })
               .forEach((commitment) => {
                 transaction.commitments[commitment.index] =
