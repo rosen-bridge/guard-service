@@ -62,6 +62,15 @@ class InputBoxes {
 
     return commitmentBoxes;
   };
+  /**
+   * @param eventId the event trigger id
+   * @return the the payment transaction id of the event trigger
+   */
+  static getEventPaymentTransactionId = async (
+    eventId: string
+  ): Promise<string> => {
+    return (await dbAction.getEventPaymentTransaction(eventId)).txId;
+  };
 
   /**
    * reads WID from register r4 of the commitment box (box type is ErgoBox)

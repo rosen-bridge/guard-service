@@ -40,7 +40,7 @@ class ErgoTxVerifier {
    * verifies the payment transaction data with the event
    *  1. checks number of output boxes
    *  2. checks change box ergoTree
-   *  3. checks assets, contracts and R4 of output boxes (expect last two) are same as the one we generated
+   *  3. checks assets, contracts and R4 of output boxes are same as the one we generated
    *  4. checks transaction fee (last box erg value)
    *  5. checks assets of inputs are same as assets of output (no token burned)
    * @param paymentTx the payment transaction
@@ -111,6 +111,10 @@ class ErgoTxVerifier {
       return false;
     }
 
+    // get event payment transaction id
+    //  in CHAIN to Ergo events, payment and reward txs are combined
+    const paymentTxId = '';
+
     // verify payment box + reward boxes
     const outBoxes =
       event.targetChainTokenId === ChainsConstants.ergoNativeAsset
@@ -121,7 +125,8 @@ class ErgoTxVerifier {
             rsnCoef,
             currentHeight,
             Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee),
-            Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee)
+            Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee),
+            paymentTxId
           )
         : this.tokenEventOutBoxes(
             event,
@@ -130,7 +135,8 @@ class ErgoTxVerifier {
             rsnCoef,
             currentHeight,
             Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee),
-            Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee)
+            Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee),
+            paymentTxId
           );
 
     const rewardBoxes: ErgoBoxCandidate[] = [];
@@ -207,6 +213,7 @@ class ErgoTxVerifier {
    * @param currentHeight current height of blockchain
    * @param bridgeFee event bridge fee
    * @param networkFee event network fee
+   * @param paymentTxId payment transaction id
    * @return the generated reward reduced transaction
    */
   static ergEventOutBoxes = (
@@ -216,7 +223,8 @@ class ErgoTxVerifier {
     rsnCoef: [bigint, bigint],
     currentHeight: number,
     bridgeFee: bigint,
-    networkFee: bigint
+    networkFee: bigint,
+    paymentTxId: string
   ): ErgoBoxCandidate[] => {
     // calculate assets of payemnt box
     const paymentErgAmount: bigint =
@@ -234,7 +242,8 @@ class ErgoTxVerifier {
       paymentTokenId,
       event.fromChain,
       bridgeFee,
-      networkFee
+      networkFee,
+      paymentTxId
     );
     const paymentBox = OutputBoxes.createPaymentBox(
       currentHeight,
@@ -256,6 +265,7 @@ class ErgoTxVerifier {
    * @param currentHeight current height of blockchain
    * @param bridgeFee event bridge fee
    * @param networkFee event network fee
+   * @param paymentTxId payment transaction id
    * @return the generated reward reduced transaction
    */
   static tokenEventOutBoxes = (
@@ -265,7 +275,8 @@ class ErgoTxVerifier {
     rsnCoef: [bigint, bigint],
     currentHeight: number,
     bridgeFee: bigint,
-    networkFee: bigint
+    networkFee: bigint,
+    paymentTxId: string
   ): ErgoBoxCandidate[] => {
     // calculate assets of payemnt box
     const paymentErgAmount: bigint = ErgoConfigs.minimumErg;
@@ -283,7 +294,8 @@ class ErgoTxVerifier {
       paymentTokenId,
       event.fromChain,
       bridgeFee,
-      networkFee
+      networkFee,
+      paymentTxId
     );
     const paymentBox = OutputBoxes.createPaymentBox(
       currentHeight,
