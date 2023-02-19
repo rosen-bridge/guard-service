@@ -30,6 +30,7 @@ interface MultiSigGetInstance {
    * @param secretHex
    */
   (publicKeys: string[], secretHex?: string): MultiSigHandler;
+
   /**
    * Get a previously created multi sig singleton instance
    */
@@ -652,6 +653,7 @@ class MultiSigHandler {
                     commitmentJson
                   );
               }
+              let myCommitmentInTheCommitments = false;
               for (let input = 0; input < inputBoxes; input++) {
                 payload.commitments.forEach((commitment) => {
                   if (
@@ -669,11 +671,14 @@ class MultiSigHandler {
                     ownPublishedCommitments[input][0].a ===
                       commitment.commitment[input][0].a
                   ) {
-                    throw new CommitmentMisMatch(
-                      'Published Commitments are not same with transaction Commitments'
-                    );
+                    myCommitmentInTheCommitments = true;
                   }
                 });
+              }
+              if (!myCommitmentInTheCommitments) {
+                throw new CommitmentMisMatch(
+                  'Published Commitments are not same with transaction Commitments'
+                );
               }
               const guardsKey = this.peers.map((item) => item.pub);
               const pubKeyIndex = transaction.sign!.signed.map((pubKey) =>
@@ -684,8 +689,12 @@ class MultiSigHandler {
                   try {
                     if (
                       pubKeyIndex.indexOf(commitment.index) !== -1 &&
-                      publicHints[input][commitment.index].a !==
-                        commitment.commitment[input][0].a
+                      !MultiSigUtils.findCommitment(
+                        input,
+                        commitment.commitment[input][0].a,
+                        commitment.commitment[input][0].position,
+                        publicHints
+                      )
                     ) {
                       throw Error();
                     }

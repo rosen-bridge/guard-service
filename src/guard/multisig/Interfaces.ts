@@ -112,4 +112,5 @@ export {
   ApprovePayload,
   CommitmentJson,
   PublishedCommitment,
+  SingleCommitmentJson,
 };

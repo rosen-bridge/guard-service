@@ -11,7 +11,7 @@
     "build": "rimraf dist && tsc",
     "start": "ts-node --experimental-specifier-resolution=node ./src/index.ts",
     "start:dev": "NODE_ENV=\"development\" nodemon .",
-    "test": "NODE_ENV=\"test\" mocha -g 'handleSign' --slow 3000 && rimraf tests/db/sqlite/test",
+    "test": "NODE_ENV=\"test\" mocha --slow 3000 && rimraf tests/db/sqlite/test",
     "type-check": "tsc --noEmit",
     "coverage": "c8 npm run test",
     "typeorm:update": "npm run typeorm migration:generate src/db/migrations/migration -- -p -d config/dataSource.ts",

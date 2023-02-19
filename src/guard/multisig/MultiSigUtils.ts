@@ -1,6 +1,10 @@
 import * as wasm from 'ergo-lib-wasm-nodejs';
 import NodeApi from '../../chains/ergo/network/NodeApi';
-import { CommitmentJson, PublishedCommitment } from './Interfaces';
+import {
+  CommitmentJson,
+  PublishedCommitment,
+  SingleCommitmentJson,
+} from './Interfaces';
 import { TransactionHintsBag } from 'ergo-lib-wasm-nodejs';
 
 class MultiSigUtils {
@@ -107,6 +111,10 @@ class MultiSigUtils {
     return wasm.TransactionHintsBag.from_json(JSON.stringify(resultJson));
   };
 
+  /**
+   * Converting Guard own hints with what's send to others guard
+   * @param commitmentJson
+   */
   static generatedCommitmentToPublishCommitment = (
     commitmentJson: CommitmentJson
   ): PublishedCommitment => {
@@ -124,6 +132,30 @@ class MultiSigUtils {
       }
     });
     return publishCommitments;
+  };
+
+  /**
+   * Checks if specific commitment for input is exist in the publicHints provided
+   * @param input input box index
+   * @param a
+   * @param position
+   * @param publicHints
+   */
+  static findCommitment = (
+    input: number,
+    a: string,
+    position: string,
+    publicHints: { [index: string]: Array<SingleCommitmentJson> }
+  ): boolean => {
+    for (let i = 0; i < publicHints[input].length; i++) {
+      if (
+        publicHints[input][i].a === a &&
+        publicHints[input][i].position === position
+      ) {
+        return true;
+      }
+    }
+    return false;
   };
 }
 
