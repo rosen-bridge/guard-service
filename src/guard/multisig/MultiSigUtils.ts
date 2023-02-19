@@ -106,6 +106,25 @@ class MultiSigUtils {
     });
     return wasm.TransactionHintsBag.from_json(JSON.stringify(resultJson));
   };
+
+  static generatedCommitmentToPublishCommitment = (
+    commitmentJson: CommitmentJson
+  ): PublishedCommitment => {
+    const publicHints = commitmentJson.publicHints;
+    const publishCommitments: {
+      [index: string]: Array<{ a: string; position: string }>;
+    } = {};
+    Object.keys(publicHints).forEach((inputIndex) => {
+      const inputHints = publicHints[inputIndex].filter((item) => !item.secret);
+      if (inputHints) {
+        publishCommitments[inputIndex] = inputHints.map((item) => ({
+          a: item.a,
+          position: item.position,
+        }));
+      }
+    });
+    return publishCommitments;
+  };
 }
 
 export default MultiSigUtils;

@@ -4,6 +4,7 @@ import {
   CommitmentJson,
   CommitmentPayload,
   CommunicationMessage,
+  PublishedCommitment,
   RegisterPayload,
   Signer,
   SignPayload,
@@ -17,6 +18,7 @@ import Encryption from '../../helpers/Encryption';
 import MultiSigUtils from './MultiSigUtils';
 import { default as Utils } from '../../helpers/Utils';
 import { loggerFactory } from '../../log/Logger';
+import { CommitmentMisMatch } from '../../helpers/errors';
 
 const logger = loggerFactory(import.meta.url);
 const dialer = await Dialer.getInstance();
@@ -246,21 +248,8 @@ class MultiSigHandler {
       // publish commitment
       const commitmentJson: CommitmentJson =
         queued.secret.to_json() as CommitmentJson;
-      const publicHints = commitmentJson.publicHints;
-      const publishCommitments: {
-        [index: string]: Array<{ a: string; position: string }>;
-      } = {};
-      Object.keys(publicHints).forEach((inputIndex) => {
-        const inputHints = publicHints[inputIndex].filter(
-          (item) => !item.secret
-        );
-        if (inputHints) {
-          publishCommitments[inputIndex] = inputHints.map((item) => ({
-            a: item.a,
-            position: item.position,
-          }));
-        }
-      });
+      const publishCommitments =
+        MultiSigUtils.generatedCommitmentToPublishCommitment(commitmentJson);
       logger.debug(
         `Commitment generated for tx [${id}]. Broadcasting to approved peers...`
       );
@@ -630,6 +619,84 @@ class MultiSigHandler {
       this.getQueuedTransaction(payload.txId).then(
         async ({ transaction, release }) => {
           try {
+            let hints: wasm.TransactionHintsBag =
+              wasm.TransactionHintsBag.empty();
+            const inputBoxes = transaction.boxes.length;
+            if (transaction.sign) {
+              const simulated = transaction.sign.simulated;
+              const signed = transaction.sign.signed;
+              hints = await MultiSigUtils.extract_hints(
+                wasm.Transaction.sigma_parse_bytes(
+                  transaction.sign.transaction
+                ),
+                transaction.boxes,
+                transaction.dataBoxes,
+                signed,
+                simulated
+              );
+              const hintsJson: CommitmentJson = hints.to_json();
+              const publicHints = hintsJson.publicHints;
+              Object.keys(publicHints).forEach((inputIndex) => {
+                publicHints[inputIndex].map((item) => ({
+                  a: item.a,
+                  position: item.position,
+                }));
+              });
+
+              let ownPublishedCommitments: PublishedCommitment | undefined;
+              if (transaction.secret) {
+                const commitmentJson =
+                  transaction.secret.to_json() as CommitmentJson;
+                ownPublishedCommitments =
+                  MultiSigUtils.generatedCommitmentToPublishCommitment(
+                    commitmentJson
+                  );
+              }
+              for (let input = 0; input < inputBoxes; input++) {
+                payload.commitments.forEach((commitment) => {
+                  if (
+                    transaction.commitments[commitment.index] !== undefined &&
+                    transaction.commitments[commitment.index]![input][0].a !==
+                      commitment.commitment[input][0].a
+                  ) {
+                    throw new CommitmentMisMatch(
+                      'Saved Commitments are not same with transaction Commitments'
+                    );
+                  }
+                  if (
+                    ownPublishedCommitments &&
+                    this.getIndex() === commitment.index &&
+                    ownPublishedCommitments[input][0].a ===
+                      commitment.commitment[input][0].a
+                  ) {
+                    throw new CommitmentMisMatch(
+                      'Published Commitments are not same with transaction Commitments'
+                    );
+                  }
+                });
+              }
+              const guardsKey = this.peers.map((item) => item.pub);
+              const pubKeyIndex = transaction.sign!.signed.map((pubKey) =>
+                guardsKey.indexOf(pubKey)
+              );
+              for (let input = 0; input < inputBoxes; input++) {
+                payload.commitments.forEach((commitment) => {
+                  try {
+                    if (
+                      pubKeyIndex.indexOf(commitment.index) !== -1 &&
+                      publicHints[input][commitment.index].a !==
+                        commitment.commitment[input][0].a
+                    ) {
+                      throw Error();
+                    }
+                  } catch (e) {
+                    throw new CommitmentMisMatch(
+                      'Extracted Commitments are not the same with transaction Commitments'
+                    );
+                  }
+                });
+              }
+            }
             payload.commitments
               .filter((commitment) => {
                 if (transaction.commitments[commitment.index] !== undefined) {
