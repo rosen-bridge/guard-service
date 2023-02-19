@@ -4,6 +4,7 @@ import {
   CommitmentJson,
   CommitmentPayload,
   CommunicationMessage,
+  PublishedCommitment,
   RegisterPayload,
   Signer,
   SignPayload,
@@ -18,6 +19,7 @@ import MultiSigUtils from './MultiSigUtils';
 import { default as Utils } from '../../helpers/Utils';
 import { loggerFactory } from '../../log/Logger';
 import deepEqual from 'deep-equal';
+import { CommitmentMisMatch } from '../../helpers/errors';
 
 const logger = loggerFactory(import.meta.url);
 const dialer = await Dialer.getInstance();
@@ -29,6 +31,7 @@ interface MultiSigGetInstance {
    * @param secretHex
    */
   (publicKeys: string[], secretHex?: string): MultiSigHandler;
+
   /**
    * Get a previously created multi sig singleton instance
    */
@@ -620,57 +623,101 @@ class MultiSigHandler {
       this.getQueuedTransaction(payload.txId).then(
         async ({ transaction, release }) => {
           try {
+            let hints: wasm.TransactionHintsBag =
+              wasm.TransactionHintsBag.empty();
+            const inputBoxes = transaction.boxes.length;
+            if (transaction.sign) {
+              const simulated = transaction.sign.simulated;
+              const signed = transaction.sign.signed;
+              hints = await MultiSigUtils.extract_hints(
+                wasm.Transaction.sigma_parse_bytes(
+                  transaction.sign.transaction
+                ),
+                transaction.boxes,
+                transaction.dataBoxes,
+                signed,
+                simulated
+              );
+              const hintsJson: CommitmentJson = hints.to_json();
+              const publicHints = hintsJson.publicHints;
+              Object.keys(publicHints).forEach((inputIndex) => {
+                publicHints[inputIndex].map((item) => ({
+                  a: item.a,
+                  position: item.position,
+                }));
+              });
+
+              const guardsKey = this.peers.map((item) => item.pub);
+              for (let input = 0; input < inputBoxes; input++) {
+                payload.commitments.forEach((commitment) => {
+                  try {
+                    transaction.sign!.signed.forEach((pubKey) => {
+                      const guardIndex = guardsKey.indexOf(pubKey);
+                      if (
+                        guardIndex === commitment.index &&
+                        publicHints[input][guardIndex].a !==
+                          commitment.commitment[input][0].a
+                      ) {
+                        throw new CommitmentMisMatch(
+                          'Extracted Commitments are not the same with transaction Commitments'
+                        );
+                      }
+                    });
+                  } catch (e) {
+                    throw new CommitmentMisMatch(
+                      'Extracted Commitments are not the same with transaction Commitments'
+                    );
+                  }
+                });
+              }
+            }
+            let ownPublishedCommitments: PublishedCommitment | undefined;
+            if (transaction.secret) {
+              const commitmentJson =
+                transaction.secret.to_json() as CommitmentJson;
+              ownPublishedCommitments =
+                MultiSigUtils.generatedCommitmentToPublishCommitment(
+                  commitmentJson
+                );
+            }
+
+            for (let input = 0; input < inputBoxes; input++) {
+              payload.commitments.forEach((commitment) => {
+                if (
+                  transaction.commitments[commitment.index] !== undefined &&
+                  transaction.commitments[commitment.index]![input][0].a !==
+                    commitment.commitment[input][0].a
+                ) {
+                  throw new CommitmentMisMatch(
+                    'Saved Commitments are not same with transaction Commitments'
+                  );
+                }
+                if (
+                  ownPublishedCommitments &&
+                  this.getIndex() === commitment.index &&
+                  ownPublishedCommitments[input][0].a ===
+                    commitment.commitment[input][0].a
+                ) {
+                  throw new CommitmentMisMatch(
+                    'Published Commitments are not same with transaction Commitments'
+                  );
+                }
+              });
+            }
             payload.commitments
               .filter((commitment) => {
+                if (transaction.commitments[commitment.index] !== undefined) {
+                  return false;
+                }
                 const payloadToSign = {
                   txId: payload.txId,
                   commitment: commitment.commitment,
                 };
-                const verifySign = this.verifySign(
+                return this.verifySign(
                   commitment.sign,
                   commitment.index,
                   JSON.stringify(payloadToSign)
                 );
-                if (
-                  commitment.index === this.getIndex() &&
-                  verifySign &&
-                  transaction.secret
-                ) {
-                  const commitmentJson: CommitmentJson =
-                    transaction.secret.to_json() as CommitmentJson;
-                  if (
-                    !deepEqual(
-                      transaction.commitments[commitment.index],
-                      MultiSigUtils.generatedCommitmentToPublishCommitment(
-                        commitmentJson
-                      ),
-                      { strict: true }
-                    )
-                  ) {
-                    throw new Error(
-                      `Commitments in the message are not the same with saved commitment index:${commitment.index}`
-                    );
-                  }
-                }
-                if (
-                  transaction.commitments[commitment.index] !== undefined &&
-                  verifySign
-                ) {
-                  if (
-                    !deepEqual(
-                      transaction.commitments[commitment.index],
-                      commitment.commitment,
-                      { strict: true }
-                    )
-                  ) {
-                    throw new Error(
-                      `Commitments in the message are not the same with saved commitment index:${commitment.index}`
-                    );
-                  } else {
-                    return false;
-                  }
-                }
-                return verifySign;
               })
               .forEach((commitment) => {
                 transaction.commitments[commitment.index] =
@@ -711,10 +758,14 @@ class MultiSigHandler {
             }
             this.processResolve(transaction);
           } catch (e) {
-            logger.warn(
-              `An unknown exception occurred while handling sign from another peer: ${e}`
-            );
-            logger.warn(e.stack);
+            if (e instanceof CommitmentMisMatch) {
+              logger.warn(e.message);
+            } else {
+              logger.warn(
+                `An unknown exception occurred while handling sign from another peer: ${e}`
+              );
+              logger.warn(e.stack);
+            }
           }
           release();
         }

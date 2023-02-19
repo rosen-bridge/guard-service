@@ -3,6 +3,7 @@ import { expect } from 'chai';
 import sinon from 'sinon';
 import { sendMessageBodyAndPayloadArguments } from '../../communication/mocked/MockedDialer';
 import * as wasm from 'ergo-lib-wasm-nodejs';
+import MultiSigUtils from '../../../src/guard/multisig/MultiSigUtils';
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -428,6 +429,240 @@ describe('MultiSigHandler', () => {
       });
       await delay(100);
       expect(generateSignStub.called).to.be.true;
+    });
+
+    it('handleSign should call with no error when signer commitment in message is equal to signer commitment', async () => {
+      const box1Hex =
+        '80a8d6b907100304000e20a6ac381e6fa99929fd1477b3ba9499790a775e91d4c14c5aa86e9a118dfac8530400d801d601b2db6501fe730000ea02d1aedb63087201d901024d0e938c720201730198b2e4c672010510730200ade4c67201041ad901020ecdee72028cc10f00003a4f8dac9bbe80fffaf400edd5779b7ccd5628beceab06c41b5b7b3e091e963501';
+      const dataBoxHex =
+        '80ade2041006040004000400040004000402d804d601b2a5730000d602e4c6a7041ad603e4c6a70510d604ad7202d901040ecdee7204ea02d19683020193c27201c2a7938cb2db63087201730100018cb2db6308a773020001eb02ea02d19683020193e4c67201041a720293e4c672010510720398b2e4c6b2db6501fe7303000510730400720498b2720373050072048cc10f01a6ac381e6fa99929fd1477b3ba9499790a775e91d4c14c5aa86e9a118dfac85301021a0421028d938d67befbb8ab3513c44886c16c2bcd62ed4595b9b216b20ef03eb8fb8fb82103074e09c476bb215dc3aeff908d0b7691895a99dfc3bd950fa629defe541e0364210300e8750a242ee7d78f5b458e1f7474bd884d2b7894676412ba6b5f319d2ee41021023a5b48c87cd9fece23f5acd08cb464ceb9d76e3c1ddac08206980a295546bb2e100206081d827c338829135cc5c7d7f03ad9ba8ecffc6f5cddf63a2655c55922786230c000';
+      const box1 = wasm.ErgoBox.sigma_parse_bytes(
+        Uint8Array.from(Buffer.from(box1Hex, 'hex'))
+      );
+      const dataBox = wasm.ErgoBox.sigma_parse_bytes(
+        Uint8Array.from(Buffer.from(dataBoxHex, 'hex'))
+      );
+      const obj = {
+        transaction: {
+          boxes: [box1],
+          dataBoxes: [dataBox],
+          commitments: [],
+          commitmentSigns: [''],
+          createTime: 0,
+          requiredSigner: 2,
+          secret: wasm.TransactionHintsBag.empty(),
+        },
+        release: () => null,
+      };
+      const handler = new MultiSigHandler(
+        publicKeys,
+        '5bc1d17d0612e696a9138ab8e85ca2a02d0171440ec128a9ad557c28bd5ea046'
+      );
+      sinon
+        .stub(handler, 'getQueuedTransaction')
+        .withArgs('txid')
+        .returns(Promise.resolve(obj));
+      sinon
+        .stub(MultiSigUtils, 'generatedCommitmentToPublishCommitment')
+        .returns({ '0': [{ a: '3', position: '0-0' }] });
+      // sinon.stub(MultiSigUtils,'')
+      const generateSignStub = sinon
+        .stub(handler, 'generateSign')
+        .withArgs('txid', obj.transaction);
+      sinon.stub(handler, 'verifySign').returns(true);
+      console.log(handler.getIndex());
+
+      handler.handleSign('sender', {
+        commitments: [
+          {
+            index: 0,
+            commitment: { '0': [{ a: '3', position: '0-0' }] },
+            sign: 'sign',
+          },
+        ],
+        signed: ['1'],
+        simulated: ['2'],
+        tx: '',
+        txId: 'txid',
+      });
+      await delay(100);
+      expect(generateSignStub.called).to.be.true;
+    });
+
+    it('handleSign should call with error when signer commitment in message is equal to signer commitment', async () => {
+      const box1Hex =
+        '80a8d6b907100304000e20a6ac381e6fa99929fd1477b3ba9499790a775e91d4c14c5aa86e9a118dfac8530400d801d601b2db6501fe730000ea02d1aedb63087201d901024d0e938c720201730198b2e4c672010510730200ade4c67201041ad901020ecdee72028cc10f00003a4f8dac9bbe80fffaf400edd5779b7ccd5628beceab06c41b5b7b3e091e963501';
+      const dataBoxHex =
+        '80ade2041006040004000400040004000402d804d601b2a5730000d602e4c6a7041ad603e4c6a70510d604ad7202d901040ecdee7204ea02d19683020193c27201c2a7938cb2db63087201730100018cb2db6308a773020001eb02ea02d19683020193e4c67201041a720293e4c672010510720398b2e4c6b2db6501fe7303000510730400720498b2720373050072048cc10f01a6ac381e6fa99929fd1477b3ba9499790a775e91d4c14c5aa86e9a118dfac85301021a0421028d938d67befbb8ab3513c44886c16c2bcd62ed4595b9b216b20ef03eb8fb8fb82103074e09c476bb215dc3aeff908d0b7691895a99dfc3bd950fa629defe541e0364210300e8750a242ee7d78f5b458e1f7474bd884d2b7894676412ba6b5f319d2ee41021023a5b48c87cd9fece23f5acd08cb464ceb9d76e3c1ddac08206980a295546bb2e100206081d827c338829135cc5c7d7f03ad9ba8ecffc6f5cddf63a2655c55922786230c000';
+      const box1 = wasm.ErgoBox.sigma_parse_bytes(
+        Uint8Array.from(Buffer.from(box1Hex, 'hex'))
+      );
+      const dataBox = wasm.ErgoBox.sigma_parse_bytes(
+        Uint8Array.from(Buffer.from(dataBoxHex, 'hex'))
+      );
+      const obj = {
+        transaction: {
+          boxes: [box1],
+          dataBoxes: [dataBox],
+          commitments: [],
+          commitmentSigns: [''],
+          createTime: 0,
+          requiredSigner: 2,
+          secret: wasm.TransactionHintsBag.empty(),
+        },
+        release: () => null,
+      };
+      const handler = new MultiSigHandler(
+        publicKeys,
+        '5bc1d17d0612e696a9138ab8e85ca2a02d0171440ec128a9ad557c28bd5ea046'
+      );
+      sinon
+        .stub(handler, 'getQueuedTransaction')
+        .withArgs('txid')
+        .returns(Promise.resolve(obj));
+      // sinon.stub(MultiSigUtils,'generatedCommitmentToPublishCommitment').returns({'0': [{a: '3', position: '1-1'}]})
+      const generateSignStub = sinon
+        .stub(handler, 'generateSign')
+        .withArgs('txid', obj.transaction);
+      sinon.stub(handler, 'verifySign').returns(true);
+
+      handler.handleSign('sender', {
+        commitments: [
+          {
+            index: 0,
+            commitment: { '0': [{ a: '2', position: '0-0' }] },
+            sign: 'sign',
+          },
+        ],
+        signed: ['1'],
+        simulated: ['2'],
+        tx: '',
+        txId: 'txid',
+      });
+      await delay(100);
+      expect(generateSignStub.called).to.be.false;
+    });
+
+    it('handleSign should call with no error with updateSign set to true', async () => {
+      const box1Hex =
+        '80a8d6b907100304000e20a6ac381e6fa99929fd1477b3ba9499790a775e91d4c14c5aa86e9a118dfac8530400d801d601b2db6501fe730000ea02d1aedb63087201d901024d0e938c720201730198b2e4c672010510730200ade4c67201041ad901020ecdee72028cc10f00003a4f8dac9bbe80fffaf400edd5779b7ccd5628beceab06c41b5b7b3e091e963501';
+      const dataBoxHex =
+        '80ade2041006040004000400040004000402d804d601b2a5730000d602e4c6a7041ad603e4c6a70510d604ad7202d901040ecdee7204ea02d19683020193c27201c2a7938cb2db63087201730100018cb2db6308a773020001eb02ea02d19683020193e4c67201041a720293e4c672010510720398b2e4c6b2db6501fe7303000510730400720498b2720373050072048cc10f01a6ac381e6fa99929fd1477b3ba9499790a775e91d4c14c5aa86e9a118dfac85301021a0421028d938d67befbb8ab3513c44886c16c2bcd62ed4595b9b216b20ef03eb8fb8fb82103074e09c476bb215dc3aeff908d0b7691895a99dfc3bd950fa629defe541e0364210300e8750a242ee7d78f5b458e1f7474bd884d2b7894676412ba6b5f319d2ee41021023a5b48c87cd9fece23f5acd08cb464ceb9d76e3c1ddac08206980a295546bb2e100206081d827c338829135cc5c7d7f03ad9ba8ecffc6f5cddf63a2655c55922786230c000';
+      const box1 = wasm.ErgoBox.sigma_parse_bytes(
+        Uint8Array.from(Buffer.from(box1Hex, 'hex'))
+      );
+      const dataBox = wasm.ErgoBox.sigma_parse_bytes(
+        Uint8Array.from(Buffer.from(dataBoxHex, 'hex'))
+      );
+      const obj = {
+        transaction: {
+          boxes: [box1],
+          dataBoxes: [dataBox],
+          commitments: [
+            { '0': [{ a: '3', position: '0-0' }] },
+            { '0': [{ a: '2', position: '0-1' }] },
+          ],
+          commitmentSigns: [''],
+          createTime: 0,
+          requiredSigner: 2,
+        },
+        release: () => null,
+      };
+      const handler = new MultiSigHandler(
+        publicKeys,
+        '5bc1d17d0612e696a9138ab8e85ca2a02d0171440ec128a9ad557c28bd5ea046'
+      );
+      sinon
+        .stub(handler, 'getQueuedTransaction')
+        .withArgs('txid')
+        .returns(Promise.resolve(obj));
+      const generateSignStub = sinon
+        .stub(handler, 'generateSign')
+        .withArgs('txid', obj.transaction);
+      sinon.stub(handler, 'verifySign').returns(true);
+      console.log(handler.getIndex());
+
+      handler.handleSign('sender', {
+        commitments: [
+          {
+            index: 0,
+            commitment: { '0': [{ a: '3', position: '0-0' }] },
+            sign: 'sign0',
+          },
+          {
+            index: 1,
+            commitment: { '0': [{ a: '2', position: '0-1' }] },
+            sign: 'sign1',
+          },
+        ],
+        signed: ['1'],
+        simulated: ['2'],
+        tx: '',
+        txId: 'txid',
+      });
+      await delay(100);
+      expect(generateSignStub.called).to.be.true;
+    });
+
+    it('handleSign should call with no error with updateSign set to true', async () => {
+      const box1Hex =
+        '80a8d6b907100304000e20a6ac381e6fa99929fd1477b3ba9499790a775e91d4c14c5aa86e9a118dfac8530400d801d601b2db6501fe730000ea02d1aedb63087201d901024d0e938c720201730198b2e4c672010510730200ade4c67201041ad901020ecdee72028cc10f00003a4f8dac9bbe80fffaf400edd5779b7ccd5628beceab06c41b5b7b3e091e963501';
+      const dataBoxHex =
+        '80ade2041006040004000400040004000402d804d601b2a5730000d602e4c6a7041ad603e4c6a70510d604ad7202d901040ecdee7204ea02d19683020193c27201c2a7938cb2db63087201730100018cb2db6308a773020001eb02ea02d19683020193e4c67201041a720293e4c672010510720398b2e4c6b2db6501fe7303000510730400720498b2720373050072048cc10f01a6ac381e6fa99929fd1477b3ba9499790a775e91d4c14c5aa86e9a118dfac85301021a0421028d938d67befbb8ab3513c44886c16c2bcd62ed4595b9b216b20ef03eb8fb8fb82103074e09c476bb215dc3aeff908d0b7691895a99dfc3bd950fa629defe541e0364210300e8750a242ee7d78f5b458e1f7474bd884d2b7894676412ba6b5f319d2ee41021023a5b48c87cd9fece23f5acd08cb464ceb9d76e3c1ddac08206980a295546bb2e100206081d827c338829135cc5c7d7f03ad9ba8ecffc6f5cddf63a2655c55922786230c000';
+      const box1 = wasm.ErgoBox.sigma_parse_bytes(
+        Uint8Array.from(Buffer.from(box1Hex, 'hex'))
+      );
+      const dataBox = wasm.ErgoBox.sigma_parse_bytes(
+        Uint8Array.from(Buffer.from(dataBoxHex, 'hex'))
+      );
+      const obj = {
+        transaction: {
+          boxes: [box1],
+          dataBoxes: [dataBox],
+          commitments: [
+            { '0': [{ a: '3', position: '0-0' }] },
+            { '0': [{ a: '2', position: '0-1' }] },
+          ],
+          commitmentSigns: [''],
+          createTime: 0,
+          requiredSigner: 2,
+        },
+        release: () => null,
+      };
+      const handler = new MultiSigHandler(
+        publicKeys,
+        '5bc1d17d0612e696a9138ab8e85ca2a02d0171440ec128a9ad557c28bd5ea046'
+      );
+      sinon
+        .stub(handler, 'getQueuedTransaction')
+        .withArgs('txid')
+        .returns(Promise.resolve(obj));
+      const generateSignStub = sinon
+        .stub(handler, 'generateSign')
+        .withArgs('txid', obj.transaction);
+      sinon.stub(handler, 'verifySign').returns(true);
+      console.log(handler.getIndex());
+
+      handler.handleSign('sender', {
+        commitments: [
+          {
+            index: 0,
+            commitment: { '0': [{ a: '3', position: '0-0' }] },
+            sign: 'sign0',
+          },
+          {
+            index: 1,
+            commitment: { '0': [{ a: '3', position: '0-1' }] },
+            sign: 'sign1',
+          },
+        ],
+        signed: ['1'],
+        simulated: ['2'],
+        tx: '',
+        txId: 'txid',
+      });
+      await delay(100);
+      expect(generateSignStub.called).to.be.false;
     });
   });
 
