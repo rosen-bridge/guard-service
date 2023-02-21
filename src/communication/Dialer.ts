@@ -485,7 +485,7 @@ class Dialer {
                   );
             };
             if (this._subscribedChannels[receivedData.channel]) {
-              logger.info(
+              logger.debug(
                 `Received a message from [${connection.remotePeer.toString()}] in subscribed channel [${
                   receivedData.channel
                 }].`
@@ -494,7 +494,7 @@ class Dialer {
                 runSubscribeCallback
               );
             } else {
-              logger.info(
+              logger.debug(
                 `Received a message from [${connection.remotePeer.toString()}] in unsubscribed channel [${
                   receivedData.channel
                 }].`
