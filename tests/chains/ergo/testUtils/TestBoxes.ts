@@ -24,6 +24,7 @@ import {
   ErgoBoxes,
   I64,
   NetworkPrefix,
+  Propositions,
   ReducedTransaction,
   SecretKey,
   SecretKeys,
@@ -31,6 +32,7 @@ import {
   TokenAmount,
   TokenId,
   Tokens,
+  TransactionHintsBag,
   TxBuilder,
   TxId,
   UnsignedTransaction,
@@ -47,6 +49,8 @@ import Utils from '../../../../src/helpers/Utils';
 import InputBoxes from '../../../../src/chains/ergo/boxes/InputBoxes';
 import { rosenConfig } from '../../../../src/helpers/RosenConfig';
 import { mock } from 'ts-mockito';
+import * as wasm from 'ergo-lib-wasm-nodejs';
+import MultiSigUtils from '../../../../src/guard/multisig/MultiSigUtils';
 
 // TODO: split this file variables and functions into multiple files (#94)
 class TestBoxes {
@@ -583,6 +587,91 @@ class TestBoxes {
       [],
       TransactionTypes.payment
     );
+  };
+
+  /**
+   * Mocking a multiSig transaction with 2 signer and partialy signed by first signer
+   */
+  static mockPartialSignedTransaction = () => {
+    const firstSecretKeyString =
+      '5bc1d17d0612e696a9138ab8e85ca2a02d0171440ec128a9ad557c28bd5ea046';
+    const secondSecretKeyString =
+      '168e8fee8ac6965832d6c1c17cdf60c1b582b09f293d8bd88231e32740e3b24f';
+    const firstSecrets = new SecretKeys();
+    const firstSecretKey = SecretKey.dlog_from_bytes(
+      Utils.hexStringToUint8Array(firstSecretKeyString)
+    );
+    firstSecrets.add(firstSecretKey);
+    const firstWallet = Wallet.from_secrets(firstSecrets);
+
+    const secondSecrets = new SecretKeys();
+    const secondSecretKey = SecretKey.dlog_from_bytes(
+      Utils.hexStringToUint8Array(secondSecretKeyString)
+    );
+    secondSecrets.add(secondSecretKey);
+    const secondWallet = Wallet.from_secrets(secondSecrets);
+
+    // MultiSig address of two publicKeys
+    const addressString =
+      '3sSMhchmFojcrqmeJXWfdr4CvPU8hz5BqyNBh3FBSLVdzNJNWe4oEtkfLyfEz3jNYUjwyRvBtrXBjq3LsqusGwkjunzRYexxDbUou5myRDjabniLd';
+    const address = Address.from_base58(addressString);
+
+    const fakeInBox = new ErgoBox(
+      ErgoUtils.boxValueFromBigint(2200000n),
+      this.testBlockchainHeight,
+      ErgoUtils.addressToContract(address),
+      TxId.from_str(TestUtils.generateRandomId()),
+      0,
+      new Tokens()
+    );
+
+    const inBoxes = new BoxSelection(
+      new ErgoBoxes(fakeInBox),
+      new ErgoBoxAssetsDataList()
+    );
+    const tx = TxBuilder.new(
+      inBoxes,
+      new ErgoBoxCandidates(
+        this.mockErgoBoxCandidate(
+          1100000n,
+          [],
+          ErgoUtils.addressToContract(address),
+          []
+        )
+      ),
+      this.testBlockchainHeight + 10,
+      ErgoUtils.boxValueFromBigint(1100000n),
+      address
+    ).build();
+
+    const firstCommitment = firstWallet.generate_commitments(
+      TestData.mockedErgoStateContext,
+      tx,
+      new ErgoBoxes(fakeInBox),
+      ErgoBoxes.empty()
+    );
+    const secondCommitment = secondWallet.generate_commitments(
+      TestData.mockedErgoStateContext,
+      tx,
+      new ErgoBoxes(fakeInBox),
+      ErgoBoxes.empty()
+    );
+    const hintsBag = TransactionHintsBag.empty();
+    hintsBag.add_hints_for_input(0, secondCommitment.all_hints_for_input(0));
+
+    const fakeTx = firstWallet.sign_transaction_multi(
+      TestData.mockedErgoStateContext,
+      tx,
+      new ErgoBoxes(fakeInBox),
+      ErgoBoxes.empty(),
+      hintsBag
+    );
+
+    return {
+      transaction: fakeTx,
+      inputBoxes: [fakeInBox],
+      commitments: [firstCommitment, secondCommitment],
+    };
   };
 
   /**

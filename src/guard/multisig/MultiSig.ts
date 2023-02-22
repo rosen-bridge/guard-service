@@ -608,6 +608,13 @@ class MultiSigHandler {
     }
   };
 
+  /**
+   * Verifying that Commitments in the payload are same with saved commitments
+   * and extracted commitment are same with commitments in the payload if there is
+   * a problem it throws CommitmentMisMatch Error
+   * @param transaction
+   * @param payload
+   */
   verifySignedPayload = async (
     transaction: TxQueued,
     payload: SignPayload

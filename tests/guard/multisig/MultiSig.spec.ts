@@ -3,6 +3,9 @@ import { expect } from 'chai';
 import sinon from 'sinon';
 import { sendMessageBodyAndPayloadArguments } from '../../communication/mocked/MockedDialer';
 import * as wasm from 'ergo-lib-wasm-nodejs';
+import TestBoxes from '../../chains/ergo/testUtils/TestBoxes';
+import MultiSigUtils from '../../../src/guard/multisig/MultiSigUtils';
+import { CommitmentMisMatch } from '../../../src/helpers/errors';
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -322,6 +325,287 @@ describe('MultiSigHandler', () => {
     });
   });
 
+  describe('verifySignedPayload', () => {
+    /**
+     * Target: test that verifySignedPayload throw error in case of
+     * Used commitment differ from my own commitments
+     * Dependencies:
+     *  -
+     *  Expected: tests throw error
+     */
+    it('Should throw error in case of Used commitment differ from my own commitments', async () => {
+      const tx = TestBoxes.mockPartialSignedTransaction();
+      const transaction = {
+        boxes: tx.inputBoxes,
+        dataBoxes: [],
+        commitments: [],
+        commitmentSigns: ['sign'],
+        createTime: 0,
+        requiredSigner: 2,
+        sign: {
+          signed: ['sign'],
+          simulated: ['simulated'],
+          transaction: new Uint8Array([2]),
+        },
+        secret: tx.commitments[1],
+      };
+      const publishedCommitmentFirst =
+        MultiSigUtils.generatedCommitmentToPublishCommitment(
+          tx.commitments[0].to_json()
+        );
+      const publishedCommitmentSecond =
+        MultiSigUtils.generatedCommitmentToPublishCommitment(
+          tx.commitments[1].to_json()
+        );
+
+      // Changing publishedCommitment
+      publishedCommitmentSecond[0][0].a = '11';
+
+      const payload = {
+        commitments: [
+          { index: 0, sign: 'sign', commitment: publishedCommitmentFirst },
+          { index: 1, sign: 'sign', commitment: publishedCommitmentSecond },
+        ],
+        signed: [publicKeys[0]],
+        simulated: [publicKeys[1]],
+        tx: Buffer.from(tx.transaction.sigma_serialize_bytes()).toString(
+          'base64'
+        ),
+        txId: 'txid',
+      };
+      const handler = new MultiSigHandler(
+        publicKeys.slice(0, 2),
+        '5bc1d17d0612e696a9138ab8e85ca2a02d0171440ec128a9ad557c28bd5ea046'
+      );
+
+      expect(async () => {
+        await handler.verifySignedPayload(transaction, payload);
+      }).to.throw;
+    });
+    /**
+     * Target: test that verifySignedPayload throw error in case of
+     * Saved Commitments are not same with transaction Commitments
+     * Dependencies:
+     *  -
+     *  Expected: tests throw error
+     */
+    it('Should throw error in case of Saved Commitments are not same with transaction Commitments', async () => {
+      const tx = TestBoxes.mockPartialSignedTransaction();
+      const publishedCommitmentFirst =
+        MultiSigUtils.generatedCommitmentToPublishCommitment(
+          tx.commitments[0].to_json()
+        );
+      const firstCommitmentPayload =
+        MultiSigUtils.generatedCommitmentToPublishCommitment(
+          tx.commitments[0].to_json()
+        );
+      const publishedCommitmentSecond =
+        MultiSigUtils.generatedCommitmentToPublishCommitment(
+          tx.commitments[1].to_json()
+        );
+
+      const transaction = {
+        boxes: tx.inputBoxes,
+        dataBoxes: [],
+        commitments: [publishedCommitmentFirst, publishedCommitmentSecond],
+        commitmentSigns: ['sign'],
+        createTime: 0,
+        requiredSigner: 2,
+        sign: {
+          signed: ['sign'],
+          simulated: ['simulated'],
+          transaction: new Uint8Array([2]),
+        },
+      };
+
+      // Changing publishedCommitment
+      firstCommitmentPayload[0][0].a = '11';
+
+      const payload = {
+        commitments: [
+          { index: 0, sign: 'sign', commitment: firstCommitmentPayload },
+          { index: 1, sign: 'sign', commitment: publishedCommitmentSecond },
+        ],
+        signed: [publicKeys[0]],
+        simulated: [publicKeys[1]],
+        tx: Buffer.from(tx.transaction.sigma_serialize_bytes()).toString(
+          'base64'
+        ),
+        txId: 'txid',
+      };
+
+      const handler = new MultiSigHandler(
+        publicKeys.slice(0, 2),
+        '5bc1d17d0612e696a9138ab8e85ca2a02d0171440ec128a9ad557c28bd5ea046'
+      );
+
+      expect(async () => {
+        await handler.verifySignedPayload(transaction, payload);
+      }).to.throw;
+    });
+    /**
+     * Target: test that verifySignedPayload throw error in case of
+     * Signed commitments are differ from passed commitments
+     * Dependencies:
+     *  -
+     *  Expected: tests throw error
+     */
+    it('Should throw error in case of Signed commitments are differ from passed commitments', async () => {
+      const tx = TestBoxes.mockPartialSignedTransaction();
+      const transaction = {
+        boxes: tx.inputBoxes,
+        dataBoxes: [],
+        commitments: [],
+        commitmentSigns: ['sign'],
+        createTime: 0,
+        requiredSigner: 2,
+        sign: {
+          signed: ['sign'],
+          simulated: ['simulated'],
+          transaction: new Uint8Array([2]),
+        },
+      };
+      const publishedCommitmentFirst =
+        MultiSigUtils.generatedCommitmentToPublishCommitment(
+          tx.commitments[0].to_json()
+        );
+      const publishedCommitmentSecond =
+        MultiSigUtils.generatedCommitmentToPublishCommitment(
+          tx.commitments[1].to_json()
+        );
+
+      // Changing publishedCommitment
+      publishedCommitmentSecond[0][0].a = '11';
+
+      const payload = {
+        commitments: [
+          { index: 0, sign: 'sign', commitment: publishedCommitmentFirst },
+          { index: 1, sign: 'sign', commitment: publishedCommitmentSecond },
+        ],
+        signed: [publicKeys[0]],
+        simulated: [publicKeys[1]],
+        tx: Buffer.from(tx.transaction.sigma_serialize_bytes()).toString(
+          'base64'
+        ),
+        txId: 'txid',
+      };
+      const handler = new MultiSigHandler(
+        publicKeys.slice(0, 2),
+        '168e8fee8ac6965832d6c1c17cdf60c1b582b09f293d8bd88231e32740e3b24f'
+      );
+
+      expect(async () => {
+        await handler.verifySignedPayload(transaction, payload);
+      }).to.throw;
+    });
+    /**
+     * Target: test that verifySignedPayload throw no error in case of transaction need sign
+     * Dependencies:
+     *  -
+     *  Expected: tests rum with no error
+     */
+    it('Should not throw in case of transaction need sign', async () => {
+      const tx = TestBoxes.mockPartialSignedTransaction();
+      const publishedCommitment =
+        MultiSigUtils.generatedCommitmentToPublishCommitment(
+          tx.commitments[0].to_json()
+        );
+
+      const transaction = {
+        boxes: tx.inputBoxes,
+        dataBoxes: [],
+        commitments: [publishedCommitment, undefined],
+        commitmentSigns: ['sign'],
+        createTime: 0,
+        requiredSigner: 2,
+        sign: {
+          signed: ['sign'],
+          simulated: ['simulated'],
+          transaction: new Uint8Array([2]),
+        },
+      };
+      const publishedCommitmentFirst =
+        MultiSigUtils.generatedCommitmentToPublishCommitment(
+          tx.commitments[0].to_json()
+        );
+      const publishedCommitmentSecond =
+        MultiSigUtils.generatedCommitmentToPublishCommitment(
+          tx.commitments[1].to_json()
+        );
+      const payload = {
+        commitments: [
+          { index: 0, sign: 'sign', commitment: publishedCommitmentFirst },
+          { index: 1, sign: 'sign', commitment: publishedCommitmentSecond },
+        ],
+        signed: [publicKeys[0]],
+        simulated: [publicKeys[1]],
+        tx: Buffer.from(tx.transaction.sigma_serialize_bytes()).toString(
+          'base64'
+        ),
+        txId: 'txid',
+      };
+      const handler = new MultiSigHandler(
+        publicKeys.slice(0, 2),
+        '168e8fee8ac6965832d6c1c17cdf60c1b582b09f293d8bd88231e32740e3b24f'
+      );
+
+      expect(async () => {
+        await handler.verifySignedPayload(transaction, payload);
+      }).to.not.throw;
+    });
+    /**
+     * Target: test that verifySignedPayload throw no error in case of transaction do not need sign
+     * Dependencies:
+     *  -
+     *  Expected: tests rum with no error
+     */
+    it('Should not throw in case of transaction do not need sign', async () => {
+      const tx = TestBoxes.mockPartialSignedTransaction();
+      const publishedCommitmentSecond =
+        MultiSigUtils.generatedCommitmentToPublishCommitment(
+          tx.commitments[1].to_json()
+        );
+
+      const transaction = {
+        boxes: tx.inputBoxes,
+        dataBoxes: [],
+        commitments: [undefined, publishedCommitmentSecond],
+        commitmentSigns: ['sign'],
+        createTime: 0,
+        requiredSigner: 2,
+        sign: {
+          signed: [publicKeys[0]],
+          simulated: [publicKeys[1]],
+          transaction: new Uint8Array([2]),
+        },
+      };
+      const publishedCommitmentFirst =
+        MultiSigUtils.generatedCommitmentToPublishCommitment(
+          tx.commitments[0].to_json()
+        );
+      const payload = {
+        commitments: [
+          { index: 0, sign: 'sign', commitment: publishedCommitmentFirst },
+          { index: 1, sign: 'sign', commitment: publishedCommitmentSecond },
+        ],
+        signed: [publicKeys[0]],
+        simulated: [publicKeys[1]],
+        tx: Buffer.from(tx.transaction.sigma_serialize_bytes()).toString(
+          'base64'
+        ),
+        txId: 'txid',
+      };
+      const handler = new MultiSigHandler(
+        publicKeys.slice(0, 2),
+        '5bc1d17d0612e696a9138ab8e85ca2a02d0171440ec128a9ad557c28bd5ea046'
+      );
+
+      expect(async () => {
+        await handler.verifySignedPayload(transaction, payload);
+      }).to.not.throw;
+    });
+  });
+
   describe('handleSign', () => {
     /**
      * Target: test that handleSign runs with no error when updateSign variable
@@ -363,6 +647,7 @@ describe('MultiSigHandler', () => {
       const generateSignStub = sinon
         .stub(handler, 'generateSign')
         .withArgs('txid', obj.transaction);
+      sinon.stub(handler, 'verifySignedPayload').returns(Promise.resolve());
       handler.handleSign('sender', {
         commitments: [],
         signed: ['1'],
@@ -419,6 +704,7 @@ describe('MultiSigHandler', () => {
       const generateSignStub = sinon
         .stub(handler, 'generateSign')
         .withArgs('txid', obj.transaction);
+      sinon.stub(handler, 'verifySignedPayload').returns(Promise.resolve());
       handler.handleSign('sender', {
         commitments: [],
         signed: ['1'],
