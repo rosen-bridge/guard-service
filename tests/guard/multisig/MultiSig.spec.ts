@@ -5,7 +5,6 @@ import { sendMessageBodyAndPayloadArguments } from '../../communication/mocked/M
 import * as wasm from 'ergo-lib-wasm-nodejs';
 import TestBoxes from '../../chains/ergo/testUtils/TestBoxes';
 import MultiSigUtils from '../../../src/guard/multisig/MultiSigUtils';
-import { CommitmentMisMatch } from '../../../src/helpers/errors';
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -378,9 +377,14 @@ describe('MultiSigHandler', () => {
         '5bc1d17d0612e696a9138ab8e85ca2a02d0171440ec128a9ad557c28bd5ea046'
       );
 
-      expect(async () => {
+      try {
         await handler.verifySignedPayload(transaction, payload);
-      }).to.throw;
+        throw Error('verifySignedPayload should throw error');
+      } catch (e) {
+        expect(e.message).to.be.equal(
+          'CommitmentMismatch: Used commitment differ from my own commitments'
+        );
+      }
     });
     /**
      * Target: test that verifySignedPayload throw error in case of
@@ -439,9 +443,14 @@ describe('MultiSigHandler', () => {
         '5bc1d17d0612e696a9138ab8e85ca2a02d0171440ec128a9ad557c28bd5ea046'
       );
 
-      expect(async () => {
+      try {
         await handler.verifySignedPayload(transaction, payload);
-      }).to.throw;
+        throw Error('verifySignedPayload should throw error');
+      } catch (e) {
+        expect(e.message).to.be.equal(
+          'CommitmentMismatch: Saved Commitments are not same with transaction Commitments'
+        );
+      }
     });
     /**
      * Target: test that verifySignedPayload throw error in case of
@@ -475,7 +484,7 @@ describe('MultiSigHandler', () => {
         );
 
       // Changing publishedCommitment
-      publishedCommitmentSecond[0][0].a = '11';
+      publishedCommitmentFirst[0][0].a = '11';
 
       const payload = {
         commitments: [
@@ -494,9 +503,14 @@ describe('MultiSigHandler', () => {
         '168e8fee8ac6965832d6c1c17cdf60c1b582b09f293d8bd88231e32740e3b24f'
       );
 
-      expect(async () => {
+      try {
         await handler.verifySignedPayload(transaction, payload);
-      }).to.throw;
+        throw Error('verifySignedPayload should throw error');
+      } catch (e) {
+        expect(e.message).to.be.equal(
+          'CommitmentMismatch: Signed commitments are differ from passed commitments'
+        );
+      }
     });
     /**
      * Target: test that verifySignedPayload throw no error in case of transaction need sign
@@ -549,9 +563,14 @@ describe('MultiSigHandler', () => {
         '168e8fee8ac6965832d6c1c17cdf60c1b582b09f293d8bd88231e32740e3b24f'
       );
 
-      expect(async () => {
+      try {
         await handler.verifySignedPayload(transaction, payload);
-      }).to.not.throw;
+        throw Error('verifySignedPayload should throw no error');
+      } catch (e) {
+        expect(e.message).to.be.equal(
+          'verifySignedPayload should throw no error'
+        );
+      }
     });
     /**
      * Target: test that verifySignedPayload throw no error in case of transaction do not need sign
@@ -600,9 +619,14 @@ describe('MultiSigHandler', () => {
         '5bc1d17d0612e696a9138ab8e85ca2a02d0171440ec128a9ad557c28bd5ea046'
       );
 
-      expect(async () => {
+      try {
         await handler.verifySignedPayload(transaction, payload);
-      }).to.not.throw;
+        throw Error('verifySignedPayload should throw no error');
+      } catch (e) {
+        expect(e.message).to.be.equal(
+          'verifySignedPayload should throw no error'
+        );
+      }
     });
   });
 

@@ -24,7 +24,6 @@ import {
   ErgoBoxes,
   I64,
   NetworkPrefix,
-  Propositions,
   ReducedTransaction,
   SecretKey,
   SecretKeys,
@@ -49,8 +48,6 @@ import Utils from '../../../../src/helpers/Utils';
 import InputBoxes from '../../../../src/chains/ergo/boxes/InputBoxes';
 import { rosenConfig } from '../../../../src/helpers/RosenConfig';
 import { mock } from 'ts-mockito';
-import * as wasm from 'ergo-lib-wasm-nodejs';
-import MultiSigUtils from '../../../../src/guard/multisig/MultiSigUtils';
 
 // TODO: split this file variables and functions into multiple files (#94)
 class TestBoxes {
@@ -658,7 +655,7 @@ class TestBoxes {
     );
     const hintsBag = TransactionHintsBag.empty();
     hintsBag.add_hints_for_input(0, secondCommitment.all_hints_for_input(0));
-
+    hintsBag.add_hints_for_input(0, firstCommitment.all_hints_for_input(0));
     const fakeTx = firstWallet.sign_transaction_multi(
       TestData.mockedErgoStateContext,
       tx,
