@@ -36,7 +36,7 @@
     "@multiformats/multiaddr": "^11.0.3",
     "@rosen-bridge/minimum-fee": "^0.1.4",
     "@rosen-bridge/scanner": "^0.4.5",
-    "@rosen-bridge/tokens": "^0.1.9",
+    "@rosen-bridge/tokens": "^0.1.10",
     "@rosen-bridge/rosen-extractor": "^0.1.1",
     "@rosen-bridge/watcher-data-extractor": "^0.2.13",
     "await-semaphore": "^0.1.3",
