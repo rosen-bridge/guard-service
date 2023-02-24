@@ -5,7 +5,6 @@ import TestData from './testUtils/TestData';
 import { expect } from 'chai';
 import { beforeEach } from 'mocha';
 import sinon from 'sinon';
-import CardanoUtils from '../../../src/chains/cardano/helpers/CardanoUtils';
 import CardanoConfigs from '../../../src/chains/cardano/helpers/CardanoConfigs';
 import { Fee } from '@rosen-bridge/minimum-fee';
 import { mockGetFee } from '../../guard/mocked/MockedMinimumFee';
@@ -533,13 +532,13 @@ describe('CardanoTxVerifier', () => {
     /**
      * Target: testing verifyEventWithPayment
      * Dependencies:
-     *    CardanoUtils
+     *    CardanoTxVerifier.rosenExtractor
      * Expected Output:
      *    It should NOT verify the event
      */
     it('should return false when the event can not be retrieved from tx info', async () => {
       const mockedEvent: EventTrigger = TestBoxes.mockValidEventTrigger();
-      sinon.stub(CardanoUtils, 'getRosenData').returns(undefined);
+      sinon.stub(CardanoTxVerifier.rosenExtractor, 'get').returns(undefined);
 
       // run test
       const isValid = await CardanoTxVerifier.verifyEventWithPayment(

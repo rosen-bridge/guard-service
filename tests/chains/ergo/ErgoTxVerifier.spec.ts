@@ -542,7 +542,7 @@ describe('ErgoTxVerifier', () => {
     /**
      * Target: testing verifyEventWithPayment
      * Dependencies:
-     *    ErgoUtils
+     *    ErgoTxVerifier.rosenExtractor
      * Expected Output:
      *    It should NOT verify the event
      */

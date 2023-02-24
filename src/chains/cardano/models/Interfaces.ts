@@ -13,10 +13,13 @@ interface AssetInfo {
   assetName: Uint8Array;
 }
 
+interface PaymentAddr {
+  bech32: string;
+  cred: string;
+}
+
 interface Utxo {
-  payment_addr: {
-    bech32: string;
-  };
+  payment_addr: PaymentAddr;
   tx_hash: string;
   tx_index: number;
   value: string;
@@ -40,7 +43,7 @@ interface UtxoBoxesAssets {
 }
 
 interface MetaData {
-  [key: string]: JSON;
+  [key: string]: Record<string, unknown>;
 }
 
 interface RosenData {

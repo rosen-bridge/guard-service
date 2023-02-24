@@ -1,4 +1,5 @@
 import {
+  AddressUtxo,
   Asset,
   AssetInfo,
   InputUtxo,
@@ -83,7 +84,9 @@ class CardanoUtils {
    * calculates amount of lovelace and assets in utxo boxes
    * @param boxes the utxogenerateTransaction boxes
    */
-  static calculateInputBoxesAssets = (boxes: Utxo[]): UtxoBoxesAssets => {
+  static calculateInputBoxesAssets = (
+    boxes: AddressUtxo[]
+  ): UtxoBoxesAssets => {
     const multiAsset = MultiAsset.new();
     let changeBoxLovelace: BigNum = BigNum.zero();
     boxes.forEach((box) => {
@@ -170,6 +173,7 @@ class CardanoUtils {
     return {
       payment_addr: {
         bech32: box.address().to_bech32(),
+        cred: '', // TODO: remove this field (#186)
       },
       tx_hash: txId,
       tx_index: index,

@@ -1,11 +1,9 @@
 import axios from 'axios';
 import {
   AddressAssets,
-  AddressInfo,
   AddressUtxo,
   KoiosAddressInfo,
   KoiosTransaction,
-  Utxo,
 } from '../models/Interfaces';
 import CardanoConfigs from '../helpers/CardanoConfigs';
 import {
@@ -28,7 +26,7 @@ class KoiosApi {
    * returns address assets
    * @param address
    */
-  static getAddressInfo = (address: string): Promise<AddressInfo> => {
+  static getAddressInfo = (address: string): Promise<KoiosAddressInfo> => {
     return this.koios
       .post<KoiosAddressInfo[]>(
         '/address_info',
@@ -62,7 +60,7 @@ class KoiosApi {
    * gets utxo boxes owned by the address
    * @param address
    */
-  static getAddressBoxes = async (address: string): Promise<Utxo[]> => {
+  static getAddressBoxes = async (address: string): Promise<AddressUtxo[]> => {
     return (await this.getAddressInfo(address)).utxo_set;
   };
 
