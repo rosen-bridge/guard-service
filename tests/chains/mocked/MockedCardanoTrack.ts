@@ -1,6 +1,6 @@
 import { anything, reset, spy, when } from 'ts-mockito';
 import CardanoTrack from '../../../src/chains/cardano/CardanoTrack';
-import { Utxo } from '../../../src/chains/cardano/models/Interfaces';
+import { AddressUtxo } from '../../../src/chains/cardano/models/Interfaces';
 
 let mockedCardanoTrack = spy(CardanoTrack);
 
@@ -8,7 +8,7 @@ let mockedCardanoTrack = spy(CardanoTrack);
  * mocks CardanoTrack trackAndFilterLockBoxes method to return boxes when called
  * @param boxes
  */
-const mockTrackAndFilterLockBoxes = (boxes: Utxo[]): void => {
+const mockTrackAndFilterLockBoxes = (boxes: AddressUtxo[]): void => {
   when(mockedCardanoTrack.trackAndFilterLockBoxes(anything())).thenResolve(
     boxes
   );

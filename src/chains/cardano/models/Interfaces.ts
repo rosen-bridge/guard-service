@@ -62,12 +62,6 @@ interface KoiosTransaction {
   metadata?: MetaData;
 }
 
-interface AddressInfo {
-  address: string;
-  balance: string;
-  utxo_set: Utxo[];
-}
-
 interface KoiosAddressInfo {
   address: string;
   balance: string;
@@ -94,8 +88,7 @@ export type {
   KoiosTransaction,
   MetaData,
   RosenData,
-  AddressInfo,
-  AddressUtxo,
   KoiosAddressInfo,
+  AddressUtxo,
   AddressAssets,
 };

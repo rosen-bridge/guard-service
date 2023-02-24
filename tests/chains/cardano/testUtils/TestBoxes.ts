@@ -5,7 +5,7 @@ import {
 } from '../../../../src/models/Models';
 import TestUtils from '../../../testUtils/TestUtils';
 import {
-  AddressInfo,
+  KoiosAddressInfo,
   AddressAssets,
   AddressUtxos,
   TxUtxos,
@@ -1127,19 +1127,22 @@ class TestBoxes {
     ],
   };
 
-  static mediumLovelaceAddressInfo: AddressInfo = {
+  static mediumLovelaceAddressInfo: KoiosAddressInfo = {
     address: CardanoConfigs.lockAddress,
     balance: '200000000',
     utxo_set: [],
   };
 
-  static highLovelaceAddressInfo: AddressInfo = {
+  static highLovelaceAddressInfo: KoiosAddressInfo = {
     address: CardanoConfigs.lockAddress,
     balance: '900000000',
     utxo_set: [],
   };
 
-  static mockHighAdaAddressInfoAndAssets = (): [AddressInfo, AddressAssets] => {
+  static mockHighAdaAddressInfoAndAssets = (): [
+    KoiosAddressInfo,
+    AddressAssets
+  ] => {
     const box1: Utxo = {
       payment_addr: { bech32: '', cred: '' },
       tx_hash: TestUtils.generateRandomId(),
@@ -1190,7 +1193,7 @@ class TestBoxes {
     };
 
     const utxoSet = [box1, box2, box3];
-    const addressInfo: AddressInfo = {
+    const addressInfo: KoiosAddressInfo = {
       address: CardanoConfigs.lockAddress,
       balance: '360000000',
       utxo_set: utxoSet,
@@ -1224,7 +1227,7 @@ class TestBoxes {
   };
 
   static mockHighAssetAddressInfoAndAssets = (): [
-    AddressInfo,
+    KoiosAddressInfo,
     AddressAssets
   ] => {
     const box1: Utxo = {
@@ -1283,7 +1286,7 @@ class TestBoxes {
     };
 
     const utxoSet = [box1, box2, box3];
-    const addressInfo: AddressInfo = {
+    const addressInfo: KoiosAddressInfo = {
       address: CardanoConfigs.lockAddress,
       balance: '360000000',
       utxo_set: utxoSet,
