@@ -16,12 +16,6 @@ import {
   Vkeywitness,
   Vkeywitnesses,
 } from '@emurgo/cardano-serialization-lib-nodejs';
-import { TypeORMError } from 'typeorm';
-import axios from 'axios';
-import {
-  BlockfrostClientError,
-  BlockfrostServerError,
-} from '@blockfrost/blockfrost-js';
 import { Buffer } from 'buffer';
 import { Fee } from '@rosen-bridge/minimum-fee';
 
@@ -34,7 +28,7 @@ import {
 import BaseChain from '../BaseChains';
 import CardanoConfigs from './helpers/CardanoConfigs';
 import BlockFrostApi from './network/BlockFrostApi';
-import { Utxo, UtxoBoxesAssets } from './models/Interfaces';
+import { AddressUtxo, UtxoBoxesAssets } from './models/Interfaces';
 import CardanoUtils from './helpers/CardanoUtils';
 import TssSigner from '../../guard/TssSigner';
 import CardanoTransaction from './models/CardanoTransaction';
@@ -190,7 +184,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
    */
   lovelacePaymentOutputBoxes = (
     event: EventTrigger,
-    inBoxes: Utxo[],
+    inBoxes: AddressUtxo[],
     feeConfig: Fee
   ): TransactionOutput[] => {
     // calculate assets of payment box
@@ -232,7 +226,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
    */
   assetPaymentOutputBoxes = (
     event: EventTrigger,
-    inBoxes: Utxo[],
+    inBoxes: AddressUtxo[],
     feeConfig: Fee
   ): TransactionOutput[] => {
     // calculate assets of payment box

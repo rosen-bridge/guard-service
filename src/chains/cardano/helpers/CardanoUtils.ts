@@ -1,9 +1,8 @@
 import {
+  AddressUtxo,
   Asset,
   AssetInfo,
   InputUtxo,
-  MetaData,
-  RosenData,
   Utxo,
   UtxoBoxesAssets,
 } from '../models/Interfaces';
@@ -46,44 +45,12 @@ class CardanoUtils {
   };
 
   /**
-   * returns rosenData object if the box format is like rosen bridge observations otherwise returns undefined
-   * @param metaData
-   */
-  static getRosenData = (metaData: MetaData): RosenData | undefined => {
-    // Rosen data type exists with the '0' key on the cardano tx metadata
-    if (metaData && Object.prototype.hasOwnProperty.call(metaData, '0')) {
-      const data = metaData['0'];
-      if (
-        'to' in data &&
-        'bridgeFee' in data &&
-        'networkFee' in data &&
-        'toAddress' in data &&
-        'fromAddress' in data
-      ) {
-        const rosenData = data as unknown as {
-          to: string;
-          bridgeFee: string;
-          networkFee: string;
-          toAddress: string;
-          fromAddress: string[];
-        };
-        return {
-          toChain: rosenData.to,
-          bridgeFee: rosenData.bridgeFee,
-          networkFee: rosenData.networkFee,
-          toAddress: rosenData.toAddress,
-          fromAddress: rosenData.fromAddress.join(''),
-        };
-      }
-    }
-    return undefined;
-  };
-
-  /**
    * calculates amount of lovelace and assets in utxo boxes
    * @param boxes the utxogenerateTransaction boxes
    */
-  static calculateInputBoxesAssets = (boxes: Utxo[]): UtxoBoxesAssets => {
+  static calculateInputBoxesAssets = (
+    boxes: AddressUtxo[]
+  ): UtxoBoxesAssets => {
     const multiAsset = MultiAsset.new();
     let changeBoxLovelace: BigNum = BigNum.zero();
     boxes.forEach((box) => {
@@ -170,6 +137,7 @@ class CardanoUtils {
     return {
       payment_addr: {
         bech32: box.address().to_bech32(),
+        cred: '', // TODO: remove this field (#186)
       },
       tx_hash: txId,
       tx_index: index,

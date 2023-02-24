@@ -1,6 +1,6 @@
 import { Buffer } from 'buffer';
 import { ErgoBox, ErgoBoxCandidate } from 'ergo-lib-wasm-nodejs';
-import { uniqBy } from 'lodash-es';
+import { cloneDeep, set, uniqBy } from 'lodash-es';
 
 import { CommitmentEntity } from '@rosen-bridge/watcher-data-extractor';
 
@@ -11,6 +11,7 @@ import Utils from '../../../helpers/Utils';
 import { rosenConfig } from '../../../helpers/RosenConfig';
 import { dbAction } from '../../../db/DatabaseAction';
 import { ImpossibleBehavior } from '../../../helpers/errors';
+import { ExplorerTransaction, NodeTransaction } from '../models/Interfaces';
 
 class InputBoxes {
   /**
@@ -138,6 +139,35 @@ class InputBoxes {
     } else {
       return aErgoTree.localeCompare(bErgoTree);
     }
+  };
+
+  /**
+   * converts a tx from ExplorerTransaction format to NodeTransaction format
+   * @param explorerTx
+   */
+  static explorerTxToNodeTx = (
+    explorerTx: ExplorerTransaction
+  ): NodeTransaction => {
+    const nodeTx = cloneDeep(explorerTx) as unknown as Record<string, any>;
+    for (const box of nodeTx.inputs) {
+      Object.keys(box.additionalRegisters).forEach((regKey) => {
+        box.additionalRegisters[regKey] =
+          box.additionalRegisters[regKey].serializedValue;
+      });
+    }
+    for (const box of nodeTx.dataInputs) {
+      Object.keys(box.additionalRegisters).forEach((regKey) => {
+        box.additionalRegisters[regKey] =
+          box.additionalRegisters[regKey].serializedValue;
+      });
+    }
+    for (const box of nodeTx.outputs) {
+      Object.keys(box.additionalRegisters).forEach((regKey) => {
+        box.additionalRegisters[regKey] =
+          box.additionalRegisters[regKey].serializedValue;
+      });
+    }
+    return nodeTx as NodeTransaction;
   };
 }
 

@@ -1,4 +1,3 @@
-import { Buffer } from 'buffer';
 import {
   Address,
   BoxValue,
@@ -9,13 +8,9 @@ import {
   TokenAmount,
   Constant,
 } from 'ergo-lib-wasm-nodejs';
-import { AssetMap, BoxesAssets, ExplorerOutputBox } from '../models/Interfaces';
-import ChainsConstants from '../../ChainsConstants';
+import { AssetMap, BoxesAssets } from '../models/Interfaces';
 import Utils from '../../../helpers/Utils';
 import ErgoTransaction from '../models/ErgoTransaction';
-import { loggerFactory } from '../../../log/Logger';
-
-const logger = loggerFactory(import.meta.url);
 
 class ErgoUtils {
   /**
@@ -161,51 +156,6 @@ class ErgoUtils {
     }
 
     return true;
-  };
-
-  /**
-   * return undefined if the box format is like rosen bridge observation else
-   * @param box
-   * @param sourceTokenId
-   */
-  static getRosenData = (box: ExplorerOutputBox, sourceTokenId: string) => {
-    try {
-      const R4 = ErgoUtils.decodeCollColl(
-        box.additionalRegisters['R4'].serializedValue
-      );
-      if (
-        (sourceTokenId === ChainsConstants.ergoNativeAsset ||
-          box.assets.length > 0) &&
-        R4.length >= 5
-      ) {
-        let tokenId, amount;
-        if (sourceTokenId == ChainsConstants.ergoNativeAsset) {
-          amount = box.value.toString();
-          tokenId = ChainsConstants.ergoNativeAsset;
-        } else {
-          amount = box.assets[0].amount.toString();
-          tokenId = box.assets[0].tokenId;
-        }
-        return {
-          toChain: Buffer.from(R4[0]).toString(),
-          toAddress: Buffer.from(R4[1]).toString(),
-          networkFee: Buffer.from(R4[2]).toString(),
-          bridgeFee: Buffer.from(R4[3]).toString(),
-          amount: amount,
-          tokenId: tokenId,
-          blockId: box.blockId,
-          fromAddress: Buffer.from(R4[4]).toString(),
-        };
-      } else {
-        return undefined;
-      }
-    } catch (e) {
-      logger.debug(
-        `An error occurred while extracting RosenData from Explorer box: ${e}`
-      );
-      logger.debug(e.stack);
-      return undefined;
-    }
   };
 
   /**

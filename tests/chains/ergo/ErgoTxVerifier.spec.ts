@@ -7,7 +7,6 @@ import {
 } from './mocked/MockedExplorer';
 import { beforeEach } from 'mocha';
 import TestData from './testUtils/TestData';
-import ErgoUtils from '../../../src/chains/ergo/helpers/ErgoUtils';
 import {
   mockGetEventBox,
   mockGetEventValidCommitments,
@@ -543,13 +542,13 @@ describe('ErgoTxVerifier', () => {
     /**
      * Target: testing verifyEventWithPayment
      * Dependencies:
-     *    ErgoUtils
+     *    ErgoTxVerifier.rosenExtractor
      * Expected Output:
      *    It should NOT verify the event
      */
     it('should return false when the event can not recovered from tx', async () => {
       const mockedEvent: EventTrigger = TestBoxes.mockSmallAmountEventTrigger();
-      sinon.stub(ErgoUtils, 'getRosenData').returns(undefined);
+      sinon.stub(ErgoTxVerifier.rosenExtractor, 'get').returns(undefined);
 
       // run test
       const isValid = await ErgoTxVerifier.verifyEventWithPayment(
@@ -570,7 +569,7 @@ describe('ErgoTxVerifier', () => {
      * Expected Output:
      *    It should NOT verify the event
      */
-    it('should return false when the event can not recovered from tx', async () => {
+    it('should return false when RWT token is not compatible with the event source chain', async () => {
       const mockedEvent: EventTrigger = TestBoxes.mockSmallAmountEventTrigger();
 
       // run test

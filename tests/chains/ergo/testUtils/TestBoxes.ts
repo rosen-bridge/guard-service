@@ -6,8 +6,10 @@ import {
   Box,
   Boxes,
   CoveringErgoBoxes,
+  ExplorerTransaction,
   MempoolTransaction,
   MempoolTransactions,
+  NodeTransaction,
   Register,
 } from '../../../../src/chains/ergo/models/Interfaces';
 import {
@@ -3019,6 +3021,13 @@ class TestBoxes {
       TransactionTypes.reward
     );
   };
+
+  static sampleExplorerTx: ExplorerTransaction = JSON.parse(
+    TestData.sampleExplorerTransaction
+  );
+  static convertedNodeTx: NodeTransaction = JSON.parse(
+    TestData.convertedNodeTransaction
+  );
 }
 
 export default TestBoxes;

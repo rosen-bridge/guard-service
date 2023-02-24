@@ -1,4 +1,9 @@
-import { InputUtxo, Utxo, UtxoBoxesAssets } from './models/Interfaces';
+import {
+  AddressUtxo,
+  InputUtxo,
+  Utxo,
+  UtxoBoxesAssets,
+} from './models/Interfaces';
 import KoiosApi from './network/KoiosApi';
 import CardanoConfigs from './helpers/CardanoConfigs';
 import { BigNum, Transaction } from '@emurgo/cardano-serialization-lib-nodejs';
@@ -63,9 +68,9 @@ class CardanoTrack {
    * @param trackUtxosMap the track map
    */
   static trackUtxoInMap = (
-    utxo: Utxo,
+    utxo: AddressUtxo,
     trackUtxosMap: Map<InputUtxo, Utxo | undefined>
-  ): Utxo => {
+  ): AddressUtxo => {
     let lastUtxo = utxo;
     const trackMapKeys = Array.from(trackUtxosMap.keys());
 
@@ -94,12 +99,12 @@ class CardanoTrack {
    * @return minimum required box to be in the input of the transaction
    */
   static getCoveringUtxo = (
-    lockBoxes: Array<Utxo>,
+    lockBoxes: Array<AddressUtxo>,
     requiredAssets: UtxoBoxesAssets,
     trackUtxosMap: Map<InputUtxo, Utxo | undefined>,
     usedUtxos: InputUtxo[]
-  ): Array<Utxo> => {
-    const result: Array<Utxo> = [];
+  ): Array<AddressUtxo> => {
+    const result: Array<AddressUtxo> = [];
     let coveredLovelace = BigNum.zero();
 
     const requiredADA = requiredAssets.lovelace;
@@ -183,7 +188,7 @@ class CardanoTrack {
    */
   static trackAndFilterLockBoxes = async (
     required: UtxoBoxesAssets
-  ): Promise<Utxo[]> => {
+  ): Promise<AddressUtxo[]> => {
     const trackUtxosMap = new Map<InputUtxo, Utxo | undefined>();
 
     // generate tx queue dictionary

@@ -1,7 +1,7 @@
 import { anything, deepEqual, resetCalls, spy, verify, when } from 'ts-mockito';
 import KoiosApi from '../../../../src/chains/cardano/network/KoiosApi';
 import {
-  AddressInfo,
+  KoiosAddressInfo,
   AddressAssets,
   KoiosTransaction,
   Utxo,
@@ -46,7 +46,7 @@ const mockKoiosGetTxInfo = (txId: string, tx: KoiosTransaction) => {
  */
 const mockKoiosGetAddressInfo = (
   address: string,
-  result: AddressInfo
+  result: KoiosAddressInfo
 ): void => {
   when(mockedKoios.getAddressInfo(address)).thenResolve(result);
 };
