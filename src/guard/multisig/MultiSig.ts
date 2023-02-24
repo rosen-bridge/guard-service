@@ -17,6 +17,7 @@ import Encryption from '../../helpers/Encryption';
 import MultiSigUtils from './MultiSigUtils';
 import { default as Utils } from '../../helpers/Utils';
 import { loggerFactory } from '../../log/Logger';
+import { shuffle } from 'lodash-es';
 
 const logger = loggerFactory(import.meta.url);
 const dialer = await Dialer.getInstance();
@@ -349,14 +350,16 @@ class MultiSigHandler {
           })
           .filter((item) => !!item && item !== myPub);
         // add extra simulated to list of simulated nodes. this is cause of sigma-rust bug
-        const committed = transaction.commitments
-          .map((item, index) => {
-            if (item !== undefined) {
-              return this.peers[index].pub;
-            }
-            return '';
-          })
-          .filter((item) => !!item && item !== myPub);
+        const committed = shuffle(
+          transaction.commitments
+            .map((item, index) => {
+              if (item !== undefined) {
+                return this.peers[index].pub;
+              }
+              return '';
+            })
+            .filter((item) => !!item && item !== myPub)
+        );
         if (committed.length > transaction.requiredSigner - 1) {
           simulated = [
             ...simulated,
