@@ -46,14 +46,6 @@ interface MetaData {
   [key: string]: Record<string, unknown>;
 }
 
-interface RosenData {
-  toChain: string;
-  toAddress: string;
-  bridgeFee: string;
-  networkFee: string;
-  fromAddress: string;
-}
-
 interface KoiosTransaction {
   tx_hash: string;
   block_hash: string;
@@ -87,7 +79,6 @@ export type {
   AddressUtxos,
   KoiosTransaction,
   MetaData,
-  RosenData,
   KoiosAddressInfo,
   AddressUtxo,
   AddressAssets,
