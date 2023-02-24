@@ -602,12 +602,11 @@ class MultiSigHandler {
                 transaction.requiredSigner - 1
               ) {
                 logger.debug(
-                  `Tx [${payload.txId}] has enough commitments. Starting signing...`
+                  `Tx [${payload.txId}] has enough commitments. Signing Delayed for [${Configs.multiSigFirstSignDelay}] seconds...`
                 );
-                await this.generateSign(payload.txId, transaction);
+                this.delayedGenerateSign(payload.txId);
               }
             }
-            this.processResolve(transaction);
           } catch (e) {
             logger.warn(
               `An unknown exception occurred while handling commitment from other peer: ${e}`
@@ -618,6 +617,30 @@ class MultiSigHandler {
         }
       );
     }
+  };
+
+  /**
+   * generateSign calling with specific delay
+   * @param id
+   */
+  delayedGenerateSign = (id: string): void => {
+    setTimeout(async () => {
+      await this.getQueuedTransaction(id).then(
+        async ({ transaction, release }) => {
+          try {
+            logger.debug(`Starting signing Tx [${id}]`);
+            await this.generateSign(id, transaction);
+            this.processResolve(transaction);
+          } catch (e) {
+            logger.warn(
+              `An unknown exception occurred while generating delayed sign for transaction [${id}] with error: ${e}`
+            );
+            logger.warn(e.stack);
+          }
+          release();
+        }
+      );
+    }, Configs.multiSigFirstSignDelay * 1000);
   };
 
   /**
