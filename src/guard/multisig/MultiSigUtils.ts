@@ -111,6 +111,13 @@ class MultiSigUtils {
     return wasm.TransactionHintsBag.from_json(JSON.stringify(resultJson));
   };
 
+  /**
+   * extract commitments for specific guard from transaction hintbag
+   * when some hintbag extracted from json it used to get commitment for one guard
+   * @param extracted: extract hintbag
+   * @param guardPkHex: selected guard pk
+   * @param inputCount: number of inputs
+   */
   static convertHintBagToPublishedCommitmentForGuard = (
     extracted: wasm.TransactionHintsBag,
     guardPkHex: string,
@@ -130,6 +137,12 @@ class MultiSigUtils {
     return res;
   };
 
+  /**
+   * compare two list of published commitment and verify to be equal.
+   * @param item1
+   * @param item2
+   * @param inputLength
+   */
   static comparePublishedCommitmentsToBeEquals = (
     item1: PublishedCommitment,
     item2: PublishedCommitment,
@@ -160,6 +173,11 @@ class MultiSigUtils {
     return true;
   };
 
+  /**
+   * compare two single commitments to be equals
+   * @param item1
+   * @param item2
+   */
   static compareSingleInputCommitmentsAreEquals = (
     item1: Array<SingleCommitment>,
     item2: Array<SingleCommitment>
