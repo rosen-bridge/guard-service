@@ -36,7 +36,6 @@ const apiCallBack: SubscribeChannelWithURL['func'] = (
           {
             code: error.code,
             data: error.response.data,
-            request: error.request,
           }
         );
       } else if (error.request) {
@@ -44,7 +43,6 @@ const apiCallBack: SubscribeChannelWithURL['func'] = (
           `The request was made but no response was received. Make sure TSS is up and accessible.`,
           {
             code: error.code,
-            request: error.request,
           }
         );
       } else {
