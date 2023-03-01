@@ -4,6 +4,8 @@ class ChainsConstants {
 
   static ergoNativeAsset = 'erg';
   static cardanoNativeAsset = 'lovelace';
+
+  static readonly GET_BOX_API_LIMIT = 10;
 }
 
 export default ChainsConstants;

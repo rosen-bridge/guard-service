@@ -234,10 +234,17 @@ class TransactionTypes {
   static coldStorage = 'cold-storage';
 }
 
+enum ConfirmationStatus {
+  ConfirmedEnough,
+  notConfirmedEnough,
+  notFound,
+}
+
 export {
   EventTrigger,
   PaymentTransaction,
   EventStatus,
   TransactionStatus,
   TransactionTypes,
+  ConfirmationStatus,
 };
