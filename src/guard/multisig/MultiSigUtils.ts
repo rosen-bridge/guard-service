@@ -205,9 +205,7 @@ class MultiSigUtils {
     commitmentJson: CommitmentJson
   ): PublishedCommitment => {
     const publicHints = commitmentJson.publicHints;
-    const publishCommitments: {
-      [index: string]: Array<{ a: string; position: string }>;
-    } = {};
+    const publishCommitments: PublishedCommitment = {};
     Object.keys(publicHints).forEach((inputIndex) => {
       const inputHints = publicHints[inputIndex].filter((item) => !item.secret);
       if (inputHints) {

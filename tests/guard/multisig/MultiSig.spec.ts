@@ -329,8 +329,8 @@ describe('MultiSigHandler', () => {
      * Target: test that verifySignedPayload throw error in case of
      * Used commitment differ from my own commitments
      * Dependencies:
-     *  -
-     *  Expected: tests throw error
+     *    -
+     * Expected: tests throw error
      */
     it('Should throw error in case of Used commitment differ from my own commitments', async () => {
       const tx = TestBoxes.mockPartialSignedTransaction();
@@ -376,7 +376,7 @@ describe('MultiSigHandler', () => {
         publicKeys.slice(0, 2),
         '5bc1d17d0612e696a9138ab8e85ca2a02d0171440ec128a9ad557c28bd5ea046'
       );
-
+      expect;
       try {
         await handler.verifySignedPayload(transaction, payload);
         throw Error('verifySignedPayload should throw error');
@@ -390,8 +390,8 @@ describe('MultiSigHandler', () => {
      * Target: test that verifySignedPayload throw error in case of
      * Saved Commitments are not same with transaction Commitments
      * Dependencies:
-     *  -
-     *  Expected: tests throw error
+     *    -
+     * Expected: tests throw error
      */
     it('Should throw error in case of Saved Commitments are not same with transaction Commitments', async () => {
       const tx = TestBoxes.mockPartialSignedTransaction();
@@ -456,8 +456,8 @@ describe('MultiSigHandler', () => {
      * Target: test that verifySignedPayload throw error in case of
      * Signed commitments are differ from passed commitments
      * Dependencies:
-     *  -
-     *  Expected: tests throw error
+     *    -
+     * Expected: tests throw error
      */
     it('Should throw error in case of Signed commitments are differ from passed commitments', async () => {
       const tx = TestBoxes.mockPartialSignedTransaction();
@@ -515,8 +515,8 @@ describe('MultiSigHandler', () => {
     /**
      * Target: test that verifySignedPayload throw no error in case of transaction need sign
      * Dependencies:
-     *  -
-     *  Expected: tests rum with no error
+     *    -
+     * Expected: tests rum with no error
      */
     it('Should not throw in case of transaction need sign', async () => {
       const tx = TestBoxes.mockPartialSignedTransaction();
@@ -575,8 +575,8 @@ describe('MultiSigHandler', () => {
     /**
      * Target: test that verifySignedPayload throw no error in case of transaction do not need sign
      * Dependencies:
-     *  -
-     *  Expected: tests rum with no error
+     *    -
+     * Expected: tests rum with no error
      */
     it('Should not throw in case of transaction do not need sign', async () => {
       const tx = TestBoxes.mockPartialSignedTransaction();
