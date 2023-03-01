@@ -7,11 +7,22 @@ abstract class AbstractUtxoChain extends AbstractChain {
   declare network: AbstractUtxoChainNetwork;
 
   /**
+   * generates mapping from input box id to serialized string of output box (filtered by address, containing the token)
+   * @param address the address
+   * @param tokenId the token id
+   * @returns a Map from input box id to serialized string of output box
+   */
+  abstract getMempoolBoxMapping: (
+    address: string,
+    tokenId: string
+  ) => Promise<Map<string, string>>;
+
+  /**
    * extracts box id and assets of a box
    * @param serializedBox the serialized string of the box
    * @returns an object containing the box id and assets
    */
-  abstract getBoxIdAndAssets: (serializedBox: string) => BoxInfo;
+  abstract getBoxInfo: (serializedBox: string) => BoxInfo;
 
   /**
    * gets useful, allowable and last boxes for an address until required assets are satisfied
@@ -21,13 +32,13 @@ abstract class AbstractUtxoChain extends AbstractChain {
    * @param trackMap the mapping of a box id to it's next box
    * @returns an object containing the selected boxes with a boolean showing if requirements covered or not
    */
-  getCoveringBoxes = (
+  getCoveringBoxes = async (
     // TODO: implement unit tests for this function
     address: string,
     requiredAssets: AssetBalance,
     unallowableBoxIds: string[],
     trackMap: Map<string, string>
-  ): CoveringBoxes => {
+  ): Promise<CoveringBoxes> => {
     let unCoveredNativeToken = requiredAssets.nativeToken;
     const unCoveredTokens = requiredAssets.tokens.filter(
       (info) => info.value > 0n
@@ -42,7 +53,7 @@ abstract class AbstractUtxoChain extends AbstractChain {
 
     // get boxes until requirements are satisfied
     while (remaining()) {
-      const boxes = this.network.getAddressBoxes(
+      const boxes = await this.network.getAddressBoxes(
         address,
         offset,
         ChainsConstants.GET_BOX_API_LIMIT
@@ -52,12 +63,12 @@ abstract class AbstractUtxoChain extends AbstractChain {
       // process received boxes
       for (const box of boxes) {
         let trackedBox = box;
-        let boxInfo = this.getBoxIdAndAssets(box);
+        let boxInfo = this.getBoxInfo(box);
 
         // track boxes
         while (trackMap.has(boxInfo.id)) {
           trackedBox = trackMap.get(boxInfo.id)!;
-          boxInfo = this.getBoxIdAndAssets(trackedBox);
+          boxInfo = this.getBoxInfo(trackedBox);
         }
 
         // exclude unallowable boxes

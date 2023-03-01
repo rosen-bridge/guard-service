@@ -23,7 +23,7 @@ abstract class AbstractChain {
   abstract generatePaymentTransaction: (
     event: EventTrigger,
     feeConfig: Fee
-  ) => PaymentTransaction;
+  ) => Promise<PaymentTransaction>;
 
   /**
    * generates unsigned transaction to transfer assets to cold storage
@@ -32,7 +32,7 @@ abstract class AbstractChain {
    */
   abstract generateColdStorageTransaction: (
     transferringAssets: AssetBalance
-  ) => PaymentTransaction;
+  ) => Promise<PaymentTransaction>;
 
   /**
    * verifies a payment transaction for an event
@@ -45,7 +45,7 @@ abstract class AbstractChain {
     transaction: PaymentTransaction,
     event: EventTrigger,
     feeConfig: Fee
-  ) => boolean;
+  ) => Promise<boolean>;
 
   /**
    * verifies an asset transfer transaction
@@ -54,7 +54,7 @@ abstract class AbstractChain {
    */
   abstract verifyColdStorageTransaction: (
     transaction: PaymentTransaction
-  ) => boolean;
+  ) => Promise<boolean>;
 
   /**
    * verifies an event data with its corresponding lock transaction
@@ -62,20 +62,23 @@ abstract class AbstractChain {
    * @param RwtId the RWT token id in the event trigger box
    * @returns true if the event verified
    */
-  abstract verifyEvent: (event: EventTrigger, RwtId: string) => boolean;
+  abstract verifyEvent: (
+    event: EventTrigger,
+    RwtId: string
+  ) => Promise<boolean>;
 
   /**
    * checks if a transaction is still valid and can be sent to the network
    * @param transaction the transaction
    * @returns true if the transaction is still valid
    */
-  abstract isTxValid: (transaction: PaymentTransaction) => boolean;
+  abstract isTxValid: (transaction: PaymentTransaction) => Promise<boolean>;
 
   /**
    * requests the corresponding signer service to sign the transaction
    * @param transaction the transaction
    */
-  abstract requestToSign: (transaction: PaymentTransaction) => void;
+  abstract requestToSign: (transaction: PaymentTransaction) => Promise<void>;
 
   /**
    * extracts confirmation status for a payment transaction
@@ -84,7 +87,7 @@ abstract class AbstractChain {
    */
   abstract getPaymentTxConfirmationStatus: (
     transactionId: string
-  ) => ConfirmationStatus;
+  ) => Promise<ConfirmationStatus>;
 
   /**
    * extracts confirmation status for an asset transfer transaction
@@ -93,41 +96,34 @@ abstract class AbstractChain {
    */
   abstract getColdStorageTxConfirmationStatus: (
     transactionId: string
-  ) => ConfirmationStatus;
-
-  /**
-   * checks if the lock address has enough assets to transfer required amount
-   * @param requiredAssets an object containing the required amount of each asset to transfer
-   * @returns true if the lock address has enough assets
-   */
-  abstract hasLockAddressEnoughAssets: (
-    requiredAssets: AssetBalance
-  ) => boolean;
+  ) => Promise<ConfirmationStatus>;
 
   /**
    * gets the amount of each asset in the lock address
    * @returns an object containing the amount of each asset
    */
-  abstract getLockAddressAssets: () => AssetBalance;
+  abstract getLockAddressAssets: () => Promise<AssetBalance>;
 
   /**
    * gets the blockchain height
    * @returns the blockchain height
    */
-  abstract getHeight: () => number;
+  abstract getHeight: () => Promise<number>;
 
   /**
    * submits a transaction to the blockchain
    * @param transaction the transaction
    */
-  abstract submitTransaction: (transaction: PaymentTransaction) => void;
+  abstract submitTransaction: (
+    transaction: PaymentTransaction
+  ) => Promise<void>;
 
   /**
    * checks if a transaction is in mempool (returns false if the chain has no mempool)
    * @param transactionId the transaction id
    * @returns true if the transaction is in mempool
    */
-  abstract isTxInMempool: (transactionId: string) => boolean;
+  abstract isTxInMempool: (transactionId: string) => Promise<boolean>;
 }
 
 export default AbstractChain;
