@@ -143,7 +143,7 @@ class MultiSigUtils {
    * @param item2
    * @param inputLength
    */
-  static comparePublishedCommitmentsToBeEquals = (
+  static comparePublishedCommitmentsToBeDiffer = (
     item1: PublishedCommitment,
     item2: PublishedCommitment,
     inputLength: number
@@ -161,7 +161,7 @@ class MultiSigUtils {
           return false;
         }
         if (
-          !MultiSigUtils.compareSingleInputCommitmentsAreEquals(
+          MultiSigUtils.compareSingleInputCommitmentsAreEquals(
             item1InputCommitments,
             item2InputCommitments
           )

@@ -63,9 +63,9 @@ describe('MultiSigUtils', () => {
     });
   });
 
-  describe('comparePublishedCommitmentsToBeEquals', () => {
+  describe('comparePublishedCommitmentsToBeDiffer', () => {
     /**
-     * Target: Test that comparePublishedCommitmentsToBeEquals return true in case of two published commitment are the same
+     * Target: Test that comparePublishedCommitmentsToBeDiffer return true in case of two published commitment are the same
      * Dependencies:
      *    -
      * Expected: test should return true
@@ -105,7 +105,7 @@ describe('MultiSigUtils', () => {
           { a: '30', position: '0-11' },
         ],
       };
-      const res = MultiSigUtils.comparePublishedCommitmentsToBeEquals(
+      const res = MultiSigUtils.comparePublishedCommitmentsToBeDiffer(
         firstPublishedCommitment,
         secondPublishedCommitment,
         3
@@ -114,7 +114,7 @@ describe('MultiSigUtils', () => {
     });
 
     /**
-     * Target: Test that comparePublishedCommitmentsToBeEquals return false in case of two published commitment are not
+     * Target: Test that comparePublishedCommitmentsToBeDiffer return false in case of two published commitment are not
      *  the same length
      * Dependencies:
      *    -
@@ -154,7 +154,7 @@ describe('MultiSigUtils', () => {
           { a: '30', position: '0-11' },
         ],
       };
-      const res = MultiSigUtils.comparePublishedCommitmentsToBeEquals(
+      const res = MultiSigUtils.comparePublishedCommitmentsToBeDiffer(
         firstPublishedCommitment,
         secondPublishedCommitment,
         3
@@ -163,7 +163,7 @@ describe('MultiSigUtils', () => {
     });
 
     /**
-     * Target: Test that comparePublishedCommitmentsToBeEquals return false in case of two published commitment are have
+     * Target: Test that comparePublishedCommitmentsToBeDiffer return false in case of two published commitment are have
      *  different commitment value
      * Dependencies:
      *    -
@@ -204,7 +204,7 @@ describe('MultiSigUtils', () => {
           { a: '30', position: '0-11' },
         ],
       };
-      const res = MultiSigUtils.comparePublishedCommitmentsToBeEquals(
+      const res = MultiSigUtils.comparePublishedCommitmentsToBeDiffer(
         firstPublishedCommitment,
         secondPublishedCommitment,
         3
