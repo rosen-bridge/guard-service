@@ -157,11 +157,11 @@ class MultiSigUtils {
         item1InputCommitments.length > 0 &&
         item2InputCommitments.length > 0
       ) {
-        if (item2InputCommitments.length !== item2InputCommitments.length) {
+        if (item2InputCommitments.length !== item1InputCommitments.length) {
           return false;
         }
         if (
-          MultiSigUtils.compareSingleInputCommitmentsAreEquals(
+          !MultiSigUtils.compareSingleInputCommitmentsAreEquals(
             item1InputCommitments,
             item2InputCommitments
           )

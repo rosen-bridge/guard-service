@@ -641,7 +641,7 @@ class MultiSigHandler {
             transaction.secret.to_json()
           );
         if (
-          MultiSigUtils.comparePublishedCommitmentsToBeEquals(
+          !MultiSigUtils.comparePublishedCommitmentsToBeEquals(
             payloadCommitment.commitment,
             myCommitments,
             inputBoxLength
@@ -654,7 +654,7 @@ class MultiSigHandler {
       }
       if (ownedCommitment) {
         if (
-          MultiSigUtils.comparePublishedCommitmentsToBeEquals(
+          !MultiSigUtils.comparePublishedCommitmentsToBeEquals(
             payloadCommitment.commitment,
             ownedCommitment,
             inputBoxLength
@@ -674,7 +674,7 @@ class MultiSigHandler {
             inputBoxLength
           );
         if (
-          MultiSigUtils.comparePublishedCommitmentsToBeEquals(
+          !MultiSigUtils.comparePublishedCommitmentsToBeEquals(
             payloadCommitment.commitment,
             extractedCommitments,
             inputBoxLength
