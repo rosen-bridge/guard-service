@@ -65,12 +65,12 @@ describe('MultiSigUtils', () => {
 
   describe('comparePublishedCommitmentsToBeDiffer', () => {
     /**
-     * Target: Test that comparePublishedCommitmentsToBeDiffer return true in case of two published commitment are the same
+     * Target: Test that comparePublishedCommitmentsToBeDiffer return false in case of two published commitment are the same
      * Dependencies:
      *    -
      * Expected: test should return true
      */
-    it('Should return ture in case of two published commitment are the same', () => {
+    it('Should return false in case of two published commitment are the same', () => {
       const firstPublishedCommitment = {
         '0': [
           { a: '20', position: '0-0' },
@@ -91,55 +91,6 @@ describe('MultiSigUtils', () => {
       const secondPublishedCommitment = {
         '1': [
           { a: '21', position: '0-4' },
-          { a: '11', position: '0-12' },
-          { a: '31', position: '0-1' },
-        ],
-        '2': [
-          { a: '51', position: '0-9' },
-          { a: '55', position: '0-13' },
-          { a: '52', position: '0-5' },
-        ],
-        '0': [
-          { a: '10', position: '0-3' },
-          { a: '20', position: '0-0' },
-          { a: '30', position: '0-11' },
-        ],
-      };
-      const res = MultiSigUtils.comparePublishedCommitmentsToBeDiffer(
-        firstPublishedCommitment,
-        secondPublishedCommitment,
-        3
-      );
-      expect(res).to.be.true;
-    });
-
-    /**
-     * Target: Test that comparePublishedCommitmentsToBeDiffer return false in case of two published commitment are not
-     *  the same length
-     * Dependencies:
-     *    -
-     * Expected: test should return false
-     */
-    it('Should return false with different commitment length', () => {
-      const firstPublishedCommitment = {
-        '0': [
-          { a: '20', position: '0-0' },
-          { a: '10', position: '0-3' },
-          { a: '30', position: '0-11' },
-        ],
-        '1': [
-          { a: '31', position: '0-1' },
-          { a: '21', position: '0-4' },
-          { a: '11', position: '0-12' },
-        ],
-        '2': [
-          { a: '52', position: '0-5' },
-          { a: '51', position: '0-9' },
-          { a: '55', position: '0-13' },
-        ],
-      };
-      const secondPublishedCommitment = {
-        '1': [
           { a: '11', position: '0-12' },
           { a: '31', position: '0-1' },
         ],
@@ -163,13 +114,62 @@ describe('MultiSigUtils', () => {
     });
 
     /**
-     * Target: Test that comparePublishedCommitmentsToBeDiffer return false in case of two published commitment are have
+     * Target: Test that comparePublishedCommitmentsToBeDiffer return true in case of two published commitment are not
+     *  the same length
+     * Dependencies:
+     *    -
+     * Expected: test should return false
+     */
+    it('Should return true with different commitment length', () => {
+      const firstPublishedCommitment = {
+        '0': [
+          { a: '20', position: '0-0' },
+          { a: '10', position: '0-3' },
+          { a: '30', position: '0-11' },
+        ],
+        '1': [
+          { a: '31', position: '0-1' },
+          { a: '21', position: '0-4' },
+          { a: '11', position: '0-12' },
+        ],
+        '2': [
+          { a: '52', position: '0-5' },
+          { a: '51', position: '0-9' },
+          { a: '55', position: '0-13' },
+        ],
+      };
+      const secondPublishedCommitment = {
+        '1': [
+          { a: '11', position: '0-12' },
+          { a: '31', position: '0-1' },
+        ],
+        '2': [
+          { a: '51', position: '0-9' },
+          { a: '55', position: '0-13' },
+          { a: '52', position: '0-5' },
+        ],
+        '0': [
+          { a: '10', position: '0-3' },
+          { a: '20', position: '0-0' },
+          { a: '30', position: '0-11' },
+        ],
+      };
+      const res = MultiSigUtils.comparePublishedCommitmentsToBeDiffer(
+        firstPublishedCommitment,
+        secondPublishedCommitment,
+        3
+      );
+      expect(res).to.be.true;
+    });
+
+    /**
+     * Target: Test that comparePublishedCommitmentsToBeDiffer return true in case of two published commitment are have
      *  different commitment value
      * Dependencies:
      *    -
      * Expected: test should return false
      */
-    it('Should return false with different commitment value', () => {
+    it('Should return true with different commitment value', () => {
       const firstPublishedCommitment = {
         '0': [
           { a: '20', position: '0-0' },
@@ -209,7 +209,7 @@ describe('MultiSigUtils', () => {
         secondPublishedCommitment,
         3
       );
-      expect(res).to.be.false;
+      expect(res).to.be.true;
     });
   });
 

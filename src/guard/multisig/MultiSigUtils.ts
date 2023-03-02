@@ -158,19 +158,19 @@ class MultiSigUtils {
         item2InputCommitments.length > 0
       ) {
         if (item2InputCommitments.length !== item1InputCommitments.length) {
-          return false;
+          return true;
         }
         if (
-          MultiSigUtils.compareSingleInputCommitmentsAreEquals(
+          !MultiSigUtils.compareSingleInputCommitmentsAreEquals(
             item1InputCommitments,
             item2InputCommitments
           )
         ) {
-          return false;
+          return true;
         }
       }
     }
-    return true;
+    return false;
   };
 
   /**
