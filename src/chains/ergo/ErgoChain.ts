@@ -41,8 +41,6 @@ import {
   NotEnoughValidBoxesError,
 } from '../../helpers/errors';
 import ErgoTrack from './ErgoTrack';
-import { TypeORMError } from 'typeorm';
-import axios from 'axios';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -376,9 +374,11 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
           ergoTx.dataInputs,
           ergoTx.txType
         );
+        const currentHeight = await NodeApi.getHeight();
         await dbAction.updateWithSignedTx(
           ergoTx.txId,
-          signedPaymentTx.toJson()
+          signedPaymentTx.toJson(),
+          currentHeight
         );
         logger.info(`Ergo transaction [${ergoTx.txId}] signed successfully`);
       })

@@ -91,9 +91,9 @@ when(
 when(mockedScannerAction.getTxById(anything())).thenCall(
   testScannerDataBase.getTxById
 );
-when(mockedScannerAction.updateWithSignedTx(anything(), anything())).thenCall(
-  testScannerDataBase.updateWithSignedTx
-);
+when(
+  mockedScannerAction.updateWithSignedTx(anything(), anything(), anything())
+).thenCall(testScannerDataBase.updateWithSignedTx);
 when(mockedScannerAction.insertTx(anything())).thenCall(
   testScannerDataBase.insertTx
 );
