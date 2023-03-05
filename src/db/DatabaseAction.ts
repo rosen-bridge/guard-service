@@ -191,14 +191,20 @@ class DatabaseAction {
    * updates the tx and set status as signed
    * @param txId the transaction id
    * @param txJson tx json
+   * @param currentHeight current height of the blockchain
    */
-  updateWithSignedTx = async (txId: string, txJson: string): Promise<void> => {
+  updateWithSignedTx = async (
+    txId: string,
+    txJson: string,
+    currentHeight: number
+  ): Promise<void> => {
     await this.TransactionRepository.createQueryBuilder()
       .update()
       .set({
         txJson: txJson,
         status: TransactionStatus.signed,
         lastStatusUpdate: String(Math.round(Date.now() / 1000)),
+        lastCheck: currentHeight,
       })
       .where('txId = :id', { id: txId })
       .execute();

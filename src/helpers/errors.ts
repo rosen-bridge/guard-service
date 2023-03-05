@@ -60,6 +60,12 @@ class NotStartedDialerNodeError extends Error {
   }
 }
 
+class CommitmentMisMatch extends Error {
+  constructor(msg: string) {
+    super('CommitmentMismatch: ' + msg);
+  }
+}
+
 export {
   ChainNotImplemented,
   ConfigError,
@@ -71,4 +77,5 @@ export {
   NotFoundError,
   NotStartedDialerNodeError,
   UnexpectedApiError,
+  CommitmentMisMatch,
 };

@@ -32,6 +32,7 @@ import {
   mockTrackAndFilterLockBoxes,
 } from '../mocked/MockedCardanoTrack';
 import { NotEnoughAssetsError } from '../../../src/helpers/errors';
+import TestConfigs from '../../testUtils/TestConfigs';
 
 describe('CardanoChain', () => {
   const testBankAddress = TestBoxes.testBankAddress;
@@ -220,9 +221,12 @@ describe('CardanoChain', () => {
 
       // verify db changes
       const dbTxs = await allTxRecords();
-      expect(dbTxs.map((tx) => [tx.txId, tx.status])[0]).to.deep.equal([
+      expect(
+        dbTxs.map((tx) => [tx.txId, tx.status, tx.lastCheck])[0]
+      ).to.deep.equal([
         cardanoTx.txId,
         TransactionStatus.signed,
+        TestConfigs.cardano.blockchainHeight,
       ]);
       const newCardanoTx = CardanoTransaction.fromJson(dbTxs[0].txJson);
 

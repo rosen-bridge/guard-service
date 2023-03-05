@@ -369,7 +369,12 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
       this.serialize(signedTx),
       paymentTx.txType
     );
-    await dbAction.updateWithSignedTx(txId, signedPaymentTx.toJson());
+    const currentHeight = await BlockFrostApi.currentHeight();
+    await dbAction.updateWithSignedTx(
+      txId,
+      signedPaymentTx.toJson(),
+      currentHeight
+    );
     logger.info(`Cardano tx [${txId}] signed successfully`);
 
     return signedPaymentTx;

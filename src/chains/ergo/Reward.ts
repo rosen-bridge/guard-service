@@ -25,7 +25,11 @@ import { JsonBI } from '../../network/NetworkModels';
 import { loggerFactory } from '../../log/Logger';
 import { Fee } from '@rosen-bridge/minimum-fee';
 import MinimumFee from '../../guard/MinimumFee';
-import { NotEnoughAssetsError, NotFoundError } from '../../helpers/errors';
+import {
+  NotEnoughAssetsError,
+  NotEnoughValidBoxesError,
+  NotFoundError,
+} from '../../helpers/errors';
 import ErgoTrack from './ErgoTrack';
 
 const logger = loggerFactory(import.meta.url);
@@ -118,7 +122,7 @@ class Reward {
     if (!coveringBoxes.covered) {
       const neededErgs = requiredAssets.ergs.toString();
       const neededTokens = JsonBI.stringify(requiredAssets.tokens);
-      throw new NotEnoughAssetsError(
+      throw new NotEnoughValidBoxesError(
         `Bank boxes didn't cover required assets. Erg: ${neededErgs}, Tokens: ${neededTokens}`
       );
     }

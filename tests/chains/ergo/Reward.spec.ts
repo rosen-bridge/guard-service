@@ -579,5 +579,31 @@ describe('Reward', () => {
       );
       expect(isValid).to.be.false;
     });
+
+    /**
+     * Target: testing verifyTransactionWithEvent
+     * Dependencies:
+     *    RewardBoxes
+     * Expected Output:
+     *    It should NOT verify the transaction
+     */
+    it('should reject a token reward distribution tx with wrong R4 in bridgeFee box', async () => {
+      // mock erg payment event
+      const mockedEvent: EventTrigger = TestBoxes.mockTokenRewardEventTrigger();
+      const wrongPaymentTxId = TestUtils.generateRandomId();
+      mockGetEventPaymentTransactionId(mockedEvent.getId(), wrongPaymentTxId);
+      const tx = TestBoxes.mockFineTokenDistributionTransaction(
+        mockedEvent,
+        eventBoxAndCommitments
+      );
+
+      // run test
+      const isValid = await Reward.verifyTransactionWithEvent(
+        tx,
+        mockedEvent,
+        mockedFeeConfig
+      );
+      expect(isValid).to.be.false;
+    });
   });
 });
