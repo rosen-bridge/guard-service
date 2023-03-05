@@ -338,9 +338,8 @@ class Reward {
 
     // verify tx fee
     if (
-      ErgoUtils.bigintFromBoxValue(
-        outputBoxes.get(outputLength - 1).value()
-      ) !== ErgoConfigs.txFee
+      ErgoUtils.bigintFromBoxValue(outputBoxes.get(outputLength - 1).value()) >
+      ErgoConfigs.txFee
     ) {
       logger.debug(
         `Tx [${paymentTx.txId}] invalid: Transaction fee [${outputBoxes

@@ -8,7 +8,6 @@ import {
 import KoiosApi from './network/KoiosApi';
 import { EventTrigger } from '../../models/Models';
 import CardanoConfigs from './helpers/CardanoConfigs';
-import { Utxo } from './models/Interfaces';
 import CardanoUtils from './helpers/CardanoUtils';
 import CardanoTransaction from './models/CardanoTransaction';
 import ChainsConstants from '../ChainsConstants';
@@ -23,12 +22,18 @@ import {
   NotFoundError,
   UnexpectedApiError,
 } from '../../helpers/errors';
+import { CardanoKoiosRosenExtractor } from '@rosen-bridge/rosen-extractor';
 
 const logger = loggerFactory(import.meta.url);
 
 // TODO: include this class in refactor (#109)
 class CardanoTxVerifier {
-  static bankAddress = Address.from_bech32(CardanoConfigs.bankAddress);
+  static lockAddress = Address.from_bech32(CardanoConfigs.lockAddress);
+  static rosenExtractor = new CardanoKoiosRosenExtractor(
+    CardanoConfigs.lockAddress,
+    Configs.tokens(),
+    logger
+  );
 
   /**
    * verifies the payment transaction data with the event
@@ -39,6 +44,7 @@ class CardanoTxVerifier {
    *  5. checks number of assets in payment box paymentMultiAsset (asset payment)
    *  6. checks amount for paymentAsset in payment box (asset payment)
    *  7. checks address of payment box
+   *  8. checks transaction fee
    * @param paymentTx the payment transaction
    * @param event the event trigger model
    * @param feeConfig minimum fee and rsn ratio config for the event
@@ -56,18 +62,18 @@ class CardanoTxVerifier {
     for (let i = 1; i < outputBoxes.len(); i++)
       if (
         outputBoxes.get(i).address().to_bech32() !==
-        this.bankAddress.to_bech32()
+        this.lockAddress.to_bech32()
       ) {
         logger.debug(
           `Tx [${paymentTx.txId}] invalid: Outbox address [${outputBoxes
             .get(i)
             .address()
-            .to_bech32()}] is not equal to lockAddress [${this.bankAddress.to_bech32()}]`
+            .to_bech32()}] is not equal to lockAddress [${this.lockAddress.to_bech32()}]`
         );
         return false;
       }
 
-    // verify all bank boxes have no metadata
+    // verify tx has no metadata
     if (tx.auxiliary_data()) {
       logger.debug(`Tx [${paymentTx.txId}] invalid: Contains metadata`);
       return false;
@@ -136,19 +142,30 @@ class CardanoTxVerifier {
         ?.get_asset(paymentAssetPolicyId, paymentAssetAssetName);
 
       if (
-        paymentBox.amount().coin().compare(lovelacePaymentAmount) === 0 &&
-        paymentAssetAmount !== undefined &&
-        paymentAssetAmount.compare(assetPaymentAmount) === 0 &&
-        paymentBox.address().to_bech32() === event.toAddress
-      )
-        return true;
-      else {
+        paymentBox.amount().coin().compare(lovelacePaymentAmount) !== 0 ||
+        paymentAssetAmount === undefined ||
+        paymentAssetAmount.compare(assetPaymentAmount) !== 0 ||
+        paymentBox.address().to_bech32() !== event.toAddress
+      ) {
         logger.debug(
           `Tx [${paymentTx.txId}] invalid: PaymentBox conditions are not met`
         );
         return false;
       }
     }
+
+    // verify tx fee
+    if (tx.body().fee().compare(CardanoConfigs.txFee) > 0) {
+      logger.debug(
+        `Tx [${paymentTx.txId}] invalid: Transaction fee [${tx
+          .body()
+          .fee()
+          .to_str()}] is more than maximum allowed fee [${CardanoConfigs.txFee.to_str()}]`
+      );
+      return false;
+    }
+
+    return true;
   };
 
   /**
@@ -191,117 +208,56 @@ class CardanoTxVerifier {
       return false;
     }
     try {
-      const txInfo = (await KoiosApi.getTxInformation([event.sourceTxId]))[0];
-      const payment = txInfo.outputs.filter((utxo: Utxo) => {
-        return (
-          CardanoConfigs.lockAddresses.find(
-            (address) => address === utxo.payment_addr.bech32
-          ) !== undefined
+      const paymentTx = (
+        await KoiosApi.getTxInformation([event.sourceTxId])
+      )[0];
+      const data = this.rosenExtractor.get(paymentTx);
+      if (!data) {
+        logger.info(
+          `Event [${eventId}] is not valid, failed to extract rosen data from lock transaction`
         );
-      })[0];
-      if (payment) {
-        if (!txInfo.metadata) {
-          logger.info(
-            `The event [${eventId}] is not valid, tx [${event.sourceTxId}] has no transaction metadata`
+        return false;
+      }
+      if (
+        event.fromChain == ChainsConstants.cardano &&
+        event.toChain == data.toChain &&
+        event.networkFee == data.networkFee &&
+        event.bridgeFee == data.bridgeFee &&
+        event.amount == data.amount &&
+        event.sourceChainTokenId == data.sourceChainTokenId &&
+        event.targetChainTokenId == data.targetChainTokenId &&
+        event.sourceBlockId == paymentTx.block_hash &&
+        event.toAddress == data.toAddress &&
+        event.fromAddress == data.fromAddress
+      ) {
+        try {
+          // check if amount is more than fees
+          const feeConfig = await MinimumFee.getEventFeeConfig(event);
+          const eventAmount = BigInt(event.amount);
+          const usedBridgeFee = Utils.maxBigint(
+            BigInt(event.bridgeFee),
+            feeConfig.bridgeFee
           );
-          return false;
-        }
-        const data = CardanoUtils.getRosenData(txInfo.metadata);
-        if (data) {
-          let tokenCheck = false,
-            eventToken,
-            targetTokenId,
-            amount;
-          try {
-            eventToken = Configs.tokenMap.search(ChainsConstants.cardano, {
-              [Configs.tokenMap.getIdKey(ChainsConstants.cardano)]:
-                event.sourceChainTokenId,
-            });
-            targetTokenId = Configs.tokenMap.getID(
-              eventToken[0],
-              event.toChain
-            );
-          } catch (e) {
+          const usedNetworkFee = Utils.maxBigint(
+            BigInt(event.networkFee),
+            feeConfig.networkFee
+          );
+          if (eventAmount < usedBridgeFee + usedNetworkFee) {
             logger.info(
-              `Event [${eventId}] is not valid, tx [${event.sourceTxId}] token or chainId is invalid`
+              `Event [${eventId}] is not valid, event amount [${eventAmount}] is less than sum of bridgeFee [${usedBridgeFee}] and networkFee [${usedNetworkFee}]`
             );
             return false;
           }
-          if (event.sourceChainTokenId == ChainsConstants.cardanoNativeAsset) {
-            amount = payment.value;
-            tokenCheck = true;
-          } else if (payment.asset_list.length !== 0) {
-            const asset = payment.asset_list[0];
-            const eventAssetPolicyId =
-              eventToken[0][ChainsConstants.cardano]['policyId'];
-            const eventAssetId =
-              eventToken[0][ChainsConstants.cardano]['assetName'];
-            amount = asset.quantity;
-            if (
-              !(
-                eventAssetPolicyId == asset.policy_id &&
-                eventAssetId == asset.asset_name
-              )
-            ) {
-              logger.info(
-                `Event [${eventId}] is not valid, tx [${event.sourceTxId}] asset credential is incorrect`
-              );
-              return false;
-            }
-            tokenCheck = true;
-          }
-          if (
-            tokenCheck &&
-            event.fromChain == ChainsConstants.cardano &&
-            event.toChain == data.toChain &&
-            event.networkFee == data.networkFee &&
-            event.bridgeFee == data.bridgeFee &&
-            event.targetChainTokenId == targetTokenId &&
-            event.amount == amount &&
-            event.toAddress == data.toAddress &&
-            event.fromAddress == data.fromAddress &&
-            event.sourceBlockId == txInfo.block_hash
-          ) {
-            try {
-              // check if amount is more than fees
-              const feeConfig = await MinimumFee.getEventFeeConfig(event);
-              const eventAmount = BigInt(event.amount);
-              const usedBridgeFee = Utils.maxBigint(
-                BigInt(event.bridgeFee),
-                feeConfig.bridgeFee
-              );
-              const usedNetworkFee = Utils.maxBigint(
-                BigInt(event.networkFee),
-                feeConfig.networkFee
-              );
-              if (eventAmount < usedBridgeFee + usedNetworkFee) {
-                logger.info(
-                  `Event [${eventId}] is not valid, event amount [${eventAmount}] is less than sum of bridgeFee [${usedBridgeFee}] and networkFee [${usedNetworkFee}]`
-                );
-                return false;
-              }
-            } catch (e) {
-              throw new UnexpectedApiError(
-                `Failed in comparing event amount to fees: ${e}`
-              );
-            }
-            logger.info(`Event [${eventId}] has been successfully validated`);
-            return true;
-          } else {
-            logger.info(
-              `Event [${eventId}] is not valid, event data does not match with lock tx [${event.sourceTxId}]`
-            );
-            return false;
-          }
-        } else {
-          logger.info(
-            `Event [${eventId}] is not valid, failed to get rosen data from lock tx [${event.sourceTxId}]`
+        } catch (e) {
+          throw new UnexpectedApiError(
+            `Failed in comparing event amount to fees: ${e}`
           );
-          return false;
         }
+        logger.info(`Event [${eventId}] has been successfully validated`);
+        return true;
       } else {
         logger.info(
-          `Event [${eventId}] is not valid, no lock box found in tx [${event.sourceTxId}]`
+          `Event [${eventId}] is not valid, event data does not match with lock tx [${event.sourceTxId}]`
         );
         return false;
       }

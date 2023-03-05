@@ -7,13 +7,12 @@ import {
 } from './mocked/MockedExplorer';
 import { beforeEach } from 'mocha';
 import TestData from './testUtils/TestData';
-import ErgoUtils from '../../../src/chains/ergo/helpers/ErgoUtils';
 import {
   mockGetEventBox,
   mockGetEventValidCommitments,
   resetMockedInputBoxes,
 } from './mocked/MockedInputBoxes';
-import { anything, spy, when } from 'ts-mockito';
+import { anything } from 'ts-mockito';
 import ErgoConfigs from '../../../src/chains/ergo/helpers/ErgoConfigs';
 import sinon from 'sinon';
 import { Fee } from '@rosen-bridge/minimum-fee';
@@ -144,7 +143,8 @@ describe('ErgoTxVerifier', () => {
      */
     it('should reject a token payment tx that distributing reward to wrong WID', async () => {
       // mock erg payment event
-      const mockedEvent: EventTrigger = TestBoxes.mockTokenRewardEventTrigger();
+      const mockedEvent: EventTrigger =
+        TestBoxes.mockTokenPaymentEventTrigger();
       const tx = TestBoxes.mockTransferToIllegalWIDTokenPaymentTransaction(
         mockedEvent,
         eventBoxAndCommitments
@@ -246,14 +246,13 @@ describe('ErgoTxVerifier', () => {
         mockedEvent,
         eventBoxAndCommitments
       );
-      const spiedErgoConfig = spy(ErgoConfigs);
       const feeConfig = {
         bridgeFee: 0n,
         networkFee: 0n,
         rsnRatio: 47n,
       };
-      when(spiedErgoConfig.watchersRSNSharePercent).thenReturn(40n);
-      when(spiedErgoConfig.watchersSharePercent).thenReturn(0n);
+      sinon.stub(ErgoConfigs, 'watchersRSNSharePercent').value(40n);
+      sinon.stub(ErgoConfigs, 'watchersSharePercent').value(0n);
 
       // run test
       const isValid = await ErgoTxVerifier.verifyTransactionWithEvent(
@@ -262,6 +261,57 @@ describe('ErgoTxVerifier', () => {
         feeConfig
       );
       expect(isValid).to.be.false;
+      sinon.restore();
+    });
+
+    /**
+     * Target: testing verifyTransactionWithEvent
+     * Dependencies:
+     *    RewardBoxes
+     * Expected Output:
+     *    It should NOT verify the transaction
+     */
+    it('should reject a payment tx with wrong R4 in bridgeFee box', async () => {
+      // mock erg payment event
+      const mockedEvent: EventTrigger =
+        TestBoxes.mockTokenPaymentEventTrigger();
+      const tx = TestBoxes.mockWrongR4PaymentTransaction(
+        mockedEvent,
+        eventBoxAndCommitments
+      );
+
+      // run test
+      const isValid = await ErgoTxVerifier.verifyTransactionWithEvent(
+        tx,
+        mockedEvent,
+        mockedFeeConfig
+      );
+      expect(isValid).to.be.false;
+    });
+
+    /**
+     * Target: testing verifyTransactionWithEvent
+     * Dependencies:
+     *    RewardBoxes
+     * Expected Output:
+     *    It should verify the transaction
+     */
+    it('should accept a valid payment tx', async () => {
+      // mock erg payment event
+      const mockedEvent: EventTrigger =
+        TestBoxes.mockTokenPaymentEventTrigger();
+      const tx = TestBoxes.mockFineTokenPaymentTransaction(
+        mockedEvent,
+        eventBoxAndCommitments
+      );
+
+      // run test
+      const isValid = await ErgoTxVerifier.verifyTransactionWithEvent(
+        tx,
+        mockedEvent,
+        mockedFeeConfig
+      );
+      expect(isValid).to.be.true;
     });
 
     /**
@@ -541,13 +591,13 @@ describe('ErgoTxVerifier', () => {
     /**
      * Target: testing verifyEventWithPayment
      * Dependencies:
-     *    ErgoUtils
+     *    ErgoTxVerifier.rosenExtractor
      * Expected Output:
      *    It should NOT verify the event
      */
     it('should return false when the event can not recovered from tx', async () => {
       const mockedEvent: EventTrigger = TestBoxes.mockSmallAmountEventTrigger();
-      sinon.stub(ErgoUtils, 'getRosenData').returns(undefined);
+      sinon.stub(ErgoTxVerifier.rosenExtractor, 'get').returns(undefined);
 
       // run test
       const isValid = await ErgoTxVerifier.verifyEventWithPayment(
@@ -568,7 +618,7 @@ describe('ErgoTxVerifier', () => {
      * Expected Output:
      *    It should NOT verify the event
      */
-    it('should return false when the event can not recovered from tx', async () => {
+    it('should return false when RWT token is not compatible with the event source chain', async () => {
       const mockedEvent: EventTrigger = TestBoxes.mockSmallAmountEventTrigger();
 
       // run test

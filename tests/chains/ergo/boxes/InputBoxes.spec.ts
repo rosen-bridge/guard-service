@@ -328,4 +328,29 @@ describe('InputBoxes', () => {
       );
     });
   });
+
+  describe('explorerTxToNodeTx', () => {
+    /**
+     * Target: testing explorerTxToNodeTx
+     * Dependencies:
+     *    -
+     * Scenario:
+     *    Mock a transaction in both Explorer and Node format
+     *    Run test
+     *    Check result
+     * Expected Output:
+     *    The function should convert successfully
+     */
+    it('should converts Explorer transaction to Node transaction successfully', async () => {
+      // mock a transaction in both Explorer and Node format
+      const explorerTx = TestBoxes.sampleExplorerTx;
+      const nodeTx = TestBoxes.convertedNodeTx;
+
+      // run test
+      const result = InputBoxes.explorerTxToNodeTx(explorerTx);
+
+      // check result
+      expect(result).to.deep.equal(nodeTx);
+    });
+  });
 });

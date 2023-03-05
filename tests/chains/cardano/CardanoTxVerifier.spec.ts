@@ -5,7 +5,6 @@ import TestData from './testUtils/TestData';
 import { expect } from 'chai';
 import { beforeEach } from 'mocha';
 import sinon from 'sinon';
-import CardanoUtils from '../../../src/chains/cardano/helpers/CardanoUtils';
 import CardanoConfigs from '../../../src/chains/cardano/helpers/CardanoConfigs';
 import { Fee } from '@rosen-bridge/minimum-fee';
 import { mockGetFee } from '../../guard/mocked/MockedMinimumFee';
@@ -165,6 +164,35 @@ describe('CardanoTxVerifier', () => {
       const mockedEvent: EventTrigger =
         TestBoxes.mockAssetPaymentEventTrigger();
       const tx = TestBoxes.mockPaymentTransactionWithMetadata(
+        mockedEvent,
+        testBankAddress
+      );
+
+      // run test
+      const isValid = await CardanoTxVerifier.verifyTransactionWithEvent(
+        tx,
+        mockedEvent,
+        mockedFeeConfig
+      );
+      expect(isValid).to.be.false;
+    });
+
+    /**
+     * Target: testing verifyTransactionWithEvent
+     * Dependencies:
+     *    -
+     * Scenario:
+     *    Mock a valid eventTrigger
+     *    Create a mock payment transaction with double tx fee for the eventTrigger
+     *    Validates the transaction to false
+     * Expected Output:
+     *    It should NOT verify the transaction
+     */
+    it('should reject a payment tx with more than config fee', async () => {
+      // mock asset payment event
+      const mockedEvent: EventTrigger =
+        TestBoxes.mockAssetPaymentEventTrigger();
+      const tx = TestBoxes.mockPaymentTransactionWithDoubleFee(
         mockedEvent,
         testBankAddress
       );
@@ -504,13 +532,13 @@ describe('CardanoTxVerifier', () => {
     /**
      * Target: testing verifyEventWithPayment
      * Dependencies:
-     *    CardanoUtils
+     *    CardanoTxVerifier.rosenExtractor
      * Expected Output:
      *    It should NOT verify the event
      */
     it('should return false when the event can not be retrieved from tx info', async () => {
       const mockedEvent: EventTrigger = TestBoxes.mockValidEventTrigger();
-      sinon.stub(CardanoUtils, 'getRosenData').returns(undefined);
+      sinon.stub(CardanoTxVerifier.rosenExtractor, 'get').returns(undefined);
 
       // run test
       const isValid = await CardanoTxVerifier.verifyEventWithPayment(

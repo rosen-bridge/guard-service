@@ -143,10 +143,10 @@ class ColdStorage {
       }
 
       const assets = (
-        await KoiosApi.getAddressAssets(CardanoConfigs.bankAddress)
+        await KoiosApi.getAddressAssets(CardanoConfigs.lockAddress)
       ).asset_list;
       const lockLovelace = BigInt(
-        (await KoiosApi.getAddressInfo(CardanoConfigs.bankAddress)).balance
+        (await KoiosApi.getAddressInfo(CardanoConfigs.lockAddress)).balance
       );
       const cardanoAssets = Configs.thresholds()[ChainsConstants.cardano];
 
@@ -227,26 +227,10 @@ class ColdStorage {
         txAgreement.startAgreementProcess(tx);
       }
     } catch (e) {
-      if (e instanceof TypeORMError) {
-        logger.warn(
-          `An error occurred while getting incomplete cold storage txs: ${e}`
-        );
-        logger.warn(e.stack);
-      } else if (
-        e instanceof FailedError ||
-        e instanceof NetworkError ||
-        e instanceof UnexpectedApiError
-      ) {
-        logger.warn(
-          `An error occurred while getting Cardano address assets: ${e}`
-        );
-        logger.warn(e.stack);
-      } else {
-        logger.warn(
-          `An unexpected error occurred while processing assets in Cardano lock address [${CardanoConfigs.bankAddress}]: ${e}`
-        );
-        logger.warn(e.stack);
-      }
+      logger.warn(
+        `An error occurred while processing assets in Cardano lock address [${CardanoConfigs.lockAddress}]: ${e}`
+      );
+      logger.warn(e.stack);
     }
   };
 }

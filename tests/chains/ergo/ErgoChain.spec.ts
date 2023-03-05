@@ -10,7 +10,7 @@ import {
   mockGetEventValidCommitments,
   resetMockedInputBoxes,
 } from './mocked/MockedInputBoxes';
-import { anything, spy, when } from 'ts-mockito';
+import { anything } from 'ts-mockito';
 import ErgoConfigs from '../../../src/chains/ergo/helpers/ErgoConfigs';
 import { Fee } from '@rosen-bridge/minimum-fee';
 import ErgoTxVerifier from '../../../src/chains/ergo/ErgoTxVerifier';
@@ -19,6 +19,7 @@ import {
   mockTrackAndFilterLockBoxes,
 } from '../mocked/MockedErgoTrack';
 import { NotEnoughAssetsError } from '../../../src/helpers/errors';
+import sinon from 'sinon';
 
 describe('ErgoChain', () => {
   describe('generateTransaction', () => {
@@ -113,23 +114,25 @@ describe('ErgoChain', () => {
     it('should generate an Erg payment tx with RSN and verify it successfully', async () => {
       // mock erg payment event
       const mockedEvent: EventTrigger = TestBoxes.mockErgPaymentEventTrigger();
-      const spiedErgoConfig = spy(ErgoConfigs);
-      when(spiedErgoConfig.watchersRSNSharePercent).thenReturn(40n);
+      const feeConfig = {
+        bridgeFee: 0n,
+        networkFee: 0n,
+        rsnRatio: 47n,
+      };
+      sinon.stub(ErgoConfigs, 'watchersRSNSharePercent').value(40n);
 
       // run test
 
-      const tx = await ergoChain.generateTransaction(
-        mockedEvent,
-        mockedFeeConfig
-      );
+      const tx = await ergoChain.generateTransaction(mockedEvent, feeConfig);
 
       // verify tx
       const isValid = await ErgoTxVerifier.verifyTransactionWithEvent(
         tx,
         mockedEvent,
-        mockedFeeConfig
+        feeConfig
       );
       expect(isValid).to.be.true;
+      sinon.restore();
     });
 
     /**
@@ -145,23 +148,25 @@ describe('ErgoChain', () => {
       // mock token payment event
       const mockedEvent: EventTrigger =
         TestBoxes.mockTokenPaymentEventTrigger();
-      const spiedErgoConfig = spy(ErgoConfigs);
-      when(spiedErgoConfig.watchersRSNSharePercent).thenReturn(40n);
+      const feeConfig = {
+        bridgeFee: 0n,
+        networkFee: 0n,
+        rsnRatio: 47n,
+      };
+      sinon.stub(ErgoConfigs, 'watchersRSNSharePercent').value(40n);
 
       // run test
 
-      const tx = await ergoChain.generateTransaction(
-        mockedEvent,
-        mockedFeeConfig
-      );
+      const tx = await ergoChain.generateTransaction(mockedEvent, feeConfig);
 
       // verify tx
       const isValid = await ErgoTxVerifier.verifyTransactionWithEvent(
         tx,
         mockedEvent,
-        mockedFeeConfig
+        feeConfig
       );
       expect(isValid).to.be.true;
+      sinon.restore();
     });
 
     /**
@@ -176,24 +181,26 @@ describe('ErgoChain', () => {
     it('should generate an only RSN payment tx and verify it successfully', async () => {
       // mock token payment event
       const mockedEvent: EventTrigger = TestBoxes.mockErgPaymentEventTrigger();
-      const spiedErgoConfig = spy(ErgoConfigs);
-      when(spiedErgoConfig.watchersRSNSharePercent).thenReturn(40n);
-      when(spiedErgoConfig.watchersSharePercent).thenReturn(0n);
+      const feeConfig = {
+        bridgeFee: 0n,
+        networkFee: 0n,
+        rsnRatio: 47n,
+      };
+      sinon.stub(ErgoConfigs, 'watchersRSNSharePercent').value(40n);
+      sinon.stub(ErgoConfigs, 'watchersSharePercent').value(0n);
 
       // run test
 
-      const tx = await ergoChain.generateTransaction(
-        mockedEvent,
-        mockedFeeConfig
-      );
+      const tx = await ergoChain.generateTransaction(mockedEvent, feeConfig);
 
       // verify tx
       const isValid = await ErgoTxVerifier.verifyTransactionWithEvent(
         tx,
         mockedEvent,
-        mockedFeeConfig
+        feeConfig
       );
       expect(isValid).to.be.true;
+      sinon.restore();
     });
 
     /**

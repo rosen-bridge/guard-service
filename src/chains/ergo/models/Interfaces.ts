@@ -78,7 +78,7 @@ interface ExplorerRegister {
 interface ExplorerToken {
   tokenId: string;
   index: number;
-  amount: number;
+  amount: bigint;
 }
 
 interface ExplorerInputBox {
@@ -97,7 +97,7 @@ interface ExplorerOutputBox {
   boxId: string;
   transactionId: string;
   blockId: string;
-  value: number;
+  value: bigint;
   index: number;
   creationHeight: number;
   ergoTree: string;
@@ -123,7 +123,54 @@ interface ExplorerTransaction {
   blockId: string;
   numConfirmations: number;
   inputs: ExplorerInputBox[];
+  dataInputs: ExplorerInputBox[];
   outputs: ExplorerOutputBox[];
+}
+
+interface NodeAsset {
+  tokenId: string;
+  amount: bigint;
+}
+interface NodeAdditionalRegisters {
+  R4?: string;
+  R5?: string;
+  R6?: string;
+  R7?: string;
+  R8?: string;
+  R9?: string;
+}
+interface NodeOutputBox {
+  boxId: string;
+  value: bigint;
+  ergoTree: string;
+  creationHeight: bigint | number;
+  assets?: Array<NodeAsset>;
+  additionalRegisters?: NodeAdditionalRegisters;
+  transactionId: string;
+  index: bigint | number;
+}
+interface NodeInputBox {
+  boxId: string;
+  value: bigint;
+  ergoTree: string;
+  assets?: Array<NodeAsset>;
+  additionalRegisters?: NodeAdditionalRegisters;
+}
+
+interface NodeDataInput {
+  boxId: string;
+  value: bigint;
+  ergoTree: string;
+  assets?: Array<NodeAsset>;
+  additionalRegisters?: NodeAdditionalRegisters;
+}
+
+interface NodeTransaction {
+  id: string;
+  numConfirmations: number;
+  inputs: NodeInputBox[];
+  dataInputs: NodeDataInput[];
+  outputs: NodeOutputBox[];
 }
 
 interface MempoolTransaction {
@@ -160,6 +207,7 @@ export {
   ExplorerOutputBox,
   MempoolOutputBox,
   ExplorerTransaction,
+  NodeTransaction,
   MempoolTransaction,
   MempoolTransactions,
   AddressBalance,

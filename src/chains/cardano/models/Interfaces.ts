@@ -13,10 +13,13 @@ interface AssetInfo {
   assetName: Uint8Array;
 }
 
+interface PaymentAddr {
+  bech32: string;
+  cred: string;
+}
+
 interface Utxo {
-  payment_addr: {
-    bech32: string;
-  };
+  payment_addr: PaymentAddr;
   tx_hash: string;
   tx_index: number;
   value: string;
@@ -40,15 +43,7 @@ interface UtxoBoxesAssets {
 }
 
 interface MetaData {
-  [key: string]: JSON;
-}
-
-interface RosenData {
-  toChain: string;
-  toAddress: string;
-  bridgeFee: string;
-  networkFee: string;
-  fromAddress: string;
+  [key: string]: Record<string, unknown>;
 }
 
 interface KoiosTransaction {
@@ -57,12 +52,6 @@ interface KoiosTransaction {
   inputs: Array<Utxo>;
   outputs: Array<Utxo>;
   metadata?: MetaData;
-}
-
-interface AddressInfo {
-  address: string;
-  balance: string;
-  utxo_set: Utxo[];
 }
 
 interface KoiosAddressInfo {
@@ -90,9 +79,7 @@ export type {
   AddressUtxos,
   KoiosTransaction,
   MetaData,
-  RosenData,
-  AddressInfo,
-  AddressUtxo,
   KoiosAddressInfo,
+  AddressUtxo,
   AddressAssets,
 };

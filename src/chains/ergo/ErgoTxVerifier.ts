@@ -27,6 +27,7 @@ import {
   UnexpectedApiError,
   NotFoundError,
 } from '../../helpers/errors';
+import { ErgoNodeRosenExtractor } from '@rosen-bridge/rosen-extractor';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -35,6 +36,11 @@ class ErgoTxVerifier {
     ErgoConfigs.ergoContractConfig.lockAddress
   );
   static lockErgoTree = ErgoUtils.addressToErgoTreeString(this.lockAddress);
+  static rosenExtractor = new ErgoNodeRosenExtractor(
+    ErgoConfigs.ergoContractConfig.lockAddress,
+    Configs.tokens(),
+    logger
+  );
 
   /**
    * verifies the payment transaction data with the event
@@ -162,9 +168,8 @@ class ErgoTxVerifier {
 
     // verify tx fee
     if (
-      ErgoUtils.bigintFromBoxValue(
-        outputBoxes.get(outputLength - 1).value()
-      ) !== ErgoConfigs.txFee
+      ErgoUtils.bigintFromBoxValue(outputBoxes.get(outputLength - 1).value()) >
+      ErgoConfigs.txFee
     ) {
       logger.debug(
         `Tx [${paymentTx.txId}] invalid: Transaction fee [${outputBoxes
@@ -331,71 +336,55 @@ class ErgoTxVerifier {
     }
     try {
       const paymentTx = await ExplorerApi.getConfirmedTx(event.sourceTxId);
-      const lockAddress = ErgoConfigs.ergoContractConfig.lockAddress;
-      const payment = paymentTx.outputs
-        .filter((box) => lockAddress === box.address)
-        .map((box) => ErgoUtils.getRosenData(box, event.sourceChainTokenId))
-        .filter((box) => box !== undefined)[0];
-      if (payment) {
-        const token = Configs.tokenMap.search(ChainsConstants.ergo, {
-          [Configs.tokenMap.getIdKey(ChainsConstants.ergo)]:
-            event.sourceChainTokenId,
-        });
-        let targetTokenId;
+      const data = this.rosenExtractor.get(
+        InputBoxes.explorerTxToNodeTx(paymentTx)
+      );
+      if (!data) {
+        logger.info(
+          `Event [${eventId}] is not valid, failed to extract rosen data from lock transaction`
+        );
+        return false;
+      }
+      if (
+        event.fromChain == ChainsConstants.ergo &&
+        event.toChain == data.toChain &&
+        event.networkFee == data.networkFee &&
+        event.bridgeFee == data.bridgeFee &&
+        event.amount == data.amount &&
+        event.sourceChainTokenId == data.sourceChainTokenId &&
+        event.targetChainTokenId == data.targetChainTokenId &&
+        event.sourceBlockId == paymentTx.blockId &&
+        event.toAddress == data.toAddress &&
+        event.fromAddress == data.fromAddress
+      ) {
         try {
-          targetTokenId = Configs.tokenMap.getID(token[0], event.toChain);
-        } catch (e) {
-          logger.info(
-            `Event [${eventId}] is not valid,tx [${event.sourceTxId}] token or chainId is invalid`
+          // check if amount is more than fees
+          const feeConfig = await MinimumFee.getEventFeeConfig(event);
+          const eventAmount = BigInt(event.amount);
+          const usedBridgeFee = Utils.maxBigint(
+            BigInt(event.bridgeFee),
+            feeConfig.bridgeFee
           );
-          return false;
-        }
-        if (
-          event.fromChain == ChainsConstants.ergo &&
-          event.toChain == payment.toChain &&
-          event.networkFee == payment.networkFee &&
-          event.bridgeFee == payment.bridgeFee &&
-          event.amount == payment.amount &&
-          event.sourceChainTokenId == payment.tokenId &&
-          event.targetChainTokenId == targetTokenId &&
-          event.sourceBlockId == paymentTx.blockId &&
-          event.toAddress == payment.toAddress &&
-          event.fromAddress == payment.fromAddress
-        ) {
-          try {
-            // check if amount is more than fees
-            const feeConfig = await MinimumFee.getEventFeeConfig(event);
-            const eventAmount = BigInt(event.amount);
-            const usedBridgeFee = Utils.maxBigint(
-              BigInt(event.bridgeFee),
-              feeConfig.bridgeFee
+          const usedNetworkFee = Utils.maxBigint(
+            BigInt(event.networkFee),
+            feeConfig.networkFee
+          );
+          if (eventAmount < usedBridgeFee + usedNetworkFee) {
+            logger.info(
+              `Event [${eventId}] is not valid, event amount [${eventAmount}] is less than sum of bridgeFee [${usedBridgeFee}] and networkFee [${usedNetworkFee}]`
             );
-            const usedNetworkFee = Utils.maxBigint(
-              BigInt(event.networkFee),
-              feeConfig.networkFee
-            );
-            if (eventAmount < usedBridgeFee + usedNetworkFee) {
-              logger.info(
-                `Event [${eventId}] is not valid, event amount [${eventAmount}] is less than sum of bridgeFee [${usedBridgeFee}] and networkFee [${usedNetworkFee}]`
-              );
-              return false;
-            }
-          } catch (e) {
-            throw new UnexpectedApiError(
-              `Failed in comparing event amount to fees: ${e}`
-            );
+            return false;
           }
-          logger.info(`Event [${eventId}] has been successfully validated`);
-          return true;
-        } else {
-          logger.info(
-            `Event [${eventId}] is not valid, event data does not match with lock tx [${event.sourceTxId}]`
+        } catch (e) {
+          throw new UnexpectedApiError(
+            `Failed in comparing event amount to fees: ${e}`
           );
-          return false;
         }
+        logger.info(`Event [${eventId}] has been successfully validated`);
+        return true;
       } else {
         logger.info(
-          `Event [${eventId}] is not valid, failed to extract Rosen data from lock tx [${event.sourceTxId}]`
+          `Event [${eventId}] is not valid, event data does not match with lock tx [${event.sourceTxId}]`
         );
         return false;
       }

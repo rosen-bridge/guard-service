@@ -11,14 +11,13 @@ cardano:
     timeout: 8 # connection timeout for Koios API
   blockFrost:
     projectId: '' # project id provided by BlockFrost
-  bankAddress: '' # TODO: key should get changed to lockAddress #27
   bankPublicKey: '' # corresponding public key of lock address
   minUtxoValue: '3000000' # minimum lovelace for a Utxo (box)
   fee: '400000' # Cardano transaction fee
   txTtl: 100000 # Cardano transaction time-to-live
   observationConfirmation: 120 # required block confirmation so that an observation transaction on Cardano get confirmed
   paymentConfirmation: 120 # required block confirmation so that a payment transaction on Cardano get confirmed
-  lockAddresses: [''] # Cardano lock address (TODO: should get removed #27)
+  lockAddress: '' # Cardano lock address
   coldStorageAddress: ''
 ergo:
   networkType: 'mainnet' # Ergo network type [testnet, mainnet]
@@ -33,8 +32,8 @@ ergo:
   observationConfirmation: 20 # required block confirmation so that an observation transaction on Ergo get confirmed
   eventConfirmation: 20 # required block confirmation so that an event trigger box get confirmed
   distributionConfirmation: 20 # required block confirmation so that a payment or reward distribution transaction on Ergo get confirmed
-  initialHeight: 10000 # block scanner starting block height
-  scannerInterval: 30 # scanner update interval
+  initialHeight: 925000 # block scanner starting block height
+  scannerInterval: 180 # scanner update interval
   coldStorageAddress: ''
 reward:
   bridgeFeeRepoAddress: '' # guards address for receiving bridge fee of events
@@ -54,7 +53,7 @@ p2p:
   bootstrapTimeout: 10 # timeout of connecting to bootstrap nodes (which are relays in our case)
   pubsubInterval: 10 # interval of publishing peer ids to the network for peer discovery
   apiCallbackTimeout: 8 # timeout of api calls which happen when subscribing a channel in dialer
-  getPeersInterval: 60 # interval of logging peers info
+  loggingInterval: 60 # interval of logging jobs
   messageSendingRetriesExponentialFactor: 5 # exponential factor for calculating message retries interval
   messageSendingRetriesMaxCount: 3 # number of retires before dropping a failed message
   peerIdFilePath: './peer-dialer.json'
@@ -86,3 +85,11 @@ intervals:
 tokensPath: './config/tokens.json' # path to supported tokens of bridge
 thresholdsPath: './config/thresholds.json' # path to thresholds of lock address tokens
 discordWebHookUrl: '' # Discord webhook url for sending notifications
+database:
+  type: 'sqlite' # options: postgres, sqlite
+  path: './sqlite/guard.sqlite' # database path (for sqlite)
+  # host: '' # database host (for postgres)
+  # port: 5432 # database port (for postgres)
+  # user: '' # database user (for postgres)
+  # password: '' # database password (for postgres)
+  # name: '' # database name (for postgres)

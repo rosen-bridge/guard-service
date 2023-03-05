@@ -6,8 +6,10 @@ import {
   Box,
   Boxes,
   CoveringErgoBoxes,
+  ExplorerTransaction,
   MempoolTransaction,
   MempoolTransactions,
+  NodeTransaction,
   Register,
 } from '../../../../src/chains/ergo/models/Interfaces';
 import {
@@ -580,7 +582,7 @@ class TestBoxes {
       txId,
       event.getId(),
       txBytes,
-      [],
+      eventBoxes.map((box) => box.sigma_serialize_bytes()),
       [],
       TransactionTypes.payment
     );
@@ -737,7 +739,7 @@ class TestBoxes {
       txId,
       event.getId(),
       txBytes,
-      [],
+      eventBoxes.map((box) => box.sigma_serialize_bytes()),
       [],
       TransactionTypes.payment
     );
@@ -810,7 +812,7 @@ class TestBoxes {
       txId,
       event.getId(),
       txBytes,
-      [],
+      eventBoxes.map((box) => box.sigma_serialize_bytes()),
       [],
       TransactionTypes.payment
     );
@@ -883,7 +885,7 @@ class TestBoxes {
       txId,
       event.getId(),
       txBytes,
-      [],
+      eventBoxes.map((box) => box.sigma_serialize_bytes()),
       [],
       TransactionTypes.payment
     );
@@ -956,7 +958,7 @@ class TestBoxes {
       txId,
       event.getId(),
       txBytes,
-      [],
+      eventBoxes.map((box) => box.sigma_serialize_bytes()),
       [],
       TransactionTypes.payment
     );
@@ -1029,7 +1031,7 @@ class TestBoxes {
       txId,
       event.getId(),
       txBytes,
-      [],
+      eventBoxes.map((box) => box.sigma_serialize_bytes()),
       [],
       TransactionTypes.payment
     );
@@ -1336,7 +1338,7 @@ class TestBoxes {
       txId,
       event.getId(),
       txBytes,
-      [],
+      eventBoxes.map((box) => box.sigma_serialize_bytes()),
       [],
       TransactionTypes.reward
     );
@@ -1404,7 +1406,7 @@ class TestBoxes {
       txId,
       event.getId(),
       txBytes,
-      [],
+      eventBoxes.map((box) => box.sigma_serialize_bytes()),
       [],
       TransactionTypes.reward
     );
@@ -1472,7 +1474,7 @@ class TestBoxes {
       txId,
       event.getId(),
       txBytes,
-      [],
+      eventBoxes.map((box) => box.sigma_serialize_bytes()),
       [],
       TransactionTypes.reward
     );
@@ -1523,7 +1525,7 @@ class TestBoxes {
       watcherBoxes,
       this.bridgeFeeErgoTree,
       this.networkFeeErgoTree,
-      this.testLockErgoTree
+      this.networkFeeErgoTree
     );
     const tx = UnsignedTransaction.from_json(txJsonString);
 
@@ -1540,7 +1542,7 @@ class TestBoxes {
       txId,
       event.getId(),
       txBytes,
-      [],
+      eventBoxes.map((box) => box.sigma_serialize_bytes()),
       [],
       TransactionTypes.reward
     );
@@ -1608,7 +1610,7 @@ class TestBoxes {
       txId,
       event.getId(),
       txBytes,
-      [],
+      eventBoxes.map((box) => box.sigma_serialize_bytes()),
       [],
       TransactionTypes.reward
     );
@@ -1677,7 +1679,7 @@ class TestBoxes {
       txId,
       event.getId(),
       txBytes,
-      [],
+      eventBoxes.map((box) => box.sigma_serialize_bytes()),
       [],
       TransactionTypes.reward
     );
@@ -2900,6 +2902,11 @@ class TestBoxes {
               tokenId: ErgoConfigs.ergoContractConfig.RWTId,
               amount: BigInt('1'),
             },
+            {
+              tokenId:
+                '907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e',
+              amount: BigInt('1'),
+            },
           ],
           ErgoConfigs.ergoContractConfig.eventTriggerErgoTree,
           [
@@ -3100,6 +3107,13 @@ class TestBoxes {
       TransactionTypes.reward
     );
   };
+
+  static sampleExplorerTx: ExplorerTransaction = JSON.parse(
+    TestData.sampleExplorerTransaction
+  );
+  static convertedNodeTx: NodeTransaction = JSON.parse(
+    TestData.convertedNodeTransaction
+  );
 }
 
 export default TestBoxes;
