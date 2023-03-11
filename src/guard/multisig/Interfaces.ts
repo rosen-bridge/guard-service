@@ -64,11 +64,13 @@ interface ApprovePayload extends GeneralPayload {
   myId: string;
 }
 
+interface SingleCommitment {
+  a: string;
+  position: string;
+}
+
 interface PublishedCommitment {
-  [index: string]: Array<{
-    a: string;
-    position: string;
-  }>;
+  [index: string]: Array<SingleCommitment>;
 }
 
 interface CommitmentPayload extends GeneralPayload {
@@ -112,4 +114,5 @@ export {
   ApprovePayload,
   CommitmentJson,
   PublishedCommitment,
+  SingleCommitment,
 };

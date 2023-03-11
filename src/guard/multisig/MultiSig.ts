@@ -18,6 +18,7 @@ import MultiSigUtils from './MultiSigUtils';
 import { default as Utils } from '../../helpers/Utils';
 import { loggerFactory } from '../../log/Logger';
 import { shuffle } from 'lodash-es';
+import { CommitmentMisMatch } from '../../helpers/errors';
 
 const logger = loggerFactory(import.meta.url);
 const dialer = await Dialer.getInstance();
@@ -247,21 +248,8 @@ class MultiSigHandler {
       // publish commitment
       const commitmentJson: CommitmentJson =
         queued.secret.to_json() as CommitmentJson;
-      const publicHints = commitmentJson.publicHints;
-      const publishCommitments: {
-        [index: string]: Array<{ a: string; position: string }>;
-      } = {};
-      Object.keys(publicHints).forEach((inputIndex) => {
-        const inputHints = publicHints[inputIndex].filter(
-          (item) => !item.secret
-        );
-        if (inputHints) {
-          publishCommitments[inputIndex] = inputHints.map((item) => ({
-            a: item.a,
-            position: item.position,
-          }));
-        }
-      });
+      const publishCommitments =
+        MultiSigUtils.generatedCommitmentToPublishCommitment(commitmentJson);
       logger.debug(
         `Commitment generated for tx [${id}]. Broadcasting to approved peers...`
       );
@@ -644,6 +632,86 @@ class MultiSigHandler {
         }
       );
     }, Configs.multiSigFirstSignDelay * 1000);
+  };
+
+  /**
+   * Verifying that Commitments in the payload are same with saved commitments
+   * and extracted commitment are same with commitments in the payload if there is
+   * a problem it throws CommitmentMisMatch Error
+   * @param transaction
+   * @param payload
+   */
+  verifySignedPayload = async (
+    transaction: TxQueued,
+    payload: SignPayload
+  ): Promise<void> => {
+    const inputBoxLength = transaction.boxes.length;
+    const payloadTx = wasm.Transaction.sigma_parse_bytes(
+      Buffer.from(payload.tx, 'base64')
+    );
+    const hints = await MultiSigUtils.extract_hints(
+      payloadTx,
+      transaction.boxes,
+      transaction.dataBoxes,
+      payload.signed,
+      payload.simulated
+    );
+    const myIndex = this.getIndex();
+    for (const payloadCommitment of payload.commitments) {
+      const guardIndex = payloadCommitment.index;
+      const guardPk = this.peers[guardIndex].pub;
+      const ownedCommitment = transaction.commitments.at(guardIndex);
+      if (guardIndex === myIndex && transaction.secret) {
+        const myCommitments =
+          MultiSigUtils.generatedCommitmentToPublishCommitment(
+            transaction.secret.to_json()
+          );
+        if (
+          MultiSigUtils.comparePublishedCommitmentsToBeDiffer(
+            payloadCommitment.commitment,
+            myCommitments,
+            inputBoxLength
+          )
+        ) {
+          throw new CommitmentMisMatch(
+            'Used commitment differ from my own commitments'
+          );
+        }
+      }
+      if (ownedCommitment) {
+        if (
+          MultiSigUtils.comparePublishedCommitmentsToBeDiffer(
+            payloadCommitment.commitment,
+            ownedCommitment,
+            inputBoxLength
+          )
+        ) {
+          throw new CommitmentMisMatch(
+            'Saved Commitments are not same with transaction Commitments'
+          );
+        }
+      }
+      if (payload.signed.some((item) => item === guardPk)) {
+        // verify signed commitment to
+        const extractedCommitments =
+          MultiSigUtils.convertHintBagToPublishedCommitmentForGuard(
+            hints,
+            guardPk,
+            inputBoxLength
+          );
+        if (
+          MultiSigUtils.comparePublishedCommitmentsToBeDiffer(
+            payloadCommitment.commitment,
+            extractedCommitments,
+            inputBoxLength
+          )
+        ) {
+          throw new CommitmentMisMatch(
+            'Signed commitments are differ from passed commitments'
+          );
+        }
+      }
+    }
   };
 
   /**
