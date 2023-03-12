@@ -26,8 +26,9 @@ const startTssInstance = function () {
       );
       // wait 5 seconds to start again
       setTimeout(startTssInstance, timeout * 1000);
+    } else {
+      logger.info('TSS instance started');
     }
-    logger.info('TSS instance started');
   });
 };
 
