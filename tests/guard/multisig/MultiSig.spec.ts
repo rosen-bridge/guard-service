@@ -752,9 +752,9 @@ describe('MultiSigHandler', () => {
         .stub(handler, 'getQueuedTransaction')
         .withArgs('txid')
         .resolves(obj);
-      const generateSignStub = sinon
-        .stub(handler, 'generateSign')
-        .withArgs('txid', obj.transaction);
+      const delayedGenerateSignStub = sinon
+        .stub(handler, 'delayedGenerateSign')
+        .withArgs('txid');
       handler.handleCommitment(
         'sender',
         {
@@ -766,7 +766,7 @@ describe('MultiSigHandler', () => {
       );
       await delay(100);
       expect(getQueuedStub.called).to.be.true;
-      expect(generateSignStub.called).to.be.true;
+      expect(delayedGenerateSignStub.called).to.be.true;
     });
   });
 

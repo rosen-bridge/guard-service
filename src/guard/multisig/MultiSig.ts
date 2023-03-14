@@ -17,6 +17,7 @@ import Encryption from '../../helpers/Encryption';
 import MultiSigUtils from './MultiSigUtils';
 import { default as Utils } from '../../helpers/Utils';
 import { loggerFactory } from '../../log/Logger';
+import { shuffle } from 'lodash-es';
 import { CommitmentMisMatch } from '../../helpers/errors';
 
 const logger = loggerFactory(import.meta.url);
@@ -337,14 +338,16 @@ class MultiSigHandler {
           })
           .filter((item) => !!item && item !== myPub);
         // add extra simulated to list of simulated nodes. this is cause of sigma-rust bug
-        const committed = transaction.commitments
-          .map((item, index) => {
-            if (item !== undefined) {
-              return this.peers[index].pub;
-            }
-            return '';
-          })
-          .filter((item) => !!item && item !== myPub);
+        const committed = shuffle(
+          transaction.commitments
+            .map((item, index) => {
+              if (item !== undefined) {
+                return this.peers[index].pub;
+              }
+              return '';
+            })
+            .filter((item) => !!item && item !== myPub)
+        );
         if (committed.length > transaction.requiredSigner - 1) {
           simulated = [
             ...simulated,
@@ -590,12 +593,11 @@ class MultiSigHandler {
                 transaction.requiredSigner - 1
               ) {
                 logger.debug(
-                  `Tx [${payload.txId}] has enough commitments. Starting signing...`
+                  `Tx [${payload.txId}] has enough commitments. Signing Delayed for [${Configs.multiSigFirstSignDelay}] seconds...`
                 );
-                await this.generateSign(payload.txId, transaction);
+                this.delayedGenerateSign(payload.txId);
               }
             }
-            this.processResolve(transaction);
           } catch (e) {
             logger.warn(
               `An unknown exception occurred while handling commitment from other peer: ${e}`
@@ -606,6 +608,30 @@ class MultiSigHandler {
         }
       );
     }
+  };
+
+  /**
+   * generateSign calling with specific delay
+   * @param id
+   */
+  delayedGenerateSign = (id: string): void => {
+    setTimeout(async () => {
+      await this.getQueuedTransaction(id).then(
+        async ({ transaction, release }) => {
+          try {
+            logger.debug(`Starting signing Tx [${id}]`);
+            await this.generateSign(id, transaction);
+            this.processResolve(transaction);
+          } catch (e) {
+            logger.warn(
+              `An unknown exception occurred while generating delayed sign for transaction [${id}] with error: ${e}`
+            );
+            logger.warn(e.stack);
+          }
+          release();
+        }
+      );
+    }, Configs.multiSigFirstSignDelay * 1000);
   };
 
   /**
@@ -698,7 +724,6 @@ class MultiSigHandler {
       this.getQueuedTransaction(payload.txId).then(
         async ({ transaction, release }) => {
           try {
-            await this.verifySignedPayload(transaction, payload);
             payload.commitments
               .filter((commitment) => {
                 if (transaction.commitments[commitment.index] !== undefined) {

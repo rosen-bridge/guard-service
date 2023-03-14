@@ -101,6 +101,7 @@ class Configs {
   static requeueWaitingEventsInterval = config.get<number>(
     'intervals.requeueWaitingEventsInterval'
   ); // seconds
+  static multiSigFirstSignDelay = 3; // seconds
 
   // logs configs
   static logs;
