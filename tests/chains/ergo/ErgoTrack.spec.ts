@@ -4,7 +4,7 @@ import { expect } from 'chai';
 import {
   mockExplorerGetAddressAssets,
   mockExplorerGetMempoolTxsForAddress,
-  mockGetBoxesForErgoTree,
+  mockGetBoxesByAddress,
   resetMockedExplorerApi,
 } from './mocked/MockedExplorer';
 import { beforeEach } from 'mocha';
@@ -36,7 +36,7 @@ describe('ErgoTrack', () => {
       await clearTables();
       resetMockedExplorerApi();
       resetMockedErgoTrack();
-      mockGetBoxesForErgoTree(testBankErgoTree, bankBoxes);
+      mockGetBoxesByAddress(TestBoxes.testLockAddress, bankBoxes);
     });
 
     /**

@@ -10,19 +10,16 @@ import {
 let mockedExplorer = spy(ExplorerApi);
 
 /**
- * mocks ExplorerApi getBoxesForErgoTree method to return returnBoxes when called for an address ergoTree
- * @param ergoTree
+ * mocks ExplorerApi getBoxesForErgoTree method to return returnBoxes when called for an address
+ * @param address
  * @param returnBoxes
  */
-const mockGetBoxesForErgoTree = (
-  ergoTree: string,
-  returnBoxes: Boxes
-): void => {
+const mockGetBoxesByAddress = (address: string, returnBoxes: Boxes): void => {
   const singleReturn: Boxes = {
     items: [returnBoxes.items[0]],
     total: returnBoxes.total,
   };
-  when(mockedExplorer.getBoxesForErgoTree(ergoTree, 0, 1)).thenResolve(
+  when(mockedExplorer.getBoxesByAddress(address, 0, 1)).thenResolve(
     singleReturn
   );
 
@@ -31,7 +28,7 @@ const mockGetBoxesForErgoTree = (
       items: returnBoxes.items.slice(i, i + 10),
       total: returnBoxes.total,
     };
-    when(mockedExplorer.getBoxesForErgoTree(ergoTree, i, 10)).thenResolve(
+    when(mockedExplorer.getBoxesByAddress(address, i, 10)).thenResolve(
       roundReturn
     );
   }
@@ -119,7 +116,7 @@ const resetMockedExplorerApi = (): void => {
 };
 
 export {
-  mockGetBoxesForErgoTree,
+  mockGetBoxesByAddress,
   mockExplorerGetConfirmedTx,
   mockExplorerGetTxConfirmation,
   mockIsTxInMempool,
