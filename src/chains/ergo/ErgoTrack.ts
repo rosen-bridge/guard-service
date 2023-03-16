@@ -109,15 +109,19 @@ class ErgoTrack {
     };
 
     const total = (
-      await ExplorerApi.getBoxesForErgoTree(this.lockErgoTree, 0, 1)
+      await ExplorerApi.getBoxesByAddress(
+        ErgoConfigs.ergoContractConfig.lockAddress,
+        0,
+        1
+      )
     ).total;
     let offset = 0;
 
     // get lock boxes, track and filter
     const result: ErgoBox[] = [];
     while (offset < total && remaining()) {
-      const boxes = await ExplorerApi.getBoxesForErgoTree(
-        this.lockErgoTree,
+      const boxes = await ExplorerApi.getBoxesByAddress(
+        ErgoConfigs.ergoContractConfig.lockAddress,
         offset,
         10
       );

@@ -25,25 +25,25 @@ class ExplorerApi {
 
   /**
    * gets boxes of an ergoTree
-   * @param ergoTree the address ergoTree
+   * @param ergoTree the address
    * @param offset
    * @param limit
    */
-  static getBoxesForErgoTree = (
-    ergoTree: string,
+  static getBoxesByAddress = (
+    address: string,
     offset = 0,
     limit = 100
   ): Promise<Boxes> => {
     return this.explorerApi
       .get<Boxes>(
-        `/v1/boxes/unspent/byErgoTree/${ergoTree}?offset=${offset}&limit=${limit}`,
+        `/v1/boxes/unspent/byAddress/${address}?offset=${offset}&limit=${limit}&sortDirection=asc`,
         {
           transformResponse: (data) => JsonBI.parse(data),
         }
       )
       .then((res) => res.data)
       .catch((e) => {
-        const baseError = `Failed to get boxes for ErgoTree [${ergoTree}] from Ergo Explorer: `;
+        const baseError = `Failed to get boxes for address [${address}] from Ergo Explorer: `;
         if (e.response) {
           if (e.response.status === 404)
             return {
