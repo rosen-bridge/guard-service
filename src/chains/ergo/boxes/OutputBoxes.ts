@@ -1,5 +1,6 @@
 import {
   Constant,
+  ErgoBox,
   ErgoBoxCandidate,
   ErgoBoxCandidateBuilder,
   TokenId,
@@ -9,6 +10,8 @@ import ErgoConfigs from '../helpers/ErgoConfigs';
 import { BoxesAssets } from '../models/Interfaces';
 import { rosenConfig } from '../../../helpers/RosenConfig';
 import Utils from '../../../helpers/Utils';
+import { EventTrigger } from '../../../models/Models';
+import InputBoxes from './InputBoxes';
 
 class OutputBoxes {
   /**
@@ -223,6 +226,145 @@ class OutputBoxes {
     });
 
     return coldBox.build();
+  };
+
+  /**
+   * generates outputs of payment and reward distribution tx for an Erg-Distribution event in ergo chain
+   * @param event the event trigger model
+   * @param eventBox the event trigger box
+   * @param commitmentBoxes the not-merged valid commitment boxes for the event
+   * @param rsnCoef rsn fee ratio
+   * @param currentHeight current height of blockchain
+   * @param paymentTokenId the payment token id
+   * @param network
+   * @param bridgeFee event bridge fee
+   * @param networkFee event network fee
+   * @param paymentTxId payment transaction id
+   * @return the generated reward reduced transaction
+   */
+  static ergEventRewardBoxes = (
+    event: EventTrigger,
+    eventBox: ErgoBox,
+    commitmentBoxes: ErgoBox[],
+    rsnCoef: [bigint, bigint],
+    currentHeight: number,
+    paymentTokenId: string,
+    network: string,
+    bridgeFee: bigint,
+    networkFee: bigint,
+    paymentTxId: string
+  ): ErgoBoxCandidate[] => {
+    const watchersLen: number = event.WIDs.length + commitmentBoxes.length;
+    const rsnFee = (bridgeFee * rsnCoef[0]) / rsnCoef[1];
+
+    // calculate assets of reward boxes
+    const watcherErgAmount: bigint =
+      (bridgeFee * ErgoConfigs.watchersSharePercent) /
+        100n /
+        BigInt(watchersLen) +
+      ErgoConfigs.minimumErg;
+    const watcherTokenAmount = 0n;
+    const watcherRsnAmount: bigint =
+      (rsnFee * ErgoConfigs.watchersRSNSharePercent) /
+      100n /
+      BigInt(watchersLen);
+    const guardBridgeFeeErgAmount: bigint =
+      bridgeFee - BigInt(watchersLen) * watcherErgAmount;
+    const guardBridgeFeeTokenAmount = 0n;
+    const guardRsnAmount: bigint =
+      rsnFee - BigInt(watchersLen) * watcherRsnAmount;
+    const guardNetworkErgAmount = networkFee;
+    const guardNetworkTokenAmount = 0n;
+    const wids: Uint8Array[] = [
+      ...event.WIDs.map(Utils.hexStringToUint8Array),
+      ...commitmentBoxes.map((box) => InputBoxes.getErgoBoxWID(box)),
+    ];
+
+    // create output boxes
+    return OutputBoxes.createRewardDistributionBoxes(
+      currentHeight,
+      watcherErgAmount,
+      watcherTokenAmount,
+      watcherRsnAmount,
+      guardBridgeFeeErgAmount,
+      guardBridgeFeeTokenAmount,
+      guardRsnAmount,
+      guardNetworkErgAmount,
+      guardNetworkTokenAmount,
+      network,
+      paymentTokenId,
+      paymentTxId,
+      wids
+    );
+  };
+
+  /**
+   * generates outputs of payment and reward distribution tx for a Token-Distribution event in ergo chain
+   * @param event the event trigger model
+   * @param eventBox the event trigger box
+   * @param commitmentBoxes the not-merged valid commitment boxes for the event
+   * @param rsnCoef rsn fee ratio
+   * @param currentHeight current height of blockchain
+   * @param paymentTokenId the payment token id
+   * @param network
+   * @param bridgeFee event bridge fee
+   * @param networkFee event network fee
+   * @param paymentTxId payment transaction id
+   * @return the generated reward reduced transaction
+   */
+  static tokenEventRewardBoxes = (
+    event: EventTrigger,
+    eventBox: ErgoBox,
+    commitmentBoxes: ErgoBox[],
+    rsnCoef: [bigint, bigint],
+    currentHeight: number,
+    paymentTokenId: string,
+    network: string,
+    bridgeFee: bigint,
+    networkFee: bigint,
+    paymentTxId: string
+  ): ErgoBoxCandidate[] => {
+    const watchersLen: number = event.WIDs.length + commitmentBoxes.length;
+    const rsnFee = (bridgeFee * rsnCoef[0]) / rsnCoef[1];
+
+    // calculate assets of reward boxes
+    const watcherErgAmount: bigint = ErgoConfigs.minimumErg;
+    const watcherTokenAmount: bigint =
+      (bridgeFee * ErgoConfigs.watchersSharePercent) /
+      100n /
+      BigInt(watchersLen);
+    const watcherRsnAmount: bigint =
+      (rsnFee * ErgoConfigs.watchersRSNSharePercent) /
+      100n /
+      BigInt(watchersLen);
+    const guardBridgeFeeErgAmount: bigint = ErgoConfigs.minimumErg;
+    const guardBridgeFeeTokenAmount: bigint =
+      bridgeFee - BigInt(watchersLen) * watcherTokenAmount;
+    const guardRsnAmount: bigint =
+      rsnFee - BigInt(watchersLen) * watcherRsnAmount;
+    const guardNetworkErgAmount: bigint = ErgoConfigs.minimumErg;
+    const guardNetworkTokenAmount = networkFee;
+    const wids: Uint8Array[] = [
+      ...event.WIDs.map(Utils.hexStringToUint8Array),
+      ...commitmentBoxes.map((box) => InputBoxes.getErgoBoxWID(box)),
+    ];
+
+    // create output boxes
+    return OutputBoxes.createRewardDistributionBoxes(
+      currentHeight,
+      watcherErgAmount,
+      watcherTokenAmount,
+      watcherRsnAmount,
+      guardBridgeFeeErgAmount,
+      guardBridgeFeeTokenAmount,
+      guardRsnAmount,
+      guardNetworkErgAmount,
+      guardNetworkTokenAmount,
+      network,
+      paymentTokenId,
+      paymentTxId,
+      wids
+    );
   };
 }
 

@@ -11,6 +11,7 @@ import {
   mockTrackAndFilterLockBoxes,
   resetMockedErgoTrack,
 } from '../mocked/MockedErgoTrack';
+import ErgoTxVerifier from '../../../src/chains/ergo/ErgoTxVerifier';
 
 describe('ErgoColdStorage', () => {
   const testBankAddress = TestBoxes.testLockAddress;
@@ -53,7 +54,7 @@ describe('ErgoColdStorage', () => {
       const tx = await ErgoColdStorage.generateTransaction(transferringAssets);
 
       // verify
-      const res = await ErgoColdStorage.verifyTransaction(tx);
+      const res = await ErgoTxVerifier.verifyColdStorageTransaction(tx);
       expect(res).to.be.true;
     });
 
@@ -92,7 +93,7 @@ describe('ErgoColdStorage', () => {
       const tx = await ErgoColdStorage.generateTransaction(transferringAssets);
 
       // verify
-      const res = await ErgoColdStorage.verifyTransaction(tx);
+      const res = await ErgoTxVerifier.verifyColdStorageTransaction(tx);
       expect(res).to.be.true;
     });
   });
@@ -129,7 +130,7 @@ describe('ErgoColdStorage', () => {
       );
 
       // run test
-      const res = await ErgoColdStorage.verifyTransaction(tx);
+      const res = await ErgoTxVerifier.verifyColdStorageTransaction(tx);
       expect(res).to.be.true;
     });
 
@@ -160,7 +161,7 @@ describe('ErgoColdStorage', () => {
       );
 
       // run test
-      const res = await ErgoColdStorage.verifyTransaction(tx);
+      const res = await ErgoTxVerifier.verifyColdStorageTransaction(tx);
       expect(res).to.be.false;
     });
 
@@ -191,7 +192,7 @@ describe('ErgoColdStorage', () => {
       );
 
       // run test
-      const res = await ErgoColdStorage.verifyTransaction(tx);
+      const res = await ErgoTxVerifier.verifyColdStorageTransaction(tx);
       expect(res).to.be.false;
     });
 
@@ -222,7 +223,7 @@ describe('ErgoColdStorage', () => {
       );
 
       // run test
-      const res = await ErgoColdStorage.verifyTransaction(tx);
+      const res = await ErgoTxVerifier.verifyColdStorageTransaction(tx);
       expect(res).to.be.false;
     });
 
@@ -253,7 +254,7 @@ describe('ErgoColdStorage', () => {
       );
 
       // run test
-      const res = await ErgoColdStorage.verifyTransaction(tx);
+      const res = await ErgoTxVerifier.verifyColdStorageTransaction(tx);
       expect(res).to.be.false;
     });
 
@@ -284,7 +285,7 @@ describe('ErgoColdStorage', () => {
       );
 
       // run test
-      const res = await ErgoColdStorage.verifyTransaction(tx);
+      const res = await ErgoTxVerifier.verifyColdStorageTransaction(tx);
       expect(res).to.be.false;
     });
 
@@ -315,7 +316,7 @@ describe('ErgoColdStorage', () => {
       );
 
       // run test
-      const res = await ErgoColdStorage.verifyTransaction(tx);
+      const res = await ErgoTxVerifier.verifyColdStorageTransaction(tx);
       expect(res).to.be.false;
     });
 
@@ -346,7 +347,7 @@ describe('ErgoColdStorage', () => {
       );
 
       // run test
-      const res = await ErgoColdStorage.verifyTransaction(tx);
+      const res = await ErgoTxVerifier.verifyColdStorageTransaction(tx);
       expect(res).to.be.false;
     });
 
@@ -377,7 +378,7 @@ describe('ErgoColdStorage', () => {
       );
 
       // run test
-      const res = await ErgoColdStorage.verifyTransaction(tx);
+      const res = await ErgoTxVerifier.verifyColdStorageTransaction(tx);
       expect(res).to.be.false;
     });
   });

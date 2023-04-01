@@ -15,7 +15,6 @@ import ErgoTransaction from './models/ErgoTransaction';
 import InputBoxes from './boxes/InputBoxes';
 import OutputBoxes from './boxes/OutputBoxes';
 import ChainsConstants from '../ChainsConstants';
-import Reward from './Reward';
 import Configs from '../../helpers/Configs';
 import Utils from '../../helpers/Utils';
 import { loggerFactory } from '../../log/Logger';
@@ -28,6 +27,7 @@ import {
   NotFoundError,
 } from '../../helpers/errors';
 import { ErgoNodeRosenExtractor } from '@rosen-bridge/rosen-extractor';
+import { AssetMap, BoxesAssets } from './models/Interfaces';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -36,6 +36,8 @@ class ErgoTxVerifier {
     ErgoConfigs.ergoContractConfig.lockAddress
   );
   static lockErgoTree = ErgoUtils.addressToErgoTreeString(this.lockAddress);
+  static coldAddress = Address.from_base58(ErgoConfigs.coldAddress);
+  static coldErgoTree = ErgoUtils.addressToErgoTreeString(this.coldAddress);
   static rosenExtractor = new ErgoNodeRosenExtractor(
     ErgoConfigs.ergoContractConfig.lockAddress,
     Configs.tokens(),
@@ -191,6 +193,244 @@ class ErgoTxVerifier {
   };
 
   /**
+   * verifies the cold storage transfer transaction
+   *  1. checks number of output boxes
+   *  2. checks cold box ergoTree
+   *  3. checks change box ergoTree
+   *  4. checks change box registers
+   *  5. checks remaining amount of assets in lockAddress after tx
+   *  6. checks transaction fee (last box erg value)
+   * @param ergoTx the transfer transaction
+   * @return true if tx verified
+   */
+  static verifyColdStorageTransaction = async (
+    ergoTx: ErgoTransaction
+  ): Promise<boolean> => {
+    const tx = this.deserialize(ergoTx.txBytes).unsigned_tx();
+    const outputBoxes = tx.output_candidates();
+
+    // verify number of output boxes (1 cold box + 1 change box + 1 tx fee box)
+    const outputLength = outputBoxes.len();
+    if (outputLength !== 3) return false;
+
+    // verify box addresses
+    if (
+      outputBoxes.get(0).ergo_tree().to_base16_bytes() !== this.coldErgoTree ||
+      outputBoxes.get(1).ergo_tree().to_base16_bytes() !== this.lockErgoTree
+    )
+      return false;
+
+    // verify change box registers (no register allowed)
+    if (outputBoxes.get(1).register_value(4) !== undefined) return false;
+
+    // calculate remaining amount of assets in lockAddress after tx
+    const assets = await ExplorerApi.getAddressAssets(
+      ErgoConfigs.ergoContractConfig.lockAddress
+    );
+    const lockAddressTokens: AssetMap = {};
+    assets.tokens.forEach(
+      (token) => (lockAddressTokens[token.tokenId] = token.amount)
+    );
+    const lockAddressAssets: BoxesAssets = {
+      ergs: assets.nanoErgs,
+      tokens: lockAddressTokens,
+    };
+
+    const outBoxesAssets = ErgoUtils.calculateBoxesAssets([
+      outputBoxes.get(0),
+      outputBoxes.get(2),
+    ]);
+    const remainingAssets = ErgoUtils.reduceUsedAssets(
+      lockAddressAssets,
+      outBoxesAssets
+    );
+
+    // verify remaining amount to be within thresholds
+    const ergoAssets = Configs.thresholds()[ChainsConstants.ergo];
+    const remainingTokenIds = Object.keys(remainingAssets.tokens);
+    for (let i = 0; i < remainingTokenIds.length; i++) {
+      const tokenId = remainingTokenIds[i];
+      if (
+        Object.prototype.hasOwnProperty.call(ergoAssets, tokenId) &&
+        (remainingAssets.tokens[tokenId] < ergoAssets[tokenId].low ||
+          remainingAssets.tokens[tokenId] > ergoAssets[tokenId].high)
+      )
+        return false;
+    }
+    if (
+      remainingAssets.ergs < ergoAssets[ChainsConstants.ergoNativeAsset].low ||
+      remainingAssets.ergs > ergoAssets[ChainsConstants.ergoNativeAsset].high
+    )
+      return false;
+
+    // verify transaction fee value (last box erg value)
+    return (
+      BigInt(outputBoxes.get(2).value().as_i64().to_str()) <= ErgoConfigs.txFee
+    );
+  };
+
+  /**
+   * verifies the reward transaction data with the event
+   *  1. checks number of output boxes
+   *  2. checks change box ergoTree
+   *  3. checks assets, contracts and R4 of output boxes are same as the one we generated
+   *  4. checks transaction fee (last box erg value)
+   *  5. checks assets of inputs are same as assets of output (no token burned)
+   * @param paymentTx the payment transaction
+   * @param event the event trigger model
+   * @param feeConfig minimum fee and rsn ratio config for the event
+   * @return true if tx verified
+   */
+  static verifyRewardTransactionWithEvent = async (
+    paymentTx: ErgoTransaction,
+    event: EventTrigger,
+    feeConfig: Fee
+  ): Promise<boolean> => {
+    const tx = this.deserialize(paymentTx.txBytes).unsigned_tx();
+    const outputBoxes = tx.output_candidates();
+
+    // get current height of network (not important, just for creation of expected boxes)
+    const currentHeight = await NodeApi.getHeight();
+
+    // get eventBox and remaining valid commitments
+    const eventBox: ErgoBox = await InputBoxes.getEventBox(event);
+    const commitmentBoxes: ErgoBox[] =
+      await InputBoxes.getEventValidCommitments(event);
+    const rsnCoef: [bigint, bigint] = [
+      feeConfig.rsnRatio,
+      MinimumFee.bridgeMinimumFee.ratioDivisor,
+    ];
+    if (
+      !BoxVerifications.verifyInputs(
+        tx.inputs(),
+        eventBox,
+        commitmentBoxes,
+        paymentTx.inputBoxes
+      )
+    ) {
+      logger.debug(`Tx [${paymentTx.txId}] invalid: Inputs aren't verified`);
+      return false;
+    }
+
+    // verify number of output boxes (number of watchers + 2 box for guards + 1 change box + 1 tx fee box)
+    const outputLength = outputBoxes.len();
+    const watchersLen = event.WIDs.length + commitmentBoxes.length;
+    if (outputLength !== watchersLen + 4) {
+      logger.debug(
+        `Tx [${
+          paymentTx.txId
+        }] invalid: Found [${outputLength}] output boxes, Expected [${
+          watchersLen + 4
+        }] output boxes`
+      );
+      return false;
+    }
+
+    // verify change box address
+    if (
+      outputBoxes
+        .get(outputLength - 2)
+        .ergo_tree()
+        .to_base16_bytes() !== this.lockErgoTree
+    ) {
+      logger.debug(
+        `Tx [${paymentTx.txId}] invalid: ChangeBox ergoTree [${outputBoxes
+          .get(outputLength - 2)
+          .ergo_tree()
+          .to_base16_bytes()}] is not equal to lock ergoTree [${
+          this.lockErgoTree
+        }]`
+      );
+      return false;
+    }
+
+    // get event payment transaction id
+    let paymentTxId = '';
+    try {
+      paymentTxId = await InputBoxes.getEventPaymentTransactionId(
+        event.getId()
+      );
+    } catch (e) {
+      if (e instanceof NotFoundError) {
+        logger.info(
+          `Rejected tx [${paymentTx.txId}]. Reason: Failed to get event payment transaction`
+        );
+        return false;
+      } else throw e;
+    }
+
+    // verify reward boxes
+    const expectedRewardBoxes =
+      event.sourceChainTokenId === ChainsConstants.ergoNativeAsset
+        ? OutputBoxes.ergEventRewardBoxes(
+            event,
+            eventBox,
+            commitmentBoxes,
+            rsnCoef,
+            currentHeight,
+            event.sourceChainTokenId,
+            event.fromChain,
+            Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee),
+            Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee),
+            paymentTxId
+          )
+        : OutputBoxes.tokenEventRewardBoxes(
+            event,
+            eventBox,
+            commitmentBoxes,
+            rsnCoef,
+            currentHeight,
+            event.sourceChainTokenId,
+            event.fromChain,
+            Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee),
+            Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee),
+            paymentTxId
+          );
+
+    const rewardBoxes: ErgoBoxCandidate[] = [];
+    for (
+      let i = 0;
+      i < watchersLen + 2;
+      i++ // watchers + 2 box for guards
+    )
+      rewardBoxes.push(outputBoxes.get(i));
+
+    // verify guards boxes and watcher permit boxes conditions
+    if (
+      !BoxVerifications.verifyOutputBoxesList(
+        rewardBoxes.sort(InputBoxes.compareTwoBoxCandidate),
+        expectedRewardBoxes.sort(InputBoxes.compareTwoBoxCandidate)
+      )
+    ) {
+      logger.debug(
+        `Tx [${paymentTx.txId}] invalid: Guards and watchers boxes are made different`
+      );
+      return false;
+    }
+
+    // verify tx fee
+    if (
+      ErgoUtils.bigintFromBoxValue(outputBoxes.get(outputLength - 1).value()) >
+      ErgoConfigs.txFee
+    ) {
+      logger.debug(
+        `Tx [${paymentTx.txId}] invalid: Transaction fee [${outputBoxes
+          .get(outputLength - 1)
+          .value()}] is more than maximum allowed fee [${ErgoConfigs.txFee}]`
+      );
+      return false;
+    }
+
+    // verify no token burned
+    if (BoxVerifications.verifyNoTokenBurned(paymentTx.inputBoxes, outputBoxes))
+      return true;
+    else {
+      logger.debug(`Tx [${paymentTx.txId}] invalid: Some tokens got burned`);
+      return false;
+    }
+  };
+
+  /**
    * converts the transaction model in the chain to bytearray
    * @param tx the transaction model in the chain library
    * @return bytearray representation of the transaction
@@ -238,7 +478,7 @@ class ErgoTxVerifier {
     const paymentTokenId = event.targetChainTokenId;
 
     // create output boxes
-    const outBoxes: ErgoBoxCandidate[] = Reward.ergEventRewardBoxes(
+    const outBoxes: ErgoBoxCandidate[] = OutputBoxes.ergEventRewardBoxes(
       event,
       eventBox,
       commitmentBoxes,
@@ -290,7 +530,7 @@ class ErgoTxVerifier {
     const paymentTokenId = event.targetChainTokenId;
 
     // create output boxes
-    const outBoxes: ErgoBoxCandidate[] = Reward.tokenEventRewardBoxes(
+    const outBoxes: ErgoBoxCandidate[] = OutputBoxes.tokenEventRewardBoxes(
       event,
       eventBox,
       commitmentBoxes,

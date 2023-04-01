@@ -32,6 +32,7 @@ import {
 } from '../../db/mocked/MockedScannerModel';
 import TestUtils from '../../testUtils/TestUtils';
 import sinon from 'sinon';
+import ErgoTxVerifier from '../../../src/chains/ergo/ErgoTxVerifier';
 
 describe('Reward', () => {
   describe('generateTransaction', () => {
@@ -85,7 +86,7 @@ describe('Reward', () => {
       const tx = await Reward.generateTransaction(mockedEvent, mockedFeeConfig);
 
       // verify tx
-      const isValid = await Reward.verifyTransactionWithEvent(
+      const isValid = await ErgoTxVerifier.verifyRewardTransactionWithEvent(
         tx,
         mockedEvent,
         mockedFeeConfig
@@ -123,7 +124,7 @@ describe('Reward', () => {
       const tx = await Reward.generateTransaction(mockedEvent, mockedFeeConfig);
 
       // verify tx
-      const isValid = await Reward.verifyTransactionWithEvent(
+      const isValid = await ErgoTxVerifier.verifyRewardTransactionWithEvent(
         tx,
         mockedEvent,
         mockedFeeConfig
@@ -168,7 +169,7 @@ describe('Reward', () => {
       const tx = await Reward.generateTransaction(mockedEvent, feeConfig);
 
       // verify tx
-      const isValid = await Reward.verifyTransactionWithEvent(
+      const isValid = await ErgoTxVerifier.verifyRewardTransactionWithEvent(
         tx,
         mockedEvent,
         feeConfig
@@ -214,7 +215,7 @@ describe('Reward', () => {
       const tx = await Reward.generateTransaction(mockedEvent, feeConfig);
 
       // verify tx
-      const isValid = await Reward.verifyTransactionWithEvent(
+      const isValid = await ErgoTxVerifier.verifyRewardTransactionWithEvent(
         tx,
         mockedEvent,
         feeConfig
@@ -261,7 +262,7 @@ describe('Reward', () => {
       const tx = await Reward.generateTransaction(mockedEvent, feeConfig);
 
       // verify tx
-      const isValid = await Reward.verifyTransactionWithEvent(
+      const isValid = await ErgoTxVerifier.verifyRewardTransactionWithEvent(
         tx,
         mockedEvent,
         feeConfig
@@ -338,7 +339,7 @@ describe('Reward', () => {
       );
 
       // run test
-      const isValid = await Reward.verifyTransactionWithEvent(
+      const isValid = await ErgoTxVerifier.verifyRewardTransactionWithEvent(
         tx,
         mockedEvent,
         mockedFeeConfig
@@ -363,7 +364,7 @@ describe('Reward', () => {
       );
 
       // run test
-      const isValid = await Reward.verifyTransactionWithEvent(
+      const isValid = await ErgoTxVerifier.verifyRewardTransactionWithEvent(
         tx,
         mockedEvent,
         mockedFeeConfig
@@ -388,7 +389,7 @@ describe('Reward', () => {
       );
 
       // run test
-      const isValid = await Reward.verifyTransactionWithEvent(
+      const isValid = await ErgoTxVerifier.verifyRewardTransactionWithEvent(
         tx,
         mockedEvent,
         mockedFeeConfig
@@ -413,7 +414,7 @@ describe('Reward', () => {
       );
 
       // run test
-      const isValid = await Reward.verifyTransactionWithEvent(
+      const isValid = await ErgoTxVerifier.verifyRewardTransactionWithEvent(
         tx,
         mockedEvent,
         mockedFeeConfig
@@ -438,7 +439,7 @@ describe('Reward', () => {
       );
 
       // run test
-      const isValid = await Reward.verifyTransactionWithEvent(
+      const isValid = await ErgoTxVerifier.verifyRewardTransactionWithEvent(
         tx,
         mockedEvent,
         mockedFeeConfig
@@ -463,7 +464,7 @@ describe('Reward', () => {
       );
 
       // run test
-      const isValid = await Reward.verifyTransactionWithEvent(
+      const isValid = await ErgoTxVerifier.verifyRewardTransactionWithEvent(
         tx,
         mockedEvent,
         mockedFeeConfig
@@ -488,7 +489,7 @@ describe('Reward', () => {
       );
 
       // run test
-      const isValid = await Reward.verifyTransactionWithEvent(
+      const isValid = await ErgoTxVerifier.verifyRewardTransactionWithEvent(
         tx,
         mockedEvent,
         mockedFeeConfig
@@ -513,7 +514,7 @@ describe('Reward', () => {
       );
 
       // run test
-      const isValid = await Reward.verifyTransactionWithEvent(
+      const isValid = await ErgoTxVerifier.verifyRewardTransactionWithEvent(
         tx,
         mockedEvent,
         mockedFeeConfig
@@ -545,7 +546,7 @@ describe('Reward', () => {
       sinon.stub(ErgoConfigs, 'watchersSharePercent').value(0n);
 
       // run test
-      const isValid = await Reward.verifyTransactionWithEvent(
+      const isValid = await ErgoTxVerifier.verifyRewardTransactionWithEvent(
         tx,
         mockedEvent,
         feeConfig
@@ -572,7 +573,7 @@ describe('Reward', () => {
       );
 
       // run test
-      const isValid = await Reward.verifyTransactionWithEvent(
+      const isValid = await ErgoTxVerifier.verifyRewardTransactionWithEvent(
         tx,
         mockedEvent,
         mockedFeeConfig
@@ -598,7 +599,7 @@ describe('Reward', () => {
       );
 
       // run test
-      const isValid = await Reward.verifyTransactionWithEvent(
+      const isValid = await ErgoTxVerifier.verifyRewardTransactionWithEvent(
         tx,
         mockedEvent,
         mockedFeeConfig

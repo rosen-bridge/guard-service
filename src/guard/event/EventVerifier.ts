@@ -4,7 +4,6 @@ import {
   PaymentTransaction,
   TransactionTypes,
 } from '../../models/Models';
-import Reward from '../../chains/ergo/Reward';
 import ErgoTransaction from '../../chains/ergo/models/ErgoTransaction';
 import ChainsConstants from '../../chains/ChainsConstants';
 import InputBoxes from '../../chains/ergo/boxes/InputBoxes';
@@ -15,8 +14,6 @@ import CardanoConfigs from '../../chains/cardano/helpers/CardanoConfigs';
 import ExplorerApi from '../../chains/ergo/network/ExplorerApi';
 import MinimumFee from '../MinimumFee';
 import { ConfirmedEventEntity } from '../../db/entities/ConfirmedEventEntity';
-import ErgoColdStorage from '../../chains/ergo/ErgoColdStorage';
-import CardanoColdStorage from '../../chains/cardano/CardanoColdStorage';
 import { ChainNotImplemented } from '../../helpers/errors';
 import ErgoTxVerifier from '../../chains/ergo/ErgoTxVerifier';
 import CardanoTxVerifier from '../../chains/cardano/CardanoTxVerifier';
@@ -48,7 +45,7 @@ class EventVerifier {
         );
       else throw new ChainNotImplemented(paymentTx.network);
     } else {
-      return await Reward.verifyTransactionWithEvent(
+      return await ErgoTxVerifier.verifyRewardTransactionWithEvent(
         paymentTx as ErgoTransaction,
         event,
         feeConfig
@@ -135,11 +132,11 @@ class EventVerifier {
     paymentTx: PaymentTransaction
   ): Promise<boolean> => {
     if (paymentTx.network === ChainsConstants.ergo)
-      return await ErgoColdStorage.verifyTransaction(
+      return await ErgoTxVerifier.verifyColdStorageTransaction(
         paymentTx as ErgoTransaction
       );
     else if (paymentTx.network === ChainsConstants.cardano)
-      return await CardanoColdStorage.verifyTransaction(
+      return await CardanoTxVerifier.verifyColdStorageTransaction(
         paymentTx as ErgoTransaction
       );
     else throw new ChainNotImplemented(paymentTx.network);
