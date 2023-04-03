@@ -4,17 +4,14 @@ import topLevelAwait from 'vite-plugin-top-level-await';
 
 export default defineConfig({
   test: {
+    globals: true,
+    setupFiles: ['./tests/setup-tests.ts'],
     coverage: {
       all: true,
       reporter: ['cobertura', 'text', 'text-summary'],
     },
     deps: {
-      inline: [
-        /ergo-lib-wasm-browser/,
-        /typeorm/,
-        /@rosen-bridge/,
-        /@lodash-es/,
-      ],
+      inline: [/ergo-lib-wasm-browser/, /@rosen-bridge/, /@lodash-es/],
     },
     environment: 'node',
     transformMode: {

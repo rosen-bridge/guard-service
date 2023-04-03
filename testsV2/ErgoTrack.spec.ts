@@ -1,6 +1,5 @@
 import TestBoxes from '../tests/chains/ergo/testUtils/TestBoxes';
 import ErgoUtils from '../src/chains/ergo/helpers/ErgoUtils';
-import { beforeEach } from 'mocha';
 import {
   clearTables,
   insertTxRecord,
@@ -17,7 +16,6 @@ import { TransactionStatus } from '../src/models/Models';
 import ErgoTestBoxes from '../tests/chains/ergo/testUtils/TestBoxes';
 import { mockGetChainPendingTransactions } from '../tests/guard/mocked/MockedTxAgreement';
 import ErgoTrack from '../src/chains/ergo/ErgoTrack';
-import { expect } from 'chai';
 
 describe('ErgoTrack', () => {
   const testBankAddress = TestBoxes.testLockAddress;
@@ -27,11 +25,12 @@ describe('ErgoTrack', () => {
   describe('trackAndFilterLockBoxes', () => {
     const bankBoxes = TestBoxes.mockManyBankBoxes();
 
-    beforeEach('mock ExplorerApi', async () => {
+    beforeEach(async () => {
       await clearTables();
       resetMockedExplorerApi();
       resetMockedErgoTrack();
       mockGetBoxesForErgoTree(testBankErgoTree, bankBoxes);
+      console.log(`beforeEach Done!`);
     });
 
     /**
