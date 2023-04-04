@@ -41,6 +41,7 @@ describe('CardanoChain', () => {
     // mock getting bankBoxes
     const bankBoxes: Utxo[] = TestBoxes.mockBankBoxes();
     const mockedFeeConfig: Fee = {
+      feeRatio: 1n,
       bridgeFee: 0n,
       networkFee: 0n,
       rsnRatio: 0n,
