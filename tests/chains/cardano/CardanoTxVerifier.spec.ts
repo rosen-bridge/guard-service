@@ -16,6 +16,7 @@ describe('CardanoTxVerifier', () => {
 
   describe('verifyTransactionWithEvent', () => {
     const mockedFeeConfig: Fee = {
+      feeRatio: 1n,
       bridgeFee: 0n,
       networkFee: 0n,
       rsnRatio: 0n,
@@ -182,6 +183,7 @@ describe('CardanoTxVerifier', () => {
   describe('verifyEventWithPayment', () => {
     // TODO: add test for when asset credential is incorrect
     const mockedFeeConfig: Fee = {
+      feeRatio: 1n,
       bridgeFee: 0n,
       networkFee: 0n,
       rsnRatio: 0n,
@@ -241,6 +243,7 @@ describe('CardanoTxVerifier', () => {
 
       // mock fee config so that amount is less than event fees
       const highBridgeFeeConfig: Fee = {
+        feeRatio: 1n,
         bridgeFee: 5000n,
         networkFee: 0n,
         rsnRatio: 0n,

@@ -25,6 +25,7 @@ describe('ErgoTxVerifier', () => {
     // mock getting boxes
     const eventBoxAndCommitments = TestBoxes.mockEventBoxWithSomeCommitments();
     const mockedFeeConfig: Fee = {
+      feeRatio: 1n,
       bridgeFee: 0n,
       networkFee: 0n,
       rsnRatio: 0n,
@@ -248,6 +249,7 @@ describe('ErgoTxVerifier', () => {
       );
       const spiedErgoConfig = spy(ErgoConfigs);
       const feeConfig = {
+        feeRatio: 1n,
         bridgeFee: 0n,
         networkFee: 0n,
         rsnRatio: 47n,
@@ -319,6 +321,7 @@ describe('ErgoTxVerifier', () => {
     const nonObservationTx = JSON.parse(TestData.mockedNonObservationTx);
     const ergObservationTx = JSON.parse(TestData.mockedErgObservationTx);
     const mockedFeeConfig: Fee = {
+      feeRatio: 1n,
       bridgeFee: 0n,
       networkFee: 0n,
       rsnRatio: 0n,

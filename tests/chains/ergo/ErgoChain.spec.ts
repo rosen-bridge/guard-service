@@ -26,6 +26,7 @@ describe('ErgoChain', () => {
     const bankBoxes: CoveringErgoBoxes = TestBoxes.mockBankBoxes();
     const eventBoxAndCommitments = TestBoxes.mockEventBoxWithSomeCommitments();
     const mockedFeeConfig: Fee = {
+      feeRatio: 1n,
       bridgeFee: 0n,
       networkFee: 0n,
       rsnRatio: 0n,

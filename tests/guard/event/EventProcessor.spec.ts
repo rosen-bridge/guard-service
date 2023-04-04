@@ -57,6 +57,7 @@ describe('EventProcessor', () => {
 
   describe('processEvent', () => {
     const mockedFeeConfig: Fee = {
+      feeRatio: 1n,
       bridgeFee: 0n,
       networkFee: 0n,
       rsnRatio: 0n,
@@ -210,6 +211,7 @@ describe('EventProcessor', () => {
 
   describe('processRewardEvent', () => {
     const mockedFeeConfig: Fee = {
+      feeRatio: 1n,
       bridgeFee: 0n,
       networkFee: 0n,
       rsnRatio: 0n,
