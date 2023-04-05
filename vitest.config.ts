@@ -5,7 +5,10 @@ import topLevelAwait from 'vite-plugin-top-level-await';
 export default defineConfig({
   test: {
     globals: true,
-    setupFiles: ['./tests/setup-tests.ts'],
+    setupFiles: [
+      './testsV2/setup/mockDialer.ts',
+      './testsV2/setup/setupTests.ts',
+    ],
     coverage: {
       all: true,
       reporter: ['cobertura', 'text', 'text-summary'],
