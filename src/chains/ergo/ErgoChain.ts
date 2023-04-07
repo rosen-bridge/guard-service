@@ -259,7 +259,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
   ): ErgoBoxCandidate[] => {
     // calculate assets of payemnt box
     const paymentErgAmount: bigint =
-      BigInt(event.amount) - bridgeFee - networkFee;
+      BigInt(event.amount) - bridgeFee - networkFee + ErgoConfigs.minimumErg;
     const paymentTokenAmount = 0n;
     const paymentTokenId = event.targetChainTokenId;
 
