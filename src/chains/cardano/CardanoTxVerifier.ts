@@ -80,7 +80,7 @@ class CardanoTxVerifier {
       const lovelacePaymentAmount: BigNum = this.getPaymentAmount(
         event,
         feeConfig
-      );
+      ).checked_add(CardanoConfigs.txMinimumLovelace);
       const sizeOfMultiAssets: number | undefined = paymentBox
         .amount()
         .multiasset()
