@@ -13,16 +13,13 @@ import {
 import ErgoConfigs from './helpers/ErgoConfigs';
 import ErgoUtils from './helpers/ErgoUtils';
 import ErgoTransaction from './models/ErgoTransaction';
-import { AssetMap, BoxesAssets } from './models/Interfaces';
+import { BoxesAssets } from './models/Interfaces';
 import NodeApi from './network/NodeApi';
 import Utils from '../../helpers/Utils';
-import ExplorerApi from './network/ExplorerApi';
 import { JsonBI } from '../../network/NetworkModels';
 import OutputBoxes from './boxes/OutputBoxes';
 import { TransactionTypes } from '../../models/Models';
 import { loggerFactory } from '../../log/Logger';
-import Configs from '../../helpers/Configs';
-import ChainsConstants from '../ChainsConstants';
 import ErgoTrack from './ErgoTrack';
 import InputBoxes from './boxes/InputBoxes';
 
@@ -138,83 +135,6 @@ class ErgoColdStorage {
 
     logger.info(`Ergo coldStorage Transaction with txId [${txId}] generated`);
     return ergoTx;
-  };
-
-  /**
-   * verifies the transfer transaction
-   *  1. checks number of output boxes
-   *  2. checks cold box ergoTree
-   *  3. checks change box ergoTree
-   *  4. checks change box registers
-   *  5. checks remaining amount of assets in lockAddress after tx
-   *  6. checks transaction fee (last box erg value)
-   * @param ergoTx the transfer transaction
-   * @return true if tx verified
-   */
-  static verifyTransaction = async (
-    ergoTx: ErgoTransaction
-  ): Promise<boolean> => {
-    const tx = ErgoColdStorage.deserialize(ergoTx.txBytes).unsigned_tx();
-    const outputBoxes = tx.output_candidates();
-
-    // verify number of output boxes (1 cold box + 1 change box + 1 tx fee box)
-    const outputLength = outputBoxes.len();
-    if (outputLength !== 3) return false;
-
-    // verify box addresses
-    if (
-      outputBoxes.get(0).ergo_tree().to_base16_bytes() !== this.coldErgoTree ||
-      outputBoxes.get(1).ergo_tree().to_base16_bytes() !== this.lockErgoTree
-    )
-      return false;
-
-    // verify change box registers (no register allowed)
-    if (outputBoxes.get(1).register_value(4) !== undefined) return false;
-
-    // calculate remaining amount of assets in lockAddress after tx
-    const assets = await ExplorerApi.getAddressAssets(
-      ErgoConfigs.ergoContractConfig.lockAddress
-    );
-    const lockAddressTokens: AssetMap = {};
-    assets.tokens.forEach(
-      (token) => (lockAddressTokens[token.tokenId] = token.amount)
-    );
-    const lockAddressAssets: BoxesAssets = {
-      ergs: assets.nanoErgs,
-      tokens: lockAddressTokens,
-    };
-
-    const outBoxesAssets = ErgoUtils.calculateBoxesAssets([
-      outputBoxes.get(0),
-      outputBoxes.get(2),
-    ]);
-    const remainingAssets = ErgoUtils.reduceUsedAssets(
-      lockAddressAssets,
-      outBoxesAssets
-    );
-
-    // verify remaining amount to be within thresholds
-    const ergoAssets = Configs.thresholds()[ChainsConstants.ergo];
-    const remainingTokenIds = Object.keys(remainingAssets.tokens);
-    for (let i = 0; i < remainingTokenIds.length; i++) {
-      const tokenId = remainingTokenIds[i];
-      if (
-        Object.prototype.hasOwnProperty.call(ergoAssets, tokenId) &&
-        (remainingAssets.tokens[tokenId] < ergoAssets[tokenId].low ||
-          remainingAssets.tokens[tokenId] > ergoAssets[tokenId].high)
-      )
-        return false;
-    }
-    if (
-      remainingAssets.ergs < ergoAssets[ChainsConstants.ergoNativeAsset].low ||
-      remainingAssets.ergs > ergoAssets[ChainsConstants.ergoNativeAsset].high
-    )
-      return false;
-
-    // verify transaction fee value (last box erg value)
-    return (
-      BigInt(outputBoxes.get(2).value().as_i64().to_str()) <= ErgoConfigs.txFee
-    );
   };
 
   /**

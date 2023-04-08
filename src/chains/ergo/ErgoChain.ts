@@ -264,7 +264,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
     const paymentTokenId = event.targetChainTokenId;
 
     // create output boxes
-    const outBoxes: ErgoBoxCandidate[] = Reward.ergEventRewardBoxes(
+    const outBoxes: ErgoBoxCandidate[] = OutputBoxes.ergEventRewardBoxes(
       event,
       eventBox,
       commitmentBoxes,
@@ -316,7 +316,7 @@ class ErgoChain implements BaseChain<ReducedTransaction, ErgoTransaction> {
     const paymentTokenId = event.targetChainTokenId;
 
     // create output boxes
-    const outBoxes: ErgoBoxCandidate[] = Reward.tokenEventRewardBoxes(
+    const outBoxes: ErgoBoxCandidate[] = OutputBoxes.tokenEventRewardBoxes(
       event,
       eventBox,
       commitmentBoxes,

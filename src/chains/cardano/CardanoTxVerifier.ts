@@ -2,6 +2,7 @@ import {
   Address,
   AssetName,
   BigNum,
+  MultiAsset,
   ScriptHash,
   Transaction,
 } from '@emurgo/cardano-serialization-lib-nodejs';
@@ -18,6 +19,7 @@ import { Fee } from '@rosen-bridge/minimum-fee';
 import MinimumFee from '../../guard/MinimumFee';
 import {
   FailedError,
+  ImpossibleBehavior,
   NetworkError,
   NotFoundError,
   UnexpectedApiError,
@@ -29,6 +31,7 @@ const logger = loggerFactory(import.meta.url);
 // TODO: include this class in refactor (#109)
 class CardanoTxVerifier {
   static lockAddress = Address.from_bech32(CardanoConfigs.lockAddress);
+  static coldAddress = Address.from_bech32(CardanoConfigs.coldAddress);
   static rosenExtractor = new CardanoKoiosRosenExtractor(
     CardanoConfigs.lockAddress,
     Configs.tokens(),
@@ -166,6 +169,120 @@ class CardanoTxVerifier {
     }
 
     return true;
+  };
+
+  /**
+   * verifies the transfer transaction
+   *  1. checks number of output boxes
+   *  2. checks cold box ergoTree
+   *  3. checks change box ergoTree
+   *  4. checks transaction metadata
+   *  5. checks remaining amount of assets in lockAddress after tx
+   *  6. checks transaction fee
+   * @param cardanoTx the transfer transaction
+   * @return true if tx verified
+   */
+  static verifyColdStorageTransaction = async (
+    cardanoTx: CardanoTransaction
+  ): Promise<boolean> => {
+    const tx = this.deserialize(cardanoTx.txBytes);
+    const outputBoxes = tx.body().outputs();
+
+    // verify number of output boxes (1 cold box + 1 change box)
+    const outputLength = outputBoxes.len();
+    if (outputLength !== 2) return false;
+
+    // verify box addresses
+    if (
+      outputBoxes.get(0).address().to_bech32() !==
+        this.coldAddress.to_bech32() ||
+      outputBoxes.get(1).address().to_bech32() !== this.lockAddress.to_bech32()
+    )
+      return false;
+
+    // verify boxes have no metadata
+    if (tx.auxiliary_data()) return false;
+
+    // get lockAddress assets
+    const assets = (await KoiosApi.getAddressAssets(CardanoConfigs.lockAddress))
+      .asset_list;
+    const addressLovelace = (
+      await KoiosApi.getAddressInfo(CardanoConfigs.lockAddress)
+    ).balance;
+    const lockAddressMultiAsset = MultiAsset.new();
+    assets.forEach((asset) =>
+      lockAddressMultiAsset.set_asset(
+        ScriptHash.from_hex(asset.policy_id),
+        AssetName.new(Utils.hexStringToUint8Array(asset.asset_name)),
+        BigNum.from_str(asset.quantity)
+      )
+    );
+
+    // calculate remaining amount of assets in lockAddress after tx
+    const coldBoxMultiAsset = outputBoxes.get(0).amount().multiasset();
+    if (coldBoxMultiAsset) {
+      for (let i = 0; i < coldBoxMultiAsset.len(); i++) {
+        const policyId = coldBoxMultiAsset.keys().get(i);
+        const policyAssets = coldBoxMultiAsset.get(policyId);
+        if (!policyAssets)
+          throw new ImpossibleBehavior(
+            'MultiAsset contains policyId with no assetName'
+          );
+
+        for (let j = 0; j < policyAssets.len(); j++) {
+          const assetName = policyAssets.keys().get(j);
+          const assetSpentValue = policyAssets.get(assetName);
+          if (!assetSpentValue)
+            throw new ImpossibleBehavior(
+              'MultiAsset contains assetName with no amount'
+            );
+
+          const targetAssetBalance = lockAddressMultiAsset.get_asset(
+            policyId,
+            assetName
+          );
+          lockAddressMultiAsset.set_asset(
+            policyId,
+            assetName,
+            targetAssetBalance.checked_sub(assetSpentValue)
+          );
+        }
+      }
+      const lockLovelace =
+        BigInt(addressLovelace) -
+        BigInt(outputBoxes.get(0).amount().coin().to_str()) -
+        BigInt(tx.body().fee().to_str());
+
+      // verify remaining amount to be within thresholds
+      const cardanoAssets = Configs.thresholds()[ChainsConstants.cardano];
+      const assetFingerprints = Object.keys(cardanoAssets);
+      for (let i = 0; i < assetFingerprints.length; i++) {
+        const fingerprint = assetFingerprints[i];
+        if (fingerprint === ChainsConstants.cardanoNativeAsset) {
+          if (
+            lockLovelace < cardanoAssets[fingerprint].low ||
+            lockLovelace > cardanoAssets[fingerprint].high
+          )
+            return false;
+        } else {
+          const AssetInfo = CardanoUtils.getCardanoAssetInfo(fingerprint);
+          const policyId = ScriptHash.from_bytes(AssetInfo.policyId);
+          const assetName = AssetName.new(AssetInfo.assetName);
+          const assetBalance = BigInt(
+            lockAddressMultiAsset.get_asset(policyId, assetName).to_str()
+          );
+
+          if (
+            assetBalance < cardanoAssets[fingerprint].low ||
+            assetBalance > cardanoAssets[fingerprint].high
+          )
+            return false;
+        }
+      }
+    }
+
+    // verify transaction fee value (last box erg value)
+    return tx.body().fee().compare(CardanoConfigs.txFee) <= 0;
   };
 
   /**

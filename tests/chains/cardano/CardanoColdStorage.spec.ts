@@ -14,6 +14,7 @@ import {
 } from './mocked/MockedKoios';
 import Utils from '../../../src/helpers/Utils';
 import { mockTrackAndFilterLockBoxes } from '../mocked/MockedCardanoTrack';
+import CardanoTxVerifier from '../../../src/chains/cardano/CardanoTxVerifier';
 
 describe('CardanoColdStorage', () => {
   const testBankAddress = TestBoxes.testBankAddress;
@@ -52,7 +53,7 @@ describe('CardanoColdStorage', () => {
       );
 
       // verify
-      const res = await CardanoColdStorage.verifyTransaction(tx);
+      const res = await CardanoTxVerifier.verifyColdStorageTransaction(tx);
       expect(res).to.be.true;
     });
 
@@ -97,7 +98,7 @@ describe('CardanoColdStorage', () => {
       );
 
       // verify
-      const res = await CardanoColdStorage.verifyTransaction(tx);
+      const res = await CardanoTxVerifier.verifyColdStorageTransaction(tx);
       expect(res).to.be.true;
     });
   });
@@ -126,7 +127,7 @@ describe('CardanoColdStorage', () => {
       const tx = TestBoxes.mockFineColdStorageTx();
 
       // run test
-      const res = await CardanoColdStorage.verifyTransaction(tx);
+      const res = await CardanoTxVerifier.verifyColdStorageTransaction(tx);
       expect(res).to.be.true;
     });
 
@@ -153,7 +154,7 @@ describe('CardanoColdStorage', () => {
       const tx = TestBoxes.mock3outBoxColdStorageTx();
 
       // run test
-      const res = await CardanoColdStorage.verifyTransaction(tx);
+      const res = await CardanoTxVerifier.verifyColdStorageTransaction(tx);
       expect(res).to.be.false;
     });
 
@@ -180,7 +181,7 @@ describe('CardanoColdStorage', () => {
       const tx = TestBoxes.mockInvalidColdAddressColdStorageTx();
 
       // run test
-      const res = await CardanoColdStorage.verifyTransaction(tx);
+      const res = await CardanoTxVerifier.verifyColdStorageTransaction(tx);
       expect(res).to.be.false;
     });
 
@@ -207,7 +208,7 @@ describe('CardanoColdStorage', () => {
       const tx = TestBoxes.mockInvalidChangeAddressColdStorageTx();
 
       // run test
-      const res = await CardanoColdStorage.verifyTransaction(tx);
+      const res = await CardanoTxVerifier.verifyColdStorageTransaction(tx);
       expect(res).to.be.false;
     });
 
@@ -234,7 +235,7 @@ describe('CardanoColdStorage', () => {
       const tx = TestBoxes.mockColdStorageTxWithMetadata();
 
       // run test
-      const res = await CardanoColdStorage.verifyTransaction(tx);
+      const res = await CardanoTxVerifier.verifyColdStorageTransaction(tx);
       expect(res).to.be.false;
     });
 
@@ -261,7 +262,7 @@ describe('CardanoColdStorage', () => {
       const tx = TestBoxes.mockColdStorageTxWithAdditionalFee();
 
       // run test
-      const res = await CardanoColdStorage.verifyTransaction(tx);
+      const res = await CardanoTxVerifier.verifyColdStorageTransaction(tx);
       expect(res).to.be.false;
     });
 
@@ -288,7 +289,7 @@ describe('CardanoColdStorage', () => {
       const tx = TestBoxes.mockHighAdaColdStorageTx();
 
       // run test
-      const res = await CardanoColdStorage.verifyTransaction(tx);
+      const res = await CardanoTxVerifier.verifyColdStorageTransaction(tx);
       expect(res).to.be.false;
     });
 
@@ -315,7 +316,7 @@ describe('CardanoColdStorage', () => {
       const tx = TestBoxes.mockHighAssetColdStorageTx();
 
       // run test
-      const res = await CardanoColdStorage.verifyTransaction(tx);
+      const res = await CardanoTxVerifier.verifyColdStorageTransaction(tx);
       expect(res).to.be.false;
     });
 
@@ -342,7 +343,7 @@ describe('CardanoColdStorage', () => {
       const tx = TestBoxes.mockLowAdaColdStorageTx();
 
       // run test
-      const res = await CardanoColdStorage.verifyTransaction(tx);
+      const res = await CardanoTxVerifier.verifyColdStorageTransaction(tx);
       expect(res).to.be.false;
     });
   });

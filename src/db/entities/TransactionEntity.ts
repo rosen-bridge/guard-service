@@ -3,22 +3,22 @@ import { ConfirmedEventEntity } from './ConfirmedEventEntity';
 
 @Entity()
 export class TransactionEntity {
-  @PrimaryColumn()
+  @PrimaryColumn('varchar')
   txId: string;
 
-  @Column()
+  @Column('varchar')
   txJson: string;
 
-  @Column()
+  @Column('varchar')
   type: string;
 
-  @Column()
+  @Column('varchar')
   chain: string;
 
-  @Column()
+  @Column('varchar')
   status: string;
 
-  @Column()
+  @Column('integer')
   lastCheck: number;
 
   @ManyToOne('ConfirmedEventEntity', 'eventId', {
@@ -27,7 +27,7 @@ export class TransactionEntity {
   })
   event: Relation<ConfirmedEventEntity>;
 
-  @Column({
+  @Column('varchar', {
     nullable: true,
   })
   lastStatusUpdate: string;
