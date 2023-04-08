@@ -16,12 +16,6 @@ import {
   Vkeywitness,
   Vkeywitnesses,
 } from '@emurgo/cardano-serialization-lib-nodejs';
-import { TypeORMError } from 'typeorm';
-import axios from 'axios';
-import {
-  BlockfrostClientError,
-  BlockfrostServerError,
-} from '@blockfrost/blockfrost-js';
 import { Buffer } from 'buffer';
 import { Fee } from '@rosen-bridge/minimum-fee';
 
@@ -63,9 +57,9 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
     const txBuilder = TransactionBuilder.new(CardanoConfigs.txBuilderConfig);
 
     const requiredAssets: UtxoBoxesAssets = {
-      lovelace: CardanoConfigs.txMinimumLovelace.checked_add(
-        CardanoConfigs.txFee
-      ),
+      lovelace: CardanoConfigs.txMinimumLovelace
+        .checked_add(CardanoConfigs.txMinimumLovelace)
+        .checked_add(CardanoConfigs.txFee),
       assets: MultiAsset.new(),
     };
 
@@ -197,7 +191,7 @@ class CardanoChain implements BaseChain<Transaction, CardanoTransaction> {
     const paymentAmount: BigNum = CardanoChain.getPaymentAmount(
       event,
       feeConfig
-    );
+    ).checked_add(CardanoConfigs.txMinimumLovelace);
 
     // create the payment box
     const paymentBox = TransactionOutput.new(
