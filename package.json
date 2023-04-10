@@ -44,7 +44,7 @@
     "blakejs": "^1.2.1",
     "config": "^3.3.7",
     "discord.js": "^14.7.1",
-    "ergo-lib-wasm-nodejs": "^0.24.0-alpha-1f24f53",
+    "ergo-lib-wasm-nodejs": "^0.24.0-alpha-cb2f648",
     "express": "^4.18.1",
     "express-validator": "^6.14.2",
     "it-pipe": "2.0.4",

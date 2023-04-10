@@ -19,6 +19,7 @@ import { default as Utils } from '../../helpers/Utils';
 import { loggerFactory } from '../../log/Logger';
 import { shuffle } from 'lodash-es';
 import { CommitmentMisMatch } from '../../helpers/errors';
+import NodeApi from '../../chains/ergo/network/NodeApi';
 
 const logger = loggerFactory(import.meta.url);
 const dialer = await Dialer.getInstance();
@@ -272,26 +273,62 @@ class MultiSigHandler {
    * process resolve transaction and call callback function
    * @param transaction
    */
-  processResolve = (transaction: TxQueued) => {
+  processResolve = async (transaction: TxQueued) => {
     if (
       transaction.sign &&
       transaction.sign.signed.length >= transaction.requiredSigner &&
       transaction.tx
     ) {
-      if (transaction.resolve) {
-        logger.debug(
-          `Tx [${transaction.tx.unsigned_tx().id()}] got full-signed`
-        );
-        transaction.resolve(
-          wasm.Transaction.sigma_parse_bytes(transaction.sign.transaction)
-        );
-        // remove transaction from queue
-        transaction.tx = undefined;
-        transaction.sign = undefined;
-        transaction.reject = undefined;
-      } else {
-        logger.warn(`No resolve method for transaction [${transaction}]`);
+      // verify transaction signed
+      const signed = wasm.Transaction.sigma_parse_bytes(
+        transaction.sign.transaction
+      );
+      const context = await NodeApi.getErgoStateContext();
+      const boxes = wasm.ErgoBoxes.empty();
+      const dataBoxes = wasm.ErgoBoxes.empty();
+      transaction.boxes.forEach((item) => boxes.add(item));
+      transaction.dataBoxes.forEach((item) => dataBoxes.add(item));
+      let rejected = false;
+      for (let index = 0; index < signed.inputs().len(); index++) {
+        if (
+          !wasm.verify_tx_input_proof(index, context, signed, boxes, dataBoxes)
+        ) {
+          rejected = true;
+          break;
+        }
       }
+      const resolution = (tx: wasm.Transaction) => {
+        let warnMethod = '';
+        if (rejected) {
+          if (transaction.reject) {
+            transaction.reject(
+              `Tx [${tx
+                .id()
+                .to_str()}] got invalid sign. rejected to sign it again`
+            );
+          } else {
+            warnMethod = 'reject';
+          }
+        } else {
+          logger.debug(`Tx [${tx.id().to_str()}] got full-signed`);
+          if (transaction.resolve) {
+            transaction.resolve(tx);
+          } else {
+            warnMethod = 'resolve';
+          }
+        }
+        if (warnMethod) {
+          logger.warn(
+            `No ${warnMethod} method for transaction [${transaction}]`
+          );
+        }
+      };
+      resolution(signed);
+      // remove transaction from queue
+      transaction.tx = undefined;
+      transaction.sign = undefined;
+      transaction.reject = undefined;
+      transaction.resolve = undefined;
     }
   };
 
@@ -583,26 +620,33 @@ class MultiSigHandler {
       const index = payload.index;
       this.getQueuedTransaction(payload.txId).then(
         async ({ transaction, release }) => {
-          try {
-            transaction.commitments[index] = payload.commitment;
-            transaction.commitmentSigns[index] = sign;
-            if (transaction.requiredSigner > 0) {
-              if (
-                transaction.commitments.filter((item) => item !== undefined)
-                  .length >=
-                transaction.requiredSigner - 1
-              ) {
-                logger.debug(
-                  `Tx [${payload.txId}] has enough commitments. Signing Delayed for [${Configs.multiSigFirstSignDelay}] seconds...`
-                );
-                this.delayedGenerateSign(payload.txId);
+          // if transaction signing started we do not need to process new commitments
+          if (!transaction.sign) {
+            try {
+              transaction.commitments[index] = payload.commitment;
+              transaction.commitmentSigns[index] = sign;
+              if (transaction.requiredSigner > 0) {
+                if (
+                  transaction.commitments.filter((item) => item !== undefined)
+                    .length >=
+                  transaction.requiredSigner - 1
+                ) {
+                  logger.debug(
+                    `Tx [${payload.txId}] has enough commitments. Signing Delayed for [${Configs.multiSigFirstSignDelay}] seconds...`
+                  );
+                  this.delayedGenerateSign(payload.txId);
+                }
               }
+            } catch (e) {
+              logger.warn(
+                `An unknown exception occurred while handling commitment from other peer: ${e}`
+              );
+              logger.warn(e.stack);
             }
-          } catch (e) {
-            logger.warn(
-              `An unknown exception occurred while handling commitment from other peer: ${e}`
+          } else {
+            logger.debug(
+              'A new commitment has been received for a transaction that has sufficient commitment.'
             );
-            logger.warn(e.stack);
           }
           release();
         }
@@ -621,7 +665,7 @@ class MultiSigHandler {
           try {
             logger.debug(`Starting signing Tx [${id}]`);
             await this.generateSign(id, transaction);
-            this.processResolve(transaction);
+            await this.processResolve(transaction);
           } catch (e) {
             logger.warn(
               `An unknown exception occurred while generating delayed sign for transaction [${id}] with error: ${e}`
@@ -776,7 +820,7 @@ class MultiSigHandler {
             ) {
               await this.generateSign(payload.txId, transaction);
             }
-            this.processResolve(transaction);
+            await this.processResolve(transaction);
           } catch (e) {
             logger.warn(
               `An unknown exception occurred while handling sign from another peer: ${e}`
