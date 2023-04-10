@@ -329,6 +329,7 @@ class MultiSigHandler {
       transaction.sign = undefined;
       transaction.reject = undefined;
       transaction.resolve = undefined;
+      this.transactions.delete(signed.id().to_str());
     }
   };
 
