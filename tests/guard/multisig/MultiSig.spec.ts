@@ -6,6 +6,9 @@ import * as wasm from 'ergo-lib-wasm-nodejs';
 import TestBoxes from '../../chains/ergo/testUtils/TestBoxes';
 import MultiSigUtils from '../../../src/guard/multisig/MultiSigUtils';
 import { CommitmentMisMatch } from '../../../src/helpers/errors';
+import { TxQueued } from '../../../src/guard/multisig/Interfaces';
+import { invalidTx, promiseCallback, validTx } from './MultiSig.data';
+import { mock, spy } from 'ts-mockito';
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -794,5 +797,51 @@ describe('MultiSigHandler', () => {
       expect(tx3.transaction).to.be.eql(tx2.transaction);
       expect(tx4.transaction).to.not.be.eql(tx1.transaction);
     }).timeout(5000);
+  });
+
+  describe('processResolve', () => {
+    /**
+     * @target: verify that when transaction sign is invalid sign process must be rejected
+     * @dependency:
+     *  - TxQueue with invalid signed transaction
+     * @scenario:
+     *  - call processResolve
+     * @expected:
+     *  - resolve must not be called.
+     *  - reject must be called once
+     */
+    it('should reject signing process when transaction sign is invalid', async () => {
+      const handler = new MultiSigHandler(
+        publicKeys,
+        '5bc1d17d0612e696a9138ab8e85ca2a02d0171440ec128a9ad557c28bd5ea046'
+      );
+      promiseCallback.resolved = 0;
+      promiseCallback.rejected = 0;
+      await handler.processResolve(invalidTx);
+      expect(promiseCallback.resolved).to.be.eql(0);
+      expect(promiseCallback.rejected).to.be.eql(1);
+    });
+
+    /**
+     * @target: verify that when transaction sign is valid sign process must be resolved
+     * @dependency:
+     *  - TxQueue with valid signed transaction
+     * @scenario:
+     *  - call processResolve
+     * @expected:
+     *  - resolve must be called once.
+     *  - reject must not be called.
+     */
+    it('should resolve signing process when transaction sign is valid', async () => {
+      const handler = new MultiSigHandler(
+        publicKeys,
+        '5bc1d17d0612e696a9138ab8e85ca2a02d0171440ec128a9ad557c28bd5ea046'
+      );
+      promiseCallback.resolved = 0;
+      promiseCallback.rejected = 0;
+      await handler.processResolve(validTx);
+      expect(promiseCallback.resolved).to.be.eql(1);
+      expect(promiseCallback.rejected).to.be.eql(0);
+    });
   });
 });

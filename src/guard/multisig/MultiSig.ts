@@ -277,7 +277,7 @@ class MultiSigHandler {
     if (
       transaction.sign &&
       transaction.sign.signed.length >= transaction.requiredSigner &&
-      transaction.tx
+      transaction.sign.transaction
     ) {
       // verify transaction signed
       const signed = wasm.Transaction.sigma_parse_bytes(
