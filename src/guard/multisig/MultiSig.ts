@@ -297,33 +297,28 @@ class MultiSigHandler {
           break;
         }
       }
-      const resolution = (tx: wasm.Transaction) => {
-        let warnMethod = '';
-        if (rejected) {
-          if (transaction.reject) {
-            transaction.reject(
-              `Tx [${tx
-                .id()
-                .to_str()}] got invalid sign. rejected to sign it again`
-            );
-          } else {
-            warnMethod = 'reject';
-          }
-        } else {
-          logger.debug(`Tx [${tx.id().to_str()}] got full-signed`);
-          if (transaction.resolve) {
-            transaction.resolve(tx);
-          } else {
-            warnMethod = 'resolve';
-          }
-        }
-        if (warnMethod) {
-          logger.warn(
-            `No ${warnMethod} method for transaction [${transaction}]`
+      let warnMethod = '';
+      if (rejected) {
+        if (transaction.reject) {
+          transaction.reject(
+            `Tx [${signed
+              .id()
+              .to_str()}] got invalid sign. rejected to sign it again`
           );
+        } else {
+          warnMethod = 'reject';
         }
-      };
-      resolution(signed);
+      } else {
+        logger.debug(`Tx [${signed.id().to_str()}] got full-signed`);
+        if (transaction.resolve) {
+          transaction.resolve(signed);
+        } else {
+          warnMethod = 'resolve';
+        }
+      }
+      if (warnMethod) {
+        logger.warn(`No ${warnMethod} method for transaction [${transaction}]`);
+      }
       // remove transaction from queue
       transaction.tx = undefined;
       transaction.sign = undefined;
