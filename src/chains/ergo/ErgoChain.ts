@@ -35,7 +35,7 @@ import { JsonBI } from '../../network/NetworkModels';
 import { guardConfig } from '../../helpers/GuardConfig';
 import { loggerFactory } from '../../log/Logger';
 import { Fee } from '@rosen-bridge/minimum-fee';
-import MinimumFee from '../../guard/MinimumFee';
+import MinimumFee from '../../event/MinimumFee';
 import {
   NotEnoughAssetsError,
   NotEnoughValidBoxesError,

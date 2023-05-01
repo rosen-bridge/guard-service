@@ -14,7 +14,7 @@ import Reward from '../../chains/ergo/Reward';
 import Utils from '../../helpers/Utils';
 import { loggerFactory } from '../../log/Logger';
 import { ErgoBox } from 'ergo-lib-wasm-nodejs';
-import MinimumFee from '../MinimumFee';
+import MinimumFee from '../../event/MinimumFee';
 import {
   ChainNotImplemented,
   FailedError,

@@ -212,6 +212,7 @@ class EventStatus {
   static inPayment = 'in-payment';
   static inReward = 'in-reward';
   static completed = 'completed';
+  static spent = 'spent'; // same as completed but no data is available about its process
   static rejected = 'rejected';
   static timeout = 'timeout';
   static paymentWaiting = 'payment-waiting';

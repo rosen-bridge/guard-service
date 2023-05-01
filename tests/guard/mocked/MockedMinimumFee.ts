@@ -1,5 +1,5 @@
 import { anything, spy, when } from 'ts-mockito';
-import MinimumFee from '../../../src/guard/MinimumFee';
+import MinimumFee from '../../../src/event/MinimumFee';
 import { Fee } from '@rosen-bridge/minimum-fee';
 
 const mockedMinimumFee = spy(MinimumFee.bridgeMinimumFee);

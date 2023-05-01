@@ -3,7 +3,7 @@ import ErgoConfigs from '../chains/ergo/helpers/ErgoConfigs';
 import { rosenConfig } from '../helpers/RosenConfig';
 import Configs from '../helpers/Configs';
 import ChainsConstants from '../chains/ChainsConstants';
-import { EventTrigger } from '../models/Models';
+import { EventTrigger } from '@rosen-chains/abstract-chain';
 
 class MinimumFee {
   static bridgeMinimumFee = new BridgeMinimumFee(

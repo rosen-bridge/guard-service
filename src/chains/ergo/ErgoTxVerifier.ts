@@ -19,7 +19,7 @@ import Configs from '../../helpers/Configs';
 import Utils from '../../helpers/Utils';
 import { loggerFactory } from '../../log/Logger';
 import { Fee } from '@rosen-bridge/minimum-fee';
-import MinimumFee from '../../guard/MinimumFee';
+import MinimumFee from '../../event/MinimumFee';
 import {
   NetworkError,
   FailedError,

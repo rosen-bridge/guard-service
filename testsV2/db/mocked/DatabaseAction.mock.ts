@@ -14,11 +14,12 @@ import {
 import { ConfirmedEventEntity } from '../../../src/db/entities/ConfirmedEventEntity';
 import { TransactionEntity } from '../../../src/db/entities/TransactionEntity';
 import migrations from '../../../src/db/migrations';
-import { EventTrigger, PaymentTransaction } from '../../../src/models/Models';
+import { PaymentTransaction } from '../../../src/models/Models';
 import { dbAction, DatabaseAction } from '../../../src/db/DatabaseAction';
 import Utils from '../../../src/helpers/Utils';
 import { loggerFactory } from '../../../src/log/Logger';
 import TestUtils from '../../../tests/testUtils/TestUtils';
+import { EventTrigger } from '@rosen-chains/abstract-chain';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -70,6 +71,9 @@ class DatabaseActionMock {
     vi.spyOn(dbAction, 'getPendingEvents').mockImplementation(
       this.testDatabase.getPendingEvents
     );
+    vi.spyOn(dbAction, 'getEventsByStatuses').mockImplementation(
+      this.testDatabase.getEventsByStatuses
+    );
     vi.spyOn(dbAction, 'getWaitingEvents').mockImplementation(
       this.testDatabase.getWaitingEvents
     );
@@ -102,6 +106,9 @@ class DatabaseActionMock {
     );
     vi.spyOn(dbAction, 'getUnspentEvents').mockImplementation(
       this.testDatabase.getUnspentEvents
+    );
+    vi.spyOn(dbAction, 'getUnconfirmedEvents').mockImplementation(
+      this.testDatabase.getUnconfirmedEvents
     );
     vi.spyOn(dbAction, 'insertConfirmedEvent').mockImplementation(
       this.testDatabase.insertConfirmedEvent
@@ -154,7 +161,8 @@ class DatabaseActionMock {
     boxSerialized = 'boxSerialized',
     sourceChainHeight = 300,
     firstTry?: string,
-    eventHeight = 200
+    eventHeight = 200,
+    spendHeight?: number
   ) => {
     await this.testDatabase.EventRepository.createQueryBuilder()
       .insert()
@@ -177,6 +185,7 @@ class DatabaseActionMock {
         sourceBlockId: event.sourceBlockId,
         WIDs: event.WIDs.join(','),
         sourceChainHeight: sourceChainHeight,
+        spendHeight: spendHeight,
       })
       .execute();
     const eventData =
@@ -199,12 +208,12 @@ class DatabaseActionMock {
    * inserts a record only to Event table in db
    * @param event
    * @param boxSerialized
-   * @param sourceChainHeight
+   * @param spendHeight
    */
-  static insertOnyEventDataRecord = async (
+  static insertOnlyEventDataRecord = async (
     event: EventTrigger,
     boxSerialized = 'boxSerialized',
-    sourceChainHeight = 200
+    spendHeight?: number
   ) => {
     const height = 300;
     await this.testDatabase.EventRepository.createQueryBuilder()
@@ -226,7 +235,8 @@ class DatabaseActionMock {
         targetChainTokenId: event.targetChainTokenId,
         sourceTxId: event.sourceTxId,
         sourceBlockId: event.sourceBlockId,
-        sourceChainHeight: sourceChainHeight,
+        sourceChainHeight: event.sourceChainHeight,
+        spendHeight: spendHeight,
         WIDs: event.WIDs.join(','),
       })
       .execute();
@@ -292,6 +302,15 @@ class DatabaseActionMock {
         height: height,
       })
       .execute();
+  };
+
+  /**
+   * returns all records in Event table in ScannerDatabase
+   */
+  static allRawEventRecords = async () => {
+    return await this.testDatabase.EventRepository.createQueryBuilder()
+      .select()
+      .getMany();
   };
 
   /**
