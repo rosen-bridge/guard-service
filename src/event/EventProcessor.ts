@@ -44,8 +44,7 @@ class EventProcessor {
         if (
           confirmedEvent === null &&
           (await EventVerifier.isEventConfirmedEnough(
-            EventSerializer.fromEntity(event),
-            event.boxSerialized
+            EventSerializer.fromEntity(event)
           ))
         ) {
           logger.info(

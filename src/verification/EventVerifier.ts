@@ -1,5 +1,5 @@
 import { EventTrigger } from '@rosen-chains/abstract-chain';
-import ErgoConfigs from '../chains/ergo/helpers/ErgoConfigs';
+import ErgoConfigs from '../helpers/ErgoConfigs';
 import ChainHandler from '../handlers/ChainHandler';
 import {
   ConfirmationStatus,
@@ -7,27 +7,21 @@ import {
 } from '@rosen-chains/abstract-chain';
 import { dbAction } from '../db/DatabaseAction';
 import EventSerializer from '../event/EventSerializer';
-import MinimumFee from '../event/MinimumFee';
 import { Fee } from '@rosen-bridge/minimum-fee';
 
 class EventVerifier {
   /**
    * checks if event source tx and event trigger box confirmed enough
    * @param event the event trigger
-   * @param serializedEventBox serialized string of the event box
    */
   static isEventConfirmedEnough = async (
-    event: EventTrigger,
-    serializedEventBox: string
+    event: EventTrigger
   ): Promise<boolean> => {
     // check if the event box in ergo chain confirmed enough
     const ergoChain = ChainHandler.getErgoChain();
-    const eventBoxCreationHeight = ergoChain.getBoxHeight(serializedEventBox);
+    const eventHeight = event.height;
     const ergoCurrentHeight = await ergoChain.getHeight();
-    if (
-      ergoCurrentHeight - eventBoxCreationHeight <
-      ErgoConfigs.eventConfirmation
-    )
+    if (ergoCurrentHeight - eventHeight < ErgoConfigs.eventConfirmation)
       return false;
 
     // check if lock transaction in source chain confirmed enough
