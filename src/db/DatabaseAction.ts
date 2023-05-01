@@ -70,24 +70,6 @@ class DatabaseAction {
   };
 
   /**
-   * TODO: remove this
-   * @return the event triggers with pending status
-   */
-  getPendingEvents = async (): Promise<ConfirmedEventEntity[]> => {
-    return await this.ConfirmedEventRepository.find({
-      relations: ['eventData'],
-      where: [
-        {
-          status: EventStatus.pendingPayment,
-        },
-        {
-          status: EventStatus.pendingReward,
-        },
-      ],
-    });
-  };
-
-  /**
    * @param statuses list of statuses
    * @return the event triggers with status
    */
@@ -343,18 +325,6 @@ class DatabaseAction {
         eventId: eventId,
         height: LessThan(eventBoxHeight),
         spendBlock: IsNull(),
-      },
-    });
-  };
-
-  /**
-   * TODO: remove this
-   * @return all event triggers with no spent block
-   */
-  getUnspentEvents = async (): Promise<EventTriggerEntity[]> => {
-    return await this.EventRepository.find({
-      where: {
-        sourceTxId: IsNull(),
       },
     });
   };

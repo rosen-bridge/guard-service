@@ -68,9 +68,6 @@ class DatabaseActionMock {
     vi.spyOn(dbAction, 'getEventById').mockImplementation(
       this.testDatabase.getEventById
     );
-    vi.spyOn(dbAction, 'getPendingEvents').mockImplementation(
-      this.testDatabase.getPendingEvents
-    );
     vi.spyOn(dbAction, 'getEventsByStatuses').mockImplementation(
       this.testDatabase.getEventsByStatuses
     );
@@ -103,9 +100,6 @@ class DatabaseActionMock {
     );
     vi.spyOn(dbAction, 'getValidCommitments').mockImplementation(
       this.testDatabase.getValidCommitments
-    );
-    vi.spyOn(dbAction, 'getUnspentEvents').mockImplementation(
-      this.testDatabase.getUnspentEvents
     );
     vi.spyOn(dbAction, 'getUnconfirmedEvents').mockImplementation(
       this.testDatabase.getUnconfirmedEvents
