@@ -45,7 +45,7 @@ contracts:
   addressesBasePath: 'tests/resources/addresses/'
 logs:
   - type: 'console'
-    level: 'debug'
+    level: 'error'
 coldStorage:
   startHour: 17
   endHour: 19

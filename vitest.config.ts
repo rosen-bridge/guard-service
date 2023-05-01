@@ -11,10 +11,18 @@ export default defineConfig({
     ],
     coverage: {
       all: true,
-      reporter: ['cobertura', 'text', 'text-summary'],
+      reporter: ['cobertura', 'lcov', 'text', 'text-summary'],
+      provider: 'istanbul',
+      include: ['src'],
     },
     deps: {
-      inline: [/ergo-lib-wasm-browser/, /@rosen-bridge/, /@lodash-es/],
+      inline: [
+        /ergo-lib-wasm-browser/,
+        /@rosen-bridge/,
+        /@rosen-chains/,
+        /@lodash-es/,
+      ],
+      registerNodeLoader: true,
     },
     environment: 'node',
     transformMode: {
