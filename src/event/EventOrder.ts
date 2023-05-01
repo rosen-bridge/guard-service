@@ -42,7 +42,11 @@ class EventOrder {
       // if targetToken is native token, increase native token amount
       assets.nativeToken +=
         BigInt(event.amount) -
-        Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee) -
+        Utils.maxBigint(
+          Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee),
+          (BigInt(event.amount) * feeConfig.feeRatio) /
+            MinimumFee.bridgeMinimumFee.feeRatioDivisor
+        ) -
         Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee);
     } else {
       // else, add transferring token
@@ -50,7 +54,11 @@ class EventOrder {
         id: event.targetChainTokenId,
         value:
           BigInt(event.amount) -
-          Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee) -
+          Utils.maxBigint(
+            Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee),
+            (BigInt(event.amount) * feeConfig.feeRatio) /
+              MinimumFee.bridgeMinimumFee.feeRatioDivisor
+          ) -
           Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee),
       });
     }

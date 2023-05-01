@@ -6,50 +6,86 @@
   "tokens": [
     {
       "ergo": {
-        "tokenId": "0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95",
-        "tokenName": "test token3"
-      },
-      "cardano": {
-        "fingerprint": "asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3",
-        "policyId": "ace7bcc2ce705679149746620de3a84660ce57573df54b5a096e39a2",
-        "assetName": "7369676d61",
-        "unit": "7eae28af2208be856f7a119668ae52a49b73725e326dc16579dcc37e"
-      }
-    },
-    {
-      "ergo": {
         "tokenId": "erg",
-        "tokenName": "test erg"
+        "tokenName": "erg",
+        "decimals": 9,
+        "metaData": {
+          "type": "native",
+          "residency": "native"
+        }
       },
       "cardano": {
-        "fingerprint": "asset1nl000000000000000000000000000000000000",
-        "policyId": "22c3b86a5b88a78b5de52f4aed2831d1483b3b7681f1ee2569538130",
-        "assetName": "1111111111",
-        "unit": "7777777777777777777777777777777777777777777777777777777"
+        "fingerprint": "asset1epz7gzjqg5py4xrgps6ccv25gz7gd6v8e5gmxx",
+        "policyId": "d2f6eb37450a3d568de93d623e69bd0ba1238daacc883d75736abd23",
+        "assetName": "527374457267565465737432",
+        "decimals": 9,
+        "metaData": {
+          "type": "CIP26",
+          "residency": "wrapped"
+        }
       }
     },
     {
       "ergo": {
-        "tokenId": "064c58ea394d41fada074a3c560a132467adf4ca1512c409c014c625ca285e9c",
-        "tokenName": "test token4"
+        "tokenId": "0cd8c9f416e5b1ca9f986a7f10a84191dfb85941619e49e53c0dc30ebf83324b",
+        "tokenName": "COMET",
+        "decimals": 0,
+        "metaData": {
+          "type": "EIP-004",
+          "residency": "native"
+        }
       },
       "cardano": {
-        "fingerprint": "lovelace",
+        "fingerprint": "asset1m62zdrt2fhlm9wpqrskxka6t0wvq5vag58cytl",
+        "policyId": "bb2250e4c589539fd141fbbd2c322d380f1ce2aaef812cd87110d61b",
+        "assetName": "527374434f4d4554565465737432",
+        "decimals": 0,
+        "metaData": {
+          "type": "CIP26",
+          "residency": "wrapped"
+        }
+      }
+    },
+    {
+      "ergo": {
+        "tokenId": "b37bfa41c2d9e61b4e478ddfc459a03d25b658a2305ffb428fbc47ad6abbeeaa",
+        "tokenName": "RstHoskyVTest2",
+        "decimals": 0,
+        "metaData": {
+          "type": "EIP-004",
+          "residency": "wrapped"
+        }
+      },
+      "cardano": {
+        "fingerprint": "asset17q7r59zlc3dgw0venc80pdv566q6yguw03f0d9",
+        "policyId": "a0028f350aaabe0545fdcb56b039bfb08e4bb4d8c4d7c3c7d481c235",
+        "assetName": "484f534b59",
+        "decimals": 0,
+        "metaData": {
+          "type": "CIP26",
+          "residency": "native"
+        }
+      }
+    },
+    {
+      "ergo": {
+        "tokenId": "38cb230f68a28436fb3b73ae4b927626673e4620bc7c94896178567d436e416b",
+        "tokenName": "RstAdaVTest2",
+        "decimals": 6,
+        "metaData": {
+          "type": "EIP-004",
+          "residency": "wrapped"
+        }
+      },
+      "cardano": {
+        "fingerprint": "ada",
         "policyId": "",
-        "assetName": "",
-        "unit": ""
-      }
-    },
-    {
-      "ergo": {
-        "tokenId": "907a31bdadad63e44e5b3a132eb5be218e694270fae6fa55b197ecccac19f87e",
-        "tokenName": "test token x6"
-      },
-      "cardano": {
-        "fingerprint": "asset1nl000004e2q3wekg969n2auw30000000000000",
-        "policyId": "b88ab86a5b88a78746620de3a84660ce57573df581f1ee2569538130",
-        "assetName": "22",
-        "unit": "9877777777777777777777777777777777777777777777777777789"
+        "assetName": "414441",
+        "decimals": 6,
+        "metaData": {
+          "type": "native",
+          "residency": "native"
+        }
       }
     }
   ]

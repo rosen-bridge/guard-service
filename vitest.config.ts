@@ -28,6 +28,7 @@ export default defineConfig({
     transformMode: {
       web: [/\.([cm]?[jt]sx?|json)$/],
     },
+    singleThread: true,
   },
   plugins: [wasm(), topLevelAwait()],
   optimizeDeps: {
