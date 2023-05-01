@@ -168,7 +168,7 @@ describe('EventVerifier', () => {
      * - database
      * @scenario
      * - mock an event
-     * - run test and expect exceotion thrown
+     * - run test and expect exception thrown
      * @expected
      * - it should throw error
      */
@@ -176,7 +176,7 @@ describe('EventVerifier', () => {
       // mock an event
       const mockedEvent = mockEventTrigger();
 
-      // run test and expect exceotion thrown
+      // run test and expect exception thrown
       await expect(async () => {
         await EventVerifier.verifyEvent(mockedEvent, fee);
       }).rejects.toThrow(Error);
