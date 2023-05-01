@@ -37,29 +37,24 @@ class EventOrder {
       Configs.tokenMap.search(event.toChain, {
         [Configs.tokenMap.getIdKey(event.toChain)]: event.targetChainTokenId,
       })[0][event.toChain].metaData.type === 'native';
+    const bridgeFee = Utils.maxBigint(
+      Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee),
+      (BigInt(event.amount) * feeConfig.feeRatio) /
+        MinimumFee.bridgeMinimumFee.feeRatioDivisor
+    );
+    const networkFee = Utils.maxBigint(
+      BigInt(event.networkFee),
+      feeConfig.networkFee
+    );
 
     if (isNativeToken) {
       // if targetToken is native token, increase native token amount
-      assets.nativeToken +=
-        BigInt(event.amount) -
-        Utils.maxBigint(
-          Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee),
-          (BigInt(event.amount) * feeConfig.feeRatio) /
-            MinimumFee.bridgeMinimumFee.feeRatioDivisor
-        ) -
-        Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee);
+      assets.nativeToken += BigInt(event.amount) - bridgeFee - networkFee;
     } else {
       // else, add transferring token
       assets.tokens.push({
         id: event.targetChainTokenId,
-        value:
-          BigInt(event.amount) -
-          Utils.maxBigint(
-            Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee),
-            (BigInt(event.amount) * feeConfig.feeRatio) /
-              MinimumFee.bridgeMinimumFee.feeRatioDivisor
-          ) -
-          Utils.maxBigint(BigInt(event.networkFee), feeConfig.networkFee),
+        value: BigInt(event.amount) - bridgeFee - networkFee,
       });
     }
 
@@ -84,8 +79,9 @@ class EventOrder {
   ): PaymentOrder => {
     const WIDs: string[] = [...event.WIDs, ...unmergedWIDs];
     const bridgeFee = Utils.maxBigint(
-      BigInt(event.bridgeFee),
-      feeConfig.bridgeFee
+      Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee),
+      (BigInt(event.amount) * feeConfig.feeRatio) /
+        MinimumFee.bridgeMinimumFee.feeRatioDivisor
     );
     const networkFee = Utils.maxBigint(
       BigInt(event.networkFee),
@@ -198,7 +194,7 @@ class EventOrder {
     order.push({
       address: ErgoConfigs.networkFeeRepoAddress,
       assets: {
-        nativeToken: networkFee,
+        nativeToken: networkFee + ErgoConfigs.minimumErg,
         tokens: [],
       },
     });
