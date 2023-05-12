@@ -49,10 +49,16 @@ class EventVerifier {
       .boxSerialized;
     if (eventBox === undefined) throw new Error(`event [${eventId}] not found`);
 
-    return ChainHandler.getChain(event.fromChain).verifyEvent(
-      event,
-      eventBox,
-      feeConfig
+    // verify event data
+    const fromChain = ChainHandler.getChain(event.fromChain);
+    const valid = await fromChain.verifyEvent(event, feeConfig);
+    // verify event rwt
+    return (
+      valid &&
+      ChainHandler.getErgoChain().verifyEventRWT(
+        eventBox,
+        fromChain.getRWTToken()
+      )
     );
   };
 }

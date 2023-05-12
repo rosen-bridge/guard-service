@@ -7,6 +7,7 @@ import {
 } from '../verification/mocked/EventVerifier.mock';
 import { EventStatus } from '../../src/models/Models';
 import {
+  BoxInfo,
   EventTrigger,
   NotEnoughAssetsError,
   PaymentTransaction,
@@ -289,6 +290,9 @@ describe('EventProcessor', () => {
   });
 
   describe('processPaymentEvent', () => {
+    const fromChainRwt = 'fromChainRwt';
+    const ergoRwt = 'ergoRwt';
+
     beforeEach(async () => {
       await DatabaseActionMock.clearTables();
       ChainHandlerMock.resetMock();
@@ -314,6 +318,8 @@ describe('EventProcessor', () => {
      *   - mock `getGuardsConfigBox`
      *   - mock `getBoxWID`
      *   - mock `generateTransaction`
+     *   - mock `getRWTToken` of `fromChain`
+     *   - mock `getBoxInfo` of Ergo
      * - mock event box and valid commitments
      * - mock event payment and reward order generations
      * - mock txAgreement
@@ -339,7 +345,6 @@ describe('EventProcessor', () => {
       mockVerifyEvent(true);
 
       // mock ChainHandler `getChain` and `getErgoChain`
-      ChainHandlerMock.mockGetChainAsErgo();
       // mock `getMinimumNativeToken`
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'getMinimumNativeToken',
@@ -371,6 +376,19 @@ describe('EventProcessor', () => {
         paymentTx,
         true
       );
+      // mock `getRWTToken` of `fromChain`
+      ChainHandlerMock.mockFromChainFunction('getRWTToken', fromChainRwt);
+      // mock `getBoxInfo` of Ergo
+      const eventBoxInfo: BoxInfo = {
+        id: 'eventBoxId',
+        assets: {
+          nativeToken: 0n,
+          tokens: [
+            { id: fromChainRwt, value: 2n * BigInt(mockedEvent.WIDs.length) },
+          ],
+        },
+      };
+      ChainHandlerMock.mockErgoFunctionReturnValue('getBoxInfo', eventBoxInfo);
 
       // mock event box and valid commitments
       mockGetEventBox('serialized-event-box');
@@ -415,6 +433,8 @@ describe('EventProcessor', () => {
      * - mock ChainHandler `getChain`
      *   - mock `getMinimumNativeToken`
      *   - mock `generateTransaction`
+     *   - mock `getRWTToken` of Ergo
+     *   - mock `getBoxInfo` of Ergo
      * - mock event payment order generations
      * - mock txAgreement
      *   - mock `getChainPendingTransactions` to return empty list
@@ -440,7 +460,11 @@ describe('EventProcessor', () => {
 
       // mock ChainHandler `getChain`
       // mock `getMinimumNativeToken`
-      ChainHandlerMock.mockChainFunction('getMinimumNativeToken', 100n, false);
+      ChainHandlerMock.mockToChainFunction(
+        'getMinimumNativeToken',
+        100n,
+        false
+      );
       // mock `generateTransaction`
       const paymentTx = ErgoTransaction.fromJson(
         JSON.stringify({
@@ -453,11 +477,24 @@ describe('EventProcessor', () => {
           dataInputs: [],
         })
       );
-      ChainHandlerMock.mockChainFunction(
+      ChainHandlerMock.mockToChainFunction(
         'generateTransaction',
         paymentTx,
         true
       );
+      // mock `getRWTToken` of `Ergo`
+      ChainHandlerMock.mockErgoFunctionReturnValue('getRWTToken', ergoRwt);
+      // mock `getBoxInfo` of Ergo
+      const eventBoxInfo: BoxInfo = {
+        id: 'eventBoxId',
+        assets: {
+          nativeToken: 0n,
+          tokens: [
+            { id: ergoRwt, value: 2n * BigInt(mockedEvent.WIDs.length) },
+          ],
+        },
+      };
+      ChainHandlerMock.mockErgoFunctionReturnValue('getBoxInfo', eventBoxInfo);
 
       // mock event payment order generations
       mockEventSinglePayment({
@@ -551,6 +588,8 @@ describe('EventProcessor', () => {
      *   - mock `getGuardsConfigBox`
      *   - mock `getBoxWID`
      *   - mock `generateTransaction` to throw NotEnoughAssetsError
+     *   - mock `getRWTToken` of `fromChain`
+     *   - mock `getBoxInfo` of Ergo
      * - mock event box and valid commitments
      * - mock event payment and reward order generations
      * - mock txAgreement `getChainPendingTransactions` to return empty list
@@ -583,7 +622,6 @@ describe('EventProcessor', () => {
       mockVerifyEvent(true);
 
       // mock ChainHandler `getChain` and `getErgoChain`
-      ChainHandlerMock.mockGetChainAsErgo();
       // mock `getMinimumNativeToken`
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'getMinimumNativeToken',
@@ -615,6 +653,19 @@ describe('EventProcessor', () => {
         new NotEnoughAssetsError(`test version of NotEnoughAssetsError`),
         true
       );
+      // mock `getRWTToken` of `fromChain`
+      ChainHandlerMock.mockFromChainFunction('getRWTToken', fromChainRwt);
+      // mock `getBoxInfo` of Ergo
+      const eventBoxInfo: BoxInfo = {
+        id: 'eventBoxId',
+        assets: {
+          nativeToken: 0n,
+          tokens: [
+            { id: ergoRwt, value: 2n * BigInt(mockedEvent.WIDs.length) },
+          ],
+        },
+      };
+      ChainHandlerMock.mockErgoFunctionReturnValue('getBoxInfo', eventBoxInfo);
 
       // mock event box and valid commitments
       mockGetEventBox('serialized-event-box');
@@ -657,6 +708,8 @@ describe('EventProcessor', () => {
   });
 
   describe('processRewardEvent', () => {
+    const ergoRwt = 'ergoRwt';
+
     beforeEach(async () => {
       await DatabaseActionMock.clearTables();
       ChainHandlerMock.resetMock();
@@ -675,10 +728,12 @@ describe('EventProcessor', () => {
      * - EventBoxes
      * @scenario
      * - mock feeConfig
-     * - mock ChainHandler `getErgoChain`
+     * - mock ChainHandler `fromChain` and `getErgoChain`
      *   - mock `getGuardsConfigBox`
      *   - mock `getBoxWID`
      *   - mock `generateTransaction`
+     *   - mock `getRWTToken` of Ergo
+     *   - mock `getBoxInfo` of Ergo
      * - mock event box and valid commitments
      * - mock event payment and reward order generations
      * - mock txAgreement
@@ -701,7 +756,7 @@ describe('EventProcessor', () => {
 
       const mockedEvent: EventTrigger = mockEventTrigger();
 
-      // mock ChainHandler `getErgoChain`
+      // mock ChainHandler `fromChain` and `getErgoChain`
       // mock `getGuardsConfigBox`
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'getGuardsConfigBox',
@@ -727,6 +782,19 @@ describe('EventProcessor', () => {
         paymentTx,
         true
       );
+      // mock `getRWTToken` of Ergo
+      ChainHandlerMock.mockFromChainFunction('getRWTToken', ergoRwt);
+      // mock `getBoxInfo` of Ergo
+      const eventBoxInfo: BoxInfo = {
+        id: 'eventBoxId',
+        assets: {
+          nativeToken: 0n,
+          tokens: [
+            { id: ergoRwt, value: 2n * BigInt(mockedEvent.WIDs.length) },
+          ],
+        },
+      };
+      ChainHandlerMock.mockErgoFunctionReturnValue('getBoxInfo', eventBoxInfo);
 
       // mock event box and valid commitments
       mockGetEventBox('serialized-event-box');
@@ -768,10 +836,12 @@ describe('EventProcessor', () => {
      * @scenario
      * - mock feeConfig
      * - insert a mocked event into db
-     * - mock ChainHandler `getErgoChain`
+     * - mock ChainHandler `fromChain` and `getErgoChain`
      *   - mock `getGuardsConfigBox`
      *   - mock `getBoxWID`
      *   - mock `generateTransaction` to throw NotEnoughAssetsError
+     *   - mock `getRWTToken` of Ergo
+     *   - mock `getBoxinfo` of Ergo
      * - mock event box and valid commitments
      * - mock event payment and reward order generations
      * - mock txAgreement `getChainPendingTransactions` to return empty list
@@ -800,7 +870,7 @@ describe('EventProcessor', () => {
         EventStatus.pendingReward
       );
 
-      // mock ChainHandler `getErgoChain`
+      // mock ChainHandler `fromChain` and `getErgoChain`
       // mock `getGuardsConfigBox`
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'getGuardsConfigBox',
@@ -826,6 +896,19 @@ describe('EventProcessor', () => {
         new NotEnoughAssetsError(`test version of NotEnoughAssetsError`),
         true
       );
+      // mock `getRWTToken` of Ergo
+      ChainHandlerMock.mockFromChainFunction('getRWTToken', ergoRwt);
+      // mock `getBoxInfo` of Ergo
+      const eventBoxInfo: BoxInfo = {
+        id: 'eventBoxId',
+        assets: {
+          nativeToken: 0n,
+          tokens: [
+            { id: ergoRwt, value: 2n * BigInt(mockedEvent.WIDs.length) },
+          ],
+        },
+      };
+      ChainHandlerMock.mockErgoFunctionReturnValue('getBoxInfo', eventBoxInfo);
 
       // mock event box and valid commitments
       mockGetEventBox('serialized-event-box');

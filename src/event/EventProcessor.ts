@@ -163,7 +163,14 @@ class EventProcessor {
 
       // get event and commitment boxes
       const eventBox = await EventBoxes.getEventBox(event);
-      const commitmentBoxes = await EventBoxes.getEventValidCommitments(event);
+      const rwtCount =
+        ergoChain.getBoxInfo(eventBox).assets.tokens[0].value /
+        BigInt(event.WIDs.length);
+
+      const commitmentBoxes = await EventBoxes.getEventValidCommitments(
+        event,
+        rwtCount
+      );
       const guardsConfigBox = await ergoChain.getGuardsConfigBox(
         rosenConfig.guardNFT
       );
@@ -173,7 +180,9 @@ class EventProcessor {
         event,
         commitmentBoxes.map(ergoChain.getBoxWID),
         feeConfig,
-        ''
+        '',
+        ChainHandler.getChain(event.fromChain).getRWTToken(),
+        rwtCount
       );
       order.push(...rewardOrder);
 
@@ -260,7 +269,14 @@ class EventProcessor {
 
     // get event and commitment boxes
     const eventBox = await EventBoxes.getEventBox(event);
-    const commitmentBoxes = await EventBoxes.getEventValidCommitments(event);
+    const rwtCount =
+      ergoChain.getBoxInfo(eventBox).assets.tokens[0].value /
+      BigInt(event.WIDs.length);
+
+    const commitmentBoxes = await EventBoxes.getEventValidCommitments(
+      event,
+      rwtCount
+    );
     const guardsConfigBox = await ergoChain.getGuardsConfigBox(
       rosenConfig.guardNFT
     );
@@ -270,7 +286,9 @@ class EventProcessor {
       event,
       commitmentBoxes.map(ergoChain.getBoxWID),
       feeConfig,
-      ''
+      '',
+      ChainHandler.getChain(event.fromChain).getRWTToken(),
+      rwtCount
     );
 
     // get unsigned transactions in target chain

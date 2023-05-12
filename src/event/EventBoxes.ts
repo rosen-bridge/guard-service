@@ -7,7 +7,7 @@ import { uniqBy } from 'lodash-es';
 class EventBoxes {
   /**
    * @param event the event trigger model
-   * @returns the serialized string of corresponding event trigger box
+   * @returns the serialized string (hex format) of corresponding event trigger box
    */
   static getEventBox = async (event: EventTrigger): Promise<string> => {
     const eventId = EventSerializer.getId(event);
@@ -15,17 +15,19 @@ class EventBoxes {
     if (eventData === undefined)
       throw new Error(`event [${eventId}] not found`);
 
-    return eventData.boxSerialized;
+    return Buffer.from(eventData.boxSerialized, 'base64').toString('hex');
   };
 
   /**
    * gets the commitment boxes that are created before the event trigger and
    * aren't merged into it, while omitting any duplicate commitments
    * @param event the event trigger model
-   * @returns the serialized string of valid commitment boxes
+   * @param eventRwtCount amount RWT token per watcher for the event
+   * @returns the serialized string (hex format) of valid commitment boxes
    */
   static getEventValidCommitments = async (
-    event: EventTrigger
+    event: EventTrigger,
+    eventRwtCount: bigint
   ): Promise<string[]> => {
     const eventId = EventSerializer.getId(event);
     const eventData = (await dbAction.getEventById(eventId))?.eventData;
@@ -40,9 +42,14 @@ class EventBoxes {
 
     return uniqBy(commitments, 'WID')
       .filter(
-        (commitment: CommitmentEntity) => !event.WIDs.includes(commitment.WID)
+        (commitment: CommitmentEntity) =>
+          !event.WIDs.includes(commitment.WID) &&
+          commitment.rwtCount &&
+          BigInt(commitment.rwtCount) === eventRwtCount
       )
-      .map((commitment) => commitment.boxSerialized);
+      .map((commitment) =>
+        Buffer.from(commitment.boxSerialized, 'base64').toString('hex')
+      );
   };
 }
 

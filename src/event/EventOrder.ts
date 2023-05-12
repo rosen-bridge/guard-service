@@ -70,12 +70,16 @@ class EventOrder {
    * @param unmergedWIDs wid of valid commitment boxes which did not merge into event trigger
    * @param feeConfig minimum fee and rsn ratio config for the event
    * @param paymentTxId payment transaction id (which is empty string when toChain is Ergo)
+   * @param rwtTokenId RWT token id of fromChain
+   * @param rwtCount amount RWT token per watcher
    */
   static eventRewardOrder = (
     event: EventTrigger,
     unmergedWIDs: string[],
     feeConfig: Fee,
-    paymentTxId: string
+    paymentTxId: string,
+    rwtTokenId: string,
+    rwtCount: bigint
   ): PaymentOrder => {
     const WIDs: string[] = [...event.WIDs, ...unmergedWIDs];
     const bridgeFee = Utils.maxBigint(
@@ -103,7 +107,9 @@ class EventOrder {
         bridgeFee,
         networkFee,
         rsnFee,
-        paymentTxId
+        paymentTxId,
+        rwtTokenId,
+        rwtCount
       );
     else
       return this.eventTokenRewardOrder(
@@ -112,7 +118,9 @@ class EventOrder {
         networkFee,
         rsnFee,
         tokenId,
-        paymentTxId
+        paymentTxId,
+        rwtTokenId,
+        rwtCount
       );
   };
 
@@ -123,13 +131,17 @@ class EventOrder {
    * @param networkFee event total network fee
    * @param rsnFee event total RSN fee
    * @param paymentTxId payment transaction id (which is empty string when toChain is Ergo)
+   * @param rwtTokenId RWT token id of fromChain
+   * @param rwtCount amount RWT token per watcher
    */
   protected static eventErgRewardOrder = (
     WIDs: string[],
     bridgeFee: bigint,
     networkFee: bigint,
     rsnFee: bigint,
-    paymentTxId: string
+    paymentTxId: string,
+    rwtTokenId: string,
+    rwtCount: bigint
   ): PaymentOrder => {
     const order: PaymentOrder = [];
     const watchersLen = WIDs.length;
@@ -144,20 +156,23 @@ class EventOrder {
       (rsnFee * ErgoConfigs.watchersRSNSharePercent) /
       100n /
       BigInt(watchersLen);
+    const watcherTokens: TokenInfo[] = [
+      {
+        id: rwtTokenId,
+        value: rwtCount,
+      },
+    ];
+    if (watcherRsnAmount > 0)
+      watcherTokens.push({
+        id: rosenConfig.RSN,
+        value: watcherRsnAmount,
+      });
 
     // add watcher boxes to order
     WIDs.forEach((wid) => {
       const assets: AssetBalance = {
         nativeToken: watcherErgAmount,
-        tokens:
-          watcherRsnAmount > 0
-            ? [
-                {
-                  id: rosenConfig.RSN,
-                  value: watcherRsnAmount,
-                },
-              ]
-            : [],
+        tokens: watcherTokens,
       };
       order.push({
         address: this.watcherPermitAddress,
@@ -210,6 +225,8 @@ class EventOrder {
    * @param rsnFee event total RSN fee
    * @param tokenId payment token id
    * @param paymentTxId payment transaction id (which is empty string when toChain is Ergo)
+   * @param rwtTokenId RWT token id of fromChain
+   * @param rwtCount amount RWT token per watcher
    */
   protected static eventTokenRewardOrder = (
     WIDs: string[],
@@ -217,7 +234,9 @@ class EventOrder {
     networkFee: bigint,
     rsnFee: bigint,
     tokenId: string,
-    paymentTxId: string
+    paymentTxId: string,
+    rwtTokenId: string,
+    rwtCount: bigint
   ): PaymentOrder => {
     const order: PaymentOrder = [];
     const watchersLen = WIDs.length;
@@ -232,6 +251,10 @@ class EventOrder {
       100n /
       BigInt(watchersLen);
     const watcherTokens: TokenInfo[] = [
+      {
+        id: rwtTokenId,
+        value: rwtCount,
+      },
       {
         id: tokenId,
         value: watcherTokenAmount,

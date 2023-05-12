@@ -206,6 +206,9 @@ describe('EventOrder', () => {
   });
 
   describe('eventRewardOrder', () => {
+    const fromChainRwt = 'fromChainRwt';
+    const rwtCount = 2n;
+
     /**
      * @target EventOrder.eventRewardOrder should generate
      * native token reward distribution successfully
@@ -253,7 +256,9 @@ describe('EventOrder', () => {
         mockedEvent,
         [unmergedWID],
         fee,
-        paymentTxId
+        paymentTxId,
+        fromChainRwt,
+        rwtCount
       );
 
       // verify returned value
@@ -264,9 +269,11 @@ describe('EventOrder', () => {
           ErgoConfigs.ergoContractConfig.permitAddress
         );
         expect(watcherOrder.assets.nativeToken).toEqual(83433333n);
-        expect(watcherOrder.assets.tokens.length).toEqual(1);
-        expect(watcherOrder.assets.tokens[0].id).toEqual(rosenConfig.RSN);
-        expect(watcherOrder.assets.tokens[0].value).toEqual(33333n);
+        expect(watcherOrder.assets.tokens.length).toEqual(2);
+        expect(watcherOrder.assets.tokens[0].id).toEqual(fromChainRwt);
+        expect(watcherOrder.assets.tokens[0].value).toEqual(rwtCount);
+        expect(watcherOrder.assets.tokens[1].id).toEqual(rosenConfig.RSN);
+        expect(watcherOrder.assets.tokens[1].value).toEqual(33333n);
         expect(watcherOrder.extra).toEqual(mockedEvent.WIDs[index]);
       });
       // verify 1 watcher box
@@ -275,9 +282,11 @@ describe('EventOrder', () => {
         ErgoConfigs.ergoContractConfig.permitAddress
       );
       expect(unmergedWatcherOrder.assets.nativeToken).toEqual(83433333n);
-      expect(unmergedWatcherOrder.assets.tokens.length).toEqual(1);
-      expect(unmergedWatcherOrder.assets.tokens[0].id).toEqual(rosenConfig.RSN);
-      expect(unmergedWatcherOrder.assets.tokens[0].value).toEqual(33333n);
+      expect(unmergedWatcherOrder.assets.tokens.length).toEqual(2);
+      expect(unmergedWatcherOrder.assets.tokens[0].id).toEqual(fromChainRwt);
+      expect(unmergedWatcherOrder.assets.tokens[0].value).toEqual(rwtCount);
+      expect(unmergedWatcherOrder.assets.tokens[1].id).toEqual(rosenConfig.RSN);
+      expect(unmergedWatcherOrder.assets.tokens[1].value).toEqual(33333n);
       expect(unmergedWatcherOrder.extra).toEqual(unmergedWID);
       // verify bridge fee box
       const bridgeFeeOrder = result[6];
@@ -343,7 +352,9 @@ describe('EventOrder', () => {
         mockedEvent,
         [unmergedWID],
         fee,
-        paymentTxId
+        paymentTxId,
+        fromChainRwt,
+        rwtCount
       );
 
       // verify returned value
@@ -354,13 +365,15 @@ describe('EventOrder', () => {
           ErgoConfigs.ergoContractConfig.permitAddress
         );
         expect(watcherOrder.assets.nativeToken).toEqual(100000n);
-        expect(watcherOrder.assets.tokens.length).toEqual(2);
-        expect(watcherOrder.assets.tokens[0].id).toEqual(
+        expect(watcherOrder.assets.tokens.length).toEqual(3);
+        expect(watcherOrder.assets.tokens[0].id).toEqual(fromChainRwt);
+        expect(watcherOrder.assets.tokens[0].value).toEqual(rwtCount);
+        expect(watcherOrder.assets.tokens[1].id).toEqual(
           mockedEvent.targetChainTokenId
         );
-        expect(watcherOrder.assets.tokens[0].value).toEqual(833333n);
-        expect(watcherOrder.assets.tokens[1].id).toEqual(rosenConfig.RSN);
-        expect(watcherOrder.assets.tokens[1].value).toEqual(333n);
+        expect(watcherOrder.assets.tokens[1].value).toEqual(833333n);
+        expect(watcherOrder.assets.tokens[2].id).toEqual(rosenConfig.RSN);
+        expect(watcherOrder.assets.tokens[2].value).toEqual(333n);
         expect(watcherOrder.extra).toEqual(mockedEvent.WIDs[index]);
       });
       // verify 1 watcher box
@@ -369,13 +382,15 @@ describe('EventOrder', () => {
         ErgoConfigs.ergoContractConfig.permitAddress
       );
       expect(unmergedWatcherOrder.assets.nativeToken).toEqual(100000n);
-      expect(unmergedWatcherOrder.assets.tokens.length).toEqual(2);
-      expect(unmergedWatcherOrder.assets.tokens[0].id).toEqual(
+      expect(unmergedWatcherOrder.assets.tokens.length).toEqual(3);
+      expect(unmergedWatcherOrder.assets.tokens[0].id).toEqual(fromChainRwt);
+      expect(unmergedWatcherOrder.assets.tokens[0].value).toEqual(rwtCount);
+      expect(unmergedWatcherOrder.assets.tokens[1].id).toEqual(
         mockedEvent.targetChainTokenId
       );
-      expect(unmergedWatcherOrder.assets.tokens[0].value).toEqual(833333n);
-      expect(unmergedWatcherOrder.assets.tokens[1].id).toEqual(rosenConfig.RSN);
-      expect(unmergedWatcherOrder.assets.tokens[1].value).toEqual(333n);
+      expect(unmergedWatcherOrder.assets.tokens[1].value).toEqual(833333n);
+      expect(unmergedWatcherOrder.assets.tokens[2].id).toEqual(rosenConfig.RSN);
+      expect(unmergedWatcherOrder.assets.tokens[2].value).toEqual(333n);
       expect(unmergedWatcherOrder.extra).toEqual(unmergedWID);
       // verify bridge fee box
       const bridgeFeeOrder = result[6];
@@ -449,7 +464,9 @@ describe('EventOrder', () => {
         mockedEvent,
         [unmergedWID],
         fee,
-        paymentTxId
+        paymentTxId,
+        fromChainRwt,
+        rwtCount
       );
 
       // verify returned value
@@ -460,13 +477,15 @@ describe('EventOrder', () => {
           ErgoConfigs.ergoContractConfig.permitAddress
         );
         expect(watcherOrder.assets.nativeToken).toEqual(100000n);
-        expect(watcherOrder.assets.tokens.length).toEqual(2);
-        expect(watcherOrder.assets.tokens[0].id).toEqual(
+        expect(watcherOrder.assets.tokens.length).toEqual(3);
+        expect(watcherOrder.assets.tokens[0].id).toEqual(fromChainRwt);
+        expect(watcherOrder.assets.tokens[0].value).toEqual(rwtCount);
+        expect(watcherOrder.assets.tokens[1].id).toEqual(
           mockedEvent.targetChainTokenId
         );
-        expect(watcherOrder.assets.tokens[0].value).toEqual(1666666n);
-        expect(watcherOrder.assets.tokens[1].id).toEqual(rosenConfig.RSN);
-        expect(watcherOrder.assets.tokens[1].value).toEqual(666n);
+        expect(watcherOrder.assets.tokens[1].value).toEqual(1666666n);
+        expect(watcherOrder.assets.tokens[2].id).toEqual(rosenConfig.RSN);
+        expect(watcherOrder.assets.tokens[2].value).toEqual(666n);
         expect(watcherOrder.extra).toEqual(mockedEvent.WIDs[index]);
       });
       // verify 1 watcher box
@@ -475,13 +494,15 @@ describe('EventOrder', () => {
         ErgoConfigs.ergoContractConfig.permitAddress
       );
       expect(unmergedWatcherOrder.assets.nativeToken).toEqual(100000n);
-      expect(unmergedWatcherOrder.assets.tokens.length).toEqual(2);
-      expect(unmergedWatcherOrder.assets.tokens[0].id).toEqual(
+      expect(unmergedWatcherOrder.assets.tokens.length).toEqual(3);
+      expect(unmergedWatcherOrder.assets.tokens[0].id).toEqual(fromChainRwt);
+      expect(unmergedWatcherOrder.assets.tokens[0].value).toEqual(rwtCount);
+      expect(unmergedWatcherOrder.assets.tokens[1].id).toEqual(
         mockedEvent.targetChainTokenId
       );
-      expect(unmergedWatcherOrder.assets.tokens[0].value).toEqual(1666666n);
-      expect(unmergedWatcherOrder.assets.tokens[1].id).toEqual(rosenConfig.RSN);
-      expect(unmergedWatcherOrder.assets.tokens[1].value).toEqual(666n);
+      expect(unmergedWatcherOrder.assets.tokens[1].value).toEqual(1666666n);
+      expect(unmergedWatcherOrder.assets.tokens[2].id).toEqual(rosenConfig.RSN);
+      expect(unmergedWatcherOrder.assets.tokens[2].value).toEqual(666n);
       expect(unmergedWatcherOrder.extra).toEqual(unmergedWID);
       // verify bridge fee box
       const bridgeFeeOrder = result[6];
@@ -555,7 +576,9 @@ describe('EventOrder', () => {
         mockedEvent,
         [unmergedWID],
         fee,
-        paymentTxId
+        paymentTxId,
+        fromChainRwt,
+        rwtCount
       );
 
       // verify returned value
@@ -566,9 +589,11 @@ describe('EventOrder', () => {
           ErgoConfigs.ergoContractConfig.permitAddress
         );
         expect(watcherOrder.assets.nativeToken).toEqual(416766666n);
-        expect(watcherOrder.assets.tokens.length).toEqual(1);
-        expect(watcherOrder.assets.tokens[0].id).toEqual(rosenConfig.RSN);
-        expect(watcherOrder.assets.tokens[0].value).toEqual(166666n);
+        expect(watcherOrder.assets.tokens.length).toEqual(2);
+        expect(watcherOrder.assets.tokens[0].id).toEqual(fromChainRwt);
+        expect(watcherOrder.assets.tokens[0].value).toEqual(rwtCount);
+        expect(watcherOrder.assets.tokens[1].id).toEqual(rosenConfig.RSN);
+        expect(watcherOrder.assets.tokens[1].value).toEqual(166666n);
         expect(watcherOrder.extra).toEqual(mockedEvent.WIDs[index]);
       });
       // verify 1 watcher box
@@ -577,9 +602,11 @@ describe('EventOrder', () => {
         ErgoConfigs.ergoContractConfig.permitAddress
       );
       expect(unmergedWatcherOrder.assets.nativeToken).toEqual(416766666n);
-      expect(unmergedWatcherOrder.assets.tokens.length).toEqual(1);
-      expect(unmergedWatcherOrder.assets.tokens[0].id).toEqual(rosenConfig.RSN);
-      expect(unmergedWatcherOrder.assets.tokens[0].value).toEqual(166666n);
+      expect(unmergedWatcherOrder.assets.tokens.length).toEqual(2);
+      expect(unmergedWatcherOrder.assets.tokens[0].id).toEqual(fromChainRwt);
+      expect(unmergedWatcherOrder.assets.tokens[0].value).toEqual(rwtCount);
+      expect(unmergedWatcherOrder.assets.tokens[1].id).toEqual(rosenConfig.RSN);
+      expect(unmergedWatcherOrder.assets.tokens[1].value).toEqual(166666n);
       expect(unmergedWatcherOrder.extra).toEqual(unmergedWID);
       // verify bridge fee box
       const bridgeFeeOrder = result[6];

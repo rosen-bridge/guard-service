@@ -180,6 +180,7 @@ class DatabaseActionMock {
         WIDs: event.WIDs.join(','),
         sourceChainHeight: sourceChainHeight,
         spendHeight: spendHeight,
+        txId: 'event-creation-tx-id',
       })
       .execute();
     const eventData =
@@ -232,6 +233,7 @@ class DatabaseActionMock {
         sourceChainHeight: event.sourceChainHeight,
         spendHeight: spendHeight,
         WIDs: event.WIDs.join(','),
+        txId: 'event-creation-tx-id',
       })
       .execute();
   };
@@ -276,12 +278,14 @@ class DatabaseActionMock {
    * @param boxSerialized
    * @param wid
    * @param height
+   * @param rwtCount
    */
   static insertCommitmentBoxRecord = async (
     eventId: string,
     boxSerialized: string,
     wid: string,
-    height: number
+    height: number,
+    rwtCount: string
   ) => {
     await this.testDatabase.CommitmentRepository.createQueryBuilder()
       .insert()
@@ -294,6 +298,7 @@ class DatabaseActionMock {
         block: 'blockId',
         boxSerialized: boxSerialized,
         height: height,
+        rwtCount: rwtCount,
       })
       .execute();
   };
