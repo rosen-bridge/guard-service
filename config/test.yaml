@@ -1,6 +1,7 @@
 ---
 cardano:
   networkType: 'testnet'
+  chainNetwork: 'koios'
   koios:
     url: 'https://testnet.koios.rest/api/v0'
     timeout: 8000
@@ -16,6 +17,7 @@ cardano:
   coldStorageAddress: 'addr_test1vze7yqqlg8cjlyhz7jzvsg0f3fhxpuu6m3llxrajfzqecggw704re'
 ergo:
   networkType: 'testnet'
+  chainNetwork: 'node'
   explorer:
     url: 'https://testnet.koios.rest/api/v0'
     timeout: 8000

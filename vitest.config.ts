@@ -9,6 +9,7 @@ export default defineConfig({
     setupFiles: [
       './testsV2/setup/mockDialer.ts',
       './testsV2/setup/setupTests.ts',
+      './testsV2/setup/mockMultiSig.ts',
     ],
     coverage: {
       all: true,

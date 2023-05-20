@@ -172,7 +172,8 @@ class EventProcessor {
         rwtCount
       );
       const guardsConfigBox = await ergoChain.getGuardsConfigBox(
-        rosenConfig.guardNFT
+        rosenConfig.guardNFT,
+        rosenConfig.guardSignAddress
       );
 
       // generate reward order
@@ -278,7 +279,8 @@ class EventProcessor {
       rwtCount
     );
     const guardsConfigBox = await ergoChain.getGuardsConfigBox(
-      rosenConfig.guardNFT
+      rosenConfig.guardNFT,
+      rosenConfig.guardSignAddress
     );
 
     // generate reward order

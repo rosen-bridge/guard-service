@@ -1,5 +1,5 @@
 import { EventTrigger } from '@rosen-chains/abstract-chain';
-import ErgoConfigs from '../helpers/ErgoConfigs';
+import GuardsErgoConfigs from '../helpers/GuardsErgoConfigs';
 import ChainHandler from '../handlers/ChainHandler';
 import {
   ConfirmationStatus,
@@ -21,7 +21,7 @@ class EventVerifier {
     const ergoChain = ChainHandler.getErgoChain();
     const eventHeight = event.height;
     const ergoCurrentHeight = await ergoChain.getHeight();
-    if (ergoCurrentHeight - eventHeight < ErgoConfigs.eventConfirmation)
+    if (ergoCurrentHeight - eventHeight < GuardsErgoConfigs.eventConfirmation)
       return false;
 
     // check if lock transaction in source chain confirmed enough

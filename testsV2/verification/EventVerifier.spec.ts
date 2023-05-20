@@ -2,7 +2,7 @@ import EventVerifier from '../../src/verification/EventVerifier';
 import { mockEventTrigger } from '../event/testData';
 import ChainHandlerMock from '../handlers/ChainHandler.mock';
 import { ConfirmationStatus } from '@rosen-chains/abstract-chain';
-import ErgoConfigs from '../../src/helpers/ErgoConfigs';
+import GuardsErgoConfigs from '../../src/helpers/GuardsErgoConfigs';
 import DatabaseActionMock from '../db/mocked/DatabaseAction.mock';
 import { Fee } from '@rosen-bridge/minimum-fee';
 
@@ -33,7 +33,7 @@ describe('EventVerifier', () => {
       // mock Ergo `getHeight` such that event box is confirmed
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'getHeight',
-        mockedEvent.height + ErgoConfigs.eventConfirmation,
+        mockedEvent.height + GuardsErgoConfigs.eventConfirmation,
         true
       );
       // mock fromChain `getTxConfirmationStatus` such that event source tx is confirmed
@@ -68,7 +68,7 @@ describe('EventVerifier', () => {
       // mock Ergo `getHeight` such that event box is confirmed
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'getHeight',
-        mockedEvent.height + ErgoConfigs.eventConfirmation - 1,
+        mockedEvent.height + GuardsErgoConfigs.eventConfirmation - 1,
         true
       );
 
@@ -100,7 +100,7 @@ describe('EventVerifier', () => {
       // mock Ergo `getHeight` such that event box is confirmed
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'getHeight',
-        mockedEvent.height + ErgoConfigs.eventConfirmation,
+        mockedEvent.height + GuardsErgoConfigs.eventConfirmation,
         true
       );
       // mock fromChain `getTxConfirmationStatus` such that event source tx is unconfirmed

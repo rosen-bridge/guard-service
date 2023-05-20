@@ -28,6 +28,17 @@ const getConfigIntKeyOrDefault = (key: string, defaultValue: number) => {
 };
 
 /**
+ * reads chain network config, throws error if it is not supported
+ * @param key
+ * @param supportedNetworks
+ */
+const getChainNetworkName = (key: string, supportedNetworks: string[]) => {
+  const network: string = config.get(key);
+  if (network && supportedNetworks.includes(network)) return network;
+  throw Error(`chain network [${network}] is not supported.`);
+};
+
+/**
  * reads an optional config, returns default value if it does not exits
  * @param key
  * @param defaultValue
@@ -148,4 +159,4 @@ class Configs {
 }
 
 export default Configs;
-export { getConfigIntKeyOrDefault };
+export { getConfigIntKeyOrDefault, getChainNetworkName };

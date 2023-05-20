@@ -8,13 +8,14 @@ import {
 import Utils from '../helpers/Utils';
 import { Fee } from '@rosen-bridge/minimum-fee';
 import Configs from '../helpers/Configs';
-import ErgoConfigs from '../helpers/ErgoConfigs';
+import GuardsErgoConfigs from '../helpers/GuardsErgoConfigs';
 import MinimumFee from './MinimumFee';
 import { rosenConfig } from '../helpers/RosenConfig';
 import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
 
 class EventOrder {
-  static watcherPermitAddress = ErgoConfigs.ergoContractConfig.permitAddress;
+  static watcherPermitAddress =
+    GuardsErgoConfigs.ergoContractConfig.permitAddress;
 
   /**
    * generates single payment for an event
@@ -148,12 +149,12 @@ class EventOrder {
 
     // calculate each watcher share
     const watcherErgAmount =
-      (bridgeFee * ErgoConfigs.watchersSharePercent) /
+      (bridgeFee * GuardsErgoConfigs.watchersSharePercent) /
         100n /
         BigInt(watchersLen) +
-      ErgoConfigs.minimumErg;
+      GuardsErgoConfigs.minimumErg;
     const watcherRsnAmount =
-      (rsnFee * ErgoConfigs.watchersRSNSharePercent) /
+      (rsnFee * GuardsErgoConfigs.watchersRSNSharePercent) /
       100n /
       BigInt(watchersLen);
     const watcherTokens: TokenInfo[] = [
@@ -185,7 +186,7 @@ class EventOrder {
     const guardBridgeFeeErgAmount =
       bridgeFee -
       BigInt(watchersLen) * watcherErgAmount +
-      ErgoConfigs.minimumErg;
+      GuardsErgoConfigs.minimumErg;
     const guardRsnAmount = rsnFee - BigInt(watchersLen) * watcherRsnAmount;
     const assets: AssetBalance = {
       nativeToken: guardBridgeFeeErgAmount,
@@ -200,16 +201,16 @@ class EventOrder {
           : [],
     };
     order.push({
-      address: ErgoConfigs.bridgeFeeRepoAddress,
+      address: GuardsErgoConfigs.bridgeFeeRepoAddress,
       assets: assets,
       extra: paymentTxId,
     });
 
     // add guard network fee to order
     order.push({
-      address: ErgoConfigs.networkFeeRepoAddress,
+      address: GuardsErgoConfigs.networkFeeRepoAddress,
       assets: {
-        nativeToken: networkFee + ErgoConfigs.minimumErg,
+        nativeToken: networkFee + GuardsErgoConfigs.minimumErg,
         tokens: [],
       },
     });
@@ -243,11 +244,11 @@ class EventOrder {
 
     // calculate each watcher share
     const watcherTokenAmount =
-      (bridgeFee * ErgoConfigs.watchersSharePercent) /
+      (bridgeFee * GuardsErgoConfigs.watchersSharePercent) /
       100n /
       BigInt(watchersLen);
     const watcherRsnAmount =
-      (rsnFee * ErgoConfigs.watchersRSNSharePercent) /
+      (rsnFee * GuardsErgoConfigs.watchersRSNSharePercent) /
       100n /
       BigInt(watchersLen);
     const watcherTokens: TokenInfo[] = [
@@ -271,7 +272,7 @@ class EventOrder {
       order.push({
         address: this.watcherPermitAddress,
         assets: {
-          nativeToken: ErgoConfigs.minimumErg,
+          nativeToken: GuardsErgoConfigs.minimumErg,
           tokens: watcherTokens,
         },
         extra: wid,
@@ -294,9 +295,9 @@ class EventOrder {
         value: guardRsnAmount,
       });
     order.push({
-      address: ErgoConfigs.bridgeFeeRepoAddress,
+      address: GuardsErgoConfigs.bridgeFeeRepoAddress,
       assets: {
-        nativeToken: ErgoConfigs.minimumErg,
+        nativeToken: GuardsErgoConfigs.minimumErg,
         tokens: guardTokens,
       },
       extra: paymentTxId,
@@ -304,9 +305,9 @@ class EventOrder {
 
     // add guard network fee to order
     order.push({
-      address: ErgoConfigs.networkFeeRepoAddress,
+      address: GuardsErgoConfigs.networkFeeRepoAddress,
       assets: {
-        nativeToken: ErgoConfigs.minimumErg,
+        nativeToken: GuardsErgoConfigs.minimumErg,
         tokens: [
           {
             id: tokenId,
