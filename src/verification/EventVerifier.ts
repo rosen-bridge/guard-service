@@ -8,6 +8,7 @@ import {
 import { dbAction } from '../db/DatabaseAction';
 import EventSerializer from '../event/EventSerializer';
 import { Fee } from '@rosen-bridge/minimum-fee';
+import EventBoxes from '../event/EventBoxes';
 
 class EventVerifier {
   /**
@@ -18,14 +19,14 @@ class EventVerifier {
     event: EventTrigger
   ): Promise<boolean> => {
     // check if the event box in ergo chain confirmed enough
-    const ergoChain = ChainHandler.getErgoChain();
+    const ergoChain = ChainHandler.getInstance().getErgoChain();
     const eventHeight = event.height;
     const ergoCurrentHeight = await ergoChain.getHeight();
     if (ergoCurrentHeight - eventHeight < GuardsErgoConfigs.eventConfirmation)
       return false;
 
     // check if lock transaction in source chain confirmed enough
-    const sourceChain = ChainHandler.getChain(event.fromChain);
+    const sourceChain = ChainHandler.getInstance().getChain(event.fromChain);
     const txConfirmationStatus = await sourceChain.getTxConfirmationStatus(
       event.sourceTxId,
       TransactionTypes.lock
@@ -45,20 +46,17 @@ class EventVerifier {
   ): Promise<boolean> => {
     // get event box
     const eventId = EventSerializer.getId(event);
-    const eventBox = (await dbAction.getEventById(eventId))?.eventData
-      .boxSerialized;
-    if (eventBox === undefined) throw new Error(`event [${eventId}] not found`);
+    const eventBox = await EventBoxes.getEventBox(event);
 
     // verify event data
-    const fromChain = ChainHandler.getChain(event.fromChain);
+    const fromChain = ChainHandler.getInstance().getChain(event.fromChain);
     const valid = await fromChain.verifyEvent(event, feeConfig);
     // verify event rwt
     return (
       valid &&
-      ChainHandler.getErgoChain().verifyEventRWT(
-        eventBox,
-        fromChain.getRWTToken()
-      )
+      ChainHandler.getInstance()
+        .getErgoChain()
+        .verifyEventRWT(eventBox, fromChain.getRWTToken())
     );
   };
 }

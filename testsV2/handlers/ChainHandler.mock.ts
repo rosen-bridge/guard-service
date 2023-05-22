@@ -2,6 +2,15 @@ import chainHandler from '../../src/handlers/ChainHandler';
 import { AbstractChain } from '@rosen-chains/abstract-chain';
 import { ErgoChain } from '@rosen-chains/ergo';
 
+export const chainHandlerInstance = {
+  getChain: (chainName: string): AbstractChain => {
+    throw Error(`ChainHandler 'getChain' is not mocked!`);
+  },
+  getErgoChain: (): ErgoChain => {
+    throw Error(`ChainHandler 'getErgoChain' is not mocked!`);
+  },
+};
+
 class ChainHandlerMock {
   private static fromChainName = 'fromChain';
   private static mockedFromChain: Record<string, any>;
@@ -13,7 +22,7 @@ class ChainHandlerMock {
    * mocks getChain function of ChainHandler
    */
   private static mockGetChain = () => {
-    vi.spyOn(chainHandler, 'getChain').mockImplementation(
+    vi.spyOn(chainHandlerInstance, 'getChain').mockImplementation(
       (chainName: string) => {
         if (chainName === 'ergo')
           return this.mockedErgo as unknown as AbstractChain;
@@ -41,7 +50,7 @@ class ChainHandlerMock {
     this.mockedErgo = {};
 
     this.mockGetChain();
-    vi.spyOn(chainHandler, 'getErgoChain').mockReturnValue(
+    vi.spyOn(chainHandlerInstance, 'getErgoChain').mockReturnValue(
       this.mockedErgo as unknown as ErgoChain
     );
   };

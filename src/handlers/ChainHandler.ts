@@ -16,12 +16,36 @@ import MinimumFee from '../event/MinimumFee';
 import MultiSigHandler from '../guard/multisig/MultiSig';
 import { loggerFactory } from '../log/Logger';
 
+const logger = loggerFactory(import.meta.url);
+
 class ChainHandler {
+  private static instance: ChainHandler;
+  private ergoChain: ErgoChain;
+  private cardanoChain: CardanoChain;
+
+  private constructor() {
+    this.ergoChain = this.generateErgoChain();
+    this.cardanoChain = this.generateCardanoChain();
+    logger.info('ChainHandler instantiated');
+  }
+
+  /**
+   * generates a ChainHandler object if it doesn't exist
+   * @returns ChainHandler instance
+   */
+  public static getInstance = () => {
+    if (!ChainHandler.instance) {
+      logger.debug("ChainHandler instance didn't exist. Creating a new one");
+      ChainHandler.instance = new ChainHandler();
+    }
+    return ChainHandler.instance;
+  };
+
   /**
    * generates Ergo network and chain objects using configs
    * @returns ErgoChain object
    */
-  private static generateErgoChain = (): ErgoChain => {
+  private generateErgoChain = (): ErgoChain => {
     let network: AbstractErgoNetwork;
     switch (GuardsErgoConfigs.chainNetworkName) {
       case 'node':
@@ -61,7 +85,7 @@ class ChainHandler {
    * generates Cardano network and chain objects using configs
    * @returns CardanoChain object
    */
-  private static generateCardanoChain = (): CardanoChain => {
+  private generateCardanoChain = (): CardanoChain => {
     let network: AbstractCardanoNetwork;
     switch (GuardsCardanoConfigs.chainNetworkName) {
       case 'koios':
@@ -92,15 +116,12 @@ class ChainHandler {
     );
   };
 
-  static ergoChain = this.generateErgoChain();
-  static cardanoChain = this.generateCardanoChain();
-
   /**
    * gets chain object by name
    * @param chain chain name
    * @returns chain object
    */
-  static getChain = (chain: string): AbstractChain => {
+  getChain = (chain: string): AbstractChain => {
     switch (chain) {
       case ERGO_CHAIN:
         return this.ergoChain;
@@ -115,7 +136,7 @@ class ChainHandler {
    * gets ergo chain object
    * @returns chain object
    */
-  static getErgoChain = (): ErgoChain => {
+  getErgoChain = (): ErgoChain => {
     return this.ergoChain;
   };
 }

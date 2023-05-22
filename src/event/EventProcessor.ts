@@ -151,7 +151,7 @@ class EventProcessor {
     event: EventTrigger,
     feeConfig: Fee
   ): Promise<PaymentTransaction> => {
-    const targetChain = ChainHandler.getChain(event.toChain);
+    const targetChain = ChainHandler.getInstance().getChain(event.toChain);
     const chainMinTransfer = targetChain.getMinimumNativeToken();
 
     const order: PaymentOrder = [];
@@ -182,7 +182,7 @@ class EventProcessor {
         commitmentBoxes.map(ergoChain.getBoxWID),
         feeConfig,
         '',
-        ChainHandler.getChain(event.fromChain).getRWTToken(),
+        ChainHandler.getInstance().getChain(event.fromChain).getRWTToken(),
         rwtCount
       );
       order.push(...rewardOrder);
@@ -266,7 +266,7 @@ class EventProcessor {
     event: EventTrigger,
     feeConfig: Fee
   ): Promise<PaymentTransaction> => {
-    const ergoChain = ChainHandler.getErgoChain();
+    const ergoChain = ChainHandler.getInstance().getErgoChain();
 
     // get event and commitment boxes
     const eventBox = await EventBoxes.getEventBox(event);
@@ -289,7 +289,7 @@ class EventProcessor {
       commitmentBoxes.map(ergoChain.getBoxWID),
       feeConfig,
       '',
-      ChainHandler.getChain(event.fromChain).getRWTToken(),
+      ChainHandler.getInstance().getChain(event.fromChain).getRWTToken(),
       rwtCount
     );
 

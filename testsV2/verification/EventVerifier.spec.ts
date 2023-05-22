@@ -240,26 +240,5 @@ describe('EventVerifier', () => {
       // verify returned value
       expect(result).toEqual(false);
     });
-
-    /**
-     * @target EventVerifier.verifyEvent should throw error when
-     * event is not found in database
-     * @dependencies
-     * - database
-     * @scenario
-     * - mock an event
-     * - run test and expect exception thrown
-     * @expected
-     * - it should throw error
-     */
-    it('should throw error when event is not found in database', async () => {
-      // mock an event
-      const mockedEvent = mockEventTrigger();
-
-      // run test and expect exception thrown
-      await expect(async () => {
-        await EventVerifier.verifyEvent(mockedEvent, fee);
-      }).rejects.toThrow(Error);
-    });
   });
 });

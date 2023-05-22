@@ -100,7 +100,7 @@ const coldStorageJob = () => {
  */
 const runProcessors = () => {
   scannedEventsJob();
-  setTimeout(confirmedEventsJob, GuardTurn.secondsToNextTurn() * 1000);
+  setTimeout(confirmedEventsJob, 7 * 1000);
   setTimeout(coldStorageJob, GuardTurn.secondsToNextTurn() * 1000);
   setTimeout(resetJob, GuardTurn.secondsToReset() * 1000);
   transactionJob();

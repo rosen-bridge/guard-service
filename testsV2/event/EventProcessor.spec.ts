@@ -166,7 +166,7 @@ describe('EventProcessor', () => {
      * - processor should NOT got called
      * - event status should be updated to spent
      */
-    it('should send event to payment processor when event is pending payment', async () => {
+    it('should update event status to spent when event box is spent', async () => {
       // mock a pending payment event and insert into db
       const mockedEvent: EventTrigger = mockEventTrigger();
       await DatabaseActionMock.insertEventRecord(
@@ -191,7 +191,7 @@ describe('EventProcessor', () => {
       await EventProcessor.processConfirmedEvents();
 
       // processor should NOT got called
-      expect(mockedProcessor).not.toHaveBeenCalledOnce();
+      expect(mockedProcessor).not.toHaveBeenCalled();
 
       // event status should be updated to spent
       const dbEvents = (await DatabaseActionMock.allEventRecords()).map(
