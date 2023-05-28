@@ -5,6 +5,7 @@ import ErgoTransaction from './ergo/models/ErgoTransaction';
 import { ChainNotImplemented } from '../helpers/errors';
 import * as RosenChains from '@rosen-chains/abstract-chain';
 import { ERGO_CHAIN } from '@rosen-chains/ergo';
+import * as ErgoChainPackage from '@rosen-chains/ergo';
 import { JsonBI } from '../network/NetworkModels';
 
 /**
@@ -29,6 +30,20 @@ export const paymentTransactionTypeChange = (
   paymentTx: RosenChains.PaymentTransaction
 ): PaymentTransaction => {
   if (paymentTx.network === ERGO_CHAIN)
-    return ErgoTransaction.fromJson(JsonBI.stringify(paymentTx));
-  else return PaymentTransaction.fromJson(JsonBI.stringify(paymentTx));
+    return new ErgoTransaction(
+      paymentTx.txId,
+      paymentTx.eventId,
+      paymentTx.txBytes,
+      (paymentTx as ErgoChainPackage.ErgoTransaction).inputBoxes,
+      (paymentTx as ErgoChainPackage.ErgoTransaction).dataInputs,
+      paymentTx.txType
+    );
+  else
+    return new PaymentTransaction(
+      paymentTx.network,
+      paymentTx.txId,
+      paymentTx.eventId,
+      paymentTx.txBytes,
+      paymentTx.txType
+    );
 };
