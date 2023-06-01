@@ -80,7 +80,7 @@ describe('EventVerifier', () => {
     });
 
     /**
-     * @target EventVerifier.isEventConfirmedEnough should return true when
+     * @target EventVerifier.isEventConfirmedEnough should return false when
      * source tx is unconfirmed
      * @dependencies
      * - ChainHandler
@@ -91,9 +91,9 @@ describe('EventVerifier', () => {
      * - run test
      * - verify returned value
      * @expected
-     * - returned value should be true
+     * - returned value should be false
      */
-    it('should return true when source tx is unconfirmed', async () => {
+    it('should return false when source tx is unconfirmed', async () => {
       const mockedEvent = mockEventTrigger();
 
       // mock ChainHandler

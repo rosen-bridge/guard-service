@@ -120,7 +120,7 @@ class EventProcessor {
 
     // verify event
     if (!(await EventVerifier.verifyEvent(event, feeConfig))) {
-      logger.info(`Event hasn't verified`);
+      logger.warn(`Event [${eventId}] hasn't verified`);
       await dbAction.setEventStatus(eventId, EventStatus.rejected);
       return;
     }
@@ -164,8 +164,7 @@ class EventProcessor {
       // get event and commitment boxes
       const eventBox = await EventBoxes.getEventBox(event);
       const rwtCount =
-        ergoChain.getBoxInfo(eventBox).assets.tokens[0].value /
-        BigInt(event.WIDs.length);
+        ergoChain.getBoxRWT(eventBox) / BigInt(event.WIDs.length);
 
       const commitmentBoxes = await EventBoxes.getEventValidCommitments(
         event,
@@ -270,9 +269,7 @@ class EventProcessor {
 
     // get event and commitment boxes
     const eventBox = await EventBoxes.getEventBox(event);
-    const rwtCount =
-      ergoChain.getBoxInfo(eventBox).assets.tokens[0].value /
-      BigInt(event.WIDs.length);
+    const rwtCount = ergoChain.getBoxRWT(eventBox) / BigInt(event.WIDs.length);
 
     const commitmentBoxes = await EventBoxes.getEventValidCommitments(
       event,

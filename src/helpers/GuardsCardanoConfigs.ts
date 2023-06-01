@@ -71,24 +71,27 @@ class GuardsCardanoConfigs {
   static lockAddress = config.get<string>('cardano.lockAddress');
   static aggregatedPublicKey = config.get<string>('cardano.bankPublicKey');
 
-  // Ergo rosen extractor required configs
+  // Cardano rosen extractor required configs
   static extractorOptions = {
     lockAddress: this.lockAddress,
     tokens: Configs.tokens(),
   };
 
-  // ErgoChain required configs
+  // CardanoChain required configs
   static chainConfigs: CardanoConfigs = {
     fee: this.txFee,
     observationTxConfirmation: getConfigIntKeyOrDefault(
-      'ergo.confirmation.observation',
-      20
+      'cardano.confirmation.observation',
+      120
     ),
     paymentTxConfirmation: getConfigIntKeyOrDefault(
-      'ergo.confirmation.payment',
-      20
+      'cardano.confirmation.payment',
+      120
     ),
-    coldTxConfirmation: getConfigIntKeyOrDefault('ergo.confirmation.cold', 20),
+    coldTxConfirmation: getConfigIntKeyOrDefault(
+      'cardano.confirmation.cold',
+      120
+    ),
     lockAddress: this.lockAddress,
     coldStorageAddress: this.coldAddress,
     rwtId: this.cardanoContractConfig.RWTId,
