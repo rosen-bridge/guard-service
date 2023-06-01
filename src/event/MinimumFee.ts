@@ -7,7 +7,7 @@ import { EventTrigger } from '@rosen-chains/abstract-chain';
 
 class MinimumFee {
   static bridgeMinimumFee = new BridgeMinimumFee(
-    ErgoConfigs.explorer.url + '/api',
+    ErgoConfigs.explorer.url,
     rosenConfig.rsnRatioNFT
   );
 
