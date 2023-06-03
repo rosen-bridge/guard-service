@@ -256,11 +256,12 @@ class EventOrder {
         id: rwtTokenId,
         value: rwtCount,
       },
-      {
+    ];
+    if (watcherTokenAmount > 0)
+      watcherTokens.push({
         id: tokenId,
         value: watcherTokenAmount,
-      },
-    ];
+      });
     if (watcherRsnAmount > 0)
       watcherTokens.push({
         id: rosenConfig.RSN,
@@ -283,12 +284,15 @@ class EventOrder {
     const guardBridgeFeeTokenAmount =
       bridgeFee - BigInt(watchersLen) * watcherTokenAmount;
     const guardRsnAmount = rsnFee - BigInt(watchersLen) * watcherRsnAmount;
-    const guardTokens: TokenInfo[] = [
-      {
-        id: tokenId,
-        value: guardBridgeFeeTokenAmount,
-      },
-    ];
+    const guardTokens: TokenInfo[] =
+      guardBridgeFeeTokenAmount > 0
+        ? [
+            {
+              id: tokenId,
+              value: guardBridgeFeeTokenAmount,
+            },
+          ]
+        : [];
     if (guardRsnAmount > 0)
       guardTokens.push({
         id: rosenConfig.RSN,

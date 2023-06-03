@@ -9,6 +9,7 @@ import { JsonBI } from '../network/NetworkModels';
 import { ConfigError } from './errors';
 
 import { LogConfig } from '../types';
+import { isNumber } from 'lodash-es';
 
 /**
  * reads a numerical config, set default value if it does not exits
@@ -17,7 +18,7 @@ import { LogConfig } from '../types';
  */
 const getConfigIntKeyOrDefault = (key: string, defaultValue: number) => {
   const val: string = config.get(key);
-  if (val) {
+  if (isNumber(val)) {
     const valNum = parseInt(val);
     if (isNaN(valNum)) {
       return defaultValue;
