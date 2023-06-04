@@ -6,6 +6,7 @@ express:
   jsonBodyLimit: 50
 cardano:
   networkType: 'mainnet' # Cardano network type [testnet, mainnet]
+  chainNetwork: '' # 'ogmios', 'koios' or 'blockfrost'
   koios:
     url: 'https://api.koios.rest/api/v0'
     timeout: 8 # connection timeout for Koios API
@@ -15,12 +16,15 @@ cardano:
   minUtxoValue: '3000000' # minimum lovelace for a Utxo (box)
   fee: '400000' # Cardano transaction fee
   txTtl: 100000 # Cardano transaction time-to-live
-  observationConfirmation: 120 # required block confirmation so that an observation transaction on Cardano get confirmed
-  paymentConfirmation: 120 # required block confirmation so that a payment transaction on Cardano get confirmed
+  confirmation: # required block confirmation
+    observation: 120 # an observation transaction (lock transaction) on Cardano get confirmed
+    payment: 120 # a payment transaction on Ergo Cardano confirmed
+    cold: 120 # a cold storage transaction on Ergo Cardano confirmed
   lockAddress: '' # Cardano lock address
   coldStorageAddress: ''
 ergo:
   networkType: 'mainnet' # Ergo network type [testnet, mainnet]
+  chainNetwork: '' # 'explorer' or 'node'
   explorer:
     url: 'https://api.ergoplatform.com/api'
     timeout: 8 # connection timeout for explorer API
@@ -29,9 +33,11 @@ ergo:
     timeout: 8 # connection timeout for node API
   minBoxValue: '300000' # minimum nano-erg for a box
   fee: '1100000' # Ergo transaction fee
-  observationConfirmation: 20 # required block confirmation so that an observation transaction on Ergo get confirmed
-  eventConfirmation: 20 # required block confirmation so that an event trigger box get confirmed
-  distributionConfirmation: 20 # required block confirmation so that a payment or reward distribution transaction on Ergo get confirmed
+  confirmation: # required block confirmation
+    observation: 20 # an observation transaction (lock transaction) on Ergo get confirmed
+    event: 20 # an event trigger box get confirmed
+    payment: 20 # a payment or reward distribution transaction on Ergo get confirmed
+    cold: 20 # a cold storage transaction on Ergo get confirmed
   initialHeight: 925000 # block scanner starting block height
   scannerInterval: 180 # scanner update interval
   coldStorageAddress: ''

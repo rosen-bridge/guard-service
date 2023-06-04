@@ -1,4 +1,4 @@
-import EventProcessor from '../guard/event/EventProcessor';
+import EventProcessor from '../event/EventProcessor';
 import { txAgreement } from '../guard/agreement/TxAgreement';
 import Configs from '../helpers/Configs';
 import TransactionProcessor from '../guard/TransactionProcessor';

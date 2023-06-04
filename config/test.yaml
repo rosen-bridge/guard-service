@@ -1,6 +1,7 @@
 ---
 cardano:
   networkType: 'testnet'
+  chainNetwork: 'koios'
   koios:
     url: 'https://testnet.koios.rest/api/v0'
     timeout: 8000
@@ -16,6 +17,7 @@ cardano:
   coldStorageAddress: 'addr_test1vze7yqqlg8cjlyhz7jzvsg0f3fhxpuu6m3llxrajfzqecggw704re'
 ergo:
   networkType: 'testnet'
+  chainNetwork: 'node'
   explorer:
     url: 'https://testnet.koios.rest/api/v0'
     timeout: 8000
@@ -32,7 +34,7 @@ reward:
   bridgeFeeRepoAddress: '9gtQHPp8yh2SC7z5ZLMHnK2NNW1DUW11hBKbUEADzqCSrECoQQM'
   networkFeeRepoAddress: '9es3xKFSehNNwCpuNpY31ScAubDqeLbSWwaCysjN1ee51bgHKTq'
   watchersSharePercent: 50
-  watchersRSNSharePercent: 0
+  watchersRSNSharePercent: 20
 guard:
   secret: '79a25ff592e5a96dc5381d0649fb6bd61ba0ff67d934057812f1ad09a9d554eb'
 txSignTimeout: 1
@@ -45,7 +47,7 @@ contracts:
   addressesBasePath: 'tests/resources/addresses/'
 logs:
   - type: 'console'
-    level: 'debug'
+    level: 'error'
 coldStorage:
   startHour: 17
   endHour: 19

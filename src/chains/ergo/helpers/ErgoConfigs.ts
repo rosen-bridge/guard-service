@@ -35,15 +35,15 @@ class ErgoConfigs {
   );
 
   static observationConfirmation = getConfigIntKeyOrDefault(
-    'ergo.observationConfirmation',
+    'ergo.confirmation.observation',
     20
   );
   static eventConfirmation = getConfigIntKeyOrDefault(
-    'ergo.eventConfirmation',
+    'ergo.confirmation.event',
     20
   );
   static distributionConfirmation = getConfigIntKeyOrDefault(
-    'ergo.distributionConfirmation',
+    'ergo.confirmation.payment',
     20
   );
   static initialHeight = getConfigIntKeyOrDefault('ergo.initialHeight', 925000);

@@ -19,7 +19,7 @@ const logger = loggerFactory(import.meta.url);
 
 class ExplorerApi {
   static explorerApi = axios.create({
-    baseURL: ErgoConfigs.explorer.url,
+    baseURL: ErgoConfigs.explorer.url + '/api',
     timeout: ErgoConfigs.explorer.timeout * 1000,
   });
 

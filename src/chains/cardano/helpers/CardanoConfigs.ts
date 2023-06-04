@@ -58,11 +58,11 @@ class CardanoConfigs {
   ]);
 
   static observationConfirmation = getConfigIntKeyOrDefault(
-    'cardano.observationConfirmation',
+    'cardano.confirmation.observation',
     120
   );
   static paymentConfirmation = getConfigIntKeyOrDefault(
-    'cardano.paymentConfirmation',
+    'cardano.confirmation.payment',
     120
   );
 

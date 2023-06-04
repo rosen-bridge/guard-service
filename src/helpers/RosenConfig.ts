@@ -56,6 +56,7 @@ class ContractConfig {
 }
 
 class RosenConfig {
+  readonly guardSignAddress: string;
   readonly RSN: string;
   readonly guardNFT: string;
   readonly rsnRatioNFT: string;
@@ -74,6 +75,7 @@ class RosenConfig {
     } else {
       const configJson: string = fs.readFileSync(rosenConfigPath, 'utf8');
       const config = JSON.parse(configJson);
+      this.guardSignAddress = config.addresses.guardSign;
       this.RSN = config.tokens.RSN;
       this.guardNFT = config.tokens.GuardNFT;
       this.rsnRatioNFT = config.tokens.RSNRatioNFT;

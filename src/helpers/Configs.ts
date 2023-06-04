@@ -9,6 +9,7 @@ import { JsonBI } from '../network/NetworkModels';
 import { ConfigError } from './errors';
 
 import { LogConfig } from '../types';
+import { isNumber } from 'lodash-es';
 
 /**
  * reads a numerical config, set default value if it does not exits
@@ -17,7 +18,7 @@ import { LogConfig } from '../types';
  */
 const getConfigIntKeyOrDefault = (key: string, defaultValue: number) => {
   const val: string = config.get(key);
-  if (val) {
+  if (isNumber(val)) {
     const valNum = parseInt(val);
     if (isNaN(valNum)) {
       return defaultValue;
@@ -25,6 +26,17 @@ const getConfigIntKeyOrDefault = (key: string, defaultValue: number) => {
     return valNum;
   }
   return defaultValue;
+};
+
+/**
+ * reads chain network config, throws error if it is not supported
+ * @param key
+ * @param supportedNetworks
+ */
+const getChainNetworkName = (key: string, supportedNetworks: string[]) => {
+  const network: string = config.get(key);
+  if (network && supportedNetworks.includes(network)) return network;
+  throw Error(`chain network [${network}] is not supported.`);
 };
 
 /**
@@ -148,4 +160,4 @@ class Configs {
 }
 
 export default Configs;
-export { getConfigIntKeyOrDefault };
+export { getConfigIntKeyOrDefault, getChainNetworkName };

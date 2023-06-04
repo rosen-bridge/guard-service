@@ -9,6 +9,7 @@ import Configs from './helpers/Configs';
 import { initScanner } from './jobs/initScanner';
 import { guardConfigUpdate } from './jobs/guardConfigUpdate';
 import { guardConfig } from './helpers/GuardConfig';
+import ChainHandler from './handlers/ChainHandler';
 
 const init = async () => {
   // init guards config
@@ -20,15 +21,18 @@ const init = async () => {
   // initialize express Apis
   await initExpress();
 
+  // guard config update job
+  guardConfigUpdate();
+
   // initialize tss multiSig object
   MultiSigHandler.getInstance(guardConfig.publicKeys, Configs.guardSecret);
   initializeMultiSigJobs();
 
-  // guard config update job
-  guardConfigUpdate();
+  // initialize chain objects
+  ChainHandler.getInstance();
 
   // start tss instance
-  startTssInstance();
+  // startTssInstance();
 
   // run network scanners
   initScanner();

@@ -70,19 +70,17 @@ class DatabaseAction {
   };
 
   /**
-   * @return the event triggers with pending status
+   * @param statuses list of statuses
+   * @return the event triggers with status
    */
-  getPendingEvents = async (): Promise<ConfirmedEventEntity[]> => {
+  getEventsByStatuses = async (
+    statuses: string[]
+  ): Promise<ConfirmedEventEntity[]> => {
     return await this.ConfirmedEventRepository.find({
       relations: ['eventData'],
-      where: [
-        {
-          status: EventStatus.pendingPayment,
-        },
-        {
-          status: EventStatus.pendingReward,
-        },
-      ],
+      where: statuses.map((eventStatus) => ({
+        status: eventStatus,
+      })),
     });
   };
 
@@ -332,11 +330,10 @@ class DatabaseAction {
   };
 
   /**
-   * @return all event triggers with no spent block
+   * @return all event triggers with no spent height
    */
-  getUnspentEvents = async (): Promise<EventTriggerEntity[]> => {
-    // TODO: when extractor is able to capture spent status of events, update this query to just get unspent events
-    //  https://git.ergopool.io/ergo/rosen-bridge/scanner/watcher-data-extractor/-/issues/5
+  getUnconfirmedEvents = async (): Promise<EventTriggerEntity[]> => {
+    // TODO: join table with confirmedEvents and get only unconfirmed ones (#204)
     return await this.EventRepository.find();
   };
 
