@@ -1,5 +1,5 @@
 import { Mock } from 'vitest';
-import { txAgreement } from '../../src/guard/agreement/TxAgreement';
+import TxAgreement from '../../src/agreement/TxAgreement';
 import { PaymentTransaction } from '../../src/models/Models';
 
 class TxAgreementMock {
@@ -13,24 +13,37 @@ class TxAgreementMock {
   };
 
   /**
+   * mocks TxAgreement.getInstance to return mocked object
+   */
+  static mock = () => {
+    const functionSpy = vi.spyOn(TxAgreement, 'getInstance');
+    functionSpy.mockResolvedValue(this.mockedTxAgreement as TxAgreement);
+  };
+
+  /**
    * mocks TxAgreement.getChainPendingTransactions to return `result`
    * @param result
    */
   static mockGetChainPendingTransactions = (result: PaymentTransaction[]) => {
-    const functionSpy = vi.spyOn(txAgreement, 'getChainPendingTransactions');
+    this.mockedTxAgreement.getChainPendingTransactions = vi.fn();
+    const functionSpy = vi.spyOn(
+      this.mockedTxAgreement,
+      'getChainPendingTransactions'
+    );
     functionSpy.mockReturnValue(result);
   };
 
   /**
-   * mocks TxAgreement.startAgreementProcess
+   * mocks TxAgreement.addTransactionToQueue
    * @param result
    */
-  static mockStartAgreementProcess = () => {
-    this.mockedTxAgreement.startAgreementProcess = vi.fn();
-    const functionSpy = vi.spyOn(txAgreement, 'startAgreementProcess');
-    functionSpy.mockImplementation(
-      this.mockedTxAgreement.startAgreementProcess
+  static mockAddTransactionToQueue = () => {
+    this.mockedTxAgreement.addTransactionToQueue = vi.fn();
+    const functionSpy = vi.spyOn(
+      this.mockedTxAgreement,
+      'addTransactionToQueue'
     );
+    functionSpy.mockImplementation(() => null);
   };
 
   /**

@@ -15,7 +15,10 @@ import {
 } from './Interfaces';
 import Dialer from '../../communication/Dialer';
 import { dbAction } from '../../db/DatabaseAction';
-import { txJsonParser } from '../../chains/TxJsonParser';
+import {
+  paymentTransactionTypeChange,
+  txJsonParser,
+} from '../../chains/TxJsonParser';
 import { guardConfig } from '../../helpers/GuardConfig';
 import { loggerFactory } from '../../log/Logger';
 import InputBoxes from '../../chains/ergo/boxes/InputBoxes';
@@ -57,7 +60,9 @@ class TxAgreement {
       switch (message.type) {
         case 'request': {
           const candidate = message.payload as CandidateTransaction;
-          const tx = txJsonParser(candidate.txJson);
+          const tx = paymentTransactionTypeChange(
+            txJsonParser(candidate.txJson)
+          );
           if (tx.txType === TransactionTypes.coldStorage)
             await this.processColdStorageTransactionRequest(
               tx,
@@ -86,7 +91,9 @@ class TxAgreement {
         }
         case 'approval': {
           const approval = message.payload as TransactionApproved;
-          const tx = txJsonParser(approval.txJson);
+          const tx = paymentTransactionTypeChange(
+            txJsonParser(approval.txJson)
+          );
           await this.processApprovalMessage(
             tx,
             approval.guardsSignatures,
@@ -279,7 +286,7 @@ class TxAgreement {
     )
       return true;
 
-    const eventTxs = await dbAction.getEventTxsByType(eventId, txType);
+    const eventTxs = await dbAction.getEventValidTxsByType(eventId, txType);
     return (
       eventTxs.find((tx) => tx.status != TransactionStatus.invalid) !==
       undefined

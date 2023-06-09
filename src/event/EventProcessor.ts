@@ -16,7 +16,6 @@ import {
   PaymentTransaction,
   TransactionTypes,
 } from '@rosen-chains/abstract-chain';
-import { txAgreement } from '../guard/agreement/TxAgreement';
 import DiscordNotification from '../communication/notification/DiscordNotification';
 import { Fee } from '@rosen-bridge/minimum-fee';
 import ChainHandler from '../handlers/ChainHandler';
@@ -26,6 +25,7 @@ import {
   txJsonParser,
 } from '../chains/TxJsonParser';
 import { rosenConfig } from '../helpers/RosenConfig';
+import TxAgreement from '../agreement/TxAgreement';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -128,7 +128,7 @@ class EventProcessor {
     // create payment
     try {
       const tx = await this.createEventPayment(event, feeConfig);
-      txAgreement.startAgreementProcess(paymentTransactionTypeChange(tx));
+      (await TxAgreement.getInstance()).addTransactionToQueue(tx);
     } catch (e) {
       if (e instanceof NotEnoughAssetsError) {
         logger.warn(`Failed to create payment for event [${eventId}]: ${e}`);
@@ -199,8 +199,9 @@ class EventProcessor {
     order.push(paymentRecord);
 
     // get unsigned transactions in target chain
-    const unsignedAgreementTransactions =
-      txAgreement.getChainPendingTransactions(event.toChain);
+    const unsignedAgreementTransactions = (
+      await TxAgreement.getInstance()
+    ).getChainPendingTransactions(event.toChain);
     const unsignedQueueTransactions = (
       await dbAction.getUnsignedActiveTxsInChain(event.toChain)
     ).map((txEntity) => txJsonParser(txEntity.txJson));
@@ -240,7 +241,7 @@ class EventProcessor {
 
     try {
       const tx = await this.createEventRewardDistribution(event, feeConfig);
-      txAgreement.startAgreementProcess(paymentTransactionTypeChange(tx));
+      (await TxAgreement.getInstance()).addTransactionToQueue(tx);
     } catch (e) {
       if (e instanceof NotEnoughAssetsError) {
         logger.warn(
@@ -291,8 +292,9 @@ class EventProcessor {
     );
 
     // get unsigned transactions in target chain
-    const unsignedAgreementTransactions =
-      txAgreement.getChainPendingTransactions(ERGO_CHAIN);
+    const unsignedAgreementTransactions = (
+      await TxAgreement.getInstance()
+    ).getChainPendingTransactions(ERGO_CHAIN);
     const unsignedQueueTransactions = (
       await dbAction.getUnsignedActiveTxsInChain(ERGO_CHAIN)
     ).map((txEntity) => txJsonParser(txEntity.txJson));

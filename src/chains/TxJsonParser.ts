@@ -6,13 +6,14 @@ import { ChainNotImplemented } from '../helpers/errors';
 import * as RosenChains from '@rosen-chains/abstract-chain';
 import { ERGO_CHAIN } from '@rosen-chains/ergo';
 import * as ErgoChainPackage from '@rosen-chains/ergo';
-import { JsonBI } from '../network/NetworkModels';
 
 /**
  * reads PaymentTransaction and it's inherited classes from json string
  * @param jsonString
  */
-export const txJsonParser = (jsonString: string): PaymentTransaction => {
+export const txJsonParser = (
+  jsonString: string
+): RosenChains.PaymentTransaction => {
   const chain = (JSON.parse(jsonString) as PaymentTransactionJsonModel).network;
   if (chain === ChainsConstants.cardano) {
     return PaymentTransaction.fromJson(jsonString);

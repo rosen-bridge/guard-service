@@ -9,6 +9,8 @@ import { dbAction } from '../db/DatabaseAction';
 import EventSerializer from '../event/EventSerializer';
 import { Fee } from '@rosen-bridge/minimum-fee';
 import EventBoxes from '../event/EventBoxes';
+import { ConfirmedEventEntity } from '../db/entities/ConfirmedEventEntity';
+import { EventStatus } from '../models/Models';
 
 class EventVerifier {
   /**
@@ -58,6 +60,29 @@ class EventVerifier {
         .getErgoChain()
         .verifyEventRWT(eventBox, fromChain.getRWTToken())
     );
+  };
+
+  /**
+   * checks if event status is pending to requested tx type
+   * @param eventEntity the trigger event object in db
+   * @param type the requested tx type
+   * @returns true if event status is compatible with requested type
+   */
+  static isEventPendingToType = (
+    eventEntity: ConfirmedEventEntity,
+    type: string
+  ): boolean => {
+    if (
+      eventEntity.status === EventStatus.pendingPayment &&
+      type === TransactionTypes.payment
+    )
+      return true;
+    else if (
+      eventEntity.status === EventStatus.pendingReward &&
+      type === TransactionTypes.reward
+    )
+      return true;
+    else return false;
   };
 }
 

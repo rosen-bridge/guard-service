@@ -4,7 +4,6 @@ import { dataSource } from '../../config/dataSource';
 import { TransactionEntity } from './entities/TransactionEntity';
 import {
   EventStatus,
-  PaymentTransaction,
   TransactionStatus,
   TransactionTypes,
 } from '../models/Models';
@@ -16,6 +15,8 @@ import Utils from '../helpers/Utils';
 import { loggerFactory } from '../log/Logger';
 import { Semaphore } from 'await-semaphore/index';
 import { ImpossibleBehavior, NotFoundError } from '../helpers/errors';
+import * as RosenChains from '@rosen-chains/abstract-chain';
+import TransactionSerializer from '../transaction/TransactionSerializer';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -212,15 +213,13 @@ class DatabaseAction {
    * inserts a new approved tx into Transaction table (if already another approved tx exists, keeps the one with loser txId)
    * @param newTx the transaction
    */
-  insertTx = async (newTx: PaymentTransaction): Promise<void> => {
+  insertTx = async (newTx: RosenChains.PaymentTransaction): Promise<void> => {
     const event = await this.getEventById(newTx.eventId);
     if (event === null && newTx.txType !== TransactionTypes.coldStorage) {
       throw new Error(`Event [${newTx.eventId}] not found`);
     }
 
-    const txs = (await this.getEventTxsByType(event!.id, newTx.txType)).filter(
-      (tx) => tx.status !== TransactionStatus.invalid
-    );
+    const txs = await this.getEventValidTxsByType(event!.id, newTx.txType);
     if (txs.length > 1) {
       throw new ImpossibleBehavior(
         `Event [${newTx.eventId}] has already more than 1 (${txs.length}) active ${newTx.txType} tx`
@@ -249,11 +248,11 @@ class DatabaseAction {
   };
 
   /**
-   * returns all transaction for corresponding event
+   * returns all valid transaction for corresponding event
    * @param eventId the event trigger id
    * @param type the transaction type
    */
-  getEventTxsByType = async (
+  getEventValidTxsByType = async (
     eventId: string,
     type: string
   ): Promise<TransactionEntity[]> => {
@@ -264,6 +263,7 @@ class DatabaseAction {
       where: {
         event: event,
         type: type,
+        status: Not(TransactionStatus.invalid),
       },
     });
   };
@@ -275,13 +275,13 @@ class DatabaseAction {
    */
   replaceTx = async (
     previousTxId: string,
-    tx: PaymentTransaction
+    tx: RosenChains.PaymentTransaction
   ): Promise<void> => {
     await this.TransactionRepository.createQueryBuilder()
       .update()
       .set({
         txId: tx.txId,
-        txJson: tx.toJson(),
+        txJson: TransactionSerializer.toJson(tx),
         type: tx.txType,
         chain: tx.network,
         status: TransactionStatus.approved,
@@ -296,12 +296,12 @@ class DatabaseAction {
    * inserts a tx record into transactions table
    */
   private insertNewTx = async (
-    paymentTx: PaymentTransaction,
+    paymentTx: RosenChains.PaymentTransaction,
     event: ConfirmedEventEntity
   ): Promise<void> => {
     await this.TransactionRepository.insert({
       txId: paymentTx.txId,
-      txJson: paymentTx.toJson(),
+      txJson: TransactionSerializer.toJson(paymentTx),
       type: paymentTx.txType,
       chain: paymentTx.network,
       status: TransactionStatus.approved,

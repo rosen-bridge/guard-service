@@ -1,36 +1,53 @@
 import EventProcessor from '../event/EventProcessor';
-import { txAgreement } from '../guard/agreement/TxAgreement';
 import Configs from '../helpers/Configs';
 import TransactionProcessor from '../guard/TransactionProcessor';
 import GuardTurn from '../helpers/GuardTurn';
 import ColdStorage from '../guard/coldStorage/ColdStorage';
 import ColdStorageConfig from '../guard/coldStorage/ColdStorageConfig';
+import TxAgreement from '../agreement/TxAgreement';
 
 /**
- * resends generated tx for an event
+ * sends generated tx to agreement
  */
-const resendTxJob = () => {
+const agreementQueueJob = async () => {
   if (GuardTurn.secondsToReset() < GuardTurn.UP_TIME_LENGTH) {
+    const txAgreement = await TxAgreement.getInstance();
+    txAgreement.processAgreementQueue().then(() => {
+      setTimeout(agreementQueueJob, Configs.agreementQueueInterval * 1000);
+    });
+  }
+};
+
+/**
+ * resends agreement process messages
+ */
+const agreementResendJob = async () => {
+  if (GuardTurn.secondsToReset() < GuardTurn.UP_TIME_LENGTH) {
+    const txAgreement = await TxAgreement.getInstance();
     txAgreement.resendTransactionRequests();
     setTimeout(
       txAgreement.resendApprovalMessages,
       Configs.approvalResendDelay * 1000
     );
-    setTimeout(resendTxJob, Configs.txResendInterval * 1000);
+    setTimeout(agreementResendJob, Configs.txResendInterval * 1000);
   }
 };
 
 /**
  * runs EventProcessor job to process confirmed events
  */
-const confirmedEventsJob = () => {
+const confirmedEventsJob = async () => {
   // process confirmed events
   EventProcessor.processConfirmedEvents().then(() => {
     setTimeout(confirmedEventsJob, GuardTurn.secondsToNextTurn() * 1000);
-    setTimeout(resendTxJob, Configs.txResendInterval * 1000);
   });
+  setTimeout(agreementQueueJob, Configs.agreementQueueInterval * 1000);
+  setTimeout(agreementResendJob, Configs.txResendInterval * 1000);
   // clear generated transactions when turn is over
-  setTimeout(txAgreement.clearTransactions, GuardTurn.UP_TIME_LENGTH * 1000);
+  setTimeout(
+    (await TxAgreement.getInstance()).clearTransactions,
+    GuardTurn.UP_TIME_LENGTH * 1000
+  );
 };
 
 /**
@@ -45,8 +62,8 @@ const scannedEventsJob = () => {
 /**
  * runs cleanUp job for txAgreement
  */
-const resetJob = () => {
-  txAgreement
+const resetJob = async () => {
+  (await TxAgreement.getInstance())
     .clearAgreedTransactions()
     .then(() => setTimeout(resetJob, GuardTurn.secondsToReset() * 1000));
 };
@@ -84,14 +101,17 @@ const requeueWaitingEventsJob = () => {
 /**
  * runs coldStorage jobs
  */
-const coldStorageJob = () => {
+const coldStorageJob = async () => {
   if (ColdStorageConfig.isWithinTime()) {
     // process lock address assets for sending any to cold storage
     ColdStorage.processLockAddressAssets().then(() => {
       setTimeout(coldStorageJob, GuardTurn.secondsToNextTurn() * 1000);
     });
     // clear generated transactions when turn is over
-    setTimeout(txAgreement.clearTransactions, GuardTurn.UP_TIME_LENGTH * 1000);
+    setTimeout(
+      (await TxAgreement.getInstance()).clearTransactions,
+      GuardTurn.UP_TIME_LENGTH * 1000
+    );
   } else setTimeout(coldStorageJob, GuardTurn.secondsToNextTurn() * 1000);
 };
 
