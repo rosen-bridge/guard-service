@@ -452,7 +452,6 @@ class TxAgreement extends Communicator {
       if (this.agreedColdStorageTransactions.has(tx.network))
         this.agreedColdStorageTransactions.delete(tx.network);
     } catch (e) {
-      console.log(`error occurred: ${e}`);
       logger.warn(
         `An error occurred while setting tx [${tx.txId}] as approved: ${e}`
       );

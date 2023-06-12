@@ -1186,7 +1186,7 @@ describe('TxAgreement', () => {
         EventStatus.pendingPayment
       );
 
-      // mock signer verify function to return false only for last signature
+      // mock signer verify function to return true
       const txAgreement = new TestTxAgreement();
       vi.spyOn(txAgreement.getSigner(), 'verify').mockResolvedValue(true);
 
@@ -1214,7 +1214,7 @@ describe('TxAgreement', () => {
 
     /**
      * @target TxAgreement.processApprovalMessage should set tx as approved
-     * when required number of signs met
+     * when required number of signs met for a payment tx
      * @dependencies
      * - database
      * @scenario
@@ -1230,7 +1230,7 @@ describe('TxAgreement', () => {
      * - event status should be updated in db
      * - tx should be inserted into db
      */
-    it('should set tx as approved when required number of signs met', async () => {
+    it('should set tx as approved when required number of signs met for a payment tx', async () => {
       // mock testdata
       const type = 'approval';
       const mockedEvent = EventTestData.mockEventTrigger();
@@ -1256,7 +1256,7 @@ describe('TxAgreement', () => {
         EventStatus.pendingPayment
       );
 
-      // mock signer verify function to return false only for last signature
+      // mock signer verify function to return true
       const txAgreement = new TestTxAgreement();
       vi.spyOn(txAgreement.getSigner(), 'verify').mockResolvedValue(true);
 
@@ -1267,7 +1267,7 @@ describe('TxAgreement', () => {
       });
       txAgreement.insertEventAgreedTransactions(
         paymentTx.eventId,
-        paymentTx.eventId
+        paymentTx.txId
       );
 
       // run test
@@ -1299,6 +1299,80 @@ describe('TxAgreement', () => {
       ]);
       expect(dbTxs.length).toEqual(1);
       expect(dbTxs).to.deep.contain([paymentTx.txId, eventId]);
+    });
+
+    /**
+     * @target TxAgreement.processApprovalMessage should set tx as approved
+     * when required number of signs met for a cold storage tx
+     * @dependencies
+     * - database
+     * @scenario
+     * - mock testdata
+     * - mock signer verify function to return true
+     * - insert mocked tx into memory
+     * - run test (call `processMessage`)
+     * - check if txApprovals changed
+     * - check database
+     * @expected
+     * - memory txs should be empty
+     * - tx should be inserted into db
+     */
+    it('should set tx as approved when required number of signs met for a cold storage tx', async () => {
+      // mock testdata
+      const type = 'approval';
+      const chain = 'chain';
+      const paymentTx = mockPaymentTransaction(
+        TransactionTypes.coldStorage,
+        chain,
+        ''
+      );
+      const signatures = ['signature-0', 'signature-1', '', '', 'signature-4'];
+      const payload = {
+        txJson: TransactionSerializer.toJson(paymentTx),
+        signatures: signatures,
+      };
+      const senderIndex = 0;
+      const peerId = 'peerId';
+
+      const timestamp = Math.round(TestConfigs.currentTimeStamp / 1000);
+
+      // mock signer verify function to return true
+      const txAgreement = new TestTxAgreement();
+      vi.spyOn(txAgreement.getSigner(), 'verify').mockResolvedValue(true);
+
+      // insert mocked tx into memory
+      txAgreement.insertTransactions(paymentTx.txId, {
+        tx: paymentTx,
+        timestamp: timestamp,
+      });
+      txAgreement.insertAgreedColdStorageTransactions(
+        paymentTx.network,
+        paymentTx.txId
+      );
+
+      // run test
+      await txAgreement.processMessage(
+        type,
+        payload,
+        'signature',
+        senderIndex,
+        peerId,
+        timestamp
+      );
+
+      // memory txs should be empty
+      expect(txAgreement.getTransactions().size).toEqual(0);
+      expect(txAgreement.getTransactionApprovals().size).toEqual(0);
+      expect(txAgreement.getAgreedColdStorageTransactions().size).toEqual(0);
+
+      // tx should be inserted into db
+      const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
+        tx.txId,
+        tx.event,
+        tx.chain,
+      ]);
+      expect(dbTxs.length).toEqual(1);
+      expect(dbTxs).to.deep.contain([paymentTx.txId, null, paymentTx.network]);
     });
 
     /**
@@ -1345,7 +1419,7 @@ describe('TxAgreement', () => {
         EventStatus.pendingPayment
       );
 
-      // mock signer verify function to return false only for last signature
+      // mock signer verify function to return true
       const txAgreement = new TestTxAgreement();
       vi.spyOn(txAgreement.getSigner(), 'verify').mockResolvedValue(true);
 
@@ -1429,7 +1503,7 @@ describe('TxAgreement', () => {
         EventStatus.pendingPayment
       );
 
-      // mock signer verify function to return false only for last signature
+      // mock signer verify function to return true
       const txAgreement = new TestTxAgreement();
       vi.spyOn(txAgreement.getSigner(), 'verify').mockResolvedValue(true);
 
