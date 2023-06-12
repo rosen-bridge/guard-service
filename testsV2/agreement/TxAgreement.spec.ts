@@ -11,6 +11,7 @@ import { ApprovedCandidate } from '../../src/agreement/Interfaces';
 import * as EventTestData from '../event/testData';
 import EventSerializer from '../../src/event/EventSerializer';
 import { EventStatus } from '../../src/models/Models';
+import { cloneDeep } from 'lodash-es';
 
 describe('TxAgreement', () => {
   describe('addTransactionToQueue', () => {
@@ -925,7 +926,7 @@ describe('TxAgreement', () => {
       );
 
       // `sendMessage` should got called with correct arguments
-      const expectedSignatures = structuredClone(approvals);
+      const expectedSignatures = cloneDeep(approvals);
       expectedSignatures[senderIndex] = 'signature';
       const approvalPayload = {
         txJson: TransactionSerializer.toJson(paymentTx),
@@ -1029,7 +1030,7 @@ describe('TxAgreement', () => {
       );
 
       // `sendMessage` should got called with correct arguments
-      const expectedSignatures = structuredClone(approvals);
+      const expectedSignatures = cloneDeep(approvals);
       expectedSignatures[senderIndex] = 'signature';
       const approvalPayload = {
         txJson: TransactionSerializer.toJson(paymentTx),
