@@ -35,7 +35,7 @@ class TxAgreement extends Communicator {
   protected transactionApprovals: Map<string, string[]>; // txId -> signatures
   protected approvedTransactions: ApprovedCandidate[];
 
-  private constructor() {
+  protected constructor() {
     super(
       logger,
       new EcDSA(Configs.guardSecret),
@@ -46,6 +46,7 @@ class TxAgreement extends Communicator {
     this.transactionQueue = [];
     this.transactions = new Map();
     this.eventAgreedTransactions = new Map();
+    this.agreedColdStorageTransactions = new Map();
     this.transactionApprovals = new Map();
     this.approvedTransactions = [];
   }
@@ -319,7 +320,10 @@ class TxAgreement extends Communicator {
     else txApprovals[signerIndex] = signature;
 
     if (
-      this.transactionApprovals.get(txId)!.length >= guardConfig.requiredSign
+      this.transactionApprovals
+        .get(txId)!
+        .filter((signature) => signature !== '').length >=
+      guardConfig.requiredSign
     ) {
       logger.info(`The majority of guards agreed with transaction [${txId}]`);
 
@@ -448,6 +452,7 @@ class TxAgreement extends Communicator {
       if (this.agreedColdStorageTransactions.has(tx.network))
         this.agreedColdStorageTransactions.delete(tx.network);
     } catch (e) {
+      console.log(`error occurred: ${e}`);
       logger.warn(
         `An error occurred while setting tx [${tx.txId}] as approved: ${e}`
       );
@@ -489,54 +494,43 @@ class TxAgreement extends Communicator {
   };
 
   /**
-   * iterates over active and approved transactions and resend their requests
+   * iterates over active transactions and resend their requests
    */
-  resendTransactionRequests = (): void => {
-    const creatorId = guardConfig.guardId;
+  resendTransactionRequests = async (): Promise<void> => {
     logger.info(
       `Resending [${this.transactions.size}] generated transactions for agreement`
     );
-    this.transactions.forEach((candidateTx) => {
+    for (const candidateTx of this.transactions.values()) {
       try {
-        this.broadcastTransactionRequest(candidateTx.tx, creatorId);
+        await this.broadcastTransactionRequest(
+          candidateTx.tx,
+          candidateTx.timestamp
+        );
       } catch (e) {
         logger.warn(
           `An error occurred while resending tx [${candidateTx.tx.txId}]: ${e}`
         );
         logger.warn(e.stack);
       }
-    });
-
-    logger.info(
-      `Resending [${this.approvedTransactions.length}] approved transactions`
-    );
-    this.approvedTransactions.forEach((approved) => {
-      try {
-        this.broadcastTransactionRequest(approved.tx, creatorId);
-      } catch (e) {
-        logger.warn(
-          `An error occurred while resending approved tx [${approved.tx.txId}]: ${e.stack}`
-        );
-      }
-    });
+    }
   };
 
   /**
    * iterates over approved transactions and resend their approval messages
    */
-  resendApprovalMessages = (): void => {
+  resendApprovalMessages = async (): Promise<void> => {
     logger.info(
       `Resending approval messages for [${this.approvedTransactions.length}] transactions`
     );
-    this.approvedTransactions.forEach((approved) => {
+    for (const approved of this.approvedTransactions) {
       try {
-        this.broadcastApprovalMessage(approved);
+        await this.broadcastApprovalMessage(approved);
       } catch (e) {
         logger.warn(
           `An error occurred while resending approval message for tx [${approved.tx.txId}]: ${e.stack}`
         );
       }
-    });
+    }
   };
 
   /**
@@ -557,7 +551,10 @@ class TxAgreement extends Communicator {
    */
   clearAgreedTransactions = async (): Promise<void> => {
     logger.info(
-      `Removing [${this.eventAgreedTransactions.size}] agreed transactions from memory`
+      `Removing [${
+        this.eventAgreedTransactions.size +
+        this.agreedColdStorageTransactions.size
+      }] agreed transactions from memory`
     );
     this.transactions.clear();
     this.eventAgreedTransactions.clear();

@@ -87,6 +87,9 @@ class DatabaseActionMock {
     vi.spyOn(dbAction, 'updateWithSignedTx').mockImplementation(
       this.testDatabase.updateWithSignedTx
     );
+    vi.spyOn(dbAction, 'insertTx').mockImplementation(
+      this.testDatabase.insertTx
+    );
     vi.spyOn(dbAction, 'getEventValidTxsByType').mockImplementation(
       this.testDatabase.getEventValidTxsByType
     );
