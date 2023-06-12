@@ -12,12 +12,12 @@ import {
 import { ConfirmedEventEntity } from '../../../src/db/entities/ConfirmedEventEntity';
 import { TransactionEntity } from '../../../src/db/entities/TransactionEntity';
 import migrations from '../../../src/db/migrations';
-import { PaymentTransaction } from '../../../src/models/Models';
 import { dbAction, DatabaseAction } from '../../../src/db/DatabaseAction';
 import Utils from '../../../src/helpers/Utils';
 import { loggerFactory } from '../../../src/log/Logger';
 import TestUtils from '../../../tests/testUtils/TestUtils';
-import { EventTrigger } from '@rosen-chains/abstract-chain';
+import { EventTrigger, PaymentTransaction } from '@rosen-chains/abstract-chain';
+import TransactionSerializer from '../../../src/transaction/TransactionSerializer';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -124,18 +124,10 @@ class DatabaseActionMock {
    * deletes every record in Event and Transaction table in ScannerDatabase
    */
   static clearTables = async () => {
-    await this.testDatabase.CommitmentRepository.createQueryBuilder()
-      .delete()
-      .execute();
-    await this.testDatabase.TransactionRepository.createQueryBuilder()
-      .delete()
-      .execute();
-    await this.testDatabase.ConfirmedEventRepository.createQueryBuilder()
-      .delete()
-      .execute();
-    await this.testDatabase.EventRepository.createQueryBuilder()
-      .delete()
-      .execute();
+    await this.testDatabase.CommitmentRepository.clear();
+    await this.testDatabase.TransactionRepository.clear();
+    await this.testDatabase.ConfirmedEventRepository.clear();
+    await this.testDatabase.EventRepository.clear();
   };
 
   /**
@@ -239,30 +231,24 @@ class DatabaseActionMock {
   /**
    * inserts a record to Event table in ScannerDatabase
    * @param paymentTx
-   * @param type
-   * @param chain
    * @param status
    * @param lastCheck
-   * @param eventId
    * @param lastStatusUpdate
    */
   static insertTxRecord = async (
     paymentTx: PaymentTransaction,
-    type: string,
-    chain: string,
     status: string,
     lastCheck: number,
-    eventId: string,
     lastStatusUpdate?: string
   ) => {
     const event = await this.testDatabase.ConfirmedEventRepository.findOneBy({
-      id: eventId,
+      id: paymentTx.eventId,
     });
     await this.testDatabase.TransactionRepository.insert({
       txId: paymentTx.txId,
-      txJson: paymentTx.toJson(),
-      type: type,
-      chain: chain,
+      txJson: TransactionSerializer.toJson(paymentTx),
+      type: paymentTx.txType,
+      chain: paymentTx.network,
       status: status,
       lastCheck: lastCheck,
       event: event!,

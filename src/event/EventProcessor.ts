@@ -154,7 +154,6 @@ class EventProcessor {
     const targetChain = ChainHandler.getInstance().getChain(event.toChain);
     const chainMinTransfer = targetChain.getMinimumNativeToken();
 
-    const order: PaymentOrder = [];
     const extra: any[] = [];
 
     // add reward order if target chain is ergo
@@ -175,28 +174,12 @@ class EventProcessor {
         rosenConfig.guardSignAddress
       );
 
-      // generate reward order
-      const rewardOrder = EventOrder.eventRewardOrder(
-        event,
-        commitmentBoxes.map(ergoChain.getBoxWID),
-        feeConfig,
-        '',
-        ChainHandler.getInstance().getChain(event.fromChain).getRWTToken(),
-        rwtCount
-      );
-      order.push(...rewardOrder);
-
       // add event and commitment boxes to generateTransaction arguments
       extra.push([eventBox, ...commitmentBoxes], [guardsConfigBox]);
     }
 
     // add payment order
-    const paymentRecord = EventOrder.eventSinglePayment(
-      event,
-      chainMinTransfer,
-      feeConfig
-    );
-    order.push(paymentRecord);
+    const order = await EventOrder.createEventPaymentOrder(event, feeConfig);
 
     // get unsigned transactions in target chain
     const unsignedAgreementTransactions = (
@@ -282,14 +265,7 @@ class EventProcessor {
     );
 
     // generate reward order
-    const order = EventOrder.eventRewardOrder(
-      event,
-      commitmentBoxes.map(ergoChain.getBoxWID),
-      feeConfig,
-      '',
-      ChainHandler.getInstance().getChain(event.fromChain).getRWTToken(),
-      rwtCount
-    );
+    const order = await EventOrder.createEventRewardOrder(event, feeConfig);
 
     // get unsigned transactions in target chain
     const unsignedAgreementTransactions = (

@@ -94,7 +94,7 @@ class RequestVerifier {
       await dbAction.getNonCompleteColdStorageTxsInChain(tx.network)
     ).filter((tx) => tx.status != TransactionStatus.invalid);
     if (
-      inProgressColdStorageTxs.length === 0 &&
+      inProgressColdStorageTxs.length !== 0 &&
       inProgressColdStorageTxs[0].txId !== tx.txId
     ) {
       logger.warn(
