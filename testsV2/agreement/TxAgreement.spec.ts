@@ -1463,6 +1463,81 @@ describe('TxAgreement', () => {
 
     /**
      * @target TxAgreement.processApprovalMessage should do nothing
+     * when transaction not found and doesn't verified
+     * @dependencies
+     * - database
+     * @scenario
+     * - mock testdata
+     * - insert mocked event into db
+     * - mock signer verify function to return true
+     * - mock txAgreement.verifyTransactionRequest to return false
+     * - mock txAgreement.setTxAsApproved
+     * - run test (call `processMessage`)
+     * - check if txApprovals changed
+     * - check database
+     * @expected
+     * - `setTxAsApproved` should NOT got called
+     */
+    it("should do nothing when transaction not found and doesn't verified", async () => {
+      // mock testdata
+      const type = 'approval';
+      const mockedEvent = EventTestData.mockEventTrigger();
+      const eventId = EventSerializer.getId(mockedEvent);
+      const paymentTx = mockPaymentTransaction(
+        TransactionTypes.payment,
+        mockedEvent.toChain,
+        eventId
+      );
+      const signatures = ['signature-0', 'signature-1', '', '', 'signature-4'];
+      const payload = {
+        txJson: TransactionSerializer.toJson(paymentTx),
+        signatures: signatures,
+      };
+      const senderIndex = 0;
+      const peerId = 'peerId';
+
+      const timestamp = Math.round(TestConfigs.currentTimeStamp / 1000);
+
+      // insert mocked event into db
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent,
+        EventStatus.pendingPayment
+      );
+
+      // mock signer verify function to return true
+      const txAgreement = new TestTxAgreement();
+      vi.spyOn(txAgreement.getSigner(), 'verify').mockResolvedValue(true);
+
+      // mock txAgreement.verifyTransactionRequest
+      vi.spyOn(
+        txAgreement as any,
+        'verifyTransactionRequest'
+      ).mockResolvedValue(false);
+
+      // mock txAgreement.setTxAsApproved
+      const mockedSetTxAsApproved = vi.fn();
+      const setTxAsApprovedSpy = vi.spyOn(
+        txAgreement as any,
+        'setTxAsApproved'
+      );
+      setTxAsApprovedSpy.mockImplementation(mockedSetTxAsApproved);
+
+      // run test
+      await txAgreement.processMessage(
+        type,
+        payload,
+        'signature',
+        senderIndex,
+        peerId,
+        timestamp
+      );
+
+      // `setTxAsApproved` should NOT got called
+      expect(mockedSetTxAsApproved).not.toHaveBeenCalled();
+    });
+
+    /**
+     * @target TxAgreement.processApprovalMessage should do nothing
      * when another tx is in memory for the event
      * @dependencies
      * - database
