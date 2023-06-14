@@ -392,8 +392,7 @@ describe('RequestVerifier', () => {
       );
       await DatabaseActionMock.insertTxRecord(
         anotherTx,
-        TransactionStatus.approved,
-        100
+        TransactionStatus.approved
       );
 
       // mock TransactionVerifier.verifyColdStorageTransaction
@@ -443,8 +442,7 @@ describe('RequestVerifier', () => {
       );
       await DatabaseActionMock.insertTxRecord(
         anotherTx,
-        TransactionStatus.approved,
-        100
+        TransactionStatus.approved
       );
 
       // mock TransactionVerifier.verifyColdStorageTransaction

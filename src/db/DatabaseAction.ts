@@ -252,10 +252,12 @@ class DatabaseAction {
           logger.info(
             `Ignoring new tx [${newTx.txId}] due to higher txId, comparing to [${tx.txId}]`
           );
-      } else
-        logger.warn(
-          `Received approval for newTx [${newTx.txId}] where its event [${event.id}] has already an advanced oldTx [${tx.txId}]`
-        );
+      } else {
+        if (newTx.txId !== tx.txId)
+          logger.warn(
+            `Received approval for newTx [${newTx.txId}] where its event [${event.id}] has already an advanced oldTx [${tx.txId}]`
+          );
+      }
     } else await this.insertNewTx(newTx, event);
   };
 
@@ -288,10 +290,12 @@ class DatabaseAction {
           logger.info(
             `Ignoring new cold storage tx [${newTx.txId}] due to higher txId, comparing to [${tx.txId}]`
           );
-      } else
-        logger.warn(
-          `Received approval for new tx [${newTx.txId}] where its chain [${newTx.network}] has already in progress tx [${tx.txId}]`
-        );
+      } else {
+        if (newTx.txId !== tx.txId)
+          logger.warn(
+            `Received approval for new tx [${newTx.txId}] where its chain [${newTx.network}] has already in progress tx [${tx.txId}]`
+          );
+      }
     } else await this.insertNewTx(newTx, null);
   };
 

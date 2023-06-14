@@ -238,7 +238,7 @@ class DatabaseActionMock {
   static insertTxRecord = async (
     paymentTx: PaymentTransaction,
     status: string,
-    lastCheck: number,
+    lastCheck = 0,
     lastStatusUpdate?: string
   ) => {
     const event = await this.testDatabase.ConfirmedEventRepository.findOneBy({
