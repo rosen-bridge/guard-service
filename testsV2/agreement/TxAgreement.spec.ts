@@ -7,7 +7,10 @@ import GuardTurn from '../../src/helpers/GuardTurn';
 import RequestVerifier from '../../src/verification/RequestVerifier';
 import TestUtils from '../testUtils/TestUtils';
 import DatabaseActionMock from '../db/mocked/DatabaseAction.mock';
-import { ApprovedCandidate } from '../../src/agreement/Interfaces';
+import {
+  AgreementMessageTypes,
+  ApprovedCandidate,
+} from '../../src/agreement/Interfaces';
 import * as EventTestData from '../event/testData';
 import EventSerializer from '../../src/event/EventSerializer';
 import { EventStatus } from '../../src/models/Models';
@@ -88,7 +91,7 @@ describe('TxAgreement', () => {
         txJson: TransactionSerializer.toJson(paymentTx),
       };
       expect(mockedSendMessage).toHaveBeenCalledWith(
-        'request',
+        AgreementMessageTypes.request,
         expectedPayload,
         [],
         timestamp
@@ -558,6 +561,38 @@ describe('TxAgreement', () => {
       // memory cold storage chain map should be empty
       expect(txAgreement.getAgreedColdStorageTransactions().size).toEqual(0);
     });
+
+    /**
+     * @target TxAgreement.verifyTransactionRequest should return false
+     * when type is not supported
+     * @dependencies
+     * - GuardTurn
+     * @scenario
+     * - mock testdata
+     * - mock GuardTurn to return creatorId
+     * - run test
+     * - check returned value
+     * @expected
+     * - should return false
+     */
+    it('should return false when type is not supported', async () => {
+      // mock testdata
+      const paymentTx = mockPaymentTransaction('invalid-tx-type');
+      const creatorId = 0;
+
+      // mock GuardTurn
+      vi.spyOn(GuardTurn, 'guardTurn').mockReturnValue(creatorId);
+
+      // run test
+      const txAgreement = new TestTxAgreement();
+      const result = await txAgreement.callVerifyTransactionRequest(
+        paymentTx,
+        creatorId
+      );
+
+      // should return false
+      expect(result).toEqual(false);
+    });
   });
 
   describe('processTransactionRequest', () => {
@@ -578,7 +613,7 @@ describe('TxAgreement', () => {
      */
     it('should response to sender when transaction is verified', async () => {
       // mock testdata
-      const type = 'request';
+      const type = AgreementMessageTypes.request;
       const paymentTx = mockPaymentTransaction();
       const payload = { txJson: TransactionSerializer.toJson(paymentTx) };
       const senderIndex = 0;
@@ -610,7 +645,7 @@ describe('TxAgreement', () => {
       // `sendMessage` should got called with correct arguments
       const agreementPayload = { txId: paymentTx.txId };
       expect(mockedSendMessage).toHaveBeenCalledWith(
-        'response',
+        AgreementMessageTypes.response,
         agreementPayload,
         [peerId],
         timestamp
@@ -639,7 +674,7 @@ describe('TxAgreement', () => {
      */
     it('should do nothing when transaction is NOT verified', async () => {
       // mock testdata
-      const type = 'request';
+      const type = AgreementMessageTypes.request;
       const paymentTx = mockPaymentTransaction();
       const payload = { txJson: TransactionSerializer.toJson(paymentTx) };
       const senderIndex = 0;
@@ -698,7 +733,7 @@ describe('TxAgreement', () => {
      */
     it('should do nothing when transaction is not found', async () => {
       // mock testdata
-      const type = 'response';
+      const type = AgreementMessageTypes.response;
       const paymentTx = mockPaymentTransaction();
       const payload = { txId: paymentTx.txId };
       const senderIndex = 0;
@@ -749,7 +784,7 @@ describe('TxAgreement', () => {
      */
     it('should do nothing when timestamp is wrong', async () => {
       // mock testdata
-      const type = 'response';
+      const type = AgreementMessageTypes.response;
       const paymentTx = mockPaymentTransaction();
       const payload = { txId: paymentTx.txId };
       const senderIndex = 0;
@@ -810,7 +845,7 @@ describe('TxAgreement', () => {
      */
     it('should only update signature when required signs does not meet', async () => {
       // mock testdata
-      const type = 'response';
+      const type = AgreementMessageTypes.response;
       const paymentTx = mockPaymentTransaction();
       const payload = { txId: paymentTx.txId };
       const senderIndex = 0;
@@ -877,7 +912,7 @@ describe('TxAgreement', () => {
      */
     it('should broadcast approval message for payment tx when sufficient number of guards agreed', async () => {
       // mock testdata
-      const type = 'response';
+      const type = AgreementMessageTypes.response;
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
       const paymentTx = mockPaymentTransaction(
@@ -933,7 +968,7 @@ describe('TxAgreement', () => {
         signatures: expectedSignatures,
       };
       expect(mockedSendMessage).toHaveBeenCalledWith(
-        'approval',
+        AgreementMessageTypes.approval,
         approvalPayload,
         [],
         timestamp
@@ -991,7 +1026,7 @@ describe('TxAgreement', () => {
      */
     it('should broadcast approval message for cold storage tx when sufficient number of guards agreed', async () => {
       // mock testdata
-      const type = 'response';
+      const type = AgreementMessageTypes.response;
       const chain = 'chain';
       const paymentTx = mockPaymentTransaction(
         TransactionTypes.coldStorage,
@@ -1037,7 +1072,7 @@ describe('TxAgreement', () => {
         signatures: expectedSignatures,
       };
       expect(mockedSendMessage).toHaveBeenCalledWith(
-        'approval',
+        AgreementMessageTypes.approval,
         approvalPayload,
         [],
         timestamp
@@ -1091,7 +1126,7 @@ describe('TxAgreement', () => {
      */
     it("should do nothing when a signature doesn't verify", async () => {
       // mock testdata
-      const type = 'approval';
+      const type = AgreementMessageTypes.approval;
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
       const paymentTx = mockPaymentTransaction(
@@ -1163,7 +1198,7 @@ describe('TxAgreement', () => {
      */
     it("should do nothing when number of signsatures doesn't meet required value", async () => {
       // mock testdata
-      const type = 'approval';
+      const type = AgreementMessageTypes.approval;
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
       const paymentTx = mockPaymentTransaction(
@@ -1233,7 +1268,7 @@ describe('TxAgreement', () => {
      */
     it('should set tx as approved when required number of signs met for a payment tx', async () => {
       // mock testdata
-      const type = 'approval';
+      const type = AgreementMessageTypes.approval;
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
       const paymentTx = mockPaymentTransaction(
@@ -1320,7 +1355,7 @@ describe('TxAgreement', () => {
      */
     it('should set tx as approved when required number of signs met for a cold storage tx', async () => {
       // mock testdata
-      const type = 'approval';
+      const type = AgreementMessageTypes.approval;
       const chain = 'chain';
       const paymentTx = mockPaymentTransaction(
         TransactionTypes.coldStorage,
@@ -1396,7 +1431,7 @@ describe('TxAgreement', () => {
      */
     it('should set tx as approved when transaction not found but verified', async () => {
       // mock testdata
-      const type = 'approval';
+      const type = AgreementMessageTypes.approval;
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
       const paymentTx = mockPaymentTransaction(
@@ -1480,7 +1515,7 @@ describe('TxAgreement', () => {
      */
     it("should do nothing when transaction not found and doesn't verified", async () => {
       // mock testdata
-      const type = 'approval';
+      const type = AgreementMessageTypes.approval;
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
       const paymentTx = mockPaymentTransaction(
@@ -1555,7 +1590,7 @@ describe('TxAgreement', () => {
      */
     it('should do nothing when another tx is in memory for the event', async () => {
       // mock testdata
-      const type = 'approval';
+      const type = AgreementMessageTypes.approval;
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
       const paymentTx = mockPaymentTransaction(
@@ -1764,13 +1799,13 @@ describe('TxAgreement', () => {
         txJson: TransactionSerializer.toJson(paymentTx2),
       };
       expect(mockedSendMessage).toHaveBeenCalledWith(
-        'request',
+        AgreementMessageTypes.request,
         expectedPayload1,
         [],
         timestamp1
       );
       expect(mockedSendMessage).toHaveBeenCalledWith(
-        'request',
+        AgreementMessageTypes.request,
         expectedPayload2,
         [],
         timestamp2
@@ -1844,13 +1879,13 @@ describe('TxAgreement', () => {
         signatures: signatures2,
       };
       expect(mockedSendMessage).toHaveBeenCalledWith(
-        'approval',
+        AgreementMessageTypes.approval,
         approvalPayload1,
         [],
         timestamp1
       );
       expect(mockedSendMessage).toHaveBeenCalledWith(
-        'approval',
+        AgreementMessageTypes.approval,
         approvalPayload2,
         [],
         timestamp2

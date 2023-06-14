@@ -46,7 +46,7 @@ describe('RequestVerifier', () => {
      * @expected
      * - returned value should be true
      */
-    it('should return true when all conditions are met', async () => {
+    it('should return true when all conditions for payment tx are met', async () => {
       // mock event and transaction
       const mockedEvent = mockEventTrigger();
       const paymentTx = mockPaymentTransaction(

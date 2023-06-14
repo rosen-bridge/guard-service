@@ -5,6 +5,7 @@ import {
   GuardResponse,
   TransactionApproved,
   ApprovedCandidate,
+  AgreementMessageTypes,
 } from './Interfaces';
 import Dialer from '../communication/Dialer';
 import { dbAction } from '../db/DatabaseAction';
@@ -109,6 +110,7 @@ class TxAgreement extends Communicator {
         approvals[this.index] = signature;
         this.transactions.set(tx.txId, { tx, timestamp });
         this.transactionApprovals.set(tx.txId, approvals);
+        logger.info(`Started agreement process for tx [${tx.txId}]`);
       } catch (e) {
         logger.warn(
           `An error occurred while starting agreement process for tx [${tx.txId}]: ${e}`
@@ -132,7 +134,12 @@ class TxAgreement extends Communicator {
     };
 
     // broadcast the transaction
-    await this.sendMessage('request', candidatePayload, [], timestamp);
+    await this.sendMessage(
+      AgreementMessageTypes.request,
+      candidatePayload,
+      [],
+      timestamp
+    );
   };
 
   /**
@@ -154,7 +161,7 @@ class TxAgreement extends Communicator {
   ): Promise<void> => {
     try {
       switch (type) {
-        case 'request': {
+        case AgreementMessageTypes.request: {
           const candidate = payload as TransactionRequest;
           const tx = TransactionSerializer.fromJson(candidate.txJson);
           await this.processTransactionRequest(
@@ -165,7 +172,7 @@ class TxAgreement extends Communicator {
           );
           break;
         }
-        case 'response': {
+        case AgreementMessageTypes.response: {
           const response = payload as GuardResponse;
           await this.processAgreementResponse(
             response.txId,
@@ -175,7 +182,7 @@ class TxAgreement extends Communicator {
           );
           break;
         }
-        case 'approval': {
+        case AgreementMessageTypes.approval: {
           const approval = payload as TransactionApproved;
           const tx = TransactionSerializer.fromJson(approval.txJson);
           await this.processApprovalMessage(
@@ -187,9 +194,15 @@ class TxAgreement extends Communicator {
           );
           break;
         }
+        default:
+          logger.warn(
+            `Received unexpected message type [${type}] in tx-agreement channal`
+          );
       }
     } catch (e) {
-      logger.warn(`An error occurred while handling tx-agreement message.`);
+      logger.warn(
+        `An error occurred while handling tx-agreement message: ${e}}`
+      );
       logger.warn(e.stack);
     }
   };
@@ -217,7 +230,12 @@ class TxAgreement extends Communicator {
     const agreementPayload: GuardResponse = { txId: tx.txId };
 
     // send response to creator guard
-    await this.sendMessage('response', agreementPayload, [receiver], timestamp);
+    await this.sendMessage(
+      AgreementMessageTypes.response,
+      agreementPayload,
+      [receiver],
+      timestamp
+    );
   };
 
   /**
@@ -286,6 +304,11 @@ class TxAgreement extends Communicator {
 
       logger.info(`Agreed with cold storage tx [${tx.txId}]`);
       this.agreedColdStorageTransactions.set(tx.network, tx.txId);
+    } else {
+      logger.info(
+        `Received tx [${tx.txId}] but type [${tx.txType}] is not supported`
+      );
+      return false;
     }
 
     return true;
@@ -354,7 +377,7 @@ class TxAgreement extends Communicator {
 
     // broadcast the transaction
     await this.sendMessage(
-      'approval',
+      AgreementMessageTypes.approval,
       approvalPayload,
       [],
       approvedCandidate.timestamp

@@ -24,6 +24,12 @@ interface ApprovedCandidate {
   timestamp: number;
 }
 
+class AgreementMessageTypes {
+  static request = 'request';
+  static response = 'response';
+  static approval = 'approval';
+}
+
 export type {
   CandidateTransaction,
   TransactionRequest,
@@ -31,3 +37,5 @@ export type {
   TransactionApproved,
   ApprovedCandidate,
 };
+
+export { AgreementMessageTypes };
