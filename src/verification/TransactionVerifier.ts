@@ -19,13 +19,10 @@ class TransactionVerifier {
    * - fee is verified
    * - verify no token is burned
    * - chain extra conditions are verified
-   * - tx order is equal to expected event order
    * @param tx the created payment transaction
-   * @returns true if conditions are met
    */
-  static verifyEventTransaction = async (
-    tx: PaymentTransaction,
-    event: EventTrigger
+  static verifyTxCommonConditions = async (
+    tx: PaymentTransaction
   ): Promise<boolean> => {
     const chain = ChainHandler.getInstance().getChain(tx.network);
 
@@ -51,6 +48,22 @@ class TransactionVerifier {
       return false;
     }
 
+    return true;
+  };
+
+  /**
+   * verifies the transaction
+   * conditions:
+   * - tx order is equal to expected event order
+   * @param tx the created payment transaction
+   * @returns true if conditions are met
+   */
+  static verifyEventTransaction = async (
+    tx: PaymentTransaction,
+    event: EventTrigger
+  ): Promise<boolean> => {
+    const chain = ChainHandler.getInstance().getChain(tx.network);
+
     // verify tx order
     const feeConfig = await MinimumFee.getEventFeeConfig(event);
     const txOrder = chain.extractTransactionOrder(tx);
@@ -71,9 +84,6 @@ class TransactionVerifier {
   /**
    * verifies the cold storage transaction
    * conditions:
-   * - fee is verified
-   * - verify no token is burned
-   * - chain extra conditions are verified
    * - address remaining assets are more than low threshold
    * @param tx the created payment transaction
    * @returns true if conditions are met
@@ -83,30 +93,6 @@ class TransactionVerifier {
     tx: PaymentTransaction
   ): Promise<boolean> => {
     const chain = ChainHandler.getInstance().getChain(tx.network);
-
-    // verify tx fee
-    if (!chain.verifyTransactionFee(tx)) {
-      logger.debug(
-        `Cold storage transaction [${tx.txId}] is invalid: Fee is not verified`
-      );
-      return false;
-    }
-
-    // verify no token is burned
-    if (!(await chain.verifyNoTokenBurned(tx))) {
-      logger.debug(
-        `Cold storage transaction [${tx.txId}] is invalid: Some token are burned`
-      );
-      return false;
-    }
-
-    // verify extra conditions
-    if (!chain.verifyTransactionExtraConditions(tx)) {
-      logger.debug(
-        `Cold storage transaction [${tx.txId}] is invalid: Extra conditions is not verified`
-      );
-      return false;
-    }
 
     // verify address assets (TODO: implement this section (#241))
     const txOrder = chain.extractTransactionOrder(tx);

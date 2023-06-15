@@ -22,6 +22,7 @@ import Configs from '../helpers/Configs';
 import { Communicator } from './communicator/Communicator'; // TODO: import from tss
 import { EcDSA } from './communicator/EcDSA';
 import GuardTurn from '../helpers/GuardTurn';
+import TransactionVerifier from '../verification/TransactionVerifier';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -253,6 +254,12 @@ class TxAgreement extends Communicator {
     if (guardTurn !== creatorId) {
       logger.warn(
         `Received tx [${tx.txId}] from sender [${creatorId}] but it's not sender's turn [${guardTurn} != ${creatorId}]`
+      );
+      return false;
+    }
+    if (!(await TransactionVerifier.verifyTxCommonConditions(tx))) {
+      logger.warn(
+        `Received tx [${tx.txId}] but tx common conditions hasn't verified`
       );
       return false;
     }

@@ -15,6 +15,7 @@ import * as EventTestData from '../event/testData';
 import EventSerializer from '../../src/event/EventSerializer';
 import { EventStatus } from '../../src/models/Models';
 import { cloneDeep } from 'lodash-es';
+import TransactionVerifier from '../../src/verification/TransactionVerifier';
 
 describe('TxAgreement', () => {
   describe('addTransactionToQueue', () => {
@@ -122,6 +123,7 @@ describe('TxAgreement', () => {
      * @scenario
      * - mock testdata
      * - mock GuardTurn to return creatorId
+     * - mock TransactionVerifier.verifyTxCommonConditions to return true
      * - mock RequestVerifier.verifyEventTransactionRequest to return true
      * - run test
      * - check returned value
@@ -137,6 +139,12 @@ describe('TxAgreement', () => {
 
       // mock GuardTurn
       vi.spyOn(GuardTurn, 'guardTurn').mockReturnValue(creatorId);
+
+      // mock TransactionVerifier.verifyTxCommonConditions
+      vi.spyOn(
+        TransactionVerifier,
+        'verifyTxCommonConditions'
+      ).mockResolvedValue(true);
 
       // mock RequestVerifier.verifyEventTransactionRequest
       vi.spyOn(
@@ -185,6 +193,12 @@ describe('TxAgreement', () => {
       // mock GuardTurn
       vi.spyOn(GuardTurn, 'guardTurn').mockReturnValue(creatorId);
 
+      // mock TransactionVerifier.verifyTxCommonConditions
+      vi.spyOn(
+        TransactionVerifier,
+        'verifyTxCommonConditions'
+      ).mockResolvedValue(true);
+
       // mock RequestVerifier.verifyColdStorageTransactionRequest
       vi.spyOn(
         RequestVerifier,
@@ -232,6 +246,63 @@ describe('TxAgreement', () => {
       // mock GuardTurn
       vi.spyOn(GuardTurn, 'guardTurn').mockReturnValue(2);
 
+      // mock TransactionVerifier.verifyTxCommonConditions
+      vi.spyOn(
+        TransactionVerifier,
+        'verifyTxCommonConditions'
+      ).mockResolvedValue(true);
+
+      // mock RequestVerifier.verifyEventTransactionRequest
+      vi.spyOn(
+        RequestVerifier,
+        'verifyEventTransactionRequest'
+      ).mockResolvedValue(true);
+
+      // run test
+      const txAgreement = new TestTxAgreement();
+      const result = await txAgreement.callVerifyTransactionRequest(
+        paymentTx,
+        creatorId
+      );
+
+      // should return false
+      expect(result).toEqual(false);
+
+      // memory event map should be empty
+      expect(txAgreement.getEventAgreedTransactions().size).toEqual(0);
+    });
+
+    /**
+     * @target TxAgreement.verifyTransactionRequest should return false
+     * when tx common conditions doesn't verify
+     * @dependencies
+     * - GuardTurn
+     * - RequestVerifier
+     * @scenario
+     * - mock testdata
+     * - mock GuardTurn
+     * - mock RequestVerifier.verifyEventTransactionRequest to return false
+     * - run test
+     * - check returned value
+     * - check transactions in memory
+     * @expected
+     * - should return false
+     * - memory event map should be empty
+     */
+    it("should return false when tx common conditions doesn't verify", async () => {
+      // mock testdata
+      const paymentTx = mockPaymentTransaction(TransactionTypes.payment);
+      const creatorId = 0;
+
+      // mock GuardTurn
+      vi.spyOn(GuardTurn, 'guardTurn').mockReturnValue(creatorId);
+
+      // mock TransactionVerifier.verifyTxCommonConditions
+      vi.spyOn(
+        TransactionVerifier,
+        'verifyTxCommonConditions'
+      ).mockResolvedValue(false);
+
       // mock RequestVerifier.verifyEventTransactionRequest
       vi.spyOn(
         RequestVerifier,
@@ -277,6 +348,12 @@ describe('TxAgreement', () => {
 
       // mock GuardTurn
       vi.spyOn(GuardTurn, 'guardTurn').mockReturnValue(creatorId);
+
+      // mock TransactionVerifier.verifyTxCommonConditions
+      vi.spyOn(
+        TransactionVerifier,
+        'verifyTxCommonConditions'
+      ).mockResolvedValue(true);
 
       // insert a random txId into eventAgreedTransactions map
       const txAgreement = new TestTxAgreement();
@@ -334,6 +411,12 @@ describe('TxAgreement', () => {
       // mock GuardTurn
       vi.spyOn(GuardTurn, 'guardTurn').mockReturnValue(creatorId);
 
+      // mock TransactionVerifier.verifyTxCommonConditions
+      vi.spyOn(
+        TransactionVerifier,
+        'verifyTxCommonConditions'
+      ).mockResolvedValue(true);
+
       // insert a random txId into eventAgreedTransactions map
       const txAgreement = new TestTxAgreement();
       txAgreement.insertEventAgreedTransactions(
@@ -387,6 +470,12 @@ describe('TxAgreement', () => {
       // mock GuardTurn
       vi.spyOn(GuardTurn, 'guardTurn').mockReturnValue(creatorId);
 
+      // mock TransactionVerifier.verifyTxCommonConditions
+      vi.spyOn(
+        TransactionVerifier,
+        'verifyTxCommonConditions'
+      ).mockResolvedValue(true);
+
       // mock RequestVerifier.verifyEventTransactionRequest
       vi.spyOn(
         RequestVerifier,
@@ -432,6 +521,12 @@ describe('TxAgreement', () => {
 
       // mock GuardTurn
       vi.spyOn(GuardTurn, 'guardTurn').mockReturnValue(creatorId);
+
+      // mock TransactionVerifier.verifyTxCommonConditions
+      vi.spyOn(
+        TransactionVerifier,
+        'verifyTxCommonConditions'
+      ).mockResolvedValue(true);
 
       // insert a random txId into eventAgreedTransactions map
       const txAgreement = new TestTxAgreement();
@@ -489,6 +584,12 @@ describe('TxAgreement', () => {
       // mock GuardTurn
       vi.spyOn(GuardTurn, 'guardTurn').mockReturnValue(creatorId);
 
+      // mock TransactionVerifier.verifyTxCommonConditions
+      vi.spyOn(
+        TransactionVerifier,
+        'verifyTxCommonConditions'
+      ).mockResolvedValue(true);
+
       // insert a random txId into eventAgreedTransactions map
       const txAgreement = new TestTxAgreement();
       txAgreement.insertAgreedColdStorageTransactions(
@@ -542,6 +643,12 @@ describe('TxAgreement', () => {
       // mock GuardTurn
       vi.spyOn(GuardTurn, 'guardTurn').mockReturnValue(creatorId);
 
+      // mock TransactionVerifier.verifyTxCommonConditions
+      vi.spyOn(
+        TransactionVerifier,
+        'verifyTxCommonConditions'
+      ).mockResolvedValue(true);
+
       // mock RequestVerifier.verifyColdStorageTransactionRequest
       vi.spyOn(
         RequestVerifier,
@@ -582,6 +689,12 @@ describe('TxAgreement', () => {
 
       // mock GuardTurn
       vi.spyOn(GuardTurn, 'guardTurn').mockReturnValue(creatorId);
+
+      // mock TransactionVerifier.verifyTxCommonConditions
+      vi.spyOn(
+        TransactionVerifier,
+        'verifyTxCommonConditions'
+      ).mockResolvedValue(true);
 
       // run test
       const txAgreement = new TestTxAgreement();
