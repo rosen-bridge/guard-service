@@ -297,6 +297,7 @@ describe('EventProcessor', () => {
       await DatabaseActionMock.clearTables();
       ChainHandlerMock.resetMock();
       TxAgreementMock.resetMock();
+      TxAgreementMock.mock();
       DiscordNotificationMock.resetMock();
     });
 
@@ -324,11 +325,11 @@ describe('EventProcessor', () => {
      * - mock event payment and reward order generations
      * - mock txAgreement
      *   - mock `getChainPendingTransactions` to return empty list
-     *   - mock `startAgreementProcess`
+     *   - mock `addTransactionToQueue`
      * - run test
      * - check if function got called
      * @expected
-     * - `startAgreementProcess` should got called
+     * - `addTransactionToQueue` should got called
      */
     it('should create event payment transaction on Ergo and send it to agreement process successfully', async () => {
       // mock feeConfig
@@ -400,14 +401,14 @@ describe('EventProcessor', () => {
 
       // mock txAgreement pending transactions
       TxAgreementMock.mockGetChainPendingTransactions([]);
-      TxAgreementMock.mockStartAgreementProcess();
+      TxAgreementMock.mockAddTransactionToQueue();
 
       // run test
       await EventProcessor.processPaymentEvent(mockedEvent);
 
-      // `startAgreementProcess` should got called
+      // `addTransactionToQueue` should got called
       expect(
-        TxAgreementMock.getMockedFunction('startAgreementProcess')
+        TxAgreementMock.getMockedFunction('addTransactionToQueue')
       ).toHaveBeenCalledOnce();
     });
 
@@ -432,11 +433,11 @@ describe('EventProcessor', () => {
      * - mock event payment order generations
      * - mock txAgreement
      *   - mock `getChainPendingTransactions` to return empty list
-     *   - mock `startAgreementProcess`
+     *   - mock `addTransactionToQueue`
      * - run test
      * - check if function got called
      * @expected
-     * - `startAgreementProcess` should got called
+     * - `addTransactionToQueue` should got called
      */
     it('should create event payment transaction on `toChain` and send it to agreement process successfully', async () => {
       // mock feeConfig
@@ -495,14 +496,14 @@ describe('EventProcessor', () => {
 
       // mock txAgreement pending transactions
       TxAgreementMock.mockGetChainPendingTransactions([]);
-      TxAgreementMock.mockStartAgreementProcess();
+      TxAgreementMock.mockAddTransactionToQueue();
 
       // run test
       await EventProcessor.processPaymentEvent(mockedEvent);
 
-      // `startAgreementProcess` should got called
+      // `addTransactionToQueue` should got called
       expect(
-        TxAgreementMock.getMockedFunction('startAgreementProcess')
+        TxAgreementMock.getMockedFunction('addTransactionToQueue')
       ).toHaveBeenCalledOnce();
     });
 
@@ -696,6 +697,7 @@ describe('EventProcessor', () => {
       await DatabaseActionMock.clearTables();
       ChainHandlerMock.resetMock();
       TxAgreementMock.resetMock();
+      TxAgreementMock.mock();
       DiscordNotificationMock.resetMock();
     });
 
@@ -720,11 +722,11 @@ describe('EventProcessor', () => {
      * - mock event payment and reward order generations
      * - mock txAgreement
      *   - mock `getChainPendingTransactions` to return empty list
-     *   - mock `startAgreementProcess`
+     *   - mock `addTransactionToQueue`
      * - run test
      * - check if function got called
      * @expected
-     * - `startAgreementProcess` should got called
+     * - `addTransactionToQueue` should got called
      */
     it('should create event reward distribution transaction on Ergo and send it to agreement process successfully', async () => {
       // mock feeConfig
@@ -788,14 +790,14 @@ describe('EventProcessor', () => {
 
       // mock txAgreement pending transactions
       TxAgreementMock.mockGetChainPendingTransactions([]);
-      TxAgreementMock.mockStartAgreementProcess();
+      TxAgreementMock.mockAddTransactionToQueue();
 
       // run test
       await EventProcessor.processRewardEvent(mockedEvent);
 
-      // `startAgreementProcess` should got called
+      // `addTransactionToQueue` should got called
       expect(
-        TxAgreementMock.getMockedFunction('startAgreementProcess')
+        TxAgreementMock.getMockedFunction('addTransactionToQueue')
       ).toHaveBeenCalledOnce();
     });
 

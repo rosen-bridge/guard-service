@@ -1,10 +1,15 @@
 import EventVerifier from '../../src/verification/EventVerifier';
 import { mockEventTrigger } from '../event/testData';
 import ChainHandlerMock from '../handlers/ChainHandler.mock';
-import { ConfirmationStatus } from '@rosen-chains/abstract-chain';
+import {
+  ConfirmationStatus,
+  TransactionTypes,
+} from '@rosen-chains/abstract-chain';
 import GuardsErgoConfigs from '../../src/helpers/GuardsErgoConfigs';
 import DatabaseActionMock from '../db/mocked/DatabaseAction.mock';
 import { Fee } from '@rosen-bridge/minimum-fee';
+import { ConfirmedEventEntity } from '../../src/db/entities/ConfirmedEventEntity';
+import { EventStatus } from '../../src/models/Models';
 
 describe('EventVerifier', () => {
   describe('isEventConfirmedEnough', () => {
@@ -236,6 +241,86 @@ describe('EventVerifier', () => {
 
       // run test
       const result = await EventVerifier.verifyEvent(mockedEvent, fee);
+
+      // verify returned value
+      expect(result).toEqual(false);
+    });
+  });
+
+  describe('isEventPendingToType', () => {
+    /**
+     * @target EventVerifier.isEventPendingToType should return true when
+     * type is payment and event status is pending-payment
+     * @dependencies
+     * @scenario
+     * - mock an event
+     * - run test
+     * - verify returned value
+     * @expected
+     * - returned value should be true
+     */
+    it('should return true when type is payment and event status is pending-payment', async () => {
+      // mock an event
+      const mockedEvent = new ConfirmedEventEntity();
+      mockedEvent.status = EventStatus.pendingPayment;
+
+      // run test
+      const result = EventVerifier.isEventPendingToType(
+        mockedEvent,
+        TransactionTypes.payment
+      );
+
+      // verify returned value
+      expect(result).toEqual(true);
+    });
+
+    /**
+     * @target EventVerifier.isEventPendingToType should return true when
+     * type is reward and event status is pending-reward
+     * @dependencies
+     * @scenario
+     * - mock an event
+     * - run test
+     * - verify returned value
+     * @expected
+     * - returned value should be true
+     */
+    it('should return true when type is reward and event status is pending-reward', async () => {
+      // mock an event
+      const mockedEvent = new ConfirmedEventEntity();
+      mockedEvent.status = EventStatus.pendingReward;
+
+      // run test
+      const result = EventVerifier.isEventPendingToType(
+        mockedEvent,
+        TransactionTypes.reward
+      );
+
+      // verify returned value
+      expect(result).toEqual(true);
+    });
+
+    /**
+     * @target EventVerifier.isEventPendingToType should return false when
+     * type and event status are not compatible
+     * @dependencies
+     * @scenario
+     * - mock an event
+     * - run test
+     * - verify returned value
+     * @expected
+     * - returned value should be false
+     */
+    it('should return false when type and event status are not compatible', async () => {
+      // mock an event
+      const mockedEvent = new ConfirmedEventEntity();
+      mockedEvent.status = EventStatus.pendingPayment;
+
+      // run test
+      const result = EventVerifier.isEventPendingToType(
+        mockedEvent,
+        TransactionTypes.reward
+      );
 
       // verify returned value
       expect(result).toEqual(false);

@@ -7,7 +7,6 @@ import ChainsConstants from '../ChainsConstants';
 import ErgoTransaction from './models/ErgoTransaction';
 import ErgoUtils from './helpers/ErgoUtils';
 import { BoxesAssets, CoveringErgoBoxes } from './models/Interfaces';
-import { txAgreement } from '../../guard/agreement/TxAgreement';
 import { loggerFactory } from '../../log/Logger';
 
 const logger = loggerFactory(import.meta.url);
@@ -199,14 +198,7 @@ class ErgoTrack {
     );
 
     // get unsigned txs input boxes from txAgreement
-    const txAgreementUsedInputBoxes = txAgreement
-      .getChainPendingTransactions(ChainsConstants.ergo)
-      .flatMap((paymentTx) =>
-        ErgoUtils.getPaymentTxLockInputIds(
-          paymentTx as ErgoTransaction,
-          this.lockErgoTree
-        )
-      );
+    const txAgreementUsedInputBoxes: string[] = []; // TODO: since this file will be deleted, this change doesn't matter
     usedBoxIds = usedBoxIds.concat(txAgreementUsedInputBoxes);
 
     // get boxes and apply track and filter

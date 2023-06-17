@@ -16,7 +16,6 @@ import {
   PaymentTransaction,
   TransactionTypes,
 } from '@rosen-chains/abstract-chain';
-import { txAgreement } from '../guard/agreement/TxAgreement';
 import DiscordNotification from '../communication/notification/DiscordNotification';
 import { Fee } from '@rosen-bridge/minimum-fee';
 import ChainHandler from '../handlers/ChainHandler';
@@ -26,6 +25,7 @@ import {
   txJsonParser,
 } from '../chains/TxJsonParser';
 import { rosenConfig } from '../helpers/RosenConfig';
+import TxAgreement from '../agreement/TxAgreement';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -128,7 +128,7 @@ class EventProcessor {
     // create payment
     try {
       const tx = await this.createEventPayment(event, feeConfig);
-      txAgreement.startAgreementProcess(paymentTransactionTypeChange(tx));
+      (await TxAgreement.getInstance()).addTransactionToQueue(tx);
     } catch (e) {
       if (e instanceof NotEnoughAssetsError) {
         logger.warn(`Failed to create payment for event [${eventId}]: ${e}`);
@@ -154,7 +154,6 @@ class EventProcessor {
     const targetChain = ChainHandler.getInstance().getChain(event.toChain);
     const chainMinTransfer = targetChain.getMinimumNativeToken();
 
-    const order: PaymentOrder = [];
     const extra: any[] = [];
 
     // add reward order if target chain is ergo
@@ -175,32 +174,17 @@ class EventProcessor {
         rosenConfig.guardSignAddress
       );
 
-      // generate reward order
-      const rewardOrder = EventOrder.eventRewardOrder(
-        event,
-        commitmentBoxes.map(ergoChain.getBoxWID),
-        feeConfig,
-        '',
-        ChainHandler.getInstance().getChain(event.fromChain).getRWTToken(),
-        rwtCount
-      );
-      order.push(...rewardOrder);
-
       // add event and commitment boxes to generateTransaction arguments
       extra.push([eventBox, ...commitmentBoxes], [guardsConfigBox]);
     }
 
     // add payment order
-    const paymentRecord = EventOrder.eventSinglePayment(
-      event,
-      chainMinTransfer,
-      feeConfig
-    );
-    order.push(paymentRecord);
+    const order = await EventOrder.createEventPaymentOrder(event, feeConfig);
 
     // get unsigned transactions in target chain
-    const unsignedAgreementTransactions =
-      txAgreement.getChainPendingTransactions(event.toChain);
+    const unsignedAgreementTransactions = (
+      await TxAgreement.getInstance()
+    ).getChainPendingTransactions(event.toChain);
     const unsignedQueueTransactions = (
       await dbAction.getUnsignedActiveTxsInChain(event.toChain)
     ).map((txEntity) => txJsonParser(txEntity.txJson));
@@ -240,7 +224,7 @@ class EventProcessor {
 
     try {
       const tx = await this.createEventRewardDistribution(event, feeConfig);
-      txAgreement.startAgreementProcess(paymentTransactionTypeChange(tx));
+      (await TxAgreement.getInstance()).addTransactionToQueue(tx);
     } catch (e) {
       if (e instanceof NotEnoughAssetsError) {
         logger.warn(
@@ -281,18 +265,12 @@ class EventProcessor {
     );
 
     // generate reward order
-    const order = EventOrder.eventRewardOrder(
-      event,
-      commitmentBoxes.map(ergoChain.getBoxWID),
-      feeConfig,
-      '',
-      ChainHandler.getInstance().getChain(event.fromChain).getRWTToken(),
-      rwtCount
-    );
+    const order = await EventOrder.createEventRewardOrder(event, feeConfig);
 
     // get unsigned transactions in target chain
-    const unsignedAgreementTransactions =
-      txAgreement.getChainPendingTransactions(ERGO_CHAIN);
+    const unsignedAgreementTransactions = (
+      await TxAgreement.getInstance()
+    ).getChainPendingTransactions(ERGO_CHAIN);
     const unsignedQueueTransactions = (
       await dbAction.getUnsignedActiveTxsInChain(ERGO_CHAIN)
     ).map((txEntity) => txJsonParser(txEntity.txJson));

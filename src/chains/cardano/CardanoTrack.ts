@@ -13,7 +13,6 @@ import {
 } from '../../helpers/errors';
 import { dbAction } from '../../db/DatabaseAction';
 import ChainsConstants from '../ChainsConstants';
-import { txAgreement } from '../../guard/agreement/TxAgreement';
 import CardanoTransaction from './models/CardanoTransaction';
 import CardanoUtils from './helpers/CardanoUtils';
 import Utils from '../../helpers/Utils';
@@ -205,9 +204,7 @@ class CardanoTrack {
     );
 
     // get unsigned txs input boxes from txAgreement
-    const txAgreementUsedInputBoxes = txAgreement
-      .getChainPendingTransactions(ChainsConstants.cardano)
-      .flatMap(CardanoUtils.getPaymentTxInputIds);
+    const txAgreementUsedInputBoxes: InputUtxo[] = []; // TODO: since this file will be deleted, this change doesn't matter
     usedBoxIds = usedBoxIds.concat(txAgreementUsedInputBoxes);
 
     // get boxes and apply track and filter

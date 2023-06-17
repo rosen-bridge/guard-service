@@ -118,6 +118,7 @@ class Configs {
     'intervals.txProcessorInterval',
     180
   ); // seconds
+  static agreementQueueInterval = 5; // seconds
   static txResendInterval = 25; // seconds
   static approvalResendDelay = 5; // seconds
   static multiSigCleanUpInterval = 120; // seconds

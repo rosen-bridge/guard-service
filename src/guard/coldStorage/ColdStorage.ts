@@ -5,7 +5,6 @@ import Configs from '../../helpers/Configs';
 import ChainsConstants from '../../chains/ChainsConstants';
 import { AssetMap, BoxesAssets } from '../../chains/ergo/models/Interfaces';
 import ErgoColdStorage from '../../chains/ergo/ErgoColdStorage';
-import { txAgreement } from '../agreement/TxAgreement';
 import KoiosApi from '../../chains/cardano/network/KoiosApi';
 import CardanoConfigs from '../../chains/cardano/helpers/CardanoConfigs';
 import CardanoColdStorage from '../../chains/cardano/CardanoColdStorage';
@@ -29,6 +28,7 @@ import { dbAction } from '../../db/DatabaseAction';
 import { TransactionStatus } from '../../models/Models';
 import { ImpossibleBehavior } from '../../helpers/errors';
 import { TypeORMError } from 'typeorm';
+import TxAgreement from '../../agreement/TxAgreement';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -98,7 +98,7 @@ class ColdStorage {
         const tx = await ErgoColdStorage.generateTransaction(
           transferringAssets
         );
-        txAgreement.startAgreementProcess(tx);
+        (await TxAgreement.getInstance()).addTransactionToQueue(tx);
       }
     } catch (e) {
       if (e instanceof TypeORMError) {
@@ -224,7 +224,7 @@ class ColdStorage {
         const tx = await CardanoColdStorage.generateTransaction(
           transferringAssets
         );
-        txAgreement.startAgreementProcess(tx);
+        (await TxAgreement.getInstance()).addTransactionToQueue(tx);
       }
     } catch (e) {
       logger.warn(

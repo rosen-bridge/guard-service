@@ -18,4 +18,17 @@ const mockVerifyEvent = (result: boolean) => {
   functionSpy.mockResolvedValue(result);
 };
 
-export { mockIsEventConfirmedEnough, mockVerifyEvent };
+/**
+ * mocks EventVerifier.isEventPendingToType to return `result`
+ * @param result
+ */
+const mockIsEventPendingToType = (result: boolean) => {
+  const functionSpy = vi.spyOn(EventVerifier, 'isEventPendingToType');
+  functionSpy.mockReturnValue(result);
+};
+
+export {
+  mockIsEventConfirmedEnough,
+  mockVerifyEvent,
+  mockIsEventPendingToType,
+};

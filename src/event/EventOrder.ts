@@ -11,11 +11,103 @@ import Configs from '../helpers/Configs';
 import GuardsErgoConfigs from '../helpers/GuardsErgoConfigs';
 import MinimumFee from './MinimumFee';
 import { rosenConfig } from '../helpers/RosenConfig';
-import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
+import { ERG, ERGO_CHAIN, ErgoChain } from '@rosen-chains/ergo';
+import ChainHandler from '../handlers/ChainHandler';
+import EventBoxes from './EventBoxes';
 
 class EventOrder {
   static watcherPermitAddress =
     GuardsErgoConfigs.ergoContractConfig.permitAddress;
+
+  /**
+   * generates user payment order for an event
+   * @param event the event trigger
+   * @param feeConfig minimum fee and rsn ratio config for the event
+   */
+  static createEventPaymentOrder = async (
+    event: EventTrigger,
+    feeConfig: Fee
+  ): Promise<PaymentOrder> => {
+    const targetChain = ChainHandler.getInstance().getChain(event.toChain);
+    const chainMinTransfer = targetChain.getMinimumNativeToken();
+
+    const order: PaymentOrder = [];
+    const extra: any[] = [];
+
+    // add reward order if target chain is ergo
+    if (event.toChain === ERGO_CHAIN) {
+      const ergoChain = targetChain as ErgoChain;
+
+      // get event and commitment boxes
+      const eventBox = await EventBoxes.getEventBox(event);
+      const rwtCount =
+        ergoChain.getBoxRWT(eventBox) / BigInt(event.WIDs.length);
+
+      const commitmentBoxes = await EventBoxes.getEventValidCommitments(
+        event,
+        rwtCount
+      );
+      const guardsConfigBox = await ergoChain.getGuardsConfigBox(
+        rosenConfig.guardNFT,
+        rosenConfig.guardSignAddress
+      );
+
+      // generate reward order
+      const rewardOrder = this.eventRewardOrder(
+        event,
+        commitmentBoxes.map(ergoChain.getBoxWID),
+        feeConfig,
+        '',
+        ChainHandler.getInstance().getChain(event.fromChain).getRWTToken(),
+        rwtCount
+      );
+      order.push(...rewardOrder);
+
+      // add event and commitment boxes to generateTransaction arguments
+      extra.push([eventBox, ...commitmentBoxes], [guardsConfigBox]);
+    }
+
+    // add payment order
+    const paymentRecord = this.eventSinglePayment(
+      event,
+      chainMinTransfer,
+      feeConfig
+    );
+    order.push(paymentRecord);
+
+    return order;
+  };
+
+  /**
+   * generates reward distribution order for an event
+   * @param event the event trigger
+   * @param feeConfig minimum fee and rsn ratio config for the event
+   */
+  static createEventRewardOrder = async (
+    event: EventTrigger,
+    feeConfig: Fee
+  ): Promise<PaymentOrder> => {
+    const ergoChain = ChainHandler.getInstance().getErgoChain();
+
+    // get event and commitment boxes
+    const eventBox = await EventBoxes.getEventBox(event);
+    const rwtCount = ergoChain.getBoxRWT(eventBox) / BigInt(event.WIDs.length);
+
+    const commitmentBoxes = await EventBoxes.getEventValidCommitments(
+      event,
+      rwtCount
+    );
+
+    // generate reward order
+    return EventOrder.eventRewardOrder(
+      event,
+      commitmentBoxes.map(ergoChain.getBoxWID),
+      feeConfig,
+      '',
+      ChainHandler.getInstance().getChain(event.fromChain).getRWTToken(),
+      rwtCount
+    );
+  };
 
   /**
    * generates single payment for an event

@@ -21,7 +21,10 @@ import {
   TransactionTypes,
 } from '../models/Models';
 import BaseChain from '../chains/BaseChains';
-import { txJsonParser } from '../chains/TxJsonParser';
+import {
+  paymentTransactionTypeChange,
+  txJsonParser,
+} from '../chains/TxJsonParser';
 import { loggerFactory } from '../log/Logger';
 import { ChainNotImplemented } from '../helpers/errors';
 import { BlockfrostServerError } from '@blockfrost/blockfrost-js';
@@ -233,7 +236,9 @@ class TransactionProcessor {
     await dbAction.txSignSemaphore.acquire().then(async (release) => {
       try {
         const paymentTx = txJsonParser(tx.txJson);
-        await this.getChainObject(tx.chain).requestToSignTransaction(paymentTx);
+        await this.getChainObject(tx.chain).requestToSignTransaction(
+          paymentTransactionTypeChange(paymentTx)
+        );
         logger.info(`Tx [${tx.txId}] got sent to the signer`);
         release();
       } catch (e) {

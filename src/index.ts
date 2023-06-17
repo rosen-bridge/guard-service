@@ -10,6 +10,7 @@ import { initScanner } from './jobs/initScanner';
 import { guardConfigUpdate } from './jobs/guardConfigUpdate';
 import { guardConfig } from './helpers/GuardConfig';
 import ChainHandler from './handlers/ChainHandler';
+import TxAgreement from './agreement/TxAgreement';
 
 const init = async () => {
   // init guards config
@@ -27,6 +28,9 @@ const init = async () => {
   // initialize tss multiSig object
   MultiSigHandler.getInstance(guardConfig.publicKeys, Configs.guardSecret);
   initializeMultiSigJobs();
+
+  // initialize TxAgreement object
+  await TxAgreement.getInstance();
 
   // initialize chain objects
   ChainHandler.getInstance();
