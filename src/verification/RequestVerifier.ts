@@ -51,19 +51,22 @@ class RequestVerifier {
       return false;
     }
 
-    // verify requested tx type
-    if (!EventVerifier.isEventPendingToType(eventEntity, tx.txType)) {
-      logger.warn(
-        baseError +
-          `but event status [${eventEntity.status}] is not compatible with requested tx type [${tx.txType}]`
-      );
-      return false;
-    }
-
     // check if event has any active tx for requested tx type
     const eventTxs = await dbAction.getEventValidTxsByType(eventId, tx.txType);
     if (eventTxs.length !== 0 && eventTxs[0].txId !== tx.txId) {
       logger.warn(baseError + `but event has active tx [${eventTxs[0].txId}]`);
+      return false;
+    }
+
+    // verify requested tx type with event status
+    if (
+      eventTxs.length === 0 &&
+      !EventVerifier.isEventPendingToType(eventEntity, tx.txType)
+    ) {
+      logger.warn(
+        baseError +
+          `but event status [${eventEntity.status}] is not compatible with requested tx type [${tx.txType}]`
+      );
       return false;
     }
 

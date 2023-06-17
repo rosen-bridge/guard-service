@@ -69,6 +69,20 @@ class TxAgreement extends Communicator {
   };
 
   /**
+   * wraps dialer handle message to communicator
+   * @param msg
+   * @param channel
+   * @param peerId
+   */
+  messageHandlerWrapper = async (
+    msg: string,
+    channel: string,
+    peerId: string
+  ) => {
+    this.handleMessage(msg, peerId);
+  };
+
+  /**
    * generates a TxAgreement object if it doesn't exist
    * @returns TxAgreement instance
    */
@@ -79,7 +93,7 @@ class TxAgreement extends Communicator {
       this.dialer = await Dialer.getInstance();
       this.dialer.subscribeChannel(
         TxAgreement.CHANNEL,
-        TxAgreement.instance.handleMessage
+        TxAgreement.instance.messageHandlerWrapper
       );
     }
     return TxAgreement.instance;
@@ -412,12 +426,12 @@ class TxAgreement extends Communicator {
     for (let i = 0; i < signatures.length; i++) {
       if (signatures[i] === '') continue;
       const message = `${JSON.stringify({ txId: tx.txId })}${timestamp}${
-        this.guardPks[this.index]
+        this.guardPks[i]
       }`;
       if (
         !(await this.signer.verify(message, signatures[i], this.guardPks[i]))
       ) {
-        logger.warn(baseError + `but at guard [${i}] signature doesn't verify`);
+        logger.warn(baseError + `but guard [${i}] signature doesn't verify`);
         return;
       }
       signs++;
