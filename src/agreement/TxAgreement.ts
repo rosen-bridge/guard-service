@@ -19,7 +19,7 @@ import {
 import RequestVerifier from '../verification/RequestVerifier';
 import TransactionSerializer from '../transaction/TransactionSerializer';
 import Configs from '../helpers/Configs';
-import { Communicator } from './communicator/Communicator'; // TODO: import from tss
+import { Communicator } from './communicator/Communicator'; // TODO: import from tss (#243)
 import { EcDSA } from './communicator/EcDSA';
 import GuardTurn from '../helpers/GuardTurn';
 import TransactionVerifier from '../verification/TransactionVerifier';

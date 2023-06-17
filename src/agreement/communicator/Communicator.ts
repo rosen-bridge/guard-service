@@ -4,7 +4,7 @@ import { CommunicationMessage } from './types';
 import { guardMessageValidTimeoutDefault } from './const';
 import { Timestamp } from 'typeorm';
 
-// TODO: replace this class with same one in tss package
+// TODO: replace this class with same one in tss package (#243)
 export abstract class Communicator {
   protected logger: AbstractLogger;
   protected signer: EncryptionHandler;

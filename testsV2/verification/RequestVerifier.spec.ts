@@ -295,6 +295,70 @@ describe('RequestVerifier', () => {
 
     /**
      * @target RequestVerifier.verifyEventTransactionRequest should return false
+     * when event has already active tx
+     * @dependencies
+     * - EventVerifier
+     * - MinimumFee
+     * - TransactionVerifier
+     * - database
+     * @scenario
+     * - mock event and two transactions
+     * - insert mocked event and transaction into db
+     * - mock EventVerifier
+     *   - mock `isEventConfirmedEnough`
+     *   - mock `verifyEvent`
+     *   - mock `isEventPendingToType`
+     * - mock TransactionVerifier.verifyEventTransaction
+     * - run test
+     * - verify returned value
+     * @expected
+     * - returned value should be false
+     */
+    it('should return false when event has already active tx', async () => {
+      // mock event and two transactions
+      const mockedEvent = mockEventTrigger();
+      const paymentTx = mockPaymentTransaction(
+        TransactionTypes.payment,
+        mockedEvent.toChain,
+        EventSerializer.getId(mockedEvent)
+      );
+      const inProgressTx = mockPaymentTransaction(
+        TransactionTypes.payment,
+        mockedEvent.toChain,
+        EventSerializer.getId(mockedEvent)
+      );
+
+      // insert mocked event and transaction into db
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent,
+        EventStatus.pendingPayment
+      );
+      await DatabaseActionMock.insertTxRecord(
+        inProgressTx,
+        TransactionStatus.signFailed
+      );
+
+      // mock EventVerifier
+      mockIsEventConfirmedEnough(true);
+      mockVerifyEvent(true);
+      mockIsEventPendingToType(true);
+
+      // mock TransactionVerifier.verifyEventTransaction
+      vi.spyOn(TransactionVerifier, 'verifyEventTransaction').mockResolvedValue(
+        true
+      );
+
+      // run test
+      const result = await RequestVerifier.verifyEventTransactionRequest(
+        paymentTx
+      );
+
+      // verify returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target RequestVerifier.verifyEventTransactionRequest should return false
      * when transaction doesn't satisfy the event
      * @dependencies
      * - EventVerifier

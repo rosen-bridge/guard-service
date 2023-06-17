@@ -2,7 +2,7 @@ import { EncryptionHandler } from './EncryptionHandler';
 import { blake2b } from 'blakejs';
 import pkg from 'secp256k1';
 
-// TODO: replace this class with same one in tss package
+// TODO: replace this class with same one in tss package (#243)
 class EcDSA extends EncryptionHandler {
   private readonly key: Uint8Array;
 

@@ -440,6 +440,7 @@ describe('TxAgreement', () => {
       expect(result).toEqual(true);
 
       // memory event map should contain mocked tx
+      expect(txAgreement.getEventAgreedTransactions().size).toEqual(1);
       expect(
         txAgreement.getEventAgreedTransactions().get(paymentTx.eventId)
       ).toEqual(paymentTx.txId);
@@ -459,7 +460,7 @@ describe('TxAgreement', () => {
      * - check returned value
      * - check transactions in memory
      * @expected
-     * - should return true
+     * - should return false
      * - memory event map should be empty
      */
     it('should return false when request is not verified', async () => {
@@ -632,7 +633,7 @@ describe('TxAgreement', () => {
      * - check returned value
      * - check transactions in memory
      * @expected
-     * - should return true
+     * - should return false
      * - memory cold storage chain map should be empty
      */
     it('should return false when cold storage request is not verified', async () => {
