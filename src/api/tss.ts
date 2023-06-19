@@ -1,6 +1,6 @@
 import CardanoChain from '../chains/cardano/CardanoChain';
 import { loggerFactory } from '../log/Logger';
-import { FastifySeverInstance } from './types';
+import { FastifySeverInstance, messageResponse } from './types';
 import { Type } from '@sinclair/typebox';
 
 const logger = loggerFactory(import.meta.url);
@@ -10,17 +10,14 @@ const signRoute = (server: FastifySeverInstance) => {
     message: Type.Any(),
     status: Type.String(),
   });
-  const response = Type.Object({
-    message: Type.String(),
-  });
   server.post(
     '/sign',
     {
       schema: {
         body: body,
         response: {
-          200: response,
-          400: response,
+          200: messageResponse,
+          500: messageResponse,
         },
       },
     },

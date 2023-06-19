@@ -3,13 +3,9 @@ import Dialer from '../communication/Dialer';
 import Configs from '../helpers/Configs';
 import { loggerFactory } from '../log/Logger';
 import { Type } from '@sinclair/typebox';
-import { FastifySeverInstance } from './types';
+import { FastifySeverInstance, messageResponse } from './types';
 
 const logger = loggerFactory(import.meta.url);
-
-const messageResponse = Type.Object({
-  message: Type.String(),
-});
 
 const sendRoute = (server: FastifySeverInstance, dialer: Dialer) => {
   const body = Type.Object({
