@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import { initDataSources } from './jobs/dataSources';
 import { initializeMultiSigJobs } from './jobs/multiSig';
-import { initExpress } from './jobs/express';
+import { initApiServer } from './jobs/apiServer';
 import { startTssInstance } from './jobs/tss';
 import { runProcessors } from './jobs/runProcessors';
 import MultiSigHandler from './guard/multisig/MultiSig';
@@ -20,7 +20,7 @@ const init = async () => {
   await initDataSources();
 
   // initialize express Apis
-  await initExpress();
+  await initApiServer();
 
   // guard config update job
   guardConfigUpdate();
