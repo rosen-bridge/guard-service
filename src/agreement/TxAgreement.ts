@@ -108,6 +108,17 @@ class TxAgreement extends Communicator {
   };
 
   /**
+   * adds all unsigned transactions which failed in sign process to agreement queue
+   * @param tx
+   */
+  enqueueSignFailedTxs = async (): Promise<void> => {
+    const txs = await dbAction.getUnsignedFailedSignTxs();
+    txs.forEach((tx) =>
+      this.transactionQueue.push(TransactionSerializer.fromJson(tx.txJson))
+    );
+  };
+
+  /**
    * starts agreement process for created PaymentTransactions in queue
    */
   processAgreementQueue = async (): Promise<void> => {

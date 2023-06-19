@@ -31,4 +31,10 @@ export class TransactionEntity {
     nullable: true,
   })
   lastStatusUpdate: string;
+
+  @Column('boolean')
+  failedInSign: boolean;
+
+  @Column('integer')
+  signFailedCount: number;
 }

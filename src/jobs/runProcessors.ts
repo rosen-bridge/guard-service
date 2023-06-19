@@ -41,6 +41,7 @@ const confirmedEventsJob = async () => {
   EventProcessor.processConfirmedEvents().then(() => {
     setTimeout(confirmedEventsJob, GuardTurn.secondsToNextTurn() * 1000);
   });
+  (await TxAgreement.getInstance()).enqueueSignFailedTxs();
   setTimeout(agreementQueueJob, Configs.agreementQueueInterval * 1000);
   setTimeout(agreementResendJob, Configs.txResendInterval * 1000);
   // clear generated transactions when turn is over

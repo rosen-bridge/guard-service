@@ -220,6 +220,7 @@ class DatabaseAction {
       throw new Error(`Event [${newTx.eventId}] not found`);
     }
 
+    // TODO: insertion should update failedInSign to false in both cases
     if (event) await this.insertEventTx(newTx, event);
     else await this.insertColdStorageTx(newTx);
   };
@@ -339,6 +340,7 @@ class DatabaseAction {
         status: TransactionStatus.approved,
         lastStatusUpdate: String(Math.round(Date.now() / 1000)),
         lastCheck: 0,
+        failedInSign: false,
       })
       .where('txId = :id', { id: previousTxId })
       .execute();
@@ -360,6 +362,8 @@ class DatabaseAction {
       lastStatusUpdate: String(Math.round(Date.now() / 1000)),
       lastCheck: 0,
       event: event !== null ? event : undefined,
+      failedInSign: false,
+      signFailedCount: 0,
     });
   };
 
@@ -498,6 +502,25 @@ class DatabaseAction {
         `Found more than one completed payment transaction for event [${eventId}]`
       );
     else return txs[0];
+  };
+
+  /**
+   * returns all unsigned transactions which failed in sign process
+   */
+  getUnsignedFailedSignTxs = async (): Promise<TransactionEntity[]> => {
+    return await this.TransactionRepository.find({
+      relations: ['event'],
+      where: [
+        {
+          status: TransactionStatus.signFailed,
+          failedInSign: true,
+        },
+        {
+          status: TransactionStatus.inSign,
+          failedInSign: true,
+        },
+      ],
+    });
   };
 }
 

@@ -62,6 +62,10 @@ class GuardsCardanoConfigs {
     'cardano.confirmation.payment',
     120
   );
+  static coldTxConfirmation = getConfigIntKeyOrDefault(
+    'cardano.confirmation.cold',
+    120
+  );
 
   // the ergo-related contract, addresses and tokens in rosen bridge
   static cardanoContractConfig = rosenConfig.contractReader(CARDANO_CHAIN);
@@ -80,18 +84,9 @@ class GuardsCardanoConfigs {
   // CardanoChain required configs
   static chainConfigs: CardanoConfigs = {
     fee: this.txFee,
-    observationTxConfirmation: getConfigIntKeyOrDefault(
-      'cardano.confirmation.observation',
-      120
-    ),
-    paymentTxConfirmation: getConfigIntKeyOrDefault(
-      'cardano.confirmation.payment',
-      120
-    ),
-    coldTxConfirmation: getConfigIntKeyOrDefault(
-      'cardano.confirmation.cold',
-      120
-    ),
+    observationTxConfirmation: this.observationConfirmation,
+    paymentTxConfirmation: this.paymentConfirmation,
+    coldTxConfirmation: this.coldTxConfirmation,
     lockAddress: this.lockAddress,
     coldStorageAddress: this.coldAddress,
     rwtId: this.cardanoContractConfig.RWTId,
