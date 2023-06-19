@@ -38,12 +38,8 @@ const initApiServer = async () => {
     transformSpecificationClone: true,
   });
 
-  await server.register(p2pRoutes, {
-    routePrefix: '/p2p',
-  });
-  await server.register(tssRoute, {
-    routePrefix: '/tss',
-  });
+  await server.register(p2pRoutes);
+  await server.register(tssRoute);
   const port = Configs.apiPort;
   const host = Configs.apiHost;
 

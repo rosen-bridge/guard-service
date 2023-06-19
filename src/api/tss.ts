@@ -11,7 +11,7 @@ const signRoute = (server: FastifySeverInstance) => {
     status: Type.String(),
   });
   server.post(
-    '/sign',
+    '/tss/sign',
     {
       schema: {
         body: body,
@@ -21,26 +21,28 @@ const signRoute = (server: FastifySeverInstance) => {
         },
       },
     },
-    async (request, reply) => {
-      try {
-        const req = request.body;
-        const message = JSON.stringify(req.message);
-        const status = req.status;
-        const cardanoChain = new CardanoChain();
-        await cardanoChain.signTransaction(message, status);
-        reply.status(200).send({ message: 'ok' });
-      } catch (error) {
-        logger.error(
-          `An error occurred while processing TSS Cardano tx sign callback: ${error}`
-        );
-        logger.error(error.stack);
-        reply.status(500).send({ message: error.message });
-      }
+    (request, reply) => {
+      const req = request.body;
+      const message = JSON.stringify(req.message);
+      const status = req.status;
+      const cardanoChain = new CardanoChain();
+      cardanoChain
+        .signTransaction(message, status)
+        .then(() => {
+          reply.status(200).send({ message: 'ok' });
+        })
+        .catch((error) => {
+          logger.error(
+            `An error occurred while processing TSS Cardano tx sign callback: ${error}`
+          );
+          logger.error(error.stack);
+          reply.status(500).send({ message: error.message });
+        });
     }
   );
 };
 
-const tssRoute = (server: FastifySeverInstance) => {
+const tssRoute = async (server: FastifySeverInstance) => {
   signRoute(server);
 };
 

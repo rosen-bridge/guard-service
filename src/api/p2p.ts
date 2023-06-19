@@ -14,7 +14,7 @@ const sendRoute = (server: FastifySeverInstance, dialer: Dialer) => {
     receiver: Type.Optional(Type.String()),
   });
   server.post(
-    '/send',
+    '/p2p/send',
     {
       schema: {
         body: body,
@@ -41,7 +41,7 @@ const subscribeRoute = (server: FastifySeverInstance, dialer: Dialer) => {
     url: Type.Optional(Type.String()),
   });
   server.post(
-    '/channel/subscribe',
+    '/p2p/channel/subscribe',
     {
       schema: {
         body: body,
@@ -61,7 +61,7 @@ const subscribeRoute = (server: FastifySeverInstance, dialer: Dialer) => {
 const getPeerIdsRoute = (server: FastifySeverInstance, dialer: Dialer) => {
   const response = Type.Array(Type.String());
   server.get(
-    '/getPeerIDs',
+    '/p2p/getPeerIDs',
     {
       schema: {
         response: {
@@ -80,7 +80,7 @@ const getPeerIdRoute = (server: FastifySeverInstance, dialer: Dialer) => {
     peerId: Type.String(),
   });
   server.get(
-    '/getPeerID',
+    '/p2p/getPeerID',
     {
       schema: {
         response: {
