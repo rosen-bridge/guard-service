@@ -53,12 +53,10 @@ const getOptionalConfig = <T>(key: string, defaultValue: T) => {
 
 class Configs {
   // express config
-  static expressPort = getConfigIntKeyOrDefault('express.port', 8080);
-  private static expressBodyLimitValue = getConfigIntKeyOrDefault(
-    'express.jsonBodyLimit',
-    50
-  );
-  static expressBodyLimit = `${this.expressBodyLimitValue}mb`;
+  static apiPort = getConfigIntKeyOrDefault('api.port', 8080);
+  static apiHost = getOptionalConfig<string>('api.host', 'localhost');
+  static apiBodyLimit =
+    getConfigIntKeyOrDefault('api.jsonBodyLimit', 50) * 1024 * 1024; // value in MB
 
   // config of API's route
   static MAX_LENGTH_CHANNEL_SIZE = 200;
@@ -69,7 +67,7 @@ class Configs {
   static tssUrl = config.get<string>('tss.url');
   static tssPort = config.get<string>('tss.port');
   static tssTimeout = getConfigIntKeyOrDefault('tss.timeout', 8); // seconds
-  static tssCallBackUrl = `http://localhost:${this.expressPort}/tss/sign`;
+  static tssCallBackUrl = `http://${this.apiHost}:${this.apiPort}/tss/sign`;
 
   // guards configs
   static guardSecret = config.get<string>('guard.secret');

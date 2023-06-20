@@ -14,7 +14,7 @@ const startTssInstance = function () {
     ' -configFile ' +
     Configs.tssConfigPath +
     ' -p2pPort ' +
-    Configs.expressPort +
+    Configs.apiPort +
     ' -port ' +
     Configs.tssPort;
 

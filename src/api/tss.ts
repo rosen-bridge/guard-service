@@ -1,45 +1,54 @@
-import { Request, Response, Router } from 'express';
 import CardanoChain from '../chains/cardano/CardanoChain';
-import { body, validationResult } from 'express-validator';
 import { loggerFactory } from '../log/Logger';
+import { FastifySeverInstance } from '../types/api';
+import { Type } from '@sinclair/typebox';
+import { messageResponseSchema } from '../types/schema';
 
 const logger = loggerFactory(import.meta.url);
-export const tssRouter = Router();
 
 /**
- * Api for receive signedTx from tss service
- * @bodyParam {string}
- * @bodyParam {object}
- * @bodyParam {string}
+ * setup sign route
+ * @param server
  */
-tssRouter.post(
-  '/sign',
-  body('message').notEmpty().withMessage('key message is required!'),
-  body('status').notEmpty().withMessage('key status is required!').isString(),
-  async (req: Request, res: Response) => {
-    try {
-      const errors = validationResult(req);
-      if (!errors.isEmpty()) {
-        logger.error(
-          `Received bad request from TSS Cardano tx sign callback: ${JSON.stringify(
-            errors.array()
-          )}`
-        );
-        return res
-          .status(400)
-          .json({ message: JSON.stringify(errors.array()) });
-      }
-      const message = JSON.stringify(req.body.message);
-      const status = req.body.status;
+const signRoute = (server: FastifySeverInstance) => {
+  const bodySchema = Type.Object({
+    message: Type.Any(),
+    status: Type.String(),
+  });
+  server.post(
+    '/tss/sign',
+    {
+      schema: {
+        body: bodySchema,
+        response: {
+          200: messageResponseSchema,
+          500: messageResponseSchema,
+        },
+      },
+    },
+    (request, reply) => {
+      const req = request.body;
+      const message = JSON.stringify(req.message);
+      const status = req.status;
       const cardanoChain = new CardanoChain();
-      await cardanoChain.signTransaction(message, status);
-      res.send({ message: 'ok' });
-    } catch (error) {
-      logger.error(
-        `An error occurred while processing TSS Cardano tx sign callback: ${error}`
-      );
-      logger.error(error.stack);
-      res.status(500).send({ message: error.message });
+      cardanoChain
+        .signTransaction(message, status)
+        .then(() => {
+          reply.status(200).send({ message: 'ok' });
+        })
+        .catch((error) => {
+          logger.error(
+            `An error occurred while processing TSS Cardano tx sign callback: ${error}`
+          );
+          logger.error(error.stack);
+          reply.status(500).send({ message: error.message });
+        });
     }
-  }
-);
+  );
+};
+
+const tssRoute = async (server: FastifySeverInstance) => {
+  signRoute(server);
+};
+
+export { tssRoute };

@@ -1,8 +1,9 @@
 ---
 # all time related configs are in seconds (timeout, interval, ...)
 
-express:
+api:
   port: 8080 # service deployment port
+  host: 'localhost' # service listening host
   jsonBodyLimit: 50
 cardano:
   networkType: 'mainnet' # Cardano network type [testnet, mainnet]
