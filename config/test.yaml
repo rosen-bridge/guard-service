@@ -11,8 +11,10 @@ cardano:
   minUtxoValue: '1551690'
   fee: '200000'
   txTtl: 1000000
-  observationConfirmation: 30
-  paymentConfirmation: 40
+  confirmation:
+    observation: 10
+    payment: 15
+    cold: 20
   lockAddress: 'addr_test1vze7yqqlg8cjlyhz7jzvsg0f3fhxpuu6m3llxrajfzqecggw704re'
   coldStorageAddress: 'addr_test1vze7yqqlg8cjlyhz7jzvsg0f3fhxpuu6m3llxrajfzqecggw704re'
 ergo:
@@ -26,9 +28,11 @@ ergo:
     timeout: 8000
   minBoxValue: '100000'
   fee: '1100000'
-  observationConfirmation: 10
-  eventConfirmation: 15
-  distributionConfirmation: 20
+  confirmation:
+    observation: 25
+    event: 30
+    payment: 35
+    cold: 40
   coldStorageAddress: '9es3xKFSehNNwCpuNpY31ScAubDqeLbSWwaCysjN1ee51bgHKTq'
 reward:
   bridgeFeeRepoAddress: '9gtQHPp8yh2SC7z5ZLMHnK2NNW1DUW11hBKbUEADzqCSrECoQQM'

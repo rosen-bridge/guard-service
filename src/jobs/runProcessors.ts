@@ -1,6 +1,6 @@
 import EventProcessor from '../event/EventProcessor';
 import Configs from '../helpers/Configs';
-import TransactionProcessor from '../guard/TransactionProcessor';
+import TransactionProcessor from '../transaction/TransactionProcessor';
 import GuardTurn from '../helpers/GuardTurn';
 import ColdStorage from '../guard/coldStorage/ColdStorage';
 import ColdStorageConfig from '../guard/coldStorage/ColdStorageConfig';

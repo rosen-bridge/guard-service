@@ -11,6 +11,7 @@ import { EventStatus, TransactionStatus } from '../models/Models';
 import { guardConfig } from '../helpers/GuardConfig';
 import Configs from '../helpers/Configs';
 import TransactionSerializer from './TransactionSerializer';
+import { ERGO_CHAIN } from '@rosen-chains/ergo';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -64,6 +65,7 @@ class TransactionProcessor {
         const paymentTx = TransactionSerializer.fromJson(tx.txJson);
         await chain.signTransaction(paymentTx, guardConfig.requiredSign);
         logger.info(`Tx [${tx.txId}] got sent to the signer`);
+        await dbAction.setTxStatus(tx.txId, TransactionStatus.inSign);
         release();
       } catch (e) {
         logger.warn(
@@ -132,6 +134,7 @@ class TransactionProcessor {
     const chain = ChainHandler.getInstance().getChain(tx.chain);
     const paymentTx = TransactionSerializer.fromJson(tx.txJson);
     await chain.submitTransaction(paymentTx);
+    await dbAction.setTxStatus(tx.txId, TransactionStatus.sent);
   };
 
   /**
@@ -148,7 +151,7 @@ class TransactionProcessor {
       case ConfirmationStatus.ConfirmedEnough: {
         // tx confirmed enough, proceed to next process
         await dbAction.setTxStatus(tx.txId, TransactionStatus.completed);
-        if (tx.type === TransactionTypes.payment) {
+        if (tx.type === TransactionTypes.payment && tx.chain !== ERGO_CHAIN) {
           // set event status, to start reward distribution
           await dbAction.setEventStatusToPending(
             tx.event.id,
@@ -157,7 +160,10 @@ class TransactionProcessor {
           logger.info(
             `Tx [${tx.txId}] is confirmed. Event [${tx.event.id}] is ready for reward distribution`
           );
-        } else if (tx.type === TransactionTypes.reward) {
+        } else if (
+          tx.type === TransactionTypes.reward ||
+          (tx.type === TransactionTypes.payment && tx.chain === ERGO_CHAIN)
+        ) {
           // set event as complete
           await dbAction.setEventStatus(tx.event.id, EventStatus.completed);
           logger.info(
