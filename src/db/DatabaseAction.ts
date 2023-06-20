@@ -220,7 +220,6 @@ class DatabaseAction {
       throw new Error(`Event [${newTx.eventId}] not found`);
     }
 
-    // TODO: insertion should update failedInSign to false in both cases
     if (event) await this.insertEventTx(newTx, event);
     else await this.insertColdStorageTx(newTx);
   };
@@ -241,23 +240,25 @@ class DatabaseAction {
       );
     } else if (txs.length === 1) {
       const tx = txs[0];
-      if (tx.status === TransactionStatus.approved) {
-        if (newTx.txId < tx.txId) {
-          logger.info(
-            `Replacing tx [${tx.txId}] with new transaction [${newTx.txId}] due to lower txId`
-          );
-          await this.replaceTx(tx.txId, newTx);
-        } else if (newTx.txId === tx.txId) {
-          logger.info(`Ignoring tx [${tx.txId}], already exists in database`);
-        } else
-          logger.info(
-            `Ignoring new tx [${newTx.txId}] due to higher txId, comparing to [${tx.txId}]`
-          );
+      if (tx.txId === newTx.txId) {
+        `Reinsertion for tx [${tx.txId}], 'failedInSign' updated to false`;
+        await this.resetFailedInSign(tx.txId);
       } else {
-        if (newTx.txId !== tx.txId)
+        if (tx.status === TransactionStatus.approved) {
+          if (newTx.txId < tx.txId) {
+            logger.info(
+              `Replacing tx [${tx.txId}] with new transaction [${newTx.txId}] due to lower txId`
+            );
+            await this.replaceTx(tx.txId, newTx);
+          } else
+            logger.info(
+              `Ignoring new tx [${newTx.txId}] due to higher txId, comparing to [${tx.txId}]`
+            );
+        } else {
           logger.warn(
             `Received approval for newTx [${newTx.txId}] where its event [${event.id}] has already an advanced oldTx [${tx.txId}]`
           );
+        }
       }
     } else await this.insertNewTx(newTx, event);
   };
@@ -277,25 +278,26 @@ class DatabaseAction {
       );
     } else if (txs.length === 1) {
       const tx = txs[0];
-      if (tx.status === TransactionStatus.approved) {
-        if (newTx.txId < tx.txId) {
-          logger.info(
-            `Replacing cold storage tx [${tx.txId}] with new transaction [${newTx.txId}] due to lower txId`
-          );
-          await this.replaceTx(tx.txId, newTx);
-        } else if (newTx.txId === tx.txId) {
-          logger.info(
-            `Ignoring cold storage tx [${tx.txId}], already exists in database`
-          );
-        } else
-          logger.info(
-            `Ignoring new cold storage tx [${newTx.txId}] due to higher txId, comparing to [${tx.txId}]`
-          );
+      if (tx.txId === newTx.txId) {
+        `Reinsertion for cold storage tx [${tx.txId}], 'failedInSign' updated to false`;
+        await this.resetFailedInSign(tx.txId);
       } else {
-        if (newTx.txId !== tx.txId)
-          logger.warn(
-            `Received approval for new tx [${newTx.txId}] where its chain [${newTx.network}] has already in progress tx [${tx.txId}]`
-          );
+        if (tx.status === TransactionStatus.approved) {
+          if (newTx.txId < tx.txId) {
+            logger.info(
+              `Replacing cold storage tx [${tx.txId}] with new transaction [${newTx.txId}] due to lower txId`
+            );
+            await this.replaceTx(tx.txId, newTx);
+          } else
+            logger.info(
+              `Ignoring new cold storage tx [${newTx.txId}] due to higher txId, comparing to [${tx.txId}]`
+            );
+        } else {
+          if (newTx.txId !== tx.txId)
+            logger.warn(
+              `Received approval for new tx [${newTx.txId}] where its chain [${newTx.network}] has already in progress tx [${tx.txId}]`
+            );
+        }
       }
     } else await this.insertNewTx(newTx, null);
   };
@@ -343,6 +345,20 @@ class DatabaseAction {
         failedInSign: false,
       })
       .where('txId = :id', { id: previousTxId })
+      .execute();
+  };
+
+  /**
+   * updates failedInSign field of a transaction to false
+   * @param txId
+   */
+  resetFailedInSign = async (txId: string): Promise<void> => {
+    await this.TransactionRepository.createQueryBuilder()
+      .update()
+      .set({
+        failedInSign: false,
+      })
+      .where('txId = :id', { id: txId })
       .execute();
   };
 

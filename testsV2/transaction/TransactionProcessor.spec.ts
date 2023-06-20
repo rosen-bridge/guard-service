@@ -821,6 +821,66 @@ describe('TransactionProcessor', () => {
     });
 
     /**
+     * @target TransactionProcessor.processSentTx should resubmit
+     * the transaction when not found but still valid
+     * @dependencies
+     * - database
+     * - ChainHandler
+     * @scenario
+     * - mock event and transaction and insert into db
+     * - mock ChainHandler `getChain`
+     *   - mock `getTxConfirmationStatus`
+     *   - mock `isTxInMempool`
+     *   - mock `isTxValid`
+     *   - mock `submitTransaction`
+     * - run test (call `processTransactions`)
+     * - check if function got called
+     * - check tx in database
+     * @expected
+     * - `signTransaction` should got called
+     * - tx last check should be updated
+     */
+    it('should resubmit the transaction when not found but still valid', async () => {
+      // mock event and transaction and insert into db
+      const mockedEvent = EventTestData.mockEventTrigger();
+      const eventId = EventSerializer.getId(mockedEvent);
+      const tx = mockPaymentTransaction(
+        TransactionTypes.payment,
+        mockedEvent.toChain,
+        eventId
+      );
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent,
+        EventStatus.inPayment
+      );
+      await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.sent, 100);
+
+      // mock ChainHandler `getChain`
+      ChainHandlerMock.mockChainName(tx.network);
+      // mock `getTxConfirmationStatus`
+      ChainHandlerMock.mockToChainFunction(
+        'getTxConfirmationStatus',
+        ConfirmationStatus.NotFound,
+        true
+      );
+      // mock `isTxInMempool`
+      ChainHandlerMock.mockToChainFunction('isTxInMempool', false, true);
+      // mock `isTxValid`
+      const mockedCurrentHeight = 102;
+      ChainHandlerMock.mockToChainFunction('isTxValid', true, true);
+      // mock `submitTransaction`
+      ChainHandlerMock.mockToChainFunction('submitTransaction', null, true);
+
+      // run test
+      await TransactionProcessor.processTransactions();
+
+      // `submitTransaction` should got called
+      expect(
+        ChainHandlerMock.getChainMockedFunction('submitTransaction')
+      ).toHaveBeenCalledOnce();
+    });
+
+    /**
      * @target TransactionProcessor.processSentTx should update
      * status to invalid when tx is not valid anymore
      * @dependencies

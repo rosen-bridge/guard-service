@@ -251,20 +251,19 @@ describe('DatabaseAction', () => {
     });
 
     /**
-     * @target DatabaseAction.insertEventTx should do nothing when
+     * @target DatabaseAction.insertEventTx should update failedInSign when
      * tx is already in database
      * @dependencies
      * - database
      * @scenario
      * - mock event and transaction
      * - insert mocked event and transaction into db
-     * - get tx data
      * - run test (call `insertTx`)
      * - check database
      * @expected
-     * - tx data should remain unchanged
+     * - tx failedInSign field should be updated to false
      */
-    it('should do nothing when tx is already in database', async () => {
+    it('should update failedInSign when tx is already in database', async () => {
       // mock event and transaction
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
@@ -281,15 +280,15 @@ describe('DatabaseAction', () => {
       );
       await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.approved);
 
-      // get tx data
-      const txData = await DatabaseActionMock.allTxRecords();
-
       // run test
       await dbAction.insertTx(tx);
 
-      // tx data should remain unchanged
-      const dbTxs = await DatabaseActionMock.allTxRecords();
-      expect(dbTxs).toEqual(txData);
+      // tx failedInSign field should be updated to false
+      const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
+        tx.txId,
+        tx.failedInSign,
+      ]);
+      expect(dbTxs).toEqual([[tx.txId, false]]);
     });
   });
 
@@ -476,20 +475,19 @@ describe('DatabaseAction', () => {
     });
 
     /**
-     * @target DatabaseAction.insertColdStorageTx should do nothing when
+     * @target DatabaseAction.insertColdStorageTx should update failedInSign when
      * tx is already in database
      * @dependencies
      * - database
      * @scenario
      * - mock transaction
      * - insert mocked transaction into db
-     * - get tx data
      * - run test (call `insertTx`)
      * - check database
      * @expected
-     * - tx data should remain unchanged
+     * - tx failedInSign field should be updated to false
      */
-    it('should do nothing when tx is already in database', async () => {
+    it('should update failedInSign when tx is already in database', async () => {
       // mock transaction
       const chain = 'chain';
       const tx = TxTestData.mockPaymentTransaction(
@@ -501,15 +499,15 @@ describe('DatabaseAction', () => {
       // insert mocked transaction into db
       await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.approved);
 
-      // get tx data
-      const txData = await DatabaseActionMock.allTxRecords();
-
       // run test
       await dbAction.insertTx(tx);
 
-      // tx data should remain unchanged
-      const dbTxs = await DatabaseActionMock.allTxRecords();
-      expect(dbTxs).toEqual(txData);
+      // tx failedInSign field should be updated to false
+      const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
+        tx.txId,
+        tx.failedInSign,
+      ]);
+      expect(dbTxs).toEqual([[tx.txId, false]]);
     });
   });
 });
