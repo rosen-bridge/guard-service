@@ -40,6 +40,9 @@ const initApiServer = async () => {
 
   await server.register(p2pRoutes);
   await server.register(tssRoute);
+  server.get('/', (request, reply) => {
+    reply.redirect('/documentation');
+  });
   const port = Configs.apiPort;
   const host = Configs.apiHost;
 
