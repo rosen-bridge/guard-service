@@ -9,6 +9,12 @@ import { tssRoute } from '../api/tss';
 
 const logger = loggerFactory(import.meta.url);
 
+/**
+ * initialize api server
+ * setup swagger on it
+ * register all routers
+ * then start it
+ */
 const initApiServer = async () => {
   const server = fastify({
     bodyLimit: Configs.apiBodyLimit,
@@ -17,7 +23,7 @@ const initApiServer = async () => {
   await server.register(swagger);
 
   await server.register(swaggerUi, {
-    routePrefix: '/documentation',
+    routePrefix: '/swagger',
     uiConfig: {
       docExpansion: 'full',
       deepLinking: false,
@@ -41,7 +47,7 @@ const initApiServer = async () => {
   await server.register(p2pRoutes);
   await server.register(tssRoute);
   server.get('/', (request, reply) => {
-    reply.redirect('/documentation');
+    reply.redirect('/swagger');
   });
   const port = Configs.apiPort;
   const host = Configs.apiHost;

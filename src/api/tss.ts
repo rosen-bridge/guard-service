@@ -1,12 +1,17 @@
 import CardanoChain from '../chains/cardano/CardanoChain';
 import { loggerFactory } from '../log/Logger';
-import { FastifySeverInstance, messageResponse } from './types';
+import { FastifySeverInstance } from '../types/api';
 import { Type } from '@sinclair/typebox';
+import { messageResponseSchema } from '../types/schema';
 
 const logger = loggerFactory(import.meta.url);
 
+/**
+ * setup sign route
+ * @param server
+ */
 const signRoute = (server: FastifySeverInstance) => {
-  const body = Type.Object({
+  const bodySchema = Type.Object({
     message: Type.Any(),
     status: Type.String(),
   });
@@ -14,10 +19,10 @@ const signRoute = (server: FastifySeverInstance) => {
     '/tss/sign',
     {
       schema: {
-        body: body,
+        body: bodySchema,
         response: {
-          200: messageResponse,
-          500: messageResponse,
+          200: messageResponseSchema,
+          500: messageResponseSchema,
         },
       },
     },

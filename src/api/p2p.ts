@@ -3,12 +3,18 @@ import Dialer from '../communication/Dialer';
 import Configs from '../helpers/Configs';
 import { loggerFactory } from '../log/Logger';
 import { Type } from '@sinclair/typebox';
-import { FastifySeverInstance, messageResponse } from './types';
+import { FastifySeverInstance } from '../types/api';
+import { messageResponseSchema } from '../types/schema';
 
 const logger = loggerFactory(import.meta.url);
 
+/**
+ * setup route for send p2p message
+ * @param server
+ * @param dialer
+ */
 const sendRoute = (server: FastifySeverInstance, dialer: Dialer) => {
-  const body = Type.Object({
+  const bodySchema = Type.Object({
     channel: Type.String({ maxLength: Configs.MAX_LENGTH_CHANNEL_SIZE }),
     message: Type.String(),
     receiver: Type.Optional(Type.String()),
@@ -17,36 +23,45 @@ const sendRoute = (server: FastifySeverInstance, dialer: Dialer) => {
     '/p2p/send',
     {
       schema: {
-        body: body,
+        body: bodySchema,
         response: {
-          200: messageResponse,
+          200: messageResponseSchema,
+          500: messageResponseSchema,
         },
       },
     },
     (request, reply) => {
       const { channel, message, receiver } = request.body;
-      if (receiver) {
-        dialer.sendMessage(channel, message, receiver);
-      } else {
-        dialer.sendMessage(channel, message);
-      }
-      reply.status(200).send({ message: 'ok' });
+      dialer
+        .sendMessage(channel, message, receiver)
+        .then((res) => {
+          reply.status(200).send({ message: 'ok' });
+        })
+        .catch((err) => {
+          logger.error(err);
+          reply.status(500).send({ message: err });
+        });
     }
   );
 };
 
+/**
+ * setup route for subscribe channel
+ * @param server
+ * @param dialer
+ */
 const subscribeRoute = (server: FastifySeverInstance, dialer: Dialer) => {
-  const body = Type.Object({
+  const bodySchema = Type.Object({
     channel: Type.String({ maxLength: Configs.MAX_LENGTH_CHANNEL_SIZE }),
-    url: Type.Optional(Type.String()),
+    url: Type.String(),
   });
   server.post(
     '/p2p/channel/subscribe',
     {
       schema: {
-        body: body,
+        body: bodySchema,
         response: {
-          200: messageResponse,
+          200: messageResponseSchema,
         },
       },
     },
@@ -58,14 +73,19 @@ const subscribeRoute = (server: FastifySeverInstance, dialer: Dialer) => {
   );
 };
 
+/**
+ * setup route for get peerIds
+ * @param server
+ * @param dialer
+ */
 const getPeerIdsRoute = (server: FastifySeverInstance, dialer: Dialer) => {
-  const response = Type.Array(Type.String());
+  const responseSchema = Type.Array(Type.String());
   server.get(
     '/p2p/getPeerIDs',
     {
       schema: {
         response: {
-          200: response,
+          200: responseSchema,
         },
       },
     },
@@ -75,25 +95,35 @@ const getPeerIdsRoute = (server: FastifySeverInstance, dialer: Dialer) => {
   );
 };
 
+/**
+ * setup route for get my peer id
+ * @param server
+ * @param dialer
+ */
 const getPeerIdRoute = (server: FastifySeverInstance, dialer: Dialer) => {
-  const response = Type.Object({
-    peerId: Type.String(),
+  const responseSchema = Type.Object({
+    message: Type.String(),
+    status: Type.String(),
   });
   server.get(
     '/p2p/getPeerID',
     {
       schema: {
         response: {
-          200: response,
+          200: responseSchema,
         },
       },
     },
     (request, reply) => {
-      reply.status(200).send({ peerId: dialer.getDialerId() });
+      reply.status(200).send({ message: dialer.getDialerId(), status: 'ok' });
     }
   );
 };
 
+/**
+ * plugin to setup p2p routes
+ * @param server
+ */
 const p2pRoutes = async (server: FastifySeverInstance) => {
   const dialer = await Dialer.getInstance();
   sendRoute(server, dialer);
