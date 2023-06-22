@@ -147,31 +147,35 @@ class ChainHandler {
    */
   getRequiredConfirmation = (chain: string, type: string): number => {
     switch (chain) {
-      case ERGO_CHAIN:
-        if (
-          type === TransactionTypes.payment ||
-          type === TransactionTypes.reward
-        )
-          return GuardsErgoConfigs.paymentTxConfirmation;
-        else if (type === TransactionTypes.coldStorage)
-          return GuardsErgoConfigs.coldTxConfirmation;
-        else if (type === TransactionTypes.lock)
-          return GuardsErgoConfigs.observationConfirmation;
-        else
-          throw Error(
-            `Confirmation for type [${type}] is not found on Ergo chain`
-          );
-      case CARDANO_CHAIN:
-        if (type === TransactionTypes.payment)
-          return GuardsCardanoConfigs.paymentConfirmation;
-        else if (type === TransactionTypes.coldStorage)
-          return GuardsCardanoConfigs.coldTxConfirmation;
-        else if (type === TransactionTypes.lock)
-          return GuardsCardanoConfigs.observationConfirmation;
-        else
-          throw Error(
-            `Confirmation for type [${type}] is not found on Cardano chain`
-          );
+      case ERGO_CHAIN: {
+        switch (type) {
+          case TransactionTypes.payment:
+          case TransactionTypes.reward:
+            return GuardsErgoConfigs.paymentTxConfirmation;
+          case TransactionTypes.coldStorage:
+            return GuardsErgoConfigs.coldTxConfirmation;
+          case TransactionTypes.lock:
+            return GuardsErgoConfigs.observationConfirmation;
+          default:
+            throw Error(
+              `Confirmation for type [${type}] is not found on Ergo chain`
+            );
+        }
+      }
+      case CARDANO_CHAIN: {
+        switch (type) {
+          case TransactionTypes.payment:
+            return GuardsCardanoConfigs.paymentConfirmation;
+          case TransactionTypes.coldStorage:
+            return GuardsCardanoConfigs.coldTxConfirmation;
+          case TransactionTypes.lock:
+            return GuardsCardanoConfigs.observationConfirmation;
+          default:
+            throw Error(
+              `Confirmation for type [${type}] is not found on Cardano chain`
+            );
+        }
+      }
       default:
         throw Error(`Cannot get any config for chain [${chain}]`);
     }
