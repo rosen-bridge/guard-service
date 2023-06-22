@@ -1,6 +1,6 @@
 import chainHandler from '../../src/handlers/ChainHandler';
 import { AbstractChain } from '@rosen-chains/abstract-chain';
-import { ErgoChain } from '@rosen-chains/ergo';
+import { AbstractErgoNetwork, ErgoChain } from '@rosen-chains/ergo';
 
 export const chainHandlerInstance = {
   getChain: (chainName: string): AbstractChain => {
@@ -8,6 +8,12 @@ export const chainHandlerInstance = {
   },
   getErgoChain: (): ErgoChain => {
     throw Error(`ChainHandler 'getErgoChain' is not mocked!`);
+  },
+  getErgoNetwork: (): AbstractErgoNetwork => {
+    throw Error(`ChainHandler 'getErgoNetwork' is not mocked!`);
+  },
+  getCardanoNetwork: (): AbstractErgoNetwork => {
+    throw Error(`ChainHandler 'getCardanoNetwork' is not mocked!`);
   },
 };
 
@@ -130,6 +136,44 @@ class ChainHandlerMock {
       vi.spyOn(this.mockedErgo, name).mockImplementation(() => {
         throw error;
       });
+  };
+
+  /**
+   * mocks ChainHandler.getErgoNetwork to run the impl function
+   * @param impl
+   * @param isAsync
+   */
+  static mockGetErgoNetwork = (impl: any, isAsync = false) => {
+    if (isAsync)
+      vi.spyOn(chainHandlerInstance, 'getErgoNetwork').mockImplementation(
+        async () => {
+          return await impl();
+        }
+      );
+    else
+      vi.spyOn(chainHandlerInstance, 'getErgoNetwork').mockImplementation(
+        () => {
+          return impl();
+        }
+      );
+  };
+
+  /**
+   * mocks ChainHandler.getCardanoNetwork to run the impl function
+   */
+  static mockGetCardanoNetwork = (impl: any, isAsync = false) => {
+    if (isAsync)
+      vi.spyOn(chainHandlerInstance, 'getCardanoNetwork').mockImplementation(
+        async () => {
+          return await impl();
+        }
+      );
+    else
+      vi.spyOn(chainHandlerInstance, 'getCardanoNetwork').mockImplementation(
+        () => {
+          return impl();
+        }
+      );
   };
 }
 
