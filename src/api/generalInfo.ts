@@ -64,9 +64,7 @@ const infoRoute = (server: FastifySeverInstance) => {
           ),
         });
       } catch (error) {
-        logger.error(
-          `An error occurred while processing TSS Cardano tx sign callback: ${error}`
-        );
+        logger.error(`An error occurred while fetching general info: ${error}`);
         logger.error(error.stack);
         reply.status(500).send({ message: error.message });
       }
