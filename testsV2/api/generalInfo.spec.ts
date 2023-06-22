@@ -1,6 +1,4 @@
 import { fastifyServer, initApiServer } from '../../src/jobs/apiServer';
-import ChainHandlerMock from '../handlers/ChainHandler.mock';
-import { AssetBalance } from '@rosen-chains/abstract-chain';
 import { guardInfo } from './testData';
 import { mockErgoNetwork } from './mocked/ErgoNetwork.mock';
 import { mockCardanoNetwork } from './mocked/CardanoNetwork.mock';
