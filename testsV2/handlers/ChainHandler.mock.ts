@@ -13,6 +13,9 @@ export const chainHandlerInstance = {
   getRequiredConfirmation: (chain: string, type: string): number => {
     throw Error(`ChainHandler 'getRequiredConfirmation' is not mocked!`);
   },
+  getChainColdAddress: (chain: string): string => {
+    throw Error(`ChainHandler 'getChainColdAddress' is not mocked!`);
+  },
 };
 
 class ChainHandlerMock {

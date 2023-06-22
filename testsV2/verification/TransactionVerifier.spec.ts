@@ -1,7 +1,13 @@
 import TransactionVerifier from '../../src/verification/TransactionVerifier';
 import { mockEventTrigger } from '../event/testData';
-import ChainHandlerMock from '../handlers/ChainHandler.mock';
-import { PaymentOrder, TransactionTypes } from '@rosen-chains/abstract-chain';
+import ChainHandlerMock, {
+  chainHandlerInstance,
+} from '../handlers/ChainHandler.mock';
+import {
+  AssetBalance,
+  PaymentOrder,
+  TransactionTypes,
+} from '@rosen-chains/abstract-chain';
 import { mockPaymentTransaction } from '../agreement/testData';
 import EventSerializer from '../../src/event/EventSerializer';
 import {
@@ -9,6 +15,7 @@ import {
   mockCreateEventRewardOrder,
 } from '../event/mocked/EventOrder.mock';
 import { mockGetEventFeeConfig } from '../event/mocked/MinimumFee.mock';
+import { CARDANO_CHAIN } from '@rosen-chains/cardano';
 
 describe('TransactionVerifier', () => {
   describe('verifyTxCommonConditions', () => {
@@ -177,7 +184,7 @@ describe('TransactionVerifier', () => {
     });
   });
 
-  describe('verifyEventTransactionRequest', () => {
+  describe('verifyEventTransaction', () => {
     beforeEach(async () => {
       ChainHandlerMock.resetMock();
       mockGetEventFeeConfig({
@@ -189,7 +196,7 @@ describe('TransactionVerifier', () => {
     });
 
     /**
-     * @target TransactionVerifier.verifyEventTransactionRequest should return true
+     * @target TransactionVerifier.verifyEventTransaction should return true
      * when all conditions for payment tx are met
      * @dependencies
      * - ChainHandler
@@ -246,7 +253,7 @@ describe('TransactionVerifier', () => {
     });
 
     /**
-     * @target TransactionVerifier.verifyEventTransactionRequest should return true
+     * @target TransactionVerifier.verifyEventTransaction should return true
      * when all conditions for reward distribution tx are met
      * @dependencies
      * - ChainHandler
@@ -303,7 +310,7 @@ describe('TransactionVerifier', () => {
     });
 
     /**
-     * @target TransactionVerifier.verifyEventTransactionRequest should return false
+     * @target TransactionVerifier.verifyEventTransaction should return false
      * when tx order is different from expected one
      * @dependencies
      * - ChainHandler
@@ -360,6 +367,588 @@ describe('TransactionVerifier', () => {
         paymentTx,
         mockedEvent
       );
+
+      // verify returned value
+      expect(result).toEqual(false);
+    });
+  });
+
+  describe('verifyColdStorageTransaction', () => {
+    beforeEach(async () => {
+      ChainHandlerMock.resetMock();
+    });
+
+    /**
+     * @target TransactionVerifier.verifyColdStorageTransaction should return true
+     * when all conditions for cold storage tx are met
+     * @dependencies
+     * - ChainHandler
+     * @scenario
+     * - mock transaction
+     * - mock ChainHandler
+     *   - mock `extractTransactionOrder`
+     *   - mock `getLockAddressAssets`
+     * - mock ChainHandler `getChainColdAddress`
+     * - run test
+     * - verify returned value
+     * @expected
+     * - returned value should be true
+     */
+    it('should return true when all conditions for cold storage tx are met', async () => {
+      const chain = CARDANO_CHAIN;
+      // mock transaction
+      const tx = mockPaymentTransaction(TransactionTypes.coldStorage, chain);
+      // mock ChainHandler `getChain`
+      ChainHandlerMock.mockChainName(chain);
+      // mock `extractTransactionOrder`
+      const coldAddress = `coldAddress`;
+      const order: PaymentOrder = [
+        {
+          address: coldAddress,
+          assets: {
+            nativeToken: 1000000000n,
+            tokens: [
+              {
+                id: 'asset1m62zdrt2fhlm9wpqrskxka6t0wvq5vag58cytl',
+                value: 100000000000n,
+              },
+            ],
+          },
+        },
+      ];
+      ChainHandlerMock.mockToChainFunction('extractTransactionOrder', order);
+      // mock `getLockAddressAssets`
+      const lockedAssets: AssetBalance = {
+        nativeToken: 1100000000n,
+        tokens: [
+          {
+            id: 'asset1epz7gzjqg5py4xrgps6ccv25gz7gd6v8e5gmxx',
+            value: 225000000000n,
+          },
+          {
+            id: 'asset1m62zdrt2fhlm9wpqrskxka6t0wvq5vag58cytl',
+            value: 500000000000n,
+          },
+        ],
+      };
+      ChainHandlerMock.mockToChainFunction(
+        'getLockAddressAssets',
+        lockedAssets,
+        true
+      );
+
+      // mock ChainHandler `getChainColdAddress`
+      vi.spyOn(chainHandlerInstance, 'getChainColdAddress').mockReturnValue(
+        coldAddress
+      );
+
+      // run test
+      const result = await TransactionVerifier.verifyColdStorageTransaction(tx);
+
+      // verify returned value
+      expect(result).toEqual(true);
+    });
+
+    /**
+     * @target TransactionVerifier.verifyColdStorageTransaction should return false
+     * when transaction order size is not valid
+     * @dependencies
+     * - ChainHandler
+     * @scenario
+     * - mock transaction
+     * - mock ChainHandler
+     *   - mock `extractTransactionOrder`
+     *   - mock `getLockAddressAssets`
+     * - mock ChainHandler `getChainColdAddress`
+     * - run test
+     * - verify returned value
+     * @expected
+     * - returned value should be false
+     */
+    it('should return false when transaction order size is not valid', async () => {
+      const chain = CARDANO_CHAIN;
+      // mock transaction
+      const tx = mockPaymentTransaction(TransactionTypes.coldStorage, chain);
+      // mock ChainHandler `getChain`
+      ChainHandlerMock.mockChainName(chain);
+      // mock `extractTransactionOrder`
+      const coldAddress = `coldAddress`;
+      const order: PaymentOrder = [
+        {
+          address: coldAddress,
+          assets: {
+            nativeToken: 500000000n,
+            tokens: [
+              {
+                id: 'asset1m62zdrt2fhlm9wpqrskxka6t0wvq5vag58cytl',
+                value: 50000000000n,
+              },
+            ],
+          },
+        },
+        {
+          address: coldAddress,
+          assets: {
+            nativeToken: 500000000n,
+            tokens: [
+              {
+                id: 'asset1m62zdrt2fhlm9wpqrskxka6t0wvq5vag58cytl',
+                value: 50000000000n,
+              },
+            ],
+          },
+        },
+      ];
+      ChainHandlerMock.mockToChainFunction('extractTransactionOrder', order);
+      // mock `getLockAddressAssets`
+      const lockedAssets: AssetBalance = {
+        nativeToken: 1100000000n,
+        tokens: [
+          {
+            id: 'asset1epz7gzjqg5py4xrgps6ccv25gz7gd6v8e5gmxx',
+            value: 225000000000n,
+          },
+          {
+            id: 'asset1m62zdrt2fhlm9wpqrskxka6t0wvq5vag58cytl',
+            value: 500000000000n,
+          },
+        ],
+      };
+      ChainHandlerMock.mockToChainFunction(
+        'getLockAddressAssets',
+        lockedAssets,
+        true
+      );
+
+      // mock ChainHandler `getChainColdAddress`
+      vi.spyOn(chainHandlerInstance, 'getChainColdAddress').mockReturnValue(
+        coldAddress
+      );
+
+      // run test
+      const result = await TransactionVerifier.verifyColdStorageTransaction(tx);
+
+      // verify returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target TransactionVerifier.verifyColdStorageTransaction should return false
+     * when transaction is transferring to wrong address
+     * @dependencies
+     * - ChainHandler
+     * @scenario
+     * - mock transaction
+     * - mock ChainHandler
+     *   - mock `extractTransactionOrder`
+     *   - mock `getLockAddressAssets`
+     * - mock ChainHandler `getChainColdAddress`
+     * - run test
+     * - verify returned value
+     * @expected
+     * - returned value should be false
+     */
+    it('should return false when transaction is transferring to wrong address', async () => {
+      const chain = CARDANO_CHAIN;
+      // mock transaction
+      const tx = mockPaymentTransaction(TransactionTypes.coldStorage, chain);
+      // mock ChainHandler `getChain`
+      ChainHandlerMock.mockChainName(chain);
+      // mock `extractTransactionOrder`
+      const coldAddress = `coldAddress`;
+      const order: PaymentOrder = [
+        {
+          address: `invalidAddress`,
+          assets: {
+            nativeToken: 1000000000n,
+            tokens: [
+              {
+                id: 'asset1m62zdrt2fhlm9wpqrskxka6t0wvq5vag58cytl',
+                value: 100000000000n,
+              },
+            ],
+          },
+        },
+      ];
+      ChainHandlerMock.mockToChainFunction('extractTransactionOrder', order);
+      // mock `getLockAddressAssets`
+      const lockedAssets: AssetBalance = {
+        nativeToken: 1100000000n,
+        tokens: [
+          {
+            id: 'asset1epz7gzjqg5py4xrgps6ccv25gz7gd6v8e5gmxx',
+            value: 225000000000n,
+          },
+          {
+            id: 'asset1m62zdrt2fhlm9wpqrskxka6t0wvq5vag58cytl',
+            value: 500000000000n,
+          },
+        ],
+      };
+      ChainHandlerMock.mockToChainFunction(
+        'getLockAddressAssets',
+        lockedAssets,
+        true
+      );
+
+      // mock ChainHandler `getChainColdAddress`
+      vi.spyOn(chainHandlerInstance, 'getChainColdAddress').mockReturnValue(
+        coldAddress
+      );
+
+      // run test
+      const result = await TransactionVerifier.verifyColdStorageTransaction(tx);
+
+      // verify returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target TransactionVerifier.verifyColdStorageTransaction should return false
+     * when remaining native token in lock address will be less than low threshold
+     * @dependencies
+     * - ChainHandler
+     * @scenario
+     * - mock transaction
+     * - mock ChainHandler
+     *   - mock `extractTransactionOrder`
+     *   - mock `getLockAddressAssets`
+     * - mock ChainHandler `getChainColdAddress`
+     * - run test
+     * - verify returned value
+     * @expected
+     * - returned value should be false
+     */
+    it('should return false when remaining native token in lock address will be less than low threshold', async () => {
+      const chain = CARDANO_CHAIN;
+      // mock transaction
+      const tx = mockPaymentTransaction(TransactionTypes.coldStorage, chain);
+      // mock ChainHandler `getChain`
+      ChainHandlerMock.mockChainName(chain);
+      // mock `extractTransactionOrder`
+      const coldAddress = `coldAddress`;
+      const order: PaymentOrder = [
+        {
+          address: coldAddress,
+          assets: {
+            nativeToken: 1000000000n,
+            tokens: [
+              {
+                id: 'asset1m62zdrt2fhlm9wpqrskxka6t0wvq5vag58cytl',
+                value: 100000000000n,
+              },
+            ],
+          },
+        },
+      ];
+      ChainHandlerMock.mockToChainFunction('extractTransactionOrder', order);
+      // mock `getLockAddressAssets`
+      const lockedAssets: AssetBalance = {
+        nativeToken: 1010000000n,
+        tokens: [
+          {
+            id: 'asset1epz7gzjqg5py4xrgps6ccv25gz7gd6v8e5gmxx',
+            value: 225000000000n,
+          },
+          {
+            id: 'asset1m62zdrt2fhlm9wpqrskxka6t0wvq5vag58cytl',
+            value: 500000000000n,
+          },
+        ],
+      };
+      ChainHandlerMock.mockToChainFunction(
+        'getLockAddressAssets',
+        lockedAssets,
+        true
+      );
+
+      // mock ChainHandler `getChainColdAddress`
+      vi.spyOn(chainHandlerInstance, 'getChainColdAddress').mockReturnValue(
+        coldAddress
+      );
+
+      // run test
+      const result = await TransactionVerifier.verifyColdStorageTransaction(tx);
+
+      // verify returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target TransactionVerifier.verifyColdStorageTransaction should return false
+     * when remaining native token in lock address will be more than high threshold
+     * @dependencies
+     * - ChainHandler
+     * @scenario
+     * - mock transaction
+     * - mock ChainHandler
+     *   - mock `extractTransactionOrder`
+     *   - mock `getLockAddressAssets`
+     * - mock ChainHandler `getChainColdAddress`
+     * - run test
+     * - verify returned value
+     * @expected
+     * - returned value should be false
+     */
+    it('should return false when remaining native token in lock address will be more than high threshold', async () => {
+      const chain = CARDANO_CHAIN;
+      // mock transaction
+      const tx = mockPaymentTransaction(TransactionTypes.coldStorage, chain);
+      // mock ChainHandler `getChain`
+      ChainHandlerMock.mockChainName(chain);
+      // mock `extractTransactionOrder`
+      const coldAddress = `coldAddress`;
+      const order: PaymentOrder = [
+        {
+          address: coldAddress,
+          assets: {
+            nativeToken: 1000000000n,
+            tokens: [
+              {
+                id: 'asset1m62zdrt2fhlm9wpqrskxka6t0wvq5vag58cytl',
+                value: 100000000000n,
+              },
+            ],
+          },
+        },
+      ];
+      ChainHandlerMock.mockToChainFunction('extractTransactionOrder', order);
+      // mock `getLockAddressAssets`
+      const lockedAssets: AssetBalance = {
+        nativeToken: 1400000000n,
+        tokens: [
+          {
+            id: 'asset1epz7gzjqg5py4xrgps6ccv25gz7gd6v8e5gmxx',
+            value: 225000000000n,
+          },
+          {
+            id: 'asset1m62zdrt2fhlm9wpqrskxka6t0wvq5vag58cytl',
+            value: 500000000000n,
+          },
+        ],
+      };
+      ChainHandlerMock.mockToChainFunction(
+        'getLockAddressAssets',
+        lockedAssets,
+        true
+      );
+
+      // mock ChainHandler `getChainColdAddress`
+      vi.spyOn(chainHandlerInstance, 'getChainColdAddress').mockReturnValue(
+        coldAddress
+      );
+
+      // run test
+      const result = await TransactionVerifier.verifyColdStorageTransaction(tx);
+
+      // verify returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target TransactionVerifier.verifyColdStorageTransaction should return false
+     * when remaining token in lock address will be less than low threshold
+     * @dependencies
+     * - ChainHandler
+     * @scenario
+     * - mock transaction
+     * - mock ChainHandler
+     *   - mock `extractTransactionOrder`
+     *   - mock `getLockAddressAssets`
+     * - mock ChainHandler `getChainColdAddress`
+     * - run test
+     * - verify returned value
+     * @expected
+     * - returned value should be false
+     */
+    it('should return false when remaining token in lock address will be less than low threshold', async () => {
+      const chain = CARDANO_CHAIN;
+      // mock transaction
+      const tx = mockPaymentTransaction(TransactionTypes.coldStorage, chain);
+      // mock ChainHandler `getChain`
+      ChainHandlerMock.mockChainName(chain);
+      // mock `extractTransactionOrder`
+      const coldAddress = `coldAddress`;
+      const order: PaymentOrder = [
+        {
+          address: coldAddress,
+          assets: {
+            nativeToken: 1000000000n,
+            tokens: [
+              {
+                id: 'asset1m62zdrt2fhlm9wpqrskxka6t0wvq5vag58cytl',
+                value: 499000000000n,
+              },
+            ],
+          },
+        },
+      ];
+      ChainHandlerMock.mockToChainFunction('extractTransactionOrder', order);
+      // mock `getLockAddressAssets`
+      const lockedAssets: AssetBalance = {
+        nativeToken: 1100000000n,
+        tokens: [
+          {
+            id: 'asset1epz7gzjqg5py4xrgps6ccv25gz7gd6v8e5gmxx',
+            value: 225000000000n,
+          },
+          {
+            id: 'asset1m62zdrt2fhlm9wpqrskxka6t0wvq5vag58cytl',
+            value: 500000000000n,
+          },
+        ],
+      };
+      ChainHandlerMock.mockToChainFunction(
+        'getLockAddressAssets',
+        lockedAssets,
+        true
+      );
+
+      // mock ChainHandler `getChainColdAddress`
+      vi.spyOn(chainHandlerInstance, 'getChainColdAddress').mockReturnValue(
+        coldAddress
+      );
+
+      // run test
+      const result = await TransactionVerifier.verifyColdStorageTransaction(tx);
+
+      // verify returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target TransactionVerifier.verifyColdStorageTransaction should return false
+     * when remaining token in lock address will be more than high threshold
+     * @dependencies
+     * - ChainHandler
+     * @scenario
+     * - mock transaction
+     * - mock ChainHandler
+     *   - mock `extractTransactionOrder`
+     *   - mock `getLockAddressAssets`
+     * - mock ChainHandler `getChainColdAddress`
+     * - run test
+     * - verify returned value
+     * @expected
+     * - returned value should be false
+     */
+    it('should return false when remaining token in lock address will be more than high threshold', async () => {
+      const chain = CARDANO_CHAIN;
+      // mock transaction
+      const tx = mockPaymentTransaction(TransactionTypes.coldStorage, chain);
+      // mock ChainHandler `getChain`
+      ChainHandlerMock.mockChainName(chain);
+      // mock `extractTransactionOrder`
+      const coldAddress = `coldAddress`;
+      const order: PaymentOrder = [
+        {
+          address: coldAddress,
+          assets: {
+            nativeToken: 1000000000n,
+            tokens: [
+              {
+                id: 'asset1m62zdrt2fhlm9wpqrskxka6t0wvq5vag58cytl',
+                value: 100000000000n,
+              },
+            ],
+          },
+        },
+      ];
+      ChainHandlerMock.mockToChainFunction('extractTransactionOrder', order);
+      // mock `getLockAddressAssets`
+      const lockedAssets: AssetBalance = {
+        nativeToken: 1100000000n,
+        tokens: [
+          {
+            id: 'asset1epz7gzjqg5py4xrgps6ccv25gz7gd6v8e5gmxx',
+            value: 225000000000n,
+          },
+          {
+            id: 'asset1m62zdrt2fhlm9wpqrskxka6t0wvq5vag58cytl',
+            value: 700000000000n,
+          },
+        ],
+      };
+      ChainHandlerMock.mockToChainFunction(
+        'getLockAddressAssets',
+        lockedAssets,
+        true
+      );
+
+      // mock ChainHandler `getChainColdAddress`
+      vi.spyOn(chainHandlerInstance, 'getChainColdAddress').mockReturnValue(
+        coldAddress
+      );
+
+      // run test
+      const result = await TransactionVerifier.verifyColdStorageTransaction(tx);
+
+      // verify returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target TransactionVerifier.verifyColdStorageTransaction should return false
+     * when one of required tokens does not exist in address
+     * @dependencies
+     * - ChainHandler
+     * @scenario
+     * - mock transaction
+     * - mock ChainHandler
+     *   - mock `extractTransactionOrder`
+     *   - mock `getLockAddressAssets`
+     * - mock ChainHandler `getChainColdAddress`
+     * - run test
+     * - verify returned value
+     * @expected
+     * - returned value should be false
+     */
+    it('should return false when one of required tokens does not exist in address', async () => {
+      const chain = CARDANO_CHAIN;
+      // mock transaction
+      const tx = mockPaymentTransaction(TransactionTypes.coldStorage, chain);
+      // mock ChainHandler `getChain`
+      ChainHandlerMock.mockChainName(chain);
+      // mock `extractTransactionOrder`
+      const coldAddress = `coldAddress`;
+      const order: PaymentOrder = [
+        {
+          address: coldAddress,
+          assets: {
+            nativeToken: 1000000000n,
+            tokens: [
+              {
+                id: 'asset1m62zdrt2fhlm9wpqrskxka6t0wvq5vag58cytl',
+                value: 100000000000n,
+              },
+            ],
+          },
+        },
+      ];
+      ChainHandlerMock.mockToChainFunction('extractTransactionOrder', order);
+      // mock `getLockAddressAssets`
+      const lockedAssets: AssetBalance = {
+        nativeToken: 1100000000n,
+        tokens: [
+          {
+            id: 'asset1m62zdrt2fhlm9wpqrskxka6t0wvq5vag58cytl',
+            value: 500000000000n,
+          },
+        ],
+      };
+      ChainHandlerMock.mockToChainFunction(
+        'getLockAddressAssets',
+        lockedAssets,
+        true
+      );
+
+      // mock ChainHandler `getChainColdAddress`
+      vi.spyOn(chainHandlerInstance, 'getChainColdAddress').mockReturnValue(
+        coldAddress
+      );
+
+      // run test
+      const result = await TransactionVerifier.verifyColdStorageTransaction(tx);
 
       // verify returned value
       expect(result).toEqual(false);
