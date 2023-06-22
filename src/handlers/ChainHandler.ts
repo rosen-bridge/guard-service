@@ -23,6 +23,10 @@ class ChainHandler {
   private ergoChain: ErgoChain;
   private cardanoChain: CardanoChain;
 
+  private ergoNetwork: AbstractErgoNetwork;
+
+  private cardanoNetwork: AbstractCardanoNetwork;
+
   private constructor() {
     this.ergoChain = this.generateErgoChain();
     this.cardanoChain = this.generateCardanoChain();
@@ -67,7 +71,7 @@ class ChainHandler {
           `No case is defined for network [${GuardsErgoConfigs.chainNetworkName}]`
         );
     }
-
+    this.ergoNetwork = network;
     const multiSigSignFunction = MultiSigHandler.getInstance(
       guardConfig.publicKeys,
       Configs.guardSecret
@@ -101,7 +105,7 @@ class ChainHandler {
           `No case is defined for network [${GuardsCardanoConfigs.chainNetworkName}]`
         );
     }
-
+    this.cardanoNetwork = network;
     // TODO: replace this with TSS package sign function
     const tssSignFunction = () => {
       throw Error(`TSS signer is not implemented yet`);
@@ -130,6 +134,20 @@ class ChainHandler {
       default:
         throw Error(`Chain [${chain}] is not implemented`);
     }
+  };
+
+  /**
+   * gets ergo network object
+   */
+  getErgoNetwork = (): AbstractErgoNetwork => {
+    return this.ergoNetwork;
+  };
+
+  /**
+   * gets cardano network object
+   */
+  getCardanoNetwork = (): AbstractCardanoNetwork => {
+    return this.cardanoNetwork;
   };
 
   /**
