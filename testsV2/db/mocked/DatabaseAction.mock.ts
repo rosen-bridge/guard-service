@@ -87,14 +87,17 @@ class DatabaseActionMock {
     vi.spyOn(dbAction, 'updateWithSignedTx').mockImplementation(
       this.testDatabase.updateWithSignedTx
     );
-    vi.spyOn(dbAction, 'insertTx').mockImplementation(
-      this.testDatabase.insertTx
-    );
     vi.spyOn(dbAction, 'getEventValidTxsByType').mockImplementation(
       this.testDatabase.getEventValidTxsByType
     );
     vi.spyOn(dbAction, 'replaceTx').mockImplementation(
       this.testDatabase.replaceTx
+    );
+    vi.spyOn(dbAction, 'resetFailedInSign').mockImplementation(
+      this.testDatabase.resetFailedInSign
+    );
+    vi.spyOn(dbAction, 'insertNewTx').mockImplementation(
+      this.testDatabase.insertNewTx
     );
     vi.spyOn(dbAction, 'getValidCommitments').mockImplementation(
       this.testDatabase.getValidCommitments

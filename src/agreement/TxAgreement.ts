@@ -23,6 +23,7 @@ import { Communicator } from './communicator/Communicator'; // TODO: import from
 import { EcDSA } from './communicator/EcDSA';
 import GuardTurn from '../helpers/GuardTurn';
 import TransactionVerifier from '../verification/TransactionVerifier';
+import DatabaseHandler from '../db/DatabaseHandler';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -490,15 +491,7 @@ class TxAgreement extends Communicator {
    */
   protected setTxAsApproved = async (tx: PaymentTransaction): Promise<void> => {
     try {
-      await dbAction.txSignSemaphore.acquire().then(async (release) => {
-        try {
-          await dbAction.insertTx(tx);
-          release();
-        } catch (e) {
-          release();
-          throw e;
-        }
-      });
+      await DatabaseHandler.insertTx(tx);
       await this.updateEventOfApprovedTx(tx);
       this.transactions.delete(tx.txId);
       this.transactionApprovals.delete(tx.txId);
