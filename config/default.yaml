@@ -69,7 +69,7 @@ p2p:
   relayReconnectionInterval: 30 # Interval of tries to re-connect a disconnected relay
 txSignTimeout: 300 # timeout for signing transactions
 guard:
-  secret: ''
+  mnemonic: ''
   configUpdateInterval: 180 # guards config box update interval (getting guards configs from the box in Ergo network)
 contracts:
   addressesBasePath: './config/rosen/'
