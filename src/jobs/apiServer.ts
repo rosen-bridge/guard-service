@@ -16,15 +16,15 @@ const logger = loggerFactory(import.meta.url);
  * register all routers
  * then start it
  */
-let fastifyServer: FastifyInstance;
+let apiServer: FastifyInstance;
 const initApiServer = async () => {
-  fastifyServer = fastify({
+  apiServer = fastify({
     bodyLimit: Configs.apiBodyLimit,
   }).withTypeProvider<TypeBoxTypeProvider>();
 
-  await fastifyServer.register(swagger);
+  await apiServer.register(swagger);
 
-  await fastifyServer.register(swaggerUi, {
+  await apiServer.register(swaggerUi, {
     routePrefix: '/swagger',
     uiConfig: {
       docExpansion: 'full',
@@ -46,17 +46,17 @@ const initApiServer = async () => {
     transformSpecificationClone: true,
   });
 
-  await fastifyServer.register(p2pRoutes);
-  await fastifyServer.register(tssRoute);
-  await fastifyServer.register(generalInfoRoute);
-  fastifyServer.get('/', (request, reply) => {
+  await apiServer.register(p2pRoutes);
+  await apiServer.register(tssRoute);
+  await apiServer.register(generalInfoRoute);
+  apiServer.get('/', (request, reply) => {
     reply.redirect('/swagger');
   });
   const port = Configs.apiPort;
   const host = Configs.apiHost;
 
-  await fastifyServer.listen({ host, port });
+  await apiServer.listen({ host, port });
   logger.info(`api service started at http://${host}:${port}`);
 };
 
-export { initApiServer, fastifyServer };
+export { initApiServer, apiServer };

@@ -5,7 +5,6 @@ import ErgoConfigs from '../chains/ergo/helpers/ErgoConfigs';
 import ErgoTrack from '../chains/ergo/ErgoTrack';
 import { NetworkPrefix } from 'ergo-lib-wasm-nodejs';
 import ChainHandler from '../handlers/ChainHandler';
-import CardanoConfigs from '../chains/cardano/helpers/CardanoConfigs';
 import Utils from '../helpers/Utils';
 import ChainsConstants from '../chains/ChainsConstants';
 
@@ -25,43 +24,36 @@ const infoRoute = (server: FastifySeverInstance) => {
     async (request, reply) => {
       try {
         const chainHandler = ChainHandler.getInstance();
-        const ergoNetwork = chainHandler.getErgoNetwork();
-        const cardanoNetwork = chainHandler.getCardanoNetwork();
+        const ergoChain = chainHandler.getChain('ergo');
+        const cardanoChain = chainHandler.getChain('cardano');
 
-        // Ergo hot wallet operations
         const ergoLockAddress = ErgoTrack.lockAddress.to_base58(
           NetworkPrefix.Mainnet
         );
-        const ergoLockBalance = await ergoNetwork.getAddressAssets(
-          ergoLockAddress
-        );
-
-        // Ergo cold wallet operations
+        const ergoLockBalance = await ergoChain.getLockAddressAssets();
         const ergoColdAddress = ErgoConfigs.coldAddress;
-        const ergoColdBalance = await ergoNetwork.getAddressAssets(
-          ergoColdAddress
-        );
-
-        // Cardano hot wallet operations
-        const cardanoLockAddress = CardanoConfigs.lockAddress;
-        const cardanoLockBalance = await cardanoNetwork.getAddressAssets(
-          cardanoLockAddress
-        );
+        const cardanoLockBalance = await cardanoChain.getLockAddressAssets();
 
         reply.status(200).send({
           health: 'OK', //TODO: https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/245
-          hotWalletAddress: ergoLockAddress,
-          hotWalletBalance: ergoLockBalance.nativeToken.toString(),
-          coldWalletAddress: ergoColdAddress,
-          coldWalletBalance: ergoColdBalance.nativeToken.toString(),
-          ergoTokens: Utils.extractTopTokens(
-            ergoLockBalance.tokens,
-            ChainsConstants.tokenCountToDisplay
-          ),
-          cardanoTokens: Utils.extractTopTokens(
-            cardanoLockBalance.tokens,
-            ChainsConstants.tokenCountToDisplay
-          ),
+          hot: {
+            address: ergoLockAddress,
+            balance: ergoLockBalance.nativeToken.toString(),
+          },
+          cold: {
+            address: ergoColdAddress,
+            balance: '0', // TODO: After release of rosen-chains
+          },
+          tokens: {
+            ergo: Utils.extractTopTokens(
+              ergoLockBalance.tokens,
+              ChainsConstants.tokenCountToDisplay
+            ),
+            cardano: Utils.extractTopTokens(
+              cardanoLockBalance.tokens,
+              ChainsConstants.tokenCountToDisplay
+            ),
+          },
         });
       } catch (error) {
         logger.error(`An error occurred while fetching general info: ${error}`);
