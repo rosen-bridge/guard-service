@@ -10,6 +10,7 @@ import { ConfigError } from './errors';
 
 import { LogConfig } from '../types';
 import { isNumber } from 'lodash-es';
+import Utils from './Utils';
 
 /**
  * reads a numerical config, set default value if it does not exits
@@ -70,7 +71,8 @@ class Configs {
   static tssCallBackUrl = `http://${this.apiHost}:${this.apiPort}/tss/sign`;
 
   // guards configs
-  static guardSecret = config.get<string>('guard.secret');
+  static guardMnemonic = config.get<string>('guard.mnemonic');
+  static guardSecret = Utils.convertMnemonicToSecretKey(this.guardMnemonic);
   static guardConfigUpdateInterval = getConfigIntKeyOrDefault(
     'guard.configUpdateInterval',
     180
