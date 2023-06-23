@@ -100,3 +100,23 @@ database:
   # user: '' # database user (for postgres)
   # password: '' # database password (for postgres)
   # name: '' # database name (for postgres)
+healthCheck:
+  interval: 60 # health check update interval (in seconds)
+  asset:
+    ergWarnThreshold: 1000000000 # minimum recommended erg balance
+    ergCriticalThreshold: 100000000 # minimum required erg balance
+    rsnWarnThreshold: 1000000000 # minimum recommended erg balance
+    rsnCriticalThreshold: 100000000 # minimum required erg balance
+  ergoScanner:
+    warnDifference: 2 # warning difference between existing and scanned blocks height
+    criticalDifference: 100 # critical difference between existing and scanned blocks height
+  ergoNode:
+    maxHeightDifference: 2 # maximum difference between header height and full height
+    maxBlockTime: 30 # maximum time to see  a new block in minutes
+    minPeerCount: 10 # minimum recommended peers
+    maxPeerHeightDifference: 2 # maximum difference between peers and our node
+  errorLog:
+    maxAllowedCount: 2 # maximum allowed error log lines
+    duration: 100000 # error log duration time check in milliseconds
+  p2p:
+    defectConfirmationTimeWindowMs: 120000 # Time to wait after any peer disconnection

@@ -156,6 +156,60 @@ class Configs {
   static dbUser = getOptionalConfig('database.user', '');
   static dbPassword = getOptionalConfig('database.password', '');
   static dbName = getOptionalConfig('database.name', '');
+
+  // HealthCheck Configs
+  static healthUpdateInterval = getConfigIntKeyOrDefault(
+    'healthCheck.interval',
+    60
+  );
+  static ergWarnThreshold = BigInt(
+    config.get<string>('healthCheck.asset.ergWarnThreshold')
+  );
+  static ergCriticalThreshold = BigInt(
+    config.get<string>('healthCheck.asset.ergCriticalThreshold')
+  );
+  static rsnWarnThreshold = BigInt(
+    config.get<string>('healthCheck.asset.rsnWarnThreshold')
+  );
+  static rsnCriticalThreshold = BigInt(
+    config.get<string>('healthCheck.asset.rsnCriticalThreshold')
+  );
+  static ergoScannerWarnDiff = getConfigIntKeyOrDefault(
+    'healthCheck.ergoScanner.warnDifference',
+    2
+  );
+  static ergoScannerCriticalDiff = getConfigIntKeyOrDefault(
+    'healthCheck.ergoScanner.criticalDifference',
+    100
+  );
+  static ergoNodeMaxHeightDiff = getConfigIntKeyOrDefault(
+    'healthCheck.ergoNode.maxHeightDifference',
+    2
+  );
+  static ergoNodeMaxBlockTime = getConfigIntKeyOrDefault(
+    'healthCheck.ergoNode.maxBlockTime',
+    30
+  );
+  static ergoNodeMinPeerCount = getConfigIntKeyOrDefault(
+    'healthCheck.ergoNode.minPeerCount',
+    10
+  );
+  static ergoNodeMaxPeerHeightDifference = getConfigIntKeyOrDefault(
+    'healthCheck.ergoNode.maxPeerHeightDifference',
+    2
+  );
+  static errorLogAllowedCount = getConfigIntKeyOrDefault(
+    'healthCheck.errorLog.maxAllowedCount',
+    1
+  );
+  static errorLogDuration = getConfigIntKeyOrDefault(
+    'healthCheck.errorLog.duration',
+    10000
+  );
+  static p2pDefectConfirmationTimeWindowMs = getConfigIntKeyOrDefault(
+    'healthCheck.p2p.defectConfirmationTimeWindowMs',
+    120000
+  );
 }
 
 export default Configs;
