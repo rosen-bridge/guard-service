@@ -1,11 +1,9 @@
 import { Buffer } from 'buffer';
-
 import { get, set } from 'lodash-es';
-
 import Encryption from './Encryption';
-
 import { JsonBI } from '../network/NetworkModels';
 import { TokenInfo } from '@rosen-chains/abstract-chain';
+import { DerivationPath, ExtSecretKey, Mnemonic } from 'ergo-lib-wasm-nodejs';
 
 class Utils {
   /**
@@ -112,6 +110,18 @@ class Utils {
     });
 
     return result;
+  };
+
+  /**
+   * converts mnemonic to secret key using Ergo wasm and EIP-003
+   * @param mnemonic
+   */
+  static convertMnemonicToSecretKey = (mnemonic: string): string => {
+    const seed = Mnemonic.to_seed(mnemonic, '');
+    const rootSecret = ExtSecretKey.derive_master(seed);
+    const changePath = DerivationPath.new(0, new Uint32Array([0]));
+    const secretKeyBytes = rootSecret.derive(changePath).secret_key_bytes();
+    return Buffer.from(secretKeyBytes).toString('hex');
   };
 }
 

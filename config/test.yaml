@@ -36,7 +36,7 @@ reward:
   watchersSharePercent: 50
   watchersRSNSharePercent: 20
 guard:
-  secret: '79a25ff592e5a96dc5381d0649fb6bd61ba0ff67d934057812f1ad09a9d554eb'
+  mnemonic: ''
 txSignTimeout: 1
 p2p:
   peerIdFilePath: './peer-dialer.json'
