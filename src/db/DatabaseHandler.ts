@@ -38,6 +38,7 @@ class DatabaseHandler {
    * inserts a new approved tx for an event into Transaction table
    * if already another approved tx exists, keeps the one with loser txId
    * @param newTx the transaction
+   * @param event the event trigger
    */
   private static insertEventTx = async (
     newTx: PaymentTransaction,

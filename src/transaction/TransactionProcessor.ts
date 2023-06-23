@@ -23,6 +23,9 @@ class TransactionProcessor {
     logger.info(`Processing transactions`);
     const txs = await dbAction.getActiveTransactions();
     for (const tx of txs) {
+      logger.info(
+        `Processing transaction [${tx.txId}] with status [${tx.status}]`
+      );
       try {
         switch (tx.status) {
           case TransactionStatus.approved: {

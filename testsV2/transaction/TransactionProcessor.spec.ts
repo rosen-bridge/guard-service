@@ -304,7 +304,7 @@ describe('TransactionProcessor', () => {
      * - check tx in database
      * @expected
      * - `signTransaction` should got called
-     * - tx status should be updated to 'sent'
+     * - tx status should be updated to 'in-sign'
      */
     it('should resend tx to sign process if tx is still valid', async () => {
       // mock transaction and insert into db as 'sign-failed'
@@ -838,7 +838,6 @@ describe('TransactionProcessor', () => {
      * - check tx in database
      * @expected
      * - `signTransaction` should got called
-     * - tx last check should be updated
      */
     it('should resubmit the transaction when not found but still valid', async () => {
       // mock event and transaction and insert into db
