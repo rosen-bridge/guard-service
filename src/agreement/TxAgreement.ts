@@ -23,6 +23,7 @@ import { Communicator } from './communicator/Communicator'; // TODO: import from
 import { EcDSA } from './communicator/EcDSA';
 import GuardTurn from '../helpers/GuardTurn';
 import TransactionVerifier from '../verification/TransactionVerifier';
+import DatabaseHandler from '../db/DatabaseHandler';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -105,6 +106,17 @@ class TxAgreement extends Communicator {
    */
   addTransactionToQueue = (tx: PaymentTransaction): void => {
     this.transactionQueue.push(tx);
+  };
+
+  /**
+   * adds all unsigned transactions which failed in sign process to agreement queue
+   * @param tx
+   */
+  enqueueSignFailedTxs = async (): Promise<void> => {
+    const txs = await dbAction.getUnsignedFailedSignTxs();
+    txs.forEach((tx) =>
+      this.transactionQueue.push(TransactionSerializer.fromJson(tx.txJson))
+    );
   };
 
   /**
@@ -479,15 +491,7 @@ class TxAgreement extends Communicator {
    */
   protected setTxAsApproved = async (tx: PaymentTransaction): Promise<void> => {
     try {
-      await dbAction.txSignSemaphore.acquire().then(async (release) => {
-        try {
-          await dbAction.insertTx(tx);
-          release();
-        } catch (e) {
-          release();
-          throw e;
-        }
-      });
+      await DatabaseHandler.insertTx(tx);
       await this.updateEventOfApprovedTx(tx);
       this.transactions.delete(tx.txId);
       this.transactionApprovals.delete(tx.txId);

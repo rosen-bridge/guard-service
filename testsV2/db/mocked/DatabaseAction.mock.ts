@@ -87,14 +87,17 @@ class DatabaseActionMock {
     vi.spyOn(dbAction, 'updateWithSignedTx').mockImplementation(
       this.testDatabase.updateWithSignedTx
     );
-    vi.spyOn(dbAction, 'insertTx').mockImplementation(
-      this.testDatabase.insertTx
-    );
     vi.spyOn(dbAction, 'getEventValidTxsByType').mockImplementation(
       this.testDatabase.getEventValidTxsByType
     );
     vi.spyOn(dbAction, 'replaceTx').mockImplementation(
       this.testDatabase.replaceTx
+    );
+    vi.spyOn(dbAction, 'resetFailedInSign').mockImplementation(
+      this.testDatabase.resetFailedInSign
+    );
+    vi.spyOn(dbAction, 'insertNewTx').mockImplementation(
+      this.testDatabase.insertNewTx
     );
     vi.spyOn(dbAction, 'getValidCommitments').mockImplementation(
       this.testDatabase.getValidCommitments
@@ -117,6 +120,9 @@ class DatabaseActionMock {
     );
     vi.spyOn(dbAction, 'getEventPaymentTransaction').mockImplementation(
       this.testDatabase.getEventPaymentTransaction
+    );
+    vi.spyOn(dbAction, 'getUnsignedFailedSignTxs').mockImplementation(
+      this.testDatabase.getUnsignedFailedSignTxs
     );
   };
 
@@ -234,12 +240,16 @@ class DatabaseActionMock {
    * @param status
    * @param lastCheck
    * @param lastStatusUpdate
+   * @param failedInSign
+   * @param signFailedCount
    */
   static insertTxRecord = async (
     paymentTx: PaymentTransaction,
     status: string,
     lastCheck = 0,
-    lastStatusUpdate?: string
+    lastStatusUpdate?: string,
+    failedInSign = false,
+    signFailedCount = 0
   ) => {
     const event = await this.testDatabase.ConfirmedEventRepository.findOneBy({
       id: paymentTx.eventId,
@@ -253,6 +263,8 @@ class DatabaseActionMock {
       lastCheck: lastCheck,
       event: event!,
       lastStatusUpdate: lastStatusUpdate,
+      failedInSign: failedInSign,
+      signFailedCount: signFailedCount,
     });
   };
 

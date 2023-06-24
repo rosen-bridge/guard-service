@@ -210,96 +210,6 @@ class DatabaseAction {
   };
 
   /**
-   * inserts a new approved tx into Transaction table
-   * if already another approved tx exists, keeps the one with loser txId
-   * @param newTx the transaction
-   */
-  insertTx = async (newTx: RosenChains.PaymentTransaction): Promise<void> => {
-    const event = await this.getEventById(newTx.eventId);
-    if (event === null && newTx.txType !== TransactionTypes.coldStorage) {
-      throw new Error(`Event [${newTx.eventId}] not found`);
-    }
-
-    if (event) await this.insertEventTx(newTx, event);
-    else await this.insertColdStorageTx(newTx);
-  };
-
-  /**
-   * inserts a new approved tx for an event into Transaction table
-   * if already another approved tx exists, keeps the one with loser txId
-   * @param newTx the transaction
-   */
-  private insertEventTx = async (
-    newTx: RosenChains.PaymentTransaction,
-    event: ConfirmedEventEntity
-  ): Promise<void> => {
-    const txs = await this.getEventValidTxsByType(event.id, newTx.txType);
-    if (txs.length > 1) {
-      throw new ImpossibleBehavior(
-        `Event [${newTx.eventId}] has already more than 1 (${txs.length}) active ${newTx.txType} tx`
-      );
-    } else if (txs.length === 1) {
-      const tx = txs[0];
-      if (tx.status === TransactionStatus.approved) {
-        if (newTx.txId < tx.txId) {
-          logger.info(
-            `Replacing tx [${tx.txId}] with new transaction [${newTx.txId}] due to lower txId`
-          );
-          await this.replaceTx(tx.txId, newTx);
-        } else if (newTx.txId === tx.txId) {
-          logger.info(`Ignoring tx [${tx.txId}], already exists in database`);
-        } else
-          logger.info(
-            `Ignoring new tx [${newTx.txId}] due to higher txId, comparing to [${tx.txId}]`
-          );
-      } else {
-        if (newTx.txId !== tx.txId)
-          logger.warn(
-            `Received approval for newTx [${newTx.txId}] where its event [${event.id}] has already an advanced oldTx [${tx.txId}]`
-          );
-      }
-    } else await this.insertNewTx(newTx, event);
-  };
-
-  /**
-   * inserts a new approved cold storage tx into Transaction table
-   * if already another approved tx exists, keeps the one with loser txId
-   * @param newTx the transaction
-   */
-  private insertColdStorageTx = async (
-    newTx: RosenChains.PaymentTransaction
-  ): Promise<void> => {
-    const txs = await this.getNonCompleteColdStorageTxsInChain(newTx.network);
-    if (txs.length > 1) {
-      throw new ImpossibleBehavior(
-        `Chain [${newTx.network}] has already more than 1 (${txs.length}) active cold storage tx`
-      );
-    } else if (txs.length === 1) {
-      const tx = txs[0];
-      if (tx.status === TransactionStatus.approved) {
-        if (newTx.txId < tx.txId) {
-          logger.info(
-            `Replacing cold storage tx [${tx.txId}] with new transaction [${newTx.txId}] due to lower txId`
-          );
-          await this.replaceTx(tx.txId, newTx);
-        } else if (newTx.txId === tx.txId) {
-          logger.info(
-            `Ignoring cold storage tx [${tx.txId}], already exists in database`
-          );
-        } else
-          logger.info(
-            `Ignoring new cold storage tx [${newTx.txId}] due to higher txId, comparing to [${tx.txId}]`
-          );
-      } else {
-        if (newTx.txId !== tx.txId)
-          logger.warn(
-            `Received approval for new tx [${newTx.txId}] where its chain [${newTx.network}] has already in progress tx [${tx.txId}]`
-          );
-      }
-    } else await this.insertNewTx(newTx, null);
-  };
-
-  /**
    * returns all valid transaction for corresponding event
    * @param eventId the event trigger id
    * @param type the transaction type
@@ -339,15 +249,30 @@ class DatabaseAction {
         status: TransactionStatus.approved,
         lastStatusUpdate: String(Math.round(Date.now() / 1000)),
         lastCheck: 0,
+        failedInSign: false,
       })
       .where('txId = :id', { id: previousTxId })
       .execute();
   };
 
   /**
+   * updates failedInSign field of a transaction to false
+   * @param txId
+   */
+  resetFailedInSign = async (txId: string): Promise<void> => {
+    await this.TransactionRepository.createQueryBuilder()
+      .update()
+      .set({
+        failedInSign: false,
+      })
+      .where('txId = :id', { id: txId })
+      .execute();
+  };
+
+  /**
    * inserts a tx record into transactions table
    */
-  private insertNewTx = async (
+  insertNewTx = async (
     paymentTx: RosenChains.PaymentTransaction,
     event: ConfirmedEventEntity | null
   ): Promise<void> => {
@@ -360,6 +285,8 @@ class DatabaseAction {
       lastStatusUpdate: String(Math.round(Date.now() / 1000)),
       lastCheck: 0,
       event: event !== null ? event : undefined,
+      failedInSign: false,
+      signFailedCount: 0,
     });
   };
 
@@ -498,6 +425,25 @@ class DatabaseAction {
         `Found more than one completed payment transaction for event [${eventId}]`
       );
     else return txs[0];
+  };
+
+  /**
+   * returns all unsigned transactions which failed in sign process
+   */
+  getUnsignedFailedSignTxs = async (): Promise<TransactionEntity[]> => {
+    return await this.TransactionRepository.find({
+      relations: ['event'],
+      where: [
+        {
+          status: TransactionStatus.signFailed,
+          failedInSign: true,
+        },
+        {
+          status: TransactionStatus.inSign,
+          failedInSign: true,
+        },
+      ],
+    });
   };
 }
 

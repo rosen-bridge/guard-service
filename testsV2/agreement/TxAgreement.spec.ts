@@ -13,7 +13,7 @@ import {
 } from '../../src/agreement/Interfaces';
 import * as EventTestData from '../event/testData';
 import EventSerializer from '../../src/event/EventSerializer';
-import { EventStatus } from '../../src/models/Models';
+import { EventStatus, TransactionStatus } from '../../src/models/Models';
 import { cloneDeep } from 'lodash-es';
 import TransactionVerifier from '../../src/verification/TransactionVerifier';
 
@@ -40,6 +40,81 @@ describe('TxAgreement', () => {
       // check txs in memory
       const queueTxs = txAgreement.getTransactionQueue();
       expect(queueTxs.map((tx) => tx.txId)).toEqual([paymentTx.txId]);
+    });
+  });
+
+  describe('enqueueSignFailedTxs', () => {
+    /**
+     * @target TxAgreement.enqueueSignFailedTxs should add correct transactions to memory queue
+     * @dependencies
+     * @scenario
+     * - mock multiple transactions
+     * - insert all mocked transactions with different statuses into db
+     * - run test
+     * - check txs in memory
+     * @expected
+     * - memory queue should contains unsigned failedSign transactions
+     */
+    it('should add correct transactions to memory queue', async () => {
+      // mock multiple transactions
+      const approvedTx = mockPaymentTransaction();
+      const inSignTx1 = mockPaymentTransaction();
+      const inSignTx2 = mockPaymentTransaction();
+      const failedSignTx = mockPaymentTransaction();
+      const sentTx = mockPaymentTransaction();
+      const signedTx = mockPaymentTransaction();
+      const invalidTx = mockPaymentTransaction();
+      const completedTx = mockPaymentTransaction();
+
+      // insert all mocked transactions with different statuses into db
+      await DatabaseActionMock.insertTxRecord(
+        approvedTx,
+        TransactionStatus.approved
+      );
+      await DatabaseActionMock.insertTxRecord(
+        inSignTx1,
+        TransactionStatus.inSign
+      );
+      await DatabaseActionMock.insertTxRecord(
+        inSignTx2,
+        TransactionStatus.inSign,
+        0,
+        '0',
+        true,
+        1
+      );
+      await DatabaseActionMock.insertTxRecord(
+        failedSignTx,
+        TransactionStatus.signFailed,
+        0,
+        '0',
+        true,
+        1
+      );
+      await DatabaseActionMock.insertTxRecord(
+        signedTx,
+        TransactionStatus.signed
+      );
+      await DatabaseActionMock.insertTxRecord(sentTx, TransactionStatus.sent);
+      await DatabaseActionMock.insertTxRecord(
+        invalidTx,
+        TransactionStatus.invalid
+      );
+      await DatabaseActionMock.insertTxRecord(
+        completedTx,
+        TransactionStatus.completed
+      );
+
+      // run test
+      const txAgreement = new TestTxAgreement();
+      await txAgreement.enqueueSignFailedTxs();
+
+      // check txs in memory
+      const queueTxs = txAgreement.getTransactionQueue();
+      expect(queueTxs.map((tx) => tx.txId)).toEqual([
+        inSignTx2.txId,
+        failedSignTx.txId,
+      ]);
     });
   });
 
