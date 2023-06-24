@@ -1,4 +1,4 @@
-import { AbstractChain } from '@rosen-chains/abstract-chain';
+import { AbstractChain, TransactionTypes } from '@rosen-chains/abstract-chain';
 import {
   AbstractCardanoNetwork,
   CARDANO_CHAIN,
@@ -139,6 +139,47 @@ class ChainHandler {
    */
   getErgoChain = (): ErgoChain => {
     return this.ergoChain;
+  };
+
+  /**
+   * gets required confirmation for a transaction based on it's chain and type
+   * @param chain transaction chain
+   * @param type transaction type
+   */
+  getRequiredConfirmation = (chain: string, type: string): number => {
+    switch (chain) {
+      case ERGO_CHAIN: {
+        switch (type) {
+          case TransactionTypes.payment:
+          case TransactionTypes.reward:
+            return GuardsErgoConfigs.paymentTxConfirmation;
+          case TransactionTypes.coldStorage:
+            return GuardsErgoConfigs.coldTxConfirmation;
+          case TransactionTypes.lock:
+            return GuardsErgoConfigs.observationConfirmation;
+          default:
+            throw Error(
+              `Confirmation for type [${type}] is not found on Ergo chain`
+            );
+        }
+      }
+      case CARDANO_CHAIN: {
+        switch (type) {
+          case TransactionTypes.payment:
+            return GuardsCardanoConfigs.paymentConfirmation;
+          case TransactionTypes.coldStorage:
+            return GuardsCardanoConfigs.coldTxConfirmation;
+          case TransactionTypes.lock:
+            return GuardsCardanoConfigs.observationConfirmation;
+          default:
+            throw Error(
+              `Confirmation for type [${type}] is not found on Cardano chain`
+            );
+        }
+      }
+      default:
+        throw Error(`Cannot get any config for chain [${chain}]`);
+    }
   };
 }
 

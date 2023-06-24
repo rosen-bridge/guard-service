@@ -24,6 +24,8 @@ export class migration1673527416815 implements MigrationInterface {
                 "lastCheck" integer NOT NULL,
                 "eventId" varchar,
                 "lastStatusUpdate" varchar,
+                "failedInSign" boolean NOT NULL,
+                "signFailedCount" integer NOT NULL,
                 CONSTRAINT "FK_392573e185afb94149a20cf87df" FOREIGN KEY ("eventId") REFERENCES "confirmed_event_entity" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION
             )
         `);

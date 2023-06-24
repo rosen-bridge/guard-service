@@ -50,8 +50,12 @@ class GuardsErgoConfigs {
     'ergo.confirmation.event',
     20
   );
-  static distributionConfirmation = getConfigIntKeyOrDefault(
+  static paymentTxConfirmation = getConfigIntKeyOrDefault(
     'ergo.confirmation.payment',
+    20
+  );
+  static coldTxConfirmation = getConfigIntKeyOrDefault(
+    'ergo.confirmation.cold',
     20
   );
 
@@ -75,23 +79,14 @@ class GuardsErgoConfigs {
   // ErgoChain required configs
   static chainConfigs: ErgoConfigs = {
     fee: this.txFee,
-    observationTxConfirmation: getConfigIntKeyOrDefault(
-      'ergo.confirmation.observation',
-      20
-    ),
-    paymentTxConfirmation: getConfigIntKeyOrDefault(
-      'ergo.confirmation.payment',
-      20
-    ),
-    coldTxConfirmation: getConfigIntKeyOrDefault('ergo.confirmation.cold', 20),
+    observationTxConfirmation: this.observationConfirmation,
+    paymentTxConfirmation: this.paymentTxConfirmation,
+    coldTxConfirmation: this.coldTxConfirmation,
     lockAddress: this.ergoContractConfig.lockAddress,
     coldStorageAddress: this.coldAddress,
     rwtId: this.ergoContractConfig.RWTId,
     minBoxValue: this.minimumErg,
-    eventTxConfirmation: getConfigIntKeyOrDefault(
-      'ergo.confirmation.event',
-      20
-    ),
+    eventTxConfirmation: this.eventConfirmation,
   };
 }
 
