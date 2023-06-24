@@ -147,19 +147,6 @@ class ChainHandlerMock {
         throw error;
       });
   };
-
-  static mockGetChainImplementation = (impl: any, isAsync = false) => {
-    if (isAsync)
-      vi.spyOn(chainHandlerInstance, 'getChain').mockImplementation(
-        async () => {
-          return await impl();
-        }
-      );
-    else
-      vi.spyOn(chainHandlerInstance, 'getChain').mockImplementation(() => {
-        return impl();
-      });
-  };
 }
 
 export default ChainHandlerMock;

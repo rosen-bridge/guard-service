@@ -7,10 +7,10 @@ export const guardInfo = {
   },
   cold: {
     address: '9es3xKFSehNNwCpuNpY31ScAubDqeLbSWwaCysjN1ee51bgHKTq',
-    balance: '0',
+    balance: '100',
   },
   tokens: {
     ergo: [{ id: '1', value: '20' }],
-    cardano: [{ id: '1', value: '20' }],
+    cardano: [{ id: '2', value: '40' }],
   },
 };

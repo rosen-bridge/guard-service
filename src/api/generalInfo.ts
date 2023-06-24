@@ -2,14 +2,16 @@ import { loggerFactory } from '../log/Logger';
 import { FastifySeverInstance } from '../types/api';
 import { infoResponseSchema, messageResponseSchema } from '../types/schema';
 import ErgoConfigs from '../chains/ergo/helpers/ErgoConfigs';
-import ErgoTrack from '../chains/ergo/ErgoTrack';
-import { NetworkPrefix } from 'ergo-lib-wasm-nodejs';
 import ChainHandler from '../handlers/ChainHandler';
 import Utils from '../helpers/Utils';
 import ChainsConstants from '../chains/ChainsConstants';
 
 const logger = loggerFactory(import.meta.url);
 
+/**
+ * Gets the general info of the service
+ * @param server
+ */
 const infoRoute = (server: FastifySeverInstance) => {
   server.get(
     '/info',
@@ -27,11 +29,10 @@ const infoRoute = (server: FastifySeverInstance) => {
         const ergoChain = chainHandler.getChain('ergo');
         const cardanoChain = chainHandler.getChain('cardano');
 
-        const ergoLockAddress = ErgoTrack.lockAddress.to_base58(
-          NetworkPrefix.Mainnet
-        );
+        const ergoLockAddress = ErgoConfigs.ergoContractConfig.lockAddress;
         const ergoLockBalance = await ergoChain.getLockAddressAssets();
         const ergoColdAddress = ErgoConfigs.coldAddress;
+        const ergoColdBalance = await ergoChain.getColdAddressAssets();
         const cardanoLockBalance = await cardanoChain.getLockAddressAssets();
 
         reply.status(200).send({
@@ -42,17 +43,11 @@ const infoRoute = (server: FastifySeverInstance) => {
           },
           cold: {
             address: ergoColdAddress,
-            balance: '0', // TODO: After release of rosen-chains
+            balance: ergoColdBalance.nativeToken.toString(),
           },
           tokens: {
-            ergo: Utils.extractTopTokens(
-              ergoLockBalance.tokens,
-              ChainsConstants.tokenCountToDisplay
-            ),
-            cardano: Utils.extractTopTokens(
-              cardanoLockBalance.tokens,
-              ChainsConstants.tokenCountToDisplay
-            ),
+            ergo: Utils.extractTopTokens(ergoLockBalance.tokens, 5),
+            cardano: Utils.extractTopTokens(cardanoLockBalance.tokens, 5),
           },
         });
       } catch (error) {

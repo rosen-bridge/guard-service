@@ -4,8 +4,6 @@ class ChainsConstants {
 
   static ergoNativeAsset = 'erg';
   static cardanoNativeAsset = 'lovelace';
-
-  static tokenCountToDisplay = 5;
 }
 
 export default ChainsConstants;
