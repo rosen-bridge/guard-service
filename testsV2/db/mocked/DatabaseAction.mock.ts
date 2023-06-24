@@ -283,6 +283,7 @@ class DatabaseActionMock {
         boxSerialized: boxSerialized,
         height: height,
         rwtCount: rwtCount,
+        txId: 'txId',
       })
       .execute();
   };

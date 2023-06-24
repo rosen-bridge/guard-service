@@ -17,7 +17,7 @@ import ChainsConstants from '../chains/ChainsConstants';
 import { rosenConfig } from '../helpers/RosenConfig';
 import ergoConfigs from '../chains/ergo/helpers/ErgoConfigs';
 import Dialer from '../communication/Dialer';
-import { guardConfig } from '../helpers/GuardConfig';
+import CommunicationConfig from '../communication/CommunicationConfig';
 
 const logger = loggerFactory(import.meta.url);
 let healthCheck: HealthCheck | undefined;
@@ -38,7 +38,8 @@ const getHealthCheck = async () => {
 
     const p2pHealthCheck = new P2PNetworkHealthCheck({
       defectConfirmationTimeWindowMs: Configs.p2pDefectConfirmationTimeWindowMs,
-      connectedGuardsHealthyPercentThreshold: guardConfig.requiredSign - 1,
+      connectedGuardsHealthyPercentThreshold:
+        CommunicationConfig.guardsCount - 1,
       getConnectedGuardsPercent: () => {
         const connectedRelays = dialer.getRelayStates().connected?.length ?? 0;
         return dialer.getConnectedPeersCount() - connectedRelays;
