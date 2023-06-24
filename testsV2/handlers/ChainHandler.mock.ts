@@ -1,4 +1,3 @@
-import chainHandler from '../../src/handlers/ChainHandler';
 import { AbstractChain } from '@rosen-chains/abstract-chain';
 import { ErgoChain } from '@rosen-chains/ergo';
 import { Mock } from 'vitest';

@@ -67,7 +67,6 @@ class ChainHandler {
           `No case is defined for network [${GuardsErgoConfigs.chainNetworkName}]`
         );
     }
-
     const multiSigSignFunction = MultiSigHandler.getInstance(
       guardConfig.publicKeys,
       Configs.guardSecret
@@ -101,7 +100,6 @@ class ChainHandler {
           `No case is defined for network [${GuardsCardanoConfigs.chainNetworkName}]`
         );
     }
-
     // TODO: replace this with TSS package sign function
     const tssSignFunction = () => {
       throw Error(`TSS signer is not implemented yet`);
