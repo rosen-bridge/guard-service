@@ -165,16 +165,16 @@ class Configs {
     60
   );
   static ergWarnThreshold = BigInt(
-    config.get<string>('healthCheck.asset.ergWarnThreshold')
+    config.get<string>('healthCheck.asset.erg.warnThreshold')
   );
   static ergCriticalThreshold = BigInt(
-    config.get<string>('healthCheck.asset.ergCriticalThreshold')
+    config.get<string>('healthCheck.asset.erg.criticalThreshold')
   );
   static rsnWarnThreshold = BigInt(
-    config.get<string>('healthCheck.asset.rsnWarnThreshold')
+    config.get<string>('healthCheck.asset.rsn.warnThreshold')
   );
   static rsnCriticalThreshold = BigInt(
-    config.get<string>('healthCheck.asset.rsnCriticalThreshold')
+    config.get<string>('healthCheck.asset.rsn.criticalThreshold')
   );
   static ergoScannerWarnDiff = getConfigIntKeyOrDefault(
     'healthCheck.ergoScanner.warnDifference',
