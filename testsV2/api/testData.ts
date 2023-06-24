@@ -1,12 +1,13 @@
+import GuardsErgoConfigs from '../../src/helpers/GuardsErgoConfigs';
+
 export const guardInfo = {
   health: 'OK',
   hot: {
-    address:
-      '2CBjjwbY9Rokj7Ue9qT2pbMR2WhLDmdcL2V9pRgCEEMks9QRXiQ7K73wNANLAczY1XLimkNBu6Nt3hW1zACrk4zQxu',
+    address: GuardsErgoConfigs.ergoContractConfig.lockAddress,
     balance: '10',
   },
   cold: {
-    address: '9es3xKFSehNNwCpuNpY31ScAubDqeLbSWwaCysjN1ee51bgHKTq',
+    address: GuardsErgoConfigs.coldAddress,
     balance: '100',
   },
   tokens: {

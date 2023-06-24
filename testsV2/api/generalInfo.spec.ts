@@ -2,6 +2,7 @@ import { apiServer, initApiServer } from '../../src/jobs/apiServer';
 import { guardInfo } from './testData';
 import ChainHandlerMock from '../handlers/ChainHandler.mock';
 import { AssetBalance } from '@rosen-chains/abstract-chain';
+import { CARDANO_CHAIN } from '@rosen-chains/cardano';
 
 describe('generalInfo', () => {
   describe('GET /info', () => {
@@ -38,7 +39,7 @@ describe('generalInfo', () => {
         nativeToken: 0n,
         tokens: [{ id: '2', value: 40n }],
       };
-      ChainHandlerMock.mockChainName('cardano', true);
+      ChainHandlerMock.mockChainName(CARDANO_CHAIN, true);
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'getLockAddressAssets',
         ergoLockBalance

@@ -1,10 +1,9 @@
 import { loggerFactory } from '../log/Logger';
 import { FastifySeverInstance } from '../types/api';
 import { infoResponseSchema, messageResponseSchema } from '../types/schema';
-import ErgoConfigs from '../chains/ergo/helpers/ErgoConfigs';
 import ChainHandler from '../handlers/ChainHandler';
 import Utils from '../helpers/Utils';
-import ChainsConstants from '../chains/ChainsConstants';
+import GuardsErgoConfigs from '../helpers/GuardsErgoConfigs';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -29,14 +28,15 @@ const infoRoute = (server: FastifySeverInstance) => {
         const ergoChain = chainHandler.getChain('ergo');
         const cardanoChain = chainHandler.getChain('cardano');
 
-        const ergoLockAddress = ErgoConfigs.ergoContractConfig.lockAddress;
+        const ergoLockAddress =
+          GuardsErgoConfigs.ergoContractConfig.lockAddress;
         const ergoLockBalance = await ergoChain.getLockAddressAssets();
-        const ergoColdAddress = ErgoConfigs.coldAddress;
+        const ergoColdAddress = GuardsErgoConfigs.coldAddress;
         const ergoColdBalance = await ergoChain.getColdAddressAssets();
         const cardanoLockBalance = await cardanoChain.getLockAddressAssets();
 
         reply.status(200).send({
-          health: 'OK', //TODO: https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/245
+          health: 'OK', //TODO: https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/248
           hot: {
             address: ergoLockAddress,
             balance: ergoLockBalance.nativeToken.toString(),
