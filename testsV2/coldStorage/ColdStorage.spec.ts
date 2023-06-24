@@ -1,6 +1,9 @@
 import { AssetBalance, TransactionTypes } from '@rosen-chains/abstract-chain';
 import { TransactionStatus } from '../../src/models/Models';
-import { mockPaymentTransaction } from '../agreement/testData';
+import {
+  mockErgoPaymentTransaction,
+  mockPaymentTransaction,
+} from '../agreement/testData';
 import DatabaseActionMock from '../db/mocked/DatabaseAction.mock';
 import ChainHandlerMock, {
   chainHandlerInstance,
@@ -48,9 +51,9 @@ describe('ColdStorage', () => {
       await ColdStorage.chainColdStorageProcess(tx.network);
 
       // `getLockAddressAssets` should NOT got called
-      // expect(
-      //   ChainHandlerMock.getChainMockedFunction('getLockAddressAssets')
-      // ).not.toHaveBeenCalled();
+      expect(
+        ChainHandlerMock.getChainMockedFunction('getLockAddressAssets')
+      ).not.toHaveBeenCalled();
     });
 
     /**
@@ -308,16 +311,16 @@ describe('ColdStorage', () => {
           assets: transferringAssets,
         },
       ];
-      // expect(
-      //   ChainHandlerMock.getChainMockedFunction('generateTransaction')
-      // ).toHaveBeenCalledWith(
-      //   '',
-      //   TransactionTypes.coldStorage,
-      //   expectedOrder,
-      //   [approvedTx],
-      //   [signedTx],
-      //   ...[]
-      // );
+      expect(
+        ChainHandlerMock.getChainMockedFunction('generateTransaction')
+      ).toHaveBeenCalledWith(
+        '',
+        TransactionTypes.coldStorage,
+        expectedOrder,
+        [approvedTx],
+        [Buffer.from(signedTx.txBytes).toString('hex')],
+        ...[]
+      );
 
       // `addTransactionToQueue` should got called
       expect(
@@ -338,7 +341,7 @@ describe('ColdStorage', () => {
      *   - mock `getGuardsConfigBox`
      * - mock ChainHandler `getChainColdAddress`
      * - mock TxAgreement `getChainPendingTransactions` and `addTransactionToQueue`
-     * - mock two transactions and insert into db as signed and unsigned
+     * - mock a transaction and insert into db as signed
      * - run test
      * - check if function got called
      * @expected
@@ -373,11 +376,12 @@ describe('ColdStorage', () => {
       TxAgreementMock.mockGetChainPendingTransactions([]);
       TxAgreementMock.mockAddTransactionToQueue();
 
-      // mock two transactions and insert into db as signed and unsigned
-      // const approvedTx = mockErgoPaymentTransaction(TransactionTypes.payment)
-      // await DatabaseActionMock.insertTxRecord(approvedTx, TransactionStatus.approved);
-      // const signedTx = mockErgoPaymentTransaction(TransactionTypes.payment)
-      // await DatabaseActionMock.insertTxRecord(signedTx, TransactionStatus.signed);
+      // mock a transaction and insert into db as signed
+      const signedTx = mockErgoPaymentTransaction(TransactionTypes.payment);
+      await DatabaseActionMock.insertTxRecord(
+        signedTx,
+        TransactionStatus.signed
+      );
 
       // run test
       const transferringAssets = { nativeToken: 0n, tokens: [] };
@@ -394,16 +398,16 @@ describe('ColdStorage', () => {
           assets: transferringAssets,
         },
       ];
-      // expect(
-      //   ChainHandlerMock.getChainMockedFunction('generateTransaction')
-      // ).toHaveBeenCalledWith(
-      //   '',
-      //   TransactionTypes.coldStorage,
-      //   expectedOrder,
-      //   [approvedTx],
-      //   [signedTx],
-      //   ...[[], [guardConfigBox]]
-      // );
+      expect(
+        ChainHandlerMock.getErgoMockedFunction('generateTransaction')
+      ).toHaveBeenCalledWith(
+        '',
+        TransactionTypes.coldStorage,
+        expectedOrder,
+        [],
+        [Buffer.from(signedTx.txBytes).toString('hex')],
+        ...[[], [guardConfigBox]]
+      );
 
       // `addTransactionToQueue` should got called
       expect(

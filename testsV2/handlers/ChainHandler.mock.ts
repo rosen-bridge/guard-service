@@ -115,6 +115,14 @@ class ChainHandlerMock {
   };
 
   /**
+   * returns a mocked function object
+   * @param name function name
+   */
+  static getErgoMockedFunction = (name: string): Mock<any, any> => {
+    return this.mockedErgo[name];
+  };
+
+  /**
    * mocks a function for mocked Ergo chain to reutrn `result`
    * @param name function name
    * @param result function mocked result
