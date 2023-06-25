@@ -2,8 +2,8 @@ import EventProcessor from '../event/EventProcessor';
 import Configs from '../helpers/Configs';
 import TransactionProcessor from '../transaction/TransactionProcessor';
 import GuardTurn from '../helpers/GuardTurn';
-import ColdStorage from '../guard/coldStorage/ColdStorage';
-import ColdStorageConfig from '../guard/coldStorage/ColdStorageConfig';
+import ColdStorage from '../coldStorage/ColdStorage';
+import ColdStorageConfig from '../coldStorage/ColdStorageConfig';
 import TxAgreement from '../agreement/TxAgreement';
 
 /**

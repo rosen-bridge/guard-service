@@ -12,7 +12,6 @@ import {
   EventTrigger,
   ImpossibleBehavior,
   NotEnoughAssetsError,
-  PaymentOrder,
   PaymentTransaction,
   TransactionTypes,
 } from '@rosen-chains/abstract-chain';
@@ -20,12 +19,9 @@ import DiscordNotification from '../communication/notification/DiscordNotificati
 import { Fee } from '@rosen-bridge/minimum-fee';
 import ChainHandler from '../handlers/ChainHandler';
 import { ERGO_CHAIN, ErgoChain } from '@rosen-chains/ergo';
-import {
-  paymentTransactionTypeChange,
-  txJsonParser,
-} from '../chains/TxJsonParser';
 import { rosenConfig } from '../helpers/RosenConfig';
 import TxAgreement from '../agreement/TxAgreement';
+import TransactionSerializer from '../transaction/TransactionSerializer';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -152,7 +148,6 @@ class EventProcessor {
     feeConfig: Fee
   ): Promise<PaymentTransaction> => {
     const targetChain = ChainHandler.getInstance().getChain(event.toChain);
-    const chainMinTransfer = targetChain.getMinimumNativeToken();
 
     const extra: any[] = [];
 
@@ -187,12 +182,14 @@ class EventProcessor {
     ).getChainPendingTransactions(event.toChain);
     const unsignedQueueTransactions = (
       await dbAction.getUnsignedActiveTxsInChain(event.toChain)
-    ).map((txEntity) => txJsonParser(txEntity.txJson));
+    ).map((txEntity) => TransactionSerializer.fromJson(txEntity.txJson));
     // get signed transactions in target chain
     const signedTransactions = (
       await dbAction.getSignedActiveTxsInChain(event.toChain)
     ).map((txEntity) =>
-      Buffer.from(txJsonParser(txEntity.txJson).txBytes).toString('hex')
+      Buffer.from(
+        TransactionSerializer.fromJson(txEntity.txJson).txBytes
+      ).toString('hex')
     );
 
     // generate transaction
@@ -273,12 +270,14 @@ class EventProcessor {
     ).getChainPendingTransactions(ERGO_CHAIN);
     const unsignedQueueTransactions = (
       await dbAction.getUnsignedActiveTxsInChain(ERGO_CHAIN)
-    ).map((txEntity) => txJsonParser(txEntity.txJson));
+    ).map((txEntity) => TransactionSerializer.fromJson(txEntity.txJson));
     // get signed transactions in target chain
     const signedTransactions = (
       await dbAction.getSignedActiveTxsInChain(ERGO_CHAIN)
     ).map((txEntity) =>
-      Buffer.from(txJsonParser(txEntity.txJson).txBytes).toString('hex')
+      Buffer.from(
+        TransactionSerializer.fromJson(txEntity.txJson).txBytes
+      ).toString('hex')
     );
 
     // generate transaction

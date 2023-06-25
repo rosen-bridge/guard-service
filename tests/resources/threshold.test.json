@@ -1,28 +1,28 @@
 {
   "ergo": {
-    "0034c44f0c7a38f833190d44125ff9b3a0dd9dbb89138160182a930bc521db95": {
-      "low": 1000000000,
-      "high": 321000000000
-    },
     "erg": {
       "low": 123000000000,
       "high": 567000000000
     },
-    "064c58ea394d41fada074a3c560a132467adf4ca1512c409c014c625ca285e9c": {
+    "0cd8c9f416e5b1ca9f986a7f10a84191dfb85941619e49e53c0dc30ebf83324b": {
+      "low": 1000000000,
+      "high": 321000000000
+    },
+    "38cb230f68a28436fb3b73ae4b927626673e4620bc7c94896178567d436e416b": {
       "low": 110000000,
       "high": 320000000
     }
   },
   "cardano": {
-    "asset1nl0puwxmhas8fawxp8nx4e2q3wekg969n2auw3": {
-      "low": 3000000000,
-      "high": 444000000000
-    },
-    "asset1nl000000000000000000000000000000000000": {
+    "asset1epz7gzjqg5py4xrgps6ccv25gz7gd6v8e5gmxx": {
       "low": 125000000000,
       "high": 569000000000
     },
-    "lovelace": {
+    "asset1m62zdrt2fhlm9wpqrskxka6t0wvq5vag58cytl": {
+      "low": 3000000000,
+      "high": 444000000000
+    },
+    "ada": {
       "low": 100000000,
       "high": 300000000
     }

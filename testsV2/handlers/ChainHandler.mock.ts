@@ -12,6 +12,9 @@ export const chainHandlerInstance = {
   getRequiredConfirmation: (chain: string, type: string): number => {
     throw Error(`ChainHandler 'getRequiredConfirmation' is not mocked!`);
   },
+  getChainColdAddress: (chain: string): string => {
+    throw Error(`ChainHandler 'getChainColdAddress' is not mocked!`);
+  },
 };
 
 class ChainHandlerMock {
@@ -108,6 +111,14 @@ class ChainHandlerMock {
   ): Mock<any, any> => {
     if (isFromChain) return this.mockedFromChain[name];
     else return this.mockedToChain[name];
+  };
+
+  /**
+   * returns a mocked function object
+   * @param name function name
+   */
+  static getErgoMockedFunction = (name: string): Mock<any, any> => {
+    return this.mockedErgo[name];
   };
 
   /**
