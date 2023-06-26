@@ -44,7 +44,7 @@
     "@rosen-bridge/tokens": "^0.1.12",
     "@rosen-bridge/watcher-data-extractor": "^1.1.4",
     "@rosen-chains/abstract-chain": "^0.1.9",
-    "@rosen-chains/cardano": "^0.1.7",
+    "@rosen-chains/cardano": "^0.1.8",
     "@rosen-chains/cardano-koios-network": "^0.1.5",
     "@rosen-chains/ergo": "^0.1.12",
     "@rosen-chains/ergo-explorer-network": "^0.1.8",
@@ -101,6 +101,6 @@
     "vitest": "^0.30.1"
   },
   "engines": {
-    "node": ">=16.14.0"
+    "node": ">=18.12.0"
   }
 }

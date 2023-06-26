@@ -3,7 +3,7 @@ import fs from 'fs';
 import config from 'config';
 import { RosenTokens, TokenMap } from '@rosen-bridge/tokens';
 
-import { ThresholdConfig } from '../guard/coldStorage/types';
+import { ThresholdConfig } from '../coldStorage/types';
 import { JsonBI } from '../network/NetworkModels';
 
 import { ConfigError } from './errors';

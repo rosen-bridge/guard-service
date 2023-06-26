@@ -1,4 +1,4 @@
-import fastify from 'fastify';
+import fastify, { FastifyInstance } from 'fastify';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
@@ -6,6 +6,7 @@ import { p2pRoutes } from '../api/p2p';
 import Configs from '../helpers/Configs';
 import { loggerFactory } from '../log/Logger';
 import { tssRoute } from '../api/tss';
+import { generalInfoRoute } from '../api/generalInfo';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -15,14 +16,15 @@ const logger = loggerFactory(import.meta.url);
  * register all routers
  * then start it
  */
+let apiServer: FastifyInstance;
 const initApiServer = async () => {
-  const server = fastify({
+  apiServer = fastify({
     bodyLimit: Configs.apiBodyLimit,
   }).withTypeProvider<TypeBoxTypeProvider>();
 
-  await server.register(swagger);
+  await apiServer.register(swagger);
 
-  await server.register(swaggerUi, {
+  await apiServer.register(swaggerUi, {
     routePrefix: '/swagger',
     uiConfig: {
       docExpansion: 'full',
@@ -44,16 +46,17 @@ const initApiServer = async () => {
     transformSpecificationClone: true,
   });
 
-  await server.register(p2pRoutes);
-  await server.register(tssRoute);
-  server.get('/', (request, reply) => {
+  await apiServer.register(p2pRoutes);
+  await apiServer.register(tssRoute);
+  await apiServer.register(generalInfoRoute);
+  apiServer.get('/', (request, reply) => {
     reply.redirect('/swagger');
   });
   const port = Configs.apiPort;
   const host = Configs.apiHost;
 
-  await server.listen({ host, port });
+  await apiServer.listen({ host, port });
   logger.info(`api service started at http://${host}:${port}`);
 };
 
-export { initApiServer };
+export { initApiServer, apiServer };
