@@ -176,6 +176,12 @@ class Configs {
   static rsnCriticalThreshold = BigInt(
     config.get<string>('healthCheck.asset.rsn.criticalThreshold')
   );
+  static adaWarnThreshold = BigInt(
+    config.get<string>('healthCheck.asset.ada.warnThreshold')
+  );
+  static adaCriticalThreshold = BigInt(
+    config.get<string>('healthCheck.asset.ada.criticalThreshold')
+  );
   static ergoScannerWarnDiff = getConfigIntKeyOrDefault(
     'healthCheck.ergoScanner.warnDifference',
     2
@@ -188,10 +194,8 @@ class Configs {
     'healthCheck.ergoNode.maxHeightDifference',
     2
   );
-  static ergoNodeMaxBlockTime = getConfigIntKeyOrDefault(
-    'healthCheck.ergoNode.maxBlockTime',
-    30
-  );
+  static ergoNodeMaxBlockTime =
+    getConfigIntKeyOrDefault('healthCheck.ergoNode.maxBlockTime', 1800) / 60;
   static ergoNodeMinPeerCount = getConfigIntKeyOrDefault(
     'healthCheck.ergoNode.minPeerCount',
     10
@@ -206,11 +210,11 @@ class Configs {
   );
   static errorLogDuration = getConfigIntKeyOrDefault(
     'healthCheck.errorLog.duration',
-    10000
+    10
   );
-  static p2pDefectConfirmationTimeWindowMs = getConfigIntKeyOrDefault(
-    'healthCheck.p2p.defectConfirmationTimeWindowMs',
-    120000
+  static p2pDefectConfirmationTimeWindow = getConfigIntKeyOrDefault(
+    'healthCheck.p2p.defectConfirmationTimeWindow',
+    120
   );
 }
 
