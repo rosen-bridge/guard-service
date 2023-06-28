@@ -5,13 +5,15 @@ import Configs, {
 } from './Configs';
 import { rosenConfig } from './RosenConfig';
 import { ERGO_CHAIN, ErgoConfigs } from '@rosen-chains/ergo';
+import { NODE_NETWORK } from '@rosen-chains/ergo-node-network';
+import { EXPLORER_NETWORK } from '@rosen-chains/ergo-explorer-network';
 
 // TODO: remove any variables that are only used in ErgoConfigs (#236)
 class GuardsErgoConfigs {
   // service configs
   static chainNetworkName = getChainNetworkName('ergo.chainNetwork', [
-    'node',
-    'explorer',
+    NODE_NETWORK,
+    EXPLORER_NETWORK,
   ]);
   static explorer = {
     url: config.get<string>('ergo.explorer.url'),

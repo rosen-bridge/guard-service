@@ -209,6 +209,17 @@ class Dialer {
   };
 
   /**
+   * @returns relay states grouped by the connection status
+   */
+  getRelayStates = () => {
+    const connectedPeers = this.getPeerIds();
+    const relayStates = groupBy(CommunicationConfig.relays.peerIDs, (peer) =>
+      connectedPeers.includes(peer) ? 'connected' : 'notConnected'
+    );
+    return relayStates;
+  };
+
+  /**
    * Checks if a peer belongs to a relay
    *
    * @param peer
@@ -790,14 +801,7 @@ class Dialer {
 
       // Log relays connection state
       this.startLoggingInterval(() => {
-        const connectedPeers = this.getPeerIds();
-
-        const relayStates = groupBy(
-          CommunicationConfig.relays.peerIDs,
-          (peer) =>
-            connectedPeers.includes(peer) ? 'connected' : 'notConnected'
-        );
-
+        const relayStates = this.getRelayStates();
         logger.debug('Relays connection states: ', { relayStates });
 
         if (relayStates.notConnected?.length) {
