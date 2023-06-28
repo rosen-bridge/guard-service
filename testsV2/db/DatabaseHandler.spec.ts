@@ -8,6 +8,9 @@ import {
 } from '@rosen-chains/abstract-chain';
 import { EventStatus, TransactionStatus } from '../../src/models/Models';
 import DatabaseHandler from '../../src/db/DatabaseHandler';
+import DatabaseActionMock from './mocked/DatabaseAction.mock';
+import { ERGO_CHAIN } from '@rosen-chains/ergo';
+import { SortRequest } from '../../src/types/api';
 
 describe('DatabaseHandler', () => {
   beforeEach(async () => {
@@ -27,7 +30,7 @@ describe('DatabaseHandler', () => {
      * - should throw Error
      */
     it('should throw error when event is not found and tx type is not cold storage', async () => {
-      // mock event and transaction
+      // mock event
       const tx = TxTestData.mockPaymentTransaction(TransactionTypes.payment);
 
       // run test and expect exception thrown
@@ -44,7 +47,7 @@ describe('DatabaseHandler', () => {
      * @dependencies
      * - database
      * @scenario
-     * - mock event and transaction
+     * - mock event
      * - insert mocked event into db
      * - run test (call `insertTx`)
      * - check database
@@ -52,7 +55,7 @@ describe('DatabaseHandler', () => {
      * - tx should be inserted into db
      */
     it('should insert tx when there is no other tx for the event', async () => {
-      // mock event and transaction
+      // mock event
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
       const tx = TxTestData.mockPaymentTransaction(
@@ -256,7 +259,7 @@ describe('DatabaseHandler', () => {
      * @dependencies
      * - database
      * @scenario
-     * - mock event and transaction
+     * - mock event
      * - insert mocked event and transaction into db
      * - run test (call `insertTx`)
      * - check database
@@ -264,7 +267,7 @@ describe('DatabaseHandler', () => {
      * - tx failedInSign field should be updated to false
      */
     it('should update failedInSign when tx is already in database', async () => {
-      // mock event and transaction
+      // mock event
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
       const tx = TxTestData.mockPaymentTransaction(
@@ -508,6 +511,263 @@ describe('DatabaseHandler', () => {
         tx.failedInSign,
       ]);
       expect(dbTxs).toEqual([[tx.txId, false]]);
+    });
+  });
+
+  describe('getCompletedEvents', () => {
+    /**
+     * @target DatabaseHandler.getCompletedEvents should return events in ascending order
+     * @dependencies
+     * - database
+     * @scenario
+     * - mock 100 events
+     * - insert mocked events into db
+     * - run test (call `getCompletedEvents`)
+     * - check events
+     * @expected
+     * - should return 10 available events in ascending order
+     */
+    it('Should return events in ascending order', async () => {
+      for (let index = 0; index < 10; index++) {
+        // mock event
+        const mockedEvent = EventTestData.mockEventTrigger();
+        // insert mocked event into db
+        await DatabaseHandlerMock.insertEventRecord(
+          mockedEvent,
+          EventStatus.completed,
+          'box_serialized',
+          300,
+          undefined,
+          index + 1000
+        );
+      }
+
+      const events = await DatabaseActionMock.testDatabase.getCompletedEvents(
+        SortRequest.ASC,
+        undefined,
+        undefined,
+        undefined,
+        undefined
+      );
+      expect(events).toHaveLength(10);
+      for (let index = 0; index < 10; index++) {
+        expect(events[index].eventData.height).toEqual(1000 + index);
+      }
+    });
+
+    /**
+     * @target DatabaseHandler.getCompletedEvents should return events in descending order
+     * @dependencies
+     * - database
+     * @scenario
+     * - mock 100 events
+     * - insert mocked events into db
+     * - run test (call `getCompletedEvents`)
+     * - check events
+     * @expected
+     * - should return 10 available events in descending order
+     */
+    it('Should return events in descending order', async () => {
+      for (let index = 0; index < 10; index++) {
+        // mock event
+        const mockedEvent = EventTestData.mockEventTrigger();
+        // insert mocked event into db
+        await DatabaseHandlerMock.insertEventRecord(
+          mockedEvent,
+          EventStatus.completed,
+          'box_serialized',
+          300,
+          undefined,
+          index + 1000
+        );
+      }
+
+      const events = await DatabaseActionMock.testDatabase.getCompletedEvents(
+        SortRequest.DESC,
+        undefined,
+        undefined,
+        undefined,
+        undefined
+      );
+      expect(events).toHaveLength(10);
+      for (let index = 0; index < 10; index++) {
+        expect(events[index].eventData.height).toEqual(1009 - index);
+      }
+    });
+
+    /**
+     * @target DatabaseHandler.getCompletedEvents should return to ergo events
+     * @dependencies
+     * - database
+     * @scenario
+     * - mock 10 to ergo events and 10 other events
+     * - insert mocked events into db
+     * - run test (call `getCompletedEvents`)
+     * - check events
+     * @expected
+     * - should return 20 events with correct ids
+     */
+    it('Should return to ergo events', async () => {
+      for (let index = 0; index < 10; index++) {
+        // mock event
+        const mockedEvent = EventTestData.mockEventTrigger();
+
+        // insert mocked event into db
+        await DatabaseHandlerMock.insertEventRecord(
+          mockedEvent,
+          EventStatus.completed
+        );
+      }
+
+      for (let index = 0; index < 10; index++) {
+        // mock event
+        const mockedEvent = EventTestData.mockToErgoEventTrigger();
+
+        // insert mocked event into db
+        await DatabaseHandlerMock.insertEventRecord(
+          mockedEvent,
+          EventStatus.completed
+        );
+      }
+
+      const events = await DatabaseActionMock.testDatabase.getCompletedEvents(
+        undefined,
+        undefined,
+        ERGO_CHAIN,
+        undefined,
+        undefined
+      );
+      expect(events).toHaveLength(10);
+      for (const event of events) {
+        expect(event.eventData.toChain).toEqual(ERGO_CHAIN);
+      }
+    });
+
+    /**
+     * @target DatabaseHandler.getCompletedEvents should return from ergo events
+     * @dependencies
+     * - database
+     * @scenario
+     * - mock 10 from ergo events and 10 other events
+     * - insert mocked events into db
+     * - run test (call `getCompletedEvents`)
+     * - check events
+     * @expected
+     * - should return 20 events with correct ids
+     */
+    it('Should return from ergo events', async () => {
+      for (let index = 0; index < 10; index++) {
+        // mock event
+        const mockedEvent = EventTestData.mockEventTrigger();
+
+        // insert mocked event into db
+        await DatabaseHandlerMock.insertEventRecord(
+          mockedEvent,
+          EventStatus.completed
+        );
+      }
+
+      for (let index = 0; index < 10; index++) {
+        // mock event
+        const mockedEvent = EventTestData.mockFromErgoEventTrigger();
+
+        // insert mocked event into db
+        await DatabaseHandlerMock.insertEventRecord(
+          mockedEvent,
+          EventStatus.completed
+        );
+      }
+
+      const events = await DatabaseActionMock.testDatabase.getCompletedEvents(
+        undefined,
+        ERGO_CHAIN,
+        undefined,
+        undefined,
+        undefined
+      );
+      expect(events).toHaveLength(10);
+      for (const event of events) {
+        expect(event.eventData.fromChain).toEqual(ERGO_CHAIN);
+      }
+    });
+
+    /**
+     * @target DatabaseHandler.getCompletedEvents should return events with at least minimum amount
+     * @dependencies
+     * - database
+     * @scenario
+     * - mock 100 events
+     * - insert mocked events into db
+     * - run test (call `getCompletedEvents`)
+     * - check events
+     * @expected
+     * - should return 20 events with correct ids
+     */
+    it('should return events with at least minimum amount', async () => {
+      for (let index = 0; index < 10; index++) {
+        // mock event
+        const mockedEvent = EventTestData.mockEventWithAmount(
+          (1000 * index + 10000).toString()
+        );
+
+        // insert mocked event into db
+        await DatabaseHandlerMock.insertEventRecord(
+          mockedEvent,
+          EventStatus.completed
+        );
+      }
+
+      const events = await DatabaseActionMock.testDatabase.getCompletedEvents(
+        undefined,
+        undefined,
+        undefined,
+        '15000',
+        undefined
+      );
+      expect(events).toHaveLength(5);
+      for (const event of events) {
+        expect(BigInt(event.eventData.amount)).toBeGreaterThanOrEqual(15000n);
+      }
+    });
+
+    /**
+     * @target DatabaseHandler.getCompletedEvents should return events with amount less than the maximum value
+     * @dependencies
+     * - database
+     * @scenario
+     * - mock 100 events
+     * - insert mocked events into db
+     * - run test (call `getCompletedEvents`)
+     * - check events
+     * @expected
+     * - should return 20 events with correct ids
+     */
+    it('should return events with amount less than the maximum value', async () => {
+      for (let index = 0; index < 10; index++) {
+        // mock event
+        const mockedEvent = EventTestData.mockEventWithAmount(
+          (1000 * index + 10000).toString()
+        );
+
+        // insert mocked event into db
+        await DatabaseHandlerMock.insertEventRecord(
+          mockedEvent,
+          EventStatus.completed
+        );
+      }
+
+      const events = await DatabaseActionMock.testDatabase.getCompletedEvents(
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        '15000'
+      );
+      console.log(events);
+      expect(events).toHaveLength(6);
+      for (const event of events) {
+        expect(BigInt(event.eventData.amount)).toBeLessThanOrEqual(15000n);
+      }
     });
   });
 });

@@ -7,6 +7,7 @@ import Configs from '../helpers/Configs';
 import { loggerFactory } from '../log/Logger';
 import { tssRoute } from '../api/tss';
 import { generalInfoRoute } from '../api/generalInfo';
+import { eventRoutes } from '../api/events';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -49,6 +50,8 @@ const initApiServer = async () => {
   await apiServer.register(p2pRoutes);
   await apiServer.register(tssRoute);
   await apiServer.register(generalInfoRoute);
+  await apiServer.register(eventRoutes);
+
   apiServer.get('/', (request, reply) => {
     reply.redirect('/swagger');
   });

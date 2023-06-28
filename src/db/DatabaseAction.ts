@@ -17,6 +17,8 @@ import { Semaphore } from 'await-semaphore/index';
 import { ImpossibleBehavior, NotFoundError } from '../helpers/errors';
 import * as RosenChains from '@rosen-chains/abstract-chain';
 import TransactionSerializer from '../transaction/TransactionSerializer';
+import { SortRequest } from 'src/types/api';
+// import TransactionSerializer from '../transaction/TransactionSerializer';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -444,6 +446,50 @@ class DatabaseAction {
         },
       ],
     });
+  };
+
+  /**
+   * selects completed events with the specified condition
+   * @param limit
+   * @param offset
+   * @param sort
+   * @param fromChain
+   * @param toChain
+   * @param minAmount
+   * @param maxAmount
+   * @returns returns completed events with the specified condition
+   */
+  getCompletedEvents = async (
+    sort: SortRequest | undefined,
+    fromChain: string | undefined,
+    toChain: string | undefined,
+    minAmount: string | undefined,
+    maxAmount: string | undefined
+  ) => {
+    const query = this.ConfirmedEventRepository.createQueryBuilder(
+      'confirmed_event'
+    )
+      .leftJoinAndSelect('confirmed_event.eventData', 'event_trigger_entity')
+      .where('confirmed_event.status == "completed"');
+    if (fromChain)
+      query.andWhere('event_trigger_entity_fromChain == :chain', {
+        chain: fromChain,
+      });
+    if (toChain)
+      query.andWhere('event_trigger_entity_toChain == :chain', {
+        chain: toChain,
+      });
+    if (minAmount)
+      query.andWhere('CAST(event_trigger_entity_amount AS LONG) >= :amount', {
+        amount: minAmount,
+      });
+    if (maxAmount)
+      query.andWhere('CAST(event_trigger_entity_amount AS LONG) <= :amount', {
+        amount: maxAmount,
+      });
+    if (sort) query.orderBy({ event_trigger_entity_height: sort });
+    else query.orderBy({ event_trigger_entity_id: 'DESC' });
+    return query.getMany();
   };
 }
 

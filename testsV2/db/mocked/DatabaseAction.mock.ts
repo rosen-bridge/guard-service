@@ -124,6 +124,9 @@ class DatabaseActionMock {
     vi.spyOn(dbAction, 'getUnsignedFailedSignTxs').mockImplementation(
       this.testDatabase.getUnsignedFailedSignTxs
     );
+    vi.spyOn(dbAction, 'getCompletedEvents').mockImplementation(
+      this.testDatabase.getCompletedEvents
+    );
   };
 
   /**
@@ -177,6 +180,7 @@ class DatabaseActionMock {
         sourceChainHeight: sourceChainHeight,
         spendHeight: spendHeight,
         txId: 'event-creation-tx-id',
+        eventId: Utils.txIdToEventId(event.sourceTxId),
       })
       .execute();
     const eventData =
