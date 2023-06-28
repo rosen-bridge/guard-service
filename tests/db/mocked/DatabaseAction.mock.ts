@@ -1,4 +1,3 @@
-import { vi } from 'vitest';
 import { DataSource } from 'typeorm';
 import {
   BlockEntity,
@@ -12,12 +11,12 @@ import {
 import { ConfirmedEventEntity } from '../../../src/db/entities/ConfirmedEventEntity';
 import { TransactionEntity } from '../../../src/db/entities/TransactionEntity';
 import migrations from '../../../src/db/migrations';
-import { dbAction, DatabaseAction } from '../../../src/db/DatabaseAction';
 import Utils from '../../../src/utils/Utils';
 import { loggerFactory } from '../../../src/log/Logger';
 import TestUtils from '../../testUtils/TestUtils';
 import { EventTrigger, PaymentTransaction } from '@rosen-chains/abstract-chain';
 import TransactionSerializer from '../../../src/transaction/TransactionSerializer';
+import { DatabaseAction } from '../../../src/db/DatabaseAction';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -54,76 +53,8 @@ class DatabaseActionMock {
       logger.error(`An error occurred while initializing test datasource`);
       logger.error(err.stack);
     }
-    this.testDatabase = new DatabaseAction(this.testDataSource);
-
-    // mock all database functions to call test database function
-    vi.spyOn(dbAction, 'setEventStatus').mockImplementation(
-      this.testDatabase.setEventStatus
-    );
-    vi.spyOn(dbAction, 'getEventById').mockImplementation(
-      this.testDatabase.getEventById
-    );
-    vi.spyOn(dbAction, 'getEventsByStatuses').mockImplementation(
-      this.testDatabase.getEventsByStatuses
-    );
-    vi.spyOn(dbAction, 'getWaitingEvents').mockImplementation(
-      this.testDatabase.getWaitingEvents
-    );
-    vi.spyOn(dbAction, 'getActiveTransactions').mockImplementation(
-      this.testDatabase.getActiveTransactions
-    );
-    vi.spyOn(dbAction, 'setTxStatus').mockImplementation(
-      this.testDatabase.setTxStatus
-    );
-    vi.spyOn(dbAction, 'updateTxLastCheck').mockImplementation(
-      this.testDatabase.updateTxLastCheck
-    );
-    vi.spyOn(dbAction, 'setEventStatusToPending').mockImplementation(
-      this.testDatabase.setEventStatusToPending
-    );
-    vi.spyOn(dbAction, 'getTxById').mockImplementation(
-      this.testDatabase.getTxById
-    );
-    vi.spyOn(dbAction, 'updateWithSignedTx').mockImplementation(
-      this.testDatabase.updateWithSignedTx
-    );
-    vi.spyOn(dbAction, 'getEventValidTxsByType').mockImplementation(
-      this.testDatabase.getEventValidTxsByType
-    );
-    vi.spyOn(dbAction, 'replaceTx').mockImplementation(
-      this.testDatabase.replaceTx
-    );
-    vi.spyOn(dbAction, 'resetFailedInSign').mockImplementation(
-      this.testDatabase.resetFailedInSign
-    );
-    vi.spyOn(dbAction, 'insertNewTx').mockImplementation(
-      this.testDatabase.insertNewTx
-    );
-    vi.spyOn(dbAction, 'getValidCommitments').mockImplementation(
-      this.testDatabase.getValidCommitments
-    );
-    vi.spyOn(dbAction, 'getUnconfirmedEvents').mockImplementation(
-      this.testDatabase.getUnconfirmedEvents
-    );
-    vi.spyOn(dbAction, 'insertConfirmedEvent').mockImplementation(
-      this.testDatabase.insertConfirmedEvent
-    );
-    vi.spyOn(
-      dbAction,
-      'getNonCompleteColdStorageTxsInChain'
-    ).mockImplementation(this.testDatabase.getNonCompleteColdStorageTxsInChain);
-    vi.spyOn(dbAction, 'getUnsignedActiveTxsInChain').mockImplementation(
-      this.testDatabase.getUnsignedActiveTxsInChain
-    );
-    vi.spyOn(dbAction, 'getSignedActiveTxsInChain').mockImplementation(
-      this.testDatabase.getSignedActiveTxsInChain
-    );
-    vi.spyOn(dbAction, 'getEventPaymentTransaction').mockImplementation(
-      this.testDatabase.getEventPaymentTransaction
-    );
-    vi.spyOn(dbAction, 'getUnsignedFailedSignTxs').mockImplementation(
-      this.testDatabase.getUnsignedFailedSignTxs
-    );
+    this.testDatabase = DatabaseAction.getInstance();
+    this.testDatabase.init(this.testDataSource);
   };
 
   /**

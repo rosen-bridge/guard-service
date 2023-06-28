@@ -1,4 +1,4 @@
-import { dataSource } from '../../config/dataSource';
+import { dataSource } from '../db/dataSource';
 import { loggerFactory } from '../log/Logger';
 
 const logger = loggerFactory(import.meta.url);

@@ -1,8 +1,8 @@
 import { EventTrigger } from '@rosen-chains/abstract-chain';
 import { CommitmentEntity } from '@rosen-bridge/watcher-data-extractor';
-import { dbAction } from '../db/DatabaseAction';
 import EventSerializer from './EventSerializer';
 import { uniqBy } from 'lodash-es';
+import { DatabaseAction } from '../db/DatabaseAction';
 
 class EventBoxes {
   /**
@@ -11,7 +11,8 @@ class EventBoxes {
    */
   static getEventBox = async (event: EventTrigger): Promise<string> => {
     const eventId = EventSerializer.getId(event);
-    const eventData = (await dbAction.getEventById(eventId))?.eventData;
+    const eventData = (await DatabaseAction.getInstance().getEventById(eventId))
+      ?.eventData;
     if (eventData === undefined)
       throw new Error(`event [${eventId}] not found`);
 
@@ -30,12 +31,13 @@ class EventBoxes {
     eventRwtCount: bigint
   ): Promise<string[]> => {
     const eventId = EventSerializer.getId(event);
-    const eventData = (await dbAction.getEventById(eventId))?.eventData;
+    const eventData = (await DatabaseAction.getInstance().getEventById(eventId))
+      ?.eventData;
     if (eventData === undefined)
       throw new Error(`event [${eventId}] not found`);
 
     const eventBoxHeight = eventData.height;
-    const commitments = await dbAction.getValidCommitments(
+    const commitments = await DatabaseAction.getInstance().getValidCommitments(
       eventId,
       eventBoxHeight
     );

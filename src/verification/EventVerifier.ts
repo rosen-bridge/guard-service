@@ -5,7 +5,6 @@ import {
   ConfirmationStatus,
   TransactionTypes,
 } from '@rosen-chains/abstract-chain';
-import { dbAction } from '../db/DatabaseAction';
 import EventSerializer from '../event/EventSerializer';
 import { Fee } from '@rosen-bridge/minimum-fee';
 import EventBoxes from '../event/EventBoxes';

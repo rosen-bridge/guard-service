@@ -1,5 +1,5 @@
 import { ErgoNodeScanner } from '@rosen-bridge/scanner';
-import { dataSource } from '../../config/dataSource';
+import { dataSource } from '../db/dataSource';
 import {
   CommitmentExtractor,
   EventTriggerExtractor,

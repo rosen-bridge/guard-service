@@ -3,10 +3,10 @@ import {
   PaymentTransaction,
   TransactionTypes,
 } from '@rosen-chains/abstract-chain';
-import { dbAction } from './DatabaseAction';
 import { ConfirmedEventEntity } from './entities/ConfirmedEventEntity';
 import { loggerFactory } from '../log/Logger';
 import { TransactionStatus } from '../utils/constants';
+import { DatabaseAction } from './DatabaseAction';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -17,21 +17,25 @@ class DatabaseHandler {
    * @param newTx the transaction
    */
   static insertTx = async (newTx: PaymentTransaction): Promise<void> => {
-    await dbAction.txSignSemaphore.acquire().then(async (release) => {
-      try {
-        const event = await dbAction.getEventById(newTx.eventId);
-        if (event === null && newTx.txType !== TransactionTypes.coldStorage) {
-          throw new Error(`Event [${newTx.eventId}] not found`);
-        }
+    await DatabaseAction.getInstance()
+      .txSignSemaphore.acquire()
+      .then(async (release) => {
+        try {
+          const event = await DatabaseAction.getInstance().getEventById(
+            newTx.eventId
+          );
+          if (event === null && newTx.txType !== TransactionTypes.coldStorage) {
+            throw new Error(`Event [${newTx.eventId}] not found`);
+          }
 
-        if (event) await this.insertEventTx(newTx, event);
-        else await this.insertColdStorageTx(newTx);
-        release();
-      } catch (e) {
-        release();
-        throw e;
-      }
-    });
+          if (event) await this.insertEventTx(newTx, event);
+          else await this.insertColdStorageTx(newTx);
+          release();
+        } catch (e) {
+          release();
+          throw e;
+        }
+      });
   };
 
   /**
@@ -44,7 +48,10 @@ class DatabaseHandler {
     newTx: PaymentTransaction,
     event: ConfirmedEventEntity
   ): Promise<void> => {
-    const txs = await dbAction.getEventValidTxsByType(event.id, newTx.txType);
+    const txs = await DatabaseAction.getInstance().getEventValidTxsByType(
+      event.id,
+      newTx.txType
+    );
     if (txs.length > 1) {
       throw new ImpossibleBehavior(
         `Event [${newTx.eventId}] has already more than 1 (${txs.length}) active ${newTx.txType} tx`
@@ -53,14 +60,14 @@ class DatabaseHandler {
       const tx = txs[0];
       if (tx.txId === newTx.txId) {
         `Reinsertion for tx [${tx.txId}], 'failedInSign' updated to false`;
-        await dbAction.resetFailedInSign(tx.txId);
+        await DatabaseAction.getInstance().resetFailedInSign(tx.txId);
       } else {
         if (tx.status === TransactionStatus.approved) {
           if (newTx.txId < tx.txId) {
             logger.info(
               `Replacing tx [${tx.txId}] with new transaction [${newTx.txId}] due to lower txId`
             );
-            await dbAction.replaceTx(tx.txId, newTx);
+            await DatabaseAction.getInstance().replaceTx(tx.txId, newTx);
           } else
             logger.info(
               `Ignoring new tx [${newTx.txId}] due to higher txId, comparing to [${tx.txId}]`
@@ -71,7 +78,7 @@ class DatabaseHandler {
           );
         }
       }
-    } else await dbAction.insertNewTx(newTx, event);
+    } else await DatabaseAction.getInstance().insertNewTx(newTx, event);
   };
 
   /**
@@ -82,9 +89,10 @@ class DatabaseHandler {
   private static insertColdStorageTx = async (
     newTx: PaymentTransaction
   ): Promise<void> => {
-    const txs = await dbAction.getNonCompleteColdStorageTxsInChain(
-      newTx.network
-    );
+    const txs =
+      await DatabaseAction.getInstance().getNonCompleteColdStorageTxsInChain(
+        newTx.network
+      );
     if (txs.length > 1) {
       throw new ImpossibleBehavior(
         `Chain [${newTx.network}] has already more than 1 (${txs.length}) active cold storage tx`
@@ -93,14 +101,14 @@ class DatabaseHandler {
       const tx = txs[0];
       if (tx.txId === newTx.txId) {
         `Reinsertion for cold storage tx [${tx.txId}], 'failedInSign' updated to false`;
-        await dbAction.resetFailedInSign(tx.txId);
+        await DatabaseAction.getInstance().resetFailedInSign(tx.txId);
       } else {
         if (tx.status === TransactionStatus.approved) {
           if (newTx.txId < tx.txId) {
             logger.info(
               `Replacing cold storage tx [${tx.txId}] with new transaction [${newTx.txId}] due to lower txId`
             );
-            await dbAction.replaceTx(tx.txId, newTx);
+            await DatabaseAction.getInstance().replaceTx(tx.txId, newTx);
           } else
             logger.info(
               `Ignoring new cold storage tx [${newTx.txId}] due to higher txId, comparing to [${tx.txId}]`
@@ -112,7 +120,7 @@ class DatabaseHandler {
             );
         }
       }
-    } else await dbAction.insertNewTx(newTx, null);
+    } else await DatabaseAction.getInstance().insertNewTx(newTx, null);
   };
 }
 

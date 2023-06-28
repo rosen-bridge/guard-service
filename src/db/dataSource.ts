@@ -1,5 +1,5 @@
 import { DataSource } from 'typeorm';
-import Configs from '../src/configs/Configs';
+import Configs from '../configs/Configs';
 
 import {
   BlockEntity,
@@ -11,10 +11,10 @@ import {
   migrations as watcherDataExtractorMigrations,
 } from '@rosen-bridge/watcher-data-extractor';
 
-import { ConfirmedEventEntity } from '../src/db/entities/ConfirmedEventEntity';
-import { TransactionEntity } from '../src/db/entities/TransactionEntity';
+import { ConfirmedEventEntity } from './entities/ConfirmedEventEntity';
+import { TransactionEntity } from './entities/TransactionEntity';
 
-import migrations from '../src/db/migrations';
+import migrations from './migrations';
 
 const dbType = Configs.dbType as keyof typeof migrations;
 const dbConfigs = {

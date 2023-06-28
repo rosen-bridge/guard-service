@@ -10,7 +10,7 @@ import {
   LogLevelHealthCheck,
   CardanoAssetHealthCheckParam,
 } from '@rosen-bridge/health-check';
-import { dataSource } from '../../config/dataSource';
+import { dataSource } from '../db/dataSource';
 import { loggerFactory } from '../log/Logger';
 import Configs from '../configs/Configs';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';

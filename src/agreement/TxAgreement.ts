@@ -8,7 +8,6 @@ import {
   AgreementMessageTypes,
 } from './Interfaces';
 import Dialer from '../communication/Dialer';
-import { dbAction } from '../db/DatabaseAction';
 import { loggerFactory } from '../log/Logger';
 import {
   ImpossibleBehavior,
@@ -24,6 +23,7 @@ import GuardTurn from '../utils/GuardTurn';
 import TransactionVerifier from '../verification/TransactionVerifier';
 import DatabaseHandler from '../db/DatabaseHandler';
 import GuardPkHandler from '../handlers/GuardPkHandler';
+import { DatabaseAction } from '../db/DatabaseAction';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -113,7 +113,7 @@ class TxAgreement extends Communicator {
    * @param tx
    */
   enqueueSignFailedTxs = async (): Promise<void> => {
-    const txs = await dbAction.getUnsignedFailedSignTxs();
+    const txs = await DatabaseAction.getInstance().getUnsignedFailedSignTxs();
     txs.forEach((tx) =>
       this.transactionQueue.push(TransactionSerializer.fromJson(tx.txJson))
     );
@@ -517,9 +517,15 @@ class TxAgreement extends Communicator {
   ): Promise<void> => {
     try {
       if (tx.txType === TransactionTypes.payment)
-        await dbAction.setEventStatus(tx.eventId, EventStatus.inPayment);
+        await DatabaseAction.getInstance().setEventStatus(
+          tx.eventId,
+          EventStatus.inPayment
+        );
       else if (tx.txType === TransactionTypes.reward)
-        await dbAction.setEventStatus(tx.eventId, EventStatus.inReward);
+        await DatabaseAction.getInstance().setEventStatus(
+          tx.eventId,
+          EventStatus.inReward
+        );
     } catch (e) {
       logger.warn(
         `An error occurred while setting database event [${tx.eventId}] status: ${e}`

@@ -1,6 +1,6 @@
 import { DataSource, In, IsNull, LessThan, Not, Repository } from 'typeorm';
 import { ConfirmedEventEntity } from './entities/ConfirmedEventEntity';
-import { dataSource } from '../../config/dataSource';
+import { dataSource } from './dataSource';
 import { TransactionEntity } from './entities/TransactionEntity';
 import {
   EventStatus,
@@ -20,6 +20,7 @@ import TransactionSerializer from '../transaction/TransactionSerializer';
 const logger = loggerFactory(import.meta.url);
 
 class DatabaseAction {
+  private static instance: DatabaseAction;
   dataSource: DataSource;
   CommitmentRepository: Repository<CommitmentEntity>;
   EventRepository: Repository<EventTriggerEntity>;
@@ -28,7 +29,11 @@ class DatabaseAction {
 
   txSignSemaphore = new Semaphore(1);
 
-  constructor(dataSource: DataSource) {
+  /**
+   * initiates data source
+   * @param dataSource
+   */
+  init = (dataSource: DataSource) => {
     this.dataSource = dataSource;
     this.CommitmentRepository = this.dataSource.getRepository(CommitmentEntity);
     this.EventRepository = this.dataSource.getRepository(EventTriggerEntity);
@@ -36,7 +41,19 @@ class DatabaseAction {
       this.dataSource.getRepository(ConfirmedEventEntity);
     this.TransactionRepository =
       this.dataSource.getRepository(TransactionEntity);
-  }
+  };
+
+  /**
+   * generates a DatabaseAction object if it doesn't exist
+   * @returns DatabaseAction instance
+   */
+  static getInstance = () => {
+    if (!DatabaseAction.instance) {
+      logger.debug("DatabaseAction instance didn't exist. Creating a new one");
+      DatabaseAction.instance = new DatabaseAction();
+    }
+    return DatabaseAction.instance;
+  };
 
   /**
    * updates the status of an event by id
@@ -446,6 +463,4 @@ class DatabaseAction {
   };
 }
 
-const dbAction = new DatabaseAction(dataSource);
-
-export { DatabaseAction, dbAction };
+export { DatabaseAction };

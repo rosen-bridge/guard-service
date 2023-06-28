@@ -11,6 +11,8 @@ import TxAgreement from './agreement/TxAgreement';
 import MultiSigHandler from './guard/multisig/MultiSigHandler';
 import { configUpdateJob } from './jobs/guardConfigUpdate';
 import MultiSigUtils from './guard/multisig/MultiSigUtils';
+import { DatabaseAction } from './db/DatabaseAction';
+import { dataSource } from './db/dataSource';
 
 const init = async () => {
   // initialize all data sources
@@ -19,7 +21,9 @@ const init = async () => {
   // initialize express Apis
   await initApiServer();
 
-  // initialize Dialer
+  // initialize DatabaseAction
+  const dbAction = DatabaseAction.getInstance();
+  DatabaseAction.getInstance().init(dataSource);
 
   // initialize tss multiSig object
   const multiSigHandler = MultiSigHandler.getInstance(Configs.guardSecret);
