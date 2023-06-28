@@ -1,6 +1,6 @@
 import { Mock } from 'vitest';
 import TxAgreement from '../../src/agreement/TxAgreement';
-import { PaymentTransaction } from '../../src/models/Models';
+import { PaymentTransaction } from '@rosen-chains/abstract-chain';
 
 class TxAgreementMock {
   private static mockedTxAgreement: Record<string, any>;

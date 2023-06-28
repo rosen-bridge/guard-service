@@ -1,4 +1,4 @@
-vi.doMock('../../src/guard/multisig/MultiSig', () => ({
+vi.doMock('../../src/guard/multisig/MultiSigHandler', () => ({
   default: {
     getInstance: () => ({
       sign: vi.fn(),

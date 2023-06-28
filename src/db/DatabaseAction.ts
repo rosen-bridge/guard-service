@@ -14,7 +14,6 @@ import {
 import Utils from '../helpers/Utils';
 import { loggerFactory } from '../log/Logger';
 import { Semaphore } from 'await-semaphore/index';
-import { ImpossibleBehavior, NotFoundError } from '../helpers/errors';
 import * as RosenChains from '@rosen-chains/abstract-chain';
 import TransactionSerializer from '../transaction/TransactionSerializer';
 
@@ -407,7 +406,7 @@ class DatabaseAction {
     eventId: string
   ): Promise<TransactionEntity> => {
     const event = await this.getEventById(eventId);
-    if (event === null) throw new NotFoundError(`Event [${eventId}] not found`);
+    if (event === null) throw new Error(`Event [${eventId}] not found`);
     const txs = await this.TransactionRepository.find({
       relations: ['event'],
       where: [
@@ -419,9 +418,9 @@ class DatabaseAction {
       ],
     });
     if (txs.length === 0)
-      throw new NotFoundError(`No payment tx found for event [${eventId}]`);
+      throw new Error(`No payment tx found for event [${eventId}]`);
     else if (txs.length > 1)
-      throw new ImpossibleBehavior(
+      throw new RosenChains.ImpossibleBehavior(
         `Found more than one completed payment transaction for event [${eventId}]`
       );
     else return txs[0];

@@ -11,13 +11,11 @@ import ErgoExplorerNetwork, {
   EXPLORER_NETWORK,
 } from '@rosen-chains/ergo-explorer-network';
 import Configs from '../helpers/Configs';
-import { guardConfig } from '../helpers/GuardConfig';
 import GuardsCardanoConfigs from '../helpers/GuardsCardanoConfigs';
 import GuardsErgoConfigs from '../helpers/GuardsErgoConfigs';
 import MinimumFee from '../event/MinimumFee';
-import MultiSigHandler from '../guard/multisig/MultiSig';
+import MultiSigHandler from '../guard/multisig/MultiSigHandler';
 import { loggerFactory } from '../log/Logger';
-import ChainsConstants from '../chains/ChainsConstants';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -86,7 +84,6 @@ class ChainHandler {
         );
     }
     const multiSigSignFunction = MultiSigHandler.getInstance(
-      guardConfig.publicKeys,
       Configs.guardSecret
     ).sign;
     return new ErgoChain(

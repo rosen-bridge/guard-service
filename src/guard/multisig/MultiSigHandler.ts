@@ -15,25 +15,11 @@ import Configs from '../../helpers/Configs';
 import { Semaphore } from 'await-semaphore';
 import Encryption from '../../helpers/Encryption';
 import MultiSigUtils from './MultiSigUtils';
-import { default as Utils } from '../../helpers/Utils';
 import { loggerFactory } from '../../log/Logger';
-import { CommitmentMisMatch } from '../../helpers/errors';
+import { CommitmentMisMatch } from '../../models/errors';
 
 const logger = loggerFactory(import.meta.url);
 const dialer = await Dialer.getInstance();
-
-interface MultiSigGetInstance {
-  /**
-   * Create and get a new multi sig singleton instance
-   * @param publicKeys
-   * @param secretHex
-   */
-  (publicKeys: string[], secretHex?: string): MultiSigHandler;
-  /**
-   * Get a previously created multi sig singleton instance
-   */
-  (): MultiSigHandler;
-}
 
 class MultiSigHandler {
   private static CHANNEL = 'multi-sig';
@@ -55,20 +41,15 @@ class MultiSigHandler {
     }));
     logger.debug(`Subscribing to [${MultiSigHandler.CHANNEL}]`);
     dialer.subscribeChannel(MultiSigHandler.CHANNEL, this.handleMessage);
-    this.secret = Utils.hexStringToUint8Array(secretHex || Configs.guardSecret);
+    this.secret = Buffer.from(secretHex || Configs.guardSecret, 'hex');
   }
 
-  public static getInstance: MultiSigGetInstance = (
-    publicKeys?: string[],
-    secretHex?: string
-  ) => {
+  /**
+   * @returns a MultiSigHandler instance (create if it doesn't exist)
+   */
+  public static getInstance = (secretHex?: string) => {
     if (!MultiSigHandler.instance) {
-      if (!publicKeys) {
-        throw new Error(
-          'MultiSig singleton is not instantiated, so you must provide the `publicKeys` argument.'
-        );
-      }
-      MultiSigHandler.instance = new MultiSigHandler(publicKeys, secretHex);
+      MultiSigHandler.instance = new MultiSigHandler([], secretHex);
       MultiSigHandler.instance.sendRegister().then(() => null);
     }
     return MultiSigHandler.instance;
@@ -86,6 +67,16 @@ class MultiSigHandler {
         myId: dialer.getDialerId(),
       },
     });
+  };
+
+  /**
+   * checks if peers initiated using guards public keys, throws error if not
+   */
+  isPeersInitiated = (): void => {
+    if (this.peers.length === 0)
+      throw Error(
+        `Cannot proceed MultiSig action, public keys are not provided yet`
+      );
   };
 
   /**
@@ -119,6 +110,7 @@ class MultiSigHandler {
     boxes: Array<wasm.ErgoBox>,
     dataBoxes?: Array<wasm.ErgoBox>
   ): Promise<wasm.Transaction> => {
+    this.isPeersInitiated();
     return new Promise<wasm.Transaction>((resolve, reject) => {
       this.getQueuedTransaction(tx.unsigned_tx().id().to_str())
         .then(({ transaction, release }) => {
@@ -314,7 +306,7 @@ class MultiSigHandler {
           logger.debug(
             `Continuing sign for tx [${transaction.tx.unsigned_tx().id()}]`
           );
-          hints = await MultiSigUtils.extract_hints(
+          hints = await MultiSigUtils.getInstance().extract_hints(
             wasm.Transaction.sigma_parse_bytes(transaction.sign.transaction),
             transaction.boxes,
             transaction.dataBoxes,
@@ -623,7 +615,7 @@ class MultiSigHandler {
     const payloadTx = wasm.Transaction.sigma_parse_bytes(
       Buffer.from(payload.tx, 'base64')
     );
-    const hints = await MultiSigUtils.extract_hints(
+    const hints = await MultiSigUtils.getInstance().extract_hints(
       payloadTx,
       transaction.boxes,
       transaction.dataBoxes,
@@ -776,6 +768,7 @@ class MultiSigHandler {
     channel: string,
     sender: string
   ): void => {
+    this.isPeersInitiated();
     const message = JSON.parse(messageStr) as CommunicationMessage;
     if (
       message.payload.index !== undefined &&

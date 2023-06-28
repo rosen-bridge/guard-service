@@ -17,11 +17,9 @@ class GuardsErgoConfigs {
   ]);
   static explorer = {
     url: config.get<string>('ergo.explorer.url'),
-    timeout: getConfigIntKeyOrDefault('ergo.explorer.timeout', 8), // seconds
   };
   static node = {
     url: config.get<string>('ergo.node.url'),
-    timeout: getConfigIntKeyOrDefault('ergo.node.timeout', 8), // seconds
   };
 
   // value configs

@@ -1,20 +1,12 @@
 import fs from 'fs';
-import ErgoUtils from '../chains/ergo/helpers/ErgoUtils';
-import { Contract } from 'ergo-lib-wasm-nodejs';
 import Configs from './Configs';
 
 class ContractConfig {
   readonly cleanupNFT: string;
   readonly cleanupConfirm: number;
   readonly permitAddress: string;
-  readonly permitErgoTree: string;
-  readonly permitContract: Contract;
   readonly eventTriggerAddress: string;
-  readonly eventTriggerErgoTree: string;
-  readonly eventTriggerContract: Contract;
   readonly commitmentAddress: string;
-  readonly commitmentErgoTree: string;
-  readonly commitmentContract: Contract;
   readonly lockAddress: string;
   readonly RepoNFT: string;
   readonly RWTId: string;
@@ -28,26 +20,8 @@ class ContractConfig {
       this.cleanupNFT = config.tokens.CleanupNFT;
       this.cleanupConfirm = config.cleanupConfirm;
       this.permitAddress = config.addresses.WatcherPermit;
-      this.permitErgoTree = ErgoUtils.addressStringToErgoTreeString(
-        this.permitAddress
-      );
-      this.permitContract = ErgoUtils.addressStringToContract(
-        this.permitAddress
-      );
       this.eventTriggerAddress = config.addresses.WatcherTriggerEvent;
-      this.eventTriggerErgoTree = ErgoUtils.addressStringToErgoTreeString(
-        this.eventTriggerAddress
-      );
-      this.eventTriggerContract = ErgoUtils.addressStringToContract(
-        this.eventTriggerAddress
-      );
       this.commitmentAddress = config.addresses.Commitment;
-      this.commitmentErgoTree = ErgoUtils.addressStringToErgoTreeString(
-        this.commitmentAddress
-      );
-      this.commitmentContract = ErgoUtils.addressStringToContract(
-        this.commitmentAddress
-      );
       this.lockAddress = config.addresses.lock;
       this.RepoNFT = config.tokens.RepoNFT;
       this.RWTId = config.tokens.RWTId;

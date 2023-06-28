@@ -1,7 +1,7 @@
 import { cloneDeep } from 'lodash-es';
 import EventBoxes from '../../src/event/EventBoxes';
 import EventSerializer from '../../src/event/EventSerializer';
-import TestUtils from '../../tests/testUtils/TestUtils';
+import TestUtils from '../testUtils/TestUtils';
 import DatabaseActionMock from '../db/mocked/DatabaseAction.mock';
 import { mockEventTrigger } from './testData';
 import { EventStatus } from '../../src/models/Models';

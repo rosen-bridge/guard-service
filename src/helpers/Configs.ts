@@ -1,16 +1,12 @@
 import fs from 'fs';
-
 import config from 'config';
 import { RosenTokens, TokenMap } from '@rosen-bridge/tokens';
-
 import { ThresholdConfig } from '../coldStorage/types';
 import { JsonBI } from '../network/NetworkModels';
-
-import { ConfigError } from './errors';
-
 import { LogConfig } from '../types';
 import { isNumber } from 'lodash-es';
 import Utils from './Utils';
+import { ConfigError } from '../models/errors';
 
 /**
  * reads a numerical config, set default value if it does not exits

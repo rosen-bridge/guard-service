@@ -1,9 +1,10 @@
-import { guardConfig } from './GuardConfig';
+import GuardPkHandler from '../handlers/GuardPkHandler';
 
 class GuardTurn {
   private static readonly TURNS_LENGTH = 3 * 60; // 3 minutes
   static readonly UP_TIME_LENGTH = 2 * 60; // 2 minutes
-  static FULL_PERIOD = (): number => guardConfig.guardsLen * this.TURNS_LENGTH;
+  static FULL_PERIOD = (): number =>
+    GuardPkHandler.getInstance().guardsLen * this.TURNS_LENGTH;
 
   /**
    * calculates starting time by getting current time and adding INITIAL_DELAY to it.
@@ -16,7 +17,7 @@ class GuardTurn {
   static secondsToNextTurn = (): number => {
     const startingTimeStamp = Math.round(Date.now() / 1000);
     const currentTurn = startingTimeStamp % this.FULL_PERIOD();
-    const guardTurn = guardConfig.guardId * this.TURNS_LENGTH;
+    const guardTurn = GuardPkHandler.getInstance().guardId * this.TURNS_LENGTH;
 
     return (
       ((guardTurn - currentTurn + this.FULL_PERIOD()) % this.FULL_PERIOD()) + 1
@@ -50,7 +51,8 @@ class GuardTurn {
     if (currentTurn % this.TURNS_LENGTH > this.UP_TIME_LENGTH) return -1;
     else
       return (
-        Math.floor(currentTurn / this.TURNS_LENGTH) % guardConfig.guardsLen
+        Math.floor(currentTurn / this.TURNS_LENGTH) %
+        GuardPkHandler.getInstance().guardsLen
       );
   };
 }

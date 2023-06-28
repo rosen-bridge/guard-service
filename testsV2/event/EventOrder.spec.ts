@@ -5,7 +5,7 @@ import {
   mockNativeTokenPaymentEvent,
   mockTokenPaymentEvent,
 } from './testData';
-import TestUtils from '../../tests/testUtils/TestUtils';
+import TestUtils from '../testUtils/TestUtils';
 import { createEventTrigger } from './eventTestUtils';
 import MinimumFee from '../../src/event/MinimumFee';
 import GuardsErgoConfigs from '../../src/helpers/GuardsErgoConfigs';

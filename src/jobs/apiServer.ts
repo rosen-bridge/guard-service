@@ -5,7 +5,6 @@ import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { p2pRoutes } from '../api/p2p';
 import Configs from '../helpers/Configs';
 import { loggerFactory } from '../log/Logger';
-import { tssRoute } from '../api/tss';
 import { generalInfoRoute } from '../api/generalInfo';
 
 const logger = loggerFactory(import.meta.url);
@@ -47,7 +46,6 @@ const initApiServer = async () => {
   });
 
   await apiServer.register(p2pRoutes);
-  await apiServer.register(tssRoute);
   await apiServer.register(generalInfoRoute);
   apiServer.get('/', (request, reply) => {
     reply.redirect('/swagger');

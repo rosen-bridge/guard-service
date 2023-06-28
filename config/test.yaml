@@ -4,9 +4,6 @@ cardano:
   chainNetwork: 'koios'
   koios:
     url: 'https://testnet.koios.rest/api/v0'
-    timeout: 8000
-  blockFrost:
-    projectId: 'change me'
   bankPublicKey: 'bcb07faa6c0f19e2f2587aa9ef6f43a68fc0135321216a71dc87c8527af4ca6a'
   minUtxoValue: '1551690'
   fee: '200000'
@@ -22,10 +19,8 @@ ergo:
   chainNetwork: 'node'
   explorer:
     url: 'https://testnet.koios.rest/api/v0'
-    timeout: 8000
   node:
     url: 'https://testnet.koios.rest/api/v0'
-    timeout: 8000
   minBoxValue: '100000'
   fee: '1100000'
   confirmation:

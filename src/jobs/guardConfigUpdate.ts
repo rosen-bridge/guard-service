@@ -1,7 +1,6 @@
-import { guardConfig } from '../helpers/GuardConfig';
+import GuardPkHandler from '../handlers/GuardPkHandler';
 import Configs from '../helpers/Configs';
 import { loggerFactory } from '../log/Logger';
-import axios from 'axios';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -10,7 +9,9 @@ const logger = loggerFactory(import.meta.url);
  */
 const configUpdateJob = async () => {
   try {
-    await guardConfig.setConfig();
+    const pkHandler = GuardPkHandler.getInstance();
+    await pkHandler.update();
+    pkHandler.updateDependentModules();
     setTimeout(configUpdateJob, Configs.guardConfigUpdateInterval * 1000);
   } catch (e) {
     if (e instanceof Error) {
@@ -25,11 +26,4 @@ const configUpdateJob = async () => {
   }
 };
 
-/**
- * initializing update job
- */
-const guardConfigUpdate = () => {
-  configUpdateJob();
-};
-
-export { guardConfigUpdate };
+export { configUpdateJob };

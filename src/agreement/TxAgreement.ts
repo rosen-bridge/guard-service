@@ -9,7 +9,6 @@ import {
 } from './Interfaces';
 import Dialer from '../communication/Dialer';
 import { dbAction } from '../db/DatabaseAction';
-import { guardConfig } from '../helpers/GuardConfig';
 import { loggerFactory } from '../log/Logger';
 import {
   ImpossibleBehavior,
@@ -24,6 +23,7 @@ import { EcDSA } from './communicator/EcDSA';
 import GuardTurn from '../helpers/GuardTurn';
 import TransactionVerifier from '../verification/TransactionVerifier';
 import DatabaseHandler from '../db/DatabaseHandler';
+import GuardPkHandler from '../handlers/GuardPkHandler';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -43,7 +43,7 @@ class TxAgreement extends Communicator {
       logger,
       new EcDSA(Configs.guardSecret),
       TxAgreement.sendMessageWrapper,
-      guardConfig.publicKeys,
+      GuardPkHandler.getInstance().publicKeys,
       GuardTurn.UP_TIME_LENGTH
     );
     this.transactionQueue = [];
@@ -379,7 +379,7 @@ class TxAgreement extends Communicator {
       this.transactionApprovals
         .get(txId)!
         .filter((signature) => signature !== '').length >=
-      guardConfig.requiredSign
+      GuardPkHandler.getInstance().requiredSign
     ) {
       logger.info(`The majority of guards agreed with transaction [${txId}]`);
 
@@ -449,10 +449,11 @@ class TxAgreement extends Communicator {
       signs++;
       approvedGuards.push(i);
     }
-    if (signs < guardConfig.requiredSign) {
+    const requiredSign = GuardPkHandler.getInstance().requiredSign;
+    if (signs < requiredSign) {
       logger.warn(
         baseError +
-          `but signs is less than required value [${signs} < ${guardConfig.requiredSign}]`
+          `but signs is less than required value [${signs} < ${requiredSign}]`
       );
       return;
     }

@@ -1,4 +1,4 @@
-import TestUtils from '../../tests/testUtils/TestUtils';
+import TestUtils from '../testUtils/TestUtils';
 import {
   PaymentTransaction,
   TransactionTypes,

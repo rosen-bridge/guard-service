@@ -1,4 +1,4 @@
-import TestUtils from '../../tests/testUtils/TestUtils';
+import TestUtils from '../testUtils/TestUtils';
 import { EventTrigger } from '@rosen-chains/abstract-chain';
 import { createEventTrigger } from './eventTestUtils';
 

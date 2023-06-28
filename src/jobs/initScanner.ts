@@ -1,12 +1,11 @@
 import { ErgoNodeScanner } from '@rosen-bridge/scanner';
-import ergoConfigs from '../chains/ergo/helpers/ErgoConfigs';
 import { dataSource } from '../../config/dataSource';
 import {
   CommitmentExtractor,
   EventTriggerExtractor,
 } from '@rosen-bridge/watcher-data-extractor';
-import CardanoConfigs from '../chains/cardano/helpers/CardanoConfigs';
-import ErgoConfigs from '../chains/ergo/helpers/ErgoConfigs';
+import GuardsCardanoConfigs from '../helpers/GuardsCardanoConfigs';
+import GuardsErgoConfigs from '../helpers/GuardsErgoConfigs';
 import { loggerFactory } from '../log/Logger';
 
 let ergoScanner: ErgoNodeScanner;
@@ -17,7 +16,9 @@ let ergoScanner: ErgoNodeScanner;
 const ergoScannerJob = () => {
   ergoScanner
     .update()
-    .then(() => setTimeout(ergoScannerJob, ergoConfigs.scannerInterval * 1000));
+    .then(() =>
+      setTimeout(ergoScannerJob, GuardsErgoConfigs.scannerInterval * 1000)
+    );
 };
 
 /**
@@ -43,9 +44,9 @@ const createLoggers = () => ({
  */
 const initScanner = () => {
   const scannerConfig = {
-    nodeUrl: ergoConfigs.node.url,
-    timeout: ergoConfigs.node.timeout * 1000,
-    initialHeight: ergoConfigs.initialHeight,
+    nodeUrl: GuardsErgoConfigs.node.url,
+    timeout: 8000,
+    initialHeight: GuardsErgoConfigs.initialHeight,
     dataSource,
   };
 
@@ -54,30 +55,30 @@ const initScanner = () => {
   ergoScanner = new ErgoNodeScanner(scannerConfig, loggers.ergoScannerLogger);
   const cardanoCommitmentExtractor = new CommitmentExtractor(
     'cardanoCommitment',
-    [CardanoConfigs.cardanoContractConfig.commitmentAddress],
-    CardanoConfigs.cardanoContractConfig.RWTId,
+    [GuardsCardanoConfigs.cardanoContractConfig.commitmentAddress],
+    GuardsCardanoConfigs.cardanoContractConfig.RWTId,
     dataSource,
     loggers.cardanoCommitmentExtractorLogger
   );
   const cardanoEventTriggerExtractor = new EventTriggerExtractor(
     'cardanoEventTrigger',
     dataSource,
-    CardanoConfigs.cardanoContractConfig.eventTriggerAddress,
-    CardanoConfigs.cardanoContractConfig.RWTId,
+    GuardsCardanoConfigs.cardanoContractConfig.eventTriggerAddress,
+    GuardsCardanoConfigs.cardanoContractConfig.RWTId,
     loggers.cardanoEventTriggerExtractorLogger
   );
   const ergoCommitmentExtractor = new CommitmentExtractor(
     'ergoCommitment',
-    [ErgoConfigs.ergoContractConfig.commitmentAddress],
-    ErgoConfigs.ergoContractConfig.RWTId,
+    [GuardsErgoConfigs.ergoContractConfig.commitmentAddress],
+    GuardsErgoConfigs.ergoContractConfig.RWTId,
     dataSource,
     loggers.ergoCommitmentExtractorLogger
   );
   const ergoEventTriggerExtractor = new EventTriggerExtractor(
     'ergoEventTrigger',
     dataSource,
-    ErgoConfigs.ergoContractConfig.eventTriggerAddress,
-    ErgoConfigs.ergoContractConfig.RWTId,
+    GuardsErgoConfigs.ergoContractConfig.eventTriggerAddress,
+    GuardsErgoConfigs.ergoContractConfig.RWTId,
     loggers.ergoCommitmentExtractorLogger
   );
   ergoScanner.registerExtractor(cardanoCommitmentExtractor);

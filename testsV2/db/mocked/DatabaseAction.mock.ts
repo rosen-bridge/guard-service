@@ -15,7 +15,7 @@ import migrations from '../../../src/db/migrations';
 import { dbAction, DatabaseAction } from '../../../src/db/DatabaseAction';
 import Utils from '../../../src/helpers/Utils';
 import { loggerFactory } from '../../../src/log/Logger';
-import TestUtils from '../../../tests/testUtils/TestUtils';
+import TestUtils from '../../testUtils/TestUtils';
 import { EventTrigger, PaymentTransaction } from '@rosen-chains/abstract-chain';
 import TransactionSerializer from '../../../src/transaction/TransactionSerializer';
 

@@ -8,10 +8,10 @@ import { TransactionEntity } from '../db/entities/TransactionEntity';
 import ChainHandler from '../handlers/ChainHandler';
 import { loggerFactory } from '../log/Logger';
 import { EventStatus, TransactionStatus } from '../models/Models';
-import { guardConfig } from '../helpers/GuardConfig';
 import Configs from '../helpers/Configs';
 import TransactionSerializer from './TransactionSerializer';
 import { ERGO_CHAIN } from '@rosen-chains/ergo';
+import GuardPkHandler from '../handlers/GuardPkHandler';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -66,7 +66,10 @@ class TransactionProcessor {
       try {
         const chain = ChainHandler.getInstance().getChain(tx.chain);
         const paymentTx = TransactionSerializer.fromJson(tx.txJson);
-        await chain.signTransaction(paymentTx, guardConfig.requiredSign);
+        await chain.signTransaction(
+          paymentTx,
+          GuardPkHandler.getInstance().requiredSign
+        );
         logger.info(`Tx [${tx.txId}] got sent to the signer`);
         await dbAction.setTxStatus(tx.txId, TransactionStatus.inSign);
         release();
