@@ -14,16 +14,15 @@ import { dataSource } from '../../config/dataSource';
 import { loggerFactory } from '../log/Logger';
 import Configs from '../helpers/Configs';
 import GuardsErgoConfigs from '../helpers/GuardsErgoConfigs';
-import ChainsConstants from '../chains/ChainsConstants';
 import { rosenConfig } from '../helpers/RosenConfig';
-import ergoConfigs from '../chains/ergo/helpers/ErgoConfigs';
 import Dialer from '../communication/Dialer';
 import CommunicationConfig from '../communication/CommunicationConfig';
 import GuardsCardanoConfigs from '../helpers/GuardsCardanoConfigs';
-import CardanoConfigs from '../chains/cardano/helpers/CardanoConfigs';
 import { NODE_NETWORK } from '@rosen-chains/ergo-node-network';
 import { EXPLORER_NETWORK } from '@rosen-chains/ergo-explorer-network';
 import { KOIOS_NETWORK } from '@rosen-chains/cardano-koios-network';
+import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
+import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
 
 const logger = loggerFactory(import.meta.url);
 let healthCheck: HealthCheck | undefined;
@@ -59,18 +58,16 @@ const getHealthCheck = async () => {
     });
     healthCheck.register(p2pHealthCheck);
 
-    const ergoContracts = rosenConfig.contractReader(ChainsConstants.ergo);
-    const cardanoContracts = rosenConfig.contractReader(
-      ChainsConstants.cardano
-    );
+    const ergoContracts = rosenConfig.contractReader(ERGO_CHAIN);
+    const cardanoContracts = rosenConfig.contractReader(CARDANO_CHAIN);
     if (GuardsErgoConfigs.chainNetworkName === NODE_NETWORK) {
       const ergAssetHealthCheck = new ErgoNodeAssetHealthCheckParam(
-        ChainsConstants.ergoNativeAsset,
-        ChainsConstants.ergoNativeAsset,
+        ERG,
+        ERG,
         ergoContracts.lockAddress,
         Configs.ergWarnThreshold,
         Configs.ergCriticalThreshold,
-        ergoConfigs.node.url
+        GuardsErgoConfigs.node.url
       );
       healthCheck.register(ergAssetHealthCheck);
 
@@ -80,7 +77,7 @@ const getHealthCheck = async () => {
         ergoContracts.lockAddress,
         Configs.rsnWarnThreshold,
         Configs.rsnCriticalThreshold,
-        ergoConfigs.node.url
+        GuardsErgoConfigs.node.url
       );
       healthCheck.register(rsnAssetHealthCheck);
 
@@ -89,7 +86,7 @@ const getHealthCheck = async () => {
         'ergo-node',
         Configs.ergoScannerWarnDiff,
         Configs.ergoScannerCriticalDiff,
-        ergoConfigs.node.url
+        GuardsErgoConfigs.node.url
       );
       healthCheck.register(ergoScannerSyncCheck);
 
@@ -98,17 +95,17 @@ const getHealthCheck = async () => {
         Configs.ergoNodeMaxBlockTime,
         Configs.ergoNodeMinPeerCount,
         Configs.ergoNodeMaxPeerHeightDifference,
-        ergoConfigs.node.url
+        GuardsErgoConfigs.node.url
       );
       healthCheck.register(ergoNodeSyncCheck);
     } else if (GuardsErgoConfigs.chainNetworkName === EXPLORER_NETWORK) {
       const ergAssetHealthCheck = new ErgoExplorerAssetHealthCheckParam(
-        ChainsConstants.ergoNativeAsset,
-        ChainsConstants.ergoNativeAsset,
+        ERG,
+        ERG,
         ergoContracts.lockAddress,
         Configs.ergWarnThreshold,
         Configs.ergCriticalThreshold,
-        ergoConfigs.explorer.url
+        GuardsErgoConfigs.explorer.url
       );
       healthCheck.register(ergAssetHealthCheck);
 
@@ -118,7 +115,7 @@ const getHealthCheck = async () => {
         ergoContracts.lockAddress,
         Configs.rsnWarnThreshold,
         Configs.rsnCriticalThreshold,
-        ergoConfigs.explorer.url
+        GuardsErgoConfigs.explorer.url
       );
       healthCheck.register(rsnAssetHealthCheck);
 
@@ -127,18 +124,18 @@ const getHealthCheck = async () => {
         'ergo-explorer',
         Configs.ergoScannerWarnDiff,
         Configs.ergoScannerCriticalDiff,
-        ergoConfigs.explorer.url
+        GuardsErgoConfigs.explorer.url
       );
       healthCheck.register(ergoScannerSyncCheck);
     }
     if (GuardsCardanoConfigs.chainNetworkName === KOIOS_NETWORK) {
       const adaAssetHealthCheck = new CardanoAssetHealthCheckParam(
-        ChainsConstants.cardanoNativeAsset,
-        ChainsConstants.cardanoNativeAsset,
+        ADA,
+        ADA,
         cardanoContracts.lockAddress,
         Configs.adaWarnThreshold,
         Configs.adaCriticalThreshold,
-        CardanoConfigs.koios.url
+        GuardsCardanoConfigs.koios.url
       );
       healthCheck.register(adaAssetHealthCheck);
     }
