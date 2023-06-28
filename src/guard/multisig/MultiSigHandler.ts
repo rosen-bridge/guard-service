@@ -579,40 +579,39 @@ class MultiSigHandler {
    * @param payload: user commitment
    * @param sign: signature for this commitment message
    */
-  handleCommitment = (
+  handleCommitment = async (
     sender: string,
     payload: CommitmentPayload,
     sign: string
-  ): void => {
+  ): Promise<void> => {
     if (payload.index !== undefined && payload.txId) {
       const index = payload.index;
-      this.getQueuedTransaction(payload.txId).then(
-        async ({ transaction, release }) => {
-          try {
-            transaction.commitments[index] = payload.commitment;
-            transaction.commitmentSigns[index] = sign;
-            if (transaction.requiredSigner > 0) {
-              if (
-                transaction.commitments.filter((item) => item !== undefined)
-                  .length >=
-                transaction.requiredSigner - 1
-              ) {
-                logger.debug(
-                  `Tx [${payload.txId}] has enough commitments. Starting signing...`
-                );
-                await this.generateSign(payload.txId, transaction);
-              }
-            }
-            this.processResolve(transaction);
-          } catch (e) {
-            logger.warn(
-              `An unknown exception occurred while handling commitment from other peer: ${e}`
-            );
-            logger.warn(e.stack);
-          }
-          release();
-        }
+      const { transaction, release } = await this.getQueuedTransaction(
+        payload.txId
       );
+      try {
+        transaction.commitments[index] = payload.commitment;
+        transaction.commitmentSigns[index] = sign;
+        if (transaction.requiredSigner > 0) {
+          if (
+            transaction.commitments.filter((item) => item !== undefined)
+              .length >=
+            transaction.requiredSigner - 1
+          ) {
+            logger.debug(
+              `Tx [${payload.txId}] has enough commitments. Starting signing...`
+            );
+            await this.generateSign(payload.txId, transaction);
+          }
+        }
+        this.processResolve(transaction);
+      } catch (e) {
+        logger.warn(
+          `An unknown exception occurred while handling commitment from other peer: ${e}`
+        );
+        logger.warn(e.stack);
+      }
+      release();
     }
   };
 
@@ -701,74 +700,72 @@ class MultiSigHandler {
    * @param sender
    * @param payload
    */
-  handleSign = (sender: string, payload: SignPayload): void => {
+  handleSign = async (sender: string, payload: SignPayload): Promise<void> => {
     if (payload.txId) {
-      this.getQueuedTransaction(payload.txId).then(
-        async ({ transaction, release }) => {
-          try {
-            await this.verifySignedPayload(transaction, payload);
-            payload.commitments
-              .filter((commitment) => {
-                if (transaction.commitments[commitment.index] !== undefined) {
-                  return false;
-                }
-                const payloadToSign = {
-                  txId: payload.txId,
-                  commitment: commitment.commitment,
-                };
-                return this.verifySign(
-                  commitment.sign,
-                  commitment.index,
-                  JSON.stringify(payloadToSign)
-                );
-              })
-              .forEach((commitment) => {
-                transaction.commitments[commitment.index] =
-                  commitment.commitment;
-                transaction.commitmentSigns[commitment.index] = commitment.sign;
-              });
-            const guardsKeys = this.peers.map((item) => item.pub);
-            payload.signed = Array.from(
-              new Set(payload.signed).values()
-            ).filter((item) => guardsKeys.indexOf(item) !== -1);
-            payload.simulated = Array.from(
-              new Set(payload.simulated).values()
-            ).filter((item) => guardsKeys.indexOf(item) !== -1);
-            const myPub = this.peers[this.getIndex()].pub;
-            let updateSign = true;
-            if (
-              transaction.sign &&
-              payload.signed.filter((item) => item !== myPub).length <=
-                transaction.sign.signed.filter((item) => item !== myPub).length
-            ) {
-              updateSign = false;
-            }
-            if (updateSign) {
-              // Arrived transaction is better and has more signatures. store it.
-              transaction.sign = {
-                signed: payload.signed,
-                simulated: payload.simulated,
-                transaction: Uint8Array.from(Buffer.from(payload.tx, 'base64')),
-              };
-            }
-            if (
-              transaction.sign &&
-              transaction.sign.signed.indexOf(myPub) === -1 &&
-              transaction.sign.simulated.indexOf(myPub) === -1 &&
-              transaction.sign.signed.length < transaction.requiredSigner
-            ) {
-              await this.generateSign(payload.txId, transaction);
-            }
-            this.processResolve(transaction);
-          } catch (e) {
-            logger.warn(
-              `An unknown exception occurred while handling sign from another peer: ${e}`
-            );
-            logger.warn(e.stack);
-          }
-          release();
-        }
+      const { transaction, release } = await this.getQueuedTransaction(
+        payload.txId
       );
+      try {
+        await this.verifySignedPayload(transaction, payload);
+        payload.commitments
+          .filter((commitment) => {
+            if (transaction.commitments[commitment.index] !== undefined) {
+              return false;
+            }
+            const payloadToSign = {
+              txId: payload.txId,
+              commitment: commitment.commitment,
+            };
+            return this.verifySign(
+              commitment.sign,
+              commitment.index,
+              JSON.stringify(payloadToSign)
+            );
+          })
+          .forEach((commitment) => {
+            transaction.commitments[commitment.index] = commitment.commitment;
+            transaction.commitmentSigns[commitment.index] = commitment.sign;
+          });
+        const guardsKeys = this.peers.map((item) => item.pub);
+        payload.signed = Array.from(new Set(payload.signed).values()).filter(
+          (item) => guardsKeys.indexOf(item) !== -1
+        );
+        payload.simulated = Array.from(
+          new Set(payload.simulated).values()
+        ).filter((item) => guardsKeys.indexOf(item) !== -1);
+        const myPub = this.peers[this.getIndex()].pub;
+        let updateSign = true;
+        if (
+          transaction.sign &&
+          payload.signed.filter((item) => item !== myPub).length <=
+            transaction.sign.signed.filter((item) => item !== myPub).length
+        ) {
+          updateSign = false;
+        }
+        if (updateSign) {
+          // Arrived transaction is better and has more signatures. store it.
+          transaction.sign = {
+            signed: payload.signed,
+            simulated: payload.simulated,
+            transaction: Uint8Array.from(Buffer.from(payload.tx, 'base64')),
+          };
+        }
+        if (
+          transaction.sign &&
+          transaction.sign.signed.indexOf(myPub) === -1 &&
+          transaction.sign.simulated.indexOf(myPub) === -1 &&
+          transaction.sign.signed.length < transaction.requiredSigner
+        ) {
+          await this.generateSign(payload.txId, transaction);
+        }
+        this.processResolve(transaction);
+      } catch (e) {
+        logger.warn(
+          `An unknown exception occurred while handling sign from another peer: ${e}`
+        );
+        logger.warn(e.stack);
+      }
+      release();
     }
   };
 
