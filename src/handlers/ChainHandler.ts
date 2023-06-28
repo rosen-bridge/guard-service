@@ -6,8 +6,10 @@ import {
 } from '@rosen-chains/cardano';
 import { AbstractErgoNetwork, ERGO_CHAIN, ErgoChain } from '@rosen-chains/ergo';
 import CardanoKoiosNetwork from '@rosen-chains/cardano-koios-network';
-import ErgoNodeNetwork from '@rosen-chains/ergo-node-network';
-import ErgoExplorerNetwork from '@rosen-chains/ergo-explorer-network';
+import ErgoNodeNetwork, { NODE_NETWORK } from '@rosen-chains/ergo-node-network';
+import ErgoExplorerNetwork, {
+  EXPLORER_NETWORK,
+} from '@rosen-chains/ergo-explorer-network';
 import Configs from '../helpers/Configs';
 import { guardConfig } from '../helpers/GuardConfig';
 import GuardsCardanoConfigs from '../helpers/GuardsCardanoConfigs';
@@ -15,6 +17,7 @@ import GuardsErgoConfigs from '../helpers/GuardsErgoConfigs';
 import MinimumFee from '../event/MinimumFee';
 import MultiSigHandler from '../guard/multisig/MultiSig';
 import { loggerFactory } from '../log/Logger';
+import ChainsConstants from '../chains/ChainsConstants';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -63,14 +66,14 @@ class ChainHandler {
   private generateErgoChain = (): ErgoChain => {
     let network: AbstractErgoNetwork;
     switch (GuardsErgoConfigs.chainNetworkName) {
-      case 'node':
+      case NODE_NETWORK:
         network = new ErgoNodeNetwork({
           nodeBaseUrl: GuardsErgoConfigs.node.url,
           extractorOptions: GuardsErgoConfigs.extractorOptions,
           logger: loggerFactory('NodeNetwork'),
         });
         break;
-      case 'explorer':
+      case EXPLORER_NETWORK:
         network = new ErgoExplorerNetwork({
           explorerBaseUrl: GuardsErgoConfigs.explorer.url,
           extractorOptions: GuardsErgoConfigs.extractorOptions,

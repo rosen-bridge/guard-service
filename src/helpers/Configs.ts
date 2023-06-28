@@ -158,6 +158,64 @@ class Configs {
   static dbUser = getOptionalConfig('database.user', '');
   static dbPassword = getOptionalConfig('database.password', '');
   static dbName = getOptionalConfig('database.name', '');
+
+  // HealthCheck Configs
+  static healthUpdateInterval = getConfigIntKeyOrDefault(
+    'healthCheck.interval',
+    60
+  );
+  static ergWarnThreshold = BigInt(
+    config.get<string>('healthCheck.asset.erg.warnThreshold')
+  );
+  static ergCriticalThreshold = BigInt(
+    config.get<string>('healthCheck.asset.erg.criticalThreshold')
+  );
+  static rsnWarnThreshold = BigInt(
+    config.get<string>('healthCheck.asset.rsn.warnThreshold')
+  );
+  static rsnCriticalThreshold = BigInt(
+    config.get<string>('healthCheck.asset.rsn.criticalThreshold')
+  );
+  static adaWarnThreshold = BigInt(
+    config.get<string>('healthCheck.asset.ada.warnThreshold')
+  );
+  static adaCriticalThreshold = BigInt(
+    config.get<string>('healthCheck.asset.ada.criticalThreshold')
+  );
+  static ergoScannerWarnDiff = getConfigIntKeyOrDefault(
+    'healthCheck.ergoScanner.warnDifference',
+    2
+  );
+  static ergoScannerCriticalDiff = getConfigIntKeyOrDefault(
+    'healthCheck.ergoScanner.criticalDifference',
+    100
+  );
+  static ergoNodeMaxHeightDiff = getConfigIntKeyOrDefault(
+    'healthCheck.ergoNode.maxHeightDifference',
+    2
+  );
+  static ergoNodeMaxBlockTime =
+    getConfigIntKeyOrDefault('healthCheck.ergoNode.maxBlockTime', 1800) / 60;
+  static ergoNodeMinPeerCount = getConfigIntKeyOrDefault(
+    'healthCheck.ergoNode.minPeerCount',
+    10
+  );
+  static ergoNodeMaxPeerHeightDifference = getConfigIntKeyOrDefault(
+    'healthCheck.ergoNode.maxPeerHeightDifference',
+    2
+  );
+  static errorLogAllowedCount = getConfigIntKeyOrDefault(
+    'healthCheck.errorLog.maxAllowedCount',
+    1
+  );
+  static errorLogDuration = getConfigIntKeyOrDefault(
+    'healthCheck.errorLog.duration',
+    10
+  );
+  static p2pDefectConfirmationTimeWindow = getConfigIntKeyOrDefault(
+    'healthCheck.p2p.defectConfirmationTimeWindow',
+    120
+  );
 }
 
 export default Configs;
