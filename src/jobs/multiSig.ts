@@ -1,5 +1,5 @@
 import MultiSigHandler from '../guard/multisig/MultiSigHandler';
-import Configs from '../helpers/Configs';
+import Configs from '../configs/Configs';
 
 /**
  * runs MultiSig service cleanUp job

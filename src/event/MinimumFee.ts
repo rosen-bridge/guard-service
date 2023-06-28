@@ -1,8 +1,8 @@
 import { BridgeMinimumFee, Fee } from '@rosen-bridge/minimum-fee';
-import { rosenConfig } from '../helpers/RosenConfig';
-import Configs from '../helpers/Configs';
+import { rosenConfig } from '../configs/RosenConfig';
+import Configs from '../configs/Configs';
 import { EventTrigger } from '@rosen-chains/abstract-chain';
-import GuardsErgoConfigs from '../helpers/GuardsErgoConfigs';
+import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import { ERGO_CHAIN } from '@rosen-chains/ergo';
 
 class MinimumFee {

@@ -1,8 +1,15 @@
 import MultiSigUtils from '../../../src/guard/multisig/MultiSigUtils';
-import { expect } from 'chai';
 
 describe('MultiSigUtils', () => {
   describe('publicKeyToProposition', () => {
+    /**
+     * @target MultiSigUtils.publicKeyToProposition should run without any error
+     * @dependencies
+     * @scenario
+     * - run test with mocked public keys
+     * @expected
+     * - no error has been thrown
+     */
     it('should run without any error', () => {
       MultiSigUtils.publicKeyToProposition([
         '028d938d67befbb8ab3513c44886c16c2bcd62ed4595b9b216b20ef03eb8fb8fb8',
@@ -13,64 +20,19 @@ describe('MultiSigUtils', () => {
     });
   });
 
-  describe('compareSingleInputCommitmentsAreEquals', () => {
-    /**
-     * Target: Test that compareSingleInputCommitmentsAreEquals return true in case of same commitments
-     * Dependencies:
-     *    -
-     * Expected: test should return true
-     */
-    it('Should return true in case of same commitments', () => {
-      const firstCommitments = [
-        { a: '2', position: '0-2' },
-        { a: '1', position: '0-1' },
-        { a: '3', position: '0-3' },
-      ];
-      const secondCommitments = [
-        { a: '3', position: '0-3' },
-        { a: '2', position: '0-2' },
-        { a: '1', position: '0-1' },
-      ];
-      const res = MultiSigUtils.compareSingleInputCommitmentsAreEquals(
-        firstCommitments,
-        secondCommitments
-      );
-      expect(res).to.be.true;
-    });
-
-    /**
-     * Target: Test that compareSingleInputCommitmentsAreEquals return false in case of different commitments
-     * Dependencies:
-     *    -
-     * Expected: test should return false
-     */
-    it('Should return false in case of commitments are different from each other', () => {
-      const firstCommitments = [
-        { a: '1', position: '0-2' },
-        { a: '1', position: '0-1' },
-        { a: '3', position: '0-3' },
-      ];
-      const secondCommitments = [
-        { a: '3', position: '0-3' },
-        { a: '2', position: '0-2' },
-        { a: '1', position: '0-1' },
-      ];
-      const res = MultiSigUtils.compareSingleInputCommitmentsAreEquals(
-        firstCommitments,
-        secondCommitments
-      );
-      expect(res).to.be.false;
-    });
-  });
-
   describe('comparePublishedCommitmentsToBeDiffer', () => {
     /**
-     * Target: Test that comparePublishedCommitmentsToBeDiffer return false in case of two published commitment are the same
-     * Dependencies:
-     *    -
-     * Expected: test should return true
+     * @target MultiSigUtils.comparePublishedCommitmentsToBeDiffer should return
+     * false when two published commitments are same
+     * @dependencies
+     * @scenario
+     * - mock two similar commitments
+     * - run test
+     * - check retuned value
+     * @expected
+     * - returned value should be false
      */
-    it('Should return false in case of two published commitment are the same', () => {
+    it('should return false when two published commitments are same', () => {
       const firstPublishedCommitment = {
         '0': [
           { a: '20', position: '0-0' },
@@ -114,13 +76,17 @@ describe('MultiSigUtils', () => {
     });
 
     /**
-     * Target: Test that comparePublishedCommitmentsToBeDiffer return true in case of two published commitment are not
-     *  the same length
-     * Dependencies:
-     *    -
-     * Expected: test should return false
+     * @target MultiSigUtils.comparePublishedCommitmentsToBeDiffer should return
+     * true when two published commitments have different length
+     * @dependencies
+     * @scenario
+     * - mock two commitments with different length
+     * - run test
+     * - check retuned value
+     * @expected
+     * - returned value should be true
      */
-    it('Should return true with different commitment length', () => {
+    it('should return true when two published commitments have different length', () => {
       const firstPublishedCommitment = {
         '0': [
           { a: '20', position: '0-0' },
@@ -163,13 +129,17 @@ describe('MultiSigUtils', () => {
     });
 
     /**
-     * Target: Test that comparePublishedCommitmentsToBeDiffer return true in case of two published commitment are have
-     *  different commitment value
-     * Dependencies:
-     *    -
-     * Expected: test should return false
+     * @target MultiSigUtils.comparePublishedCommitmentsToBeDiffer should return
+     * true when two published commitments have different value
+     * @dependencies
+     * @scenario
+     * - mock two commitments with different value
+     * - run test
+     * - check retuned value
+     * @expected
+     * - returned value should be true
      */
-    it('Should return true with different commitment value', () => {
+    it('should return true when two published commitments have different value', () => {
       const firstPublishedCommitment = {
         '0': [
           { a: '20', position: '0-0' },
@@ -213,14 +183,79 @@ describe('MultiSigUtils', () => {
     });
   });
 
+  describe('compareSingleInputCommitmentsAreEquals', () => {
+    /**
+     * @target MultiSigUtils.compareSingleInputCommitmentsAreEquals should return
+     * true when two commitments are same
+     * @dependencies
+     * @scenario
+     * - mock two similar commitments
+     * - run test
+     * - check retuned value
+     * @expected
+     * - returned value should be true
+     */
+    it('should return true in case of same commitments', () => {
+      const firstCommitments = [
+        { a: '2', position: '0-2' },
+        { a: '1', position: '0-1' },
+        { a: '3', position: '0-3' },
+      ];
+      const secondCommitments = [
+        { a: '3', position: '0-3' },
+        { a: '2', position: '0-2' },
+        { a: '1', position: '0-1' },
+      ];
+      const res = MultiSigUtils.compareSingleInputCommitmentsAreEquals(
+        firstCommitments,
+        secondCommitments
+      );
+      expect(res).to.be.true;
+    });
+
+    /**
+     * @target MultiSigUtils.compareSingleInputCommitmentsAreEquals should return
+     * false when two commitments are different
+     * @dependencies
+     * @scenario
+     * - mock two different commitments
+     * - run test
+     * - check retuned value
+     * @expected
+     * - returned value should be false
+     */
+    it('should return false in case of commitments are different from each other', () => {
+      const firstCommitments = [
+        { a: '1', position: '0-2' },
+        { a: '1', position: '0-1' },
+        { a: '3', position: '0-3' },
+      ];
+      const secondCommitments = [
+        { a: '3', position: '0-3' },
+        { a: '2', position: '0-2' },
+        { a: '1', position: '0-1' },
+      ];
+      const res = MultiSigUtils.compareSingleInputCommitmentsAreEquals(
+        firstCommitments,
+        secondCommitments
+      );
+      expect(res).to.be.false;
+    });
+  });
+
   describe('generatedCommitmentToPublishCommitment', () => {
     /**
-     * Target: Test that generatedCommitmentToPublishCommitment return valid publishedCommitment
-     * Dependencies:
-     *    -
-     * Expected: test should return valid publishedCommitment
+     * @target MultiSigUtils.generatedCommitmentToPublishCommitment should return
+     * published commitment from commitment json
+     * @dependencies
+     * @scenario
+     * - mock commitment json
+     * - run test
+     * - check retuned value
+     * @expected
+     * - returned value should be expected published commitment
      */
-    it('Should return publishedCommitment form commitmentJson', () => {
+    it('should return published commitment from commitment json', () => {
       const commitmentJson = {
         secretHints: {
           '1': [

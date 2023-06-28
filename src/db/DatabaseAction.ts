@@ -6,12 +6,12 @@ import {
   EventStatus,
   TransactionStatus,
   TransactionTypes,
-} from '../models/Models';
+} from '../utils/constants';
 import {
   CommitmentEntity,
   EventTriggerEntity,
 } from '@rosen-bridge/watcher-data-extractor';
-import Utils from '../helpers/Utils';
+import Utils from '../utils/Utils';
 import { loggerFactory } from '../log/Logger';
 import { Semaphore } from 'await-semaphore/index';
 import * as RosenChains from '@rosen-chains/abstract-chain';

@@ -1,4 +1,4 @@
-import { EventStatus } from '../models/Models';
+import { EventStatus } from '../utils/constants';
 import {
   CandidateTransaction,
   TransactionRequest,
@@ -17,10 +17,10 @@ import {
 } from '@rosen-chains/abstract-chain';
 import RequestVerifier from '../verification/RequestVerifier';
 import TransactionSerializer from '../transaction/TransactionSerializer';
-import Configs from '../helpers/Configs';
+import Configs from '../configs/Configs';
 import { Communicator } from './communicator/Communicator'; // TODO: import from tss (#243)
 import { EcDSA } from './communicator/EcDSA';
-import GuardTurn from '../helpers/GuardTurn';
+import GuardTurn from '../utils/GuardTurn';
 import TransactionVerifier from '../verification/TransactionVerifier';
 import DatabaseHandler from '../db/DatabaseHandler';
 import GuardPkHandler from '../handlers/GuardPkHandler';

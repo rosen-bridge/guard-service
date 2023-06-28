@@ -5,12 +5,12 @@ import {
   SinglePayment,
   TokenInfo,
 } from '@rosen-chains/abstract-chain';
-import Utils from '../helpers/Utils';
+import Utils from '../utils/Utils';
 import { Fee } from '@rosen-bridge/minimum-fee';
-import Configs from '../helpers/Configs';
-import GuardsErgoConfigs from '../helpers/GuardsErgoConfigs';
+import Configs from '../configs/Configs';
+import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import MinimumFee from './MinimumFee';
-import { rosenConfig } from '../helpers/RosenConfig';
+import { rosenConfig } from '../configs/RosenConfig';
 import { ERG, ERGO_CHAIN, ErgoChain } from '@rosen-chains/ergo';
 import ChainHandler from '../handlers/ChainHandler';
 import EventBoxes from './EventBoxes';

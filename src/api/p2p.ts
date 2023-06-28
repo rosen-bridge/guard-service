@@ -1,6 +1,6 @@
 import { apiCallBack } from '../communication/CallbackUtils';
 import Dialer from '../communication/Dialer';
-import Configs from '../helpers/Configs';
+import Configs from '../configs/Configs';
 import { loggerFactory } from '../log/Logger';
 import { Type } from '@sinclair/typebox';
 import { FastifySeverInstance } from '../types/api';

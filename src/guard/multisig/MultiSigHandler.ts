@@ -11,18 +11,18 @@ import {
 } from './Interfaces';
 import * as crypto from 'crypto';
 import Dialer from '../../communication/Dialer';
-import Configs from '../../helpers/Configs';
+import Configs from '../../configs/Configs';
 import { Semaphore } from 'await-semaphore';
-import Encryption from '../../helpers/Encryption';
+import Encryption from '../../utils/Encryption';
 import MultiSigUtils from './MultiSigUtils';
 import { loggerFactory } from '../../log/Logger';
-import { CommitmentMisMatch } from '../../models/errors';
+import { CommitmentMisMatch } from '../../utils/errors';
 
 const logger = loggerFactory(import.meta.url);
-const dialer = await Dialer.getInstance();
 
 class MultiSigHandler {
   private static CHANNEL = 'multi-sig';
+  private static dialer: Dialer;
   private readonly transactions: Map<string, TxQueued>;
   private peers: Array<Signer>;
   private readonly secret: Uint8Array;
@@ -40,9 +40,19 @@ class MultiSigHandler {
       unapproved: [],
     }));
     logger.debug(`Subscribing to [${MultiSigHandler.CHANNEL}]`);
-    dialer.subscribeChannel(MultiSigHandler.CHANNEL, this.handleMessage);
     this.secret = Buffer.from(secretHex || Configs.guardSecret, 'hex');
   }
+
+  /**
+   * initializes dialer variable in class and subscribe to channel
+   */
+  init = async () => {
+    MultiSigHandler.dialer = await Dialer.getInstance();
+    MultiSigHandler.dialer.subscribeChannel(
+      MultiSigHandler.CHANNEL,
+      this.handleMessage
+    );
+  };
 
   /**
    * @returns a MultiSigHandler instance (create if it doesn't exist)
@@ -64,7 +74,7 @@ class MultiSigHandler {
       type: 'register',
       payload: {
         nonce: this.nonce,
-        myId: dialer.getDialerId(),
+        myId: MultiSigHandler.dialer.getDialerId(),
       },
     });
   };
@@ -135,7 +145,7 @@ class MultiSigHandler {
    * get my peer id
    */
   getPeerId = (): string => {
-    const peerId = dialer.getDialerId();
+    const peerId = MultiSigHandler.dialer.getDialerId();
     if (this.peerId !== peerId) {
       // TODO must call all other guards to update peerId
       //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/22
@@ -427,10 +437,10 @@ class MultiSigHandler {
    * @param message message
    * @param receivers if set we sent to this list of guards only. otherwise, broadcast it.
    */
-  sendMessage = (
+  sendMessage = async (
     message: CommunicationMessage,
     receivers?: Array<string>
-  ): void => {
+  ): Promise<void> => {
     const payload = message.payload;
     payload.index = this.getIndex();
     payload.id = this.getPeerId();
@@ -439,17 +449,23 @@ class MultiSigHandler {
       Encryption.sign(payloadStr, Buffer.from(this.secret))
     ).toString('base64');
     if (receivers && receivers.length) {
-      receivers.map((receiver) =>
-        dialer
-          .sendMessage(
-            MultiSigHandler.CHANNEL,
-            JSON.stringify(message),
-            receiver
-          )
-          .then(() => null)
+      Promise.all(
+        receivers.map(
+          async (receiver) =>
+            await MultiSigHandler.dialer
+              .sendMessage(
+                MultiSigHandler.CHANNEL,
+                JSON.stringify(message),
+                receiver
+              )
+              .then(() => null)
+        )
       );
     } else {
-      dialer.sendMessage(MultiSigHandler.CHANNEL, JSON.stringify(message));
+      await MultiSigHandler.dialer.sendMessage(
+        MultiSigHandler.CHANNEL,
+        JSON.stringify(message)
+      );
     }
   };
 

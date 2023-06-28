@@ -3,7 +3,7 @@ import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { p2pRoutes } from '../api/p2p';
-import Configs from '../helpers/Configs';
+import Configs from '../configs/Configs';
 import { loggerFactory } from '../log/Logger';
 import { generalInfoRoute } from '../api/generalInfo';
 

@@ -1,6 +1,6 @@
 import MultiSigHandler from '../guard/multisig/MultiSigHandler';
-import Configs from '../helpers/Configs';
-import { rosenConfig } from '../helpers/RosenConfig';
+import Configs from '../configs/Configs';
+import { rosenConfig } from '../configs/RosenConfig';
 import { loggerFactory } from '../log/Logger';
 import ChainHandler from './ChainHandler';
 import pkg from 'secp256k1';

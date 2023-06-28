@@ -2,7 +2,7 @@ import { EventTriggerEntity } from '@rosen-bridge/watcher-data-extractor';
 import { EventTrigger } from '@rosen-chains/abstract-chain';
 import { ConfirmedEventEntity } from '../db/entities/ConfirmedEventEntity';
 import { Buffer } from 'buffer';
-import Encryption from '../helpers/Encryption';
+import Encryption from '../utils/Encryption';
 
 class EventSerializer {
   /**

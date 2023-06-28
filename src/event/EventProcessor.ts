@@ -1,13 +1,13 @@
 import { loggerFactory } from '../log/Logger';
 import { dbAction } from '../db/DatabaseAction';
-import Utils from '../helpers/Utils';
-import Configs from '../helpers/Configs';
+import Utils from '../utils/Utils';
+import Configs from '../configs/Configs';
 import EventVerifier from '../verification/EventVerifier';
 import EventSerializer from './EventSerializer';
 import EventOrder from './EventOrder';
 import EventBoxes from './EventBoxes';
 import MinimumFee from './MinimumFee';
-import { EventStatus } from '../models/Models';
+import { EventStatus } from '../utils/constants';
 import {
   EventTrigger,
   ImpossibleBehavior,
@@ -19,7 +19,7 @@ import DiscordNotification from '../communication/notification/DiscordNotificati
 import { Fee } from '@rosen-bridge/minimum-fee';
 import ChainHandler from '../handlers/ChainHandler';
 import { ERGO_CHAIN, ErgoChain } from '@rosen-chains/ergo';
-import { rosenConfig } from '../helpers/RosenConfig';
+import { rosenConfig } from '../configs/RosenConfig';
 import TxAgreement from '../agreement/TxAgreement';
 import TransactionSerializer from '../transaction/TransactionSerializer';
 

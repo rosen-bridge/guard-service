@@ -1,5 +1,5 @@
 import { EventTrigger } from '@rosen-chains/abstract-chain';
-import GuardsErgoConfigs from '../helpers/GuardsErgoConfigs';
+import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import ChainHandler from '../handlers/ChainHandler';
 import {
   ConfirmationStatus,
@@ -10,7 +10,7 @@ import EventSerializer from '../event/EventSerializer';
 import { Fee } from '@rosen-bridge/minimum-fee';
 import EventBoxes from '../event/EventBoxes';
 import { ConfirmedEventEntity } from '../db/entities/ConfirmedEventEntity';
-import { EventStatus } from '../models/Models';
+import { EventStatus } from '../utils/constants';
 
 class EventVerifier {
   /**

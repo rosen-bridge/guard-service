@@ -37,7 +37,7 @@ import {
 } from './Interfaces';
 import { loggerFactory } from '../log/Logger';
 import { JsonBI } from '../network/NetworkModels';
-import { NotStartedDialerNodeError } from '../models/errors';
+import { NotStartedDialerNodeError } from '../utils/errors';
 
 const logger = loggerFactory(import.meta.url);
 

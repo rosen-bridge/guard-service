@@ -1,9 +1,9 @@
 import { loggerFactory } from '../log/Logger';
-import Configs from '../helpers/Configs';
+import Configs from '../configs/Configs';
 import { Buffer } from 'buffer';
-import Utils from '../helpers/Utils';
+import Utils from '../utils/Utils';
 import { dbAction } from '../db/DatabaseAction';
-import { TransactionStatus } from '../models/Models';
+import { TransactionStatus } from '../utils/constants';
 import TxAgreement from '../agreement/TxAgreement';
 import { ERGO_CHAIN, ErgoChain } from '@rosen-chains/ergo';
 import { CARDANO_CHAIN } from '@rosen-chains/cardano';
@@ -16,7 +16,7 @@ import {
   TransactionTypes,
 } from '@rosen-chains/abstract-chain';
 import TransactionSerializer from '../transaction/TransactionSerializer';
-import { rosenConfig } from '../helpers/RosenConfig';
+import { rosenConfig } from '../configs/RosenConfig';
 
 const logger = loggerFactory(import.meta.url);
 

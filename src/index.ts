@@ -3,7 +3,7 @@ import { initDataSources } from './jobs/dataSources';
 import { initializeMultiSigJobs } from './jobs/multiSig';
 import { initApiServer } from './jobs/apiServer';
 import { runProcessors } from './jobs/runProcessors';
-import Configs from './helpers/Configs';
+import Configs from './configs/Configs';
 import { initScanner } from './jobs/initScanner';
 import { healthCheckStart } from './jobs/healthCheck';
 import ChainHandler from './handlers/ChainHandler';
@@ -19,8 +19,11 @@ const init = async () => {
   // initialize express Apis
   await initApiServer();
 
+  // initialize Dialer
+
   // initialize tss multiSig object
-  MultiSigHandler.getInstance(Configs.guardSecret);
+  const multiSigHandler = MultiSigHandler.getInstance(Configs.guardSecret);
+  multiSigHandler.init();
   initializeMultiSigJobs();
 
   // initialize chain objects

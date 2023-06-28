@@ -1,5 +1,5 @@
 import { DataSource } from 'typeorm';
-import Configs from '../src/helpers/Configs';
+import Configs from '../src/configs/Configs';
 
 import {
   BlockEntity,

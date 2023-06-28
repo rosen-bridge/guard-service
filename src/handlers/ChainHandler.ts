@@ -10,9 +10,9 @@ import ErgoNodeNetwork, { NODE_NETWORK } from '@rosen-chains/ergo-node-network';
 import ErgoExplorerNetwork, {
   EXPLORER_NETWORK,
 } from '@rosen-chains/ergo-explorer-network';
-import Configs from '../helpers/Configs';
-import GuardsCardanoConfigs from '../helpers/GuardsCardanoConfigs';
-import GuardsErgoConfigs from '../helpers/GuardsErgoConfigs';
+import Configs from '../configs/Configs';
+import GuardsCardanoConfigs from '../configs/GuardsCardanoConfigs';
+import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import MinimumFee from '../event/MinimumFee';
 import MultiSigHandler from '../guard/multisig/MultiSigHandler';
 import { loggerFactory } from '../log/Logger';

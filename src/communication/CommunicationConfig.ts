@@ -1,6 +1,6 @@
 import config from 'config';
 import { RelayInfo } from './Interfaces';
-import { getConfigIntKeyOrDefault } from '../helpers/Configs';
+import { getConfigIntKeyOrDefault } from '../configs/Configs';
 
 class CommunicationConfig {
   private static relaysInfo: RelayInfo[] =

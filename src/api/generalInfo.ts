@@ -2,8 +2,8 @@ import { loggerFactory } from '../log/Logger';
 import { FastifySeverInstance } from '../types/api';
 import { infoResponseSchema, messageResponseSchema } from '../types/schema';
 import ChainHandler from '../handlers/ChainHandler';
-import Utils from '../helpers/Utils';
-import GuardsErgoConfigs from '../helpers/GuardsErgoConfigs';
+import Utils from '../utils/Utils';
+import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 
 const logger = loggerFactory(import.meta.url);
 

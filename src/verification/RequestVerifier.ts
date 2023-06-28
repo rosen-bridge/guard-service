@@ -3,7 +3,7 @@ import { dbAction } from '../db/DatabaseAction';
 import EventSerializer from '../event/EventSerializer';
 import EventVerifier from './EventVerifier';
 import MinimumFee from '../event/MinimumFee';
-import { EventStatus, TransactionStatus } from '../models/Models';
+import { EventStatus, TransactionStatus } from '../utils/constants';
 import { loggerFactory } from '../log/Logger';
 import TransactionVerifier from './TransactionVerifier';
 

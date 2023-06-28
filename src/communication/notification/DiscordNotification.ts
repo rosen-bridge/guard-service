@@ -1,5 +1,5 @@
 import { WebhookClient } from 'discord.js';
-import Configs from '../../helpers/Configs';
+import Configs from '../../configs/Configs';
 import { loggerFactory } from '../../log/Logger';
 
 const logger = loggerFactory(import.meta.url);

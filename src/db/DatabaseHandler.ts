@@ -6,7 +6,7 @@ import {
 import { dbAction } from './DatabaseAction';
 import { ConfirmedEventEntity } from './entities/ConfirmedEventEntity';
 import { loggerFactory } from '../log/Logger';
-import { TransactionStatus } from '../models/Models';
+import { TransactionStatus } from '../utils/constants';
 
 const logger = loggerFactory(import.meta.url);
 

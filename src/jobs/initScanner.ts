@@ -4,8 +4,8 @@ import {
   CommitmentExtractor,
   EventTriggerExtractor,
 } from '@rosen-bridge/watcher-data-extractor';
-import GuardsCardanoConfigs from '../helpers/GuardsCardanoConfigs';
-import GuardsErgoConfigs from '../helpers/GuardsErgoConfigs';
+import GuardsCardanoConfigs from '../configs/GuardsCardanoConfigs';
+import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import { loggerFactory } from '../log/Logger';
 
 let ergoScanner: ErgoNodeScanner;
