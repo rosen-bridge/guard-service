@@ -13,17 +13,18 @@ import { configUpdateJob } from './jobs/guardConfigUpdate';
 import MultiSigUtils from './guard/multisig/MultiSigUtils';
 import { DatabaseAction } from './db/DatabaseAction';
 import { dataSource } from './db/dataSource';
+import GuardPkHandler from './handlers/GuardPkHandler';
 
 const init = async () => {
   // initialize all data sources
   await initDataSources();
 
-  // initialize express Apis
-  await initApiServer();
-
   // initialize DatabaseAction
   const dbAction = DatabaseAction.getInstance();
   DatabaseAction.getInstance().init(dataSource);
+
+  // initialize express Apis
+  await initApiServer();
 
   // initialize tss multiSig object
   const multiSigHandler = MultiSigHandler.getInstance(Configs.guardSecret);
@@ -35,7 +36,9 @@ const init = async () => {
   MultiSigUtils.getInstance().init(chainHandler.getErgoChain().getStateContext);
 
   // guard config update job
-  await configUpdateJob();
+  const pkHandler = GuardPkHandler.getInstance();
+  await pkHandler.update();
+  pkHandler.updateDependentModules();
 
   // initialize TxAgreement object
   await TxAgreement.getInstance();

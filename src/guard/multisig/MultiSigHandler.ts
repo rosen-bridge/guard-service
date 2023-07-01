@@ -60,7 +60,6 @@ class MultiSigHandler {
   public static getInstance = (secretHex?: string) => {
     if (!MultiSigHandler.instance) {
       MultiSigHandler.instance = new MultiSigHandler([], secretHex);
-      MultiSigHandler.instance.sendRegister().then(() => null);
     }
     return MultiSigHandler.instance;
   };
