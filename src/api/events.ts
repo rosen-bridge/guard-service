@@ -1,7 +1,7 @@
 import { Type } from '@sinclair/typebox';
 import { loggerFactory } from '../log/Logger';
 import { FastifySeverInstance, SortRequest } from '../types/api';
-import { messageResponseSchema } from '../types/schema';
+import { messageResponseSchema, outputItemsSchema } from '../types/schema';
 import { dbAction } from '../db/DatabaseAction';
 
 const logger = loggerFactory(import.meta.url);
@@ -20,31 +20,28 @@ const eventsHistoryRoute = (server: FastifySeverInstance) => {
     maxAmount: Type.Optional(Type.String()),
     minAmount: Type.Optional(Type.String()),
   });
-  const historyResponseSchema = Type.Object({
-    items: Type.Array(
-      Type.Object({
-        eventId: Type.String(),
-        block: Type.String(),
-        height: Type.Number(),
-        fromChain: Type.String(),
-        toChain: Type.String(),
-        fromAddress: Type.String(),
-        toAddress: Type.String(),
-        amount: Type.String(),
-        bridgeFee: Type.String(),
-        networkFee: Type.String(),
-        sourceChainTokenId: Type.String(),
-        targetChainTokenId: Type.String(),
-        sourceChainHeight: Type.Number(),
-        sourceBlockId: Type.String(),
-        sourceTxId: Type.String(),
-        WIDs: Type.String(),
-      })
-    ),
-    total: Type.Number(),
-  });
+  const historyResponseSchema = outputItemsSchema(
+    Type.Object({
+      eventId: Type.String(),
+      block: Type.String(),
+      height: Type.Number(),
+      fromChain: Type.String(),
+      toChain: Type.String(),
+      fromAddress: Type.String(),
+      toAddress: Type.String(),
+      amount: Type.String(),
+      bridgeFee: Type.String(),
+      networkFee: Type.String(),
+      sourceChainTokenId: Type.String(),
+      targetChainTokenId: Type.String(),
+      sourceChainHeight: Type.Number(),
+      sourceBlockId: Type.String(),
+      sourceTxId: Type.String(),
+      WIDs: Type.String(),
+    } as const)
+  );
   server.get(
-    '/history',
+    '/event/history',
     {
       schema: {
         querystring: querySchema,

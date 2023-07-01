@@ -10,34 +10,55 @@ describe('DatabaseActions', () => {
     await DatabaseHandlerMock.clearTables();
   });
 
+  /**
+   * insert events with different heights to database
+   * @param count number of inserted events
+   */
+  const insertEventsWithHeight = async (count: number) => {
+    for (let index = 0; index < count; index++) {
+      const mockedEvent = EventTestData.mockEventTrigger();
+      await DatabaseHandlerMock.insertEventRecord(
+        mockedEvent,
+        EventStatus.completed,
+        'box_serialized',
+        300,
+        undefined,
+        index + 1000
+      );
+    }
+  };
+
+  /**
+   * insert events with different amounts to database
+   * @param count number of inserted events
+   */
+  const insertEventsWithAmount = async (count: number) => {
+    for (let index = 0; index < count; index++) {
+      const mockedEvent = EventTestData.mockEventWithAmount(
+        (1000 * index + 10000).toString()
+      );
+      await DatabaseHandlerMock.insertEventRecord(
+        mockedEvent,
+        EventStatus.completed
+      );
+    }
+  };
+
   describe('getCompletedEvents', () => {
     /**
      * @target DatabaseHandler.getCompletedEvents should return events in ascending order
      * @dependencies
      * - database
      * @scenario
-     * - mock 100 events
-     * - insert mocked events into db
-     * - run test (call `getCompletedEvents`)
+     * - insert 10 mocked events with various heights into db
+     * - run test (call `getCompletedEvents`) with ascending sort
      * - check events
      * @expected
      * - should return 10 available events in ascending order
+     * - events should be sorted from the first (in height 1000) to the last (in height 1009)
      */
-    it('Should return events in ascending order', async () => {
-      for (let index = 0; index < 10; index++) {
-        // mock event
-        const mockedEvent = EventTestData.mockEventTrigger();
-        // insert mocked event into db
-        await DatabaseHandlerMock.insertEventRecord(
-          mockedEvent,
-          EventStatus.completed,
-          'box_serialized',
-          300,
-          undefined,
-          index + 1000
-        );
-      }
-
+    it('should return events in ascending order', async () => {
+      await insertEventsWithHeight(10);
       const events = await dbAction.getCompletedEvents(
         SortRequest.ASC,
         undefined,
@@ -56,28 +77,15 @@ describe('DatabaseActions', () => {
      * @dependencies
      * - database
      * @scenario
-     * - mock 100 events
-     * - insert mocked events into db
-     * - run test (call `getCompletedEvents`)
+     * - insert 10 mocked events with various heights into db
+     * - run test (call `getCompletedEvents`) with descending sort
      * - check events
      * @expected
      * - should return 10 available events in descending order
+     * - events should be sorted from the last (in height 1009) to the first (in height 1000)
      */
-    it('Should return events in descending order', async () => {
-      for (let index = 0; index < 10; index++) {
-        // mock event
-        const mockedEvent = EventTestData.mockEventTrigger();
-        // insert mocked event into db
-        await DatabaseHandlerMock.insertEventRecord(
-          mockedEvent,
-          EventStatus.completed,
-          'box_serialized',
-          300,
-          undefined,
-          index + 1000
-        );
-      }
-
+    it('should return events in descending order', async () => {
+      await insertEventsWithHeight(10);
       const events = await dbAction.getCompletedEvents(
         SortRequest.DESC,
         undefined,
@@ -96,32 +104,24 @@ describe('DatabaseActions', () => {
      * @dependencies
      * - database
      * @scenario
-     * - mock 10 to ergo events and 10 other events
-     * - insert mocked events into db
-     * - run test (call `getCompletedEvents`)
+     * - insert 10 to ergo events and 10 other mocked events into db
+     * - run test (call `getCompletedEvents`) to filter "to ergo" events
      * - check events
      * @expected
-     * - should return 20 events with correct ids
+     * - should return 10 events to ergo network
      */
-    it('Should return to ergo events', async () => {
+    it('should return to ergo events', async () => {
       for (let index = 0; index < 10; index++) {
-        // mock event
+        // insert 10 mocked events into db
         const mockedEvent = EventTestData.mockEventTrigger();
-
-        // insert mocked event into db
         await DatabaseHandlerMock.insertEventRecord(
           mockedEvent,
           EventStatus.completed
         );
-      }
-
-      for (let index = 0; index < 10; index++) {
-        // mock event
-        const mockedEvent = EventTestData.mockToErgoEventTrigger();
-
-        // insert mocked event into db
+        // insert 10 mocked events to ergo network into db
+        const mockedErgoEvent = EventTestData.mockToErgoEventTrigger();
         await DatabaseHandlerMock.insertEventRecord(
-          mockedEvent,
+          mockedErgoEvent,
           EventStatus.completed
         );
       }
@@ -144,32 +144,25 @@ describe('DatabaseActions', () => {
      * @dependencies
      * - database
      * @scenario
-     * - mock 10 from ergo events and 10 other events
-     * - insert mocked events into db
-     * - run test (call `getCompletedEvents`)
+     * - insert 10 from ergo events and 10 other mocked events into db
+     * - run test (call `getCompletedEvents`) to filter "from ergo" events
      * - check events
      * @expected
-     * - should return 20 events with correct ids
+     * - should return 10 events from ergo network
      */
-    it('Should return from ergo events', async () => {
+    it('should return from ergo events', async () => {
       for (let index = 0; index < 10; index++) {
-        // mock event
+        // insert 10 mocked events into db
         const mockedEvent = EventTestData.mockEventTrigger();
-
-        // insert mocked event into db
         await DatabaseHandlerMock.insertEventRecord(
           mockedEvent,
           EventStatus.completed
         );
-      }
 
-      for (let index = 0; index < 10; index++) {
-        // mock event
-        const mockedEvent = EventTestData.mockFromErgoEventTrigger();
-
-        // insert mocked event into db
+        // insert 10 mocked events from ergo network into db
+        const mockedEvent2 = EventTestData.mockFromErgoEventTrigger();
         await DatabaseHandlerMock.insertEventRecord(
-          mockedEvent,
+          mockedEvent2,
           EventStatus.completed
         );
       }
@@ -192,27 +185,14 @@ describe('DatabaseActions', () => {
      * @dependencies
      * - database
      * @scenario
-     * - mock 100 events
-     * - insert mocked events into db
-     * - run test (call `getCompletedEvents`)
+     * - insert 10 mocked events with various amounts into db
+     * - run test (call `getCompletedEvents`) to filter events with minimum amount
      * - check events
      * @expected
-     * - should return 20 events with correct ids
+     * - should return 5 events with value more than or equal to 15000
      */
     it('should return events with at least minimum amount', async () => {
-      for (let index = 0; index < 10; index++) {
-        // mock event
-        const mockedEvent = EventTestData.mockEventWithAmount(
-          (1000 * index + 10000).toString()
-        );
-
-        // insert mocked event into db
-        await DatabaseHandlerMock.insertEventRecord(
-          mockedEvent,
-          EventStatus.completed
-        );
-      }
-
+      await insertEventsWithAmount(10);
       const events = await dbAction.getCompletedEvents(
         undefined,
         undefined,
@@ -231,27 +211,14 @@ describe('DatabaseActions', () => {
      * @dependencies
      * - database
      * @scenario
-     * - mock 100 events
-     * - insert mocked events into db
-     * - run test (call `getCompletedEvents`)
+     * - insert 10 mocked events with various amounts into db
+     * - run test (call `getCompletedEvents`) to filter events with maximum amount
      * - check events
      * @expected
-     * - should return 20 events with correct ids
+     * - should return 6 events with value less than or equal to 15000
      */
     it('should return events with amount less than the maximum value', async () => {
-      for (let index = 0; index < 10; index++) {
-        // mock event
-        const mockedEvent = EventTestData.mockEventWithAmount(
-          (1000 * index + 10000).toString()
-        );
-
-        // insert mocked event into db
-        await DatabaseHandlerMock.insertEventRecord(
-          mockedEvent,
-          EventStatus.completed
-        );
-      }
-
+      await insertEventsWithAmount(10);
       const events = await dbAction.getCompletedEvents(
         undefined,
         undefined,

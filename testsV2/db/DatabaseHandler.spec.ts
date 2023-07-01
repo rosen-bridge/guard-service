@@ -27,7 +27,7 @@ describe('DatabaseHandler', () => {
      * - should throw Error
      */
     it('should throw error when event is not found and tx type is not cold storage', async () => {
-      // mock event
+      // mock event and transaction
       const tx = TxTestData.mockPaymentTransaction(TransactionTypes.payment);
 
       // run test and expect exception thrown
@@ -44,7 +44,7 @@ describe('DatabaseHandler', () => {
      * @dependencies
      * - database
      * @scenario
-     * - mock event
+     * - mock event and transaction
      * - insert mocked event into db
      * - run test (call `insertTx`)
      * - check database
@@ -52,7 +52,7 @@ describe('DatabaseHandler', () => {
      * - tx should be inserted into db
      */
     it('should insert tx when there is no other tx for the event', async () => {
-      // mock event
+      // mock event and transaction
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
       const tx = TxTestData.mockPaymentTransaction(
@@ -256,7 +256,7 @@ describe('DatabaseHandler', () => {
      * @dependencies
      * - database
      * @scenario
-     * - mock event
+     * - mock event and transaction
      * - insert mocked event and transaction into db
      * - run test (call `insertTx`)
      * - check database
@@ -264,7 +264,7 @@ describe('DatabaseHandler', () => {
      * - tx failedInSign field should be updated to false
      */
     it('should update failedInSign when tx is already in database', async () => {
-      // mock event
+      // mock event and transaction
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
       const tx = TxTestData.mockPaymentTransaction(

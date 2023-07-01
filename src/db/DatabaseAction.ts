@@ -18,7 +18,6 @@ import { ImpossibleBehavior, NotFoundError } from '../helpers/errors';
 import * as RosenChains from '@rosen-chains/abstract-chain';
 import TransactionSerializer from '../transaction/TransactionSerializer';
 import { SortRequest } from 'src/types/api';
-// import TransactionSerializer from '../transaction/TransactionSerializer';
 
 const logger = loggerFactory(import.meta.url);
 
