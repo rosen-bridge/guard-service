@@ -487,7 +487,7 @@ class DatabaseAction {
         amount: maxAmount,
       });
     if (sort) query.orderBy({ event_trigger_entity_height: sort });
-    else query.orderBy({ event_trigger_entity_id: 'DESC' });
+    else query.orderBy({ event_trigger_entity_height: 'DESC' });
     return query.getMany();
   };
 }
