@@ -108,6 +108,7 @@ class DatabaseActionMock {
         sourceChainHeight: sourceChainHeight,
         spendHeight: spendHeight,
         txId: 'event-creation-tx-id',
+        eventId: Utils.txIdToEventId(event.sourceTxId),
       })
       .execute();
     const eventData =

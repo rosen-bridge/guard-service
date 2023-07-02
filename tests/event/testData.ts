@@ -42,6 +42,46 @@ export const mockToErgoEventTrigger = (): EventTrigger =>
       .map(() => TestUtils.generateRandomId())
   );
 
+export const mockFromErgoEventTrigger = (): EventTrigger =>
+  createEventTrigger(
+    200,
+    'ergo',
+    'toChain',
+    'fromAddress',
+    'toAddress',
+    '50000000000',
+    '1000000000',
+    '1500000',
+    'sourceToken',
+    'targetToken',
+    TestUtils.generateRandomId(),
+    '',
+    10000,
+    Array(5)
+      .fill(0)
+      .map(() => TestUtils.generateRandomId())
+  );
+
+export const mockEventWithAmount = (amount: string): EventTrigger =>
+  createEventTrigger(
+    200,
+    'ergo',
+    'toChain',
+    'fromAddress',
+    'toAddress',
+    amount,
+    '1000000000',
+    '1500000',
+    'sourceToken',
+    'targetToken',
+    TestUtils.generateRandomId(),
+    '',
+    10000,
+    Array(5)
+      .fill(0)
+      .map(() => TestUtils.generateRandomId())
+  );
+
 export const mockNativeTokenPaymentEvent = (): EventTrigger =>
   createEventTrigger(
     200,

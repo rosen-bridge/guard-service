@@ -27,6 +27,6 @@ class TransactionTypes {
   static coldStorage = 'cold-storage';
 }
 
-export { EventStatus, TransactionStatus, TransactionTypes };
+const DefaultApiLimit = 100;
 
-// TODO: change filename to constants.ts
+export { EventStatus, TransactionStatus, TransactionTypes, DefaultApiLimit };
