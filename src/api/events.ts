@@ -3,6 +3,7 @@ import { loggerFactory } from '../log/Logger';
 import { FastifySeverInstance, SortRequest } from '../types/api';
 import { messageResponseSchema, outputItemsSchema } from '../types/schema';
 import { dbAction } from '../db/DatabaseAction';
+import { DefaultApiLimit } from '../utils/constants';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -12,7 +13,7 @@ const logger = loggerFactory(import.meta.url);
  */
 const eventsHistoryRoute = (server: FastifySeverInstance) => {
   const querySchema = Type.Object({
-    limit: Type.Number({ default: 100 }),
+    limit: Type.Number({ default: DefaultApiLimit }),
     offset: Type.Number({ default: 0 }),
     sort: Type.Optional(Type.Enum(SortRequest)),
     fromChain: Type.Optional(Type.String()),
