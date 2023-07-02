@@ -1,4 +1,4 @@
-import { Type } from '@sinclair/typebox';
+import { TObject, TProperties, Type } from '@sinclair/typebox';
 
 export const messageResponseSchema = Type.Object({
   message: Type.String(),
@@ -29,3 +29,11 @@ export const infoResponseSchema = Type.Object({
     ),
   }),
 });
+
+export const outputItemsSchema = <T extends TProperties>(
+  itemType: TObject<T>
+) =>
+  Type.Object({
+    items: Type.Array(itemType),
+    total: Type.Number(),
+  });
