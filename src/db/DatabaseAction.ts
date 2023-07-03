@@ -1,6 +1,5 @@
 import { DataSource, In, IsNull, LessThan, Not, Repository } from 'typeorm';
 import { ConfirmedEventEntity } from './entities/ConfirmedEventEntity';
-import { dataSource } from './dataSource';
 import { TransactionEntity } from './entities/TransactionEntity';
 import {
   EventStatus,
@@ -13,7 +12,7 @@ import {
 } from '@rosen-bridge/watcher-data-extractor';
 import Utils from '../utils/Utils';
 import { loggerFactory } from '../log/Logger';
-import { Semaphore } from 'await-semaphore/index';
+import { Semaphore } from 'await-semaphore';
 import * as RosenChains from '@rosen-chains/abstract-chain';
 import TransactionSerializer from '../transaction/TransactionSerializer';
 import { SortRequest } from '../types/api';
@@ -465,8 +464,6 @@ class DatabaseAction {
 
   /**
    * selects completed events with the specified condition
-   * @param limit
-   * @param offset
    * @param sort
    * @param fromChain
    * @param toChain

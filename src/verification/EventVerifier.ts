@@ -46,7 +46,6 @@ class EventVerifier {
     feeConfig: Fee
   ): Promise<boolean> => {
     // get event box
-    const eventId = EventSerializer.getId(event);
     const eventBox = await EventBoxes.getEventBox(event);
 
     // verify event data

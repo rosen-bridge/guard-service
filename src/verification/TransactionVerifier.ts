@@ -2,7 +2,6 @@ import {
   ChainUtils,
   EventTrigger,
   PaymentTransaction,
-  TokenInfo,
   TransactionTypes,
 } from '@rosen-chains/abstract-chain';
 import ChainHandler from '../handlers/ChainHandler';

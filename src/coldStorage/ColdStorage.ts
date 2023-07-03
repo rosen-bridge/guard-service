@@ -112,7 +112,7 @@ class ColdStorage {
   };
 
   /**
-   * generates a transaction to transfer some asssets to cold storage
+   * generates a transaction to transfer some assets to cold storage
    * @param assets transferring assets
    * @param chain chain object
    * @param chainName

@@ -1,12 +1,7 @@
 import { Fee } from '@rosen-bridge/minimum-fee';
 import EventOrder from '../../src/event/EventOrder';
-import {
-  mockEventTrigger,
-  mockNativeTokenPaymentEvent,
-  mockTokenPaymentEvent,
-} from './testData';
+import { mockNativeTokenPaymentEvent, mockTokenPaymentEvent } from './testData';
 import TestUtils from '../testUtils/TestUtils';
-import { createEventTrigger } from './eventTestUtils';
 import MinimumFee from '../../src/event/MinimumFee';
 import GuardsErgoConfigs from '../../src/configs/GuardsErgoConfigs';
 import { rosenConfig } from '../../src/configs/RosenConfig';

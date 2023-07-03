@@ -72,12 +72,12 @@ class TxAgreement extends Communicator {
   /**
    * wraps dialer handle message to communicator
    * @param msg
-   * @param channel
+   * @param channal
    * @param peerId
    */
   messageHandlerWrapper = async (
     msg: string,
-    channel: string,
+    channal: string,
     peerId: string
   ) => {
     this.handleMessage(msg, peerId);
@@ -110,7 +110,6 @@ class TxAgreement extends Communicator {
 
   /**
    * adds all unsigned transactions which failed in sign process to agreement queue
-   * @param tx
    */
   enqueueSignFailedTxs = async (): Promise<void> => {
     const txs = await DatabaseAction.getInstance().getUnsignedFailedSignTxs();
@@ -421,7 +420,7 @@ class TxAgreement extends Communicator {
    * verifies approval message sent by other guards, set tx as approved if enough guards agreed with tx
    * @param tx
    * @param senderIndex
-   * @param guardsSignatures
+   * @param signatures
    * @param timestamp
    * @param sender
    */
@@ -536,7 +535,8 @@ class TxAgreement extends Communicator {
 
   /**
    * signs an agreement message
-   * @param request CandidateMessage
+   * @param txId
+   * @param timestamp
    */
   protected signCandidateMessage = async (
     txId: string,
