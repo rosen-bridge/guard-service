@@ -147,8 +147,8 @@ describe('MultiSigHandler', () => {
      * - mock Dialer.sendMessage to throw error if expectation does not meet
      * - run test
      * @expected
-     * - sent message should contain 'sign' and 'payload' key
-     * - sent message payload should contain 'index', 'id', 'nonce' and 'myId'
+     * - sent message should contain 'type', 'sign' and 'payload' key
+     * - sent message payload should contain 'nonceToSign'
      */
     it('should send message with expected keys', async () => {
       // mock Dialer.sendMessage

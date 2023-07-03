@@ -45,7 +45,7 @@ const createLoggers = () => ({
 const initScanner = () => {
   const scannerConfig = {
     nodeUrl: GuardsErgoConfigs.node.url,
-    timeout: 8000,
+    timeout: GuardsErgoConfigs.node.timeout * 1000,
     initialHeight: GuardsErgoConfigs.initialHeight,
     dataSource,
   };

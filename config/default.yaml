@@ -10,6 +10,7 @@ cardano:
   chainNetwork: '' # 'ogmios', 'koios' or 'blockfrost'
   koios:
     url: 'https://api.koios.rest/api/v0'
+    timeout: 8
   bankPublicKey: '' # corresponding public key of lock address
   minUtxoValue: '3000000' # minimum lovelace for a Utxo (box)
   fee: '400000' # Cardano transaction fee
@@ -25,8 +26,10 @@ ergo:
   chainNetwork: '' # 'explorer' or 'node'
   explorer:
     url: 'https://api.ergoplatform.com/api'
+    timeout: 8
   node:
     url: ''
+    timeout: 8
   minBoxValue: '300000' # minimum nano-erg for a box
   fee: '1100000' # Ergo transaction fee
   confirmation: # required block confirmation

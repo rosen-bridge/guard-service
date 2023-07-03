@@ -21,14 +21,14 @@ const init = async () => {
 
   // initialize DatabaseAction
   const dbAction = DatabaseAction.getInstance();
-  DatabaseAction.getInstance().init(dataSource);
+  dbAction.init(dataSource);
 
   // initialize express Apis
   await initApiServer();
 
   // initialize tss multiSig object
   const multiSigHandler = MultiSigHandler.getInstance(Configs.guardSecret);
-  multiSigHandler.init();
+  await multiSigHandler.init();
   initializeMultiSigJobs();
 
   // initialize chain objects
@@ -36,14 +36,12 @@ const init = async () => {
   MultiSigUtils.getInstance().init(chainHandler.getErgoChain().getStateContext);
 
   // guard config update job
-  const pkHandler = GuardPkHandler.getInstance();
-  await pkHandler.update();
-  pkHandler.updateDependentModules();
+  await configUpdateJob();
 
   // initialize TxAgreement object
   await TxAgreement.getInstance();
 
-  // start tss instance (#243)
+  // start tss instance (TODO: #243)
 
   // run network scanners
   initScanner();
