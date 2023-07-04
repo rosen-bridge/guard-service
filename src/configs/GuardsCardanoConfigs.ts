@@ -13,11 +13,11 @@ class GuardsCardanoConfigs {
   ]);
   static koios = {
     url: config.get<string>('cardano.koios.url'),
+    timeout: config.get<number>('cardano.koios.timeout'), // seconds
   };
 
   // value configs
-  // TODO: improve these two parameters: txMinimumLovelace and txFee
-  //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/19
+  // TODO: improve these two parameters: txMinimumLovelace and txFee (#255)
   static txMinimumLovelace = BigInt(config.get<string>('cardano.minUtxoValue'));
   static txFee = BigInt(config.get<string>('cardano.fee'));
   static txTtl = getConfigIntKeyOrDefault('cardano.txTtl', 100000);

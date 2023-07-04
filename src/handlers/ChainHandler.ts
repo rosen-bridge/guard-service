@@ -115,7 +115,7 @@ class ChainHandler {
           `No case is defined for network [${GuardsCardanoConfigs.chainNetworkName}]`
         );
     }
-    // TODO: replace this with TSS package sign function
+    // TODO: replace this with TSS package sign function (#243)
     const tssSignFunction = () => {
       throw Error(`TSS signer is not implemented yet`);
     };

@@ -5,8 +5,6 @@ import { messageResponseSchema, outputItemsSchema } from '../types/schema';
 import { DefaultApiLimit } from '../utils/constants';
 import { DatabaseAction } from '../db/DatabaseAction';
 
-const logger = loggerFactory(import.meta.url);
-
 /**
  * setup event history route
  * @param server

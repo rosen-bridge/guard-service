@@ -1,5 +1,3 @@
-import config from 'config';
-
 class TestConfigs {
   static currentTimeStamp = 1658005354291000;
 

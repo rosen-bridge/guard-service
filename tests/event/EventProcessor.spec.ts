@@ -7,10 +7,8 @@ import {
 } from '../verification/mocked/EventVerifier.mock';
 import { EventStatus } from '../../src/utils/constants';
 import {
-  BoxInfo,
   EventTrigger,
   NotEnoughAssetsError,
-  PaymentTransaction,
 } from '@rosen-chains/abstract-chain';
 import Configs from '../../src/configs/Configs';
 import EventSerializer from '../../src/event/EventSerializer';
@@ -626,17 +624,6 @@ describe('EventProcessor', () => {
       // mock `getBoxWID`
       ChainHandlerMock.mockErgoFunctionReturnValue('getBoxWID', 'wid', true);
       // mock `generateTransaction`
-      const paymentTx = ErgoTransaction.fromJson(
-        JSON.stringify({
-          network: 'network',
-          txId: 'txId',
-          eventId: 'eventId',
-          txBytes: Buffer.from('txBytes'),
-          txType: 'txType',
-          inputBoxes: [],
-          dataInputs: [],
-        })
-      );
       ChainHandlerMock.mockErgoFunctionToThrow(
         'generateTransaction',
         new NotEnoughAssetsError(`test version of NotEnoughAssetsError`),
@@ -858,17 +845,6 @@ describe('EventProcessor', () => {
       // mock `getBoxWID`
       ChainHandlerMock.mockErgoFunctionReturnValue('getBoxWID', 'wid', true);
       // mock `generateTransaction`
-      const paymentTx = ErgoTransaction.fromJson(
-        JSON.stringify({
-          network: 'network',
-          txId: 'txId',
-          eventId: 'eventId',
-          txBytes: Buffer.from('txBytes'),
-          txType: 'txType',
-          inputBoxes: [],
-          dataInputs: [],
-        })
-      );
       ChainHandlerMock.mockErgoFunctionToThrow(
         'generateTransaction',
         new NotEnoughAssetsError(`test version of NotEnoughAssetsError`),

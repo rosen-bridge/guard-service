@@ -16,7 +16,6 @@ import { EventStatus, TransactionStatus } from '../../src/utils/constants';
 import Configs from '../../src/configs/Configs';
 import * as EventTestData from '../event/testData';
 import EventSerializer from '../../src/event/EventSerializer';
-import { ERGO_CHAIN } from '@rosen-chains/ergo';
 import TransactionProcessorMock from './TransactionProcessor.mock';
 
 describe('TransactionProcessor', () => {

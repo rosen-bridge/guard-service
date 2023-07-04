@@ -145,10 +145,6 @@ class MultiSigHandler {
    */
   getPeerId = (): string => {
     const peerId = MultiSigHandler.dialer.getDialerId();
-    if (this.peerId !== peerId) {
-      // TODO must call all other guards to update peerId
-      //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/22
-    }
     return peerId;
   };
 

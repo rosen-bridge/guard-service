@@ -84,6 +84,7 @@ class DatabaseActionMock {
    * @param sourceChainHeight
    * @param firstTry
    * @param eventHeight
+   * @param spendHeight
    */
   static insertEventRecord = async (
     event: EventTrigger,

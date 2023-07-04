@@ -32,7 +32,6 @@ class EventOrder {
     const chainMinTransfer = targetChain.getMinimumNativeToken();
 
     const order: PaymentOrder = [];
-    const extra: any[] = [];
 
     // add reward order if target chain is ergo
     if (event.toChain === ERGO_CHAIN) {
@@ -62,9 +61,6 @@ class EventOrder {
         rwtCount
       );
       order.push(...rewardOrder);
-
-      // add event and commitment boxes to generateTransaction arguments
-      extra.push([eventBox, ...commitmentBoxes], [guardsConfigBox]);
     }
 
     // add payment order
