@@ -4,6 +4,7 @@ import { infoResponseSchema, messageResponseSchema } from '../types/schema';
 import ChainHandler from '../handlers/ChainHandler';
 import Utils from '../utils/Utils';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
+import { getHealthCheck } from '../guard/HealthCheck';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -36,7 +37,8 @@ const infoRoute = (server: FastifySeverInstance) => {
         const cardanoLockBalance = await cardanoChain.getLockAddressAssets();
 
         reply.status(200).send({
-          health: 'OK', //TODO: https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/248
+          health: (await (await getHealthCheck()).getOverallHealthStatus())
+            .status,
           hot: {
             address: ergoLockAddress,
             balance: ergoLockBalance.nativeToken.toString(),
