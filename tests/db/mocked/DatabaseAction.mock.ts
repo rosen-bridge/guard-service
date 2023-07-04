@@ -1,6 +1,7 @@
 import { DataSource } from 'typeorm';
 import {
   BlockEntity,
+  PROCEED,
   migrations as scannerMigrations,
 } from '@rosen-bridge/scanner';
 import {
@@ -17,6 +18,9 @@ import TestUtils from '../../testUtils/TestUtils';
 import { EventTrigger, PaymentTransaction } from '@rosen-chains/abstract-chain';
 import TransactionSerializer from '../../../src/transaction/TransactionSerializer';
 import { DatabaseAction } from '../../../src/db/DatabaseAction';
+import { RevenueEntity } from '../../../src/db/entities/revenueEntity';
+import { RevenueChartView } from '../../../src/db/entities/revenueChartView';
+import { RevenueView } from '../../../src/db/entities/revenueView';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -30,6 +34,9 @@ class DatabaseActionMock {
       ConfirmedEventEntity,
       EventTriggerEntity,
       TransactionEntity,
+      RevenueEntity,
+      RevenueView,
+      RevenueChartView,
     ],
     migrations: [
       ...scannerMigrations.sqlite,
@@ -61,10 +68,12 @@ class DatabaseActionMock {
    * deletes every record in Event and Transaction table in ScannerDatabase
    */
   static clearTables = async () => {
+    await this.testDatabase.RevenueRepository.clear();
     await this.testDatabase.CommitmentRepository.clear();
     await this.testDatabase.TransactionRepository.clear();
     await this.testDatabase.ConfirmedEventRepository.clear();
     await this.testDatabase.EventRepository.clear();
+    await this.testDataSource.getRepository(BlockEntity).clear();
   };
 
   /**
@@ -83,7 +92,8 @@ class DatabaseActionMock {
     sourceChainHeight = 300,
     firstTry?: string,
     eventHeight = 200,
-    spendHeight?: number
+    spendHeight?: number,
+    spendBlockId = 'blockId'
   ) => {
     await this.testDatabase.EventRepository.createQueryBuilder()
       .insert()
@@ -107,6 +117,7 @@ class DatabaseActionMock {
         WIDs: event.WIDs.join(','),
         sourceChainHeight: sourceChainHeight,
         spendHeight: spendHeight,
+        spendBlock: spendBlockId,
         txId: 'event-creation-tx-id',
         eventId: Utils.txIdToEventId(event.sourceTxId),
       })
@@ -228,6 +239,31 @@ class DatabaseActionMock {
         height: height,
         rwtCount: rwtCount,
         txId: 'txId',
+      })
+      .execute();
+  };
+
+  /**
+   * Inserts a block record
+   * @param timestamp
+   * @param height
+   */
+  static insertBlockRecord = async (
+    timestamp = 1680000000,
+    hash = TestUtils.generateRandomId(),
+    height = 1000
+  ) => {
+    await this.testDataSource
+      .getRepository(BlockEntity)
+      .createQueryBuilder()
+      .insert()
+      .values({
+        height: height,
+        hash: hash,
+        parentHash: TestUtils.generateRandomId(),
+        status: PROCEED,
+        scanner: 'scanner',
+        timestamp: timestamp,
       })
       .execute();
   };

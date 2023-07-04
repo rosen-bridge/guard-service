@@ -27,6 +27,19 @@ class TransactionTypes {
   static coldStorage = 'cold-storage';
 }
 
+enum RevenuePeriod {
+  year = 'year',
+  month = 'month',
+  weak = 'weak',
+}
 const DefaultApiLimit = 100;
+const DefaultRevenueApiCount = 10;
 
-export { EventStatus, TransactionStatus, TransactionTypes, DefaultApiLimit };
+export {
+  EventStatus,
+  TransactionStatus,
+  TransactionTypes,
+  RevenuePeriod,
+  DefaultApiLimit,
+  DefaultRevenueApiCount,
+};

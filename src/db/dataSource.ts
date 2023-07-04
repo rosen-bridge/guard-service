@@ -13,6 +13,9 @@ import {
 
 import { ConfirmedEventEntity } from './entities/ConfirmedEventEntity';
 import { TransactionEntity } from './entities/TransactionEntity';
+import { RevenueEntity } from './entities/revenueEntity';
+import { RevenueChartView } from './entities/revenueChartView';
+import { RevenueView } from './entities/revenueView';
 
 import migrations from './migrations';
 
@@ -24,6 +27,9 @@ const dbConfigs = {
     ConfirmedEventEntity,
     EventTriggerEntity,
     TransactionEntity,
+    RevenueEntity,
+    RevenueView,
+    RevenueChartView,
   ],
   migrations: [
     ...scannerMigrations[dbType],
