@@ -1,6 +1,7 @@
 import {
   AbstractChain,
   ConfirmationStatus,
+  PaymentTransaction,
   TransactionTypes,
 } from '@rosen-chains/abstract-chain';
 import { TransactionEntity } from '../db/entities/TransactionEntity';
@@ -62,30 +63,56 @@ class TransactionProcessor {
    * @param tx transaction record
    */
   static processApprovedTx = async (tx: TransactionEntity): Promise<void> => {
-    await DatabaseAction.getInstance()
-      .txSignSemaphore.acquire()
-      .then(async (release) => {
-        try {
-          const chain = ChainHandler.getInstance().getChain(tx.chain);
-          const paymentTx = TransactionSerializer.fromJson(tx.txJson);
-          await chain.signTransaction(
-            paymentTx,
-            GuardPkHandler.getInstance().requiredSign
-          );
-          logger.info(`Tx [${tx.txId}] got sent to the signer`);
-          await DatabaseAction.getInstance().setTxStatus(
-            tx.txId,
-            TransactionStatus.inSign
-          );
-          release();
-        } catch (e) {
-          logger.warn(
-            `Unexpected error occurred while sending tx [${tx.txId}] to sign: ${e}`
-          );
-          logger.warn(e.stack);
-          release();
-        }
-      });
+    const dbAction = DatabaseAction.getInstance();
+    await dbAction.txSignSemaphore.acquire().then(async (release) => {
+      try {
+        const chain = ChainHandler.getInstance().getChain(tx.chain);
+        const paymentTx = TransactionSerializer.fromJson(tx.txJson);
+        await dbAction.setTxStatus(tx.txId, TransactionStatus.inSign);
+        chain
+          .signTransaction(paymentTx, GuardPkHandler.getInstance().requiredSign)
+          .then(this.handleSuccessfulSign)
+          .catch(async (e) => await this.handleFailedSign(tx.txId, e));
+        logger.info(`Tx [${tx.txId}] got sent to the signer`);
+        release();
+      } catch (e) {
+        logger.warn(
+          `Unexpected error occurred while sending tx [${tx.txId}] to sign: ${e}`
+        );
+        logger.warn(e.stack);
+        release();
+      }
+    });
+  };
+
+  /**
+   * updates database tx to signed tx
+   * @param tx
+   */
+  static handleSuccessfulSign = async (
+    tx: PaymentTransaction
+  ): Promise<void> => {
+    logger.info(`Tx [${tx.txId}] is signed successfully`);
+    const currentHeight = await ChainHandler.getInstance()
+      .getChain(tx.network)
+      .getHeight();
+    await DatabaseAction.getInstance().updateWithSignedTx(
+      tx.txId,
+      TransactionSerializer.toJson(tx),
+      currentHeight
+    );
+  };
+
+  /**
+   * updates tx status to sign-failed
+   * @param tx
+   */
+  static handleFailedSign = async (txId: string, e: any): Promise<void> => {
+    logger.warn(`An error occurred while signing tx [${txId}]: ${e}`);
+    await DatabaseAction.getInstance().setTxStatus(
+      txId,
+      TransactionStatus.signFailed
+    );
   };
 
   /**

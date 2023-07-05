@@ -14,6 +14,8 @@ import MultiSigUtils from './guard/multisig/MultiSigUtils';
 import { DatabaseAction } from './db/DatabaseAction';
 import { dataSource } from './db/dataSource';
 import GuardPkHandler from './handlers/GuardPkHandler';
+import Tss from './guard/Tss';
+import { tssUpdateJob } from './jobs/tss';
 
 const init = async () => {
   // initialize all data sources
@@ -41,7 +43,10 @@ const init = async () => {
   // initialize TxAgreement object
   await TxAgreement.getInstance();
 
-  // start tss instance (TODO: #243)
+  // start tss instance
+  const tss = Tss.getInstance();
+  await tss.init();
+  tssUpdateJob();
 
   // run network scanners
   initScanner();
