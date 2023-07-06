@@ -138,7 +138,7 @@ describe('TransactionProcessor', () => {
       ).toHaveBeenCalledOnce();
 
       // `handleSuccessfulSign` should got called
-      expect(mockedHandleSuccessfulSign).toHaveBeenCalledOnce();
+      expect(mockedHandleSuccessfulSign).toHaveBeenCalledWith(signedTx);
     });
 
     /**

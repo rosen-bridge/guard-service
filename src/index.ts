@@ -33,6 +33,10 @@ const init = async () => {
   await multiSigHandler.init();
   initializeMultiSigJobs();
 
+  // start tss instance
+  await Tss.init();
+  tssUpdateJob();
+
   // initialize chain objects
   const chainHandler = ChainHandler.getInstance();
   MultiSigUtils.getInstance().init(chainHandler.getErgoChain().getStateContext);
@@ -42,11 +46,6 @@ const init = async () => {
 
   // initialize TxAgreement object
   await TxAgreement.getInstance();
-
-  // start tss instance
-  const tss = Tss.getInstance();
-  await tss.init();
-  tssUpdateJob();
 
   // run network scanners
   initScanner();

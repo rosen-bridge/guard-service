@@ -21,16 +21,16 @@ class Tss {
   protected static guardDetection: GuardDetection;
   protected static tssSigner: TssSigner;
 
+  protected constructor() {
+    // do nothing.
+  }
+
   /**
    * generates a Tss object if it doesn't exist
    * @returns Tss instance
    */
   public static getInstance = () => {
-    if (!Tss.instance) {
-      logger.debug("Tss instance didn't exist. Creating a new one");
-      Tss.instance = new Tss();
-      Tss.runBinary();
-    }
+    if (!Tss.instance) throw new Error('Tss is not instantiated yet');
     return Tss.instance;
   };
 
@@ -64,7 +64,10 @@ class Tss {
   /**
    * initializes tss prerequisites
    */
-  init = async () => {
+  static init = async () => {
+    Tss.instance = new Tss();
+    Tss.runBinary();
+
     // initialize dialer
     Tss.dialer = await Dialer.getInstance();
 
@@ -111,7 +114,7 @@ class Tss {
    * generates a function to wrap channel send message to dialer
    * @param channel
    */
-  generateSubmitMessageWrapper = (channel: string) => {
+  protected static generateSubmitMessageWrapper = (channel: string) => {
     return async (msg: string, peers: Array<string>) => {
       if (peers.length === 0) await Tss.dialer.sendMessage(channel, msg);
       else
