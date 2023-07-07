@@ -37,7 +37,7 @@ class Tss {
   /**
    * runs tss binary file
    */
-  static runBinary = (): void => {
+  protected static runBinary = (): void => {
     const tssPath =
       Configs.tssExecutionPath +
       ' -configFile ' +
