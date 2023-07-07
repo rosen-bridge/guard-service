@@ -22,8 +22,8 @@ const logger = loggerFactory(import.meta.url);
 
 class ChainHandler {
   private static instance: ChainHandler;
-  private ergoChain: ErgoChain;
-  private cardanoChain: CardanoChain;
+  private readonly ergoChain: ErgoChain;
+  private readonly cardanoChain: CardanoChain;
 
   private constructor() {
     this.ergoChain = this.generateErgoChain();
