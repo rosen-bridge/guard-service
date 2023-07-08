@@ -28,5 +28,12 @@ class TransactionTypes {
 }
 
 const DefaultApiLimit = 100;
+const DefaultAssetApiLimit = 10;
 
-export { EventStatus, TransactionStatus, TransactionTypes, DefaultApiLimit };
+export {
+  EventStatus,
+  TransactionStatus,
+  TransactionTypes,
+  DefaultApiLimit,
+  DefaultAssetApiLimit,
+};
