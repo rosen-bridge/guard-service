@@ -30,7 +30,7 @@ class TransactionTypes {
 enum RevenuePeriod {
   year = 'year',
   month = 'month',
-  weak = 'weak',
+  week = 'week',
 }
 const DefaultApiLimit = 100;
 const DefaultRevenueApiCount = 10;

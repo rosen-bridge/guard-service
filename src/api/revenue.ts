@@ -120,7 +120,6 @@ const revenueChartRoute = (server: FastifySeverInstance) => {
     async (request, reply) => {
       const { count, period } = request.query;
 
-      console.log(count, period);
       interface TokenChartData {
         title: string;
         data: {

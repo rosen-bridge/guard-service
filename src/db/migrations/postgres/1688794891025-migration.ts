@@ -55,7 +55,7 @@ export class migration1688794891025 implements MigrationInterface {
             SELECT re."tokenId" AS "tokenId",
                 re."amount" AS "amount",
                 be."timestamp" AS "timestamp",
-                be."timestamp" / 604800000 AS "weak_number",
+                be."timestamp" / 604800000 AS "week_number",
                 be."month" AS "month",
                 be."year" AS "year"
             FROM "revenue_entity" "re"
@@ -79,7 +79,7 @@ export class migration1688794891025 implements MigrationInterface {
         'public',
         'VIEW',
         'revenue_chart',
-        'SELECT re."tokenId" AS "tokenId", re."amount" AS "amount", be."timestamp" AS "timestamp", be."timestamp"/604800000 AS "weak_number", be."month" AS "month", be."year" AS "year" FROM "revenue_entity" "re" INNER JOIN "transaction_entity" "tx" ON tx."txId" = re."txId"  INNER JOIN "event_trigger_entity" "ete" ON "ete"."eventId" = "tx"."eventId"  INNER JOIN "block_entity" "be" ON "ete"."spendBlock" = "be"."hash"',
+        'SELECT re."tokenId" AS "tokenId", re."amount" AS "amount", be."timestamp" AS "timestamp", be."timestamp"/604800000 AS "week_number", be."month" AS "month", be."year" AS "year" FROM "revenue_entity" "re" INNER JOIN "transaction_entity" "tx" ON tx."txId" = re."txId"  INNER JOIN "event_trigger_entity" "ete" ON "ete"."eventId" = "tx"."eventId"  INNER JOIN "block_entity" "be" ON "ete"."spendBlock" = "be"."hash"',
       ]
     );
     await queryRunner.query(`

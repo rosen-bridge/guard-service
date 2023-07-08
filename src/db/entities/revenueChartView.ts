@@ -8,7 +8,7 @@ import { ViewEntity, ViewColumn } from 'typeorm';
       .select('re."tokenId"', 'tokenId')
       .addSelect('re."amount"', 'amount')
       .addSelect('be."timestamp"', 'timestamp')
-      .addSelect(`be."timestamp"/604800000`, 'weak_number')
+      .addSelect(`be."timestamp"/604800000`, 'week_number')
       .addSelect(`be."month"`, 'month')
       .addSelect(`be."year"`, 'year')
       .from('revenue_entity', 're')
@@ -24,7 +24,7 @@ export class RevenueChartView {
   amount!: string;
 
   @ViewColumn()
-  weak_number!: number;
+  week_number!: number;
 
   @ViewColumn()
   month!: number;

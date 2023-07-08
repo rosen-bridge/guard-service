@@ -635,8 +635,8 @@ class DatabaseAction {
       query.addGroupBy('year');
     } else if (period === RevenuePeriod.month) {
       query.addGroupBy('year').addGroupBy('month');
-    } else if (period === RevenuePeriod.weak) {
-      query.addGroupBy('weak_number');
+    } else if (period === RevenuePeriod.week) {
+      query.addGroupBy('week_number');
     }
     return query.getRawMany();
   };

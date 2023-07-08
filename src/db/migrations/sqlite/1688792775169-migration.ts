@@ -39,34 +39,34 @@ export class migration1688792775169 implements MigrationInterface {
             )
         `);
     await queryRunner.query(`
-            CREATE VIEW "revenue_chart" AS
-            SELECT re."tokenId" AS "tokenId",
-                re."amount" AS "amount",
-                be."timestamp" AS "timestamp",
-                be."timestamp" / 604800000 AS "weak_number",
-                be."month" AS "month",
-                be."year" AS "year"
-            FROM "revenue_entity" "re"
-                INNER JOIN "transaction_entity" "tx" ON tx."txId" = re."txId"
-                INNER JOIN "event_trigger_entity" "ete" ON "ete"."eventId" = "tx"."eventId"
-                INNER JOIN "block_entity" "be" ON "ete"."spendBlock" = "be"."hash"
-        `);
+        CREATE VIEW "revenue_chart" AS
+        SELECT re."tokenId" AS "tokenId",
+            re."amount" AS "amount",
+            be."timestamp" AS "timestamp",
+            be."timestamp" / 604800000 AS "week_number",
+            be."month" AS "month",
+            be."year" AS "year"
+        FROM "revenue_entity" "re"
+            INNER JOIN "transaction_entity" "tx" ON tx."txId" = re."txId"
+            INNER JOIN "event_trigger_entity" "ete" ON "ete"."eventId" = "tx"."eventId"
+            INNER JOIN "block_entity" "be" ON "ete"."spendBlock" = "be"."hash"
+    `);
     await queryRunner.query(
       `
-            INSERT INTO "typeorm_metadata"(
-                    "database",
-                    "schema",
-                    "table",
-                    "type",
-                    "name",
-                    "value"
-                )
-            VALUES (NULL, NULL, NULL, ?, ?, ?)
-        `,
+        INSERT INTO "typeorm_metadata"(
+                "database",
+                "schema",
+                "table",
+                "type",
+                "name",
+                "value"
+            )
+        VALUES (NULL, NULL, NULL, ?, ?, ?)
+    `,
       [
         'VIEW',
         'revenue_chart',
-        'SELECT re."tokenId" AS "tokenId", re."amount" AS "amount", be."timestamp" AS "timestamp", be."timestamp"/604800000 AS "weak_number", be."month" AS "month", be."year" AS "year" FROM "revenue_entity" "re" INNER JOIN "transaction_entity" "tx" ON tx."txId" = re."txId"  INNER JOIN "event_trigger_entity" "ete" ON "ete"."eventId" = "tx"."eventId"  INNER JOIN "block_entity" "be" ON "ete"."block" = "be"."hash"',
+        'SELECT re."tokenId" AS "tokenId", re."amount" AS "amount", be."timestamp" AS "timestamp", be."timestamp"/604800000 AS "week_number", be."month" AS "month", be."year" AS "year" FROM "revenue_entity" "re" INNER JOIN "transaction_entity" "tx" ON tx."txId" = re."txId"  INNER JOIN "event_trigger_entity" "ete" ON "ete"."eventId" = "tx"."eventId"  INNER JOIN "block_entity" "be" ON "ete"."spendBlock" = "be"."hash"',
       ]
     );
     await queryRunner.query(`

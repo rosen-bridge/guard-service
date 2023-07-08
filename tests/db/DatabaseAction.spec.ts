@@ -443,7 +443,7 @@ describe('DatabaseActions', () => {
 
       const revenueChart =
         await DatabaseAction.getInstance().getRevenueChartData(
-          RevenuePeriod.weak
+          RevenuePeriod.week
         );
       expect(revenueChart).toHaveLength(6);
     });
