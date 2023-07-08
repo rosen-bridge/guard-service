@@ -31,7 +31,7 @@ const signRoute = (server: FastifySeverInstance) => {
     async (request, reply) => {
       try {
         const { status, error, message, signature } = request.body;
-        await Tss.getInstance().signHandlerWrapper(
+        await Tss.getInstance().handleSignData(
           status,
           error,
           message,

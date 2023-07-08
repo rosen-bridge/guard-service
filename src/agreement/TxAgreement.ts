@@ -71,12 +71,12 @@ class TxAgreement extends Communicator {
   /**
    * wraps dialer handle message to communicator
    * @param msg
-   * @param channal
+   * @param channel
    * @param peerId
    */
   messageHandlerWrapper = async (
     msg: string,
-    channal: string,
+    channel: string,
     peerId: string
   ) => {
     this.handleMessage(msg, peerId);
@@ -221,7 +221,7 @@ class TxAgreement extends Communicator {
         }
         default:
           logger.warn(
-            `Received unexpected message type [${type}] in tx-agreement channal`
+            `Received unexpected message type [${type}] in tx-agreement channel`
           );
       }
     } catch (e) {

@@ -131,7 +131,7 @@ class Tss {
    * @param message
    * @param signature
    */
-  signHandlerWrapper = async (
+  handleSignData = async (
     status: string,
     error: string | undefined,
     message: string,

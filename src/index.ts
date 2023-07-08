@@ -29,8 +29,7 @@ const init = async () => {
   await initApiServer();
 
   // initialize tss multiSig object
-  const multiSigHandler = MultiSigHandler.getInstance(Configs.guardSecret);
-  await multiSigHandler.init();
+  await MultiSigHandler.init(Configs.guardSecret);
   initializeMultiSigJobs();
 
   // start tss instance
