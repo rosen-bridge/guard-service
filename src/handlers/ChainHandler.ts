@@ -10,21 +10,20 @@ import ErgoNodeNetwork, { NODE_NETWORK } from '@rosen-chains/ergo-node-network';
 import ErgoExplorerNetwork, {
   EXPLORER_NETWORK,
 } from '@rosen-chains/ergo-explorer-network';
-import Configs from '../helpers/Configs';
-import { guardConfig } from '../helpers/GuardConfig';
-import GuardsCardanoConfigs from '../helpers/GuardsCardanoConfigs';
-import GuardsErgoConfigs from '../helpers/GuardsErgoConfigs';
+import Configs from '../configs/Configs';
+import GuardsCardanoConfigs from '../configs/GuardsCardanoConfigs';
+import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import MinimumFee from '../event/MinimumFee';
-import MultiSigHandler from '../guard/multisig/MultiSig';
+import MultiSigHandler from '../guard/multisig/MultiSigHandler';
 import { loggerFactory } from '../log/Logger';
-import ChainsConstants from '../chains/ChainsConstants';
+import Tss from '../guard/Tss';
 
 const logger = loggerFactory(import.meta.url);
 
 class ChainHandler {
   private static instance: ChainHandler;
-  private ergoChain: ErgoChain;
-  private cardanoChain: CardanoChain;
+  private readonly ergoChain: ErgoChain;
+  private readonly cardanoChain: CardanoChain;
 
   private constructor() {
     this.ergoChain = this.generateErgoChain();
@@ -85,10 +84,7 @@ class ChainHandler {
           `No case is defined for network [${GuardsErgoConfigs.chainNetworkName}]`
         );
     }
-    const multiSigSignFunction = MultiSigHandler.getInstance(
-      guardConfig.publicKeys,
-      Configs.guardSecret
-    ).sign;
+    const multiSigSignFunction = MultiSigHandler.getInstance().sign;
     return new ErgoChain(
       network,
       GuardsErgoConfigs.chainConfigs,
@@ -118,10 +114,7 @@ class ChainHandler {
           `No case is defined for network [${GuardsCardanoConfigs.chainNetworkName}]`
         );
     }
-    // TODO: replace this with TSS package sign function
-    const tssSignFunction = () => {
-      throw Error(`TSS signer is not implemented yet`);
-    };
+    const tssSignFunction = Tss.getInstance().sign;
     return new CardanoChain(
       network,
       GuardsCardanoConfigs.chainConfigs,

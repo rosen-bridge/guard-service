@@ -1,7 +1,6 @@
-import { guardConfig } from '../helpers/GuardConfig';
-import Configs from '../helpers/Configs';
+import GuardPkHandler from '../handlers/GuardPkHandler';
+import Configs from '../configs/Configs';
 import { loggerFactory } from '../log/Logger';
-import axios from 'axios';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -10,26 +9,15 @@ const logger = loggerFactory(import.meta.url);
  */
 const configUpdateJob = async () => {
   try {
-    await guardConfig.setConfig();
+    const pkHandler = GuardPkHandler.getInstance();
+    await pkHandler.update();
+    pkHandler.updateDependentModules();
     setTimeout(configUpdateJob, Configs.guardConfigUpdateInterval * 1000);
   } catch (e) {
-    if (e instanceof Error) {
-      logger.warn(`Updating guard config failed with error: ${e}`);
-      logger.warn(e.stack);
-      setTimeout(configUpdateJob, Configs.guardConfigUpdateInterval * 1000);
-    } else {
-      logger.error('Guard config updating failed');
-      logger.error(e.stack);
-      throw e;
-    }
+    logger.warn(`Updating guards public keys failed with error: ${e}`);
+    logger.warn(e.stack);
+    setTimeout(configUpdateJob, Configs.guardConfigUpdateInterval * 1000);
   }
 };
 
-/**
- * initializing update job
- */
-const guardConfigUpdate = () => {
-  configUpdateJob();
-};
-
-export { guardConfigUpdate };
+export { configUpdateJob };

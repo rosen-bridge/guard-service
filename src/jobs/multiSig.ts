@@ -1,15 +1,11 @@
-import MultiSigHandler from '../guard/multisig/MultiSig';
-import Configs from '../helpers/Configs';
-import { guardConfig } from '../helpers/GuardConfig';
+import MultiSigHandler from '../guard/multisig/MultiSigHandler';
+import Configs from '../configs/Configs';
 
 /**
  * runs MultiSig service cleanUp job
  */
 const multiSigCleanupJob = () => {
-  MultiSigHandler.getInstance(
-    guardConfig.publicKeys,
-    Configs.guardSecret
-  ).cleanup();
+  MultiSigHandler.getInstance().cleanup();
   setTimeout(multiSigCleanupJob, Configs.multiSigCleanUpInterval * 1000);
 };
 

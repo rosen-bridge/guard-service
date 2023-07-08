@@ -4,7 +4,7 @@ import winston, { format } from 'winston';
 
 import 'winston-daily-rotate-file';
 
-import Configs from '../helpers/Configs';
+import Configs from '../configs/Configs';
 import { JsonBI } from '../network/NetworkModels';
 
 import { ConsoleLogConfig, FileLogConfig, LogConfig } from '../types';

@@ -1,9 +1,8 @@
 import { loggerFactory } from '../log/Logger';
-import Configs from '../helpers/Configs';
+import Configs from '../configs/Configs';
 import { Buffer } from 'buffer';
-import Utils from '../helpers/Utils';
-import { dbAction } from '../db/DatabaseAction';
-import { TransactionStatus } from '../models/Models';
+import Utils from '../utils/Utils';
+import { TransactionStatus } from '../utils/constants';
 import TxAgreement from '../agreement/TxAgreement';
 import { ERGO_CHAIN, ErgoChain } from '@rosen-chains/ergo';
 import { CARDANO_CHAIN } from '@rosen-chains/cardano';
@@ -16,7 +15,8 @@ import {
   TransactionTypes,
 } from '@rosen-chains/abstract-chain';
 import TransactionSerializer from '../transaction/TransactionSerializer';
-import { rosenConfig } from '../helpers/RosenConfig';
+import { rosenConfig } from '../configs/RosenConfig';
+import { DatabaseAction } from '../db/DatabaseAction';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -41,7 +41,9 @@ class ColdStorage {
     try {
       logger.info(`Processing assets in [${chainName}] lock address`);
       const inProgressColdStorageTxs = (
-        await dbAction.getNonCompleteColdStorageTxsInChain(chainName)
+        await DatabaseAction.getInstance().getNonCompleteColdStorageTxsInChain(
+          chainName
+        )
       ).filter((tx) => tx.status !== TransactionStatus.invalid);
       if (inProgressColdStorageTxs.length !== 0) {
         logger.info(
@@ -110,7 +112,7 @@ class ColdStorage {
   };
 
   /**
-   * generates a transaction to transfer some asssets to cold storage
+   * generates a transaction to transfer some assets to cold storage
    * @param assets transferring assets
    * @param chain chain object
    * @param chainName
@@ -143,11 +145,11 @@ class ColdStorage {
       await TxAgreement.getInstance()
     ).getChainPendingTransactions(chainName);
     const unsignedQueueTransactions = (
-      await dbAction.getUnsignedActiveTxsInChain(chainName)
+      await DatabaseAction.getInstance().getUnsignedActiveTxsInChain(chainName)
     ).map((txEntity) => TransactionSerializer.fromJson(txEntity.txJson));
     // get signed transactions in target chain
     const signedTransactions = (
-      await dbAction.getSignedActiveTxsInChain(chainName)
+      await DatabaseAction.getInstance().getSignedActiveTxsInChain(chainName)
     ).map((txEntity) =>
       Buffer.from(
         TransactionSerializer.fromJson(txEntity.txJson).txBytes

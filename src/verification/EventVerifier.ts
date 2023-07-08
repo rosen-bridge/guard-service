@@ -1,16 +1,15 @@
 import { EventTrigger } from '@rosen-chains/abstract-chain';
-import GuardsErgoConfigs from '../helpers/GuardsErgoConfigs';
+import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import ChainHandler from '../handlers/ChainHandler';
 import {
   ConfirmationStatus,
   TransactionTypes,
 } from '@rosen-chains/abstract-chain';
-import { dbAction } from '../db/DatabaseAction';
 import EventSerializer from '../event/EventSerializer';
 import { Fee } from '@rosen-bridge/minimum-fee';
 import EventBoxes from '../event/EventBoxes';
 import { ConfirmedEventEntity } from '../db/entities/ConfirmedEventEntity';
-import { EventStatus } from '../models/Models';
+import { EventStatus } from '../utils/constants';
 
 class EventVerifier {
   /**
@@ -47,7 +46,6 @@ class EventVerifier {
     feeConfig: Fee
   ): Promise<boolean> => {
     // get event box
-    const eventId = EventSerializer.getId(event);
     const eventBox = await EventBoxes.getEventBox(event);
 
     // verify event data

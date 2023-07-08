@@ -1,11 +1,11 @@
 import { PaymentTransaction } from '@rosen-chains/abstract-chain';
-import { dbAction } from '../db/DatabaseAction';
 import EventSerializer from '../event/EventSerializer';
 import EventVerifier from './EventVerifier';
 import MinimumFee from '../event/MinimumFee';
-import { EventStatus, TransactionStatus } from '../models/Models';
+import { EventStatus, TransactionStatus } from '../utils/constants';
 import { loggerFactory } from '../log/Logger';
 import TransactionVerifier from './TransactionVerifier';
+import { DatabaseAction } from '../db/DatabaseAction';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -28,7 +28,9 @@ class RequestVerifier {
     const baseError = `Received tx [${tx.txId}] for event [${eventId}] `;
 
     // get event from database
-    const eventEntity = await dbAction.getEventById(eventId);
+    const eventEntity = await DatabaseAction.getInstance().getEventById(
+      eventId
+    );
     if (eventEntity === null) {
       logger.warn(baseError + `but event not found`);
       return false;
@@ -47,12 +49,18 @@ class RequestVerifier {
     // verify event
     if (!(await EventVerifier.verifyEvent(event, feeConfig))) {
       logger.warn(baseError + `but event hasn't verified`);
-      await dbAction.setEventStatus(eventId, EventStatus.rejected);
+      await DatabaseAction.getInstance().setEventStatus(
+        eventId,
+        EventStatus.rejected
+      );
       return false;
     }
 
     // check if event has any active tx for requested tx type
-    const eventTxs = await dbAction.getEventValidTxsByType(eventId, tx.txType);
+    const eventTxs = await DatabaseAction.getInstance().getEventValidTxsByType(
+      eventId,
+      tx.txType
+    );
     if (eventTxs.length !== 0 && eventTxs[0].txId !== tx.txId) {
       logger.warn(baseError + `but event has active tx [${eventTxs[0].txId}]`);
       return false;
@@ -94,7 +102,9 @@ class RequestVerifier {
 
     // check if event has any active tx for requested tx type
     const inProgressColdStorageTxs = (
-      await dbAction.getNonCompleteColdStorageTxsInChain(tx.network)
+      await DatabaseAction.getInstance().getNonCompleteColdStorageTxsInChain(
+        tx.network
+      )
     ).filter((tx) => tx.status != TransactionStatus.invalid);
     if (
       inProgressColdStorageTxs.length !== 0 &&

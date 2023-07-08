@@ -1,13 +1,13 @@
 import { BridgeMinimumFee, Fee } from '@rosen-bridge/minimum-fee';
-import ErgoConfigs from '../chains/ergo/helpers/ErgoConfigs';
-import { rosenConfig } from '../helpers/RosenConfig';
-import Configs from '../helpers/Configs';
-import ChainsConstants from '../chains/ChainsConstants';
+import { rosenConfig } from '../configs/RosenConfig';
+import Configs from '../configs/Configs';
 import { EventTrigger } from '@rosen-chains/abstract-chain';
+import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
+import { ERGO_CHAIN } from '@rosen-chains/ergo';
 
 class MinimumFee {
   static bridgeMinimumFee = new BridgeMinimumFee(
-    ErgoConfigs.explorer.url,
+    GuardsErgoConfigs.explorer.url,
     rosenConfig.rsnRatioNFT
   );
 
@@ -20,7 +20,7 @@ class MinimumFee {
       Configs.tokenMap.search(event.fromChain, {
         [Configs.tokenMap.getIdKey(event.fromChain)]: event.sourceChainTokenId,
       })[0],
-      ChainsConstants.ergo
+      ERGO_CHAIN
     );
     return await MinimumFee.bridgeMinimumFee.getFee(
       tokenId,

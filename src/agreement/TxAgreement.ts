@@ -1,4 +1,4 @@
-import { EventStatus } from '../models/Models';
+import { EventStatus } from '../utils/constants';
 import {
   CandidateTransaction,
   TransactionRequest,
@@ -8,8 +8,6 @@ import {
   AgreementMessageTypes,
 } from './Interfaces';
 import Dialer from '../communication/Dialer';
-import { dbAction } from '../db/DatabaseAction';
-import { guardConfig } from '../helpers/GuardConfig';
 import { loggerFactory } from '../log/Logger';
 import {
   ImpossibleBehavior,
@@ -18,12 +16,13 @@ import {
 } from '@rosen-chains/abstract-chain';
 import RequestVerifier from '../verification/RequestVerifier';
 import TransactionSerializer from '../transaction/TransactionSerializer';
-import Configs from '../helpers/Configs';
-import { Communicator } from './communicator/Communicator'; // TODO: import from tss (#243)
-import { EcDSA } from './communicator/EcDSA';
-import GuardTurn from '../helpers/GuardTurn';
+import Configs from '../configs/Configs';
+import GuardTurn from '../utils/GuardTurn';
 import TransactionVerifier from '../verification/TransactionVerifier';
 import DatabaseHandler from '../db/DatabaseHandler';
+import GuardPkHandler from '../handlers/GuardPkHandler';
+import { DatabaseAction } from '../db/DatabaseAction';
+import { Communicator, ECDSA } from '@rosen-bridge/tss';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -41,9 +40,9 @@ class TxAgreement extends Communicator {
   protected constructor() {
     super(
       logger,
-      new EcDSA(Configs.guardSecret),
+      new ECDSA(Configs.guardSecret),
       TxAgreement.sendMessageWrapper,
-      guardConfig.publicKeys,
+      GuardPkHandler.getInstance().publicKeys,
       GuardTurn.UP_TIME_LENGTH
     );
     this.transactionQueue = [];
@@ -110,10 +109,9 @@ class TxAgreement extends Communicator {
 
   /**
    * adds all unsigned transactions which failed in sign process to agreement queue
-   * @param tx
    */
   enqueueSignFailedTxs = async (): Promise<void> => {
-    const txs = await dbAction.getUnsignedFailedSignTxs();
+    const txs = await DatabaseAction.getInstance().getUnsignedFailedSignTxs();
     txs.forEach((tx) =>
       this.transactionQueue.push(TransactionSerializer.fromJson(tx.txJson))
     );
@@ -223,7 +221,7 @@ class TxAgreement extends Communicator {
         }
         default:
           logger.warn(
-            `Received unexpected message type [${type}] in tx-agreement channal`
+            `Received unexpected message type [${type}] in tx-agreement channel`
           );
       }
     } catch (e) {
@@ -379,7 +377,7 @@ class TxAgreement extends Communicator {
       this.transactionApprovals
         .get(txId)!
         .filter((signature) => signature !== '').length >=
-      guardConfig.requiredSign
+      GuardPkHandler.getInstance().requiredSign
     ) {
       logger.info(`The majority of guards agreed with transaction [${txId}]`);
 
@@ -421,7 +419,7 @@ class TxAgreement extends Communicator {
    * verifies approval message sent by other guards, set tx as approved if enough guards agreed with tx
    * @param tx
    * @param senderIndex
-   * @param guardsSignatures
+   * @param signatures
    * @param timestamp
    * @param sender
    */
@@ -449,10 +447,11 @@ class TxAgreement extends Communicator {
       signs++;
       approvedGuards.push(i);
     }
-    if (signs < guardConfig.requiredSign) {
+    const requiredSign = GuardPkHandler.getInstance().requiredSign;
+    if (signs < requiredSign) {
       logger.warn(
         baseError +
-          `but signs is less than required value [${signs} < ${guardConfig.requiredSign}]`
+          `but signs is less than required value [${signs} < ${requiredSign}]`
       );
       return;
     }
@@ -516,9 +515,15 @@ class TxAgreement extends Communicator {
   ): Promise<void> => {
     try {
       if (tx.txType === TransactionTypes.payment)
-        await dbAction.setEventStatus(tx.eventId, EventStatus.inPayment);
+        await DatabaseAction.getInstance().setEventStatus(
+          tx.eventId,
+          EventStatus.inPayment
+        );
       else if (tx.txType === TransactionTypes.reward)
-        await dbAction.setEventStatus(tx.eventId, EventStatus.inReward);
+        await DatabaseAction.getInstance().setEventStatus(
+          tx.eventId,
+          EventStatus.inReward
+        );
     } catch (e) {
       logger.warn(
         `An error occurred while setting database event [${tx.eventId}] status: ${e}`
@@ -529,7 +534,8 @@ class TxAgreement extends Communicator {
 
   /**
    * signs an agreement message
-   * @param request CandidateMessage
+   * @param txId
+   * @param timestamp
    */
   protected signCandidateMessage = async (
     txId: string,

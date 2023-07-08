@@ -1,17 +1,18 @@
 import {
   AbstractChain,
   ConfirmationStatus,
+  PaymentTransaction,
   TransactionTypes,
 } from '@rosen-chains/abstract-chain';
-import { dbAction } from '../db/DatabaseAction';
 import { TransactionEntity } from '../db/entities/TransactionEntity';
 import ChainHandler from '../handlers/ChainHandler';
 import { loggerFactory } from '../log/Logger';
-import { EventStatus, TransactionStatus } from '../models/Models';
-import { guardConfig } from '../helpers/GuardConfig';
-import Configs from '../helpers/Configs';
+import { EventStatus, TransactionStatus } from '../utils/constants';
+import Configs from '../configs/Configs';
 import TransactionSerializer from './TransactionSerializer';
 import { ERGO_CHAIN } from '@rosen-chains/ergo';
+import GuardPkHandler from '../handlers/GuardPkHandler';
+import { DatabaseAction } from '../db/DatabaseAction';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -21,7 +22,7 @@ class TransactionProcessor {
    */
   static processTransactions = async (): Promise<void> => {
     logger.info(`Processing transactions`);
-    const txs = await dbAction.getActiveTransactions();
+    const txs = await DatabaseAction.getInstance().getActiveTransactions();
     for (const tx of txs) {
       logger.info(
         `Processing transaction [${tx.txId}] with status [${tx.status}]`
@@ -62,13 +63,17 @@ class TransactionProcessor {
    * @param tx transaction record
    */
   static processApprovedTx = async (tx: TransactionEntity): Promise<void> => {
+    const dbAction = DatabaseAction.getInstance();
     await dbAction.txSignSemaphore.acquire().then(async (release) => {
       try {
         const chain = ChainHandler.getInstance().getChain(tx.chain);
         const paymentTx = TransactionSerializer.fromJson(tx.txJson);
-        await chain.signTransaction(paymentTx, guardConfig.requiredSign);
-        logger.info(`Tx [${tx.txId}] got sent to the signer`);
         await dbAction.setTxStatus(tx.txId, TransactionStatus.inSign);
+        chain
+          .signTransaction(paymentTx, GuardPkHandler.getInstance().requiredSign)
+          .then(this.handleSuccessfulSign)
+          .catch(async (e) => await this.handleFailedSign(tx.txId, e));
+        logger.info(`Tx [${tx.txId}] got sent to the signer`);
         release();
       } catch (e) {
         logger.warn(
@@ -78,6 +83,36 @@ class TransactionProcessor {
         release();
       }
     });
+  };
+
+  /**
+   * updates database tx to signed tx
+   * @param tx
+   */
+  static handleSuccessfulSign = async (
+    tx: PaymentTransaction
+  ): Promise<void> => {
+    logger.info(`Tx [${tx.txId}] is signed successfully`);
+    const currentHeight = await ChainHandler.getInstance()
+      .getChain(tx.network)
+      .getHeight();
+    await DatabaseAction.getInstance().updateWithSignedTx(
+      tx.txId,
+      TransactionSerializer.toJson(tx),
+      currentHeight
+    );
+  };
+
+  /**
+   * updates tx status to sign-failed
+   * @param tx
+   */
+  static handleFailedSign = async (txId: string, e: any): Promise<void> => {
+    logger.warn(`An error occurred while signing tx [${txId}]: ${e}`);
+    await DatabaseAction.getInstance().setTxStatus(
+      txId,
+      TransactionStatus.signFailed
+    );
   };
 
   /**
@@ -92,7 +127,10 @@ class TransactionProcessor {
       logger.warn(
         `No response received from signer for tx [${tx.txId}]. Updating status to sign-failed`
       );
-      await dbAction.setTxStatus(tx.txId, TransactionStatus.signFailed);
+      await DatabaseAction.getInstance().setTxStatus(
+        tx.txId,
+        TransactionStatus.signFailed
+      );
     }
   };
 
@@ -114,7 +152,10 @@ class TransactionProcessor {
       logger.info(
         `Tx [${tx.txId}] found in blockchain. Updating status to 'sent'`
       );
-      await dbAction.setTxStatus(tx.txId, TransactionStatus.sent);
+      await DatabaseAction.getInstance().setTxStatus(
+        tx.txId,
+        TransactionStatus.sent
+      );
     } else {
       // tx is not found, checking if tx is still valid
       const paymentTx = TransactionSerializer.fromJson(tx.txJson);
@@ -137,7 +178,10 @@ class TransactionProcessor {
     const chain = ChainHandler.getInstance().getChain(tx.chain);
     const paymentTx = TransactionSerializer.fromJson(tx.txJson);
     await chain.submitTransaction(paymentTx);
-    await dbAction.setTxStatus(tx.txId, TransactionStatus.sent);
+    await DatabaseAction.getInstance().setTxStatus(
+      tx.txId,
+      TransactionStatus.sent
+    );
   };
 
   /**
@@ -153,10 +197,13 @@ class TransactionProcessor {
     switch (txConfirmation) {
       case ConfirmationStatus.ConfirmedEnough: {
         // tx confirmed enough, proceed to next process
-        await dbAction.setTxStatus(tx.txId, TransactionStatus.completed);
+        await DatabaseAction.getInstance().setTxStatus(
+          tx.txId,
+          TransactionStatus.completed
+        );
         if (tx.type === TransactionTypes.payment && tx.chain !== ERGO_CHAIN) {
           // set event status, to start reward distribution
-          await dbAction.setEventStatusToPending(
+          await DatabaseAction.getInstance().setEventStatusToPending(
             tx.event.id,
             EventStatus.pendingReward
           );
@@ -168,7 +215,10 @@ class TransactionProcessor {
           (tx.type === TransactionTypes.payment && tx.chain === ERGO_CHAIN)
         ) {
           // set event as complete
-          await dbAction.setEventStatus(tx.event.id, EventStatus.completed);
+          await DatabaseAction.getInstance().setEventStatus(
+            tx.event.id,
+            EventStatus.completed
+          );
           logger.info(
             `Tx [${tx.txId}] is confirmed. Event [${tx.event.id}] is complete`
           );
@@ -183,7 +233,7 @@ class TransactionProcessor {
       case ConfirmationStatus.NotConfirmedEnough: {
         // tx is mined, but not enough confirmation, updating last check...
         const height = await chain.getHeight();
-        await dbAction.updateTxLastCheck(tx.txId, height);
+        await DatabaseAction.getInstance().updateTxLastCheck(tx.txId, height);
         logger.info(`Tx [${tx.txId}] is in confirmation process`);
         break;
       }
@@ -192,7 +242,7 @@ class TransactionProcessor {
         if (await chain.isTxInMempool(tx.txId)) {
           // tx is in mempool, updating last check...
           const height = await chain.getHeight();
-          await dbAction.updateTxLastCheck(tx.txId, height);
+          await DatabaseAction.getInstance().updateTxLastCheck(tx.txId, height);
           logger.info(`Tx [${tx.txId}] is in mempool`);
         } else {
           // tx is not in mempool, checking if tx is still valid
@@ -224,10 +274,13 @@ class TransactionProcessor {
       height - tx.lastCheck >=
       ChainHandler.getInstance().getRequiredConfirmation(tx.chain, tx.type)
     ) {
-      await dbAction.setTxStatus(tx.txId, TransactionStatus.invalid);
+      await DatabaseAction.getInstance().setTxStatus(
+        tx.txId,
+        TransactionStatus.invalid
+      );
       switch (tx.type) {
         case TransactionTypes.payment:
-          await dbAction.setEventStatusToPending(
+          await DatabaseAction.getInstance().setEventStatusToPending(
             tx.event.id,
             EventStatus.pendingPayment
           );
@@ -236,7 +289,7 @@ class TransactionProcessor {
           );
           break;
         case TransactionTypes.reward:
-          await dbAction.setEventStatusToPending(
+          await DatabaseAction.getInstance().setEventStatusToPending(
             tx.event.id,
             EventStatus.pendingReward
           );

@@ -1,20 +1,18 @@
 import { DataSource, In, IsNull, LessThan, Not, Repository } from 'typeorm';
 import { ConfirmedEventEntity } from './entities/ConfirmedEventEntity';
-import { dataSource } from '../../config/dataSource';
 import { TransactionEntity } from './entities/TransactionEntity';
 import {
   EventStatus,
   TransactionStatus,
   TransactionTypes,
-} from '../models/Models';
+} from '../utils/constants';
 import {
   CommitmentEntity,
   EventTriggerEntity,
 } from '@rosen-bridge/watcher-data-extractor';
-import Utils from '../helpers/Utils';
+import Utils from '../utils/Utils';
 import { loggerFactory } from '../log/Logger';
-import { Semaphore } from 'await-semaphore/index';
-import { ImpossibleBehavior, NotFoundError } from '../helpers/errors';
+import { Semaphore } from 'await-semaphore';
 import * as RosenChains from '@rosen-chains/abstract-chain';
 import TransactionSerializer from '../transaction/TransactionSerializer';
 import { SortRequest } from '../types/api';
@@ -22,6 +20,7 @@ import { SortRequest } from '../types/api';
 const logger = loggerFactory(import.meta.url);
 
 class DatabaseAction {
+  private static instance: DatabaseAction;
   dataSource: DataSource;
   CommitmentRepository: Repository<CommitmentEntity>;
   EventRepository: Repository<EventTriggerEntity>;
@@ -30,7 +29,11 @@ class DatabaseAction {
 
   txSignSemaphore = new Semaphore(1);
 
-  constructor(dataSource: DataSource) {
+  /**
+   * initiates data source
+   * @param dataSource
+   */
+  init = (dataSource: DataSource) => {
     this.dataSource = dataSource;
     this.CommitmentRepository = this.dataSource.getRepository(CommitmentEntity);
     this.EventRepository = this.dataSource.getRepository(EventTriggerEntity);
@@ -38,7 +41,19 @@ class DatabaseAction {
       this.dataSource.getRepository(ConfirmedEventEntity);
     this.TransactionRepository =
       this.dataSource.getRepository(TransactionEntity);
-  }
+  };
+
+  /**
+   * generates a DatabaseAction object if it doesn't exist
+   * @returns DatabaseAction instance
+   */
+  static getInstance = () => {
+    if (!DatabaseAction.instance) {
+      logger.debug("DatabaseAction instance didn't exist. Creating a new one");
+      DatabaseAction.instance = new DatabaseAction();
+    }
+    return DatabaseAction.instance;
+  };
 
   /**
    * updates the status of an event by id
@@ -408,7 +423,7 @@ class DatabaseAction {
     eventId: string
   ): Promise<TransactionEntity> => {
     const event = await this.getEventById(eventId);
-    if (event === null) throw new NotFoundError(`Event [${eventId}] not found`);
+    if (event === null) throw new Error(`Event [${eventId}] not found`);
     const txs = await this.TransactionRepository.find({
       relations: ['event'],
       where: [
@@ -420,9 +435,9 @@ class DatabaseAction {
       ],
     });
     if (txs.length === 0)
-      throw new NotFoundError(`No payment tx found for event [${eventId}]`);
+      throw new Error(`No payment tx found for event [${eventId}]`);
     else if (txs.length > 1)
-      throw new ImpossibleBehavior(
+      throw new RosenChains.ImpossibleBehavior(
         `Found more than one completed payment transaction for event [${eventId}]`
       );
     else return txs[0];
@@ -449,8 +464,6 @@ class DatabaseAction {
 
   /**
    * selects completed events with the specified condition
-   * @param limit
-   * @param offset
    * @param sort
    * @param fromChain
    * @param toChain
@@ -499,6 +512,4 @@ class DatabaseAction {
   };
 }
 
-const dbAction = new DatabaseAction(dataSource);
-
-export { DatabaseAction, dbAction };
+export { DatabaseAction };

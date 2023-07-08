@@ -2,10 +2,8 @@ import { Type } from '@sinclair/typebox';
 import { loggerFactory } from '../log/Logger';
 import { FastifySeverInstance, SortRequest } from '../types/api';
 import { messageResponseSchema, outputItemsSchema } from '../types/schema';
-import { dbAction } from '../db/DatabaseAction';
 import { DefaultApiLimit } from '../utils/constants';
-
-const logger = loggerFactory(import.meta.url);
+import { DatabaseAction } from '../db/DatabaseAction';
 
 /**
  * setup event history route
@@ -56,7 +54,7 @@ const eventsHistoryRoute = (server: FastifySeverInstance) => {
       const { sort, offset, limit, fromChain, toChain, maxAmount, minAmount } =
         request.query;
 
-      const results = await dbAction.getCompletedEvents(
+      const results = await DatabaseAction.getInstance().getCompletedEvents(
         sort,
         fromChain,
         toChain,

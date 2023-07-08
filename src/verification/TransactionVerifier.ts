@@ -2,7 +2,6 @@ import {
   ChainUtils,
   EventTrigger,
   PaymentTransaction,
-  TokenInfo,
   TransactionTypes,
 } from '@rosen-chains/abstract-chain';
 import ChainHandler from '../handlers/ChainHandler';
@@ -10,7 +9,7 @@ import { loggerFactory } from '../log/Logger';
 import { isEqual } from 'lodash-es';
 import EventOrder from '../event/EventOrder';
 import MinimumFee from '../event/MinimumFee';
-import Configs from '../helpers/Configs';
+import Configs from '../configs/Configs';
 
 const logger = loggerFactory(import.meta.url);
 

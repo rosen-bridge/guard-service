@@ -1,13 +1,39 @@
 import * as wasm from 'ergo-lib-wasm-nodejs';
-import NodeApi from '../../chains/ergo/network/NodeApi';
 import {
   CommitmentJson,
   PublishedCommitment,
   SingleCommitment,
 } from './Interfaces';
 import { TransactionHintsBag } from 'ergo-lib-wasm-nodejs';
+import { loggerFactory } from '../../log/Logger';
+
+const logger = loggerFactory(import.meta.url);
 
 class MultiSigUtils {
+  private static instance: MultiSigUtils;
+  getStateContext: () => Promise<wasm.ErgoStateContext>;
+
+  /**
+   * generates a MultiSigUtils object if it doesn't exist
+   * @param getStateContextFunction
+   * @returns MultiSigUtils instance
+   */
+  public static getInstance = () => {
+    if (!MultiSigUtils.instance) {
+      logger.debug("MultiSigUtils instance didn't exist. Creating a new one");
+      MultiSigUtils.instance = new MultiSigUtils();
+    }
+    return MultiSigUtils.instance;
+  };
+
+  /**
+   * initializes `getStateContext` function
+   * @param getStateContextFunction
+   */
+  public init(getStateContextFunction: () => Promise<wasm.ErgoStateContext>) {
+    this.getStateContext = getStateContextFunction;
+  }
+
   /**
    * gets public keys hex string and convert them to the Propositions
    * @param pubKeys
@@ -32,7 +58,7 @@ class MultiSigUtils {
    * @param signed
    * @param simulated
    */
-  static extract_hints = async (
+  extract_hints = async (
     tx: wasm.Transaction,
     boxes: Array<wasm.ErgoBox>,
     dataBoxes: Array<wasm.ErgoBox>,
@@ -46,7 +72,7 @@ class MultiSigUtils {
     boxes.forEach((item) => inputBoxes.add(item));
     const dataInputBoxes = wasm.ErgoBoxes.empty();
     dataBoxes.forEach((item) => dataInputBoxes.add(item));
-    const context = await NodeApi.getErgoStateContext();
+    const context = await this.getStateContext();
     return wasm.extract_hints(
       tx,
       context,

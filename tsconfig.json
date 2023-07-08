@@ -18,7 +18,6 @@
     "useUnknownInCatchVariables": false
   },
   "include": ["./**/*.ts", "node_modules/vitest/globals.d.ts"],
-  "exclude": ["tests/**/*.ts"],
   "ts-node": {
     "esm": true
   }

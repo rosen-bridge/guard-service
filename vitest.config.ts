@@ -7,10 +7,9 @@ export default defineConfig({
     globals: true,
     reporters: 'verbose',
     setupFiles: [
-      './testsV2/setup/mockDialer.ts',
-      './testsV2/setup/setupTests.ts',
-      './testsV2/setup/mockMultiSig.ts',
-      './testsV2/setup/mockChainHandler.ts',
+      './tests/setup/mockDialer.ts',
+      './tests/setup/setupTests.ts',
+      './tests/setup/mockChainHandler.ts',
     ],
     coverage: {
       all: true,

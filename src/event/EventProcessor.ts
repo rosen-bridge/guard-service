@@ -1,13 +1,12 @@
 import { loggerFactory } from '../log/Logger';
-import { dbAction } from '../db/DatabaseAction';
-import Utils from '../helpers/Utils';
-import Configs from '../helpers/Configs';
+import Utils from '../utils/Utils';
+import Configs from '../configs/Configs';
 import EventVerifier from '../verification/EventVerifier';
 import EventSerializer from './EventSerializer';
 import EventOrder from './EventOrder';
 import EventBoxes from './EventBoxes';
 import MinimumFee from './MinimumFee';
-import { EventStatus } from '../models/Models';
+import { EventStatus } from '../utils/constants';
 import {
   EventTrigger,
   ImpossibleBehavior,
@@ -19,9 +18,10 @@ import DiscordNotification from '../communication/notification/DiscordNotificati
 import { Fee } from '@rosen-bridge/minimum-fee';
 import ChainHandler from '../handlers/ChainHandler';
 import { ERGO_CHAIN, ErgoChain } from '@rosen-chains/ergo';
-import { rosenConfig } from '../helpers/RosenConfig';
+import { rosenConfig } from '../configs/RosenConfig';
 import TxAgreement from '../agreement/TxAgreement';
 import TransactionSerializer from '../transaction/TransactionSerializer';
+import { DatabaseAction } from '../db/DatabaseAction';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -31,12 +31,14 @@ class EventProcessor {
    */
   static processScannedEvents = async (): Promise<void> => {
     logger.info('Processing scanned events');
-    const rawEvents = await dbAction.getUnconfirmedEvents();
+    const rawEvents = await DatabaseAction.getInstance().getUnconfirmedEvents();
     for (const event of rawEvents) {
       try {
         const eventId = Utils.txIdToEventId(event.sourceTxId);
         // TODO: after updating `getUnconfirmedEvents` query, there is no need for next line (#204)
-        const confirmedEvent = await dbAction.getEventById(eventId);
+        const confirmedEvent = await DatabaseAction.getInstance().getEventById(
+          eventId
+        );
         if (
           confirmedEvent === null &&
           (await EventVerifier.isEventConfirmedEnough(
@@ -46,7 +48,7 @@ class EventProcessor {
           logger.info(
             `Event [${eventId}] with txId [${event.sourceTxId}] confirmed`
           );
-          await dbAction.insertConfirmedEvent(event);
+          await DatabaseAction.getInstance().insertConfirmedEvent(event);
         }
       } catch (e) {
         logger.warn(
@@ -63,10 +65,11 @@ class EventProcessor {
    */
   static processConfirmedEvents = async (): Promise<void> => {
     logger.info('Processing confirmed events');
-    const confirmedEvents = await dbAction.getEventsByStatuses([
-      EventStatus.pendingPayment,
-      EventStatus.pendingReward,
-    ]);
+    const confirmedEvents =
+      await DatabaseAction.getInstance().getEventsByStatuses([
+        EventStatus.pendingPayment,
+        EventStatus.pendingReward,
+      ]);
     for (const event of confirmedEvents) {
       try {
         // check if event is active
@@ -74,7 +77,10 @@ class EventProcessor {
           logger.info(
             `Event [${event.id}] is spent at height [${event.eventData.spendHeight}]`
           );
-          await dbAction.setEventStatus(event.id, EventStatus.spent);
+          await DatabaseAction.getInstance().setEventStatus(
+            event.id,
+            EventStatus.spent
+          );
           continue;
         }
         // process event
@@ -117,7 +123,10 @@ class EventProcessor {
     // verify event
     if (!(await EventVerifier.verifyEvent(event, feeConfig))) {
       logger.warn(`Event [${eventId}] hasn't verified`);
-      await dbAction.setEventStatus(eventId, EventStatus.rejected);
+      await DatabaseAction.getInstance().setEventStatus(
+        eventId,
+        EventStatus.rejected
+      );
       return;
     }
 
@@ -132,7 +141,10 @@ class EventProcessor {
         await DiscordNotification.sendMessage(
           `Failed to create payment for event [${eventId}] due to low assets: ${e}`
         );
-        await dbAction.setEventStatus(eventId, EventStatus.paymentWaiting);
+        await DatabaseAction.getInstance().setEventStatus(
+          eventId,
+          EventStatus.paymentWaiting
+        );
       } else throw e;
     }
   };
@@ -181,11 +193,15 @@ class EventProcessor {
       await TxAgreement.getInstance()
     ).getChainPendingTransactions(event.toChain);
     const unsignedQueueTransactions = (
-      await dbAction.getUnsignedActiveTxsInChain(event.toChain)
+      await DatabaseAction.getInstance().getUnsignedActiveTxsInChain(
+        event.toChain
+      )
     ).map((txEntity) => TransactionSerializer.fromJson(txEntity.txJson));
     // get signed transactions in target chain
     const signedTransactions = (
-      await dbAction.getSignedActiveTxsInChain(event.toChain)
+      await DatabaseAction.getInstance().getSignedActiveTxsInChain(
+        event.toChain
+      )
     ).map((txEntity) =>
       Buffer.from(
         TransactionSerializer.fromJson(txEntity.txJson).txBytes
@@ -231,7 +247,10 @@ class EventProcessor {
         await DiscordNotification.sendMessage(
           `Failed to create reward distribution for event [${eventId}] due to low assets: ${e}`
         );
-        await dbAction.setEventStatus(eventId, EventStatus.rewardWaiting);
+        await DatabaseAction.getInstance().setEventStatus(
+          eventId,
+          EventStatus.rewardWaiting
+        );
       } else throw e;
     }
   };
@@ -269,11 +288,11 @@ class EventProcessor {
       await TxAgreement.getInstance()
     ).getChainPendingTransactions(ERGO_CHAIN);
     const unsignedQueueTransactions = (
-      await dbAction.getUnsignedActiveTxsInChain(ERGO_CHAIN)
+      await DatabaseAction.getInstance().getUnsignedActiveTxsInChain(ERGO_CHAIN)
     ).map((txEntity) => TransactionSerializer.fromJson(txEntity.txJson));
     // get signed transactions in target chain
     const signedTransactions = (
-      await dbAction.getSignedActiveTxsInChain(ERGO_CHAIN)
+      await DatabaseAction.getInstance().getSignedActiveTxsInChain(ERGO_CHAIN)
     ).map((txEntity) =>
       Buffer.from(
         TransactionSerializer.fromJson(txEntity.txJson).txBytes
@@ -297,9 +316,10 @@ class EventProcessor {
    */
   static TimeoutLeftoverEvents = async (): Promise<void> => {
     logger.info('Searching for leftover events');
-    const pendingEvents = await dbAction.getEventsByStatuses([
-      EventStatus.pendingPayment,
-    ]);
+    const pendingEvents =
+      await DatabaseAction.getInstance().getEventsByStatuses([
+        EventStatus.pendingPayment,
+      ]);
 
     let timeoutEventsCount = 0;
     for (const event of pendingEvents) {
@@ -308,7 +328,10 @@ class EventProcessor {
           Math.round(Date.now() / 1000) >
           Number(event.firstTry) + Configs.eventTimeout
         ) {
-          await dbAction.setEventStatus(event.id, EventStatus.timeout);
+          await DatabaseAction.getInstance().setEventStatus(
+            event.id,
+            EventStatus.timeout
+          );
           timeoutEventsCount += 1;
         }
       } catch (e) {
@@ -328,19 +351,19 @@ class EventProcessor {
    */
   static RequeueWaitingEvents = async (): Promise<void> => {
     logger.info('Processing waiting events');
-    const waitingEvents = await dbAction.getWaitingEvents();
+    const waitingEvents = await DatabaseAction.getInstance().getWaitingEvents();
 
     let requeueEventsCount = 0;
     for (const event of waitingEvents) {
       try {
         if (event.status === EventStatus.paymentWaiting) {
-          await dbAction.setEventStatusToPending(
+          await DatabaseAction.getInstance().setEventStatusToPending(
             event.id,
             EventStatus.pendingPayment
           );
           requeueEventsCount += 1;
         } else if (event.status === EventStatus.rewardWaiting) {
-          await dbAction.setEventStatusToPending(
+          await DatabaseAction.getInstance().setEventStatusToPending(
             event.id,
             EventStatus.pendingReward
           );

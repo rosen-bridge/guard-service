@@ -5,12 +5,12 @@ import {
   SinglePayment,
   TokenInfo,
 } from '@rosen-chains/abstract-chain';
-import Utils from '../helpers/Utils';
+import Utils from '../utils/Utils';
 import { Fee } from '@rosen-bridge/minimum-fee';
-import Configs from '../helpers/Configs';
-import GuardsErgoConfigs from '../helpers/GuardsErgoConfigs';
+import Configs from '../configs/Configs';
+import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import MinimumFee from './MinimumFee';
-import { rosenConfig } from '../helpers/RosenConfig';
+import { rosenConfig } from '../configs/RosenConfig';
 import { ERG, ERGO_CHAIN, ErgoChain } from '@rosen-chains/ergo';
 import ChainHandler from '../handlers/ChainHandler';
 import EventBoxes from './EventBoxes';
@@ -32,7 +32,6 @@ class EventOrder {
     const chainMinTransfer = targetChain.getMinimumNativeToken();
 
     const order: PaymentOrder = [];
-    const extra: any[] = [];
 
     // add reward order if target chain is ergo
     if (event.toChain === ERGO_CHAIN) {
@@ -62,9 +61,6 @@ class EventOrder {
         rwtCount
       );
       order.push(...rewardOrder);
-
-      // add event and commitment boxes to generateTransaction arguments
-      extra.push([eventBox, ...commitmentBoxes], [guardsConfigBox]);
     }
 
     // add payment order

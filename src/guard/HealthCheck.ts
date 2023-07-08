@@ -10,14 +10,14 @@ import {
   LogLevelHealthCheck,
   CardanoAssetHealthCheckParam,
 } from '@rosen-bridge/health-check';
-import { dataSource } from '../../config/dataSource';
+import { dataSource } from '../db/dataSource';
 import { loggerFactory } from '../log/Logger';
-import Configs from '../helpers/Configs';
-import GuardsErgoConfigs from '../helpers/GuardsErgoConfigs';
-import { rosenConfig } from '../helpers/RosenConfig';
+import Configs from '../configs/Configs';
+import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
+import { rosenConfig } from '../configs/RosenConfig';
 import Dialer from '../communication/Dialer';
 import CommunicationConfig from '../communication/CommunicationConfig';
-import GuardsCardanoConfigs from '../helpers/GuardsCardanoConfigs';
+import GuardsCardanoConfigs from '../configs/GuardsCardanoConfigs';
 import { NODE_NETWORK } from '@rosen-chains/ergo-node-network';
 import { EXPLORER_NETWORK } from '@rosen-chains/ergo-explorer-network';
 import { KOIOS_NETWORK } from '@rosen-chains/cardano-koios-network';
