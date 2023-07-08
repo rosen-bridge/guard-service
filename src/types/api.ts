@@ -15,4 +15,10 @@ enum SortRequest {
   DESC = 'DESC',
 }
 
-export { FastifySeverInstance, SortRequest };
+type Asset = {
+  tokenId: string;
+  tokenName: string;
+  amount: string;
+};
+
+export { FastifySeverInstance, SortRequest, Asset };
