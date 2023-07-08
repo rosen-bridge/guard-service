@@ -254,6 +254,7 @@ class DatabaseActionMock {
     hash = TestUtils.generateRandomId(),
     height = 1000
   ) => {
+    const date = new Date(timestamp);
     await this.testDataSource
       .getRepository(BlockEntity)
       .createQueryBuilder()
@@ -265,6 +266,9 @@ class DatabaseActionMock {
         status: PROCEED,
         scanner: 'scanner',
         timestamp: timestamp,
+        year: date.getFullYear(),
+        month: date.getMonth(),
+        day: date.getDay(),
       })
       .execute();
   };

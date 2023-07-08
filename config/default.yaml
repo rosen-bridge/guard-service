@@ -123,3 +123,5 @@ healthCheck:
     duration: 100 # error log duration time check
   p2p:
     defectConfirmationTimeWindow: 120 # Time to wait after any peer disconnection
+revenue:
+  interval: 120 # revenue update interval

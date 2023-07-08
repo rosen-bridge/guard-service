@@ -9,18 +9,12 @@ import { ViewEntity, ViewColumn } from 'typeorm';
       .addSelect('re."amount"', 'amount')
       .addSelect('be."timestamp"', 'timestamp')
       .addSelect(`be."timestamp"/604800000`, 'weak_number')
-      .addSelect(
-        `strftime('%m', datetime(be."timestamp"/1000, 'unixepoch'))`,
-        'month'
-      )
-      .addSelect(
-        `strftime('%Y', datetime(be."timestamp"/1000, 'unixepoch'))`,
-        'year'
-      )
+      .addSelect(`be."month"`, 'month')
+      .addSelect(`be."year"`, 'year')
       .from('revenue_entity', 're')
       .innerJoin('transaction_entity', 'tx', 'tx."txId" = re."txId"')
       .innerJoin('event_trigger_entity', 'ete', 'ete.eventId = tx.eventId')
-      .innerJoin('block_entity', 'be', 'ete.block = be.hash'),
+      .innerJoin('block_entity', 'be', 'ete.spendBlock = be.hash'),
 })
 export class RevenueChartView {
   @ViewColumn()

@@ -24,8 +24,8 @@ const dbConfigs = {
   entities: [
     BlockEntity,
     CommitmentEntity,
-    ConfirmedEventEntity,
     EventTriggerEntity,
+    ConfirmedEventEntity,
     TransactionEntity,
     RevenueEntity,
     RevenueView,
