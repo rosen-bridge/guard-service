@@ -14,10 +14,6 @@ describe('assets', () => {
     mockedServer.register(assetRoutes);
   });
 
-  afterEach(() => {
-    mockedServer.close();
-  });
-
   const mockCardanoLockAddressAssets = (
     nativeToken: bigint,
     tokens: Array<{ id: string; value: bigint }>
