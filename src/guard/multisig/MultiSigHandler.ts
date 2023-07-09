@@ -21,8 +21,9 @@ import { CommitmentMisMatch } from '../../utils/errors';
 const logger = loggerFactory(import.meta.url);
 
 class MultiSigHandler {
+  private static instance: MultiSigHandler;
   private static CHANNEL = 'multi-sig';
-  private static dialer: Dialer;
+  private dialer: Dialer;
   private readonly transactions: Map<string, TxQueued>;
   private peers: Array<Signer>;
   private readonly secret: Uint8Array;
@@ -31,36 +32,36 @@ class MultiSigHandler {
   private index?: number;
   private peerId?: string;
   private semaphore = new Semaphore(1);
-  private static instance: MultiSigHandler;
 
-  constructor(publicKeys: Array<string>, secretHex?: string) {
+  private constructor(publicKeys: Array<string>, secretHex?: string) {
     this.transactions = new Map<string, TxQueued>();
     this.peers = publicKeys.map((item) => ({
       pub: item,
       unapproved: [],
     }));
-    logger.debug(`Subscribing to [${MultiSigHandler.CHANNEL}]`);
     this.secret = Buffer.from(secretHex || Configs.guardSecret, 'hex');
   }
 
   /**
    * initializes dialer variable in class and subscribe to channel
+   * @param secretHex guard secret key
    */
-  init = async () => {
-    MultiSigHandler.dialer = await Dialer.getInstance();
-    MultiSigHandler.dialer.subscribeChannel(
+  static init = async (secretHex: string) => {
+    MultiSigHandler.instance = new MultiSigHandler([], secretHex);
+    MultiSigHandler.instance.dialer = await Dialer.getInstance();
+    logger.debug(`Subscribing to [${MultiSigHandler.CHANNEL}]`);
+    MultiSigHandler.instance.dialer.subscribeChannel(
       MultiSigHandler.CHANNEL,
-      this.handleMessage
+      MultiSigHandler.instance.handleMessage
     );
   };
 
   /**
    * @returns a MultiSigHandler instance (create if it doesn't exist)
    */
-  public static getInstance = (secretHex?: string) => {
-    if (!MultiSigHandler.instance) {
-      MultiSigHandler.instance = new MultiSigHandler([], secretHex);
-    }
+  public static getInstance = () => {
+    if (!MultiSigHandler.instance)
+      throw new Error('MultiSig is not instantiated yet');
     return MultiSigHandler.instance;
   };
 
@@ -73,7 +74,7 @@ class MultiSigHandler {
       type: 'register',
       payload: {
         nonce: this.nonce,
-        myId: MultiSigHandler.dialer.getDialerId(),
+        myId: this.dialer.getDialerId(),
       },
     });
   };
@@ -144,7 +145,7 @@ class MultiSigHandler {
    * get my peer id
    */
   getPeerId = (): string => {
-    const peerId = MultiSigHandler.dialer.getDialerId();
+    const peerId = this.dialer.getDialerId();
     return peerId;
   };
 
@@ -447,7 +448,7 @@ class MultiSigHandler {
       Promise.all(
         receivers.map(
           async (receiver) =>
-            await MultiSigHandler.dialer
+            await this.dialer
               .sendMessage(
                 MultiSigHandler.CHANNEL,
                 JSON.stringify(message),
@@ -457,7 +458,7 @@ class MultiSigHandler {
         )
       );
     } else {
-      await MultiSigHandler.dialer.sendMessage(
+      await this.dialer.sendMessage(
         MultiSigHandler.CHANNEL,
         JSON.stringify(message)
       );

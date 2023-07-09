@@ -8,6 +8,7 @@ import { loggerFactory } from '../log/Logger';
 import { generalInfoRoute } from '../api/generalInfo';
 import { eventRoutes } from '../api/events';
 import { healthRoutes } from '../api/healthCheck';
+import { tssRoute } from '../api/tss';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -48,6 +49,7 @@ const initApiServer = async () => {
   });
 
   await apiServer.register(p2pRoutes);
+  await apiServer.register(tssRoute);
   await apiServer.register(generalInfoRoute);
   await apiServer.register(eventRoutes);
   await apiServer.register(healthRoutes);

@@ -24,11 +24,9 @@ describe('MultiSigHandler', () => {
     secret: string,
     pks = publicKeys
   ): Promise<MultiSigHandler> => {
-    const handler = new MultiSigHandler(
-      pks,
-      '5bc1d17d0612e696a9138ab8e85ca2a02d0171440ec128a9ad557c28bd5ea046'
-    );
-    await handler.init();
+    await MultiSigHandler.init(secret);
+    const handler = MultiSigHandler.getInstance();
+    handler.handlePublicKeysChange(pks);
     return handler;
   };
 
@@ -124,9 +122,8 @@ describe('MultiSigHandler', () => {
      * @expected
      * - only no error throws
      */
-    it('should run successfully', () => {
-      const handler = new MultiSigHandler(
-        publicKeys,
+    it('should run successfully', async () => {
+      const handler = await generateMultiSigHandlerInstance(
         '5bc1d17d0612e696a9138ab8e85ca2a02d0171440ec128a9ad557c28bd5ea046'
       );
       handler.getProver();
@@ -240,7 +237,7 @@ describe('MultiSigHandler', () => {
      * @expected
      * - returned value should be mocked dialer
      */
-    it("should return peerId equal to 'peerId'", async () => {
+    it('should return guard peerId successfully', async () => {
       const handler = await generateMultiSigHandlerInstance(
         '5bc1d17d0612e696a9138ab8e85ca2a02d0171440ec128a9ad557c28bd5ea046'
       );
@@ -273,7 +270,7 @@ describe('MultiSigHandler', () => {
      * - index 6 should get verified
      * - `sendRegister` should got called
      */
-    it('should update peers based on new public keys', async () => {
+    it('should update peers and send register message', async () => {
       // mock `sendRegister`
       const handler = await generateMultiSigHandlerInstance(
         '5bc1d17d0612e696a9138ab8e85ca2a02d0171440ec128a9ad557c28bd5ea046'
@@ -471,7 +468,7 @@ describe('MultiSigHandler', () => {
      * @expected
      * - `generateSign` should got called
      */
-    it('handleCommitment should call with no error', async () => {
+    it('should generate sign with no error', async () => {
       // mock test data
       const box1Hex =
         '80a8d6b907100304000e20a6ac381e6fa99929fd1477b3ba9499790a775e91d4c14c5aa86e9a118dfac8530400d801d601b2db6501fe730000ea02d1aedb63087201d901024d0e938c720201730198b2e4c672010510730200ade4c67201041ad901020ecdee72028cc10f00003a4f8dac9bbe80fffaf400edd5779b7ccd5628beceab06c41b5b7b3e091e963501';
@@ -777,7 +774,7 @@ describe('MultiSigHandler', () => {
      * @expected
      * - only no error throws
      */
-    it('should not throw any error when when transaction needs sign and commitments are correct', async () => {
+    it('should not throw any error when transaction needs sign and commitments are correct', async () => {
       // mock test data
       const tx = mockPartialSignedTransaction();
       const publishedCommitment =

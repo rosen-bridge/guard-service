@@ -16,13 +16,14 @@ import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import MinimumFee from '../event/MinimumFee';
 import MultiSigHandler from '../guard/multisig/MultiSigHandler';
 import { loggerFactory } from '../log/Logger';
+import Tss from '../guard/Tss';
 
 const logger = loggerFactory(import.meta.url);
 
 class ChainHandler {
   private static instance: ChainHandler;
-  private ergoChain: ErgoChain;
-  private cardanoChain: CardanoChain;
+  private readonly ergoChain: ErgoChain;
+  private readonly cardanoChain: CardanoChain;
 
   private constructor() {
     this.ergoChain = this.generateErgoChain();
@@ -83,9 +84,7 @@ class ChainHandler {
           `No case is defined for network [${GuardsErgoConfigs.chainNetworkName}]`
         );
     }
-    const multiSigSignFunction = MultiSigHandler.getInstance(
-      Configs.guardSecret
-    ).sign;
+    const multiSigSignFunction = MultiSigHandler.getInstance().sign;
     return new ErgoChain(
       network,
       GuardsErgoConfigs.chainConfigs,
@@ -115,10 +114,7 @@ class ChainHandler {
           `No case is defined for network [${GuardsCardanoConfigs.chainNetworkName}]`
         );
     }
-    // TODO: replace this with TSS package sign function (#243)
-    const tssSignFunction = () => {
-      throw Error(`TSS signer is not implemented yet`);
-    };
+    const tssSignFunction = Tss.getInstance().sign;
     return new CardanoChain(
       network,
       GuardsCardanoConfigs.chainConfigs,

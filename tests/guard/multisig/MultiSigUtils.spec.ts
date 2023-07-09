@@ -195,7 +195,7 @@ describe('MultiSigUtils', () => {
      * @expected
      * - returned value should be true
      */
-    it('should return true in case of same commitments', () => {
+    it('should return true when two commitments are same', () => {
       const firstCommitments = [
         { a: '2', position: '0-2' },
         { a: '1', position: '0-1' },
@@ -224,7 +224,7 @@ describe('MultiSigUtils', () => {
      * @expected
      * - returned value should be false
      */
-    it('should return false in case of commitments are different from each other', () => {
+    it('should return false when two commitments are different', () => {
       const firstCommitments = [
         { a: '1', position: '0-2' },
         { a: '1', position: '0-1' },

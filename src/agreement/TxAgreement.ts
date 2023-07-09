@@ -17,13 +17,12 @@ import {
 import RequestVerifier from '../verification/RequestVerifier';
 import TransactionSerializer from '../transaction/TransactionSerializer';
 import Configs from '../configs/Configs';
-import { Communicator } from './communicator/Communicator'; // TODO: import from tss (#243)
-import { EcDSA } from './communicator/EcDSA';
 import GuardTurn from '../utils/GuardTurn';
 import TransactionVerifier from '../verification/TransactionVerifier';
 import DatabaseHandler from '../db/DatabaseHandler';
 import GuardPkHandler from '../handlers/GuardPkHandler';
 import { DatabaseAction } from '../db/DatabaseAction';
+import { Communicator, ECDSA } from '@rosen-bridge/tss';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -41,7 +40,7 @@ class TxAgreement extends Communicator {
   protected constructor() {
     super(
       logger,
-      new EcDSA(Configs.guardSecret),
+      new ECDSA(Configs.guardSecret),
       TxAgreement.sendMessageWrapper,
       GuardPkHandler.getInstance().publicKeys,
       GuardTurn.UP_TIME_LENGTH
@@ -72,12 +71,12 @@ class TxAgreement extends Communicator {
   /**
    * wraps dialer handle message to communicator
    * @param msg
-   * @param channal
+   * @param channel
    * @param peerId
    */
   messageHandlerWrapper = async (
     msg: string,
-    channal: string,
+    channel: string,
     peerId: string
   ) => {
     this.handleMessage(msg, peerId);
@@ -222,7 +221,7 @@ class TxAgreement extends Communicator {
         }
         default:
           logger.warn(
-            `Received unexpected message type [${type}] in tx-agreement channal`
+            `Received unexpected message type [${type}] in tx-agreement channel`
           );
       }
     } catch (e) {

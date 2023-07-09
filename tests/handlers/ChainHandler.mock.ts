@@ -101,6 +101,28 @@ class ChainHandlerMock {
   };
 
   /**
+   * mocks a function for mocked chain to throw `error`
+   * @param name function name
+   * @param result an error object
+   * @param isAsync true if function is async
+   */
+  static mockToChainFunctionToThrow = (
+    name: string,
+    error: any,
+    isAsync = false
+  ) => {
+    this.mockedToChain[name] = vi.fn();
+    if (isAsync)
+      vi.spyOn(this.mockedToChain, name).mockImplementation(async () => {
+        throw error;
+      });
+    else
+      vi.spyOn(this.mockedToChain, name).mockImplementation(() => {
+        throw error;
+      });
+  };
+
+  /**
    * returns a mocked function object
    * @param name function name
    * @param isFromChain true if function is mocked fromChain
