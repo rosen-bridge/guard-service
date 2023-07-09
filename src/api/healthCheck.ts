@@ -36,10 +36,10 @@ const healthStatusRoute = (server: FastifySeverInstance) => {
  */
 const healthStatusForParameterRoute = (server: FastifySeverInstance) => {
   server.get(
-    '/health/parameter/:paramName',
+    '/health/parameter/:paramId',
     {
       schema: {
-        params: Type.Object({ paramName: Type.String() }),
+        params: Type.Object({ paramId: Type.String() }),
         response: {
           200: HealthStatusType,
           500: messageResponseSchema,
@@ -48,10 +48,14 @@ const healthStatusForParameterRoute = (server: FastifySeverInstance) => {
     },
     async (request, reply) => {
       const health = await getHealthCheck();
-      const status = await health.getHealthStatusFor(request.params.paramName);
+      const status = await health.getHealthStatusFor(request.params.paramId);
+      if (!status)
+        throw new Error(
+          `Health parameter with id '${request.params.paramId}' have not been registered.`
+        );
       reply
         .status(200)
-        .send({ ...status!, lastCheck: status?.lastCheck?.toISOString() });
+        .send({ ...status, lastCheck: status.lastCheck!.toISOString() });
     }
   );
 };
@@ -60,12 +64,12 @@ const healthStatusForParameterRoute = (server: FastifySeverInstance) => {
  * setup update parameter health status route
  * @param server
  */
-const UpdateHealthStatusForParameterRoute = (server: FastifySeverInstance) => {
+const updateHealthStatusForParameterRoute = (server: FastifySeverInstance) => {
   server.put(
-    '/health/parameter/:paramName',
+    '/health/parameter/:paramId',
     {
       schema: {
-        params: Type.Object({ paramName: Type.String() }),
+        params: Type.Object({ paramId: Type.String() }),
         response: {
           200: HealthStatusType,
           500: messageResponseSchema,
@@ -75,11 +79,15 @@ const UpdateHealthStatusForParameterRoute = (server: FastifySeverInstance) => {
 
     async (request, reply) => {
       const health = await getHealthCheck();
-      await health.updateParam(request.params.paramName);
-      const status = await health.getHealthStatusFor(request.params.paramName);
+      await health.updateParam(request.params.paramId);
+      const status = await health.getHealthStatusFor(request.params.paramId);
+      if (!status)
+        throw new Error(
+          `Health parameter with id '${request.params.paramId}' have not been registered.`
+        );
       reply
         .status(200)
-        .send({ ...status!, lastCheck: status?.lastCheck?.toISOString() });
+        .send({ ...status, lastCheck: status.lastCheck!.toISOString() });
     }
   );
 };
@@ -87,7 +95,7 @@ const UpdateHealthStatusForParameterRoute = (server: FastifySeverInstance) => {
 const healthRoutes = async (server: FastifySeverInstance) => {
   healthStatusRoute(server);
   healthStatusForParameterRoute(server);
-  UpdateHealthStatusForParameterRoute(server);
+  updateHealthStatusForParameterRoute(server);
 };
 
 export { healthRoutes };
