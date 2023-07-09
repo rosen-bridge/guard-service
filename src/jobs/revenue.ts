@@ -1,10 +1,10 @@
 import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
-import Configs from 'src/configs/Configs';
-import { DatabaseAction } from 'src/db/DatabaseAction';
-import { loggerFactory } from 'src/log/Logger';
+import Configs from '../../src/configs/Configs';
+import { DatabaseAction } from '../../src/db/DatabaseAction';
+import { loggerFactory } from '../../src/log/Logger';
 import TransactionSerializer from '../transaction/TransactionSerializer';
-import { chainHandlerInstance } from 'tests/handlers/ChainHandler.mock';
-import GuardsErgoConfigs from 'src/configs/GuardsErgoConfigs';
+import GuardsErgoConfigs from '../../src/configs/GuardsErgoConfigs';
+import ChainHandler from '../../src/handlers/ChainHandler';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -22,7 +22,7 @@ export const revenueJobFunction = async () => {
   // store reward tx info
   for (const tx of newTxs) {
     const rewardTx = TransactionSerializer.fromJson(tx.txJson);
-    const payments = chainHandlerInstance
+    const payments = ChainHandler.getInstance()
       .getChain(ERGO_CHAIN)
       .extractTransactionOrder(rewardTx);
 
