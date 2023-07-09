@@ -51,6 +51,11 @@ tss:
   url: 'http://localhost'
   port: 9000
   timeout: 8 # connection timeout for tss API
+  secret: ''
+  publicKeys:
+    - ''
+  ks:
+    - ''
 p2p:
   addresses: # relay configs
     - peerId: ''

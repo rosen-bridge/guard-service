@@ -65,6 +65,11 @@ class Configs {
   static tssPort = config.get<string>('tss.port');
   static tssTimeout = getConfigIntKeyOrDefault('tss.timeout', 8); // seconds
   static tssCallBackUrl = `http://${this.apiHost}:${this.apiPort}/tss/sign`;
+  static tssKeys = {
+    secret: config.get<string>('tss.secret'),
+    publicKeys: config.get<string[]>('tss.publicKeys'),
+    ks: config.get<string[]>('tss.ks'),
+  };
 
   // guards configs
   static guardMnemonic = config.get<string>('guard.mnemonic');
@@ -119,6 +124,7 @@ class Configs {
   static approvalResendDelay = 5; // seconds
   static multiSigCleanUpInterval = 120; // seconds
   static tssInstanceRestartGap = 5; // seconds
+  static tssUpdateInterval = 10; // seconds
   static timeoutProcessorInterval = getConfigIntKeyOrDefault(
     'intervals.timeoutProcessorInterval',
     3600

@@ -17,6 +17,7 @@ import Configs from '../../src/configs/Configs';
 import * as EventTestData from '../event/testData';
 import EventSerializer from '../../src/event/EventSerializer';
 import TransactionProcessorMock from './TransactionProcessor.mock';
+import TransactionSerializer from '../../src/transaction/TransactionSerializer';
 
 describe('TransactionProcessor', () => {
   const currentTimeStampSeconds = Math.round(
@@ -36,6 +37,7 @@ describe('TransactionProcessor', () => {
     beforeEach(async () => {
       await DatabaseActionMock.clearTables();
       ChainHandlerMock.resetMock();
+      TransactionProcessorMock.restoreMocks();
     });
 
     /**
@@ -83,6 +85,229 @@ describe('TransactionProcessor', () => {
         [tx.txId, TransactionStatus.inSign, currentTimeStampSeconds.toString()],
       ]);
     });
+
+    /**
+     * @target TransactionProcessor.processApprovedTx should handle
+     * successful sign
+     * @dependencies
+     * - database
+     * - ChainHandler
+     * @scenario
+     * - mock transaction and insert into db as 'approved'
+     * - mock ChainHandler `getChain`
+     *   - mock `signTransaction`
+     *   - mock `getHeight`
+     * - mock TransactionProcessor.handleSuccessfulSign
+     * - run test (call `processTransactions`)
+     * - check if function got called
+     * - check tx in database
+     * @expected
+     * - `signTransaction` should got called
+     * - `handleSuccessfulSign` should got called
+     */
+    it('should handle successful sign', async () => {
+      // mock transaction and insert into db as 'approved'
+      const tx = mockPaymentTransaction();
+      const signedTx = tx;
+      signedTx.txBytes = Buffer.from('signed');
+      await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.approved);
+
+      // mock ChainHandler `getChain`
+      ChainHandlerMock.mockChainName(tx.network);
+      // mock `signTransaction`
+      ChainHandlerMock.mockToChainFunction('signTransaction', signedTx, true);
+      // mock `getHeight`
+      const mockedCurrentHeight = 102;
+      ChainHandlerMock.mockToChainFunction(
+        'getHeight',
+        mockedCurrentHeight,
+        true
+      );
+
+      // mock TransactionProcessor.handleSuccessfulSign
+      const mockedHandleSuccessfulSign = TransactionProcessorMock.mockFunction(
+        'handleSuccessfulSign'
+      );
+
+      // run test
+      await TransactionProcessor.processTransactions();
+
+      // `signTransaction` should got called
+      expect(
+        ChainHandlerMock.getChainMockedFunction('signTransaction')
+      ).toHaveBeenCalledOnce();
+
+      // `handleSuccessfulSign` should got called
+      expect(mockedHandleSuccessfulSign).toHaveBeenCalledWith(signedTx);
+    });
+
+    /**
+     * @target TransactionProcessor.processApprovedTx should handle
+     * failed sign
+     * @dependencies
+     * - database
+     * - ChainHandler
+     * @scenario
+     * - mock transaction and insert into db as 'approved'
+     * - mock ChainHandler `getChain`
+     *   - mock `signTransaction`
+     *   - mock `getHeight`
+     * - mock TransactionProcessor.handleFailedSign
+     * - run test (call `processTransactions`)
+     * - check if function got called
+     * - check tx in database
+     * @expected
+     * - `signTransaction` should got called
+     * - `handleFailedSign` should got called
+     */
+    it('should handle failed sign', async () => {
+      // mock transaction and insert into db as 'approved'
+      const tx = mockPaymentTransaction();
+      const signedTx = tx;
+      signedTx.txBytes = Buffer.from('signed');
+      await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.approved);
+
+      // mock ChainHandler `getChain`
+      ChainHandlerMock.mockChainName(tx.network);
+      // mock `signTransaction`
+      ChainHandlerMock.mockToChainFunctionToThrow(
+        'signTransaction',
+        new Error(`failure in sign test Error`),
+        true
+      );
+      // mock `getHeight`
+      const mockedCurrentHeight = 102;
+      ChainHandlerMock.mockToChainFunction(
+        'getHeight',
+        mockedCurrentHeight,
+        true
+      );
+
+      // mock TransactionProcessor.handleFailedSign
+      const mockedHandleFailedSign =
+        TransactionProcessorMock.mockFunction('handleFailedSign');
+
+      // run test
+      await TransactionProcessor.processTransactions();
+
+      // `signTransaction` should got called
+      expect(
+        ChainHandlerMock.getChainMockedFunction('signTransaction')
+      ).toHaveBeenCalledOnce();
+
+      // `handleFailedSign` should got called
+      expect(mockedHandleFailedSign).toHaveBeenCalledOnce();
+    });
+  });
+
+  describe('handleSuccessfulSign', () => {
+    beforeEach(async () => {
+      await DatabaseActionMock.clearTables();
+      ChainHandlerMock.resetMock();
+      TransactionProcessorMock.restoreMocks();
+    });
+
+    /**
+     * @target TransactionProcessor.handleSuccessfulSign should update
+     * transaction in database to signed tx
+     * @dependencies
+     * - database
+     * - ChainHandler
+     * @scenario
+     * - mock transaction and insert into db as 'in-sign'
+     * - mock ChainHandler `getChain`
+     *   - mock `getHeight`
+     * - run test
+     * - check if function got called
+     * - check tx in database
+     * @expected
+     * - tx status should be updated to 'signed'
+     */
+    it('should update transaction in database to signed tx', async () => {
+      // mock transaction and insert into db as 'in-sign'
+      const tx = mockPaymentTransaction();
+      const signedTx = tx;
+      signedTx.txBytes = Buffer.from('signed');
+      await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.inSign);
+
+      // mock ChainHandler `getChain`
+      ChainHandlerMock.mockChainName(tx.network);
+      // mock `getHeight`
+      const mockedCurrentHeight = 102;
+      ChainHandlerMock.mockToChainFunction(
+        'getHeight',
+        mockedCurrentHeight,
+        true
+      );
+
+      // run test
+      await TransactionProcessor.handleSuccessfulSign(signedTx);
+
+      // tx status should be updated to 'signed'
+      const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
+        tx.txId,
+        tx.txJson,
+        tx.status,
+        tx.lastStatusUpdate,
+        tx.lastCheck,
+      ]);
+      expect(dbTxs).toEqual([
+        [
+          tx.txId,
+          TransactionSerializer.toJson(signedTx),
+          TransactionStatus.signed,
+          currentTimeStampSeconds.toString(),
+          mockedCurrentHeight,
+        ],
+      ]);
+    });
+  });
+
+  describe('handleFailedSign', () => {
+    beforeEach(async () => {
+      await DatabaseActionMock.clearTables();
+      TransactionProcessorMock.restoreMocks();
+    });
+
+    /**
+     * @target TransactionProcessor.handleFailedSign should update
+     * transaction status to sign-failed
+     * @dependencies
+     * - database
+     * - ChainHandler
+     * @scenario
+     * - mock transaction and insert into db as 'in-sign'
+     * - run test
+     * - check if function got called
+     * - check tx in database
+     * @expected
+     * - tx status should be updated to 'sign-failed'
+     */
+    it('should update transaction status to sign-failed', async () => {
+      // mock transaction and insert into db as 'in-sign'
+      const tx = mockPaymentTransaction();
+      await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.inSign);
+
+      // run test
+      await TransactionProcessor.handleFailedSign(
+        tx.txId,
+        'sign failure error message'
+      );
+
+      // tx status should be updated to 'sign-failed'
+      const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
+        tx.txId,
+        tx.status,
+        tx.lastStatusUpdate,
+      ]);
+      expect(dbTxs).toEqual([
+        [
+          tx.txId,
+          TransactionStatus.signFailed,
+          currentTimeStampSeconds.toString(),
+        ],
+      ]);
+    });
   });
 
   describe('processInSignTx', () => {
@@ -92,7 +317,7 @@ describe('TransactionProcessor', () => {
 
     /**
      * @target TransactionProcessor.processInSignTx should update status
-     * to failed-sign when enough times is passed from sign request
+     * to sign-failed when enough times is passed from sign request
      * @dependencies
      * - database
      * - Date
@@ -101,9 +326,9 @@ describe('TransactionProcessor', () => {
      * - run test (call `processTransactions`)
      * - check tx in database
      * @expected
-     * - tx status should be updated to 'failed-sign'
+     * - tx status should be updated to 'sign-failed'
      */
-    it('should update status to failed-sign when enough times is passed from sign request', async () => {
+    it('should update status to sign-failed when enough times is passed from sign request', async () => {
       // mock transaction and insert into db as 'approved'
       const tx = mockPaymentTransaction();
       const lastStatusUpdate =
@@ -118,7 +343,7 @@ describe('TransactionProcessor', () => {
       // run test
       await TransactionProcessor.processTransactions();
 
-      // tx status should be updated to 'failed-sign'
+      // tx status should be updated to 'sign-failed'
       const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
         tx.txId,
         tx.status,
