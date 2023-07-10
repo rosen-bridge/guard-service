@@ -1,7 +1,8 @@
+import { HealthStatusLevel } from '@rosen-bridge/health-check';
 import GuardsErgoConfigs from '../../src/configs/GuardsErgoConfigs';
 
 export const guardInfo = {
-  health: 'OK',
+  health: HealthStatusLevel.HEALTHY,
   hot: {
     address: GuardsErgoConfigs.ergoContractConfig.lockAddress,
     balance: '10',
