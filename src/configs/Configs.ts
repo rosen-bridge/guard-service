@@ -134,6 +134,8 @@ class Configs {
     43200
   ); // seconds
 
+  static multiSigFirstSignDelay = 3; // seconds
+
   // logs configs
   static logs;
   static {
