@@ -48,6 +48,12 @@ const getOptionalConfig = <T>(key: string, defaultValue: T) => {
   return defaultValue;
 };
 
+class KeygenConfig {
+  static isActive = config.get<string>('keygen.active') === 'true';
+  static guardsCount = getConfigIntKeyOrDefault('keygen.guards', 0);
+  static threshold = getConfigIntKeyOrDefault('keygen.threshold', 0);
+}
+
 class Configs {
   // express config
   static apiPort = getConfigIntKeyOrDefault('api.port', 8080);
@@ -218,6 +224,7 @@ class Configs {
     'healthCheck.p2p.defectConfirmationTimeWindow',
     120
   );
+  static keygen = KeygenConfig;
 }
 
 export default Configs;

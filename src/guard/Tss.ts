@@ -4,6 +4,7 @@ import {
   StatusEnum,
   TssSigner,
 } from '@rosen-bridge/tss';
+import CommunicationConfig from '../communication/CommunicationConfig';
 import Dialer from '../communication/Dialer';
 import { loggerFactory } from '../log/Logger';
 import Configs from '../configs/Configs';
@@ -110,6 +111,25 @@ class Tss {
     );
   };
 
+  static keygen = async (guardsCount: number, threshold: number) => {
+    Tss.runBinary();
+
+    // initialize dialer
+    Tss.dialer = await Dialer.getInstance();
+
+    Tss.tryCallApi(guardsCount, threshold);
+  };
+
+  private static tryCallApi = (guardsCount: number, threshold: number) => {
+    const peerIds = Tss.dialer
+      .getPeerIds()
+      .filter((peerId) => !CommunicationConfig.relays.peerIDs.includes(peerId));
+    if (peerIds.length < guardsCount - 1) {
+      setTimeout(() => Tss.tryCallApi(guardsCount, threshold), 1000);
+    } else {
+      // call api
+    }
+  };
   /**
    * generates a function to wrap channel send message to dialer
    * @param channel
