@@ -4,7 +4,9 @@ import {
   StatusEnum,
   TssSigner,
 } from '@rosen-bridge/tss';
+import axios from 'axios';
 import CommunicationConfig from '../communication/CommunicationConfig';
+import dialer from '../communication/Dialer';
 import Dialer from '../communication/Dialer';
 import { loggerFactory } from '../log/Logger';
 import Configs from '../configs/Configs';
@@ -124,10 +126,20 @@ class Tss {
     const peerIds = Tss.dialer
       .getPeerIds()
       .filter((peerId) => !CommunicationConfig.relays.peerIDs.includes(peerId));
-    if (peerIds.length < guardsCount - 1) {
+    if (peerIds.length < guardsCount - 1 || !Tss.dialer.getDialerId()) {
       setTimeout(() => Tss.tryCallApi(guardsCount, threshold), 1000);
     } else {
-      // call api
+      axios
+        .post(`${Configs.tssUrl}:${Configs.tssPort}/keygen`, {
+          p2pIDs: [Tss.dialer.getDialerId(), ...peerIds],
+          callBackUrl: Configs.tssKeygenCallBackUrl,
+          crypto: 'eddsa',
+          threshold: threshold,
+          peersCount: guardsCount,
+        })
+        .then((res) => {
+          logger.info(res);
+        });
     }
   };
   /**
