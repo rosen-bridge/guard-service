@@ -11,6 +11,7 @@ import {
 } from './testData';
 import { CommitmentMisMatch } from '../../../src/utils/errors';
 import TestConfigs from '../../testUtils/TestConfigs';
+import { invalidTx, promiseCallback, validTx } from './testData';
 
 describe('MultiSigHandler', () => {
   const publicKeys = [
@@ -498,8 +499,10 @@ describe('MultiSigHandler', () => {
       vi.spyOn(handler, 'getQueuedTransaction').mockResolvedValue(obj);
 
       // mock `generateSign`
-      const mockedGenerateSign = vi.fn();
-      vi.spyOn(handler, 'generateSign').mockImplementation(mockedGenerateSign);
+      const mockedDelayedGenerateSign = vi.fn();
+      vi.spyOn(handler, 'delayedGenerateSign').mockImplementation(
+        mockedDelayedGenerateSign
+      );
 
       // run test
       await handler.handleCommitment(
@@ -513,7 +516,7 @@ describe('MultiSigHandler', () => {
       );
 
       // `generateSign` should got called
-      expect(mockedGenerateSign).toHaveBeenCalledWith('txid', obj.transaction);
+      expect(mockedDelayedGenerateSign).toHaveBeenCalledWith('txid');
     });
   });
 
@@ -879,6 +882,52 @@ describe('MultiSigHandler', () => {
         publicKeys.slice(0, 2)
       );
       await handler.verifySignedPayload(transaction, payload);
+    });
+  });
+
+  describe('processResolve', () => {
+    /**
+     * @target: verify that when transaction sign is invalid sign process must be rejected
+     * @dependency:
+     * - TxQueue with invalid signed transaction
+     * @scenario:
+     * - call processResolve
+     * @expected:
+     * - resolve must not be called.
+     * - reject must be called once
+     */
+    it('should reject signing process when transaction sign is invalid', async () => {
+      const handler = await generateMultiSigHandlerInstance(
+        '5bc1d17d0612e696a9138ab8e85ca2a02d0171440ec128a9ad557c28bd5ea046',
+        publicKeys
+      );
+      promiseCallback.resolved = 0;
+      promiseCallback.rejected = 0;
+      await handler.processResolve(invalidTx);
+      expect(promiseCallback.resolved).to.be.eql(0);
+      expect(promiseCallback.rejected).to.be.eql(1);
+    });
+
+    /**
+     * @target: verify that when transaction sign is valid sign process must be resolved
+     * @dependency:
+     * - TxQueue with valid signed transaction
+     * @scenario:
+     * - call processResolve
+     * @expected:
+     * - resolve must be called once.
+     * - reject must not be called.
+     */
+    it('should resolve signing process when transaction sign is valid', async () => {
+      const handler = await generateMultiSigHandlerInstance(
+        '5bc1d17d0612e696a9138ab8e85ca2a02d0171440ec128a9ad557c28bd5ea046',
+        publicKeys
+      );
+      promiseCallback.resolved = 0;
+      promiseCallback.rejected = 0;
+      await handler.processResolve(validTx);
+      expect(promiseCallback.resolved).to.be.eql(1);
+      expect(promiseCallback.rejected).to.be.eql(0);
     });
   });
 });
