@@ -506,7 +506,56 @@ class DatabaseAction {
         }
       );
     query.orderBy({
-      event_trigger_entity_height: sort ? sort : SortRequest.DESC,
+      event_trigger_entity_height: sort || SortRequest.DESC,
+    });
+    return query.getMany();
+  };
+
+  /**
+   * selects completed events with the specified condition
+   * @param sort
+   * @param fromChain
+   * @param toChain
+   * @param minAmount
+   * @param maxAmount
+   * @returns returns completed events with the specified condition
+   */
+  getOngoingEvents = async (
+    sort: SortRequest | undefined,
+    fromChain: string | undefined,
+    toChain: string | undefined,
+    minAmount: string | undefined,
+    maxAmount: string | undefined
+  ) => {
+    const query = this.ConfirmedEventRepository.createQueryBuilder(
+      'confirmed_event'
+    )
+      .leftJoinAndSelect('confirmed_event.eventData', 'event_trigger_entity')
+      .where('confirmed_event.status not in ("completed", "spent")');
+    if (fromChain)
+      query.andWhere('event_trigger_entity_fromChain == :fromChain', {
+        fromChain,
+      });
+    if (toChain)
+      query.andWhere('event_trigger_entity_toChain == :toChain', {
+        toChain,
+      });
+    if (minAmount)
+      query.andWhere(
+        'CAST(event_trigger_entity_amount AS LONG) >= :minAmount',
+        {
+          minAmount,
+        }
+      );
+    if (maxAmount)
+      query.andWhere(
+        'CAST(event_trigger_entity_amount AS LONG) <= :maxAmount',
+        {
+          maxAmount,
+        }
+      );
+    query.orderBy({
+      event_trigger_entity_height: sort || SortRequest.DESC,
     });
     return query.getMany();
   };
