@@ -103,17 +103,17 @@ describe('DatabaseActions', () => {
     });
 
     /**
-     * @target DatabaseHandler.getCompletedEvents should return to ergo events
+     * @target DatabaseHandler.getCompletedEvents should return events that are transferring assets to ergo network
      * @dependencies
      * - database
      * @scenario
-     * - insert 10 to ergo events and 10 other mocked events into db
+     * - insert 10 "to ergo" events and 10 other mocked events into db
      * - run test (call `getCompletedEvents`) to filter "to ergo" events
      * - check events
      * @expected
-     * - should return 10 events to ergo network
+     * - should return 10 events "to ergo" network
      */
-    it('should return to ergo events', async () => {
+    it('should return events that are transferring assets to ergo network', async () => {
       for (let index = 0; index < 10; index++) {
         // insert 10 mocked events into db
         const mockedEvent = EventTestData.mockEventTrigger();
@@ -143,17 +143,17 @@ describe('DatabaseActions', () => {
     });
 
     /**
-     * @target DatabaseHandler.getCompletedEvents should return from ergo events
+     * @target DatabaseHandler.getCompletedEvents should return events that are transferring assets from ergo network
      * @dependencies
      * - database
      * @scenario
-     * - insert 10 from ergo events and 10 other mocked events into db
+     * - insert 10 "from ergo" events and 10 other mocked events into db
      * - run test (call `getCompletedEvents`) to filter "from ergo" events
      * - check events
      * @expected
-     * - should return 10 events from ergo network
+     * - should return 10 events "from ergo" network
      */
-    it('should return from ergo events', async () => {
+    it('should return events that are transferring assets from ergo network', async () => {
       for (let index = 0; index < 10; index++) {
         // insert 10 mocked events into db
         const mockedEvent = EventTestData.mockEventTrigger();
@@ -294,17 +294,17 @@ describe('DatabaseActions', () => {
     });
 
     /**
-     * @target DatabaseHandler.getOngoingEvents should return to ergo events
+     * @target DatabaseHandler.getOngoingEvents should return events that are transferring assets to ergo network
      * @dependencies
      * - database
      * @scenario
-     * - insert 10 to ergo events and 10 other mocked events into db
+     * - insert 10 "to ergo" events and 10 other mocked events into db
      * - run test (call `getOngoingEvents`) to filter "to ergo" events
      * - check events
      * @expected
-     * - should return 10 events to ergo network
+     * - should return 10 events "to ergo" network
      */
-    it('should return to ergo events', async () => {
+    it('should return events that are transferring assets to ergo network', async () => {
       for (let index = 0; index < 10; index++) {
         // insert 10 mocked events into db
         const mockedEvent = EventTestData.mockEventTrigger();
@@ -334,17 +334,17 @@ describe('DatabaseActions', () => {
     });
 
     /**
-     * @target DatabaseHandler.getOngoingEvents should return from ergo events
+     * @target DatabaseHandler.getOngoingEvents should return events that are transferring assets from ergo network
      * @dependencies
      * - database
      * @scenario
-     * - insert 10 from ergo events and 10 other mocked events into db
+     * - insert 10 "from ergo" events and 10 other mocked events into db
      * - run test (call `getOngoingEvents`) to filter "from ergo" events
      * - check events
      * @expected
-     * - should return 10 events from ergo network
+     * - should return 10 events "from ergo" network
      */
-    it('should return from ergo events', async () => {
+    it('should return events that are transferring assets from ergo network', async () => {
       for (let index = 0; index < 10; index++) {
         // insert 10 mocked events into db
         const mockedEvent = EventTestData.mockEventTrigger();

@@ -87,7 +87,7 @@ const ongoingEventsRoute = (server: FastifySeverInstance) => {
     maxAmount: Type.Optional(Type.String()),
     minAmount: Type.Optional(Type.String()),
   });
-  const historyResponseSchema = outputItemsSchema(
+  const ongoingResponseSchema = outputItemsSchema(
     Type.Object({
       eventId: Type.String(),
       block: Type.String(),
@@ -113,7 +113,7 @@ const ongoingEventsRoute = (server: FastifySeverInstance) => {
       schema: {
         querystring: querySchema,
         response: {
-          200: historyResponseSchema,
+          200: ongoingResponseSchema,
           500: messageResponseSchema,
         },
       },

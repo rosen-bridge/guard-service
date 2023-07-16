@@ -506,7 +506,7 @@ class DatabaseAction {
         }
       );
     query.orderBy({
-      event_trigger_entity_height: sort ? sort : SortRequest.DESC,
+      event_trigger_entity_height: sort || SortRequest.DESC,
     });
     return query.getMany();
   };
@@ -555,7 +555,7 @@ class DatabaseAction {
         }
       );
     query.orderBy({
-      event_trigger_entity_height: sort ? sort : SortRequest.DESC,
+      event_trigger_entity_height: sort || SortRequest.DESC,
     });
     return query.getMany();
   };
