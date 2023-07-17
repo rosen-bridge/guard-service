@@ -13,6 +13,8 @@ const keygenCompleteRoute = (server: FastifySeverInstance) => {
   const bodySchema = Type.Object({
     status: Type.String(),
     error: Type.Optional(Type.String()),
+    shareID: Type.Optional(Type.String()),
+    pubKey: Type.Optional(Type.String()),
   });
   server.post(
     '/tss/keygen',

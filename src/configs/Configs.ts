@@ -48,10 +48,18 @@ const getOptionalConfig = <T>(key: string, defaultValue: T) => {
   return defaultValue;
 };
 
+const SupportedAlgorithms = ['eddsa'];
 class KeygenConfig {
   static isActive = config.get<boolean>('keygen.active');
   static guardsCount = getConfigIntKeyOrDefault('keygen.guards', 0);
   static threshold = getConfigIntKeyOrDefault('keygen.threshold', 0);
+  static algorithm = () => {
+    const algorithm = config.get<string>('keygen.algorithm');
+    if (SupportedAlgorithms.indexOf(algorithm) !== -1) {
+      return algorithm;
+    }
+    throw Error(`Invalid keygen algorithm ${algorithm}`);
+  };
 }
 
 class Configs {

@@ -111,6 +111,11 @@ class Tss {
     );
   };
 
+  /**
+   * start keygen process for guards
+   * @param guardsCount
+   * @param threshold
+   */
   static keygen = async (guardsCount: number, threshold: number) => {
     Tss.runBinary();
 
@@ -120,6 +125,11 @@ class Tss {
     Tss.tryCallApi(guardsCount, threshold);
   };
 
+  /**
+   * wait until all peers are connected then call tss keygen api
+   * @param guardsCount
+   * @param threshold
+   */
   private static tryCallApi = (guardsCount: number, threshold: number) => {
     const peerIds = Tss.dialer
       .getPeerIds()
@@ -132,12 +142,16 @@ class Tss {
           .post(`${Configs.tssUrl}:${Configs.tssPort}/keygen`, {
             p2pIDs: [Tss.dialer.getDialerId(), ...peerIds],
             callBackUrl: Configs.tssKeygenCallBackUrl,
-            crypto: 'eddsa',
+            crypto: Configs.keygen.algorithm(),
             threshold: threshold,
             peersCount: guardsCount,
           })
           .then((res) => {
             logger.info(JSON.stringify(res.data));
+          })
+          .catch((err) => {
+            logger.error(`an error occurred during call keygen ${err}`);
+            logger.debug(err.stack);
           });
       }, 10000);
     }

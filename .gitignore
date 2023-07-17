@@ -15,7 +15,6 @@ config/addresses/contracts-*
 config/tokens.json
 config/thresholds.json
 config/production.yaml
+config/local*.yaml
 
 .DS_Store
-
-config/local*.yaml
