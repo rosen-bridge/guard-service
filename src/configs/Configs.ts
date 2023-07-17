@@ -49,7 +49,7 @@ const getOptionalConfig = <T>(key: string, defaultValue: T) => {
 };
 
 class KeygenConfig {
-  static isActive = config.get<string>('keygen.active') === 'true';
+  static isActive = config.get<boolean>('keygen.active');
   static guardsCount = getConfigIntKeyOrDefault('keygen.guards', 0);
   static threshold = getConfigIntKeyOrDefault('keygen.threshold', 0);
 }

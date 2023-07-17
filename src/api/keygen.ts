@@ -1,7 +1,9 @@
-import { exit } from 'process';
+import { loggerFactory } from '../log/Logger';
 import { FastifySeverInstance } from '../types/api';
 import { Type } from '@sinclair/typebox';
 import { messageResponseSchema } from '../types/schema';
+
+const logger = loggerFactory(import.meta.url);
 
 /**
  * setups TSS keygen completed route
@@ -25,7 +27,11 @@ const keygenCompleteRoute = (server: FastifySeverInstance) => {
     },
     (request, reply) => {
       reply.send({ message: 'ok' });
-      exit(request.body.status === 'success' ? 0 : 1);
+      logger.info(
+        `request start keygen with response ${JSON.stringify(
+          request.body
+        )} called`
+      );
     }
   );
 };

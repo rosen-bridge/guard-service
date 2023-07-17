@@ -6,7 +6,6 @@ import {
 } from '@rosen-bridge/tss';
 import axios from 'axios';
 import CommunicationConfig from '../communication/CommunicationConfig';
-import dialer from '../communication/Dialer';
 import Dialer from '../communication/Dialer';
 import { loggerFactory } from '../log/Logger';
 import Configs from '../configs/Configs';
@@ -47,7 +46,6 @@ class Tss {
       Configs.tssConfigPath +
       ` -guardUrl http://${Configs.apiHost}:${Configs.apiPort}` +
       ` -host ${Configs.tssUrl}:${Configs.tssPort}`;
-
     exec(tssPath, function (err, data) {
       if (err !== null) {
         const timeout = Configs.tssInstanceRestartGap;
@@ -129,17 +127,19 @@ class Tss {
     if (peerIds.length < guardsCount - 1 || !Tss.dialer.getDialerId()) {
       setTimeout(() => Tss.tryCallApi(guardsCount, threshold), 1000);
     } else {
-      axios
-        .post(`${Configs.tssUrl}:${Configs.tssPort}/keygen`, {
-          p2pIDs: [Tss.dialer.getDialerId(), ...peerIds],
-          callBackUrl: Configs.tssKeygenCallBackUrl,
-          crypto: 'eddsa',
-          threshold: threshold,
-          peersCount: guardsCount,
-        })
-        .then((res) => {
-          logger.info(res);
-        });
+      setTimeout(() => {
+        axios
+          .post(`${Configs.tssUrl}:${Configs.tssPort}/keygen`, {
+            p2pIDs: [Tss.dialer.getDialerId(), ...peerIds],
+            callBackUrl: Configs.tssKeygenCallBackUrl,
+            crypto: 'eddsa',
+            threshold: threshold,
+            peersCount: guardsCount,
+          })
+          .then((res) => {
+            logger.info(JSON.stringify(res.data));
+          });
+      }, 10000);
     }
   };
   /**
