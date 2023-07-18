@@ -286,6 +286,7 @@ describe('DatabaseActions', () => {
   describe('storeRevenue', () => {
     /**
      * @target DatabaseAction.storeRevenue should store new revenue correctly
+     * @dependencies
      * - database
      * @scenario
      * - insert a mocked tx to db
@@ -314,6 +315,7 @@ describe('DatabaseActions', () => {
   describe('getRevenuesWithFilters', () => {
     /**
      * @target DatabaseAction.getRevenuesWithFilters should return all stored revenues in descending order
+     * @dependencies
      * - database
      * @scenario
      * - insert 10 mocked revenues with different timestamps
@@ -337,6 +339,7 @@ describe('DatabaseActions', () => {
 
     /**
      * @target DatabaseAction.getRevenuesWithFilters should return all stored revenues in ascending order
+     * @dependencies
      * - database
      * @scenario
      * - insert 10 mocked revenues with different timestamps
@@ -362,6 +365,7 @@ describe('DatabaseActions', () => {
 
     /**
      * @target DatabaseAction.getRevenuesWithFilters should return the specified revenue
+     * @dependencies
      * - database
      * @scenario
      * - insert 10 mocked revenues with different timestamps
@@ -384,12 +388,20 @@ describe('DatabaseActions', () => {
           1664829300000
         );
       expect(revenues).toHaveLength(1);
+      expect(revenues[0].timestamp).toBeGreaterThanOrEqual(1664829100000);
+      expect(revenues[0].timestamp).toBeLessThanOrEqual(1664829300000);
+      expect(revenues[0].height).toBeGreaterThanOrEqual(1002);
+      expect(revenues[0].height).toBeLessThan(1003);
+      expect(revenues[0].fromChain).toEqual('fromChain');
+      expect(revenues[0].toChain).toEqual('toChain');
+      expect(revenues[0].revenueTokenId).toEqual('tokenId');
     });
   });
 
   describe('getRevenueChartData', () => {
     /**
      * @target DatabaseAction.getRevenueChartData should return yearly revenue report
+     * @dependencies
      * - database
      * @scenario
      * - insert 30 mocked revenues with different timestamps
@@ -410,6 +422,7 @@ describe('DatabaseActions', () => {
 
     /**
      * @target DatabaseAction.getRevenueChartData should return monthly revenue report
+     * @dependencies
      * - database
      * @scenario
      * - insert 20 mocked revenues with different timestamps
@@ -430,6 +443,7 @@ describe('DatabaseActions', () => {
 
     /**
      * @target DatabaseAction.getRevenueChartData should return weekly revenue report
+     * @dependencies
      * - database
      * @scenario
      * - insert 10 mocked revenues with different timestamps

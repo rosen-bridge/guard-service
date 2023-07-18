@@ -1,4 +1,4 @@
-import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
+import { ERG } from '@rosen-chains/ergo';
 import Configs from '../../src/configs/Configs';
 import { DatabaseAction } from '../../src/db/DatabaseAction';
 import { loggerFactory } from '../../src/log/Logger';
@@ -18,12 +18,12 @@ export const revenueJobFunction = async () => {
     return;
   }
   const newTxs = await dbAction.getTxsById(unsavedRevenues);
-  logger.debug(`Revenue Job: ${newTxs.length} new permits found`);
+  logger.debug(`Revenue Job: [${newTxs.length}] new rewards found`);
   // store reward tx info
   for (const tx of newTxs) {
     const rewardTx = TransactionSerializer.fromJson(tx.txJson);
     const payments = ChainHandler.getInstance()
-      .getChain(ERGO_CHAIN)
+      .getErgoChain()
       .extractTransactionOrder(rewardTx);
 
     // save tokens as revenues
