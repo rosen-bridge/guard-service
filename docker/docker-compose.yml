@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:${POSTGRE_VERSION:-13}
+    secrets:
+      - db
+      - db_pass
+      - db_user
+    environment:
+      POSTGRES_USER_FILE: /run/secrets/db_user
+      POSTGRES_PASSWORD_FILE: /run/secrets/db_pass
+      POSTGRES_DB_FILE: /run/secrets/db
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - rosen_network
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  app:
+    image: ${IMAGE_NAME}:${IMAGE_VERSION:-latest}
+    ports:
+      - 127.0.0.1:9000:9000
+    environment:
+      DB_HOST: ${DB_HOST:-db} 
+      DB_PORT: ${DB_PORT:-5432}
+      NODE_ENV: ${NODE_ENV:-production}
+    env_file:
+      - .env
+    volumes:
+      - ./config/local.yaml:/app/config/local.yml
+      - ./config/thresholds.json:/app/config/thresholds.json
+      - ts-guard-logs:/app/logs/
+      - ts-guard-data:/app/peer-dialer.json
+      - tss-api-logs:${LOG_ADDRESS}
+      - tss-api-data:${HOME_ADDRESS}
+    networks:
+      - rosen_network
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://localhost:9000/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  postgres-data:
+  ts-guard-logs:
+  ts-guard-data:
+  tss-api-logs:
+  tss-api-data:
+
+secrets:
+  db:
+    file: ./db.txt
+  db_user:
+    file: ./db-user.txt
+  db_pass:
+    file: ./db-pass.txt
+
+networks:
+  rosen_network:
