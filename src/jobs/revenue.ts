@@ -11,7 +11,7 @@ const logger = loggerFactory(import.meta.url);
 /**
  * Fetches revenue details and stores in the database
  */
-export const revenueJobFunction = async () => {
+const revenueJobFunction = async () => {
   const dbAction = DatabaseAction.getInstance();
   const unsavedRevenues = await dbAction.getUnsavedRevenueIds();
   if (unsavedRevenues.length === 0) {
@@ -46,7 +46,7 @@ export const revenueJobFunction = async () => {
 /**
  * Runs the job of storing revenue details
  */
-export const revenueJob = async () => {
+const revenueJob = async () => {
   try {
     await revenueJobFunction();
   } catch (e) {
@@ -55,3 +55,5 @@ export const revenueJob = async () => {
 
   setTimeout(revenueJob, Configs.revenueUpdateInterval * 1000);
 };
+
+export { revenueJob, revenueJobFunction };

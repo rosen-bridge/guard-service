@@ -12,7 +12,7 @@ import {
   insertEventsWithAmount,
   insertEventsWithHeight,
   insertRevenueDataWithTimestamps,
-} from './utils';
+} from './databaseTestUtils';
 import * as TxTestData from '../agreement/testData';
 import { TransactionTypes } from '@rosen-chains/abstract-chain';
 
