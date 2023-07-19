@@ -9,5 +9,6 @@ build
 dist
 logs
 tests
+docker
 
 peer-dialer*.json
