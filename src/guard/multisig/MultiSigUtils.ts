@@ -15,7 +15,6 @@ class MultiSigUtils {
 
   /**
    * generates a MultiSigUtils object if it doesn't exist
-   * @param getStateContextFunction
    * @returns MultiSigUtils instance
    */
   public static getInstance = () => {

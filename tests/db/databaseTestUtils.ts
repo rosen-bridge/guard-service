@@ -13,12 +13,15 @@ import { CARDANO_CHAIN } from '@rosen-chains/cardano';
  * insert events with different heights to database
  * @param count number of inserted events
  */
-const insertEventsWithHeight = async (count: number) => {
+const insertEventsWithHeight = async (
+  count: number,
+  status = EventStatus.completed
+) => {
   for (let index = 0; index < count; index++) {
     const mockedEvent = EventTestData.mockEventTrigger();
     await DatabaseHandlerMock.insertEventRecord(
       mockedEvent,
-      EventStatus.completed,
+      status,
       'box_serialized',
       300,
       undefined,
@@ -31,15 +34,15 @@ const insertEventsWithHeight = async (count: number) => {
  * insert events with different amounts to database
  * @param count number of inserted events
  */
-const insertEventsWithAmount = async (count: number) => {
+const insertEventsWithAmount = async (
+  count: number,
+  status = EventStatus.completed
+) => {
   for (let index = 0; index < count; index++) {
     const mockedEvent = EventTestData.mockEventWithAmount(
       (1000 * index + 10000).toString()
     );
-    await DatabaseHandlerMock.insertEventRecord(
-      mockedEvent,
-      EventStatus.completed
-    );
+    await DatabaseHandlerMock.insertEventRecord(mockedEvent, status);
   }
 };
 

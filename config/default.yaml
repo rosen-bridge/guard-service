@@ -130,3 +130,8 @@ healthCheck:
     defectConfirmationTimeWindow: 120 # Time to wait after any peer disconnection
 revenue:
   interval: 120 # revenue update interval
+keygen: # only set when you want to start keygen process
+  active: false # set true to start keygen process on startup
+  guards: 0 # total number of guards
+  threshold: 0 # signing threshold (at least threshold + 1 guards are required)
+  algorithm: eddsa # keygen algorithm. only eddsa supported
