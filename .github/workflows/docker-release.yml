@@ -45,12 +45,13 @@ jobs:
 
       - name: Move the Files
         run: |
-          mv ./docker/production.yml ./config
-          mv ./docker/custom-environment-variables.yml ./config
+          mv ./docker/production.yml ./config/
+          mv ./docker/custom-environment-variables.yml ./config/
+          mkdir -p bin/conf/ && mv ./docker/conf.env ./bin/conf/
           mv ./bin/rosenTss-* ./bin/rosenTss
           mv ./config/tokensMap-${{ secrets.RELEASE_NAME }}-${{ steps.version.outputs.download_version }}.json ./config/tokens.json
           
-          mkdir -p ./config/rosen
+          mkdir -p ./config/rosen/
           cd ./config/
           files=$(ls contracts-*)
           for file in $files; do
