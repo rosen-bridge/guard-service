@@ -22,7 +22,7 @@ services:
       timeout: 5s
       retries: 3
 
-  app:
+  ts-guqrd-service:
     image: ${IMAGE_NAME}:${IMAGE_VERSION:-latest}
     ports:
       - 127.0.0.1:9000:9000
@@ -33,11 +33,15 @@ services:
     env_file:
       - .env
     volumes:
-      - ./config/local.yaml:/app/config/local.yml
-      - ./config/thresholds.json:/app/config/thresholds.json
-      - ts-guard-logs:/app/logs/
-      - ts-guard-data:/app/peer-dialer.json
-      - tss-api-logs:${LOG_ADDRESS}
+      - type: bind
+          source: ./config/local.yaml
+          target: /app/config/local.yml
+      - type: bind
+          source: ./config/thresholds.json
+          target: /app/config/thresholds.json
+      - ./logs/ts-guard-logs/:/app/logs/
+      - ts-guard-data:/app/peer-dialer/peer-dialer.json
+      - ./logs/tss-api-logs/:${LOG_ADDRESS}
       - tss-api-data:${HOME_ADDRESS}
     networks:
       - rosen_network
@@ -53,9 +57,7 @@ services:
 
 volumes:
   postgres-data:
-  ts-guard-logs:
   ts-guard-data:
-  tss-api-logs:
   tss-api-data:
 
 secrets:
