@@ -40,7 +40,7 @@ services:
           source: ./config/thresholds.json
           target: /app/config/thresholds.json
       - ./logs/ts-guard-logs/:/app/logs/
-      - ts-guard-data:/app/peer-dialer/peer-dialer.json
+      - ts-guard-data:/app/peer-dialer/
       - ./logs/tss-api-logs/:${LOG_ADDRESS}
       - tss-api-data:${HOME_ADDRESS}
     networks:
