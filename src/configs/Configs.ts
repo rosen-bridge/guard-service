@@ -4,7 +4,6 @@ import { RosenTokens, TokenMap } from '@rosen-bridge/tokens';
 import { ThresholdConfig } from '../coldStorage/types';
 import { JsonBI } from '../network/NetworkModels';
 import { LogConfig } from '../types';
-import { isNumber } from 'lodash-es';
 import Utils from '../utils/Utils';
 import { ConfigError } from '../utils/errors';
 
@@ -15,10 +14,10 @@ import { ConfigError } from '../utils/errors';
  */
 const getConfigIntKeyOrDefault = (key: string, defaultValue: number) => {
   const val: string = config.get(key);
-  if (isNumber(val)) {
+  if (val !== undefined) {
     const valNum = parseInt(val);
     if (isNaN(valNum)) {
-      return defaultValue;
+      throw Error(`Invalid value ${val} for ${key}`);
     }
     return valNum;
   }
