@@ -575,12 +575,12 @@ describe('DatabaseActions', () => {
           'tokenId',
           1002,
           1003,
-          1664829100000,
-          1664829300000
+          1665438000000,
+          1665439000000
         );
       expect(revenues).toHaveLength(1);
-      expect(revenues[0].timestamp).toBeGreaterThanOrEqual(1664829100000);
-      expect(revenues[0].timestamp).toBeLessThanOrEqual(1664829300000);
+      expect(revenues[0].timestamp).toBeGreaterThanOrEqual(1665438000000);
+      expect(revenues[0].timestamp).toBeLessThanOrEqual(1665439000000);
       expect(revenues[0].height).toBeGreaterThanOrEqual(1002);
       expect(revenues[0].height).toBeLessThan(1003);
       expect(revenues[0].fromChain).toEqual('fromChain');
@@ -602,13 +602,16 @@ describe('DatabaseActions', () => {
      * - should return 2 years revenue report
      */
     it('should return yearly revenue report', async () => {
-      await insertRevenueDataWithTimestamps(30);
+      await insertRevenueDataWithTimestamps(5, 31539600000);
 
       const revenueChart =
         await DatabaseAction.getInstance().getRevenueChartData(
           RevenuePeriod.year
         );
-      expect(revenueChart).toHaveLength(2);
+      expect(revenueChart).toHaveLength(5);
+      for (const revenue of revenueChart) {
+        expect(revenue.amount).toEqual(10000);
+      }
     });
 
     /**
@@ -623,13 +626,16 @@ describe('DatabaseActions', () => {
      * - should return 4 months revenue report
      */
     it('should return monthly revenue report', async () => {
-      await insertRevenueDataWithTimestamps(20);
+      await insertRevenueDataWithTimestamps(5, 2592000000);
 
       const revenueChart =
         await DatabaseAction.getInstance().getRevenueChartData(
           RevenuePeriod.month
         );
-      expect(revenueChart).toHaveLength(4);
+      expect(revenueChart).toHaveLength(5);
+      for (const revenue of revenueChart) {
+        expect(revenue.amount).toEqual(10000);
+      }
     });
 
     /**
@@ -644,13 +650,16 @@ describe('DatabaseActions', () => {
      * - should return 6 weeks revenue report
      */
     it('should return weekly revenue report', async () => {
-      await insertRevenueDataWithTimestamps(10);
+      await insertRevenueDataWithTimestamps(5);
 
       const revenueChart =
         await DatabaseAction.getInstance().getRevenueChartData(
           RevenuePeriod.week
         );
-      expect(revenueChart).toHaveLength(6);
+      expect(revenueChart).toHaveLength(5);
+      for (const revenue of revenueChart) {
+        expect(revenue.amount).toEqual(10000);
+      }
     });
   });
 });

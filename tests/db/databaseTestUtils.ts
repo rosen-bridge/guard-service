@@ -46,10 +46,13 @@ const insertEventsWithAmount = async (
   }
 };
 
-const insertRevenueDataWithTimestamps = async (count: number) => {
+const insertRevenueDataWithTimestamps = async (
+  count: number,
+  timeStep = 604800000
+) => {
   for (let index = 0; index < count; index++) {
     // insert block
-    const timestamp = 1664229200000 + 300000000 * index;
+    const timestamp = 1664229200000 + timeStep * index;
     const blockId = TestUtils.generateRandomId();
     await DatabaseHandlerMock.insertBlockRecord(
       timestamp,
