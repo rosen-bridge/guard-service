@@ -10,8 +10,10 @@ dist
 logs
 
 peer-dialer*.json
-bin/tss.exe
+bin/*tss*
+config/local.yaml
 config/addresses/contracts-*
 config/tokens.json
 config/thresholds.json
 config/production.yaml
+.env

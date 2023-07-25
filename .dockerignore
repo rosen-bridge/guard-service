@@ -10,5 +10,15 @@ dist
 logs
 tests
 docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+.git
+.gitlab
+.gitlab-ci.yml
+.github
+.gitignore
+.eslintignore
+README.md
 
 peer-dialer*.json
