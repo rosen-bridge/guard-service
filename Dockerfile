@@ -1,16 +1,16 @@
 FROM node:18.12
 
 WORKDIR /app
+RUN groupadd -r ergo && useradd -r -g ergo ergo \
+    && chown -R ergo:ergo /app \
+    && chmod -R 700 /app
+USER ergo
+RUN umask 0077
+
 COPY package*.json ./
 RUN npm ci
 COPY . .
-RUN npm run build
-
-RUN groupadd -r ergo && useradd -r -g ergo ergo \
-    && chown -R ergo:ergo /app \
-    && find /app -type d -exec chmod 700 {} + \
-    && find /app -type f -exec chmod 600 {} +
-USER ergo
-RUN umask 0077
+ENV NODE_ENV=production
+EXPOSE 9000
 
 ENTRYPOINT ["npm", "run", "start"]
