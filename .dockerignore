@@ -20,5 +20,9 @@ docker-compose.yml
 .gitignore
 .eslintignore
 README.md
-
+.husky
+.lintstagedrc.js
+.mocharc.json
+.prettierrc.json
+vitest.config.ts
 peer-dialer*.json
