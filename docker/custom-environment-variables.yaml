@@ -1,6 +1,5 @@
 --- 
 database:
-  type: 'postgres' 
   host: 'DB_HOST' 
   port: 'DB_PORT' 
   user: 'POSTGRES_USER_FILE' 
