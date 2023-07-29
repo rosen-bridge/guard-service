@@ -392,7 +392,7 @@ describe('EventProcessor', () => {
 
       // mock event box and valid commitments
       mockGetEventBox('serialized-event-box');
-      mockGetEventValidCommitments([]);
+      mockGetEventValidCommitments(['serialized-commitment-box']);
 
       // mock event payment and reward order generations
       mockEventSinglePayment({
@@ -785,7 +785,7 @@ describe('EventProcessor', () => {
 
       // mock event box and valid commitments
       mockGetEventBox('serialized-event-box');
-      mockGetEventValidCommitments([]);
+      mockGetEventValidCommitments(['serialized-commitment-box']);
 
       // mock event payment and reward order generations
       mockEventSinglePayment({

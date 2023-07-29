@@ -267,6 +267,7 @@ describe('EventOrder', () => {
         expect(watcherOrder.address).toEqual(
           GuardsErgoConfigs.ergoContractConfig.permitAddress
         );
+        // ((event.amount * fee.feeRatio) / feeRatioDivisor * watchersSharePercent) / 100 / 6 + permit boxValue
         expect(watcherOrder.assets.nativeToken).toEqual(83333333n + 100000000n);
         expect(watcherOrder.assets.tokens.length).toEqual(2);
         expect(watcherOrder.assets.tokens[0].id).toEqual(fromChainRwt);
@@ -607,6 +608,7 @@ describe('EventOrder', () => {
         expect(watcherOrder.address).toEqual(
           GuardsErgoConfigs.ergoContractConfig.permitAddress
         );
+        // ((event.amount * fee.feeRatio) / feeRatioDivisor * watchersSharePercent) / 100 / 6 + permit boxValue
         expect(watcherOrder.assets.nativeToken).toEqual(416666666n + 10000000n);
         expect(watcherOrder.assets.tokens.length).toEqual(2);
         expect(watcherOrder.assets.tokens[0].id).toEqual(fromChainRwt);

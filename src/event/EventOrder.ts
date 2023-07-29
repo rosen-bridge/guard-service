@@ -233,7 +233,7 @@ class EventOrder {
 
   /**
    * generates erg payment of event reward order
-   * @param outPermits list of watcher ids
+   * @param outPermits list of watcher permit wid and box values
    * @param bridgeFee event total bridge fee
    * @param networkFee event total network fee
    * @param rsnFee event total RSN fee
@@ -325,6 +325,7 @@ class EventOrder {
 
   /**
    * generates token payment of event reward order
+   * @param outPermits list of watcher permit wid and box values
    * @param WIDs list of watcher ids
    * @param bridgeFee event total bridge fee
    * @param networkFee event total network fee
