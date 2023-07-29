@@ -319,6 +319,7 @@ describe('EventProcessor', () => {
      *   - mock `generateTransaction`
      *   - mock `getRWTToken` of `fromChain`
      *   - mock `getBoxRWT` of Ergo
+     *   - mock `getSerializedBoxInfo` of Ergo
      * - mock event box and valid commitments
      * - mock event payment and reward order generations
      * - mock txAgreement
@@ -382,6 +383,12 @@ describe('EventProcessor', () => {
         'getBoxRWT',
         2n * BigInt(mockedEvent.WIDs.length)
       );
+      // mock `getSerializedBoxInfo` of Ergo
+      ChainHandlerMock.mockErgoFunctionReturnValue('getSerializedBoxInfo', {
+        assets: {
+          nativeToken: 100000n,
+        },
+      });
 
       // mock event box and valid commitments
       mockGetEventBox('serialized-event-box');
@@ -428,6 +435,7 @@ describe('EventProcessor', () => {
      *   - mock `generateTransaction`
      *   - mock `getRWTToken` of Ergo
      *   - mock `getBoxRWT` of Ergo
+     *   - mock `getSerializedBoxInfo` of Ergo
      * - mock event payment order generations
      * - mock txAgreement
      *   - mock `getChainPendingTransactions` to return empty list
@@ -577,6 +585,7 @@ describe('EventProcessor', () => {
      *   - mock `generateTransaction` to throw NotEnoughAssetsError
      *   - mock `getRWTToken` of `fromChain`
      *   - mock `getBoxRWT` of Ergo
+     *   - mock `getSerializedBoxInfo` of Ergo
      * - mock event box and valid commitments
      * - mock event payment and reward order generations
      * - mock txAgreement `getChainPendingTransactions` to return empty list
@@ -636,6 +645,12 @@ describe('EventProcessor', () => {
         'getBoxRWT',
         2n * BigInt(mockedEvent.WIDs.length)
       );
+      // mock `getSerializedBoxInfo` of Ergo
+      ChainHandlerMock.mockErgoFunctionReturnValue('getSerializedBoxInfo', {
+        assets: {
+          nativeToken: 100000n,
+        },
+      });
 
       // mock event box and valid commitments
       mockGetEventBox('serialized-event-box');
@@ -705,6 +720,7 @@ describe('EventProcessor', () => {
      *   - mock `generateTransaction`
      *   - mock `getRWTToken` of Ergo
      *   - mock `getBoxRWT` of Ergo
+     *   - mock `getSerializedBoxInfo` of Ergo
      * - mock event box and valid commitments
      * - mock event payment and reward order generations
      * - mock txAgreement
@@ -760,6 +776,12 @@ describe('EventProcessor', () => {
         'getBoxRWT',
         2n * BigInt(mockedEvent.WIDs.length)
       );
+      // mock `getSerializedBoxInfo` of Ergo
+      ChainHandlerMock.mockErgoFunctionReturnValue('getSerializedBoxInfo', {
+        assets: {
+          nativeToken: 100000n,
+        },
+      });
 
       // mock event box and valid commitments
       mockGetEventBox('serialized-event-box');
@@ -807,6 +829,7 @@ describe('EventProcessor', () => {
      *   - mock `generateTransaction` to throw NotEnoughAssetsError
      *   - mock `getRWTToken` of Ergo
      *   - mock `getBoxRWT` of Ergo
+     *   - mock `getSerializedBoxInfo` of Ergo
      * - mock event box and valid commitments
      * - mock event payment and reward order generations
      * - mock txAgreement `getChainPendingTransactions` to return empty list
@@ -857,6 +880,12 @@ describe('EventProcessor', () => {
         'getBoxRWT',
         2n * BigInt(mockedEvent.WIDs.length)
       );
+      // mock `getSerializedBoxInfo` of Ergo
+      ChainHandlerMock.mockErgoFunctionReturnValue('getSerializedBoxInfo', {
+        assets: {
+          nativeToken: 100000n,
+        },
+      });
 
       // mock event box and valid commitments
       mockGetEventBox('serialized-event-box');
