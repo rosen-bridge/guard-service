@@ -184,8 +184,7 @@ class EventOrder {
     rwtCount: bigint,
     permitValue: bigint
   ): PaymentOrder => {
-    // const WIDs: string[] = [...event.WIDs, ...unmergedWIDs];
-    const OutPermits: PermitBoxValue[] = [
+    const outPermits: PermitBoxValue[] = [
       ...event.WIDs.map((wid) => ({ wid, boxValue: permitValue })),
       ...unmergedWIDs,
     ];
@@ -210,7 +209,7 @@ class EventOrder {
     );
     if (tokenId === ERG)
       return this.eventErgRewardOrder(
-        OutPermits,
+        outPermits,
         bridgeFee,
         networkFee,
         rsnFee,
@@ -220,7 +219,7 @@ class EventOrder {
       );
     else
       return this.eventTokenRewardOrder(
-        OutPermits,
+        outPermits,
         bridgeFee,
         networkFee,
         rsnFee,
@@ -336,7 +335,7 @@ class EventOrder {
    * @param rwtCount amount RWT token per watcher
    */
   protected static eventTokenRewardOrder = (
-    OutPermits: PermitBoxValue[],
+    outPermits: PermitBoxValue[],
     bridgeFee: bigint,
     networkFee: bigint,
     rsnFee: bigint,
@@ -346,7 +345,7 @@ class EventOrder {
     rwtCount: bigint
   ): PaymentOrder => {
     const order: PaymentOrder = [];
-    const watchersLen = OutPermits.length;
+    const watchersLen = outPermits.length;
 
     // calculate each watcher share
     const watcherTokenAmount =
@@ -375,7 +374,7 @@ class EventOrder {
       });
 
     // add watcher boxes to order
-    OutPermits.forEach((permit) => {
+    outPermits.forEach((permit) => {
       order.push({
         address: this.watcherPermitAddress,
         assets: {
