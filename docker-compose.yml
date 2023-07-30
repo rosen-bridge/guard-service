@@ -3,6 +3,7 @@ version: '3.8'
 services:
   db:
     image: postgres:13
+    container_name: postgres
     env_file:
       - .env
     volumes:
@@ -18,6 +19,7 @@ services:
 
   ts-guqrd-service:
     image: ghcr.io/arsalanyavari/ts-guard-service:${IMAGE_VERSION:-latest}
+    container_name: guard
     ports:
       - 127.0.0.1:9000:9000
     environment:
