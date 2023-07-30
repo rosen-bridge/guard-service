@@ -10,7 +10,6 @@ import Dialer from '../communication/Dialer';
 import { loggerFactory } from '../log/Logger';
 import Configs from '../configs/Configs';
 import * as childProcess from 'child_process';
-import GuardPkHandler from '../handlers/GuardPkHandler';
 
 const logger = loggerFactory(import.meta.url);
 const exec = childProcess.exec;
@@ -73,13 +72,11 @@ class Tss {
     Tss.dialer = await Dialer.getInstance();
 
     // initialize guard detection
-    const requiredSign = GuardPkHandler.getInstance().requiredSign;
     const signer = new EdDSA(Configs.tssKeys.secret);
     Tss.guardDetection = new GuardDetection({
       guardsPublicKey: Configs.tssKeys.publicKeys,
       signer: signer,
       submit: this.generateSubmitMessageWrapper(Tss.DETECTION_CHANNEL),
-      needGuardThreshold: requiredSign,
       getPeerId: () => Promise.resolve(Tss.dialer.getDialerId()),
     });
     await Tss.guardDetection.init();
@@ -89,8 +86,7 @@ class Tss {
       signer: signer,
       detection: Tss.guardDetection,
       guardsPk: Configs.tssKeys.publicKeys,
-      tssSignUrl: `${Configs.tssUrl}:${Configs.tssPort}/sign`,
-      threshold: requiredSign,
+      tssApiUrl: `${Configs.tssUrl}:${Configs.tssPort}`,
       submitMsg: this.generateSubmitMessageWrapper(Tss.SIGNING_CHANNEL),
       getPeerId: () => Promise.resolve(Tss.dialer.getDialerId()),
       callbackUrl: Configs.tssCallBackUrl,
