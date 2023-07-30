@@ -13,6 +13,7 @@ docker
 Dockerfile
 docker-compose.yml
 .dockerignore
+.env
 .git
 .gitlab
 .gitlab-ci.yml

@@ -11,7 +11,7 @@ logs
 
 peer-dialer*.json
 bin/*tss*
-config/local.yaml
+config/local*.yaml
 config/addresses/contracts-*
 config/tokens.json
 config/thresholds.json
