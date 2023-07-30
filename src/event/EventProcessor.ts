@@ -302,7 +302,7 @@ class EventProcessor {
     // generate transaction
     return ergoChain.generateTransaction(
       EventSerializer.getId(event),
-      TransactionTypes.payment,
+      TransactionTypes.reward,
       order,
       [...unsignedAgreementTransactions, ...unsignedQueueTransactions],
       signedTransactions,
