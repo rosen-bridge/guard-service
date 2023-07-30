@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:13
+    env_file:
+      - .env
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - rosen_network
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  ts-guqrd-service:
+    image: ghcr.io/arsalanyavari/ts-guard-service:${IMAGE_VERSION:-latest}
+    ports:
+      - 127.0.0.1:9000:9000
+    environment:
+      DB_HOST: ${DB_HOST:-db} 
+      DB_PORT: ${POSTGRES_PORT:-5432}
+    env_file:
+      - .env
+    volumes:
+      - type: bind
+        source: ./config/local.yaml
+        target: /app/config/local.yml
+      - type: bind
+        source: ./config/threshholds.json
+        target: /app/config/threshholds.json
+      - ./logs/ts-guard-logs/:/app/logs/
+      - ts-guard-data:/app/peer-dialer/
+      - ./logs/tss-api-logs/:/app/tss-api/logs/
+      - tss-api-data:/app/tss-api/home/
+    networks:
+      - rosen_network
+    restart: always
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail http://localhost/health/status:9000/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  postgres-data:
+  ts-guard-data:
+  tss-api-data:
+
+networks:
+  rosen_network:
