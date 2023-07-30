@@ -2,6 +2,6 @@
 database:
   host: 'DB_HOST' 
   port: 'DB_PORT' 
-  user: 'POSTGRES_USER_FILE' 
-  password: 'POSTGRES_PASSWORD_FILE' 
-  name: 'POSTGRES_DB_FILE' 
+  user: 'POSTGRES_USER' 
+  password: 'POSTGRES_PASSWORD' 
+  name: 'POSTGRES_DB' 
