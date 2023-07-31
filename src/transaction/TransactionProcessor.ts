@@ -4,7 +4,7 @@ import {
   PaymentTransaction,
   TransactionTypes,
 } from '@rosen-chains/abstract-chain';
-import { SigningStatus } from '@rosen-chains/abstract-chain/lib/types';
+import { SigningStatus } from '@rosen-chains/abstract-chain';
 import { ERGO_CHAIN } from '@rosen-chains/ergo';
 import Configs from '../configs/Configs';
 import { DatabaseAction } from '../db/DatabaseAction';
