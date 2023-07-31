@@ -4,15 +4,16 @@ import {
   PaymentTransaction,
   TransactionTypes,
 } from '@rosen-chains/abstract-chain';
+import { SigningStatus } from '@rosen-chains/abstract-chain/lib/types';
+import { ERGO_CHAIN } from '@rosen-chains/ergo';
+import Configs from '../configs/Configs';
+import { DatabaseAction } from '../db/DatabaseAction';
 import { TransactionEntity } from '../db/entities/TransactionEntity';
 import ChainHandler from '../handlers/ChainHandler';
+import GuardPkHandler from '../handlers/GuardPkHandler';
 import { loggerFactory } from '../log/Logger';
 import { EventStatus, TransactionStatus } from '../utils/constants';
-import Configs from '../configs/Configs';
 import TransactionSerializer from './TransactionSerializer';
-import { ERGO_CHAIN } from '@rosen-chains/ergo';
-import GuardPkHandler from '../handlers/GuardPkHandler';
-import { DatabaseAction } from '../db/DatabaseAction';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -159,7 +160,7 @@ class TransactionProcessor {
     } else {
       // tx is not found, checking if tx is still valid
       const paymentTx = TransactionSerializer.fromJson(tx.txJson);
-      if (await chain.isTxValid(paymentTx)) {
+      if (await chain.isTxValid(paymentTx, SigningStatus.UnSigned)) {
         // tx is valid, requesting to sign...
         logger.info(`Tx [${tx.txId}] is still valid. Requesting to sign tx...`);
         await this.processApprovedTx(tx);
@@ -247,7 +248,7 @@ class TransactionProcessor {
         } else {
           // tx is not in mempool, checking if tx is still valid
           const paymentTx = TransactionSerializer.fromJson(tx.txJson);
-          if (await chain.isTxValid(paymentTx)) {
+          if (await chain.isTxValid(paymentTx, SigningStatus.Signed)) {
             // tx is valid. resending...
             logger.info(`Tx [${tx.txId}] is still valid. Resending tx...`);
             await chain.submitTransaction(paymentTx);
