@@ -85,7 +85,10 @@ const revenueHistoryRoute = (server: FastifySeverInstance) => {
       const revenues = results.slice(offset, offset + limit);
 
       reply.status(200).send({
-        items: revenues,
+        items: revenues.map((revenue) => ({
+          ...revenue,
+          revenueAmount: revenue.revenueAmount.toString(),
+        })),
         total: results.length,
       });
     }

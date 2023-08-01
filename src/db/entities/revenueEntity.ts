@@ -7,6 +7,7 @@ import {
   Relation,
 } from 'typeorm';
 import { TransactionEntity } from './TransactionEntity';
+import { BigIntValueTransformer } from '../transformers';
 
 @Entity()
 export class RevenueEntity {
@@ -16,8 +17,8 @@ export class RevenueEntity {
   @Column('varchar')
   tokenId: string;
 
-  @Column({ type: 'bigint' })
-  amount: string;
+  @Column({ type: 'bigint', transformer: new BigIntValueTransformer() })
+  amount: bigint;
 
   @ManyToOne('TransactionEntity', 'txId', {
     cascade: true,

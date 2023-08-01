@@ -1,4 +1,5 @@
 import { ViewEntity, ViewColumn } from 'typeorm';
+import { BigIntValueTransformer } from '../transformers';
 
 @ViewEntity({
   name: 'revenue_view',
@@ -70,11 +71,8 @@ export class RevenueView {
   timestamp!: number;
 
   @ViewColumn()
-  status!: string;
-
-  @ViewColumn()
   revenueTokenId!: string;
 
-  @ViewColumn()
-  revenueAmount!: string;
+  @ViewColumn({ transformer: new BigIntValueTransformer() })
+  revenueAmount!: bigint;
 }

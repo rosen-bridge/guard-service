@@ -12,6 +12,8 @@ import { DatabaseAction } from '../../src/db/DatabaseAction';
 import {
   insertEventsWithAmount,
   insertEventsWithHeight,
+  insertRevenueDataWithDifferentNetworks,
+  insertRevenueDataWithDifferentTokenId,
   insertRevenueDataWithTimestamps,
 } from './databaseTestUtils';
 import * as TxTestData from '../agreement/testData';
@@ -217,17 +219,19 @@ describe('DatabaseActions', () => {
      * @dependencies
      * - database
      * @scenario
-     * - insert 10 mocked reward and 10 mocked payment txs in database
+     * - insert 10 mocked completed reward txs
+     * - insert 10 mocked in-sign reward txs
+     * - insert 10 mocked completed payment txs in database
      * - run test (call `getUnsavedRevenueIds`)
      * - check unsaved revenue tx ids
      * @expected
-     * - should return 10 unsaved revenue ids
+     * - should return 10 completed unsaved revenue ids
      * - all returned ids should be reward tx ids
      */
     it('should return unsaved revenue ids for completed reward txs', async () => {
       const rewardTxIds = [];
       for (let index = 0; index < 10; index++) {
-        // insert 10 reward tx to database
+        // insert 10 completed reward tx to database
         const rewardTx = TxTestData.mockPaymentTransaction(
           TransactionTypes.reward
         );
@@ -236,6 +240,15 @@ describe('DatabaseActions', () => {
           TransactionStatus.completed
         );
         rewardTxIds.push(rewardTx.txId);
+
+        // insert 10 in-sign reward tx to database
+        const waitingRewardTx = TxTestData.mockPaymentTransaction(
+          TransactionTypes.reward
+        );
+        await DatabaseActionMock.insertTxRecord(
+          waitingRewardTx,
+          TransactionStatus.inSign
+        );
 
         // insert 10 payment tx to database
         const paymentTx = TxTestData.mockPaymentTransaction(
@@ -256,7 +269,7 @@ describe('DatabaseActions', () => {
 
   describe('getTxsById', () => {
     /**
-     * @target DatabaseAction.getCompletedEvents should return requested txs
+     * @target DatabaseAction.getTxsById should return requested txs
      * @dependencies
      * - database
      * @scenario
@@ -278,9 +291,10 @@ describe('DatabaseActions', () => {
         txIds.push(tx.txId);
       }
 
-      const txs = await DatabaseAction.getInstance().getTxsById(txIds);
-      expect(txs.length).toEqual(10);
-      expect(txs.map((tx) => tx.txId).sort()).toEqual(txIds.sort());
+      const requiredTxs = txIds.slice(0, 5);
+      const txs = await DatabaseAction.getInstance().getTxsById(requiredTxs);
+      expect(txs.length).toEqual(5);
+      expect(txs.map((tx) => tx.txId).sort()).toEqual(requiredTxs.sort());
     });
   });
 
@@ -491,15 +505,16 @@ describe('DatabaseActions', () => {
       const tx = TxTestData.mockPaymentTransaction(TransactionTypes.reward);
       await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.completed);
       const txRecord = await DatabaseAction.getInstance().getTxById(tx.txId);
-      const savedRevenue = await DatabaseAction.getInstance().storeRevenue(
+      await DatabaseAction.getInstance().storeRevenue(
         'tokenId',
-        '1000',
+        1000n,
         txRecord
       );
-
-      expect(savedRevenue.tokenId).toEqual('tokenId');
-      expect(savedRevenue.amount).toEqual('1000');
-      expect(savedRevenue.tx.txId).toEqual(tx.txId);
+      const savedRevenue = await DatabaseActionMock.allRevenueRecords();
+      expect(savedRevenue).toHaveLength(1);
+      expect(savedRevenue[0].tokenId).toEqual('tokenId');
+      expect(savedRevenue[0].amount).toEqual(1000n);
+      expect(savedRevenue[0].tx.txId).toEqual(tx.txId);
     });
   });
 
@@ -555,7 +570,34 @@ describe('DatabaseActions', () => {
     });
 
     /**
-     * @target DatabaseAction.getRevenuesWithFilters should return the specified revenue
+     * @target DatabaseAction.getRevenuesWithFilters should return the revenue with specified height
+     * @dependencies
+     * - database
+     * @scenario
+     * - insert 10 mocked revenues with different heights
+     * - run test (call `getRevenuesWithFilters`)
+     * - check returned revenues
+     * @expected
+     * - should return the specified revenue
+     */
+    it('should return the revenue with specified height', async () => {
+      await insertRevenueDataWithTimestamps(10);
+      const revenues =
+        await DatabaseAction.getInstance().getRevenuesWithFilters(
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          1002,
+          1003
+        );
+      expect(revenues).toHaveLength(1);
+      expect(revenues[0].height).toBeGreaterThanOrEqual(1002);
+      expect(revenues[0].height).toBeLessThan(1003);
+    });
+
+    /**
+     * @target DatabaseAction.getRevenuesWithFilters should return the revenue with specified timestamp
      * @dependencies
      * - database
      * @scenario
@@ -565,27 +607,97 @@ describe('DatabaseActions', () => {
      * @expected
      * - should return the specified revenue
      */
-    it('should return the specified revenue', async () => {
+    it('should return the revenue with specified timestamp', async () => {
       await insertRevenueDataWithTimestamps(10);
       const revenues =
         await DatabaseAction.getInstance().getRevenuesWithFilters(
           undefined,
-          'fromChain',
-          'toChain',
-          'tokenId',
-          1002,
-          1003,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
           1665438000000,
           1665439000000
         );
       expect(revenues).toHaveLength(1);
       expect(revenues[0].timestamp).toBeGreaterThanOrEqual(1665438000000);
       expect(revenues[0].timestamp).toBeLessThanOrEqual(1665439000000);
-      expect(revenues[0].height).toBeGreaterThanOrEqual(1002);
-      expect(revenues[0].height).toBeLessThan(1003);
-      expect(revenues[0].fromChain).toEqual('fromChain');
-      expect(revenues[0].toChain).toEqual('toChain');
-      expect(revenues[0].revenueTokenId).toEqual('tokenId');
+    });
+
+    /**
+     * @target DatabaseAction.getRevenuesWithFilters should return the revenue for events that are transferring assets from ergo network
+     * @dependencies
+     * - database
+     * @scenario
+     * - insert 20 mocked revenues with different networks (10 "from ergo", 10 others)
+     * - run test (call `getRevenuesWithFilters`)
+     * - check returned revenues
+     * @expected
+     * - should return 10 "from ergo" event revenues
+     */
+    it('should return the revenue for events that are transferring assets from ergo network', async () => {
+      await insertRevenueDataWithDifferentNetworks(10);
+      const revenues =
+        await DatabaseAction.getInstance().getRevenuesWithFilters(
+          undefined,
+          ERGO_CHAIN
+        );
+      expect(revenues).toHaveLength(10);
+      revenues.forEach((revenue) =>
+        expect(revenue.fromChain).toEqual(ERGO_CHAIN)
+      );
+    });
+
+    /**
+     * @target DatabaseAction.getRevenuesWithFilters should return the revenue for events that are transferring assets to ergo network
+     * @dependencies
+     * - database
+     * @scenario
+     * - insert 20 mocked revenues with different networks (10 "to ergo", 10 others)
+     * - run test (call `getRevenuesWithFilters`)
+     * - check returned revenues
+     * @expected
+     * - should return 10 "to ergo" event revenues
+     */
+    it('should return the revenue for events that are transferring assets to ergo network', async () => {
+      await insertRevenueDataWithDifferentNetworks(10);
+      const revenues =
+        await DatabaseAction.getInstance().getRevenuesWithFilters(
+          undefined,
+          undefined,
+          ERGO_CHAIN
+        );
+      expect(revenues).toHaveLength(10);
+      revenues.forEach((revenue) =>
+        expect(revenue.toChain).toEqual(ERGO_CHAIN)
+      );
+    });
+
+    /**
+     * @target DatabaseAction.getRevenuesWithFilters should return the revenue with specified revenue token
+     * @dependencies
+     * - database
+     * @scenario
+     * - insert 20 mocked revenues with different tokenIds (10 "revenueToken", 10 others)
+     * - run test (call `getRevenuesWithFilters`)
+     * - check returned revenues
+     * @expected
+     * - should return 10 revenues with specified token
+     */
+    it('should return the revenue with specified revenue token', async () => {
+      await insertRevenueDataWithDifferentTokenId(10);
+      const revenues =
+        await DatabaseAction.getInstance().getRevenuesWithFilters(
+          undefined,
+          undefined,
+          undefined,
+          'revenueToken'
+        );
+      expect(revenues).toHaveLength(10);
+      revenues.forEach((revenue) =>
+        expect(revenue.revenueTokenId).toEqual('revenueToken')
+      );
     });
   });
 

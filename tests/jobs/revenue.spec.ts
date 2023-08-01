@@ -49,11 +49,11 @@ describe('DatabaseActions', () => {
       const allTxs = await DatabaseActionMock.allTxRecords();
       expect(spiedTxsById).toHaveBeenCalledWith(allTxs.map((tx) => tx.txId));
       for (const tx of allTxs) {
-        expect(spiedStoreRevenue).toHaveBeenCalledWith(ERG, '10000000', {
+        expect(spiedStoreRevenue).toHaveBeenCalledWith(ERG, 10000000n, {
           ...tx,
           event: undefined,
         });
-        expect(spiedStoreRevenue).toHaveBeenCalledWith('tokenId', '20000', {
+        expect(spiedStoreRevenue).toHaveBeenCalledWith('tokenId', 20000n, {
           ...tx,
           event: undefined,
         });

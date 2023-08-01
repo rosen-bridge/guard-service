@@ -30,14 +30,10 @@ const revenueJobFunction = async () => {
     for (const payment of payments) {
       if (payment.address == GuardsErgoConfigs.bridgeFeeRepoAddress) {
         // store erg revenue
-        await dbAction.storeRevenue(
-          ERG,
-          payment.assets.nativeToken.toString(),
-          tx
-        );
+        await dbAction.storeRevenue(ERG, payment.assets.nativeToken, tx);
         // store other tokens revenue
         for (const asset of payment.assets.tokens)
-          await dbAction.storeRevenue(asset.id, asset.value.toString(), tx);
+          await dbAction.storeRevenue(asset.id, asset.value, tx);
       }
     }
   }

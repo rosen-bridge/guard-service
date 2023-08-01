@@ -1,4 +1,13 @@
-import { DataSource, In, IsNull, LessThan, Not, Repository } from 'typeorm';
+import {
+  And,
+  DataSource,
+  In,
+  IsNull,
+  LessThan,
+  MoreThanOrEqual,
+  Not,
+  Repository,
+} from 'typeorm';
 import { ConfirmedEventEntity } from './entities/ConfirmedEventEntity';
 import { TransactionEntity } from './entities/TransactionEntity';
 import {
@@ -616,10 +625,10 @@ class DatabaseAction {
    */
   storeRevenue = async (
     tokenId: string,
-    amount: string,
+    amount: bigint,
     tx: TransactionEntity
   ) => {
-    return await this.RevenueRepository.save({
+    return await this.RevenueRepository.insert({
       tokenId,
       amount,
       tx,
@@ -650,32 +659,35 @@ class DatabaseAction {
     fromBlockTime?: number,
     toBlockTime?: number
   ): Promise<RevenueView[]> => {
-    const query = this.RevenueView.createQueryBuilder().select('*');
-
-    if (fromChain) {
-      query.andWhere('fromChain = :fromChain', { fromChain });
-    }
-    if (toChain) {
-      query.andWhere('toChain = :toChain', { toChain });
-    }
-    if (tokenId) {
-      query.andWhere('revenueTokenId = :tokenId', { tokenId });
-    }
-    if (minHeight) {
-      query.andWhere('height >= :minHeight', { minHeight });
-    }
-    if (maxHeight) {
-      query.andWhere('height <= :maxHeight', { maxHeight });
-    }
-    if (fromBlockTime) {
-      query.andWhere('timestamp >= :fromBlockTime', { fromBlockTime });
-    }
-    if (toBlockTime) {
-      query.andWhere('timestamp <= :toBlockTime', { toBlockTime });
-    }
-    query.orderBy('timestamp', sort ? sort : 'DESC');
-
-    return query.getRawMany();
+    const clauses = [],
+      heightCondition = [],
+      timeCondition = [];
+    if (fromChain) clauses.push({ fromChain: fromChain });
+    if (toChain) clauses.push({ toChain: toChain });
+    if (tokenId) clauses.push({ revenueTokenId: tokenId });
+    if (minHeight) heightCondition.push(MoreThanOrEqual(minHeight));
+    if (maxHeight) heightCondition.push(LessThan(maxHeight));
+    if (heightCondition.length > 0)
+      clauses.push({ height: And(...heightCondition) });
+    if (fromBlockTime) timeCondition.push(MoreThanOrEqual(fromBlockTime));
+    if (toBlockTime) timeCondition.push(LessThan(toBlockTime));
+    if (timeCondition.length > 0)
+      clauses.push({ timestamp: And(...timeCondition) });
+    return this.RevenueView.find({
+      where:
+        clauses.length > 0
+          ? clauses.reduce(
+              (partialCondition, clause) => ({
+                ...partialCondition,
+                ...clause,
+              }),
+              {}
+            )
+          : undefined,
+      order: {
+        timestamp: sort ? sort : 'DESC',
+      },
+    });
   };
 
   /**

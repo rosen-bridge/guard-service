@@ -299,6 +299,15 @@ class DatabaseActionMock {
       relations: ['event'],
     });
   };
+
+  /**
+   * returns all records in Revenue table
+   */
+  static allRevenueRecords = async () => {
+    return await this.testDatabase.RevenueRepository.find({
+      relations: ['tx'],
+    });
+  };
 }
 
 export default DatabaseActionMock;
