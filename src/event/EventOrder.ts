@@ -280,8 +280,6 @@ class EventOrder {
         nativeToken: watcherErgAmount + permit.boxValue,
         tokens: watcherTokens,
       };
-      const instance = ChainHandler.getInstance();
-      console.log(instance);
       order.push({
         address: ChainHandler.getInstance().getChainPermitAddress(fromChain),
         assets: assets,
