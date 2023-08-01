@@ -17,9 +17,6 @@ import EventBoxes from './EventBoxes';
 import { PermitBoxValue } from './types';
 
 class EventOrder {
-  static watcherPermitAddress =
-    GuardsErgoConfigs.ergoContractConfig.permitAddress;
-
   /**
    * generates user payment order for an event
    * @param event the event trigger
@@ -215,7 +212,8 @@ class EventOrder {
         rsnFee,
         paymentTxId,
         rwtTokenId,
-        rwtCount
+        rwtCount,
+        event.fromChain
       );
     else
       return this.eventTokenRewardOrder(
@@ -226,7 +224,8 @@ class EventOrder {
         tokenId,
         paymentTxId,
         rwtTokenId,
-        rwtCount
+        rwtCount,
+        event.fromChain
       );
   };
 
@@ -239,6 +238,7 @@ class EventOrder {
    * @param paymentTxId payment transaction id (which is empty string when toChain is Ergo)
    * @param rwtTokenId RWT token id of fromChain
    * @param rwtCount amount RWT token per watcher
+   * @param fromChain
    */
   protected static eventErgRewardOrder = (
     outPermits: PermitBoxValue[],
@@ -247,7 +247,8 @@ class EventOrder {
     rsnFee: bigint,
     paymentTxId: string,
     rwtTokenId: string,
-    rwtCount: bigint
+    rwtCount: bigint,
+    fromChain: string
   ): PaymentOrder => {
     const order: PaymentOrder = [];
     const watchersLen = outPermits.length;
@@ -280,7 +281,7 @@ class EventOrder {
         tokens: watcherTokens,
       };
       order.push({
-        address: this.watcherPermitAddress,
+        address: ChainHandler.getInstance().getChainPermitAddress(fromChain),
         assets: assets,
         extra: permit.wid,
       });
@@ -325,7 +326,6 @@ class EventOrder {
   /**
    * generates token payment of event reward order
    * @param outPermits list of watcher permit wid and box values
-   * @param WIDs list of watcher ids
    * @param bridgeFee event total bridge fee
    * @param networkFee event total network fee
    * @param rsnFee event total RSN fee
@@ -333,6 +333,7 @@ class EventOrder {
    * @param paymentTxId payment transaction id (which is empty string when toChain is Ergo)
    * @param rwtTokenId RWT token id of fromChain
    * @param rwtCount amount RWT token per watcher
+   * @param fromChain
    */
   protected static eventTokenRewardOrder = (
     outPermits: PermitBoxValue[],
@@ -342,7 +343,8 @@ class EventOrder {
     tokenId: string,
     paymentTxId: string,
     rwtTokenId: string,
-    rwtCount: bigint
+    rwtCount: bigint,
+    fromChain: string
   ): PaymentOrder => {
     const order: PaymentOrder = [];
     const watchersLen = outPermits.length;
@@ -376,7 +378,7 @@ class EventOrder {
     // add watcher boxes to order
     outPermits.forEach((permit) => {
       order.push({
-        address: this.watcherPermitAddress,
+        address: ChainHandler.getInstance().getChainPermitAddress(fromChain),
         assets: {
           nativeToken: permit.boxValue,
           tokens: watcherTokens,
