@@ -58,6 +58,17 @@ class ChainHandler {
     }
   };
 
+  getChainPermitAddress = (chain: string): string => {
+    switch (chain) {
+      case ERGO_CHAIN:
+        return GuardsErgoConfigs.ergoContractConfig.permitAddress;
+      case CARDANO_CHAIN:
+        return GuardsCardanoConfigs.cardanoContractConfig.permitAddress;
+      default:
+        throw Error(`Cannot get permit address for chain [${chain}]`);
+    }
+  };
+
   /**
    * generates Ergo network and chain objects using configs
    * @returns ErgoChain object
