@@ -1,10 +1,6 @@
 import { Fee } from '@rosen-bridge/minimum-fee';
-import { AbstractChain } from '@rosen-chains/abstract-chain';
-import { res } from 'pino-std-serializers';
-import { expect } from 'vitest';
 import GuardsCardanoConfigs from '../../src/configs/GuardsCardanoConfigs';
 import EventOrder from '../../src/event/EventOrder';
-import { chainHandlerInstance } from '../handlers/ChainHandler.mock';
 import { mockNativeTokenPaymentEvent, mockTokenPaymentEvent } from './testData';
 import TestUtils from '../testUtils/TestUtils';
 import MinimumFee from '../../src/event/MinimumFee';
