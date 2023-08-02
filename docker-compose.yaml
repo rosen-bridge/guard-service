@@ -17,14 +17,13 @@ services:
       timeout: 5s
       retries: 3
 
-  ts-guqrd-service:
-    image: ghcr.io/arsalanyavari/ts-guard-service:${IMAGE_VERSION:-latest}
+  ts-guard-service:
+    image: ghcr.io/rosen-bridge/ts-guard-service:${IMAGE_VERSION:-latest}
     container_name: guard
     ports:
       - 127.0.0.1:9000:9000
     environment:
       DB_HOST: ${DB_HOST:-db} 
-      DB_PORT: ${POSTGRES_PORT:-5432}
     env_file:
       - .env
     volumes:
@@ -32,8 +31,8 @@ services:
         source: ./config/local.yaml
         target: /app/config/local.yml
       - type: bind
-        source: ./config/threshholds.json
-        target: /app/config/threshholds.json
+        source: ./config/thresholds.json
+        target: /app/config/thresholds.json
       - ./logs/ts-guard-logs/:/app/logs/
       - ts-guard-data:/app/peer-dialer/
       - ./logs/tss-api-logs/:/app/tss-api/logs/
@@ -45,7 +44,7 @@ services:
       db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl --fail http://localhost:9000/health/status || exit 1"]
+      test: ["CMD-SHELL", "curl --fail http://localhost:9000/swagger || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 3
