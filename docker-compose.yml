@@ -45,7 +45,7 @@ services:
       db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl --fail http://localhost/health/status:9000/ || exit 1"]
+      test: ["CMD-SHELL", "curl --fail http://localhost:9000/health/status || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 3
