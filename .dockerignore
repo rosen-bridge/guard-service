@@ -1,5 +1,4 @@
 yarn.lock
-
 .idea
 node_modules
 .nyc_output
@@ -9,16 +8,11 @@ build
 dist
 logs
 tests
-docker
+docker*
 Dockerfile
-docker-compose.yml
 .dockerignore
 .env
-.git
-.gitlab
-.gitlab-ci.yml
-.github
-.gitignore
+.git*
 .eslintignore
 README.md
 .husky
