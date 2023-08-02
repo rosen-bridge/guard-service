@@ -1,6 +1,9 @@
 import { AbstractChain } from '@rosen-chains/abstract-chain';
+import { CARDANO_CHAIN } from '@rosen-chains/cardano';
 import { ErgoChain } from '@rosen-chains/ergo';
 import { Mock } from 'vitest';
+import GuardsCardanoConfigs from '../../src/configs/GuardsCardanoConfigs';
+import GuardsErgoConfigs from '../../src/configs/GuardsErgoConfigs';
 
 export const chainHandlerInstance = {
   getChain: (chainName: string): AbstractChain => {
@@ -14,6 +17,14 @@ export const chainHandlerInstance = {
   },
   getChainColdAddress: (chain: string): string => {
     throw Error(`ChainHandler 'getChainColdAddress' is not mocked!`);
+  },
+  getChainPermitAddress: (chain: string): string => {
+    switch (chain) {
+      case CARDANO_CHAIN:
+        return GuardsCardanoConfigs.cardanoContractConfig.permitAddress;
+      default:
+        return GuardsErgoConfigs.ergoContractConfig.permitAddress;
+    }
   },
 };
 

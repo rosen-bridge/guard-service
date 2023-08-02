@@ -17,3 +17,5 @@ config/tokens.json
 config/thresholds.json
 config/production.yaml
 .env
+.DS_Store
+

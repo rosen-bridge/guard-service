@@ -4,7 +4,6 @@ import { RosenTokens, TokenMap } from '@rosen-bridge/tokens';
 import { ThresholdConfig } from '../coldStorage/types';
 import { JsonBI } from '../network/NetworkModels';
 import { LogConfig } from '../types';
-import { isNumber } from 'lodash-es';
 import Utils from '../utils/Utils';
 import { ConfigError } from '../utils/errors';
 
@@ -15,10 +14,10 @@ import { ConfigError } from '../utils/errors';
  */
 const getConfigIntKeyOrDefault = (key: string, defaultValue: number) => {
   const val: string = config.get(key);
-  if (isNumber(val)) {
+  if (val !== undefined) {
     const valNum = parseInt(val);
     if (isNaN(valNum)) {
-      return defaultValue;
+      throw Error(`Invalid value ${val} for ${key}`);
     }
     return valNum;
   }
@@ -48,6 +47,20 @@ const getOptionalConfig = <T>(key: string, defaultValue: T) => {
   return defaultValue;
 };
 
+const SupportedAlgorithms = ['eddsa'];
+class KeygenConfig {
+  static isActive = config.get<boolean>('keygen.active');
+  static guardsCount = getConfigIntKeyOrDefault('keygen.guards', 0);
+  static threshold = getConfigIntKeyOrDefault('keygen.threshold', 0);
+  static algorithm = () => {
+    const algorithm = config.get<string>('keygen.algorithm');
+    if (SupportedAlgorithms.indexOf(algorithm) !== -1) {
+      return algorithm;
+    }
+    throw Error(`Invalid keygen algorithm ${algorithm}`);
+  };
+}
+
 class Configs {
   // express config
   static apiPort = getConfigIntKeyOrDefault('api.port', 8080);
@@ -65,6 +78,7 @@ class Configs {
   static tssPort = config.get<string>('tss.port');
   static tssTimeout = getConfigIntKeyOrDefault('tss.timeout', 8); // seconds
   static tssCallBackUrl = `http://${this.apiHost}:${this.apiPort}/tss/sign`;
+  static tssKeygenCallBackUrl = `http://${this.apiHost}:${this.apiPort}/tss/keygen`;
   static tssKeys = {
     secret: config.get<string>('tss.secret'),
     publicKeys: config.get<string[]>('tss.publicKeys'),
@@ -220,6 +234,7 @@ class Configs {
     'healthCheck.p2p.defectConfirmationTimeWindow',
     120
   );
+  static keygen = KeygenConfig;
 }
 
 export default Configs;
