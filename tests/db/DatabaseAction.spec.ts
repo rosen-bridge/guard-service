@@ -277,7 +277,7 @@ describe('DatabaseActions', () => {
      * - run test (call `getTxsById`)
      * - check returned txs
      * @expected
-     * - should return 10 txs with requested ids
+     * - should return 5 selected txs with requested ids
      */
     it('should return requested txs', async () => {
       const txIds = [];
