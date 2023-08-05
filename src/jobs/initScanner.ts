@@ -1,4 +1,4 @@
-import { ErgoNodeScanner } from '@rosen-bridge/scanner';
+import { ErgoNetworkType, ErgoScanner } from '@rosen-bridge/scanner';
 import { dataSource } from '../db/dataSource';
 import {
   CommitmentExtractor,
@@ -8,7 +8,7 @@ import GuardsCardanoConfigs from '../configs/GuardsCardanoConfigs';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import { loggerFactory } from '../log/Logger';
 
-let ergoScanner: ErgoNodeScanner;
+let ergoScanner: ErgoScanner;
 
 /**
  * runs ergo block scanner
@@ -44,7 +44,8 @@ const createLoggers = () => ({
  */
 const initScanner = () => {
   const scannerConfig = {
-    nodeUrl: GuardsErgoConfigs.node.url,
+    type: ErgoNetworkType.Node,
+    url: GuardsErgoConfigs.node.url,
     timeout: GuardsErgoConfigs.node.timeout * 1000,
     initialHeight: GuardsErgoConfigs.initialHeight,
     dataSource,
@@ -52,7 +53,7 @@ const initScanner = () => {
 
   const loggers = createLoggers();
 
-  ergoScanner = new ErgoNodeScanner(scannerConfig, loggers.ergoScannerLogger);
+  ergoScanner = new ErgoScanner(scannerConfig, loggers.ergoScannerLogger);
   const cardanoCommitmentExtractor = new CommitmentExtractor(
     'cardanoCommitment',
     [GuardsCardanoConfigs.cardanoContractConfig.commitmentAddress],

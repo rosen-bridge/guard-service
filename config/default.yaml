@@ -128,6 +128,8 @@ healthCheck:
     duration: 100 # error log duration time check
   p2p:
     defectConfirmationTimeWindow: 120 # Time to wait after any peer disconnection
+revenue:
+  interval: 120 # revenue update interval
 keygen: # only set when you want to start keygen process
   active: false # set true to start keygen process on startup
   guards: 0 # total number of guards
