@@ -4,11 +4,12 @@ import {
   StatusEnum,
   TssSigner,
 } from '@rosen-bridge/tss';
+import axios from 'axios';
+import CommunicationConfig from '../communication/CommunicationConfig';
 import Dialer from '../communication/Dialer';
 import { loggerFactory } from '../log/Logger';
 import Configs from '../configs/Configs';
 import * as childProcess from 'child_process';
-import GuardPkHandler from '../handlers/GuardPkHandler';
 
 const logger = loggerFactory(import.meta.url);
 const exec = childProcess.exec;
@@ -44,7 +45,6 @@ class Tss {
       Configs.tssConfigPath +
       ` -guardUrl http://${Configs.apiHost}:${Configs.apiPort}` +
       ` -host ${Configs.tssUrl}:${Configs.tssPort}`;
-
     exec(tssPath, function (err, data) {
       if (err !== null) {
         const timeout = Configs.tssInstanceRestartGap;
@@ -72,13 +72,11 @@ class Tss {
     Tss.dialer = await Dialer.getInstance();
 
     // initialize guard detection
-    const requiredSign = GuardPkHandler.getInstance().requiredSign;
     const signer = new EdDSA(Configs.tssKeys.secret);
     Tss.guardDetection = new GuardDetection({
       guardsPublicKey: Configs.tssKeys.publicKeys,
       signer: signer,
       submit: this.generateSubmitMessageWrapper(Tss.DETECTION_CHANNEL),
-      needGuardThreshold: requiredSign,
       getPeerId: () => Promise.resolve(Tss.dialer.getDialerId()),
     });
     await Tss.guardDetection.init();
@@ -88,8 +86,7 @@ class Tss {
       signer: signer,
       detection: Tss.guardDetection,
       guardsPk: Configs.tssKeys.publicKeys,
-      tssSignUrl: `${Configs.tssUrl}:${Configs.tssPort}/sign`,
-      threshold: requiredSign,
+      tssApiUrl: `${Configs.tssUrl}:${Configs.tssPort}`,
       submitMsg: this.generateSubmitMessageWrapper(Tss.SIGNING_CHANNEL),
       getPeerId: () => Promise.resolve(Tss.dialer.getDialerId()),
       callbackUrl: Configs.tssCallBackUrl,
@@ -110,6 +107,51 @@ class Tss {
     );
   };
 
+  /**
+   * start keygen process for guards
+   * @param guardsCount
+   * @param threshold
+   */
+  static keygen = async (guardsCount: number, threshold: number) => {
+    Tss.runBinary();
+
+    // initialize dialer
+    Tss.dialer = await Dialer.getInstance();
+
+    Tss.tryCallApi(guardsCount, threshold);
+  };
+
+  /**
+   * wait until all peers are connected then call tss keygen api
+   * @param guardsCount
+   * @param threshold
+   */
+  private static tryCallApi = (guardsCount: number, threshold: number) => {
+    const peerIds = Tss.dialer
+      .getPeerIds()
+      .filter((peerId) => !CommunicationConfig.relays.peerIDs.includes(peerId));
+    if (peerIds.length < guardsCount - 1 || !Tss.dialer.getDialerId()) {
+      setTimeout(() => Tss.tryCallApi(guardsCount, threshold), 1000);
+    } else {
+      setTimeout(() => {
+        axios
+          .post(`${Configs.tssUrl}:${Configs.tssPort}/keygen`, {
+            p2pIDs: [Tss.dialer.getDialerId(), ...peerIds],
+            callBackUrl: Configs.tssKeygenCallBackUrl,
+            crypto: Configs.keygen.algorithm(),
+            threshold: threshold,
+            peersCount: guardsCount,
+          })
+          .then((res) => {
+            logger.info(JSON.stringify(res.data));
+          })
+          .catch((err) => {
+            logger.error(`an error occurred during call keygen ${err}`);
+            logger.debug(err.stack);
+          });
+      }, 10000);
+    }
+  };
   /**
    * generates a function to wrap channel send message to dialer
    * @param channel

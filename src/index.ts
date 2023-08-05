@@ -13,11 +13,10 @@ import { configUpdateJob } from './jobs/guardConfigUpdate';
 import MultiSigUtils from './guard/multisig/MultiSigUtils';
 import { DatabaseAction } from './db/DatabaseAction';
 import { dataSource } from './db/dataSource';
-import GuardPkHandler from './handlers/GuardPkHandler';
 import Tss from './guard/Tss';
 import { tssUpdateJob } from './jobs/tss';
 
-const init = async () => {
+const initService = async () => {
   // initialize all data sources
   await initDataSources();
 
@@ -54,6 +53,21 @@ const init = async () => {
 
   // initialize guard health check
   await healthCheckStart();
+};
+
+const initKeygen = async () => {
+  // initialize express Apis
+  await initApiServer();
+
+  await Tss.keygen(Configs.keygen.guardsCount, Configs.keygen.threshold);
+};
+
+const init = async () => {
+  if (Configs.keygen.isActive) {
+    return initKeygen();
+  } else {
+    return initService();
+  }
 };
 
 init().then(() => null);

@@ -14,11 +14,9 @@ import { rosenConfig } from '../configs/RosenConfig';
 import { ERG, ERGO_CHAIN, ErgoChain } from '@rosen-chains/ergo';
 import ChainHandler from '../handlers/ChainHandler';
 import EventBoxes from './EventBoxes';
+import { PermitBoxValue } from './types';
 
 class EventOrder {
-  static watcherPermitAddress =
-    GuardsErgoConfigs.ergoContractConfig.permitAddress;
-
   /**
    * generates user payment order for an event
    * @param event the event trigger
@@ -41,24 +39,28 @@ class EventOrder {
       const eventBox = await EventBoxes.getEventBox(event);
       const rwtCount =
         ergoChain.getBoxRWT(eventBox) / BigInt(event.WIDs.length);
+      const permitValue =
+        ergoChain.getSerializedBoxInfo(eventBox).assets.nativeToken /
+        BigInt(event.WIDs.length);
 
       const commitmentBoxes = await EventBoxes.getEventValidCommitments(
         event,
         rwtCount
       );
-      const guardsConfigBox = await ergoChain.getGuardsConfigBox(
-        rosenConfig.guardNFT,
-        rosenConfig.guardSignAddress
-      );
 
       // generate reward order
       const rewardOrder = this.eventRewardOrder(
         event,
-        commitmentBoxes.map(ergoChain.getBoxWID),
+        commitmentBoxes.map((commitment) => ({
+          wid: ergoChain.getBoxWID(commitment),
+          boxValue:
+            ergoChain.getSerializedBoxInfo(commitment).assets.nativeToken,
+        })),
         feeConfig,
         '',
         ChainHandler.getInstance().getChain(event.fromChain).getRWTToken(),
-        rwtCount
+        rwtCount,
+        permitValue
       );
       order.push(...rewardOrder);
     }
@@ -88,6 +90,9 @@ class EventOrder {
     // get event and commitment boxes
     const eventBox = await EventBoxes.getEventBox(event);
     const rwtCount = ergoChain.getBoxRWT(eventBox) / BigInt(event.WIDs.length);
+    const permitValue =
+      ergoChain.getSerializedBoxInfo(eventBox).assets.nativeToken /
+      BigInt(event.WIDs.length);
 
     const commitmentBoxes = await EventBoxes.getEventValidCommitments(
       event,
@@ -97,11 +102,15 @@ class EventOrder {
     // generate reward order
     return EventOrder.eventRewardOrder(
       event,
-      commitmentBoxes.map(ergoChain.getBoxWID),
+      commitmentBoxes.map((commitment) => ({
+        wid: ergoChain.getBoxWID(commitment),
+        boxValue: ergoChain.getSerializedBoxInfo(commitment).assets.nativeToken,
+      })),
       feeConfig,
       '',
       ChainHandler.getInstance().getChain(event.fromChain).getRWTToken(),
-      rwtCount
+      rwtCount,
+      permitValue
     );
   };
 
@@ -156,21 +165,26 @@ class EventOrder {
   /**
    * generates event reward order
    * @param event the event trigger
-   * @param unmergedWIDs wid of valid commitment boxes which did not merge into event trigger
+   * @param unmergedWIDs wid of valid commitment boxes which did not merge into event trigger with the boxValue
    * @param feeConfig minimum fee and rsn ratio config for the event
    * @param paymentTxId payment transaction id (which is empty string when toChain is Ergo)
    * @param rwtTokenId RWT token id of fromChain
    * @param rwtCount amount RWT token per watcher
+   * @param permitValue erg amount to use in permit box per watcher
    */
   static eventRewardOrder = (
     event: EventTrigger,
-    unmergedWIDs: string[],
+    unmergedWIDs: PermitBoxValue[],
     feeConfig: Fee,
     paymentTxId: string,
     rwtTokenId: string,
-    rwtCount: bigint
+    rwtCount: bigint,
+    permitValue: bigint
   ): PaymentOrder => {
-    const WIDs: string[] = [...event.WIDs, ...unmergedWIDs];
+    const outPermits: PermitBoxValue[] = [
+      ...event.WIDs.map((wid) => ({ wid, boxValue: permitValue })),
+      ...unmergedWIDs,
+    ];
     const bridgeFee = Utils.maxBigint(
       Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee),
       (BigInt(event.amount) * feeConfig.feeRatio) /
@@ -192,55 +206,58 @@ class EventOrder {
     );
     if (tokenId === ERG)
       return this.eventErgRewardOrder(
-        WIDs,
+        outPermits,
         bridgeFee,
         networkFee,
         rsnFee,
         paymentTxId,
         rwtTokenId,
-        rwtCount
+        rwtCount,
+        event.fromChain
       );
     else
       return this.eventTokenRewardOrder(
-        WIDs,
+        outPermits,
         bridgeFee,
         networkFee,
         rsnFee,
         tokenId,
         paymentTxId,
         rwtTokenId,
-        rwtCount
+        rwtCount,
+        event.fromChain
       );
   };
 
   /**
    * generates erg payment of event reward order
-   * @param WIDs list of watcher ids
+   * @param outPermits list of watcher permit wid and box values
    * @param bridgeFee event total bridge fee
    * @param networkFee event total network fee
    * @param rsnFee event total RSN fee
    * @param paymentTxId payment transaction id (which is empty string when toChain is Ergo)
    * @param rwtTokenId RWT token id of fromChain
    * @param rwtCount amount RWT token per watcher
+   * @param fromChain
    */
   protected static eventErgRewardOrder = (
-    WIDs: string[],
+    outPermits: PermitBoxValue[],
     bridgeFee: bigint,
     networkFee: bigint,
     rsnFee: bigint,
     paymentTxId: string,
     rwtTokenId: string,
-    rwtCount: bigint
+    rwtCount: bigint,
+    fromChain: string
   ): PaymentOrder => {
     const order: PaymentOrder = [];
-    const watchersLen = WIDs.length;
+    const watchersLen = outPermits.length;
 
     // calculate each watcher share
     const watcherErgAmount =
       (bridgeFee * GuardsErgoConfigs.watchersSharePercent) /
-        100n /
-        BigInt(watchersLen) +
-      GuardsErgoConfigs.minimumErg;
+      100n /
+      BigInt(watchersLen);
     const watcherRsnAmount =
       (rsnFee * GuardsErgoConfigs.watchersRSNSharePercent) /
       100n /
@@ -258,15 +275,15 @@ class EventOrder {
       });
 
     // add watcher boxes to order
-    WIDs.forEach((wid) => {
+    outPermits.forEach((permit) => {
       const assets: AssetBalance = {
-        nativeToken: watcherErgAmount,
+        nativeToken: watcherErgAmount + permit.boxValue,
         tokens: watcherTokens,
       };
       order.push({
-        address: this.watcherPermitAddress,
+        address: ChainHandler.getInstance().getChainPermitAddress(fromChain),
         assets: assets,
-        extra: wid,
+        extra: permit.wid,
       });
     });
 
@@ -308,7 +325,7 @@ class EventOrder {
 
   /**
    * generates token payment of event reward order
-   * @param WIDs list of watcher ids
+   * @param outPermits list of watcher permit wid and box values
    * @param bridgeFee event total bridge fee
    * @param networkFee event total network fee
    * @param rsnFee event total RSN fee
@@ -316,19 +333,21 @@ class EventOrder {
    * @param paymentTxId payment transaction id (which is empty string when toChain is Ergo)
    * @param rwtTokenId RWT token id of fromChain
    * @param rwtCount amount RWT token per watcher
+   * @param fromChain
    */
   protected static eventTokenRewardOrder = (
-    WIDs: string[],
+    outPermits: PermitBoxValue[],
     bridgeFee: bigint,
     networkFee: bigint,
     rsnFee: bigint,
     tokenId: string,
     paymentTxId: string,
     rwtTokenId: string,
-    rwtCount: bigint
+    rwtCount: bigint,
+    fromChain: string
   ): PaymentOrder => {
     const order: PaymentOrder = [];
-    const watchersLen = WIDs.length;
+    const watchersLen = outPermits.length;
 
     // calculate each watcher share
     const watcherTokenAmount =
@@ -357,14 +376,14 @@ class EventOrder {
       });
 
     // add watcher boxes to order
-    WIDs.forEach((wid) => {
+    outPermits.forEach((permit) => {
       order.push({
-        address: this.watcherPermitAddress,
+        address: ChainHandler.getInstance().getChainPermitAddress(fromChain),
         assets: {
-          nativeToken: GuardsErgoConfigs.minimumErg,
+          nativeToken: permit.boxValue,
           tokens: watcherTokens,
         },
-        extra: wid,
+        extra: permit.wid,
       });
     });
 

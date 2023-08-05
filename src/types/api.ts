@@ -30,4 +30,18 @@ const HealthStatusType = Type.Object({
   lastCheck: Type.Optional(Type.String()),
 });
 
-export { FastifySeverInstance, SortRequest, HealthStatusType, Asset };
+interface TokenChartData {
+  title: string;
+  data: {
+    label: string;
+    amount: string;
+  }[];
+}
+
+export {
+  FastifySeverInstance,
+  SortRequest,
+  HealthStatusType,
+  TokenChartData,
+  Asset,
+};
