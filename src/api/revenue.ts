@@ -1,5 +1,9 @@
 import { Type } from '@sinclair/typebox';
-import { FastifySeverInstance, SortRequest } from '../types/api';
+import {
+  FastifySeverInstance,
+  SortRequest,
+  TokenChartData,
+} from '../types/api';
 import { messageResponseSchema, outputItemsSchema } from '../types/schema';
 import { DatabaseAction } from '../db/DatabaseAction';
 import {
@@ -123,21 +127,12 @@ const revenueChartRoute = (server: FastifySeverInstance) => {
     async (request, reply) => {
       const { count, period } = request.query;
 
-      interface TokenChartData {
-        title: string;
-        data: {
-          label: string;
-          amount: string;
-        }[];
-      }
-      type ApiRevenueChartResponse = TokenChartData[];
-
       const dbAction = DatabaseAction.getInstance();
       const results = await dbAction.getRevenueChartData(period);
       const resultsGroupedByTokenId = groupBy(results, 'tokenId');
       const returnData = reduce<
         typeof resultsGroupedByTokenId,
-        ApiRevenueChartResponse
+        TokenChartData[]
       >(
         resultsGroupedByTokenId,
         (acc, data, tokenId) => [
