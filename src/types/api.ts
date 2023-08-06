@@ -21,6 +21,7 @@ type Asset = {
   tokenId: string;
   tokenName: string;
   amount: string;
+  chain: string;
 };
 
 const HealthStatusType = Type.Object({

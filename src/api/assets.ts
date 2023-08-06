@@ -14,7 +14,7 @@ const assetsRoute = (server: FastifySeverInstance) => {
   const querySchema = Type.Object({
     limit: Type.Number({ default: DefaultAssetApiLimit }),
     offset: Type.Number({ default: 0 }),
-    chain: Type.Enum({ ERGO_CHAIN, CARDANO_CHAIN }),
+    chain: Type.Optional(Type.Enum({ ERGO_CHAIN, CARDANO_CHAIN })),
     tokenId: Type.Optional(Type.String()),
     tokenName: Type.Optional(Type.String()),
   });
@@ -24,6 +24,7 @@ const assetsRoute = (server: FastifySeverInstance) => {
       tokenId: Type.String(),
       tokenName: Type.String(),
       amount: Type.String(),
+      chain: Type.Enum({ ERGO_CHAIN, CARDANO_CHAIN }),
     })
   );
   server.get(
@@ -40,26 +41,33 @@ const assetsRoute = (server: FastifySeverInstance) => {
     async (request, reply) => {
       const { offset, limit, chain, tokenId, tokenName } = request.query;
 
-      let assetList: Array<Asset>;
-      const chainInstance = ChainHandler.getInstance().getChain(chain);
-      const assets = await chainInstance.getLockAddressAssets();
-      const nativeTokenId =
-        chain == ERGO_CHAIN ? ERG : chain == CARDANO_CHAIN ? ADA : '';
-      // TODO: Fix asset name, https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/257
-      assetList = [
-        {
+      let assetList: Array<Asset> = [];
+      const chains = chain ? [chain] : [ERGO_CHAIN, CARDANO_CHAIN];
+      for (const currentChain of chains) {
+        const chainInstance = ChainHandler.getInstance().getChain(currentChain);
+        const assets = await chainInstance.getLockAddressAssets();
+        const nativeTokenId =
+          currentChain == ERGO_CHAIN
+            ? ERG
+            : currentChain == CARDANO_CHAIN
+            ? ADA
+            : '';
+        // TODO: Fix asset name, https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/257
+        assetList.push({
           tokenId: nativeTokenId,
           tokenName: nativeTokenId,
           amount: assets.nativeToken.toString(),
-        },
-      ];
-      assets.tokens.forEach((token) => {
-        assetList.push({
-          tokenId: token.id,
-          tokenName: token.id,
-          amount: token.value.toString(),
+          chain: currentChain,
         });
-      });
+        assets.tokens.forEach((token) => {
+          assetList.push({
+            tokenId: token.id,
+            tokenName: token.id,
+            amount: token.value.toString(),
+            chain: currentChain,
+          });
+        });
+      }
 
       if (tokenId) {
         assetList = assetList.filter((token) => token.tokenId == tokenId);
