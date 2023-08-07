@@ -17,10 +17,11 @@ enum SortRequest {
   DESC = 'DESC',
 }
 
-type Asset = {
+type Token = {
   tokenId: string;
-  tokenName: string;
+  name?: string;
   amount: string;
+  decimals: number;
   chain: string;
 };
 
@@ -44,5 +45,5 @@ export {
   SortRequest,
   HealthStatusType,
   TokenChartData,
-  Asset,
+  Token,
 };

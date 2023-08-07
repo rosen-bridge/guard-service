@@ -6,6 +6,7 @@ import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
 import ChainHandlerMock from '../handlers/ChainHandler.mock';
 import { FastifySeverInstance } from '../../src/types/api';
 import { assetRoutes } from '../../src/api/assets';
+import ChainHandler from '../../src/handlers/ChainHandler';
 
 describe('assets', () => {
   let mockedServer: FastifySeverInstance;
@@ -26,32 +27,35 @@ describe('assets', () => {
     ChainHandlerMock.mockFromChainFunction('getLockAddressAssets', lockBalance);
   };
 
+  const mockErgoLockAddressAssets = () => {
+    const lockBalance: AssetBalance = {
+      nativeToken: 10n,
+      tokens: [{ id: 'id', value: 20n }],
+    };
+    ChainHandlerMock.mockErgoFunctionReturnValue(
+      'getLockAddressAssets',
+      lockBalance
+    );
+  };
+
   describe('GET /assets', () => {
     beforeEach(() => {
       ChainHandlerMock.resetMock();
     });
 
     /**
-     * @target fastifyServer[GET /assets] should return ergo guard assets correctly
+     * @target fastifyServer[GET /assets] should return ergo guard assets correctly with ergo chain filter
      * @dependencies
      * @scenario
-     * - mock getLockAddressAssets function of ChainHandler
+     * - mock getLockAddressAssets function of ChainHandler for ergo
      * - send a request to the mockedServer
      * - check the result
      * @expected
      * - should return status code 200
      * - should return ergo guard assets correctly
      */
-    it('should return ergo guard assets correctly', async () => {
-      const lockBalance: AssetBalance = {
-        nativeToken: 10n,
-        tokens: [{ id: 'id', value: 20n }],
-      };
-      ChainHandlerMock.mockErgoFunctionReturnValue(
-        'getLockAddressAssets',
-        lockBalance
-      );
-
+    it('should return ergo guard assets correctly with ergo chain filter', async () => {
+      mockErgoLockAddressAssets();
       const result = await mockedServer.inject({
         method: 'GET',
         url: '/assets',
@@ -63,26 +67,32 @@ describe('assets', () => {
         items: [
           {
             tokenId: ERG,
-            tokenName: ERG,
+            name: ERG,
+            decimals: 0,
             amount: '10',
             chain: ERGO_CHAIN,
           },
           {
             tokenId: 'id',
-            tokenName: 'id',
+            name: 'id',
+            decimals: 0,
             amount: '20',
             chain: ERGO_CHAIN,
           },
         ],
         total: 2,
       });
+      expect(ChainHandler.getInstance().getChain).not.toBeCalledWith(
+        CARDANO_CHAIN
+      );
+      expect(ChainHandler.getInstance().getChain).toBeCalledWith(ERGO_CHAIN);
     });
 
     /**
-     * @target fastifyServer[GET /assets] should return cardano guard assets with filter correctly
+     * @target fastifyServer[GET /assets] should return cardano guard assets with cardano chain filter correctly
      * @dependencies
      * @scenario
-     * - mock getLockAddressAssets function of ChainHandler
+     * - mock getLockAddressAssets function of ChainHandler for cardano
      * - send a request to the mockedServer
      * - check the result
      * @expected
@@ -90,13 +100,13 @@ describe('assets', () => {
      * - should return cardano guard assets correctly
      * - should filter ada tokenId
      */
-    it('should return cardano guard assets with filter correctly', async () => {
+    it('should return cardano guard assets with cardano chain filter correctly', async () => {
       ChainHandlerMock.mockChainName(CARDANO_CHAIN, true);
       mockCardanoLockAddressAssets(10n, [{ id: 'id', value: 20n }]);
       const result = await mockedServer.inject({
         method: 'GET',
         url: '/assets',
-        query: 'chain=cardano&tokenId=ada',
+        query: 'chain=cardano',
       });
 
       expect(result.statusCode).toEqual(200);
@@ -104,7 +114,56 @@ describe('assets', () => {
         items: [
           {
             tokenId: ADA,
-            tokenName: ADA,
+            name: ADA,
+            decimals: 0,
+            amount: '10',
+            chain: CARDANO_CHAIN,
+          },
+          {
+            tokenId: 'id',
+            name: 'id',
+            decimals: 0,
+            amount: '20',
+            chain: CARDANO_CHAIN,
+          },
+        ],
+        total: 2,
+      });
+      expect(ChainHandler.getInstance().getChain).toBeCalledWith(CARDANO_CHAIN);
+      expect(ChainHandler.getInstance().getChain).not.toBeCalledWith(
+        ERGO_CHAIN
+      );
+    });
+
+    /**
+     * @target fastifyServer[GET /assets] should return guard assets with token id filter correctly
+     * @dependencies
+     * @scenario
+     * - mock getLockAddressAssets function of ChainHandler for ergo and cardano
+     * - send a request to the mockedServer
+     * - check the result
+     * @expected
+     * - should return status code 200
+     * - should filter ada tokenId
+     */
+    it('should return guard assets with token name filter correctly', async () => {
+      ChainHandlerMock.mockChainName(CARDANO_CHAIN, true);
+      mockCardanoLockAddressAssets(10n, [{ id: 'id', value: 20n }]);
+      mockErgoLockAddressAssets();
+
+      const result = await mockedServer.inject({
+        method: 'GET',
+        url: '/assets',
+        query: 'tokenId=ada',
+      });
+
+      expect(result.statusCode).toEqual(200);
+      expect(result.json()).toEqual({
+        items: [
+          {
+            tokenId: ADA,
+            name: ADA,
+            decimals: 0,
             amount: '10',
             chain: CARDANO_CHAIN,
           },
@@ -142,7 +201,8 @@ describe('assets', () => {
         items: [
           {
             tokenId: 'id1',
-            tokenName: 'id1',
+            name: 'id1',
+            decimals: 0,
             amount: '20',
             chain: CARDANO_CHAIN,
           },

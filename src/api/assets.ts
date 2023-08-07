@@ -2,7 +2,7 @@ import { Type } from '@sinclair/typebox';
 import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
 import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
 
-import { Asset, FastifySeverInstance } from '../types/api';
+import { Token, FastifySeverInstance } from '../types/api';
 import { messageResponseSchema, outputItemsSchema } from '../types/schema';
 import { DefaultAssetApiLimit } from '../utils/constants';
 import ChainHandler from '../handlers/ChainHandler';
@@ -17,14 +17,15 @@ const assetsRoute = (server: FastifySeverInstance) => {
     offset: Type.Number({ default: 0 }),
     chain: Type.Optional(Type.Enum({ ERGO_CHAIN, CARDANO_CHAIN })),
     tokenId: Type.Optional(Type.String()),
-    tokenName: Type.Optional(Type.String()),
+    name: Type.Optional(Type.String()),
   });
 
   const assetsResponseSchema = outputItemsSchema(
     Type.Object({
       tokenId: Type.String(),
-      tokenName: Type.String(),
+      name: Type.Optional(Type.String()),
       amount: Type.String(),
+      decimals: Type.Number(),
       chain: Type.Enum({ ERGO_CHAIN, CARDANO_CHAIN }),
     })
   );
@@ -40,9 +41,9 @@ const assetsRoute = (server: FastifySeverInstance) => {
       },
     },
     async (request, reply) => {
-      const { offset, limit, chain, tokenId, tokenName } = request.query;
+      const { offset, limit, chain, tokenId, name } = request.query;
 
-      let assetList: Array<Asset> = [];
+      let tokenList: Array<Token> = [];
       const chains = chain ? [chain] : [ERGO_CHAIN, CARDANO_CHAIN];
       for (const currentChain of chains) {
         const chainInstance = ChainHandler.getInstance().getChain(currentChain);
@@ -53,34 +54,36 @@ const assetsRoute = (server: FastifySeverInstance) => {
             : currentChain == CARDANO_CHAIN
             ? ADA
             : '';
-        // TODO: Fix asset name, https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/257
-        assetList.push({
+        // TODO: Fix token name and decimal, https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/257
+        tokenList.push({
           tokenId: nativeTokenId,
-          tokenName: nativeTokenId,
+          name: nativeTokenId,
           amount: assets.nativeToken.toString(),
+          decimals: 0,
           chain: currentChain,
         });
         assets.tokens.forEach((token) => {
-          assetList.push({
+          tokenList.push({
             tokenId: token.id,
-            tokenName: token.id,
+            name: token.id,
             amount: token.value.toString(),
+            decimals: 0,
             chain: currentChain,
           });
         });
       }
 
       if (tokenId) {
-        assetList = assetList.filter((token) => token.tokenId == tokenId);
+        tokenList = tokenList.filter((token) => token.tokenId == tokenId);
       }
-      if (tokenName) {
-        assetList = assetList.filter((token) => token.tokenName == tokenName);
+      if (name) {
+        tokenList = tokenList.filter((token) => token.name == name);
       }
-      const result = assetList.slice(offset, offset + limit);
+      const result = tokenList.slice(offset, offset + limit);
 
       reply.status(200).send({
         items: result,
-        total: assetList.length,
+        total: tokenList.length,
       });
     }
   );
