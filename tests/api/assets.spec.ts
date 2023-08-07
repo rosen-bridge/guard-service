@@ -1,10 +1,11 @@
+import fastify from 'fastify';
+import { AssetBalance } from '@rosen-chains/abstract-chain';
+import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
+import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
+
 import ChainHandlerMock from '../handlers/ChainHandler.mock';
 import { FastifySeverInstance } from '../../src/types/api';
 import { assetRoutes } from '../../src/api/assets';
-import { AssetBalance } from '@rosen-chains/abstract-chain';
-import { ERG } from '@rosen-chains/ergo';
-import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
-import fastify from 'fastify';
 
 describe('assets', () => {
   let mockedServer: FastifySeverInstance;
@@ -64,11 +65,13 @@ describe('assets', () => {
             tokenId: ERG,
             tokenName: ERG,
             amount: '10',
+            chain: ERGO_CHAIN,
           },
           {
             tokenId: 'id',
             tokenName: 'id',
             amount: '20',
+            chain: ERGO_CHAIN,
           },
         ],
         total: 2,
@@ -103,6 +106,7 @@ describe('assets', () => {
             tokenId: ADA,
             tokenName: ADA,
             amount: '10',
+            chain: CARDANO_CHAIN,
           },
         ],
         total: 1,
@@ -140,6 +144,7 @@ describe('assets', () => {
             tokenId: 'id1',
             tokenName: 'id1',
             amount: '20',
+            chain: CARDANO_CHAIN,
           },
         ],
         total: 3,
