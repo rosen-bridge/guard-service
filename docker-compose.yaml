@@ -23,7 +23,7 @@ services:
     ports:
       - 127.0.0.1:9000:9000
     environment:
-      DB_HOST: ${DB_HOST:-db}
+      POSTGRES_HOST: ${POSTGRES_HOST:-db}
     env_file:
       - .env
     volumes:
