@@ -1,8 +1,18 @@
-import { DataSource, In, IsNull, LessThan, Not, Repository } from 'typeorm';
+import {
+  And,
+  DataSource,
+  In,
+  IsNull,
+  LessThan,
+  MoreThanOrEqual,
+  Not,
+  Repository,
+} from 'typeorm';
 import { ConfirmedEventEntity } from './entities/ConfirmedEventEntity';
 import { TransactionEntity } from './entities/TransactionEntity';
 import {
   EventStatus,
+  RevenuePeriod,
   TransactionStatus,
   TransactionTypes,
 } from '../utils/constants';
@@ -16,6 +26,9 @@ import { Semaphore } from 'await-semaphore';
 import * as RosenChains from '@rosen-chains/abstract-chain';
 import TransactionSerializer from '../transaction/TransactionSerializer';
 import { SortRequest } from '../types/api';
+import { RevenueEntity } from './entities/revenueEntity';
+import { RevenueView } from './entities/revenueView';
+import { RevenueChartView } from './entities/revenueChartView';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -26,6 +39,9 @@ class DatabaseAction {
   EventRepository: Repository<EventTriggerEntity>;
   ConfirmedEventRepository: Repository<ConfirmedEventEntity>;
   TransactionRepository: Repository<TransactionEntity>;
+  RevenueRepository: Repository<RevenueEntity>;
+  RevenueView: Repository<RevenueView>;
+  RevenueChartView: Repository<RevenueChartView>;
 
   txSignSemaphore = new Semaphore(1);
 
@@ -41,6 +57,9 @@ class DatabaseAction {
       this.dataSource.getRepository(ConfirmedEventEntity);
     this.TransactionRepository =
       this.dataSource.getRepository(TransactionEntity);
+    this.RevenueRepository = this.dataSource.getRepository(RevenueEntity);
+    this.RevenueView = dataSource.getRepository(RevenueView);
+    this.RevenueChartView = dataSource.getRepository(RevenueChartView);
   };
 
   /**
@@ -239,7 +258,13 @@ class DatabaseAction {
     return await this.TransactionRepository.find({
       relations: ['event'],
       where: {
-        event: event,
+        event: {
+          ...event,
+          eventData: {
+            ...event.eventData,
+            spendBlock: event.eventData.spendBlock ?? undefined,
+          },
+        },
         type: type,
         status: Not(TransactionStatus.invalid),
       },
@@ -428,7 +453,13 @@ class DatabaseAction {
       relations: ['event'],
       where: [
         {
-          event: event,
+          event: {
+            ...event,
+            eventData: {
+              ...event.eventData,
+              spendBlock: event.eventData.spendBlock ?? undefined,
+            },
+          },
           status: TransactionStatus.completed,
           type: TransactionTypes.payment,
         },
@@ -558,6 +589,129 @@ class DatabaseAction {
       event_trigger_entity_height: sort || SortRequest.DESC,
     });
     return query.getMany();
+  };
+
+  /*
+   * Returns unsaved revenue transaction ids
+   */
+  getUnsavedRevenueIds = async (): Promise<Array<string>> => {
+    const unsavedTxs = await this.TransactionRepository.createQueryBuilder('tx')
+      .select('tx.txId', 'txId')
+      .leftJoin('revenue_entity', 're', 'tx.txId = re.txId')
+      .where('tx.type == :type', { type: TransactionTypes.reward })
+      .andWhere('tx.status == "completed"')
+      .andWhere('re.txId IS NULL')
+      .getRawMany();
+
+    const unsavedTxIds = unsavedTxs.map((tx: { txId: string }) => tx.txId);
+    return unsavedTxIds;
+  };
+
+  /**
+   * Returns transactions with specified txIds
+   * @param txIds
+   */
+  getTxsById = async (txIds: string[]): Promise<TransactionEntity[]> => {
+    return this.TransactionRepository.createQueryBuilder()
+      .where('txId IN (:...txIds)', { txIds })
+      .getMany();
+  };
+
+  /**
+   * Stores the info of permit in chart entity
+   * @param tokenId
+   * @param amount
+   * @param permit
+   */
+  storeRevenue = async (
+    tokenId: string,
+    amount: bigint,
+    tx: TransactionEntity
+  ) => {
+    return await this.RevenueRepository.insert({
+      tokenId,
+      amount,
+      tx,
+    });
+  };
+
+  /**
+   * Returns all revenue with respect to the filters
+   * @param fromChain
+   * @param toChain
+   * @param tokenId
+   * @param sourceTxId
+   * @param minHeight
+   * @param maxHeight
+   * @param fromBlockTime
+   * @param toBlockTime
+   * @param sorting
+   * @param offset
+   * @param limit
+   */
+  getRevenuesWithFilters = async (
+    sort?: SortRequest,
+    fromChain?: string,
+    toChain?: string,
+    tokenId?: string,
+    minHeight?: number,
+    maxHeight?: number,
+    fromBlockTime?: number,
+    toBlockTime?: number
+  ): Promise<RevenueView[]> => {
+    const clauses = [],
+      heightCondition = [],
+      timeCondition = [];
+    if (fromChain) clauses.push({ fromChain: fromChain });
+    if (toChain) clauses.push({ toChain: toChain });
+    if (tokenId) clauses.push({ revenueTokenId: tokenId });
+    if (minHeight) heightCondition.push(MoreThanOrEqual(minHeight));
+    if (maxHeight) heightCondition.push(LessThan(maxHeight));
+    if (heightCondition.length > 0)
+      clauses.push({ height: And(...heightCondition) });
+    if (fromBlockTime) timeCondition.push(MoreThanOrEqual(fromBlockTime));
+    if (toBlockTime) timeCondition.push(LessThan(toBlockTime));
+    if (timeCondition.length > 0)
+      clauses.push({ timestamp: And(...timeCondition) });
+    return this.RevenueView.find({
+      where:
+        clauses.length > 0
+          ? clauses.reduce(
+              (partialCondition, clause) => ({
+                ...partialCondition,
+                ...clause,
+              }),
+              {}
+            )
+          : undefined,
+      order: {
+        timestamp: sort ? sort : 'DESC',
+      },
+    });
+  };
+
+  /**
+   * Returns chart data with the specified period
+   * @param period
+   * @param offset
+   * @param limit
+   */
+  getRevenueChartData = async (period: RevenuePeriod) => {
+    const query = this.RevenueChartView.createQueryBuilder();
+    query
+      .select('"tokenId"')
+      .addSelect('SUM(amount)', 'amount')
+      .addSelect('MIN(timestamp)', 'label')
+      .groupBy('"tokenId"')
+      .orderBy('timestamp', 'DESC');
+    if (period === RevenuePeriod.year) {
+      query.addGroupBy('year');
+    } else if (period === RevenuePeriod.month) {
+      query.addGroupBy('year').addGroupBy('month');
+    } else if (period === RevenuePeriod.week) {
+      query.addGroupBy('week_number');
+    }
+    return query.getRawMany();
   };
 }
 

@@ -234,6 +234,12 @@ class Configs {
     'healthCheck.p2p.defectConfirmationTimeWindow',
     120
   );
+
+  // Revenue Config
+  static revenueUpdateInterval = getConfigIntKeyOrDefault(
+    'revenue.interval',
+    120
+  );
   static keygen = KeygenConfig;
 }
 
