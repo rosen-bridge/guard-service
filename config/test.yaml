@@ -17,10 +17,8 @@ cardano:
 ergo:
   networkType: 'testnet'
   chainNetwork: 'node'
-  explorer:
-    url: 'https://testnet.koios.rest/api/v0'
   node:
-    url: 'https://testnet.koios.rest/api/v0'
+    url: 'http://213.239.193.208:9053/'
   minBoxValue: '100000'
   fee: '1100000'
   confirmation:

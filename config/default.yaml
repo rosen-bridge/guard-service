@@ -19,13 +19,12 @@ cardano:
     observation: 120 # an observation transaction (lock transaction) on Cardano get confirmed
     payment: 120 # a payment transaction on Ergo Cardano confirmed
     cold: 120 # a cold storage transaction on Ergo Cardano confirmed
-  lockAddress: '' # Cardano lock address
   coldStorageAddress: ''
 ergo:
   networkType: 'mainnet' # Ergo network type [testnet, mainnet]
   chainNetwork: '' # 'explorer' or 'node'
   explorer:
-    url: 'https://api.ergoplatform.com/api'
+    url: 'https://api.ergoplatform.com/'
     timeout: 8
   node:
     url: ''
