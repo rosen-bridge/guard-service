@@ -17,8 +17,6 @@ cardano:
 ergo:
   networkType: 'testnet'
   chainNetwork: 'node'
-  explorer:
-    url: 'https://api.ergoplatform.com/'
   node:
     url: 'http://213.239.193.208:9053/'
   minBoxValue: '100000'
