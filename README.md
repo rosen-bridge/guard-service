@@ -8,6 +8,7 @@
   - [Set configs](#set-configs)
   - [Run in development mode](#run-in-development-mode)
   - [Run in production mode](#run-in-production-mode)
+  - [Run using docker](#run-using-docker)
 - [Contributing](#contributing)
 - [License](#license)
   <a name="headers"/>
@@ -74,6 +75,15 @@ npm run start:dev
 ```shell
 npm install
 npm run start
+```
+
+### Run using docker
+
+```shell
+mkdir -p logs/ts-guard-logs logs/tss-api-logs
+chown -R 9000:9000 logs
+docker pull ghcr.io/rosen-bridge/ts-guard-service
+docker-compose up
 ```
 
 ## Contributing
