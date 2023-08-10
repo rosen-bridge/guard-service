@@ -79,6 +79,9 @@ npm run start
 
 ### Run using docker
 
+> **Note**
+> First of all create `.env` file based on `./docker/.env.template` file in the root of the project and fill in its values then run the below commands:
+
 ```shell
 mkdir -p logs/ts-guard-logs logs/tss-api-logs
 chown -R 9000:9000 logs
