@@ -115,7 +115,7 @@ class ChainHandler {
       case 'koios':
         network = new CardanoKoiosNetwork(
           GuardsCardanoConfigs.koios.url,
-          GuardsCardanoConfigs.lockAddress,
+          GuardsCardanoConfigs.cardanoContractConfig.lockAddress,
           Configs.tokens(),
           loggerFactory('KoiosNetwork')
         );

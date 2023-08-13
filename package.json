@@ -9,7 +9,7 @@
     "lint": "eslint --fix . && npm run prettify",
     "madge": "npx madge --circular --extensions ts ./",
     "build": "rimraf dist && tsc",
-    "start": "cross-env NODE_ENV=production ts-node --experimental-specifier-resolution=node ./src/index.ts",
+    "start": "ts-node --experimental-specifier-resolution=node ./src/index.ts",
     "start:dev": "cross-env NODE_ENV=development nodemon .",
     "test": "vitest",
     "type-check": "tsc --noEmit",
@@ -75,7 +75,8 @@
     "typeorm": "^0.3.6",
     "uint8arrays": "^3.1.0",
     "winston": "^3.8.2",
-    "winston-daily-rotate-file": "^4.7.1"
+    "winston-daily-rotate-file": "^4.7.1",
+    "patch-package": "^6.5.1"
   },
   "devDependencies": {
     "@types/config": "^0.0.41",
@@ -93,7 +94,6 @@
     "lint-staged": "^13.0.3",
     "madge": "^5.0.1",
     "nodemon": "^2.0.16",
-    "patch-package": "^6.5.1",
     "prettier": "^2.8.3",
     "rimraf": "^3.0.2",
     "ts-node": "^10.7.0",

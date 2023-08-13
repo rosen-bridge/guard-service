@@ -1,8 +1,5 @@
 import config from 'config';
-import Configs, {
-  getChainNetworkName,
-  getConfigIntKeyOrDefault,
-} from './Configs';
+import { getChainNetworkName, getConfigIntKeyOrDefault } from './Configs';
 import { rosenConfig } from './RosenConfig';
 import { CARDANO_CHAIN, CardanoConfigs } from '@rosen-chains/cardano';
 
@@ -41,14 +38,7 @@ class GuardsCardanoConfigs {
 
   // cardano addresses
   static coldAddress: string = config.get<string>('cardano.coldStorageAddress');
-  static lockAddress = config.get<string>('cardano.lockAddress');
   static aggregatedPublicKey = config.get<string>('cardano.bankPublicKey');
-
-  // Cardano rosen extractor required configs
-  static extractorOptions = {
-    lockAddress: this.lockAddress,
-    tokens: Configs.tokens(),
-  };
 
   // CardanoChain required configs
   static chainConfigs: CardanoConfigs = {
@@ -56,7 +46,7 @@ class GuardsCardanoConfigs {
     observationTxConfirmation: this.observationConfirmation,
     paymentTxConfirmation: this.paymentConfirmation,
     coldTxConfirmation: this.coldTxConfirmation,
-    lockAddress: this.lockAddress,
+    lockAddress: this.cardanoContractConfig.lockAddress,
     coldStorageAddress: this.coldAddress,
     rwtId: this.cardanoContractConfig.RWTId,
     minBoxValue: this.txMinimumLovelace,

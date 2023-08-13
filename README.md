@@ -8,6 +8,7 @@
   - [Set configs](#set-configs)
   - [Run in development mode](#run-in-development-mode)
   - [Run in production mode](#run-in-production-mode)
+  - [Run using docker](#run-using-docker)
 - [Contributing](#contributing)
 - [License](#license)
   <a name="headers"/>
@@ -74,6 +75,18 @@ npm run start:dev
 ```shell
 npm install
 npm run start
+```
+
+### Run using docker
+
+> **Note**
+> First of all create `.env` file based on `./docker/.env.template` file in the root of the project and fill in its values then run the below commands:
+
+```shell
+mkdir -p logs/ts-guard-logs logs/tss-api-logs
+chown -R 9000:9000 logs
+docker pull ghcr.io/rosen-bridge/ts-guard-service
+docker-compose up
 ```
 
 ## Contributing
