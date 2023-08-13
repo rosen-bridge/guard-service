@@ -9,8 +9,8 @@ dist
 logs
 peer-dialer*.json
 bin
-config/rosen/contracts-*
-config/rosen/tokens.json
+config/addresses/contracts-*
+config/tokens.json
 config/thresholds.json
 config/production.yaml
 config/local*.yaml
