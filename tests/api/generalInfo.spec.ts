@@ -16,6 +16,10 @@ describe('generalInfo', () => {
       ChainHandlerMock.resetMock();
     });
 
+    afterEach(() => {
+      mockedServer.close();
+    });
+
     /**
      * @target fastifyServer[GET /info] should return general info of the guard correctly
      * @dependencies
