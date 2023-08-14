@@ -1,17 +1,23 @@
-import { apiServer, initApiServer } from '../../src/jobs/apiServer';
 import { guardInfo } from './testData';
 import ChainHandlerMock from '../handlers/ChainHandler.mock';
+import { FastifySeverInstance } from '../../src/types/api';
+import { generalInfoRoute } from '../../src/api/generalInfo';
 import { AssetBalance } from '@rosen-chains/abstract-chain';
 import { CARDANO_CHAIN } from '@rosen-chains/cardano';
+import fastify from 'fastify';
 
 describe('generalInfo', () => {
   describe('GET /info', () => {
-    beforeAll(async () => {
-      await initApiServer();
-    });
+    let mockedServer: FastifySeverInstance;
 
     beforeEach(() => {
+      mockedServer = fastify();
+      mockedServer.register(generalInfoRoute);
       ChainHandlerMock.resetMock();
+    });
+
+    afterEach(() => {
+      mockedServer.close();
     });
 
     /**
@@ -54,7 +60,7 @@ describe('generalInfo', () => {
       );
 
       // send a request to the server
-      const result = await apiServer.inject({
+      const result = await mockedServer.inject({
         method: 'GET',
         url: '/info',
       });

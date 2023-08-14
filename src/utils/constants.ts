@@ -33,6 +33,7 @@ enum RevenuePeriod {
   week = 'week',
 }
 const DefaultApiLimit = 100;
+const DefaultAssetApiLimit = 10;
 const DefaultRevenueApiCount = 10;
 
 export {
@@ -42,4 +43,5 @@ export {
   RevenuePeriod,
   DefaultApiLimit,
   DefaultRevenueApiCount,
+  DefaultAssetApiLimit,
 };

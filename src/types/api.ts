@@ -17,6 +17,14 @@ enum SortRequest {
   DESC = 'DESC',
 }
 
+type Token = {
+  tokenId: string;
+  name?: string;
+  amount: string;
+  decimals: number;
+  chain: string;
+};
+
 const HealthStatusType = Type.Object({
   id: Type.String(),
   status: Type.Enum(HealthStatusLevel),
@@ -32,4 +40,10 @@ interface TokenChartData {
   }[];
 }
 
-export { FastifySeverInstance, SortRequest, HealthStatusType, TokenChartData };
+export {
+  FastifySeverInstance,
+  SortRequest,
+  HealthStatusType,
+  TokenChartData,
+  Token,
+};
