@@ -1,3 +1,4 @@
+import fastifyCors from '@fastify/cors';
 import fastify, { FastifyInstance } from 'fastify';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
@@ -28,6 +29,7 @@ const initApiServer = async () => {
   }).withTypeProvider<TypeBoxTypeProvider>();
 
   await apiServer.register(swagger);
+  await apiServer.register(fastifyCors, {});
 
   await apiServer.register(swaggerUi, {
     routePrefix: '/swagger',
