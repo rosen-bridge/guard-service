@@ -48,6 +48,7 @@ const assetsRoute = (server: FastifySeverInstance) => {
       for (const currentChain of chains) {
         const chainInstance = ChainHandler.getInstance().getChain(currentChain);
         const assets = await chainInstance.getLockAddressAssets();
+        // TODO: fix native token name, https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/274
         const nativeTokenId =
           currentChain == ERGO_CHAIN
             ? ERG

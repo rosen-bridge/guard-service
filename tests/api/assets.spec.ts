@@ -16,6 +16,10 @@ describe('assets', () => {
     mockedServer.register(assetRoutes);
   });
 
+  afterEach(() => {
+    mockedServer.close();
+  });
+
   const mockCardanoLockAddressAssets = (
     nativeToken: bigint,
     tokens: Array<{ id: string; value: bigint }>
@@ -146,7 +150,7 @@ describe('assets', () => {
      * - should return status code 200
      * - should filter ada tokenId
      */
-    it('should return guard assets with token name filter correctly', async () => {
+    it('should return guard assets with token id filter correctly', async () => {
       ChainHandlerMock.mockChainName(CARDANO_CHAIN, true);
       mockCardanoLockAddressAssets(10n, [{ id: 'id', value: 20n }]);
       mockErgoLockAddressAssets();
@@ -173,7 +177,44 @@ describe('assets', () => {
     });
 
     /**
-     * @target fastifyServer[GET /assets] should return cardano guard assets with limit offset correctly
+     * @target fastifyServer[GET /assets] should return guard assets with token name filter correctly
+     * @dependencies
+     * @scenario
+     * - mock getLockAddressAssets function of ChainHandler for ergo and cardano
+     * - send a request to the mockedServer
+     * - check the result
+     * @expected
+     * - should return status code 200
+     * - should filter ada token name
+     */
+    it('should return guard assets with token name filter correctly', async () => {
+      ChainHandlerMock.mockChainName(CARDANO_CHAIN, true);
+      mockCardanoLockAddressAssets(10n, [{ id: 'id', value: 20n }]);
+      mockErgoLockAddressAssets();
+
+      const result = await mockedServer.inject({
+        method: 'GET',
+        url: '/assets',
+        query: 'name=ada',
+      });
+
+      expect(result.statusCode).toEqual(200);
+      expect(result.json()).toEqual({
+        items: [
+          {
+            tokenId: ADA,
+            name: ADA,
+            decimals: 0,
+            amount: '10',
+            chain: CARDANO_CHAIN,
+          },
+        ],
+        total: 1,
+      });
+    });
+
+    /**
+     * @target fastifyServer[GET /assets] should return cardano guard assets with limit and offset correctly
      * @dependencies
      * @scenario
      * - mock getLockAddressAssets function of ChainHandler
@@ -184,7 +225,7 @@ describe('assets', () => {
      * - should return cardano guard assets correctly
      * - should limit the outputs
      */
-    it('should return cardano guard assets with limit offset correctly', async () => {
+    it('should return cardano guard assets with limit and offset correctly', async () => {
       ChainHandlerMock.mockChainName(CARDANO_CHAIN, true);
       mockCardanoLockAddressAssets(10n, [
         { id: 'id1', value: 20n },
