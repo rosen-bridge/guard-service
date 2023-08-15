@@ -1,11 +1,7 @@
-import { EventTrigger } from '@rosen-chains/abstract-chain';
+import { EventTrigger, TransactionType } from '@rosen-chains/abstract-chain';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import ChainHandler from '../handlers/ChainHandler';
-import {
-  ConfirmationStatus,
-  TransactionTypes,
-} from '@rosen-chains/abstract-chain';
-import EventSerializer from '../event/EventSerializer';
+import { ConfirmationStatus } from '@rosen-chains/abstract-chain';
 import { Fee } from '@rosen-bridge/minimum-fee';
 import EventBoxes from '../event/EventBoxes';
 import { ConfirmedEventEntity } from '../db/entities/ConfirmedEventEntity';
@@ -30,7 +26,7 @@ class EventVerifier {
     const sourceChain = ChainHandler.getInstance().getChain(event.fromChain);
     const txConfirmationStatus = await sourceChain.getTxConfirmationStatus(
       event.sourceTxId,
-      TransactionTypes.lock
+      TransactionType.lock
     );
     return txConfirmationStatus === ConfirmationStatus.ConfirmedEnough;
   };
@@ -72,12 +68,12 @@ class EventVerifier {
   ): boolean => {
     if (
       eventEntity.status === EventStatus.pendingPayment &&
-      type === TransactionTypes.payment
+      type === TransactionType.payment
     )
       return true;
     else if (
       eventEntity.status === EventStatus.pendingReward &&
-      type === TransactionTypes.reward
+      type === TransactionType.reward
     )
       return true;
     else return false;

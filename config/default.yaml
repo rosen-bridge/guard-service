@@ -17,8 +17,9 @@ cardano:
   txTtl: 100000 # Cardano transaction time-to-live
   confirmation: # required block confirmation
     observation: 120 # an observation transaction (lock transaction) on Cardano get confirmed
-    payment: 120 # a payment transaction on Ergo Cardano confirmed
-    cold: 120 # a cold storage transaction on Ergo Cardano confirmed
+    payment: 120 # a payment transaction on Cardano get confirmed
+    cold: 120 # a cold storage transaction on Cardano get confirmed
+    manual: 120 # a manual transaction on Cardano get confirmed
   coldStorageAddress: ''
 ergo:
   networkType: 'mainnet' # Ergo network type [testnet, mainnet]
@@ -36,6 +37,7 @@ ergo:
     event: 20 # an event trigger box get confirmed
     payment: 20 # a payment or reward distribution transaction on Ergo get confirmed
     cold: 20 # a cold storage transaction on Ergo get confirmed
+    manual: 20 # a manual transaction on Ergo get confirmed
   initialHeight: 925000 # block scanner starting block height
   scannerInterval: 180 # scanner update interval
   coldStorageAddress: ''

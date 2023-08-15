@@ -12,7 +12,7 @@ import {
   ImpossibleBehavior,
   NotEnoughAssetsError,
   PaymentTransaction,
-  TransactionTypes,
+  TransactionType,
 } from '@rosen-chains/abstract-chain';
 import DiscordNotification from '../communication/notification/DiscordNotification';
 import { Fee } from '@rosen-bridge/minimum-fee';
@@ -211,7 +211,7 @@ class EventProcessor {
     // generate transaction
     return targetChain.generateTransaction(
       EventSerializer.getId(event),
-      TransactionTypes.payment,
+      TransactionType.payment,
       order,
       [...unsignedAgreementTransactions, ...unsignedQueueTransactions],
       signedTransactions,
@@ -302,7 +302,7 @@ class EventProcessor {
     // generate transaction
     return ergoChain.generateTransaction(
       EventSerializer.getId(event),
-      TransactionTypes.reward,
+      TransactionType.reward,
       order,
       [...unsignedAgreementTransactions, ...unsignedQueueTransactions],
       signedTransactions,

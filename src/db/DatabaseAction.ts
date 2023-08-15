@@ -14,7 +14,6 @@ import {
   EventStatus,
   RevenuePeriod,
   TransactionStatus,
-  TransactionTypes,
 } from '../utils/constants';
 import {
   CommitmentEntity,
@@ -23,12 +22,16 @@ import {
 import Utils from '../utils/Utils';
 import { loggerFactory } from '../log/Logger';
 import { Semaphore } from 'await-semaphore';
-import * as RosenChains from '@rosen-chains/abstract-chain';
 import TransactionSerializer from '../transaction/TransactionSerializer';
 import { SortRequest } from '../types/api';
 import { RevenueEntity } from './entities/revenueEntity';
 import { RevenueView } from './entities/revenueView';
 import { RevenueChartView } from './entities/revenueChartView';
+import {
+  ImpossibleBehavior,
+  PaymentTransaction,
+  TransactionType,
+} from '@rosen-chains/abstract-chain';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -278,7 +281,7 @@ class DatabaseAction {
    */
   replaceTx = async (
     previousTxId: string,
-    tx: RosenChains.PaymentTransaction
+    tx: PaymentTransaction
   ): Promise<void> => {
     await this.TransactionRepository.createQueryBuilder()
       .update()
@@ -314,7 +317,7 @@ class DatabaseAction {
    * inserts a tx record into transactions table
    */
   insertNewTx = async (
-    paymentTx: RosenChains.PaymentTransaction,
+    paymentTx: PaymentTransaction,
     event: ConfirmedEventEntity | null
   ): Promise<void> => {
     await this.TransactionRepository.insert({
@@ -385,7 +388,7 @@ class DatabaseAction {
     return await this.TransactionRepository.find({
       relations: ['event'],
       where: {
-        type: TransactionTypes.coldStorage,
+        type: TransactionType.coldStorage,
         status: Not(TransactionStatus.completed),
         chain: chain,
       },
@@ -461,14 +464,14 @@ class DatabaseAction {
             },
           },
           status: TransactionStatus.completed,
-          type: TransactionTypes.payment,
+          type: TransactionType.payment,
         },
       ],
     });
     if (txs.length === 0)
       throw new Error(`No payment tx found for event [${eventId}]`);
     else if (txs.length > 1)
-      throw new RosenChains.ImpossibleBehavior(
+      throw new ImpossibleBehavior(
         `Found more than one completed payment transaction for event [${eventId}]`
       );
     else return txs[0];
@@ -598,7 +601,7 @@ class DatabaseAction {
     const unsavedTxs = await this.TransactionRepository.createQueryBuilder('tx')
       .select('tx.txId', 'txId')
       .leftJoin('revenue_entity', 're', 'tx.txId = re.txId')
-      .where('tx.type == :type', { type: TransactionTypes.reward })
+      .where('tx.type == :type', { type: TransactionType.reward })
       .andWhere('tx.status == "completed"')
       .andWhere('re.txId IS NULL')
       .getRawMany();

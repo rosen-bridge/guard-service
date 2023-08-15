@@ -3,7 +3,7 @@ import { mockEventTrigger } from '../event/testData';
 import ChainHandlerMock from '../handlers/ChainHandler.mock';
 import {
   ConfirmationStatus,
-  TransactionTypes,
+  TransactionType,
 } from '@rosen-chains/abstract-chain';
 import GuardsErgoConfigs from '../../src/configs/GuardsErgoConfigs';
 import DatabaseActionMock from '../db/mocked/DatabaseAction.mock';
@@ -267,7 +267,7 @@ describe('EventVerifier', () => {
       // run test
       const result = EventVerifier.isEventPendingToType(
         mockedEvent,
-        TransactionTypes.payment
+        TransactionType.payment
       );
 
       // verify returned value
@@ -293,7 +293,7 @@ describe('EventVerifier', () => {
       // run test
       const result = EventVerifier.isEventPendingToType(
         mockedEvent,
-        TransactionTypes.reward
+        TransactionType.reward
       );
 
       // verify returned value
@@ -319,7 +319,7 @@ describe('EventVerifier', () => {
       // run test
       const result = EventVerifier.isEventPendingToType(
         mockedEvent,
-        TransactionTypes.reward
+        TransactionType.reward
       );
 
       // verify returned value

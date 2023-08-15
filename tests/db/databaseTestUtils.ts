@@ -3,7 +3,7 @@ import * as EventTestData from '../event/testData';
 import { EventStatus, TransactionStatus } from '../../src/utils/constants';
 import DatabaseActionMock from './mocked/DatabaseAction.mock';
 import * as TxTestData from '../agreement/testData';
-import { EventTrigger, TransactionTypes } from '@rosen-chains/abstract-chain';
+import { EventTrigger, TransactionType } from '@rosen-chains/abstract-chain';
 import Utils from '../../src/utils/Utils';
 import TestUtils from '../testUtils/TestUtils';
 import { DatabaseAction } from '../../src/db/DatabaseAction';
@@ -132,7 +132,7 @@ const insertRevenue = async (
 
   // insert reward transaction
   const tx = TxTestData.mockPaymentTransaction(
-    TransactionTypes.reward,
+    TransactionType.reward,
     CARDANO_CHAIN,
     Utils.txIdToEventId(mockedEvent.sourceTxId)
   );

@@ -6,7 +6,7 @@ import ChainHandlerMock, {
 import {
   AssetBalance,
   PaymentOrder,
-  TransactionTypes,
+  TransactionType,
 } from '@rosen-chains/abstract-chain';
 import { mockPaymentTransaction } from '../agreement/testData';
 import EventSerializer from '../../src/event/EventSerializer';
@@ -216,7 +216,7 @@ describe('TransactionVerifier', () => {
       // mock event and transaction
       const mockedEvent = mockEventTrigger();
       const paymentTx = mockPaymentTransaction(
-        TransactionTypes.payment,
+        TransactionType.payment,
         mockedEvent.toChain,
         EventSerializer.getId(mockedEvent)
       );
@@ -273,7 +273,7 @@ describe('TransactionVerifier', () => {
       // mock event and transaction
       const mockedEvent = mockEventTrigger();
       const paymentTx = mockPaymentTransaction(
-        TransactionTypes.payment,
+        TransactionType.payment,
         mockedEvent.toChain,
         EventSerializer.getId(mockedEvent)
       );
@@ -330,7 +330,7 @@ describe('TransactionVerifier', () => {
       // mock event and transaction
       const mockedEvent = mockEventTrigger();
       const paymentTx = mockPaymentTransaction(
-        TransactionTypes.payment,
+        TransactionType.payment,
         mockedEvent.toChain,
         EventSerializer.getId(mockedEvent)
       );
@@ -397,7 +397,7 @@ describe('TransactionVerifier', () => {
     it('should return true when all conditions for cold storage tx are met', async () => {
       const chain = CARDANO_CHAIN;
       // mock transaction
-      const tx = mockPaymentTransaction(TransactionTypes.coldStorage, chain);
+      const tx = mockPaymentTransaction(TransactionType.coldStorage, chain);
       // mock ChainHandler `getChain`
       ChainHandlerMock.mockChainName(chain);
       // mock `extractTransactionOrder`
@@ -468,7 +468,7 @@ describe('TransactionVerifier', () => {
     it('should return false when transaction order size is not valid', async () => {
       const chain = CARDANO_CHAIN;
       // mock transaction
-      const tx = mockPaymentTransaction(TransactionTypes.coldStorage, chain);
+      const tx = mockPaymentTransaction(TransactionType.coldStorage, chain);
       // mock ChainHandler `getChain`
       ChainHandlerMock.mockChainName(chain);
       // mock `extractTransactionOrder`
@@ -551,7 +551,7 @@ describe('TransactionVerifier', () => {
     it('should return false when transaction is transferring to wrong address', async () => {
       const chain = CARDANO_CHAIN;
       // mock transaction
-      const tx = mockPaymentTransaction(TransactionTypes.coldStorage, chain);
+      const tx = mockPaymentTransaction(TransactionType.coldStorage, chain);
       // mock ChainHandler `getChain`
       ChainHandlerMock.mockChainName(chain);
       // mock `extractTransactionOrder`
@@ -622,7 +622,7 @@ describe('TransactionVerifier', () => {
     it('should return false when remaining native token in lock address will be less than low threshold', async () => {
       const chain = CARDANO_CHAIN;
       // mock transaction
-      const tx = mockPaymentTransaction(TransactionTypes.coldStorage, chain);
+      const tx = mockPaymentTransaction(TransactionType.coldStorage, chain);
       // mock ChainHandler `getChain`
       ChainHandlerMock.mockChainName(chain);
       // mock `extractTransactionOrder`
@@ -693,7 +693,7 @@ describe('TransactionVerifier', () => {
     it('should return false when remaining native token in lock address will be more than high threshold', async () => {
       const chain = CARDANO_CHAIN;
       // mock transaction
-      const tx = mockPaymentTransaction(TransactionTypes.coldStorage, chain);
+      const tx = mockPaymentTransaction(TransactionType.coldStorage, chain);
       // mock ChainHandler `getChain`
       ChainHandlerMock.mockChainName(chain);
       // mock `extractTransactionOrder`
@@ -764,7 +764,7 @@ describe('TransactionVerifier', () => {
     it('should return false when remaining token in lock address will be less than low threshold', async () => {
       const chain = CARDANO_CHAIN;
       // mock transaction
-      const tx = mockPaymentTransaction(TransactionTypes.coldStorage, chain);
+      const tx = mockPaymentTransaction(TransactionType.coldStorage, chain);
       // mock ChainHandler `getChain`
       ChainHandlerMock.mockChainName(chain);
       // mock `extractTransactionOrder`
@@ -835,7 +835,7 @@ describe('TransactionVerifier', () => {
     it('should return false when remaining token in lock address will be more than high threshold', async () => {
       const chain = CARDANO_CHAIN;
       // mock transaction
-      const tx = mockPaymentTransaction(TransactionTypes.coldStorage, chain);
+      const tx = mockPaymentTransaction(TransactionType.coldStorage, chain);
       // mock ChainHandler `getChain`
       ChainHandlerMock.mockChainName(chain);
       // mock `extractTransactionOrder`
@@ -906,7 +906,7 @@ describe('TransactionVerifier', () => {
     it('should return false when one of required tokens does not exist in address', async () => {
       const chain = CARDANO_CHAIN;
       // mock transaction
-      const tx = mockPaymentTransaction(TransactionTypes.coldStorage, chain);
+      const tx = mockPaymentTransaction(TransactionType.coldStorage, chain);
       // mock ChainHandler `getChain`
       ChainHandlerMock.mockChainName(chain);
       // mock `extractTransactionOrder`
