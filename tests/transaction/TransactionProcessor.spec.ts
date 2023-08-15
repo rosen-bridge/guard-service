@@ -1,7 +1,7 @@
 import DatabaseActionMock from '../db/mocked/DatabaseAction.mock';
 import {
   ConfirmationStatus,
-  TransactionTypes,
+  TransactionType,
 } from '@rosen-chains/abstract-chain';
 import ChainHandlerMock, {
   chainHandlerInstance,
@@ -699,7 +699,7 @@ describe('TransactionProcessor', () => {
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
       const tx = mockPaymentTransaction(
-        TransactionTypes.payment,
+        TransactionType.payment,
         mockedEvent.toChain,
         eventId
       );
@@ -768,7 +768,7 @@ describe('TransactionProcessor', () => {
       // mock event and transaction and insert into db
       const mockedEvent = EventTestData.mockToErgoEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
-      const tx = mockErgoPaymentTransaction(TransactionTypes.payment, eventId);
+      const tx = mockErgoPaymentTransaction(TransactionType.payment, eventId);
       await DatabaseActionMock.insertEventRecord(
         mockedEvent,
         EventStatus.inPayment
@@ -828,7 +828,7 @@ describe('TransactionProcessor', () => {
       // mock event and transaction and insert into db
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
-      const tx = mockErgoPaymentTransaction(TransactionTypes.reward, eventId);
+      const tx = mockErgoPaymentTransaction(TransactionType.reward, eventId);
       await DatabaseActionMock.insertEventRecord(
         mockedEvent,
         EventStatus.inReward
@@ -886,7 +886,7 @@ describe('TransactionProcessor', () => {
     it('should update tx status to completed when cold storage tx is confirmed enough', async () => {
       // mock transaction and insert into db
       const tx = mockPaymentTransaction(
-        TransactionTypes.coldStorage,
+        TransactionType.coldStorage,
         'chain',
         ''
       );
@@ -940,7 +940,7 @@ describe('TransactionProcessor', () => {
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
       const tx = mockPaymentTransaction(
-        TransactionTypes.payment,
+        TransactionType.payment,
         mockedEvent.toChain,
         eventId
       );
@@ -1002,7 +1002,7 @@ describe('TransactionProcessor', () => {
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
       const tx = mockPaymentTransaction(
-        TransactionTypes.payment,
+        TransactionType.payment,
         mockedEvent.toChain,
         eventId
       );
@@ -1068,7 +1068,7 @@ describe('TransactionProcessor', () => {
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
       const tx = mockPaymentTransaction(
-        TransactionTypes.payment,
+        TransactionType.payment,
         mockedEvent.toChain,
         eventId
       );
@@ -1125,7 +1125,7 @@ describe('TransactionProcessor', () => {
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
       const tx = mockPaymentTransaction(
-        TransactionTypes.payment,
+        TransactionType.payment,
         mockedEvent.toChain,
         eventId
       );
@@ -1189,7 +1189,7 @@ describe('TransactionProcessor', () => {
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
       const tx = mockPaymentTransaction(
-        TransactionTypes.payment,
+        TransactionType.payment,
         mockedEvent.toChain,
         eventId
       );
@@ -1266,7 +1266,7 @@ describe('TransactionProcessor', () => {
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
       const tx = mockPaymentTransaction(
-        TransactionTypes.reward,
+        TransactionType.reward,
         mockedEvent.toChain,
         eventId
       );
@@ -1340,7 +1340,7 @@ describe('TransactionProcessor', () => {
     it('should update tx status to invalid when cold storage tx is invalid', async () => {
       // mock transaction and insert into db
       const tx = mockPaymentTransaction(
-        TransactionTypes.coldStorage,
+        TransactionType.coldStorage,
         'chain',
         ''
       );
@@ -1402,7 +1402,7 @@ describe('TransactionProcessor', () => {
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
       const tx = mockPaymentTransaction(
-        TransactionTypes.reward,
+        TransactionType.reward,
         mockedEvent.toChain,
         eventId
       );

@@ -1,4 +1,4 @@
-import { AssetBalance, TransactionTypes } from '@rosen-chains/abstract-chain';
+import { AssetBalance, TransactionType } from '@rosen-chains/abstract-chain';
 import { TransactionStatus } from '../../src/utils/constants';
 import {
   mockErgoPaymentTransaction,
@@ -39,7 +39,7 @@ describe('ColdStorage', () => {
      */
     it(`should do nothing when there is already an active cold storage tx for the chain`, async () => {
       // mock transaction and insert into db as 'approved'
-      const tx = mockPaymentTransaction(TransactionTypes.coldStorage);
+      const tx = mockPaymentTransaction(TransactionType.coldStorage);
       await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.approved);
 
       // mock ChainHandler `getChain`
@@ -282,15 +282,12 @@ describe('ColdStorage', () => {
       TxAgreementMock.mockAddTransactionToQueue();
 
       // mock two transactions and insert into db as signed and unsigned
-      const approvedTx = mockPaymentTransaction(
-        TransactionTypes.payment,
-        chain
-      );
+      const approvedTx = mockPaymentTransaction(TransactionType.payment, chain);
       await DatabaseActionMock.insertTxRecord(
         approvedTx,
         TransactionStatus.approved
       );
-      const signedTx = mockPaymentTransaction(TransactionTypes.payment, chain);
+      const signedTx = mockPaymentTransaction(TransactionType.payment, chain);
       await DatabaseActionMock.insertTxRecord(
         signedTx,
         TransactionStatus.signed
@@ -315,7 +312,7 @@ describe('ColdStorage', () => {
         ChainHandlerMock.getChainMockedFunction('generateTransaction')
       ).toHaveBeenCalledWith(
         '',
-        TransactionTypes.coldStorage,
+        TransactionType.coldStorage,
         expectedOrder,
         [approvedTx],
         [Buffer.from(signedTx.txBytes).toString('hex')],
@@ -377,7 +374,7 @@ describe('ColdStorage', () => {
       TxAgreementMock.mockAddTransactionToQueue();
 
       // mock a transaction and insert into db as signed
-      const signedTx = mockErgoPaymentTransaction(TransactionTypes.payment);
+      const signedTx = mockErgoPaymentTransaction(TransactionType.payment);
       await DatabaseActionMock.insertTxRecord(
         signedTx,
         TransactionStatus.signed
@@ -402,7 +399,7 @@ describe('ColdStorage', () => {
         ChainHandlerMock.getErgoMockedFunction('generateTransaction')
       ).toHaveBeenCalledWith(
         '',
-        TransactionTypes.coldStorage,
+        TransactionType.coldStorage,
         expectedOrder,
         [],
         [Buffer.from(signedTx.txBytes).toString('hex')],

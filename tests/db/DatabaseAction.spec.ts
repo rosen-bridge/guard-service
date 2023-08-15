@@ -17,7 +17,7 @@ import {
   insertRevenueDataWithTimestamps,
 } from './databaseTestUtils';
 import * as TxTestData from '../agreement/testData';
-import { TransactionTypes } from '@rosen-chains/abstract-chain';
+import { TransactionType } from '@rosen-chains/abstract-chain';
 
 describe('DatabaseActions', () => {
   beforeEach(async () => {
@@ -233,7 +233,7 @@ describe('DatabaseActions', () => {
       for (let index = 0; index < 10; index++) {
         // insert 10 completed reward tx to database
         const rewardTx = TxTestData.mockPaymentTransaction(
-          TransactionTypes.reward
+          TransactionType.reward
         );
         await DatabaseActionMock.insertTxRecord(
           rewardTx,
@@ -243,7 +243,7 @@ describe('DatabaseActions', () => {
 
         // insert 10 in-sign reward tx to database
         const waitingRewardTx = TxTestData.mockPaymentTransaction(
-          TransactionTypes.reward
+          TransactionType.reward
         );
         await DatabaseActionMock.insertTxRecord(
           waitingRewardTx,
@@ -252,7 +252,7 @@ describe('DatabaseActions', () => {
 
         // insert 10 payment tx to database
         const paymentTx = TxTestData.mockPaymentTransaction(
-          TransactionTypes.payment
+          TransactionType.payment
         );
         await DatabaseActionMock.insertTxRecord(
           paymentTx,
@@ -283,7 +283,7 @@ describe('DatabaseActions', () => {
       const txIds = [];
       for (let index = 0; index < 10; index++) {
         // insert 10 reward tx to database
-        const tx = TxTestData.mockPaymentTransaction(TransactionTypes.reward);
+        const tx = TxTestData.mockPaymentTransaction(TransactionType.reward);
         await DatabaseActionMock.insertTxRecord(
           tx,
           TransactionStatus.completed
@@ -502,7 +502,7 @@ describe('DatabaseActions', () => {
      * - should store the new revenue correctly
      */
     it('should store the new revenue correctly', async () => {
-      const tx = TxTestData.mockPaymentTransaction(TransactionTypes.reward);
+      const tx = TxTestData.mockPaymentTransaction(TransactionType.reward);
       await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.completed);
       const txRecord = await DatabaseAction.getInstance().getTxById(tx.txId);
       await DatabaseAction.getInstance().storeRevenue(

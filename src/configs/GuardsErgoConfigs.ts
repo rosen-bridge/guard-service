@@ -58,6 +58,10 @@ class GuardsErgoConfigs {
     'ergo.confirmation.cold',
     20
   );
+  static manualTxConfirmation = getConfigIntKeyOrDefault(
+    'ergo.confirmation.manual',
+    20
+  );
 
   // scanner configs
   static initialHeight = getConfigIntKeyOrDefault('ergo.initialHeight', 925000);
@@ -79,9 +83,12 @@ class GuardsErgoConfigs {
   // ErgoChain required configs
   static chainConfigs: ErgoConfigs = {
     fee: this.txFee,
-    observationTxConfirmation: this.observationConfirmation,
-    paymentTxConfirmation: this.paymentTxConfirmation,
-    coldTxConfirmation: this.coldTxConfirmation,
+    confirmations: {
+      observation: this.observationConfirmation,
+      payment: this.paymentTxConfirmation,
+      cold: this.coldTxConfirmation,
+      manual: this.manualTxConfirmation,
+    },
     lockAddress: this.ergoContractConfig.lockAddress,
     coldStorageAddress: this.coldAddress,
     rwtId: this.ergoContractConfig.RWTId,

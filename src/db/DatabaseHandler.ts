@@ -1,7 +1,7 @@
 import {
   ImpossibleBehavior,
   PaymentTransaction,
-  TransactionTypes,
+  TransactionType,
 } from '@rosen-chains/abstract-chain';
 import { ConfirmedEventEntity } from './entities/ConfirmedEventEntity';
 import { loggerFactory } from '../log/Logger';
@@ -24,7 +24,7 @@ class DatabaseHandler {
           const event = await DatabaseAction.getInstance().getEventById(
             newTx.eventId
           );
-          if (event === null && newTx.txType !== TransactionTypes.coldStorage) {
+          if (event === null && newTx.txType !== TransactionType.coldStorage) {
             throw new Error(`Event [${newTx.eventId}] not found`);
           }
 

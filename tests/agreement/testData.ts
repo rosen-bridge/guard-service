@@ -1,13 +1,13 @@
 import TestUtils from '../testUtils/TestUtils';
 import {
   PaymentTransaction,
-  TransactionTypes,
+  TransactionType,
 } from '@rosen-chains/abstract-chain';
 import { CARDANO_CHAIN } from '@rosen-chains/cardano';
 import { ErgoTransaction } from '@rosen-chains/ergo';
 
 export const mockPaymentTransaction = (
-  type: string = TransactionTypes.payment,
+  type: string = TransactionType.payment,
   chain: string = CARDANO_CHAIN,
   eventId: string = TestUtils.generateRandomId()
 ): PaymentTransaction => ({
@@ -15,11 +15,11 @@ export const mockPaymentTransaction = (
   txId: TestUtils.generateRandomId(),
   eventId: eventId,
   txBytes: Buffer.from('txBytes'),
-  txType: type,
+  txType: type as TransactionType,
 });
 
 export const mockErgoPaymentTransaction = (
-  type: string = TransactionTypes.payment,
+  type: string = TransactionType.payment,
   eventId: string = TestUtils.generateRandomId()
 ): ErgoTransaction =>
   new ErgoTransaction(
@@ -28,5 +28,5 @@ export const mockErgoPaymentTransaction = (
     Buffer.from('txBytes'),
     [],
     [],
-    type
+    type as TransactionType
   );

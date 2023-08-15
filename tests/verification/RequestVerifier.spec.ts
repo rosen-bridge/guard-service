@@ -1,6 +1,6 @@
 import RequestVerifier from '../../src/verification/RequestVerifier';
 import { mockEventTrigger } from '../event/testData';
-import { TransactionTypes } from '@rosen-chains/abstract-chain';
+import { TransactionType } from '@rosen-chains/abstract-chain';
 import { mockPaymentTransaction } from '../agreement/testData';
 import EventSerializer from '../../src/event/EventSerializer';
 import { mockGetEventFeeConfig } from '../event/mocked/MinimumFee.mock';
@@ -50,7 +50,7 @@ describe('RequestVerifier', () => {
       // mock event and transaction
       const mockedEvent = mockEventTrigger();
       const paymentTx = mockPaymentTransaction(
-        TransactionTypes.payment,
+        TransactionType.payment,
         mockedEvent.toChain,
         EventSerializer.getId(mockedEvent)
       );
@@ -104,7 +104,7 @@ describe('RequestVerifier', () => {
       // mock event and transaction
       const mockedEvent = mockEventTrigger();
       const paymentTx = mockPaymentTransaction(
-        TransactionTypes.payment,
+        TransactionType.payment,
         mockedEvent.toChain,
         EventSerializer.getId(mockedEvent)
       );
@@ -153,7 +153,7 @@ describe('RequestVerifier', () => {
       // mock event and transaction
       const mockedEvent = mockEventTrigger();
       const paymentTx = mockPaymentTransaction(
-        TransactionTypes.payment,
+        TransactionType.payment,
         mockedEvent.toChain,
         EventSerializer.getId(mockedEvent)
       );
@@ -208,7 +208,7 @@ describe('RequestVerifier', () => {
       // mock event and transaction
       const mockedEvent = mockEventTrigger();
       const paymentTx = mockPaymentTransaction(
-        TransactionTypes.payment,
+        TransactionType.payment,
         mockedEvent.toChain,
         EventSerializer.getId(mockedEvent)
       );
@@ -263,7 +263,7 @@ describe('RequestVerifier', () => {
       // mock event and transaction
       const mockedEvent = mockEventTrigger();
       const paymentTx = mockPaymentTransaction(
-        TransactionTypes.payment,
+        TransactionType.payment,
         mockedEvent.toChain,
         EventSerializer.getId(mockedEvent)
       );
@@ -318,12 +318,12 @@ describe('RequestVerifier', () => {
       // mock event and two transactions
       const mockedEvent = mockEventTrigger();
       const paymentTx = mockPaymentTransaction(
-        TransactionTypes.payment,
+        TransactionType.payment,
         mockedEvent.toChain,
         EventSerializer.getId(mockedEvent)
       );
       const inProgressTx = mockPaymentTransaction(
-        TransactionTypes.payment,
+        TransactionType.payment,
         mockedEvent.toChain,
         EventSerializer.getId(mockedEvent)
       );
@@ -382,7 +382,7 @@ describe('RequestVerifier', () => {
       // mock event and transaction
       const mockedEvent = mockEventTrigger();
       const paymentTx = mockPaymentTransaction(
-        TransactionTypes.payment,
+        TransactionType.payment,
         mockedEvent.toChain,
         EventSerializer.getId(mockedEvent)
       );
@@ -443,14 +443,14 @@ describe('RequestVerifier', () => {
       // mock transaction
       const chain = 'chain';
       const paymentTx = mockPaymentTransaction(
-        TransactionTypes.coldStorage,
+        TransactionType.coldStorage,
         chain,
         ''
       );
 
       // insert another cold storage transaction into db (different chain)
       const anotherTx = mockPaymentTransaction(
-        TransactionTypes.coldStorage,
+        TransactionType.coldStorage,
         'chain-2',
         ''
       );
@@ -493,14 +493,14 @@ describe('RequestVerifier', () => {
       // mock event and transaction
       const chain = 'chain';
       const paymentTx = mockPaymentTransaction(
-        TransactionTypes.coldStorage,
+        TransactionType.coldStorage,
         chain,
         ''
       );
 
       // insert another cold storage transaction into db (different chain)
       const anotherTx = mockPaymentTransaction(
-        TransactionTypes.coldStorage,
+        TransactionType.coldStorage,
         chain,
         ''
       );
@@ -542,7 +542,7 @@ describe('RequestVerifier', () => {
       // mock transaction
       const chain = 'chain';
       const paymentTx = mockPaymentTransaction(
-        TransactionTypes.coldStorage,
+        TransactionType.coldStorage,
         chain,
         ''
       );

@@ -12,7 +12,7 @@ import { loggerFactory } from '../log/Logger';
 import {
   ImpossibleBehavior,
   PaymentTransaction,
-  TransactionTypes,
+  TransactionType,
 } from '@rosen-chains/abstract-chain';
 import RequestVerifier from '../verification/RequestVerifier';
 import TransactionSerializer from '../transaction/TransactionSerializer';
@@ -290,8 +290,8 @@ class TxAgreement extends Communicator {
 
     // verify unique conditions
     if (
-      tx.txType === TransactionTypes.payment ||
-      tx.txType === TransactionTypes.reward
+      tx.txType === TransactionType.payment ||
+      tx.txType === TransactionType.reward
     ) {
       const eventId = tx.eventId;
       // verify if agreed to other txs
@@ -314,7 +314,7 @@ class TxAgreement extends Communicator {
 
       logger.info(`Agreed with tx [${tx.txId}] for event [${eventId}]`);
       this.eventAgreedTransactions.set(eventId, tx.txId);
-    } else if (tx.txType === TransactionTypes.coldStorage) {
+    } else if (tx.txType === TransactionType.coldStorage) {
       // verify if agreed to other txs
       if (
         this.agreedColdStorageTransactions.has(tx.network) &&
@@ -514,12 +514,12 @@ class TxAgreement extends Communicator {
     tx: PaymentTransaction
   ): Promise<void> => {
     try {
-      if (tx.txType === TransactionTypes.payment)
+      if (tx.txType === TransactionType.payment)
         await DatabaseAction.getInstance().setEventStatus(
           tx.eventId,
           EventStatus.inPayment
         );
-      else if (tx.txType === TransactionTypes.reward)
+      else if (tx.txType === TransactionType.reward)
         await DatabaseAction.getInstance().setEventStatus(
           tx.eventId,
           EventStatus.inReward

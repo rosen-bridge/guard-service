@@ -2,7 +2,7 @@ import {
   AbstractChain,
   ConfirmationStatus,
   PaymentTransaction,
-  TransactionTypes,
+  TransactionType,
 } from '@rosen-chains/abstract-chain';
 import { SigningStatus } from '@rosen-chains/abstract-chain';
 import { ERGO_CHAIN } from '@rosen-chains/ergo';
@@ -143,7 +143,7 @@ class TransactionProcessor {
     const chain = ChainHandler.getInstance().getChain(tx.chain);
     const txConfirmation = await chain.getTxConfirmationStatus(
       tx.txId,
-      tx.type
+      tx.type as TransactionType
     );
     if (
       txConfirmation !== ConfirmationStatus.NotFound ||
@@ -193,7 +193,7 @@ class TransactionProcessor {
     const chain = ChainHandler.getInstance().getChain(tx.chain);
     const txConfirmation = await chain.getTxConfirmationStatus(
       tx.txId,
-      tx.type
+      tx.type as TransactionType
     );
     switch (txConfirmation) {
       case ConfirmationStatus.ConfirmedEnough: {
@@ -202,7 +202,7 @@ class TransactionProcessor {
           tx.txId,
           TransactionStatus.completed
         );
-        if (tx.type === TransactionTypes.payment && tx.chain !== ERGO_CHAIN) {
+        if (tx.type === TransactionType.payment && tx.chain !== ERGO_CHAIN) {
           // set event status, to start reward distribution
           await DatabaseAction.getInstance().setEventStatusToPending(
             tx.event.id,
@@ -212,8 +212,8 @@ class TransactionProcessor {
             `Tx [${tx.txId}] is confirmed. Event [${tx.event.id}] is ready for reward distribution`
           );
         } else if (
-          tx.type === TransactionTypes.reward ||
-          (tx.type === TransactionTypes.payment && tx.chain === ERGO_CHAIN)
+          tx.type === TransactionType.reward ||
+          (tx.type === TransactionType.payment && tx.chain === ERGO_CHAIN)
         ) {
           // set event as complete
           await DatabaseAction.getInstance().setEventStatus(
@@ -273,14 +273,16 @@ class TransactionProcessor {
     const height = await chain.getHeight();
     if (
       height - tx.lastCheck >=
-      ChainHandler.getInstance().getRequiredConfirmation(tx.chain, tx.type)
+      ChainHandler.getInstance()
+        .getChain(tx.chain)
+        .getTxRequiredConfirmation(tx.type as TransactionType)
     ) {
       await DatabaseAction.getInstance().setTxStatus(
         tx.txId,
         TransactionStatus.invalid
       );
       switch (tx.type) {
-        case TransactionTypes.payment:
+        case TransactionType.payment:
           await DatabaseAction.getInstance().setEventStatusToPending(
             tx.event.id,
             EventStatus.pendingPayment
@@ -289,7 +291,7 @@ class TransactionProcessor {
             `Tx [${tx.txId}] is invalid. Event [${tx.event.id}] is now waiting for payment`
           );
           break;
-        case TransactionTypes.reward:
+        case TransactionType.reward:
           await DatabaseAction.getInstance().setEventStatusToPending(
             tx.event.id,
             EventStatus.pendingReward
@@ -298,7 +300,7 @@ class TransactionProcessor {
             `Tx [${tx.txId}] is invalid. Event [${tx.event.id}] is now waiting for reward distribution`
           );
           break;
-        case TransactionTypes.coldStorage:
+        case TransactionType.coldStorage:
           logger.info(`Cold storage tx [${tx.txId}] is invalid`);
           break;
       }

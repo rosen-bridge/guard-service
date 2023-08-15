@@ -1,4 +1,4 @@
-import { TransactionTypes } from '@rosen-chains/abstract-chain';
+import { TransactionType } from '@rosen-chains/abstract-chain';
 import TransactionSerializer from '../../src/transaction/TransactionSerializer';
 import TestConfigs from '../testUtils/TestConfigs';
 import TestTxAgreement from './TestTxAgreement';
@@ -209,7 +209,7 @@ describe('TxAgreement', () => {
      */
     it('should return true and add payment tx to events agreed tx map when conditions met', async () => {
       // mock testdata
-      const paymentTx = mockPaymentTransaction(TransactionTypes.payment);
+      const paymentTx = mockPaymentTransaction(TransactionType.payment);
       const creatorId = 0;
 
       // mock GuardTurn
@@ -262,7 +262,7 @@ describe('TxAgreement', () => {
      */
     it('should return true and add cold storage tx to chain agreed cold storage tx map when conditions met', async () => {
       // mock testdata
-      const paymentTx = mockPaymentTransaction(TransactionTypes.coldStorage);
+      const paymentTx = mockPaymentTransaction(TransactionType.coldStorage);
       const creatorId = 0;
 
       // mock GuardTurn
@@ -315,7 +315,7 @@ describe('TxAgreement', () => {
      */
     it("should return false when it's not creator turn to create transaction", async () => {
       // mock testdata
-      const paymentTx = mockPaymentTransaction(TransactionTypes.payment);
+      const paymentTx = mockPaymentTransaction(TransactionType.payment);
       const creatorId = 0;
 
       // mock GuardTurn
@@ -366,7 +366,7 @@ describe('TxAgreement', () => {
      */
     it("should return false when tx common conditions doesn't verify", async () => {
       // mock testdata
-      const paymentTx = mockPaymentTransaction(TransactionTypes.payment);
+      const paymentTx = mockPaymentTransaction(TransactionType.payment);
       const creatorId = 0;
 
       // mock GuardTurn
@@ -418,7 +418,7 @@ describe('TxAgreement', () => {
      */
     it('should return false when already agreed to another tx for the event', async () => {
       // mock testdata
-      const paymentTx = mockPaymentTransaction(TransactionTypes.payment);
+      const paymentTx = mockPaymentTransaction(TransactionType.payment);
       const creatorId = 0;
 
       // mock GuardTurn
@@ -480,7 +480,7 @@ describe('TxAgreement', () => {
      */
     it('should return true when already agreed to the tx', async () => {
       // mock testdata
-      const paymentTx = mockPaymentTransaction(TransactionTypes.payment);
+      const paymentTx = mockPaymentTransaction(TransactionType.payment);
       const creatorId = 0;
 
       // mock GuardTurn
@@ -540,7 +540,7 @@ describe('TxAgreement', () => {
      */
     it('should return false when request is not verified', async () => {
       // mock testdata
-      const paymentTx = mockPaymentTransaction(TransactionTypes.payment);
+      const paymentTx = mockPaymentTransaction(TransactionType.payment);
       const creatorId = 0;
 
       // mock GuardTurn
@@ -592,7 +592,7 @@ describe('TxAgreement', () => {
      */
     it('should return false when already agreed to another cold storage tx for the chain', async () => {
       // mock testdata
-      const paymentTx = mockPaymentTransaction(TransactionTypes.coldStorage);
+      const paymentTx = mockPaymentTransaction(TransactionType.coldStorage);
       const creatorId = 0;
 
       // mock GuardTurn
@@ -654,7 +654,7 @@ describe('TxAgreement', () => {
      */
     it('should return true when already agreed to the cold storage tx', async () => {
       // mock testdata
-      const paymentTx = mockPaymentTransaction(TransactionTypes.coldStorage);
+      const paymentTx = mockPaymentTransaction(TransactionType.coldStorage);
       const creatorId = 0;
 
       // mock GuardTurn
@@ -713,7 +713,7 @@ describe('TxAgreement', () => {
      */
     it('should return false when cold storage request is not verified', async () => {
       // mock testdata
-      const paymentTx = mockPaymentTransaction(TransactionTypes.coldStorage);
+      const paymentTx = mockPaymentTransaction(TransactionType.coldStorage);
       const creatorId = 0;
 
       // mock GuardTurn
@@ -1105,7 +1105,7 @@ describe('TxAgreement', () => {
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
       const paymentTx = mockPaymentTransaction(
-        TransactionTypes.payment,
+        TransactionType.payment,
         mockedEvent.toChain,
         eventId
       );
@@ -1218,7 +1218,7 @@ describe('TxAgreement', () => {
       const type = AgreementMessageTypes.response;
       const chain = 'chain';
       const paymentTx = mockPaymentTransaction(
-        TransactionTypes.coldStorage,
+        TransactionType.coldStorage,
         chain,
         ''
       );
@@ -1319,7 +1319,7 @@ describe('TxAgreement', () => {
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
       const paymentTx = mockPaymentTransaction(
-        TransactionTypes.payment,
+        TransactionType.payment,
         mockedEvent.toChain,
         eventId
       );
@@ -1391,7 +1391,7 @@ describe('TxAgreement', () => {
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
       const paymentTx = mockPaymentTransaction(
-        TransactionTypes.payment,
+        TransactionType.payment,
         mockedEvent.toChain,
         eventId
       );
@@ -1461,7 +1461,7 @@ describe('TxAgreement', () => {
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
       const paymentTx = mockPaymentTransaction(
-        TransactionTypes.payment,
+        TransactionType.payment,
         mockedEvent.toChain,
         eventId
       );
@@ -1547,7 +1547,7 @@ describe('TxAgreement', () => {
       const type = AgreementMessageTypes.approval;
       const chain = 'chain';
       const paymentTx = mockPaymentTransaction(
-        TransactionTypes.coldStorage,
+        TransactionType.coldStorage,
         chain,
         ''
       );
@@ -1624,7 +1624,7 @@ describe('TxAgreement', () => {
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
       const paymentTx = mockPaymentTransaction(
-        TransactionTypes.payment,
+        TransactionType.payment,
         mockedEvent.toChain,
         eventId
       );
@@ -1708,7 +1708,7 @@ describe('TxAgreement', () => {
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
       const paymentTx = mockPaymentTransaction(
-        TransactionTypes.payment,
+        TransactionType.payment,
         mockedEvent.toChain,
         eventId
       );
@@ -1783,7 +1783,7 @@ describe('TxAgreement', () => {
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
       const paymentTx = mockPaymentTransaction(
-        TransactionTypes.payment,
+        TransactionType.payment,
         mockedEvent.toChain,
         eventId
       );
@@ -1809,7 +1809,7 @@ describe('TxAgreement', () => {
 
       // insert mocked tx into memory
       const otherPaymentTx = mockPaymentTransaction(
-        TransactionTypes.payment,
+        TransactionType.payment,
         mockedEvent.toChain,
         eventId
       );
@@ -1868,7 +1868,7 @@ describe('TxAgreement', () => {
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
       const paymentTx = mockPaymentTransaction(
-        TransactionTypes.payment,
+        TransactionType.payment,
         mockedEvent.toChain,
         eventId
       );
@@ -1909,7 +1909,7 @@ describe('TxAgreement', () => {
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
       const paymentTx = mockPaymentTransaction(
-        TransactionTypes.reward,
+        TransactionType.reward,
         mockedEvent.fromChain,
         eventId
       );
@@ -2163,7 +2163,7 @@ describe('TxAgreement', () => {
       // mock testdata
       const paymentTx1 = mockPaymentTransaction();
       const timestamp1 = Math.round(TestConfigs.currentTimeStamp / 1000) - 50;
-      const paymentTx2 = mockPaymentTransaction(TransactionTypes.coldStorage);
+      const paymentTx2 = mockPaymentTransaction(TransactionType.coldStorage);
       const timestamp2 = Math.round(TestConfigs.currentTimeStamp / 1000) - 10;
 
       // insert mocked txs into memory
@@ -2214,12 +2214,12 @@ describe('TxAgreement', () => {
       const timestamp = Math.round(TestConfigs.currentTimeStamp / 1000) - 50;
       const chain1 = 'chain-1';
       const paymentTx1 = mockPaymentTransaction(
-        TransactionTypes.payment,
+        TransactionType.payment,
         chain1
       );
       const chain2 = 'chain-2';
       const paymentTx2 = mockPaymentTransaction(
-        TransactionTypes.payment,
+        TransactionType.payment,
         chain2
       );
 
@@ -2264,12 +2264,12 @@ describe('TxAgreement', () => {
       // mock testdata
       const chain1 = 'chain-1';
       const paymentTx1 = mockPaymentTransaction(
-        TransactionTypes.payment,
+        TransactionType.payment,
         chain1
       );
       const chain2 = 'chain-2';
       const paymentTx2 = mockPaymentTransaction(
-        TransactionTypes.payment,
+        TransactionType.payment,
         chain2
       );
 

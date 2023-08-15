@@ -4,7 +4,7 @@ import * as TxTestData from '../agreement/testData';
 import * as EventTestData from '../event/testData';
 import {
   PaymentTransaction,
-  TransactionTypes,
+  TransactionType,
 } from '@rosen-chains/abstract-chain';
 import { EventStatus, TransactionStatus } from '../../src/utils/constants';
 import DatabaseHandler from '../../src/db/DatabaseHandler';
@@ -28,7 +28,7 @@ describe('DatabaseHandler', () => {
      */
     it('should throw error when event is not found and tx type is not cold storage', async () => {
       // mock event and transaction
-      const tx = TxTestData.mockPaymentTransaction(TransactionTypes.payment);
+      const tx = TxTestData.mockPaymentTransaction(TransactionType.payment);
 
       // run test and expect exception thrown
       await expect(async () => {
@@ -56,7 +56,7 @@ describe('DatabaseHandler', () => {
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
       const tx = TxTestData.mockPaymentTransaction(
-        TransactionTypes.payment,
+        TransactionType.payment,
         mockedEvent.toChain,
         eventId
       );
@@ -97,12 +97,12 @@ describe('DatabaseHandler', () => {
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
       const tx1 = TxTestData.mockPaymentTransaction(
-        TransactionTypes.payment,
+        TransactionType.payment,
         mockedEvent.toChain,
         eventId
       );
       const tx2 = TxTestData.mockPaymentTransaction(
-        TransactionTypes.payment,
+        TransactionType.payment,
         mockedEvent.toChain,
         eventId
       );
@@ -146,12 +146,12 @@ describe('DatabaseHandler', () => {
       const eventId = EventSerializer.getId(mockedEvent);
       const txs = [
         TxTestData.mockPaymentTransaction(
-          TransactionTypes.payment,
+          TransactionType.payment,
           mockedEvent.toChain,
           eventId
         ),
         TxTestData.mockPaymentTransaction(
-          TransactionTypes.payment,
+          TransactionType.payment,
           mockedEvent.toChain,
           eventId
         ),
@@ -208,12 +208,12 @@ describe('DatabaseHandler', () => {
       const eventId = EventSerializer.getId(mockedEvent);
       const txs = [
         TxTestData.mockPaymentTransaction(
-          TransactionTypes.payment,
+          TransactionType.payment,
           mockedEvent.toChain,
           eventId
         ),
         TxTestData.mockPaymentTransaction(
-          TransactionTypes.payment,
+          TransactionType.payment,
           mockedEvent.toChain,
           eventId
         ),
@@ -268,7 +268,7 @@ describe('DatabaseHandler', () => {
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
       const tx = TxTestData.mockPaymentTransaction(
-        TransactionTypes.payment,
+        TransactionType.payment,
         mockedEvent.toChain,
         eventId
       );
@@ -309,7 +309,7 @@ describe('DatabaseHandler', () => {
       // mock transaction
       const chain = 'chain';
       const tx = TxTestData.mockPaymentTransaction(
-        TransactionTypes.coldStorage,
+        TransactionType.coldStorage,
         chain,
         ''
       );
@@ -343,12 +343,12 @@ describe('DatabaseHandler', () => {
       // mock two transactions
       const chain = 'chain';
       const tx1 = TxTestData.mockPaymentTransaction(
-        TransactionTypes.coldStorage,
+        TransactionType.coldStorage,
         chain,
         ''
       );
       const tx2 = TxTestData.mockPaymentTransaction(
-        TransactionTypes.coldStorage,
+        TransactionType.coldStorage,
         chain,
         ''
       );
@@ -384,12 +384,12 @@ describe('DatabaseHandler', () => {
       const chain = 'chain';
       const txs = [
         TxTestData.mockPaymentTransaction(
-          TransactionTypes.coldStorage,
+          TransactionType.coldStorage,
           chain,
           ''
         ),
         TxTestData.mockPaymentTransaction(
-          TransactionTypes.coldStorage,
+          TransactionType.coldStorage,
           chain,
           ''
         ),
@@ -438,12 +438,12 @@ describe('DatabaseHandler', () => {
       const chain = 'chain';
       const txs = [
         TxTestData.mockPaymentTransaction(
-          TransactionTypes.coldStorage,
+          TransactionType.coldStorage,
           chain,
           ''
         ),
         TxTestData.mockPaymentTransaction(
-          TransactionTypes.coldStorage,
+          TransactionType.coldStorage,
           chain,
           ''
         ),
@@ -491,7 +491,7 @@ describe('DatabaseHandler', () => {
       // mock transaction
       const chain = 'chain';
       const tx = TxTestData.mockPaymentTransaction(
-        TransactionTypes.coldStorage,
+        TransactionType.coldStorage,
         chain,
         ''
       );
