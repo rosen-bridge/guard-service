@@ -112,9 +112,11 @@ class TxAgreement extends Communicator {
    */
   enqueueSignFailedTxs = async (): Promise<void> => {
     const txs = await DatabaseAction.getInstance().getUnsignedFailedSignTxs();
-    txs.forEach((tx) =>
-      this.transactionQueue.push(TransactionSerializer.fromJson(tx.txJson))
-    );
+    txs
+      .filter((tx) => tx.type !== TransactionType.manual)
+      .forEach((tx) =>
+        this.transactionQueue.push(TransactionSerializer.fromJson(tx.txJson))
+      );
   };
 
   /**
