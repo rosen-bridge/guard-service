@@ -226,7 +226,7 @@ class TransactionProcessor {
         } else {
           // no need to do anything about event, just log that tx confirmed
           logger.info(
-            `Cold storage tx [${tx.txId}] in chain [${tx.chain}] is confirmed`
+            `Tx [${tx.txId}] with type [${tx.type}] in chain [${tx.chain}] is confirmed`
           );
         }
         break;
@@ -302,6 +302,9 @@ class TransactionProcessor {
           break;
         case TransactionType.coldStorage:
           logger.info(`Cold storage tx [${tx.txId}] is invalid`);
+          break;
+        case TransactionType.manual:
+          logger.warn(`Manual tx [${tx.txId}] is invalid`);
           break;
       }
     } else {

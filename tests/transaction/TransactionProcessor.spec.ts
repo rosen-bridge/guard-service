@@ -1176,8 +1176,9 @@ describe('TransactionProcessor', () => {
      * - ChainHandler
      * @scenario
      * - mock event and transaction and insert into db
-     * - mock ChainHandler `getChain` and `getRequiredConfirmation`
+     * - mock ChainHandler `getChain`
      *   - mock `getHeight`
+     *   - mock `getTxRequiredConfirmation`
      * - run test
      * - check tx in database
      * @expected
@@ -1208,10 +1209,8 @@ describe('TransactionProcessor', () => {
         mockedCurrentHeight,
         true
       );
-      // mock ChainHandler `getRequiredConfirmation`
-      vi.spyOn(chainHandlerInstance, 'getRequiredConfirmation').mockReturnValue(
-        10
-      );
+      // mock `getTxRequiredConfirmation`
+      ChainHandlerMock.mockToChainFunction('getTxRequiredConfirmation', 10);
 
       // run test
       const txEntity = (await DatabaseActionMock.allTxRecords())[0];
@@ -1253,8 +1252,9 @@ describe('TransactionProcessor', () => {
      * - ChainHandler
      * @scenario
      * - mock event and transaction and insert into db
-     * - mock ChainHandler `getChain` and `getRequiredConfirmation`
+     * - mock ChainHandler `getChain`
      *   - mock `getHeight`
+     *   - mock `getTxRequiredConfirmation`
      * - run test
      * - check tx in database
      * @expected
@@ -1285,10 +1285,8 @@ describe('TransactionProcessor', () => {
         mockedCurrentHeight,
         true
       );
-      // mock ChainHandler `getRequiredConfirmation`
-      vi.spyOn(chainHandlerInstance, 'getRequiredConfirmation').mockReturnValue(
-        10
-      );
+      // mock `getTxRequiredConfirmation`
+      ChainHandlerMock.mockToChainFunction('getTxRequiredConfirmation', 10);
 
       // run test
       const txEntity = (await DatabaseActionMock.allTxRecords())[0];
@@ -1330,8 +1328,9 @@ describe('TransactionProcessor', () => {
      * - ChainHandler
      * @scenario
      * - mock transaction and insert into db
-     * - mock ChainHandler `getChain` and `getRequiredConfirmation`
+     * - mock ChainHandler `getChain`
      *   - mock `getHeight`
+     *   - mock `getTxRequiredConfirmation`
      * - run test
      * - check tx in database
      * @expected
@@ -1355,10 +1354,61 @@ describe('TransactionProcessor', () => {
         mockedCurrentHeight,
         true
       );
-      // mock ChainHandler `getRequiredConfirmation`
-      vi.spyOn(chainHandlerInstance, 'getRequiredConfirmation').mockReturnValue(
-        10
+      // mock `getTxRequiredConfirmation`
+      ChainHandlerMock.mockToChainFunction('getTxRequiredConfirmation', 10);
+
+      // run test
+      const txEntity = (await DatabaseActionMock.allTxRecords())[0];
+      const chain = chainHandlerInstance.getChain(tx.network);
+      await TransactionProcessor.setTransactionAsInvalid(txEntity, chain);
+
+      // tx status should be updated to 'invalid'
+      const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
+        tx.txId,
+        tx.status,
+        tx.lastStatusUpdate,
+      ]);
+      expect(dbTxs).toEqual([
+        [
+          tx.txId,
+          TransactionStatus.invalid,
+          currentTimeStampSeconds.toString(),
+        ],
+      ]);
+    });
+
+    /**
+     * @target TransactionProcessor.setTransactionAsInvalid should update
+     * tx status to invalid when manual tx is invalid
+     * @dependencies
+     * - database
+     * - ChainHandler
+     * @scenario
+     * - mock transaction and insert into db
+     * - mock ChainHandler `getChain`
+     *   - mock `getHeight`
+     *   - mock `getTxRequiredConfirmation`
+     * - run test
+     * - check tx in database
+     * @expected
+     * - tx status should be updated to 'invalid'
+     */
+    it('should update tx status to invalid when manual tx is invalid', async () => {
+      // mock transaction and insert into db
+      const tx = mockPaymentTransaction(TransactionType.manual, 'chain', '');
+      await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.sent, 100);
+
+      // mock ChainHandler `getChain`
+      ChainHandlerMock.mockChainName(tx.network);
+      // mock `getHeight`
+      const mockedCurrentHeight = 111;
+      ChainHandlerMock.mockToChainFunction(
+        'getHeight',
+        mockedCurrentHeight,
+        true
       );
+      // mock `getTxRequiredConfirmation`
+      ChainHandlerMock.mockToChainFunction('getTxRequiredConfirmation', 10);
 
       // run test
       const txEntity = (await DatabaseActionMock.allTxRecords())[0];
@@ -1388,8 +1438,9 @@ describe('TransactionProcessor', () => {
      * - ChainHandler
      * @scenario
      * - mock event and transaction and insert into db
-     * - mock ChainHandler `getChain` and `getRequiredConfirmation`
+     * - mock ChainHandler `getChain`
      *   - mock `getHeight`
+     *   - mock `getTxRequiredConfirmation`
      * - get database txs and events
      * - run test
      * - check tx in database
@@ -1421,10 +1472,8 @@ describe('TransactionProcessor', () => {
         mockedCurrentHeight,
         true
       );
-      // mock ChainHandler `getRequiredConfirmation`
-      vi.spyOn(chainHandlerInstance, 'getRequiredConfirmation').mockReturnValue(
-        15
-      );
+      // mock `getTxRequiredConfirmation`
+      ChainHandlerMock.mockToChainFunction('getTxRequiredConfirmation', 15);
 
       // get database txs and events
       const dbTxs = await DatabaseActionMock.allTxRecords();
