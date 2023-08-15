@@ -1,4 +1,4 @@
-import { AbstractChain, TransactionType } from '@rosen-chains/abstract-chain';
+import { AbstractChain } from '@rosen-chains/abstract-chain';
 import {
   AbstractCardanoNetwork,
   CARDANO_CHAIN,
