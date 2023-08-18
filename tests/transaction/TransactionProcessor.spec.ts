@@ -282,6 +282,8 @@ describe('TransactionProcessor', () => {
      * - check tx in database
      * @expected
      * - tx status should be updated to 'sign-failed'
+     * - tx signFailedCount should be incremented
+     * - tx failedInSign should be updated to true
      */
     it('should update transaction status to sign-failed', async () => {
       // mock transaction and insert into db as 'in-sign'
@@ -299,12 +301,16 @@ describe('TransactionProcessor', () => {
         tx.txId,
         tx.status,
         tx.lastStatusUpdate,
+        tx.failedInSign,
+        tx.signFailedCount,
       ]);
       expect(dbTxs).toEqual([
         [
           tx.txId,
           TransactionStatus.signFailed,
           currentTimeStampSeconds.toString(),
+          true,
+          1,
         ],
       ]);
     });
@@ -327,6 +333,8 @@ describe('TransactionProcessor', () => {
      * - check tx in database
      * @expected
      * - tx status should be updated to 'sign-failed'
+     * - tx signFailedCount should be incremented
+     * - tx failedInSign should be updated to true
      */
     it('should update status to sign-failed when enough times is passed from sign request', async () => {
       // mock transaction and insert into db as 'approved'
@@ -348,12 +356,16 @@ describe('TransactionProcessor', () => {
         tx.txId,
         tx.status,
         tx.lastStatusUpdate,
+        tx.failedInSign,
+        tx.signFailedCount,
       ]);
       expect(dbTxs).toEqual([
         [
           tx.txId,
           TransactionStatus.signFailed,
           currentTimeStampSeconds.toString(),
+          true,
+          1,
         ],
       ]);
     });

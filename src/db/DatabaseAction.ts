@@ -175,6 +175,24 @@ class DatabaseAction {
   };
 
   /**
+   * updates tx info when failed in sign process
+   * @param txId the transaction id
+   */
+  setTxAsSignFailed = async (txId: string): Promise<void> => {
+    await this.TransactionRepository.createQueryBuilder()
+      .update()
+      .set({
+        status: TransactionStatus.signFailed,
+        lastStatusUpdate: String(Math.round(Date.now() / 1000)),
+        signFailedCount: () => 'signFailedCount + 1',
+        failedInSign: true,
+      })
+      .where('txId = :id', { id: txId })
+      .andWhere('status = :status', { status: TransactionStatus.inSign })
+      .execute();
+  };
+
+  /**
    * updates the status of a tx with its id
    * @param txId the transaction id
    * @param currentHeight current height of the blockchain
