@@ -179,17 +179,18 @@ class DatabaseAction {
    * @param txId the transaction id
    */
   setTxAsSignFailed = async (txId: string): Promise<void> => {
-    await this.TransactionRepository.createQueryBuilder()
-      .update()
-      .set({
+    await this.TransactionRepository.update(
+      {
+        txId: txId,
+        status: TransactionStatus.inSign,
+      },
+      {
         status: TransactionStatus.signFailed,
         lastStatusUpdate: String(Math.round(Date.now() / 1000)),
         signFailedCount: () => 'signFailedCount + 1',
         failedInSign: true,
-      })
-      .where('txId = :id', { id: txId })
-      .andWhere('status = :status', { status: TransactionStatus.inSign })
-      .execute();
+      }
+    );
   };
 
   /**
