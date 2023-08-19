@@ -110,10 +110,7 @@ class TransactionProcessor {
    */
   static handleFailedSign = async (txId: string, e: any): Promise<void> => {
     logger.warn(`An error occurred while signing tx [${txId}]: ${e}`);
-    await DatabaseAction.getInstance().setTxStatus(
-      txId,
-      TransactionStatus.signFailed
-    );
+    await DatabaseAction.getInstance().setTxAsSignFailed(txId);
   };
 
   /**
@@ -128,10 +125,7 @@ class TransactionProcessor {
       logger.warn(
         `No response received from signer for tx [${tx.txId}]. Updating status to sign-failed`
       );
-      await DatabaseAction.getInstance().setTxStatus(
-        tx.txId,
-        TransactionStatus.signFailed
-      );
+      await DatabaseAction.getInstance().setTxAsSignFailed(tx.txId);
     }
   };
 
