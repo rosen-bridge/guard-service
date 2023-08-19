@@ -81,13 +81,10 @@ class DatabaseAction {
    * @param status the event trigger status
    */
   setEventStatus = async (eventId: string, status: string): Promise<void> => {
-    await this.ConfirmedEventRepository.createQueryBuilder()
-      .update()
-      .set({
-        status: status,
-      })
-      .where('id = :id', { id: eventId })
-      .execute();
+    await this.ConfirmedEventRepository.update(
+      { id: eventId },
+      { status: status }
+    );
   };
 
   /**
@@ -161,14 +158,13 @@ class DatabaseAction {
    * @param status tx status
    */
   setTxStatus = async (txId: string, status: string): Promise<void> => {
-    await this.TransactionRepository.createQueryBuilder()
-      .update()
-      .set({
+    await this.TransactionRepository.update(
+      { txId: txId },
+      {
         status: status,
         lastStatusUpdate: String(Math.round(Date.now() / 1000)),
-      })
-      .where('txId = :id', { id: txId })
-      .execute();
+      }
+    );
   };
 
   /**
@@ -180,13 +176,10 @@ class DatabaseAction {
     txId: string,
     currentHeight: number
   ): Promise<void> => {
-    await this.TransactionRepository.createQueryBuilder()
-      .update()
-      .set({
-        lastCheck: currentHeight,
-      })
-      .where('txId = :id', { id: txId })
-      .execute();
+    await this.TransactionRepository.update(
+      { txId: txId },
+      { lastCheck: currentHeight }
+    );
   };
 
   /**
@@ -198,14 +191,10 @@ class DatabaseAction {
     eventId: string,
     status: string
   ): Promise<void> => {
-    await this.ConfirmedEventRepository.createQueryBuilder()
-      .update()
-      .set({
-        status: status,
-        firstTry: String(Math.round(Date.now() / 1000)),
-      })
-      .where('id = :id', { id: eventId })
-      .execute();
+    await this.ConfirmedEventRepository.update(
+      { id: eventId },
+      { status: status, firstTry: String(Math.round(Date.now() / 1000)) }
+    );
   };
 
   /**
@@ -232,16 +221,15 @@ class DatabaseAction {
     txJson: string,
     currentHeight: number
   ): Promise<void> => {
-    await this.TransactionRepository.createQueryBuilder()
-      .update()
-      .set({
+    await this.TransactionRepository.update(
+      { txId: txId },
+      {
         txJson: txJson,
         status: TransactionStatus.signed,
         lastStatusUpdate: String(Math.round(Date.now() / 1000)),
         lastCheck: currentHeight,
-      })
-      .where('txId = :id', { id: txId })
-      .execute();
+      }
+    );
   };
 
   /**
@@ -280,9 +268,9 @@ class DatabaseAction {
     previousTxId: string,
     tx: RosenChains.PaymentTransaction
   ): Promise<void> => {
-    await this.TransactionRepository.createQueryBuilder()
-      .update()
-      .set({
+    await this.TransactionRepository.update(
+      { txId: previousTxId },
+      {
         txId: tx.txId,
         txJson: TransactionSerializer.toJson(tx),
         type: tx.txType,
@@ -291,9 +279,8 @@ class DatabaseAction {
         lastStatusUpdate: String(Math.round(Date.now() / 1000)),
         lastCheck: 0,
         failedInSign: false,
-      })
-      .where('txId = :id', { id: previousTxId })
-      .execute();
+      }
+    );
   };
 
   /**
@@ -301,13 +288,12 @@ class DatabaseAction {
    * @param txId
    */
   resetFailedInSign = async (txId: string): Promise<void> => {
-    await this.TransactionRepository.createQueryBuilder()
-      .update()
-      .set({
+    await this.TransactionRepository.update(
+      { txId: txId },
+      {
         failedInSign: false,
-      })
-      .where('txId = :id', { id: txId })
-      .execute();
+      }
+    );
   };
 
   /**
@@ -364,15 +350,12 @@ class DatabaseAction {
   insertConfirmedEvent = async (
     eventData: EventTriggerEntity
   ): Promise<void> => {
-    await this.ConfirmedEventRepository.createQueryBuilder()
-      .insert()
-      .values({
-        id: Utils.txIdToEventId(eventData.sourceTxId),
-        eventData: eventData,
-        status: EventStatus.pendingPayment,
-        firstTry: String(Math.round(Date.now() / 1000)),
-      })
-      .execute();
+    await this.ConfirmedEventRepository.insert({
+      id: Utils.txIdToEventId(eventData.sourceTxId),
+      eventData: eventData,
+      status: EventStatus.pendingPayment,
+      firstTry: String(Math.round(Date.now() / 1000)),
+    });
   };
 
   /**
@@ -612,9 +595,9 @@ class DatabaseAction {
    * @param txIds
    */
   getTxsById = async (txIds: string[]): Promise<TransactionEntity[]> => {
-    return this.TransactionRepository.createQueryBuilder()
-      .where('txId IN (:...txIds)', { txIds })
-      .getMany();
+    return this.TransactionRepository.findBy({
+      txId: In(txIds),
+    });
   };
 
   /**

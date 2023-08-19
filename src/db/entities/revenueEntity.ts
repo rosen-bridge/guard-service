@@ -3,7 +3,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
-  PrimaryColumn,
+  PrimaryGeneratedColumn,
   Relation,
 } from 'typeorm';
 import { TransactionEntity } from './TransactionEntity';
@@ -11,7 +11,7 @@ import { BigIntValueTransformer } from '../transformers';
 
 @Entity()
 export class RevenueEntity {
-  @PrimaryColumn('integer')
+  @PrimaryGeneratedColumn()
   id: number;
 
   @Column('varchar')
