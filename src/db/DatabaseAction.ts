@@ -496,13 +496,15 @@ class DatabaseAction {
       'confirmed_event'
     )
       .leftJoinAndSelect('confirmed_event.eventData', 'event_trigger_entity')
-      .where('confirmed_event.status == "completed"');
+      .where('confirmed_event.status = :status', {
+        status: EventStatus.completed,
+      });
     if (fromChain)
-      query.andWhere('event_trigger_entity_fromChain == :fromChain', {
+      query.andWhere('event_trigger_entity_fromChain = :fromChain', {
         fromChain,
       });
     if (toChain)
-      query.andWhere('event_trigger_entity_toChain == :toChain', {
+      query.andWhere('event_trigger_entity_toChain = :toChain', {
         toChain,
       });
     if (minAmount)
@@ -545,13 +547,16 @@ class DatabaseAction {
       'confirmed_event'
     )
       .leftJoinAndSelect('confirmed_event.eventData', 'event_trigger_entity')
-      .where('confirmed_event.status not in ("completed", "spent")');
+      .where('confirmed_event.status not in (:completedStatus, :spentStatus)', {
+        completedStatus: EventStatus.completed,
+        spentStatus: EventStatus.spent,
+      });
     if (fromChain)
-      query.andWhere('event_trigger_entity_fromChain == :fromChain', {
+      query.andWhere('event_trigger_entity_fromChain = :fromChain', {
         fromChain,
       });
     if (toChain)
-      query.andWhere('event_trigger_entity_toChain == :toChain', {
+      query.andWhere('event_trigger_entity_toChain = :toChain', {
         toChain,
       });
     if (minAmount)
@@ -581,8 +586,8 @@ class DatabaseAction {
     const unsavedTxs = await this.TransactionRepository.createQueryBuilder('tx')
       .select('tx.txId', 'txId')
       .leftJoin('revenue_entity', 're', 'tx.txId = re.txId')
-      .where('tx.type == :type', { type: TransactionTypes.reward })
-      .andWhere('tx.status == "completed"')
+      .where('tx.type = :type', { type: TransactionTypes.reward })
+      .andWhere('tx.status = :status', { status: TransactionStatus.completed })
       .andWhere('re.txId IS NULL')
       .getRawMany();
 
