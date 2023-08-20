@@ -17,7 +17,8 @@ import {
   insertRevenueDataWithTimestamps,
 } from './databaseTestUtils';
 import * as TxTestData from '../agreement/testData';
-import { TransactionTypes } from '@rosen-chains/abstract-chain';
+import { TransactionType } from '@rosen-chains/abstract-chain';
+import TestConfigs from '../testUtils/TestConfigs';
 
 describe('DatabaseActions', () => {
   beforeEach(async () => {
@@ -233,7 +234,7 @@ describe('DatabaseActions', () => {
       for (let index = 0; index < 10; index++) {
         // insert 10 completed reward tx to database
         const rewardTx = TxTestData.mockPaymentTransaction(
-          TransactionTypes.reward
+          TransactionType.reward
         );
         await DatabaseActionMock.insertTxRecord(
           rewardTx,
@@ -243,7 +244,7 @@ describe('DatabaseActions', () => {
 
         // insert 10 in-sign reward tx to database
         const waitingRewardTx = TxTestData.mockPaymentTransaction(
-          TransactionTypes.reward
+          TransactionType.reward
         );
         await DatabaseActionMock.insertTxRecord(
           waitingRewardTx,
@@ -252,7 +253,7 @@ describe('DatabaseActions', () => {
 
         // insert 10 payment tx to database
         const paymentTx = TxTestData.mockPaymentTransaction(
-          TransactionTypes.payment
+          TransactionType.payment
         );
         await DatabaseActionMock.insertTxRecord(
           paymentTx,
@@ -283,7 +284,7 @@ describe('DatabaseActions', () => {
       const txIds = [];
       for (let index = 0; index < 10; index++) {
         // insert 10 reward tx to database
-        const tx = TxTestData.mockPaymentTransaction(TransactionTypes.reward);
+        const tx = TxTestData.mockPaymentTransaction(TransactionType.reward);
         await DatabaseActionMock.insertTxRecord(
           tx,
           TransactionStatus.completed
@@ -502,7 +503,7 @@ describe('DatabaseActions', () => {
      * - should store the new revenue correctly
      */
     it('should store the new revenue correctly', async () => {
-      const tx = TxTestData.mockPaymentTransaction(TransactionTypes.reward);
+      const tx = TxTestData.mockPaymentTransaction(TransactionType.reward);
       await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.completed);
       const txRecord = await DatabaseAction.getInstance().getTxById(tx.txId);
       await DatabaseAction.getInstance().storeRevenue(
@@ -772,6 +773,90 @@ describe('DatabaseActions', () => {
       for (const revenue of revenueChart) {
         expect(revenue.amount).toEqual(10000);
       }
+    });
+  });
+
+  describe('setTxAsSignFailed', () => {
+    const currentTimeStampSeconds = Math.round(
+      TestConfigs.currentTimeStamp / 1000
+    );
+
+    beforeAll(() => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date(TestConfigs.currentTimeStamp));
+    });
+
+    afterAll(() => {
+      vi.useRealTimers();
+    });
+
+    /**
+     * @target DatabaseAction.setTxAsSignFailed should set tx as sign-failed successfully
+     * @dependencies
+     * - database
+     * - Date
+     * @scenario
+     * - mock transaction and insert into db as 'in-sign'
+     * - run test
+     * - check tx
+     * @expected
+     * - status should be updated to 'sign-failed'
+     * - signFailedCount should be incremented
+     * - failedInSign should be updated to true
+     */
+    it('should set tx as sign-failed successfully', async () => {
+      // mock transaction and insert into db as 'in-sign'
+      const tx = TxTestData.mockPaymentTransaction();
+      await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.inSign);
+
+      // run test
+      await DatabaseAction.getInstance().setTxAsSignFailed(tx.txId);
+
+      // signFailedCount should remain unchanged
+      const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
+        tx.txId,
+        tx.status,
+        tx.lastStatusUpdate,
+        tx.failedInSign,
+        tx.signFailedCount,
+      ]);
+      expect(dbTxs).toEqual([
+        [
+          tx.txId,
+          TransactionStatus.signFailed,
+          currentTimeStampSeconds.toString(),
+          true,
+          1,
+        ],
+      ]);
+    });
+
+    /**
+     * @target DatabaseAction.setTxAsSignFailed should not increment counter
+     * when tx status is already sign-failed
+     * @dependencies
+     * - database
+     * @scenario
+     * - mock transaction and insert into db as 'sign-failed'
+     * - run test
+     * - check tx
+     * @expected
+     * - signFailedCount should remain unchanged
+     */
+    it('should not increment counter when tx status is already sign-failed', async () => {
+      // mock transaction and insert into db as 'in-sign'
+      const tx = TxTestData.mockPaymentTransaction();
+      await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.signFailed);
+
+      // run test
+      await DatabaseAction.getInstance().setTxAsSignFailed(tx.txId);
+
+      // signFailedCount should remain unchanged
+      const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
+        tx.txId,
+        tx.signFailedCount,
+      ]);
+      expect(dbTxs).toEqual([[tx.txId, 0]]);
     });
   });
 });

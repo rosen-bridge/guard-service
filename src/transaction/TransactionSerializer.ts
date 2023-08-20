@@ -1,6 +1,7 @@
 import {
   PaymentTransaction,
   PaymentTransactionJsonModel,
+  TransactionType,
 } from '@rosen-chains/abstract-chain';
 import { ERGO_CHAIN, ErgoTransaction } from '@rosen-chains/ergo';
 
@@ -38,7 +39,7 @@ class TransactionSerializer {
         network: network,
         eventId: obj.eventId,
         txBytes: Buffer.from(obj.txBytes, 'hex'),
-        txType: obj.txType,
+        txType: obj.txType as TransactionType,
       };
     }
   };

@@ -1,4 +1,4 @@
-import { TransactionTypes } from '@rosen-chains/abstract-chain';
+import { TransactionType } from '@rosen-chains/abstract-chain';
 import { CARDANO_CHAIN } from '@rosen-chains/cardano';
 
 import DatabaseHandlerMock from '../db/mocked/DatabaseAction.mock';
@@ -39,7 +39,7 @@ const insertRewardTxWithTimestamps = async (count: number) => {
 
     // insert reward transaction
     const tx = TxTestData.mockPaymentTransaction(
-      TransactionTypes.reward,
+      TransactionType.reward,
       CARDANO_CHAIN,
       Utils.txIdToEventId(mockedEvent.sourceTxId)
     );

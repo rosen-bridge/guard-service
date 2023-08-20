@@ -21,12 +21,6 @@ class TransactionStatus {
   static completed = 'completed';
 }
 
-class TransactionTypes {
-  static payment = 'payment';
-  static reward = 'reward';
-  static coldStorage = 'cold-storage';
-}
-
 enum RevenuePeriod {
   year = 'year',
   month = 'month',
@@ -39,7 +33,6 @@ const DefaultRevenueApiCount = 10;
 export {
   EventStatus,
   TransactionStatus,
-  TransactionTypes,
   RevenuePeriod,
   DefaultApiLimit,
   DefaultRevenueApiCount,

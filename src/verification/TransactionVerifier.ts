@@ -2,7 +2,7 @@ import {
   ChainUtils,
   EventTrigger,
   PaymentTransaction,
-  TransactionTypes,
+  TransactionType,
 } from '@rosen-chains/abstract-chain';
 import ChainHandler from '../handlers/ChainHandler';
 import { loggerFactory } from '../log/Logger';
@@ -69,7 +69,7 @@ class TransactionVerifier {
     const feeConfig = await MinimumFee.getEventFeeConfig(event);
     const txOrder = chain.extractTransactionOrder(tx);
     const expectedOrder =
-      tx.txType === TransactionTypes.payment
+      tx.txType === TransactionType.payment
         ? await EventOrder.createEventPaymentOrder(event, feeConfig)
         : await EventOrder.createEventRewardOrder(event, feeConfig);
     if (!isEqual(txOrder, expectedOrder)) {

@@ -12,7 +12,7 @@ import {
   AssetBalance,
   PaymentOrder,
   TokenInfo,
-  TransactionTypes,
+  TransactionType,
 } from '@rosen-chains/abstract-chain';
 import TransactionSerializer from '../transaction/TransactionSerializer';
 import { rosenConfig } from '../configs/RosenConfig';
@@ -159,7 +159,7 @@ class ColdStorage {
     // generate transaction
     const tx = await chain.generateTransaction(
       '',
-      TransactionTypes.coldStorage,
+      TransactionType.coldStorage,
       order,
       [...unsignedAgreementTransactions, ...unsignedQueueTransactions],
       signedTransactions,

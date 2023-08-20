@@ -1,7 +1,7 @@
 import DatabaseActionMock from '../db/mocked/DatabaseAction.mock';
 import {
   ConfirmationStatus,
-  TransactionTypes,
+  TransactionType,
 } from '@rosen-chains/abstract-chain';
 import ChainHandlerMock, {
   chainHandlerInstance,
@@ -282,6 +282,8 @@ describe('TransactionProcessor', () => {
      * - check tx in database
      * @expected
      * - tx status should be updated to 'sign-failed'
+     * - tx signFailedCount should be incremented
+     * - tx failedInSign should be updated to true
      */
     it('should update transaction status to sign-failed', async () => {
       // mock transaction and insert into db as 'in-sign'
@@ -299,12 +301,16 @@ describe('TransactionProcessor', () => {
         tx.txId,
         tx.status,
         tx.lastStatusUpdate,
+        tx.failedInSign,
+        tx.signFailedCount,
       ]);
       expect(dbTxs).toEqual([
         [
           tx.txId,
           TransactionStatus.signFailed,
           currentTimeStampSeconds.toString(),
+          true,
+          1,
         ],
       ]);
     });
@@ -327,6 +333,8 @@ describe('TransactionProcessor', () => {
      * - check tx in database
      * @expected
      * - tx status should be updated to 'sign-failed'
+     * - tx signFailedCount should be incremented
+     * - tx failedInSign should be updated to true
      */
     it('should update status to sign-failed when enough times is passed from sign request', async () => {
       // mock transaction and insert into db as 'approved'
@@ -348,12 +356,16 @@ describe('TransactionProcessor', () => {
         tx.txId,
         tx.status,
         tx.lastStatusUpdate,
+        tx.failedInSign,
+        tx.signFailedCount,
       ]);
       expect(dbTxs).toEqual([
         [
           tx.txId,
           TransactionStatus.signFailed,
           currentTimeStampSeconds.toString(),
+          true,
+          1,
         ],
       ]);
     });
@@ -699,7 +711,7 @@ describe('TransactionProcessor', () => {
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
       const tx = mockPaymentTransaction(
-        TransactionTypes.payment,
+        TransactionType.payment,
         mockedEvent.toChain,
         eventId
       );
@@ -768,7 +780,7 @@ describe('TransactionProcessor', () => {
       // mock event and transaction and insert into db
       const mockedEvent = EventTestData.mockToErgoEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
-      const tx = mockErgoPaymentTransaction(TransactionTypes.payment, eventId);
+      const tx = mockErgoPaymentTransaction(TransactionType.payment, eventId);
       await DatabaseActionMock.insertEventRecord(
         mockedEvent,
         EventStatus.inPayment
@@ -828,7 +840,7 @@ describe('TransactionProcessor', () => {
       // mock event and transaction and insert into db
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
-      const tx = mockErgoPaymentTransaction(TransactionTypes.reward, eventId);
+      const tx = mockErgoPaymentTransaction(TransactionType.reward, eventId);
       await DatabaseActionMock.insertEventRecord(
         mockedEvent,
         EventStatus.inReward
@@ -886,7 +898,7 @@ describe('TransactionProcessor', () => {
     it('should update tx status to completed when cold storage tx is confirmed enough', async () => {
       // mock transaction and insert into db
       const tx = mockPaymentTransaction(
-        TransactionTypes.coldStorage,
+        TransactionType.coldStorage,
         'chain',
         ''
       );
@@ -940,7 +952,7 @@ describe('TransactionProcessor', () => {
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
       const tx = mockPaymentTransaction(
-        TransactionTypes.payment,
+        TransactionType.payment,
         mockedEvent.toChain,
         eventId
       );
@@ -1002,7 +1014,7 @@ describe('TransactionProcessor', () => {
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
       const tx = mockPaymentTransaction(
-        TransactionTypes.payment,
+        TransactionType.payment,
         mockedEvent.toChain,
         eventId
       );
@@ -1068,7 +1080,7 @@ describe('TransactionProcessor', () => {
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
       const tx = mockPaymentTransaction(
-        TransactionTypes.payment,
+        TransactionType.payment,
         mockedEvent.toChain,
         eventId
       );
@@ -1125,7 +1137,7 @@ describe('TransactionProcessor', () => {
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
       const tx = mockPaymentTransaction(
-        TransactionTypes.payment,
+        TransactionType.payment,
         mockedEvent.toChain,
         eventId
       );
@@ -1176,8 +1188,9 @@ describe('TransactionProcessor', () => {
      * - ChainHandler
      * @scenario
      * - mock event and transaction and insert into db
-     * - mock ChainHandler `getChain` and `getRequiredConfirmation`
+     * - mock ChainHandler `getChain`
      *   - mock `getHeight`
+     *   - mock `getTxRequiredConfirmation`
      * - run test
      * - check tx in database
      * @expected
@@ -1189,7 +1202,7 @@ describe('TransactionProcessor', () => {
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
       const tx = mockPaymentTransaction(
-        TransactionTypes.payment,
+        TransactionType.payment,
         mockedEvent.toChain,
         eventId
       );
@@ -1208,10 +1221,8 @@ describe('TransactionProcessor', () => {
         mockedCurrentHeight,
         true
       );
-      // mock ChainHandler `getRequiredConfirmation`
-      vi.spyOn(chainHandlerInstance, 'getRequiredConfirmation').mockReturnValue(
-        10
-      );
+      // mock `getTxRequiredConfirmation`
+      ChainHandlerMock.mockToChainFunction('getTxRequiredConfirmation', 10);
 
       // run test
       const txEntity = (await DatabaseActionMock.allTxRecords())[0];
@@ -1253,8 +1264,9 @@ describe('TransactionProcessor', () => {
      * - ChainHandler
      * @scenario
      * - mock event and transaction and insert into db
-     * - mock ChainHandler `getChain` and `getRequiredConfirmation`
+     * - mock ChainHandler `getChain`
      *   - mock `getHeight`
+     *   - mock `getTxRequiredConfirmation`
      * - run test
      * - check tx in database
      * @expected
@@ -1266,7 +1278,7 @@ describe('TransactionProcessor', () => {
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
       const tx = mockPaymentTransaction(
-        TransactionTypes.reward,
+        TransactionType.reward,
         mockedEvent.toChain,
         eventId
       );
@@ -1285,10 +1297,8 @@ describe('TransactionProcessor', () => {
         mockedCurrentHeight,
         true
       );
-      // mock ChainHandler `getRequiredConfirmation`
-      vi.spyOn(chainHandlerInstance, 'getRequiredConfirmation').mockReturnValue(
-        10
-      );
+      // mock `getTxRequiredConfirmation`
+      ChainHandlerMock.mockToChainFunction('getTxRequiredConfirmation', 10);
 
       // run test
       const txEntity = (await DatabaseActionMock.allTxRecords())[0];
@@ -1330,8 +1340,9 @@ describe('TransactionProcessor', () => {
      * - ChainHandler
      * @scenario
      * - mock transaction and insert into db
-     * - mock ChainHandler `getChain` and `getRequiredConfirmation`
+     * - mock ChainHandler `getChain`
      *   - mock `getHeight`
+     *   - mock `getTxRequiredConfirmation`
      * - run test
      * - check tx in database
      * @expected
@@ -1340,7 +1351,7 @@ describe('TransactionProcessor', () => {
     it('should update tx status to invalid when cold storage tx is invalid', async () => {
       // mock transaction and insert into db
       const tx = mockPaymentTransaction(
-        TransactionTypes.coldStorage,
+        TransactionType.coldStorage,
         'chain',
         ''
       );
@@ -1355,10 +1366,61 @@ describe('TransactionProcessor', () => {
         mockedCurrentHeight,
         true
       );
-      // mock ChainHandler `getRequiredConfirmation`
-      vi.spyOn(chainHandlerInstance, 'getRequiredConfirmation').mockReturnValue(
-        10
+      // mock `getTxRequiredConfirmation`
+      ChainHandlerMock.mockToChainFunction('getTxRequiredConfirmation', 10);
+
+      // run test
+      const txEntity = (await DatabaseActionMock.allTxRecords())[0];
+      const chain = chainHandlerInstance.getChain(tx.network);
+      await TransactionProcessor.setTransactionAsInvalid(txEntity, chain);
+
+      // tx status should be updated to 'invalid'
+      const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
+        tx.txId,
+        tx.status,
+        tx.lastStatusUpdate,
+      ]);
+      expect(dbTxs).toEqual([
+        [
+          tx.txId,
+          TransactionStatus.invalid,
+          currentTimeStampSeconds.toString(),
+        ],
+      ]);
+    });
+
+    /**
+     * @target TransactionProcessor.setTransactionAsInvalid should update
+     * tx status to invalid when manual tx is invalid
+     * @dependencies
+     * - database
+     * - ChainHandler
+     * @scenario
+     * - mock transaction and insert into db
+     * - mock ChainHandler `getChain`
+     *   - mock `getHeight`
+     *   - mock `getTxRequiredConfirmation`
+     * - run test
+     * - check tx in database
+     * @expected
+     * - tx status should be updated to 'invalid'
+     */
+    it('should update tx status to invalid when manual tx is invalid', async () => {
+      // mock transaction and insert into db
+      const tx = mockPaymentTransaction(TransactionType.manual, 'chain', '');
+      await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.sent, 100);
+
+      // mock ChainHandler `getChain`
+      ChainHandlerMock.mockChainName(tx.network);
+      // mock `getHeight`
+      const mockedCurrentHeight = 111;
+      ChainHandlerMock.mockToChainFunction(
+        'getHeight',
+        mockedCurrentHeight,
+        true
       );
+      // mock `getTxRequiredConfirmation`
+      ChainHandlerMock.mockToChainFunction('getTxRequiredConfirmation', 10);
 
       // run test
       const txEntity = (await DatabaseActionMock.allTxRecords())[0];
@@ -1388,8 +1450,9 @@ describe('TransactionProcessor', () => {
      * - ChainHandler
      * @scenario
      * - mock event and transaction and insert into db
-     * - mock ChainHandler `getChain` and `getRequiredConfirmation`
+     * - mock ChainHandler `getChain`
      *   - mock `getHeight`
+     *   - mock `getTxRequiredConfirmation`
      * - get database txs and events
      * - run test
      * - check tx in database
@@ -1402,7 +1465,7 @@ describe('TransactionProcessor', () => {
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
       const tx = mockPaymentTransaction(
-        TransactionTypes.reward,
+        TransactionType.reward,
         mockedEvent.toChain,
         eventId
       );
@@ -1421,10 +1484,8 @@ describe('TransactionProcessor', () => {
         mockedCurrentHeight,
         true
       );
-      // mock ChainHandler `getRequiredConfirmation`
-      vi.spyOn(chainHandlerInstance, 'getRequiredConfirmation').mockReturnValue(
-        15
-      );
+      // mock `getTxRequiredConfirmation`
+      ChainHandlerMock.mockToChainFunction('getTxRequiredConfirmation', 15);
 
       // get database txs and events
       const dbTxs = await DatabaseActionMock.allTxRecords();
