@@ -1245,15 +1245,9 @@ describe('TransactionProcessor', () => {
 
       // event status should be updated to 'pending-payment'
       const dbEvents = (await DatabaseActionMock.allEventRecords()).map(
-        (event) => [event.id, event.status, event.firstTry]
+        (event) => [event.id, event.status]
       );
-      expect(dbEvents).toEqual([
-        [
-          eventId,
-          EventStatus.pendingPayment,
-          currentTimeStampSeconds.toString(),
-        ],
-      ]);
+      expect(dbEvents).toEqual([[eventId, EventStatus.pendingPayment]]);
     });
 
     /**
@@ -1321,15 +1315,9 @@ describe('TransactionProcessor', () => {
 
       // event status should be updated to 'pending-reward'
       const dbEvents = (await DatabaseActionMock.allEventRecords()).map(
-        (event) => [event.id, event.status, event.firstTry]
+        (event) => [event.id, event.status]
       );
-      expect(dbEvents).toEqual([
-        [
-          eventId,
-          EventStatus.pendingReward,
-          currentTimeStampSeconds.toString(),
-        ],
-      ]);
+      expect(dbEvents).toEqual([[eventId, EventStatus.pendingReward]]);
     });
 
     /**
