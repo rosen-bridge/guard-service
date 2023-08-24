@@ -277,7 +277,7 @@ class TransactionProcessor {
       );
       switch (tx.type) {
         case TransactionType.payment:
-          await DatabaseAction.getInstance().setEventStatusToPending(
+          await DatabaseAction.getInstance().setEventStatus(
             tx.event.id,
             EventStatus.pendingPayment
           );
@@ -286,7 +286,7 @@ class TransactionProcessor {
           );
           break;
         case TransactionType.reward:
-          await DatabaseAction.getInstance().setEventStatusToPending(
+          await DatabaseAction.getInstance().setEventStatus(
             tx.event.id,
             EventStatus.pendingReward
           );

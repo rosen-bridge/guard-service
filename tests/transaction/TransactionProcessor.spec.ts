@@ -1196,6 +1196,7 @@ describe('TransactionProcessor', () => {
      * @expected
      * - tx status should be updated to 'invalid'
      * - event status should be updated to 'pending-payment'
+     * - event firstTry should remain unchanged
      */
     it('should update tx status to invalid and event status to pending-payment when payment tx is invalid', async () => {
       // mock event and transaction and insert into db
@@ -1206,9 +1207,13 @@ describe('TransactionProcessor', () => {
         mockedEvent.toChain,
         eventId
       );
+      const firstTry = '1000';
       await DatabaseActionMock.insertEventRecord(
         mockedEvent,
-        EventStatus.inPayment
+        EventStatus.inPayment,
+        'box-serialized',
+        300,
+        firstTry
       );
       await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.sent, 100);
 
@@ -1248,11 +1253,7 @@ describe('TransactionProcessor', () => {
         (event) => [event.id, event.status, event.firstTry]
       );
       expect(dbEvents).toEqual([
-        [
-          eventId,
-          EventStatus.pendingPayment,
-          currentTimeStampSeconds.toString(),
-        ],
+        [eventId, EventStatus.pendingPayment, firstTry],
       ]);
     });
 
@@ -1272,6 +1273,7 @@ describe('TransactionProcessor', () => {
      * @expected
      * - tx status should be updated to 'invalid'
      * - event status should be updated to 'pending-reward'
+     * - event firstTry should remain unchanged
      */
     it('should update tx status to invalid and event status to pending-reward when reward distribution tx is invalid', async () => {
       // mock event and transaction and insert into db
@@ -1282,9 +1284,13 @@ describe('TransactionProcessor', () => {
         mockedEvent.toChain,
         eventId
       );
+      const firstTry = '1000';
       await DatabaseActionMock.insertEventRecord(
         mockedEvent,
-        EventStatus.inReward
+        EventStatus.inReward,
+        'box-serialized',
+        300,
+        firstTry
       );
       await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.sent, 100);
 
@@ -1324,11 +1330,7 @@ describe('TransactionProcessor', () => {
         (event) => [event.id, event.status, event.firstTry]
       );
       expect(dbEvents).toEqual([
-        [
-          eventId,
-          EventStatus.pendingReward,
-          currentTimeStampSeconds.toString(),
-        ],
+        [eventId, EventStatus.pendingReward, firstTry],
       ]);
     });
 
