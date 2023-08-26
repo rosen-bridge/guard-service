@@ -15,6 +15,7 @@ import { DatabaseAction } from './db/DatabaseAction';
 import { dataSource } from './db/dataSource';
 import Tss from './guard/Tss';
 import { tssUpdateJob } from './jobs/tss';
+import { revenueJob } from './jobs/revenue';
 
 const initService = async () => {
   // initialize all data sources
@@ -53,6 +54,9 @@ const initService = async () => {
 
   // initialize guard health check
   await healthCheckStart();
+
+  // run revenue job
+  await revenueJob();
 };
 
 const initKeygen = async () => {

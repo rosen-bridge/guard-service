@@ -22,10 +22,12 @@ import { BigIntValueTransformer } from '../transformers';
       .addSelect('be."timestamp"', 'timestamp')
       .addSelect('re."tokenId"', 'revenueTokenId')
       .addSelect('re."amount"', 'revenueAmount')
-      .from('transaction_entity', 'tx')
+      .from('revenue_entity', 're')
+      .leftJoin('transaction_entity', 'tx', 'tx."txId" = re."txId"')
       .leftJoin('event_trigger_entity', 'ete', 'tx."eventId" = ete."eventId"')
       .leftJoin('block_entity', 'be', 'ete."spendBlock" = be."hash"')
-      .leftJoin('revenue_entity', 're', 'tx."txId" = re."txId"'),
+      // TODO: fix duplicate trigger bug, https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/280
+      .where('ete."spendBlock" IS NOT NULL'),
 })
 export class RevenueView {
   @ViewColumn()
