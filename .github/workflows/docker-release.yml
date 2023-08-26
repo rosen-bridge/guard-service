@@ -41,7 +41,7 @@ jobs:
           regex: true
           file: ".*\\-${{ secrets.RELEASE_NAME }}-${{ steps.version.outputs.download_version }}.json"
           token: ${{ secrets.GITHUB_TOKEN }}
-          target: './config/'
+          target: './config/rosen/'
 
       - name: Move the Files
         run: |
@@ -49,13 +49,12 @@ jobs:
           mv ./docker/custom-environment-variables.yml ./config/
           mkdir -p bin/conf/ && mv ./docker/conf.env ./bin/conf/
           mv ./bin/rosenTss-* ./bin/rosenTss
-          mv ./config/tokensMap-${{ secrets.RELEASE_NAME }}-${{ steps.version.outputs.download_version }}.json ./config/tokens.json  
-          mkdir -p ./config/rosen/
-          cd ./config/
+          cd ./config/rosen/
+          mv ./tokensMap-${{ secrets.RELEASE_NAME }}-${{ steps.version.outputs.download_version }}.json ./tokens.json  
           files=$(ls contracts-*-${{ secrets.RELEASE_NAME }}-${{ steps.version.outputs.download_version }}.json)
           for file in $files; do
             new_name=$(echo "$file" | awk -F'-' '{print $1"-"$2"-mainnet.json"}')
-            mv "$file" "rosen/$new_name"
+            mv "$file" "./$new_name"
           done
 
       - name: Login to Docker Registry
