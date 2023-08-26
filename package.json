@@ -44,7 +44,7 @@
     "@rosen-bridge/rosen-extractor": "^0.1.8",
     "@rosen-bridge/scanner": "^2.1.4",
     "@rosen-bridge/tokens": "^0.1.12",
-    "@rosen-bridge/tss": "^1.0.2",
+    "@rosen-bridge/tss": "^1.0.3",
     "@rosen-bridge/watcher-data-extractor": "^2.1.5",
     "@rosen-chains/abstract-chain": "^0.1.13",
     "@rosen-chains/cardano": "^0.1.13",
