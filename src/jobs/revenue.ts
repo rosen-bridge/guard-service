@@ -24,7 +24,7 @@ const revenueJobFunction = async () => {
     const rewardTx = TransactionSerializer.fromJson(tx.txJson);
     const payments = ChainHandler.getInstance()
       .getErgoChain()
-      .extractTransactionOrder(rewardTx);
+      .extractSignedTransactionOrder(rewardTx);
 
     // save tokens as revenues
     for (const payment of payments) {

@@ -30,15 +30,18 @@ describe('DatabaseActions', () => {
      * - `storeRevenue` should got called to store token revenues for each tx
      */
     it('should store new revenues', async () => {
-      ChainHandlerMock.mockErgoFunctionReturnValue('extractTransactionOrder', [
-        {
-          address: GuardsErgoConfigs.bridgeFeeRepoAddress,
-          assets: {
-            nativeToken: 10000000n,
-            tokens: [{ id: 'tokenId', value: 20000n }],
+      ChainHandlerMock.mockErgoFunctionReturnValue(
+        'extractSignedTransactionOrder',
+        [
+          {
+            address: GuardsErgoConfigs.bridgeFeeRepoAddress,
+            assets: {
+              nativeToken: 10000000n,
+              tokens: [{ id: 'tokenId', value: 20000n }],
+            },
           },
-        },
-      ]);
+        ]
+      );
       await insertRewardTxWithTimestamps(3);
       const spiedTxsById = vi.spyOn(DatabaseAction.getInstance(), 'getTxsById');
       const spiedStoreRevenue = vi.spyOn(
