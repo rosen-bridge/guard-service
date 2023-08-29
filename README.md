@@ -84,7 +84,7 @@ npm run start
 
 ```shell
 mkdir -p logs/ts-guard-logs logs/tss-api-logs
-chown -R 9000:9000 logs
+chown -R 8080:8080 logs
 docker pull ghcr.io/rosen-bridge/ts-guard-service
 docker-compose up
 ```
