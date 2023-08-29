@@ -12,14 +12,14 @@ services:
       - rosen_network
     restart: always
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U postgres']
+      test: ['CMD-SHELL', 'pg_isready -U $$POSTGRES_USER']
       interval: 10s
       timeout: 5s
       retries: 3
 
   guard-service:
     image: ghcr.io/rosen-bridge/guard-service:${IMAGE_VERSION:-latest}
-    container_name: guard
+    container_name: guard-service
     ports:
       - 127.0.0.1:${GUARD_PORT:-8080}:${GUARD_PORT:-8080}
     environment:

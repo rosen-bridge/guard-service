@@ -39,19 +39,19 @@ jobs:
           repo: 'rosen-bridge/contract'
           version: 'tags/${{ steps.version.outputs.download_version }}'
           regex: true
-          file: ".*\\-${{ secrets.RELEASE_NAME }}-${{ steps.version.outputs.download_version }}.json"
+          file: ".*\\-${{ vars.RELEASE_NAME }}-${{ steps.version.outputs.download_version }}.json"
           token: ${{ secrets.GITHUB_TOKEN }}
           target: './config/rosen/'
 
       - name: Move the Files
         run: |
-          mv ./docker/production.yml ./config/
-          mv ./docker/custom-environment-variables.yml ./config/
+          mv ./docker/production.yaml ./config/
+          mv ./docker/custom-environment-variables.yaml ./config/
           mkdir -p bin/conf/ && mv ./docker/conf.env ./bin/conf/
           mv ./bin/rosenTss-* ./bin/rosenTss
           cd ./config/rosen/
-          mv ./tokensMap-${{ secrets.RELEASE_NAME }}-${{ steps.version.outputs.download_version }}.json ./tokens.json  
-          files=$(ls contracts-*-${{ secrets.RELEASE_NAME }}-${{ steps.version.outputs.download_version }}.json)
+          mv ./tokensMap-${{ vars.RELEASE_NAME }}-${{ steps.version.outputs.download_version }}.json ./tokens.json  
+          files=$(ls contracts-*-${{ vars.RELEASE_NAME }}-${{ steps.version.outputs.download_version }}.json)
           for file in $files; do
             new_name=$(echo "$file" | awk -F'-' '{print $1"-"$2"-mainnet.json"}')
             mv "$file" "./$new_name"
