@@ -1,8 +1,8 @@
 FROM node:18.12
 
 LABEL maintainer="rosen-bridge team <team@rosen.tech>"
-LABEL description="Docker image for the ts-guard-service owned by rosen-bridge organization."
-LABEL org.label-schema.vcs-url="https://github.com/rosen-bridge/ts-guard-service"
+LABEL description="Docker image for the guard-service owned by rosen-bridge organization."
+LABEL org.label-schema.vcs-url="https://github.com/rosen-bridge/guard-service"
 
 WORKDIR /app
 RUN adduser --disabled-password --home /app --uid 8080 --gecos "ErgoPlatform" ergo && \

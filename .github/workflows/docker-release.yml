@@ -69,4 +69,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/rosen-bridge/ts-guard-service:${{ matrix.versions }}
+          tags: ghcr.io/rosen-bridge/guard-service:${{ matrix.versions }}

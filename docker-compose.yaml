@@ -17,8 +17,8 @@ services:
       timeout: 5s
       retries: 3
 
-  ts-guard-service:
-    image: ghcr.io/rosen-bridge/ts-guard-service:${IMAGE_VERSION:-latest}
+  guard-service:
+    image: ghcr.io/rosen-bridge/guard-service:${IMAGE_VERSION:-latest}
     container_name: guard
     ports:
       - 127.0.0.1:${GUARD_PORT:-8080}:${GUARD_PORT:-8080}
@@ -33,8 +33,8 @@ services:
       - type: bind
         source: ./config/thresholds.json
         target: /app/config/thresholds.json
-      - ./logs/ts-guard-logs/:/app/logs/
-      - ts-guard-data:/app/peer-dialer/
+      - ./logs/guard-logs/:/app/logs/
+      - guard-data:/app/peer-dialer/
       - ./logs/tss-api-logs/:/app/tss-api/logs/
       - tss-api-data:/app/tss-api/home/
     networks:
@@ -55,7 +55,7 @@ services:
 
 volumes:
   postgres-data:
-  ts-guard-data:
+  guard-data:
   tss-api-data:
 
 networks:
