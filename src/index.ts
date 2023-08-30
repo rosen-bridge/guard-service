@@ -8,6 +8,7 @@ import { initScanner } from './jobs/initScanner';
 import { healthCheckStart } from './jobs/healthCheck';
 import ChainHandler from './handlers/ChainHandler';
 import TxAgreement from './agreement/TxAgreement';
+import Notification from './communication/notification/Notification';
 import MultiSigHandler from './guard/multisig/MultiSigHandler';
 import { configUpdateJob } from './jobs/guardConfigUpdate';
 import MultiSigUtils from './guard/multisig/MultiSigUtils';
@@ -18,6 +19,9 @@ import { tssUpdateJob } from './jobs/tss';
 import { revenueJob } from './jobs/revenue';
 
 const initService = async () => {
+  // initialize Notification object
+  await Notification.getInstance();
+
   // initialize all data sources
   await initDataSources();
 

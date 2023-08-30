@@ -14,7 +14,7 @@ import {
   PaymentTransaction,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
-import DiscordNotification from '../communication/notification/DiscordNotification';
+import Notification from '../communication/notification/Notification';
 import { Fee } from '@rosen-bridge/minimum-fee';
 import ChainHandler from '../handlers/ChainHandler';
 import { ERGO_CHAIN, ErgoChain } from '@rosen-chains/ergo';
@@ -138,7 +138,7 @@ class EventProcessor {
       if (e instanceof NotEnoughAssetsError) {
         logger.warn(`Failed to create payment for event [${eventId}]: ${e}`);
         logger.warn(e.stack);
-        await DiscordNotification.sendMessage(
+        await Notification.getInstance().sendMessage(
           `Failed to create payment for event [${eventId}] due to low assets: ${e}`
         );
         await DatabaseAction.getInstance().setEventStatus(
@@ -244,7 +244,7 @@ class EventProcessor {
           `Failed to create reward distribution for event [${eventId}]: ${e}`
         );
         logger.warn(e.stack);
-        await DiscordNotification.sendMessage(
+        await Notification.getInstance().sendMessage(
           `Failed to create reward distribution for event [${eventId}] due to low assets: ${e}`
         );
         await DatabaseAction.getInstance().setEventStatus(
