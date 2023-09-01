@@ -1,6 +1,4 @@
-import NotificationMock from './mocked/Notification.mock';
 import TestNotification from './TestNotification';
-import { WebhookClient } from 'discord.js';
 import { expect } from 'vitest';
 
 describe('Notification', () => {
@@ -8,8 +6,6 @@ describe('Notification', () => {
     let notification: TestNotification;
 
     beforeEach(async () => {
-      NotificationMock.resetMock();
-      NotificationMock.mock();
       notification = new TestNotification();
     });
 
@@ -18,7 +14,6 @@ describe('Notification', () => {
      * @dependencies
      * - WebhookClient
      * @scenario
-     * - mock WebhookClient
      * - mock send method of WebhookClient
      * - run test
      * - check if function got called
@@ -26,20 +21,15 @@ describe('Notification', () => {
      * - `send` method of WebhookClient should got called
      */
     it('should call send method of WebhookClient', async () => {
-      // mock WebhookClient
-      (notification as any).hookClient = NotificationMock.getWebhookClient();
-
       // mock send method of WebhookClient
-      NotificationMock.mockSendMethodOfWebhookClient();
+      const mockedFunc = notification.mockSendMethodOfWebhookClient();
 
       // run test
       const testMsg = 'test';
       await notification.sendMessage(testMsg);
 
       // WebhookClient `send` should got called
-      expect(
-        NotificationMock.getWebhookClientMockedFunction('send')
-      ).toHaveBeenCalledWith({
+      expect(mockedFunc).toHaveBeenCalledWith({
         content: testMsg,
       });
     });

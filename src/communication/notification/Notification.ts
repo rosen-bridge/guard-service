@@ -35,7 +35,7 @@ class Notification {
    */
   sendMessage = async (msg: string): Promise<void> => {
     if (this.hookClient) {
-      await this.hookClient
+      this.hookClient
         .send({
           content: msg,
         })
