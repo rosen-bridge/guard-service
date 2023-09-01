@@ -1,8 +1,8 @@
 name: Build and Push Docker Image
+
 on:
   release:
-    types:
-      - created
+    types: [published]
 
 jobs:
   build:
@@ -26,7 +26,7 @@ jobs:
           repo: 'rosen-bridge/tss-api'
           version: 'latest'
           regex: true
-          file: 'rosenTss-*'
+          file: 'rosenTss-linux-*'
           target: './bin/'
 
       - name: Fetch Latest Version of Contract
