@@ -49,7 +49,7 @@ class Notification {
           logger.warn(e.stack);
         });
     } else {
-      logger.info(`Something was wrong, WebhookClient doesn't exist`);
+      logger.info(`WebhookClient instance doesn't exist`);
       logger.debug(
         `Method sendMessage called for send notification with msg ${msg}`
       );
