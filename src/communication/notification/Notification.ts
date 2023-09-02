@@ -10,11 +10,14 @@ class Notification {
 
   protected constructor() {
     try {
-      if (Configs.discordWebHookUrl)
+      if (Configs.discordWebHookUrl) {
         this.hookClient = new WebhookClient({
           url: Configs.discordWebHookUrl,
         });
-      else logger.info("Key discordWebHookUrl isn't set in config");
+        logger.debug(
+          `'discordWebHookUrl' config is set, instantiating WebhookClient...`
+        );
+      } else logger.info("Key discordWebHookUrl isn't set in config");
     } catch (e) {
       logger.error(`Something was wrong, couldn't create WebhookClient: ${e}`);
     }
