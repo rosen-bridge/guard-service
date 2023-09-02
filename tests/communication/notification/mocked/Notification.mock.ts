@@ -5,7 +5,7 @@ class NotificationMock {
   private static mockedNotification: Record<string, any>;
 
   /**
-   * resets all mocked functions of txAgreement
+   * resets all mocked functions of notification
    */
   static resetMock = () => {
     this.mockedNotification = {};

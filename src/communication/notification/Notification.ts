@@ -6,7 +6,7 @@ const logger = loggerFactory(import.meta.url);
 
 class Notification {
   private static instance: Notification;
-  protected readonly hookClient: WebhookClient;
+  protected hookClient: WebhookClient;
 
   protected constructor() {
     try {

@@ -38,11 +38,15 @@ describe('Notification', () => {
      * @target Notification.sendMessage should not throw exception
      * @dependencies
      * @scenario
+     * - mock hookClient
      * - run test
      * @expected
      * - after run test should not throw exception
      */
     it('should not throw exception', async () => {
+      // mock send method of WebhookClient
+      notification.mockWebhookClient();
+      // run test
       expect(notification.sendMessage('test')).resolves.toBe(undefined);
     });
   });
