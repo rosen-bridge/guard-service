@@ -27,7 +27,7 @@ class Notification {
     if (!this.instance) {
       logger.debug("Notification instance didn't exist, creating a new one.");
       Notification.instance = new Notification();
-      logger.info('Notification instance started.');
+      logger.info('Notification instance created.');
     }
     return Notification.instance;
   };
