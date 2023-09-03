@@ -25,7 +25,7 @@ import {
 } from './mocked/EventOrder.mock';
 import TxAgreementMock from '../agreement/mocked/TxAgreement.mock';
 import { ErgoTransaction } from '@rosen-chains/ergo';
-import DiscordNotificationMock from '../communication/notification/mocked/DiscordNotification.mock';
+import NotificationMock from '../communication/notification/mocked/Notification.mock';
 
 describe('EventProcessor', () => {
   describe('processScannedEvents', () => {
@@ -296,7 +296,8 @@ describe('EventProcessor', () => {
       ChainHandlerMock.resetMock();
       TxAgreementMock.resetMock();
       TxAgreementMock.mock();
-      DiscordNotificationMock.resetMock();
+      NotificationMock.resetMock();
+      NotificationMock.mock();
     });
 
     /**
@@ -573,7 +574,7 @@ describe('EventProcessor', () => {
      * - ChainHandler
      * - EventOrder
      * - EventBoxes
-     * - DiscordNotification
+     * - Notification
      * @scenario
      * - mock feeConfig
      * - insert a mocked event into db
@@ -589,13 +590,13 @@ describe('EventProcessor', () => {
      * - mock event box and valid commitments
      * - mock event payment and reward order generations
      * - mock txAgreement `getChainPendingTransactions` to return empty list
-     * - mock DiscordNotification
+     * - mock Notification
      * - run test
      * - check status of event in db
      * - check if function got called
      * @expected
      * - event status should be updated in db
-     * - DiscordNotification `sendMessage` should got called
+     * - Notification `sendMessage` should got called
      */
     it('should set event as waiting when there is not enough assets in lock address to create payment', async () => {
       // mock feeConfig
@@ -669,8 +670,8 @@ describe('EventProcessor', () => {
       // mock txAgreement `getChainPendingTransactions` to return empty list
       TxAgreementMock.mockGetChainPendingTransactions([]);
 
-      // mock DiscordNotification
-      DiscordNotificationMock.mockSendMessage();
+      // mock Notification
+      NotificationMock.mockSendMessage();
 
       // run test
       await EventProcessor.processPaymentEvent(mockedEvent);
@@ -685,9 +686,9 @@ describe('EventProcessor', () => {
         EventStatus.paymentWaiting,
       ]);
 
-      // DiscordNotification `sendMessage` should got called
+      // Notification `sendMessage` should got called
       expect(
-        DiscordNotificationMock.getMockedFunction('sendMessage')
+        NotificationMock.getNotificationMockedFunction('sendMessage')
       ).toHaveBeenCalledOnce();
     });
   });
@@ -700,7 +701,8 @@ describe('EventProcessor', () => {
       ChainHandlerMock.resetMock();
       TxAgreementMock.resetMock();
       TxAgreementMock.mock();
-      DiscordNotificationMock.resetMock();
+      NotificationMock.resetMock();
+      NotificationMock.mock();
     });
 
     /**
@@ -819,7 +821,7 @@ describe('EventProcessor', () => {
      * - ChainHandler
      * - EventOrder
      * - EventBoxes
-     * - DiscordNotification
+     * - Notification
      * @scenario
      * - mock feeConfig
      * - insert a mocked event into db
@@ -833,13 +835,13 @@ describe('EventProcessor', () => {
      * - mock event box and valid commitments
      * - mock event payment and reward order generations
      * - mock txAgreement `getChainPendingTransactions` to return empty list
-     * - mock DiscordNotification
+     * - mock Notification
      * - run test
      * - check status of event in db
      * - check if function got called
      * @expected
      * - event status should be updated in db
-     * - DiscordNotification `sendMessage` should got called
+     * - Notification `sendMessage` should got called
      */
     it('should set event as waiting when there is not enough assets in lock address to create reward distribution', async () => {
       // mock feeConfig
@@ -904,8 +906,8 @@ describe('EventProcessor', () => {
       // mock txAgreement `getChainPendingTransactions` to return empty list
       TxAgreementMock.mockGetChainPendingTransactions([]);
 
-      // mock DiscordNotification
-      DiscordNotificationMock.mockSendMessage();
+      // mock Notification
+      NotificationMock.mockSendMessage();
 
       // run test
       await EventProcessor.processRewardEvent(mockedEvent);
@@ -920,9 +922,9 @@ describe('EventProcessor', () => {
         EventStatus.rewardWaiting,
       ]);
 
-      // DiscordNotification `sendMessage` should got called
+      // Notification `sendMessage` should got called
       expect(
-        DiscordNotificationMock.getMockedFunction('sendMessage')
+        NotificationMock.getNotificationMockedFunction('sendMessage')
       ).toHaveBeenCalledOnce();
     });
   });
