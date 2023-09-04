@@ -59,7 +59,9 @@ class DatabaseHandler {
     } else if (txs.length === 1) {
       const tx = txs[0];
       if (tx.txId === newTx.txId) {
-        `Reinsertion for tx [${tx.txId}], 'failedInSign' updated to false`;
+        logger.info(
+          `Reinsertion for tx [${tx.txId}], 'failedInSign' updated to false`
+        );
         await DatabaseAction.getInstance().resetFailedInSign(tx.txId);
       } else {
         if (tx.status === TransactionStatus.approved) {
@@ -100,7 +102,9 @@ class DatabaseHandler {
     } else if (txs.length === 1) {
       const tx = txs[0];
       if (tx.txId === newTx.txId) {
-        `Reinsertion for cold storage tx [${tx.txId}], 'failedInSign' updated to false`;
+        logger.info(
+          `Reinsertion for cold storage tx [${tx.txId}], 'failedInSign' updated to false`
+        );
         await DatabaseAction.getInstance().resetFailedInSign(tx.txId);
       } else {
         if (tx.status === TransactionStatus.approved) {

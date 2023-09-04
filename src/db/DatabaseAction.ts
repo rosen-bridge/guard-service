@@ -272,7 +272,9 @@ class DatabaseAction {
           ...event,
           eventData: {
             ...event.eventData,
-            spendBlock: event.eventData.spendBlock ?? undefined,
+            spendBlock: event.eventData.spendBlock
+              ? event.eventData.spendBlock
+              : IsNull(),
           },
         },
         type: type,
@@ -462,7 +464,9 @@ class DatabaseAction {
             ...event,
             eventData: {
               ...event.eventData,
-              spendBlock: event.eventData.spendBlock ?? undefined,
+              spendBlock: event.eventData.spendBlock
+                ? event.eventData.spendBlock
+                : IsNull(),
             },
           },
           status: TransactionStatus.completed,
