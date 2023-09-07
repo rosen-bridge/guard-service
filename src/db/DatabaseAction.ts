@@ -183,7 +183,7 @@ class DatabaseAction {
       {
         status: TransactionStatus.signFailed,
         lastStatusUpdate: String(Math.round(Date.now() / 1000)),
-        signFailedCount: () => 'signFailedCount + 1',
+        signFailedCount: () => '"signFailedCount" + 1',
         failedInSign: true,
       }
     );
