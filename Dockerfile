@@ -16,6 +16,9 @@ RUN npm ci
 COPY --chmod=700 --chown=ergo:ergo . .
 
 ENV NODE_ENV=production
+ENV TSS_HOME_ADDRESS="/app/tss-api/home"
+ENV TSS_LOG_ADDRESS="/app/tss-api/logs"
+
 EXPOSE 8080
 
 ENTRYPOINT ["npm", "run", "start"]
