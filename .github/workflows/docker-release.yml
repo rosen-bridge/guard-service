@@ -47,7 +47,7 @@ jobs:
         run: |
           mv ./docker/production.yaml ./config/
           mv ./docker/custom-environment-variables.yaml ./config/
-          mkdir -p bin/conf/ && mv ./docker/conf.env ./bin/conf/
+          7z x ./bin/rosenTss-linux-* -obin/ && rm -rf ./bin/*.zip
           mv ./bin/rosenTss-* ./bin/rosenTss
           cd ./config/rosen/
           mv ./tokensMap-${{ vars.RELEASE_NAME }}-${{ steps.version.outputs.download_version }}.json ./tokens.json  
