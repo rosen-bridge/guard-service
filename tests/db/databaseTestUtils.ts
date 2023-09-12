@@ -137,7 +137,7 @@ const insertRevenue = async (
     Utils.txIdToEventId(mockedEvent.sourceTxId)
   );
   await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.completed);
-  const txRecord = await DatabaseAction.getInstance().getTxById(tx.txId);
+  const txRecord = (await DatabaseAction.getInstance().getTxById(tx.txId))!;
 
   // insert revenue
   await DatabaseAction.getInstance().storeRevenue(

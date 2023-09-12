@@ -491,15 +491,23 @@ class TxAgreement extends Communicator {
    * @param tx
    */
   protected setTxAsApproved = async (tx: PaymentTransaction): Promise<void> => {
+    const txRecord = await DatabaseAction.getInstance().getTxById(tx.txId);
     try {
-      await DatabaseHandler.insertTx(tx);
-      await this.updateEventOfApprovedTx(tx);
-      this.transactions.delete(tx.txId);
-      this.transactionApprovals.delete(tx.txId);
-      if (this.eventAgreedTransactions.has(tx.eventId))
-        this.eventAgreedTransactions.delete(tx.eventId);
-      if (this.agreedColdStorageTransactions.has(tx.network))
-        this.agreedColdStorageTransactions.delete(tx.network);
+      if (txRecord === null) {
+        await DatabaseHandler.insertTx(tx);
+        await this.updateEventOfApprovedTx(tx);
+        this.transactions.delete(tx.txId);
+        this.transactionApprovals.delete(tx.txId);
+        if (this.eventAgreedTransactions.has(tx.eventId))
+          this.eventAgreedTransactions.delete(tx.eventId);
+        if (this.agreedColdStorageTransactions.has(tx.network))
+          this.agreedColdStorageTransactions.delete(tx.network);
+      } else {
+        logger.debug(
+          `Tx [${tx.txId}] is already in database. Only reinserting tx...`
+        );
+        await DatabaseHandler.insertTx(tx);
+      }
     } catch (e) {
       logger.warn(
         `An error occurred while setting tx [${tx.txId}] as approved: ${e}`

@@ -223,8 +223,8 @@ class DatabaseAction {
    * @param txId the transaction id
    * @return the transaction
    */
-  getTxById = async (txId: string): Promise<TransactionEntity> => {
-    return await this.TransactionRepository.findOneOrFail({
+  getTxById = async (txId: string): Promise<TransactionEntity | null> => {
+    return await this.TransactionRepository.findOne({
       relations: ['event'],
       where: {
         txId: txId,

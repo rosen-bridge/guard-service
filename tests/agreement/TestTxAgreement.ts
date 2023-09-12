@@ -61,6 +61,8 @@ class TestTxAgreement extends TxAgreement {
   callVerifyTransactionRequest = (tx: PaymentTransaction, creatorId: number) =>
     this.verifyTransactionRequest(tx, creatorId);
 
+  callSetTxAsApproved = (tx: PaymentTransaction) => this.setTxAsApproved(tx);
+
   callUpdateEventOfApprovedTx = (tx: PaymentTransaction) =>
     this.updateEventOfApprovedTx(tx);
 
