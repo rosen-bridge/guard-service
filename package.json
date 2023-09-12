@@ -48,7 +48,7 @@
     "@rosen-bridge/watcher-data-extractor": "^2.1.8",
     "@rosen-chains/abstract-chain": "^0.1.15",
     "@rosen-chains/cardano": "^0.1.15",
-    "@rosen-chains/cardano-koios-network": "^0.1.14",
+    "@rosen-chains/cardano-koios-network": "^0.1.15",
     "@rosen-chains/ergo": "^0.2.2",
     "@rosen-chains/ergo-explorer-network": "^0.1.17",
     "@rosen-chains/ergo-node-network": "^0.1.19",
