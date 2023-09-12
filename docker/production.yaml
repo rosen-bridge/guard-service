@@ -1,6 +1,4 @@
 ---
-api:
-  host: 'guard'
 tss:
   path: './bin/rosenTss'
 p2p:

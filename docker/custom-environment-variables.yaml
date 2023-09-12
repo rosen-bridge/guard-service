@@ -1,4 +1,6 @@
 ---
+api:
+  host: 'HOSTNAME'
 database:
   host: 'POSTGRES_HOST'
   port: 'POSTGRES_PORT'
