@@ -29,19 +29,10 @@ jobs:
           file: 'rosenTss-linux-*'
           target: './bin/'
 
-      - name: Fetch Latest Version of Contract
-        id: version
-        run: echo "download_version=$(echo $(curl -s https://api.github.com/repos/rosen-bridge/contract/releases) | jq -r 'max_by(.published_at).name')" >> $GITHUB_OUTPUT
-
-      - name: Download Contracts Files
-        uses: dsaltares/fetch-gh-release-asset@1.1.1
+      - name: Download Contracts
+        uses: rosen-bridge/operation@V0.1
         with:
-          repo: 'rosen-bridge/contract'
-          version: 'tags/${{ steps.version.outputs.download_version }}'
-          regex: true
-          file: ".*\\-${{ vars.RELEASE_NAME }}-${{ steps.version.outputs.download_version }}.json"
-          token: ${{ secrets.GITHUB_TOKEN }}
-          target: './config/rosen/'
+          type: ${{ vars.RELEASE_NAME }}
 
       - name: Move the Files
         run: |
@@ -49,13 +40,8 @@ jobs:
           mv ./docker/custom-environment-variables.yaml ./config/
           7z x ./bin/rosenTss-linux-* -obin/ && rm -rf ./bin/*.zip
           mv ./bin/rosenTss-* ./bin/rosenTss
-          cd ./config/rosen/
-          mv ./tokensMap-${{ vars.RELEASE_NAME }}-${{ steps.version.outputs.download_version }}.json ./tokens.json  
-          files=$(ls contracts-*-${{ vars.RELEASE_NAME }}-${{ steps.version.outputs.download_version }}.json)
-          for file in $files; do
-            new_name=$(echo "$file" | awk -F'-' '{print $1"-"$2"-mainnet.json"}')
-            mv "$file" "./$new_name"
-          done
+          mkdir -p ./config/rosen/
+          mv {tokens,contracts}*.json ./config/rosen/
 
       - name: Login to Docker Registry
         uses: docker/login-action@v2
