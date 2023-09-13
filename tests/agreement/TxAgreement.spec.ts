@@ -1863,7 +1863,7 @@ describe('TxAgreement', () => {
      * @expected
      * - event status should remain unchanged
      */
-    it('should NOT update event status event status when tx is already in database', async () => {
+    it('should NOT update event status when tx is already in database', async () => {
       // mock testdata
       const mockedEvent = EventTestData.mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent);
