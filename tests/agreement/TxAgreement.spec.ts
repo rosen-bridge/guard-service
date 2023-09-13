@@ -1845,6 +1845,57 @@ describe('TxAgreement', () => {
     });
   });
 
+  describe('setTxAsApproved', () => {
+    beforeEach(async () => {
+      await DatabaseActionMock.clearTables();
+    });
+
+    /**
+     * @target TxAgreement.setTxAsApproved should NOT update
+     * event status when tx is already in database
+     * @dependencies
+     * - database
+     * @scenario
+     * - mock testdata
+     * - insert mocked event and tx into db
+     * - run test
+     * - check event status in db
+     * @expected
+     * - event status should remain unchanged
+     */
+    it('should NOT update event status when tx is already in database', async () => {
+      // mock testdata
+      const mockedEvent = EventTestData.mockEventTrigger();
+      const eventId = EventSerializer.getId(mockedEvent);
+      const paymentTx = mockPaymentTransaction(
+        TransactionType.payment,
+        mockedEvent.toChain,
+        eventId
+      );
+
+      // insert mocked event and tx into db
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent,
+        EventStatus.pendingReward
+      );
+      await DatabaseActionMock.insertTxRecord(
+        paymentTx,
+        TransactionStatus.completed
+      );
+
+      // run test
+      const txAgreement = new TestTxAgreement();
+      await txAgreement.callSetTxAsApproved(paymentTx);
+
+      // event status should remain unchanged
+      const dbEvents = (await DatabaseActionMock.allEventRecords()).map(
+        (event) => [event.id, event.status]
+      );
+      expect(dbEvents.length).toEqual(1);
+      expect(dbEvents).to.deep.contain([eventId, EventStatus.pendingReward]);
+    });
+  });
+
   describe('updateEventOfApprovedTx', () => {
     beforeEach(async () => {
       await DatabaseActionMock.clearTables();

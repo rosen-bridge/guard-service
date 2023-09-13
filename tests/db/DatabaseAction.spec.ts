@@ -505,7 +505,7 @@ describe('DatabaseActions', () => {
     it('should store the new revenue correctly', async () => {
       const tx = TxTestData.mockPaymentTransaction(TransactionType.reward);
       await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.completed);
-      const txRecord = await DatabaseAction.getInstance().getTxById(tx.txId);
+      const txRecord = (await DatabaseAction.getInstance().getTxById(tx.txId))!;
       await DatabaseAction.getInstance().storeRevenue(
         'tokenId',
         1000n,
