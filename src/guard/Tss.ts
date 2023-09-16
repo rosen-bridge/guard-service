@@ -60,6 +60,9 @@ class Tss {
       })
       .addListener('spawn', () => {
         logger.info('TSS binary started');
+      })
+      .addListener('error', (err: Error) => {
+        logger.error(`an error occured when trying to spawn: ${err}`);
       });
   };
 
