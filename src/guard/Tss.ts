@@ -9,10 +9,9 @@ import CommunicationConfig from '../communication/CommunicationConfig';
 import Dialer from '../communication/Dialer';
 import { loggerFactory } from '../log/Logger';
 import Configs from '../configs/Configs';
-import * as childProcess from 'child_process';
+import { spawn } from 'child_process';
 
 const logger = loggerFactory(import.meta.url);
-const exec = childProcess.exec;
 
 class Tss {
   private static instance: Tss;
@@ -39,26 +38,29 @@ class Tss {
    * runs tss binary file
    */
   protected static runBinary = (): void => {
-    const tssPath =
-      Configs.tssExecutionPath +
-      ' -configFile ' +
-      Configs.tssConfigPath +
-      ` -guardUrl http://${Configs.apiHost}:${Configs.apiPort}` +
-      ` -host ${Configs.tssUrl}:${Configs.tssPort}`;
-    exec(tssPath, function (err, data) {
-      if (err !== null) {
+    const args = [
+      '-configFile',
+      Configs.tssConfigPath,
+      '-guardUrl',
+      `http://${Configs.apiHost}:${Configs.apiPort}`,
+      '-host',
+      `${Configs.tssUrl}:${Configs.tssPort}`,
+    ];
+    spawn(Configs.tssExecutionPath, args, {
+      detached: false,
+    })
+      .addListener('close', (code) => {
         const timeout = Configs.tssInstanceRestartGap;
         logger.error(
           `TSS binary failed unexpectedly, TSS will be started in [${timeout}] seconds`
         );
-        logger.debug(`Tss failure error: ${err}`);
-        logger.debug(`Tss failure data: ${data}`);
+        logger.debug(`Tss failure error code: ${code}`);
         // wait some seconds to start again
         setTimeout(Tss.runBinary, timeout * 1000);
-      } else {
+      })
+      .addListener('spawn', () => {
         logger.info('TSS binary started');
-      }
-    });
+      });
   };
 
   /**
