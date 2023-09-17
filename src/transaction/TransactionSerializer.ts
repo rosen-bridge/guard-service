@@ -3,6 +3,7 @@ import {
   PaymentTransactionJsonModel,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
+import { CARDANO_CHAIN, CardanoTransaction } from '@rosen-chains/cardano';
 import { ERGO_CHAIN, ErgoTransaction } from '@rosen-chains/ergo';
 
 class TransactionSerializer {
@@ -13,6 +14,8 @@ class TransactionSerializer {
    */
   static toJson = (tx: PaymentTransaction): string => {
     if (tx.network === ERGO_CHAIN) return (tx as ErgoTransaction).toJson();
+    else if (tx.network === CARDANO_CHAIN)
+      return (tx as CardanoTransaction).toJson();
     else
       return JSON.stringify({
         network: tx.network,
@@ -32,6 +35,8 @@ class TransactionSerializer {
     const network = (JSON.parse(jsonString) as PaymentTransactionJsonModel)
       .network;
     if (network === ERGO_CHAIN) return ErgoTransaction.fromJson(jsonString);
+    else if (network === CARDANO_CHAIN)
+      return CardanoTransaction.fromJson(jsonString);
     else {
       const obj = JSON.parse(jsonString) as PaymentTransactionJsonModel;
       return {
