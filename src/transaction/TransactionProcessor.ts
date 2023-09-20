@@ -13,7 +13,7 @@ import ChainHandler from '../handlers/ChainHandler';
 import GuardPkHandler from '../handlers/GuardPkHandler';
 import { loggerFactory } from '../log/Logger';
 import { EventStatus, TransactionStatus } from '../utils/constants';
-import TransactionSerializer from './TransactionSerializer';
+import * as TransactionSerializer from './TransactionSerializer';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -99,7 +99,7 @@ class TransactionProcessor {
       .getHeight();
     await DatabaseAction.getInstance().updateWithSignedTx(
       tx.txId,
-      TransactionSerializer.toJson(tx),
+      tx.toJson(),
       currentHeight
     );
   };

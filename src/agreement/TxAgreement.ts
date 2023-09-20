@@ -15,7 +15,7 @@ import {
   TransactionType,
 } from '@rosen-chains/abstract-chain';
 import RequestVerifier from '../verification/RequestVerifier';
-import TransactionSerializer from '../transaction/TransactionSerializer';
+import * as TransactionSerializer from '../transaction/TransactionSerializer';
 import Configs from '../configs/Configs';
 import GuardTurn from '../utils/GuardTurn';
 import TransactionVerifier from '../verification/TransactionVerifier';
@@ -157,7 +157,7 @@ class TxAgreement extends Communicator {
     timestamp: number
   ): Promise<void> => {
     const candidatePayload: TransactionRequest = {
-      txJson: TransactionSerializer.toJson(tx),
+      txJson: tx.toJson(),
     };
 
     // broadcast the transaction
@@ -404,7 +404,7 @@ class TxAgreement extends Communicator {
     approvedCandidate: ApprovedCandidate
   ): Promise<void> => {
     const approvalPayload: TransactionApproved = {
-      txJson: TransactionSerializer.toJson(approvedCandidate.tx),
+      txJson: approvedCandidate.tx.toJson(),
       signatures: approvedCandidate.signatures,
     };
 

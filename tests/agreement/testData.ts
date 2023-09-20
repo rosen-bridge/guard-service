@@ -14,14 +14,16 @@ export const mockPaymentTransaction = (
   if (chain === ERGO_CHAIN) return mockErgoPaymentTransaction(type, eventId);
   else if (chain === CARDANO_CHAIN)
     return mockCardanoTransaction(type, eventId);
-  else
-    return {
-      network: chain,
-      txId: TestUtils.generateRandomId(),
-      eventId: eventId,
-      txBytes: Buffer.from('txBytes'),
-      txType: type as TransactionType,
-    };
+  else {
+    const txId = TestUtils.generateRandomId();
+    return new PaymentTransaction(
+      chain,
+      txId,
+      eventId,
+      Buffer.from('txBytes'),
+      type as TransactionType
+    );
+  }
 };
 
 export const mockCardanoTransaction = (
@@ -29,9 +31,9 @@ export const mockCardanoTransaction = (
   eventId: string = TestUtils.generateRandomId()
 ): CardanoTransaction =>
   new CardanoTransaction(
+    TestUtils.generateRandomId(),
     eventId,
     Buffer.from('txBytes'),
-    TestUtils.generateRandomId(),
     type as TransactionType,
     []
   );
@@ -44,7 +46,7 @@ export const mockErgoPaymentTransaction = (
     TestUtils.generateRandomId(),
     eventId,
     Buffer.from('txBytes'),
+    type as TransactionType,
     [],
-    [],
-    type as TransactionType
+    []
   );

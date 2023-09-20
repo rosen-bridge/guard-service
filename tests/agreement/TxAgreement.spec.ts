@@ -1,5 +1,5 @@
 import { TransactionType } from '@rosen-chains/abstract-chain';
-import TransactionSerializer from '../../src/transaction/TransactionSerializer';
+import * as TestTransactionSerializer from '../../tests/transaction/TestTransactionSerializer';
 import TestConfigs from '../testUtils/TestConfigs';
 import TestTxAgreement from './TestTxAgreement';
 import { mockPaymentTransaction } from './testData';
@@ -164,7 +164,7 @@ describe('TxAgreement', () => {
       // `sendMessage` should got called with correct arguments
       const timestamp = Math.round(TestConfigs.currentTimeStamp / 1000);
       const expectedPayload = {
-        txJson: TransactionSerializer.toJson(paymentTx),
+        txJson: paymentTx.toJson(),
       };
       expect(mockedSendMessage).toHaveBeenCalledWith(
         AgreementMessageTypes.request,
@@ -804,7 +804,7 @@ describe('TxAgreement', () => {
       // mock testdata
       const type = AgreementMessageTypes.request;
       const paymentTx = mockPaymentTransaction();
-      const payload = { txJson: TransactionSerializer.toJson(paymentTx) };
+      const payload = { txJson: paymentTx.toJson() };
       const senderIndex = 0;
       const peerId = 'peerId';
       const timestamp = Math.round(TestConfigs.currentTimeStamp / 1000);
@@ -865,7 +865,7 @@ describe('TxAgreement', () => {
       // mock testdata
       const type = AgreementMessageTypes.request;
       const paymentTx = mockPaymentTransaction();
-      const payload = { txJson: TransactionSerializer.toJson(paymentTx) };
+      const payload = { txJson: paymentTx.toJson() };
       const senderIndex = 0;
       const peerId = 'peerId';
       const timestamp = Math.round(TestConfigs.currentTimeStamp / 1000);
@@ -1153,7 +1153,7 @@ describe('TxAgreement', () => {
       const expectedSignatures = cloneDeep(approvals);
       expectedSignatures[senderIndex] = 'signature';
       const approvalPayload = {
-        txJson: TransactionSerializer.toJson(paymentTx),
+        txJson: paymentTx.toJson(),
         signatures: expectedSignatures,
       };
       expect(mockedSendMessage).toHaveBeenCalledWith(
@@ -1257,7 +1257,7 @@ describe('TxAgreement', () => {
       const expectedSignatures = cloneDeep(approvals);
       expectedSignatures[senderIndex] = 'signature';
       const approvalPayload = {
-        txJson: TransactionSerializer.toJson(paymentTx),
+        txJson: paymentTx.toJson(),
         signatures: expectedSignatures,
       };
       expect(mockedSendMessage).toHaveBeenCalledWith(
@@ -1325,7 +1325,7 @@ describe('TxAgreement', () => {
       );
       const signatures = ['signature-0', 'signature-1', '', '', 'signature-4'];
       const payload = {
-        txJson: TransactionSerializer.toJson(paymentTx),
+        txJson: paymentTx.toJson(),
         signatures: signatures,
       };
       const senderIndex = 0;
@@ -1397,7 +1397,7 @@ describe('TxAgreement', () => {
       );
       const signatures = ['signature-0', 'signature-1', '', '', ''];
       const payload = {
-        txJson: TransactionSerializer.toJson(paymentTx),
+        txJson: paymentTx.toJson(),
         signatures: signatures,
       };
       const senderIndex = 0;
@@ -1467,7 +1467,7 @@ describe('TxAgreement', () => {
       );
       const signatures = ['signature-0', 'signature-1', '', '', 'signature-4'];
       const payload = {
-        txJson: TransactionSerializer.toJson(paymentTx),
+        txJson: paymentTx.toJson(),
         signatures: signatures,
       };
       const senderIndex = 0;
@@ -1553,7 +1553,7 @@ describe('TxAgreement', () => {
       );
       const signatures = ['signature-0', 'signature-1', '', '', 'signature-4'];
       const payload = {
-        txJson: TransactionSerializer.toJson(paymentTx),
+        txJson: paymentTx.toJson(),
         signatures: signatures,
       };
       const senderIndex = 0;
@@ -1630,7 +1630,7 @@ describe('TxAgreement', () => {
       );
       const signatures = ['signature-0', 'signature-1', '', '', 'signature-4'];
       const payload = {
-        txJson: TransactionSerializer.toJson(paymentTx),
+        txJson: paymentTx.toJson(),
         signatures: signatures,
       };
       const senderIndex = 0;
@@ -1714,7 +1714,7 @@ describe('TxAgreement', () => {
       );
       const signatures = ['signature-0', 'signature-1', '', '', 'signature-4'];
       const payload = {
-        txJson: TransactionSerializer.toJson(paymentTx),
+        txJson: paymentTx.toJson(),
         signatures: signatures,
       };
       const senderIndex = 0;
@@ -1789,7 +1789,7 @@ describe('TxAgreement', () => {
       );
       const signatures = ['signature-0', 'signature-1', '', '', 'signature-4'];
       const payload = {
-        txJson: TransactionSerializer.toJson(paymentTx),
+        txJson: paymentTx.toJson(),
         signatures: signatures,
       };
       const senderIndex = 0;
@@ -2033,10 +2033,10 @@ describe('TxAgreement', () => {
 
       // `sendMessage` should got called with correct arguments
       const expectedPayload1 = {
-        txJson: TransactionSerializer.toJson(paymentTx1),
+        txJson: paymentTx1.toJson(),
       };
       const expectedPayload2 = {
-        txJson: TransactionSerializer.toJson(paymentTx2),
+        txJson: paymentTx2.toJson(),
       };
       expect(mockedSendMessage).toHaveBeenCalledWith(
         AgreementMessageTypes.request,
@@ -2111,11 +2111,11 @@ describe('TxAgreement', () => {
 
       // `sendMessage` should got called with correct arguments
       const approvalPayload1 = {
-        txJson: TransactionSerializer.toJson(paymentTx1),
+        txJson: paymentTx1.toJson(),
         signatures: signatures1,
       };
       const approvalPayload2 = {
-        txJson: TransactionSerializer.toJson(paymentTx2),
+        txJson: paymentTx2.toJson(),
         signatures: signatures2,
       };
       expect(mockedSendMessage).toHaveBeenCalledWith(

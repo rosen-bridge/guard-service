@@ -1,5 +1,6 @@
 import DatabaseActionMock from '../db/mocked/DatabaseAction.mock';
 import TestConfigs from '../testUtils/TestConfigs';
+import * as TestTransactionSerializer from '../../tests/transaction/TestTransactionSerializer';
 
 // mock database
 await DatabaseActionMock.initDatabase();
@@ -14,4 +15,9 @@ vi.doMock('../../src/handlers/GuardPkHandler', () => ({
       guardId: TestConfigs.guardIndex,
     }),
   },
+}));
+
+// mock TransactionSerializer.fromJson
+vi.doMock('../../src/transaction/TransactionSerializer', () => ({
+  fromJson: TestTransactionSerializer.fromJson,
 }));

@@ -14,7 +14,7 @@ import {
   TokenInfo,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
-import TransactionSerializer from '../transaction/TransactionSerializer';
+import * as TransactionSerializer from '../transaction/TransactionSerializer';
 import { rosenConfig } from '../configs/RosenConfig';
 import { DatabaseAction } from '../db/DatabaseAction';
 
