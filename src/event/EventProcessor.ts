@@ -22,6 +22,8 @@ import { rosenConfig } from '../configs/RosenConfig';
 import TxAgreement from '../agreement/TxAgreement';
 import * as TransactionSerializer from '../transaction/TransactionSerializer';
 import { DatabaseAction } from '../db/DatabaseAction';
+import GuardTurn from '../utils/GuardTurn';
+import GuardPkHandler from '../handlers/GuardPkHandler';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -71,6 +73,10 @@ class EventProcessor {
         EventStatus.pendingReward,
       ]);
     for (const event of confirmedEvents) {
+      if (GuardTurn.guardTurn() !== GuardPkHandler.getInstance().guardId) {
+        logger.info(`Turn is over. Abort process of confirmed events`);
+        break;
+      }
       try {
         // check if event is active
         if (event.eventData.spendHeight) {
@@ -133,7 +139,12 @@ class EventProcessor {
     // create payment
     try {
       const tx = await this.createEventPayment(event, feeConfig);
-      (await TxAgreement.getInstance()).addTransactionToQueue(tx);
+      if (GuardTurn.guardTurn() === GuardPkHandler.getInstance().guardId)
+        (await TxAgreement.getInstance()).addTransactionToQueue(tx);
+      else
+        logger.info(
+          `Tx [${tx.txId}] is generated but turn is over. No tx will be added to Agreement queue`
+        );
     } catch (e) {
       if (e instanceof NotEnoughAssetsError) {
         logger.warn(`Failed to create payment for event [${eventId}]: ${e}`);
@@ -237,7 +248,12 @@ class EventProcessor {
 
     try {
       const tx = await this.createEventRewardDistribution(event, feeConfig);
-      (await TxAgreement.getInstance()).addTransactionToQueue(tx);
+      if (GuardTurn.guardTurn() === GuardPkHandler.getInstance().guardId)
+        (await TxAgreement.getInstance()).addTransactionToQueue(tx);
+      else
+        logger.info(
+          `Tx [${tx.txId}] is generated but turn is over. No tx will be added to Agreement queue`
+        );
     } catch (e) {
       if (e instanceof NotEnoughAssetsError) {
         logger.warn(
