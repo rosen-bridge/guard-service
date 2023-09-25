@@ -6,6 +6,13 @@ import {
 import { CARDANO_CHAIN, CardanoTransaction } from '@rosen-chains/cardano';
 import { ERGO_CHAIN, ErgoTransaction } from '@rosen-chains/ergo';
 
+/**
+ * generates a mocked PaymentTransaction object
+ * @param type
+ * @param chain
+ * @param eventId
+ * @returns
+ */
 export const mockPaymentTransaction = (
   type: string = TransactionType.payment,
   chain: string = CARDANO_CHAIN,
@@ -26,6 +33,12 @@ export const mockPaymentTransaction = (
   }
 };
 
+/**
+ * generates a mocked CardanoTransaction object
+ * @param type
+ * @param eventId
+ * @returns
+ */
 export const mockCardanoTransaction = (
   type: string = TransactionType.payment,
   eventId: string = TestUtils.generateRandomId()
@@ -38,6 +51,12 @@ export const mockCardanoTransaction = (
     []
   );
 
+/**
+ * generates a mocked ErgoTransaction object
+ * @param type
+ * @param eventId
+ * @returns
+ */
 export const mockErgoPaymentTransaction = (
   type: string = TransactionType.payment,
   eventId: string = TestUtils.generateRandomId()
