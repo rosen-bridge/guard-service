@@ -26,6 +26,8 @@ import {
 import TxAgreementMock from '../agreement/mocked/TxAgreement.mock';
 import { ErgoTransaction } from '@rosen-chains/ergo';
 import NotificationMock from '../communication/notification/mocked/Notification.mock';
+import { mockGuardTurn } from '../utils/mocked/GuardTurn.mock';
+import TestConfigs from '../testUtils/TestConfigs';
 
 describe('EventProcessor', () => {
   describe('processScannedEvents', () => {
@@ -153,9 +155,11 @@ describe('EventProcessor', () => {
      * @dependencies
      * - database
      * - EventProcessor
+     * - GuardTurn
      * @scenario
      * - mock a pending payment event and insert into db
      * - mock `processPaymentEvent`
+     * - mock GuardTurn to return guard index
      * - run test
      * - check if function got called
      * - check status of events in db
@@ -185,6 +189,9 @@ describe('EventProcessor', () => {
       );
       processPaymentEventSpy.mockImplementation(mockedProcessor);
 
+      // mock GuardTurn to return guard index
+      mockGuardTurn(TestConfigs.guardIndex);
+
       // run test
       await EventProcessor.processConfirmedEvents();
 
@@ -210,9 +217,11 @@ describe('EventProcessor', () => {
      * @dependencies
      * - database
      * - EventProcessor
+     * - GuardTurn
      * @scenario
      * - mock a pending payment event and insert into db
      * - mock `processPaymentEvent`
+     * - mock GuardTurn to return guard index
      * - run test
      * - check if function got called
      * - reset mocked function
@@ -235,6 +244,9 @@ describe('EventProcessor', () => {
       );
       processPaymentEventSpy.mockImplementation(mockedProcessor);
 
+      // mock GuardTurn to return guard index
+      mockGuardTurn(TestConfigs.guardIndex);
+
       // run test
       await EventProcessor.processConfirmedEvents();
 
@@ -251,9 +263,11 @@ describe('EventProcessor', () => {
      * @dependencies
      * - database
      * - EventProcessor
+     * - GuardTurn
      * @scenario
      * - mock a pending reward event and insert into db
      * - mock `processRewardEvent`
+     * - mock GuardTurn to return guard index
      * - run test
      * - check if function got called
      * - reset mocked function
@@ -276,6 +290,9 @@ describe('EventProcessor', () => {
       );
       processRewardEventSpy.mockImplementation(mockedProcessor);
 
+      // mock GuardTurn to return guard index
+      mockGuardTurn(TestConfigs.guardIndex);
+
       // run test
       await EventProcessor.processConfirmedEvents();
 
@@ -284,6 +301,52 @@ describe('EventProcessor', () => {
 
       // reset mocked function
       processRewardEventSpy.mockRestore();
+    });
+
+    /**
+     * @target EventProcessor.processConfirmedEvents should do nothing
+     * when turn is over
+     * @dependencies
+     * - database
+     * - EventProcessor
+     * - GuardTurn
+     * @scenario
+     * - mock a pending payment event and insert into db
+     * - mock `processPaymentEvent`
+     * - mock GuardTurn to return guard index + 1
+     * - run test
+     * - check if function got called
+     * - reset mocked function
+     * @expected
+     * - `processPaymentEvent` should NOT got called
+     */
+    it('should do nothing when turn is over', async () => {
+      // mock a pending payment event and insert into db
+      const mockedEvent: EventTrigger = mockEventTrigger();
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent,
+        EventStatus.pendingPayment
+      );
+
+      // mock `processPaymentEvent`
+      const mockedProcessor = vi.fn();
+      const processPaymentEventSpy = vi.spyOn(
+        EventProcessor,
+        'processPaymentEvent'
+      );
+      processPaymentEventSpy.mockImplementation(mockedProcessor);
+
+      // mock GuardTurn to return guard index + 1
+      mockGuardTurn(TestConfigs.guardIndex + 1);
+
+      // run test
+      await EventProcessor.processConfirmedEvents();
+
+      // `processPaymentEvent` should NOT got called
+      expect(mockedProcessor).not.toHaveBeenCalled();
+
+      // reset mocked function
+      processPaymentEventSpy.mockRestore();
     });
   });
 
@@ -310,6 +373,7 @@ describe('EventProcessor', () => {
      * - ChainHandler
      * - EventOrder
      * - EventBoxes
+     * - GuardTurn
      * @scenario
      * - mock feeConfig
      * - mock event as verified
@@ -326,6 +390,7 @@ describe('EventProcessor', () => {
      * - mock txAgreement
      *   - mock `getChainPendingTransactions` to return empty list
      *   - mock `addTransactionToQueue`
+     * - mock GuardTurn to return guard index
      * - run test
      * - check if function got called
      * @expected
@@ -409,6 +474,9 @@ describe('EventProcessor', () => {
       TxAgreementMock.mockGetChainPendingTransactions([]);
       TxAgreementMock.mockAddTransactionToQueue();
 
+      // mock GuardTurn to return guard index
+      mockGuardTurn(TestConfigs.guardIndex);
+
       // run test
       await EventProcessor.processPaymentEvent(mockedEvent);
 
@@ -428,6 +496,7 @@ describe('EventProcessor', () => {
      * - ChainHandler
      * - EventOrder
      * - EventBoxes
+     * - GuardTurn
      * @scenario
      * - mock feeConfig
      * - mock event as verified
@@ -441,6 +510,7 @@ describe('EventProcessor', () => {
      * - mock txAgreement
      *   - mock `getChainPendingTransactions` to return empty list
      *   - mock `addTransactionToQueue`
+     * - mock GuardTurn to return guard index
      * - run test
      * - check if function got called
      * @expected
@@ -504,6 +574,9 @@ describe('EventProcessor', () => {
       // mock txAgreement pending transactions
       TxAgreementMock.mockGetChainPendingTransactions([]);
       TxAgreementMock.mockAddTransactionToQueue();
+
+      // mock GuardTurn to return guard index
+      mockGuardTurn(TestConfigs.guardIndex);
 
       // run test
       await EventProcessor.processPaymentEvent(mockedEvent);
@@ -691,6 +764,129 @@ describe('EventProcessor', () => {
         NotificationMock.getNotificationMockedFunction('sendMessage')
       ).toHaveBeenCalledOnce();
     });
+
+    /**
+     * @target EventProcessor.processPaymentEvent should create event payment
+     * transaction on Ergo but does not send it to agreement process when turn is over
+     * @dependencies
+     * - database
+     * - MinimumFee
+     * - EventVerifier
+     * - ChainHandler
+     * - EventOrder
+     * - EventBoxes
+     * - GuardTurn
+     * @scenario
+     * - mock feeConfig
+     * - mock event as verified
+     * - mock ChainHandler `getChain` and `getErgoChain`
+     *   - mock `getMinimumNativeToken`
+     *   - mock `getGuardsConfigBox`
+     *   - mock `getBoxWID`
+     *   - mock `generateTransaction`
+     *   - mock `getRWTToken` of `fromChain`
+     *   - mock `getBoxRWT` of Ergo
+     *   - mock `getSerializedBoxInfo` of Ergo
+     * - mock event box and valid commitments
+     * - mock event payment and reward order generations
+     * - mock txAgreement
+     *   - mock `getChainPendingTransactions` to return empty list
+     *   - mock `addTransactionToQueue`
+     * - mock GuardTurn to return guard index + 1
+     * - run test
+     * - check if function got called
+     * @expected
+     * - `addTransactionToQueue` should NOT got called
+     */
+    it('should create event payment transaction on Ergo but does not send it to agreement process when turn is over', async () => {
+      // mock feeConfig
+      const fee: Fee = {
+        bridgeFee: 0n,
+        networkFee: 0n,
+        rsnRatio: 0n,
+        feeRatio: 0n,
+      };
+      mockGetEventFeeConfig(fee);
+
+      // mock event as verified
+      const mockedEvent: EventTrigger = mockToErgoEventTrigger();
+      mockVerifyEvent(true);
+
+      // mock ChainHandler `getChain` and `getErgoChain`
+      // mock `getMinimumNativeToken`
+      ChainHandlerMock.mockErgoFunctionReturnValue(
+        'getMinimumNativeToken',
+        100n,
+        false
+      );
+      // mock `getGuardsConfigBox`
+      ChainHandlerMock.mockErgoFunctionReturnValue(
+        'getGuardsConfigBox',
+        'serialized-guard-box',
+        true
+      );
+      // mock `getBoxWID`
+      ChainHandlerMock.mockErgoFunctionReturnValue('getBoxWID', 'wid', true);
+      // mock `generateTransaction`
+      const paymentTx = ErgoTransaction.fromJson(
+        JSON.stringify({
+          network: 'network',
+          txId: 'txId',
+          eventId: 'eventId',
+          txBytes: Buffer.from('txBytes'),
+          txType: 'txType',
+          inputBoxes: [],
+          dataInputs: [],
+        })
+      );
+      ChainHandlerMock.mockErgoFunctionReturnValue(
+        'generateTransaction',
+        paymentTx,
+        true
+      );
+      // mock `getRWTToken` of `fromChain`
+      ChainHandlerMock.mockFromChainFunction('getRWTToken', fromChainRwt);
+      // mock `getBoxRWT` of Ergo
+      ChainHandlerMock.mockErgoFunctionReturnValue(
+        'getBoxRWT',
+        2n * BigInt(mockedEvent.WIDs.length)
+      );
+      // mock `getSerializedBoxInfo` of Ergo
+      ChainHandlerMock.mockErgoFunctionReturnValue('getSerializedBoxInfo', {
+        assets: {
+          nativeToken: 100000n,
+        },
+      });
+
+      // mock event box and valid commitments
+      mockGetEventBox('serialized-event-box');
+      mockGetEventValidCommitments(['serialized-commitment-box']);
+
+      // mock event payment and reward order generations
+      mockEventSinglePayment({
+        address: mockedEvent.toAddress,
+        assets: {
+          nativeToken: 0n,
+          tokens: [],
+        },
+      });
+      mockEventRewardOrder([]);
+
+      // mock txAgreement pending transactions
+      TxAgreementMock.mockGetChainPendingTransactions([]);
+      TxAgreementMock.mockAddTransactionToQueue();
+
+      // mock GuardTurn to return guard index + 1
+      mockGuardTurn(TestConfigs.guardIndex + 1);
+
+      // run test
+      await EventProcessor.processPaymentEvent(mockedEvent);
+
+      // `addTransactionToQueue` should NOT got called
+      expect(
+        TxAgreementMock.getMockedFunction('addTransactionToQueue')
+      ).not.toHaveBeenCalled();
+    });
   });
 
   describe('processRewardEvent', () => {
@@ -714,6 +910,7 @@ describe('EventProcessor', () => {
      * - ChainHandler
      * - EventOrder
      * - EventBoxes
+     * - GuardTurn
      * @scenario
      * - mock feeConfig
      * - mock ChainHandler `fromChain` and `getErgoChain`
@@ -728,6 +925,7 @@ describe('EventProcessor', () => {
      * - mock txAgreement
      *   - mock `getChainPendingTransactions` to return empty list
      *   - mock `addTransactionToQueue`
+     * - mock GuardTurn to return guard index
      * - run test
      * - check if function got called
      * @expected
@@ -803,6 +1001,9 @@ describe('EventProcessor', () => {
       TxAgreementMock.mockGetChainPendingTransactions([]);
       TxAgreementMock.mockAddTransactionToQueue();
 
+      // mock GuardTurn to return guard index
+      mockGuardTurn(TestConfigs.guardIndex);
+
       // run test
       await EventProcessor.processRewardEvent(mockedEvent);
 
@@ -822,6 +1023,7 @@ describe('EventProcessor', () => {
      * - EventOrder
      * - EventBoxes
      * - Notification
+     * - GuardTurn
      * @scenario
      * - mock feeConfig
      * - insert a mocked event into db
@@ -836,6 +1038,7 @@ describe('EventProcessor', () => {
      * - mock event payment and reward order generations
      * - mock txAgreement `getChainPendingTransactions` to return empty list
      * - mock Notification
+     * - mock GuardTurn to return guard index
      * - run test
      * - check status of event in db
      * - check if function got called
@@ -909,6 +1112,9 @@ describe('EventProcessor', () => {
       // mock Notification
       NotificationMock.mockSendMessage();
 
+      // mock GuardTurn to return guard index
+      mockGuardTurn(TestConfigs.guardIndex);
+
       // run test
       await EventProcessor.processRewardEvent(mockedEvent);
 
@@ -926,6 +1132,119 @@ describe('EventProcessor', () => {
       expect(
         NotificationMock.getNotificationMockedFunction('sendMessage')
       ).toHaveBeenCalledOnce();
+    });
+
+    /**
+     * @target EventProcessor.processRewardEvent should create event reward
+     * distribution transaction on Ergo but does not send it to agreement process
+     * when turn is over
+     * @dependencies
+     * - database
+     * - MinimumFee
+     * - ChainHandler
+     * - EventOrder
+     * - EventBoxes
+     * - GuardTurn
+     * @scenario
+     * - mock feeConfig
+     * - mock ChainHandler `fromChain` and `getErgoChain`
+     *   - mock `getGuardsConfigBox`
+     *   - mock `getBoxWID`
+     *   - mock `generateTransaction`
+     *   - mock `getRWTToken` of Ergo
+     *   - mock `getBoxRWT` of Ergo
+     *   - mock `getSerializedBoxInfo` of Ergo
+     * - mock event box and valid commitments
+     * - mock event payment and reward order generations
+     * - mock txAgreement
+     *   - mock `getChainPendingTransactions` to return empty list
+     *   - mock `addTransactionToQueue`
+     * - mock GuardTurn to return guard index + 1
+     * - run test
+     * - check if function got called
+     * @expected
+     * - `addTransactionToQueue` should NOT got called
+     */
+    it('should create event reward distribution transaction on Ergo but does not send it to agreement process when turn is over', async () => {
+      // mock feeConfig
+      const fee: Fee = {
+        bridgeFee: 0n,
+        networkFee: 0n,
+        rsnRatio: 0n,
+        feeRatio: 0n,
+      };
+      mockGetEventFeeConfig(fee);
+
+      const mockedEvent: EventTrigger = mockEventTrigger();
+
+      // mock ChainHandler `fromChain` and `getErgoChain`
+      // mock `getGuardsConfigBox`
+      ChainHandlerMock.mockErgoFunctionReturnValue(
+        'getGuardsConfigBox',
+        'serialized-guard-box',
+        true
+      );
+      // mock `getBoxWID`
+      ChainHandlerMock.mockErgoFunctionReturnValue('getBoxWID', 'wid', true);
+      // mock `generateTransaction`
+      const paymentTx = ErgoTransaction.fromJson(
+        JSON.stringify({
+          network: 'network',
+          txId: 'txId',
+          eventId: 'eventId',
+          txBytes: Buffer.from('txBytes'),
+          txType: 'txType',
+          inputBoxes: [],
+          dataInputs: [],
+        })
+      );
+      ChainHandlerMock.mockErgoFunctionReturnValue(
+        'generateTransaction',
+        paymentTx,
+        true
+      );
+      // mock `getRWTToken` of Ergo
+      ChainHandlerMock.mockFromChainFunction('getRWTToken', ergoRwt);
+      // mock `getBoxRWT` of Ergo
+      ChainHandlerMock.mockErgoFunctionReturnValue(
+        'getBoxRWT',
+        2n * BigInt(mockedEvent.WIDs.length)
+      );
+      // mock `getSerializedBoxInfo` of Ergo
+      ChainHandlerMock.mockErgoFunctionReturnValue('getSerializedBoxInfo', {
+        assets: {
+          nativeToken: 100000n,
+        },
+      });
+
+      // mock event box and valid commitments
+      mockGetEventBox('serialized-event-box');
+      mockGetEventValidCommitments(['serialized-commitment-box']);
+
+      // mock event payment and reward order generations
+      mockEventSinglePayment({
+        address: mockedEvent.toAddress,
+        assets: {
+          nativeToken: 0n,
+          tokens: [],
+        },
+      });
+      mockEventRewardOrder([]);
+
+      // mock txAgreement pending transactions
+      TxAgreementMock.mockGetChainPendingTransactions([]);
+      TxAgreementMock.mockAddTransactionToQueue();
+
+      // mock GuardTurn to return guard index + 1
+      mockGuardTurn(TestConfigs.guardIndex + 1);
+
+      // run test
+      await EventProcessor.processRewardEvent(mockedEvent);
+
+      // `addTransactionToQueue` should NOT got called
+      expect(
+        TxAgreementMock.getMockedFunction('addTransactionToQueue')
+      ).not.toHaveBeenCalled();
     });
   });
 
