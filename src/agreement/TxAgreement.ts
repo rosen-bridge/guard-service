@@ -23,6 +23,7 @@ import DatabaseHandler from '../db/DatabaseHandler';
 import GuardPkHandler from '../handlers/GuardPkHandler';
 import { DatabaseAction } from '../db/DatabaseAction';
 import { Communicator, ECDSA } from '@rosen-bridge/tss';
+import { Semaphore } from 'await-semaphore';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -36,6 +37,7 @@ class TxAgreement extends Communicator {
   protected agreedColdStorageTransactions: Map<string, string>; // chainName -> txId
   protected transactionApprovals: Map<string, string[]>; // txId -> signatures
   protected approvedTransactions: ApprovedCandidate[];
+  protected approvalSemaphore: Semaphore;
 
   protected constructor() {
     super(
@@ -51,6 +53,7 @@ class TxAgreement extends Communicator {
     this.agreedColdStorageTransactions = new Map();
     this.transactionApprovals = new Map();
     this.approvedTransactions = [];
+    this.approvalSemaphore = new Semaphore(1);
   }
 
   /**
@@ -375,25 +378,35 @@ class TxAgreement extends Communicator {
       throw new ImpossibleBehavior(`no approval found for tx [${txId}]`);
     else txApprovals[signerIndex] = signature;
 
-    if (
-      this.transactionApprovals
-        .get(txId)!
-        .filter((signature) => signature !== '').length >=
-      GuardPkHandler.getInstance().requiredSign
-    ) {
-      logger.info(`The majority of guards agreed with transaction [${txId}]`);
+    await this.approvalSemaphore.acquire().then(async (release) => {
+      try {
+        if (
+          this.transactionApprovals
+            .get(txId)!
+            .filter((signature) => signature !== '').length >=
+          GuardPkHandler.getInstance().requiredSign
+        ) {
+          logger.info(
+            `The majority of guards agreed with transaction [${txId}]`
+          );
 
-      const approvals = this.transactionApprovals.get(txId)!;
-      const approvedTx: ApprovedCandidate = {
-        tx: candidateTx.tx,
-        signatures: approvals,
-        timestamp: timestamp,
-      };
+          const approvals = this.transactionApprovals.get(txId)!;
+          const approvedTx: ApprovedCandidate = {
+            tx: candidateTx.tx,
+            signatures: approvals,
+            timestamp: timestamp,
+          };
 
-      await this.broadcastApprovalMessage(approvedTx);
-      this.approvedTransactions.push(approvedTx);
-      await this.setTxAsApproved(candidateTx.tx);
-    }
+          await this.broadcastApprovalMessage(approvedTx);
+          this.approvedTransactions.push(approvedTx);
+          await this.setTxAsApproved(candidateTx.tx);
+        }
+        release();
+      } catch (e) {
+        release();
+        throw e;
+      }
+    });
   };
 
   /**
