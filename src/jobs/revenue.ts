@@ -2,7 +2,7 @@ import { ERG } from '@rosen-chains/ergo';
 import Configs from '../../src/configs/Configs';
 import { DatabaseAction } from '../../src/db/DatabaseAction';
 import { loggerFactory } from '../../src/log/Logger';
-import TransactionSerializer from '../transaction/TransactionSerializer';
+import * as TransactionSerializer from '../transaction/TransactionSerializer';
 import GuardsErgoConfigs from '../../src/configs/GuardsErgoConfigs';
 import ChainHandler from '../../src/handlers/ChainHandler';
 

@@ -20,7 +20,7 @@ import ChainHandler from '../handlers/ChainHandler';
 import { ERGO_CHAIN, ErgoChain } from '@rosen-chains/ergo';
 import { rosenConfig } from '../configs/RosenConfig';
 import TxAgreement from '../agreement/TxAgreement';
-import TransactionSerializer from '../transaction/TransactionSerializer';
+import * as TransactionSerializer from '../transaction/TransactionSerializer';
 import { DatabaseAction } from '../db/DatabaseAction';
 
 const logger = loggerFactory(import.meta.url);

@@ -16,7 +16,6 @@ import Utils from '../../../src/utils/Utils';
 import { loggerFactory } from '../../../src/log/Logger';
 import TestUtils from '../../testUtils/TestUtils';
 import { EventTrigger, PaymentTransaction } from '@rosen-chains/abstract-chain';
-import TransactionSerializer from '../../../src/transaction/TransactionSerializer';
 import { DatabaseAction } from '../../../src/db/DatabaseAction';
 import { RevenueEntity } from '../../../src/db/entities/revenueEntity';
 import { RevenueChartView } from '../../../src/db/entities/revenueChartView';
@@ -200,7 +199,7 @@ class DatabaseActionMock {
     });
     await this.testDatabase.TransactionRepository.insert({
       txId: paymentTx.txId,
-      txJson: TransactionSerializer.toJson(paymentTx),
+      txJson: paymentTx.toJson(),
       type: paymentTx.txType,
       chain: paymentTx.network,
       status: status,

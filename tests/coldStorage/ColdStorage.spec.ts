@@ -257,7 +257,7 @@ describe('ColdStorage', () => {
      *   - mock `generateTransaction`
      * - mock ChainHandler `getChainColdAddress`
      * - mock TxAgreement `getChainPendingTransactions` and `addTransactionToQueue`
-     * - mock two transactions and insert into db as signed and unsigned
+     * - mock a transaction and insert into db as signed
      * - run test
      * - check if function got called
      * @expected
@@ -281,12 +281,7 @@ describe('ColdStorage', () => {
       TxAgreementMock.mockGetChainPendingTransactions([]);
       TxAgreementMock.mockAddTransactionToQueue();
 
-      // mock two transactions and insert into db as signed and unsigned
-      const approvedTx = mockPaymentTransaction(TransactionType.payment, chain);
-      await DatabaseActionMock.insertTxRecord(
-        approvedTx,
-        TransactionStatus.approved
-      );
+      // mock a transaction and insert into db as signed
       const signedTx = mockPaymentTransaction(TransactionType.payment, chain);
       await DatabaseActionMock.insertTxRecord(
         signedTx,
@@ -314,7 +309,7 @@ describe('ColdStorage', () => {
         '',
         TransactionType.coldStorage,
         expectedOrder,
-        [approvedTx],
+        [],
         [Buffer.from(signedTx.txBytes).toString('hex')],
         ...[]
       );

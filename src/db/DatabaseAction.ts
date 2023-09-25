@@ -22,7 +22,6 @@ import {
 import Utils from '../utils/Utils';
 import { loggerFactory } from '../log/Logger';
 import { Semaphore } from 'await-semaphore';
-import TransactionSerializer from '../transaction/TransactionSerializer';
 import { SortRequest } from '../types/api';
 import { RevenueEntity } from './entities/revenueEntity';
 import { RevenueView } from './entities/revenueView';
@@ -296,7 +295,7 @@ class DatabaseAction {
       { txId: previousTxId },
       {
         txId: tx.txId,
-        txJson: TransactionSerializer.toJson(tx),
+        txJson: tx.toJson(),
         type: tx.txType,
         chain: tx.network,
         status: TransactionStatus.approved,
@@ -329,7 +328,7 @@ class DatabaseAction {
   ): Promise<void> => {
     await this.TransactionRepository.insert({
       txId: paymentTx.txId,
-      txJson: TransactionSerializer.toJson(paymentTx),
+      txJson: paymentTx.toJson(),
       type: paymentTx.txType,
       chain: paymentTx.network,
       status: TransactionStatus.approved,
