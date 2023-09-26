@@ -37,7 +37,6 @@ class EventProcessor {
     for (const event of rawEvents) {
       try {
         const eventId = Utils.txIdToEventId(event.sourceTxId);
-        // TODO: after updating `getUnconfirmedEvents` query, there is no need for next line (#204)
         const confirmedEvent = await DatabaseAction.getInstance().getEventById(
           eventId
         );

@@ -362,8 +362,10 @@ class DatabaseAction {
    * @return all event triggers with no spent height
    */
   getUnconfirmedEvents = async (): Promise<EventTriggerEntity[]> => {
-    // TODO: join table with confirmedEvents and get only unconfirmed ones (#204)
-    return await this.EventRepository.find();
+    return await this.EventRepository.createQueryBuilder('event')
+      .leftJoin('confirmed_event_entity', 'cee', 'event.id = cee.eventDataId')
+      .where('cee.eventDataId IS NULL')
+      .getMany();
   };
 
   /**
