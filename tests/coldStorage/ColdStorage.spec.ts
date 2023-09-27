@@ -574,7 +574,7 @@ describe('ColdStorage', () => {
      * - check if function got called
      * @expected
      * - `generateTransaction` should got called with correct arguments
-     * - `addTransactionToQueue` should got called
+     * - `addTransactionToQueue` should not got called
      */
     it(`should generate cold storage transaction but does not send it to agreement process when turn is over`, async () => {
       const chain = CARDANO_CHAIN;
@@ -633,7 +633,7 @@ describe('ColdStorage', () => {
         ...[]
       );
 
-      // `addTransactionToQueue` should got called
+      // `addTransactionToQueue` should not got called
       expect(
         TxAgreementMock.getMockedFunction('addTransactionToQueue')
       ).not.toHaveBeenCalledOnce();
