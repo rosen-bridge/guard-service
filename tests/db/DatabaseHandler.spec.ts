@@ -8,6 +8,8 @@ import {
 } from '@rosen-chains/abstract-chain';
 import { EventStatus, TransactionStatus } from '../../src/utils/constants';
 import DatabaseHandler from '../../src/db/DatabaseHandler';
+import DatabaseActionMock from './mocked/DatabaseAction.mock';
+import { rosenConfig } from '../../src/configs/RosenConfig';
 
 describe('DatabaseHandler', () => {
   beforeEach(async () => {
@@ -508,6 +510,80 @@ describe('DatabaseHandler', () => {
         tx.failedInSign,
       ]);
       expect(dbTxs).toEqual([[tx.txId, false]]);
+    });
+  });
+
+  describe('getWaitingEventsRequiredTokens', () => {
+    /**
+     * @target DatabaseHandler.getWaitingEventsRequiredTokens should
+     * return correct list for `paymentWaiting` events on non-Ergo chains
+     * @dependencies
+     * - database
+     * @scenario
+     * - mock an event with non-Ergo chain as target chain
+     * - insert mocked event into db as paymentWaiting
+     * - run test
+     * - check returned value
+     * @expected
+     * - returned list should only have event targetChainTokenId
+     */
+    it('should return correct list for `paymentWaiting` events on non-Ergo chains', async () => {
+      const event = EventTestData.mockEventTrigger();
+      await DatabaseActionMock.insertEventRecord(
+        event,
+        EventStatus.paymentWaiting
+      );
+
+      const result = await DatabaseHandler.getWaitingEventsRequiredTokens();
+      expect(result).toEqual([event.targetChainTokenId]);
+    });
+
+    /**
+     * @target DatabaseHandler.getWaitingEventsRequiredTokens should
+     * return correct list for `paymentWaiting` events on Ergo
+     * @dependencies
+     * - database
+     * @scenario
+     * - mock an event with Ergo as target chain
+     * - insert mocked event into db as paymentWaiting
+     * - run test
+     * - check returned value
+     * @expected
+     * - returned list should have event targetChainTokenId and RSN
+     */
+    it('should return correct list for `paymentWaiting` events on Ergo', async () => {
+      const event = EventTestData.mockToErgoEventTrigger();
+      await DatabaseActionMock.insertEventRecord(
+        event,
+        EventStatus.paymentWaiting
+      );
+
+      const result = await DatabaseHandler.getWaitingEventsRequiredTokens();
+      expect(result).toEqual([event.targetChainTokenId, rosenConfig.RSN]);
+    });
+
+    /**
+     * @target DatabaseHandler.getWaitingEventsRequiredTokens should
+     * return correct list for `rewardWaiting` events
+     * @dependencies
+     * - database
+     * @scenario
+     * - mock an event
+     * - insert mocked event into db as rewardWaiting
+     * - run test
+     * - check returned value
+     * @expected
+     * - returned list should have event targetChainTokenId and RSN
+     */
+    it('should return correct list for `rewardWaiting` events', async () => {
+      const event = EventTestData.mockTokenPaymentFromErgoEvent();
+      await DatabaseActionMock.insertEventRecord(
+        event,
+        EventStatus.rewardWaiting
+      );
+
+      const result = await DatabaseHandler.getWaitingEventsRequiredTokens();
+      expect(result).toEqual([rosenConfig.RSN, event.sourceChainTokenId]);
     });
   });
 });

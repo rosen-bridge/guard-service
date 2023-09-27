@@ -17,6 +17,9 @@ import {
 import * as TransactionSerializer from '../transaction/TransactionSerializer';
 import { rosenConfig } from '../configs/RosenConfig';
 import { DatabaseAction } from '../db/DatabaseAction';
+import GuardTurn from '../utils/GuardTurn';
+import GuardPkHandler from '../handlers/GuardPkHandler';
+import DatabaseHandler from '../db/DatabaseHandler';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -38,6 +41,12 @@ class ColdStorage {
    * @returns
    */
   static chainColdStorageProcess = async (chainName: string): Promise<void> => {
+    if (GuardTurn.guardTurn() !== GuardPkHandler.getInstance().guardId) {
+      logger.info(
+        `Turn is over. Abort cold storage process on chain [${chainName}]`
+      );
+      return;
+    }
     try {
       logger.info(`Processing assets in [${chainName}] lock address`);
       const inProgressColdStorageTxs = (
@@ -58,7 +67,15 @@ class ColdStorage {
 
       let transferringNativeToken = 0n;
       const transferringTokens: TokenInfo[] = [];
+      const forbiddenTokens =
+        await DatabaseHandler.getWaitingEventsRequiredTokens();
       Object.keys(thresholds).forEach((tokenId) => {
+        if (forbiddenTokens.includes(tokenId)) {
+          logger.debug(
+            `Skipped token [${tokenId}] in cold storage tx: token is required in some waiting events`
+          );
+          return;
+        }
         const isNativeToken =
           Configs.tokenMap.search(chainName, {
             [Configs.tokenMap.getIdKey(chainName)]: tokenId,
@@ -165,7 +182,12 @@ class ColdStorage {
       signedTransactions,
       ...extra
     );
-    (await TxAgreement.getInstance()).addTransactionToQueue(tx);
+    if (GuardTurn.guardTurn() === GuardPkHandler.getInstance().guardId)
+      (await TxAgreement.getInstance()).addTransactionToQueue(tx);
+    else
+      logger.info(
+        `Cold storage tx [${tx.txId}] on chain [${chainName}] is generated but turn is over. No tx will be added to Agreement queue`
+      );
   };
 }
 
