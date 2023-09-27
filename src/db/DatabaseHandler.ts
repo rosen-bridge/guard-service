@@ -130,6 +130,11 @@ class DatabaseHandler {
     } else await DatabaseAction.getInstance().insertNewTx(newTx, null);
   };
 
+  /**
+   * extracts tokens that are required in waiting events
+   * considers RSN if event is pending a transaction on Ergo
+   * @returns list of token ids
+   */
   static getWaitingEventsRequiredTokens = async (): Promise<string[]> => {
     const waitingEvents =
       await DatabaseAction.getInstance().getEventsByStatuses([
