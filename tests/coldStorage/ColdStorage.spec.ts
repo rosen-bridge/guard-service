@@ -372,6 +372,90 @@ describe('ColdStorage', () => {
         ColdStorageMock.getMockedSpy('generateColdStorageTransaction')
       ).not.toHaveBeenCalled();
     });
+
+    /**
+     * @target ColdStorage.chainColdStorageProcess should ignore waiting events
+     * when required tokens when processing tokens
+     * @dependencies
+     * - database
+     * - ChainHandler
+     * - GuardTurn
+     * @scenario
+     * - mock an event and insert mocked event into db as paymentWaiting
+     * - mock ChainHandler `getChain`
+     *   - mock `getLockAddressAssets`
+     *   - mock `getMinimumNativeToken` (event targetChainTokenId amount
+     *     should be more than it's high threshold)
+     * - mock ColdStorage.generateColdStorageTransaction
+     * - mock GuardTurn to return guard index
+     * - run test
+     * - check if function got called
+     * @expected
+     * - `generateColdStorageTransaction` should got called with correct arguments
+     */
+    it(`should ignore waiting events required tokens when processing tokens`, async () => {
+      // mock an event and insert mocked event into db as paymentWaiting
+      const event = mockTokenPaymentFromErgoEvent();
+      await DatabaseActionMock.insertEventRecord(
+        event,
+        EventStatus.paymentWaiting
+      );
+
+      const chain = CARDANO_CHAIN;
+      // mock ChainHandler `getChain`
+      ChainHandlerMock.mockChainName(chain);
+      // mock `getLockAddressAssets`
+      const lockedAssets: AssetBalance = {
+        nativeToken: 200000000n,
+        tokens: [
+          {
+            id: 'asset1epz7gzjqg5py4xrgps6ccv25gz7gd6v8e5gmxx',
+            value: 726000000000n,
+          },
+          {
+            id: 'asset1m62zdrt2fhlm9wpqrskxka6t0wvq5vag58cytl',
+            value: 544000000000n,
+          },
+        ],
+      };
+      ChainHandlerMock.mockToChainFunction(
+        'getLockAddressAssets',
+        lockedAssets,
+        true
+      );
+      // mock `getMinimumNativeToken`
+      const minimumNativeToken = 10000000n;
+      ChainHandlerMock.mockToChainFunction(
+        'getMinimumNativeToken',
+        minimumNativeToken
+      );
+
+      // mock ColdStorage.generateColdStorageTransaction
+      ColdStorageMock.mockFunction('generateColdStorageTransaction');
+
+      // mock GuardTurn to return guard index
+      mockGuardTurn(TestConfigs.guardIndex);
+
+      // run test
+      await ColdStorage.chainColdStorageProcess(chain);
+
+      // `generateColdStorageTransaction` should got called with correct arguments
+      expect(
+        ColdStorageMock.getMockedSpy('generateColdStorageTransaction')
+      ).toHaveBeenCalledWith(
+        {
+          nativeToken: minimumNativeToken,
+          tokens: [
+            {
+              id: 'asset1epz7gzjqg5py4xrgps6ccv25gz7gd6v8e5gmxx',
+              value: 601000000000n,
+            },
+          ],
+        },
+        chainHandlerInstance.getChain(chain),
+        chain
+      );
+    });
   });
 
   describe(`generateColdStorageTransaction`, () => {
