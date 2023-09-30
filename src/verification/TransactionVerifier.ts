@@ -10,6 +10,8 @@ import { isEqual } from 'lodash-es';
 import EventOrder from '../event/EventOrder';
 import MinimumFee from '../event/MinimumFee';
 import Configs from '../configs/Configs';
+import DatabaseHandler from '../db/DatabaseHandler';
+import { JsonBI } from '../network/NetworkModels';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -102,6 +104,24 @@ class TransactionVerifier {
     if (txOrder.length !== 1 || txOrder[0].address !== coldAddress) {
       logger.debug(
         `Transaction [${tx.txId}] is invalid: Tx extracted order is not verified`
+      );
+      return false;
+    }
+
+    // verify transferring assets
+    const forbiddenTokens =
+      await DatabaseHandler.getWaitingEventsRequiredTokens();
+    if (
+      txOrder[0].assets.tokens.some((token) =>
+        forbiddenTokens.includes(token.id)
+      )
+    ) {
+      logger.debug(
+        `Transaction [${
+          tx.txId
+        }] is invalid: Tx is transferring forbidden token. Forbidden tokens: ${JsonBI.stringify(
+          forbiddenTokens
+        )}`
       );
       return false;
     }

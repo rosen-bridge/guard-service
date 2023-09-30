@@ -121,3 +121,23 @@ export const mockTokenPaymentEvent = (): EventTrigger =>
       .fill(0)
       .map(() => TestUtils.generateRandomId())
   );
+
+export const mockTokenPaymentFromErgoEvent = (): EventTrigger =>
+  createEventTrigger(
+    200,
+    'ergo',
+    'cardano',
+    'fromAddress',
+    'toAddress',
+    '500000000',
+    '10000000',
+    '15000',
+    '0cd8c9f416e5b1ca9f986a7f10a84191dfb85941619e49e53c0dc30ebf83324b',
+    'asset1m62zdrt2fhlm9wpqrskxka6t0wvq5vag58cytl',
+    TestUtils.generateRandomId(),
+    '',
+    10000,
+    Array(5)
+      .fill(0)
+      .map(() => TestUtils.generateRandomId())
+  );
