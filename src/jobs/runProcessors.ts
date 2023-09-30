@@ -34,22 +34,13 @@ const agreementResendJob = async () => {
 };
 
 /**
- * runs all jobs for a turn
- * - EventProcessor job to process confirmed events
- * - ColdStorage job to process locked assets for sending any to cold storage
- * - clear generated transactions when turn is over
+ * runs EventProcessor job to process confirmed events
  */
-const TurnJob = async () => {
+const confirmedEventsJob = async () => {
   // process confirmed events
   EventProcessor.processConfirmedEvents().then(() => {
-    if (ColdStorageConfig.isWithinTime()) {
-      // ColdStorage job to process locked assets for sending any to cold storage
-      ColdStorage.processLockAddressAssets().then(() => {
-        setTimeout(TurnJob, GuardTurn.secondsToNextTurn() * 1000);
-      });
-    }
+    setTimeout(confirmedEventsJob, GuardTurn.secondsToNextTurn() * 1000);
   });
-  // TxAgreement
   (await TxAgreement.getInstance()).enqueueSignFailedTxs();
   setTimeout(agreementQueueJob, Configs.agreementQueueInterval * 1000);
   setTimeout(agreementResendJob, Configs.txResendInterval * 1000);
@@ -109,11 +100,29 @@ const requeueWaitingEventsJob = () => {
 };
 
 /**
+ * runs coldStorage jobs
+ */
+const coldStorageJob = async () => {
+  if (ColdStorageConfig.isWithinTime()) {
+    // process lock address assets for sending any to cold storage
+    ColdStorage.processLockAddressAssets().then(() => {
+      setTimeout(coldStorageJob, GuardTurn.secondsToNextTurn() * 1000);
+    });
+    // clear generated transactions when turn is over
+    setTimeout(
+      (await TxAgreement.getInstance()).clearTransactions,
+      GuardTurn.UP_TIME_LENGTH * 1000
+    );
+  } else setTimeout(coldStorageJob, GuardTurn.secondsToNextTurn() * 1000);
+};
+
+/**
  * runs all processors and their related jobs
  */
 const runProcessors = () => {
   scannedEventsJob();
-  setTimeout(TurnJob, GuardTurn.secondsToNextTurn() * 1000);
+  setTimeout(confirmedEventsJob, GuardTurn.secondsToNextTurn() * 1000);
+  setTimeout(coldStorageJob, GuardTurn.secondsToNextTurn() * 1000);
   setTimeout(resetJob, GuardTurn.secondsToReset() * 1000);
   transactionJob();
   setTimeout(timeoutProcessorJob, Configs.timeoutProcessorInterval * 1000);

@@ -375,7 +375,7 @@ describe('ColdStorage', () => {
 
     /**
      * @target ColdStorage.chainColdStorageProcess should ignore waiting events
-     * when required tokens when processing tokens
+     * required tokens when processing tokens
      * @dependencies
      * - database
      * - ChainHandler
@@ -720,7 +720,7 @@ describe('ColdStorage', () => {
       // `addTransactionToQueue` should not got called
       expect(
         TxAgreementMock.getMockedFunction('addTransactionToQueue')
-      ).not.toHaveBeenCalledOnce();
+      ).not.toHaveBeenCalled();
     });
   });
 });
