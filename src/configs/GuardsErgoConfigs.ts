@@ -89,8 +89,11 @@ class GuardsErgoConfigs {
       cold: this.coldTxConfirmation,
       manual: this.manualTxConfirmation,
     },
-    lockAddress: this.ergoContractConfig.lockAddress,
-    coldStorageAddress: this.coldAddress,
+    addresses: {
+      lock: this.ergoContractConfig.lockAddress,
+      cold: this.coldAddress,
+      permit: this.ergoContractConfig.permitAddress,
+    },
     rwtId: this.ergoContractConfig.RWTId,
     minBoxValue: this.minimumErg,
     eventTxConfirmation: this.eventConfirmation,

@@ -43,21 +43,6 @@ class ChainHandler {
     return ChainHandler.instance;
   };
 
-  /**
-   * gets cold storage address for a chain
-   * @param chain
-   */
-  getChainColdAddress = (chain: string): string => {
-    switch (chain) {
-      case ERGO_CHAIN:
-        return GuardsErgoConfigs.coldAddress;
-      case CARDANO_CHAIN:
-        return GuardsCardanoConfigs.coldAddress;
-      default:
-        throw Error(`Cannot get cold storage config for chain [${chain}]`);
-    }
-  };
-
   getChainPermitAddress = (chain: string): string => {
     switch (chain) {
       case ERGO_CHAIN:

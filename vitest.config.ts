@@ -5,7 +5,6 @@ import topLevelAwait from 'vite-plugin-top-level-await';
 export default defineConfig({
   test: {
     globals: true,
-    reporters: 'verbose',
     setupFiles: [
       './tests/setup/mockDialer.ts',
       './tests/setup/setupTests.ts',

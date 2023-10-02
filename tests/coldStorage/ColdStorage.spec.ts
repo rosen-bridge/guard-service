@@ -478,7 +478,7 @@ describe('ColdStorage', () => {
      * @scenario
      * - mock ChainHandler `getChain`
      *   - mock `generateTransaction`
-     * - mock ChainHandler `getChainColdAddress`
+     *   - mock `getChainConfigs`
      * - mock TxAgreement `getChainPendingTransactions` and `addTransactionToQueue`
      * - mock a transaction and insert into db as signed
      * - mock GuardTurn to return guard index
@@ -494,12 +494,11 @@ describe('ColdStorage', () => {
       ChainHandlerMock.mockChainName(chain);
       // mock `generateTransaction`
       ChainHandlerMock.mockToChainFunction('generateTransaction', null, true);
-
-      // mock ChainHandler `getChainColdAddress`
+      // mock `getChainConfigs`
       const coldAddress = `coldAddress`;
-      vi.spyOn(chainHandlerInstance, 'getChainColdAddress').mockReturnValue(
-        coldAddress
-      );
+      ChainHandlerMock.mockToChainFunction('getChainConfigs', {
+        addresses: { cold: coldAddress },
+      });
 
       // mock TxAgreement `getChainPendingTransactions` and `addTransactionToQueue`
       TxAgreementMock.mockGetChainPendingTransactions([]);
@@ -559,7 +558,7 @@ describe('ColdStorage', () => {
      * - mock ChainHandler `getChain`
      *   - mock `generateTransaction`
      *   - mock `getGuardsConfigBox`
-     * - mock ChainHandler `getChainColdAddress`
+     *   - mock `getChainConfigs`
      * - mock TxAgreement `getChainPendingTransactions` and `addTransactionToQueue`
      * - mock a transaction and insert into db as signed
      * - mock GuardTurn to return guard index
@@ -586,12 +585,11 @@ describe('ColdStorage', () => {
         guardConfigBox,
         true
       );
-
-      // mock ChainHandler `getChainColdAddress`
+      // mock `getChainConfigs`
       const coldAddress = `coldAddress`;
-      vi.spyOn(chainHandlerInstance, 'getChainColdAddress').mockReturnValue(
-        coldAddress
-      );
+      ChainHandlerMock.mockErgoFunctionReturnValue('getChainConfigs', {
+        addresses: { cold: coldAddress },
+      });
 
       // mock TxAgreement `getChainPendingTransactions` and `addTransactionToQueue`
       TxAgreementMock.mockGetChainPendingTransactions([]);
@@ -650,7 +648,7 @@ describe('ColdStorage', () => {
      * @scenario
      * - mock ChainHandler `getChain`
      *   - mock `generateTransaction`
-     * - mock ChainHandler `getChainColdAddress`
+     *   - mock `getChainConfigs`
      * - mock TxAgreement `getChainPendingTransactions` and `addTransactionToQueue`
      * - mock a transaction and insert into db as signed
      * - mock GuardTurn to return guard index + 1
@@ -670,12 +668,11 @@ describe('ColdStorage', () => {
         { txId: TestUtils.generateRandomId() },
         true
       );
-
-      // mock ChainHandler `getChainColdAddress`
+      // mock `getChainConfigs`
       const coldAddress = `coldAddress`;
-      vi.spyOn(chainHandlerInstance, 'getChainColdAddress').mockReturnValue(
-        coldAddress
-      );
+      ChainHandlerMock.mockToChainFunction('getChainConfigs', {
+        addresses: { cold: coldAddress },
+      });
 
       // mock TxAgreement `getChainPendingTransactions` and `addTransactionToQueue`
       TxAgreementMock.mockGetChainPendingTransactions([]);

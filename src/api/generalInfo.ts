@@ -1,10 +1,12 @@
 import { loggerFactory } from '../log/Logger';
-import { FastifySeverInstance } from '../types/api';
+import { FastifySeverInstance, LockBalance } from '../types/api';
 import { infoResponseSchema, messageResponseSchema } from '../types/schema';
 import ChainHandler from '../handlers/ChainHandler';
-import Utils from '../utils/Utils';
-import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import { getHealthCheck } from '../guard/HealthCheck';
+import { SUPPORTED_CHAINS } from '../utils/constants';
+import Configs from '../configs/Configs';
+import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
+import { ADA } from '@rosen-chains/cardano';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -26,31 +28,50 @@ const infoRoute = (server: FastifySeverInstance) => {
     async (request, reply) => {
       try {
         const chainHandler = ChainHandler.getInstance();
-        const ergoChain = chainHandler.getChain('ergo');
-        const cardanoChain = chainHandler.getChain('cardano');
 
-        const ergoLockAddress =
-          GuardsErgoConfigs.ergoContractConfig.lockAddress;
-        const ergoLockBalance = await ergoChain.getLockAddressAssets();
-        const ergoColdAddress = GuardsErgoConfigs.coldAddress;
-        const ergoColdBalance = await ergoChain.getColdAddressAssets();
-        const cardanoLockBalance = await cardanoChain.getLockAddressAssets();
+        const balances: LockBalance = {
+          hot: [],
+          cold: [],
+        };
+        for (const chain of SUPPORTED_CHAINS) {
+          const nativeTokenId = chain === ERGO_CHAIN ? ERG : ADA;
+          const abstractChain = chainHandler.getChain(chain);
+          // TODO: improve getting chain native token
+          //  local:ergo/rosen-bridge/guard-service#274
+          const nativeTokenData = Configs.tokenMap.search(chain, {
+            [Configs.tokenMap.getIdKey(chain)]: nativeTokenId,
+          })[0][chain];
+
+          const hotAmount = (
+            await abstractChain.getLockAddressAssets()
+          ).nativeToken.toString();
+          balances.hot.push({
+            address: abstractChain.getChainConfigs().addresses.lock,
+            balance: {
+              tokenId: nativeTokenId,
+              amount: hotAmount,
+              name: nativeTokenData.name,
+              decimals: nativeTokenData.decimals,
+            },
+          });
+          const coldAmount = (
+            await abstractChain.getColdAddressAssets()
+          ).nativeToken.toString();
+          balances.cold.push({
+            address: abstractChain.getChainConfigs().addresses.cold,
+            balance: {
+              tokenId: nativeTokenId,
+              amount: coldAmount,
+              name: nativeTokenData.name,
+              decimals: nativeTokenData.decimals,
+            },
+          });
+        }
 
         reply.status(200).send({
           health: (await (await getHealthCheck()).getOverallHealthStatus())
             .status,
-          hot: {
-            address: ergoLockAddress,
-            balance: ergoLockBalance.nativeToken.toString(),
-          },
-          cold: {
-            address: ergoColdAddress,
-            balance: ergoColdBalance.nativeToken.toString(),
-          },
-          tokens: {
-            ergo: Utils.extractTopTokens(ergoLockBalance.tokens, 5),
-            cardano: Utils.extractTopTokens(cardanoLockBalance.tokens, 5),
-          },
+          balances: balances,
         });
       } catch (error) {
         logger.error(`An error occurred while fetching general info: ${error}`);
