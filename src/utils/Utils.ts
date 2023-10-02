@@ -23,30 +23,6 @@ class Utils {
   };
 
   /**
-   * Extracts top tokens from a list of tokens
-   * @param tokens
-   * @param count the number of tokens to extract
-   */
-  static extractTopTokens = (tokens: TokenInfo[], count: number) => {
-    let topTokens = tokens.sort((a, b) => {
-      if (a.value > b.value) return -1;
-      else if (a.value < b.value) return 1;
-      else return 0;
-    });
-
-    topTokens = topTokens.slice(0, count);
-
-    const result = topTokens.map((token) => {
-      return {
-        ...token,
-        value: token.value.toString(),
-      };
-    });
-
-    return result;
-  };
-
-  /**
    * converts mnemonic to secret key using Ergo wasm and EIP-003
    * @param mnemonic
    */

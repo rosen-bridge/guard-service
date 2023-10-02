@@ -4,7 +4,7 @@ import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
 
 import { Token, FastifySeverInstance } from '../types/api';
 import { messageResponseSchema, outputItemsSchema } from '../types/schema';
-import { DefaultAssetApiLimit } from '../utils/constants';
+import { DefaultAssetApiLimit, SUPPORTED_CHAINS } from '../utils/constants';
 import ChainHandler from '../handlers/ChainHandler';
 import Configs from '../configs/Configs';
 
@@ -45,7 +45,7 @@ const assetsRoute = (server: FastifySeverInstance) => {
       const { offset, limit, chain, tokenId, name } = request.query;
 
       let tokenList: Array<Token> = [];
-      const chains = chain ? [chain] : [ERGO_CHAIN, CARDANO_CHAIN];
+      const chains = chain ? [chain] : SUPPORTED_CHAINS;
       for (const currentChain of chains) {
         const chainInstance = ChainHandler.getInstance().getChain(currentChain);
         const assets = await chainInstance.getLockAddressAssets();
