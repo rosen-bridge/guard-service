@@ -100,7 +100,7 @@ class TransactionVerifier {
 
     // verify target address
     const txOrder = chain.extractTransactionOrder(tx);
-    const coldAddress = chainHandler.getChainColdAddress(tx.network);
+    const coldAddress = chain.getChainConfigs().addresses.cold;
     if (txOrder.length !== 1 || txOrder[0].address !== coldAddress) {
       logger.debug(
         `Transaction [${tx.txId}] is invalid: Tx extracted order is not verified`

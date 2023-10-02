@@ -72,13 +72,13 @@ describe('assets', () => {
           {
             tokenId: ERG,
             name: ERG,
-            decimals: 0,
+            decimals: 9,
             amount: '10',
             chain: ERGO_CHAIN,
           },
           {
             tokenId: 'id',
-            name: 'id',
+            name: 'Unsupported token',
             decimals: 0,
             amount: '20',
             chain: ERGO_CHAIN,
@@ -119,13 +119,13 @@ describe('assets', () => {
           {
             tokenId: ADA,
             name: ADA,
-            decimals: 0,
+            decimals: 6,
             amount: '10',
             chain: CARDANO_CHAIN,
           },
           {
             tokenId: 'id',
-            name: 'id',
+            name: 'Unsupported token',
             decimals: 0,
             amount: '20',
             chain: CARDANO_CHAIN,
@@ -167,7 +167,7 @@ describe('assets', () => {
           {
             tokenId: ADA,
             name: ADA,
-            decimals: 0,
+            decimals: 6,
             amount: '10',
             chain: CARDANO_CHAIN,
           },
@@ -204,7 +204,7 @@ describe('assets', () => {
           {
             tokenId: ADA,
             name: ADA,
-            decimals: 0,
+            decimals: 6,
             amount: '10',
             chain: CARDANO_CHAIN,
           },
@@ -228,7 +228,7 @@ describe('assets', () => {
     it('should return cardano guard assets with limit and offset correctly', async () => {
       ChainHandlerMock.mockChainName(CARDANO_CHAIN, true);
       mockCardanoLockAddressAssets(10n, [
-        { id: 'id1', value: 20n },
+        { id: 'asset1epz7gzjqg5py4xrgps6ccv25gz7gd6v8e5gmxx', value: 20n },
         { id: 'id2', value: 30n },
       ]);
       const result = await mockedServer.inject({
@@ -241,9 +241,9 @@ describe('assets', () => {
       expect(result.json()).toEqual({
         items: [
           {
-            tokenId: 'id1',
-            name: 'id1',
-            decimals: 0,
+            tokenId: 'asset1epz7gzjqg5py4xrgps6ccv25gz7gd6v8e5gmxx',
+            name: 'wrapped-erg',
+            decimals: 9,
             amount: '20',
             chain: CARDANO_CHAIN,
           },

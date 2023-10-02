@@ -53,8 +53,11 @@ class GuardsCardanoConfigs {
       cold: this.coldTxConfirmation,
       manual: this.manualTxConfirmation,
     },
-    lockAddress: this.cardanoContractConfig.lockAddress,
-    coldStorageAddress: this.coldAddress,
+    addresses: {
+      lock: this.cardanoContractConfig.lockAddress,
+      cold: this.coldAddress,
+      permit: this.cardanoContractConfig.permitAddress,
+    },
     rwtId: this.cardanoContractConfig.RWTId,
     minBoxValue: this.txMinimumLovelace,
     txTtl: this.txTtl,

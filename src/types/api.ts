@@ -40,10 +40,34 @@ interface TokenChartData {
   }[];
 }
 
+interface TokenData {
+  tokenId: string;
+  amount: string;
+  name?: string;
+  decimals: number;
+}
+
+interface AddressBalance {
+  address: string;
+  balance: TokenData;
+}
+
+interface LockBalance {
+  hot: Array<AddressBalance>;
+  cold: Array<AddressBalance>;
+}
+
+interface GeneralInfo {
+  health: string;
+  balances: LockBalance;
+}
+
 export {
   FastifySeverInstance,
   SortRequest,
   HealthStatusType,
   TokenChartData,
   Token,
+  LockBalance,
+  GeneralInfo,
 };

@@ -152,7 +152,7 @@ class ColdStorage {
     // generate order
     const order: PaymentOrder = [
       {
-        address: ChainHandler.getInstance().getChainColdAddress(chainName),
+        address: chain.getChainConfigs().addresses.cold,
         assets: assets,
       },
     ];

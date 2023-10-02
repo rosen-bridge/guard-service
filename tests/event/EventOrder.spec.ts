@@ -6,6 +6,7 @@ import TestUtils from '../testUtils/TestUtils';
 import MinimumFee from '../../src/event/MinimumFee';
 import GuardsErgoConfigs from '../../src/configs/GuardsErgoConfigs';
 import { rosenConfig } from '../../src/configs/RosenConfig';
+import ChainHandlerMock from '../handlers/ChainHandler.mock';
 
 describe('EventOrder', () => {
   describe('eventSinglePayment', () => {
@@ -205,15 +206,20 @@ describe('EventOrder', () => {
     const fromChainRwt = 'fromChainRwt';
     const rwtCount = 2n;
 
+    beforeEach(async () => {
+      ChainHandlerMock.resetMock();
+    });
+
     /**
      * @target EventOrder.eventRewardOrder should set cardano permit address
      * for each watcher when source chain of event is cardano
      * @dependencies
      * - tokenMap
      * - contracts
-     * - chainHandler
+     * - ChainHandler
      * @scenario
      * - mock function arguments
+     * - mock ChainHandler and `getChainConfigs` function
      * - run test
      * - verify returned value
      * @expected
@@ -227,6 +233,15 @@ describe('EventOrder', () => {
         feeRatio: 0n,
       };
       const mockedEvent = mockNativeTokenPaymentEvent();
+
+      // mock ChainHandler
+      ChainHandlerMock.mockChainName(mockedEvent.fromChain, true);
+      // mock `getChainConfigs`
+      ChainHandlerMock.mockFromChainFunction(
+        'getChainConfigs',
+        GuardsCardanoConfigs.chainConfigs
+      );
+
       const result = EventOrder.eventRewardOrder(
         mockedEvent,
         [],
@@ -251,6 +266,7 @@ describe('EventOrder', () => {
      * - tokenMap
      * @scenario
      * - mock function arguments
+     * - mock ChainHandler and `getChainConfigs` function
      * - run test
      * - verify returned value
      * @expected
@@ -288,6 +304,14 @@ describe('EventOrder', () => {
         wid: TestUtils.generateRandomId(),
         boxValue: 200000000n,
       };
+
+      // mock ChainHandler
+      ChainHandlerMock.mockChainName(mockedEvent.fromChain, true);
+      // mock `getChainConfigs`
+      ChainHandlerMock.mockFromChainFunction(
+        'getChainConfigs',
+        GuardsCardanoConfigs.chainConfigs
+      );
 
       // run test
       const result = EventOrder.eventRewardOrder(
@@ -357,6 +381,7 @@ describe('EventOrder', () => {
      * - tokenMap
      * @scenario
      * - mock function arguments
+     * - mock ChainHandler and `getChainConfigs` function
      * - run test
      * - verify returned value
      * @expected
@@ -393,6 +418,14 @@ describe('EventOrder', () => {
         wid: TestUtils.generateRandomId(),
         boxValue: 2000000000n,
       };
+
+      // mock ChainHandler
+      ChainHandlerMock.mockChainName(mockedEvent.fromChain, true);
+      // mock `getChainConfigs`
+      ChainHandlerMock.mockFromChainFunction(
+        'getChainConfigs',
+        GuardsCardanoConfigs.chainConfigs
+      );
 
       // run test
       const result = EventOrder.eventRewardOrder(
@@ -475,6 +508,7 @@ describe('EventOrder', () => {
      * - tokenMap
      * @scenario
      * - mock function arguments
+     * - mock ChainHandler and `getChainConfigs` function
      * - run test
      * - verify returned value
      * @expected
@@ -511,6 +545,14 @@ describe('EventOrder', () => {
         wid: TestUtils.generateRandomId(),
         boxValue: 11000000n,
       };
+
+      // mock ChainHandler
+      ChainHandlerMock.mockChainName(mockedEvent.fromChain, true);
+      // mock `getChainConfigs`
+      ChainHandlerMock.mockFromChainFunction(
+        'getChainConfigs',
+        GuardsCardanoConfigs.chainConfigs
+      );
 
       // run test
       const result = EventOrder.eventRewardOrder(
@@ -593,6 +635,7 @@ describe('EventOrder', () => {
      * - tokenMap
      * @scenario
      * - mock function arguments
+     * - mock ChainHandler and `getChainConfigs` function
      * - run test
      * - verify returned value
      * @expected
@@ -630,6 +673,14 @@ describe('EventOrder', () => {
         wid: TestUtils.generateRandomId(),
         boxValue: 20000000n,
       };
+
+      // mock ChainHandler
+      ChainHandlerMock.mockChainName(mockedEvent.fromChain, true);
+      // mock `getChainConfigs`
+      ChainHandlerMock.mockFromChainFunction(
+        'getChainConfigs',
+        GuardsCardanoConfigs.chainConfigs
+      );
 
       // run test
       const result = EventOrder.eventRewardOrder(

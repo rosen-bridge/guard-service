@@ -393,7 +393,7 @@ describe('TransactionVerifier', () => {
      * - mock ChainHandler
      *   - mock `extractTransactionOrder`
      *   - mock `getLockAddressAssets`
-     * - mock ChainHandler `getChainColdAddress`
+     *   - mock `getChainConfigs`
      * - run test
      * - verify returned value
      * @expected
@@ -441,11 +441,10 @@ describe('TransactionVerifier', () => {
         lockedAssets,
         true
       );
-
-      // mock ChainHandler `getChainColdAddress`
-      vi.spyOn(chainHandlerInstance, 'getChainColdAddress').mockReturnValue(
-        coldAddress
-      );
+      // mock `getChainConfigs`
+      ChainHandlerMock.mockToChainFunction('getChainConfigs', {
+        addresses: { cold: coldAddress },
+      });
 
       // run test
       const result = await TransactionVerifier.verifyColdStorageTransaction(tx);
@@ -464,7 +463,7 @@ describe('TransactionVerifier', () => {
      * - mock ChainHandler
      *   - mock `extractTransactionOrder`
      *   - mock `getLockAddressAssets`
-     * - mock ChainHandler `getChainColdAddress`
+     *   - mock `getChainConfigs`
      * - run test
      * - verify returned value
      * @expected
@@ -524,11 +523,10 @@ describe('TransactionVerifier', () => {
         lockedAssets,
         true
       );
-
-      // mock ChainHandler `getChainColdAddress`
-      vi.spyOn(chainHandlerInstance, 'getChainColdAddress').mockReturnValue(
-        coldAddress
-      );
+      // mock `getChainConfigs`
+      ChainHandlerMock.mockToChainFunction('getChainConfigs', {
+        addresses: { cold: coldAddress },
+      });
 
       // run test
       const result = await TransactionVerifier.verifyColdStorageTransaction(tx);
@@ -547,7 +545,7 @@ describe('TransactionVerifier', () => {
      * - mock ChainHandler
      *   - mock `extractTransactionOrder`
      *   - mock `getLockAddressAssets`
-     * - mock ChainHandler `getChainColdAddress`
+     *   - mock `getChainConfigs`
      * - run test
      * - verify returned value
      * @expected
@@ -595,11 +593,10 @@ describe('TransactionVerifier', () => {
         lockedAssets,
         true
       );
-
-      // mock ChainHandler `getChainColdAddress`
-      vi.spyOn(chainHandlerInstance, 'getChainColdAddress').mockReturnValue(
-        coldAddress
-      );
+      // mock `getChainConfigs`
+      ChainHandlerMock.mockToChainFunction('getChainConfigs', {
+        addresses: { cold: coldAddress },
+      });
 
       // run test
       const result = await TransactionVerifier.verifyColdStorageTransaction(tx);
@@ -618,7 +615,7 @@ describe('TransactionVerifier', () => {
      * - mock ChainHandler
      *   - mock `extractTransactionOrder`
      *   - mock `getLockAddressAssets`
-     * - mock ChainHandler `getChainColdAddress`
+     *   - mock `getChainConfigs`
      * - run test
      * - verify returned value
      * @expected
@@ -666,11 +663,10 @@ describe('TransactionVerifier', () => {
         lockedAssets,
         true
       );
-
-      // mock ChainHandler `getChainColdAddress`
-      vi.spyOn(chainHandlerInstance, 'getChainColdAddress').mockReturnValue(
-        coldAddress
-      );
+      // mock `getChainConfigs`
+      ChainHandlerMock.mockToChainFunction('getChainConfigs', {
+        addresses: { cold: coldAddress },
+      });
 
       // run test
       const result = await TransactionVerifier.verifyColdStorageTransaction(tx);
@@ -689,7 +685,7 @@ describe('TransactionVerifier', () => {
      * - mock ChainHandler
      *   - mock `extractTransactionOrder`
      *   - mock `getLockAddressAssets`
-     * - mock ChainHandler `getChainColdAddress`
+     *   - mock `getChainConfigs`
      * - run test
      * - verify returned value
      * @expected
@@ -737,11 +733,10 @@ describe('TransactionVerifier', () => {
         lockedAssets,
         true
       );
-
-      // mock ChainHandler `getChainColdAddress`
-      vi.spyOn(chainHandlerInstance, 'getChainColdAddress').mockReturnValue(
-        coldAddress
-      );
+      // mock `getChainConfigs`
+      ChainHandlerMock.mockToChainFunction('getChainConfigs', {
+        addresses: { cold: coldAddress },
+      });
 
       // run test
       const result = await TransactionVerifier.verifyColdStorageTransaction(tx);
@@ -760,7 +755,7 @@ describe('TransactionVerifier', () => {
      * - mock ChainHandler
      *   - mock `extractTransactionOrder`
      *   - mock `getLockAddressAssets`
-     * - mock ChainHandler `getChainColdAddress`
+     *   - mock `getChainConfigs`
      * - run test
      * - verify returned value
      * @expected
@@ -808,11 +803,10 @@ describe('TransactionVerifier', () => {
         lockedAssets,
         true
       );
-
-      // mock ChainHandler `getChainColdAddress`
-      vi.spyOn(chainHandlerInstance, 'getChainColdAddress').mockReturnValue(
-        coldAddress
-      );
+      // mock `getChainConfigs`
+      ChainHandlerMock.mockToChainFunction('getChainConfigs', {
+        addresses: { cold: coldAddress },
+      });
 
       // run test
       const result = await TransactionVerifier.verifyColdStorageTransaction(tx);
@@ -831,7 +825,7 @@ describe('TransactionVerifier', () => {
      * - mock ChainHandler
      *   - mock `extractTransactionOrder`
      *   - mock `getLockAddressAssets`
-     * - mock ChainHandler `getChainColdAddress`
+     *   - mock `getChainConfigs`
      * - run test
      * - verify returned value
      * @expected
@@ -879,11 +873,10 @@ describe('TransactionVerifier', () => {
         lockedAssets,
         true
       );
-
-      // mock ChainHandler `getChainColdAddress`
-      vi.spyOn(chainHandlerInstance, 'getChainColdAddress').mockReturnValue(
-        coldAddress
-      );
+      // mock `getChainConfigs`
+      ChainHandlerMock.mockToChainFunction('getChainConfigs', {
+        addresses: { cold: coldAddress },
+      });
 
       // run test
       const result = await TransactionVerifier.verifyColdStorageTransaction(tx);
@@ -902,7 +895,7 @@ describe('TransactionVerifier', () => {
      * - mock ChainHandler
      *   - mock `extractTransactionOrder`
      *   - mock `getLockAddressAssets`
-     * - mock ChainHandler `getChainColdAddress`
+     *   - mock `getChainConfigs`
      * - run test
      * - verify returned value
      * @expected
@@ -946,11 +939,10 @@ describe('TransactionVerifier', () => {
         lockedAssets,
         true
       );
-
-      // mock ChainHandler `getChainColdAddress`
-      vi.spyOn(chainHandlerInstance, 'getChainColdAddress').mockReturnValue(
-        coldAddress
-      );
+      // mock `getChainConfigs`
+      ChainHandlerMock.mockToChainFunction('getChainConfigs', {
+        addresses: { cold: coldAddress },
+      });
 
       // run test
       const result = await TransactionVerifier.verifyColdStorageTransaction(tx);
@@ -970,7 +962,7 @@ describe('TransactionVerifier', () => {
      * - mock ChainHandler
      *   - mock `extractTransactionOrder`
      *   - mock `getLockAddressAssets`
-     * - mock ChainHandler `getChainColdAddress`
+     *   - mock `getChainConfigs`
      * - run test
      * - verify returned value
      * @expected
@@ -1025,11 +1017,10 @@ describe('TransactionVerifier', () => {
         lockedAssets,
         true
       );
-
-      // mock ChainHandler `getChainColdAddress`
-      vi.spyOn(chainHandlerInstance, 'getChainColdAddress').mockReturnValue(
-        coldAddress
-      );
+      // mock `getChainConfigs`
+      ChainHandlerMock.mockToChainFunction('getChainConfigs', {
+        addresses: { cold: coldAddress },
+      });
 
       // run test
       const result = await TransactionVerifier.verifyColdStorageTransaction(tx);
