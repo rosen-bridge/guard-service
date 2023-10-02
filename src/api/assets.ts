@@ -6,6 +6,7 @@ import { Token, FastifySeverInstance } from '../types/api';
 import { messageResponseSchema, outputItemsSchema } from '../types/schema';
 import { DefaultAssetApiLimit } from '../utils/constants';
 import ChainHandler from '../handlers/ChainHandler';
+import Configs from '../configs/Configs';
 
 /**
  * setup available assets route
@@ -55,20 +56,29 @@ const assetsRoute = (server: FastifySeverInstance) => {
             : currentChain == CARDANO_CHAIN
             ? ADA
             : '';
-        // TODO: Fix token name and decimal, https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/257
+        const nativeTokenData = Configs.tokenMap.search(currentChain, {
+          [Configs.tokenMap.getIdKey(currentChain)]: nativeTokenId,
+        })[0][currentChain];
         tokenList.push({
           tokenId: nativeTokenId,
-          name: nativeTokenId,
+          name: nativeTokenData.name,
           amount: assets.nativeToken.toString(),
-          decimals: 0,
+          decimals: nativeTokenData.decimals,
           chain: currentChain,
         });
         assets.tokens.forEach((token) => {
+          const tokenData = Configs.tokenMap.search(currentChain, {
+            [Configs.tokenMap.getIdKey(currentChain)]: token.id,
+          });
           tokenList.push({
             tokenId: token.id,
-            name: token.id,
+            name: tokenData.length
+              ? tokenData[0][currentChain].name
+              : 'Unsupported token',
             amount: token.value.toString(),
-            decimals: 0,
+            decimals: tokenData.length
+              ? tokenData[0][currentChain].decimals
+              : 0,
             chain: currentChain,
           });
         });
