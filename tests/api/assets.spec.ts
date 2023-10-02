@@ -7,7 +7,6 @@ import ChainHandlerMock from '../handlers/ChainHandler.mock';
 import { FastifySeverInstance } from '../../src/types/api';
 import { assetRoutes } from '../../src/api/assets';
 import ChainHandler from '../../src/handlers/ChainHandler';
-import { JsonBI } from '../../src/network/NetworkModels';
 
 describe('assets', () => {
   let mockedServer: FastifySeverInstance;
