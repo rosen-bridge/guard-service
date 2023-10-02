@@ -204,6 +204,9 @@ class EventOrder {
       })[0],
       ERGO_CHAIN
     );
+    const permitAddress = ChainHandler.getInstance()
+      .getChain(event.fromChain)
+      .getChainConfigs().addresses.permit;
     if (tokenId === ERG)
       return this.eventErgRewardOrder(
         outPermits,
@@ -213,7 +216,7 @@ class EventOrder {
         paymentTxId,
         rwtTokenId,
         rwtCount,
-        event.fromChain
+        permitAddress
       );
     else
       return this.eventTokenRewardOrder(
@@ -225,7 +228,7 @@ class EventOrder {
         paymentTxId,
         rwtTokenId,
         rwtCount,
-        event.fromChain
+        permitAddress
       );
   };
 
@@ -238,7 +241,7 @@ class EventOrder {
    * @param paymentTxId payment transaction id (which is empty string when toChain is Ergo)
    * @param rwtTokenId RWT token id of fromChain
    * @param rwtCount amount RWT token per watcher
-   * @param fromChain
+   * @param permitAddress
    */
   protected static eventErgRewardOrder = (
     outPermits: PermitBoxValue[],
@@ -248,7 +251,7 @@ class EventOrder {
     paymentTxId: string,
     rwtTokenId: string,
     rwtCount: bigint,
-    fromChain: string
+    permitAddress: string
   ): PaymentOrder => {
     const order: PaymentOrder = [];
     const watchersLen = outPermits.length;
@@ -281,7 +284,7 @@ class EventOrder {
         tokens: watcherTokens,
       };
       order.push({
-        address: ChainHandler.getInstance().getChainPermitAddress(fromChain),
+        address: permitAddress,
         assets: assets,
         extra: permit.wid,
       });
@@ -333,7 +336,7 @@ class EventOrder {
    * @param paymentTxId payment transaction id (which is empty string when toChain is Ergo)
    * @param rwtTokenId RWT token id of fromChain
    * @param rwtCount amount RWT token per watcher
-   * @param fromChain
+   * @param permitAddress
    */
   protected static eventTokenRewardOrder = (
     outPermits: PermitBoxValue[],
@@ -344,7 +347,7 @@ class EventOrder {
     paymentTxId: string,
     rwtTokenId: string,
     rwtCount: bigint,
-    fromChain: string
+    permitAddress: string
   ): PaymentOrder => {
     const order: PaymentOrder = [];
     const watchersLen = outPermits.length;
@@ -378,7 +381,7 @@ class EventOrder {
     // add watcher boxes to order
     outPermits.forEach((permit) => {
       order.push({
-        address: ChainHandler.getInstance().getChainPermitAddress(fromChain),
+        address: permitAddress,
         assets: {
           nativeToken: permit.boxValue,
           tokens: watcherTokens,
