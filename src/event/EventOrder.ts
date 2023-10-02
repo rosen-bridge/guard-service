@@ -295,23 +295,33 @@ class EventOrder {
       bridgeFee -
       BigInt(watchersLen) * watcherErgAmount +
       GuardsErgoConfigs.minimumErg;
-    const guardRsnAmount = rsnFee - BigInt(watchersLen) * watcherRsnAmount;
     const assets: AssetBalance = {
       nativeToken: guardBridgeFeeErgAmount,
-      tokens:
-        guardRsnAmount > 0
-          ? [
-              {
-                id: rosenConfig.RSN,
-                value: guardRsnAmount,
-              },
-            ]
-          : [],
+      tokens: [],
     };
     order.push({
       address: GuardsErgoConfigs.bridgeFeeRepoAddress,
       assets: assets,
       extra: paymentTxId,
+    });
+
+    // add RSN emission to order
+    const rsnEmissionAmount = rsnFee - BigInt(watchersLen) * watcherRsnAmount;
+    const rsnEmissionAssets: AssetBalance = {
+      nativeToken: GuardsErgoConfigs.minimumErg,
+      tokens:
+        rsnEmissionAmount > 0
+          ? [
+              {
+                id: rosenConfig.RSN,
+                value: rsnEmissionAmount,
+              },
+            ]
+          : [],
+    };
+    order.push({
+      address: GuardsErgoConfigs.rsnEmissionAddress,
+      assets: rsnEmissionAssets,
     });
 
     // add guard network fee to order
@@ -393,7 +403,6 @@ class EventOrder {
     // add guard bridge fee to order
     const guardBridgeFeeTokenAmount =
       bridgeFee - BigInt(watchersLen) * watcherTokenAmount;
-    const guardRsnAmount = rsnFee - BigInt(watchersLen) * watcherRsnAmount;
     const guardTokens: TokenInfo[] =
       guardBridgeFeeTokenAmount > 0
         ? [
@@ -403,11 +412,6 @@ class EventOrder {
             },
           ]
         : [];
-    if (guardRsnAmount > 0)
-      guardTokens.push({
-        id: rosenConfig.RSN,
-        value: guardRsnAmount,
-      });
     order.push({
       address: GuardsErgoConfigs.bridgeFeeRepoAddress,
       assets: {
@@ -415,6 +419,25 @@ class EventOrder {
         tokens: guardTokens,
       },
       extra: paymentTxId,
+    });
+
+    // add RSN emission to order
+    const rsnEmissionAmount = rsnFee - BigInt(watchersLen) * watcherRsnAmount;
+    const rsnEmissionAssets: AssetBalance = {
+      nativeToken: GuardsErgoConfigs.minimumErg,
+      tokens:
+        rsnEmissionAmount > 0
+          ? [
+              {
+                id: rosenConfig.RSN,
+                value: rsnEmissionAmount,
+              },
+            ]
+          : [],
+    };
+    order.push({
+      address: GuardsErgoConfigs.rsnEmissionAddress,
+      assets: rsnEmissionAssets,
     });
 
     // add guard network fee to order

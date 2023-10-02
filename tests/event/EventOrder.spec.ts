@@ -270,7 +270,7 @@ describe('EventOrder', () => {
      * - run test
      * - verify returned value
      * @expected
-     * - should generate 5 + 1 + 2 element on order
+     * - should generate 5 + 1 + 3 element on order
      *   - 5 + 1 watcher box
      *     - address should be watcher permit contract
      *     - value should be
@@ -281,9 +281,14 @@ describe('EventOrder', () => {
      *   - bridge fee box
      *     - address should be bridgeFee config address
      *     - value should be remaining bridgeFee + minErg
+     *     - should have no token
+     *     - extra should equal to paymentTxId
+     *   - rsn emission box
+     *     - address should be rsn emission config address
+     *     - value should be minErg
      *     - should have exactly one token (RSN) with value
      *       of remaining rsnFee
-     *     - extra should equal to paymentTxId
+     *     - should have no extra
      *   - network fee box
      *     - address should be networkFee config address
      *     - value should be networkFee + minErg
@@ -326,7 +331,7 @@ describe('EventOrder', () => {
 
       // verify returned value
       // verify 5 watcher box
-      expect(result.length).toEqual(8);
+      expect(result.length).toEqual(9);
       result.slice(0, 5).forEach((watcherOrder, index) => {
         expect(watcherOrder.address).toEqual(
           GuardsErgoConfigs.ergoContractConfig.permitAddress
@@ -360,12 +365,20 @@ describe('EventOrder', () => {
         GuardsErgoConfigs.bridgeFeeRepoAddress
       );
       expect(bridgeFeeOrder.assets.nativeToken).toEqual(500100002n);
-      expect(bridgeFeeOrder.assets.tokens.length).toEqual(1);
-      expect(bridgeFeeOrder.assets.tokens[0].id).toEqual(rosenConfig.RSN);
-      expect(bridgeFeeOrder.assets.tokens[0].value).toEqual(800002n);
+      expect(bridgeFeeOrder.assets.tokens.length).toEqual(0);
       expect(bridgeFeeOrder.extra).toEqual(paymentTxId);
+      // verify rsn emission box
+      const rsnEmissionOrder = result[7];
+      expect(rsnEmissionOrder.address).toEqual(
+        GuardsErgoConfigs.rsnEmissionAddress
+      );
+      expect(rsnEmissionOrder.assets.nativeToken).toEqual(100000n);
+      expect(rsnEmissionOrder.assets.tokens.length).toEqual(1);
+      expect(rsnEmissionOrder.assets.tokens[0].id).toEqual(rosenConfig.RSN);
+      expect(rsnEmissionOrder.assets.tokens[0].value).toEqual(800002n);
+      expect(rsnEmissionOrder.extra).toBeUndefined();
       // verify network fee box
-      const networkFeeOrder = result[7];
+      const networkFeeOrder = result[8];
       expect(networkFeeOrder.address).toEqual(
         GuardsErgoConfigs.networkFeeRepoAddress
       );
@@ -385,7 +398,7 @@ describe('EventOrder', () => {
      * - run test
      * - verify returned value
      * @expected
-     * - should generate 5 + 1 + 2 element on order
+     * - should generate 5 + 1 + 3 element on order
      *   - 5 + 1 watcher box
      *     - address should be watcher permit contract
      *     - value should be permit box value
@@ -395,9 +408,15 @@ describe('EventOrder', () => {
      *   - bridge fee box
      *     - address should be bridgeFee config address
      *     - value should be minErg
+     *     - should have exactly one token (targetToken) with value
+     *       of remaining bridgeFee
+     *     - extra should equal to paymentTxId
+     *   - rsn emission box
+     *     - address should be rsn emission config address
+     *     - value should be minErg
      *     - should have exactly one token (RSN) with value
      *       of remaining rsnFee
-     *     - extra should equal to paymentTxId
+     *     - should have no extra
      *   - network fee box
      *     - address should be networkFee config address
      *     - value should be minErg
@@ -440,7 +459,7 @@ describe('EventOrder', () => {
 
       // verify returned value
       // verify 5 watcher box
-      expect(result.length).toEqual(8);
+      expect(result.length).toEqual(9);
       result.slice(0, 5).forEach((watcherOrder, index) => {
         expect(watcherOrder.address).toEqual(
           GuardsErgoConfigs.ergoContractConfig.permitAddress
@@ -479,16 +498,24 @@ describe('EventOrder', () => {
         GuardsErgoConfigs.bridgeFeeRepoAddress
       );
       expect(bridgeFeeOrder.assets.nativeToken).toEqual(100000n);
-      expect(bridgeFeeOrder.assets.tokens.length).toEqual(2);
+      expect(bridgeFeeOrder.assets.tokens.length).toEqual(1);
       expect(bridgeFeeOrder.assets.tokens[0].id).toEqual(
         mockedEvent.targetChainTokenId
       );
       expect(bridgeFeeOrder.assets.tokens[0].value).toEqual(5000002n);
-      expect(bridgeFeeOrder.assets.tokens[1].id).toEqual(rosenConfig.RSN);
-      expect(bridgeFeeOrder.assets.tokens[1].value).toEqual(8002n);
       expect(bridgeFeeOrder.extra).toEqual(paymentTxId);
+      // verify rsn emission box
+      const rsnEmissionOrder = result[7];
+      expect(rsnEmissionOrder.address).toEqual(
+        GuardsErgoConfigs.rsnEmissionAddress
+      );
+      expect(rsnEmissionOrder.assets.nativeToken).toEqual(100000n);
+      expect(rsnEmissionOrder.assets.tokens.length).toEqual(1);
+      expect(rsnEmissionOrder.assets.tokens[0].id).toEqual(rosenConfig.RSN);
+      expect(rsnEmissionOrder.assets.tokens[0].value).toEqual(8002n);
+      expect(rsnEmissionOrder.extra).toBeUndefined();
       // verify network fee box
-      const networkFeeOrder = result[7];
+      const networkFeeOrder = result[8];
       expect(networkFeeOrder.address).toEqual(
         GuardsErgoConfigs.networkFeeRepoAddress
       );
@@ -512,7 +539,7 @@ describe('EventOrder', () => {
      * - run test
      * - verify returned value
      * @expected
-     * - should generate 5 + 1 + 2 element on order
+     * - should generate 5 + 1 + 3 element on order
      *   - 5 + 1 watcher box
      *     - address should be watcher permit contract
      *     - value should be permit box value
@@ -522,9 +549,15 @@ describe('EventOrder', () => {
      *   - bridge fee box
      *     - address should be bridgeFee config address
      *     - value should be minErg
+     *     - should have exactly one token (targetToken) with value
+     *       of remaining bridgeFee
+     *     - extra should equal to paymentTxId
+     *   - rsn emission box
+     *     - address should be rsn emission config address
+     *     - value should be minErg
      *     - should have exactly one token (RSN) with value
      *       of remaining rsnFee
-     *     - extra should equal to paymentTxId
+     *     - should have no extra
      *   - network fee box
      *     - address should be networkFee config address
      *     - value should be minErg
@@ -567,7 +600,7 @@ describe('EventOrder', () => {
 
       // verify returned value
       // verify 5 watcher box
-      expect(result.length).toEqual(8);
+      expect(result.length).toEqual(9);
       result.slice(0, 5).forEach((watcherOrder, index) => {
         expect(watcherOrder.address).toEqual(
           GuardsErgoConfigs.ergoContractConfig.permitAddress
@@ -606,16 +639,24 @@ describe('EventOrder', () => {
         GuardsErgoConfigs.bridgeFeeRepoAddress
       );
       expect(bridgeFeeOrder.assets.nativeToken).toEqual(100000n);
-      expect(bridgeFeeOrder.assets.tokens.length).toEqual(2);
+      expect(bridgeFeeOrder.assets.tokens.length).toEqual(1);
       expect(bridgeFeeOrder.assets.tokens[0].id).toEqual(
         mockedEvent.targetChainTokenId
       );
       expect(bridgeFeeOrder.assets.tokens[0].value).toEqual(10000004n);
-      expect(bridgeFeeOrder.assets.tokens[1].id).toEqual(rosenConfig.RSN);
-      expect(bridgeFeeOrder.assets.tokens[1].value).toEqual(16004n);
       expect(bridgeFeeOrder.extra).toEqual(paymentTxId);
+      // verify rsn emission box
+      const rsnEmissionOrder = result[7];
+      expect(rsnEmissionOrder.address).toEqual(
+        GuardsErgoConfigs.rsnEmissionAddress
+      );
+      expect(rsnEmissionOrder.assets.nativeToken).toEqual(100000n);
+      expect(rsnEmissionOrder.assets.tokens.length).toEqual(1);
+      expect(rsnEmissionOrder.assets.tokens[0].id).toEqual(rosenConfig.RSN);
+      expect(rsnEmissionOrder.assets.tokens[0].value).toEqual(16004n);
+      expect(rsnEmissionOrder.extra).toBeUndefined();
       // verify network fee box
-      const networkFeeOrder = result[7];
+      const networkFeeOrder = result[8];
       expect(networkFeeOrder.address).toEqual(
         GuardsErgoConfigs.networkFeeRepoAddress
       );
@@ -639,7 +680,7 @@ describe('EventOrder', () => {
      * - run test
      * - verify returned value
      * @expected
-     * - should generate 5 + 1 + 2 element on order
+     * - should generate 5 + 1 + 3 element on order
      *   - 5 + 1 watcher box
      *     - address should be watcher permit contract
      *     - value should be
@@ -650,9 +691,14 @@ describe('EventOrder', () => {
      *   - bridge fee box
      *     - address should be bridgeFee config address
      *     - value should be remaining bridgeFee + minErg
+     *     - should have no token
+     *     - extra should equal to paymentTxId
+     *   - rsn emission box
+     *     - address should be rsn emission config address
+     *     - value should be minErg
      *     - should have exactly one token (RSN) with value
      *       of remaining rsnFee
-     *     - extra should equal to paymentTxId
+     *     - should have no extra
      *   - network fee box
      *     - address should be networkFee config address
      *     - value should be networkFee + minErg
@@ -695,7 +741,7 @@ describe('EventOrder', () => {
 
       // verify returned value
       // verify 5 watcher box
-      expect(result.length).toEqual(8);
+      expect(result.length).toEqual(9);
       result.slice(0, 5).forEach((watcherOrder, index) => {
         expect(watcherOrder.address).toEqual(
           GuardsErgoConfigs.ergoContractConfig.permitAddress
@@ -729,12 +775,20 @@ describe('EventOrder', () => {
         GuardsErgoConfigs.bridgeFeeRepoAddress
       );
       expect(bridgeFeeOrder.assets.nativeToken).toEqual(2500100004n);
-      expect(bridgeFeeOrder.assets.tokens.length).toEqual(1);
-      expect(bridgeFeeOrder.assets.tokens[0].id).toEqual(rosenConfig.RSN);
-      expect(bridgeFeeOrder.assets.tokens[0].value).toEqual(4000004n);
+      expect(bridgeFeeOrder.assets.tokens.length).toEqual(0);
       expect(bridgeFeeOrder.extra).toEqual(paymentTxId);
+      // verify rsn emission box
+      const rsnEmissionOrder = result[7];
+      expect(rsnEmissionOrder.address).toEqual(
+        GuardsErgoConfigs.rsnEmissionAddress
+      );
+      expect(rsnEmissionOrder.assets.nativeToken).toEqual(100000n);
+      expect(rsnEmissionOrder.assets.tokens.length).toEqual(1);
+      expect(rsnEmissionOrder.assets.tokens[0].id).toEqual(rosenConfig.RSN);
+      expect(rsnEmissionOrder.assets.tokens[0].value).toEqual(4000004n);
+      expect(rsnEmissionOrder.extra).toBeUndefined();
       // verify network fee box
-      const networkFeeOrder = result[7];
+      const networkFeeOrder = result[8];
       expect(networkFeeOrder.address).toEqual(
         GuardsErgoConfigs.networkFeeRepoAddress
       );
