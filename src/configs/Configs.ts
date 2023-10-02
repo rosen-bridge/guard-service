@@ -124,7 +124,7 @@ class Configs {
   static tokenMap = new TokenMap(this.tokens());
 
   // timeout configs
-  static eventTimeout = 86400; // seconds, 1 day
+  static eventTimeout = getConfigIntKeyOrDefault('eventTimeout', 24 * 60 * 60); // seconds
   static txSignTimeout = getConfigIntKeyOrDefault('txSignTimeout', 5 * 60); // seconds
 
   // jobs configs
