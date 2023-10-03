@@ -307,22 +307,20 @@ class EventOrder {
 
     // add RSN emission to order
     const rsnEmissionAmount = rsnFee - BigInt(watchersLen) * watcherRsnAmount;
-    const rsnEmissionAssets: AssetBalance = {
-      nativeToken: GuardsErgoConfigs.minimumErg,
-      tokens:
-        rsnEmissionAmount > 0
-          ? [
-              {
-                id: rosenConfig.RSN,
-                value: rsnEmissionAmount,
-              },
-            ]
-          : [],
-    };
-    order.push({
-      address: GuardsErgoConfigs.rsnEmissionAddress,
-      assets: rsnEmissionAssets,
-    });
+    if (rsnEmissionAmount > 0) {
+      order.push({
+        address: GuardsErgoConfigs.rsnEmissionAddress,
+        assets: {
+          nativeToken: GuardsErgoConfigs.minimumErg,
+          tokens: [
+            {
+              id: rosenConfig.RSN,
+              value: rsnEmissionAmount,
+            },
+          ],
+        },
+      });
+    }
 
     // add guard network fee to order
     order.push({
@@ -423,22 +421,20 @@ class EventOrder {
 
     // add RSN emission to order
     const rsnEmissionAmount = rsnFee - BigInt(watchersLen) * watcherRsnAmount;
-    const rsnEmissionAssets: AssetBalance = {
-      nativeToken: GuardsErgoConfigs.minimumErg,
-      tokens:
-        rsnEmissionAmount > 0
-          ? [
-              {
-                id: rosenConfig.RSN,
-                value: rsnEmissionAmount,
-              },
-            ]
-          : [],
-    };
-    order.push({
-      address: GuardsErgoConfigs.rsnEmissionAddress,
-      assets: rsnEmissionAssets,
-    });
+    if (rsnEmissionAmount > 0) {
+      order.push({
+        address: GuardsErgoConfigs.rsnEmissionAddress,
+        assets: {
+          nativeToken: GuardsErgoConfigs.minimumErg,
+          tokens: [
+            {
+              id: rosenConfig.RSN,
+              value: rsnEmissionAmount,
+            },
+          ],
+        },
+      });
+    }
 
     // add guard network fee to order
     order.push({
