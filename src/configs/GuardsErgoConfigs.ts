@@ -31,6 +31,9 @@ class GuardsErgoConfigs {
   static bridgeFeeRepoAddress: string = config.get<string>(
     'reward.bridgeFeeRepoAddress'
   );
+  static rsnEmissionAddress: string = config.get<string>(
+    'reward.RSNEmissionAddress'
+  );
   static networkFeeRepoAddress: string = config.get<string>(
     'reward.networkFeeRepoAddress'
   );
