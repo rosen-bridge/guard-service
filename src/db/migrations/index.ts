@@ -4,14 +4,14 @@ import { migration1693034780793 } from './postgres/1693034780793-migration';
 import { migration1690179839169 } from './sqlite/1690179839169-migration';
 import { migration1692431988132 } from './sqlite/1692431988132-migration';
 import { migration1693033942504 } from './sqlite/1693033942504-migration';
-import { migration1696410507327 } from './sqlite/1696410507327-migration';
+import { migration1696428596497 } from './sqlite/1696428596497-migration';
 
 export default {
   sqlite: [
     migration1690179839169,
     migration1692431988132,
     migration1693033942504,
-    migration1696410507327,
+    migration1696428596497,
   ],
   postgres: [
     migration1690179912025,

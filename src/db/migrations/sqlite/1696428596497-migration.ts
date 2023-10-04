@@ -1,12 +1,11 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class migration1696410507327 implements MigrationInterface {
-  name = 'migration1696410507327';
+export class migration1696428596497 implements MigrationInterface {
+  name = 'migration1696428596497';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-            ALTER TABLE "revenue_entity"
-                RENAME TO "temporary_revenue_entity"
+            DROP TABLE "revenue_entity"
         `);
     await queryRunner.query(`
             CREATE TABLE "revenue_entity" (
@@ -23,11 +22,16 @@ export class migration1696410507327 implements MigrationInterface {
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-            DROP TABLE "temporary_revenue_entity"
+            DROP TABLE "revenue_entity"
         `);
     await queryRunner.query(`
-            ALTER TABLE "temporary_revenue_entity"
-                RENAME TO "revenue_entity"
+            CREATE TABLE "revenue_entity" (
+                "id" integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+                "tokenId" varchar NOT NULL,
+                "amount" bigint NOT NULL,
+                "txId" varchar,
+                CONSTRAINT "FK_d0c98b57da190d9955ca1fdcf86" FOREIGN KEY ("txId") REFERENCES "transaction_entity" ("txId") ON DELETE NO ACTION ON UPDATE NO ACTION
+            )
         `);
   }
 }

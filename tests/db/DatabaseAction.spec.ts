@@ -504,36 +504,6 @@ describe('DatabaseActions', () => {
     });
   });
 
-  // describe('storeRevenue', () => {
-  //   /**
-  //    * @target DatabaseAction.storeRevenue should store new revenue correctly
-  //    * @dependencies
-  //    * - database
-  //    * @scenario
-  //    * - insert a mocked tx to db
-  //    * - get the saved tx entity
-  //    * - run test (call `storeRevenue`)
-  //    * - check saved revenue
-  //    * @expected
-  //    * - should store the new revenue correctly
-  //    */
-  //   it('should store the new revenue correctly', async () => {
-  //     const tx = TxTestData.mockPaymentTransaction(TransactionType.reward);
-  //     await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.completed);
-  //     const txRecord = (await DatabaseAction.getInstance().getTxById(tx.txId))!;
-  //     await DatabaseAction.getInstance().storeRevenue(
-  //       'tokenId',
-  //       1000n,
-  //       txRecord
-  //     );
-  //     const savedRevenue = await DatabaseActionMock.allRevenueRecords();
-  //     expect(savedRevenue).toHaveLength(1);
-  //     expect(savedRevenue[0].tokenId).toEqual('tokenId');
-  //     expect(savedRevenue[0].amount).toEqual(1000n);
-  //     expect(savedRevenue[0].tx.txId).toEqual(tx.txId);
-  //   });
-  // });
-
   // describe('getRevenuesWithFilters', () => {
   //   /**
   //    * @target DatabaseAction.getRevenuesWithFilters should return all stored revenues in descending order
@@ -717,79 +687,79 @@ describe('DatabaseActions', () => {
   //   });
   // });
 
-  // describe('getRevenueChartData', () => {
-  //   /**
-  //    * @target DatabaseAction.getRevenueChartData should return yearly revenue report
-  //    * @dependencies
-  //    * - database
-  //    * @scenario
-  //    * - insert 30 mocked revenues with different timestamps
-  //    * - run test (call `getRevenueChartData`)
-  //    * - check revenue report
-  //    * @expected
-  //    * - should return 2 years revenue report
-  //    */
-  //   it('should return yearly revenue report', async () => {
-  //     await insertRevenueDataWithTimestamps(5, 31539600000);
+  describe('getRevenueChartData', () => {
+    /**
+     * @target DatabaseAction.getRevenueChartData should return yearly revenue report
+     * @dependencies
+     * - database
+     * @scenario
+     * - insert 30 mocked revenues with different timestamps
+     * - run test (call `getRevenueChartData`)
+     * - check revenue report
+     * @expected
+     * - should return 2 years revenue report
+     */
+    it('should return yearly revenue report', async () => {
+      await insertRevenueDataWithTimestamps(5, 31539600000);
 
-  //     const revenueChart =
-  //       await DatabaseAction.getInstance().getRevenueChartData(
-  //         RevenuePeriod.year
-  //       );
-  //     expect(revenueChart).toHaveLength(5);
-  //     for (const revenue of revenueChart) {
-  //       expect(revenue.amount).toEqual(10000);
-  //     }
-  //   });
+      const revenueChart =
+        await DatabaseAction.getInstance().getRevenueChartData(
+          RevenuePeriod.year
+        );
+      expect(revenueChart).toHaveLength(5);
+      for (const revenue of revenueChart) {
+        expect(revenue.amount).toEqual(10000);
+      }
+    });
 
-  //   /**
-  //    * @target DatabaseAction.getRevenueChartData should return monthly revenue report
-  //    * @dependencies
-  //    * - database
-  //    * @scenario
-  //    * - insert 20 mocked revenues with different timestamps
-  //    * - run test (call `getRevenueChartData`)
-  //    * - check revenue report
-  //    * @expected
-  //    * - should return 4 months revenue report
-  //    */
-  //   it('should return monthly revenue report', async () => {
-  //     await insertRevenueDataWithTimestamps(5, 2592000000);
+    /**
+     * @target DatabaseAction.getRevenueChartData should return monthly revenue report
+     * @dependencies
+     * - database
+     * @scenario
+     * - insert 20 mocked revenues with different timestamps
+     * - run test (call `getRevenueChartData`)
+     * - check revenue report
+     * @expected
+     * - should return 4 months revenue report
+     */
+    it('should return monthly revenue report', async () => {
+      await insertRevenueDataWithTimestamps(5, 2592000000);
 
-  //     const revenueChart =
-  //       await DatabaseAction.getInstance().getRevenueChartData(
-  //         RevenuePeriod.month
-  //       );
-  //     expect(revenueChart).toHaveLength(5);
-  //     for (const revenue of revenueChart) {
-  //       expect(revenue.amount).toEqual(10000);
-  //     }
-  //   });
+      const revenueChart =
+        await DatabaseAction.getInstance().getRevenueChartData(
+          RevenuePeriod.month
+        );
+      expect(revenueChart).toHaveLength(5);
+      for (const revenue of revenueChart) {
+        expect(revenue.amount).toEqual(10000);
+      }
+    });
 
-  //   /**
-  //    * @target DatabaseAction.getRevenueChartData should return weekly revenue report
-  //    * @dependencies
-  //    * - database
-  //    * @scenario
-  //    * - insert 10 mocked revenues with different timestamps
-  //    * - run test (call `getRevenueChartData`)
-  //    * - check revenue report
-  //    * @expected
-  //    * - should return 6 weeks revenue report
-  //    */
-  //   it('should return weekly revenue report', async () => {
-  //     await insertRevenueDataWithTimestamps(5);
+    /**
+     * @target DatabaseAction.getRevenueChartData should return weekly revenue report
+     * @dependencies
+     * - database
+     * @scenario
+     * - insert 10 mocked revenues with different timestamps
+     * - run test (call `getRevenueChartData`)
+     * - check revenue report
+     * @expected
+     * - should return 6 weeks revenue report
+     */
+    it('should return weekly revenue report', async () => {
+      await insertRevenueDataWithTimestamps(5);
 
-  //     const revenueChart =
-  //       await DatabaseAction.getInstance().getRevenueChartData(
-  //         RevenuePeriod.week
-  //       );
-  //     expect(revenueChart).toHaveLength(5);
-  //     for (const revenue of revenueChart) {
-  //       expect(revenue.amount).toEqual(10000);
-  //     }
-  //   });
-  // });
+      const revenueChart =
+        await DatabaseAction.getInstance().getRevenueChartData(
+          RevenuePeriod.week
+        );
+      expect(revenueChart).toHaveLength(5);
+      for (const revenue of revenueChart) {
+        expect(revenue.amount).toEqual(10000);
+      }
+    });
+  });
 
   describe('setTxAsSignFailed', () => {
     const currentTimeStampSeconds = Math.round(
