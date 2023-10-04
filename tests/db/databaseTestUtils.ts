@@ -140,11 +140,11 @@ const insertRevenue = async (
   const txRecord = (await DatabaseAction.getInstance().getTxById(tx.txId))!;
 
   // insert revenue
-  await DatabaseAction.getInstance().storeRevenue(
-    revenueToken,
-    10000n,
-    txRecord
-  );
+  // await DatabaseAction.getInstance().storeRevenue(
+  //   revenueToken,
+  //   10000n,
+  //   txRecord
+  // );
 };
 
 export {

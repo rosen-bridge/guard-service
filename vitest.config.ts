@@ -26,9 +26,6 @@ export default defineConfig({
       registerNodeLoader: true,
     },
     environment: 'node',
-    transformMode: {
-      web: [/\.([cm]?[jt]sx?|json)$/],
-    },
     singleThread: true,
   },
   plugins: [wasm(), topLevelAwait()],

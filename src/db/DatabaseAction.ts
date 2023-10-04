@@ -607,19 +607,14 @@ class DatabaseAction {
   };
 
   /*
-   * Returns unsaved revenue transaction ids
+   * Returns unsaved revenue events
    */
-  getUnsavedRevenueIds = async (): Promise<Array<string>> => {
-    const unsavedTxs = await this.TransactionRepository.createQueryBuilder('tx')
-      .select('tx.txId', 'txId')
-      .leftJoin('revenue_entity', 're', 'tx.txId = re.txId')
-      .where('tx.type = :type', { type: TransactionType.reward })
-      .andWhere('tx.status = :status', { status: TransactionStatus.completed })
-      .andWhere('re.txId IS NULL')
-      .getRawMany();
-
-    const unsavedTxIds = unsavedTxs.map((tx: { txId: string }) => tx.txId);
-    return unsavedTxIds;
+  getUnsavedRevenueEvents = async (): Promise<Array<EventTriggerEntity>> => {
+    return await this.EventRepository.createQueryBuilder('event')
+      .leftJoin('revenue_entity', 're', 'event.id = re.eventDataId')
+      .where('event.spendTxId IS NOT NULL')
+      .andWhere('re.eventDataId IS NULL')
+      .getMany();
   };
 
   /**
@@ -633,20 +628,26 @@ class DatabaseAction {
   };
 
   /**
-   * Stores the info of permit in chart entity
+   * Inserts new revenue
    * @param tokenId
    * @param amount
-   * @param permit
+   * @param txId
+   * @param revenueType
+   * @param eventData
    */
-  storeRevenue = async (
+  insertRevenue = async (
     tokenId: string,
     amount: bigint,
-    tx: TransactionEntity
+    txId: string,
+    revenueType: string,
+    eventData: EventTriggerEntity
   ) => {
     return await this.RevenueRepository.insert({
       tokenId,
       amount,
-      tx,
+      txId,
+      revenueType,
+      eventData,
     });
   };
 

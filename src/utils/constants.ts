@@ -35,6 +35,13 @@ const DefaultRevenueApiCount = 10;
 
 const SUPPORTED_CHAINS = [ERGO_CHAIN, CARDANO_CHAIN];
 
+enum RevenueType {
+  fraud = 'fraud',
+  bridgeFee = 'bridge-fee',
+  emission = 'emission',
+  networkFee = 'network-fee',
+}
+
 export {
   EventStatus,
   TransactionStatus,
@@ -43,4 +50,5 @@ export {
   DefaultRevenueApiCount,
   DefaultAssetApiLimit,
   SUPPORTED_CHAINS,
+  RevenueType,
 };

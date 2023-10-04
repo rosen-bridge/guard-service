@@ -1,10 +1,15 @@
-import { ERG } from '@rosen-chains/ergo';
 import Configs from '../../src/configs/Configs';
 import { DatabaseAction } from '../../src/db/DatabaseAction';
 import { loggerFactory } from '../../src/log/Logger';
-import * as TransactionSerializer from '../transaction/TransactionSerializer';
-import GuardsErgoConfigs from '../../src/configs/GuardsErgoConfigs';
 import ChainHandler from '../../src/handlers/ChainHandler';
+import {
+  ConfirmationStatus,
+  ImpossibleBehavior,
+  TransactionType,
+} from '@rosen-chains/abstract-chain';
+import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
+import { ERG } from '@rosen-chains/ergo';
+import { RevenueType } from '../utils/constants';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -12,31 +17,76 @@ const logger = loggerFactory(import.meta.url);
  * Fetches revenue details and stores in the database
  */
 const revenueJobFunction = async () => {
+  logger.info(`Processing event revenues`);
   const dbAction = DatabaseAction.getInstance();
-  const unsavedRevenues = await dbAction.getUnsavedRevenueIds();
-  if (unsavedRevenues.length === 0) {
-    return;
-  }
-  const newTxs = await dbAction.getTxsById(unsavedRevenues);
-  logger.debug(`Revenue Job: [${newTxs.length}] new rewards found`);
-  // store reward tx info
-  for (const tx of newTxs) {
-    const rewardTx = TransactionSerializer.fromJson(tx.txJson);
-    const payments = ChainHandler.getInstance()
-      .getErgoChain()
-      .extractSignedTransactionOrder(rewardTx);
+  const unsavedRevenues = await dbAction.getUnsavedRevenueEvents();
 
-    // save tokens as revenues
-    for (const payment of payments) {
-      if (payment.address == GuardsErgoConfigs.bridgeFeeRepoAddress) {
+  const ergoChain = ChainHandler.getInstance().getErgoChain();
+  for (const event of unsavedRevenues) {
+    if (!event.spendTxId || !event.spendBlock)
+      throw new ImpossibleBehavior(
+        `Requested spent events from database, but spendTxId [${event.spendTxId}] or spendBlock [${event.spendBlock}] is invalid`
+      );
+
+    const txId = event.spendTxId;
+    const blockId = event.spendBlock;
+    const confirmation = await ergoChain.getTxConfirmationStatus(
+      txId,
+      TransactionType.reward
+    );
+    if (confirmation === ConfirmationStatus.ConfirmedEnough) {
+      logger.info(`Tx [${txId}] is confirmed. Extracting it's revenues`);
+      const tx = await ergoChain.getTransaction(txId, blockId);
+      const order = ergoChain.extractSignedTransactionOrder(tx);
+
+      for (const payment of order) {
+        let revenueType: RevenueType;
+        if (payment.address == GuardsErgoConfigs.bridgeFeeRepoAddress)
+          revenueType = RevenueType.bridgeFee;
+        else if (payment.address == 'GuardsErgoConfigs.rsnEmissionAddress')
+          // TODO: fix this
+          revenueType = RevenueType.emission;
+        else if (payment.address == GuardsErgoConfigs.networkFeeRepoAddress)
+          revenueType = RevenueType.networkFee;
+        else if (
+          payment.address == GuardsErgoConfigs.ergoContractConfig.fraudAddress
+        )
+          revenueType = RevenueType.fraud;
+        else continue;
+
         // store erg revenue
-        await dbAction.storeRevenue(ERG, payment.assets.nativeToken, tx);
+        await dbAction.insertRevenue(
+          ERG,
+          payment.assets.nativeToken,
+          txId,
+          revenueType,
+          event
+        );
+        logger.debug(
+          `inserted revenue [${ERG}] for amount [${payment.assets.nativeToken}] as type [${revenueType}] in tx [${txId}]`
+        );
         // store other tokens revenue
-        for (const asset of payment.assets.tokens)
-          await dbAction.storeRevenue(asset.id, asset.value, tx);
+        for (const asset of payment.assets.tokens) {
+          await dbAction.insertRevenue(
+            asset.id,
+            asset.value,
+            txId,
+            revenueType,
+            event
+          );
+          logger.debug(
+            `inserted revenue [${asset.id}] for amount [${asset.value}] as type [${revenueType}] in tx [${txId}]`
+          );
+        }
       }
+    } else {
+      logger.debug(
+        `Tx [${txId}] is not confirmed enough [status:${confirmation}]. Ignoring it's revenues`
+      );
     }
   }
+
+  logger.info(`Processed [${unsavedRevenues.length}] unsaved revenue events`);
 };
 
 /**
@@ -46,7 +96,8 @@ const revenueJob = async () => {
   try {
     await revenueJobFunction();
   } catch (e) {
-    logger.warn(`Revenue Job failed with error: ${e.message} - ${e.stack}`);
+    logger.warn(`An error occurred while extracting revenues: ${e.message}`);
+    logger.warn(e.stack);
   }
 
   setTimeout(revenueJob, Configs.revenueUpdateInterval * 1000);
