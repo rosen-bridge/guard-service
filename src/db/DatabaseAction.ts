@@ -653,23 +653,18 @@ class DatabaseAction {
 
   /**
    * Returns all revenue with respect to the filters
+   * @param sort
    * @param fromChain
    * @param toChain
-   * @param tokenId
-   * @param sourceTxId
    * @param minHeight
    * @param maxHeight
    * @param fromBlockTime
    * @param toBlockTime
-   * @param sorting
-   * @param offset
-   * @param limit
    */
   getRevenuesWithFilters = async (
     sort?: SortRequest,
     fromChain?: string,
     toChain?: string,
-    tokenId?: string,
     minHeight?: number,
     maxHeight?: number,
     fromBlockTime?: number,
@@ -680,7 +675,6 @@ class DatabaseAction {
       timeCondition = [];
     if (fromChain) clauses.push({ fromChain: fromChain });
     if (toChain) clauses.push({ toChain: toChain });
-    if (tokenId) clauses.push({ revenueTokenId: tokenId });
     if (minHeight) heightCondition.push(MoreThanOrEqual(minHeight));
     if (maxHeight) heightCondition.push(LessThan(maxHeight));
     if (heightCondition.length > 0)
@@ -703,6 +697,21 @@ class DatabaseAction {
       order: {
         timestamp: sort ? sort : 'DESC',
       },
+    });
+  };
+
+  /**
+   * get list of all revenues for selected list of events
+   * @param ids event row id
+   */
+  getEventsRevenues = async (
+    ids: Array<number>
+  ): Promise<Array<RevenueEntity>> => {
+    return this.RevenueRepository.find({
+      where: {
+        eventData: In(ids),
+      },
+      relations: ['event'],
     });
   };
 

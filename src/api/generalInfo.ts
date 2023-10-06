@@ -49,7 +49,7 @@ const infoRoute = (server: FastifySeverInstance) => {
             address: abstractChain.getChainConfigs().addresses.lock,
             balance: {
               tokenId: nativeTokenId,
-              amount: hotAmount,
+              amount: Number(hotAmount),
               name: nativeTokenData.name,
               decimals: nativeTokenData.decimals,
             },
@@ -61,7 +61,7 @@ const infoRoute = (server: FastifySeverInstance) => {
             address: abstractChain.getChainConfigs().addresses.cold,
             balance: {
               tokenId: nativeTokenId,
-              amount: coldAmount,
+              amount: Number(coldAmount),
               name: nativeTokenData.name,
               decimals: nativeTokenData.decimals,
             },

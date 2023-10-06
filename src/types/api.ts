@@ -42,7 +42,7 @@ interface TokenChartData {
 
 interface TokenData {
   tokenId: string;
-  amount: string;
+  amount: number;
   name?: string;
   decimals: number;
 }
@@ -62,12 +62,33 @@ interface GeneralInfo {
   balances: LockBalance;
 }
 
+interface RevenueHistory {
+  rewardTxId: string;
+  eventId: string;
+  lockHeight: number;
+  fromChain: string;
+  toChain: string;
+  fromAddress: string;
+  toAddress: string;
+  amount: string;
+  bridgeFee: string;
+  networkFee: string;
+  lockTokenId: string;
+  lockTxId: string;
+  height: number;
+  timestamp: number;
+  revenues: Array<TokenData>;
+}
+
 export {
   FastifySeverInstance,
   SortRequest,
   HealthStatusType,
   TokenChartData,
   Token,
+  TokenData,
+  AddressBalance,
   LockBalance,
   GeneralInfo,
+  RevenueHistory,
 };

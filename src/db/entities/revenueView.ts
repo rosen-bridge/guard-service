@@ -1,12 +1,12 @@
 import { ViewEntity, ViewColumn } from 'typeorm';
-import { BigIntValueTransformer } from '../transformers';
 
 @ViewEntity({
   name: 'revenue_view',
   expression: (connection) =>
     connection
       .createQueryBuilder()
-      .select('tx."txId"', 'rewardTxId')
+      .select('ete."id"', 'id')
+      .addSelect('ete."spendTxId"', 'rewardTxId')
       .addSelect('ete."eventId"', 'eventId')
       .addSelect('ete."spendHeight"', 'lockHeight')
       .addSelect('ete."fromChain"', 'fromChain')
@@ -20,16 +20,14 @@ import { BigIntValueTransformer } from '../transformers';
       .addSelect('ete."sourceTxId"', 'lockTxId')
       .addSelect('be."height"', 'height')
       .addSelect('be."timestamp"', 'timestamp')
-      .addSelect('re."tokenId"', 'revenueTokenId')
-      .addSelect('re."amount"', 'revenueAmount')
-      .from('revenue_entity', 're')
-      .leftJoin('transaction_entity', 'tx', 'tx."txId" = re."txId"')
-      .leftJoin('event_trigger_entity', 'ete', 'tx."eventId" = ete."eventId"')
+      .from('event_trigger_entity', 'ete')
       .leftJoin('block_entity', 'be', 'ete."spendBlock" = be."hash"')
-      // TODO: fix duplicate trigger bug, https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/280
       .where('ete."spendBlock" IS NOT NULL'),
 })
 export class RevenueView {
+  @ViewColumn()
+  id!: number;
+
   @ViewColumn()
   rewardTxId!: string;
 
@@ -71,10 +69,4 @@ export class RevenueView {
 
   @ViewColumn()
   timestamp!: number;
-
-  @ViewColumn()
-  revenueTokenId!: string;
-
-  @ViewColumn({ transformer: new BigIntValueTransformer() })
-  revenueAmount!: bigint;
 }

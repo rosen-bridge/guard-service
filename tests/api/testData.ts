@@ -12,7 +12,7 @@ export const guardInfo = {
         address: GuardsErgoConfigs.chainConfigs.addresses.lock,
         balance: {
           tokenId: ERG,
-          amount: '10',
+          amount: 10,
           name: 'erg',
           decimals: 9,
         },
@@ -21,7 +21,7 @@ export const guardInfo = {
         address: GuardsCardanoConfigs.chainConfigs.addresses.lock,
         balance: {
           tokenId: ADA,
-          amount: '20',
+          amount: 20,
           name: 'ada',
           decimals: 6,
         },
@@ -32,7 +32,7 @@ export const guardInfo = {
         address: GuardsErgoConfigs.chainConfigs.addresses.cold,
         balance: {
           tokenId: ERG,
-          amount: '100',
+          amount: 100,
           name: 'erg',
           decimals: 9,
         },
@@ -41,7 +41,7 @@ export const guardInfo = {
         address: GuardsCardanoConfigs.chainConfigs.addresses.cold,
         balance: {
           tokenId: ADA,
-          amount: '200',
+          amount: 200,
           name: 'ada',
           decimals: 6,
         },

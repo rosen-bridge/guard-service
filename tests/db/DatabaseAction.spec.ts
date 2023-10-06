@@ -504,188 +504,160 @@ describe('DatabaseActions', () => {
     });
   });
 
-  // describe('getRevenuesWithFilters', () => {
-  //   /**
-  //    * @target DatabaseAction.getRevenuesWithFilters should return all stored revenues in descending order
-  //    * @dependencies
-  //    * - database
-  //    * @scenario
-  //    * - insert 10 mocked revenues with different timestamps
-  //    * - run test (call `getRevenuesWithFilters`)
-  //    * - check returned revenues
-  //    * @expected
-  //    * - should return all stored revenues
-  //    * - the revenues timestamps should be descending
-  //    */
-  //   it('should return all stored revenues in descending order', async () => {
-  //     await insertRevenueDataWithTimestamps(10);
-  //     const revenues =
-  //       await DatabaseAction.getInstance().getRevenuesWithFilters();
-  //     expect(revenues).toHaveLength(10);
-  //     for (let index = 0; index < 9; index++) {
-  //       expect(revenues[index].timestamp).toBeGreaterThanOrEqual(
-  //         revenues[index + 1].timestamp
-  //       );
-  //     }
-  //   });
+  describe('getRevenuesWithFilters', () => {
+    /**
+     * @target DatabaseAction.getRevenuesWithFilters should return all stored revenues in descending order
+     * @dependencies
+     * - database
+     * @scenario
+     * - insert 10 mocked revenues with different timestamps
+     * - run test (call `getRevenuesWithFilters`)
+     * - check returned revenues
+     * @expected
+     * - should return all stored revenues
+     * - the revenues timestamps should be descending
+     */
+    it('should return all stored revenues in descending order', async () => {
+      await insertRevenueDataWithTimestamps(10);
+      const revenues =
+        await DatabaseAction.getInstance().getRevenuesWithFilters();
+      expect(revenues).toHaveLength(10);
+      for (let index = 0; index < 9; index++) {
+        expect(revenues[index].timestamp).toBeGreaterThanOrEqual(
+          revenues[index + 1].timestamp
+        );
+      }
+    });
 
-  //   /**
-  //    * @target DatabaseAction.getRevenuesWithFilters should return all stored revenues in ascending order
-  //    * @dependencies
-  //    * - database
-  //    * @scenario
-  //    * - insert 10 mocked revenues with different timestamps
-  //    * - run test (call `getRevenuesWithFilters`)
-  //    * - check returned revenues
-  //    * @expected
-  //    * - should return all stored revenues
-  //    * - the revenues timestamps should be ascending
-  //    */
-  //   it('should return all stored revenues in ascending order', async () => {
-  //     await insertRevenueDataWithTimestamps(10);
-  //     const revenues =
-  //       await DatabaseAction.getInstance().getRevenuesWithFilters(
-  //         SortRequest.ASC
-  //       );
-  //     expect(revenues).toHaveLength(10);
-  //     for (let index = 0; index < 9; index++) {
-  //       expect(revenues[index].timestamp).toBeLessThanOrEqual(
-  //         revenues[index + 1].timestamp
-  //       );
-  //     }
-  //   });
+    /**
+     * @target DatabaseAction.getRevenuesWithFilters should return all stored revenues in ascending order
+     * @dependencies
+     * - database
+     * @scenario
+     * - insert 10 mocked revenues with different timestamps
+     * - run test (call `getRevenuesWithFilters`)
+     * - check returned revenues
+     * @expected
+     * - should return all stored revenues
+     * - the revenues timestamps should be ascending
+     */
+    it('should return all stored revenues in ascending order', async () => {
+      await insertRevenueDataWithTimestamps(10);
+      const revenues =
+        await DatabaseAction.getInstance().getRevenuesWithFilters(
+          SortRequest.ASC
+        );
+      expect(revenues).toHaveLength(10);
+      for (let index = 0; index < 9; index++) {
+        expect(revenues[index].timestamp).toBeLessThanOrEqual(
+          revenues[index + 1].timestamp
+        );
+      }
+    });
 
-  //   /**
-  //    * @target DatabaseAction.getRevenuesWithFilters should return the revenue with specified height
-  //    * @dependencies
-  //    * - database
-  //    * @scenario
-  //    * - insert 10 mocked revenues with different heights
-  //    * - run test (call `getRevenuesWithFilters`)
-  //    * - check returned revenues
-  //    * @expected
-  //    * - should return the specified revenue
-  //    */
-  //   it('should return the revenue with specified height', async () => {
-  //     await insertRevenueDataWithTimestamps(10);
-  //     const revenues =
-  //       await DatabaseAction.getInstance().getRevenuesWithFilters(
-  //         undefined,
-  //         undefined,
-  //         undefined,
-  //         undefined,
-  //         1002,
-  //         1003
-  //       );
-  //     expect(revenues).toHaveLength(1);
-  //     expect(revenues[0].height).toBeGreaterThanOrEqual(1002);
-  //     expect(revenues[0].height).toBeLessThan(1003);
-  //   });
+    /**
+     * @target DatabaseAction.getRevenuesWithFilters should return the revenue with specified height
+     * @dependencies
+     * - database
+     * @scenario
+     * - insert 10 mocked revenues with different heights
+     * - run test (call `getRevenuesWithFilters`)
+     * - check returned revenues
+     * @expected
+     * - should return the specified revenue
+     */
+    it('should return the revenue with specified height', async () => {
+      await insertRevenueDataWithTimestamps(10);
+      const revenues =
+        await DatabaseAction.getInstance().getRevenuesWithFilters(
+          undefined,
+          undefined,
+          undefined,
+          1002,
+          1003
+        );
+      expect(revenues).toHaveLength(1);
+      expect(revenues[0].height).toBeGreaterThanOrEqual(1002);
+      expect(revenues[0].height).toBeLessThan(1003);
+    });
 
-  //   /**
-  //    * @target DatabaseAction.getRevenuesWithFilters should return the revenue with specified timestamp
-  //    * @dependencies
-  //    * - database
-  //    * @scenario
-  //    * - insert 10 mocked revenues with different timestamps
-  //    * - run test (call `getRevenuesWithFilters`)
-  //    * - check returned revenues
-  //    * @expected
-  //    * - should return the specified revenue
-  //    */
-  //   it('should return the revenue with specified timestamp', async () => {
-  //     await insertRevenueDataWithTimestamps(10);
-  //     const revenues =
-  //       await DatabaseAction.getInstance().getRevenuesWithFilters(
-  //         undefined,
-  //         undefined,
-  //         undefined,
-  //         undefined,
-  //         undefined,
-  //         undefined,
-  //         1665438000000,
-  //         1665439000000
-  //       );
-  //     expect(revenues).toHaveLength(1);
-  //     expect(revenues[0].timestamp).toBeGreaterThanOrEqual(1665438000000);
-  //     expect(revenues[0].timestamp).toBeLessThanOrEqual(1665439000000);
-  //   });
+    /**
+     * @target DatabaseAction.getRevenuesWithFilters should return the revenue with specified timestamp
+     * @dependencies
+     * - database
+     * @scenario
+     * - insert 10 mocked revenues with different timestamps
+     * - run test (call `getRevenuesWithFilters`)
+     * - check returned revenues
+     * @expected
+     * - should return the specified revenue
+     */
+    it('should return the revenue with specified timestamp', async () => {
+      await insertRevenueDataWithTimestamps(10);
+      const revenues =
+        await DatabaseAction.getInstance().getRevenuesWithFilters(
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          1665438000000,
+          1665439000000
+        );
+      expect(revenues).toHaveLength(1);
+      expect(revenues[0].timestamp).toBeGreaterThanOrEqual(1665438000000);
+      expect(revenues[0].timestamp).toBeLessThanOrEqual(1665439000000);
+    });
 
-  //   /**
-  //    * @target DatabaseAction.getRevenuesWithFilters should return the revenue for events that are transferring assets from ergo network
-  //    * @dependencies
-  //    * - database
-  //    * @scenario
-  //    * - insert 20 mocked revenues with different networks (10 "from ergo", 10 others)
-  //    * - run test (call `getRevenuesWithFilters`)
-  //    * - check returned revenues
-  //    * @expected
-  //    * - should return 10 "from ergo" event revenues
-  //    */
-  //   it('should return the revenue for events that are transferring assets from ergo network', async () => {
-  //     await insertRevenueDataWithDifferentNetworks(10);
-  //     const revenues =
-  //       await DatabaseAction.getInstance().getRevenuesWithFilters(
-  //         undefined,
-  //         ERGO_CHAIN
-  //       );
-  //     expect(revenues).toHaveLength(10);
-  //     revenues.forEach((revenue) =>
-  //       expect(revenue.fromChain).toEqual(ERGO_CHAIN)
-  //     );
-  //   });
+    /**
+     * @target DatabaseAction.getRevenuesWithFilters should return the revenue for events that are transferring assets from ergo network
+     * @dependencies
+     * - database
+     * @scenario
+     * - insert 20 mocked revenues with different networks (10 "from ergo", 10 others)
+     * - run test (call `getRevenuesWithFilters`)
+     * - check returned revenues
+     * @expected
+     * - should return 10 "from ergo" event revenues
+     */
+    it('should return the revenue for events that are transferring assets from ergo network', async () => {
+      await insertRevenueDataWithDifferentNetworks(10);
+      const revenues =
+        await DatabaseAction.getInstance().getRevenuesWithFilters(
+          undefined,
+          ERGO_CHAIN
+        );
+      expect(revenues).toHaveLength(10);
+      revenues.forEach((revenue) =>
+        expect(revenue.fromChain).toEqual(ERGO_CHAIN)
+      );
+    });
 
-  //   /**
-  //    * @target DatabaseAction.getRevenuesWithFilters should return the revenue for events that are transferring assets to ergo network
-  //    * @dependencies
-  //    * - database
-  //    * @scenario
-  //    * - insert 20 mocked revenues with different networks (10 "to ergo", 10 others)
-  //    * - run test (call `getRevenuesWithFilters`)
-  //    * - check returned revenues
-  //    * @expected
-  //    * - should return 10 "to ergo" event revenues
-  //    */
-  //   it('should return the revenue for events that are transferring assets to ergo network', async () => {
-  //     await insertRevenueDataWithDifferentNetworks(10);
-  //     const revenues =
-  //       await DatabaseAction.getInstance().getRevenuesWithFilters(
-  //         undefined,
-  //         undefined,
-  //         ERGO_CHAIN
-  //       );
-  //     expect(revenues).toHaveLength(10);
-  //     revenues.forEach((revenue) =>
-  //       expect(revenue.toChain).toEqual(ERGO_CHAIN)
-  //     );
-  //   });
-
-  //   /**
-  //    * @target DatabaseAction.getRevenuesWithFilters should return the revenue with specified revenue token
-  //    * @dependencies
-  //    * - database
-  //    * @scenario
-  //    * - insert 20 mocked revenues with different tokenIds (10 "revenueToken", 10 others)
-  //    * - run test (call `getRevenuesWithFilters`)
-  //    * - check returned revenues
-  //    * @expected
-  //    * - should return 10 revenues with specified token
-  //    */
-  //   it('should return the revenue with specified revenue token', async () => {
-  //     await insertRevenueDataWithDifferentTokenId(10);
-  //     const revenues =
-  //       await DatabaseAction.getInstance().getRevenuesWithFilters(
-  //         undefined,
-  //         undefined,
-  //         undefined,
-  //         'revenueToken'
-  //       );
-  //     expect(revenues).toHaveLength(10);
-  //     revenues.forEach((revenue) =>
-  //       expect(revenue.revenueTokenId).toEqual('revenueToken')
-  //     );
-  //   });
-  // });
+    /**
+     * @target DatabaseAction.getRevenuesWithFilters should return the revenue for events that are transferring assets to ergo network
+     * @dependencies
+     * - database
+     * @scenario
+     * - insert 20 mocked revenues with different networks (10 "to ergo", 10 others)
+     * - run test (call `getRevenuesWithFilters`)
+     * - check returned revenues
+     * @expected
+     * - should return 10 "to ergo" event revenues
+     */
+    it('should return the revenue for events that are transferring assets to ergo network', async () => {
+      await insertRevenueDataWithDifferentNetworks(10);
+      const revenues =
+        await DatabaseAction.getInstance().getRevenuesWithFilters(
+          undefined,
+          undefined,
+          ERGO_CHAIN
+        );
+      expect(revenues).toHaveLength(10);
+      revenues.forEach((revenue) =>
+        expect(revenue.toChain).toEqual(ERGO_CHAIN)
+      );
+    });
+  });
 
   describe('getRevenueChartData', () => {
     /**

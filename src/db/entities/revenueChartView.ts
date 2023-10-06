@@ -13,7 +13,7 @@ import { ViewEntity, ViewColumn } from 'typeorm';
       .addSelect(`be."month"`, 'month')
       .addSelect(`be."year"`, 'year')
       .from('revenue_entity', 're')
-      .innerJoin('event_trigger_entity', 'ete', 'ete.eventId = tx.eventId')
+      .innerJoin('event_trigger_entity', 'ete', 'ete.id = re.eventDataId')
       .innerJoin('block_entity', 'be', 'ete.spendBlock = be.hash'),
 })
 export class RevenueChartView {
