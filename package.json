@@ -11,7 +11,7 @@
     "build": "rimraf dist && tsc",
     "start": "ts-node --experimental-specifier-resolution=node ./src/index.ts",
     "start:dev": "cross-env NODE_ENV=development nodemon .",
-    "test": "vitest",
+    "test": "NODE_OPTIONS=--experimental-specifier-resolution=node vitest",
     "type-check": "tsc --noEmit",
     "coverage": "npm run test -- --coverage",
     "typeorm:generate:sqlite": "npm run typeorm migration:generate src/db/migrations/sqlite/migration -- -p -d src/db/dataSource.ts",
