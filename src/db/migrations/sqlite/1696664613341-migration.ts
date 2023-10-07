@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class migration1696587033934 implements MigrationInterface {
-  name = 'migration1696587033934';
+export class migration1696664613341 implements MigrationInterface {
+  name = 'migration1696664613341';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
@@ -25,6 +25,20 @@ export class migration1696587033934 implements MigrationInterface {
     );
     await queryRunner.query(`
             DROP VIEW "revenue_chart"
+        `);
+    await queryRunner.query(`
+            DROP TABLE "revenue_entity"
+        `);
+    await queryRunner.query(`
+            CREATE TABLE "revenue_entity" (
+                "id" integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+                "tokenId" varchar NOT NULL,
+                "amount" bigint NOT NULL,
+                "txId" varchar NOT NULL,
+                "revenueType" varchar NOT NULL,
+                "eventDataId" integer,
+                CONSTRAINT "FK_7eec37fb51bb953bcf777474875" FOREIGN KEY ("eventDataId") REFERENCES "event_trigger_entity" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION
+            )
         `);
     await queryRunner.query(`
             CREATE VIEW "revenue_chart" AS
@@ -75,8 +89,7 @@ export class migration1696587033934 implements MigrationInterface {
                 be."height" AS "height",
                 be."timestamp" AS "timestamp"
             FROM "event_trigger_entity" "ete"
-                LEFT JOIN "block_entity" "be" ON ete."spendBlock" = be."hash"
-            WHERE ete."spendBlock" IS NOT NULL
+                INNER JOIN "block_entity" "be" ON ete."spendBlock" = be."hash"
         `);
     await queryRunner.query(
       `
@@ -93,7 +106,7 @@ export class migration1696587033934 implements MigrationInterface {
       [
         'VIEW',
         'revenue_view',
-        'SELECT ete."id" AS "id", ete."spendTxId" AS "rewardTxId", ete."eventId" AS "eventId", ete."spendHeight" AS "lockHeight", ete."fromChain" AS "fromChain", ete."toChain" AS "toChain", ete."fromAddress" AS "fromAddress", ete."toAddress" AS "toAddress", ete."amount" AS "amount", ete."bridgeFee" AS "bridgeFee", ete."networkFee" AS "networkFee", ete."sourceChainTokenId" AS "lockTokenId", ete."sourceTxId" AS "lockTxId", be."height" AS "height", be."timestamp" AS "timestamp" FROM "event_trigger_entity" "ete" LEFT JOIN "block_entity" "be" ON ete."spendBlock" = be."hash" WHERE ete."spendBlock" IS NOT NULL',
+        'SELECT ete."id" AS "id", ete."spendTxId" AS "rewardTxId", ete."eventId" AS "eventId", ete."spendHeight" AS "lockHeight", ete."fromChain" AS "fromChain", ete."toChain" AS "toChain", ete."fromAddress" AS "fromAddress", ete."toAddress" AS "toAddress", ete."amount" AS "amount", ete."bridgeFee" AS "bridgeFee", ete."networkFee" AS "networkFee", ete."sourceChainTokenId" AS "lockTokenId", ete."sourceTxId" AS "lockTxId", be."height" AS "height", be."timestamp" AS "timestamp" FROM "event_trigger_entity" "ete" INNER JOIN "block_entity" "be" ON ete."spendBlock" = be."hash"',
       ]
     );
   }
@@ -120,6 +133,18 @@ export class migration1696587033934 implements MigrationInterface {
     );
     await queryRunner.query(`
             DROP VIEW "revenue_chart"
+        `);
+    await queryRunner.query(`
+            DROP TABLE "revenue_entity"
+        `);
+    await queryRunner.query(`
+            CREATE TABLE "revenue_entity" (
+                "id" integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+                "tokenId" varchar NOT NULL,
+                "amount" bigint NOT NULL,
+                "txId" varchar,
+                CONSTRAINT "FK_d0c98b57da190d9955ca1fdcf86" FOREIGN KEY ("txId") REFERENCES "transaction_entity" ("txId") ON DELETE NO ACTION ON UPDATE NO ACTION
+            )
         `);
     await queryRunner.query(`
             CREATE VIEW "revenue_chart" AS

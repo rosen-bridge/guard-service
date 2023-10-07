@@ -21,8 +21,7 @@ import { ViewEntity, ViewColumn } from 'typeorm';
       .addSelect('be."height"', 'height')
       .addSelect('be."timestamp"', 'timestamp')
       .from('event_trigger_entity', 'ete')
-      .leftJoin('block_entity', 'be', 'ete."spendBlock" = be."hash"')
-      .where('ete."spendBlock" IS NOT NULL'),
+      .innerJoin('block_entity', 'be', 'ete."spendBlock" = be."hash"'),
 })
 export class RevenueView {
   @ViewColumn()
