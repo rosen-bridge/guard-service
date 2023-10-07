@@ -1,4 +1,4 @@
-import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
+import { ERGO_CHAIN } from '@rosen-chains/ergo';
 import Configs from '../configs/Configs';
 import { RevenueEntity } from '../db/entities/revenueEntity';
 import { RevenueView } from '../db/entities/revenueView';
@@ -15,12 +15,12 @@ export const extractRevenueFromView = async (
 ): Promise<Array<RevenueHistory>> => {
   const tokenMap = new Map<number, Array<TokenInfo>>();
   revenues.forEach((revenue) => {
-    if (tokenMap.has(revenue.id)) {
+    if (tokenMap.has(revenue.eventData.id)) {
       tokenMap
-        .get(revenue.id)
+        .get(revenue.eventData.id)
         ?.push({ id: revenue.tokenId, value: BigInt(revenue.amount) });
     } else {
-      tokenMap.set(revenue.id, [
+      tokenMap.set(revenue.eventData.id, [
         { id: revenue.tokenId, value: BigInt(revenue.amount) },
       ]);
     }
@@ -30,7 +30,7 @@ export const extractRevenueFromView = async (
       const rowTokens = tokenMap.get(event.id) || [];
       return {
         ...event,
-        revenues: await fillTokensDetails(rowTokens),
+        revenues: fillTokensDetails(rowTokens),
       };
     })
   );
@@ -41,9 +41,7 @@ export const extractRevenueFromView = async (
  * @param tokens
  * @returns
  */
-const fillTokensDetails = async (
-  tokens: Array<TokenInfo>
-): Promise<Array<TokenData>> => {
+const fillTokensDetails = (tokens: Array<TokenInfo>): Array<TokenData> => {
   return tokens.map((token) => {
     const tokenInfo = Configs.tokenMap.search(ERGO_CHAIN, {
       [Configs.tokenMap.getIdKey(ERGO_CHAIN)]: token.id,

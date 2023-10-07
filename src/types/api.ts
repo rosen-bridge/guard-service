@@ -63,6 +63,7 @@ interface GeneralInfo {
 }
 
 interface RevenueHistory {
+  id: number;
   rewardTxId: string;
   eventId: string;
   lockHeight: number;

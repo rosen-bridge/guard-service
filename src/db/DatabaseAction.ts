@@ -606,14 +606,21 @@ class DatabaseAction {
     return query.getMany();
   };
 
-  /*
-   * Returns unsaved revenue events
+  /**
+   * Returns unsaved revenue events that
+   * their spending tx is confirmed enough
+   * @param currentHeight
+   * @param requiredConfirmation
    */
-  getUnsavedRevenueEvents = async (): Promise<Array<EventTriggerEntity>> => {
+  getConfirmedUnsavedRevenueEvents = async (
+    currentHeight: number,
+    requiredConfirmation: number
+  ): Promise<Array<EventTriggerEntity>> => {
     return await this.EventRepository.createQueryBuilder('event')
-      .leftJoin('revenue_entity', 're', 'event.id = re.eventDataId')
-      .where('event.spendTxId IS NOT NULL')
-      .andWhere('re.eventDataId IS NULL')
+      .leftJoin('revenue_entity', 're', 'event."id" = re."eventDataId"')
+      .where('event."spendTxId" IS NOT NULL')
+      .andWhere('re."eventDataId" IS NULL')
+      .andWhere(`event."spendHeight" < ${currentHeight - requiredConfirmation}`)
       .getMany();
   };
 
@@ -660,6 +667,8 @@ class DatabaseAction {
    * @param maxHeight
    * @param fromBlockTime
    * @param toBlockTime
+   * @param offset
+   * @param limit
    */
   getRevenuesWithFilters = async (
     sort?: SortRequest,
@@ -668,7 +677,9 @@ class DatabaseAction {
     minHeight?: number,
     maxHeight?: number,
     fromBlockTime?: number,
-    toBlockTime?: number
+    toBlockTime?: number,
+    offset = 0,
+    limit = 20
   ): Promise<RevenueView[]> => {
     const clauses = [],
       heightCondition = [],
@@ -697,6 +708,8 @@ class DatabaseAction {
       order: {
         timestamp: sort ? sort : 'DESC',
       },
+      skip: offset,
+      take: limit,
     });
   };
 
@@ -711,7 +724,7 @@ class DatabaseAction {
       where: {
         eventData: In(ids),
       },
-      relations: ['event'],
+      relations: ['eventData'],
     });
   };
 

@@ -123,6 +123,13 @@ const insertRevenue = async (
   const blockId = TestUtils.generateRandomId();
   await DatabaseHandlerMock.insertBlockRecord(timestamp, blockId, height);
 
+  // mock reward transaction
+  const tx = TxTestData.mockPaymentTransaction(
+    TransactionType.reward,
+    CARDANO_CHAIN,
+    Utils.txIdToEventId(mockedEvent.sourceTxId)
+  );
+
   // insert event
   await DatabaseHandlerMock.insertEventRecord(
     mockedEvent,
@@ -132,17 +139,10 @@ const insertRevenue = async (
     undefined,
     12000,
     13000,
-    blockId
+    blockId,
+    tx.txId
   );
   const eventRecord = (await DatabaseActionMock.allRawEventRecords()).at(-1)!;
-
-  // insert reward transaction
-  const tx = TxTestData.mockPaymentTransaction(
-    TransactionType.reward,
-    CARDANO_CHAIN,
-    Utils.txIdToEventId(mockedEvent.sourceTxId)
-  );
-  await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.completed);
 
   // insert revenue
   await DatabaseAction.getInstance().insertRevenue(

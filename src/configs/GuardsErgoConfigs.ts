@@ -96,6 +96,7 @@ class GuardsErgoConfigs {
       lock: this.ergoContractConfig.lockAddress,
       cold: this.coldAddress,
       permit: this.ergoContractConfig.permitAddress,
+      fraud: this.ergoContractConfig.fraudAddress,
     },
     rwtId: this.ergoContractConfig.RWTId,
     minBoxValue: this.minimumErg,

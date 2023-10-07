@@ -3,7 +3,6 @@ import { DatabaseAction } from '../../src/db/DatabaseAction';
 import { loggerFactory } from '../../src/log/Logger';
 import ChainHandler from '../../src/handlers/ChainHandler';
 import {
-  ConfirmationStatus,
   ImpossibleBehavior,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
@@ -19,9 +18,16 @@ const logger = loggerFactory(import.meta.url);
 const revenueJobFunction = async () => {
   logger.info(`Processing event revenues`);
   const dbAction = DatabaseAction.getInstance();
-  const unsavedRevenues = await dbAction.getUnsavedRevenueEvents();
-
   const ergoChain = ChainHandler.getInstance().getErgoChain();
+  const currentHeight = await ergoChain.getHeight();
+  const requiredConfirmation = ergoChain.getTxRequiredConfirmation(
+    TransactionType.reward
+  );
+  const unsavedRevenues = await dbAction.getConfirmedUnsavedRevenueEvents(
+    currentHeight,
+    requiredConfirmation
+  );
+
   for (const event of unsavedRevenues) {
     if (!event.spendTxId || !event.spendBlock)
       throw new ImpossibleBehavior(
@@ -30,59 +36,48 @@ const revenueJobFunction = async () => {
 
     const txId = event.spendTxId;
     const blockId = event.spendBlock;
-    const confirmation = await ergoChain.getTxConfirmationStatus(
-      txId,
-      TransactionType.reward
-    );
-    if (confirmation === ConfirmationStatus.ConfirmedEnough) {
-      logger.info(`Tx [${txId}] is confirmed. Extracting it's revenues`);
-      const tx = await ergoChain.getTransaction(txId, blockId);
-      const order = ergoChain.extractSignedTransactionOrder(tx);
+    logger.info(`Tx [${txId}] is confirmed. Extracting it's revenues`);
+    const tx = await ergoChain.getTransaction(txId, blockId);
+    const order = ergoChain.extractSignedTransactionOrder(tx);
 
-      for (const payment of order) {
-        let revenueType: RevenueType;
-        if (payment.address == GuardsErgoConfigs.bridgeFeeRepoAddress)
-          revenueType = RevenueType.bridgeFee;
-        else if (payment.address == 'GuardsErgoConfigs.rsnEmissionAddress')
-          // TODO: fix this
-          revenueType = RevenueType.emission;
-        else if (payment.address == GuardsErgoConfigs.networkFeeRepoAddress)
-          revenueType = RevenueType.networkFee;
-        else if (
-          payment.address == GuardsErgoConfigs.ergoContractConfig.fraudAddress
-        )
-          revenueType = RevenueType.fraud;
-        else continue;
+    for (const payment of order) {
+      const fraudAddress = ChainHandler.getInstance()
+        .getChain(event.fromChain)
+        .getChainConfigs().addresses.fraud;
+      let revenueType: RevenueType;
+      if (payment.address == GuardsErgoConfigs.bridgeFeeRepoAddress)
+        revenueType = RevenueType.bridgeFee;
+      else if (payment.address == GuardsErgoConfigs.rsnEmissionAddress)
+        revenueType = RevenueType.emission;
+      else if (payment.address == GuardsErgoConfigs.networkFeeRepoAddress)
+        revenueType = RevenueType.networkFee;
+      else if (payment.address == fraudAddress) revenueType = RevenueType.fraud;
+      else continue;
 
-        // store erg revenue
+      // store erg revenue
+      await dbAction.insertRevenue(
+        ERG,
+        payment.assets.nativeToken,
+        txId,
+        revenueType,
+        event
+      );
+      logger.debug(
+        `inserted revenue [${ERG}] for amount [${payment.assets.nativeToken}] as type [${revenueType}] in tx [${txId}]`
+      );
+      // store other tokens revenue
+      for (const asset of payment.assets.tokens) {
         await dbAction.insertRevenue(
-          ERG,
-          payment.assets.nativeToken,
+          asset.id,
+          asset.value,
           txId,
           revenueType,
           event
         );
         logger.debug(
-          `inserted revenue [${ERG}] for amount [${payment.assets.nativeToken}] as type [${revenueType}] in tx [${txId}]`
+          `inserted revenue [${asset.id}] for amount [${asset.value}] as type [${revenueType}] in tx [${txId}]`
         );
-        // store other tokens revenue
-        for (const asset of payment.assets.tokens) {
-          await dbAction.insertRevenue(
-            asset.id,
-            asset.value,
-            txId,
-            revenueType,
-            event
-          );
-          logger.debug(
-            `inserted revenue [${asset.id}] for amount [${asset.value}] as type [${revenueType}] in tx [${txId}]`
-          );
-        }
       }
-    } else {
-      logger.debug(
-        `Tx [${txId}] is not confirmed enough [status:${confirmation}]. Ignoring it's revenues`
-      );
     }
   }
 

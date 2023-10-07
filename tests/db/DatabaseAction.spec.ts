@@ -230,8 +230,8 @@ describe('DatabaseActions', () => {
      * - run test
      * - check returned value
      * @expected
-     * - should return only the second event
-     *   - event with spendTxId but without revenue
+     * - should return only the second event which is
+     *   event with spendTxId but without revenue
      */
     it('should return unsaved revenue events containing spendTx', async () => {
       // insert 3 events
@@ -275,7 +275,10 @@ describe('DatabaseActions', () => {
 
       // run test
       const result =
-        await DatabaseAction.getInstance().getUnsavedRevenueEvents();
+        await DatabaseAction.getInstance().getConfirmedUnsavedRevenueEvents(
+          115,
+          10
+        );
 
       // check returned value
       expect(result.length).toEqual(1);

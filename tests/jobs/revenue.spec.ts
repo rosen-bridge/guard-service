@@ -7,11 +7,18 @@ import { ConfirmationStatus } from '@rosen-chains/abstract-chain';
 import { RevenueType } from '../../src/utils/constants';
 import * as testData from './testData';
 import { ERG } from '@rosen-chains/ergo';
+import GuardsCardanoConfigs from '../../src/configs/GuardsCardanoConfigs';
+import { CARDANO_CHAIN } from '@rosen-chains/cardano';
 
 describe('revenueJobFunction', () => {
   beforeEach(async () => {
     await DatabaseActionMock.clearTables();
     ChainHandlerMock.resetMock();
+    ChainHandlerMock.mockErgoFunctionReturnValue('getHeight', 120);
+    ChainHandlerMock.mockErgoFunctionReturnValue(
+      'getTxRequiredConfirmation',
+      15
+    );
   });
 
   /**
@@ -21,10 +28,10 @@ describe('revenueJobFunction', () => {
    * - ChainHandler
    * @scenario
    * - mock event with spendTxId and spendBlockId
-   * - mock ChainHandler.ErgoChain
-   *   - mock `getTxConfirmationStatus`
+   * - mock ChainHandler fromChain and ErgoChain
    *   - mock `getTransaction`
    *   - mock `extractSignedTransactionOrder`
+   *   - mock `getChainConfigs`
    * - run test
    * - check database
    * @expected
@@ -49,19 +56,19 @@ describe('revenueJobFunction', () => {
       spendBlockId
     );
 
-    // mock ChainHandler.ErgoChain
-    // mock `getTxConfirmationStatus`
-    ChainHandlerMock.mockErgoFunctionReturnValue(
-      'getTxConfirmationStatus',
-      ConfirmationStatus.ConfirmedEnough,
-      true
-    );
+    // mock ChainHandler fromChain and ErgoChain
+    ChainHandlerMock.mockChainName(CARDANO_CHAIN, true);
     // mock `getTransaction`
     ChainHandlerMock.mockErgoFunctionReturnValue('getTransaction', tx, true);
     // mock `extractSignedTransactionOrder`
     ChainHandlerMock.mockErgoFunctionReturnValue(
       'extractSignedTransactionOrder',
       testData.fraudTxOrder
+    );
+    // mock `getChainConfigs`
+    ChainHandlerMock.mockFromChainFunction(
+      'getChainConfigs',
+      GuardsCardanoConfigs.chainConfigs
     );
 
     // run test
@@ -99,10 +106,10 @@ describe('revenueJobFunction', () => {
    * - ChainHandler
    * @scenario
    * - mock event with spendTxId and spendBlockId
-   * - mock ChainHandler.ErgoChain
-   *   - mock `getTxConfirmationStatus`
+   * - mock ChainHandler fromChain and ErgoChain
    *   - mock `getTransaction`
    *   - mock `extractSignedTransactionOrder`
+   *   - mock `getChainConfigs`
    * - run test
    * - check database
    * @expected
@@ -128,19 +135,19 @@ describe('revenueJobFunction', () => {
       spendBlockId
     );
 
-    // mock ChainHandler.ErgoChain
-    // mock `getTxConfirmationStatus`
-    ChainHandlerMock.mockErgoFunctionReturnValue(
-      'getTxConfirmationStatus',
-      ConfirmationStatus.ConfirmedEnough,
-      true
-    );
+    // mock ChainHandler fromChain and ErgoChain
+    ChainHandlerMock.mockChainName(CARDANO_CHAIN, true);
     // mock `getTransaction`
     ChainHandlerMock.mockErgoFunctionReturnValue('getTransaction', tx, true);
     // mock `extractSignedTransactionOrder`
     ChainHandlerMock.mockErgoFunctionReturnValue(
       'extractSignedTransactionOrder',
       testData.rewardTxOrder
+    );
+    // mock `getChainConfigs`
+    ChainHandlerMock.mockFromChainFunction(
+      'getChainConfigs',
+      GuardsCardanoConfigs.chainConfigs
     );
 
     // run test
@@ -224,18 +231,12 @@ describe('revenueJobFunction', () => {
     await DatabaseActionMock.insertOnlyEventDataRecord(
       mockedEvent,
       boxSerialized,
-      100,
+      113,
       spendTxId,
       spendBlockId
     );
 
     // mock ChainHandler.ErgoChain
-    // mock `getTxConfirmationStatus`
-    ChainHandlerMock.mockErgoFunctionReturnValue(
-      'getTxConfirmationStatus',
-      ConfirmationStatus.NotConfirmedEnough,
-      true
-    );
     // mock `getTransaction`
     ChainHandlerMock.mockErgoFunctionReturnValue('getTransaction', null, true);
 

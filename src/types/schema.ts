@@ -51,6 +51,7 @@ export const RevenueHistoryQuery = Type.Object({
 
 export const RevenueHistoryResponse = outputItemsSchema(
   Type.Object({
+    id: Type.Number(),
     rewardTxId: Type.String(),
     eventId: Type.String(),
     lockHeight: Type.Number(),

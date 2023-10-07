@@ -84,6 +84,8 @@ class DatabaseActionMock {
    * @param firstTry
    * @param eventHeight
    * @param spendHeight
+   * @param spendBlockId
+   * @param spendTxId
    */
   static insertEventRecord = async (
     event: EventTrigger,
@@ -93,7 +95,8 @@ class DatabaseActionMock {
     firstTry?: string,
     eventHeight = 200,
     spendHeight?: number,
-    spendBlockId = 'blockId'
+    spendBlockId = 'blockId',
+    spendTxId?: string
   ) => {
     await this.testDatabase.EventRepository.createQueryBuilder()
       .insert()
@@ -118,6 +121,7 @@ class DatabaseActionMock {
         sourceChainHeight: sourceChainHeight,
         spendHeight: spendHeight,
         spendBlock: spendBlockId,
+        spendTxId: spendTxId,
         txId: 'event-creation-tx-id',
         eventId: Utils.txIdToEventId(event.sourceTxId),
       })

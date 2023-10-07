@@ -41,17 +41,17 @@ const revenueHistoryRoute = (server: FastifySeverInstance) => {
       } = request.query;
 
       const dbAction = DatabaseAction.getInstance();
-      const events = (
-        await dbAction.getRevenuesWithFilters(
-          sort,
-          fromChain,
-          toChain,
-          minHeight,
-          maxHeight,
-          fromBlockTime,
-          toBlockTime
-        )
-      ).slice(offset, offset + limit);
+      const events = await dbAction.getRevenuesWithFilters(
+        sort,
+        fromChain,
+        toChain,
+        minHeight,
+        maxHeight,
+        fromBlockTime,
+        toBlockTime,
+        offset,
+        limit
+      );
       const revenues = await dbAction.getEventsRevenues(
         events.map((row) => row.id)
       );
