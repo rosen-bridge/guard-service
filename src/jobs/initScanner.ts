@@ -89,7 +89,7 @@ const initScanner = () => {
     dataSource,
     GuardsErgoConfigs.ergoContractConfig.eventTriggerAddress,
     GuardsErgoConfigs.ergoContractConfig.RWTId,
-    loggers.ergoCommitmentExtractorLogger
+    loggers.ergoEventTriggerExtractorLogger
   );
   ergoScanner.registerExtractor(cardanoCommitmentExtractor);
   ergoScanner.registerExtractor(cardanoEventTriggerExtractor);
