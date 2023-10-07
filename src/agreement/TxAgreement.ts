@@ -398,7 +398,12 @@ class TxAgreement extends Communicator {
           };
 
           await this.broadcastApprovalMessage(approvedTx);
-          this.approvedTransactions.push(approvedTx);
+          if (
+            !this.approvedTransactions.find(
+              (approvedTx) => approvedTx.tx.txId === txId
+            )
+          )
+            this.approvedTransactions.push(approvedTx);
           await this.setTxAsApproved(candidateTx.tx);
         }
         release();
