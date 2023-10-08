@@ -8,7 +8,7 @@ import { ViewEntity, ViewColumn } from 'typeorm';
       .select('ete."id"', 'id')
       .addSelect('ete."spendTxId"', 'rewardTxId')
       .addSelect('ete."eventId"', 'eventId')
-      .addSelect('ete."spendHeight"', 'lockHeight')
+      .addSelect('ete."height"', 'lockHeight')
       .addSelect('ete."fromChain"', 'fromChain')
       .addSelect('ete."toChain"', 'toChain')
       .addSelect('ete."fromAddress"', 'fromAddress')
