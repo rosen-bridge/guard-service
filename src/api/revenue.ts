@@ -1,14 +1,17 @@
 import { Type } from '@sinclair/typebox';
-import { FastifySeverInstance, TokenChartData } from '../types/api';
-import {
-  messageResponseSchema,
-  RevenueHistoryResponse,
-  RevenueHistoryQuery,
-} from '../types/schema';
+import { TokenChartData } from '../types/api';
 import { DatabaseAction } from '../db/DatabaseAction';
 import { DefaultRevenueApiCount, RevenuePeriod } from '../utils/constants';
 import { groupBy, reduce } from 'lodash-es';
 import { extractRevenueFromView } from '../utils/revenue';
+import {
+  FastifySeverInstance,
+  MessageResponseSchema,
+  RevenueChartQuerySchema,
+  RevenueChartResponseSchema,
+  RevenueHistoryQuerySchema,
+  RevenueHistoryResponseSchema,
+} from './schemas';
 
 /**
  * setup revenue history route
@@ -19,10 +22,10 @@ const revenueHistoryRoute = (server: FastifySeverInstance) => {
     '/revenue/history',
     {
       schema: {
-        querystring: RevenueHistoryQuery,
+        querystring: RevenueHistoryQuerySchema,
         response: {
-          200: RevenueHistoryResponse,
-          500: messageResponseSchema,
+          200: RevenueHistoryResponseSchema,
+          500: MessageResponseSchema,
         },
       },
     },
@@ -65,27 +68,14 @@ const revenueHistoryRoute = (server: FastifySeverInstance) => {
 };
 
 const revenueChartRoute = (server: FastifySeverInstance) => {
-  const querySchema = Type.Object({
-    count: Type.Number({ default: DefaultRevenueApiCount }),
-    period: Type.Enum(RevenuePeriod),
-  });
-  const chartResponseSchema = Type.Object({
-    title: Type.String(),
-    data: Type.Array(
-      Type.Object({
-        label: Type.String(),
-        amount: Type.String(),
-      })
-    ),
-  });
   server.get(
     '/revenue/chart',
     {
       schema: {
-        querystring: querySchema,
+        querystring: RevenueChartQuerySchema,
         response: {
-          200: Type.Array(chartResponseSchema),
-          500: messageResponseSchema,
+          200: RevenueChartResponseSchema,
+          500: MessageResponseSchema,
         },
       },
     },

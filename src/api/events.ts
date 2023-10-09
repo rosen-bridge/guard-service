@@ -1,51 +1,27 @@
 import { Type } from '@sinclair/typebox';
-import { FastifySeverInstance, SortRequest } from '../types/api';
-import { messageResponseSchema, outputItemsSchema } from '../types/schema';
+import { SortRequest } from '../types/api';
 import { DefaultApiLimit } from '../utils/constants';
 import { DatabaseAction } from '../db/DatabaseAction';
+import {
+  EventsQuerySchema,
+  EventsResponseSchema,
+  FastifySeverInstance,
+  MessageResponseSchema,
+} from './schemas';
 
 /**
  * setup event history route
  * @param server
  */
 const eventsHistoryRoute = (server: FastifySeverInstance) => {
-  const querySchema = Type.Object({
-    limit: Type.Number({ default: DefaultApiLimit }),
-    offset: Type.Number({ default: 0 }),
-    sort: Type.Optional(Type.Enum(SortRequest)),
-    fromChain: Type.Optional(Type.String()),
-    toChain: Type.Optional(Type.String()),
-    maxAmount: Type.Optional(Type.String()),
-    minAmount: Type.Optional(Type.String()),
-  });
-  const historyResponseSchema = outputItemsSchema(
-    Type.Object({
-      eventId: Type.String(),
-      block: Type.String(),
-      height: Type.Number(),
-      fromChain: Type.String(),
-      toChain: Type.String(),
-      fromAddress: Type.String(),
-      toAddress: Type.String(),
-      amount: Type.String(),
-      bridgeFee: Type.String(),
-      networkFee: Type.String(),
-      sourceChainTokenId: Type.String(),
-      targetChainTokenId: Type.String(),
-      sourceChainHeight: Type.Number(),
-      sourceBlockId: Type.String(),
-      sourceTxId: Type.String(),
-      WIDs: Type.String(),
-    } as const)
-  );
   server.get(
     '/event/history',
     {
       schema: {
-        querystring: querySchema,
+        querystring: EventsQuerySchema,
         response: {
-          200: historyResponseSchema,
-          500: messageResponseSchema,
+          200: EventsResponseSchema,
+          500: MessageResponseSchema,
         },
       },
     },
@@ -78,43 +54,14 @@ const eventsHistoryRoute = (server: FastifySeverInstance) => {
  * @param server
  */
 const ongoingEventsRoute = (server: FastifySeverInstance) => {
-  const querySchema = Type.Object({
-    limit: Type.Number({ default: DefaultApiLimit }),
-    offset: Type.Number({ default: 0 }),
-    sort: Type.Optional(Type.Enum(SortRequest)),
-    fromChain: Type.Optional(Type.String()),
-    toChain: Type.Optional(Type.String()),
-    maxAmount: Type.Optional(Type.String()),
-    minAmount: Type.Optional(Type.String()),
-  });
-  const ongoingResponseSchema = outputItemsSchema(
-    Type.Object({
-      eventId: Type.String(),
-      block: Type.String(),
-      height: Type.Number(),
-      fromChain: Type.String(),
-      toChain: Type.String(),
-      fromAddress: Type.String(),
-      toAddress: Type.String(),
-      amount: Type.String(),
-      bridgeFee: Type.String(),
-      networkFee: Type.String(),
-      sourceChainTokenId: Type.String(),
-      targetChainTokenId: Type.String(),
-      sourceChainHeight: Type.Number(),
-      sourceBlockId: Type.String(),
-      sourceTxId: Type.String(),
-      WIDs: Type.String(),
-    } as const)
-  );
   server.get(
     '/event/ongoing',
     {
       schema: {
-        querystring: querySchema,
+        querystring: EventsQuerySchema,
         response: {
-          200: ongoingResponseSchema,
-          500: messageResponseSchema,
+          200: EventsResponseSchema,
+          500: MessageResponseSchema,
         },
       },
     },

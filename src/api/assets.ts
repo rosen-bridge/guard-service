@@ -1,43 +1,30 @@
-import { Type } from '@sinclair/typebox';
 import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
 import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
 
-import { Token, FastifySeverInstance } from '../types/api';
-import { messageResponseSchema, outputItemsSchema } from '../types/schema';
-import { DefaultAssetApiLimit, SUPPORTED_CHAINS } from '../utils/constants';
+import { Token } from '../types/api';
+import { SUPPORTED_CHAINS } from '../utils/constants';
 import ChainHandler from '../handlers/ChainHandler';
 import Configs from '../configs/Configs';
+import {
+  AssetsQuerySchema,
+  AssetsResponseSchema,
+  FastifySeverInstance,
+  MessageResponseSchema,
+} from './schemas';
 
 /**
  * setup available assets route
  * @param server
  */
 const assetsRoute = (server: FastifySeverInstance) => {
-  const querySchema = Type.Object({
-    limit: Type.Number({ default: DefaultAssetApiLimit }),
-    offset: Type.Number({ default: 0 }),
-    chain: Type.Optional(Type.Enum({ ERGO_CHAIN, CARDANO_CHAIN })),
-    tokenId: Type.Optional(Type.String()),
-    name: Type.Optional(Type.String()),
-  });
-
-  const assetsResponseSchema = outputItemsSchema(
-    Type.Object({
-      tokenId: Type.String(),
-      name: Type.Optional(Type.String()),
-      amount: Type.String(),
-      decimals: Type.Number(),
-      chain: Type.Enum({ ERGO_CHAIN, CARDANO_CHAIN }),
-    })
-  );
   server.get(
     '/assets',
     {
       schema: {
-        querystring: querySchema,
+        querystring: AssetsQuerySchema,
         response: {
-          200: assetsResponseSchema,
-          500: messageResponseSchema,
+          200: AssetsResponseSchema,
+          500: MessageResponseSchema,
         },
       },
     },

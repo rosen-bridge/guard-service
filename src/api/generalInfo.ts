@@ -1,12 +1,16 @@
 import { loggerFactory } from '../log/Logger';
-import { FastifySeverInstance, LockBalance } from '../types/api';
-import { infoResponseSchema, messageResponseSchema } from '../types/schema';
+import { LockBalance } from '../types/api';
 import ChainHandler from '../handlers/ChainHandler';
 import { getHealthCheck } from '../guard/HealthCheck';
 import { SUPPORTED_CHAINS } from '../utils/constants';
 import Configs from '../configs/Configs';
 import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
 import { ADA } from '@rosen-chains/cardano';
+import {
+  FastifySeverInstance,
+  InfoResponseSchema,
+  MessageResponseSchema,
+} from './schemas';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -20,8 +24,8 @@ const infoRoute = (server: FastifySeverInstance) => {
     {
       schema: {
         response: {
-          200: infoResponseSchema,
-          500: messageResponseSchema,
+          200: InfoResponseSchema,
+          500: MessageResponseSchema,
         },
       },
     },
