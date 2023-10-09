@@ -606,20 +606,22 @@ class DatabaseAction {
     return query.getMany();
   };
 
-  /*
-   * Returns unsaved revenue transaction ids
+  /**
+   * Returns unsaved revenue events that
+   * their spending tx is confirmed enough
+   * @param currentHeight
+   * @param requiredConfirmation
    */
-  getUnsavedRevenueIds = async (): Promise<Array<string>> => {
-    const unsavedTxs = await this.TransactionRepository.createQueryBuilder('tx')
-      .select('tx.txId', 'txId')
-      .leftJoin('revenue_entity', 're', 'tx.txId = re.txId')
-      .where('tx.type = :type', { type: TransactionType.reward })
-      .andWhere('tx.status = :status', { status: TransactionStatus.completed })
-      .andWhere('re.txId IS NULL')
-      .getRawMany();
-
-    const unsavedTxIds = unsavedTxs.map((tx: { txId: string }) => tx.txId);
-    return unsavedTxIds;
+  getConfirmedUnsavedRevenueEvents = async (
+    currentHeight: number,
+    requiredConfirmation: number
+  ): Promise<Array<EventTriggerEntity>> => {
+    return await this.EventRepository.createQueryBuilder('event')
+      .leftJoin('revenue_entity', 're', 'event."id" = re."eventDataId"')
+      .where('event."spendTxId" IS NOT NULL')
+      .andWhere('re."eventDataId" IS NULL')
+      .andWhere(`event."spendHeight" < ${currentHeight - requiredConfirmation}`)
+      .getMany();
   };
 
   /**
@@ -633,34 +635,38 @@ class DatabaseAction {
   };
 
   /**
-   * Stores the info of permit in chart entity
+   * Inserts new revenue
    * @param tokenId
    * @param amount
-   * @param permit
+   * @param txId
+   * @param revenueType
+   * @param eventData
    */
-  storeRevenue = async (
+  insertRevenue = async (
     tokenId: string,
     amount: bigint,
-    tx: TransactionEntity
+    txId: string,
+    revenueType: string,
+    eventData: EventTriggerEntity
   ) => {
     return await this.RevenueRepository.insert({
       tokenId,
       amount,
-      tx,
+      txId,
+      revenueType,
+      eventData,
     });
   };
 
   /**
    * Returns all revenue with respect to the filters
+   * @param sort
    * @param fromChain
    * @param toChain
-   * @param tokenId
-   * @param sourceTxId
    * @param minHeight
    * @param maxHeight
    * @param fromBlockTime
    * @param toBlockTime
-   * @param sorting
    * @param offset
    * @param limit
    */
@@ -668,18 +674,21 @@ class DatabaseAction {
     sort?: SortRequest,
     fromChain?: string,
     toChain?: string,
-    tokenId?: string,
     minHeight?: number,
     maxHeight?: number,
     fromBlockTime?: number,
-    toBlockTime?: number
-  ): Promise<RevenueView[]> => {
+    toBlockTime?: number,
+    offset = 0,
+    limit = 20
+  ): Promise<{
+    items: RevenueView[];
+    total: number;
+  }> => {
     const clauses = [],
       heightCondition = [],
       timeCondition = [];
     if (fromChain) clauses.push({ fromChain: fromChain });
     if (toChain) clauses.push({ toChain: toChain });
-    if (tokenId) clauses.push({ revenueTokenId: tokenId });
     if (minHeight) heightCondition.push(MoreThanOrEqual(minHeight));
     if (maxHeight) heightCondition.push(LessThan(maxHeight));
     if (heightCondition.length > 0)
@@ -688,7 +697,7 @@ class DatabaseAction {
     if (toBlockTime) timeCondition.push(LessThan(toBlockTime));
     if (timeCondition.length > 0)
       clauses.push({ timestamp: And(...timeCondition) });
-    return this.RevenueView.find({
+    const result = await this.RevenueView.findAndCount({
       where:
         clauses.length > 0
           ? clauses.reduce(
@@ -702,6 +711,27 @@ class DatabaseAction {
       order: {
         timestamp: sort ? sort : 'DESC',
       },
+      skip: offset,
+      take: limit,
+    });
+    return {
+      items: result[0],
+      total: result[1],
+    };
+  };
+
+  /**
+   * get list of all revenues for selected list of events
+   * @param ids event row id
+   */
+  getEventsRevenues = async (
+    ids: Array<number>
+  ): Promise<Array<RevenueEntity>> => {
+    return this.RevenueRepository.find({
+      where: {
+        eventData: In(ids),
+      },
+      relations: ['eventData'],
     });
   };
 

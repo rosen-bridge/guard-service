@@ -57,6 +57,7 @@ class GuardsCardanoConfigs {
       lock: this.cardanoContractConfig.lockAddress,
       cold: this.coldAddress,
       permit: this.cardanoContractConfig.permitAddress,
+      fraud: this.cardanoContractConfig.fraudAddress,
     },
     rwtId: this.cardanoContractConfig.RWTId,
     minBoxValue: this.txMinimumLovelace,

@@ -16,23 +16,7 @@ export default defineConfig({
       provider: 'istanbul',
       include: ['src'],
     },
-    deps: {
-      inline: [
-        /ergo-lib-wasm-browser/,
-        /@rosen-bridge/,
-        /@rosen-chains/,
-        /@lodash-es/,
-      ],
-      registerNodeLoader: true,
-    },
-    environment: 'node',
-    transformMode: {
-      web: [/\.([cm]?[jt]sx?|json)$/],
-    },
     singleThread: true,
   },
   plugins: [wasm(), topLevelAwait()],
-  optimizeDeps: {
-    disabled: true,
-  },
 });

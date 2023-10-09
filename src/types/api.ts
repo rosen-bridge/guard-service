@@ -3,6 +3,7 @@ import { IncomingMessage, Server, ServerResponse } from 'http';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { Type } from '@sinclair/typebox';
 import { HealthStatusLevel } from '@rosen-bridge/health-check';
+import { RevenueType } from '../utils/constants';
 
 type FastifySeverInstance = FastifyInstance<
   Server<any, any>,
@@ -42,9 +43,10 @@ interface TokenChartData {
 
 interface TokenData {
   tokenId: string;
-  amount: string;
+  amount: number;
   name?: string;
   decimals: number;
+  isNativeToken: boolean;
 }
 
 interface AddressBalance {
@@ -62,12 +64,40 @@ interface GeneralInfo {
   balances: LockBalance;
 }
 
+interface SingleRevenue {
+  revenueType: RevenueType;
+  data: TokenData;
+}
+
+interface RevenueHistory {
+  id: number;
+  rewardTxId: string;
+  eventId: string;
+  lockHeight: number;
+  fromChain: string;
+  toChain: string;
+  fromAddress: string;
+  toAddress: string;
+  amount: string;
+  bridgeFee: string;
+  networkFee: string;
+  lockTokenId: string;
+  lockTxId: string;
+  height: number;
+  timestamp: number;
+  revenues: Array<SingleRevenue>;
+}
+
 export {
   FastifySeverInstance,
   SortRequest,
   HealthStatusType,
   TokenChartData,
   Token,
+  TokenData,
+  AddressBalance,
   LockBalance,
   GeneralInfo,
+  SingleRevenue,
+  RevenueHistory,
 };

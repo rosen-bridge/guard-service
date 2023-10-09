@@ -6,6 +6,7 @@ import { SortRequest } from '../../src/types/api';
 import {
   EventStatus,
   RevenuePeriod,
+  RevenueType,
   TransactionStatus,
 } from '../../src/utils/constants';
 import { DatabaseAction } from '../../src/db/DatabaseAction';
@@ -19,6 +20,7 @@ import {
 import * as TxTestData from '../agreement/testData';
 import { TransactionType } from '@rosen-chains/abstract-chain';
 import TestConfigs from '../testUtils/TestConfigs';
+import TestUtils from '../testUtils/TestUtils';
 
 describe('DatabaseActions', () => {
   beforeEach(async () => {
@@ -214,57 +216,73 @@ describe('DatabaseActions', () => {
     });
   });
 
-  describe('getUnsavedRevenueIds', () => {
+  describe('getUnsavedRevenueEvents', () => {
     /**
-     * @target DatabaseAction.getUnsavedRevenueIds should return unsaved revenue ids for completed reward txs
+     * @target DatabaseAction.getUnsavedRevenueEvents should return
+     * unsaved revenue events containing spendTx
      * @dependencies
      * - database
      * @scenario
-     * - insert 10 mocked completed reward txs
-     * - insert 10 mocked in-sign reward txs
-     * - insert 10 mocked completed payment txs in database
-     * - run test (call `getUnsavedRevenueIds`)
-     * - check unsaved revenue tx ids
+     * - insert 3 events
+     *   - one without spendTxId
+     *   - one with spendTxId but without revenue
+     *   - one with spendTxId and revenue
+     * - run test
+     * - check returned value
      * @expected
-     * - should return 10 completed unsaved revenue ids
-     * - all returned ids should be reward tx ids
+     * - should return only the second event which is
+     *   event with spendTxId but without revenue
      */
-    it('should return unsaved revenue ids for completed reward txs', async () => {
-      const rewardTxIds = [];
-      for (let index = 0; index < 10; index++) {
-        // insert 10 completed reward tx to database
-        const rewardTx = TxTestData.mockPaymentTransaction(
-          TransactionType.reward
-        );
-        await DatabaseActionMock.insertTxRecord(
-          rewardTx,
-          TransactionStatus.completed
-        );
-        rewardTxIds.push(rewardTx.txId);
+    it('should return unsaved revenue events containing spendTx', async () => {
+      // insert 3 events
+      const boxSerialized = 'boxSerialized';
+      //  one without spendTxId
+      const mockedEvent1 = EventTestData.mockEventTrigger();
+      await DatabaseActionMock.insertOnlyEventDataRecord(
+        mockedEvent1,
+        boxSerialized
+      );
+      //  one with spendTxId but without revenue
+      const mockedEvent2 = EventTestData.mockEventTrigger();
+      const spendTxId2 = TestUtils.generateRandomId();
+      await DatabaseActionMock.insertOnlyEventDataRecord(
+        mockedEvent2,
+        boxSerialized,
+        100,
+        spendTxId2,
+        TestUtils.generateRandomId()
+      );
+      //  one with spendTxId and revenue
+      const mockedEvent3 = EventTestData.mockEventTrigger();
+      const spendTxId3 = TestUtils.generateRandomId();
+      await DatabaseActionMock.insertOnlyEventDataRecord(
+        mockedEvent3,
+        boxSerialized,
+        100,
+        spendTxId3,
+        TestUtils.generateRandomId()
+      );
+      const mockedEvent3Entity = (
+        await DatabaseActionMock.allRawEventRecords()
+      ).find((event) => event.spendTxId === spendTxId3)!;
+      await DatabaseAction.getInstance().insertRevenue(
+        TestUtils.generateRandomId(),
+        100n,
+        spendTxId3,
+        RevenueType.fraud,
+        mockedEvent3Entity
+      );
 
-        // insert 10 in-sign reward tx to database
-        const waitingRewardTx = TxTestData.mockPaymentTransaction(
-          TransactionType.reward
-        );
-        await DatabaseActionMock.insertTxRecord(
-          waitingRewardTx,
-          TransactionStatus.inSign
+      // run test
+      const result =
+        await DatabaseAction.getInstance().getConfirmedUnsavedRevenueEvents(
+          115,
+          10
         );
 
-        // insert 10 payment tx to database
-        const paymentTx = TxTestData.mockPaymentTransaction(
-          TransactionType.payment
-        );
-        await DatabaseActionMock.insertTxRecord(
-          paymentTx,
-          TransactionStatus.completed
-        );
-      }
-
-      const unsavedRevenues =
-        await DatabaseAction.getInstance().getUnsavedRevenueIds();
-      expect(unsavedRevenues.length).toEqual(10);
-      expect(rewardTxIds.sort()).toEqual(unsavedRevenues.sort());
+      // check returned value
+      expect(result.length).toEqual(1);
+      expect(result[0].spendTxId).toEqual(spendTxId2);
     });
   });
 
@@ -489,36 +507,6 @@ describe('DatabaseActions', () => {
     });
   });
 
-  describe('storeRevenue', () => {
-    /**
-     * @target DatabaseAction.storeRevenue should store new revenue correctly
-     * @dependencies
-     * - database
-     * @scenario
-     * - insert a mocked tx to db
-     * - get the saved tx entity
-     * - run test (call `storeRevenue`)
-     * - check saved revenue
-     * @expected
-     * - should store the new revenue correctly
-     */
-    it('should store the new revenue correctly', async () => {
-      const tx = TxTestData.mockPaymentTransaction(TransactionType.reward);
-      await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.completed);
-      const txRecord = (await DatabaseAction.getInstance().getTxById(tx.txId))!;
-      await DatabaseAction.getInstance().storeRevenue(
-        'tokenId',
-        1000n,
-        txRecord
-      );
-      const savedRevenue = await DatabaseActionMock.allRevenueRecords();
-      expect(savedRevenue).toHaveLength(1);
-      expect(savedRevenue[0].tokenId).toEqual('tokenId');
-      expect(savedRevenue[0].amount).toEqual(1000n);
-      expect(savedRevenue[0].tx.txId).toEqual(tx.txId);
-    });
-  });
-
   describe('getRevenuesWithFilters', () => {
     /**
      * @target DatabaseAction.getRevenuesWithFilters should return all stored revenues in descending order
@@ -536,10 +524,10 @@ describe('DatabaseActions', () => {
       await insertRevenueDataWithTimestamps(10);
       const revenues =
         await DatabaseAction.getInstance().getRevenuesWithFilters();
-      expect(revenues).toHaveLength(10);
+      expect(revenues.total).toEqual(10);
       for (let index = 0; index < 9; index++) {
-        expect(revenues[index].timestamp).toBeGreaterThanOrEqual(
-          revenues[index + 1].timestamp
+        expect(revenues.items[index].timestamp).toBeGreaterThanOrEqual(
+          revenues.items[index + 1].timestamp
         );
       }
     });
@@ -562,10 +550,10 @@ describe('DatabaseActions', () => {
         await DatabaseAction.getInstance().getRevenuesWithFilters(
           SortRequest.ASC
         );
-      expect(revenues).toHaveLength(10);
+      expect(revenues.total).toEqual(10);
       for (let index = 0; index < 9; index++) {
-        expect(revenues[index].timestamp).toBeLessThanOrEqual(
-          revenues[index + 1].timestamp
+        expect(revenues.items[index].timestamp).toBeLessThanOrEqual(
+          revenues.items[index + 1].timestamp
         );
       }
     });
@@ -588,13 +576,12 @@ describe('DatabaseActions', () => {
           undefined,
           undefined,
           undefined,
-          undefined,
           1002,
           1003
         );
-      expect(revenues).toHaveLength(1);
-      expect(revenues[0].height).toBeGreaterThanOrEqual(1002);
-      expect(revenues[0].height).toBeLessThan(1003);
+      expect(revenues.total).toEqual(1);
+      expect(revenues.items[0].height).toBeGreaterThanOrEqual(1002);
+      expect(revenues.items[0].height).toBeLessThan(1003);
     });
 
     /**
@@ -617,13 +604,12 @@ describe('DatabaseActions', () => {
           undefined,
           undefined,
           undefined,
-          undefined,
           1665438000000,
           1665439000000
         );
-      expect(revenues).toHaveLength(1);
-      expect(revenues[0].timestamp).toBeGreaterThanOrEqual(1665438000000);
-      expect(revenues[0].timestamp).toBeLessThanOrEqual(1665439000000);
+      expect(revenues.total).toEqual(1);
+      expect(revenues.items[0].timestamp).toBeGreaterThanOrEqual(1665438000000);
+      expect(revenues.items[0].timestamp).toBeLessThanOrEqual(1665439000000);
     });
 
     /**
@@ -644,8 +630,8 @@ describe('DatabaseActions', () => {
           undefined,
           ERGO_CHAIN
         );
-      expect(revenues).toHaveLength(10);
-      revenues.forEach((revenue) =>
+      expect(revenues.total).toEqual(10);
+      revenues.items.forEach((revenue) =>
         expect(revenue.fromChain).toEqual(ERGO_CHAIN)
       );
     });
@@ -669,36 +655,39 @@ describe('DatabaseActions', () => {
           undefined,
           ERGO_CHAIN
         );
-      expect(revenues).toHaveLength(10);
-      revenues.forEach((revenue) =>
+      expect(revenues.total).toEqual(10);
+      revenues.items.forEach((revenue) =>
         expect(revenue.toChain).toEqual(ERGO_CHAIN)
       );
     });
 
     /**
-     * @target DatabaseAction.getRevenuesWithFilters should return the revenue with specified revenue token
+     * @target DatabaseAction.getRevenuesWithFilters should consider pagination
      * @dependencies
      * - database
      * @scenario
-     * - insert 20 mocked revenues with different tokenIds (10 "revenueToken", 10 others)
+     * - insert 10 mocked revenues with different timestamps
      * - run test (call `getRevenuesWithFilters`)
      * - check returned revenues
      * @expected
-     * - should return 10 revenues with specified token
+     * - should return limited data with correct total value
      */
-    it('should return the revenue with specified revenue token', async () => {
-      await insertRevenueDataWithDifferentTokenId(10);
+    it('should consider pagination', async () => {
+      await insertRevenueDataWithTimestamps(10);
       const revenues =
         await DatabaseAction.getInstance().getRevenuesWithFilters(
           undefined,
           undefined,
           undefined,
-          'revenueToken'
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          1,
+          3
         );
-      expect(revenues).toHaveLength(10);
-      revenues.forEach((revenue) =>
-        expect(revenue.revenueTokenId).toEqual('revenueToken')
-      );
+      expect(revenues.items).toHaveLength(3);
+      expect(revenues.total).toEqual(10);
     });
   });
 

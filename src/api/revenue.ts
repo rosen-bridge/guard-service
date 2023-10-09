@@ -1,62 +1,27 @@
 import { Type } from '@sinclair/typebox';
+import { FastifySeverInstance, TokenChartData } from '../types/api';
 import {
-  FastifySeverInstance,
-  SortRequest,
-  TokenChartData,
-} from '../types/api';
-import { messageResponseSchema, outputItemsSchema } from '../types/schema';
+  messageResponseSchema,
+  RevenueHistoryResponse,
+  RevenueHistoryQuery,
+} from '../types/schema';
 import { DatabaseAction } from '../db/DatabaseAction';
-import {
-  DefaultApiLimit,
-  DefaultRevenueApiCount,
-  RevenuePeriod,
-} from '../utils/constants';
+import { DefaultRevenueApiCount, RevenuePeriod } from '../utils/constants';
 import { groupBy, reduce } from 'lodash-es';
+import { extractRevenueFromView } from '../utils/revenue';
 
 /**
  * setup revenue history route
  * @param server
  */
 const revenueHistoryRoute = (server: FastifySeverInstance) => {
-  const querySchema = Type.Object({
-    limit: Type.Number({ default: DefaultApiLimit }),
-    offset: Type.Number({ default: 0 }),
-    sort: Type.Optional(Type.Enum(SortRequest)),
-    fromChain: Type.Optional(Type.String()),
-    toChain: Type.Optional(Type.String()),
-    tokenId: Type.Optional(Type.String()),
-    maxHeight: Type.Optional(Type.Number()),
-    minHeight: Type.Optional(Type.Number()),
-    fromBlockTime: Type.Optional(Type.Number()),
-    toBlockTime: Type.Optional(Type.Number()),
-  });
-  const historyResponseSchema = outputItemsSchema(
-    Type.Object({
-      rewardTxId: Type.String(),
-      eventId: Type.String(),
-      lockHeight: Type.Number(),
-      fromChain: Type.String(),
-      toChain: Type.String(),
-      fromAddress: Type.String(),
-      toAddress: Type.String(),
-      amount: Type.String(),
-      bridgeFee: Type.String(),
-      networkFee: Type.String(),
-      lockTokenId: Type.String(),
-      lockTxId: Type.String(),
-      height: Type.Number(),
-      timestamp: Type.Number(),
-      revenueTokenId: Type.String(),
-      revenueAmount: Type.String(),
-    } as const)
-  );
   server.get(
     '/revenue/history',
     {
       schema: {
-        querystring: querySchema,
+        querystring: RevenueHistoryQuery,
         response: {
-          200: historyResponseSchema,
+          200: RevenueHistoryResponse,
           500: messageResponseSchema,
         },
       },
@@ -76,24 +41,24 @@ const revenueHistoryRoute = (server: FastifySeverInstance) => {
       } = request.query;
 
       const dbAction = DatabaseAction.getInstance();
-      const results = await dbAction.getRevenuesWithFilters(
+      const eventsRevenues = await dbAction.getRevenuesWithFilters(
         sort,
         fromChain,
         toChain,
-        tokenId,
         minHeight,
         maxHeight,
         fromBlockTime,
-        toBlockTime
+        toBlockTime,
+        offset,
+        limit
       );
-      const revenues = results.slice(offset, offset + limit);
+      const revenues = await dbAction.getEventsRevenues(
+        eventsRevenues.items.map((row) => row.id)
+      );
 
       reply.status(200).send({
-        items: revenues.map((revenue) => ({
-          ...revenue,
-          revenueAmount: revenue.revenueAmount.toString(),
-        })),
-        total: results.length,
+        items: await extractRevenueFromView(eventsRevenues.items, revenues),
+        total: eventsRevenues.total,
       });
     }
   );

@@ -84,6 +84,8 @@ class DatabaseActionMock {
    * @param firstTry
    * @param eventHeight
    * @param spendHeight
+   * @param spendBlockId
+   * @param spendTxId
    */
   static insertEventRecord = async (
     event: EventTrigger,
@@ -93,7 +95,8 @@ class DatabaseActionMock {
     firstTry?: string,
     eventHeight = 200,
     spendHeight?: number,
-    spendBlockId = 'blockId'
+    spendBlockId = 'blockId',
+    spendTxId?: string
   ) => {
     await this.testDatabase.EventRepository.createQueryBuilder()
       .insert()
@@ -118,6 +121,7 @@ class DatabaseActionMock {
         sourceChainHeight: sourceChainHeight,
         spendHeight: spendHeight,
         spendBlock: spendBlockId,
+        spendTxId: spendTxId,
         txId: 'event-creation-tx-id',
         eventId: Utils.txIdToEventId(event.sourceTxId),
       })
@@ -147,7 +151,9 @@ class DatabaseActionMock {
   static insertOnlyEventDataRecord = async (
     event: EventTrigger,
     boxSerialized = 'boxSerialized',
-    spendHeight?: number
+    spendHeight?: number,
+    spendTxId?: string,
+    spendBlock?: string
   ) => {
     const height = 300;
     await this.testDatabase.EventRepository.createQueryBuilder()
@@ -171,6 +177,8 @@ class DatabaseActionMock {
         sourceBlockId: event.sourceBlockId,
         sourceChainHeight: event.sourceChainHeight,
         spendHeight: spendHeight,
+        spendTxId: spendTxId,
+        spendBlock: spendBlock,
         WIDs: event.WIDs.join(','),
         txId: 'event-creation-tx-id',
       })
@@ -304,7 +312,7 @@ class DatabaseActionMock {
    */
   static allRevenueRecords = async () => {
     return await this.testDatabase.RevenueRepository.find({
-      relations: ['tx'],
+      relations: ['eventData'],
     });
   };
 }
