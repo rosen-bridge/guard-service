@@ -2,7 +2,7 @@ import { Type } from '@sinclair/typebox';
 import { getHealthCheck } from '../guard/HealthCheck';
 import {
   FastifySeverInstance,
-  HealthStatusType,
+  HealthStatusTypeSchema,
   MessageResponseSchema,
 } from './schemas';
 
@@ -16,7 +16,7 @@ const healthStatusRoute = (server: FastifySeverInstance) => {
     {
       schema: {
         response: {
-          200: Type.Array(HealthStatusType),
+          200: Type.Array(HealthStatusTypeSchema),
           500: MessageResponseSchema,
         },
       },
@@ -44,7 +44,7 @@ const healthStatusForParameterRoute = (server: FastifySeverInstance) => {
       schema: {
         params: Type.Object({ paramId: Type.String() }),
         response: {
-          200: HealthStatusType,
+          200: HealthStatusTypeSchema,
           500: MessageResponseSchema,
         },
       },
@@ -74,7 +74,7 @@ const updateHealthStatusForParameterRoute = (server: FastifySeverInstance) => {
       schema: {
         params: Type.Object({ paramId: Type.String() }),
         response: {
-          200: HealthStatusType,
+          200: HealthStatusTypeSchema,
           500: MessageResponseSchema,
         },
       },

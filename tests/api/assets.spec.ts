@@ -6,7 +6,7 @@ import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
 import ChainHandlerMock from '../handlers/ChainHandler.mock';
 import { assetRoutes } from '../../src/api/assets';
 import ChainHandler from '../../src/handlers/ChainHandler';
-import { FastifySeverInstance } from '../../src/api/types';
+import { FastifySeverInstance } from '../../src/api/schemas';
 
 describe('assets', () => {
   let mockedServer: FastifySeverInstance;

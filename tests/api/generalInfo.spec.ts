@@ -6,7 +6,7 @@ import { CARDANO_CHAIN } from '@rosen-chains/cardano';
 import fastify from 'fastify';
 import GuardsErgoConfigs from '../../src/configs/GuardsErgoConfigs';
 import GuardsCardanoConfigs from '../../src/configs/GuardsCardanoConfigs';
-import { FastifySeverInstance } from '../../src/api/types';
+import { FastifySeverInstance } from '../../src/api/schemas';
 
 describe('generalInfo', () => {
   describe('GET /info', () => {

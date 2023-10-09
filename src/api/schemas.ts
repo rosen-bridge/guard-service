@@ -56,7 +56,7 @@ export const InfoResponseSchema = Type.Object({
   balances: LockBalanceSchema,
 });
 
-export const HealthStatusType = Type.Object({
+export const HealthStatusTypeSchema = Type.Object({
   id: Type.String(),
   status: Type.Enum(HealthStatusLevel),
   description: Type.Optional(Type.String()),
