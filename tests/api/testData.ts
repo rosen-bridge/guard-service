@@ -15,6 +15,7 @@ export const guardInfo = {
           amount: 10,
           name: 'erg',
           decimals: 9,
+          isNativeToken: true,
         },
       },
       {
@@ -24,6 +25,7 @@ export const guardInfo = {
           amount: 20,
           name: 'ada',
           decimals: 6,
+          isNativeToken: true,
         },
       },
     ],
@@ -35,6 +37,7 @@ export const guardInfo = {
           amount: 100,
           name: 'erg',
           decimals: 9,
+          isNativeToken: true,
         },
       },
       {
@@ -44,6 +47,7 @@ export const guardInfo = {
           amount: 200,
           name: 'ada',
           decimals: 6,
+          isNativeToken: true,
         },
       },
     ],
