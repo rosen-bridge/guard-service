@@ -7,7 +7,7 @@ import {
   EventsResponseSchema,
   FastifySeverInstance,
   MessageResponseSchema,
-} from './types';
+} from './schemas';
 
 /**
  * setup event history route

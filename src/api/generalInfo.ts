@@ -10,7 +10,7 @@ import {
   FastifySeverInstance,
   InfoResponseSchema,
   MessageResponseSchema,
-} from './types';
+} from './schemas';
 
 const logger = loggerFactory(import.meta.url);
 

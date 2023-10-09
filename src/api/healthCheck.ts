@@ -4,7 +4,7 @@ import {
   FastifySeverInstance,
   HealthStatusType,
   MessageResponseSchema,
-} from './types';
+} from './schemas';
 
 /**
  * setup health status route

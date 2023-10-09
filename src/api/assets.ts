@@ -10,7 +10,7 @@ import {
   AssetsResponseSchema,
   FastifySeverInstance,
   MessageResponseSchema,
-} from './types';
+} from './schemas';
 
 /**
  * setup available assets route

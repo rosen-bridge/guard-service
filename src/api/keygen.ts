@@ -1,6 +1,6 @@
 import { loggerFactory } from '../log/Logger';
 import { Type } from '@sinclair/typebox';
-import { FastifySeverInstance, MessageResponseSchema } from './types';
+import { FastifySeverInstance, MessageResponseSchema } from './schemas';
 
 const logger = loggerFactory(import.meta.url);
 

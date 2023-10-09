@@ -11,7 +11,7 @@ import {
   RevenueChartResponseSchema,
   RevenueHistoryQuerySchema,
   RevenueHistoryResponseSchema,
-} from './types';
+} from './schemas';
 
 /**
  * setup revenue history route
