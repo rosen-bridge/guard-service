@@ -2,8 +2,9 @@ import { ERGO_CHAIN } from '@rosen-chains/ergo';
 import Configs from '../configs/Configs';
 import { RevenueEntity } from '../db/entities/revenueEntity';
 import { RevenueView } from '../db/entities/revenueView';
-import { RevenueHistory, TokenData } from '../types/api';
+import { RevenueHistory, SingleRevenue, TokenData } from '../types/api';
 import { TokenInfo } from '@rosen-chains/abstract-chain';
+import { RevenueType } from './constants';
 
 /**
  * Extracts the revenue from the revenue view
@@ -13,24 +14,34 @@ export const extractRevenueFromView = async (
   events: Array<RevenueView>,
   revenues: Array<RevenueEntity>
 ): Promise<Array<RevenueHistory>> => {
-  const tokenMap = new Map<number, Array<TokenInfo>>();
+  const eventRevenuesMap = new Map<
+    number,
+    Array<{
+      revenueType: RevenueType;
+      data: TokenInfo;
+    }>
+  >();
   revenues.forEach((revenue) => {
-    if (tokenMap.has(revenue.eventData.id)) {
-      tokenMap
-        .get(revenue.eventData.id)
-        ?.push({ id: revenue.tokenId, value: BigInt(revenue.amount) });
+    if (eventRevenuesMap.has(revenue.eventData.id)) {
+      eventRevenuesMap.get(revenue.eventData.id)?.push({
+        revenueType: revenue.revenueType as RevenueType,
+        data: { id: revenue.tokenId, value: BigInt(revenue.amount) },
+      });
     } else {
-      tokenMap.set(revenue.eventData.id, [
-        { id: revenue.tokenId, value: BigInt(revenue.amount) },
+      eventRevenuesMap.set(revenue.eventData.id, [
+        {
+          revenueType: revenue.revenueType as RevenueType,
+          data: { id: revenue.tokenId, value: BigInt(revenue.amount) },
+        },
       ]);
     }
   });
   return Promise.all(
     events.map(async (event) => {
-      const rowTokens = tokenMap.get(event.id) || [];
+      const eventRevenues = eventRevenuesMap.get(event.id) || [];
       return {
         ...event,
-        revenues: fillTokensDetails(rowTokens),
+        revenues: fillTokensDetails(eventRevenues),
       };
     })
   );
@@ -38,13 +49,18 @@ export const extractRevenueFromView = async (
 
 /**
  * fill token name and decimals for list of extracted tokens
- * @param tokens
+ * @param revenues
  * @returns
  */
-const fillTokensDetails = (tokens: Array<TokenInfo>): Array<TokenData> => {
-  return tokens.map((token) => {
+const fillTokensDetails = (
+  revenues: Array<{
+    revenueType: RevenueType;
+    data: TokenInfo;
+  }>
+): Array<SingleRevenue> => {
+  return revenues.map((revenue) => {
     const tokenInfo = Configs.tokenMap.search(ERGO_CHAIN, {
-      [Configs.tokenMap.getIdKey(ERGO_CHAIN)]: token.id,
+      [Configs.tokenMap.getIdKey(ERGO_CHAIN)]: revenue.data.id,
     });
 
     let name = 'Unsupported token';
@@ -56,10 +72,13 @@ const fillTokensDetails = (tokens: Array<TokenInfo>): Array<TokenData> => {
     }
 
     return {
-      tokenId: token.id,
-      amount: Number(token.value),
-      name: name,
-      decimals: decimals,
+      revenueType: revenue.revenueType,
+      data: {
+        tokenId: revenue.data.id,
+        amount: Number(revenue.data.value),
+        name: name,
+        decimals: decimals,
+      },
     };
   });
 };

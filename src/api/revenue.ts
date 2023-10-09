@@ -41,7 +41,7 @@ const revenueHistoryRoute = (server: FastifySeverInstance) => {
       } = request.query;
 
       const dbAction = DatabaseAction.getInstance();
-      const events = await dbAction.getRevenuesWithFilters(
+      const eventsRevenues = await dbAction.getRevenuesWithFilters(
         sort,
         fromChain,
         toChain,
@@ -53,12 +53,12 @@ const revenueHistoryRoute = (server: FastifySeverInstance) => {
         limit
       );
       const revenues = await dbAction.getEventsRevenues(
-        events.map((row) => row.id)
+        eventsRevenues.items.map((row) => row.id)
       );
 
       reply.status(200).send({
-        items: await extractRevenueFromView(events, revenues),
-        total: events.length,
+        items: await extractRevenueFromView(eventsRevenues.items, revenues),
+        total: eventsRevenues.total,
       });
     }
   );

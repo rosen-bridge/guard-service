@@ -524,10 +524,10 @@ describe('DatabaseActions', () => {
       await insertRevenueDataWithTimestamps(10);
       const revenues =
         await DatabaseAction.getInstance().getRevenuesWithFilters();
-      expect(revenues).toHaveLength(10);
+      expect(revenues.total).toEqual(10);
       for (let index = 0; index < 9; index++) {
-        expect(revenues[index].timestamp).toBeGreaterThanOrEqual(
-          revenues[index + 1].timestamp
+        expect(revenues.items[index].timestamp).toBeGreaterThanOrEqual(
+          revenues.items[index + 1].timestamp
         );
       }
     });
@@ -550,10 +550,10 @@ describe('DatabaseActions', () => {
         await DatabaseAction.getInstance().getRevenuesWithFilters(
           SortRequest.ASC
         );
-      expect(revenues).toHaveLength(10);
+      expect(revenues.total).toEqual(10);
       for (let index = 0; index < 9; index++) {
-        expect(revenues[index].timestamp).toBeLessThanOrEqual(
-          revenues[index + 1].timestamp
+        expect(revenues.items[index].timestamp).toBeLessThanOrEqual(
+          revenues.items[index + 1].timestamp
         );
       }
     });
@@ -579,9 +579,9 @@ describe('DatabaseActions', () => {
           1002,
           1003
         );
-      expect(revenues).toHaveLength(1);
-      expect(revenues[0].height).toBeGreaterThanOrEqual(1002);
-      expect(revenues[0].height).toBeLessThan(1003);
+      expect(revenues.total).toEqual(1);
+      expect(revenues.items[0].height).toBeGreaterThanOrEqual(1002);
+      expect(revenues.items[0].height).toBeLessThan(1003);
     });
 
     /**
@@ -607,9 +607,9 @@ describe('DatabaseActions', () => {
           1665438000000,
           1665439000000
         );
-      expect(revenues).toHaveLength(1);
-      expect(revenues[0].timestamp).toBeGreaterThanOrEqual(1665438000000);
-      expect(revenues[0].timestamp).toBeLessThanOrEqual(1665439000000);
+      expect(revenues.total).toEqual(1);
+      expect(revenues.items[0].timestamp).toBeGreaterThanOrEqual(1665438000000);
+      expect(revenues.items[0].timestamp).toBeLessThanOrEqual(1665439000000);
     });
 
     /**
@@ -630,8 +630,8 @@ describe('DatabaseActions', () => {
           undefined,
           ERGO_CHAIN
         );
-      expect(revenues).toHaveLength(10);
-      revenues.forEach((revenue) =>
+      expect(revenues.total).toEqual(10);
+      revenues.items.forEach((revenue) =>
         expect(revenue.fromChain).toEqual(ERGO_CHAIN)
       );
     });
@@ -655,10 +655,39 @@ describe('DatabaseActions', () => {
           undefined,
           ERGO_CHAIN
         );
-      expect(revenues).toHaveLength(10);
-      revenues.forEach((revenue) =>
+      expect(revenues.total).toEqual(10);
+      revenues.items.forEach((revenue) =>
         expect(revenue.toChain).toEqual(ERGO_CHAIN)
       );
+    });
+
+    /**
+     * @target DatabaseAction.getRevenuesWithFilters should consider pagination
+     * @dependencies
+     * - database
+     * @scenario
+     * - insert 10 mocked revenues with different timestamps
+     * - run test (call `getRevenuesWithFilters`)
+     * - check returned revenues
+     * @expected
+     * - should return limited data with correct total value
+     */
+    it('should consider pagination', async () => {
+      await insertRevenueDataWithTimestamps(10);
+      const revenues =
+        await DatabaseAction.getInstance().getRevenuesWithFilters(
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          1,
+          3
+        );
+      expect(revenues.items).toHaveLength(3);
+      expect(revenues.total).toEqual(10);
     });
   });
 

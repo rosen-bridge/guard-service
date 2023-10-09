@@ -49,6 +49,11 @@ export const RevenueHistoryQuery = Type.Object({
   toBlockTime: Type.Optional(Type.Number()),
 });
 
+export const SingleRevenueSchema = Type.Object({
+  revenueType: Type.String(),
+  data: tokenDataSchema,
+});
+
 export const RevenueHistoryResponse = outputItemsSchema(
   Type.Object({
     id: Type.Number(),
@@ -66,6 +71,6 @@ export const RevenueHistoryResponse = outputItemsSchema(
     lockTxId: Type.String(),
     height: Type.Number(),
     timestamp: Type.Number(),
-    revenues: Type.Array(tokenDataSchema),
+    revenues: Type.Array(SingleRevenueSchema),
   } as const)
 );

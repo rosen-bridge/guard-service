@@ -680,7 +680,10 @@ class DatabaseAction {
     toBlockTime?: number,
     offset = 0,
     limit = 20
-  ): Promise<RevenueView[]> => {
+  ): Promise<{
+    items: RevenueView[];
+    total: number;
+  }> => {
     const clauses = [],
       heightCondition = [],
       timeCondition = [];
@@ -694,7 +697,7 @@ class DatabaseAction {
     if (toBlockTime) timeCondition.push(LessThan(toBlockTime));
     if (timeCondition.length > 0)
       clauses.push({ timestamp: And(...timeCondition) });
-    return this.RevenueView.find({
+    const result = await this.RevenueView.findAndCount({
       where:
         clauses.length > 0
           ? clauses.reduce(
@@ -711,6 +714,10 @@ class DatabaseAction {
       skip: offset,
       take: limit,
     });
+    return {
+      items: result[0],
+      total: result[1],
+    };
   };
 
   /**

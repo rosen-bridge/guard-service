@@ -3,6 +3,7 @@ import { IncomingMessage, Server, ServerResponse } from 'http';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { Type } from '@sinclair/typebox';
 import { HealthStatusLevel } from '@rosen-bridge/health-check';
+import { RevenueType } from '../utils/constants';
 
 type FastifySeverInstance = FastifyInstance<
   Server<any, any>,
@@ -62,6 +63,11 @@ interface GeneralInfo {
   balances: LockBalance;
 }
 
+interface SingleRevenue {
+  revenueType: RevenueType;
+  data: TokenData;
+}
+
 interface RevenueHistory {
   id: number;
   rewardTxId: string;
@@ -78,7 +84,7 @@ interface RevenueHistory {
   lockTxId: string;
   height: number;
   timestamp: number;
-  revenues: Array<TokenData>;
+  revenues: Array<SingleRevenue>;
 }
 
 export {
@@ -91,5 +97,6 @@ export {
   AddressBalance,
   LockBalance,
   GeneralInfo,
+  SingleRevenue,
   RevenueHistory,
 };

@@ -1,6 +1,7 @@
 import { RevenueEntity } from '../../src/db/entities/revenueEntity';
 import { RevenueView } from '../../src/db/entities/revenueView';
 import { RevenueHistory } from '../../src/types/api';
+import { RevenueType } from '../../src/utils/constants';
 import { extractRevenueFromView } from '../../src/utils/revenue';
 
 describe('extractRevenueFromView', () => {
@@ -63,7 +64,7 @@ describe('extractRevenueFromView', () => {
       tokenId: 'tokenId',
       amount: 10000n,
       txId: '9ac6dd1e7868e2d95210e29a7db15f6cdf18138c6846b1687da0e66d4429be39',
-      revenueType: 'fraud',
+      revenueType: RevenueType.fraud,
       eventData: eventData,
     },
     {
@@ -71,7 +72,7 @@ describe('extractRevenueFromView', () => {
       tokenId: 'erg',
       amount: 100000000n,
       txId: '9ac6dd1e7868e2d95210e29a7db15f6cdf18138c6846b1687da0e66d4429be39',
-      revenueType: 'fraud',
+      revenueType: RevenueType.fraud,
       eventData: eventData,
     },
   ];
@@ -98,16 +99,22 @@ describe('extractRevenueFromView', () => {
       timestamp: 1669672400000,
       revenues: [
         {
-          tokenId: 'tokenId',
-          amount: 10000,
-          name: 'Unsupported token',
-          decimals: 0,
+          revenueType: RevenueType.fraud,
+          data: {
+            tokenId: 'tokenId',
+            amount: 10000,
+            name: 'Unsupported token',
+            decimals: 0,
+          },
         },
         {
-          tokenId: 'erg',
-          amount: 100000000,
-          name: 'erg',
-          decimals: 9,
+          revenueType: RevenueType.fraud,
+          data: {
+            tokenId: 'erg',
+            amount: 100000000,
+            name: 'erg',
+            decimals: 9,
+          },
         },
       ],
     },
