@@ -105,6 +105,7 @@ describe('extractRevenueFromView', () => {
             amount: 10000,
             name: 'Unsupported token',
             decimals: 0,
+            isNativeToken: false,
           },
         },
         {
@@ -114,6 +115,7 @@ describe('extractRevenueFromView', () => {
             amount: 100000000,
             name: 'erg',
             decimals: 9,
+            isNativeToken: true,
           },
         },
       ],

@@ -46,6 +46,7 @@ interface TokenData {
   amount: number;
   name?: string;
   decimals: number;
+  isNativeToken: boolean;
 }
 
 interface AddressBalance {

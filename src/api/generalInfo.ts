@@ -52,6 +52,7 @@ const infoRoute = (server: FastifySeverInstance) => {
               amount: Number(hotAmount),
               name: nativeTokenData.name,
               decimals: nativeTokenData.decimals,
+              isNativeToken: true,
             },
           });
           const coldAmount = (
@@ -64,6 +65,7 @@ const infoRoute = (server: FastifySeverInstance) => {
               amount: Number(coldAmount),
               name: nativeTokenData.name,
               decimals: nativeTokenData.decimals,
+              isNativeToken: true,
             },
           });
         }

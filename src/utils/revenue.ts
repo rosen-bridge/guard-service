@@ -65,10 +65,12 @@ const fillTokensDetails = (
 
     let name = 'Unsupported token';
     let decimals = 0;
+    let isNativeToken = false;
 
     if (tokenInfo.length) {
       name = tokenInfo[0][ERGO_CHAIN].name;
       decimals = tokenInfo[0][ERGO_CHAIN].decimals;
+      isNativeToken = tokenInfo[0][ERGO_CHAIN].metaData.type === 'native';
     }
 
     return {
@@ -78,6 +80,7 @@ const fillTokensDetails = (
         amount: Number(revenue.data.value),
         name: name,
         decimals: decimals,
+        isNativeToken: isNativeToken,
       },
     };
   });

@@ -11,6 +11,7 @@ export const tokenDataSchema = Type.Object({
   amount: Type.Number(),
   name: Type.Optional(Type.String()),
   decimals: Type.Number(),
+  isNativeToken: Type.Boolean(),
 });
 
 export const addressBalance = Type.Object({
