@@ -41,7 +41,10 @@ export const extractRevenueFromView = async (
       const eventRevenues = eventRevenuesMap.get(event.id) || [];
       return {
         ...event,
-        revenues: fillTokensDetails(eventRevenues),
+        revenues: eventRevenues.map((eventRevenue) => ({
+          revenueType: eventRevenue.revenueType,
+          data: fillTokensDetails(eventRevenue.data),
+        })),
       };
     })
   );
@@ -52,36 +55,26 @@ export const extractRevenueFromView = async (
  * @param revenues
  * @returns
  */
-const fillTokensDetails = (
-  revenues: Array<{
-    revenueType: RevenueType;
-    data: TokenInfo;
-  }>
-): Array<SingleRevenue> => {
-  return revenues.map((revenue) => {
-    const tokenInfo = Configs.tokenMap.search(ERGO_CHAIN, {
-      [Configs.tokenMap.getIdKey(ERGO_CHAIN)]: revenue.data.id,
-    });
-
-    let name = 'Unsupported token';
-    let decimals = 0;
-    let isNativeToken = false;
-
-    if (tokenInfo.length) {
-      name = tokenInfo[0][ERGO_CHAIN].name;
-      decimals = tokenInfo[0][ERGO_CHAIN].decimals;
-      isNativeToken = tokenInfo[0][ERGO_CHAIN].metaData.type === 'native';
-    }
-
-    return {
-      revenueType: revenue.revenueType,
-      data: {
-        tokenId: revenue.data.id,
-        amount: Number(revenue.data.value),
-        name: name,
-        decimals: decimals,
-        isNativeToken: isNativeToken,
-      },
-    };
+const fillTokensDetails = (token: TokenInfo): TokenData => {
+  const tokenInfo = Configs.tokenMap.search(ERGO_CHAIN, {
+    [Configs.tokenMap.getIdKey(ERGO_CHAIN)]: token.id,
   });
+
+  let name = 'Unsupported token';
+  let decimals = 0;
+  let isNativeToken = false;
+
+  if (tokenInfo.length) {
+    name = tokenInfo[0][ERGO_CHAIN].name;
+    decimals = tokenInfo[0][ERGO_CHAIN].decimals;
+    isNativeToken = tokenInfo[0][ERGO_CHAIN].metaData.type === 'native';
+  }
+
+  return {
+    tokenId: token.id,
+    amount: Number(token.value),
+    name: name,
+    decimals: decimals,
+    isNativeToken: isNativeToken,
+  };
 };
