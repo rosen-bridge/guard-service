@@ -3,8 +3,7 @@ import Dialer from '../communication/Dialer';
 import Configs from '../configs/Configs';
 import { loggerFactory } from '../log/Logger';
 import { Type } from '@sinclair/typebox';
-import { FastifySeverInstance } from '../types/api';
-import { messageResponseSchema } from '../types/schema';
+import { FastifySeverInstance, MessageResponseSchema } from './types';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -25,8 +24,8 @@ const sendRoute = (server: FastifySeverInstance, dialer: Dialer) => {
       schema: {
         body: bodySchema,
         response: {
-          200: messageResponseSchema,
-          500: messageResponseSchema,
+          200: MessageResponseSchema,
+          500: MessageResponseSchema,
         },
       },
     },
@@ -61,7 +60,7 @@ const subscribeRoute = (server: FastifySeverInstance, dialer: Dialer) => {
       schema: {
         body: bodySchema,
         response: {
-          200: messageResponseSchema,
+          200: MessageResponseSchema,
         },
       },
     },

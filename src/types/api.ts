@@ -1,17 +1,4 @@
-import { FastifyBaseLogger, FastifyInstance } from 'fastify';
-import { IncomingMessage, Server, ServerResponse } from 'http';
-import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
-import { Type } from '@sinclair/typebox';
-import { HealthStatusLevel } from '@rosen-bridge/health-check';
 import { RevenueType } from '../utils/constants';
-
-type FastifySeverInstance = FastifyInstance<
-  Server<any, any>,
-  IncomingMessage,
-  ServerResponse<IncomingMessage>,
-  FastifyBaseLogger,
-  TypeBoxTypeProvider
->;
 
 enum SortRequest {
   ASC = 'ASC',
@@ -25,13 +12,6 @@ type Token = {
   decimals: number;
   chain: string;
 };
-
-const HealthStatusType = Type.Object({
-  id: Type.String(),
-  status: Type.Enum(HealthStatusLevel),
-  description: Type.Optional(Type.String()),
-  lastCheck: Type.Optional(Type.String()),
-});
 
 interface TokenChartData {
   title: string;
@@ -89,9 +69,7 @@ interface RevenueHistory {
 }
 
 export {
-  FastifySeverInstance,
   SortRequest,
-  HealthStatusType,
   TokenChartData,
   Token,
   TokenData,

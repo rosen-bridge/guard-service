@@ -1,8 +1,7 @@
 import { loggerFactory } from '../log/Logger';
-import { FastifySeverInstance } from '../types/api';
 import { Type } from '@sinclair/typebox';
-import { messageResponseSchema } from '../types/schema';
 import Tss from '../guard/Tss';
+import { FastifySeverInstance, MessageResponseSchema } from './types';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -23,8 +22,8 @@ const signRoute = (server: FastifySeverInstance) => {
       schema: {
         body: bodySchema,
         response: {
-          200: messageResponseSchema,
-          500: messageResponseSchema,
+          200: MessageResponseSchema,
+          500: MessageResponseSchema,
         },
       },
     },

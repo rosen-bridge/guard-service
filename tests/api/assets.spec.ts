@@ -4,9 +4,9 @@ import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
 import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
 
 import ChainHandlerMock from '../handlers/ChainHandler.mock';
-import { FastifySeverInstance } from '../../src/types/api';
 import { assetRoutes } from '../../src/api/assets';
 import ChainHandler from '../../src/handlers/ChainHandler';
+import { FastifySeverInstance } from '../../src/api/types';
 
 describe('assets', () => {
   let mockedServer: FastifySeverInstance;

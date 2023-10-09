@@ -1,7 +1,10 @@
 import { Type } from '@sinclair/typebox';
-import { FastifySeverInstance, HealthStatusType } from '../types/api';
-import { messageResponseSchema } from '../types/schema';
 import { getHealthCheck } from '../guard/HealthCheck';
+import {
+  FastifySeverInstance,
+  HealthStatusType,
+  MessageResponseSchema,
+} from './types';
 
 /**
  * setup health status route
@@ -14,7 +17,7 @@ const healthStatusRoute = (server: FastifySeverInstance) => {
       schema: {
         response: {
           200: Type.Array(HealthStatusType),
-          500: messageResponseSchema,
+          500: MessageResponseSchema,
         },
       },
     },
@@ -42,7 +45,7 @@ const healthStatusForParameterRoute = (server: FastifySeverInstance) => {
         params: Type.Object({ paramId: Type.String() }),
         response: {
           200: HealthStatusType,
-          500: messageResponseSchema,
+          500: MessageResponseSchema,
         },
       },
     },
@@ -72,7 +75,7 @@ const updateHealthStatusForParameterRoute = (server: FastifySeverInstance) => {
         params: Type.Object({ paramId: Type.String() }),
         response: {
           200: HealthStatusType,
-          500: messageResponseSchema,
+          500: MessageResponseSchema,
         },
       },
     },
