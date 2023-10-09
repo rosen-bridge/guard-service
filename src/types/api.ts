@@ -5,14 +5,6 @@ enum SortRequest {
   DESC = 'DESC',
 }
 
-type Token = {
-  tokenId: string;
-  name?: string;
-  amount: string;
-  decimals: number;
-  chain: string;
-};
-
 interface TokenChartData {
   title: string;
   data: {
@@ -29,8 +21,14 @@ interface TokenData {
   isNativeToken: boolean;
 }
 
+interface ChainTokenData extends TokenData {
+  coldAmount: number;
+  chain: string;
+}
+
 interface AddressBalance {
   address: string;
+  chain: string;
   balance: TokenData;
 }
 
@@ -41,6 +39,7 @@ interface LockBalance {
 
 interface GeneralInfo {
   health: string;
+  rsnTokenId: string;
   balances: LockBalance;
 }
 
@@ -71,8 +70,8 @@ interface RevenueHistory {
 export {
   SortRequest,
   TokenChartData,
-  Token,
   TokenData,
+  ChainTokenData,
   AddressBalance,
   LockBalance,
   GeneralInfo,

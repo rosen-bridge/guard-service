@@ -35,6 +35,7 @@ export const TokenDataSchema = Type.Object({
 
 export const AddressBalanceSchema = Type.Object({
   address: Type.String(),
+  chain: Type.String(),
   balance: TokenDataSchema,
 });
 
@@ -53,6 +54,7 @@ export const OutputItemsSchema = <T extends TProperties>(
 
 export const InfoResponseSchema = Type.Object({
   health: Type.String(),
+  rsnTokenId: Type.String(),
   balances: LockBalanceSchema,
 });
 
@@ -113,10 +115,12 @@ export const AssetsQuerySchema = Type.Object({
 export const AssetsResponseSchema = OutputItemsSchema(
   Type.Object({
     tokenId: Type.String(),
+    amount: Type.Number(),
+    coldAmount: Type.Number(),
     name: Type.Optional(Type.String()),
-    amount: Type.String(),
     decimals: Type.Number(),
-    chain: Type.Enum({ ERGO_CHAIN, CARDANO_CHAIN }),
+    chain: Type.String(),
+    isNativeToken: Type.Boolean(),
   })
 );
 
