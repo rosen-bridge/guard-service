@@ -11,7 +11,6 @@ import {
   FastifySeverInstance,
   MessageResponseSchema,
 } from './schemas';
-import { RosenChainToken } from '@rosen-bridge/tokens';
 
 /**
  * setup available assets route
@@ -25,6 +24,7 @@ const assetsRoute = (server: FastifySeverInstance) => {
         querystring: AssetsQuerySchema,
         response: {
           200: AssetsResponseSchema,
+          400: MessageResponseSchema,
           500: MessageResponseSchema,
         },
       },
@@ -87,34 +87,26 @@ const assetsRoute = (server: FastifySeverInstance) => {
         // add requested token if does not exists
         if (tokenList.length === 0) {
           let tokenData: ChainTokenData | undefined;
-          for (const chain of chains) {
-            const tokens = Configs.tokenMap.search(chain, {
-              [Configs.tokenMap.getIdKey(chain)]: tokenId,
+          for (const currentChain of chains) {
+            const tokens = Configs.tokenMap.search(currentChain, {
+              [Configs.tokenMap.getIdKey(currentChain)]: tokenId,
             });
             if (tokens.length) {
               tokenData = {
                 tokenId: tokenId,
-                name: tokens[0][chain].name,
+                name: tokens[0][currentChain].name,
                 amount: 0,
                 coldAmount: 0,
-                decimals: tokens[0][chain].decimals,
-                chain: chain,
-                isNativeToken: tokens[0][chain].metadata.type === 'native',
+                decimals: tokens[0][currentChain].decimals,
+                chain: currentChain,
+                isNativeToken:
+                  tokens[0][currentChain].metaData.type === 'native',
               };
               break;
             }
           }
-          tokenList.push(
-            tokenData ?? {
-              tokenId: tokenId,
-              name: 'Unsupported token',
-              amount: 0,
-              coldAmount: 0,
-              decimals: 0,
-              chain: 'unknown',
-              isNativeToken: false,
-            }
-          );
+          if (!tokenData) reply.status(400).send({ message: `Unknown token` });
+          else tokenList.push(tokenData);
         }
       }
       if (name) {

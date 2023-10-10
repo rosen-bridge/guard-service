@@ -6,6 +6,7 @@ import { JsonBI } from '../network/NetworkModels';
 import { LogConfig } from '../types';
 import Utils from '../utils/Utils';
 import { ConfigError } from '../utils/errors';
+import { SUPPORTED_CHAINS } from '../utils/constants';
 
 /**
  * reads a numerical config, set default value if it does not exits
@@ -94,8 +95,7 @@ class Configs {
   );
 
   // contract, addresses and tokens config
-  static networks = config.get<Array<string>>('networks');
-  static networksType = Configs.networks.map((network) =>
+  static networksType = SUPPORTED_CHAINS.map((network) =>
     config.get<string>(`${network}.networkType`).toLowerCase()
   );
   static addressesBasePath = config.get<string>('contracts.addressesBasePath');

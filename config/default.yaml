@@ -79,7 +79,6 @@ guard:
   configUpdateInterval: 180 # guards config box update interval (getting guards configs from the box in Ergo network)
 contracts:
   addressesBasePath: './config/rosen/'
-networks: ['ergo', 'cardano']
 logs:
   - type: 'file' # [file, console]
     path: './logs/' # path to log files (only for rotateFile type)

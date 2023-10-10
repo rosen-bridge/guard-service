@@ -331,6 +331,51 @@ describe('assets', () => {
       ]);
       mockErgoLockAddressAssets();
       mockErgoColdAddressAssets();
+      const result = await mockedServer.inject({
+        method: 'GET',
+        url: '/assets',
+        query:
+          'tokenId=38cb230f68a28436fb3b73ae4b927626673e4620bc7c94896178567d436e416b',
+      });
+
+      expect(result.statusCode).toEqual(200);
+      expect(result.json()).toEqual({
+        items: [
+          {
+            tokenId:
+              '38cb230f68a28436fb3b73ae4b927626673e4620bc7c94896178567d436e416b',
+            name: 'RstAdaVTest2',
+            decimals: 6,
+            amount: 0,
+            chain: ERGO_CHAIN,
+            coldAmount: 0,
+            isNativeToken: false,
+          },
+        ],
+        total: 1,
+      });
+    });
+
+    /**
+     * @target fastifyServer[GET /assets] should return status code 400
+     * when token is not found in any chains
+     * @dependencies
+     * @scenario
+     * - mock getLockAddressAssets function of ChainHandler for ergo and cardano
+     * - send a request to the mockedServer
+     * - check the result
+     * @expected
+     * - should return status code 400
+     */
+    it('should return status code 400 when token is not found in any chains', async () => {
+      ChainHandlerMock.mockChainName(CARDANO_CHAIN, true);
+      mockCardanoLockAddressAssets(10n, [{ id: 'id', value: 20n }]);
+      mockCardanoColdAddressAssets(20n, [
+        { id: 'id', value: 30n },
+        { id: 'id2', value: 40n },
+      ]);
+      mockErgoLockAddressAssets();
+      mockErgoColdAddressAssets();
 
       const result = await mockedServer.inject({
         method: 'GET',
@@ -338,21 +383,7 @@ describe('assets', () => {
         query: 'tokenId=notfoundtoken',
       });
 
-      expect(result.statusCode).toEqual(200);
-      expect(result.json()).toEqual({
-        items: [
-          {
-            tokenId: 'notfoundtoken',
-            name: 'Unsupported token',
-            decimals: 0,
-            amount: 0,
-            chain: 'unknown',
-            coldAmount: 0,
-            isNativeToken: false,
-          },
-        ],
-        total: 1,
-      });
+      expect(result.statusCode).toEqual(400);
     });
   });
 });
