@@ -11,6 +11,7 @@ import {
   InfoResponseSchema,
   MessageResponseSchema,
 } from './schemas';
+import { rosenConfig } from '../configs/RosenConfig';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -51,6 +52,7 @@ const infoRoute = (server: FastifySeverInstance) => {
           ).nativeToken.toString();
           balances.hot.push({
             address: abstractChain.getChainConfigs().addresses.lock,
+            chain: chain,
             balance: {
               tokenId: nativeTokenId,
               amount: Number(hotAmount),
@@ -64,6 +66,7 @@ const infoRoute = (server: FastifySeverInstance) => {
           ).nativeToken.toString();
           balances.cold.push({
             address: abstractChain.getChainConfigs().addresses.cold,
+            chain: chain,
             balance: {
               tokenId: nativeTokenId,
               amount: Number(coldAmount),
@@ -77,6 +80,7 @@ const infoRoute = (server: FastifySeverInstance) => {
         reply.status(200).send({
           health: (await (await getHealthCheck()).getOverallHealthStatus())
             .status,
+          rsnTokenId: rosenConfig.RSN,
           balances: balances,
         });
       } catch (error) {

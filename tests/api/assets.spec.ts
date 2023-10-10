@@ -1,5 +1,5 @@
 import fastify from 'fastify';
-import { AssetBalance } from '@rosen-chains/abstract-chain';
+import { AssetBalance, TokenInfo } from '@rosen-chains/abstract-chain';
 import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
 import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
 
@@ -22,13 +22,24 @@ describe('assets', () => {
 
   const mockCardanoLockAddressAssets = (
     nativeToken: bigint,
-    tokens: Array<{ id: string; value: bigint }>
+    tokens: Array<TokenInfo>
   ) => {
     const lockBalance: AssetBalance = {
       nativeToken: nativeToken,
       tokens: tokens,
     };
     ChainHandlerMock.mockFromChainFunction('getLockAddressAssets', lockBalance);
+  };
+
+  const mockCardanoColdAddressAssets = (
+    nativeToken: bigint,
+    tokens: Array<TokenInfo>
+  ) => {
+    const balance: AssetBalance = {
+      nativeToken: nativeToken,
+      tokens: tokens,
+    };
+    ChainHandlerMock.mockFromChainFunction('getColdAddressAssets', balance);
   };
 
   const mockErgoLockAddressAssets = () => {
@@ -39,6 +50,20 @@ describe('assets', () => {
     ChainHandlerMock.mockErgoFunctionReturnValue(
       'getLockAddressAssets',
       lockBalance
+    );
+  };
+
+  const mockErgoColdAddressAssets = () => {
+    const balance: AssetBalance = {
+      nativeToken: 100n,
+      tokens: [
+        { id: 'id', value: 30n },
+        { id: 'id2', value: 40n },
+      ],
+    };
+    ChainHandlerMock.mockErgoFunctionReturnValue(
+      'getColdAddressAssets',
+      balance
     );
   };
 
@@ -60,6 +85,7 @@ describe('assets', () => {
      */
     it('should return ergo guard assets correctly with ergo chain filter', async () => {
       mockErgoLockAddressAssets();
+      mockErgoColdAddressAssets();
       const result = await mockedServer.inject({
         method: 'GET',
         url: '/assets',
@@ -73,15 +99,19 @@ describe('assets', () => {
             tokenId: ERG,
             name: ERG,
             decimals: 9,
-            amount: '10',
+            amount: 10,
             chain: ERGO_CHAIN,
+            coldAmount: 100,
+            isNativeToken: true,
           },
           {
             tokenId: 'id',
             name: 'Unsupported token',
             decimals: 0,
-            amount: '20',
+            amount: 20,
             chain: ERGO_CHAIN,
+            coldAmount: 30,
+            isNativeToken: false,
           },
         ],
         total: 2,
@@ -107,6 +137,10 @@ describe('assets', () => {
     it('should return cardano guard assets with cardano chain filter correctly', async () => {
       ChainHandlerMock.mockChainName(CARDANO_CHAIN, true);
       mockCardanoLockAddressAssets(10n, [{ id: 'id', value: 20n }]);
+      mockCardanoColdAddressAssets(20n, [
+        { id: 'id', value: 30n },
+        { id: 'id2', value: 40n },
+      ]);
       const result = await mockedServer.inject({
         method: 'GET',
         url: '/assets',
@@ -120,15 +154,19 @@ describe('assets', () => {
             tokenId: ADA,
             name: ADA,
             decimals: 6,
-            amount: '10',
+            amount: 10,
             chain: CARDANO_CHAIN,
+            coldAmount: 20,
+            isNativeToken: true,
           },
           {
             tokenId: 'id',
             name: 'Unsupported token',
             decimals: 0,
-            amount: '20',
+            amount: 20,
             chain: CARDANO_CHAIN,
+            coldAmount: 30,
+            isNativeToken: false,
           },
         ],
         total: 2,
@@ -153,7 +191,12 @@ describe('assets', () => {
     it('should return guard assets with token id filter correctly', async () => {
       ChainHandlerMock.mockChainName(CARDANO_CHAIN, true);
       mockCardanoLockAddressAssets(10n, [{ id: 'id', value: 20n }]);
+      mockCardanoColdAddressAssets(20n, [
+        { id: 'id', value: 30n },
+        { id: 'id2', value: 40n },
+      ]);
       mockErgoLockAddressAssets();
+      mockErgoColdAddressAssets();
 
       const result = await mockedServer.inject({
         method: 'GET',
@@ -168,8 +211,10 @@ describe('assets', () => {
             tokenId: ADA,
             name: ADA,
             decimals: 6,
-            amount: '10',
+            amount: 10,
             chain: CARDANO_CHAIN,
+            coldAmount: 20,
+            isNativeToken: true,
           },
         ],
         total: 1,
@@ -190,7 +235,12 @@ describe('assets', () => {
     it('should return guard assets with token name filter correctly', async () => {
       ChainHandlerMock.mockChainName(CARDANO_CHAIN, true);
       mockCardanoLockAddressAssets(10n, [{ id: 'id', value: 20n }]);
+      mockCardanoColdAddressAssets(20n, [
+        { id: 'id', value: 30n },
+        { id: 'id2', value: 40n },
+      ]);
       mockErgoLockAddressAssets();
+      mockErgoColdAddressAssets();
 
       const result = await mockedServer.inject({
         method: 'GET',
@@ -205,8 +255,10 @@ describe('assets', () => {
             tokenId: ADA,
             name: ADA,
             decimals: 6,
-            amount: '10',
+            amount: 10,
             chain: CARDANO_CHAIN,
+            coldAmount: 20,
+            isNativeToken: true,
           },
         ],
         total: 1,
@@ -231,6 +283,10 @@ describe('assets', () => {
         { id: 'asset1epz7gzjqg5py4xrgps6ccv25gz7gd6v8e5gmxx', value: 20n },
         { id: 'id2', value: 30n },
       ]);
+      mockCardanoColdAddressAssets(20n, [
+        { id: 'id', value: 30n },
+        { id: 'id2', value: 40n },
+      ]);
       const result = await mockedServer.inject({
         method: 'GET',
         url: '/assets',
@@ -244,12 +300,90 @@ describe('assets', () => {
             tokenId: 'asset1epz7gzjqg5py4xrgps6ccv25gz7gd6v8e5gmxx',
             name: 'wrapped-erg',
             decimals: 9,
-            amount: '20',
+            amount: 20,
             chain: CARDANO_CHAIN,
+            coldAmount: 0,
+            isNativeToken: false,
           },
         ],
         total: 3,
       });
+    });
+
+    /**
+     * @target fastifyServer[GET /assets] should return requested asset with
+     * zero amount when request has token id filter
+     * @dependencies
+     * @scenario
+     * - mock getLockAddressAssets function of ChainHandler for ergo and cardano
+     * - send a request to the mockedServer
+     * - check the result
+     * @expected
+     * - should return status code 200
+     * - should return requested token with zero amount
+     */
+    it('should return requested asset with zero amount when request has token id filter', async () => {
+      ChainHandlerMock.mockChainName(CARDANO_CHAIN, true);
+      mockCardanoLockAddressAssets(10n, [{ id: 'id', value: 20n }]);
+      mockCardanoColdAddressAssets(20n, [
+        { id: 'id', value: 30n },
+        { id: 'id2', value: 40n },
+      ]);
+      mockErgoLockAddressAssets();
+      mockErgoColdAddressAssets();
+      const result = await mockedServer.inject({
+        method: 'GET',
+        url: '/assets',
+        query:
+          'tokenId=38cb230f68a28436fb3b73ae4b927626673e4620bc7c94896178567d436e416b',
+      });
+
+      expect(result.statusCode).toEqual(200);
+      expect(result.json()).toEqual({
+        items: [
+          {
+            tokenId:
+              '38cb230f68a28436fb3b73ae4b927626673e4620bc7c94896178567d436e416b',
+            name: 'RstAdaVTest2',
+            decimals: 6,
+            amount: 0,
+            chain: ERGO_CHAIN,
+            coldAmount: 0,
+            isNativeToken: false,
+          },
+        ],
+        total: 1,
+      });
+    });
+
+    /**
+     * @target fastifyServer[GET /assets] should return status code 400
+     * when token is not found in any chains
+     * @dependencies
+     * @scenario
+     * - mock getLockAddressAssets function of ChainHandler for ergo and cardano
+     * - send a request to the mockedServer
+     * - check the result
+     * @expected
+     * - should return status code 400
+     */
+    it('should return status code 400 when token is not found in any chains', async () => {
+      ChainHandlerMock.mockChainName(CARDANO_CHAIN, true);
+      mockCardanoLockAddressAssets(10n, [{ id: 'id', value: 20n }]);
+      mockCardanoColdAddressAssets(20n, [
+        { id: 'id', value: 30n },
+        { id: 'id2', value: 40n },
+      ]);
+      mockErgoLockAddressAssets();
+      mockErgoColdAddressAssets();
+
+      const result = await mockedServer.inject({
+        method: 'GET',
+        url: '/assets',
+        query: 'tokenId=notfoundtoken',
+      });
+
+      expect(result.statusCode).toEqual(400);
     });
   });
 });

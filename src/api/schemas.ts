@@ -7,11 +7,10 @@ import {
   DefaultAssetApiLimit,
   DefaultRevenueApiCount,
   RevenuePeriod,
+  SUPPORTED_CHAINS,
 } from '../utils/constants';
 import { SortRequest } from '../types/api';
 import { HealthStatusLevel } from '@rosen-bridge/health-check';
-import { ERGO_CHAIN } from '@rosen-chains/ergo';
-import { CARDANO_CHAIN } from '@rosen-chains/cardano';
 
 export type FastifySeverInstance = FastifyInstance<
   Server<any, any>,
@@ -35,6 +34,7 @@ export const TokenDataSchema = Type.Object({
 
 export const AddressBalanceSchema = Type.Object({
   address: Type.String(),
+  chain: Type.String(),
   balance: TokenDataSchema,
 });
 
@@ -53,6 +53,7 @@ export const OutputItemsSchema = <T extends TProperties>(
 
 export const InfoResponseSchema = Type.Object({
   health: Type.String(),
+  rsnTokenId: Type.String(),
   balances: LockBalanceSchema,
 });
 
@@ -102,10 +103,17 @@ export const RevenueHistoryResponseSchema = OutputItemsSchema(
   } as const)
 );
 
+export const SupportedChainsSchema = Type.Enum(
+  SUPPORTED_CHAINS.reduce((map: Record<string, string>, chain: string) => {
+    map[chain] = chain;
+    return map;
+  }, {})
+);
+
 export const AssetsQuerySchema = Type.Object({
   limit: Type.Number({ default: DefaultAssetApiLimit }),
   offset: Type.Number({ default: 0 }),
-  chain: Type.Optional(Type.Enum({ ERGO_CHAIN, CARDANO_CHAIN })),
+  chain: Type.Optional(SupportedChainsSchema),
   tokenId: Type.Optional(Type.String()),
   name: Type.Optional(Type.String()),
 });
@@ -113,10 +121,12 @@ export const AssetsQuerySchema = Type.Object({
 export const AssetsResponseSchema = OutputItemsSchema(
   Type.Object({
     tokenId: Type.String(),
+    amount: Type.Number(),
+    coldAmount: Type.Number(),
     name: Type.Optional(Type.String()),
-    amount: Type.String(),
     decimals: Type.Number(),
-    chain: Type.Enum({ ERGO_CHAIN, CARDANO_CHAIN }),
+    chain: SupportedChainsSchema,
+    isNativeToken: Type.Boolean(),
   })
 );
 

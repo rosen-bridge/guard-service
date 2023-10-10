@@ -39,9 +39,6 @@ txSignTimeout: 1
 p2p:
   peerIdFilePath: './peer-dialer.json'
 contracts:
-  networks:
-    - 'ergo-testnet'
-    - 'cardano-testnet'
   addressesBasePath: 'tests/resources/addresses/'
 logs:
   - type: 'console'

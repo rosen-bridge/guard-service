@@ -1,5 +1,6 @@
 import fs from 'fs';
 import Configs from './Configs';
+import { SUPPORTED_CHAINS } from '../utils/constants';
 
 class ContractConfig {
   readonly cleanupNFT: string;
@@ -39,7 +40,7 @@ class RosenConfig {
   readonly contracts: Map<string, ContractConfig>;
 
   constructor() {
-    const supportingNetworks = Configs.networks.map(
+    const supportingNetworks = SUPPORTED_CHAINS.map(
       (network, index) => `${network}-${Configs.networksType[index]}`
     );
     this.contracts = new Map<string, ContractConfig>();
