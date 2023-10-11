@@ -84,7 +84,6 @@ export const SingleRevenueSchema = Type.Object({
 
 export const RevenueHistoryResponseSchema = OutputItemsSchema(
   Type.Object({
-    id: Type.Number(),
     rewardTxId: Type.String(),
     eventId: Type.String(),
     lockHeight: Type.Number(),
@@ -92,10 +91,9 @@ export const RevenueHistoryResponseSchema = OutputItemsSchema(
     toChain: Type.String(),
     fromAddress: Type.String(),
     toAddress: Type.String(),
-    amount: Type.String(),
     bridgeFee: Type.String(),
     networkFee: Type.String(),
-    lockTokenId: Type.String(),
+    lockToken: TokenDataSchema,
     lockTxId: Type.String(),
     height: Type.Number(),
     timestamp: Type.Number(),
@@ -143,21 +141,14 @@ export const EventsQuerySchema = Type.Object({
 export const EventsResponseSchema = OutputItemsSchema(
   Type.Object({
     eventId: Type.String(),
-    block: Type.String(),
-    height: Type.Number(),
     fromChain: Type.String(),
     toChain: Type.String(),
     fromAddress: Type.String(),
     toAddress: Type.String(),
-    amount: Type.String(),
     bridgeFee: Type.String(),
     networkFee: Type.String(),
-    sourceChainTokenId: Type.String(),
-    targetChainTokenId: Type.String(),
-    sourceChainHeight: Type.Number(),
-    sourceBlockId: Type.String(),
     sourceTxId: Type.String(),
-    WIDs: Type.String(),
+    sourceChainToken: TokenDataSchema,
   } as const)
 );
 

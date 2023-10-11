@@ -49,7 +49,6 @@ interface SingleRevenue {
 }
 
 interface RevenueHistory {
-  id: number;
   rewardTxId: string;
   eventId: string;
   lockHeight: number;
@@ -57,14 +56,26 @@ interface RevenueHistory {
   toChain: string;
   fromAddress: string;
   toAddress: string;
-  amount: string;
   bridgeFee: string;
   networkFee: string;
-  lockTokenId: string;
+  lockToken: TokenData;
   lockTxId: string;
   height: number;
   timestamp: number;
   revenues: Array<SingleRevenue>;
+}
+
+interface EventHistory {
+  eventId: string;
+  txId: string;
+  fromChain: string;
+  toChain: string;
+  fromAddress: string;
+  toAddress: string;
+  bridgeFee: string;
+  networkFee: string;
+  sourceChainToken: TokenData;
+  sourceTxId: string;
 }
 
 export {
@@ -77,4 +88,5 @@ export {
   GeneralInfo,
   SingleRevenue,
   RevenueHistory,
+  EventHistory,
 };

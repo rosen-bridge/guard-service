@@ -1,7 +1,5 @@
-import { Type } from '@sinclair/typebox';
 import { TokenChartData } from '../types/api';
 import { DatabaseAction } from '../db/DatabaseAction';
-import { DefaultRevenueApiCount, RevenuePeriod } from '../utils/constants';
 import { groupBy, reduce } from 'lodash-es';
 import { extractRevenueFromView } from '../utils/revenue';
 import {

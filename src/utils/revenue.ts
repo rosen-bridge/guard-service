@@ -37,10 +37,32 @@ export const extractRevenueFromView = async (
     }
   });
   return Promise.all(
-    events.map(async (event) => {
+    events.map(async (event): Promise<RevenueHistory> => {
       const eventRevenues = eventRevenuesMap.get(event.id) || [];
+      const token = Configs.tokenMap.search(event.fromChain, {
+        [Configs.tokenMap.getIdKey(event.fromChain)]: event.lockTokenId,
+      })[0][event.fromChain];
+      const tokenData: TokenData = {
+        tokenId: event.lockTokenId,
+        amount: Number(event.amount),
+        name: token.name,
+        decimals: token.decimals,
+        isNativeToken: token.metaData.type === 'native',
+      };
       return {
-        ...event,
+        rewardTxId: event.rewardTxId,
+        eventId: event.eventId,
+        lockHeight: event.lockHeight,
+        fromChain: event.fromChain,
+        toChain: event.toChain,
+        fromAddress: event.fromAddress,
+        toAddress: event.toAddress,
+        bridgeFee: event.bridgeFee,
+        networkFee: event.networkFee,
+        lockToken: tokenData,
+        lockTxId: event.lockTxId,
+        height: event.height,
+        timestamp: event.timestamp,
         revenues: eventRevenues.map((eventRevenue) => ({
           revenueType: eventRevenue.revenueType,
           data: fillTokensDetails(eventRevenue.data),
