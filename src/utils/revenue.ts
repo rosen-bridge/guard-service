@@ -41,13 +41,24 @@ export const extractRevenueFromView = async (
       const eventRevenues = eventRevenuesMap.get(event.id) || [];
       const token = Configs.tokenMap.search(event.fromChain, {
         [Configs.tokenMap.getIdKey(event.fromChain)]: event.lockTokenId,
-      })[0][event.fromChain];
+      });
+
+      let name = 'Unsupported token';
+      let decimals = 0;
+      let isNativeToken = false;
+
+      if (token.length) {
+        name = token[0][event.fromChain].name;
+        decimals = token[0][event.fromChain].decimals;
+        isNativeToken = token[0][event.fromChain].metaData.type === 'native';
+      }
+
       const tokenData: TokenData = {
         tokenId: event.lockTokenId,
         amount: Number(event.amount),
-        name: token.name,
-        decimals: token.decimals,
-        isNativeToken: token.metaData.type === 'native',
+        name: name ?? 'Unsupported token',
+        decimals: decimals ?? 0,
+        isNativeToken: isNativeToken,
       };
       return {
         rewardTxId: event.rewardTxId,

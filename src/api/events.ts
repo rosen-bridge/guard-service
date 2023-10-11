@@ -110,13 +110,25 @@ const ongoingEventsRoute = (server: FastifySeverInstance) => {
           const token = Configs.tokenMap.search(event.fromChain, {
             [Configs.tokenMap.getIdKey(event.fromChain)]:
               event.sourceChainTokenId,
-          })[0][event.fromChain];
+          });
+
+          let name = 'Unsupported token';
+          let decimals = 0;
+          let isNativeToken = false;
+
+          if (token.length) {
+            name = token[0][event.fromChain].name;
+            decimals = token[0][event.fromChain].decimals;
+            isNativeToken =
+              token[0][event.fromChain].metaData.type === 'native';
+          }
+
           const tokenData: TokenData = {
             tokenId: event.sourceChainTokenId,
             amount: Number(event.amount),
-            name: token.name,
-            decimals: token.decimals,
-            isNativeToken: token.metaData.type === 'native',
+            name: name ?? 'Unsupported token',
+            decimals: decimals ?? 0,
+            isNativeToken: isNativeToken,
           };
           return {
             eventId: event.eventId,
