@@ -748,7 +748,7 @@ class DatabaseAction {
       .addSelect('SUM(amount)', 'amount')
       .addSelect('MIN(timestamp)', 'label')
       .groupBy('"tokenId"')
-      .orderBy('timestamp', 'DESC');
+      .orderBy('label', 'DESC');
     if (period === RevenuePeriod.year) {
       query.addGroupBy('year');
     } else if (period === RevenuePeriod.month) {
