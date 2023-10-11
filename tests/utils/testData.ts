@@ -10,14 +10,14 @@ export const mockedView: Array<RevenueView> = [
       '9ac6dd1e7868e2d95210e29a7db15f6cdf18138c6846b1687da0e66d4429be39',
     eventId: 'a98d6cc7749e7f915f5a0373ecb5b97c2eec5164678d9e74ccc98f2f4bde77b1',
     lockHeight: 13000,
-    fromChain: 'fromChain',
-    toChain: 'toChain',
+    fromChain: 'cardano',
+    toChain: 'ergo',
     fromAddress: 'fromAddress',
     toAddress: 'toAddress',
     amount: '50000000000',
     bridgeFee: '1000000000',
     networkFee: '1500000',
-    lockTokenId: 'sourceToken',
+    lockTokenId: 'asset17q7r59zlc3dgw0venc80pdv566q6yguw03f0d9',
     lockTxId:
       '2d564e25a63a01f5e25f4221f1f6b589f012bac8a5d8670271adcc51176cd602',
     height: 1009,
@@ -34,16 +34,17 @@ export const eventData = {
   boxSerialized: 'box-serialized',
   block: 'blockId',
   height: 12000,
-  fromChain: 'fromChain',
-  toChain: 'toChain',
+  fromChain: 'cardano',
+  toChain: 'ergo',
   fromAddress: 'fromAddress',
   toAddress: 'toAddress',
   amount: '50000000000',
   bridgeFee: '1000000000',
   networkFee: '1500000',
-  sourceChainTokenId: 'sourceToken',
+  sourceChainTokenId: 'asset17q7r59zlc3dgw0venc80pdv566q6yguw03f0d9',
   sourceChainHeight: 20000,
-  targetChainTokenId: 'targetToken',
+  targetChainTokenId:
+    'b37bfa41c2d9e61b4e478ddfc459a03d25b658a2305ffb428fbc47ad6abbeeaa',
   sourceTxId:
     '2d564e25a63a01f5e25f4221f1f6b589f012bac8a5d8670271adcc51176cd602',
   sourceBlockId: '',
@@ -57,7 +58,7 @@ export const eventData = {
 export const mockedEntities: Array<RevenueEntity> = [
   {
     id: 11,
-    tokenId: 'tokenId',
+    tokenId: 'b37bfa41c2d9e61b4e478ddfc459a03d25b658a2305ffb428fbc47ad6abbeeaa',
     amount: 10000n,
     txId: '9ac6dd1e7868e2d95210e29a7db15f6cdf18138c6846b1687da0e66d4429be39',
     revenueType: RevenueType.fraud,
@@ -75,19 +76,23 @@ export const mockedEntities: Array<RevenueEntity> = [
 
 export const revenueHistory: Array<RevenueHistory> = [
   {
-    id: 183,
     rewardTxId:
       '9ac6dd1e7868e2d95210e29a7db15f6cdf18138c6846b1687da0e66d4429be39',
     eventId: 'a98d6cc7749e7f915f5a0373ecb5b97c2eec5164678d9e74ccc98f2f4bde77b1',
     lockHeight: 13000,
-    fromChain: 'fromChain',
-    toChain: 'toChain',
+    fromChain: 'cardano',
+    toChain: 'ergo',
     fromAddress: 'fromAddress',
     toAddress: 'toAddress',
-    amount: '50000000000',
     bridgeFee: '1000000000',
     networkFee: '1500000',
-    lockTokenId: 'sourceToken',
+    lockToken: {
+      tokenId: 'asset17q7r59zlc3dgw0venc80pdv566q6yguw03f0d9',
+      amount: 50000000000,
+      name: 'Hosky',
+      decimals: 0,
+      isNativeToken: false,
+    },
     lockTxId:
       '2d564e25a63a01f5e25f4221f1f6b589f012bac8a5d8670271adcc51176cd602',
     height: 1009,
@@ -96,9 +101,10 @@ export const revenueHistory: Array<RevenueHistory> = [
       {
         revenueType: RevenueType.fraud,
         data: {
-          tokenId: 'tokenId',
+          tokenId:
+            'b37bfa41c2d9e61b4e478ddfc459a03d25b658a2305ffb428fbc47ad6abbeeaa',
           amount: 10000,
-          name: 'Unsupported token',
+          name: 'RstHoskyVTest2',
           decimals: 0,
           isNativeToken: false,
         },

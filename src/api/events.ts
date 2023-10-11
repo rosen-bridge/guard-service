@@ -1,5 +1,5 @@
 import { Type } from '@sinclair/typebox';
-import { SortRequest } from '../types/api';
+import { EventHistory, SortRequest, TokenData } from '../types/api';
 import { DefaultApiLimit } from '../utils/constants';
 import { DatabaseAction } from '../db/DatabaseAction';
 import {
@@ -8,6 +8,7 @@ import {
   FastifySeverInstance,
   MessageResponseSchema,
 } from './schemas';
+import Configs from '../configs/Configs';
 
 /**
  * setup event history route
@@ -39,7 +40,32 @@ const eventsHistoryRoute = (server: FastifySeverInstance) => {
 
       const events = results
         .slice(offset, offset + limit)
-        .map((result) => result.eventData);
+        .map((result): EventHistory => {
+          const event = result.eventData;
+          const token = Configs.tokenMap.search(event.fromChain, {
+            [Configs.tokenMap.getIdKey(event.fromChain)]:
+              event.sourceChainTokenId,
+          })[0][event.fromChain];
+          const tokenData: TokenData = {
+            tokenId: event.sourceChainTokenId,
+            amount: Number(event.amount),
+            name: token.name,
+            decimals: token.decimals,
+            isNativeToken: token.metaData.type === 'native',
+          };
+          return {
+            eventId: event.eventId,
+            txId: event.txId,
+            fromChain: event.fromChain,
+            toChain: event.toChain,
+            fromAddress: event.fromAddress,
+            toAddress: event.toAddress,
+            bridgeFee: event.bridgeFee,
+            networkFee: event.networkFee,
+            sourceChainToken: tokenData,
+            sourceTxId: event.sourceTxId,
+          };
+        });
 
       reply.status(200).send({
         items: events,
@@ -79,7 +105,44 @@ const ongoingEventsRoute = (server: FastifySeverInstance) => {
 
       const events = results
         .slice(offset, offset + limit)
-        .map((result) => result.eventData);
+        .map((result): EventHistory => {
+          const event = result.eventData;
+          const token = Configs.tokenMap.search(event.fromChain, {
+            [Configs.tokenMap.getIdKey(event.fromChain)]:
+              event.sourceChainTokenId,
+          });
+
+          let name = 'Unsupported token';
+          let decimals = 0;
+          let isNativeToken = false;
+
+          if (token.length) {
+            name = token[0][event.fromChain].name;
+            decimals = token[0][event.fromChain].decimals;
+            isNativeToken =
+              token[0][event.fromChain].metaData.type === 'native';
+          }
+
+          const tokenData: TokenData = {
+            tokenId: event.sourceChainTokenId,
+            amount: Number(event.amount),
+            name: name ?? 'Unsupported token',
+            decimals: decimals ?? 0,
+            isNativeToken: isNativeToken,
+          };
+          return {
+            eventId: event.eventId,
+            txId: event.txId,
+            fromChain: event.fromChain,
+            toChain: event.toChain,
+            fromAddress: event.fromAddress,
+            toAddress: event.toAddress,
+            bridgeFee: event.bridgeFee,
+            networkFee: event.networkFee,
+            sourceChainToken: tokenData,
+            sourceTxId: event.sourceTxId,
+          };
+        });
 
       reply.status(200).send({
         items: events,

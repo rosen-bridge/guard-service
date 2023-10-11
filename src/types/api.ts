@@ -1,3 +1,4 @@
+import { EventTriggerEntity } from '@rosen-bridge/watcher-data-extractor';
 import { RevenueType } from '../utils/constants';
 
 enum SortRequest {
@@ -49,7 +50,6 @@ interface SingleRevenue {
 }
 
 interface RevenueHistory {
-  id: number;
   rewardTxId: string;
   eventId: string;
   lockHeight: number;
@@ -57,14 +57,29 @@ interface RevenueHistory {
   toChain: string;
   fromAddress: string;
   toAddress: string;
-  amount: string;
   bridgeFee: string;
   networkFee: string;
-  lockTokenId: string;
+  lockToken: TokenData;
   lockTxId: string;
   height: number;
   timestamp: number;
   revenues: Array<SingleRevenue>;
+}
+
+interface EventHistory
+  extends Pick<
+    EventTriggerEntity,
+    | 'eventId'
+    | 'txId'
+    | 'fromChain'
+    | 'toChain'
+    | 'fromAddress'
+    | 'toAddress'
+    | 'bridgeFee'
+    | 'networkFee'
+    | 'sourceTxId'
+  > {
+  sourceChainToken: TokenData;
 }
 
 export {
@@ -77,4 +92,5 @@ export {
   GeneralInfo,
   SingleRevenue,
   RevenueHistory,
+  EventHistory,
 };
