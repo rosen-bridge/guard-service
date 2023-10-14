@@ -15,7 +15,7 @@ import {
   TransactionType,
 } from '@rosen-chains/abstract-chain';
 import RequestVerifier from '../verification/RequestVerifier';
-import TransactionSerializer from '../transaction/TransactionSerializer';
+import * as TransactionSerializer from '../transaction/TransactionSerializer';
 import Configs from '../configs/Configs';
 import GuardTurn from '../utils/GuardTurn';
 import TransactionVerifier from '../verification/TransactionVerifier';
@@ -23,6 +23,7 @@ import DatabaseHandler from '../db/DatabaseHandler';
 import GuardPkHandler from '../handlers/GuardPkHandler';
 import { DatabaseAction } from '../db/DatabaseAction';
 import { Communicator, ECDSA } from '@rosen-bridge/tss';
+import { Semaphore } from 'await-semaphore';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -36,6 +37,7 @@ class TxAgreement extends Communicator {
   protected agreedColdStorageTransactions: Map<string, string>; // chainName -> txId
   protected transactionApprovals: Map<string, string[]>; // txId -> signatures
   protected approvedTransactions: ApprovedCandidate[];
+  protected approvalSemaphore: Semaphore;
 
   protected constructor() {
     super(
@@ -51,6 +53,7 @@ class TxAgreement extends Communicator {
     this.agreedColdStorageTransactions = new Map();
     this.transactionApprovals = new Map();
     this.approvedTransactions = [];
+    this.approvalSemaphore = new Semaphore(1);
   }
 
   /**
@@ -157,7 +160,7 @@ class TxAgreement extends Communicator {
     timestamp: number
   ): Promise<void> => {
     const candidatePayload: TransactionRequest = {
-      txJson: TransactionSerializer.toJson(tx),
+      txJson: tx.toJson(),
     };
 
     // broadcast the transaction
@@ -375,25 +378,40 @@ class TxAgreement extends Communicator {
       throw new ImpossibleBehavior(`no approval found for tx [${txId}]`);
     else txApprovals[signerIndex] = signature;
 
-    if (
-      this.transactionApprovals
-        .get(txId)!
-        .filter((signature) => signature !== '').length >=
-      GuardPkHandler.getInstance().requiredSign
-    ) {
-      logger.info(`The majority of guards agreed with transaction [${txId}]`);
+    await this.approvalSemaphore.acquire().then(async (release) => {
+      try {
+        if (
+          this.transactionApprovals
+            .get(txId)!
+            .filter((signature) => signature !== '').length >=
+          GuardPkHandler.getInstance().requiredSign
+        ) {
+          logger.info(
+            `The majority of guards agreed with transaction [${txId}]`
+          );
 
-      const approvals = this.transactionApprovals.get(txId)!;
-      const approvedTx: ApprovedCandidate = {
-        tx: candidateTx.tx,
-        signatures: approvals,
-        timestamp: timestamp,
-      };
+          const approvals = this.transactionApprovals.get(txId)!;
+          const approvedTx: ApprovedCandidate = {
+            tx: candidateTx.tx,
+            signatures: approvals,
+            timestamp: timestamp,
+          };
 
-      await this.broadcastApprovalMessage(approvedTx);
-      this.approvedTransactions.push(approvedTx);
-      await this.setTxAsApproved(candidateTx.tx);
-    }
+          await this.broadcastApprovalMessage(approvedTx);
+          if (
+            !this.approvedTransactions.find(
+              (approvedTx) => approvedTx.tx.txId === txId
+            )
+          )
+            this.approvedTransactions.push(approvedTx);
+          await this.setTxAsApproved(candidateTx.tx);
+        }
+        release();
+      } catch (e) {
+        release();
+        throw e;
+      }
+    });
   };
 
   /**
@@ -404,7 +422,7 @@ class TxAgreement extends Communicator {
     approvedCandidate: ApprovedCandidate
   ): Promise<void> => {
     const approvalPayload: TransactionApproved = {
-      txJson: TransactionSerializer.toJson(approvedCandidate.tx),
+      txJson: approvedCandidate.tx.toJson(),
       signatures: approvedCandidate.signatures,
     };
 
@@ -496,18 +514,18 @@ class TxAgreement extends Communicator {
       if (txRecord === null) {
         await DatabaseHandler.insertTx(tx);
         await this.updateEventOfApprovedTx(tx);
-        this.transactions.delete(tx.txId);
-        this.transactionApprovals.delete(tx.txId);
-        if (this.eventAgreedTransactions.has(tx.eventId))
-          this.eventAgreedTransactions.delete(tx.eventId);
-        if (this.agreedColdStorageTransactions.has(tx.network))
-          this.agreedColdStorageTransactions.delete(tx.network);
       } else {
         logger.debug(
           `Tx [${tx.txId}] is already in database. Only reinserting tx...`
         );
         await DatabaseHandler.insertTx(tx);
       }
+      this.transactions.delete(tx.txId);
+      this.transactionApprovals.delete(tx.txId);
+      if (this.eventAgreedTransactions.has(tx.eventId))
+        this.eventAgreedTransactions.delete(tx.eventId);
+      if (this.agreedColdStorageTransactions.has(tx.network))
+        this.agreedColdStorageTransactions.delete(tx.network);
     } catch (e) {
       logger.warn(
         `An error occurred while setting tx [${tx.txId}] as approved: ${e}`

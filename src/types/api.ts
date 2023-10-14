@@ -1,36 +1,10 @@
-import { FastifyBaseLogger, FastifyInstance } from 'fastify';
-import { IncomingMessage, Server, ServerResponse } from 'http';
-import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
-import { Type } from '@sinclair/typebox';
-import { HealthStatusLevel } from '@rosen-bridge/health-check';
-
-type FastifySeverInstance = FastifyInstance<
-  Server<any, any>,
-  IncomingMessage,
-  ServerResponse<IncomingMessage>,
-  FastifyBaseLogger,
-  TypeBoxTypeProvider
->;
+import { EventTriggerEntity } from '@rosen-bridge/watcher-data-extractor';
+import { RevenueType } from '../utils/constants';
 
 enum SortRequest {
   ASC = 'ASC',
   DESC = 'DESC',
 }
-
-type Token = {
-  tokenId: string;
-  name?: string;
-  amount: string;
-  decimals: number;
-  chain: string;
-};
-
-const HealthStatusType = Type.Object({
-  id: Type.String(),
-  status: Type.Enum(HealthStatusLevel),
-  description: Type.Optional(Type.String()),
-  lastCheck: Type.Optional(Type.String()),
-});
 
 interface TokenChartData {
   title: string;
@@ -40,10 +14,83 @@ interface TokenChartData {
   }[];
 }
 
+interface TokenData {
+  tokenId: string;
+  amount: number;
+  name?: string;
+  decimals: number;
+  isNativeToken: boolean;
+}
+
+interface ChainTokenData extends TokenData {
+  coldAmount: number;
+  chain: string;
+}
+
+interface AddressBalance {
+  address: string;
+  chain: string;
+  balance: TokenData;
+}
+
+interface LockBalance {
+  hot: Array<AddressBalance>;
+  cold: Array<AddressBalance>;
+}
+
+interface GeneralInfo {
+  health: string;
+  rsnTokenId: string;
+  balances: LockBalance;
+}
+
+interface SingleRevenue {
+  revenueType: RevenueType;
+  data: TokenData;
+}
+
+interface RevenueHistory {
+  rewardTxId: string;
+  eventId: string;
+  lockHeight: number;
+  fromChain: string;
+  toChain: string;
+  fromAddress: string;
+  toAddress: string;
+  bridgeFee: string;
+  networkFee: string;
+  lockToken: TokenData;
+  lockTxId: string;
+  height: number;
+  timestamp: number;
+  revenues: Array<SingleRevenue>;
+}
+
+interface EventHistory
+  extends Pick<
+    EventTriggerEntity,
+    | 'eventId'
+    | 'txId'
+    | 'fromChain'
+    | 'toChain'
+    | 'fromAddress'
+    | 'toAddress'
+    | 'bridgeFee'
+    | 'networkFee'
+    | 'sourceTxId'
+  > {
+  sourceChainToken: TokenData;
+}
+
 export {
-  FastifySeverInstance,
   SortRequest,
-  HealthStatusType,
   TokenChartData,
-  Token,
+  TokenData,
+  ChainTokenData,
+  AddressBalance,
+  LockBalance,
+  GeneralInfo,
+  SingleRevenue,
+  RevenueHistory,
+  EventHistory,
 };

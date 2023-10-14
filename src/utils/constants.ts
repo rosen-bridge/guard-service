@@ -1,3 +1,6 @@
+import { CARDANO_CHAIN } from '@rosen-chains/cardano';
+import { ERGO_CHAIN } from '@rosen-chains/ergo';
+
 class EventStatus {
   static pendingPayment = 'pending-payment';
   static pendingReward = 'pending-reward';
@@ -30,6 +33,15 @@ const DefaultApiLimit = 100;
 const DefaultAssetApiLimit = 10;
 const DefaultRevenueApiCount = 10;
 
+const SUPPORTED_CHAINS = [ERGO_CHAIN, CARDANO_CHAIN];
+
+enum RevenueType {
+  fraud = 'fraud',
+  bridgeFee = 'bridge-fee',
+  emission = 'emission',
+  networkFee = 'network-fee',
+}
+
 export {
   EventStatus,
   TransactionStatus,
@@ -37,4 +49,6 @@ export {
   DefaultApiLimit,
   DefaultRevenueApiCount,
   DefaultAssetApiLimit,
+  SUPPORTED_CHAINS,
+  RevenueType,
 };

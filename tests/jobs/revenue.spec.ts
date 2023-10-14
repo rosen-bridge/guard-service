@@ -1,66 +1,251 @@
-import { ERG } from '@rosen-chains/ergo';
-
 import DatabaseActionMock from '../db/mocked/DatabaseAction.mock';
 import { revenueJobFunction } from '../../src/jobs/revenue';
-import { insertRewardTxWithTimestamps } from './jobTestUtils';
-import { DatabaseAction } from '../../src/db/DatabaseAction';
 import ChainHandlerMock from '../handlers/ChainHandler.mock';
-import GuardsErgoConfigs from '../../src/configs/GuardsErgoConfigs';
+import { mockTokenPaymentEvent } from '../event/testData';
+import TestUtils from '../testUtils/TestUtils';
+import { ConfirmationStatus } from '@rosen-chains/abstract-chain';
+import { RevenueType } from '../../src/utils/constants';
+import * as testData from './testData';
+import { ERG } from '@rosen-chains/ergo';
+import GuardsCardanoConfigs from '../../src/configs/GuardsCardanoConfigs';
+import { CARDANO_CHAIN } from '@rosen-chains/cardano';
 
-describe('DatabaseActions', () => {
+describe('revenueJobFunction', () => {
   beforeEach(async () => {
     await DatabaseActionMock.clearTables();
     ChainHandlerMock.resetMock();
+    ChainHandlerMock.mockErgoFunctionReturnValue('getHeight', 120);
+    ChainHandlerMock.mockErgoFunctionReturnValue(
+      'getTxRequiredConfirmation',
+      15
+    );
   });
 
-  describe('revenueJobFunction', () => {
-    /**
-     * @target revenueJobFunction should store new revenues
-     * @dependencies
-     * - database
-     * - ChainHandler
-     * @scenario
-     * - mock ChainHandler.ErgoChain `extractTransactionOrder`
-     * - insert 3 new events with all required entities
-     * - run test
-     * - check if functions got called with required inputs
-     * @expected
-     * - `getTxsById` should got called with 3 inserted event reward tx
-     * - `storeRevenue` should got called to store Erg revenues for each tx
-     * - `storeRevenue` should got called to store token revenues for each tx
-     */
-    it('should store new revenues', async () => {
-      ChainHandlerMock.mockErgoFunctionReturnValue(
-        'extractSignedTransactionOrder',
-        [
-          {
-            address: GuardsErgoConfigs.bridgeFeeRepoAddress,
-            assets: {
-              nativeToken: 10000000n,
-              tokens: [{ id: 'tokenId', value: 20000n }],
-            },
-          },
-        ]
-      );
-      await insertRewardTxWithTimestamps(3);
-      const spiedTxsById = vi.spyOn(DatabaseAction.getInstance(), 'getTxsById');
-      const spiedStoreRevenue = vi.spyOn(
-        DatabaseAction.getInstance(),
-        'storeRevenue'
-      );
-      await revenueJobFunction();
-      const allTxs = await DatabaseActionMock.allTxRecords();
-      expect(spiedTxsById).toHaveBeenCalledWith(allTxs.map((tx) => tx.txId));
-      for (const tx of allTxs) {
-        expect(spiedStoreRevenue).toHaveBeenCalledWith(ERG, 10000000n, {
-          ...tx,
-          event: undefined,
-        });
-        expect(spiedStoreRevenue).toHaveBeenCalledWith('tokenId', 20000n, {
-          ...tx,
-          event: undefined,
-        });
-      }
-    });
+  /**
+   * @target revenueJobFunction should store fraud revenues successfully
+   * @dependencies
+   * - database
+   * - ChainHandler
+   * @scenario
+   * - mock event with spendTxId and spendBlockId
+   * - mock ChainHandler fromChain and ErgoChain
+   *   - mock `getTransaction`
+   *   - mock `extractSignedTransactionOrder`
+   *   - mock `getChainConfigs`
+   * - run test
+   * - check database
+   * @expected
+   * - two revenues should be inserted with correct amount and type
+   *   - Erg revenue
+   *   - Token revenue
+   */
+  it('should store fraud revenues successfully', async () => {
+    // mock event with spendTxId and spendBlockId
+    const mockedEvent = mockTokenPaymentEvent();
+    const spendTxId = TestUtils.generateRandomId();
+    const spendBlockId = TestUtils.generateRandomId();
+    const boxSerialized = 'boxSerialized';
+    const tx = 'serialized-tx';
+
+    // insert mocked event
+    await DatabaseActionMock.insertOnlyEventDataRecord(
+      mockedEvent,
+      boxSerialized,
+      100,
+      spendTxId,
+      spendBlockId
+    );
+
+    // mock ChainHandler fromChain and ErgoChain
+    ChainHandlerMock.mockChainName(CARDANO_CHAIN, true);
+    // mock `getTransaction`
+    ChainHandlerMock.mockErgoFunctionReturnValue('getTransaction', tx, true);
+    // mock `extractSignedTransactionOrder`
+    ChainHandlerMock.mockErgoFunctionReturnValue(
+      'extractSignedTransactionOrder',
+      testData.fraudTxOrder
+    );
+    // mock `getChainConfigs`
+    ChainHandlerMock.mockFromChainFunction(
+      'getChainConfigs',
+      GuardsCardanoConfigs.chainConfigs
+    );
+
+    // run test
+    await revenueJobFunction();
+
+    // check database
+    const dbRevenues = (await DatabaseActionMock.allRevenueRecords()).map(
+      (revenue) => [
+        revenue.tokenId,
+        revenue.amount,
+        revenue.revenueType,
+        revenue.txId,
+      ]
+    );
+    expect(dbRevenues.length).toEqual(2);
+    expect(dbRevenues).toContainEqual([
+      ERG,
+      100n,
+      RevenueType.fraud,
+      spendTxId,
+    ]);
+    expect(dbRevenues).toContainEqual([
+      'id1',
+      10n,
+      RevenueType.fraud,
+      spendTxId,
+    ]);
+  });
+
+  /**
+   * @target revenueJobFunction should store bridge-fee,
+   * emission and network-fee revenues successfully
+   * @dependencies
+   * - database
+   * - ChainHandler
+   * @scenario
+   * - mock event with spendTxId and spendBlockId
+   * - mock ChainHandler fromChain and ErgoChain
+   *   - mock `getTransaction`
+   *   - mock `extractSignedTransactionOrder`
+   *   - mock `getChainConfigs`
+   * - run test
+   * - check database
+   * @expected
+   * - two revenues should be inserted with correct amount and type
+   *   for three types (bridge-fee, emission and network-fee)
+   *   - Erg revenue
+   *   - Token revenue
+   */
+  it('should store bridge-fee, emission and network-fee revenues successfully', async () => {
+    // mock event with spendTxId and spendBlockId
+    const mockedEvent = mockTokenPaymentEvent();
+    const spendTxId = TestUtils.generateRandomId();
+    const spendBlockId = TestUtils.generateRandomId();
+    const boxSerialized = 'boxSerialized';
+    const tx = 'serialized-tx';
+
+    // insert mocked event
+    await DatabaseActionMock.insertOnlyEventDataRecord(
+      mockedEvent,
+      boxSerialized,
+      100,
+      spendTxId,
+      spendBlockId
+    );
+
+    // mock ChainHandler fromChain and ErgoChain
+    ChainHandlerMock.mockChainName(CARDANO_CHAIN, true);
+    // mock `getTransaction`
+    ChainHandlerMock.mockErgoFunctionReturnValue('getTransaction', tx, true);
+    // mock `extractSignedTransactionOrder`
+    ChainHandlerMock.mockErgoFunctionReturnValue(
+      'extractSignedTransactionOrder',
+      testData.rewardTxOrder
+    );
+    // mock `getChainConfigs`
+    ChainHandlerMock.mockFromChainFunction(
+      'getChainConfigs',
+      GuardsCardanoConfigs.chainConfigs
+    );
+
+    // run test
+    await revenueJobFunction();
+
+    // check database
+    const dbRevenues = (await DatabaseActionMock.allRevenueRecords()).map(
+      (revenue) => [
+        revenue.tokenId,
+        revenue.amount,
+        revenue.revenueType,
+        revenue.txId,
+      ]
+    );
+    expect(dbRevenues.length).toEqual(6);
+    // bridge-fee revenues
+    expect(dbRevenues).toContainEqual([
+      ERG,
+      100n,
+      RevenueType.bridgeFee,
+      spendTxId,
+    ]);
+    expect(dbRevenues).toContainEqual([
+      'id1',
+      10n,
+      RevenueType.bridgeFee,
+      spendTxId,
+    ]);
+    // emission revenues
+    expect(dbRevenues).toContainEqual([
+      ERG,
+      200n,
+      RevenueType.emission,
+      spendTxId,
+    ]);
+    expect(dbRevenues).toContainEqual([
+      'id2',
+      20n,
+      RevenueType.emission,
+      spendTxId,
+    ]);
+    // network-fee revenues
+    expect(dbRevenues).toContainEqual([
+      ERG,
+      300n,
+      RevenueType.networkFee,
+      spendTxId,
+    ]);
+    expect(dbRevenues).toContainEqual([
+      'id1',
+      30n,
+      RevenueType.networkFee,
+      spendTxId,
+    ]);
+  });
+
+  /**
+   * @target revenueJobFunction should skip revenues of
+   * unconfirmed transactions
+   * @dependencies
+   * - database
+   * - ChainHandler
+   * @scenario
+   * - mock event with spendTxId and spendBlockId
+   * - mock ChainHandler.ErgoChain
+   *   - mock `getTxConfirmationStatus`
+   *   - mock `getTransaction`
+   * - run test
+   * - check database
+   * @expected
+   * - `getTransaction` should NOT got called
+   */
+  it('should skip revenues of unconfirmed transactions', async () => {
+    // mock event with spendTxId and spendBlockId
+    const mockedEvent = mockTokenPaymentEvent();
+    const spendTxId = TestUtils.generateRandomId();
+    const spendBlockId = TestUtils.generateRandomId();
+    const boxSerialized = 'boxSerialized';
+
+    // insert mocked event
+    await DatabaseActionMock.insertOnlyEventDataRecord(
+      mockedEvent,
+      boxSerialized,
+      113,
+      spendTxId,
+      spendBlockId
+    );
+
+    // mock ChainHandler.ErgoChain
+    // mock `getTransaction`
+    ChainHandlerMock.mockErgoFunctionReturnValue('getTransaction', null, true);
+
+    // run test
+    await revenueJobFunction();
+
+    // `getTransaction` should NOT got called
+    expect(
+      ChainHandlerMock.getErgoMockedFunction('getTransaction')
+    ).not.toHaveBeenCalled();
   });
 });

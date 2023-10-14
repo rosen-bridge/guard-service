@@ -1,51 +1,28 @@
 import { Type } from '@sinclair/typebox';
-import { FastifySeverInstance, SortRequest } from '../types/api';
-import { messageResponseSchema, outputItemsSchema } from '../types/schema';
+import { EventHistory, SortRequest, TokenData } from '../types/api';
 import { DefaultApiLimit } from '../utils/constants';
 import { DatabaseAction } from '../db/DatabaseAction';
+import {
+  EventsQuerySchema,
+  EventsResponseSchema,
+  FastifySeverInstance,
+  MessageResponseSchema,
+} from './schemas';
+import Configs from '../configs/Configs';
 
 /**
  * setup event history route
  * @param server
  */
 const eventsHistoryRoute = (server: FastifySeverInstance) => {
-  const querySchema = Type.Object({
-    limit: Type.Number({ default: DefaultApiLimit }),
-    offset: Type.Number({ default: 0 }),
-    sort: Type.Optional(Type.Enum(SortRequest)),
-    fromChain: Type.Optional(Type.String()),
-    toChain: Type.Optional(Type.String()),
-    maxAmount: Type.Optional(Type.String()),
-    minAmount: Type.Optional(Type.String()),
-  });
-  const historyResponseSchema = outputItemsSchema(
-    Type.Object({
-      eventId: Type.String(),
-      block: Type.String(),
-      height: Type.Number(),
-      fromChain: Type.String(),
-      toChain: Type.String(),
-      fromAddress: Type.String(),
-      toAddress: Type.String(),
-      amount: Type.String(),
-      bridgeFee: Type.String(),
-      networkFee: Type.String(),
-      sourceChainTokenId: Type.String(),
-      targetChainTokenId: Type.String(),
-      sourceChainHeight: Type.Number(),
-      sourceBlockId: Type.String(),
-      sourceTxId: Type.String(),
-      WIDs: Type.String(),
-    } as const)
-  );
   server.get(
     '/event/history',
     {
       schema: {
-        querystring: querySchema,
+        querystring: EventsQuerySchema,
         response: {
-          200: historyResponseSchema,
-          500: messageResponseSchema,
+          200: EventsResponseSchema,
+          500: MessageResponseSchema,
         },
       },
     },
@@ -63,7 +40,32 @@ const eventsHistoryRoute = (server: FastifySeverInstance) => {
 
       const events = results
         .slice(offset, offset + limit)
-        .map((result) => result.eventData);
+        .map((result): EventHistory => {
+          const event = result.eventData;
+          const token = Configs.tokenMap.search(event.fromChain, {
+            [Configs.tokenMap.getIdKey(event.fromChain)]:
+              event.sourceChainTokenId,
+          })[0][event.fromChain];
+          const tokenData: TokenData = {
+            tokenId: event.sourceChainTokenId,
+            amount: Number(event.amount),
+            name: token.name,
+            decimals: token.decimals,
+            isNativeToken: token.metaData.type === 'native',
+          };
+          return {
+            eventId: event.eventId,
+            txId: event.txId,
+            fromChain: event.fromChain,
+            toChain: event.toChain,
+            fromAddress: event.fromAddress,
+            toAddress: event.toAddress,
+            bridgeFee: event.bridgeFee,
+            networkFee: event.networkFee,
+            sourceChainToken: tokenData,
+            sourceTxId: event.sourceTxId,
+          };
+        });
 
       reply.status(200).send({
         items: events,
@@ -78,43 +80,14 @@ const eventsHistoryRoute = (server: FastifySeverInstance) => {
  * @param server
  */
 const ongoingEventsRoute = (server: FastifySeverInstance) => {
-  const querySchema = Type.Object({
-    limit: Type.Number({ default: DefaultApiLimit }),
-    offset: Type.Number({ default: 0 }),
-    sort: Type.Optional(Type.Enum(SortRequest)),
-    fromChain: Type.Optional(Type.String()),
-    toChain: Type.Optional(Type.String()),
-    maxAmount: Type.Optional(Type.String()),
-    minAmount: Type.Optional(Type.String()),
-  });
-  const ongoingResponseSchema = outputItemsSchema(
-    Type.Object({
-      eventId: Type.String(),
-      block: Type.String(),
-      height: Type.Number(),
-      fromChain: Type.String(),
-      toChain: Type.String(),
-      fromAddress: Type.String(),
-      toAddress: Type.String(),
-      amount: Type.String(),
-      bridgeFee: Type.String(),
-      networkFee: Type.String(),
-      sourceChainTokenId: Type.String(),
-      targetChainTokenId: Type.String(),
-      sourceChainHeight: Type.Number(),
-      sourceBlockId: Type.String(),
-      sourceTxId: Type.String(),
-      WIDs: Type.String(),
-    } as const)
-  );
   server.get(
     '/event/ongoing',
     {
       schema: {
-        querystring: querySchema,
+        querystring: EventsQuerySchema,
         response: {
-          200: ongoingResponseSchema,
-          500: messageResponseSchema,
+          200: EventsResponseSchema,
+          500: MessageResponseSchema,
         },
       },
     },
@@ -132,7 +105,44 @@ const ongoingEventsRoute = (server: FastifySeverInstance) => {
 
       const events = results
         .slice(offset, offset + limit)
-        .map((result) => result.eventData);
+        .map((result): EventHistory => {
+          const event = result.eventData;
+          const token = Configs.tokenMap.search(event.fromChain, {
+            [Configs.tokenMap.getIdKey(event.fromChain)]:
+              event.sourceChainTokenId,
+          });
+
+          let name = 'Unsupported token';
+          let decimals = 0;
+          let isNativeToken = false;
+
+          if (token.length) {
+            name = token[0][event.fromChain].name;
+            decimals = token[0][event.fromChain].decimals;
+            isNativeToken =
+              token[0][event.fromChain].metaData.type === 'native';
+          }
+
+          const tokenData: TokenData = {
+            tokenId: event.sourceChainTokenId,
+            amount: Number(event.amount),
+            name: name ?? 'Unsupported token',
+            decimals: decimals ?? 0,
+            isNativeToken: isNativeToken,
+          };
+          return {
+            eventId: event.eventId,
+            txId: event.txId,
+            fromChain: event.fromChain,
+            toChain: event.toChain,
+            fromAddress: event.fromAddress,
+            toAddress: event.toAddress,
+            bridgeFee: event.bridgeFee,
+            networkFee: event.networkFee,
+            sourceChainToken: tokenData,
+            sourceTxId: event.sourceTxId,
+          };
+        });
 
       reply.status(200).send({
         items: events,

@@ -1,6 +1,10 @@
 import DatabaseHandlerMock from './mocked/DatabaseAction.mock';
 import * as EventTestData from '../event/testData';
-import { EventStatus, TransactionStatus } from '../../src/utils/constants';
+import {
+  EventStatus,
+  RevenueType,
+  TransactionStatus,
+} from '../../src/utils/constants';
 import DatabaseActionMock from './mocked/DatabaseAction.mock';
 import * as TxTestData from '../agreement/testData';
 import { EventTrigger, TransactionType } from '@rosen-chains/abstract-chain';
@@ -112,11 +116,19 @@ const insertRevenue = async (
   timestamp: number,
   height = 1000,
   mockedEvent: EventTrigger = EventTestData.mockEventTrigger(),
-  revenueToken = 'tokenId'
+  revenueToken = 'tokenId',
+  revenueType: RevenueType = RevenueType.fraud
 ) => {
   // insert block
   const blockId = TestUtils.generateRandomId();
   await DatabaseHandlerMock.insertBlockRecord(timestamp, blockId, height);
+
+  // mock reward transaction
+  const tx = TxTestData.mockPaymentTransaction(
+    TransactionType.reward,
+    CARDANO_CHAIN,
+    Utils.txIdToEventId(mockedEvent.sourceTxId)
+  );
 
   // insert event
   await DatabaseHandlerMock.insertEventRecord(
@@ -127,23 +139,18 @@ const insertRevenue = async (
     undefined,
     12000,
     13000,
-    blockId
+    blockId,
+    tx.txId
   );
-
-  // insert reward transaction
-  const tx = TxTestData.mockPaymentTransaction(
-    TransactionType.reward,
-    CARDANO_CHAIN,
-    Utils.txIdToEventId(mockedEvent.sourceTxId)
-  );
-  await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.completed);
-  const txRecord = (await DatabaseAction.getInstance().getTxById(tx.txId))!;
+  const eventRecord = (await DatabaseActionMock.allRawEventRecords()).at(-1)!;
 
   // insert revenue
-  await DatabaseAction.getInstance().storeRevenue(
+  await DatabaseAction.getInstance().insertRevenue(
     revenueToken,
     10000n,
-    txRecord
+    tx.txId,
+    revenueType,
+    eventRecord
   );
 };
 

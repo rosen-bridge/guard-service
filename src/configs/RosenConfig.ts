@@ -1,5 +1,6 @@
 import fs from 'fs';
 import Configs from './Configs';
+import { SUPPORTED_CHAINS } from '../utils/constants';
 
 class ContractConfig {
   readonly cleanupNFT: string;
@@ -8,6 +9,7 @@ class ContractConfig {
   readonly eventTriggerAddress: string;
   readonly commitmentAddress: string;
   readonly lockAddress: string;
+  readonly fraudAddress: string;
   readonly RepoNFT: string;
   readonly RWTId: string;
 
@@ -23,6 +25,7 @@ class ContractConfig {
       this.eventTriggerAddress = config.addresses.WatcherTriggerEvent;
       this.commitmentAddress = config.addresses.Commitment;
       this.lockAddress = config.addresses.lock;
+      this.fraudAddress = config.addresses.fraud;
       this.RepoNFT = config.tokens.RepoNFT;
       this.RWTId = config.tokens.RWTId;
     }
@@ -37,7 +40,7 @@ class RosenConfig {
   readonly contracts: Map<string, ContractConfig>;
 
   constructor() {
-    const supportingNetworks = Configs.networks.map(
+    const supportingNetworks = SUPPORTED_CHAINS.map(
       (network, index) => `${network}-${Configs.networksType[index]}`
     );
     this.contracts = new Map<string, ContractConfig>();

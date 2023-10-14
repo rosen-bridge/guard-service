@@ -17,7 +17,6 @@ import Configs from '../../src/configs/Configs';
 import * as EventTestData from '../event/testData';
 import EventSerializer from '../../src/event/EventSerializer';
 import TransactionProcessorMock from './TransactionProcessor.mock';
-import TransactionSerializer from '../../src/transaction/TransactionSerializer';
 
 describe('TransactionProcessor', () => {
   const currentTimeStampSeconds = Math.round(
@@ -254,7 +253,7 @@ describe('TransactionProcessor', () => {
       expect(dbTxs).toEqual([
         [
           tx.txId,
-          TransactionSerializer.toJson(signedTx),
+          signedTx.toJson(),
           TransactionStatus.signed,
           currentTimeStampSeconds.toString(),
           mockedCurrentHeight,

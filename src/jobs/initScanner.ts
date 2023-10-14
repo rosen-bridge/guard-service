@@ -43,13 +43,22 @@ const createLoggers = () => ({
  * initialize ergo scanner and extractors
  */
 const initScanner = () => {
-  const scannerConfig = {
-    type: ErgoNetworkType.Node,
-    url: GuardsErgoConfigs.node.url,
-    timeout: GuardsErgoConfigs.node.timeout * 1000,
-    initialHeight: GuardsErgoConfigs.initialHeight,
-    dataSource,
-  };
+  const scannerConfig =
+    GuardsErgoConfigs.chainNetworkName === ErgoNetworkType.Node
+      ? {
+          type: ErgoNetworkType.Node,
+          url: GuardsErgoConfigs.node.url,
+          timeout: GuardsErgoConfigs.node.timeout * 1000,
+          initialHeight: GuardsErgoConfigs.initialHeight,
+          dataSource,
+        }
+      : {
+          type: ErgoNetworkType.Explorer,
+          url: GuardsErgoConfigs.explorer.url,
+          timeout: GuardsErgoConfigs.explorer.timeout * 1000,
+          initialHeight: GuardsErgoConfigs.initialHeight,
+          dataSource,
+        };
 
   const loggers = createLoggers();
 
@@ -80,7 +89,7 @@ const initScanner = () => {
     dataSource,
     GuardsErgoConfigs.ergoContractConfig.eventTriggerAddress,
     GuardsErgoConfigs.ergoContractConfig.RWTId,
-    loggers.ergoCommitmentExtractorLogger
+    loggers.ergoEventTriggerExtractorLogger
   );
   ergoScanner.registerExtractor(cardanoCommitmentExtractor);
   ergoScanner.registerExtractor(cardanoEventTriggerExtractor);

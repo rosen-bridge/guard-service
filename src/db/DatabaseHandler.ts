@@ -5,8 +5,11 @@ import {
 } from '@rosen-chains/abstract-chain';
 import { ConfirmedEventEntity } from './entities/ConfirmedEventEntity';
 import { loggerFactory } from '../log/Logger';
-import { TransactionStatus } from '../utils/constants';
+import { EventStatus, TransactionStatus } from '../utils/constants';
 import { DatabaseAction } from './DatabaseAction';
+import { ERGO_CHAIN } from '@rosen-chains/ergo';
+import { rosenConfig } from '../configs/RosenConfig';
+import Configs from '../configs/Configs';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -125,6 +128,39 @@ class DatabaseHandler {
         }
       }
     } else await DatabaseAction.getInstance().insertNewTx(newTx, null);
+  };
+
+  /**
+   * extracts tokens that are required in waiting events
+   * considers RSN if event is pending a transaction on Ergo
+   * @returns list of token ids
+   */
+  static getWaitingEventsRequiredTokens = async (): Promise<string[]> => {
+    const waitingEvents =
+      await DatabaseAction.getInstance().getEventsByStatuses([
+        EventStatus.paymentWaiting,
+        EventStatus.rewardWaiting,
+      ]);
+    const requiredTokenIds = new Set<string>();
+    waitingEvents.forEach((event) => {
+      if (event.status === EventStatus.paymentWaiting) {
+        requiredTokenIds.add(event.eventData.targetChainTokenId);
+        if (event.eventData.toChain === ERGO_CHAIN)
+          requiredTokenIds.add(rosenConfig.RSN);
+      } else {
+        requiredTokenIds.add(rosenConfig.RSN);
+        const tokenIdOnErgo = Configs.tokenMap.getID(
+          Configs.tokenMap.search(event.eventData.fromChain, {
+            [Configs.tokenMap.getIdKey(event.eventData.fromChain)]:
+              event.eventData.sourceChainTokenId,
+          })[0],
+          ERGO_CHAIN
+        );
+        requiredTokenIds.add(tokenIdOnErgo);
+      }
+    });
+
+    return Array.from(requiredTokenIds);
   };
 }
 

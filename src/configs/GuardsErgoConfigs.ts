@@ -31,6 +31,9 @@ class GuardsErgoConfigs {
   static bridgeFeeRepoAddress: string = config.get<string>(
     'reward.bridgeFeeRepoAddress'
   );
+  static rsnEmissionAddress: string = config.get<string>(
+    'reward.RSNEmissionAddress'
+  );
   static networkFeeRepoAddress: string = config.get<string>(
     'reward.networkFeeRepoAddress'
   );
@@ -89,8 +92,12 @@ class GuardsErgoConfigs {
       cold: this.coldTxConfirmation,
       manual: this.manualTxConfirmation,
     },
-    lockAddress: this.ergoContractConfig.lockAddress,
-    coldStorageAddress: this.coldAddress,
+    addresses: {
+      lock: this.ergoContractConfig.lockAddress,
+      cold: this.coldAddress,
+      permit: this.ergoContractConfig.permitAddress,
+      fraud: this.ergoContractConfig.fraudAddress,
+    },
     rwtId: this.ergoContractConfig.RWTId,
     minBoxValue: this.minimumErg,
     eventTxConfirmation: this.eventConfirmation,

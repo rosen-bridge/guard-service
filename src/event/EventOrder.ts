@@ -204,6 +204,9 @@ class EventOrder {
       })[0],
       ERGO_CHAIN
     );
+    const permitAddress = ChainHandler.getInstance()
+      .getChain(event.fromChain)
+      .getChainConfigs().addresses.permit;
     if (tokenId === ERG)
       return this.eventErgRewardOrder(
         outPermits,
@@ -213,7 +216,7 @@ class EventOrder {
         paymentTxId,
         rwtTokenId,
         rwtCount,
-        event.fromChain
+        permitAddress
       );
     else
       return this.eventTokenRewardOrder(
@@ -225,7 +228,7 @@ class EventOrder {
         paymentTxId,
         rwtTokenId,
         rwtCount,
-        event.fromChain
+        permitAddress
       );
   };
 
@@ -238,7 +241,7 @@ class EventOrder {
    * @param paymentTxId payment transaction id (which is empty string when toChain is Ergo)
    * @param rwtTokenId RWT token id of fromChain
    * @param rwtCount amount RWT token per watcher
-   * @param fromChain
+   * @param permitAddress
    */
   protected static eventErgRewardOrder = (
     outPermits: PermitBoxValue[],
@@ -248,7 +251,7 @@ class EventOrder {
     paymentTxId: string,
     rwtTokenId: string,
     rwtCount: bigint,
-    fromChain: string
+    permitAddress: string
   ): PaymentOrder => {
     const order: PaymentOrder = [];
     const watchersLen = outPermits.length;
@@ -281,7 +284,7 @@ class EventOrder {
         tokens: watcherTokens,
       };
       order.push({
-        address: ChainHandler.getInstance().getChainPermitAddress(fromChain),
+        address: permitAddress,
         assets: assets,
         extra: permit.wid,
       });
@@ -292,24 +295,32 @@ class EventOrder {
       bridgeFee -
       BigInt(watchersLen) * watcherErgAmount +
       GuardsErgoConfigs.minimumErg;
-    const guardRsnAmount = rsnFee - BigInt(watchersLen) * watcherRsnAmount;
     const assets: AssetBalance = {
       nativeToken: guardBridgeFeeErgAmount,
-      tokens:
-        guardRsnAmount > 0
-          ? [
-              {
-                id: rosenConfig.RSN,
-                value: guardRsnAmount,
-              },
-            ]
-          : [],
+      tokens: [],
     };
     order.push({
       address: GuardsErgoConfigs.bridgeFeeRepoAddress,
       assets: assets,
       extra: paymentTxId,
     });
+
+    // add RSN emission to order
+    const rsnEmissionAmount = rsnFee - BigInt(watchersLen) * watcherRsnAmount;
+    if (rsnEmissionAmount > 0) {
+      order.push({
+        address: GuardsErgoConfigs.rsnEmissionAddress,
+        assets: {
+          nativeToken: GuardsErgoConfigs.minimumErg,
+          tokens: [
+            {
+              id: rosenConfig.RSN,
+              value: rsnEmissionAmount,
+            },
+          ],
+        },
+      });
+    }
 
     // add guard network fee to order
     order.push({
@@ -333,7 +344,7 @@ class EventOrder {
    * @param paymentTxId payment transaction id (which is empty string when toChain is Ergo)
    * @param rwtTokenId RWT token id of fromChain
    * @param rwtCount amount RWT token per watcher
-   * @param fromChain
+   * @param permitAddress
    */
   protected static eventTokenRewardOrder = (
     outPermits: PermitBoxValue[],
@@ -344,7 +355,7 @@ class EventOrder {
     paymentTxId: string,
     rwtTokenId: string,
     rwtCount: bigint,
-    fromChain: string
+    permitAddress: string
   ): PaymentOrder => {
     const order: PaymentOrder = [];
     const watchersLen = outPermits.length;
@@ -378,7 +389,7 @@ class EventOrder {
     // add watcher boxes to order
     outPermits.forEach((permit) => {
       order.push({
-        address: ChainHandler.getInstance().getChainPermitAddress(fromChain),
+        address: permitAddress,
         assets: {
           nativeToken: permit.boxValue,
           tokens: watcherTokens,
@@ -390,7 +401,6 @@ class EventOrder {
     // add guard bridge fee to order
     const guardBridgeFeeTokenAmount =
       bridgeFee - BigInt(watchersLen) * watcherTokenAmount;
-    const guardRsnAmount = rsnFee - BigInt(watchersLen) * watcherRsnAmount;
     const guardTokens: TokenInfo[] =
       guardBridgeFeeTokenAmount > 0
         ? [
@@ -400,11 +410,6 @@ class EventOrder {
             },
           ]
         : [];
-    if (guardRsnAmount > 0)
-      guardTokens.push({
-        id: rosenConfig.RSN,
-        value: guardRsnAmount,
-      });
     order.push({
       address: GuardsErgoConfigs.bridgeFeeRepoAddress,
       assets: {
@@ -413,6 +418,23 @@ class EventOrder {
       },
       extra: paymentTxId,
     });
+
+    // add RSN emission to order
+    const rsnEmissionAmount = rsnFee - BigInt(watchersLen) * watcherRsnAmount;
+    if (rsnEmissionAmount > 0) {
+      order.push({
+        address: GuardsErgoConfigs.rsnEmissionAddress,
+        assets: {
+          nativeToken: GuardsErgoConfigs.minimumErg,
+          tokens: [
+            {
+              id: rosenConfig.RSN,
+              value: rsnEmissionAmount,
+            },
+          ],
+        },
+      });
+    }
 
     // add guard network fee to order
     order.push({

@@ -1,18 +1,61 @@
 import { HealthStatusLevel } from '@rosen-bridge/health-check';
 import GuardsErgoConfigs from '../../src/configs/GuardsErgoConfigs';
+import GuardsCardanoConfigs from '../../src/configs/GuardsCardanoConfigs';
+import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
+import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
+import { rosenConfig } from '../../src/configs/RosenConfig';
 
 export const guardInfo = {
   health: HealthStatusLevel.HEALTHY,
-  hot: {
-    address: GuardsErgoConfigs.ergoContractConfig.lockAddress,
-    balance: '10',
+  balances: {
+    hot: [
+      {
+        address: GuardsErgoConfigs.chainConfigs.addresses.lock,
+        chain: ERGO_CHAIN,
+        balance: {
+          tokenId: ERG,
+          amount: 10,
+          name: 'erg',
+          decimals: 9,
+          isNativeToken: true,
+        },
+      },
+      {
+        address: GuardsCardanoConfigs.chainConfigs.addresses.lock,
+        chain: CARDANO_CHAIN,
+        balance: {
+          tokenId: ADA,
+          amount: 20,
+          name: 'ada',
+          decimals: 6,
+          isNativeToken: true,
+        },
+      },
+    ],
+    cold: [
+      {
+        address: GuardsErgoConfigs.chainConfigs.addresses.cold,
+        chain: ERGO_CHAIN,
+        balance: {
+          tokenId: ERG,
+          amount: 100,
+          name: 'erg',
+          decimals: 9,
+          isNativeToken: true,
+        },
+      },
+      {
+        address: GuardsCardanoConfigs.chainConfigs.addresses.cold,
+        chain: CARDANO_CHAIN,
+        balance: {
+          tokenId: ADA,
+          amount: 200,
+          name: 'ada',
+          decimals: 6,
+          isNativeToken: true,
+        },
+      },
+    ],
   },
-  cold: {
-    address: GuardsErgoConfigs.coldAddress,
-    balance: '100',
-  },
-  tokens: {
-    ergo: [{ id: '1', value: '20' }],
-    cardano: [{ id: '2', value: '40' }],
-  },
+  rsnTokenId: rosenConfig.RSN,
 };
