@@ -510,6 +510,8 @@ class DatabaseAction {
    * @param toChain
    * @param minAmount
    * @param maxAmount
+   * @param offset
+   * @param limit
    * @returns returns completed events with the specified condition
    */
   getCompletedEvents = async (
@@ -517,7 +519,9 @@ class DatabaseAction {
     fromChain: string | undefined,
     toChain: string | undefined,
     minAmount: string | undefined,
-    maxAmount: string | undefined
+    maxAmount: string | undefined,
+    offset = 0,
+    limit = 20
   ) => {
     const query = this.ConfirmedEventRepository.createQueryBuilder(
       'confirmed_event'
@@ -561,6 +565,8 @@ class DatabaseAction {
    * @param toChain
    * @param minAmount
    * @param maxAmount
+   * @param offset
+   * @param limit
    * @returns returns completed events with the specified condition
    */
   getOngoingEvents = async (
@@ -568,7 +574,9 @@ class DatabaseAction {
     fromChain: string | undefined,
     toChain: string | undefined,
     minAmount: string | undefined,
-    maxAmount: string | undefined
+    maxAmount: string | undefined,
+    offset = 0,
+    limit = 20
   ) => {
     const query = this.ConfirmedEventRepository.createQueryBuilder(
       'confirmed_event'
@@ -762,10 +770,13 @@ class DatabaseAction {
   /**
    * @returns the transactions with valid status
    */
-  getValidTxs = async (): Promise<TransactionEntity[]> => {
+  getValidTxsForEvents = async (
+    eventIds: string[]
+  ): Promise<TransactionEntity[]> => {
     return await this.TransactionRepository.find({
       relations: ['event'],
       where: {
+        event: In(eventIds),
         status: Not(TransactionStatus.invalid),
       },
     });
