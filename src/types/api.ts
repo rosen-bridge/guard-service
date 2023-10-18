@@ -7,7 +7,7 @@ enum SortRequest {
 }
 
 interface TokenChartData {
-  title: string;
+  title: TokenData;
   data: {
     label: string;
     amount: string;

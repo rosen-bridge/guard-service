@@ -24,6 +24,9 @@ export class RevenueChartView {
   amount!: string;
 
   @ViewColumn()
+  revenueType!: string;
+
+  @ViewColumn()
   week_number!: number;
 
   @ViewColumn()

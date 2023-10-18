@@ -56,7 +56,7 @@ const infoRoute = (server: FastifySeverInstance) => {
             balance: {
               tokenId: nativeTokenId,
               amount: Number(hotAmount),
-              name: nativeTokenData.name,
+              name: nativeTokenData.name.toUpperCase(),
               decimals: nativeTokenData.decimals,
               isNativeToken: true,
             },
@@ -70,7 +70,7 @@ const infoRoute = (server: FastifySeverInstance) => {
             balance: {
               tokenId: nativeTokenId,
               amount: Number(coldAmount),
-              name: nativeTokenData.name,
+              name: nativeTokenData.name.toUpperCase(),
               decimals: nativeTokenData.decimals,
               isNativeToken: true,
             },

@@ -177,7 +177,7 @@ export const RevenueChartQuerySchema = Type.Object({
 
 export const RevenueChartResponseSchema = Type.Array(
   Type.Object({
-    title: Type.String(),
+    title: TokenDataSchema,
     data: Type.Array(
       Type.Object({
         label: Type.String(),
