@@ -70,6 +70,23 @@ interface EventHistory
   extends Pick<
     EventTriggerEntity,
     | 'eventId'
+    | 'fromChain'
+    | 'toChain'
+    | 'fromAddress'
+    | 'toAddress'
+    | 'bridgeFee'
+    | 'networkFee'
+    | 'sourceTxId'
+  > {
+  sourceChainToken: TokenData;
+  paymentTxId: string;
+  rewardTxId: string;
+}
+
+interface OngoingEvents
+  extends Pick<
+    EventTriggerEntity,
+    | 'eventId'
     | 'txId'
     | 'fromChain'
     | 'toChain'
@@ -80,6 +97,7 @@ interface EventHistory
     | 'sourceTxId'
   > {
   sourceChainToken: TokenData;
+  status: string;
 }
 
 export {
@@ -93,4 +111,5 @@ export {
   SingleRevenue,
   RevenueHistory,
   EventHistory,
+  OngoingEvents,
 };

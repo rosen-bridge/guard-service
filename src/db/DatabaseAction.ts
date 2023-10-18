@@ -758,6 +758,18 @@ class DatabaseAction {
     }
     return query.getRawMany();
   };
+
+  /**
+   * @returns the transactions with valid status
+   */
+  getValidTxs = async (): Promise<TransactionEntity[]> => {
+    return await this.TransactionRepository.find({
+      relations: ['event'],
+      where: {
+        status: Not(TransactionStatus.invalid),
+      },
+    });
+  };
 }
 
 export { DatabaseAction };

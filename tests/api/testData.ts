@@ -15,7 +15,7 @@ export const guardInfo = {
         balance: {
           tokenId: ERG,
           amount: 10,
-          name: 'erg',
+          name: 'ERG',
           decimals: 9,
           isNativeToken: true,
         },
@@ -26,7 +26,7 @@ export const guardInfo = {
         balance: {
           tokenId: ADA,
           amount: 20,
-          name: 'ada',
+          name: 'ADA',
           decimals: 6,
           isNativeToken: true,
         },

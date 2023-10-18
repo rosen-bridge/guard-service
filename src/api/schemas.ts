@@ -138,7 +138,7 @@ export const EventsQuerySchema = Type.Object({
   minAmount: Type.Optional(Type.String()),
 });
 
-export const EventsResponseSchema = OutputItemsSchema(
+export const EventsHistoryResponseSchema = OutputItemsSchema(
   Type.Object({
     eventId: Type.String(),
     fromChain: Type.String(),
@@ -148,6 +148,24 @@ export const EventsResponseSchema = OutputItemsSchema(
     bridgeFee: Type.String(),
     networkFee: Type.String(),
     sourceTxId: Type.String(),
+    paymentTxId: Type.String(),
+    rewardTxId: Type.String(),
+    sourceChainToken: TokenDataSchema,
+  } as const)
+);
+
+export const OngoingEventsResponseSchema = OutputItemsSchema(
+  Type.Object({
+    eventId: Type.String(),
+    fromChain: Type.String(),
+    toChain: Type.String(),
+    fromAddress: Type.String(),
+    toAddress: Type.String(),
+    bridgeFee: Type.String(),
+    networkFee: Type.String(),
+    sourceTxId: Type.String(),
+    txId: Type.String(),
+    status: Type.String(),
     sourceChainToken: TokenDataSchema,
   } as const)
 );
