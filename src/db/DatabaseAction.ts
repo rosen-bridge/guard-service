@@ -555,6 +555,7 @@ class DatabaseAction {
     query.orderBy({
       event_trigger_entity_height: sort || SortRequest.DESC,
     });
+    query.offset(offset).limit(limit);
     return query.getMany();
   };
 
@@ -611,6 +612,7 @@ class DatabaseAction {
     query.orderBy({
       event_trigger_entity_height: sort || SortRequest.DESC,
     });
+    query.offset(offset).limit(limit);
     return query.getMany();
   };
 
