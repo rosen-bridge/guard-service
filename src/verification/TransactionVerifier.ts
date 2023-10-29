@@ -136,6 +136,7 @@ class TransactionVerifier {
 
     let isTransferValid = true;
     Object.keys(thresholds).forEach((tokenId) => {
+      if (forbiddenTokens.includes(tokenId)) return;
       const isNativeToken =
         Configs.tokenMap.search(tx.network, {
           [Configs.tokenMap.getIdKey(tx.network)]: tokenId,

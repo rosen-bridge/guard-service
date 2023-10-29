@@ -1028,5 +1028,83 @@ describe('TransactionVerifier', () => {
       // verify returned value
       expect(result).toEqual(false);
     });
+
+    /**
+     * @target TransactionVerifier.verifyColdStorageTransaction should return true
+     * when only forbidden tokens remain more than high threshold
+     * @dependencies
+     * - ChainHandler
+     * @scenario
+     * - mock an event and insert mocked event into db as paymentWaiting
+     * - mock transaction
+     * - mock ChainHandler
+     *   - mock `extractTransactionOrder`
+     *   - mock `getLockAddressAssets`
+     *   - mock `getChainConfigs`
+     * - run test
+     * - verify returned value
+     * @expected
+     * - returned value should be true
+     */
+    it('should return true when only forbidden tokens remain more than high threshold', async () => {
+      // mock an event and insert mocked event into db as paymentWaiting
+      const event = mockTokenPaymentFromErgoEvent();
+      await DatabaseActionMock.insertEventRecord(
+        event,
+        EventStatus.paymentWaiting
+      );
+
+      const chain = CARDANO_CHAIN;
+      // mock transaction
+      const tx = mockPaymentTransaction(TransactionType.coldStorage, chain);
+      // mock ChainHandler `getChain`
+      ChainHandlerMock.mockChainName(chain);
+      // mock `extractTransactionOrder`
+      const coldAddress = `coldAddress`;
+      const order: PaymentOrder = [
+        {
+          address: coldAddress,
+          assets: {
+            nativeToken: 1000000000n,
+            tokens: [
+              {
+                id: 'asset1epz7gzjqg5py4xrgps6ccv25gz7gd6v8e5gmxx',
+                value: 600000000000n,
+              },
+            ],
+          },
+        },
+      ];
+      ChainHandlerMock.mockToChainFunction('extractTransactionOrder', order);
+      // mock `getLockAddressAssets`
+      const lockedAssets: AssetBalance = {
+        nativeToken: 1100000000n,
+        tokens: [
+          {
+            id: 'asset1epz7gzjqg5py4xrgps6ccv25gz7gd6v8e5gmxx',
+            value: 725000000000n,
+          },
+          {
+            id: 'asset1m62zdrt2fhlm9wpqrskxka6t0wvq5vag58cytl',
+            value: 500000000000n,
+          },
+        ],
+      };
+      ChainHandlerMock.mockToChainFunction(
+        'getLockAddressAssets',
+        lockedAssets,
+        true
+      );
+      // mock `getChainConfigs`
+      ChainHandlerMock.mockToChainFunction('getChainConfigs', {
+        addresses: { cold: coldAddress },
+      });
+
+      // run test
+      const result = await TransactionVerifier.verifyColdStorageTransaction(tx);
+
+      // verify returned value
+      expect(result).toEqual(true);
+    });
   });
 });
