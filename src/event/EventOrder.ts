@@ -80,10 +80,12 @@ class EventOrder {
    * generates reward distribution order for an event
    * @param event the event trigger
    * @param feeConfig minimum fee and rsn ratio config for the event
+   * @param paymentTxId the payment transaction of the event
    */
   static createEventRewardOrder = async (
     event: EventTrigger,
-    feeConfig: Fee
+    feeConfig: Fee,
+    paymentTxId: string
   ): Promise<PaymentOrder> => {
     const ergoChain = ChainHandler.getInstance().getErgoChain();
 
@@ -107,7 +109,7 @@ class EventOrder {
         boxValue: ergoChain.getSerializedBoxInfo(commitment).assets.nativeToken,
       })),
       feeConfig,
-      '',
+      paymentTxId,
       ChainHandler.getInstance().getChain(event.fromChain).getRWTToken(),
       rwtCount,
       permitValue

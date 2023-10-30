@@ -20,7 +20,8 @@ import {
 import { mockGetEventFeeConfig } from '../event/mocked/MinimumFee.mock';
 import { CARDANO_CHAIN } from '@rosen-chains/cardano';
 import DatabaseActionMock from '../db/mocked/DatabaseAction.mock';
-import { EventStatus } from '../../src/utils/constants';
+import { EventStatus, TransactionStatus } from '../../src/utils/constants';
+import { ERGO_CHAIN } from '@rosen-chains/ergo';
 
 describe('TransactionVerifier', () => {
   describe('verifyTxCommonConditions', () => {
@@ -192,6 +193,7 @@ describe('TransactionVerifier', () => {
   describe('verifyEventTransaction', () => {
     beforeEach(async () => {
       ChainHandlerMock.resetMock();
+      DatabaseActionMock.clearTables();
       mockGetEventFeeConfig({
         bridgeFee: 0n,
         networkFee: 0n,
@@ -261,10 +263,12 @@ describe('TransactionVerifier', () => {
      * @target TransactionVerifier.verifyEventTransaction should return true
      * when all conditions for reward distribution tx are met
      * @dependencies
+     * - database
      * - ChainHandler
      * - MinimumFee
      * @scenario
-     * - mock event and transaction
+     * - mock event and two transactions
+     * - insert event and payment transaction into database
      * - mock a PaymentOrder
      * - mock ChainHandler
      *   - mock `extractTransactionOrder` to return mocked order
@@ -282,6 +286,21 @@ describe('TransactionVerifier', () => {
         mockedEvent.toChain,
         EventSerializer.getId(mockedEvent)
       );
+      const rewardTx = mockPaymentTransaction(
+        TransactionType.reward,
+        ERGO_CHAIN,
+        EventSerializer.getId(mockedEvent)
+      );
+
+      // insert payment transaction into database
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent,
+        EventStatus.pendingReward
+      );
+      await DatabaseActionMock.insertTxRecord(
+        paymentTx,
+        TransactionStatus.completed
+      );
 
       // mock a PaymentOrder
       const mockedOrder: PaymentOrder = [
@@ -296,7 +315,7 @@ describe('TransactionVerifier', () => {
 
       // mock ChainHandler
       // mock `extractTransactionOrder`
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockErgoFunctionReturnValue(
         'extractTransactionOrder',
         mockedOrder
       );
@@ -306,7 +325,7 @@ describe('TransactionVerifier', () => {
 
       // run test
       const result = await TransactionVerifier.verifyEventTransaction(
-        paymentTx,
+        rewardTx,
         mockedEvent
       );
 
