@@ -242,11 +242,26 @@ class EventProcessor {
         'Events with Ergo as toChain will distribute rewards in a single transaction with payment'
       );
 
+    // get event payment transaction
+    const eventTxs = await DatabaseAction.getInstance().getEventValidTxsByType(
+      eventId,
+      TransactionType.payment
+    );
+    if (eventTxs.length !== 1)
+      throw new ImpossibleBehavior(
+        `Processing event [${eventId}] for reward distribution but no payment tx found for it in database`
+      );
+    const paymentTxId = eventTxs[0].txId;
+
     // get minimum-fee and verify event
     const feeConfig = await MinimumFee.getEventFeeConfig(event);
 
     try {
-      const tx = await this.createEventRewardDistribution(event, feeConfig);
+      const tx = await this.createEventRewardDistribution(
+        event,
+        feeConfig,
+        paymentTxId
+      );
       if (GuardTurn.guardTurn() === GuardPkHandler.getInstance().guardId)
         (await TxAgreement.getInstance()).addTransactionToQueue(tx);
       else
@@ -274,11 +289,13 @@ class EventProcessor {
    * creates an unsigned transaction for event reward distribution on ergo chain
    * @param event the event trigger
    * @param feeConfig minimum fee and rsn ratio config for the event
+   * @param paymentTxId the payment transaction of the event
    * @returns created unsigned transaction
    */
   protected static createEventRewardDistribution = async (
     event: EventTrigger,
-    feeConfig: Fee
+    feeConfig: Fee,
+    paymentTxId: string
   ): Promise<PaymentTransaction> => {
     const ergoChain = ChainHandler.getInstance().getErgoChain();
 
@@ -296,7 +313,11 @@ class EventProcessor {
     );
 
     // generate reward order
-    const order = await EventOrder.createEventRewardOrder(event, feeConfig);
+    const order = await EventOrder.createEventRewardOrder(
+      event,
+      feeConfig,
+      paymentTxId
+    );
 
     // get unsigned transactions in target chain
     const unsignedAgreementTransactions = (
