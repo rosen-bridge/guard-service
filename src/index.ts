@@ -26,8 +26,7 @@ const initService = async () => {
   await initDataSources();
 
   // initialize DatabaseAction
-  const dbAction = DatabaseAction.getInstance();
-  dbAction.init(dataSource);
+  const dbAction = DatabaseAction.init(dataSource);
 
   // initialize express Apis
   await initApiServer();
