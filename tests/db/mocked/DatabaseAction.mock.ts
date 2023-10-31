@@ -59,8 +59,8 @@ class DatabaseActionMock {
       logger.error(`An error occurred while initializing test datasource`);
       logger.error(err.stack);
     }
+    DatabaseAction.init(this.testDataSource);
     this.testDatabase = DatabaseAction.getInstance();
-    this.testDatabase.init(this.testDataSource);
   };
 
   /**

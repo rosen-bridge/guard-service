@@ -193,7 +193,7 @@ describe('TransactionVerifier', () => {
   describe('verifyEventTransaction', () => {
     beforeEach(async () => {
       ChainHandlerMock.resetMock();
-      DatabaseActionMock.clearTables();
+      await DatabaseActionMock.clearTables();
       mockGetEventFeeConfig({
         bridgeFee: 0n,
         networkFee: 0n,
