@@ -14,7 +14,7 @@ import MinimumFee from '../event/MinimumFee';
 import Configs from '../configs/Configs';
 import DatabaseHandler from '../db/DatabaseHandler';
 import { JsonBI } from '../network/NetworkModels';
-import { DatabaseAction } from 'src/db/DatabaseAction';
+import { DatabaseAction } from '../db/DatabaseAction';
 
 const logger = loggerFactory(import.meta.url);
 
