@@ -13,15 +13,15 @@ import { ConfirmedEventEntity } from '../../../src/db/entities/ConfirmedEventEnt
 import { TransactionEntity } from '../../../src/db/entities/TransactionEntity';
 import migrations from '../../../src/db/migrations';
 import Utils from '../../../src/utils/Utils';
-import { loggerFactory } from '../../../src/log/Logger';
 import TestUtils from '../../testUtils/TestUtils';
 import { EventTrigger, PaymentTransaction } from '@rosen-chains/abstract-chain';
 import { DatabaseAction } from '../../../src/db/DatabaseAction';
 import { RevenueEntity } from '../../../src/db/entities/revenueEntity';
 import { RevenueChartView } from '../../../src/db/entities/revenueChartView';
 import { RevenueView } from '../../../src/db/entities/revenueView';
+import { winstonLogger } from '../../../src/log/Logger';
 
-const logger = loggerFactory(import.meta.url);
+const logger = winstonLogger.getLogger(import.meta.url);
 
 class DatabaseActionMock {
   static testDataSource = new DataSource({
