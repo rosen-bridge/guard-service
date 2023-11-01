@@ -115,7 +115,7 @@ const revenueChartRoute = (server: FastifySeverInstance) => {
               title: tokenData,
               data: data
                 .map((datum) => ({
-                  label: new Date(datum.label * 1000).toDateString(),
+                  label: (datum.label * 1000).toString(),
                   amount: datum.amount,
                 }))
                 .slice(0, count),

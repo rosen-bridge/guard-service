@@ -81,6 +81,7 @@ interface EventHistory
   sourceChainToken: TokenData;
   paymentTxId: string;
   rewardTxId: string;
+  status: string;
 }
 
 interface OngoingEvents

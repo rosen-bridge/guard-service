@@ -150,6 +150,7 @@ export const EventsHistoryResponseSchema = OutputItemsSchema(
     sourceTxId: Type.String(),
     paymentTxId: Type.String(),
     rewardTxId: Type.String(),
+    status: Type.String(),
     sourceChainToken: TokenDataSchema,
   } as const)
 );

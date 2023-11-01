@@ -772,10 +772,8 @@ class DatabaseAction {
   /**
    * @returns the transactions with valid status
    */
-  getValidTxsForEvents = async (
-    eventIds: string[]
-  ): Promise<TransactionEntity[]> => {
-    return await this.TransactionRepository.find({
+  getValidTxsForEvents = (eventIds: string[]): Promise<TransactionEntity[]> => {
+    return this.TransactionRepository.find({
       relations: ['event'],
       where: {
         event: In(eventIds),

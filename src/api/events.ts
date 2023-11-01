@@ -32,6 +32,8 @@ const eventsHistoryRoute = (server: FastifySeverInstance) => {
         request.query;
 
       const dbAction = DatabaseAction.getInstance();
+      // TODO: should fetch spent events, not completed ones.
+      //  local:ergo/rosen-bridge/guard-service#331
       const results = await dbAction.getCompletedEvents(
         sort,
         fromChain,
@@ -65,8 +67,8 @@ const eventsHistoryRoute = (server: FastifySeverInstance) => {
         const tokenData: TokenData = {
           tokenId: event.sourceChainTokenId,
           amount: Number(event.amount),
-          name: name ?? 'Unsupported token',
-          decimals: decimals ?? 0,
+          name: name,
+          decimals: decimals,
           isNativeToken: isNativeToken,
         };
 
@@ -92,6 +94,7 @@ const eventsHistoryRoute = (server: FastifySeverInstance) => {
                 tx.event.id === event.eventId &&
                 tx.type === TransactionType.reward
             )?.txId ?? '',
+          status: result.status,
         };
       });
 
@@ -158,8 +161,8 @@ const ongoingEventsRoute = (server: FastifySeverInstance) => {
         const tokenData: TokenData = {
           tokenId: event.sourceChainTokenId,
           amount: Number(event.amount),
-          name: name ?? 'Unsupported token',
-          decimals: decimals ?? 0,
+          name: name,
+          decimals: decimals,
           isNativeToken: isNativeToken,
         };
 
