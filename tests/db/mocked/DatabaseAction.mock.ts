@@ -1,3 +1,4 @@
+import '../../../src/bootstrap';
 import { DataSource } from 'typeorm';
 import {
   BlockEntity,
