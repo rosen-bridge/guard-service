@@ -1,7 +1,7 @@
 import { dataSource } from '../db/dataSource';
-import { loggerFactory } from '../log/Logger';
+import { winstonLogger } from '../log/Logger';
 
-const logger = loggerFactory(import.meta.url);
+const logger = winstonLogger.getLogger(import.meta.url);
 
 const initDataSources = async (): Promise<void> => {
   try {

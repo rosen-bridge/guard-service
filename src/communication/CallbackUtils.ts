@@ -1,9 +1,9 @@
 import axios from 'axios';
 import CommunicationConfig from './CommunicationConfig';
 import { SubscribeChannelWithURL } from './Interfaces';
-import { loggerFactory } from '../log/Logger';
+import { winstonLogger } from '../log/Logger';
 
-const logger = loggerFactory(import.meta.url);
+const logger = winstonLogger.getLogger(import.meta.url);
 
 const apiCallBack: SubscribeChannelWithURL['func'] = (
   msg,

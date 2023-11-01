@@ -1,4 +1,3 @@
-import { loggerFactory } from '../log/Logger';
 import { LockBalance } from '../types/api';
 import ChainHandler from '../handlers/ChainHandler';
 import { getHealthCheck } from '../guard/HealthCheck';
@@ -12,8 +11,9 @@ import {
   MessageResponseSchema,
 } from './schemas';
 import { rosenConfig } from '../configs/RosenConfig';
+import { winstonLogger } from '../log/Logger';
 
-const logger = loggerFactory(import.meta.url);
+const logger = winstonLogger.getLogger(import.meta.url);
 
 /**
  * Gets the general info of the service

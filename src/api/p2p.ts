@@ -1,11 +1,11 @@
 import { apiCallBack } from '../communication/CallbackUtils';
 import Dialer from '../communication/Dialer';
 import Configs from '../configs/Configs';
-import { loggerFactory } from '../log/Logger';
 import { Type } from '@sinclair/typebox';
 import { FastifySeverInstance, MessageResponseSchema } from './schemas';
+import { winstonLogger } from '../log/Logger';
 
-const logger = loggerFactory(import.meta.url);
+const logger = winstonLogger.getLogger(import.meta.url);
 
 /**
  * setup route for send p2p message

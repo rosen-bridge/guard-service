@@ -16,10 +16,10 @@ import Configs from '../../configs/Configs';
 import { Semaphore } from 'await-semaphore';
 import Encryption from '../../utils/Encryption';
 import MultiSigUtils from './MultiSigUtils';
-import { loggerFactory } from '../../log/Logger';
 import { CommitmentMisMatch } from '../../utils/errors';
+import { winstonLogger } from '../../log/Logger';
 
-const logger = loggerFactory(import.meta.url);
+const logger = winstonLogger.getLogger(import.meta.url);
 
 class MultiSigHandler {
   private static instance: MultiSigHandler;

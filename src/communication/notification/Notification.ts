@@ -1,8 +1,8 @@
 import { WebhookClient } from 'discord.js';
 import Configs from '../../configs/Configs';
-import { loggerFactory } from '../../log/Logger';
+import { winstonLogger } from '../../log/Logger';
 
-const logger = loggerFactory(import.meta.url);
+const logger = winstonLogger.getLogger(import.meta.url);
 
 class Notification {
   private static instance: Notification;

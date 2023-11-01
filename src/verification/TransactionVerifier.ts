@@ -5,15 +5,15 @@ import {
   TransactionType,
 } from '@rosen-chains/abstract-chain';
 import ChainHandler from '../handlers/ChainHandler';
-import { loggerFactory } from '../log/Logger';
 import { isEqual } from 'lodash-es';
 import EventOrder from '../event/EventOrder';
 import MinimumFee from '../event/MinimumFee';
 import Configs from '../configs/Configs';
 import DatabaseHandler from '../db/DatabaseHandler';
 import { JsonBI } from '../network/NetworkModels';
+import { winstonLogger } from '../log/Logger';
 
-const logger = loggerFactory(import.meta.url);
+const logger = winstonLogger.getLogger(import.meta.url);
 
 class TransactionVerifier {
   /**

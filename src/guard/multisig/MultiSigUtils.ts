@@ -5,9 +5,9 @@ import {
   SingleCommitment,
 } from './Interfaces';
 import { TransactionHintsBag } from 'ergo-lib-wasm-nodejs';
-import { loggerFactory } from '../../log/Logger';
+import { winstonLogger } from '../../log/Logger';
 
-const logger = loggerFactory(import.meta.url);
+const logger = winstonLogger.getLogger(import.meta.url);
 
 class MultiSigUtils {
   private static instance: MultiSigUtils;

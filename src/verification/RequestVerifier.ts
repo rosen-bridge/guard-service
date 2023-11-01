@@ -3,11 +3,11 @@ import EventSerializer from '../event/EventSerializer';
 import EventVerifier from './EventVerifier';
 import MinimumFee from '../event/MinimumFee';
 import { EventStatus, TransactionStatus } from '../utils/constants';
-import { loggerFactory } from '../log/Logger';
 import TransactionVerifier from './TransactionVerifier';
 import { DatabaseAction } from '../db/DatabaseAction';
+import { winstonLogger } from '../log/Logger';
 
-const logger = loggerFactory(import.meta.url);
+const logger = winstonLogger.getLogger(import.meta.url);
 
 class RequestVerifier {
   /**

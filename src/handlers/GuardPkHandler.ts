@@ -1,11 +1,11 @@
 import MultiSigHandler from '../guard/multisig/MultiSigHandler';
 import Configs from '../configs/Configs';
 import { rosenConfig } from '../configs/RosenConfig';
-import { loggerFactory } from '../log/Logger';
 import ChainHandler from './ChainHandler';
 import pkg from 'secp256k1';
+import { winstonLogger } from '../log/Logger';
 
-const logger = loggerFactory(import.meta.url);
+const logger = winstonLogger.getLogger(import.meta.url);
 
 class GuardPkHandler {
   private static instance: GuardPkHandler;

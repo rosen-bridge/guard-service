@@ -20,7 +20,6 @@ import {
   EventTriggerEntity,
 } from '@rosen-bridge/watcher-data-extractor';
 import Utils from '../utils/Utils';
-import { loggerFactory } from '../log/Logger';
 import { Semaphore } from 'await-semaphore';
 import { SortRequest } from '../types/api';
 import { RevenueEntity } from './entities/revenueEntity';
@@ -31,8 +30,9 @@ import {
   PaymentTransaction,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
+import { winstonLogger } from '../log/Logger';
 
-const logger = loggerFactory(import.meta.url);
+const logger = winstonLogger.getLogger(import.meta.url);
 
 class DatabaseAction {
   private static instance: DatabaseAction;

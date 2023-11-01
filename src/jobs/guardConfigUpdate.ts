@@ -1,8 +1,8 @@
 import GuardPkHandler from '../handlers/GuardPkHandler';
 import Configs from '../configs/Configs';
-import { loggerFactory } from '../log/Logger';
+import { winstonLogger } from '../log/Logger';
 
-const logger = loggerFactory(import.meta.url);
+const logger = winstonLogger.getLogger(import.meta.url);
 
 /**
  * updates the guard config periodically

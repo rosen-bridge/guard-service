@@ -35,11 +35,11 @@ import {
   SubscribeChannels,
   SubscribeChannelWithURL,
 } from './Interfaces';
-import { loggerFactory } from '../log/Logger';
 import { JsonBI } from '../network/NetworkModels';
 import { NotStartedDialerNodeError } from '../utils/errors';
+import { winstonLogger } from '../log/Logger';
 
-const logger = loggerFactory(import.meta.url);
+const logger = winstonLogger.getLogger(import.meta.url);
 
 // TODO: Need to write test for This package
 //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/21

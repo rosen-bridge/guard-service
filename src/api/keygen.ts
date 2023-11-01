@@ -1,8 +1,8 @@
-import { loggerFactory } from '../log/Logger';
 import { Type } from '@sinclair/typebox';
 import { FastifySeverInstance, MessageResponseSchema } from './schemas';
+import { winstonLogger } from '../log/Logger';
 
-const logger = loggerFactory(import.meta.url);
+const logger = winstonLogger.getLogger(import.meta.url);
 
 /**
  * setups TSS keygen completed route
