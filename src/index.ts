@@ -1,4 +1,4 @@
-import 'reflect-metadata';
+import './bootstrap';
 import { initDataSources } from './jobs/dataSources';
 import { initializeMultiSigJobs } from './jobs/multiSig';
 import { initApiServer } from './jobs/apiServer';
