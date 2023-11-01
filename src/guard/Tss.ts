@@ -63,6 +63,14 @@ class Tss {
       })
       .addListener('error', (err: Error) => {
         logger.error(`an error occured when trying to spawn: ${err}`);
+      })
+      .addListener('disconnect', () => {
+        logger.warn(`received 'disconnect' signal from tss spawner`);
+      })
+      .addListener('exit', (code: number, signal: string) => {
+        logger.warn(
+          `received 'exit' signal from tss spawner, exit code: ${code}, signal: ${signal}`
+        );
       });
   };
 
