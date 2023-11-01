@@ -71,7 +71,7 @@ class DatabaseAction {
   };
 
   /**
-   * generates a DatabaseAction object if it doesn't exist
+   * gets instance of DatabaseAction (throws error if it doesn't exist)
    * @returns DatabaseAction instance
    */
   static getInstance = (): DatabaseAction => {
