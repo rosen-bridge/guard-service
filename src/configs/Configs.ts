@@ -180,7 +180,7 @@ class Configs {
     });
     if (wrongLogTypeIndex >= 0) {
       throw new ConfigError(
-        `logs[${wrongLogTypeIndex}].type`,
+        `logs[${wrongLogTypeIndex}]`,
         logs[wrongLogTypeIndex]
       );
     }
