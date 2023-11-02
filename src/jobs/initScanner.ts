@@ -6,7 +6,7 @@ import {
 } from '@rosen-bridge/watcher-data-extractor';
 import GuardsCardanoConfigs from '../configs/GuardsCardanoConfigs';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
-import { loggerFactory } from '../log/Logger';
+import WinstonLogger from '@rosen-bridge/winston-logger';
 
 let ergoScanner: ErgoScanner;
 
@@ -26,15 +26,17 @@ const ergoScannerJob = () => {
  * @returns loggers object
  */
 const createLoggers = () => ({
-  ergoScannerLogger: loggerFactory('ergo-scanner'),
-  cardanoCommitmentExtractorLogger: loggerFactory(
+  ergoScannerLogger: WinstonLogger.getInstance().getLogger('ergo-scanner'),
+  cardanoCommitmentExtractorLogger: WinstonLogger.getInstance().getLogger(
     'cardano-commitment-extractor'
   ),
-  cardanoEventTriggerExtractorLogger: loggerFactory(
+  cardanoEventTriggerExtractorLogger: WinstonLogger.getInstance().getLogger(
     'cardano-event-trigger-extractor'
   ),
-  ergoCommitmentExtractorLogger: loggerFactory('ergo-commitment-extractor'),
-  ergoEventTriggerExtractorLogger: loggerFactory(
+  ergoCommitmentExtractorLogger: WinstonLogger.getInstance().getLogger(
+    'ergo-commitment-extractor'
+  ),
+  ergoEventTriggerExtractorLogger: WinstonLogger.getInstance().getLogger(
     'ergo-event-trigger-extractor'
   ),
 });

@@ -1,6 +1,5 @@
 import Configs from '../../src/configs/Configs';
-import { DatabaseAction } from '../../src/db/DatabaseAction';
-import { loggerFactory } from '../../src/log/Logger';
+import { DatabaseAction } from '../db/DatabaseAction';
 import ChainHandler from '../../src/handlers/ChainHandler';
 import {
   ImpossibleBehavior,
@@ -9,8 +8,9 @@ import {
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import { ERG } from '@rosen-chains/ergo';
 import { RevenueType } from '../utils/constants';
+import WinstonLogger from '@rosen-bridge/winston-logger';
 
-const logger = loggerFactory(import.meta.url);
+const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
 /**
  * Fetches revenue details and stores in the database

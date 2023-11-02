@@ -8,7 +8,6 @@ import {
   AgreementMessageTypes,
 } from './Interfaces';
 import Dialer from '../communication/Dialer';
-import { loggerFactory } from '../log/Logger';
 import {
   ImpossibleBehavior,
   PaymentTransaction,
@@ -24,8 +23,9 @@ import GuardPkHandler from '../handlers/GuardPkHandler';
 import { DatabaseAction } from '../db/DatabaseAction';
 import { Communicator, ECDSA } from '@rosen-bridge/tss';
 import { Semaphore } from 'await-semaphore';
+import WinstonLogger from '@rosen-bridge/winston-logger';
 
-const logger = loggerFactory(import.meta.url);
+const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
 class TxAgreement extends Communicator {
   private static instance: TxAgreement;

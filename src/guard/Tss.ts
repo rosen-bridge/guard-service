@@ -7,11 +7,11 @@ import {
 import axios from 'axios';
 import CommunicationConfig from '../communication/CommunicationConfig';
 import Dialer from '../communication/Dialer';
-import { loggerFactory } from '../log/Logger';
 import Configs from '../configs/Configs';
 import { spawn } from 'child_process';
+import WinstonLogger from '@rosen-bridge/winston-logger';
 
-const logger = loggerFactory(import.meta.url);
+const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
 class Tss {
   private static instance: Tss;
@@ -104,7 +104,7 @@ class Tss {
       getPeerId: () => Promise.resolve(Tss.dialer.getDialerId()),
       callbackUrl: Configs.tssCallBackUrl,
       shares: Configs.tssKeys.ks,
-      logger: loggerFactory('tssSigner'),
+      logger: WinstonLogger.getInstance().getLogger('tssSigner'),
     });
 
     // subscribe to channels
