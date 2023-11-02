@@ -1,4 +1,3 @@
-import { loggerFactory } from '../log/Logger';
 import Utils from '../utils/Utils';
 import Configs from '../configs/Configs';
 import EventVerifier from '../verification/EventVerifier';
@@ -24,8 +23,9 @@ import * as TransactionSerializer from '../transaction/TransactionSerializer';
 import { DatabaseAction } from '../db/DatabaseAction';
 import GuardTurn from '../utils/GuardTurn';
 import GuardPkHandler from '../handlers/GuardPkHandler';
+import WinstonLogger from '@rosen-bridge/winston-logger';
 
-const logger = loggerFactory(import.meta.url);
+const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
 class EventProcessor {
   /**

@@ -1,9 +1,9 @@
-import { loggerFactory } from '../log/Logger';
 import { HealthCheck } from '@rosen-bridge/health-check';
 import { getHealthCheck } from '../guard/HealthCheck';
 import Configs from '../configs/Configs';
+import WinstonLogger from '@rosen-bridge/winston-logger';
 
-const logger = loggerFactory(import.meta.url);
+const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
 const healthCheckUpdateJob = async (healthCheck: HealthCheck) => {
   try {

@@ -4,14 +4,14 @@ import {
   TransactionType,
 } from '@rosen-chains/abstract-chain';
 import { ConfirmedEventEntity } from './entities/ConfirmedEventEntity';
-import { loggerFactory } from '../log/Logger';
 import { EventStatus, TransactionStatus } from '../utils/constants';
 import { DatabaseAction } from './DatabaseAction';
 import { ERGO_CHAIN } from '@rosen-chains/ergo';
 import { rosenConfig } from '../configs/RosenConfig';
 import Configs from '../configs/Configs';
+import WinstonLogger from '@rosen-bridge/winston-logger';
 
-const logger = loggerFactory(import.meta.url);
+const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
 class DatabaseHandler {
   /**

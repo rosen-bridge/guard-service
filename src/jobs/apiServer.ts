@@ -6,15 +6,15 @@ import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { keygenRoute } from '../api/keygen';
 import { p2pRoutes } from '../api/p2p';
 import Configs from '../configs/Configs';
-import { loggerFactory } from '../log/Logger';
 import { generalInfoRoute } from '../api/generalInfo';
 import { eventRoutes } from '../api/events';
 import { assetRoutes } from '../api/assets';
 import { revenueRoutes } from '../api/revenue';
 import { healthRoutes } from '../api/healthCheck';
 import { tssRoute } from '../api/tss';
+import WinstonLogger from '@rosen-bridge/winston-logger';
 
-const logger = loggerFactory(import.meta.url);
+const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
 /**
  * initialize api server

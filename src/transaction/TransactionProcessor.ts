@@ -11,11 +11,11 @@ import { DatabaseAction } from '../db/DatabaseAction';
 import { TransactionEntity } from '../db/entities/TransactionEntity';
 import ChainHandler from '../handlers/ChainHandler';
 import GuardPkHandler from '../handlers/GuardPkHandler';
-import { loggerFactory } from '../log/Logger';
 import { EventStatus, TransactionStatus } from '../utils/constants';
 import * as TransactionSerializer from './TransactionSerializer';
+import WinstonLogger from '@rosen-bridge/winston-logger';
 
-const logger = loggerFactory(import.meta.url);
+const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
 class TransactionProcessor {
   /**
