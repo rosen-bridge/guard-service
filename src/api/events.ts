@@ -32,7 +32,7 @@ const eventsHistoryRoute = (server: FastifySeverInstance) => {
         request.query;
 
       const dbAction = DatabaseAction.getInstance();
-      // TODO: should fetch spent events, not completed ones.
+      // TODO: should fetch stopped events, not completed ones.
       //  local:ergo/rosen-bridge/guard-service#331
       const results = await dbAction.getCompletedEvents(
         sort,
@@ -44,10 +44,10 @@ const eventsHistoryRoute = (server: FastifySeverInstance) => {
         limit
       );
       const txs = await dbAction.getValidTxsForEvents(
-        results.map((event) => event.id)
+        results.items.map((event) => event.id)
       );
 
-      const events = results.map((result): EventHistory => {
+      const events = results.items.map((result): EventHistory => {
         const event = result.eventData;
         const token = Configs.tokenMap.search(event.fromChain, {
           [Configs.tokenMap.getIdKey(event.fromChain)]:
@@ -100,7 +100,7 @@ const eventsHistoryRoute = (server: FastifySeverInstance) => {
 
       reply.status(200).send({
         items: events,
-        total: results.length,
+        total: results.total,
       });
     }
   );
@@ -138,10 +138,10 @@ const ongoingEventsRoute = (server: FastifySeverInstance) => {
       );
 
       const txs = await dbAction.getValidTxsForEvents(
-        results.map((event) => event.id)
+        results.items.map((event) => event.id)
       );
 
-      const events = results.map((result): OngoingEvents => {
+      const events = results.items.map((result): OngoingEvents => {
         const event = result.eventData;
         const token = Configs.tokenMap.search(event.fromChain, {
           [Configs.tokenMap.getIdKey(event.fromChain)]:
@@ -207,7 +207,7 @@ const ongoingEventsRoute = (server: FastifySeverInstance) => {
 
       reply.status(200).send({
         items: events,
-        total: results.length,
+        total: results.total,
       });
     }
   );

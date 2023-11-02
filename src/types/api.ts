@@ -102,6 +102,11 @@ interface OngoingEvents
   status: string;
 }
 
+interface Page<T> {
+  items: Array<T>;
+  total: number;
+}
+
 export {
   SortRequest,
   TokenChartData,
@@ -114,4 +119,5 @@ export {
   RevenueHistory,
   EventHistory,
   OngoingEvents,
+  Page,
 };

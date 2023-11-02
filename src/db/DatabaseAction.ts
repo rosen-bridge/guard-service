@@ -22,7 +22,7 @@ import {
 import Utils from '../utils/Utils';
 import { loggerFactory } from '../log/Logger';
 import { Semaphore } from 'await-semaphore';
-import { SortRequest } from '../types/api';
+import { Page, SortRequest } from '../types/api';
 import { RevenueEntity } from './entities/revenueEntity';
 import { RevenueView } from './entities/revenueView';
 import { RevenueChartView } from './entities/revenueChartView';
@@ -522,7 +522,7 @@ class DatabaseAction {
     maxAmount: string | undefined,
     offset = 0,
     limit = 20
-  ) => {
+  ): Promise<Page<ConfirmedEventEntity>> => {
     const query = this.ConfirmedEventRepository.createQueryBuilder(
       'confirmed_event'
     )
@@ -531,23 +531,23 @@ class DatabaseAction {
         status: EventStatus.completed,
       });
     if (fromChain)
-      query.andWhere('event_trigger_entity_fromChain = :fromChain', {
+      query.andWhere('event_trigger_entity.fromChain = :fromChain', {
         fromChain,
       });
     if (toChain)
-      query.andWhere('event_trigger_entity_toChain = :toChain', {
+      query.andWhere('event_trigger_entity.toChain = :toChain', {
         toChain,
       });
     if (minAmount)
       query.andWhere(
-        'CAST(event_trigger_entity_amount AS LONG) >= :minAmount',
+        'CAST(event_trigger_entity.amount AS LONG) >= :minAmount',
         {
           minAmount,
         }
       );
     if (maxAmount)
       query.andWhere(
-        'CAST(event_trigger_entity_amount AS LONG) <= :maxAmount',
+        'CAST(event_trigger_entity.amount AS LONG) <= :maxAmount',
         {
           maxAmount,
         }
@@ -556,7 +556,11 @@ class DatabaseAction {
       event_trigger_entity_height: sort || SortRequest.DESC,
     });
     query.offset(offset).limit(limit);
-    return query.getMany();
+    const result = await query.getManyAndCount();
+    return {
+      items: result[0],
+      total: result[1],
+    };
   };
 
   /**
@@ -578,7 +582,7 @@ class DatabaseAction {
     maxAmount: string | undefined,
     offset = 0,
     limit = 20
-  ) => {
+  ): Promise<Page<ConfirmedEventEntity>> => {
     const query = this.ConfirmedEventRepository.createQueryBuilder(
       'confirmed_event'
     )
@@ -588,23 +592,23 @@ class DatabaseAction {
         spentStatus: EventStatus.spent,
       });
     if (fromChain)
-      query.andWhere('event_trigger_entity_fromChain = :fromChain', {
+      query.andWhere('event_trigger_entity.fromChain = :fromChain', {
         fromChain,
       });
     if (toChain)
-      query.andWhere('event_trigger_entity_toChain = :toChain', {
+      query.andWhere('event_trigger_entity.toChain = :toChain', {
         toChain,
       });
     if (minAmount)
       query.andWhere(
-        'CAST(event_trigger_entity_amount AS LONG) >= :minAmount',
+        'CAST(event_trigger_entity.amount AS LONG) >= :minAmount',
         {
           minAmount,
         }
       );
     if (maxAmount)
       query.andWhere(
-        'CAST(event_trigger_entity_amount AS LONG) <= :maxAmount',
+        'CAST(event_trigger_entity.amount AS LONG) <= :maxAmount',
         {
           maxAmount,
         }
@@ -613,7 +617,11 @@ class DatabaseAction {
       event_trigger_entity_height: sort || SortRequest.DESC,
     });
     query.offset(offset).limit(limit);
-    return query.getMany();
+    const result = await query.getManyAndCount();
+    return {
+      items: result[0],
+      total: result[1],
+    };
   };
 
   /**
@@ -690,10 +698,7 @@ class DatabaseAction {
     toBlockTime?: number,
     offset = 0,
     limit = 20
-  ): Promise<{
-    items: RevenueView[];
-    total: number;
-  }> => {
+  ): Promise<Page<RevenueView>> => {
     const clauses = [],
       heightCondition = [],
       timeCondition = [];
