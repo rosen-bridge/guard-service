@@ -1,9 +1,9 @@
 import { Type } from '@sinclair/typebox';
 import Tss from '../guard/Tss';
 import { FastifySeverInstance, MessageResponseSchema } from './schemas';
-import { winstonLogger } from '../log/Logger';
+import WinstonLogger from '@rosen-bridge/winston-logger';
 
-const logger = winstonLogger.getLogger(import.meta.url);
+const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
 /**
  * setups TSS sign route

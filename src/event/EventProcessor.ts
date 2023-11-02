@@ -23,9 +23,9 @@ import * as TransactionSerializer from '../transaction/TransactionSerializer';
 import { DatabaseAction } from '../db/DatabaseAction';
 import GuardTurn from '../utils/GuardTurn';
 import GuardPkHandler from '../handlers/GuardPkHandler';
-import { winstonLogger } from '../log/Logger';
+import WinstonLogger from '@rosen-bridge/winston-logger';
 
-const logger = winstonLogger.getLogger(import.meta.url);
+const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
 class EventProcessor {
   /**

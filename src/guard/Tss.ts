@@ -9,9 +9,9 @@ import CommunicationConfig from '../communication/CommunicationConfig';
 import Dialer from '../communication/Dialer';
 import Configs from '../configs/Configs';
 import { spawn } from 'child_process';
-import { winstonLogger } from '../log/Logger';
+import WinstonLogger from '@rosen-bridge/winston-logger';
 
-const logger = winstonLogger.getLogger(import.meta.url);
+const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
 class Tss {
   private static instance: Tss;
@@ -96,7 +96,7 @@ class Tss {
       getPeerId: () => Promise.resolve(Tss.dialer.getDialerId()),
       callbackUrl: Configs.tssCallBackUrl,
       shares: Configs.tssKeys.ks,
-      logger: winstonLogger.getLogger('tssSigner'),
+      logger: WinstonLogger.getInstance().getLogger('tssSigner'),
     });
 
     // subscribe to channels

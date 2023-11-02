@@ -23,9 +23,9 @@ import GuardPkHandler from '../handlers/GuardPkHandler';
 import { DatabaseAction } from '../db/DatabaseAction';
 import { Communicator, ECDSA } from '@rosen-bridge/tss';
 import { Semaphore } from 'await-semaphore';
-import { winstonLogger } from '../log/Logger';
+import WinstonLogger from '@rosen-bridge/winston-logger';
 
-const logger = winstonLogger.getLogger(import.meta.url);
+const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
 class TxAgreement extends Communicator {
   private static instance: TxAgreement;

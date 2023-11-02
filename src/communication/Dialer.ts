@@ -37,9 +37,9 @@ import {
 } from './Interfaces';
 import { JsonBI } from '../network/NetworkModels';
 import { NotStartedDialerNodeError } from '../utils/errors';
-import { winstonLogger } from '../log/Logger';
+import WinstonLogger from '@rosen-bridge/winston-logger';
 
-const logger = winstonLogger.getLogger(import.meta.url);
+const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
 // TODO: Need to write test for This package
 //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/21

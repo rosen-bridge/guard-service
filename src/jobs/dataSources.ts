@@ -1,7 +1,7 @@
 import { dataSource } from '../db/dataSource';
-import { winstonLogger } from '../log/Logger';
+import WinstonLogger from '@rosen-bridge/winston-logger';
 
-const logger = winstonLogger.getLogger(import.meta.url);
+const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
 const initDataSources = async (): Promise<void> => {
   try {

@@ -16,9 +16,9 @@ import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import MinimumFee from '../event/MinimumFee';
 import MultiSigHandler from '../guard/multisig/MultiSigHandler';
 import Tss from '../guard/Tss';
-import { winstonLogger } from '../log/Logger';
+import WinstonLogger from '@rosen-bridge/winston-logger';
 
-const logger = winstonLogger.getLogger(import.meta.url);
+const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
 class ChainHandler {
   private static instance: ChainHandler;
@@ -54,14 +54,14 @@ class ChainHandler {
         network = new ErgoNodeNetwork({
           nodeBaseUrl: GuardsErgoConfigs.node.url,
           extractorOptions: GuardsErgoConfigs.extractorOptions,
-          logger: winstonLogger.getLogger('NodeNetwork'),
+          logger: WinstonLogger.getInstance().getLogger('NodeNetwork'),
         });
         break;
       case EXPLORER_NETWORK:
         network = new ErgoExplorerNetwork({
           explorerBaseUrl: GuardsErgoConfigs.explorer.url,
           extractorOptions: GuardsErgoConfigs.extractorOptions,
-          logger: winstonLogger.getLogger('ExplorerNetwork'),
+          logger: WinstonLogger.getInstance().getLogger('ExplorerNetwork'),
         });
         break;
       default:
@@ -75,7 +75,7 @@ class ChainHandler {
       GuardsErgoConfigs.chainConfigs,
       MinimumFee.bridgeMinimumFee.feeRatioDivisor,
       multiSigSignFunction,
-      winstonLogger.getLogger('ErgoChain')
+      WinstonLogger.getInstance().getLogger('ErgoChain')
     );
   };
 
@@ -91,7 +91,7 @@ class ChainHandler {
           GuardsCardanoConfigs.koios.url,
           GuardsCardanoConfigs.cardanoContractConfig.lockAddress,
           Configs.tokens(),
-          winstonLogger.getLogger('KoiosNetwork')
+          WinstonLogger.getInstance().getLogger('KoiosNetwork')
         );
         break;
       default:
@@ -106,7 +106,7 @@ class ChainHandler {
       Configs.tokenMap,
       MinimumFee.bridgeMinimumFee.feeRatioDivisor,
       tssSignFunction,
-      winstonLogger.getLogger('CardanoChain')
+      WinstonLogger.getInstance().getLogger('CardanoChain')
     );
   };
 

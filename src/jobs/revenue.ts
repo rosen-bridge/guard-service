@@ -8,9 +8,9 @@ import {
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import { ERG } from '@rosen-chains/ergo';
 import { RevenueType } from '../utils/constants';
-import { winstonLogger } from '../log/Logger';
+import WinstonLogger from '@rosen-bridge/winston-logger';
 
-const logger = winstonLogger.getLogger(import.meta.url);
+const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
 /**
  * Fetches revenue details and stores in the database

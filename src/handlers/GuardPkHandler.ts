@@ -3,9 +3,9 @@ import Configs from '../configs/Configs';
 import { rosenConfig } from '../configs/RosenConfig';
 import ChainHandler from './ChainHandler';
 import pkg from 'secp256k1';
-import { winstonLogger } from '../log/Logger';
+import WinstonLogger from '@rosen-bridge/winston-logger';
 
-const logger = winstonLogger.getLogger(import.meta.url);
+const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
 class GuardPkHandler {
   private static instance: GuardPkHandler;

@@ -3,9 +3,9 @@ import Dialer from '../communication/Dialer';
 import Configs from '../configs/Configs';
 import { Type } from '@sinclair/typebox';
 import { FastifySeverInstance, MessageResponseSchema } from './schemas';
-import { winstonLogger } from '../log/Logger';
+import WinstonLogger from '@rosen-bridge/winston-logger';
 
-const logger = winstonLogger.getLogger(import.meta.url);
+const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
 /**
  * setup route for send p2p message

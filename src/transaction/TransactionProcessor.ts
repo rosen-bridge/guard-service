@@ -13,9 +13,9 @@ import ChainHandler from '../handlers/ChainHandler';
 import GuardPkHandler from '../handlers/GuardPkHandler';
 import { EventStatus, TransactionStatus } from '../utils/constants';
 import * as TransactionSerializer from './TransactionSerializer';
-import { winstonLogger } from '../log/Logger';
+import WinstonLogger from '@rosen-bridge/winston-logger';
 
-const logger = winstonLogger.getLogger(import.meta.url);
+const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
 class TransactionProcessor {
   /**
