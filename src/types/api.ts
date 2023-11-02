@@ -7,7 +7,7 @@ enum SortRequest {
 }
 
 interface TokenChartData {
-  title: string;
+  title: TokenData;
   data: {
     label: string;
     amount: string;
@@ -63,10 +63,29 @@ interface RevenueHistory {
   lockTxId: string;
   height: number;
   timestamp: number;
+  ergoSideTokenId: string;
   revenues: Array<SingleRevenue>;
 }
 
 interface EventHistory
+  extends Pick<
+    EventTriggerEntity,
+    | 'eventId'
+    | 'fromChain'
+    | 'toChain'
+    | 'fromAddress'
+    | 'toAddress'
+    | 'bridgeFee'
+    | 'networkFee'
+    | 'sourceTxId'
+  > {
+  sourceChainToken: TokenData;
+  paymentTxId: string;
+  rewardTxId: string;
+  status: string;
+}
+
+interface OngoingEvents
   extends Pick<
     EventTriggerEntity,
     | 'eventId'
@@ -80,6 +99,12 @@ interface EventHistory
     | 'sourceTxId'
   > {
   sourceChainToken: TokenData;
+  status: string;
+}
+
+interface Page<T> {
+  items: Array<T>;
+  total: number;
 }
 
 export {
@@ -93,4 +118,6 @@ export {
   SingleRevenue,
   RevenueHistory,
   EventHistory,
+  OngoingEvents,
+  Page,
 };

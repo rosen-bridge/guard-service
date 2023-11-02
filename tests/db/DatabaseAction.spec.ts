@@ -49,9 +49,9 @@ describe('DatabaseActions', () => {
         undefined,
         undefined
       );
-      expect(events).toHaveLength(10);
+      expect(events.total).toEqual(10);
       for (let index = 0; index < 10; index++) {
-        expect(events[index].eventData.height).toEqual(1000 + index);
+        expect(events.items[index].eventData.height).toEqual(1000 + index);
       }
     });
 
@@ -76,9 +76,9 @@ describe('DatabaseActions', () => {
         undefined,
         undefined
       );
-      expect(events).toHaveLength(10);
+      expect(events.total).toEqual(10);
       for (let index = 0; index < 10; index++) {
-        expect(events[index].eventData.height).toEqual(1009 - index);
+        expect(events.items[index].eventData.height).toEqual(1009 - index);
       }
     });
 
@@ -116,8 +116,8 @@ describe('DatabaseActions', () => {
         undefined,
         undefined
       );
-      expect(events).toHaveLength(10);
-      for (const event of events) {
+      expect(events.total).toEqual(10);
+      for (const event of events.items) {
         expect(event.eventData.toChain).toEqual(ERGO_CHAIN);
       }
     });
@@ -157,8 +157,8 @@ describe('DatabaseActions', () => {
         undefined,
         undefined
       );
-      expect(events).toHaveLength(10);
-      for (const event of events) {
+      expect(events.total).toEqual(10);
+      for (const event of events.items) {
         expect(event.eventData.fromChain).toEqual(ERGO_CHAIN);
       }
     });
@@ -183,8 +183,8 @@ describe('DatabaseActions', () => {
         '15000',
         undefined
       );
-      expect(events).toHaveLength(5);
-      for (const event of events) {
+      expect(events.total).toEqual(5);
+      for (const event of events.items) {
         expect(BigInt(event.eventData.amount)).toBeGreaterThanOrEqual(15000n);
       }
     });
@@ -209,8 +209,8 @@ describe('DatabaseActions', () => {
         undefined,
         '15000'
       );
-      expect(events).toHaveLength(6);
-      for (const event of events) {
+      expect(events.total).toEqual(6);
+      for (const event of events.items) {
         expect(BigInt(event.eventData.amount)).toBeLessThanOrEqual(15000n);
       }
     });
@@ -341,9 +341,9 @@ describe('DatabaseActions', () => {
         undefined,
         undefined
       );
-      expect(events).toHaveLength(10);
+      expect(events.total).toEqual(10);
       for (let index = 0; index < 10; index++) {
-        expect(events[index].eventData.height).toEqual(1000 + index);
+        expect(events.items[index].eventData.height).toEqual(1000 + index);
       }
     });
 
@@ -381,8 +381,8 @@ describe('DatabaseActions', () => {
         undefined,
         undefined
       );
-      expect(events).toHaveLength(10);
-      for (const event of events) {
+      expect(events.total).toEqual(10);
+      for (const event of events.items) {
         expect(event.eventData.toChain).toEqual(ERGO_CHAIN);
       }
     });
@@ -422,8 +422,8 @@ describe('DatabaseActions', () => {
         undefined,
         undefined
       );
-      expect(events).toHaveLength(10);
-      for (const event of events) {
+      expect(events.total).toEqual(10);
+      for (const event of events.items) {
         expect(event.eventData.fromChain).toEqual(ERGO_CHAIN);
       }
     });
@@ -448,8 +448,8 @@ describe('DatabaseActions', () => {
         '15000',
         undefined
       );
-      expect(events).toHaveLength(5);
-      for (const event of events) {
+      expect(events.total).toEqual(5);
+      for (const event of events.items) {
         expect(BigInt(event.eventData.amount)).toBeGreaterThanOrEqual(15000n);
       }
     });
@@ -474,8 +474,8 @@ describe('DatabaseActions', () => {
         undefined,
         '15000'
       );
-      expect(events).toHaveLength(6);
-      for (const event of events) {
+      expect(events.total).toEqual(6);
+      for (const event of events.items) {
         expect(BigInt(event.eventData.amount)).toBeLessThanOrEqual(15000n);
       }
     });
@@ -500,9 +500,9 @@ describe('DatabaseActions', () => {
         undefined,
         undefined
       );
-      expect(events).toHaveLength(10);
+      expect(events.total).toEqual(10);
       for (let index = 0; index < 10; index++) {
-        expect(events[index].eventData.height).toEqual(1009 - index);
+        expect(events.items[index].eventData.height).toEqual(1009 - index);
       }
     });
   });

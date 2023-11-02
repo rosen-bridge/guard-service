@@ -1,4 +1,4 @@
-import { TokenChartData } from '../types/api';
+import { TokenChartData, TokenData } from '../types/api';
 import { DatabaseAction } from '../db/DatabaseAction';
 import { groupBy, reduce } from 'lodash-es';
 import { extractRevenueFromView } from '../utils/revenue';
@@ -10,6 +10,8 @@ import {
   RevenueHistoryQuerySchema,
   RevenueHistoryResponseSchema,
 } from './schemas';
+import Configs from '../configs/Configs';
+import { ERGO_CHAIN } from '@rosen-chains/ergo';
 
 /**
  * setup revenue history route
@@ -88,18 +90,38 @@ const revenueChartRoute = (server: FastifySeverInstance) => {
         TokenChartData[]
       >(
         resultsGroupedByTokenId,
-        (acc, data, tokenId) => [
-          ...acc,
-          {
-            title: tokenId,
-            data: data
-              .map((datum) => ({
-                label: new Date(datum.label).toISOString(),
-                amount: datum.amount,
-              }))
-              .slice(0, count),
-          },
-        ],
+        (acc, data, tokenId) => {
+          const tokens = Configs.tokenMap.search(ERGO_CHAIN, {
+            [Configs.tokenMap.getIdKey(ERGO_CHAIN)]: tokenId,
+          });
+          let name = 'Unsupported token';
+          let decimals = 0;
+          let isNativeToken = false;
+          if (tokens.length) {
+            name = tokens[0][ERGO_CHAIN].name;
+            decimals = tokens[0][ERGO_CHAIN].decimals;
+            isNativeToken = tokens[0][ERGO_CHAIN].metaData.type === 'native';
+          }
+          const tokenData: TokenData = {
+            tokenId: tokenId,
+            name: name,
+            amount: 0,
+            decimals: decimals,
+            isNativeToken: isNativeToken,
+          };
+          return [
+            ...acc,
+            {
+              title: tokenData,
+              data: data
+                .map((datum) => ({
+                  label: (datum.label * 1000).toString(),
+                  amount: datum.amount,
+                }))
+                .slice(0, count),
+            },
+          ];
+        },
         []
       );
       reply.status(200).send(returnData);
