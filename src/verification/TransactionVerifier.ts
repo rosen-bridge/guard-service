@@ -1,6 +1,8 @@
 import {
   ChainUtils,
   EventTrigger,
+  ImpossibleBehavior,
+  PaymentOrder,
   PaymentTransaction,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
@@ -12,6 +14,7 @@ import MinimumFee from '../event/MinimumFee';
 import Configs from '../configs/Configs';
 import DatabaseHandler from '../db/DatabaseHandler';
 import { JsonBI } from '../network/NetworkModels';
+import { DatabaseAction } from '../db/DatabaseAction';
 
 const logger = loggerFactory(import.meta.url);
 
@@ -70,10 +73,30 @@ class TransactionVerifier {
     // verify tx order
     const feeConfig = await MinimumFee.getEventFeeConfig(event);
     const txOrder = chain.extractTransactionOrder(tx);
-    const expectedOrder =
-      tx.txType === TransactionType.payment
-        ? await EventOrder.createEventPaymentOrder(event, feeConfig)
-        : await EventOrder.createEventRewardOrder(event, feeConfig);
+    let expectedOrder: PaymentOrder = [];
+    if (tx.txType === TransactionType.payment)
+      expectedOrder = await EventOrder.createEventPaymentOrder(
+        event,
+        feeConfig
+      );
+    else {
+      // get event payment transaction
+      const eventTxs =
+        await DatabaseAction.getInstance().getEventValidTxsByType(
+          tx.eventId,
+          TransactionType.payment
+        );
+      if (eventTxs.length !== 1)
+        throw new ImpossibleBehavior(
+          `Received tx [${tx.txId}] for reward distribution of event [${tx.eventId}] but no payment tx found for the event in database`
+        );
+      const paymentTxId = eventTxs[0].txId;
+      expectedOrder = await EventOrder.createEventRewardOrder(
+        event,
+        feeConfig,
+        paymentTxId
+      );
+    }
     if (!isEqual(txOrder, expectedOrder)) {
       logger.debug(
         `Transaction [${tx.txId}] is invalid: Tx extracted order is not verified`
