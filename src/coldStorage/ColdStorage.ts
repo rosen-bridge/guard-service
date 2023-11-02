@@ -1,4 +1,3 @@
-import { loggerFactory } from '../log/Logger';
 import Configs from '../configs/Configs';
 import { Buffer } from 'buffer';
 import Utils from '../utils/Utils';
@@ -20,8 +19,9 @@ import { DatabaseAction } from '../db/DatabaseAction';
 import GuardTurn from '../utils/GuardTurn';
 import GuardPkHandler from '../handlers/GuardPkHandler';
 import DatabaseHandler from '../db/DatabaseHandler';
+import WinstonLogger from '@rosen-bridge/winston-logger';
 
-const logger = loggerFactory(import.meta.url);
+const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
 class ColdStorage {
   static chains = [ERGO_CHAIN, CARDANO_CHAIN];

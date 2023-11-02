@@ -1,8 +1,8 @@
 import GuardPkHandler from '../handlers/GuardPkHandler';
 import Configs from '../configs/Configs';
-import { loggerFactory } from '../log/Logger';
+import WinstonLogger from '@rosen-bridge/winston-logger';
 
-const logger = loggerFactory(import.meta.url);
+const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
 /**
  * updates the guard config periodically
