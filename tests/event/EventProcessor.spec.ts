@@ -5,10 +5,11 @@ import {
   mockIsEventConfirmedEnough,
   mockVerifyEvent,
 } from '../verification/mocked/EventVerifier.mock';
-import { EventStatus } from '../../src/utils/constants';
+import { EventStatus, TransactionStatus } from '../../src/utils/constants';
 import {
   EventTrigger,
   NotEnoughAssetsError,
+  TransactionType,
 } from '@rosen-chains/abstract-chain';
 import Configs from '../../src/configs/Configs';
 import EventSerializer from '../../src/event/EventSerializer';
@@ -28,6 +29,7 @@ import { ErgoTransaction } from '@rosen-chains/ergo';
 import NotificationMock from '../communication/notification/mocked/Notification.mock';
 import { mockGuardTurn } from '../utils/mocked/GuardTurn.mock';
 import TestConfigs from '../testUtils/TestConfigs';
+import { mockPaymentTransaction } from 'tests/agreement/testData';
 
 describe('EventProcessor', () => {
   describe('processScannedEvents', () => {
@@ -913,6 +915,8 @@ describe('EventProcessor', () => {
      * - GuardTurn
      * @scenario
      * - mock feeConfig
+     * - mock event and a payment transaction for it
+     * - insert mocked event and transaction into db
      * - mock ChainHandler `fromChain` and `getErgoChain`
      *   - mock `getGuardsConfigBox`
      *   - mock `getBoxWID`
@@ -941,7 +945,23 @@ describe('EventProcessor', () => {
       };
       mockGetEventFeeConfig(fee);
 
+      // mock event and insert a mocked payment transaction for it into database
       const mockedEvent: EventTrigger = mockEventTrigger();
+      const paymentTx = mockPaymentTransaction(
+        TransactionType.payment,
+        mockedEvent.toChain,
+        EventSerializer.getId(mockedEvent)
+      );
+
+      // insert mocked event and transaction into db
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent,
+        EventStatus.pendingReward
+      );
+      await DatabaseActionMock.insertTxRecord(
+        paymentTx,
+        TransactionStatus.completed
+      );
 
       // mock ChainHandler `fromChain` and `getErgoChain`
       // mock `getGuardsConfigBox`
@@ -953,7 +973,7 @@ describe('EventProcessor', () => {
       // mock `getBoxWID`
       ChainHandlerMock.mockErgoFunctionReturnValue('getBoxWID', 'wid', true);
       // mock `generateTransaction`
-      const paymentTx = ErgoTransaction.fromJson(
+      const rewardTx = ErgoTransaction.fromJson(
         JSON.stringify({
           network: 'network',
           txId: 'txId',
@@ -966,7 +986,7 @@ describe('EventProcessor', () => {
       );
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'generateTransaction',
-        paymentTx,
+        rewardTx,
         true
       );
       // mock `getRWTToken` of Ergo
@@ -1026,7 +1046,7 @@ describe('EventProcessor', () => {
      * - GuardTurn
      * @scenario
      * - mock feeConfig
-     * - insert a mocked event into db
+     * - mock event and insert a mocked payment transaction for it into database
      * - mock ChainHandler `fromChain` and `getErgoChain`
      *   - mock `getGuardsConfigBox`
      *   - mock `getBoxWID`
@@ -1056,11 +1076,22 @@ describe('EventProcessor', () => {
       };
       mockGetEventFeeConfig(fee);
 
-      // insert a mocked event into db
+      // mock event and insert a mocked payment transaction for it into database
       const mockedEvent: EventTrigger = mockEventTrigger();
+      const paymentTx = mockPaymentTransaction(
+        TransactionType.payment,
+        mockedEvent.toChain,
+        EventSerializer.getId(mockedEvent)
+      );
+
+      // insert mocked event and transaction into db
       await DatabaseActionMock.insertEventRecord(
         mockedEvent,
         EventStatus.pendingReward
+      );
+      await DatabaseActionMock.insertTxRecord(
+        paymentTx,
+        TransactionStatus.completed
       );
 
       // mock ChainHandler `fromChain` and `getErgoChain`
@@ -1147,6 +1178,7 @@ describe('EventProcessor', () => {
      * - GuardTurn
      * @scenario
      * - mock feeConfig
+     * - mock event and insert a mocked payment transaction for it into database
      * - mock ChainHandler `fromChain` and `getErgoChain`
      *   - mock `getGuardsConfigBox`
      *   - mock `getBoxWID`
@@ -1175,7 +1207,23 @@ describe('EventProcessor', () => {
       };
       mockGetEventFeeConfig(fee);
 
+      // mock event and insert a mocked payment transaction for it into database
       const mockedEvent: EventTrigger = mockEventTrigger();
+      const paymentTx = mockPaymentTransaction(
+        TransactionType.payment,
+        mockedEvent.toChain,
+        EventSerializer.getId(mockedEvent)
+      );
+
+      // insert mocked event and transaction into db
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent,
+        EventStatus.pendingReward
+      );
+      await DatabaseActionMock.insertTxRecord(
+        paymentTx,
+        TransactionStatus.completed
+      );
 
       // mock ChainHandler `fromChain` and `getErgoChain`
       // mock `getGuardsConfigBox`
@@ -1187,7 +1235,7 @@ describe('EventProcessor', () => {
       // mock `getBoxWID`
       ChainHandlerMock.mockErgoFunctionReturnValue('getBoxWID', 'wid', true);
       // mock `generateTransaction`
-      const paymentTx = ErgoTransaction.fromJson(
+      const rewardTx = ErgoTransaction.fromJson(
         JSON.stringify({
           network: 'network',
           txId: 'txId',
@@ -1200,7 +1248,7 @@ describe('EventProcessor', () => {
       );
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'generateTransaction',
-        paymentTx,
+        rewardTx,
         true
       );
       // mock `getRWTToken` of Ergo
