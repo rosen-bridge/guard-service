@@ -47,11 +47,7 @@ class DatabaseAction {
 
   txSignSemaphore = new Semaphore(1);
 
-  /**
-   * initiates data source
-   * @param dataSource
-   */
-  init = (dataSource: DataSource) => {
+  protected constructor(dataSource: DataSource) {
     this.dataSource = dataSource;
     this.CommitmentRepository = this.dataSource.getRepository(CommitmentEntity);
     this.EventRepository = this.dataSource.getRepository(EventTriggerEntity);
@@ -62,17 +58,25 @@ class DatabaseAction {
     this.RevenueRepository = this.dataSource.getRepository(RevenueEntity);
     this.RevenueView = dataSource.getRepository(RevenueView);
     this.RevenueChartView = dataSource.getRepository(RevenueChartView);
+  }
+
+  /**
+   * initiates data source
+   * @param dataSource
+   */
+  static init = (dataSource: DataSource): DatabaseAction => {
+    logger.debug("DatabaseAction instance didn't exist. Creating a new one");
+    DatabaseAction.instance = new DatabaseAction(dataSource);
+    return DatabaseAction.instance;
   };
 
   /**
-   * generates a DatabaseAction object if it doesn't exist
+   * gets instance of DatabaseAction (throws error if it doesn't exist)
    * @returns DatabaseAction instance
    */
-  static getInstance = () => {
-    if (!DatabaseAction.instance) {
-      logger.debug("DatabaseAction instance didn't exist. Creating a new one");
-      DatabaseAction.instance = new DatabaseAction();
-    }
+  static getInstance = (): DatabaseAction => {
+    if (!DatabaseAction.instance)
+      throw Error(`Database is not instantiated yet`);
     return DatabaseAction.instance;
   };
 
