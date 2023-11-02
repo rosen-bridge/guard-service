@@ -43,11 +43,16 @@ export const extractRevenueFromView = async (
         [Configs.tokenMap.getIdKey(event.fromChain)]: event.lockTokenId,
       });
 
+      // TODO: improve getting ergo side tokenId
+      //  local:ergo/rosen-bridge/guard-service#332
+      let ergoSideTokenId = 'Unsupported token id';
       let name = 'Unsupported token';
       let decimals = 0;
       let isNativeToken = false;
 
       if (token.length) {
+        ergoSideTokenId =
+          token[0][ERGO_CHAIN][Configs.tokenMap.getIdKey(ERGO_CHAIN)];
         name = token[0][event.fromChain].name;
         decimals = token[0][event.fromChain].decimals;
         isNativeToken = token[0][event.fromChain].metaData.type === 'native';
@@ -74,6 +79,7 @@ export const extractRevenueFromView = async (
         lockTxId: event.lockTxId,
         height: event.height,
         timestamp: event.timestamp,
+        ergoSideTokenId: ergoSideTokenId,
         revenues: eventRevenues.map((eventRevenue) => ({
           revenueType: eventRevenue.revenueType,
           data: fillTokensDetails(eventRevenue.data),

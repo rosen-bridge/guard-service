@@ -63,6 +63,7 @@ interface RevenueHistory {
   lockTxId: string;
   height: number;
   timestamp: number;
+  ergoSideTokenId: string;
   revenues: Array<SingleRevenue>;
 }
 

@@ -97,6 +97,7 @@ export const RevenueHistoryResponseSchema = OutputItemsSchema(
     lockTxId: Type.String(),
     height: Type.Number(),
     timestamp: Type.Number(),
+    ergoSideTokenId: Type.String(),
     revenues: Type.Array(SingleRevenueSchema),
   } as const)
 );

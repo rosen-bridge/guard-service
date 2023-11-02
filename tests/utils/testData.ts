@@ -97,6 +97,8 @@ export const revenueHistory: Array<RevenueHistory> = [
       '2d564e25a63a01f5e25f4221f1f6b589f012bac8a5d8670271adcc51176cd602',
     height: 1009,
     timestamp: 1669672400000,
+    ergoSideTokenId:
+      'b37bfa41c2d9e61b4e478ddfc459a03d25b658a2305ffb428fbc47ad6abbeeaa',
     revenues: [
       {
         revenueType: RevenueType.fraud,
