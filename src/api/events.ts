@@ -1,14 +1,15 @@
-import { Type } from '@sinclair/typebox';
-import { EventHistory, SortRequest, TokenData } from '../types/api';
-import { DefaultApiLimit } from '../utils/constants';
+import { EventHistory, OngoingEvents, TokenData } from '../types/api';
+import { EventStatus } from '../utils/constants';
 import { DatabaseAction } from '../db/DatabaseAction';
 import {
   EventsQuerySchema,
-  EventsResponseSchema,
+  EventsHistoryResponseSchema,
   FastifySeverInstance,
   MessageResponseSchema,
+  OngoingEventsResponseSchema,
 } from './schemas';
 import Configs from '../configs/Configs';
+import { TransactionType } from '@rosen-chains/abstract-chain';
 
 /**
  * setup event history route
@@ -21,7 +22,7 @@ const eventsHistoryRoute = (server: FastifySeverInstance) => {
       schema: {
         querystring: EventsQuerySchema,
         response: {
-          200: EventsResponseSchema,
+          200: EventsHistoryResponseSchema,
           500: MessageResponseSchema,
         },
       },
@@ -30,46 +31,76 @@ const eventsHistoryRoute = (server: FastifySeverInstance) => {
       const { sort, offset, limit, fromChain, toChain, maxAmount, minAmount } =
         request.query;
 
-      const results = await DatabaseAction.getInstance().getCompletedEvents(
+      const dbAction = DatabaseAction.getInstance();
+      // TODO: should fetch stopped events, not completed ones.
+      //  local:ergo/rosen-bridge/guard-service#331
+      const results = await dbAction.getCompletedEvents(
         sort,
         fromChain,
         toChain,
         minAmount,
-        maxAmount
+        maxAmount,
+        offset,
+        limit
+      );
+      const txs = await dbAction.getValidTxsForEvents(
+        results.items.map((event) => event.id)
       );
 
-      const events = results
-        .slice(offset, offset + limit)
-        .map((result): EventHistory => {
-          const event = result.eventData;
-          const token = Configs.tokenMap.search(event.fromChain, {
-            [Configs.tokenMap.getIdKey(event.fromChain)]:
-              event.sourceChainTokenId,
-          })[0][event.fromChain];
-          const tokenData: TokenData = {
-            tokenId: event.sourceChainTokenId,
-            amount: Number(event.amount),
-            name: token.name,
-            decimals: token.decimals,
-            isNativeToken: token.metaData.type === 'native',
-          };
-          return {
-            eventId: event.eventId,
-            txId: event.txId,
-            fromChain: event.fromChain,
-            toChain: event.toChain,
-            fromAddress: event.fromAddress,
-            toAddress: event.toAddress,
-            bridgeFee: event.bridgeFee,
-            networkFee: event.networkFee,
-            sourceChainToken: tokenData,
-            sourceTxId: event.sourceTxId,
-          };
+      const events = results.items.map((result): EventHistory => {
+        const event = result.eventData;
+        const token = Configs.tokenMap.search(event.fromChain, {
+          [Configs.tokenMap.getIdKey(event.fromChain)]:
+            event.sourceChainTokenId,
         });
+
+        let name = 'Unsupported token';
+        let decimals = 0;
+        let isNativeToken = false;
+
+        if (token.length) {
+          name = token[0][event.fromChain].name;
+          decimals = token[0][event.fromChain].decimals;
+          isNativeToken = token[0][event.fromChain].metaData.type === 'native';
+        }
+
+        const tokenData: TokenData = {
+          tokenId: event.sourceChainTokenId,
+          amount: Number(event.amount),
+          name: name,
+          decimals: decimals,
+          isNativeToken: isNativeToken,
+        };
+
+        return {
+          eventId: event.eventId,
+          fromChain: event.fromChain,
+          toChain: event.toChain,
+          fromAddress: event.fromAddress,
+          toAddress: event.toAddress,
+          bridgeFee: event.bridgeFee,
+          networkFee: event.networkFee,
+          sourceChainToken: tokenData,
+          sourceTxId: event.sourceTxId,
+          paymentTxId:
+            txs.find(
+              (tx) =>
+                tx.event.id === event.eventId &&
+                tx.type === TransactionType.payment
+            )?.txId ?? '',
+          rewardTxId:
+            txs.find(
+              (tx) =>
+                tx.event.id === event.eventId &&
+                tx.type === TransactionType.reward
+            )?.txId ?? '',
+          status: result.status,
+        };
+      });
 
       reply.status(200).send({
         items: events,
-        total: results.length,
+        total: results.total,
       });
     }
   );
@@ -86,7 +117,7 @@ const ongoingEventsRoute = (server: FastifySeverInstance) => {
       schema: {
         querystring: EventsQuerySchema,
         response: {
-          200: EventsResponseSchema,
+          200: OngoingEventsResponseSchema,
           500: MessageResponseSchema,
         },
       },
@@ -95,58 +126,88 @@ const ongoingEventsRoute = (server: FastifySeverInstance) => {
       const { sort, offset, limit, fromChain, toChain, maxAmount, minAmount } =
         request.query;
 
-      const results = await DatabaseAction.getInstance().getOngoingEvents(
+      const dbAction = DatabaseAction.getInstance();
+      const results = await dbAction.getOngoingEvents(
         sort,
         fromChain,
         toChain,
         minAmount,
-        maxAmount
+        maxAmount,
+        offset,
+        limit
       );
 
-      const events = results
-        .slice(offset, offset + limit)
-        .map((result): EventHistory => {
-          const event = result.eventData;
-          const token = Configs.tokenMap.search(event.fromChain, {
-            [Configs.tokenMap.getIdKey(event.fromChain)]:
-              event.sourceChainTokenId,
-          });
+      const txs = await dbAction.getValidTxsForEvents(
+        results.items.map((event) => event.id)
+      );
 
-          let name = 'Unsupported token';
-          let decimals = 0;
-          let isNativeToken = false;
-
-          if (token.length) {
-            name = token[0][event.fromChain].name;
-            decimals = token[0][event.fromChain].decimals;
-            isNativeToken =
-              token[0][event.fromChain].metaData.type === 'native';
-          }
-
-          const tokenData: TokenData = {
-            tokenId: event.sourceChainTokenId,
-            amount: Number(event.amount),
-            name: name ?? 'Unsupported token',
-            decimals: decimals ?? 0,
-            isNativeToken: isNativeToken,
-          };
-          return {
-            eventId: event.eventId,
-            txId: event.txId,
-            fromChain: event.fromChain,
-            toChain: event.toChain,
-            fromAddress: event.fromAddress,
-            toAddress: event.toAddress,
-            bridgeFee: event.bridgeFee,
-            networkFee: event.networkFee,
-            sourceChainToken: tokenData,
-            sourceTxId: event.sourceTxId,
-          };
+      const events = results.items.map((result): OngoingEvents => {
+        const event = result.eventData;
+        const token = Configs.tokenMap.search(event.fromChain, {
+          [Configs.tokenMap.getIdKey(event.fromChain)]:
+            event.sourceChainTokenId,
         });
+
+        let name = 'Unsupported token';
+        let decimals = 0;
+        let isNativeToken = false;
+
+        if (token.length) {
+          name = token[0][event.fromChain].name;
+          decimals = token[0][event.fromChain].decimals;
+          isNativeToken = token[0][event.fromChain].metaData.type === 'native';
+        }
+
+        const tokenData: TokenData = {
+          tokenId: event.sourceChainTokenId,
+          amount: Number(event.amount),
+          name: name,
+          decimals: decimals,
+          isNativeToken: isNativeToken,
+        };
+
+        let status = '';
+        switch (result.status) {
+          case EventStatus.inPayment: {
+            const paymentTxStatus = txs.find(
+              (tx) =>
+                tx.event.id === event.eventId &&
+                tx.type === TransactionType.payment
+            )!.status;
+            status = `${EventStatus.inPayment} (${paymentTxStatus})`;
+            break;
+          }
+          case EventStatus.inReward: {
+            const rewardTxStatus = txs.find(
+              (tx) =>
+                tx.event.id === event.eventId &&
+                tx.type === TransactionType.reward
+            )!.status;
+            status = `${EventStatus.inReward} (${rewardTxStatus})`;
+            break;
+          }
+          default:
+            status = result.status;
+        }
+
+        return {
+          eventId: event.eventId,
+          txId: event.txId,
+          fromChain: event.fromChain,
+          toChain: event.toChain,
+          fromAddress: event.fromAddress,
+          toAddress: event.toAddress,
+          bridgeFee: event.bridgeFee,
+          networkFee: event.networkFee,
+          sourceChainToken: tokenData,
+          sourceTxId: event.sourceTxId,
+          status: status,
+        };
+      });
 
       reply.status(200).send({
         items: events,
-        total: results.length,
+        total: results.total,
       });
     }
   );

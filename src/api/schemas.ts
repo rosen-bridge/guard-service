@@ -97,6 +97,7 @@ export const RevenueHistoryResponseSchema = OutputItemsSchema(
     lockTxId: Type.String(),
     height: Type.Number(),
     timestamp: Type.Number(),
+    ergoSideTokenId: Type.String(),
     revenues: Type.Array(SingleRevenueSchema),
   } as const)
 );
@@ -138,7 +139,7 @@ export const EventsQuerySchema = Type.Object({
   minAmount: Type.Optional(Type.String()),
 });
 
-export const EventsResponseSchema = OutputItemsSchema(
+export const EventsHistoryResponseSchema = OutputItemsSchema(
   Type.Object({
     eventId: Type.String(),
     fromChain: Type.String(),
@@ -148,6 +149,25 @@ export const EventsResponseSchema = OutputItemsSchema(
     bridgeFee: Type.String(),
     networkFee: Type.String(),
     sourceTxId: Type.String(),
+    paymentTxId: Type.String(),
+    rewardTxId: Type.String(),
+    status: Type.String(),
+    sourceChainToken: TokenDataSchema,
+  } as const)
+);
+
+export const OngoingEventsResponseSchema = OutputItemsSchema(
+  Type.Object({
+    eventId: Type.String(),
+    fromChain: Type.String(),
+    toChain: Type.String(),
+    fromAddress: Type.String(),
+    toAddress: Type.String(),
+    bridgeFee: Type.String(),
+    networkFee: Type.String(),
+    sourceTxId: Type.String(),
+    txId: Type.String(),
+    status: Type.String(),
     sourceChainToken: TokenDataSchema,
   } as const)
 );
@@ -159,7 +179,7 @@ export const RevenueChartQuerySchema = Type.Object({
 
 export const RevenueChartResponseSchema = Type.Array(
   Type.Object({
-    title: Type.String(),
+    title: TokenDataSchema,
     data: Type.Array(
       Type.Object({
         label: Type.String(),

@@ -21,7 +21,7 @@ import {
 } from '@rosen-bridge/watcher-data-extractor';
 import Utils from '../utils/Utils';
 import { Semaphore } from 'await-semaphore';
-import { SortRequest } from '../types/api';
+import { Page, SortRequest } from '../types/api';
 import { RevenueEntity } from './entities/revenueEntity';
 import { RevenueView } from './entities/revenueView';
 import { RevenueChartView } from './entities/revenueChartView';
@@ -514,6 +514,8 @@ class DatabaseAction {
    * @param toChain
    * @param minAmount
    * @param maxAmount
+   * @param offset
+   * @param limit
    * @returns returns completed events with the specified condition
    */
   getCompletedEvents = async (
@@ -521,8 +523,10 @@ class DatabaseAction {
     fromChain: string | undefined,
     toChain: string | undefined,
     minAmount: string | undefined,
-    maxAmount: string | undefined
-  ) => {
+    maxAmount: string | undefined,
+    offset = 0,
+    limit = 20
+  ): Promise<Page<ConfirmedEventEntity>> => {
     const query = this.ConfirmedEventRepository.createQueryBuilder(
       'confirmed_event'
     )
@@ -531,23 +535,23 @@ class DatabaseAction {
         status: EventStatus.completed,
       });
     if (fromChain)
-      query.andWhere('event_trigger_entity_fromChain = :fromChain', {
+      query.andWhere('event_trigger_entity.fromChain = :fromChain', {
         fromChain,
       });
     if (toChain)
-      query.andWhere('event_trigger_entity_toChain = :toChain', {
+      query.andWhere('event_trigger_entity.toChain = :toChain', {
         toChain,
       });
     if (minAmount)
       query.andWhere(
-        'CAST(event_trigger_entity_amount AS LONG) >= :minAmount',
+        'CAST(event_trigger_entity.amount AS LONG) >= :minAmount',
         {
           minAmount,
         }
       );
     if (maxAmount)
       query.andWhere(
-        'CAST(event_trigger_entity_amount AS LONG) <= :maxAmount',
+        'CAST(event_trigger_entity.amount AS LONG) <= :maxAmount',
         {
           maxAmount,
         }
@@ -555,7 +559,12 @@ class DatabaseAction {
     query.orderBy({
       event_trigger_entity_height: sort || SortRequest.DESC,
     });
-    return query.getMany();
+    query.offset(offset).limit(limit);
+    const result = await query.getManyAndCount();
+    return {
+      items: result[0],
+      total: result[1],
+    };
   };
 
   /**
@@ -565,6 +574,8 @@ class DatabaseAction {
    * @param toChain
    * @param minAmount
    * @param maxAmount
+   * @param offset
+   * @param limit
    * @returns returns completed events with the specified condition
    */
   getOngoingEvents = async (
@@ -572,8 +583,10 @@ class DatabaseAction {
     fromChain: string | undefined,
     toChain: string | undefined,
     minAmount: string | undefined,
-    maxAmount: string | undefined
-  ) => {
+    maxAmount: string | undefined,
+    offset = 0,
+    limit = 20
+  ): Promise<Page<ConfirmedEventEntity>> => {
     const query = this.ConfirmedEventRepository.createQueryBuilder(
       'confirmed_event'
     )
@@ -583,23 +596,23 @@ class DatabaseAction {
         spentStatus: EventStatus.spent,
       });
     if (fromChain)
-      query.andWhere('event_trigger_entity_fromChain = :fromChain', {
+      query.andWhere('event_trigger_entity.fromChain = :fromChain', {
         fromChain,
       });
     if (toChain)
-      query.andWhere('event_trigger_entity_toChain = :toChain', {
+      query.andWhere('event_trigger_entity.toChain = :toChain', {
         toChain,
       });
     if (minAmount)
       query.andWhere(
-        'CAST(event_trigger_entity_amount AS LONG) >= :minAmount',
+        'CAST(event_trigger_entity.amount AS LONG) >= :minAmount',
         {
           minAmount,
         }
       );
     if (maxAmount)
       query.andWhere(
-        'CAST(event_trigger_entity_amount AS LONG) <= :maxAmount',
+        'CAST(event_trigger_entity.amount AS LONG) <= :maxAmount',
         {
           maxAmount,
         }
@@ -607,7 +620,12 @@ class DatabaseAction {
     query.orderBy({
       event_trigger_entity_height: sort || SortRequest.DESC,
     });
-    return query.getMany();
+    query.offset(offset).limit(limit);
+    const result = await query.getManyAndCount();
+    return {
+      items: result[0],
+      total: result[1],
+    };
   };
 
   /**
@@ -684,10 +702,7 @@ class DatabaseAction {
     toBlockTime?: number,
     offset = 0,
     limit = 20
-  ): Promise<{
-    items: RevenueView[];
-    total: number;
-  }> => {
+  ): Promise<Page<RevenueView>> => {
     const clauses = [],
       heightCondition = [],
       timeCondition = [];
@@ -761,6 +776,19 @@ class DatabaseAction {
       query.addGroupBy('week_number');
     }
     return query.getRawMany();
+  };
+
+  /**
+   * @returns the transactions with valid status
+   */
+  getValidTxsForEvents = (eventIds: string[]): Promise<TransactionEntity[]> => {
+    return this.TransactionRepository.find({
+      relations: ['event'],
+      where: {
+        event: In(eventIds),
+        status: Not(TransactionStatus.invalid),
+      },
+    });
   };
 }
 
