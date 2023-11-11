@@ -91,6 +91,7 @@ class ChainHandler {
           GuardsCardanoConfigs.koios.url,
           GuardsCardanoConfigs.cardanoContractConfig.lockAddress,
           Configs.tokens(),
+          GuardsCardanoConfigs.koios.authToken,
           WinstonLogger.getInstance().getLogger('KoiosNetwork')
         );
         break;
