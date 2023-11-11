@@ -11,6 +11,9 @@ class GuardsCardanoConfigs {
   static koios = {
     url: config.get<string>('cardano.koios.url'),
     timeout: config.get<number>('cardano.koios.timeout'), // seconds
+    authToken: config.has('cardano.koios.authToken')
+      ? config.get<string>('cardano.koios.authToken')
+      : undefined,
   };
 
   // value configs
