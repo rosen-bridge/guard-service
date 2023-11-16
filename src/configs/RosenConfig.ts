@@ -25,7 +25,7 @@ class ContractConfig {
       this.eventTriggerAddress = config.addresses.WatcherTriggerEvent;
       this.commitmentAddress = config.addresses.Commitment;
       this.lockAddress = config.addresses.lock;
-      this.fraudAddress = config.addresses.fraud;
+      this.fraudAddress = config.addresses.Fraud;
       this.RepoNFT = config.tokens.RepoNFT;
       this.RWTId = config.tokens.RWTId;
     }

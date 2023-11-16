@@ -9,7 +9,7 @@ cardano:
   networkType: 'mainnet' # Cardano network type [testnet, mainnet]
   chainNetwork: '' # 'ogmios', 'koios' or 'blockfrost'
   koios:
-    url: 'https://api.koios.rest/api/v0'
+    url: 'https://api.koios.rest/api/v1'
     timeout: 8
   bankPublicKey: '' # corresponding public key of lock address
   minUtxoValue: '3000000' # minimum lovelace for a Utxo (box)

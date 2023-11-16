@@ -380,11 +380,11 @@ class TxAgreement extends Communicator {
 
     await this.approvalSemaphore.acquire().then(async (release) => {
       try {
+        const txApprovals = this.transactionApprovals.get(txId);
         if (
-          this.transactionApprovals
-            .get(txId)!
-            .filter((signature) => signature !== '').length >=
-          GuardPkHandler.getInstance().requiredSign
+          txApprovals &&
+          txApprovals.filter((signature) => signature !== '').length >=
+            GuardPkHandler.getInstance().requiredSign
         ) {
           logger.info(
             `The majority of guards agreed with transaction [${txId}]`
