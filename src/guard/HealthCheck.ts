@@ -19,6 +19,7 @@ import CommunicationConfig from '../communication/CommunicationConfig';
 import GuardsCardanoConfigs from '../configs/GuardsCardanoConfigs';
 import { NODE_NETWORK } from '@rosen-chains/ergo-node-network';
 import { EXPLORER_NETWORK } from '@rosen-chains/ergo-explorer-network';
+import { BLOCKFROST_NETWORK } from '@rosen-chains/cardano-blockfrost-network';
 import { KOIOS_NETWORK } from '@rosen-chains/cardano-koios-network';
 import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
 import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
@@ -144,6 +145,9 @@ const getHealthCheck = async () => {
     else if (GuardsCardanoConfigs.chainNetworkName === 'ogmios') {
       // TODO: Asset health check with ogmios
       // https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/249
+    } else if (GuardsCardanoConfigs.chainNetworkName === BLOCKFROST_NETWORK) {
+      // TODO: Asset health check with blockfrost
+      // local:ergo/rosen-bridge/utils#54
     }
   }
 
