@@ -147,7 +147,7 @@ const getHealthCheck = async () => {
       // https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/249
     } else if (GuardsCardanoConfigs.chainNetworkName === BLOCKFROST_NETWORK) {
       // TODO: Asset health check with blockfrost
-      // local:ergo/rosen-bridge/utils#54
+      // local:ergo/rosen-bridge/utils#132
     }
   }
 
