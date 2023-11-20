@@ -48,6 +48,7 @@ class Tss {
     ];
     spawn(Configs.tssExecutionPath, args, {
       detached: false,
+      stdio: 'ignore',
     })
       .addListener('close', (code) => {
         const timeout = Configs.tssInstanceRestartGap;
