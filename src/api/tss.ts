@@ -23,7 +23,7 @@ const signRoute = (server: FastifySeverInstance) => {
         body: bodySchema,
         response: {
           200: MessageResponseSchema,
-          500: MessageResponseSchema,
+          400: MessageResponseSchema,
         },
       },
     },
@@ -42,7 +42,7 @@ const signRoute = (server: FastifySeverInstance) => {
           `An error occurred while processing TSS tx sign callback: ${error}`
         );
         logger.warn(error.stack);
-        reply.status(500).send({ message: error.message });
+        reply.status(400).send({ message: error.message });
       }
     }
   );
