@@ -155,6 +155,7 @@ class Tss {
             crypto: Configs.keygen.algorithm(),
             threshold: threshold,
             peersCount: guardsCount,
+            operationTimeout: 10 * 60, // 10 minutes
           })
           .then((res) => {
             logger.info(JSON.stringify(res.data));
