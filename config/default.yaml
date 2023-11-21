@@ -8,6 +8,8 @@ api:
 cardano:
   networkType: 'mainnet' # Cardano network type [testnet, mainnet]
   chainNetwork: '' # 'ogmios', 'koios' or 'blockfrost'
+  blockfrost:
+    projectId: ''
   koios:
     url: 'https://api.koios.rest/api/v1'
     timeout: 8

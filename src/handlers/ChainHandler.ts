@@ -5,7 +5,9 @@ import {
   CardanoChain,
 } from '@rosen-chains/cardano';
 import { AbstractErgoNetwork, ERGO_CHAIN, ErgoChain } from '@rosen-chains/ergo';
-import CardanoKoiosNetwork from '@rosen-chains/cardano-koios-network';
+import CardanoKoiosNetwork, {
+  KOIOS_NETWORK,
+} from '@rosen-chains/cardano-koios-network';
 import ErgoNodeNetwork, { NODE_NETWORK } from '@rosen-chains/ergo-node-network';
 import ErgoExplorerNetwork, {
   EXPLORER_NETWORK,
@@ -17,6 +19,8 @@ import MinimumFee from '../event/MinimumFee';
 import MultiSigHandler from '../guard/multisig/MultiSigHandler';
 import Tss from '../guard/Tss';
 import WinstonLogger from '@rosen-bridge/winston-logger';
+import { BLOCKFROST_NETWORK } from '@rosen-chains/cardano-blockfrost-network';
+import CardanoBlockFrostNetwork from '@rosen-chains/cardano-blockfrost-network/dist/CardanoBlockFrostNetwork';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
@@ -86,13 +90,22 @@ class ChainHandler {
   private generateCardanoChain = (): CardanoChain => {
     let network: AbstractCardanoNetwork;
     switch (GuardsCardanoConfigs.chainNetworkName) {
-      case 'koios':
+      case KOIOS_NETWORK:
         network = new CardanoKoiosNetwork(
           GuardsCardanoConfigs.koios.url,
           GuardsCardanoConfigs.cardanoContractConfig.lockAddress,
           Configs.tokens(),
           GuardsCardanoConfigs.koios.authToken,
           WinstonLogger.getInstance().getLogger('KoiosNetwork')
+        );
+        break;
+      case BLOCKFROST_NETWORK:
+        network = new CardanoBlockFrostNetwork(
+          GuardsCardanoConfigs.blockfrost.projectId,
+          GuardsCardanoConfigs.cardanoContractConfig.lockAddress,
+          Configs.tokens(),
+          GuardsCardanoConfigs.blockfrost.url,
+          WinstonLogger.getInstance().getLogger('BlockFrostNetwork')
         );
         break;
       default:
