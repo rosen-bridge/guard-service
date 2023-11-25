@@ -9,6 +9,7 @@ import {
   HealthStatusLevel,
   LogLevelHealthCheck,
   CardanoKoiosAssetHealthCheckParam,
+  CardanoBlockFrostAssetHealthCheckParam,
 } from '@rosen-bridge/health-check';
 import { dataSource } from '../db/dataSource';
 import Configs from '../configs/Configs';
@@ -136,7 +137,9 @@ const getHealthCheck = async () => {
         cardanoContracts.lockAddress,
         Configs.adaWarnThreshold,
         Configs.adaCriticalThreshold,
-        GuardsCardanoConfigs.koios.url
+        GuardsCardanoConfigs.koios.url,
+        6,
+        GuardsCardanoConfigs.koios.authToken
       );
       healthCheck.register(adaAssetHealthCheck);
     }
@@ -146,8 +149,17 @@ const getHealthCheck = async () => {
       // TODO: Asset health check with ogmios
       // https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/249
     } else if (GuardsCardanoConfigs.chainNetworkName === BLOCKFROST_NETWORK) {
-      // TODO: Asset health check with blockfrost
-      // local:ergo/rosen-bridge/utils#132
+      const adaAssetHealthCheck = new CardanoBlockFrostAssetHealthCheckParam(
+        ADA,
+        ADA,
+        cardanoContracts.lockAddress,
+        Configs.adaWarnThreshold,
+        Configs.adaCriticalThreshold,
+        GuardsCardanoConfigs.blockfrost.projectId,
+        6,
+        GuardsCardanoConfigs.blockfrost.url
+      );
+      healthCheck.register(adaAssetHealthCheck);
     }
   }
 
