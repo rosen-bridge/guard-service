@@ -94,11 +94,11 @@ describe('ColdStorage', () => {
         nativeToken: 200000000n,
         tokens: [
           {
-            id: 'asset1epz7gzjqg5py4xrgps6ccv25gz7gd6v8e5gmxx',
+            id: 'd2f6eb37450a3d568de93d623e69bd0ba1238daacc883d75736abd23.527374457267565465737432',
             value: 225000000000n,
           },
           {
-            id: 'asset1m62zdrt2fhlm9wpqrskxka6t0wvq5vag58cytl',
+            id: 'bb2250e4c589539fd141fbbd2c322d380f1ce2aaef812cd87110d61b.527374434f4d4554565465737432',
             value: 4000000000n,
           },
         ],
@@ -151,11 +151,11 @@ describe('ColdStorage', () => {
         nativeToken: 400000000n,
         tokens: [
           {
-            id: 'asset1epz7gzjqg5py4xrgps6ccv25gz7gd6v8e5gmxx',
+            id: 'd2f6eb37450a3d568de93d623e69bd0ba1238daacc883d75736abd23.527374457267565465737432',
             value: 225000000000n,
           },
           {
-            id: 'asset1m62zdrt2fhlm9wpqrskxka6t0wvq5vag58cytl',
+            id: 'bb2250e4c589539fd141fbbd2c322d380f1ce2aaef812cd87110d61b.527374434f4d4554565465737432',
             value: 4000000000n,
           },
         ],
@@ -214,11 +214,11 @@ describe('ColdStorage', () => {
         nativeToken: 200000000n,
         tokens: [
           {
-            id: 'asset1epz7gzjqg5py4xrgps6ccv25gz7gd6v8e5gmxx',
+            id: 'd2f6eb37450a3d568de93d623e69bd0ba1238daacc883d75736abd23.527374457267565465737432',
             value: 225000000000n,
           },
           {
-            id: 'asset1m62zdrt2fhlm9wpqrskxka6t0wvq5vag58cytl',
+            id: 'bb2250e4c589539fd141fbbd2c322d380f1ce2aaef812cd87110d61b.527374434f4d4554565465737432',
             value: 544000000000n,
           },
         ],
@@ -252,7 +252,7 @@ describe('ColdStorage', () => {
           nativeToken: minimumNativeToken,
           tokens: [
             {
-              id: 'asset1m62zdrt2fhlm9wpqrskxka6t0wvq5vag58cytl',
+              id: 'bb2250e4c589539fd141fbbd2c322d380f1ce2aaef812cd87110d61b.527374434f4d4554565465737432',
               value: 541000000000n,
             },
           ],
@@ -337,11 +337,11 @@ describe('ColdStorage', () => {
         nativeToken: 200000000n,
         tokens: [
           {
-            id: 'asset1epz7gzjqg5py4xrgps6ccv25gz7gd6v8e5gmxx',
+            id: 'd2f6eb37450a3d568de93d623e69bd0ba1238daacc883d75736abd23.527374457267565465737432',
             value: 225000000000n,
           },
           {
-            id: 'asset1m62zdrt2fhlm9wpqrskxka6t0wvq5vag58cytl',
+            id: 'bb2250e4c589539fd141fbbd2c322d380f1ce2aaef812cd87110d61b.527374434f4d4554565465737432',
             value: 544000000000n,
           },
         ],
@@ -409,11 +409,11 @@ describe('ColdStorage', () => {
         nativeToken: 200000000n,
         tokens: [
           {
-            id: 'asset1epz7gzjqg5py4xrgps6ccv25gz7gd6v8e5gmxx',
+            id: 'd2f6eb37450a3d568de93d623e69bd0ba1238daacc883d75736abd23.527374457267565465737432',
             value: 726000000000n,
           },
           {
-            id: 'asset1m62zdrt2fhlm9wpqrskxka6t0wvq5vag58cytl',
+            id: 'bb2250e4c589539fd141fbbd2c322d380f1ce2aaef812cd87110d61b.527374434f4d4554565465737432',
             value: 544000000000n,
           },
         ],
@@ -447,7 +447,7 @@ describe('ColdStorage', () => {
           nativeToken: minimumNativeToken,
           tokens: [
             {
-              id: 'asset1epz7gzjqg5py4xrgps6ccv25gz7gd6v8e5gmxx',
+              id: 'd2f6eb37450a3d568de93d623e69bd0ba1238daacc883d75736abd23.527374457267565465737432',
               value: 601000000000n,
             },
           ],

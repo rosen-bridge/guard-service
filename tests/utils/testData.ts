@@ -17,7 +17,8 @@ export const mockedView: Array<RevenueView> = [
     amount: '50000000000',
     bridgeFee: '1000000000',
     networkFee: '1500000',
-    lockTokenId: 'asset17q7r59zlc3dgw0venc80pdv566q6yguw03f0d9',
+    lockTokenId:
+      'a0028f350aaabe0545fdcb56b039bfb08e4bb4d8c4d7c3c7d481c235.484f534b59',
     lockTxId:
       '2d564e25a63a01f5e25f4221f1f6b589f012bac8a5d8670271adcc51176cd602',
     height: 1009,
@@ -41,7 +42,8 @@ export const eventData = {
   amount: '50000000000',
   bridgeFee: '1000000000',
   networkFee: '1500000',
-  sourceChainTokenId: 'asset17q7r59zlc3dgw0venc80pdv566q6yguw03f0d9',
+  sourceChainTokenId:
+    'a0028f350aaabe0545fdcb56b039bfb08e4bb4d8c4d7c3c7d481c235.484f534b59',
   sourceChainHeight: 20000,
   targetChainTokenId:
     'b37bfa41c2d9e61b4e478ddfc459a03d25b658a2305ffb428fbc47ad6abbeeaa',
@@ -87,7 +89,8 @@ export const revenueHistory: Array<RevenueHistory> = [
     bridgeFee: '1000000000',
     networkFee: '1500000',
     lockToken: {
-      tokenId: 'asset17q7r59zlc3dgw0venc80pdv566q6yguw03f0d9',
+      tokenId:
+        'a0028f350aaabe0545fdcb56b039bfb08e4bb4d8c4d7c3c7d481c235.484f534b59',
       amount: 50000000000,
       name: 'Hosky',
       decimals: 0,

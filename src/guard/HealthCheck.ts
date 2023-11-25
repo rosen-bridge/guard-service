@@ -8,7 +8,7 @@ import {
   HealthCheck,
   HealthStatusLevel,
   LogLevelHealthCheck,
-  CardanoAssetHealthCheckParam,
+  CardanoKoiosAssetHealthCheckParam,
 } from '@rosen-bridge/health-check';
 import { dataSource } from '../db/dataSource';
 import Configs from '../configs/Configs';
@@ -130,7 +130,7 @@ const getHealthCheck = async () => {
       healthCheck.register(ergoScannerSyncCheck);
     }
     if (GuardsCardanoConfigs.chainNetworkName === KOIOS_NETWORK) {
-      const adaAssetHealthCheck = new CardanoAssetHealthCheckParam(
+      const adaAssetHealthCheck = new CardanoKoiosAssetHealthCheckParam(
         ADA,
         ADA,
         cardanoContracts.lockAddress,
