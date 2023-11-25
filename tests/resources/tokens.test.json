@@ -1,7 +1,7 @@
 {
   "idKeys": {
     "ergo": "tokenId",
-    "cardano": "fingerprint"
+    "cardano": "tokenId"
   },
   "tokens": [
     {
@@ -15,7 +15,7 @@
         }
       },
       "cardano": {
-        "fingerprint": "asset1epz7gzjqg5py4xrgps6ccv25gz7gd6v8e5gmxx",
+        "tokenId": "d2f6eb37450a3d568de93d623e69bd0ba1238daacc883d75736abd23.527374457267565465737432",
         "policyId": "d2f6eb37450a3d568de93d623e69bd0ba1238daacc883d75736abd23",
         "assetName": "527374457267565465737432",
         "name": "wrapped-erg",
@@ -37,7 +37,7 @@
         }
       },
       "cardano": {
-        "fingerprint": "asset1m62zdrt2fhlm9wpqrskxka6t0wvq5vag58cytl",
+        "tokenId": "bb2250e4c589539fd141fbbd2c322d380f1ce2aaef812cd87110d61b.527374434f4d4554565465737432",
         "policyId": "bb2250e4c589539fd141fbbd2c322d380f1ce2aaef812cd87110d61b",
         "assetName": "527374434f4d4554565465737432",
         "name": "wrapped-comet",
@@ -59,7 +59,7 @@
         }
       },
       "cardano": {
-        "fingerprint": "asset17q7r59zlc3dgw0venc80pdv566q6yguw03f0d9",
+        "tokenId": "a0028f350aaabe0545fdcb56b039bfb08e4bb4d8c4d7c3c7d481c235.484f534b59",
         "policyId": "a0028f350aaabe0545fdcb56b039bfb08e4bb4d8c4d7c3c7d481c235",
         "assetName": "484f534b59",
         "name": "Hosky",
@@ -81,7 +81,7 @@
         }
       },
       "cardano": {
-        "fingerprint": "ada",
+        "tokenId": "ada",
         "policyId": "",
         "assetName": "414441",
         "name": "ada",
