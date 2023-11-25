@@ -25,6 +25,7 @@ import { KOIOS_NETWORK } from '@rosen-chains/cardano-koios-network';
 import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
 import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
 import WinstonLogger from '@rosen-bridge/winston-logger';
+import { ADA_DECIMALS } from '../utils/constants';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 let healthCheck: HealthCheck | undefined;
@@ -138,7 +139,7 @@ const getHealthCheck = async () => {
         Configs.adaWarnThreshold,
         Configs.adaCriticalThreshold,
         GuardsCardanoConfigs.koios.url,
-        6,
+        ADA_DECIMALS,
         GuardsCardanoConfigs.koios.authToken
       );
       healthCheck.register(adaAssetHealthCheck);
@@ -156,7 +157,7 @@ const getHealthCheck = async () => {
         Configs.adaWarnThreshold,
         Configs.adaCriticalThreshold,
         GuardsCardanoConfigs.blockfrost.projectId,
-        6,
+        ADA_DECIMALS,
         GuardsCardanoConfigs.blockfrost.url
       );
       healthCheck.register(adaAssetHealthCheck);

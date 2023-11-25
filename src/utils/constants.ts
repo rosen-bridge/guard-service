@@ -32,6 +32,7 @@ enum RevenuePeriod {
 const DefaultApiLimit = 100;
 const DefaultAssetApiLimit = 10;
 const DefaultRevenueApiCount = 10;
+const ADA_DECIMALS = 6;
 
 const SUPPORTED_CHAINS = [ERGO_CHAIN, CARDANO_CHAIN];
 
@@ -49,6 +50,7 @@ export {
   DefaultApiLimit,
   DefaultRevenueApiCount,
   DefaultAssetApiLimit,
+  ADA_DECIMALS,
   SUPPORTED_CHAINS,
   RevenueType,
 };
