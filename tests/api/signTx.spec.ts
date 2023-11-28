@@ -51,7 +51,8 @@ describe('signTx', () => {
       // mock `rawTxToPaymentTransaction`
       ChainHandlerMock.mockToChainFunction(
         'rawTxToPaymentTransaction',
-        paymentTx
+        paymentTx,
+        true
       );
 
       // send a request to the server
@@ -81,6 +82,49 @@ describe('signTx', () => {
         paymentTx.network,
         paymentTx.txType,
       ]);
+    });
+
+    /**
+     * @target fastifyServer[POST /sign] should return 400 when tx json is invalid
+     * @dependencies
+     * - ChainHandler
+     * - database
+     * @scenario
+     * - mock ChainHandler `getChain`
+     *   - mock `rawTxToPaymentTransaction` to throw error
+     * - send a request to the server
+     * - check the result
+     * - check database
+     * @expected
+     * - it should return status code 200
+     * - no tx should be inserted into db
+     */
+    it('should return 400 when tx json is invalid', async () => {
+      // mock ChainHandler `getChain`
+      ChainHandlerMock.mockChainName(CARDANO_CHAIN);
+      // mock `rawTxToPaymentTransaction`
+      ChainHandlerMock.mockToChainFunctionToThrow(
+        'rawTxToPaymentTransaction',
+        new Error(`TestError: failed to parse tx`),
+        true
+      );
+
+      // send a request to the server
+      const result = await mockedServer.inject({
+        method: 'POST',
+        url: '/sign',
+        body: {
+          chain: CARDANO_CHAIN,
+          txJson: 'txJson',
+        },
+      });
+
+      // check the result
+      expect(result.statusCode).toEqual(400);
+
+      // check database
+      const dbTxs = await DatabaseActionMock.allTxRecords();
+      expect(dbTxs.length).toEqual(0);
     });
   });
 });

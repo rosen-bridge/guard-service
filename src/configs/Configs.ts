@@ -68,8 +68,8 @@ class Configs {
   static apiHost = getOptionalConfig<string>('api.host', 'localhost');
   static apiBodyLimit =
     getConfigIntKeyOrDefault('api.jsonBodyLimit', 50) * 1024 * 1024; // value in MB
-  static isSignRouteActive = getOptionalConfig<boolean>(
-    'api.isSignRouteActive',
+  static isManualTxRequestActive = getOptionalConfig<boolean>(
+    'api.isManualTxRequestActive',
     false
   );
 

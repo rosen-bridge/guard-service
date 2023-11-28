@@ -28,9 +28,9 @@ const signTxRoute = (server: FastifySeverInstance) => {
     },
     async (request, reply) => {
       const { chain, txJson } = request.body;
-      if (!Configs.isSignRouteActive)
+      if (!Configs.isManualTxRequestActive)
         reply.status(400).send({
-          message: `Sign route is disabled`,
+          message: `Manual transaction request is disabled in config`,
         });
 
       try {
@@ -44,6 +44,7 @@ const signTxRoute = (server: FastifySeverInstance) => {
         });
       } catch (e) {
         logger.warn(`Failed to insert manual tx into database for sign: ${e}`);
+        logger.debug(`Requested tx: ${txJson}`);
         reply.status(400).send({
           message: `Request failed: ${e}`,
         });
