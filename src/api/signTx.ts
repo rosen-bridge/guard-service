@@ -43,7 +43,7 @@ const signTxRoute = (server: FastifySeverInstance) => {
           message: 'Ok',
         });
       } catch (e) {
-        logger.warn(`Failed to insert manual tx into database for manual `);
+        logger.warn(`Failed to insert manual tx into database for sign: ${e}`);
         reply.status(400).send({
           message: `Request failed: ${e}`,
         });

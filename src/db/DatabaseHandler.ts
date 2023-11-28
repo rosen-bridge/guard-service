@@ -27,7 +27,11 @@ class DatabaseHandler {
           const event = await DatabaseAction.getInstance().getEventById(
             newTx.eventId
           );
-          if (event === null && newTx.txType !== TransactionType.coldStorage) {
+          if (
+            event === null &&
+            newTx.txType !== TransactionType.coldStorage &&
+            newTx.txType !== TransactionType.manual
+          ) {
             throw new Error(`Event [${newTx.eventId}] not found`);
           }
 
