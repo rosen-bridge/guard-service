@@ -1,16 +1,14 @@
-import { EventHistory, OngoingEvents, TokenData } from '../types/api';
-import { EventStatus } from '../utils/constants';
-import { DatabaseAction } from '../db/DatabaseAction';
 import {
-  EventsQuerySchema,
-  EventsHistoryResponseSchema,
   FastifySeverInstance,
   MessageResponseSchema,
-  OngoingEventsResponseSchema,
   SignQuerySchema,
 } from './schemas';
 import Configs from '../configs/Configs';
-import { TransactionType } from '@rosen-chains/abstract-chain';
+import ChainHandler from '../handlers/ChainHandler';
+import DatabaseHandler from '../db/DatabaseHandler';
+import WinstonLogger from '@rosen-bridge/winston-logger';
+
+const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
 /**
  * setup event history route
@@ -36,20 +34,26 @@ const signTxRoute = (server: FastifySeverInstance) => {
         });
 
       try {
+        const tx = await ChainHandler.getInstance()
+          .getChain(chain)
+          .rawTxToPaymentTransaction(txJson);
+
+        await DatabaseHandler.insertTx(tx);
         reply.status(200).send({
           message: 'Ok',
         });
       } catch (e) {
+        logger.warn(`Failed to insert manual tx into database for manual `);
         reply.status(400).send({
-          message: ``,
+          message: `Request failed: ${e}`,
         });
       }
     }
   );
 };
 
-const signRoutes = async (server: FastifySeverInstance) => {
+const signRoute = async (server: FastifySeverInstance) => {
   signTxRoute(server);
 };
 
-export { signRoutes };
+export { signRoute };

@@ -13,7 +13,7 @@ import { revenueRoutes } from '../api/revenue';
 import { healthRoutes } from '../api/healthCheck';
 import { tssRoute } from '../api/tss';
 import WinstonLogger from '@rosen-bridge/winston-logger';
-import { signRoutes } from '../api/signTx';
+import { signRoute } from '../api/signTx';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
@@ -64,7 +64,7 @@ const initApiServer = async () => {
     await apiServer.register(healthRoutes);
     await apiServer.register(revenueRoutes);
     await apiServer.register(assetRoutes);
-    await apiServer.register(signRoutes);
+    await apiServer.register(signRoute);
   }
   apiServer.get('/', (request, reply) => {
     reply.redirect('/swagger');

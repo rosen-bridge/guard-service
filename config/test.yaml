@@ -1,4 +1,6 @@
 ---
+api:
+  isSignRouteActive: true
 cardano:
   networkType: 'testnet'
   chainNetwork: 'koios'

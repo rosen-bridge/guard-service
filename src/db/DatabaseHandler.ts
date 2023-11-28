@@ -32,6 +32,8 @@ class DatabaseHandler {
           }
 
           if (event) await this.insertEventTx(newTx, event);
+          else if (newTx.txType === TransactionType.manual)
+            await this.insertManualTx(newTx);
           else await this.insertColdStorageTx(newTx);
           release();
         } catch (e) {
@@ -128,6 +130,24 @@ class DatabaseHandler {
         }
       }
     } else await DatabaseAction.getInstance().insertNewTx(newTx, null);
+  };
+
+  /**
+   * inserts a new manual generated tx into Transaction table
+   * throws error if tx is already exists
+   * @param newTx the transaction
+   */
+  private static insertManualTx = async (
+    newTx: PaymentTransaction
+  ): Promise<void> => {
+    const txs = await DatabaseAction.getInstance().getTxById(newTx.txId);
+    if (txs) {
+      throw new Error(
+        `Tx [${newTx.txId}] is already in database with status [${txs.status}].`
+      );
+    } else {
+      await DatabaseAction.getInstance().insertNewTx(newTx, null);
+    }
   };
 
   /**
