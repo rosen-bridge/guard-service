@@ -68,6 +68,10 @@ class Configs {
   static apiHost = getOptionalConfig<string>('api.host', 'localhost');
   static apiBodyLimit =
     getConfigIntKeyOrDefault('api.jsonBodyLimit', 50) * 1024 * 1024; // value in MB
+  static isManualTxRequestActive = getOptionalConfig<boolean>(
+    'api.isManualTxRequestActive',
+    false
+  );
 
   // config of API's route
   static MAX_LENGTH_CHANNEL_SIZE = 200;

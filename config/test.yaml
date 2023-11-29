@@ -1,4 +1,6 @@
 ---
+api:
+  isManualTxRequestActive: true
 cardano:
   networkType: 'testnet'
   chainNetwork: 'koios'
