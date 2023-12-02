@@ -32,8 +32,6 @@ const eventsHistoryRoute = (server: FastifySeverInstance) => {
         request.query;
 
       const dbAction = DatabaseAction.getInstance();
-      // TODO: should fetch stopped events, not completed ones.
-      //  local:ergo/rosen-bridge/guard-service#331
       const results = await dbAction.getEvents(
         true,
         sort,
@@ -94,7 +92,7 @@ const eventsHistoryRoute = (server: FastifySeverInstance) => {
                 tx.event.id === event.eventId &&
                 tx.type === TransactionType.reward
             )?.txId ?? '',
-          status: event.status,
+          status: event.result ?? event.status,
         };
       });
 
