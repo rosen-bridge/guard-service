@@ -21,6 +21,8 @@ import { RevenueEntity } from '../../../src/db/entities/revenueEntity';
 import { RevenueChartView } from '../../../src/db/entities/revenueChartView';
 import { RevenueView } from '../../../src/db/entities/revenueView';
 import WinstonLogger from '@rosen-bridge/winston-logger';
+import { EventView } from '../../../src/db/entities/EventView';
+import { EventStatus } from '../../../src/utils/constants';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
@@ -37,6 +39,7 @@ class DatabaseActionMock {
       RevenueEntity,
       RevenueView,
       RevenueChartView,
+      EventView,
     ],
     migrations: [
       ...scannerMigrations.sqlite,
@@ -65,7 +68,7 @@ class DatabaseActionMock {
   };
 
   /**
-   * deletes every record in Event and Transaction table in ScannerDatabase
+   * deletes every record in Event and Transaction table in database
    */
   static clearTables = async () => {
     await this.testDatabase.RevenueRepository.clear();
@@ -97,7 +100,9 @@ class DatabaseActionMock {
     eventHeight = 200,
     spendHeight?: number,
     spendBlockId = 'blockId',
-    spendTxId?: string
+    spendTxId?: string,
+    result?: string,
+    paymentTxId?: string
   ) => {
     await this.testDatabase.EventRepository.createQueryBuilder()
       .insert()
@@ -123,6 +128,8 @@ class DatabaseActionMock {
         spendHeight: spendHeight,
         spendBlock: spendBlockId,
         spendTxId: spendTxId,
+        result: result,
+        paymentTxId: paymentTxId,
         txId: 'event-creation-tx-id',
         eventId: Utils.txIdToEventId(event.sourceTxId),
       })
@@ -154,7 +161,9 @@ class DatabaseActionMock {
     boxSerialized = 'boxSerialized',
     spendHeight?: number,
     spendTxId?: string,
-    spendBlock?: string
+    spendBlock?: string,
+    result?: string,
+    paymentTxId?: string
   ) => {
     const height = 300;
     await this.testDatabase.EventRepository.createQueryBuilder()
@@ -179,6 +188,8 @@ class DatabaseActionMock {
         sourceChainHeight: event.sourceChainHeight,
         spendHeight: spendHeight,
         spendTxId: spendTxId,
+        result: result,
+        paymentTxId: paymentTxId,
         spendBlock: spendBlock,
         WIDs: event.WIDs.join(','),
         txId: 'event-creation-tx-id',
@@ -187,7 +198,7 @@ class DatabaseActionMock {
   };
 
   /**
-   * inserts a record to Event table in ScannerDatabase
+   * inserts a record to Event table in database
    * @param paymentTx
    * @param status
    * @param lastCheck
@@ -282,7 +293,7 @@ class DatabaseActionMock {
   };
 
   /**
-   * returns all records in Event table in ScannerDatabase
+   * returns all records in Event table in database
    */
   static allRawEventRecords = async () => {
     return await this.testDatabase.EventRepository.createQueryBuilder()
@@ -291,7 +302,7 @@ class DatabaseActionMock {
   };
 
   /**
-   * returns all records in Event table in ScannerDatabase
+   * returns all records in Event table in database
    */
   static allEventRecords = async () => {
     return await this.testDatabase.ConfirmedEventRepository.createQueryBuilder()
@@ -300,7 +311,7 @@ class DatabaseActionMock {
   };
 
   /**
-   * returns all records in Transaction table in ScannerDatabase
+   * returns all records in Transaction table in database
    */
   static allTxRecords = async () => {
     return await this.testDatabase.TransactionRepository.find({
@@ -315,6 +326,15 @@ class DatabaseActionMock {
     return await this.testDatabase.RevenueRepository.find({
       relations: ['eventData'],
     });
+  };
+
+  /**
+   * returns all records from Event view in database
+   */
+  static eventViewRecords = async () => {
+    return await this.testDatabase.EventView.createQueryBuilder()
+      .select()
+      .getMany();
   };
 }
 

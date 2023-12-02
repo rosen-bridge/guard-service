@@ -30,9 +30,36 @@ const insertEventsWithHeight = async (
       'box_serialized',
       300,
       undefined,
-      index + 1000
+      index + 1000,
+      index + 1040,
+      'spendBlockId',
+      'spendTxId',
+      'successful',
+      'paymentTxId'
     );
   }
+};
+
+/**
+ * insert an event with completed status (and mocked
+ * spendTxId and other related columns of event_trigger_entity)
+ * @param count number of inserted events
+ * @param status event status
+ */
+const insertCompletedEvent = async (mockedEvent: EventTrigger) => {
+  await DatabaseHandlerMock.insertEventRecord(
+    mockedEvent,
+    EventStatus.completed,
+    'box_serialized',
+    300,
+    undefined,
+    1000,
+    1040,
+    'spendBlockId',
+    'spendTxId',
+    'successful',
+    'paymentTxId'
+  );
 };
 
 /**
@@ -40,15 +67,12 @@ const insertEventsWithHeight = async (
  * @param count number of inserted events
  * @param status event status
  */
-const insertEventsWithAmount = async (
-  count: number,
-  status = EventStatus.completed
-) => {
+const insertEventsWithAmount = async (count: number) => {
   for (let index = 0; index < count; index++) {
     const mockedEvent = EventTestData.mockEventWithAmount(
       (1000 * index + 10000).toString()
     );
-    await DatabaseHandlerMock.insertEventRecord(mockedEvent, status);
+    await insertCompletedEvent(mockedEvent);
   }
 };
 
@@ -157,6 +181,7 @@ const insertRevenue = async (
 export {
   insertEventsWithAmount,
   insertEventsWithHeight,
+  insertCompletedEvent,
   insertRevenueDataWithTimestamps,
   insertRevenueDataWithDifferentNetworks,
   insertRevenueDataWithDifferentTokenId,

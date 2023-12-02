@@ -67,7 +67,7 @@ interface RevenueHistory {
   revenues: Array<SingleRevenue>;
 }
 
-interface EventHistory
+interface Event
   extends Pick<
     EventTriggerEntity,
     | 'eventId'
@@ -117,7 +117,7 @@ export {
   GeneralInfo,
   SingleRevenue,
   RevenueHistory,
-  EventHistory,
+  Event,
   OngoingEvents,
   Page,
 };
