@@ -77,6 +77,8 @@ const initScanner = () => {
     dataSource,
     GuardsCardanoConfigs.cardanoContractConfig.eventTriggerAddress,
     GuardsCardanoConfigs.cardanoContractConfig.RWTId,
+    GuardsCardanoConfigs.cardanoContractConfig.permitAddress,
+    GuardsCardanoConfigs.cardanoContractConfig.fraudAddress,
     loggers.cardanoEventTriggerExtractorLogger
   );
   const ergoCommitmentExtractor = new CommitmentExtractor(
@@ -91,6 +93,8 @@ const initScanner = () => {
     dataSource,
     GuardsErgoConfigs.ergoContractConfig.eventTriggerAddress,
     GuardsErgoConfigs.ergoContractConfig.RWTId,
+    GuardsErgoConfigs.ergoContractConfig.permitAddress,
+    GuardsErgoConfigs.ergoContractConfig.fraudAddress,
     loggers.ergoEventTriggerExtractorLogger
   );
   ergoScanner.registerExtractor(cardanoCommitmentExtractor);

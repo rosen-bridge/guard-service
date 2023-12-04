@@ -48,6 +48,7 @@ class Tss {
     ];
     spawn(Configs.tssExecutionPath, args, {
       detached: false,
+      stdio: 'ignore',
     })
       .addListener('close', (code) => {
         const timeout = Configs.tssInstanceRestartGap;
@@ -154,6 +155,7 @@ class Tss {
             crypto: Configs.keygen.algorithm(),
             threshold: threshold,
             peersCount: guardsCount,
+            operationTimeout: 10 * 60, // 10 minutes
           })
           .then((res) => {
             logger.info(JSON.stringify(res.data));

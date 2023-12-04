@@ -2,17 +2,26 @@ import config from 'config';
 import { getChainNetworkName, getConfigIntKeyOrDefault } from './Configs';
 import { rosenConfig } from './RosenConfig';
 import { CARDANO_CHAIN, CardanoConfigs } from '@rosen-chains/cardano';
+import { BLOCKFROST_NETWORK } from '@rosen-chains/cardano-blockfrost-network';
+import { KOIOS_NETWORK } from '@rosen-chains/cardano-koios-network';
 
 class GuardsCardanoConfigs {
   // service configs
   static chainNetworkName = getChainNetworkName('cardano.chainNetwork', [
-    'koios',
+    KOIOS_NETWORK,
+    BLOCKFROST_NETWORK,
   ]);
   static koios = {
     url: config.get<string>('cardano.koios.url'),
     timeout: config.get<number>('cardano.koios.timeout'), // seconds
     authToken: config.has('cardano.koios.authToken')
       ? config.get<string>('cardano.koios.authToken')
+      : undefined,
+  };
+  static blockfrost = {
+    projectId: config.get<string>('cardano.blockfrost.projectId'),
+    url: config.has('cardano.blockfrost.url')
+      ? config.get<string>('cardano.blockfrost.url')
       : undefined,
   };
 

@@ -280,7 +280,10 @@ describe('assets', () => {
     it('should return cardano guard assets with limit and offset correctly', async () => {
       ChainHandlerMock.mockChainName(CARDANO_CHAIN, true);
       mockCardanoLockAddressAssets(10n, [
-        { id: 'asset1epz7gzjqg5py4xrgps6ccv25gz7gd6v8e5gmxx', value: 20n },
+        {
+          id: 'd2f6eb37450a3d568de93d623e69bd0ba1238daacc883d75736abd23.527374457267565465737432',
+          value: 20n,
+        },
         { id: 'id2', value: 30n },
       ]);
       mockCardanoColdAddressAssets(20n, [
@@ -297,7 +300,8 @@ describe('assets', () => {
       expect(result.json()).toEqual({
         items: [
           {
-            tokenId: 'asset1epz7gzjqg5py4xrgps6ccv25gz7gd6v8e5gmxx',
+            tokenId:
+              'd2f6eb37450a3d568de93d623e69bd0ba1238daacc883d75736abd23.527374457267565465737432',
             name: 'wrapped-erg',
             decimals: 9,
             amount: 20,

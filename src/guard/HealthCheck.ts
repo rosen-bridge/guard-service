@@ -8,7 +8,8 @@ import {
   HealthCheck,
   HealthStatusLevel,
   LogLevelHealthCheck,
-  CardanoAssetHealthCheckParam,
+  CardanoKoiosAssetHealthCheckParam,
+  CardanoBlockFrostAssetHealthCheckParam,
 } from '@rosen-bridge/health-check';
 import { dataSource } from '../db/dataSource';
 import Configs from '../configs/Configs';
@@ -19,10 +20,12 @@ import CommunicationConfig from '../communication/CommunicationConfig';
 import GuardsCardanoConfigs from '../configs/GuardsCardanoConfigs';
 import { NODE_NETWORK } from '@rosen-chains/ergo-node-network';
 import { EXPLORER_NETWORK } from '@rosen-chains/ergo-explorer-network';
+import { BLOCKFROST_NETWORK } from '@rosen-chains/cardano-blockfrost-network';
 import { KOIOS_NETWORK } from '@rosen-chains/cardano-koios-network';
 import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
 import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
 import WinstonLogger from '@rosen-bridge/winston-logger';
+import { ADA_DECIMALS } from '../utils/constants';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 let healthCheck: HealthCheck | undefined;
@@ -129,13 +132,15 @@ const getHealthCheck = async () => {
       healthCheck.register(ergoScannerSyncCheck);
     }
     if (GuardsCardanoConfigs.chainNetworkName === KOIOS_NETWORK) {
-      const adaAssetHealthCheck = new CardanoAssetHealthCheckParam(
+      const adaAssetHealthCheck = new CardanoKoiosAssetHealthCheckParam(
         ADA,
         ADA,
         cardanoContracts.lockAddress,
         Configs.adaWarnThreshold,
         Configs.adaCriticalThreshold,
-        GuardsCardanoConfigs.koios.url
+        GuardsCardanoConfigs.koios.url,
+        ADA_DECIMALS,
+        GuardsCardanoConfigs.koios.authToken
       );
       healthCheck.register(adaAssetHealthCheck);
     }
@@ -144,6 +149,18 @@ const getHealthCheck = async () => {
     else if (GuardsCardanoConfigs.chainNetworkName === 'ogmios') {
       // TODO: Asset health check with ogmios
       // https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/249
+    } else if (GuardsCardanoConfigs.chainNetworkName === BLOCKFROST_NETWORK) {
+      const adaAssetHealthCheck = new CardanoBlockFrostAssetHealthCheckParam(
+        ADA,
+        ADA,
+        cardanoContracts.lockAddress,
+        Configs.adaWarnThreshold,
+        Configs.adaCriticalThreshold,
+        GuardsCardanoConfigs.blockfrost.projectId,
+        ADA_DECIMALS,
+        GuardsCardanoConfigs.blockfrost.url
+      );
+      healthCheck.register(adaAssetHealthCheck);
     }
   }
 

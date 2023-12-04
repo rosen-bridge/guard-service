@@ -5,9 +5,13 @@ api:
   port: 8080 # service deployment port
   host: 'localhost' # service listening host
   jsonBodyLimit: 50
+  isManualTxRequestActive: false
+
 cardano:
   networkType: 'mainnet' # Cardano network type [testnet, mainnet]
-  chainNetwork: '' # 'ogmios', 'koios' or 'blockfrost'
+  chainNetwork: 'koios' # 'ogmios', 'koios' or 'blockfrost'
+  blockfrost:
+    projectId: ''
   koios:
     url: 'https://api.koios.rest/api/v1'
     timeout: 8
@@ -23,7 +27,7 @@ cardano:
   coldStorageAddress: ''
 ergo:
   networkType: 'mainnet' # Ergo network type [testnet, mainnet]
-  chainNetwork: '' # 'explorer' or 'node'
+  chainNetwork: 'explorer' # 'explorer' or 'node'
   explorer:
     url: 'https://api.ergoplatform.com/'
     timeout: 8

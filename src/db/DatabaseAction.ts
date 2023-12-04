@@ -271,15 +271,7 @@ class DatabaseAction {
     return await this.TransactionRepository.find({
       relations: ['event'],
       where: {
-        event: {
-          ...event,
-          eventData: {
-            ...event.eventData,
-            spendBlock: event.eventData.spendBlock
-              ? event.eventData.spendBlock
-              : IsNull(),
-          },
-        },
+        event: { id: event.id },
         type: type,
         status: Not(TransactionStatus.invalid),
       },
@@ -465,15 +457,7 @@ class DatabaseAction {
       relations: ['event'],
       where: [
         {
-          event: {
-            ...event,
-            eventData: {
-              ...event.eventData,
-              spendBlock: event.eventData.spendBlock
-                ? event.eventData.spendBlock
-                : IsNull(),
-            },
-          },
+          event: { id: event.id },
           status: TransactionStatus.completed,
           type: TransactionType.payment,
         },

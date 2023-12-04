@@ -5,9 +5,3 @@ p2p:
   peerIdFilePath: './peer-dialer/peer-dialer.json'
 database:
   type: 'postgres'
-
-#TODO: should be remove cardano and ergo section after fixing chain configs problem.
-cardano:
-  chainNetwork: 'koios' # 'ogmios', 'koios' or 'blockfrost'
-ergo:
-  chainNetwork: 'explorer' # 'explorer' or 'node'
