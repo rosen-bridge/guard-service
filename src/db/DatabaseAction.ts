@@ -1,27 +1,53 @@
-import { DataSource, In, IsNull, LessThan, Repository } from 'typeorm';
+import {
+  And,
+  DataSource,
+  In,
+  IsNull,
+  LessThan,
+  MoreThanOrEqual,
+  Not,
+  Repository,
+} from 'typeorm';
 import { ConfirmedEventEntity } from './entities/ConfirmedEventEntity';
-import { ormDataSource } from '../../config/ormDataSource';
 import { TransactionEntity } from './entities/TransactionEntity';
 import {
   EventStatus,
-  PaymentTransaction,
+  RevenuePeriod,
   TransactionStatus,
-} from '../models/Models';
+} from '../utils/constants';
 import {
   CommitmentEntity,
   EventTriggerEntity,
 } from '@rosen-bridge/watcher-data-extractor';
-import Utils from '../helpers/Utils';
-import { logger } from '../log/Logger';
+import Utils from '../utils/Utils';
+import { Semaphore } from 'await-semaphore';
+import { Page, SortRequest } from '../types/api';
+import { RevenueEntity } from './entities/revenueEntity';
+import { RevenueView } from './entities/revenueView';
+import { RevenueChartView } from './entities/revenueChartView';
+import {
+  ImpossibleBehavior,
+  PaymentTransaction,
+  TransactionType,
+} from '@rosen-chains/abstract-chain';
+import WinstonLogger from '@rosen-bridge/winston-logger';
+
+const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
 class DatabaseAction {
+  private static instance: DatabaseAction;
   dataSource: DataSource;
   CommitmentRepository: Repository<CommitmentEntity>;
   EventRepository: Repository<EventTriggerEntity>;
   ConfirmedEventRepository: Repository<ConfirmedEventEntity>;
   TransactionRepository: Repository<TransactionEntity>;
+  RevenueRepository: Repository<RevenueEntity>;
+  RevenueView: Repository<RevenueView>;
+  RevenueChartView: Repository<RevenueChartView>;
 
-  constructor(dataSource: DataSource) {
+  txSignSemaphore = new Semaphore(1);
+
+  protected constructor(dataSource: DataSource) {
     this.dataSource = dataSource;
     this.CommitmentRepository = this.dataSource.getRepository(CommitmentEntity);
     this.EventRepository = this.dataSource.getRepository(EventTriggerEntity);
@@ -29,21 +55,42 @@ class DatabaseAction {
       this.dataSource.getRepository(ConfirmedEventEntity);
     this.TransactionRepository =
       this.dataSource.getRepository(TransactionEntity);
+    this.RevenueRepository = this.dataSource.getRepository(RevenueEntity);
+    this.RevenueView = dataSource.getRepository(RevenueView);
+    this.RevenueChartView = dataSource.getRepository(RevenueChartView);
   }
 
   /**
+   * initiates data source
+   * @param dataSource
+   */
+  static init = (dataSource: DataSource): DatabaseAction => {
+    logger.debug("DatabaseAction instance didn't exist. Creating a new one");
+    DatabaseAction.instance = new DatabaseAction(dataSource);
+    return DatabaseAction.instance;
+  };
+
+  /**
+   * gets instance of DatabaseAction (throws error if it doesn't exist)
+   * @returns DatabaseAction instance
+   */
+  static getInstance = (): DatabaseAction => {
+    if (!DatabaseAction.instance)
+      throw Error(`Database is not instantiated yet`);
+    return DatabaseAction.instance;
+  };
+
+  /**
    * updates the status of an event by id
+   *  NOTE: this method does NOT update firstTry column
    * @param eventId the event trigger id
    * @param status the event trigger status
    */
   setEventStatus = async (eventId: string, status: string): Promise<void> => {
-    await this.ConfirmedEventRepository.createQueryBuilder()
-      .update()
-      .set({
-        status: status,
-      })
-      .where('id = :id', { id: eventId })
-      .execute();
+    await this.ConfirmedEventRepository.update(
+      { id: eventId },
+      { status: status }
+    );
   };
 
   /**
@@ -62,17 +109,32 @@ class DatabaseAction {
   };
 
   /**
-   * @return the event triggers with corresponding status
+   * @param statuses list of statuses
+   * @return the event triggers with status
    */
-  getPendingEvents = async (): Promise<ConfirmedEventEntity[]> => {
+  getEventsByStatuses = async (
+    statuses: string[]
+  ): Promise<ConfirmedEventEntity[]> => {
+    return await this.ConfirmedEventRepository.find({
+      relations: ['eventData'],
+      where: statuses.map((eventStatus) => ({
+        status: eventStatus,
+      })),
+    });
+  };
+
+  /**
+   * @return the event triggers with waiting status
+   */
+  getWaitingEvents = async (): Promise<ConfirmedEventEntity[]> => {
     return await this.ConfirmedEventRepository.find({
       relations: ['eventData'],
       where: [
         {
-          status: EventStatus.pendingPayment,
+          status: EventStatus.paymentWaiting,
         },
         {
-          status: EventStatus.pendingReward,
+          status: EventStatus.rewardWaiting,
         },
       ],
     });
@@ -90,6 +152,7 @@ class DatabaseAction {
           TransactionStatus.signed,
           TransactionStatus.approved,
           TransactionStatus.signFailed,
+          TransactionStatus.inSign,
         ]),
       },
     });
@@ -101,13 +164,32 @@ class DatabaseAction {
    * @param status tx status
    */
   setTxStatus = async (txId: string, status: string): Promise<void> => {
-    await this.TransactionRepository.createQueryBuilder()
-      .update()
-      .set({
+    await this.TransactionRepository.update(
+      { txId: txId },
+      {
         status: status,
-      })
-      .where('txId = :id', { id: txId })
-      .execute();
+        lastStatusUpdate: String(Math.round(Date.now() / 1000)),
+      }
+    );
+  };
+
+  /**
+   * updates tx info when failed in sign process
+   * @param txId the transaction id
+   */
+  setTxAsSignFailed = async (txId: string): Promise<void> => {
+    await this.TransactionRepository.update(
+      {
+        txId: txId,
+        status: TransactionStatus.inSign,
+      },
+      {
+        status: TransactionStatus.signFailed,
+        lastStatusUpdate: String(Math.round(Date.now() / 1000)),
+        signFailedCount: () => '"signFailedCount" + 1',
+        failedInSign: true,
+      }
+    );
   };
 
   /**
@@ -119,36 +201,33 @@ class DatabaseAction {
     txId: string,
     currentHeight: number
   ): Promise<void> => {
-    await this.TransactionRepository.createQueryBuilder()
-      .update()
-      .set({
-        lastCheck: currentHeight,
-      })
-      .where('txId = :id', { id: txId })
-      .execute();
+    await this.TransactionRepository.update(
+      { txId: txId },
+      { lastCheck: currentHeight }
+    );
   };
 
   /**
-   * updates the status of an event and clear its tx info
+   * updates the status of an event and sets firstTry columns with current timestamp
    * @param eventId the event trigger id
    * @param status status of the process
    */
-  resetEventTx = async (eventId: string, status: string): Promise<void> => {
-    await this.ConfirmedEventRepository.createQueryBuilder()
-      .update()
-      .set({
-        status: status,
-      })
-      .where('id = :id', { id: eventId })
-      .execute();
+  setEventStatusToPending = async (
+    eventId: string,
+    status: string
+  ): Promise<void> => {
+    await this.ConfirmedEventRepository.update(
+      { id: eventId },
+      { status: status, firstTry: String(Math.round(Date.now() / 1000)) }
+    );
   };
 
   /**
    * @param txId the transaction id
    * @return the transaction
    */
-  getTxById = async (txId: string): Promise<TransactionEntity> => {
-    return await this.TransactionRepository.findOneOrFail({
+  getTxById = async (txId: string): Promise<TransactionEntity | null> => {
+    return await this.TransactionRepository.findOne({
       relations: ['event'],
       where: {
         txId: txId,
@@ -160,64 +239,30 @@ class DatabaseAction {
    * updates the tx and set status as signed
    * @param txId the transaction id
    * @param txJson tx json
+   * @param currentHeight current height of the blockchain
    */
-  updateWithSignedTx = async (txId: string, txJson: string): Promise<void> => {
-    await this.TransactionRepository.createQueryBuilder()
-      .update()
-      .set({
+  updateWithSignedTx = async (
+    txId: string,
+    txJson: string,
+    currentHeight: number
+  ): Promise<void> => {
+    await this.TransactionRepository.update(
+      { txId: txId },
+      {
         txJson: txJson,
         status: TransactionStatus.signed,
-      })
-      .where('txId = :id', { id: txId })
-      .execute();
-  };
-
-  /**
-   * inserts a new approved tx into Transaction table (if already another approved tx exists, keeps the one with loser txId)
-   * @param newTx the transaction
-   */
-  insertTx = async (newTx: PaymentTransaction): Promise<void> => {
-    const event = await this.getEventById(newTx.eventId);
-    if (event === null) {
-      throw new Error(`Event [${newTx.eventId}] not found`);
-    }
-
-    const txs = (await this.getEventTxsByType(event!.id, newTx.txType)).filter(
-      (tx) => tx.status !== TransactionStatus.invalid
+        lastStatusUpdate: String(Math.round(Date.now() / 1000)),
+        lastCheck: currentHeight,
+      }
     );
-    if (txs.length > 1) {
-      throw new Error(
-        `Impossible case, event [${newTx.eventId}] has already more than 1 (${txs.length}) active ${newTx.txType} tx`
-      );
-    } else if (txs.length === 1) {
-      const tx = txs[0];
-      if (tx.status === TransactionStatus.approved) {
-        if (newTx.txId < tx.txId) {
-          logger.info(
-            `Replacing tx [${tx.txId}] with new transaction [${newTx.txId}] due to lower txId`
-          );
-          await this.replaceTx(tx.txId, newTx);
-        } else if (newTx.txId === tx.txId) {
-          logger.info(`Ignoring tx [${tx.txId}], already exists in database`);
-        } else
-          logger.info(
-            `Ignoring new tx [${newTx.txId}] due to higher txId, comparing to [${tx.txId}]`
-          );
-      } else
-        logger.warn(
-          `Received approval for newTx [${newTx.txId}] where its event [${
-            event!.id
-          }] has already a completed oldTx [${tx.txId}]`
-        );
-    } else await this.insertNewTx(newTx, event!);
   };
 
   /**
-   * returns all transaction for corresponding event
+   * returns all valid transaction for corresponding event
    * @param eventId the event trigger id
    * @param type the transaction type
    */
-  getEventTxsByType = async (
+  getEventValidTxsByType = async (
     eventId: string,
     type: string
   ): Promise<TransactionEntity[]> => {
@@ -226,8 +271,9 @@ class DatabaseAction {
     return await this.TransactionRepository.find({
       relations: ['event'],
       where: {
-        event: event,
+        event: { id: event.id },
         type: type,
+        status: Not(TransactionStatus.invalid),
       },
     });
   };
@@ -241,26 +287,40 @@ class DatabaseAction {
     previousTxId: string,
     tx: PaymentTransaction
   ): Promise<void> => {
-    await this.TransactionRepository.createQueryBuilder()
-      .update()
-      .set({
+    await this.TransactionRepository.update(
+      { txId: previousTxId },
+      {
         txId: tx.txId,
         txJson: tx.toJson(),
         type: tx.txType,
         chain: tx.network,
         status: TransactionStatus.approved,
+        lastStatusUpdate: String(Math.round(Date.now() / 1000)),
         lastCheck: 0,
-      })
-      .where('txId = :id', { id: previousTxId })
-      .execute();
+        failedInSign: false,
+      }
+    );
+  };
+
+  /**
+   * updates failedInSign field of a transaction to false
+   * @param txId
+   */
+  resetFailedInSign = async (txId: string): Promise<void> => {
+    await this.TransactionRepository.update(
+      { txId: txId },
+      {
+        failedInSign: false,
+      }
+    );
   };
 
   /**
    * inserts a tx record into transactions table
    */
-  private insertNewTx = async (
+  insertNewTx = async (
     paymentTx: PaymentTransaction,
-    event: ConfirmedEventEntity
+    event: ConfirmedEventEntity | null
   ): Promise<void> => {
     await this.TransactionRepository.insert({
       txId: paymentTx.txId,
@@ -268,8 +328,11 @@ class DatabaseAction {
       type: paymentTx.txType,
       chain: paymentTx.network,
       status: TransactionStatus.approved,
+      lastStatusUpdate: String(Math.round(Date.now() / 1000)),
       lastCheck: 0,
-      event: event,
+      event: event !== null ? event : undefined,
+      failedInSign: false,
+      signFailedCount: 0,
     });
   };
 
@@ -292,12 +355,13 @@ class DatabaseAction {
   };
 
   /**
-   * @return all event triggers with no spent block
+   * @return all event triggers with no spent height
    */
-  getUnspentEvents = async (): Promise<EventTriggerEntity[]> => {
-    // TODO: when extractor is able to capture spent status of events, update this query to just get unspent events
-    //  https://git.ergopool.io/ergo/rosen-bridge/scanner/watcher-data-extractor/-/issues/5
-    return await this.EventRepository.find();
+  getUnconfirmedEvents = async (): Promise<EventTriggerEntity[]> => {
+    return await this.EventRepository.createQueryBuilder('event')
+      .leftJoin('confirmed_event_entity', 'cee', 'event.id = cee.eventDataId')
+      .where('cee.eventDataId IS NULL')
+      .getMany();
   };
 
   /**
@@ -307,17 +371,409 @@ class DatabaseAction {
   insertConfirmedEvent = async (
     eventData: EventTriggerEntity
   ): Promise<void> => {
-    await this.ConfirmedEventRepository.createQueryBuilder()
-      .insert()
-      .values({
-        id: Utils.txIdToEventId(eventData.sourceTxId),
-        eventData: eventData,
-        status: EventStatus.pendingPayment,
-      })
-      .execute();
+    await this.ConfirmedEventRepository.insert({
+      id: Utils.txIdToEventId(eventData.sourceTxId),
+      eventData: eventData,
+      status: EventStatus.pendingPayment,
+      firstTry: String(Math.round(Date.now() / 1000)),
+    });
+  };
+
+  /**
+   * returns all transaction for cold storage
+   * @param chain the chain of the tx
+   */
+  getNonCompleteColdStorageTxsInChain = async (
+    chain: string
+  ): Promise<TransactionEntity[]> => {
+    return await this.TransactionRepository.find({
+      relations: ['event'],
+      where: {
+        type: TransactionType.coldStorage,
+        status: Not(TransactionStatus.completed),
+        chain: chain,
+      },
+    });
+  };
+
+  /**
+   * returns all unsigned transactions for a chain (with status approved, in-sign or sign-failed)
+   * @param chain the chain of the tx
+   */
+  getUnsignedActiveTxsInChain = async (
+    chain: string
+  ): Promise<TransactionEntity[]> => {
+    return await this.TransactionRepository.find({
+      relations: ['event'],
+      where: [
+        {
+          status: TransactionStatus.approved,
+          chain: chain,
+        },
+        {
+          status: TransactionStatus.inSign,
+          chain: chain,
+        },
+        {
+          status: TransactionStatus.signFailed,
+          chain: chain,
+        },
+      ],
+    });
+  };
+
+  /**
+   * returns all signed transactions for a chain (with status signed or sent)
+   * @param chain the chain of the tx
+   */
+  getSignedActiveTxsInChain = async (
+    chain: string
+  ): Promise<TransactionEntity[]> => {
+    return await this.TransactionRepository.find({
+      relations: ['event'],
+      where: [
+        {
+          status: TransactionStatus.signed,
+          chain: chain,
+        },
+        {
+          status: TransactionStatus.sent,
+          chain: chain,
+        },
+      ],
+    });
+  };
+
+  /**
+   * returns the payment transaction for an event
+   * @param eventId
+   */
+  getEventPaymentTransaction = async (
+    eventId: string
+  ): Promise<TransactionEntity> => {
+    const event = await this.getEventById(eventId);
+    if (event === null) throw new Error(`Event [${eventId}] not found`);
+    const txs = await this.TransactionRepository.find({
+      relations: ['event'],
+      where: [
+        {
+          event: { id: event.id },
+          status: TransactionStatus.completed,
+          type: TransactionType.payment,
+        },
+      ],
+    });
+    if (txs.length === 0)
+      throw new Error(`No payment tx found for event [${eventId}]`);
+    else if (txs.length > 1)
+      throw new ImpossibleBehavior(
+        `Found more than one completed payment transaction for event [${eventId}]`
+      );
+    else return txs[0];
+  };
+
+  /**
+   * returns all unsigned transactions which failed in sign process
+   */
+  getUnsignedFailedSignTxs = async (): Promise<TransactionEntity[]> => {
+    return await this.TransactionRepository.find({
+      relations: ['event'],
+      where: [
+        {
+          status: TransactionStatus.signFailed,
+          failedInSign: true,
+        },
+        {
+          status: TransactionStatus.inSign,
+          failedInSign: true,
+        },
+      ],
+    });
+  };
+
+  /**
+   * selects completed events with the specified condition
+   * @param sort
+   * @param fromChain
+   * @param toChain
+   * @param minAmount
+   * @param maxAmount
+   * @param offset
+   * @param limit
+   * @returns returns completed events with the specified condition
+   */
+  getCompletedEvents = async (
+    sort: SortRequest | undefined,
+    fromChain: string | undefined,
+    toChain: string | undefined,
+    minAmount: string | undefined,
+    maxAmount: string | undefined,
+    offset = 0,
+    limit = 20
+  ): Promise<Page<ConfirmedEventEntity>> => {
+    const query = this.ConfirmedEventRepository.createQueryBuilder(
+      'confirmed_event'
+    )
+      .leftJoinAndSelect('confirmed_event.eventData', 'event_trigger_entity')
+      .where('confirmed_event.status = :status', {
+        status: EventStatus.completed,
+      });
+    if (fromChain)
+      query.andWhere('event_trigger_entity.fromChain = :fromChain', {
+        fromChain,
+      });
+    if (toChain)
+      query.andWhere('event_trigger_entity.toChain = :toChain', {
+        toChain,
+      });
+    if (minAmount)
+      query.andWhere(
+        'CAST(event_trigger_entity.amount AS LONG) >= :minAmount',
+        {
+          minAmount,
+        }
+      );
+    if (maxAmount)
+      query.andWhere(
+        'CAST(event_trigger_entity.amount AS LONG) <= :maxAmount',
+        {
+          maxAmount,
+        }
+      );
+    query.orderBy({
+      event_trigger_entity_height: sort || SortRequest.DESC,
+    });
+    query.offset(offset).limit(limit);
+    const result = await query.getManyAndCount();
+    return {
+      items: result[0],
+      total: result[1],
+    };
+  };
+
+  /**
+   * selects completed events with the specified condition
+   * @param sort
+   * @param fromChain
+   * @param toChain
+   * @param minAmount
+   * @param maxAmount
+   * @param offset
+   * @param limit
+   * @returns returns completed events with the specified condition
+   */
+  getOngoingEvents = async (
+    sort: SortRequest | undefined,
+    fromChain: string | undefined,
+    toChain: string | undefined,
+    minAmount: string | undefined,
+    maxAmount: string | undefined,
+    offset = 0,
+    limit = 20
+  ): Promise<Page<ConfirmedEventEntity>> => {
+    const query = this.ConfirmedEventRepository.createQueryBuilder(
+      'confirmed_event'
+    )
+      .leftJoinAndSelect('confirmed_event.eventData', 'event_trigger_entity')
+      .where('confirmed_event.status not in (:completedStatus, :spentStatus)', {
+        completedStatus: EventStatus.completed,
+        spentStatus: EventStatus.spent,
+      });
+    if (fromChain)
+      query.andWhere('event_trigger_entity.fromChain = :fromChain', {
+        fromChain,
+      });
+    if (toChain)
+      query.andWhere('event_trigger_entity.toChain = :toChain', {
+        toChain,
+      });
+    if (minAmount)
+      query.andWhere(
+        'CAST(event_trigger_entity.amount AS LONG) >= :minAmount',
+        {
+          minAmount,
+        }
+      );
+    if (maxAmount)
+      query.andWhere(
+        'CAST(event_trigger_entity.amount AS LONG) <= :maxAmount',
+        {
+          maxAmount,
+        }
+      );
+    query.orderBy({
+      event_trigger_entity_height: sort || SortRequest.DESC,
+    });
+    query.offset(offset).limit(limit);
+    const result = await query.getManyAndCount();
+    return {
+      items: result[0],
+      total: result[1],
+    };
+  };
+
+  /**
+   * Returns unsaved revenue events that
+   * their spending tx is confirmed enough
+   * @param currentHeight
+   * @param requiredConfirmation
+   */
+  getConfirmedUnsavedRevenueEvents = async (
+    currentHeight: number,
+    requiredConfirmation: number
+  ): Promise<Array<EventTriggerEntity>> => {
+    return await this.EventRepository.createQueryBuilder('event')
+      .leftJoin('revenue_entity', 're', 'event."id" = re."eventDataId"')
+      .where('event."spendTxId" IS NOT NULL')
+      .andWhere('re."eventDataId" IS NULL')
+      .andWhere(`event."spendHeight" < ${currentHeight - requiredConfirmation}`)
+      .getMany();
+  };
+
+  /**
+   * Returns transactions with specified txIds
+   * @param txIds
+   */
+  getTxsById = async (txIds: string[]): Promise<TransactionEntity[]> => {
+    return this.TransactionRepository.findBy({
+      txId: In(txIds),
+    });
+  };
+
+  /**
+   * Inserts new revenue
+   * @param tokenId
+   * @param amount
+   * @param txId
+   * @param revenueType
+   * @param eventData
+   */
+  insertRevenue = async (
+    tokenId: string,
+    amount: bigint,
+    txId: string,
+    revenueType: string,
+    eventData: EventTriggerEntity
+  ) => {
+    return await this.RevenueRepository.insert({
+      tokenId,
+      amount,
+      txId,
+      revenueType,
+      eventData,
+    });
+  };
+
+  /**
+   * Returns all revenue with respect to the filters
+   * @param sort
+   * @param fromChain
+   * @param toChain
+   * @param minHeight
+   * @param maxHeight
+   * @param fromBlockTime
+   * @param toBlockTime
+   * @param offset
+   * @param limit
+   */
+  getRevenuesWithFilters = async (
+    sort?: SortRequest,
+    fromChain?: string,
+    toChain?: string,
+    minHeight?: number,
+    maxHeight?: number,
+    fromBlockTime?: number,
+    toBlockTime?: number,
+    offset = 0,
+    limit = 20
+  ): Promise<Page<RevenueView>> => {
+    const clauses = [],
+      heightCondition = [],
+      timeCondition = [];
+    if (fromChain) clauses.push({ fromChain: fromChain });
+    if (toChain) clauses.push({ toChain: toChain });
+    if (minHeight) heightCondition.push(MoreThanOrEqual(minHeight));
+    if (maxHeight) heightCondition.push(LessThan(maxHeight));
+    if (heightCondition.length > 0)
+      clauses.push({ height: And(...heightCondition) });
+    if (fromBlockTime) timeCondition.push(MoreThanOrEqual(fromBlockTime));
+    if (toBlockTime) timeCondition.push(LessThan(toBlockTime));
+    if (timeCondition.length > 0)
+      clauses.push({ timestamp: And(...timeCondition) });
+    const result = await this.RevenueView.findAndCount({
+      where:
+        clauses.length > 0
+          ? clauses.reduce(
+              (partialCondition, clause) => ({
+                ...partialCondition,
+                ...clause,
+              }),
+              {}
+            )
+          : undefined,
+      order: {
+        timestamp: sort ? sort : 'DESC',
+      },
+      skip: offset,
+      take: limit,
+    });
+    return {
+      items: result[0],
+      total: result[1],
+    };
+  };
+
+  /**
+   * get list of all revenues for selected list of events
+   * @param ids event row id
+   */
+  getEventsRevenues = async (
+    ids: Array<number>
+  ): Promise<Array<RevenueEntity>> => {
+    return this.RevenueRepository.find({
+      where: {
+        eventData: In(ids),
+      },
+      relations: ['eventData'],
+    });
+  };
+
+  /**
+   * Returns chart data with the specified period
+   * @param period
+   * @param offset
+   * @param limit
+   */
+  getRevenueChartData = async (period: RevenuePeriod) => {
+    const query = this.RevenueChartView.createQueryBuilder();
+    query
+      .select('"tokenId"')
+      .addSelect('SUM(amount)', 'amount')
+      .addSelect('MIN(timestamp)', 'label')
+      .groupBy('"tokenId"')
+      .orderBy('label', 'DESC');
+    if (period === RevenuePeriod.year) {
+      query.addGroupBy('year');
+    } else if (period === RevenuePeriod.month) {
+      query.addGroupBy('year').addGroupBy('month');
+    } else if (period === RevenuePeriod.week) {
+      query.addGroupBy('week_number');
+    }
+    return query.getRawMany();
+  };
+
+  /**
+   * @returns the transactions with valid status
+   */
+  getValidTxsForEvents = (eventIds: string[]): Promise<TransactionEntity[]> => {
+    return this.TransactionRepository.find({
+      relations: ['event'],
+      where: {
+        event: In(eventIds),
+        status: Not(TransactionStatus.invalid),
+      },
+    });
   };
 }
 
-const dbAction = new DatabaseAction(ormDataSource);
-
-export { DatabaseAction, dbAction };
+export { DatabaseAction };

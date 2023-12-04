@@ -1,15 +1,16 @@
 import axios from 'axios';
-import { JsonBI } from '../network/NetworkModels';
 import CommunicationConfig from './CommunicationConfig';
-import { SubscribeChannelFunction } from './Interfaces';
-import { logger } from '../log/Logger';
+import { SubscribeChannelWithURL } from './Interfaces';
+import WinstonLogger from '@rosen-bridge/winston-logger';
 
-const apiCallBack: SubscribeChannelFunction = (
-  msg: string,
-  channel: string,
-  sender: string,
-  url: string
-): void => {
+const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
+
+const apiCallBack: SubscribeChannelWithURL['func'] = (
+  msg,
+  channel,
+  sender,
+  url
+) => {
   const data = axios.post(
     url,
     {
@@ -27,9 +28,28 @@ const apiCallBack: SubscribeChannelFunction = (
   );
   data.catch((error) => {
     if (axios.isAxiosError(error)) {
-      logger.warn(`An error occurred, ${error.message}`);
-    } else {
-      logger.error(`Unexpected error, ${error}`);
+      logger.warn(`An error occurred while calling api url ${url}: ${error}`);
+      logger.warn(error.stack);
+      if (error.response) {
+        logger.debug(
+          `The request was made and the server responded with a non-2xx code.`,
+          {
+            code: error.code,
+            data: error.response.data,
+          }
+        );
+      } else if (error.request) {
+        logger.debug(
+          `The request was made but no response was received. Make sure TSS is up and accessible.`,
+          {
+            code: error.code,
+          }
+        );
+      } else {
+        logger.debug(
+          `Something happened in setting up the request that triggered the error.`
+        );
+      }
     }
   });
 };

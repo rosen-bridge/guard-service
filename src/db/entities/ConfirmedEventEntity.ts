@@ -10,13 +10,18 @@ import { EventTriggerEntity } from '@rosen-bridge/watcher-data-extractor';
 
 @Entity()
 export class ConfirmedEventEntity {
-  @PrimaryColumn()
+  @PrimaryColumn('varchar')
   id: string;
 
   @OneToOne('EventTriggerEntity', 'id', { cascade: true })
   @JoinColumn()
   eventData: Relation<EventTriggerEntity>;
 
-  @Column()
+  @Column('varchar')
   status: string;
+
+  @Column('varchar', {
+    nullable: true,
+  })
+  firstTry: string;
 }

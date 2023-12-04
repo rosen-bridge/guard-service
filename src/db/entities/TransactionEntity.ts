@@ -3,24 +3,38 @@ import { ConfirmedEventEntity } from './ConfirmedEventEntity';
 
 @Entity()
 export class TransactionEntity {
-  @PrimaryColumn()
+  @PrimaryColumn('varchar')
   txId: string;
 
-  @Column()
+  @Column('varchar')
   txJson: string;
 
-  @Column()
+  @Column('varchar')
   type: string;
 
-  @Column()
+  @Column('varchar')
   chain: string;
 
-  @Column()
+  @Column('varchar')
   status: string;
 
-  @Column()
+  @Column('integer')
   lastCheck: number;
 
-  @ManyToOne('ConfirmedEventEntity', 'eventId', { cascade: true })
+  @ManyToOne('ConfirmedEventEntity', 'eventId', {
+    cascade: true,
+    nullable: true,
+  })
   event: Relation<ConfirmedEventEntity>;
+
+  @Column('varchar', {
+    nullable: true,
+  })
+  lastStatusUpdate: string;
+
+  @Column('boolean')
+  failedInSign: boolean;
+
+  @Column('integer')
+  signFailedCount: number;
 }

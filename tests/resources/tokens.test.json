@@ -1,0 +1,96 @@
+{
+  "idKeys": {
+    "ergo": "tokenId",
+    "cardano": "tokenId"
+  },
+  "tokens": [
+    {
+      "ergo": {
+        "tokenId": "erg",
+        "name": "erg",
+        "decimals": 9,
+        "metaData": {
+          "type": "native",
+          "residency": "native"
+        }
+      },
+      "cardano": {
+        "tokenId": "d2f6eb37450a3d568de93d623e69bd0ba1238daacc883d75736abd23.527374457267565465737432",
+        "policyId": "d2f6eb37450a3d568de93d623e69bd0ba1238daacc883d75736abd23",
+        "assetName": "527374457267565465737432",
+        "name": "wrapped-erg",
+        "decimals": 9,
+        "metaData": {
+          "type": "CIP26",
+          "residency": "wrapped"
+        }
+      }
+    },
+    {
+      "ergo": {
+        "tokenId": "0cd8c9f416e5b1ca9f986a7f10a84191dfb85941619e49e53c0dc30ebf83324b",
+        "name": "COMET",
+        "decimals": 0,
+        "metaData": {
+          "type": "EIP-004",
+          "residency": "native"
+        }
+      },
+      "cardano": {
+        "tokenId": "bb2250e4c589539fd141fbbd2c322d380f1ce2aaef812cd87110d61b.527374434f4d4554565465737432",
+        "policyId": "bb2250e4c589539fd141fbbd2c322d380f1ce2aaef812cd87110d61b",
+        "assetName": "527374434f4d4554565465737432",
+        "name": "wrapped-comet",
+        "decimals": 0,
+        "metaData": {
+          "type": "CIP26",
+          "residency": "wrapped"
+        }
+      }
+    },
+    {
+      "ergo": {
+        "tokenId": "b37bfa41c2d9e61b4e478ddfc459a03d25b658a2305ffb428fbc47ad6abbeeaa",
+        "name": "RstHoskyVTest2",
+        "decimals": 0,
+        "metaData": {
+          "type": "EIP-004",
+          "residency": "wrapped"
+        }
+      },
+      "cardano": {
+        "tokenId": "a0028f350aaabe0545fdcb56b039bfb08e4bb4d8c4d7c3c7d481c235.484f534b59",
+        "policyId": "a0028f350aaabe0545fdcb56b039bfb08e4bb4d8c4d7c3c7d481c235",
+        "assetName": "484f534b59",
+        "name": "Hosky",
+        "decimals": 0,
+        "metaData": {
+          "type": "CIP26",
+          "residency": "native"
+        }
+      }
+    },
+    {
+      "ergo": {
+        "tokenId": "38cb230f68a28436fb3b73ae4b927626673e4620bc7c94896178567d436e416b",
+        "name": "RstAdaVTest2",
+        "decimals": 6,
+        "metaData": {
+          "type": "EIP-004",
+          "residency": "wrapped"
+        }
+      },
+      "cardano": {
+        "tokenId": "ada",
+        "policyId": "",
+        "assetName": "414441",
+        "name": "ada",
+        "decimals": 6,
+        "metaData": {
+          "type": "native",
+          "residency": "native"
+        }
+      }
+    }
+  ]
+}

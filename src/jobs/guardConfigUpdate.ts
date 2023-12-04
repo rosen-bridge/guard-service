@@ -1,22 +1,23 @@
-import { guardConfig } from '../helpers/GuardConfig';
-import Configs from '../helpers/Configs';
+import GuardPkHandler from '../handlers/GuardPkHandler';
+import Configs from '../configs/Configs';
+import WinstonLogger from '@rosen-bridge/winston-logger';
+
+const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
 /**
  * updates the guard config periodically
  */
-const configUpdateJob = () => {
-  guardConfig
-    .setConfig()
-    .then(() =>
-      setTimeout(configUpdateJob, Configs.guardConfigUpdateInterval * 1000)
-    );
+const configUpdateJob = async () => {
+  try {
+    const pkHandler = GuardPkHandler.getInstance();
+    await pkHandler.update();
+    pkHandler.updateDependentModules();
+    setTimeout(configUpdateJob, Configs.guardConfigUpdateInterval * 1000);
+  } catch (e) {
+    logger.warn(`Updating guards public keys failed with error: ${e}`);
+    logger.warn(e.stack);
+    setTimeout(configUpdateJob, Configs.guardConfigUpdateInterval * 1000);
+  }
 };
 
-/**
- * initializing update job
- */
-const guardConfigUpdate = () => {
-  configUpdateJob();
-};
-
-export { guardConfigUpdate };
+export { configUpdateJob };

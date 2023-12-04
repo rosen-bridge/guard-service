@@ -1,40 +1,80 @@
-import 'reflect-metadata';
-import { initDataSources } from './helpers/dataSources';
+import './bootstrap';
+import { initDataSources } from './jobs/dataSources';
 import { initializeMultiSigJobs } from './jobs/multiSig';
-import { initExpress } from './jobs/express';
-import { startTssInstance } from './jobs/tss';
+import { initApiServer } from './jobs/apiServer';
 import { runProcessors } from './jobs/runProcessors';
-import MultiSigHandler from './guard/multisig/MultiSig';
-import Configs from './helpers/Configs';
+import Configs from './configs/Configs';
 import { initScanner } from './jobs/initScanner';
-import { guardConfigUpdate } from './jobs/guardConfigUpdate';
-import { guardConfig } from './helpers/GuardConfig';
+import { healthCheckStart } from './jobs/healthCheck';
+import ChainHandler from './handlers/ChainHandler';
+import TxAgreement from './agreement/TxAgreement';
+import Notification from './communication/notification/Notification';
+import MultiSigHandler from './guard/multisig/MultiSigHandler';
+import { configUpdateJob } from './jobs/guardConfigUpdate';
+import MultiSigUtils from './guard/multisig/MultiSigUtils';
+import { DatabaseAction } from './db/DatabaseAction';
+import { dataSource } from './db/dataSource';
+import Tss from './guard/Tss';
+import { tssUpdateJob } from './jobs/tss';
+import { revenueJob } from './jobs/revenue';
 
-const init = async () => {
-  // init guards config
-  await guardConfig.setConfig();
+const initService = async () => {
+  // initialize Notification object
+  await Notification.getInstance();
 
   // initialize all data sources
   await initDataSources();
 
-  // initialize express Apis
-  await initExpress();
+  // initialize DatabaseAction
+  const dbAction = DatabaseAction.init(dataSource);
 
-  // guard config update job
-  guardConfigUpdate();
+  // initialize express Apis
+  await initApiServer();
 
   // initialize tss multiSig object
-  MultiSigHandler.getInstance(guardConfig.publicKeys, Configs.guardSecret);
+  await MultiSigHandler.init(Configs.guardSecret);
   initializeMultiSigJobs();
 
   // start tss instance
-  startTssInstance();
+  await Tss.init();
+  tssUpdateJob();
+
+  // initialize chain objects
+  const chainHandler = ChainHandler.getInstance();
+  MultiSigUtils.getInstance().init(chainHandler.getErgoChain().getStateContext);
+
+  // guard config update job
+  await configUpdateJob();
+
+  // initialize TxAgreement object
+  await TxAgreement.getInstance();
 
   // run network scanners
   initScanner();
 
   // run processors
   runProcessors();
+
+  // initialize guard health check
+  await healthCheckStart();
+
+  // run revenue job
+  await revenueJob();
+};
+
+const initKeygen = async () => {
+  // initialize express Apis
+  await initApiServer();
+
+  await Tss.keygen(Configs.keygen.guardsCount, Configs.keygen.threshold);
+};
+
+const init = async () => {
+  if (Configs.keygen.isActive) {
+    return initKeygen();
+  } else {
+    return initService();
+  }
 };
 
 init().then(() => null);

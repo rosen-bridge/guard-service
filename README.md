@@ -8,6 +8,7 @@
   - [Set configs](#set-configs)
   - [Run in development mode](#run-in-development-mode)
   - [Run in production mode](#run-in-production-mode)
+  - [Run using docker](#run-using-docker)
 - [Contributing](#contributing)
 - [License](#license)
   <a name="headers"/>
@@ -41,8 +42,7 @@ Before starting project, there are multiple configs need to be set, which are:
 - Cardano network configs
   - `koios.url`: API url to [Koios](https://api.koios.rest/) (care about testnet and mainnet)
   - `blockFrost.projectId`: projectId provided by [BlockFrost](https://blockfrost.io/)
-  - `bankAddress`: address to repo containing bridge assets in Cardano chain
-  - `lockAddresses`: addresses which bridge users lock their assets to in Cardano chain
+  - `lockAddress`: address which bridge users lock their assets to in Cardano chain
 - Ergo network configs
   - `explorer.url`: API url to Ergo Explorer
   - `node.url`: API url to Ergo Node (public nodes NOT recommended)
@@ -75,6 +75,18 @@ npm run start:dev
 ```shell
 npm install
 npm run start
+```
+
+### Run using docker
+
+> **Note**
+> First of all create `.env` file based on `./docker/.env.template` file in the root of the project and fill in its values then run the below commands:
+
+```shell
+mkdir -p logs/guard-logs logs/tss-api-logs
+chown -R 8080:8080 logs
+docker pull ghcr.io/rosen-bridge/guard-service
+docker-compose up
 ```
 
 ## Contributing

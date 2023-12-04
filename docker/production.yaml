@@ -1,0 +1,7 @@
+---
+tss:
+  path: './bin/rosenTss'
+p2p:
+  peerIdFilePath: './peer-dialer/peer-dialer.json'
+database:
+  type: 'postgres'

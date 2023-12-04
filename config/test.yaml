@@ -1,0 +1,54 @@
+---
+api:
+  isManualTxRequestActive: true
+cardano:
+  networkType: 'testnet'
+  chainNetwork: 'koios'
+  blockfrost:
+    projectId: ''
+  koios:
+    url: 'https://testnet.koios.rest/api/v0'
+  bankPublicKey: 'bcb07faa6c0f19e2f2587aa9ef6f43a68fc0135321216a71dc87c8527af4ca6a'
+  minUtxoValue: '1551690'
+  fee: '200000'
+  txTtl: 1000000
+  confirmation:
+    observation: 10
+    payment: 15
+    cold: 20
+  lockAddress: 'addr_test1vze7yqqlg8cjlyhz7jzvsg0f3fhxpuu6m3llxrajfzqecggw704re'
+  coldStorageAddress: 'addr_test1vze7yqqlg8cjlyhz7jzvsg0f3fhxpuu6m3llxrajfzqecggw704re'
+ergo:
+  networkType: 'testnet'
+  chainNetwork: 'node'
+  node:
+    url: 'http://213.239.193.208:9053/'
+  minBoxValue: '100000'
+  fee: '1100000'
+  confirmation:
+    observation: 25
+    event: 30
+    payment: 35
+    cold: 40
+  coldStorageAddress: '9es3xKFSehNNwCpuNpY31ScAubDqeLbSWwaCysjN1ee51bgHKTq'
+reward:
+  bridgeFeeRepoAddress: '9gtQHPp8yh2SC7z5ZLMHnK2NNW1DUW11hBKbUEADzqCSrECoQQM'
+  RSNEmissionAddress: '9gH92yjsJCBHwx4fDbXe6j8jLdDBMX3dm6nqwiHhUqyxgNKXmoK'
+  networkFeeRepoAddress: '9es3xKFSehNNwCpuNpY31ScAubDqeLbSWwaCysjN1ee51bgHKTq'
+  watchersSharePercent: 50
+  watchersRSNSharePercent: 20
+guard:
+  mnemonic: ''
+txSignTimeout: 1
+p2p:
+  peerIdFilePath: './peer-dialer.json'
+contracts:
+  addressesBasePath: 'tests/resources/addresses/'
+logs:
+  - type: 'console'
+    level: 'error'
+coldStorage:
+  startHour: 17
+  endHour: 19
+tokensPath: 'tests/resources/tokens.test.json'
+thresholdsPath: 'tests/resources/threshold.test.json'

@@ -1,6 +1,4 @@
 yarn.lock
-
-sqlite
 .idea
 node_modules
 .nyc_output
@@ -9,9 +7,11 @@ dir
 build
 dist
 logs
-
-peer-dialer.json
-bin/tss.exe
-config/addresses/contracts-*
-config/tokens.json
-
+peer-dialer*.json
+bin
+config/rosen/
+config/thresholds.json
+config/production.yaml
+config/local*.yaml
+.env
+.DS_Store
