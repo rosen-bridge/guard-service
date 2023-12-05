@@ -22,7 +22,6 @@ import { RevenueChartView } from '../../../src/db/entities/revenueChartView';
 import { RevenueView } from '../../../src/db/entities/revenueView';
 import WinstonLogger from '@rosen-bridge/winston-logger';
 import { EventView } from '../../../src/db/entities/EventView';
-import { EventStatus } from '../../../src/utils/constants';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
@@ -90,6 +89,8 @@ class DatabaseActionMock {
    * @param spendHeight
    * @param spendBlockId
    * @param spendTxId
+   * @param result
+   * @param paymentTxId
    */
   static insertEventRecord = async (
     event: EventTrigger,
@@ -155,6 +156,10 @@ class DatabaseActionMock {
    * @param event
    * @param boxSerialized
    * @param spendHeight
+   * @param spendTxId
+   * @param spendBlock
+   * @param result
+   * @param paymentTxId
    */
   static insertOnlyEventDataRecord = async (
     event: EventTrigger,
@@ -266,6 +271,7 @@ class DatabaseActionMock {
   /**
    * Inserts a block record
    * @param timestamp
+   * @param hash
    * @param height
    */
   static insertBlockRecord = async (
