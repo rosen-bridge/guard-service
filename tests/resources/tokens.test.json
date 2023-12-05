@@ -72,6 +72,28 @@
     },
     {
       "ergo": {
+        "tokenId": "a2a6c892c38d508a659caf857dbe29da4343371e597efd42e40f9bc99099a516",
+        "name": "RSN",
+        "decimals": 3,
+        "metaData": {
+          "type": "EIP-004",
+          "residency": "native"
+        }
+      },
+      "cardano": {
+        "tokenId": "45fdcb56b039bfba0028f350aaabe0508e4bb4d8c4d7c3c7d481c235.48",
+        "policyId": "45fdcb56b039bfba0028f350aaabe0508e4bb4d8c4d7c3c7d481c235",
+        "assetName": "48",
+        "name": "H",
+        "decimals": 3,
+        "metaData": {
+          "type": "CIP26",
+          "residency": "wrapped"
+        }
+      }
+    },
+    {
+      "ergo": {
         "tokenId": "38cb230f68a28436fb3b73ae4b927626673e4620bc7c94896178567d436e416b",
         "name": "RstAdaVTest2",
         "decimals": 6,

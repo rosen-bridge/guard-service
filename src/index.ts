@@ -17,6 +17,7 @@ import { dataSource } from './db/dataSource';
 import Tss from './guard/Tss';
 import { tssUpdateJob } from './jobs/tss';
 import { revenueJob } from './jobs/revenue';
+import GuardPkHandler from './handlers/GuardPkHandler';
 
 const initService = async () => {
   // initialize Notification object
@@ -44,7 +45,10 @@ const initService = async () => {
   MultiSigUtils.getInstance().init(chainHandler.getErgoChain().getStateContext);
 
   // guard config update job
-  await configUpdateJob();
+  const pkHandler = GuardPkHandler.getInstance();
+  await pkHandler.update();
+  pkHandler.updateDependentModules();
+  setTimeout(configUpdateJob, Configs.guardConfigUpdateInterval * 1000);
 
   // initialize TxAgreement object
   await TxAgreement.getInstance();
