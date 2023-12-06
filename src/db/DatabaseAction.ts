@@ -31,6 +31,7 @@ import {
   TransactionType,
 } from '@rosen-chains/abstract-chain';
 import WinstonLogger from '@rosen-bridge/winston-logger';
+import { EventView } from './entities/EventView';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
@@ -44,6 +45,7 @@ class DatabaseAction {
   RevenueRepository: Repository<RevenueEntity>;
   RevenueView: Repository<RevenueView>;
   RevenueChartView: Repository<RevenueChartView>;
+  EventView: Repository<EventView>;
 
   txSignSemaphore = new Semaphore(1);
 
@@ -58,6 +60,7 @@ class DatabaseAction {
     this.RevenueRepository = this.dataSource.getRepository(RevenueEntity);
     this.RevenueView = dataSource.getRepository(RevenueView);
     this.RevenueChartView = dataSource.getRepository(RevenueChartView);
+    this.EventView = dataSource.getRepository(EventView);
   }
 
   /**
@@ -492,7 +495,8 @@ class DatabaseAction {
   };
 
   /**
-   * selects completed events with the specified condition
+   * selects events with the specified condition
+   * @param history if true, returns history events, otherwise returns ongoing events
    * @param sort
    * @param fromChain
    * @param toChain
@@ -500,9 +504,10 @@ class DatabaseAction {
    * @param maxAmount
    * @param offset
    * @param limit
-   * @returns returns completed events with the specified condition
+   * @returns returns events with the specified condition
    */
-  getCompletedEvents = async (
+  getEvents = async (
+    history = true,
     sort: SortRequest | undefined,
     fromChain: string | undefined,
     toChain: string | undefined,
@@ -510,102 +515,52 @@ class DatabaseAction {
     maxAmount: string | undefined,
     offset = 0,
     limit = 20
-  ): Promise<Page<ConfirmedEventEntity>> => {
-    const query = this.ConfirmedEventRepository.createQueryBuilder(
-      'confirmed_event'
-    )
-      .leftJoinAndSelect('confirmed_event.eventData', 'event_trigger_entity')
-      .where('confirmed_event.status = :status', {
-        status: EventStatus.completed,
-      });
-    if (fromChain)
-      query.andWhere('event_trigger_entity.fromChain = :fromChain', {
-        fromChain,
-      });
-    if (toChain)
-      query.andWhere('event_trigger_entity.toChain = :toChain', {
-        toChain,
-      });
-    if (minAmount)
-      query.andWhere(
-        'CAST(event_trigger_entity.amount AS LONG) >= :minAmount',
-        {
-          minAmount,
-        }
-      );
-    if (maxAmount)
-      query.andWhere(
-        'CAST(event_trigger_entity.amount AS LONG) <= :maxAmount',
-        {
-          maxAmount,
-        }
-      );
-    query.orderBy({
-      event_trigger_entity_height: sort || SortRequest.DESC,
+  ): Promise<Page<EventView>> => {
+    const clauses = [];
+    const amountCondition = [];
+    if (fromChain) clauses.push({ fromChain: fromChain });
+    if (toChain) clauses.push({ toChain: toChain });
+    if (minAmount) amountCondition.push(MoreThanOrEqual(minAmount));
+    if (maxAmount) amountCondition.push(LessThan(maxAmount));
+    if (amountCondition.length > 0)
+      clauses.push({ amount: And(...amountCondition) });
+    const filterCondition = clauses.reduce(
+      (partialCondition, clause) => ({
+        ...partialCondition,
+        ...clause,
+      }),
+      {}
+    );
+    const historyCondition = [
+      {
+        ...filterCondition,
+        spendTxId: Not(IsNull()),
+      },
+      {
+        ...filterCondition,
+        status: In([EventStatus.rejected, EventStatus.timeout]),
+      },
+    ];
+    const ongoingCondition = [
+      {
+        ...filterCondition,
+        spendTxId: IsNull(),
+        status: Not(In([EventStatus.rejected, EventStatus.timeout])),
+      },
+      {
+        ...filterCondition,
+        spendTxId: IsNull(),
+        status: IsNull(),
+      },
+    ];
+    const result = await this.EventView.findAndCount({
+      where: history ? historyCondition : ongoingCondition,
+      order: {
+        height: sort ? sort : 'DESC',
+      },
+      skip: offset,
+      take: limit,
     });
-    query.offset(offset).limit(limit);
-    const result = await query.getManyAndCount();
-    return {
-      items: result[0],
-      total: result[1],
-    };
-  };
-
-  /**
-   * selects completed events with the specified condition
-   * @param sort
-   * @param fromChain
-   * @param toChain
-   * @param minAmount
-   * @param maxAmount
-   * @param offset
-   * @param limit
-   * @returns returns completed events with the specified condition
-   */
-  getOngoingEvents = async (
-    sort: SortRequest | undefined,
-    fromChain: string | undefined,
-    toChain: string | undefined,
-    minAmount: string | undefined,
-    maxAmount: string | undefined,
-    offset = 0,
-    limit = 20
-  ): Promise<Page<ConfirmedEventEntity>> => {
-    const query = this.ConfirmedEventRepository.createQueryBuilder(
-      'confirmed_event'
-    )
-      .leftJoinAndSelect('confirmed_event.eventData', 'event_trigger_entity')
-      .where('confirmed_event.status not in (:completedStatus, :spentStatus)', {
-        completedStatus: EventStatus.completed,
-        spentStatus: EventStatus.spent,
-      });
-    if (fromChain)
-      query.andWhere('event_trigger_entity.fromChain = :fromChain', {
-        fromChain,
-      });
-    if (toChain)
-      query.andWhere('event_trigger_entity.toChain = :toChain', {
-        toChain,
-      });
-    if (minAmount)
-      query.andWhere(
-        'CAST(event_trigger_entity.amount AS LONG) >= :minAmount',
-        {
-          minAmount,
-        }
-      );
-    if (maxAmount)
-      query.andWhere(
-        'CAST(event_trigger_entity.amount AS LONG) <= :maxAmount',
-        {
-          maxAmount,
-        }
-      );
-    query.orderBy({
-      event_trigger_entity_height: sort || SortRequest.DESC,
-    });
-    query.offset(offset).limit(limit);
-    const result = await query.getManyAndCount();
     return {
       items: result[0],
       total: result[1],
