@@ -259,6 +259,8 @@ class Configs {
     'healthCheck.p2p.defectConfirmationTimeWindow',
     120
   );
+  static p2pUnstableTimeAllowed =
+    getConfigIntKeyOrDefault('p2p.unstableTimeAllowed', 1200) * 1000;
 
   // Revenue Config
   static revenueUpdateInterval = getConfigIntKeyOrDefault(
