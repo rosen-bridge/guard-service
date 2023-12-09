@@ -51,7 +51,7 @@ const getHealthCheck = async () => {
     const p2pHealthCheck = new P2PNetworkHealthCheck({
       defectConfirmationTimeWindow: Configs.p2pDefectConfirmationTimeWindow,
       connectedGuardsHealthyThreshold:
-        GuardPkHandler.getInstance().requiredSign,
+        GuardPkHandler.getInstance().requiredSign - 1,
       getConnectedGuards: () => {
         const connectedRelays = dialer.getRelayStates().connected?.length ?? 0;
         return dialer.getConnectedPeersCount() - connectedRelays;
