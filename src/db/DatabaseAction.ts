@@ -316,6 +316,23 @@ class DatabaseAction {
   };
 
   /**
+   * updates requiredSign field of a transaction
+   * @param txId
+   * @param requiredSign
+   */
+  updateRequiredSign = async (
+    txId: string,
+    requiredSign: number
+  ): Promise<void> => {
+    await this.TransactionRepository.update(
+      { txId: txId },
+      {
+        requiredSign: requiredSign,
+      }
+    );
+  };
+
+  /**
    * inserts a tx record into transactions table
    */
   insertNewTx = async (

@@ -10,6 +10,7 @@ import { ERGO_CHAIN } from '@rosen-chains/ergo';
 import { rosenConfig } from '../configs/RosenConfig';
 import Configs from '../configs/Configs';
 import WinstonLogger from '@rosen-bridge/winston-logger';
+import { DuplicateTransaction } from '../utils/errors';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
@@ -19,10 +20,12 @@ class DatabaseHandler {
    * if already another approved tx exists, keeps the one with loser txId
    * @param newTx the transaction
    * @param requiredSign
+   * @param overwrite in case of manual txs, if true, requiredSign will be overwritten
    */
   static insertTx = async (
     newTx: PaymentTransaction,
-    requiredSign: number
+    requiredSign: number,
+    overwrite = false
   ): Promise<void> => {
     await DatabaseAction.getInstance()
       .txSignSemaphore.acquire()
@@ -41,7 +44,7 @@ class DatabaseHandler {
 
           if (event) await this.insertEventTx(newTx, event, requiredSign);
           else if (newTx.txType === TransactionType.manual)
-            await this.insertManualTx(newTx, requiredSign);
+            await this.insertManualTx(newTx, requiredSign, overwrite);
           else await this.insertColdStorageTx(newTx, requiredSign);
           release();
         } catch (e) {
@@ -56,6 +59,7 @@ class DatabaseHandler {
    * if already another approved tx exists, keeps the one with loser txId
    * @param newTx the transaction
    * @param event the event trigger
+   * @param requiredSign
    */
   private static insertEventTx = async (
     newTx: PaymentTransaction,
@@ -106,6 +110,7 @@ class DatabaseHandler {
    * inserts a new approved cold storage tx into Transaction table
    * if already another approved tx exists, keeps the one with loser txId
    * @param newTx the transaction
+   * @param requiredSign
    */
   private static insertColdStorageTx = async (
     newTx: PaymentTransaction,
@@ -151,17 +156,28 @@ class DatabaseHandler {
   /**
    * inserts a new manual generated tx into Transaction table
    * throws error if tx is already exists
+   * updates required sign if overwrite key is passed
    * @param newTx the transaction
+   * @param requiredSign
+   * @param overwrite in case of manual txs, if true, requiredSign will be overwritten
    */
   private static insertManualTx = async (
     newTx: PaymentTransaction,
-    requiredSign: number
+    requiredSign: number,
+    overwrite: boolean
   ): Promise<void> => {
     const txs = await DatabaseAction.getInstance().getTxById(newTx.txId);
     if (txs) {
-      throw new Error(
-        `Tx [${newTx.txId}] is already in database with status [${txs.status}].`
-      );
+      if (!overwrite) {
+        throw new DuplicateTransaction(
+          `Tx [${newTx.txId}] is already in database with status [${txs.status}].`
+        );
+      } else {
+        await DatabaseAction.getInstance().updateRequiredSign(
+          newTx.txId,
+          requiredSign
+        );
+      }
     } else {
       await DatabaseAction.getInstance().insertNewTx(newTx, null, requiredSign);
     }

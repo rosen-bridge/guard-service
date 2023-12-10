@@ -192,4 +192,6 @@ export const RevenueChartResponseSchema = Type.Array(
 export const SignQuerySchema = Type.Object({
   chain: Type.String(),
   txJson: Type.String(),
+  requiredSign: Type.Number(),
+  overwrite: Type.Optional(Type.Boolean()),
 });
