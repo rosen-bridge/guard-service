@@ -71,7 +71,7 @@ class TransactionProcessor {
         const paymentTx = TransactionSerializer.fromJson(tx.txJson);
         await dbAction.setTxStatus(tx.txId, TransactionStatus.inSign);
         chain
-          .signTransaction(paymentTx, GuardPkHandler.getInstance().requiredSign)
+          .signTransaction(paymentTx, tx.requiredSign)
           .then(this.handleSuccessfulSign)
           .catch(async (e) => await this.handleFailedSign(tx.txId, e));
         logger.info(`Tx [${tx.txId}] got sent to the signer`);
