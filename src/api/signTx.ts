@@ -39,7 +39,7 @@ const signTxRoute = (server: FastifySeverInstance) => {
           .getChain(chain)
           .rawTxToPaymentTransaction(txJson);
 
-        await DatabaseHandler.insertTx(tx, 6, overwrite);
+        await DatabaseHandler.insertTx(tx, requiredSign, overwrite);
         reply.status(200).send({
           message: 'Ok',
         });
