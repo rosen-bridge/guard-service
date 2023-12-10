@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class migration1702223450431 implements MigrationInterface {
-  name = 'migration1702223450431';
+export class migration1702226882942 implements MigrationInterface {
+  name = 'migration1702226882942';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
@@ -16,7 +16,7 @@ export class migration1702223450431 implements MigrationInterface {
                 "failedInSign" boolean NOT NULL,
                 "signFailedCount" integer NOT NULL,
                 "eventId" varchar,
-                "requiredSign" integer NOT NULL,
+                "requiredSign" integer NOT NULL DEFAULT (6),
                 CONSTRAINT "FK_392573e185afb94149a20cf87df" FOREIGN KEY ("eventId") REFERENCES "confirmed_event_entity" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION
             )
         `);

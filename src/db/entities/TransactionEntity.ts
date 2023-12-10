@@ -38,6 +38,6 @@ export class TransactionEntity {
   @Column('integer')
   signFailedCount: number;
 
-  @Column('integer')
+  @Column('integer', { default: 6 })
   requiredSign: number;
 }
