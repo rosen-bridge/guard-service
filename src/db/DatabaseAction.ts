@@ -320,7 +320,8 @@ class DatabaseAction {
    */
   insertNewTx = async (
     paymentTx: PaymentTransaction,
-    event: ConfirmedEventEntity | null
+    event: ConfirmedEventEntity | null,
+    requiredSign: number
   ): Promise<void> => {
     await this.TransactionRepository.insert({
       txId: paymentTx.txId,
@@ -333,6 +334,7 @@ class DatabaseAction {
       event: event !== null ? event : undefined,
       failedInSign: false,
       signFailedCount: 0,
+      requiredSign: requiredSign,
     });
   };
 

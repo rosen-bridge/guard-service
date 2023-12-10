@@ -18,8 +18,12 @@ class DatabaseHandler {
    * inserts a new approved tx into Transaction table
    * if already another approved tx exists, keeps the one with loser txId
    * @param newTx the transaction
+   * @param requiredSign
    */
-  static insertTx = async (newTx: PaymentTransaction): Promise<void> => {
+  static insertTx = async (
+    newTx: PaymentTransaction,
+    requiredSign: number
+  ): Promise<void> => {
     await DatabaseAction.getInstance()
       .txSignSemaphore.acquire()
       .then(async (release) => {
@@ -35,10 +39,10 @@ class DatabaseHandler {
             throw new Error(`Event [${newTx.eventId}] not found`);
           }
 
-          if (event) await this.insertEventTx(newTx, event);
+          if (event) await this.insertEventTx(newTx, event, requiredSign);
           else if (newTx.txType === TransactionType.manual)
-            await this.insertManualTx(newTx);
-          else await this.insertColdStorageTx(newTx);
+            await this.insertManualTx(newTx, requiredSign);
+          else await this.insertColdStorageTx(newTx, requiredSign);
           release();
         } catch (e) {
           release();
@@ -55,7 +59,8 @@ class DatabaseHandler {
    */
   private static insertEventTx = async (
     newTx: PaymentTransaction,
-    event: ConfirmedEventEntity
+    event: ConfirmedEventEntity,
+    requiredSign: number
   ): Promise<void> => {
     const txs = await DatabaseAction.getInstance().getEventValidTxsByType(
       event.id,
@@ -89,7 +94,12 @@ class DatabaseHandler {
           );
         }
       }
-    } else await DatabaseAction.getInstance().insertNewTx(newTx, event);
+    } else
+      await DatabaseAction.getInstance().insertNewTx(
+        newTx,
+        event,
+        requiredSign
+      );
   };
 
   /**
@@ -98,7 +108,8 @@ class DatabaseHandler {
    * @param newTx the transaction
    */
   private static insertColdStorageTx = async (
-    newTx: PaymentTransaction
+    newTx: PaymentTransaction,
+    requiredSign: number
   ): Promise<void> => {
     const txs =
       await DatabaseAction.getInstance().getNonCompleteColdStorageTxsInChain(
@@ -133,7 +144,8 @@ class DatabaseHandler {
             );
         }
       }
-    } else await DatabaseAction.getInstance().insertNewTx(newTx, null);
+    } else
+      await DatabaseAction.getInstance().insertNewTx(newTx, null, requiredSign);
   };
 
   /**
@@ -142,7 +154,8 @@ class DatabaseHandler {
    * @param newTx the transaction
    */
   private static insertManualTx = async (
-    newTx: PaymentTransaction
+    newTx: PaymentTransaction,
+    requiredSign: number
   ): Promise<void> => {
     const txs = await DatabaseAction.getInstance().getTxById(newTx.txId);
     if (txs) {
@@ -150,7 +163,7 @@ class DatabaseHandler {
         `Tx [${newTx.txId}] is already in database with status [${txs.status}].`
       );
     } else {
-      await DatabaseAction.getInstance().insertNewTx(newTx, null);
+      await DatabaseAction.getInstance().insertNewTx(newTx, null, requiredSign);
     }
   };
 
