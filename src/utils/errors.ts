@@ -17,3 +17,9 @@ export class CommitmentMisMatch extends Error {
     super('CommitmentMismatch: ' + msg);
   }
 }
+
+export class DuplicateTransaction extends Error {
+  constructor(msg: string) {
+    super('DuplicateTransaction: ' + msg);
+  }
+}

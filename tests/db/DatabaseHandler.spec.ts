@@ -12,13 +12,15 @@ import DatabaseActionMock from './mocked/DatabaseAction.mock';
 import { rosenConfig } from '../../src/configs/RosenConfig';
 
 describe('DatabaseHandler', () => {
+  const requiredSign = 6;
+
   beforeEach(async () => {
     await DatabaseHandlerMock.clearTables();
   });
 
   describe('insertTx', () => {
     /**
-     * @target DatabaseHandler.insertTx should throw error when event is not found
+     * @target DatabaseHandler.insertTx should throw error when event is not fou, requiredSignnd
      * and tx type is not cold storage
      * @dependencies
      * - database
@@ -34,7 +36,7 @@ describe('DatabaseHandler', () => {
 
       // run test and expect exception thrown
       await expect(async () => {
-        await DatabaseHandler.insertTx(tx);
+        await DatabaseHandler.insertTx(tx, requiredSign);
       }).rejects.toThrow(Error);
     });
   });
@@ -70,7 +72,7 @@ describe('DatabaseHandler', () => {
       );
 
       // run test
-      await DatabaseHandler.insertTx(tx);
+      await DatabaseHandler.insertTx(tx, requiredSign);
 
       // tx should be inserted into db
       const dbTxs = (await DatabaseHandlerMock.allTxRecords()).map((tx) => [
@@ -119,7 +121,7 @@ describe('DatabaseHandler', () => {
       await DatabaseHandlerMock.insertTxRecord(tx2, TransactionStatus.inSign);
 
       // run test
-      await DatabaseHandler.insertTx(tx1);
+      await DatabaseHandler.insertTx(tx1, requiredSign);
 
       // tx should NOT be inserted into db
       const dbTxs = (await DatabaseHandlerMock.allTxRecords()).map(
@@ -181,7 +183,7 @@ describe('DatabaseHandler', () => {
       );
 
       // run test
-      await DatabaseHandler.insertTx(lowTx);
+      await DatabaseHandler.insertTx(lowTx, requiredSign);
 
       // tx should be inserted into db
       const dbTxs = (await DatabaseHandlerMock.allTxRecords()).map(
@@ -243,7 +245,7 @@ describe('DatabaseHandler', () => {
       );
 
       // run test
-      await DatabaseHandler.insertTx(highTx);
+      await DatabaseHandler.insertTx(highTx, requiredSign);
 
       // tx should NOT be inserted into db
       const dbTxs = (await DatabaseHandlerMock.allTxRecords()).map(
@@ -283,7 +285,7 @@ describe('DatabaseHandler', () => {
       await DatabaseHandlerMock.insertTxRecord(tx, TransactionStatus.approved);
 
       // run test
-      await DatabaseHandler.insertTx(tx);
+      await DatabaseHandler.insertTx(tx, requiredSign);
 
       // tx failedInSign field should be updated to false
       const dbTxs = (await DatabaseHandlerMock.allTxRecords()).map((tx) => [
@@ -317,7 +319,7 @@ describe('DatabaseHandler', () => {
       );
 
       // run test
-      await DatabaseHandler.insertTx(tx);
+      await DatabaseHandler.insertTx(tx, requiredSign);
 
       // tx should be inserted into db
       const dbTxs = (await DatabaseHandlerMock.allTxRecords()).map((tx) => [
@@ -359,7 +361,7 @@ describe('DatabaseHandler', () => {
       await DatabaseHandlerMock.insertTxRecord(tx2, TransactionStatus.inSign);
 
       // run test
-      await DatabaseHandler.insertTx(tx1);
+      await DatabaseHandler.insertTx(tx1, requiredSign);
 
       // tx should NOT be inserted into db
       const dbTxs = (await DatabaseHandlerMock.allTxRecords()).map(
@@ -413,7 +415,7 @@ describe('DatabaseHandler', () => {
       );
 
       // run test
-      await DatabaseHandler.insertTx(lowTx);
+      await DatabaseHandler.insertTx(lowTx, requiredSign);
 
       // tx should be inserted into db
       const dbTxs = (await DatabaseHandlerMock.allTxRecords()).map(
@@ -467,7 +469,7 @@ describe('DatabaseHandler', () => {
       );
 
       // run test
-      await DatabaseHandler.insertTx(highTx);
+      await DatabaseHandler.insertTx(highTx, requiredSign);
 
       // tx should NOT be inserted into db
       const dbTxs = (await DatabaseHandlerMock.allTxRecords()).map(
@@ -502,7 +504,7 @@ describe('DatabaseHandler', () => {
       await DatabaseHandlerMock.insertTxRecord(tx, TransactionStatus.approved);
 
       // run test
-      await DatabaseHandler.insertTx(tx);
+      await DatabaseHandler.insertTx(tx, requiredSign);
 
       // tx failedInSign field should be updated to false
       const dbTxs = (await DatabaseHandlerMock.allTxRecords()).map((tx) => [

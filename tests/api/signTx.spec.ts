@@ -6,8 +6,11 @@ import { FastifySeverInstance } from '../../src/api/schemas';
 import { signRoute } from '../../src/api/signTx';
 import { mockPaymentTransaction } from '../agreement/testData';
 import DatabaseActionMock from '../db/mocked/DatabaseAction.mock';
+import { TransactionStatus } from '../../src/utils/constants';
 
 describe('signTx', () => {
+  const requiredSign = 5;
+
   describe('POST /sign', () => {
     let mockedServer: FastifySeverInstance;
 
@@ -62,6 +65,7 @@ describe('signTx', () => {
         body: {
           chain: CARDANO_CHAIN,
           txJson: 'txJson',
+          requiredSign: requiredSign,
         },
       });
 
@@ -116,6 +120,7 @@ describe('signTx', () => {
         body: {
           chain: CARDANO_CHAIN,
           txJson: 'txJson',
+          requiredSign: requiredSign,
         },
       });
 
@@ -125,6 +130,135 @@ describe('signTx', () => {
       // check database
       const dbTxs = await DatabaseActionMock.allTxRecords();
       expect(dbTxs.length).toEqual(0);
+    });
+
+    /**
+     * @target fastifyServer[POST /sign] should return 409 when tx is already in database
+     * @dependencies
+     * - ChainHandler
+     * - database
+     * @scenario
+     * - mock PaymentTransaction
+     * - insert mocked tx into db
+     * - mock ChainHandler `getChain`
+     *   - mock `rawTxToPaymentTransaction`
+     * - send a request to the server
+     * - check the result
+     * @expected
+     * - it should return status code 409
+     */
+    it('should return 409 when tx is already in database', async () => {
+      // mock PaymentTransaction
+      const paymentTx = mockPaymentTransaction(
+        TransactionType.manual,
+        CARDANO_CHAIN,
+        ''
+      );
+
+      // insert mocked tx into db
+      await DatabaseActionMock.insertTxRecord(
+        paymentTx,
+        TransactionStatus.approved,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        requiredSign
+      );
+
+      // mock ChainHandler `getChain`
+      ChainHandlerMock.mockChainName(CARDANO_CHAIN);
+      // mock `rawTxToPaymentTransaction`
+      ChainHandlerMock.mockToChainFunction(
+        'rawTxToPaymentTransaction',
+        paymentTx,
+        true
+      );
+
+      // send a request to the server
+      const result = await mockedServer.inject({
+        method: 'POST',
+        url: '/sign',
+        body: {
+          chain: CARDANO_CHAIN,
+          txJson: 'txJson',
+          requiredSign: requiredSign,
+        },
+      });
+
+      // check the result
+      expect(result.statusCode).toEqual(409);
+    });
+
+    /**
+     * @target fastifyServer[POST /sign] should update required sign
+     * when overwrite key is passed
+     * @dependencies
+     * - ChainHandler
+     * - database
+     * @scenario
+     * - mock PaymentTransaction
+     * - insert mocked tx into db
+     * - mock ChainHandler `getChain`
+     *   - mock `rawTxToPaymentTransaction`
+     * - send a request to the server
+     * - check the result
+     * - check database
+     * @expected
+     * - it should return status code 200
+     * - tx requiredSign should be updated
+     */
+    it('should update required sign when overwrite key is passed', async () => {
+      // mock PaymentTransaction
+      const paymentTx = mockPaymentTransaction(
+        TransactionType.manual,
+        CARDANO_CHAIN,
+        ''
+      );
+
+      // insert mocked tx into db
+      await DatabaseActionMock.insertTxRecord(
+        paymentTx,
+        TransactionStatus.approved,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        requiredSign
+      );
+
+      // mock ChainHandler `getChain`
+      ChainHandlerMock.mockChainName(CARDANO_CHAIN);
+      // mock `rawTxToPaymentTransaction`
+      ChainHandlerMock.mockToChainFunction(
+        'rawTxToPaymentTransaction',
+        paymentTx,
+        true
+      );
+
+      // send a request to the server
+      const newRequiredSign = requiredSign + 1;
+      const result = await mockedServer.inject({
+        method: 'POST',
+        url: '/sign',
+        body: {
+          chain: CARDANO_CHAIN,
+          txJson: 'txJson',
+          requiredSign: newRequiredSign,
+          overwrite: true,
+        },
+      });
+
+      // check the result
+      expect(result.statusCode).toEqual(200);
+
+      // check database
+      const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
+        tx.txId,
+        tx.requiredSign,
+      ]);
+      expect(dbTxs.length).toEqual(1);
+      expect(dbTxs).to.deep.contain([paymentTx.txId, newRequiredSign]);
     });
   });
 });

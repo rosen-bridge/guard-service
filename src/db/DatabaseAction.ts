@@ -316,11 +316,29 @@ class DatabaseAction {
   };
 
   /**
+   * updates requiredSign field of a transaction
+   * @param txId
+   * @param requiredSign
+   */
+  updateRequiredSign = async (
+    txId: string,
+    requiredSign: number
+  ): Promise<void> => {
+    await this.TransactionRepository.update(
+      { txId: txId },
+      {
+        requiredSign: requiredSign,
+      }
+    );
+  };
+
+  /**
    * inserts a tx record into transactions table
    */
   insertNewTx = async (
     paymentTx: PaymentTransaction,
-    event: ConfirmedEventEntity | null
+    event: ConfirmedEventEntity | null,
+    requiredSign: number
   ): Promise<void> => {
     await this.TransactionRepository.insert({
       txId: paymentTx.txId,
@@ -333,6 +351,7 @@ class DatabaseAction {
       event: event !== null ? event : undefined,
       failedInSign: false,
       signFailedCount: 0,
+      requiredSign: requiredSign,
     });
   };
 
