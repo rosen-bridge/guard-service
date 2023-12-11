@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-export class migration1702226882942 implements MigrationInterface {
-  name = 'migration1702226882942';
+export class migration1702281318566 implements MigrationInterface {
+  name = 'migration1702281318566';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
@@ -16,7 +16,7 @@ export class migration1702226882942 implements MigrationInterface {
                 "failedInSign" boolean NOT NULL,
                 "signFailedCount" integer NOT NULL,
                 "eventId" varchar,
-                "requiredSign" integer NOT NULL DEFAULT (6),
+                "requiredSign" integer NOT NULL,
                 CONSTRAINT "FK_392573e185afb94149a20cf87df" FOREIGN KEY ("eventId") REFERENCES "confirmed_event_entity" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION
             )
         `);
@@ -31,6 +31,7 @@ export class migration1702226882942 implements MigrationInterface {
                     "lastStatusUpdate",
                     "failedInSign",
                     "signFailedCount",
+                    "requiredSign",
                     "eventId"
                 )
             SELECT "txId",
@@ -42,6 +43,7 @@ export class migration1702226882942 implements MigrationInterface {
                 "lastStatusUpdate",
                 "failedInSign",
                 "signFailedCount",
+                6,
                 "eventId"
             FROM "transaction_entity"
         `);
