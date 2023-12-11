@@ -8,6 +8,7 @@ import ChainHandler from '../handlers/ChainHandler';
 import DatabaseHandler from '../db/DatabaseHandler';
 import WinstonLogger from '@rosen-bridge/winston-logger';
 import { DuplicateTransaction } from '../utils/errors';
+import GuardPkHandler from '../handlers/GuardPkHandler';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
@@ -32,6 +33,12 @@ const signTxRoute = (server: FastifySeverInstance) => {
       if (!Configs.isManualTxRequestActive)
         reply.status(400).send({
           message: `Manual transaction request is disabled in config`,
+        });
+
+      const guardsLen = GuardPkHandler.getInstance().guardsLen;
+      if (requiredSign > guardsLen || requiredSign <= 0)
+        reply.status(400).send({
+          message: `Invalid value for required sign (expected 1 to ${guardsLen}, found ${requiredSign})`,
         });
 
       try {
