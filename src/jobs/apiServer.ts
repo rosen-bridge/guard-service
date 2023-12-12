@@ -1,5 +1,5 @@
-import fastifyCors from '@fastify/cors';
-import fastify, { FastifyInstance } from 'fastify';
+import fastifyCors, { FastifyCorsOptions } from '@fastify/cors';
+import fastify, { FastifyInstance, FastifyRequest } from 'fastify';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
@@ -30,8 +30,27 @@ const initApiServer = async () => {
   }).withTypeProvider<TypeBoxTypeProvider>();
 
   await apiServer.register(swagger);
-  await apiServer.register(fastifyCors, {});
-
+  if (Configs.apiAllowedOrigins.includes('*')) {
+    await apiServer.register(fastifyCors, {});
+  } else {
+    await apiServer.register(fastifyCors, () => {
+      return (
+        req: FastifyRequest,
+        callback: (
+          error: Error | null,
+          corsOptions?: FastifyCorsOptions
+        ) => void
+      ) => {
+        if (
+          req.headers.origin &&
+          Configs.apiAllowedOrigins.indexOf(req.headers.origin) !== -1
+        ) {
+          callback(null, { origin: true });
+        }
+        callback(null, { origin: false });
+      };
+    });
+  }
   await apiServer.register(swaggerUi, {
     routePrefix: '/swagger',
     uiConfig: {
