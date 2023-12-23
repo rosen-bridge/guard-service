@@ -286,7 +286,8 @@ class MultiSigHandler {
       transaction.boxes.forEach((item) => boxes.add(item));
       transaction.dataBoxes.forEach((item) => dataBoxes.add(item));
       let rejected = false;
-      for (let index = 0; index < signed.inputs().len(); index++) {
+      const inputs = signed.inputs();
+      for (let index = 0; index < inputs.len(); index++) {
         if (
           !wasm.verify_tx_input_proof(index, context, signed, boxes, dataBoxes)
         ) {
