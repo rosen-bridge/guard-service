@@ -210,6 +210,7 @@ class DatabaseActionMock {
    * @param lastStatusUpdate
    * @param failedInSign
    * @param signFailedCount
+   * @param requiredSign
    */
   static insertTxRecord = async (
     paymentTx: PaymentTransaction,
@@ -217,7 +218,8 @@ class DatabaseActionMock {
     lastCheck = 0,
     lastStatusUpdate?: string,
     failedInSign = false,
-    signFailedCount = 0
+    signFailedCount = 0,
+    requiredSign = 6
   ) => {
     const event = await this.testDatabase.ConfirmedEventRepository.findOneBy({
       id: paymentTx.eventId,
@@ -233,6 +235,7 @@ class DatabaseActionMock {
       lastStatusUpdate: lastStatusUpdate,
       failedInSign: failedInSign,
       signFailedCount: signFailedCount,
+      requiredSign: requiredSign,
     });
   };
 

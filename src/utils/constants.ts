@@ -33,6 +33,7 @@ const DefaultApiLimit = 100;
 const DefaultAssetApiLimit = 10;
 const DefaultRevenueApiCount = 10;
 const ADA_DECIMALS = 6;
+const ERG_DECIMALS = 9;
 
 const SUPPORTED_CHAINS = [ERGO_CHAIN, CARDANO_CHAIN];
 
@@ -51,6 +52,7 @@ export {
   DefaultRevenueApiCount,
   DefaultAssetApiLimit,
   ADA_DECIMALS,
+  ERG_DECIMALS,
   SUPPORTED_CHAINS,
   RevenueType,
 };

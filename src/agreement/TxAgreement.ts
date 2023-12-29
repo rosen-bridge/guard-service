@@ -512,13 +512,19 @@ class TxAgreement extends Communicator {
     const txRecord = await DatabaseAction.getInstance().getTxById(tx.txId);
     try {
       if (txRecord === null) {
-        await DatabaseHandler.insertTx(tx);
+        await DatabaseHandler.insertTx(
+          tx,
+          GuardPkHandler.getInstance().requiredSign
+        );
         await this.updateEventOfApprovedTx(tx);
       } else {
         logger.debug(
           `Tx [${tx.txId}] is already in database. Only reinserting tx...`
         );
-        await DatabaseHandler.insertTx(tx);
+        await DatabaseHandler.insertTx(
+          tx,
+          GuardPkHandler.getInstance().requiredSign
+        );
       }
       this.transactions.delete(tx.txId);
       this.transactionApprovals.delete(tx.txId);

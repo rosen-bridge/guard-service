@@ -16,8 +16,9 @@ import Configs from '../configs/Configs';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import { rosenConfig } from '../configs/RosenConfig';
 import Dialer from '../communication/Dialer';
-import CommunicationConfig from '../communication/CommunicationConfig';
 import GuardsCardanoConfigs from '../configs/GuardsCardanoConfigs';
+import { ADA_DECIMALS, ERG_DECIMALS } from '../utils/constants';
+import GuardPkHandler from '../handlers/GuardPkHandler';
 import { NODE_NETWORK } from '@rosen-chains/ergo-node-network';
 import { EXPLORER_NETWORK } from '@rosen-chains/ergo-explorer-network';
 import { BLOCKFROST_NETWORK } from '@rosen-chains/cardano-blockfrost-network';
@@ -25,7 +26,6 @@ import { KOIOS_NETWORK } from '@rosen-chains/cardano-koios-network';
 import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
 import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
 import WinstonLogger from '@rosen-bridge/winston-logger';
-import { ADA_DECIMALS } from '../utils/constants';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 let healthCheck: HealthCheck | undefined;
@@ -50,7 +50,8 @@ const getHealthCheck = async () => {
 
     const p2pHealthCheck = new P2PNetworkHealthCheck({
       defectConfirmationTimeWindow: Configs.p2pDefectConfirmationTimeWindow,
-      connectedGuardsHealthyThreshold: CommunicationConfig.guardsCount - 1,
+      connectedGuardsHealthyThreshold:
+        GuardPkHandler.getInstance().requiredSign - 1,
       getConnectedGuards: () => {
         const connectedRelays = dialer.getRelayStates().connected?.length ?? 0;
         return dialer.getConnectedPeersCount() - connectedRelays;
@@ -63,6 +64,14 @@ const getHealthCheck = async () => {
 
     const ergoContracts = rosenConfig.contractReader(ERGO_CHAIN);
     const cardanoContracts = rosenConfig.contractReader(CARDANO_CHAIN);
+    const rsnTokenDetails = Configs.tokenMap.search(ERGO_CHAIN, {
+      [Configs.tokenMap.getIdKey(ERGO_CHAIN)]: rosenConfig.RSN,
+    });
+    if (!rsnTokenDetails.length) {
+      throw Error(`RSN [${rosenConfig.RSN}] data is not found in token map.`);
+    }
+    const rsnTokenData = rsnTokenDetails[0][ERGO_CHAIN];
+
     if (GuardsErgoConfigs.chainNetworkName === NODE_NETWORK) {
       const ergAssetHealthCheck = new ErgoNodeAssetHealthCheckParam(
         ERG,
@@ -70,17 +79,19 @@ const getHealthCheck = async () => {
         ergoContracts.lockAddress,
         Configs.ergWarnThreshold,
         Configs.ergCriticalThreshold,
-        GuardsErgoConfigs.node.url
+        GuardsErgoConfigs.node.url,
+        ERG_DECIMALS
       );
       healthCheck.register(ergAssetHealthCheck);
 
       const rsnAssetHealthCheck = new ErgoNodeAssetHealthCheckParam(
         rosenConfig.RSN,
-        'RSN',
+        rsnTokenData.name,
         ergoContracts.lockAddress,
         Configs.rsnWarnThreshold,
         Configs.rsnCriticalThreshold,
-        GuardsErgoConfigs.node.url
+        GuardsErgoConfigs.node.url,
+        rsnTokenData.decimals
       );
       healthCheck.register(rsnAssetHealthCheck);
 
@@ -108,17 +119,19 @@ const getHealthCheck = async () => {
         ergoContracts.lockAddress,
         Configs.ergWarnThreshold,
         Configs.ergCriticalThreshold,
-        GuardsErgoConfigs.explorer.url
+        GuardsErgoConfigs.explorer.url,
+        ERG_DECIMALS
       );
       healthCheck.register(ergAssetHealthCheck);
 
       const rsnAssetHealthCheck = new ErgoExplorerAssetHealthCheckParam(
         rosenConfig.RSN,
-        'RSN',
+        rsnTokenData.name,
         ergoContracts.lockAddress,
         Configs.rsnWarnThreshold,
         Configs.rsnCriticalThreshold,
-        GuardsErgoConfigs.explorer.url
+        GuardsErgoConfigs.explorer.url,
+        rsnTokenData.decimals
       );
       healthCheck.register(rsnAssetHealthCheck);
 
