@@ -1,4 +1,4 @@
-import { EventHistory, OngoingEvents, TokenData } from '../types/api';
+import { Event, OngoingEvents, TokenData } from '../types/api';
 import { EventStatus } from '../utils/constants';
 import { DatabaseAction } from '../db/DatabaseAction';
 import {
@@ -32,9 +32,8 @@ const eventsHistoryRoute = (server: FastifySeverInstance) => {
         request.query;
 
       const dbAction = DatabaseAction.getInstance();
-      // TODO: should fetch stopped events, not completed ones.
-      //  local:ergo/rosen-bridge/guard-service#331
-      const results = await dbAction.getCompletedEvents(
+      const results = await dbAction.getEvents(
+        true,
         sort,
         fromChain,
         toChain,
@@ -44,11 +43,10 @@ const eventsHistoryRoute = (server: FastifySeverInstance) => {
         limit
       );
       const txs = await dbAction.getValidTxsForEvents(
-        results.items.map((event) => event.id)
+        results.items.map((event) => event.eventId)
       );
 
-      const events = results.items.map((result): EventHistory => {
-        const event = result.eventData;
+      const events = results.items.map((event): Event => {
         const token = Configs.tokenMap.search(event.fromChain, {
           [Configs.tokenMap.getIdKey(event.fromChain)]:
             event.sourceChainTokenId,
@@ -94,7 +92,7 @@ const eventsHistoryRoute = (server: FastifySeverInstance) => {
                 tx.event.id === event.eventId &&
                 tx.type === TransactionType.reward
             )?.txId ?? '',
-          status: result.status,
+          status: event.result ?? event.status,
         };
       });
 
@@ -127,7 +125,8 @@ const ongoingEventsRoute = (server: FastifySeverInstance) => {
         request.query;
 
       const dbAction = DatabaseAction.getInstance();
-      const results = await dbAction.getOngoingEvents(
+      const results = await dbAction.getEvents(
+        false,
         sort,
         fromChain,
         toChain,
@@ -138,11 +137,10 @@ const ongoingEventsRoute = (server: FastifySeverInstance) => {
       );
 
       const txs = await dbAction.getValidTxsForEvents(
-        results.items.map((event) => event.id)
+        results.items.map((event) => event.eventId)
       );
 
-      const events = results.items.map((result): OngoingEvents => {
-        const event = result.eventData;
+      const events = results.items.map((event): OngoingEvents => {
         const token = Configs.tokenMap.search(event.fromChain, {
           [Configs.tokenMap.getIdKey(event.fromChain)]:
             event.sourceChainTokenId,
@@ -167,7 +165,7 @@ const ongoingEventsRoute = (server: FastifySeverInstance) => {
         };
 
         let status = '';
-        switch (result.status) {
+        switch (event.status) {
           case EventStatus.inPayment: {
             const paymentTxStatus = txs.find(
               (tx) =>
@@ -187,7 +185,7 @@ const ongoingEventsRoute = (server: FastifySeverInstance) => {
             break;
           }
           default:
-            status = result.status;
+            status = event.status;
         }
 
         return {

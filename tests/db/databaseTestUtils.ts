@@ -1,10 +1,6 @@
 import DatabaseHandlerMock from './mocked/DatabaseAction.mock';
 import * as EventTestData from '../event/testData';
-import {
-  EventStatus,
-  RevenueType,
-  TransactionStatus,
-} from '../../src/utils/constants';
+import { EventStatus, RevenueType } from '../../src/utils/constants';
 import DatabaseActionMock from './mocked/DatabaseAction.mock';
 import * as TxTestData from '../agreement/testData';
 import { EventTrigger, TransactionType } from '@rosen-chains/abstract-chain';
@@ -30,25 +26,47 @@ const insertEventsWithHeight = async (
       'box_serialized',
       300,
       undefined,
-      index + 1000
+      index + 1000,
+      index + 1040,
+      'spendBlockId',
+      'spendTxId',
+      'successful',
+      'paymentTxId'
     );
   }
 };
 
 /**
+ * insert an event with completed status (and mocked
+ * spendTxId and other related columns of event_trigger_entity)
+ * @param count number of inserted events
+ */
+const insertCompletedEvent = async (mockedEvent: EventTrigger) => {
+  await DatabaseHandlerMock.insertEventRecord(
+    mockedEvent,
+    EventStatus.completed,
+    'box_serialized',
+    300,
+    undefined,
+    1000,
+    1040,
+    'spendBlockId',
+    'spendTxId',
+    'successful',
+    'paymentTxId'
+  );
+};
+
+/**
  * insert events with different amounts to database
  * @param count number of inserted events
- * @param status event status
  */
-const insertEventsWithAmount = async (
-  count: number,
-  status = EventStatus.completed
-) => {
+const insertEventsWithAmount = async (count: number) => {
   for (let index = 0; index < count; index++) {
     const mockedEvent = EventTestData.mockEventWithAmount(
       (1000 * index + 10000).toString()
     );
-    await DatabaseHandlerMock.insertEventRecord(mockedEvent, status);
+    await insertCompletedEvent(mockedEvent);
   }
 };
 
@@ -111,6 +129,8 @@ const insertRevenueDataWithDifferentTokenId = async (
  * @param timestamp block timestamp (revenue timestamp)
  * @param mockedEvent mocked event
  * @param height block height (revenue height)
+ * @param revenueToken
+ * @param revenueType
  */
 const insertRevenue = async (
   timestamp: number,
@@ -157,6 +177,7 @@ const insertRevenue = async (
 export {
   insertEventsWithAmount,
   insertEventsWithHeight,
+  insertCompletedEvent,
   insertRevenueDataWithTimestamps,
   insertRevenueDataWithDifferentNetworks,
   insertRevenueDataWithDifferentTokenId,
