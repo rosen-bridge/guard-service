@@ -68,6 +68,9 @@ describe('signTx', () => {
           txJson: 'txJson',
           requiredSign: requiredSign,
         },
+        headers: {
+          API_KEY: 'hello',
+        },
       });
 
       // check the result
@@ -122,6 +125,9 @@ describe('signTx', () => {
           chain: CARDANO_CHAIN,
           txJson: 'txJson',
           requiredSign: requiredSign,
+        },
+        headers: {
+          API_KEY: 'hello',
         },
       });
 
@@ -184,6 +190,9 @@ describe('signTx', () => {
           chain: CARDANO_CHAIN,
           txJson: 'txJson',
           requiredSign: requiredSign,
+        },
+        headers: {
+          API_KEY: 'hello',
         },
       });
 
@@ -248,6 +257,9 @@ describe('signTx', () => {
           requiredSign: newRequiredSign,
           overwrite: true,
         },
+        headers: {
+          API_KEY: 'hello',
+        },
       });
 
       // check the result
@@ -302,10 +314,38 @@ describe('signTx', () => {
           txJson: 'txJson',
           requiredSign: GuardPkHandler.getInstance().guardsLen + 1,
         },
+        headers: {
+          API_KEY: 'hello',
+        },
       });
 
       // check the result
       expect(result.statusCode).toEqual(400);
+    });
+
+    /**
+     * @target fastifyServer[POST /sign] should return 403 when api_key did not set in header
+     * @dependencies
+     * @scenario
+     * - send a request to the server
+     * - check the result
+     * @expected
+     * - it should return status code 403
+     */
+    it('should return 403 when api_key did not set in header', async () => {
+      // send a request to the server
+      const result = await mockedServer.inject({
+        method: 'POST',
+        url: '/sign',
+        body: {
+          chain: CARDANO_CHAIN,
+          txJson: 'txJson',
+          requiredSign: GuardPkHandler.getInstance().guardsLen,
+        },
+      });
+
+      // check the result
+      expect(result.statusCode).toEqual(403);
     });
   });
 });
