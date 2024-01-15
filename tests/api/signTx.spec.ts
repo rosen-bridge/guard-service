@@ -343,7 +343,33 @@ describe('signTx', () => {
           requiredSign: GuardPkHandler.getInstance().guardsLen,
         },
       });
+      // check the result
+      expect(result.statusCode).toEqual(403);
+    });
 
+    /**
+     * @target fastifyServer[POST /sign] should return 403 when api_key is wrong
+     * @dependencies
+     * @scenario
+     * - send a request to the server
+     * - check the result
+     * @expected
+     * - it should return status code 403
+     */
+    it('should return 403 when api_key is wrong', async () => {
+      // send a request to the server
+      const result = await mockedServer.inject({
+        method: 'POST',
+        url: '/sign',
+        body: {
+          chain: CARDANO_CHAIN,
+          txJson: 'txJson',
+          requiredSign: GuardPkHandler.getInstance().guardsLen,
+        },
+        headers: {
+          API_KEY: 'wrong',
+        },
+      });
       // check the result
       expect(result.statusCode).toEqual(403);
     });
