@@ -11,6 +11,7 @@ import {
   FastifySeverInstance,
   MessageResponseSchema,
 } from './schemas';
+import { getTokenData } from '../utils/getTokenData';
 
 /**
  * setup available assets route
@@ -46,9 +47,11 @@ const assetsRoute = (server: FastifySeverInstance) => {
             ? ADA
             : '';
         // add native tokens
-        const nativeTokenData = Configs.tokenMap.search(currentChain, {
-          [Configs.tokenMap.getIdKey(currentChain)]: nativeTokenId,
-        })[0][currentChain];
+        const nativeTokenData = getTokenData(
+          currentChain,
+          nativeTokenId,
+          currentChain
+        );
         tokenList.push({
           tokenId: nativeTokenId,
           name: nativeTokenData.name,
@@ -60,22 +63,16 @@ const assetsRoute = (server: FastifySeverInstance) => {
         });
         // add tokens
         assets.tokens.forEach((token) => {
-          const tokenData = Configs.tokenMap.search(currentChain, {
-            [Configs.tokenMap.getIdKey(currentChain)]: token.id,
-          });
+          const tokenData = getTokenData(currentChain, token.id, currentChain);
           const coldToken = coldAssets.tokens.find(
             (coldToken) => coldToken.id === token.id
           );
           tokenList.push({
             tokenId: token.id,
-            name: tokenData.length
-              ? tokenData[0][currentChain].name
-              : 'Unsupported token',
+            name: tokenData.name,
             amount: Number(token.value),
             coldAmount: coldToken ? Number(coldToken.value) : 0,
-            decimals: tokenData.length
-              ? tokenData[0][currentChain].decimals
-              : 0,
+            decimals: tokenData.decimals,
             chain: currentChain,
             isNativeToken: false,
           });
