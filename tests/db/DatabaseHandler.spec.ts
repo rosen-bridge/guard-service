@@ -10,6 +10,7 @@ import { EventStatus, TransactionStatus } from '../../src/utils/constants';
 import DatabaseHandler from '../../src/db/DatabaseHandler';
 import DatabaseActionMock from './mocked/DatabaseAction.mock';
 import { rosenConfig } from '../../src/configs/RosenConfig';
+import GuardsErgoConfigs from '../../src/configs/GuardsErgoConfigs';
 
 describe('DatabaseHandler', () => {
   const requiredSign = 6;
@@ -551,7 +552,7 @@ describe('DatabaseHandler', () => {
      * - run test
      * - check returned value
      * @expected
-     * - returned list should have event targetChainTokenId and RSN
+     * - returned list should have event targetChainTokenId and emissionToken
      */
     it('should return correct list for `paymentWaiting` events on Ergo', async () => {
       const event = EventTestData.mockToErgoEventTrigger();
@@ -561,7 +562,10 @@ describe('DatabaseHandler', () => {
       );
 
       const result = await DatabaseHandler.getWaitingEventsRequiredTokens();
-      expect(result).toEqual([event.targetChainTokenId, rosenConfig.RSN]);
+      expect(result).toEqual([
+        event.targetChainTokenId,
+        GuardsErgoConfigs.emissionTokenId,
+      ]);
     });
 
     /**
@@ -575,7 +579,7 @@ describe('DatabaseHandler', () => {
      * - run test
      * - check returned value
      * @expected
-     * - returned list should have event targetChainTokenId and RSN
+     * - returned list should have event targetChainTokenId and emissionToken
      */
     it('should return correct list for `rewardWaiting` events', async () => {
       const event = EventTestData.mockTokenPaymentFromErgoEvent();
@@ -585,7 +589,10 @@ describe('DatabaseHandler', () => {
       );
 
       const result = await DatabaseHandler.getWaitingEventsRequiredTokens();
-      expect(result).toEqual([rosenConfig.RSN, event.sourceChainTokenId]);
+      expect(result).toEqual([
+        GuardsErgoConfigs.emissionTokenId,
+        event.sourceChainTokenId,
+      ]);
     });
   });
 });

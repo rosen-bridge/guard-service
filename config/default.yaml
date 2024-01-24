@@ -119,7 +119,7 @@ healthCheck:
     erg:
       warnThreshold: 1000000000 # minimum recommended erg balance
       criticalThreshold: 100000000 # minimum required erg balance
-    rsn:
+    emissionToken:
       warnThreshold: 1000000000 # minimum recommended erg balance
       criticalThreshold: 100000000 # minimum required erg balance
     ada:
