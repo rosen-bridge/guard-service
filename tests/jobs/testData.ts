@@ -42,7 +42,7 @@ export const rewardTxOrder: PaymentOrder = [
     },
   },
   {
-    address: GuardsErgoConfigs.rsnEmissionAddress,
+    address: GuardsErgoConfigs.emissionAddress,
     assets: {
       nativeToken: 200n,
       tokens: [

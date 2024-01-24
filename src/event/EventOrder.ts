@@ -10,7 +10,6 @@ import { Fee } from '@rosen-bridge/minimum-fee';
 import Configs from '../configs/Configs';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import MinimumFee from './MinimumFee';
-import { rosenConfig } from '../configs/RosenConfig';
 import { ERG, ERGO_CHAIN, ErgoChain } from '@rosen-chains/ergo';
 import ChainHandler from '../handlers/ChainHandler';
 import EventBoxes from './EventBoxes';
@@ -196,7 +195,7 @@ class EventOrder {
       BigInt(event.networkFee),
       feeConfig.networkFee
     );
-    const rsnFee =
+    const emissionFee =
       (bridgeFee * feeConfig.rsnRatio) /
       MinimumFee.bridgeMinimumFee.ratioDivisor;
 
@@ -214,7 +213,7 @@ class EventOrder {
         outPermits,
         bridgeFee,
         networkFee,
-        rsnFee,
+        emissionFee,
         paymentTxId,
         rwtTokenId,
         rwtCount,
@@ -225,7 +224,7 @@ class EventOrder {
         outPermits,
         bridgeFee,
         networkFee,
-        rsnFee,
+        emissionFee,
         tokenId,
         paymentTxId,
         rwtTokenId,
@@ -239,7 +238,7 @@ class EventOrder {
    * @param outPermits list of watcher permit wid and box values
    * @param bridgeFee event total bridge fee
    * @param networkFee event total network fee
-   * @param rsnFee event total RSN fee
+   * @param emissionFee event total bridge fee in emission token currency
    * @param paymentTxId payment transaction id (which is empty string when toChain is Ergo)
    * @param rwtTokenId RWT token id of fromChain
    * @param rwtCount amount RWT token per watcher
@@ -249,7 +248,7 @@ class EventOrder {
     outPermits: PermitBoxValue[],
     bridgeFee: bigint,
     networkFee: bigint,
-    rsnFee: bigint,
+    emissionFee: bigint,
     paymentTxId: string,
     rwtTokenId: string,
     rwtCount: bigint,
@@ -263,8 +262,8 @@ class EventOrder {
       (bridgeFee * GuardsErgoConfigs.watchersSharePercent) /
       100n /
       BigInt(watchersLen);
-    const watcherRsnAmount =
-      (rsnFee * GuardsErgoConfigs.watchersRSNSharePercent) /
+    const watcherEmissionAmount =
+      (emissionFee * GuardsErgoConfigs.watchersEmissionSharePercent) /
       100n /
       BigInt(watchersLen);
     const watcherTokens: TokenInfo[] = [
@@ -273,10 +272,10 @@ class EventOrder {
         value: rwtCount,
       },
     ];
-    if (watcherRsnAmount > 0)
+    if (watcherEmissionAmount > 0)
       watcherTokens.push({
-        id: rosenConfig.RSN,
-        value: watcherRsnAmount,
+        id: GuardsErgoConfigs.emissionTokenId,
+        value: watcherEmissionAmount,
       });
 
     // add watcher boxes to order
@@ -307,17 +306,18 @@ class EventOrder {
       extra: paymentTxId,
     });
 
-    // add RSN emission to order
-    const rsnEmissionAmount = rsnFee - BigInt(watchersLen) * watcherRsnAmount;
-    if (rsnEmissionAmount > 0) {
+    // add emission to order
+    const emissionAmount =
+      emissionFee - BigInt(watchersLen) * watcherEmissionAmount;
+    if (emissionAmount > 0) {
       order.push({
-        address: GuardsErgoConfigs.rsnEmissionAddress,
+        address: GuardsErgoConfigs.emissionAddress,
         assets: {
           nativeToken: GuardsErgoConfigs.minimumErg,
           tokens: [
             {
-              id: rosenConfig.RSN,
-              value: rsnEmissionAmount,
+              id: GuardsErgoConfigs.emissionTokenId,
+              value: emissionAmount,
             },
           ],
         },
@@ -341,7 +341,7 @@ class EventOrder {
    * @param outPermits list of watcher permit wid and box values
    * @param bridgeFee event total bridge fee
    * @param networkFee event total network fee
-   * @param rsnFee event total RSN fee
+   * @param emissionFee event total bridge fee in emission token currency
    * @param tokenId payment token id
    * @param paymentTxId payment transaction id (which is empty string when toChain is Ergo)
    * @param rwtTokenId RWT token id of fromChain
@@ -352,7 +352,7 @@ class EventOrder {
     outPermits: PermitBoxValue[],
     bridgeFee: bigint,
     networkFee: bigint,
-    rsnFee: bigint,
+    emissionFee: bigint,
     tokenId: string,
     paymentTxId: string,
     rwtTokenId: string,
@@ -367,8 +367,8 @@ class EventOrder {
       (bridgeFee * GuardsErgoConfigs.watchersSharePercent) /
       100n /
       BigInt(watchersLen);
-    const watcherRsnAmount =
-      (rsnFee * GuardsErgoConfigs.watchersRSNSharePercent) /
+    const watcherEmissionAmount =
+      (emissionFee * GuardsErgoConfigs.watchersEmissionSharePercent) /
       100n /
       BigInt(watchersLen);
     const watcherTokens: TokenInfo[] = [
@@ -382,10 +382,10 @@ class EventOrder {
         id: tokenId,
         value: watcherTokenAmount,
       });
-    if (watcherRsnAmount > 0)
+    if (watcherEmissionAmount > 0)
       watcherTokens.push({
-        id: rosenConfig.RSN,
-        value: watcherRsnAmount,
+        id: GuardsErgoConfigs.emissionTokenId,
+        value: watcherEmissionAmount,
       });
 
     // add watcher boxes to order
@@ -421,17 +421,18 @@ class EventOrder {
       extra: paymentTxId,
     });
 
-    // add RSN emission to order
-    const rsnEmissionAmount = rsnFee - BigInt(watchersLen) * watcherRsnAmount;
-    if (rsnEmissionAmount > 0) {
+    // add emission to order
+    const emissionAmount =
+      emissionFee - BigInt(watchersLen) * watcherEmissionAmount;
+    if (emissionAmount > 0) {
       order.push({
-        address: GuardsErgoConfigs.rsnEmissionAddress,
+        address: GuardsErgoConfigs.emissionAddress,
         assets: {
           nativeToken: GuardsErgoConfigs.minimumErg,
           tokens: [
             {
-              id: rosenConfig.RSN,
-              value: rsnEmissionAmount,
+              id: GuardsErgoConfigs.emissionTokenId,
+              value: emissionAmount,
             },
           ],
         },
