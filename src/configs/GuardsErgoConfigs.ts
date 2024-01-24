@@ -28,6 +28,13 @@ class GuardsErgoConfigs {
   static txFee = BigInt(config.get<string>('ergo.fee'));
 
   // reward configs
+  static emissionTokenId: string = config.get<string>('reward.emissionTokenId');
+  static emissionTokenName: string = config.get<string>(
+    'reward.emissionTokenName'
+  );
+  static emissionTokenDecimal: number = config.get<number>(
+    'reward.emissionTokenDecimal'
+  );
   static bridgeFeeRepoAddress: string = config.get<string>(
     'reward.bridgeFeeRepoAddress'
   );

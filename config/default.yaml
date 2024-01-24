@@ -46,11 +46,14 @@ ergo:
   scannerInterval: 180 # scanner update interval
   coldStorageAddress: ''
 reward:
+  emissionTokenId: ''
+  emissionTokenName: ''
+  emissionTokenDecimal: 0
   bridgeFeeRepoAddress: '' # guards address for receiving bridge fee of events
   RSNEmissionAddress: '' # guards address for receiving emitted RSN of events
   networkFeeRepoAddress: '' # guards address for receiving network fee of events
   watchersSharePercent: 50 # watchers share for event fees (payed in tokens or native token)
-  watchersRSNSharePercent: 0 # watchers share for event fees (payed in RSN token)
+  watchersRSNSharePercent: 0 # watchers share for event fees (payed in emission token)
 tss:
   path: './bin/tss.exe' # path to tss executable file
   configPath: './bin/conf/conf.env'
