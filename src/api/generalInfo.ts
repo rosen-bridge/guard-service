@@ -12,6 +12,7 @@ import {
 import { rosenConfig } from '../configs/RosenConfig';
 import WinstonLogger from '@rosen-bridge/winston-logger';
 import { getTokenData } from '../utils/getTokenData';
+import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
@@ -79,6 +80,7 @@ const infoRoute = (server: FastifySeverInstance) => {
           health: (await (await getHealthCheck()).getOverallHealthStatus())
             .status,
           rsnTokenId: rosenConfig.RSN,
+          emissionTokenId: GuardsErgoConfigs.emissionTokenId,
           balances: balances,
         });
       } catch (error) {
