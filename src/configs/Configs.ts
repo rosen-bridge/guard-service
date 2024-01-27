@@ -164,7 +164,7 @@ class Configs {
       const logTypeValidation = ['console', 'file', 'loki'].includes(log.type);
       let loggerChecks = true;
       if (log.type === 'loki') {
-        const overrideLokiBasicAuth = getOptionalConfig('lokiBasicAuth', '');
+        const overrideLokiBasicAuth = getOptionalConfig('overrideLokiBasicAuth', '');
         if (overrideLokiBasicAuth !== '') log.basicAuth = overrideLokiBasicAuth;
         loggerChecks =
           log.host != undefined &&
