@@ -8,3 +8,14 @@ database:
   user: 'POSTGRES_USER'
   password: 'POSTGRES_PASSWORD'
   name: 'POSTGRES_DB'
+guard:
+  mnemonic: 'MNEMONIC'
+tss:
+  secret: 'TSS_SECRET'
+cardano:
+  koios:
+    authToken: 'KOIOS_AUTH_TOKEN'
+  blockfrost:
+    projectId: 'BLOCKFROST_PROJECT_ID'
+overrideLokiBasicAuth: 'OVERRIDE_LOKI_BASIC_AUTH'
+discordWebHookUrl: 'DISCORD_WEBHOOK_URL'
