@@ -54,6 +54,7 @@ export const OutputItemsSchema = <T extends TProperties>(
 export const InfoResponseSchema = Type.Object({
   health: Type.String(),
   rsnTokenId: Type.String(),
+  emissionTokenId: Type.String(),
   balances: LockBalanceSchema,
 });
 

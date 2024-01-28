@@ -64,13 +64,6 @@ const getHealthCheck = async () => {
 
     const ergoContracts = rosenConfig.contractReader(ERGO_CHAIN);
     const cardanoContracts = rosenConfig.contractReader(CARDANO_CHAIN);
-    const rsnTokenDetails = Configs.tokenMap.search(ERGO_CHAIN, {
-      [Configs.tokenMap.getIdKey(ERGO_CHAIN)]: rosenConfig.RSN,
-    });
-    if (!rsnTokenDetails.length) {
-      throw Error(`RSN [${rosenConfig.RSN}] data is not found in token map.`);
-    }
-    const rsnTokenData = rsnTokenDetails[0][ERGO_CHAIN];
 
     if (GuardsErgoConfigs.chainNetworkName === NODE_NETWORK) {
       const ergAssetHealthCheck = new ErgoNodeAssetHealthCheckParam(
@@ -84,16 +77,16 @@ const getHealthCheck = async () => {
       );
       healthCheck.register(ergAssetHealthCheck);
 
-      const rsnAssetHealthCheck = new ErgoNodeAssetHealthCheckParam(
-        rosenConfig.RSN,
-        rsnTokenData.name,
+      const emissionTokenAssetHealthCheck = new ErgoNodeAssetHealthCheckParam(
+        GuardsErgoConfigs.emissionTokenId,
+        GuardsErgoConfigs.emissionTokenName,
         ergoContracts.lockAddress,
-        Configs.rsnWarnThreshold,
-        Configs.rsnCriticalThreshold,
+        Configs.emissionTokenWarnThreshold,
+        Configs.emissionTokenCriticalThreshold,
         GuardsErgoConfigs.node.url,
-        rsnTokenData.decimals
+        GuardsErgoConfigs.emissionTokenDecimal
       );
-      healthCheck.register(rsnAssetHealthCheck);
+      healthCheck.register(emissionTokenAssetHealthCheck);
 
       const ergoScannerSyncCheck = new ErgoNodeScannerHealthCheck(
         dataSource,
@@ -124,16 +117,17 @@ const getHealthCheck = async () => {
       );
       healthCheck.register(ergAssetHealthCheck);
 
-      const rsnAssetHealthCheck = new ErgoExplorerAssetHealthCheckParam(
-        rosenConfig.RSN,
-        rsnTokenData.name,
-        ergoContracts.lockAddress,
-        Configs.rsnWarnThreshold,
-        Configs.rsnCriticalThreshold,
-        GuardsErgoConfigs.explorer.url,
-        rsnTokenData.decimals
-      );
-      healthCheck.register(rsnAssetHealthCheck);
+      const emissionTokenAssetHealthCheck =
+        new ErgoExplorerAssetHealthCheckParam(
+          GuardsErgoConfigs.emissionTokenId,
+          GuardsErgoConfigs.emissionTokenName,
+          ergoContracts.lockAddress,
+          Configs.emissionTokenWarnThreshold,
+          Configs.emissionTokenCriticalThreshold,
+          GuardsErgoConfigs.explorer.url,
+          GuardsErgoConfigs.emissionTokenDecimal
+        );
+      healthCheck.register(emissionTokenAssetHealthCheck);
 
       const ergoScannerSyncCheck = new ErgoExplorerScannerHealthCheck(
         dataSource,

@@ -217,11 +217,11 @@ class Configs {
   static ergCriticalThreshold = BigInt(
     config.get<string>('healthCheck.asset.erg.criticalThreshold')
   );
-  static rsnWarnThreshold = BigInt(
-    config.get<string>('healthCheck.asset.rsn.warnThreshold')
+  static emissionTokenWarnThreshold = BigInt(
+    config.get<string>('healthCheck.asset.emissionToken.warnThreshold')
   );
-  static rsnCriticalThreshold = BigInt(
-    config.get<string>('healthCheck.asset.rsn.criticalThreshold')
+  static emissionTokenCriticalThreshold = BigInt(
+    config.get<string>('healthCheck.asset.emissionToken.criticalThreshold')
   );
   static adaWarnThreshold = BigInt(
     config.get<string>('healthCheck.asset.ada.warnThreshold')

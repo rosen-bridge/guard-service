@@ -28,20 +28,25 @@ class GuardsErgoConfigs {
   static txFee = BigInt(config.get<string>('ergo.fee'));
 
   // reward configs
+  static emissionTokenId: string = config.get<string>('reward.emissionTokenId');
+  static emissionTokenName: string = config.get<string>(
+    'reward.emissionTokenName'
+  );
+  static emissionTokenDecimal: number = config.get<number>(
+    'reward.emissionTokenDecimal'
+  );
   static bridgeFeeRepoAddress: string = config.get<string>(
     'reward.bridgeFeeRepoAddress'
   );
-  static rsnEmissionAddress: string = config.get<string>(
-    'reward.RSNEmissionAddress'
-  );
+  static emissionAddress: string = config.get<string>('reward.emissionAddress');
   static networkFeeRepoAddress: string = config.get<string>(
     'reward.networkFeeRepoAddress'
   );
   static watchersSharePercent = BigInt(
     getConfigIntKeyOrDefault('reward.watchersSharePercent', 50)
   );
-  static watchersRSNSharePercent = BigInt(
-    getConfigIntKeyOrDefault('reward.watchersRSNSharePercent', 0)
+  static watchersEmissionSharePercent = BigInt(
+    getConfigIntKeyOrDefault('reward.watchersEmissionSharePercent', 0)
   );
 
   // confirmation configs
