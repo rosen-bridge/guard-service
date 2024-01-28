@@ -91,15 +91,7 @@ const revenueChartRoute = (server: FastifySeverInstance) => {
       >(
         resultsGroupedByTokenId,
         (acc, data, tokenId) => {
-          const token = getTokenData(ERGO_CHAIN, tokenId, ERGO_CHAIN);
-
-          const tokenData: TokenData = {
-            tokenId: tokenId,
-            amount: 0,
-            name: token.name,
-            decimals: token.decimals,
-            isNativeToken: token.isNativeToken,
-          };
+          const tokenData = getTokenData(ERGO_CHAIN, tokenId, ERGO_CHAIN);
           return [
             ...acc,
             {

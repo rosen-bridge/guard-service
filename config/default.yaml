@@ -50,7 +50,7 @@ reward:
   emissionTokenName: ''
   emissionTokenDecimal: 0
   bridgeFeeRepoAddress: '' # guards address for receiving bridge fee of events
-  emissionAddress: '' # guards address for receiving emitted RSN of events
+  emissionAddress: '' # guards address for receiving emitted tokens of events
   networkFeeRepoAddress: '' # guards address for receiving network fee of events
   watchersSharePercent: 50 # watchers share for event fees (payed in tokens or native token)
   watchersEmissionSharePercent: 0 # watchers share for event fees (payed in emission token)
