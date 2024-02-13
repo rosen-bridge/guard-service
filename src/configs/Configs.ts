@@ -67,6 +67,7 @@ class Configs {
   // express config
   static apiPort = getConfigIntKeyOrDefault('api.port', 8080);
   static apiHost = getOptionalConfig<string>('api.host', 'localhost');
+  static apiKeyHash = config.get<string>('api.apiKeyHash');
   static apiBodyLimit =
     getConfigIntKeyOrDefault('api.jsonBodyLimit', 50) * 1024 * 1024; // value in MB
   static isManualTxRequestActive = getOptionalConfig<boolean>(

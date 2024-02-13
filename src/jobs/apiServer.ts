@@ -29,7 +29,19 @@ const initApiServer = async () => {
     bodyLimit: Configs.apiBodyLimit,
   }).withTypeProvider<TypeBoxTypeProvider>();
 
-  await apiServer.register(swagger);
+  await apiServer.register(swagger, {
+    openapi: {
+      components: {
+        securitySchemes: {
+          apiKey: {
+            type: 'apiKey',
+            name: 'api_key',
+            in: 'header',
+          },
+        },
+      },
+    },
+  });
   await apiServer.register(fastifyCors, {});
 
   await apiServer.register(swaggerUi, {
