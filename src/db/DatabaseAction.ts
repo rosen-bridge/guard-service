@@ -748,6 +748,21 @@ class DatabaseAction {
       },
     });
   };
+
+  /**
+   * @param eventId
+   * @return commitments that are merged into event trigger
+   */
+  getEventCommitments = (eventId: string): Promise<CommitmentEntity[]> => {
+    return this.CommitmentRepository.createQueryBuilder('commitment')
+      .leftJoin(
+        'confirmed_event_entity',
+        'cee',
+        'commitment."eventId" = cee."id"'
+      )
+      .where(`commitment."eventId"='${eventId}'`)
+      .getMany();
+  };
 }
 
 export { DatabaseAction };

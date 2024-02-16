@@ -172,6 +172,7 @@ class EventProcessor {
     const targetChain = ChainHandler.getInstance().getChain(event.toChain);
 
     const extra: any[] = [];
+    const eventWIDs: string[] = [];
 
     // add reward order if target chain is ergo
     if (event.toChain === ERGO_CHAIN) {
@@ -179,12 +180,13 @@ class EventProcessor {
 
       // get event and commitment boxes
       const eventBox = await EventBoxes.getEventBox(event);
-      const rwtCount =
-        ergoChain.getBoxRWT(eventBox) / BigInt(event.WIDs.length);
+      const rwtCount = ergoChain.getBoxRWT(eventBox) / BigInt(event.WIDsCount);
 
+      eventWIDs.push(...(await EventBoxes.getEventWIDs(event)));
       const commitmentBoxes = await EventBoxes.getEventValidCommitments(
         event,
-        rwtCount
+        rwtCount,
+        eventWIDs
       );
       const guardsConfigBox = await ergoChain.getGuardsConfigBox(
         rosenConfig.guardNFT,
@@ -196,7 +198,11 @@ class EventProcessor {
     }
 
     // add payment order
-    const order = await EventOrder.createEventPaymentOrder(event, feeConfig);
+    const order = await EventOrder.createEventPaymentOrder(
+      event,
+      feeConfig,
+      eventWIDs
+    );
 
     // get unsigned transactions in target chain
     const unsignedAgreementTransactions = (
@@ -301,11 +307,13 @@ class EventProcessor {
 
     // get event and commitment boxes
     const eventBox = await EventBoxes.getEventBox(event);
-    const rwtCount = ergoChain.getBoxRWT(eventBox) / BigInt(event.WIDs.length);
+    const rwtCount = ergoChain.getBoxRWT(eventBox) / BigInt(event.WIDsCount);
 
+    const eventWIDs = await EventBoxes.getEventWIDs(event);
     const commitmentBoxes = await EventBoxes.getEventValidCommitments(
       event,
-      rwtCount
+      rwtCount,
+      eventWIDs
     );
     const guardsConfigBox = await ergoChain.getGuardsConfigBox(
       rosenConfig.guardNFT,
@@ -316,7 +324,8 @@ class EventProcessor {
     const order = await EventOrder.createEventRewardOrder(
       event,
       feeConfig,
-      paymentTxId
+      paymentTxId,
+      eventWIDs
     );
 
     // get unsigned transactions in target chain
