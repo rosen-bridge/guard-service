@@ -9,6 +9,7 @@ import DatabaseHandler from '../db/DatabaseHandler';
 import WinstonLogger from '@rosen-bridge/winston-logger';
 import { DuplicateTransaction } from '../utils/errors';
 import GuardPkHandler from '../handlers/GuardPkHandler';
+import { authenticateKey } from '../utils/authentication';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
@@ -25,8 +26,11 @@ const signTxRoute = (server: FastifySeverInstance) => {
         response: {
           200: MessageResponseSchema,
           400: MessageResponseSchema,
+          403: MessageResponseSchema,
         },
+        security: [{ apiKey: [] }],
       },
+      preHandler: [authenticateKey],
     },
     async (request, reply) => {
       const { chain, txJson, requiredSign, overwrite } = request.body;
