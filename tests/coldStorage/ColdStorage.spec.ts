@@ -323,7 +323,7 @@ describe('ColdStorage', () => {
      */
     it(`should not generate transaction when token is required in some waiting events`, async () => {
       // mock an event and insert mocked event into db as paymentWaiting
-      const event = mockTokenPaymentFromErgoEvent();
+      const event = mockTokenPaymentFromErgoEvent().event;
       await DatabaseActionMock.insertEventRecord(
         event,
         EventStatus.paymentWaiting
@@ -395,7 +395,7 @@ describe('ColdStorage', () => {
      */
     it(`should ignore waiting events required tokens when processing tokens`, async () => {
       // mock an event and insert mocked event into db as paymentWaiting
-      const event = mockTokenPaymentFromErgoEvent();
+      const event = mockTokenPaymentFromErgoEvent().event;
       await DatabaseActionMock.insertEventRecord(
         event,
         EventStatus.paymentWaiting

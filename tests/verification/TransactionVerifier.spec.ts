@@ -221,7 +221,7 @@ describe('TransactionVerifier', () => {
      */
     it('should return true when all conditions for payment tx are met', async () => {
       // mock event and transaction
-      const mockedEvent = mockEventTrigger();
+      const mockedEvent = mockEventTrigger().event;
       const paymentTx = mockPaymentTransaction(
         TransactionType.payment,
         mockedEvent.toChain,
@@ -280,7 +280,7 @@ describe('TransactionVerifier', () => {
      */
     it('should return true when all conditions for reward distribution tx are met', async () => {
       // mock event and transaction
-      const mockedEvent = mockEventTrigger();
+      const mockedEvent = mockEventTrigger().event;
       const paymentTx = mockPaymentTransaction(
         TransactionType.payment,
         mockedEvent.toChain,
@@ -352,7 +352,7 @@ describe('TransactionVerifier', () => {
      */
     it('should return false when tx order is different from expected one', async () => {
       // mock event and transaction
-      const mockedEvent = mockEventTrigger();
+      const mockedEvent = mockEventTrigger().event;
       const paymentTx = mockPaymentTransaction(
         TransactionType.payment,
         mockedEvent.toChain,
@@ -989,7 +989,7 @@ describe('TransactionVerifier', () => {
      */
     it('should return false when one of transferring tokens is forbidden', async () => {
       // mock an event and insert mocked event into db as paymentWaiting
-      const event = mockTokenPaymentFromErgoEvent();
+      const event = mockTokenPaymentFromErgoEvent().event;
       await DatabaseActionMock.insertEventRecord(
         event,
         EventStatus.paymentWaiting
@@ -1067,7 +1067,7 @@ describe('TransactionVerifier', () => {
      */
     it('should return true when only forbidden tokens remain more than high threshold', async () => {
       // mock an event and insert mocked event into db as paymentWaiting
-      const event = mockTokenPaymentFromErgoEvent();
+      const event = mockTokenPaymentFromErgoEvent().event;
       await DatabaseActionMock.insertEventRecord(
         event,
         EventStatus.paymentWaiting
