@@ -9,10 +9,11 @@ export class migration1706610773001 implements MigrationInterface {
     await queryRunner.query(
       `
             DELETE FROM "typeorm_metadata"
-            WHERE "type" = ?
-                AND "name" = ?
+            WHERE "type" = $1
+                AND "name" = $2
+                AND "schema" = $3
         `,
-      ['VIEW', 'event']
+      ['VIEW', 'event', 'public']
     );
     await queryRunner.query(`
             DROP VIEW "event"
@@ -21,10 +22,11 @@ export class migration1706610773001 implements MigrationInterface {
     await queryRunner.query(
       `
             DELETE FROM "typeorm_metadata"
-            WHERE "type" = ?
-                AND "name" = ?
+            WHERE "type" = $1
+                AND "name" = $2
+                AND "schema" = $3
         `,
-      ['VIEW', 'revenue_view']
+      ['VIEW', 'revenue_view', 'public']
     );
     await queryRunner.query(`
             DROP VIEW "revenue_view"
@@ -33,10 +35,11 @@ export class migration1706610773001 implements MigrationInterface {
     await queryRunner.query(
       `
             DELETE FROM "typeorm_metadata"
-            WHERE "type" = ?
-                AND "name" = ?
+            WHERE "type" = $1
+                AND "name" = $2
+                AND "schema" = $3
         `,
-      ['VIEW', 'revenue_chart']
+      ['VIEW', 'revenue_chart', 'public']
     );
     await queryRunner.query(`
             DROP VIEW "revenue_chart"
@@ -88,9 +91,10 @@ export class migration1706610773001 implements MigrationInterface {
                     "name",
                     "value"
                 )
-            VALUES (NULL, NULL, NULL, ?, ?, ?)
+            VALUES (DEFAULT, $1, DEFAULT, $2, $3, $4)
         `,
       [
+        'public',
         'VIEW',
         'revenue_chart',
         'SELECT re."tokenId" AS "tokenId", re."amount" AS "amount", re."revenueType" AS "revenueType", be."timestamp" AS "timestamp", be."timestamp"/604800 AS "week_number", be."month" AS "month", be."year" AS "year" FROM "revenue_entity" "re" INNER JOIN "event_trigger_entity" "ete" ON "ete"."id" = "re"."eventDataId"  INNER JOIN "block_entity" "be" ON "ete"."spendBlock" = "be"."hash"',
@@ -127,9 +131,10 @@ export class migration1706610773001 implements MigrationInterface {
                     "name",
                     "value"
                 )
-            VALUES (NULL, NULL, NULL, ?, ?, ?)
+            VALUES (DEFAULT, $1, DEFAULT, $2, $3, $4)
         `,
       [
+        'public',
         'VIEW',
         'revenue_view',
         'SELECT ete."id" AS "id", ete."spendTxId" AS "rewardTxId", ete."eventId" AS "eventId", ete."height" AS "lockHeight", ete."fromChain" AS "fromChain", ete."toChain" AS "toChain", ete."fromAddress" AS "fromAddress", ete."toAddress" AS "toAddress", ete."amount" AS "amount", ete."bridgeFee" AS "bridgeFee", ete."networkFee" AS "networkFee", ete."sourceChainTokenId" AS "lockTokenId", ete."sourceTxId" AS "lockTxId", be."height" AS "height", be."timestamp" AS "timestamp" FROM "event_trigger_entity" "ete" INNER JOIN "block_entity" "be" ON ete."spendBlock" = be."hash"',
@@ -172,9 +177,10 @@ export class migration1706610773001 implements MigrationInterface {
                     "name",
                     "value"
                 )
-            VALUES (NULL, NULL, NULL, ?, ?, ?)
+            VALUES (DEFAULT, $1, DEFAULT, $2, $3, $4)
         `,
       [
+        'public',
         'VIEW',
         'event',
         'SELECT ete."id" AS "id", ete."eventId" AS "eventId", ete."txId" AS "txId", ete."boxId" AS "boxId", ete."block" AS "block", ete."height" AS "height", ete."fromChain" AS "fromChain", ete."toChain" AS "toChain", ete."fromAddress" AS "fromAddress", ete."toAddress" AS "toAddress", ete."amount" AS "amount", ete."bridgeFee" AS "bridgeFee", ete."networkFee" AS "networkFee", ete."sourceChainTokenId" AS "sourceChainTokenId", ete."sourceChainHeight" AS "sourceChainHeight", ete."targetChainTokenId" AS "targetChainTokenId", ete."sourceTxId" AS "sourceTxId", ete."spendTxId" AS "spendTxId", ete."result" AS "result", ete."paymentTxId" AS "paymentTxId", cee."status" AS "status" FROM "event_trigger_entity" "ete" LEFT JOIN "confirmed_event_entity" "cee" ON ete."id" = cee."eventDataId"',
