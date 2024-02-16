@@ -760,7 +760,9 @@ class DatabaseAction {
         'cee',
         'commitment."eventId" = cee."id"'
       )
+      .leftJoin('event_trigger_entity', 'ete', 'ete."id" = cee."eventDataId"')
       .where(`commitment."eventId"='${eventId}'`)
+      .andWhere(`commitment."spendTxId"=ete."txId"`)
       .getMany();
   };
 }

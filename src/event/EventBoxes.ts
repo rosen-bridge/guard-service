@@ -63,10 +63,9 @@ class EventBoxes {
    */
   static getEventWIDs = async (event: EventTrigger): Promise<string[]> => {
     const eventId = EventSerializer.getId(event);
-    const dbAction = DatabaseAction.getInstance();
-    return (await dbAction.getEventCommitments(eventId)).map(
-      (commitment) => commitment.WID
-    );
+    return (
+      await DatabaseAction.getInstance().getEventCommitments(eventId)
+    ).map((commitment) => commitment.WID);
   };
 }
 
