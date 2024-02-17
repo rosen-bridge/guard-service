@@ -69,7 +69,7 @@ describe('signTx', () => {
           requiredSign: requiredSign,
         },
         headers: {
-          API_KEY: 'hello',
+          'Api-Key': 'hello',
         },
       });
 
@@ -127,7 +127,7 @@ describe('signTx', () => {
           requiredSign: requiredSign,
         },
         headers: {
-          API_KEY: 'hello',
+          'Api-Key': 'hello',
         },
       });
 
@@ -192,7 +192,7 @@ describe('signTx', () => {
           requiredSign: requiredSign,
         },
         headers: {
-          API_KEY: 'hello',
+          'Api-Key': 'hello',
         },
       });
 
@@ -258,7 +258,7 @@ describe('signTx', () => {
           overwrite: true,
         },
         headers: {
-          API_KEY: 'hello',
+          'Api-Key': 'hello',
         },
       });
 
@@ -315,7 +315,7 @@ describe('signTx', () => {
           requiredSign: GuardPkHandler.getInstance().guardsLen + 1,
         },
         headers: {
-          API_KEY: 'hello',
+          'Api-Key': 'hello',
         },
       });
 
@@ -324,7 +324,7 @@ describe('signTx', () => {
     });
 
     /**
-     * @target fastifyServer[POST /sign] should return 403 when api_key did not set in header
+     * @target fastifyServer[POST /sign] should return 403 when Api-Key did not set in header
      * @dependencies
      * @scenario
      * - send a request to the server
@@ -332,7 +332,7 @@ describe('signTx', () => {
      * @expected
      * - it should return status code 403
      */
-    it('should return 403 when api_key did not set in header', async () => {
+    it('should return 403 when Api-Key did not set in header', async () => {
       // send a request to the server
       const result = await mockedServer.inject({
         method: 'POST',
@@ -348,7 +348,7 @@ describe('signTx', () => {
     });
 
     /**
-     * @target fastifyServer[POST /sign] should return 403 when api_key is wrong
+     * @target fastifyServer[POST /sign] should return 403 when Api-Key is wrong
      * @dependencies
      * @scenario
      * - send a request to the server
@@ -356,7 +356,7 @@ describe('signTx', () => {
      * @expected
      * - it should return status code 403
      */
-    it('should return 403 when api_key is wrong', async () => {
+    it('should return 403 when Api-Key is wrong', async () => {
       // send a request to the server
       const result = await mockedServer.inject({
         method: 'POST',
@@ -367,7 +367,7 @@ describe('signTx', () => {
           requiredSign: GuardPkHandler.getInstance().guardsLen,
         },
         headers: {
-          API_KEY: 'wrong',
+          'Api-Key': 'wrong',
         },
       });
       // check the result
