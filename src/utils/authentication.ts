@@ -9,7 +9,7 @@ const authenticateKey = <T extends FastifyRequest, U extends FastifyReply>(
   res: U,
   next: HookHandlerDoneFunction
 ) => {
-  const api_key: string = req.headers.api_key as string;
+  const api_key: string = req.headers['api-key'] as string;
   if (
     api_key &&
     Buffer.from(blake2b(api_key, undefined, 32)).toString('hex') ==
@@ -17,7 +17,7 @@ const authenticateKey = <T extends FastifyRequest, U extends FastifyReply>(
   ) {
     next();
   } else {
-    res.status(403).send({ message: "API_KEY doesn't exist or it's wrong" });
+    res.status(403).send({ message: "Api-Key doesn't exist or it's wrong" });
   }
 };
 
