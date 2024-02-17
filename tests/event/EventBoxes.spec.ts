@@ -446,7 +446,7 @@ describe('EventBoxes', () => {
       );
 
       // insert event commitment boxes into db
-      for (let i = 0; i < mockedEvent.WIDs.length; i++) {
+      for (let i = mockedEvent.WIDs.length - 1; i >= 0; i--) {
         await DatabaseActionMock.insertCommitmentBoxRecord(
           eventId,
           Buffer.from(`event-serialized-box-${i}`).toString('base64'),
@@ -483,6 +483,69 @@ describe('EventBoxes', () => {
 
       // verify returned value
       expect(result).toEqual(mockedEvent.WIDs);
+    });
+
+    /**
+     * @target EventBoxes.getEventWIDs should throw error when hash of fetched WIDs
+     * does not match with WIDsHash in event
+     * @dependencies
+     * - database
+     * @scenario
+     * - insert a mocked event into db
+     * - insert event commitment boxes into db (not all)
+     * - insert two commitments for the event into db
+     * - run test
+     * - verify returned value
+     * @expected
+     * - it should return serialized string of the box
+     */
+    it('should throw error when hash of fetched WIDs does not match with WIDsHash in event', async () => {
+      // insert a mocked event into db
+      const mockedEvent = mockEventTrigger();
+      const eventId = EventSerializer.getId(mockedEvent.event);
+      const boxSerialized = Buffer.from('boxSerialized');
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent.event,
+        boxSerialized.toString('base64')
+      );
+
+      // insert event commitment boxes into db (not all)
+      for (let i = 1; i < mockedEvent.WIDs.length; i++) {
+        await DatabaseActionMock.insertCommitmentBoxRecord(
+          eventId,
+          Buffer.from(`event-serialized-box-${i}`).toString('base64'),
+          mockedEvent.WIDs[i],
+          mockedEvent.event.height - 4,
+          rwtCount.toString(),
+          'event-creation-tx-id',
+          i
+        );
+      }
+
+      // insert two commitments for the event into db
+      const commitment = Buffer.from('serialized-box-1');
+      await DatabaseActionMock.insertCommitmentBoxRecord(
+        eventId,
+        commitment.toString('base64'),
+        TestUtils.generateRandomId(),
+        mockedEvent.event.height - 1,
+        rwtCount.toString()
+      );
+      const spentCommitment = Buffer.from('serialized-box-2');
+      await DatabaseActionMock.insertCommitmentBoxRecord(
+        eventId,
+        spentCommitment.toString('base64'),
+        TestUtils.generateRandomId(),
+        mockedEvent.event.height - 2,
+        rwtCount.toString(),
+        TestUtils.generateRandomId(),
+        0
+      );
+
+      // run test and expect exception thrown
+      await expect(async () => {
+        await EventBoxes.getEventWIDs(mockedEvent.event);
+      }).rejects.toThrow(Error);
     });
   });
 });

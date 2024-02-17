@@ -3,6 +3,7 @@ import { CommitmentEntity } from '@rosen-bridge/watcher-data-extractor';
 import EventSerializer from './EventSerializer';
 import { uniqBy } from 'lodash-es';
 import { DatabaseAction } from '../db/DatabaseAction';
+import { blake2b } from 'blakejs';
 
 class EventBoxes {
   /**
@@ -63,9 +64,16 @@ class EventBoxes {
    */
   static getEventWIDs = async (event: EventTrigger): Promise<string[]> => {
     const eventId = EventSerializer.getId(event);
-    return (
+    const eventWIDs = (
       await DatabaseAction.getInstance().getEventCommitments(eventId)
     ).map((commitment) => commitment.WID);
+    const WIDsHash = Buffer.from(
+      blake2b(eventWIDs.join(''), undefined, 32)
+    ).toString('hex');
+
+    if (WIDsHash !== event.WIDsHash || eventWIDs.length !== event.WIDsCount)
+      throw Error(`Failed to fetch event [${eventId}] WIDs info`);
+    return eventWIDs;
   };
 }
 
