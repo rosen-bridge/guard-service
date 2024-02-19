@@ -68,6 +68,9 @@ describe('signTx', () => {
           txJson: 'txJson',
           requiredSign: requiredSign,
         },
+        headers: {
+          'Api-Key': 'hello',
+        },
       });
 
       // check the result
@@ -122,6 +125,9 @@ describe('signTx', () => {
           chain: CARDANO_CHAIN,
           txJson: 'txJson',
           requiredSign: requiredSign,
+        },
+        headers: {
+          'Api-Key': 'hello',
         },
       });
 
@@ -184,6 +190,9 @@ describe('signTx', () => {
           chain: CARDANO_CHAIN,
           txJson: 'txJson',
           requiredSign: requiredSign,
+        },
+        headers: {
+          'Api-Key': 'hello',
         },
       });
 
@@ -248,6 +257,9 @@ describe('signTx', () => {
           requiredSign: newRequiredSign,
           overwrite: true,
         },
+        headers: {
+          'Api-Key': 'hello',
+        },
       });
 
       // check the result
@@ -302,10 +314,64 @@ describe('signTx', () => {
           txJson: 'txJson',
           requiredSign: GuardPkHandler.getInstance().guardsLen + 1,
         },
+        headers: {
+          'Api-Key': 'hello',
+        },
       });
 
       // check the result
       expect(result.statusCode).toEqual(400);
+    });
+
+    /**
+     * @target fastifyServer[POST /sign] should return 403 when Api-Key did not set in header
+     * @dependencies
+     * @scenario
+     * - send a request to the server
+     * - check the result
+     * @expected
+     * - it should return status code 403
+     */
+    it('should return 403 when Api-Key did not set in header', async () => {
+      // send a request to the server
+      const result = await mockedServer.inject({
+        method: 'POST',
+        url: '/sign',
+        body: {
+          chain: CARDANO_CHAIN,
+          txJson: 'txJson',
+          requiredSign: GuardPkHandler.getInstance().guardsLen,
+        },
+      });
+      // check the result
+      expect(result.statusCode).toEqual(403);
+    });
+
+    /**
+     * @target fastifyServer[POST /sign] should return 403 when Api-Key is wrong
+     * @dependencies
+     * @scenario
+     * - send a request to the server
+     * - check the result
+     * @expected
+     * - it should return status code 403
+     */
+    it('should return 403 when Api-Key is wrong', async () => {
+      // send a request to the server
+      const result = await mockedServer.inject({
+        method: 'POST',
+        url: '/sign',
+        body: {
+          chain: CARDANO_CHAIN,
+          txJson: 'txJson',
+          requiredSign: GuardPkHandler.getInstance().guardsLen,
+        },
+        headers: {
+          'Api-Key': 'wrong',
+        },
+      });
+      // check the result
+      expect(result.statusCode).toEqual(403);
     });
   });
 });

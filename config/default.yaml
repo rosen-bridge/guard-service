@@ -4,6 +4,7 @@
 api:
   port: 8080 # service deployment port
   host: 'localhost' # service listening host
+  apiKeyHash: '' # blake2b hash of Api-Key
   jsonBodyLimit: 50
   isManualTxRequestActive: false
   allowedOrigins: [] # List of allowed origins for CORS headers
@@ -19,7 +20,7 @@ cardano:
   bankPublicKey: '' # corresponding public key of lock address
   minUtxoValue: '3000000' # minimum lovelace for a Utxo (box)
   fee: '400000' # Cardano transaction fee
-  txTtl: 100000 # Cardano transaction time-to-live
+  txTtl: 9000 # Cardano transaction time-to-live
   confirmation: # required block confirmation
     observation: 120 # an observation transaction (lock transaction) on Cardano get confirmed
     payment: 120 # a payment transaction on Cardano get confirmed

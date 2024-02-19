@@ -18,6 +18,7 @@ import { RevenueChartView } from './entities/revenueChartView';
 import { RevenueView } from './entities/revenueView';
 
 import migrations from './migrations';
+import { EventView } from './entities/EventView';
 
 const dbType = Configs.dbType as keyof typeof migrations;
 const dbConfigs = {
@@ -30,6 +31,7 @@ const dbConfigs = {
     RevenueEntity,
     RevenueView,
     RevenueChartView,
+    EventView,
   ],
   migrations: [
     ...scannerMigrations[dbType],

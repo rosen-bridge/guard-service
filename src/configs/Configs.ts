@@ -7,6 +7,7 @@ import Utils from '../utils/Utils';
 import { ConfigError } from '../utils/errors';
 import { SUPPORTED_CHAINS } from '../utils/constants';
 import { TransportOptions } from '@rosen-bridge/winston-logger';
+import { cloneDeep } from 'lodash-es';
 
 /**
  * reads a numerical config, set default value if it does not exits
@@ -83,6 +84,8 @@ class Configs {
     return allowedOrigins;
   };
   static apiAllowedOrigins = Configs.getAllowedOrigins();
+
+  static apiKeyHash = config.get<string>('api.apiKeyHash');
 
   static apiBodyLimit =
     getConfigIntKeyOrDefault('api.jsonBodyLimit', 50) * 1024 * 1024; // value in MB
@@ -176,10 +179,16 @@ class Configs {
   static logs;
   static {
     const logs = config.get<TransportOptions[]>('logs');
-    const wrongLogTypeIndex = logs.findIndex((log) => {
+    const clonedLogs = cloneDeep(logs);
+    const wrongLogTypeIndex = clonedLogs.findIndex((log) => {
       const logTypeValidation = ['console', 'file', 'loki'].includes(log.type);
       let loggerChecks = true;
       if (log.type === 'loki') {
+        const overrideLokiBasicAuth = getOptionalConfig(
+          'overrideLokiBasicAuth',
+          ''
+        );
+        if (overrideLokiBasicAuth !== '') log.basicAuth = overrideLokiBasicAuth;
         loggerChecks =
           log.host != undefined &&
           typeof log.host === 'string' &&
@@ -206,7 +215,7 @@ class Configs {
         logs[wrongLogTypeIndex]
       );
     }
-    this.logs = logs;
+    this.logs = clonedLogs;
   }
 
   static discordWebHookUrl = config.get<string>('discordWebHookUrl');

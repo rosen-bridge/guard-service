@@ -51,6 +51,22 @@ const initApiServer = async () => {
       };
     });
   }
+
+  await apiServer.register(swagger, {
+    openapi: {
+      components: {
+        securitySchemes: {
+          apiKey: {
+            type: 'apiKey',
+            name: 'Api-Key',
+            in: 'header',
+          },
+        },
+      },
+    },
+  });
+  await apiServer.register(fastifyCors, {});
+
   await apiServer.register(swaggerUi, {
     routePrefix: '/swagger',
     uiConfig: {

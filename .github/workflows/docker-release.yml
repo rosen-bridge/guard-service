@@ -3,6 +3,9 @@ name: Build and Push Docker Image
 on:
   release:
     types: [published]
+  push:
+    branches:
+      - dev
 
 jobs:
   build:
@@ -28,6 +31,7 @@ jobs:
         uses: rosen-bridge/operation@V0.1
         with:
           type: ${{ vars.RELEASE_NAME }}
+          tag: ${{ vars.RELEASE_TAG }}
 
       - name: Move the Files
         run: |
