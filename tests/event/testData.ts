@@ -1,8 +1,7 @@
 import TestUtils from '../testUtils/TestUtils';
-import { EventTrigger } from '@rosen-chains/abstract-chain';
-import { createEventTrigger } from './eventTestUtils';
+import { TestEventTrigger, createEventTrigger } from './eventTestUtils';
 
-export const mockEventTrigger = (): EventTrigger =>
+export const mockEventTrigger = (): TestEventTrigger =>
   createEventTrigger(
     200,
     'fromChain',
@@ -16,13 +15,10 @@ export const mockEventTrigger = (): EventTrigger =>
     'targetToken',
     TestUtils.generateRandomId(),
     '',
-    10000,
-    Array(5)
-      .fill(0)
-      .map(() => TestUtils.generateRandomId())
+    10000
   );
 
-export const mockToErgoEventTrigger = (): EventTrigger =>
+export const mockToErgoEventTrigger = (): TestEventTrigger =>
   createEventTrigger(
     200,
     'fromChain',
@@ -36,13 +32,10 @@ export const mockToErgoEventTrigger = (): EventTrigger =>
     'targetToken',
     TestUtils.generateRandomId(),
     '',
-    10000,
-    Array(5)
-      .fill(0)
-      .map(() => TestUtils.generateRandomId())
+    10000
   );
 
-export const mockFromErgoEventTrigger = (): EventTrigger =>
+export const mockFromErgoEventTrigger = (): TestEventTrigger =>
   createEventTrigger(
     200,
     'ergo',
@@ -56,13 +49,10 @@ export const mockFromErgoEventTrigger = (): EventTrigger =>
     'targetToken',
     TestUtils.generateRandomId(),
     '',
-    10000,
-    Array(5)
-      .fill(0)
-      .map(() => TestUtils.generateRandomId())
+    10000
   );
 
-export const mockEventWithAmount = (amount: string): EventTrigger =>
+export const mockEventWithAmount = (amount: string): TestEventTrigger =>
   createEventTrigger(
     200,
     'ergo',
@@ -76,13 +66,10 @@ export const mockEventWithAmount = (amount: string): EventTrigger =>
     'targetToken',
     TestUtils.generateRandomId(),
     '',
-    10000,
-    Array(5)
-      .fill(0)
-      .map(() => TestUtils.generateRandomId())
+    10000
   );
 
-export const mockNativeTokenPaymentEvent = (): EventTrigger =>
+export const mockNativeTokenPaymentEvent = (): TestEventTrigger =>
   createEventTrigger(
     200,
     'cardano',
@@ -96,13 +83,10 @@ export const mockNativeTokenPaymentEvent = (): EventTrigger =>
     'erg',
     TestUtils.generateRandomId(),
     '',
-    10000,
-    Array(5)
-      .fill(0)
-      .map(() => TestUtils.generateRandomId())
+    10000
   );
 
-export const mockTokenPaymentEvent = (): EventTrigger =>
+export const mockTokenPaymentEvent = (): TestEventTrigger =>
   createEventTrigger(
     200,
     'cardano',
@@ -116,13 +100,10 @@ export const mockTokenPaymentEvent = (): EventTrigger =>
     'b37bfa41c2d9e61b4e478ddfc459a03d25b658a2305ffb428fbc47ad6abbeeaa',
     TestUtils.generateRandomId(),
     '',
-    10000,
-    Array(5)
-      .fill(0)
-      .map(() => TestUtils.generateRandomId())
+    10000
   );
 
-export const mockTokenPaymentFromErgoEvent = (): EventTrigger =>
+export const mockTokenPaymentFromErgoEvent = (): TestEventTrigger =>
   createEventTrigger(
     200,
     'ergo',
@@ -136,8 +117,5 @@ export const mockTokenPaymentFromErgoEvent = (): EventTrigger =>
     'bb2250e4c589539fd141fbbd2c322d380f1ce2aaef812cd87110d61b.527374434f4d4554565465737432',
     TestUtils.generateRandomId(),
     '',
-    10000,
-    Array(5)
-      .fill(0)
-      .map(() => TestUtils.generateRandomId())
+    10000
   );

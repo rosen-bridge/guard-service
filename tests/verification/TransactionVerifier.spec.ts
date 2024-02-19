@@ -221,7 +221,7 @@ describe('TransactionVerifier', () => {
      */
     it('should return true when all conditions for payment tx are met', async () => {
       // mock event and transaction
-      const mockedEvent = mockEventTrigger();
+      const mockedEvent = mockEventTrigger().event;
       const paymentTx = mockPaymentTransaction(
         TransactionType.payment,
         mockedEvent.toChain,
@@ -269,6 +269,7 @@ describe('TransactionVerifier', () => {
      * @scenario
      * - mock event and two transactions
      * - insert event and payment transaction into database
+     * - insert event commitment boxes into db
      * - mock a PaymentOrder
      * - mock ChainHandler
      *   - mock `extractTransactionOrder` to return mocked order
@@ -281,26 +282,40 @@ describe('TransactionVerifier', () => {
     it('should return true when all conditions for reward distribution tx are met', async () => {
       // mock event and transaction
       const mockedEvent = mockEventTrigger();
+      const eventId = EventSerializer.getId(mockedEvent.event);
       const paymentTx = mockPaymentTransaction(
         TransactionType.payment,
-        mockedEvent.toChain,
-        EventSerializer.getId(mockedEvent)
+        mockedEvent.event.toChain,
+        eventId
       );
       const rewardTx = mockPaymentTransaction(
         TransactionType.reward,
         ERGO_CHAIN,
-        EventSerializer.getId(mockedEvent)
+        eventId
       );
 
       // insert payment transaction into database
       await DatabaseActionMock.insertEventRecord(
-        mockedEvent,
+        mockedEvent.event,
         EventStatus.pendingReward
       );
       await DatabaseActionMock.insertTxRecord(
         paymentTx,
         TransactionStatus.completed
       );
+
+      // insert event commitment boxes into db
+      for (let i = 1; i < mockedEvent.WIDs.length; i++) {
+        await DatabaseActionMock.insertCommitmentBoxRecord(
+          eventId,
+          Buffer.from(`event-serialized-box-${i}`).toString('base64'),
+          mockedEvent.WIDs[i],
+          mockedEvent.event.height - 4,
+          '1',
+          'event-creation-tx-id',
+          i
+        );
+      }
 
       // mock a PaymentOrder
       const mockedOrder: PaymentOrder = [
@@ -326,7 +341,7 @@ describe('TransactionVerifier', () => {
       // run test
       const result = await TransactionVerifier.verifyEventTransaction(
         rewardTx,
-        mockedEvent
+        mockedEvent.event
       );
 
       // verify returned value
@@ -352,7 +367,7 @@ describe('TransactionVerifier', () => {
      */
     it('should return false when tx order is different from expected one', async () => {
       // mock event and transaction
-      const mockedEvent = mockEventTrigger();
+      const mockedEvent = mockEventTrigger().event;
       const paymentTx = mockPaymentTransaction(
         TransactionType.payment,
         mockedEvent.toChain,
@@ -989,7 +1004,7 @@ describe('TransactionVerifier', () => {
      */
     it('should return false when one of transferring tokens is forbidden', async () => {
       // mock an event and insert mocked event into db as paymentWaiting
-      const event = mockTokenPaymentFromErgoEvent();
+      const event = mockTokenPaymentFromErgoEvent().event;
       await DatabaseActionMock.insertEventRecord(
         event,
         EventStatus.paymentWaiting
@@ -1067,7 +1082,7 @@ describe('TransactionVerifier', () => {
      */
     it('should return true when only forbidden tokens remain more than high threshold', async () => {
       // mock an event and insert mocked event into db as paymentWaiting
-      const event = mockTokenPaymentFromErgoEvent();
+      const event = mockTokenPaymentFromErgoEvent().event;
       await DatabaseActionMock.insertEventRecord(
         event,
         EventStatus.paymentWaiting
