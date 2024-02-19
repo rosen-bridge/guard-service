@@ -4,7 +4,7 @@
 api:
   port: 8080 # service deployment port
   host: 'localhost' # service listening host
-  apiKeyHash: '' # blake2b hash of API_KEY
+  apiKeyHash: '' # blake2b hash of Api-Key
   jsonBodyLimit: 50
   isManualTxRequestActive: false
 

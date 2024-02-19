@@ -35,7 +35,7 @@ const initApiServer = async () => {
         securitySchemes: {
           apiKey: {
             type: 'apiKey',
-            name: 'api_key',
+            name: 'Api-Key',
             in: 'header',
           },
         },
