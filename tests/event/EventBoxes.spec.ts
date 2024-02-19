@@ -494,10 +494,9 @@ describe('EventBoxes', () => {
      * - insert a mocked event into db
      * - insert event commitment boxes into db (not all)
      * - insert two commitments for the event into db
-     * - run test
-     * - verify returned value
+     * - run test and expect exception thrown
      * @expected
-     * - it should return serialized string of the box
+     * - it should throw error
      */
     it('should throw error when hash of fetched WIDs does not match with WIDsHash in event', async () => {
       // insert a mocked event into db
