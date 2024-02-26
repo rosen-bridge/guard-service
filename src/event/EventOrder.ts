@@ -134,7 +134,6 @@ class EventOrder {
     chainMinTransfer: bigint,
     feeConfig: Fee
   ): SinglePayment => {
-    console.log(event.toChain);
     const assets: AssetBalance = {
       nativeToken: chainMinTransfer,
       tokens: [],
