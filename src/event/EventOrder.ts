@@ -134,6 +134,7 @@ class EventOrder {
     chainMinTransfer: bigint,
     feeConfig: Fee
   ): SinglePayment => {
+    console.log(event.toChain);
     const assets: AssetBalance = {
       nativeToken: chainMinTransfer,
       tokens: [],
@@ -163,6 +164,9 @@ class EventOrder {
         id: event.targetChainTokenId,
         value: BigInt(event.amount) - bridgeFee - networkFee,
       });
+    }
+    if (event.toChain === ERGO_CHAIN) {
+      assets.nativeToken += GuardsErgoConfigs.additionalErgOnPayment;
     }
 
     return {
