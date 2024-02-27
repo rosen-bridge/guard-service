@@ -68,7 +68,7 @@ class EventBoxes {
       await DatabaseAction.getInstance().getEventCommitments(eventId)
     ).map((commitment) => commitment.WID);
     const WIDsHash = Buffer.from(
-      blake2b(eventWIDs.join(''), undefined, 32)
+      blake2b(Buffer.from(eventWIDs.join(''), 'hex'), undefined, 32)
     ).toString('hex');
 
     if (WIDsHash !== event.WIDsHash || eventWIDs.length !== event.WIDsCount)
