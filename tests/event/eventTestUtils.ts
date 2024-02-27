@@ -33,7 +33,7 @@ export const createEventTrigger = (
         .fill(0)
         .map(() => TestUtils.generateRandomId());
   const WIDsHash = Buffer.from(
-    blake2b(eventWIDs.join(''), undefined, 32)
+    blake2b(Buffer.from(eventWIDs.join(''), 'hex'), undefined, 32)
   ).toString('hex');
 
   const event: EventTrigger = {
