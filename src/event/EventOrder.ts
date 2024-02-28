@@ -164,6 +164,9 @@ class EventOrder {
         value: BigInt(event.amount) - bridgeFee - networkFee,
       });
     }
+    if (event.toChain === ERGO_CHAIN) {
+      assets.nativeToken += GuardsErgoConfigs.additionalErgOnPayment;
+    }
 
     return {
       address: event.toAddress,
