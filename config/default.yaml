@@ -36,6 +36,7 @@ ergo:
     url: ''
     timeout: 8
   minBoxValue: '300000' # minimum nano-erg for a box
+  additionalErgOnPayment: '0' # additional erg payment for events that are targeted to Ergo
   fee: '1100000' # Ergo transaction fee
   confirmation: # required block confirmation
     observation: 20 # an observation transaction (lock transaction) on Ergo get confirmed

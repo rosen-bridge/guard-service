@@ -1,7 +1,11 @@
 import { Fee } from '@rosen-bridge/minimum-fee';
 import GuardsCardanoConfigs from '../../src/configs/GuardsCardanoConfigs';
 import EventOrder from '../../src/event/EventOrder';
-import { mockNativeTokenPaymentEvent, mockTokenPaymentEvent } from './testData';
+import {
+  mockNativeTokenPaymentEvent,
+  mockTokenPaymentEvent,
+  mockTokenPaymentFromErgoEvent,
+} from './testData';
 import TestUtils from '../testUtils/TestUtils';
 import MinimumFee from '../../src/event/MinimumFee';
 import GuardsErgoConfigs from '../../src/configs/GuardsErgoConfigs';
@@ -50,7 +54,8 @@ describe('EventOrder', () => {
         BigInt(mockedEvent.amount) -
           BigInt(mockedEvent.bridgeFee) -
           BigInt(mockedEvent.networkFee) +
-          chainMinTransfer
+          chainMinTransfer +
+          GuardsErgoConfigs.additionalErgOnPayment
       );
       expect(result.assets.tokens.length).toEqual(0);
       expect(result.extra).toBeUndefined();
@@ -62,7 +67,7 @@ describe('EventOrder', () => {
      * @dependencies
      * - tokenMap
      * @scenario
-     * - mock function arguments
+     * - mock function arguments (target chain is not Ergo)
      * - run test
      * - verify returned value
      * @expected
@@ -81,7 +86,7 @@ describe('EventOrder', () => {
         rsnRatio: 0n,
         feeRatio: 0n,
       };
-      const mockedEvent = mockTokenPaymentEvent();
+      const mockedEvent = mockTokenPaymentFromErgoEvent();
 
       // run test
       const result = await EventOrder.eventSinglePayment(
@@ -141,7 +146,9 @@ describe('EventOrder', () => {
 
       // verify returned value
       expect(result.address).toEqual(mockedEvent.toAddress);
-      expect(result.assets.nativeToken).toEqual(chainMinTransfer);
+      expect(result.assets.nativeToken).toEqual(
+        chainMinTransfer + GuardsErgoConfigs.additionalErgOnPayment
+      );
       expect(result.assets.tokens.length).toEqual(1);
       expect(result.assets.tokens[0].id).toEqual(
         mockedEvent.targetChainTokenId
@@ -195,7 +202,8 @@ describe('EventOrder', () => {
           (BigInt(mockedEvent.amount) * fee.feeRatio) /
             MinimumFee.bridgeMinimumFee.feeRatioDivisor -
           BigInt(mockedEvent.networkFee) +
-          chainMinTransfer
+          chainMinTransfer +
+          GuardsErgoConfigs.additionalErgOnPayment
       );
       expect(result.assets.tokens.length).toEqual(0);
       expect(result.extra).toBeUndefined();
