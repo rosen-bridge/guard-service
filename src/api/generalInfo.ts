@@ -12,6 +12,7 @@ import {
 } from './schemas';
 import { rosenConfig } from '../configs/RosenConfig';
 import WinstonLogger from '@rosen-bridge/winston-logger';
+import packageJson from '../../package.json';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
@@ -78,6 +79,7 @@ const infoRoute = (server: FastifySeverInstance) => {
         }
 
         reply.status(200).send({
+          version: packageJson.version,
           health: (await (await getHealthCheck()).getOverallHealthStatus())
             .status,
           rsnTokenId: rosenConfig.RSN,
