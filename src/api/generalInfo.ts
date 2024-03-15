@@ -12,7 +12,7 @@ import {
 } from './schemas';
 import { rosenConfig } from '../configs/RosenConfig';
 import WinstonLogger from '@rosen-bridge/winston-logger';
-import packageJson from '../../package.json';
+import packageJson from '../../package.json' assert { type: 'json' };
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
