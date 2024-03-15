@@ -21,10 +21,12 @@ class EventOrder {
    * generates user payment order for an event
    * @param event the event trigger
    * @param feeConfig minimum fee and rsn ratio config for the event
+   * @param eventWIDs WID of commitments that are merged into the event trigger
    */
   static createEventPaymentOrder = async (
     event: EventTrigger,
-    feeConfig: Fee
+    feeConfig: Fee,
+    eventWIDs: string[]
   ): Promise<PaymentOrder> => {
     const targetChain = ChainHandler.getInstance().getChain(event.toChain);
     const chainMinTransfer = targetChain.getMinimumNativeToken();
@@ -37,15 +39,15 @@ class EventOrder {
 
       // get event and commitment boxes
       const eventBox = await EventBoxes.getEventBox(event);
-      const rwtCount =
-        ergoChain.getBoxRWT(eventBox) / BigInt(event.WIDs.length);
+      const rwtCount = ergoChain.getBoxRWT(eventBox) / BigInt(event.WIDsCount);
       const permitValue =
         ergoChain.getSerializedBoxInfo(eventBox).assets.nativeToken /
-        BigInt(event.WIDs.length);
+        BigInt(event.WIDsCount);
 
       const commitmentBoxes = await EventBoxes.getEventValidCommitments(
         event,
-        rwtCount
+        rwtCount,
+        eventWIDs
       );
 
       // generate reward order
@@ -60,7 +62,8 @@ class EventOrder {
         '',
         ChainHandler.getInstance().getChain(event.fromChain).getRWTToken(),
         rwtCount,
-        permitValue
+        permitValue,
+        eventWIDs
       );
       order.push(...rewardOrder);
     }
@@ -81,24 +84,27 @@ class EventOrder {
    * @param event the event trigger
    * @param feeConfig minimum fee and rsn ratio config for the event
    * @param paymentTxId the payment transaction of the event
+   * @param eventWIDs WID of commitments that are merged into the event trigger
    */
   static createEventRewardOrder = async (
     event: EventTrigger,
     feeConfig: Fee,
-    paymentTxId: string
+    paymentTxId: string,
+    eventWIDs: string[]
   ): Promise<PaymentOrder> => {
     const ergoChain = ChainHandler.getInstance().getErgoChain();
 
     // get event and commitment boxes
     const eventBox = await EventBoxes.getEventBox(event);
-    const rwtCount = ergoChain.getBoxRWT(eventBox) / BigInt(event.WIDs.length);
+    const rwtCount = ergoChain.getBoxRWT(eventBox) / BigInt(event.WIDsCount);
     const permitValue =
       ergoChain.getSerializedBoxInfo(eventBox).assets.nativeToken /
-      BigInt(event.WIDs.length);
+      BigInt(event.WIDsCount);
 
     const commitmentBoxes = await EventBoxes.getEventValidCommitments(
       event,
-      rwtCount
+      rwtCount,
+      eventWIDs
     );
 
     // generate reward order
@@ -112,7 +118,8 @@ class EventOrder {
       paymentTxId,
       ChainHandler.getInstance().getChain(event.fromChain).getRWTToken(),
       rwtCount,
-      permitValue
+      permitValue,
+      eventWIDs
     );
   };
 
@@ -176,6 +183,7 @@ class EventOrder {
    * @param rwtTokenId RWT token id of fromChain
    * @param rwtCount amount RWT token per watcher
    * @param permitValue erg amount to use in permit box per watcher
+   * @param eventWIDs WID of commitments that are merged into the event trigger
    */
   static eventRewardOrder = (
     event: EventTrigger,
@@ -184,10 +192,11 @@ class EventOrder {
     paymentTxId: string,
     rwtTokenId: string,
     rwtCount: bigint,
-    permitValue: bigint
+    permitValue: bigint,
+    eventWIDs: string[]
   ): PaymentOrder => {
     const outPermits: PermitBoxValue[] = [
-      ...event.WIDs.map((wid) => ({ wid, boxValue: permitValue })),
+      ...eventWIDs.map((wid) => ({ wid, boxValue: permitValue })),
       ...unmergedWIDs,
     ];
     const bridgeFee = Utils.maxBigint(
