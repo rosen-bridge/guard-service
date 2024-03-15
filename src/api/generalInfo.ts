@@ -79,6 +79,8 @@ const infoRoute = (server: FastifySeverInstance) => {
         }
 
         reply.status(200).send({
+          // TODO: Update dependencies like typescript and vitest
+          //  local:ergo/rosen-bridge/guard-service#364
           version: Utils.readJsonFile('./package.json').version,
           health: (await (await getHealthCheck()).getOverallHealthStatus())
             .status,
