@@ -6,6 +6,7 @@ import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
 import { rosenConfig } from '../../src/configs/RosenConfig';
 
 export const guardInfo = {
+  version: expect.any(String),
   health: HealthStatusLevel.HEALTHY,
   balances: {
     hot: [
