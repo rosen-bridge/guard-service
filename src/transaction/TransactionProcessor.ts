@@ -262,7 +262,7 @@ class TransactionProcessor {
    */
   static setTransactionAsInvalid = async (
     tx: TransactionEntity,
-    chain: AbstractChain
+    chain: AbstractChain<any>
   ): Promise<void> => {
     const height = await chain.getHeight();
     if (

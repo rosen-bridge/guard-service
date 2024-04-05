@@ -6,7 +6,7 @@ import GuardsCardanoConfigs from '../../src/configs/GuardsCardanoConfigs';
 import GuardsErgoConfigs from '../../src/configs/GuardsErgoConfigs';
 
 export const chainHandlerInstance = {
-  getChain: (chainName: string): AbstractChain => {
+  getChain: (chainName: string): AbstractChain<any> => {
     throw Error(`ChainHandler 'getChain' is not mocked!`);
   },
   getErgoChain: (): ErgoChain => {
@@ -42,11 +42,11 @@ class ChainHandlerMock {
     vi.spyOn(chainHandlerInstance, 'getChain').mockImplementation(
       (chainName: string) => {
         if (chainName === 'ergo')
-          return this.mockedErgo as unknown as AbstractChain;
+          return this.mockedErgo as unknown as AbstractChain<any>;
         else if (chainName === this.fromChainName)
-          return this.mockedFromChain as unknown as AbstractChain;
+          return this.mockedFromChain as unknown as AbstractChain<any>;
         else if (chainName === this.toChainName)
-          return this.mockedToChain as unknown as AbstractChain;
+          return this.mockedToChain as unknown as AbstractChain<any>;
         else
           throw Error(
             `Cannot get mocked chain: Chain [${chainName}] is not mocked`

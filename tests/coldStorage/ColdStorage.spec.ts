@@ -477,7 +477,7 @@ describe('ColdStorage', () => {
      * - GuardTurn
      * @scenario
      * - mock ChainHandler `getChain`
-     *   - mock `generateTransaction`
+     *   - mock `generateMultipleTransactions`
      *   - mock `getChainConfigs`
      * - mock TxAgreement `getChainPendingTransactions` and `addTransactionToQueue`
      * - mock a transaction and insert into db as signed
@@ -485,15 +485,19 @@ describe('ColdStorage', () => {
      * - run test
      * - check if function got called
      * @expected
-     * - `generateTransaction` should got called with correct arguments
+     * - `generateMultipleTransactions` should got called with correct arguments
      * - `addTransactionToQueue` should got called
      */
     it(`should generate cold storage transaction for non-Ergo chain successfully`, async () => {
       const chain = CARDANO_CHAIN;
       // mock ChainHandler `getChain`
       ChainHandlerMock.mockChainName(chain);
-      // mock `generateTransaction`
-      ChainHandlerMock.mockToChainFunction('generateTransaction', null, true);
+      // mock `generateMultipleTransactions`
+      ChainHandlerMock.mockToChainFunction(
+        'generateMultipleTransactions',
+        [{ txId: TestUtils.generateRandomId() }],
+        true
+      );
       // mock `getChainConfigs`
       const coldAddress = `coldAddress`;
       ChainHandlerMock.mockToChainFunction('getChainConfigs', {
@@ -522,7 +526,7 @@ describe('ColdStorage', () => {
         chain
       );
 
-      // `generateTransaction` should got called with correct arguments
+      // `generateMultipleTransactions` should got called with correct arguments
       const expectedOrder = [
         {
           address: coldAddress,
@@ -530,7 +534,7 @@ describe('ColdStorage', () => {
         },
       ];
       expect(
-        ChainHandlerMock.getChainMockedFunction('generateTransaction')
+        ChainHandlerMock.getChainMockedFunction('generateMultipleTransactions')
       ).toHaveBeenCalledWith(
         '',
         TransactionType.coldStorage,
@@ -556,7 +560,7 @@ describe('ColdStorage', () => {
      * - GuardTurn
      * @scenario
      * - mock ChainHandler `getChain`
-     *   - mock `generateTransaction`
+     *   - mock `generateMultipleTransactions`
      *   - mock `getGuardsConfigBox`
      *   - mock `getChainConfigs`
      * - mock TxAgreement `getChainPendingTransactions` and `addTransactionToQueue`
@@ -565,17 +569,17 @@ describe('ColdStorage', () => {
      * - run test
      * - check if function got called
      * @expected
-     * - `generateTransaction` should got called with correct arguments
+     * - `generateMultipleTransactions` should got called with correct arguments
      * - `addTransactionToQueue` should got called
      */
     it(`should generate cold storage transaction for Ergo chain successfully`, async () => {
       const chain = ERGO_CHAIN;
       // mock ChainHandler `getChain`
       ChainHandlerMock.mockChainName(chain);
-      // mock `generateTransaction`
+      // mock `generateMultipleTransactions`
       ChainHandlerMock.mockErgoFunctionReturnValue(
-        'generateTransaction',
-        null,
+        'generateMultipleTransactions',
+        [{ txId: TestUtils.generateRandomId() }],
         true
       );
       // mock `getGuardsConfigBox`
@@ -613,7 +617,7 @@ describe('ColdStorage', () => {
         chain
       );
 
-      // `generateTransaction` should got called with correct arguments
+      // `generateMultipleTransactions` should got called with correct arguments
       const expectedOrder = [
         {
           address: coldAddress,
@@ -621,7 +625,7 @@ describe('ColdStorage', () => {
         },
       ];
       expect(
-        ChainHandlerMock.getErgoMockedFunction('generateTransaction')
+        ChainHandlerMock.getErgoMockedFunction('generateMultipleTransactions')
       ).toHaveBeenCalledWith(
         '',
         TransactionType.coldStorage,
@@ -647,7 +651,7 @@ describe('ColdStorage', () => {
      * - GuardTurn
      * @scenario
      * - mock ChainHandler `getChain`
-     *   - mock `generateTransaction`
+     *   - mock `generateMultipleTransactions`
      *   - mock `getChainConfigs`
      * - mock TxAgreement `getChainPendingTransactions` and `addTransactionToQueue`
      * - mock a transaction and insert into db as signed
@@ -655,17 +659,17 @@ describe('ColdStorage', () => {
      * - run test
      * - check if function got called
      * @expected
-     * - `generateTransaction` should got called with correct arguments
+     * - `generateMultipleTransactions` should got called with correct arguments
      * - `addTransactionToQueue` should not got called
      */
     it(`should generate cold storage transaction but does not send it to agreement process when turn is over`, async () => {
       const chain = CARDANO_CHAIN;
       // mock ChainHandler `getChain`
       ChainHandlerMock.mockChainName(chain);
-      // mock `generateTransaction`
+      // mock `generateMultipleTransactions`
       ChainHandlerMock.mockToChainFunction(
-        'generateTransaction',
-        { txId: TestUtils.generateRandomId() },
+        'generateMultipleTransactions',
+        [{ txId: TestUtils.generateRandomId() }],
         true
       );
       // mock `getChainConfigs`
@@ -696,7 +700,7 @@ describe('ColdStorage', () => {
         chain
       );
 
-      // `generateTransaction` should got called with correct arguments
+      // `generateMultipleTransactions` should got called with correct arguments
       const expectedOrder = [
         {
           address: coldAddress,
@@ -704,7 +708,7 @@ describe('ColdStorage', () => {
         },
       ];
       expect(
-        ChainHandlerMock.getChainMockedFunction('generateTransaction')
+        ChainHandlerMock.getChainMockedFunction('generateMultipleTransactions')
       ).toHaveBeenCalledWith(
         '',
         TransactionType.coldStorage,
