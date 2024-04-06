@@ -472,7 +472,7 @@ describe('EventProcessor', () => {
           tokens: [],
         },
       });
-      mockEventRewardOrder([]);
+      mockEventRewardOrder([], []);
 
       // mock txAgreement pending transactions
       TxAgreementMock.mockGetChainPendingTransactions([]);
@@ -743,7 +743,7 @@ describe('EventProcessor', () => {
           tokens: [],
         },
       });
-      mockEventRewardOrder([]);
+      mockEventRewardOrder([], []);
 
       // mock txAgreement `getChainPendingTransactions` to return empty list
       TxAgreementMock.mockGetChainPendingTransactions([]);
@@ -876,7 +876,7 @@ describe('EventProcessor', () => {
           tokens: [],
         },
       });
-      mockEventRewardOrder([]);
+      mockEventRewardOrder([], []);
 
       // mock txAgreement pending transactions
       TxAgreementMock.mockGetChainPendingTransactions([]);
@@ -1020,7 +1020,7 @@ describe('EventProcessor', () => {
           tokens: [],
         },
       });
-      mockEventRewardOrder([]);
+      mockEventRewardOrder([], []);
 
       // mock txAgreement pending transactions
       TxAgreementMock.mockGetChainPendingTransactions([]);
@@ -1141,7 +1141,7 @@ describe('EventProcessor', () => {
           tokens: [],
         },
       });
-      mockEventRewardOrder([]);
+      mockEventRewardOrder([], []);
 
       // mock txAgreement `getChainPendingTransactions` to return empty list
       TxAgreementMock.mockGetChainPendingTransactions([]);
@@ -1284,7 +1284,7 @@ describe('EventProcessor', () => {
           tokens: [],
         },
       });
-      mockEventRewardOrder([]);
+      mockEventRewardOrder([], []);
 
       // mock txAgreement pending transactions
       TxAgreementMock.mockGetChainPendingTransactions([]);

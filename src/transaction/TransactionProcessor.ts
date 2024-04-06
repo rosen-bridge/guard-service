@@ -10,7 +10,6 @@ import Configs from '../configs/Configs';
 import { DatabaseAction } from '../db/DatabaseAction';
 import { TransactionEntity } from '../db/entities/TransactionEntity';
 import ChainHandler from '../handlers/ChainHandler';
-import GuardPkHandler from '../handlers/GuardPkHandler';
 import { EventStatus, TransactionStatus } from '../utils/constants';
 import * as TransactionSerializer from './TransactionSerializer';
 import WinstonLogger from '@rosen-bridge/winston-logger';
