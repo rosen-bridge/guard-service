@@ -49,7 +49,7 @@ const getOptionalConfig = <T>(key: string, defaultValue: T) => {
   return defaultValue;
 };
 
-const SupportedAlgorithms = ['eddsa'];
+const SupportedAlgorithms = ['eddsa', 'ecdsa'];
 class KeygenConfig {
   static isActive = config.get<boolean>('keygen.active');
   static guardsCount = getConfigIntKeyOrDefault('keygen.guards', 0);
