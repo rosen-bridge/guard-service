@@ -60,10 +60,18 @@ tss:
   port: 9000
   timeout: 8 # connection timeout for tss API
   secret: ''
-  publicKeys:
-    - ''
   ks:
     - ''
+  ecdsa:
+    derivationPath:
+      - 0
+    chainCode: ''
+    publicKeys:
+      - ''
+  eddsa:
+    chainCode: ''
+    publicKeys:
+      - ''
 p2p:
   addresses: # relay configs
     - peerId: ''

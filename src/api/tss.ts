@@ -15,6 +15,7 @@ const signRoute = (server: FastifySeverInstance) => {
     error: Type.Optional(Type.String()),
     message: Type.String(),
     signature: Type.Optional(Type.String()),
+    signatureRecovery: Type.Optional(Type.String()),
   });
   server.post(
     '/tss/sign',
@@ -29,12 +30,14 @@ const signRoute = (server: FastifySeverInstance) => {
     },
     async (request, reply) => {
       try {
-        const { status, error, message, signature } = request.body;
+        const { status, error, message, signature, signatureRecovery } =
+          request.body;
         await Tss.getInstance().handleSignData(
           status,
           error,
           message,
-          signature
+          signature,
+          signatureRecovery
         );
         reply.send({ message: 'ok' });
       } catch (error) {

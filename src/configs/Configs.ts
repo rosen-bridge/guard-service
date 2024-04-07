@@ -88,7 +88,15 @@ class Configs {
   static tssKeygenCallBackUrl = `http://${this.apiHost}:${this.apiPort}/tss/keygen`;
   static tssKeys = {
     secret: config.get<string>('tss.secret'),
-    publicKeys: config.get<string[]>('tss.publicKeys'),
+    ecdsa: {
+      publicKeys: config.get<string[]>('tss.ecdsa.publicKeys'),
+      chainCode: config.get<string>('tss.ecdsa.chainCode'),
+      derivationPath: config.get<number[]>('tss.ecdsa.derivationPath'),
+    },
+    eddsa: {
+      publicKeys: config.get<string[]>('tss.eddsa.publicKeys'),
+      chainCode: config.get<string>('tss.eddsa.chainCode'),
+    },
     ks: config.get<string[]>('tss.ks'),
   };
 
@@ -165,7 +173,10 @@ class Configs {
       const logTypeValidation = ['console', 'file', 'loki'].includes(log.type);
       let loggerChecks = true;
       if (log.type === 'loki') {
-        const overrideLokiBasicAuth = getOptionalConfig('overrideLokiBasicAuth', '');
+        const overrideLokiBasicAuth = getOptionalConfig(
+          'overrideLokiBasicAuth',
+          ''
+        );
         if (overrideLokiBasicAuth !== '') log.basicAuth = overrideLokiBasicAuth;
         loggerChecks =
           log.host != undefined &&
