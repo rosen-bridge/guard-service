@@ -196,3 +196,11 @@ export const SignQuerySchema = Type.Object({
   requiredSign: Type.Number(),
   overwrite: Type.Optional(Type.Boolean()),
 });
+
+export const TssCallbackSchema = Type.Object({
+  status: Type.String(),
+  error: Type.Optional(Type.String()),
+  message: Type.String(),
+  signature: Type.Optional(Type.String()),
+  signatureRecovery: Type.Optional(Type.String()),
+});

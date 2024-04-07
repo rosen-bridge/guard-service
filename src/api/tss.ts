@@ -1,24 +1,21 @@
-import { Type } from '@sinclair/typebox';
 import Tss from '../guard/Tss';
-import { FastifySeverInstance, MessageResponseSchema } from './schemas';
+import {
+  FastifySeverInstance,
+  MessageResponseSchema,
+  TssCallbackSchema,
+} from './schemas';
 import WinstonLogger from '@rosen-bridge/winston-logger';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
 /**
- * setups TSS sign route
+ * setups TSS curve (ECDSA) sign route
  * @param server
  */
-const signRoute = (server: FastifySeverInstance) => {
-  const bodySchema = Type.Object({
-    status: Type.String(),
-    error: Type.Optional(Type.String()),
-    message: Type.String(),
-    signature: Type.Optional(Type.String()),
-    signatureRecovery: Type.Optional(Type.String()),
-  });
+const curveSignRoute = (server: FastifySeverInstance) => {
+  const bodySchema = TssCallbackSchema;
   server.post(
-    '/tss/sign',
+    '/tss/sign/curve',
     {
       schema: {
         body: bodySchema,
@@ -33,6 +30,7 @@ const signRoute = (server: FastifySeverInstance) => {
         const { status, error, message, signature, signatureRecovery } =
           request.body;
         await Tss.getInstance().handleSignData(
+          false, // not EdDSA
           status,
           error,
           message,
@@ -42,7 +40,48 @@ const signRoute = (server: FastifySeverInstance) => {
         reply.send({ message: 'ok' });
       } catch (error) {
         logger.warn(
-          `An error occurred while processing TSS tx sign callback: ${error}`
+          `An error occurred while processing TSS curve tx sign callback: ${error}`
+        );
+        logger.warn(error.stack);
+        reply.status(400).send({ message: error.message });
+      }
+    }
+  );
+};
+
+/**
+ * setups TSS edward (EdDSA) sign route
+ * @param server
+ */
+const edwardSignRoute = (server: FastifySeverInstance) => {
+  const bodySchema = TssCallbackSchema;
+  server.post(
+    '/tss/sign/edward',
+    {
+      schema: {
+        body: bodySchema,
+        response: {
+          200: MessageResponseSchema,
+          400: MessageResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      try {
+        const { status, error, message, signature, signatureRecovery } =
+          request.body;
+        await Tss.getInstance().handleSignData(
+          true, // is EdDSA
+          status,
+          error,
+          message,
+          signature,
+          signatureRecovery
+        );
+        reply.send({ message: 'ok' });
+      } catch (error) {
+        logger.warn(
+          `An error occurred while processing TSS edward tx sign callback: ${error}`
         );
         logger.warn(error.stack);
         reply.status(400).send({ message: error.message });
@@ -52,7 +91,8 @@ const signRoute = (server: FastifySeverInstance) => {
 };
 
 const tssRoute = async (server: FastifySeverInstance) => {
-  signRoute(server);
+  curveSignRoute(server);
+  edwardSignRoute(server);
 };
 
 export { tssRoute };

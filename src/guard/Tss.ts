@@ -19,17 +19,18 @@ const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 class Tss {
   private static instance: Tss;
   protected static curveGuardDetection: GuardDetection;
+  protected static tssCurveSigner: TssSigner;
   protected static curve = {
     DETECTION_CHANNEL: 'ecdsa-detection',
     SIGNING_CHANNEL: 'tss-ecdsa-signing',
   };
   protected static edwardGuardDetection: GuardDetection;
+  protected static tssEdwardSigner: TssSigner;
   protected static edward = {
     DETECTION_CHANNEL: 'eddsa-detection',
     SIGNING_CHANNEL: 'tss-eddsa-signing',
   };
   protected static dialer: Dialer;
-  protected static tssSigner: TssSigner;
 
   protected constructor() {
     // do nothing.
@@ -115,7 +116,7 @@ class Tss {
     await Tss.curveGuardDetection.init();
 
     // initialize tss
-    Tss.tssSigner = new EcdsaSigner({
+    Tss.tssCurveSigner = new EcdsaSigner({
       tssApiUrl: `${Configs.tssUrl}:${Configs.tssPort}`,
       getPeerId: () => Promise.resolve(Tss.dialer.getDialerId()),
       callbackUrl: Configs.tssCallBackUrl,
@@ -138,7 +139,7 @@ class Tss {
     Tss.dialer.subscribeChannel(
       Tss.curve.SIGNING_CHANNEL,
       async (msg: string, channal: string, peerId: string) =>
-        await Tss.tssSigner.handleMessage(msg, peerId)
+        await Tss.tssCurveSigner.handleMessage(msg, peerId)
     );
   };
 
@@ -157,7 +158,7 @@ class Tss {
     await Tss.edwardGuardDetection.init();
 
     // initialize tss
-    Tss.tssSigner = new EddsaSigner({
+    Tss.tssEdwardSigner = new EddsaSigner({
       tssApiUrl: `${Configs.tssUrl}:${Configs.tssPort}`,
       getPeerId: () => Promise.resolve(Tss.dialer.getDialerId()),
       callbackUrl: Configs.tssCallBackUrl,
@@ -179,7 +180,7 @@ class Tss {
     Tss.dialer.subscribeChannel(
       Tss.edward.SIGNING_CHANNEL,
       async (msg: string, channal: string, peerId: string) =>
-        await Tss.tssSigner.handleMessage(msg, peerId)
+        await Tss.tssEdwardSigner.handleMessage(msg, peerId)
     );
   };
 
@@ -244,7 +245,7 @@ class Tss {
   };
 
   /**
-   * wraps sign callback to tss sign handler
+   * wraps sign callback to tss sign handlers
    * @param status
    * @param error
    * @param message
@@ -252,21 +253,23 @@ class Tss {
    * @param signatureRecovery
    */
   handleSignData = async (
+    isEdDSA: boolean,
     status: string,
     error: string | undefined,
     message: string,
     signature: string | undefined,
     signatureRecovery: string | undefined
   ) => {
+    const tssSigner = isEdDSA ? Tss.tssEdwardSigner : Tss.tssCurveSigner;
     if (status === 'success')
-      await Tss.tssSigner.handleSignData(
+      await tssSigner.handleSignData(
         StatusEnum.Success,
         message,
         signature,
         signatureRecovery
       );
     else
-      await Tss.tssSigner.handleSignData(
+      await tssSigner.handleSignData(
         StatusEnum.Failed,
         message,
         undefined,
@@ -276,20 +279,33 @@ class Tss {
   };
 
   /**
-   * signs a transaction
+   * signs a transaction using curve (ECDSA) signer
    * @param txHash
    */
-  sign = async (txHash: Uint8Array): Promise<string> => {
-    return Tss.tssSigner.signPromised(Buffer.from(txHash).toString('hex'));
+  curveSign = async (txHash: Uint8Array): Promise<string> => {
+    return Tss.tssEdwardSigner.signPromised(
+      Buffer.from(txHash).toString('hex')
+    );
+  };
+
+  /**
+   * signs a transaction using edward (EdDSA) signer
+   * @param txHash
+   */
+  edwardSign = async (txHash: Uint8Array): Promise<string> => {
+    return Tss.tssEdwardSigner.signPromised(
+      Buffer.from(txHash).toString('hex')
+    );
   };
 
   /**
    * update guard detection and tss
    */
   update = async (): Promise<void> => {
-    await Tss.edwardGuardDetection.update();
     await Tss.curveGuardDetection.update();
-    await Tss.tssSigner.update();
+    await Tss.edwardGuardDetection.update();
+    await Tss.tssCurveSigner.update();
+    await Tss.tssEdwardSigner.update();
   };
 }
 

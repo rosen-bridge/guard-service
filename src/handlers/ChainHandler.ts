@@ -108,7 +108,7 @@ class ChainHandler {
           `No case is defined for network [${GuardsCardanoConfigs.chainNetworkName}]`
         );
     }
-    const tssSignFunction = Tss.getInstance().sign;
+    const tssSignFunction = Tss.getInstance().edwardSign;
     return new CardanoChain(
       network,
       GuardsCardanoConfigs.chainConfigs,
