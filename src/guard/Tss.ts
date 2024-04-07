@@ -13,6 +13,8 @@ import Dialer from '../communication/Dialer';
 import Configs from '../configs/Configs';
 import { spawn } from 'child_process';
 import WinstonLogger from '@rosen-bridge/winston-logger';
+import { ImpossibleBehavior } from '@rosen-chains/abstract-chain';
+import { TssAlgorithms } from '../utils/constants';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
@@ -108,7 +110,7 @@ class Tss {
     // initialize guard detection
     const ecdsaSigner = new ECDSA(Configs.tssKeys.secret);
     Tss.curveGuardDetection = new GuardDetection({
-      guardsPublicKey: Configs.tssKeys.ecdsa.publicKeys,
+      guardsPublicKey: Configs.tssKeys.curve.publicKeys,
       signer: ecdsaSigner,
       submit: this.generateSubmitMessageWrapper(Tss.curve.DETECTION_CHANNEL),
       getPeerId: () => Promise.resolve(Tss.dialer.getDialerId()),
@@ -124,10 +126,10 @@ class Tss {
       submitMsg: this.generateSubmitMessageWrapper(Tss.curve.SIGNING_CHANNEL),
       secret: Configs.tssKeys.secret,
       detection: Tss.curveGuardDetection,
-      guardsPk: Configs.tssKeys.ecdsa.publicKeys,
+      guardsPk: Configs.tssKeys.curve.publicKeys,
       logger: WinstonLogger.getInstance().getLogger('tssSigner'),
-      chainCode: Configs.tssKeys.ecdsa.chainCode,
-      derivationPath: Configs.tssKeys.ecdsa.derivationPath,
+      chainCode: Configs.tssKeys.curve.chainCode,
+      derivationPath: Configs.tssKeys.curve.derivationPath,
     });
 
     // subscribe to channels
@@ -150,7 +152,7 @@ class Tss {
     // initialize guard detection
     const eddsaSigner = new EdDSA(Configs.tssKeys.secret);
     Tss.edwardGuardDetection = new GuardDetection({
-      guardsPublicKey: Configs.tssKeys.eddsa.publicKeys,
+      guardsPublicKey: Configs.tssKeys.edward.publicKeys,
       signer: eddsaSigner,
       submit: this.generateSubmitMessageWrapper(Tss.edward.DETECTION_CHANNEL),
       getPeerId: () => Promise.resolve(Tss.dialer.getDialerId()),
@@ -166,9 +168,9 @@ class Tss {
       submitMsg: this.generateSubmitMessageWrapper(Tss.edward.SIGNING_CHANNEL),
       secret: Configs.tssKeys.secret,
       detection: Tss.edwardGuardDetection,
-      guardsPk: Configs.tssKeys.eddsa.publicKeys,
+      guardsPk: Configs.tssKeys.edward.publicKeys,
       logger: WinstonLogger.getInstance().getLogger('tssSigner'),
-      chainCode: Configs.tssKeys.eddsa.chainCode,
+      chainCode: Configs.tssKeys.edward.chainCode,
     });
 
     // subscribe to channels
@@ -246,6 +248,7 @@ class Tss {
 
   /**
    * wraps sign callback to tss sign handlers
+   * @param algorithm ecdsa or eddsa
    * @param status
    * @param error
    * @param message
@@ -253,14 +256,20 @@ class Tss {
    * @param signatureRecovery
    */
   handleSignData = async (
-    isEdDSA: boolean,
+    algorithm: string,
     status: string,
     error: string | undefined,
     message: string,
     signature: string | undefined,
     signatureRecovery: string | undefined
   ) => {
-    const tssSigner = isEdDSA ? Tss.tssEdwardSigner : Tss.tssCurveSigner;
+    let tssSigner: TssSigner;
+    if (algorithm === TssAlgorithms.curve) tssSigner = Tss.tssCurveSigner;
+    else if (algorithm === TssAlgorithms.edward)
+      tssSigner = Tss.tssEdwardSigner;
+    else
+      throw new ImpossibleBehavior(`Unsupported tss algorithm [${algorithm}]`);
+
     if (status === 'success')
       await tssSigner.handleSignData(
         StatusEnum.Success,
@@ -283,9 +292,7 @@ class Tss {
    * @param txHash
    */
   curveSign = async (txHash: Uint8Array): Promise<string> => {
-    return Tss.tssEdwardSigner.signPromised(
-      Buffer.from(txHash).toString('hex')
-    );
+    return Tss.tssCurveSigner.signPromised(Buffer.from(txHash).toString('hex'));
   };
 
   /**

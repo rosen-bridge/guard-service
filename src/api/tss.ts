@@ -1,4 +1,5 @@
 import Tss from '../guard/Tss';
+import { TssAlgorithms } from '../utils/constants';
 import {
   FastifySeverInstance,
   MessageResponseSchema,
@@ -30,7 +31,7 @@ const curveSignRoute = (server: FastifySeverInstance) => {
         const { status, error, message, signature, signatureRecovery } =
           request.body;
         await Tss.getInstance().handleSignData(
-          false, // not EdDSA
+          TssAlgorithms.curve,
           status,
           error,
           message,
@@ -71,7 +72,7 @@ const edwardSignRoute = (server: FastifySeverInstance) => {
         const { status, error, message, signature, signatureRecovery } =
           request.body;
         await Tss.getInstance().handleSignData(
-          true, // is EdDSA
+          TssAlgorithms.edward,
           status,
           error,
           message,

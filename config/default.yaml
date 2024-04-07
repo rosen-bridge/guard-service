@@ -62,13 +62,13 @@ tss:
   secret: ''
   ks:
     - ''
-  ecdsa:
+  curve: # ECDSA
     derivationPath:
       - 0
     chainCode: ''
     publicKeys:
       - ''
-  eddsa:
+  edward: # EdDSA
     chainCode: ''
     publicKeys:
       - ''

@@ -5,7 +5,7 @@ import { ThresholdConfig } from '../coldStorage/types';
 import { JsonBI } from '../network/NetworkModels';
 import Utils from '../utils/Utils';
 import { ConfigError } from '../utils/errors';
-import { SUPPORTED_CHAINS } from '../utils/constants';
+import { SUPPORTED_CHAINS, TssAlgorithms } from '../utils/constants';
 import { TransportOptions } from '@rosen-bridge/winston-logger';
 import { cloneDeep } from 'lodash-es';
 
@@ -49,7 +49,10 @@ const getOptionalConfig = <T>(key: string, defaultValue: T) => {
   return defaultValue;
 };
 
-const SupportedAlgorithms = ['eddsa', 'ecdsa'];
+const SupportedAlgorithms: string[] = [
+  TssAlgorithms.curve,
+  TssAlgorithms.edward,
+];
 class KeygenConfig {
   static isActive = config.get<boolean>('keygen.active');
   static guardsCount = getConfigIntKeyOrDefault('keygen.guards', 0);
@@ -88,14 +91,14 @@ class Configs {
   static tssKeygenCallBackUrl = `http://${this.apiHost}:${this.apiPort}/tss/keygen`;
   static tssKeys = {
     secret: config.get<string>('tss.secret'),
-    ecdsa: {
-      publicKeys: config.get<string[]>('tss.ecdsa.publicKeys'),
-      chainCode: config.get<string>('tss.ecdsa.chainCode'),
-      derivationPath: config.get<number[]>('tss.ecdsa.derivationPath'),
+    curve: {
+      publicKeys: config.get<string[]>('tss.curve.publicKeys'),
+      chainCode: config.get<string>('tss.curve.chainCode'),
+      derivationPath: config.get<number[]>('tss.curve.derivationPath'),
     },
-    eddsa: {
-      publicKeys: config.get<string[]>('tss.eddsa.publicKeys'),
-      chainCode: config.get<string>('tss.eddsa.chainCode'),
+    edward: {
+      publicKeys: config.get<string[]>('tss.edward.publicKeys'),
+      chainCode: config.get<string>('tss.edward.chainCode'),
     },
     ks: config.get<string[]>('tss.ks'),
   };
