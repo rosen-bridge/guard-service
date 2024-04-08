@@ -13,7 +13,6 @@ import Dialer from '../communication/Dialer';
 import Configs from '../configs/Configs';
 import { spawn } from 'child_process';
 import WinstonLogger from '@rosen-bridge/winston-logger';
-import { ImpossibleBehavior } from '@rosen-chains/abstract-chain';
 import { TssAlgorithms } from '../utils/constants';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
@@ -267,8 +266,7 @@ class Tss {
     if (algorithm === TssAlgorithms.curve) tssSigner = Tss.tssCurveSigner;
     else if (algorithm === TssAlgorithms.edward)
       tssSigner = Tss.tssEdwardSigner;
-    else
-      throw new ImpossibleBehavior(`Unsupported tss algorithm [${algorithm}]`);
+    else throw Error(`Unsupported tss algorithm [${algorithm}]`);
 
     if (status === 'success')
       await tssSigner.handleSignData(

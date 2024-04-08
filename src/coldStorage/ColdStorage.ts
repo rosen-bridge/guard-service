@@ -136,7 +136,7 @@ class ColdStorage {
    */
   static generateColdStorageTransaction = async (
     assets: AssetBalance,
-    chain: AbstractChain<any>,
+    chain: AbstractChain<unknown>,
     chainName: string
   ): Promise<void> => {
     // get guardsConfigBox if chain is ergo
