@@ -120,7 +120,7 @@ class Tss {
     Tss.tssCurveSigner = new EcdsaSigner({
       tssApiUrl: `${Configs.tssUrl}:${Configs.tssPort}`,
       getPeerId: () => Promise.resolve(Tss.dialer.getDialerId()),
-      callbackUrl: Configs.tssBaseCallBackUrl + '/curve',
+      callbackUrl: Configs.tssBaseCallBackUrl + '/' + TssAlgorithms.curve,
       shares: Configs.tssKeys.ks,
       submitMsg: this.generateSubmitMessageWrapper(Tss.curve.SIGNING_CHANNEL),
       secret: Configs.tssKeys.secret,
@@ -162,7 +162,7 @@ class Tss {
     Tss.tssEdwardSigner = new EddsaSigner({
       tssApiUrl: `${Configs.tssUrl}:${Configs.tssPort}`,
       getPeerId: () => Promise.resolve(Tss.dialer.getDialerId()),
-      callbackUrl: Configs.tssBaseCallBackUrl + '/edward',
+      callbackUrl: Configs.tssBaseCallBackUrl + '/' + TssAlgorithms.edward,
       shares: Configs.tssKeys.ks,
       submitMsg: this.generateSubmitMessageWrapper(Tss.edward.SIGNING_CHANNEL),
       secret: Configs.tssKeys.secret,

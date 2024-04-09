@@ -197,6 +197,10 @@ export const SignQuerySchema = Type.Object({
   overwrite: Type.Optional(Type.Boolean()),
 });
 
+export const TssCallbackParams = Type.Object({
+  algorithm: Type.String(),
+});
+
 export const TssCallbackSchema = Type.Object({
   status: Type.String(),
   error: Type.Optional(Type.String()),

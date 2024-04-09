@@ -3,6 +3,7 @@ import { TssAlgorithms } from '../utils/constants';
 import {
   FastifySeverInstance,
   MessageResponseSchema,
+  TssCallbackParams,
   TssCallbackSchema,
 } from './schemas';
 import WinstonLogger from '@rosen-bridge/winston-logger';
@@ -10,16 +11,16 @@ import WinstonLogger from '@rosen-bridge/winston-logger';
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
 /**
- * setups TSS curve (ECDSA) sign route
+ * setups TSS sign route
  * @param server
  */
-const curveSignRoute = (server: FastifySeverInstance) => {
-  const bodySchema = TssCallbackSchema;
+const signRoute = (server: FastifySeverInstance) => {
   server.post(
-    '/tss/sign/curve',
+    '/tss/sign/:algorithm',
     {
       schema: {
-        body: bodySchema,
+        params: TssCallbackParams,
+        body: TssCallbackSchema,
         response: {
           200: MessageResponseSchema,
           400: MessageResponseSchema,
@@ -28,10 +29,11 @@ const curveSignRoute = (server: FastifySeverInstance) => {
     },
     async (request, reply) => {
       try {
+        const { algorithm } = request.params;
         const { status, error, message, signature, signatureRecovery } =
           request.body;
         await Tss.getInstance().handleSignData(
-          TssAlgorithms.curve,
+          algorithm,
           status,
           error,
           message,
@@ -50,50 +52,8 @@ const curveSignRoute = (server: FastifySeverInstance) => {
   );
 };
 
-/**
- * setups TSS edward (EdDSA) sign route
- * @param server
- */
-const edwardSignRoute = (server: FastifySeverInstance) => {
-  const bodySchema = TssCallbackSchema;
-  server.post(
-    '/tss/sign/edward',
-    {
-      schema: {
-        body: bodySchema,
-        response: {
-          200: MessageResponseSchema,
-          400: MessageResponseSchema,
-        },
-      },
-    },
-    async (request, reply) => {
-      try {
-        const { status, error, message, signature, signatureRecovery } =
-          request.body;
-        await Tss.getInstance().handleSignData(
-          TssAlgorithms.edward,
-          status,
-          error,
-          message,
-          signature,
-          signatureRecovery
-        );
-        reply.send({ message: 'ok' });
-      } catch (error) {
-        logger.warn(
-          `An error occurred while processing TSS edward tx sign callback: ${error}`
-        );
-        logger.warn(error.stack);
-        reply.status(400).send({ message: error.message });
-      }
-    }
-  );
-};
-
 const tssRoute = async (server: FastifySeverInstance) => {
-  curveSignRoute(server);
-  edwardSignRoute(server);
+  signRoute(server);
 };
 
 export { tssRoute };
