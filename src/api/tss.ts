@@ -1,5 +1,4 @@
 import Tss from '../guard/Tss';
-import { TssAlgorithms } from '../utils/constants';
 import {
   FastifySeverInstance,
   MessageResponseSchema,
@@ -43,7 +42,7 @@ const signRoute = (server: FastifySeverInstance) => {
         reply.send({ message: 'ok' });
       } catch (error) {
         logger.warn(
-          `An error occurred while processing TSS curve tx sign callback: ${error}`
+          `An error occurred while processing TSS tx sign callback: ${error}`
         );
         logger.warn(error.stack);
         reply.status(400).send({ message: error.message });
