@@ -262,7 +262,7 @@ describe('EventOrder', () => {
       );
       for (let index = 0; index < mockedEvent.WIDs.length; index++) {
         expect(
-          result[index].address ===
+          result.watchersOrder[index].address ===
             GuardsCardanoConfigs.cardanoContractConfig.permitAddress
         );
       }
@@ -340,9 +340,12 @@ describe('EventOrder', () => {
       );
 
       // verify returned value
+      const watchersOrder = result.watchersOrder;
+      const guardsOrder = result.guardsOrder;
+      expect(watchersOrder.length).toEqual(6);
+      expect(guardsOrder.length).toEqual(3);
       // verify 5 watcher box
-      expect(result.length).toEqual(9);
-      result.slice(0, 5).forEach((watcherOrder, index) => {
+      watchersOrder.slice(0, 5).forEach((watcherOrder, index) => {
         expect(watcherOrder.address).toEqual(
           GuardsErgoConfigs.ergoContractConfig.permitAddress
         );
@@ -356,7 +359,7 @@ describe('EventOrder', () => {
         expect(watcherOrder.extra).toEqual(mockedEvent.WIDs[index]);
       });
       // verify 1 watcher box
-      const unmergedWatcherOrder = result[5];
+      const unmergedWatcherOrder = watchersOrder[5];
       expect(unmergedWatcherOrder.address).toEqual(
         GuardsErgoConfigs.ergoContractConfig.permitAddress
       );
@@ -370,7 +373,7 @@ describe('EventOrder', () => {
       expect(unmergedWatcherOrder.assets.tokens[1].value).toEqual(33333n);
       expect(unmergedWatcherOrder.extra).toEqual(unmergedWID.wid);
       // verify bridge fee box
-      const bridgeFeeOrder = result[6];
+      const bridgeFeeOrder = guardsOrder[0];
       expect(bridgeFeeOrder.address).toEqual(
         GuardsErgoConfigs.bridgeFeeRepoAddress
       );
@@ -378,7 +381,7 @@ describe('EventOrder', () => {
       expect(bridgeFeeOrder.assets.tokens.length).toEqual(0);
       expect(bridgeFeeOrder.extra).toEqual(paymentTxId);
       // verify rsn emission box
-      const rsnEmissionOrder = result[7];
+      const rsnEmissionOrder = guardsOrder[1];
       expect(rsnEmissionOrder.address).toEqual(
         GuardsErgoConfigs.rsnEmissionAddress
       );
@@ -388,7 +391,7 @@ describe('EventOrder', () => {
       expect(rsnEmissionOrder.assets.tokens[0].value).toEqual(800002n);
       expect(rsnEmissionOrder.extra).toBeUndefined();
       // verify network fee box
-      const networkFeeOrder = result[8];
+      const networkFeeOrder = guardsOrder[2];
       expect(networkFeeOrder.address).toEqual(
         GuardsErgoConfigs.networkFeeRepoAddress
       );
@@ -469,9 +472,12 @@ describe('EventOrder', () => {
       );
 
       // verify returned value
+      const watchersOrder = result.watchersOrder;
+      const guardsOrder = result.guardsOrder;
+      expect(watchersOrder.length).toEqual(6);
+      expect(guardsOrder.length).toEqual(3);
       // verify 5 watcher box
-      expect(result.length).toEqual(9);
-      result.slice(0, 5).forEach((watcherOrder, index) => {
+      watchersOrder.slice(0, 5).forEach((watcherOrder, index) => {
         expect(watcherOrder.address).toEqual(
           GuardsErgoConfigs.ergoContractConfig.permitAddress
         );
@@ -488,7 +494,7 @@ describe('EventOrder', () => {
         expect(watcherOrder.extra).toEqual(mockedEvent.WIDs[index]);
       });
       // verify 1 watcher box
-      const unmergedWatcherOrder = result[5];
+      const unmergedWatcherOrder = watchersOrder[5];
       expect(unmergedWatcherOrder.address).toEqual(
         GuardsErgoConfigs.ergoContractConfig.permitAddress
       );
@@ -504,7 +510,7 @@ describe('EventOrder', () => {
       expect(unmergedWatcherOrder.assets.tokens[2].value).toEqual(333n);
       expect(unmergedWatcherOrder.extra).toEqual(unmergedWID.wid);
       // verify bridge fee box
-      const bridgeFeeOrder = result[6];
+      const bridgeFeeOrder = guardsOrder[0];
       expect(bridgeFeeOrder.address).toEqual(
         GuardsErgoConfigs.bridgeFeeRepoAddress
       );
@@ -516,7 +522,7 @@ describe('EventOrder', () => {
       expect(bridgeFeeOrder.assets.tokens[0].value).toEqual(5000002n);
       expect(bridgeFeeOrder.extra).toEqual(paymentTxId);
       // verify rsn emission box
-      const rsnEmissionOrder = result[7];
+      const rsnEmissionOrder = guardsOrder[1];
       expect(rsnEmissionOrder.address).toEqual(
         GuardsErgoConfigs.rsnEmissionAddress
       );
@@ -526,7 +532,7 @@ describe('EventOrder', () => {
       expect(rsnEmissionOrder.assets.tokens[0].value).toEqual(8002n);
       expect(rsnEmissionOrder.extra).toBeUndefined();
       // verify network fee box
-      const networkFeeOrder = result[8];
+      const networkFeeOrder = guardsOrder[2];
       expect(networkFeeOrder.address).toEqual(
         GuardsErgoConfigs.networkFeeRepoAddress
       );
@@ -611,9 +617,12 @@ describe('EventOrder', () => {
       );
 
       // verify returned value
+      const watchersOrder = result.watchersOrder;
+      const guardsOrder = result.guardsOrder;
+      expect(watchersOrder.length).toEqual(6);
+      expect(guardsOrder.length).toEqual(3);
       // verify 5 watcher box
-      expect(result.length).toEqual(9);
-      result.slice(0, 5).forEach((watcherOrder, index) => {
+      watchersOrder.slice(0, 5).forEach((watcherOrder, index) => {
         expect(watcherOrder.address).toEqual(
           GuardsErgoConfigs.ergoContractConfig.permitAddress
         );
@@ -630,7 +639,7 @@ describe('EventOrder', () => {
         expect(watcherOrder.extra).toEqual(mockedEvent.WIDs[index]);
       });
       // verify 1 watcher box
-      const unmergedWatcherOrder = result[5];
+      const unmergedWatcherOrder = watchersOrder[5];
       expect(unmergedWatcherOrder.address).toEqual(
         GuardsErgoConfigs.ergoContractConfig.permitAddress
       );
@@ -646,7 +655,7 @@ describe('EventOrder', () => {
       expect(unmergedWatcherOrder.assets.tokens[2].value).toEqual(666n);
       expect(unmergedWatcherOrder.extra).toEqual(unmergedWID.wid);
       // verify bridge fee box
-      const bridgeFeeOrder = result[6];
+      const bridgeFeeOrder = guardsOrder[0];
       expect(bridgeFeeOrder.address).toEqual(
         GuardsErgoConfigs.bridgeFeeRepoAddress
       );
@@ -658,7 +667,7 @@ describe('EventOrder', () => {
       expect(bridgeFeeOrder.assets.tokens[0].value).toEqual(10000004n);
       expect(bridgeFeeOrder.extra).toEqual(paymentTxId);
       // verify rsn emission box
-      const rsnEmissionOrder = result[7];
+      const rsnEmissionOrder = guardsOrder[1];
       expect(rsnEmissionOrder.address).toEqual(
         GuardsErgoConfigs.rsnEmissionAddress
       );
@@ -668,7 +677,7 @@ describe('EventOrder', () => {
       expect(rsnEmissionOrder.assets.tokens[0].value).toEqual(16004n);
       expect(rsnEmissionOrder.extra).toBeUndefined();
       // verify network fee box
-      const networkFeeOrder = result[8];
+      const networkFeeOrder = guardsOrder[2];
       expect(networkFeeOrder.address).toEqual(
         GuardsErgoConfigs.networkFeeRepoAddress
       );
@@ -753,9 +762,12 @@ describe('EventOrder', () => {
       );
 
       // verify returned value
+      const watchersOrder = result.watchersOrder;
+      const guardsOrder = result.guardsOrder;
+      expect(watchersOrder.length).toEqual(6);
+      expect(guardsOrder.length).toEqual(3);
       // verify 5 watcher box
-      expect(result.length).toEqual(9);
-      result.slice(0, 5).forEach((watcherOrder, index) => {
+      watchersOrder.slice(0, 5).forEach((watcherOrder, index) => {
         expect(watcherOrder.address).toEqual(
           GuardsErgoConfigs.ergoContractConfig.permitAddress
         );
@@ -769,7 +781,7 @@ describe('EventOrder', () => {
         expect(watcherOrder.extra).toEqual(mockedEvent.WIDs[index]);
       });
       // verify 1 watcher box
-      const unmergedWatcherOrder = result[5];
+      const unmergedWatcherOrder = watchersOrder[5];
       expect(unmergedWatcherOrder.address).toEqual(
         GuardsErgoConfigs.ergoContractConfig.permitAddress
       );
@@ -783,7 +795,7 @@ describe('EventOrder', () => {
       expect(unmergedWatcherOrder.assets.tokens[1].value).toEqual(166666n);
       expect(unmergedWatcherOrder.extra).toEqual(unmergedWID.wid);
       // verify bridge fee box
-      const bridgeFeeOrder = result[6];
+      const bridgeFeeOrder = guardsOrder[0];
       expect(bridgeFeeOrder.address).toEqual(
         GuardsErgoConfigs.bridgeFeeRepoAddress
       );
@@ -791,7 +803,7 @@ describe('EventOrder', () => {
       expect(bridgeFeeOrder.assets.tokens.length).toEqual(0);
       expect(bridgeFeeOrder.extra).toEqual(paymentTxId);
       // verify rsn emission box
-      const rsnEmissionOrder = result[7];
+      const rsnEmissionOrder = guardsOrder[1];
       expect(rsnEmissionOrder.address).toEqual(
         GuardsErgoConfigs.rsnEmissionAddress
       );
@@ -801,7 +813,7 @@ describe('EventOrder', () => {
       expect(rsnEmissionOrder.assets.tokens[0].value).toEqual(4000004n);
       expect(rsnEmissionOrder.extra).toBeUndefined();
       // verify network fee box
-      const networkFeeOrder = result[8];
+      const networkFeeOrder = guardsOrder[2];
       expect(networkFeeOrder.address).toEqual(
         GuardsErgoConfigs.networkFeeRepoAddress
       );
@@ -876,9 +888,12 @@ describe('EventOrder', () => {
       );
 
       // verify returned value
+      const watchersOrder = result.watchersOrder;
+      const guardsOrder = result.guardsOrder;
+      expect(watchersOrder.length).toEqual(6);
+      expect(guardsOrder.length).toEqual(2);
       // verify 5 watcher box
-      expect(result.length).toEqual(8);
-      result.slice(0, 5).forEach((watcherOrder, index) => {
+      watchersOrder.slice(0, 5).forEach((watcherOrder, index) => {
         expect(watcherOrder.address).toEqual(
           GuardsErgoConfigs.ergoContractConfig.permitAddress
         );
@@ -893,7 +908,7 @@ describe('EventOrder', () => {
         expect(watcherOrder.extra).toEqual(mockedEvent.WIDs[index]);
       });
       // verify 1 watcher box
-      const unmergedWatcherOrder = result[5];
+      const unmergedWatcherOrder = watchersOrder[5];
       expect(unmergedWatcherOrder.address).toEqual(
         GuardsErgoConfigs.ergoContractConfig.permitAddress
       );
@@ -907,7 +922,7 @@ describe('EventOrder', () => {
       expect(unmergedWatcherOrder.assets.tokens[1].value).toEqual(833333n);
       expect(unmergedWatcherOrder.extra).toEqual(unmergedWID.wid);
       // verify bridge fee box
-      const bridgeFeeOrder = result[6];
+      const bridgeFeeOrder = guardsOrder[0];
       expect(bridgeFeeOrder.address).toEqual(
         GuardsErgoConfigs.bridgeFeeRepoAddress
       );
@@ -919,7 +934,7 @@ describe('EventOrder', () => {
       expect(bridgeFeeOrder.assets.tokens[0].value).toEqual(5000002n);
       expect(bridgeFeeOrder.extra).toEqual(paymentTxId);
       // verify network fee box
-      const networkFeeOrder = result[7];
+      const networkFeeOrder = guardsOrder[1];
       expect(networkFeeOrder.address).toEqual(
         GuardsErgoConfigs.networkFeeRepoAddress
       );

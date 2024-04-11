@@ -57,14 +57,12 @@ class ChainHandler {
       case NODE_NETWORK:
         network = new ErgoNodeNetwork({
           nodeBaseUrl: GuardsErgoConfigs.node.url,
-          extractorOptions: GuardsErgoConfigs.extractorOptions,
           logger: WinstonLogger.getInstance().getLogger('NodeNetwork'),
         });
         break;
       case EXPLORER_NETWORK:
         network = new ErgoExplorerNetwork({
           explorerBaseUrl: GuardsErgoConfigs.explorer.url,
-          extractorOptions: GuardsErgoConfigs.extractorOptions,
           logger: WinstonLogger.getInstance().getLogger('ExplorerNetwork'),
         });
         break;
@@ -78,6 +76,7 @@ class ChainHandler {
       network,
       GuardsErgoConfigs.chainConfigs,
       MinimumFee.bridgeMinimumFee.feeRatioDivisor,
+      Configs.tokens(),
       multiSigSignFunction,
       WinstonLogger.getInstance().getLogger('ErgoChain')
     );
@@ -93,8 +92,6 @@ class ChainHandler {
       case KOIOS_NETWORK:
         network = new CardanoKoiosNetwork(
           GuardsCardanoConfigs.koios.url,
-          GuardsCardanoConfigs.cardanoContractConfig.lockAddress,
-          Configs.tokens(),
           GuardsCardanoConfigs.koios.authToken,
           WinstonLogger.getInstance().getLogger('KoiosNetwork')
         );
@@ -102,8 +99,6 @@ class ChainHandler {
       case BLOCKFROST_NETWORK:
         network = new CardanoBlockFrostNetwork(
           GuardsCardanoConfigs.blockfrost.projectId,
-          GuardsCardanoConfigs.cardanoContractConfig.lockAddress,
-          Configs.tokens(),
           GuardsCardanoConfigs.blockfrost.url,
           WinstonLogger.getInstance().getLogger('BlockFrostNetwork')
         );
@@ -113,12 +108,12 @@ class ChainHandler {
           `No case is defined for network [${GuardsCardanoConfigs.chainNetworkName}]`
         );
     }
-    const tssSignFunction = Tss.getInstance().sign;
+    const tssSignFunction = Tss.getInstance().edwardSign;
     return new CardanoChain(
       network,
       GuardsCardanoConfigs.chainConfigs,
-      Configs.tokenMap,
       MinimumFee.bridgeMinimumFee.feeRatioDivisor,
+      Configs.tokens(),
       tssSignFunction,
       WinstonLogger.getInstance().getLogger('CardanoChain')
     );
@@ -129,7 +124,7 @@ class ChainHandler {
    * @param chain chain name
    * @returns chain object
    */
-  getChain = (chain: string): AbstractChain => {
+  getChain = (chain: string): AbstractChain<any> => {
     switch (chain) {
       case ERGO_CHAIN:
         return this.ergoChain;

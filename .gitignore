@@ -1,5 +1,6 @@
 yarn.lock
 .idea
+.vscode
 node_modules
 .nyc_output
 coverage

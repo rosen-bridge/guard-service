@@ -136,7 +136,7 @@ class ColdStorage {
    */
   static generateColdStorageTransaction = async (
     assets: AssetBalance,
-    chain: AbstractChain,
+    chain: AbstractChain<unknown>,
     chainName: string
   ): Promise<void> => {
     // get guardsConfigBox if chain is ergo
@@ -174,7 +174,7 @@ class ColdStorage {
     );
 
     // generate transaction
-    const tx = await chain.generateTransaction(
+    const txs = await chain.generateMultipleTransactions(
       '',
       TransactionType.coldStorage,
       order,
@@ -182,12 +182,20 @@ class ColdStorage {
       signedTransactions,
       ...extra
     );
-    if (GuardTurn.guardTurn() === GuardPkHandler.getInstance().guardId)
-      (await TxAgreement.getInstance()).addTransactionToQueue(tx);
-    else
+    if (GuardTurn.guardTurn() === GuardPkHandler.getInstance().guardId) {
+      const txAgreement = await TxAgreement.getInstance();
+      for (const tx of txs) {
+        txAgreement.addTransactionToQueue(tx);
+      }
+    } else {
       logger.info(
-        `Cold storage tx [${tx.txId}] on chain [${chainName}] is generated but turn is over. No tx will be added to Agreement queue`
+        `Cold storage txs [${txs
+          .map((tx) => tx.txId)
+          .join(
+            ','
+          )}] on chain [${chainName}] are generated but turn is over. No tx will be added to Agreement queue`
       );
+    }
   };
 }
 

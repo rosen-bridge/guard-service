@@ -44,6 +44,11 @@ enum RevenueType {
   networkFee = 'network-fee',
 }
 
+enum TssAlgorithms {
+  curve = 'ecdsa',
+  edward = 'eddsa',
+}
+
 export {
   EventStatus,
   TransactionStatus,
@@ -55,4 +60,5 @@ export {
   ERG_DECIMALS,
   SUPPORTED_CHAINS,
   RevenueType,
+  TssAlgorithms,
 };

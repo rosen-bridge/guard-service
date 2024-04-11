@@ -5,7 +5,7 @@ import { ThresholdConfig } from '../coldStorage/types';
 import { JsonBI } from '../network/NetworkModels';
 import Utils from '../utils/Utils';
 import { ConfigError } from '../utils/errors';
-import { SUPPORTED_CHAINS } from '../utils/constants';
+import { SUPPORTED_CHAINS, TssAlgorithms } from '../utils/constants';
 import { TransportOptions } from '@rosen-bridge/winston-logger';
 import { cloneDeep } from 'lodash-es';
 
@@ -49,7 +49,10 @@ const getOptionalConfig = <T>(key: string, defaultValue: T) => {
   return defaultValue;
 };
 
-const SupportedAlgorithms = ['eddsa'];
+const SupportedAlgorithms: string[] = [
+  TssAlgorithms.curve,
+  TssAlgorithms.edward,
+];
 class KeygenConfig {
   static isActive = config.get<boolean>('keygen.active');
   static guardsCount = getConfigIntKeyOrDefault('keygen.guards', 0);
@@ -84,11 +87,20 @@ class Configs {
   static tssUrl = config.get<string>('tss.url');
   static tssPort = config.get<string>('tss.port');
   static tssTimeout = getConfigIntKeyOrDefault('tss.timeout', 8); // seconds
-  static tssCallBackUrl = `http://${this.apiHost}:${this.apiPort}/tss/sign`;
+  static tssBaseCallBackUrl = `http://${this.apiHost}:${this.apiPort}/tss/sign`;
   static tssKeygenCallBackUrl = `http://${this.apiHost}:${this.apiPort}/tss/keygen`;
+  // TODO: chainCode and derivationPath should be chain specific (#367)
   static tssKeys = {
     secret: config.get<string>('tss.secret'),
-    publicKeys: config.get<string[]>('tss.publicKeys'),
+    curve: {
+      publicKeys: config.get<string[]>('tss.curve.publicKeys'),
+      chainCode: config.get<string>('tss.curve.chainCode'),
+      derivationPath: config.get<number[]>('tss.curve.derivationPath'),
+    },
+    edward: {
+      publicKeys: config.get<string[]>('tss.edward.publicKeys'),
+      chainCode: config.get<string>('tss.edward.chainCode'),
+    },
     ks: config.get<string[]>('tss.ks'),
   };
 
@@ -165,7 +177,10 @@ class Configs {
       const logTypeValidation = ['console', 'file', 'loki'].includes(log.type);
       let loggerChecks = true;
       if (log.type === 'loki') {
-        const overrideLokiBasicAuth = getOptionalConfig('overrideLokiBasicAuth', '');
+        const overrideLokiBasicAuth = getOptionalConfig(
+          'overrideLokiBasicAuth',
+          ''
+        );
         if (overrideLokiBasicAuth !== '') log.basicAuth = overrideLokiBasicAuth;
         loggerChecks =
           log.host != undefined &&
