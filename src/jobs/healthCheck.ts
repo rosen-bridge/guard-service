@@ -18,9 +18,7 @@ const healthCheckUpdateJob = async (healthCheck: HealthCheck) => {
         const diff = Date.now() - lastP2pUp;
         if (diff > Configs.p2pBrokenTimeAllowed) {
           logger.error(
-            `Service exited during broken p2p for ${
-              Configs.p2pBrokenTimeAllowed / 1000
-            } seconds`
+            `Service exited during broken p2p for ${Configs.p2pBrokenTimeAllowed} seconds`
           );
           exit(1);
         }
