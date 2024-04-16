@@ -1,6 +1,11 @@
 import DatabaseActionMock from '../db/mocked/DatabaseAction.mock';
 import EventProcessor from '../../src/event/EventProcessor';
-import { mockEventTrigger, mockToErgoEventTrigger } from './testData';
+import {
+  feeRatioDivisor,
+  mockEventTrigger,
+  mockToErgoEventTrigger,
+  rsnRatioDivisor,
+} from './testData';
 import {
   mockIsEventConfirmedEnough,
   mockVerifyEvent,
@@ -13,7 +18,7 @@ import {
 } from '@rosen-chains/abstract-chain';
 import Configs from '../../src/configs/Configs';
 import EventSerializer from '../../src/event/EventSerializer';
-import { Fee } from '@rosen-bridge/minimum-fee';
+import { ChainMinimumFee } from '@rosen-bridge/minimum-fee';
 import { mockGetEventFeeConfig } from './mocked/MinimumFee.mock';
 import ChainHandlerMock from '../handlers/ChainHandler.mock';
 import {
@@ -401,11 +406,13 @@ describe('EventProcessor', () => {
      */
     it('should create event payment transaction on Ergo and send it to agreement process successfully', async () => {
       // mock feeConfig
-      const fee: Fee = {
+      const fee: ChainMinimumFee = {
         bridgeFee: 0n,
         networkFee: 0n,
         rsnRatio: 0n,
         feeRatio: 0n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       };
       mockGetEventFeeConfig(fee);
 
@@ -522,11 +529,13 @@ describe('EventProcessor', () => {
      */
     it('should create event payment transaction on `toChain` and send it to agreement process successfully', async () => {
       // mock feeConfig
-      const fee: Fee = {
+      const fee: ChainMinimumFee = {
         bridgeFee: 0n,
         networkFee: 0n,
         rsnRatio: 0n,
         feeRatio: 0n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       };
       mockGetEventFeeConfig(fee);
 
@@ -609,11 +618,13 @@ describe('EventProcessor', () => {
      */
     it('should set event as rejected when event has not verified', async () => {
       // mock feeConfig
-      const fee: Fee = {
+      const fee: ChainMinimumFee = {
         bridgeFee: 0n,
         networkFee: 0n,
         rsnRatio: 0n,
         feeRatio: 0n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       };
       mockGetEventFeeConfig(fee);
 
@@ -677,11 +688,13 @@ describe('EventProcessor', () => {
      */
     it('should set event as waiting when there is not enough assets in lock address to create payment', async () => {
       // mock feeConfig
-      const fee: Fee = {
+      const fee: ChainMinimumFee = {
         bridgeFee: 0n,
         networkFee: 0n,
         rsnRatio: 0n,
         feeRatio: 0n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       };
       mockGetEventFeeConfig(fee);
 
@@ -805,11 +818,13 @@ describe('EventProcessor', () => {
      */
     it('should create event payment transaction on Ergo but does not send it to agreement process when turn is over', async () => {
       // mock feeConfig
-      const fee: Fee = {
+      const fee: ChainMinimumFee = {
         bridgeFee: 0n,
         networkFee: 0n,
         rsnRatio: 0n,
         feeRatio: 0n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       };
       mockGetEventFeeConfig(fee);
 
@@ -941,11 +956,13 @@ describe('EventProcessor', () => {
      */
     it('should create event reward distribution transaction on Ergo and send it to agreement process successfully', async () => {
       // mock feeConfig
-      const fee: Fee = {
+      const fee: ChainMinimumFee = {
         bridgeFee: 0n,
         networkFee: 0n,
         rsnRatio: 0n,
         feeRatio: 0n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       };
       mockGetEventFeeConfig(fee);
 
@@ -1073,11 +1090,13 @@ describe('EventProcessor', () => {
      */
     it('should set event as waiting when there is not enough assets in lock address to create reward distribution', async () => {
       // mock feeConfig
-      const fee: Fee = {
+      const fee: ChainMinimumFee = {
         bridgeFee: 0n,
         networkFee: 0n,
         rsnRatio: 0n,
         feeRatio: 0n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       };
       mockGetEventFeeConfig(fee);
 
@@ -1205,11 +1224,13 @@ describe('EventProcessor', () => {
      */
     it('should create event reward distribution transaction on Ergo but does not send it to agreement process when turn is over', async () => {
       // mock feeConfig
-      const fee: Fee = {
+      const fee: ChainMinimumFee = {
         bridgeFee: 0n,
         networkFee: 0n,
         rsnRatio: 0n,
         feeRatio: 0n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       };
       mockGetEventFeeConfig(fee);
 
