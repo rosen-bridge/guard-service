@@ -20,6 +20,7 @@ class Tss {
   protected static dialer: Dialer;
   protected static guardDetection: GuardDetection;
   protected static tssSigner: TssSigner;
+  protected static trustKey: string;
 
   protected constructor() {
     // do nothing.
@@ -35,9 +36,15 @@ class Tss {
   };
 
   /**
+   * @returns the trust key
+   */
+  static getTrustKey = (): string => Tss.trustKey;
+
+  /**
    * runs tss binary file
    */
   protected static runBinary = (): void => {
+    Tss.trustKey = crypto.randomUUID();
     const args = [
       '-configFile',
       Configs.tssConfigPath,
@@ -45,6 +52,8 @@ class Tss {
       `http://${Configs.apiHost}:${Configs.apiPort}`,
       '-host',
       `${Configs.tssUrl}:${Configs.tssPort}`,
+      '--trust-key',
+      Tss.trustKey,
     ];
     spawn(Configs.tssExecutionPath, args, {
       detached: false,
