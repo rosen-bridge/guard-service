@@ -7,7 +7,7 @@ const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 /**
  * runs MinimumFee update job
  */
-const minimumFeeUpdateJob = () => {
+export const minimumFeeUpdateJob = () => {
   MinimumFeeHandler.getInstance()
     .update()
     .then(() =>
