@@ -105,6 +105,15 @@ class MinimumFeeHandler {
       );
     return res;
   };
+
+  /**
+   * updates minimum fee boxes
+   */
+  update = async (): Promise<void> => {
+    for (const minimumFee of this.minimumFees.values()) {
+      await minimumFee.fetchBox();
+    }
+  };
 }
 
 export default MinimumFeeHandler;

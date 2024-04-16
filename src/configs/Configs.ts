@@ -165,6 +165,10 @@ class Configs {
     'intervals.requeueWaitingEventsInterval',
     43200
   ); // seconds
+  static minimumFeeUpdateInterval = getConfigIntKeyOrDefault(
+    'intervals.minimumFeeUpdateInterval',
+    300
+  ); // seconds
 
   static multiSigFirstSignDelay = 3; // seconds
 
