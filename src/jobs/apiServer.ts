@@ -29,7 +29,6 @@ const initApiServer = async () => {
     bodyLimit: Configs.apiBodyLimit,
   }).withTypeProvider<TypeBoxTypeProvider>();
 
-  await apiServer.register(swagger);
   if (Configs.apiAllowedOrigins.includes('*')) {
     await apiServer.register(fastifyCors, {});
   } else {
@@ -43,7 +42,9 @@ const initApiServer = async () => {
       ) => {
         if (
           req.headers.origin &&
-          Configs.apiAllowedOrigins.indexOf(req.headers.origin) !== -1
+          Configs.apiAllowedOrigins.filter((item) =>
+            req.headers.origin?.includes(item)
+          ).length > 0
         ) {
           callback(null, { origin: true });
         }
@@ -65,7 +66,6 @@ const initApiServer = async () => {
       },
     },
   });
-  await apiServer.register(fastifyCors, {});
 
   await apiServer.register(swaggerUi, {
     routePrefix: '/swagger',
