@@ -70,9 +70,9 @@ class Configs {
   static apiKeyHash = config.get<string>('api.apiKeyHash');
   static apiBodyLimit =
     getConfigIntKeyOrDefault('api.jsonBodyLimit', 50) * 1024 * 1024; // value in MB
-  static apiMaxRequestPerMinutes = getConfigIntKeyOrDefault(
-    'api.apiMaxRequestPerMinutes',
-    10000
+  static apiMaxRequestsPerMinute = getConfigIntKeyOrDefault(
+    'api.maxRequestsPerMinute',
+    100_000
   );
   static isManualTxRequestActive = getOptionalConfig<boolean>(
     'api.isManualTxRequestActive',

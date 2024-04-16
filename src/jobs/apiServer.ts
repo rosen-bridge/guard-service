@@ -68,7 +68,7 @@ const initApiServer = async () => {
   });
 
   await apiServer.register(rateLimit, {
-    max: Configs.apiMaxRequestPerMinutes,
+    max: Configs.apiMaxRequestsPerMinute,
     timeWindow: '1 minute',
   });
 
