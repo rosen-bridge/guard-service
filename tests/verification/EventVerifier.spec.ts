@@ -32,7 +32,7 @@ describe('EventVerifier', () => {
      * - returned value should be true
      */
     it('should return true when event box and source tx are both confirmed', async () => {
-      const mockedEvent = mockEventTrigger();
+      const mockedEvent = mockEventTrigger().event;
 
       // mock ChainHandler
       // mock Ergo `getHeight` such that event box is confirmed
@@ -68,7 +68,7 @@ describe('EventVerifier', () => {
      * - returned value should be false
      */
     it('should return true when event box is unconfirmed', async () => {
-      const mockedEvent = mockEventTrigger();
+      const mockedEvent = mockEventTrigger().event;
 
       // mock Ergo `getHeight` such that event box is confirmed
       ChainHandlerMock.mockErgoFunctionReturnValue(
@@ -99,7 +99,7 @@ describe('EventVerifier', () => {
      * - returned value should be false
      */
     it('should return false when source tx is unconfirmed', async () => {
-      const mockedEvent = mockEventTrigger();
+      const mockedEvent = mockEventTrigger().event;
 
       // mock ChainHandler
       // mock Ergo `getHeight` such that event box is confirmed
@@ -154,7 +154,7 @@ describe('EventVerifier', () => {
      */
     it('should verify event successfully', async () => {
       // insert a mocked event into db
-      const mockedEvent = mockEventTrigger();
+      const mockedEvent = mockEventTrigger().event;
       const boxSerialized = 'boxSerialized';
       await DatabaseActionMock.insertEventRecord(mockedEvent, boxSerialized);
 
@@ -191,7 +191,7 @@ describe('EventVerifier', () => {
      */
     it('should return false when event does not verify', async () => {
       // insert a mocked event into db
-      const mockedEvent = mockEventTrigger();
+      const mockedEvent = mockEventTrigger().event;
       const boxSerialized = 'boxSerialized';
       await DatabaseActionMock.insertEventRecord(mockedEvent, boxSerialized);
 
@@ -228,7 +228,7 @@ describe('EventVerifier', () => {
      */
     it('should return false when event RWT is wrong', async () => {
       // insert a mocked event into db
-      const mockedEvent = mockEventTrigger();
+      const mockedEvent = mockEventTrigger().event;
       const boxSerialized = 'boxSerialized';
       await DatabaseActionMock.insertEventRecord(mockedEvent, boxSerialized);
 

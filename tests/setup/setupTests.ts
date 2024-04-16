@@ -1,3 +1,4 @@
+import '../../src/bootstrap';
 import DatabaseActionMock from '../db/mocked/DatabaseAction.mock';
 import TestConfigs from '../testUtils/TestConfigs';
 import * as TestTransactionSerializer from '../../tests/transaction/TestTransactionSerializer';

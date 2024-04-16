@@ -707,7 +707,7 @@ describe('TransactionProcessor', () => {
      */
     it('should update tx status to completed and event status to pending-reward when payment tx is confirmed enough', async () => {
       // mock event and transaction and insert into db
-      const mockedEvent = EventTestData.mockEventTrigger();
+      const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
       const tx = mockPaymentTransaction(
         TransactionType.payment,
@@ -777,7 +777,7 @@ describe('TransactionProcessor', () => {
      */
     it('should update tx status and event status to completed when Ergo payment tx is confirmed enough', async () => {
       // mock event and transaction and insert into db
-      const mockedEvent = EventTestData.mockToErgoEventTrigger();
+      const mockedEvent = EventTestData.mockToErgoEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
       const tx = mockErgoPaymentTransaction(TransactionType.payment, eventId);
       await DatabaseActionMock.insertEventRecord(
@@ -837,7 +837,7 @@ describe('TransactionProcessor', () => {
      */
     it('should update tx status and event status to completed when reward distribution tx is confirmed enough', async () => {
       // mock event and transaction and insert into db
-      const mockedEvent = EventTestData.mockEventTrigger();
+      const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
       const tx = mockErgoPaymentTransaction(TransactionType.reward, eventId);
       await DatabaseActionMock.insertEventRecord(
@@ -948,7 +948,7 @@ describe('TransactionProcessor', () => {
      */
     it('should update last check when transaction is not confirmed enough', async () => {
       // mock event and transaction and insert into db
-      const mockedEvent = EventTestData.mockEventTrigger();
+      const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
       const tx = mockPaymentTransaction(
         TransactionType.payment,
@@ -1010,7 +1010,7 @@ describe('TransactionProcessor', () => {
      */
     it('should update last check when transaction is in mempool', async () => {
       // mock event and transaction and insert into db
-      const mockedEvent = EventTestData.mockEventTrigger();
+      const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
       const tx = mockPaymentTransaction(
         TransactionType.payment,
@@ -1076,7 +1076,7 @@ describe('TransactionProcessor', () => {
      */
     it('should resubmit the transaction when not found but still valid', async () => {
       // mock event and transaction and insert into db
-      const mockedEvent = EventTestData.mockEventTrigger();
+      const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
       const tx = mockPaymentTransaction(
         TransactionType.payment,
@@ -1133,7 +1133,7 @@ describe('TransactionProcessor', () => {
      */
     it('should update status to invalid when tx is not valid anymore', async () => {
       // mock event and transaction and insert into db
-      const mockedEvent = EventTestData.mockEventTrigger();
+      const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
       const tx = mockPaymentTransaction(
         TransactionType.payment,
@@ -1199,7 +1199,7 @@ describe('TransactionProcessor', () => {
      */
     it('should update tx status to invalid and event status to pending-payment when payment tx is invalid', async () => {
       // mock event and transaction and insert into db
-      const mockedEvent = EventTestData.mockEventTrigger();
+      const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
       const tx = mockPaymentTransaction(
         TransactionType.payment,
@@ -1276,7 +1276,7 @@ describe('TransactionProcessor', () => {
      */
     it('should update tx status to invalid and event status to pending-reward when reward distribution tx is invalid', async () => {
       // mock event and transaction and insert into db
-      const mockedEvent = EventTestData.mockEventTrigger();
+      const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
       const tx = mockPaymentTransaction(
         TransactionType.reward,
@@ -1463,7 +1463,7 @@ describe('TransactionProcessor', () => {
      */
     it('should do nothing when there is not enough confirmation for invalid state', async () => {
       // mock event and transaction and insert into db
-      const mockedEvent = EventTestData.mockEventTrigger();
+      const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
       const tx = mockPaymentTransaction(
         TransactionType.reward,

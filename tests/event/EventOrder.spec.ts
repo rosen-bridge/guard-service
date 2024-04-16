@@ -1,7 +1,11 @@
 import { Fee } from '@rosen-bridge/minimum-fee';
 import GuardsCardanoConfigs from '../../src/configs/GuardsCardanoConfigs';
 import EventOrder from '../../src/event/EventOrder';
-import { mockNativeTokenPaymentEvent, mockTokenPaymentEvent } from './testData';
+import {
+  mockNativeTokenPaymentEvent,
+  mockTokenPaymentEvent,
+  mockTokenPaymentFromErgoEvent,
+} from './testData';
 import TestUtils from '../testUtils/TestUtils';
 import MinimumFee from '../../src/event/MinimumFee';
 import GuardsErgoConfigs from '../../src/configs/GuardsErgoConfigs';
@@ -26,7 +30,7 @@ describe('EventOrder', () => {
      * - should not contain any tokens
      * - should not have extra
      */
-    it('should generate native token payment successfully', async () => {
+    it('should generate native token payment successfully', () => {
       // mock function arguments
       const chainMinTransfer = 100n;
       const fee: Fee = {
@@ -35,10 +39,10 @@ describe('EventOrder', () => {
         rsnRatio: 0n,
         feeRatio: 0n,
       };
-      const mockedEvent = mockNativeTokenPaymentEvent();
+      const mockedEvent = mockNativeTokenPaymentEvent().event;
 
       // run test
-      const result = await EventOrder.eventSinglePayment(
+      const result = EventOrder.eventSinglePayment(
         mockedEvent,
         chainMinTransfer,
         fee
@@ -50,7 +54,8 @@ describe('EventOrder', () => {
         BigInt(mockedEvent.amount) -
           BigInt(mockedEvent.bridgeFee) -
           BigInt(mockedEvent.networkFee) +
-          chainMinTransfer
+          chainMinTransfer +
+          GuardsErgoConfigs.additionalErgOnPayment
       );
       expect(result.assets.tokens.length).toEqual(0);
       expect(result.extra).toBeUndefined();
@@ -62,7 +67,7 @@ describe('EventOrder', () => {
      * @dependencies
      * - tokenMap
      * @scenario
-     * - mock function arguments
+     * - mock function arguments (target chain is not Ergo)
      * - run test
      * - verify returned value
      * @expected
@@ -72,7 +77,7 @@ describe('EventOrder', () => {
      *   with value event.amount - event.bridgeFee - event.networkFee +
      * - should not have extra
      */
-    it('should generate token payment successfully', async () => {
+    it('should generate token payment successfully', () => {
       // mock function arguments
       const chainMinTransfer = 100n;
       const fee: Fee = {
@@ -81,10 +86,10 @@ describe('EventOrder', () => {
         rsnRatio: 0n,
         feeRatio: 0n,
       };
-      const mockedEvent = mockTokenPaymentEvent();
+      const mockedEvent = mockTokenPaymentFromErgoEvent().event;
 
       // run test
-      const result = await EventOrder.eventSinglePayment(
+      const result = EventOrder.eventSinglePayment(
         mockedEvent,
         chainMinTransfer,
         fee
@@ -121,7 +126,7 @@ describe('EventOrder', () => {
      *   with value event.amount - fee.bridgeFee - fee.networkFee +
      * - should not have extra
      */
-    it('should replace fees on token payment when they are less than minimum config', async () => {
+    it('should replace fees on token payment when they are less than minimum config', () => {
       // mock function arguments
       const chainMinTransfer = 100n;
       const fee: Fee = {
@@ -130,10 +135,10 @@ describe('EventOrder', () => {
         rsnRatio: 0n,
         feeRatio: 0n,
       };
-      const mockedEvent = mockTokenPaymentEvent();
+      const mockedEvent = mockTokenPaymentEvent().event;
 
       // run test
-      const result = await EventOrder.eventSinglePayment(
+      const result = EventOrder.eventSinglePayment(
         mockedEvent,
         chainMinTransfer,
         fee
@@ -141,7 +146,9 @@ describe('EventOrder', () => {
 
       // verify returned value
       expect(result.address).toEqual(mockedEvent.toAddress);
-      expect(result.assets.nativeToken).toEqual(chainMinTransfer);
+      expect(result.assets.nativeToken).toEqual(
+        chainMinTransfer + GuardsErgoConfigs.additionalErgOnPayment
+      );
       expect(result.assets.tokens.length).toEqual(1);
       expect(result.assets.tokens[0].id).toEqual(
         mockedEvent.targetChainTokenId
@@ -170,7 +177,7 @@ describe('EventOrder', () => {
      * - should not contain any tokens
      * - should not have extra
      */
-    it('should replace bridgeFee on native token payment when it is less than expected value', async () => {
+    it('should replace bridgeFee on native token payment when it is less than expected value', () => {
       // mock function arguments
       const chainMinTransfer = 100n;
       const fee: Fee = {
@@ -179,10 +186,10 @@ describe('EventOrder', () => {
         rsnRatio: 0n,
         feeRatio: 1000n,
       };
-      const mockedEvent = mockNativeTokenPaymentEvent();
+      const mockedEvent = mockNativeTokenPaymentEvent().event;
 
       // run test
-      const result = await EventOrder.eventSinglePayment(
+      const result = EventOrder.eventSinglePayment(
         mockedEvent,
         chainMinTransfer,
         fee
@@ -195,7 +202,8 @@ describe('EventOrder', () => {
           (BigInt(mockedEvent.amount) * fee.feeRatio) /
             MinimumFee.bridgeMinimumFee.feeRatioDivisor -
           BigInt(mockedEvent.networkFee) +
-          chainMinTransfer
+          chainMinTransfer +
+          GuardsErgoConfigs.additionalErgOnPayment
       );
       expect(result.assets.tokens.length).toEqual(0);
       expect(result.extra).toBeUndefined();
@@ -206,7 +214,7 @@ describe('EventOrder', () => {
     const fromChainRwt = 'fromChainRwt';
     const rwtCount = 2n;
 
-    beforeEach(async () => {
+    beforeEach(() => {
       ChainHandlerMock.resetMock();
     });
 
@@ -225,7 +233,7 @@ describe('EventOrder', () => {
      * @expected
      * - first 5 orders must have cardano permit address
      */
-    it('should set cardano permit address for each watcher when source chain of event is cardano', async () => {
+    it('should set cardano permit address for each watcher when source chain of event is cardano', () => {
       const fee: Fee = {
         bridgeFee: 0n,
         networkFee: 0n,
@@ -235,7 +243,7 @@ describe('EventOrder', () => {
       const mockedEvent = mockNativeTokenPaymentEvent();
 
       // mock ChainHandler
-      ChainHandlerMock.mockChainName(mockedEvent.fromChain, true);
+      ChainHandlerMock.mockChainName(mockedEvent.event.fromChain, true);
       // mock `getChainConfigs`
       ChainHandlerMock.mockFromChainFunction(
         'getChainConfigs',
@@ -243,13 +251,14 @@ describe('EventOrder', () => {
       );
 
       const result = EventOrder.eventRewardOrder(
-        mockedEvent,
+        mockedEvent.event,
         [],
         fee,
         '',
         fromChainRwt,
         rwtCount,
-        100000000n
+        100000000n,
+        mockedEvent.WIDs
       );
       for (let index = 0; index < mockedEvent.WIDs.length; index++) {
         expect(
@@ -295,7 +304,7 @@ describe('EventOrder', () => {
      *     - should have no token
      *     - should have no extra
      */
-    it('should generate native token reward distribution successfully', async () => {
+    it('should generate native token reward distribution successfully', () => {
       // mock function arguments
       const fee: Fee = {
         bridgeFee: 0n,
@@ -311,7 +320,7 @@ describe('EventOrder', () => {
       };
 
       // mock ChainHandler
-      ChainHandlerMock.mockChainName(mockedEvent.fromChain, true);
+      ChainHandlerMock.mockChainName(mockedEvent.event.fromChain, true);
       // mock `getChainConfigs`
       ChainHandlerMock.mockFromChainFunction(
         'getChainConfigs',
@@ -320,13 +329,14 @@ describe('EventOrder', () => {
 
       // run test
       const result = EventOrder.eventRewardOrder(
-        mockedEvent,
+        mockedEvent.event,
         [unmergedWID],
         fee,
         paymentTxId,
         fromChainRwt,
         rwtCount,
-        100000000n
+        100000000n,
+        mockedEvent.WIDs
       );
 
       // verify returned value
@@ -423,7 +433,7 @@ describe('EventOrder', () => {
      *     - should have no token
      *     - should have no extra
      */
-    it('should generate token reward distribution successfully', async () => {
+    it('should generate token reward distribution successfully', () => {
       // mock function arguments
       const fee: Fee = {
         bridgeFee: 0n,
@@ -439,7 +449,7 @@ describe('EventOrder', () => {
       };
 
       // mock ChainHandler
-      ChainHandlerMock.mockChainName(mockedEvent.fromChain, true);
+      ChainHandlerMock.mockChainName(mockedEvent.event.fromChain, true);
       // mock `getChainConfigs`
       ChainHandlerMock.mockFromChainFunction(
         'getChainConfigs',
@@ -448,13 +458,14 @@ describe('EventOrder', () => {
 
       // run test
       const result = EventOrder.eventRewardOrder(
-        mockedEvent,
+        mockedEvent.event,
         [unmergedWID],
         fee,
         paymentTxId,
         fromChainRwt,
         rwtCount,
-        10000000n
+        10000000n,
+        mockedEvent.WIDs
       );
 
       // verify returned value
@@ -469,7 +480,7 @@ describe('EventOrder', () => {
         expect(watcherOrder.assets.tokens[0].id).toEqual(fromChainRwt);
         expect(watcherOrder.assets.tokens[0].value).toEqual(rwtCount);
         expect(watcherOrder.assets.tokens[1].id).toEqual(
-          mockedEvent.targetChainTokenId
+          mockedEvent.event.targetChainTokenId
         );
         expect(watcherOrder.assets.tokens[1].value).toEqual(833333n);
         expect(watcherOrder.assets.tokens[2].id).toEqual(rosenConfig.RSN);
@@ -486,7 +497,7 @@ describe('EventOrder', () => {
       expect(unmergedWatcherOrder.assets.tokens[0].id).toEqual(fromChainRwt);
       expect(unmergedWatcherOrder.assets.tokens[0].value).toEqual(rwtCount);
       expect(unmergedWatcherOrder.assets.tokens[1].id).toEqual(
-        mockedEvent.targetChainTokenId
+        mockedEvent.event.targetChainTokenId
       );
       expect(unmergedWatcherOrder.assets.tokens[1].value).toEqual(833333n);
       expect(unmergedWatcherOrder.assets.tokens[2].id).toEqual(rosenConfig.RSN);
@@ -500,7 +511,7 @@ describe('EventOrder', () => {
       expect(bridgeFeeOrder.assets.nativeToken).toEqual(100000n);
       expect(bridgeFeeOrder.assets.tokens.length).toEqual(1);
       expect(bridgeFeeOrder.assets.tokens[0].id).toEqual(
-        mockedEvent.targetChainTokenId
+        mockedEvent.event.targetChainTokenId
       );
       expect(bridgeFeeOrder.assets.tokens[0].value).toEqual(5000002n);
       expect(bridgeFeeOrder.extra).toEqual(paymentTxId);
@@ -522,7 +533,7 @@ describe('EventOrder', () => {
       expect(networkFeeOrder.assets.nativeToken).toEqual(100000n);
       expect(networkFeeOrder.assets.tokens.length).toEqual(1);
       expect(networkFeeOrder.assets.tokens[0].id).toEqual(
-        mockedEvent.targetChainTokenId
+        mockedEvent.event.targetChainTokenId
       );
       expect(networkFeeOrder.assets.tokens[0].value).toEqual(15000n);
       expect(networkFeeOrder.extra).toBeUndefined();
@@ -564,7 +575,7 @@ describe('EventOrder', () => {
      *     - should have no token
      *     - should have no extra
      */
-    it('should replace fees on token payment when they are less than minimum config', async () => {
+    it('should replace fees on token payment when they are less than minimum config', () => {
       // mock function arguments
       const fee: Fee = {
         bridgeFee: 20000000n,
@@ -580,7 +591,7 @@ describe('EventOrder', () => {
       };
 
       // mock ChainHandler
-      ChainHandlerMock.mockChainName(mockedEvent.fromChain, true);
+      ChainHandlerMock.mockChainName(mockedEvent.event.fromChain, true);
       // mock `getChainConfigs`
       ChainHandlerMock.mockFromChainFunction(
         'getChainConfigs',
@@ -589,13 +600,14 @@ describe('EventOrder', () => {
 
       // run test
       const result = EventOrder.eventRewardOrder(
-        mockedEvent,
+        mockedEvent.event,
         [unmergedWID],
         fee,
         paymentTxId,
         fromChainRwt,
         rwtCount,
-        10000000n
+        10000000n,
+        mockedEvent.WIDs
       );
 
       // verify returned value
@@ -610,7 +622,7 @@ describe('EventOrder', () => {
         expect(watcherOrder.assets.tokens[0].id).toEqual(fromChainRwt);
         expect(watcherOrder.assets.tokens[0].value).toEqual(rwtCount);
         expect(watcherOrder.assets.tokens[1].id).toEqual(
-          mockedEvent.targetChainTokenId
+          mockedEvent.event.targetChainTokenId
         );
         expect(watcherOrder.assets.tokens[1].value).toEqual(1666666n);
         expect(watcherOrder.assets.tokens[2].id).toEqual(rosenConfig.RSN);
@@ -627,7 +639,7 @@ describe('EventOrder', () => {
       expect(unmergedWatcherOrder.assets.tokens[0].id).toEqual(fromChainRwt);
       expect(unmergedWatcherOrder.assets.tokens[0].value).toEqual(rwtCount);
       expect(unmergedWatcherOrder.assets.tokens[1].id).toEqual(
-        mockedEvent.targetChainTokenId
+        mockedEvent.event.targetChainTokenId
       );
       expect(unmergedWatcherOrder.assets.tokens[1].value).toEqual(1666666n);
       expect(unmergedWatcherOrder.assets.tokens[2].id).toEqual(rosenConfig.RSN);
@@ -641,7 +653,7 @@ describe('EventOrder', () => {
       expect(bridgeFeeOrder.assets.nativeToken).toEqual(100000n);
       expect(bridgeFeeOrder.assets.tokens.length).toEqual(1);
       expect(bridgeFeeOrder.assets.tokens[0].id).toEqual(
-        mockedEvent.targetChainTokenId
+        mockedEvent.event.targetChainTokenId
       );
       expect(bridgeFeeOrder.assets.tokens[0].value).toEqual(10000004n);
       expect(bridgeFeeOrder.extra).toEqual(paymentTxId);
@@ -663,7 +675,7 @@ describe('EventOrder', () => {
       expect(networkFeeOrder.assets.nativeToken).toEqual(100000n);
       expect(networkFeeOrder.assets.tokens.length).toEqual(1);
       expect(networkFeeOrder.assets.tokens[0].id).toEqual(
-        mockedEvent.targetChainTokenId
+        mockedEvent.event.targetChainTokenId
       );
       expect(networkFeeOrder.assets.tokens[0].value).toEqual(30000n);
       expect(networkFeeOrder.extra).toBeUndefined();
@@ -705,7 +717,7 @@ describe('EventOrder', () => {
      *     - should have no token
      *     - should have no extra
      */
-    it('should replace bridgeFee on native token payment when it is less than expected value', async () => {
+    it('should replace bridgeFee on native token payment when it is less than expected value', () => {
       // mock function arguments
       const fee: Fee = {
         bridgeFee: 0n,
@@ -721,7 +733,7 @@ describe('EventOrder', () => {
       };
 
       // mock ChainHandler
-      ChainHandlerMock.mockChainName(mockedEvent.fromChain, true);
+      ChainHandlerMock.mockChainName(mockedEvent.event.fromChain, true);
       // mock `getChainConfigs`
       ChainHandlerMock.mockFromChainFunction(
         'getChainConfigs',
@@ -730,13 +742,14 @@ describe('EventOrder', () => {
 
       // run test
       const result = EventOrder.eventRewardOrder(
-        mockedEvent,
+        mockedEvent.event,
         [unmergedWID],
         fee,
         paymentTxId,
         fromChainRwt,
         rwtCount,
-        10000000n
+        10000000n,
+        mockedEvent.WIDs
       );
 
       // verify returned value
@@ -827,7 +840,7 @@ describe('EventOrder', () => {
      *     - should have no token
      *     - should have no extra
      */
-    it('should not create RSN emission box when no RSN emitted', async () => {
+    it('should not create RSN emission box when no RSN emitted', () => {
       // mock function arguments
       const fee: Fee = {
         bridgeFee: 0n,
@@ -843,7 +856,7 @@ describe('EventOrder', () => {
       };
 
       // mock ChainHandler
-      ChainHandlerMock.mockChainName(mockedEvent.fromChain, true);
+      ChainHandlerMock.mockChainName(mockedEvent.event.fromChain, true);
       // mock `getChainConfigs`
       ChainHandlerMock.mockFromChainFunction(
         'getChainConfigs',
@@ -852,13 +865,14 @@ describe('EventOrder', () => {
 
       // run test
       const result = EventOrder.eventRewardOrder(
-        mockedEvent,
+        mockedEvent.event,
         [unmergedWID],
         fee,
         paymentTxId,
         fromChainRwt,
         rwtCount,
-        10000000n
+        10000000n,
+        mockedEvent.WIDs
       );
 
       // verify returned value
@@ -873,7 +887,7 @@ describe('EventOrder', () => {
         expect(watcherOrder.assets.tokens[0].id).toEqual(fromChainRwt);
         expect(watcherOrder.assets.tokens[0].value).toEqual(rwtCount);
         expect(watcherOrder.assets.tokens[1].id).toEqual(
-          mockedEvent.targetChainTokenId
+          mockedEvent.event.targetChainTokenId
         );
         expect(watcherOrder.assets.tokens[1].value).toEqual(833333n);
         expect(watcherOrder.extra).toEqual(mockedEvent.WIDs[index]);
@@ -888,7 +902,7 @@ describe('EventOrder', () => {
       expect(unmergedWatcherOrder.assets.tokens[0].id).toEqual(fromChainRwt);
       expect(unmergedWatcherOrder.assets.tokens[0].value).toEqual(rwtCount);
       expect(unmergedWatcherOrder.assets.tokens[1].id).toEqual(
-        mockedEvent.targetChainTokenId
+        mockedEvent.event.targetChainTokenId
       );
       expect(unmergedWatcherOrder.assets.tokens[1].value).toEqual(833333n);
       expect(unmergedWatcherOrder.extra).toEqual(unmergedWID.wid);
@@ -900,7 +914,7 @@ describe('EventOrder', () => {
       expect(bridgeFeeOrder.assets.nativeToken).toEqual(100000n);
       expect(bridgeFeeOrder.assets.tokens.length).toEqual(1);
       expect(bridgeFeeOrder.assets.tokens[0].id).toEqual(
-        mockedEvent.targetChainTokenId
+        mockedEvent.event.targetChainTokenId
       );
       expect(bridgeFeeOrder.assets.tokens[0].value).toEqual(5000002n);
       expect(bridgeFeeOrder.extra).toEqual(paymentTxId);
@@ -912,7 +926,7 @@ describe('EventOrder', () => {
       expect(networkFeeOrder.assets.nativeToken).toEqual(100000n);
       expect(networkFeeOrder.assets.tokens.length).toEqual(1);
       expect(networkFeeOrder.assets.tokens[0].id).toEqual(
-        mockedEvent.targetChainTokenId
+        mockedEvent.event.targetChainTokenId
       );
       expect(networkFeeOrder.assets.tokens[0].value).toEqual(15000n);
       expect(networkFeeOrder.extra).toBeUndefined();
