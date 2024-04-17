@@ -111,7 +111,10 @@ class ChainHandler {
     const tssSignFunctionWrapper = async (
       txHash: Uint8Array
     ): Promise<string> => {
-      const res = await edwardSign(Buffer.from(txHash).toString(), chainCode);
+      const res = await edwardSign(
+        Buffer.from(txHash).toString('hex'),
+        chainCode
+      );
       return res.signature;
     };
     return new CardanoChain(
