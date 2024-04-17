@@ -63,9 +63,9 @@ tss:
   secret: ''
   ks:
     - ''
-  curvePublicKeys:
+  curvePublicKeys: # ECDSA
     - ''
-  edwardPublicKeys:
+  edwardPublicKeys: # EdDSA
     - ''
 p2p:
   addresses: # relay configs

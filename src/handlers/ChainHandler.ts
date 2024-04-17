@@ -106,14 +106,12 @@ class ChainHandler {
           `No case is defined for network [${GuardsCardanoConfigs.chainNetworkName}]`
         );
     }
+    const chainCode = GuardsCardanoConfigs.tssChainCode;
+    const edwardSign = Tss.getInstance().edwardSign;
     const tssSignFunctionWrapper = async (
       txHash: Uint8Array
     ): Promise<string> => {
-      const chainCode = GuardsCardanoConfigs.tssChainCode;
-      const res = await Tss.getInstance().edwardSign(
-        Buffer.from(txHash).toString(),
-        chainCode
-      );
+      const res = await edwardSign(Buffer.from(txHash).toString(), chainCode);
       return res.signature;
     };
     return new CardanoChain(
