@@ -89,19 +89,11 @@ class Configs {
   static tssTimeout = getConfigIntKeyOrDefault('tss.timeout', 8); // seconds
   static tssBaseCallBackUrl = `http://${this.apiHost}:${this.apiPort}/tss/sign`;
   static tssKeygenCallBackUrl = `http://${this.apiHost}:${this.apiPort}/tss/keygen`;
-  // TODO: chainCode and derivationPath should be chain specific (#367)
   static tssKeys = {
     secret: config.get<string>('tss.secret'),
-    curve: {
-      publicKeys: config.get<string[]>('tss.curve.publicKeys'),
-      chainCode: config.get<string>('tss.curve.chainCode'),
-      derivationPath: config.get<number[]>('tss.curve.derivationPath'),
-    },
-    edward: {
-      publicKeys: config.get<string[]>('tss.edward.publicKeys'),
-      chainCode: config.get<string>('tss.edward.chainCode'),
-    },
     ks: config.get<string[]>('tss.ks'),
+    curvePublicKeys: config.get<string[]>('tss.curvePublicKeys'),
+    edwardPublicKeys: config.get<string[]>('tss.edwardPublicKeys'),
   };
 
   // guards configs

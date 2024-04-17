@@ -106,12 +106,21 @@ class ChainHandler {
           `No case is defined for network [${GuardsCardanoConfigs.chainNetworkName}]`
         );
     }
-    const tssSignFunction = Tss.getInstance().edwardSign;
+    const tssSignFunctionWrapper = async (
+      txHash: Uint8Array
+    ): Promise<string> => {
+      const chainCode = GuardsCardanoConfigs.tssChainCode;
+      const res = await Tss.getInstance().edwardSign(
+        Buffer.from(txHash).toString(),
+        chainCode
+      );
+      return res.signature;
+    };
     return new CardanoChain(
       network,
       GuardsCardanoConfigs.chainConfigs,
       Configs.tokens(),
-      tssSignFunction,
+      tssSignFunctionWrapper,
       WinstonLogger.getInstance().getLogger('CardanoChain')
     );
   };

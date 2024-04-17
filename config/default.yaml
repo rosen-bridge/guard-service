@@ -26,6 +26,7 @@ cardano:
     cold: 120 # a cold storage transaction on Cardano get confirmed
     manual: 120 # a manual transaction on Cardano get confirmed
   coldStorageAddress: ''
+  tssChainCode: ''
 ergo:
   networkType: 'mainnet' # Ergo network type [testnet, mainnet]
   chainNetwork: 'explorer' # 'explorer' or 'node'
@@ -62,16 +63,10 @@ tss:
   secret: ''
   ks:
     - ''
-  curve: # ECDSA
-    derivationPath:
-      - 0
-    chainCode: ''
-    publicKeys:
-      - ''
-  edward: # EdDSA
-    chainCode: ''
-    publicKeys:
-      - ''
+  curvePublicKeys:
+    - ''
+  edwardPublicKeys:
+    - ''
 p2p:
   addresses: # relay configs
     - peerId: ''
