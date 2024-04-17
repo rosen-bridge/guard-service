@@ -7,6 +7,7 @@ api:
   apiKeyHash: '' # blake2b hash of Api-Key
   jsonBodyLimit: 50
   isManualTxRequestActive: false
+  maxRequestsPerMinute: 100_000
 
 cardano:
   networkType: 'mainnet' # Cardano network type [testnet, mainnet]

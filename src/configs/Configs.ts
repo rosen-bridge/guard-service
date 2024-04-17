@@ -70,6 +70,10 @@ class Configs {
   static apiKeyHash = config.get<string>('api.apiKeyHash');
   static apiBodyLimit =
     getConfigIntKeyOrDefault('api.jsonBodyLimit', 50) * 1024 * 1024; // value in MB
+  static apiMaxRequestsPerMinute = getConfigIntKeyOrDefault(
+    'api.maxRequestsPerMinute',
+    100_000
+  );
   static isManualTxRequestActive = getOptionalConfig<boolean>(
     'api.isManualTxRequestActive',
     false
@@ -165,7 +169,10 @@ class Configs {
       const logTypeValidation = ['console', 'file', 'loki'].includes(log.type);
       let loggerChecks = true;
       if (log.type === 'loki') {
-        const overrideLokiBasicAuth = getOptionalConfig('overrideLokiBasicAuth', '');
+        const overrideLokiBasicAuth = getOptionalConfig(
+          'overrideLokiBasicAuth',
+          ''
+        );
         if (overrideLokiBasicAuth !== '') log.basicAuth = overrideLokiBasicAuth;
         loggerChecks =
           log.host != undefined &&
