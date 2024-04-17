@@ -89,6 +89,10 @@ class Configs {
 
   static apiBodyLimit =
     getConfigIntKeyOrDefault('api.jsonBodyLimit', 50) * 1024 * 1024; // value in MB
+  static apiMaxRequestsPerMinute = getConfigIntKeyOrDefault(
+    'api.maxRequestsPerMinute',
+    100_000
+  );
   static isManualTxRequestActive = getOptionalConfig<boolean>(
     'api.isManualTxRequestActive',
     false

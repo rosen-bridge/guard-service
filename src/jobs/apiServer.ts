@@ -14,6 +14,7 @@ import { healthRoutes } from '../api/healthCheck';
 import { tssRoute } from '../api/tss';
 import WinstonLogger from '@rosen-bridge/winston-logger';
 import { signRoute } from '../api/signTx';
+import rateLimit from '@fastify/rate-limit';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
@@ -87,6 +88,11 @@ const initApiServer = async () => {
       return swaggerObject;
     },
     transformSpecificationClone: true,
+  });
+
+  await apiServer.register(rateLimit, {
+    max: Configs.apiMaxRequestsPerMinute,
+    timeWindow: '1 minute',
   });
 
   await apiServer.register(p2pRoutes);

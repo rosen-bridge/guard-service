@@ -8,6 +8,7 @@ api:
   jsonBodyLimit: 50
   isManualTxRequestActive: false
   allowedOrigins: [] # List of allowed origins for CORS headers
+  maxRequestsPerMinute: 100_000
 
 cardano:
   networkType: 'mainnet' # Cardano network type [testnet, mainnet]
