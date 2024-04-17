@@ -1,7 +1,7 @@
 import { PaymentTransaction } from '@rosen-chains/abstract-chain';
 import EventSerializer from '../event/EventSerializer';
 import EventVerifier from './EventVerifier';
-import MinimumFee from '../event/MinimumFee';
+import MinimumFeeHandler from '../handlers/MinimumFeeHandler';
 import { EventStatus, TransactionStatus } from '../utils/constants';
 import TransactionVerifier from './TransactionVerifier';
 import { DatabaseAction } from '../db/DatabaseAction';
@@ -44,7 +44,7 @@ class RequestVerifier {
     }
 
     // get minimum-fee and verify event
-    const feeConfig = await MinimumFee.getEventFeeConfig(event);
+    const feeConfig = MinimumFeeHandler.getEventFeeConfig(event);
 
     // verify event
     if (!(await EventVerifier.verifyEvent(event, feeConfig))) {

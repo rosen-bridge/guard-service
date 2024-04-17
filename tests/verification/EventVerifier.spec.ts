@@ -7,7 +7,7 @@ import {
 } from '@rosen-chains/abstract-chain';
 import GuardsErgoConfigs from '../../src/configs/GuardsErgoConfigs';
 import DatabaseActionMock from '../db/mocked/DatabaseAction.mock';
-import { Fee } from '@rosen-bridge/minimum-fee';
+import { ChainMinimumFee } from '@rosen-bridge/minimum-fee';
 import { ConfirmedEventEntity } from '../../src/db/entities/ConfirmedEventEntity';
 import { EventStatus } from '../../src/utils/constants';
 
@@ -124,11 +124,13 @@ describe('EventVerifier', () => {
   });
 
   describe('verifyEvent', () => {
-    const fee: Fee = {
+    const fee: ChainMinimumFee = {
       bridgeFee: 0n,
       networkFee: 0n,
       rsnRatio: 0n,
       feeRatio: 0n,
+      rsnRatioDivisor: 1000000000000n,
+      feeRatioDivisor: 1000n,
     };
 
     beforeEach(async () => {

@@ -2,7 +2,7 @@ import { EventTrigger, TransactionType } from '@rosen-chains/abstract-chain';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import ChainHandler from '../handlers/ChainHandler';
 import { ConfirmationStatus } from '@rosen-chains/abstract-chain';
-import { Fee } from '@rosen-bridge/minimum-fee';
+import { ChainMinimumFee } from '@rosen-bridge/minimum-fee';
 import EventBoxes from '../event/EventBoxes';
 import { ConfirmedEventEntity } from '../db/entities/ConfirmedEventEntity';
 import { EventStatus } from '../utils/constants';
@@ -39,7 +39,7 @@ class EventVerifier {
    */
   static verifyEvent = async (
     event: EventTrigger,
-    feeConfig: Fee
+    feeConfig: ChainMinimumFee
   ): Promise<boolean> => {
     // get event box
     const eventBox = await EventBoxes.getEventBox(event);

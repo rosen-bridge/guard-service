@@ -1,13 +1,14 @@
-import { Fee } from '@rosen-bridge/minimum-fee';
+import { ChainMinimumFee } from '@rosen-bridge/minimum-fee';
 import GuardsCardanoConfigs from '../../src/configs/GuardsCardanoConfigs';
 import EventOrder from '../../src/event/EventOrder';
 import {
+  feeRatioDivisor,
   mockNativeTokenPaymentEvent,
   mockTokenPaymentEvent,
   mockTokenPaymentFromErgoEvent,
+  rsnRatioDivisor,
 } from './testData';
 import TestUtils from '../testUtils/TestUtils';
-import MinimumFee from '../../src/event/MinimumFee';
 import GuardsErgoConfigs from '../../src/configs/GuardsErgoConfigs';
 import { rosenConfig } from '../../src/configs/RosenConfig';
 import ChainHandlerMock from '../handlers/ChainHandler.mock';
@@ -33,11 +34,13 @@ describe('EventOrder', () => {
     it('should generate native token payment successfully', () => {
       // mock function arguments
       const chainMinTransfer = 100n;
-      const fee: Fee = {
+      const fee: ChainMinimumFee = {
         bridgeFee: 0n,
         networkFee: 0n,
         rsnRatio: 0n,
         feeRatio: 0n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       };
       const mockedEvent = mockNativeTokenPaymentEvent().event;
 
@@ -80,11 +83,13 @@ describe('EventOrder', () => {
     it('should generate token payment successfully', () => {
       // mock function arguments
       const chainMinTransfer = 100n;
-      const fee: Fee = {
+      const fee: ChainMinimumFee = {
         bridgeFee: 0n,
         networkFee: 0n,
         rsnRatio: 0n,
         feeRatio: 0n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       };
       const mockedEvent = mockTokenPaymentFromErgoEvent().event;
 
@@ -129,11 +134,13 @@ describe('EventOrder', () => {
     it('should replace fees on token payment when they are less than minimum config', () => {
       // mock function arguments
       const chainMinTransfer = 100n;
-      const fee: Fee = {
+      const fee: ChainMinimumFee = {
         bridgeFee: 20000000n,
         networkFee: 30000n,
         rsnRatio: 0n,
         feeRatio: 0n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       };
       const mockedEvent = mockTokenPaymentEvent().event;
 
@@ -180,11 +187,13 @@ describe('EventOrder', () => {
     it('should replace bridgeFee on native token payment when it is less than expected value', () => {
       // mock function arguments
       const chainMinTransfer = 100n;
-      const fee: Fee = {
+      const fee: ChainMinimumFee = {
         bridgeFee: 0n,
         networkFee: 0n,
         rsnRatio: 0n,
         feeRatio: 1000n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       };
       const mockedEvent = mockNativeTokenPaymentEvent().event;
 
@@ -199,8 +208,7 @@ describe('EventOrder', () => {
       expect(result.address).toEqual(mockedEvent.toAddress);
       expect(result.assets.nativeToken).toEqual(
         BigInt(mockedEvent.amount) -
-          (BigInt(mockedEvent.amount) * fee.feeRatio) /
-            MinimumFee.bridgeMinimumFee.feeRatioDivisor -
+          (BigInt(mockedEvent.amount) * fee.feeRatio) / feeRatioDivisor -
           BigInt(mockedEvent.networkFee) +
           chainMinTransfer +
           GuardsErgoConfigs.additionalErgOnPayment
@@ -234,11 +242,13 @@ describe('EventOrder', () => {
      * - first 5 orders must have cardano permit address
      */
     it('should set cardano permit address for each watcher when source chain of event is cardano', () => {
-      const fee: Fee = {
+      const fee: ChainMinimumFee = {
         bridgeFee: 0n,
         networkFee: 0n,
         rsnRatio: 1000000000n,
         feeRatio: 0n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       };
       const mockedEvent = mockNativeTokenPaymentEvent();
 
@@ -306,11 +316,13 @@ describe('EventOrder', () => {
      */
     it('should generate native token reward distribution successfully', () => {
       // mock function arguments
-      const fee: Fee = {
+      const fee: ChainMinimumFee = {
         bridgeFee: 0n,
         networkFee: 0n,
         rsnRatio: 1000000000n,
         feeRatio: 0n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       };
       const paymentTxId = '';
       const mockedEvent = mockNativeTokenPaymentEvent();
@@ -438,11 +450,13 @@ describe('EventOrder', () => {
      */
     it('should generate token reward distribution successfully', () => {
       // mock function arguments
-      const fee: Fee = {
+      const fee: ChainMinimumFee = {
         bridgeFee: 0n,
         networkFee: 0n,
         rsnRatio: 1000000000n,
         feeRatio: 0n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       };
       const paymentTxId = '';
       const mockedEvent = mockTokenPaymentEvent();
@@ -583,11 +597,13 @@ describe('EventOrder', () => {
      */
     it('should replace fees on token payment when they are less than minimum config', () => {
       // mock function arguments
-      const fee: Fee = {
+      const fee: ChainMinimumFee = {
         bridgeFee: 20000000n,
         networkFee: 30000n,
         rsnRatio: 1000000000n,
         feeRatio: 0n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       };
       const paymentTxId = '';
       const mockedEvent = mockTokenPaymentEvent();
@@ -728,11 +744,13 @@ describe('EventOrder', () => {
      */
     it('should replace bridgeFee on native token payment when it is less than expected value', () => {
       // mock function arguments
-      const fee: Fee = {
+      const fee: ChainMinimumFee = {
         bridgeFee: 0n,
         networkFee: 0n,
         rsnRatio: 1000000000n,
         feeRatio: 1000n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       };
       const paymentTxId = '';
       const mockedEvent = mockNativeTokenPaymentEvent();
@@ -854,11 +872,13 @@ describe('EventOrder', () => {
      */
     it('should not create RSN emission box when no RSN emitted', () => {
       // mock function arguments
-      const fee: Fee = {
+      const fee: ChainMinimumFee = {
         bridgeFee: 0n,
         networkFee: 0n,
         rsnRatio: 0n,
         feeRatio: 0n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       };
       const paymentTxId = '';
       const mockedEvent = mockTokenPaymentEvent();

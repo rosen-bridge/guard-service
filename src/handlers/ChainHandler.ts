@@ -15,7 +15,6 @@ import ErgoExplorerNetwork, {
 import Configs from '../configs/Configs';
 import GuardsCardanoConfigs from '../configs/GuardsCardanoConfigs';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
-import MinimumFee from '../event/MinimumFee';
 import MultiSigHandler from '../guard/multisig/MultiSigHandler';
 import Tss from '../guard/Tss';
 import WinstonLogger from '@rosen-bridge/winston-logger';
@@ -75,7 +74,6 @@ class ChainHandler {
     return new ErgoChain(
       network,
       GuardsErgoConfigs.chainConfigs,
-      MinimumFee.bridgeMinimumFee.feeRatioDivisor,
       Configs.tokens(),
       multiSigSignFunction,
       WinstonLogger.getInstance().getLogger('ErgoChain')
@@ -112,7 +110,6 @@ class ChainHandler {
     return new CardanoChain(
       network,
       GuardsCardanoConfigs.chainConfigs,
-      MinimumFee.bridgeMinimumFee.feeRatioDivisor,
       Configs.tokens(),
       tssSignFunction,
       WinstonLogger.getInstance().getLogger('CardanoChain')

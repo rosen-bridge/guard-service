@@ -1,7 +1,9 @@
 import TransactionVerifier from '../../src/verification/TransactionVerifier';
 import {
+  feeRatioDivisor,
   mockEventTrigger,
   mockTokenPaymentFromErgoEvent,
+  rsnRatioDivisor,
 } from '../event/testData';
 import ChainHandlerMock, {
   chainHandlerInstance,
@@ -199,6 +201,8 @@ describe('TransactionVerifier', () => {
         networkFee: 0n,
         rsnRatio: 0n,
         feeRatio: 100n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       });
     });
 

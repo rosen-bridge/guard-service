@@ -9,7 +9,7 @@ import {
 import ChainHandler from '../handlers/ChainHandler';
 import { isEqual } from 'lodash-es';
 import EventOrder from '../event/EventOrder';
-import MinimumFee from '../event/MinimumFee';
+import MinimumFeeHandler from '../handlers/MinimumFeeHandler';
 import Configs from '../configs/Configs';
 import DatabaseHandler from '../db/DatabaseHandler';
 import { JsonBI } from '../network/NetworkModels';
@@ -72,7 +72,7 @@ class TransactionVerifier {
     const dbAction = DatabaseAction.getInstance();
 
     // verify tx order
-    const feeConfig = await MinimumFee.getEventFeeConfig(event);
+    const feeConfig = MinimumFeeHandler.getEventFeeConfig(event);
     const txOrder = chain.extractTransactionOrder(tx);
     const eventWIDs = (await dbAction.getEventCommitments(tx.eventId)).map(
       (commitment) => commitment.WID

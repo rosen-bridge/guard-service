@@ -6,10 +6,9 @@ import {
   TokenInfo,
 } from '@rosen-chains/abstract-chain';
 import Utils from '../utils/Utils';
-import { Fee } from '@rosen-bridge/minimum-fee';
+import { ChainMinimumFee } from '@rosen-bridge/minimum-fee';
 import Configs from '../configs/Configs';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
-import MinimumFee from './MinimumFee';
 import { rosenConfig } from '../configs/RosenConfig';
 import { ERG, ERGO_CHAIN, ErgoChain } from '@rosen-chains/ergo';
 import ChainHandler from '../handlers/ChainHandler';
@@ -25,7 +24,7 @@ class EventOrder {
    */
   static createEventPaymentOrder = async (
     event: EventTrigger,
-    feeConfig: Fee,
+    feeConfig: ChainMinimumFee,
     eventWIDs: string[]
   ): Promise<PaymentOrder> => {
     const targetChain = ChainHandler.getInstance().getChain(event.toChain);
@@ -95,7 +94,7 @@ class EventOrder {
    */
   static createEventRewardOrder = async (
     event: EventTrigger,
-    feeConfig: Fee,
+    feeConfig: ChainMinimumFee,
     paymentTxId: string,
     eventWIDs: string[]
   ): Promise<PaymentOrder> => {
@@ -140,7 +139,7 @@ class EventOrder {
   static eventSinglePayment = (
     event: EventTrigger,
     chainMinTransfer: bigint,
-    feeConfig: Fee
+    feeConfig: ChainMinimumFee
   ): SinglePayment => {
     const assets: AssetBalance = {
       nativeToken: chainMinTransfer,
@@ -154,8 +153,7 @@ class EventOrder {
       })[0][event.toChain].metaData.type === 'native';
     const bridgeFee = Utils.maxBigint(
       Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee),
-      (BigInt(event.amount) * feeConfig.feeRatio) /
-        MinimumFee.bridgeMinimumFee.feeRatioDivisor
+      (BigInt(event.amount) * feeConfig.feeRatio) / feeConfig.feeRatioDivisor
     );
     const networkFee = Utils.maxBigint(
       BigInt(event.networkFee),
@@ -196,7 +194,7 @@ class EventOrder {
   static eventRewardOrder = (
     event: EventTrigger,
     unmergedWIDs: PermitBoxValue[],
-    feeConfig: Fee,
+    feeConfig: ChainMinimumFee,
     paymentTxId: string,
     rwtTokenId: string,
     rwtCount: bigint,
@@ -209,16 +207,13 @@ class EventOrder {
     ];
     const bridgeFee = Utils.maxBigint(
       Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee),
-      (BigInt(event.amount) * feeConfig.feeRatio) /
-        MinimumFee.bridgeMinimumFee.feeRatioDivisor
+      (BigInt(event.amount) * feeConfig.feeRatio) / feeConfig.feeRatioDivisor
     );
     const networkFee = Utils.maxBigint(
       BigInt(event.networkFee),
       feeConfig.networkFee
     );
-    const rsnFee =
-      (bridgeFee * feeConfig.rsnRatio) /
-      MinimumFee.bridgeMinimumFee.ratioDivisor;
+    const rsnFee = (bridgeFee * feeConfig.rsnRatio) / feeConfig.rsnRatioDivisor;
 
     const tokenId = Configs.tokenMap.getID(
       Configs.tokenMap.search(event.fromChain, {

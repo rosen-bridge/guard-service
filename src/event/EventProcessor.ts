@@ -4,7 +4,7 @@ import EventVerifier from '../verification/EventVerifier';
 import EventSerializer from './EventSerializer';
 import EventOrder from './EventOrder';
 import EventBoxes from './EventBoxes';
-import MinimumFee from './MinimumFee';
+import MinimumFeeHandler from '../handlers/MinimumFeeHandler';
 import { EventStatus } from '../utils/constants';
 import {
   EventTrigger,
@@ -14,7 +14,7 @@ import {
   TransactionType,
 } from '@rosen-chains/abstract-chain';
 import Notification from '../communication/notification/Notification';
-import { Fee } from '@rosen-bridge/minimum-fee';
+import { ChainMinimumFee } from '@rosen-bridge/minimum-fee';
 import ChainHandler from '../handlers/ChainHandler';
 import { ERGO_CHAIN, ErgoChain } from '@rosen-chains/ergo';
 import { rosenConfig } from '../configs/RosenConfig';
@@ -123,7 +123,7 @@ class EventProcessor {
     logger.info(`Processing event [${eventId}] for payment`);
 
     // get minimum-fee and verify event
-    const feeConfig = await MinimumFee.getEventFeeConfig(event);
+    const feeConfig = MinimumFeeHandler.getEventFeeConfig(event);
 
     // verify event
     if (!(await EventVerifier.verifyEvent(event, feeConfig))) {
@@ -167,7 +167,7 @@ class EventProcessor {
    */
   protected static createEventPayment = async (
     event: EventTrigger,
-    feeConfig: Fee
+    feeConfig: ChainMinimumFee
   ): Promise<PaymentTransaction> => {
     const targetChain = ChainHandler.getInstance().getChain(event.toChain);
 
@@ -260,7 +260,7 @@ class EventProcessor {
     const paymentTxId = eventTxs[0].txId;
 
     // get minimum-fee and verify event
-    const feeConfig = await MinimumFee.getEventFeeConfig(event);
+    const feeConfig = MinimumFeeHandler.getEventFeeConfig(event);
 
     try {
       const tx = await this.createEventRewardDistribution(
@@ -300,7 +300,7 @@ class EventProcessor {
    */
   protected static createEventRewardDistribution = async (
     event: EventTrigger,
-    feeConfig: Fee,
+    feeConfig: ChainMinimumFee,
     paymentTxId: string
   ): Promise<PaymentTransaction> => {
     const ergoChain = ChainHandler.getInstance().getErgoChain();
