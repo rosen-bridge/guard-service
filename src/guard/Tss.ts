@@ -52,7 +52,7 @@ class Tss {
       `http://${Configs.apiHost}:${Configs.apiPort}`,
       '-host',
       `${Configs.tssUrl}:${Configs.tssPort}`,
-      '--trust-key',
+      '-trustKey',
       Tss.trustKey,
     ];
     spawn(Configs.tssExecutionPath, args, {
