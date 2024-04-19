@@ -5,6 +5,7 @@ import {
   TssSigner,
 } from '@rosen-bridge/tss';
 import axios from 'axios';
+import * as crypto from 'crypto';
 import CommunicationConfig from '../communication/CommunicationConfig';
 import Dialer from '../communication/Dialer';
 import Configs from '../configs/Configs';
