@@ -15,6 +15,7 @@ const signRoute = (server: FastifySeverInstance) => {
     error: Type.Optional(Type.String()),
     message: Type.String(),
     signature: Type.Optional(Type.String()),
+    trustKey: Type.String(),
   });
   server.post(
     '/tss/sign',
@@ -29,7 +30,13 @@ const signRoute = (server: FastifySeverInstance) => {
     },
     async (request, reply) => {
       try {
-        const { status, error, message, signature } = request.body;
+        const { status, error, message, signature, trustKey } = request.body;
+        if (trustKey !== Tss.getTrustKey()) {
+          logger.warn(
+            `Received message on Tss tx sign callback with wrong trust key`
+          );
+          reply.status(400).send({ message: 'Trust key is wrong' });
+        }
         await Tss.getInstance().handleSignData(
           status,
           error,
