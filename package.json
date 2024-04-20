@@ -43,7 +43,7 @@
     "@rosen-bridge/minimum-fee": "^1.0.2",
     "@rosen-bridge/scanner": "^3.2.6",
     "@rosen-bridge/tokens": "^1.1.0",
-    "@rosen-bridge/tss": "^2.0.0",
+    "@rosen-bridge/tss": "^3.0.1",
     "@rosen-bridge/watcher-data-extractor": "^5.0.1",
     "@rosen-bridge/winston-logger": "0.2.1",
     "@rosen-chains/abstract-chain": "^7.0.0",

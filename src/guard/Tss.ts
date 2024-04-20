@@ -109,7 +109,7 @@ class Tss {
     // initialize guard detection
     const ecdsaSigner = new ECDSA(Configs.tssKeys.secret);
     Tss.curveGuardDetection = new GuardDetection({
-      guardsPublicKey: Configs.tssKeys.curve.publicKeys,
+      guardsPublicKey: Configs.tssKeys.curvePublicKeys,
       signer: ecdsaSigner,
       submit: this.generateSubmitMessageWrapper(Tss.curve.DETECTION_CHANNEL),
       getPeerId: () => Promise.resolve(Tss.dialer.getDialerId()),
@@ -125,10 +125,8 @@ class Tss {
       submitMsg: this.generateSubmitMessageWrapper(Tss.curve.SIGNING_CHANNEL),
       secret: Configs.tssKeys.secret,
       detection: Tss.curveGuardDetection,
-      guardsPk: Configs.tssKeys.curve.publicKeys,
+      guardsPk: Configs.tssKeys.curvePublicKeys,
       logger: WinstonLogger.getInstance().getLogger('tssSigner'),
-      chainCode: Configs.tssKeys.curve.chainCode,
-      derivationPath: Configs.tssKeys.curve.derivationPath,
     });
 
     // subscribe to channels
@@ -151,7 +149,7 @@ class Tss {
     // initialize guard detection
     const eddsaSigner = new EdDSA(Configs.tssKeys.secret);
     Tss.edwardGuardDetection = new GuardDetection({
-      guardsPublicKey: Configs.tssKeys.edward.publicKeys,
+      guardsPublicKey: Configs.tssKeys.edwardPublicKeys,
       signer: eddsaSigner,
       submit: this.generateSubmitMessageWrapper(Tss.edward.DETECTION_CHANNEL),
       getPeerId: () => Promise.resolve(Tss.dialer.getDialerId()),
@@ -167,9 +165,8 @@ class Tss {
       submitMsg: this.generateSubmitMessageWrapper(Tss.edward.SIGNING_CHANNEL),
       secret: Configs.tssKeys.secret,
       detection: Tss.edwardGuardDetection,
-      guardsPk: Configs.tssKeys.edward.publicKeys,
+      guardsPk: Configs.tssKeys.edwardPublicKeys,
       logger: WinstonLogger.getInstance().getLogger('tssSigner'),
-      chainCode: Configs.tssKeys.edward.chainCode,
     });
 
     // subscribe to channels
@@ -286,22 +283,18 @@ class Tss {
   };
 
   /**
-   * signs a transaction using curve (ECDSA) signer
-   * @param txHash
+   * returns curve (ECDSA) signer function
    */
-  curveSign = async (txHash: Uint8Array): Promise<string> => {
-    return Tss.tssCurveSigner.signPromised(Buffer.from(txHash).toString('hex'));
-  };
+  get curveSign() {
+    return Tss.tssCurveSigner.signPromised;
+  }
 
   /**
-   * signs a transaction using edward (EdDSA) signer
-   * @param txHash
+   * returns (EdDSA) signer signer function
    */
-  edwardSign = async (txHash: Uint8Array): Promise<string> => {
-    return Tss.tssEdwardSigner.signPromised(
-      Buffer.from(txHash).toString('hex')
-    );
-  };
+  get edwardSign() {
+    return Tss.tssEdwardSigner.signPromised;
+  }
 
   /**
    * update guard detection and tss

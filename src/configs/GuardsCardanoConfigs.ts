@@ -56,6 +56,9 @@ class GuardsCardanoConfigs {
   static coldAddress: string = config.get<string>('cardano.coldStorageAddress');
   static aggregatedPublicKey = config.get<string>('cardano.bankPublicKey');
 
+  // tss related configs
+  static tssChainCode = config.get<string>('cardano.tssChainCode');
+
   // CardanoChain required configs
   static chainConfigs: CardanoConfigs = {
     fee: this.txFee,
