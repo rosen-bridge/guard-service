@@ -8,6 +8,16 @@ import { assetRoutes } from '../../src/api/assets';
 import ChainHandler from '../../src/handlers/ChainHandler';
 import { FastifySeverInstance } from '../../src/api/schemas';
 
+vi.mock('../../src/utils/constants', async (importOriginal) => {
+  const mod = await importOriginal<
+    typeof import('../../src/utils/constants')
+  >();
+  return {
+    ...mod,
+    SUPPORTED_CHAINS: [ERGO_CHAIN, CARDANO_CHAIN],
+  };
+});
+
 describe('assets', () => {
   let mockedServer: FastifySeverInstance;
 

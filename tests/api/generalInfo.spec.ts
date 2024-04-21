@@ -1,12 +1,23 @@
+import { AssetBalance } from '@rosen-chains/abstract-chain';
+import { CARDANO_CHAIN } from '@rosen-chains/cardano';
+import { ERGO_CHAIN } from '@rosen-chains/ergo';
 import { guardInfo } from './testData';
 import ChainHandlerMock from '../handlers/ChainHandler.mock';
 import { generalInfoRoute } from '../../src/api/generalInfo';
-import { AssetBalance } from '@rosen-chains/abstract-chain';
-import { CARDANO_CHAIN } from '@rosen-chains/cardano';
 import fastify from 'fastify';
 import GuardsErgoConfigs from '../../src/configs/GuardsErgoConfigs';
 import GuardsCardanoConfigs from '../../src/configs/GuardsCardanoConfigs';
 import { FastifySeverInstance } from '../../src/api/schemas';
+
+vi.mock('../../src/utils/constants', async (importOriginal) => {
+  const mod = await importOriginal<
+    typeof import('../../src/utils/constants')
+  >();
+  return {
+    ...mod,
+    SUPPORTED_CHAINS: [ERGO_CHAIN, CARDANO_CHAIN],
+  };
+});
 
 describe('generalInfo', () => {
   describe('GET /info', () => {

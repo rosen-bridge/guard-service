@@ -9,7 +9,23 @@ api:
   isManualTxRequestActive: false
   allowedOrigins: [] # List of allowed origins for CORS headers
   maxRequestsPerMinute: 100_000
-
+bitcoin:
+  networkType: 'mainnet' # Cardano network type [testnet, mainnet]
+  chainNetwork: 'esplora' # 'esplora'
+  esplora:
+    url: 'https://blockstream.info'
+    timeout: 8
+  bankPublicKey: '' # corresponding public key of lock address
+  txFeeSlippage: 10 # allowed slippage percentage for tx fees
+  confirmation: # required block confirmation
+    observation: 6 # an observation transaction (lock transaction) on Cardano get confirmed
+    payment: 6 # a payment transaction on Cardano get confirmed
+    cold: 6 # a cold storage transaction on Cardano get confirmed
+    manual: 6 # a manual transaction on Cardano get confirmed
+  coldStorageAddress: ''
+  tssChainCode: 'BitcoinChainCode'
+  derivationPath:
+    -
 cardano:
   networkType: 'mainnet' # Cardano network type [testnet, mainnet]
   chainNetwork: 'koios' # 'ogmios', 'koios' or 'blockfrost'
