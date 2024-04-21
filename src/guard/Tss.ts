@@ -8,6 +8,7 @@ import {
   TssSigner,
 } from '@rosen-bridge/tss';
 import axios from 'axios';
+import * as crypto from 'crypto';
 import CommunicationConfig from '../communication/CommunicationConfig';
 import Dialer from '../communication/Dialer';
 import Configs from '../configs/Configs';
@@ -32,6 +33,7 @@ class Tss {
     SIGNING_CHANNEL: 'tss-eddsa-signing',
   };
   protected static dialer: Dialer;
+  protected static trustKey: string;
 
   protected constructor() {
     // do nothing.
@@ -47,9 +49,15 @@ class Tss {
   };
 
   /**
+   * @returns the trust key
+   */
+  static getTrustKey = (): string => Tss.trustKey;
+
+  /**
    * runs tss binary file
    */
   protected static runBinary = (): void => {
+    Tss.trustKey = crypto.randomUUID();
     const args = [
       '-configFile',
       Configs.tssConfigPath,
@@ -57,6 +65,8 @@ class Tss {
       `http://${Configs.apiHost}:${Configs.apiPort}`,
       '-host',
       `${Configs.tssUrl}:${Configs.tssPort}`,
+      '-trustKey',
+      Tss.trustKey,
     ];
     spawn(Configs.tssExecutionPath, args, {
       detached: false,

@@ -207,4 +207,5 @@ export const TssCallbackSchema = Type.Object({
   message: Type.String(),
   signature: Type.Optional(Type.String()),
   signatureRecovery: Type.Optional(Type.String()),
+  trustKey: Type.String(),
 });

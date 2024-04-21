@@ -29,6 +29,7 @@
     "@chainsafe/libp2p-noise": "^10.2.0",
     "@emurgo/cardano-serialization-lib-nodejs": "^11.1.0",
     "@fastify/cors": "^8.3.0",
+    "@fastify/rate-limit": "^9.1.0",
     "@fastify/swagger": "^8.8.0",
     "@fastify/swagger-ui": "^1.9.3",
     "@fastify/type-provider-typebox": "^3.4.0",
