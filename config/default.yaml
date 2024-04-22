@@ -23,7 +23,7 @@ bitcoin:
     cold: 6 # a cold storage transaction on Cardano get confirmed
     manual: 6 # a manual transaction on Cardano get confirmed
   coldStorageAddress: ''
-  tssChainCode: 'BitcoinChainCode'
+  tssChainCode: ''
   derivationPath:
     -
 cardano:
