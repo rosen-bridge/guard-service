@@ -4,6 +4,11 @@ import {
   CARDANO_CHAIN,
   CardanoChain,
 } from '@rosen-chains/cardano';
+import {
+  AbstractBitcoinNetwork,
+  BITCOIN_CHAIN,
+  BitcoinChain,
+} from '@rosen-chains/bitcoin';
 import { AbstractErgoNetwork, ERGO_CHAIN, ErgoChain } from '@rosen-chains/ergo';
 import CardanoKoiosNetwork, {
   KOIOS_NETWORK,
@@ -20,6 +25,8 @@ import Tss from '../guard/Tss';
 import WinstonLogger from '@rosen-bridge/winston-logger';
 import { BLOCKFROST_NETWORK } from '@rosen-chains/cardano-blockfrost-network';
 import CardanoBlockFrostNetwork from '@rosen-chains/cardano-blockfrost-network/dist/CardanoBlockFrostNetwork';
+import BitcoinEsploraNetwork from '@rosen-chains/bitcoin-esplora';
+import GuardsBitcoinConfigs from '../configs/GuardsBitcoinConfigs';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
@@ -27,10 +34,12 @@ class ChainHandler {
   private static instance: ChainHandler;
   private readonly ergoChain: ErgoChain;
   private readonly cardanoChain: CardanoChain;
+  private readonly bitcoinChain: BitcoinChain;
 
   private constructor() {
     this.ergoChain = this.generateErgoChain();
     this.cardanoChain = this.generateCardanoChain();
+    this.bitcoinChain = this.generateBitcoinChain();
     logger.info('ChainHandler instantiated');
   }
 
@@ -127,6 +136,52 @@ class ChainHandler {
   };
 
   /**
+   * generates Bitcoin network and chain objects using configs
+   * @returns BitcoinChain object
+   */
+  private generateBitcoinChain = (): BitcoinChain => {
+    let network: AbstractBitcoinNetwork;
+    switch (GuardsBitcoinConfigs.chainNetworkName) {
+      case 'esplora':
+        network = new BitcoinEsploraNetwork(
+          GuardsBitcoinConfigs.esplora.url,
+          WinstonLogger.getInstance().getLogger('EsploraNetwork')
+        );
+        break;
+      default:
+        throw Error(
+          `No case is defined for network [${GuardsBitcoinConfigs.chainNetworkName}]`
+        );
+    }
+    const chainCode = GuardsBitcoinConfigs.tssChainCode;
+    const derivationPath = GuardsBitcoinConfigs.derivationPath;
+    const curveSign = Tss.getInstance().curveSign;
+    const tssSignFunctionWrapper = async (
+      txHash: Uint8Array
+    ): Promise<{
+      signature: string;
+      signatureRecovery: string;
+    }> => {
+      const res = await curveSign(
+        Buffer.from(txHash).toString('hex'),
+        chainCode,
+        derivationPath
+      );
+      return {
+        signature: res.signature,
+        signatureRecovery: res.signatureRecovery!,
+      };
+    };
+    return new BitcoinChain(
+      network,
+      GuardsBitcoinConfigs.chainConfigs,
+      Configs.tokens(),
+      tssSignFunctionWrapper,
+      WinstonLogger.getInstance().getLogger('BitcoinChain')
+    );
+  };
+
+  /**
    * gets chain object by name
    * @param chain chain name
    * @returns chain object
@@ -137,6 +192,8 @@ class ChainHandler {
         return this.ergoChain;
       case CARDANO_CHAIN:
         return this.cardanoChain;
+      case BITCOIN_CHAIN:
+        return this.bitcoinChain;
       default:
         throw Error(`Chain [${chain}] is not implemented`);
     }

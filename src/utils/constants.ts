@@ -1,3 +1,4 @@
+import { BITCOIN_CHAIN } from '@rosen-chains/bitcoin';
 import { CARDANO_CHAIN } from '@rosen-chains/cardano';
 import { ERGO_CHAIN } from '@rosen-chains/ergo';
 
@@ -35,7 +36,7 @@ const DefaultRevenueApiCount = 10;
 const ADA_DECIMALS = 6;
 const ERG_DECIMALS = 9;
 
-const SUPPORTED_CHAINS = [ERGO_CHAIN, CARDANO_CHAIN];
+const SUPPORTED_CHAINS = [ERGO_CHAIN, CARDANO_CHAIN, BITCOIN_CHAIN];
 
 enum RevenueType {
   fraud = 'fraud',
