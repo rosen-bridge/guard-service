@@ -53,7 +53,7 @@ describe('DatabaseActions', () => {
     it('should return completed events successfully', async () => {
       // insert 6 mocked events
       //  completed event
-      const completedEvent = EventTestData.mockEventTrigger();
+      const completedEvent = EventTestData.mockEventTrigger().event;
       await DatabaseHandlerMock.insertEventRecord(
         completedEvent,
         EventStatus.completed,
@@ -68,19 +68,19 @@ describe('DatabaseActions', () => {
         'paymentTxId'
       );
       //  unspent event with timeout status
-      const timeoutEvent = EventTestData.mockEventTrigger();
+      const timeoutEvent = EventTestData.mockEventTrigger().event;
       await DatabaseHandlerMock.insertEventRecord(
         timeoutEvent,
         EventStatus.timeout
       );
       //  rejected event
-      const rejectedEvent = EventTestData.mockEventTrigger();
+      const rejectedEvent = EventTestData.mockEventTrigger().event;
       await DatabaseHandlerMock.insertEventRecord(
         rejectedEvent,
         EventStatus.rejected
       );
       //  timeout event with spendTxId
-      const spentTimeoutEvent = EventTestData.mockEventTrigger();
+      const spentTimeoutEvent = EventTestData.mockEventTrigger().event;
       await DatabaseHandlerMock.insertEventRecord(
         spentTimeoutEvent,
         EventStatus.timeout,
@@ -95,13 +95,13 @@ describe('DatabaseActions', () => {
         'paymentTxId'
       );
       //  unspent event with pending-payment status
-      const unspentEvent = EventTestData.mockEventTrigger();
+      const unspentEvent = EventTestData.mockEventTrigger().event;
       await DatabaseHandlerMock.insertEventRecord(
         unspentEvent,
         EventStatus.pendingPayment
       );
       //  unconfirmed event
-      const unconfirmedEvent = EventTestData.mockEventTrigger();
+      const unconfirmedEvent = EventTestData.mockEventTrigger().event;
       await DatabaseHandlerMock.insertOnlyEventDataRecord(unconfirmedEvent);
 
       // run test
@@ -144,7 +144,7 @@ describe('DatabaseActions', () => {
     it('should return ongoing events successfully', async () => {
       // insert 6 mocked events
       //  completed event
-      const completedEvent = EventTestData.mockEventTrigger();
+      const completedEvent = EventTestData.mockEventTrigger().event;
       await DatabaseHandlerMock.insertEventRecord(
         completedEvent,
         EventStatus.completed,
@@ -159,19 +159,19 @@ describe('DatabaseActions', () => {
         'paymentTxId'
       );
       //  unspent event with timeout status
-      const timeoutEvent = EventTestData.mockEventTrigger();
+      const timeoutEvent = EventTestData.mockEventTrigger().event;
       await DatabaseHandlerMock.insertEventRecord(
         timeoutEvent,
         EventStatus.timeout
       );
       //  rejected event
-      const rejectedEvent = EventTestData.mockEventTrigger();
+      const rejectedEvent = EventTestData.mockEventTrigger().event;
       await DatabaseHandlerMock.insertEventRecord(
         rejectedEvent,
         EventStatus.rejected
       );
       //  timeout event with spendTxId
-      const spentTimeoutEvent = EventTestData.mockEventTrigger();
+      const spentTimeoutEvent = EventTestData.mockEventTrigger().event;
       await DatabaseHandlerMock.insertEventRecord(
         spentTimeoutEvent,
         EventStatus.timeout,
@@ -186,13 +186,13 @@ describe('DatabaseActions', () => {
         'paymentTxId'
       );
       //  unspent event with pending-payment status
-      const unspentEvent = EventTestData.mockEventTrigger();
+      const unspentEvent = EventTestData.mockEventTrigger().event;
       await DatabaseHandlerMock.insertEventRecord(
         unspentEvent,
         EventStatus.pendingPayment
       );
       //  unconfirmed event
-      const unconfirmedEvent = EventTestData.mockEventTrigger();
+      const unconfirmedEvent = EventTestData.mockEventTrigger().event;
       await DatabaseHandlerMock.insertOnlyEventDataRecord(unconfirmedEvent);
 
       // run test
@@ -282,10 +282,10 @@ describe('DatabaseActions', () => {
     it('should return events that are transferring assets to ergo network', async () => {
       for (let index = 0; index < 10; index++) {
         // insert 10 mocked events into db
-        const mockedEvent = EventTestData.mockEventTrigger();
+        const mockedEvent = EventTestData.mockEventTrigger().event;
         await insertCompletedEvent(mockedEvent);
         // insert 10 mocked events to ergo network into db
-        const mockedErgoEvent = EventTestData.mockToErgoEventTrigger();
+        const mockedErgoEvent = EventTestData.mockToErgoEventTrigger().event;
         await insertCompletedEvent(mockedErgoEvent);
       }
 
@@ -317,11 +317,11 @@ describe('DatabaseActions', () => {
     it('should return events that are transferring assets from ergo network', async () => {
       for (let index = 0; index < 10; index++) {
         // insert 10 mocked events into db
-        const mockedEvent = EventTestData.mockEventTrigger();
+        const mockedEvent = EventTestData.mockEventTrigger().event;
         await insertCompletedEvent(mockedEvent);
 
         // insert 10 mocked events from ergo network into db
-        const mockedEvent2 = EventTestData.mockFromErgoEventTrigger();
+        const mockedEvent2 = EventTestData.mockFromErgoEventTrigger().event;
         await insertCompletedEvent(mockedEvent2);
       }
 
@@ -415,13 +415,13 @@ describe('DatabaseActions', () => {
       // insert 3 events
       const boxSerialized = 'boxSerialized';
       //  one without spendTxId
-      const mockedEvent1 = EventTestData.mockEventTrigger();
+      const mockedEvent1 = EventTestData.mockEventTrigger().event;
       await DatabaseActionMock.insertOnlyEventDataRecord(
         mockedEvent1,
         boxSerialized
       );
       //  one with spendTxId but without revenue
-      const mockedEvent2 = EventTestData.mockEventTrigger();
+      const mockedEvent2 = EventTestData.mockEventTrigger().event;
       const spendTxId2 = TestUtils.generateRandomId();
       await DatabaseActionMock.insertOnlyEventDataRecord(
         mockedEvent2,
@@ -431,7 +431,7 @@ describe('DatabaseActions', () => {
         TestUtils.generateRandomId()
       );
       //  one with spendTxId and revenue
-      const mockedEvent3 = EventTestData.mockEventTrigger();
+      const mockedEvent3 = EventTestData.mockEventTrigger().event;
       const spendTxId3 = TestUtils.generateRandomId();
       await DatabaseActionMock.insertOnlyEventDataRecord(
         mockedEvent3,

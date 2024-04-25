@@ -34,7 +34,8 @@ class EventSerializer {
       sourceTxId: eventEntity.sourceTxId,
       sourceChainHeight: eventEntity.sourceChainHeight,
       sourceBlockId: eventEntity.sourceBlockId,
-      WIDs: eventEntity.WIDs.split(',').filter((wid) => wid !== ''),
+      WIDsHash: eventEntity.WIDsHash,
+      WIDsCount: eventEntity.WIDsCount,
     };
   };
 

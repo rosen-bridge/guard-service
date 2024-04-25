@@ -25,6 +25,9 @@ class GuardsErgoConfigs {
 
   // value configs
   static minimumErg = BigInt(config.get<string>('ergo.minBoxValue'));
+  static additionalErgOnPayment = BigInt(
+    config.get<string>('ergo.additionalErgOnPayment')
+  );
   static txFee = BigInt(config.get<string>('ergo.fee'));
 
   // reward configs

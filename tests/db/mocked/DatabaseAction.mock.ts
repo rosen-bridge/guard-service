@@ -1,4 +1,3 @@
-import '../../../src/bootstrap';
 import { DataSource } from 'typeorm';
 import {
   BlockEntity,
@@ -124,7 +123,8 @@ class DatabaseActionMock {
         targetChainTokenId: event.targetChainTokenId,
         sourceTxId: event.sourceTxId,
         sourceBlockId: event.sourceBlockId,
-        WIDs: event.WIDs.join(','),
+        WIDsHash: event.WIDsHash,
+        WIDsCount: event.WIDsCount,
         sourceChainHeight: sourceChainHeight,
         spendHeight: spendHeight,
         spendBlock: spendBlockId,
@@ -196,7 +196,8 @@ class DatabaseActionMock {
         result: result,
         paymentTxId: paymentTxId,
         spendBlock: spendBlock,
-        WIDs: event.WIDs.join(','),
+        WIDsHash: event.WIDsHash,
+        WIDsCount: event.WIDsCount,
         txId: 'event-creation-tx-id',
       })
       .execute();
@@ -252,7 +253,9 @@ class DatabaseActionMock {
     boxSerialized: string,
     wid: string,
     height: number,
-    rwtCount: string
+    rwtCount: string,
+    spendTxId?: string,
+    spendIndex?: number
   ) => {
     await this.testDatabase.CommitmentRepository.createQueryBuilder()
       .insert()
@@ -267,6 +270,9 @@ class DatabaseActionMock {
         height: height,
         rwtCount: rwtCount,
         txId: 'txId',
+        spendBlock: spendTxId ? TestUtils.generateRandomId() : undefined,
+        spendTxId: spendTxId,
+        spendIndex: spendIndex,
       })
       .execute();
   };

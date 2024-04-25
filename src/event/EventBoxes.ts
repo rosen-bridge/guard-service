@@ -3,6 +3,7 @@ import { CommitmentEntity } from '@rosen-bridge/watcher-data-extractor';
 import EventSerializer from './EventSerializer';
 import { uniqBy } from 'lodash-es';
 import { DatabaseAction } from '../db/DatabaseAction';
+import { blake2b } from 'blakejs';
 
 class EventBoxes {
   /**
@@ -24,11 +25,13 @@ class EventBoxes {
    * aren't merged into it, while omitting any duplicate commitments
    * @param event the event trigger model
    * @param eventRwtCount amount RWT token per watcher for the event
+   * @param eventWIDs WID of commitments that are merged into the event trigger
    * @returns the serialized string (hex format) of valid commitment boxes
    */
   static getEventValidCommitments = async (
     event: EventTrigger,
-    eventRwtCount: bigint
+    eventRwtCount: bigint,
+    eventWIDs: string[]
   ): Promise<string[]> => {
     const eventId = EventSerializer.getId(event);
     const eventData = (await DatabaseAction.getInstance().getEventById(eventId))
@@ -45,13 +48,32 @@ class EventBoxes {
     return uniqBy(commitments, 'WID')
       .filter(
         (commitment: CommitmentEntity) =>
-          !event.WIDs.includes(commitment.WID) &&
+          !eventWIDs.includes(commitment.WID) &&
           commitment.rwtCount &&
           BigInt(commitment.rwtCount) === eventRwtCount
       )
       .map((commitment) =>
         Buffer.from(commitment.boxSerialized, 'base64').toString('hex')
       );
+  };
+
+  /**
+   * gets WID of commitment boxes that are merged into the event trigger
+   * @param event
+   * @returns
+   */
+  static getEventWIDs = async (event: EventTrigger): Promise<string[]> => {
+    const eventId = EventSerializer.getId(event);
+    const eventWIDs = (
+      await DatabaseAction.getInstance().getEventCommitments(eventId)
+    ).map((commitment) => commitment.WID);
+    const WIDsHash = Buffer.from(
+      blake2b(Buffer.from(eventWIDs.join(''), 'hex'), undefined, 32)
+    ).toString('hex');
+
+    if (WIDsHash !== event.WIDsHash || eventWIDs.length !== event.WIDsCount)
+      throw Error(`Failed to fetch event [${eventId}] WIDs info`);
+    return eventWIDs;
   };
 }
 
