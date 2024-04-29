@@ -1,5 +1,12 @@
 # guard-service
 
+## 2.1.1
+
+### Patch Changes
+
+- Fix a bug when `constructor` or `__proto__` exists system can not process transaction
+- Update @fastify/swagger-ui to latest version
+
 ## 2.1.0
 
 ### Minor Changes
