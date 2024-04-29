@@ -51,7 +51,7 @@
     "@rosen-chains/abstract-chain": "^5.0.0",
     "@rosen-chains/cardano": "^5.0.0",
     "@rosen-chains/cardano-blockfrost-network": "^3.0.0",
-    "@rosen-chains/cardano-koios-network": "^6.0.1",
+    "@rosen-chains/cardano-koios-network": "^6.0.2",
     "@rosen-chains/ergo": "^5.0.0",
     "@rosen-chains/ergo-explorer-network": "^5.0.1",
     "@rosen-chains/ergo-node-network": "^5.0.1",
