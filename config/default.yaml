@@ -79,12 +79,11 @@ tss:
   port: 9000
   timeout: 8 # connection timeout for tss API
   secret: ''
-  ks:
-    - ''
-  curvePublicKeys: # ECDSA
-    - ''
-  edwardPublicKeys: # EdDSA
-    - ''
+  pubs:
+    - curvePub: '' # ECDSA
+      edwardPub: '' # EdDSA
+      curveShareId: ''
+      edwardShareId: ''
 p2p:
   addresses: # relay configs
     - peerId: ''
