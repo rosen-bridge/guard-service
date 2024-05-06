@@ -114,9 +114,14 @@ class Configs {
   static tssKeygenCallBackUrl = `http://${this.apiHost}:${this.apiPort}/tss/keygen`;
   static tssKeys = {
     secret: config.get<string>('tss.secret'),
-    ks: config.get<string[]>('tss.ks'),
-    curvePublicKeys: config.get<string[]>('tss.curvePublicKeys'),
-    edwardPublicKeys: config.get<string[]>('tss.edwardPublicKeys'),
+    pubs: config.get<
+      Array<{
+        curvePub: string;
+        edwardPub: string;
+        curveShareId: string;
+        edwardShareId: string;
+      }>
+    >('tss.pubs'),
   };
 
   // guards configs

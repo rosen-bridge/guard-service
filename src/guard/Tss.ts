@@ -117,9 +117,11 @@ class Tss {
    */
   static initCurveTss = async () => {
     // initialize guard detection
+    const curvePublicKeys = Configs.tssKeys.pubs.map((pub) => pub.curvePub);
+    const shareIds = Configs.tssKeys.pubs.map((pub) => pub.curveShareId);
     const ecdsaSigner = new ECDSA(Configs.tssKeys.secret);
     Tss.curveGuardDetection = new GuardDetection({
-      guardsPublicKey: Configs.tssKeys.curvePublicKeys,
+      guardsPublicKey: curvePublicKeys,
       signer: ecdsaSigner,
       submit: this.generateSubmitMessageWrapper(Tss.curve.DETECTION_CHANNEL),
       getPeerId: () => Promise.resolve(Tss.dialer.getDialerId()),
@@ -131,11 +133,11 @@ class Tss {
       tssApiUrl: `${Configs.tssUrl}:${Configs.tssPort}`,
       getPeerId: () => Promise.resolve(Tss.dialer.getDialerId()),
       callbackUrl: Configs.tssBaseCallBackUrl + '/' + TssAlgorithms.curve,
-      shares: Configs.tssKeys.ks,
+      shares: shareIds,
       submitMsg: this.generateSubmitMessageWrapper(Tss.curve.SIGNING_CHANNEL),
       secret: Configs.tssKeys.secret,
       detection: Tss.curveGuardDetection,
-      guardsPk: Configs.tssKeys.curvePublicKeys,
+      guardsPk: curvePublicKeys,
       logger: WinstonLogger.getInstance().getLogger('tssSigner'),
     });
 
@@ -157,9 +159,11 @@ class Tss {
    */
   static initEdwardTss = async () => {
     // initialize guard detection
+    const edwardPublicKeys = Configs.tssKeys.pubs.map((pub) => pub.edwardPub);
+    const shareIds = Configs.tssKeys.pubs.map((pub) => pub.edwardShareId);
     const eddsaSigner = new EdDSA(Configs.tssKeys.secret);
     Tss.edwardGuardDetection = new GuardDetection({
-      guardsPublicKey: Configs.tssKeys.edwardPublicKeys,
+      guardsPublicKey: edwardPublicKeys,
       signer: eddsaSigner,
       submit: this.generateSubmitMessageWrapper(Tss.edward.DETECTION_CHANNEL),
       getPeerId: () => Promise.resolve(Tss.dialer.getDialerId()),
@@ -171,11 +175,11 @@ class Tss {
       tssApiUrl: `${Configs.tssUrl}:${Configs.tssPort}`,
       getPeerId: () => Promise.resolve(Tss.dialer.getDialerId()),
       callbackUrl: Configs.tssBaseCallBackUrl + '/' + TssAlgorithms.edward,
-      shares: Configs.tssKeys.ks,
+      shares: shareIds,
       submitMsg: this.generateSubmitMessageWrapper(Tss.edward.SIGNING_CHANNEL),
       secret: Configs.tssKeys.secret,
       detection: Tss.edwardGuardDetection,
-      guardsPk: Configs.tssKeys.edwardPublicKeys,
+      guardsPk: edwardPublicKeys,
       logger: WinstonLogger.getInstance().getLogger('tssSigner'),
     });
 
