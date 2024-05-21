@@ -47,7 +47,6 @@ class MinimumFeeHandler {
       const tokenMinimumFeeBox = new MinimumFeeBox(
         tokenId,
         rosenConfig.rsnRatioNFT,
-        rosenConfig.minimumFeeAddress,
         networkType,
         url,
         logger
