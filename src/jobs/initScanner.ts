@@ -7,7 +7,7 @@ import {
 import GuardsCardanoConfigs from '../configs/GuardsCardanoConfigs';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import WinstonLogger from '@rosen-bridge/winston-logger';
-import GuardsBitcoinConfigs from 'src/configs/GuardsBitcoinConfigs';
+import GuardsBitcoinConfigs from '../configs/GuardsBitcoinConfigs';
 
 let ergoScanner: ErgoScanner;
 
