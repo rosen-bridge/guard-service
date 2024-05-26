@@ -7,6 +7,7 @@ import ChainHandlerMock from '../handlers/ChainHandler.mock';
 import { assetRoutes } from '../../src/api/assets';
 import ChainHandler from '../../src/handlers/ChainHandler';
 import { FastifySeverInstance } from '../../src/api/schemas';
+import { BITCOIN_CHAIN } from '@rosen-chains/bitcoin';
 
 vi.mock('../../src/utils/constants', async (importOriginal) => {
   const mod = await importOriginal<
@@ -14,7 +15,7 @@ vi.mock('../../src/utils/constants', async (importOriginal) => {
   >();
   return {
     ...mod,
-    SUPPORTED_CHAINS: [ERGO_CHAIN, CARDANO_CHAIN],
+    SUPPORTED_CHAINS: [ERGO_CHAIN, CARDANO_CHAIN, 'bitcoin'],
   };
 });
 
@@ -75,6 +76,28 @@ describe('assets', () => {
       'getColdAddressAssets',
       balance
     );
+  };
+
+  const mockBitcoinLockAddressAssets = (
+    nativeToken: bigint,
+    tokens: Array<TokenInfo>
+  ) => {
+    const lockBalance: AssetBalance = {
+      nativeToken: nativeToken,
+      tokens: tokens,
+    };
+    ChainHandlerMock.mockFromChainFunction('getLockAddressAssets', lockBalance);
+  };
+
+  const mockBitcoinColdAddressAssets = (
+    nativeToken: bigint,
+    tokens: Array<TokenInfo>
+  ) => {
+    const balance: AssetBalance = {
+      nativeToken: nativeToken,
+      tokens: tokens,
+    };
+    ChainHandlerMock.mockFromChainFunction('getColdAddressAssets', balance);
   };
 
   describe('GET /assets', () => {
@@ -182,6 +205,62 @@ describe('assets', () => {
         total: 2,
       });
       expect(ChainHandler.getInstance().getChain).toBeCalledWith(CARDANO_CHAIN);
+      expect(ChainHandler.getInstance().getChain).not.toBeCalledWith(
+        ERGO_CHAIN
+      );
+    });
+
+    /**
+     * @target fastifyServer[GET /assets] should return bitcoin guard assets with bitcoin chain filter correctly
+     * @dependencies
+     * @scenario
+     * - mock getLockAddressAssets function of ChainHandler for bitcoin
+     * - send a request to the mockedServer
+     * - check the result
+     * @expected
+     * - should return status code 200
+     * - should return bitcoin guard assets correctly
+     * - should filter btc tokenId
+     */
+    it.only('should return bitcoin guard assets with bitcoin chain filter correctly', async () => {
+      ChainHandlerMock.mockChainName(BITCOIN_CHAIN, true);
+      mockBitcoinLockAddressAssets(10n, [{ id: 'id', value: 20n }]);
+      mockBitcoinColdAddressAssets(20n, [
+        { id: 'id', value: 30n },
+        { id: 'id2', value: 40n },
+      ]);
+      const result = await mockedServer.inject({
+        method: 'GET',
+        url: '/assets',
+        query: 'chain=bitcoin',
+      });
+      console.warn(result.body);
+
+      expect(result.statusCode).toEqual(200);
+      expect(result.json()).toEqual({
+        items: [
+          {
+            tokenId: 'btc',
+            name: 'btc',
+            decimals: 6,
+            amount: 10,
+            chain: BITCOIN_CHAIN,
+            coldAmount: 20,
+            isNativeToken: true,
+          },
+          {
+            tokenId: 'id',
+            name: 'Unsupported token',
+            decimals: 0,
+            amount: 20,
+            chain: BITCOIN_CHAIN,
+            coldAmount: 30,
+            isNativeToken: false,
+          },
+        ],
+        total: 2,
+      });
+      expect(ChainHandler.getInstance().getChain).toBeCalledWith(BITCOIN_CHAIN);
       expect(ChainHandler.getInstance().getChain).not.toBeCalledWith(
         ERGO_CHAIN
       );
