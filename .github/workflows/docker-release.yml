@@ -21,7 +21,7 @@ jobs:
       - name: Download Release From tss-api
         uses: dsaltares/fetch-gh-release-asset@1.1.1
         with:
-          repo: 'rosen-bridge/tss-api'
+          repo: 'rosen-bridge/sign-protocols'
           version: 'latest'
           regex: true
           file: 'rosenTss-linux-*'
