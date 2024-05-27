@@ -1,6 +1,6 @@
 import { BITCOIN_CHAIN } from '@rosen-chains/bitcoin';
-import { CARDANO_CHAIN } from '@rosen-chains/cardano';
-import { ERGO_CHAIN } from '@rosen-chains/ergo';
+import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
+import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
 
 class EventStatus {
   static pendingPayment = 'pending-payment';
@@ -50,6 +50,12 @@ enum TssAlgorithms {
   edward = 'eddsa',
 }
 
+const ChainNativeToken: Record<string, string> = {
+  [ERGO_CHAIN]: ERG,
+  [CARDANO_CHAIN]: ADA,
+  [BITCOIN_CHAIN]: 'btc',
+};
+
 export {
   EventStatus,
   TransactionStatus,
@@ -62,4 +68,5 @@ export {
   SUPPORTED_CHAINS,
   RevenueType,
   TssAlgorithms,
+  ChainNativeToken,
 };
