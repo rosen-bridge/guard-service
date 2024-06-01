@@ -2,6 +2,7 @@ import fastify from 'fastify';
 import { AssetBalance, TokenInfo } from '@rosen-chains/abstract-chain';
 import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
 import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
+import { BITCOIN_CHAIN } from '@rosen-chains/bitcoin';
 
 import ChainHandlerMock from '../handlers/ChainHandler.mock';
 import { assetRoutes } from '../../src/api/assets';
@@ -14,7 +15,7 @@ vi.mock('../../src/utils/constants', async (importOriginal) => {
   >();
   return {
     ...mod,
-    SUPPORTED_CHAINS: [ERGO_CHAIN, CARDANO_CHAIN],
+    SUPPORTED_CHAINS: [ERGO_CHAIN, CARDANO_CHAIN, BITCOIN_CHAIN],
   };
 });
 
@@ -29,6 +30,36 @@ describe('assets', () => {
   afterEach(() => {
     mockedServer.close();
   });
+
+  const mockBitcoinLockAddressAssets = (
+    nativeToken: bigint,
+    tokens: Array<TokenInfo>
+  ) => {
+    const lockBalance: AssetBalance = {
+      nativeToken: nativeToken,
+      tokens: tokens,
+    };
+    ChainHandlerMock.mockChainFunction(
+      BITCOIN_CHAIN,
+      'getLockAddressAssets',
+      lockBalance
+    );
+  };
+
+  const mockBitcoinColdAddressAssets = (
+    nativeToken: bigint,
+    tokens: Array<TokenInfo>
+  ) => {
+    const balance: AssetBalance = {
+      nativeToken: nativeToken,
+      tokens: tokens,
+    };
+    ChainHandlerMock.mockChainFunction(
+      BITCOIN_CHAIN,
+      'getColdAddressAssets',
+      balance
+    );
+  };
 
   const mockCardanoLockAddressAssets = (
     nativeToken: bigint,
@@ -207,6 +238,9 @@ describe('assets', () => {
      * - should filter ada tokenId
      */
     it('should return guard assets with token id filter correctly', async () => {
+      ChainHandlerMock.mockChainName(BITCOIN_CHAIN);
+      mockBitcoinLockAddressAssets(30n, []);
+      mockBitcoinColdAddressAssets(300n, []);
       ChainHandlerMock.mockChainName(CARDANO_CHAIN);
       mockCardanoLockAddressAssets(10n, [{ id: 'id', value: 20n }]);
       mockCardanoColdAddressAssets(20n, [
@@ -251,6 +285,9 @@ describe('assets', () => {
      * - should filter ada token name
      */
     it('should return guard assets with token name filter correctly', async () => {
+      ChainHandlerMock.mockChainName(BITCOIN_CHAIN);
+      mockBitcoinLockAddressAssets(30n, []);
+      mockBitcoinColdAddressAssets(300n, []);
       ChainHandlerMock.mockChainName(CARDANO_CHAIN);
       mockCardanoLockAddressAssets(10n, [{ id: 'id', value: 20n }]);
       mockCardanoColdAddressAssets(20n, [
@@ -296,6 +333,9 @@ describe('assets', () => {
      * - should limit the outputs
      */
     it('should return cardano guard assets with limit and offset correctly', async () => {
+      ChainHandlerMock.mockChainName(BITCOIN_CHAIN);
+      mockBitcoinLockAddressAssets(30n, []);
+      mockBitcoinColdAddressAssets(300n, []);
       ChainHandlerMock.mockChainName(CARDANO_CHAIN);
       mockCardanoLockAddressAssets(10n, [
         {
@@ -345,6 +385,9 @@ describe('assets', () => {
      * - should return requested token with zero amount
      */
     it('should return requested asset with zero amount when request has token id filter', async () => {
+      ChainHandlerMock.mockChainName(BITCOIN_CHAIN);
+      mockBitcoinLockAddressAssets(30n, []);
+      mockBitcoinColdAddressAssets(300n, []);
       ChainHandlerMock.mockChainName(CARDANO_CHAIN);
       mockCardanoLockAddressAssets(10n, [{ id: 'id', value: 20n }]);
       mockCardanoColdAddressAssets(20n, [
@@ -390,6 +433,9 @@ describe('assets', () => {
      * - should return status code 400
      */
     it('should return status code 400 when token is not found in any chains', async () => {
+      ChainHandlerMock.mockChainName(BITCOIN_CHAIN);
+      mockBitcoinLockAddressAssets(30n, []);
+      mockBitcoinColdAddressAssets(300n, []);
       ChainHandlerMock.mockChainName(CARDANO_CHAIN);
       mockCardanoLockAddressAssets(10n, [{ id: 'id', value: 20n }]);
       mockCardanoColdAddressAssets(20n, [
