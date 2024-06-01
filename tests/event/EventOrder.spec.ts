@@ -253,9 +253,11 @@ describe('EventOrder', () => {
       const mockedEvent = mockNativeTokenPaymentEvent();
 
       // mock ChainHandler
-      ChainHandlerMock.mockChainName(mockedEvent.event.fromChain, true);
+      const chain = mockedEvent.event.fromChain;
+      ChainHandlerMock.mockChainName(chain);
       // mock `getChainConfigs`
-      ChainHandlerMock.mockFromChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getChainConfigs',
         GuardsCardanoConfigs.chainConfigs
       );
@@ -332,9 +334,11 @@ describe('EventOrder', () => {
       };
 
       // mock ChainHandler
-      ChainHandlerMock.mockChainName(mockedEvent.event.fromChain, true);
+      const chain = mockedEvent.event.fromChain;
+      ChainHandlerMock.mockChainName(chain);
       // mock `getChainConfigs`
-      ChainHandlerMock.mockFromChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getChainConfigs',
         GuardsCardanoConfigs.chainConfigs
       );
@@ -466,9 +470,11 @@ describe('EventOrder', () => {
       };
 
       // mock ChainHandler
-      ChainHandlerMock.mockChainName(mockedEvent.event.fromChain, true);
+      const chain = mockedEvent.event.fromChain;
+      ChainHandlerMock.mockChainName(chain);
       // mock `getChainConfigs`
-      ChainHandlerMock.mockFromChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getChainConfigs',
         GuardsCardanoConfigs.chainConfigs
       );
@@ -613,9 +619,11 @@ describe('EventOrder', () => {
       };
 
       // mock ChainHandler
-      ChainHandlerMock.mockChainName(mockedEvent.event.fromChain, true);
+      const chain = mockedEvent.event.fromChain;
+      ChainHandlerMock.mockChainName(chain);
       // mock `getChainConfigs`
-      ChainHandlerMock.mockFromChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getChainConfigs',
         GuardsCardanoConfigs.chainConfigs
       );
@@ -760,9 +768,11 @@ describe('EventOrder', () => {
       };
 
       // mock ChainHandler
-      ChainHandlerMock.mockChainName(mockedEvent.event.fromChain, true);
+      const chain = mockedEvent.event.fromChain;
+      ChainHandlerMock.mockChainName(chain);
       // mock `getChainConfigs`
-      ChainHandlerMock.mockFromChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getChainConfigs',
         GuardsCardanoConfigs.chainConfigs
       );
@@ -888,9 +898,11 @@ describe('EventOrder', () => {
       };
 
       // mock ChainHandler
-      ChainHandlerMock.mockChainName(mockedEvent.event.fromChain, true);
+      const chain = mockedEvent.event.fromChain;
+      ChainHandlerMock.mockChainName(chain);
       // mock `getChainConfigs`
-      ChainHandlerMock.mockFromChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getChainConfigs',
         GuardsCardanoConfigs.chainConfigs
       );

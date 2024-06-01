@@ -51,9 +51,11 @@ describe('signTx', () => {
       );
 
       // mock ChainHandler `getChain`
-      ChainHandlerMock.mockChainName(CARDANO_CHAIN);
+      const chain = CARDANO_CHAIN;
+      ChainHandlerMock.mockChainName(chain);
       // mock `rawTxToPaymentTransaction`
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'rawTxToPaymentTransaction',
         paymentTx,
         true
@@ -109,9 +111,11 @@ describe('signTx', () => {
      */
     it('should return 400 when tx json is invalid', async () => {
       // mock ChainHandler `getChain`
-      ChainHandlerMock.mockChainName(CARDANO_CHAIN);
+      const chain = CARDANO_CHAIN;
+      ChainHandlerMock.mockChainName(chain);
       // mock `rawTxToPaymentTransaction`
-      ChainHandlerMock.mockToChainFunctionToThrow(
+      ChainHandlerMock.mockChainFunctionToThrow(
+        chain,
         'rawTxToPaymentTransaction',
         new Error(`TestError: failed to parse tx`),
         true
@@ -174,9 +178,11 @@ describe('signTx', () => {
       );
 
       // mock ChainHandler `getChain`
-      ChainHandlerMock.mockChainName(CARDANO_CHAIN);
+      const chain = CARDANO_CHAIN;
+      ChainHandlerMock.mockChainName(chain);
       // mock `rawTxToPaymentTransaction`
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'rawTxToPaymentTransaction',
         paymentTx,
         true
@@ -238,9 +244,11 @@ describe('signTx', () => {
       );
 
       // mock ChainHandler `getChain`
-      ChainHandlerMock.mockChainName(CARDANO_CHAIN);
+      const chain = CARDANO_CHAIN;
+      ChainHandlerMock.mockChainName(chain);
       // mock `rawTxToPaymentTransaction`
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'rawTxToPaymentTransaction',
         paymentTx,
         true
@@ -297,9 +305,11 @@ describe('signTx', () => {
       );
 
       // mock ChainHandler `getChain`
-      ChainHandlerMock.mockChainName(CARDANO_CHAIN);
+      const chain = CARDANO_CHAIN;
+      ChainHandlerMock.mockChainName(chain);
       // mock `rawTxToPaymentTransaction`
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'rawTxToPaymentTransaction',
         paymentTx,
         true

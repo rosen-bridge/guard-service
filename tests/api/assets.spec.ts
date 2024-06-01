@@ -38,7 +38,11 @@ describe('assets', () => {
       nativeToken: nativeToken,
       tokens: tokens,
     };
-    ChainHandlerMock.mockFromChainFunction('getLockAddressAssets', lockBalance);
+    ChainHandlerMock.mockChainFunction(
+      CARDANO_CHAIN,
+      'getLockAddressAssets',
+      lockBalance
+    );
   };
 
   const mockCardanoColdAddressAssets = (
@@ -49,7 +53,11 @@ describe('assets', () => {
       nativeToken: nativeToken,
       tokens: tokens,
     };
-    ChainHandlerMock.mockFromChainFunction('getColdAddressAssets', balance);
+    ChainHandlerMock.mockChainFunction(
+      CARDANO_CHAIN,
+      'getColdAddressAssets',
+      balance
+    );
   };
 
   const mockErgoLockAddressAssets = () => {
@@ -145,7 +153,7 @@ describe('assets', () => {
      * - should filter ada tokenId
      */
     it('should return cardano guard assets with cardano chain filter correctly', async () => {
-      ChainHandlerMock.mockChainName(CARDANO_CHAIN, true);
+      ChainHandlerMock.mockChainName(CARDANO_CHAIN);
       mockCardanoLockAddressAssets(10n, [{ id: 'id', value: 20n }]);
       mockCardanoColdAddressAssets(20n, [
         { id: 'id', value: 30n },
@@ -199,7 +207,7 @@ describe('assets', () => {
      * - should filter ada tokenId
      */
     it('should return guard assets with token id filter correctly', async () => {
-      ChainHandlerMock.mockChainName(CARDANO_CHAIN, true);
+      ChainHandlerMock.mockChainName(CARDANO_CHAIN);
       mockCardanoLockAddressAssets(10n, [{ id: 'id', value: 20n }]);
       mockCardanoColdAddressAssets(20n, [
         { id: 'id', value: 30n },
@@ -243,7 +251,7 @@ describe('assets', () => {
      * - should filter ada token name
      */
     it('should return guard assets with token name filter correctly', async () => {
-      ChainHandlerMock.mockChainName(CARDANO_CHAIN, true);
+      ChainHandlerMock.mockChainName(CARDANO_CHAIN);
       mockCardanoLockAddressAssets(10n, [{ id: 'id', value: 20n }]);
       mockCardanoColdAddressAssets(20n, [
         { id: 'id', value: 30n },
@@ -288,7 +296,7 @@ describe('assets', () => {
      * - should limit the outputs
      */
     it('should return cardano guard assets with limit and offset correctly', async () => {
-      ChainHandlerMock.mockChainName(CARDANO_CHAIN, true);
+      ChainHandlerMock.mockChainName(CARDANO_CHAIN);
       mockCardanoLockAddressAssets(10n, [
         {
           id: 'd2f6eb37450a3d568de93d623e69bd0ba1238daacc883d75736abd23.527374457267565465737432',
@@ -337,7 +345,7 @@ describe('assets', () => {
      * - should return requested token with zero amount
      */
     it('should return requested asset with zero amount when request has token id filter', async () => {
-      ChainHandlerMock.mockChainName(CARDANO_CHAIN, true);
+      ChainHandlerMock.mockChainName(CARDANO_CHAIN);
       mockCardanoLockAddressAssets(10n, [{ id: 'id', value: 20n }]);
       mockCardanoColdAddressAssets(20n, [
         { id: 'id', value: 30n },
@@ -382,7 +390,7 @@ describe('assets', () => {
      * - should return status code 400
      */
     it('should return status code 400 when token is not found in any chains', async () => {
-      ChainHandlerMock.mockChainName(CARDANO_CHAIN, true);
+      ChainHandlerMock.mockChainName(CARDANO_CHAIN);
       mockCardanoLockAddressAssets(10n, [{ id: 'id', value: 20n }]);
       mockCardanoColdAddressAssets(20n, [
         { id: 'id', value: 30n },

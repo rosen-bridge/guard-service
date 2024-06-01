@@ -63,7 +63,8 @@ describe('generalInfo', () => {
         nativeToken: 200n,
         tokens: [],
       };
-      ChainHandlerMock.mockChainName(CARDANO_CHAIN, true);
+      const chain = CARDANO_CHAIN;
+      ChainHandlerMock.mockChainName(chain);
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'getLockAddressAssets',
         ergoLockBalance
@@ -76,15 +77,18 @@ describe('generalInfo', () => {
         'getChainConfigs',
         GuardsErgoConfigs.chainConfigs
       );
-      ChainHandlerMock.mockFromChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getLockAddressAssets',
         cardanoLockBalance
       );
-      ChainHandlerMock.mockFromChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getColdAddressAssets',
         cardanoColdBalance
       );
-      ChainHandlerMock.mockFromChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getChainConfigs',
         GuardsCardanoConfigs.chainConfigs
       );
