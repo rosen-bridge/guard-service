@@ -1,4 +1,5 @@
 import {
+  BitcoinEsploraAssetHealthCheckParam,
   CardanoBlockFrostAssetHealthCheckParam,
   CardanoKoiosAssetHealthCheckParam,
   ErgoExplorerAssetHealthCheckParam,
@@ -28,6 +29,8 @@ import { rosenConfig } from '../configs/RosenConfig';
 import { dataSource } from '../db/dataSource';
 import GuardPkHandler from '../handlers/GuardPkHandler';
 import { ADA_DECIMALS, ERG_DECIMALS } from '../utils/constants';
+import GuardsBitcoinConfigs from '../configs/GuardsBitcoinConfigs';
+import { BITCOIN_CHAIN } from '@rosen-chains/bitcoin';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 let healthCheck: HealthCheck | undefined;
@@ -66,6 +69,7 @@ const getHealthCheck = async () => {
 
     const ergoContracts = rosenConfig.contractReader(ERGO_CHAIN);
     const cardanoContracts = rosenConfig.contractReader(CARDANO_CHAIN);
+    const bitcoinContracts = rosenConfig.contractReader(BITCOIN_CHAIN);
     const rsnTokenDetails = Configs.tokenMap.search(ERGO_CHAIN, {
       [Configs.tokenMap.getIdKey(ERGO_CHAIN)]: rosenConfig.RSN,
     });
@@ -176,6 +180,17 @@ const getHealthCheck = async () => {
         GuardsCardanoConfigs.blockfrost.url
       );
       healthCheck.register(adaAssetHealthCheck);
+    }
+    if (GuardsBitcoinConfigs.chainNetworkName === 'esplora') {
+      const btcAssetHealthCheck = new BitcoinEsploraAssetHealthCheckParam(
+        'BTC',
+        bitcoinContracts.lockAddress,
+        Configs.btcWarnThreshold,
+        Configs.btcCriticalThreshold,
+        GuardsBitcoinConfigs.esplora.url,
+        8
+      );
+      healthCheck.register(btcAssetHealthCheck);
     }
   }
 

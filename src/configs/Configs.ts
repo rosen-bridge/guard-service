@@ -269,6 +269,12 @@ class Configs {
   static adaCriticalThreshold = BigInt(
     config.get<string>('healthCheck.asset.ada.criticalThreshold')
   );
+  static btcWarnThreshold = BigInt(
+    config.get<string>('healthCheck.asset.btc.warnThreshold')
+  );
+  static btcCriticalThreshold = BigInt(
+    config.get<string>('healthCheck.asset.btc.criticalThreshold')
+  );
   static ergoScannerWarnDiff = getConfigIntKeyOrDefault(
     'healthCheck.ergoScanner.warnDifference',
     2
