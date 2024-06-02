@@ -421,6 +421,8 @@ describe('EventProcessor', () => {
       mockVerifyEvent(true);
 
       // mock ChainHandler `getChain` and `getErgoChain`
+      const fromChain = mockedEvent.fromChain;
+      ChainHandlerMock.mockChainName(fromChain);
       // mock `getMinimumNativeToken`
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'getMinimumNativeToken',
@@ -453,7 +455,11 @@ describe('EventProcessor', () => {
         true
       );
       // mock `getRWTToken` of `fromChain`
-      ChainHandlerMock.mockFromChainFunction('getRWTToken', fromChainRwt);
+      ChainHandlerMock.mockChainFunction(
+        fromChain,
+        'getRWTToken',
+        fromChainRwt
+      );
       // mock `getBoxRWT` of Ergo
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'getBoxRWT',
@@ -544,8 +550,11 @@ describe('EventProcessor', () => {
       mockVerifyEvent(true);
 
       // mock ChainHandler `getChain`
+      const toChain = mockedEvent.toChain;
+      ChainHandlerMock.mockChainName(toChain);
       // mock `getMinimumNativeToken`
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        toChain,
         'getMinimumNativeToken',
         100n,
         false
@@ -562,7 +571,8 @@ describe('EventProcessor', () => {
           dataInputs: [],
         })
       );
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        toChain,
         'generateTransaction',
         paymentTx,
         true
@@ -709,6 +719,8 @@ describe('EventProcessor', () => {
       mockVerifyEvent(true);
 
       // mock ChainHandler `getChain` and `getErgoChain`
+      const fromChain = mockedEvent.fromChain;
+      ChainHandlerMock.mockChainName(fromChain);
       // mock `getMinimumNativeToken`
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'getMinimumNativeToken',
@@ -730,7 +742,11 @@ describe('EventProcessor', () => {
         true
       );
       // mock `getRWTToken` of `fromChain`
-      ChainHandlerMock.mockFromChainFunction('getRWTToken', fromChainRwt);
+      ChainHandlerMock.mockChainFunction(
+        fromChain,
+        'getRWTToken',
+        fromChainRwt
+      );
       // mock `getBoxRWT` of Ergo
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'getBoxRWT',
@@ -833,6 +849,8 @@ describe('EventProcessor', () => {
       mockVerifyEvent(true);
 
       // mock ChainHandler `getChain` and `getErgoChain`
+      const fromChain = mockedEvent.fromChain;
+      ChainHandlerMock.mockChainName(fromChain);
       // mock `getMinimumNativeToken`
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'getMinimumNativeToken',
@@ -865,7 +883,11 @@ describe('EventProcessor', () => {
         true
       );
       // mock `getRWTToken` of `fromChain`
-      ChainHandlerMock.mockFromChainFunction('getRWTToken', fromChainRwt);
+      ChainHandlerMock.mockChainFunction(
+        fromChain,
+        'getRWTToken',
+        fromChainRwt
+      );
       // mock `getBoxRWT` of Ergo
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'getBoxRWT',
@@ -985,6 +1007,8 @@ describe('EventProcessor', () => {
       );
 
       // mock ChainHandler `fromChain` and `getErgoChain`
+      const fromChain = mockedEvent.fromChain;
+      ChainHandlerMock.mockChainName(fromChain);
       // mock `getGuardsConfigBox`
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'getGuardsConfigBox',
@@ -1011,7 +1035,7 @@ describe('EventProcessor', () => {
         true
       );
       // mock `getRWTToken` of Ergo
-      ChainHandlerMock.mockFromChainFunction('getRWTToken', ergoRwt);
+      ChainHandlerMock.mockChainFunction(fromChain, 'getRWTToken', ergoRwt);
       // mock `getBoxRWT` of Ergo
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'getBoxRWT',
@@ -1119,6 +1143,8 @@ describe('EventProcessor', () => {
       );
 
       // mock ChainHandler `fromChain` and `getErgoChain`
+      const fromChain = mockedEvent.fromChain;
+      ChainHandlerMock.mockChainName(fromChain);
       // mock `getGuardsConfigBox`
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'getGuardsConfigBox',
@@ -1134,7 +1160,7 @@ describe('EventProcessor', () => {
         true
       );
       // mock `getRWTToken` of Ergo
-      ChainHandlerMock.mockFromChainFunction('getRWTToken', ergoRwt);
+      ChainHandlerMock.mockChainFunction(fromChain, 'getRWTToken', ergoRwt);
       // mock `getBoxRWT` of Ergo
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'getBoxRWT',
@@ -1253,6 +1279,8 @@ describe('EventProcessor', () => {
       );
 
       // mock ChainHandler `fromChain` and `getErgoChain`
+      const fromChain = mockedEvent.fromChain;
+      ChainHandlerMock.mockChainName(fromChain);
       // mock `getGuardsConfigBox`
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'getGuardsConfigBox',
@@ -1279,7 +1307,7 @@ describe('EventProcessor', () => {
         true
       );
       // mock `getRWTToken` of Ergo
-      ChainHandlerMock.mockFromChainFunction('getRWTToken', ergoRwt);
+      ChainHandlerMock.mockChainFunction(fromChain, 'getRWTToken', ergoRwt);
       // mock `getBoxRWT` of Ergo
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'getBoxRWT',
