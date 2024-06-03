@@ -18,6 +18,8 @@ import Tss from './guard/Tss';
 import { tssUpdateJob } from './jobs/tss';
 import { revenueJob } from './jobs/revenue';
 import GuardPkHandler from './handlers/GuardPkHandler';
+import MinimumFeeHandler from './handlers/MinimumFeeHandler';
+import { minimumFeeUpdateJob } from './jobs/minimumFee';
 
 const initService = async () => {
   // initialize Notification object
@@ -52,6 +54,10 @@ const initService = async () => {
 
   // initialize TxAgreement object
   await TxAgreement.getInstance();
+
+  // initialize MinimumFeeHandler
+  await MinimumFeeHandler.init(Configs.tokens());
+  minimumFeeUpdateJob();
 
   // run network scanners
   initScanner();

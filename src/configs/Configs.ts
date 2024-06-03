@@ -5,7 +5,7 @@ import { ThresholdConfig } from '../coldStorage/types';
 import { JsonBI } from '../network/NetworkModels';
 import Utils from '../utils/Utils';
 import { ConfigError } from '../utils/errors';
-import { SUPPORTED_CHAINS } from '../utils/constants';
+import { SUPPORTED_CHAINS, TssAlgorithms } from '../utils/constants';
 import { TransportOptions } from '@rosen-bridge/winston-logger';
 import { cloneDeep } from 'lodash-es';
 
@@ -49,7 +49,10 @@ const getOptionalConfig = <T>(key: string, defaultValue: T) => {
   return defaultValue;
 };
 
-const SupportedAlgorithms = ['eddsa'];
+const SupportedAlgorithms: string[] = [
+  TssAlgorithms.curve,
+  TssAlgorithms.edward,
+];
 class KeygenConfig {
   static isActive = config.get<boolean>('keygen.active');
   static guardsCount = getConfigIntKeyOrDefault('keygen.guards', 0);
@@ -107,12 +110,18 @@ class Configs {
   static tssUrl = config.get<string>('tss.url');
   static tssPort = config.get<string>('tss.port');
   static tssTimeout = getConfigIntKeyOrDefault('tss.timeout', 8); // seconds
-  static tssCallBackUrl = `http://${this.apiHost}:${this.apiPort}/tss/sign`;
+  static tssBaseCallBackUrl = `http://${this.apiHost}:${this.apiPort}/tss/sign`;
   static tssKeygenCallBackUrl = `http://${this.apiHost}:${this.apiPort}/tss/keygen`;
   static tssKeys = {
     secret: config.get<string>('tss.secret'),
-    publicKeys: config.get<string[]>('tss.publicKeys'),
-    ks: config.get<string[]>('tss.ks'),
+    pubs: config.get<
+      Array<{
+        curvePub: string;
+        edwardPub: string;
+        curveShareId: string;
+        edwardShareId: string;
+      }>
+    >('tss.pubs'),
   };
 
   // guards configs
@@ -175,6 +184,10 @@ class Configs {
   static requeueWaitingEventsInterval = getConfigIntKeyOrDefault(
     'intervals.requeueWaitingEventsInterval',
     43200
+  ); // seconds
+  static minimumFeeUpdateInterval = getConfigIntKeyOrDefault(
+    'intervals.minimumFeeUpdateInterval',
+    300
   ); // seconds
 
   static multiSigFirstSignDelay = 3; // seconds

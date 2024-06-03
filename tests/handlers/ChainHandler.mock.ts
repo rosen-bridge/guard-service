@@ -1,12 +1,12 @@
 import { AbstractChain } from '@rosen-chains/abstract-chain';
 import { CARDANO_CHAIN } from '@rosen-chains/cardano';
-import { ErgoChain } from '@rosen-chains/ergo';
+import { ErgoChain, ERGO_CHAIN } from '@rosen-chains/ergo';
 import { Mock } from 'vitest';
 import GuardsCardanoConfigs from '../../src/configs/GuardsCardanoConfigs';
 import GuardsErgoConfigs from '../../src/configs/GuardsErgoConfigs';
 
 export const chainHandlerInstance = {
-  getChain: (chainName: string): AbstractChain => {
+  getChain: (chainName: string): AbstractChain<any> => {
     throw Error(`ChainHandler 'getChain' is not mocked!`);
   },
   getErgoChain: (): ErgoChain => {
@@ -29,30 +29,19 @@ export const chainHandlerInstance = {
 };
 
 class ChainHandlerMock {
-  private static fromChainName = 'fromChain';
-  private static mockedFromChain: Record<string, any>;
-  private static toChainName = 'toChain';
-  private static mockedToChain: Record<string, any>;
-  private static mockedErgo: Record<string, any>;
+  private static mockedChains = new Map<string, Record<string, any>>();
 
   /**
-   * mocks getChain function of ChainHandler
+   * gets mocked chain object by chain name
+   * @param chainName
    */
-  private static mockGetChain = () => {
-    vi.spyOn(chainHandlerInstance, 'getChain').mockImplementation(
-      (chainName: string) => {
-        if (chainName === 'ergo')
-          return this.mockedErgo as unknown as AbstractChain;
-        else if (chainName === this.fromChainName)
-          return this.mockedFromChain as unknown as AbstractChain;
-        else if (chainName === this.toChainName)
-          return this.mockedToChain as unknown as AbstractChain;
-        else
-          throw Error(
-            `Cannot get mocked chain: Chain [${chainName}] is not mocked`
-          );
-      }
-    );
+  private static getMockedChain = (chainName: string) => {
+    const chain = this.mockedChains.get(chainName);
+    if (chain === undefined)
+      throw Error(
+        `Cannot get mocked chain: Chain [${chainName}] is not mocked`
+      );
+    else return chain;
   };
 
   /**
@@ -60,15 +49,21 @@ class ChainHandlerMock {
    * ChainHandler mock
    */
   static resetMock = () => {
-    this.fromChainName = 'fromChain';
-    this.mockedFromChain = {};
-    this.toChainName = 'toChain';
-    this.mockedToChain = {};
-    this.mockedErgo = {};
+    this.mockedChains.clear();
 
-    this.mockGetChain();
+    vi.spyOn(chainHandlerInstance, 'getChain').mockImplementation(
+      (chainName: string) => {
+        const chain = this.mockedChains.get(chainName);
+        if (chain) return chain as unknown as AbstractChain<any>;
+        else
+          throw Error(
+            `Cannot get mocked chain: Chain [${chainName}] is not mocked`
+          );
+      }
+    );
+    this.mockChainName(ERGO_CHAIN);
     vi.spyOn(chainHandlerInstance, 'getErgoChain').mockReturnValue(
-      this.mockedErgo as unknown as ErgoChain
+      this.getMockedChain(ERGO_CHAIN) as unknown as ErgoChain
     );
   };
 
@@ -77,73 +72,65 @@ class ChainHandlerMock {
    * @param chainName new name for mocked chain
    * @param mockFromChain true if mocking fromChain
    */
-  static mockChainName = (chainName: string, mockFromChain = false) => {
-    if (mockFromChain) this.fromChainName = chainName;
-    else this.toChainName = chainName;
-    this.mockGetChain();
+  static mockChainName = (chainName: string) => {
+    const chain = {};
+    this.mockedChains.set(chainName, chain);
   };
 
   /**
    * mocks a function for mocked chain
+   * @param chainName mocked chain name
    * @param name function name
    * @param result function mocked result
    * @param isAsync true if function is async
    */
-  static mockFromChainFunction = (
+  static mockChainFunction = (
+    chainName: string,
     name: string,
     result: any,
     isAsync = false
   ) => {
-    this.mockedFromChain[name] = vi.fn();
-    if (isAsync) vi.spyOn(this.mockedFromChain, name).mockResolvedValue(result);
-    else vi.spyOn(this.mockedFromChain, name).mockReturnValue(result);
-  };
-
-  /**
-   * mocks a function for mocked chain
-   * @param name function name
-   * @param result function mocked result
-   * @param isAsync true if function is async
-   */
-  static mockToChainFunction = (name: string, result: any, isAsync = false) => {
-    this.mockedToChain[name] = vi.fn();
-    if (isAsync) vi.spyOn(this.mockedToChain, name).mockResolvedValue(result);
-    else vi.spyOn(this.mockedToChain, name).mockReturnValue(result);
+    const chain = this.getMockedChain(chainName);
+    chain[name] = vi.fn();
+    if (isAsync) vi.spyOn(chain, name).mockResolvedValue(result);
+    else vi.spyOn(chain, name).mockReturnValue(result);
   };
 
   /**
    * mocks a function for mocked chain to throw `error`
+   * @param chainName mocked chain name
    * @param name function name
    * @param result an error object
    * @param isAsync true if function is async
    */
-  static mockToChainFunctionToThrow = (
+  static mockChainFunctionToThrow = (
+    chainName: string,
     name: string,
     error: any,
     isAsync = false
   ) => {
-    this.mockedToChain[name] = vi.fn();
+    const chain = this.getMockedChain(chainName);
+    chain[name] = vi.fn();
     if (isAsync)
-      vi.spyOn(this.mockedToChain, name).mockImplementation(async () => {
+      vi.spyOn(chain, name).mockImplementation(async () => {
         throw error;
       });
     else
-      vi.spyOn(this.mockedToChain, name).mockImplementation(() => {
+      vi.spyOn(chain, name).mockImplementation(() => {
         throw error;
       });
   };
 
   /**
    * returns a mocked function object
+   * @param chainName mocked chain name
    * @param name function name
-   * @param isFromChain true if function is mocked fromChain
    */
   static getChainMockedFunction = (
-    name: string,
-    isFromChain = false
+    chainName: string,
+    name: string
   ): Mock<any, any> => {
-    if (isFromChain) return this.mockedFromChain[name];
-    else return this.mockedToChain[name];
+    return this.getMockedChain(chainName)[name];
   };
 
   /**
@@ -151,7 +138,7 @@ class ChainHandlerMock {
    * @param name function name
    */
   static getErgoMockedFunction = (name: string): Mock<any, any> => {
-    return this.mockedErgo[name];
+    return this.getMockedChain(ERGO_CHAIN)[name];
   };
 
   /**
@@ -165,9 +152,7 @@ class ChainHandlerMock {
     result: any,
     isAsync = false
   ) => {
-    this.mockedErgo[name] = vi.fn();
-    if (isAsync) vi.spyOn(this.mockedErgo, name).mockResolvedValue(result);
-    else vi.spyOn(this.mockedErgo, name).mockReturnValue(result);
+    this.mockChainFunction(ERGO_CHAIN, name, result, isAsync);
   };
 
   /**
@@ -181,15 +166,7 @@ class ChainHandlerMock {
     error: any,
     isAsync = false
   ) => {
-    this.mockedErgo[name] = vi.fn();
-    if (isAsync)
-      vi.spyOn(this.mockedErgo, name).mockImplementation(async () => {
-        throw error;
-      });
-    else
-      vi.spyOn(this.mockedErgo, name).mockImplementation(() => {
-        throw error;
-      });
+    this.mockChainFunctionToThrow(ERGO_CHAIN, name, error, isAsync);
   };
 }
 

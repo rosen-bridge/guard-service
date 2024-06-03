@@ -7,6 +7,7 @@ import {
 import GuardsCardanoConfigs from '../configs/GuardsCardanoConfigs';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import WinstonLogger from '@rosen-bridge/winston-logger';
+import GuardsBitcoinConfigs from '../configs/GuardsBitcoinConfigs';
 
 let ergoScanner: ErgoScanner;
 
@@ -32,6 +33,12 @@ const createLoggers = () => ({
   ),
   cardanoEventTriggerExtractorLogger: WinstonLogger.getInstance().getLogger(
     'cardano-event-trigger-extractor'
+  ),
+  bitcoinCommitmentExtractorLogger: WinstonLogger.getInstance().getLogger(
+    'bitcoin-commitment-extractor'
+  ),
+  bitcoinEventTriggerExtractorLogger: WinstonLogger.getInstance().getLogger(
+    'bitcoin-event-trigger-extractor'
   ),
   ergoCommitmentExtractorLogger: WinstonLogger.getInstance().getLogger(
     'ergo-commitment-extractor'
@@ -81,6 +88,23 @@ const initScanner = () => {
     GuardsCardanoConfigs.cardanoContractConfig.fraudAddress,
     loggers.cardanoEventTriggerExtractorLogger
   );
+
+  const bitcoinCommitmentExtractor = new CommitmentExtractor(
+    'bitcoinCommitment',
+    [GuardsBitcoinConfigs.bitcoinContractConfig.commitmentAddress],
+    GuardsBitcoinConfigs.bitcoinContractConfig.RWTId,
+    dataSource,
+    loggers.bitcoinCommitmentExtractorLogger
+  );
+  const bitcoinEventTriggerExtractor = new EventTriggerExtractor(
+    'bitcoinEventTrigger',
+    dataSource,
+    GuardsBitcoinConfigs.bitcoinContractConfig.eventTriggerAddress,
+    GuardsBitcoinConfigs.bitcoinContractConfig.RWTId,
+    GuardsBitcoinConfigs.bitcoinContractConfig.permitAddress,
+    GuardsBitcoinConfigs.bitcoinContractConfig.fraudAddress,
+    loggers.bitcoinEventTriggerExtractorLogger
+  );
   const ergoCommitmentExtractor = new CommitmentExtractor(
     'ergoCommitment',
     [GuardsErgoConfigs.ergoContractConfig.commitmentAddress],
@@ -99,6 +123,8 @@ const initScanner = () => {
   );
   ergoScanner.registerExtractor(cardanoCommitmentExtractor);
   ergoScanner.registerExtractor(cardanoEventTriggerExtractor);
+  ergoScanner.registerExtractor(bitcoinCommitmentExtractor);
+  ergoScanner.registerExtractor(bitcoinEventTriggerExtractor);
   ergoScanner.registerExtractor(ergoCommitmentExtractor);
   ergoScanner.registerExtractor(ergoEventTriggerExtractor);
 

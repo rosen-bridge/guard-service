@@ -1,13 +1,14 @@
-import { Fee } from '@rosen-bridge/minimum-fee';
+import { ChainMinimumFee } from '@rosen-bridge/minimum-fee';
 import GuardsCardanoConfigs from '../../src/configs/GuardsCardanoConfigs';
 import EventOrder from '../../src/event/EventOrder';
 import {
+  feeRatioDivisor,
   mockNativeTokenPaymentEvent,
   mockTokenPaymentEvent,
   mockTokenPaymentFromErgoEvent,
+  rsnRatioDivisor,
 } from './testData';
 import TestUtils from '../testUtils/TestUtils';
-import MinimumFee from '../../src/event/MinimumFee';
 import GuardsErgoConfigs from '../../src/configs/GuardsErgoConfigs';
 import { rosenConfig } from '../../src/configs/RosenConfig';
 import ChainHandlerMock from '../handlers/ChainHandler.mock';
@@ -33,11 +34,13 @@ describe('EventOrder', () => {
     it('should generate native token payment successfully', () => {
       // mock function arguments
       const chainMinTransfer = 100n;
-      const fee: Fee = {
+      const fee: ChainMinimumFee = {
         bridgeFee: 0n,
         networkFee: 0n,
         rsnRatio: 0n,
         feeRatio: 0n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       };
       const mockedEvent = mockNativeTokenPaymentEvent().event;
 
@@ -80,11 +83,13 @@ describe('EventOrder', () => {
     it('should generate token payment successfully', () => {
       // mock function arguments
       const chainMinTransfer = 100n;
-      const fee: Fee = {
+      const fee: ChainMinimumFee = {
         bridgeFee: 0n,
         networkFee: 0n,
         rsnRatio: 0n,
         feeRatio: 0n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       };
       const mockedEvent = mockTokenPaymentFromErgoEvent().event;
 
@@ -129,11 +134,13 @@ describe('EventOrder', () => {
     it('should replace fees on token payment when they are less than minimum config', () => {
       // mock function arguments
       const chainMinTransfer = 100n;
-      const fee: Fee = {
+      const fee: ChainMinimumFee = {
         bridgeFee: 20000000n,
         networkFee: 30000n,
         rsnRatio: 0n,
         feeRatio: 0n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       };
       const mockedEvent = mockTokenPaymentEvent().event;
 
@@ -180,11 +187,13 @@ describe('EventOrder', () => {
     it('should replace bridgeFee on native token payment when it is less than expected value', () => {
       // mock function arguments
       const chainMinTransfer = 100n;
-      const fee: Fee = {
+      const fee: ChainMinimumFee = {
         bridgeFee: 0n,
         networkFee: 0n,
         rsnRatio: 0n,
         feeRatio: 1000n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       };
       const mockedEvent = mockNativeTokenPaymentEvent().event;
 
@@ -199,8 +208,7 @@ describe('EventOrder', () => {
       expect(result.address).toEqual(mockedEvent.toAddress);
       expect(result.assets.nativeToken).toEqual(
         BigInt(mockedEvent.amount) -
-          (BigInt(mockedEvent.amount) * fee.feeRatio) /
-            MinimumFee.bridgeMinimumFee.feeRatioDivisor -
+          (BigInt(mockedEvent.amount) * fee.feeRatio) / feeRatioDivisor -
           BigInt(mockedEvent.networkFee) +
           chainMinTransfer +
           GuardsErgoConfigs.additionalErgOnPayment
@@ -234,18 +242,22 @@ describe('EventOrder', () => {
      * - first 5 orders must have cardano permit address
      */
     it('should set cardano permit address for each watcher when source chain of event is cardano', () => {
-      const fee: Fee = {
+      const fee: ChainMinimumFee = {
         bridgeFee: 0n,
         networkFee: 0n,
         rsnRatio: 1000000000n,
         feeRatio: 0n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       };
       const mockedEvent = mockNativeTokenPaymentEvent();
 
       // mock ChainHandler
-      ChainHandlerMock.mockChainName(mockedEvent.event.fromChain, true);
+      const chain = mockedEvent.event.fromChain;
+      ChainHandlerMock.mockChainName(chain);
       // mock `getChainConfigs`
-      ChainHandlerMock.mockFromChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getChainConfigs',
         GuardsCardanoConfigs.chainConfigs
       );
@@ -262,7 +274,7 @@ describe('EventOrder', () => {
       );
       for (let index = 0; index < mockedEvent.WIDs.length; index++) {
         expect(
-          result[index].address ===
+          result.watchersOrder[index].address ===
             GuardsCardanoConfigs.cardanoContractConfig.permitAddress
         );
       }
@@ -306,11 +318,13 @@ describe('EventOrder', () => {
      */
     it('should generate native token reward distribution successfully', () => {
       // mock function arguments
-      const fee: Fee = {
+      const fee: ChainMinimumFee = {
         bridgeFee: 0n,
         networkFee: 0n,
         rsnRatio: 1000000000n,
         feeRatio: 0n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       };
       const paymentTxId = '';
       const mockedEvent = mockNativeTokenPaymentEvent();
@@ -320,9 +334,11 @@ describe('EventOrder', () => {
       };
 
       // mock ChainHandler
-      ChainHandlerMock.mockChainName(mockedEvent.event.fromChain, true);
+      const chain = mockedEvent.event.fromChain;
+      ChainHandlerMock.mockChainName(chain);
       // mock `getChainConfigs`
-      ChainHandlerMock.mockFromChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getChainConfigs',
         GuardsCardanoConfigs.chainConfigs
       );
@@ -340,9 +356,12 @@ describe('EventOrder', () => {
       );
 
       // verify returned value
+      const watchersOrder = result.watchersOrder;
+      const guardsOrder = result.guardsOrder;
+      expect(watchersOrder.length).toEqual(6);
+      expect(guardsOrder.length).toEqual(3);
       // verify 5 watcher box
-      expect(result.length).toEqual(9);
-      result.slice(0, 5).forEach((watcherOrder, index) => {
+      watchersOrder.slice(0, 5).forEach((watcherOrder, index) => {
         expect(watcherOrder.address).toEqual(
           GuardsErgoConfigs.ergoContractConfig.permitAddress
         );
@@ -356,7 +375,7 @@ describe('EventOrder', () => {
         expect(watcherOrder.extra).toEqual(mockedEvent.WIDs[index]);
       });
       // verify 1 watcher box
-      const unmergedWatcherOrder = result[5];
+      const unmergedWatcherOrder = watchersOrder[5];
       expect(unmergedWatcherOrder.address).toEqual(
         GuardsErgoConfigs.ergoContractConfig.permitAddress
       );
@@ -370,7 +389,7 @@ describe('EventOrder', () => {
       expect(unmergedWatcherOrder.assets.tokens[1].value).toEqual(33333n);
       expect(unmergedWatcherOrder.extra).toEqual(unmergedWID.wid);
       // verify bridge fee box
-      const bridgeFeeOrder = result[6];
+      const bridgeFeeOrder = guardsOrder[0];
       expect(bridgeFeeOrder.address).toEqual(
         GuardsErgoConfigs.bridgeFeeRepoAddress
       );
@@ -378,7 +397,7 @@ describe('EventOrder', () => {
       expect(bridgeFeeOrder.assets.tokens.length).toEqual(0);
       expect(bridgeFeeOrder.extra).toEqual(paymentTxId);
       // verify rsn emission box
-      const rsnEmissionOrder = result[7];
+      const rsnEmissionOrder = guardsOrder[1];
       expect(rsnEmissionOrder.address).toEqual(
         GuardsErgoConfigs.rsnEmissionAddress
       );
@@ -388,7 +407,7 @@ describe('EventOrder', () => {
       expect(rsnEmissionOrder.assets.tokens[0].value).toEqual(800002n);
       expect(rsnEmissionOrder.extra).toBeUndefined();
       // verify network fee box
-      const networkFeeOrder = result[8];
+      const networkFeeOrder = guardsOrder[2];
       expect(networkFeeOrder.address).toEqual(
         GuardsErgoConfigs.networkFeeRepoAddress
       );
@@ -435,11 +454,13 @@ describe('EventOrder', () => {
      */
     it('should generate token reward distribution successfully', () => {
       // mock function arguments
-      const fee: Fee = {
+      const fee: ChainMinimumFee = {
         bridgeFee: 0n,
         networkFee: 0n,
         rsnRatio: 1000000000n,
         feeRatio: 0n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       };
       const paymentTxId = '';
       const mockedEvent = mockTokenPaymentEvent();
@@ -449,9 +470,11 @@ describe('EventOrder', () => {
       };
 
       // mock ChainHandler
-      ChainHandlerMock.mockChainName(mockedEvent.event.fromChain, true);
+      const chain = mockedEvent.event.fromChain;
+      ChainHandlerMock.mockChainName(chain);
       // mock `getChainConfigs`
-      ChainHandlerMock.mockFromChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getChainConfigs',
         GuardsCardanoConfigs.chainConfigs
       );
@@ -469,9 +492,12 @@ describe('EventOrder', () => {
       );
 
       // verify returned value
+      const watchersOrder = result.watchersOrder;
+      const guardsOrder = result.guardsOrder;
+      expect(watchersOrder.length).toEqual(6);
+      expect(guardsOrder.length).toEqual(3);
       // verify 5 watcher box
-      expect(result.length).toEqual(9);
-      result.slice(0, 5).forEach((watcherOrder, index) => {
+      watchersOrder.slice(0, 5).forEach((watcherOrder, index) => {
         expect(watcherOrder.address).toEqual(
           GuardsErgoConfigs.ergoContractConfig.permitAddress
         );
@@ -488,7 +514,7 @@ describe('EventOrder', () => {
         expect(watcherOrder.extra).toEqual(mockedEvent.WIDs[index]);
       });
       // verify 1 watcher box
-      const unmergedWatcherOrder = result[5];
+      const unmergedWatcherOrder = watchersOrder[5];
       expect(unmergedWatcherOrder.address).toEqual(
         GuardsErgoConfigs.ergoContractConfig.permitAddress
       );
@@ -504,7 +530,7 @@ describe('EventOrder', () => {
       expect(unmergedWatcherOrder.assets.tokens[2].value).toEqual(333n);
       expect(unmergedWatcherOrder.extra).toEqual(unmergedWID.wid);
       // verify bridge fee box
-      const bridgeFeeOrder = result[6];
+      const bridgeFeeOrder = guardsOrder[0];
       expect(bridgeFeeOrder.address).toEqual(
         GuardsErgoConfigs.bridgeFeeRepoAddress
       );
@@ -516,7 +542,7 @@ describe('EventOrder', () => {
       expect(bridgeFeeOrder.assets.tokens[0].value).toEqual(5000002n);
       expect(bridgeFeeOrder.extra).toEqual(paymentTxId);
       // verify rsn emission box
-      const rsnEmissionOrder = result[7];
+      const rsnEmissionOrder = guardsOrder[1];
       expect(rsnEmissionOrder.address).toEqual(
         GuardsErgoConfigs.rsnEmissionAddress
       );
@@ -526,7 +552,7 @@ describe('EventOrder', () => {
       expect(rsnEmissionOrder.assets.tokens[0].value).toEqual(8002n);
       expect(rsnEmissionOrder.extra).toBeUndefined();
       // verify network fee box
-      const networkFeeOrder = result[8];
+      const networkFeeOrder = guardsOrder[2];
       expect(networkFeeOrder.address).toEqual(
         GuardsErgoConfigs.networkFeeRepoAddress
       );
@@ -577,11 +603,13 @@ describe('EventOrder', () => {
      */
     it('should replace fees on token payment when they are less than minimum config', () => {
       // mock function arguments
-      const fee: Fee = {
+      const fee: ChainMinimumFee = {
         bridgeFee: 20000000n,
         networkFee: 30000n,
         rsnRatio: 1000000000n,
         feeRatio: 0n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       };
       const paymentTxId = '';
       const mockedEvent = mockTokenPaymentEvent();
@@ -591,9 +619,11 @@ describe('EventOrder', () => {
       };
 
       // mock ChainHandler
-      ChainHandlerMock.mockChainName(mockedEvent.event.fromChain, true);
+      const chain = mockedEvent.event.fromChain;
+      ChainHandlerMock.mockChainName(chain);
       // mock `getChainConfigs`
-      ChainHandlerMock.mockFromChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getChainConfigs',
         GuardsCardanoConfigs.chainConfigs
       );
@@ -611,9 +641,12 @@ describe('EventOrder', () => {
       );
 
       // verify returned value
+      const watchersOrder = result.watchersOrder;
+      const guardsOrder = result.guardsOrder;
+      expect(watchersOrder.length).toEqual(6);
+      expect(guardsOrder.length).toEqual(3);
       // verify 5 watcher box
-      expect(result.length).toEqual(9);
-      result.slice(0, 5).forEach((watcherOrder, index) => {
+      watchersOrder.slice(0, 5).forEach((watcherOrder, index) => {
         expect(watcherOrder.address).toEqual(
           GuardsErgoConfigs.ergoContractConfig.permitAddress
         );
@@ -630,7 +663,7 @@ describe('EventOrder', () => {
         expect(watcherOrder.extra).toEqual(mockedEvent.WIDs[index]);
       });
       // verify 1 watcher box
-      const unmergedWatcherOrder = result[5];
+      const unmergedWatcherOrder = watchersOrder[5];
       expect(unmergedWatcherOrder.address).toEqual(
         GuardsErgoConfigs.ergoContractConfig.permitAddress
       );
@@ -646,7 +679,7 @@ describe('EventOrder', () => {
       expect(unmergedWatcherOrder.assets.tokens[2].value).toEqual(666n);
       expect(unmergedWatcherOrder.extra).toEqual(unmergedWID.wid);
       // verify bridge fee box
-      const bridgeFeeOrder = result[6];
+      const bridgeFeeOrder = guardsOrder[0];
       expect(bridgeFeeOrder.address).toEqual(
         GuardsErgoConfigs.bridgeFeeRepoAddress
       );
@@ -658,7 +691,7 @@ describe('EventOrder', () => {
       expect(bridgeFeeOrder.assets.tokens[0].value).toEqual(10000004n);
       expect(bridgeFeeOrder.extra).toEqual(paymentTxId);
       // verify rsn emission box
-      const rsnEmissionOrder = result[7];
+      const rsnEmissionOrder = guardsOrder[1];
       expect(rsnEmissionOrder.address).toEqual(
         GuardsErgoConfigs.rsnEmissionAddress
       );
@@ -668,7 +701,7 @@ describe('EventOrder', () => {
       expect(rsnEmissionOrder.assets.tokens[0].value).toEqual(16004n);
       expect(rsnEmissionOrder.extra).toBeUndefined();
       // verify network fee box
-      const networkFeeOrder = result[8];
+      const networkFeeOrder = guardsOrder[2];
       expect(networkFeeOrder.address).toEqual(
         GuardsErgoConfigs.networkFeeRepoAddress
       );
@@ -719,11 +752,13 @@ describe('EventOrder', () => {
      */
     it('should replace bridgeFee on native token payment when it is less than expected value', () => {
       // mock function arguments
-      const fee: Fee = {
+      const fee: ChainMinimumFee = {
         bridgeFee: 0n,
         networkFee: 0n,
         rsnRatio: 1000000000n,
         feeRatio: 1000n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       };
       const paymentTxId = '';
       const mockedEvent = mockNativeTokenPaymentEvent();
@@ -733,9 +768,11 @@ describe('EventOrder', () => {
       };
 
       // mock ChainHandler
-      ChainHandlerMock.mockChainName(mockedEvent.event.fromChain, true);
+      const chain = mockedEvent.event.fromChain;
+      ChainHandlerMock.mockChainName(chain);
       // mock `getChainConfigs`
-      ChainHandlerMock.mockFromChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getChainConfigs',
         GuardsCardanoConfigs.chainConfigs
       );
@@ -753,9 +790,12 @@ describe('EventOrder', () => {
       );
 
       // verify returned value
+      const watchersOrder = result.watchersOrder;
+      const guardsOrder = result.guardsOrder;
+      expect(watchersOrder.length).toEqual(6);
+      expect(guardsOrder.length).toEqual(3);
       // verify 5 watcher box
-      expect(result.length).toEqual(9);
-      result.slice(0, 5).forEach((watcherOrder, index) => {
+      watchersOrder.slice(0, 5).forEach((watcherOrder, index) => {
         expect(watcherOrder.address).toEqual(
           GuardsErgoConfigs.ergoContractConfig.permitAddress
         );
@@ -769,7 +809,7 @@ describe('EventOrder', () => {
         expect(watcherOrder.extra).toEqual(mockedEvent.WIDs[index]);
       });
       // verify 1 watcher box
-      const unmergedWatcherOrder = result[5];
+      const unmergedWatcherOrder = watchersOrder[5];
       expect(unmergedWatcherOrder.address).toEqual(
         GuardsErgoConfigs.ergoContractConfig.permitAddress
       );
@@ -783,7 +823,7 @@ describe('EventOrder', () => {
       expect(unmergedWatcherOrder.assets.tokens[1].value).toEqual(166666n);
       expect(unmergedWatcherOrder.extra).toEqual(unmergedWID.wid);
       // verify bridge fee box
-      const bridgeFeeOrder = result[6];
+      const bridgeFeeOrder = guardsOrder[0];
       expect(bridgeFeeOrder.address).toEqual(
         GuardsErgoConfigs.bridgeFeeRepoAddress
       );
@@ -791,7 +831,7 @@ describe('EventOrder', () => {
       expect(bridgeFeeOrder.assets.tokens.length).toEqual(0);
       expect(bridgeFeeOrder.extra).toEqual(paymentTxId);
       // verify rsn emission box
-      const rsnEmissionOrder = result[7];
+      const rsnEmissionOrder = guardsOrder[1];
       expect(rsnEmissionOrder.address).toEqual(
         GuardsErgoConfigs.rsnEmissionAddress
       );
@@ -801,7 +841,7 @@ describe('EventOrder', () => {
       expect(rsnEmissionOrder.assets.tokens[0].value).toEqual(4000004n);
       expect(rsnEmissionOrder.extra).toBeUndefined();
       // verify network fee box
-      const networkFeeOrder = result[8];
+      const networkFeeOrder = guardsOrder[2];
       expect(networkFeeOrder.address).toEqual(
         GuardsErgoConfigs.networkFeeRepoAddress
       );
@@ -842,11 +882,13 @@ describe('EventOrder', () => {
      */
     it('should not create RSN emission box when no RSN emitted', () => {
       // mock function arguments
-      const fee: Fee = {
+      const fee: ChainMinimumFee = {
         bridgeFee: 0n,
         networkFee: 0n,
         rsnRatio: 0n,
         feeRatio: 0n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       };
       const paymentTxId = '';
       const mockedEvent = mockTokenPaymentEvent();
@@ -856,9 +898,11 @@ describe('EventOrder', () => {
       };
 
       // mock ChainHandler
-      ChainHandlerMock.mockChainName(mockedEvent.event.fromChain, true);
+      const chain = mockedEvent.event.fromChain;
+      ChainHandlerMock.mockChainName(chain);
       // mock `getChainConfigs`
-      ChainHandlerMock.mockFromChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getChainConfigs',
         GuardsCardanoConfigs.chainConfigs
       );
@@ -876,9 +920,12 @@ describe('EventOrder', () => {
       );
 
       // verify returned value
+      const watchersOrder = result.watchersOrder;
+      const guardsOrder = result.guardsOrder;
+      expect(watchersOrder.length).toEqual(6);
+      expect(guardsOrder.length).toEqual(2);
       // verify 5 watcher box
-      expect(result.length).toEqual(8);
-      result.slice(0, 5).forEach((watcherOrder, index) => {
+      watchersOrder.slice(0, 5).forEach((watcherOrder, index) => {
         expect(watcherOrder.address).toEqual(
           GuardsErgoConfigs.ergoContractConfig.permitAddress
         );
@@ -893,7 +940,7 @@ describe('EventOrder', () => {
         expect(watcherOrder.extra).toEqual(mockedEvent.WIDs[index]);
       });
       // verify 1 watcher box
-      const unmergedWatcherOrder = result[5];
+      const unmergedWatcherOrder = watchersOrder[5];
       expect(unmergedWatcherOrder.address).toEqual(
         GuardsErgoConfigs.ergoContractConfig.permitAddress
       );
@@ -907,7 +954,7 @@ describe('EventOrder', () => {
       expect(unmergedWatcherOrder.assets.tokens[1].value).toEqual(833333n);
       expect(unmergedWatcherOrder.extra).toEqual(unmergedWID.wid);
       // verify bridge fee box
-      const bridgeFeeOrder = result[6];
+      const bridgeFeeOrder = guardsOrder[0];
       expect(bridgeFeeOrder.address).toEqual(
         GuardsErgoConfigs.bridgeFeeRepoAddress
       );
@@ -919,7 +966,7 @@ describe('EventOrder', () => {
       expect(bridgeFeeOrder.assets.tokens[0].value).toEqual(5000002n);
       expect(bridgeFeeOrder.extra).toEqual(paymentTxId);
       // verify network fee box
-      const networkFeeOrder = result[7];
+      const networkFeeOrder = guardsOrder[1];
       expect(networkFeeOrder.address).toEqual(
         GuardsErgoConfigs.networkFeeRepoAddress
       );

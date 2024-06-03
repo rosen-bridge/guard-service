@@ -56,7 +56,8 @@ describe('revenueJobFunction', () => {
     );
 
     // mock ChainHandler fromChain and ErgoChain
-    ChainHandlerMock.mockChainName(CARDANO_CHAIN, true);
+    const chain = CARDANO_CHAIN;
+    ChainHandlerMock.mockChainName(chain);
     // mock `getTransaction`
     ChainHandlerMock.mockErgoFunctionReturnValue('getTransaction', tx, true);
     // mock `extractSignedTransactionOrder`
@@ -65,7 +66,8 @@ describe('revenueJobFunction', () => {
       testData.fraudTxOrder
     );
     // mock `getChainConfigs`
-    ChainHandlerMock.mockFromChainFunction(
+    ChainHandlerMock.mockChainFunction(
+      chain,
       'getChainConfigs',
       GuardsCardanoConfigs.chainConfigs
     );
@@ -135,7 +137,8 @@ describe('revenueJobFunction', () => {
     );
 
     // mock ChainHandler fromChain and ErgoChain
-    ChainHandlerMock.mockChainName(CARDANO_CHAIN, true);
+    const chain = CARDANO_CHAIN;
+    ChainHandlerMock.mockChainName(chain);
     // mock `getTransaction`
     ChainHandlerMock.mockErgoFunctionReturnValue('getTransaction', tx, true);
     // mock `extractSignedTransactionOrder`
@@ -144,7 +147,8 @@ describe('revenueJobFunction', () => {
       testData.rewardTxOrder
     );
     // mock `getChainConfigs`
-    ChainHandlerMock.mockFromChainFunction(
+    ChainHandlerMock.mockChainFunction(
+      chain,
       'getChainConfigs',
       GuardsCardanoConfigs.chainConfigs
     );
