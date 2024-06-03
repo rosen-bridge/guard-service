@@ -146,8 +146,8 @@ healthCheck:
       warnThreshold: 2500000000 # minimum recommended erg balance
       criticalThreshold: 200000000 # minimum required erg balance
     btc:
-      warnThreshold: 100000 # minimum recommended erg balance
-      criticalThreshold: 10000 # minimum required erg balance
+      warnThreshold: 5000000 # minimum recommended btc balance
+      criticalThreshold: 1000000 # minimum required btc balance
   ergoScanner:
     warnDifference: 2 # warning difference between existing and scanned blocks height
     criticalDifference: 100 # critical difference between existing and scanned blocks height
