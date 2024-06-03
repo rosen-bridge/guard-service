@@ -62,16 +62,17 @@ describe('TransactionProcessor', () => {
       await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.approved);
 
       // mock ChainHandler `getChain`
-      ChainHandlerMock.mockChainName(tx.network);
+      const chain = tx.network;
+      ChainHandlerMock.mockChainName(chain);
       // mock `signTransaction`
-      ChainHandlerMock.mockToChainFunction('signTransaction', null, true);
+      ChainHandlerMock.mockChainFunction(chain, 'signTransaction', null, true);
 
       // run test
       await TransactionProcessor.processTransactions();
 
       // `signTransaction` should got called
       expect(
-        ChainHandlerMock.getChainMockedFunction('signTransaction')
+        ChainHandlerMock.getChainMockedFunction(chain, 'signTransaction')
       ).toHaveBeenCalledOnce();
 
       // tx status should be updated to 'in-sign'
@@ -112,12 +113,19 @@ describe('TransactionProcessor', () => {
       await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.approved);
 
       // mock ChainHandler `getChain`
-      ChainHandlerMock.mockChainName(tx.network);
+      const chain = tx.network;
+      ChainHandlerMock.mockChainName(chain);
       // mock `signTransaction`
-      ChainHandlerMock.mockToChainFunction('signTransaction', signedTx, true);
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'signTransaction',
+        signedTx,
+        true
+      );
       // mock `getHeight`
       const mockedCurrentHeight = 102;
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getHeight',
         mockedCurrentHeight,
         true
@@ -133,7 +141,7 @@ describe('TransactionProcessor', () => {
 
       // `signTransaction` should got called
       expect(
-        ChainHandlerMock.getChainMockedFunction('signTransaction')
+        ChainHandlerMock.getChainMockedFunction(chain, 'signTransaction')
       ).toHaveBeenCalledOnce();
 
       // `handleSuccessfulSign` should got called
@@ -167,16 +175,19 @@ describe('TransactionProcessor', () => {
       await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.approved);
 
       // mock ChainHandler `getChain`
-      ChainHandlerMock.mockChainName(tx.network);
+      const chain = tx.network;
+      ChainHandlerMock.mockChainName(chain);
       // mock `signTransaction`
-      ChainHandlerMock.mockToChainFunctionToThrow(
+      ChainHandlerMock.mockChainFunctionToThrow(
+        chain,
         'signTransaction',
         new Error(`failure in sign test Error`),
         true
       );
       // mock `getHeight`
       const mockedCurrentHeight = 102;
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getHeight',
         mockedCurrentHeight,
         true
@@ -191,7 +202,7 @@ describe('TransactionProcessor', () => {
 
       // `signTransaction` should got called
       expect(
-        ChainHandlerMock.getChainMockedFunction('signTransaction')
+        ChainHandlerMock.getChainMockedFunction(chain, 'signTransaction')
       ).toHaveBeenCalledOnce();
 
       // `handleFailedSign` should got called
@@ -230,10 +241,12 @@ describe('TransactionProcessor', () => {
       await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.inSign);
 
       // mock ChainHandler `getChain`
-      ChainHandlerMock.mockChainName(tx.network);
+      const chain = tx.network;
+      ChainHandlerMock.mockChainName(chain);
       // mock `getHeight`
       const mockedCurrentHeight = 102;
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getHeight',
         mockedCurrentHeight,
         true
@@ -445,9 +458,11 @@ describe('TransactionProcessor', () => {
       await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.signFailed);
 
       // mock ChainHandler `getChain`
-      ChainHandlerMock.mockChainName(tx.network);
+      const chain = tx.network;
+      ChainHandlerMock.mockChainName(chain);
       // mock `getTxConfirmationStatus`
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getTxConfirmationStatus',
         ConfirmationStatus.NotConfirmedEnough,
         true
@@ -493,15 +508,17 @@ describe('TransactionProcessor', () => {
       await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.signFailed);
 
       // mock ChainHandler `getChain`
-      ChainHandlerMock.mockChainName(tx.network);
+      const chain = tx.network;
+      ChainHandlerMock.mockChainName(chain);
       // mock `getTxConfirmationStatus`
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getTxConfirmationStatus',
         ConfirmationStatus.NotFound,
         true
       );
       // mock `isTxInMempool`
-      ChainHandlerMock.mockToChainFunction('isTxInMempool', true, true);
+      ChainHandlerMock.mockChainFunction(chain, 'isTxInMempool', true, true);
 
       // run test
       await TransactionProcessor.processTransactions();
@@ -547,26 +564,28 @@ describe('TransactionProcessor', () => {
       await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.signFailed);
 
       // mock ChainHandler `getChain`
-      ChainHandlerMock.mockChainName(tx.network);
+      const chain = tx.network;
+      ChainHandlerMock.mockChainName(chain);
       // mock `getTxConfirmationStatus`
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getTxConfirmationStatus',
         ConfirmationStatus.NotFound,
         true
       );
       // mock `isTxInMempool`
-      ChainHandlerMock.mockToChainFunction('isTxInMempool', false, true);
+      ChainHandlerMock.mockChainFunction(chain, 'isTxInMempool', false, true);
       // mock `isTxValid`
-      ChainHandlerMock.mockToChainFunction('isTxValid', true, true);
+      ChainHandlerMock.mockChainFunction(chain, 'isTxValid', true, true);
       // mock `signTransaction`
-      ChainHandlerMock.mockToChainFunction('signTransaction', null, true);
+      ChainHandlerMock.mockChainFunction(chain, 'signTransaction', null, true);
 
       // run test
       await TransactionProcessor.processTransactions();
 
       // `signTransaction` should got called
       expect(
-        ChainHandlerMock.getChainMockedFunction('signTransaction')
+        ChainHandlerMock.getChainMockedFunction(chain, 'signTransaction')
       ).toHaveBeenCalledOnce();
 
       // tx status should be updated to 'in-sign'
@@ -604,17 +623,19 @@ describe('TransactionProcessor', () => {
       await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.signFailed);
 
       // mock ChainHandler `getChain`
-      ChainHandlerMock.mockChainName(tx.network);
+      const chain = tx.network;
+      ChainHandlerMock.mockChainName(chain);
       // mock `getTxConfirmationStatus`
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getTxConfirmationStatus',
         ConfirmationStatus.NotFound,
         true
       );
       // mock `isTxInMempool`
-      ChainHandlerMock.mockToChainFunction('isTxInMempool', false, true);
+      ChainHandlerMock.mockChainFunction(chain, 'isTxInMempool', false, true);
       // mock `isTxValid`
-      ChainHandlerMock.mockToChainFunction('isTxValid', false, true);
+      ChainHandlerMock.mockChainFunction(chain, 'isTxValid', false, true);
 
       // mock TransactionProcessor.setTransactionAsInvalid
       TransactionProcessorMock.mockFunction('setTransactionAsInvalid');
@@ -658,16 +679,22 @@ describe('TransactionProcessor', () => {
       await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.signed);
 
       // mock ChainHandler `getChain`
-      ChainHandlerMock.mockChainName(tx.network);
+      const chain = tx.network;
+      ChainHandlerMock.mockChainName(chain);
       // mock `submitTransaction`
-      ChainHandlerMock.mockToChainFunction('submitTransaction', null, true);
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'submitTransaction',
+        null,
+        true
+      );
 
       // run test
       await TransactionProcessor.processTransactions();
 
       // `submitTransaction` should got called
       expect(
-        ChainHandlerMock.getChainMockedFunction('submitTransaction')
+        ChainHandlerMock.getChainMockedFunction(chain, 'submitTransaction')
       ).toHaveBeenCalledOnce();
 
       // tx status should be updated to 'sent'
@@ -721,9 +748,11 @@ describe('TransactionProcessor', () => {
       await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.sent);
 
       // mock ChainHandler `getChain`
-      ChainHandlerMock.mockChainName(tx.network);
+      const chain = tx.network;
+      ChainHandlerMock.mockChainName(chain);
       // mock `getTxConfirmationStatus`
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getTxConfirmationStatus',
         ConfirmationStatus.ConfirmedEnough,
         true
@@ -787,7 +816,8 @@ describe('TransactionProcessor', () => {
       await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.sent);
 
       // mock ChainHandler `getChain`
-      ChainHandlerMock.mockChainName(tx.network);
+      const chain = tx.network;
+      ChainHandlerMock.mockChainName(chain);
       // mock `getTxConfirmationStatus`
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'getTxConfirmationStatus',
@@ -847,7 +877,8 @@ describe('TransactionProcessor', () => {
       await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.sent);
 
       // mock ChainHandler `getChain`
-      ChainHandlerMock.mockChainName(tx.network);
+      const chain = tx.network;
+      ChainHandlerMock.mockChainName(chain);
       // mock `getTxConfirmationStatus`
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'getTxConfirmationStatus',
@@ -904,9 +935,11 @@ describe('TransactionProcessor', () => {
       await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.sent);
 
       // mock ChainHandler `getChain`
-      ChainHandlerMock.mockChainName(tx.network);
+      const chain = tx.network;
+      ChainHandlerMock.mockChainName(chain);
       // mock `getTxConfirmationStatus`
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getTxConfirmationStatus',
         ConfirmationStatus.ConfirmedEnough,
         true
@@ -962,16 +995,19 @@ describe('TransactionProcessor', () => {
       await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.sent, 100);
 
       // mock ChainHandler `getChain`
-      ChainHandlerMock.mockChainName(tx.network);
+      const chain = tx.network;
+      ChainHandlerMock.mockChainName(chain);
       // mock `getTxConfirmationStatus`
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getTxConfirmationStatus',
         ConfirmationStatus.NotConfirmedEnough,
         true
       );
       // mock `getHeight`
       const mockedCurrentHeight = 102;
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getHeight',
         mockedCurrentHeight,
         true
@@ -1024,22 +1060,25 @@ describe('TransactionProcessor', () => {
       await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.sent, 100);
 
       // mock ChainHandler `getChain`
-      ChainHandlerMock.mockChainName(tx.network);
+      const chain = tx.network;
+      ChainHandlerMock.mockChainName(chain);
       // mock `getTxConfirmationStatus`
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getTxConfirmationStatus',
         ConfirmationStatus.NotFound,
         true
       );
       // mock `getHeight`
       const mockedCurrentHeight = 102;
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getHeight',
         mockedCurrentHeight,
         true
       );
       // mock `isTxInMempool`
-      ChainHandlerMock.mockToChainFunction('isTxInMempool', true, true);
+      ChainHandlerMock.mockChainFunction(chain, 'isTxInMempool', true, true);
 
       // run test
       await TransactionProcessor.processTransactions();
@@ -1090,27 +1129,34 @@ describe('TransactionProcessor', () => {
       await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.sent, 100);
 
       // mock ChainHandler `getChain`
-      ChainHandlerMock.mockChainName(tx.network);
+      const chain = tx.network;
+      ChainHandlerMock.mockChainName(chain);
       // mock `getTxConfirmationStatus`
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getTxConfirmationStatus',
         ConfirmationStatus.NotFound,
         true
       );
       // mock `isTxInMempool`
-      ChainHandlerMock.mockToChainFunction('isTxInMempool', false, true);
+      ChainHandlerMock.mockChainFunction(chain, 'isTxInMempool', false, true);
       // mock `isTxValid`
       const mockedCurrentHeight = 102;
-      ChainHandlerMock.mockToChainFunction('isTxValid', true, true);
+      ChainHandlerMock.mockChainFunction(chain, 'isTxValid', true, true);
       // mock `submitTransaction`
-      ChainHandlerMock.mockToChainFunction('submitTransaction', null, true);
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'submitTransaction',
+        null,
+        true
+      );
 
       // run test
       await TransactionProcessor.processTransactions();
 
       // `submitTransaction` should got called
       expect(
-        ChainHandlerMock.getChainMockedFunction('submitTransaction')
+        ChainHandlerMock.getChainMockedFunction(chain, 'submitTransaction')
       ).toHaveBeenCalledOnce();
     });
 
@@ -1147,17 +1193,19 @@ describe('TransactionProcessor', () => {
       await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.sent, 100);
 
       // mock ChainHandler `getChain`
-      ChainHandlerMock.mockChainName(tx.network);
+      const chain = tx.network;
+      ChainHandlerMock.mockChainName(chain);
       // mock `getTxConfirmationStatus`
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getTxConfirmationStatus',
         ConfirmationStatus.NotFound,
         true
       );
       // mock `isTxInMempool`
-      ChainHandlerMock.mockToChainFunction('isTxInMempool', false, true);
+      ChainHandlerMock.mockChainFunction(chain, 'isTxInMempool', false, true);
       // mock `isTxValid`
-      ChainHandlerMock.mockToChainFunction('isTxValid', false, true);
+      ChainHandlerMock.mockChainFunction(chain, 'isTxValid', false, true);
 
       // mock TransactionProcessor.setTransactionAsInvalid
       TransactionProcessorMock.mockFunction('setTransactionAsInvalid');
@@ -1217,21 +1265,27 @@ describe('TransactionProcessor', () => {
       await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.sent, 100);
 
       // mock ChainHandler `getChain`
-      ChainHandlerMock.mockChainName(tx.network);
+      const chain = tx.network;
+      ChainHandlerMock.mockChainName(chain);
       // mock `getHeight`
       const mockedCurrentHeight = 111;
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getHeight',
         mockedCurrentHeight,
         true
       );
       // mock `getTxRequiredConfirmation`
-      ChainHandlerMock.mockToChainFunction('getTxRequiredConfirmation', 10);
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'getTxRequiredConfirmation',
+        10
+      );
 
       // run test
       const txEntity = (await DatabaseActionMock.allTxRecords())[0];
-      const chain = chainHandlerInstance.getChain(tx.network);
-      await TransactionProcessor.setTransactionAsInvalid(txEntity, chain);
+      const mockedChain = chainHandlerInstance.getChain(chain);
+      await TransactionProcessor.setTransactionAsInvalid(txEntity, mockedChain);
 
       // tx status should be updated to 'invalid'
       const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
@@ -1294,21 +1348,27 @@ describe('TransactionProcessor', () => {
       await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.sent, 100);
 
       // mock ChainHandler `getChain`
-      ChainHandlerMock.mockChainName(tx.network);
+      const chain = tx.network;
+      ChainHandlerMock.mockChainName(chain);
       // mock `getHeight`
       const mockedCurrentHeight = 111;
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getHeight',
         mockedCurrentHeight,
         true
       );
       // mock `getTxRequiredConfirmation`
-      ChainHandlerMock.mockToChainFunction('getTxRequiredConfirmation', 10);
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'getTxRequiredConfirmation',
+        10
+      );
 
       // run test
       const txEntity = (await DatabaseActionMock.allTxRecords())[0];
-      const chain = chainHandlerInstance.getChain(tx.network);
-      await TransactionProcessor.setTransactionAsInvalid(txEntity, chain);
+      const mockedChain = chainHandlerInstance.getChain(tx.network);
+      await TransactionProcessor.setTransactionAsInvalid(txEntity, mockedChain);
 
       // tx status should be updated to 'invalid'
       const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
@@ -1359,21 +1419,27 @@ describe('TransactionProcessor', () => {
       await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.sent, 100);
 
       // mock ChainHandler `getChain`
-      ChainHandlerMock.mockChainName(tx.network);
+      const chain = tx.network;
+      ChainHandlerMock.mockChainName(chain);
       // mock `getHeight`
       const mockedCurrentHeight = 111;
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getHeight',
         mockedCurrentHeight,
         true
       );
       // mock `getTxRequiredConfirmation`
-      ChainHandlerMock.mockToChainFunction('getTxRequiredConfirmation', 10);
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'getTxRequiredConfirmation',
+        10
+      );
 
       // run test
       const txEntity = (await DatabaseActionMock.allTxRecords())[0];
-      const chain = chainHandlerInstance.getChain(tx.network);
-      await TransactionProcessor.setTransactionAsInvalid(txEntity, chain);
+      const mockedChain = chainHandlerInstance.getChain(tx.network);
+      await TransactionProcessor.setTransactionAsInvalid(txEntity, mockedChain);
 
       // tx status should be updated to 'invalid'
       const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
@@ -1412,21 +1478,27 @@ describe('TransactionProcessor', () => {
       await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.sent, 100);
 
       // mock ChainHandler `getChain`
-      ChainHandlerMock.mockChainName(tx.network);
+      const chain = tx.network;
+      ChainHandlerMock.mockChainName(chain);
       // mock `getHeight`
       const mockedCurrentHeight = 111;
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getHeight',
         mockedCurrentHeight,
         true
       );
       // mock `getTxRequiredConfirmation`
-      ChainHandlerMock.mockToChainFunction('getTxRequiredConfirmation', 10);
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'getTxRequiredConfirmation',
+        10
+      );
 
       // run test
       const txEntity = (await DatabaseActionMock.allTxRecords())[0];
-      const chain = chainHandlerInstance.getChain(tx.network);
-      await TransactionProcessor.setTransactionAsInvalid(txEntity, chain);
+      const mockedChain = chainHandlerInstance.getChain(tx.network);
+      await TransactionProcessor.setTransactionAsInvalid(txEntity, mockedChain);
 
       // tx status should be updated to 'invalid'
       const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
@@ -1477,16 +1549,22 @@ describe('TransactionProcessor', () => {
       await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.sent, 100);
 
       // mock ChainHandler `getChain`
-      ChainHandlerMock.mockChainName(tx.network);
+      const chain = tx.network;
+      ChainHandlerMock.mockChainName(chain);
       // mock `getHeight`
       const mockedCurrentHeight = 111;
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getHeight',
         mockedCurrentHeight,
         true
       );
       // mock `getTxRequiredConfirmation`
-      ChainHandlerMock.mockToChainFunction('getTxRequiredConfirmation', 15);
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'getTxRequiredConfirmation',
+        15
+      );
 
       // get database txs and events
       const dbTxs = await DatabaseActionMock.allTxRecords();
@@ -1494,8 +1572,8 @@ describe('TransactionProcessor', () => {
 
       // run test
       const txEntity = (await DatabaseActionMock.allTxRecords())[0];
-      const chain = chainHandlerInstance.getChain(tx.network);
-      await TransactionProcessor.setTransactionAsInvalid(txEntity, chain);
+      const mockedChain = chainHandlerInstance.getChain(tx.network);
+      await TransactionProcessor.setTransactionAsInvalid(txEntity, mockedChain);
 
       // txs should remain unchanged
       expect(await DatabaseActionMock.allTxRecords()).toEqual(dbTxs);
