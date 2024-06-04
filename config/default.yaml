@@ -140,11 +140,14 @@ healthCheck:
       warnThreshold: 1000000000 # minimum recommended erg balance
       criticalThreshold: 100000000 # minimum required erg balance
     rsn:
-      warnThreshold: 1000000000 # minimum recommended erg balance
-      criticalThreshold: 100000000 # minimum required erg balance
+      warnThreshold: 1000000000 # minimum recommended rsn balance
+      criticalThreshold: 100000000 # minimum required rsn balance
     ada:
-      warnThreshold: 2500000000 # minimum recommended erg balance
-      criticalThreshold: 200000000 # minimum required erg balance
+      warnThreshold: 2500000000 # minimum recommended ada balance
+      criticalThreshold: 200000000 # minimum required ada balance
+    btc:
+      warnThreshold: 5000000 # minimum recommended btc balance
+      criticalThreshold: 1000000 # minimum required btc balance
   ergoScanner:
     warnDifference: 2 # warning difference between existing and scanned blocks height
     criticalDifference: 100 # critical difference between existing and scanned blocks height

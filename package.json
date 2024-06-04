@@ -40,7 +40,7 @@
     "@libp2p/pubsub-peer-discovery": "^7.0.1",
     "@libp2p/websockets": "^5.0.2",
     "@multiformats/multiaddr": "^11.0.3",
-    "@rosen-bridge/asset-check": "^0.2.0",
+    "@rosen-bridge/asset-check": "^0.2.1",
     "@rosen-bridge/health-check": "^5.0.0",
     "@rosen-bridge/log-level-check": "^0.1.1",
     "@rosen-bridge/minimum-fee": "^2.0.1",
