@@ -77,7 +77,6 @@ tss:
   configPath: './bin/conf/conf.env'
   url: 'http://localhost'
   port: 9000
-  timeout: 8 # connection timeout for tss API
   secret: ''
   pubs:
     - curvePub: '' # ECDSA

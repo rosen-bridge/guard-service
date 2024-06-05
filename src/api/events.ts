@@ -42,9 +42,6 @@ const eventsHistoryRoute = (server: FastifySeverInstance) => {
         offset,
         limit
       );
-      const txs = await dbAction.getValidTxsForEvents(
-        results.items.map((event) => event.eventId)
-      );
 
       const events = results.items.map((event): Event => {
         const token = Configs.tokenMap.search(event.fromChain, {
@@ -80,18 +77,8 @@ const eventsHistoryRoute = (server: FastifySeverInstance) => {
           networkFee: event.networkFee,
           sourceChainToken: tokenData,
           sourceTxId: event.sourceTxId,
-          paymentTxId:
-            txs.find(
-              (tx) =>
-                tx.event.id === event.eventId &&
-                tx.type === TransactionType.payment
-            )?.txId ?? '',
-          rewardTxId:
-            txs.find(
-              (tx) =>
-                tx.event.id === event.eventId &&
-                tx.type === TransactionType.reward
-            )?.txId ?? '',
+          paymentTxId: event.paymentTxId ?? '',
+          rewardTxId: event.spendTxId ?? '',
           status: event.result ?? event.status,
         };
       });

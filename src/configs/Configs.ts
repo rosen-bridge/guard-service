@@ -109,7 +109,6 @@ class Configs {
   static tssConfigPath = config.get<string>('tss.configPath');
   static tssUrl = config.get<string>('tss.url');
   static tssPort = config.get<string>('tss.port');
-  static tssTimeout = getConfigIntKeyOrDefault('tss.timeout', 8); // seconds
   static tssBaseCallBackUrl = `http://${this.apiHost}:${this.apiPort}/tss/sign`;
   static tssKeygenCallBackUrl = `http://${this.apiHost}:${this.apiPort}/tss/keygen`;
   static tssKeys = {
