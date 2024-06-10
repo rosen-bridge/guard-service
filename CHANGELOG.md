@@ -1,5 +1,11 @@
 # guard-service
 
+## 3.0.1
+
+### Patch Changes
+
+- patch release version
+
 ## 3.0.0
 
 ### Major Changes
