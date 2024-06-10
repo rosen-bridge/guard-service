@@ -1,5 +1,28 @@
 # guard-service
 
+## 3.0.0
+
+### Major Changes
+
+- integrate bitcoin
+- update tss to latest version and add ecdsa signer
+- update minimum-fee to v1
+
+### Minor Changes
+
+- register bitcoin health check parameters
+- register bitcoin scanner and extractors
+- change payment box index in ErgoTransactions
+- revamp tss key configs
+
+### Patch Changes
+
+- update dependencies
+- improve rewardTxId and paymentTxId columns in events history API
+- update scanner and watcher-data-extractor
+- update health-check and network packages
+- update typeorm to latest
+
 ## 2.1.1
 
 ### Patch Changes
