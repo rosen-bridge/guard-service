@@ -5,7 +5,7 @@ import { ThresholdConfig } from '../coldStorage/types';
 import { JsonBI } from '../network/NetworkModels';
 import Utils from '../utils/Utils';
 import { ConfigError } from '../utils/errors';
-import { SUPPORTED_CHAINS, TssAlgorithms } from '../utils/constants';
+import { SUPPORTED_CHAINS } from '../utils/constants';
 import { TransportOptions } from '@rosen-bridge/winston-logger';
 import { cloneDeep } from 'lodash-es';
 
@@ -48,23 +48,6 @@ const getOptionalConfig = <T>(key: string, defaultValue: T) => {
   }
   return defaultValue;
 };
-
-const SupportedAlgorithms: string[] = [
-  TssAlgorithms.curve,
-  TssAlgorithms.edward,
-];
-class KeygenConfig {
-  static isActive = config.get<boolean>('keygen.active');
-  static guardsCount = getConfigIntKeyOrDefault('keygen.guards', 0);
-  static threshold = getConfigIntKeyOrDefault('keygen.threshold', 0);
-  static algorithm = () => {
-    const algorithm = config.get<string>('keygen.algorithm');
-    if (SupportedAlgorithms.indexOf(algorithm) !== -1) {
-      return algorithm;
-    }
-    throw Error(`Invalid keygen algorithm ${algorithm}`);
-  };
-}
 
 class Configs {
   // express config
@@ -110,7 +93,6 @@ class Configs {
   static tssUrl = config.get<string>('tss.url');
   static tssPort = config.get<string>('tss.port');
   static tssBaseCallBackUrl = `http://${this.apiHost}:${this.apiPort}/tss/sign`;
-  static tssKeygenCallBackUrl = `http://${this.apiHost}:${this.apiPort}/tss/keygen`;
   static tssKeys = {
     secret: config.get<string>('tss.secret'),
     pubs: config.get<
@@ -316,7 +298,6 @@ class Configs {
     'revenue.interval',
     120
   );
-  static keygen = KeygenConfig;
 }
 
 export default Configs;
