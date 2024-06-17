@@ -21,7 +21,7 @@ import GuardPkHandler from './handlers/GuardPkHandler';
 import MinimumFeeHandler from './handlers/MinimumFeeHandler';
 import { minimumFeeUpdateJob } from './jobs/minimumFee';
 
-const initService = async () => {
+const init = async () => {
   // initialize Notification object
   await Notification.getInstance();
 
@@ -70,21 +70,6 @@ const initService = async () => {
 
   // run revenue job
   await revenueJob();
-};
-
-const initKeygen = async () => {
-  // initialize express Apis
-  await initApiServer();
-
-  await Tss.keygen(Configs.keygen.guardsCount, Configs.keygen.threshold);
-};
-
-const init = async () => {
-  if (Configs.keygen.isActive) {
-    return initKeygen();
-  } else {
-    return initService();
-  }
 };
 
 init().then(() => null);
