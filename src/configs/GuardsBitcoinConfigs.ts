@@ -38,7 +38,6 @@ class GuardsBitcoinConfigs {
   static bitcoinContractConfig = rosenConfig.contractReader(BITCOIN_CHAIN);
 
   // bitcoin addresses
-  static coldAddress: string = config.get<string>('bitcoin.coldStorageAddress');
   static aggregatedPublicKey = config.get<string>('bitcoin.bankPublicKey');
 
   // tss related configs
@@ -56,7 +55,7 @@ class GuardsBitcoinConfigs {
     },
     addresses: {
       lock: this.bitcoinContractConfig.lockAddress,
-      cold: this.coldAddress,
+      cold: this.bitcoinContractConfig.coldAddress,
       permit: this.bitcoinContractConfig.permitAddress,
       fraud: this.bitcoinContractConfig.fraudAddress,
     },

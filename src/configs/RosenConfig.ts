@@ -9,6 +9,7 @@ class ContractConfig {
   readonly eventTriggerAddress: string;
   readonly commitmentAddress: string;
   readonly lockAddress: string;
+  readonly coldAddress: string;
   readonly fraudAddress: string;
   readonly RepoNFT: string;
   readonly RWTId: string;
@@ -25,6 +26,7 @@ class ContractConfig {
       this.eventTriggerAddress = config.addresses.WatcherTriggerEvent;
       this.commitmentAddress = config.addresses.Commitment;
       this.lockAddress = config.addresses.lock;
+      this.coldAddress = config.addresses.cold;
       this.fraudAddress = config.addresses.Fraud;
       this.RepoNFT = config.tokens.RepoNFT;
       this.RWTId = config.tokens.RWTId;
