@@ -15,7 +15,6 @@ bitcoin:
     payment: 7
     cold: 8
     manual: 5
-  coldStorageAddress: 'bc1qhuv3dhpnm0wktasd3v0kt6e4aqfqsd0uhfdu7d'
   tssChainCode: 'BitcoinChainCode'
   derivationPath:
     - 82
@@ -37,8 +36,6 @@ cardano:
     observation: 10
     payment: 15
     cold: 20
-  lockAddress: 'addr_test1vze7yqqlg8cjlyhz7jzvsg0f3fhxpuu6m3llxrajfzqecggw704re'
-  coldStorageAddress: 'addr_test1vze7yqqlg8cjlyhz7jzvsg0f3fhxpuu6m3llxrajfzqecggw704re'
 ergo:
   networkType: 'testnet'
   chainNetwork: 'node'
@@ -52,7 +49,6 @@ ergo:
     event: 30
     payment: 35
     cold: 40
-  coldStorageAddress: '9es3xKFSehNNwCpuNpY31ScAubDqeLbSWwaCysjN1ee51bgHKTq'
 reward:
   bridgeFeeRepoAddress: '9gtQHPp8yh2SC7z5ZLMHnK2NNW1DUW11hBKbUEADzqCSrECoQQM'
   RSNEmissionAddress: '9gH92yjsJCBHwx4fDbXe6j8jLdDBMX3dm6nqwiHhUqyxgNKXmoK'

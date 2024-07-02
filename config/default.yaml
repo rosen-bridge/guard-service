@@ -22,7 +22,6 @@ bitcoin:
     payment: 6 # a payment transaction on Cardano get confirmed
     cold: 6 # a cold storage transaction on Cardano get confirmed
     manual: 6 # a manual transaction on Cardano get confirmed
-  coldStorageAddress: ''
   tssChainCode: ''
   derivationPath:
     -
@@ -43,7 +42,6 @@ cardano:
     payment: 120 # a payment transaction on Cardano get confirmed
     cold: 120 # a cold storage transaction on Cardano get confirmed
     manual: 120 # a manual transaction on Cardano get confirmed
-  coldStorageAddress: ''
   tssChainCode: 'CardanoChainCode'
 ergo:
   networkType: 'mainnet' # Ergo network type [testnet, mainnet]
@@ -65,7 +63,6 @@ ergo:
     manual: 20 # a manual transaction on Ergo get confirmed
   initialHeight: 925000 # block scanner starting block height
   scannerInterval: 180 # scanner update interval
-  coldStorageAddress: ''
 reward:
   bridgeFeeRepoAddress: '' # guards address for receiving bridge fee of events
   RSNEmissionAddress: '' # guards address for receiving emitted RSN of events
