@@ -19,7 +19,7 @@ const insertEventsWithHeight = async (
   status = EventStatus.completed
 ) => {
   for (let index = 0; index < count; index++) {
-    const mockedEvent = EventTestData.mockEventTrigger();
+    const mockedEvent = EventTestData.mockEventTrigger().event;
     await DatabaseHandlerMock.insertEventRecord(
       mockedEvent,
       status,
@@ -65,7 +65,7 @@ const insertEventsWithAmount = async (count: number) => {
   for (let index = 0; index < count; index++) {
     const mockedEvent = EventTestData.mockEventWithAmount(
       (1000 * index + 10000).toString()
-    );
+    ).event;
     await insertCompletedEvent(mockedEvent);
   }
 };
@@ -96,9 +96,9 @@ const insertRevenueDataWithDifferentNetworks = async (
 ) => {
   for (let index = 0; index < count; index++) {
     const timestamp = 1664229200000 + timeStep * index;
-    const mockedEvent = EventTestData.mockFromErgoEventTrigger();
+    const mockedEvent = EventTestData.mockFromErgoEventTrigger().event;
     await insertRevenue(timestamp, 2000 + index, mockedEvent);
-    const mockedEvent2 = EventTestData.mockToErgoEventTrigger();
+    const mockedEvent2 = EventTestData.mockToErgoEventTrigger().event;
     await insertRevenue(timestamp, 3000 + index, mockedEvent2);
   }
 };
@@ -114,7 +114,7 @@ const insertRevenueDataWithDifferentTokenId = async (
 ) => {
   for (let index = 0; index < count; index++) {
     const timestamp = 1664229200000 + timeStep * index;
-    const mockedEvent = EventTestData.mockEventTrigger();
+    const mockedEvent = EventTestData.mockEventTrigger().event;
     await insertRevenue(timestamp, 1000 + index);
     await insertRevenue(timestamp, 2000 + index, mockedEvent, 'revenueToken');
   }
@@ -135,7 +135,7 @@ const insertRevenueDataWithDifferentTokenId = async (
 const insertRevenue = async (
   timestamp: number,
   height = 1000,
-  mockedEvent: EventTrigger = EventTestData.mockEventTrigger(),
+  mockedEvent: EventTrigger = EventTestData.mockEventTrigger().event,
   revenueToken = 'tokenId',
   revenueType: RevenueType = RevenueType.fraud
 ) => {

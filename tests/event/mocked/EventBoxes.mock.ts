@@ -18,4 +18,13 @@ const mockGetEventValidCommitments = (result: string[]) => {
   functionSpy.mockResolvedValue(result);
 };
 
-export { mockGetEventBox, mockGetEventValidCommitments };
+/**
+ * mocks EventBoxes.getEventWIDs to return `result`
+ * @param result
+ */
+const mockGetEventWIDs = (result: string[]) => {
+  const functionSpy = vi.spyOn(EventBoxes, 'getEventWIDs');
+  functionSpy.mockResolvedValue(result);
+};
+
+export { mockGetEventBox, mockGetEventValidCommitments, mockGetEventWIDs };

@@ -1,9 +1,7 @@
 import { LockBalance } from '../types/api';
 import ChainHandler from '../handlers/ChainHandler';
 import { getHealthCheck } from '../guard/HealthCheck';
-import { SUPPORTED_CHAINS } from '../utils/constants';
-import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
-import { ADA } from '@rosen-chains/cardano';
+import { ChainNativeToken, SUPPORTED_CHAINS } from '../utils/constants';
 import {
   FastifySeverInstance,
   InfoResponseSchema,
@@ -13,6 +11,7 @@ import { rosenConfig } from '../configs/RosenConfig';
 import WinstonLogger from '@rosen-bridge/winston-logger';
 import { getTokenData } from '../utils/getTokenData';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
+import Utils from '../utils/Utils';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
@@ -40,7 +39,7 @@ const infoRoute = (server: FastifySeverInstance) => {
           cold: [],
         };
         for (const chain of SUPPORTED_CHAINS) {
-          const nativeTokenId = chain === ERGO_CHAIN ? ERG : ADA;
+          const nativeTokenId = ChainNativeToken[chain];
           const abstractChain = chainHandler.getChain(chain);
           // TODO: improve getting chain native token
           //  local:ergo/rosen-bridge/guard-service#274
@@ -77,6 +76,9 @@ const infoRoute = (server: FastifySeverInstance) => {
         }
 
         reply.status(200).send({
+          // TODO: Update dependencies like typescript and vitest
+          //  local:ergo/rosen-bridge/guard-service#364
+          version: Utils.readJsonFile('./package.json').version,
           health: (await (await getHealthCheck()).getOverallHealthStatus())
             .status,
           rsnTokenId: rosenConfig.RSN,

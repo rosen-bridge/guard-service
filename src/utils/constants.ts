@@ -1,5 +1,6 @@
-import { CARDANO_CHAIN } from '@rosen-chains/cardano';
-import { ERGO_CHAIN } from '@rosen-chains/ergo';
+import { BITCOIN_CHAIN } from '@rosen-chains/bitcoin';
+import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
+import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
 
 class EventStatus {
   static pendingPayment = 'pending-payment';
@@ -35,7 +36,7 @@ const DefaultRevenueApiCount = 10;
 const ADA_DECIMALS = 6;
 const ERG_DECIMALS = 9;
 
-const SUPPORTED_CHAINS = [ERGO_CHAIN, CARDANO_CHAIN];
+const SUPPORTED_CHAINS = [ERGO_CHAIN, CARDANO_CHAIN, BITCOIN_CHAIN];
 
 enum RevenueType {
   fraud = 'fraud',
@@ -43,6 +44,17 @@ enum RevenueType {
   emission = 'emission',
   networkFee = 'network-fee',
 }
+
+enum TssAlgorithms {
+  curve = 'ecdsa',
+  edward = 'eddsa',
+}
+
+const ChainNativeToken: Record<string, string> = {
+  [ERGO_CHAIN]: ERG,
+  [CARDANO_CHAIN]: ADA,
+  [BITCOIN_CHAIN]: 'btc',
+};
 
 export {
   EventStatus,
@@ -55,4 +67,6 @@ export {
   ERG_DECIMALS,
   SUPPORTED_CHAINS,
   RevenueType,
+  TssAlgorithms,
+  ChainNativeToken,
 };

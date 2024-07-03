@@ -1,7 +1,8 @@
 {
   "idKeys": {
     "ergo": "tokenId",
-    "cardano": "tokenId"
+    "cardano": "tokenId",
+    "bitcoin": "tokenId"
   },
   "tokens": [
     {
@@ -108,6 +109,37 @@
         "assetName": "414441",
         "name": "ada",
         "decimals": 6,
+        "metaData": {
+          "type": "native",
+          "residency": "native"
+        }
+      }
+    },
+    {
+      "ergo": {
+        "tokenId": "98bc813d77b8b938fddb08f75c5c686ffe38cf1d99a887f91403cc6f0c5c76bf",
+        "name": "rsBTC-loen",
+        "decimals": 8,
+        "metaData": {
+          "type": "EIP-004",
+          "residency": "wrapped"
+        }
+      },
+      "cardano": {
+        "tokenId": "3122541486c983d637e7ed9330c94e490e1fe4a1758725fab7f6d9e0.72734254432d6c6f656e",
+        "policyId": "3122541486c983d637e7ed9330c94e490e1fe4a1758725fab7f6d9e0",
+        "assetName": "72734254432d6c6f656e",
+        "name": "rsBTC-loen",
+        "decimals": 8,
+        "metaData": {
+          "type": "CIP26",
+          "residency": "wrapped"
+        }
+      },
+      "bitcoin": {
+        "tokenId": "btc",
+        "name": "BTC",
+        "decimals": 8,
         "metaData": {
           "type": "native",
           "residency": "native"

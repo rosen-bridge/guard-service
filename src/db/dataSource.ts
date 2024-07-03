@@ -3,6 +3,7 @@ import Configs from '../configs/Configs';
 
 import {
   BlockEntity,
+  ExtractorStatusEntity,
   migrations as scannerMigrations,
 } from '@rosen-bridge/scanner';
 import {
@@ -24,6 +25,7 @@ const dbType = Configs.dbType as keyof typeof migrations;
 const dbConfigs = {
   entities: [
     BlockEntity,
+    ExtractorStatusEntity,
     CommitmentEntity,
     EventTriggerEntity,
     ConfirmedEventEntity,

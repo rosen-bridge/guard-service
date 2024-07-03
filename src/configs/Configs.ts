@@ -49,26 +49,36 @@ const getOptionalConfig = <T>(key: string, defaultValue: T) => {
   return defaultValue;
 };
 
-const SupportedAlgorithms = ['eddsa'];
-class KeygenConfig {
-  static isActive = config.get<boolean>('keygen.active');
-  static guardsCount = getConfigIntKeyOrDefault('keygen.guards', 0);
-  static threshold = getConfigIntKeyOrDefault('keygen.threshold', 0);
-  static algorithm = () => {
-    const algorithm = config.get<string>('keygen.algorithm');
-    if (SupportedAlgorithms.indexOf(algorithm) !== -1) {
-      return algorithm;
-    }
-    throw Error(`Invalid keygen algorithm ${algorithm}`);
-  };
-}
-
 class Configs {
   // express config
   static apiPort = getConfigIntKeyOrDefault('api.port', 8080);
   static apiHost = getOptionalConfig<string>('api.host', 'localhost');
+
+  private static getAllowedOrigins = () => {
+    const allowedOrigins = config.get<Array<string>>('api.allowedOrigins');
+    if (
+      !Array.isArray(allowedOrigins) ||
+      allowedOrigins.some((origin) => typeof origin !== 'string')
+    ) {
+      throw new Error('ImproperlyConfigured. Api allowed origins is invalid.');
+    }
+    if (allowedOrigins.find((origin) => origin === '*')) {
+      console.warn(
+        'An allowed origin header with value "*" will cause all origins to be able to request this service, which may cause security issues'
+      );
+    }
+    return allowedOrigins;
+  };
+  static apiAllowedOrigins = Configs.getAllowedOrigins();
+
+  static apiKeyHash = config.get<string>('api.apiKeyHash');
+
   static apiBodyLimit =
     getConfigIntKeyOrDefault('api.jsonBodyLimit', 50) * 1024 * 1024; // value in MB
+  static apiMaxRequestsPerMinute = getConfigIntKeyOrDefault(
+    'api.maxRequestsPerMinute',
+    100_000
+  );
   static isManualTxRequestActive = getOptionalConfig<boolean>(
     'api.isManualTxRequestActive',
     false
@@ -82,13 +92,17 @@ class Configs {
   static tssConfigPath = config.get<string>('tss.configPath');
   static tssUrl = config.get<string>('tss.url');
   static tssPort = config.get<string>('tss.port');
-  static tssTimeout = getConfigIntKeyOrDefault('tss.timeout', 8); // seconds
-  static tssCallBackUrl = `http://${this.apiHost}:${this.apiPort}/tss/sign`;
-  static tssKeygenCallBackUrl = `http://${this.apiHost}:${this.apiPort}/tss/keygen`;
+  static tssBaseCallBackUrl = `http://${this.apiHost}:${this.apiPort}/tss/sign`;
   static tssKeys = {
     secret: config.get<string>('tss.secret'),
-    publicKeys: config.get<string[]>('tss.publicKeys'),
-    ks: config.get<string[]>('tss.ks'),
+    pubs: config.get<
+      Array<{
+        curvePub: string;
+        edwardPub: string;
+        curveShareId: string;
+        edwardShareId: string;
+      }>
+    >('tss.pubs'),
   };
 
   // guards configs
@@ -152,6 +166,10 @@ class Configs {
     'intervals.requeueWaitingEventsInterval',
     43200
   ); // seconds
+  static minimumFeeUpdateInterval = getConfigIntKeyOrDefault(
+    'intervals.minimumFeeUpdateInterval',
+    300
+  ); // seconds
 
   static multiSigFirstSignDelay = 3; // seconds
 
@@ -164,7 +182,10 @@ class Configs {
       const logTypeValidation = ['console', 'file', 'loki'].includes(log.type);
       let loggerChecks = true;
       if (log.type === 'loki') {
-        const overrideLokiBasicAuth = getOptionalConfig('overrideLokiBasicAuth', '');
+        const overrideLokiBasicAuth = getOptionalConfig(
+          'overrideLokiBasicAuth',
+          ''
+        );
         if (overrideLokiBasicAuth !== '') log.basicAuth = overrideLokiBasicAuth;
         loggerChecks =
           log.host != undefined &&
@@ -229,6 +250,12 @@ class Configs {
   static adaCriticalThreshold = BigInt(
     config.get<string>('healthCheck.asset.ada.criticalThreshold')
   );
+  static btcWarnThreshold = BigInt(
+    config.get<string>('healthCheck.asset.btc.warnThreshold')
+  );
+  static btcCriticalThreshold = BigInt(
+    config.get<string>('healthCheck.asset.btc.criticalThreshold')
+  );
   static ergoScannerWarnDiff = getConfigIntKeyOrDefault(
     'healthCheck.ergoScanner.warnDifference',
     2
@@ -271,7 +298,6 @@ class Configs {
     'revenue.interval',
     120
   );
-  static keygen = KeygenConfig;
 }
 
 export default Configs;

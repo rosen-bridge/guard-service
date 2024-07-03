@@ -58,7 +58,7 @@ describe('DatabaseHandler', () => {
      */
     it('should insert tx when there is no other tx for the event', async () => {
       // mock event and transaction
-      const mockedEvent = EventTestData.mockEventTrigger();
+      const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
       const tx = TxTestData.mockPaymentTransaction(
         TransactionType.payment,
@@ -99,7 +99,7 @@ describe('DatabaseHandler', () => {
      */
     it('should NOT insert tx when there is already an advanced tx for the event', async () => {
       // mock event and two transactions
-      const mockedEvent = EventTestData.mockEventTrigger();
+      const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
       const tx1 = TxTestData.mockPaymentTransaction(
         TransactionType.payment,
@@ -147,7 +147,7 @@ describe('DatabaseHandler', () => {
      */
     it('should insert tx when txId is lower than existing approved tx', async () => {
       // mock event and two transactions
-      const mockedEvent = EventTestData.mockEventTrigger();
+      const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
       const txs = [
         TxTestData.mockPaymentTransaction(
@@ -209,7 +209,7 @@ describe('DatabaseHandler', () => {
      */
     it('should NOT insert tx when txId is higher than existing approved tx', async () => {
       // mock event and two transactions
-      const mockedEvent = EventTestData.mockEventTrigger();
+      const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
       const txs = [
         TxTestData.mockPaymentTransaction(
@@ -270,7 +270,7 @@ describe('DatabaseHandler', () => {
      */
     it('should update failedInSign when tx is already in database', async () => {
       // mock event and transaction
-      const mockedEvent = EventTestData.mockEventTrigger();
+      const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
       const tx = TxTestData.mockPaymentTransaction(
         TransactionType.payment,
@@ -531,7 +531,7 @@ describe('DatabaseHandler', () => {
      * - returned list should only have event targetChainTokenId
      */
     it('should return correct list for `paymentWaiting` events on non-Ergo chains', async () => {
-      const event = EventTestData.mockEventTrigger();
+      const event = EventTestData.mockEventTrigger().event;
       await DatabaseActionMock.insertEventRecord(
         event,
         EventStatus.paymentWaiting
@@ -555,7 +555,7 @@ describe('DatabaseHandler', () => {
      * - returned list should have event targetChainTokenId and emissionToken
      */
     it('should return correct list for `paymentWaiting` events on Ergo', async () => {
-      const event = EventTestData.mockToErgoEventTrigger();
+      const event = EventTestData.mockToErgoEventTrigger().event;
       await DatabaseActionMock.insertEventRecord(
         event,
         EventStatus.paymentWaiting
@@ -582,7 +582,7 @@ describe('DatabaseHandler', () => {
      * - returned list should have event targetChainTokenId and emissionToken
      */
     it('should return correct list for `rewardWaiting` events', async () => {
-      const event = EventTestData.mockTokenPaymentFromErgoEvent();
+      const event = EventTestData.mockTokenPaymentFromErgoEvent().event;
       await DatabaseActionMock.insertEventRecord(
         event,
         EventStatus.rewardWaiting

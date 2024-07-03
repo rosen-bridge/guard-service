@@ -7,7 +7,7 @@ import {
 } from '@rosen-chains/abstract-chain';
 import GuardsErgoConfigs from '../../src/configs/GuardsErgoConfigs';
 import DatabaseActionMock from '../db/mocked/DatabaseAction.mock';
-import { Fee } from '@rosen-bridge/minimum-fee';
+import { ChainMinimumFee } from '@rosen-bridge/minimum-fee';
 import { ConfirmedEventEntity } from '../../src/db/entities/ConfirmedEventEntity';
 import { EventStatus } from '../../src/utils/constants';
 
@@ -32,9 +32,11 @@ describe('EventVerifier', () => {
      * - returned value should be true
      */
     it('should return true when event box and source tx are both confirmed', async () => {
-      const mockedEvent = mockEventTrigger();
+      const mockedEvent = mockEventTrigger().event;
 
       // mock ChainHandler
+      const fromChain = mockedEvent.fromChain;
+      ChainHandlerMock.mockChainName(fromChain);
       // mock Ergo `getHeight` such that event box is confirmed
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'getHeight',
@@ -42,7 +44,8 @@ describe('EventVerifier', () => {
         true
       );
       // mock fromChain `getTxConfirmationStatus` such that event source tx is confirmed
-      ChainHandlerMock.mockFromChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        fromChain,
         'getTxConfirmationStatus',
         ConfirmationStatus.ConfirmedEnough,
         true
@@ -68,7 +71,7 @@ describe('EventVerifier', () => {
      * - returned value should be false
      */
     it('should return true when event box is unconfirmed', async () => {
-      const mockedEvent = mockEventTrigger();
+      const mockedEvent = mockEventTrigger().event;
 
       // mock Ergo `getHeight` such that event box is confirmed
       ChainHandlerMock.mockErgoFunctionReturnValue(
@@ -99,9 +102,11 @@ describe('EventVerifier', () => {
      * - returned value should be false
      */
     it('should return false when source tx is unconfirmed', async () => {
-      const mockedEvent = mockEventTrigger();
+      const mockedEvent = mockEventTrigger().event;
 
       // mock ChainHandler
+      const fromChain = mockedEvent.fromChain;
+      ChainHandlerMock.mockChainName(fromChain);
       // mock Ergo `getHeight` such that event box is confirmed
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'getHeight',
@@ -109,7 +114,8 @@ describe('EventVerifier', () => {
         true
       );
       // mock fromChain `getTxConfirmationStatus` such that event source tx is unconfirmed
-      ChainHandlerMock.mockFromChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        fromChain,
         'getTxConfirmationStatus',
         ConfirmationStatus.NotConfirmedEnough,
         true
@@ -124,11 +130,13 @@ describe('EventVerifier', () => {
   });
 
   describe('verifyEvent', () => {
-    const fee: Fee = {
+    const fee: ChainMinimumFee = {
       bridgeFee: 0n,
       networkFee: 0n,
       rsnRatio: 0n,
       feeRatio: 0n,
+      rsnRatioDivisor: 1000000000000n,
+      feeRatioDivisor: 1000n,
     };
 
     beforeEach(async () => {
@@ -154,16 +162,19 @@ describe('EventVerifier', () => {
      */
     it('should verify event successfully', async () => {
       // insert a mocked event into db
-      const mockedEvent = mockEventTrigger();
+      const mockedEvent = mockEventTrigger().event;
       const boxSerialized = 'boxSerialized';
       await DatabaseActionMock.insertEventRecord(mockedEvent, boxSerialized);
 
+      // mock ChainHandler
+      const fromChain = mockedEvent.fromChain;
+      ChainHandlerMock.mockChainName(fromChain);
       // mock fromChain `verifyEvent`
-      ChainHandlerMock.mockFromChainFunction('verifyEvent', true, true);
+      ChainHandlerMock.mockChainFunction(fromChain, 'verifyEvent', true, true);
       // mock fromChain `verifyEventRWT`
       ChainHandlerMock.mockErgoFunctionReturnValue('verifyEventRWT', true);
       // mock fromChain `getRWTToken`
-      ChainHandlerMock.mockFromChainFunction('getRWTToken', 'rwt');
+      ChainHandlerMock.mockChainFunction(fromChain, 'getRWTToken', 'rwt');
 
       // run test
       const result = await EventVerifier.verifyEvent(mockedEvent, fee);
@@ -191,16 +202,19 @@ describe('EventVerifier', () => {
      */
     it('should return false when event does not verify', async () => {
       // insert a mocked event into db
-      const mockedEvent = mockEventTrigger();
+      const mockedEvent = mockEventTrigger().event;
       const boxSerialized = 'boxSerialized';
       await DatabaseActionMock.insertEventRecord(mockedEvent, boxSerialized);
 
+      // mock ChainHandler
+      const fromChain = mockedEvent.fromChain;
+      ChainHandlerMock.mockChainName(fromChain);
       // mock fromChain `verifyEvent`
-      ChainHandlerMock.mockFromChainFunction('verifyEvent', false, true);
+      ChainHandlerMock.mockChainFunction(fromChain, 'verifyEvent', false, true);
       // mock fromChain `verifyEventRWT`
       ChainHandlerMock.mockErgoFunctionReturnValue('verifyEventRWT', true);
       // mock fromChain `getRWTToken`
-      ChainHandlerMock.mockFromChainFunction('getRWTToken', 'rwt');
+      ChainHandlerMock.mockChainFunction(fromChain, 'getRWTToken', 'rwt');
 
       // run test
       const result = await EventVerifier.verifyEvent(mockedEvent, fee);
@@ -228,16 +242,19 @@ describe('EventVerifier', () => {
      */
     it('should return false when event RWT is wrong', async () => {
       // insert a mocked event into db
-      const mockedEvent = mockEventTrigger();
+      const mockedEvent = mockEventTrigger().event;
       const boxSerialized = 'boxSerialized';
       await DatabaseActionMock.insertEventRecord(mockedEvent, boxSerialized);
 
+      // mock ChainHandler
+      const fromChain = mockedEvent.fromChain;
+      ChainHandlerMock.mockChainName(fromChain);
       // mock fromChain `verifyEvent`
-      ChainHandlerMock.mockFromChainFunction('verifyEvent', true, true);
+      ChainHandlerMock.mockChainFunction(fromChain, 'verifyEvent', true, true);
       // mock fromChain `verifyEventRWT`
       ChainHandlerMock.mockErgoFunctionReturnValue('verifyEventRWT', false);
       // mock fromChain `getRWTToken`
-      ChainHandlerMock.mockFromChainFunction('getRWTToken', 'rwt');
+      ChainHandlerMock.mockChainFunction(fromChain, 'getRWTToken', 'rwt');
 
       // run test
       const result = await EventVerifier.verifyEvent(mockedEvent, fee);

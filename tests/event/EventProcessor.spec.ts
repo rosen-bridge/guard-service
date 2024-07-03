@@ -1,6 +1,11 @@
 import DatabaseActionMock from '../db/mocked/DatabaseAction.mock';
 import EventProcessor from '../../src/event/EventProcessor';
-import { mockEventTrigger, mockToErgoEventTrigger } from './testData';
+import {
+  feeRatioDivisor,
+  mockEventTrigger,
+  mockToErgoEventTrigger,
+  rsnRatioDivisor,
+} from './testData';
 import {
   mockIsEventConfirmedEnough,
   mockVerifyEvent,
@@ -13,12 +18,13 @@ import {
 } from '@rosen-chains/abstract-chain';
 import Configs from '../../src/configs/Configs';
 import EventSerializer from '../../src/event/EventSerializer';
-import { Fee } from '@rosen-bridge/minimum-fee';
+import { ChainMinimumFee } from '@rosen-bridge/minimum-fee';
 import { mockGetEventFeeConfig } from './mocked/MinimumFee.mock';
 import ChainHandlerMock from '../handlers/ChainHandler.mock';
 import {
   mockGetEventBox,
   mockGetEventValidCommitments,
+  mockGetEventWIDs,
 } from './mocked/EventBoxes.mock';
 import {
   mockEventRewardOrder,
@@ -54,7 +60,7 @@ describe('EventProcessor', () => {
      */
     it('should insert confirmed events into ConfirmedEvent table', async () => {
       // insert a mocked event into db
-      const mockedEvent = mockEventTrigger();
+      const mockedEvent = mockEventTrigger().event;
       const boxSerialized = 'boxSerialized';
       await DatabaseActionMock.insertOnlyEventDataRecord(
         mockedEvent,
@@ -89,7 +95,7 @@ describe('EventProcessor', () => {
      */
     it('should NOT insert unconfirmed events into ConfirmedEvent table', async () => {
       // insert a mocked event into db
-      const mockedEvent = mockEventTrigger();
+      const mockedEvent = mockEventTrigger().event;
       const boxSerialized = 'boxSerialized';
       await DatabaseActionMock.insertOnlyEventDataRecord(
         mockedEvent,
@@ -123,7 +129,7 @@ describe('EventProcessor', () => {
      */
     it('should only inserts one event per sourceTxId into ConfirmedEvent table', async () => {
       // insert a mocked event into db twice
-      const mockedEvent = mockEventTrigger();
+      const mockedEvent = mockEventTrigger().event;
       const boxSerialized = 'boxSerialized';
       await DatabaseActionMock.insertOnlyEventDataRecord(
         mockedEvent,
@@ -172,7 +178,7 @@ describe('EventProcessor', () => {
      */
     it('should update event status to spent when event box is spent', async () => {
       // mock a pending payment event and insert into db
-      const mockedEvent: EventTrigger = mockEventTrigger();
+      const mockedEvent: EventTrigger = mockEventTrigger().event;
       await DatabaseActionMock.insertEventRecord(
         mockedEvent,
         EventStatus.pendingPayment,
@@ -232,7 +238,7 @@ describe('EventProcessor', () => {
      */
     it('should send event to payment processor when event is pending payment', async () => {
       // mock a pending payment event and insert into db
-      const mockedEvent: EventTrigger = mockEventTrigger();
+      const mockedEvent: EventTrigger = mockEventTrigger().event;
       await DatabaseActionMock.insertEventRecord(
         mockedEvent,
         EventStatus.pendingPayment
@@ -278,7 +284,7 @@ describe('EventProcessor', () => {
      */
     it('should send event to reward processor when event is pending reward distribution', async () => {
       // mock a pending reward event and insert into db
-      const mockedEvent: EventTrigger = mockEventTrigger();
+      const mockedEvent: EventTrigger = mockEventTrigger().event;
       await DatabaseActionMock.insertEventRecord(
         mockedEvent,
         EventStatus.pendingReward
@@ -324,7 +330,7 @@ describe('EventProcessor', () => {
      */
     it('should do nothing when turn is over', async () => {
       // mock a pending payment event and insert into db
-      const mockedEvent: EventTrigger = mockEventTrigger();
+      const mockedEvent: EventTrigger = mockEventTrigger().event;
       await DatabaseActionMock.insertEventRecord(
         mockedEvent,
         EventStatus.pendingPayment
@@ -387,7 +393,7 @@ describe('EventProcessor', () => {
      *   - mock `getRWTToken` of `fromChain`
      *   - mock `getBoxRWT` of Ergo
      *   - mock `getSerializedBoxInfo` of Ergo
-     * - mock event box and valid commitments
+     * - mock event box and commitments
      * - mock event payment and reward order generations
      * - mock txAgreement
      *   - mock `getChainPendingTransactions` to return empty list
@@ -400,19 +406,23 @@ describe('EventProcessor', () => {
      */
     it('should create event payment transaction on Ergo and send it to agreement process successfully', async () => {
       // mock feeConfig
-      const fee: Fee = {
+      const fee: ChainMinimumFee = {
         bridgeFee: 0n,
         networkFee: 0n,
         rsnRatio: 0n,
         feeRatio: 0n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       };
       mockGetEventFeeConfig(fee);
 
       // mock event as verified
-      const mockedEvent: EventTrigger = mockToErgoEventTrigger();
+      const { event: mockedEvent, WIDs: eventWIDs } = mockToErgoEventTrigger();
       mockVerifyEvent(true);
 
       // mock ChainHandler `getChain` and `getErgoChain`
+      const fromChain = mockedEvent.fromChain;
+      ChainHandlerMock.mockChainName(fromChain);
       // mock `getMinimumNativeToken`
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'getMinimumNativeToken',
@@ -445,11 +455,15 @@ describe('EventProcessor', () => {
         true
       );
       // mock `getRWTToken` of `fromChain`
-      ChainHandlerMock.mockFromChainFunction('getRWTToken', fromChainRwt);
+      ChainHandlerMock.mockChainFunction(
+        fromChain,
+        'getRWTToken',
+        fromChainRwt
+      );
       // mock `getBoxRWT` of Ergo
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'getBoxRWT',
-        2n * BigInt(mockedEvent.WIDs.length)
+        2n * BigInt(mockedEvent.WIDsCount)
       );
       // mock `getSerializedBoxInfo` of Ergo
       ChainHandlerMock.mockErgoFunctionReturnValue('getSerializedBoxInfo', {
@@ -458,9 +472,10 @@ describe('EventProcessor', () => {
         },
       });
 
-      // mock event box and valid commitments
+      // mock event box and commitments
       mockGetEventBox('serialized-event-box');
       mockGetEventValidCommitments(['serialized-commitment-box']);
+      mockGetEventWIDs(eventWIDs);
 
       // mock event payment and reward order generations
       mockEventSinglePayment({
@@ -470,7 +485,7 @@ describe('EventProcessor', () => {
           tokens: [],
         },
       });
-      mockEventRewardOrder([]);
+      mockEventRewardOrder([], []);
 
       // mock txAgreement pending transactions
       TxAgreementMock.mockGetChainPendingTransactions([]);
@@ -520,21 +535,26 @@ describe('EventProcessor', () => {
      */
     it('should create event payment transaction on `toChain` and send it to agreement process successfully', async () => {
       // mock feeConfig
-      const fee: Fee = {
+      const fee: ChainMinimumFee = {
         bridgeFee: 0n,
         networkFee: 0n,
         rsnRatio: 0n,
         feeRatio: 0n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       };
       mockGetEventFeeConfig(fee);
 
       // mock event as verified
-      const mockedEvent: EventTrigger = mockEventTrigger();
+      const { event: mockedEvent, WIDs: eventWIDs } = mockEventTrigger();
       mockVerifyEvent(true);
 
       // mock ChainHandler `getChain`
+      const toChain = mockedEvent.toChain;
+      ChainHandlerMock.mockChainName(toChain);
       // mock `getMinimumNativeToken`
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        toChain,
         'getMinimumNativeToken',
         100n,
         false
@@ -551,7 +571,8 @@ describe('EventProcessor', () => {
           dataInputs: [],
         })
       );
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        toChain,
         'generateTransaction',
         paymentTx,
         true
@@ -561,7 +582,7 @@ describe('EventProcessor', () => {
       // mock `getBoxRWT` of Ergo
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'getBoxRWT',
-        2n * BigInt(mockedEvent.WIDs.length)
+        2n * BigInt(mockedEvent.WIDsCount)
       );
 
       // mock event payment order generations
@@ -607,16 +628,18 @@ describe('EventProcessor', () => {
      */
     it('should set event as rejected when event has not verified', async () => {
       // mock feeConfig
-      const fee: Fee = {
+      const fee: ChainMinimumFee = {
         bridgeFee: 0n,
         networkFee: 0n,
         rsnRatio: 0n,
         feeRatio: 0n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       };
       mockGetEventFeeConfig(fee);
 
       // insert a mocked event into db
-      const mockedEvent: EventTrigger = mockEventTrigger();
+      const { event: mockedEvent, WIDs: eventWIDs } = mockEventTrigger();
       await DatabaseActionMock.insertEventRecord(
         mockedEvent,
         EventStatus.pendingPayment
@@ -662,7 +685,7 @@ describe('EventProcessor', () => {
      *   - mock `getRWTToken` of `fromChain`
      *   - mock `getBoxRWT` of Ergo
      *   - mock `getSerializedBoxInfo` of Ergo
-     * - mock event box and valid commitments
+     * - mock event box and commitments
      * - mock event payment and reward order generations
      * - mock txAgreement `getChainPendingTransactions` to return empty list
      * - mock Notification
@@ -675,16 +698,18 @@ describe('EventProcessor', () => {
      */
     it('should set event as waiting when there is not enough assets in lock address to create payment', async () => {
       // mock feeConfig
-      const fee: Fee = {
+      const fee: ChainMinimumFee = {
         bridgeFee: 0n,
         networkFee: 0n,
         rsnRatio: 0n,
         feeRatio: 0n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       };
       mockGetEventFeeConfig(fee);
 
       // insert a mocked event into db
-      const mockedEvent: EventTrigger = mockToErgoEventTrigger();
+      const { event: mockedEvent, WIDs: eventWIDs } = mockToErgoEventTrigger();
       await DatabaseActionMock.insertEventRecord(
         mockedEvent,
         EventStatus.pendingPayment
@@ -694,6 +719,8 @@ describe('EventProcessor', () => {
       mockVerifyEvent(true);
 
       // mock ChainHandler `getChain` and `getErgoChain`
+      const fromChain = mockedEvent.fromChain;
+      ChainHandlerMock.mockChainName(fromChain);
       // mock `getMinimumNativeToken`
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'getMinimumNativeToken',
@@ -715,11 +742,15 @@ describe('EventProcessor', () => {
         true
       );
       // mock `getRWTToken` of `fromChain`
-      ChainHandlerMock.mockFromChainFunction('getRWTToken', fromChainRwt);
+      ChainHandlerMock.mockChainFunction(
+        fromChain,
+        'getRWTToken',
+        fromChainRwt
+      );
       // mock `getBoxRWT` of Ergo
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'getBoxRWT',
-        2n * BigInt(mockedEvent.WIDs.length)
+        2n * BigInt(mockedEvent.WIDsCount)
       );
       // mock `getSerializedBoxInfo` of Ergo
       ChainHandlerMock.mockErgoFunctionReturnValue('getSerializedBoxInfo', {
@@ -728,9 +759,10 @@ describe('EventProcessor', () => {
         },
       });
 
-      // mock event box and valid commitments
+      // mock event box and commitments
       mockGetEventBox('serialized-event-box');
       mockGetEventValidCommitments([]);
+      mockGetEventWIDs(eventWIDs);
 
       // mock event payment and reward order generations
       mockEventSinglePayment({
@@ -740,7 +772,7 @@ describe('EventProcessor', () => {
           tokens: [],
         },
       });
-      mockEventRewardOrder([]);
+      mockEventRewardOrder([], []);
 
       // mock txAgreement `getChainPendingTransactions` to return empty list
       TxAgreementMock.mockGetChainPendingTransactions([]);
@@ -789,7 +821,7 @@ describe('EventProcessor', () => {
      *   - mock `getRWTToken` of `fromChain`
      *   - mock `getBoxRWT` of Ergo
      *   - mock `getSerializedBoxInfo` of Ergo
-     * - mock event box and valid commitments
+     * - mock event box and commitments
      * - mock event payment and reward order generations
      * - mock txAgreement
      *   - mock `getChainPendingTransactions` to return empty list
@@ -802,19 +834,23 @@ describe('EventProcessor', () => {
      */
     it('should create event payment transaction on Ergo but does not send it to agreement process when turn is over', async () => {
       // mock feeConfig
-      const fee: Fee = {
+      const fee: ChainMinimumFee = {
         bridgeFee: 0n,
         networkFee: 0n,
         rsnRatio: 0n,
         feeRatio: 0n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       };
       mockGetEventFeeConfig(fee);
 
       // mock event as verified
-      const mockedEvent: EventTrigger = mockToErgoEventTrigger();
+      const { event: mockedEvent, WIDs: eventWIDs } = mockToErgoEventTrigger();
       mockVerifyEvent(true);
 
       // mock ChainHandler `getChain` and `getErgoChain`
+      const fromChain = mockedEvent.fromChain;
+      ChainHandlerMock.mockChainName(fromChain);
       // mock `getMinimumNativeToken`
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'getMinimumNativeToken',
@@ -847,11 +883,15 @@ describe('EventProcessor', () => {
         true
       );
       // mock `getRWTToken` of `fromChain`
-      ChainHandlerMock.mockFromChainFunction('getRWTToken', fromChainRwt);
+      ChainHandlerMock.mockChainFunction(
+        fromChain,
+        'getRWTToken',
+        fromChainRwt
+      );
       // mock `getBoxRWT` of Ergo
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'getBoxRWT',
-        2n * BigInt(mockedEvent.WIDs.length)
+        2n * BigInt(mockedEvent.WIDsCount)
       );
       // mock `getSerializedBoxInfo` of Ergo
       ChainHandlerMock.mockErgoFunctionReturnValue('getSerializedBoxInfo', {
@@ -860,9 +900,10 @@ describe('EventProcessor', () => {
         },
       });
 
-      // mock event box and valid commitments
+      // mock event box and commitments
       mockGetEventBox('serialized-event-box');
       mockGetEventValidCommitments(['serialized-commitment-box']);
+      mockGetEventWIDs(eventWIDs);
 
       // mock event payment and reward order generations
       mockEventSinglePayment({
@@ -872,7 +913,7 @@ describe('EventProcessor', () => {
           tokens: [],
         },
       });
-      mockEventRewardOrder([]);
+      mockEventRewardOrder([], []);
 
       // mock txAgreement pending transactions
       TxAgreementMock.mockGetChainPendingTransactions([]);
@@ -924,7 +965,7 @@ describe('EventProcessor', () => {
      *   - mock `getRWTToken` of Ergo
      *   - mock `getBoxRWT` of Ergo
      *   - mock `getSerializedBoxInfo` of Ergo
-     * - mock event box and valid commitments
+     * - mock event box and commitments
      * - mock event payment and reward order generations
      * - mock txAgreement
      *   - mock `getChainPendingTransactions` to return empty list
@@ -937,16 +978,18 @@ describe('EventProcessor', () => {
      */
     it('should create event reward distribution transaction on Ergo and send it to agreement process successfully', async () => {
       // mock feeConfig
-      const fee: Fee = {
+      const fee: ChainMinimumFee = {
         bridgeFee: 0n,
         networkFee: 0n,
         rsnRatio: 0n,
         feeRatio: 0n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       };
       mockGetEventFeeConfig(fee);
 
       // mock event and insert a mocked payment transaction for it into database
-      const mockedEvent: EventTrigger = mockEventTrigger();
+      const { event: mockedEvent, WIDs: eventWIDs } = mockEventTrigger();
       const paymentTx = mockPaymentTransaction(
         TransactionType.payment,
         mockedEvent.toChain,
@@ -964,6 +1007,8 @@ describe('EventProcessor', () => {
       );
 
       // mock ChainHandler `fromChain` and `getErgoChain`
+      const fromChain = mockedEvent.fromChain;
+      ChainHandlerMock.mockChainName(fromChain);
       // mock `getGuardsConfigBox`
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'getGuardsConfigBox',
@@ -990,11 +1035,11 @@ describe('EventProcessor', () => {
         true
       );
       // mock `getRWTToken` of Ergo
-      ChainHandlerMock.mockFromChainFunction('getRWTToken', ergoRwt);
+      ChainHandlerMock.mockChainFunction(fromChain, 'getRWTToken', ergoRwt);
       // mock `getBoxRWT` of Ergo
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'getBoxRWT',
-        2n * BigInt(mockedEvent.WIDs.length)
+        2n * BigInt(mockedEvent.WIDsCount)
       );
       // mock `getSerializedBoxInfo` of Ergo
       ChainHandlerMock.mockErgoFunctionReturnValue('getSerializedBoxInfo', {
@@ -1003,9 +1048,10 @@ describe('EventProcessor', () => {
         },
       });
 
-      // mock event box and valid commitments
+      // mock event box and commitments
       mockGetEventBox('serialized-event-box');
       mockGetEventValidCommitments(['serialized-commitment-box']);
+      mockGetEventWIDs(eventWIDs);
 
       // mock event payment and reward order generations
       mockEventSinglePayment({
@@ -1015,7 +1061,7 @@ describe('EventProcessor', () => {
           tokens: [],
         },
       });
-      mockEventRewardOrder([]);
+      mockEventRewardOrder([], []);
 
       // mock txAgreement pending transactions
       TxAgreementMock.mockGetChainPendingTransactions([]);
@@ -1054,7 +1100,7 @@ describe('EventProcessor', () => {
      *   - mock `getRWTToken` of Ergo
      *   - mock `getBoxRWT` of Ergo
      *   - mock `getSerializedBoxInfo` of Ergo
-     * - mock event box and valid commitments
+     * - mock event box and commitments
      * - mock event payment and reward order generations
      * - mock txAgreement `getChainPendingTransactions` to return empty list
      * - mock Notification
@@ -1068,16 +1114,18 @@ describe('EventProcessor', () => {
      */
     it('should set event as waiting when there is not enough assets in lock address to create reward distribution', async () => {
       // mock feeConfig
-      const fee: Fee = {
+      const fee: ChainMinimumFee = {
         bridgeFee: 0n,
         networkFee: 0n,
         rsnRatio: 0n,
         feeRatio: 0n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       };
       mockGetEventFeeConfig(fee);
 
       // mock event and insert a mocked payment transaction for it into database
-      const mockedEvent: EventTrigger = mockEventTrigger();
+      const { event: mockedEvent, WIDs: eventWIDs } = mockEventTrigger();
       const paymentTx = mockPaymentTransaction(
         TransactionType.payment,
         mockedEvent.toChain,
@@ -1095,6 +1143,8 @@ describe('EventProcessor', () => {
       );
 
       // mock ChainHandler `fromChain` and `getErgoChain`
+      const fromChain = mockedEvent.fromChain;
+      ChainHandlerMock.mockChainName(fromChain);
       // mock `getGuardsConfigBox`
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'getGuardsConfigBox',
@@ -1110,11 +1160,11 @@ describe('EventProcessor', () => {
         true
       );
       // mock `getRWTToken` of Ergo
-      ChainHandlerMock.mockFromChainFunction('getRWTToken', ergoRwt);
+      ChainHandlerMock.mockChainFunction(fromChain, 'getRWTToken', ergoRwt);
       // mock `getBoxRWT` of Ergo
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'getBoxRWT',
-        2n * BigInt(mockedEvent.WIDs.length)
+        2n * BigInt(mockedEvent.WIDsCount)
       );
       // mock `getSerializedBoxInfo` of Ergo
       ChainHandlerMock.mockErgoFunctionReturnValue('getSerializedBoxInfo', {
@@ -1123,9 +1173,10 @@ describe('EventProcessor', () => {
         },
       });
 
-      // mock event box and valid commitments
+      // mock event box and commitments
       mockGetEventBox('serialized-event-box');
       mockGetEventValidCommitments([]);
+      mockGetEventWIDs(eventWIDs);
 
       // mock event payment and reward order generations
       mockEventSinglePayment({
@@ -1135,7 +1186,7 @@ describe('EventProcessor', () => {
           tokens: [],
         },
       });
-      mockEventRewardOrder([]);
+      mockEventRewardOrder([], []);
 
       // mock txAgreement `getChainPendingTransactions` to return empty list
       TxAgreementMock.mockGetChainPendingTransactions([]);
@@ -1186,7 +1237,7 @@ describe('EventProcessor', () => {
      *   - mock `getRWTToken` of Ergo
      *   - mock `getBoxRWT` of Ergo
      *   - mock `getSerializedBoxInfo` of Ergo
-     * - mock event box and valid commitments
+     * - mock event box and commitments
      * - mock event payment and reward order generations
      * - mock txAgreement
      *   - mock `getChainPendingTransactions` to return empty list
@@ -1199,16 +1250,18 @@ describe('EventProcessor', () => {
      */
     it('should create event reward distribution transaction on Ergo but does not send it to agreement process when turn is over', async () => {
       // mock feeConfig
-      const fee: Fee = {
+      const fee: ChainMinimumFee = {
         bridgeFee: 0n,
         networkFee: 0n,
         rsnRatio: 0n,
         feeRatio: 0n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       };
       mockGetEventFeeConfig(fee);
 
       // mock event and insert a mocked payment transaction for it into database
-      const mockedEvent: EventTrigger = mockEventTrigger();
+      const { event: mockedEvent, WIDs: eventWIDs } = mockEventTrigger();
       const paymentTx = mockPaymentTransaction(
         TransactionType.payment,
         mockedEvent.toChain,
@@ -1226,6 +1279,8 @@ describe('EventProcessor', () => {
       );
 
       // mock ChainHandler `fromChain` and `getErgoChain`
+      const fromChain = mockedEvent.fromChain;
+      ChainHandlerMock.mockChainName(fromChain);
       // mock `getGuardsConfigBox`
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'getGuardsConfigBox',
@@ -1252,11 +1307,11 @@ describe('EventProcessor', () => {
         true
       );
       // mock `getRWTToken` of Ergo
-      ChainHandlerMock.mockFromChainFunction('getRWTToken', ergoRwt);
+      ChainHandlerMock.mockChainFunction(fromChain, 'getRWTToken', ergoRwt);
       // mock `getBoxRWT` of Ergo
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'getBoxRWT',
-        2n * BigInt(mockedEvent.WIDs.length)
+        2n * BigInt(mockedEvent.WIDsCount)
       );
       // mock `getSerializedBoxInfo` of Ergo
       ChainHandlerMock.mockErgoFunctionReturnValue('getSerializedBoxInfo', {
@@ -1265,9 +1320,10 @@ describe('EventProcessor', () => {
         },
       });
 
-      // mock event box and valid commitments
+      // mock event box and commitments
       mockGetEventBox('serialized-event-box');
       mockGetEventValidCommitments(['serialized-commitment-box']);
+      mockGetEventWIDs(eventWIDs);
 
       // mock event payment and reward order generations
       mockEventSinglePayment({
@@ -1277,7 +1333,7 @@ describe('EventProcessor', () => {
           tokens: [],
         },
       });
-      mockEventRewardOrder([]);
+      mockEventRewardOrder([], []);
 
       // mock txAgreement pending transactions
       TxAgreementMock.mockGetChainPendingTransactions([]);
@@ -1325,16 +1381,16 @@ describe('EventProcessor', () => {
       // mock four events and insert into db (different in firstTry column and type (payment, reward))
       const firstTry1 =
         Math.round(currentTimeStamp / 1000) - Configs.eventTimeout - 100;
-      const mockedEvent1: EventTrigger = mockEventTrigger();
+      const mockedEvent1: EventTrigger = mockEventTrigger().event;
       const firstTry2 =
         Math.round(currentTimeStamp / 1000) - Configs.eventTimeout + 100;
-      const mockedEvent2: EventTrigger = mockEventTrigger();
+      const mockedEvent2: EventTrigger = mockEventTrigger().event;
       const firstTry3 =
         Math.round(currentTimeStamp / 1000) - Configs.eventTimeout + 100;
-      const mockedEvent3: EventTrigger = mockEventTrigger();
+      const mockedEvent3: EventTrigger = mockEventTrigger().event;
       const firstTry4 =
         Math.round(currentTimeStamp / 1000) - Configs.eventTimeout - 100;
-      const mockedEvent4: EventTrigger = mockEventTrigger();
+      const mockedEvent4: EventTrigger = mockEventTrigger().event;
       await DatabaseActionMock.insertEventRecord(
         mockedEvent1,
         EventStatus.pendingReward,
@@ -1412,8 +1468,8 @@ describe('EventProcessor', () => {
      */
     it('should mark timeout events as pending', async () => {
       // mock events
-      const mockedEvent1: EventTrigger = mockEventTrigger();
-      const mockedEvent2: EventTrigger = mockEventTrigger();
+      const mockedEvent1: EventTrigger = mockEventTrigger().event;
+      const mockedEvent2: EventTrigger = mockEventTrigger().event;
       await DatabaseActionMock.insertEventRecord(
         mockedEvent1,
         EventStatus.rewardWaiting

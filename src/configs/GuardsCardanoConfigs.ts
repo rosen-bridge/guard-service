@@ -53,8 +53,10 @@ class GuardsCardanoConfigs {
   static cardanoContractConfig = rosenConfig.contractReader(CARDANO_CHAIN);
 
   // cardano addresses
-  static coldAddress: string = config.get<string>('cardano.coldStorageAddress');
   static aggregatedPublicKey = config.get<string>('cardano.bankPublicKey');
+
+  // tss related configs
+  static tssChainCode = config.get<string>('cardano.tssChainCode');
 
   // CardanoChain required configs
   static chainConfigs: CardanoConfigs = {
@@ -67,7 +69,7 @@ class GuardsCardanoConfigs {
     },
     addresses: {
       lock: this.cardanoContractConfig.lockAddress,
-      cold: this.coldAddress,
+      cold: this.cardanoContractConfig.coldAddress,
       permit: this.cardanoContractConfig.permitAddress,
       fraud: this.cardanoContractConfig.fraudAddress,
     },

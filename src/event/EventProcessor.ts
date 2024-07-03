@@ -4,7 +4,7 @@ import EventVerifier from '../verification/EventVerifier';
 import EventSerializer from './EventSerializer';
 import EventOrder from './EventOrder';
 import EventBoxes from './EventBoxes';
-import MinimumFee from './MinimumFee';
+import MinimumFeeHandler from '../handlers/MinimumFeeHandler';
 import { EventStatus } from '../utils/constants';
 import {
   EventTrigger,
@@ -14,7 +14,7 @@ import {
   TransactionType,
 } from '@rosen-chains/abstract-chain';
 import Notification from '../communication/notification/Notification';
-import { Fee } from '@rosen-bridge/minimum-fee';
+import { ChainMinimumFee } from '@rosen-bridge/minimum-fee';
 import ChainHandler from '../handlers/ChainHandler';
 import { ERGO_CHAIN, ErgoChain } from '@rosen-chains/ergo';
 import { rosenConfig } from '../configs/RosenConfig';
@@ -123,7 +123,7 @@ class EventProcessor {
     logger.info(`Processing event [${eventId}] for payment`);
 
     // get minimum-fee and verify event
-    const feeConfig = await MinimumFee.getEventFeeConfig(event);
+    const feeConfig = MinimumFeeHandler.getEventFeeConfig(event);
 
     // verify event
     if (!(await EventVerifier.verifyEvent(event, feeConfig))) {
@@ -167,11 +167,12 @@ class EventProcessor {
    */
   protected static createEventPayment = async (
     event: EventTrigger,
-    feeConfig: Fee
+    feeConfig: ChainMinimumFee
   ): Promise<PaymentTransaction> => {
     const targetChain = ChainHandler.getInstance().getChain(event.toChain);
 
     const extra: any[] = [];
+    const eventWIDs: string[] = [];
 
     // add reward order if target chain is ergo
     if (event.toChain === ERGO_CHAIN) {
@@ -179,12 +180,13 @@ class EventProcessor {
 
       // get event and commitment boxes
       const eventBox = await EventBoxes.getEventBox(event);
-      const rwtCount =
-        ergoChain.getBoxRWT(eventBox) / BigInt(event.WIDs.length);
+      const rwtCount = ergoChain.getBoxRWT(eventBox) / BigInt(event.WIDsCount);
 
+      eventWIDs.push(...(await EventBoxes.getEventWIDs(event)));
       const commitmentBoxes = await EventBoxes.getEventValidCommitments(
         event,
-        rwtCount
+        rwtCount,
+        eventWIDs
       );
       const guardsConfigBox = await ergoChain.getGuardsConfigBox(
         rosenConfig.guardNFT,
@@ -196,7 +198,11 @@ class EventProcessor {
     }
 
     // add payment order
-    const order = await EventOrder.createEventPaymentOrder(event, feeConfig);
+    const order = await EventOrder.createEventPaymentOrder(
+      event,
+      feeConfig,
+      eventWIDs
+    );
 
     // get unsigned transactions in target chain
     const unsignedAgreementTransactions = (
@@ -254,7 +260,7 @@ class EventProcessor {
     const paymentTxId = eventTxs[0].txId;
 
     // get minimum-fee and verify event
-    const feeConfig = await MinimumFee.getEventFeeConfig(event);
+    const feeConfig = MinimumFeeHandler.getEventFeeConfig(event);
 
     try {
       const tx = await this.createEventRewardDistribution(
@@ -294,18 +300,20 @@ class EventProcessor {
    */
   protected static createEventRewardDistribution = async (
     event: EventTrigger,
-    feeConfig: Fee,
+    feeConfig: ChainMinimumFee,
     paymentTxId: string
   ): Promise<PaymentTransaction> => {
     const ergoChain = ChainHandler.getInstance().getErgoChain();
 
     // get event and commitment boxes
     const eventBox = await EventBoxes.getEventBox(event);
-    const rwtCount = ergoChain.getBoxRWT(eventBox) / BigInt(event.WIDs.length);
+    const rwtCount = ergoChain.getBoxRWT(eventBox) / BigInt(event.WIDsCount);
 
+    const eventWIDs = await EventBoxes.getEventWIDs(event);
     const commitmentBoxes = await EventBoxes.getEventValidCommitments(
       event,
-      rwtCount
+      rwtCount,
+      eventWIDs
     );
     const guardsConfigBox = await ergoChain.getGuardsConfigBox(
       rosenConfig.guardNFT,
@@ -316,7 +324,8 @@ class EventProcessor {
     const order = await EventOrder.createEventRewardOrder(
       event,
       feeConfig,
-      paymentTxId
+      paymentTxId,
+      eventWIDs
     );
 
     // get unsigned transactions in target chain

@@ -51,9 +51,11 @@ describe('signTx', () => {
       );
 
       // mock ChainHandler `getChain`
-      ChainHandlerMock.mockChainName(CARDANO_CHAIN);
+      const chain = CARDANO_CHAIN;
+      ChainHandlerMock.mockChainName(chain);
       // mock `rawTxToPaymentTransaction`
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'rawTxToPaymentTransaction',
         paymentTx,
         true
@@ -67,6 +69,9 @@ describe('signTx', () => {
           chain: CARDANO_CHAIN,
           txJson: 'txJson',
           requiredSign: requiredSign,
+        },
+        headers: {
+          'Api-Key': 'hello',
         },
       });
 
@@ -106,9 +111,11 @@ describe('signTx', () => {
      */
     it('should return 400 when tx json is invalid', async () => {
       // mock ChainHandler `getChain`
-      ChainHandlerMock.mockChainName(CARDANO_CHAIN);
+      const chain = CARDANO_CHAIN;
+      ChainHandlerMock.mockChainName(chain);
       // mock `rawTxToPaymentTransaction`
-      ChainHandlerMock.mockToChainFunctionToThrow(
+      ChainHandlerMock.mockChainFunctionToThrow(
+        chain,
         'rawTxToPaymentTransaction',
         new Error(`TestError: failed to parse tx`),
         true
@@ -122,6 +129,9 @@ describe('signTx', () => {
           chain: CARDANO_CHAIN,
           txJson: 'txJson',
           requiredSign: requiredSign,
+        },
+        headers: {
+          'Api-Key': 'hello',
         },
       });
 
@@ -168,9 +178,11 @@ describe('signTx', () => {
       );
 
       // mock ChainHandler `getChain`
-      ChainHandlerMock.mockChainName(CARDANO_CHAIN);
+      const chain = CARDANO_CHAIN;
+      ChainHandlerMock.mockChainName(chain);
       // mock `rawTxToPaymentTransaction`
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'rawTxToPaymentTransaction',
         paymentTx,
         true
@@ -184,6 +196,9 @@ describe('signTx', () => {
           chain: CARDANO_CHAIN,
           txJson: 'txJson',
           requiredSign: requiredSign,
+        },
+        headers: {
+          'Api-Key': 'hello',
         },
       });
 
@@ -229,9 +244,11 @@ describe('signTx', () => {
       );
 
       // mock ChainHandler `getChain`
-      ChainHandlerMock.mockChainName(CARDANO_CHAIN);
+      const chain = CARDANO_CHAIN;
+      ChainHandlerMock.mockChainName(chain);
       // mock `rawTxToPaymentTransaction`
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'rawTxToPaymentTransaction',
         paymentTx,
         true
@@ -247,6 +264,9 @@ describe('signTx', () => {
           txJson: 'txJson',
           requiredSign: newRequiredSign,
           overwrite: true,
+        },
+        headers: {
+          'Api-Key': 'hello',
         },
       });
 
@@ -285,9 +305,11 @@ describe('signTx', () => {
       );
 
       // mock ChainHandler `getChain`
-      ChainHandlerMock.mockChainName(CARDANO_CHAIN);
+      const chain = CARDANO_CHAIN;
+      ChainHandlerMock.mockChainName(chain);
       // mock `rawTxToPaymentTransaction`
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'rawTxToPaymentTransaction',
         paymentTx,
         true
@@ -302,10 +324,64 @@ describe('signTx', () => {
           txJson: 'txJson',
           requiredSign: GuardPkHandler.getInstance().guardsLen + 1,
         },
+        headers: {
+          'Api-Key': 'hello',
+        },
       });
 
       // check the result
       expect(result.statusCode).toEqual(400);
+    });
+
+    /**
+     * @target fastifyServer[POST /sign] should return 403 when Api-Key did not set in header
+     * @dependencies
+     * @scenario
+     * - send a request to the server
+     * - check the result
+     * @expected
+     * - it should return status code 403
+     */
+    it('should return 403 when Api-Key did not set in header', async () => {
+      // send a request to the server
+      const result = await mockedServer.inject({
+        method: 'POST',
+        url: '/sign',
+        body: {
+          chain: CARDANO_CHAIN,
+          txJson: 'txJson',
+          requiredSign: GuardPkHandler.getInstance().guardsLen,
+        },
+      });
+      // check the result
+      expect(result.statusCode).toEqual(403);
+    });
+
+    /**
+     * @target fastifyServer[POST /sign] should return 403 when Api-Key is wrong
+     * @dependencies
+     * @scenario
+     * - send a request to the server
+     * - check the result
+     * @expected
+     * - it should return status code 403
+     */
+    it('should return 403 when Api-Key is wrong', async () => {
+      // send a request to the server
+      const result = await mockedServer.inject({
+        method: 'POST',
+        url: '/sign',
+        body: {
+          chain: CARDANO_CHAIN,
+          txJson: 'txJson',
+          requiredSign: GuardPkHandler.getInstance().guardsLen,
+        },
+        headers: {
+          'Api-Key': 'wrong',
+        },
+      });
+      // check the result
+      expect(result.statusCode).toEqual(403);
     });
   });
 });

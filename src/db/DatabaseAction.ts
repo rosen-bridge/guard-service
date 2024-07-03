@@ -748,6 +748,24 @@ class DatabaseAction {
       },
     });
   };
+
+  /**
+   * @param eventId
+   * @return commitments that are merged into event trigger
+   */
+  getEventCommitments = (eventId: string): Promise<CommitmentEntity[]> => {
+    return this.CommitmentRepository.createQueryBuilder('commitment')
+      .leftJoin(
+        'confirmed_event_entity',
+        'cee',
+        'commitment."eventId" = cee."id"'
+      )
+      .leftJoin('event_trigger_entity', 'ete', 'ete."id" = cee."eventDataId"')
+      .where(`commitment."eventId"='${eventId}'`)
+      .andWhere(`commitment."spendTxId"=ete."txId"`)
+      .orderBy('commitment."spendIndex"', 'ASC')
+      .getMany();
+  };
 }
 
 export { DatabaseAction };

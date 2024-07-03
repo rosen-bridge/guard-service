@@ -32,9 +32,12 @@ const mockEventSinglePayment = (result: SinglePayment) => {
  * mocks EventOrder.eventRewardOrder to return `result`
  * @param result
  */
-const mockEventRewardOrder = (result: PaymentOrder) => {
+const mockEventRewardOrder = (watchers: PaymentOrder, guards: PaymentOrder) => {
   const functionSpy = vi.spyOn(EventOrder, 'eventRewardOrder');
-  functionSpy.mockReturnValue(result);
+  functionSpy.mockReturnValue({
+    watchersOrder: watchers,
+    guardsOrder: guards,
+  });
 };
 
 export {

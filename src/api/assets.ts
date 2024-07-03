@@ -1,8 +1,5 @@
-import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
-import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
-
 import { ChainTokenData } from '../types/api';
-import { SUPPORTED_CHAINS } from '../utils/constants';
+import { SUPPORTED_CHAINS, ChainNativeToken } from '../utils/constants';
 import ChainHandler from '../handlers/ChainHandler';
 import Configs from '../configs/Configs';
 import {
@@ -40,12 +37,7 @@ const assetsRoute = (server: FastifySeverInstance) => {
         const assets = await chainInstance.getLockAddressAssets();
         const coldAssets = await chainInstance.getColdAddressAssets();
         // TODO: fix native token name, https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/274
-        const nativeTokenId =
-          currentChain == ERGO_CHAIN
-            ? ERG
-            : currentChain == CARDANO_CHAIN
-            ? ADA
-            : '';
+        const nativeTokenId = ChainNativeToken[currentChain] ?? '';
         // add native tokens
         const nativeTokenData = getTokenData(
           currentChain,

@@ -3,7 +3,6 @@ import { revenueJobFunction } from '../../src/jobs/revenue';
 import ChainHandlerMock from '../handlers/ChainHandler.mock';
 import { mockTokenPaymentEvent } from '../event/testData';
 import TestUtils from '../testUtils/TestUtils';
-import { ConfirmationStatus } from '@rosen-chains/abstract-chain';
 import { RevenueType } from '../../src/utils/constants';
 import * as testData from './testData';
 import { ERG } from '@rosen-chains/ergo';
@@ -41,7 +40,7 @@ describe('revenueJobFunction', () => {
    */
   it('should store fraud revenues successfully', async () => {
     // mock event with spendTxId and spendBlockId
-    const mockedEvent = mockTokenPaymentEvent();
+    const mockedEvent = mockTokenPaymentEvent().event;
     const spendTxId = TestUtils.generateRandomId();
     const spendBlockId = TestUtils.generateRandomId();
     const boxSerialized = 'boxSerialized';
@@ -57,7 +56,8 @@ describe('revenueJobFunction', () => {
     );
 
     // mock ChainHandler fromChain and ErgoChain
-    ChainHandlerMock.mockChainName(CARDANO_CHAIN, true);
+    const chain = CARDANO_CHAIN;
+    ChainHandlerMock.mockChainName(chain);
     // mock `getTransaction`
     ChainHandlerMock.mockErgoFunctionReturnValue('getTransaction', tx, true);
     // mock `extractSignedTransactionOrder`
@@ -66,7 +66,8 @@ describe('revenueJobFunction', () => {
       testData.fraudTxOrder
     );
     // mock `getChainConfigs`
-    ChainHandlerMock.mockFromChainFunction(
+    ChainHandlerMock.mockChainFunction(
+      chain,
       'getChainConfigs',
       GuardsCardanoConfigs.chainConfigs
     );
@@ -120,7 +121,7 @@ describe('revenueJobFunction', () => {
    */
   it('should store bridge-fee, emission and network-fee revenues successfully', async () => {
     // mock event with spendTxId and spendBlockId
-    const mockedEvent = mockTokenPaymentEvent();
+    const mockedEvent = mockTokenPaymentEvent().event;
     const spendTxId = TestUtils.generateRandomId();
     const spendBlockId = TestUtils.generateRandomId();
     const boxSerialized = 'boxSerialized';
@@ -136,7 +137,8 @@ describe('revenueJobFunction', () => {
     );
 
     // mock ChainHandler fromChain and ErgoChain
-    ChainHandlerMock.mockChainName(CARDANO_CHAIN, true);
+    const chain = CARDANO_CHAIN;
+    ChainHandlerMock.mockChainName(chain);
     // mock `getTransaction`
     ChainHandlerMock.mockErgoFunctionReturnValue('getTransaction', tx, true);
     // mock `extractSignedTransactionOrder`
@@ -145,7 +147,8 @@ describe('revenueJobFunction', () => {
       testData.rewardTxOrder
     );
     // mock `getChainConfigs`
-    ChainHandlerMock.mockFromChainFunction(
+    ChainHandlerMock.mockChainFunction(
+      chain,
       'getChainConfigs',
       GuardsCardanoConfigs.chainConfigs
     );
@@ -222,7 +225,7 @@ describe('revenueJobFunction', () => {
    */
   it('should skip revenues of unconfirmed transactions', async () => {
     // mock event with spendTxId and spendBlockId
-    const mockedEvent = mockTokenPaymentEvent();
+    const mockedEvent = mockTokenPaymentEvent().event;
     const spendTxId = TestUtils.generateRandomId();
     const spendBlockId = TestUtils.generateRandomId();
     const boxSerialized = 'boxSerialized';

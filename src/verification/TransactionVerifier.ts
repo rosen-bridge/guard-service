@@ -9,7 +9,7 @@ import {
 import ChainHandler from '../handlers/ChainHandler';
 import { isEqual } from 'lodash-es';
 import EventOrder from '../event/EventOrder';
-import MinimumFee from '../event/MinimumFee';
+import MinimumFeeHandler from '../handlers/MinimumFeeHandler';
 import Configs from '../configs/Configs';
 import DatabaseHandler from '../db/DatabaseHandler';
 import { JsonBI } from '../network/NetworkModels';
@@ -69,23 +69,27 @@ class TransactionVerifier {
     event: EventTrigger
   ): Promise<boolean> => {
     const chain = ChainHandler.getInstance().getChain(tx.network);
+    const dbAction = DatabaseAction.getInstance();
 
     // verify tx order
-    const feeConfig = await MinimumFee.getEventFeeConfig(event);
+    const feeConfig = MinimumFeeHandler.getEventFeeConfig(event);
     const txOrder = chain.extractTransactionOrder(tx);
+    const eventWIDs = (await dbAction.getEventCommitments(tx.eventId)).map(
+      (commitment) => commitment.WID
+    );
     let expectedOrder: PaymentOrder = [];
     if (tx.txType === TransactionType.payment)
       expectedOrder = await EventOrder.createEventPaymentOrder(
         event,
-        feeConfig
+        feeConfig,
+        eventWIDs
       );
     else {
       // get event payment transaction
-      const eventTxs =
-        await DatabaseAction.getInstance().getEventValidTxsByType(
-          tx.eventId,
-          TransactionType.payment
-        );
+      const eventTxs = await dbAction.getEventValidTxsByType(
+        tx.eventId,
+        TransactionType.payment
+      );
       if (eventTxs.length !== 1)
         throw new ImpossibleBehavior(
           `Received tx [${tx.txId}] for reward distribution of event [${tx.eventId}] but no payment tx found for the event in database`
@@ -94,7 +98,8 @@ class TransactionVerifier {
       expectedOrder = await EventOrder.createEventRewardOrder(
         event,
         feeConfig,
-        paymentTxId
+        paymentTxId,
+        eventWIDs
       );
     }
     if (!isEqual(txOrder, expectedOrder)) {

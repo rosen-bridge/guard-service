@@ -1,7 +1,9 @@
 import TransactionVerifier from '../../src/verification/TransactionVerifier';
 import {
+  feeRatioDivisor,
   mockEventTrigger,
   mockTokenPaymentFromErgoEvent,
+  rsnRatioDivisor,
 } from '../event/testData';
 import ChainHandlerMock, {
   chainHandlerInstance,
@@ -51,13 +53,20 @@ describe('TransactionVerifier', () => {
       const tx = mockPaymentTransaction();
 
       // mock ChainHandler
-      ChainHandlerMock.mockChainName(tx.network);
+      const chain = tx.network;
+      ChainHandlerMock.mockChainName(chain);
       // mock `verifyTransactionFee`
-      ChainHandlerMock.mockToChainFunction('verifyTransactionFee', true);
+      ChainHandlerMock.mockChainFunction(chain, 'verifyTransactionFee', true);
       // mock `verifyNoTokenBurned`
-      ChainHandlerMock.mockToChainFunction('verifyNoTokenBurned', true, true);
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'verifyNoTokenBurned',
+        true,
+        true
+      );
       // mock `verifyTransactionExtraConditions`
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'verifyTransactionExtraConditions',
         true
       );
@@ -91,13 +100,20 @@ describe('TransactionVerifier', () => {
       const tx = mockPaymentTransaction();
 
       // mock ChainHandler
-      ChainHandlerMock.mockChainName(tx.network);
+      const chain = tx.network;
+      ChainHandlerMock.mockChainName(chain);
       // mock `verifyTransactionFee`
-      ChainHandlerMock.mockToChainFunction('verifyTransactionFee', false);
+      ChainHandlerMock.mockChainFunction(chain, 'verifyTransactionFee', false);
       // mock `verifyNoTokenBurned`
-      ChainHandlerMock.mockToChainFunction('verifyNoTokenBurned', true, true);
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'verifyNoTokenBurned',
+        true,
+        true
+      );
       // mock `verifyTransactionExtraConditions`
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'verifyTransactionExtraConditions',
         true
       );
@@ -131,13 +147,20 @@ describe('TransactionVerifier', () => {
       const tx = mockPaymentTransaction();
 
       // mock ChainHandler
-      ChainHandlerMock.mockChainName(tx.network);
+      const chain = tx.network;
+      ChainHandlerMock.mockChainName(chain);
       // mock `verifyTransactionFee`
-      ChainHandlerMock.mockToChainFunction('verifyTransactionFee', true);
+      ChainHandlerMock.mockChainFunction(chain, 'verifyTransactionFee', true);
       // mock `verifyNoTokenBurned`
-      ChainHandlerMock.mockToChainFunction('verifyNoTokenBurned', false, true);
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'verifyNoTokenBurned',
+        false,
+        true
+      );
       // mock `verifyTransactionExtraConditions`
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'verifyTransactionExtraConditions',
         true
       );
@@ -171,13 +194,20 @@ describe('TransactionVerifier', () => {
       const tx = mockPaymentTransaction();
 
       // mock ChainHandler
-      ChainHandlerMock.mockChainName(tx.network);
+      const chain = tx.network;
+      ChainHandlerMock.mockChainName(chain);
       // mock `verifyTransactionFee`
-      ChainHandlerMock.mockToChainFunction('verifyTransactionFee', true);
+      ChainHandlerMock.mockChainFunction(chain, 'verifyTransactionFee', true);
       // mock `verifyNoTokenBurned`
-      ChainHandlerMock.mockToChainFunction('verifyNoTokenBurned', true, true);
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'verifyNoTokenBurned',
+        true,
+        true
+      );
       // mock `verifyTransactionExtraConditions`
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'verifyTransactionExtraConditions',
         false
       );
@@ -199,6 +229,8 @@ describe('TransactionVerifier', () => {
         networkFee: 0n,
         rsnRatio: 0n,
         feeRatio: 100n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       });
     });
 
@@ -221,7 +253,7 @@ describe('TransactionVerifier', () => {
      */
     it('should return true when all conditions for payment tx are met', async () => {
       // mock event and transaction
-      const mockedEvent = mockEventTrigger();
+      const mockedEvent = mockEventTrigger().event;
       const paymentTx = mockPaymentTransaction(
         TransactionType.payment,
         mockedEvent.toChain,
@@ -240,8 +272,11 @@ describe('TransactionVerifier', () => {
       ];
 
       // mock ChainHandler
+      const chain = mockedEvent.toChain;
+      ChainHandlerMock.mockChainName(chain);
       // mock `extractTransactionOrder`
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'extractTransactionOrder',
         mockedOrder
       );
@@ -269,6 +304,7 @@ describe('TransactionVerifier', () => {
      * @scenario
      * - mock event and two transactions
      * - insert event and payment transaction into database
+     * - insert event commitment boxes into db
      * - mock a PaymentOrder
      * - mock ChainHandler
      *   - mock `extractTransactionOrder` to return mocked order
@@ -281,26 +317,40 @@ describe('TransactionVerifier', () => {
     it('should return true when all conditions for reward distribution tx are met', async () => {
       // mock event and transaction
       const mockedEvent = mockEventTrigger();
+      const eventId = EventSerializer.getId(mockedEvent.event);
       const paymentTx = mockPaymentTransaction(
         TransactionType.payment,
-        mockedEvent.toChain,
-        EventSerializer.getId(mockedEvent)
+        mockedEvent.event.toChain,
+        eventId
       );
       const rewardTx = mockPaymentTransaction(
         TransactionType.reward,
         ERGO_CHAIN,
-        EventSerializer.getId(mockedEvent)
+        eventId
       );
 
       // insert payment transaction into database
       await DatabaseActionMock.insertEventRecord(
-        mockedEvent,
+        mockedEvent.event,
         EventStatus.pendingReward
       );
       await DatabaseActionMock.insertTxRecord(
         paymentTx,
         TransactionStatus.completed
       );
+
+      // insert event commitment boxes into db
+      for (let i = 1; i < mockedEvent.WIDs.length; i++) {
+        await DatabaseActionMock.insertCommitmentBoxRecord(
+          eventId,
+          Buffer.from(`event-serialized-box-${i}`).toString('base64'),
+          mockedEvent.WIDs[i],
+          mockedEvent.event.height - 4,
+          '1',
+          'event-creation-tx-id',
+          i
+        );
+      }
 
       // mock a PaymentOrder
       const mockedOrder: PaymentOrder = [
@@ -326,7 +376,7 @@ describe('TransactionVerifier', () => {
       // run test
       const result = await TransactionVerifier.verifyEventTransaction(
         rewardTx,
-        mockedEvent
+        mockedEvent.event
       );
 
       // verify returned value
@@ -352,7 +402,7 @@ describe('TransactionVerifier', () => {
      */
     it('should return false when tx order is different from expected one', async () => {
       // mock event and transaction
-      const mockedEvent = mockEventTrigger();
+      const mockedEvent = mockEventTrigger().event;
       const paymentTx = mockPaymentTransaction(
         TransactionType.payment,
         mockedEvent.toChain,
@@ -380,8 +430,14 @@ describe('TransactionVerifier', () => {
       ];
 
       // mock ChainHandler
+      const chain = mockedEvent.toChain;
+      ChainHandlerMock.mockChainName(chain);
       // mock `extractTransactionOrder`
-      ChainHandlerMock.mockToChainFunction('extractTransactionOrder', txOrder);
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'extractTransactionOrder',
+        txOrder
+      );
 
       // mock EventOrder.createEventPaymentOrder to return mocked order
       mockCreateEventPaymentOrder(expectedOrder);
@@ -440,7 +496,11 @@ describe('TransactionVerifier', () => {
           },
         },
       ];
-      ChainHandlerMock.mockToChainFunction('extractTransactionOrder', order);
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'extractTransactionOrder',
+        order
+      );
       // mock `getLockAddressAssets`
       const lockedAssets: AssetBalance = {
         nativeToken: 1100000000n,
@@ -455,13 +515,14 @@ describe('TransactionVerifier', () => {
           },
         ],
       };
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getLockAddressAssets',
         lockedAssets,
         true
       );
       // mock `getChainConfigs`
-      ChainHandlerMock.mockToChainFunction('getChainConfigs', {
+      ChainHandlerMock.mockChainFunction(chain, 'getChainConfigs', {
         addresses: { cold: coldAddress },
       });
 
@@ -522,7 +583,11 @@ describe('TransactionVerifier', () => {
           },
         },
       ];
-      ChainHandlerMock.mockToChainFunction('extractTransactionOrder', order);
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'extractTransactionOrder',
+        order
+      );
       // mock `getLockAddressAssets`
       const lockedAssets: AssetBalance = {
         nativeToken: 1100000000n,
@@ -537,13 +602,14 @@ describe('TransactionVerifier', () => {
           },
         ],
       };
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getLockAddressAssets',
         lockedAssets,
         true
       );
       // mock `getChainConfigs`
-      ChainHandlerMock.mockToChainFunction('getChainConfigs', {
+      ChainHandlerMock.mockChainFunction(chain, 'getChainConfigs', {
         addresses: { cold: coldAddress },
       });
 
@@ -592,7 +658,11 @@ describe('TransactionVerifier', () => {
           },
         },
       ];
-      ChainHandlerMock.mockToChainFunction('extractTransactionOrder', order);
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'extractTransactionOrder',
+        order
+      );
       // mock `getLockAddressAssets`
       const lockedAssets: AssetBalance = {
         nativeToken: 1100000000n,
@@ -607,13 +677,14 @@ describe('TransactionVerifier', () => {
           },
         ],
       };
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getLockAddressAssets',
         lockedAssets,
         true
       );
       // mock `getChainConfigs`
-      ChainHandlerMock.mockToChainFunction('getChainConfigs', {
+      ChainHandlerMock.mockChainFunction(chain, 'getChainConfigs', {
         addresses: { cold: coldAddress },
       });
 
@@ -662,7 +733,11 @@ describe('TransactionVerifier', () => {
           },
         },
       ];
-      ChainHandlerMock.mockToChainFunction('extractTransactionOrder', order);
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'extractTransactionOrder',
+        order
+      );
       // mock `getLockAddressAssets`
       const lockedAssets: AssetBalance = {
         nativeToken: 1010000000n,
@@ -677,13 +752,14 @@ describe('TransactionVerifier', () => {
           },
         ],
       };
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getLockAddressAssets',
         lockedAssets,
         true
       );
       // mock `getChainConfigs`
-      ChainHandlerMock.mockToChainFunction('getChainConfigs', {
+      ChainHandlerMock.mockChainFunction(chain, 'getChainConfigs', {
         addresses: { cold: coldAddress },
       });
 
@@ -732,7 +808,11 @@ describe('TransactionVerifier', () => {
           },
         },
       ];
-      ChainHandlerMock.mockToChainFunction('extractTransactionOrder', order);
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'extractTransactionOrder',
+        order
+      );
       // mock `getLockAddressAssets`
       const lockedAssets: AssetBalance = {
         nativeToken: 1400000000n,
@@ -747,13 +827,14 @@ describe('TransactionVerifier', () => {
           },
         ],
       };
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getLockAddressAssets',
         lockedAssets,
         true
       );
       // mock `getChainConfigs`
-      ChainHandlerMock.mockToChainFunction('getChainConfigs', {
+      ChainHandlerMock.mockChainFunction(chain, 'getChainConfigs', {
         addresses: { cold: coldAddress },
       });
 
@@ -802,7 +883,11 @@ describe('TransactionVerifier', () => {
           },
         },
       ];
-      ChainHandlerMock.mockToChainFunction('extractTransactionOrder', order);
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'extractTransactionOrder',
+        order
+      );
       // mock `getLockAddressAssets`
       const lockedAssets: AssetBalance = {
         nativeToken: 1100000000n,
@@ -817,13 +902,14 @@ describe('TransactionVerifier', () => {
           },
         ],
       };
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getLockAddressAssets',
         lockedAssets,
         true
       );
       // mock `getChainConfigs`
-      ChainHandlerMock.mockToChainFunction('getChainConfigs', {
+      ChainHandlerMock.mockChainFunction(chain, 'getChainConfigs', {
         addresses: { cold: coldAddress },
       });
 
@@ -872,7 +958,11 @@ describe('TransactionVerifier', () => {
           },
         },
       ];
-      ChainHandlerMock.mockToChainFunction('extractTransactionOrder', order);
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'extractTransactionOrder',
+        order
+      );
       // mock `getLockAddressAssets`
       const lockedAssets: AssetBalance = {
         nativeToken: 1100000000n,
@@ -887,13 +977,14 @@ describe('TransactionVerifier', () => {
           },
         ],
       };
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getLockAddressAssets',
         lockedAssets,
         true
       );
       // mock `getChainConfigs`
-      ChainHandlerMock.mockToChainFunction('getChainConfigs', {
+      ChainHandlerMock.mockChainFunction(chain, 'getChainConfigs', {
         addresses: { cold: coldAddress },
       });
 
@@ -942,7 +1033,11 @@ describe('TransactionVerifier', () => {
           },
         },
       ];
-      ChainHandlerMock.mockToChainFunction('extractTransactionOrder', order);
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'extractTransactionOrder',
+        order
+      );
       // mock `getLockAddressAssets`
       const lockedAssets: AssetBalance = {
         nativeToken: 1100000000n,
@@ -953,13 +1048,14 @@ describe('TransactionVerifier', () => {
           },
         ],
       };
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getLockAddressAssets',
         lockedAssets,
         true
       );
       // mock `getChainConfigs`
-      ChainHandlerMock.mockToChainFunction('getChainConfigs', {
+      ChainHandlerMock.mockChainFunction(chain, 'getChainConfigs', {
         addresses: { cold: coldAddress },
       });
 
@@ -989,7 +1085,7 @@ describe('TransactionVerifier', () => {
      */
     it('should return false when one of transferring tokens is forbidden', async () => {
       // mock an event and insert mocked event into db as paymentWaiting
-      const event = mockTokenPaymentFromErgoEvent();
+      const event = mockTokenPaymentFromErgoEvent().event;
       await DatabaseActionMock.insertEventRecord(
         event,
         EventStatus.paymentWaiting
@@ -1016,7 +1112,11 @@ describe('TransactionVerifier', () => {
           },
         },
       ];
-      ChainHandlerMock.mockToChainFunction('extractTransactionOrder', order);
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'extractTransactionOrder',
+        order
+      );
       // mock `getLockAddressAssets`
       const lockedAssets: AssetBalance = {
         nativeToken: 1100000000n,
@@ -1031,13 +1131,14 @@ describe('TransactionVerifier', () => {
           },
         ],
       };
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getLockAddressAssets',
         lockedAssets,
         true
       );
       // mock `getChainConfigs`
-      ChainHandlerMock.mockToChainFunction('getChainConfigs', {
+      ChainHandlerMock.mockChainFunction(chain, 'getChainConfigs', {
         addresses: { cold: coldAddress },
       });
 
@@ -1067,7 +1168,7 @@ describe('TransactionVerifier', () => {
      */
     it('should return true when only forbidden tokens remain more than high threshold', async () => {
       // mock an event and insert mocked event into db as paymentWaiting
-      const event = mockTokenPaymentFromErgoEvent();
+      const event = mockTokenPaymentFromErgoEvent().event;
       await DatabaseActionMock.insertEventRecord(
         event,
         EventStatus.paymentWaiting
@@ -1094,7 +1195,11 @@ describe('TransactionVerifier', () => {
           },
         },
       ];
-      ChainHandlerMock.mockToChainFunction('extractTransactionOrder', order);
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'extractTransactionOrder',
+        order
+      );
       // mock `getLockAddressAssets`
       const lockedAssets: AssetBalance = {
         nativeToken: 1100000000n,
@@ -1109,13 +1214,14 @@ describe('TransactionVerifier', () => {
           },
         ],
       };
-      ChainHandlerMock.mockToChainFunction(
+      ChainHandlerMock.mockChainFunction(
+        chain,
         'getLockAddressAssets',
         lockedAssets,
         true
       );
       // mock `getChainConfigs`
-      ChainHandlerMock.mockToChainFunction('getChainConfigs', {
+      ChainHandlerMock.mockChainFunction(chain, 'getChainConfigs', {
         addresses: { cold: coldAddress },
       });
 

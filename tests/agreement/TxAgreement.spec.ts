@@ -1102,7 +1102,7 @@ describe('TxAgreement', () => {
     it('should broadcast approval message for payment tx when sufficient number of guards agreed', async () => {
       // mock testdata
       const type = AgreementMessageTypes.response;
-      const mockedEvent = EventTestData.mockEventTrigger();
+      const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
       const paymentTx = mockPaymentTransaction(
         TransactionType.payment,
@@ -1316,7 +1316,7 @@ describe('TxAgreement', () => {
     it("should do nothing when a signature doesn't verify", async () => {
       // mock testdata
       const type = AgreementMessageTypes.approval;
-      const mockedEvent = EventTestData.mockEventTrigger();
+      const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
       const paymentTx = mockPaymentTransaction(
         TransactionType.payment,
@@ -1388,7 +1388,7 @@ describe('TxAgreement', () => {
     it("should do nothing when number of signsatures doesn't meet required value", async () => {
       // mock testdata
       const type = AgreementMessageTypes.approval;
-      const mockedEvent = EventTestData.mockEventTrigger();
+      const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
       const paymentTx = mockPaymentTransaction(
         TransactionType.payment,
@@ -1458,7 +1458,7 @@ describe('TxAgreement', () => {
     it('should set tx as approved when required number of signs met for a payment tx', async () => {
       // mock testdata
       const type = AgreementMessageTypes.approval;
-      const mockedEvent = EventTestData.mockEventTrigger();
+      const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
       const paymentTx = mockPaymentTransaction(
         TransactionType.payment,
@@ -1621,7 +1621,7 @@ describe('TxAgreement', () => {
     it('should set tx as approved when transaction not found but verified', async () => {
       // mock testdata
       const type = AgreementMessageTypes.approval;
-      const mockedEvent = EventTestData.mockEventTrigger();
+      const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
       const paymentTx = mockPaymentTransaction(
         TransactionType.payment,
@@ -1705,7 +1705,7 @@ describe('TxAgreement', () => {
     it("should do nothing when transaction not found and doesn't verified", async () => {
       // mock testdata
       const type = AgreementMessageTypes.approval;
-      const mockedEvent = EventTestData.mockEventTrigger();
+      const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
       const paymentTx = mockPaymentTransaction(
         TransactionType.payment,
@@ -1780,7 +1780,7 @@ describe('TxAgreement', () => {
     it('should do nothing when another tx is in memory for the event', async () => {
       // mock testdata
       const type = AgreementMessageTypes.approval;
-      const mockedEvent = EventTestData.mockEventTrigger();
+      const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
       const paymentTx = mockPaymentTransaction(
         TransactionType.payment,
@@ -1865,7 +1865,7 @@ describe('TxAgreement', () => {
      */
     it('should NOT update event status when tx is already in database', async () => {
       // mock testdata
-      const mockedEvent = EventTestData.mockEventTrigger();
+      const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
       const paymentTx = mockPaymentTransaction(
         TransactionType.payment,
@@ -1916,7 +1916,7 @@ describe('TxAgreement', () => {
      */
     it('should update event status from pending-payment to in-payment', async () => {
       // mock testdata
-      const mockedEvent = EventTestData.mockEventTrigger();
+      const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
       const paymentTx = mockPaymentTransaction(
         TransactionType.payment,
@@ -1957,7 +1957,7 @@ describe('TxAgreement', () => {
      */
     it('should update event status from pending-reward to in-reward', async () => {
       // mock testdata
-      const mockedEvent = EventTestData.mockEventTrigger();
+      const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
       const paymentTx = mockPaymentTransaction(
         TransactionType.reward,

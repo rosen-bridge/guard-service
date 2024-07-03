@@ -25,6 +25,9 @@ class GuardsErgoConfigs {
 
   // value configs
   static minimumErg = BigInt(config.get<string>('ergo.minBoxValue'));
+  static additionalErgOnPayment = BigInt(
+    config.get<string>('ergo.additionalErgOnPayment')
+  );
   static txFee = BigInt(config.get<string>('ergo.fee'));
 
   // reward configs
@@ -80,7 +83,6 @@ class GuardsErgoConfigs {
 
   // the ergo-related contract, addresses and tokens in rosen bridge
   static ergoContractConfig = rosenConfig.contractReader(ERGO_CHAIN);
-  static coldAddress: string = config.get<string>('ergo.coldStorageAddress');
 
   // Ergo rosen extractor required configs
   static extractorOptions = {
@@ -99,7 +101,7 @@ class GuardsErgoConfigs {
     },
     addresses: {
       lock: this.ergoContractConfig.lockAddress,
-      cold: this.coldAddress,
+      cold: this.ergoContractConfig.coldAddress,
       permit: this.ergoContractConfig.permitAddress,
       fraud: this.ergoContractConfig.fraudAddress,
     },

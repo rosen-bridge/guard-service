@@ -1,5 +1,9 @@
 import RequestVerifier from '../../src/verification/RequestVerifier';
-import { mockEventTrigger } from '../event/testData';
+import {
+  feeRatioDivisor,
+  mockEventTrigger,
+  rsnRatioDivisor,
+} from '../event/testData';
 import { TransactionType } from '@rosen-chains/abstract-chain';
 import { mockPaymentTransaction } from '../agreement/testData';
 import EventSerializer from '../../src/event/EventSerializer';
@@ -22,6 +26,8 @@ describe('RequestVerifier', () => {
         networkFee: 0n,
         rsnRatio: 0n,
         feeRatio: 100n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       });
     });
 
@@ -48,7 +54,7 @@ describe('RequestVerifier', () => {
      */
     it('should return true when all conditions for payment tx are met', async () => {
       // mock event and transaction
-      const mockedEvent = mockEventTrigger();
+      const mockedEvent = mockEventTrigger().event;
       const paymentTx = mockPaymentTransaction(
         TransactionType.payment,
         mockedEvent.toChain,
@@ -102,7 +108,7 @@ describe('RequestVerifier', () => {
      */
     it('should return false when event is not found', async () => {
       // mock event and transaction
-      const mockedEvent = mockEventTrigger();
+      const mockedEvent = mockEventTrigger().event;
       const paymentTx = mockPaymentTransaction(
         TransactionType.payment,
         mockedEvent.toChain,
@@ -151,7 +157,7 @@ describe('RequestVerifier', () => {
      */
     it('should return false when event is not confirmed enough', async () => {
       // mock event and transaction
-      const mockedEvent = mockEventTrigger();
+      const mockedEvent = mockEventTrigger().event;
       const paymentTx = mockPaymentTransaction(
         TransactionType.payment,
         mockedEvent.toChain,
@@ -206,7 +212,7 @@ describe('RequestVerifier', () => {
      */
     it('should return false when event is not verified', async () => {
       // mock event and transaction
-      const mockedEvent = mockEventTrigger();
+      const mockedEvent = mockEventTrigger().event;
       const paymentTx = mockPaymentTransaction(
         TransactionType.payment,
         mockedEvent.toChain,
@@ -261,7 +267,7 @@ describe('RequestVerifier', () => {
      */
     it('should return false when event has already payment tx and pending reward', async () => {
       // mock event and transaction
-      const mockedEvent = mockEventTrigger();
+      const mockedEvent = mockEventTrigger().event;
       const paymentTx = mockPaymentTransaction(
         TransactionType.payment,
         mockedEvent.toChain,
@@ -316,7 +322,7 @@ describe('RequestVerifier', () => {
      */
     it('should return false when event has already active tx', async () => {
       // mock event and two transactions
-      const mockedEvent = mockEventTrigger();
+      const mockedEvent = mockEventTrigger().event;
       const paymentTx = mockPaymentTransaction(
         TransactionType.payment,
         mockedEvent.toChain,
@@ -380,7 +386,7 @@ describe('RequestVerifier', () => {
      */
     it("should return false when transaction doesn't satisfy the event", async () => {
       // mock event and transaction
-      const mockedEvent = mockEventTrigger();
+      const mockedEvent = mockEventTrigger().event;
       const paymentTx = mockPaymentTransaction(
         TransactionType.payment,
         mockedEvent.toChain,
@@ -421,6 +427,8 @@ describe('RequestVerifier', () => {
         networkFee: 0n,
         rsnRatio: 0n,
         feeRatio: 100n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       });
     });
 

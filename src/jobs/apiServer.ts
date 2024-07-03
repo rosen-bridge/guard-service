@@ -1,9 +1,8 @@
-import fastifyCors from '@fastify/cors';
-import fastify, { FastifyInstance } from 'fastify';
+import fastifyCors, { FastifyCorsOptions } from '@fastify/cors';
+import fastify, { FastifyInstance, FastifyRequest } from 'fastify';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
-import { keygenRoute } from '../api/keygen';
 import { p2pRoutes } from '../api/p2p';
 import Configs from '../configs/Configs';
 import { generalInfoRoute } from '../api/generalInfo';
@@ -14,6 +13,7 @@ import { healthRoutes } from '../api/healthCheck';
 import { tssRoute } from '../api/tss';
 import WinstonLogger from '@rosen-bridge/winston-logger';
 import { signRoute } from '../api/signTx';
+import rateLimit from '@fastify/rate-limit';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
@@ -29,8 +29,43 @@ const initApiServer = async () => {
     bodyLimit: Configs.apiBodyLimit,
   }).withTypeProvider<TypeBoxTypeProvider>();
 
-  await apiServer.register(swagger);
-  await apiServer.register(fastifyCors, {});
+  if (Configs.apiAllowedOrigins.includes('*')) {
+    await apiServer.register(fastifyCors, {});
+  } else {
+    await apiServer.register(fastifyCors, () => {
+      return (
+        req: FastifyRequest,
+        callback: (
+          error: Error | null,
+          corsOptions?: FastifyCorsOptions
+        ) => void
+      ) => {
+        if (
+          req.headers.origin &&
+          Configs.apiAllowedOrigins.filter((item) =>
+            req.headers.origin?.includes(item)
+          ).length > 0
+        ) {
+          callback(null, { origin: true });
+        }
+        callback(null, { origin: false });
+      };
+    });
+  }
+
+  await apiServer.register(swagger, {
+    openapi: {
+      components: {
+        securitySchemes: {
+          apiKey: {
+            type: 'apiKey',
+            name: 'Api-Key',
+            in: 'header',
+          },
+        },
+      },
+    },
+  });
 
   await apiServer.register(swaggerUi, {
     routePrefix: '/swagger',
@@ -54,18 +89,20 @@ const initApiServer = async () => {
     transformSpecificationClone: true,
   });
 
+  await apiServer.register(rateLimit, {
+    max: Configs.apiMaxRequestsPerMinute,
+    timeWindow: '1 minute',
+  });
+
   await apiServer.register(p2pRoutes);
-  if (Configs.keygen.isActive) {
-    await apiServer.register(keygenRoute);
-  } else {
-    await apiServer.register(tssRoute);
-    await apiServer.register(generalInfoRoute);
-    await apiServer.register(eventRoutes);
-    await apiServer.register(healthRoutes);
-    await apiServer.register(revenueRoutes);
-    await apiServer.register(assetRoutes);
-    await apiServer.register(signRoute);
-  }
+  await apiServer.register(tssRoute);
+  await apiServer.register(generalInfoRoute);
+  await apiServer.register(eventRoutes);
+  await apiServer.register(healthRoutes);
+  await apiServer.register(revenueRoutes);
+  await apiServer.register(assetRoutes);
+  await apiServer.register(signRoute);
+
   apiServer.get('/', (request, reply) => {
     reply.redirect('/swagger');
   });
