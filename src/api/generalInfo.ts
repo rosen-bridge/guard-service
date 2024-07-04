@@ -2,7 +2,6 @@ import { LockBalance } from '../types/api';
 import ChainHandler from '../handlers/ChainHandler';
 import { getHealthCheck } from '../guard/HealthCheck';
 import { ChainNativeToken, SUPPORTED_CHAINS } from '../utils/constants';
-import Configs from '../configs/Configs';
 import {
   FastifySeverInstance,
   InfoResponseSchema,
@@ -10,6 +9,8 @@ import {
 } from './schemas';
 import { rosenConfig } from '../configs/RosenConfig';
 import WinstonLogger from '@rosen-bridge/winston-logger';
+import { getTokenData } from '../utils/getTokenData';
+import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import Utils from '../utils/Utils';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
@@ -42,9 +43,7 @@ const infoRoute = (server: FastifySeverInstance) => {
           const abstractChain = chainHandler.getChain(chain);
           // TODO: improve getting chain native token
           //  local:ergo/rosen-bridge/guard-service#274
-          const nativeTokenData = Configs.tokenMap.search(chain, {
-            [Configs.tokenMap.getIdKey(chain)]: nativeTokenId,
-          })[0][chain];
+          const nativeTokenData = getTokenData(chain, nativeTokenId, chain);
 
           const hotAmount = (
             await abstractChain.getLockAddressAssets()
@@ -55,7 +54,7 @@ const infoRoute = (server: FastifySeverInstance) => {
             balance: {
               tokenId: nativeTokenId,
               amount: Number(hotAmount),
-              name: nativeTokenData.name.toUpperCase(),
+              name: nativeTokenData.name!.toUpperCase(),
               decimals: nativeTokenData.decimals,
               isNativeToken: true,
             },
@@ -69,7 +68,7 @@ const infoRoute = (server: FastifySeverInstance) => {
             balance: {
               tokenId: nativeTokenId,
               amount: Number(coldAmount),
-              name: nativeTokenData.name.toUpperCase(),
+              name: nativeTokenData.name!.toUpperCase(),
               decimals: nativeTokenData.decimals,
               isNativeToken: true,
             },
@@ -83,6 +82,7 @@ const infoRoute = (server: FastifySeverInstance) => {
           health: (await (await getHealthCheck()).getOverallHealthStatus())
             .status,
           rsnTokenId: rosenConfig.RSN,
+          emissionTokenId: GuardsErgoConfigs.emissionTokenId,
           balances: balances,
         });
       } catch (error) {

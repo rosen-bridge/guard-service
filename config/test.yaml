@@ -50,11 +50,14 @@ ergo:
     payment: 35
     cold: 40
 reward:
+  emissionTokenId: '94e3590122b5546b067166d3b531900158c2f2d5d61e2b00e42fa312801833b2'
+  emissionTokenName: 'eRSN'
+  emissionTokenDecimal: 3
   bridgeFeeRepoAddress: '9gtQHPp8yh2SC7z5ZLMHnK2NNW1DUW11hBKbUEADzqCSrECoQQM'
-  RSNEmissionAddress: '9gH92yjsJCBHwx4fDbXe6j8jLdDBMX3dm6nqwiHhUqyxgNKXmoK'
+  emissionAddress: '9gH92yjsJCBHwx4fDbXe6j8jLdDBMX3dm6nqwiHhUqyxgNKXmoK'
   networkFeeRepoAddress: '9es3xKFSehNNwCpuNpY31ScAubDqeLbSWwaCysjN1ee51bgHKTq'
   watchersSharePercent: 50
-  watchersRSNSharePercent: 20
+  watchersEmissionSharePercent: 20
 guard:
   mnemonic: ''
 txSignTimeout: 1

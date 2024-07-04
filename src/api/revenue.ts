@@ -10,8 +10,8 @@ import {
   RevenueHistoryQuerySchema,
   RevenueHistoryResponseSchema,
 } from './schemas';
-import Configs from '../configs/Configs';
 import { ERGO_CHAIN } from '@rosen-chains/ergo';
+import { getTokenData } from '../utils/getTokenData';
 
 /**
  * setup revenue history route
@@ -91,24 +91,7 @@ const revenueChartRoute = (server: FastifySeverInstance) => {
       >(
         resultsGroupedByTokenId,
         (acc, data, tokenId) => {
-          const tokens = Configs.tokenMap.search(ERGO_CHAIN, {
-            [Configs.tokenMap.getIdKey(ERGO_CHAIN)]: tokenId,
-          });
-          let name = 'Unsupported token';
-          let decimals = 0;
-          let isNativeToken = false;
-          if (tokens.length) {
-            name = tokens[0][ERGO_CHAIN].name;
-            decimals = tokens[0][ERGO_CHAIN].decimals;
-            isNativeToken = tokens[0][ERGO_CHAIN].metaData.type === 'native';
-          }
-          const tokenData: TokenData = {
-            tokenId: tokenId,
-            name: name,
-            amount: 0,
-            decimals: decimals,
-            isNativeToken: isNativeToken,
-          };
+          const tokenData = getTokenData(ERGO_CHAIN, tokenId, ERGO_CHAIN);
           return [
             ...acc,
             {

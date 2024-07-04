@@ -83,4 +83,5 @@ export const guardInfo = {
     ],
   },
   rsnTokenId: rosenConfig.RSN,
+  emissionTokenId: GuardsErgoConfigs.emissionTokenId,
 };

@@ -55,6 +55,7 @@ export const InfoResponseSchema = Type.Object({
   version: Type.String(),
   health: Type.String(),
   rsnTokenId: Type.String(),
+  emissionTokenId: Type.String(),
   balances: LockBalanceSchema,
 });
 
