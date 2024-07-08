@@ -64,9 +64,9 @@ ergo:
   initialHeight: 925000 # block scanner starting block height
   scannerInterval: 180 # scanner update interval
 reward:
-  emissionTokenId: ''
-  emissionTokenName: ''
-  emissionTokenDecimal: 0
+  emissionTokenId: '8b08cdd5449a9592a9e79711d7d79249d7a03c535d17efaee83e216e80a44c4b'
+  emissionTokenName: 'RSN'
+  emissionTokenDecimal: 3
   bridgeFeeRepoAddress: '' # guards address for receiving bridge fee of events
   emissionAddress: '' # guards address for receiving emitted tokens of events
   networkFeeRepoAddress: '' # guards address for receiving network fee of events
