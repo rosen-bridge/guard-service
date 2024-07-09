@@ -1,5 +1,16 @@
 # guard-service
 
+## 4.0.0
+
+### Major Changes
+
+- configurable emission token
+
+### Patch Changes
+
+- remove keygen scenario from guard-service
+- read cold address from contract files
+
 ## 3.0.1
 
 ### Patch Changes
