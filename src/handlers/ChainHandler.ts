@@ -4,6 +4,11 @@ import {
   CARDANO_CHAIN,
   CardanoChain,
 } from '@rosen-chains/cardano';
+import {
+  AbstractBitcoinNetwork,
+  BITCOIN_CHAIN,
+  BitcoinChain,
+} from '@rosen-chains/bitcoin';
 import { AbstractErgoNetwork, ERGO_CHAIN, ErgoChain } from '@rosen-chains/ergo';
 import CardanoKoiosNetwork, {
   KOIOS_NETWORK,
@@ -15,12 +20,13 @@ import ErgoExplorerNetwork, {
 import Configs from '../configs/Configs';
 import GuardsCardanoConfigs from '../configs/GuardsCardanoConfigs';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
-import MinimumFee from '../event/MinimumFee';
 import MultiSigHandler from '../guard/multisig/MultiSigHandler';
 import Tss from '../guard/Tss';
 import WinstonLogger from '@rosen-bridge/winston-logger';
 import { BLOCKFROST_NETWORK } from '@rosen-chains/cardano-blockfrost-network';
 import CardanoBlockFrostNetwork from '@rosen-chains/cardano-blockfrost-network/dist/CardanoBlockFrostNetwork';
+import BitcoinEsploraNetwork from '@rosen-chains/bitcoin-esplora';
+import GuardsBitcoinConfigs from '../configs/GuardsBitcoinConfigs';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
@@ -28,10 +34,12 @@ class ChainHandler {
   private static instance: ChainHandler;
   private readonly ergoChain: ErgoChain;
   private readonly cardanoChain: CardanoChain;
+  private readonly bitcoinChain: BitcoinChain;
 
   private constructor() {
     this.ergoChain = this.generateErgoChain();
     this.cardanoChain = this.generateCardanoChain();
+    this.bitcoinChain = this.generateBitcoinChain();
     logger.info('ChainHandler instantiated');
   }
 
@@ -57,14 +65,12 @@ class ChainHandler {
       case NODE_NETWORK:
         network = new ErgoNodeNetwork({
           nodeBaseUrl: GuardsErgoConfigs.node.url,
-          extractorOptions: GuardsErgoConfigs.extractorOptions,
           logger: WinstonLogger.getInstance().getLogger('NodeNetwork'),
         });
         break;
       case EXPLORER_NETWORK:
         network = new ErgoExplorerNetwork({
           explorerBaseUrl: GuardsErgoConfigs.explorer.url,
-          extractorOptions: GuardsErgoConfigs.extractorOptions,
           logger: WinstonLogger.getInstance().getLogger('ExplorerNetwork'),
         });
         break;
@@ -77,7 +83,7 @@ class ChainHandler {
     return new ErgoChain(
       network,
       GuardsErgoConfigs.chainConfigs,
-      MinimumFee.bridgeMinimumFee.feeRatioDivisor,
+      Configs.tokens(),
       multiSigSignFunction,
       WinstonLogger.getInstance().getLogger('ErgoChain')
     );
@@ -93,8 +99,6 @@ class ChainHandler {
       case KOIOS_NETWORK:
         network = new CardanoKoiosNetwork(
           GuardsCardanoConfigs.koios.url,
-          GuardsCardanoConfigs.cardanoContractConfig.lockAddress,
-          Configs.tokens(),
           GuardsCardanoConfigs.koios.authToken,
           WinstonLogger.getInstance().getLogger('KoiosNetwork')
         );
@@ -102,8 +106,6 @@ class ChainHandler {
       case BLOCKFROST_NETWORK:
         network = new CardanoBlockFrostNetwork(
           GuardsCardanoConfigs.blockfrost.projectId,
-          GuardsCardanoConfigs.cardanoContractConfig.lockAddress,
-          Configs.tokens(),
           GuardsCardanoConfigs.blockfrost.url,
           WinstonLogger.getInstance().getLogger('BlockFrostNetwork')
         );
@@ -113,14 +115,69 @@ class ChainHandler {
           `No case is defined for network [${GuardsCardanoConfigs.chainNetworkName}]`
         );
     }
-    const tssSignFunction = Tss.getInstance().sign;
+    const chainCode = GuardsCardanoConfigs.tssChainCode;
+    const edwardSign = Tss.getInstance().edwardSign;
+    const tssSignFunctionWrapper = async (
+      txHash: Uint8Array
+    ): Promise<string> => {
+      const res = await edwardSign(
+        Buffer.from(txHash).toString('hex'),
+        chainCode
+      );
+      return res.signature;
+    };
     return new CardanoChain(
       network,
       GuardsCardanoConfigs.chainConfigs,
-      Configs.tokenMap,
-      MinimumFee.bridgeMinimumFee.feeRatioDivisor,
-      tssSignFunction,
+      Configs.tokens(),
+      tssSignFunctionWrapper,
       WinstonLogger.getInstance().getLogger('CardanoChain')
+    );
+  };
+
+  /**
+   * generates Bitcoin network and chain objects using configs
+   * @returns BitcoinChain object
+   */
+  private generateBitcoinChain = (): BitcoinChain => {
+    let network: AbstractBitcoinNetwork;
+    switch (GuardsBitcoinConfigs.chainNetworkName) {
+      case 'esplora':
+        network = new BitcoinEsploraNetwork(
+          GuardsBitcoinConfigs.esplora.url,
+          WinstonLogger.getInstance().getLogger('EsploraNetwork')
+        );
+        break;
+      default:
+        throw Error(
+          `No case is defined for network [${GuardsBitcoinConfigs.chainNetworkName}]`
+        );
+    }
+    const chainCode = GuardsBitcoinConfigs.tssChainCode;
+    const derivationPath = GuardsBitcoinConfigs.derivationPath;
+    const curveSign = Tss.getInstance().curveSign;
+    const tssSignFunctionWrapper = async (
+      txHash: Uint8Array
+    ): Promise<{
+      signature: string;
+      signatureRecovery: string;
+    }> => {
+      const res = await curveSign(
+        Buffer.from(txHash).toString('hex'),
+        chainCode,
+        derivationPath
+      );
+      return {
+        signature: res.signature,
+        signatureRecovery: res.signatureRecovery!,
+      };
+    };
+    return new BitcoinChain(
+      network,
+      GuardsBitcoinConfigs.chainConfigs,
+      Configs.tokens(),
+      tssSignFunctionWrapper,
+      WinstonLogger.getInstance().getLogger('BitcoinChain')
     );
   };
 
@@ -129,12 +186,14 @@ class ChainHandler {
    * @param chain chain name
    * @returns chain object
    */
-  getChain = (chain: string): AbstractChain => {
+  getChain = (chain: string): AbstractChain<any> => {
     switch (chain) {
       case ERGO_CHAIN:
         return this.ergoChain;
       case CARDANO_CHAIN:
         return this.cardanoChain;
+      case BITCOIN_CHAIN:
+        return this.bitcoinChain;
       default:
         throw Error(`Chain [${chain}] is not implemented`);
     }

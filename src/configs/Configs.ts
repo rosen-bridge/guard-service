@@ -49,20 +49,6 @@ const getOptionalConfig = <T>(key: string, defaultValue: T) => {
   return defaultValue;
 };
 
-const SupportedAlgorithms = ['eddsa'];
-class KeygenConfig {
-  static isActive = config.get<boolean>('keygen.active');
-  static guardsCount = getConfigIntKeyOrDefault('keygen.guards', 0);
-  static threshold = getConfigIntKeyOrDefault('keygen.threshold', 0);
-  static algorithm = () => {
-    const algorithm = config.get<string>('keygen.algorithm');
-    if (SupportedAlgorithms.indexOf(algorithm) !== -1) {
-      return algorithm;
-    }
-    throw Error(`Invalid keygen algorithm ${algorithm}`);
-  };
-}
-
 class Configs {
   // express config
   static apiPort = getConfigIntKeyOrDefault('api.port', 8080);
@@ -106,13 +92,17 @@ class Configs {
   static tssConfigPath = config.get<string>('tss.configPath');
   static tssUrl = config.get<string>('tss.url');
   static tssPort = config.get<string>('tss.port');
-  static tssTimeout = getConfigIntKeyOrDefault('tss.timeout', 8); // seconds
-  static tssCallBackUrl = `http://${this.apiHost}:${this.apiPort}/tss/sign`;
-  static tssKeygenCallBackUrl = `http://${this.apiHost}:${this.apiPort}/tss/keygen`;
+  static tssBaseCallBackUrl = `http://${this.apiHost}:${this.apiPort}/tss/sign`;
   static tssKeys = {
     secret: config.get<string>('tss.secret'),
-    publicKeys: config.get<string[]>('tss.publicKeys'),
-    ks: config.get<string[]>('tss.ks'),
+    pubs: config.get<
+      Array<{
+        curvePub: string;
+        edwardPub: string;
+        curveShareId: string;
+        edwardShareId: string;
+      }>
+    >('tss.pubs'),
   };
 
   // guards configs
@@ -175,6 +165,10 @@ class Configs {
   static requeueWaitingEventsInterval = getConfigIntKeyOrDefault(
     'intervals.requeueWaitingEventsInterval',
     43200
+  ); // seconds
+  static minimumFeeUpdateInterval = getConfigIntKeyOrDefault(
+    'intervals.minimumFeeUpdateInterval',
+    300
   ); // seconds
 
   static multiSigFirstSignDelay = 3; // seconds
@@ -244,17 +238,23 @@ class Configs {
   static ergCriticalThreshold = BigInt(
     config.get<string>('healthCheck.asset.erg.criticalThreshold')
   );
-  static rsnWarnThreshold = BigInt(
-    config.get<string>('healthCheck.asset.rsn.warnThreshold')
+  static emissionTokenWarnThreshold = BigInt(
+    config.get<string>('healthCheck.asset.emissionToken.warnThreshold')
   );
-  static rsnCriticalThreshold = BigInt(
-    config.get<string>('healthCheck.asset.rsn.criticalThreshold')
+  static emissionTokenCriticalThreshold = BigInt(
+    config.get<string>('healthCheck.asset.emissionToken.criticalThreshold')
   );
   static adaWarnThreshold = BigInt(
     config.get<string>('healthCheck.asset.ada.warnThreshold')
   );
   static adaCriticalThreshold = BigInt(
     config.get<string>('healthCheck.asset.ada.criticalThreshold')
+  );
+  static btcWarnThreshold = BigInt(
+    config.get<string>('healthCheck.asset.btc.warnThreshold')
+  );
+  static btcCriticalThreshold = BigInt(
+    config.get<string>('healthCheck.asset.btc.criticalThreshold')
   );
   static ergoScannerWarnDiff = getConfigIntKeyOrDefault(
     'healthCheck.ergoScanner.warnDifference',
@@ -298,7 +298,6 @@ class Configs {
     'revenue.interval',
     120
   );
-  static keygen = KeygenConfig;
 }
 
 export default Configs;

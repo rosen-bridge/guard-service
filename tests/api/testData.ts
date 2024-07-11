@@ -4,6 +4,8 @@ import GuardsCardanoConfigs from '../../src/configs/GuardsCardanoConfigs';
 import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
 import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
 import { rosenConfig } from '../../src/configs/RosenConfig';
+import GuardsBitcoinConfigs from '../../src/configs/GuardsBitcoinConfigs';
+import { BITCOIN_CHAIN } from '@rosen-chains/bitcoin';
 
 export const guardInfo = {
   version: expect.any(String),
@@ -32,6 +34,17 @@ export const guardInfo = {
           isNativeToken: true,
         },
       },
+      {
+        address: GuardsBitcoinConfigs.chainConfigs.addresses.lock,
+        chain: BITCOIN_CHAIN,
+        balance: {
+          tokenId: 'btc',
+          amount: 30,
+          name: 'BTC',
+          decimals: 8,
+          isNativeToken: true,
+        },
+      },
     ],
     cold: [
       {
@@ -56,7 +69,19 @@ export const guardInfo = {
           isNativeToken: true,
         },
       },
+      {
+        address: GuardsBitcoinConfigs.chainConfigs.addresses.cold,
+        chain: BITCOIN_CHAIN,
+        balance: {
+          tokenId: 'btc',
+          amount: 300,
+          name: 'BTC',
+          decimals: 8,
+          isNativeToken: true,
+        },
+      },
     ],
   },
   rsnTokenId: rosenConfig.RSN,
+  emissionTokenId: GuardsErgoConfigs.emissionTokenId,
 };

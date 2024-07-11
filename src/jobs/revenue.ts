@@ -47,7 +47,7 @@ const revenueJobFunction = async () => {
       let revenueType: RevenueType;
       if (payment.address == GuardsErgoConfigs.bridgeFeeRepoAddress)
         revenueType = RevenueType.bridgeFee;
-      else if (payment.address == GuardsErgoConfigs.rsnEmissionAddress)
+      else if (payment.address == GuardsErgoConfigs.emissionAddress)
         revenueType = RevenueType.emission;
       else if (payment.address == GuardsErgoConfigs.networkFeeRepoAddress)
         revenueType = RevenueType.networkFee;

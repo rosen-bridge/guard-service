@@ -38,12 +38,6 @@ interface LockBalance {
   cold: Array<AddressBalance>;
 }
 
-interface GeneralInfo {
-  health: string;
-  rsnTokenId: string;
-  balances: LockBalance;
-}
-
 interface SingleRevenue {
   revenueType: RevenueType;
   data: TokenData;
@@ -114,7 +108,6 @@ export {
   ChainTokenData,
   AddressBalance,
   LockBalance,
-  GeneralInfo,
   SingleRevenue,
   RevenueHistory,
   Event,

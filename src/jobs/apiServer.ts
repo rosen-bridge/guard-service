@@ -3,7 +3,6 @@ import fastify, { FastifyInstance, FastifyRequest } from 'fastify';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
-import { keygenRoute } from '../api/keygen';
 import { p2pRoutes } from '../api/p2p';
 import Configs from '../configs/Configs';
 import { generalInfoRoute } from '../api/generalInfo';
@@ -96,17 +95,14 @@ const initApiServer = async () => {
   });
 
   await apiServer.register(p2pRoutes);
-  if (Configs.keygen.isActive) {
-    await apiServer.register(keygenRoute);
-  } else {
-    await apiServer.register(tssRoute);
-    await apiServer.register(generalInfoRoute);
-    await apiServer.register(eventRoutes);
-    await apiServer.register(healthRoutes);
-    await apiServer.register(revenueRoutes);
-    await apiServer.register(assetRoutes);
-    await apiServer.register(signRoute);
-  }
+  await apiServer.register(tssRoute);
+  await apiServer.register(generalInfoRoute);
+  await apiServer.register(eventRoutes);
+  await apiServer.register(healthRoutes);
+  await apiServer.register(revenueRoutes);
+  await apiServer.register(assetRoutes);
+  await apiServer.register(signRoute);
+
   apiServer.get('/', (request, reply) => {
     reply.redirect('/swagger');
   });

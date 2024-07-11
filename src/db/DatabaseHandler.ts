@@ -11,6 +11,7 @@ import { rosenConfig } from '../configs/RosenConfig';
 import Configs from '../configs/Configs';
 import WinstonLogger from '@rosen-bridge/winston-logger';
 import { DuplicateTransaction } from '../utils/errors';
+import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
@@ -185,7 +186,7 @@ class DatabaseHandler {
 
   /**
    * extracts tokens that are required in waiting events
-   * considers RSN if event is pending a transaction on Ergo
+   * considers emission token if event is pending a transaction on Ergo
    * @returns list of token ids
    */
   static getWaitingEventsRequiredTokens = async (): Promise<string[]> => {
@@ -199,9 +200,9 @@ class DatabaseHandler {
       if (event.status === EventStatus.paymentWaiting) {
         requiredTokenIds.add(event.eventData.targetChainTokenId);
         if (event.eventData.toChain === ERGO_CHAIN)
-          requiredTokenIds.add(rosenConfig.RSN);
+          requiredTokenIds.add(GuardsErgoConfigs.emissionTokenId);
       } else {
-        requiredTokenIds.add(rosenConfig.RSN);
+        requiredTokenIds.add(GuardsErgoConfigs.emissionTokenId);
         const tokenIdOnErgo = Configs.tokenMap.getID(
           Configs.tokenMap.search(event.eventData.fromChain, {
             [Configs.tokenMap.getIdKey(event.eventData.fromChain)]:

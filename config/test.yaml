@@ -2,6 +2,25 @@
 api:
   isManualTxRequestActive: true
   apiKeyHash: '324dcf027dd4a30a932c441f365a25e86b173defa4b8e58948253471b81b72cf'
+bitcoin:
+  networkType: 'testnet'
+  chainNetwork: 'esplora'
+  esplora:
+    url: 'https://blockstream.info'
+    timeout: 8
+  bankPublicKey: 'bcb07faa6c0f19e2f2587aa9ef6f43a68fc0135321216a71dc87c8527af4ca6a'
+  txFeeSlippage: 10
+  confirmation:
+    observation: 6
+    payment: 7
+    cold: 8
+    manual: 5
+  tssChainCode: 'BitcoinChainCode'
+  derivationPath:
+    - 82
+    - 84
+    - 0
+    - 0
 cardano:
   networkType: 'testnet'
   chainNetwork: 'koios'
@@ -17,8 +36,6 @@ cardano:
     observation: 10
     payment: 15
     cold: 20
-  lockAddress: 'addr_test1vze7yqqlg8cjlyhz7jzvsg0f3fhxpuu6m3llxrajfzqecggw704re'
-  coldStorageAddress: 'addr_test1vze7yqqlg8cjlyhz7jzvsg0f3fhxpuu6m3llxrajfzqecggw704re'
 ergo:
   networkType: 'testnet'
   chainNetwork: 'node'
@@ -32,13 +49,15 @@ ergo:
     event: 30
     payment: 35
     cold: 40
-  coldStorageAddress: '9es3xKFSehNNwCpuNpY31ScAubDqeLbSWwaCysjN1ee51bgHKTq'
 reward:
+  emissionTokenId: '94e3590122b5546b067166d3b531900158c2f2d5d61e2b00e42fa312801833b2'
+  emissionTokenName: 'eRSN'
+  emissionTokenDecimal: 3
   bridgeFeeRepoAddress: '9gtQHPp8yh2SC7z5ZLMHnK2NNW1DUW11hBKbUEADzqCSrECoQQM'
-  RSNEmissionAddress: '9gH92yjsJCBHwx4fDbXe6j8jLdDBMX3dm6nqwiHhUqyxgNKXmoK'
+  emissionAddress: '9gH92yjsJCBHwx4fDbXe6j8jLdDBMX3dm6nqwiHhUqyxgNKXmoK'
   networkFeeRepoAddress: '9es3xKFSehNNwCpuNpY31ScAubDqeLbSWwaCysjN1ee51bgHKTq'
   watchersSharePercent: 50
-  watchersRSNSharePercent: 20
+  watchersEmissionSharePercent: 20
 guard:
   mnemonic: ''
 txSignTimeout: 1

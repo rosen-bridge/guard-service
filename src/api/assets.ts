@@ -1,8 +1,5 @@
-import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
-import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
-
 import { ChainTokenData } from '../types/api';
-import { SUPPORTED_CHAINS } from '../utils/constants';
+import { SUPPORTED_CHAINS, ChainNativeToken } from '../utils/constants';
 import ChainHandler from '../handlers/ChainHandler';
 import Configs from '../configs/Configs';
 import {
@@ -11,6 +8,7 @@ import {
   FastifySeverInstance,
   MessageResponseSchema,
 } from './schemas';
+import { getTokenData } from '../utils/getTokenData';
 
 /**
  * setup available assets route
@@ -39,16 +37,13 @@ const assetsRoute = (server: FastifySeverInstance) => {
         const assets = await chainInstance.getLockAddressAssets();
         const coldAssets = await chainInstance.getColdAddressAssets();
         // TODO: fix native token name, https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/274
-        const nativeTokenId =
-          currentChain == ERGO_CHAIN
-            ? ERG
-            : currentChain == CARDANO_CHAIN
-            ? ADA
-            : '';
+        const nativeTokenId = ChainNativeToken[currentChain] ?? '';
         // add native tokens
-        const nativeTokenData = Configs.tokenMap.search(currentChain, {
-          [Configs.tokenMap.getIdKey(currentChain)]: nativeTokenId,
-        })[0][currentChain];
+        const nativeTokenData = getTokenData(
+          currentChain,
+          nativeTokenId,
+          currentChain
+        );
         tokenList.push({
           tokenId: nativeTokenId,
           name: nativeTokenData.name,
@@ -60,22 +55,16 @@ const assetsRoute = (server: FastifySeverInstance) => {
         });
         // add tokens
         assets.tokens.forEach((token) => {
-          const tokenData = Configs.tokenMap.search(currentChain, {
-            [Configs.tokenMap.getIdKey(currentChain)]: token.id,
-          });
+          const tokenData = getTokenData(currentChain, token.id, currentChain);
           const coldToken = coldAssets.tokens.find(
             (coldToken) => coldToken.id === token.id
           );
           tokenList.push({
             tokenId: token.id,
-            name: tokenData.length
-              ? tokenData[0][currentChain].name
-              : 'Unsupported token',
+            name: tokenData.name,
             amount: Number(token.value),
             coldAmount: coldToken ? Number(coldToken.value) : 0,
-            decimals: tokenData.length
-              ? tokenData[0][currentChain].decimals
-              : 0,
+            decimals: tokenData.decimals,
             chain: currentChain,
             isNativeToken: false,
           });

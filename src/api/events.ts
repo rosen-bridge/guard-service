@@ -8,8 +8,8 @@ import {
   MessageResponseSchema,
   OngoingEventsResponseSchema,
 } from './schemas';
-import Configs from '../configs/Configs';
 import { TransactionType } from '@rosen-chains/abstract-chain';
+import { getTokenData } from '../utils/getTokenData';
 
 /**
  * setup event history route
@@ -42,32 +42,20 @@ const eventsHistoryRoute = (server: FastifySeverInstance) => {
         offset,
         limit
       );
-      const txs = await dbAction.getValidTxsForEvents(
-        results.items.map((event) => event.eventId)
-      );
 
       const events = results.items.map((event): Event => {
-        const token = Configs.tokenMap.search(event.fromChain, {
-          [Configs.tokenMap.getIdKey(event.fromChain)]:
-            event.sourceChainTokenId,
-        });
-
-        let name = 'Unsupported token';
-        let decimals = 0;
-        let isNativeToken = false;
-
-        if (token.length) {
-          name = token[0][event.fromChain].name;
-          decimals = token[0][event.fromChain].decimals;
-          isNativeToken = token[0][event.fromChain].metaData.type === 'native';
-        }
+        const token = getTokenData(
+          event.fromChain,
+          event.sourceChainTokenId,
+          event.fromChain
+        );
 
         const tokenData: TokenData = {
           tokenId: event.sourceChainTokenId,
           amount: Number(event.amount),
-          name: name,
-          decimals: decimals,
-          isNativeToken: isNativeToken,
+          name: token.name,
+          decimals: token.decimals,
+          isNativeToken: token.isNativeToken,
         };
 
         return {
@@ -80,18 +68,8 @@ const eventsHistoryRoute = (server: FastifySeverInstance) => {
           networkFee: event.networkFee,
           sourceChainToken: tokenData,
           sourceTxId: event.sourceTxId,
-          paymentTxId:
-            txs.find(
-              (tx) =>
-                tx.event.id === event.eventId &&
-                tx.type === TransactionType.payment
-            )?.txId ?? '',
-          rewardTxId:
-            txs.find(
-              (tx) =>
-                tx.event.id === event.eventId &&
-                tx.type === TransactionType.reward
-            )?.txId ?? '',
+          paymentTxId: event.paymentTxId ?? '',
+          rewardTxId: event.spendTxId ?? '',
           status: event.result ?? event.status,
         };
       });
@@ -141,27 +119,18 @@ const ongoingEventsRoute = (server: FastifySeverInstance) => {
       );
 
       const events = results.items.map((event): OngoingEvents => {
-        const token = Configs.tokenMap.search(event.fromChain, {
-          [Configs.tokenMap.getIdKey(event.fromChain)]:
-            event.sourceChainTokenId,
-        });
-
-        let name = 'Unsupported token';
-        let decimals = 0;
-        let isNativeToken = false;
-
-        if (token.length) {
-          name = token[0][event.fromChain].name;
-          decimals = token[0][event.fromChain].decimals;
-          isNativeToken = token[0][event.fromChain].metaData.type === 'native';
-        }
+        const token = getTokenData(
+          event.fromChain,
+          event.sourceChainTokenId,
+          event.fromChain
+        );
 
         const tokenData: TokenData = {
           tokenId: event.sourceChainTokenId,
           amount: Number(event.amount),
-          name: name,
-          decimals: decimals,
-          isNativeToken: isNativeToken,
+          name: token.name,
+          decimals: token.decimals,
+          isNativeToken: token.isNativeToken,
         };
 
         let status = '';

@@ -1,6 +1,10 @@
-import { Type } from '@sinclair/typebox';
 import Tss from '../guard/Tss';
-import { FastifySeverInstance, MessageResponseSchema } from './schemas';
+import {
+  FastifySeverInstance,
+  MessageResponseSchema,
+  TssCallbackParams,
+  TssCallbackSchema,
+} from './schemas';
 import WinstonLogger from '@rosen-bridge/winston-logger';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
@@ -10,18 +14,12 @@ const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
  * @param server
  */
 const signRoute = (server: FastifySeverInstance) => {
-  const bodySchema = Type.Object({
-    status: Type.String(),
-    error: Type.Optional(Type.String()),
-    message: Type.String(),
-    signature: Type.Optional(Type.String()),
-    trustKey: Type.String(),
-  });
   server.post(
-    '/tss/sign',
+    '/tss/sign/:algorithm',
     {
       schema: {
-        body: bodySchema,
+        params: TssCallbackParams,
+        body: TssCallbackSchema,
         response: {
           200: MessageResponseSchema,
           400: MessageResponseSchema,
@@ -30,7 +28,15 @@ const signRoute = (server: FastifySeverInstance) => {
     },
     async (request, reply) => {
       try {
-        const { status, error, message, signature, trustKey } = request.body;
+        const { algorithm } = request.params;
+        const {
+          status,
+          error,
+          message,
+          signature,
+          signatureRecovery,
+          trustKey,
+        } = request.body;
         if (trustKey !== Tss.getTrustKey()) {
           logger.warn(
             `Received message on Tss tx sign callback with wrong trust key`
@@ -38,10 +44,12 @@ const signRoute = (server: FastifySeverInstance) => {
           reply.status(400).send({ message: 'Trust key is wrong' });
         }
         await Tss.getInstance().handleSignData(
+          algorithm,
           status,
           error,
           message,
-          signature
+          signature,
+          signatureRecovery
         );
         reply.send({ message: 'ok' });
       } catch (error) {

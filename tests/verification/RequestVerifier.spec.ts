@@ -1,5 +1,9 @@
 import RequestVerifier from '../../src/verification/RequestVerifier';
-import { mockEventTrigger } from '../event/testData';
+import {
+  feeRatioDivisor,
+  mockEventTrigger,
+  rsnRatioDivisor,
+} from '../event/testData';
 import { TransactionType } from '@rosen-chains/abstract-chain';
 import { mockPaymentTransaction } from '../agreement/testData';
 import EventSerializer from '../../src/event/EventSerializer';
@@ -22,6 +26,8 @@ describe('RequestVerifier', () => {
         networkFee: 0n,
         rsnRatio: 0n,
         feeRatio: 100n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       });
     });
 
@@ -421,6 +427,8 @@ describe('RequestVerifier', () => {
         networkFee: 0n,
         rsnRatio: 0n,
         feeRatio: 100n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
       });
     });
 

@@ -1,6 +1,9 @@
 import TestUtils from '../testUtils/TestUtils';
 import { TestEventTrigger, createEventTrigger } from './eventTestUtils';
 
+export const rsnRatioDivisor = 1000000000000n;
+export const feeRatioDivisor = 10000n;
+
 export const mockEventTrigger = (): TestEventTrigger =>
   createEventTrigger(
     200,
