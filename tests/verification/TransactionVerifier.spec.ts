@@ -456,6 +456,7 @@ describe('TransactionVerifier', () => {
   describe('verifyColdStorageTransaction', () => {
     beforeEach(async () => {
       ChainHandlerMock.resetMock();
+      await DatabaseActionMock.clearTables();
     });
 
     /**
@@ -1075,6 +1076,7 @@ describe('TransactionVerifier', () => {
      * when one of transferring tokens is forbidden
      * @dependencies
      * - ChainHandler
+     * - database
      * @scenario
      * - mock an event and insert mocked event into db as paymentWaiting
      * - mock transaction
@@ -1158,6 +1160,7 @@ describe('TransactionVerifier', () => {
      * when only forbidden tokens remain more than high threshold
      * @dependencies
      * - ChainHandler
+     * - database
      * @scenario
      * - mock an event and insert mocked event into db as paymentWaiting
      * - mock transaction
