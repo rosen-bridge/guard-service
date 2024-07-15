@@ -4,7 +4,8 @@ interface Threshold {
 }
 
 interface ChainThresholds {
-  [key: string]: Threshold;
+  maxNativeTransfer: bigint;
+  tokens: Record<string, Threshold>;
 }
 
 interface ThresholdConfig {

@@ -1,10 +1,9 @@
 import Configs from '../configs/Configs';
 import { Buffer } from 'buffer';
 import Utils from '../utils/Utils';
-import { TransactionStatus } from '../utils/constants';
+import { SUPPORTED_CHAINS, TransactionStatus } from '../utils/constants';
 import TxAgreement from '../agreement/TxAgreement';
 import { ERGO_CHAIN, ErgoChain } from '@rosen-chains/ergo';
-import { CARDANO_CHAIN } from '@rosen-chains/cardano';
 import ChainHandler from '../handlers/ChainHandler';
 import {
   AbstractChain,
@@ -24,14 +23,12 @@ import WinstonLogger from '@rosen-bridge/winston-logger';
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
 class ColdStorage {
-  static chains = [ERGO_CHAIN, CARDANO_CHAIN];
-
   /**
    * runs cold storage process for all chains
    */
   static processLockAddressAssets = async (): Promise<void> => {
     await Promise.all(
-      this.chains.map((chain) => this.chainColdStorageProcess(chain))
+      SUPPORTED_CHAINS.map((chain) => this.chainColdStorageProcess(chain))
     );
   };
 
@@ -63,7 +60,7 @@ class ColdStorage {
 
       const chain = ChainHandler.getInstance().getChain(chainName);
       const lockedAssets = await chain.getLockAddressAssets();
-      const thresholds = Configs.thresholds()[chainName];
+      const thresholds = Configs.thresholds()[chainName].tokens;
 
       let transferringNativeToken = 0n;
       const transferringTokens: TokenInfo[] = [];

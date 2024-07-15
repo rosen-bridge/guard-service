@@ -16,10 +16,7 @@ import { ERGO_CHAIN } from '@rosen-chains/ergo';
 import { mockGuardTurn } from '../utils/mocked/GuardTurn.mock';
 import TestConfigs from '../testUtils/TestConfigs';
 import TestUtils from '../testUtils/TestUtils';
-import {
-  mockEventTrigger,
-  mockTokenPaymentFromErgoEvent,
-} from '../event/testData';
+import { mockTokenPaymentFromErgoEvent } from '../event/testData';
 
 describe('ColdStorage', () => {
   describe('chainColdStorageProcess', () => {
