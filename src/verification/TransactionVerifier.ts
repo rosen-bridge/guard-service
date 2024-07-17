@@ -15,6 +15,7 @@ import DatabaseHandler from '../db/DatabaseHandler';
 import { JsonBI } from '../network/NetworkModels';
 import { DatabaseAction } from '../db/DatabaseAction';
 import WinstonLogger from '@rosen-bridge/winston-logger';
+import { ChainNativeToken } from '../utils/constants';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
@@ -116,6 +117,8 @@ class TransactionVerifier {
    * verifies the cold storage transaction
    * conditions:
    * - tx order is to cold storage address
+   * - at least one asset required transfer
+   * - no forbidden asset is transferred
    * - address remaining assets are more than low threshold
    * @param tx the created payment transaction
    * @returns true if conditions are met
@@ -153,6 +156,8 @@ class TransactionVerifier {
       );
       return false;
     }
+    const nativeTokenId = ChainNativeToken[tx.network];
+    const isNativeTokenForbade = forbiddenTokens.includes(nativeTokenId);
 
     // verify address assets
     const lockedAssets = await chain.getLockAddressAssets();
@@ -160,49 +165,80 @@ class TransactionVerifier {
       lockedAssets,
       txOrder[0].assets
     );
-    const thresholds = Configs.thresholds()[tx.network];
+    const thresholdsConfig = Configs.thresholds()[tx.network];
+    const thresholds = thresholdsConfig.tokens;
 
-    let isTransferValid = true;
-    Object.keys(thresholds).forEach((tokenId) => {
-      if (forbiddenTokens.includes(tokenId)) return;
-      const isNativeToken =
-        Configs.tokenMap.search(tx.network, {
-          [Configs.tokenMap.getIdKey(tx.network)]: tokenId,
-        })[0][tx.network].metaData.type === 'native';
-      if (isNativeToken) {
-        if (
-          remainingAssets.nativeToken > thresholds[tokenId].high ||
-          remainingAssets.nativeToken < thresholds[tokenId].low
-        ) {
-          logger.debug(
-            `Transaction [${tx.txId}] is invalid: Native token [${tokenId}] condition does not satisfy. Expected: [${thresholds[tokenId].high} > ${remainingAssets.nativeToken} > ${thresholds[tokenId].low}]`
-          );
-          isTransferValid = false;
-        }
-      } else {
-        const tokenBalance = remainingAssets.tokens.find(
+    // verify transfer conditions for tokens
+    let isTransferRequired = false;
+    for (const orderToken of txOrder[0].assets.tokens) {
+      const tokenId = orderToken.id;
+      const lockedBalance = lockedAssets.tokens.find(
+        (token) => token.id === tokenId
+      );
+      if (lockedBalance === undefined) {
+        throw new ImpossibleBehavior(
+          `Tx [${tx.txId}] is transferring token [${tokenId}] which is not in the lock address`
+        );
+      }
+      if (lockedBalance.value > thresholds[tokenId].high) {
+        isTransferRequired = true;
+        const remainingBalance = remainingAssets.tokens.find(
           (token) => token.id === tokenId
         );
-        if (tokenBalance === undefined) {
+        if (remainingBalance === undefined) {
           logger.debug(
             `Transaction [${tx.txId}] is invalid: Expected token [${tokenId}] remains in lock address but found none`
           );
-          isTransferValid = false;
+          return false;
         } else {
           if (
-            tokenBalance.value > thresholds[tokenId].high ||
-            tokenBalance.value < thresholds[tokenId].low
+            remainingBalance.value > thresholds[tokenId].high ||
+            remainingBalance.value < thresholds[tokenId].low
           ) {
             logger.debug(
-              `Transaction [${tx.txId}] is invalid: Token [${tokenId}] condition does not satisfy. Expected: [${thresholds[tokenId].high} > ${tokenBalance.value} > ${thresholds[tokenId].low}]`
+              `Transaction [${tx.txId}] is invalid: Token [${tokenId}] condition does not satisfy. Expected: [${thresholds[tokenId].high} > ${remainingBalance.value} > ${thresholds[tokenId].low}]`
             );
-            isTransferValid = false;
+            return false;
           }
         }
+      } else {
+        logger.debug(
+          `Transaction [${tx.txId}] is invalid: Transferring unexpected token [${tokenId}]`
+        );
+        return false;
       }
-    });
+    }
 
-    return isTransferValid;
+    // verify transfer conditions for native token
+    if (
+      isNativeTokenForbade === false &&
+      lockedAssets.nativeToken > thresholds[nativeTokenId].high
+    ) {
+      if (
+        remainingAssets.nativeToken > thresholds[nativeTokenId].high ||
+        remainingAssets.nativeToken < thresholds[nativeTokenId].low
+      ) {
+        logger.debug(
+          `Transaction [${tx.txId}] is invalid: Native token condition does not satisfy. Expected: [${thresholds[nativeTokenId].high} > ${remainingAssets.nativeToken} > ${thresholds[nativeTokenId].low}]`
+        );
+        return false;
+      }
+    } else {
+      if (isTransferRequired === false) {
+        logger.debug(
+          `Transaction [${tx.txId}] is invalid: No token nor native token require transfer`
+        );
+        return false;
+      }
+      if (txOrder[0].assets.nativeToken > thresholdsConfig.maxNativeTransfer) {
+        logger.debug(
+          `Transaction [${tx.txId}] is invalid: Transferring unexpected amount of native token [${txOrder[0].assets.nativeToken} > ${thresholdsConfig.maxNativeTransfer}]`
+        );
+        return false;
+      }
+    }
+
+    return true;
   };
 }
 
