@@ -405,14 +405,16 @@ class DatabaseAction {
    * returns all transaction for cold storage
    * @param chain the chain of the tx
    */
-  getNonCompleteColdStorageTxsInChain = async (
+  getActiveColdStorageTxsInChain = async (
     chain: string
   ): Promise<TransactionEntity[]> => {
     return await this.TransactionRepository.find({
       relations: ['event'],
       where: {
         type: TransactionType.coldStorage,
-        status: Not(TransactionStatus.completed),
+        status: Not(
+          In([TransactionStatus.invalid, TransactionStatus.completed])
+        ),
         chain: chain,
       },
     });

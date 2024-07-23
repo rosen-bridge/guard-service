@@ -15,7 +15,6 @@ import {
   insertEventsWithAmount,
   insertEventsWithHeight,
   insertRevenueDataWithDifferentNetworks,
-  insertRevenueDataWithDifferentTokenId,
   insertRevenueDataWithTimestamps,
 } from './databaseTestUtils';
 import * as TxTestData from '../agreement/testData';
