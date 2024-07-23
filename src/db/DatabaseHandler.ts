@@ -118,7 +118,7 @@ class DatabaseHandler {
     requiredSign: number
   ): Promise<void> => {
     const txs =
-      await DatabaseAction.getInstance().getNonCompleteColdStorageTxsInChain(
+      await DatabaseAction.getInstance().getActiveColdStorageTxsInChain(
         newTx.network
       );
     if (txs.length > 1) {

@@ -310,7 +310,7 @@ describe('DatabaseHandler', () => {
      * @expected
      * - tx should be inserted into db
      */
-    it('should insert tx when there is no other tx for the event', async () => {
+    it('should insert tx when there is no other tx for the chain', async () => {
       // mock transaction
       const chain = 'chain';
       const tx = TxTestData.mockPaymentTransaction(
@@ -328,6 +328,45 @@ describe('DatabaseHandler', () => {
         tx.event,
         tx.chain,
       ]);
+      expect(dbTxs).toEqual([[tx.txId, null, tx.network]]);
+    });
+
+    /**
+     * @target DatabaseHandler.insertColdStorageTx should insert tx when
+     * there is invalid tx for the chain
+     * @dependencies
+     * - database
+     * @scenario
+     * - mock transaction
+     * - run test (call `insertTx`)
+     * - check database
+     * @expected
+     * - tx should be inserted into db
+     */
+    it('should insert tx when there is invalid tx for the chain', async () => {
+      // mock transaction
+      const chain = 'chain';
+      const tx = TxTestData.mockPaymentTransaction(
+        TransactionType.coldStorage,
+        chain,
+        ''
+      );
+      const tx2 = TxTestData.mockPaymentTransaction(
+        TransactionType.coldStorage,
+        chain,
+        ''
+      );
+
+      // insert one of the txs into db
+      await DatabaseHandlerMock.insertTxRecord(tx2, TransactionStatus.invalid);
+
+      // run test
+      await DatabaseHandler.insertTx(tx, requiredSign);
+
+      // tx should be inserted into db
+      const dbTxs = (await DatabaseHandlerMock.allTxRecords())
+        .filter((tx) => tx.txId !== tx2.txId)
+        .map((tx) => [tx.txId, tx.event, tx.chain]);
       expect(dbTxs).toEqual([[tx.txId, null, tx.network]]);
     });
 

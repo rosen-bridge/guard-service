@@ -101,11 +101,10 @@ class RequestVerifier {
     const baseError = `Received cold storage tx [${tx.txId}] `;
 
     // check if event has any active tx for requested tx type
-    const inProgressColdStorageTxs = (
-      await DatabaseAction.getInstance().getNonCompleteColdStorageTxsInChain(
+    const inProgressColdStorageTxs =
+      await DatabaseAction.getInstance().getActiveColdStorageTxsInChain(
         tx.network
-      )
-    ).filter((tx) => tx.status != TransactionStatus.invalid);
+      );
     if (
       inProgressColdStorageTxs.length !== 0 &&
       inProgressColdStorageTxs[0].txId !== tx.txId

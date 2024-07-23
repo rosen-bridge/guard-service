@@ -46,11 +46,10 @@ class ColdStorage {
     }
     try {
       logger.info(`Processing assets in [${chainName}] lock address`);
-      const inProgressColdStorageTxs = (
-        await DatabaseAction.getInstance().getNonCompleteColdStorageTxsInChain(
+      const inProgressColdStorageTxs =
+        await DatabaseAction.getInstance().getActiveColdStorageTxsInChain(
           chainName
-        )
-      ).filter((tx) => tx.status !== TransactionStatus.invalid);
+        );
       if (inProgressColdStorageTxs.length !== 0) {
         logger.info(
           `There is already an active cold storage transaction for chain [${chainName}]`

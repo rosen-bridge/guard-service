@@ -1,5 +1,11 @@
 # guard-service
 
+## 4.1.1
+
+### Patch Changes
+
+- fix handling invalid cold storage tx as active ones
+
 ## 4.1.0
 
 ### Minor Changes
