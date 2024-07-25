@@ -13,7 +13,8 @@ import { TokenData } from '../types/api';
 export const getTokenData = (
   sourceChain: string,
   sourceChainTokenId: string,
-  targetChain: string
+  targetChain: string,
+  returnSignificantDecimal = false
 ): TokenData => {
   if (sourceChainTokenId === GuardsErgoConfigs.emissionTokenId) {
     return {
@@ -47,11 +48,17 @@ export const getTokenData = (
     }
   } else {
     const tokenData = tokenMapRes[0][targetChain];
+    const significantDecimals =
+      Configs.tokenMap.getSignificantDecimals(sourceChainTokenId);
+    const decimals =
+      returnSignificantDecimal && significantDecimals !== undefined
+        ? significantDecimals
+        : tokenData.decimals;
     return {
       tokenId: tokenData[Configs.tokenMap.getIdKey(targetChain)],
       name: tokenData.name,
       amount: 0,
-      decimals: tokenData.decimals,
+      decimals: decimals,
       isNativeToken: tokenData.metaData.type === 'native',
     };
   }

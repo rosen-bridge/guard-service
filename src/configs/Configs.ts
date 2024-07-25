@@ -129,18 +129,37 @@ class Configs {
       return JSON.parse(configJson);
     }
   };
+  static tokenMap = new TokenMap(this.tokens());
   static thresholds = (): ThresholdConfig => {
     const thresholdsPath = config.get<string>('thresholdsPath');
+    let thresholds: ThresholdConfig;
     if (!fs.existsSync(thresholdsPath)) {
       throw new Error(
         `Asset thresholds config file with path ${thresholdsPath} doesn't exist`
       );
     } else {
       const configJson: string = fs.readFileSync(thresholdsPath, 'utf8');
-      return JsonBI.parse(configJson);
+      thresholds = JsonBI.parse(configJson);
     }
+    // wrap values
+    for (const chain of Object.keys(thresholds)) {
+      const tokenIds = Object.keys(thresholds[chain].tokens);
+      tokenIds.forEach((tokenId) => {
+        thresholds[chain].tokens[tokenId].high = this.tokenMap.wrapAmount(
+          tokenId,
+          thresholds[chain].tokens[tokenId].high,
+          chain
+        ).amount;
+        thresholds[chain].tokens[tokenId].low = this.tokenMap.wrapAmount(
+          tokenId,
+          thresholds[chain].tokens[tokenId].low,
+          chain
+        ).amount;
+      });
+    }
+
+    return thresholds;
   };
-  static tokenMap = new TokenMap(this.tokens());
 
   // timeout configs
   static eventTimeout = getConfigIntKeyOrDefault('eventTimeout', 24 * 60 * 60); // seconds

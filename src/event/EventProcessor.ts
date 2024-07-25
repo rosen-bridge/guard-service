@@ -180,12 +180,15 @@ class EventProcessor {
 
       // get event and commitment boxes
       const eventBox = await EventBoxes.getEventBox(event);
+      const rwtTokenId = ChainHandler.getInstance()
+        .getChain(event.fromChain)
+        .getRWTToken();
       const rwtCount = ergoChain.getBoxRWT(eventBox) / BigInt(event.WIDsCount);
 
       eventWIDs.push(...(await EventBoxes.getEventWIDs(event)));
       const commitmentBoxes = await EventBoxes.getEventValidCommitments(
         event,
-        rwtCount,
+        Configs.tokenMap.unwrapAmount(rwtTokenId, rwtCount, ERGO_CHAIN).amount,
         eventWIDs
       );
       const guardsConfigBox = await ergoChain.getGuardsConfigBox(
@@ -307,12 +310,15 @@ class EventProcessor {
 
     // get event and commitment boxes
     const eventBox = await EventBoxes.getEventBox(event);
+    const rwtTokenId = ChainHandler.getInstance()
+      .getChain(event.fromChain)
+      .getRWTToken();
     const rwtCount = ergoChain.getBoxRWT(eventBox) / BigInt(event.WIDsCount);
 
     const eventWIDs = await EventBoxes.getEventWIDs(event);
     const commitmentBoxes = await EventBoxes.getEventValidCommitments(
       event,
-      rwtCount,
+      Configs.tokenMap.unwrapAmount(rwtTokenId, rwtCount, ERGO_CHAIN).amount,
       eventWIDs
     );
     const guardsConfigBox = await ergoChain.getGuardsConfigBox(
