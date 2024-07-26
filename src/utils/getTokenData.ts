@@ -9,6 +9,7 @@ import { TokenData } from '../types/api';
  * @param sourceChain
  * @param sourceChainTokenId
  * @param targetChain
+ * @param returnSignificantDecimal if true, returns tokens significant decimals instead of the actual decimals
  */
 export const getTokenData = (
   sourceChain: string,
