@@ -43,7 +43,12 @@ const infoRoute = (server: FastifySeverInstance) => {
           const abstractChain = chainHandler.getChain(chain);
           // TODO: improve getting chain native token
           //  local:ergo/rosen-bridge/guard-service#274
-          const nativeTokenData = getTokenData(chain, nativeTokenId, chain);
+          const nativeTokenData = getTokenData(
+            chain,
+            nativeTokenId,
+            chain,
+            true
+          );
 
           const hotAmount = (
             await abstractChain.getLockAddressAssets()

@@ -54,7 +54,7 @@ export const extractRevenueFromView = async (
         ergoSideTokenId =
           token[0][ERGO_CHAIN][Configs.tokenMap.getIdKey(ERGO_CHAIN)];
         name = token[0][event.fromChain].name;
-        decimals = token[0][event.fromChain].decimals;
+        decimals = Configs.tokenMap.getSignificantDecimals(event.lockTokenId)!;
         isNativeToken = token[0][event.fromChain].metaData.type === 'native';
       }
 
@@ -105,7 +105,7 @@ const fillTokensDetails = (token: TokenInfo): TokenData => {
 
   if (tokenInfo.length) {
     name = tokenInfo[0][ERGO_CHAIN].name;
-    decimals = tokenInfo[0][ERGO_CHAIN].decimals;
+    decimals = Configs.tokenMap.getSignificantDecimals(token.id)!;
     isNativeToken = tokenInfo[0][ERGO_CHAIN].metaData.type === 'native';
   }
 

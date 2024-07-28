@@ -9,7 +9,6 @@ import Utils from '../utils/Utils';
 import { ChainMinimumFee } from '@rosen-bridge/minimum-fee';
 import Configs from '../configs/Configs';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
-import { rosenConfig } from '../configs/RosenConfig';
 import { ERG, ERGO_CHAIN, ErgoChain } from '@rosen-chains/ergo';
 import ChainHandler from '../handlers/ChainHandler';
 import EventBoxes from './EventBoxes';
@@ -41,6 +40,9 @@ class EventOrder {
 
       // get event and commitment boxes
       const eventBox = await EventBoxes.getEventBox(event);
+      const rwtTokenId = ChainHandler.getInstance()
+        .getChain(event.fromChain)
+        .getRWTToken();
       const rwtCount = ergoChain.getBoxRWT(eventBox) / BigInt(event.WIDsCount);
       const permitValue =
         ergoChain.getSerializedBoxInfo(eventBox).assets.nativeToken /
@@ -62,7 +64,7 @@ class EventOrder {
         })),
         feeConfig,
         '',
-        ChainHandler.getInstance().getChain(event.fromChain).getRWTToken(),
+        rwtTokenId,
         rwtCount,
         permitValue,
         eventWIDs
@@ -102,6 +104,9 @@ class EventOrder {
 
     // get event and commitment boxes
     const eventBox = await EventBoxes.getEventBox(event);
+    const rwtTokenId = ChainHandler.getInstance()
+      .getChain(event.fromChain)
+      .getRWTToken();
     const rwtCount = ergoChain.getBoxRWT(eventBox) / BigInt(event.WIDsCount);
     const permitValue =
       ergoChain.getSerializedBoxInfo(eventBox).assets.nativeToken /
@@ -122,7 +127,7 @@ class EventOrder {
       })),
       feeConfig,
       paymentTxId,
-      ChainHandler.getInstance().getChain(event.fromChain).getRWTToken(),
+      rwtTokenId,
       rwtCount,
       permitValue,
       eventWIDs
@@ -171,7 +176,11 @@ class EventOrder {
       });
     }
     if (event.toChain === ERGO_CHAIN) {
-      assets.nativeToken += GuardsErgoConfigs.additionalErgOnPayment;
+      assets.nativeToken += Configs.tokenMap.wrapAmount(
+        ERG,
+        GuardsErgoConfigs.additionalErgOnPayment,
+        ERGO_CHAIN
+      ).amount;
     }
 
     return {
@@ -310,10 +319,13 @@ class EventOrder {
     });
 
     // add guard bridge fee to order
+    const minimumErg = Configs.tokenMap.wrapAmount(
+      ERG,
+      GuardsErgoConfigs.minimumErg,
+      ERGO_CHAIN
+    ).amount;
     const guardBridgeFeeErgAmount =
-      bridgeFee -
-      BigInt(watchersLen) * watcherErgAmount +
-      GuardsErgoConfigs.minimumErg;
+      bridgeFee - BigInt(watchersLen) * watcherErgAmount + minimumErg;
     const assets: AssetBalance = {
       nativeToken: guardBridgeFeeErgAmount,
       tokens: [],
@@ -331,7 +343,7 @@ class EventOrder {
       guardsOrder.push({
         address: GuardsErgoConfigs.emissionAddress,
         assets: {
-          nativeToken: GuardsErgoConfigs.minimumErg,
+          nativeToken: minimumErg,
           tokens: [
             {
               id: GuardsErgoConfigs.emissionTokenId,
@@ -346,7 +358,7 @@ class EventOrder {
     guardsOrder.push({
       address: GuardsErgoConfigs.networkFeeRepoAddress,
       assets: {
-        nativeToken: networkFee + GuardsErgoConfigs.minimumErg,
+        nativeToken: networkFee + minimumErg,
         tokens: [],
       },
     });
@@ -420,6 +432,11 @@ class EventOrder {
     });
 
     // add guard bridge fee to order
+    const minimumErg = Configs.tokenMap.wrapAmount(
+      ERG,
+      GuardsErgoConfigs.minimumErg,
+      ERGO_CHAIN
+    ).amount;
     const guardBridgeFeeTokenAmount =
       bridgeFee - BigInt(watchersLen) * watcherTokenAmount;
     const guardTokens: TokenInfo[] =
@@ -434,7 +451,7 @@ class EventOrder {
     guardsOrder.push({
       address: GuardsErgoConfigs.bridgeFeeRepoAddress,
       assets: {
-        nativeToken: GuardsErgoConfigs.minimumErg,
+        nativeToken: minimumErg,
         tokens: guardTokens,
       },
       extra: paymentTxId,
@@ -447,7 +464,7 @@ class EventOrder {
       guardsOrder.push({
         address: GuardsErgoConfigs.emissionAddress,
         assets: {
-          nativeToken: GuardsErgoConfigs.minimumErg,
+          nativeToken: minimumErg,
           tokens: [
             {
               id: GuardsErgoConfigs.emissionTokenId,
@@ -462,7 +479,7 @@ class EventOrder {
     guardsOrder.push({
       address: GuardsErgoConfigs.networkFeeRepoAddress,
       assets: {
-        nativeToken: GuardsErgoConfigs.minimumErg,
+        nativeToken: minimumErg,
         tokens: [
           {
             id: tokenId,
