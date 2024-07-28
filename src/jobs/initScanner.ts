@@ -8,6 +8,7 @@ import GuardsCardanoConfigs from '../configs/GuardsCardanoConfigs';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import WinstonLogger from '@rosen-bridge/winston-logger';
 import GuardsBitcoinConfigs from '../configs/GuardsBitcoinConfigs';
+import Configs from '../configs/Configs';
 
 let ergoScanner: ErgoScanner;
 
@@ -70,6 +71,7 @@ const initScanner = () => {
         };
 
   const loggers = createLoggers();
+  const tokens = Configs.tokens();
 
   ergoScanner = new ErgoScanner(scannerConfig, loggers.ergoScannerLogger);
   const cardanoCommitmentExtractor = new CommitmentExtractor(
@@ -77,6 +79,7 @@ const initScanner = () => {
     [GuardsCardanoConfigs.cardanoContractConfig.commitmentAddress],
     GuardsCardanoConfigs.cardanoContractConfig.RWTId,
     dataSource,
+    tokens,
     loggers.cardanoCommitmentExtractorLogger
   );
   const cardanoEventTriggerExtractor = new EventTriggerExtractor(
@@ -94,6 +97,7 @@ const initScanner = () => {
     [GuardsBitcoinConfigs.bitcoinContractConfig.commitmentAddress],
     GuardsBitcoinConfigs.bitcoinContractConfig.RWTId,
     dataSource,
+    tokens,
     loggers.bitcoinCommitmentExtractorLogger
   );
   const bitcoinEventTriggerExtractor = new EventTriggerExtractor(
@@ -110,6 +114,7 @@ const initScanner = () => {
     [GuardsErgoConfigs.ergoContractConfig.commitmentAddress],
     GuardsErgoConfigs.ergoContractConfig.RWTId,
     dataSource,
+    tokens,
     loggers.ergoCommitmentExtractorLogger
   );
   const ergoEventTriggerExtractor = new EventTriggerExtractor(

@@ -50,7 +50,7 @@ class EventOrder {
 
       const commitmentBoxes = await EventBoxes.getEventValidCommitments(
         event,
-        Configs.tokenMap.unwrapAmount(rwtTokenId, rwtCount, ERGO_CHAIN).amount,
+        rwtCount,
         eventWIDs
       );
 
@@ -114,7 +114,7 @@ class EventOrder {
 
     const commitmentBoxes = await EventBoxes.getEventValidCommitments(
       event,
-      Configs.tokenMap.unwrapAmount(rwtTokenId, rwtCount, ERGO_CHAIN).amount,
+      rwtCount,
       eventWIDs
     );
 

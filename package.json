@@ -50,7 +50,7 @@
     "@rosen-bridge/scanner-sync-check": "^0.3.0",
     "@rosen-bridge/tokens": "^1.2.1",
     "@rosen-bridge/tss": "^3.0.1",
-    "@rosen-bridge/watcher-data-extractor": "^6.0.5",
+    "@rosen-bridge/watcher-data-extractor": "^7.0.0",
     "@rosen-bridge/winston-logger": "0.2.1",
     "@rosen-chains/abstract-chain": "^8.0.0",
     "@rosen-chains/bitcoin": "^4.0.0",
