@@ -1,6 +1,7 @@
 import {
   AbstractChain,
   ConfirmationStatus,
+  ImpossibleBehavior,
   PaymentTransaction,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
@@ -282,6 +283,10 @@ class TransactionProcessor {
         }
       | undefined
   ): Promise<void> => {
+    if (invalidationDetails === undefined)
+      throw new ImpossibleBehavior(
+        `Tx [${tx.txId}] is invalid but no reason is provided`
+      );
     const height = await chain.getHeight();
     if (
       height - tx.lastCheck >=
@@ -298,10 +303,10 @@ class TransactionProcessor {
           await DatabaseAction.getInstance().setEventStatus(
             tx.event.id,
             EventStatus.pendingPayment,
-            invalidationDetails?.unexpected
+            invalidationDetails.unexpected
           );
           logger.info(
-            `Tx [${tx.txId}] is invalid. Event [${tx.event.id}] is now waiting for payment`
+            `Tx [${tx.txId}] is invalid. Event [${tx.event.id}] is now waiting for payment. Reason: ${invalidationDetails.reason}`
           );
           break;
         case TransactionType.reward:
@@ -311,19 +316,23 @@ class TransactionProcessor {
             invalidationDetails?.unexpected
           );
           logger.info(
-            `Tx [${tx.txId}] is invalid. Event [${tx.event.id}] is now waiting for reward distribution`
+            `Tx [${tx.txId}] is invalid. Event [${tx.event.id}] is now waiting for reward distribution. Reason: ${invalidationDetails.reason}`
           );
           break;
         case TransactionType.coldStorage:
-          logger.info(`Cold storage tx [${tx.txId}] is invalid`);
+          logger.info(
+            `Cold storage tx [${tx.txId}] is invalid. Reason: ${invalidationDetails.reason}`
+          );
           break;
         case TransactionType.manual:
-          logger.warn(`Manual tx [${tx.txId}] is invalid`);
+          logger.warn(
+            `Manual tx [${tx.txId}] is invalid. Reason: ${invalidationDetails.reason}`
+          );
           break;
       }
     } else {
       logger.info(
-        `Tx [${tx.txId}] is invalid. Waiting for enough confirmation of this proposition`
+        `Tx [${tx.txId}] is invalid. Waiting for enough confirmation of this proposition. Reason: ${invalidationDetails.reason}`
       );
     }
   };
