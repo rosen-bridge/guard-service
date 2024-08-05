@@ -102,7 +102,8 @@ class DatabaseActionMock {
     spendBlockId = 'blockId',
     spendTxId?: string,
     result?: string,
-    paymentTxId?: string
+    paymentTxId?: string,
+    unexpectedFails?: number
   ) => {
     await this.testDatabase.EventRepository.createQueryBuilder()
       .insert()
@@ -147,6 +148,7 @@ class DatabaseActionMock {
         eventData: eventData!,
         status: status,
         firstTry: firstTry,
+        unexpectedFails: unexpectedFails,
       })
       .execute();
   };

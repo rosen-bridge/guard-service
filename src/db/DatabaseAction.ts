@@ -559,14 +559,24 @@ class DatabaseAction {
       },
       {
         ...filterCondition,
-        status: In([EventStatus.rejected, EventStatus.timeout]),
+        status: In([
+          EventStatus.rejected,
+          EventStatus.timeout,
+          EventStatus.reachedLimit,
+        ]),
       },
     ];
     const ongoingCondition = [
       {
         ...filterCondition,
         spendTxId: IsNull(),
-        status: Not(In([EventStatus.rejected, EventStatus.timeout])),
+        status: Not(
+          In([
+            EventStatus.rejected,
+            EventStatus.timeout,
+            EventStatus.reachedLimit,
+          ])
+        ),
       },
       {
         ...filterCondition,
