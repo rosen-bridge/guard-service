@@ -88,12 +88,26 @@ class DatabaseAction {
    *  NOTE: this method does NOT update firstTry column
    * @param eventId the event trigger id
    * @param status the event trigger status
+   * @param incrementUnexpectedFails if true, unexpectedFails column will be incremented
    */
-  setEventStatus = async (eventId: string, status: string): Promise<void> => {
-    await this.ConfirmedEventRepository.update(
-      { id: eventId },
-      { status: status }
-    );
+  setEventStatus = async (
+    eventId: string,
+    status: string,
+    incrementUnexpectedFails = false
+  ): Promise<void> => {
+    if (incrementUnexpectedFails)
+      await this.ConfirmedEventRepository.update(
+        { id: eventId },
+        {
+          status: status,
+          unexpectedFails: () => '"unexpectedFails" + 1',
+        }
+      );
+    else
+      await this.ConfirmedEventRepository.update(
+        { id: eventId },
+        { status: status }
+      );
   };
 
   /**

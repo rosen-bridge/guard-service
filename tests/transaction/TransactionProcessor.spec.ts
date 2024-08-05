@@ -431,6 +431,16 @@ describe('TransactionProcessor', () => {
   });
 
   describe('processSignFailedTx', () => {
+    const defaultInvalidationDetails = (isValid: boolean) => ({
+      isValid: isValid,
+      details: isValid
+        ? undefined
+        : {
+            reason: 'test reason',
+            unexpected: false,
+          },
+    });
+
     beforeEach(async () => {
       await DatabaseActionMock.clearTables();
       ChainHandlerMock.resetMock();
@@ -576,7 +586,12 @@ describe('TransactionProcessor', () => {
       // mock `isTxInMempool`
       ChainHandlerMock.mockChainFunction(chain, 'isTxInMempool', false, true);
       // mock `isTxValid`
-      ChainHandlerMock.mockChainFunction(chain, 'isTxValid', true, true);
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'isTxValid',
+        defaultInvalidationDetails(true),
+        true
+      );
       // mock `signTransaction`
       ChainHandlerMock.mockChainFunction(chain, 'signTransaction', null, true);
 
@@ -635,7 +650,12 @@ describe('TransactionProcessor', () => {
       // mock `isTxInMempool`
       ChainHandlerMock.mockChainFunction(chain, 'isTxInMempool', false, true);
       // mock `isTxValid`
-      ChainHandlerMock.mockChainFunction(chain, 'isTxValid', false, true);
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'isTxValid',
+        defaultInvalidationDetails(false),
+        true
+      );
 
       // mock TransactionProcessor.setTransactionAsInvalid
       TransactionProcessorMock.mockFunction('setTransactionAsInvalid');
@@ -710,6 +730,16 @@ describe('TransactionProcessor', () => {
   });
 
   describe('processSentTx', () => {
+    const defaultInvalidationDetails = (isValid: boolean) => ({
+      isValid: isValid,
+      details: isValid
+        ? undefined
+        : {
+            reason: 'test reason',
+            unexpected: false,
+          },
+    });
+
     beforeEach(async () => {
       await DatabaseActionMock.clearTables();
       ChainHandlerMock.resetMock();
@@ -1142,7 +1172,12 @@ describe('TransactionProcessor', () => {
       ChainHandlerMock.mockChainFunction(chain, 'isTxInMempool', false, true);
       // mock `isTxValid`
       const mockedCurrentHeight = 102;
-      ChainHandlerMock.mockChainFunction(chain, 'isTxValid', true, true);
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'isTxValid',
+        defaultInvalidationDetails(true),
+        true
+      );
       // mock `submitTransaction`
       ChainHandlerMock.mockChainFunction(
         chain,
@@ -1205,7 +1240,12 @@ describe('TransactionProcessor', () => {
       // mock `isTxInMempool`
       ChainHandlerMock.mockChainFunction(chain, 'isTxInMempool', false, true);
       // mock `isTxValid`
-      ChainHandlerMock.mockChainFunction(chain, 'isTxValid', false, true);
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'isTxValid',
+        defaultInvalidationDetails(false),
+        true
+      );
 
       // mock TransactionProcessor.setTransactionAsInvalid
       TransactionProcessorMock.mockFunction('setTransactionAsInvalid');
@@ -1221,6 +1261,11 @@ describe('TransactionProcessor', () => {
   });
 
   describe('setTransactionAsInvalid', () => {
+    const invalidationDetails = (unexpected: boolean) => ({
+      reason: 'test reason',
+      unexpected: unexpected,
+    });
+
     beforeEach(async () => {
       await DatabaseActionMock.clearTables();
       ChainHandlerMock.resetMock();
@@ -1244,6 +1289,7 @@ describe('TransactionProcessor', () => {
      * - tx status should be updated to 'invalid'
      * - event status should be updated to 'pending-payment'
      * - event firstTry should remain unchanged
+     * - event unexpectedFails should remain unchanged
      */
     it('should update tx status to invalid and event status to pending-payment when payment tx is invalid', async () => {
       // mock event and transaction and insert into db
@@ -1255,12 +1301,20 @@ describe('TransactionProcessor', () => {
         eventId
       );
       const firstTry = '1000';
+      const unexpectedFails = 1;
       await DatabaseActionMock.insertEventRecord(
         mockedEvent,
         EventStatus.inPayment,
         'box-serialized',
         300,
-        firstTry
+        firstTry,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        unexpectedFails
       );
       await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.sent, 100);
 
@@ -1285,7 +1339,11 @@ describe('TransactionProcessor', () => {
       // run test
       const txEntity = (await DatabaseActionMock.allTxRecords())[0];
       const mockedChain = chainHandlerInstance.getChain(chain);
-      await TransactionProcessor.setTransactionAsInvalid(txEntity, mockedChain);
+      await TransactionProcessor.setTransactionAsInvalid(
+        txEntity,
+        mockedChain,
+        invalidationDetails(false)
+      );
 
       // tx status should be updated to 'invalid'
       const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
@@ -1303,10 +1361,15 @@ describe('TransactionProcessor', () => {
 
       // event status should be updated to 'pending-payment'
       const dbEvents = (await DatabaseActionMock.allEventRecords()).map(
-        (event) => [event.id, event.status, event.firstTry]
+        (event) => [
+          event.id,
+          event.status,
+          event.firstTry,
+          event.unexpectedFails,
+        ]
       );
       expect(dbEvents).toEqual([
-        [eventId, EventStatus.pendingPayment, firstTry],
+        [eventId, EventStatus.pendingPayment, firstTry, unexpectedFails],
       ]);
     });
 
@@ -1327,6 +1390,7 @@ describe('TransactionProcessor', () => {
      * - tx status should be updated to 'invalid'
      * - event status should be updated to 'pending-reward'
      * - event firstTry should remain unchanged
+     * - event unexpectedFails should remain unchanged
      */
     it('should update tx status to invalid and event status to pending-reward when reward distribution tx is invalid', async () => {
       // mock event and transaction and insert into db
@@ -1338,12 +1402,20 @@ describe('TransactionProcessor', () => {
         eventId
       );
       const firstTry = '1000';
+      const unexpectedFails = 1;
       await DatabaseActionMock.insertEventRecord(
         mockedEvent,
         EventStatus.inReward,
         'box-serialized',
         300,
-        firstTry
+        firstTry,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        unexpectedFails
       );
       await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.sent, 100);
 
@@ -1368,7 +1440,11 @@ describe('TransactionProcessor', () => {
       // run test
       const txEntity = (await DatabaseActionMock.allTxRecords())[0];
       const mockedChain = chainHandlerInstance.getChain(tx.network);
-      await TransactionProcessor.setTransactionAsInvalid(txEntity, mockedChain);
+      await TransactionProcessor.setTransactionAsInvalid(
+        txEntity,
+        mockedChain,
+        invalidationDetails(false)
+      );
 
       // tx status should be updated to 'invalid'
       const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
@@ -1386,10 +1462,15 @@ describe('TransactionProcessor', () => {
 
       // event status should be updated to 'pending-reward'
       const dbEvents = (await DatabaseActionMock.allEventRecords()).map(
-        (event) => [event.id, event.status, event.firstTry]
+        (event) => [
+          event.id,
+          event.status,
+          event.firstTry,
+          event.unexpectedFails,
+        ]
       );
       expect(dbEvents).toEqual([
-        [eventId, EventStatus.pendingReward, firstTry],
+        [eventId, EventStatus.pendingReward, firstTry, unexpectedFails],
       ]);
     });
 
@@ -1439,7 +1520,11 @@ describe('TransactionProcessor', () => {
       // run test
       const txEntity = (await DatabaseActionMock.allTxRecords())[0];
       const mockedChain = chainHandlerInstance.getChain(tx.network);
-      await TransactionProcessor.setTransactionAsInvalid(txEntity, mockedChain);
+      await TransactionProcessor.setTransactionAsInvalid(
+        txEntity,
+        mockedChain,
+        invalidationDetails(false)
+      );
 
       // tx status should be updated to 'invalid'
       const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
@@ -1498,7 +1583,11 @@ describe('TransactionProcessor', () => {
       // run test
       const txEntity = (await DatabaseActionMock.allTxRecords())[0];
       const mockedChain = chainHandlerInstance.getChain(tx.network);
-      await TransactionProcessor.setTransactionAsInvalid(txEntity, mockedChain);
+      await TransactionProcessor.setTransactionAsInvalid(
+        txEntity,
+        mockedChain,
+        invalidationDetails(false)
+      );
 
       // tx status should be updated to 'invalid'
       const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
@@ -1573,13 +1662,221 @@ describe('TransactionProcessor', () => {
       // run test
       const txEntity = (await DatabaseActionMock.allTxRecords())[0];
       const mockedChain = chainHandlerInstance.getChain(tx.network);
-      await TransactionProcessor.setTransactionAsInvalid(txEntity, mockedChain);
+      await TransactionProcessor.setTransactionAsInvalid(
+        txEntity,
+        mockedChain,
+        invalidationDetails(false)
+      );
 
       // txs should remain unchanged
       expect(await DatabaseActionMock.allTxRecords()).toEqual(dbTxs);
 
       // events should remain unchanged
       expect(await DatabaseActionMock.allEventRecords()).toEqual(dbEvents);
+    });
+
+    /**
+     * @target TransactionProcessor.setTransactionAsInvalid should update
+     * tx status to invalid, event status to pending-payment and increment
+     * unexpectedFails when payment tx is become invalid unexpectedly
+     * @dependencies
+     * - database
+     * - ChainHandler
+     * @scenario
+     * - mock event and transaction and insert into db
+     * - mock ChainHandler `getChain`
+     *   - mock `getHeight`
+     *   - mock `getTxRequiredConfirmation`
+     * - run test
+     * - check tx in database
+     * @expected
+     * - tx status should be updated to 'invalid'
+     * - event status should be updated to 'pending-payment'
+     * - event firstTry should remain unchanged
+     * - event unexpectedFails should be incremented
+     */
+    it('should update tx status to invalid, event status to pending-payment and increment unexpectedFails when payment tx is become invalid unexpectedly', async () => {
+      // mock event and transaction and insert into db
+      const mockedEvent = EventTestData.mockEventTrigger().event;
+      const eventId = EventSerializer.getId(mockedEvent);
+      const tx = mockPaymentTransaction(
+        TransactionType.payment,
+        mockedEvent.toChain,
+        eventId
+      );
+      const firstTry = '1000';
+      const unexpectedFails = 1;
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent,
+        EventStatus.inPayment,
+        'box-serialized',
+        300,
+        firstTry,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        unexpectedFails
+      );
+      await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.sent, 100);
+
+      // mock ChainHandler `getChain`
+      const chain = tx.network;
+      ChainHandlerMock.mockChainName(chain);
+      // mock `getHeight`
+      const mockedCurrentHeight = 111;
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'getHeight',
+        mockedCurrentHeight,
+        true
+      );
+      // mock `getTxRequiredConfirmation`
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'getTxRequiredConfirmation',
+        10
+      );
+
+      // run test
+      const txEntity = (await DatabaseActionMock.allTxRecords())[0];
+      const mockedChain = chainHandlerInstance.getChain(chain);
+      await TransactionProcessor.setTransactionAsInvalid(
+        txEntity,
+        mockedChain,
+        invalidationDetails(true)
+      );
+
+      // tx status should be updated to 'invalid'
+      const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
+        tx.txId,
+        tx.status,
+        tx.lastStatusUpdate,
+      ]);
+      expect(dbTxs).toEqual([
+        [
+          tx.txId,
+          TransactionStatus.invalid,
+          currentTimeStampSeconds.toString(),
+        ],
+      ]);
+
+      // event status should be updated to 'pending-payment'
+      const dbEvents = (await DatabaseActionMock.allEventRecords()).map(
+        (event) => [
+          event.id,
+          event.status,
+          event.firstTry,
+          event.unexpectedFails,
+        ]
+      );
+      expect(dbEvents).toEqual([
+        [eventId, EventStatus.pendingPayment, firstTry, unexpectedFails + 1],
+      ]);
+    });
+
+    /**
+     * @target TransactionProcessor.setTransactionAsInvalid should update
+     * tx status to invalid, event status to pending-reward and increment
+     * unexpectedFails when reward distribution tx is become invalid unexpectedly
+     * @dependencies
+     * - database
+     * - ChainHandler
+     * @scenario
+     * - mock event and transaction and insert into db
+     * - mock ChainHandler `getChain`
+     *   - mock `getHeight`
+     *   - mock `getTxRequiredConfirmation`
+     * - run test
+     * - check tx in database
+     * @expected
+     * - tx status should be updated to 'invalid'
+     * - event status should be updated to 'pending-reward'
+     * - event firstTry should remain unchanged
+     * - event unexpectedFails should be incremented
+     */
+    it('should update tx status to invalid, event status to pending-reward and increment unexpectedFails when reward distribution tx is become invalid unexpectedly', async () => {
+      // mock event and transaction and insert into db
+      const mockedEvent = EventTestData.mockEventTrigger().event;
+      const eventId = EventSerializer.getId(mockedEvent);
+      const tx = mockPaymentTransaction(
+        TransactionType.reward,
+        mockedEvent.toChain,
+        eventId
+      );
+      const firstTry = '1000';
+      const unexpectedFails = 1;
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent,
+        EventStatus.inReward,
+        'box-serialized',
+        300,
+        firstTry,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        unexpectedFails
+      );
+      await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.sent, 100);
+
+      // mock ChainHandler `getChain`
+      const chain = tx.network;
+      ChainHandlerMock.mockChainName(chain);
+      // mock `getHeight`
+      const mockedCurrentHeight = 111;
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'getHeight',
+        mockedCurrentHeight,
+        true
+      );
+      // mock `getTxRequiredConfirmation`
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'getTxRequiredConfirmation',
+        10
+      );
+
+      // run test
+      const txEntity = (await DatabaseActionMock.allTxRecords())[0];
+      const mockedChain = chainHandlerInstance.getChain(tx.network);
+      await TransactionProcessor.setTransactionAsInvalid(
+        txEntity,
+        mockedChain,
+        invalidationDetails(true)
+      );
+
+      // tx status should be updated to 'invalid'
+      const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
+        tx.txId,
+        tx.status,
+        tx.lastStatusUpdate,
+      ]);
+      expect(dbTxs).toEqual([
+        [
+          tx.txId,
+          TransactionStatus.invalid,
+          currentTimeStampSeconds.toString(),
+        ],
+      ]);
+
+      // event status should be updated to 'pending-reward'
+      const dbEvents = (await DatabaseActionMock.allEventRecords()).map(
+        (event) => [
+          event.id,
+          event.status,
+          event.firstTry,
+          event.unexpectedFails,
+        ]
+      );
+      expect(dbEvents).toEqual([
+        [eventId, EventStatus.pendingReward, firstTry, unexpectedFails + 1],
+      ]);
     });
   });
 });
