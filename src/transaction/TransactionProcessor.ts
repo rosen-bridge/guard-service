@@ -1,6 +1,7 @@
 import {
   AbstractChain,
   ConfirmationStatus,
+  ImpossibleBehavior,
   PaymentTransaction,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
@@ -153,13 +154,17 @@ class TransactionProcessor {
     } else {
       // tx is not found, checking if tx is still valid
       const paymentTx = TransactionSerializer.fromJson(tx.txJson);
-      if (await chain.isTxValid(paymentTx, SigningStatus.UnSigned)) {
+      const validityStatus = await chain.isTxValid(
+        paymentTx,
+        SigningStatus.UnSigned
+      );
+      if (validityStatus.isValid) {
         // tx is valid, requesting to sign...
         logger.info(`Tx [${tx.txId}] is still valid. Requesting to sign tx...`);
         await this.processApprovedTx(tx);
       } else {
         // tx is invalid, reset status if enough blocks past.
-        await this.setTransactionAsInvalid(tx, chain);
+        await this.setTransactionAsInvalid(tx, chain, validityStatus.details);
       }
     }
   };
@@ -241,13 +246,21 @@ class TransactionProcessor {
         } else {
           // tx is not in mempool, checking if tx is still valid
           const paymentTx = TransactionSerializer.fromJson(tx.txJson);
-          if (await chain.isTxValid(paymentTx, SigningStatus.Signed)) {
+          const validityStatus = await chain.isTxValid(
+            paymentTx,
+            SigningStatus.UnSigned
+          );
+          if (validityStatus.isValid) {
             // tx is valid. resending...
             logger.info(`Tx [${tx.txId}] is still valid. Resending tx...`);
             await chain.submitTransaction(paymentTx);
           } else {
             // tx is invalid. reset status if enough blocks past.
-            await this.setTransactionAsInvalid(tx, chain);
+            await this.setTransactionAsInvalid(
+              tx,
+              chain,
+              validityStatus.details
+            );
           }
         }
       }
@@ -258,11 +271,22 @@ class TransactionProcessor {
    * resets status of event (if tx is related to any event) and set tx as invalid if enough blocks past from last check
    * @param tx transaction record
    * @param chain AbstractChain object
+   * @param invalidationDetails reason of invalidation with unexpectedness status
    */
   static setTransactionAsInvalid = async (
     tx: TransactionEntity,
-    chain: AbstractChain<unknown>
+    chain: AbstractChain<unknown>,
+    invalidationDetails:
+      | {
+          reason: string;
+          unexpected: boolean;
+        }
+      | undefined
   ): Promise<void> => {
+    if (invalidationDetails === undefined)
+      throw new ImpossibleBehavior(
+        `Tx [${tx.txId}] is invalid but no reason is provided`
+      );
     const height = await chain.getHeight();
     if (
       height - tx.lastCheck >=
@@ -278,31 +302,37 @@ class TransactionProcessor {
         case TransactionType.payment:
           await DatabaseAction.getInstance().setEventStatus(
             tx.event.id,
-            EventStatus.pendingPayment
+            EventStatus.pendingPayment,
+            invalidationDetails.unexpected
           );
           logger.info(
-            `Tx [${tx.txId}] is invalid. Event [${tx.event.id}] is now waiting for payment`
+            `Tx [${tx.txId}] is invalid. Event [${tx.event.id}] is now waiting for payment. Reason: ${invalidationDetails.reason}`
           );
           break;
         case TransactionType.reward:
           await DatabaseAction.getInstance().setEventStatus(
             tx.event.id,
-            EventStatus.pendingReward
+            EventStatus.pendingReward,
+            invalidationDetails?.unexpected
           );
           logger.info(
-            `Tx [${tx.txId}] is invalid. Event [${tx.event.id}] is now waiting for reward distribution`
+            `Tx [${tx.txId}] is invalid. Event [${tx.event.id}] is now waiting for reward distribution. Reason: ${invalidationDetails.reason}`
           );
           break;
         case TransactionType.coldStorage:
-          logger.info(`Cold storage tx [${tx.txId}] is invalid`);
+          logger.info(
+            `Cold storage tx [${tx.txId}] is invalid. Reason: ${invalidationDetails.reason}`
+          );
           break;
         case TransactionType.manual:
-          logger.warn(`Manual tx [${tx.txId}] is invalid`);
+          logger.warn(
+            `Manual tx [${tx.txId}] is invalid. Reason: ${invalidationDetails.reason}`
+          );
           break;
       }
     } else {
       logger.info(
-        `Tx [${tx.txId}] is invalid. Waiting for enough confirmation of this proposition`
+        `Tx [${tx.txId}] is invalid. Waiting for enough confirmation of this proposition. Reason: ${invalidationDetails.reason}`
       );
     }
   };

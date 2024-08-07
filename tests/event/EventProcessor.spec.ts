@@ -356,6 +356,73 @@ describe('EventProcessor', () => {
       // reset mocked function
       processPaymentEventSpy.mockRestore();
     });
+
+    /**
+     * @target EventProcessor.processConfirmedEvents should update event status
+     * to reached-limit when too much txs of the event are failed
+     * @dependencies
+     * - database
+     * - EventProcessor
+     * - GuardTurn
+     * @scenario
+     * - mock a pending payment event and insert into db
+     * - mock `processPaymentEvent`
+     * - mock GuardTurn to return guard index
+     * - run test
+     * - check if function got called
+     * - check status of events in db
+     * - reset mocked function
+     * @expected
+     * - `processPaymentEvent` should NOT got called
+     * - event status should be updated to reached-limit
+     */
+    it('should update event status to reached-limit when too much txs of the event are failed', async () => {
+      // mock a pending payment event and insert into db
+      const mockedEvent: EventTrigger = mockEventTrigger().event;
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent,
+        EventStatus.pendingPayment,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        5
+      );
+
+      // mock `processPaymentEvent`
+      const mockedProcessor = vi.fn();
+      const processPaymentEventSpy = vi.spyOn(
+        EventProcessor,
+        'processPaymentEvent'
+      );
+      processPaymentEventSpy.mockImplementation(mockedProcessor);
+
+      // mock GuardTurn to return guard index
+      mockGuardTurn(TestConfigs.guardIndex);
+
+      // run test
+      await EventProcessor.processConfirmedEvents();
+
+      // `processPaymentEvent` should got called
+      expect(mockedProcessor).not.toHaveBeenCalled();
+
+      // event status should be updated to reached-limit
+      const dbEvents = (await DatabaseActionMock.allEventRecords()).map(
+        (event) => [event.id, event.status]
+      );
+      expect(dbEvents).to.deep.contain([
+        EventSerializer.getId(mockedEvent),
+        EventStatus.reachedLimit,
+      ]);
+
+      // reset mocked function
+      processPaymentEventSpy.mockRestore();
+    });
   });
 
   describe('processPaymentEvent', () => {

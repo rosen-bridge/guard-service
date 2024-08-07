@@ -5,7 +5,7 @@ import EventSerializer from './EventSerializer';
 import EventOrder from './EventOrder';
 import EventBoxes from './EventBoxes';
 import MinimumFeeHandler from '../handlers/MinimumFeeHandler';
-import { EventStatus } from '../utils/constants';
+import { EventStatus, EventUnexpectedFailsLimit } from '../utils/constants';
 import {
   EventTrigger,
   ImpossibleBehavior,
@@ -85,6 +85,17 @@ class EventProcessor {
           await DatabaseAction.getInstance().setEventStatus(
             event.id,
             EventStatus.spent
+          );
+          continue;
+        }
+        // check how many times event txs unexpectedly failed
+        if (event.unexpectedFails >= EventUnexpectedFailsLimit) {
+          logger.warn(
+            `Event [${event.id}] will no longer be processed due to too much unexpected failures`
+          );
+          await DatabaseAction.getInstance().setEventStatus(
+            event.id,
+            EventStatus.reachedLimit
           );
           continue;
         }
