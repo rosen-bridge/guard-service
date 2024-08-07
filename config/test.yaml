@@ -49,6 +49,18 @@ ergo:
     event: 30
     payment: 35
     cold: 40
+ethereum:
+  networkType: 'testnet'
+  chainNetwork: 'rpc'
+  rpc:
+    url: ''
+    timeout: 8
+  tssChainCode: 'EthereumChainCode'
+  derivationPath:
+    - 44
+    - 60
+    - 0
+    - 0
 reward:
   emissionTokenId: '94e3590122b5546b067166d3b531900158c2f2d5d61e2b00e42fa312801833b2'
   emissionTokenName: 'eRSN'
