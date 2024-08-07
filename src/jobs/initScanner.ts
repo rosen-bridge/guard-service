@@ -9,6 +9,7 @@ import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import WinstonLogger from '@rosen-bridge/winston-logger';
 import GuardsBitcoinConfigs from '../configs/GuardsBitcoinConfigs';
 import Configs from '../configs/Configs';
+import GuardsEthereumConfigs from '../configs/GuardsEthereumConfigs';
 
 let ergoScanner: ErgoScanner;
 
@@ -29,23 +30,29 @@ const ergoScannerJob = () => {
  */
 const createLoggers = () => ({
   ergoScannerLogger: WinstonLogger.getInstance().getLogger('ergo-scanner'),
-  cardanoCommitmentExtractorLogger: WinstonLogger.getInstance().getLogger(
-    'cardano-commitment-extractor'
-  ),
-  cardanoEventTriggerExtractorLogger: WinstonLogger.getInstance().getLogger(
-    'cardano-event-trigger-extractor'
-  ),
   bitcoinCommitmentExtractorLogger: WinstonLogger.getInstance().getLogger(
     'bitcoin-commitment-extractor'
   ),
   bitcoinEventTriggerExtractorLogger: WinstonLogger.getInstance().getLogger(
     'bitcoin-event-trigger-extractor'
   ),
+  cardanoCommitmentExtractorLogger: WinstonLogger.getInstance().getLogger(
+    'cardano-commitment-extractor'
+  ),
+  cardanoEventTriggerExtractorLogger: WinstonLogger.getInstance().getLogger(
+    'cardano-event-trigger-extractor'
+  ),
   ergoCommitmentExtractorLogger: WinstonLogger.getInstance().getLogger(
     'ergo-commitment-extractor'
   ),
   ergoEventTriggerExtractorLogger: WinstonLogger.getInstance().getLogger(
     'ergo-event-trigger-extractor'
+  ),
+  ethereumCommitmentExtractorLogger: WinstonLogger.getInstance().getLogger(
+    'ethereum-commitment-extractor'
+  ),
+  ethereumEventTriggerExtractorLogger: WinstonLogger.getInstance().getLogger(
+    'ethereum-event-trigger-extractor'
   ),
 });
 
@@ -74,23 +81,6 @@ const initScanner = () => {
   const tokens = Configs.tokens();
 
   ergoScanner = new ErgoScanner(scannerConfig, loggers.ergoScannerLogger);
-  const cardanoCommitmentExtractor = new CommitmentExtractor(
-    'cardanoCommitment',
-    [GuardsCardanoConfigs.cardanoContractConfig.commitmentAddress],
-    GuardsCardanoConfigs.cardanoContractConfig.RWTId,
-    dataSource,
-    tokens,
-    loggers.cardanoCommitmentExtractorLogger
-  );
-  const cardanoEventTriggerExtractor = new EventTriggerExtractor(
-    'cardanoEventTrigger',
-    dataSource,
-    GuardsCardanoConfigs.cardanoContractConfig.eventTriggerAddress,
-    GuardsCardanoConfigs.cardanoContractConfig.RWTId,
-    GuardsCardanoConfigs.cardanoContractConfig.permitAddress,
-    GuardsCardanoConfigs.cardanoContractConfig.fraudAddress,
-    loggers.cardanoEventTriggerExtractorLogger
-  );
 
   const bitcoinCommitmentExtractor = new CommitmentExtractor(
     'bitcoinCommitment',
@@ -109,6 +99,25 @@ const initScanner = () => {
     GuardsBitcoinConfigs.bitcoinContractConfig.fraudAddress,
     loggers.bitcoinEventTriggerExtractorLogger
   );
+
+  const cardanoCommitmentExtractor = new CommitmentExtractor(
+    'cardanoCommitment',
+    [GuardsCardanoConfigs.cardanoContractConfig.commitmentAddress],
+    GuardsCardanoConfigs.cardanoContractConfig.RWTId,
+    dataSource,
+    tokens,
+    loggers.cardanoCommitmentExtractorLogger
+  );
+  const cardanoEventTriggerExtractor = new EventTriggerExtractor(
+    'cardanoEventTrigger',
+    dataSource,
+    GuardsCardanoConfigs.cardanoContractConfig.eventTriggerAddress,
+    GuardsCardanoConfigs.cardanoContractConfig.RWTId,
+    GuardsCardanoConfigs.cardanoContractConfig.permitAddress,
+    GuardsCardanoConfigs.cardanoContractConfig.fraudAddress,
+    loggers.cardanoEventTriggerExtractorLogger
+  );
+
   const ergoCommitmentExtractor = new CommitmentExtractor(
     'ergoCommitment',
     [GuardsErgoConfigs.ergoContractConfig.commitmentAddress],
@@ -126,12 +135,33 @@ const initScanner = () => {
     GuardsErgoConfigs.ergoContractConfig.fraudAddress,
     loggers.ergoEventTriggerExtractorLogger
   );
-  ergoScanner.registerExtractor(cardanoCommitmentExtractor);
-  ergoScanner.registerExtractor(cardanoEventTriggerExtractor);
+
+  const ethereumCommitmentExtractor = new CommitmentExtractor(
+    'ethereumCommitment',
+    [GuardsEthereumConfigs.ethereumContractConfig.commitmentAddress],
+    GuardsEthereumConfigs.ethereumContractConfig.RWTId,
+    dataSource,
+    tokens,
+    loggers.ethereumCommitmentExtractorLogger
+  );
+  const ethereumEventTriggerExtractor = new EventTriggerExtractor(
+    'ethereumEventTrigger',
+    dataSource,
+    GuardsEthereumConfigs.ethereumContractConfig.eventTriggerAddress,
+    GuardsEthereumConfigs.ethereumContractConfig.RWTId,
+    GuardsEthereumConfigs.ethereumContractConfig.permitAddress,
+    GuardsEthereumConfigs.ethereumContractConfig.fraudAddress,
+    loggers.ethereumEventTriggerExtractorLogger
+  );
+
   ergoScanner.registerExtractor(bitcoinCommitmentExtractor);
   ergoScanner.registerExtractor(bitcoinEventTriggerExtractor);
+  ergoScanner.registerExtractor(cardanoCommitmentExtractor);
+  ergoScanner.registerExtractor(cardanoEventTriggerExtractor);
   ergoScanner.registerExtractor(ergoCommitmentExtractor);
   ergoScanner.registerExtractor(ergoEventTriggerExtractor);
+  ergoScanner.registerExtractor(ethereumCommitmentExtractor);
+  ergoScanner.registerExtractor(ethereumEventTriggerExtractor);
 
   ergoScannerJob();
 };

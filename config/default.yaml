@@ -63,6 +63,24 @@ ergo:
     manual: 20 # a manual transaction on Ergo get confirmed
   initialHeight: 925000 # block scanner starting block height
   scannerInterval: 180 # scanner update interval
+ethereum:
+  networkType: 'mainnet' # Cardano network type [testnet, mainnet]
+  chainNetwork: 'rpc' # 'rpc'
+  rpc:
+    url: ''
+    timeout: 8
+  maxParallelTx: 5 # maximum number of txs to be processed with the same nonce (note that only one of these transactions will be succeed)
+  gasPriceSlippage: 50 # allowed slippage percentage for gas price
+  gasLimitSlippage: 50 # allowed slippage percentage for gas limit
+  gasLimitMultiplier: 3 # a multiplication of current gas limit will be used in txs
+  confirmation: # required block confirmation
+    observation: 200 # an observation transaction (lock transaction) on Cardano get confirmed
+    payment: 200 # a payment transaction on Cardano get confirmed
+    cold: 200 # a cold storage transaction on Cardano get confirmed
+    manual: 200 # a manual transaction on Cardano get confirmed
+  tssChainCode: ''
+  derivationPath:
+    -
 reward:
   emissionTokenId: ''
   emissionTokenName: ''
