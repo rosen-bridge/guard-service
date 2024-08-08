@@ -13,7 +13,6 @@ import {
   PaymentTransaction,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
-import Notification from '../communication/notification/Notification';
 import { ChainMinimumFee } from '@rosen-bridge/minimum-fee';
 import ChainHandler from '../handlers/ChainHandler';
 import { ERGO_CHAIN, ErgoChain } from '@rosen-chains/ergo';
@@ -24,6 +23,7 @@ import { DatabaseAction } from '../db/DatabaseAction';
 import GuardTurn from '../utils/GuardTurn';
 import GuardPkHandler from '../handlers/GuardPkHandler';
 import WinstonLogger from '@rosen-bridge/winston-logger';
+import { NotificationHandler } from '../handlers/NotificationHandler';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
@@ -159,7 +159,9 @@ class EventProcessor {
       if (e instanceof NotEnoughAssetsError) {
         logger.warn(`Failed to create payment for event [${eventId}]: ${e}`);
         logger.warn(e.stack);
-        await Notification.getInstance().sendMessage(
+        await NotificationHandler.getInstance().notify(
+          'error',
+          `Low Assets in ${event.toChain}`,
           `Failed to create payment for event [${eventId}] due to low assets: ${e}`
         );
         await DatabaseAction.getInstance().setEventStatus(
@@ -291,7 +293,9 @@ class EventProcessor {
           `Failed to create reward distribution for event [${eventId}]: ${e}`
         );
         logger.warn(e.stack);
-        await Notification.getInstance().sendMessage(
+        await NotificationHandler.getInstance().notify(
+          'error',
+          `Low Assets in Ergo`,
           `Failed to create reward distribution for event [${eventId}] due to low assets: ${e}`
         );
         await DatabaseAction.getInstance().setEventStatus(
