@@ -17,6 +17,7 @@ import Configs from '../../src/configs/Configs';
 import * as EventTestData from '../event/testData';
 import EventSerializer from '../../src/event/EventSerializer';
 import TransactionProcessorMock from './TransactionProcessor.mock';
+import NotificationHandlerMock from '../handlers/NotificationHandler.mock';
 
 describe('TransactionProcessor', () => {
   const currentTimeStampSeconds = Math.round(
@@ -1270,6 +1271,8 @@ describe('TransactionProcessor', () => {
       await DatabaseActionMock.clearTables();
       ChainHandlerMock.resetMock();
       TransactionProcessorMock.restoreMocks();
+      NotificationHandlerMock.resetMock();
+      NotificationHandlerMock.mock();
     });
 
     /**
@@ -1678,15 +1681,17 @@ describe('TransactionProcessor', () => {
     /**
      * @target TransactionProcessor.setTransactionAsInvalid should update
      * tx status to invalid, event status to pending-payment and increment
-     * unexpectedFails when payment tx is become invalid unexpectedly
+     * unexpectedFails when payment tx has become invalid unexpectedly
      * @dependencies
      * - database
      * - ChainHandler
+     * - NotificationHandler
      * @scenario
      * - mock event and transaction and insert into db
      * - mock ChainHandler `getChain`
      *   - mock `getHeight`
      *   - mock `getTxRequiredConfirmation`
+     * - mock NotificationHandler `notify`
      * - run test
      * - check tx in database
      * @expected
@@ -1695,7 +1700,7 @@ describe('TransactionProcessor', () => {
      * - event firstTry should remain unchanged
      * - event unexpectedFails should be incremented
      */
-    it('should update tx status to invalid, event status to pending-payment and increment unexpectedFails when payment tx is become invalid unexpectedly', async () => {
+    it('should update tx status to invalid, event status to pending-payment and increment unexpectedFails when payment tx has become invalid unexpectedly', async () => {
       // mock event and transaction and insert into db
       const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
@@ -1740,6 +1745,9 @@ describe('TransactionProcessor', () => {
         10
       );
 
+      // mock NotificationHandler `notify`
+      NotificationHandlerMock.mockNotify();
+
       // run test
       const txEntity = (await DatabaseActionMock.allTxRecords())[0];
       const mockedChain = chainHandlerInstance.getChain(chain);
@@ -1780,15 +1788,17 @@ describe('TransactionProcessor', () => {
     /**
      * @target TransactionProcessor.setTransactionAsInvalid should update
      * tx status to invalid, event status to pending-reward and increment
-     * unexpectedFails when reward distribution tx is become invalid unexpectedly
+     * unexpectedFails when reward distribution tx has become invalid unexpectedly
      * @dependencies
      * - database
      * - ChainHandler
+     * - NotificationHandler
      * @scenario
      * - mock event and transaction and insert into db
      * - mock ChainHandler `getChain`
      *   - mock `getHeight`
      *   - mock `getTxRequiredConfirmation`
+     * - mock NotificationHandler `notify`
      * - run test
      * - check tx in database
      * @expected
@@ -1797,7 +1807,7 @@ describe('TransactionProcessor', () => {
      * - event firstTry should remain unchanged
      * - event unexpectedFails should be incremented
      */
-    it('should update tx status to invalid, event status to pending-reward and increment unexpectedFails when reward distribution tx is become invalid unexpectedly', async () => {
+    it('should update tx status to invalid, event status to pending-reward and increment unexpectedFails when reward distribution tx has become invalid unexpectedly', async () => {
       // mock event and transaction and insert into db
       const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
@@ -1842,6 +1852,9 @@ describe('TransactionProcessor', () => {
         10
       );
 
+      // mock NotificationHandler `notify`
+      NotificationHandlerMock.mockNotify();
+
       // run test
       const txEntity = (await DatabaseActionMock.allTxRecords())[0];
       const mockedChain = chainHandlerInstance.getChain(tx.network);
@@ -1877,6 +1890,79 @@ describe('TransactionProcessor', () => {
       expect(dbEvents).toEqual([
         [eventId, EventStatus.pendingReward, firstTry, unexpectedFails + 1],
       ]);
+    });
+
+    /**
+     * @target TransactionProcessor.setTransactionAsInvalid should send
+     * notification when tx has become invalid unexpectedly
+     * @dependencies
+     * - database
+     * - ChainHandler
+     * - NotificationHandler
+     * @scenario
+     * - mock event and transaction and insert into db
+     * - mock ChainHandler `getChain`
+     *   - mock `getHeight`
+     *   - mock `getTxRequiredConfirmation`
+     * - mock NotificationHandler `notify`
+     * - run test
+     * - check if function got called
+     * @expected
+     * - Notification `notify` should got called
+     */
+    it('should send notification when tx has become invalid unexpectedly', async () => {
+      // mock event and transaction and insert into db
+      const mockedEvent = EventTestData.mockEventTrigger().event;
+      const eventId = EventSerializer.getId(mockedEvent);
+      const tx = mockPaymentTransaction(
+        TransactionType.payment,
+        mockedEvent.toChain,
+        eventId
+      );
+      const firstTry = '1000';
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent,
+        EventStatus.inPayment,
+        'box-serialized',
+        300,
+        firstTry
+      );
+      await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.sent, 100);
+
+      // mock ChainHandler `getChain`
+      const chain = tx.network;
+      ChainHandlerMock.mockChainName(chain);
+      // mock `getHeight`
+      const mockedCurrentHeight = 111;
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'getHeight',
+        mockedCurrentHeight,
+        true
+      );
+      // mock `getTxRequiredConfirmation`
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'getTxRequiredConfirmation',
+        10
+      );
+
+      // mock NotificationHandler `notify`
+      NotificationHandlerMock.mockNotify();
+
+      // run test
+      const txEntity = (await DatabaseActionMock.allTxRecords())[0];
+      const mockedChain = chainHandlerInstance.getChain(chain);
+      await TransactionProcessor.setTransactionAsInvalid(
+        txEntity,
+        mockedChain,
+        invalidationDetails(true)
+      );
+
+      // Notification `notify` should got called
+      expect(
+        NotificationHandlerMock.getNotificationHandlerMockedFunction('notify')
+      ).toHaveBeenCalledOnce();
     });
   });
 });
