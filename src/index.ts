@@ -23,7 +23,7 @@ import { NotificationHandler } from './handlers/NotificationHandler';
 
 const init = async () => {
   // initialize NotificationHandler object
-  NotificationHandler.getInstance();
+  NotificationHandler.setup();
 
   // initialize all data sources
   await initDataSources();
