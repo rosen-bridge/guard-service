@@ -14,6 +14,7 @@ import ChainHandler from '../handlers/ChainHandler';
 import { EventStatus, TransactionStatus } from '../utils/constants';
 import * as TransactionSerializer from './TransactionSerializer';
 import WinstonLogger from '@rosen-bridge/winston-logger';
+import { NotificationHandler } from '../handlers/NotificationHandler';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
@@ -298,6 +299,14 @@ class TransactionProcessor {
         tx.txId,
         TransactionStatus.invalid
       );
+      if (invalidationDetails.unexpected) {
+        // send notification if invalidation reason is unexpected
+        await NotificationHandler.getInstance().notify(
+          'warning',
+          `Tx is invalid`,
+          `Tx [${tx.txId}] on chain [${tx.chain}] is invalid due to reason: ${invalidationDetails.reason}`
+        );
+      }
       switch (tx.type) {
         case TransactionType.payment:
           await DatabaseAction.getInstance().setEventStatus(
