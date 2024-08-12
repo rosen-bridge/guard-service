@@ -69,6 +69,8 @@ ethereum:
   rpc:
     url: ''
     timeout: 8
+    initialHeight: -1
+    scannerInterval: 20
   maxParallelTx: 5 # maximum number of txs to be processed with the same nonce (note that only one of these transactions will be succeed)
   gasPriceSlippage: 50 # allowed slippage percentage for gas price
   gasLimitSlippage: 50 # allowed slippage percentage for gas limit

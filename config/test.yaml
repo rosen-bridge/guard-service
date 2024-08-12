@@ -55,6 +55,7 @@ ethereum:
   rpc:
     url: ''
     timeout: 8
+    initialHeight: 1000000
   tssChainCode: 'EthereumChainCode'
   derivationPath:
     - 44
