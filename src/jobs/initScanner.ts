@@ -10,8 +10,11 @@ import WinstonLogger from '@rosen-bridge/winston-logger';
 import GuardsBitcoinConfigs from '../configs/GuardsBitcoinConfigs';
 import Configs from '../configs/Configs';
 import GuardsEthereumConfigs from '../configs/GuardsEthereumConfigs';
+import { EvmRpcScanner } from '@rosen-bridge/evm-rpc-scanner';
+import { ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
 
 let ergoScanner: ErgoScanner;
+let ethereumScanner: EvmRpcScanner;
 
 /**
  * runs ergo block scanner
@@ -21,6 +24,17 @@ const ergoScannerJob = () => {
     .update()
     .then(() =>
       setTimeout(ergoScannerJob, GuardsErgoConfigs.scannerInterval * 1000)
+    );
+};
+
+const ethereumScannerJob = () => {
+  ethereumScanner
+    .update()
+    .then(() =>
+      setTimeout(
+        ethereumScannerJob,
+        GuardsEthereumConfigs.rpc.scannerInterval * 1000
+      )
     );
 };
 
@@ -54,6 +68,8 @@ const createLoggers = () => ({
   ethereumEventTriggerExtractorLogger: WinstonLogger.getInstance().getLogger(
     'ethereum-event-trigger-extractor'
   ),
+  ethereumScannerLogger:
+    WinstonLogger.getInstance().getLogger('ethereum-scanner'),
 });
 
 /**
@@ -164,6 +180,23 @@ const initScanner = () => {
   ergoScanner.registerExtractor(ethereumEventTriggerExtractor);
 
   ergoScannerJob();
+
+  if (GuardsEthereumConfigs.chainNetworkName === 'rpc') {
+    // RPC network requires ethereum scanner
+    ethereumScanner = new EvmRpcScanner(
+      ETHEREUM_CHAIN,
+      {
+        RpcUrl: GuardsEthereumConfigs.rpc.url,
+        timeout: GuardsEthereumConfigs.rpc.timeout,
+        initialHeight: GuardsEthereumConfigs.rpc.initialHeight,
+        dataSource: dataSource,
+      },
+      loggers.ethereumScannerLogger,
+      GuardsEthereumConfigs.rpc.authToken
+    );
+    // run ethereum scanner job
+    ethereumScannerJob();
+  }
 };
 
 export { initScanner };

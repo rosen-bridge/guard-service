@@ -15,6 +15,8 @@ class GuardsEthereumConfigs {
       ? config.get<string>('ethereum.rpc.authToken')
       : undefined,
     timeout: config.get<number>('ethereum.rpc.timeout'), // seconds
+    scannerInterval: config.get<number>('ethereum.rpc.scannerInterval'),
+    initialHeight: config.get<number>('ethereum.rpc.initialHeight'),
   };
 
   // value configs
