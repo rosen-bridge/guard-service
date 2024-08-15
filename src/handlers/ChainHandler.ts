@@ -232,8 +232,10 @@ class ChainHandler {
     };
     // get all supported tokens on Ethereum
     const supportedTokens = Configs.tokens()
-      .tokens.filter((tokenSet) =>
-        Object.keys(tokenSet).includes(ETHEREUM_CHAIN)
+      .tokens.filter(
+        (tokenSet) =>
+          Object.keys(tokenSet).includes(ETHEREUM_CHAIN) &&
+          tokenSet[ETHEREUM_CHAIN].metaData.type !== 'native'
       )
       .map(
         (tokenSet) =>
