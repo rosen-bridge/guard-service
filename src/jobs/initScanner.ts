@@ -11,6 +11,7 @@ import GuardsBitcoinConfigs from '../configs/GuardsBitcoinConfigs';
 import Configs from '../configs/Configs';
 import GuardsEthereumConfigs from '../configs/GuardsEthereumConfigs';
 import { EvmRpcScanner } from '@rosen-bridge/evm-rpc-scanner';
+import { EvmTxExtractor } from '@rosen-bridge/evm-address-tx-extractor';
 import { ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
 
 let ergoScanner: ErgoScanner;
@@ -70,6 +71,9 @@ const createLoggers = () => ({
   ),
   ethereumScannerLogger:
     WinstonLogger.getInstance().getLogger('ethereum-scanner'),
+  ethereumLockAddressTxExtractorLogger: WinstonLogger.getInstance().getLogger(
+    'ethereum-lock-address-tx-extractor'
+  ),
 });
 
 /**
@@ -194,6 +198,13 @@ const initScanner = () => {
       loggers.ethereumScannerLogger,
       GuardsEthereumConfigs.rpc.authToken
     );
+    const ethereumAddressTxExtractor = new EvmTxExtractor(
+      dataSource,
+      'ethereum-lock-address',
+      GuardsEthereumConfigs.ethereumContractConfig.lockAddress,
+      loggers.ethereumLockAddressTxExtractorLogger
+    );
+    ethereumScanner.registerExtractor(ethereumAddressTxExtractor);
     // run ethereum scanner job
     ethereumScannerJob();
   }
