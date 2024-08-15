@@ -21,9 +21,15 @@ class GuardsEthereumConfigs {
 
   // value configs
   static maxParallelTx = config.get<number>('ethereum.maxParallelTx');
-  static gasPriceSlippage = config.get<bigint>('ethereum.gasPriceSlippage');
-  static gasLimitSlippage = config.get<bigint>('ethereum.gasLimitSlippage');
-  static gasLimitMultiplier = config.get<bigint>('ethereum.gasLimitMultiplier');
+  static gasPriceSlippage = BigInt(
+    config.get<number>('ethereum.gasPriceSlippage')
+  );
+  static gasLimitSlippage = BigInt(
+    config.get<number>('ethereum.gasLimitSlippage')
+  );
+  static gasLimitMultiplier = BigInt(
+    config.get<number>('ethereum.gasLimitMultiplier')
+  );
 
   // confirmation configs
   static observationConfirmation = getConfigIntKeyOrDefault(
