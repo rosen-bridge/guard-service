@@ -129,7 +129,7 @@ class ChainHandlerMock {
   static getChainMockedFunction = (
     chainName: string,
     name: string
-  ): Mock<any, any> => {
+  ): Mock<any> => {
     return this.getMockedChain(chainName)[name];
   };
 
@@ -137,7 +137,7 @@ class ChainHandlerMock {
    * returns a mocked function object
    * @param name function name
    */
-  static getErgoMockedFunction = (name: string): Mock<any, any> => {
+  static getErgoMockedFunction = (name: string): Mock<any> => {
     return this.getMockedChain(ERGO_CHAIN)[name];
   };
 
