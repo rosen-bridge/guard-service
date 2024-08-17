@@ -34,9 +34,7 @@ class NotificationHandlerMock {
    * @param name function name
    * @returns the mock object
    */
-  static getNotificationHandlerMockedFunction = (
-    name: string
-  ): Mock<any, any> => {
+  static getNotificationHandlerMockedFunction = (name: string): Mock<any> => {
     return this.mockedNotificationHandler[name];
   };
 }

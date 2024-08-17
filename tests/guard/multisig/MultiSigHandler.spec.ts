@@ -1,4 +1,4 @@
-import { SpyInstance } from 'vitest';
+import { MockInstance } from 'vitest';
 import MultiSigHandler from '../../../src/guard/multisig/MultiSigHandler';
 import DialerMock, {
   dialerInstance,
@@ -201,7 +201,7 @@ describe('MultiSigHandler', () => {
         const handler = await generateMultiSigHandlerInstance(
           '168e8fee8ac6965832d6c1c17cdf60c1b582b09f293d8bd88231e32740e3b24f'
         );
-        const handleFunctions = new Map<string, SpyInstance>();
+        const handleFunctions = new Map<string, MockInstance>();
         functionNames.forEach((functionName) =>
           handleFunctions.set(
             functionName,
