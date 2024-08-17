@@ -333,7 +333,7 @@ class EventOrder {
     guardsOrder.push({
       address: GuardsErgoConfigs.bridgeFeeRepoAddress,
       assets: assets,
-      extra: paymentTxId,
+      extra: Buffer.from(paymentTxId).toString(),
     });
 
     // add emission to order
@@ -454,7 +454,7 @@ class EventOrder {
         nativeToken: minimumErg,
         tokens: guardTokens,
       },
-      extra: paymentTxId,
+      extra: Buffer.from(paymentTxId).toString(),
     });
 
     // add emission to order
