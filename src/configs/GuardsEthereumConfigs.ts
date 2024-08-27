@@ -30,6 +30,7 @@ class GuardsEthereumConfigs {
   static gasLimitMultiplier = BigInt(
     config.get<number>('ethereum.gasLimitMultiplier')
   );
+  static gasLimitCap = BigInt(config.get<number>('ethereum.gasLimitCap'));
 
   // confirmation configs
   static observationConfirmation = getConfigIntKeyOrDefault(
@@ -76,6 +77,7 @@ class GuardsEthereumConfigs {
     gasPriceSlippage: this.gasPriceSlippage,
     gasLimitSlippage: this.gasLimitSlippage,
     gasLimitMultiplier: this.gasLimitMultiplier,
+    gasLimitCap: this.gasLimitCap,
   };
 }
 
