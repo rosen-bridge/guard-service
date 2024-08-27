@@ -75,6 +75,7 @@ ethereum:
   gasPriceSlippage: 50 # allowed slippage percentage for gas price
   gasLimitSlippage: 50 # allowed slippage percentage for gas limit
   gasLimitMultiplier: 3 # a multiplication of current gas limit will be used in txs
+  gasLimitCap: 60000 # the maximum required gas limit that is allowed (the cap is used if required gas is higher)
   confirmation: # required block confirmation
     observation: 200 # an observation transaction (lock transaction) on Ethereum get confirmed
     payment: 200 # a payment transaction on Ethereum get confirmed
