@@ -1462,5 +1462,310 @@ describe('TransactionVerifier', () => {
       // verify returned value
       expect(result).toEqual(false);
     });
+
+    /**
+     * @target TransactionVerifier.verifyColdStorageTransaction should return true
+     * when active cold storage txs are transferring other tokens
+     * @dependencies
+     * - ChainHandler
+     * - database
+     * @scenario
+     * - mock transaction
+     * - insert a cold storage transaction into database
+     * - mock ChainHandler
+     *   - mock `extractTransactionOrder` implementation
+     *   - mock `getLockAddressAssets`
+     *   - mock `getChainConfigs`
+     * - run test
+     * - verify returned value
+     * @expected
+     * - returned value should be true
+     */
+    it('should return true when active cold storage txs are transferring other tokens', async () => {
+      const chain = CARDANO_CHAIN;
+      // mock transaction
+      const tx = mockPaymentTransaction(TransactionType.coldStorage, chain);
+      // insert a cold storage transaction into database
+      const coldTx = mockPaymentTransaction(TransactionType.coldStorage, chain);
+      await DatabaseActionMock.insertTxRecord(
+        coldTx,
+        TransactionStatus.approved
+      );
+      // mock ChainHandler `getChain`
+      ChainHandlerMock.mockChainName(chain);
+      // mock `extractTransactionOrder` implementation
+      const coldAddress = `coldAddress`;
+      const order: PaymentOrder = [
+        {
+          address: coldAddress,
+          assets: {
+            nativeToken: 1000000000n,
+            tokens: [
+              {
+                id: 'bb2250e4c589539fd141fbbd2c322d380f1ce2aaef812cd87110d61b.527374434f4d4554565465737432',
+                value: 100000000000n,
+              },
+            ],
+          },
+        },
+      ];
+      const activeColdTxOrder: PaymentOrder = [
+        {
+          address: coldAddress,
+          assets: {
+            nativeToken: 1000000n,
+            tokens: [
+              {
+                id: 'd2f6eb37450a3d568de93d623e69bd0ba1238daacc883d75736abd23.527374457267565465737432',
+                value: 100000000000n,
+              },
+            ],
+          },
+        },
+      ];
+      const mockedExtractTransactionOrder =
+        ChainHandlerMock.mockAndGetChainFunction(
+          chain,
+          'extractTransactionOrder'
+        );
+      mockedExtractTransactionOrder.mockImplementation((givenTx: any) => {
+        if (givenTx.txId === tx.txId) return order;
+        else if (givenTx.txId === coldTx.txId) return activeColdTxOrder;
+        else
+          throw Error(
+            `'extractTransactionOrder' is not mocked for txId [${givenTx.txId}]`
+          );
+      });
+      // mock `getLockAddressAssets`
+      const lockedAssets: AssetBalance = {
+        nativeToken: 1100000000n,
+        tokens: [
+          {
+            id: 'd2f6eb37450a3d568de93d623e69bd0ba1238daacc883d75736abd23.527374457267565465737432',
+            value: 225000000000n,
+          },
+          {
+            id: 'bb2250e4c589539fd141fbbd2c322d380f1ce2aaef812cd87110d61b.527374434f4d4554565465737432',
+            value: 500000000000n,
+          },
+        ],
+      };
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'getLockAddressAssets',
+        lockedAssets,
+        true
+      );
+      // mock `getChainConfigs`
+      ChainHandlerMock.mockChainFunction(chain, 'getChainConfigs', {
+        addresses: { cold: coldAddress },
+      });
+
+      // run test
+      const result = await TransactionVerifier.verifyColdStorageTransaction(tx);
+
+      // verify returned value
+      expect(result).toEqual(true);
+    });
+
+    /**
+     * @target TransactionVerifier.verifyColdStorageTransaction should return false
+     * when there is an active cold storage tx that is transferring the same token
+     * @dependencies
+     * - ChainHandler
+     * - database
+     * @scenario
+     * - mock transaction
+     * - insert a cold storage transaction into database
+     * - mock ChainHandler
+     *   - mock `extractTransactionOrder` implementation
+     *   - mock `getLockAddressAssets`
+     *   - mock `getChainConfigs`
+     * - run test
+     * - verify returned value
+     * @expected
+     * - returned value should be false
+     */
+    it('should return false when there is an active cold storage tx that is transferring the same token', async () => {
+      const chain = CARDANO_CHAIN;
+      // mock transaction
+      const tx = mockPaymentTransaction(TransactionType.coldStorage, chain);
+      // insert a cold storage transaction into database
+      const coldTx = mockPaymentTransaction(TransactionType.coldStorage, chain);
+      await DatabaseActionMock.insertTxRecord(
+        coldTx,
+        TransactionStatus.approved
+      );
+      // mock ChainHandler `getChain`
+      ChainHandlerMock.mockChainName(chain);
+      // mock `extractTransactionOrder` implementation
+      const coldAddress = `coldAddress`;
+      const order: PaymentOrder = [
+        {
+          address: coldAddress,
+          assets: {
+            nativeToken: 1000000000n,
+            tokens: [
+              {
+                id: 'bb2250e4c589539fd141fbbd2c322d380f1ce2aaef812cd87110d61b.527374434f4d4554565465737432',
+                value: 100000000000n,
+              },
+            ],
+          },
+        },
+      ];
+      const activeColdTxOrder: PaymentOrder = [
+        {
+          address: coldAddress,
+          assets: {
+            nativeToken: 1000000n,
+            tokens: [
+              {
+                id: 'bb2250e4c589539fd141fbbd2c322d380f1ce2aaef812cd87110d61b.527374434f4d4554565465737432',
+                value: 100000000000n,
+              },
+            ],
+          },
+        },
+      ];
+      const mockedExtractTransactionOrder =
+        ChainHandlerMock.mockAndGetChainFunction(
+          chain,
+          'extractTransactionOrder'
+        );
+      mockedExtractTransactionOrder.mockImplementation((givenTx: any) => {
+        if (givenTx.txId === tx.txId) return order;
+        else if (givenTx.txId === coldTx.txId) return activeColdTxOrder;
+        else
+          throw Error(
+            `'extractTransactionOrder' is not mocked for txId [${givenTx.txId}]`
+          );
+      });
+      // mock `getLockAddressAssets`
+      const lockedAssets: AssetBalance = {
+        nativeToken: 1100000000n,
+        tokens: [
+          {
+            id: 'd2f6eb37450a3d568de93d623e69bd0ba1238daacc883d75736abd23.527374457267565465737432',
+            value: 225000000000n,
+          },
+          {
+            id: 'bb2250e4c589539fd141fbbd2c322d380f1ce2aaef812cd87110d61b.527374434f4d4554565465737432',
+            value: 500000000000n,
+          },
+        ],
+      };
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'getLockAddressAssets',
+        lockedAssets,
+        true
+      );
+      // mock `getChainConfigs`
+      ChainHandlerMock.mockChainFunction(chain, 'getChainConfigs', {
+        addresses: { cold: coldAddress },
+      });
+
+      // run test
+      const result = await TransactionVerifier.verifyColdStorageTransaction(tx);
+
+      // verify returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target TransactionVerifier.verifyColdStorageTransaction should return false
+     * when there is an active cold storage tx that is transferring the native token
+     * @dependencies
+     * - ChainHandler
+     * - database
+     * @scenario
+     * - mock transaction
+     * - insert a cold storage transaction into database
+     * - mock ChainHandler
+     *   - mock `extractTransactionOrder` implementation
+     *   - mock `getLockAddressAssets`
+     *   - mock `getChainConfigs`
+     * - run test
+     * - verify returned value
+     * @expected
+     * - returned value should be false
+     */
+    it('should return false when there is an active cold storage tx that is transferring the native token', async () => {
+      const chain = CARDANO_CHAIN;
+      // mock transaction
+      const tx = mockPaymentTransaction(TransactionType.coldStorage, chain);
+      // insert a cold storage transaction into database
+      const coldTx = mockPaymentTransaction(TransactionType.coldStorage, chain);
+      await DatabaseActionMock.insertTxRecord(
+        coldTx,
+        TransactionStatus.approved
+      );
+      // mock ChainHandler `getChain`
+      ChainHandlerMock.mockChainName(chain);
+      // mock `extractTransactionOrder` implementation
+      const coldAddress = `coldAddress`;
+      const order: PaymentOrder = [
+        {
+          address: coldAddress,
+          assets: {
+            nativeToken: 1000000000n,
+            tokens: [],
+          },
+        },
+      ];
+      const activeColdTxOrder: PaymentOrder = [
+        {
+          address: coldAddress,
+          assets: {
+            nativeToken: 1000000000n,
+            tokens: [],
+          },
+        },
+      ];
+      const mockedExtractTransactionOrder =
+        ChainHandlerMock.mockAndGetChainFunction(
+          chain,
+          'extractTransactionOrder'
+        );
+      mockedExtractTransactionOrder.mockImplementation((givenTx: any) => {
+        if (givenTx.txId === tx.txId) return order;
+        else if (givenTx.txId === coldTx.txId) return activeColdTxOrder;
+        else
+          throw Error(
+            `'extractTransactionOrder' is not mocked for txId [${givenTx.txId}]`
+          );
+      });
+      // mock `getLockAddressAssets`
+      const lockedAssets: AssetBalance = {
+        nativeToken: 1100000000n,
+        tokens: [
+          {
+            id: 'd2f6eb37450a3d568de93d623e69bd0ba1238daacc883d75736abd23.527374457267565465737432',
+            value: 225000000000n,
+          },
+          {
+            id: 'bb2250e4c589539fd141fbbd2c322d380f1ce2aaef812cd87110d61b.527374434f4d4554565465737432',
+            value: 500000000000n,
+          },
+        ],
+      };
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'getLockAddressAssets',
+        lockedAssets,
+        true
+      );
+      // mock `getChainConfigs`
+      ChainHandlerMock.mockChainFunction(chain, 'getChainConfigs', {
+        addresses: { cold: coldAddress },
+      });
+
+      // run test
+      const result = await TransactionVerifier.verifyColdStorageTransaction(tx);
+
+      // verify returned value
+      expect(result).toEqual(false);
+    });
   });
 });

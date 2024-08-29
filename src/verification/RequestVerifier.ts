@@ -90,7 +90,6 @@ class RequestVerifier {
   /**
    * verifies the cold storage transaction request sent by other guards
    * conditions:
-   * - there is no active cold storage transaction
    * - requested tx is not malicious
    * @param tx the created payment transaction
    * @returns true if conditions are met
@@ -99,22 +98,6 @@ class RequestVerifier {
     tx: PaymentTransaction
   ): Promise<boolean> => {
     const baseError = `Received cold storage tx [${tx.txId}] `;
-
-    // check if event has any active tx for requested tx type
-    const inProgressColdStorageTxs =
-      await DatabaseAction.getInstance().getActiveColdStorageTxsInChain(
-        tx.network
-      );
-    if (
-      inProgressColdStorageTxs.length !== 0 &&
-      inProgressColdStorageTxs[0].txId !== tx.txId
-    ) {
-      logger.warn(
-        baseError +
-          `but found active cold storage tx [${inProgressColdStorageTxs[0].txId}]`
-      );
-      return false;
-    }
 
     // verify requested tx
     if (!(await TransactionVerifier.verifyColdStorageTransaction(tx))) {

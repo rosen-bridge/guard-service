@@ -121,35 +121,11 @@ class DatabaseHandler {
       await DatabaseAction.getInstance().getActiveColdStorageTxsInChain(
         newTx.network
       );
-    if (txs.length > 1) {
-      throw new ImpossibleBehavior(
-        `Chain [${newTx.network}] has already more than 1 (${txs.length}) active cold storage tx`
+    if (txs.some((tx) => tx.txId === newTx.txId)) {
+      logger.info(
+        `Reinsertion for cold storage tx [${newTx.txId}], 'failedInSign' updated to false`
       );
-    } else if (txs.length === 1) {
-      const tx = txs[0];
-      if (tx.txId === newTx.txId) {
-        logger.info(
-          `Reinsertion for cold storage tx [${tx.txId}], 'failedInSign' updated to false`
-        );
-        await DatabaseAction.getInstance().resetFailedInSign(tx.txId);
-      } else {
-        if (tx.status === TransactionStatus.approved) {
-          if (newTx.txId < tx.txId) {
-            logger.info(
-              `Replacing cold storage tx [${tx.txId}] with new transaction [${newTx.txId}] due to lower txId`
-            );
-            await DatabaseAction.getInstance().replaceTx(tx.txId, newTx);
-          } else
-            logger.info(
-              `Ignoring new cold storage tx [${newTx.txId}] due to higher txId, comparing to [${tx.txId}]`
-            );
-        } else {
-          if (newTx.txId !== tx.txId)
-            logger.warn(
-              `Received approval for new tx [${newTx.txId}] where its chain [${newTx.network}] has already in progress tx [${tx.txId}]`
-            );
-        }
-      }
+      await DatabaseAction.getInstance().resetFailedInSign(newTx.txId);
     } else
       await DatabaseAction.getInstance().insertNewTx(newTx, null, requiredSign);
   };

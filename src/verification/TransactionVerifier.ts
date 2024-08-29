@@ -16,6 +16,7 @@ import { JsonBI } from '../network/NetworkModels';
 import { DatabaseAction } from '../db/DatabaseAction';
 import WinstonLogger from '@rosen-bridge/winston-logger';
 import { ChainNativeToken } from '../utils/constants';
+import * as TransactionSerializer from '../transaction/TransactionSerializer';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
@@ -117,9 +118,10 @@ class TransactionVerifier {
    * verifies the cold storage transaction
    * conditions:
    * - tx order is to cold storage address
-   * - at least one asset required transfer
+   * - at least one asset requires transfer
    * - no forbidden asset is transferred
-   * - address remaining assets are more than low threshold
+   * - no active cold storage tx exist that is transferring the same token
+   * - transferring assets remain more than low threshold in the lock address
    * @param tx the created payment transaction
    * @returns true if conditions are met
    */
@@ -159,13 +161,47 @@ class TransactionVerifier {
     const nativeTokenId = ChainNativeToken[tx.network];
     const isNativeTokenForbade = forbiddenTokens.includes(nativeTokenId);
 
+    // no active cold storage tx exist that is transferring the same token
+    const thresholdsConfig = Configs.thresholds()[tx.network];
+    const transferringTokenIds = txOrder[0].assets.tokens.map(
+      (token) => token.id
+    );
+    const inProgressColdStorageTxs =
+      await DatabaseAction.getInstance().getActiveColdStorageTxsInChain(
+        tx.network
+      );
+    for (const activeTx of inProgressColdStorageTxs) {
+      if (activeTx.txId === tx.txId) continue;
+      const activeTxOrder = chain.extractTransactionOrder(
+        TransactionSerializer.fromJson(activeTx.txJson)
+      );
+      if (
+        activeTxOrder[0].assets.tokens.some((token) =>
+          transferringTokenIds.includes(token.id)
+        )
+      ) {
+        logger.debug(
+          `Transaction [${tx.txId}] is invalid: Tx is transferring a token that is in transfer by tx [${activeTx.txId}]`
+        );
+        return false;
+      }
+      if (
+        txOrder[0].assets.nativeToken > thresholdsConfig.maxNativeTransfer &&
+        activeTxOrder[0].assets.nativeToken > thresholdsConfig.maxNativeTransfer
+      ) {
+        logger.debug(
+          `Transaction [${tx.txId}] is invalid: Tx is transferring native token while it is also in transfer by tx [${activeTx.txId}]`
+        );
+        return false;
+      }
+    }
+
     // verify address assets
     const lockedAssets = await chain.getLockAddressAssets();
     const remainingAssets = ChainUtils.subtractAssetBalance(
       lockedAssets,
       txOrder[0].assets
     );
-    const thresholdsConfig = Configs.thresholds()[tx.network];
     const thresholds = thresholdsConfig.tokens;
 
     // verify transfer conditions for tokens
