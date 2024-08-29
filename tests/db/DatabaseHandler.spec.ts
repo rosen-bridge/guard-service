@@ -300,7 +300,7 @@ describe('DatabaseHandler', () => {
   describe('insertColdStorageTx', () => {
     /**
      * @target DatabaseHandler.insertColdStorageTx should insert tx when
-     * there is no other tx for the chain
+     * tx is not in database
      * @dependencies
      * - database
      * @scenario
@@ -310,7 +310,7 @@ describe('DatabaseHandler', () => {
      * @expected
      * - tx should be inserted into db
      */
-    it('should insert tx when there is no other tx for the chain', async () => {
+    it('should insert tx when tx is not in database', async () => {
       // mock transaction
       const chain = 'chain';
       const tx = TxTestData.mockPaymentTransaction(
@@ -329,193 +329,6 @@ describe('DatabaseHandler', () => {
         tx.chain,
       ]);
       expect(dbTxs).toEqual([[tx.txId, null, tx.network]]);
-    });
-
-    /**
-     * @target DatabaseHandler.insertColdStorageTx should insert tx when
-     * there is invalid tx for the chain
-     * @dependencies
-     * - database
-     * @scenario
-     * - mock transaction
-     * - run test (call `insertTx`)
-     * - check database
-     * @expected
-     * - tx should be inserted into db
-     */
-    it('should insert tx when there is invalid tx for the chain', async () => {
-      // mock transaction
-      const chain = 'chain';
-      const tx = TxTestData.mockPaymentTransaction(
-        TransactionType.coldStorage,
-        chain,
-        ''
-      );
-      const tx2 = TxTestData.mockPaymentTransaction(
-        TransactionType.coldStorage,
-        chain,
-        ''
-      );
-
-      // insert one of the txs into db
-      await DatabaseHandlerMock.insertTxRecord(tx2, TransactionStatus.invalid);
-
-      // run test
-      await DatabaseHandler.insertTx(tx, requiredSign);
-
-      // tx should be inserted into db
-      const dbTxs = (await DatabaseHandlerMock.allTxRecords())
-        .filter((tx) => tx.txId !== tx2.txId)
-        .map((tx) => [tx.txId, tx.event, tx.chain]);
-      expect(dbTxs).toEqual([[tx.txId, null, tx.network]]);
-    });
-
-    /**
-     * @target DatabaseHandler.insertColdStorageTx should NOT insert tx when
-     * there is already an advanced tx for the chain
-     * @dependencies
-     * - database
-     * @scenario
-     * - mock two transactions
-     * - insert one of the txs into db (with `inSign` status)
-     * - run test (call `insertTx`)
-     * - check database
-     * @expected
-     * - tx should NOT be inserted into db
-     */
-    it('should NOT insert tx when there is already an advanced tx for the chain', async () => {
-      // mock two transactions
-      const chain = 'chain';
-      const tx1 = TxTestData.mockPaymentTransaction(
-        TransactionType.coldStorage,
-        chain,
-        ''
-      );
-      const tx2 = TxTestData.mockPaymentTransaction(
-        TransactionType.coldStorage,
-        chain,
-        ''
-      );
-
-      // insert one of the txs into db
-      await DatabaseHandlerMock.insertTxRecord(tx2, TransactionStatus.inSign);
-
-      // run test
-      await DatabaseHandler.insertTx(tx1, requiredSign);
-
-      // tx should NOT be inserted into db
-      const dbTxs = (await DatabaseHandlerMock.allTxRecords()).map(
-        (tx) => tx.txId
-      );
-      expect(dbTxs).toEqual([tx2.txId]);
-    });
-
-    /**
-     * @target DatabaseHandler.insertColdStorageTx should insert tx when
-     * txId is lower than existing approved tx
-     * @dependencies
-     * - database
-     * @scenario
-     * - mock two transactions
-     * - insert tx with higher txId (with `approved` status)
-     * - run test (call `insertTx`)
-     * - check database
-     * @expected
-     * - tx should be inserted into db
-     */
-    it('should insert tx when txId is lower than existing approved tx', async () => {
-      // mock two transactions
-      const chain = 'chain';
-      const txs = [
-        TxTestData.mockPaymentTransaction(
-          TransactionType.coldStorage,
-          chain,
-          ''
-        ),
-        TxTestData.mockPaymentTransaction(
-          TransactionType.coldStorage,
-          chain,
-          ''
-        ),
-      ];
-      let highTx: PaymentTransaction;
-      let lowTx: PaymentTransaction;
-      if (txs[0].txId < txs[1].txId) {
-        highTx = txs[1];
-        lowTx = txs[0];
-      } else {
-        highTx = txs[0];
-        lowTx = txs[1];
-      }
-
-      // insert tx with higher txId (with `approved` status)
-      await DatabaseHandlerMock.insertTxRecord(
-        highTx,
-        TransactionStatus.approved
-      );
-
-      // run test
-      await DatabaseHandler.insertTx(lowTx, requiredSign);
-
-      // tx should be inserted into db
-      const dbTxs = (await DatabaseHandlerMock.allTxRecords()).map(
-        (tx) => tx.txId
-      );
-      expect(dbTxs).toEqual([lowTx.txId]);
-    });
-
-    /**
-     * @target DatabaseHandler.insertColdStorageTx should NOT insert tx when
-     * txId is higher than existing approved tx
-     * @dependencies
-     * - database
-     * @scenario
-     * - mock two transactions
-     * - insert tx with lower txId (with `approved` status)
-     * - run test (call `insertTx`)
-     * - check database
-     * @expected
-     * - tx should NOT be inserted into db
-     */
-    it('should NOT insert tx when txId is higher than existing approved tx', async () => {
-      // mock two transactions
-      const chain = 'chain';
-      const txs = [
-        TxTestData.mockPaymentTransaction(
-          TransactionType.coldStorage,
-          chain,
-          ''
-        ),
-        TxTestData.mockPaymentTransaction(
-          TransactionType.coldStorage,
-          chain,
-          ''
-        ),
-      ];
-      let highTx: PaymentTransaction;
-      let lowTx: PaymentTransaction;
-      if (txs[0].txId < txs[1].txId) {
-        highTx = txs[1];
-        lowTx = txs[0];
-      } else {
-        highTx = txs[0];
-        lowTx = txs[1];
-      }
-
-      // insert tx with lower txId (with `approved` status)
-      await DatabaseHandlerMock.insertTxRecord(
-        lowTx,
-        TransactionStatus.approved
-      );
-
-      // run test
-      await DatabaseHandler.insertTx(highTx, requiredSign);
-
-      // tx should NOT be inserted into db
-      const dbTxs = (await DatabaseHandlerMock.allTxRecords()).map(
-        (tx) => tx.txId
-      );
-      expect(dbTxs).toEqual([lowTx.txId]);
     });
 
     /**
