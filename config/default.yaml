@@ -98,6 +98,7 @@ tss:
   configPath: './bin/conf/conf.env'
   url: 'http://localhost'
   port: 9000
+  parallelSign: 5 # the maximum number of messages that can be signed in a single round
   secret: ''
   pubs:
     - curvePub: '' # ECDSA

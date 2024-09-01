@@ -93,6 +93,7 @@ class Configs {
   static tssUrl = config.get<string>('tss.url');
   static tssPort = config.get<string>('tss.port');
   static tssBaseCallBackUrl = `http://${this.apiHost}:${this.apiPort}/tss/sign`;
+  static tssParallelSignCount = config.get<number>('tss.parallelSign');
   static tssKeys = {
     secret: config.get<string>('tss.secret'),
     pubs: config.get<

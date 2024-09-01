@@ -136,6 +136,7 @@ class Tss {
       secret: Configs.tssKeys.secret,
       detection: Tss.curveGuardDetection,
       guardsPk: curvePublicKeys,
+      signPerRoundLimit: Configs.tssParallelSignCount,
       logger: WinstonLogger.getInstance().getLogger('tssSigner'),
     });
 
@@ -178,6 +179,7 @@ class Tss {
       secret: Configs.tssKeys.secret,
       detection: Tss.edwardGuardDetection,
       guardsPk: edwardPublicKeys,
+      signPerRoundLimit: Configs.tssParallelSignCount,
       logger: WinstonLogger.getInstance().getLogger('tssSigner'),
     });
 
