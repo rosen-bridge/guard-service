@@ -50,7 +50,10 @@ const ethereumScannerJob = () => {
     .catch((e) => {
       logger.warn(`An error occurred in Ethereum scanner job: ${e}`);
       logger.warn(e.stack);
-      setTimeout(ergoScannerJob, GuardsErgoConfigs.scannerInterval * 1000);
+      setTimeout(
+        ethereumScannerJob,
+        GuardsEthereumConfigs.rpc.scannerInterval * 1000
+      );
     });
 };
 
