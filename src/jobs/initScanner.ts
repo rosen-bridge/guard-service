@@ -14,6 +14,8 @@ import { EvmRpcScanner } from '@rosen-bridge/evm-rpc-scanner';
 import { EvmTxExtractor } from '@rosen-bridge/evm-address-tx-extractor';
 import { ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
 
+const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
+
 let ergoScanner: ErgoScanner;
 let ethereumScanner: EvmRpcScanner;
 
@@ -25,9 +27,17 @@ const ergoScannerJob = () => {
     .update()
     .then(() =>
       setTimeout(ergoScannerJob, GuardsErgoConfigs.scannerInterval * 1000)
-    );
+    )
+    .catch((e) => {
+      logger.warn(`An error occurred in Ergo scanner job: ${e}`);
+      logger.warn(e.stack);
+      setTimeout(ergoScannerJob, GuardsErgoConfigs.scannerInterval * 1000);
+    });
 };
 
+/**
+ * runs ethereum block scanner
+ */
 const ethereumScannerJob = () => {
   ethereumScanner
     .update()
@@ -36,7 +46,15 @@ const ethereumScannerJob = () => {
         ethereumScannerJob,
         GuardsEthereumConfigs.rpc.scannerInterval * 1000
       )
-    );
+    )
+    .catch((e) => {
+      logger.warn(`An error occurred in Ethereum scanner job: ${e}`);
+      logger.warn(e.stack);
+      setTimeout(
+        ethereumScannerJob,
+        GuardsEthereumConfigs.rpc.scannerInterval * 1000
+      );
+    });
 };
 
 /**
