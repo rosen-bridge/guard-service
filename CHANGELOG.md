@@ -1,5 +1,11 @@
 # guard-service
 
+## 4.1.2
+
+### Patch Changes
+
+- patch koios client
+
 ## 4.1.1
 
 ### Patch Changes
