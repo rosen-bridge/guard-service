@@ -31,13 +31,13 @@ import { rosenConfig } from '../configs/RosenConfig';
 import GuardPkHandler from '../handlers/GuardPkHandler';
 import { ADA_DECIMALS, ERG_DECIMALS } from '../utils/constants';
 import GuardsBitcoinConfigs from '../configs/GuardsBitcoinConfigs';
-import { BITCOIN_CHAIN } from '@rosen-chains/bitcoin';
+import { BITCOIN_CHAIN, BTC } from '@rosen-chains/bitcoin';
 import { DatabaseAction } from '../db/DatabaseAction';
 import { NotFoundError } from '@rosen-chains/abstract-chain';
 import { NotificationHandler } from '../handlers/NotificationHandler';
 import { TxProgressHealthCheckParam } from '@rosen-bridge/tx-progress-check';
 import GuardsEthereumConfigs from '../configs/GuardsEthereumConfigs';
-import { ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
+import { ETH, ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 let healthCheck: HealthCheck | undefined;
@@ -246,7 +246,7 @@ const getHealthCheck = async () => {
     }
     if (GuardsBitcoinConfigs.chainNetworkName === 'esplora') {
       const btcAssetHealthCheck = new BitcoinEsploraAssetHealthCheckParam(
-        'BTC',
+        BTC,
         bitcoinContracts.lockAddress,
         Configs.btcWarnThreshold,
         Configs.btcCriticalThreshold,
@@ -257,8 +257,8 @@ const getHealthCheck = async () => {
     }
     if (GuardsEthereumConfigs.chainNetworkName === 'rpc') {
       const ethAssetHealthCheck = new EthereumRpcAssetHealthCheckParam(
-        'eth', // id
-        'ETH', // name
+        ETH,
+        ETH,
         ethereumContracts.lockAddress,
         Configs.ethWarnThreshold,
         Configs.ethCriticalThreshold,
