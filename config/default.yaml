@@ -141,7 +141,7 @@ coldStorage:
 intervals:
   txProcessorInterval: 60
   timeoutProcessorInterval: 3600 # interval to check if events got timeout
-  requeueWaitingEventsInterval: 43200 # interval for requeue events which are timeout
+  requeueWaitingEventsInterval: 21600 # interval for requeue events which are timeout
   minimumFeeUpdateInterval: 300
 tokensPath: './config/rosen/tokens.json' # path to supported tokens of bridge
 thresholdsPath: './config/thresholds.json' # path to thresholds of lock address tokens
