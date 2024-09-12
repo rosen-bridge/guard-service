@@ -145,7 +145,6 @@ intervals:
   minimumFeeUpdateInterval: 300
 tokensPath: './config/rosen/tokens.json' # path to supported tokens of bridge
 thresholdsPath: './config/thresholds.json' # path to thresholds of lock address tokens
-discordWebHookUrl: '' # Discord webhook url for sending notifications
 database:
   type: 'sqlite' # options: postgres, sqlite
   path: './sqlite/guard.sqlite' # database path (for sqlite)
@@ -184,3 +183,10 @@ healthCheck:
     defectConfirmationTimeWindow: 120 # Time to wait after any peer disconnection
 revenue:
   interval: 120 # revenue update interval
+discordWebHookUrl: '' # Discord webhook url for sending notifications
+notification:
+  historyCleanupThreshold: 90000 # 1 day and 1 hour
+  windowDurations:
+    hasBeenUnstableForAWhile: 900
+    hasBeenUnknownForAWhile: 900
+    isStillUnhealthy: 900

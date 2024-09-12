@@ -26,13 +26,13 @@ import Configs from '../configs/Configs';
 import GuardsCardanoConfigs from '../configs/GuardsCardanoConfigs';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import { rosenConfig } from '../configs/RosenConfig';
-import { dataSource } from '../db/dataSource';
 import GuardPkHandler from '../handlers/GuardPkHandler';
 import { ADA_DECIMALS, ERG_DECIMALS } from '../utils/constants';
 import GuardsBitcoinConfigs from '../configs/GuardsBitcoinConfigs';
 import { BITCOIN_CHAIN } from '@rosen-chains/bitcoin';
 import { DatabaseAction } from '../db/DatabaseAction';
 import { NotFoundError } from '@rosen-chains/abstract-chain';
+import { NotificationHandler } from '../handlers/NotificationHandler';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 let healthCheck: HealthCheck | undefined;
@@ -43,7 +43,27 @@ let healthCheck: HealthCheck | undefined;
  */
 const getHealthCheck = async () => {
   if (!healthCheck) {
-    healthCheck = new HealthCheck();
+    const notificationHandler = NotificationHandler.getInstance();
+    const notificationConfig = {
+      historyConfig: {
+        cleanupThreshold: Configs.historyCleanupThreshold,
+      },
+      notificationCheckConfig: {
+        hasBeenUnstableForAWhile: {
+          windowDuration: Configs.hasBeenUnstableForAWhileWindowDuration,
+        },
+        hasBeenUnknownForAWhile: {
+          windowDuration: Configs.hasBeenUnknownForAWhileWindowDuration,
+        },
+        isStillUnhealthy: {
+          windowDuration: Configs.isStillUnhealthyWindowDuration,
+        },
+      },
+    };
+    healthCheck = new HealthCheck(
+      notificationHandler.notify,
+      notificationConfig
+    );
 
     const errorLogHealthCheck = new LogLevelHealthCheck(
       logger,

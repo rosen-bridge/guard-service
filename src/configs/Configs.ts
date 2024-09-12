@@ -236,8 +236,6 @@ class Configs {
     this.logs = clonedLogs;
   }
 
-  static discordWebHookUrl = config.get<string>('discordWebHookUrl');
-
   // Database Configs
   static dbType = getOptionalConfig('database.type', '');
   static dbPath = getOptionalConfig('database.path', '');
@@ -317,6 +315,21 @@ class Configs {
   static revenueUpdateInterval = getConfigIntKeyOrDefault(
     'revenue.interval',
     120
+  );
+
+  // Notification Configs
+  static discordWebHookUrl = config.get<string>('discordWebHookUrl');
+  static historyCleanupThreshold = config.get<number>(
+    'notification.historyCleanupThreshold'
+  );
+  static hasBeenUnstableForAWhileWindowDuration = config.get<number>(
+    'notification.windowDurations.hasBeenUnstableForAWhile'
+  );
+  static hasBeenUnknownForAWhileWindowDuration = config.get<number>(
+    'notification.windowDurations.hasBeenUnknownForAWhile'
+  );
+  static isStillUnhealthyWindowDuration = config.get<number>(
+    'notification.windowDurations.isStillUnhealthy'
   );
 }
 
