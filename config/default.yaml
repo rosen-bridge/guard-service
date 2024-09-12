@@ -139,7 +139,7 @@ coldStorage:
   startHour: 17 # start of cold storage transaction generation period
   endHour: 19 # end of cold storage transaction generation period
 intervals:
-  txProcessorInterval: 180
+  txProcessorInterval: 60
   timeoutProcessorInterval: 3600 # interval to check if events got timeout
   requeueWaitingEventsInterval: 43200 # interval for requeue events which are timeout
   minimumFeeUpdateInterval: 300
