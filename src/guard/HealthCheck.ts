@@ -33,6 +33,7 @@ import { BITCOIN_CHAIN } from '@rosen-chains/bitcoin';
 import { DatabaseAction } from '../db/DatabaseAction';
 import { NotFoundError } from '@rosen-chains/abstract-chain';
 import { NotificationHandler } from '../handlers/NotificationHandler';
+import { TxProgressHealthCheckParam } from '@rosen-bridge/tx-progress-check';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 let healthCheck: HealthCheck | undefined;
@@ -43,6 +44,7 @@ let healthCheck: HealthCheck | undefined;
  */
 const getHealthCheck = async () => {
   if (!healthCheck) {
+    // initialize HealthCheck
     const notificationHandler = NotificationHandler.getInstance();
     const notificationConfig = {
       historyConfig: {
@@ -65,6 +67,7 @@ const getHealthCheck = async () => {
       notificationConfig
     );
 
+    // add LogLevel param
     const errorLogHealthCheck = new LogLevelHealthCheck(
       logger,
       HealthStatusLevel.UNSTABLE,
@@ -73,8 +76,9 @@ const getHealthCheck = async () => {
       'error'
     );
     healthCheck.register(errorLogHealthCheck);
-    const dialer = await Dialer.getInstance();
 
+    // add P2PNetwork param
+    const dialer = await Dialer.getInstance();
     const p2pHealthCheck = new P2PNetworkHealthCheck({
       defectConfirmationTimeWindow: Configs.p2pDefectConfirmationTimeWindow,
       connectedGuardsHealthyThreshold:
@@ -88,6 +92,25 @@ const getHealthCheck = async () => {
       },
     });
     healthCheck.register(p2pHealthCheck);
+
+    // add TxProgress param
+    const getActiveTransactions = async () => {
+      return (await DatabaseAction.getInstance().getActiveTransactions()).map(
+        (txEntity) => ({
+          txId: txEntity.txId,
+          txType: txEntity.type,
+          signFailedCount: txEntity.signFailedCount,
+          chain: txEntity.chain,
+          eventId: txEntity.event.id,
+        })
+      );
+    };
+    const txProgressHealthCheck = new TxProgressHealthCheckParam(
+      getActiveTransactions,
+      Configs.txSignFailedWarnThreshold,
+      Configs.txSignFailedCriticalThreshold
+    );
+    healthCheck.register(txProgressHealthCheck);
 
     const ergoContracts = rosenConfig.contractReader(ERGO_CHAIN);
     const cardanoContracts = rosenConfig.contractReader(CARDANO_CHAIN);

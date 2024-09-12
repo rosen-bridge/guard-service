@@ -310,6 +310,14 @@ class Configs {
   );
   static p2pBrokenTimeAllowed =
     getConfigIntKeyOrDefault('p2p.brokenTimeAllowed', 1200) * 1000;
+  static txSignFailedWarnThreshold = getConfigIntKeyOrDefault(
+    'healthCheck.txSignFailed.warnThreshold',
+    3
+  );
+  static txSignFailedCriticalThreshold = getConfigIntKeyOrDefault(
+    'healthCheck.txSignFailed.criticalThreshold',
+    7
+  );
 
   // Revenue Config
   static revenueUpdateInterval = getConfigIntKeyOrDefault(

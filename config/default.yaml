@@ -181,6 +181,9 @@ healthCheck:
     duration: 100 # error log duration time check
   p2p:
     defectConfirmationTimeWindow: 120 # Time to wait after any peer disconnection
+  txSignFailed:
+    warnThreshold: 3
+    criticalThreshold: 7
 revenue:
   interval: 120 # revenue update interval
 discordWebHookUrl: '' # Discord webhook url for sending notifications

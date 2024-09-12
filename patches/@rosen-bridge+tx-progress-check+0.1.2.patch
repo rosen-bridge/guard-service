@@ -1,0 +1,37 @@
+diff --git a/node_modules/@rosen-bridge/tx-progress-check/dist/txProgress.d.ts b/node_modules/@rosen-bridge/tx-progress-check/dist/txProgress.d.ts
+index e8fcc82..095a829 100644
+--- a/node_modules/@rosen-bridge/tx-progress-check/dist/txProgress.d.ts
++++ b/node_modules/@rosen-bridge/tx-progress-check/dist/txProgress.d.ts
+@@ -6,7 +6,7 @@ export declare class TxProgressHealthCheckParam extends AbstractHealthCheckParam
+     private signFailedCriticalThreshold;
+     private stuckTransactions;
+     private txWithMaxSigningFailure;
+-    constructor(getActiveTransactions: () => Array<TxInfo>, signFailedWarnThreshold: number, signFailedCriticalThreshold: number);
++    constructor(getActiveTransactions: () => Promise<Array<TxInfo>>, signFailedWarnThreshold: number, signFailedCriticalThreshold: number);
+     /**
+      * Generate a title for parameter with asset name
+      *
+@@ -42,6 +42,6 @@ export declare class TxProgressHealthCheckParam extends AbstractHealthCheckParam
+     /** @returns Tx progress health status */
+     getHealthStatus: () => Promise<HealthStatusLevel>;
+     /** Update the stuck transaction list and tx with max singing failure */
+-    updateStatus: () => void;
++    updateStatus: () => Promise<void>;
+ }
+ //# sourceMappingURL=txProgress.d.ts.map
+\ No newline at end of file
+diff --git a/node_modules/@rosen-bridge/tx-progress-check/dist/txProgress.js b/node_modules/@rosen-bridge/tx-progress-check/dist/txProgress.js
+index 00ae632..c659709 100644
+--- a/node_modules/@rosen-bridge/tx-progress-check/dist/txProgress.js
++++ b/node_modules/@rosen-bridge/tx-progress-check/dist/txProgress.js
+@@ -92,8 +92,8 @@ export class TxProgressHealthCheckParam extends AbstractHealthCheckParam {
+         return HealthStatusLevel.HEALTHY;
+     };
+     /** Update the stuck transaction list and tx with max singing failure */
+-    updateStatus = () => {
+-        const activeTransactions = this.getActiveTransactions();
++    updateStatus = async () => {
++        const activeTransactions = await this.getActiveTransactions();
+         this.stuckTransactions = activeTransactions.filter((tx) => tx.signFailedCount >= this.signFailedWarnThreshold);
+         this.txWithMaxSigningFailure = maxBy(this.stuckTransactions, 'signFailedCount');
+     };
