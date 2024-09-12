@@ -51,7 +51,9 @@ const healthStatusForParameterRoute = (server: FastifySeverInstance) => {
     },
     async (request, reply) => {
       const health = await getHealthCheck();
-      const status = await health.getHealthStatusFor(request.params.paramId);
+      const status = await health.getHealthStatusWithParamId(
+        request.params.paramId
+      );
       if (!status)
         throw new Error(
           `Health parameter with id '${request.params.paramId}' is not registered.`
@@ -83,7 +85,9 @@ const updateHealthStatusForParameterRoute = (server: FastifySeverInstance) => {
     async (request, reply) => {
       const health = await getHealthCheck();
       await health.updateParam(request.params.paramId);
-      const status = await health.getHealthStatusFor(request.params.paramId);
+      const status = await health.getHealthStatusWithParamId(
+        request.params.paramId
+      );
       if (!status)
         throw new Error(
           `Health parameter with id '${request.params.paramId}' is not registered.`

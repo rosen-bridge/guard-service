@@ -31,6 +31,8 @@ import GuardPkHandler from '../handlers/GuardPkHandler';
 import { ADA_DECIMALS, ERG_DECIMALS } from '../utils/constants';
 import GuardsBitcoinConfigs from '../configs/GuardsBitcoinConfigs';
 import { BITCOIN_CHAIN } from '@rosen-chains/bitcoin';
+import { DatabaseAction } from '../db/DatabaseAction';
+import { NotFoundError } from '@rosen-chains/abstract-chain';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 let healthCheck: HealthCheck | undefined;
@@ -71,6 +73,23 @@ const getHealthCheck = async () => {
     const cardanoContracts = rosenConfig.contractReader(CARDANO_CHAIN);
     const bitcoinContracts = rosenConfig.contractReader(BITCOIN_CHAIN);
 
+    const generateLastBlockFetcher = (scannerName: string) => {
+      return async () => {
+        try {
+          return await DatabaseAction.getInstance().getLastSavedBlockForScanner(
+            scannerName
+          );
+        } catch (e) {
+          if (e instanceof NotFoundError) {
+            logger.info(
+              `No block found in database. Passing 0 as last height to HealthCheck`
+            );
+            return 0;
+          } else throw e;
+        }
+      };
+    };
+
     if (GuardsErgoConfigs.chainNetworkName === NODE_NETWORK) {
       const ergAssetHealthCheck = new ErgoNodeAssetHealthCheckParam(
         ERG,
@@ -94,9 +113,10 @@ const getHealthCheck = async () => {
       );
       healthCheck.register(emissionTokenAssetHealthCheck);
 
+      const scannerName = 'ergo-node';
       const ergoScannerSyncCheck = new ErgoNodeScannerHealthCheck(
-        dataSource,
-        'ergo-node',
+        generateLastBlockFetcher(scannerName),
+        scannerName,
         Configs.ergoScannerWarnDiff,
         Configs.ergoScannerCriticalDiff,
         GuardsErgoConfigs.node.url
@@ -135,9 +155,10 @@ const getHealthCheck = async () => {
         );
       healthCheck.register(emissionTokenAssetHealthCheck);
 
+      const scannerName = 'ergo-explorer';
       const ergoScannerSyncCheck = new ErgoExplorerScannerHealthCheck(
-        dataSource,
-        'ergo-explorer',
+        generateLastBlockFetcher(scannerName),
+        scannerName,
         Configs.ergoScannerWarnDiff,
         Configs.ergoScannerCriticalDiff,
         GuardsErgoConfigs.explorer.url
