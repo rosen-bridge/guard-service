@@ -4,6 +4,7 @@ import {
   CardanoKoiosAssetHealthCheckParam,
   ErgoExplorerAssetHealthCheckParam,
   ErgoNodeAssetHealthCheckParam,
+  EthereumRpcAssetHealthCheckParam,
 } from '@rosen-bridge/asset-check';
 import { HealthCheck, HealthStatusLevel } from '@rosen-bridge/health-check';
 import { LogLevelHealthCheck } from '@rosen-bridge/log-level-check';
@@ -12,6 +13,7 @@ import { P2PNetworkHealthCheck } from '@rosen-bridge/p2p-network-check';
 import {
   ErgoExplorerScannerHealthCheck,
   ErgoNodeScannerHealthCheck,
+  EthereumRPCScannerHealthCheck,
 } from '@rosen-bridge/scanner-sync-check';
 
 import WinstonLogger from '@rosen-bridge/winston-logger';
@@ -34,6 +36,8 @@ import { DatabaseAction } from '../db/DatabaseAction';
 import { NotFoundError } from '@rosen-chains/abstract-chain';
 import { NotificationHandler } from '../handlers/NotificationHandler';
 import { TxProgressHealthCheckParam } from '@rosen-bridge/tx-progress-check';
+import GuardsEthereumConfigs from '../configs/GuardsEthereumConfigs';
+import { ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 let healthCheck: HealthCheck | undefined;
@@ -115,6 +119,7 @@ const getHealthCheck = async () => {
     const ergoContracts = rosenConfig.contractReader(ERGO_CHAIN);
     const cardanoContracts = rosenConfig.contractReader(CARDANO_CHAIN);
     const bitcoinContracts = rosenConfig.contractReader(BITCOIN_CHAIN);
+    const ethereumContracts = rosenConfig.contractReader(ETHEREUM_CHAIN);
 
     const generateLastBlockFetcher = (scannerName: string) => {
       return async () => {
@@ -249,6 +254,30 @@ const getHealthCheck = async () => {
         8
       );
       healthCheck.register(btcAssetHealthCheck);
+    }
+    if (GuardsEthereumConfigs.chainNetworkName === 'rpc') {
+      const ethAssetHealthCheck = new EthereumRpcAssetHealthCheckParam(
+        'eth', // id
+        'ETH', // name
+        ethereumContracts.lockAddress,
+        Configs.ethWarnThreshold,
+        Configs.ethCriticalThreshold,
+        GuardsEthereumConfigs.rpc.url,
+        8
+      );
+      healthCheck.register(ethAssetHealthCheck);
+
+      const scannerName = 'ethereum-evm-rpc';
+      const ethereumScannerSyncCheck = new EthereumRPCScannerHealthCheck(
+        generateLastBlockFetcher(scannerName),
+        scannerName,
+        Configs.ethereumScannerWarnDiff,
+        Configs.ethereumScannerCriticalDiff,
+        GuardsEthereumConfigs.rpc.url,
+        GuardsEthereumConfigs.rpc.authToken,
+        GuardsEthereumConfigs.rpc.timeout
+      );
+      healthCheck.register(ethereumScannerSyncCheck);
     }
   }
 
