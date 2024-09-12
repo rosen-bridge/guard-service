@@ -276,11 +276,11 @@ class Configs {
   );
   static ergoScannerWarnDiff = getConfigIntKeyOrDefault(
     'healthCheck.ergoScanner.warnDifference',
-    2
+    5
   );
   static ergoScannerCriticalDiff = getConfigIntKeyOrDefault(
     'healthCheck.ergoScanner.criticalDifference',
-    100
+    20
   );
   static ergoNodeMaxHeightDiff = getConfigIntKeyOrDefault(
     'healthCheck.ergoNode.maxHeightDifference',

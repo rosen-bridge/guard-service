@@ -169,8 +169,8 @@ healthCheck:
       warnThreshold: 5000000 # minimum recommended btc balance
       criticalThreshold: 1000000 # minimum required btc balance
   ergoScanner:
-    warnDifference: 2 # warning difference between existing and scanned blocks height
-    criticalDifference: 100 # critical difference between existing and scanned blocks height
+    warnDifference: 5 # warning difference between existing and scanned blocks height
+    criticalDifference: 20 # critical difference between existing and scanned blocks height
   ergoNode:
     maxHeightDifference: 2 # maximum difference between header height and full height
     maxBlockTime: 1800 # maximum time to see a new block
