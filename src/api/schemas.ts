@@ -64,9 +64,13 @@ export const InfoResponseSchema = Type.Object({
 
 export const HealthStatusTypeSchema = Type.Object({
   id: Type.String(),
+  title: Type.String(),
+  description: Type.String(),
   status: Type.Enum(HealthStatusLevel),
-  description: Type.Optional(Type.String()),
   lastCheck: Type.Optional(Type.String()),
+  lastTrialErrorMessage: Type.Optional(Type.String()),
+  lastTrialErrorTime: Type.Optional(Type.String()),
+  details: Type.Optional(Type.String()),
 });
 
 export const RevenueHistoryQuerySchema = Type.Object({

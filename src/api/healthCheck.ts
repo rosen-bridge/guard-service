@@ -22,11 +22,11 @@ const healthStatusRoute = (server: FastifySeverInstance) => {
       },
     },
     async (request, reply) => {
-      const result = await (
-        await (await getHealthCheck()).getHealthStatus()
-      ).map((status) => ({
+      const health = await getHealthCheck();
+      const result = (await health.getHealthStatus()).map((status) => ({
         ...status,
         lastCheck: status.lastCheck?.toISOString(),
+        lastTrialErrorTime: status.lastTrialErrorTime?.toISOString(),
       }));
       reply.status(200).send(result);
     }
@@ -58,9 +58,11 @@ const healthStatusForParameterRoute = (server: FastifySeverInstance) => {
         throw new Error(
           `Health parameter with id '${request.params.paramId}' is not registered.`
         );
-      reply
-        .status(200)
-        .send({ ...status, lastCheck: status.lastCheck!.toISOString() });
+      reply.status(200).send({
+        ...status,
+        lastCheck: status.lastCheck?.toISOString(),
+        lastTrialErrorTime: status.lastTrialErrorTime?.toISOString(),
+      });
     }
   );
 };
@@ -92,9 +94,11 @@ const updateHealthStatusForParameterRoute = (server: FastifySeverInstance) => {
         throw new Error(
           `Health parameter with id '${request.params.paramId}' is not registered.`
         );
-      reply
-        .status(200)
-        .send({ ...status, lastCheck: status.lastCheck!.toISOString() });
+      reply.status(200).send({
+        ...status,
+        lastCheck: status.lastCheck?.toISOString(),
+        lastTrialErrorTime: status.lastTrialErrorTime?.toISOString(),
+      });
     }
   );
 };
