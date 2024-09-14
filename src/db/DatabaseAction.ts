@@ -54,6 +54,7 @@ class DatabaseAction {
 
   protected constructor(dataSource: DataSource) {
     this.dataSource = dataSource;
+    this.BlockRepository = this.dataSource.getRepository(BlockEntity);
     this.CommitmentRepository = this.dataSource.getRepository(CommitmentEntity);
     this.EventRepository = this.dataSource.getRepository(EventTriggerEntity);
     this.ConfirmedEventRepository =
