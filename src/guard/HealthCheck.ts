@@ -35,7 +35,10 @@ import { BITCOIN_CHAIN, BTC } from '@rosen-chains/bitcoin';
 import { DatabaseAction } from '../db/DatabaseAction';
 import { NotFoundError } from '@rosen-chains/abstract-chain';
 import { NotificationHandler } from '../handlers/NotificationHandler';
-import { TxProgressHealthCheckParam } from '@rosen-bridge/tx-progress-check';
+import {
+  TxInfo,
+  TxProgressHealthCheckParam,
+} from '@rosen-bridge/tx-progress-check';
 import GuardsEthereumConfigs from '../configs/GuardsEthereumConfigs';
 import { ETH, ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
 
@@ -98,7 +101,7 @@ const getHealthCheck = async () => {
     healthCheck.register(p2pHealthCheck);
 
     // add TxProgress param
-    const getActiveTransactions = async () => {
+    const getActiveTransactions = async (): Promise<TxInfo[]> => {
       return (await DatabaseAction.getInstance().getActiveTransactions()).map(
         (txEntity) => ({
           txId: txEntity.txId,

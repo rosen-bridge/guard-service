@@ -54,7 +54,7 @@
     "@rosen-bridge/scanner-sync-check": "^1.0.1",
     "@rosen-bridge/tokens": "^1.2.1",
     "@rosen-bridge/tss": "^3.0.1",
-    "@rosen-bridge/tx-progress-check": "^0.1.2",
+    "@rosen-bridge/tx-progress-check": "^1.0.0",
     "@rosen-bridge/watcher-data-extractor": "^8.0.2",
     "@rosen-bridge/winston-logger": "0.2.1",
     "@rosen-chains/abstract-chain": "^9.0.2",
