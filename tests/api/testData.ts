@@ -9,7 +9,10 @@ import { BITCOIN_CHAIN } from '@rosen-chains/bitcoin';
 
 export const guardInfo = {
   version: expect.any(String),
-  health: HealthStatusLevel.HEALTHY,
+  health: {
+    status: HealthStatusLevel.HEALTHY,
+    trialErrors: [],
+  },
   balances: {
     hot: [
       {

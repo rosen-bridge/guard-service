@@ -79,13 +79,18 @@ const infoRoute = (server: FastifySeverInstance) => {
             },
           });
         }
+        const healthCheck = await getHealthCheck();
+        const healthStatus = await healthCheck.getOverallHealthStatus();
+        const trialErrors = await healthCheck.getTrialErrors();
 
         reply.status(200).send({
           // TODO: Update dependencies like typescript and vitest
           //  local:ergo/rosen-bridge/guard-service#364
           version: Utils.readJsonFile('./package.json').version,
-          health: (await (await getHealthCheck()).getOverallHealthStatus())
-            .status,
+          health: {
+            status: healthStatus,
+            trialErrors: trialErrors,
+          },
           rsnTokenId: rosenConfig.RSN,
           emissionTokenId: GuardsErgoConfigs.emissionTokenId,
           balances: balances,

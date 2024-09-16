@@ -53,7 +53,10 @@ export const OutputItemsSchema = <T extends TProperties>(
 
 export const InfoResponseSchema = Type.Object({
   version: Type.String(),
-  health: Type.String(),
+  health: Type.Object({
+    status: Type.String(),
+    trialErrors: Type.Array(Type.String()),
+  }),
   rsnTokenId: Type.String(),
   emissionTokenId: Type.String(),
   balances: LockBalanceSchema,
@@ -61,9 +64,13 @@ export const InfoResponseSchema = Type.Object({
 
 export const HealthStatusTypeSchema = Type.Object({
   id: Type.String(),
+  title: Type.String(),
+  description: Type.String(),
   status: Type.Enum(HealthStatusLevel),
-  description: Type.Optional(Type.String()),
   lastCheck: Type.Optional(Type.String()),
+  lastTrialErrorMessage: Type.Optional(Type.String()),
+  lastTrialErrorTime: Type.Optional(Type.String()),
+  details: Type.Optional(Type.String()),
 });
 
 export const RevenueHistoryQuerySchema = Type.Object({

@@ -27,17 +27,20 @@ import { RevenueView } from './entities/revenueView';
 import { RevenueChartView } from './entities/revenueChartView';
 import {
   ImpossibleBehavior,
+  NotFoundError,
   PaymentTransaction,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
 import WinstonLogger from '@rosen-bridge/winston-logger';
 import { EventView } from './entities/EventView';
+import { BlockEntity, PROCEED } from '@rosen-bridge/scanner';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
 class DatabaseAction {
   private static instance: DatabaseAction;
   dataSource: DataSource;
+  BlockRepository: Repository<BlockEntity>;
   CommitmentRepository: Repository<CommitmentEntity>;
   EventRepository: Repository<EventTriggerEntity>;
   ConfirmedEventRepository: Repository<ConfirmedEventEntity>;
@@ -51,6 +54,7 @@ class DatabaseAction {
 
   protected constructor(dataSource: DataSource) {
     this.dataSource = dataSource;
+    this.BlockRepository = this.dataSource.getRepository(BlockEntity);
     this.CommitmentRepository = this.dataSource.getRepository(CommitmentEntity);
     this.EventRepository = this.dataSource.getRepository(EventTriggerEntity);
     this.ConfirmedEventRepository =
@@ -791,6 +795,22 @@ class DatabaseAction {
       .andWhere(`commitment."spendTxId"=ete."txId"`)
       .orderBy('commitment."spendIndex"', 'ASC')
       .getMany();
+  };
+
+  /**
+   * @param scannerName
+   * @return the last block height of the given scanner
+   */
+  getLastSavedBlockForScanner = async (
+    scannerName: string
+  ): Promise<number> => {
+    const lastBlock = await this.BlockRepository.find({
+      where: { status: PROCEED, scanner: scannerName },
+      order: { height: 'DESC' },
+      take: 1,
+    });
+    if (lastBlock.length !== 0) return lastBlock[0].height;
+    throw new NotFoundError(`No block found in database`);
   };
 }
 

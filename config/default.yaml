@@ -139,13 +139,12 @@ coldStorage:
   startHour: 17 # start of cold storage transaction generation period
   endHour: 19 # end of cold storage transaction generation period
 intervals:
-  txProcessorInterval: 180
+  txProcessorInterval: 60
   timeoutProcessorInterval: 3600 # interval to check if events got timeout
-  requeueWaitingEventsInterval: 43200 # interval for requeue events which are timeout
+  requeueWaitingEventsInterval: 21600 # interval for requeue events which are timeout
   minimumFeeUpdateInterval: 300
 tokensPath: './config/rosen/tokens.json' # path to supported tokens of bridge
 thresholdsPath: './config/thresholds.json' # path to thresholds of lock address tokens
-discordWebHookUrl: '' # Discord webhook url for sending notifications
 database:
   type: 'sqlite' # options: postgres, sqlite
   path: './sqlite/guard.sqlite' # database path (for sqlite)
@@ -169,9 +168,15 @@ healthCheck:
     btc:
       warnThreshold: 5000000 # minimum recommended btc balance
       criticalThreshold: 1000000 # minimum required btc balance
+    eth:
+      warnThreshold: '20000000000000000' # minimum recommended eth balance
+      criticalThreshold: '4000000000000000' # minimum required eth balance
   ergoScanner:
-    warnDifference: 2 # warning difference between existing and scanned blocks height
-    criticalDifference: 100 # critical difference between existing and scanned blocks height
+    warnDifference: 5 # warning difference between existing and scanned blocks height
+    criticalDifference: 20 # critical difference between existing and scanned blocks height
+  ethereumScanner:
+    warnDifference: 50 # warning difference between existing and scanned blocks height
+    criticalDifference: 200 # critical difference between existing and scanned blocks height
   ergoNode:
     maxHeightDifference: 2 # maximum difference between header height and full height
     maxBlockTime: 1800 # maximum time to see a new block
@@ -182,5 +187,15 @@ healthCheck:
     duration: 100 # error log duration time check
   p2p:
     defectConfirmationTimeWindow: 120 # Time to wait after any peer disconnection
+  txSignFailed:
+    warnThreshold: 3
+    criticalThreshold: 7
 revenue:
   interval: 120 # revenue update interval
+discordWebHookUrl: '' # Discord webhook url for sending notifications
+notification:
+  historyCleanupThreshold: 90000 # 1 day and 1 hour
+  windowDurations:
+    hasBeenUnstableForAWhile: 900
+    hasBeenUnknownForAWhile: 900
+    isStillUnhealthy: 900

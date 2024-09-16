@@ -236,8 +236,6 @@ class Configs {
     this.logs = clonedLogs;
   }
 
-  static discordWebHookUrl = config.get<string>('discordWebHookUrl');
-
   // Database Configs
   static dbType = getOptionalConfig('database.type', '');
   static dbPath = getOptionalConfig('database.path', '');
@@ -276,13 +274,27 @@ class Configs {
   static btcCriticalThreshold = BigInt(
     config.get<string>('healthCheck.asset.btc.criticalThreshold')
   );
+  static ethWarnThreshold = BigInt(
+    config.get<string>('healthCheck.asset.eth.warnThreshold')
+  );
+  static ethCriticalThreshold = BigInt(
+    config.get<string>('healthCheck.asset.eth.criticalThreshold')
+  );
   static ergoScannerWarnDiff = getConfigIntKeyOrDefault(
     'healthCheck.ergoScanner.warnDifference',
-    2
+    5
   );
   static ergoScannerCriticalDiff = getConfigIntKeyOrDefault(
     'healthCheck.ergoScanner.criticalDifference',
-    100
+    20
+  );
+  static ethereumScannerWarnDiff = getConfigIntKeyOrDefault(
+    'healthCheck.ethereumScanner.warnDifference',
+    5
+  );
+  static ethereumScannerCriticalDiff = getConfigIntKeyOrDefault(
+    'healthCheck.ethereumScanner.criticalDifference',
+    20
   );
   static ergoNodeMaxHeightDiff = getConfigIntKeyOrDefault(
     'healthCheck.ergoNode.maxHeightDifference',
@@ -312,11 +324,34 @@ class Configs {
   );
   static p2pBrokenTimeAllowed =
     getConfigIntKeyOrDefault('p2p.brokenTimeAllowed', 1200) * 1000;
+  static txSignFailedWarnThreshold = getConfigIntKeyOrDefault(
+    'healthCheck.txSignFailed.warnThreshold',
+    3
+  );
+  static txSignFailedCriticalThreshold = getConfigIntKeyOrDefault(
+    'healthCheck.txSignFailed.criticalThreshold',
+    7
+  );
 
   // Revenue Config
   static revenueUpdateInterval = getConfigIntKeyOrDefault(
     'revenue.interval',
     120
+  );
+
+  // Notification Configs
+  static discordWebHookUrl = config.get<string>('discordWebHookUrl');
+  static historyCleanupThreshold = config.get<number>(
+    'notification.historyCleanupThreshold'
+  );
+  static hasBeenUnstableForAWhileWindowDuration = config.get<number>(
+    'notification.windowDurations.hasBeenUnstableForAWhile'
+  );
+  static hasBeenUnknownForAWhileWindowDuration = config.get<number>(
+    'notification.windowDurations.hasBeenUnknownForAWhile'
+  );
+  static isStillUnhealthyWindowDuration = config.get<number>(
+    'notification.windowDurations.isStillUnhealthy'
   );
 }
 
