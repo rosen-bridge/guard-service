@@ -102,7 +102,7 @@ class MultiSigHandler {
       const publicKey = ergoTree.substring(ergoTree.length - 66);
       this.index = this.peers
         .map((peer, index) => [peer.pub, index])
-        .filter((row) => row[0] === publicKey)[0][1] as number;
+        .filter((row) => row[0] === publicKey)[0]?.[1] as number;
     }
     if (this.index !== undefined) return this.index;
     throw Error('Secret key does not match with any guard public keys');
