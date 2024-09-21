@@ -4,6 +4,7 @@ import {
   CommitmentJson,
   CommitmentPayload,
   CommunicationMessage,
+  PublicKeyNotFoundError,
   RegisterPayload,
   Signer,
   SignPayload,
@@ -71,7 +72,7 @@ class MultiSigHandler {
    */
   public sendRegister = async (): Promise<void> => {
     this.nonce = crypto.randomBytes(32).toString('base64');
-    this.sendMessage({
+    return this.sendMessage({
       type: 'register',
       payload: {
         nonce: this.nonce,
@@ -105,7 +106,7 @@ class MultiSigHandler {
         .filter((row) => row[0] === publicKey)[0]?.[1] as number;
     }
     if (this.index !== undefined) return this.index;
-    throw Error('Secret key does not match with any guard public keys');
+    throw new PublicKeyNotFoundError();
   };
 
   /**
@@ -902,7 +903,10 @@ class MultiSigHandler {
       pub: publicKey,
       unapproved: [],
     }));
-    this.sendRegister();
+    this.sendRegister().catch((e) => {
+      logger.warn('An error occurred when try sending register');
+      logger.debug(e);
+    });
   };
 }
 

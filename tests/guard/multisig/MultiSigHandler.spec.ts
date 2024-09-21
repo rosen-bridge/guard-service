@@ -12,6 +12,7 @@ import {
 import { CommitmentMisMatch } from '../../../src/utils/errors';
 import TestConfigs from '../../testUtils/TestConfigs';
 import { invalidTx, promiseCallback, validTx } from './testData';
+import { PublicKeyNotFoundError } from '../../../src/guard/multisig/Interfaces';
 
 describe('MultiSigHandler', () => {
   const publicKeys = [
@@ -111,6 +112,25 @@ describe('MultiSigHandler', () => {
         '5bc1d17d0612e696a9138ab8e85ca2a02d0171440ec128a9ad557c28bd5ea046'
       );
       expect(handler.getIndex()).toEqual(0);
+    });
+
+    /**
+     * @target MultiSigHandler.getIndex should throw Error when secret does not exists in public keys list
+     * @dependencies
+     * @scenario
+     * - run test
+     * - check returned value
+     * @expected
+     * - should throw Error
+     */
+    it('should throw Error when secret does not exists in public keys list', async () => {
+      vi.mock('MultiSigHandler.sendRegister', () => Promise.resolve());
+      const handler = await generateMultiSigHandlerInstance(
+        '5bc1d17d0612e696a9138ab8e85ca2a02d0171440ec128a9ad557c28bd5ea040'
+      );
+      expect(async () => {
+        handler.getIndex();
+      }).rejects.toThrow(PublicKeyNotFoundError);
     });
   });
 

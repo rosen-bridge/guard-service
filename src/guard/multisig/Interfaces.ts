@@ -104,6 +104,11 @@ interface CommunicationMessage {
   payload: Payload;
 }
 
+class PublicKeyNotFoundError extends Error {
+  constructor() {
+    super('Secret key does not match with any guard public keys');
+  }
+}
 export {
   TxQueued,
   CommunicationMessage,
@@ -115,4 +120,5 @@ export {
   CommitmentJson,
   PublishedCommitment,
   SingleCommitment,
+  PublicKeyNotFoundError,
 };
