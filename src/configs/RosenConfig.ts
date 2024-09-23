@@ -14,12 +14,16 @@ class ContractConfig {
   readonly RepoNFT: string;
   readonly RWTId: string;
 
-  constructor(path: string) {
+  constructor(path: string, contractVersion: string) {
     if (!fs.existsSync(path)) {
       throw new Error(`networkConfig file with path ${path} doesn't exist`);
     } else {
       const configJson: string = fs.readFileSync(path, 'utf8');
       const config = JSON.parse(configJson);
+      if (config.version !== contractVersion)
+        throw new Error(
+          `The contract version of the networkConfig file located at ${path} with version ${config.version} is incompatible with the following contract versions: ${contractVersion}.`
+        );
       this.cleanupNFT = config.tokens.CleanupNFT;
       this.cleanupConfirm = config.cleanupConfirm;
       this.permitAddress = config.addresses.WatcherPermit;
@@ -39,6 +43,7 @@ class RosenConfig {
   readonly RSN: string;
   readonly guardNFT: string;
   readonly rsnRatioNFT: string;
+  readonly contractVersion: string;
   readonly contracts: Map<string, ContractConfig>;
 
   constructor() {
@@ -58,10 +63,14 @@ class RosenConfig {
       this.RSN = config.tokens.RSN;
       this.guardNFT = config.tokens.GuardNFT;
       this.rsnRatioNFT = config.tokens.RSNRatioNFT;
+      this.contractVersion = config.version;
     }
     supportingNetworks.forEach((network) => {
       const networkName = network.split('-')[0].toLowerCase();
-      const contractConfig = new ContractConfig(this.getAddress(network));
+      const contractConfig = new ContractConfig(
+        this.getAddress(network),
+        this.contractVersion
+      );
       this.contracts.set(networkName, contractConfig);
     });
   }

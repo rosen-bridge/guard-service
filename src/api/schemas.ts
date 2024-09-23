@@ -53,6 +53,8 @@ export const OutputItemsSchema = <T extends TProperties>(
 
 export const InfoResponseSchema = Type.Object({
   version: Type.String(),
+  contractVersion: Type.String(),
+  tokensVersion: Type.String(),
   health: Type.Object({
     status: Type.String(),
     trialErrors: Type.Array(Type.String()),
