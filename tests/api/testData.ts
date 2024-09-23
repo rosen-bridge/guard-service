@@ -6,9 +6,12 @@ import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
 import { rosenConfig } from '../../src/configs/RosenConfig';
 import GuardsBitcoinConfigs from '../../src/configs/GuardsBitcoinConfigs';
 import { BITCOIN_CHAIN } from '@rosen-chains/bitcoin';
+import Configs from '../../src/configs/Configs';
 
 export const guardInfo = {
   version: expect.any(String),
+  contractVersion: rosenConfig.contractVersion,
+  tokensVersion: Configs.tokensVersion,
   health: {
     status: HealthStatusLevel.HEALTHY,
     trialErrors: [],
