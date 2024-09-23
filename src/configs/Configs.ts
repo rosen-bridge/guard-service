@@ -119,18 +119,27 @@ class Configs {
     config.get<string>(`${network}.networkType`).toLowerCase()
   );
   static addressesBasePath = config.get<string>('contracts.addressesBasePath');
+  private static tokensConfig: RosenTokens;
+  static tokensVersion: string;
   static tokens = (): RosenTokens => {
-    const tokensPath = config.get<string>('tokensPath');
-    if (!fs.existsSync(tokensPath)) {
-      throw new Error(
-        `Tokens config file with path ${tokensPath} doesn't exist`
-      );
-    } else {
-      const configJson: string = fs.readFileSync(tokensPath, 'utf8');
-      return JSON.parse(configJson);
+    if (this.tokensConfig) return this.tokensConfig;
+    else {
+      const tokensPath = config.get<string>('tokensPath');
+      if (!fs.existsSync(tokensPath)) {
+        throw new Error(
+          `Tokens config file with path ${tokensPath} doesn't exist`
+        );
+      } else {
+        const configJson: string = fs.readFileSync(tokensPath, 'utf8');
+        const tokensConfig = JSON.parse(configJson);
+        this.tokensConfig = tokensConfig;
+        this.tokensVersion = tokensConfig.version;
+        return tokensConfig;
+      }
     }
   };
   static tokenMap = new TokenMap(this.tokens());
+  static tokenMapTest = new TokenMap(this.tokens());
   static thresholds = (): ThresholdConfig => {
     const thresholdsPath = config.get<string>('thresholdsPath');
     let thresholds: ThresholdConfig;
