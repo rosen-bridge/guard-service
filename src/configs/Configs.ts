@@ -122,8 +122,7 @@ class Configs {
   private static tokensConfig: RosenTokens;
   static tokensVersion: string;
   static tokens = (): RosenTokens => {
-    if (this.tokensConfig) return this.tokensConfig;
-    else {
+    if (!this.tokensConfig) {
       const tokensPath = config.get<string>('tokensPath');
       if (!fs.existsSync(tokensPath)) {
         throw new Error(
@@ -134,12 +133,11 @@ class Configs {
         const tokensConfig = JSON.parse(configJson);
         this.tokensConfig = tokensConfig;
         this.tokensVersion = tokensConfig.version;
-        return tokensConfig;
       }
     }
+    return this.tokensConfig;
   };
   static tokenMap = new TokenMap(this.tokens());
-  static tokenMapTest = new TokenMap(this.tokens());
   static thresholds = (): ThresholdConfig => {
     const thresholdsPath = config.get<string>('thresholdsPath');
     let thresholds: ThresholdConfig;

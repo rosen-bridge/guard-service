@@ -87,9 +87,11 @@ const infoRoute = (server: FastifySeverInstance) => {
         reply.status(200).send({
           // TODO: Update dependencies like typescript and vitest
           //  local:ergo/rosen-bridge/guard-service#364
-          version: Utils.readJsonFile('./package.json').version,
-          contractVersion: rosenConfig.contractVersion,
-          tokensVersion: Configs.tokensVersion,
+          versions: {
+            app: Utils.readJsonFile('./package.json').version,
+            contract: rosenConfig.contractVersion,
+            tokensMap: Configs.tokensVersion,
+          },
           health: {
             status: healthStatus,
             trialErrors: trialErrors,

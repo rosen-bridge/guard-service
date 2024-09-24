@@ -9,9 +9,11 @@ import { BITCOIN_CHAIN } from '@rosen-chains/bitcoin';
 import Configs from '../../src/configs/Configs';
 
 export const guardInfo = {
-  version: expect.any(String),
-  contractVersion: rosenConfig.contractVersion,
-  tokensVersion: Configs.tokensVersion,
+  versions: {
+    app: expect.any(String),
+    contract: rosenConfig.contractVersion,
+    tokensMap: Configs.tokensVersion,
+  },
   health: {
     status: HealthStatusLevel.HEALTHY,
     trialErrors: [],
