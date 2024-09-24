@@ -12,6 +12,7 @@ import WinstonLogger from '@rosen-bridge/winston-logger';
 import { getTokenData } from '../utils/getTokenData';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import Utils from '../utils/Utils';
+import Configs from '../configs/Configs';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
@@ -86,7 +87,11 @@ const infoRoute = (server: FastifySeverInstance) => {
         reply.status(200).send({
           // TODO: Update dependencies like typescript and vitest
           //  local:ergo/rosen-bridge/guard-service#364
-          version: Utils.readJsonFile('./package.json').version,
+          versions: {
+            app: Utils.readJsonFile('./package.json').version,
+            contract: rosenConfig.contractVersion,
+            tokensMap: Configs.tokensVersion,
+          },
           health: {
             status: healthStatus,
             trialErrors: trialErrors,

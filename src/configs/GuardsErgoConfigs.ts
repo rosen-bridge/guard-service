@@ -84,12 +84,6 @@ class GuardsErgoConfigs {
   // the ergo-related contract, addresses and tokens in rosen bridge
   static ergoContractConfig = rosenConfig.contractReader(ERGO_CHAIN);
 
-  // Ergo rosen extractor required configs
-  static extractorOptions = {
-    lockAddress: this.ergoContractConfig.lockAddress,
-    tokens: Configs.tokens(),
-  };
-
   // ErgoChain required configs
   static chainConfigs: ErgoConfigs = {
     fee: this.txFee,
