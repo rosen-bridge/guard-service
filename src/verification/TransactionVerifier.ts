@@ -35,7 +35,7 @@ class TransactionVerifier {
     const chain = ChainHandler.getInstance().getChain(tx.network);
 
     // verify tx fee
-    if (!chain.verifyTransactionFee(tx)) {
+    if (!(await chain.verifyTransactionFee(tx))) {
       logger.debug(`Transaction [${tx.txId}] is invalid: Fee is not verified`);
       return false;
     }

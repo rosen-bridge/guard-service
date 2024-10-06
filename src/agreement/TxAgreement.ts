@@ -1,4 +1,4 @@
-import { EventStatus } from '../utils/constants';
+import { EventStatus, TransactionStatus } from '../utils/constants';
 import {
   CandidateTransaction,
   TransactionRequest,
@@ -518,13 +518,19 @@ class TxAgreement extends Communicator {
         );
         await this.updateEventOfApprovedTx(tx);
       } else {
-        logger.debug(
-          `Tx [${tx.txId}] is already in database. Only reinserting tx...`
-        );
-        await DatabaseHandler.insertTx(
-          tx,
-          GuardPkHandler.getInstance().requiredSign
-        );
+        if (txRecord.status === TransactionStatus.invalid) {
+          logger.debug(
+            `Tx [${tx.txId}] is already in database and invalid. Reinsertion is skipped`
+          );
+        } else {
+          logger.debug(
+            `Tx [${tx.txId}] is already in database. Only reinserting tx...`
+          );
+          await DatabaseHandler.insertTx(
+            tx,
+            GuardPkHandler.getInstance().requiredSign
+          );
+        }
       }
       this.transactions.delete(tx.txId);
       this.transactionApprovals.delete(tx.txId);

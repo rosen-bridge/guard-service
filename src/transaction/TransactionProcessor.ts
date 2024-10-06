@@ -249,7 +249,7 @@ class TransactionProcessor {
           const paymentTx = TransactionSerializer.fromJson(tx.txJson);
           const validityStatus = await chain.isTxValid(
             paymentTx,
-            SigningStatus.UnSigned
+            SigningStatus.Signed
           );
           if (validityStatus.isValid) {
             // tx is valid. resending...
