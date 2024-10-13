@@ -310,18 +310,16 @@ class Configs {
     'healthCheck.ergoNode.maxPeerHeightDifference',
     2
   );
+  static logDuration =
+    getConfigIntKeyOrDefault('healthCheck.logs.duration', 600) * 1000;
   static errorLogAllowedCount = getConfigIntKeyOrDefault(
-    'healthCheck.errorLog.maxAllowedCount',
+    'healthCheck.logs.maxAllowedErrorCount',
     1
   );
-  static errorLogDuration =
-    getConfigIntKeyOrDefault('healthCheck.errorLog.duration', 600) * 1000;
   static warnLogAllowedCount = getConfigIntKeyOrDefault(
-    'healthCheck.warnLog.maxAllowedCount',
+    'healthCheck.logs.maxAllowedWarnCount',
     10
   );
-  static warnLogDuration =
-    getConfigIntKeyOrDefault('healthCheck.warnLog.duration', 600) * 1000;
   static p2pDefectConfirmationTimeWindow = getConfigIntKeyOrDefault(
     'healthCheck.p2p.defectConfirmationTimeWindow',
     120

@@ -79,14 +79,14 @@ const getHealthCheck = async () => {
       WinstonLogger.getInstance().getDefaultLogger(),
       HealthStatusLevel.UNSTABLE,
       Configs.errorLogAllowedCount,
-      Configs.errorLogDuration,
+      Configs.logDuration,
       'error'
     );
     const warnLogHealthCheck = new LogLevelHealthCheck(
       WinstonLogger.getInstance().getDefaultLogger(),
       HealthStatusLevel.UNSTABLE,
       Configs.warnLogAllowedCount,
-      Configs.warnLogDuration,
+      Configs.logDuration,
       'warn'
     );
     healthCheck.register(errorLogHealthCheck);

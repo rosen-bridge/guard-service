@@ -182,12 +182,10 @@ healthCheck:
     maxBlockTime: 1800 # maximum time to see a new block
     minPeerCount: 10 # minimum recommended peers
     maxPeerHeightDifference: 2 # maximum difference between peers and our node
-  errorLog:
-    maxAllowedCount: 1 # maximum allowed error log lines
-    duration: 600 # error log duration time check
-  warnLog:
-    maxAllowedCount: 10 # maximum allowed error log lines
-    duration: 600 # error log duration time check
+  logs:
+    duration: 600 # log duration time check
+    maxAllowedErrorCount: 1 # maximum allowed error log lines
+    maxAllowedWarnCount: 10 # maximum allowed warn log lines
   p2p:
     defectConfirmationTimeWindow: 120 # Time to wait after any peer disconnection
   txSignFailed:
