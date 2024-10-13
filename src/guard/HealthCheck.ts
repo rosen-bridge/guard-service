@@ -76,13 +76,21 @@ const getHealthCheck = async () => {
 
     // add LogLevel param
     const errorLogHealthCheck = new LogLevelHealthCheck(
-      logger,
+      WinstonLogger.getInstance().getDefaultLogger(),
       HealthStatusLevel.UNSTABLE,
       Configs.errorLogAllowedCount,
-      Configs.errorLogDuration,
+      Configs.logDuration,
       'error'
     );
+    const warnLogHealthCheck = new LogLevelHealthCheck(
+      WinstonLogger.getInstance().getDefaultLogger(),
+      HealthStatusLevel.UNSTABLE,
+      Configs.warnLogAllowedCount,
+      Configs.logDuration,
+      'warn'
+    );
     healthCheck.register(errorLogHealthCheck);
+    healthCheck.register(warnLogHealthCheck);
 
     // add P2PNetwork param
     const dialer = await Dialer.getInstance();
