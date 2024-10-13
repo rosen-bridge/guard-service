@@ -314,10 +314,14 @@ class Configs {
     'healthCheck.errorLog.maxAllowedCount',
     1
   );
-  static errorLogDuration = getConfigIntKeyOrDefault(
-    'healthCheck.errorLog.duration',
+  static errorLogDuration =
+    getConfigIntKeyOrDefault('healthCheck.errorLog.duration', 600) * 1000;
+  static warnLogAllowedCount = getConfigIntKeyOrDefault(
+    'healthCheck.warnLog.maxAllowedCount',
     10
   );
+  static warnLogDuration =
+    getConfigIntKeyOrDefault('healthCheck.warnLog.duration', 600) * 1000;
   static p2pDefectConfirmationTimeWindow = getConfigIntKeyOrDefault(
     'healthCheck.p2p.defectConfirmationTimeWindow',
     120
