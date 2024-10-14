@@ -1,6 +1,6 @@
 {
   "name": "guard-service",
-  "version": "4.1.1",
+  "version": "5.0.0",
   "description": "",
   "main": "dist/src/index.js",
   "type": "module",

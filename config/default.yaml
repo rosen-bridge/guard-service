@@ -71,16 +71,16 @@ ethereum:
     timeout: 8
     initialHeight: -1
     scannerInterval: 20
-  maxParallelTx: 5 # maximum number of txs to be processed with the same nonce (note that only one of these transactions will be succeed)
+  maxParallelTx: 2 # maximum number of txs to be processed with the same nonce (note that only one of these transactions will be succeed)
   gasPriceSlippage: 50 # allowed slippage percentage for gas price
   gasLimitSlippage: 50 # allowed slippage percentage for gas limit
   gasLimitMultiplier: 3 # a multiplication of current gas limit will be used in txs
-  gasLimitCap: 60000 # the maximum required gas limit that is allowed (the cap is used if required gas is higher)
+  gasLimitCap: 80000 # the maximum required gas limit that is allowed (the cap is used if required gas is higher)
   confirmation: # required block confirmation
-    observation: 200 # an observation transaction (lock transaction) on Ethereum get confirmed
-    payment: 200 # a payment transaction on Ethereum get confirmed
-    cold: 200 # a cold storage transaction on Ethereum get confirmed
-    manual: 200 # a manual transaction on Ethereum get confirmed
+    observation: 50 # an observation transaction (lock transaction) on Ethereum get confirmed
+    payment: 50 # a payment transaction on Ethereum get confirmed
+    cold: 50 # a cold storage transaction on Ethereum get confirmed
+    manual: 50 # a manual transaction on Ethereum get confirmed
   tssChainCode: ''
   derivationPath:
     -
