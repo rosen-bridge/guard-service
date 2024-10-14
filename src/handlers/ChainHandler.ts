@@ -24,7 +24,7 @@ import MultiSigHandler from '../guard/multisig/MultiSigHandler';
 import Tss from '../guard/Tss';
 import WinstonLogger from '@rosen-bridge/winston-logger';
 import { BLOCKFROST_NETWORK } from '@rosen-chains/cardano-blockfrost-network';
-import CardanoBlockFrostNetwork from '@rosen-chains/cardano-blockfrost-network/dist/CardanoBlockFrostNetwork';
+import CardanoBlockFrostNetwork from '@rosen-chains/cardano-blockfrost-network';
 import BitcoinEsploraNetwork from '@rosen-chains/bitcoin-esplora';
 import GuardsBitcoinConfigs from '../configs/GuardsBitcoinConfigs';
 import EthereumChain from '@rosen-chains/ethereum/dist/EthereumChain';
@@ -33,6 +33,9 @@ import GuardsEthereumConfigs from '../configs/GuardsEthereumConfigs';
 import EvmRpcNetwork from '@rosen-chains/evm-rpc';
 import { dataSource } from '../db/dataSource';
 import { ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
+import BinanceChain from '@rosen-chains/binance/dist/BinanceChain';
+import GuardsBinanceConfigs from '../configs/GuardsBinanceConfigs';
+import { BINANCE_CHAIN } from '@rosen-chains/binance';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
@@ -42,12 +45,14 @@ class ChainHandler {
   private readonly cardanoChain: CardanoChain;
   private readonly bitcoinChain: BitcoinChain;
   private readonly ethereumChain: EthereumChain;
+  private readonly binanceChain: BinanceChain;
 
   private constructor() {
     this.ergoChain = this.generateErgoChain();
     this.cardanoChain = this.generateCardanoChain();
     this.bitcoinChain = this.generateBitcoinChain();
     this.ethereumChain = this.generateEthereumChain();
+    this.binanceChain = this.generateBinanceChain();
     logger.info('ChainHandler instantiated');
   }
 
@@ -252,6 +257,68 @@ class ChainHandler {
   };
 
   /**
+   * generates Binance network and chain objects using configs
+   * @returns BinanceChain object
+   */
+  private generateBinanceChain = (): BinanceChain => {
+    let network: AbstractEvmNetwork;
+    switch (GuardsBinanceConfigs.chainNetworkName) {
+      case 'rpc':
+        network = new EvmRpcNetwork(
+          BINANCE_CHAIN,
+          GuardsBinanceConfigs.rpc.url,
+          dataSource,
+          GuardsBinanceConfigs.binanceContractConfig.lockAddress,
+          GuardsBinanceConfigs.rpc.authToken,
+          WinstonLogger.getInstance().getLogger('BinanceRpcNetwork')
+        );
+        break;
+      default:
+        throw Error(
+          `No case is defined for network [${GuardsBinanceConfigs.chainNetworkName}]`
+        );
+    }
+    const chainCode = GuardsBinanceConfigs.tssChainCode;
+    const derivationPath = GuardsBinanceConfigs.derivationPath;
+    const curveSign = Tss.getInstance().curveSign;
+    const tssSignFunctionWrapper = async (
+      txHash: Uint8Array
+    ): Promise<{
+      signature: string;
+      signatureRecovery: string;
+    }> => {
+      const res = await curveSign(
+        Buffer.from(txHash).toString('hex'),
+        chainCode,
+        derivationPath
+      );
+      return {
+        signature: res.signature,
+        signatureRecovery: res.signatureRecovery!,
+      };
+    };
+    // get all supported tokens on Binance
+    const supportedTokens = Configs.tokens()
+      .tokens.filter(
+        (tokenSet) =>
+          Object.keys(tokenSet).includes(BINANCE_CHAIN) &&
+          tokenSet[BINANCE_CHAIN].metaData.type !== 'native'
+      )
+      .map(
+        (tokenSet) =>
+          tokenSet[BINANCE_CHAIN][Configs.tokenMap.getIdKey(BINANCE_CHAIN)]
+      );
+    return new BinanceChain(
+      network,
+      GuardsBinanceConfigs.chainConfigs,
+      Configs.tokens(),
+      supportedTokens,
+      tssSignFunctionWrapper,
+      WinstonLogger.getInstance().getLogger('BinanceChain')
+    );
+  };
+
+  /**
    * gets chain object by name
    * @param chain chain name
    * @returns chain object
@@ -266,6 +333,8 @@ class ChainHandler {
         return this.bitcoinChain;
       case ETHEREUM_CHAIN:
         return this.ethereumChain;
+      case BINANCE_CHAIN:
+        return this.binanceChain;
       default:
         throw Error(`Chain [${chain}] is not implemented`);
     }

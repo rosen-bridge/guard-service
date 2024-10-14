@@ -21,5 +21,8 @@ cardano:
 ethereum:
   rpc:
     authToken: 'ETHEREUM_RPC_AUTH_TOKEN'
+binance:
+  rpc:
+    authToken: 'BINANCE_RPC_AUTH_TOKEN'
 overrideLokiBasicAuth: 'OVERRIDE_LOKI_BASIC_AUTH'
 discordWebHookUrl: 'DISCORD_WEBHOOK_URL'
