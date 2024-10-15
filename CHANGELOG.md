@@ -34,6 +34,12 @@
 - change default tx processor interval to 1 minute
 - fix unhandled promise in TransactionVerifier
 
+## 4.1.2
+
+### Patch Changes
+
+- patch koios client
+
 ## 4.1.1
 
 ### Patch Changes
