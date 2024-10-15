@@ -1,3 +1,4 @@
+import { HealthStatusLevel } from '@rosen-bridge/health-check';
 import { AssetBalance } from '@rosen-chains/abstract-chain';
 import { BITCOIN_CHAIN } from '@rosen-chains/bitcoin';
 import { CARDANO_CHAIN } from '@rosen-chains/cardano';
@@ -39,11 +40,13 @@ describe('generalInfo', () => {
      * @target fastifyServer[GET /info] should return general info of the guard correctly
      * @dependencies
      * - ChainHandler
+     * - HealthCheck
      * @scenario
      * - mock ChainHandler
      *   - mock Ergo functions
      *   - mock Cardano functions
      *   - mock Bitcoin functions
+     * - mock healthCheck
      * - send a request to the server
      * - check the result
      * @expected
@@ -125,6 +128,18 @@ describe('generalInfo', () => {
         'getChainConfigs',
         GuardsBitcoinConfigs.chainConfigs
       );
+
+      // mock healthCheck
+      vi.mock('../../src/guard/HealthCheck', () => {
+        return {
+          getHealthCheck: vi.fn().mockResolvedValue({
+            getOverallHealthStatus: vi
+              .fn()
+              .mockResolvedValue(HealthStatusLevel.HEALTHY),
+            getTrialErrors: vi.fn().mockResolvedValue([]),
+          }),
+        };
+      });
 
       // send a request to the server
       const result = await mockedServer.inject({

@@ -93,6 +93,7 @@ class Configs {
   static tssUrl = config.get<string>('tss.url');
   static tssPort = config.get<string>('tss.port');
   static tssBaseCallBackUrl = `http://${this.apiHost}:${this.apiPort}/tss/sign`;
+  static tssParallelSignCount = config.get<number>('tss.parallelSign');
   static tssKeys = {
     secret: config.get<string>('tss.secret'),
     pubs: config.get<
@@ -118,29 +119,55 @@ class Configs {
     config.get<string>(`${network}.networkType`).toLowerCase()
   );
   static addressesBasePath = config.get<string>('contracts.addressesBasePath');
+  private static tokensConfig: RosenTokens;
+  static tokensVersion: string;
   static tokens = (): RosenTokens => {
-    const tokensPath = config.get<string>('tokensPath');
-    if (!fs.existsSync(tokensPath)) {
-      throw new Error(
-        `Tokens config file with path ${tokensPath} doesn't exist`
-      );
-    } else {
-      const configJson: string = fs.readFileSync(tokensPath, 'utf8');
-      return JSON.parse(configJson);
+    if (!this.tokensConfig) {
+      const tokensPath = config.get<string>('tokensPath');
+      if (!fs.existsSync(tokensPath)) {
+        throw new Error(
+          `Tokens config file with path ${tokensPath} doesn't exist`
+        );
+      } else {
+        const configJson: string = fs.readFileSync(tokensPath, 'utf8');
+        const tokensConfig = JSON.parse(configJson);
+        this.tokensConfig = tokensConfig;
+        this.tokensVersion = tokensConfig.version;
+      }
     }
+    return this.tokensConfig;
   };
+  static tokenMap = new TokenMap(this.tokens());
   static thresholds = (): ThresholdConfig => {
     const thresholdsPath = config.get<string>('thresholdsPath');
+    let thresholds: ThresholdConfig;
     if (!fs.existsSync(thresholdsPath)) {
       throw new Error(
         `Asset thresholds config file with path ${thresholdsPath} doesn't exist`
       );
     } else {
       const configJson: string = fs.readFileSync(thresholdsPath, 'utf8');
-      return JsonBI.parse(configJson);
+      thresholds = JsonBI.parse(configJson);
     }
+    // wrap values
+    for (const chain of Object.keys(thresholds)) {
+      const tokenIds = Object.keys(thresholds[chain].tokens);
+      tokenIds.forEach((tokenId) => {
+        thresholds[chain].tokens[tokenId].high = this.tokenMap.wrapAmount(
+          tokenId,
+          thresholds[chain].tokens[tokenId].high,
+          chain
+        ).amount;
+        thresholds[chain].tokens[tokenId].low = this.tokenMap.wrapAmount(
+          tokenId,
+          thresholds[chain].tokens[tokenId].low,
+          chain
+        ).amount;
+      });
+    }
+
+    return thresholds;
   };
-  static tokenMap = new TokenMap(this.tokens());
 
   // timeout configs
   static eventTimeout = getConfigIntKeyOrDefault('eventTimeout', 24 * 60 * 60); // seconds
@@ -216,8 +243,6 @@ class Configs {
     this.logs = clonedLogs;
   }
 
-  static discordWebHookUrl = config.get<string>('discordWebHookUrl');
-
   // Database Configs
   static dbType = getOptionalConfig('database.type', '');
   static dbPath = getOptionalConfig('database.path', '');
@@ -256,13 +281,27 @@ class Configs {
   static btcCriticalThreshold = BigInt(
     config.get<string>('healthCheck.asset.btc.criticalThreshold')
   );
+  static ethWarnThreshold = BigInt(
+    config.get<string>('healthCheck.asset.eth.warnThreshold')
+  );
+  static ethCriticalThreshold = BigInt(
+    config.get<string>('healthCheck.asset.eth.criticalThreshold')
+  );
   static ergoScannerWarnDiff = getConfigIntKeyOrDefault(
     'healthCheck.ergoScanner.warnDifference',
-    2
+    5
   );
   static ergoScannerCriticalDiff = getConfigIntKeyOrDefault(
     'healthCheck.ergoScanner.criticalDifference',
-    100
+    20
+  );
+  static ethereumScannerWarnDiff = getConfigIntKeyOrDefault(
+    'healthCheck.ethereumScanner.warnDifference',
+    5
+  );
+  static ethereumScannerCriticalDiff = getConfigIntKeyOrDefault(
+    'healthCheck.ethereumScanner.criticalDifference',
+    20
   );
   static ergoNodeMaxHeightDiff = getConfigIntKeyOrDefault(
     'healthCheck.ergoNode.maxHeightDifference',
@@ -278,12 +317,14 @@ class Configs {
     'healthCheck.ergoNode.maxPeerHeightDifference',
     2
   );
+  static logDuration =
+    getConfigIntKeyOrDefault('healthCheck.logs.duration', 600) * 1000;
   static errorLogAllowedCount = getConfigIntKeyOrDefault(
-    'healthCheck.errorLog.maxAllowedCount',
+    'healthCheck.logs.maxAllowedErrorCount',
     1
   );
-  static errorLogDuration = getConfigIntKeyOrDefault(
-    'healthCheck.errorLog.duration',
+  static warnLogAllowedCount = getConfigIntKeyOrDefault(
+    'healthCheck.logs.maxAllowedWarnCount',
     10
   );
   static p2pDefectConfirmationTimeWindow = getConfigIntKeyOrDefault(
@@ -292,11 +333,34 @@ class Configs {
   );
   static p2pBrokenTimeAllowed =
     getConfigIntKeyOrDefault('p2p.brokenTimeAllowed', 1200) * 1000;
+  static txSignFailedWarnThreshold = getConfigIntKeyOrDefault(
+    'healthCheck.txSignFailed.warnThreshold',
+    3
+  );
+  static txSignFailedCriticalThreshold = getConfigIntKeyOrDefault(
+    'healthCheck.txSignFailed.criticalThreshold',
+    7
+  );
 
   // Revenue Config
   static revenueUpdateInterval = getConfigIntKeyOrDefault(
     'revenue.interval',
     120
+  );
+
+  // Notification Configs
+  static discordWebHookUrl = config.get<string>('discordWebHookUrl');
+  static historyCleanupThreshold = config.get<number>(
+    'notification.historyCleanupThreshold'
+  );
+  static hasBeenUnstableForAWhileWindowDuration = config.get<number>(
+    'notification.windowDurations.hasBeenUnstableForAWhile'
+  );
+  static hasBeenUnknownForAWhileWindowDuration = config.get<number>(
+    'notification.windowDurations.hasBeenUnknownForAWhile'
+  );
+  static isStillUnhealthyWindowDuration = config.get<number>(
+    'notification.windowDurations.isStillUnhealthy'
   );
 }
 

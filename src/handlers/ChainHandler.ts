@@ -27,6 +27,12 @@ import { BLOCKFROST_NETWORK } from '@rosen-chains/cardano-blockfrost-network';
 import CardanoBlockFrostNetwork from '@rosen-chains/cardano-blockfrost-network/dist/CardanoBlockFrostNetwork';
 import BitcoinEsploraNetwork from '@rosen-chains/bitcoin-esplora';
 import GuardsBitcoinConfigs from '../configs/GuardsBitcoinConfigs';
+import EthereumChain from '@rosen-chains/ethereum/dist/EthereumChain';
+import { AbstractEvmNetwork } from '@rosen-chains/evm';
+import GuardsEthereumConfigs from '../configs/GuardsEthereumConfigs';
+import EvmRpcNetwork from '@rosen-chains/evm-rpc';
+import { dataSource } from '../db/dataSource';
+import { ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
@@ -35,11 +41,13 @@ class ChainHandler {
   private readonly ergoChain: ErgoChain;
   private readonly cardanoChain: CardanoChain;
   private readonly bitcoinChain: BitcoinChain;
+  private readonly ethereumChain: EthereumChain;
 
   private constructor() {
     this.ergoChain = this.generateErgoChain();
     this.cardanoChain = this.generateCardanoChain();
     this.bitcoinChain = this.generateBitcoinChain();
+    this.ethereumChain = this.generateEthereumChain();
     logger.info('ChainHandler instantiated');
   }
 
@@ -182,6 +190,68 @@ class ChainHandler {
   };
 
   /**
+   * generates Ethereum network and chain objects using configs
+   * @returns EthereumChain object
+   */
+  private generateEthereumChain = (): EthereumChain => {
+    let network: AbstractEvmNetwork;
+    switch (GuardsEthereumConfigs.chainNetworkName) {
+      case 'rpc':
+        network = new EvmRpcNetwork(
+          ETHEREUM_CHAIN,
+          GuardsEthereumConfigs.rpc.url,
+          dataSource,
+          GuardsEthereumConfigs.ethereumContractConfig.lockAddress,
+          GuardsEthereumConfigs.rpc.authToken,
+          WinstonLogger.getInstance().getLogger('EthereumRpcNetwork')
+        );
+        break;
+      default:
+        throw Error(
+          `No case is defined for network [${GuardsEthereumConfigs.chainNetworkName}]`
+        );
+    }
+    const chainCode = GuardsEthereumConfigs.tssChainCode;
+    const derivationPath = GuardsEthereumConfigs.derivationPath;
+    const curveSign = Tss.getInstance().curveSign;
+    const tssSignFunctionWrapper = async (
+      txHash: Uint8Array
+    ): Promise<{
+      signature: string;
+      signatureRecovery: string;
+    }> => {
+      const res = await curveSign(
+        Buffer.from(txHash).toString('hex'),
+        chainCode,
+        derivationPath
+      );
+      return {
+        signature: res.signature,
+        signatureRecovery: res.signatureRecovery!,
+      };
+    };
+    // get all supported tokens on Ethereum
+    const supportedTokens = Configs.tokens()
+      .tokens.filter(
+        (tokenSet) =>
+          Object.keys(tokenSet).includes(ETHEREUM_CHAIN) &&
+          tokenSet[ETHEREUM_CHAIN].metaData.type !== 'native'
+      )
+      .map(
+        (tokenSet) =>
+          tokenSet[ETHEREUM_CHAIN][Configs.tokenMap.getIdKey(ETHEREUM_CHAIN)]
+      );
+    return new EthereumChain(
+      network,
+      GuardsEthereumConfigs.chainConfigs,
+      Configs.tokens(),
+      supportedTokens,
+      tssSignFunctionWrapper,
+      WinstonLogger.getInstance().getLogger('EthereumChain')
+    );
+  };
+
+  /**
    * gets chain object by name
    * @param chain chain name
    * @returns chain object
@@ -194,6 +264,8 @@ class ChainHandler {
         return this.cardanoChain;
       case BITCOIN_CHAIN:
         return this.bitcoinChain;
+      case ETHEREUM_CHAIN:
+        return this.ethereumChain;
       default:
         throw Error(`Chain [${chain}] is not implemented`);
     }

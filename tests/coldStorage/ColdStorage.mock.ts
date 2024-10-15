@@ -1,8 +1,8 @@
-import { SpyInstance } from 'vitest';
+import { MockInstance } from 'vitest';
 import ColdStorage from '../../src/coldStorage/ColdStorage';
 
 class ColdStorageMock {
-  private static mockMap = new Map<string, SpyInstance>();
+  private static mockMap = new Map<string, MockInstance>();
 
   /**
    * restores all mocked functions of ColdStorage
@@ -29,7 +29,7 @@ class ColdStorageMock {
    * @param name function name
    * @returns the spy object
    */
-  static getMockedSpy = (name: string): SpyInstance => {
+  static getMockedSpy = (name: string): MockInstance => {
     const spy = this.mockMap.get(name);
     if (!spy) throw Error(`Spy object [${name}] is not found`);
     return spy;

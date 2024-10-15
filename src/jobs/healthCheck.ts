@@ -13,7 +13,9 @@ const healthCheckUpdateJob = async (healthCheck: HealthCheck) => {
     // TODO: remove this part after fixing p2p problem
     //  local:ergo/rosen-bridge/p2p#11
     if (Configs.p2pBrokenTimeAllowed !== 0) {
-      const status = await healthCheck.getHealthStatusFor('P2P Network');
+      const status = await healthCheck.getHealthStatusWithParamId(
+        'P2P Network'
+      );
       if (status?.status === HealthStatusLevel.BROKEN) {
         const diff = Date.now() - lastP2pUp;
         if (diff > Configs.p2pBrokenTimeAllowed) {

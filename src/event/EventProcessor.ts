@@ -5,7 +5,7 @@ import EventSerializer from './EventSerializer';
 import EventOrder from './EventOrder';
 import EventBoxes from './EventBoxes';
 import MinimumFeeHandler from '../handlers/MinimumFeeHandler';
-import { EventStatus } from '../utils/constants';
+import { EventStatus, EventUnexpectedFailsLimit } from '../utils/constants';
 import {
   EventTrigger,
   ImpossibleBehavior,
@@ -13,7 +13,6 @@ import {
   PaymentTransaction,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
-import Notification from '../communication/notification/Notification';
 import { ChainMinimumFee } from '@rosen-bridge/minimum-fee';
 import ChainHandler from '../handlers/ChainHandler';
 import { ERGO_CHAIN, ErgoChain } from '@rosen-chains/ergo';
@@ -24,6 +23,7 @@ import { DatabaseAction } from '../db/DatabaseAction';
 import GuardTurn from '../utils/GuardTurn';
 import GuardPkHandler from '../handlers/GuardPkHandler';
 import WinstonLogger from '@rosen-bridge/winston-logger';
+import { NotificationHandler } from '../handlers/NotificationHandler';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
@@ -88,6 +88,17 @@ class EventProcessor {
           );
           continue;
         }
+        // check how many times event txs unexpectedly failed
+        if (event.unexpectedFails >= EventUnexpectedFailsLimit) {
+          logger.warn(
+            `Event [${event.id}] will no longer be processed due to too much unexpected failures`
+          );
+          await DatabaseAction.getInstance().setEventStatus(
+            event.id,
+            EventStatus.reachedLimit
+          );
+          continue;
+        }
         // process event
         if (event.status === EventStatus.pendingPayment)
           await this.processPaymentEvent(
@@ -148,7 +159,9 @@ class EventProcessor {
       if (e instanceof NotEnoughAssetsError) {
         logger.warn(`Failed to create payment for event [${eventId}]: ${e}`);
         logger.warn(e.stack);
-        await Notification.getInstance().sendMessage(
+        await NotificationHandler.getInstance().notify(
+          'error',
+          `Low Assets in ${event.toChain}`,
           `Failed to create payment for event [${eventId}] due to low assets: ${e}`
         );
         await DatabaseAction.getInstance().setEventStatus(
@@ -280,7 +293,9 @@ class EventProcessor {
           `Failed to create reward distribution for event [${eventId}]: ${e}`
         );
         logger.warn(e.stack);
-        await Notification.getInstance().sendMessage(
+        await NotificationHandler.getInstance().notify(
+          'error',
+          `Low Assets in Ergo`,
           `Failed to create reward distribution for event [${eventId}] due to low assets: ${e}`
         );
         await DatabaseAction.getInstance().setEventStatus(

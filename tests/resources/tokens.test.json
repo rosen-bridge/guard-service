@@ -1,4 +1,5 @@
 {
+  "version": "testVersion",
   "idKeys": {
     "ergo": "tokenId",
     "cardano": "tokenId",
@@ -143,6 +144,28 @@
         "metaData": {
           "type": "native",
           "residency": "native"
+        }
+      }
+    },
+    {
+      "ergo": {
+        "tokenId": "79b6e982d95211bbc2a8ffc6d087694511f0b85ca6d4894e58b766c8fa69dfd4",
+        "name": "MDToken-loen",
+        "decimals": 4,
+        "metaData": {
+          "type": "EIP-004",
+          "residency": "native"
+        }
+      },
+      "cardano": {
+        "tokenId": "ac0a478c70238bff24e20107ebe399e7f3a3e854037622427206b024.72734d44546f6b656e2d6c6f656e",
+        "policyId": "ac0a478c70238bff24e20107ebe399e7f3a3e854037622427206b024",
+        "assetName": "72734d44546f6b656e2d6c6f656e",
+        "name": "rsMDToken-loen",
+        "decimals": 1,
+        "metaData": {
+          "type": "CIP26",
+          "residency": "wrapped"
         }
       }
     }

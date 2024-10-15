@@ -42,7 +42,8 @@ const assetsRoute = (server: FastifySeverInstance) => {
         const nativeTokenData = getTokenData(
           currentChain,
           nativeTokenId,
-          currentChain
+          currentChain,
+          true
         );
         tokenList.push({
           tokenId: nativeTokenId,
@@ -55,7 +56,12 @@ const assetsRoute = (server: FastifySeverInstance) => {
         });
         // add tokens
         assets.tokens.forEach((token) => {
-          const tokenData = getTokenData(currentChain, token.id, currentChain);
+          const tokenData = getTokenData(
+            currentChain,
+            token.id,
+            currentChain,
+            true
+          );
           const coldToken = coldAssets.tokens.find(
             (coldToken) => coldToken.id === token.id
           );
@@ -80,13 +86,15 @@ const assetsRoute = (server: FastifySeverInstance) => {
             const tokens = Configs.tokenMap.search(currentChain, {
               [Configs.tokenMap.getIdKey(currentChain)]: tokenId,
             });
+            const significantDecimals =
+              Configs.tokenMap.getSignificantDecimals(tokenId);
             if (tokens.length) {
               tokenData = {
                 tokenId: tokenId,
                 name: tokens[0][currentChain].name,
                 amount: 0,
                 coldAmount: 0,
-                decimals: tokens[0][currentChain].decimals,
+                decimals: significantDecimals!,
                 chain: currentChain,
                 isNativeToken:
                   tokens[0][currentChain].metaData.type === 'native',

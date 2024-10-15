@@ -8,7 +8,6 @@ import { initScanner } from './jobs/initScanner';
 import { healthCheckStart } from './jobs/healthCheck';
 import ChainHandler from './handlers/ChainHandler';
 import TxAgreement from './agreement/TxAgreement';
-import Notification from './communication/notification/Notification';
 import MultiSigHandler from './guard/multisig/MultiSigHandler';
 import { configUpdateJob } from './jobs/guardConfigUpdate';
 import MultiSigUtils from './guard/multisig/MultiSigUtils';
@@ -20,10 +19,11 @@ import { revenueJob } from './jobs/revenue';
 import GuardPkHandler from './handlers/GuardPkHandler';
 import MinimumFeeHandler from './handlers/MinimumFeeHandler';
 import { minimumFeeUpdateJob } from './jobs/minimumFee';
+import { NotificationHandler } from './handlers/NotificationHandler';
 
 const init = async () => {
-  // initialize Notification object
-  await Notification.getInstance();
+  // initialize NotificationHandler object
+  NotificationHandler.setup();
 
   // initialize all data sources
   await initDataSources();

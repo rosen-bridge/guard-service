@@ -24,4 +24,9 @@ export class ConfirmedEventEntity {
     nullable: true,
   })
   firstTry: string;
+
+  @Column('integer', {
+    default: 0,
+  })
+  unexpectedFails: number;
 }

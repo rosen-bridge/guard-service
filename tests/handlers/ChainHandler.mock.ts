@@ -129,15 +129,29 @@ class ChainHandlerMock {
   static getChainMockedFunction = (
     chainName: string,
     name: string
-  ): Mock<any, any> => {
+  ): Mock<any> => {
     return this.getMockedChain(chainName)[name];
+  };
+
+  /**
+   * mocks a function for mocked chain and return the mock object
+   * @param chainName mocked chain name
+   * @param name function name
+   */
+  static mockAndGetChainFunction = (
+    chainName: string,
+    name: string
+  ): Mock<any> => {
+    const chain = this.getMockedChain(chainName);
+    chain[name] = vi.fn();
+    return chain[name];
   };
 
   /**
    * returns a mocked function object
    * @param name function name
    */
-  static getErgoMockedFunction = (name: string): Mock<any, any> => {
+  static getErgoMockedFunction = (name: string): Mock<any> => {
     return this.getMockedChain(ERGO_CHAIN)[name];
   };
 

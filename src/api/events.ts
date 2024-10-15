@@ -47,7 +47,8 @@ const eventsHistoryRoute = (server: FastifySeverInstance) => {
         const token = getTokenData(
           event.fromChain,
           event.sourceChainTokenId,
-          event.fromChain
+          event.fromChain,
+          true
         );
 
         const tokenData: TokenData = {
@@ -122,7 +123,8 @@ const ongoingEventsRoute = (server: FastifySeverInstance) => {
         const token = getTokenData(
           event.fromChain,
           event.sourceChainTokenId,
-          event.fromChain
+          event.fromChain,
+          true
         );
 
         const tokenData: TokenData = {
