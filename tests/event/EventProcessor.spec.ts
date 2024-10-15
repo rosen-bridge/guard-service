@@ -32,10 +32,10 @@ import {
 } from './mocked/EventOrder.mock';
 import TxAgreementMock from '../agreement/mocked/TxAgreement.mock';
 import { ErgoTransaction } from '@rosen-chains/ergo';
-import NotificationMock from '../communication/notification/mocked/Notification.mock';
 import { mockGuardTurn } from '../utils/mocked/GuardTurn.mock';
 import TestConfigs from '../testUtils/TestConfigs';
 import { mockPaymentTransaction } from 'tests/agreement/testData';
+import NotificationHandlerMock from '../handlers/NotificationHandler.mock';
 
 describe('EventProcessor', () => {
   describe('processScannedEvents', () => {
@@ -356,6 +356,73 @@ describe('EventProcessor', () => {
       // reset mocked function
       processPaymentEventSpy.mockRestore();
     });
+
+    /**
+     * @target EventProcessor.processConfirmedEvents should update event status
+     * to reached-limit when too much txs of the event are failed
+     * @dependencies
+     * - database
+     * - EventProcessor
+     * - GuardTurn
+     * @scenario
+     * - mock a pending payment event and insert into db
+     * - mock `processPaymentEvent`
+     * - mock GuardTurn to return guard index
+     * - run test
+     * - check if function got called
+     * - check status of events in db
+     * - reset mocked function
+     * @expected
+     * - `processPaymentEvent` should NOT got called
+     * - event status should be updated to reached-limit
+     */
+    it('should update event status to reached-limit when too much txs of the event are failed', async () => {
+      // mock a pending payment event and insert into db
+      const mockedEvent: EventTrigger = mockEventTrigger().event;
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent,
+        EventStatus.pendingPayment,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        5
+      );
+
+      // mock `processPaymentEvent`
+      const mockedProcessor = vi.fn();
+      const processPaymentEventSpy = vi.spyOn(
+        EventProcessor,
+        'processPaymentEvent'
+      );
+      processPaymentEventSpy.mockImplementation(mockedProcessor);
+
+      // mock GuardTurn to return guard index
+      mockGuardTurn(TestConfigs.guardIndex);
+
+      // run test
+      await EventProcessor.processConfirmedEvents();
+
+      // `processPaymentEvent` should got called
+      expect(mockedProcessor).not.toHaveBeenCalled();
+
+      // event status should be updated to reached-limit
+      const dbEvents = (await DatabaseActionMock.allEventRecords()).map(
+        (event) => [event.id, event.status]
+      );
+      expect(dbEvents).to.deep.contain([
+        EventSerializer.getId(mockedEvent),
+        EventStatus.reachedLimit,
+      ]);
+
+      // reset mocked function
+      processPaymentEventSpy.mockRestore();
+    });
   });
 
   describe('processPaymentEvent', () => {
@@ -367,8 +434,8 @@ describe('EventProcessor', () => {
       ChainHandlerMock.resetMock();
       TxAgreementMock.resetMock();
       TxAgreementMock.mock();
-      NotificationMock.resetMock();
-      NotificationMock.mock();
+      NotificationHandlerMock.resetMock();
+      NotificationHandlerMock.mock();
     });
 
     /**
@@ -694,7 +761,7 @@ describe('EventProcessor', () => {
      * - check if function got called
      * @expected
      * - event status should be updated in db
-     * - Notification `sendMessage` should got called
+     * - Notification `notify` should got called
      */
     it('should set event as waiting when there is not enough assets in lock address to create payment', async () => {
       // mock feeConfig
@@ -778,7 +845,7 @@ describe('EventProcessor', () => {
       TxAgreementMock.mockGetChainPendingTransactions([]);
 
       // mock Notification
-      NotificationMock.mockSendMessage();
+      NotificationHandlerMock.mockNotify();
 
       // run test
       await EventProcessor.processPaymentEvent(mockedEvent);
@@ -793,9 +860,9 @@ describe('EventProcessor', () => {
         EventStatus.paymentWaiting,
       ]);
 
-      // Notification `sendMessage` should got called
+      // Notification `notify` should got called
       expect(
-        NotificationMock.getNotificationMockedFunction('sendMessage')
+        NotificationHandlerMock.getNotificationHandlerMockedFunction('notify')
       ).toHaveBeenCalledOnce();
     });
 
@@ -940,8 +1007,8 @@ describe('EventProcessor', () => {
       ChainHandlerMock.resetMock();
       TxAgreementMock.resetMock();
       TxAgreementMock.mock();
-      NotificationMock.resetMock();
-      NotificationMock.mock();
+      NotificationHandlerMock.resetMock();
+      NotificationHandlerMock.mock();
     });
 
     /**
@@ -1110,7 +1177,7 @@ describe('EventProcessor', () => {
      * - check if function got called
      * @expected
      * - event status should be updated in db
-     * - Notification `sendMessage` should got called
+     * - Notification `notify` should got called
      */
     it('should set event as waiting when there is not enough assets in lock address to create reward distribution', async () => {
       // mock feeConfig
@@ -1192,7 +1259,7 @@ describe('EventProcessor', () => {
       TxAgreementMock.mockGetChainPendingTransactions([]);
 
       // mock Notification
-      NotificationMock.mockSendMessage();
+      NotificationHandlerMock.mockNotify();
 
       // mock GuardTurn to return guard index
       mockGuardTurn(TestConfigs.guardIndex);
@@ -1210,9 +1277,9 @@ describe('EventProcessor', () => {
         EventStatus.rewardWaiting,
       ]);
 
-      // Notification `sendMessage` should got called
+      // Notification `notify` should got called
       expect(
-        NotificationMock.getNotificationMockedFunction('sendMessage')
+        NotificationHandlerMock.getNotificationHandlerMockedFunction('notify')
       ).toHaveBeenCalledOnce();
     });
 

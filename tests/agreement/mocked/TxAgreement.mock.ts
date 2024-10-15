@@ -51,7 +51,7 @@ class TxAgreementMock {
    * @param name function name
    * @returns the mock object
    */
-  static getMockedFunction = (name: string): Mock<any, any> => {
+  static getMockedFunction = (name: string): Mock<any> => {
     return this.mockedTxAgreement[name];
   };
 }

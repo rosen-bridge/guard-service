@@ -20,6 +20,10 @@ import { RevenueView } from './entities/revenueView';
 
 import migrations from './migrations';
 import { EventView } from './entities/EventView';
+import {
+  AddressTxsEntity,
+  migrations as addressTxExtractorMigrations,
+} from '@rosen-bridge/evm-address-tx-extractor';
 
 const dbType = Configs.dbType as keyof typeof migrations;
 const dbConfigs = {
@@ -34,10 +38,12 @@ const dbConfigs = {
     RevenueView,
     RevenueChartView,
     EventView,
+    AddressTxsEntity,
   ],
   migrations: [
     ...scannerMigrations[dbType],
     ...watcherDataExtractorMigrations[dbType],
+    ...addressTxExtractorMigrations[dbType],
     ...migrations[dbType],
   ],
   synchronize: false,

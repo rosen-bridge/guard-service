@@ -12,6 +12,7 @@ import WinstonLogger from '@rosen-bridge/winston-logger';
 import { getTokenData } from '../utils/getTokenData';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import Utils from '../utils/Utils';
+import Configs from '../configs/Configs';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
@@ -43,7 +44,12 @@ const infoRoute = (server: FastifySeverInstance) => {
           const abstractChain = chainHandler.getChain(chain);
           // TODO: improve getting chain native token
           //  local:ergo/rosen-bridge/guard-service#274
-          const nativeTokenData = getTokenData(chain, nativeTokenId, chain);
+          const nativeTokenData = getTokenData(
+            chain,
+            nativeTokenId,
+            chain,
+            true
+          );
 
           const hotAmount = (
             await abstractChain.getLockAddressAssets()
@@ -74,13 +80,22 @@ const infoRoute = (server: FastifySeverInstance) => {
             },
           });
         }
+        const healthCheck = await getHealthCheck();
+        const healthStatus = await healthCheck.getOverallHealthStatus();
+        const trialErrors = await healthCheck.getTrialErrors();
 
         reply.status(200).send({
           // TODO: Update dependencies like typescript and vitest
           //  local:ergo/rosen-bridge/guard-service#364
-          version: Utils.readJsonFile('./package.json').version,
-          health: (await (await getHealthCheck()).getOverallHealthStatus())
-            .status,
+          versions: {
+            app: Utils.readJsonFile('./package.json').version,
+            contract: rosenConfig.contractVersion,
+            tokensMap: Configs.tokensVersion,
+          },
+          health: {
+            status: healthStatus,
+            trialErrors: trialErrors,
+          },
           rsnTokenId: rosenConfig.RSN,
           emissionTokenId: GuardsErgoConfigs.emissionTokenId,
           balances: balances,

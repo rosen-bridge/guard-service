@@ -16,7 +16,11 @@ export default defineConfig({
       provider: 'istanbul',
       include: ['src'],
     },
-    singleThread: true,
+    poolOptions: {
+      forks: {
+        singleFork: true,
+      },
+    },
   },
   plugins: [wasm(), topLevelAwait()],
 });

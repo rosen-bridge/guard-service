@@ -1,5 +1,39 @@
 # guard-service
 
+## 5.0.0
+
+### Major Changes
+
+- integrate ethereum
+- change paymentTxId format in R4 from hex string to string
+- support contract and tokensMap version and update info controller for version configs
+- consider decimals drop
+
+### Minor Changes
+
+- update health-check APIs regarding to latest changes
+- consider reason of invalidation while marking txs as invalid
+- limit number of try for events based on their unexpected failures
+- add notification to health-check
+- add warn level to logger health parameter and tune the thresholds
+- add tx progress health-check parameter
+- refactor cold storage tx verification and its insertion handler to support parallel cold storage txs
+
+### Patch Changes
+
+- update notification handler
+- send notification whenever a transaction becomes invalid
+- change ergo scanner sync health-check thresholds
+- add guard current version to logs
+- update dependencies
+- add TSS parallel sign limit to config
+- change default requeue waiting events interval to 6 hours
+- catch scanner errors to avoid crash
+- fix bug in TransactionProcessor while recognizing a potential signed tx as unsigned
+- skip tx reinsertion for invalid txs
+- change default tx processor interval to 1 minute
+- fix unhandled promise in TransactionVerifier
+
 ## 4.1.2
 
 ### Patch Changes

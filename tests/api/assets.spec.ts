@@ -91,11 +91,16 @@ describe('assets', () => {
     );
   };
 
-  const mockErgoLockAddressAssets = () => {
+  const mockErgoLockAddressAssets = (addMultiDecimalToken = false) => {
     const lockBalance: AssetBalance = {
       nativeToken: 10n,
       tokens: [{ id: 'id', value: 20n }],
     };
+    if (addMultiDecimalToken)
+      lockBalance.tokens.push({
+        id: '79b6e982d95211bbc2a8ffc6d087694511f0b85ca6d4894e58b766c8fa69dfd4',
+        value: 2000n,
+      });
     ChainHandlerMock.mockErgoFunctionReturnValue(
       'getLockAddressAssets',
       lockBalance
@@ -122,18 +127,18 @@ describe('assets', () => {
     });
 
     /**
-     * @target fastifyServer[GET /assets] should return ergo guard assets correctly with ergo chain filter
+     * @target fastifyServer[GET /assets] should return ergo guard assets with significant decimals
      * @dependencies
      * @scenario
-     * - mock getLockAddressAssets function of ChainHandler for ergo
+     * - mock getLockAddressAssets function of ChainHandler for ergo with multi decimal token
      * - send a request to the mockedServer
      * - check the result
      * @expected
      * - should return status code 200
      * - should return ergo guard assets correctly
      */
-    it('should return ergo guard assets correctly with ergo chain filter', async () => {
-      mockErgoLockAddressAssets();
+    it('should return ergo guard assets with significant decimals', async () => {
+      mockErgoLockAddressAssets(true);
       mockErgoColdAddressAssets();
       const result = await mockedServer.inject({
         method: 'GET',
@@ -162,8 +167,18 @@ describe('assets', () => {
             coldAmount: 30,
             isNativeToken: false,
           },
+          {
+            tokenId:
+              '79b6e982d95211bbc2a8ffc6d087694511f0b85ca6d4894e58b766c8fa69dfd4',
+            name: 'MDToken-loen',
+            decimals: 1,
+            amount: 2000,
+            chain: ERGO_CHAIN,
+            coldAmount: 0,
+            isNativeToken: false,
+          },
         ],
-        total: 2,
+        total: 3,
       });
       expect(ChainHandler.getInstance().getChain).not.toBeCalledWith(
         CARDANO_CHAIN
