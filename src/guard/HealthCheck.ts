@@ -116,7 +116,7 @@ const getHealthCheck = async () => {
           txType: txEntity.type,
           signFailedCount: txEntity.signFailedCount,
           chain: txEntity.chain,
-          eventId: txEntity.event.id,
+          eventId: txEntity.event?.id ?? '',
         })
       );
     };
