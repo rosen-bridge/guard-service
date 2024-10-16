@@ -116,7 +116,7 @@ const getHealthCheck = async () => {
           txType: txEntity.type,
           signFailedCount: txEntity.signFailedCount,
           chain: txEntity.chain,
-          eventId: txEntity.event.id,
+          eventId: txEntity.event?.id ?? '',
         })
       );
     };
@@ -274,7 +274,9 @@ const getHealthCheck = async () => {
         Configs.ethWarnThreshold,
         Configs.ethCriticalThreshold,
         GuardsEthereumConfigs.rpc.url,
-        8
+        8,
+        GuardsEthereumConfigs.rpc.authToken,
+        18
       );
       healthCheck.register(ethAssetHealthCheck);
 
