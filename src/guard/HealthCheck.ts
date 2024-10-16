@@ -274,7 +274,9 @@ const getHealthCheck = async () => {
         Configs.ethWarnThreshold,
         Configs.ethCriticalThreshold,
         GuardsEthereumConfigs.rpc.url,
-        8
+        8,
+        GuardsEthereumConfigs.rpc.authToken,
+        18
       );
       healthCheck.register(ethAssetHealthCheck);
 
