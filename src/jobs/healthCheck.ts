@@ -29,9 +29,14 @@ const healthCheckUpdateJob = async (healthCheck: HealthCheck) => {
       }
     }
   } catch (e) {
-    logger.warn(
-      `Health check update job failed for , ${e.message}, ${e.stack}`
-    );
+    if (e instanceof AggregateError) {
+      logger.warn(
+        `Health check update job failed: ${e.errors.map(
+          (error) => error.message
+        )}`
+      );
+    } else logger.warn(`Health check update job failed: ${e.message}`);
+    logger.warn(e.stack);
   }
   setTimeout(
     () => healthCheckUpdateJob(healthCheck),
