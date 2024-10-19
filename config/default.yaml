@@ -199,4 +199,4 @@ notification:
   windowDurations:
     hasBeenUnstableForAWhile: 900
     hasBeenUnknownForAWhile: 900
-    isStillUnhealthy: 900
+    isStillUnhealthy: 86400 # 1 day
