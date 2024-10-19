@@ -49,6 +49,10 @@ class GuardsBinanceConfigs {
     'binance.confirmation.manual',
     200
   );
+  static arbitraryTxConfirmation = getConfigIntKeyOrDefault(
+    'binance.confirmation.arbitrary',
+    200
+  );
 
   // the ergo-related contract, addresses and tokens in rosen bridge
   static binanceContractConfig = rosenConfig.contractReader(BINANCE_CHAIN);
@@ -65,6 +69,7 @@ class GuardsBinanceConfigs {
       payment: this.paymentConfirmation,
       cold: this.coldTxConfirmation,
       manual: this.manualTxConfirmation,
+      arbitrary: this.arbitraryTxConfirmation,
     },
     addresses: {
       lock: this.binanceContractConfig.lockAddress,
