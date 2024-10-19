@@ -6,8 +6,7 @@ import {
   ErgoNodeAssetHealthCheckParam,
   EthereumRpcAssetHealthCheckParam,
 } from '@rosen-bridge/asset-check';
-import { HealthCheck, HealthStatusLevel } from '@rosen-bridge/health-check';
-import { LogLevelHealthCheck } from '@rosen-bridge/log-level-check';
+import { HealthCheck } from '@rosen-bridge/health-check';
 import { ErgoNodeSyncHealthCheckParam } from '@rosen-bridge/node-sync-check';
 import { P2PNetworkHealthCheck } from '@rosen-bridge/p2p-network-check';
 import {
@@ -73,24 +72,6 @@ const getHealthCheck = async () => {
       notificationHandler.notify,
       notificationConfig
     );
-
-    // add LogLevel param
-    const errorLogHealthCheck = new LogLevelHealthCheck(
-      DefaultLoggerFactory.getInstance().getDefaultLogger(),
-      HealthStatusLevel.UNSTABLE,
-      Configs.errorLogAllowedCount,
-      Configs.logDuration,
-      'error'
-    );
-    const warnLogHealthCheck = new LogLevelHealthCheck(
-      DefaultLoggerFactory.getInstance().getDefaultLogger(),
-      HealthStatusLevel.UNSTABLE,
-      Configs.warnLogAllowedCount,
-      Configs.logDuration,
-      'warn'
-    );
-    healthCheck.register(errorLogHealthCheck);
-    healthCheck.register(warnLogHealthCheck);
 
     // add P2PNetwork param
     const dialer = await Dialer.getInstance();
