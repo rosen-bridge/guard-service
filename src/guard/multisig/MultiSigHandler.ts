@@ -17,9 +17,9 @@ import { Semaphore } from 'await-semaphore';
 import Encryption from '../../utils/Encryption';
 import MultiSigUtils from './MultiSigUtils';
 import { CommitmentMisMatch } from '../../utils/errors';
-import WinstonLogger from '@rosen-bridge/winston-logger';
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 
-const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
+const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
 class MultiSigHandler {
   private static instance: MultiSigHandler;

@@ -5,9 +5,9 @@ import MinimumFeeHandler from '../handlers/MinimumFeeHandler';
 import { EventStatus, TransactionStatus } from '../utils/constants';
 import TransactionVerifier from './TransactionVerifier';
 import { DatabaseAction } from '../db/DatabaseAction';
-import WinstonLogger from '@rosen-bridge/winston-logger';
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 
-const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
+const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
 class RequestVerifier {
   /**

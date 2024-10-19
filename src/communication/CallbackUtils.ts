@@ -1,9 +1,9 @@
 import axios from 'axios';
 import CommunicationConfig from './CommunicationConfig';
 import { SubscribeChannelWithURL } from './Interfaces';
-import WinstonLogger from '@rosen-bridge/winston-logger';
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 
-const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
+const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
 const apiCallBack: SubscribeChannelWithURL['func'] = (
   msg,
@@ -29,7 +29,7 @@ const apiCallBack: SubscribeChannelWithURL['func'] = (
   data.catch((error) => {
     if (axios.isAxiosError(error)) {
       logger.warn(`An error occurred while calling api url ${url}: ${error}`);
-      logger.warn(error.stack);
+      if (error.stack) logger.warn(error.stack);
       if (error.response) {
         logger.debug(
           `The request was made and the server responded with a non-2xx code.`,

@@ -1,10 +1,10 @@
 import { HealthCheck, HealthStatusLevel } from '@rosen-bridge/health-check';
 import { getHealthCheck } from '../guard/HealthCheck';
 import Configs from '../configs/Configs';
-import WinstonLogger from '@rosen-bridge/winston-logger';
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { exit } from 'process';
 
-const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
+const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 let lastP2pUp = Date.now();
 
 const healthCheckUpdateJob = async (healthCheck: HealthCheck) => {
