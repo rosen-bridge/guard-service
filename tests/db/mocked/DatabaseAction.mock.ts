@@ -19,10 +19,10 @@ import { DatabaseAction } from '../../../src/db/DatabaseAction';
 import { RevenueEntity } from '../../../src/db/entities/revenueEntity';
 import { RevenueChartView } from '../../../src/db/entities/revenueChartView';
 import { RevenueView } from '../../../src/db/entities/revenueView';
-import WinstonLogger from '@rosen-bridge/winston-logger';
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { EventView } from '../../../src/db/entities/EventView';
 
-const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
+const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
 class DatabaseActionMock {
   static testDataSource = new DataSource({

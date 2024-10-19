@@ -14,11 +14,11 @@ import Configs from '../configs/Configs';
 import DatabaseHandler from '../db/DatabaseHandler';
 import { JsonBI } from '../network/NetworkModels';
 import { DatabaseAction } from '../db/DatabaseAction';
-import WinstonLogger from '@rosen-bridge/winston-logger';
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { ChainNativeToken } from '../utils/constants';
 import * as TransactionSerializer from '../transaction/TransactionSerializer';
 
-const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
+const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
 class TransactionVerifier {
   /**

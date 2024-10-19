@@ -11,10 +11,10 @@ import * as crypto from 'crypto';
 import Dialer from '../communication/Dialer';
 import Configs from '../configs/Configs';
 import { spawn } from 'child_process';
-import WinstonLogger from '@rosen-bridge/winston-logger';
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { TssAlgorithms } from '../utils/constants';
 
-const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
+const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
 class Tss {
   private static instance: Tss;
@@ -137,7 +137,7 @@ class Tss {
       detection: Tss.curveGuardDetection,
       guardsPk: curvePublicKeys,
       signPerRoundLimit: Configs.tssParallelSignCount,
-      logger: WinstonLogger.getInstance().getLogger('tssSigner'),
+      logger: DefaultLoggerFactory.getInstance().getLogger('tssSigner'),
     });
 
     // subscribe to channels
@@ -180,7 +180,7 @@ class Tss {
       detection: Tss.edwardGuardDetection,
       guardsPk: edwardPublicKeys,
       signPerRoundLimit: Configs.tssParallelSignCount,
-      logger: WinstonLogger.getInstance().getLogger('tssSigner'),
+      logger: DefaultLoggerFactory.getInstance().getLogger('tssSigner'),
     });
 
     // subscribe to channels

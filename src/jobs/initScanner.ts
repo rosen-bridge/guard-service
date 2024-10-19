@@ -6,7 +6,7 @@ import {
 } from '@rosen-bridge/watcher-data-extractor';
 import GuardsCardanoConfigs from '../configs/GuardsCardanoConfigs';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
-import WinstonLogger from '@rosen-bridge/winston-logger';
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import GuardsBitcoinConfigs from '../configs/GuardsBitcoinConfigs';
 import Configs from '../configs/Configs';
 import GuardsEthereumConfigs from '../configs/GuardsEthereumConfigs';
@@ -14,7 +14,7 @@ import { EvmRpcScanner } from '@rosen-bridge/evm-rpc-scanner';
 import { EvmTxExtractor } from '@rosen-bridge/evm-address-tx-extractor';
 import { ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
 
-const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
+const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
 let ergoScanner: ErgoScanner;
 let ethereumScanner: EvmRpcScanner;
@@ -62,36 +62,44 @@ const ethereumScannerJob = () => {
  * @returns loggers object
  */
 const createLoggers = () => ({
-  ergoScannerLogger: WinstonLogger.getInstance().getLogger('ergo-scanner'),
-  bitcoinCommitmentExtractorLogger: WinstonLogger.getInstance().getLogger(
-    'bitcoin-commitment-extractor'
-  ),
-  bitcoinEventTriggerExtractorLogger: WinstonLogger.getInstance().getLogger(
-    'bitcoin-event-trigger-extractor'
-  ),
-  cardanoCommitmentExtractorLogger: WinstonLogger.getInstance().getLogger(
-    'cardano-commitment-extractor'
-  ),
-  cardanoEventTriggerExtractorLogger: WinstonLogger.getInstance().getLogger(
-    'cardano-event-trigger-extractor'
-  ),
-  ergoCommitmentExtractorLogger: WinstonLogger.getInstance().getLogger(
+  ergoScannerLogger:
+    DefaultLoggerFactory.getInstance().getLogger('ergo-scanner'),
+  bitcoinCommitmentExtractorLogger:
+    DefaultLoggerFactory.getInstance().getLogger(
+      'bitcoin-commitment-extractor'
+    ),
+  bitcoinEventTriggerExtractorLogger:
+    DefaultLoggerFactory.getInstance().getLogger(
+      'bitcoin-event-trigger-extractor'
+    ),
+  cardanoCommitmentExtractorLogger:
+    DefaultLoggerFactory.getInstance().getLogger(
+      'cardano-commitment-extractor'
+    ),
+  cardanoEventTriggerExtractorLogger:
+    DefaultLoggerFactory.getInstance().getLogger(
+      'cardano-event-trigger-extractor'
+    ),
+  ergoCommitmentExtractorLogger: DefaultLoggerFactory.getInstance().getLogger(
     'ergo-commitment-extractor'
   ),
-  ergoEventTriggerExtractorLogger: WinstonLogger.getInstance().getLogger(
+  ergoEventTriggerExtractorLogger: DefaultLoggerFactory.getInstance().getLogger(
     'ergo-event-trigger-extractor'
   ),
-  ethereumCommitmentExtractorLogger: WinstonLogger.getInstance().getLogger(
-    'ethereum-commitment-extractor'
-  ),
-  ethereumEventTriggerExtractorLogger: WinstonLogger.getInstance().getLogger(
-    'ethereum-event-trigger-extractor'
-  ),
+  ethereumCommitmentExtractorLogger:
+    DefaultLoggerFactory.getInstance().getLogger(
+      'ethereum-commitment-extractor'
+    ),
+  ethereumEventTriggerExtractorLogger:
+    DefaultLoggerFactory.getInstance().getLogger(
+      'ethereum-event-trigger-extractor'
+    ),
   ethereumScannerLogger:
-    WinstonLogger.getInstance().getLogger('ethereum-scanner'),
-  ethereumLockAddressTxExtractorLogger: WinstonLogger.getInstance().getLogger(
-    'ethereum-lock-address-tx-extractor'
-  ),
+    DefaultLoggerFactory.getInstance().getLogger('ethereum-scanner'),
+  ethereumLockAddressTxExtractorLogger:
+    DefaultLoggerFactory.getInstance().getLogger(
+      'ethereum-lock-address-tx-extractor'
+    ),
 });
 
 /**

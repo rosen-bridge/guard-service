@@ -4,7 +4,7 @@ import {
   MinimumFeeBox,
 } from '@rosen-bridge/minimum-fee';
 import { RosenTokens } from '@rosen-bridge/tokens';
-import WinstonLogger from '@rosen-bridge/winston-logger';
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { EventTrigger } from '@rosen-chains/abstract-chain';
 import { ERGO_CHAIN } from '@rosen-chains/ergo';
 import { NODE_NETWORK } from '@rosen-chains/ergo-node-network';
@@ -12,7 +12,7 @@ import Configs from '../configs/Configs';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import { rosenConfig } from '../configs/RosenConfig';
 
-const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
+const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
 class MinimumFeeHandler {
   private static instance: MinimumFeeHandler;
