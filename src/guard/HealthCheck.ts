@@ -6,8 +6,7 @@ import {
   ErgoNodeAssetHealthCheckParam,
   EthereumRpcAssetHealthCheckParam,
 } from '@rosen-bridge/asset-check';
-import { HealthCheck, HealthStatusLevel } from '@rosen-bridge/health-check';
-import { LogLevelHealthCheck } from '@rosen-bridge/log-level-check';
+import { HealthCheck } from '@rosen-bridge/health-check';
 import { ErgoNodeSyncHealthCheckParam } from '@rosen-bridge/node-sync-check';
 import { P2PNetworkHealthCheck } from '@rosen-bridge/p2p-network-check';
 import {
@@ -16,7 +15,7 @@ import {
   EthereumRPCScannerHealthCheck,
 } from '@rosen-bridge/scanner-sync-check';
 
-import WinstonLogger from '@rosen-bridge/winston-logger';
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
 import { BLOCKFROST_NETWORK } from '@rosen-chains/cardano-blockfrost-network';
 import { KOIOS_NETWORK } from '@rosen-chains/cardano-koios-network';
@@ -42,7 +41,7 @@ import {
 import GuardsEthereumConfigs from '../configs/GuardsEthereumConfigs';
 import { ETH, ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
 
-const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
+const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 let healthCheck: HealthCheck | undefined;
 
 /**
@@ -74,24 +73,6 @@ const getHealthCheck = async () => {
       notificationConfig
     );
 
-    // add LogLevel param
-    const errorLogHealthCheck = new LogLevelHealthCheck(
-      WinstonLogger.getInstance().getDefaultLogger(),
-      HealthStatusLevel.UNSTABLE,
-      Configs.errorLogAllowedCount,
-      Configs.logDuration,
-      'error'
-    );
-    const warnLogHealthCheck = new LogLevelHealthCheck(
-      WinstonLogger.getInstance().getDefaultLogger(),
-      HealthStatusLevel.UNSTABLE,
-      Configs.warnLogAllowedCount,
-      Configs.logDuration,
-      'warn'
-    );
-    healthCheck.register(errorLogHealthCheck);
-    healthCheck.register(warnLogHealthCheck);
-
     // add P2PNetwork param
     const dialer = await Dialer.getInstance();
     const p2pHealthCheck = new P2PNetworkHealthCheck({
@@ -116,7 +97,7 @@ const getHealthCheck = async () => {
           txType: txEntity.type,
           signFailedCount: txEntity.signFailedCount,
           chain: txEntity.chain,
-          eventId: txEntity.event.id,
+          eventId: txEntity.event?.id ?? '',
         })
       );
     };
@@ -274,7 +255,9 @@ const getHealthCheck = async () => {
         Configs.ethWarnThreshold,
         Configs.ethCriticalThreshold,
         GuardsEthereumConfigs.rpc.url,
-        8
+        8,
+        GuardsEthereumConfigs.rpc.authToken,
+        18
       );
       healthCheck.register(ethAssetHealthCheck);
 

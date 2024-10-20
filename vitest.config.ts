@@ -6,8 +6,8 @@ export default defineConfig({
   test: {
     globals: true,
     setupFiles: [
-      './tests/setup/mockDialer.ts',
       './tests/setup/setupTests.ts',
+      './tests/setup/mockDialer.ts',
       './tests/setup/mockChainHandler.ts',
     ],
     coverage: {

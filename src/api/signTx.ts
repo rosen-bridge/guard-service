@@ -6,12 +6,12 @@ import {
 import Configs from '../configs/Configs';
 import ChainHandler from '../handlers/ChainHandler';
 import DatabaseHandler from '../db/DatabaseHandler';
-import WinstonLogger from '@rosen-bridge/winston-logger';
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { DuplicateTransaction } from '../utils/errors';
 import GuardPkHandler from '../handlers/GuardPkHandler';
 import { authenticateKey } from '../utils/authentication';
 
-const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
+const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
 /**
  * setup event history route

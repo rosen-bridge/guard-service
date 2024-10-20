@@ -11,11 +11,11 @@ import { assetRoutes } from '../api/assets';
 import { revenueRoutes } from '../api/revenue';
 import { healthRoutes } from '../api/healthCheck';
 import { tssRoute } from '../api/tss';
-import WinstonLogger from '@rosen-bridge/winston-logger';
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { signRoute } from '../api/signTx';
 import rateLimit from '@fastify/rate-limit';
 
-const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
+const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
 /**
  * initialize api server

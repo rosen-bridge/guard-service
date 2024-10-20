@@ -13,10 +13,10 @@ import { TransactionEntity } from '../db/entities/TransactionEntity';
 import ChainHandler from '../handlers/ChainHandler';
 import { EventStatus, TransactionStatus } from '../utils/constants';
 import * as TransactionSerializer from './TransactionSerializer';
-import WinstonLogger from '@rosen-bridge/winston-logger';
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { NotificationHandler } from '../handlers/NotificationHandler';
 
-const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
+const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
 class TransactionProcessor {
   /**
