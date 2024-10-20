@@ -184,7 +184,7 @@ healthCheck:
     maxPeerHeightDifference: 2 # maximum difference between peers and our node
   logs:
     duration: 600 # log duration time check
-    maxAllowedErrorCount: 1 # maximum allowed error log lines
+    maxAllowedErrorCount: 35 # maximum allowed error log lines
     maxAllowedWarnCount: 10 # maximum allowed warn log lines
   p2p:
     defectConfirmationTimeWindow: 120 # Time to wait after any peer disconnection
@@ -199,4 +199,4 @@ notification:
   windowDurations:
     hasBeenUnstableForAWhile: 900
     hasBeenUnknownForAWhile: 900
-    isStillUnhealthy: 900
+    isStillUnhealthy: 86400 # 1 day

@@ -8,13 +8,13 @@ import {
   MessageResponseSchema,
 } from './schemas';
 import { rosenConfig } from '../configs/RosenConfig';
-import WinstonLogger from '@rosen-bridge/winston-logger';
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { getTokenData } from '../utils/getTokenData';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import Utils from '../utils/Utils';
 import Configs from '../configs/Configs';
 
-const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
+const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
 /**
  * Gets the general info of the service
