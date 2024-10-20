@@ -1,0 +1,18 @@
+diff --git a/node_modules/@rosen-clients/cardano-koios/dist/src/api/koiosAPI.js b/node_modules/@rosen-clients/cardano-koios/dist/src/api/koiosAPI.js
+index 8a7cb54..f058a2e 100644
+--- a/node_modules/@rosen-clients/cardano-koios/dist/src/api/koiosAPI.js
++++ b/node_modules/@rosen-clients/cardano-koios/dist/src/api/koiosAPI.js
+@@ -168,7 +168,12 @@ export const getKoiosAPI = (url, authToken) => {
+             url: `/tx_info`,
+             method: 'post',
+             headers: { 'Content-Type': 'application/json' },
+-            data: txIdsBody,
++            data: {
++                ...txIdsBody,
++                _metadata: true,
++                _assets: true,
++                _inputs: true
++            },
+             transformResponse: JsonFieldBigintFactory(bigIntsTxInfo),
+         });
+     };

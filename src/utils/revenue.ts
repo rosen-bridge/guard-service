@@ -5,6 +5,7 @@ import { RevenueView } from '../db/entities/revenueView';
 import { RevenueHistory, SingleRevenue, TokenData } from '../types/api';
 import { TokenInfo } from '@rosen-chains/abstract-chain';
 import { RevenueType } from './constants';
+import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 
 /**
  * Extracts the revenue from the revenue view
@@ -95,6 +96,16 @@ export const extractRevenueFromView = async (
  * @returns
  */
 const fillTokensDetails = (token: TokenInfo): TokenData => {
+  if (token.id === GuardsErgoConfigs.emissionTokenId) {
+    return {
+      tokenId: token.id,
+      amount: Number(token.value),
+      name: GuardsErgoConfigs.emissionTokenName,
+      decimals: GuardsErgoConfigs.emissionTokenDecimal,
+      isNativeToken: false,
+    };
+  }
+
   const tokenInfo = Configs.tokenMap.search(ERGO_CHAIN, {
     [Configs.tokenMap.getIdKey(ERGO_CHAIN)]: token.id,
   });

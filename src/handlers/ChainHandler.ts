@@ -22,7 +22,7 @@ import GuardsCardanoConfigs from '../configs/GuardsCardanoConfigs';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import MultiSigHandler from '../guard/multisig/MultiSigHandler';
 import Tss from '../guard/Tss';
-import WinstonLogger from '@rosen-bridge/winston-logger';
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { BLOCKFROST_NETWORK } from '@rosen-chains/cardano-blockfrost-network';
 import CardanoBlockFrostNetwork from '@rosen-chains/cardano-blockfrost-network';
 import BitcoinEsploraNetwork from '@rosen-chains/bitcoin-esplora';
@@ -37,7 +37,7 @@ import BinanceChain from '@rosen-chains/binance/dist/BinanceChain';
 import GuardsBinanceConfigs from '../configs/GuardsBinanceConfigs';
 import { BINANCE_CHAIN } from '@rosen-chains/binance';
 
-const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
+const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
 class ChainHandler {
   private static instance: ChainHandler;
@@ -78,13 +78,14 @@ class ChainHandler {
       case NODE_NETWORK:
         network = new ErgoNodeNetwork({
           nodeBaseUrl: GuardsErgoConfigs.node.url,
-          logger: WinstonLogger.getInstance().getLogger('NodeNetwork'),
+          logger: DefaultLoggerFactory.getInstance().getLogger('NodeNetwork'),
         });
         break;
       case EXPLORER_NETWORK:
         network = new ErgoExplorerNetwork({
           explorerBaseUrl: GuardsErgoConfigs.explorer.url,
-          logger: WinstonLogger.getInstance().getLogger('ExplorerNetwork'),
+          logger:
+            DefaultLoggerFactory.getInstance().getLogger('ExplorerNetwork'),
         });
         break;
       default:
@@ -98,7 +99,7 @@ class ChainHandler {
       GuardsErgoConfigs.chainConfigs,
       Configs.tokens(),
       multiSigSignFunction,
-      WinstonLogger.getInstance().getLogger('ErgoChain')
+      DefaultLoggerFactory.getInstance().getLogger('ErgoChain')
     );
   };
 
@@ -113,14 +114,14 @@ class ChainHandler {
         network = new CardanoKoiosNetwork(
           GuardsCardanoConfigs.koios.url,
           GuardsCardanoConfigs.koios.authToken,
-          WinstonLogger.getInstance().getLogger('KoiosNetwork')
+          DefaultLoggerFactory.getInstance().getLogger('KoiosNetwork')
         );
         break;
       case BLOCKFROST_NETWORK:
         network = new CardanoBlockFrostNetwork(
           GuardsCardanoConfigs.blockfrost.projectId,
           GuardsCardanoConfigs.blockfrost.url,
-          WinstonLogger.getInstance().getLogger('BlockFrostNetwork')
+          DefaultLoggerFactory.getInstance().getLogger('BlockFrostNetwork')
         );
         break;
       default:
@@ -144,7 +145,7 @@ class ChainHandler {
       GuardsCardanoConfigs.chainConfigs,
       Configs.tokens(),
       tssSignFunctionWrapper,
-      WinstonLogger.getInstance().getLogger('CardanoChain')
+      DefaultLoggerFactory.getInstance().getLogger('CardanoChain')
     );
   };
 
@@ -158,7 +159,7 @@ class ChainHandler {
       case 'esplora':
         network = new BitcoinEsploraNetwork(
           GuardsBitcoinConfigs.esplora.url,
-          WinstonLogger.getInstance().getLogger('EsploraNetwork')
+          DefaultLoggerFactory.getInstance().getLogger('EsploraNetwork')
         );
         break;
       default:
@@ -190,7 +191,7 @@ class ChainHandler {
       GuardsBitcoinConfigs.chainConfigs,
       Configs.tokens(),
       tssSignFunctionWrapper,
-      WinstonLogger.getInstance().getLogger('BitcoinChain')
+      DefaultLoggerFactory.getInstance().getLogger('BitcoinChain')
     );
   };
 
@@ -208,7 +209,7 @@ class ChainHandler {
           dataSource,
           GuardsEthereumConfigs.ethereumContractConfig.lockAddress,
           GuardsEthereumConfigs.rpc.authToken,
-          WinstonLogger.getInstance().getLogger('EthereumRpcNetwork')
+          DefaultLoggerFactory.getInstance().getLogger('EthereumRpcNetwork')
         );
         break;
       default:
@@ -252,7 +253,7 @@ class ChainHandler {
       Configs.tokens(),
       supportedTokens,
       tssSignFunctionWrapper,
-      WinstonLogger.getInstance().getLogger('EthereumChain')
+      DefaultLoggerFactory.getInstance().getLogger('EthereumChain')
     );
   };
 
@@ -270,7 +271,7 @@ class ChainHandler {
           dataSource,
           GuardsBinanceConfigs.binanceContractConfig.lockAddress,
           GuardsBinanceConfigs.rpc.authToken,
-          WinstonLogger.getInstance().getLogger('BinanceRpcNetwork')
+          DefaultLoggerFactory.getInstance().getLogger('BinanceRpcNetwork')
         );
         break;
       default:
@@ -314,7 +315,7 @@ class ChainHandler {
       Configs.tokens(),
       supportedTokens,
       tssSignFunctionWrapper,
-      WinstonLogger.getInstance().getLogger('BinanceChain')
+      DefaultLoggerFactory.getInstance().getLogger('BinanceChain')
     );
   };
 

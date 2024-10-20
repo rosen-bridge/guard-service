@@ -4,10 +4,10 @@ import {
   NotifyWithSeverity,
 } from '@rosen-bridge/abstract-notification';
 import { DiscordNotification } from '@rosen-bridge/discord-notification';
-import WinstonLogger from '@rosen-bridge/winston-logger';
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import Configs from '../configs/Configs';
 
-const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
+const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
 export class NotificationHandler {
   private static instance: NotificationHandler;

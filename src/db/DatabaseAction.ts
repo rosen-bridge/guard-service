@@ -31,11 +31,11 @@ import {
   PaymentTransaction,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
-import WinstonLogger from '@rosen-bridge/winston-logger';
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { EventView } from './entities/EventView';
 import { BlockEntity, PROCEED } from '@rosen-bridge/scanner';
 
-const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
+const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
 class DatabaseAction {
   private static instance: DatabaseAction;

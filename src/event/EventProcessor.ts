@@ -22,10 +22,10 @@ import * as TransactionSerializer from '../transaction/TransactionSerializer';
 import { DatabaseAction } from '../db/DatabaseAction';
 import GuardTurn from '../utils/GuardTurn';
 import GuardPkHandler from '../handlers/GuardPkHandler';
-import WinstonLogger from '@rosen-bridge/winston-logger';
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { NotificationHandler } from '../handlers/NotificationHandler';
 
-const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
+const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
 class EventProcessor {
   /**
@@ -158,7 +158,7 @@ class EventProcessor {
     } catch (e) {
       if (e instanceof NotEnoughAssetsError) {
         logger.warn(`Failed to create payment for event [${eventId}]: ${e}`);
-        logger.warn(e.stack);
+        if (e.stack) logger.warn(e.stack);
         await NotificationHandler.getInstance().notify(
           'error',
           `Low Assets in ${event.toChain}`,
@@ -292,7 +292,7 @@ class EventProcessor {
         logger.warn(
           `Failed to create reward distribution for event [${eventId}]: ${e}`
         );
-        logger.warn(e.stack);
+        if (e.stack) logger.warn(e.stack);
         await NotificationHandler.getInstance().notify(
           'error',
           `Low Assets in Ergo`,

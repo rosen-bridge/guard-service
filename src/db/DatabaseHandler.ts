@@ -9,11 +9,11 @@ import { DatabaseAction } from './DatabaseAction';
 import { ERGO_CHAIN } from '@rosen-chains/ergo';
 import { rosenConfig } from '../configs/RosenConfig';
 import Configs from '../configs/Configs';
-import WinstonLogger from '@rosen-bridge/winston-logger';
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { DuplicateTransaction } from '../utils/errors';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 
-const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
+const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
 class DatabaseHandler {
   /**
