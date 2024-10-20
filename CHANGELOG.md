@@ -1,5 +1,17 @@
 # guard-service
 
+## 5.0.1
+
+### Patch Changes
+
+- change default maxAllowedErrorCount to 35
+- fix RPC auth token and ETH decimals in asset health-check
+- fix health-check notification repeat
+- fix reading event ID in tx-progress health-check parameter
+- fix logger
+- fix emission token name and decimals in revenue API
+- fix health-check error handling
+
 ## 5.0.0
 
 ### Major Changes
