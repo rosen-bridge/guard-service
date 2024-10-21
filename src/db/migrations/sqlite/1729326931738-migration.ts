@@ -7,6 +7,7 @@ export class migration1729326931738 implements MigrationInterface {
     await queryRunner.query(`
             CREATE TABLE "arbitrary_entity" (
                 "id" varchar PRIMARY KEY NOT NULL,
+                "chain" varchar NOT NULL,
                 "orderJson" varchar NOT NULL,
                 "status" varchar NOT NULL,
                 "firstTry" varchar,

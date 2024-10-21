@@ -34,6 +34,8 @@ import {
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { EventView } from './entities/EventView';
 import { BlockEntity, PROCEED } from '@rosen-bridge/scanner';
+import { ArbitraryEntity } from './entities/ArbitraryEntity';
+import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -49,6 +51,7 @@ class DatabaseAction {
   RevenueView: Repository<RevenueView>;
   RevenueChartView: Repository<RevenueChartView>;
   EventView: Repository<EventView>;
+  ArbitraryRepository: Repository<ArbitraryEntity>;
 
   txSignSemaphore = new Semaphore(1);
 
@@ -62,9 +65,10 @@ class DatabaseAction {
     this.TransactionRepository =
       this.dataSource.getRepository(TransactionEntity);
     this.RevenueRepository = this.dataSource.getRepository(RevenueEntity);
-    this.RevenueView = dataSource.getRepository(RevenueView);
-    this.RevenueChartView = dataSource.getRepository(RevenueChartView);
-    this.EventView = dataSource.getRepository(EventView);
+    this.RevenueView = this.dataSource.getRepository(RevenueView);
+    this.RevenueChartView = this.dataSource.getRepository(RevenueChartView);
+    this.EventView = this.dataSource.getRepository(EventView);
+    this.ArbitraryRepository = this.dataSource.getRepository(ArbitraryEntity);
   }
 
   /**
@@ -811,6 +815,45 @@ class DatabaseAction {
     });
     if (lastBlock.length !== 0) return lastBlock[0].height;
     throw new NotFoundError(`No block found in database`);
+  };
+
+  /**
+   * @param status order status
+   * @return the arbitrary orders with status
+   */
+  getOrdersByStatus = async (
+    orderStatus: string
+  ): Promise<ArbitraryEntity[]> => {
+    return await this.ArbitraryRepository.find({
+      where: {
+        status: orderStatus,
+      },
+    });
+  };
+
+  /**
+   * updates the status of an arbitrary order by id
+   *  NOTE: this method does NOT update firstTry column
+   * @param eventId the event trigger id
+   * @param status the event trigger status
+   * @param updateFirstTry if true, firstTry column will be updated to the current timestamp
+   * @param incrementUnexpectedFails if true, unexpectedFails column will be incremented
+   */
+  setOrderStatus = async (
+    eventId: string,
+    status: string,
+    updateFirstTry = false,
+    incrementUnexpectedFails = false
+  ): Promise<void> => {
+    const updatedRecord: QueryDeepPartialEntity<ArbitraryEntity> = {
+      status: status,
+    };
+    if (updateFirstTry)
+      updatedRecord.firstTry = String(Math.round(Date.now() / 1000));
+    if (incrementUnexpectedFails)
+      updatedRecord.unexpectedFails = () => '"unexpectedFails" + 1';
+
+    await this.ConfirmedEventRepository.update({ id: eventId }, updatedRecord);
   };
 }
 

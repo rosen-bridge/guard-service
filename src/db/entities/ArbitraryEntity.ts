@@ -6,6 +6,9 @@ export class ArbitraryEntity {
   id: string;
 
   @Column('varchar')
+  chain: string;
+
+  @Column('varchar')
   orderJson: string;
 
   @Column('varchar')
