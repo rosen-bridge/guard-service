@@ -269,7 +269,7 @@ class DatabaseActionMock {
       .values({
         extractor: 'extractor',
         eventId: eventId,
-        commitment: commitment ?? 'commitment',
+        commitment: commitment,
         WID: wid,
         boxId: TestUtils.generateRandomId(),
         block: 'blockId',

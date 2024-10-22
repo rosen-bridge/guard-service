@@ -431,7 +431,7 @@ describe('EventBoxes', () => {
     });
 
     /**
-     * @target EventBoxes.getEventValidCommitments should not return serialized when commitment is invalid
+     * @target EventBoxes.getEventValidCommitments should not return serialized when commitment box commit is invalid
      * @dependencies
      * - database
      * @scenario
@@ -444,7 +444,7 @@ describe('EventBoxes', () => {
      * @expected
      * - it should return one valid commitment
      */
-    it('should not return serialized when commitment is invalid', async () => {
+    it('should not return serialized when commitment box commit is invalid', async () => {
       // insert a mocked event into db
       const mockedEvent = mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent.event);
@@ -468,7 +468,7 @@ describe('EventBoxes', () => {
         );
       }
 
-      // insert two valid commitment boxes into db
+      // insert one valid commitment box with changed address in event into db
       const validCommitment1 = Buffer.from('serialized-box-1');
       await DatabaseActionMock.insertCommitmentBoxRecord(
         { ...mockedEvent.event, fromAddress: 'invalid-address' },
@@ -478,6 +478,7 @@ describe('EventBoxes', () => {
         mockedEvent.event.height - 1,
         rwtCount.toString()
       );
+      // insert one valid commitment box with valid commitment into db
       const validCommitment2 = Buffer.from('serialized-box-2');
       await DatabaseActionMock.insertCommitmentBoxRecord(
         mockedEvent.event,
