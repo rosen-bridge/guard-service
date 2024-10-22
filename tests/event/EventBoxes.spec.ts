@@ -97,6 +97,7 @@ describe('EventBoxes', () => {
       // insert event commitment boxes into db
       for (let i = 0; i < mockedEvent.WIDs.length; i++) {
         await DatabaseActionMock.insertCommitmentBoxRecord(
+          mockedEvent.event,
           eventId,
           Buffer.from(`event-serialized-box-${i}`).toString('base64'),
           mockedEvent.WIDs[i],
@@ -110,6 +111,7 @@ describe('EventBoxes', () => {
       // insert two valid commitment boxes into db
       const validCommitment1 = Buffer.from('serialized-box-1');
       await DatabaseActionMock.insertCommitmentBoxRecord(
+        mockedEvent.event,
         eventId,
         validCommitment1.toString('base64'),
         TestUtils.generateRandomId(),
@@ -118,6 +120,7 @@ describe('EventBoxes', () => {
       );
       const validCommitment2 = Buffer.from('serialized-box-2');
       await DatabaseActionMock.insertCommitmentBoxRecord(
+        mockedEvent.event,
         eventId,
         validCommitment2.toString('base64'),
         TestUtils.generateRandomId(),
@@ -128,6 +131,7 @@ describe('EventBoxes', () => {
       // insert an invalid commitment box into db
       const invalidCommitment = Buffer.from('serialized-box-3');
       await DatabaseActionMock.insertCommitmentBoxRecord(
+        mockedEvent.event,
         eventId,
         invalidCommitment.toString('base64'),
         TestUtils.generateRandomId(),
@@ -176,6 +180,7 @@ describe('EventBoxes', () => {
       // insert event commitment boxes into db
       for (let i = 0; i < mockedEvent.WIDs.length; i++) {
         await DatabaseActionMock.insertCommitmentBoxRecord(
+          mockedEvent.event,
           eventId,
           Buffer.from(`event-serialized-box-${i}`).toString('base64'),
           mockedEvent.WIDs[i],
@@ -189,6 +194,7 @@ describe('EventBoxes', () => {
       // insert two valid commitment boxes into db
       const validCommitment1 = Buffer.from('serialized-box-1');
       await DatabaseActionMock.insertCommitmentBoxRecord(
+        mockedEvent.event,
         eventId,
         validCommitment1.toString('base64'),
         TestUtils.generateRandomId(),
@@ -197,6 +203,7 @@ describe('EventBoxes', () => {
       );
       const validCommitment2 = Buffer.from('serialized-box-2');
       await DatabaseActionMock.insertCommitmentBoxRecord(
+        mockedEvent.event,
         eventId,
         validCommitment2.toString('base64'),
         TestUtils.generateRandomId(),
@@ -206,6 +213,7 @@ describe('EventBoxes', () => {
 
       // insert a commitment box with a WID of event box into db
       await DatabaseActionMock.insertCommitmentBoxRecord(
+        mockedEvent.event,
         eventId,
         'serialized-box-3',
         mockedEvent.WIDs[1],
@@ -257,6 +265,7 @@ describe('EventBoxes', () => {
       // insert event commitment boxes into db
       for (let i = 0; i < mockedEvent.WIDs.length; i++) {
         await DatabaseActionMock.insertCommitmentBoxRecord(
+          mockedEvent.event,
           eventId,
           Buffer.from(`event-serialized-box-${i}`).toString('base64'),
           mockedEvent.WIDs[i],
@@ -270,6 +279,7 @@ describe('EventBoxes', () => {
       // insert two valid commitment boxes into db
       const validCommitment1 = Buffer.from('serialized-box-1');
       await DatabaseActionMock.insertCommitmentBoxRecord(
+        mockedEvent.event,
         eventId,
         validCommitment1.toString('base64'),
         TestUtils.generateRandomId(),
@@ -279,6 +289,7 @@ describe('EventBoxes', () => {
       const validCommitment2 = Buffer.from('serialized-box-2');
       const duplicateWID = TestUtils.generateRandomId();
       await DatabaseActionMock.insertCommitmentBoxRecord(
+        mockedEvent.event,
         eventId,
         validCommitment2.toString('base64'),
         duplicateWID,
@@ -288,6 +299,7 @@ describe('EventBoxes', () => {
 
       // insert a commitment box with duplicate WID into db
       await DatabaseActionMock.insertCommitmentBoxRecord(
+        mockedEvent.event,
         eventId,
         'serialized-box-3',
         duplicateWID,
@@ -339,6 +351,7 @@ describe('EventBoxes', () => {
       // insert event commitment boxes into db
       for (let i = 0; i < mockedEvent.WIDs.length; i++) {
         await DatabaseActionMock.insertCommitmentBoxRecord(
+          mockedEvent.event,
           eventId,
           Buffer.from(`event-serialized-box-${i}`).toString('base64'),
           mockedEvent.WIDs[i],
@@ -352,6 +365,7 @@ describe('EventBoxes', () => {
       // insert two valid commitment boxes into db
       const validCommitment1 = Buffer.from('serialized-box-1');
       await DatabaseActionMock.insertCommitmentBoxRecord(
+        mockedEvent.event,
         eventId,
         validCommitment1.toString('base64'),
         TestUtils.generateRandomId(),
@@ -360,6 +374,7 @@ describe('EventBoxes', () => {
       );
       const validCommitment2 = Buffer.from('serialized-box-2');
       await DatabaseActionMock.insertCommitmentBoxRecord(
+        mockedEvent.event,
         eventId,
         validCommitment2.toString('base64'),
         TestUtils.generateRandomId(),
@@ -369,6 +384,7 @@ describe('EventBoxes', () => {
 
       // insert a commitment box with wrong RWT count
       await DatabaseActionMock.insertCommitmentBoxRecord(
+        mockedEvent.event,
         eventId,
         'serialized-box-3',
         TestUtils.generateRandomId(),
@@ -413,6 +429,78 @@ describe('EventBoxes', () => {
         );
       }).rejects.toThrow(Error);
     });
+
+    /**
+     * @target EventBoxes.getEventValidCommitments should not return serialized when commitment box commit is invalid
+     * @dependencies
+     * - database
+     * @scenario
+     * - insert a mocked event into db
+     * - insert event commitment boxes into db
+     * - insert one valid commitment box with changed address in event into db
+     * - insert one valid commitment box with valid commitment into db
+     * - run test
+     * - verify returned value
+     * @expected
+     * - it should return one valid commitment
+     */
+    it('should not return serialized when commitment box commit is invalid', async () => {
+      // insert a mocked event into db
+      const mockedEvent = mockEventTrigger();
+      const eventId = EventSerializer.getId(mockedEvent.event);
+      const boxSerialized = Buffer.from('boxSerialized');
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent.event,
+        boxSerialized.toString('base64')
+      );
+
+      // insert event commitment boxes into db
+      for (let i = 0; i < mockedEvent.WIDs.length; i++) {
+        await DatabaseActionMock.insertCommitmentBoxRecord(
+          mockedEvent.event,
+          eventId,
+          Buffer.from(`event-serialized-box-${i}`).toString('base64'),
+          mockedEvent.WIDs[i],
+          mockedEvent.event.height - 4,
+          rwtCount.toString(),
+          'event-creation-tx-id',
+          i
+        );
+      }
+
+      // insert one valid commitment box with changed address in event into db
+      const validCommitment1 = Buffer.from('serialized-box-1');
+      await DatabaseActionMock.insertCommitmentBoxRecord(
+        { ...mockedEvent.event, fromAddress: 'invalid-address' },
+        eventId,
+        validCommitment1.toString('base64'),
+        TestUtils.generateRandomId(),
+        mockedEvent.event.height - 1,
+        rwtCount.toString()
+      );
+      // insert one valid commitment box with valid commitment into db
+      const validCommitment2 = Buffer.from('serialized-box-2');
+      await DatabaseActionMock.insertCommitmentBoxRecord(
+        mockedEvent.event,
+        eventId,
+        validCommitment2.toString('base64'),
+        TestUtils.generateRandomId(),
+        mockedEvent.event.height - 2,
+        rwtCount.toString()
+      );
+
+      // run test
+      const result = await EventBoxes.getEventValidCommitments(
+        mockedEvent.event,
+        rwtCount,
+        mockedEvent.WIDs
+      );
+
+      // verify returned value
+      expect(result).toEqual(
+        [validCommitment2].map((buf) => buf.toString('hex'))
+      );
+    });
   });
 
   describe('getEventWIDs', () => {
@@ -448,6 +536,7 @@ describe('EventBoxes', () => {
       // insert event commitment boxes into db
       for (let i = mockedEvent.WIDs.length - 1; i >= 0; i--) {
         await DatabaseActionMock.insertCommitmentBoxRecord(
+          mockedEvent.event,
           eventId,
           Buffer.from(`event-serialized-box-${i}`).toString('base64'),
           mockedEvent.WIDs[i],
@@ -461,6 +550,7 @@ describe('EventBoxes', () => {
       // insert two commitments for the event into db
       const commitment = Buffer.from('serialized-box-1');
       await DatabaseActionMock.insertCommitmentBoxRecord(
+        mockedEvent.event,
         eventId,
         commitment.toString('base64'),
         TestUtils.generateRandomId(),
@@ -469,6 +559,7 @@ describe('EventBoxes', () => {
       );
       const spentCommitment = Buffer.from('serialized-box-2');
       await DatabaseActionMock.insertCommitmentBoxRecord(
+        mockedEvent.event,
         eventId,
         spentCommitment.toString('base64'),
         TestUtils.generateRandomId(),
@@ -511,6 +602,7 @@ describe('EventBoxes', () => {
       // insert event commitment boxes into db (not all)
       for (let i = 1; i < mockedEvent.WIDs.length; i++) {
         await DatabaseActionMock.insertCommitmentBoxRecord(
+          mockedEvent.event,
           eventId,
           Buffer.from(`event-serialized-box-${i}`).toString('base64'),
           mockedEvent.WIDs[i],
@@ -524,6 +616,7 @@ describe('EventBoxes', () => {
       // insert two commitments for the event into db
       const commitment = Buffer.from('serialized-box-1');
       await DatabaseActionMock.insertCommitmentBoxRecord(
+        mockedEvent.event,
         eventId,
         commitment.toString('base64'),
         TestUtils.generateRandomId(),
@@ -532,6 +625,7 @@ describe('EventBoxes', () => {
       );
       const spentCommitment = Buffer.from('serialized-box-2');
       await DatabaseActionMock.insertCommitmentBoxRecord(
+        mockedEvent.event,
         eventId,
         spentCommitment.toString('base64'),
         TestUtils.generateRandomId(),

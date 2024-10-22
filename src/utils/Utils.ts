@@ -1,3 +1,5 @@
+import { EventTrigger } from '@rosen-chains/abstract-chain';
+import { blake2b } from 'blakejs';
 import { Buffer } from 'buffer';
 import Encryption from './Encryption';
 import { DerivationPath, ExtSecretKey, Mnemonic } from 'ergo-lib-wasm-nodejs';
@@ -41,6 +43,40 @@ class Utils {
   static readJsonFile = (filePath: string): any => {
     const jsonData = fs.readFileSync(filePath, 'utf8');
     return JSON.parse(jsonData);
+  };
+
+  /**
+   * returns the decoded bigint input
+   * @param num
+   */
+  static bigIntToUint8Array = (num: bigint) => {
+    const b = new ArrayBuffer(8);
+    new DataView(b).setBigUint64(0, num);
+    return new Uint8Array(b);
+  };
+
+  /**
+   * create commitment from event data and WID
+   * @param event
+   * @param WID
+   */
+  static commitmentFromEvent = (event: EventTrigger, WID: string) => {
+    const content = Buffer.concat([
+      Buffer.from(event.sourceTxId),
+      Buffer.from(event.fromChain),
+      Buffer.from(event.toChain),
+      Buffer.from(event.fromAddress),
+      Buffer.from(event.toAddress),
+      Utils.bigIntToUint8Array(BigInt(event.amount)),
+      Utils.bigIntToUint8Array(BigInt(event.bridgeFee)),
+      Utils.bigIntToUint8Array(BigInt(event.networkFee)),
+      Buffer.from(event.sourceChainTokenId),
+      Buffer.from(event.targetChainTokenId),
+      Buffer.from(event.sourceBlockId),
+      Utils.bigIntToUint8Array(BigInt(event.height)),
+      Buffer.from(WID, 'hex'),
+    ]);
+    return Buffer.from(blake2b(content, undefined, 32)).toString('hex');
   };
 }
 

@@ -1,5 +1,6 @@
 import { EventTrigger } from '@rosen-chains/abstract-chain';
 import { CommitmentEntity } from '@rosen-bridge/watcher-data-extractor';
+import Utils from '../utils/Utils';
 import EventSerializer from './EventSerializer';
 import { uniqBy } from 'lodash-es';
 import { DatabaseAction } from '../db/DatabaseAction';
@@ -50,7 +51,9 @@ class EventBoxes {
         (commitment: CommitmentEntity) =>
           !eventWIDs.includes(commitment.WID) &&
           commitment.rwtCount &&
-          BigInt(commitment.rwtCount) === eventRwtCount
+          BigInt(commitment.rwtCount) === eventRwtCount &&
+          Utils.commitmentFromEvent(event, commitment.WID) ===
+            commitment.commitment
       )
       .map((commitment) =>
         Buffer.from(commitment.boxSerialized, 'base64').toString('hex')

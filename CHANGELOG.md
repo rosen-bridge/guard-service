@@ -1,5 +1,11 @@
 # guard-service
 
+## 5.0.2
+
+### Patch Changes
+
+- Validate not merged commitments before create reward transaction
+
 ## 5.0.1
 
 ### Patch Changes
