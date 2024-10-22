@@ -2,4 +2,4 @@
 'guard-service': patch
 ---
 
-Validate not merged commitment before create reward transaction
+Validate not merged commitments before create reward transaction

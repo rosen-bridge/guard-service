@@ -342,6 +342,7 @@ describe('TransactionVerifier', () => {
       // insert event commitment boxes into db
       for (let i = 1; i < mockedEvent.WIDs.length; i++) {
         await DatabaseActionMock.insertCommitmentBoxRecord(
+          mockedEvent.event,
           eventId,
           Buffer.from(`event-serialized-box-${i}`).toString('base64'),
           mockedEvent.WIDs[i],
