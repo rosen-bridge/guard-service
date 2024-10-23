@@ -7,10 +7,9 @@ import { ConfirmedEventEntity } from './entities/ConfirmedEventEntity';
 import { EventStatus, TransactionStatus } from '../utils/constants';
 import { DatabaseAction } from './DatabaseAction';
 import { ERGO_CHAIN } from '@rosen-chains/ergo';
-import { rosenConfig } from '../configs/RosenConfig';
 import Configs from '../configs/Configs';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
-import { DuplicateTransaction } from '../utils/errors';
+import { DuplicateOrder, DuplicateTransaction } from '../utils/errors';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
@@ -147,7 +146,7 @@ class DatabaseHandler {
     if (txs) {
       if (!overwrite) {
         throw new DuplicateTransaction(
-          `Tx [${newTx.txId}] is already in database with status [${txs.status}].`
+          `Tx [${newTx.txId}] is already in database with status [${txs.status}]`
         );
       } else {
         await DatabaseAction.getInstance().updateRequiredSign(
@@ -191,6 +190,29 @@ class DatabaseHandler {
     });
 
     return Array.from(requiredTokenIds);
+  };
+
+  /**
+   * inserts an arbitrary order into database
+   * if already another approved tx exists, keeps the one with loser txId
+   * @param id order id
+   * @param chain order chain
+   * @param orderJson the encoded order
+   */
+  static insertOrder = async (
+    id: string,
+    chain: string,
+    orderJson: string
+  ): Promise<void> => {
+    const dbAction = DatabaseAction.getInstance();
+    const order = await dbAction.getOrderById(id);
+    if (order) {
+      throw new DuplicateOrder(
+        `Order [${id}] is already in database on chain [${chain}] with status [${order.status}]`
+      );
+    } else {
+      await dbAction.insertNewOrder(id, chain, orderJson);
+    }
   };
 }
 

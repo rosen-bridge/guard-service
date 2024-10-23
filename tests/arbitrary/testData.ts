@@ -23,3 +23,5 @@ export const order: PaymentOrder = [
   },
 ];
 export const orderJson = JsonBI.stringify(order);
+export const invalidJson =
+  '[{"address":"address-1","assets":{"nativeToken":100,"tokens":[]}},{"address":"address-2","assets":{"nativeToken":200,"tokens":[{"id":"token-1","value":10000}]}]';

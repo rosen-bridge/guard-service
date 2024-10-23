@@ -12,6 +12,7 @@ import { ConfirmedEventEntity } from './entities/ConfirmedEventEntity';
 import { TransactionEntity } from './entities/TransactionEntity';
 import {
   EventStatus,
+  OrderStatus,
   RevenuePeriod,
   TransactionStatus,
 } from '../utils/constants';
@@ -854,6 +855,34 @@ class DatabaseAction {
       updatedRecord.unexpectedFails = () => '"unexpectedFails" + 1';
 
     await this.ArbitraryRepository.update({ id: id }, updatedRecord);
+  };
+
+  /**
+   * @param id order id
+   */
+  getOrderById = async (id: string): Promise<ArbitraryEntity | null> => {
+    return await this.ArbitraryRepository.findOne({
+      where: {
+        id: id,
+      },
+    });
+  };
+
+  /**
+   * inserts an arbitrary order record into database
+   */
+  insertNewOrder = async (
+    id: string,
+    chain: string,
+    orderJson: string
+  ): Promise<void> => {
+    await this.ArbitraryRepository.insert({
+      id: id,
+      chain: chain,
+      orderJson: orderJson,
+      status: OrderStatus.pending,
+      firstTry: String(Math.round(Date.now() / 1000)),
+    });
   };
 }
 

@@ -85,6 +85,10 @@ class Configs {
     'api.isManualTxRequestActive',
     false
   );
+  static isArbitraryOrderRequestActive = getOptionalConfig<boolean>(
+    'api.isArbitraryOrderRequestActive',
+    false
+  );
 
   // config of API's route
   static MAX_LENGTH_CHANNEL_SIZE = 200;

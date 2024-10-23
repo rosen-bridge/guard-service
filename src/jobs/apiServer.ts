@@ -14,6 +14,7 @@ import { tssRoute } from '../api/tss';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { signRoute } from '../api/signTx';
 import rateLimit from '@fastify/rate-limit';
+import { arbitraryOrderRoute } from '../api/arbitrary';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -102,6 +103,7 @@ const initApiServer = async () => {
   await apiServer.register(revenueRoutes);
   await apiServer.register(assetRoutes);
   await apiServer.register(signRoute);
+  await apiServer.register(arbitraryOrderRoute);
 
   apiServer.get('/', (request, reply) => {
     reply.redirect('/swagger');

@@ -7,6 +7,7 @@ api:
   apiKeyHash: '' # blake2b hash of Api-Key
   jsonBodyLimit: 50
   isManualTxRequestActive: false
+  isArbitraryOrderRequestActive: false
   allowedOrigins: [] # List of allowed origins for CORS headers
   maxRequestsPerMinute: 100_000
 binance:

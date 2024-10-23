@@ -23,3 +23,9 @@ export class DuplicateTransaction extends Error {
     super('DuplicateTransaction: ' + msg);
   }
 }
+
+export class DuplicateOrder extends Error {
+  constructor(msg: string) {
+    super('DuplicateOrder: ' + msg);
+  }
+}
