@@ -15,13 +15,15 @@ import { cloneDeep } from 'lodash-es';
  * @param defaultValue
  */
 const getConfigIntKeyOrDefault = (key: string, defaultValue: number) => {
-  const val: string = config.get(key);
-  if (val !== undefined) {
-    const valNum = parseInt(val);
-    if (isNaN(valNum)) {
-      throw Error(`Invalid value ${val} for ${key}`);
+  if (config.has(key)) {
+    const val: string = config.get(key);
+    if (val !== undefined) {
+      const valNum = parseInt(val);
+      if (isNaN(valNum)) {
+        throw Error(`Invalid value ${val} for ${key}`);
+      }
+      return valNum;
     }
-    return valNum;
   }
   return defaultValue;
 };
@@ -171,6 +173,7 @@ class Configs {
 
   // timeout configs
   static eventTimeout = getConfigIntKeyOrDefault('eventTimeout', 24 * 60 * 60); // seconds
+  static orderTimeout = getConfigIntKeyOrDefault('orderTimeout', 48 * 60 * 60); // seconds
   static txSignTimeout = getConfigIntKeyOrDefault('txSignTimeout', 5 * 60); // seconds
 
   // jobs configs

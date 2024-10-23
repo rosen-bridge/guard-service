@@ -68,7 +68,7 @@ class ChainHandlerMock {
   };
 
   /**
-   * mocks ChainHandler.getChain to return mocked Ergo chain
+   * adds the chain to mocked list
    * @param chainName new name for mocked chain
    * @param mockFromChain true if mocking fromChain
    */

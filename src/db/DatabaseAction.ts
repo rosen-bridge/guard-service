@@ -834,13 +834,13 @@ class DatabaseAction {
   /**
    * updates the status of an arbitrary order by id
    *  NOTE: this method does NOT update firstTry column
-   * @param eventId the event trigger id
-   * @param status the event trigger status
+   * @param id order id
+   * @param status order status
    * @param updateFirstTry if true, firstTry column will be updated to the current timestamp
    * @param incrementUnexpectedFails if true, unexpectedFails column will be incremented
    */
   setOrderStatus = async (
-    eventId: string,
+    id: string,
     status: string,
     updateFirstTry = false,
     incrementUnexpectedFails = false
@@ -853,7 +853,7 @@ class DatabaseAction {
     if (incrementUnexpectedFails)
       updatedRecord.unexpectedFails = () => '"unexpectedFails" + 1';
 
-    await this.ConfirmedEventRepository.update({ id: eventId }, updatedRecord);
+    await this.ArbitraryRepository.update({ id: id }, updatedRecord);
   };
 }
 

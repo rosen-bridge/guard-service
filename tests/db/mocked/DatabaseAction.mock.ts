@@ -21,6 +21,12 @@ import { RevenueChartView } from '../../../src/db/entities/revenueChartView';
 import { RevenueView } from '../../../src/db/entities/revenueView';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { EventView } from '../../../src/db/entities/EventView';
+import { OrderStatus } from '../../../src/utils/constants';
+import {
+  AddressTxsEntity,
+  migrations as addressTxExtractorMigrations,
+} from '@rosen-bridge/evm-address-tx-extractor';
+import { ArbitraryEntity } from '../../../src/db/entities/ArbitraryEntity';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -38,10 +44,13 @@ class DatabaseActionMock {
       RevenueView,
       RevenueChartView,
       EventView,
+      AddressTxsEntity,
+      ArbitraryEntity,
     ],
     migrations: [
       ...scannerMigrations.sqlite,
       ...watcherDataExtractorMigrations.sqlite,
+      ...addressTxExtractorMigrations.sqlite,
       ...migrations.sqlite,
     ],
     synchronize: false,
@@ -74,6 +83,7 @@ class DatabaseActionMock {
     await this.testDatabase.TransactionRepository.clear();
     await this.testDatabase.ConfirmedEventRepository.clear();
     await this.testDatabase.EventRepository.clear();
+    await this.testDatabase.ArbitraryRepository.clear();
     await this.testDataSource.getRepository(BlockEntity).clear();
   };
 
@@ -310,6 +320,36 @@ class DatabaseActionMock {
   };
 
   /**
+   * inserts a record to ArbitraryOrder table in
+   * @param id
+   * @param chain
+   * @param orderJson
+   * @param status
+   * @param firstTry
+   * @param unexpectedFails
+   */
+  static insertOrderRecord = async (
+    id: string,
+    chain: string,
+    orderJson: string,
+    status: OrderStatus,
+    firstTry?: string,
+    unexpectedFails?: number
+  ) => {
+    await this.testDatabase.ArbitraryRepository.createQueryBuilder()
+      .insert()
+      .values({
+        id: id,
+        chain: chain,
+        orderJson: orderJson,
+        status: status,
+        firstTry: firstTry,
+        unexpectedFails: unexpectedFails,
+      })
+      .execute();
+  };
+
+  /**
    * returns all records in Event table in database
    */
   static allRawEventRecords = async () => {
@@ -350,6 +390,15 @@ class DatabaseActionMock {
    */
   static eventViewRecords = async () => {
     return await this.testDatabase.EventView.createQueryBuilder()
+      .select()
+      .getMany();
+  };
+
+  /**
+   * returns all records in Order table in database
+   */
+  static allOrderRecords = async () => {
+    return await this.testDatabase.ArbitraryRepository.createQueryBuilder()
       .select()
       .getMany();
   };
