@@ -441,7 +441,7 @@ describe(`TestArbitraryProcessor`, () => {
 
       // run test
       const arbitraryProcessor = new TestArbitraryProcessor();
-      await arbitraryProcessor.TimeoutLeftoverOrders();
+      await arbitraryProcessor.timeoutLeftoverOrders();
 
       // status of one order should be updated in db
       const dbOrders = (await DatabaseActionMock.allOrderRecords()).map(
@@ -480,7 +480,7 @@ describe(`TestArbitraryProcessor`, () => {
 
       // run test
       const arbitraryProcessor = new TestArbitraryProcessor();
-      await arbitraryProcessor.RequeueWaitingOrders();
+      await arbitraryProcessor.requeueWaitingOrders();
 
       // status of two orders should be updated in db
       const dbOrders = (await DatabaseActionMock.allOrderRecords()).map(

@@ -5,6 +5,7 @@ import GuardTurn from '../utils/GuardTurn';
 import ColdStorage from '../coldStorage/ColdStorage';
 import ColdStorageConfig from '../coldStorage/ColdStorageConfig';
 import TxAgreement from '../agreement/TxAgreement';
+import ArbitraryProcessor from '../arbitrary/ArbitraryProcessor';
 
 /**
  * sends generated tx to agreement
@@ -33,15 +34,10 @@ const agreementResendJob = async () => {
   }
 };
 
-/**
- * runs EventProcessor job to process confirmed events
- */
-const confirmedEventsJob = async () => {
-  // process confirmed events
-  EventProcessor.processConfirmedEvents().then(() => {
-    setTimeout(confirmedEventsJob, GuardTurn.secondsToNextTurn() * 1000);
-  });
-  (await TxAgreement.getInstance()).enqueueSignFailedTxs();
+const roundJob = async () => {
+  // enqueue sign failed txs after 30 seconds in turn
+  setTimeout((await TxAgreement.getInstance()).enqueueSignFailedTxs, 30 * 1000);
+  // run TxAgreement queue and resend jobs
   setTimeout(agreementQueueJob, Configs.agreementQueueInterval * 1000);
   setTimeout(agreementResendJob, Configs.txResendInterval * 1000);
   // clear generated transactions when turn is over
@@ -49,6 +45,17 @@ const confirmedEventsJob = async () => {
     (await TxAgreement.getInstance()).clearTransactions,
     GuardTurn.UP_TIME_LENGTH * 1000
   );
+  // process confirmed events
+  await EventProcessor.processConfirmedEvents();
+  // process arbitrary orders
+  await ArbitraryProcessor.getInstance().processArbitraryOrders();
+  // process lock address assets for sending any to cold storage
+  if (ColdStorageConfig.isWithinTime()) {
+    await ColdStorage.processLockAddressAssets();
+  }
+
+  // reschedule the job
+  setTimeout(roundJob, GuardTurn.secondsToNextTurn() * 1000);
 };
 
 /**
@@ -79,52 +86,31 @@ const transactionJob = () => {
 };
 
 /**
- * runs TimeoutLeftoverEvents job
+ * runs timeout leftover events and orders job
  */
-const timeoutProcessorJob = () => {
-  EventProcessor.TimeoutLeftoverEvents().then(() =>
-    setTimeout(timeoutProcessorJob, Configs.timeoutProcessorInterval * 1000)
-  );
+const timeoutProcessorJob = async () => {
+  await EventProcessor.TimeoutLeftoverEvents();
+  await ArbitraryProcessor.getInstance().timeoutLeftoverOrders();
+  setTimeout(timeoutProcessorJob, Configs.timeoutProcessorInterval * 1000);
 };
 
 /**
- * runs RequeueWaitingEvents job
+ * runs requeue waiting events and orders job
  */
-const requeueWaitingEventsJob = () => {
-  EventProcessor.RequeueWaitingEvents().then(() =>
-    setTimeout(
-      requeueWaitingEventsJob,
-      Configs.requeueWaitingEventsInterval * 1000
-    )
-  );
-};
-
-/**
- * runs coldStorage jobs
- */
-const coldStorageJob = async () => {
-  if (ColdStorageConfig.isWithinTime()) {
-    // process lock address assets for sending any to cold storage
-    ColdStorage.processLockAddressAssets().then(() => {
-      setTimeout(coldStorageJob, GuardTurn.secondsToNextTurn() * 1000);
-    });
-    // clear generated transactions when turn is over
-    setTimeout(
-      (await TxAgreement.getInstance()).clearTransactions,
-      GuardTurn.UP_TIME_LENGTH * 1000
-    );
-  } else setTimeout(coldStorageJob, GuardTurn.secondsToNextTurn() * 1000);
+const requeueWaitingEventsJob = async () => {
+  await EventProcessor.RequeueWaitingEvents();
+  await ArbitraryProcessor.getInstance().requeueWaitingOrders();
+  setTimeout(timeoutProcessorJob, Configs.requeueWaitingEventsInterval * 1000);
 };
 
 /**
  * runs all processors and their related jobs
  */
 const runProcessors = () => {
-  scannedEventsJob();
-  setTimeout(confirmedEventsJob, GuardTurn.secondsToNextTurn() * 1000);
-  setTimeout(coldStorageJob, GuardTurn.secondsToNextTurn() * 1000);
+  setTimeout(scannedEventsJob, Configs.scannedEventProcessorInterval * 1000);
+  setTimeout(roundJob, GuardTurn.secondsToNextTurn() * 1000);
   setTimeout(resetJob, GuardTurn.secondsToReset() * 1000);
-  transactionJob();
+  setTimeout(transactionJob, Configs.txProcessorInterval * 1000);
   setTimeout(timeoutProcessorJob, Configs.timeoutProcessorInterval * 1000);
   setTimeout(
     requeueWaitingEventsJob,

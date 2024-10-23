@@ -166,7 +166,7 @@ class ArbitraryProcessor {
   /**
    * searches event triggers in the database with more than leftover confirmation and timeout them
    */
-  TimeoutLeftoverOrders = async (): Promise<void> => {
+  timeoutLeftoverOrders = async (): Promise<void> => {
     logger.info('Searching for leftover arbitrary orders');
     const pendingOrders = await DatabaseAction.getInstance().getOrdersByStatus(
       OrderStatus.pending
@@ -201,7 +201,7 @@ class ArbitraryProcessor {
   /**
    * updates all waiting arbitrary orders status to pending
    */
-  RequeueWaitingOrders = async (): Promise<void> => {
+  requeueWaitingOrders = async (): Promise<void> => {
     logger.info('Processing waiting arbitrary orders');
     const waitingOrders = await DatabaseAction.getInstance().getOrdersByStatus(
       OrderStatus.waiting
