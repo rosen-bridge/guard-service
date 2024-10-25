@@ -689,3 +689,5 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
     );
   };
 }
+
+export default DogeChain;
