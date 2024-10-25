@@ -9,7 +9,9 @@ class Serializer {
    */
   static serialize = (tx: Transaction): Uint8Array => {
     try {
-      return Buffer.from(tx.unsignedSerialized.substring(2), 'hex');
+      return Uint8Array.from(
+        Buffer.from(tx.unsignedSerialized.substring(2), 'hex')
+      );
     } catch (error) {
       throw new SerializationError(`${error}`);
     }
@@ -35,7 +37,7 @@ class Serializer {
    */
   static signedSerialize = (tx: Transaction): Uint8Array => {
     try {
-      return Buffer.from(tx.serialized.substring(2), 'hex');
+      return Uint8Array.from(Buffer.from(tx.serialized.substring(2), 'hex'));
     } catch (error) {
       throw new SerializationError(`${error}`);
     }

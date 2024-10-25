@@ -6,12 +6,12 @@ import {
 } from '@rosen-chains/evm';
 import { RosenTokens } from '@rosen-bridge/tokens';
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
-import { ETH, ETHEREUM_CHAIN, ETHEREUM_CHAIN_ID } from './constants';
+import { BNB, BINANCE_CHAIN, BINANCE_CHAIN_ID } from './constants';
 
-class EthereumChain extends EvmChain {
-  CHAIN = ETHEREUM_CHAIN;
-  NATIVE_TOKEN_ID = ETH;
-  CHAIN_ID = ETHEREUM_CHAIN_ID;
+class BinanceChain extends EvmChain {
+  CHAIN = BINANCE_CHAIN;
+  NATIVE_TOKEN_ID = BNB;
+  CHAIN_ID = BINANCE_CHAIN_ID;
 
   constructor(
     network: AbstractEvmNetwork,
@@ -27,11 +27,11 @@ class EthereumChain extends EvmChain {
       tokens,
       supportedTokens,
       signFunction,
-      ETHEREUM_CHAIN,
-      ETH,
+      BINANCE_CHAIN,
+      BNB,
       logger
     );
   }
 }
 
-export default EthereumChain;
+export default BinanceChain;

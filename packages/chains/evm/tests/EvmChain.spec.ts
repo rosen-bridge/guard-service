@@ -2303,8 +2303,10 @@ describe('EvmChain', () => {
       expect(signedTx.hash).toEqual(TestData.transaction2TxId);
 
       // `signFunction` should have been called with unsigned hash without '0x'
-      expect(signFunction).toHaveBeenCalledWith(
-        Buffer.from(tx.unsignedHash.slice(2), 'hex')
+      expect(signFunction).toHaveBeenCalledOnce();
+      const callArguments = signFunction.mock.lastCall as Uint8Array[];
+      expect(Buffer.from(callArguments[0]).toString('hex')).toEqual(
+        tx.unsignedHash.slice(2)
       );
     });
 

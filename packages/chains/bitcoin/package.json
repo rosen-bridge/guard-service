@@ -33,10 +33,10 @@
     "node": ">=20.11.0"
   },
   "dependencies": {
-    "@rosen-bridge/abstract-logger": "^1.0.0",
-    "@rosen-bridge/bitcoin-utxo-selection": "^0.2.0",
+    "@rosen-bridge/abstract-logger": "^2.0.1",
+    "@rosen-bridge/bitcoin-utxo-selection": "^0.2.2",
     "@rosen-bridge/json-bigint": "^0.1.0",
-    "@rosen-bridge/rosen-extractor": "^6.2.0",
+    "@rosen-bridge/rosen-extractor": "^6.2.2",
     "@rosen-bridge/tokens": "^1.2.1",
     "@rosen-chains/abstract-chain": "^9.0.2",
     "bitcoinjs-lib": "^6.1.5"

@@ -28,7 +28,7 @@
     "node": ">=20.11.0"
   },
   "dependencies": {
-    "@rosen-bridge/abstract-logger": "^1.0.0",
+    "@rosen-bridge/abstract-logger": "^2.0.1",
     "@rosen-bridge/tokens": "^1.2.1",
     "@rosen-chains/abstract-chain": "^9.0.2",
     "@rosen-chains/evm": "^4.1.1"

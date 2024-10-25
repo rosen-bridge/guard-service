@@ -116,7 +116,9 @@ abstract class EvmChain extends AbstractChain<Transaction> {
         : nonceCount.set(nonce, 1);
     });
     serializedSignedTransactions.map((tx) => {
-      const nonce = Serializer.deserialize(Buffer.from(tx, 'hex')).nonce;
+      const nonce = Serializer.deserialize(
+        Uint8Array.from(Buffer.from(tx, 'hex'))
+      ).nonce;
       const count = nonceCount.get(nonce);
       count !== undefined
         ? nonceCount.set(nonce, count + 1)
@@ -545,28 +547,30 @@ abstract class EvmChain extends AbstractChain<Transaction> {
       tx.unsignedHash.slice(0, 2) === '0x'
         ? tx.unsignedHash.slice(2)
         : tx.unsignedHash;
-    return this.signFunction(Buffer.from(hash, 'hex')).then((res) => {
-      const r = '0x' + res.signature.slice(0, 64);
-      const s = '0x' + res.signature.slice(64, 128);
-      const yParity = Number(res.signatureRecovery);
-      if (yParity !== 0 && yParity !== 1)
-        throw new ImpossibleBehavior(
-          `non-binary signature recovery: ${res.signatureRecovery}`
+    return this.signFunction(Uint8Array.from(Buffer.from(hash, 'hex'))).then(
+      (res) => {
+        const r = '0x' + res.signature.slice(0, 64);
+        const s = '0x' + res.signature.slice(64, 128);
+        const yParity = Number(res.signatureRecovery);
+        if (yParity !== 0 && yParity !== 1)
+          throw new ImpossibleBehavior(
+            `non-binary signature recovery: ${res.signatureRecovery}`
+          );
+        const signature = Signature.from({
+          r,
+          s,
+          yParity: yParity,
+        });
+        tx.signature = signature;
+        return new PaymentTransaction(
+          transaction.network,
+          transaction.txId,
+          transaction.eventId,
+          Serializer.signedSerialize(tx),
+          transaction.txType
         );
-      const signature = Signature.from({
-        r,
-        s,
-        yParity: yParity,
-      });
-      tx.signature = signature;
-      return new PaymentTransaction(
-        transaction.network,
-        transaction.txId,
-        transaction.eventId,
-        Serializer.signedSerialize(tx),
-        transaction.txType
-      );
-    });
+      }
+    );
   };
 
   /**
@@ -674,7 +678,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
       this.CHAIN,
       obj.txId,
       obj.eventId,
-      Buffer.from(obj.txBytes, 'hex'),
+      Uint8Array.from(Buffer.from(obj.txBytes, 'hex')),
       obj.txType as TransactionType
     );
   };

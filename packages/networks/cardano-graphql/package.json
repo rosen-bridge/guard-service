@@ -39,7 +39,7 @@
   "dependencies": {
     "@apollo/client": "^3.8.7",
     "@emurgo/cardano-serialization-lib-nodejs": "^11.3.1",
-    "@rosen-bridge/abstract-logger": "^1.0.0",
+    "@rosen-bridge/abstract-logger": "^2.0.1",
     "@rosen-chains/abstract-chain": "^9.0.2",
     "@rosen-chains/cardano": "^9.0.2"
   }
