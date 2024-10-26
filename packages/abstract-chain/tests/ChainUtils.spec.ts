@@ -710,7 +710,6 @@ describe('ChainUtils', () => {
 
     // run test
     const result = ChainUtils.encodeOrder(order);
-    console.log(result);
 
     // check returned value
     const organizedOrder: PaymentOrder = JsonBigInt.parse(result);
