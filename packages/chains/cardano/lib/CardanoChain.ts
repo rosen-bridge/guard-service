@@ -783,6 +783,62 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
    * serializes the transaction of this chain into string
    */
   protected serializeTx = (tx: CardanoTx): string => JsonBigInt.stringify(tx);
+
+  /**
+   * verifies consistency within the PaymentTransaction object
+   * @param transaction the PaymentTransaction
+   * @returns true if the transaction is verified
+   */
+  verifyPaymentTransaction = async (
+    transaction: PaymentTransaction
+  ): Promise<boolean> => {
+    const tx = Serializer.deserialize(transaction.txBytes);
+    const cardanoTx = transaction as CardanoTransaction;
+    const baseError = `Tx [${transaction.txId}] is not verified: `;
+
+    // verify txId
+    const txId = Buffer.from(
+      CardanoWasm.hash_transaction(tx.body()).to_bytes()
+    ).toString('hex');
+    if (transaction.txId !== txId) {
+      this.logger.warn(
+        baseError +
+          `Transaction ID is inconsistent (expected [${transaction.txId}] found [${txId}])`
+      );
+      return false;
+    }
+
+    // verify inputUtxos
+    const txInputs = tx.body().inputs();
+    if (cardanoTx.inputUtxos.length !== txInputs.len()) {
+      this.logger.warn(
+        baseError +
+          `CardanoTransaction object input counts is inconsistent [${
+            cardanoTx.inputUtxos.length
+          } != ${txInputs.len()}]`
+      );
+      return false;
+    }
+    for (let i = 0; i < txInputs.len(); i++) {
+      const input = txInputs.get(i);
+      const actualInputId = `${input
+        .transaction_id()
+        .to_hex()}.${input.index()}`;
+      const cardanoInput = JsonBigInt.parse(
+        cardanoTx.inputUtxos[i]
+      ) as CardanoUtxo;
+      const expectedId = `${cardanoInput.txId}.${cardanoInput.index}`;
+      if (expectedId !== actualInputId) {
+        this.logger.warn(
+          baseError +
+            `BoxId for input at index [${i}] is inconsistent [expected ${expectedId} found ${actualInputId}]`
+        );
+        return false;
+      }
+    }
+
+    return true;
+  };
 }
 
 export default CardanoChain;

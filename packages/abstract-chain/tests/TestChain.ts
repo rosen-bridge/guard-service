@@ -26,6 +26,7 @@ class TestChain extends AbstractChain<string> {
   getMinimumNativeToken = this.notImplemented;
   PaymentTransactionFromJson = this.notImplemented;
   rawTxToPaymentTransaction = this.notImplemented;
+  verifyPaymentTransaction = this.notImplemented;
 
   generateMultipleTransactions = (
     eventId: string,

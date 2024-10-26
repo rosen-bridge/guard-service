@@ -719,7 +719,7 @@ describe('BitcoinChain', () => {
     const network = new TestBitcoinNetwork();
 
     /**
-     * @target BitcoinChain.getBoxInfo should get box id and assets correctly
+     * @target BitcoinChain.getBoxInfo should get box info successfully
      * @dependencies
      * @scenario
      * - mock a BitcoinUtxo with assets
@@ -828,6 +828,116 @@ describe('BitcoinChain', () => {
         trackMap.set(mapping.inputId, undefined);
       });
       expect(result).toEqual(trackMap);
+    });
+  });
+
+  describe('verifyPaymentTransaction', () => {
+    const network = new TestBitcoinNetwork();
+
+    /**
+     * @target BitcoinChain.verifyPaymentTransaction should return true
+     * when data is consistent
+     * @dependencies
+     * @scenario
+     * - mock a BitcoinTransaction
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return true
+     */
+    it('should return true when data is consistent', async () => {
+      // mock a BitcoinTransaction
+      const paymentTx = BitcoinTransaction.fromJson(
+        testData.transaction2PaymentTransaction
+      );
+
+      // run test
+      const bitcoinChain = testUtils.generateChainObject(network);
+      const result = await bitcoinChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(true);
+    });
+
+    /**
+     * @target BitcoinChain.verifyPaymentTransaction should return false
+     * when transaction id is wrong
+     * @dependencies
+     * @scenario
+     * - mock a BitcoinTransaction with changed txId
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when transaction id is wrong', async () => {
+      // mock a BitcoinTransaction with changed txId
+      const paymentTx = BitcoinTransaction.fromJson(
+        testData.transaction2PaymentTransaction
+      );
+      paymentTx.txId = testUtils.generateRandomId();
+
+      // run test
+      const bitcoinChain = testUtils.generateChainObject(network);
+      const result = await bitcoinChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target BitcoinChain.verifyPaymentTransaction should return false
+     * when number of utxos is wrong
+     * @dependencies
+     * @scenario
+     * - mock a BitcoinTransaction with less utxos
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when number of utxos is wrong', async () => {
+      // mock a BitcoinTransaction with less utxos
+      const paymentTx = BitcoinTransaction.fromJson(
+        testData.transaction2PaymentTransaction
+      );
+      paymentTx.inputUtxos.pop();
+
+      // run test
+      const bitcoinChain = testUtils.generateChainObject(network);
+      const result = await bitcoinChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target BitcoinChain.verifyPaymentTransaction should return false
+     * when at least one of the utxos is wrong
+     * @dependencies
+     * @scenario
+     * - mock a BitcoinTransaction with changed utxo
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when at least one of the utxos is wrong', async () => {
+      // mock a BitcoinTransaction with changed utxo
+      const paymentTx = BitcoinTransaction.fromJson(
+        testData.transaction2PaymentTransaction
+      );
+      paymentTx.inputUtxos[1] = JsonBigInt.stringify({
+        txId: testUtils.generateRandomId(),
+        index: 1,
+      });
+
+      // run test
+      const bitcoinChain = testUtils.generateChainObject(network);
+      const result = await bitcoinChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
     });
   });
 });

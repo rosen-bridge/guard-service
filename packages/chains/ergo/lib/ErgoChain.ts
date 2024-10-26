@@ -1154,6 +1154,83 @@ class ErgoChain extends AbstractUtxoChain<wasm.Transaction, wasm.ErgoBox> {
    */
   protected serializeTx = (tx: wasm.Transaction): string =>
     Buffer.from(tx.sigma_serialize_bytes()).toString('hex');
+
+  /**
+   * verifies consistency within the PaymentTransaction object
+   * @param transaction the PaymentTransaction
+   * @returns true if the transaction is verified
+   */
+  verifyPaymentTransaction = async (
+    transaction: PaymentTransaction
+  ): Promise<boolean> => {
+    const tx = Serializer.deserialize(transaction.txBytes).unsigned_tx();
+    const ergoTx = transaction as ErgoTransaction;
+    const baseError = `Tx [${transaction.txId}] is not verified: `;
+
+    // verify txId
+    const txId = tx.id().to_str();
+    if (transaction.txId !== txId) {
+      this.logger.warn(
+        baseError +
+          `Transaction ID is inconsistent (expected [${transaction.txId}] found [${txId}])`
+      );
+      return false;
+    }
+
+    // verify inputBoxes
+    const txInputs = tx.inputs();
+    if (ergoTx.inputBoxes.length !== txInputs.len()) {
+      this.logger.warn(
+        baseError +
+          `ErgoTransaction object input counts is inconsistent [${
+            ergoTx.inputBoxes.length
+          } != ${txInputs.len()}]`
+      );
+      return false;
+    }
+    for (let i = 0; i < txInputs.len(); i++) {
+      const input = txInputs.get(i);
+      const actualBoxId = input.box_id().to_str();
+      const expectedId = wasm.ErgoBox.sigma_parse_bytes(ergoTx.inputBoxes[i])
+        .box_id()
+        .to_str();
+      if (expectedId !== actualBoxId) {
+        this.logger.warn(
+          baseError +
+            `BoxId for input at index [${i}] is inconsistent [expected ${expectedId} found ${actualBoxId}]`
+        );
+        return false;
+      }
+    }
+
+    // verify dataInputs
+    const dataInputs = tx.data_inputs();
+    if (ergoTx.dataInputs.length !== dataInputs.len()) {
+      this.logger.warn(
+        baseError +
+          `ErgoTransaction object data input counts is inconsistent [${
+            ergoTx.dataInputs.length
+          } != ${dataInputs.len()}]`
+      );
+      return false;
+    }
+    for (let i = 0; i < dataInputs.len(); i++) {
+      const input = dataInputs.get(i);
+      const actualBoxId = input.box_id().to_str();
+      const expectedId = wasm.ErgoBox.sigma_parse_bytes(ergoTx.dataInputs[i])
+        .box_id()
+        .to_str();
+      if (expectedId !== actualBoxId) {
+        this.logger.warn(
+          baseError +
+            `BoxId for data input at index [${i}] is inconsistent [expected ${expectedId} found ${actualBoxId}]`
+        );
+        return false;
+      }
+    }
+
+    return true;
+  };
 }
 
 export default ErgoChain;
