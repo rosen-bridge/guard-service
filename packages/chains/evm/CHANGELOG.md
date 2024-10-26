@@ -1,5 +1,11 @@
 # @rosen-chains/evm
 
+## 4.1.2
+
+### Patch Changes
+
+- Fix UInt8Array type error
+
 ## 4.1.1
 
 ### Patch Changes
