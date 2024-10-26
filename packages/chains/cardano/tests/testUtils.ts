@@ -128,6 +128,7 @@ export const observationTxConfirmation = 5;
 export const paymentTxConfirmation = 9;
 export const coldTxConfirmation = 10;
 export const manualTxConfirmation = 11;
+export const arbitraryTxConfirmation = 12;
 export const rwtId =
   '9410db5b39388c6b515160e7248346d7ec63d5457292326da12a26cc02efb526';
 export const minBoxValue = 2000000n;
@@ -147,6 +148,7 @@ export const configs: CardanoConfigs = {
     payment: paymentTxConfirmation,
     cold: coldTxConfirmation,
     manual: manualTxConfirmation,
+    arbitrary: arbitraryTxConfirmation,
   },
   aggregatedPublicKey:
     'bcb07faa6c0f19e2f2587aa9ef6f43a68fc0135321216a71dc87c8527af4ca6a',

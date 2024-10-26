@@ -317,6 +317,8 @@ abstract class AbstractChain<TxType> {
         return this.configs.confirmations.observation;
       case TransactionType.manual:
         return this.configs.confirmations.manual;
+      case TransactionType.arbitrary:
+        return this.configs.confirmations.arbitrary;
       default:
         throw Error(
           `Confirmation for type [${transactionType}] is not defined in abstract chain`

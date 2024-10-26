@@ -121,12 +121,7 @@ describe('ErgoChain', () => {
       // mock chain config
       const config: ErgoConfigs = {
         fee: 1100000n,
-        confirmations: {
-          observation: ergoTestUtils.observationTxConfirmation,
-          payment: ergoTestUtils.paymentTxConfirmation,
-          cold: ergoTestUtils.coldTxConfirmation,
-          manual: ergoTestUtils.manualTxConfirmation,
-        },
+        confirmations: ergoTestUtils.defaultConfirmations,
         addresses: {
           lock: 'nB3L2PD3LG4ydEj62n9aymRyPCEbkBdzaubgvCWDH2oxHxFBfAUy9GhWDvteDbbUh5qhXxnW8R46qmEiZfkej8gt4kZYvbeobZJADMrWXwFJTsZ17euEcoAp3KDk31Q26okFpgK9SKdi4',
           cold: 'cold_addr',
@@ -294,12 +289,7 @@ describe('ErgoChain', () => {
       // mock chain config
       const config: ErgoConfigs = {
         fee: 1100000n,
-        confirmations: {
-          observation: ergoTestUtils.observationTxConfirmation,
-          payment: ergoTestUtils.paymentTxConfirmation,
-          cold: ergoTestUtils.coldTxConfirmation,
-          manual: ergoTestUtils.manualTxConfirmation,
-        },
+        confirmations: ergoTestUtils.defaultConfirmations,
         addresses: {
           lock: 'nB3L2PD3LG4ydEj62n9aymRyPCEbkBdzaubgvCWDH2oxHxFBfAUy9GhWDvteDbbUh5qhXxnW8R46qmEiZfkej8gt4kZYvbeobZJADMrWXwFJTsZ17euEcoAp3KDk31Q26okFpgK9SKdi4',
           cold: 'cold_addr',
@@ -399,12 +389,7 @@ describe('ErgoChain', () => {
       // mock chain config
       const config: ErgoConfigs = {
         fee: 1100000n,
-        confirmations: {
-          observation: ergoTestUtils.observationTxConfirmation,
-          payment: ergoTestUtils.paymentTxConfirmation,
-          cold: ergoTestUtils.coldTxConfirmation,
-          manual: ergoTestUtils.manualTxConfirmation,
-        },
+        confirmations: ergoTestUtils.defaultConfirmations,
         addresses: {
           lock: 'nB3L2PD3LG4ydEj62n9aymRyPCEbkBdzaubgvCWDH2oxHxFBfAUy9GhWDvteDbbUh5qhXxnW8R46qmEiZfkej8gt4kZYvbeobZJADMrWXwFJTsZ17euEcoAp3KDk31Q26okFpgK9SKdi4',
           cold: 'cold_addr',
@@ -524,12 +509,7 @@ describe('ErgoChain', () => {
       // mock chain config
       const config: ErgoConfigs = {
         fee: 1100000n,
-        confirmations: {
-          observation: ergoTestUtils.observationTxConfirmation,
-          payment: ergoTestUtils.paymentTxConfirmation,
-          cold: ergoTestUtils.coldTxConfirmation,
-          manual: ergoTestUtils.manualTxConfirmation,
-        },
+        confirmations: ergoTestUtils.defaultConfirmations,
         addresses: {
           lock: 'nB3L2PD3LG4ydEj62n9aymRyPCEbkBdzaubgvCWDH2oxHxFBfAUy9GhWDvteDbbUh5qhXxnW8R46qmEiZfkej8gt4kZYvbeobZJADMrWXwFJTsZ17euEcoAp3KDk31Q26okFpgK9SKdi4',
           cold: 'cold_addr',
@@ -678,12 +658,7 @@ describe('ErgoChain', () => {
       // mock chain config
       const config: ErgoConfigs = {
         fee: 1100000n,
-        confirmations: {
-          observation: ergoTestUtils.observationTxConfirmation,
-          payment: ergoTestUtils.paymentTxConfirmation,
-          cold: ergoTestUtils.coldTxConfirmation,
-          manual: ergoTestUtils.manualTxConfirmation,
-        },
+        confirmations: ergoTestUtils.defaultConfirmations,
         addresses: {
           lock: 'nB3L2PD3LG4ydEj62n9aymRyPCEbkBdzaubgvCWDH2oxHxFBfAUy9GhWDvteDbbUh5qhXxnW8R46qmEiZfkej8gt4kZYvbeobZJADMrWXwFJTsZ17euEcoAp3KDk31Q26okFpgK9SKdi4',
           cold: 'cold_addr',
@@ -883,12 +858,7 @@ describe('ErgoChain', () => {
       const expectedOrder = transactionTestData.transaction6Order;
       const config: ErgoConfigs = {
         fee: 1100000n,
-        confirmations: {
-          observation: ergoTestUtils.observationTxConfirmation,
-          payment: ergoTestUtils.paymentTxConfirmation,
-          cold: ergoTestUtils.coldTxConfirmation,
-          manual: ergoTestUtils.manualTxConfirmation,
-        },
+        confirmations: ergoTestUtils.defaultConfirmations,
         addresses: {
           lock: transactionTestData.transaction6InAddress,
           cold: 'cold_addr',
@@ -932,12 +902,7 @@ describe('ErgoChain', () => {
       const expectedOrder = transactionTestData.transaction6WrappedOrder;
       const config: ErgoConfigs = {
         fee: 1100000n,
-        confirmations: {
-          observation: ergoTestUtils.observationTxConfirmation,
-          payment: ergoTestUtils.paymentTxConfirmation,
-          cold: ergoTestUtils.coldTxConfirmation,
-          manual: ergoTestUtils.manualTxConfirmation,
-        },
+        confirmations: ergoTestUtils.defaultConfirmations,
         addresses: {
           lock: transactionTestData.transaction6InAddress,
           cold: 'cold_addr',
@@ -994,12 +959,7 @@ describe('ErgoChain', () => {
       // mock a config that has more fee comparing to mocked transaction fee
       const config: ErgoConfigs = {
         fee: 1200000n,
-        confirmations: {
-          observation: ergoTestUtils.observationTxConfirmation,
-          payment: ergoTestUtils.paymentTxConfirmation,
-          cold: ergoTestUtils.coldTxConfirmation,
-          manual: ergoTestUtils.manualTxConfirmation,
-        },
+        confirmations: ergoTestUtils.defaultConfirmations,
         addresses: {
           lock: ergoTestUtils.testLockAddress,
           cold: 'cold_addr',
@@ -1052,12 +1012,7 @@ describe('ErgoChain', () => {
       // mock a config that has less fee comparing to mocked transaction fee
       const config: ErgoConfigs = {
         fee: 100n,
-        confirmations: {
-          observation: ergoTestUtils.observationTxConfirmation,
-          payment: ergoTestUtils.paymentTxConfirmation,
-          cold: ergoTestUtils.coldTxConfirmation,
-          manual: ergoTestUtils.manualTxConfirmation,
-        },
+        confirmations: ergoTestUtils.defaultConfirmations,
         addresses: {
           lock: ergoTestUtils.testLockAddress,
           cold: 'cold_addr',
@@ -1171,12 +1126,7 @@ describe('ErgoChain', () => {
       // mock a config with valid lockAddress
       const config: ErgoConfigs = {
         fee: 1200000n,
-        confirmations: {
-          observation: ergoTestUtils.observationTxConfirmation,
-          payment: ergoTestUtils.paymentTxConfirmation,
-          cold: ergoTestUtils.coldTxConfirmation,
-          manual: ergoTestUtils.manualTxConfirmation,
-        },
+        confirmations: ergoTestUtils.defaultConfirmations,
         addresses: {
           lock: 'nB3L2PD3LG4ydEj62n9aymRyPCEbkBdzaubgvCWDH2oxHxFBfAUy9GhWDvteDbbUh5qhXxnW8R46qmEiZfkej8gt4kZYvbeobZJADMrWXwFJTsZ17euEcoAp3KDk31Q26okFpgK9SKdi4',
           cold: 'cold_addr',
@@ -1224,12 +1174,7 @@ describe('ErgoChain', () => {
       // mock a config with valid lockAddress
       const config: ErgoConfigs = {
         fee: 1200000n,
-        confirmations: {
-          observation: ergoTestUtils.observationTxConfirmation,
-          payment: ergoTestUtils.paymentTxConfirmation,
-          cold: ergoTestUtils.coldTxConfirmation,
-          manual: ergoTestUtils.manualTxConfirmation,
-        },
+        confirmations: ergoTestUtils.defaultConfirmations,
         addresses: {
           lock: 'nB3L2PD3LG4ydEj62n9aymRyPCEbkBdzaubgvCWDH2oxHxFBfAUy9GhWDvteDbbUh5qhXxnW8R46qmEiZfkej8gt4kZYvbeobZJADMrWXwFJTsZ17euEcoAp3KDk31Q26okFpgK9SKdi4',
           cold: 'cold_addr',
@@ -2215,12 +2160,7 @@ describe('ErgoChain', () => {
       const expectedOrder = transactionTestData.transaction6Order;
       const config: ErgoConfigs = {
         fee: 1100000n,
-        confirmations: {
-          observation: ergoTestUtils.observationTxConfirmation,
-          payment: ergoTestUtils.paymentTxConfirmation,
-          cold: ergoTestUtils.coldTxConfirmation,
-          manual: ergoTestUtils.manualTxConfirmation,
-        },
+        confirmations: ergoTestUtils.defaultConfirmations,
         addresses: {
           lock: transactionTestData.transaction6InAddress,
           cold: 'cold_addr',
@@ -2267,12 +2207,7 @@ describe('ErgoChain', () => {
       const expectedOrder = transactionTestData.transaction6WrappedOrder;
       const config: ErgoConfigs = {
         fee: 1100000n,
-        confirmations: {
-          observation: ergoTestUtils.observationTxConfirmation,
-          payment: ergoTestUtils.paymentTxConfirmation,
-          cold: ergoTestUtils.coldTxConfirmation,
-          manual: ergoTestUtils.manualTxConfirmation,
-        },
+        confirmations: ergoTestUtils.defaultConfirmations,
         addresses: {
           lock: transactionTestData.transaction6InAddress,
           cold: 'cold_addr',
