@@ -14,7 +14,11 @@ import { TransactionEntity } from '../../../src/db/entities/TransactionEntity';
 import migrations from '../../../src/db/migrations';
 import Utils from '../../../src/utils/Utils';
 import TestUtils from '../../testUtils/TestUtils';
-import { EventTrigger, PaymentTransaction } from '@rosen-chains/abstract-chain';
+import {
+  EventTrigger,
+  PaymentTransaction,
+  TransactionType,
+} from '@rosen-chains/abstract-chain';
 import { DatabaseAction } from '../../../src/db/DatabaseAction';
 import { RevenueEntity } from '../../../src/db/entities/revenueEntity';
 import { RevenueChartView } from '../../../src/db/entities/revenueChartView';
@@ -234,9 +238,17 @@ class DatabaseActionMock {
     signFailedCount = 0,
     requiredSign = 6
   ) => {
-    const event = await this.testDatabase.ConfirmedEventRepository.findOneBy({
-      id: paymentTx.eventId,
-    });
+    let order: ArbitraryEntity | null | undefined;
+    let event: ConfirmedEventEntity | null | undefined;
+    if (paymentTx.txType === TransactionType.arbitrary) {
+      order = await this.testDatabase.ArbitraryRepository.findOneBy({
+        id: paymentTx.eventId,
+      });
+    } else {
+      event = await this.testDatabase.ConfirmedEventRepository.findOneBy({
+        id: paymentTx.eventId,
+      });
+    }
     await this.testDatabase.TransactionRepository.insert({
       txId: paymentTx.txId,
       txJson: paymentTx.toJson(),
@@ -244,7 +256,8 @@ class DatabaseActionMock {
       chain: paymentTx.network,
       status: status,
       lastCheck: lastCheck,
-      event: event!,
+      event: event !== null ? event : undefined,
+      order: order !== null ? order : undefined,
       lastStatusUpdate: lastStatusUpdate,
       failedInSign: failedInSign,
       signFailedCount: signFailedCount,

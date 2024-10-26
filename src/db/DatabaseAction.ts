@@ -171,7 +171,7 @@ class DatabaseAction {
    */
   getActiveTransactions = async (): Promise<TransactionEntity[]> => {
     return await this.TransactionRepository.find({
-      relations: ['event'],
+      relations: ['event', 'order'],
       where: {
         status: In([
           TransactionStatus.sent,
@@ -254,7 +254,7 @@ class DatabaseAction {
    */
   getTxById = async (txId: string): Promise<TransactionEntity | null> => {
     return await this.TransactionRepository.findOne({
-      relations: ['event'],
+      relations: ['event', 'order'],
       where: {
         txId: txId,
       },
@@ -295,7 +295,7 @@ class DatabaseAction {
     const event = await this.getEventById(eventId);
     if (event === null) throw Error(`Event [${eventId}] not found`);
     return await this.TransactionRepository.find({
-      relations: ['event'],
+      relations: ['event', 'order'],
       where: {
         event: { id: event.id },
         type: type,
@@ -364,7 +364,8 @@ class DatabaseAction {
   insertNewTx = async (
     paymentTx: PaymentTransaction,
     event: ConfirmedEventEntity | null,
-    requiredSign: number
+    requiredSign: number,
+    order: ArbitraryEntity | null
   ): Promise<void> => {
     await this.TransactionRepository.insert({
       txId: paymentTx.txId,
@@ -375,6 +376,7 @@ class DatabaseAction {
       lastStatusUpdate: String(Math.round(Date.now() / 1000)),
       lastCheck: 0,
       event: event !== null ? event : undefined,
+      order: order !== null ? order : undefined,
       failedInSign: false,
       signFailedCount: 0,
       requiredSign: requiredSign,
@@ -432,7 +434,7 @@ class DatabaseAction {
     chain: string
   ): Promise<TransactionEntity[]> => {
     return await this.TransactionRepository.find({
-      relations: ['event'],
+      relations: ['event', 'order'],
       where: {
         type: TransactionType.coldStorage,
         status: Not(
@@ -451,7 +453,7 @@ class DatabaseAction {
     chain: string
   ): Promise<TransactionEntity[]> => {
     return await this.TransactionRepository.find({
-      relations: ['event'],
+      relations: ['event', 'order'],
       where: [
         {
           status: TransactionStatus.approved,
@@ -477,7 +479,7 @@ class DatabaseAction {
     chain: string
   ): Promise<TransactionEntity[]> => {
     return await this.TransactionRepository.find({
-      relations: ['event'],
+      relations: ['event', 'order'],
       where: [
         {
           status: TransactionStatus.signed,
@@ -501,7 +503,7 @@ class DatabaseAction {
     const event = await this.getEventById(eventId);
     if (event === null) throw new Error(`Event [${eventId}] not found`);
     const txs = await this.TransactionRepository.find({
-      relations: ['event'],
+      relations: ['event', 'order'],
       where: [
         {
           event: { id: event.id },
@@ -524,7 +526,7 @@ class DatabaseAction {
    */
   getUnsignedFailedSignTxs = async (): Promise<TransactionEntity[]> => {
     return await this.TransactionRepository.find({
-      relations: ['event'],
+      relations: ['event', 'order'],
       where: [
         {
           status: TransactionStatus.signFailed,
@@ -776,7 +778,7 @@ class DatabaseAction {
    */
   getValidTxsForEvents = (eventIds: string[]): Promise<TransactionEntity[]> => {
     return this.TransactionRepository.find({
-      relations: ['event'],
+      relations: ['event', 'order'],
       where: {
         event: In(eventIds),
         status: Not(TransactionStatus.invalid),
@@ -882,6 +884,20 @@ class DatabaseAction {
       orderJson: orderJson,
       status: OrderStatus.pending,
       firstTry: String(Math.round(Date.now() / 1000)),
+    });
+  };
+
+  /**
+   * returns all valid transaction for corresponding order
+   * @param id order id
+   */
+  getOrderValidTxs = async (id: string): Promise<TransactionEntity[]> => {
+    return await this.TransactionRepository.find({
+      relations: ['event', 'order'],
+      where: {
+        order: { id: id },
+        status: Not(TransactionStatus.invalid),
+      },
     });
   };
 }

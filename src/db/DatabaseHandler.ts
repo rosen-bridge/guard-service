@@ -102,7 +102,8 @@ class DatabaseHandler {
       await DatabaseAction.getInstance().insertNewTx(
         newTx,
         event,
-        requiredSign
+        requiredSign,
+        null
       );
   };
 
@@ -126,7 +127,12 @@ class DatabaseHandler {
       );
       await DatabaseAction.getInstance().resetFailedInSign(newTx.txId);
     } else
-      await DatabaseAction.getInstance().insertNewTx(newTx, null, requiredSign);
+      await DatabaseAction.getInstance().insertNewTx(
+        newTx,
+        null,
+        requiredSign,
+        null
+      );
   };
 
   /**
@@ -155,7 +161,12 @@ class DatabaseHandler {
         );
       }
     } else {
-      await DatabaseAction.getInstance().insertNewTx(newTx, null, requiredSign);
+      await DatabaseAction.getInstance().insertNewTx(
+        newTx,
+        null,
+        requiredSign,
+        null
+      );
     }
   };
 

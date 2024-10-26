@@ -34,6 +34,7 @@ class TxAgreement extends Communicator {
   protected transactionQueue: PaymentTransaction[];
   protected transactions: Map<string, CandidateTransaction>;
   protected eventAgreedTransactions: Map<string, string>; // eventId -> txId
+  protected orderAgreedTransactions: Map<string, string>; // orderId -> txId
   protected agreedColdStorageTransactions: Map<string, string>; // chainName -> txId
   protected transactionApprovals: Map<string, string[]>; // txId -> signatures
   protected approvedTransactions: ApprovedCandidate[];
@@ -51,6 +52,7 @@ class TxAgreement extends Communicator {
     this.transactions = new Map();
     this.eventAgreedTransactions = new Map();
     this.agreedColdStorageTransactions = new Map();
+    this.orderAgreedTransactions = new Map();
     this.transactionApprovals = new Map();
     this.approvedTransactions = [];
     this.approvalSemaphore = new Semaphore(1);
@@ -340,6 +342,30 @@ class TxAgreement extends Communicator {
 
       logger.info(`Agreed with cold storage tx [${tx.txId}]`);
       this.agreedColdStorageTransactions.set(tx.network, tx.txId);
+    } else if (tx.txType === TransactionType.arbitrary) {
+      const orderId = tx.eventId;
+      // verify if agreed to other txs
+      if (
+        this.orderAgreedTransactions.has(orderId) &&
+        this.orderAgreedTransactions.get(orderId) !== tx.txId
+      ) {
+        logger.warn(
+          `Received tx [${
+            tx.txId
+          }] for order [${orderId}] but already agreed to tx [${this.orderAgreedTransactions.get(
+            orderId
+          )}]`
+        );
+        return false;
+      }
+      // verify conditions
+      if (!(await RequestVerifier.verifyArbitraryTransactionRequest(tx)))
+        return false;
+
+      logger.info(
+        `Agreed with tx [${tx.txId}] for arbitrary order [${orderId}]`
+      );
+      this.orderAgreedTransactions.set(orderId, tx.txId);
     } else {
       logger.info(
         `Received tx [${tx.txId}] but type [${tx.txType}] is not supported`
