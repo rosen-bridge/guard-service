@@ -941,7 +941,7 @@ describe('TxAgreement', () => {
      */
     it('should return false when arbitrary request is not verified', async () => {
       // mock testdata
-      const paymentTx = mockPaymentTransaction(TransactionType.payment);
+      const paymentTx = mockPaymentTransaction(TransactionType.arbitrary);
       const creatorId = 0;
 
       // mock GuardTurn

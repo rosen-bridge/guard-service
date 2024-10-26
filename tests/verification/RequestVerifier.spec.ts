@@ -145,6 +145,171 @@ describe('RequestVerifier', () => {
 
     /**
      * @target RequestVerifier.verifyEventTransactionRequest should return false
+     * when transaction network is incompatible with the event
+     * @dependencies
+     * - EventVerifier
+     * - MinimumFee
+     * - TransactionVerifier
+     * - database
+     * @scenario
+     * - mock event and transaction
+     * - insert mocked event into db
+     * - mock EventVerifier
+     *   - mock `isEventConfirmedEnough`
+     *   - mock `verifyEvent`
+     *   - mock `isEventPendingToType`
+     * - mock TransactionVerifier.verifyEventTransaction
+     * - run test
+     * - verify returned value
+     * @expected
+     * - returned value should be false
+     */
+    it('should return false when transaction network is incompatible with the event', async () => {
+      // mock event and transaction
+      const mockedEvent = mockEventTrigger().event;
+      const paymentTx = mockPaymentTransaction(
+        TransactionType.payment,
+        'chain',
+        EventSerializer.getId(mockedEvent)
+      );
+
+      // insert mocked event into db
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent,
+        EventStatus.pendingPayment
+      );
+
+      // mock EventVerifier
+      mockIsEventConfirmedEnough(true);
+      mockVerifyEvent(true);
+      mockIsEventPendingToType(true);
+
+      // mock TransactionVerifier.verifyEventTransaction
+      vi.spyOn(TransactionVerifier, 'verifyEventTransaction').mockResolvedValue(
+        true
+      );
+
+      // run test
+      const result = await RequestVerifier.verifyEventTransactionRequest(
+        paymentTx
+      );
+
+      // verify returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target RequestVerifier.verifyEventTransactionRequest should return false
+     * when reward tx is not on Ergo
+     * @dependencies
+     * - EventVerifier
+     * - MinimumFee
+     * - TransactionVerifier
+     * - database
+     * @scenario
+     * - mock event and transaction
+     * - insert mocked event into db
+     * - mock EventVerifier
+     *   - mock `isEventConfirmedEnough`
+     *   - mock `verifyEvent`
+     *   - mock `isEventPendingToType`
+     * - mock TransactionVerifier.verifyEventTransaction
+     * - run test
+     * - verify returned value
+     * @expected
+     * - returned value should be false
+     */
+    it('should return false when reward tx is not on Ergo', async () => {
+      // mock event and transaction
+      const mockedEvent = mockEventTrigger().event;
+      const paymentTx = mockPaymentTransaction(
+        TransactionType.reward,
+        mockedEvent.toChain,
+        EventSerializer.getId(mockedEvent)
+      );
+
+      // insert mocked event into db
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent,
+        EventStatus.pendingReward
+      );
+
+      // mock EventVerifier
+      mockIsEventConfirmedEnough(true);
+      mockVerifyEvent(true);
+      mockIsEventPendingToType(true);
+
+      // mock TransactionVerifier.verifyEventTransaction
+      vi.spyOn(TransactionVerifier, 'verifyEventTransaction').mockResolvedValue(
+        true
+      );
+
+      // run test
+      const result = await RequestVerifier.verifyEventTransactionRequest(
+        paymentTx
+      );
+
+      // verify returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target RequestVerifier.verifyEventTransactionRequest should return false
+     * when transaction type is invalid
+     * @dependencies
+     * - EventVerifier
+     * - MinimumFee
+     * - TransactionVerifier
+     * - database
+     * @scenario
+     * - mock event and transaction
+     * - insert mocked event into db
+     * - mock EventVerifier
+     *   - mock `isEventConfirmedEnough`
+     *   - mock `verifyEvent`
+     *   - mock `isEventPendingToType`
+     * - mock TransactionVerifier.verifyEventTransaction
+     * - run test
+     * - verify returned value
+     * @expected
+     * - returned value should be false
+     */
+    it('should return false when transaction type is invalid', async () => {
+      // mock event and transaction
+      const mockedEvent = mockEventTrigger().event;
+      const paymentTx = mockPaymentTransaction(
+        'invalid-tx-type',
+        mockedEvent.toChain,
+        EventSerializer.getId(mockedEvent)
+      );
+
+      // insert mocked event into db
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent,
+        EventStatus.pendingPayment
+      );
+
+      // mock EventVerifier
+      mockIsEventConfirmedEnough(true);
+      mockVerifyEvent(true);
+      mockIsEventPendingToType(true);
+
+      // mock TransactionVerifier.verifyEventTransaction
+      vi.spyOn(TransactionVerifier, 'verifyEventTransaction').mockResolvedValue(
+        true
+      );
+
+      // run test
+      const result = await RequestVerifier.verifyEventTransactionRequest(
+        paymentTx
+      );
+
+      // verify returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target RequestVerifier.verifyEventTransactionRequest should return false
      * when event is not confirmed enough
      * @dependencies
      * - EventVerifier
