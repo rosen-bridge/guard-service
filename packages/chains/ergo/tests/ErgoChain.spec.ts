@@ -2277,4 +2277,165 @@ describe('ErgoChain', () => {
       expect(result.toJson()).toEqual(expectedTx.toJson());
     });
   });
+
+  describe('verifyPaymentTransaction', () => {
+    const network = new TestErgoNetwork();
+
+    /**
+     * @target ErgoChain.verifyPaymentTransaction should return true
+     * when data is consistent
+     * @dependencies
+     * @scenario
+     * - mock a ErgoTransaction
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return true
+     */
+    it('should return true when data is consistent', async () => {
+      // mock a ErgoTransaction
+      const paymentTx = ErgoTransaction.fromJson(
+        transactionTestData.transaction5PaymentTransaction
+      );
+
+      // run test
+      const ergoChain = ergoTestUtils.generateChainObject(network);
+      const result = await ergoChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(true);
+    });
+
+    /**
+     * @target ErgoChain.verifyPaymentTransaction should return false
+     * when transaction id is wrong
+     * @dependencies
+     * @scenario
+     * - mock a ErgoTransaction with changed txId
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when transaction id is wrong', async () => {
+      // mock a ErgoTransaction with changed txId
+      const paymentTx = ErgoTransaction.fromJson(
+        transactionTestData.transaction5PaymentTransaction
+      );
+      paymentTx.txId = ergoTestUtils.generateRandomId();
+
+      // run test
+      const ergoChain = ergoTestUtils.generateChainObject(network);
+      const result = await ergoChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target ErgoChain.verifyPaymentTransaction should return false
+     * when number of boxes is wrong
+     * @dependencies
+     * @scenario
+     * - mock a ErgoTransaction with less boxes
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when number of boxes is wrong', async () => {
+      // mock a ErgoTransaction with less boxes
+      const paymentTx = ErgoTransaction.fromJson(
+        transactionTestData.transaction5PaymentTransaction
+      );
+      paymentTx.inputBoxes.pop();
+
+      // run test
+      const ergoChain = ergoTestUtils.generateChainObject(network);
+      const result = await ergoChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target ErgoChain.verifyPaymentTransaction should return false
+     * when at least one of the boxes is wrong
+     * @dependencies
+     * @scenario
+     * - mock a ErgoTransaction with changed box
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when at least one of the boxes is wrong', async () => {
+      // mock a ErgoTransaction with changed box
+      const paymentTx = ErgoTransaction.fromJson(
+        transactionTestData.transaction5PaymentTransaction
+      );
+      const box = ergoTestUtils.toErgoBox(boxTestData.ergoBox1);
+      paymentTx.inputBoxes[1] = box.sigma_serialize_bytes();
+
+      // run test
+      const ergoChain = ergoTestUtils.generateChainObject(network);
+      const result = await ergoChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target ErgoChain.verifyPaymentTransaction should return false
+     * when number of data inputs is wrong
+     * @dependencies
+     * @scenario
+     * - mock a ErgoTransaction with less data inputs
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when number of data inputs is wrong', async () => {
+      // mock a ErgoTransaction with less data inputs
+      const paymentTx = ErgoTransaction.fromJson(
+        transactionTestData.transaction5PaymentTransaction
+      );
+      paymentTx.dataInputs.pop();
+
+      // run test
+      const ergoChain = ergoTestUtils.generateChainObject(network);
+      const result = await ergoChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target ErgoChain.verifyPaymentTransaction should return false
+     * when at least one of the data inputs is wrong
+     * @dependencies
+     * @scenario
+     * - mock a ErgoTransaction with changed data input
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when at least one of the data inputs is wrong', async () => {
+      // mock a ErgoTransaction with changed data input
+      const paymentTx = ErgoTransaction.fromJson(
+        transactionTestData.transaction5PaymentTransaction
+      );
+      const box = ergoTestUtils.toErgoBox(boxTestData.ergoBox1);
+      paymentTx.dataInputs[0] = box.sigma_serialize_bytes();
+
+      // run test
+      const ergoChain = ergoTestUtils.generateChainObject(network);
+      const result = await ergoChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+  });
 });

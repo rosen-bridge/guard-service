@@ -2512,4 +2512,68 @@ describe('EvmChain', () => {
       expect(result).toEqual(false);
     });
   });
+
+  describe('verifyPaymentTransaction', () => {
+    const network = new TestEvmNetwork();
+
+    /**
+     * @target EvmChain.verifyPaymentTransaction should return true
+     * when data is consistent
+     * @dependencies
+     * @scenario
+     * - mock a PaymentTransaction
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return true
+     */
+    it('should return true when data is consistent', async () => {
+      // mock a PaymentTransaction
+      const evmChain = testUtils.generateChainObject(network);
+      const tx = Transaction.from(TestData.transaction1Json);
+      const paymentTx = new PaymentTransaction(
+        evmChain.CHAIN,
+        tx.unsignedHash,
+        '',
+        Serializer.serialize(tx),
+        TransactionType.manual
+      );
+
+      // run test
+      const result = await evmChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(true);
+    });
+
+    /**
+     * @target EvmChain.verifyPaymentTransaction should return false
+     * when transaction id is wrong
+     * @dependencies
+     * @scenario
+     * - mock a PaymentTransaction with changed txId
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when transaction id is wrong', async () => {
+      // mock a PaymentTransaction with changed txId
+      const evmChain = testUtils.generateChainObject(network);
+      const tx = Transaction.from(TestData.transaction1Json);
+      const paymentTx = new PaymentTransaction(
+        evmChain.CHAIN,
+        '904888037623f5a73eab986f2caf0f8765cd86ea1deeaedbb83de14f67e40874',
+        '',
+        Serializer.serialize(tx),
+        TransactionType.manual
+      );
+
+      // run test
+      const result = await evmChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+  });
 });

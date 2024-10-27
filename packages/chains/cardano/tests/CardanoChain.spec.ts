@@ -1233,4 +1233,114 @@ describe('CardanoChain', () => {
       expect(result.toJson()).toEqual(expectedTx.toJson());
     });
   });
+
+  describe('verifyPaymentTransaction', () => {
+    const network = new TestCardanoNetwork();
+
+    /**
+     * @target CardanoChain.verifyPaymentTransaction should return true
+     * when data is consistent
+     * @dependencies
+     * @scenario
+     * - mock a CardanoTransaction
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return true
+     */
+    it('should return true when data is consistent', async () => {
+      // mock a CardanoTransaction
+      const paymentTx = CardanoTransaction.fromJson(
+        TestData.transaction5PaymentTransaction
+      );
+
+      // run test
+      const cardanoChain = TestUtils.generateChainObject(network);
+      const result = await cardanoChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(true);
+    });
+
+    /**
+     * @target CardanoChain.verifyPaymentTransaction should return false
+     * when transaction id is wrong
+     * @dependencies
+     * @scenario
+     * - mock a CardanoTransaction with changed txId
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when transaction id is wrong', async () => {
+      // mock a CardanoTransaction with changed txId
+      const paymentTx = CardanoTransaction.fromJson(
+        TestData.transaction5PaymentTransaction
+      );
+      paymentTx.txId = TestUtils.generateRandomId();
+
+      // run test
+      const cardanoChain = TestUtils.generateChainObject(network);
+      const result = await cardanoChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target CardanoChain.verifyPaymentTransaction should return false
+     * when number of boxes is wrong
+     * @dependencies
+     * @scenario
+     * - mock a CardanoTransaction with less boxes
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when number of boxes is wrong', async () => {
+      // mock a CardanoTransaction with less boxes
+      const paymentTx = CardanoTransaction.fromJson(
+        TestData.transaction5PaymentTransaction
+      );
+      paymentTx.inputUtxos.pop();
+
+      // run test
+      const cardanoChain = TestUtils.generateChainObject(network);
+      const result = await cardanoChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target CardanoChain.verifyPaymentTransaction should return false
+     * when at least one of the boxes is wrong
+     * @dependencies
+     * @scenario
+     * - mock a CardanoTransaction with changed box
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when at least one of the boxes is wrong', async () => {
+      // mock a CardanoTransaction with changed box
+      const paymentTx = CardanoTransaction.fromJson(
+        TestData.transaction5PaymentTransaction
+      );
+      paymentTx.inputUtxos[1] = JsonBigInt.stringify({
+        txId: TestUtils.generateRandomId(),
+        index: 1,
+      });
+
+      // run test
+      const cardanoChain = TestUtils.generateChainObject(network);
+      const result = await cardanoChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+  });
 });

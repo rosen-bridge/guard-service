@@ -860,6 +860,29 @@ abstract class EvmChain extends AbstractChain<Transaction> {
     );
     return wrappedAssets;
   };
+
+  /**
+   * verifies consistency within the PaymentTransaction object
+   * @param transaction the PaymentTransaction
+   * @returns true if the transaction is verified
+   */
+  verifyPaymentTransaction = async (
+    transaction: PaymentTransaction
+  ): Promise<boolean> => {
+    const tx = Serializer.deserialize(transaction.txBytes);
+    const baseError = `Tx [${transaction.txId}] is not verified: `;
+
+    // verify txId
+    if (transaction.txId !== tx.unsignedHash) {
+      this.logger.warn(
+        baseError +
+          `Transaction id is inconsistent (expected [${transaction.txId}] found [${tx.unsignedHash}])`
+      );
+      return false;
+    }
+
+    return true;
+  };
 }
 
 export default EvmChain;

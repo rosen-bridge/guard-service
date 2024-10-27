@@ -474,6 +474,15 @@ abstract class AbstractChain<TxType> {
    * serializes the transaction of this chain into string
    */
   protected abstract serializeTx: (tx: TxType) => string;
+
+  /**
+   * verifies consistency within the PaymentTransaction object
+   * @param transaction the PaymentTransaction
+   * @returns true if the transaction is verified
+   */
+  abstract verifyPaymentTransaction: (
+    transaction: PaymentTransaction
+  ) => Promise<boolean>;
 }
 
 export default AbstractChain;

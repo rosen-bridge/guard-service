@@ -638,14 +638,14 @@ export const transaction5PaymentTransaction = `
   "txId": "ebdaf0a3fe875a3f98d007ec646891bd6085ff5e447dd236890d524f55b53af5",
   "txType": "payment",
   "inputUtxos": [
-    "{\\"txId\\":\\"756fcffd0cc9517e9b93603de0a802cd124ecf85e7953ecbd2efa2736335294b\\",\\"index\\":0,\\"value\\":1180940,\\"assets\\":[{\\"policy_id\\":\\"fca58ef8ba9ef1961e132b611de2f8abcd2f34831e615a6f80c5bb48\\",\\"asset_name\\":\\"777252534e2d6c6f656e\\",\\"quantity\\":7952200}]}",
-    "{\\"txId\\":\\"1b4ca08ad9b4441abec1509324b184305c0b0c0dda92091a806deacaee3585fa\\",\\"index\\":0,\\"value\\":1180940,\\"assets\\":[{\\"policy_id\\":\\"fca58ef8ba9ef1961e132b611de2f8abcd2f34831e615a6f80c5bb48\\",\\"asset_name\\":\\"777252534e2d6c6f656e\\",\\"quantity\\":6224894}]}",
-    "{\\"txId\\":\\"15e590b8310eda5fbe7ca741e3c2bd8f0b2961f1dc4c5251cd43d5b85cadc17f\\",\\"index\\":0,\\"value\\":1198180,\\"assets\\":[{\\"policy_id\\":\\"fca58ef8ba9ef1961e132b611de2f8abcd2f34831e615a6f80c5bb48\\",\\"asset_name\\":\\"77724552472d6c6f656e\\",\\"quantity\\":4306918719}]}",
-    "{\\"txId\\":\\"121e53cbe92d16fb5927f430502bcd0be4f44982b68725e0030f0250ec010de1\\",\\"index\\":0,\\"value\\":13364722,\\"assets\\":[]}",
-    "{\\"txId\\":\\"0b61ef396b9b22421768445f2f27352366e3736514a3a5977fb678dddbdb83e8\\",\\"index\\":0,\\"value\\":1198180,\\"assets\\":[{\\"policy_id\\":\\"fca58ef8ba9ef1961e132b611de2f8abcd2f34831e615a6f80c5bb48\\",\\"asset_name\\":\\"77724552472d6c6f656e\\",\\"quantity\\":4966797511}]}",
-    "{\\"txId\\":\\"ed299711c6fe5b903eb6f43a5bc7d9c4558c69075d24e9ad2c85e911570d8382\\",\\"index\\":0,\\"value\\":1180940,\\"assets\\":[{\\"policy_id\\":\\"fca58ef8ba9ef1961e132b611de2f8abcd2f34831e615a6f80c5bb48\\",\\"asset_name\\":\\"777252534e2d6c6f656e\\",\\"quantity\\":4026628}]}",
-    "{\\"txId\\":\\"01137a617c09a36ed22334e7ed8c9b94eb222eb72dc148850e1425d8518c60bd\\",\\"index\\":0,\\"value\\":1180940,\\"assets\\":[{\\"policy_id\\":\\"fca58ef8ba9ef1961e132b611de2f8abcd2f34831e615a6f80c5bb48\\",\\"asset_name\\":\\"546f6b656e2d6c6f656e\\",\\"quantity\\":261493}]}",
-    "{\\"txId\\":\\"7d729590af3934b4d4894111303bbc215d6dc5bce3ea2feb6ed1e7e7a8a271d9\\",\\"index\\":0,\\"value\\":24232705,\\"assets\\":[]}"
+    "{\\"txId\\":\\"01137a617c09a36ed22334e7ed8c9b94eb222eb72dc148850e1425d8518c60bd\\",\\"index\\":0,\\"value\\":1180940,\\"assets\\":[{\\"policy_id\\":\\"fca58ef8ba9ef1961e132b611de2f8abcd2f34831e615a6f80c5bb48\\",\\"asset_name\\":\\"777252534e2d6c6f656e\\",\\"quantity\\":7952200}]}",
+    "{\\"txId\\":\\"0b61ef396b9b22421768445f2f27352366e3736514a3a5977fb678dddbdb83e8\\",\\"index\\":0,\\"value\\":1180940,\\"assets\\":[{\\"policy_id\\":\\"fca58ef8ba9ef1961e132b611de2f8abcd2f34831e615a6f80c5bb48\\",\\"asset_name\\":\\"777252534e2d6c6f656e\\",\\"quantity\\":6224894}]}",
+    "{\\"txId\\":\\"121e53cbe92d16fb5927f430502bcd0be4f44982b68725e0030f0250ec010de1\\",\\"index\\":0,\\"value\\":1198180,\\"assets\\":[{\\"policy_id\\":\\"fca58ef8ba9ef1961e132b611de2f8abcd2f34831e615a6f80c5bb48\\",\\"asset_name\\":\\"77724552472d6c6f656e\\",\\"quantity\\":4306918719}]}",
+    "{\\"txId\\":\\"15e590b8310eda5fbe7ca741e3c2bd8f0b2961f1dc4c5251cd43d5b85cadc17f\\",\\"index\\":0,\\"value\\":13364722,\\"assets\\":[]}",
+    "{\\"txId\\":\\"1b4ca08ad9b4441abec1509324b184305c0b0c0dda92091a806deacaee3585fa\\",\\"index\\":0,\\"value\\":1198180,\\"assets\\":[{\\"policy_id\\":\\"fca58ef8ba9ef1961e132b611de2f8abcd2f34831e615a6f80c5bb48\\",\\"asset_name\\":\\"77724552472d6c6f656e\\",\\"quantity\\":4966797511}]}",
+    "{\\"txId\\":\\"756fcffd0cc9517e9b93603de0a802cd124ecf85e7953ecbd2efa2736335294b\\",\\"index\\":0,\\"value\\":1180940,\\"assets\\":[{\\"policy_id\\":\\"fca58ef8ba9ef1961e132b611de2f8abcd2f34831e615a6f80c5bb48\\",\\"asset_name\\":\\"777252534e2d6c6f656e\\",\\"quantity\\":4026628}]}",
+    "{\\"txId\\":\\"7d729590af3934b4d4894111303bbc215d6dc5bce3ea2feb6ed1e7e7a8a271d9\\",\\"index\\":0,\\"value\\":1180940,\\"assets\\":[{\\"policy_id\\":\\"fca58ef8ba9ef1961e132b611de2f8abcd2f34831e615a6f80c5bb48\\",\\"asset_name\\":\\"546f6b656e2d6c6f656e\\",\\"quantity\\":261493}]}",
+    "{\\"txId\\":\\"ed299711c6fe5b903eb6f43a5bc7d9c4558c69075d24e9ad2c85e911570d8382\\",\\"index\\":0,\\"value\\":24232705,\\"assets\\":[]}"
   ]
 }
 `;
