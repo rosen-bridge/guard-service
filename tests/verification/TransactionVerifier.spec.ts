@@ -42,6 +42,7 @@ describe('TransactionVerifier', () => {
      * @scenario
      * - mock transaction
      * - mock ChainHandler
+     *   - mock `verifyPaymentTransaction`
      *   - mock `verifyTransactionFee`
      *   - mock `verifyNoTokenBurned`
      *   - mock `verifyTransactionExtraConditions`
@@ -57,6 +58,12 @@ describe('TransactionVerifier', () => {
       // mock ChainHandler
       const chain = tx.network;
       ChainHandlerMock.mockChainName(chain);
+      // mock `verifyPaymentTransaction`
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'verifyPaymentTransaction',
+        true
+      );
       // mock `verifyTransactionFee`
       ChainHandlerMock.mockChainFunction(chain, 'verifyTransactionFee', true);
       // mock `verifyNoTokenBurned`
@@ -82,6 +89,60 @@ describe('TransactionVerifier', () => {
 
     /**
      * @target TransactionVerifier.verifyTxCommonConditions should return false
+     * when tx object has inconsistency
+     * @dependencies
+     * - ChainHandler
+     * - MinimumFee
+     * @scenario
+     * - mock transaction
+     * - mock ChainHandler
+     *   - mock `verifyPaymentTransaction`
+     *   - mock `verifyTransactionFee`
+     *   - mock `verifyNoTokenBurned`
+     *   - mock `verifyTransactionExtraConditions`
+     * - run test
+     * - verify returned value
+     * @expected
+     * - returned value should be false
+     */
+    it('should return false when tx object has inconsistency', async () => {
+      // mock transaction
+      const tx = mockPaymentTransaction();
+
+      // mock ChainHandler
+      const chain = tx.network;
+      ChainHandlerMock.mockChainName(chain);
+      // mock `verifyPaymentTransaction`
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'verifyPaymentTransaction',
+        false
+      );
+      // mock `verifyTransactionFee`
+      ChainHandlerMock.mockChainFunction(chain, 'verifyTransactionFee', true);
+      // mock `verifyNoTokenBurned`
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'verifyNoTokenBurned',
+        true,
+        true
+      );
+      // mock `verifyTransactionExtraConditions`
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'verifyTransactionExtraConditions',
+        true
+      );
+
+      // run test
+      const result = await TransactionVerifier.verifyTxCommonConditions(tx);
+
+      // verify returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target TransactionVerifier.verifyTxCommonConditions should return false
      * when fee is not verified
      * @dependencies
      * - ChainHandler
@@ -89,6 +150,7 @@ describe('TransactionVerifier', () => {
      * @scenario
      * - mock transaction
      * - mock ChainHandler
+     *   - mock `verifyPaymentTransaction`
      *   - mock `verifyTransactionFee`
      *   - mock `verifyNoTokenBurned`
      *   - mock `verifyTransactionExtraConditions`
@@ -104,6 +166,12 @@ describe('TransactionVerifier', () => {
       // mock ChainHandler
       const chain = tx.network;
       ChainHandlerMock.mockChainName(chain);
+      // mock `verifyPaymentTransaction`
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'verifyPaymentTransaction',
+        true
+      );
       // mock `verifyTransactionFee`
       ChainHandlerMock.mockChainFunction(chain, 'verifyTransactionFee', false);
       // mock `verifyNoTokenBurned`
@@ -136,6 +204,7 @@ describe('TransactionVerifier', () => {
      * @scenario
      * - mock transaction
      * - mock ChainHandler
+     *   - mock `verifyPaymentTransaction`
      *   - mock `verifyTransactionFee`
      *   - mock `verifyNoTokenBurned`
      *   - mock `verifyTransactionExtraConditions`
@@ -151,6 +220,12 @@ describe('TransactionVerifier', () => {
       // mock ChainHandler
       const chain = tx.network;
       ChainHandlerMock.mockChainName(chain);
+      // mock `verifyPaymentTransaction`
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'verifyPaymentTransaction',
+        true
+      );
       // mock `verifyTransactionFee`
       ChainHandlerMock.mockChainFunction(chain, 'verifyTransactionFee', true);
       // mock `verifyNoTokenBurned`
@@ -183,6 +258,7 @@ describe('TransactionVerifier', () => {
      * @scenario
      * - mock transaction
      * - mock ChainHandler
+     *   - mock `verifyPaymentTransaction`
      *   - mock `verifyTransactionFee`
      *   - mock `verifyNoTokenBurned`
      *   - mock `verifyTransactionExtraConditions`
@@ -198,6 +274,12 @@ describe('TransactionVerifier', () => {
       // mock ChainHandler
       const chain = tx.network;
       ChainHandlerMock.mockChainName(chain);
+      // mock `verifyPaymentTransaction`
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'verifyPaymentTransaction',
+        true
+      );
       // mock `verifyTransactionFee`
       ChainHandlerMock.mockChainFunction(chain, 'verifyTransactionFee', true);
       // mock `verifyNoTokenBurned`

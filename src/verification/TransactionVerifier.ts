@@ -24,6 +24,7 @@ class TransactionVerifier {
   /**
    * verifies the transaction
    * conditions:
+   * - PaymentTransaction object consistency is verified
    * - fee is verified
    * - verify no token is burned
    * - chain extra conditions are verified
@@ -33,6 +34,14 @@ class TransactionVerifier {
     tx: PaymentTransaction
   ): Promise<boolean> => {
     const chain = ChainHandler.getInstance().getChain(tx.network);
+
+    // verify PaymentTransaction object consistency
+    if (!(await chain.verifyPaymentTransaction(tx))) {
+      logger.debug(
+        `Transaction [${tx.txId}] is invalid: tx object has inconsistency`
+      );
+      return false;
+    }
 
     // verify tx fee
     if (!(await chain.verifyTransactionFee(tx))) {

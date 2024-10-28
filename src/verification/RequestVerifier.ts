@@ -21,7 +21,7 @@ class RequestVerifier {
   /**
    * verifies the transaction request sent by other guards
    * conditions:
-   * - transaction network is compatible with the event
+   * - transaction is compatible with the event
    * - event is confirmed enough
    * - event is verified
    * - event has no active transaction for requested tx type
@@ -46,7 +46,7 @@ class RequestVerifier {
     }
     const event = EventSerializer.fromConfirmedEntity(eventEntity);
 
-    // transaction network is compatible with the event
+    // transaction is compatible with the event
     if (tx.txType === TransactionType.payment) {
       if (tx.network !== event.toChain) {
         logger.warn(
@@ -123,6 +123,7 @@ class RequestVerifier {
   /**
    * verifies the cold storage transaction request sent by other guards
    * conditions:
+   * - tx has no eventId
    * - requested tx is not malicious
    * @param tx the created payment transaction
    * @returns true if conditions are met
@@ -131,6 +132,12 @@ class RequestVerifier {
     tx: PaymentTransaction
   ): Promise<boolean> => {
     const baseError = `Received cold storage tx [${tx.txId}] `;
+
+    // verify tx eventId
+    if (tx.eventId !== '') {
+      logger.warn(baseError + `but tx has eventId [${tx.eventId}]`);
+      return false;
+    }
 
     // verify requested tx
     if (!(await TransactionVerifier.verifyColdStorageTransaction(tx))) {

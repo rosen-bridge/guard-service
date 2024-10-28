@@ -658,6 +658,56 @@ describe('RequestVerifier', () => {
 
     /**
      * @target RequestVerifier.verifyColdStorageTransactionRequest should return false
+     * when requested tx has eventId
+     * @dependencies
+     * - TransactionVerifier
+     * - database
+     * @scenario
+     * - mock transaction
+     * - insert another cold storage transaction into db (different chain)
+     * - mock TransactionVerifier.verifyColdStorageTransaction
+     * - run test
+     * - verify returned value
+     * @expected
+     * - returned value should be false
+     */
+    it('should return false when requested tx has eventId', async () => {
+      // mock transaction
+      const chain = 'chain';
+      const paymentTx = mockPaymentTransaction(
+        TransactionType.coldStorage,
+        chain,
+        'eventId'
+      );
+
+      // insert another cold storage transaction into db (different chain)
+      const anotherTx = mockPaymentTransaction(
+        TransactionType.coldStorage,
+        'chain-2',
+        ''
+      );
+      await DatabaseActionMock.insertTxRecord(
+        anotherTx,
+        TransactionStatus.approved
+      );
+
+      // mock TransactionVerifier.verifyColdStorageTransaction
+      vi.spyOn(
+        TransactionVerifier,
+        'verifyColdStorageTransaction'
+      ).mockResolvedValue(true);
+
+      // run test
+      const result = await RequestVerifier.verifyColdStorageTransactionRequest(
+        paymentTx
+      );
+
+      // verify returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target RequestVerifier.verifyColdStorageTransactionRequest should return false
      * when transaction doesn't satisfy cold storage tx conditions
      * @dependencies
      * - TransactionVerifier
