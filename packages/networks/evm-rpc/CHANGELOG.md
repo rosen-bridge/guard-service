@@ -6,7 +6,7 @@
 
 - Update dependencies
   - @rosen-chains/abstract-chain@10.0.0
-  - @rosen-chains/evm@4.2.0
+  - @rosen-chains/evm@5.0.0
 
 ## 2.1.6
 

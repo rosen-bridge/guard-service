@@ -1,6 +1,10 @@
 # @rosen-chains/evm
 
-## 4.2.0
+## 5.0.0
+
+### Major Changes
+
+- Add arbitrary transaction type
 
 ### Minor Changes
 

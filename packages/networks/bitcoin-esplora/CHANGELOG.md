@@ -6,7 +6,7 @@
 
 - Update dependencies
   - @rosen-chains/abstract-chain@10.0.0
-  - @rosen-chains/bitcoin@5.2.0
+  - @rosen-chains/bitcoin@6.0.0
 
 ## 4.0.3
 

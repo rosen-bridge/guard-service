@@ -31,6 +31,6 @@
     "@rosen-bridge/abstract-logger": "^2.0.1",
     "@rosen-bridge/tokens": "^1.2.1",
     "@rosen-chains/abstract-chain": "^10.0.0",
-    "@rosen-chains/evm": "^4.2.0"
+    "@rosen-chains/evm": "^5.0.0"
   }
 }

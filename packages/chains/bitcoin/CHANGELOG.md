@@ -1,11 +1,14 @@
 # @rosen-chains/bitcoin
 
-## 5.2.0
+## 6.0.0
+
+### Major Changes
+
+- Add arbitrary transaction type
 
 ### Minor Changes
 
 - Add verifyPaymentTransaction function which checks data consistency within a PaymentTransaction Object
-- Add arbitrary transaction type
 
 ### Patch Changes
 

@@ -6,7 +6,7 @@
 
 - Update dependencies
   - @rosen-chains/abstract-chain@10.0.0
-  - @rosen-chains/cardano@9.1.0
+  - @rosen-chains/cardano@10.0.0
 
 ## 7.0.2
 

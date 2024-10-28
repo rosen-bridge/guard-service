@@ -1,6 +1,10 @@
 # @rosen-chains/cardano
 
-## 9.1.0
+## 10.0.0
+
+### Major Changes
+
+- Add arbitrary transaction type
 
 ### Minor Changes
 

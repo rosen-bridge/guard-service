@@ -24,7 +24,7 @@
     "@rosen-bridge/json-bigint": "^0.1.0",
     "@rosen-bridge/abstract-logger": "^2.0.1",
     "@rosen-chains/abstract-chain": "^10.0.0",
-    "@rosen-chains/cardano": "^9.1.0",
+    "@rosen-chains/cardano": "^10.0.0",
     "@rosen-clients/cardano-koios": "^2.0.3"
   },
   "devDependencies": {
