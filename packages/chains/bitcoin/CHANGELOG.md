@@ -1,98 +1,110 @@
 # @rosen-chains/bitcoin
 
+## 5.2.0
+
+### Minor Changes
+
+- Add verifyPaymentTransaction function which checks data consistency within a PaymentTransaction Object
+- Add arbitrary transaction type
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-chains/abstract-chain@10.0.0
+
 ## 5.1.0
 
 ### Minor Changes
 
-- remove legacy and script address payment restrictions in BitcoinChain
-- set minimum satoshi to 546
+- Remove legacy and script address payment restrictions in BitcoinChain
+- Set minimum satoshi to 546
 
 ## 5.0.2
 
 ### Patch Changes
 
-- improve logs
-- update rosen-extractor version
-- Updated dependencies
+- Improve logs
+- Update rosen-extractor version
+- Update dependencies
   - @rosen-chains/abstract-chain@9.0.2
 
 ## 5.0.1
 
 ### Patch Changes
 
-- update rosen-extractor version
-- Updated dependencies
+- Update rosen-extractor version
+- Update dependencies
   - @rosen-chains/abstract-chain@9.0.1
 
 ## 5.0.0
 
 ### Major Changes
 
-- change `verifyLockTransactionExtraConditions` to async
-- add reason and expectation status to isTxValid result
+- Change `verifyLockTransactionExtraConditions` to async
+- Add reason and expectation status to isTxValid result
 
 ### Patch Changes
 
-- Updated dependencies
+- Update dependencies
   - @rosen-chains/abstract-chain@9.0.0
 
 ## 4.0.0
 
 ### Major Changes
 
-- consider decimals drop
-- change `getBoxInfo` and `getCoveringBoxes` functions to protected
+- Consider decimals drop
+- Change `getBoxInfo` and `getCoveringBoxes` functions to protected
 
 ### Patch Changes
 
-- export bitcoin native token id var
-- add NATIVE_TOKEN_ID variable to BitcoinChain
-- Updated dependencies
+- Export bitcoin native token id var
+- Add NATIVE_TOKEN_ID variable to BitcoinChain
+- Update dependencies
   - @rosen-chains/abstract-chain@8.0.0
 
 ## 3.0.1
 
 ### Patch Changes
 
-- update rosen-extractor
-- Updated dependencies
+- Update rosen-extractor
+- Update dependencies
   - @rosen-chains/abstract-chain@7.0.2
 
 ## 3.0.0
 
 ### Major Changes
 
-- update rosen-extractor (change fromAddress to first input box ID)
+- Update rosen-extractor (change fromAddress to first input box ID)
 
 ### Patch Changes
 
-- Updated dependencies
+- Update dependencies
   - @rosen-chains/abstract-chain@7.0.1
 
 ## 2.0.0
 
 ### Major Changes
 
-- update minimum-fee to v1 and remove feeRatioDivisor from constructor
+- Update minimum-fee to v1 and remove feeRatioDivisor from constructor
 
 ### Patch Changes
 
-- Updated dependencies
+- Update dependencies
   - @rosen-chains/abstract-chain@7.0.0
 
 ## 1.0.0
 
 ### Major Changes
 
-- init rosen-extractor in chain and remove it from its network
-- add signatureRecovery to return data of required signFunction
+- Init rosen-extractor in chain and remove it from its network
+- Add signatureRecovery to return data of required signFunction
 
 ### Minor Changes
 
-- change generateTransaction to generateMultipleTransaction due to its update in AbstractChain
+- Change generateTransaction to generateMultipleTransaction due to its update in AbstractChain
 
 ### Patch Changes
 
 - Updated rosen-extractor version
-- Updated dependencies
+- Update dependencies
   - @rosen-chains/abstract-chain@6.0.0

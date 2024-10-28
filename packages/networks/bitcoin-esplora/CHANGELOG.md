@@ -1,18 +1,26 @@
 # @rosen-chains/bitcoin-esplora
 
+## 4.0.4
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-chains/abstract-chain@10.0.0
+  - @rosen-chains/bitcoin@5.2.0
+
 ## 4.0.3
 
 ### Patch Changes
 
-- Updated dependencies
+- Update dependencies
   - @rosen-chains/bitcoin@5.1.0
 
 ## 4.0.2
 
 ### Patch Changes
 
-- improve logs
-- Updated dependencies
+- Improve logs
+- Update dependencies
   - @rosen-chains/bitcoin@5.0.2
   - @rosen-chains/abstract-chain@9.0.2
 
@@ -20,7 +28,7 @@
 
 ### Patch Changes
 
-- Updated dependencies
+- Update dependencies
   - @rosen-chains/abstract-chain@9.0.1
   - @rosen-chains/bitcoin@5.0.1
 
@@ -28,7 +36,7 @@
 
 ### Patch Changes
 
-- Updated dependencies
+- Update dependencies
   - @rosen-chains/abstract-chain@9.0.0
   - @rosen-chains/bitcoin@5.0.0
 
@@ -36,7 +44,7 @@
 
 ### Patch Changes
 
-- Updated dependencies
+- Update dependencies
   - @rosen-chains/bitcoin@4.0.0
   - @rosen-chains/abstract-chain@8.0.0
 
@@ -44,7 +52,7 @@
 
 ### Patch Changes
 
-- Updated dependencies
+- Update dependencies
   - @rosen-chains/abstract-chain@7.0.1
   - @rosen-chains/bitcoin@3.0.0
 
@@ -52,8 +60,8 @@
 
 ### Patch Changes
 
-- fix submit api route
-- Updated dependencies
+- Fix submit api route
+- Update dependencies
   - @rosen-chains/abstract-chain@7.0.0
   - @rosen-chains/bitcoin@2.0.0
 
@@ -61,10 +69,10 @@
 
 ### Major Changes
 
-- remove rosen-extractor initialization
+- Remove rosen-extractor initialization
 
 ### Patch Changes
 
-- Updated dependencies
+- Update dependencies
   - @rosen-chains/bitcoin@1.0.0
   - @rosen-chains/abstract-chain@6.0.0
