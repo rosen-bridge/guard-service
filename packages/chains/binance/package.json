@@ -3,7 +3,7 @@
   "version": "0.1.2",
   "description": "this project contains binance chain for Rosen-bridge",
   "repository": "https://github.com/rosen-bridge/rosen-chains",
-  "license": "GPL-3.0",
+  "license": "CC0-1.0",
   "author": "Rosen Team",
   "type": "module",
   "main": "dist/index.js",

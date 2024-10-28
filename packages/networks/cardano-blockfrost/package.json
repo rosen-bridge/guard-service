@@ -3,7 +3,7 @@
   "version": "7.0.3",
   "description": "a package to be used as network api provider for @rosen-chains/cardano package",
   "repository": "@rosen-chains/cardano-blockfrost-network",
-  "license": "GPL-3.0",
+  "license": "CC0-1.0",
   "author": "Rosen Team",
   "type": "module",
   "main": "dist/index.js",

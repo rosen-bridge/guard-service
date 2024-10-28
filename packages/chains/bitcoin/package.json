@@ -3,7 +3,7 @@
   "version": "5.2.0",
   "description": "this project contains bitcoin chain for Rosen-bridge",
   "repository": "https://github.com/rosen-bridge/rosen-chains",
-  "license": "GPL-3.0",
+  "license": "CC0-1.0",
   "author": "Rosen Team",
   "type": "module",
   "main": "dist/index.js",

@@ -3,7 +3,7 @@
   "version": "2.1.7",
   "description": "A package to be used as network api provider for @rosen-chains/evm package",
   "repository": "https://github.com/rosen-bridge/rosen-chains",
-  "license": "GPL-3.0",
+  "license": "CC0-1.0",
   "author": "Rosen Team",
   "type": "module",
   "main": "dist/index.js",
