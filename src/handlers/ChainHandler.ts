@@ -27,13 +27,13 @@ import { BLOCKFROST_NETWORK } from '@rosen-chains/cardano-blockfrost-network';
 import CardanoBlockFrostNetwork from '@rosen-chains/cardano-blockfrost-network';
 import BitcoinEsploraNetwork from '@rosen-chains/bitcoin-esplora';
 import GuardsBitcoinConfigs from '../configs/GuardsBitcoinConfigs';
-import EthereumChain from '@rosen-chains/ethereum/dist/EthereumChain';
+import { EthereumChain } from '@rosen-chains/ethereum';
 import { AbstractEvmNetwork } from '@rosen-chains/evm';
 import GuardsEthereumConfigs from '../configs/GuardsEthereumConfigs';
 import EvmRpcNetwork from '@rosen-chains/evm-rpc';
 import { dataSource } from '../db/dataSource';
 import { ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
-import BinanceChain from '@rosen-chains/binance/dist/BinanceChain';
+import { BinanceChain } from '@rosen-chains/binance';
 import GuardsBinanceConfigs from '../configs/GuardsBinanceConfigs';
 import { BINANCE_CHAIN } from '@rosen-chains/binance';
 
