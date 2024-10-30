@@ -841,28 +841,6 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
 
     return true;
   };
-
-  /**
-   * verifies a completed and mined PaymentTransaction
-   * - tx has no metadata
-   * @param transaction the PaymentTransaction
-   * @returns true if the transaction is verified
-   */
-  verifyCompletedPaymentTransaction = async (
-    transaction: PaymentTransaction
-  ): Promise<boolean> => {
-    const tx = Serializer.deserialize(transaction.txBytes);
-
-    // check metadata
-    if (tx.auxiliary_data()) {
-      this.logger.warn(
-        `Tx [${transaction.txId}] is not verified: Contains metadata`
-      );
-      return false;
-    }
-
-    return true;
-  };
 }
 
 export default CardanoChain;

@@ -893,18 +893,6 @@ abstract class EvmChain extends AbstractChain<Transaction> {
 
     return true;
   };
-
-  /**
-   * verifies a completed and mined PaymentTransaction
-   * @param transaction the PaymentTransaction
-   * @returns true if the transaction is verified
-   */
-  verifyCompletedPaymentTransaction = async (
-    transaction: PaymentTransaction
-  ): Promise<boolean> => {
-    // nothing to verify on bitcoin
-    return true;
-  };
 }
 
 export default EvmChain;
