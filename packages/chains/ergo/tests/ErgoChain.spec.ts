@@ -9,6 +9,7 @@ import {
   CoveringBoxes,
   NotEnoughAssetsError,
   NotEnoughValidBoxesError,
+  SigningStatus,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
 import TestErgoNetwork from './network/TestErgoNetwork';
@@ -1147,6 +1148,111 @@ describe('ErgoChain', () => {
       );
       const result = await ergoChain.verifyTransactionExtraConditions(
         paymentTx
+      );
+
+      // check returned value
+      expect(result).toEqual(true);
+    });
+
+    /**
+     * @target ErgoChain.verifyTransactionExtraConditions should return true
+     * event when signing status is wrong
+     * @dependencies
+     * @scenario
+     * - mock valid PaymentTransaction
+     * - mock a config with valid lockAddress
+     * - run test with signing status as signed
+     * - check returned value
+     * @expected
+     * - it should return true
+     */
+    it('should return true event when signing status is wrong', async () => {
+      // mock PaymentTransaction
+      const paymentTx = ErgoTransaction.fromJson(
+        transactionTestData.transaction3PaymentTransaction
+      );
+
+      // mock a config with valid lockAddress
+      const config: ErgoConfigs = {
+        fee: 1200000n,
+        confirmations: ergoTestUtils.defaultConfirmations,
+        addresses: {
+          lock: 'nB3L2PD3LG4ydEj62n9aymRyPCEbkBdzaubgvCWDH2oxHxFBfAUy9GhWDvteDbbUh5qhXxnW8R46qmEiZfkej8gt4kZYvbeobZJADMrWXwFJTsZ17euEcoAp3KDk31Q26okFpgK9SKdi4',
+          cold: 'cold_addr',
+          permit: 'permit_addr',
+          fraud: 'fraud_addr',
+        },
+        rwtId: ergoTestUtils.rwtId,
+        minBoxValue: 1000000n,
+        eventTxConfirmation: 18,
+      };
+
+      // run test
+      const ergoChain = new ErgoChain(
+        network,
+        config,
+        ergoTestUtils.testTokenMap,
+        ergoTestUtils.defaultSignFunction
+      );
+      const result = await ergoChain.verifyTransactionExtraConditions(
+        paymentTx,
+        SigningStatus.Signed
+      );
+
+      // check returned value
+      expect(result).toEqual(true);
+    });
+
+    /**
+     * @target ErgoChain.verifyTransactionExtraConditions should return true
+     * when change box conditions are met for signed transaction
+     * @dependencies
+     * @scenario
+     * - mock PaymentTransaction of signed transaction
+     * - mock a config with valid lockAddress
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return true
+     */
+    it('should return true when change box conditions are met for signed transaction', async () => {
+      // mock PaymentTransaction of signed transaction
+      const paymentTx = new ErgoTransaction(
+        'txId',
+        'eventId',
+        wasm.Transaction.sigma_parse_bytes(
+          Buffer.from(transactionTestData.transaction2SignedSerialized, 'hex')
+        ).sigma_serialize_bytes(),
+        TransactionType.payment,
+        [],
+        []
+      );
+
+      // mock a config with valid lockAddress
+      const config: ErgoConfigs = {
+        fee: 1200000n,
+        confirmations: ergoTestUtils.defaultConfirmations,
+        addresses: {
+          lock: 'nB3L2PD3LG4ydEj62n9aymRyPCEbkBdzaubgvCWDH2oxHxFBfAUy9GhWDvteDbbUh5qhXxnW8R46qmEiZfkej8gt4kZYvbeobZJADMrWXwFJTsZ17euEcoAp3KDk31Q26okFpgK9SKdi4',
+          cold: 'cold_addr',
+          permit: 'permit_addr',
+          fraud: 'fraud_addr',
+        },
+        rwtId: ergoTestUtils.rwtId,
+        minBoxValue: 1000000n,
+        eventTxConfirmation: 18,
+      };
+
+      // run test
+      const ergoChain = new ErgoChain(
+        network,
+        config,
+        ergoTestUtils.testTokenMap,
+        ergoTestUtils.defaultSignFunction
+      );
+      const result = await ergoChain.verifyTransactionExtraConditions(
+        paymentTx,
+        SigningStatus.Signed
       );
 
       // check returned value

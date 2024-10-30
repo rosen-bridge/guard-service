@@ -724,12 +724,22 @@ abstract class EvmChain extends AbstractChain<Transaction> {
    * - multiple payments are not allowed in one transaction
    * - in case of erc-20 transfer, `data` must be appropriately parsed with the `transfer` ABI
    * @param transaction the PaymentTransaction
+   * @param signingStatus the signing status of transaction
    * @returns true if the transaction is verified
    */
   verifyTransactionExtraConditions = (
-    transaction: PaymentTransaction
+    transaction: PaymentTransaction,
+    signingStatus: SigningStatus = SigningStatus.UnSigned
   ): boolean => {
-    const tx = Serializer.deserialize(transaction.txBytes);
+    let tx: Transaction;
+    try {
+      tx = Serializer.deserialize(transaction.txBytes);
+    } catch (error) {
+      this.logger.warn(
+        `Tx [${transaction.txId}] is not verified: failed to deserialized due to error: ${error}`
+      );
+      return false;
+    }
 
     if (tx.to === null) {
       this.logger.warn(
@@ -881,6 +891,18 @@ abstract class EvmChain extends AbstractChain<Transaction> {
       return false;
     }
 
+    return true;
+  };
+
+  /**
+   * verifies a completed and mined PaymentTransaction
+   * @param transaction the PaymentTransaction
+   * @returns true if the transaction is verified
+   */
+  verifyCompletedPaymentTransaction = async (
+    transaction: PaymentTransaction
+  ): Promise<boolean> => {
+    // nothing to verify on bitcoin
     return true;
   };
 }

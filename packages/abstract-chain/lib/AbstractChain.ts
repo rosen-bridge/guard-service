@@ -145,10 +145,12 @@ abstract class AbstractChain<TxType> {
   /**
    * verifies additional conditions for a PaymentTransaction
    * @param transaction the PaymentTransaction
+   * @param signingStatus the signing status of transaction
    * @returns true if the transaction is verified
    */
   abstract verifyTransactionExtraConditions: (
-    transaction: PaymentTransaction
+    transaction: PaymentTransaction,
+    signingStatus: SigningStatus
   ) => boolean;
 
   /**

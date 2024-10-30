@@ -560,17 +560,28 @@ class ErgoChain extends AbstractUtxoChain<wasm.Transaction, wasm.ErgoBox> {
    * verifies additional conditions for a PaymentTransaction
    *   1. change boxes should not have register
    * @param transaction the PaymentTransaction
+   * @param signingStatus the signing status of transaction
    * @returns true if the transaction verified
    */
   verifyTransactionExtraConditions = (
-    transaction: PaymentTransaction
+    transaction: PaymentTransaction,
+    signingStatus: SigningStatus = SigningStatus.UnSigned
   ): boolean => {
-    const tx = Serializer.deserialize(transaction.txBytes).unsigned_tx();
+    // deserialize transaction
+    let tx: wasm.Transaction | wasm.UnsignedTransaction;
+    try {
+      tx =
+        signingStatus === SigningStatus.Signed
+          ? Serializer.signedDeserialize(transaction.txBytes)
+          : Serializer.deserialize(transaction.txBytes).unsigned_tx();
+    } catch (e) {
+      tx = Serializer.deserialize(transaction.txBytes).unsigned_tx();
+    }
+
     const outputBoxes = tx.output_candidates();
     const lockErgoTree = wasm.Address.from_base58(this.configs.addresses.lock)
       .to_ergo_tree()
       .to_base16_bytes();
-
     for (let i = outputBoxes.len() - 1; i >= 0; i--) {
       const output = outputBoxes.get(i);
       // skip fee box
@@ -1230,6 +1241,18 @@ class ErgoChain extends AbstractUtxoChain<wasm.Transaction, wasm.ErgoBox> {
     }
 
     return true;
+  };
+
+  /**
+   * verifies a completed and mined PaymentTransaction
+   * @param transaction the PaymentTransaction
+   * @returns true if the transaction is verified
+   */
+  verifyCompletedPaymentTransaction = async (
+    transaction: PaymentTransaction
+  ): Promise<boolean> => {
+    // there is no use case for this verification for ergo transactions, thus always returns false
+    return false;
   };
 }
 

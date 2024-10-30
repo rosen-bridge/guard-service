@@ -341,10 +341,12 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
    * verifies additional conditions for a BitcoinTransaction
    * - check change box
    * @param transaction the PaymentTransaction
+   * @param signingStatus the signing status of transaction
    * @returns true if the transaction is verified
    */
   verifyTransactionExtraConditions = (
-    transaction: PaymentTransaction
+    transaction: PaymentTransaction,
+    signingStatus: SigningStatus = SigningStatus.UnSigned
   ): boolean => {
     const tx = Serializer.deserialize(transaction.txBytes);
 
@@ -773,6 +775,18 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
       }
     }
 
+    return true;
+  };
+
+  /**
+   * verifies a completed and mined PaymentTransaction
+   * @param transaction the PaymentTransaction
+   * @returns true if the transaction is verified
+   */
+  verifyCompletedPaymentTransaction = async (
+    transaction: PaymentTransaction
+  ): Promise<boolean> => {
+    // nothing to verify on bitcoin
     return true;
   };
 }
