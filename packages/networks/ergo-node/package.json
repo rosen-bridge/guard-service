@@ -1,6 +1,6 @@
 {
   "name": "@rosen-chains/ergo-node-network",
-  "version": "9.0.3",
+  "version": "9.0.4",
   "description": "ergo node network package for rosen ergo chain",
   "main": "dist/lib/index.js",
   "types": "dist/lib/index.d.ts",
@@ -22,8 +22,8 @@
   "dependencies": {
     "@rosen-bridge/json-bigint": "^0.1.0",
     "@rosen-bridge/abstract-logger": "^2.0.1",
-    "@rosen-chains/abstract-chain": "^10.0.0",
-    "@rosen-chains/ergo": "^10.0.0",
+    "@rosen-chains/abstract-chain": "^11.0.0",
+    "@rosen-chains/ergo": "^10.1.0",
     "@rosen-clients/ergo-node": "^1.1.1",
     "ergo-lib-wasm-nodejs": "^0.24.1",
     "it-all": "^3.0.1"

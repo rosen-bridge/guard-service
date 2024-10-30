@@ -8,4 +8,4 @@
 '@rosen-chains/ethereum': minor
 ---
 
-add signingStatus to verifyTransactionExtraConditions function arguments
+Add signingStatus to verifyTransactionExtraConditions function arguments

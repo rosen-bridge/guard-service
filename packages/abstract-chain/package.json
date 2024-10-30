@@ -1,6 +1,6 @@
 {
   "name": "@rosen-chains/abstract-chain",
-  "version": "10.0.0",
+  "version": "11.0.0",
   "description": "this project contains abstract classes to implement any chain for Rosen-bridge",
   "main": "dist/lib/index.js",
   "types": "dist/lib/index.d.ts",

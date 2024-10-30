@@ -1,5 +1,11 @@
 # @rosen-chains/abstract-chain
 
+## 11.0.0
+
+### Major Changes
+
+- Add signingStatus to verifyTransactionExtraConditions function arguments
+
 ## 10.0.0
 
 ### Major Changes
