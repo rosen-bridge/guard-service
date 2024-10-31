@@ -8,7 +8,7 @@
 
 ### Patch Changes
 
-- Updated dependencies
+- Update dependencies
   - @rosen-chains/abstract-chain@11.0.0
 
 ## 5.0.0

@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- Updated dependencies
+- Update dependencies
   - @rosen-chains/abstract-chain@11.0.0
   - @rosen-chains/bitcoin@6.1.0
 
