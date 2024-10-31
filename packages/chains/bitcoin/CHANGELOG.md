@@ -1,5 +1,16 @@
 # @rosen-chains/bitcoin
 
+## 6.1.0
+
+### Minor Changes
+
+- Add signingStatus to verifyTransactionExtraConditions function arguments
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-chains/abstract-chain@11.0.0
+
 ## 6.0.0
 
 ### Major Changes

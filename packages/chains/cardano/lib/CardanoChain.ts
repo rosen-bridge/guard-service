@@ -580,10 +580,12 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
   /**
    * verifies PaymentTransaction extra conditions like metadata and change box address
    * @param transaction to verify
+   * @param signingStatus the signing status of transaction
    * @returns true if all conditions are met
    */
   verifyTransactionExtraConditions = (
-    transaction: PaymentTransaction
+    transaction: PaymentTransaction,
+    signingStatus: SigningStatus = SigningStatus.UnSigned
   ): boolean => {
     const tx = Serializer.deserialize(transaction.txBytes);
 
