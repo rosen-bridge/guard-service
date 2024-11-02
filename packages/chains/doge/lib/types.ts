@@ -16,7 +16,7 @@ export interface DogeUtxo {
   txId: string;
   index: number;
   value: bigint;
-  txHex: string;
+  txHex?: string;
 }
 
 export interface DogeTxInput {

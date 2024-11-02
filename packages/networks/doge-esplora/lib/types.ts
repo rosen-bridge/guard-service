@@ -70,6 +70,7 @@ export interface EsploraUtxo {
   vout: number;
   status: Status;
   value: number;
+  txHex: string;
 }
 
 export interface EsploraUtxoInfo {

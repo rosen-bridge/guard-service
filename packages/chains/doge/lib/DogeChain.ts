@@ -39,7 +39,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
   declare configs: DogeConfigs;
   CHAIN = DOGE_CHAIN;
   NATIVE_TOKEN_ID = DOGE;
-  extractor: DogeRosenExtractor;
+  extractor: undefined;
   protected signFunction: TssSignFunction;
   protected lockScript: string;
   protected signingScript: Buffer;
@@ -52,11 +52,6 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
     logger?: AbstractLogger
   ) {
     super(network, configs, tokens, logger);
-    this.extractor = new DogeRosenExtractor(
-      configs.addresses.lock,
-      tokens,
-      logger
-    );
     this.signFunction = signFunction;
     this.lockScript = address
       .toOutputScript(this.configs.addresses.lock)
@@ -151,7 +146,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
       psbt.addInput({
         hash: box.txId,
         index: box.index,
-        nonWitnessUtxo: Buffer.from(box.txHex, 'hex'),
+        nonWitnessUtxo: Buffer.from(box.txHex!, 'hex'),
         redeemScript: Buffer.from(this.lockScript, 'hex'),
       });
     });
