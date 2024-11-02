@@ -6,6 +6,7 @@ import ColdStorage from '../coldStorage/ColdStorage';
 import ColdStorageConfig from '../coldStorage/ColdStorageConfig';
 import TxAgreement from '../agreement/TxAgreement';
 import ArbitraryProcessor from '../arbitrary/ArbitraryProcessor';
+import EventSynchronization from '../synchronization/EventSynchronization';
 
 /**
  * sends generated tx to agreement
@@ -86,11 +87,12 @@ const transactionJob = () => {
 };
 
 /**
- * runs timeout leftover events and orders job
+ * runs timeout leftover events, orders and event active syncs job
  */
 const timeoutProcessorJob = async () => {
   await EventProcessor.TimeoutLeftoverEvents();
   await ArbitraryProcessor.getInstance().timeoutLeftoverOrders();
+  await EventSynchronization.getInstance().timeoutActiveSyncs();
   setTimeout(timeoutProcessorJob, Configs.timeoutProcessorInterval * 1000);
 };
 
@@ -100,7 +102,18 @@ const timeoutProcessorJob = async () => {
 const requeueWaitingEventsJob = async () => {
   await EventProcessor.RequeueWaitingEvents();
   await ArbitraryProcessor.getInstance().requeueWaitingOrders();
-  setTimeout(timeoutProcessorJob, Configs.requeueWaitingEventsInterval * 1000);
+  setTimeout(
+    requeueWaitingEventsJob,
+    Configs.requeueWaitingEventsInterval * 1000
+  );
+};
+
+/**
+ * runs timeout event active synchronizations job
+ */
+const eventSyncBatchJob = async () => {
+  await EventSynchronization.getInstance().sendSyncBatch();
+  setTimeout(eventSyncBatchJob, Configs.eventBatchInterval * 1000);
 };
 
 /**
@@ -116,6 +129,7 @@ const runProcessors = () => {
     requeueWaitingEventsJob,
     Configs.requeueWaitingEventsInterval * 1000
   );
+  setTimeout(eventSyncBatchJob, Configs.eventBatchInterval * 1000);
 };
 
 export { runProcessors };

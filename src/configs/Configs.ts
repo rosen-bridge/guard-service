@@ -112,6 +112,21 @@ class Configs {
     >('tss.pubs'),
   };
 
+  // event synchronization
+  static parallelSyncLimit = getConfigIntKeyOrDefault(
+    'eventSync.parallelSyncLimit',
+    3
+  );
+  static parallelRequestCount = getConfigIntKeyOrDefault(
+    'eventSync.parallelRequestCount',
+    3
+  );
+  static eventSyncTimeout = getConfigIntKeyOrDefault('eventSync.timeout', 3600);
+  static eventBatchInterval = getConfigIntKeyOrDefault(
+    'eventSync.batchInterval',
+    60
+  );
+
   // guards configs
   static guardMnemonic = config.get<string>('guard.mnemonic');
   static guardSecret = Utils.convertMnemonicToSecretKey(this.guardMnemonic);

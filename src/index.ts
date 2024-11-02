@@ -20,6 +20,9 @@ import GuardPkHandler from './handlers/GuardPkHandler';
 import MinimumFeeHandler from './handlers/MinimumFeeHandler';
 import { minimumFeeUpdateJob } from './jobs/minimumFee';
 import { NotificationHandler } from './handlers/NotificationHandler';
+import { ECDSA, GuardDetection } from '@rosen-bridge/tss';
+import Dialer from './communication/Dialer';
+import EventSynchronization from './synchronization/EventSynchronization';
 
 const init = async () => {
   // initialize NotificationHandler object
@@ -54,6 +57,24 @@ const init = async () => {
 
   // initialize TxAgreement object
   await TxAgreement.getInstance();
+
+  // initialize EventSynchronization object
+  const dialer = await Dialer.getInstance();
+  const detection = new GuardDetection({
+    guardsPublicKey: pkHandler.publicKeys,
+    signer: new ECDSA(Configs.guardSecret),
+    submit: async (msg: string, peers: Array<string>) => {
+      if (peers.length === 0) await dialer.sendMessage('main-detection', msg);
+      else
+        await Promise.all(
+          peers.map(async (peer) =>
+            dialer.sendMessage('main-detection', msg, peer)
+          )
+        );
+    },
+    getPeerId: () => Promise.resolve(dialer.getDialerId()),
+  });
+  await EventSynchronization.init(detection);
 
   // initialize MinimumFeeHandler
   await MinimumFeeHandler.init(Configs.tokens());

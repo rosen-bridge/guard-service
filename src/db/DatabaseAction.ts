@@ -384,6 +384,31 @@ class DatabaseAction {
   };
 
   /**
+   * inserts a tx record into transactions table
+   */
+  insertCompletedTx = async (
+    paymentTx: PaymentTransaction,
+    event: ConfirmedEventEntity | null,
+    requiredSign: number,
+    order: ArbitraryEntity | null
+  ): Promise<void> => {
+    await this.TransactionRepository.insert({
+      txId: paymentTx.txId,
+      txJson: paymentTx.toJson(),
+      type: paymentTx.txType,
+      chain: paymentTx.network,
+      status: TransactionStatus.completed,
+      lastStatusUpdate: String(Math.round(Date.now() / 1000)),
+      lastCheck: 0,
+      event: event !== null ? event : undefined,
+      order: order !== null ? order : undefined,
+      failedInSign: false,
+      signFailedCount: 0,
+      requiredSign: requiredSign,
+    });
+  };
+
+  /**
    * @param eventId the event trigger id
    * @param eventBoxHeight the event trigger box mined height
    * @return commitments that created before event trigger and didn't spent yet
