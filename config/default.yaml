@@ -124,7 +124,7 @@ eventSync:
   parallelSyncLimit: 3
   parallelRequestCount: 3
   timeout: 3600
-  batchInterval: 60
+  interval: 60
 tss:
   path: './bin/tss.exe' # path to tss executable file
   configPath: './bin/conf/conf.env'

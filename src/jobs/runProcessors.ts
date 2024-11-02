@@ -109,11 +109,12 @@ const requeueWaitingEventsJob = async () => {
 };
 
 /**
- * runs timeout event active synchronizations job
+ * runs event active synchronizations jobs
  */
-const eventSyncBatchJob = async () => {
+const eventSyncJob = async () => {
+  await EventSynchronization.getInstance().processSyncQueue();
   await EventSynchronization.getInstance().sendSyncBatch();
-  setTimeout(eventSyncBatchJob, Configs.eventBatchInterval * 1000);
+  setTimeout(eventSyncJob, Configs.eventSyncInterval * 1000);
 };
 
 /**
@@ -129,7 +130,7 @@ const runProcessors = () => {
     requeueWaitingEventsJob,
     Configs.requeueWaitingEventsInterval * 1000
   );
-  setTimeout(eventSyncBatchJob, Configs.eventBatchInterval * 1000);
+  setTimeout(eventSyncJob, Configs.eventSyncInterval * 1000);
 };
 
 export { runProcessors };

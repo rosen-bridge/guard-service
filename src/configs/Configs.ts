@@ -122,10 +122,7 @@ class Configs {
     3
   );
   static eventSyncTimeout = getConfigIntKeyOrDefault('eventSync.timeout', 3600);
-  static eventBatchInterval = getConfigIntKeyOrDefault(
-    'eventSync.batchInterval',
-    60
-  );
+  static eventSyncInterval = getConfigIntKeyOrDefault('eventSync.interval', 60);
 
   // guards configs
   static guardMnemonic = config.get<string>('guard.mnemonic');
