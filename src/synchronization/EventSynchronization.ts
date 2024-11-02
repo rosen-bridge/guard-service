@@ -33,7 +33,6 @@ const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 class EventSynchronization extends Communicator {
   private static instance: EventSynchronization;
   protected static CHANNEL = 'event-synchronization';
-  protected static DETECTION_CHANNEL = 'synchronization-detection';
   protected static dialer: Dialer;
   protected detection: GuardDetection;
   protected eventQueue: string[];
@@ -83,23 +82,6 @@ class EventSynchronization extends Communicator {
     if (!EventSynchronization.instance)
       throw Error(`EventSynchronization instance doesn't exist`);
     return EventSynchronization.instance;
-  };
-
-  /**
-   * generates a function to wrap channel send message to dialer
-   * @param channel
-   */
-  protected static generateSubmitMessageWrapper = (channel: string) => {
-    return async (msg: string, peers: Array<string>) => {
-      if (peers.length === 0)
-        await EventSynchronization.dialer.sendMessage(channel, msg);
-      else
-        await Promise.all(
-          peers.map(async (peer) =>
-            EventSynchronization.dialer.sendMessage(channel, msg, peer)
-          )
-        );
-    };
   };
 
   /**
