@@ -430,6 +430,17 @@ class DogeEsploraNetwork extends AbstractDogeNetwork {
         }
       });
   };
+
+  /**
+   * gets a transaction hex string
+   * @param txId the transaction id
+   * @returns hex string of the transaction
+   */
+  getTransactionHex = async (txId: string): Promise<string> => {
+    return this.client
+      .get<string>(`/api/tx/${txId}/hex`)
+      .then((res) => res.data);
+  };
 }
 
 export default DogeEsploraNetwork;

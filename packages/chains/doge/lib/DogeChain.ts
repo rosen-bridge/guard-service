@@ -151,10 +151,8 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
       psbt.addInput({
         hash: box.txId,
         index: box.index,
-        witnessUtxo: {
-          script: Buffer.from(this.lockScript, 'hex'),
-          value: Number(box.value),
-        },
+        nonWitnessUtxo: Buffer.from(box.txHex, 'hex'),
+        redeemScript: Buffer.from(this.lockScript, 'hex'),
       });
     });
     // calculate input boxes assets
@@ -593,6 +591,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
             txId: txId,
             index: index,
             value: BigInt(output.value),
+            txHex: tx.toHex(),
           };
           break;
         }
@@ -666,11 +665,23 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
     trackMap: Map<string, DogeUtxo | undefined>
   ): Promise<CoveringBoxes<DogeUtxo>> => {
     const getAddressBoxes = this.network.getAddressBoxes;
+    const getTransactionHex = this.network.getTransactionHex;
     async function* generator() {
       let offset = 0;
       const limit = GET_BOX_API_LIMIT;
       while (true) {
-        const page = await getAddressBoxes(address, offset, limit);
+        const initPage = await getAddressBoxes(address, offset, limit);
+        await Promise.all(
+          initPage.map(async (box) => {
+            try {
+              box.txHex = await getTransactionHex(box.txId);
+            } catch {
+              box.txHex = '';
+            }
+          })
+        );
+        const page = initPage.filter((box) => box.txHex !== '');
+
         if (page.length === 0) break;
         yield* page;
         offset += limit;

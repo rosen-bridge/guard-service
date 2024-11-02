@@ -50,6 +50,13 @@ abstract class AbstractDogeNetwork extends AbstractUtxoChainNetwork<
   getTokenDetail = async (tokenId: string): Promise<TokenDetail> => {
     throw Error(`Doge does not support token`);
   };
+
+  /**
+   * gets a transaction hex string
+   * @param txId the transaction id
+   * @returns hex string of the transaction
+   */
+  abstract getTransactionHex: (txId: string) => Promise<string>;
 }
 
 export default AbstractDogeNetwork;
