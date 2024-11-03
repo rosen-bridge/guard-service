@@ -15,6 +15,7 @@ import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { signRoute } from '../api/signTx';
 import rateLimit from '@fastify/rate-limit';
 import { arbitraryOrderRoute } from '../api/arbitrary';
+import { eventReprocessRoute } from '../api/reprocess';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -104,6 +105,7 @@ const initApiServer = async () => {
   await apiServer.register(assetRoutes);
   await apiServer.register(signRoute);
   await apiServer.register(arbitraryOrderRoute);
+  await apiServer.register(eventReprocessRoute);
 
   apiServer.get('/', (request, reply) => {
     reply.redirect('/swagger');
