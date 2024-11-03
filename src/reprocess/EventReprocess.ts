@@ -13,6 +13,7 @@ import GuardTurn from '../utils/GuardTurn';
 import GuardPkHandler from '../handlers/GuardPkHandler';
 import { DatabaseAction } from '../db/DatabaseAction';
 import { randomBytes } from 'crypto';
+import { NotFoundError } from '@rosen-chains/abstract-chain';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -87,7 +88,7 @@ class EventReprocess extends Communicator {
   };
 
   /**
-   * sends reprocess request to the guards
+   * updates event status and sends reprocess request to other guards
    */
   sendReprocessRequest = async (
     eventId: string,
@@ -95,6 +96,37 @@ class EventReprocess extends Communicator {
   ): Promise<void> => {
     const requestId = randomBytes(8).toString('hex');
     const timestamp = Math.round(Date.now() / 1000);
+    // get event from database
+    const dbAction = DatabaseAction.getInstance();
+    const eventEntity = await dbAction.getEventById(eventId);
+    if (eventEntity === null) {
+      throw new NotFoundError(`Event [${eventId}] is not found`);
+    }
+
+    // check event status
+    if (
+      [
+        EventStatus.rejected,
+        EventStatus.timeout,
+        EventStatus.paymentWaiting,
+      ].includes(eventEntity.status)
+    ) {
+      logger.info(`Event [${eventId}] is queued for payment again`);
+      await dbAction.setEventStatusToPending(
+        eventId,
+        EventStatus.pendingPayment
+      );
+    } else if (eventEntity.status === EventStatus.rewardWaiting) {
+      logger.info(`Event [${eventId}] is queued for reward distribution again`);
+      await dbAction.setEventStatusToPending(
+        eventId,
+        EventStatus.pendingReward
+      );
+    } else {
+      throw Error(
+        `Event [${eventId}] status is unexpected (${eventEntity.status})`
+      );
+    }
 
     await DatabaseAction.getInstance().insertReprocessRequests(
       EventReprocess.dialer.getDialerId(),

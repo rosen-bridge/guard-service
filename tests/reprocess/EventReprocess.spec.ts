@@ -33,16 +33,26 @@ describe('EventReprocess', async () => {
      * - database
      * - Date
      * @scenario
+     * - mock event and insert into db
      * - mock EventReprocess.sendMessage
      * - run test
      * - check database
      * - check if function got called
      * @expected
+     * - the event status should be updated in database
      * - the requests should be inserted into database with the same
      *   request id and timestamp
      * - `sendMessage` should got called with expected arguments
      */
     it('should send request messages to other guards and insert them into db', async () => {
+      // mock event and insert into db
+      const mockedEvent = EventTestData.mockEventTrigger().event;
+      const eventId = EventSerializer.getId(mockedEvent);
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent,
+        EventStatus.timeout
+      );
+
       // mock EventReprocess.sendMessage
       const eventReprocess = EventReprocess.getInstance();
       const mockedSendMessage = vi.fn();
@@ -51,10 +61,16 @@ describe('EventReprocess', async () => {
 
       // run test
       const peers = ['peer0', 'peer1', 'peer2', 'peer3'];
-      const eventId = 'event-id';
       await eventReprocess.sendReprocessRequest(eventId, peers);
 
-      // check database
+      // event status should be updated in db
+      const dbEvents = (await DatabaseActionMock.allEventRecords()).map(
+        (event) => [event.id, event.status]
+      );
+      expect(dbEvents.length).toEqual(1);
+      expect(dbEvents).to.deep.contain([eventId, EventStatus.pendingPayment]);
+
+      // the requests should be inserted into database with the same requestId and timestamp
       const dbRequests = await DatabaseActionMock.allReprocessRecords();
       const requestId = dbRequests[0].requestId;
       expect(dbRequests.length).toEqual(peers.length);
@@ -69,13 +85,133 @@ describe('EventReprocess', async () => {
           timestamp: TestConfigs.currentTimeStamp / 1000,
         });
 
-      // check if function got called
+      // `sendMessage` should got called with expected arguments
       expect(sendMessageSpy).toHaveBeenCalledWith(
         ReprocessMessageTypes.request,
         { requestId: requestId, eventId: eventId },
         peers,
         TestConfigs.currentTimeStamp / 1000
       );
+    });
+
+    /**
+     * @target EventReprocess.sendReprocessRequest should also update the event
+     * to pending-reward when event status is reward-waiting
+     * @dependencies
+     * - database
+     * - Date
+     * @scenario
+     * - mock event and insert into db
+     * - mock EventReprocess.sendMessage
+     * - run test
+     * - check database
+     * - check if function got called
+     * @expected
+     * - the event status should be updated in database
+     * - the requests should be inserted into database with the same
+     *   request id and timestamp
+     * - `sendMessage` should got called with expected arguments
+     */
+    it('should also update the event to pending-reward when event status is reward-waiting', async () => {
+      // mock event and insert into db
+      const mockedEvent = EventTestData.mockEventTrigger().event;
+      const eventId = EventSerializer.getId(mockedEvent);
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent,
+        EventStatus.rewardWaiting
+      );
+
+      // mock EventReprocess.sendMessage
+      const eventReprocess = EventReprocess.getInstance();
+      const mockedSendMessage = vi.fn();
+      const sendMessageSpy = vi.spyOn(eventReprocess as any, 'sendMessage');
+      sendMessageSpy.mockImplementation(mockedSendMessage);
+
+      // run test
+      const peers = ['peer0', 'peer1', 'peer2', 'peer3'];
+      await eventReprocess.sendReprocessRequest(eventId, peers);
+
+      // event status should be updated in db
+      const dbEvents = (await DatabaseActionMock.allEventRecords()).map(
+        (event) => [event.id, event.status]
+      );
+      expect(dbEvents.length).toEqual(1);
+      expect(dbEvents).to.deep.contain([eventId, EventStatus.pendingReward]);
+
+      // the requests should be inserted into database with the same requestId and timestamp
+      const dbRequests = await DatabaseActionMock.allReprocessRecords();
+      const requestId = dbRequests[0].requestId;
+      expect(dbRequests.length).toEqual(peers.length);
+      for (let i = 0; i < peers.length; i++)
+        expect(dbRequests[i]).toEqual({
+          id: expect.any(Number),
+          requestId: requestId,
+          eventId: eventId,
+          sender: 'dialer-peer-id',
+          receiver: peers[i],
+          status: ReprocessStatus.noResponse,
+          timestamp: TestConfigs.currentTimeStamp / 1000,
+        });
+
+      // `sendMessage` should got called with expected arguments
+      expect(sendMessageSpy).toHaveBeenCalledWith(
+        ReprocessMessageTypes.request,
+        { requestId: requestId, eventId: eventId },
+        peers,
+        TestConfigs.currentTimeStamp / 1000
+      );
+    });
+
+    /**
+     * @target EventReprocess.sendReprocessRequest should throw Error when
+     * event status is unexpected
+     * @dependencies
+     * - database
+     * - Date
+     * @scenario
+     * - mock event and insert into db
+     * - mock EventReprocess.sendMessage
+     * - run test and expect exception thrown
+     * - check database
+     * - check if function got called
+     * @expected
+     * - the event status should remain unchanged
+     * - the requests should NOT be inserted into database
+     * - `sendMessage` should NOT got called
+     */
+    it('should throw Error when event status is unexpected', async () => {
+      // mock event and insert into db
+      const mockedEvent = EventTestData.mockEventTrigger().event;
+      const eventId = EventSerializer.getId(mockedEvent);
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent,
+        EventStatus.inPayment
+      );
+
+      // mock EventReprocess.sendMessage
+      const eventReprocess = EventReprocess.getInstance();
+      const mockedSendMessage = vi.fn();
+      const sendMessageSpy = vi.spyOn(eventReprocess as any, 'sendMessage');
+      sendMessageSpy.mockImplementation(mockedSendMessage);
+
+      // run test and expect exception thrown
+      await expect(async () => {
+        await eventReprocess.sendReprocessRequest(eventId, ['peer0', 'peer1']);
+      }).rejects.toThrow(Error);
+
+      // event status should be updated in db
+      const dbEvents = (await DatabaseActionMock.allEventRecords()).map(
+        (event) => [event.id, event.status]
+      );
+      expect(dbEvents.length).toEqual(1);
+      expect(dbEvents).to.deep.contain([eventId, EventStatus.inPayment]);
+
+      // the requests should NOT be inserted into database
+      const dbRequests = await DatabaseActionMock.allReprocessRecords();
+      expect(dbRequests.length).toEqual(0);
+
+      // `sendMessage` should NOT got called
+      expect(sendMessageSpy).not.toHaveBeenCalledWith();
     });
   });
 
