@@ -9,6 +9,7 @@ import EventReprocess from '../../src/reprocess/EventReprocess';
 import EventSerializer from '../../src/event/EventSerializer';
 import { EventStatus } from '../../src/utils/constants';
 import TestUtils from '../testUtils/TestUtils';
+import { NotFoundError } from '@rosen-chains/abstract-chain';
 
 describe('EventReprocess', async () => {
   await EventReprocess.init();
@@ -163,6 +164,51 @@ describe('EventReprocess', async () => {
     });
 
     /**
+     * @target EventReprocess.sendReprocessRequest should throw NotFoundError
+     * when event is not found
+     * @dependencies
+     * - database
+     * - Date
+     * @scenario
+     * - mock event
+     * - mock EventReprocess.sendMessage
+     * - run test and expect exception thrown
+     * - check database
+     * - check if function got called
+     * @expected
+     * - the event table should remain unchanged
+     * - the requests should NOT be inserted into database
+     * - `sendMessage` should NOT got called
+     */
+    it('should throw NotFoundError when event is not found', async () => {
+      // mock event
+      const mockedEvent = EventTestData.mockEventTrigger().event;
+      const eventId = EventSerializer.getId(mockedEvent);
+
+      // mock EventReprocess.sendMessage
+      const eventReprocess = EventReprocess.getInstance();
+      const mockedSendMessage = vi.fn();
+      const sendMessageSpy = vi.spyOn(eventReprocess as any, 'sendMessage');
+      sendMessageSpy.mockImplementation(mockedSendMessage);
+
+      // run test and expect exception thrown
+      await expect(async () => {
+        await eventReprocess.sendReprocessRequest(eventId, ['peer0', 'peer1']);
+      }).rejects.toThrow(NotFoundError);
+
+      // event table should remain unchanged
+      const dbEvents = await DatabaseActionMock.allEventRecords();
+      expect(dbEvents.length).toEqual(0);
+
+      // the requests should NOT be inserted into database
+      const dbRequests = await DatabaseActionMock.allReprocessRecords();
+      expect(dbRequests.length).toEqual(0);
+
+      // `sendMessage` should NOT got called
+      expect(sendMessageSpy).not.toHaveBeenCalledWith();
+    });
+
+    /**
      * @target EventReprocess.sendReprocessRequest should throw Error when
      * event status is unexpected
      * @dependencies
@@ -199,7 +245,7 @@ describe('EventReprocess', async () => {
         await eventReprocess.sendReprocessRequest(eventId, ['peer0', 'peer1']);
       }).rejects.toThrow(Error);
 
-      // event status should be updated in db
+      // the event status should remain unchanged
       const dbEvents = (await DatabaseActionMock.allEventRecords()).map(
         (event) => [event.id, event.status]
       );
