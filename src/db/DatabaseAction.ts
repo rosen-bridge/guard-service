@@ -4,6 +4,7 @@ import {
   In,
   IsNull,
   LessThan,
+  MoreThan,
   MoreThanOrEqual,
   Not,
   Repository,
@@ -37,6 +38,8 @@ import { EventView } from './entities/EventView';
 import { BlockEntity, PROCEED } from '@rosen-bridge/scanner';
 import { ArbitraryEntity } from './entities/ArbitraryEntity';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
+import { ReprocessEntity } from './entities/ReprocessEntity';
+import { ReprocessStatus } from '../reprocess/Interfaces';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -53,6 +56,7 @@ class DatabaseAction {
   RevenueChartView: Repository<RevenueChartView>;
   EventView: Repository<EventView>;
   ArbitraryRepository: Repository<ArbitraryEntity>;
+  ReprocessRepository: Repository<ReprocessEntity>;
 
   txSignSemaphore = new Semaphore(1);
 
@@ -70,6 +74,7 @@ class DatabaseAction {
     this.RevenueChartView = this.dataSource.getRepository(RevenueChartView);
     this.EventView = this.dataSource.getRepository(EventView);
     this.ArbitraryRepository = this.dataSource.getRepository(ArbitraryEntity);
+    this.ReprocessRepository = this.dataSource.getRepository(ReprocessEntity);
   }
 
   /**
@@ -924,6 +929,75 @@ class DatabaseAction {
         status: Not(TransactionStatus.invalid),
       },
     });
+  };
+
+  /**
+   * inserts reprocess request into db
+   * @param senderId
+   * @param requestId
+   * @param eventId
+   * @param timestamp
+   * @param peerIds
+   */
+  insertReprocessRequests = async (
+    senderId: string,
+    requestId: string,
+    eventId: string,
+    timestamp: number,
+    peerIds: string[]
+  ) => {
+    await this.ReprocessRepository.insert(
+      peerIds.map((peerId) => ({
+        requestId: requestId,
+        eventId: eventId,
+        sender: senderId,
+        receiver: peerId,
+        status: ReprocessStatus.noResponse,
+        timestamp: timestamp,
+      }))
+    );
+  };
+
+  /**
+   * gets all requests sent by the given peerId after the given timestamp
+   * @param senderId
+   * @param timestamp
+   */
+  getRecentReprocessRequestsByGuard = async (
+    senderId: string,
+    timestamp: number
+  ) => {
+    return await this.ReprocessRepository.find({
+      where: {
+        sender: senderId,
+        timestamp: MoreThan(timestamp),
+      },
+    });
+  };
+
+  /**
+   * updates the status of a reprocess request
+   * @param requestId
+   * @param senderId
+   * @param receiverId
+   * @param status
+   */
+  updateReprocessRequest = async (
+    requestId: string,
+    senderId: string,
+    receiverId: string,
+    status: ReprocessStatus
+  ) => {
+    return await this.ReprocessRepository.update(
+      {
+        requestId: requestId,
+        sender: senderId,
+        receiver: receiverId,
+      },
+      {
+        status: status,
+      }
+    );
   };
 }
 
