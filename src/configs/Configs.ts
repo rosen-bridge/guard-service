@@ -124,6 +124,12 @@ class Configs {
   static eventSyncTimeout = getConfigIntKeyOrDefault('eventSync.timeout', 3600);
   static eventSyncInterval = getConfigIntKeyOrDefault('eventSync.interval', 60);
 
+  // event reprocess
+  static eventReprocessCooldown = getConfigIntKeyOrDefault(
+    'eventReprocessCooldown',
+    1800
+  );
+
   // guards configs
   static guardMnemonic = config.get<string>('guard.mnemonic');
   static guardSecret = Utils.convertMnemonicToSecretKey(this.guardMnemonic);
