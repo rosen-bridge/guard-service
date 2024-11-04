@@ -1,4 +1,5 @@
 import { Psbt } from 'bitcoinjs-lib'; // You may need to replace this with a Doge-specific library if available
+import { DOGE_NETWORK } from './constants';
 
 class Serializer {
   /**
@@ -15,6 +16,9 @@ class Serializer {
    * @param txBytes bytearray representation of the transaction
    * @returns the transaction in 'bitcoinjs-lib' PSBT format
    */
+  // static deserialize = (txBytes: Uint8Array): Psbt => {
+  //   return Psbt.fromBuffer(Buffer.from(txBytes), { network: DOGE_NETWORK });
+  // };
   static deserialize = (txBytes: Uint8Array): Psbt => {
     return Psbt.fromBuffer(Buffer.from(txBytes));
   };

@@ -23,7 +23,7 @@ import { DogeConfigs, DogeTx, DogeUtxo, TssSignFunction } from './types';
 import Serializer from './Serializer';
 import { Psbt, Transaction, address, payments, script } from 'bitcoinjs-lib'; // Adjust if necessary for Dogecoin
 import JsonBigInt from '@rosen-bridge/json-bigint';
-import { estimateTxFee, getInputBoxId } from './dogeUtils'; // Adjust if necessary for Dogecoin
+import { estimateTxFee, getPsbtTxInputBoxId } from './dogeUtils'; // Adjust if necessary for Dogecoin
 import {
   DOGE_CHAIN,
   DOGE,
@@ -42,7 +42,6 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
   extractor: undefined;
   protected signFunction: TssSignFunction;
   protected lockScript: string;
-  protected signingScript: Buffer;
 
   constructor(
     network: AbstractDogeNetwork,
@@ -54,11 +53,8 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
     super(network, configs, tokens, logger);
     this.signFunction = signFunction;
     this.lockScript = address
-      .toOutputScript(this.configs.addresses.lock)
+      .toOutputScript(this.configs.addresses.lock, DOGE_NETWORK)
       .toString('hex');
-    this.signingScript = payments.p2pkh({
-      hash: Buffer.from(this.lockScript, 'hex').subarray(2),
-    }).output!;
   }
 
   /**
@@ -107,9 +103,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
       const inputs = Serializer.deserialize(paymentTx.txBytes).txInputs;
       const ids: string[] = [];
       for (let i = 0; i < inputs.length; i++)
-        ids.push(
-          getInputBoxId(inputs[i].hash.toString('hex'), inputs[i].index)
-        );
+        ids.push(getPsbtTxInputBoxId(inputs[i]));
 
       return ids;
     });
@@ -261,7 +255,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
         continue;
 
       const payment: SinglePayment = {
-        address: address.fromOutputScript(output.script),
+        address: address.fromOutputScript(output.script, DOGE_NETWORK),
         assets: {
           nativeToken: this.wrapDoge(BigInt(output.value)).amount,
           tokens: [],
@@ -376,10 +370,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
   ): Promise<ValidityStatus> => {
     const tx = Serializer.deserialize(transaction.txBytes);
     for (let i = 0; i < tx.txInputs.length; i++) {
-      const boxId = getInputBoxId(
-        tx.txInputs[i].hash.toString('hex'),
-        tx.txInputs[i].index
-      );
+      const boxId = getPsbtTxInputBoxId(tx.txInputs[i]);
       if (!(await this.network.isBoxUnspentAndValid(boxId))) {
         this.logger.info(
           `Tx [${transaction.txId}] is invalid due to spending invalid input box [${boxId}] at index [${i}]`
@@ -416,7 +407,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
     for (let i = 0; i < dogeTx.inputUtxos.length; i++) {
       const signMessage = tx.hashForSignature(
         i,
-        this.signingScript,
+        Buffer.from(this.lockScript, 'hex'),
         Transaction.SIGHASH_ALL
       );
 
@@ -505,10 +496,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
     const inputBoxes: Array<DogeUtxo> = [];
     const inputs = tx.txInputs;
     for (let i = 0; i < inputs.length; i++) {
-      const boxId = getInputBoxId(
-        inputs[i].hash.toString('hex'),
-        inputs[i].index
-      );
+      const boxId = getPsbtTxInputBoxId(inputs[i]);
       inputBoxes.push(await this.network.getUtxo(boxId));
     }
 
@@ -592,7 +580,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
         }
 
         // add input box to trackMap
-        const boxId = getInputBoxId(txId, input.index);
+        const boxId = getPsbtTxInputBoxId(input);
         trackMap.set(boxId, trackedBox);
       });
     });

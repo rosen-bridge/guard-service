@@ -5,6 +5,7 @@ import {
   MINIMUM_UTXO_VALUE,
 } from './constants';
 import { DogeUtxo, BoxInfo, CoveringBoxes } from './types';
+import { PsbtTxInput } from 'bitcoinjs-lib';
 
 /**
  * Estimates the required fee for a Dogecoin transaction based on the number of inputs, outputs, and the current network fee per byte.
@@ -26,14 +27,12 @@ export const estimateTxFee = (
 };
 
 /**
- * Gets boxId from transaction input
- * @param txId The transaction ID
- * @param index The output index
+ * gets boxId from PsbtTxInput
+ * @param input
  * @returns box id in `{txId}.{index}` format
  */
-export const getInputBoxId = (txId: string, index: number): string => {
-  return `${txId}.${index}`;
-};
+export const getPsbtTxInputBoxId = (input: PsbtTxInput) =>
+  `${input.hash.reverse().toString('hex')}.${input.index}`;
 
 /**
  * Extracts box id and assets of a Dogecoin UTXO
