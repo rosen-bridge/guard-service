@@ -5,7 +5,7 @@ export const testTokenMap: RosenTokens = JSON.parse(`
 {
   "idKeys" : {
     "ergo" : "tokenId",
-    "dogecoin" : "tokenId"
+    "doge" : "tokenId"
   },
   "tokens" : []
 }
@@ -15,7 +15,7 @@ export const multiDecimalTokenMap: RosenTokens = JSON.parse(`
 {
   "idKeys" : {
     "ergo" : "tokenId",
-    "dogecoin" : "tokenId"
+    "doge" : "tokenId"
   },
   "tokens" : [
     {
@@ -28,7 +28,7 @@ export const multiDecimalTokenMap: RosenTokens = JSON.parse(`
           "residency": "wrapped"
         }
       },
-      "dogecoin": {
+      "doge": {
         "tokenId": "doge",
         "name": "DOGE",
         "decimals": 8,
@@ -43,7 +43,7 @@ export const multiDecimalTokenMap: RosenTokens = JSON.parse(`
 `);
 
 export const transaction0PaymentTransaction = `{
-  "network": "dogecoin",
+  "network": "doge",
   "eventId": "",
   "txBytes": "70736274ff0100710200000001972da36330161ef9af99788ccc7261f81e2a046049d1ee65ad724288159633640100000000ffffffff02f242993b00000000160014828037cbcbed02c6d9948e51b89c44da3a3b81fca086010000000000160014b20272a6591937ba7d687dc889f3637ed40efa6a000000000001011f00ca9a3b00000000160014fdfe06abec6a565eff3604db30fd30069b2f2a28000000",
   "txId": "502559f8e22792d537f226bfac7c3bc972de1a9a13651b325c40ec5a52ea1297",
@@ -72,7 +72,7 @@ export const transaction1InputIds = [
 ];
 
 export const transaction2PaymentTransaction = `{
-  "network": "dogecoin",
+  "network": "doge",
   "eventId": "",
   "txBytes": "70736274ff01009a0200000002193a28a12c8be889390e48b30cf9c65096f3f51bc04c2475557096d0cfca4f220100000000ffffffffd2e6232676e35e104927f22d4c90bc367c684209a4937664bad886227cd95c4b0100000000ffffffff028063ef2700000000160014828037cbcbed02c6d9948e51b89c44da3a3b81fcaff9e08a00000000160014fdfe06abec6a565eff3604db30fd30069b2f2a28000000000001011f00ca9a3b00000000160014fdfe06abec6a565eff3604db30fd30069b2f2a280001011f0094357700000000160014fdfe06abec6a565eff3604db30fd30069b2f2a28000000",
   "txId": "5bc486302164841b32bdfa03f510590109e3520d0a0aa6a15edfea0c8e33a080",
@@ -158,7 +158,7 @@ export const lockUtxo = {
 
 export const validEvent: EventTrigger = {
   height: 300,
-  fromChain: 'dogecoin',
+  fromChain: 'doge',
   toChain: 'ergo',
   fromAddress: 'fromAddress',
   toAddress: 'toAddress',
@@ -179,7 +179,7 @@ export const validEvent: EventTrigger = {
 // Add additional events and data from Bitcoin testData
 export const invalidEvent: EventTrigger = {
   height: 300,
-  fromChain: 'dogecoin',
+  fromChain: 'doge',
   toChain: 'ergo',
   fromAddress: 'fromAddress',
   toAddress: 'toAddress',
@@ -199,7 +199,7 @@ export const invalidEvent: EventTrigger = {
 
 export const validEventWithHighFee: EventTrigger = {
   height: 300,
-  fromChain: 'dogecoin',
+  fromChain: 'doge',
   toChain: 'ergo',
   fromAddress: 'fromAddress',
   toAddress: 'toAddress',

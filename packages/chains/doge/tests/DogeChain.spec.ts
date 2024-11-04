@@ -159,4 +159,139 @@ describe('DogeChain', () => {
       }).rejects.toThrow(NotEnoughValidBoxesError);
     });
   });
+
+  describe('getTransactionAssets', () => {
+    const network = new TestDogeNetwork();
+
+    /**
+     * @target DogeChain.getTransactionAssets should get transaction assets
+     * successfully
+     * @dependencies
+     * @scenario
+     * - mock PaymentTransaction
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return mocked transaction assets (both input and output assets)
+     */
+    it('should get transaction assets successfully', async () => {
+      // mock PaymentTransaction
+      const paymentTx = DogeTransaction.fromJson(
+        testData.transaction2PaymentTransaction
+      );
+
+      // run test
+      const dogeChain = testUtils.generateChainObject(network);
+
+      // check returned value
+      const result = await dogeChain.getTransactionAssets(paymentTx);
+      expect(result).toEqual(testData.transaction2Assets);
+    });
+
+    /**
+     * @target DogeChain.getTransactionAssets should wrap transaction assets
+     * successfully
+     * @dependencies
+     * @scenario
+     * - mock PaymentTransaction
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return mocked transaction assets (both input and output assets)
+     */
+    it('should wrap transaction assets successfully', async () => {
+      // mock PaymentTransaction
+      const paymentTx = DogeTransaction.fromJson(
+        testData.transaction2PaymentTransaction
+      );
+
+      // run test
+      const dogeChain =
+        testUtils.generateChainObjectWithMultiDecimalTokenMap(network);
+
+      // check returned value
+      const result = await dogeChain.getTransactionAssets(paymentTx);
+      expect(result).toEqual(testData.transaction2WrappedAssets);
+    });
+  });
+
+  describe('extractTransactionOrder', () => {
+    const network = new TestDogeNetwork();
+
+    /**
+     * @target DogeChain.extractTransactionOrder should extract transaction
+     * order successfully
+     * @dependencies
+     * @scenario
+     * - mock PaymentTransaction
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return mocked transaction order
+     */
+    it('should extract transaction order successfully', () => {
+      // mock PaymentTransaction
+      const paymentTx = DogeTransaction.fromJson(
+        testData.transaction2PaymentTransaction
+      );
+      const expectedOrder = testData.transaction2Order;
+
+      // run test
+      const dogeChain = testUtils.generateChainObject(network);
+      const result = dogeChain.extractTransactionOrder(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(expectedOrder);
+    });
+
+    /**
+     * @target DogeChain.extractTransactionOrder should throw error
+     * when tx has OP_RETURN utxo
+     * @dependencies
+     * @scenario
+     * - mock PaymentTransaction with OP_RETURN output
+     * - run test & check thrown exception
+     * @expected
+     * - it should throw Error
+     */
+    it('should throw error when tx has OP_RETURN utxo', () => {
+      // mock PaymentTransaction
+      const paymentTx = DogeTransaction.fromJson(
+        testData.transaction1PaymentTransaction
+      );
+
+      // run test & check thrown exception
+      const dogeChain = testUtils.generateChainObject(network);
+      expect(() => {
+        dogeChain.extractTransactionOrder(paymentTx);
+      }).toThrow(Error);
+    });
+
+    /**
+     * @target DogeChain.extractTransactionOrder should wrap transaction
+     * order successfully
+     * @dependencies
+     * @scenario
+     * - mock PaymentTransaction
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return mocked transaction order
+     */
+    it('should wrap transaction order successfully', () => {
+      // mock PaymentTransaction
+      const paymentTx = DogeTransaction.fromJson(
+        testData.transaction2PaymentTransaction
+      );
+      const expectedOrder = testData.transaction2WrappedOrder;
+
+      // run test
+      const dogeChain =
+        testUtils.generateChainObjectWithMultiDecimalTokenMap(network);
+      const result = dogeChain.extractTransactionOrder(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(expectedOrder);
+    });
+  });
 });
