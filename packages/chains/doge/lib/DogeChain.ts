@@ -109,7 +109,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
     });
     const trackMap = this.getTransactionsBoxMapping(
       serializedSignedTransactions.map((serializedTx) =>
-        Psbt.fromHex(serializedTx)
+        Psbt.fromHex(serializedTx, { network: DOGE_NETWORK })
       ),
       this.configs.addresses.lock
     );
@@ -489,7 +489,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
   rawTxToPaymentTransaction = async (
     psbtHex: string
   ): Promise<PaymentTransaction> => {
-    const tx = Psbt.fromHex(psbtHex);
+    const tx = Psbt.fromHex(psbtHex, { network: DOGE_NETWORK });
     const txBytes = Serializer.serialize(tx);
     const txId = Transaction.fromBuffer(tx.data.getTransaction()).getId();
 
@@ -574,7 +574,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
             txId: txId,
             index: index,
             value: BigInt(output.value),
-            txHex: tx.toHex(),
+            txHex: tx.extractTransaction(true).toHex(),
           };
           break;
         }
