@@ -8,11 +8,18 @@ import {
 } from '@rosen-chains/abstract-chain';
 import JsonBigInt from '@rosen-bridge/json-bigint';
 import { Psbt } from 'bitcoinjs-lib';
-import { DogeChain, DogeTransaction, DogeUtxo, TssSignFunction } from '../lib';
+import {
+  DOGE_NETWORK,
+  DogeChain,
+  DogeTransaction,
+  DogeUtxo,
+  TssSignFunction,
+} from '../lib';
 import TestDogeNetwork from './network/TestDogeNetwork';
 import { TestDogeChain } from './TestDogeChain';
 import * as testData from './testData';
 import * as testUtils from './testUtils';
+import { transaction0SignedTxBytesHex } from './testData';
 
 describe('DogeChain', () => {
   describe('generateTransaction', () => {
@@ -134,7 +141,7 @@ describe('DogeChain', () => {
         payment1.txType,
         order,
         [DogeTransaction.fromJson(testData.transaction0PaymentTransaction)],
-        [JSON.parse(testData.transaction0PaymentTransaction).txBytes]
+        [testData.transaction0SignedTxBytesHex]
       );
       const dogeTx = result as DogeTransaction;
 
@@ -404,6 +411,451 @@ describe('DogeChain', () => {
 
       // check returned value
       expect(result).toEqual(expectedOrder);
+    });
+  });
+  describe('verifyTransactionFee', () => {
+    const network = new TestDogeNetwork();
+
+    /**
+     * @target DogeChain.verifyTransactionFee should return true when fee
+     * difference is less than allowed slippage
+     * @dependencies
+     * @scenario
+     * - mock PaymentTransaction
+     * - mock getFeeRatio
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return true
+     */
+    it('should return true when fee difference is less than allowed slippage', async () => {
+      const paymentTx = DogeTransaction.fromJson(
+        testData.transaction1PaymentTransaction
+      );
+      const getFeeRatioSpy = vi.spyOn(network, 'getFeeRatio');
+      getFeeRatioSpy.mockResolvedValue(176991);
+
+      const dogeChain = testUtils.generateChainObject(network);
+      const result = await dogeChain.verifyTransactionFee(paymentTx);
+
+      expect(result).toEqual(true);
+    });
+
+    /**
+     * @target DogeChain.verifyTransactionFee should return false when fee
+     * difference is more than allowed slippage
+     * @dependencies
+     * @scenario
+     * - mock PaymentTransaction
+     * - mock getFeeRatio
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when fee difference is more than allowed slippage', async () => {
+      const paymentTx = DogeTransaction.fromJson(
+        testData.transaction1PaymentTransaction
+      );
+      const getFeeRatioSpy = vi.spyOn(network, 'getFeeRatio');
+      getFeeRatioSpy.mockResolvedValue(100);
+
+      const dogeChain = testUtils.generateChainObject(network);
+      const result = await dogeChain.verifyTransactionFee(paymentTx);
+
+      expect(result).toEqual(false);
+    });
+  });
+
+  describe('verifyExtraCondition', () => {
+    const network = new TestDogeNetwork();
+
+    /**
+     * @target: DogeChain.verifyTransactionExtraConditions should return true when all
+     * extra conditions are met
+     * @dependencies
+     * @scenario
+     * - mock a payment transaction
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return true
+     */
+    it('should return true when all extra conditions are met', () => {
+      // mock a payment transaction
+      const paymentTx = DogeTransaction.fromJson(
+        testData.transaction0PaymentTransaction
+      );
+
+      // run test
+      const dogeChain = testUtils.generateChainObject(network);
+      const result = dogeChain.verifyTransactionExtraConditions(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(true);
+    });
+
+    /**
+     * @target: DogeChain.verifyTransactionExtraConditions should return false
+     * when change box address is wrong
+     * @dependencies
+     * @scenario
+     * - mock a payment transaction
+     * - create a new DogeChain object with custom lock address
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when change box address is wrong', () => {
+      // mock a payment transaction
+      const paymentTx = DogeTransaction.fromJson(
+        testData.transaction0PaymentTransaction
+      );
+
+      // create a new DogeChain object with custom lock address
+      const newConfigs = structuredClone(testUtils.configs);
+      newConfigs.addresses.lock = 'DDd8APtwJLJZJxwmoh3YmP5oeBe9tcdUp4';
+      const dogeChain = new DogeChain(
+        network,
+        newConfigs,
+        testData.testTokenMap,
+        testUtils.mockedSignFn
+      );
+
+      // run test
+      const result = dogeChain.verifyTransactionExtraConditions(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+  });
+  describe('isTxValid', () => {
+    const network = new TestDogeNetwork();
+
+    /**
+     * @target DogeChain.isTxValid should return true when
+     * all tx inputs are valid and ttl is less than current slot
+     * @dependencies
+     * @scenario
+     * - mock PaymentTransaction
+     * - mock a network object to return as valid for all inputs of a mocked
+     *   transaction
+     * - run test
+     * - check returned value
+     * - check if function got called
+     * @expected
+     * - it should return true with no details
+     * - `isBoxUnspentAndValidSpy` should have been called with tx input ids
+     */
+    it('should return true when all tx inputs are valid and ttl is less than current slot', async () => {
+      const payment1 = DogeTransaction.fromJson(
+        testData.transaction0PaymentTransaction
+      );
+
+      const isBoxUnspentAndValidSpy = vi.spyOn(network, 'isBoxUnspentAndValid');
+      isBoxUnspentAndValidSpy.mockResolvedValue(true);
+
+      const dogeChain = testUtils.generateChainObject(network);
+      const result = await dogeChain.isTxValid(payment1);
+
+      expect(result).toEqual({
+        isValid: true,
+        details: undefined,
+      });
+      expect(isBoxUnspentAndValidSpy).toHaveBeenCalledWith(
+        testData.transaction0Input0BoxId
+      );
+    });
+
+    /**
+     * @target DogeChain.isTxValid should return false when at least one input
+     * is invalid
+     * @dependencies
+     * @scenario
+     * - mock PaymentTransaction
+     * - mock a network object to return as valid for all inputs of a mocked
+     *   transaction except for the first one
+     * - run test
+     * - check returned value
+     * - check if function got called
+     * @expected
+     * - it should return false and as expected invalidation
+     */
+    it('should return false when at least one input is invalid', async () => {
+      const payment1 = DogeTransaction.fromJson(
+        testData.transaction0PaymentTransaction
+      );
+
+      const isBoxUnspentAndValidSpy = vi.spyOn(network, 'isBoxUnspentAndValid');
+      isBoxUnspentAndValidSpy
+        .mockResolvedValue(true)
+        .mockResolvedValueOnce(false);
+
+      const dogeChain = testUtils.generateChainObject(network);
+      const result = await dogeChain.isTxValid(payment1);
+
+      expect(result).toEqual({
+        isValid: false,
+        details: {
+          reason: expect.any(String),
+          unexpected: false,
+        },
+      });
+      expect(isBoxUnspentAndValidSpy).toHaveBeenCalledWith(
+        testData.transaction0Input0BoxId
+      );
+    });
+  });
+
+  describe('signTransaction', () => {
+    const network = new TestDogeNetwork();
+
+    /**
+     * @target DogeChain.signTransaction should return PaymentTransaction of the
+     * signed transaction
+     * @dependencies
+     * @scenario
+     * - mock a sign function to return signature for expected messages
+     * - mock PaymentTransaction of unsigned transaction
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return PaymentTransaction of signed transaction (all fields
+     *   are same as input object, except txBytes which is signed transaction)
+     */
+    it('should return PaymentTransaction of the signed transaction', async () => {
+      // mock a sign function to return signature
+      const signFunction: TssSignFunction = async (hash: Uint8Array) => {
+        const hashHex = Buffer.from(hash).toString('hex');
+        if (hashHex === testData.transaction0HashMessage0)
+          return {
+            signature: testData.transaction0Signature0,
+            signatureRecovery: '',
+          };
+        else if (hashHex === testData.transaction0HashMessage1)
+          return {
+            signature: testData.transaction0Signature1,
+            signatureRecovery: '',
+          };
+        else
+          throw Error(
+            `TestError: sign function is called with wrong message [${hashHex}]`
+          );
+      };
+
+      // mock PaymentTransaction of unsigned transaction
+      const paymentTx = DogeTransaction.fromJson(
+        testData.transaction0PaymentTransaction
+      );
+
+      // run test
+      const dogeChain = testUtils.generateChainObject(network, signFunction);
+      const result = await dogeChain.signTransaction(paymentTx);
+
+      // check returned value
+      expect(result.txId).toEqual(paymentTx.txId);
+      expect(result.eventId).toEqual(paymentTx.eventId);
+      expect(Buffer.from(result.txBytes).toString('hex')).toEqual(
+        testData.transaction0SignedTxBytesHex
+      );
+      expect(result.txType).toEqual(paymentTx.txType);
+      expect(result.network).toEqual(paymentTx.network);
+    });
+
+    /**
+     * @target DogeChain.signTransaction should throw error when at least signing of one message is failed
+     * @dependencies
+     * @scenario
+     * - mock a sign function to throw error for 2nd message
+     * - mock PaymentTransaction of unsigned transaction
+     * - run test & check thrown exception
+     * @expected
+     * - it should throw the exact error thrown by sign function
+     */
+    it('should throw error when at least signing of one message is failed', async () => {
+      // mock a sign function to throw error
+      const signFunction: TssSignFunction = async (hash: Uint8Array) => {
+        if (
+          Buffer.from(hash).toString('hex') ===
+          testData.transaction0HashMessage0
+        )
+          return {
+            signature: testData.transaction0Signature0,
+            signatureRecovery: '',
+          };
+        else throw Error(`TestError: sign failed`);
+      };
+
+      // mock PaymentTransaction of unsigned transaction
+      const paymentTx = DogeTransaction.fromJson(
+        testData.transaction0PaymentTransaction
+      );
+
+      // run test
+      const dogeChain = testUtils.generateChainObject(network, signFunction);
+
+      await expect(async () => {
+        await dogeChain.signTransaction(paymentTx);
+      }).rejects.toThrow('TestError: sign failed');
+    });
+  });
+
+  describe('rawTxToPaymentTransaction', () => {
+    const network = new TestDogeNetwork();
+
+    /**
+     * @target DogeChain.rawTxToPaymentTransaction should construct transaction successfully
+     * @dependencies
+     * @scenario
+     * - mock PaymentTransaction
+     * - mock getTransactionHex
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return mocked transaction order
+     */
+    it('should construct transaction successfully', async () => {
+      // mock PaymentTransaction
+      const expectedTx = DogeTransaction.fromJson(
+        testData.transaction0PaymentTransaction
+      );
+      expectedTx.eventId = '';
+      expectedTx.txType = TransactionType.manual;
+      expectedTx.txBytes = Buffer.from(
+        testData.transaction0SignedTxBytesHex,
+        'hex'
+      );
+
+      // mock getUtxo
+      const getUtxoSpy = vi.spyOn(network, 'getUtxo');
+      expectedTx.inputUtxos.forEach((utxo) =>
+        getUtxoSpy.mockResolvedValueOnce(JsonBigInt.parse(utxo))
+      );
+
+      // run test
+      const dogeChain = testUtils.generateChainObject(network);
+      const result = await dogeChain.rawTxToPaymentTransaction(
+        Buffer.from(expectedTx.txBytes).toString('hex')
+      );
+
+      // check returned value
+      expect(result.toJson()).toEqual(expectedTx.toJson());
+    });
+  });
+
+  describe('getBoxInfo', () => {
+    const network = new TestDogeNetwork();
+
+    /**
+     * @target DogeChain.getBoxInfo should get box id and assets correctly
+     * @dependencies
+     * @scenario
+     * - mock a DogeUtxo with assets
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return constructed BoxInfo
+     */
+    it('should get box info successfully', () => {
+      // mock a DogeUtxo with assets
+      const rawBox = testData.lockUtxo;
+
+      // run test
+      const dogeChain = testUtils.generateChainObject(network);
+
+      // check returned value
+      const result = (dogeChain as any).getBoxInfo(rawBox);
+      expect(result.id).toEqual(rawBox.txId + '.' + rawBox.index);
+      expect(result.assets.nativeToken.toString()).toEqual(
+        rawBox.value.toString()
+      );
+    });
+  });
+
+  describe('getTransactionsBoxMapping', () => {
+    const network = new TestDogeNetwork();
+    const testInstance = new TestDogeChain(
+      network,
+      testUtils.configs,
+      testData.testTokenMap,
+      null as any
+    );
+
+    /**
+     * @target DogeChain.getTransactionsBoxMapping should construct mapping
+     * successfully
+     * @dependencies
+     * @scenario
+     * - mock serialized transactions
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return a map equal to constructed map
+     */
+    it('should construct mapping successfully', () => {
+      // mock serialized transactions
+      const transactions = [
+        Psbt.fromHex(testData.transaction0SignedTxBytesHex, {
+          network: DOGE_NETWORK,
+        }),
+      ];
+
+      // run test
+      const result = testInstance.callGetTransactionsBoxMapping(
+        transactions,
+        testUtils.configs.addresses.lock
+      );
+
+      // check returned value
+      const trackMap = new Map<string, DogeUtxo | undefined>();
+      const boxMapping = testData.transaction2BoxMapping;
+      boxMapping.forEach((mapping) => {
+        const candidate = JsonBigInt.parse(
+          mapping.serializedOutput
+        ) as DogeUtxo;
+        trackMap.set(mapping.inputId, {
+          txId: candidate.txId,
+          index: Number(candidate.index),
+          value: candidate.value,
+          txHex: mapping.txHex,
+        });
+      });
+      expect(result).toEqual(trackMap);
+    });
+
+    /**
+     * @target DogeChain.getTransactionsBoxMapping should map inputs to
+     * undefined when no valid output box found
+     * @dependencies
+     * @scenario
+     * - mock serialized transactions
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return a map of each box to undefined
+     */
+    it('should map inputs to undefined when no valid output box found', () => {
+      // mock serialized transactions
+      const transactions = [
+        Psbt.fromHex(testData.transaction0SignedTxBytesHex, {
+          network: DOGE_NETWORK,
+        }),
+      ];
+
+      // run test
+      const result = testInstance.callGetTransactionsBoxMapping(
+        transactions,
+        'another address'
+      );
+
+      // check returned value
+      const trackMap = new Map<string, DogeUtxo | undefined>();
+      const boxMapping = testData.transaction2BoxMapping;
+      boxMapping.forEach((mapping) => {
+        trackMap.set(mapping.inputId, undefined);
+      });
+      expect(result).toEqual(trackMap);
     });
   });
 });

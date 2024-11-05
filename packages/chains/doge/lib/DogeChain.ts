@@ -426,7 +426,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
         signatures
       );
       // check if transaction can be finalized
-      signedPsbt.finalizeAllInputs().extractTransaction();
+      signedPsbt.finalizeAllInputs().extractTransaction(true);
 
       // generate PaymentTransaction with signed Psbt
       return new DogeTransaction(
@@ -491,13 +491,15 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
   ): Promise<PaymentTransaction> => {
     const tx = Psbt.fromHex(psbtHex, { network: DOGE_NETWORK });
     const txBytes = Serializer.serialize(tx);
-    const txId = Transaction.fromBuffer(tx.data.getTransaction()).getId();
+    const txId = tx.extractTransaction(true).getId();
 
     const inputBoxes: Array<DogeUtxo> = [];
     const inputs = tx.txInputs;
     for (let i = 0; i < inputs.length; i++) {
       const boxId = getPsbtTxInputBoxId(inputs[i]);
-      inputBoxes.push(await this.network.getUtxo(boxId));
+      const curUtxo = await this.network.getUtxo(boxId);
+      delete curUtxo.txHex;
+      inputBoxes.push(curUtxo);
     }
 
     const dogeTx = new DogeTransaction(
@@ -558,7 +560,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
     const trackMap = new Map<string, DogeUtxo | undefined>();
 
     txs.forEach((tx) => {
-      const txId = Transaction.fromBuffer(tx.data.getTransaction()).getId();
+      const txId = tx.extractTransaction(true).getId();
       // iterate over tx inputs
       tx.txInputs.forEach((input) => {
         let trackedBox: DogeUtxo | undefined = undefined;
