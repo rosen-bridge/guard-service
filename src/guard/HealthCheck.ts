@@ -1,5 +1,6 @@
 import {
   BitcoinEsploraAssetHealthCheckParam,
+  DogeEsploraAssetHealthCheckParam,
   CardanoBlockFrostAssetHealthCheckParam,
   CardanoKoiosAssetHealthCheckParam,
   ErgoExplorerAssetHealthCheckParam,
@@ -32,6 +33,8 @@ import GuardPkHandler from '../handlers/GuardPkHandler';
 import { ADA_DECIMALS, ERG_DECIMALS } from '../utils/constants';
 import GuardsBitcoinConfigs from '../configs/GuardsBitcoinConfigs';
 import { BITCOIN_CHAIN, BTC } from '@rosen-chains/bitcoin';
+import GuardsDogeConfigs from '../configs/GuardsDogeConfigs';
+import { DOGE, DOGE_CHAIN } from '@rosen-chains/doge';
 import { DatabaseAction } from '../db/DatabaseAction';
 import { NotFoundError } from '@rosen-chains/abstract-chain';
 import { NotificationHandler } from '../handlers/NotificationHandler';
@@ -123,7 +126,7 @@ const getHealthCheck = async () => {
     const cardanoContracts = rosenConfig.contractReader(CARDANO_CHAIN);
     const bitcoinContracts = rosenConfig.contractReader(BITCOIN_CHAIN);
     const ethereumContracts = rosenConfig.contractReader(ETHEREUM_CHAIN);
-
+    const dogeContracts = rosenConfig.contractReader(DOGE_CHAIN);
     const generateLastBlockFetcher = (scannerName: string) => {
       return async () => {
         try {
@@ -257,6 +260,17 @@ const getHealthCheck = async () => {
         8
       );
       healthCheck.register(btcAssetHealthCheck);
+    }
+    if (GuardsDogeConfigs.chainNetworkName === 'esplora') {
+      const dogeAssetHealthCheck = new DogeEsploraAssetHealthCheckParam(
+        DOGE,
+        dogeContracts.lockAddress,
+        Configs.dogeWarnThreshold,
+        Configs.dogeCriticalThreshold,
+        GuardsDogeConfigs.esplora.url,
+        8
+      );
+      healthCheck.register(dogeAssetHealthCheck);
     }
     if (GuardsEthereumConfigs.chainNetworkName === 'rpc') {
       const ethAssetHealthCheck = new EthereumRpcAssetHealthCheckParam(

@@ -8,6 +8,7 @@ import GuardsCardanoConfigs from '../configs/GuardsCardanoConfigs';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import WinstonLogger from '@rosen-bridge/winston-logger';
 import GuardsBitcoinConfigs from '../configs/GuardsBitcoinConfigs';
+import GuardsDogeConfigs from '../configs/GuardsDogeConfigs';
 import Configs from '../configs/Configs';
 import GuardsEthereumConfigs from '../configs/GuardsEthereumConfigs';
 import { EvmRpcScanner } from '@rosen-bridge/evm-rpc-scanner';
@@ -68,6 +69,12 @@ const createLoggers = () => ({
   ),
   bitcoinEventTriggerExtractorLogger: WinstonLogger.getInstance().getLogger(
     'bitcoin-event-trigger-extractor'
+  ),
+  dogeCommitmentExtractorLogger: WinstonLogger.getInstance().getLogger(
+    'doge-commitment-extractor'
+  ),
+  dogeEventTriggerExtractorLogger: WinstonLogger.getInstance().getLogger(
+    'doge-event-trigger-extractor'
   ),
   cardanoCommitmentExtractorLogger: WinstonLogger.getInstance().getLogger(
     'cardano-commitment-extractor'
@@ -138,6 +145,25 @@ const initScanner = () => {
     loggers.bitcoinEventTriggerExtractorLogger
   );
 
+  const dogeCommitmentExtractor = new CommitmentExtractor(
+    'dogeCommitment',
+    [GuardsDogeConfigs.dogeContractConfig.commitmentAddress],
+    GuardsDogeConfigs.dogeContractConfig.RWTId,
+    dataSource,
+    tokens,
+    loggers.dogeCommitmentExtractorLogger
+  );
+
+  const dogeEventTriggerExtractor = new EventTriggerExtractor(
+    'dogeEventTrigger',
+    dataSource,
+    GuardsDogeConfigs.dogeContractConfig.eventTriggerAddress,
+    GuardsDogeConfigs.dogeContractConfig.RWTId,
+    GuardsDogeConfigs.dogeContractConfig.permitAddress,
+    GuardsDogeConfigs.dogeContractConfig.fraudAddress,
+    loggers.dogeEventTriggerExtractorLogger
+  );
+
   const cardanoCommitmentExtractor = new CommitmentExtractor(
     'cardanoCommitment',
     [GuardsCardanoConfigs.cardanoContractConfig.commitmentAddress],
@@ -200,6 +226,8 @@ const initScanner = () => {
   ergoScanner.registerExtractor(ergoEventTriggerExtractor);
   ergoScanner.registerExtractor(ethereumCommitmentExtractor);
   ergoScanner.registerExtractor(ethereumEventTriggerExtractor);
+  ergoScanner.registerExtractor(dogeCommitmentExtractor);
+  ergoScanner.registerExtractor(dogeEventTriggerExtractor);
 
   ergoScannerJob();
 

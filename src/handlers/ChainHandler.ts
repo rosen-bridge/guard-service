@@ -9,6 +9,11 @@ import {
   BITCOIN_CHAIN,
   BitcoinChain,
 } from '@rosen-chains/bitcoin';
+import {
+  AbstractDogeNetwork,
+  DOGE_CHAIN,
+  DogeChain,
+} from '@rosen-chains/doge';
 import { AbstractErgoNetwork, ERGO_CHAIN, ErgoChain } from '@rosen-chains/ergo';
 import CardanoKoiosNetwork, {
   KOIOS_NETWORK,
@@ -27,6 +32,8 @@ import { BLOCKFROST_NETWORK } from '@rosen-chains/cardano-blockfrost-network';
 import CardanoBlockFrostNetwork from '@rosen-chains/cardano-blockfrost-network/dist/CardanoBlockFrostNetwork';
 import BitcoinEsploraNetwork from '@rosen-chains/bitcoin-esplora';
 import GuardsBitcoinConfigs from '../configs/GuardsBitcoinConfigs';
+import DogeEsploraNetwork from '@rosen-chains/doge-esplora';
+import GuardsDogeConfigs from '../configs/GuardsDogeConfigs';
 import EthereumChain from '@rosen-chains/ethereum/dist/EthereumChain';
 import { AbstractEvmNetwork } from '@rosen-chains/evm';
 import GuardsEthereumConfigs from '../configs/GuardsEthereumConfigs';
@@ -41,12 +48,14 @@ class ChainHandler {
   private readonly ergoChain: ErgoChain;
   private readonly cardanoChain: CardanoChain;
   private readonly bitcoinChain: BitcoinChain;
+  private readonly dogeChain: DogeChain;
   private readonly ethereumChain: EthereumChain;
 
   private constructor() {
     this.ergoChain = this.generateErgoChain();
     this.cardanoChain = this.generateCardanoChain();
     this.bitcoinChain = this.generateBitcoinChain();
+    this.dogeChain = this.generateDogeChain();
     this.ethereumChain = this.generateEthereumChain();
     logger.info('ChainHandler instantiated');
   }
@@ -190,6 +199,52 @@ class ChainHandler {
   };
 
   /**
+   * generates Doge network and chain objects using configs
+   * @returns DogeChain object
+   */
+  private generateDogeChain = (): DogeChain => {
+    let network: AbstractDogeNetwork;
+    switch (GuardsDogeConfigs.chainNetworkName) {
+      case 'esplora':
+        network = new DogeEsploraNetwork(
+          GuardsDogeConfigs.esplora.url,
+          WinstonLogger.getInstance().getLogger('EsploraNetwork')
+        );
+        break;
+      default:
+        throw Error(
+          `No case is defined for network [${GuardsDogeConfigs.chainNetworkName}]`
+        );
+    }
+    const chainCode = GuardsDogeConfigs.tssChainCode;
+    const derivationPath = GuardsDogeConfigs.derivationPath;
+    const curveSign = Tss.getInstance().curveSign;
+    const tssSignFunctionWrapper = async (
+      txHash: Uint8Array
+    ): Promise<{
+      signature: string;
+      signatureRecovery: string;
+    }> => {
+      const res = await curveSign(
+        Buffer.from(txHash).toString('hex'),
+        chainCode,
+        derivationPath
+      );
+      return {
+        signature: res.signature,
+        signatureRecovery: res.signatureRecovery!,
+      };
+    };
+    return new DogeChain(
+      network,
+      GuardsDogeConfigs.chainConfigs,
+      Configs.tokens(),
+      tssSignFunctionWrapper,
+      WinstonLogger.getInstance().getLogger('DogeChain')
+    );
+  };
+
+  /**
    * generates Ethereum network and chain objects using configs
    * @returns EthereumChain object
    */
@@ -264,6 +319,8 @@ class ChainHandler {
         return this.cardanoChain;
       case BITCOIN_CHAIN:
         return this.bitcoinChain;
+      case DOGE_CHAIN:
+        return this.dogeChain;
       case ETHEREUM_CHAIN:
         return this.ethereumChain;
       default:
