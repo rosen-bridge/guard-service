@@ -266,7 +266,7 @@ class DatabaseActionMock {
   };
 
   /**
-   * inserts a record to Event table in
+   * inserts a record to Event table in database
    * @param eventId
    * @param boxSerialized
    * @param wid
@@ -333,7 +333,7 @@ class DatabaseActionMock {
   };
 
   /**
-   * inserts a record to ArbitraryOrder table in
+   * inserts a record to ArbitraryOrder table in database
    * @param id
    * @param chain
    * @param orderJson

@@ -147,6 +147,7 @@ class RequestVerifier {
 
     return true;
   };
+
   /**
    * verifies the transaction request sent by other guards
    * conditions:

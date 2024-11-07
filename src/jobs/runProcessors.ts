@@ -100,7 +100,10 @@ const timeoutProcessorJob = async () => {
 const requeueWaitingEventsJob = async () => {
   await EventProcessor.RequeueWaitingEvents();
   await ArbitraryProcessor.getInstance().requeueWaitingOrders();
-  setTimeout(timeoutProcessorJob, Configs.requeueWaitingEventsInterval * 1000);
+  setTimeout(
+    requeueWaitingEventsJob,
+    Configs.requeueWaitingEventsInterval * 1000
+  );
 };
 
 /**

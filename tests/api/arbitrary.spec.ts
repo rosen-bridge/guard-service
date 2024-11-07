@@ -72,7 +72,7 @@ describe('arbitrary', () => {
      * - check the result
      * - check database
      * @expected
-     * - it should return status code 200
+     * - it should return status code 400
      * - no order should be inserted into db
      */
     it('should return 400 when order json is invalid', async () => {

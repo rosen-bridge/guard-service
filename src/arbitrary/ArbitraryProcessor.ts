@@ -132,7 +132,7 @@ class ArbitraryProcessor {
         rosenConfig.guardSignAddress
       );
 
-      // add event and commitment boxes to generateTransaction arguments
+      // add guards config box as data input to generateTransaction arguments
       extra.push([], [guardsConfigBox]);
     }
 
