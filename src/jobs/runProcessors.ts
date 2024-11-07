@@ -45,6 +45,8 @@ const roundJob = async () => {
     (await TxAgreement.getInstance()).clearTransactions,
     GuardTurn.UP_TIME_LENGTH * 1000
   );
+  // TODO: There are some concerns about sequential execution of Tx Generation jobs
+  //  local:ergo/rosen-bridge/guard-service#317
   // process confirmed events
   await EventProcessor.processConfirmedEvents();
   // process arbitrary orders

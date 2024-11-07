@@ -3,8 +3,9 @@ import { FastifySeverInstance } from '../../src/api/schemas';
 import DatabaseActionMock from '../db/mocked/DatabaseAction.mock';
 import { OrderStatus } from '../../src/utils/constants';
 import { ERGO_CHAIN } from '@rosen-chains/ergo';
-import { invalidJson, orderJson } from '../arbitrary/testData';
+import { orderJson } from '../arbitrary/testData';
 import { arbitraryOrderRoute } from '../../src/api/arbitrary';
+import { invalidOrderJson } from './testData';
 
 describe('arbitrary', () => {
   describe('POST /order', () => {
@@ -83,7 +84,7 @@ describe('arbitrary', () => {
         body: {
           id: '85b5cb7f4e81e1db4e95803b6144c64983f76e776ff75fd04c0ebfc95ae46e4d',
           chain: ERGO_CHAIN,
-          orderJson: invalidJson,
+          orderJson: invalidOrderJson,
         },
         headers: {
           'Api-Key': 'hello',
