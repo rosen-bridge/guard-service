@@ -306,6 +306,12 @@ class Configs {
   static ethCriticalThreshold = BigInt(
     config.get<string>('healthCheck.asset.eth.criticalThreshold')
   );
+  static bnbWarnThreshold = BigInt(
+    config.get<string>('healthCheck.asset.bnb.warnThreshold')
+  );
+  static bnbCriticalThreshold = BigInt(
+    config.get<string>('healthCheck.asset.bnb.criticalThreshold')
+  );
   static ergoScannerWarnDiff = getConfigIntKeyOrDefault(
     'healthCheck.ergoScanner.warnDifference',
     5
@@ -316,11 +322,19 @@ class Configs {
   );
   static ethereumScannerWarnDiff = getConfigIntKeyOrDefault(
     'healthCheck.ethereumScanner.warnDifference',
-    5
+    50
   );
   static ethereumScannerCriticalDiff = getConfigIntKeyOrDefault(
     'healthCheck.ethereumScanner.criticalDifference',
-    20
+    200
+  );
+  static binanceScannerWarnDiff = getConfigIntKeyOrDefault(
+    'healthCheck.binanceScanner.warnDifference',
+    200
+  );
+  static binanceScannerCriticalDiff = getConfigIntKeyOrDefault(
+    'healthCheck.binanceScanner.criticalDifference',
+    800
   );
   static ergoNodeMaxHeightDiff = getConfigIntKeyOrDefault(
     'healthCheck.ergoNode.maxHeightDifference',
