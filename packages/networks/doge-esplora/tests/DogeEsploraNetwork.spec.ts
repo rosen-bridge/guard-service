@@ -13,7 +13,7 @@ describe('DogeEsploraNetwork', () => {
 
   beforeEach(() => {
     resetAxiosMock();
-    network = new DogeEsploraNetwork('esplora-url');
+    network = new DogeEsploraNetwork('esplora-url', async () => undefined);
   });
 
   describe('getHeight', () => {
@@ -102,6 +102,45 @@ describe('DogeEsploraNetwork', () => {
       const result = await network.getTxConfirmation(testData.txId);
 
       expect(result).toEqual(-1);
+    });
+
+    it('should call getTxConfirmationSigned with the correct tx id', async () => {
+      // Create a new instance of DogeEsploraNetwork with a custom getSavedTransactionById
+      const customNetwork = new DogeEsploraNetwork(
+        'esplora-url',
+        async (txId) => {
+          if (txId === testData.unsignedTxId) {
+            return testData.dogeTx;
+          }
+          return undefined;
+        }
+      );
+
+      const getTxConfirmationSignedSpy = vi.spyOn(
+        customNetwork,
+        'getTxConfirmationSigned'
+      );
+
+      // Mock getSpentTransactionByInputId to return a transaction when called with the correct input
+      const getSpentTransactionByInputIdSpy = vi
+        .spyOn(customNetwork, 'getSpentTransactionByInputId')
+        .mockResolvedValue(testData.dogeTx);
+
+      mockAxiosGet(testData.blockHeight);
+      mockAxiosGet(testData.txResponse);
+
+      const result = await customNetwork.getTxConfirmation(
+        testData.unsignedTxId
+      );
+
+      expect(getSpentTransactionByInputIdSpy).toHaveBeenCalledWith(
+        `${testData.dogeTx.inputs[0].txId}.${testData.dogeTx.inputs[0].index}`
+      );
+      expect(getTxConfirmationSignedSpy).toHaveBeenCalledWith(testData.txId);
+      expect(result).toEqual(testData.txConfirmation);
+
+      getTxConfirmationSignedSpy.mockRestore();
+      getSpentTransactionByInputIdSpy.mockRestore();
     });
   });
 

@@ -301,6 +301,8 @@ export const spentResult = {
   },
 };
 
+export const unsignedTxId =
+  '2e21903ce31a5b77e9a0f56255a92955cb018504e0647b99211833ae721ae15f';
 export const unspentBoxId =
   'd3d2b2dc24639e8d698071a49921b7b378c0a56cffcc0db3b42d5937a67389ab.0';
 export const unspentResult = {

@@ -26,12 +26,20 @@ import {
 
 class DogeEsploraNetwork extends AbstractDogeNetwork {
   protected client: AxiosInstance;
+  private getSavedTransactionById: (
+    txId: string
+  ) => Promise<DogeTx | undefined>;
 
-  constructor(url: string, logger?: AbstractLogger) {
+  constructor(
+    url: string,
+    getSavedTransactionById: (txId: string) => Promise<DogeTx | undefined>,
+    logger?: AbstractLogger
+  ) {
     super(logger);
     this.client = axios.create({
       baseURL: url,
     });
+    this.getSavedTransactionById = getSavedTransactionById;
   }
 
   /**
@@ -56,10 +64,10 @@ class DogeEsploraNetwork extends AbstractDogeNetwork {
 
   /**
    * gets confirmation for a transaction (returns -1 if tx is not mined or found)
-   * @param transactionId the transaction id
+   * @param transactionId the transaction id (only supports real signed tx id)
    * @returns the transaction confirmation
    */
-  getTxConfirmation = async (transactionId: string): Promise<number> => {
+  getTxConfirmationSigned = async (transactionId: string): Promise<number> => {
     const currentHeight = await this.getHeight();
     let txHeight = -1;
     try {
@@ -88,6 +96,27 @@ class DogeEsploraNetwork extends AbstractDogeNetwork {
     }
     if (txHeight === -1) return txHeight;
     return currentHeight - txHeight;
+  };
+
+  /**
+   * gets confirmation for a transaction (returns -1 if tx is not mined or found)
+   * @param transactionId the transaction id (supports both real signed tx id and unsigned tx id)
+   * @returns the transaction confirmation (returns -1 if tx is not mined or found)
+   */
+  getTxConfirmation = async (transactionId: string): Promise<number> => {
+    let realTxId = transactionId;
+    try {
+      const realTx = await this.getSavedTransactionById(transactionId);
+      if (realTx) {
+        const firstInputId = `${realTx?.inputs[0].txId}.${realTx?.inputs[0].index}`;
+        const spentTx = await this.getSpentTransactionByInputId(firstInputId);
+        if (spentTx) realTxId = spentTx.id;
+      }
+    } catch (e) {
+      this.logger.debug(`tx [${transactionId}] is not found in DB`);
+    }
+
+    return await this.getTxConfirmationSigned(realTxId);
   };
 
   /**
@@ -433,7 +462,7 @@ class DogeEsploraNetwork extends AbstractDogeNetwork {
 
   /**
    * gets a transaction hex string
-   * @param txId the transaction id
+   * @param txId the transaction id (only supports real signed tx id)
    * @returns hex string of the transaction
    */
   getTransactionHex = async (txId: string): Promise<string> => {

@@ -73,6 +73,12 @@ class TestDogeNetwork extends AbstractDogeNetwork {
   getTransactionHex = (txId: string): Promise<string> => {
     throw Error('Not mocked');
   };
+
+  getSpentTransactionByInputId = (
+    boxId: string
+  ): Promise<DogeTx | undefined> => {
+    throw Error('Not mocked');
+  };
 }
 
 export default TestDogeNetwork;
