@@ -57,6 +57,15 @@ abstract class AbstractDogeNetwork extends AbstractUtxoChainNetwork<
    * @returns hex string of the transaction
    */
   abstract getTransactionHex: (txId: string) => Promise<string>;
+
+  /**
+   * gets the transaction that spent the given box
+   * @param boxId the id of the box (txId + . + index)
+   * @returns the spending transaction if found, undefined otherwise
+   */
+  abstract getSpentTransactionByInputId: (
+    boxId: string
+  ) => Promise<DogeTx | undefined>;
 }
 
 export default AbstractDogeNetwork;

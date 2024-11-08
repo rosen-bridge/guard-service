@@ -441,6 +441,19 @@ class DogeEsploraNetwork extends AbstractDogeNetwork {
       .get<string>(`/api/tx/${txId}/hex`)
       .then((res) => res.data);
   };
+
+  getSpentTransactionByInputId = async (
+    boxId: string
+  ): Promise<DogeTx | undefined> => {
+    const [txId, index] = boxId.split('.');
+    const box = (
+      await this.client.get<EsploraUtxoInfo>(
+        `/api/tx/${txId}/outspends/${index}`
+      )
+    ).data;
+    if (!box.spent) return undefined;
+    return this.getTransaction(box.txid!, box.status!.block_hash!);
+  };
 }
 
 export default DogeEsploraNetwork;

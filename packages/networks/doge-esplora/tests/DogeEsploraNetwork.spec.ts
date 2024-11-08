@@ -6,6 +6,7 @@ import {
   resetAxiosMock,
 } from './mocked/axios.mock';
 import * as testData from './testData';
+import { vi } from 'vitest';
 
 describe('DogeEsploraNetwork', () => {
   let network: DogeEsploraNetwork;
@@ -480,6 +481,58 @@ describe('DogeEsploraNetwork', () => {
       const result = await network.getMempoolTxIds();
 
       expect(result).toEqual(testData.txIds);
+    });
+  });
+
+  describe('getSpentTransactionByInputId', () => {
+    /**
+     * @target `DogeEsploraNetwork.getSpentTransactionByInputId` should return transaction
+     * when box is spent
+     * @dependencies
+     * @scenario
+     * - mock axios to return spent box info
+     * - mock getTransaction to return a transaction
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should be the mocked transaction
+     */
+    it('should return transaction when box is spent', async () => {
+      mockAxiosGet(testData.spentResult);
+      const getTransactionSpy = vi
+        .spyOn(network, 'getTransaction')
+        .mockResolvedValue(testData.dogeTx);
+
+      const result = await network.getSpentTransactionByInputId(
+        testData.spentBoxId
+      );
+
+      expect(result).toEqual(testData.dogeTx);
+      expect(getTransactionSpy).toHaveBeenCalledWith(
+        testData.spentResult.txid,
+        testData.spentResult.status.block_hash
+      );
+    });
+
+    /**
+     * @target `DogeEsploraNetwork.getSpentTransactionByInputId` should return undefined
+     * when box is unspent
+     * @dependencies
+     * @scenario
+     * - mock axios to return unspent box info
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should be undefined
+     */
+    it('should return undefined when box is unspent', async () => {
+      mockAxiosGet(testData.unspentResult);
+
+      const result = await network.getSpentTransactionByInputId(
+        testData.unspentBoxId
+      );
+
+      expect(result).toBeUndefined();
     });
   });
 });

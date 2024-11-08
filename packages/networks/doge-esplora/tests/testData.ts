@@ -286,6 +286,27 @@ export const utxo = {
   value: 0n,
 };
 
+export const spentBoxId =
+  'd3d2b2dc24639e8d698071a49921b7b378c0a56cffcc0db3b42d5937a67389ab.1';
+export const spentResult = {
+  spent: true,
+  txid: '79e657a92547e0a67ad4b0f04777ddb617745e6064b1d9393583619da59ae4c6',
+  vin: 0,
+  status: {
+    confirmed: true,
+    block_height: 5425068,
+    block_hash:
+      '2e21903ce31a5b77e9a0f56255a92955cb018504e0647b99211833ae721ae15f',
+    block_time: 1729288618,
+  },
+};
+
+export const unspentBoxId =
+  'd3d2b2dc24639e8d698071a49921b7b378c0a56cffcc0db3b42d5937a67389ab.0';
+export const unspentResult = {
+  spent: false,
+};
+
 export const feeEstimatesResponse = {
   '1': 50271.918000000005,
   '2': 50271.918000000005,
