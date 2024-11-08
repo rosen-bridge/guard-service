@@ -221,3 +221,9 @@ export const TssCallbackSchema = Type.Object({
   signatureRecovery: Type.Optional(Type.String()),
   trustKey: Type.String(),
 });
+
+export const OrderQuerySchema = Type.Object({
+  id: Type.String(),
+  chain: Type.String(),
+  orderJson: Type.String(),
+});

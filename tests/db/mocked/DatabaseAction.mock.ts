@@ -14,13 +14,23 @@ import { TransactionEntity } from '../../../src/db/entities/TransactionEntity';
 import migrations from '../../../src/db/migrations';
 import Utils from '../../../src/utils/Utils';
 import TestUtils from '../../testUtils/TestUtils';
-import { EventTrigger, PaymentTransaction } from '@rosen-chains/abstract-chain';
+import {
+  EventTrigger,
+  PaymentTransaction,
+  TransactionType,
+} from '@rosen-chains/abstract-chain';
 import { DatabaseAction } from '../../../src/db/DatabaseAction';
 import { RevenueEntity } from '../../../src/db/entities/revenueEntity';
 import { RevenueChartView } from '../../../src/db/entities/revenueChartView';
 import { RevenueView } from '../../../src/db/entities/revenueView';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { EventView } from '../../../src/db/entities/EventView';
+import { OrderStatus } from '../../../src/utils/constants';
+import {
+  AddressTxsEntity,
+  migrations as addressTxExtractorMigrations,
+} from '@rosen-bridge/evm-address-tx-extractor';
+import { ArbitraryEntity } from '../../../src/db/entities/ArbitraryEntity';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -38,10 +48,13 @@ class DatabaseActionMock {
       RevenueView,
       RevenueChartView,
       EventView,
+      AddressTxsEntity,
+      ArbitraryEntity,
     ],
     migrations: [
       ...scannerMigrations.sqlite,
       ...watcherDataExtractorMigrations.sqlite,
+      ...addressTxExtractorMigrations.sqlite,
       ...migrations.sqlite,
     ],
     synchronize: false,
@@ -74,6 +87,7 @@ class DatabaseActionMock {
     await this.testDatabase.TransactionRepository.clear();
     await this.testDatabase.ConfirmedEventRepository.clear();
     await this.testDatabase.EventRepository.clear();
+    await this.testDatabase.ArbitraryRepository.clear();
     await this.testDataSource.getRepository(BlockEntity).clear();
   };
 
@@ -224,9 +238,17 @@ class DatabaseActionMock {
     signFailedCount = 0,
     requiredSign = 6
   ) => {
-    const event = await this.testDatabase.ConfirmedEventRepository.findOneBy({
-      id: paymentTx.eventId,
-    });
+    let order: ArbitraryEntity | null | undefined;
+    let event: ConfirmedEventEntity | null | undefined;
+    if (paymentTx.txType === TransactionType.arbitrary) {
+      order = await this.testDatabase.ArbitraryRepository.findOneBy({
+        id: paymentTx.eventId,
+      });
+    } else {
+      event = await this.testDatabase.ConfirmedEventRepository.findOneBy({
+        id: paymentTx.eventId,
+      });
+    }
     await this.testDatabase.TransactionRepository.insert({
       txId: paymentTx.txId,
       txJson: paymentTx.toJson(),
@@ -234,7 +256,8 @@ class DatabaseActionMock {
       chain: paymentTx.network,
       status: status,
       lastCheck: lastCheck,
-      event: event!,
+      event: event !== null ? event : undefined,
+      order: order !== null ? order : undefined,
       lastStatusUpdate: lastStatusUpdate,
       failedInSign: failedInSign,
       signFailedCount: signFailedCount,
@@ -243,7 +266,7 @@ class DatabaseActionMock {
   };
 
   /**
-   * inserts a record to Event table in
+   * inserts a record to Event table in database
    * @param event
    * @param eventId
    * @param boxSerialized
@@ -315,6 +338,36 @@ class DatabaseActionMock {
   };
 
   /**
+   * inserts a record to ArbitraryOrder table in database
+   * @param id
+   * @param chain
+   * @param orderJson
+   * @param status
+   * @param firstTry
+   * @param unexpectedFails
+   */
+  static insertOrderRecord = async (
+    id: string,
+    chain: string,
+    orderJson: string,
+    status: OrderStatus,
+    firstTry?: string,
+    unexpectedFails?: number
+  ) => {
+    await this.testDatabase.ArbitraryRepository.createQueryBuilder()
+      .insert()
+      .values({
+        id: id,
+        chain: chain,
+        orderJson: orderJson,
+        status: status,
+        firstTry: firstTry,
+        unexpectedFails: unexpectedFails,
+      })
+      .execute();
+  };
+
+  /**
    * returns all records in Event table in database
    */
   static allRawEventRecords = async () => {
@@ -355,6 +408,15 @@ class DatabaseActionMock {
    */
   static eventViewRecords = async () => {
     return await this.testDatabase.EventView.createQueryBuilder()
+      .select()
+      .getMany();
+  };
+
+  /**
+   * returns all records in Order table in database
+   */
+  static allOrderRecords = async () => {
+    return await this.testDatabase.ArbitraryRepository.createQueryBuilder()
       .select()
       .getMany();
   };

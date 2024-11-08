@@ -1523,7 +1523,7 @@ describe('EventProcessor', () => {
     });
 
     /**
-     * @target EventProcessor.RequeueWaitingEvents should mark timeout events as pending
+     * @target EventProcessor.RequeueWaitingEvents should mark waiting events as pending
      * @dependencies
      * - database
      * @scenario
@@ -1533,7 +1533,7 @@ describe('EventProcessor', () => {
      * @expected
      * - status of two events should be updated in db
      */
-    it('should mark timeout events as pending', async () => {
+    it('should mark waiting events as pending', async () => {
       // mock events
       const mockedEvent1: EventTrigger = mockEventTrigger().event;
       const mockedEvent2: EventTrigger = mockEventTrigger().event;

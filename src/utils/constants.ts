@@ -34,6 +34,7 @@ enum RevenuePeriod {
   week = 'week',
 }
 const EventUnexpectedFailsLimit = 2;
+const OrderUnexpectedFailsLimit = 1;
 const DefaultApiLimit = 100;
 const DefaultAssetApiLimit = 10;
 const DefaultRevenueApiCount = 10;
@@ -68,11 +69,21 @@ const ChainNativeToken: Record<string, string> = {
   [BINANCE_CHAIN]: BNB,
 };
 
+enum OrderStatus {
+  pending = 'pending',
+  inProcess = 'in-process',
+  completed = 'completed',
+  timeout = 'timeout',
+  waiting = 'waiting',
+  reachedLimit = 'reached-limit',
+}
+
 export {
   EventStatus,
   TransactionStatus,
   RevenuePeriod,
   EventUnexpectedFailsLimit,
+  OrderUnexpectedFailsLimit,
   DefaultApiLimit,
   DefaultRevenueApiCount,
   DefaultAssetApiLimit,
@@ -82,4 +93,5 @@ export {
   RevenueType,
   TssAlgorithms,
   ChainNativeToken,
+  OrderStatus,
 };

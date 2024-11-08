@@ -73,6 +73,10 @@ class GuardsErgoConfigs {
     'ergo.confirmation.manual',
     20
   );
+  static arbitraryTxConfirmation = getConfigIntKeyOrDefault(
+    'ergo.confirmation.arbitrary',
+    20
+  );
 
   // scanner configs
   static initialHeight = getConfigIntKeyOrDefault('ergo.initialHeight', 925000);
@@ -92,6 +96,7 @@ class GuardsErgoConfigs {
       payment: this.paymentTxConfirmation,
       cold: this.coldTxConfirmation,
       manual: this.manualTxConfirmation,
+      arbitrary: this.arbitraryTxConfirmation,
     },
     addresses: {
       lock: this.ergoContractConfig.lockAddress,

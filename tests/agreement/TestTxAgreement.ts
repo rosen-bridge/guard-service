@@ -26,6 +26,10 @@ class TestTxAgreement extends TxAgreement {
     return this.agreedColdStorageTransactions;
   };
 
+  getOrderAgreedTransactions = (): Map<string, string> => {
+    return this.orderAgreedTransactions;
+  };
+
   getTransactionApprovals = (): Map<string, string[]> => {
     return this.transactionApprovals;
   };
@@ -48,6 +52,10 @@ class TestTxAgreement extends TxAgreement {
 
   insertAgreedColdStorageTransactions = (key: string, value: string): void => {
     this.agreedColdStorageTransactions.set(key, value);
+  };
+
+  insertOrderAgreedTransactions = (key: string, value: string): void => {
+    this.orderAgreedTransactions.set(key, value);
   };
 
   insertTransactionApprovals = (key: string, value: string[]): void => {
