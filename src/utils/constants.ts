@@ -1,3 +1,4 @@
+import { BINANCE_CHAIN, BNB } from '@rosen-chains/binance';
 import { BITCOIN_CHAIN, BTC } from '@rosen-chains/bitcoin';
 import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
 import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
@@ -44,6 +45,7 @@ const SUPPORTED_CHAINS = [
   CARDANO_CHAIN,
   BITCOIN_CHAIN,
   ETHEREUM_CHAIN,
+  BINANCE_CHAIN,
 ];
 
 enum RevenueType {
@@ -63,6 +65,7 @@ const ChainNativeToken: Record<string, string> = {
   [CARDANO_CHAIN]: ADA,
   [BITCOIN_CHAIN]: BTC,
   [ETHEREUM_CHAIN]: ETH,
+  [BINANCE_CHAIN]: BNB,
 };
 
 export {

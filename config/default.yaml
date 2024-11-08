@@ -9,6 +9,27 @@ api:
   isManualTxRequestActive: false
   allowedOrigins: [] # List of allowed origins for CORS headers
   maxRequestsPerMinute: 100_000
+binance:
+  networkType: 'mainnet' # Binance network type [testnet, mainnet]
+  chainNetwork: 'rpc' # 'rpc'
+  rpc:
+    url: ''
+    timeout: 8
+    initialHeight: -1
+    scannerInterval: 10
+  maxParallelTx: 2 # maximum number of txs to be processed with the same nonce (note that only one of these transactions will be succeed)
+  gasPriceSlippage: 50 # allowed slippage percentage for gas price
+  gasLimitSlippage: 50 # allowed slippage percentage for gas limit
+  gasLimitMultiplier: 3 # a multiplication of current gas limit will be used in txs
+  gasLimitCap: 80000 # the maximum required gas limit that is allowed (the cap is used if required gas is higher)
+  confirmation: # required block confirmation
+    observation: 200 # an observation transaction (lock transaction) on Binance get confirmed
+    payment: 200 # a payment transaction on Binance get confirmed
+    cold: 200 # a cold storage transaction on Binance get confirmed
+    manual: 200 # a manual transaction on Binance get confirmed
+  tssChainCode: ''
+  derivationPath:
+    -
 bitcoin:
   networkType: 'mainnet' # Bitcoin network type [testnet, mainnet]
   chainNetwork: 'esplora' # 'esplora'
@@ -171,12 +192,18 @@ healthCheck:
     eth:
       warnThreshold: '20000000000000000' # minimum recommended eth balance
       criticalThreshold: '4000000000000000' # minimum required eth balance
+    bnb:
+      warnThreshold: '5000000000000000' # minimum recommended bnb balance
+      criticalThreshold: '1000000000000000' # minimum required bnb balance
   ergoScanner:
     warnDifference: 5 # warning difference between existing and scanned blocks height
     criticalDifference: 20 # critical difference between existing and scanned blocks height
   ethereumScanner:
     warnDifference: 50 # warning difference between existing and scanned blocks height
     criticalDifference: 200 # critical difference between existing and scanned blocks height
+  binanceScanner:
+    warnDifference: 200 # warning difference between existing and scanned blocks height
+    criticalDifference: 800 # critical difference between existing and scanned blocks height
   ergoNode:
     maxHeightDifference: 2 # maximum difference between header height and full height
     maxBlockTime: 1800 # maximum time to see a new block

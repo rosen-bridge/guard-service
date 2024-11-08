@@ -4,7 +4,7 @@ import {
   CardanoKoiosAssetHealthCheckParam,
   ErgoExplorerAssetHealthCheckParam,
   ErgoNodeAssetHealthCheckParam,
-  EthereumRpcAssetHealthCheckParam,
+  EvmRpcAssetHealthCheckParam,
 } from '@rosen-bridge/asset-check';
 import { HealthCheck } from '@rosen-bridge/health-check';
 import { ErgoNodeSyncHealthCheckParam } from '@rosen-bridge/node-sync-check';
@@ -12,7 +12,7 @@ import { P2PNetworkHealthCheck } from '@rosen-bridge/p2p-network-check';
 import {
   ErgoExplorerScannerHealthCheck,
   ErgoNodeScannerHealthCheck,
-  EthereumRPCScannerHealthCheck,
+  EvmRPCScannerHealthCheck,
 } from '@rosen-bridge/scanner-sync-check';
 
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
@@ -40,6 +40,8 @@ import {
 } from '@rosen-bridge/tx-progress-check';
 import GuardsEthereumConfigs from '../configs/GuardsEthereumConfigs';
 import { ETH, ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
+import GuardsBinanceConfigs from '../configs/GuardsBinanceConfigs';
+import { BINANCE_CHAIN, BNB } from '@rosen-chains/binance';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 let healthCheck: HealthCheck | undefined;
@@ -112,6 +114,7 @@ const getHealthCheck = async () => {
     const cardanoContracts = rosenConfig.contractReader(CARDANO_CHAIN);
     const bitcoinContracts = rosenConfig.contractReader(BITCOIN_CHAIN);
     const ethereumContracts = rosenConfig.contractReader(ETHEREUM_CHAIN);
+    const binanceContracts = rosenConfig.contractReader(BINANCE_CHAIN);
 
     const generateLastBlockFetcher = (scannerName: string) => {
       return async () => {
@@ -248,7 +251,8 @@ const getHealthCheck = async () => {
       healthCheck.register(btcAssetHealthCheck);
     }
     if (GuardsEthereumConfigs.chainNetworkName === 'rpc') {
-      const ethAssetHealthCheck = new EthereumRpcAssetHealthCheckParam(
+      const ethAssetHealthCheck = new EvmRpcAssetHealthCheckParam(
+        ETH,
         ETH,
         ETH,
         ethereumContracts.lockAddress,
@@ -262,7 +266,8 @@ const getHealthCheck = async () => {
       healthCheck.register(ethAssetHealthCheck);
 
       const scannerName = 'ethereum-evm-rpc';
-      const ethereumScannerSyncCheck = new EthereumRPCScannerHealthCheck(
+      const ethereumScannerSyncCheck = new EvmRPCScannerHealthCheck(
+        ETHEREUM_CHAIN,
         generateLastBlockFetcher(scannerName),
         scannerName,
         Configs.ethereumScannerWarnDiff,
@@ -272,6 +277,34 @@ const getHealthCheck = async () => {
         GuardsEthereumConfigs.rpc.timeout
       );
       healthCheck.register(ethereumScannerSyncCheck);
+    }
+    if (GuardsBinanceConfigs.chainNetworkName === 'rpc') {
+      const bnbAssetHealthCheck = new EvmRpcAssetHealthCheckParam(
+        BNB,
+        BNB,
+        BNB,
+        binanceContracts.lockAddress,
+        Configs.bnbWarnThreshold,
+        Configs.bnbCriticalThreshold,
+        GuardsBinanceConfigs.rpc.url,
+        8,
+        GuardsBinanceConfigs.rpc.authToken,
+        18
+      );
+      healthCheck.register(bnbAssetHealthCheck);
+
+      const scannerName = 'binance-evm-rpc';
+      const binanceScannerSyncCheck = new EvmRPCScannerHealthCheck(
+        BINANCE_CHAIN,
+        generateLastBlockFetcher(scannerName),
+        scannerName,
+        Configs.binanceScannerWarnDiff,
+        Configs.binanceScannerCriticalDiff,
+        GuardsBinanceConfigs.rpc.url,
+        GuardsBinanceConfigs.rpc.authToken,
+        GuardsBinanceConfigs.rpc.timeout
+      );
+      healthCheck.register(binanceScannerSyncCheck);
     }
   }
 

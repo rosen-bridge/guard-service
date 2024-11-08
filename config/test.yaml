@@ -2,6 +2,19 @@
 api:
   isManualTxRequestActive: true
   apiKeyHash: '324dcf027dd4a30a932c441f365a25e86b173defa4b8e58948253471b81b72cf'
+binance:
+  networkType: 'testnet'
+  chainNetwork: 'rpc'
+  rpc:
+    url: ''
+    timeout: 8
+    initialHeight: 1000000
+  tssChainCode: 'BinanceChainCode'
+  derivationPath:
+    - 44
+    - 60
+    - 0
+    - 0
 bitcoin:
   networkType: 'testnet'
   chainNetwork: 'esplora'
