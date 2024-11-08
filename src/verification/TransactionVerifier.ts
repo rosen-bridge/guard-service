@@ -24,6 +24,7 @@ class TransactionVerifier {
   /**
    * verifies the transaction
    * conditions:
+   * - PaymentTransaction object consistency is verified
    * - fee is verified
    * - verify no token is burned
    * - chain extra conditions are verified
@@ -33,6 +34,14 @@ class TransactionVerifier {
     tx: PaymentTransaction
   ): Promise<boolean> => {
     const chain = ChainHandler.getInstance().getChain(tx.network);
+
+    // verify PaymentTransaction object consistency
+    if (!(await chain.verifyPaymentTransaction(tx))) {
+      logger.debug(
+        `Transaction [${tx.txId}] is invalid: tx object has inconsistency`
+      );
+      return false;
+    }
 
     // verify tx fee
     if (!(await chain.verifyTransactionFee(tx))) {
@@ -272,6 +281,33 @@ class TransactionVerifier {
         );
         return false;
       }
+    }
+
+    return true;
+  };
+
+  /**
+   * verifies the transaction
+   * conditions:
+   * - tx order is equal to the arbitrary order
+   * @param tx the created payment transaction
+   * @param orderJson encoded order
+   * @returns true if conditions are met
+   */
+  static verifyArbitraryTransaction = async (
+    tx: PaymentTransaction,
+    orderJson: string
+  ): Promise<boolean> => {
+    const chain = ChainHandler.getInstance().getChain(tx.network);
+
+    // verify tx order
+    const expectedOrder = ChainUtils.decodeOrder(orderJson);
+    const txOrder = chain.extractTransactionOrder(tx);
+    if (!isEqual(txOrder, expectedOrder)) {
+      logger.debug(
+        `Transaction [${tx.txId}] is invalid: Tx extracted order is not verified`
+      );
+      return false;
     }
 
     return true;

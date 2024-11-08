@@ -7,6 +7,7 @@ api:
   apiKeyHash: '' # blake2b hash of Api-Key
   jsonBodyLimit: 50
   isManualTxRequestActive: false
+  isArbitraryOrderRequestActive: false
   allowedOrigins: [] # List of allowed origins for CORS headers
   maxRequestsPerMinute: 100_000
 binance:
@@ -27,6 +28,7 @@ binance:
     payment: 200 # a payment transaction on Binance get confirmed
     cold: 200 # a cold storage transaction on Binance get confirmed
     manual: 200 # a manual transaction on Binance get confirmed
+    arbitrary: 200 # an arbitrary transaction on Binance get confirmed
   tssChainCode: ''
   derivationPath:
     -
@@ -43,6 +45,7 @@ bitcoin:
     payment: 6 # a payment transaction on Bitcoin get confirmed
     cold: 6 # a cold storage transaction on Bitcoin get confirmed
     manual: 6 # a manual transaction on Bitcoin get confirmed
+    arbitrary: 6 # an arbitrary transaction on Bitcoin get confirmed
   tssChainCode: ''
   derivationPath:
     -
@@ -63,6 +66,7 @@ cardano:
     payment: 120 # a payment transaction on Cardano get confirmed
     cold: 120 # a cold storage transaction on Cardano get confirmed
     manual: 120 # a manual transaction on Cardano get confirmed
+    arbitrary: 120 # an arbitrary transaction on Cardano get confirmed
   tssChainCode: 'CardanoChainCode'
 ergo:
   networkType: 'mainnet' # Ergo network type [testnet, mainnet]
@@ -82,6 +86,7 @@ ergo:
     payment: 20 # a payment or reward distribution transaction on Ergo get confirmed
     cold: 20 # a cold storage transaction on Ergo get confirmed
     manual: 20 # a manual transaction on Ergo get confirmed
+    arbitrary: 20 # an arbitrary transaction on Ergo get confirmed
   initialHeight: 925000 # block scanner starting block height
   scannerInterval: 180 # scanner update interval
 ethereum:
@@ -102,6 +107,7 @@ ethereum:
     payment: 50 # a payment transaction on Ethereum get confirmed
     cold: 50 # a cold storage transaction on Ethereum get confirmed
     manual: 50 # a manual transaction on Ethereum get confirmed
+    arbitrary: 50 # an arbitrary transaction on Ethereum get confirmed
   tssChainCode: ''
   derivationPath:
     -

@@ -24,6 +24,7 @@ import {
   AddressTxsEntity,
   migrations as addressTxExtractorMigrations,
 } from '@rosen-bridge/evm-address-tx-extractor';
+import { ArbitraryEntity } from './entities/ArbitraryEntity';
 
 const dbType = Configs.dbType as keyof typeof migrations;
 const dbConfigs = {
@@ -39,6 +40,7 @@ const dbConfigs = {
     RevenueChartView,
     EventView,
     AddressTxsEntity,
+    ArbitraryEntity,
   ],
   migrations: [
     ...scannerMigrations[dbType],

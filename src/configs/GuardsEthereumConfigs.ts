@@ -49,6 +49,10 @@ class GuardsEthereumConfigs {
     'ethereum.confirmation.manual',
     200
   );
+  static arbitraryTxConfirmation = getConfigIntKeyOrDefault(
+    'ethereum.confirmation.arbitrary',
+    200
+  );
 
   // the ergo-related contract, addresses and tokens in rosen bridge
   static ethereumContractConfig = rosenConfig.contractReader(ETHEREUM_CHAIN);
@@ -65,6 +69,7 @@ class GuardsEthereumConfigs {
       payment: this.paymentConfirmation,
       cold: this.coldTxConfirmation,
       manual: this.manualTxConfirmation,
+      arbitrary: this.arbitraryTxConfirmation,
     },
     addresses: {
       lock: this.ethereumContractConfig.lockAddress,
