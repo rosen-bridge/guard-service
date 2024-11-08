@@ -267,13 +267,17 @@ class DatabaseActionMock {
 
   /**
    * inserts a record to Event table in database
+   * @param event
    * @param eventId
    * @param boxSerialized
    * @param wid
    * @param height
    * @param rwtCount
+   * @param spendTxId
+   * @param spendIndex
    */
   static insertCommitmentBoxRecord = async (
+    event: EventTrigger,
     eventId: string,
     boxSerialized: string,
     wid: string,
@@ -282,12 +286,13 @@ class DatabaseActionMock {
     spendTxId?: string,
     spendIndex?: number
   ) => {
+    const commitment = Utils.commitmentFromEvent(event, wid);
     await this.testDatabase.CommitmentRepository.createQueryBuilder()
       .insert()
       .values({
         extractor: 'extractor',
         eventId: eventId,
-        commitment: 'commitment',
+        commitment: commitment,
         WID: wid,
         boxId: TestUtils.generateRandomId(),
         block: 'blockId',
