@@ -20,7 +20,7 @@ import {
 import * as testData from './testData';
 import JsonBigInt from '@rosen-bridge/json-bigint';
 
-jest.mock('@rosen-clients/cardano-koios');
+vi.mock('@rosen-clients/cardano-koios');
 
 describe('CardanoKoiosNetwork', () => {
   const mockNetwork = () => new CardanoKoiosNetwork('https://test.url');

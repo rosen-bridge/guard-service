@@ -1,6 +1,5 @@
 import { ChainMinimumFee } from '@rosen-bridge/minimum-fee';
 import { RosenData } from '@rosen-bridge/rosen-extractor';
-import { when } from 'jest-when';
 import TestChainNetwork from './network/TestChainNetwork';
 import * as testData from './testData';
 import { generateChainObject, generateRandomId } from './testUtils';
@@ -10,8 +9,6 @@ import {
   PaymentTransaction,
   TransactionType,
 } from '../lib';
-
-const spyOn = jest.spyOn;
 
 describe('AbstractChain', () => {
   describe('generateTransaction', () => {
@@ -39,7 +36,7 @@ describe('AbstractChain', () => {
       ];
 
       const chain = generateChainObject(network);
-      const getLockAddressAssetsSpy = spyOn(
+      const getLockAddressAssetsSpy = vi.spyOn(
         chain,
         'generateMultipleTransactions'
       );
@@ -87,7 +84,7 @@ describe('AbstractChain', () => {
       ];
 
       const chain = generateChainObject(network);
-      const getLockAddressAssetsSpy = spyOn(
+      const getLockAddressAssetsSpy = vi.spyOn(
         chain,
         'generateMultipleTransactions'
       );
@@ -144,13 +141,11 @@ describe('AbstractChain', () => {
 
       // mock chain 'getTransactionAssets' function to return mocked assets
       const chain = generateChainObject(network);
-      const getTransactionAssetsSpy = spyOn(chain, 'getTransactionAssets');
-      when(getTransactionAssetsSpy)
-        .calledWith(paymentTx)
-        .mockResolvedValueOnce({
-          inputAssets: a,
-          outputAssets: a,
-        });
+      const getTransactionAssetsSpy = vi.spyOn(chain, 'getTransactionAssets');
+      getTransactionAssetsSpy.mockResolvedValueOnce({
+        inputAssets: a,
+        outputAssets: a,
+      });
 
       // run test
       const result = await chain.verifyNoTokenBurned(paymentTx);
@@ -188,13 +183,11 @@ describe('AbstractChain', () => {
 
       // mock chain 'getTransactionAssets' function to return mocked assets
       const chain = generateChainObject(network);
-      const getTransactionAssetsSpy = spyOn(chain, 'getTransactionAssets');
-      when(getTransactionAssetsSpy)
-        .calledWith(paymentTx)
-        .mockResolvedValueOnce({
-          inputAssets: a,
-          outputAssets: b,
-        });
+      const getTransactionAssetsSpy = vi.spyOn(chain, 'getTransactionAssets');
+      getTransactionAssetsSpy.mockResolvedValueOnce({
+        inputAssets: a,
+        outputAssets: b,
+      });
 
       // run test
       const result = await chain.verifyNoTokenBurned(paymentTx);
@@ -226,8 +219,10 @@ describe('AbstractChain', () => {
      * - mock verifyLockTransactionExtraConditions to return true
      * - run test
      * - check returned value
+     * - check if functions got called
      * @expected
      * - it should return true
+     * - network object functions should have been called with expected arguments
      */
     it('should return true when event is valid', async () => {
       //  mock an event
@@ -236,40 +231,34 @@ describe('AbstractChain', () => {
       // mock a network object with mocked 'getBlockTransactionIds' and
       //   'getTransaction' functions
       const network = new TestChainNetwork();
-      const getBlockTransactionIdsSpy = spyOn(
+      const getBlockTransactionIdsSpy = vi.spyOn(
         network,
         'getBlockTransactionIds'
       );
-      when(getBlockTransactionIdsSpy)
-        .calledWith(event.sourceBlockId)
-        .mockResolvedValueOnce([
-          generateRandomId(),
-          event.sourceTxId,
-          generateRandomId(),
-        ]);
+      getBlockTransactionIdsSpy.mockResolvedValueOnce([
+        generateRandomId(),
+        event.sourceTxId,
+        generateRandomId(),
+      ]);
 
       // mock 'getTransaction'
       const tx = 'tx';
-      const getTransactionSpy = spyOn(network, 'getTransaction');
-      when(getTransactionSpy)
-        .calledWith(event.sourceTxId, event.sourceBlockId)
-        .mockResolvedValueOnce(tx);
+      const getTransactionSpy = vi.spyOn(network, 'getTransaction');
+      getTransactionSpy.mockResolvedValueOnce(tx);
 
       // mock getBlockInfo to return event block height
-      const getBlockInfoSpy = spyOn(network, 'getBlockInfo');
-      when(getBlockInfoSpy)
-        .calledWith(event.sourceBlockId)
-        .mockResolvedValueOnce({
-          height: event.sourceChainHeight,
-        } as any);
+      const getBlockInfoSpy = vi.spyOn(network, 'getBlockInfo');
+      getBlockInfoSpy.mockResolvedValueOnce({
+        height: event.sourceChainHeight,
+      } as any);
 
       // mock rosen-extractor to return event data
       const chain = generateChainObject(network);
-      const extractorSpy = spyOn((chain as any).extractor, 'get');
+      const extractorSpy = vi.spyOn((chain as any).extractor, 'get');
       extractorSpy.mockReturnValueOnce(event as unknown as RosenData);
 
       // mock verifyLockTransactionExtraConditions to return true
-      const verifyLockTxSpy = spyOn(
+      const verifyLockTxSpy = vi.spyOn(
         chain,
         'verifyLockTransactionExtraConditions'
       );
@@ -280,6 +269,16 @@ describe('AbstractChain', () => {
 
       // check returned value
       expect(result).toEqual(true);
+
+      // check if functions got called
+      expect(getBlockTransactionIdsSpy).toHaveBeenCalledWith(
+        event.sourceBlockId
+      );
+      expect(getTransactionSpy).toHaveBeenCalledWith(
+        event.sourceTxId,
+        event.sourceBlockId
+      );
+      expect(getBlockInfoSpy).toHaveBeenCalledWith(event.sourceBlockId);
     });
 
     /**
@@ -301,13 +300,14 @@ describe('AbstractChain', () => {
 
       // mock a network object with mocked 'getBlockTransactionIds'
       const network = new TestChainNetwork();
-      const getBlockTransactionIdsSpy = spyOn(
+      const getBlockTransactionIdsSpy = vi.spyOn(
         network,
         'getBlockTransactionIds'
       );
-      when(getBlockTransactionIdsSpy)
-        .calledWith(event.sourceBlockId)
-        .mockResolvedValueOnce([generateRandomId(), generateRandomId()]);
+      getBlockTransactionIdsSpy.mockResolvedValueOnce([
+        generateRandomId(),
+        generateRandomId(),
+      ]);
 
       // run test
       const chain = generateChainObject(network);
@@ -351,39 +351,33 @@ describe('AbstractChain', () => {
       //  mock a network object with mocked 'getBlockTransactionIds' and
       //   'getTransaction' functions
       const network = new TestChainNetwork();
-      const getBlockTransactionIdsSpy = spyOn(
+      const getBlockTransactionIdsSpy = vi.spyOn(
         network,
         'getBlockTransactionIds'
       );
-      when(getBlockTransactionIdsSpy)
-        .calledWith(event.sourceBlockId)
-        .mockResolvedValueOnce([
-          generateRandomId(),
-          event.sourceTxId,
-          generateRandomId(),
-        ]);
+      getBlockTransactionIdsSpy.mockResolvedValueOnce([
+        generateRandomId(),
+        event.sourceTxId,
+        generateRandomId(),
+      ]);
 
       // mock 'getTransaction'
       const tx = 'tx';
-      const getTransactionSpy = spyOn(network, 'getTransaction');
-      when(getTransactionSpy)
-        .calledWith(event.sourceTxId, event.sourceBlockId)
-        .mockResolvedValueOnce(tx);
+      const getTransactionSpy = vi.spyOn(network, 'getTransaction');
+      getTransactionSpy.mockResolvedValueOnce(tx);
 
       // mock getBlockInfo to return event block height
-      const getBlockInfoSpy = spyOn(network, 'getBlockInfo');
-      when(getBlockInfoSpy)
-        .calledWith(event.sourceBlockId)
-        .mockResolvedValueOnce({
-          height: event.sourceChainHeight,
-        } as any);
+      const getBlockInfoSpy = vi.spyOn(network, 'getBlockInfo');
+      getBlockInfoSpy.mockResolvedValueOnce({
+        height: event.sourceChainHeight,
+      } as any);
 
       // mock rosen-extractor to return event data (expect for a key which
       //   should be wrong)
       const chain = generateChainObject(network);
       const invalidData = event as unknown as RosenData;
       invalidData[key as keyof RosenData] = `fake_${key}`;
-      const extractorSpy = spyOn((chain as any).extractor, 'get');
+      const extractorSpy = vi.spyOn((chain as any).extractor, 'get');
       extractorSpy.mockReturnValueOnce(invalidData);
 
       // run test
@@ -417,36 +411,30 @@ describe('AbstractChain', () => {
       // mock a network object with mocked 'getBlockTransactionIds' and
       //   'getTransaction' functions
       const network = new TestChainNetwork();
-      const getBlockTransactionIdsSpy = spyOn(
+      const getBlockTransactionIdsSpy = vi.spyOn(
         network,
         'getBlockTransactionIds'
       );
-      when(getBlockTransactionIdsSpy)
-        .calledWith(event.sourceBlockId)
-        .mockResolvedValueOnce([
-          generateRandomId(),
-          event.sourceTxId,
-          generateRandomId(),
-        ]);
+      getBlockTransactionIdsSpy.mockResolvedValueOnce([
+        generateRandomId(),
+        event.sourceTxId,
+        generateRandomId(),
+      ]);
 
       // mock 'getTransaction'
       const tx = 'tx';
-      const getTransactionSpy = spyOn(network, 'getTransaction');
-      when(getTransactionSpy)
-        .calledWith(event.sourceTxId, event.sourceBlockId)
-        .mockResolvedValueOnce(tx);
+      const getTransactionSpy = vi.spyOn(network, 'getTransaction');
+      getTransactionSpy.mockResolvedValueOnce(tx);
 
       // mock getBlockInfo to return -1 as event block height
-      const getBlockInfoSpy = spyOn(network, 'getBlockInfo');
-      when(getBlockInfoSpy)
-        .calledWith(event.sourceBlockId)
-        .mockResolvedValueOnce({
-          height: -1,
-        } as any);
+      const getBlockInfoSpy = vi.spyOn(network, 'getBlockInfo');
+      getBlockInfoSpy.mockResolvedValueOnce({
+        height: -1,
+      } as any);
 
       // mock rosen-extractor to return event data
       const chain = generateChainObject(network);
-      const extractorSpy = spyOn((chain as any).extractor, 'get');
+      const extractorSpy = vi.spyOn((chain as any).extractor, 'get');
       extractorSpy.mockReturnValueOnce(event as unknown as RosenData);
 
       // run test
@@ -480,40 +468,34 @@ describe('AbstractChain', () => {
       // mock a network object with mocked 'getBlockTransactionIds' and
       //   'getTransaction' functions
       const network = new TestChainNetwork();
-      const getBlockTransactionIdsSpy = spyOn(
+      const getBlockTransactionIdsSpy = vi.spyOn(
         network,
         'getBlockTransactionIds'
       );
-      when(getBlockTransactionIdsSpy)
-        .calledWith(event.sourceBlockId)
-        .mockResolvedValueOnce([
-          generateRandomId(),
-          event.sourceTxId,
-          generateRandomId(),
-        ]);
+      getBlockTransactionIdsSpy.mockResolvedValueOnce([
+        generateRandomId(),
+        event.sourceTxId,
+        generateRandomId(),
+      ]);
 
       // mock 'getTransaction'
       const tx = 'tx';
-      const getTransactionSpy = spyOn(network, 'getTransaction');
-      when(getTransactionSpy)
-        .calledWith(event.sourceTxId, event.sourceBlockId)
-        .mockResolvedValueOnce(tx);
+      const getTransactionSpy = vi.spyOn(network, 'getTransaction');
+      getTransactionSpy.mockResolvedValueOnce(tx);
 
       // mock getBlockInfo to return event block height
-      const getBlockInfoSpy = spyOn(network, 'getBlockInfo');
-      when(getBlockInfoSpy)
-        .calledWith(event.sourceBlockId)
-        .mockResolvedValueOnce({
-          height: event.sourceChainHeight,
-        } as any);
+      const getBlockInfoSpy = vi.spyOn(network, 'getBlockInfo');
+      getBlockInfoSpy.mockResolvedValueOnce({
+        height: event.sourceChainHeight,
+      } as any);
 
       // mock rosen-extractor to return event data
       const chain = generateChainObject(network);
-      const extractorSpy = spyOn((chain as any).extractor, 'get');
+      const extractorSpy = vi.spyOn((chain as any).extractor, 'get');
       extractorSpy.mockReturnValueOnce(event as unknown as RosenData);
 
       // mock verifyLockTransactionExtraConditions to return true
-      const verifyLockTxSpy = spyOn(
+      const verifyLockTxSpy = vi.spyOn(
         chain,
         'verifyLockTransactionExtraConditions'
       );
@@ -560,40 +542,34 @@ describe('AbstractChain', () => {
       // mock a network object with mocked 'getBlockTransactionIds' and
       //   'getTransaction' functions
       const network = new TestChainNetwork();
-      const getBlockTransactionIdsSpy = spyOn(
+      const getBlockTransactionIdsSpy = vi.spyOn(
         network,
         'getBlockTransactionIds'
       );
-      when(getBlockTransactionIdsSpy)
-        .calledWith(event.sourceBlockId)
-        .mockResolvedValueOnce([
-          generateRandomId(),
-          event.sourceTxId,
-          generateRandomId(),
-        ]);
+      getBlockTransactionIdsSpy.mockResolvedValueOnce([
+        generateRandomId(),
+        event.sourceTxId,
+        generateRandomId(),
+      ]);
 
       // mock 'getTransaction'
       const tx = 'tx';
-      const getTransactionSpy = spyOn(network, 'getTransaction');
-      when(getTransactionSpy)
-        .calledWith(event.sourceTxId, event.sourceBlockId)
-        .mockResolvedValueOnce(tx);
+      const getTransactionSpy = vi.spyOn(network, 'getTransaction');
+      getTransactionSpy.mockResolvedValueOnce(tx);
 
       // mock getBlockInfo to return event block height
-      const getBlockInfoSpy = spyOn(network, 'getBlockInfo');
-      when(getBlockInfoSpy)
-        .calledWith(event.sourceBlockId)
-        .mockResolvedValueOnce({
-          height: event.sourceChainHeight,
-        } as any);
+      const getBlockInfoSpy = vi.spyOn(network, 'getBlockInfo');
+      getBlockInfoSpy.mockResolvedValueOnce({
+        height: event.sourceChainHeight,
+      } as any);
 
       // mock rosen-extractor to return event data
       const chain = generateChainObject(network);
-      const extractorSpy = spyOn((chain as any).extractor, 'get');
+      const extractorSpy = vi.spyOn((chain as any).extractor, 'get');
       extractorSpy.mockReturnValueOnce(event as unknown as RosenData);
 
       // mock verifyLockTransactionExtraConditions to return true
-      const verifyLockTxSpy = spyOn(
+      const verifyLockTxSpy = vi.spyOn(
         chain,
         'verifyLockTransactionExtraConditions'
       );
@@ -640,40 +616,34 @@ describe('AbstractChain', () => {
       // mock a network object with mocked 'getBlockTransactionIds' and
       //   'getTransaction' functions
       const network = new TestChainNetwork();
-      const getBlockTransactionIdsSpy = spyOn(
+      const getBlockTransactionIdsSpy = vi.spyOn(
         network,
         'getBlockTransactionIds'
       );
-      when(getBlockTransactionIdsSpy)
-        .calledWith(event.sourceBlockId)
-        .mockResolvedValueOnce([
-          generateRandomId(),
-          event.sourceTxId,
-          generateRandomId(),
-        ]);
+      getBlockTransactionIdsSpy.mockResolvedValueOnce([
+        generateRandomId(),
+        event.sourceTxId,
+        generateRandomId(),
+      ]);
 
       // mock 'getTransaction'
       const tx = 'tx';
-      const getTransactionSpy = spyOn(network, 'getTransaction');
-      when(getTransactionSpy)
-        .calledWith(event.sourceTxId, event.sourceBlockId)
-        .mockResolvedValueOnce(tx);
+      const getTransactionSpy = vi.spyOn(network, 'getTransaction');
+      getTransactionSpy.mockResolvedValueOnce(tx);
 
       // mock getBlockInfo to return event block height
-      const getBlockInfoSpy = spyOn(network, 'getBlockInfo');
-      when(getBlockInfoSpy)
-        .calledWith(event.sourceBlockId)
-        .mockResolvedValueOnce({
-          height: event.sourceChainHeight,
-        } as any);
+      const getBlockInfoSpy = vi.spyOn(network, 'getBlockInfo');
+      getBlockInfoSpy.mockResolvedValueOnce({
+        height: event.sourceChainHeight,
+      } as any);
 
       // mock rosen-extractor to return event data
       const chain = generateChainObject(network);
-      const extractorSpy = spyOn((chain as any).extractor, 'get');
+      const extractorSpy = vi.spyOn((chain as any).extractor, 'get');
       extractorSpy.mockReturnValueOnce(event as unknown as RosenData);
 
       // mock verifyLockTransactionExtraConditions to return true
-      const verifyLockTxSpy = spyOn(
+      const verifyLockTxSpy = vi.spyOn(
         chain,
         'verifyLockTransactionExtraConditions'
       );
@@ -709,40 +679,34 @@ describe('AbstractChain', () => {
       // mock a network object with mocked 'getBlockTransactionIds' and
       //   'getTransaction' functions
       const network = new TestChainNetwork();
-      const getBlockTransactionIdsSpy = spyOn(
+      const getBlockTransactionIdsSpy = vi.spyOn(
         network,
         'getBlockTransactionIds'
       );
-      when(getBlockTransactionIdsSpy)
-        .calledWith(event.sourceBlockId)
-        .mockResolvedValueOnce([
-          generateRandomId(),
-          event.sourceTxId,
-          generateRandomId(),
-        ]);
+      getBlockTransactionIdsSpy.mockResolvedValueOnce([
+        generateRandomId(),
+        event.sourceTxId,
+        generateRandomId(),
+      ]);
 
       // mock 'getTransaction'
       const tx = 'tx';
-      const getTransactionSpy = spyOn(network, 'getTransaction');
-      when(getTransactionSpy)
-        .calledWith(event.sourceTxId, event.sourceBlockId)
-        .mockResolvedValueOnce(tx);
+      const getTransactionSpy = vi.spyOn(network, 'getTransaction');
+      getTransactionSpy.mockResolvedValueOnce(tx);
 
       // mock getBlockInfo to return event block height
-      const getBlockInfoSpy = spyOn(network, 'getBlockInfo');
-      when(getBlockInfoSpy)
-        .calledWith(event.sourceBlockId)
-        .mockResolvedValueOnce({
-          height: event.sourceChainHeight,
-        } as any);
+      const getBlockInfoSpy = vi.spyOn(network, 'getBlockInfo');
+      getBlockInfoSpy.mockResolvedValueOnce({
+        height: event.sourceChainHeight,
+      } as any);
 
       // mock rosen-extractor to return event data
       const chain = generateChainObject(network);
-      const extractorSpy = spyOn((chain as any).extractor, 'get');
+      const extractorSpy = vi.spyOn((chain as any).extractor, 'get');
       extractorSpy.mockReturnValueOnce(event as unknown as RosenData);
 
       // mock verifyLockTransactionExtraConditions to return false
-      const verifyLockTxSpy = spyOn(
+      const verifyLockTxSpy = vi.spyOn(
         chain,
         'verifyLockTransactionExtraConditions'
       );
@@ -775,10 +739,8 @@ describe('AbstractChain', () => {
      */
     it('should return ConfirmedEnough when tx confirmation is more than required number', async () => {
       // mock a network object to return enough confirmation for mocked txId
-      const getTxConfirmationSpy = spyOn(network, 'getTxConfirmation');
-      when(getTxConfirmationSpy)
-        .calledWith(txId)
-        .mockResolvedValueOnce(requiredConfirmation + 1);
+      const getTxConfirmationSpy = vi.spyOn(network, 'getTxConfirmation');
+      getTxConfirmationSpy.mockResolvedValueOnce(requiredConfirmation + 1);
 
       // run test
       const chain = generateChainObject(network);
@@ -802,10 +764,8 @@ describe('AbstractChain', () => {
      */
     it('should return NotConfirmedEnough when tx confirmation is less than required number', async () => {
       // mock a network object to return insufficient confirmation for mocked
-      const getTxConfirmationSpy = spyOn(network, 'getTxConfirmation');
-      when(getTxConfirmationSpy)
-        .calledWith(txId)
-        .mockResolvedValueOnce(requiredConfirmation - 1);
+      const getTxConfirmationSpy = vi.spyOn(network, 'getTxConfirmation');
+      getTxConfirmationSpy.mockResolvedValueOnce(requiredConfirmation - 1);
 
       // run test
       const chain = generateChainObject(network);
@@ -828,8 +788,8 @@ describe('AbstractChain', () => {
      */
     it('should return NotFound when tx confirmation is -1', async () => {
       // mock a network object to return enough confirmation for mocked txId
-      const getTxConfirmationSpy = spyOn(network, 'getTxConfirmation');
-      when(getTxConfirmationSpy).calledWith(txId).mockResolvedValueOnce(-1);
+      const getTxConfirmationSpy = vi.spyOn(network, 'getTxConfirmation');
+      getTxConfirmationSpy.mockResolvedValueOnce(-1);
 
       // run test
       const chain = generateChainObject(network);
@@ -855,7 +815,7 @@ describe('AbstractChain', () => {
      */
     it('should return wrapped values', async () => {
       // mock a network object to return actual values for the assets
-      const getAddressAssetsSpy = spyOn(network, 'getAddressAssets');
+      const getAddressAssetsSpy = vi.spyOn(network, 'getAddressAssets');
       getAddressAssetsSpy.mockResolvedValueOnce(testData.actualBalance);
 
       // run test
@@ -895,7 +855,7 @@ describe('AbstractChain', () => {
 
       // mock chain 'getLockAddressAssets' function to return mocked assets
       const chain = generateChainObject(network);
-      const getLockAddressAssetsSpy = spyOn(chain, 'getLockAddressAssets');
+      const getLockAddressAssetsSpy = vi.spyOn(chain, 'getLockAddressAssets');
       getLockAddressAssetsSpy.mockResolvedValueOnce(lockAssets);
 
       // run test
@@ -926,7 +886,7 @@ describe('AbstractChain', () => {
 
       // mock chain 'getLockAddressAssets' function to return mocked assets
       const chain = generateChainObject(network);
-      const getLockAddressAssetsSpy = spyOn(chain, 'getLockAddressAssets');
+      const getLockAddressAssetsSpy = vi.spyOn(chain, 'getLockAddressAssets');
       getLockAddressAssetsSpy.mockResolvedValueOnce(lockAssets);
 
       // run test

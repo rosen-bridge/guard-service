@@ -21,16 +21,16 @@
     "@types/node": "^18.11.18",
     "@typescript-eslint/eslint-plugin": "^6.7.0",
     "@typescript-eslint/parser": "^6.7.0",
-    "@vitest/coverage-istanbul": "^1.2.2",
+    "@vitest/coverage-istanbul": "^2.1.4",
     "eslint": "^8.16.0",
     "eslint-config-prettier": "^8.5.0",
     "extensionless": "^1.9.6",
     "prettier": "2.7.1",
     "typescript": "^5.0.0",
-    "vitest": "^1.2.2"
+    "vitest": "^2.1.4"
   },
   "engines": {
-    "node": ">=18.12.0"
+    "node": ">=20.11.0"
   },
   "dependencies": {
     "@blockfrost/blockfrost-js": "^5.4.0",

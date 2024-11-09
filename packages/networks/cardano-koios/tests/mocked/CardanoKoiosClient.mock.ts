@@ -11,7 +11,7 @@ import {
  * mock `getTip` of cardano koios client
  */
 export const mockGetTip = () => {
-  jest.mocked(cardanoKoiosClientFactory).mockReturnValueOnce({
+  vi.mocked(cardanoKoiosClientFactory).mockReturnValueOnce({
     getTip: async () => [
       {
         block_no: testData.blockHeight,
@@ -25,7 +25,7 @@ export const mockGetTip = () => {
  * mock `postTxStatus` of cardano koios client
  */
 export const mockPostTxStatus = (txId: string, confirmation: bigint | null) => {
-  jest.mocked(cardanoKoiosClientFactory).mockReturnValueOnce({
+  vi.mocked(cardanoKoiosClientFactory).mockReturnValueOnce({
     postTxStatus: async () => [
       {
         tx_has: txId,
@@ -39,7 +39,7 @@ export const mockPostTxStatus = (txId: string, confirmation: bigint | null) => {
  * mock `postAddressInfo` and `postAddressAssets` of cardano koios client
  */
 export const mockAddressAssets = () => {
-  jest.mocked(cardanoKoiosClientFactory).mockReturnValueOnce({
+  vi.mocked(cardanoKoiosClientFactory).mockReturnValueOnce({
     postAddressInfo: async () => [
       {
         balance: testData.addressBalance,
@@ -54,7 +54,7 @@ export const mockAddressAssets = () => {
  * so that address balance is 0 and contains no assets
  */
 export const mockEmptyAddressAssets = () => {
-  jest.mocked(cardanoKoiosClientFactory).mockReturnValueOnce({
+  vi.mocked(cardanoKoiosClientFactory).mockReturnValueOnce({
     postAddressInfo: async () => [
       {
         balance: '0',
@@ -69,7 +69,7 @@ export const mockEmptyAddressAssets = () => {
  * so that address has no info and contains no assets
  */
 export const mockNoHistoryAddressAssets = () => {
-  jest.mocked(cardanoKoiosClientFactory).mockReturnValueOnce({
+  vi.mocked(cardanoKoiosClientFactory).mockReturnValueOnce({
     postAddressInfo: async () => [],
     postAddressAssets: async () => [],
   } as any);
@@ -79,7 +79,7 @@ export const mockNoHistoryAddressAssets = () => {
  * mock `postBlockTxs` of cardano koios client
  */
 export const mockPostBlockTxs = () => {
-  jest.mocked(cardanoKoiosClientFactory).mockReturnValueOnce({
+  vi.mocked(cardanoKoiosClientFactory).mockReturnValueOnce({
     postBlockTxs: async () => testData.txHashes,
   } as any);
 };
@@ -88,7 +88,7 @@ export const mockPostBlockTxs = () => {
  * mock `postBlockInfo` of cardano koios client
  */
 export const mockPostBlockInfo = () => {
-  jest.mocked(cardanoKoiosClientFactory).mockReturnValueOnce({
+  vi.mocked(cardanoKoiosClientFactory).mockReturnValueOnce({
     postBlockInfo: async () => [
       {
         hash: testData.blockId,
@@ -103,7 +103,7 @@ export const mockPostBlockInfo = () => {
  * mock `postTxInfo` of cardano koios client
  */
 export const mockPostTxInfo = (response: TxInfoItem) => {
-  jest.mocked(cardanoKoiosClientFactory).mockReturnValueOnce({
+  vi.mocked(cardanoKoiosClientFactory).mockReturnValueOnce({
     postTxInfo: async () => [response],
   } as any);
 };
@@ -112,7 +112,7 @@ export const mockPostTxInfo = (response: TxInfoItem) => {
  * mock `postSubmittx` of cardano koios client
  */
 export const mockPostSubmittx = () => {
-  jest.mocked(cardanoKoiosClientFactory).mockReturnValueOnce({
+  vi.mocked(cardanoKoiosClientFactory).mockReturnValueOnce({
     postSubmittx: async () => testData.txId,
   } as any);
 };
@@ -121,7 +121,7 @@ export const mockPostSubmittx = () => {
  * mock `postAddressInfo` of cardano koios client
  */
 export const mockPostAddressInfo = (utxoSet: AddressInfoItemUtxoSetItem[]) => {
-  jest.mocked(cardanoKoiosClientFactory).mockReturnValueOnce({
+  vi.mocked(cardanoKoiosClientFactory).mockReturnValueOnce({
     postAddressInfo: async () => [
       {
         utxo_set: utxoSet,
@@ -137,7 +137,7 @@ export const mockUtxoValidation = (
   txUtxos: TxUtxos | undefined,
   credentialUtxos: CredentialUtxosBody
 ) => {
-  jest.mocked(cardanoKoiosClientFactory).mockReturnValueOnce({
+  vi.mocked(cardanoKoiosClientFactory).mockReturnValueOnce({
     postTxInfo: async () => (txUtxos ? [txUtxos] : []),
     postCredentialUtxos: async () => credentialUtxos,
   } as any);
@@ -148,7 +148,7 @@ export const mockUtxoValidation = (
  * so that address has no utxo
  */
 export const mockPostAddressInfoNoHistory = () => {
-  jest.mocked(cardanoKoiosClientFactory).mockReturnValueOnce({
+  vi.mocked(cardanoKoiosClientFactory).mockReturnValueOnce({
     postAddressInfo: async () => [],
   } as any);
 };
@@ -157,7 +157,7 @@ export const mockPostAddressInfoNoHistory = () => {
  * mock only inputs and outputs of cardano koios client `postTxInfo` api
  */
 export const mockPostTxUtxos = (utxos: TxUtxos) => {
-  jest.mocked(cardanoKoiosClientFactory).mockReturnValueOnce({
+  vi.mocked(cardanoKoiosClientFactory).mockReturnValueOnce({
     postTxInfo: async () => [utxos],
   } as any);
 };
@@ -166,7 +166,7 @@ export const mockPostTxUtxos = (utxos: TxUtxos) => {
  * mock `getEpochParams` of cardano koios client
  */
 export const mockGetEpochParams = () => {
-  jest.mocked(cardanoKoiosClientFactory).mockReturnValueOnce({
+  vi.mocked(cardanoKoiosClientFactory).mockReturnValueOnce({
     getEpochParams: async () => [testData.epochParams],
   } as any);
 };
@@ -175,7 +175,7 @@ export const mockGetEpochParams = () => {
  * mock `postAssetInfo` of cardano koios client
  */
 export const mockPostAssetInfo = () => {
-  jest.mocked(cardanoKoiosClientFactory).mockReturnValueOnce({
+  vi.mocked(cardanoKoiosClientFactory).mockReturnValueOnce({
     postAssetInfo: async () => [testData.assetInfo],
   } as any);
 };

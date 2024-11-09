@@ -14,11 +14,9 @@ import {
 } from '@rosen-chains/abstract-chain';
 import TestErgoNetwork from './network/TestErgoNetwork';
 import { ErgoConfigs } from '../lib';
-import { when } from 'jest-when';
 import * as wasm from 'ergo-lib-wasm-nodejs';
 import ErgoTransaction from '../lib/ErgoTransaction';
-
-const spyOn = jest.spyOn;
+import { MockInstance } from 'vitest';
 
 describe('ErgoChain', () => {
   describe('generateTransaction', () => {
@@ -102,18 +100,18 @@ describe('ErgoChain', () => {
       // mock a network object
       const network = new TestErgoNetwork();
       // mock 'getHeight'
-      const getHeightSpy = spyOn(network, 'getHeight');
+      const getHeightSpy = vi.spyOn(network, 'getHeight');
       getHeightSpy.mockResolvedValue(966000);
       // mock 'getStateContext'
-      const getStateContextSpy = spyOn(network, 'getStateContext');
+      const getStateContextSpy = vi.spyOn(network, 'getStateContext');
       getStateContextSpy.mockResolvedValue(
         transactionTestData.mockedStateContext
       );
       // mock 'getAddressAssets' to return mocked assets
-      const getAddressAssetsSpy = spyOn(network, 'getAddressAssets');
+      const getAddressAssetsSpy = vi.spyOn(network, 'getAddressAssets');
       getAddressAssetsSpy.mockResolvedValue(mockedLockAssets);
       // mock 'getMempoolTransactions'
-      const getMempoolTransactionsSpy = spyOn(
+      const getMempoolTransactionsSpy = vi.spyOn(
         network,
         'getMempoolTransactions'
       );
@@ -141,7 +139,10 @@ describe('ErgoChain', () => {
         ergoTestUtils.testTokenMap,
         ergoTestUtils.defaultSignFunction
       );
-      const getCoveringBoxesSpy = spyOn(ergoChain as any, 'getCoveringBoxes');
+      const getCoveringBoxesSpy = vi.spyOn(
+        ergoChain as any,
+        'getCoveringBoxes'
+      );
       getCoveringBoxesSpy.mockResolvedValue({
         covered: true,
         boxes: paymentTx.inputBoxes
@@ -157,7 +158,10 @@ describe('ErgoChain', () => {
         'boxId',
         ergoTestUtils.toErgoBox(boxTestData.ergoBox2)
       );
-      const getMempoolBoxMappingSpy = spyOn(ergoChain, 'getMempoolBoxMapping');
+      const getMempoolBoxMappingSpy = vi.spyOn(
+        ergoChain,
+        'getMempoolBoxMapping'
+      );
       getMempoolBoxMappingSpy.mockResolvedValue(mempoolTrackMap);
 
       // run test
@@ -276,15 +280,15 @@ describe('ErgoChain', () => {
       // mock a network object
       const network = new TestErgoNetwork();
       // mock 'getHeight'
-      const getHeightSpy = spyOn(network, 'getHeight');
+      const getHeightSpy = vi.spyOn(network, 'getHeight');
       getHeightSpy.mockResolvedValue(966000);
       // mock 'getStateContext'
-      const getStateContextSpy = spyOn(network, 'getStateContext');
+      const getStateContextSpy = vi.spyOn(network, 'getStateContext');
       getStateContextSpy.mockResolvedValue(
         transactionTestData.mockedStateContext
       );
       // mock 'getAddressAssets' to return mocked assets
-      const getAddressAssetsSpy = spyOn(network, 'getAddressAssets');
+      const getAddressAssetsSpy = vi.spyOn(network, 'getAddressAssets');
       getAddressAssetsSpy.mockResolvedValue(mockedLockAssets);
 
       // mock chain config
@@ -370,18 +374,18 @@ describe('ErgoChain', () => {
       // mock a network object
       const network = new TestErgoNetwork();
       // mock 'getHeight'
-      const getHeightSpy = spyOn(network, 'getHeight');
+      const getHeightSpy = vi.spyOn(network, 'getHeight');
       getHeightSpy.mockResolvedValue(966000);
       // mock 'getStateContext'
-      const getStateContextSpy = spyOn(network, 'getStateContext');
+      const getStateContextSpy = vi.spyOn(network, 'getStateContext');
       getStateContextSpy.mockResolvedValue(
         transactionTestData.mockedStateContext
       );
       // mock 'getAddressAssets' to return mocked assets
-      const getAddressAssetsSpy = spyOn(network, 'getAddressAssets');
+      const getAddressAssetsSpy = vi.spyOn(network, 'getAddressAssets');
       getAddressAssetsSpy.mockResolvedValue(mockedLockAssets);
       // mock 'getMempoolTransactions'
-      const getMempoolTransactionsSpy = spyOn(
+      const getMempoolTransactionsSpy = vi.spyOn(
         network,
         'getMempoolTransactions'
       );
@@ -409,7 +413,10 @@ describe('ErgoChain', () => {
         ergoTestUtils.testTokenMap,
         ergoTestUtils.defaultSignFunction
       );
-      const getCoveringBoxesSpy = spyOn(ergoChain as any, 'getCoveringBoxes');
+      const getCoveringBoxesSpy = vi.spyOn(
+        ergoChain as any,
+        'getCoveringBoxes'
+      );
       getCoveringBoxesSpy.mockResolvedValue({
         covered: false,
         boxes: paymentTx.inputBoxes
@@ -490,18 +497,18 @@ describe('ErgoChain', () => {
       // mock a network object
       const network = new TestErgoNetwork();
       // mock 'getHeight'
-      const getHeightSpy = spyOn(network, 'getHeight');
+      const getHeightSpy = vi.spyOn(network, 'getHeight');
       getHeightSpy.mockResolvedValue(966000);
       // mock 'getStateContext'
-      const getStateContextSpy = spyOn(network, 'getStateContext');
+      const getStateContextSpy = vi.spyOn(network, 'getStateContext');
       getStateContextSpy.mockResolvedValue(
         transactionTestData.mockedStateContext
       );
       // mock 'getAddressAssets' to return mocked assets
-      const getAddressAssetsSpy = spyOn(network, 'getAddressAssets');
+      const getAddressAssetsSpy = vi.spyOn(network, 'getAddressAssets');
       getAddressAssetsSpy.mockResolvedValue(mockedLockAssets);
       // mock 'getMempoolTransactions'
-      const getMempoolTransactionsSpy = spyOn(
+      const getMempoolTransactionsSpy = vi.spyOn(
         network,
         'getMempoolTransactions'
       );
@@ -529,18 +536,16 @@ describe('ErgoChain', () => {
         ergoTestUtils.testTokenMap,
         ergoTestUtils.defaultSignFunction
       );
-      const getCoveringBoxesSpy = spyOn(
+      const getCoveringBoxesSpy = vi.spyOn(
         ergoChain as any,
         'getCoveringBoxes'
-      ) as jest.SpyInstance<
-        Promise<CoveringBoxes<wasm.ErgoBox>>,
-        [
+      ) as MockInstance<
+        (
           address: string,
           requiredAssets: AssetBalance,
           forbiddenBoxIds: string[],
           trackMap: Map<string, wasm.ErgoBox | undefined>
-        ],
-        any
+        ) => Promise<CoveringBoxes<wasm.ErgoBox>>
       >;
       getCoveringBoxesSpy.mockImplementation(
         async (
@@ -639,18 +644,18 @@ describe('ErgoChain', () => {
       // mock a network object
       const network = new TestErgoNetwork();
       // mock 'getHeight'
-      const getHeightSpy = spyOn(network, 'getHeight');
+      const getHeightSpy = vi.spyOn(network, 'getHeight');
       getHeightSpy.mockResolvedValue(966000);
       // mock 'getStateContext'
-      const getStateContextSpy = spyOn(network, 'getStateContext');
+      const getStateContextSpy = vi.spyOn(network, 'getStateContext');
       getStateContextSpy.mockResolvedValue(
         transactionTestData.mockedStateContext
       );
       // mock 'getAddressAssets' to return mocked assets
-      const getAddressAssetsSpy = spyOn(network, 'getAddressAssets');
+      const getAddressAssetsSpy = vi.spyOn(network, 'getAddressAssets');
       getAddressAssetsSpy.mockResolvedValue(mockedLockAssets);
       // mock 'getMempoolTransactions'
-      const getMempoolTransactionsSpy = spyOn(
+      const getMempoolTransactionsSpy = vi.spyOn(
         network,
         'getMempoolTransactions'
       );
@@ -678,7 +683,10 @@ describe('ErgoChain', () => {
         ergoTestUtils.multiDecimalTokenMap,
         ergoTestUtils.defaultSignFunction
       );
-      const getCoveringBoxesSpy = spyOn(ergoChain as any, 'getCoveringBoxes');
+      const getCoveringBoxesSpy = vi.spyOn(
+        ergoChain as any,
+        'getCoveringBoxes'
+      );
       getCoveringBoxesSpy.mockResolvedValue({
         covered: true,
         boxes: paymentTx.inputBoxes
@@ -694,7 +702,10 @@ describe('ErgoChain', () => {
         'boxId',
         ergoTestUtils.toErgoBox(boxTestData.ergoBox2)
       );
-      const getMempoolBoxMappingSpy = spyOn(ergoChain, 'getMempoolBoxMapping');
+      const getMempoolBoxMappingSpy = vi.spyOn(
+        ergoChain,
+        'getMempoolBoxMapping'
+      );
       getMempoolBoxMappingSpy.mockResolvedValue(mempoolTrackMap);
 
       // run test
@@ -1318,18 +1329,16 @@ describe('ErgoChain', () => {
      * - mock PaymentTransaction
      * - run test
      * - check returned value
+     * - check if function got called
      * @expected
      * - it should return true with no details
+     * - `isBoxUnspentAndValid` should have been called for all inputs
      */
     it('should return true when all inputs are valid', async () => {
       // mock a network object to return as valid for all inputs of a mocked transaction
       const network = new TestErgoNetwork();
-      const isBoxUnspentAndValidSpy = spyOn(network, 'isBoxUnspentAndValid');
-      transactionTestData.transaction0InputIds.forEach((inputId) =>
-        when(isBoxUnspentAndValidSpy)
-          .calledWith(inputId)
-          .mockResolvedValueOnce(true)
-      );
+      const isBoxUnspentAndValidSpy = vi.spyOn(network, 'isBoxUnspentAndValid');
+      isBoxUnspentAndValidSpy.mockResolvedValue(true);
 
       // mock PaymentTransaction
       const paymentTx = new ErgoTransaction(
@@ -1352,6 +1361,11 @@ describe('ErgoChain', () => {
         isValid: true,
         details: undefined,
       });
+
+      // check if function got called
+      transactionTestData.transaction0InputIds.forEach((inputId) =>
+        expect(isBoxUnspentAndValidSpy).toHaveBeenCalledWith(inputId)
+      );
     });
 
     /**
@@ -1364,20 +1378,18 @@ describe('ErgoChain', () => {
      * - mock PaymentTransaction
      * - run test
      * - check returned value
+     * - check if function got called
      * @expected
      * - it should return false and as expected invalidation
+     * - `isBoxUnspentAndValid` should have been called only for the first box
      */
     it('should return false when at least one input is invalid', async () => {
       // mock a network object to return as valid for all inputs of a mocked transaction except for the first one
       const network = new TestErgoNetwork();
-      const isBoxUnspentAndValidSpy = spyOn(network, 'isBoxUnspentAndValid');
-      let isFirstBox = true;
-      transactionTestData.transaction0InputIds.forEach((inputId) => {
-        when(isBoxUnspentAndValidSpy)
-          .calledWith(inputId)
-          .mockResolvedValueOnce(!isFirstBox);
-        isFirstBox = false;
-      });
+      const isBoxUnspentAndValidSpy = vi.spyOn(network, 'isBoxUnspentAndValid');
+      isBoxUnspentAndValidSpy
+        .mockResolvedValueOnce(false)
+        .mockResolvedValue(true);
 
       // mock PaymentTransaction
       const paymentTx = new ErgoTransaction(
@@ -1403,6 +1415,11 @@ describe('ErgoChain', () => {
           unexpected: false,
         },
       });
+
+      // check if function got called
+      expect(isBoxUnspentAndValidSpy).toHaveBeenCalledWith(
+        transactionTestData.transaction0InputIds[0]
+      );
     });
   });
 
@@ -1522,7 +1539,7 @@ describe('ErgoChain', () => {
 
       // mock a network object to return mocked transactions for mempool
       const network = new TestErgoNetwork();
-      spyOn(network, 'getMempoolTransactions').mockResolvedValueOnce(
+      vi.spyOn(network, 'getMempoolTransactions').mockResolvedValueOnce(
         transactions
       );
 
@@ -1558,7 +1575,7 @@ describe('ErgoChain', () => {
 
       // mock a network object to return mocked transactions for mempool
       const network = new TestErgoNetwork();
-      spyOn(network, 'getMempoolTransactions').mockResolvedValueOnce(
+      vi.spyOn(network, 'getMempoolTransactions').mockResolvedValueOnce(
         transactions
       );
 
@@ -1600,7 +1617,7 @@ describe('ErgoChain', () => {
 
       // mock a network object to return mocked transactions for mempool
       const network = new TestErgoNetwork();
-      spyOn(network, 'getMempoolTransactions').mockResolvedValueOnce(
+      vi.spyOn(network, 'getMempoolTransactions').mockResolvedValueOnce(
         transactions
       );
 
@@ -1651,7 +1668,7 @@ describe('ErgoChain', () => {
 
       // mock a network object to return mocked transactions for mempool
       const network = new TestErgoNetwork();
-      spyOn(network, 'getMempoolTransactions').mockResolvedValueOnce(
+      vi.spyOn(network, 'getMempoolTransactions').mockResolvedValueOnce(
         transactions
       );
 
@@ -1706,7 +1723,7 @@ describe('ErgoChain', () => {
 
       // mock a network object to return mocked transactions for mempool
       const network = new TestErgoNetwork();
-      spyOn(network, 'getMempoolTransactions').mockResolvedValueOnce(
+      vi.spyOn(network, 'getMempoolTransactions').mockResolvedValueOnce(
         transactions
       );
 
@@ -2007,10 +2024,8 @@ describe('ErgoChain', () => {
       // mock a network object
       const network = new TestErgoNetwork();
       // mock 'getBoxesByTokenId'
-      const getBoxesByTokenIdSpy = spyOn(network, 'getBoxesByTokenId');
-      when(getBoxesByTokenIdSpy)
-        .calledWith(guardNFT, ergoTestUtils.testLockAddress)
-        .mockResolvedValue([box]);
+      const getBoxesByTokenIdSpy = vi.spyOn(network, 'getBoxesByTokenId');
+      getBoxesByTokenIdSpy.mockResolvedValue([box]);
 
       // run test
       const ergoChain = ergoTestUtils.generateChainObject(network);
@@ -2041,10 +2056,8 @@ describe('ErgoChain', () => {
       // mock a network object
       const network = new TestErgoNetwork();
       // mock 'getBoxesByTokenId'
-      const getBoxesByTokenIdSpy = spyOn(network, 'getBoxesByTokenId');
-      when(getBoxesByTokenIdSpy)
-        .calledWith(guardNFT, ergoTestUtils.testLockAddress)
-        .mockResolvedValue([]);
+      const getBoxesByTokenIdSpy = vi.spyOn(network, 'getBoxesByTokenId');
+      getBoxesByTokenIdSpy.mockResolvedValue([]);
 
       // run test and expect exception thrown
       const ergoChain = ergoTestUtils.generateChainObject(network);
@@ -2079,10 +2092,8 @@ describe('ErgoChain', () => {
       // mock a network object
       const network = new TestErgoNetwork();
       // mock 'getBoxesByTokenId'
-      const getBoxesByTokenIdSpy = spyOn(network, 'getBoxesByTokenId');
-      when(getBoxesByTokenIdSpy)
-        .calledWith(guardNFT, ergoTestUtils.testLockAddress)
-        .mockResolvedValue(serializedBoxes);
+      const getBoxesByTokenIdSpy = vi.spyOn(network, 'getBoxesByTokenId');
+      getBoxesByTokenIdSpy.mockResolvedValue(serializedBoxes);
 
       // run test and expect exception thrown
       const ergoChain = ergoTestUtils.generateChainObject(network);
@@ -2190,10 +2201,8 @@ describe('ErgoChain', () => {
       // mock a network object
       const network = new TestErgoNetwork();
       // mock 'getBoxesByTokenId'
-      const getBoxesByTokenIdSpy = spyOn(network, 'getBoxesByTokenId');
-      when(getBoxesByTokenIdSpy)
-        .calledWith(guardNFT, ergoTestUtils.testLockAddress)
-        .mockResolvedValue([box]);
+      const getBoxesByTokenIdSpy = vi.spyOn(network, 'getBoxesByTokenId');
+      getBoxesByTokenIdSpy.mockResolvedValue([box]);
 
       // run test
       const ergoChain = ergoTestUtils.generateChainObject(network);
@@ -2225,10 +2234,8 @@ describe('ErgoChain', () => {
       // mock a network object
       const network = new TestErgoNetwork();
       // mock 'getBoxesByTokenId'
-      const getBoxesByTokenIdSpy = spyOn(network, 'getBoxesByTokenId');
-      when(getBoxesByTokenIdSpy)
-        .calledWith(guardNFT, ergoTestUtils.testLockAddress)
-        .mockResolvedValue([box]);
+      const getBoxesByTokenIdSpy = vi.spyOn(network, 'getBoxesByTokenId');
+      getBoxesByTokenIdSpy.mockResolvedValue([box]);
 
       // run test and expect exception thrown
       const ergoChain = ergoTestUtils.generateChainObject(network);
@@ -2365,12 +2372,12 @@ describe('ErgoChain', () => {
       // mock a network object
       const network = new TestErgoNetwork();
       // mock 'getStateContext'
-      const getStateContextSpy = spyOn(network, 'getStateContext');
+      const getStateContextSpy = vi.spyOn(network, 'getStateContext');
       getStateContextSpy.mockResolvedValue(
         transactionTestData.mockedStateContext
       );
       // mock getBox
-      const getBoxSpy = spyOn(network, 'getBox');
+      const getBoxSpy = vi.spyOn(network, 'getBox');
       [...expectedTx.inputBoxes, ...expectedTx.dataInputs].forEach((box) =>
         getBoxSpy.mockResolvedValueOnce(wasm.ErgoBox.sigma_parse_bytes(box))
       );

@@ -1,9 +1,6 @@
-import { when } from 'jest-when';
 import TestUtxoChainNetwork from './network/TestUtxoChainNetwork';
 import { AssetBalance } from '../lib';
 import { generateUtxoChainObject } from './testUtils';
-
-const spyOn = jest.spyOn;
 
 describe('AbstractUtxoChain', () => {
   describe('getCoveringBoxes', () => {
@@ -25,31 +22,32 @@ describe('AbstractUtxoChain', () => {
     it('should return enough boxes as covered when boxes cover required assets', async () => {
       // Mock a network object to return 2 boxes
       const network = new TestUtxoChainNetwork();
-      spyOn(network, 'getAddressBoxes')
+      vi.spyOn(network, 'getAddressBoxes')
         .mockResolvedValue([])
         .mockResolvedValueOnce(['serialized-box-1', 'serialized-box-2']);
 
       // Mock chain 'getBoxInfo' function to return mocked boxes assets
       const chain = generateUtxoChainObject(network);
-      const getBoxInfoSpy = spyOn(chain, 'getBoxInfo');
-      when(getBoxInfoSpy)
-        .calledWith('serialized-box-1')
-        .mockReturnValueOnce({
-          id: 'box1',
-          assets: {
-            nativeToken: 100000n,
-            tokens: [{ id: 'token1', value: 200n }],
-          },
-        });
-      when(getBoxInfoSpy)
-        .calledWith('serialized-box-2')
-        .mockReturnValueOnce({
-          id: 'box2',
-          assets: {
-            nativeToken: 100000n,
-            tokens: [{ id: 'token1', value: 200n }],
-          },
-        });
+      const getBoxInfoSpy = vi.spyOn(chain, 'getBoxInfo');
+      getBoxInfoSpy.mockImplementation((boxId: string) => {
+        if (boxId === 'serialized-box-1')
+          return {
+            id: 'box1',
+            assets: {
+              nativeToken: 100000n,
+              tokens: [{ id: 'token1', value: 200n }],
+            },
+          };
+        else if (boxId === 'serialized-box-2')
+          return {
+            id: 'box2',
+            assets: {
+              nativeToken: 100000n,
+              tokens: [{ id: 'token1', value: 200n }],
+            },
+          };
+        else throw Error(`'getBoxInfo' is not mocked for [${boxId}]`);
+      });
 
       // Mock an AssetBalance object with assets less than box assets
       const requiredAssets: AssetBalance = {
@@ -86,31 +84,32 @@ describe('AbstractUtxoChain', () => {
     it('should return all boxes as NOT covered when boxes do NOT cover required assets', async () => {
       // Mock a network object to return 2 boxes
       const network = new TestUtxoChainNetwork();
-      spyOn(network, 'getAddressBoxes')
+      vi.spyOn(network, 'getAddressBoxes')
         .mockResolvedValue([])
         .mockResolvedValueOnce(['serialized-box-1', 'serialized-box-2']);
 
       // Mock chain 'getBoxInfo' function to return mocked boxes assets
       const chain = generateUtxoChainObject(network);
-      const getBoxInfoSpy = spyOn(chain, 'getBoxInfo');
-      when(getBoxInfoSpy)
-        .calledWith('serialized-box-1')
-        .mockReturnValueOnce({
-          id: 'box1',
-          assets: {
-            nativeToken: 100000n,
-            tokens: [{ id: 'token1', value: 200n }],
-          },
-        });
-      when(getBoxInfoSpy)
-        .calledWith('serialized-box-2')
-        .mockReturnValueOnce({
-          id: 'box2',
-          assets: {
-            nativeToken: 100000n,
-            tokens: [{ id: 'token1', value: 200n }],
-          },
-        });
+      const getBoxInfoSpy = vi.spyOn(chain, 'getBoxInfo');
+      getBoxInfoSpy.mockImplementation((boxId: string) => {
+        if (boxId === 'serialized-box-1')
+          return {
+            id: 'box1',
+            assets: {
+              nativeToken: 100000n,
+              tokens: [{ id: 'token1', value: 200n }],
+            },
+          };
+        else if (boxId === 'serialized-box-2')
+          return {
+            id: 'box2',
+            assets: {
+              nativeToken: 100000n,
+              tokens: [{ id: 'token1', value: 200n }],
+            },
+          };
+        else throw Error(`'getBoxInfo' is not mocked for [${boxId}]`);
+      });
 
       // Mock an AssetBalance object with assets more than box assets
       const requiredAssets: AssetBalance = {
@@ -148,32 +147,33 @@ describe('AbstractUtxoChain', () => {
     it('should return all useful boxes as NOT covered when boxes do NOT cover required tokens', async () => {
       // Mock a network object to return 2 boxes
       const network = new TestUtxoChainNetwork();
-      spyOn(network, 'getAddressBoxes')
+      vi.spyOn(network, 'getAddressBoxes')
         .mockResolvedValue([])
         .mockResolvedValueOnce(['serialized-box-1', 'serialized-box-2']);
 
       // Mock chain 'getBoxInfo' function to return mocked boxes assets
       //  (second box doesn't contain required token)
       const chain = generateUtxoChainObject(network);
-      const getBoxInfoSpy = spyOn(chain, 'getBoxInfo');
-      when(getBoxInfoSpy)
-        .calledWith('serialized-box-1')
-        .mockReturnValueOnce({
-          id: 'box1',
-          assets: {
-            nativeToken: 100000n,
-            tokens: [{ id: 'token1', value: 200n }],
-          },
-        });
-      when(getBoxInfoSpy)
-        .calledWith('serialized-box-2')
-        .mockReturnValueOnce({
-          id: 'box2',
-          assets: {
-            nativeToken: 100000n,
-            tokens: [{ id: 'token2', value: 200n }],
-          },
-        });
+      const getBoxInfoSpy = vi.spyOn(chain, 'getBoxInfo');
+      getBoxInfoSpy.mockImplementation((boxId: string) => {
+        if (boxId === 'serialized-box-1')
+          return {
+            id: 'box1',
+            assets: {
+              nativeToken: 100000n,
+              tokens: [{ id: 'token1', value: 200n }],
+            },
+          };
+        else if (boxId === 'serialized-box-2')
+          return {
+            id: 'box2',
+            assets: {
+              nativeToken: 100000n,
+              tokens: [{ id: 'token2', value: 200n }],
+            },
+          };
+        else throw Error(`'getBoxInfo' is not mocked for [${boxId}]`);
+      });
 
       // Mock an AssetBalance object with tokens more than box tokens
       const requiredAssets: AssetBalance = {
@@ -210,7 +210,7 @@ describe('AbstractUtxoChain', () => {
     it('should return enough boxes as covered when two pages boxes cover required assets', async () => {
       // Mock a network object to return 12 boxes
       const network = new TestUtxoChainNetwork();
-      spyOn(network, 'getAddressBoxes')
+      vi.spyOn(network, 'getAddressBoxes')
         .mockResolvedValue([])
         .mockResolvedValueOnce(
           Array.from({ length: 10 }, (x, i) => i).map(
@@ -221,17 +221,18 @@ describe('AbstractUtxoChain', () => {
 
       // Mock chain 'getBoxInfo' function to return mocked boxes assets
       const chain = generateUtxoChainObject(network);
-      const getBoxInfoSpy = spyOn(chain, 'getBoxInfo');
-      Array.from({ length: 12 }, (x, i) => i).map((i) => {
-        when(getBoxInfoSpy)
-          .calledWith(`serialized-box-${i + 1}`)
-          .mockReturnValueOnce({
+      const getBoxInfoSpy = vi.spyOn(chain, 'getBoxInfo');
+      getBoxInfoSpy.mockImplementation((boxId: string) => {
+        const i = Number(boxId.slice(15));
+        if (i > 0 && i < 13)
+          return {
             id: `box${i + 1}`,
             assets: {
               nativeToken: 100000n,
               tokens: [{ id: 'token1', value: 200n }],
             },
-          });
+          };
+        else throw Error(`'getBoxInfo' is not mocked for [${boxId}]`);
       });
 
       // Mock an AssetBalance object with assets less than box assets
@@ -273,7 +274,7 @@ describe('AbstractUtxoChain', () => {
     it('should return all boxes as NOT covered when two pages boxes do NOT cover required assets', async () => {
       // Mock a network object to return 12 boxes
       const network = new TestUtxoChainNetwork();
-      spyOn(network, 'getAddressBoxes')
+      vi.spyOn(network, 'getAddressBoxes')
         .mockResolvedValue([])
         .mockResolvedValueOnce(
           Array.from({ length: 10 }, (x, i) => i).map(
@@ -284,14 +285,15 @@ describe('AbstractUtxoChain', () => {
 
       // Mock chain 'getBoxInfo' function to return mocked boxes assets
       const chain = generateUtxoChainObject(network);
-      const getBoxInfoSpy = spyOn(chain, 'getBoxInfo');
-      Array.from({ length: 12 }, (x, i) => i).map((i) => {
-        when(getBoxInfoSpy)
-          .calledWith(`serialized-box-${i + 1}`)
-          .mockReturnValueOnce({
+      const getBoxInfoSpy = vi.spyOn(chain, 'getBoxInfo');
+      getBoxInfoSpy.mockImplementation((boxId: string) => {
+        const i = Number(boxId.slice(15));
+        if (i > 0 && i < 13)
+          return {
             id: `box${i + 1}`,
             assets: { nativeToken: 100000n, tokens: [] },
-          });
+          };
+        else throw Error(`'getBoxInfo' is not mocked for [${boxId}]`);
       });
 
       // Mock an AssetBalance object with assets more than box assets
@@ -332,7 +334,7 @@ describe('AbstractUtxoChain', () => {
     it('should return no boxes as NOT covered when address has no boxes', async () => {
       // Mock a network object to return NO boxes
       const network = new TestUtxoChainNetwork();
-      spyOn(network, 'getAddressBoxes').mockResolvedValue([]);
+      vi.spyOn(network, 'getAddressBoxes').mockResolvedValue([]);
 
       // Mock an AssetBalance object with some assets
       const requiredAssets: AssetBalance = {
@@ -371,7 +373,7 @@ describe('AbstractUtxoChain', () => {
     it('should return enough boxes as covered when tracked boxes cover required assets', async () => {
       // Mock a network object to return 2 boxes
       const network = new TestUtxoChainNetwork();
-      spyOn(network, 'getAddressBoxes')
+      vi.spyOn(network, 'getAddressBoxes')
         .mockResolvedValue([])
         .mockResolvedValueOnce(['serialized-box-1', 'serialized-box-2']);
 
@@ -381,34 +383,34 @@ describe('AbstractUtxoChain', () => {
 
       // Mock chain 'getBoxInfo' function to return mocked boxes assets
       const chain = generateUtxoChainObject(network);
-      const getBoxInfoSpy = spyOn(chain, 'getBoxInfo');
-      when(getBoxInfoSpy)
-        .calledWith('serialized-box-1')
-        .mockReturnValueOnce({
-          id: 'box1',
-          assets: {
-            nativeToken: 100000n,
-            tokens: [{ id: 'token1', value: 200n }],
-          },
-        });
-      when(getBoxInfoSpy)
-        .calledWith('serialized-tracked-box-1')
-        .mockReturnValueOnce({
-          id: 'trackedBox1',
-          assets: {
-            nativeToken: 80000n,
-            tokens: [{ id: 'token1', value: 150n }],
-          },
-        });
-      when(getBoxInfoSpy)
-        .calledWith('serialized-box-2')
-        .mockReturnValueOnce({
-          id: 'box2',
-          assets: {
-            nativeToken: 100000n,
-            tokens: [{ id: 'token1', value: 200n }],
-          },
-        });
+      const getBoxInfoSpy = vi.spyOn(chain, 'getBoxInfo');
+      getBoxInfoSpy.mockImplementation((boxId: string) => {
+        if (boxId === 'serialized-box-1')
+          return {
+            id: 'box1',
+            assets: {
+              nativeToken: 100000n,
+              tokens: [{ id: 'token1', value: 200n }],
+            },
+          };
+        else if (boxId === 'serialized-tracked-box-1')
+          return {
+            id: 'trackedBox1',
+            assets: {
+              nativeToken: 80000n,
+              tokens: [{ id: 'token1', value: 150n }],
+            },
+          };
+        else if (boxId === 'serialized-box-2')
+          return {
+            id: 'box2',
+            assets: {
+              nativeToken: 100000n,
+              tokens: [{ id: 'token1', value: 200n }],
+            },
+          };
+        else throw Error(`'getBoxInfo' is not mocked for [${boxId}]`);
+      });
 
       // Mock an AssetBalance object with assets less than box assets
       const requiredAssets: AssetBalance = {
@@ -446,7 +448,7 @@ describe('AbstractUtxoChain', () => {
     it('should return all boxes as NOT covered when tracked boxes do NOT cover required assets', async () => {
       // Mock a network object to return 2 boxes
       const network = new TestUtxoChainNetwork();
-      spyOn(network, 'getAddressBoxes')
+      vi.spyOn(network, 'getAddressBoxes')
         .mockResolvedValue([])
         .mockResolvedValueOnce(['serialized-box-1', 'serialized-box-2']);
 
@@ -456,34 +458,34 @@ describe('AbstractUtxoChain', () => {
 
       // Mock chain 'getBoxInfo' function to return mocked boxes assets
       const chain = generateUtxoChainObject(network);
-      const getBoxInfoSpy = spyOn(chain, 'getBoxInfo');
-      when(getBoxInfoSpy)
-        .calledWith('serialized-box-1')
-        .mockReturnValueOnce({
-          id: 'box1',
-          assets: {
-            nativeToken: 100000n,
-            tokens: [{ id: 'token1', value: 200n }],
-          },
-        });
-      when(getBoxInfoSpy)
-        .calledWith('serialized-tracked-box-1')
-        .mockReturnValueOnce({
-          id: 'trackedBox1',
-          assets: {
-            nativeToken: 80000n,
-            tokens: [{ id: 'token1', value: 150n }],
-          },
-        });
-      when(getBoxInfoSpy)
-        .calledWith('serialized-box-2')
-        .mockReturnValueOnce({
-          id: 'box2',
-          assets: {
-            nativeToken: 100000n,
-            tokens: [{ id: 'token1', value: 200n }],
-          },
-        });
+      const getBoxInfoSpy = vi.spyOn(chain, 'getBoxInfo');
+      getBoxInfoSpy.mockImplementation((boxId: string) => {
+        if (boxId === 'serialized-box-1')
+          return {
+            id: 'box1',
+            assets: {
+              nativeToken: 100000n,
+              tokens: [{ id: 'token1', value: 200n }],
+            },
+          };
+        else if (boxId === 'serialized-tracked-box-1')
+          return {
+            id: 'trackedBox1',
+            assets: {
+              nativeToken: 80000n,
+              tokens: [{ id: 'token1', value: 150n }],
+            },
+          };
+        else if (boxId === 'serialized-box-2')
+          return {
+            id: 'box2',
+            assets: {
+              nativeToken: 100000n,
+              tokens: [{ id: 'token1', value: 200n }],
+            },
+          };
+        else throw Error(`'getBoxInfo' is not mocked for [${boxId}]`);
+      });
 
       // Mock an AssetBalance object with assets less than box assets
       const requiredAssets: AssetBalance = {
@@ -524,7 +526,7 @@ describe('AbstractUtxoChain', () => {
     it('should return second box as covered when first box is not allowed', async () => {
       // Mock a network object to return 2 boxes
       const network = new TestUtxoChainNetwork();
-      spyOn(network, 'getAddressBoxes')
+      vi.spyOn(network, 'getAddressBoxes')
         .mockResolvedValue([])
         .mockResolvedValueOnce(['serialized-box-1', 'serialized-box-2']);
 
@@ -533,25 +535,26 @@ describe('AbstractUtxoChain', () => {
 
       // Mock chain 'getBoxInfo' function to return mocked boxes assets
       const chain = generateUtxoChainObject(network);
-      const getBoxInfoSpy = spyOn(chain, 'getBoxInfo');
-      when(getBoxInfoSpy)
-        .calledWith('serialized-box-1')
-        .mockReturnValueOnce({
-          id: 'box1',
-          assets: {
-            nativeToken: 100000n,
-            tokens: [{ id: 'token1', value: 200n }],
-          },
-        });
-      when(getBoxInfoSpy)
-        .calledWith('serialized-box-2')
-        .mockReturnValueOnce({
-          id: 'box2',
-          assets: {
-            nativeToken: 100000n,
-            tokens: [{ id: 'token1', value: 200n }],
-          },
-        });
+      const getBoxInfoSpy = vi.spyOn(chain, 'getBoxInfo');
+      getBoxInfoSpy.mockImplementation((boxId: string) => {
+        if (boxId === 'serialized-box-1')
+          return {
+            id: 'box1',
+            assets: {
+              nativeToken: 100000n,
+              tokens: [{ id: 'token1', value: 200n }],
+            },
+          };
+        else if (boxId === 'serialized-box-2')
+          return {
+            id: 'box2',
+            assets: {
+              nativeToken: 100000n,
+              tokens: [{ id: 'token1', value: 200n }],
+            },
+          };
+        else throw Error(`'getBoxInfo' is not mocked for [${boxId}]`);
+      });
 
       // Mock an AssetBalance object with assets less than box assets
       const requiredAssets: AssetBalance = {
@@ -589,7 +592,7 @@ describe('AbstractUtxoChain', () => {
     it('should return no boxes as NOT covered when tracking ends to no box', async () => {
       // Mock a network object to return one box
       const network = new TestUtxoChainNetwork();
-      spyOn(network, 'getAddressBoxes')
+      vi.spyOn(network, 'getAddressBoxes')
         .mockResolvedValue([])
         .mockResolvedValueOnce(['serialized-box-1']);
 
@@ -599,16 +602,18 @@ describe('AbstractUtxoChain', () => {
 
       // Mock chain 'getBoxInfo' function to return mocked boxes assets
       const chain = generateUtxoChainObject(network);
-      const getBoxInfoSpy = spyOn(chain, 'getBoxInfo');
-      when(getBoxInfoSpy)
-        .calledWith('serialized-box-1')
-        .mockReturnValueOnce({
-          id: 'box1',
-          assets: {
-            nativeToken: 100000n,
-            tokens: [{ id: 'token1', value: 200n }],
-          },
-        });
+      const getBoxInfoSpy = vi.spyOn(chain, 'getBoxInfo');
+      getBoxInfoSpy.mockImplementation((boxId: string) => {
+        if (boxId === 'serialized-box-1')
+          return {
+            id: 'box1',
+            assets: {
+              nativeToken: 100000n,
+              tokens: [{ id: 'token1', value: 200n }],
+            },
+          };
+        else throw Error(`'getBoxInfo' is not mocked for [${boxId}]`);
+      });
 
       // Mock an AssetBalance object with assets less than box assets
       const requiredAssets: AssetBalance = {
@@ -646,7 +651,7 @@ describe('AbstractUtxoChain', () => {
     it('should return all boxes as NOT covered when two boxes are tracked to same box', async () => {
       // Mock a network object to return 2 boxes
       const network = new TestUtxoChainNetwork();
-      spyOn(network, 'getAddressBoxes')
+      vi.spyOn(network, 'getAddressBoxes')
         .mockResolvedValue([])
         .mockResolvedValueOnce(['serialized-box-1', 'serialized-box-2']);
 
@@ -657,34 +662,34 @@ describe('AbstractUtxoChain', () => {
 
       // Mock chain 'getBoxInfo' function to return mocked boxes assets
       const chain = generateUtxoChainObject(network);
-      const getBoxInfoSpy = spyOn(chain, 'getBoxInfo');
-      when(getBoxInfoSpy)
-        .calledWith('serialized-box-1')
-        .mockReturnValueOnce({
-          id: 'box1',
-          assets: {
-            nativeToken: 100000n,
-            tokens: [{ id: 'token1', value: 200n }],
-          },
-        });
-      when(getBoxInfoSpy)
-        .calledWith('serialized-box-2')
-        .mockReturnValueOnce({
-          id: 'box2',
-          assets: {
-            nativeToken: 100000n,
-            tokens: [{ id: 'token1', value: 200n }],
-          },
-        });
-      when(getBoxInfoSpy)
-        .calledWith('serialized-tracked-box-1')
-        .mockReturnValue({
-          id: 'trackedBox1',
-          assets: {
-            nativeToken: 80000n,
-            tokens: [{ id: 'token1', value: 150n }],
-          },
-        });
+      const getBoxInfoSpy = vi.spyOn(chain, 'getBoxInfo');
+      getBoxInfoSpy.mockImplementation((boxId: string) => {
+        if (boxId === 'serialized-box-1')
+          return {
+            id: 'box1',
+            assets: {
+              nativeToken: 100000n,
+              tokens: [{ id: 'token1', value: 200n }],
+            },
+          };
+        else if (boxId === 'serialized-tracked-box-1')
+          return {
+            id: 'trackedBox1',
+            assets: {
+              nativeToken: 80000n,
+              tokens: [{ id: 'token1', value: 150n }],
+            },
+          };
+        else if (boxId === 'serialized-box-2')
+          return {
+            id: 'box2',
+            assets: {
+              nativeToken: 100000n,
+              tokens: [{ id: 'token1', value: 200n }],
+            },
+          };
+        else throw Error(`'getBoxInfo' is not mocked for [${boxId}]`);
+      });
 
       // Mock an AssetBalance object with assets less than box assets
       const requiredAssets: AssetBalance = {
