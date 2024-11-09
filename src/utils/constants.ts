@@ -64,6 +64,7 @@ const ChainNativeToken: Record<string, string> = {
   [CARDANO_CHAIN]: ADA,
   [BITCOIN_CHAIN]: BTC,
   [ETHEREUM_CHAIN]: ETH,
+  [DOGE_CHAIN]: DOGE,
 };
 
 export {

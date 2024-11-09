@@ -40,6 +40,8 @@ import GuardsEthereumConfigs from '../configs/GuardsEthereumConfigs';
 import EvmRpcNetwork from '@rosen-chains/evm-rpc';
 import { dataSource } from '../db/dataSource';
 import { ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
+import { DatabaseAction } from 'src/db/DatabaseAction';
+import * as TransactionSerializer from '../transaction/TransactionSerializer';
 
 const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
 
@@ -208,6 +210,11 @@ class ChainHandler {
       case 'esplora':
         network = new DogeEsploraNetwork(
           GuardsDogeConfigs.esplora.url,
+          async (txId: string) => {
+            const tx = await DatabaseAction.getInstance().getTxById(txId);
+            if (tx === null) return undefined;
+            return TransactionSerializer.fromJson(tx.txJson);
+          },
           WinstonLogger.getInstance().getLogger('EsploraNetwork')
         );
         break;
