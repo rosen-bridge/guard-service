@@ -1,10 +1,11 @@
 import Utils from '../../src/utils/Utils';
+import * as testData from './testData';
 
 describe('Utils', () => {
   describe('convertMnemonicToSecretKey', () => {
     /**
      * @target Utils.convertMnemonicToSecretKey should return correct secret key
-     * in hex string fromat from mnemonic
+     * in hex string format from mnemonic
      * @dependencies
      * @scenario
      * - mock mnemonic and corresponding secret key
@@ -22,6 +23,27 @@ describe('Utils', () => {
       const result = Utils.convertMnemonicToSecretKey(mnemonic);
 
       expect(result).toEqual(secret);
+    });
+  });
+
+  describe('commitmentFromEvent', () => {
+    /**
+     * @target Utils.commitmentFromEvent should return commitment successfully
+     * @dependencies
+     * @scenario
+     * - mock event and corresponding commit hash
+     * - run test
+     * - verify returned value
+     * @expected
+     * - returned value should be expected hash
+     */
+    it('should return commitment successfully', () => {
+      const result = Utils.commitmentFromEvent(
+        testData.mockedEventForCommitment,
+        testData.WID
+      );
+
+      expect(result).toEqual(testData.expectedCommitment);
     });
   });
 });

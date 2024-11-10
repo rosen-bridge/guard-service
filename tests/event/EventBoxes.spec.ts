@@ -431,7 +431,7 @@ describe('EventBoxes', () => {
     });
 
     /**
-     * @target EventBoxes.getEventValidCommitments should not return serialized when commitment box commit is invalid
+     * @target EventBoxes.getEventValidCommitments should filter commitments with unexpected commit hash
      * @dependencies
      * - database
      * @scenario
@@ -444,7 +444,7 @@ describe('EventBoxes', () => {
      * @expected
      * - it should return one valid commitment
      */
-    it('should not return serialized when commitment box commit is invalid', async () => {
+    it('should filter commitments with unexpected commit hash', async () => {
       // insert a mocked event into db
       const mockedEvent = mockEventTrigger();
       const eventId = EventSerializer.getId(mockedEvent.event);
