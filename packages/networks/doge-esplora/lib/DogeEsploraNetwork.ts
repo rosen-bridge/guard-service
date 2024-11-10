@@ -110,7 +110,21 @@ class DogeEsploraNetwork extends AbstractDogeNetwork {
       if (realTx) {
         const firstInputId = `${realTx?.inputs[0].txId}.${realTx?.inputs[0].index}`;
         const spentTx = await this.getSpentTransactionByInputId(firstInputId);
-        if (spentTx) realTxId = spentTx.id;
+        if (spentTx) {
+          const sameInputs = realTx.inputs.every(
+            (input, i) =>
+              spentTx.inputs[i].txId === input.txId &&
+              spentTx.inputs[i].index === input.index
+          );
+          const sameOutputs = realTx.outputs.every(
+            (output, i) =>
+              spentTx.outputs[i].scriptPubKey === output.scriptPubKey &&
+              spentTx.outputs[i].value === output.value
+          );
+          if (sameInputs && sameOutputs) {
+            realTxId = spentTx.id;
+          }
+        }
       }
     } catch (e) {
       this.logger.debug(`tx [${transactionId}] is not found in DB`);
