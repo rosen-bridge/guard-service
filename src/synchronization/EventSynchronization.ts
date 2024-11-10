@@ -369,8 +369,6 @@ class EventSynchronization extends Communicator {
    * verifies the sync response sent by other guards, save the transaction if its verified
    * @param tx the payment transaction id
    * @param senderIndex index of the guard that sent the response
-   * @param signature signature of creator guard over request data
-   * @param timestamp
    */
   protected processSyncResponse = async (
     tx: PaymentTransaction,
