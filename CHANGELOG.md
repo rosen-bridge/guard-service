@@ -1,5 +1,11 @@
 # guard-service
 
+## 5.0.3
+
+### Patch Changes
+
+- Fix commitment verification
+
 ## 5.0.2
 
 ### Patch Changes

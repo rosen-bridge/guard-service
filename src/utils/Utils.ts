@@ -73,7 +73,7 @@ class Utils {
       Buffer.from(event.sourceChainTokenId),
       Buffer.from(event.targetChainTokenId),
       Buffer.from(event.sourceBlockId),
-      Utils.bigIntToUint8Array(BigInt(event.height)),
+      Utils.bigIntToUint8Array(BigInt(event.sourceChainHeight)),
       Buffer.from(WID, 'hex'),
     ]);
     return Buffer.from(blake2b(content, undefined, 32)).toString('hex');
