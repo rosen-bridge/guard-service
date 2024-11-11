@@ -1,5 +1,11 @@
 # @rosen-chains/ergo
 
+## 10.1.1
+
+### Patch Changes
+
+- Add creation height verification
+
 ## 10.1.0
 
 ### Minor Changes

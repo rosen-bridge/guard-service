@@ -559,6 +559,7 @@ class ErgoChain extends AbstractUtxoChain<wasm.Transaction, wasm.ErgoBox> {
   /**
    * verifies additional conditions for a PaymentTransaction
    *   1. change boxes should not have register
+   *   2. output boxes should have higher creation height than inputs
    * @param transaction the PaymentTransaction
    * @param signingStatus the signing status of transaction
    * @returns true if the transaction verified
@@ -578,6 +579,13 @@ class ErgoChain extends AbstractUtxoChain<wasm.Transaction, wasm.ErgoBox> {
       tx = Serializer.deserialize(transaction.txBytes).unsigned_tx();
     }
 
+    const ergoTx = transaction as ErgoTransaction;
+    const maxCreationHeight = Math.max(
+      ...ergoTx.inputBoxes.map((serializedBox) =>
+        wasm.ErgoBox.sigma_parse_bytes(serializedBox).creation_height()
+      )
+    );
+
     const outputBoxes = tx.output_candidates();
     const lockErgoTree = wasm.Address.from_base58(this.configs.addresses.lock)
       .to_ergo_tree()
@@ -596,6 +604,18 @@ class ErgoChain extends AbstractUtxoChain<wasm.Transaction, wasm.ErgoBox> {
           `Tx [${
             transaction.txId
           }] is not verified: Change box at index [${i}] has value [${r4Value.encode_to_base16()}] in R4`
+        );
+        return false;
+      }
+    }
+
+    for (let i = 0; i < outputBoxes.len(); i++) {
+      const output = outputBoxes.get(i);
+      if (output.creation_height() < maxCreationHeight) {
+        this.logger.warn(
+          `Tx [${
+            transaction.txId
+          }] is not verified: Output box at index [${i}] has low creation height. Expected more than [${maxCreationHeight}] found [${output.creation_height()}]`
         );
         return false;
       }
