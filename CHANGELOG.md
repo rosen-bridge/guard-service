@@ -1,5 +1,12 @@
 # guard-service
 
+## 5.0.4
+
+### Patch Changes
+
+- Fix termination bug in APIs
+- Add creation height validation to ErgoChain
+
 ## 5.0.3
 
 ### Patch Changes
