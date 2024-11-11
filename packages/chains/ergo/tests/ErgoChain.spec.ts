@@ -1317,6 +1317,54 @@ describe('ErgoChain', () => {
       // check returned value
       expect(result).toEqual(false);
     });
+
+    /**
+     * @target ErgoChain.verifyTransactionExtraConditions should return false
+     * when output creation height is less than an input
+     * @dependencies
+     * @scenario
+     * - mock valid PaymentTransaction
+     * - mock a config with valid lockAddress
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when output creation height is less than an input', async () => {
+      // mock PaymentTransaction
+      const paymentTx = ErgoTransaction.fromJson(
+        transactionTestData.transaction7PaymentTransaction
+      );
+
+      // mock a config with valid lockAddress
+      const config: ErgoConfigs = {
+        fee: 1200000n,
+        confirmations: ergoTestUtils.defaultConfirmations,
+        addresses: {
+          lock: 'nB3L2PD3LG4ydEj62n9aymRyPCEbkBdzaubgvCWDH2oxHxFBfAUy9GhWDvteDbbUh5qhXxnW8R46qmEiZfkej8gt4kZYvbeobZJADMrWXwFJTsZ17euEcoAp3KDk31Q26okFpgK9SKdi4',
+          cold: 'cold_addr',
+          permit: 'permit_addr',
+          fraud: 'fraud_addr',
+        },
+        rwtId: ergoTestUtils.rwtId,
+        minBoxValue: 1000000n,
+        eventTxConfirmation: 18,
+      };
+
+      // run test
+      const ergoChain = new ErgoChain(
+        network,
+        config,
+        ergoTestUtils.testTokenMap,
+        ergoTestUtils.defaultSignFunction
+      );
+      const result = await ergoChain.verifyTransactionExtraConditions(
+        paymentTx
+      );
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
   });
 
   describe('isTxValid', () => {
