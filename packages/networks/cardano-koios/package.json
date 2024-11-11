@@ -10,9 +10,9 @@
     "lint": "eslint --fix . && npm run prettify",
     "build": "tsc --build tsconfig.build.json",
     "type-check": "tsc --noEmit",
-    "test": "jest",
-    "coverage": "npm run test -- --coverage",
-    "release": "npm run test && npm run build && npm publish --access public"
+    "test": "NODE_OPTIONS=--loader=extensionless vitest",
+    "coverage": "npm run test -- --run --coverage",
+    "release": "npm run test -- --run && npm run build && npm publish --access public"
   },
   "repository": {
     "type": "git",
@@ -21,26 +21,26 @@
   "license": "CC0-1.0",
   "dependencies": {
     "@emurgo/cardano-serialization-lib-nodejs": "^11.3.1",
-    "@rosen-bridge/json-bigint": "^0.1.0",
     "@rosen-bridge/abstract-logger": "^2.0.1",
+    "@rosen-bridge/json-bigint": "^0.1.0",
     "@rosen-chains/abstract-chain": "^11.0.0",
     "@rosen-chains/cardano": "^10.1.0",
     "@rosen-clients/cardano-koios": "^2.0.3"
   },
   "devDependencies": {
-    "@babel/preset-env": "^7.19.0",
-    "@types/jest": "^29.4.0",
-    "@types/jest-when": "^3.5.2",
-    "@types/node": "^8.0.0",
+    "@types/node": "^20.11.9",
     "@typescript-eslint/eslint-plugin": "^5.30.7",
     "@typescript-eslint/parser": "^5.26.0",
+    "@vitest/coverage-istanbul": "^2.1.4",
     "eslint": "^8.16.0",
     "eslint-config-prettier": "^8.5.0",
-    "jest": "^29.4.3",
-    "jest-when": "^3.5.2",
+    "extensionless": "^1.9.6",
     "prettier": "^2.7.1",
-    "ts-jest": "^29.0.3",
-    "typescript": "^5.0.4"
+    "typescript": "^5.0.4",
+    "vitest": "^2.1.4"
+  },
+  "engines": {
+    "node": ">=20.11.0"
   },
   "directories": {
     "lib": "lib",

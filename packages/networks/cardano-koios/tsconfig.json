@@ -4,7 +4,7 @@
     "outDir": "dist",
     "rootDir": "./"
   },
-  "include": ["lib", "tests"],
+  "include": ["lib", "tests", "vitest.config.ts"],
   "references": [
     { "path": "../../abstract-chain" },
     { "path": "../../chains/cardano" }
