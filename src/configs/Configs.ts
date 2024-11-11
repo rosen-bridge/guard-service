@@ -204,6 +204,7 @@ class Configs {
   static multiSigCleanUpInterval = 120; // seconds
   static tssInstanceRestartGap = 5; // seconds
   static tssUpdateInterval = 10; // seconds
+  static detectionUpdateInterval = 10; // seconds
   static timeoutProcessorInterval = getConfigIntKeyOrDefault(
     'intervals.timeoutProcessorInterval',
     3600
