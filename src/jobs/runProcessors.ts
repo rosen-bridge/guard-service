@@ -6,6 +6,11 @@ import ColdStorage from '../coldStorage/ColdStorage';
 import ColdStorageConfig from '../coldStorage/ColdStorageConfig';
 import TxAgreement from '../agreement/TxAgreement';
 import ArbitraryProcessor from '../arbitrary/ArbitraryProcessor';
+import EventSynchronization from '../synchronization/EventSynchronization';
+import DetectionHandler from '../handlers/DetectionHandler';
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+
+const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
 /**
  * sends generated tx to agreement
@@ -88,11 +93,12 @@ const transactionJob = () => {
 };
 
 /**
- * runs timeout leftover events and orders job
+ * runs timeout leftover events, orders and event active syncs job
  */
 const timeoutProcessorJob = async () => {
   await EventProcessor.TimeoutLeftoverEvents();
   await ArbitraryProcessor.getInstance().timeoutLeftoverOrders();
+  await EventSynchronization.getInstance().timeoutActiveSyncs();
   setTimeout(timeoutProcessorJob, Configs.timeoutProcessorInterval * 1000);
 };
 
@@ -109,6 +115,30 @@ const requeueWaitingEventsJob = async () => {
 };
 
 /**
+ * runs event active synchronizations jobs
+ */
+const eventSyncJob = async () => {
+  await EventSynchronization.getInstance().processSyncQueue();
+  await EventSynchronization.getInstance().sendSyncBatch();
+  setTimeout(eventSyncJob, Configs.eventSyncInterval * 1000);
+};
+
+/**
+ * runs Detection update job
+ */
+const detectionUpdateJob = () => {
+  DetectionHandler.getInstance()
+    .update()
+    .then(() =>
+      setTimeout(detectionUpdateJob, Configs.detectionUpdateInterval * 1000)
+    )
+    .catch((e) => {
+      logger.error(`Detection update job failed with error: ${e}`);
+      setTimeout(detectionUpdateJob, Configs.detectionUpdateInterval * 1000);
+    });
+};
+
+/**
  * runs all processors and their related jobs
  */
 const runProcessors = () => {
@@ -121,6 +151,8 @@ const runProcessors = () => {
     requeueWaitingEventsJob,
     Configs.requeueWaitingEventsInterval * 1000
   );
+  setTimeout(eventSyncJob, Configs.eventSyncInterval * 1000);
+  setTimeout(detectionUpdateJob, Configs.detectionUpdateInterval * 1000);
 };
 
 export { runProcessors };

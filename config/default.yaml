@@ -120,6 +120,11 @@ reward:
   networkFeeRepoAddress: '' # guards address for receiving network fee of events
   watchersSharePercent: 50 # watchers share for event fees (payed in tokens or native token)
   watchersEmissionSharePercent: 0 # watchers share for event fees (payed in emission token)
+eventSync:
+  parallelSyncLimit: 3
+  parallelRequestCount: 3
+  timeout: 3600
+  interval: 60
 tss:
   path: './bin/tss.exe' # path to tss executable file
   configPath: './bin/conf/conf.env'

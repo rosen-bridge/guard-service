@@ -112,6 +112,18 @@ class Configs {
     >('tss.pubs'),
   };
 
+  // event synchronization
+  static parallelSyncLimit = getConfigIntKeyOrDefault(
+    'eventSync.parallelSyncLimit',
+    3
+  );
+  static parallelRequestCount = getConfigIntKeyOrDefault(
+    'eventSync.parallelRequestCount',
+    3
+  );
+  static eventSyncTimeout = getConfigIntKeyOrDefault('eventSync.timeout', 3600);
+  static eventSyncInterval = getConfigIntKeyOrDefault('eventSync.interval', 60);
+
   // guards configs
   static guardMnemonic = config.get<string>('guard.mnemonic');
   static guardSecret = Utils.convertMnemonicToSecretKey(this.guardMnemonic);
@@ -192,6 +204,7 @@ class Configs {
   static multiSigCleanUpInterval = 120; // seconds
   static tssInstanceRestartGap = 5; // seconds
   static tssUpdateInterval = 10; // seconds
+  static detectionUpdateInterval = 10; // seconds
   static timeoutProcessorInterval = getConfigIntKeyOrDefault(
     'intervals.timeoutProcessorInterval',
     3600

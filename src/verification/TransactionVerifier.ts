@@ -4,6 +4,7 @@ import {
   ImpossibleBehavior,
   PaymentOrder,
   PaymentTransaction,
+  SigningStatus,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
 import ChainHandler from '../handlers/ChainHandler';
@@ -58,9 +59,9 @@ class TransactionVerifier {
     }
 
     // verify extra conditions
-    if (!chain.verifyTransactionExtraConditions(tx)) {
+    if (!chain.verifyTransactionExtraConditions(tx, SigningStatus.UnSigned)) {
       logger.debug(
-        `Transaction [${tx.txId}] is invalid: Extra conditions is not verified`
+        `Transaction [${tx.txId}] is invalid: Extra conditions are not verified`
       );
       return false;
     }
