@@ -42,6 +42,7 @@ const signRoute = (server: FastifySeverInstance) => {
             `Received message on Tss tx sign callback with wrong trust key`
           );
           reply.status(400).send({ message: 'Trust key is wrong' });
+          return;
         }
         await Tss.getInstance().handleSignData(
           algorithm,
