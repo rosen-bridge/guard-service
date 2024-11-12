@@ -23,7 +23,7 @@ import { DogeConfigs, DogeTx, DogeUtxo, TssSignFunction } from './types';
 import Serializer from './Serializer';
 import { Psbt, Transaction, address, payments, script } from 'bitcoinjs-lib'; // Adjust if necessary for Dogecoin
 import JsonBigInt from '@rosen-bridge/json-bigint';
-import { estimateTxFee, getPsbtTxInputBoxId } from './dogeUtils'; // Adjust if necessary for Dogecoin
+import { getPsbtTxInputBoxId } from './dogeUtils'; // Adjust if necessary for Dogecoin
 import {
   DOGE_CHAIN,
   DOGE,
@@ -32,7 +32,7 @@ import {
 } from './constants';
 import { DogeRosenExtractor } from '@rosen-bridge/rosen-extractor'; // Adjust if necessary for Dogecoin
 import { RosenAmount, RosenTokens } from '@rosen-bridge/tokens';
-import { selectDogeUtxos } from './dogeUtils';
+import { selectDogeUtxos, estimateTxFee } from '@rosen-bridge/doge-utxo-selection';
 
 class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
   declare network: AbstractDogeNetwork;

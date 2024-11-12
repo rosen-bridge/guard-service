@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "@rosen-bridge/abstract-logger": "^1.0.0",
-    "@rosen-bridge/bitcoin-utxo-selection": "^0.2.0",
+    "@rosen-bridge/doge-utxo-selection": "^0.0.0",
     "@rosen-bridge/json-bigint": "^0.1.0",
     "@rosen-bridge/rosen-extractor": "file:/Users/mehran/work/code/rosen/utils/packages/rosen-extractor",
     "@rosen-bridge/tokens": "^1.2.1",
