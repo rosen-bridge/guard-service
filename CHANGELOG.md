@@ -1,5 +1,11 @@
 # guard-service
 
+## 5.0.5
+
+### Patch Changes
+
+- Patch JS floating error in BitcoinRpcRosenExtractor
+
 ## 5.0.4
 
 ### Patch Changes
