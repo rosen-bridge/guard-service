@@ -10,7 +10,6 @@ import {
 import Dialer from '../communication/Dialer';
 import Configs from '../configs/Configs';
 import GuardTurn from '../utils/GuardTurn';
-import GuardPkHandler from '../handlers/GuardPkHandler';
 import { DatabaseAction } from '../db/DatabaseAction';
 import { randomBytes } from 'crypto';
 import { NotFoundError } from '@rosen-chains/abstract-chain';
@@ -26,7 +25,7 @@ class EventReprocess extends Communicator {
   protected constructor(publicKeys: string[]) {
     super(
       logger,
-      new ECDSA(Configs.guardSecret),
+      new ECDSA(Configs.tssKeys.secret),
       EventReprocess.sendMessageWrapper,
       publicKeys,
       GuardTurn.UP_TIME_LENGTH
@@ -39,7 +38,7 @@ class EventReprocess extends Communicator {
    */
   static init = async () => {
     EventReprocess.instance = new EventReprocess(
-      GuardPkHandler.getInstance().publicKeys
+      Configs.tssKeys.pubs.map((pub) => pub.curvePub)
     );
     this.dialer = await Dialer.getInstance();
     this.dialer.subscribeChannel(
@@ -297,7 +296,12 @@ class EventReprocess extends Communicator {
     ok: boolean,
     peerId: string
   ): Promise<void> => {
-    if (!ok) return;
+    if (!ok) {
+      logger.error(
+        `Guard [${peerId}] sent 'not ok' response for reprocess request [${requestId}]`
+      );
+      return;
+    }
     logger.info(`Guard [${peerId}] accepted reprocess request [${requestId}]`);
 
     await DatabaseAction.getInstance().updateReprocessRequest(

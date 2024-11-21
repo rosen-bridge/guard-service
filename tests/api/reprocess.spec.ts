@@ -89,7 +89,7 @@ describe('reprocess', () => {
     });
 
     /**
-     * @target fastifyServer[POST /reprocess] should return 403 when an error occurred while sending requests
+     * @target fastifyServer[POST /reprocess] should return 400 when an error occurred while sending requests
      * @dependencies
      * - EventReprocess
      * @scenario
@@ -97,9 +97,9 @@ describe('reprocess', () => {
      * - send a request to the server
      * - check the result
      * @expected
-     * - it should return status code 403
+     * - it should return status code 400
      */
-    it('should return 403 when an error occurred while sending requests', async () => {
+    it('should return 400 when an error occurred while sending requests', async () => {
       // mock sendReprocessRequest to throw NotFoundError
       EventReprocessMock.mockSendReprocessRequest(true);
 
@@ -118,7 +118,7 @@ describe('reprocess', () => {
       });
 
       // check the result
-      expect(result.statusCode).toEqual(403);
+      expect(result.statusCode).toEqual(400);
     });
   });
 });

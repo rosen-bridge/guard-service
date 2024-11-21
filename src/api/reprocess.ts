@@ -51,7 +51,7 @@ const reprocessRoute = (server: FastifySeverInstance) => {
               ','
             )}]: ${e}`
           );
-          reply.status(403).send({
+          reply.status(400).send({
             message: `Request failed: ${e}`,
           });
         }

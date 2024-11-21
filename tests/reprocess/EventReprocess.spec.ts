@@ -276,7 +276,7 @@ describe('EventReprocess', async () => {
     });
 
     /**
-     * @target EventReprocess.processReprocessRequest should update event status
+     * @target EventReprocess.processReprocessRequest should update event status to pending-payment
      * and insert request into db when all conditions are met
      * @dependencies
      * - database
@@ -292,7 +292,7 @@ describe('EventReprocess', async () => {
      * - the request should be added to database
      * - `sendMessage` should got called with expected arguments
      */
-    it('should update event status and insert request into db when all conditions are met', async () => {
+    it('should update event status to pending-payment and insert request into db when all conditions are met', async () => {
       // mock event and insert into db
       const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);

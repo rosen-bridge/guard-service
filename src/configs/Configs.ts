@@ -127,7 +127,7 @@ class Configs {
   // event reprocess
   static eventReprocessCooldown = getConfigIntKeyOrDefault(
     'eventReprocessCooldown',
-    1800
+    43200
   );
 
   // guards configs
