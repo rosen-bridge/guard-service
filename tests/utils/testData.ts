@@ -1,3 +1,4 @@
+import { EventTrigger } from '@rosen-chains/abstract-chain';
 import { RevenueEntity } from '../../src/db/entities/revenueEntity';
 import { RevenueView } from '../../src/db/entities/revenueView';
 import { RevenueHistory } from '../../src/types/api';
@@ -128,3 +129,29 @@ export const revenueHistory: Array<RevenueHistory> = [
     ],
   },
 ];
+
+export const mockedEventForCommitment: EventTrigger = {
+  fromChain: 'ADA',
+  toChain: 'ERG',
+  fromAddress: '9i1Jy713XfahaB8oFFm2T9kpM7mzT1F4dMvMZKo7rJPB3U4vNVq',
+  toAddress: '9hPZKvu48kKkPAwrhDukwVxmNrTAa1vXdSsbDijXVsEEYaUt3x5',
+  amount: '100000',
+  bridgeFee: '2520',
+  networkFee: '10000000',
+  sourceChainTokenId:
+    'a5d0d1dd7c9faad78a662b065bf053d7e9b454af446fbd50c3bb2e3ba566e164',
+  targetChainTokenId:
+    '1db2acc8c356680e21d4d06ce345b83bdf61a89e6b0475768557e06aeb24709f',
+  sourceTxId:
+    'cb459f7f8189d3524e6b7361b55baa40c34a71ec5ac506628736096c7aa66f1a',
+  sourceBlockId:
+    '7e3b6c9cf8146cf49c0b255d9a8fbeeeb76bea64345f74edc25f8dfee0473968',
+  sourceChainHeight: 1212,
+  height: 120000,
+  WIDsHash: '02020aa2c82582685925e47d6a274c317694bd17ea33a8c7834241a8ce3f0505',
+  WIDsCount: 5,
+};
+export const WID =
+  '245341e0dda895feca93adbd2db9e643a74c50a1b3702db4c2535f23f1c72e6e';
+export const expectedCommitment =
+  '32d5595a12048a13a7807505b26b11e4eae4c69a0c87c39ff7555600708bd23a';

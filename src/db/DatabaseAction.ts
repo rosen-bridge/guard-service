@@ -866,7 +866,6 @@ class DatabaseAction {
 
   /**
    * updates the status of an arbitrary order by id
-   *  NOTE: this method does NOT update firstTry column
    * @param id order id
    * @param status order status
    * @param updateFirstTry if true, firstTry column will be updated to the current timestamp

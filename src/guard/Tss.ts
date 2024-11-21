@@ -1,9 +1,6 @@
 import {
-  ECDSA,
   EcdsaSigner,
-  EdDSA,
   EddsaSigner,
-  GuardDetection,
   StatusEnum,
   TssSigner,
 } from '@rosen-bridge/tss';
@@ -13,23 +10,18 @@ import Configs from '../configs/Configs';
 import { spawn } from 'child_process';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { TssAlgorithms } from '../utils/constants';
+import DetectionHandler from '../handlers/DetectionHandler';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
 class Tss {
   private static instance: Tss;
-  protected static curveGuardDetection: GuardDetection;
+  protected static CHANNELS = {
+    curve: 'tss-ecdsa-signing',
+    edward: 'tss-eddsa-signing',
+  };
   protected static tssCurveSigner: TssSigner;
-  protected static curve = {
-    DETECTION_CHANNEL: 'ecdsa-detection',
-    SIGNING_CHANNEL: 'tss-ecdsa-signing',
-  };
-  protected static edwardGuardDetection: GuardDetection;
   protected static tssEdwardSigner: TssSigner;
-  protected static edward = {
-    DETECTION_CHANNEL: 'eddsa-detection',
-    SIGNING_CHANNEL: 'tss-eddsa-signing',
-  };
   protected static dialer: Dialer;
   protected static trustKey: string;
 
@@ -114,40 +106,26 @@ class Tss {
    * initializes curve (ECDSA) tss prerequisites
    */
   static initCurveTss = async () => {
-    // initialize guard detection
+    // initialize tss
     const curvePublicKeys = Configs.tssKeys.pubs.map((pub) => pub.curvePub);
     const shareIds = Configs.tssKeys.pubs.map((pub) => pub.curveShareId);
-    const ecdsaSigner = new ECDSA(Configs.tssKeys.secret);
-    Tss.curveGuardDetection = new GuardDetection({
-      guardsPublicKey: curvePublicKeys,
-      signer: ecdsaSigner,
-      submit: this.generateSubmitMessageWrapper(Tss.curve.DETECTION_CHANNEL),
-      getPeerId: () => Promise.resolve(Tss.dialer.getDialerId()),
-    });
-    await Tss.curveGuardDetection.init();
 
-    // initialize tss
     Tss.tssCurveSigner = new EcdsaSigner({
       tssApiUrl: `${Configs.tssUrl}:${Configs.tssPort}`,
       getPeerId: () => Promise.resolve(Tss.dialer.getDialerId()),
       callbackUrl: Configs.tssBaseCallBackUrl + '/' + TssAlgorithms.curve,
       shares: shareIds,
-      submitMsg: this.generateSubmitMessageWrapper(Tss.curve.SIGNING_CHANNEL),
+      submitMsg: this.generateSubmitMessageWrapper(Tss.CHANNELS.curve),
       secret: Configs.tssKeys.secret,
-      detection: Tss.curveGuardDetection,
+      detection: DetectionHandler.getInstance().getDetection().curve,
       guardsPk: curvePublicKeys,
       signPerRoundLimit: Configs.tssParallelSignCount,
       logger: DefaultLoggerFactory.getInstance().getLogger('tssSigner'),
     });
 
-    // subscribe to channels
+    // subscribe to channel
     Tss.dialer.subscribeChannel(
-      Tss.curve.DETECTION_CHANNEL,
-      async (msg: string, channal: string, peerId: string) =>
-        await Tss.curveGuardDetection.handleMessage(msg, peerId)
-    );
-    Tss.dialer.subscribeChannel(
-      Tss.curve.SIGNING_CHANNEL,
+      Tss.CHANNELS.curve,
       async (msg: string, channal: string, peerId: string) =>
         await Tss.tssCurveSigner.handleMessage(msg, peerId)
     );
@@ -157,40 +135,26 @@ class Tss {
    * initializes edward (EdDSA) tss prerequisites
    */
   static initEdwardTss = async () => {
-    // initialize guard detection
+    // initialize tss
     const edwardPublicKeys = Configs.tssKeys.pubs.map((pub) => pub.edwardPub);
     const shareIds = Configs.tssKeys.pubs.map((pub) => pub.edwardShareId);
-    const eddsaSigner = new EdDSA(Configs.tssKeys.secret);
-    Tss.edwardGuardDetection = new GuardDetection({
-      guardsPublicKey: edwardPublicKeys,
-      signer: eddsaSigner,
-      submit: this.generateSubmitMessageWrapper(Tss.edward.DETECTION_CHANNEL),
-      getPeerId: () => Promise.resolve(Tss.dialer.getDialerId()),
-    });
-    await Tss.edwardGuardDetection.init();
 
-    // initialize tss
     Tss.tssEdwardSigner = new EddsaSigner({
       tssApiUrl: `${Configs.tssUrl}:${Configs.tssPort}`,
       getPeerId: () => Promise.resolve(Tss.dialer.getDialerId()),
       callbackUrl: Configs.tssBaseCallBackUrl + '/' + TssAlgorithms.edward,
       shares: shareIds,
-      submitMsg: this.generateSubmitMessageWrapper(Tss.edward.SIGNING_CHANNEL),
+      submitMsg: this.generateSubmitMessageWrapper(Tss.CHANNELS.edward),
       secret: Configs.tssKeys.secret,
-      detection: Tss.edwardGuardDetection,
+      detection: DetectionHandler.getInstance().getDetection().edward,
       guardsPk: edwardPublicKeys,
       signPerRoundLimit: Configs.tssParallelSignCount,
       logger: DefaultLoggerFactory.getInstance().getLogger('tssSigner'),
     });
 
-    // subscribe to channels
+    // subscribe to channel
     Tss.dialer.subscribeChannel(
-      Tss.edward.DETECTION_CHANNEL,
-      async (msg: string, channal: string, peerId: string) =>
-        await Tss.edwardGuardDetection.handleMessage(msg, peerId)
-    );
-    Tss.dialer.subscribeChannel(
-      Tss.edward.SIGNING_CHANNEL,
+      Tss.CHANNELS.edward,
       async (msg: string, channal: string, peerId: string) =>
         await Tss.tssEdwardSigner.handleMessage(msg, peerId)
     );
@@ -265,11 +229,9 @@ class Tss {
   }
 
   /**
-   * update guard detection and tss
+   * update tss instances
    */
   update = async (): Promise<void> => {
-    await Tss.curveGuardDetection.update();
-    await Tss.edwardGuardDetection.update();
     await Tss.tssCurveSigner.update();
     await Tss.tssEdwardSigner.update();
   };

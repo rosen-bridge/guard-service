@@ -27,6 +27,7 @@ import EventSerializer from '../event/EventSerializer';
 import MinimumFeeHandler from '../handlers/MinimumFeeHandler';
 import ChainHandler from '../handlers/ChainHandler';
 import EventOrder from '../event/EventOrder';
+import DetectionHandler from '../handlers/DetectionHandler';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -45,7 +46,7 @@ class EventSynchronization extends Communicator {
   protected constructor(publicKeys: string[], detection: GuardDetection) {
     super(
       logger,
-      new ECDSA(Configs.guardSecret),
+      new ECDSA(Configs.tssKeys.secret),
       EventSynchronization.sendMessageWrapper,
       publicKeys,
       GuardTurn.UP_TIME_LENGTH
@@ -62,10 +63,10 @@ class EventSynchronization extends Communicator {
   /**
    * initializes EventSynchronization
    */
-  static init = async (detection: GuardDetection) => {
+  static init = async () => {
     EventSynchronization.instance = new EventSynchronization(
-      GuardPkHandler.getInstance().publicKeys,
-      detection
+      Configs.tssKeys.pubs.map((pub) => pub.curvePub),
+      DetectionHandler.getInstance().getDetection().curve
     );
     this.dialer = await Dialer.getInstance();
     this.dialer.subscribeChannel(
@@ -369,8 +370,6 @@ class EventSynchronization extends Communicator {
    * verifies the sync response sent by other guards, save the transaction if its verified
    * @param tx the payment transaction id
    * @param senderIndex index of the guard that sent the response
-   * @param signature signature of creator guard over request data
-   * @param timestamp
    */
   protected processSyncResponse = async (
     tx: PaymentTransaction,
