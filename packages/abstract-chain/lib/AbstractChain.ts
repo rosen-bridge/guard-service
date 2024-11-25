@@ -253,15 +253,8 @@ abstract class AbstractChain<TxType> {
           `Event [${eventId}] is not valid, lock tx [${event.sourceTxId}] is not available in network`
         );
         return false;
-      } else if (
-        e instanceof FailedError ||
-        e instanceof NetworkError ||
-        e instanceof UnexpectedApiError
-      ) {
-        throw Error(`Skipping event [${eventId}] validation: ${e}`);
       } else {
-        this.logger.warn(`Event [${eventId}] validation failed: ${e}`);
-        return false;
+        throw Error(`Skipping event [${eventId}] validation: ${e}`);
       }
     }
   };
