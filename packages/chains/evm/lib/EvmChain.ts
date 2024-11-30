@@ -128,7 +128,29 @@ abstract class EvmChain extends AbstractChain<Transaction> {
       nextNonce++;
     }
 
-    const gasPrice = await this.network.getMaxFeePerGas();
+    const feeData = await this.network.getFeeData();
+    let requiredEth = 0n;
+    let txFeeData;
+    if (feeData.maxFeePerGas !== null) {
+      requiredEth =
+        this.configs.gasLimitCap * BigInt(orders.length) * feeData.maxFeePerGas;
+      txFeeData = {
+        maxFeePerGas: feeData.maxFeePerGas,
+        maxPriorityFeePerGas: feeData.maxPriorityFeePerGas,
+      };
+    } else if (feeData.gasPrice !== null) {
+      requiredEth =
+        this.configs.gasLimitCap * BigInt(orders.length) * feeData.gasPrice;
+      txFeeData = {
+        gasPrice: feeData.gasPrice,
+      };
+    } else {
+      throw new ImpossibleBehavior(
+        `Both 'maxFeePerGas' and 'gasPrice' values are falsy: ${JsonBigInt.stringify(
+          feeData
+        )}`
+      );
+    }
 
     // check the balance in the lock address
     const requiredAssets: AssetBalance = ChainUtils.sumAssetBalance(
@@ -136,7 +158,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
       {
         nativeToken: this.tokenMap.wrapAmount(
           this.NATIVE_TOKEN_ID,
-          this.configs.gasLimitCap * BigInt(orders.length) * gasPrice,
+          requiredEth,
           this.CHAIN
         ).amount,
         tokens: [],
@@ -156,7 +178,6 @@ abstract class EvmChain extends AbstractChain<Transaction> {
 
     // try to generate transactions
     let totalGas = 0n;
-    const maxPriorityFeePerGas = await this.network.getMaxPriorityFeePerGas();
     const evmTrxs: Array<PaymentTransaction> = [];
     for (const singleOrder of orders) {
       let trx;
@@ -170,11 +191,10 @@ abstract class EvmChain extends AbstractChain<Transaction> {
           type: 2,
           to: singleOrder.address,
           nonce: nextNonce,
-          maxPriorityFeePerGas: maxPriorityFeePerGas,
-          maxFeePerGas: gasPrice,
           data: '0x' + eventId,
           value: value,
           chainId: this.CHAIN_ID,
+          ...txFeeData,
         });
       } else {
         const token = singleOrder.assets.tokens[0];
@@ -193,11 +213,10 @@ abstract class EvmChain extends AbstractChain<Transaction> {
           type: 2,
           to: token.id,
           nonce: nextNonce,
-          maxPriorityFeePerGas: maxPriorityFeePerGas,
-          maxFeePerGas: gasPrice,
           data: data + eventId,
           value: 0n,
           chainId: this.CHAIN_ID,
+          ...txFeeData,
         });
       }
       let estimatedRequiredGas = await this.network.getGasRequired(trx);
@@ -367,6 +386,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
     transaction: PaymentTransaction
   ): Promise<boolean> => {
     let tx: Transaction;
+    const baseError = `Tx [${transaction.txId}] is not verified: `;
     try {
       tx = Serializer.deserialize(transaction.txBytes);
     } catch (error) {
@@ -420,40 +440,91 @@ abstract class EvmChain extends AbstractChain<Transaction> {
 
     if (gasDifference > gasLimitSlippage) {
       this.logger.warn(
-        `Tx [${transaction.txId}] is not verified: Transaction gas limit [${tx.gasLimit}] is too far from calculated gas limit [${gasRequired}]`
+        baseError +
+          `Transaction gas limit [${tx.gasLimit}] is too far from calculated gas limit [${gasRequired}]`
       );
       return false;
     }
 
     // check fees
-    const networkMaxFee = await this.network.getMaxFeePerGas();
-    const maxFeeSlippage =
-      (networkMaxFee * this.configs.gasPriceSlippage) / 100n;
-    const maxFeeDifference =
-      tx.maxFeePerGas >= networkMaxFee
-        ? tx.maxFeePerGas - networkMaxFee
-        : networkMaxFee - tx.maxFeePerGas;
+    const feeData = await this.network.getFeeData();
+    if (
+      feeData.maxFeePerGas !== null &&
+      feeData.maxPriorityFeePerGas !== null
+    ) {
+      const networkMaxFee = feeData.maxFeePerGas;
+      const maxFeeSlippage =
+        (networkMaxFee * this.configs.gasPriceSlippage) / 100n;
+      const maxFeeDifference =
+        tx.maxFeePerGas >= networkMaxFee
+          ? tx.maxFeePerGas - networkMaxFee
+          : networkMaxFee - tx.maxFeePerGas;
 
-    if (maxFeeDifference > maxFeeSlippage) {
-      this.logger.warn(
-        `Tx [${transaction.txId}] is not verified: Transaction max fee [${tx.maxFeePerGas}] is too far from network's max fee [${networkMaxFee}]`
+      if (maxFeeDifference > maxFeeSlippage) {
+        this.logger.warn(
+          baseError +
+            `Transaction max fee [${tx.maxFeePerGas}] is too far from network's max fee [${networkMaxFee}]`
+        );
+        return false;
+      }
+
+      const networkMaxPriorityFee = feeData.maxPriorityFeePerGas;
+      const priorityFeeSlippage =
+        (networkMaxPriorityFee * this.configs.gasPriceSlippage) / 100n;
+      const maxPriorityFeeDifference =
+        tx.maxPriorityFeePerGas >= networkMaxPriorityFee
+          ? tx.maxPriorityFeePerGas - networkMaxPriorityFee
+          : networkMaxPriorityFee - tx.maxPriorityFeePerGas;
+
+      if (maxPriorityFeeDifference > priorityFeeSlippage) {
+        this.logger.warn(
+          baseError +
+            `Transaction max priority fee [${tx.maxPriorityFeePerGas}] is too far from network's max priority fee [${networkMaxPriorityFee}]`
+        );
+        return false;
+      }
+
+      if (tx.gasPrice) {
+        this.logger.warn(
+          baseError +
+            `Transaction has gas price [${
+              tx.gasPrice
+            }] while network support's max fee is defined [${JsonBigInt.stringify(
+              feeData
+            )}]`
+        );
+        return false;
+      }
+    } else if (feeData.gasPrice) {
+      if (!tx.gasPrice) {
+        this.logger.warn(
+          baseError +
+            `Expected transaction with gas price but found [${tx.gasPrice}]`
+        );
+        return false;
+      }
+
+      const networkGasPrice = feeData.gasPrice;
+      const gasPriceSlippage =
+        (networkGasPrice * this.configs.gasPriceSlippage) / 100n;
+      const gasPriceDifference =
+        tx.gasPrice >= networkGasPrice
+          ? tx.gasPrice - networkGasPrice
+          : networkGasPrice - tx.gasPrice;
+
+      if (gasPriceDifference > gasPriceSlippage) {
+        this.logger.warn(
+          baseError +
+            `Transaction gas price [${tx.gasPrice}] is too far from network's gas price [${networkGasPrice}]`
+        );
+        return false;
+      }
+    } else {
+      throw new ImpossibleBehavior(
+        `Both 'maxFeePerGas' and 'gasPrice' values are falsy: ${JsonBigInt.stringify(
+          feeData
+        )}`
       );
-      return false;
-    }
-
-    const networkMaxPriorityFee = await this.network.getMaxPriorityFeePerGas();
-    const priorityFeeSlippage =
-      (networkMaxPriorityFee * this.configs.gasPriceSlippage) / 100n;
-    const maxPriorityFeeDifference =
-      tx.maxPriorityFeePerGas >= networkMaxPriorityFee
-        ? tx.maxPriorityFeePerGas - networkMaxPriorityFee
-        : networkMaxPriorityFee - tx.maxPriorityFeePerGas;
-
-    if (maxPriorityFeeDifference > priorityFeeSlippage) {
-      this.logger.warn(
-        `Tx [${transaction.txId}] is not verified: Transaction max priority fee [${tx.maxPriorityFeePerGas}] is too far from network's max priority fee [${networkMaxPriorityFee}]`
-      );
-      return false;
     }
     return true;
   };

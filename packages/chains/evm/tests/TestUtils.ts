@@ -10,6 +10,7 @@ import { vi } from 'vitest';
 import { AbstractEvmNetwork } from '../lib';
 import TestEvmNetwork from './network/TestEvmNetwork';
 import TestChain from './TestChain';
+import { FeeData } from 'ethers';
 
 const spyOn = vi.spyOn;
 const observationTxConfirmation = 5;
@@ -62,11 +63,8 @@ export const mockGetAddressBalanceForNativeToken = (
   spyOn(network, 'getAddressBalanceForNativeToken').mockResolvedValue(value);
 };
 
-export const mockGetMaxFeePerGas = (
-  network: AbstractEvmNetwork,
-  value: bigint
-) => {
-  spyOn(network, 'getMaxFeePerGas').mockResolvedValue(value);
+export const mockGetFeeData = (network: AbstractEvmNetwork, value: FeeData) => {
+  spyOn(network, 'getFeeData').mockResolvedValue(value);
 };
 
 export const mockGetGasRequired = (
@@ -88,13 +86,6 @@ export const mockGetTransactionByNonce = (
   value: TransactionHashes
 ) => {
   spyOn(network, 'getTransactionByNonce').mockResolvedValue(value);
-};
-
-export const mockGetMaxPriorityFeePerGas = (
-  network: AbstractEvmNetwork,
-  value: bigint
-) => {
-  spyOn(network, 'getMaxPriorityFeePerGas').mockResolvedValue(value);
 };
 
 export const generateChainObject = (
