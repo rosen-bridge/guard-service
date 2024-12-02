@@ -21,25 +21,28 @@ import AbstractDogeNetwork from './network/AbstractDogeNetwork';
 import DogeTransaction from './DogeTransaction';
 import { DogeConfigs, DogeTx, DogeUtxo, TssSignFunction } from './types';
 import Serializer from './Serializer';
-import { Psbt, Transaction, address, payments, script } from 'bitcoinjs-lib'; // Adjust if necessary for Dogecoin
+import { Psbt, Transaction, address, payments, script } from 'bitcoinjs-lib';
 import JsonBigInt from '@rosen-bridge/json-bigint';
-import { getPsbtTxInputBoxId } from './dogeUtils'; // Adjust if necessary for Dogecoin
+import { getPsbtTxInputBoxId } from './dogeUtils';
 import {
   DOGE_CHAIN,
   DOGE,
   MINIMUM_UTXO_VALUE,
   DOGE_NETWORK,
+  DOGE_INPUT_SIZE,
+  DOGE_OUTPUT_SIZE,
+  DOGE_TX_BASE_SIZE,
 } from './constants';
-import { DogeRosenExtractor } from '@rosen-bridge/rosen-extractor'; // Adjust if necessary for Dogecoin
+import { DogeRosenExtractor } from '@rosen-bridge/rosen-extractor';
 import { RosenAmount, RosenTokens } from '@rosen-bridge/tokens';
-import { selectDogeUtxos, estimateTxFee } from '@rosen-bridge/doge-utxo-selection';
+import { selectBitcoinUtxos } from '@rosen-bridge/bitcoin-utxo-selection';
 
 class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
   declare network: AbstractDogeNetwork;
   declare configs: DogeConfigs;
   CHAIN = DOGE_CHAIN;
   NATIVE_TOKEN_ID = DOGE;
-  extractor: undefined;
+  extractor: DogeRosenExtractor;
   protected signFunction: TssSignFunction;
   protected lockScript: string;
 
@@ -51,6 +54,11 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
     logger?: AbstractLogger
   ) {
     super(network, configs, tokens, logger);
+    this.extractor = new DogeRosenExtractor(
+      configs.addresses.lock,
+      tokens,
+      logger
+    );
     this.signFunction = signFunction;
     this.lockScript = address
       .toOutputScript(this.configs.addresses.lock, DOGE_NETWORK)
@@ -676,12 +684,18 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
     const utxoIterator = generator();
 
     const feeRatio = await this.network.getFeeRatio();
-    return selectDogeUtxos(
+    const estimatedTxWeight = DOGE_TX_BASE_SIZE + DOGE_OUTPUT_SIZE * 2;
+    return selectBitcoinUtxos(
       requiredAssets.nativeToken,
       forbiddenBoxIds,
       trackMap,
       utxoIterator,
-      feeRatio
+      BigInt(MINIMUM_UTXO_VALUE),
+      DOGE_INPUT_SIZE,
+      estimatedTxWeight,
+      feeRatio,
+      this.logger,
+      1
     );
   };
 }
