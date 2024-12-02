@@ -90,27 +90,31 @@ export const mockGetTransactionByNonce = (
 
 export const generateChainObject = (
   network: TestEvmNetwork,
-  signFn: TssSignFunction = mockedSignFn
+  signFn: TssSignFunction = mockedSignFn,
+  evmTxType = 2
 ) => {
   return new TestChain(
     network,
     configs,
     testData.testTokenMap,
     testData.supportedTokens,
-    signFn
+    signFn,
+    evmTxType
   );
 };
 
 export const generateChainObjectWithMultiDecimalTokenMap = (
   network: TestEvmNetwork,
-  signFn: TssSignFunction = mockedSignFn
+  signFn: TssSignFunction = mockedSignFn,
+  evmTxType = 2
 ) => {
   return new TestChain(
     network,
     configs,
     testData.multiDecimalTokenMap,
     testData.supportedTokens,
-    signFn
+    signFn,
+    evmTxType
   );
 };
 

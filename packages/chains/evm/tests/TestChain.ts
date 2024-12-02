@@ -11,7 +11,8 @@ class TestChain extends EvmChain {
     configs: any,
     tokens: RosenTokens,
     supportedTokens: Array<string>,
-    signFunction: TssSignFunction
+    signFunction: TssSignFunction,
+    evmTxType: number
   ) {
     super(
       network,
@@ -20,7 +21,8 @@ class TestChain extends EvmChain {
       supportedTokens,
       signFunction,
       'test',
-      'test-native-token'
+      'test-native-token',
+      evmTxType
     );
   }
 }

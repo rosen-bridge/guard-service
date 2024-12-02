@@ -29,6 +29,7 @@ class EthereumChain extends EvmChain {
       signFunction,
       ETHEREUM_CHAIN,
       ETH,
+      2,
       logger
     );
   }

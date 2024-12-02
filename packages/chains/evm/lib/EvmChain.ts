@@ -31,6 +31,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
   declare network: AbstractEvmNetwork;
   declare configs: EvmConfigs;
   abstract CHAIN_ID: bigint;
+  evmTxType: number;
   extractor: EvmRosenExtractor | undefined;
 
   supportedTokens: Array<string>;
@@ -44,9 +45,11 @@ abstract class EvmChain extends AbstractChain<Transaction> {
     signFunction: TssSignFunction,
     CHAIN: string,
     NATIVE_TOKEN_ID: string,
+    evmTxType = 0,
     logger?: AbstractLogger
   ) {
     super(network, configs, tokens, logger);
+    this.evmTxType = evmTxType;
     this.supportedTokens = supportedTokens;
     this.signFunction = signFunction;
     this.extractor = new EvmRosenExtractor(
@@ -131,24 +134,34 @@ abstract class EvmChain extends AbstractChain<Transaction> {
     const feeData = await this.network.getFeeData();
     let requiredEth = 0n;
     let txFeeData;
-    if (feeData.maxFeePerGas !== null) {
+    if (this.evmTxType === 2) {
+      if (
+        feeData.maxFeePerGas === null ||
+        feeData.maxPriorityFeePerGas === null
+      ) {
+        throw new ImpossibleBehavior(
+          `Tx type is 2 but max fee variables are null`
+        );
+      }
       requiredEth =
         this.configs.gasLimitCap * BigInt(orders.length) * feeData.maxFeePerGas;
       txFeeData = {
         maxFeePerGas: feeData.maxFeePerGas,
         maxPriorityFeePerGas: feeData.maxPriorityFeePerGas,
       };
-    } else if (feeData.gasPrice !== null) {
-      requiredEth =
-        this.configs.gasLimitCap * BigInt(orders.length) * feeData.gasPrice;
-      txFeeData = {
-        gasPrice: feeData.gasPrice,
-      };
+    } else if (this.evmTxType === 0) {
+      if (feeData.gasPrice === null) {
+        throw new ImpossibleBehavior(`Tx type is 0 but gas price is null`);
+      } else {
+        requiredEth =
+          this.configs.gasLimitCap * BigInt(orders.length) * feeData.gasPrice;
+        txFeeData = {
+          gasPrice: feeData.gasPrice,
+        };
+      }
     } else {
       throw new ImpossibleBehavior(
-        `Both 'maxFeePerGas' and 'gasPrice' values are falsy: ${JsonBigInt.stringify(
-          feeData
-        )}`
+        `Type ${this.evmTxType} transaction is not supported in EvmChain`
       );
     }
 
@@ -188,7 +201,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
           this.CHAIN
         ).amount;
         trx = Transaction.from({
-          type: 2,
+          type: this.evmTxType,
           to: singleOrder.address,
           nonce: nextNonce,
           data: '0x' + eventId,
@@ -210,7 +223,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
         );
 
         trx = Transaction.from({
-          type: 2,
+          type: this.evmTxType,
           to: token.id,
           nonce: nextNonce,
           data: data + eventId,
@@ -267,24 +280,29 @@ abstract class EvmChain extends AbstractChain<Transaction> {
       );
     }
 
-    if (tx.type !== 2) {
-      throw new TransactionFormatError(
-        `Transaction [${transaction.txId}] is not of type 2`
-      );
-    }
-
-    if (tx.maxFeePerGas === null) {
-      throw new ImpossibleBehavior(
-        'Type 2 transaction can not have null maxFeePerGas'
-      );
-    }
-
     const assets: AssetBalance = {
       nativeToken: 0n,
       tokens: [],
     };
 
-    const networkFee = tx.maxFeePerGas * tx.gasLimit;
+    let networkFee = tx.gasLimit;
+    if (this.evmTxType === 2) {
+      if (tx.maxFeePerGas === null)
+        throw new ImpossibleBehavior(
+          "Type 2 transaction doesn't have null maxFeePerGas or maxPriorityFeePerGas"
+        );
+      networkFee *= tx.maxFeePerGas;
+    } else if (this.evmTxType === 0) {
+      if (tx.gasPrice === null)
+        throw new ImpossibleBehavior(
+          "Type 0 transaction doesn't have null gasPrice"
+        );
+      networkFee *= tx.gasPrice;
+    } else {
+      throw new ImpossibleBehavior(
+        `Type ${this.evmTxType} transaction is not supported in EvmChain`
+      );
+    }
     assets.nativeToken = tx.value + networkFee;
 
     if (EvmUtils.isTransfer(tx.to, tx.data)) {
@@ -375,10 +393,13 @@ abstract class EvmChain extends AbstractChain<Transaction> {
   /**
    * verifies transaction fee for a PaymentTransaction
    * - `to` shouldn't be null
-   * - transaction must of of type 2
+   * - transaction type must be as expected
    * - gasLimit must be as expected
-   * - maxFeePerGas shouldn't be different than current network condition by more than slippage
-   * - maxPriorityFeePerGas shouldn't be different than current network condition by more than slippage
+   * - for type 2 transactions
+   *   - maxFeePerGas shouldn't be different than current network condition by more than slippage
+   *   - maxPriorityFeePerGas shouldn't be different than current network condition by more than slippage
+   * - for type 0 transactions
+   *   - gasPrice shouldn't be different than current network condition by more than slippage
    * @param transaction the PaymentTransaction
    * @returns true if the transaction fee is verified
    */
@@ -403,23 +424,11 @@ abstract class EvmChain extends AbstractChain<Transaction> {
       return false;
     }
 
-    if (tx.type !== 2) {
+    if (tx.type !== this.evmTxType) {
       this.logger.warn(
-        `Tx [${transaction.txId}] is not verified: is not of type 2`
+        `Tx [${transaction.txId}] is not verified: expected type [${this.evmTxType}] found [${tx.type}]`
       );
       return false;
-    }
-
-    if (tx.maxFeePerGas === null) {
-      throw new ImpossibleBehavior(
-        "Type 2 transaction can't have null maxFeePerGas"
-      );
-    }
-
-    if (tx.maxPriorityFeePerGas === null) {
-      throw new ImpossibleBehavior(
-        "Type 2 transaction can't have null maxPriorityFeePerGas"
-      );
     }
 
     // check gas limit
@@ -448,10 +457,19 @@ abstract class EvmChain extends AbstractChain<Transaction> {
 
     // check fees
     const feeData = await this.network.getFeeData();
-    if (
-      feeData.maxFeePerGas !== null &&
-      feeData.maxPriorityFeePerGas !== null
-    ) {
+    if (this.evmTxType === 2) {
+      if (tx.maxFeePerGas === null || tx.maxPriorityFeePerGas === null)
+        throw new ImpossibleBehavior(
+          "Type 2 transaction can't have null maxFeePerGas or maxPriorityFeePerGas"
+        );
+      if (
+        feeData.maxFeePerGas === null ||
+        feeData.maxPriorityFeePerGas === null
+      )
+        throw new ImpossibleBehavior(
+          'Chain is using type 2 transactions but network is replying with null maxFeePerGas or maxPriorityFeePerGas'
+        );
+
       const networkMaxFee = feeData.maxFeePerGas;
       const maxFeeSlippage =
         (networkMaxFee * this.configs.gasPriceSlippage) / 100n;
@@ -483,26 +501,15 @@ abstract class EvmChain extends AbstractChain<Transaction> {
         );
         return false;
       }
-
-      if (tx.gasPrice) {
-        this.logger.warn(
-          baseError +
-            `Transaction has gas price [${
-              tx.gasPrice
-            }] while network support's max fee is defined [${JsonBigInt.stringify(
-              feeData
-            )}]`
+    } else if (this.evmTxType === 0) {
+      if (tx.gasPrice === null)
+        throw new ImpossibleBehavior(
+          "Type 0 transaction can't have null gasPrice"
         );
-        return false;
-      }
-    } else if (feeData.gasPrice) {
-      if (!tx.gasPrice) {
-        this.logger.warn(
-          baseError +
-            `Expected transaction with gas price but found [${tx.gasPrice}]`
+      if (feeData.gasPrice === null)
+        throw new ImpossibleBehavior(
+          'Chain is using type 0 transactions but network is replying with null gasPrice'
         );
-        return false;
-      }
 
       const networkGasPrice = feeData.gasPrice;
       const gasPriceSlippage =
@@ -521,9 +528,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
       }
     } else {
       throw new ImpossibleBehavior(
-        `Both 'maxFeePerGas' and 'gasPrice' values are falsy: ${JsonBigInt.stringify(
-          feeData
-        )}`
+        `Type ${this.evmTxType} transaction is not supported in EvmChain`
       );
     }
     return true;
@@ -647,7 +652,6 @@ abstract class EvmChain extends AbstractChain<Transaction> {
   /**
    * submits a transaction to the blockchain
    * checks the following conditions before:
-   * - transaction must of of type 2
    * - fees are set appropriately according to the current network's condition
    * - lock address still have enough funds
    * @param transaction the transaction
@@ -667,19 +671,11 @@ abstract class EvmChain extends AbstractChain<Transaction> {
     }
 
     try {
-      // check type
-      if (tx.type !== 2) {
-        this.logger.warn(
-          `Cannot submit transaction [${transaction.txId}]: Transaction is not of type 2`
-        );
-        return;
-      }
-
       // check fees
       const gasRequired = await this.network.getGasRequired(tx);
       if (gasRequired > tx.gasLimit) {
         this.logger.warn(
-          `Cannot submit transaction [${transaction.txId}]: Transaction gas limit [${tx.maxFeePerGas}] is less than the required gas [${gasRequired}]`
+          `Cannot submit transaction [${transaction.txId}]: Transaction gas limit [${tx.gasLimit}] is less than the required gas [${gasRequired}]`
         );
         return;
       }
@@ -756,7 +752,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
 
   /**
    * generates PaymentTransaction object from raw tx json string
-   * checks the transaction is of type 2
+   * also checks the transaction type
    * @param rawTxJsonString
    * @returns PaymentTransaction object
    */
@@ -764,9 +760,9 @@ abstract class EvmChain extends AbstractChain<Transaction> {
     rawTxJsonString: string
   ): Promise<PaymentTransaction> => {
     const trx = Transaction.from(JSON.parse(rawTxJsonString));
-    if (trx.type !== 2) {
+    if (trx.type !== this.evmTxType) {
       throw new TransactionFormatError(
-        `Only transaction of type 2 is supported while parsing raw transaction`
+        `Expected type [${this.evmTxType}] transaction while parsing raw transaction, found type [${trx.type}]`
       );
     }
     const evmTx = new PaymentTransaction(
@@ -787,7 +783,6 @@ abstract class EvmChain extends AbstractChain<Transaction> {
    * verifies additional conditions for a PaymentTransaction
    * - `to` shouldn't be null
    * - `data` shouldn't be null
-   * - transaction must be of type 2
    * - `data` length must be either:
    *     native-token transfer: 2 (0x) + eventId.length
    *     erc-20 transfer: 2 (0x) + 136 (`transfer` data) + eventId.length
@@ -824,14 +819,6 @@ abstract class EvmChain extends AbstractChain<Transaction> {
     }
 
     const eidlen = transaction.eventId.length;
-
-    // only type 2 transactions are allowed
-    if (tx.type !== 2) {
-      this.logger.warn(
-        `Tx [${transaction.txId}] is not verified. It is not of type 2`
-      );
-      return false;
-    }
 
     // tx data must have correct length
     if (![eidlen + 2, eidlen + 2 + 136].includes(tx.data.length)) {
