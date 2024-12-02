@@ -1,6 +1,7 @@
-import { AssetBalance, TokenInfo } from './types';
+import { AssetBalance, PaymentOrder, TokenInfo } from './types';
 import { ValueError } from './errors';
 import { TokenMap } from '@rosen-bridge/tokens';
+import JsonBigInt from '@rosen-bridge/json-bigint';
 
 class ChainUtils {
   /**
@@ -158,6 +159,35 @@ class ChainUtils {
         ).amount)
     );
     return result;
+  };
+
+  /**
+   * encodes the order to string
+   * token placement in single payment should not affect the encoding
+   * @param order
+   */
+  static encodeOrder = (order: PaymentOrder): string => {
+    const organizedOrder = order.map((payment) => {
+      const organizedPayment = structuredClone(payment);
+      organizedPayment.assets.tokens.sort((a, b) => {
+        if (a.id === b.id) {
+          if (a.value === b.value) return 0;
+          else if (a.value > b.value) return 1;
+          else return -1;
+        } else return a.id > b.id ? 1 : -1;
+      });
+      return organizedPayment;
+    });
+
+    return JsonBigInt.stringify(organizedOrder);
+  };
+
+  /**
+   * decodes the order from string
+   * @param encodedOrder
+   */
+  static decodeOrder = (encodedOrder: string): PaymentOrder => {
+    return JsonBigInt.parse(encodedOrder);
   };
 }
 

@@ -341,10 +341,12 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
    * verifies additional conditions for a BitcoinTransaction
    * - check change box
    * @param transaction the PaymentTransaction
+   * @param signingStatus the signing status of transaction
    * @returns true if the transaction is verified
    */
   verifyTransactionExtraConditions = (
-    transaction: PaymentTransaction
+    transaction: PaymentTransaction,
+    signingStatus: SigningStatus = SigningStatus.UnSigned
   ): boolean => {
     const tx = Serializer.deserialize(transaction.txBytes);
 
@@ -725,6 +727,56 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
    */
   protected unwrapBtc = (amount: bigint): RosenAmount =>
     this.tokenMap.unwrapAmount(this.NATIVE_TOKEN_ID, amount, this.CHAIN);
+
+  /**
+   * verifies consistency within the PaymentTransaction object
+   * @param transaction the PaymentTransaction
+   * @returns true if the transaction is verified
+   */
+  verifyPaymentTransaction = async (
+    transaction: PaymentTransaction
+  ): Promise<boolean> => {
+    const psbt = Serializer.deserialize(transaction.txBytes);
+    const bitcoinTx = transaction as BitcoinTransaction;
+    const baseError = `Tx [${transaction.txId}] is not verified: `;
+
+    // verify txId
+    const txId = Transaction.fromBuffer(psbt.data.getTransaction()).getId();
+    if (transaction.txId !== txId) {
+      this.logger.warn(
+        baseError +
+          `Transaction id is inconsistent (expected [${transaction.txId}] found [${txId}])`
+      );
+      return false;
+    }
+
+    // verify inputUtxos
+    if (bitcoinTx.inputUtxos.length !== psbt.inputCount) {
+      this.logger.warn(
+        baseError +
+          `BitcoinTransaction object input counts is inconsistent [${bitcoinTx.inputUtxos.length} != ${psbt.inputCount}]`
+      );
+      return false;
+    }
+    for (let i = 0; i < psbt.inputCount; i++) {
+      const input = psbt.txInputs[i];
+      const txId = Buffer.from(input.hash).reverse().toString('hex');
+      const actualInputId = `${txId}.${input.index}`;
+      const bitcoinInput = JsonBigInt.parse(
+        bitcoinTx.inputUtxos[i]
+      ) as BitcoinUtxo;
+      const expectedId = `${bitcoinInput.txId}.${bitcoinInput.index}`;
+      if (expectedId !== actualInputId) {
+        this.logger.warn(
+          baseError +
+            `Utxo id for input at index [${i}] is inconsistent [expected ${expectedId} found ${actualInputId}]`
+        );
+        return false;
+      }
+    }
+
+    return true;
+  };
 }
 
 export default BitcoinChain;

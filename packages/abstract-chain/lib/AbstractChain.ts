@@ -145,10 +145,12 @@ abstract class AbstractChain<TxType> {
   /**
    * verifies additional conditions for a PaymentTransaction
    * @param transaction the PaymentTransaction
+   * @param signingStatus the signing status of transaction
    * @returns true if the transaction is verified
    */
   abstract verifyTransactionExtraConditions: (
-    transaction: PaymentTransaction
+    transaction: PaymentTransaction,
+    signingStatus: SigningStatus
   ) => boolean;
 
   /**
@@ -251,15 +253,8 @@ abstract class AbstractChain<TxType> {
           `Event [${eventId}] is not valid, lock tx [${event.sourceTxId}] is not available in network`
         );
         return false;
-      } else if (
-        e instanceof FailedError ||
-        e instanceof NetworkError ||
-        e instanceof UnexpectedApiError
-      ) {
-        throw Error(`Skipping event [${eventId}] validation: ${e}`);
       } else {
-        this.logger.warn(`Event [${eventId}] validation failed: ${e}`);
-        return false;
+        throw Error(`Skipping event [${eventId}] validation: ${e}`);
       }
     }
   };
@@ -317,6 +312,8 @@ abstract class AbstractChain<TxType> {
         return this.configs.confirmations.observation;
       case TransactionType.manual:
         return this.configs.confirmations.manual;
+      case TransactionType.arbitrary:
+        return this.configs.confirmations.arbitrary;
       default:
         throw Error(
           `Confirmation for type [${transactionType}] is not defined in abstract chain`
@@ -472,6 +469,15 @@ abstract class AbstractChain<TxType> {
    * serializes the transaction of this chain into string
    */
   protected abstract serializeTx: (tx: TxType) => string;
+
+  /**
+   * verifies consistency within the PaymentTransaction object
+   * @param transaction the PaymentTransaction
+   * @returns true if the transaction is verified
+   */
+  abstract verifyPaymentTransaction: (
+    transaction: PaymentTransaction
+  ) => Promise<boolean>;
 }
 
 export default AbstractChain;

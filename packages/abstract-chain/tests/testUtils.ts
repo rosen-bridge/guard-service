@@ -16,6 +16,7 @@ export const generateChainObject = (network: TestChainNetwork) => {
       payment: testData.paymentTxConfirmation,
       cold: 7,
       manual: 8,
+      arbitrary: 9,
     },
     addresses: {
       lock: 'lock_addr',
@@ -36,6 +37,7 @@ export const generateUtxoChainObject = (network: TestUtxoChainNetwork) => {
       payment: 6,
       cold: 7,
       manual: 8,
+      arbitrary: 9,
     },
     addresses: {
       lock: 'lock_addr',

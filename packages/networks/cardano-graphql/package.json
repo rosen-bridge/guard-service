@@ -1,9 +1,9 @@
 {
   "name": "@rosen-chains/cardano-graphql-network",
-  "version": "6.0.2",
+  "version": "6.0.5",
   "description": "a package to be used as network api provider for @rosen-chains/cardano package",
   "repository": "@rosen-chains/cardano-graphql-network",
-  "license": "GPL-3.0",
+  "license": "CC0-1.0",
   "author": "Rosen Team",
   "type": "module",
   "main": "dist/index.js",
@@ -22,25 +22,25 @@
     "@graphql-codegen/cli": "^5.0.0",
     "@graphql-codegen/typescript": "^4.0.1",
     "@graphql-codegen/typescript-operations": "^4.0.1",
-    "@types/node": "^18.11.18",
+    "@types/node": "^20.11.9",
     "@typescript-eslint/eslint-plugin": "^6.7.0",
     "@typescript-eslint/parser": "^6.7.0",
-    "@vitest/coverage-istanbul": "^1.2.2",
+    "@vitest/coverage-istanbul": "^2.1.4",
     "eslint": "^8.16.0",
     "eslint-config-prettier": "^8.5.0",
     "extensionless": "^1.9.6",
     "prettier": "2.7.1",
     "typescript": "^5.0.0",
-    "vitest": "^1.2.2"
+    "vitest": "^2.1.4"
   },
   "engines": {
-    "node": ">=18.12.0"
+    "node": ">=20.11.0"
   },
   "dependencies": {
     "@apollo/client": "^3.8.7",
     "@emurgo/cardano-serialization-lib-nodejs": "^11.3.1",
     "@rosen-bridge/abstract-logger": "^2.0.1",
-    "@rosen-chains/abstract-chain": "^9.0.2",
-    "@rosen-chains/cardano": "^9.0.2"
+    "@rosen-chains/abstract-chain": "^11.0.1",
+    "@rosen-chains/cardano": "^10.1.1"
   }
 }

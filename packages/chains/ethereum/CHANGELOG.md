@@ -1,24 +1,61 @@
 # @rosen-chains/ethereum
 
+## 0.2.1
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-chains/abstract-chain@11.0.1
+  - @rosen-chains/evm@5.1.1
+
+## 0.2.0
+
+### Minor Changes
+
+- Add signingStatus to verifyTransactionExtraConditions function arguments
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-chains/abstract-chain@11.0.0
+  - @rosen-chains/evm@5.1.0
+
+## 0.1.10
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-chains/abstract-chain@10.0.0
+  - @rosen-chains/evm@5.0.0
+
+## 0.1.9
+
+### Patch Changes
+
+- Export chain ID
+- Fix EthereumChain export
+- Update dependencies
+  - @rosen-chains/evm@4.1.2
+
 ## 0.1.8
 
 ### Patch Changes
 
-- Updated dependencies
+- Update dependencies
   - @rosen-chains/evm@4.1.1
 
 ## 0.1.7
 
 ### Patch Changes
 
-- Updated dependencies
+- Update dependencies
   - @rosen-chains/evm@4.1.0
 
 ## 0.1.6
 
 ### Patch Changes
 
-- Updated dependencies
+- Update dependencies
   - @rosen-chains/evm@4.0.2
   - @rosen-chains/abstract-chain@9.0.2
 
@@ -26,22 +63,22 @@
 
 ### Patch Changes
 
-- Updated dependencies
+- Update dependencies
   - @rosen-chains/evm@4.0.1
 
 ## 0.1.4
 
 ### Patch Changes
 
-- Updated dependencies
+- Update dependencies
   - @rosen-chains/evm@4.0.0
 
 ## 0.1.3
 
 ### Patch Changes
 
-- fix extractor initialization
-- Updated dependencies
+- Fix extractor initialization
+- Update dependencies
   - @rosen-chains/evm@3.0.0
   - @rosen-chains/abstract-chain@9.0.1
 
@@ -49,11 +86,11 @@
 
 ### Patch Changes
 
-- Updated dependencies
+- Update dependencies
   - @rosen-chains/evm@2.0.1
 
 ## 0.1.1
 
 ### Patch Changes
 
-- export ethereum chain and native token constants
+- Export ethereum chain and native token constants

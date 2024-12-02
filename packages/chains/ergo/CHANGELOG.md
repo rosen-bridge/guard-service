@@ -1,106 +1,146 @@
 # @rosen-chains/ergo
 
+## 10.1.2
+
+### Patch Changes
+
+- Update rosen-extractor version
+- Update dependencies
+  - @rosen-chains/abstract-chain@11.0.1
+
+## 10.1.1
+
+### Patch Changes
+
+- Add creation height verification
+
+## 10.1.0
+
+### Minor Changes
+
+- Add signingStatus to verifyTransactionExtraConditions function arguments
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-chains/abstract-chain@11.0.0
+
+## 10.0.0
+
+### Major Changes
+
+- Add arbitrary transaction type
+
+### Minor Changes
+
+- Add verifyPaymentTransaction function which checks data consistency within a PaymentTransaction Object
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-chains/abstract-chain@10.0.0
+
 ## 9.0.2
 
 ### Patch Changes
 
-- improve logs
-- update rosen-extractor version
-- Updated dependencies
+- Improve logs
+- Update rosen-extractor version
+- Update dependencies
   - @rosen-chains/abstract-chain@9.0.2
 
 ## 9.0.1
 
 ### Patch Changes
 
-- update rosen-extractor version
-- Updated dependencies
+- Update rosen-extractor version
+- Update dependencies
   - @rosen-chains/abstract-chain@9.0.1
 
 ## 9.0.0
 
 ### Major Changes
 
-- change `verifyLockTransactionExtraConditions` to async
-- add reason and expectation status to isTxValid result
+- Change `verifyLockTransactionExtraConditions` to async
+- Add reason and expectation status to isTxValid result
 
 ### Patch Changes
 
-- Updated dependencies
+- Update dependencies
   - @rosen-chains/abstract-chain@9.0.0
 
 ## 8.0.0
 
 ### Major Changes
 
-- consider decimals drop
-- change `getBoxInfo` and `getCoveringBoxes` functions to protected
+- Consider decimals drop
+- Change `getBoxInfo` and `getCoveringBoxes` functions to protected
 
 ### Patch Changes
 
-- add NATIVE_TOKEN_ID variable to ErgoChain
-- Updated dependencies
+- Add NATIVE_TOKEN_ID variable to ErgoChain
+- Update dependencies
   - @rosen-chains/abstract-chain@8.0.0
 
 ## 7.0.2
 
 ### Patch Changes
 
-- update rosen-extractor
-- Updated dependencies
+- Update rosen-extractor
+- Update dependencies
   - @rosen-chains/abstract-chain@7.0.2
 
 ## 7.0.1
 
 ### Patch Changes
 
-- update rosen-extractor version
-- Updated dependencies
+- Update rosen-extractor version
+- Update dependencies
   - @rosen-chains/abstract-chain@7.0.1
 
 ## 7.0.0
 
 ### Major Changes
 
-- update minimum-fee to v1 and remove feeRatioDivisor from constructor
+- Update minimum-fee to v1 and remove feeRatioDivisor from constructor
 
 ### Patch Changes
 
-- Updated dependencies
+- Update dependencies
   - @rosen-chains/abstract-chain@7.0.0
 
 ## 6.0.0
 
 ### Major Changes
 
-- init rosen-extractor in chain and remove it from its network
+- Init rosen-extractor in chain and remove it from its network
 
 ### Minor Changes
 
-- change generateTransaction to generateMultipleTransaction due to its update in AbstractChain
-- update generators and verifiers to support multiple change box
+- Change generateTransaction to generateMultipleTransaction due to its update in AbstractChain
+- Update generators and verifiers to support multiple change box
 
 ### Patch Changes
 
 - Updated rosen-extractor version
-- Updated dependencies
+- Update dependencies
   - @rosen-chains/abstract-chain@6.0.0
 
 ## 5.0.0
 
 ### Major Changes
 
-- change verifyTransactionFee to async
+- Change verifyTransactionFee to async
 
 ### Patch Changes
 
-- Updated dependencies
+- Update dependencies
   - @rosen-chains/abstract-chain@5.0.0
 
 ## 4.0.0
 
 ### Major Changes
 
-- change register type in generateTransaction function
-- Updated dependencies
+- Change register type in generateTransaction function
+- Update dependencies
   - @rosen-chains/abstract-chain@4.0.0

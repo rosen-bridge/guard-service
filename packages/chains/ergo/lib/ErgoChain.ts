@@ -559,18 +559,37 @@ class ErgoChain extends AbstractUtxoChain<wasm.Transaction, wasm.ErgoBox> {
   /**
    * verifies additional conditions for a PaymentTransaction
    *   1. change boxes should not have register
+   *   2. output boxes should have higher creation height than inputs
    * @param transaction the PaymentTransaction
+   * @param signingStatus the signing status of transaction
    * @returns true if the transaction verified
    */
   verifyTransactionExtraConditions = (
-    transaction: PaymentTransaction
+    transaction: PaymentTransaction,
+    signingStatus: SigningStatus = SigningStatus.UnSigned
   ): boolean => {
-    const tx = Serializer.deserialize(transaction.txBytes).unsigned_tx();
+    // deserialize transaction
+    let tx: wasm.Transaction | wasm.UnsignedTransaction;
+    try {
+      tx =
+        signingStatus === SigningStatus.Signed
+          ? Serializer.signedDeserialize(transaction.txBytes)
+          : Serializer.deserialize(transaction.txBytes).unsigned_tx();
+    } catch (e) {
+      tx = Serializer.deserialize(transaction.txBytes).unsigned_tx();
+    }
+
+    const ergoTx = transaction as ErgoTransaction;
+    const maxCreationHeight = Math.max(
+      ...ergoTx.inputBoxes.map((serializedBox) =>
+        wasm.ErgoBox.sigma_parse_bytes(serializedBox).creation_height()
+      )
+    );
+
     const outputBoxes = tx.output_candidates();
     const lockErgoTree = wasm.Address.from_base58(this.configs.addresses.lock)
       .to_ergo_tree()
       .to_base16_bytes();
-
     for (let i = outputBoxes.len() - 1; i >= 0; i--) {
       const output = outputBoxes.get(i);
       // skip fee box
@@ -585,6 +604,18 @@ class ErgoChain extends AbstractUtxoChain<wasm.Transaction, wasm.ErgoBox> {
           `Tx [${
             transaction.txId
           }] is not verified: Change box at index [${i}] has value [${r4Value.encode_to_base16()}] in R4`
+        );
+        return false;
+      }
+    }
+
+    for (let i = 0; i < outputBoxes.len(); i++) {
+      const output = outputBoxes.get(i);
+      if (output.creation_height() < maxCreationHeight) {
+        this.logger.warn(
+          `Tx [${
+            transaction.txId
+          }] is not verified: Output box at index [${i}] has low creation height. Expected more than [${maxCreationHeight}] found [${output.creation_height()}]`
         );
         return false;
       }
@@ -689,6 +720,8 @@ class ErgoChain extends AbstractUtxoChain<wasm.Transaction, wasm.ErgoBox> {
         return this.configs.confirmations.observation;
       case TransactionType.manual:
         return this.configs.confirmations.manual;
+      case TransactionType.arbitrary:
+        return this.configs.confirmations.arbitrary;
       default:
         throw Error(
           `Confirmation for type [${transactionType}] is not defined in Ergo chain`
@@ -1152,6 +1185,83 @@ class ErgoChain extends AbstractUtxoChain<wasm.Transaction, wasm.ErgoBox> {
    */
   protected serializeTx = (tx: wasm.Transaction): string =>
     Buffer.from(tx.sigma_serialize_bytes()).toString('hex');
+
+  /**
+   * verifies consistency within the PaymentTransaction object
+   * @param transaction the PaymentTransaction
+   * @returns true if the transaction is verified
+   */
+  verifyPaymentTransaction = async (
+    transaction: PaymentTransaction
+  ): Promise<boolean> => {
+    const tx = Serializer.deserialize(transaction.txBytes).unsigned_tx();
+    const ergoTx = transaction as ErgoTransaction;
+    const baseError = `Tx [${transaction.txId}] is not verified: `;
+
+    // verify txId
+    const txId = tx.id().to_str();
+    if (transaction.txId !== txId) {
+      this.logger.warn(
+        baseError +
+          `Transaction ID is inconsistent (expected [${transaction.txId}] found [${txId}])`
+      );
+      return false;
+    }
+
+    // verify inputBoxes
+    const txInputs = tx.inputs();
+    if (ergoTx.inputBoxes.length !== txInputs.len()) {
+      this.logger.warn(
+        baseError +
+          `ErgoTransaction object input counts is inconsistent [${
+            ergoTx.inputBoxes.length
+          } != ${txInputs.len()}]`
+      );
+      return false;
+    }
+    for (let i = 0; i < txInputs.len(); i++) {
+      const input = txInputs.get(i);
+      const actualBoxId = input.box_id().to_str();
+      const expectedId = wasm.ErgoBox.sigma_parse_bytes(ergoTx.inputBoxes[i])
+        .box_id()
+        .to_str();
+      if (expectedId !== actualBoxId) {
+        this.logger.warn(
+          baseError +
+            `BoxId for input at index [${i}] is inconsistent [expected ${expectedId} found ${actualBoxId}]`
+        );
+        return false;
+      }
+    }
+
+    // verify dataInputs
+    const dataInputs = tx.data_inputs();
+    if (ergoTx.dataInputs.length !== dataInputs.len()) {
+      this.logger.warn(
+        baseError +
+          `ErgoTransaction object data input counts is inconsistent [${
+            ergoTx.dataInputs.length
+          } != ${dataInputs.len()}]`
+      );
+      return false;
+    }
+    for (let i = 0; i < dataInputs.len(); i++) {
+      const input = dataInputs.get(i);
+      const actualBoxId = input.box_id().to_str();
+      const expectedId = wasm.ErgoBox.sigma_parse_bytes(ergoTx.dataInputs[i])
+        .box_id()
+        .to_str();
+      if (expectedId !== actualBoxId) {
+        this.logger.warn(
+          baseError +
+            `BoxId for data input at index [${i}] is inconsistent [expected ${expectedId} found ${actualBoxId}]`
+        );
+        return false;
+      }
+    }
+
+    return true;
+  };
 }
 
 export default ErgoChain;

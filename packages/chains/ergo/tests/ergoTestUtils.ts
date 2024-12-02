@@ -189,6 +189,14 @@ export const observationTxConfirmation = 5;
 export const paymentTxConfirmation = 9;
 export const coldTxConfirmation = 10;
 export const manualTxConfirmation = 11;
+export const arbitraryTxConfirmation = 12;
+export const defaultConfirmations = {
+  observation: observationTxConfirmation,
+  payment: paymentTxConfirmation,
+  cold: coldTxConfirmation,
+  manual: manualTxConfirmation,
+  arbitrary: arbitraryTxConfirmation,
+};
 export const rwtId =
   '9410db5b39388c6b515160e7248346d7ec63d5457292326da12a26cc02efb526';
 export const generateChainObject = (
@@ -203,12 +211,7 @@ export const generateChainObject = (
 ) => {
   const config: ErgoConfigs = {
     fee: 100n,
-    confirmations: {
-      observation: observationTxConfirmation,
-      payment: paymentTxConfirmation,
-      cold: coldTxConfirmation,
-      manual: manualTxConfirmation,
-    },
+    confirmations: defaultConfirmations,
     addresses: {
       lock: testLockAddress,
       cold: 'cold_addr',
@@ -228,12 +231,7 @@ export const generateDefaultChainObjectWithTokenMap = (
 ) => {
   const config: ErgoConfigs = {
     fee: 100n,
-    confirmations: {
-      observation: observationTxConfirmation,
-      payment: paymentTxConfirmation,
-      cold: coldTxConfirmation,
-      manual: manualTxConfirmation,
-    },
+    confirmations: defaultConfirmations,
     addresses: {
       lock: testLockAddress,
       cold: 'cold_addr',

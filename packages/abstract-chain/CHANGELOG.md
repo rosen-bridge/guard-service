@@ -1,60 +1,83 @@
 # @rosen-chains/abstract-chain
 
+## 11.0.1
+
+### Patch Changes
+
+- Update rosen-extractor version
+
+## 11.0.0
+
+### Major Changes
+
+- Add signingStatus to verifyTransactionExtraConditions function arguments
+
+## 10.0.0
+
+### Major Changes
+
+- Add verifyPaymentTransaction function which checks data consistency within a PaymentTransaction Object
+- Add arbitrary transaction type
+
+### Minor Changes
+
+- Add order encoder and decoder
+
 ## 9.0.2
 
 ### Patch Changes
 
-- update rosen-extractor version
-- update minimum-fee version
+- Update rosen-extractor version
+- Update minimum-fee version
 
 ## 9.0.1
 
 ### Patch Changes
 
-- update rosen-extractor version
+- Update rosen-extractor version
 
 ## 9.0.0
 
 ### Major Changes
 
-- change `verifyLockTransactionExtraConditions` to async
-- add reason and expectation status to isTxValid result
+- Change `verifyLockTransactionExtraConditions` to async
+- Add reason and expectation status to isTxValid result
 
 ## 8.0.0
 
 ### Major Changes
 
-- add abstract NATIVE_TOKEN_ID variable
-- add RosenTokens to constructor arguments
-- consider decimals drop
-  - every function of `AbstractChain` and `AbstractUtxoChain` gets and returns the wrapped values
-  - network functions (functions of `AbstractChainNetwork` and `AbstractUtxoChainNetwork`) should still return **the actual values**
-- change `getBoxInfo` and `getCoveringBoxes` functions to protected
+- Add abstract NATIVE_TOKEN_ID variable
+- Add RosenTokens to constructor arguments
+- Consider decimals drop
+  - Every function of `AbstractChain` and `AbstractUtxoChain` gets and returns the wrapped values
+  - Network functions (functions of `AbstractChainNetwork` and `AbstractUtxoChainNetwork`) should still return **the actual values**
+- Change `getBoxInfo` and `getCoveringBoxes` functions to protected
 
 ## 7.0.2
 
 ### Patch Changes
 
-- update rosen-extractor and minimum-fee packages
+- Update rosen-extractor and minimum-fee packages
 
 ## 7.0.1
 
 ### Patch Changes
 
-- update rosen-extractor version
+- Update rosen-extractor version
 
 ## 7.0.0
 
 ### Major Changes
 
-- update minimum-fee to v1 and remove feeRatioDivisor from constructor
+- Update minimum-fee to v1 and remove feeRatioDivisor from constructor
 
 ## 6.0.0
 
 ### Major Changes
 
-- add generateMultipleTransactions to AbstractChain and implement generateTransaction
-- implement verifyEvent and add verifyLockTransactionExtraConditions to be implemented in child classes
+- Add generateMultipleTransactions to AbstractChain and implement generateTransaction
+- Implement verifyEvent and add verifyLockTransactionExtraConditions to be implemented in child classes
 
 ### Minor Changes
 
@@ -62,24 +85,24 @@
 
 ### Patch Changes
 
-- allow undefined extractor
+- Allow undefined extractor
 - Updated rosen-extractor version
 
 ## 5.0.0
 
 ### Major Changes
 
-- change verifyTransactionExtraConditions to abstract
-  implement getRWTToken
-  implement getTxConfirmationStatus
-- change verifyTransactionFee to async
+- Change verifyTransactionExtraConditions to abstract
+- Implement getRWTToken
+- Implement getTxConfirmationStatus
+- Change verifyTransactionFee to async
 
 ### Patch Changes
 
-- update dependencies versions
+- Update dependencies versions
 
 ## 4.0.0
 
 ### Major Changes
 
-- update event trigger type according to latest version of contracts
+- Update event trigger type according to latest version of contracts

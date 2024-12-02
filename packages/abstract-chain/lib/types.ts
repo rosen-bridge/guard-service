@@ -3,6 +3,7 @@ interface ConfirmationConfigs {
   payment: number;
   cold: number;
   manual: number;
+  arbitrary: number;
 }
 
 interface AddressConfigs {
@@ -100,6 +101,7 @@ enum TransactionType {
   coldStorage = 'cold-storage',
   lock = 'lock',
   manual = 'manual',
+  arbitrary = 'arbitrary',
 }
 
 interface TokenDetail {

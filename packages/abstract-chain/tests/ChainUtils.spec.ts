@@ -1,11 +1,17 @@
 import { TokenMap } from '@rosen-bridge/tokens';
-import { AssetBalance, ChainUtils, ValueError } from '../lib';
+import { AssetBalance, ChainUtils, PaymentOrder, ValueError } from '../lib';
 import {
   actualBalance,
+  encodedOrder,
+  organizedOrder,
+  sortedTokens,
   testTokenMap,
+  unorganizedAssetBalance,
+  unorganizedOrder,
   unwrappedBalance,
   wrappedBalance,
 } from './testData';
+import JsonBigInt from '@rosen-bridge/json-bigint';
 
 describe('ChainUtils', () => {
   describe('isEqualAssetBalance', () => {
@@ -648,6 +654,94 @@ describe('ChainUtils', () => {
 
       // check returned value
       expect(result).toEqual(unwrappedBalance);
+    });
+  });
+
+  describe('encodeOrder', () => {
+    /**
+     * @target ChainUtils.encodeOrder should NOT mutate the tokens
+     * @dependencies
+     * @scenario
+     * - mock an AssetBalance with unorganized tokens
+     * - run test
+     * - check returned value
+     * @expected
+     * - the tokens list should be sorted
+     * - the original order token list should remain unchanged
+     */
+    it('should NOT mutate the tokens', () => {
+      // mock an AssetBalance with unorganized tokens
+      const a = unorganizedAssetBalance;
+      const order: PaymentOrder = [
+        {
+          address: 'addr2',
+          assets: a,
+        },
+      ];
+      const originalTokens = structuredClone(a.tokens);
+
+      // run test
+      const result = ChainUtils.encodeOrder(order);
+
+      // check returned value
+      const organizedOrder: PaymentOrder = JsonBigInt.parse(result);
+      expect(organizedOrder[0].assets).toEqual({
+        nativeToken: a.nativeToken,
+        tokens: sortedTokens,
+      });
+      expect(order[0].assets.tokens).toEqual(originalTokens);
+    });
+  });
+
+  /**
+   * @target ChainUtils.encodeOrder should sort the tokens before encoding
+   * @dependencies
+   * @scenario
+   * - mock two AssetBalance with unorganized tokens
+   * - run test
+   * - check returned value
+   * @expected
+   * - order should remain the same
+   * - the tokens list of each record should be sorted
+   */
+  it('should sort the tokens before encoding', () => {
+    // mock two AssetBalance with unorganized tokens
+    const order: PaymentOrder = unorganizedOrder;
+
+    // run test
+    const result = ChainUtils.encodeOrder(order);
+
+    // check returned value
+    const organizedOrder: PaymentOrder = JsonBigInt.parse(result);
+    expect(organizedOrder[0].address).toEqual('addr2');
+    expect(organizedOrder[0].assets).toEqual({
+      nativeToken: unorganizedAssetBalance.nativeToken,
+      tokens: sortedTokens,
+    });
+    expect(organizedOrder[1].address).toEqual('addr1');
+    expect(organizedOrder[1].assets).toEqual({
+      nativeToken: 100n,
+      tokens: sortedTokens,
+    });
+  });
+
+  describe('decodeOrder', () => {
+    /**
+     * @target ChainUtils.decodeOrder should decode the order successfully
+     * @dependencies
+     * @scenario
+     * - run test
+     * - check returned value
+     * @expected
+     * - order should remain the same
+     * - the tokens list of each record should be sorted
+     */
+    it('should decode the order successfully', () => {
+      // run test
+      const result = ChainUtils.decodeOrder(encodedOrder);
+
+      // check returned value
+      expect(result).toEqual(organizedOrder);
     });
   });
 });

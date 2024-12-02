@@ -9,15 +9,14 @@ import {
   CoveringBoxes,
   NotEnoughAssetsError,
   NotEnoughValidBoxesError,
+  SigningStatus,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
 import TestErgoNetwork from './network/TestErgoNetwork';
 import { ErgoConfigs } from '../lib';
-import { when } from 'jest-when';
 import * as wasm from 'ergo-lib-wasm-nodejs';
 import ErgoTransaction from '../lib/ErgoTransaction';
-
-const spyOn = jest.spyOn;
+import { MockInstance } from 'vitest';
 
 describe('ErgoChain', () => {
   describe('generateTransaction', () => {
@@ -101,18 +100,18 @@ describe('ErgoChain', () => {
       // mock a network object
       const network = new TestErgoNetwork();
       // mock 'getHeight'
-      const getHeightSpy = spyOn(network, 'getHeight');
+      const getHeightSpy = vi.spyOn(network, 'getHeight');
       getHeightSpy.mockResolvedValue(966000);
       // mock 'getStateContext'
-      const getStateContextSpy = spyOn(network, 'getStateContext');
+      const getStateContextSpy = vi.spyOn(network, 'getStateContext');
       getStateContextSpy.mockResolvedValue(
         transactionTestData.mockedStateContext
       );
       // mock 'getAddressAssets' to return mocked assets
-      const getAddressAssetsSpy = spyOn(network, 'getAddressAssets');
+      const getAddressAssetsSpy = vi.spyOn(network, 'getAddressAssets');
       getAddressAssetsSpy.mockResolvedValue(mockedLockAssets);
       // mock 'getMempoolTransactions'
-      const getMempoolTransactionsSpy = spyOn(
+      const getMempoolTransactionsSpy = vi.spyOn(
         network,
         'getMempoolTransactions'
       );
@@ -121,12 +120,7 @@ describe('ErgoChain', () => {
       // mock chain config
       const config: ErgoConfigs = {
         fee: 1100000n,
-        confirmations: {
-          observation: ergoTestUtils.observationTxConfirmation,
-          payment: ergoTestUtils.paymentTxConfirmation,
-          cold: ergoTestUtils.coldTxConfirmation,
-          manual: ergoTestUtils.manualTxConfirmation,
-        },
+        confirmations: ergoTestUtils.defaultConfirmations,
         addresses: {
           lock: 'nB3L2PD3LG4ydEj62n9aymRyPCEbkBdzaubgvCWDH2oxHxFBfAUy9GhWDvteDbbUh5qhXxnW8R46qmEiZfkej8gt4kZYvbeobZJADMrWXwFJTsZ17euEcoAp3KDk31Q26okFpgK9SKdi4',
           cold: 'cold_addr',
@@ -145,7 +139,10 @@ describe('ErgoChain', () => {
         ergoTestUtils.testTokenMap,
         ergoTestUtils.defaultSignFunction
       );
-      const getCoveringBoxesSpy = spyOn(ergoChain as any, 'getCoveringBoxes');
+      const getCoveringBoxesSpy = vi.spyOn(
+        ergoChain as any,
+        'getCoveringBoxes'
+      );
       getCoveringBoxesSpy.mockResolvedValue({
         covered: true,
         boxes: paymentTx.inputBoxes
@@ -161,7 +158,10 @@ describe('ErgoChain', () => {
         'boxId',
         ergoTestUtils.toErgoBox(boxTestData.ergoBox2)
       );
-      const getMempoolBoxMappingSpy = spyOn(ergoChain, 'getMempoolBoxMapping');
+      const getMempoolBoxMappingSpy = vi.spyOn(
+        ergoChain,
+        'getMempoolBoxMapping'
+      );
       getMempoolBoxMappingSpy.mockResolvedValue(mempoolTrackMap);
 
       // run test
@@ -280,26 +280,21 @@ describe('ErgoChain', () => {
       // mock a network object
       const network = new TestErgoNetwork();
       // mock 'getHeight'
-      const getHeightSpy = spyOn(network, 'getHeight');
+      const getHeightSpy = vi.spyOn(network, 'getHeight');
       getHeightSpy.mockResolvedValue(966000);
       // mock 'getStateContext'
-      const getStateContextSpy = spyOn(network, 'getStateContext');
+      const getStateContextSpy = vi.spyOn(network, 'getStateContext');
       getStateContextSpy.mockResolvedValue(
         transactionTestData.mockedStateContext
       );
       // mock 'getAddressAssets' to return mocked assets
-      const getAddressAssetsSpy = spyOn(network, 'getAddressAssets');
+      const getAddressAssetsSpy = vi.spyOn(network, 'getAddressAssets');
       getAddressAssetsSpy.mockResolvedValue(mockedLockAssets);
 
       // mock chain config
       const config: ErgoConfigs = {
         fee: 1100000n,
-        confirmations: {
-          observation: ergoTestUtils.observationTxConfirmation,
-          payment: ergoTestUtils.paymentTxConfirmation,
-          cold: ergoTestUtils.coldTxConfirmation,
-          manual: ergoTestUtils.manualTxConfirmation,
-        },
+        confirmations: ergoTestUtils.defaultConfirmations,
         addresses: {
           lock: 'nB3L2PD3LG4ydEj62n9aymRyPCEbkBdzaubgvCWDH2oxHxFBfAUy9GhWDvteDbbUh5qhXxnW8R46qmEiZfkej8gt4kZYvbeobZJADMrWXwFJTsZ17euEcoAp3KDk31Q26okFpgK9SKdi4',
           cold: 'cold_addr',
@@ -379,18 +374,18 @@ describe('ErgoChain', () => {
       // mock a network object
       const network = new TestErgoNetwork();
       // mock 'getHeight'
-      const getHeightSpy = spyOn(network, 'getHeight');
+      const getHeightSpy = vi.spyOn(network, 'getHeight');
       getHeightSpy.mockResolvedValue(966000);
       // mock 'getStateContext'
-      const getStateContextSpy = spyOn(network, 'getStateContext');
+      const getStateContextSpy = vi.spyOn(network, 'getStateContext');
       getStateContextSpy.mockResolvedValue(
         transactionTestData.mockedStateContext
       );
       // mock 'getAddressAssets' to return mocked assets
-      const getAddressAssetsSpy = spyOn(network, 'getAddressAssets');
+      const getAddressAssetsSpy = vi.spyOn(network, 'getAddressAssets');
       getAddressAssetsSpy.mockResolvedValue(mockedLockAssets);
       // mock 'getMempoolTransactions'
-      const getMempoolTransactionsSpy = spyOn(
+      const getMempoolTransactionsSpy = vi.spyOn(
         network,
         'getMempoolTransactions'
       );
@@ -399,12 +394,7 @@ describe('ErgoChain', () => {
       // mock chain config
       const config: ErgoConfigs = {
         fee: 1100000n,
-        confirmations: {
-          observation: ergoTestUtils.observationTxConfirmation,
-          payment: ergoTestUtils.paymentTxConfirmation,
-          cold: ergoTestUtils.coldTxConfirmation,
-          manual: ergoTestUtils.manualTxConfirmation,
-        },
+        confirmations: ergoTestUtils.defaultConfirmations,
         addresses: {
           lock: 'nB3L2PD3LG4ydEj62n9aymRyPCEbkBdzaubgvCWDH2oxHxFBfAUy9GhWDvteDbbUh5qhXxnW8R46qmEiZfkej8gt4kZYvbeobZJADMrWXwFJTsZ17euEcoAp3KDk31Q26okFpgK9SKdi4',
           cold: 'cold_addr',
@@ -423,7 +413,10 @@ describe('ErgoChain', () => {
         ergoTestUtils.testTokenMap,
         ergoTestUtils.defaultSignFunction
       );
-      const getCoveringBoxesSpy = spyOn(ergoChain as any, 'getCoveringBoxes');
+      const getCoveringBoxesSpy = vi.spyOn(
+        ergoChain as any,
+        'getCoveringBoxes'
+      );
       getCoveringBoxesSpy.mockResolvedValue({
         covered: false,
         boxes: paymentTx.inputBoxes
@@ -504,18 +497,18 @@ describe('ErgoChain', () => {
       // mock a network object
       const network = new TestErgoNetwork();
       // mock 'getHeight'
-      const getHeightSpy = spyOn(network, 'getHeight');
+      const getHeightSpy = vi.spyOn(network, 'getHeight');
       getHeightSpy.mockResolvedValue(966000);
       // mock 'getStateContext'
-      const getStateContextSpy = spyOn(network, 'getStateContext');
+      const getStateContextSpy = vi.spyOn(network, 'getStateContext');
       getStateContextSpy.mockResolvedValue(
         transactionTestData.mockedStateContext
       );
       // mock 'getAddressAssets' to return mocked assets
-      const getAddressAssetsSpy = spyOn(network, 'getAddressAssets');
+      const getAddressAssetsSpy = vi.spyOn(network, 'getAddressAssets');
       getAddressAssetsSpy.mockResolvedValue(mockedLockAssets);
       // mock 'getMempoolTransactions'
-      const getMempoolTransactionsSpy = spyOn(
+      const getMempoolTransactionsSpy = vi.spyOn(
         network,
         'getMempoolTransactions'
       );
@@ -524,12 +517,7 @@ describe('ErgoChain', () => {
       // mock chain config
       const config: ErgoConfigs = {
         fee: 1100000n,
-        confirmations: {
-          observation: ergoTestUtils.observationTxConfirmation,
-          payment: ergoTestUtils.paymentTxConfirmation,
-          cold: ergoTestUtils.coldTxConfirmation,
-          manual: ergoTestUtils.manualTxConfirmation,
-        },
+        confirmations: ergoTestUtils.defaultConfirmations,
         addresses: {
           lock: 'nB3L2PD3LG4ydEj62n9aymRyPCEbkBdzaubgvCWDH2oxHxFBfAUy9GhWDvteDbbUh5qhXxnW8R46qmEiZfkej8gt4kZYvbeobZJADMrWXwFJTsZ17euEcoAp3KDk31Q26okFpgK9SKdi4',
           cold: 'cold_addr',
@@ -548,18 +536,16 @@ describe('ErgoChain', () => {
         ergoTestUtils.testTokenMap,
         ergoTestUtils.defaultSignFunction
       );
-      const getCoveringBoxesSpy = spyOn(
+      const getCoveringBoxesSpy = vi.spyOn(
         ergoChain as any,
         'getCoveringBoxes'
-      ) as jest.SpyInstance<
-        Promise<CoveringBoxes<wasm.ErgoBox>>,
-        [
+      ) as MockInstance<
+        (
           address: string,
           requiredAssets: AssetBalance,
           forbiddenBoxIds: string[],
           trackMap: Map<string, wasm.ErgoBox | undefined>
-        ],
-        any
+        ) => Promise<CoveringBoxes<wasm.ErgoBox>>
       >;
       getCoveringBoxesSpy.mockImplementation(
         async (
@@ -658,18 +644,18 @@ describe('ErgoChain', () => {
       // mock a network object
       const network = new TestErgoNetwork();
       // mock 'getHeight'
-      const getHeightSpy = spyOn(network, 'getHeight');
+      const getHeightSpy = vi.spyOn(network, 'getHeight');
       getHeightSpy.mockResolvedValue(966000);
       // mock 'getStateContext'
-      const getStateContextSpy = spyOn(network, 'getStateContext');
+      const getStateContextSpy = vi.spyOn(network, 'getStateContext');
       getStateContextSpy.mockResolvedValue(
         transactionTestData.mockedStateContext
       );
       // mock 'getAddressAssets' to return mocked assets
-      const getAddressAssetsSpy = spyOn(network, 'getAddressAssets');
+      const getAddressAssetsSpy = vi.spyOn(network, 'getAddressAssets');
       getAddressAssetsSpy.mockResolvedValue(mockedLockAssets);
       // mock 'getMempoolTransactions'
-      const getMempoolTransactionsSpy = spyOn(
+      const getMempoolTransactionsSpy = vi.spyOn(
         network,
         'getMempoolTransactions'
       );
@@ -678,12 +664,7 @@ describe('ErgoChain', () => {
       // mock chain config
       const config: ErgoConfigs = {
         fee: 1100000n,
-        confirmations: {
-          observation: ergoTestUtils.observationTxConfirmation,
-          payment: ergoTestUtils.paymentTxConfirmation,
-          cold: ergoTestUtils.coldTxConfirmation,
-          manual: ergoTestUtils.manualTxConfirmation,
-        },
+        confirmations: ergoTestUtils.defaultConfirmations,
         addresses: {
           lock: 'nB3L2PD3LG4ydEj62n9aymRyPCEbkBdzaubgvCWDH2oxHxFBfAUy9GhWDvteDbbUh5qhXxnW8R46qmEiZfkej8gt4kZYvbeobZJADMrWXwFJTsZ17euEcoAp3KDk31Q26okFpgK9SKdi4',
           cold: 'cold_addr',
@@ -702,7 +683,10 @@ describe('ErgoChain', () => {
         ergoTestUtils.multiDecimalTokenMap,
         ergoTestUtils.defaultSignFunction
       );
-      const getCoveringBoxesSpy = spyOn(ergoChain as any, 'getCoveringBoxes');
+      const getCoveringBoxesSpy = vi.spyOn(
+        ergoChain as any,
+        'getCoveringBoxes'
+      );
       getCoveringBoxesSpy.mockResolvedValue({
         covered: true,
         boxes: paymentTx.inputBoxes
@@ -718,7 +702,10 @@ describe('ErgoChain', () => {
         'boxId',
         ergoTestUtils.toErgoBox(boxTestData.ergoBox2)
       );
-      const getMempoolBoxMappingSpy = spyOn(ergoChain, 'getMempoolBoxMapping');
+      const getMempoolBoxMappingSpy = vi.spyOn(
+        ergoChain,
+        'getMempoolBoxMapping'
+      );
       getMempoolBoxMappingSpy.mockResolvedValue(mempoolTrackMap);
 
       // run test
@@ -883,12 +870,7 @@ describe('ErgoChain', () => {
       const expectedOrder = transactionTestData.transaction6Order;
       const config: ErgoConfigs = {
         fee: 1100000n,
-        confirmations: {
-          observation: ergoTestUtils.observationTxConfirmation,
-          payment: ergoTestUtils.paymentTxConfirmation,
-          cold: ergoTestUtils.coldTxConfirmation,
-          manual: ergoTestUtils.manualTxConfirmation,
-        },
+        confirmations: ergoTestUtils.defaultConfirmations,
         addresses: {
           lock: transactionTestData.transaction6InAddress,
           cold: 'cold_addr',
@@ -932,12 +914,7 @@ describe('ErgoChain', () => {
       const expectedOrder = transactionTestData.transaction6WrappedOrder;
       const config: ErgoConfigs = {
         fee: 1100000n,
-        confirmations: {
-          observation: ergoTestUtils.observationTxConfirmation,
-          payment: ergoTestUtils.paymentTxConfirmation,
-          cold: ergoTestUtils.coldTxConfirmation,
-          manual: ergoTestUtils.manualTxConfirmation,
-        },
+        confirmations: ergoTestUtils.defaultConfirmations,
         addresses: {
           lock: transactionTestData.transaction6InAddress,
           cold: 'cold_addr',
@@ -994,12 +971,7 @@ describe('ErgoChain', () => {
       // mock a config that has more fee comparing to mocked transaction fee
       const config: ErgoConfigs = {
         fee: 1200000n,
-        confirmations: {
-          observation: ergoTestUtils.observationTxConfirmation,
-          payment: ergoTestUtils.paymentTxConfirmation,
-          cold: ergoTestUtils.coldTxConfirmation,
-          manual: ergoTestUtils.manualTxConfirmation,
-        },
+        confirmations: ergoTestUtils.defaultConfirmations,
         addresses: {
           lock: ergoTestUtils.testLockAddress,
           cold: 'cold_addr',
@@ -1052,12 +1024,7 @@ describe('ErgoChain', () => {
       // mock a config that has less fee comparing to mocked transaction fee
       const config: ErgoConfigs = {
         fee: 100n,
-        confirmations: {
-          observation: ergoTestUtils.observationTxConfirmation,
-          payment: ergoTestUtils.paymentTxConfirmation,
-          cold: ergoTestUtils.coldTxConfirmation,
-          manual: ergoTestUtils.manualTxConfirmation,
-        },
+        confirmations: ergoTestUtils.defaultConfirmations,
         addresses: {
           lock: ergoTestUtils.testLockAddress,
           cold: 'cold_addr',
@@ -1171,12 +1138,7 @@ describe('ErgoChain', () => {
       // mock a config with valid lockAddress
       const config: ErgoConfigs = {
         fee: 1200000n,
-        confirmations: {
-          observation: ergoTestUtils.observationTxConfirmation,
-          payment: ergoTestUtils.paymentTxConfirmation,
-          cold: ergoTestUtils.coldTxConfirmation,
-          manual: ergoTestUtils.manualTxConfirmation,
-        },
+        confirmations: ergoTestUtils.defaultConfirmations,
         addresses: {
           lock: 'nB3L2PD3LG4ydEj62n9aymRyPCEbkBdzaubgvCWDH2oxHxFBfAUy9GhWDvteDbbUh5qhXxnW8R46qmEiZfkej8gt4kZYvbeobZJADMrWXwFJTsZ17euEcoAp3KDk31Q26okFpgK9SKdi4',
           cold: 'cold_addr',
@@ -1204,6 +1166,111 @@ describe('ErgoChain', () => {
     });
 
     /**
+     * @target ErgoChain.verifyTransactionExtraConditions should return true
+     * event when signing status is wrong
+     * @dependencies
+     * @scenario
+     * - mock valid PaymentTransaction
+     * - mock a config with valid lockAddress
+     * - run test with signing status as signed
+     * - check returned value
+     * @expected
+     * - it should return true
+     */
+    it('should return true event when signing status is wrong', async () => {
+      // mock PaymentTransaction
+      const paymentTx = ErgoTransaction.fromJson(
+        transactionTestData.transaction3PaymentTransaction
+      );
+
+      // mock a config with valid lockAddress
+      const config: ErgoConfigs = {
+        fee: 1200000n,
+        confirmations: ergoTestUtils.defaultConfirmations,
+        addresses: {
+          lock: 'nB3L2PD3LG4ydEj62n9aymRyPCEbkBdzaubgvCWDH2oxHxFBfAUy9GhWDvteDbbUh5qhXxnW8R46qmEiZfkej8gt4kZYvbeobZJADMrWXwFJTsZ17euEcoAp3KDk31Q26okFpgK9SKdi4',
+          cold: 'cold_addr',
+          permit: 'permit_addr',
+          fraud: 'fraud_addr',
+        },
+        rwtId: ergoTestUtils.rwtId,
+        minBoxValue: 1000000n,
+        eventTxConfirmation: 18,
+      };
+
+      // run test
+      const ergoChain = new ErgoChain(
+        network,
+        config,
+        ergoTestUtils.testTokenMap,
+        ergoTestUtils.defaultSignFunction
+      );
+      const result = await ergoChain.verifyTransactionExtraConditions(
+        paymentTx,
+        SigningStatus.Signed
+      );
+
+      // check returned value
+      expect(result).toEqual(true);
+    });
+
+    /**
+     * @target ErgoChain.verifyTransactionExtraConditions should return true
+     * when change box conditions are met for signed transaction
+     * @dependencies
+     * @scenario
+     * - mock PaymentTransaction of signed transaction
+     * - mock a config with valid lockAddress
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return true
+     */
+    it('should return true when change box conditions are met for signed transaction', async () => {
+      // mock PaymentTransaction of signed transaction
+      const paymentTx = new ErgoTransaction(
+        'txId',
+        'eventId',
+        wasm.Transaction.sigma_parse_bytes(
+          Buffer.from(transactionTestData.transaction2SignedSerialized, 'hex')
+        ).sigma_serialize_bytes(),
+        TransactionType.payment,
+        [],
+        []
+      );
+
+      // mock a config with valid lockAddress
+      const config: ErgoConfigs = {
+        fee: 1200000n,
+        confirmations: ergoTestUtils.defaultConfirmations,
+        addresses: {
+          lock: 'nB3L2PD3LG4ydEj62n9aymRyPCEbkBdzaubgvCWDH2oxHxFBfAUy9GhWDvteDbbUh5qhXxnW8R46qmEiZfkej8gt4kZYvbeobZJADMrWXwFJTsZ17euEcoAp3KDk31Q26okFpgK9SKdi4',
+          cold: 'cold_addr',
+          permit: 'permit_addr',
+          fraud: 'fraud_addr',
+        },
+        rwtId: ergoTestUtils.rwtId,
+        minBoxValue: 1000000n,
+        eventTxConfirmation: 18,
+      };
+
+      // run test
+      const ergoChain = new ErgoChain(
+        network,
+        config,
+        ergoTestUtils.testTokenMap,
+        ergoTestUtils.defaultSignFunction
+      );
+      const result = await ergoChain.verifyTransactionExtraConditions(
+        paymentTx,
+        SigningStatus.Signed
+      );
+
+      // check returned value
+      expect(result).toEqual(true);
+    });
+
+    /**
      * @target ErgoChain.verifyTransactionExtraConditions should return false
      * when change box has value in R4
      * @dependencies
@@ -1224,12 +1291,55 @@ describe('ErgoChain', () => {
       // mock a config with valid lockAddress
       const config: ErgoConfigs = {
         fee: 1200000n,
-        confirmations: {
-          observation: ergoTestUtils.observationTxConfirmation,
-          payment: ergoTestUtils.paymentTxConfirmation,
-          cold: ergoTestUtils.coldTxConfirmation,
-          manual: ergoTestUtils.manualTxConfirmation,
+        confirmations: ergoTestUtils.defaultConfirmations,
+        addresses: {
+          lock: 'nB3L2PD3LG4ydEj62n9aymRyPCEbkBdzaubgvCWDH2oxHxFBfAUy9GhWDvteDbbUh5qhXxnW8R46qmEiZfkej8gt4kZYvbeobZJADMrWXwFJTsZ17euEcoAp3KDk31Q26okFpgK9SKdi4',
+          cold: 'cold_addr',
+          permit: 'permit_addr',
+          fraud: 'fraud_addr',
         },
+        rwtId: ergoTestUtils.rwtId,
+        minBoxValue: 1000000n,
+        eventTxConfirmation: 18,
+      };
+
+      // run test
+      const ergoChain = new ErgoChain(
+        network,
+        config,
+        ergoTestUtils.testTokenMap,
+        ergoTestUtils.defaultSignFunction
+      );
+      const result = await ergoChain.verifyTransactionExtraConditions(
+        paymentTx
+      );
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target ErgoChain.verifyTransactionExtraConditions should return false
+     * when output creation height is less than an input
+     * @dependencies
+     * @scenario
+     * - mock valid PaymentTransaction
+     * - mock a config with valid lockAddress
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when output creation height is less than an input', async () => {
+      // mock PaymentTransaction
+      const paymentTx = ErgoTransaction.fromJson(
+        transactionTestData.transaction7PaymentTransaction
+      );
+
+      // mock a config with valid lockAddress
+      const config: ErgoConfigs = {
+        fee: 1200000n,
+        confirmations: ergoTestUtils.defaultConfirmations,
         addresses: {
           lock: 'nB3L2PD3LG4ydEj62n9aymRyPCEbkBdzaubgvCWDH2oxHxFBfAUy9GhWDvteDbbUh5qhXxnW8R46qmEiZfkej8gt4kZYvbeobZJADMrWXwFJTsZ17euEcoAp3KDk31Q26okFpgK9SKdi4',
           cold: 'cold_addr',
@@ -1267,18 +1377,16 @@ describe('ErgoChain', () => {
      * - mock PaymentTransaction
      * - run test
      * - check returned value
+     * - check if function got called
      * @expected
      * - it should return true with no details
+     * - `isBoxUnspentAndValid` should have been called for all inputs
      */
     it('should return true when all inputs are valid', async () => {
       // mock a network object to return as valid for all inputs of a mocked transaction
       const network = new TestErgoNetwork();
-      const isBoxUnspentAndValidSpy = spyOn(network, 'isBoxUnspentAndValid');
-      transactionTestData.transaction0InputIds.forEach((inputId) =>
-        when(isBoxUnspentAndValidSpy)
-          .calledWith(inputId)
-          .mockResolvedValueOnce(true)
-      );
+      const isBoxUnspentAndValidSpy = vi.spyOn(network, 'isBoxUnspentAndValid');
+      isBoxUnspentAndValidSpy.mockResolvedValue(true);
 
       // mock PaymentTransaction
       const paymentTx = new ErgoTransaction(
@@ -1301,6 +1409,11 @@ describe('ErgoChain', () => {
         isValid: true,
         details: undefined,
       });
+
+      // check if function got called
+      transactionTestData.transaction0InputIds.forEach((inputId) =>
+        expect(isBoxUnspentAndValidSpy).toHaveBeenCalledWith(inputId)
+      );
     });
 
     /**
@@ -1313,20 +1426,18 @@ describe('ErgoChain', () => {
      * - mock PaymentTransaction
      * - run test
      * - check returned value
+     * - check if function got called
      * @expected
      * - it should return false and as expected invalidation
+     * - `isBoxUnspentAndValid` should have been called only for the first box
      */
     it('should return false when at least one input is invalid', async () => {
       // mock a network object to return as valid for all inputs of a mocked transaction except for the first one
       const network = new TestErgoNetwork();
-      const isBoxUnspentAndValidSpy = spyOn(network, 'isBoxUnspentAndValid');
-      let isFirstBox = true;
-      transactionTestData.transaction0InputIds.forEach((inputId) => {
-        when(isBoxUnspentAndValidSpy)
-          .calledWith(inputId)
-          .mockResolvedValueOnce(!isFirstBox);
-        isFirstBox = false;
-      });
+      const isBoxUnspentAndValidSpy = vi.spyOn(network, 'isBoxUnspentAndValid');
+      isBoxUnspentAndValidSpy
+        .mockResolvedValueOnce(false)
+        .mockResolvedValue(true);
 
       // mock PaymentTransaction
       const paymentTx = new ErgoTransaction(
@@ -1352,6 +1463,11 @@ describe('ErgoChain', () => {
           unexpected: false,
         },
       });
+
+      // check if function got called
+      expect(isBoxUnspentAndValidSpy).toHaveBeenCalledWith(
+        transactionTestData.transaction0InputIds[0]
+      );
     });
   });
 
@@ -1471,7 +1587,7 @@ describe('ErgoChain', () => {
 
       // mock a network object to return mocked transactions for mempool
       const network = new TestErgoNetwork();
-      spyOn(network, 'getMempoolTransactions').mockResolvedValueOnce(
+      vi.spyOn(network, 'getMempoolTransactions').mockResolvedValueOnce(
         transactions
       );
 
@@ -1507,7 +1623,7 @@ describe('ErgoChain', () => {
 
       // mock a network object to return mocked transactions for mempool
       const network = new TestErgoNetwork();
-      spyOn(network, 'getMempoolTransactions').mockResolvedValueOnce(
+      vi.spyOn(network, 'getMempoolTransactions').mockResolvedValueOnce(
         transactions
       );
 
@@ -1549,7 +1665,7 @@ describe('ErgoChain', () => {
 
       // mock a network object to return mocked transactions for mempool
       const network = new TestErgoNetwork();
-      spyOn(network, 'getMempoolTransactions').mockResolvedValueOnce(
+      vi.spyOn(network, 'getMempoolTransactions').mockResolvedValueOnce(
         transactions
       );
 
@@ -1600,7 +1716,7 @@ describe('ErgoChain', () => {
 
       // mock a network object to return mocked transactions for mempool
       const network = new TestErgoNetwork();
-      spyOn(network, 'getMempoolTransactions').mockResolvedValueOnce(
+      vi.spyOn(network, 'getMempoolTransactions').mockResolvedValueOnce(
         transactions
       );
 
@@ -1655,7 +1771,7 @@ describe('ErgoChain', () => {
 
       // mock a network object to return mocked transactions for mempool
       const network = new TestErgoNetwork();
-      spyOn(network, 'getMempoolTransactions').mockResolvedValueOnce(
+      vi.spyOn(network, 'getMempoolTransactions').mockResolvedValueOnce(
         transactions
       );
 
@@ -1956,10 +2072,8 @@ describe('ErgoChain', () => {
       // mock a network object
       const network = new TestErgoNetwork();
       // mock 'getBoxesByTokenId'
-      const getBoxesByTokenIdSpy = spyOn(network, 'getBoxesByTokenId');
-      when(getBoxesByTokenIdSpy)
-        .calledWith(guardNFT, ergoTestUtils.testLockAddress)
-        .mockResolvedValue([box]);
+      const getBoxesByTokenIdSpy = vi.spyOn(network, 'getBoxesByTokenId');
+      getBoxesByTokenIdSpy.mockResolvedValue([box]);
 
       // run test
       const ergoChain = ergoTestUtils.generateChainObject(network);
@@ -1990,10 +2104,8 @@ describe('ErgoChain', () => {
       // mock a network object
       const network = new TestErgoNetwork();
       // mock 'getBoxesByTokenId'
-      const getBoxesByTokenIdSpy = spyOn(network, 'getBoxesByTokenId');
-      when(getBoxesByTokenIdSpy)
-        .calledWith(guardNFT, ergoTestUtils.testLockAddress)
-        .mockResolvedValue([]);
+      const getBoxesByTokenIdSpy = vi.spyOn(network, 'getBoxesByTokenId');
+      getBoxesByTokenIdSpy.mockResolvedValue([]);
 
       // run test and expect exception thrown
       const ergoChain = ergoTestUtils.generateChainObject(network);
@@ -2028,10 +2140,8 @@ describe('ErgoChain', () => {
       // mock a network object
       const network = new TestErgoNetwork();
       // mock 'getBoxesByTokenId'
-      const getBoxesByTokenIdSpy = spyOn(network, 'getBoxesByTokenId');
-      when(getBoxesByTokenIdSpy)
-        .calledWith(guardNFT, ergoTestUtils.testLockAddress)
-        .mockResolvedValue(serializedBoxes);
+      const getBoxesByTokenIdSpy = vi.spyOn(network, 'getBoxesByTokenId');
+      getBoxesByTokenIdSpy.mockResolvedValue(serializedBoxes);
 
       // run test and expect exception thrown
       const ergoChain = ergoTestUtils.generateChainObject(network);
@@ -2139,10 +2249,8 @@ describe('ErgoChain', () => {
       // mock a network object
       const network = new TestErgoNetwork();
       // mock 'getBoxesByTokenId'
-      const getBoxesByTokenIdSpy = spyOn(network, 'getBoxesByTokenId');
-      when(getBoxesByTokenIdSpy)
-        .calledWith(guardNFT, ergoTestUtils.testLockAddress)
-        .mockResolvedValue([box]);
+      const getBoxesByTokenIdSpy = vi.spyOn(network, 'getBoxesByTokenId');
+      getBoxesByTokenIdSpy.mockResolvedValue([box]);
 
       // run test
       const ergoChain = ergoTestUtils.generateChainObject(network);
@@ -2174,10 +2282,8 @@ describe('ErgoChain', () => {
       // mock a network object
       const network = new TestErgoNetwork();
       // mock 'getBoxesByTokenId'
-      const getBoxesByTokenIdSpy = spyOn(network, 'getBoxesByTokenId');
-      when(getBoxesByTokenIdSpy)
-        .calledWith(guardNFT, ergoTestUtils.testLockAddress)
-        .mockResolvedValue([box]);
+      const getBoxesByTokenIdSpy = vi.spyOn(network, 'getBoxesByTokenId');
+      getBoxesByTokenIdSpy.mockResolvedValue([box]);
 
       // run test and expect exception thrown
       const ergoChain = ergoTestUtils.generateChainObject(network);
@@ -2215,12 +2321,7 @@ describe('ErgoChain', () => {
       const expectedOrder = transactionTestData.transaction6Order;
       const config: ErgoConfigs = {
         fee: 1100000n,
-        confirmations: {
-          observation: ergoTestUtils.observationTxConfirmation,
-          payment: ergoTestUtils.paymentTxConfirmation,
-          cold: ergoTestUtils.coldTxConfirmation,
-          manual: ergoTestUtils.manualTxConfirmation,
-        },
+        confirmations: ergoTestUtils.defaultConfirmations,
         addresses: {
           lock: transactionTestData.transaction6InAddress,
           cold: 'cold_addr',
@@ -2267,12 +2368,7 @@ describe('ErgoChain', () => {
       const expectedOrder = transactionTestData.transaction6WrappedOrder;
       const config: ErgoConfigs = {
         fee: 1100000n,
-        confirmations: {
-          observation: ergoTestUtils.observationTxConfirmation,
-          payment: ergoTestUtils.paymentTxConfirmation,
-          cold: ergoTestUtils.coldTxConfirmation,
-          manual: ergoTestUtils.manualTxConfirmation,
-        },
+        confirmations: ergoTestUtils.defaultConfirmations,
         addresses: {
           lock: transactionTestData.transaction6InAddress,
           cold: 'cold_addr',
@@ -2324,12 +2420,12 @@ describe('ErgoChain', () => {
       // mock a network object
       const network = new TestErgoNetwork();
       // mock 'getStateContext'
-      const getStateContextSpy = spyOn(network, 'getStateContext');
+      const getStateContextSpy = vi.spyOn(network, 'getStateContext');
       getStateContextSpy.mockResolvedValue(
         transactionTestData.mockedStateContext
       );
       // mock getBox
-      const getBoxSpy = spyOn(network, 'getBox');
+      const getBoxSpy = vi.spyOn(network, 'getBox');
       [...expectedTx.inputBoxes, ...expectedTx.dataInputs].forEach((box) =>
         getBoxSpy.mockResolvedValueOnce(wasm.ErgoBox.sigma_parse_bytes(box))
       );
@@ -2340,6 +2436,167 @@ describe('ErgoChain', () => {
 
       // check returned value
       expect(result.toJson()).toEqual(expectedTx.toJson());
+    });
+  });
+
+  describe('verifyPaymentTransaction', () => {
+    const network = new TestErgoNetwork();
+
+    /**
+     * @target ErgoChain.verifyPaymentTransaction should return true
+     * when data is consistent
+     * @dependencies
+     * @scenario
+     * - mock a ErgoTransaction
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return true
+     */
+    it('should return true when data is consistent', async () => {
+      // mock a ErgoTransaction
+      const paymentTx = ErgoTransaction.fromJson(
+        transactionTestData.transaction5PaymentTransaction
+      );
+
+      // run test
+      const ergoChain = ergoTestUtils.generateChainObject(network);
+      const result = await ergoChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(true);
+    });
+
+    /**
+     * @target ErgoChain.verifyPaymentTransaction should return false
+     * when transaction id is wrong
+     * @dependencies
+     * @scenario
+     * - mock a ErgoTransaction with changed txId
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when transaction id is wrong', async () => {
+      // mock a ErgoTransaction with changed txId
+      const paymentTx = ErgoTransaction.fromJson(
+        transactionTestData.transaction5PaymentTransaction
+      );
+      paymentTx.txId = ergoTestUtils.generateRandomId();
+
+      // run test
+      const ergoChain = ergoTestUtils.generateChainObject(network);
+      const result = await ergoChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target ErgoChain.verifyPaymentTransaction should return false
+     * when number of boxes is wrong
+     * @dependencies
+     * @scenario
+     * - mock a ErgoTransaction with less boxes
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when number of boxes is wrong', async () => {
+      // mock a ErgoTransaction with less boxes
+      const paymentTx = ErgoTransaction.fromJson(
+        transactionTestData.transaction5PaymentTransaction
+      );
+      paymentTx.inputBoxes.pop();
+
+      // run test
+      const ergoChain = ergoTestUtils.generateChainObject(network);
+      const result = await ergoChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target ErgoChain.verifyPaymentTransaction should return false
+     * when at least one of the boxes is wrong
+     * @dependencies
+     * @scenario
+     * - mock a ErgoTransaction with changed box
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when at least one of the boxes is wrong', async () => {
+      // mock a ErgoTransaction with changed box
+      const paymentTx = ErgoTransaction.fromJson(
+        transactionTestData.transaction5PaymentTransaction
+      );
+      const box = ergoTestUtils.toErgoBox(boxTestData.ergoBox1);
+      paymentTx.inputBoxes[1] = box.sigma_serialize_bytes();
+
+      // run test
+      const ergoChain = ergoTestUtils.generateChainObject(network);
+      const result = await ergoChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target ErgoChain.verifyPaymentTransaction should return false
+     * when number of data inputs is wrong
+     * @dependencies
+     * @scenario
+     * - mock a ErgoTransaction with less data inputs
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when number of data inputs is wrong', async () => {
+      // mock a ErgoTransaction with less data inputs
+      const paymentTx = ErgoTransaction.fromJson(
+        transactionTestData.transaction5PaymentTransaction
+      );
+      paymentTx.dataInputs.pop();
+
+      // run test
+      const ergoChain = ergoTestUtils.generateChainObject(network);
+      const result = await ergoChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target ErgoChain.verifyPaymentTransaction should return false
+     * when at least one of the data inputs is wrong
+     * @dependencies
+     * @scenario
+     * - mock a ErgoTransaction with changed data input
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when at least one of the data inputs is wrong', async () => {
+      // mock a ErgoTransaction with changed data input
+      const paymentTx = ErgoTransaction.fromJson(
+        transactionTestData.transaction5PaymentTransaction
+      );
+      const box = ergoTestUtils.toErgoBox(boxTestData.ergoBox1);
+      paymentTx.dataInputs[0] = box.sigma_serialize_bytes();
+
+      // run test
+      const ergoChain = ergoTestUtils.generateChainObject(network);
+      const result = await ergoChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
     });
   });
 });

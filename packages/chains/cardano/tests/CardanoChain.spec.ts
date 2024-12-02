@@ -4,7 +4,6 @@ import { CardanoBoxCandidate, CardanoUtxo } from '../lib';
 import * as TestData from './testData';
 import * as TestUtils from './testUtils';
 import CardanoTransaction from '../lib/CardanoTransaction';
-import { when } from 'jest-when';
 import CardanoUtils from '../lib/CardanoUtils';
 import {
   NotEnoughAssetsError,
@@ -14,8 +13,6 @@ import {
 import { Transaction } from '@emurgo/cardano-serialization-lib-nodejs';
 import JsonBI from '@rosen-bridge/json-bigint';
 import JsonBigInt from '@rosen-bridge/json-bigint';
-
-const spyOn = jest.spyOn;
 
 describe('CardanoChain', () => {
   const bankBoxes = TestUtils.mockBankBoxes();
@@ -46,17 +43,17 @@ describe('CardanoChain', () => {
       const payment1 = CardanoTransaction.fromJson(
         TestData.transaction1PaymentTransaction
       );
-      const getSlotSpy = spyOn(network, 'currentSlot');
+      const getSlotSpy = vi.spyOn(network, 'currentSlot');
       getSlotSpy.mockResolvedValue(100);
 
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
       const cardanoChain = TestUtils.generateChainObject(network);
-      const getCovBoxesSpy = spyOn(cardanoChain as any, 'getCoveringBoxes');
+      const getCovBoxesSpy = vi.spyOn(cardanoChain as any, 'getCoveringBoxes');
       getCovBoxesSpy.mockResolvedValue({
         covered: true,
         boxes: bankBoxes,
       });
-      const hasLockAddressEnoughAssetsSpy = spyOn(
+      const hasLockAddressEnoughAssetsSpy = vi.spyOn(
         cardanoChain,
         'hasLockAddressEnoughAssets'
       );
@@ -128,17 +125,17 @@ describe('CardanoChain', () => {
       const payment = CardanoTransaction.fromJson(
         TestData.transaction4PaymentTransaction
       );
-      const getSlotSpy = spyOn(network, 'currentSlot');
+      const getSlotSpy = vi.spyOn(network, 'currentSlot');
       getSlotSpy.mockResolvedValue(200);
 
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
       const cardanoChain = TestUtils.generateChainObject(network);
-      const getCovBoxesSpy = spyOn(cardanoChain as any, 'getCoveringBoxes');
+      const getCovBoxesSpy = vi.spyOn(cardanoChain as any, 'getCoveringBoxes');
       getCovBoxesSpy.mockResolvedValue({
         covered: true,
         boxes: bankBoxes.slice(2),
       });
-      const hasLockAddressEnoughAssetsSpy = spyOn(
+      const hasLockAddressEnoughAssetsSpy = vi.spyOn(
         cardanoChain,
         'hasLockAddressEnoughAssets'
       );
@@ -192,7 +189,7 @@ describe('CardanoChain', () => {
     it('should throw error when lock address does not have enough assets', async () => {
       // mock hasLockAddressEnoughAssets
       const cardanoChain = TestUtils.generateChainObject(network);
-      const hasLockAddressEnoughAssetsSpy = spyOn(
+      const hasLockAddressEnoughAssetsSpy = vi.spyOn(
         cardanoChain,
         'hasLockAddressEnoughAssets'
       );
@@ -223,12 +220,12 @@ describe('CardanoChain', () => {
     it('should throw error when bank boxes can not cover order assets', async () => {
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
       const cardanoChain = TestUtils.generateChainObject(network);
-      const getCovBoxesSpy = spyOn(cardanoChain as any, 'getCoveringBoxes');
+      const getCovBoxesSpy = vi.spyOn(cardanoChain as any, 'getCoveringBoxes');
       getCovBoxesSpy.mockResolvedValue({
         covered: false,
         boxes: bankBoxes,
       });
-      const hasLockAddressEnoughAssetsSpy = spyOn(
+      const hasLockAddressEnoughAssetsSpy = vi.spyOn(
         cardanoChain,
         'hasLockAddressEnoughAssets'
       );
@@ -269,18 +266,18 @@ describe('CardanoChain', () => {
       const payment = CardanoTransaction.fromJson(
         TestData.transaction4PaymentTransaction
       );
-      const getSlotSpy = spyOn(network, 'currentSlot');
+      const getSlotSpy = vi.spyOn(network, 'currentSlot');
       getSlotSpy.mockResolvedValue(200);
 
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
       const cardanoChain =
         TestUtils.generateChainObjectWithMultiDecimalTokenMap(network);
-      const getCovBoxesSpy = spyOn(cardanoChain as any, 'getCoveringBoxes');
+      const getCovBoxesSpy = vi.spyOn(cardanoChain as any, 'getCoveringBoxes');
       getCovBoxesSpy.mockResolvedValue({
         covered: true,
         boxes: bankBoxes.slice(2),
       });
-      const hasLockAddressEnoughAssetsSpy = spyOn(
+      const hasLockAddressEnoughAssetsSpy = vi.spyOn(
         cardanoChain,
         'hasLockAddressEnoughAssets'
       );
@@ -578,7 +575,7 @@ describe('CardanoChain', () => {
     it('should construct mapping successfully when no token provided', async () => {
       // mock getMempoolTransactions
       const transactions = [TestData.cardanoTx1];
-      spyOn(network, 'getMempoolTransactions').mockResolvedValueOnce(
+      vi.spyOn(network, 'getMempoolTransactions').mockResolvedValueOnce(
         transactions
       );
 
@@ -611,7 +608,7 @@ describe('CardanoChain', () => {
     it('should construct mapping successfully when token provided', async () => {
       // mock getMempoolTransactions
       const transactions = [TestData.cardanoTx1];
-      spyOn(network, 'getMempoolTransactions').mockResolvedValueOnce(
+      vi.spyOn(network, 'getMempoolTransactions').mockResolvedValueOnce(
         transactions
       );
 
@@ -649,14 +646,14 @@ describe('CardanoChain', () => {
     it('should map inputs to undefined when no valid output box found', async () => {
       // mock getMempoolTransactions
       const transactions = [TestData.cardanoTx1];
-      spyOn(network, 'getMempoolTransactions').mockResolvedValueOnce(
+      vi.spyOn(network, 'getMempoolTransactions').mockResolvedValueOnce(
         transactions
       );
 
       // call the function
       const trackingTokenId =
         '48d4a14b8407af8407702df3afda4cc8a945ce55235e9808c62c5f9b.5273744572676f546f6b656e7654657374';
-      spyOn(network, 'getMempoolTransactions').mockResolvedValueOnce(
+      vi.spyOn(network, 'getMempoolTransactions').mockResolvedValueOnce(
         transactions
       );
       const cardanoChain = TestUtils.generateChainObject(network);
@@ -831,7 +828,7 @@ describe('CardanoChain', () => {
     it('should true when tx is in mempool', async () => {
       // mock getMempoolTransactions
       const transactions = [TestData.cardanoTx1];
-      spyOn(network, 'getMempoolTransactions').mockResolvedValueOnce(
+      vi.spyOn(network, 'getMempoolTransactions').mockResolvedValueOnce(
         transactions
       );
 
@@ -857,7 +854,7 @@ describe('CardanoChain', () => {
     it('should false when tx is NOT in mempool', async () => {
       //  mock getMempoolTransactions
       const transactions = [TestData.cardanoTx1];
-      spyOn(network, 'getMempoolTransactions').mockResolvedValueOnce(
+      vi.spyOn(network, 'getMempoolTransactions').mockResolvedValueOnce(
         transactions
       );
 
@@ -895,16 +892,11 @@ describe('CardanoChain', () => {
       );
 
       // mock a network object to return as valid for all inputs of a mocked transaction
-      const isBoxUnspentAndValidSpy = spyOn(network, 'isBoxUnspentAndValid');
-      const txInputs = Transaction.from_bytes(payment1.txBytes).body().inputs();
-      for (let i = 0; i < txInputs.len(); i++) {
-        when(isBoxUnspentAndValidSpy)
-          .calledWith(CardanoUtils.getBoxId(txInputs.get(i)))
-          .mockResolvedValueOnce(true);
-      }
+      const isBoxUnspentAndValidSpy = vi.spyOn(network, 'isBoxUnspentAndValid');
+      isBoxUnspentAndValidSpy.mockResolvedValue(true);
 
       // mock get current slot of cardano network
-      const currentSlotSpy = spyOn(network, 'currentSlot');
+      const currentSlotSpy = vi.spyOn(network, 'currentSlot');
       currentSlotSpy.mockResolvedValue(100);
 
       // call the function
@@ -936,7 +928,7 @@ describe('CardanoChain', () => {
       );
 
       // mock get current slot of cardano network
-      const currentSlotSpy = spyOn(network, 'currentSlot');
+      const currentSlotSpy = vi.spyOn(network, 'currentSlot');
       currentSlotSpy.mockResolvedValue(1000);
 
       // call the function
@@ -975,16 +967,13 @@ describe('CardanoChain', () => {
 
       // mock a network object to return as valid for all inputs of a mocked
       //   transaction except for the first one
-      const isBoxUnspentAndValidSpy = spyOn(network, 'isBoxUnspentAndValid');
-      const txInputs = Transaction.from_bytes(payment1.txBytes).body().inputs();
-      for (let i = 0; i < txInputs.len(); i++) {
-        when(isBoxUnspentAndValidSpy)
-          .calledWith(CardanoUtils.getBoxId(txInputs.get(i)))
-          .mockResolvedValueOnce(i !== 0);
-      }
+      const isBoxUnspentAndValidSpy = vi.spyOn(network, 'isBoxUnspentAndValid');
+      isBoxUnspentAndValidSpy
+        .mockResolvedValueOnce(false)
+        .mockResolvedValue(true);
 
       // mock get current slot of cardano network
-      const currentSlotSpy = spyOn(network, 'currentSlot');
+      const currentSlotSpy = vi.spyOn(network, 'currentSlot');
       currentSlotSpy.mockResolvedValue(100);
 
       // call the function
@@ -1022,16 +1011,11 @@ describe('CardanoChain', () => {
       );
 
       // mock a network object to return as valid for all inputs of a mocked transaction
-      const isBoxUnspentAndValidSpy = spyOn(network, 'isBoxUnspentAndValid');
-      const txInputs = Transaction.from_bytes(payment1.txBytes).body().inputs();
-      for (let i = 0; i < txInputs.len(); i++) {
-        when(isBoxUnspentAndValidSpy)
-          .calledWith(CardanoUtils.getBoxId(txInputs.get(i)))
-          .mockResolvedValueOnce(true);
-      }
+      const isBoxUnspentAndValidSpy = vi.spyOn(network, 'isBoxUnspentAndValid');
+      isBoxUnspentAndValidSpy.mockResolvedValue(true);
 
       // mock get current slot of cardano network
-      const currentSlotSpy = spyOn(network, 'currentSlot');
+      const currentSlotSpy = vi.spyOn(network, 'currentSlot');
       currentSlotSpy.mockResolvedValue(100);
 
       // call the function
@@ -1218,7 +1202,7 @@ describe('CardanoChain', () => {
       expectedTx.txType = TransactionType.manual;
 
       // mock getUtxo
-      const getUtxoSpy = spyOn(network, 'getUtxo');
+      const getUtxoSpy = vi.spyOn(network, 'getUtxo');
       expectedTx.inputUtxos.forEach((utxo) =>
         getUtxoSpy.mockResolvedValueOnce(JsonBigInt.parse(utxo) as CardanoUtxo)
       );
@@ -1231,6 +1215,116 @@ describe('CardanoChain', () => {
 
       // check returned value
       expect(result.toJson()).toEqual(expectedTx.toJson());
+    });
+  });
+
+  describe('verifyPaymentTransaction', () => {
+    const network = new TestCardanoNetwork();
+
+    /**
+     * @target CardanoChain.verifyPaymentTransaction should return true
+     * when data is consistent
+     * @dependencies
+     * @scenario
+     * - mock a CardanoTransaction
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return true
+     */
+    it('should return true when data is consistent', async () => {
+      // mock a CardanoTransaction
+      const paymentTx = CardanoTransaction.fromJson(
+        TestData.transaction5PaymentTransaction
+      );
+
+      // run test
+      const cardanoChain = TestUtils.generateChainObject(network);
+      const result = await cardanoChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(true);
+    });
+
+    /**
+     * @target CardanoChain.verifyPaymentTransaction should return false
+     * when transaction id is wrong
+     * @dependencies
+     * @scenario
+     * - mock a CardanoTransaction with changed txId
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when transaction id is wrong', async () => {
+      // mock a CardanoTransaction with changed txId
+      const paymentTx = CardanoTransaction.fromJson(
+        TestData.transaction5PaymentTransaction
+      );
+      paymentTx.txId = TestUtils.generateRandomId();
+
+      // run test
+      const cardanoChain = TestUtils.generateChainObject(network);
+      const result = await cardanoChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target CardanoChain.verifyPaymentTransaction should return false
+     * when number of boxes is wrong
+     * @dependencies
+     * @scenario
+     * - mock a CardanoTransaction with less boxes
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when number of boxes is wrong', async () => {
+      // mock a CardanoTransaction with less boxes
+      const paymentTx = CardanoTransaction.fromJson(
+        TestData.transaction5PaymentTransaction
+      );
+      paymentTx.inputUtxos.pop();
+
+      // run test
+      const cardanoChain = TestUtils.generateChainObject(network);
+      const result = await cardanoChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target CardanoChain.verifyPaymentTransaction should return false
+     * when at least one of the boxes is wrong
+     * @dependencies
+     * @scenario
+     * - mock a CardanoTransaction with changed box
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when at least one of the boxes is wrong', async () => {
+      // mock a CardanoTransaction with changed box
+      const paymentTx = CardanoTransaction.fromJson(
+        TestData.transaction5PaymentTransaction
+      );
+      paymentTx.inputUtxos[1] = JsonBigInt.stringify({
+        txId: TestUtils.generateRandomId(),
+        index: 1,
+      });
+
+      // run test
+      const cardanoChain = TestUtils.generateChainObject(network);
+      const result = await cardanoChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
     });
   });
 });

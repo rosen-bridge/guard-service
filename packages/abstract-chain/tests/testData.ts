@@ -1,5 +1,5 @@
 import { RosenTokens } from '@rosen-bridge/tokens';
-import { AssetBalance, EventTrigger } from '../lib';
+import { AssetBalance, EventTrigger, PaymentOrder, TokenInfo } from '../lib';
 
 export const paymentTxConfirmation = 6;
 
@@ -223,3 +223,61 @@ export const unwrappedBalance: AssetBalance = {
     },
   ],
 };
+export const originalTokens = [
+  {
+    id: 'id2',
+    value: 20n,
+  },
+  {
+    id: 'id1',
+    value: 10n,
+  },
+];
+export const unorganizedAssetBalance: AssetBalance = {
+  nativeToken: 200n,
+  tokens: originalTokens,
+};
+export const unorganizedAssetBalance2: AssetBalance = {
+  nativeToken: 100n,
+  tokens: structuredClone(originalTokens),
+};
+export const sortedTokens: TokenInfo[] = [
+  {
+    id: 'id1',
+    value: 10n,
+  },
+  {
+    id: 'id2',
+    value: 20n,
+  },
+];
+export const unorganizedOrder: PaymentOrder = [
+  {
+    address: 'addr2',
+    assets: unorganizedAssetBalance,
+  },
+  {
+    address: 'addr1',
+    assets: {
+      nativeToken: 100n,
+      tokens: structuredClone(originalTokens),
+    },
+  },
+];
+export const organizedOrder: PaymentOrder = [
+  {
+    address: 'addr2',
+    assets: {
+      nativeToken: unorganizedAssetBalance.nativeToken,
+      tokens: structuredClone(sortedTokens),
+    },
+  },
+  {
+    address: 'addr1',
+    assets: {
+      nativeToken: 100n,
+      tokens: structuredClone(sortedTokens),
+    },
+  },
+];
+export const encodedOrder = `[{"address":"addr2","assets":{"nativeToken":200,"tokens":[{"id":"id1","value":10},{"id":"id2","value":20}]}},{"address":"addr1","assets":{"nativeToken":100,"tokens":[{"id":"id1","value":10},{"id":"id2","value":20}]}}]`;
