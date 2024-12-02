@@ -286,13 +286,13 @@ abstract class EvmChain extends AbstractChain<Transaction> {
     };
 
     let networkFee = tx.gasLimit;
-    if (this.evmTxType === 2) {
+    if (tx.type === 2) {
       if (tx.maxFeePerGas === null)
         throw new ImpossibleBehavior(
           "Type 2 transaction doesn't have null maxFeePerGas or maxPriorityFeePerGas"
         );
       networkFee *= tx.maxFeePerGas;
-    } else if (this.evmTxType === 0) {
+    } else if (tx.type === 0) {
       if (tx.gasPrice === null)
         throw new ImpossibleBehavior(
           "Type 0 transaction doesn't have null gasPrice"
@@ -457,7 +457,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
 
     // check fees
     const feeData = await this.network.getFeeData();
-    if (this.evmTxType === 2) {
+    if (tx.type === 2) {
       if (tx.maxFeePerGas === null || tx.maxPriorityFeePerGas === null)
         throw new ImpossibleBehavior(
           "Type 2 transaction can't have null maxFeePerGas or maxPriorityFeePerGas"
@@ -501,7 +501,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
         );
         return false;
       }
-    } else if (this.evmTxType === 0) {
+    } else if (tx.type === 0) {
       if (tx.gasPrice === null)
         throw new ImpossibleBehavior(
           "Type 0 transaction can't have null gasPrice"

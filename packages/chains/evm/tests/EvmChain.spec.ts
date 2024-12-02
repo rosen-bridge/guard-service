@@ -1195,7 +1195,7 @@ describe('EvmChain', () => {
      * @expected
      * - it should return false
      */
-    it('should return false when maxFeePerGas is too much smaller than exptected', async () => {
+    it('should return false when maxFeePerGas is too much smaller than expected', async () => {
       // mock a config that has too much smaller max fee comparing to the mocked transaction
       const network = new TestEvmNetwork();
       testUtils.mockGetGasRequired(network, 76000n);
@@ -1295,6 +1295,131 @@ describe('EvmChain', () => {
       tx.gasLimit = 76000n * evmChain.configs.gasLimitMultiplier;
       tx.maxFeePerGas = 20n;
       tx.maxPriorityFeePerGas = 5n;
+      tx.value = 10n;
+
+      const paymentTx = new PaymentTransaction(
+        evmChain.CHAIN,
+        tx.unsignedHash,
+        eventId,
+        Serializer.serialize(tx),
+        txType
+      );
+
+      // run test
+      const result = await evmChain.verifyTransactionFee(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+    /**
+     * @target EvmChain.verifyTransactionFee should return true when
+     * gasPrice and gasLimit are set properly for a type 0 transaction
+     * @dependencies
+     * @scenario
+     * - mock mockGetGasRequired
+     * - mock getFeeData
+     * - mock PaymentTransaction
+     * - check returned value
+     * @expected
+     * - it should return true
+     */
+    it('should return true when gasPrice and gasLimit are set properly for a type 0 transaction', async () => {
+      // mock a config that has almost the same fee as the mocked transaction
+      const network = new TestEvmNetwork();
+      testUtils.mockGetGasRequired(network, 100000n);
+      testUtils.mockGetFeeData(network, new FeeData(20n, null, null));
+
+      // mock PaymentTransaction
+      const evmChain = testUtils.generateChainObject(network, undefined, 0);
+      const tx = Transaction.from(TestData.transaction1WithType0Json);
+      tx.gasLimit = 85000n * evmChain.configs.gasLimitMultiplier;
+      tx.gasPrice = 22n;
+      tx.value = 2n;
+
+      const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+      const txType = TransactionType.payment;
+      const paymentTx = new PaymentTransaction(
+        evmChain.CHAIN,
+        tx.unsignedHash,
+        eventId,
+        Serializer.serialize(tx),
+        txType
+      );
+
+      // run test
+      const result = await evmChain.verifyTransactionFee(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(true);
+    });
+
+    /**
+     * @target EvmChain.verifyTransactionFee should return false when gasPrice
+     * is too much bigger than expected
+     * @dependencies
+     * @scenario
+     * - mock mockGetGasRequired
+     * - mock getFeeData
+     * - mock PaymentTransaction
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when gasPrice is too much bigger than expected', async () => {
+      // mock a config that has too much bigger max fee comparing to the mocked transaction
+      const network = new TestEvmNetwork();
+      testUtils.mockGetGasRequired(network, 76000n);
+      testUtils.mockGetFeeData(network, new FeeData(20n, null, null));
+
+      // mock PaymentTransaction
+      const evmChain = testUtils.generateChainObject(network, undefined, 0);
+      const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+      const txType = TransactionType.payment;
+      const tx = Transaction.from(TestData.transaction1Json);
+      tx.gasLimit = 76000n * evmChain.configs.gasLimitMultiplier;
+      tx.gasPrice = 25n;
+      tx.value = 10n;
+
+      const paymentTx = new PaymentTransaction(
+        evmChain.CHAIN,
+        tx.unsignedHash,
+        eventId,
+        Serializer.serialize(tx),
+        txType
+      );
+
+      // run test
+      const result = await evmChain.verifyTransactionFee(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target EvmChain.verifyTransactionFee should return false when gasPrice
+     * is too much smaller than expected
+     * @dependencies
+     * @scenario
+     * - mock mockGetGasRequired
+     * - mock getFeeData
+     * - mock PaymentTransaction
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when gasPrice is too much smaller than expected', async () => {
+      // mock a config that has too much smaller max fee comparing to the mocked transaction
+      const network = new TestEvmNetwork();
+      testUtils.mockGetGasRequired(network, 76000n);
+      testUtils.mockGetFeeData(network, new FeeData(20n, null, null));
+
+      // mock PaymentTransaction
+      const evmChain = testUtils.generateChainObject(network, undefined, 0);
+      const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+      const txType = TransactionType.payment;
+      const tx = Transaction.from(TestData.transaction1Json);
+      tx.gasLimit = 76000n * evmChain.configs.gasLimitMultiplier;
+      tx.gasPrice = 16n;
       tx.value = 10n;
 
       const paymentTx = new PaymentTransaction(
