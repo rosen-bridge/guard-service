@@ -1,6 +1,6 @@
 {
   "name": "@rosen-chains/cardano-graphql-network",
-  "version": "6.0.5",
+  "version": "6.0.6",
   "description": "a package to be used as network api provider for @rosen-chains/cardano package",
   "repository": "@rosen-chains/cardano-graphql-network",
   "license": "CC0-1.0",
@@ -40,7 +40,7 @@
     "@apollo/client": "^3.8.7",
     "@emurgo/cardano-serialization-lib-nodejs": "^11.3.1",
     "@rosen-bridge/abstract-logger": "^2.0.1",
-    "@rosen-chains/abstract-chain": "^11.0.1",
-    "@rosen-chains/cardano": "^10.1.1"
+    "@rosen-chains/abstract-chain": "^11.0.2",
+    "@rosen-chains/cardano": "^10.1.2"
   }
 }
