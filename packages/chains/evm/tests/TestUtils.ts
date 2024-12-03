@@ -10,6 +10,7 @@ import { vi } from 'vitest';
 import { AbstractEvmNetwork } from '../lib';
 import TestEvmNetwork from './network/TestEvmNetwork';
 import TestChain from './TestChain';
+import { FeeData } from 'ethers';
 
 const spyOn = vi.spyOn;
 const observationTxConfirmation = 5;
@@ -62,11 +63,8 @@ export const mockGetAddressBalanceForNativeToken = (
   spyOn(network, 'getAddressBalanceForNativeToken').mockResolvedValue(value);
 };
 
-export const mockGetMaxFeePerGas = (
-  network: AbstractEvmNetwork,
-  value: bigint
-) => {
-  spyOn(network, 'getMaxFeePerGas').mockResolvedValue(value);
+export const mockGetFeeData = (network: AbstractEvmNetwork, value: FeeData) => {
+  spyOn(network, 'getFeeData').mockResolvedValue(value);
 };
 
 export const mockGetGasRequired = (
@@ -90,36 +88,33 @@ export const mockGetTransactionByNonce = (
   spyOn(network, 'getTransactionByNonce').mockResolvedValue(value);
 };
 
-export const mockGetMaxPriorityFeePerGas = (
-  network: AbstractEvmNetwork,
-  value: bigint
-) => {
-  spyOn(network, 'getMaxPriorityFeePerGas').mockResolvedValue(value);
-};
-
 export const generateChainObject = (
   network: TestEvmNetwork,
-  signFn: TssSignFunction = mockedSignFn
+  signFn: TssSignFunction = mockedSignFn,
+  evmTxType = 2
 ) => {
   return new TestChain(
     network,
     configs,
     testData.testTokenMap,
     testData.supportedTokens,
-    signFn
+    signFn,
+    evmTxType
   );
 };
 
 export const generateChainObjectWithMultiDecimalTokenMap = (
   network: TestEvmNetwork,
-  signFn: TssSignFunction = mockedSignFn
+  signFn: TssSignFunction = mockedSignFn,
+  evmTxType = 2
 ) => {
   return new TestChain(
     network,
     configs,
     testData.multiDecimalTokenMap,
     testData.supportedTokens,
-    signFn
+    signFn,
+    evmTxType
   );
 };
 

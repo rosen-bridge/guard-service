@@ -29,6 +29,7 @@ class BinanceChain extends EvmChain {
       signFunction,
       BINANCE_CHAIN,
       BNB,
+      0,
       logger
     );
   }

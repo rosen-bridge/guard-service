@@ -1,7 +1,6 @@
 import { expect, vi } from 'vitest';
 import {
   AssetNotSupportedError,
-  MaxParallelTxError,
   NotEnoughAssetsError,
   PaymentTransaction,
   SigningStatus,
@@ -12,16 +11,12 @@ import TestEvmNetwork from './network/TestEvmNetwork';
 import * as TestData from './testData';
 import * as testUtils from './TestUtils';
 import Serializer from '../lib/Serializer';
-import { Transaction, TransactionLike } from 'ethers';
+import { FeeData, Transaction, TransactionLike } from 'ethers';
 import { mockGetAddressBalanceForNativeToken } from './TestUtils';
 import { EvmTxStatus } from '../lib';
 import TestChain from './TestChain';
 
 describe('EvmChain', () => {
-  const network = new TestEvmNetwork();
-
-  const evmChain = testUtils.generateChainObject(network);
-
   describe(`constructor`, () => {
     /**
      * @target EvmChain.constructor should initialize rosen-extractor successfully
@@ -33,12 +28,14 @@ describe('EvmChain', () => {
      * - CHAIN variable should be the same as the one defined EvmChain
      */
     it('should initialize rosen-extractor successfully', async () => {
+      const network = new TestEvmNetwork();
       const chain = new TestChain(
         network,
         testUtils.configs,
         TestData.testTokenMap,
         TestData.supportedTokens,
-        testUtils.mockedSignFn
+        testUtils.mockedSignFn,
+        2
       );
       expect(chain.extractor?.chain).toEqual(chain.CHAIN);
     });
@@ -50,9 +47,8 @@ describe('EvmChain', () => {
      * successfully for multiple orders
      * @dependencies
      * @scenario
-     * - mock hasLockAddressEnoughAssets, getMaxFeePerGas
+     * - mock hasLockAddressEnoughAssets, getFeeData
      * - mock getGasRequired, getAddressNextNonce
-     * - mock getMaxPriorityFeePerGas
      * - call the function
      * - check returned value
      * @expected
@@ -86,14 +82,15 @@ describe('EvmChain', () => {
         Buffer.from(Serializer.signedSerialize(elem)).toString('hex')
       );
 
-      // mock hasLockAddressEnoughAssets, getMaxFeePerGas,
-      // getGasRequired, getAddressNextNonce, getMaxPriorityFeePerGas
+      // mock hasLockAddressEnoughAssets, getFeeData,
+      // getGasRequired, getAddressNextNonce
+      const network = new TestEvmNetwork();
+      const evmChain = testUtils.generateChainObject(network);
       const requiredGas = 100000n;
       testUtils.mockHasLockAddressEnoughAssets(evmChain, true);
-      testUtils.mockGetMaxFeePerGas(network, 10n);
+      testUtils.mockGetFeeData(network, new FeeData(10n, 10n, 10n));
       testUtils.mockGetGasRequired(network, requiredGas);
       testUtils.mockGetAddressNextAvailableNonce(network, nonce);
-      testUtils.mockGetMaxPriorityFeePerGas(network, 10n);
 
       // run test
       const evmTxs = await evmChain.generateMultipleTransactions(
@@ -146,9 +143,8 @@ describe('EvmChain', () => {
      * transaction successfully for single order
      * @dependencies
      * @scenario
-     * - mock hasLockAddressEnoughAssets, getMaxFeePerGas
+     * - mock hasLockAddressEnoughAssets, getFeeData
      * - mock getGasRequired, getAddressNextNonce
-     * - mock getMaxPriorityFeePerGas
      * - call the function
      * - check returned value
      * @expected
@@ -161,6 +157,7 @@ describe('EvmChain', () => {
      * - transaction must be of type 2 and has no blobs
      * - nonce must be the same as the next available nonce
      * - gas limit should be as expected
+     * - maxFeePerGas and maxPriorityFeePerGas should be as expected
      */
     it('should generate payment transaction successfully for single order', async () => {
       const order = TestData.nativePaymentOrder;
@@ -168,14 +165,15 @@ describe('EvmChain', () => {
       const txType = TransactionType.payment;
       const nonce = 54;
 
-      // mock hasLockAddressEnoughAssets, getMaxFeePerGas,
-      // getGasRequired, getAddressNextNonce, getMaxPriorityFeePerGas
+      // mock hasLockAddressEnoughAssets, getFeeData,
+      // getGasRequired, getAddressNextNonce
+      const network = new TestEvmNetwork();
+      const evmChain = testUtils.generateChainObject(network);
       const requiredGas = 21000n;
       testUtils.mockHasLockAddressEnoughAssets(evmChain, true);
-      testUtils.mockGetMaxFeePerGas(network, 10n);
+      testUtils.mockGetFeeData(network, new FeeData(10n, 10n, 10n));
       testUtils.mockGetGasRequired(network, requiredGas);
       testUtils.mockGetAddressNextAvailableNonce(network, nonce);
-      testUtils.mockGetMaxPriorityFeePerGas(network, 10n);
 
       // run test
       const evmTx = await evmChain.generateMultipleTransactions(
@@ -214,6 +212,10 @@ describe('EvmChain', () => {
 
       // check gas limit
       expect(tx.gasLimit).toEqual(requiredGas * 3n); // requiredGas * gasLimitMultiplier
+
+      // check maxFeePerGas and maxPriorityFeePerGas
+      expect(tx.maxFeePerGas).toEqual(10n);
+      expect(tx.maxPriorityFeePerGas).toEqual(10n);
     });
 
     /**
@@ -221,9 +223,8 @@ describe('EvmChain', () => {
      * transaction with capped gas limit when required is too high
      * @dependencies
      * @scenario
-     * - mock hasLockAddressEnoughAssets, getMaxFeePerGas
+     * - mock hasLockAddressEnoughAssets, getFeeData
      * - mock getGasRequired, getAddressNextNonce
-     * - mock getMaxPriorityFeePerGas
      * - call the function
      * - check returned value
      * @expected
@@ -243,13 +244,14 @@ describe('EvmChain', () => {
       const txType = TransactionType.payment;
       const nonce = 54;
 
-      // mock hasLockAddressEnoughAssets, getMaxFeePerGas,
-      // getGasRequired, getAddressNextNonce, getMaxPriorityFeePerGas
+      // mock hasLockAddressEnoughAssets, getFeeData,
+      // getGasRequired, getAddressNextNonce
+      const network = new TestEvmNetwork();
+      const evmChain = testUtils.generateChainObject(network);
       testUtils.mockHasLockAddressEnoughAssets(evmChain, true);
-      testUtils.mockGetMaxFeePerGas(network, 10n);
+      testUtils.mockGetFeeData(network, new FeeData(10n, 10n, 10n));
       testUtils.mockGetGasRequired(network, 200000n);
       testUtils.mockGetAddressNextAvailableNonce(network, nonce);
-      testUtils.mockGetMaxPriorityFeePerGas(network, 10n);
 
       // run test
       const evmTx = await evmChain.generateMultipleTransactions(
@@ -307,6 +309,8 @@ describe('EvmChain', () => {
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
       const txType = TransactionType.payment;
       // run test and expect error
+      const network = new TestEvmNetwork();
+      const evmChain = testUtils.generateChainObject(network);
       await expect(async () => {
         await evmChain.generateMultipleTransactions(
           eventId,
@@ -323,7 +327,7 @@ describe('EvmChain', () => {
      * when lock address does not have enough assets
      * @dependencies
      * @scenario
-     * - mock hasLockAddressEnoughAssets
+     * - mock hasLockAddressEnoughAssets and getAddressNextNonce
      * - call the function
      * @expected
      * - throw NotEnoughAssetsError
@@ -332,9 +336,14 @@ describe('EvmChain', () => {
       const order = TestData.multipleOrders;
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
       const txType = TransactionType.payment;
+      const nonce = 54;
 
-      // mock hasLockAddressEnoughAssets
+      // mock hasLockAddressEnoughAssets and getAddressNextNonce
+      const network = new TestEvmNetwork();
+      const evmChain = testUtils.generateChainObject(network);
       testUtils.mockHasLockAddressEnoughAssets(evmChain, false);
+      testUtils.mockGetFeeData(network, new FeeData(10n, 10n, 10n));
+      testUtils.mockGetAddressNextAvailableNonce(network, nonce);
 
       // run test and expect error
       await expect(async () => {
@@ -388,14 +397,15 @@ describe('EvmChain', () => {
       );
       const nonce = 53;
 
-      // mock hasLockAddressEnoughAssets, getMaxFeePerGas,
-      // getGasRequired, getAddressNextNonce, getMaxPriorityFeePerGas
+      // mock hasLockAddressEnoughAssets, getFeeData,
+      // getGasRequired, getAddressNextNonce
+      const network = new TestEvmNetwork();
+      const evmChain = testUtils.generateChainObject(network);
       const requiredGas = 21000n;
       testUtils.mockHasLockAddressEnoughAssets(evmChain, true);
-      testUtils.mockGetMaxFeePerGas(network, 10n);
+      testUtils.mockGetFeeData(network, new FeeData(10n, 10n, 10n));
       testUtils.mockGetGasRequired(network, requiredGas);
       testUtils.mockGetAddressNextAvailableNonce(network, nonce);
-      testUtils.mockGetMaxPriorityFeePerGas(network, 10n);
 
       // run test
       const evmTx = await evmChain.generateMultipleTransactions(
@@ -467,7 +477,11 @@ describe('EvmChain', () => {
       );
 
       // mock hasLockAddressEnoughAssets, getAddressNextNonce,
+      const network = new TestEvmNetwork();
+      const evmChain = testUtils.generateChainObject(network);
       testUtils.mockHasLockAddressEnoughAssets(evmChain, true);
+      testUtils.mockGetFeeData(network, new FeeData(10n, 10n, 10n));
+      testUtils.mockGetGasRequired(network, 200000n);
       testUtils.mockGetAddressNextAvailableNonce(network, 53);
 
       // run test and expect no error
@@ -488,9 +502,8 @@ describe('EvmChain', () => {
      * transaction successfully for wrapped order
      * @dependencies
      * @scenario
-     * - mock hasLockAddressEnoughAssets, getMaxFeePerGas
+     * - mock hasLockAddressEnoughAssets, getFeeData
      * - mock getGasRequired, getAddressNextNonce
-     * - mock getMaxPriorityFeePerGas
      * - call the function
      * - check returned value
      * @expected
@@ -504,6 +517,7 @@ describe('EvmChain', () => {
      * - nonce must be the same as the next available nonce
      */
     it('should generate payment transaction successfully for wrapped order', async () => {
+      const network = new TestEvmNetwork();
       const evmChain =
         testUtils.generateChainObjectWithMultiDecimalTokenMap(network);
 
@@ -515,10 +529,9 @@ describe('EvmChain', () => {
       // mock hasLockAddressEnoughAssets, getMaxFeePerGas,
       // getGasRequired, getAddressNextNonce, getMaxPriorityFeePerGas
       testUtils.mockHasLockAddressEnoughAssets(evmChain, true);
-      testUtils.mockGetMaxFeePerGas(network, 10n);
+      testUtils.mockGetFeeData(network, new FeeData(10n, 10n, 10n));
       testUtils.mockGetGasRequired(network, 21000n);
       testUtils.mockGetAddressNextAvailableNonce(network, nonce);
-      testUtils.mockGetMaxPriorityFeePerGas(network, 10n);
 
       // run test
       const evmTx = await evmChain.generateMultipleTransactions(
@@ -555,9 +568,91 @@ describe('EvmChain', () => {
       // check nonce
       expect(tx.nonce).toEqual(nonce);
     });
+
+    /**
+     * @target EvmChain.generateMultipleTransactions should generate
+     * type 0 transaction successfully for single order
+     * @dependencies
+     * @scenario
+     * - mock hasLockAddressEnoughAssets, getFeeData
+     * - mock getGasRequired, getAddressNextNonce
+     * - call the function
+     * - check returned value
+     * @expected
+     * - PaymentTransaction txType, eventId and network should be as
+     *   expected
+     * - extracted order of generated transaction should be the same as input
+     *   order
+     * - eventId should be properly in the transaction data
+     * - no extra data should be found in the transaction data
+     * - transaction must be of type 0 and has no blobs
+     * - nonce must be the same as the next available nonce
+     * - gas limit should be as expected
+     * - gas price should be as expected
+     */
+    it('should generate type 0 transaction successfully for single order', async () => {
+      const order = TestData.nativePaymentOrder;
+      const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+      const txType = TransactionType.payment;
+      const nonce = 54;
+
+      // mock hasLockAddressEnoughAssets, getFeeData,
+      // getGasRequired, getAddressNextNonce
+      const network = new TestEvmNetwork();
+      const evmChain = testUtils.generateChainObject(network, undefined, 0);
+      const requiredGas = 21000n;
+      testUtils.mockHasLockAddressEnoughAssets(evmChain, true);
+      testUtils.mockGetFeeData(network, new FeeData(10n, null, null));
+      testUtils.mockGetGasRequired(network, requiredGas);
+      testUtils.mockGetAddressNextAvailableNonce(network, nonce);
+
+      // run test
+      const evmTx = await evmChain.generateMultipleTransactions(
+        eventId,
+        txType,
+        order,
+        [],
+        []
+      );
+
+      // check returned value
+      expect(evmTx[0].txType).toEqual(txType);
+      expect(evmTx[0].eventId).toEqual(eventId);
+      expect(evmTx[0].network).toEqual(evmChain.CHAIN);
+
+      // extracted order of generated transaction should be the same as input order
+      const extractedOrder = evmChain.extractTransactionOrder(evmTx[0]);
+      expect(extractedOrder).toEqual(order);
+
+      const tx = Serializer.deserialize(evmTx[0].txBytes);
+
+      // check eventId encoded at the end of the data
+      expect(tx.data.substring(2, 34)).toEqual(eventId);
+
+      // check there is no more data
+      expect(tx.data.length).toEqual(34);
+
+      // check transaction type
+      expect(tx.type).toEqual(0);
+
+      // check blobs zero
+      expect(tx.maxFeePerBlobGas).toEqual(null);
+
+      // check nonce
+      expect(tx.nonce).toEqual(nonce);
+
+      // check gas limit
+      expect(tx.gasLimit).toEqual(requiredGas * 3n); // requiredGas * gasLimitMultiplier
+
+      // check gas price
+      expect(tx.gasPrice).toEqual(10n);
+    });
   });
 
   describe('rawTxToPaymentTransaction', () => {
+    const network = new TestEvmNetwork();
+    const evmChain = testUtils.generateChainObject(network);
+
     /**
      * @target EvmChain.rawTxToPaymentTransaction should construct transaction successfully
      * @dependencies
@@ -583,7 +678,7 @@ describe('EvmChain', () => {
 
     /**
      * @target EvmChain.rawTxToPaymentTransaction should throw error when transaction
-     * is not of type 2
+     * type is unexpected
      * @dependencies
      * @scenario
      * - mock invalid transaction
@@ -591,7 +686,8 @@ describe('EvmChain', () => {
      * @expected
      * - throw TransactionFormatError
      */
-    it('should throw error when transaction is not of type 2', async () => {
+    it('should throw error when transaction type is unexpected', async () => {
+      const evmChain = testUtils.generateChainObject(network, undefined, 0);
       expect(async () => {
         await evmChain.rawTxToPaymentTransaction(
           TestData.transaction1JsonString
@@ -601,6 +697,9 @@ describe('EvmChain', () => {
   });
 
   describe('getTransactionAssets', () => {
+    const network = new TestEvmNetwork();
+    const evmChain = testUtils.generateChainObject(network);
+
     /**
      * @target EvmChain.getTransactionAssets should get transaction assets
      * successfully when there is ERC-20 token transfer.
@@ -703,24 +802,26 @@ describe('EvmChain', () => {
     });
 
     /**
-     * @target EvmChain.getTransactionAssets should throw error when transaction is not of type 2
+     * @target EvmChain.getTransactionAssets should get transaction assets
+     * successfully for type 0 transactions
      * @dependencies
      * @scenario
      * - mock PaymentTransaction
      * - call the function
+     * - check returned value
      * @expected
-     * - throw error
+     * - it should return mocked transaction assets (both input and output assets)
      */
-    it('should throw error when transaction is not of type 2', async () => {
+    it('should get transaction assets successfully for type 0 transactions', async () => {
+      const evmChain = testUtils.generateChainObject(network, undefined, 0);
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
       const txType = TransactionType.payment;
       // mock PaymentTransaction
-      const trx = { ...TestData.transaction1Json };
+      const trx = { ...TestData.transaction1WithType0Json };
       trx.data = '0x';
       const tx = Transaction.from(trx);
       const assets = { ...TestData.transaction1Assets };
       assets.tokens = [];
-      tx.type = 3;
       const paymentTx = new PaymentTransaction(
         evmChain.CHAIN,
         tx.unsignedHash,
@@ -729,10 +830,12 @@ describe('EvmChain', () => {
         txType
       );
 
-      // run test function and expect error
-      expect(async () => {
-        await evmChain.getTransactionAssets(paymentTx);
-      }).rejects.toThrowError(TransactionFormatError);
+      // check returned value
+      const result = await evmChain.getTransactionAssets(paymentTx);
+
+      // check returned value
+      expect(result.inputAssets).toEqual(assets);
+      expect(result.outputAssets).toEqual(assets);
     });
 
     /**
@@ -747,6 +850,7 @@ describe('EvmChain', () => {
      * - it should return mocked transaction assets (both input and output assets)
      */
     it('should wrap transaction assets successfully', async () => {
+      const network = new TestEvmNetwork();
       const evmChain =
         testUtils.generateChainObjectWithMultiDecimalTokenMap(network);
 
@@ -782,7 +886,7 @@ describe('EvmChain', () => {
      * @dependencies
      * @scenario
      * - mock mockGetGasRequired
-     * - mock mockGetMaxFeePerGas, mockGetMaxPriorityFeePerGas
+     * - mock getFeeData
      * - mock PaymentTransaction
      * - check returned value
      * @expected
@@ -790,11 +894,12 @@ describe('EvmChain', () => {
      */
     it('should return true when both fees and gasLimit are set properly', async () => {
       // mock a config that has almost the same fee as the mocked transaction
+      const network = new TestEvmNetwork();
       testUtils.mockGetGasRequired(network, 100000n);
-      testUtils.mockGetMaxFeePerGas(network, 20n);
-      testUtils.mockGetMaxPriorityFeePerGas(network, 7n);
+      testUtils.mockGetFeeData(network, new FeeData(20n, 20n, 7n));
 
       // mock PaymentTransaction
+      const evmChain = testUtils.generateChainObject(network);
       const tx = Transaction.from(TestData.transaction1Json);
       tx.gasLimit = 85000n * evmChain.configs.gasLimitMultiplier;
       tx.maxFeePerGas = 22n;
@@ -823,18 +928,19 @@ describe('EvmChain', () => {
      * @dependencies
      * @scenario
      * - mock mockGetGasRequired
-     * - mock mockGetMaxFeePerGas, mockGetMaxPriorityFeePerGas
+     * - mock getFeeData
      * - mock PaymentTransaction
      * @expected
      * - return false
      */
     it('should return false when `to` is null', async () => {
       // mock a config that has almost the same fee as the transaction fee
+      const network = new TestEvmNetwork();
       testUtils.mockGetGasRequired(network, 100000n);
-      testUtils.mockGetMaxFeePerGas(network, 20n);
-      testUtils.mockGetMaxPriorityFeePerGas(network, 7n);
+      testUtils.mockGetFeeData(network, new FeeData(20n, 20n, 7n));
 
       // mock PaymentTransaction
+      const evmChain = testUtils.generateChainObject(network);
       const tx = Transaction.from(TestData.transaction1Json);
       tx.gasLimit = 100000n * evmChain.configs.gasLimitMultiplier;
       tx.maxFeePerGas = 22n;
@@ -860,22 +966,23 @@ describe('EvmChain', () => {
     });
 
     /**
-     * @target EvmChain.verifyTransactionFee should return false when transaction is not of type 2
+     * @target EvmChain.verifyTransactionFee should return false when transaction type is unexpected
      * @dependencies
      * @scenario
      * - mock mockGetGasRequired
-     * - mock mockGetMaxFeePerGas, mockGetMaxPriorityFeePerGas
+     * - mock getFeeData
      * - mock PaymentTransaction
      * @expected
      * - return false
      */
-    it('should return false when transaction is not of type 2', async () => {
+    it('should return false when transaction type is unexpected', async () => {
       // mock a config that has almost the same fee as the transaction fee
+      const network = new TestEvmNetwork();
       testUtils.mockGetGasRequired(network, 55000n);
-      testUtils.mockGetMaxFeePerGas(network, 20n);
-      testUtils.mockGetMaxPriorityFeePerGas(network, 7n);
+      testUtils.mockGetFeeData(network, new FeeData(20n, 20n, 7n));
 
       // mock PaymentTransaction
+      const evmChain = testUtils.generateChainObject(network, undefined, 0);
       const tx = Transaction.from(TestData.transaction1Json);
       tx.gasLimit = 55000n * evmChain.configs.gasLimitMultiplier;
       tx.maxFeePerGas = 22n;
@@ -906,7 +1013,7 @@ describe('EvmChain', () => {
      * @dependencies
      * @scenario
      * - mock mockGetGasRequired
-     * - mock mockGetMaxFeePerGas, mockGetMaxPriorityFeePerGas
+     * - mock getFeeData
      * - mock PaymentTransaction
      * - check returned value
      * @expected
@@ -915,11 +1022,12 @@ describe('EvmChain', () => {
     it('should return false when gasLimit is wrong for erc-20 transfer', async () => {
       // mock a config that has more fee and wrong required gas
       // comparing to the mocked transaction
+      const network = new TestEvmNetwork();
       testUtils.mockGetGasRequired(network, 90000n);
-      testUtils.mockGetMaxFeePerGas(network, 20n);
-      testUtils.mockGetMaxPriorityFeePerGas(network, 7n);
+      testUtils.mockGetFeeData(network, new FeeData(20n, 20n, 7n));
 
       // mock PaymentTransaction
+      const evmChain = testUtils.generateChainObject(network);
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
       const txType = TransactionType.payment;
       const tx = Transaction.from(TestData.transaction1Json);
@@ -949,7 +1057,7 @@ describe('EvmChain', () => {
      * @dependencies
      * @scenario
      * - mock mockGetGasRequired
-     * - mock mockGetMaxFeePerGas, mockGetMaxPriorityFeePerGas
+     * - mock getFeeData
      * - mock PaymentTransaction
      * - check returned value
      * @expected
@@ -958,11 +1066,12 @@ describe('EvmChain', () => {
     it('should return false when gasLimit is over the cap for erc-20 transfer', async () => {
       // mock a config that has more fee and wrong required gas
       // comparing to the mocked transaction
+      const network = new TestEvmNetwork();
       testUtils.mockGetGasRequired(network, 90000n);
-      testUtils.mockGetMaxFeePerGas(network, 20n);
-      testUtils.mockGetMaxPriorityFeePerGas(network, 7n);
+      testUtils.mockGetFeeData(network, new FeeData(20n, 20n, 7n));
 
       // mock PaymentTransaction
+      const evmChain = testUtils.generateChainObject(network);
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
       const txType = TransactionType.payment;
       const tx = Transaction.from(TestData.transaction1Json);
@@ -992,7 +1101,7 @@ describe('EvmChain', () => {
      * @dependencies
      * @scenario
      * - mock mockGetGasRequired
-     * - mock mockGetMaxFeePerGas, mockGetMaxPriorityFeePerGas
+     * - mock getFeeData
      * - mock PaymentTransaction
      * - check returned value
      * @expected
@@ -1001,11 +1110,12 @@ describe('EvmChain', () => {
     it('should return false when gasLimit is wrong for native-token transfer', async () => {
       // mock a config that has more fee and wrong required gas
       // comparing to the mocked transaction
+      const network = new TestEvmNetwork();
       testUtils.mockGetGasRequired(network, 20000n);
-      testUtils.mockGetMaxFeePerGas(network, 20n);
-      testUtils.mockGetMaxPriorityFeePerGas(network, 7n);
+      testUtils.mockGetFeeData(network, new FeeData(20n, 20n, 7n));
 
       // mock PaymentTransaction
+      const evmChain = testUtils.generateChainObject(network);
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
       const txType = TransactionType.payment;
       const tx = Transaction.from(TestData.transaction1Json);
@@ -1036,7 +1146,7 @@ describe('EvmChain', () => {
      * @dependencies
      * @scenario
      * - mock mockGetGasRequired
-     * - mock mockGetMaxFeePerGas, mockGetMaxPriorityFeePerGas
+     * - mock getFeeData
      * - mock PaymentTransaction
      * - check returned value
      * @expected
@@ -1044,11 +1154,12 @@ describe('EvmChain', () => {
      */
     it('should return false when maxFeePerGas is too much bigger than expected', async () => {
       // mock a config that has too much bigger max fee comparing to the mocked transaction
+      const network = new TestEvmNetwork();
       testUtils.mockGetGasRequired(network, 76000n);
-      testUtils.mockGetMaxFeePerGas(network, 20n);
-      testUtils.mockGetMaxPriorityFeePerGas(network, 7n);
+      testUtils.mockGetFeeData(network, new FeeData(20n, 20n, 7n));
 
       // mock PaymentTransaction
+      const evmChain = testUtils.generateChainObject(network);
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
       const txType = TransactionType.payment;
       const tx = Transaction.from(TestData.transaction1Json);
@@ -1078,19 +1189,20 @@ describe('EvmChain', () => {
      * @dependencies
      * @scenario
      * - mock mockGetGasRequired
-     * - mock mockGetMaxFeePerGas, mockGetMaxPriorityFeePerGas
+     * - mock getFeeData
      * - mock PaymentTransaction
      * - check returned value
      * @expected
      * - it should return false
      */
-    it('should return false when maxFeePerGas is too much smaller than exptected', async () => {
+    it('should return false when maxFeePerGas is too much smaller than expected', async () => {
       // mock a config that has too much smaller max fee comparing to the mocked transaction
+      const network = new TestEvmNetwork();
       testUtils.mockGetGasRequired(network, 76000n);
-      testUtils.mockGetMaxFeePerGas(network, 20n);
-      testUtils.mockGetMaxPriorityFeePerGas(network, 7n);
+      testUtils.mockGetFeeData(network, new FeeData(20n, 20n, 7n));
 
       // mock PaymentTransaction
+      const evmChain = testUtils.generateChainObject(network);
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
       const txType = TransactionType.payment;
       const tx = Transaction.from(TestData.transaction1Json);
@@ -1120,7 +1232,7 @@ describe('EvmChain', () => {
      * @dependencies
      * @scenario
      * - mock mockGetGasRequired
-     * - mock mockGetMaxFeePerGas, mockGetMaxPriorityFeePerGas
+     * - mock getFeeData
      * - mock PaymentTransaction
      * - check returned value
      * @expected
@@ -1128,11 +1240,12 @@ describe('EvmChain', () => {
      */
     it('should return false when maxPriorityFeePerGas is too much bigger than expected', async () => {
       // mock a config that has too much bigger max fee comparing to the mocked transaction
+      const network = new TestEvmNetwork();
       testUtils.mockGetGasRequired(network, 76000n);
-      testUtils.mockGetMaxFeePerGas(network, 20n);
-      testUtils.mockGetMaxPriorityFeePerGas(network, 7n);
+      testUtils.mockGetFeeData(network, new FeeData(20n, 20n, 7n));
 
       // mock PaymentTransaction
+      const evmChain = testUtils.generateChainObject(network);
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
       const txType = TransactionType.payment;
       const tx = Transaction.from(TestData.transaction1Json);
@@ -1162,7 +1275,7 @@ describe('EvmChain', () => {
      * @dependencies
      * @scenario
      * - mock mockGetGasRequired
-     * - mock mockGetMaxFeePerGas, mockGetMaxPriorityFeePerGas
+     * - mock getFeeData
      * - mock PaymentTransaction
      * - check returned value
      * @expected
@@ -1170,11 +1283,12 @@ describe('EvmChain', () => {
      */
     it('should return false when maxPriorityFeePerGas is too much smaller than expected', async () => {
       // mock a config that has too much bigger max fee comparing to the mocked transaction
+      const network = new TestEvmNetwork();
       testUtils.mockGetGasRequired(network, 76000n);
-      testUtils.mockGetMaxFeePerGas(network, 20n);
-      testUtils.mockGetMaxPriorityFeePerGas(network, 7n);
+      testUtils.mockGetFeeData(network, new FeeData(20n, 20n, 7n));
 
       // mock PaymentTransaction
+      const evmChain = testUtils.generateChainObject(network);
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
       const txType = TransactionType.payment;
       const tx = Transaction.from(TestData.transaction1Json);
@@ -1197,9 +1311,138 @@ describe('EvmChain', () => {
       // check returned value
       expect(result).toEqual(false);
     });
+
+    /**
+     * @target EvmChain.verifyTransactionFee should return true when
+     * gasPrice and gasLimit are set properly for a type 0 transaction
+     * @dependencies
+     * @scenario
+     * - mock mockGetGasRequired
+     * - mock getFeeData
+     * - mock PaymentTransaction
+     * - check returned value
+     * @expected
+     * - it should return true
+     */
+    it('should return true when gasPrice and gasLimit are set properly for a type 0 transaction', async () => {
+      // mock a config that has almost the same fee as the mocked transaction
+      const network = new TestEvmNetwork();
+      testUtils.mockGetGasRequired(network, 100000n);
+      testUtils.mockGetFeeData(network, new FeeData(20n, null, null));
+
+      // mock PaymentTransaction
+      const evmChain = testUtils.generateChainObject(network, undefined, 0);
+      const tx = Transaction.from(TestData.transaction1WithType0Json);
+      tx.gasLimit = 85000n * evmChain.configs.gasLimitMultiplier;
+      tx.gasPrice = 22n;
+      tx.value = 2n;
+
+      const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+      const txType = TransactionType.payment;
+      const paymentTx = new PaymentTransaction(
+        evmChain.CHAIN,
+        tx.unsignedHash,
+        eventId,
+        Serializer.serialize(tx),
+        txType
+      );
+
+      // run test
+      const result = await evmChain.verifyTransactionFee(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(true);
+    });
+
+    /**
+     * @target EvmChain.verifyTransactionFee should return false when gasPrice
+     * is too much bigger than expected
+     * @dependencies
+     * @scenario
+     * - mock mockGetGasRequired
+     * - mock getFeeData
+     * - mock PaymentTransaction
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when gasPrice is too much bigger than expected', async () => {
+      // mock a config that has too much bigger max fee comparing to the mocked transaction
+      const network = new TestEvmNetwork();
+      testUtils.mockGetGasRequired(network, 76000n);
+      testUtils.mockGetFeeData(network, new FeeData(20n, null, null));
+
+      // mock PaymentTransaction
+      const evmChain = testUtils.generateChainObject(network, undefined, 0);
+      const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+      const txType = TransactionType.payment;
+      const tx = Transaction.from(TestData.transaction1WithType0Json);
+      tx.gasLimit = 76000n * evmChain.configs.gasLimitMultiplier;
+      tx.gasPrice = 25n;
+      tx.value = 10n;
+
+      const paymentTx = new PaymentTransaction(
+        evmChain.CHAIN,
+        tx.unsignedHash,
+        eventId,
+        Serializer.serialize(tx),
+        txType
+      );
+
+      // run test
+      const result = await evmChain.verifyTransactionFee(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target EvmChain.verifyTransactionFee should return false when gasPrice
+     * is too much smaller than expected
+     * @dependencies
+     * @scenario
+     * - mock mockGetGasRequired
+     * - mock getFeeData
+     * - mock PaymentTransaction
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when gasPrice is too much smaller than expected', async () => {
+      // mock a config that has too much smaller max fee comparing to the mocked transaction
+      const network = new TestEvmNetwork();
+      testUtils.mockGetGasRequired(network, 76000n);
+      testUtils.mockGetFeeData(network, new FeeData(20n, null, null));
+
+      // mock PaymentTransaction
+      const evmChain = testUtils.generateChainObject(network, undefined, 0);
+      const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+      const txType = TransactionType.payment;
+      const tx = Transaction.from(TestData.transaction1WithType0Json);
+      tx.gasLimit = 76000n * evmChain.configs.gasLimitMultiplier;
+      tx.gasPrice = 16n;
+      tx.value = 10n;
+
+      const paymentTx = new PaymentTransaction(
+        evmChain.CHAIN,
+        tx.unsignedHash,
+        eventId,
+        Serializer.serialize(tx),
+        txType
+      );
+
+      // run test
+      const result = await evmChain.verifyTransactionFee(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
   });
 
   describe('extractTransactionOrder', () => {
+    const network = new TestEvmNetwork();
+    const evmChain = testUtils.generateChainObject(network);
+
     /**
      * @target EvmChain.extractTransactionOrder should extract transaction
      * order successfully for ERC-20 token transfer only
@@ -1459,19 +1702,23 @@ describe('EvmChain', () => {
      * when transaction is of type 2, fees are set properly and lock address has enough assets
      * @dependencies
      * @scenario
+     * - mock network functions
+     *   - getFeeData
+     *   - hasLockAddressEnoughAssets
+     *   - getGasRequired
      * - mock valid PaymentTransaction
-     * - mock getMaxFeePerGas, getMaxPriorityFeePerGas
-     * - mock hasLockAddressEnoughAssets
      * - run test
      * - check function is called
      * @expected
      * - it should call the function
      */
     it('should submit the transaction when transaction is of type 2, fees are set properly and lock address has enough assets', async () => {
-      // mock getMaxFeePerGas, getMaxPriorityFeePerGas, and hasLockAddressEnoughAssets
-      testUtils.mockGetMaxFeePerGas(network, 20n);
-      testUtils.mockGetMaxPriorityFeePerGas(network, 7n);
+      // mock network functions
+      const network = new TestEvmNetwork();
+      const evmChain = testUtils.generateChainObject(network);
+      testUtils.mockGetFeeData(network, new FeeData(20n, 20n, 7n));
       testUtils.mockHasLockAddressEnoughAssets(evmChain, true);
+      testUtils.mockGetGasRequired(network, 70000n);
 
       // mock PaymentTransaction
       const tx = Transaction.from(TestData.transaction1Json);
@@ -1497,51 +1744,25 @@ describe('EvmChain', () => {
 
     /**
      * @target EvmChain.submitTransaction should not submit the transaction
-     * when transaction is not of type 2
-     * @dependencies
-     * @scenario
-     * - mock invalid PaymentTransaction
-     * - run test
-     * - check function is not called
-     * @expected
-     * - it should not call the function
-     */
-    it('should submit the transaction when transaction is not of type 2', async () => {
-      // mock PaymentTransaction
-      const tx = Transaction.from(TestData.transaction1Json);
-      tx.gasLimit = 55000n + 21000n;
-      tx.type = 3;
-
-      const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
-      const txType = TransactionType.payment;
-      const paymentTx = new PaymentTransaction(
-        evmChain.CHAIN,
-        tx.unsignedHash,
-        eventId,
-        Serializer.serialize(tx),
-        txType
-      );
-      const submitTransactionSpy = vi.spyOn(network, 'submitTransaction');
-      submitTransactionSpy.mockImplementation(async () => undefined);
-      await evmChain.submitTransaction(paymentTx);
-      expect(submitTransactionSpy).not.toHaveBeenCalled();
-    });
-
-    /**
-     * @target EvmChain.submitTransaction should not submit the transaction
      * when gasLimit is wrong
      * @dependencies
      * @scenario
+     * - mock network functions
+     *   - getFeeData
+     *   - hasLockAddressEnoughAssets
+     *   - getGasRequired
      * - mock invalid PaymentTransaction
-     * - mock getGasRequired
-     * - mock hasLockAddressEnoughAssets
      * - run test
      * - check function is not called
      * @expected
      * - it should not call the function
      */
     it('should not submit the transaction when gasLimit is wrong', async () => {
-      // mock getGasRequired, and hasLockAddressEnoughAssets
+      // mock network functions
+      const network = new TestEvmNetwork();
+      const evmChain = testUtils.generateChainObject(network);
+      testUtils.mockGetFeeData(network, new FeeData(20n, 20n, 7n));
+      testUtils.mockHasLockAddressEnoughAssets(evmChain, true);
       testUtils.mockGetGasRequired(network, 77000n);
 
       // mock PaymentTransaction
@@ -1571,19 +1792,23 @@ describe('EvmChain', () => {
      * when lock address does not have enough asset
      * @dependencies
      * @scenario
+     * - mock network functions
+     *   - getFeeData
+     *   - hasLockAddressEnoughAssets
+     *   - getGasRequired
      * - mock invalid PaymentTransaction
-     * - mock getMaxFeePerGas, getMaxPriorityFeePerGas
-     * - mock hasLockAddressEnoughAssets
      * - run test
      * - check the function is not called
      * @expected
      * - it should not call the function
      */
     it('should not submit the transaction when lock address does not have enough asset', async () => {
-      // mock getMaxFeePerGas, getMaxPriorityFeePerGas, and hasLockAddressEnoughAssets
-      testUtils.mockGetMaxFeePerGas(network, 20n);
-      testUtils.mockGetMaxPriorityFeePerGas(network, 7n);
+      // mock network functions
+      const network = new TestEvmNetwork();
+      const evmChain = testUtils.generateChainObject(network);
+      testUtils.mockGetFeeData(network, new FeeData(20n, 20n, 7n));
       testUtils.mockHasLockAddressEnoughAssets(evmChain, false);
+      testUtils.mockGetGasRequired(network, 70000n);
 
       // mock PaymentTransaction
       const tx = Transaction.from(TestData.transaction1Json);
@@ -1612,15 +1837,22 @@ describe('EvmChain', () => {
      * when checking failed due to error
      * @dependencies
      * @scenario
+     * - mock network functions
+     *   - getFeeData
+     *   - hasLockAddressEnoughAssets
+     *   - getGasRequired to throw error
      * - mock invalid PaymentTransaction
-     * - mock getGasRequired to throw error
      * - run test
      * - check function is not called
      * @expected
      * - it should not call the function
      */
     it('should not submit the transaction when checking failed due to error', async () => {
-      // mock getGasRequired
+      // mock network functions
+      const network = new TestEvmNetwork();
+      const evmChain = testUtils.generateChainObject(network);
+      testUtils.mockGetFeeData(network, new FeeData(20n, 20n, 7n));
+      testUtils.mockHasLockAddressEnoughAssets(evmChain, false);
       vi.spyOn(network, 'getGasRequired').mockImplementation(() => {
         throw Error(`test Error`);
       });
@@ -1649,6 +1881,9 @@ describe('EvmChain', () => {
   });
 
   describe('verifyTransactionExtraConditions', () => {
+    const network = new TestEvmNetwork();
+    const evmChain = testUtils.generateChainObject(network);
+
     /**
      * @target EvmChain.verifyTransactionExtraConditions should return true
      * for erc-20 transfer when extra conditions are met and eventId is not empty
@@ -1678,39 +1913,6 @@ describe('EvmChain', () => {
 
       // check returned value
       expect(result).toEqual(true);
-    });
-
-    /**
-     * @target EvmChain.verifyTransactionExtraConditions should return false
-     * when transaction is not of type 2
-     * @dependencies
-     * @scenario
-     * - mock valid PaymentTransaction
-     * - run test
-     * - check returned value
-     * @expected
-     * - it should return false
-     */
-    it('should return false when transaction is not of type 2', async () => {
-      // mock PaymentTransaction
-      const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
-      const txType = TransactionType.payment;
-      const tx = Transaction.from(TestData.erc20transaction as TransactionLike);
-      tx.type = 3;
-
-      const paymentTx = new PaymentTransaction(
-        evmChain.CHAIN,
-        tx.unsignedHash,
-        eventId,
-        Serializer.serialize(tx),
-        txType
-      );
-
-      // run test
-      const result = evmChain.verifyTransactionExtraConditions(paymentTx);
-
-      // check returned value
-      expect(result).toEqual(false);
     });
 
     /**
@@ -2070,6 +2272,8 @@ describe('EvmChain', () => {
      */
     it('should return true when tx is not found and nonce is not used', async () => {
       // mock PaymentTransaction
+      const network = new TestEvmNetwork();
+      const evmChain = testUtils.generateChainObject(network);
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
       const txType = TransactionType.payment;
       const tx = Transaction.from(TestData.erc20transaction as TransactionLike);
@@ -2114,6 +2318,8 @@ describe('EvmChain', () => {
      */
     it('should return false when nonce is already used by another transaction', async () => {
       // mock PaymentTransaction
+      const network = new TestEvmNetwork();
+      const evmChain = testUtils.generateChainObject(network);
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
       const txType = TransactionType.payment;
       const tx = Transaction.from(TestData.erc20transaction as TransactionLike);
@@ -2168,6 +2374,8 @@ describe('EvmChain', () => {
      */
     it('should return true when nonce is used by current transaction', async () => {
       // mock PaymentTransaction
+      const network = new TestEvmNetwork();
+      const evmChain = testUtils.generateChainObject(network);
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
       const txType = TransactionType.payment;
       const tx = Transaction.from(TestData.erc20transaction as TransactionLike);
@@ -2217,6 +2425,8 @@ describe('EvmChain', () => {
      */
     it('should return false when tx is failed', async () => {
       // mock PaymentTransaction
+      const network = new TestEvmNetwork();
+      const evmChain = testUtils.generateChainObject(network);
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
       const txType = TransactionType.payment;
       const tx = Transaction.from(TestData.erc20transaction as TransactionLike);
@@ -2250,6 +2460,8 @@ describe('EvmChain', () => {
   });
 
   describe('signTransaction', () => {
+    const network = new TestEvmNetwork();
+
     /**
      * @target EvmChain.signTransaction should return PaymentTransaction of the
      * signed transaction
@@ -2360,7 +2572,8 @@ describe('EvmChain', () => {
      * - it should return mocked address assets (both input and output assets)
      */
     it('should get address assets successfully', async () => {
-      mockGetAddressBalanceForNativeToken(evmChain.network, 1000n);
+      const network = new TestEvmNetwork();
+      mockGetAddressBalanceForNativeToken(network, 1000n);
       vi.spyOn(network, 'getAddressBalanceForERC20Asset').mockImplementation(
         async (address, tokenId) => {
           if (tokenId === '0xedee4752e5a2f595151c94762fb38e5730357785')
@@ -2376,6 +2589,7 @@ describe('EvmChain', () => {
       );
 
       // run test
+      const evmChain = testUtils.generateChainObject(network);
       const result = await evmChain.getAddressAssets(TestData.lockAddress);
 
       // check returned value
@@ -2401,6 +2615,7 @@ describe('EvmChain', () => {
      */
     it('should return 0 balance with no token if address is empty', async () => {
       // run test
+      const evmChain = testUtils.generateChainObject(new TestEvmNetwork());
       const result = await evmChain.getAddressAssets('');
 
       // check returned value
@@ -2419,6 +2634,7 @@ describe('EvmChain', () => {
      * - it should return mocked address assets (both input and output assets)
      */
     it('should wrap address assets successfully', async () => {
+      const network = new TestEvmNetwork();
       const evmChain =
         testUtils.generateChainObjectWithMultiDecimalTokenMap(network);
 
@@ -2471,9 +2687,11 @@ describe('EvmChain', () => {
       const tx = Transaction.from(TestData.erc20transaction as TransactionLike);
 
       // mock getTransactionStatus
+      const network = new TestEvmNetwork();
       testUtils.mockGetTransactionStatus(network, EvmTxStatus.succeed);
 
       // run test
+      const evmChain = testUtils.generateChainObject(network);
       const result = await evmChain.verifyLockTransactionExtraConditions(
         tx,
         {} as any
@@ -2500,9 +2718,11 @@ describe('EvmChain', () => {
       const tx = Transaction.from(TestData.erc20transaction as TransactionLike);
 
       // mock getTransactionStatus
+      const network = new TestEvmNetwork();
       testUtils.mockGetTransactionStatus(network, EvmTxStatus.failed);
 
       // run test
+      const evmChain = testUtils.generateChainObject(network);
       const result = await evmChain.verifyLockTransactionExtraConditions(
         tx,
         {} as any
