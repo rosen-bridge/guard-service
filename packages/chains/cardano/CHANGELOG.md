@@ -1,5 +1,12 @@
 # @rosen-chains/cardano
 
+## 10.1.2
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-chains/abstract-chain@11.0.2
+
 ## 10.1.1
 
 ### Patch Changes

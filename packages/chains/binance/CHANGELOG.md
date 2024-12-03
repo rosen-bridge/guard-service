@@ -1,5 +1,13 @@
 # @rosen-chains/binance
 
+## 0.2.2
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-chains/evm@6.0.0
+  - @rosen-chains/abstract-chain@11.0.2
+
 ## 0.2.1
 
 ### Patch Changes
