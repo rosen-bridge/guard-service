@@ -296,12 +296,7 @@ class EventReprocess extends Communicator {
     ok: boolean,
     peerId: string
   ): Promise<void> => {
-    if (!ok) {
-      logger.error(
-        `Guard [${peerId}] sent 'not ok' response for reprocess request [${requestId}]`
-      );
-      return;
-    }
+    if (!ok) return;
     logger.info(`Guard [${peerId}] accepted reprocess request [${requestId}]`);
 
     await DatabaseAction.getInstance().updateReprocessRequest(
