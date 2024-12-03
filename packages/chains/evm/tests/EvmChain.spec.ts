@@ -585,7 +585,7 @@ describe('EvmChain', () => {
      *   order
      * - eventId should be properly in the transaction data
      * - no extra data should be found in the transaction data
-     * - transaction must be of type 2 and has no blobs
+     * - transaction must be of type 0 and has no blobs
      * - nonce must be the same as the next available nonce
      * - gas limit should be as expected
      * - gas price should be as expected
@@ -1311,6 +1311,7 @@ describe('EvmChain', () => {
       // check returned value
       expect(result).toEqual(false);
     });
+
     /**
      * @target EvmChain.verifyTransactionFee should return true when
      * gasPrice and gasLimit are set properly for a type 0 transaction

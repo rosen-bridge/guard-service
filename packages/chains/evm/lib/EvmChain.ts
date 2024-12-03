@@ -132,7 +132,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
     }
 
     const feeData = await this.network.getFeeData();
-    let requiredEth = 0n;
+    let requiredNativeToken = 0n;
     let txFeeData;
     if (this.evmTxType === 2) {
       if (
@@ -143,7 +143,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
           `Tx type is 2 but max fee variables are null`
         );
       }
-      requiredEth =
+      requiredNativeToken =
         this.configs.gasLimitCap * BigInt(orders.length) * feeData.maxFeePerGas;
       txFeeData = {
         maxFeePerGas: feeData.maxFeePerGas,
@@ -153,7 +153,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
       if (feeData.gasPrice === null) {
         throw new ImpossibleBehavior(`Tx type is 0 but gas price is null`);
       } else {
-        requiredEth =
+        requiredNativeToken =
           this.configs.gasLimitCap * BigInt(orders.length) * feeData.gasPrice;
         txFeeData = {
           gasPrice: feeData.gasPrice,
@@ -171,7 +171,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
       {
         nativeToken: this.tokenMap.wrapAmount(
           this.NATIVE_TOKEN_ID,
-          requiredEth,
+          requiredNativeToken,
           this.CHAIN
         ).amount,
         tokens: [],
