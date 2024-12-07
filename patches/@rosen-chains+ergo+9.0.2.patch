@@ -1,0 +1,27 @@
+diff --git a/node_modules/@rosen-chains/ergo/dist/lib/ErgoChain.js b/node_modules/@rosen-chains/ergo/dist/lib/ErgoChain.js
+index c63c33b..93bc294 100644
+--- a/node_modules/@rosen-chains/ergo/dist/lib/ErgoChain.js
++++ b/node_modules/@rosen-chains/ergo/dist/lib/ErgoChain.js
+@@ -292,6 +292,8 @@ class ErgoChain extends AbstractUtxoChain {
+      */
+     verifyTransactionExtraConditions = (transaction) => {
+         const tx = Serializer.deserialize(transaction.txBytes).unsigned_tx();
++        const ergoTx = transaction;
++        const maxCreationHeight = Math.max(...ergoTx.inputBoxes.map((serializedBox) => wasm.ErgoBox.sigma_parse_bytes(serializedBox).creation_height()));
+         const outputBoxes = tx.output_candidates();
+         const lockErgoTree = wasm.Address.from_base58(this.configs.addresses.lock)
+             .to_ergo_tree()
+@@ -310,6 +312,13 @@ class ErgoChain extends AbstractUtxoChain {
+                 return false;
+             }
+         }
++        for (let i = 0; i < outputBoxes.len(); i++) {
++            const output = outputBoxes.get(i);
++            if (output.creation_height() < maxCreationHeight) {
++                this.logger.warn(`Tx [${transaction.txId}] is not verified: Output box at index [${i}] has low creation height. Expected more than [${maxCreationHeight}] found [${output.creation_height()}]`);
++                return false;
++            }
++        }
+         return true;
+     };
+     /**

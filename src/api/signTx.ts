@@ -35,16 +35,20 @@ const signTxRoute = (server: FastifySeverInstance) => {
     },
     async (request, reply) => {
       const { chain, txJson, requiredSign, overwrite } = request.body;
-      if (!Configs.isManualTxRequestActive)
+      if (!Configs.isManualTxRequestActive) {
         reply.status(400).send({
           message: `Manual transaction request is disabled in config`,
         });
+        return;
+      }
 
       const guardsLen = GuardPkHandler.getInstance().guardsLen;
-      if (requiredSign > guardsLen || requiredSign <= 0)
+      if (requiredSign > guardsLen || requiredSign <= 0) {
         reply.status(400).send({
           message: `Invalid value for required sign (expected 1 to ${guardsLen}, found ${requiredSign})`,
         });
+        return;
+      }
 
       try {
         const tx = await ChainHandler.getInstance()

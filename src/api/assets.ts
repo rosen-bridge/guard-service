@@ -102,8 +102,10 @@ const assetsRoute = (server: FastifySeverInstance) => {
               break;
             }
           }
-          if (!tokenData) reply.status(400).send({ message: `Unknown token` });
-          else tokenList.push(tokenData);
+          if (!tokenData) {
+            reply.status(400).send({ message: `Unknown token` });
+            return;
+          } else tokenList.push(tokenData);
         }
       }
       if (name) {
