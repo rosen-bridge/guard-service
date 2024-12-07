@@ -1,5 +1,13 @@
 # @rosen-chains/cardano-koios-network
 
+## 10.0.7
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-chains/abstract-chain@11.0.3
+  - @rosen-chains/cardano@10.1.3
+
 ## 10.0.6
 
 ### Patch Changes
