@@ -1,5 +1,11 @@
 # @rosen-chains/abstract-chain
 
+## 11.0.3
+
+### Patch Changes
+
+- Update rosen-extractor version
+
 ## 11.0.2
 
 ### Patch Changes
