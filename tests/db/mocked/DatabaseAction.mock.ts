@@ -31,6 +31,8 @@ import {
   migrations as addressTxExtractorMigrations,
 } from '@rosen-bridge/evm-address-tx-extractor';
 import { ArbitraryEntity } from '../../../src/db/entities/ArbitraryEntity';
+import { ReprocessEntity } from '../../../src/db/entities/ReprocessEntity';
+import { ReprocessStatus } from '../../../src/reprocess/Interfaces';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -50,6 +52,7 @@ class DatabaseActionMock {
       EventView,
       AddressTxsEntity,
       ArbitraryEntity,
+      ReprocessEntity,
     ],
     migrations: [
       ...scannerMigrations.sqlite,
@@ -88,6 +91,7 @@ class DatabaseActionMock {
     await this.testDatabase.ConfirmedEventRepository.clear();
     await this.testDatabase.EventRepository.clear();
     await this.testDatabase.ArbitraryRepository.clear();
+    await this.testDatabase.ReprocessRepository.clear();
     await this.testDataSource.getRepository(BlockEntity).clear();
   };
 
@@ -368,6 +372,36 @@ class DatabaseActionMock {
   };
 
   /**
+   * inserts a record to Reprocess table in
+   * @param requestId
+   * @param eventId
+   * @param senderId
+   * @param receiverId
+   * @param status
+   * @param timestamp
+   */
+  static insertReprocessRecord = async (
+    requestId: string,
+    eventId: string,
+    senderId: string,
+    receiverId: string,
+    status: ReprocessStatus,
+    timestamp: number
+  ) => {
+    await this.testDatabase.ReprocessRepository.createQueryBuilder()
+      .insert()
+      .values({
+        requestId: requestId,
+        eventId: eventId,
+        sender: senderId,
+        receiver: receiverId,
+        status: status,
+        timestamp: timestamp,
+      })
+      .execute();
+  };
+
+  /**
    * returns all records in Event table in database
    */
   static allRawEventRecords = async () => {
@@ -417,6 +451,15 @@ class DatabaseActionMock {
    */
   static allOrderRecords = async () => {
     return await this.testDatabase.ArbitraryRepository.createQueryBuilder()
+      .select()
+      .getMany();
+  };
+
+  /**
+   * returns all records in Reprocess table in database
+   */
+  static allReprocessRecords = async () => {
+    return await this.testDatabase.ReprocessRepository.createQueryBuilder()
       .select()
       .getMany();
   };

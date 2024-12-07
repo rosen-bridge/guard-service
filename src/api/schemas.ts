@@ -227,3 +227,8 @@ export const OrderQuerySchema = Type.Object({
   chain: Type.String(),
   orderJson: Type.String(),
 });
+
+export const ReprocessQuerySchema = Type.Object({
+  eventId: Type.String(),
+  peerIds: Type.Array(Type.String()),
+});

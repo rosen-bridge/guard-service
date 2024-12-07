@@ -125,6 +125,7 @@ eventSync:
   parallelRequestCount: 3
   timeout: 3600
   interval: 60
+eventReprocessCooldown: 43200
 tss:
   path: './bin/tss.exe' # path to tss executable file
   configPath: './bin/conf/conf.env'

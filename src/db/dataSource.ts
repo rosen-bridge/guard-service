@@ -25,6 +25,7 @@ import {
   migrations as addressTxExtractorMigrations,
 } from '@rosen-bridge/evm-address-tx-extractor';
 import { ArbitraryEntity } from './entities/ArbitraryEntity';
+import { ReprocessEntity } from './entities/ReprocessEntity';
 
 const dbType = Configs.dbType as keyof typeof migrations;
 const dbConfigs = {
@@ -41,6 +42,7 @@ const dbConfigs = {
     EventView,
     AddressTxsEntity,
     ArbitraryEntity,
+    ReprocessEntity,
   ],
   migrations: [
     ...scannerMigrations[dbType],
