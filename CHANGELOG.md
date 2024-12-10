@@ -1,5 +1,11 @@
 # guard-service
 
+## 5.0.6
+
+### Patch Changes
+
+- Set default gasLimit 30M before gasEstimate due to an issue on rpc call gasEstimate with data field
+
 ## 5.0.5
 
 ### Patch Changes
