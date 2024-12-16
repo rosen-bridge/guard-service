@@ -30,8 +30,8 @@ describe('CardanoChain', () => {
      * - call the function
      * - check returned value
      * @expected
-     * - PaymentTransaction txType, eventId, network and inputUtxos should be as
-     *   expected
+     * - PaymentTransaction txType, eventId, network should be as expected
+     * - PaymentTransaction inputUtxos should be the sorted version of the bankBoxes
      * - extracted order of generated transaction should be the same as input
      *   order
      * - transaction fee and ttl should be the same as config fee
@@ -73,9 +73,19 @@ describe('CardanoChain', () => {
       expect(cardanoTx.txType).toEqual(payment1.txType);
       expect(cardanoTx.eventId).toEqual(payment1.eventId);
       expect(cardanoTx.network).toEqual(payment1.network);
-      expect(cardanoTx.inputUtxos).toEqual(
-        bankBoxes.map((utxo) => JsonBI.stringify(utxo))
-      );
+
+      // check inputUtxos
+      expect(cardanoTx.inputUtxos.length).toEqual(bankBoxes.length);
+      bankBoxes.forEach((utxo) => {
+        expect(cardanoTx.inputUtxos.includes(JsonBI.stringify(utxo)));
+      });
+      for (let i = 1; i < cardanoTx.inputUtxos.length; i++) {
+        const previousUtxo = JsonBigInt.parse(cardanoTx.inputUtxos[i - 1]);
+        const utxo = JsonBigInt.parse(cardanoTx.inputUtxos[i]);
+        if (utxo.txId === previousUtxo.txId)
+          expect(utxo.index > previousUtxo.index);
+        else expect(utxo.txId > previousUtxo.txId);
+      }
 
       // extracted order of generated transaction should be the same as input order
       const extractedOrder = cardanoChain.extractTransactionOrder(cardanoTx);
@@ -112,8 +122,8 @@ describe('CardanoChain', () => {
      * - call the function
      * - check returned value
      * @expected
-     * - PaymentTransaction txType, eventId, network and inputUtxos should be as
-     *   expected
+     * - PaymentTransaction txType, eventId, network should be as expected
+     * - PaymentTransaction inputUtxos should be the sorted version of the bankBoxes
      * - extracted order of generated transaction should be the same as input
      *   order
      * - transaction fee and ttl should be the same as config fee
@@ -131,9 +141,10 @@ describe('CardanoChain', () => {
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
       const cardanoChain = TestUtils.generateChainObject(network);
       const getCovBoxesSpy = vi.spyOn(cardanoChain as any, 'getCoveringBoxes');
+      const mockedBoxes = bankBoxes.slice(2);
       getCovBoxesSpy.mockResolvedValue({
         covered: true,
-        boxes: bankBoxes.slice(2),
+        boxes: mockedBoxes,
       });
       const hasLockAddressEnoughAssetsSpy = vi.spyOn(
         cardanoChain,
@@ -155,9 +166,19 @@ describe('CardanoChain', () => {
       expect(cardanoTx.txType).toEqual(payment.txType);
       expect(cardanoTx.eventId).toEqual(payment.eventId);
       expect(cardanoTx.network).toEqual(payment.network);
-      expect(cardanoTx.inputUtxos).toEqual(
-        bankBoxes.slice(2).map((utxo) => JsonBI.stringify(utxo))
-      );
+
+      // check inputUtxos
+      expect(cardanoTx.inputUtxos.length).toEqual(mockedBoxes.length);
+      mockedBoxes.forEach((utxo) => {
+        expect(cardanoTx.inputUtxos.includes(JsonBI.stringify(utxo)));
+      });
+      for (let i = 1; i < cardanoTx.inputUtxos.length; i++) {
+        const previousUtxo = JsonBigInt.parse(cardanoTx.inputUtxos[i - 1]);
+        const utxo = JsonBigInt.parse(cardanoTx.inputUtxos[i]);
+        if (utxo.txId === previousUtxo.txId)
+          expect(utxo.index > previousUtxo.index);
+        else expect(utxo.txId > previousUtxo.txId);
+      }
 
       // extracted order of generated transaction should be the same as input order
       const extractedOrder = cardanoChain.extractTransactionOrder(cardanoTx);
@@ -253,8 +274,8 @@ describe('CardanoChain', () => {
      * - call the function
      * - check returned value
      * @expected
-     * - PaymentTransaction txType, eventId, network and inputUtxos should be as
-     *   expected
+     * - PaymentTransaction txType, eventId, network should be as expected
+     * - PaymentTransaction inputUtxos should be the sorted version of the bankBoxes
      * - extracted order of generated transaction should be the same as input
      *   order
      * - transaction fee and ttl should be the same as config fee
@@ -273,9 +294,10 @@ describe('CardanoChain', () => {
       const cardanoChain =
         TestUtils.generateChainObjectWithMultiDecimalTokenMap(network);
       const getCovBoxesSpy = vi.spyOn(cardanoChain as any, 'getCoveringBoxes');
+      const mockedBoxes = bankBoxes.slice(2);
       getCovBoxesSpy.mockResolvedValue({
         covered: true,
-        boxes: bankBoxes.slice(2),
+        boxes: mockedBoxes,
       });
       const hasLockAddressEnoughAssetsSpy = vi.spyOn(
         cardanoChain,
@@ -297,9 +319,19 @@ describe('CardanoChain', () => {
       expect(cardanoTx.txType).toEqual(payment.txType);
       expect(cardanoTx.eventId).toEqual(payment.eventId);
       expect(cardanoTx.network).toEqual(payment.network);
-      expect(cardanoTx.inputUtxos).toEqual(
-        bankBoxes.slice(2).map((utxo) => JsonBI.stringify(utxo))
-      );
+
+      // check inputUtxos
+      expect(cardanoTx.inputUtxos.length).toEqual(mockedBoxes.length);
+      mockedBoxes.forEach((utxo) => {
+        expect(cardanoTx.inputUtxos.includes(JsonBI.stringify(utxo)));
+      });
+      for (let i = 1; i < cardanoTx.inputUtxos.length; i++) {
+        const previousUtxo = JsonBigInt.parse(cardanoTx.inputUtxos[i - 1]);
+        const utxo = JsonBigInt.parse(cardanoTx.inputUtxos[i]);
+        if (utxo.txId === previousUtxo.txId)
+          expect(utxo.index > previousUtxo.index);
+        else expect(utxo.txId > previousUtxo.txId);
+      }
 
       // extracted order of generated transaction should be the same as input order
       const extractedOrder = cardanoChain.extractTransactionOrder(cardanoTx);

@@ -276,12 +276,17 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
       CardanoWasm.hash_transaction(txBody).to_bytes()
     ).toString('hex');
 
+    // sort input utxos
+    const inputUtxos = structuredClone(bankBoxes);
+    inputUtxos.sort((a, b) =>
+      a.txId === b.txId ? a.index - b.index : a.txId < b.txId ? -1 : 1
+    );
     const cardanoTx = new CardanoTransaction(
       txId,
       eventId,
       txBytes,
       txType,
-      bankBoxes.map((box) => JSONBigInt.stringify(box))
+      inputUtxos.map((box) => JSONBigInt.stringify(box))
     );
 
     this.logger.info(
