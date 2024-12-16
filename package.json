@@ -2,22 +2,22 @@
   "name": "guard-service",
   "version": "5.0.5",
   "description": "",
-  "main": "dist/src/index.js",
+  "main": "src/index.ts",
   "type": "module",
   "scripts": {
     "prettify": "prettier --write . --ignore-path ./.gitignore",
     "lint": "eslint --fix . && npm run prettify",
     "madge": "npx madge --circular --extensions ts ./",
     "build": "rimraf dist && tsc",
-    "start": "ts-node --experimental-specifier-resolution=node ./src/index.ts",
-    "start:dev": "cross-env NODE_ENV=development nodemon .",
-    "test": "NODE_OPTIONS=--experimental-specifier-resolution=node vitest",
+    "start": "tsx ./src/index.ts",
+    "start:dev": "tsx watch ./src/index.ts",
+    "test": "NODE_OPTIONS='--import tsx' vitest",
     "type-check": "tsc --noEmit",
     "coverage": "npm run test -- --coverage",
     "typeorm:generate:sqlite": "npm run typeorm migration:generate src/db/migrations/sqlite/migration -- -p -d src/db/dataSource.ts",
     "typeorm:generate:postgres": "npm run typeorm migration:generate src/db/migrations/postgres/migration -- -p -d src/db/dataSource.ts",
     "typeorm:migrate": "npm run typeorm migration:run -- -d src/db/dataSource.ts",
-    "typeorm": "NODE_OPTIONS=--experimental-specifier-resolution=node typeorm-ts-node-esm",
+    "typeorm": "NODE_OPTIONS='--import tsx' typeorm",
     "postinstall": "patch-package",
     "prepare": "husky install"
   },
@@ -102,7 +102,7 @@
     "@types/config": "^0.0.41",
     "@types/json-bigint": "^1.0.1",
     "@types/lodash-es": "^4.17.6",
-    "@types/node": "^18.19.44",
+    "@types/node": "^20.11.0",
     "@types/secp256k1": "^4.0.3",
     "@types/ws": "^8.5.3",
     "@typescript-eslint/eslint-plugin": "^5.26.0",
@@ -117,12 +117,13 @@
     "prettier": "^2.8.3",
     "rimraf": "^3.0.2",
     "ts-node": "^10.7.0",
+    "tsx": "^4.19.2",
     "typescript": "^4.9.5",
     "vite-plugin-top-level-await": "^1.4.4",
     "vite-plugin-wasm": "^3.3.0",
     "vitest": "^2.0.5"
   },
   "engines": {
-    "node": ">=18.12.0"
+    "node": ">=20.11.0"
   }
 }
