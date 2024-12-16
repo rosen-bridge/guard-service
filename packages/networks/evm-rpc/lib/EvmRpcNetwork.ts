@@ -300,8 +300,9 @@ class EvmRpcNetwork extends AbstractEvmNetwork {
   getGasRequired = async (transaction: Transaction): Promise<bigint> => {
     try {
       const gas = await this.provider.estimateGas({
-        ...transaction.toJSON(),
         from: this.lockAddress,
+        to: transaction.to,
+        data: transaction.data,
       });
       this.logger.debug(
         `requested 'estimateGas' of ${
