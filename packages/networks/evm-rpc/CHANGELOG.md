@@ -1,5 +1,11 @@
 # @rosen-chains/evm-rpc
 
+## 3.0.2
+
+### Patch Changes
+
+- Fix EVM gas estimation so that only required fields are sent to the RPC
+
 ## 3.0.1
 
 ### Patch Changes

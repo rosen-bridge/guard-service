@@ -1,5 +1,11 @@
 # @rosen-chains/cardano
 
+## 10.1.4
+
+### Patch Changes
+
+- Fix order of the inputUtxos in CardanoTransaction object in generateMultipleTransactions function
+
 ## 10.1.3
 
 ### Patch Changes
