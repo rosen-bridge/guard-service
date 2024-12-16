@@ -3,7 +3,6 @@ import { blake2b } from 'blakejs';
 import { Buffer } from 'buffer';
 import Encryption from './Encryption';
 import { DerivationPath, ExtSecretKey, Mnemonic } from 'ergo-lib-wasm-nodejs';
-import fs from 'fs';
 
 class Utils {
   /**
@@ -34,15 +33,6 @@ class Utils {
     const changePath = DerivationPath.new(0, new Uint32Array([0]));
     const secretKeyBytes = rootSecret.derive(changePath).secret_key_bytes();
     return Buffer.from(secretKeyBytes).toString('hex');
-  };
-
-  /**
-   * read jsonFile
-   * @param filePath string
-   */
-  static readJsonFile = (filePath: string): any => {
-    const jsonData = fs.readFileSync(filePath, 'utf8');
-    return JSON.parse(jsonData);
   };
 
   /**
