@@ -17,8 +17,5 @@
     "target": "esnext",
     "useUnknownInCatchVariables": false
   },
-  "include": ["./**/*.ts", "node_modules/vitest/globals.d.ts"],
-  "ts-node": {
-    "esm": true
-  }
+  "include": ["./**/*.ts", "node_modules/vitest/globals.d.ts"]
 }
