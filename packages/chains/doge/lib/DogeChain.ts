@@ -34,7 +34,7 @@ import {
   DOGE_TX_BASE_SIZE,
 } from './constants';
 import { DogeRosenExtractor } from '@rosen-bridge/rosen-extractor';
-import { RosenAmount, RosenTokens } from '@rosen-bridge/tokens';
+import { RosenAmount, TokenMap } from '@rosen-bridge/tokens';
 import { selectBitcoinUtxos } from '@rosen-bridge/bitcoin-utxo-selection';
 
 class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
@@ -49,7 +49,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
   constructor(
     network: AbstractDogeNetwork,
     configs: DogeConfigs,
-    tokens: RosenTokens,
+    tokens: TokenMap,
     signFunction: TssSignFunction,
     logger?: AbstractLogger
   ) {

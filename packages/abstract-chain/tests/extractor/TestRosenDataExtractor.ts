@@ -2,11 +2,12 @@ import {
   AbstractRosenDataExtractor,
   RosenData,
 } from '@rosen-bridge/rosen-extractor';
+import { TokenMap } from '@rosen-bridge/tokens';
 
 class TestRosenDataExtractor extends AbstractRosenDataExtractor<string> {
   readonly chain = 'test';
   constructor() {
-    super('', { idKeys: {}, tokens: [] });
+    super('', new TokenMap());
   }
 
   extractRawData = (tx: string): RosenData | undefined => {

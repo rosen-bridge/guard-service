@@ -5,10 +5,11 @@ import TestChain from './TestChain';
 import * as testData from './testData';
 import TestUtxoChainNetwork from './network/TestChainNetwork';
 import TestUtxoChain from './TestUtxoChain';
+import { TokenMap } from '@rosen-bridge/tokens';
 
 export const generateRandomId = (): string => randomBytes(32).toString('hex');
 
-export const generateChainObject = (network: TestChainNetwork) => {
+export const generateChainObject = (network: TestChainNetwork, tokens: TokenMap = new TokenMap()) => {
   const config: ChainConfigs = {
     fee: 100n,
     confirmations: {
@@ -26,10 +27,10 @@ export const generateChainObject = (network: TestChainNetwork) => {
     },
     rwtId: 'rwt',
   };
-  return new TestChain(network, config, testData.testTokenMap);
+  return new TestChain(network, config, tokens);
 };
 
-export const generateUtxoChainObject = (network: TestUtxoChainNetwork) => {
+export const generateUtxoChainObject = (network: TestUtxoChainNetwork, tokens: TokenMap = new TokenMap()) => {
   const config: ChainConfigs = {
     fee: 100n,
     confirmations: {
@@ -47,5 +48,5 @@ export const generateUtxoChainObject = (network: TestUtxoChainNetwork) => {
     },
     rwtId: 'rwt',
   };
-  return new TestUtxoChain(network, config, testData.testTokenMap);
+  return new TestUtxoChain(network, config, tokens);
 };
