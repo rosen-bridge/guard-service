@@ -282,7 +282,7 @@ describe('DogeEsploraNetwork', () => {
 
       await expect(async () => {
         await network.getTransaction(testData.txId, testData.blockHash);
-      }).rejects.toThrow(FailedError);
+      }).rejects.toThrow('FailedError');
     });
   });
 
@@ -460,7 +460,7 @@ describe('DogeEsploraNetwork', () => {
       const boxId = `${testData.txId}.${0}`;
       await expect(async () => {
         await network.getUtxo(boxId);
-      }).rejects.toThrow(FailedError);
+      }).rejects.toThrow('FailedError');
     });
 
     /**
@@ -479,7 +479,7 @@ describe('DogeEsploraNetwork', () => {
       const boxId = `${testData.txId}.${3}`;
       await expect(async () => {
         await network.getUtxo(boxId);
-      }).rejects.toThrow(FailedError);
+      }).rejects.toThrow('FailedError');
     });
   });
 
