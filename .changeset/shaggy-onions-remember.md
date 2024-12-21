@@ -1,6 +1,5 @@
 ---
 '@rosen-chains/bitcoin-esplora': major
-'@rosen-chains/doge-esplora': major
 '@rosen-chains/evm-rpc': major
 '@rosen-chains/ethereum': major
 '@rosen-chains/abstract-chain': major
