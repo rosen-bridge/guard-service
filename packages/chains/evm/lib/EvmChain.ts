@@ -34,23 +34,22 @@ abstract class EvmChain extends AbstractChain<Transaction> {
   evmTxType: number;
   extractor: EvmRosenExtractor | undefined;
 
-  supportedTokens: Array<string>;
+  supportedTokens: Array<string> = [];
   protected signFunction: TssSignFunction;
 
   constructor(
     network: AbstractEvmNetwork,
     configs: EvmConfigs,
     tokens: TokenMap,
-    supportedTokens: Array<string>,
     signFunction: TssSignFunction,
     CHAIN: string,
     NATIVE_TOKEN_ID: string,
     evmTxType = 0,
-    logger?: AbstractLogger
+    logger?: AbstractLogger,
+    supportedTokens: Array<string> = []
   ) {
     super(network, configs, tokens, logger);
     this.evmTxType = evmTxType;
-    this.supportedTokens = supportedTokens;
     this.signFunction = signFunction;
     this.extractor = new EvmRosenExtractor(
       this.configs.addresses.lock,
@@ -59,6 +58,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
       NATIVE_TOKEN_ID,
       logger
     );
+    this.updateSupportedTokens(supportedTokens);
   }
 
   /**
@@ -950,6 +950,10 @@ abstract class EvmChain extends AbstractChain<Transaction> {
     }
 
     return true;
+  };
+
+  updateSupportedTokens = async (supportedTokens: Array<string>) => {
+    this.supportedTokens = supportedTokens;
   };
 }
 

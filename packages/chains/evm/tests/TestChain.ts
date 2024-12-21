@@ -18,12 +18,12 @@ class TestChain extends EvmChain {
       network,
       configs,
       tokens,
-      supportedTokens,
       signFunction,
       'test',
       'test-native-token',
       evmTxType
     );
+    this.updateSupportedTokens(supportedTokens);
   }
 }
 
