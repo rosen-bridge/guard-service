@@ -1,59 +1,37 @@
 import { RosenTokens } from '@rosen-bridge/tokens';
 import { EventTrigger, PaymentOrder } from '@rosen-chains/abstract-chain';
 
-export const testTokenMap: RosenTokens = JSON.parse(`
-{
-  "idKeys" : {
-    "ergo" : "tokenId",
-    "cardano" : "tokenId",
-    "bitcoin" : "tokenId"
-  },
-  "tokens" : []
-}
-`);
+export const testTokenMap: RosenTokens = [];
 
-export const multiDecimalTokenMap: RosenTokens = JSON.parse(`
-{
-  "idKeys" : {
-    "ergo" : "tokenId",
-    "cardano" : "tokenId",
-    "bitcoin" : "tokenId"
+export const multiDecimalTokenMap: RosenTokens = [
+  {
+    ergo: {
+      tokenId:
+        '1c7435e608ab710c56bbe0f635e2a5e86ddf856f7d3d2d1d4dfefa62fbbfb9b4',
+      name: 'testBTC',
+      decimals: 3,
+      type: 'EIP-004',
+      residency: 'wrapped',
+    },
+    cardano: {
+      tokenId:
+        '6d7cc9577a04be165cc4f2cf36f580dbeaf88f68e78f790805430940.72734254432d6c6f656e',
+      policyId: '6d7cc9577a04be165cc4f2cf36f580dbeaf88f68e78f790805430940',
+      assetName: '72734254432d6c6f656e',
+      name: 'rsBTC-loen',
+      decimals: 6,
+      type: 'CIP26',
+      residency: 'wrapped',
+    },
+    bitcoin: {
+      tokenId: 'btc',
+      name: 'BTC',
+      decimals: 8,
+      type: 'native',
+      residency: 'native',
+    },
   },
-  "tokens" : [
-    {
-      "ergo": {
-        "tokenId": "1c7435e608ab710c56bbe0f635e2a5e86ddf856f7d3d2d1d4dfefa62fbbfb9b4",
-        "name": "testBTC",
-        "decimals": 3,
-        "metaData": {
-          "type": "EIP-004",
-          "residency": "wrapped"
-        }
-      },
-      "cardano": {
-        "tokenId": "6d7cc9577a04be165cc4f2cf36f580dbeaf88f68e78f790805430940.72734254432d6c6f656e",
-        "policyId": "6d7cc9577a04be165cc4f2cf36f580dbeaf88f68e78f790805430940",
-        "assetName": "72734254432d6c6f656e",
-        "name": "rsBTC-loen",
-        "decimals": 6,
-        "metaData": {
-          "type": "CIP26",
-          "residency": "wrapped"
-        }
-      },
-      "bitcoin": {
-        "tokenId": "btc",
-        "name": "BTC",
-        "decimals": 8,
-        "metaData": {
-          "type": "native",
-          "residency": "native"
-        }
-      }
-    }
-  ]
-}
-`);
+];
 
 export const transaction0PaymentTransaction = `{
   "network": "bitcoin",

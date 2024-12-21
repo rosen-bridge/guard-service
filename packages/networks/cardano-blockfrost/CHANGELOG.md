@@ -1,5 +1,28 @@
 # @rosen-chains/cardano-blockfrost-network
 
+## 7.0.8
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-chains/cardano@10.1.4
+
+## 7.0.7
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-chains/abstract-chain@11.0.3
+  - @rosen-chains/cardano@10.1.3
+
+## 7.0.6
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-chains/abstract-chain@11.0.2
+  - @rosen-chains/cardano@10.1.2
+
 ## 7.0.5
 
 ### Patch Changes

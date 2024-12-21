@@ -1,5 +1,25 @@
 # @rosen-chains/evm
 
+## 6.0.1
+
+### Patch Changes
+
+- Update rosen-extractor version
+- Update dependencies
+  - @rosen-chains/abstract-chain@11.0.3
+
+## 6.0.0
+
+### Major Changes
+
+- Replace getMaxFeePerGas and getMaxPriorityFeePerGas functions with getFeeData function in AbstractEvmNetwork
+- Support both type 0 and type 2 transactions
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-chains/abstract-chain@11.0.2
+
 ## 5.1.1
 
 ### Patch Changes

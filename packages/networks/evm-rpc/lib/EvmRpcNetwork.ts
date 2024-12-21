@@ -300,8 +300,9 @@ class EvmRpcNetwork extends AbstractEvmNetwork {
   getGasRequired = async (transaction: Transaction): Promise<bigint> => {
     try {
       const gas = await this.provider.estimateGas({
-        ...transaction.toJSON(),
         from: this.lockAddress,
+        to: transaction.to,
+        data: transaction.data,
       });
       this.logger.debug(
         `requested 'estimateGas' of ${
@@ -368,6 +369,29 @@ class EvmRpcNetwork extends AbstractEvmNetwork {
     if (feeData.maxFeePerGas === null)
       throw new UnexpectedApiError(baseError + `maxFeePerGas is null`);
     return feeData.maxFeePerGas;
+  };
+
+  /**
+   * gets fee-related values associated with the network
+   * - the legacy gas price
+   * - the maximum fee to pay per gas
+   * - the additional amount to pay per gas to miner
+   * it includes all the values
+   * @returns fee-related values as bigint or null
+   */
+  getFeeData = async (): Promise<FeeData> => {
+    const baseError = `Failed to get fee data from ${this.chain} RPC: `;
+    try {
+      const feeData = await this.provider.getFeeData();
+      this.logger.debug(
+        `requested 'getFeeData' of ${
+          this.chain
+        } RPC. res: ${JsonBigInt.stringify(feeData)}`
+      );
+      return feeData;
+    } catch (e: unknown) {
+      throw new UnexpectedApiError(baseError + `${e}`);
+    }
   };
 
   /**

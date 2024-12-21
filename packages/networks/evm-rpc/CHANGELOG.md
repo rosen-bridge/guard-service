@@ -1,5 +1,31 @@
 # @rosen-chains/evm-rpc
 
+## 3.0.2
+
+### Patch Changes
+
+- Fix EVM gas estimation so that only required fields are sent to the RPC
+
+## 3.0.1
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-chains/abstract-chain@11.0.3
+  - @rosen-chains/evm@6.0.1
+
+## 3.0.0
+
+### Major Changes
+
+- Replace getMaxFeePerGas and getMaxPriorityFeePerGas functions with getFeeData function in AbstractEvmNetwork
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-chains/evm@6.0.0
+  - @rosen-chains/abstract-chain@11.0.2
+
 ## 2.1.9
 
 ### Patch Changes

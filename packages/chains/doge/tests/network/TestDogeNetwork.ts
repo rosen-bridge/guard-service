@@ -1,12 +1,13 @@
 import { AbstractDogeNetwork, DogeTx, DogeUtxo } from '../../lib';
 import { BlockInfo, TokenDetail } from '@rosen-chains/abstract-chain';
 import { DogeRosenExtractor } from '@rosen-bridge/rosen-extractor';
+import { TokenMap } from '@rosen-bridge/tokens';
 
 class TestDogeNetwork extends AbstractDogeNetwork {
-  extractor = new DogeRosenExtractor('DHTom1rFwsgAn5raKU1nok8E5MdQ4GBkAN', {
-    idKeys: {},
-    tokens: [],
-  });
+  extractor = new DogeRosenExtractor(
+    'DHTom1rFwsgAn5raKU1nok8E5MdQ4GBkAN',
+    new TokenMap()
+  );
   notImplemented = () => {
     throw Error('Not implemented');
   };

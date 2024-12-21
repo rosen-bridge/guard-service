@@ -23,7 +23,7 @@ import { DogeConfigs, DogeTx, DogeUtxo, TssSignFunction } from './types';
 import Serializer from './Serializer';
 import { Psbt, Transaction, address, payments, script } from 'bitcoinjs-lib';
 import JsonBigInt from '@rosen-bridge/json-bigint';
-import { getPsbtTxInputBoxId } from './dogeUtils';
+import { estimateTxFee, getPsbtTxInputBoxId } from './dogeUtils';
 import {
   DOGE_CHAIN,
   DOGE,
@@ -697,6 +697,54 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
       this.logger,
       1
     );
+  };
+
+  /**
+   * verifies consistency within the PaymentTransaction object
+   * @param transaction the PaymentTransaction
+   * @returns true if the transaction is verified
+   */
+  verifyPaymentTransaction = async (
+    transaction: PaymentTransaction
+  ): Promise<boolean> => {
+    const psbt = Serializer.deserialize(transaction.txBytes);
+    const dogeTx = transaction as DogeTransaction;
+    const baseError = `Tx [${transaction.txId}] is not verified: `;
+
+    // verify txId
+    const txId = Transaction.fromBuffer(psbt.data.getTransaction()).getId();
+    if (transaction.txId !== txId) {
+      this.logger.warn(
+        baseError +
+          `Transaction id is inconsistent (expected [${transaction.txId}] found [${txId}])`
+      );
+      return false;
+    }
+
+    // verify inputUtxos
+    if (dogeTx.inputUtxos.length !== psbt.inputCount) {
+      this.logger.warn(
+        baseError +
+          `DogeTransaction object input counts is inconsistent [${dogeTx.inputUtxos.length} != ${psbt.inputCount}]`
+      );
+      return false;
+    }
+    for (let i = 0; i < psbt.inputCount; i++) {
+      const input = psbt.txInputs[i];
+      const txId = Buffer.from(input.hash).reverse().toString('hex');
+      const actualInputId = `${txId}.${input.index}`;
+      const dogeInput = JsonBigInt.parse(dogeTx.inputUtxos[i]) as DogeUtxo;
+      const expectedId = `${dogeInput.txId}.${dogeInput.index}`;
+      if (expectedId !== actualInputId) {
+        this.logger.warn(
+          baseError +
+            `Utxo id for input at index [${i}] is inconsistent [expected ${expectedId} found ${actualInputId}]`
+        );
+        return false;
+      }
+    }
+
+    return true;
   };
 }
 

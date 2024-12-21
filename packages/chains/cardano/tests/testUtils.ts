@@ -2,7 +2,7 @@ import { randomBytes } from 'crypto';
 import { CardanoConfigs, CardanoUtxo } from '../lib/types';
 import * as CardanoWasm from '@emurgo/cardano-serialization-lib-nodejs';
 import CardanoUtils from '../lib/CardanoUtils';
-import { RosenTokens } from '@rosen-bridge/tokens';
+import { RosenTokens, TokenMap } from '@rosen-bridge/tokens';
 import { multiDecimalTokenMap, testTokenMap } from './testData';
 import TestCardanoNetwork from './network/TestCardanoNetwork';
 import { CardanoChain } from '../lib';
@@ -154,15 +154,19 @@ export const configs: CardanoConfigs = {
     'bcb07faa6c0f19e2f2587aa9ef6f43a68fc0135321216a71dc87c8527af4ca6a',
 };
 export const mockedSignFn = () => Promise.resolve('');
-export const generateChainObject = (
+export const generateChainObject = async (
   network: TestCardanoNetwork,
   signFn: (txHash: Uint8Array) => Promise<string> = mockedSignFn
 ) => {
-  return new CardanoChain(network, configs, testTokenMap, signFn);
+  const tokenMap = new TokenMap();
+  await tokenMap.updateConfigByJson(testTokenMap);
+  return new CardanoChain(network, configs, tokenMap, signFn);
 };
-export const generateChainObjectWithMultiDecimalTokenMap = (
+export const generateChainObjectWithMultiDecimalTokenMap = async (
   network: TestCardanoNetwork,
   signFn: (txHash: Uint8Array) => Promise<string> = mockedSignFn
 ) => {
-  return new CardanoChain(network, configs, multiDecimalTokenMap, signFn);
+  const tokenMap = new TokenMap();
+  await tokenMap.updateConfigByJson(multiDecimalTokenMap);
+  return new CardanoChain(network, configs, tokenMap, signFn);
 };

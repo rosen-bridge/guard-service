@@ -11,14 +11,12 @@ import {
 } from '../../lib/types';
 import { CardanoRosenExtractor } from '@rosen-bridge/rosen-extractor';
 import { protocolParameters } from '../testUtils';
+import { TokenMap } from '@rosen-bridge/tokens';
 
 class TestCardanoNetwork extends AbstractCardanoNetwork {
   extractor = new CardanoRosenExtractor(
     '9es3xKFSehNNwCpuNpY31ScAubDqeLbSWwaCysjN1ee51bgHKTq',
-    {
-      idKeys: {},
-      tokens: [],
-    }
+    new TokenMap()
   );
   notImplemented = () => {
     throw Error('Not implemented');

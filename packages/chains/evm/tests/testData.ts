@@ -3,8 +3,8 @@ import {
   TransactionType,
 } from '@rosen-chains/abstract-chain';
 import { PaymentOrder, AssetBalance } from '@rosen-chains/abstract-chain';
-import { RosenTokens } from '@rosen-bridge/tokens';
 import { Transaction } from 'ethers';
+import { RosenTokens, TokenMap } from '@rosen-bridge/tokens';
 
 export const lockAddress = '0xedee4752e5a2f595151c94762fb38e5730357785';
 export const supportedTokens = [
@@ -90,6 +90,18 @@ export const transaction1Json = {
   chainId: 1,
   sig: null,
   accessList: [],
+};
+
+export const transaction1WithType0Json = {
+  type: 0,
+  to: '0xeDee4752e5a2F595151c94762fB38e5730357785',
+  data: '0xa9059cbb0000000000000000000000004f0d2dde80b45e24ad4019a5aabd6c23aff2842b00000000000000000000000000000000000000000000000000000000e319aa30bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+  nonce: 10,
+  gasLimit: '21000',
+  gasPrice: '48978500000',
+  value: 0,
+  chainId: 1,
+  sig: null,
 };
 
 export const erc20transaction = {
@@ -479,50 +491,34 @@ export const transaction2SignatureRecovery = '01';
 export const transaction2TxId =
   '0x73c9ff5665d84067d98afbbeb2d9ff316c4b5bf885f9f3d31fa56eb1b13b3b90';
 
-export const testTokenMap: RosenTokens = {
-  idKeys: {},
-  tokens: [],
-};
+export const testTokenMap: RosenTokens = [];
 
-export const multiDecimalTokenMap: RosenTokens = {
-  idKeys: {
-    ergo: 'tokenId',
-    cardano: 'tokenId',
-    test: 'tokenId',
-  },
-  tokens: [
-    {
-      ergo: {
-        tokenId:
-          '1c7435e608ab710c56bbe0f635e2a5e86ddf856f7d3d2d1d4dfefa62fbbfb9b4',
-        name: 'testETHER',
-        decimals: 1,
-        metaData: {
-          type: 'EIP-004',
-          residency: 'wrapped',
-        },
-      },
-      cardano: {
-        tokenId:
-          '6d7cc9577a04be165cc4f2cf36f580dbeaf88f68e78f790805430940.727345544845522d6c6f656e',
-        policyId: '6d7cc9577a04be165cc4f2cf36f580dbeaf88f68e78f790805430940',
-        assetName: '727345544845522d6c6f656e',
-        name: 'rsETHER-loen',
-        decimals: 1,
-        metaData: {
-          type: 'CIP26',
-          residency: 'wrapped',
-        },
-      },
-      test: {
-        tokenId: 'test-native-token',
-        name: 'ETHER',
-        decimals: 3,
-        metaData: {
-          type: 'native',
-          residency: 'native',
-        },
-      },
+export const multiDecimalTokenMap: RosenTokens = [
+  {
+    ergo: {
+      tokenId:
+        '1c7435e608ab710c56bbe0f635e2a5e86ddf856f7d3d2d1d4dfefa62fbbfb9b4',
+      name: 'testETHER',
+      decimals: 1,
+      type: 'EIP-004',
+      residency: 'wrapped',
     },
-  ],
-};
+    cardano: {
+      tokenId:
+        '6d7cc9577a04be165cc4f2cf36f580dbeaf88f68e78f790805430940.727345544845522d6c6f656e',
+      policyId: '6d7cc9577a04be165cc4f2cf36f580dbeaf88f68e78f790805430940',
+      assetName: '727345544845522d6c6f656e',
+      name: 'rsETHER-loen',
+      decimals: 1,
+      type: 'CIP26',
+      residency: 'wrapped',
+    },
+    test: {
+      tokenId: 'test-native-token',
+      name: 'ETHER',
+      decimals: 3,
+      type: 'native',
+      residency: 'native',
+    },
+  },
+];

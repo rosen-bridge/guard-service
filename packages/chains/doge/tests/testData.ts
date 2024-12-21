@@ -1,46 +1,27 @@
 import { RosenTokens } from '@rosen-bridge/tokens';
 import { EventTrigger, PaymentOrder } from '@rosen-chains/abstract-chain';
 
-export const testTokenMap: RosenTokens = JSON.parse(`
-{
-  "idKeys" : {
-    "ergo" : "tokenId",
-    "doge" : "tokenId"
-  },
-  "tokens" : []
-}
-`);
+export const testTokenMap: RosenTokens = [];
 
-export const multiDecimalTokenMap: RosenTokens = JSON.parse(`
-{
-  "idKeys" : {
-    "ergo" : "tokenId",
-    "doge" : "tokenId"
+export const multiDecimalTokenMap: RosenTokens = [
+  {
+    ergo: {
+      tokenId:
+        '1c7435e608ab710c56bbe0f635e2a5e86ddf856f7d3d2d1d4dfefa62fbbfb9b4',
+      name: 'testDOGE',
+      decimals: 3,
+      type: 'EIP-004',
+      residency: 'wrapped',
+    },
+    doge: {
+      tokenId: 'doge',
+      name: 'DOGE',
+      decimals: 8,
+      type: 'native',
+      residency: 'native',
+    },
   },
-  "tokens" : [
-    {
-      "ergo": {
-        "tokenId": "1c7435e608ab710c56bbe0f635e2a5e86ddf856f7d3d2d1d4dfefa62fbbfb9b4",
-        "name": "testDOGE",
-        "decimals": 3,
-        "metaData": {
-          "type": "EIP-004",
-          "residency": "wrapped"
-        }
-      },
-      "doge": {
-        "tokenId": "doge",
-        "name": "DOGE",
-        "decimals": 8,
-        "metaData": {
-          "type": "native",
-          "residency": "native"
-        }
-      }
-    }
-  ]
-}
-`);
+];
 
 export const transaction0PaymentTransaction = `{
     "network": "doge",

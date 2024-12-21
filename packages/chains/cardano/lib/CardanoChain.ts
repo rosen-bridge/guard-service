@@ -4,7 +4,7 @@ import {
   hash_transaction,
 } from '@emurgo/cardano-serialization-lib-nodejs';
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
-import { RosenTokens } from '@rosen-bridge/tokens';
+import { TokenMap } from '@rosen-bridge/tokens';
 import {
   AbstractUtxoChain,
   AssetBalance,
@@ -49,7 +49,7 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
   constructor(
     network: AbstractCardanoNetwork,
     configs: CardanoConfigs,
-    tokens: RosenTokens,
+    tokens: TokenMap,
     signFunction: (txHash: Uint8Array) => Promise<string>,
     logger?: AbstractLogger
   ) {
@@ -276,12 +276,17 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
       CardanoWasm.hash_transaction(txBody).to_bytes()
     ).toString('hex');
 
+    // sort input utxos
+    const inputUtxos = structuredClone(bankBoxes);
+    inputUtxos.sort((a, b) =>
+      a.txId === b.txId ? a.index - b.index : a.txId < b.txId ? -1 : 1
+    );
     const cardanoTx = new CardanoTransaction(
       txId,
       eventId,
       txBytes,
       txType,
-      bankBoxes.map((box) => JSONBigInt.stringify(box))
+      inputUtxos.map((box) => JSONBigInt.stringify(box))
     );
 
     this.logger.info(

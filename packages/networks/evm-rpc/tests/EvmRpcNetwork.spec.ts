@@ -457,9 +457,9 @@ describe('EvmRpcNetwork', () => {
     });
   });
 
-  describe('getMaxPriorityFeePerGas', () => {
+  describe('getFeeData', () => {
     /**
-     * @target `EvmRpcNetwork.getMaxPriorityFeePerGas` should return max priority fee per gas successfully
+     * @target `EvmRpcNetwork.getFeeData` should return fee data successfully
      * @dependencies
      * @scenario
      * - mock provider.`getFeeData` to return address tx count
@@ -468,36 +468,14 @@ describe('EvmRpcNetwork', () => {
      * @expected
      * - it should be mocked nonce
      */
-    it('should return max priority fee per gas successfully', async () => {
+    it('should return fee data successfully', async () => {
       vi.spyOn(network.getProvider(), 'getFeeData').mockResolvedValue(
         testData.feeDataResponse
       );
 
-      const result = await network.getMaxPriorityFeePerGas();
+      const result = await network.getFeeData();
 
-      expect(result).toEqual(testData.maxPriorityFeePerGas);
-    });
-  });
-
-  describe('getMaxFeePerGas', () => {
-    /**
-     * @target `EvmRpcNetwork.getMaxFeePerGas` should return max fee per gas successfully
-     * @dependencies
-     * @scenario
-     * - mock provider.`getFeeData` to return address tx count
-     * - run test
-     * - check returned value
-     * @expected
-     * - it should be mocked nonce
-     */
-    it('should return max fee per gas successfully', async () => {
-      vi.spyOn(network.getProvider(), 'getFeeData').mockResolvedValue(
-        testData.feeDataResponse
-      );
-
-      const result = await network.getMaxFeePerGas();
-
-      expect(result).toEqual(testData.maxFeePerGas);
+      expect(result).toEqual(testData.feeDataResponse);
     });
   });
 

@@ -5,174 +5,132 @@ import * as wasm from 'ergo-lib-wasm-nodejs';
 import TestErgoNetwork from './network/TestErgoNetwork';
 import { ErgoChain, ErgoConfigs } from '../lib';
 import { transaction2SignedSerialized } from './transactionTestData';
+import { TokenMap } from '@rosen-bridge/tokens';
 
-export const testTokenMap: RosenTokens = {
-  idKeys: {
-    ergo: 'tokenId',
-    cardano: 'tokenId',
-    bitcoin: 'tokenId',
+export const testTokenMap: RosenTokens = [];
+export const multiDecimalTokenMap: RosenTokens = [
+  {
+    ergo: {
+      tokenId: 'erg',
+      name: 'erg',
+      decimals: 9,
+      type: 'ERG',
+      residency: 'native',
+    },
+    cardano: {
+      tokenId:
+        'ef6aa6200e21634e58ce6796b4b61d1d7d059d2ebe93c2996eeaf286.5273744552477654657374',
+      name: 'RstERGvTest',
+      policyId: 'ef6aa6200e21634e58ce6796b4b61d1d7d059d2ebe93c2996eeaf286',
+      assetName: '5273744552477654657374',
+      decimals: 10,
+      type: 'native',
+      residency: 'wrapped',
+    },
   },
-  tokens: [],
-};
-export const multiDecimalTokenMap: RosenTokens = {
-  idKeys: {
-    ergo: 'tokenId',
-    cardano: 'tokenId',
+  {
+    ergo: {
+      tokenId:
+        '10278c102bf890fdab8ef5111e94053c90b3541bc25b0de2ee8aa6305ccec3de',
+      name: 'Ergo-Token.V-test',
+      decimals: 1,
+      type: 'EIP-004',
+      residency: 'native',
+    },
+    cardano: {
+      tokenId:
+        '48d4a14b8407af8407702df3afda4cc8a945ce55235e9808c62c5f9b.5273744572676f546f6b656e7654657374',
+      name: 'RstErgoTokenvTest',
+      policyId: '48d4a14b8407af8407702df3afda4cc8a945ce55235e9808c62c5f9b',
+      assetName: '5273744572676f546f6b656e7654657374',
+      decimals: 0,
+      type: 'native',
+      residency: 'wrapped',
+    },
   },
-  tokens: [
-    {
-      ergo: {
-        tokenId: 'erg',
-        name: 'erg',
-        decimals: 9,
-        metaData: {
-          type: 'ERG',
-          residency: 'native',
-        },
-      },
-      cardano: {
-        tokenId:
-          'ef6aa6200e21634e58ce6796b4b61d1d7d059d2ebe93c2996eeaf286.5273744552477654657374',
-        name: 'RstERGvTest',
-        policyId: 'ef6aa6200e21634e58ce6796b4b61d1d7d059d2ebe93c2996eeaf286',
-        assetName: '5273744552477654657374',
-        decimals: 10,
-        metaData: {
-          type: 'native',
-          residency: 'wrapped',
-        },
-      },
+  {
+    ergo: {
+      tokenId:
+        '895a0268c749b9ab894e4d064a783dfe1361b64c9d99857c391390d630ebe2d2',
+      name: 'RST-Cardano-Token.V-test',
+      decimals: 4,
+      type: 'EIP-004',
+      residency: 'wrapped',
     },
-    {
-      ergo: {
-        tokenId:
-          '10278c102bf890fdab8ef5111e94053c90b3541bc25b0de2ee8aa6305ccec3de',
-        name: 'Ergo-Token.V-test',
-        decimals: 1,
-        metaData: {
-          type: 'EIP-004',
-          residency: 'native',
-        },
-      },
-      cardano: {
-        tokenId:
-          '48d4a14b8407af8407702df3afda4cc8a945ce55235e9808c62c5f9b.5273744572676f546f6b656e7654657374',
-        name: 'RstErgoTokenvTest',
-        policyId: '48d4a14b8407af8407702df3afda4cc8a945ce55235e9808c62c5f9b',
-        assetName: '5273744572676f546f6b656e7654657374',
-        decimals: 0,
-        metaData: {
-          type: 'native',
-          residency: 'wrapped',
-        },
-      },
+    cardano: {
+      tokenId:
+        'cfd784ccfe5fe8ce7d09f4ddb65624378cc8022bf3ec240cf41ea6be.43617264616e6f546f6b656e7654657374',
+      name: 'CardanoTokenvTest',
+      policyId: 'cfd784ccfe5fe8ce7d09f4ddb65624378cc8022bf3ec240cf41ea6be',
+      assetName: '43617264616e6f546f6b656e7654657374',
+      decimals: 3,
+      type: 'native',
+      residency: 'native',
     },
-    {
-      ergo: {
-        tokenId:
-          '895a0268c749b9ab894e4d064a783dfe1361b64c9d99857c391390d630ebe2d2',
-        name: 'RST-Cardano-Token.V-test',
-        decimals: 4,
-        metaData: {
-          type: 'EIP-004',
-          residency: 'wrapped',
-        },
-      },
-      cardano: {
-        tokenId:
-          'cfd784ccfe5fe8ce7d09f4ddb65624378cc8022bf3ec240cf41ea6be.43617264616e6f546f6b656e7654657374',
-        name: 'CardanoTokenvTest',
-        policyId: 'cfd784ccfe5fe8ce7d09f4ddb65624378cc8022bf3ec240cf41ea6be',
-        assetName: '43617264616e6f546f6b656e7654657374',
-        decimals: 3,
-        metaData: {
-          type: 'native',
-          residency: 'native',
-        },
-      },
-    },
-    {
-      ergo: {
-        tokenId:
-          '7b0cc1b9c6e3dbf41a8cd0fe059a545dfbd0dfafc4093d0555a9851f06662dff',
-        name: 'test',
-        decimals: 2,
-        metaData: {
-          type: 'EIP-004',
-          residency: 'wrapped',
-        },
-      },
-      cardano: {
-        tokenId:
-          'e043fa0e1adaa5abeca716791384b64be4d15c7d1e80817e43992e4a.43617264616e6f546f6b656e7654657374',
-        name: 'test',
-        policyId: 'e043fa0e1adaa5abeca716791384b64be4d15c7d1e80817e43992e4a',
-        assetName: '43617264616e6f546f6b656e7654657374',
-        decimals: 1,
-        metaData: {
-          type: 'native',
-          residency: 'native',
-        },
-      },
-    },
-    {
-      ergo: {
-        tokenId:
-          '3688bf4dbfa9e77606446ca0189546621097cee6979e2befc8ef56825ba82580',
-        name: 'test',
-        decimals: 2,
-        metaData: {
-          type: 'EIP-004',
-          residency: 'wrapped',
-        },
-      },
-      cardano: {
-        tokenId:
-          '55ca25ad5c788597f13e5c61d415315e8ac1f40e08d172a7809c016c.43617264616e6f546f6b656e7654657374',
-        name: 'test',
-        policyId: 'e043fa0e1adaa5abeca716791384b64be4d15c7d1e80817e43992e4a',
-        assetName: '43617264616e6f546f6b656e7654657374',
-        decimals: 2,
-        metaData: {
-          type: 'native',
-          residency: 'native',
-        },
-      },
-    },
-  ],
-};
-export const wrappedRwtTokenMap: RosenTokens = {
-  idKeys: {
-    ergo: 'tokenId',
-    cardano: 'tokenId',
   },
-  tokens: [
-    {
-      ergo: {
-        tokenId:
-          '9410db5b39388c6b515160e7248346d7ec63d5457292326da12a26cc02efb526',
-        name: 'Ergo-RWT.V-test',
-        decimals: 1,
-        metaData: {
-          type: 'EIP-004',
-          residency: 'wrapped',
-        },
-      },
-      cardano: {
-        tokenId:
-          'cfd784ccfe5fe8ce7d09f4ddb65624378cc8022bf3ec240cf41ea6be.43617264616e6f546f6b656e7654657374',
-        name: 'CardanoTokenvTest',
-        policyId: 'cfd784ccfe5fe8ce7d09f4ddb65624378cc8022bf3ec240cf41ea6be',
-        assetName: '43617264616e6f546f6b656e7654657374',
-        decimals: 0,
-        metaData: {
-          type: 'native',
-          residency: 'native',
-        },
-      },
+  {
+    ergo: {
+      tokenId:
+        '7b0cc1b9c6e3dbf41a8cd0fe059a545dfbd0dfafc4093d0555a9851f06662dff',
+      name: 'test',
+      decimals: 2,
+      type: 'EIP-004',
+      residency: 'wrapped',
     },
-  ],
-};
+    cardano: {
+      tokenId:
+        'e043fa0e1adaa5abeca716791384b64be4d15c7d1e80817e43992e4a.43617264616e6f546f6b656e7654657374',
+      name: 'test',
+      policyId: 'e043fa0e1adaa5abeca716791384b64be4d15c7d1e80817e43992e4a',
+      assetName: '43617264616e6f546f6b656e7654657374',
+      decimals: 1,
+      type: 'native',
+      residency: 'native',
+    },
+  },
+  {
+    ergo: {
+      tokenId:
+        '3688bf4dbfa9e77606446ca0189546621097cee6979e2befc8ef56825ba82580',
+      name: 'test',
+      decimals: 2,
+      type: 'EIP-004',
+      residency: 'wrapped',
+    },
+    cardano: {
+      tokenId:
+        '55ca25ad5c788597f13e5c61d415315e8ac1f40e08d172a7809c016c.43617264616e6f546f6b656e7654657374',
+      name: 'test',
+      policyId: 'e043fa0e1adaa5abeca716791384b64be4d15c7d1e80817e43992e4a',
+      assetName: '43617264616e6f546f6b656e7654657374',
+      decimals: 2,
+      type: 'native',
+      residency: 'native',
+    },
+  },
+];
+export const wrappedRwtTokenMap: RosenTokens = [
+  {
+    ergo: {
+      tokenId:
+        '9410db5b39388c6b515160e7248346d7ec63d5457292326da12a26cc02efb526',
+      name: 'Ergo-RWT.V-test',
+      decimals: 1,
+      type: 'EIP-004',
+      residency: 'wrapped',
+    },
+    cardano: {
+      tokenId:
+        'cfd784ccfe5fe8ce7d09f4ddb65624378cc8022bf3ec240cf41ea6be.43617264616e6f546f6b656e7654657374',
+      name: 'CardanoTokenvTest',
+      policyId: 'cfd784ccfe5fe8ce7d09f4ddb65624378cc8022bf3ec240cf41ea6be',
+      assetName: '43617264616e6f546f6b656e7654657374',
+      decimals: 0,
+      type: 'native',
+      residency: 'native',
+    },
+  },
+];
 
 export const testLockAddress =
   '9es3xKFSehNNwCpuNpY31ScAubDqeLbSWwaCysjN1ee51bgHKTq';
@@ -222,12 +180,14 @@ export const generateChainObject = (
     minBoxValue: 1000000n,
     eventTxConfirmation: 18,
   };
+  const tokenMap = new TokenMap();
+  tokenMap.updateConfigByJson;
   // mock a sign function to return signed transaction
-  return new ErgoChain(network, config, testTokenMap, signFn);
+  return new ErgoChain(network, config, new TokenMap(), signFn);
 };
-export const generateDefaultChainObjectWithTokenMap = (
+export const generateDefaultChainObjectWithTokenMap = async (
   network: TestErgoNetwork,
-  tokenMap: RosenTokens
+  rosenTokens: RosenTokens
 ) => {
   const config: ErgoConfigs = {
     fee: 100n,
@@ -242,6 +202,8 @@ export const generateDefaultChainObjectWithTokenMap = (
     minBoxValue: 1000000n,
     eventTxConfirmation: 18,
   };
+  const tokenMap = new TokenMap();
+  await tokenMap.updateConfigByJson(rosenTokens);
   // mock a sign function to return signed transaction
   return new ErgoChain(network, config, tokenMap, defaultSignFunction);
 };

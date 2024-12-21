@@ -19,7 +19,7 @@ import TestDogeNetwork from './network/TestDogeNetwork';
 import { TestDogeChain } from './TestDogeChain';
 import * as testData from './testData';
 import * as testUtils from './testUtils';
-import { transaction0SignedTxBytesHex } from './testData';
+import { TokenMap } from '@rosen-bridge/tokens';
 
 describe('DogeChain', () => {
   describe('generateTransaction', () => {
@@ -51,7 +51,7 @@ describe('DogeChain', () => {
       getFeeRatioSpy.mockResolvedValue(1);
 
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
-      const dogeChain = testUtils.generateChainObject(network);
+      const dogeChain = await testUtils.generateChainObject(network);
       const getCovBoxesSpy = vi.spyOn(dogeChain as any, 'getCoveringBoxes');
       getCovBoxesSpy.mockResolvedValue({
         covered: true,
@@ -120,7 +120,7 @@ describe('DogeChain', () => {
       getFeeRatioSpy.mockResolvedValue(1);
 
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
-      const dogeChain = testUtils.generateChainObject(network);
+      const dogeChain = await testUtils.generateChainObject(network);
 
       const getAddressUtxosSpy = vi.spyOn(network, 'getAddressBoxes');
       getAddressUtxosSpy.mockResolvedValue(testData.lockAddressUtxos);
@@ -185,7 +185,7 @@ describe('DogeChain', () => {
       getFeeRatioSpy.mockResolvedValue(1);
 
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
-      const dogeChain = testUtils.generateChainObject(network);
+      const dogeChain = await testUtils.generateChainObject(network);
       const getAddressUtxosSpy = vi.spyOn(network, 'getAddressBoxes');
       getAddressUtxosSpy.mockResolvedValue(testData.lockAddressUtxos);
       const getUtxoSpy = vi.spyOn(network, 'getTransactionHex');
@@ -223,7 +223,7 @@ describe('DogeChain', () => {
      */
     it('should throw error when lock address does not have enough assets', async () => {
       // mock hasLockAddressEnoughAssets
-      const dogeChain = testUtils.generateChainObject(network);
+      const dogeChain = await testUtils.generateChainObject(network);
       const hasLockAddressEnoughAssetsSpy = vi.spyOn(
         dogeChain,
         'hasLockAddressEnoughAssets'
@@ -254,7 +254,7 @@ describe('DogeChain', () => {
      */
     it('should throw error when bank boxes can not cover order assets', async () => {
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
-      const dogeChain = testUtils.generateChainObject(network);
+      const dogeChain = await testUtils.generateChainObject(network);
       const getCovBoxesSpy = vi.spyOn(dogeChain as any, 'getCoveringBoxes');
       getCovBoxesSpy.mockResolvedValue({
         covered: false,
@@ -300,7 +300,7 @@ describe('DogeChain', () => {
       );
 
       // run test
-      const dogeChain = testUtils.generateChainObject(network);
+      const dogeChain = await testUtils.generateChainObject(network);
 
       // check returned value
       const result = await dogeChain.getTransactionAssets(paymentTx);
@@ -326,7 +326,7 @@ describe('DogeChain', () => {
 
       // run test
       const dogeChain =
-        testUtils.generateChainObjectWithMultiDecimalTokenMap(network);
+        await testUtils.generateChainObjectWithMultiDecimalTokenMap(network);
 
       // check returned value
       const result = await dogeChain.getTransactionAssets(paymentTx);
@@ -348,7 +348,7 @@ describe('DogeChain', () => {
      * @expected
      * - it should return mocked transaction order
      */
-    it('should extract transaction order successfully', () => {
+    it('should extract transaction order successfully', async () => {
       // mock PaymentTransaction
       const paymentTx = DogeTransaction.fromJson(
         testData.transaction0PaymentTransaction
@@ -356,7 +356,7 @@ describe('DogeChain', () => {
       const expectedOrder = testData.transaction2Order;
 
       // run test
-      const dogeChain = testUtils.generateChainObject(network);
+      const dogeChain = await testUtils.generateChainObject(network);
       const result = dogeChain.extractTransactionOrder(paymentTx);
 
       // check returned value
@@ -373,14 +373,14 @@ describe('DogeChain', () => {
      * @expected
      * - it should throw Error
      */
-    it('should throw error when tx has OP_RETURN utxo', () => {
+    it('should throw error when tx has OP_RETURN utxo', async () => {
       // mock PaymentTransaction
       const paymentTx = DogeTransaction.fromJson(
         testData.transactionOpReturnPaymentTransaction
       );
 
       // run test & check thrown exception
-      const dogeChain = testUtils.generateChainObject(network);
+      const dogeChain = await testUtils.generateChainObject(network);
       expect(() => {
         dogeChain.extractTransactionOrder(paymentTx);
       }).toThrow(Error);
@@ -397,7 +397,7 @@ describe('DogeChain', () => {
      * @expected
      * - it should return mocked transaction order
      */
-    it('should wrap transaction order successfully', () => {
+    it('should wrap transaction order successfully', async () => {
       // mock PaymentTransaction
       const paymentTx = DogeTransaction.fromJson(
         testData.transaction0PaymentTransaction
@@ -406,7 +406,7 @@ describe('DogeChain', () => {
 
       // run test
       const dogeChain =
-        testUtils.generateChainObjectWithMultiDecimalTokenMap(network);
+        await testUtils.generateChainObjectWithMultiDecimalTokenMap(network);
       const result = dogeChain.extractTransactionOrder(paymentTx);
 
       // check returned value
@@ -435,7 +435,7 @@ describe('DogeChain', () => {
       const getFeeRatioSpy = vi.spyOn(network, 'getFeeRatio');
       getFeeRatioSpy.mockResolvedValue(176991);
 
-      const dogeChain = testUtils.generateChainObject(network);
+      const dogeChain = await testUtils.generateChainObject(network);
       const result = await dogeChain.verifyTransactionFee(paymentTx);
 
       expect(result).toEqual(true);
@@ -460,7 +460,7 @@ describe('DogeChain', () => {
       const getFeeRatioSpy = vi.spyOn(network, 'getFeeRatio');
       getFeeRatioSpy.mockResolvedValue(100);
 
-      const dogeChain = testUtils.generateChainObject(network);
+      const dogeChain = await testUtils.generateChainObject(network);
       const result = await dogeChain.verifyTransactionFee(paymentTx);
 
       expect(result).toEqual(false);
@@ -481,14 +481,14 @@ describe('DogeChain', () => {
      * @expected
      * - it should return true
      */
-    it('should return true when all extra conditions are met', () => {
+    it('should return true when all extra conditions are met', async () => {
       // mock a payment transaction
       const paymentTx = DogeTransaction.fromJson(
         testData.transaction0PaymentTransaction
       );
 
       // run test
-      const dogeChain = testUtils.generateChainObject(network);
+      const dogeChain = await testUtils.generateChainObject(network);
       const result = dogeChain.verifyTransactionExtraConditions(paymentTx);
 
       // check returned value
@@ -507,11 +507,14 @@ describe('DogeChain', () => {
      * @expected
      * - it should return false
      */
-    it('should return false when change box address is wrong', () => {
+    it('should return false when change box address is wrong', async () => {
       // mock a payment transaction
       const paymentTx = DogeTransaction.fromJson(
         testData.transaction0PaymentTransaction
       );
+
+      const tokenMap = new TokenMap();
+      await tokenMap.updateConfigByJson(testData.testTokenMap);
 
       // create a new DogeChain object with custom lock address
       const newConfigs = structuredClone(testUtils.configs);
@@ -519,7 +522,7 @@ describe('DogeChain', () => {
       const dogeChain = new DogeChain(
         network,
         newConfigs,
-        testData.testTokenMap,
+        tokenMap,
         testUtils.mockedSignFn
       );
 
@@ -556,7 +559,7 @@ describe('DogeChain', () => {
       const isBoxUnspentAndValidSpy = vi.spyOn(network, 'isBoxUnspentAndValid');
       isBoxUnspentAndValidSpy.mockResolvedValue(true);
 
-      const dogeChain = testUtils.generateChainObject(network);
+      const dogeChain = await testUtils.generateChainObject(network);
       const result = await dogeChain.isTxValid(payment1);
 
       expect(result).toEqual({
@@ -592,7 +595,7 @@ describe('DogeChain', () => {
         .mockResolvedValue(true)
         .mockResolvedValueOnce(false);
 
-      const dogeChain = testUtils.generateChainObject(network);
+      const dogeChain = await testUtils.generateChainObject(network);
       const result = await dogeChain.isTxValid(payment1);
 
       expect(result).toEqual({
@@ -650,7 +653,10 @@ describe('DogeChain', () => {
       );
 
       // run test
-      const dogeChain = testUtils.generateChainObject(network, signFunction);
+      const dogeChain = await testUtils.generateChainObject(
+        network,
+        signFunction
+      );
       const result = await dogeChain.signTransaction(paymentTx);
 
       // check returned value
@@ -693,7 +699,10 @@ describe('DogeChain', () => {
       );
 
       // run test
-      const dogeChain = testUtils.generateChainObject(network, signFunction);
+      const dogeChain = await testUtils.generateChainObject(
+        network,
+        signFunction
+      );
 
       await expect(async () => {
         await dogeChain.signTransaction(paymentTx);
@@ -734,7 +743,7 @@ describe('DogeChain', () => {
       );
 
       // run test
-      const dogeChain = testUtils.generateChainObject(network);
+      const dogeChain = await testUtils.generateChainObject(network);
       const result = await dogeChain.rawTxToPaymentTransaction(
         Buffer.from(expectedTx.txBytes).toString('hex')
       );
@@ -757,12 +766,12 @@ describe('DogeChain', () => {
      * @expected
      * - it should return constructed BoxInfo
      */
-    it('should get box info successfully', () => {
+    it('should get box info successfully', async () => {
       // mock a DogeUtxo with assets
       const rawBox = testData.lockUtxo;
 
       // run test
-      const dogeChain = testUtils.generateChainObject(network);
+      const dogeChain = await testUtils.generateChainObject(network);
 
       // check returned value
       const result = (dogeChain as any).getBoxInfo(rawBox);
@@ -773,12 +782,14 @@ describe('DogeChain', () => {
     });
   });
 
-  describe('getTransactionsBoxMapping', () => {
+  describe('getTransactionsBoxMapping', async () => {
     const network = new TestDogeNetwork();
+    const tokenMap = new TokenMap();
+    await tokenMap.updateConfigByJson(testData.testTokenMap);
     const testInstance = new TestDogeChain(
       network,
       testUtils.configs,
-      testData.testTokenMap,
+      tokenMap,
       null as any
     );
 

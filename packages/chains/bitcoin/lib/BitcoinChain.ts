@@ -32,7 +32,7 @@ import { estimateTxFee, getPsbtTxInputBoxId } from './bitcoinUtils';
 import { BITCOIN_CHAIN, BTC, SEGWIT_INPUT_WEIGHT_UNIT } from './constants';
 import { selectBitcoinUtxos } from '@rosen-bridge/bitcoin-utxo-selection';
 import { BitcoinRosenExtractor } from '@rosen-bridge/rosen-extractor';
-import { RosenAmount, RosenTokens } from '@rosen-bridge/tokens';
+import { RosenAmount, TokenMap } from '@rosen-bridge/tokens';
 
 class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
   declare network: AbstractBitcoinNetwork;
@@ -47,7 +47,7 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
   constructor(
     network: AbstractBitcoinNetwork,
     configs: BitcoinConfigs,
-    tokens: RosenTokens,
+    tokens: TokenMap,
     signFunction: TssSignFunction,
     logger?: AbstractLogger
   ) {

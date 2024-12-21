@@ -1,5 +1,5 @@
 import { AbstractChainNetwork } from '@rosen-chains/abstract-chain';
-import { Transaction, TransactionResponse } from 'ethers';
+import { FeeData, Transaction } from 'ethers';
 import { EvmTxStatus, TransactionHashes } from '../types';
 
 abstract class AbstractEvmNetwork extends AbstractChainNetwork<Transaction> {
@@ -36,19 +36,16 @@ abstract class AbstractEvmNetwork extends AbstractChainNetwork<Transaction> {
    * @returns gas required in bigint
    */
   abstract getGasRequired: (transaction: Transaction) => Promise<bigint>;
-  /**
-   * gets the maximum wei we would pay to the miner according
-   * to the network's current condition
-   * @returns gas price as a bigint
-   */
-  abstract getMaxPriorityFeePerGas: () => Promise<bigint>;
 
   /**
-   * gets the maximum wei we would pay (miner + base fee) according
-   * to the network's current condition
-   * @returns gas price as a bigint
+   * gets fee-related values associated with the network
+   * - the legacy gas price
+   * - the maximum fee to pay per gas
+   * - the additional amount to pay per gas to miner
+   * it may or may not include all the values, depends on the instance implementation
+   * @returns fee-related values as bigint or null
    */
-  abstract getMaxFeePerGas: () => Promise<bigint>;
+  abstract getFeeData: () => Promise<FeeData>;
 
   /**
    * gets all transactions in mempool (returns empty list if the chain has no mempool)

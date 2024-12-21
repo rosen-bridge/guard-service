@@ -1,4 +1,4 @@
-import { Transaction } from 'ethers';
+import { FeeData, Transaction } from 'ethers';
 import { AbstractEvmNetwork, EvmTxStatus, TransactionHashes } from '../../lib';
 import {
   BlockInfo,
@@ -66,11 +66,7 @@ class TestEvmNetwork extends AbstractEvmNetwork {
     throw Error('Not mocked');
   };
 
-  getMaxPriorityFeePerGas = (): Promise<bigint> => {
-    throw Error('Not mocked');
-  };
-
-  getMaxFeePerGas = (): Promise<bigint> => {
+  getFeeData = (): Promise<FeeData> => {
     throw Error('Not mocked');
   };
 
