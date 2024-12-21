@@ -17,20 +17,20 @@ class EthereumChain extends EvmChain {
     network: AbstractEvmNetwork,
     configs: EvmConfigs,
     tokens: TokenMap,
-    supportedTokens: Array<string>,
     signFunction: TssSignFunction,
-    logger?: AbstractLogger
+    logger?: AbstractLogger,
+    supportedTokens: Array<string> = []
   ) {
     super(
       network,
       configs,
       tokens,
-      supportedTokens,
       signFunction,
       ETHEREUM_CHAIN,
       ETH,
       2,
-      logger
+      logger,
+      supportedTokens
     );
   }
 }

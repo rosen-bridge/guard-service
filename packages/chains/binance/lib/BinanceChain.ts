@@ -17,20 +17,20 @@ class BinanceChain extends EvmChain {
     network: AbstractEvmNetwork,
     configs: EvmConfigs,
     tokens: TokenMap,
-    supportedTokens: Array<string>,
     signFunction: TssSignFunction,
-    logger?: AbstractLogger
+    logger?: AbstractLogger,
+    supportedTokens: Array<string> = []
   ) {
     super(
       network,
       configs,
       tokens,
-      supportedTokens,
       signFunction,
       BINANCE_CHAIN,
       BNB,
       0,
-      logger
+      logger,
+      supportedTokens
     );
   }
 }
