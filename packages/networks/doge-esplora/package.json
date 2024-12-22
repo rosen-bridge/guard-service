@@ -36,7 +36,7 @@
     "@rosen-bridge/abstract-logger": "^2.0.1",
     "@rosen-bridge/json-bigint": "^0.1.0",
     "@rosen-chains/abstract-chain": "^11.0.3",
-    "@rosen-chains/doge": "^0.0.0",
+    "@rosen-chains/doge": "^0.1.0",
     "@rosen-chains/bitcoin-esplora": "^4.0.8",
     "axios": "^1.6.7",
     "bitcoinjs-lib": "^6.1.5"
