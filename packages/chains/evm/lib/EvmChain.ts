@@ -45,8 +45,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
     CHAIN: string,
     NATIVE_TOKEN_ID: string,
     evmTxType = 0,
-    logger?: AbstractLogger,
-    supportedTokens: Array<string> = []
+    logger?: AbstractLogger
   ) {
     super(network, configs, tokens, logger);
     this.evmTxType = evmTxType;
@@ -58,6 +57,14 @@ abstract class EvmChain extends AbstractChain<Transaction> {
       NATIVE_TOKEN_ID,
       logger
     );
+    const supportedTokens = tokens
+      .getConfig()
+      .filter(
+        (tokenSet) =>
+          Object.keys(tokenSet).includes(CHAIN) &&
+          tokenSet[CHAIN].type !== 'native'
+      )
+      .map((tokenSet) => tokenSet[CHAIN].tokenId);
     this.updateSupportedTokens(supportedTokens);
   }
 
