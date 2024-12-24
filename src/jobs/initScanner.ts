@@ -125,6 +125,14 @@ const createLoggers = () => ({
     DefaultLoggerFactory.getInstance().getLogger(
       'ethereum-lock-address-tx-extractor'
     ),
+  binanceCommitmentExtractorLogger:
+    DefaultLoggerFactory.getInstance().getLogger(
+      'binance-commitment-extractor'
+    ),
+  binanceEventTriggerExtractorLogger:
+    DefaultLoggerFactory.getInstance().getLogger(
+      'binance-event-trigger-extractor'
+    ),
   binanceScannerLogger:
     DefaultLoggerFactory.getInstance().getLogger('binance-scanner'),
   binanceLockAddressTxExtractorLogger:
@@ -231,6 +239,24 @@ const initScanner = () => {
     loggers.ethereumEventTriggerExtractorLogger
   );
 
+  const binanceCommitmentExtractor = new CommitmentExtractor(
+    'binanceCommitment',
+    [GuardsBinanceConfigs.binanceContractConfig.commitmentAddress],
+    GuardsBinanceConfigs.binanceContractConfig.RWTId,
+    dataSource,
+    tokens,
+    loggers.binanceCommitmentExtractorLogger
+  );
+  const binanceEventTriggerExtractor = new EventTriggerExtractor(
+    'binanceEventTrigger',
+    dataSource,
+    GuardsBinanceConfigs.binanceContractConfig.eventTriggerAddress,
+    GuardsBinanceConfigs.binanceContractConfig.RWTId,
+    GuardsBinanceConfigs.binanceContractConfig.permitAddress,
+    GuardsBinanceConfigs.binanceContractConfig.fraudAddress,
+    loggers.binanceEventTriggerExtractorLogger
+  );
+
   ergoScanner.registerExtractor(bitcoinCommitmentExtractor);
   ergoScanner.registerExtractor(bitcoinEventTriggerExtractor);
   ergoScanner.registerExtractor(cardanoCommitmentExtractor);
@@ -239,6 +265,8 @@ const initScanner = () => {
   ergoScanner.registerExtractor(ergoEventTriggerExtractor);
   ergoScanner.registerExtractor(ethereumCommitmentExtractor);
   ergoScanner.registerExtractor(ethereumEventTriggerExtractor);
+  ergoScanner.registerExtractor(binanceCommitmentExtractor);
+  ergoScanner.registerExtractor(binanceEventTriggerExtractor);
 
   ergoScannerJob();
 
