@@ -2,4 +2,4 @@
 'guard-service': patch
 ---
 
-Use extended-typeorm to prevent db transaction conflicts
+Use @rosen-bridge/extended-typeorm to prevent db transaction conflicts
