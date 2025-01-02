@@ -1,7 +1,4 @@
-import { describe, it, expect } from 'vitest';
-import { vi } from 'vitest';
 import {
-  ChainUtils,
   NotEnoughAssetsError,
   NotEnoughValidBoxesError,
   TransactionType,
@@ -413,6 +410,7 @@ describe('DogeChain', () => {
       expect(result).toEqual(expectedOrder);
     });
   });
+
   describe('verifyTransactionFee', () => {
     const network = new TestDogeNetwork();
 
@@ -533,6 +531,7 @@ describe('DogeChain', () => {
       expect(result).toEqual(false);
     });
   });
+
   describe('isTxValid', () => {
     const network = new TestDogeNetwork();
 
@@ -718,7 +717,6 @@ describe('DogeChain', () => {
      * @dependencies
      * @scenario
      * - mock PaymentTransaction
-     * - mock getTransactionHex
      * - run test
      * - check returned value
      * @expected
@@ -867,6 +865,116 @@ describe('DogeChain', () => {
         trackMap.set(mapping.inputId, undefined);
       });
       expect(result).toEqual(trackMap);
+    });
+  });
+
+  describe('verifyPaymentTransaction', () => {
+    const network = new TestDogeNetwork();
+
+    /**
+     * @target DogeChain.verifyPaymentTransaction should return true
+     * when data is consistent
+     * @dependencies
+     * @scenario
+     * - mock a DogeTransaction
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return true
+     */
+    it('should return true when data is consistent', async () => {
+      // mock a DogeTransaction
+      const paymentTx = DogeTransaction.fromJson(
+        testData.transaction2PaymentTransaction
+      );
+
+      // run test
+      const dogeChain = await testUtils.generateChainObject(network);
+      const result = await dogeChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(true);
+    });
+
+    /**
+     * @target DogeChain.verifyPaymentTransaction should return false
+     * when transaction id is wrong
+     * @dependencies
+     * @scenario
+     * - mock a DogeTransaction with changed txId
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when transaction id is wrong', async () => {
+      // mock a DogeTransaction with changed txId
+      const paymentTx = DogeTransaction.fromJson(
+        testData.transaction2PaymentTransaction
+      );
+      paymentTx.txId = testUtils.generateRandomId();
+
+      // run test
+      const dogeChain = await testUtils.generateChainObject(network);
+      const result = await dogeChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target DogeChain.verifyPaymentTransaction should return false
+     * when number of utxos is wrong
+     * @dependencies
+     * @scenario
+     * - mock a DogeTransaction with less utxos
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when number of utxos is wrong', async () => {
+      // mock a DogeTransaction with less utxos
+      const paymentTx = DogeTransaction.fromJson(
+        testData.transaction2PaymentTransaction
+      );
+      paymentTx.inputUtxos.pop();
+
+      // run test
+      const dogeChain = await testUtils.generateChainObject(network);
+      const result = await dogeChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target DogeChain.verifyPaymentTransaction should return false
+     * when at least one of the utxos is wrong
+     * @dependencies
+     * @scenario
+     * - mock a DogeTransaction with changed utxo
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when at least one of the utxos is wrong', async () => {
+      // mock a DogeTransaction with changed utxo
+      const paymentTx = DogeTransaction.fromJson(
+        testData.transaction2PaymentTransaction
+      );
+      paymentTx.inputUtxos[1] = JsonBigInt.stringify({
+        txId: testUtils.generateRandomId(),
+        index: 1,
+      });
+
+      // run test
+      const dogeChain = await testUtils.generateChainObject(network);
+      const result = await dogeChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
     });
   });
 });

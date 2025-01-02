@@ -21,7 +21,7 @@ import AbstractDogeNetwork from './network/AbstractDogeNetwork';
 import DogeTransaction from './DogeTransaction';
 import { DogeConfigs, DogeTx, DogeUtxo, TssSignFunction } from './types';
 import Serializer from './Serializer';
-import { Psbt, Transaction, address, payments, script } from 'bitcoinjs-lib';
+import { Psbt, Transaction, address, script } from 'bitcoinjs-lib';
 import JsonBigInt from '@rosen-bridge/json-bigint';
 import { estimateTxFee, getPsbtTxInputBoxId } from './dogeUtils';
 import {
@@ -171,7 +171,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
 
       // create order output
       psbt.addOutput({
-        address: order.address,
+        script: address.toOutputScript(order.address, DOGE_NETWORK),
         value: Number(orderDoge),
       });
     });
@@ -239,8 +239,16 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
     };
   };
 
+  /**
+   * gets the minimum amount of native token for transferring asset
+   * @returns the minimum amount
+   */
   getMinimumNativeToken = (): bigint => {
-    return BigInt(MINIMUM_UTXO_VALUE);
+    return this.tokenMap.wrapAmount(
+      this.NATIVE_TOKEN_ID,
+      BigInt(MINIMUM_UTXO_VALUE),
+      this.CHAIN
+    ).amount;
   };
 
   /**
@@ -533,10 +541,15 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
     tokenId?: string
   ): Promise<Map<string, DogeUtxo | undefined>> => {
     // chaining transaction won't be done in DogeChain
-    // due to heavy size of transactions in mempool
+    // due to redundant complexity
     return new Map<string, DogeUtxo | undefined>();
   };
 
+  /**
+   * gets the box id
+   * @param box the box
+   * @returns the box id
+   */
   protected getBoxId = (box: DogeUtxo): string => box.txId + '.' + box.index;
 
   /**

@@ -2,6 +2,7 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
+    globals: true,
     coverage: {
       all: true,
       provider: 'istanbul',
@@ -9,8 +10,8 @@ export default defineConfig({
     },
     passWithNoTests: true,
     poolOptions: {
-      threads: {
-        singleThread: true,
+      forks: {
+        singleFork: true,
       },
     },
   },
