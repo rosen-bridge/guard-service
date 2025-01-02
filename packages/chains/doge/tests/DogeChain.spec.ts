@@ -60,13 +60,18 @@ describe('DogeChain', () => {
       );
       hasLockAddressEnoughAssetsSpy.mockResolvedValue(true);
 
+      // mock getTransactionHex for each UTXO
+      const getUtxoSpy = vi.spyOn(network, 'getTransactionHex');
+      testData.lockAddressUtxos.forEach((utxo) => {
+        getUtxoSpy.mockResolvedValueOnce(utxo.txHex);
+      });
+
       // run test
       const result = await dogeChain.generateTransaction(
         payment1.eventId,
         payment1.txType,
         order,
         [],
-        // [],
         []
       );
       const dogeTx = result as DogeTransaction;
@@ -185,6 +190,7 @@ describe('DogeChain', () => {
       const dogeChain = await testUtils.generateChainObject(network);
       const getAddressUtxosSpy = vi.spyOn(network, 'getAddressBoxes');
       getAddressUtxosSpy.mockResolvedValue(testData.lockAddressUtxos);
+      getAddressUtxosSpy.mockResolvedValueOnce([]);
       const getUtxoSpy = vi.spyOn(network, 'getTransactionHex');
       for (const utxo of testData.lockAddressUtxos) {
         getUtxoSpy.mockResolvedValueOnce(utxo.txHex);
@@ -226,6 +232,8 @@ describe('DogeChain', () => {
         'hasLockAddressEnoughAssets'
       );
       hasLockAddressEnoughAssetsSpy.mockResolvedValue(false);
+      const getFeeRatioSpy = vi.spyOn(network, 'getFeeRatio');
+      getFeeRatioSpy.mockResolvedValue(1);
 
       // run test and expect error
       await expect(async () => {
@@ -262,6 +270,8 @@ describe('DogeChain', () => {
         'hasLockAddressEnoughAssets'
       );
       hasLockAddressEnoughAssetsSpy.mockResolvedValue(true);
+      const getFeeRatioSpy = vi.spyOn(network, 'getFeeRatio');
+      getFeeRatioSpy.mockResolvedValue(1);
 
       // run test and expect error
       await expect(async () => {
@@ -827,7 +837,6 @@ describe('DogeChain', () => {
           txId: candidate.txId,
           index: Number(candidate.index),
           value: candidate.value,
-          txHex: mapping.txHex,
         });
       });
       expect(result).toEqual(trackMap);

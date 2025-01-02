@@ -23,7 +23,11 @@ import { DogeConfigs, DogeTx, DogeUtxo, TssSignFunction } from './types';
 import Serializer from './Serializer';
 import { Psbt, Transaction, address, script } from 'bitcoinjs-lib';
 import JsonBigInt from '@rosen-bridge/json-bigint';
-import { estimateTxFee, getPsbtTxInputBoxId } from './dogeUtils';
+import {
+  estimateTxFee,
+  getPsbtTxInputBoxId,
+  isPsbtFinalized,
+} from './dogeUtils';
 import {
   DOGE_CHAIN,
   DOGE,
@@ -107,6 +111,21 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
       );
     }
 
+    const finalizedSignedTransactions = serializedSignedTransactions.filter(
+      (serializedTx) =>
+        isPsbtFinalized(Psbt.fromHex(serializedTx, { network: DOGE_NETWORK }))
+    );
+
+    // Define the type for outToHex
+    const outToHex: Record<string, string> = {};
+    for (const serializedTx of finalizedSignedTransactions) {
+      const psbt = Psbt.fromHex(serializedTx, { network: DOGE_NETWORK });
+      const tx = psbt.extractTransaction(true);
+      for (let i = 0; i < tx.outs.length; i++) {
+        outToHex[`${tx.getId()}.${i}`] = tx.toHex();
+      }
+    }
+
     const forbiddenBoxIds = unsignedTransactions.flatMap((paymentTx) => {
       const inputs = Serializer.deserialize(paymentTx.txBytes).txInputs;
       const ids: string[] = [];
@@ -116,7 +135,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
       return ids;
     });
     const trackMap = this.getTransactionsBoxMapping(
-      serializedSignedTransactions.map((serializedTx) =>
+      finalizedSignedTransactions.map((serializedTx) =>
         Psbt.fromHex(serializedTx, { network: DOGE_NETWORK })
       ),
       this.configs.addresses.lock
@@ -144,14 +163,18 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
 
     // add inputs
     const psbt = new Psbt({ network: DOGE_NETWORK });
-    coveredBoxes.boxes.forEach((box) => {
+    for (const box of coveredBoxes.boxes) {
+      let txHex: string | undefined = outToHex[`${box.txId}.${box.index}`];
+      if (!txHex) {
+        txHex = await this.network.getTransactionHex(box.txId);
+      }
       psbt.addInput({
         hash: box.txId,
         index: box.index,
-        nonWitnessUtxo: Buffer.from(box.txHex!, 'hex'),
+        nonWitnessUtxo: Buffer.from(txHex, 'hex'),
         redeemScript: Buffer.from(this.lockScript, 'hex'),
       });
-    });
+    }
     // calculate input boxes assets
     let remainingDoge = coveredBoxes.boxes.reduce((a, b) => a + b.value, 0n);
     this.logger.debug(`Input DOGE: ${remainingDoge}`);
@@ -514,7 +537,6 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
     for (let i = 0; i < inputs.length; i++) {
       const boxId = getPsbtTxInputBoxId(inputs[i]);
       const curUtxo = await this.network.getUtxo(boxId);
-      delete curUtxo.txHex;
       inputBoxes.push(curUtxo);
     }
 
@@ -597,7 +619,6 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
             txId: txId,
             index: index,
             value: BigInt(output.value),
-            txHex: tx.extractTransaction(true).toHex(),
           };
           break;
         }
@@ -671,23 +692,11 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
     trackMap: Map<string, DogeUtxo | undefined>
   ): Promise<CoveringBoxes<DogeUtxo>> => {
     const getAddressBoxes = this.network.getAddressBoxes;
-    const getTransactionHex = this.network.getTransactionHex;
     async function* generator() {
       let offset = 0;
       const limit = GET_BOX_API_LIMIT;
       while (true) {
-        const initPage = await getAddressBoxes(address, offset, limit);
-        await Promise.all(
-          initPage.map(async (box) => {
-            try {
-              box.txHex = await getTransactionHex(box.txId);
-            } catch {
-              box.txHex = '';
-            }
-          })
-        );
-        const page = initPage.filter((box) => box.txHex !== '');
-
+        const page = await getAddressBoxes(address, offset, limit);
         if (page.length === 0) break;
         yield* page;
         offset += limit;
