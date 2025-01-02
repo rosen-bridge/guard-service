@@ -522,3 +522,25 @@ export const multiDecimalTokenMap: RosenTokens = [
     },
   },
 ];
+
+export const wrappedTokenId = '0xedee4752e5a2f595151c94762fb38e5730357785';
+export const multiDecimalTokenMapWithTokens: RosenTokens = [
+  {
+    test: {
+      tokenId: 'test-native-token',
+      name: 'ETHER',
+      decimals: 3,
+      type: 'native',
+      residency: 'native',
+    },
+  },
+  {
+    test: {
+      tokenId: wrappedTokenId,
+      name: 'WRAPPED-TOKEN',
+      decimals: 18,
+      type: 'ERC-20',
+      residency: 'wrapped',
+    },
+  },
+];

@@ -11,7 +11,8 @@ import { AbstractEvmNetwork } from '../lib';
 import TestEvmNetwork from './network/TestEvmNetwork';
 import TestChain from './TestChain';
 import { FeeData } from 'ethers';
-import { TokenMap } from '@rosen-bridge/tokens';
+import { TokenMap, RosenTokens } from '@rosen-bridge/tokens';
+import { multiDecimalTokenMap } from './testData';
 
 const spyOn = vi.spyOn;
 const observationTxConfirmation = 5;
@@ -96,31 +97,18 @@ export const generateChainObject = async (
 ) => {
   const tokenMap = new TokenMap();
   await tokenMap.updateConfigByJson(testData.testTokenMap);
-  return new TestChain(
-    network,
-    configs,
-    tokenMap,
-    testData.supportedTokens,
-    signFn,
-    evmTxType
-  );
+  return new TestChain(network, configs, tokenMap, signFn, evmTxType);
 };
 
 export const generateChainObjectWithMultiDecimalTokenMap = async (
   network: TestEvmNetwork,
   signFn: TssSignFunction = mockedSignFn,
-  evmTxType = 2
+  evmTxType = 2,
+  rosenTokens: RosenTokens = testData.multiDecimalTokenMap
 ) => {
   const tokenMap = new TokenMap();
-  await tokenMap.updateConfigByJson(testData.multiDecimalTokenMap);
-  return new TestChain(
-    network,
-    configs,
-    tokenMap,
-    testData.supportedTokens,
-    signFn,
-    evmTxType
-  );
+  await tokenMap.updateConfigByJson(rosenTokens);
+  return new TestChain(network, configs, tokenMap, signFn, evmTxType);
 };
 
 export const mockGetTransactionStatus = (
