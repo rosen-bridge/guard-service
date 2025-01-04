@@ -523,24 +523,60 @@ export const multiDecimalTokenMap: RosenTokens = [
   },
 ];
 
-export const wrappedTokenId = '0xedee4752e5a2f595151c94762fb38e5730357785';
-export const multiDecimalTokenMapWithTokens: RosenTokens = [
+export const tokenMapWithVariousTestTokens: RosenTokens = [
   {
+    ergo: {
+      tokenId:
+        '1c7435e608ab710c56bbe0f635e2a5e86ddf856f7d3d2d1d4dfefa62fbbfb9b4',
+      name: 'testETHER',
+      decimals: 9,
+      type: 'EIP-004',
+      residency: 'wrapped',
+    },
     test: {
       tokenId: 'test-native-token',
       name: 'ETHER',
-      decimals: 3,
+      decimals: 18,
       type: 'native',
       residency: 'native',
     },
   },
   {
+    ergo: {
+      tokenId:
+        '87c3212bc43e17be4ec735ba13b90802fe1eb9c4aae250d27f24e76ddd39ed72',
+      name: 'test-ergo-token',
+      decimals: 3,
+      type: 'EIP-004',
+      residency: 'native',
+    },
     test: {
-      tokenId: wrappedTokenId,
+      tokenId: '0xedee4752e5a2f595151c94762fb38e5730357785',
       name: 'WRAPPED-TOKEN',
-      decimals: 18,
+      decimals: 3,
       type: 'ERC-20',
       residency: 'wrapped',
     },
   },
+  {
+    ergo: {
+      tokenId:
+        '87c3212bc43e17be4ec735ba13b90802fe1eb9c4aae250d27f24e76ddd39ed72',
+      name: 'test-wrapped-token',
+      decimals: 0,
+      type: 'EIP-004',
+      residency: 'native',
+    },
+    test: {
+      tokenId: '0xa20bef5093783116611871d940f39e7aba3d14f9',
+      name: 'TOKEN',
+      decimals: 0,
+      type: 'ERC-20',
+      residency: 'native',
+    },
+  },
+];
+export const supportedTokensOfVariousTestTokens = [
+  '0xedee4752e5a2f595151c94762fb38e5730357785',
+  '0xa20bef5093783116611871d940f39e7aba3d14f9',
 ];
