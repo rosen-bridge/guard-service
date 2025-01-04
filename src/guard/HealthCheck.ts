@@ -28,7 +28,7 @@ import GuardsCardanoConfigs from '../configs/GuardsCardanoConfigs';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import { rosenConfig } from '../configs/RosenConfig';
 import GuardPkHandler from '../handlers/GuardPkHandler';
-import { ADA_DECIMALS, ERG_DECIMALS } from '../utils/constants';
+import { ADA_DECIMALS, ERG_DECIMALS, EventStatus } from '../utils/constants';
 import GuardsBitcoinConfigs from '../configs/GuardsBitcoinConfigs';
 import { BITCOIN_CHAIN, BTC } from '@rosen-chains/bitcoin';
 import { DatabaseAction } from '../db/DatabaseAction';
@@ -42,6 +42,10 @@ import GuardsEthereumConfigs from '../configs/GuardsEthereumConfigs';
 import { ETH, ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
 import GuardsBinanceConfigs from '../configs/GuardsBinanceConfigs';
 import { BINANCE_CHAIN, BNB } from '@rosen-chains/binance';
+import {
+  EventInfo,
+  EventProgressHealthCheckParam,
+} from '@rosen-bridge/event-progress-check';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 let healthCheck: HealthCheck | undefined;
@@ -109,6 +113,26 @@ const getHealthCheck = async () => {
       Configs.txSignFailedCriticalThreshold
     );
     healthCheck.register(txProgressHealthCheck);
+
+    // add EventProgress param
+    const getActiveEvents = async (): Promise<EventInfo[]> => {
+      return (
+        await DatabaseAction.getInstance().getEventsByStatuses([
+          EventStatus.pendingPayment,
+          EventStatus.pendingReward,
+        ])
+      ).map((eventEntity) => ({
+        id: eventEntity.id,
+        firstTry: eventEntity.firstTry,
+        status: eventEntity.status,
+      }));
+    };
+    const eventProgressHealthCheck = new EventProgressHealthCheckParam(
+      getActiveEvents,
+      Configs.eventDurationWarnThreshold,
+      Configs.eventDurationCriticalThreshold
+    );
+    healthCheck.register(eventProgressHealthCheck);
 
     const ergoContracts = rosenConfig.contractReader(ERGO_CHAIN);
     const cardanoContracts = rosenConfig.contractReader(CARDANO_CHAIN);

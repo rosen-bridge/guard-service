@@ -381,6 +381,14 @@ class Configs {
     'healthCheck.txSignFailed.criticalThreshold',
     7
   );
+  static eventDurationWarnThreshold = getConfigIntKeyOrDefault(
+    'healthCheck.eventDuration.warnThreshold',
+    7200 // 2 hours
+  );
+  static eventDurationCriticalThreshold = getConfigIntKeyOrDefault(
+    'healthCheck.eventDuration.criticalThreshold',
+    18000 // 5 hours
+  );
 
   // Revenue Config
   static revenueUpdateInterval = getConfigIntKeyOrDefault(
