@@ -7,19 +7,20 @@ import {
   ReprocessResponse,
   ReprocessStatus,
 } from './Interfaces';
-import Dialer from '../communication/Dialer';
 import Configs from '../configs/Configs';
 import GuardTurn from '../utils/GuardTurn';
 import { DatabaseAction } from '../db/DatabaseAction';
 import { randomBytes } from 'crypto';
 import { NotFoundError } from '@rosen-chains/abstract-chain';
+import RosenDialer from '../communication/RosenDialer';
+import { RosenDialerNode } from '@rosen-bridge/dialer';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
 class EventReprocess extends Communicator {
   private static instance: EventReprocess;
   protected static CHANNEL = 'event-reprocess';
-  protected static dialer: Dialer;
+  protected static dialer: RosenDialerNode;
   protected reprocessCooldown: number;
 
   protected constructor(publicKeys: string[]) {
@@ -40,7 +41,7 @@ class EventReprocess extends Communicator {
     EventReprocess.instance = new EventReprocess(
       Configs.tssKeys.pubs.map((pub) => pub.curvePub)
     );
-    this.dialer = await Dialer.getInstance();
+    this.dialer = await RosenDialer.getInstance();
     this.dialer.subscribeChannel(
       EventReprocess.CHANNEL,
       EventReprocess.instance.messageHandlerWrapper

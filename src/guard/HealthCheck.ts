@@ -22,7 +22,6 @@ import { KOIOS_NETWORK } from '@rosen-chains/cardano-koios-network';
 import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
 import { EXPLORER_NETWORK } from '@rosen-chains/ergo-explorer-network';
 import { NODE_NETWORK } from '@rosen-chains/ergo-node-network';
-import Dialer from '../communication/Dialer';
 import Configs from '../configs/Configs';
 import GuardsCardanoConfigs from '../configs/GuardsCardanoConfigs';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
@@ -46,6 +45,7 @@ import {
   EventInfo,
   EventProgressHealthCheckParam,
 } from '@rosen-bridge/event-progress-check';
+import RosenDialer from '../communication/RosenDialer';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 let healthCheck: HealthCheck | undefined;
@@ -80,14 +80,14 @@ const getHealthCheck = async () => {
     );
 
     // add P2PNetwork param
-    const dialer = await Dialer.getInstance();
+    const dialer = await RosenDialer.getInstance();
     const p2pHealthCheck = new P2PNetworkHealthCheck({
       defectConfirmationTimeWindow: Configs.p2pDefectConfirmationTimeWindow,
       connectedGuardsHealthyThreshold:
         GuardPkHandler.getInstance().requiredSign - 1,
       getConnectedGuards: () => {
         const connectedRelays = dialer.getRelayStates().connected?.length ?? 0;
-        return dialer.getConnectedPeersCount() - connectedRelays;
+        return dialer.getPeerIds(true).length - connectedRelays;
       },
       getIsAtLeastOneRelayConnected: () => {
         return dialer.getRelayStates().connected?.length > 0 ?? 0;

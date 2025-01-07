@@ -5,12 +5,13 @@ import {
   TssSigner,
 } from '@rosen-bridge/tss';
 import * as crypto from 'crypto';
-import Dialer from '../communication/Dialer';
 import Configs from '../configs/Configs';
 import { spawn } from 'child_process';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { TssAlgorithms } from '../utils/constants';
 import DetectionHandler from '../handlers/DetectionHandler';
+import RosenDialer from '../communication/RosenDialer';
+import { RosenDialerNode } from '@rosen-bridge/dialer';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -22,7 +23,7 @@ class Tss {
   };
   protected static tssCurveSigner: TssSigner;
   protected static tssEdwardSigner: TssSigner;
-  protected static dialer: Dialer;
+  protected static dialer: RosenDialerNode;
   protected static trustKey: string;
 
   protected constructor() {
@@ -95,7 +96,7 @@ class Tss {
     Tss.runBinary();
 
     // initialize dialer
-    Tss.dialer = await Dialer.getInstance();
+    Tss.dialer = await RosenDialer.getInstance();
 
     // initialize guard detection and tss
     await this.initCurveTss();

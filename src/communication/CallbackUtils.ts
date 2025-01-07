@@ -1,15 +1,15 @@
 import axios from 'axios';
-import CommunicationConfig from './CommunicationConfig';
-import { SubscribeChannelWithURL } from './Interfaces';
+import { SubscribeChannelWithURL } from '@rosen-bridge/dialer';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+import RoseNetNodeConfig from '../configs/RoseNetNodeConfig';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
 const apiCallBack: SubscribeChannelWithURL['func'] = (
   msg,
   channel,
-  sender,
-  url
+  url,
+  sender
 ) => {
   const data = axios.post(
     url,
@@ -19,7 +19,7 @@ const apiCallBack: SubscribeChannelWithURL['func'] = (
       sender: sender,
     },
     {
-      timeout: CommunicationConfig.apiCallbackTimeout * 1000,
+      timeout: RoseNetNodeConfig.apiCallbackTimeout * 1000,
       headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',

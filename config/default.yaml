@@ -139,16 +139,13 @@ tss:
       curveShareId: ''
       edwardShareId: ''
 p2p:
-  addresses: # relay configs
-    - peerId: ''
-      address: ''
   bootstrapTimeout: 10 # timeout of connecting to bootstrap nodes (which are relays in our case)
   pubsubInterval: 10 # interval of publishing peer ids to the network for peer discovery
   apiCallbackTimeout: 8 # timeout of api calls which happen when subscribing a channel in dialer
   loggingInterval: 60 # interval of logging jobs
   messageSendingRetriesExponentialFactor: 5 # exponential factor for calculating message retries interval
   messageSendingRetriesMaxCount: 3 # number of retires before dropping a failed message
-  peerIdFilePath: './peer-dialer.json'
+  filePath: './peer-dialer.json'
   guardsCount: 30 # total number of guards in the network
   allowedStreamsPerGuard: 3 # the number of streams allowed for each guard connected
   relayReconnectionInterval: 30 # Interval of tries to re-connect a disconnected relay

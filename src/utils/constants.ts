@@ -46,7 +46,6 @@ const SUPPORTED_CHAINS = [
   CARDANO_CHAIN,
   BITCOIN_CHAIN,
   ETHEREUM_CHAIN,
-  BINANCE_CHAIN,
 ];
 
 enum RevenueType {
