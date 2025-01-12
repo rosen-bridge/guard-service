@@ -188,6 +188,7 @@ database:
   # name: '' # database name (for postgres)
 healthCheck:
   interval: 60 # health check update interval (in seconds)
+  timeout: 20 # health check job timeout (in seconds)
   asset:
     erg:
       warnThreshold: 1000000000 # minimum recommended erg balance
