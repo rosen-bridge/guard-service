@@ -17,6 +17,7 @@ import { TestDogeChain } from './TestDogeChain';
 import * as testData from './testData';
 import * as testUtils from './testUtils';
 import { TokenMap } from '@rosen-bridge/tokens';
+import { AssetBalance } from '@rosen-chains/abstract-chain';
 
 describe('DogeChain', () => {
   describe('generateTransaction', () => {
@@ -123,13 +124,11 @@ describe('DogeChain', () => {
 
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
       const dogeChain = await testUtils.generateChainObject(network);
-
-      const getAddressUtxosSpy = vi.spyOn(network, 'getAddressBoxes');
-      getAddressUtxosSpy.mockResolvedValue(testData.lockAddressUtxos);
-      const getUtxoSpy = vi.spyOn(network, 'getTransactionHex');
-      for (const utxo of testData.lockAddressUtxos) {
-        getUtxoSpy.mockResolvedValueOnce(utxo.txHex);
-      }
+      const getCovBoxesSpy = vi.spyOn(dogeChain as any, 'getCoveringBoxes');
+      getCovBoxesSpy.mockResolvedValue({
+        covered: true,
+        boxes: testData.coveredBoxes,
+      });
 
       const hasLockAddressEnoughAssetsSpy = vi.spyOn(
         dogeChain,
@@ -137,13 +136,90 @@ describe('DogeChain', () => {
       );
       hasLockAddressEnoughAssetsSpy.mockResolvedValue(true);
 
+      // mock getTransactionHex for each UTXO
+      const getUtxoSpy = vi.spyOn(network, 'getTransactionHex');
+      testData.lockAddressUtxos.forEach((utxo) => {
+        getUtxoSpy.mockResolvedValueOnce(utxo.txHex);
+      });
+
       // run test
       const result = await dogeChain.generateTransaction(
         payment1.eventId,
         payment1.txType,
         order,
-        [DogeTransaction.fromJson(testData.transaction0PaymentTransaction)],
+        [],
         [testData.transaction0SignedTxBytesHex]
+      );
+      const dogeTx = result as DogeTransaction;
+
+      // check returned value
+      expect(dogeTx.txType).toEqual(payment1.txType);
+      expect(dogeTx.eventId).toEqual(payment1.eventId);
+      expect(dogeTx.network).toEqual(payment1.network);
+      expect(dogeTx.inputUtxos.length).toEqual(1);
+
+      // extracted order of generated transaction should be the same as input order
+      const extractedOrder = dogeChain.extractTransactionOrder(dogeTx);
+      expect(extractedOrder).toEqual(order);
+
+      // getCoveringBoxes should have been called with correct arguments
+      const expectedRequiredAssets = structuredClone(
+        testData.transaction2Order[0].assets
+      );
+      expectedRequiredAssets.nativeToken += dogeChain.getMinimumNativeToken();
+    });
+
+    it('should successfully generate payment transaction while considering forbidden boxes caused by a signed transaction without signature', async () => {
+      // mock transaction order
+      const order = testData.transaction2Order;
+      const payment1 = DogeTransaction.fromJson(
+        testData.transaction1PaymentTransaction
+      );
+      const getFeeRatioSpy = vi.spyOn(network, 'getFeeRatio');
+      getFeeRatioSpy.mockResolvedValue(1);
+
+      // mock getCoveringBoxes, hasLockAddressEnoughAssets
+      const dogeChain = await testUtils.generateChainObject(network);
+      const getCovBoxesSpy = vi.spyOn(dogeChain as any, 'getCoveringBoxes');
+      getCovBoxesSpy.mockImplementation(async (...args: any[]) => {
+        const forbiddenBoxIds = args[2] as Array<string>;
+        // Only return covered boxes if forbidden box IDs match expected values
+        if (
+          forbiddenBoxIds.length === 2 &&
+          forbiddenBoxIds.includes(
+            'a2623a8e6358b44df7c672cee5a6ff1df2b45721b2f506d22ef59a0634f7641d.0'
+          ) &&
+          forbiddenBoxIds.includes(
+            'f7fdbfcb582dd9e34997df257bfff291c1ea98a5622ba18400794f3337113b0e.2'
+          )
+        ) {
+          return {
+            covered: true,
+            boxes: testData.coveredBoxes,
+          };
+        }
+        return {
+          covered: false,
+          boxes: [],
+        };
+      });
+      const hasLockAddressEnoughAssetsSpy = vi.spyOn(
+        dogeChain,
+        'hasLockAddressEnoughAssets'
+      );
+      hasLockAddressEnoughAssetsSpy.mockResolvedValue(true);
+
+      // run test
+      const faultyTx = Buffer.from(
+        DogeTransaction.fromJson(testData.transaction0PaymentTransaction)
+          .txBytes
+      ).toString('hex');
+      const result = await dogeChain.generateTransaction(
+        payment1.eventId,
+        payment1.txType,
+        order,
+        [],
+        [testData.transaction0SignedTxBytesHex, faultyTx]
       );
       const dogeTx = result as DogeTransaction;
 
@@ -173,8 +249,6 @@ describe('DogeChain', () => {
      * - run test
      * - check returned value
      * @expected
-     * - PaymentTransaction txType, eventId, network and inputUtxos should be as
-     *   expected
      * - generateTransaction should throw NotEnoughValidBoxesError
      */
     it('should fail to generate payment transaction with forbidden boxes', async () => {
@@ -188,14 +262,33 @@ describe('DogeChain', () => {
 
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
       const dogeChain = await testUtils.generateChainObject(network);
-      const getAddressUtxosSpy = vi.spyOn(network, 'getAddressBoxes');
-      getAddressUtxosSpy.mockResolvedValue(testData.lockAddressUtxos);
-      getAddressUtxosSpy.mockResolvedValueOnce([]);
-      const getUtxoSpy = vi.spyOn(network, 'getTransactionHex');
-      for (const utxo of testData.lockAddressUtxos) {
-        getUtxoSpy.mockResolvedValueOnce(utxo.txHex);
-      }
-
+      const getCovBoxesSpy = vi.spyOn(dogeChain as any, 'getCoveringBoxes');
+      getCovBoxesSpy.mockResolvedValue({
+        covered: false,
+        boxes: [],
+      });
+      getCovBoxesSpy.mockImplementation(async (...args: any[]) => {
+        const forbiddenBoxIds = args[2] as Array<string>;
+        // Only return empty boxes if forbidden box IDs match expected values
+        if (
+          forbiddenBoxIds.length === 2 &&
+          forbiddenBoxIds.includes(
+            'a2623a8e6358b44df7c672cee5a6ff1df2b45721b2f506d22ef59a0634f7641d.0'
+          ) &&
+          forbiddenBoxIds.includes(
+            'f7fdbfcb582dd9e34997df257bfff291c1ea98a5622ba18400794f3337113b0e.2'
+          )
+        ) {
+          return {
+            covered: false,
+            boxes: [],
+          };
+        }
+        return {
+          covered: true,
+          boxes: testData.coveredBoxes,
+        };
+      });
       const hasLockAddressEnoughAssetsSpy = vi.spyOn(
         dogeChain,
         'hasLockAddressEnoughAssets'
@@ -220,6 +313,7 @@ describe('DogeChain', () => {
      * @dependencies
      * @scenario
      * - mock hasLockAddressEnoughAssets
+     * - mock getFeeRatio
      * - run test and expect error
      * @expected
      * - generateTransaction should throw NotEnoughAssetsError
@@ -253,9 +347,11 @@ describe('DogeChain', () => {
      * @dependencies
      * @scenario
      * - mock getCoveringBoxes, hasLockAddressEnoughAssets
+     * - mock getFeeRatio
      * - run test and expect error
      * @expected
      * - generateTransaction should throw NotEnoughValidBoxesError
+     *
      */
     it('should throw error when bank boxes can not cover order assets', async () => {
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
@@ -263,7 +359,7 @@ describe('DogeChain', () => {
       const getCovBoxesSpy = vi.spyOn(dogeChain as any, 'getCoveringBoxes');
       getCovBoxesSpy.mockResolvedValue({
         covered: false,
-        boxes: testData.lockAddressUtxos,
+        boxes: [],
       });
       const hasLockAddressEnoughAssetsSpy = vi.spyOn(
         dogeChain,
@@ -739,10 +835,6 @@ describe('DogeChain', () => {
       );
       expectedTx.eventId = '';
       expectedTx.txType = TransactionType.manual;
-      expectedTx.txBytes = Buffer.from(
-        testData.transaction0SignedTxBytesHex,
-        'hex'
-      );
 
       // mock getUtxo
       const getUtxoSpy = vi.spyOn(network, 'getUtxo');

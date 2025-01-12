@@ -111,21 +111,6 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
       );
     }
 
-    const finalizedSignedTransactions = serializedSignedTransactions.filter(
-      (serializedTx) =>
-        isPsbtFinalized(Psbt.fromHex(serializedTx, { network: DOGE_NETWORK }))
-    );
-
-    // Define the type for outToHex
-    const outToHex: Record<string, string> = {};
-    for (const serializedTx of finalizedSignedTransactions) {
-      const psbt = Psbt.fromHex(serializedTx, { network: DOGE_NETWORK });
-      const tx = psbt.extractTransaction(true);
-      for (let i = 0; i < tx.outs.length; i++) {
-        outToHex[`${tx.getId()}.${i}`] = tx.toHex();
-      }
-    }
-
     const forbiddenBoxIds = unsignedTransactions.flatMap((paymentTx) => {
       const inputs = Serializer.deserialize(paymentTx.txBytes).txInputs;
       const ids: string[] = [];
@@ -134,6 +119,34 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
 
       return ids;
     });
+
+    // we chain the signed transactions
+    // we avoid using the unsigned transactions' inputs
+    const finalizedSignedTransactions = serializedSignedTransactions.filter(
+      (serializedTx) => {
+        if (
+          isPsbtFinalized(Psbt.fromHex(serializedTx, { network: DOGE_NETWORK }))
+        ) {
+          return true;
+        } else {
+          const unsignedPsbt = Psbt.fromHex(serializedTx, {
+            network: DOGE_NETWORK,
+          });
+          for (let i = 0; i < unsignedPsbt.txInputs.length; i++) {
+            forbiddenBoxIds.push(getPsbtTxInputBoxId(unsignedPsbt.txInputs[i]));
+          }
+          return false;
+        }
+      }
+    );
+
+    // Save the hex bytes of the signed transaction in case their utxos are going to be spent in this transaction
+    const txToHex: Record<string, string> = {};
+    for (const serializedTx of finalizedSignedTransactions) {
+      const psbt = Psbt.fromHex(serializedTx, { network: DOGE_NETWORK });
+      const tx = psbt.extractTransaction(true);
+      txToHex[tx.getId()] = tx.toHex();
+    }
     const trackMap = this.getTransactionsBoxMapping(
       finalizedSignedTransactions.map((serializedTx) =>
         Psbt.fromHex(serializedTx, { network: DOGE_NETWORK })
@@ -164,14 +177,13 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
     // add inputs
     const psbt = new Psbt({ network: DOGE_NETWORK });
     for (const box of coveredBoxes.boxes) {
-      let txHex: string | undefined = outToHex[`${box.txId}.${box.index}`];
-      if (!txHex) {
-        txHex = await this.network.getTransactionHex(box.txId);
+      if (!txToHex[box.txId]) {
+        txToHex[box.txId] = await this.network.getTransactionHex(box.txId);
       }
       psbt.addInput({
         hash: box.txId,
         index: box.index,
-        nonWitnessUtxo: Buffer.from(txHex, 'hex'),
+        nonWitnessUtxo: Buffer.from(txToHex[box.txId], 'hex'),
         redeemScript: Buffer.from(this.lockScript, 'hex'),
       });
     }
@@ -530,7 +542,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
   ): Promise<PaymentTransaction> => {
     const tx = Psbt.fromHex(psbtHex, { network: DOGE_NETWORK });
     const txBytes = Serializer.serialize(tx);
-    const txId = tx.extractTransaction(true).getId();
+    const txId = Transaction.fromBuffer(tx.data.getTransaction()).getId();
 
     const inputBoxes: Array<DogeUtxo> = [];
     const inputs = tx.txInputs;
