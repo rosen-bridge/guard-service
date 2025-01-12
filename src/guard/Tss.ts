@@ -119,6 +119,7 @@ class Tss {
     const shareIds = Configs.tssKeys.pubs.map((pub) => pub.curveShareId);
     const ecdsaSigner = new ECDSA(Configs.tssKeys.secret);
     Tss.curveGuardDetection = new GuardDetection({
+      logger: DefaultLoggerFactory.getInstance().getLogger('CurveDetection'),
       guardsPublicKey: curvePublicKeys,
       signer: ecdsaSigner,
       submit: this.generateSubmitMessageWrapper(Tss.curve.DETECTION_CHANNEL),
@@ -162,6 +163,7 @@ class Tss {
     const shareIds = Configs.tssKeys.pubs.map((pub) => pub.edwardShareId);
     const eddsaSigner = new EdDSA(Configs.tssKeys.secret);
     Tss.edwardGuardDetection = new GuardDetection({
+      logger: DefaultLoggerFactory.getInstance().getLogger('EdwardDetection'),
       guardsPublicKey: edwardPublicKeys,
       signer: eddsaSigner,
       submit: this.generateSubmitMessageWrapper(Tss.edward.DETECTION_CHANNEL),
