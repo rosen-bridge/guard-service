@@ -42,6 +42,32 @@ describe('EvmChain', () => {
       chain.updateSupportedTokens(TestData.supportedTokens);
       expect(chain.extractor?.chain).toEqual(chain.CHAIN);
     });
+
+    /**
+     * @target EvmChain.constructor should initialize supported tokens successfully
+     * @dependencies
+     * @scenario
+     * - initialize EvmChain with a rich token map
+     * - check supported tokens
+     * @expected
+     * - supported tokens should be the token IDs of test tokens in the given token map
+     *   with the exception of the native token
+     */
+    it('should initialize supported tokens successfully', async () => {
+      const network = new TestEvmNetwork();
+      const tokenMap = new TokenMap();
+      await tokenMap.updateConfigByJson(TestData.tokenMapWithVariousTestTokens);
+      const chain = new TestChain(
+        network,
+        testUtils.configs,
+        tokenMap,
+        testUtils.mockedSignFn,
+        2
+      );
+      expect(chain.supportedTokens).toEqual(
+        TestData.supportedTokensOfVariousTestTokens
+      );
+    });
   });
 
   describe('generateMultipleTransactions', () => {
@@ -2838,20 +2864,6 @@ describe('EvmChain', () => {
 
       // check returned value
       expect(result).toEqual(false);
-    });
-  });
-
-  describe('updateSupportedTokens', () => {
-    it('should update supported tokens', async () => {
-      const network = new TestEvmNetwork();
-      const evmChain =
-        await testUtils.generateChainObjectWithMultiDecimalTokenMap(
-          network,
-          testUtils.mockedSignFn,
-          2,
-          TestData.multiDecimalTokenMapWithTokens
-        );
-      expect(evmChain.supportedTokens).toEqual([TestData.wrappedTokenId]);
     });
   });
 });
