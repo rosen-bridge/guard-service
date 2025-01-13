@@ -283,6 +283,10 @@ class Configs {
     'healthCheck.interval',
     60
   );
+  static healthCheckTimeout = getConfigIntKeyOrDefault(
+    'healthCheck.timeout',
+    20
+  );
   static ergWarnThreshold = BigInt(
     config.get<string>('healthCheck.asset.erg.warnThreshold')
   );
