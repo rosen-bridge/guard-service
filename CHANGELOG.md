@@ -1,5 +1,11 @@
 # guard-service
 
+## 5.0.8
+
+### Patch Changes
+
+- Add logger for GuardDetection instances
+
 ## 5.0.7
 
 ### Patch Changes
