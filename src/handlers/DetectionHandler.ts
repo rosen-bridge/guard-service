@@ -20,6 +20,7 @@ class DetectionHandler {
     const curvePublicKeys = Configs.tssKeys.pubs.map((pub) => pub.curvePub);
     const ecdsaSigner = new ECDSA(Configs.tssKeys.secret);
     this.curveDetection = new GuardDetection({
+      logger: DefaultLoggerFactory.getInstance().getLogger('CurveDetection'),
       guardsPublicKey: curvePublicKeys,
       signer: ecdsaSigner,
       submit: this.generateSubmitMessageWrapper(
@@ -32,6 +33,7 @@ class DetectionHandler {
     const edwardPublicKeys = Configs.tssKeys.pubs.map((pub) => pub.edwardPub);
     const eddsaSigner = new EdDSA(Configs.tssKeys.secret);
     this.edwardDetection = new GuardDetection({
+      logger: DefaultLoggerFactory.getInstance().getLogger('EdwardDetection'),
       guardsPublicKey: edwardPublicKeys,
       signer: eddsaSigner,
       submit: this.generateSubmitMessageWrapper(
