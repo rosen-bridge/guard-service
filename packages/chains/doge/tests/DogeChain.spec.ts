@@ -169,6 +169,18 @@ describe('DogeChain', () => {
       expectedRequiredAssets.nativeToken += dogeChain.getMinimumNativeToken();
     });
 
+    /**
+     * @target DogeChain.generateTransaction should successfully generate payment transaction while considering forbidden boxes caused by a signed transaction without signature
+     * @dependencies
+     * @scenario
+     * - mock transaction order, getFeeRatio
+     * - mock getCoveringBoxes, hasLockAddressEnoughAssets
+     *
+     * - run test
+     * - check returned value
+     * @expected
+     * - PaymentTransaction txType, eventId, network and inputUtxos should be as expected
+     */
     it('should successfully generate payment transaction while considering forbidden boxes caused by a signed transaction without signature', async () => {
       // mock transaction order
       const order = testData.transaction2Order;
