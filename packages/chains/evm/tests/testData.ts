@@ -3,8 +3,8 @@ import {
   TransactionType,
 } from '@rosen-chains/abstract-chain';
 import { PaymentOrder, AssetBalance } from '@rosen-chains/abstract-chain';
-import { RosenTokens } from '@rosen-bridge/tokens';
 import { Transaction } from 'ethers';
+import { RosenTokens, TokenMap } from '@rosen-bridge/tokens';
 
 export const lockAddress = '0xedee4752e5a2f595151c94762fb38e5730357785';
 export const supportedTokens = [
@@ -491,50 +491,92 @@ export const transaction2SignatureRecovery = '01';
 export const transaction2TxId =
   '0x73c9ff5665d84067d98afbbeb2d9ff316c4b5bf885f9f3d31fa56eb1b13b3b90';
 
-export const testTokenMap: RosenTokens = {
-  idKeys: {},
-  tokens: [],
-};
+export const testTokenMap: RosenTokens = [];
 
-export const multiDecimalTokenMap: RosenTokens = {
-  idKeys: {
-    ergo: 'tokenId',
-    cardano: 'tokenId',
-    test: 'tokenId',
-  },
-  tokens: [
-    {
-      ergo: {
-        tokenId:
-          '1c7435e608ab710c56bbe0f635e2a5e86ddf856f7d3d2d1d4dfefa62fbbfb9b4',
-        name: 'testETHER',
-        decimals: 1,
-        metaData: {
-          type: 'EIP-004',
-          residency: 'wrapped',
-        },
-      },
-      cardano: {
-        tokenId:
-          '6d7cc9577a04be165cc4f2cf36f580dbeaf88f68e78f790805430940.727345544845522d6c6f656e',
-        policyId: '6d7cc9577a04be165cc4f2cf36f580dbeaf88f68e78f790805430940',
-        assetName: '727345544845522d6c6f656e',
-        name: 'rsETHER-loen',
-        decimals: 1,
-        metaData: {
-          type: 'CIP26',
-          residency: 'wrapped',
-        },
-      },
-      test: {
-        tokenId: 'test-native-token',
-        name: 'ETHER',
-        decimals: 3,
-        metaData: {
-          type: 'native',
-          residency: 'native',
-        },
-      },
+export const multiDecimalTokenMap: RosenTokens = [
+  {
+    ergo: {
+      tokenId:
+        '1c7435e608ab710c56bbe0f635e2a5e86ddf856f7d3d2d1d4dfefa62fbbfb9b4',
+      name: 'testETHER',
+      decimals: 1,
+      type: 'EIP-004',
+      residency: 'wrapped',
     },
-  ],
-};
+    cardano: {
+      tokenId:
+        '6d7cc9577a04be165cc4f2cf36f580dbeaf88f68e78f790805430940.727345544845522d6c6f656e',
+      policyId: '6d7cc9577a04be165cc4f2cf36f580dbeaf88f68e78f790805430940',
+      assetName: '727345544845522d6c6f656e',
+      name: 'rsETHER-loen',
+      decimals: 1,
+      type: 'CIP26',
+      residency: 'wrapped',
+    },
+    test: {
+      tokenId: 'test-native-token',
+      name: 'ETHER',
+      decimals: 3,
+      type: 'native',
+      residency: 'native',
+    },
+  },
+];
+
+export const tokenMapWithVariousTestTokens: RosenTokens = [
+  {
+    ergo: {
+      tokenId:
+        '1c7435e608ab710c56bbe0f635e2a5e86ddf856f7d3d2d1d4dfefa62fbbfb9b4',
+      name: 'testETHER',
+      decimals: 9,
+      type: 'EIP-004',
+      residency: 'wrapped',
+    },
+    test: {
+      tokenId: 'test-native-token',
+      name: 'ETHER',
+      decimals: 18,
+      type: 'native',
+      residency: 'native',
+    },
+  },
+  {
+    ergo: {
+      tokenId:
+        '87c3212bc43e17be4ec735ba13b90802fe1eb9c4aae250d27f24e76ddd39ed72',
+      name: 'test-ergo-token',
+      decimals: 3,
+      type: 'EIP-004',
+      residency: 'native',
+    },
+    test: {
+      tokenId: '0xedee4752e5a2f595151c94762fb38e5730357785',
+      name: 'WRAPPED-TOKEN',
+      decimals: 3,
+      type: 'ERC-20',
+      residency: 'wrapped',
+    },
+  },
+  {
+    ergo: {
+      tokenId:
+        '87c3212bc43e17be4ec735ba13b90802fe1eb9c4aae250d27f24e76ddd39ed72',
+      name: 'test-wrapped-token',
+      decimals: 0,
+      type: 'EIP-004',
+      residency: 'native',
+    },
+    test: {
+      tokenId: '0xa20bef5093783116611871d940f39e7aba3d14f9',
+      name: 'TOKEN',
+      decimals: 0,
+      type: 'ERC-20',
+      residency: 'native',
+    },
+  },
+];
+export const supportedTokensOfVariousTestTokens = [
+  '0xedee4752e5a2f595151c94762fb38e5730357785',
+  '0xa20bef5093783116611871d940f39e7aba3d14f9',
+];

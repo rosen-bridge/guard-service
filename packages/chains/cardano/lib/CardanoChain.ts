@@ -4,7 +4,7 @@ import {
   hash_transaction,
 } from '@emurgo/cardano-serialization-lib-nodejs';
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
-import { RosenTokens } from '@rosen-bridge/tokens';
+import { TokenMap } from '@rosen-bridge/tokens';
 import {
   AbstractUtxoChain,
   AssetBalance,
@@ -49,7 +49,7 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
   constructor(
     network: AbstractCardanoNetwork,
     configs: CardanoConfigs,
-    tokens: RosenTokens,
+    tokens: TokenMap,
     signFunction: (txHash: Uint8Array) => Promise<string>,
     logger?: AbstractLogger
   ) {

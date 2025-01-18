@@ -1,4 +1,4 @@
-import { RosenTokens } from '@rosen-bridge/tokens';
+import { TokenMap } from '@rosen-bridge/tokens';
 import JSONBigInt from '@rosen-bridge/json-bigint';
 import {
   AbstractChain,
@@ -34,14 +34,13 @@ abstract class EvmChain extends AbstractChain<Transaction> {
   evmTxType: number;
   extractor: EvmRosenExtractor | undefined;
 
-  supportedTokens: Array<string>;
+  supportedTokens: Array<string> = [];
   protected signFunction: TssSignFunction;
 
   constructor(
     network: AbstractEvmNetwork,
     configs: EvmConfigs,
-    tokens: RosenTokens,
-    supportedTokens: Array<string>,
+    tokens: TokenMap,
     signFunction: TssSignFunction,
     CHAIN: string,
     NATIVE_TOKEN_ID: string,
@@ -50,7 +49,6 @@ abstract class EvmChain extends AbstractChain<Transaction> {
   ) {
     super(network, configs, tokens, logger);
     this.evmTxType = evmTxType;
-    this.supportedTokens = supportedTokens;
     this.signFunction = signFunction;
     this.extractor = new EvmRosenExtractor(
       this.configs.addresses.lock,
@@ -59,6 +57,15 @@ abstract class EvmChain extends AbstractChain<Transaction> {
       NATIVE_TOKEN_ID,
       logger
     );
+    const supportedTokens = tokens
+      .getConfig()
+      .filter(
+        (tokenSet) =>
+          Object.keys(tokenSet).includes(CHAIN) &&
+          tokenSet[CHAIN].type !== 'native'
+      )
+      .map((tokenSet) => tokenSet[CHAIN].tokenId);
+    this.updateSupportedTokens(supportedTokens);
   }
 
   /**
@@ -950,6 +957,10 @@ abstract class EvmChain extends AbstractChain<Transaction> {
     }
 
     return true;
+  };
+
+  updateSupportedTokens = async (supportedTokens: Array<string>) => {
+    this.supportedTokens = supportedTokens;
   };
 }
 

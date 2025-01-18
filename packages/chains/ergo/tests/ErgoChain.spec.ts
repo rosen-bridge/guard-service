@@ -17,6 +17,7 @@ import { ErgoConfigs } from '../lib';
 import * as wasm from 'ergo-lib-wasm-nodejs';
 import ErgoTransaction from '../lib/ErgoTransaction';
 import { MockInstance } from 'vitest';
+import { TokenMap } from '@rosen-bridge/tokens';
 
 describe('ErgoChain', () => {
   describe('generateTransaction', () => {
@@ -132,11 +133,13 @@ describe('ErgoChain', () => {
         eventTxConfirmation: 18,
       };
 
+      const tokenMap = new TokenMap();
+      await tokenMap.updateConfigByJson(ergoTestUtils.testTokenMap);
       // mock getCoveringBoxes
       const ergoChain = new ErgoChain(
         network,
         config,
-        ergoTestUtils.testTokenMap,
+        tokenMap,
         ergoTestUtils.defaultSignFunction
       );
       const getCoveringBoxesSpy = vi.spyOn(
@@ -306,11 +309,13 @@ describe('ErgoChain', () => {
         eventTxConfirmation: 18,
       };
 
+      const tokenMap = new TokenMap();
+      await tokenMap.updateConfigByJson(ergoTestUtils.testTokenMap);
       // run test and expect exception thrown
       const ergoChain = new ErgoChain(
         network,
         config,
-        ergoTestUtils.testTokenMap,
+        tokenMap,
         ergoTestUtils.defaultSignFunction
       );
       await expect(async () => {
@@ -406,11 +411,13 @@ describe('ErgoChain', () => {
         eventTxConfirmation: 18,
       };
 
+      const tokenMap = new TokenMap();
+      await tokenMap.updateConfigByJson(ergoTestUtils.testTokenMap);
       // mock getCoveringBoxes
       const ergoChain = new ErgoChain(
         network,
         config,
-        ergoTestUtils.testTokenMap,
+        tokenMap,
         ergoTestUtils.defaultSignFunction
       );
       const getCoveringBoxesSpy = vi.spyOn(
@@ -529,11 +536,14 @@ describe('ErgoChain', () => {
         eventTxConfirmation: 18,
       };
 
+      const tokenMap = new TokenMap();
+      await tokenMap.updateConfigByJson(ergoTestUtils.testTokenMap);
+
       // mock getCoveringBoxes
       const ergoChain = new ErgoChain(
         network,
         config,
-        ergoTestUtils.testTokenMap,
+        tokenMap,
         ergoTestUtils.defaultSignFunction
       );
       const getCoveringBoxesSpy = vi.spyOn(
@@ -675,12 +685,14 @@ describe('ErgoChain', () => {
         minBoxValue: 300000n,
         eventTxConfirmation: 18,
       };
+      const tokenMap = new TokenMap();
+      await tokenMap.updateConfigByJson(ergoTestUtils.multiDecimalTokenMap);
 
       // mock getCoveringBoxes
       const ergoChain = new ErgoChain(
         network,
         config,
-        ergoTestUtils.multiDecimalTokenMap,
+        tokenMap,
         ergoTestUtils.defaultSignFunction
       );
       const getCoveringBoxesSpy = vi.spyOn(
@@ -837,10 +849,11 @@ describe('ErgoChain', () => {
       const expectedAssets = transactionTestData.transaction3WrappedAssets;
 
       // run test
-      const ergoChain = ergoTestUtils.generateDefaultChainObjectWithTokenMap(
-        network,
-        ergoTestUtils.multiDecimalTokenMap
-      );
+      const ergoChain =
+        await ergoTestUtils.generateDefaultChainObjectWithTokenMap(
+          network,
+          ergoTestUtils.multiDecimalTokenMap
+        );
       const result = await ergoChain.getTransactionAssets(paymentTx);
 
       // check returned value
@@ -862,7 +875,7 @@ describe('ErgoChain', () => {
      * @expected
      * - it should return mocked transaction order
      */
-    it('should extract transaction order successfully', () => {
+    it('should extract transaction order successfully', async () => {
       // mock PaymentTransaction
       const paymentTx = ErgoTransaction.fromJson(
         transactionTestData.transaction6PaymentTransaction
@@ -883,10 +896,12 @@ describe('ErgoChain', () => {
       };
 
       // run test
+      const tokenMap = new TokenMap();
+      await tokenMap.updateConfigByJson(ergoTestUtils.testTokenMap);
       const ergoChain = new ErgoChain(
         network,
         config,
-        ergoTestUtils.testTokenMap,
+        tokenMap,
         ergoTestUtils.defaultSignFunction
       );
       const result = ergoChain.extractTransactionOrder(paymentTx);
@@ -906,7 +921,7 @@ describe('ErgoChain', () => {
      * @expected
      * - it should return mocked transaction order
      */
-    it('should wrap transaction order successfully', () => {
+    it('should wrap transaction order successfully', async () => {
       // mock PaymentTransaction
       const paymentTx = ErgoTransaction.fromJson(
         transactionTestData.transaction6PaymentTransaction
@@ -927,10 +942,12 @@ describe('ErgoChain', () => {
       };
 
       // run test
+      const tokenMap = new TokenMap();
+      await tokenMap.updateConfigByJson(ergoTestUtils.multiDecimalTokenMap);
       const ergoChain = new ErgoChain(
         network,
         config,
-        ergoTestUtils.multiDecimalTokenMap,
+        tokenMap,
         ergoTestUtils.defaultSignFunction
       );
       const result = ergoChain.extractTransactionOrder(paymentTx);
@@ -984,10 +1001,12 @@ describe('ErgoChain', () => {
       };
 
       // run test
+      const tokenMap = new TokenMap();
+      await tokenMap.updateConfigByJson(ergoTestUtils.testTokenMap);
       const ergoChain = new ErgoChain(
         network,
         config,
-        ergoTestUtils.testTokenMap,
+        tokenMap,
         ergoTestUtils.defaultSignFunction
       );
       const result = await ergoChain.verifyTransactionFee(paymentTx);
@@ -1037,10 +1056,12 @@ describe('ErgoChain', () => {
       };
 
       // run test
+      const tokenMap = new TokenMap();
+      await tokenMap.updateConfigByJson(ergoTestUtils.testTokenMap);
       const ergoChain = new ErgoChain(
         network,
         config,
-        ergoTestUtils.testTokenMap,
+        tokenMap,
         ergoTestUtils.defaultSignFunction
       );
       const result = await ergoChain.verifyTransactionFee(paymentTx);
@@ -1149,12 +1170,14 @@ describe('ErgoChain', () => {
         minBoxValue: 1000000n,
         eventTxConfirmation: 18,
       };
+      const tokenMap = new TokenMap();
+      await tokenMap.updateConfigByJson(ergoTestUtils.testTokenMap);
 
       // run test
       const ergoChain = new ErgoChain(
         network,
         config,
-        ergoTestUtils.testTokenMap,
+        tokenMap,
         ergoTestUtils.defaultSignFunction
       );
       const result = await ergoChain.verifyTransactionExtraConditions(
@@ -1197,12 +1220,14 @@ describe('ErgoChain', () => {
         minBoxValue: 1000000n,
         eventTxConfirmation: 18,
       };
+      const tokenMap = new TokenMap();
+      await tokenMap.updateConfigByJson(ergoTestUtils.testTokenMap);
 
       // run test
       const ergoChain = new ErgoChain(
         network,
         config,
-        ergoTestUtils.testTokenMap,
+        tokenMap,
         ergoTestUtils.defaultSignFunction
       );
       const result = await ergoChain.verifyTransactionExtraConditions(
@@ -1253,12 +1278,14 @@ describe('ErgoChain', () => {
         minBoxValue: 1000000n,
         eventTxConfirmation: 18,
       };
+      const tokenMap = new TokenMap();
+      await tokenMap.updateConfigByJson(ergoTestUtils.testTokenMap);
 
       // run test
       const ergoChain = new ErgoChain(
         network,
         config,
-        ergoTestUtils.testTokenMap,
+        tokenMap,
         ergoTestUtils.defaultSignFunction
       );
       const result = await ergoChain.verifyTransactionExtraConditions(
@@ -1302,12 +1329,14 @@ describe('ErgoChain', () => {
         minBoxValue: 1000000n,
         eventTxConfirmation: 18,
       };
+      const tokenMap = new TokenMap();
+      await tokenMap.updateConfigByJson(ergoTestUtils.testTokenMap);
 
       // run test
       const ergoChain = new ErgoChain(
         network,
         config,
-        ergoTestUtils.testTokenMap,
+        tokenMap,
         ergoTestUtils.defaultSignFunction
       );
       const result = await ergoChain.verifyTransactionExtraConditions(
@@ -1350,12 +1379,14 @@ describe('ErgoChain', () => {
         minBoxValue: 1000000n,
         eventTxConfirmation: 18,
       };
+      const tokenMap = new TokenMap();
+      await tokenMap.updateConfigByJson(ergoTestUtils.testTokenMap);
 
       // run test
       const ergoChain = new ErgoChain(
         network,
         config,
-        ergoTestUtils.testTokenMap,
+        tokenMap,
         ergoTestUtils.defaultSignFunction
       );
       const result = await ergoChain.verifyTransactionExtraConditions(
@@ -1942,17 +1973,18 @@ describe('ErgoChain', () => {
      * @expected
      * - it should return RWT amount
      */
-    it('should wrap RWT amount successfully', () => {
+    it('should wrap RWT amount successfully', async () => {
       // mock an ErgoBox with RWT and construct serialized box
       const serializedBox = Buffer.from(
         ergoTestUtils.toErgoBox(boxTestData.eventBox1).sigma_serialize_bytes()
       ).toString('hex');
 
       // run test
-      const ergoChain = ergoTestUtils.generateDefaultChainObjectWithTokenMap(
-        network,
-        ergoTestUtils.wrappedRwtTokenMap
-      );
+      const ergoChain =
+        await ergoTestUtils.generateDefaultChainObjectWithTokenMap(
+          network,
+          ergoTestUtils.wrappedRwtTokenMap
+        );
       const result = ergoChain.getBoxRWT(serializedBox);
 
       // check returned value
@@ -2026,7 +2058,7 @@ describe('ErgoChain', () => {
      * @expected
      * - it should return constructed BoxInfo
      */
-    it('should wrap assets successfully', () => {
+    it('should wrap assets successfully', async () => {
       // mock an ErgoBox with assets
       const box = ergoTestUtils.toErgoBox(boxTestData.ergoBox1);
       const serializedBox = Buffer.from(box.sigma_serialize_bytes()).toString(
@@ -2038,10 +2070,11 @@ describe('ErgoChain', () => {
       };
 
       // run test
-      const ergoChain = ergoTestUtils.generateDefaultChainObjectWithTokenMap(
-        network,
-        ergoTestUtils.multiDecimalTokenMap
-      );
+      const ergoChain =
+        await ergoTestUtils.generateDefaultChainObjectWithTokenMap(
+          network,
+          ergoTestUtils.multiDecimalTokenMap
+        );
       const result = ergoChain.getSerializedBoxInfo(serializedBox);
 
       // check returned value
@@ -2310,7 +2343,7 @@ describe('ErgoChain', () => {
      * @expected
      * - it should return mocked transaction order
      */
-    it('should extract transaction order successfully', () => {
+    it('should extract transaction order successfully', async () => {
       // mock serialized transaction
       const serializedTx = Buffer.from(
         ergoTestUtils
@@ -2334,10 +2367,12 @@ describe('ErgoChain', () => {
       };
 
       // run test
+      const tokenMap = new TokenMap();
+      await tokenMap.updateConfigByJson(ergoTestUtils.testTokenMap);
       const ergoChain = new ErgoChain(
         network,
         config,
-        ergoTestUtils.testTokenMap,
+        tokenMap,
         ergoTestUtils.defaultSignFunction
       );
       const result = ergoChain.extractSignedTransactionOrder(serializedTx);
@@ -2357,7 +2392,7 @@ describe('ErgoChain', () => {
      * @expected
      * - it should return mocked transaction order
      */
-    it('should wrap transaction order successfully', () => {
+    it('should wrap transaction order successfully', async () => {
       // mock serialized transaction
       const serializedTx = Buffer.from(
         ergoTestUtils
@@ -2379,12 +2414,14 @@ describe('ErgoChain', () => {
         minBoxValue: 1000000n,
         eventTxConfirmation: 18,
       };
+      const tokenMap = new TokenMap();
+      await tokenMap.updateConfigByJson(ergoTestUtils.multiDecimalTokenMap);
 
       // run test
       const ergoChain = new ErgoChain(
         network,
         config,
-        ergoTestUtils.multiDecimalTokenMap,
+        tokenMap,
         ergoTestUtils.defaultSignFunction
       );
       const result = ergoChain.extractSignedTransactionOrder(serializedTx);

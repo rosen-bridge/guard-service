@@ -63,114 +63,88 @@ export const validEventWithHighFee: EventTrigger = {
   WIDsCount: 2,
 };
 
-export const testTokenMap: RosenTokens = {
-  idKeys: {
-    test: 'tokenId',
-    'test-utxo': 'tokenId',
+export const testTokenMap: RosenTokens = [
+  {
+    test: {
+      tokenId: 'test-native-token',
+      name: 'test-native-token',
+      decimals: 2,
+      type: 'native',
+      residency: 'native',
+    },
+    'test-utxo': {
+      tokenId: 'wrapped-native-token',
+      name: 'wrapped-test-native-token',
+      decimals: 1,
+      type: 'ANY',
+      residency: 'wrapped',
+    },
   },
-  tokens: [
-    {
-      test: {
-        tokenId: 'test-native-token',
-        name: 'test-native-token',
-        decimals: 2,
-        metaData: {
-          type: 'native',
-          residency: 'native',
-        },
-      },
-      'test-utxo': {
-        tokenId: 'wrapped-native-token',
-        name: 'wrapped-test-native-token',
-        decimals: 1,
-        metaData: {
-          type: 'ANY',
-          residency: 'wrapped',
-        },
-      },
+  {
+    test: {
+      tokenId: 'wrapped-test-utxo-native-token',
+      name: 'wrapped-test-utxo-native-token',
+      decimals: 3,
+      type: 'ANY',
+      residency: 'wrapped',
     },
-    {
-      test: {
-        tokenId: 'wrapped-test-utxo-native-token',
-        name: 'wrapped-test-utxo-native-token',
-        decimals: 3,
-        metaData: {
-          type: 'ANY',
-          residency: 'wrapped',
-        },
-      },
-      'test-utxo': {
-        tokenId: 'test-utxo-native-token',
-        name: 'test-utxo-native-token',
-        decimals: 3,
-        metaData: {
-          type: 'native',
-          residency: 'native',
-        },
-      },
+    'test-utxo': {
+      tokenId: 'test-utxo-native-token',
+      name: 'test-utxo-native-token',
+      decimals: 3,
+      type: 'native',
+      residency: 'native',
     },
-    {
-      test: {
-        tokenId: 'multi-decimal-token1',
-        name: 'multi-decimal-token1',
-        decimals: 4,
-        metaData: {
-          type: 'ANY',
-          residency: 'native',
-        },
-      },
-      'test-utxo': {
-        tokenId: 'wrapped-multi-decimal-token1',
-        name: 'wrapped-multi-decimal-token1',
-        decimals: 1,
-        metaData: {
-          type: 'ANY',
-          residency: 'wrapped',
-        },
-      },
+  },
+  {
+    test: {
+      tokenId: 'multi-decimal-token1',
+      name: 'multi-decimal-token1',
+      decimals: 4,
+      type: 'ANY',
+      residency: 'native',
     },
-    {
-      test: {
-        tokenId: 'wrapped-multi-decimal-token2',
-        name: 'wrapped-multi-decimal-token2',
-        decimals: 4,
-        metaData: {
-          type: 'ANY',
-          residency: 'wrapped',
-        },
-      },
-      'test-utxo': {
-        tokenId: 'multi-decimal-token2',
-        name: 'multi-decimal-token2',
-        decimals: 0,
-        metaData: {
-          type: 'ANY',
-          residency: 'native',
-        },
-      },
+    'test-utxo': {
+      tokenId: 'wrapped-multi-decimal-token1',
+      name: 'wrapped-multi-decimal-token1',
+      decimals: 1,
+      type: 'ANY',
+      residency: 'wrapped',
     },
-    {
-      test: {
-        tokenId: 'fixed-decimal-token',
-        name: 'fixed-decimal-token',
-        decimals: 4,
-        metaData: {
-          type: 'ANY',
-          residency: 'native',
-        },
-      },
-      'test-utxo': {
-        tokenId: 'wrapped-fixed-decimal-token',
-        name: 'wrapped-fixed-decimal-token',
-        decimals: 4,
-        metaData: {
-          type: 'ANY',
-          residency: 'wrapped',
-        },
-      },
+  },
+  {
+    test: {
+      tokenId: 'wrapped-multi-decimal-token2',
+      name: 'wrapped-multi-decimal-token2',
+      decimals: 4,
+      type: 'ANY',
+      residency: 'wrapped',
     },
-  ],
-};
+    'test-utxo': {
+      tokenId: 'multi-decimal-token2',
+      name: 'multi-decimal-token2',
+      decimals: 0,
+      type: 'ANY',
+      residency: 'native',
+    },
+  },
+  {
+    test: {
+      tokenId: 'fixed-decimal-token',
+      name: 'fixed-decimal-token',
+      decimals: 4,
+      type: 'ANY',
+      residency: 'native',
+    },
+    'test-utxo': {
+      tokenId: 'wrapped-fixed-decimal-token',
+      name: 'wrapped-fixed-decimal-token',
+      decimals: 4,
+      type: 'ANY',
+      residency: 'wrapped',
+    },
+  },
+];
 
 export const actualBalance: AssetBalance = {
   nativeToken: 10000n,

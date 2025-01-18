@@ -1,16 +1,16 @@
 {
-  "name": "@rosen-chains/evm",
-  "version": "6.0.1",
-  "description": "this project contains evm chains for Rosen-bridge",
+  "name": "@rosen-chains/doge",
+  "version": "0.1.0",
+  "description": "this project contains doge chain for Rosen-bridge",
   "repository": "https://github.com/rosen-bridge/rosen-chains",
-  "license": "CC0-1.0",
-  "author": "Rosen Team",
+  "license": "GPL-3.0",
+  "author": "Mehran",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc --build tsconfig.build.json",
-    "coverage": "npm run test -- --run --coverage",
+    "coverage": "npm run test -- --coverage",
     "lint": "eslint --fix . && npm run prettify",
     "prettify": "prettier --write . --ignore-path ./.gitignore",
     "release": "npm run test -- --run && npm run build && npm publish --access public",
@@ -29,15 +29,16 @@
     "typescript": "^5.3.3",
     "vitest": "^2.1.4"
   },
-  "engines": {
-    "node": ">=20.11.0"
-  },
   "dependencies": {
     "@rosen-bridge/abstract-logger": "^2.0.1",
+    "@rosen-bridge/bitcoin-utxo-selection": "^0.3.0",
     "@rosen-bridge/json-bigint": "^0.1.0",
     "@rosen-bridge/rosen-extractor": "^7.0.1",
     "@rosen-bridge/tokens": "^2.0.0",
-    "@rosen-chains/abstract-chain": "^11.0.3",
-    "ethers": "^6.11.1"
+    "@rosen-chains/abstract-chain": "^11.0.1",
+    "bitcoinjs-lib": "^6.1.5"
+  },
+  "engines": {
+    "node": ">=20.11.0"
   }
 }

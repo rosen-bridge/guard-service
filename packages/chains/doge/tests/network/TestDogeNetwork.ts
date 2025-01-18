@@ -1,21 +1,11 @@
-import { AbstractCardanoNetwork } from '../../lib';
-import {
-  BlockInfo,
-  ConfirmationStatus,
-  TokenDetail,
-} from '@rosen-chains/abstract-chain';
-import {
-  CardanoProtocolParameters,
-  CardanoTx,
-  CardanoUtxo,
-} from '../../lib/types';
-import { CardanoRosenExtractor } from '@rosen-bridge/rosen-extractor';
-import { protocolParameters } from '../testUtils';
+import { AbstractDogeNetwork, DogeTx, DogeUtxo } from '../../lib';
+import { BlockInfo, TokenDetail } from '@rosen-chains/abstract-chain';
+import { DogeRosenExtractor } from '@rosen-bridge/rosen-extractor';
 import { TokenMap } from '@rosen-bridge/tokens';
 
-class TestCardanoNetwork extends AbstractCardanoNetwork {
-  extractor = new CardanoRosenExtractor(
-    '9es3xKFSehNNwCpuNpY31ScAubDqeLbSWwaCysjN1ee51bgHKTq',
+class TestDogeNetwork extends AbstractDogeNetwork {
+  extractor = new DogeRosenExtractor(
+    'DHTom1rFwsgAn5raKU1nok8E5MdQ4GBkAN',
     new TokenMap()
   );
   notImplemented = () => {
@@ -33,7 +23,7 @@ class TestCardanoNetwork extends AbstractCardanoNetwork {
     address: string,
     offset: number,
     limit: number
-  ): Promise<Array<CardanoUtxo>> => {
+  ): Promise<Array<DogeUtxo>> => {
     throw Error('Not mocked');
   };
 
@@ -45,11 +35,11 @@ class TestCardanoNetwork extends AbstractCardanoNetwork {
     throw Error('Not mocked');
   };
 
-  getMempoolTransactions = (): Promise<Array<CardanoTx>> => {
+  getMempoolTransactions = (): Promise<Array<DogeTx>> => {
     throw Error('Not mocked');
   };
 
-  getTransaction = (txId: string, blockId: string): Promise<CardanoTx> => {
+  getTransaction = (txId: string, blockId: string): Promise<DogeTx> => {
     throw Error('Not mocked');
   };
 
@@ -61,7 +51,7 @@ class TestCardanoNetwork extends AbstractCardanoNetwork {
     throw Error('Not mocked');
   };
 
-  getUtxo = (boxId: string): Promise<CardanoUtxo> => {
+  getUtxo = (boxId: string): Promise<DogeUtxo> => {
     throw Error('Not mocked');
   };
 
@@ -73,8 +63,23 @@ class TestCardanoNetwork extends AbstractCardanoNetwork {
     throw Error('Not mocked');
   };
 
-  getProtocolParameters = (): Promise<CardanoProtocolParameters> =>
-    Promise.resolve(protocolParameters);
+  getFeeRatio = (): Promise<number> => {
+    throw Error('Not mocked');
+  };
+
+  getMempoolTxIds = (): Promise<Array<string>> => {
+    throw Error('Not mocked');
+  };
+
+  getTransactionHex = (txId: string): Promise<string> => {
+    throw Error('Not mocked');
+  };
+
+  getSpentTransactionByInputId = (
+    boxId: string
+  ): Promise<DogeTx | undefined> => {
+    throw Error('Not mocked');
+  };
 }
 
-export default TestCardanoNetwork;
+export default TestDogeNetwork;

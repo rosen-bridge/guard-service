@@ -1,7 +1,7 @@
 import { randomBytes } from 'crypto';
 import * as testData from './testData';
-import { BitcoinChain, BitcoinConfigs, TssSignFunction } from '../lib';
-import TestBitcoinNetwork from './network/TestBitcoinNetwork';
+import { DogeChain, DogeConfigs, TssSignFunction } from '../lib';
+import TestDogeNetwork from './network/TestDogeNetwork';
 import { TokenMap } from '@rosen-bridge/tokens';
 
 export const generateRandomId = (): string => randomBytes(32).toString('hex');
@@ -13,7 +13,7 @@ export const manualTxConfirmation = 11;
 export const arbitraryTxConfirmation = 12;
 export const rwtId =
   '9410db5b39388c6b515160e7248346d7ec63d5457292326da12a26cc02efb526';
-export const configs: BitcoinConfigs = {
+export const configs: DogeConfigs = {
   fee: 1000000n,
   addresses: {
     lock: testData.lockAddress,
@@ -38,18 +38,18 @@ export const mockedSignFn = () =>
     signatureRecovery: '',
   });
 export const generateChainObject = async (
-  network: TestBitcoinNetwork,
+  network: TestDogeNetwork,
   signFn: TssSignFunction = mockedSignFn
 ) => {
   const tokenMap = new TokenMap();
   await tokenMap.updateConfigByJson(testData.testTokenMap);
-  return new BitcoinChain(network, configs, tokenMap, signFn);
+  return new DogeChain(network, configs, tokenMap, signFn);
 };
 export const generateChainObjectWithMultiDecimalTokenMap = async (
-  network: TestBitcoinNetwork,
+  network: TestDogeNetwork,
   signFn: TssSignFunction = mockedSignFn
 ) => {
   const tokenMap = new TokenMap();
   await tokenMap.updateConfigByJson(testData.multiDecimalTokenMap);
-  return new BitcoinChain(network, configs, tokenMap, signFn);
+  return new DogeChain(network, configs, tokenMap, signFn);
 };

@@ -4,7 +4,7 @@ import {
   EvmConfigs,
   TssSignFunction,
 } from '@rosen-chains/evm';
-import { RosenTokens } from '@rosen-bridge/tokens';
+import { TokenMap } from '@rosen-bridge/tokens';
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 import { ETH, ETHEREUM_CHAIN, ETHEREUM_CHAIN_ID } from './constants';
 
@@ -16,8 +16,7 @@ class EthereumChain extends EvmChain {
   constructor(
     network: AbstractEvmNetwork,
     configs: EvmConfigs,
-    tokens: RosenTokens,
-    supportedTokens: Array<string>,
+    tokens: TokenMap,
     signFunction: TssSignFunction,
     logger?: AbstractLogger
   ) {
@@ -25,7 +24,6 @@ class EthereumChain extends EvmChain {
       network,
       configs,
       tokens,
-      supportedTokens,
       signFunction,
       ETHEREUM_CHAIN,
       ETH,

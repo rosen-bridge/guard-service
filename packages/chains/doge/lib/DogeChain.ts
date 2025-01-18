@@ -17,53 +17,56 @@ import {
   TransactionType,
   ValidityStatus,
 } from '@rosen-chains/abstract-chain';
-import AbstractBitcoinNetwork from './network/AbstractBitcoinNetwork';
-import BitcoinTransaction from './BitcoinTransaction';
-import {
-  BitcoinConfigs,
-  BitcoinTx,
-  BitcoinUtxo,
-  TssSignFunction,
-} from './types';
+import AbstractDogeNetwork from './network/AbstractDogeNetwork';
+import DogeTransaction from './DogeTransaction';
+import { DogeConfigs, DogeTx, DogeUtxo, TssSignFunction } from './types';
 import Serializer from './Serializer';
-import { Psbt, Transaction, address, payments, script } from 'bitcoinjs-lib';
+import { Psbt, Transaction, address, script } from 'bitcoinjs-lib';
 import JsonBigInt from '@rosen-bridge/json-bigint';
-import { estimateTxFee, getPsbtTxInputBoxId } from './bitcoinUtils';
-import { BITCOIN_CHAIN, BTC, SEGWIT_INPUT_WEIGHT_UNIT } from './constants';
-import { selectBitcoinUtxos } from '@rosen-bridge/bitcoin-utxo-selection';
-import { BitcoinRosenExtractor } from '@rosen-bridge/rosen-extractor';
+import {
+  estimateTxFee,
+  getPsbtTxInputBoxId,
+  isPsbtFinalized,
+} from './dogeUtils';
+import {
+  DOGE_CHAIN,
+  DOGE,
+  MINIMUM_UTXO_VALUE,
+  DOGE_NETWORK,
+  DOGE_INPUT_SIZE,
+  DOGE_OUTPUT_SIZE,
+  DOGE_TX_BASE_SIZE,
+} from './constants';
+import { DogeRosenExtractor } from '@rosen-bridge/rosen-extractor';
 import { RosenAmount, TokenMap } from '@rosen-bridge/tokens';
+import { selectBitcoinUtxos } from '@rosen-bridge/bitcoin-utxo-selection';
 
-class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
-  declare network: AbstractBitcoinNetwork;
-  declare configs: BitcoinConfigs;
-  CHAIN = BITCOIN_CHAIN;
-  NATIVE_TOKEN_ID = BTC;
-  extractor: BitcoinRosenExtractor;
+class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
+  declare network: AbstractDogeNetwork;
+  declare configs: DogeConfigs;
+  CHAIN = DOGE_CHAIN;
+  NATIVE_TOKEN_ID = DOGE;
+  extractor: DogeRosenExtractor;
   protected signFunction: TssSignFunction;
   protected lockScript: string;
-  protected signingScript: Buffer;
 
   constructor(
-    network: AbstractBitcoinNetwork,
-    configs: BitcoinConfigs,
+    network: AbstractDogeNetwork,
+    configs: DogeConfigs,
     tokens: TokenMap,
     signFunction: TssSignFunction,
     logger?: AbstractLogger
   ) {
     super(network, configs, tokens, logger);
-    this.extractor = new BitcoinRosenExtractor(
+    this.extractor = new DogeRosenExtractor(
       configs.addresses.lock,
       tokens,
       logger
     );
     this.signFunction = signFunction;
     this.lockScript = address
-      .toOutputScript(this.configs.addresses.lock)
+      .toOutputScript(this.configs.addresses.lock, DOGE_NETWORK)
       .toString('hex');
-    this.signingScript = payments.p2pkh({
-      hash: Buffer.from(this.lockScript, 'hex').subarray(2),
-    }).output!;
   }
 
   /**
@@ -81,16 +84,16 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
     order: PaymentOrder,
     unsignedTransactions: PaymentTransaction[],
     serializedSignedTransactions: string[]
-  ): Promise<BitcoinTransaction[]> => {
+  ): Promise<DogeTransaction[]> => {
     this.logger.debug(
-      `Generating Bitcoin transaction for Order: ${JsonBigInt.stringify(order)}`
+      `Generating Dogecoin transaction for Order: ${JsonBigInt.stringify(
+        order
+      )}`
     );
     const feeRatio = await this.network.getFeeRatio();
 
     // calculate required assets
-    const minUtxoValue = this.wrapBtc(
-      this.minimumMeaningfulSatoshi(feeRatio)
-    ).amount;
+    const minUtxoValue = this.getMinimumNativeToken();
     const requiredAssets = order
       .map((order) => order.assets)
       .reduce(ChainUtils.sumAssetBalance, {
@@ -102,9 +105,9 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
     );
 
     if (!(await this.hasLockAddressEnoughAssets(requiredAssets))) {
-      const neededBtc = this.unwrapBtc(requiredAssets.nativeToken);
+      const neededDoge = this.unwrapDoge(requiredAssets.nativeToken);
       throw new NotEnoughAssetsError(
-        `Locked assets cannot cover required assets. BTC: ${neededBtc.amount.toString()}`
+        `Locked assets cannot cover required assets. DOGE: ${neededDoge.amount.toString()}`
       );
     }
 
@@ -116,9 +119,37 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
 
       return ids;
     });
+
+    // we chain the signed transactions
+    // we avoid using the unsigned transactions' inputs
+    const finalizedSignedTransactions = serializedSignedTransactions.filter(
+      (serializedTx) => {
+        if (
+          isPsbtFinalized(Psbt.fromHex(serializedTx, { network: DOGE_NETWORK }))
+        ) {
+          return true;
+        } else {
+          const unsignedPsbt = Psbt.fromHex(serializedTx, {
+            network: DOGE_NETWORK,
+          });
+          for (let i = 0; i < unsignedPsbt.txInputs.length; i++) {
+            forbiddenBoxIds.push(getPsbtTxInputBoxId(unsignedPsbt.txInputs[i]));
+          }
+          return false;
+        }
+      }
+    );
+
+    // Save the hex bytes of the signed transaction in case their utxos are going to be spent in this transaction
+    const txToHex: Record<string, string> = {};
+    for (const serializedTx of finalizedSignedTransactions) {
+      const psbt = Psbt.fromHex(serializedTx, { network: DOGE_NETWORK });
+      const tx = psbt.extractTransaction(true);
+      txToHex[tx.getId()] = tx.toHex();
+    }
     const trackMap = this.getTransactionsBoxMapping(
-      serializedSignedTransactions.map((serializedTx) =>
-        Psbt.fromHex(serializedTx)
+      finalizedSignedTransactions.map((serializedTx) =>
+        Psbt.fromHex(serializedTx, { network: DOGE_NETWORK })
       ),
       this.configs.addresses.lock
     );
@@ -137,76 +168,68 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
       trackMap
     );
     if (!coveredBoxes.covered) {
-      const neededBtc = unwrappedRequiredAssets.nativeToken;
+      const neededDoge = unwrappedRequiredAssets.nativeToken;
       throw new NotEnoughValidBoxesError(
-        `Available boxes didn't cover required assets. BTC: ${neededBtc.toString()}`
+        `Available boxes didn't cover required assets. DOGE: ${neededDoge.toString()}`
       );
     }
 
     // add inputs
-    const psbt = new Psbt();
-    coveredBoxes.boxes.forEach((box) => {
+    const psbt = new Psbt({ network: DOGE_NETWORK });
+    for (const box of coveredBoxes.boxes) {
+      if (!txToHex[box.txId]) {
+        txToHex[box.txId] = await this.network.getTransactionHex(box.txId);
+      }
       psbt.addInput({
         hash: box.txId,
         index: box.index,
-        witnessUtxo: {
-          script: Buffer.from(this.lockScript, 'hex'),
-          value: Number(box.value),
-        },
+        nonWitnessUtxo: Buffer.from(txToHex[box.txId], 'hex'),
+        redeemScript: Buffer.from(this.lockScript, 'hex'),
       });
-    });
+    }
     // calculate input boxes assets
-    let remainingBtc = coveredBoxes.boxes.reduce((a, b) => a + b.value, 0n);
-    this.logger.debug(`Input BTC: ${remainingBtc}`);
+    let remainingDoge = coveredBoxes.boxes.reduce((a, b) => a + b.value, 0n);
+    this.logger.debug(`Input DOGE: ${remainingDoge}`);
 
     // add outputs
     order.forEach((order) => {
       if (order.extra) {
-        throw Error('Bitcoin does not support extra data in payment order');
+        throw Error('Dogecoin does not support extra data in payment order');
       }
       if (order.assets.tokens.length) {
-        throw Error('Bitcoin does not support tokens in payment order');
+        throw Error('Dogecoin does not support tokens in payment order');
       }
-      if (
-        order.address.slice(0, 4) !== 'bc1q' &&
-        order.address[0] !== '1' &&
-        order.address[0] !== '3'
-      ) {
-        throw Error(
-          'Bitcoin supports payments only to native-segwit, legacy or script addresses'
-        );
-      }
-      const orderBtc = this.unwrapBtc(order.assets.nativeToken).amount;
+      const orderDoge = this.unwrapDoge(order.assets.nativeToken).amount;
 
       // reduce order value from remaining assets
-      remainingBtc -= orderBtc;
+      remainingDoge -= orderDoge;
 
       // create order output
       psbt.addOutput({
-        script: address.toOutputScript(order.address),
-        value: Number(orderBtc),
+        script: address.toOutputScript(order.address, DOGE_NETWORK),
+        value: Number(orderDoge),
       });
     });
 
     // create change output
-    this.logger.debug(`Remaining BTC: ${remainingBtc}`);
+    this.logger.debug(`Remaining DOGE: ${remainingDoge}`);
     const estimatedFee = estimateTxFee(
       psbt.txInputs.length,
       psbt.txOutputs.length + 1,
       feeRatio
     );
     this.logger.debug(`Estimated Fee: ${estimatedFee}`);
-    remainingBtc -= estimatedFee;
+    remainingDoge -= estimatedFee;
     psbt.addOutput({
       script: Buffer.from(this.lockScript, 'hex'),
-      value: Number(remainingBtc),
+      value: Number(remainingDoge),
     });
 
     // create the transaction
     const txId = Transaction.fromBuffer(psbt.data.getTransaction()).getId();
     const txBytes = Serializer.serialize(psbt);
 
-    const bitcoinTx = new BitcoinTransaction(
+    const dogeTx = new DogeTransaction(
       txId,
       eventId,
       txBytes,
@@ -215,9 +238,9 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
     );
 
     this.logger.info(
-      `Bitcoin transaction [${txId}] as type [${txType}] generated for event [${eventId}]`
+      `Dogecoin transaction [${txId}] as type [${txType}] generated for event [${eventId}]`
     );
-    return [bitcoinTx];
+    return [dogeTx];
   };
 
   /**
@@ -228,17 +251,17 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
   getTransactionAssets = async (
     transaction: PaymentTransaction
   ): Promise<TransactionAssetBalance> => {
-    const bitcoinTx = transaction as BitcoinTransaction;
+    const dogeTx = transaction as DogeTransaction;
 
-    let txBtc = 0n;
-    const inputUtxos = Array.from(new Set(bitcoinTx.inputUtxos));
+    let txDoge = 0n;
+    const inputUtxos = Array.from(new Set(dogeTx.inputUtxos));
     for (let i = 0; i < inputUtxos.length; i++) {
-      const input = JsonBigInt.parse(inputUtxos[i]) as BitcoinUtxo;
-      txBtc += input.value;
+      const input = JsonBigInt.parse(inputUtxos[i]) as DogeUtxo;
+      txDoge += input.value;
     }
 
-    // no need to calculate outBtc, because: inBtc = outBtc + fee
-    const wrappedValue = this.wrapBtc(txBtc).amount;
+    // no need to calculate outDoge, because: inDoge = outDoge + fee
+    const wrappedValue = this.wrapDoge(txDoge).amount;
     return {
       inputAssets: {
         nativeToken: wrappedValue,
@@ -249,6 +272,18 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
         tokens: [],
       },
     };
+  };
+
+  /**
+   * gets the minimum amount of native token for transferring asset
+   * @returns the minimum amount
+   */
+  getMinimumNativeToken = (): bigint => {
+    return this.tokenMap.wrapAmount(
+      this.NATIVE_TOKEN_ID,
+      BigInt(MINIMUM_UTXO_VALUE),
+      this.CHAIN
+    ).amount;
   };
 
   /**
@@ -271,9 +306,9 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
         continue;
 
       const payment: SinglePayment = {
-        address: address.fromOutputScript(output.script),
+        address: address.fromOutputScript(output.script, DOGE_NETWORK),
         assets: {
-          nativeToken: this.wrapBtc(BigInt(output.value)).amount,
+          nativeToken: this.wrapDoge(BigInt(output.value)).amount,
           tokens: [],
         },
       };
@@ -291,22 +326,22 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
     transaction: PaymentTransaction
   ): Promise<boolean> => {
     const tx = Serializer.deserialize(transaction.txBytes);
-    const bitcoinTx = transaction as BitcoinTransaction;
+    const dogeTx = transaction as DogeTransaction;
 
-    let inBtc = 0n;
-    const inputUtxos = Array.from(new Set(bitcoinTx.inputUtxos));
+    let inDoge = 0n;
+    const inputUtxos = Array.from(new Set(dogeTx.inputUtxos));
     for (let i = 0; i < inputUtxos.length; i++) {
-      const input = JsonBigInt.parse(inputUtxos[i]) as BitcoinUtxo;
-      inBtc += input.value;
+      const input = JsonBigInt.parse(inputUtxos[i]) as DogeUtxo;
+      inDoge += input.value;
     }
 
-    let outBtc = 0n;
+    let outDoge = 0n;
     for (let i = 0; i < tx.txOutputs.length; i++) {
       const output = tx.txOutputs[i];
-      outBtc += BigInt(output.value);
+      outDoge += BigInt(output.value);
     }
 
-    const fee = inBtc - outBtc;
+    const fee = inDoge - outDoge;
     const estimatedFee = estimateTxFee(
       tx.txInputs.length,
       tx.txOutputs.length,
@@ -333,20 +368,18 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
   verifyNoTokenBurned = async (
     transaction: PaymentTransaction
   ): Promise<boolean> => {
-    // Bitcoin has no token and BTC cannot be burned
+    // Dogecoin has no tokens and DOGE cannot be burned
     return true;
   };
 
   /**
-   * verifies additional conditions for a BitcoinTransaction
+   * verifies additional conditions for a DogeTransaction
    * - check change box
    * @param transaction the PaymentTransaction
-   * @param signingStatus the signing status of transaction
    * @returns true if the transaction is verified
    */
   verifyTransactionExtraConditions = (
-    transaction: PaymentTransaction,
-    signingStatus: SigningStatus = SigningStatus.UnSigned
+    transaction: PaymentTransaction
   ): boolean => {
     const tx = Serializer.deserialize(transaction.txBytes);
 
@@ -370,7 +403,7 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
    * @returns true if the transaction is verified
    */
   verifyLockTransactionExtraConditions = async (
-    transaction: BitcoinTx,
+    transaction: DogeTx,
     blockInfo: BlockInfo
   ): Promise<boolean> => {
     return true;
@@ -415,26 +448,23 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
    * @returns the signed transaction
    */
   signTransaction = (
-    transaction: PaymentTransaction,
-    requiredSign: number
+    transaction: PaymentTransaction
   ): Promise<PaymentTransaction> => {
     const psbt = Serializer.deserialize(transaction.txBytes);
     const tx = Transaction.fromBuffer(psbt.data.getTransaction());
-    const bitcoinTx = transaction as BitcoinTransaction;
+    const dogeTx = transaction as DogeTransaction;
 
     const signaturePromises: Promise<string>[] = [];
-    for (let i = 0; i < bitcoinTx.inputUtxos.length; i++) {
-      const input = JsonBigInt.parse(bitcoinTx.inputUtxos[i]) as BitcoinUtxo;
-      const signMessage = tx.hashForWitnessV0(
+    for (let i = 0; i < dogeTx.inputUtxos.length; i++) {
+      const signMessage = tx.hashForSignature(
         i,
-        this.signingScript,
-        Number(input.value),
+        Buffer.from(this.lockScript, 'hex'),
         Transaction.SIGHASH_ALL
       );
 
       const signatureHex = this.signFunction(signMessage).then((response) => {
         this.logger.debug(
-          `Input [${i}] of tx [${bitcoinTx.txId}] is signed. signature: ${response.signature}`
+          `Input [${i}] of tx [${dogeTx.txId}] is signed. signature: ${response.signature}`
         );
         return response.signature;
       });
@@ -443,19 +473,19 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
 
     return Promise.all(signaturePromises).then((signatures) => {
       const signedPsbt = this.buildSignedTransaction(
-        bitcoinTx.txBytes,
+        dogeTx.txBytes,
         signatures
       );
       // check if transaction can be finalized
-      signedPsbt.finalizeAllInputs().extractTransaction();
+      signedPsbt.finalizeAllInputs().extractTransaction(true);
 
       // generate PaymentTransaction with signed Psbt
-      return new BitcoinTransaction(
-        bitcoinTx.txId,
-        bitcoinTx.eventId,
+      return new DogeTransaction(
+        dogeTx.txId,
+        dogeTx.eventId,
         Serializer.serialize(signedPsbt),
-        bitcoinTx.txType,
-        bitcoinTx.inputUtxos
+        dogeTx.txType,
+        dogeTx.inputUtxos
       );
     });
   };
@@ -474,11 +504,11 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
     try {
       const response = await this.network.submitTransaction(tx);
       this.logger.info(
-        `Bitcoin Transaction [${transaction.txId}] submitted. Response: ${response}`
+        `Dogecoin Transaction [${transaction.txId}] submitted. Response: ${response}`
       );
     } catch (e) {
       this.logger.warn(
-        `An error occurred while submitting Bitcoin transaction [${transaction.txId}]: ${e}`
+        `An error occurred while submitting Dogecoin transaction [${transaction.txId}]: ${e}`
       );
       if (e instanceof Error && e.stack) {
         this.logger.warn(e.stack);
@@ -496,19 +526,11 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
   };
 
   /**
-   * gets the minimum amount of native token for transferring asset
-   * @returns the minimum amount
-   */
-  getMinimumNativeToken = (): bigint => {
-    return 546n; // smallest non-dust value
-  };
-
-  /**
    * converts json representation of the payment transaction to PaymentTransaction
    * @returns PaymentTransaction object
    */
-  PaymentTransactionFromJson = (jsonString: string): BitcoinTransaction =>
-    BitcoinTransaction.fromJson(jsonString);
+  PaymentTransactionFromJson = (jsonString: string): DogeTransaction =>
+    DogeTransaction.fromJson(jsonString);
 
   /**
    * generates PaymentTransaction object from psbt hex string
@@ -518,18 +540,19 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
   rawTxToPaymentTransaction = async (
     psbtHex: string
   ): Promise<PaymentTransaction> => {
-    const tx = Psbt.fromHex(psbtHex);
+    const tx = Psbt.fromHex(psbtHex, { network: DOGE_NETWORK });
     const txBytes = Serializer.serialize(tx);
     const txId = Transaction.fromBuffer(tx.data.getTransaction()).getId();
 
-    const inputBoxes: Array<BitcoinUtxo> = [];
+    const inputBoxes: Array<DogeUtxo> = [];
     const inputs = tx.txInputs;
     for (let i = 0; i < inputs.length; i++) {
       const boxId = getPsbtTxInputBoxId(inputs[i]);
-      inputBoxes.push(await this.network.getUtxo(boxId));
+      const curUtxo = await this.network.getUtxo(boxId);
+      inputBoxes.push(curUtxo);
     }
 
-    const bitcoinTx = new BitcoinTransaction(
+    const dogeTx = new DogeTransaction(
       txId,
       '',
       txBytes,
@@ -537,8 +560,8 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
       inputBoxes.map((box) => JsonBigInt.stringify(box))
     );
 
-    this.logger.info(`Parsed Bitcoin transaction [${txId}] successfully`);
-    return bitcoinTx;
+    this.logger.info(`Parsed Dogecoin transaction [${txId}] successfully`);
+    return dogeTx;
   };
 
   /**
@@ -550,11 +573,18 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
   getMempoolBoxMapping = async (
     address: string,
     tokenId?: string
-  ): Promise<Map<string, BitcoinUtxo | undefined>> => {
-    // chaining transaction won't be done in BitcoinChain
-    // due to heavy size of transactions in mempool
-    return new Map<string, BitcoinUtxo | undefined>();
+  ): Promise<Map<string, DogeUtxo | undefined>> => {
+    // chaining transaction won't be done in DogeChain
+    // due to redundant complexity
+    return new Map<string, DogeUtxo | undefined>();
   };
+
+  /**
+   * gets the box id
+   * @param box the box
+   * @returns the box id
+   */
+  protected getBoxId = (box: DogeUtxo): string => box.txId + '.' + box.index;
 
   /**
    * extracts box id and assets of a box
@@ -562,7 +592,7 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
    * @param box the box
    * @returns an object containing the box id and assets
    */
-  protected getBoxInfo = (box: BitcoinUtxo): BoxInfo => {
+  protected getBoxInfo = (box: DogeUtxo): BoxInfo => {
     return {
       id: this.getBoxId(box),
       assets: {
@@ -581,14 +611,14 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
   protected getTransactionsBoxMapping = (
     txs: Psbt[],
     address: string
-  ): Map<string, BitcoinUtxo | undefined> => {
-    const trackMap = new Map<string, BitcoinUtxo | undefined>();
+  ): Map<string, DogeUtxo | undefined> => {
+    const trackMap = new Map<string, DogeUtxo | undefined>();
 
     txs.forEach((tx) => {
-      const txId = Transaction.fromBuffer(tx.data.getTransaction()).getId();
+      const txId = tx.extractTransaction(true).getId();
       // iterate over tx inputs
       tx.txInputs.forEach((input) => {
-        let trackedBox: BitcoinUtxo | undefined = undefined;
+        let trackedBox: DogeUtxo | undefined = undefined;
         // iterate over tx outputs
         let index = 0;
         for (index = 0; index < tx.txOutputs.length; index++) {
@@ -615,16 +645,10 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
   };
 
   /**
-   * returns box id
-   * @param box
-   */
-  protected getBoxId = (box: BitcoinUtxo): string => box.txId + '.' + box.index;
-
-  /**
-   * inserts signatures into psbt
+   * builds a signed transaction
    * @param txBytes
-   * @param signatures generated signature by signer service
-   * @returns a signed transaction (in Psbt format)
+   * @param signatures
+   * @returns a signed transaction
    */
   protected buildSignedTransaction = (
     txBytes: Uint8Array,
@@ -646,21 +670,23 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
   };
 
   /**
-   * gets the minimum amount of satoshi for a utxo that can cover
-   * additional fee for adding it to a tx
-   * Note: it returns the actual value
-   * @returns the minimum amount
+   * serializes the transaction of this chain into string
    */
-  minimumMeaningfulSatoshi = (feeRatio: number): bigint => {
-    return BigInt(
-      Math.max(
-        Math.ceil(
-          (feeRatio * SEGWIT_INPUT_WEIGHT_UNIT) / 4 // estimate fee per weight and convert to virtual size
-        ),
-        Number(this.getMinimumNativeToken())
-      )
-    );
-  };
+  protected serializeTx = (tx: DogeTx): string => JsonBigInt.stringify(tx);
+
+  /**
+   * wraps doge amount
+   * @param amount
+   */
+  protected wrapDoge = (amount: bigint): RosenAmount =>
+    this.tokenMap.wrapAmount(this.NATIVE_TOKEN_ID, amount, this.CHAIN);
+
+  /**
+   * unwraps doge amount
+   * @param amount
+   */
+  protected unwrapDoge = (amount: bigint): RosenAmount =>
+    this.tokenMap.unwrapAmount(this.NATIVE_TOKEN_ID, amount, this.CHAIN);
 
   /**
    * gets useful, allowable and last boxes for an address until required assets are satisfied
@@ -675,8 +701,8 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
     address: string,
     requiredAssets: AssetBalance,
     forbiddenBoxIds: Array<string>,
-    trackMap: Map<string, BitcoinUtxo | undefined>
-  ): Promise<CoveringBoxes<BitcoinUtxo>> => {
+    trackMap: Map<string, DogeUtxo | undefined>
+  ): Promise<CoveringBoxes<DogeUtxo>> => {
     const getAddressBoxes = this.network.getAddressBoxes;
     async function* generator() {
       let offset = 0;
@@ -691,42 +717,21 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
     }
     const utxoIterator = generator();
 
-    // estimate tx weight without considering inputs
-    //  0 inputs, 2 outputs, 1 for feeRatio to get weights only, multiply by 4 to convert vSize to weight unit
-    const estimatedTxWeight = Number(estimateTxFee(0, 2, 1)) * 4;
-
     const feeRatio = await this.network.getFeeRatio();
+    const estimatedTxWeight = DOGE_TX_BASE_SIZE + DOGE_OUTPUT_SIZE * 2;
     return selectBitcoinUtxos(
       requiredAssets.nativeToken,
       forbiddenBoxIds,
       trackMap,
       utxoIterator,
-      this.minimumMeaningfulSatoshi(feeRatio),
-      SEGWIT_INPUT_WEIGHT_UNIT,
+      BigInt(MINIMUM_UTXO_VALUE),
+      DOGE_INPUT_SIZE,
       estimatedTxWeight,
       feeRatio,
-      this.logger
+      this.logger,
+      1
     );
   };
-
-  /**
-   * serializes the transaction of this chain into string
-   */
-  protected serializeTx = (tx: BitcoinTx): string => JsonBigInt.stringify(tx);
-
-  /**
-   * wraps btc amount
-   * @param amount
-   */
-  protected wrapBtc = (amount: bigint): RosenAmount =>
-    this.tokenMap.wrapAmount(this.NATIVE_TOKEN_ID, amount, this.CHAIN);
-
-  /**
-   * unwraps btc amount
-   * @param amount
-   */
-  protected unwrapBtc = (amount: bigint): RosenAmount =>
-    this.tokenMap.unwrapAmount(this.NATIVE_TOKEN_ID, amount, this.CHAIN);
 
   /**
    * verifies consistency within the PaymentTransaction object
@@ -737,7 +742,7 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
     transaction: PaymentTransaction
   ): Promise<boolean> => {
     const psbt = Serializer.deserialize(transaction.txBytes);
-    const bitcoinTx = transaction as BitcoinTransaction;
+    const dogeTx = transaction as DogeTransaction;
     const baseError = `Tx [${transaction.txId}] is not verified: `;
 
     // verify txId
@@ -751,10 +756,10 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
     }
 
     // verify inputUtxos
-    if (bitcoinTx.inputUtxos.length !== psbt.inputCount) {
+    if (dogeTx.inputUtxos.length !== psbt.inputCount) {
       this.logger.warn(
         baseError +
-          `BitcoinTransaction object input counts is inconsistent [${bitcoinTx.inputUtxos.length} != ${psbt.inputCount}]`
+          `DogeTransaction object input counts is inconsistent [${dogeTx.inputUtxos.length} != ${psbt.inputCount}]`
       );
       return false;
     }
@@ -762,10 +767,8 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
       const input = psbt.txInputs[i];
       const txId = Buffer.from(input.hash).reverse().toString('hex');
       const actualInputId = `${txId}.${input.index}`;
-      const bitcoinInput = JsonBigInt.parse(
-        bitcoinTx.inputUtxos[i]
-      ) as BitcoinUtxo;
-      const expectedId = `${bitcoinInput.txId}.${bitcoinInput.index}`;
+      const dogeInput = JsonBigInt.parse(dogeTx.inputUtxos[i]) as DogeUtxo;
+      const expectedId = `${dogeInput.txId}.${dogeInput.index}`;
       if (expectedId !== actualInputId) {
         this.logger.warn(
           baseError +
@@ -779,4 +782,4 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
   };
 }
 
-export default BitcoinChain;
+export default DogeChain;

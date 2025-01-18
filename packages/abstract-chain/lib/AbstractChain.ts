@@ -1,7 +1,7 @@
 import { AbstractLogger, DummyLogger } from '@rosen-bridge/abstract-logger';
 import { ChainMinimumFee } from '@rosen-bridge/minimum-fee';
 import { AbstractRosenDataExtractor } from '@rosen-bridge/rosen-extractor';
-import { RosenTokens, TokenMap } from '@rosen-bridge/tokens';
+import { TokenMap } from '@rosen-bridge/tokens';
 import { blake2b } from 'blakejs';
 import ChainUtils from './ChainUtils';
 import {
@@ -40,12 +40,12 @@ abstract class AbstractChain<TxType> {
   constructor(
     network: AbstractChainNetwork<TxType>,
     configs: ChainConfigs,
-    tokens: RosenTokens,
+    tokens: TokenMap,
     logger?: AbstractLogger
   ) {
     this.network = network;
     this.configs = configs;
-    this.tokenMap = new TokenMap(tokens);
+    this.tokenMap = tokens;
     this.logger = logger ? logger : new DummyLogger();
   }
 

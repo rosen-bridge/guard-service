@@ -7,12 +7,10 @@ import {
   BlockInfo,
   TokenDetail,
 } from '@rosen-chains/abstract-chain';
+import { TokenMap } from '@rosen-bridge/tokens';
 
 class TestErgoNetwork extends AbstractErgoNetwork {
-  extractor = new ErgoRosenExtractor(testLockAddress, {
-    idKeys: {},
-    tokens: [],
-  });
+  extractor = new ErgoRosenExtractor(testLockAddress, new TokenMap());
 
   notImplemented = () => {
     throw Error('Not implemented');

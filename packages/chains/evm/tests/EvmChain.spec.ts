@@ -15,6 +15,7 @@ import { FeeData, Transaction, TransactionLike } from 'ethers';
 import { mockGetAddressBalanceForNativeToken } from './TestUtils';
 import { EvmTxStatus } from '../lib';
 import TestChain from './TestChain';
+import { TokenMap } from '@rosen-bridge/tokens';
 
 describe('EvmChain', () => {
   describe(`constructor`, () => {
@@ -29,15 +30,43 @@ describe('EvmChain', () => {
      */
     it('should initialize rosen-extractor successfully', async () => {
       const network = new TestEvmNetwork();
+      const tokenMap = new TokenMap();
+      await tokenMap.updateConfigByJson(TestData.testTokenMap);
       const chain = new TestChain(
         network,
         testUtils.configs,
-        TestData.testTokenMap,
-        TestData.supportedTokens,
+        tokenMap,
         testUtils.mockedSignFn,
         2
       );
+      chain.updateSupportedTokens(TestData.supportedTokens);
       expect(chain.extractor?.chain).toEqual(chain.CHAIN);
+    });
+
+    /**
+     * @target EvmChain.constructor should initialize supported tokens successfully
+     * @dependencies
+     * @scenario
+     * - initialize EvmChain with a rich token map
+     * - check supported tokens
+     * @expected
+     * - supported tokens should be the token IDs of test tokens in the given token map
+     *   with the exception of the native token
+     */
+    it('should initialize supported tokens successfully', async () => {
+      const network = new TestEvmNetwork();
+      const tokenMap = new TokenMap();
+      await tokenMap.updateConfigByJson(TestData.tokenMapWithVariousTestTokens);
+      const chain = new TestChain(
+        network,
+        testUtils.configs,
+        tokenMap,
+        testUtils.mockedSignFn,
+        2
+      );
+      expect(chain.supportedTokens).toEqual(
+        TestData.supportedTokensOfVariousTestTokens
+      );
     });
   });
 
@@ -85,7 +114,8 @@ describe('EvmChain', () => {
       // mock hasLockAddressEnoughAssets, getFeeData,
       // getGasRequired, getAddressNextNonce
       const network = new TestEvmNetwork();
-      const evmChain = testUtils.generateChainObject(network);
+      const evmChain = await testUtils.generateChainObject(network);
+      evmChain.updateSupportedTokens(TestData.supportedTokens);
       const requiredGas = 100000n;
       testUtils.mockHasLockAddressEnoughAssets(evmChain, true);
       testUtils.mockGetFeeData(network, new FeeData(10n, 10n, 10n));
@@ -168,7 +198,7 @@ describe('EvmChain', () => {
       // mock hasLockAddressEnoughAssets, getFeeData,
       // getGasRequired, getAddressNextNonce
       const network = new TestEvmNetwork();
-      const evmChain = testUtils.generateChainObject(network);
+      const evmChain = await testUtils.generateChainObject(network);
       const requiredGas = 21000n;
       testUtils.mockHasLockAddressEnoughAssets(evmChain, true);
       testUtils.mockGetFeeData(network, new FeeData(10n, 10n, 10n));
@@ -247,7 +277,7 @@ describe('EvmChain', () => {
       // mock hasLockAddressEnoughAssets, getFeeData,
       // getGasRequired, getAddressNextNonce
       const network = new TestEvmNetwork();
-      const evmChain = testUtils.generateChainObject(network);
+      const evmChain = await testUtils.generateChainObject(network);
       testUtils.mockHasLockAddressEnoughAssets(evmChain, true);
       testUtils.mockGetFeeData(network, new FeeData(10n, 10n, 10n));
       testUtils.mockGetGasRequired(network, 200000n);
@@ -310,7 +340,7 @@ describe('EvmChain', () => {
       const txType = TransactionType.payment;
       // run test and expect error
       const network = new TestEvmNetwork();
-      const evmChain = testUtils.generateChainObject(network);
+      const evmChain = await testUtils.generateChainObject(network);
       await expect(async () => {
         await evmChain.generateMultipleTransactions(
           eventId,
@@ -340,7 +370,8 @@ describe('EvmChain', () => {
 
       // mock hasLockAddressEnoughAssets and getAddressNextNonce
       const network = new TestEvmNetwork();
-      const evmChain = testUtils.generateChainObject(network);
+      const evmChain = await testUtils.generateChainObject(network);
+      evmChain.updateSupportedTokens(TestData.supportedTokens);
       testUtils.mockHasLockAddressEnoughAssets(evmChain, false);
       testUtils.mockGetFeeData(network, new FeeData(10n, 10n, 10n));
       testUtils.mockGetAddressNextAvailableNonce(network, nonce);
@@ -400,7 +431,7 @@ describe('EvmChain', () => {
       // mock hasLockAddressEnoughAssets, getFeeData,
       // getGasRequired, getAddressNextNonce
       const network = new TestEvmNetwork();
-      const evmChain = testUtils.generateChainObject(network);
+      const evmChain = await testUtils.generateChainObject(network);
       const requiredGas = 21000n;
       testUtils.mockHasLockAddressEnoughAssets(evmChain, true);
       testUtils.mockGetFeeData(network, new FeeData(10n, 10n, 10n));
@@ -478,7 +509,8 @@ describe('EvmChain', () => {
 
       // mock hasLockAddressEnoughAssets, getAddressNextNonce,
       const network = new TestEvmNetwork();
-      const evmChain = testUtils.generateChainObject(network);
+      const evmChain = await testUtils.generateChainObject(network);
+      evmChain.updateSupportedTokens(TestData.supportedTokens);
       testUtils.mockHasLockAddressEnoughAssets(evmChain, true);
       testUtils.mockGetFeeData(network, new FeeData(10n, 10n, 10n));
       testUtils.mockGetGasRequired(network, 200000n);
@@ -519,7 +551,7 @@ describe('EvmChain', () => {
     it('should generate payment transaction successfully for wrapped order', async () => {
       const network = new TestEvmNetwork();
       const evmChain =
-        testUtils.generateChainObjectWithMultiDecimalTokenMap(network);
+        await testUtils.generateChainObjectWithMultiDecimalTokenMap(network);
 
       const order = TestData.nativePaymentWrappedOrder;
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
@@ -599,7 +631,11 @@ describe('EvmChain', () => {
       // mock hasLockAddressEnoughAssets, getFeeData,
       // getGasRequired, getAddressNextNonce
       const network = new TestEvmNetwork();
-      const evmChain = testUtils.generateChainObject(network, undefined, 0);
+      const evmChain = await testUtils.generateChainObject(
+        network,
+        undefined,
+        0
+      );
       const requiredGas = 21000n;
       testUtils.mockHasLockAddressEnoughAssets(evmChain, true);
       testUtils.mockGetFeeData(network, new FeeData(10n, null, null));
@@ -649,9 +685,9 @@ describe('EvmChain', () => {
     });
   });
 
-  describe('rawTxToPaymentTransaction', () => {
+  describe('rawTxToPaymentTransaction', async () => {
     const network = new TestEvmNetwork();
-    const evmChain = testUtils.generateChainObject(network);
+    const evmChain = await testUtils.generateChainObject(network);
 
     /**
      * @target EvmChain.rawTxToPaymentTransaction should construct transaction successfully
@@ -687,7 +723,11 @@ describe('EvmChain', () => {
      * - throw TransactionFormatError
      */
     it('should throw error when transaction type is unexpected', async () => {
-      const evmChain = testUtils.generateChainObject(network, undefined, 0);
+      const evmChain = await testUtils.generateChainObject(
+        network,
+        undefined,
+        0
+      );
       expect(async () => {
         await evmChain.rawTxToPaymentTransaction(
           TestData.transaction1JsonString
@@ -696,9 +736,9 @@ describe('EvmChain', () => {
     });
   });
 
-  describe('getTransactionAssets', () => {
+  describe('getTransactionAssets', async () => {
     const network = new TestEvmNetwork();
-    const evmChain = testUtils.generateChainObject(network);
+    const evmChain = await testUtils.generateChainObject(network);
 
     /**
      * @target EvmChain.getTransactionAssets should get transaction assets
@@ -813,7 +853,11 @@ describe('EvmChain', () => {
      * - it should return mocked transaction assets (both input and output assets)
      */
     it('should get transaction assets successfully for type 0 transactions', async () => {
-      const evmChain = testUtils.generateChainObject(network, undefined, 0);
+      const evmChain = await testUtils.generateChainObject(
+        network,
+        undefined,
+        0
+      );
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
       const txType = TransactionType.payment;
       // mock PaymentTransaction
@@ -852,7 +896,7 @@ describe('EvmChain', () => {
     it('should wrap transaction assets successfully', async () => {
       const network = new TestEvmNetwork();
       const evmChain =
-        testUtils.generateChainObjectWithMultiDecimalTokenMap(network);
+        await testUtils.generateChainObjectWithMultiDecimalTokenMap(network);
 
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
       const txType = TransactionType.payment;
@@ -899,7 +943,7 @@ describe('EvmChain', () => {
       testUtils.mockGetFeeData(network, new FeeData(20n, 20n, 7n));
 
       // mock PaymentTransaction
-      const evmChain = testUtils.generateChainObject(network);
+      const evmChain = await testUtils.generateChainObject(network);
       const tx = Transaction.from(TestData.transaction1Json);
       tx.gasLimit = 85000n * evmChain.configs.gasLimitMultiplier;
       tx.maxFeePerGas = 22n;
@@ -940,7 +984,7 @@ describe('EvmChain', () => {
       testUtils.mockGetFeeData(network, new FeeData(20n, 20n, 7n));
 
       // mock PaymentTransaction
-      const evmChain = testUtils.generateChainObject(network);
+      const evmChain = await testUtils.generateChainObject(network);
       const tx = Transaction.from(TestData.transaction1Json);
       tx.gasLimit = 100000n * evmChain.configs.gasLimitMultiplier;
       tx.maxFeePerGas = 22n;
@@ -982,7 +1026,11 @@ describe('EvmChain', () => {
       testUtils.mockGetFeeData(network, new FeeData(20n, 20n, 7n));
 
       // mock PaymentTransaction
-      const evmChain = testUtils.generateChainObject(network, undefined, 0);
+      const evmChain = await testUtils.generateChainObject(
+        network,
+        undefined,
+        0
+      );
       const tx = Transaction.from(TestData.transaction1Json);
       tx.gasLimit = 55000n * evmChain.configs.gasLimitMultiplier;
       tx.maxFeePerGas = 22n;
@@ -1027,7 +1075,7 @@ describe('EvmChain', () => {
       testUtils.mockGetFeeData(network, new FeeData(20n, 20n, 7n));
 
       // mock PaymentTransaction
-      const evmChain = testUtils.generateChainObject(network);
+      const evmChain = await testUtils.generateChainObject(network);
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
       const txType = TransactionType.payment;
       const tx = Transaction.from(TestData.transaction1Json);
@@ -1071,7 +1119,7 @@ describe('EvmChain', () => {
       testUtils.mockGetFeeData(network, new FeeData(20n, 20n, 7n));
 
       // mock PaymentTransaction
-      const evmChain = testUtils.generateChainObject(network);
+      const evmChain = await testUtils.generateChainObject(network);
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
       const txType = TransactionType.payment;
       const tx = Transaction.from(TestData.transaction1Json);
@@ -1115,7 +1163,7 @@ describe('EvmChain', () => {
       testUtils.mockGetFeeData(network, new FeeData(20n, 20n, 7n));
 
       // mock PaymentTransaction
-      const evmChain = testUtils.generateChainObject(network);
+      const evmChain = await testUtils.generateChainObject(network);
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
       const txType = TransactionType.payment;
       const tx = Transaction.from(TestData.transaction1Json);
@@ -1159,7 +1207,7 @@ describe('EvmChain', () => {
       testUtils.mockGetFeeData(network, new FeeData(20n, 20n, 7n));
 
       // mock PaymentTransaction
-      const evmChain = testUtils.generateChainObject(network);
+      const evmChain = await testUtils.generateChainObject(network);
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
       const txType = TransactionType.payment;
       const tx = Transaction.from(TestData.transaction1Json);
@@ -1202,7 +1250,7 @@ describe('EvmChain', () => {
       testUtils.mockGetFeeData(network, new FeeData(20n, 20n, 7n));
 
       // mock PaymentTransaction
-      const evmChain = testUtils.generateChainObject(network);
+      const evmChain = await testUtils.generateChainObject(network);
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
       const txType = TransactionType.payment;
       const tx = Transaction.from(TestData.transaction1Json);
@@ -1245,7 +1293,7 @@ describe('EvmChain', () => {
       testUtils.mockGetFeeData(network, new FeeData(20n, 20n, 7n));
 
       // mock PaymentTransaction
-      const evmChain = testUtils.generateChainObject(network);
+      const evmChain = await testUtils.generateChainObject(network);
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
       const txType = TransactionType.payment;
       const tx = Transaction.from(TestData.transaction1Json);
@@ -1288,7 +1336,7 @@ describe('EvmChain', () => {
       testUtils.mockGetFeeData(network, new FeeData(20n, 20n, 7n));
 
       // mock PaymentTransaction
-      const evmChain = testUtils.generateChainObject(network);
+      const evmChain = await testUtils.generateChainObject(network);
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
       const txType = TransactionType.payment;
       const tx = Transaction.from(TestData.transaction1Json);
@@ -1331,7 +1379,11 @@ describe('EvmChain', () => {
       testUtils.mockGetFeeData(network, new FeeData(20n, null, null));
 
       // mock PaymentTransaction
-      const evmChain = testUtils.generateChainObject(network, undefined, 0);
+      const evmChain = await testUtils.generateChainObject(
+        network,
+        undefined,
+        0
+      );
       const tx = Transaction.from(TestData.transaction1WithType0Json);
       tx.gasLimit = 85000n * evmChain.configs.gasLimitMultiplier;
       tx.gasPrice = 22n;
@@ -1373,7 +1425,11 @@ describe('EvmChain', () => {
       testUtils.mockGetFeeData(network, new FeeData(20n, null, null));
 
       // mock PaymentTransaction
-      const evmChain = testUtils.generateChainObject(network, undefined, 0);
+      const evmChain = await testUtils.generateChainObject(
+        network,
+        undefined,
+        0
+      );
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
       const txType = TransactionType.payment;
       const tx = Transaction.from(TestData.transaction1WithType0Json);
@@ -1415,7 +1471,11 @@ describe('EvmChain', () => {
       testUtils.mockGetFeeData(network, new FeeData(20n, null, null));
 
       // mock PaymentTransaction
-      const evmChain = testUtils.generateChainObject(network, undefined, 0);
+      const evmChain = await testUtils.generateChainObject(
+        network,
+        undefined,
+        0
+      );
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
       const txType = TransactionType.payment;
       const tx = Transaction.from(TestData.transaction1WithType0Json);
@@ -1439,9 +1499,9 @@ describe('EvmChain', () => {
     });
   });
 
-  describe('extractTransactionOrder', () => {
+  describe('extractTransactionOrder', async () => {
     const network = new TestEvmNetwork();
-    const evmChain = testUtils.generateChainObject(network);
+    const evmChain = await testUtils.generateChainObject(network);
 
     /**
      * @target EvmChain.extractTransactionOrder should extract transaction
@@ -1660,9 +1720,9 @@ describe('EvmChain', () => {
      * @expected
      * - it should return mocked transaction order
      */
-    it('should wrap transaction order successfully', () => {
+    it('should wrap transaction order successfully', async () => {
       const evmChain =
-        testUtils.generateChainObjectWithMultiDecimalTokenMap(network);
+        await testUtils.generateChainObjectWithMultiDecimalTokenMap(network);
 
       // mock PaymentTransaction
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
@@ -1715,7 +1775,7 @@ describe('EvmChain', () => {
     it('should submit the transaction when transaction is of type 2, fees are set properly and lock address has enough assets', async () => {
       // mock network functions
       const network = new TestEvmNetwork();
-      const evmChain = testUtils.generateChainObject(network);
+      const evmChain = await testUtils.generateChainObject(network);
       testUtils.mockGetFeeData(network, new FeeData(20n, 20n, 7n));
       testUtils.mockHasLockAddressEnoughAssets(evmChain, true);
       testUtils.mockGetGasRequired(network, 70000n);
@@ -1760,7 +1820,7 @@ describe('EvmChain', () => {
     it('should not submit the transaction when gasLimit is wrong', async () => {
       // mock network functions
       const network = new TestEvmNetwork();
-      const evmChain = testUtils.generateChainObject(network);
+      const evmChain = await testUtils.generateChainObject(network);
       testUtils.mockGetFeeData(network, new FeeData(20n, 20n, 7n));
       testUtils.mockHasLockAddressEnoughAssets(evmChain, true);
       testUtils.mockGetGasRequired(network, 77000n);
@@ -1805,7 +1865,7 @@ describe('EvmChain', () => {
     it('should not submit the transaction when lock address does not have enough asset', async () => {
       // mock network functions
       const network = new TestEvmNetwork();
-      const evmChain = testUtils.generateChainObject(network);
+      const evmChain = await testUtils.generateChainObject(network);
       testUtils.mockGetFeeData(network, new FeeData(20n, 20n, 7n));
       testUtils.mockHasLockAddressEnoughAssets(evmChain, false);
       testUtils.mockGetGasRequired(network, 70000n);
@@ -1850,7 +1910,7 @@ describe('EvmChain', () => {
     it('should not submit the transaction when checking failed due to error', async () => {
       // mock network functions
       const network = new TestEvmNetwork();
-      const evmChain = testUtils.generateChainObject(network);
+      const evmChain = await testUtils.generateChainObject(network);
       testUtils.mockGetFeeData(network, new FeeData(20n, 20n, 7n));
       testUtils.mockHasLockAddressEnoughAssets(evmChain, false);
       vi.spyOn(network, 'getGasRequired').mockImplementation(() => {
@@ -1880,9 +1940,9 @@ describe('EvmChain', () => {
     });
   });
 
-  describe('verifyTransactionExtraConditions', () => {
+  describe('verifyTransactionExtraConditions', async () => {
     const network = new TestEvmNetwork();
-    const evmChain = testUtils.generateChainObject(network);
+    const evmChain = await testUtils.generateChainObject(network);
 
     /**
      * @target EvmChain.verifyTransactionExtraConditions should return true
@@ -2273,7 +2333,7 @@ describe('EvmChain', () => {
     it('should return true when tx is not found and nonce is not used', async () => {
       // mock PaymentTransaction
       const network = new TestEvmNetwork();
-      const evmChain = testUtils.generateChainObject(network);
+      const evmChain = await testUtils.generateChainObject(network);
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
       const txType = TransactionType.payment;
       const tx = Transaction.from(TestData.erc20transaction as TransactionLike);
@@ -2319,7 +2379,7 @@ describe('EvmChain', () => {
     it('should return false when nonce is already used by another transaction', async () => {
       // mock PaymentTransaction
       const network = new TestEvmNetwork();
-      const evmChain = testUtils.generateChainObject(network);
+      const evmChain = await testUtils.generateChainObject(network);
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
       const txType = TransactionType.payment;
       const tx = Transaction.from(TestData.erc20transaction as TransactionLike);
@@ -2375,7 +2435,7 @@ describe('EvmChain', () => {
     it('should return true when nonce is used by current transaction', async () => {
       // mock PaymentTransaction
       const network = new TestEvmNetwork();
-      const evmChain = testUtils.generateChainObject(network);
+      const evmChain = await testUtils.generateChainObject(network);
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
       const txType = TransactionType.payment;
       const tx = Transaction.from(TestData.erc20transaction as TransactionLike);
@@ -2426,7 +2486,7 @@ describe('EvmChain', () => {
     it('should return false when tx is failed', async () => {
       // mock PaymentTransaction
       const network = new TestEvmNetwork();
-      const evmChain = testUtils.generateChainObject(network);
+      const evmChain = await testUtils.generateChainObject(network);
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
       const txType = TransactionType.payment;
       const tx = Transaction.from(TestData.erc20transaction as TransactionLike);
@@ -2487,7 +2547,10 @@ describe('EvmChain', () => {
           signatureRecovery: TestData.transaction2SignatureRecovery,
         };
       });
-      const evmChain = testUtils.generateChainObject(network, signFunction);
+      const evmChain = await testUtils.generateChainObject(
+        network,
+        signFunction
+      );
 
       // mock PaymentTransaction of unsigned transaction
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
@@ -2537,7 +2600,10 @@ describe('EvmChain', () => {
       const signFunction = async (txHash: Uint8Array) => {
         throw Error(`TestError: sign failed`);
       };
-      const evmChain = testUtils.generateChainObject(network, signFunction);
+      const evmChain = await testUtils.generateChainObject(
+        network,
+        signFunction
+      );
 
       // mock PaymentTransaction of unsigned transaction
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
@@ -2589,7 +2655,8 @@ describe('EvmChain', () => {
       );
 
       // run test
-      const evmChain = testUtils.generateChainObject(network);
+      const evmChain = await testUtils.generateChainObject(network);
+      evmChain.updateSupportedTokens(TestData.supportedTokens);
       const result = await evmChain.getAddressAssets(TestData.lockAddress);
 
       // check returned value
@@ -2615,7 +2682,9 @@ describe('EvmChain', () => {
      */
     it('should return 0 balance with no token if address is empty', async () => {
       // run test
-      const evmChain = testUtils.generateChainObject(new TestEvmNetwork());
+      const evmChain = await testUtils.generateChainObject(
+        new TestEvmNetwork()
+      );
       const result = await evmChain.getAddressAssets('');
 
       // check returned value
@@ -2636,7 +2705,8 @@ describe('EvmChain', () => {
     it('should wrap address assets successfully', async () => {
       const network = new TestEvmNetwork();
       const evmChain =
-        testUtils.generateChainObjectWithMultiDecimalTokenMap(network);
+        await testUtils.generateChainObjectWithMultiDecimalTokenMap(network);
+      evmChain.updateSupportedTokens(TestData.supportedTokens);
 
       mockGetAddressBalanceForNativeToken(evmChain.network, 1000n);
       vi.spyOn(network, 'getAddressBalanceForERC20Asset').mockImplementation(
@@ -2691,7 +2761,7 @@ describe('EvmChain', () => {
       testUtils.mockGetTransactionStatus(network, EvmTxStatus.succeed);
 
       // run test
-      const evmChain = testUtils.generateChainObject(network);
+      const evmChain = await testUtils.generateChainObject(network);
       const result = await evmChain.verifyLockTransactionExtraConditions(
         tx,
         {} as any
@@ -2722,7 +2792,7 @@ describe('EvmChain', () => {
       testUtils.mockGetTransactionStatus(network, EvmTxStatus.failed);
 
       // run test
-      const evmChain = testUtils.generateChainObject(network);
+      const evmChain = await testUtils.generateChainObject(network);
       const result = await evmChain.verifyLockTransactionExtraConditions(
         tx,
         {} as any
@@ -2749,7 +2819,7 @@ describe('EvmChain', () => {
      */
     it('should return true when data is consistent', async () => {
       // mock a PaymentTransaction
-      const evmChain = testUtils.generateChainObject(network);
+      const evmChain = await testUtils.generateChainObject(network);
       const tx = Transaction.from(TestData.transaction1Json);
       const paymentTx = new PaymentTransaction(
         evmChain.CHAIN,
@@ -2779,7 +2849,7 @@ describe('EvmChain', () => {
      */
     it('should return false when transaction id is wrong', async () => {
       // mock a PaymentTransaction with changed txId
-      const evmChain = testUtils.generateChainObject(network);
+      const evmChain = await testUtils.generateChainObject(network);
       const tx = Transaction.from(TestData.transaction1Json);
       const paymentTx = new PaymentTransaction(
         evmChain.CHAIN,

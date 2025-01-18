@@ -1,14 +1,12 @@
 import { AbstractBitcoinNetwork, BitcoinTx, BitcoinUtxo } from '../../lib';
 import { BlockInfo, TokenDetail } from '@rosen-chains/abstract-chain';
 import { BitcoinRosenExtractor } from '@rosen-bridge/rosen-extractor';
+import { TokenMap } from '@rosen-bridge/tokens';
 
 class TestBitcoinNetwork extends AbstractBitcoinNetwork {
   extractor = new BitcoinRosenExtractor(
     'bc1qkgp89fjerymm5ltg0hygnumr0m2qa7n22gyw6h',
-    {
-      idKeys: {},
-      tokens: [],
-    }
+    new TokenMap()
   );
   notImplemented = () => {
     throw Error('Not implemented');

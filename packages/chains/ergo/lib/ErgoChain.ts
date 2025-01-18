@@ -26,7 +26,7 @@ import { ErgoConfigs, GuardsPkConfig } from './types';
 import JsonBI from '@rosen-bridge/json-bigint';
 import JsonBigInt from '@rosen-bridge/json-bigint';
 import { ErgoRosenExtractor } from '@rosen-bridge/rosen-extractor';
-import { RosenTokens } from '@rosen-bridge/tokens';
+import { TokenMap } from '@rosen-bridge/tokens';
 
 class ErgoChain extends AbstractUtxoChain<wasm.Transaction, wasm.ErgoBox> {
   CHAIN = ERGO_CHAIN;
@@ -46,7 +46,7 @@ class ErgoChain extends AbstractUtxoChain<wasm.Transaction, wasm.ErgoBox> {
   constructor(
     network: AbstractErgoNetwork,
     configs: ErgoConfigs,
-    tokens: RosenTokens,
+    tokens: TokenMap,
     signFunction: (
       tx: wasm.ReducedTransaction,
       requiredSign: number,

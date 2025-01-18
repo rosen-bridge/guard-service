@@ -9,6 +9,7 @@ import {
   PaymentTransaction,
   TransactionType,
 } from '../lib';
+import { TokenMap } from '@rosen-bridge/tokens';
 
 describe('AbstractChain', () => {
   describe('generateTransaction', () => {
@@ -818,8 +819,10 @@ describe('AbstractChain', () => {
       const getAddressAssetsSpy = vi.spyOn(network, 'getAddressAssets');
       getAddressAssetsSpy.mockResolvedValueOnce(testData.actualBalance);
 
+      const tokenMap = new TokenMap();
+      await tokenMap.updateConfigByJson(testData.testTokenMap); 
       // run test
-      const chain = generateChainObject(network);
+      const chain = generateChainObject(network, tokenMap);
       const result = await chain.getAddressAssets('address');
 
       // check returned value

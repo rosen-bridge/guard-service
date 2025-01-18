@@ -7,3 +7,4 @@ coverage
 
 # TypeScript cache
 *.tsbuildinfo
+.vscode
