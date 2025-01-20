@@ -11,7 +11,7 @@ export const MINIMUM_UTXO_VALUE = 546; // Minimum Dogecoin UTXO value in satoshi
 export const DOGE_NETWORK = {
   // Doge network parameters
   messagePrefix: '\x19Dogecoin Signed Message:\n',
-  bech32: 'doge',
+  bech32: 'dc',
   bip32: {
     public: 0x02facafd,
     private: 0x02fac398,

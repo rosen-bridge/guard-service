@@ -10,7 +10,6 @@ class TestChain extends EvmChain {
     network: AbstractEvmNetwork,
     configs: any,
     tokens: TokenMap,
-    supportedTokens: Array<string>,
     signFunction: TssSignFunction,
     evmTxType: number
   ) {
@@ -23,7 +22,6 @@ class TestChain extends EvmChain {
       'test-native-token',
       evmTxType
     );
-    this.updateSupportedTokens(supportedTokens);
   }
 }
 

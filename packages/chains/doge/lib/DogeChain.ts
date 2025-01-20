@@ -21,9 +21,13 @@ import AbstractDogeNetwork from './network/AbstractDogeNetwork';
 import DogeTransaction from './DogeTransaction';
 import { DogeConfigs, DogeTx, DogeUtxo, TssSignFunction } from './types';
 import Serializer from './Serializer';
-import { Psbt, Transaction, address, payments, script } from 'bitcoinjs-lib';
+import { Psbt, Transaction, address, script } from 'bitcoinjs-lib';
 import JsonBigInt from '@rosen-bridge/json-bigint';
-import { estimateTxFee, getPsbtTxInputBoxId } from './dogeUtils';
+import {
+  estimateTxFee,
+  getPsbtTxInputBoxId,
+  isPsbtFinalized,
+} from './dogeUtils';
 import {
   DOGE_CHAIN,
   DOGE,
@@ -115,8 +119,36 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
 
       return ids;
     });
+
+    // we chain the signed transactions
+    // we avoid using the unsigned transactions' inputs
+    const finalizedSignedTransactions = serializedSignedTransactions.filter(
+      (serializedTx) => {
+        if (
+          isPsbtFinalized(Psbt.fromHex(serializedTx, { network: DOGE_NETWORK }))
+        ) {
+          return true;
+        } else {
+          const unsignedPsbt = Psbt.fromHex(serializedTx, {
+            network: DOGE_NETWORK,
+          });
+          for (let i = 0; i < unsignedPsbt.txInputs.length; i++) {
+            forbiddenBoxIds.push(getPsbtTxInputBoxId(unsignedPsbt.txInputs[i]));
+          }
+          return false;
+        }
+      }
+    );
+
+    // Save the hex bytes of the signed transaction in case their utxos are going to be spent in this transaction
+    const txToHex: Record<string, string> = {};
+    for (const serializedTx of finalizedSignedTransactions) {
+      const psbt = Psbt.fromHex(serializedTx, { network: DOGE_NETWORK });
+      const tx = psbt.extractTransaction(true);
+      txToHex[tx.getId()] = tx.toHex();
+    }
     const trackMap = this.getTransactionsBoxMapping(
-      serializedSignedTransactions.map((serializedTx) =>
+      finalizedSignedTransactions.map((serializedTx) =>
         Psbt.fromHex(serializedTx, { network: DOGE_NETWORK })
       ),
       this.configs.addresses.lock
@@ -144,14 +176,17 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
 
     // add inputs
     const psbt = new Psbt({ network: DOGE_NETWORK });
-    coveredBoxes.boxes.forEach((box) => {
+    for (const box of coveredBoxes.boxes) {
+      if (!txToHex[box.txId]) {
+        txToHex[box.txId] = await this.network.getTransactionHex(box.txId);
+      }
       psbt.addInput({
         hash: box.txId,
         index: box.index,
-        nonWitnessUtxo: Buffer.from(box.txHex!, 'hex'),
+        nonWitnessUtxo: Buffer.from(txToHex[box.txId], 'hex'),
         redeemScript: Buffer.from(this.lockScript, 'hex'),
       });
-    });
+    }
     // calculate input boxes assets
     let remainingDoge = coveredBoxes.boxes.reduce((a, b) => a + b.value, 0n);
     this.logger.debug(`Input DOGE: ${remainingDoge}`);
@@ -171,7 +206,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
 
       // create order output
       psbt.addOutput({
-        address: order.address,
+        script: address.toOutputScript(order.address, DOGE_NETWORK),
         value: Number(orderDoge),
       });
     });
@@ -239,8 +274,16 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
     };
   };
 
+  /**
+   * gets the minimum amount of native token for transferring asset
+   * @returns the minimum amount
+   */
   getMinimumNativeToken = (): bigint => {
-    return BigInt(MINIMUM_UTXO_VALUE);
+    return this.tokenMap.wrapAmount(
+      this.NATIVE_TOKEN_ID,
+      BigInt(MINIMUM_UTXO_VALUE),
+      this.CHAIN
+    ).amount;
   };
 
   /**
@@ -499,14 +542,13 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
   ): Promise<PaymentTransaction> => {
     const tx = Psbt.fromHex(psbtHex, { network: DOGE_NETWORK });
     const txBytes = Serializer.serialize(tx);
-    const txId = tx.extractTransaction(true).getId();
+    const txId = Transaction.fromBuffer(tx.data.getTransaction()).getId();
 
     const inputBoxes: Array<DogeUtxo> = [];
     const inputs = tx.txInputs;
     for (let i = 0; i < inputs.length; i++) {
       const boxId = getPsbtTxInputBoxId(inputs[i]);
       const curUtxo = await this.network.getUtxo(boxId);
-      delete curUtxo.txHex;
       inputBoxes.push(curUtxo);
     }
 
@@ -533,10 +575,15 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
     tokenId?: string
   ): Promise<Map<string, DogeUtxo | undefined>> => {
     // chaining transaction won't be done in DogeChain
-    // due to heavy size of transactions in mempool
+    // due to redundant complexity
     return new Map<string, DogeUtxo | undefined>();
   };
 
+  /**
+   * gets the box id
+   * @param box the box
+   * @returns the box id
+   */
   protected getBoxId = (box: DogeUtxo): string => box.txId + '.' + box.index;
 
   /**
@@ -584,7 +631,6 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
             txId: txId,
             index: index,
             value: BigInt(output.value),
-            txHex: tx.extractTransaction(true).toHex(),
           };
           break;
         }
@@ -658,23 +704,11 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
     trackMap: Map<string, DogeUtxo | undefined>
   ): Promise<CoveringBoxes<DogeUtxo>> => {
     const getAddressBoxes = this.network.getAddressBoxes;
-    const getTransactionHex = this.network.getTransactionHex;
     async function* generator() {
       let offset = 0;
       const limit = GET_BOX_API_LIMIT;
       while (true) {
-        const initPage = await getAddressBoxes(address, offset, limit);
-        await Promise.all(
-          initPage.map(async (box) => {
-            try {
-              box.txHex = await getTransactionHex(box.txId);
-            } catch {
-              box.txHex = '';
-            }
-          })
-        );
-        const page = initPage.filter((box) => box.txHex !== '');
-
+        const page = await getAddressBoxes(address, offset, limit);
         if (page.length === 0) break;
         yield* page;
         offset += limit;

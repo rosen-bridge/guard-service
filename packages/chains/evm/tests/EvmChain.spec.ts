@@ -36,11 +36,37 @@ describe('EvmChain', () => {
         network,
         testUtils.configs,
         tokenMap,
-        TestData.supportedTokens,
         testUtils.mockedSignFn,
         2
       );
+      chain.updateSupportedTokens(TestData.supportedTokens);
       expect(chain.extractor?.chain).toEqual(chain.CHAIN);
+    });
+
+    /**
+     * @target EvmChain.constructor should initialize supported tokens successfully
+     * @dependencies
+     * @scenario
+     * - initialize EvmChain with a rich token map
+     * - check supported tokens
+     * @expected
+     * - supported tokens should be the token IDs of test tokens in the given token map
+     *   with the exception of the native token
+     */
+    it('should initialize supported tokens successfully', async () => {
+      const network = new TestEvmNetwork();
+      const tokenMap = new TokenMap();
+      await tokenMap.updateConfigByJson(TestData.tokenMapWithVariousTestTokens);
+      const chain = new TestChain(
+        network,
+        testUtils.configs,
+        tokenMap,
+        testUtils.mockedSignFn,
+        2
+      );
+      expect(chain.supportedTokens).toEqual(
+        TestData.supportedTokensOfVariousTestTokens
+      );
     });
   });
 
@@ -89,6 +115,7 @@ describe('EvmChain', () => {
       // getGasRequired, getAddressNextNonce
       const network = new TestEvmNetwork();
       const evmChain = await testUtils.generateChainObject(network);
+      evmChain.updateSupportedTokens(TestData.supportedTokens);
       const requiredGas = 100000n;
       testUtils.mockHasLockAddressEnoughAssets(evmChain, true);
       testUtils.mockGetFeeData(network, new FeeData(10n, 10n, 10n));
@@ -344,6 +371,7 @@ describe('EvmChain', () => {
       // mock hasLockAddressEnoughAssets and getAddressNextNonce
       const network = new TestEvmNetwork();
       const evmChain = await testUtils.generateChainObject(network);
+      evmChain.updateSupportedTokens(TestData.supportedTokens);
       testUtils.mockHasLockAddressEnoughAssets(evmChain, false);
       testUtils.mockGetFeeData(network, new FeeData(10n, 10n, 10n));
       testUtils.mockGetAddressNextAvailableNonce(network, nonce);
@@ -482,6 +510,7 @@ describe('EvmChain', () => {
       // mock hasLockAddressEnoughAssets, getAddressNextNonce,
       const network = new TestEvmNetwork();
       const evmChain = await testUtils.generateChainObject(network);
+      evmChain.updateSupportedTokens(TestData.supportedTokens);
       testUtils.mockHasLockAddressEnoughAssets(evmChain, true);
       testUtils.mockGetFeeData(network, new FeeData(10n, 10n, 10n));
       testUtils.mockGetGasRequired(network, 200000n);
@@ -2627,6 +2656,7 @@ describe('EvmChain', () => {
 
       // run test
       const evmChain = await testUtils.generateChainObject(network);
+      evmChain.updateSupportedTokens(TestData.supportedTokens);
       const result = await evmChain.getAddressAssets(TestData.lockAddress);
 
       // check returned value
@@ -2676,6 +2706,7 @@ describe('EvmChain', () => {
       const network = new TestEvmNetwork();
       const evmChain =
         await testUtils.generateChainObjectWithMultiDecimalTokenMap(network);
+      evmChain.updateSupportedTokens(TestData.supportedTokens);
 
       mockGetAddressBalanceForNativeToken(evmChain.network, 1000n);
       vi.spyOn(network, 'getAddressBalanceForERC20Asset').mockImplementation(

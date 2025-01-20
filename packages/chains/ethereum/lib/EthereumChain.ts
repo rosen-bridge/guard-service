@@ -18,8 +18,7 @@ class EthereumChain extends EvmChain {
     configs: EvmConfigs,
     tokens: TokenMap,
     signFunction: TssSignFunction,
-    logger?: AbstractLogger,
-    supportedTokens: Array<string> = []
+    logger?: AbstractLogger
   ) {
     super(
       network,
@@ -29,8 +28,7 @@ class EthereumChain extends EvmChain {
       ETHEREUM_CHAIN,
       ETH,
       2,
-      logger,
-      supportedTokens
+      logger
     );
   }
 }
