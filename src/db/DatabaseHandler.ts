@@ -11,6 +11,8 @@ import Configs from '../configs/Configs';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { DuplicateOrder, DuplicateTransaction } from '../utils/errors';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
+import { ArbitraryEntity } from './entities/ArbitraryEntity';
+import { TransactionEntity } from './entities/TransactionEntity';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -31,21 +33,35 @@ class DatabaseHandler {
       .txSignSemaphore.acquire()
       .then(async (release) => {
         try {
-          const event = await DatabaseAction.getInstance().getEventById(
-            newTx.eventId
-          );
-          if (
-            event === null &&
-            newTx.txType !== TransactionType.coldStorage &&
-            newTx.txType !== TransactionType.manual
-          ) {
-            throw new Error(`Event [${newTx.eventId}] not found`);
+          switch (newTx.txType) {
+            case TransactionType.payment:
+            case TransactionType.reward: {
+              const event = await DatabaseAction.getInstance().getEventById(
+                newTx.eventId
+              );
+              if (event === null)
+                throw new Error(`Event [${newTx.eventId}] not found`);
+              await this.insertEventOrOderTx(newTx, event, null, requiredSign);
+              break;
+            }
+            case TransactionType.manual: {
+              await this.insertManualTx(newTx, requiredSign, overwrite);
+              break;
+            }
+            case TransactionType.coldStorage: {
+              await this.insertColdStorageTx(newTx, requiredSign);
+              break;
+            }
+            case TransactionType.arbitrary: {
+              const order = await DatabaseAction.getInstance().getOrderById(
+                newTx.eventId
+              );
+              if (order === null)
+                throw new Error(`Order [${newTx.eventId}] not found`);
+              await this.insertEventOrOderTx(newTx, null, order, requiredSign);
+              break;
+            }
           }
-
-          if (event) await this.insertEventTx(newTx, event, requiredSign);
-          else if (newTx.txType === TransactionType.manual)
-            await this.insertManualTx(newTx, requiredSign, overwrite);
-          else await this.insertColdStorageTx(newTx, requiredSign);
           release();
         } catch (e) {
           release();
@@ -59,17 +75,31 @@ class DatabaseHandler {
    * if already another approved tx exists, keeps the one with loser txId
    * @param newTx the transaction
    * @param event the event trigger
+   * @param order the arbitrary order
    * @param requiredSign
    */
-  private static insertEventTx = async (
+  private static insertEventOrOderTx = async (
     newTx: PaymentTransaction,
-    event: ConfirmedEventEntity,
+    event: ConfirmedEventEntity | null,
+    order: ArbitraryEntity | null,
     requiredSign: number
   ): Promise<void> => {
-    const txs = await DatabaseAction.getInstance().getEventValidTxsByType(
-      event.id,
-      newTx.txType
-    );
+    let txs: TransactionEntity[];
+    let eventOrOrderId: string;
+    if (event !== null) {
+      txs = await DatabaseAction.getInstance().getEventValidTxsByType(
+        event.id,
+        newTx.txType
+      );
+      eventOrOrderId = event.id;
+    } else if (order !== null) {
+      txs = await DatabaseAction.getInstance().getOrderValidTxs(order.id);
+      eventOrOrderId = order.id;
+    } else {
+      throw new ImpossibleBehavior(
+        `The Order nor the event is passed while inserting tx [${newTx.txId}]`
+      );
+    }
     if (txs.length > 1) {
       throw new ImpossibleBehavior(
         `Event [${newTx.eventId}] has already more than 1 (${txs.length}) active ${newTx.txType} tx`
@@ -94,7 +124,9 @@ class DatabaseHandler {
             );
         } else {
           logger.warn(
-            `Received approval for newTx [${newTx.txId}] where its event [${event.id}] has already an advanced oldTx [${tx.txId}]`
+            `Received approval for newTx [${newTx.txId}] where its ${
+              event !== null ? `event` : `order`
+            } [${eventOrOrderId}] has already an advanced oldTx [${tx.txId}]`
           );
         }
       }
@@ -103,7 +135,7 @@ class DatabaseHandler {
         newTx,
         event,
         requiredSign,
-        null
+        order
       );
   };
 
