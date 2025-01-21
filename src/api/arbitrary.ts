@@ -35,21 +35,27 @@ const orderRoute = (server: FastifySeverInstance) => {
     },
     async (request, reply) => {
       const { id, chain, orderJson } = request.body;
-      if (!Configs.isArbitraryOrderRequestActive)
+      if (!Configs.isArbitraryOrderRequestActive) {
         reply.status(400).send({
           message: `Arbitrary order request is disabled in config`,
         });
+        return;
+      }
 
-      if (!SUPPORTED_CHAINS.includes(chain))
+      if (!SUPPORTED_CHAINS.includes(chain)) {
         reply.status(400).send({
           message: `Invalid value for chain (chain [${chain}] is not supported)`,
         });
+        return;
+      }
 
       // id should be a 32bytes hex string
-      if (id.length !== 64 || !id.match(/^[0-9a-f]+$/))
+      if (id.length !== 64 || !id.match(/^[0-9a-f]+$/)) {
         reply.status(400).send({
           message: `Invalid value for id (expected 32Bytes hex string, found [${id}])`,
         });
+        return;
+      }
 
       try {
         // try to decode order
