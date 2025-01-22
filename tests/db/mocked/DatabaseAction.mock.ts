@@ -424,7 +424,7 @@ class DatabaseActionMock {
    */
   static allTxRecords = async () => {
     return await this.testDatabase.TransactionRepository.find({
-      relations: ['event'],
+      relations: ['event', 'order'],
     });
   };
 
