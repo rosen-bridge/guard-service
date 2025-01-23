@@ -85,6 +85,8 @@ reward:
   networkFeeRepoAddress: '9es3xKFSehNNwCpuNpY31ScAubDqeLbSWwaCysjN1ee51bgHKTq'
   watchersSharePercent: 50
   watchersEmissionSharePercent: 20
+tss:
+  secret: 'd3995e34a3870748f14958b24a79c7015cdae46f35a24f06cf935a8d7993a5c9'
 guard:
   mnemonic: ''
 txSignTimeout: 1

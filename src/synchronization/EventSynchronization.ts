@@ -216,13 +216,15 @@ class EventSynchronization extends Communicator {
   sendSyncBatch = async (): Promise<void> => {
     logger.info(`Sending event synchronization batches`);
     for (const [eventId, activeSync] of this.activeSyncMap) {
+      const restrictedIndex = await this.getIndex();
       const indexes = activeSync.responses.reduce(
         (
           indexes: number[],
           response: PaymentTransaction | undefined,
           index: number
         ) => {
-          if (response === undefined) indexes.push(index);
+          if (response === undefined && index !== restrictedIndex)
+            indexes.push(index);
           return indexes;
         },
         []

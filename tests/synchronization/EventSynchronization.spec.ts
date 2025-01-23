@@ -396,6 +396,7 @@ describe('EventSynchronization', () => {
   });
 
   describe('sendSyncBatch', () => {
+    const guardIndex = GuardPkHandler.getInstance().guardId;
     const guardsLen = GuardPkHandler.getInstance().guardsLen;
     const publicKeys = GuardPkHandler.getInstance().publicKeys;
 
@@ -463,13 +464,13 @@ describe('EventSynchronization', () => {
       expect(mockedSendMessage).toHaveBeenCalledWith(
         SynchronizationMessageTypes.request,
         { eventId: eventId1 },
-        expect.any(Array),
+        expect.not.arrayContaining([`peer-${guardIndex}`]),
         TestConfigs.currentTimeStamp / 1000
       );
       expect(mockedSendMessage).toHaveBeenCalledWith(
         SynchronizationMessageTypes.request,
         { eventId: eventId2 },
-        expect.any(Array),
+        expect.not.arrayContaining([`peer-${guardIndex}`]),
         TestConfigs.currentTimeStamp / 1000
       );
     });
