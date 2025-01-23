@@ -22,12 +22,12 @@ class EventReprocess extends Communicator {
   protected static dialer: Dialer;
   protected reprocessCooldown: number;
 
-  protected constructor(publicKeys: string[]) {
+  protected constructor() {
     super(
       logger,
       new ECDSA(Configs.tssKeys.secret),
       EventReprocess.sendMessageWrapper,
-      publicKeys,
+      Configs.tssKeys.pubs.map((pub) => pub.curvePub),
       GuardTurn.UP_TIME_LENGTH
     );
     this.reprocessCooldown = Configs.eventReprocessCooldown;
@@ -37,9 +37,7 @@ class EventReprocess extends Communicator {
    * initializes EventReprocess
    */
   static init = async () => {
-    EventReprocess.instance = new EventReprocess(
-      Configs.tssKeys.pubs.map((pub) => pub.curvePub)
-    );
+    EventReprocess.instance = new EventReprocess();
     this.dialer = await Dialer.getInstance();
     this.dialer.subscribeChannel(
       EventReprocess.CHANNEL,
