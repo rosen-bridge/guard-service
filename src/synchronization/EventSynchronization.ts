@@ -43,12 +43,12 @@ class EventSynchronization extends Communicator {
   protected parallelRequestCount: number;
   protected requiredApproval: number;
 
-  protected constructor(publicKeys: string[], detection: GuardDetection) {
+  protected constructor(detection: GuardDetection) {
     super(
       logger,
       new ECDSA(Configs.tssKeys.secret),
       EventSynchronization.sendMessageWrapper,
-      publicKeys,
+      Configs.tssKeys.pubs.map((pub) => pub.curvePub),
       GuardTurn.UP_TIME_LENGTH
     );
     this.detection = detection;
@@ -65,7 +65,6 @@ class EventSynchronization extends Communicator {
    */
   static init = async () => {
     EventSynchronization.instance = new EventSynchronization(
-      Configs.tssKeys.pubs.map((pub) => pub.curvePub),
       DetectionHandler.getInstance().getDetection().curve
     );
     this.dialer = await Dialer.getInstance();

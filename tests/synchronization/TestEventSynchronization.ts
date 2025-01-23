@@ -5,12 +5,7 @@ import { ActiveSync } from '../../src/synchronization/Interfaces';
 
 class TestEventSynchronization extends EventSynchronization {
   constructor() {
-    super(
-      Configs.tssKeys.pubs.map((pub) => pub.curvePub),
-      {
-        activeGuards: vi.fn(),
-      } as any
-    );
+    super({ activeGuards: vi.fn() } as any);
   }
 
   getEventQueue = (): string[] => {
