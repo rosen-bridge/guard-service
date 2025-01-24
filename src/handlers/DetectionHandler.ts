@@ -30,7 +30,7 @@ class DetectionHandler {
     DetectionHandler.dialer = await Dialer.getInstance();
     DetectionHandler.instance = new DetectionHandler();
 
-    // initialize detection instances
+    // initialize detection instance
     await this.instance.detection.init();
 
     // subscribe to channels
@@ -71,14 +71,14 @@ class DetectionHandler {
   };
 
   /**
-   * @returns both ECDSA and EdDSA guard detection instances
+   * @returns guard detection instance
    */
   getDetection = () => {
     return this.detection;
   };
 
   /**
-   * update guard detection instances
+   * update guard detection instance
    */
   update = async (): Promise<void> => {
     await this.detection.update();
