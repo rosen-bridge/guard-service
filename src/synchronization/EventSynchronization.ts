@@ -44,12 +44,12 @@ class EventSynchronization extends Communicator {
   protected parallelRequestCount: number;
   protected requiredApproval: number;
 
-  protected constructor(publicKeys: string[], detection: GuardDetection) {
+  protected constructor(detection: GuardDetection) {
     super(
       logger,
       Configs.tssKeys.secret,
       EventSynchronization.sendMessageWrapper,
-      publicKeys,
+      Configs.tssKeys.pubs.map((pub) => pub.curvePub),
       GuardTurn.UP_TIME_LENGTH
     );
     this.detection = detection;
@@ -66,7 +66,6 @@ class EventSynchronization extends Communicator {
    */
   static init = async () => {
     EventSynchronization.instance = new EventSynchronization(
-      Configs.tssKeys.pubs.map((pub) => pub.curvePub),
       DetectionHandler.getInstance().getDetection()
     );
     this.dialer = await Dialer.getInstance();
@@ -217,13 +216,15 @@ class EventSynchronization extends Communicator {
   sendSyncBatch = async (): Promise<void> => {
     logger.info(`Sending event synchronization batches`);
     for (const [eventId, activeSync] of this.activeSyncMap) {
+      const restrictedIndex = await this.getIndex();
       const indexes = activeSync.responses.reduce(
         (
           indexes: number[],
           response: PaymentTransaction | undefined,
           index: number
         ) => {
-          if (response === undefined) indexes.push(index);
+          if (response === undefined && index !== restrictedIndex)
+            indexes.push(index);
           return indexes;
         },
         []

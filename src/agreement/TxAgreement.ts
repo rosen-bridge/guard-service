@@ -1,4 +1,8 @@
-import { EventStatus, TransactionStatus } from '../utils/constants';
+import {
+  EventStatus,
+  OrderStatus,
+  TransactionStatus,
+} from '../utils/constants';
 import {
   CandidateTransaction,
   TransactionRequest,
@@ -547,7 +551,7 @@ class TxAgreement extends Communicator {
           tx,
           GuardPkHandler.getInstance().requiredSign
         );
-        await this.updateEventOfApprovedTx(tx);
+        await this.updateEventOrOrderOfApprovedTx(tx);
       } else {
         if (txRecord.status === TransactionStatus.invalid) {
           logger.debug(
@@ -578,10 +582,10 @@ class TxAgreement extends Communicator {
   };
 
   /**
-   * updates event status for a tx
+   * updates event or order status for a tx
    * @param tx
    */
-  protected updateEventOfApprovedTx = async (
+  protected updateEventOrOrderOfApprovedTx = async (
     tx: PaymentTransaction
   ): Promise<void> => {
     try {
@@ -595,9 +599,16 @@ class TxAgreement extends Communicator {
           tx.eventId,
           EventStatus.inReward
         );
+      else if (tx.txType === TransactionType.arbitrary)
+        await DatabaseAction.getInstance().setOrderStatus(
+          tx.eventId,
+          OrderStatus.inProcess
+        );
     } catch (e) {
       logger.warn(
-        `An error occurred while setting database event [${tx.eventId}] status: ${e}`
+        `An error occurred while setting database ${
+          tx.txType === TransactionType.arbitrary ? 'order' : 'event'
+        } [${tx.eventId}] status: ${e}`
       );
       logger.warn(e.stack);
     }

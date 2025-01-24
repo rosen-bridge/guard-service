@@ -13,9 +13,14 @@ import {
 } from '../../src/agreement/Interfaces';
 import * as EventTestData from '../event/testData';
 import EventSerializer from '../../src/event/EventSerializer';
-import { EventStatus, TransactionStatus } from '../../src/utils/constants';
+import {
+  EventStatus,
+  OrderStatus,
+  TransactionStatus,
+} from '../../src/utils/constants';
 import { cloneDeep } from 'lodash-es';
 import TransactionVerifier from '../../src/verification/TransactionVerifier';
+import { CARDANO_CHAIN } from '@rosen-chains/cardano';
 
 describe('TxAgreement', () => {
   describe('addTransactionToQueue', () => {
@@ -2124,13 +2129,13 @@ describe('TxAgreement', () => {
     });
   });
 
-  describe('updateEventOfApprovedTx', () => {
+  describe('updateEventOrOrderOfApprovedTx', () => {
     beforeEach(async () => {
       await DatabaseActionMock.clearTables();
     });
 
     /**
-     * @target TxAgreement.updateEventOfApprovedTx should update
+     * @target TxAgreement.updateEventOrOrderOfApprovedTx should update
      * event status from pending-payment to in-payment
      * @dependencies
      * - database
@@ -2160,7 +2165,7 @@ describe('TxAgreement', () => {
 
       // run test
       const txAgreement = new TestTxAgreement();
-      await txAgreement.callUpdateEventOfApprovedTx(paymentTx);
+      await txAgreement.callUpdateEventOrOrderOfApprovedTx(paymentTx);
 
       // event status should be updated in db
       const dbEvents = (await DatabaseActionMock.allEventRecords()).map(
@@ -2171,7 +2176,7 @@ describe('TxAgreement', () => {
     });
 
     /**
-     * @target TxAgreement.updateEventOfApprovedTx should update
+     * @target TxAgreement.updateEventOrOrderOfApprovedTx should update
      * event status from pending-reward to in-reward
      * @dependencies
      * - database
@@ -2201,7 +2206,7 @@ describe('TxAgreement', () => {
 
       // run test
       const txAgreement = new TestTxAgreement();
-      await txAgreement.callUpdateEventOfApprovedTx(paymentTx);
+      await txAgreement.callUpdateEventOrOrderOfApprovedTx(paymentTx);
 
       // event status should be updated in db
       const dbEvents = (await DatabaseActionMock.allEventRecords()).map(
@@ -2209,6 +2214,49 @@ describe('TxAgreement', () => {
       );
       expect(dbEvents.length).toEqual(1);
       expect(dbEvents).to.deep.contain([eventId, EventStatus.inReward]);
+    });
+
+    /**
+     * @target TxAgreement.updateEventOrOrderOfApprovedTx should update
+     * order status from pending to in-process
+     * @dependencies
+     * - database
+     * @scenario
+     * - mock testdata
+     * - insert mocked order into db
+     * - run test
+     * - check order status in db
+     * @expected
+     * - order status should be updated in db
+     */
+    it('should update order status from pending to in-process', async () => {
+      // mock testdata
+      const orderId = 'order-id';
+      const orderChain = CARDANO_CHAIN;
+      const paymentTx = mockPaymentTransaction(
+        TransactionType.arbitrary,
+        orderChain,
+        orderId
+      );
+
+      // insert mocked order into db
+      await DatabaseActionMock.insertOrderRecord(
+        orderId,
+        orderChain,
+        `orderJson`,
+        OrderStatus.pending
+      );
+
+      // run test
+      const txAgreement = new TestTxAgreement();
+      await txAgreement.callUpdateEventOrOrderOfApprovedTx(paymentTx);
+
+      // order status should be updated in db
+      const dbOrders = (await DatabaseActionMock.allOrderRecords()).map(
+        (order) => [order.id, order.status]
+      );
+      expect(dbOrders.length).toEqual(1);
+      expect(dbOrders).to.deep.contain([orderId, OrderStatus.inProcess]);
     });
   });
 
