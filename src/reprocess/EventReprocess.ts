@@ -1,4 +1,4 @@
-import { Communicator, ECDSA } from '@rosen-bridge/tss';
+import { Communicator } from '@rosen-bridge/communication';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { EventStatus } from '../utils/constants';
 import {
@@ -25,7 +25,7 @@ class EventReprocess extends Communicator {
   protected constructor(publicKeys: string[]) {
     super(
       logger,
-      new ECDSA(Configs.tssKeys.secret),
+      Configs.tssKeys.secret,
       EventReprocess.sendMessageWrapper,
       publicKeys,
       GuardTurn.UP_TIME_LENGTH

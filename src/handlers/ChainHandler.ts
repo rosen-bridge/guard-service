@@ -21,7 +21,6 @@ import Configs from '../configs/Configs';
 import GuardsCardanoConfigs from '../configs/GuardsCardanoConfigs';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import MultiSigHandler from '../guard/multisig/MultiSigHandler';
-import Tss from '../guard/Tss';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { BLOCKFROST_NETWORK } from '@rosen-chains/cardano-blockfrost-network';
 import CardanoBlockFrostNetwork from '@rosen-chains/cardano-blockfrost-network';
@@ -36,6 +35,7 @@ import { ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
 import { BinanceChain } from '@rosen-chains/binance';
 import GuardsBinanceConfigs from '../configs/GuardsBinanceConfigs';
 import { BINANCE_CHAIN } from '@rosen-chains/binance';
+import TssHandler from './TssHandler';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -130,7 +130,7 @@ class ChainHandler {
         );
     }
     const chainCode = GuardsCardanoConfigs.tssChainCode;
-    const edwardSign = Tss.getInstance().edwardSign;
+    const edwardSign = TssHandler.getInstance().edwardSign;
     const tssSignFunctionWrapper = async (
       txHash: Uint8Array
     ): Promise<string> => {
@@ -169,7 +169,7 @@ class ChainHandler {
     }
     const chainCode = GuardsBitcoinConfigs.tssChainCode;
     const derivationPath = GuardsBitcoinConfigs.derivationPath;
-    const curveSign = Tss.getInstance().curveSign;
+    const curveSign = TssHandler.getInstance().curveSign;
     const tssSignFunctionWrapper = async (
       txHash: Uint8Array
     ): Promise<{
@@ -219,7 +219,7 @@ class ChainHandler {
     }
     const chainCode = GuardsEthereumConfigs.tssChainCode;
     const derivationPath = GuardsEthereumConfigs.derivationPath;
-    const curveSign = Tss.getInstance().curveSign;
+    const curveSign = TssHandler.getInstance().curveSign;
     const tssSignFunctionWrapper = async (
       txHash: Uint8Array
     ): Promise<{
@@ -281,7 +281,7 @@ class ChainHandler {
     }
     const chainCode = GuardsBinanceConfigs.tssChainCode;
     const derivationPath = GuardsBinanceConfigs.derivationPath;
-    const curveSign = Tss.getInstance().curveSign;
+    const curveSign = TssHandler.getInstance().curveSign;
     const tssSignFunctionWrapper = async (
       txHash: Uint8Array
     ): Promise<{

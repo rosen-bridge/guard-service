@@ -1,4 +1,4 @@
-import { Communicator, ECDSA, GuardDetection } from '@rosen-bridge/tss';
+import { GuardDetection } from '@rosen-bridge/detection';
 import { Semaphore } from 'await-semaphore';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import {
@@ -28,6 +28,7 @@ import MinimumFeeHandler from '../handlers/MinimumFeeHandler';
 import ChainHandler from '../handlers/ChainHandler';
 import EventOrder from '../event/EventOrder';
 import DetectionHandler from '../handlers/DetectionHandler';
+import { Communicator } from '@rosen-bridge/communication';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -46,7 +47,7 @@ class EventSynchronization extends Communicator {
   protected constructor(publicKeys: string[], detection: GuardDetection) {
     super(
       logger,
-      new ECDSA(Configs.tssKeys.secret),
+      Configs.tssKeys.secret,
       EventSynchronization.sendMessageWrapper,
       publicKeys,
       GuardTurn.UP_TIME_LENGTH
@@ -66,7 +67,7 @@ class EventSynchronization extends Communicator {
   static init = async () => {
     EventSynchronization.instance = new EventSynchronization(
       Configs.tssKeys.pubs.map((pub) => pub.curvePub),
-      DetectionHandler.getInstance().getDetection().curve
+      DetectionHandler.getInstance().getDetection()
     );
     this.dialer = await Dialer.getInstance();
     this.dialer.subscribeChannel(

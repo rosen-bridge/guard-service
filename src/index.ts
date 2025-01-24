@@ -13,7 +13,6 @@ import { configUpdateJob } from './jobs/guardConfigUpdate';
 import MultiSigUtils from './guard/multisig/MultiSigUtils';
 import { DatabaseAction } from './db/DatabaseAction';
 import { dataSource } from './db/dataSource';
-import Tss from './guard/Tss';
 import { tssUpdateJob } from './jobs/tss';
 import { revenueJob } from './jobs/revenue';
 import GuardPkHandler from './handlers/GuardPkHandler';
@@ -25,6 +24,7 @@ import EventSynchronization from './synchronization/EventSynchronization';
 import DetectionHandler from './handlers/DetectionHandler';
 import EventReprocess from './reprocess/EventReprocess';
 import ArbitraryProcessor from './arbitrary/ArbitraryProcessor';
+import TssHandler from './handlers/TssHandler';
 
 const init = async () => {
   // initialize NotificationHandler object
@@ -48,7 +48,7 @@ const init = async () => {
   initializeMultiSigJobs();
 
   // start tss instance
-  await Tss.init();
+  await TssHandler.init();
   tssUpdateJob();
 
   // initialize chain objects

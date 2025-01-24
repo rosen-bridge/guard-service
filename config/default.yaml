@@ -135,7 +135,6 @@ tss:
   secret: ''
   pubs:
     - curvePub: '' # ECDSA
-      edwardPub: '' # EdDSA
       curveShareId: ''
       edwardShareId: ''
 p2p:
