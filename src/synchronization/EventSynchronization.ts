@@ -205,9 +205,8 @@ class EventSynchronization extends Communicator {
   protected getPeerIdByIndex = async (
     index: number
   ): Promise<string | undefined> => {
-    const pk = this.guardPks[index];
     const activeGuards = await this.detection.activeGuards();
-    return activeGuards.find((_) => _.publicKey === pk)?.peerId;
+    return activeGuards.find((_) => _.index === index)?.peerId;
   };
 
   /**
