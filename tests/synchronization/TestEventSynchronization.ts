@@ -1,13 +1,11 @@
 import { PaymentTransaction } from '@rosen-chains/abstract-chain';
-import GuardPkHandler from '../../src/handlers/GuardPkHandler';
+import Configs from '../../src/configs/Configs';
 import EventSynchronization from '../../src/synchronization/EventSynchronization';
 import { ActiveSync } from '../../src/synchronization/Interfaces';
 
 class TestEventSynchronization extends EventSynchronization {
   constructor() {
-    super(GuardPkHandler.getInstance().publicKeys, {
-      activeGuards: vi.fn(),
-    } as any);
+    super({ activeGuards: vi.fn() } as any);
   }
 
   getEventQueue = (): string[] => {
