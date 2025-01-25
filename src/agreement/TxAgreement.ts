@@ -25,7 +25,8 @@ import TransactionVerifier from '../verification/TransactionVerifier';
 import DatabaseHandler from '../db/DatabaseHandler';
 import GuardPkHandler from '../handlers/GuardPkHandler';
 import { DatabaseAction } from '../db/DatabaseAction';
-import { Communicator, ECDSA } from '@rosen-bridge/tss';
+import { Communicator } from '@rosen-bridge/communication';
+import { ECDSA } from '@rosen-bridge/encryption';
 import { Semaphore } from 'await-semaphore';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 
@@ -489,7 +490,11 @@ class TxAgreement extends Communicator {
         this.guardPks[i]
       }`;
       if (
-        !(await this.signer.verify(message, signatures[i], this.guardPks[i]))
+        !(await this.messageEnc.verify(
+          message,
+          signatures[i],
+          this.guardPks[i]
+        ))
       ) {
         logger.warn(baseError + `but guard [${i}] signature doesn't verify`);
         return;
@@ -618,7 +623,7 @@ class TxAgreement extends Communicator {
     txId: string,
     timestamp: number
   ): Promise<string> => {
-    return await this.signer.sign(
+    return await this.messageEnc.sign(
       `${JSON.stringify({ txId })}${timestamp}${this.guardPks[this.index]}`
     );
   };

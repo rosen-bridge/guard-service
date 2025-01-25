@@ -454,6 +454,7 @@ describe('EventSynchronization', () => {
         publicKeys.map((pk, index) => ({
           publicKey: pk,
           peerId: `peer-${index}`,
+          index: index,
         }))
       );
 
@@ -518,6 +519,7 @@ describe('EventSynchronization', () => {
         publicKeys.map((pk, index) => ({
           publicKey: pk,
           peerId: `peer-${index}`,
+          index: index,
         }))
       );
 

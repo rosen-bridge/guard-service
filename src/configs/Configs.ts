@@ -8,6 +8,7 @@ import { ConfigError } from '../utils/errors';
 import { SUPPORTED_CHAINS } from '../utils/constants';
 import { TransportOptions } from '@rosen-bridge/winston-logger';
 import { cloneDeep } from 'lodash-es';
+import { ECDSA } from '@rosen-bridge/encryption';
 
 /**
  * reads a numerical config, set default value if it does not exits
@@ -101,11 +102,10 @@ class Configs {
   static tssBaseCallBackUrl = `http://${this.apiHost}:${this.apiPort}/tss/sign`;
   static tssParallelSignCount = config.get<number>('tss.parallelSign');
   static tssKeys = {
-    secret: config.get<string>('tss.secret'),
+    encryptor: new ECDSA(config.get<string>('tss.secret')),
     pubs: config.get<
       Array<{
         curvePub: string;
-        edwardPub: string;
         curveShareId: string;
         edwardShareId: string;
       }>

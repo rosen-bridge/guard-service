@@ -74,7 +74,7 @@ class TestTxAgreement extends TxAgreement {
   callUpdateEventOrOrderOfApprovedTx = (tx: PaymentTransaction) =>
     this.updateEventOrOrderOfApprovedTx(tx);
 
-  getSigner = () => this.signer;
+  getSigner = () => this.messageEnc;
 }
 
 export default TestTxAgreement;
