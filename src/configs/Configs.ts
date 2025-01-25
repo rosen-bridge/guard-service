@@ -102,7 +102,7 @@ class Configs {
   static tssBaseCallBackUrl = `http://${this.apiHost}:${this.apiPort}/tss/sign`;
   static tssParallelSignCount = config.get<number>('tss.parallelSign');
   static tssKeys = {
-    secret: new ECDSA(config.get<string>('tss.secret')),
+    encryptor: new ECDSA(config.get<string>('tss.secret')),
     pubs: config.get<
       Array<{
         curvePub: string;

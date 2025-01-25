@@ -17,7 +17,7 @@ class DetectionHandler {
     this.detection = new GuardDetection({
       logger: DefaultLoggerFactory.getInstance().getLogger('Detection'),
       guardsPublicKey: curvePublicKeys,
-      messageEnc: Configs.tssKeys.secret,
+      messageEnc: Configs.tssKeys.encryptor,
       submit: this.generateSubmitMessageWrapper(DetectionHandler.CHANNEL),
       getPeerId: () => Promise.resolve(DetectionHandler.dialer.getDialerId()),
     });

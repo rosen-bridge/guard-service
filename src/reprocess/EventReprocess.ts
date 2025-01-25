@@ -25,7 +25,7 @@ class EventReprocess extends Communicator {
   protected constructor() {
     super(
       logger,
-      Configs.tssKeys.secret,
+      Configs.tssKeys.encryptor,
       EventReprocess.sendMessageWrapper,
       Configs.tssKeys.pubs.map((pub) => pub.curvePub),
       GuardTurn.UP_TIME_LENGTH

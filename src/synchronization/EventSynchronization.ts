@@ -47,7 +47,7 @@ class EventSynchronization extends Communicator {
   protected constructor(detection: GuardDetection) {
     super(
       logger,
-      Configs.tssKeys.secret,
+      Configs.tssKeys.encryptor,
       EventSynchronization.sendMessageWrapper,
       Configs.tssKeys.pubs.map((pub) => pub.curvePub),
       GuardTurn.UP_TIME_LENGTH
