@@ -13,7 +13,10 @@ const healthCheckUpdateJob = async (healthCheck: HealthCheck) => {
     await Promise.race([
       healthCheck.update(),
       new Promise((resolve, reject) =>
-        setTimeout(() => reject('job timed out'), Configs.healthCheckTimeout)
+        setTimeout(
+          () => reject('job timed out'),
+          Configs.healthCheckTimeout * 1000
+        )
       ),
     ]);
   } catch (e) {
