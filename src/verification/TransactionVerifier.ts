@@ -303,7 +303,9 @@ class TransactionVerifier {
 
     // verify tx order
     const expectedOrder = ChainUtils.decodeOrder(orderJson);
-    const txOrder = chain.extractTransactionOrder(tx);
+    const txOrder = ChainUtils.decodeOrder(
+      ChainUtils.encodeOrder(chain.extractTransactionOrder(tx))
+    );
     if (!isEqual(txOrder, expectedOrder)) {
       logger.debug(
         `Transaction [${tx.txId}] is invalid: Tx extracted order is not verified`
