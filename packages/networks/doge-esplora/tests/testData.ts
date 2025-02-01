@@ -286,8 +286,9 @@ export const utxo = {
   value: 0n,
 };
 
-export const spentBoxId =
-  'd3d2b2dc24639e8d698071a49921b7b378c0a56cffcc0db3b42d5937a67389ab.1';
+export const spentTxId =
+  '79e657a92547e0a67ad4b0f04777ddb617745e6064b1d9393583619da59ae4c6';
+export const spentIndex = 1;
 export const spentResult = {
   spent: true,
   txid: '79e657a92547e0a67ad4b0f04777ddb617745e6064b1d9393583619da59ae4c6',
@@ -305,6 +306,9 @@ export const unsignedTxId =
   '2e21903ce31a5b77e9a0f56255a92955cb018504e0647b99211833ae721ae15f';
 export const unspentBoxId =
   'd3d2b2dc24639e8d698071a49921b7b378c0a56cffcc0db3b42d5937a67389ab.0';
+export const unspentTxId =
+  'd3d2b2dc24639e8d698071a49921b7b378c0a56cffcc0db3b42d5937a67389ab';
+export const unspentIndex = 0;
 export const unspentResult = {
   spent: false,
 };
@@ -337,3 +341,60 @@ export const feeEstimatesResponse = {
   '25': 1002.715,
 };
 export const targetFeeEstimation = 3011.257;
+
+export const unsortedAddressUtxoResponse = [
+  {
+    txid: 'cc9c558b21c86f955e07af14b73e82939731ca6ffd0b28c5b72436d76cee881f',
+    vout: 2,
+    status: {
+      confirmed: true,
+      block_height: 5427984,
+      block_hash:
+        'fb7a521ddd47397ba421276bd298828527d7f1803eba7e530c1e336fef0f8c0d',
+      block_time: 1729471417,
+    },
+    value: 800000000,
+  },
+  {
+    txid: 'bc9c558b21c86f955e07af14b73e82939731ca6ffd0b28c5b72436d76cee881f',
+    vout: 1,
+    status: {
+      confirmed: true,
+      block_height: 5427984,
+      block_hash:
+        'fb7a521ddd47397ba421276bd298828527d7f1803eba7e530c1e336fef0f8c0d',
+      block_time: 1729471417,
+    },
+    value: 900000000,
+  },
+  {
+    txid: 'cc9c558b21c86f955e07af14b73e82939731ca6ffd0b28c5b72436d76cee881f',
+    vout: 0,
+    status: {
+      confirmed: true,
+      block_height: 5427984,
+      block_hash:
+        'fb7a521ddd47397ba421276bd298828527d7f1803eba7e530c1e336fef0f8c0d',
+      block_time: 1729471417,
+    },
+    value: 700000000,
+  },
+];
+
+export const sortedAddressUtxos = [
+  {
+    txId: 'bc9c558b21c86f955e07af14b73e82939731ca6ffd0b28c5b72436d76cee881f',
+    index: 1,
+    value: 900000000n,
+  },
+  {
+    txId: 'cc9c558b21c86f955e07af14b73e82939731ca6ffd0b28c5b72436d76cee881f',
+    index: 0,
+    value: 700000000n,
+  },
+  {
+    txId: 'cc9c558b21c86f955e07af14b73e82939731ca6ffd0b28c5b72436d76cee881f',
+    index: 2,
+    value: 800000000n,
+  },
+];

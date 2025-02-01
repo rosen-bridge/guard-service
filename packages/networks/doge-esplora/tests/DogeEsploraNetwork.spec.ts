@@ -48,7 +48,7 @@ describe('DogeEsploraNetwork', () => {
      * @expected
      * - it should be mocked height minus mocked tx height
      */
-    it('should return tx confirmation successfully', async () => {
+    it('should fetch confirmation using txId successfully', async () => {
       mockAxiosGet(testData.blockHeight);
       mockAxiosGet(testData.txResponse);
 
@@ -104,7 +104,17 @@ describe('DogeEsploraNetwork', () => {
       expect(result).toEqual(-1);
     });
 
-    it('should call getTxConfirmationSigned with the correct tx id', async () => {
+    /**
+     * @target `DogeEsploraNetwork.getTxConfirmation` should fetch confirmation using unsigned hash successfully
+     * @dependencies
+     * @scenario
+     * - create a new instance of DogeEsploraNetwork with a custom getSavedTransactionById
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should fetch confirmation using unsigned hash successfully
+     */
+    it('should fetch confirmation using unsigned hash successfully', async () => {
       // Create a new instance of DogeEsploraNetwork with a custom getSavedTransactionById
       const customNetwork = new DogeEsploraNetwork(
         'esplora-url',
@@ -117,13 +127,13 @@ describe('DogeEsploraNetwork', () => {
       );
 
       const getTxConfirmationSignedSpy = vi.spyOn(
-        customNetwork,
+        customNetwork as any,
         'getTxConfirmationSigned'
       );
 
       // Mock getSpentTransactionByInputId to return a transaction when called with the correct input
       const getSpentTransactionByInputIdSpy = vi
-        .spyOn(customNetwork, 'getSpentTransactionByInputId')
+        .spyOn(customNetwork as any, 'getSpentTransactionByInputId')
         .mockResolvedValue(testData.dogeTx);
 
       mockAxiosGet(testData.blockHeight);
@@ -134,13 +144,11 @@ describe('DogeEsploraNetwork', () => {
       );
 
       expect(getSpentTransactionByInputIdSpy).toHaveBeenCalledWith(
-        `${testData.dogeTx.inputs[0].txId}.${testData.dogeTx.inputs[0].index}`
+        testData.dogeTx.inputs[0].index,
+        testData.dogeTx.inputs[0].txId
       );
       expect(getTxConfirmationSignedSpy).toHaveBeenCalledWith(testData.txId);
       expect(result).toEqual(testData.txConfirmation);
-
-      getTxConfirmationSignedSpy.mockRestore();
-      getSpentTransactionByInputIdSpy.mockRestore();
     });
   });
 
@@ -330,6 +338,28 @@ describe('DogeEsploraNetwork', () => {
       );
 
       expect(result).toEqual([]);
+    });
+
+    /**
+     * @target `DogeEsploraNetwork.getAddressBoxes` should return sorted address utxos
+     * @dependencies
+     * @scenario
+     * - mock axios to return unsorted address utxo info
+     * - run test
+     * - check returned value is sorted by txId and index
+     * @expected
+     * - it should return utxos sorted first by txId and then by index
+     */
+    it('should return sorted address utxos', async () => {
+      mockAxiosGet(testData.unsortedAddressUtxoResponse);
+
+      const result = await network.getAddressBoxes(
+        testData.lockAddress,
+        0,
+        100
+      );
+
+      expect(result).toEqual(testData.sortedAddressUtxos);
     });
   });
 
@@ -542,8 +572,9 @@ describe('DogeEsploraNetwork', () => {
         .spyOn(network, 'getTransaction')
         .mockResolvedValue(testData.dogeTx);
 
-      const result = await network.getSpentTransactionByInputId(
-        testData.spentBoxId
+      const result = await (network as any).getSpentTransactionByInputId(
+        testData.spentIndex,
+        testData.spentTxId
       );
 
       expect(result).toEqual(testData.dogeTx);
@@ -567,11 +598,59 @@ describe('DogeEsploraNetwork', () => {
     it('should return undefined when box is unspent', async () => {
       mockAxiosGet(testData.unspentResult);
 
-      const result = await network.getSpentTransactionByInputId(
-        testData.unspentBoxId
+      const result = await (network as any).getSpentTransactionByInputId(
+        testData.unspentIndex,
+        testData.unspentTxId
       );
 
       expect(result).toBeUndefined();
+    });
+  });
+
+  describe('getTransactionHex', () => {
+    /**
+     * @target `DogeEsploraNetwork.getTransactionHex` should return transaction hex successfully
+     * @dependencies
+     * @scenario
+     * - mock axios to return tx hex
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return the mocked tx hex
+     */
+    it('should return transaction hex successfully', async () => {
+      const mockTxHex =
+        '020000000134292f961bb726fad6f54d904fe9177931493e46a8b8b99de6b1e338dee29785020000006a47304402207e4cd2745243257f0749b4a41425c2075dfb199f47072bfbf7db14b02677a8ae02204682c5159737314f7c4ba0f7112876497171a7cee48dddf667dccd59cf8ae1280121022b9ed0a9139042921decc62603a4a07357b444da2e0bd6a96c27155117913037ffffffff0300000000000000006a33000000000005f5e10000000000009896802103e5bedab3f782ef17a73e9bdc41ee0e18c3ab477400f35bcf7caa54171db7ff3600ca9a3b0000000017a914d4c141068ab3a242aed5081a27ac3f10ad99ac988788a4645600000000976a914872b67c8270a9eaf5c2abf632af3dea989d2e37188ac00000000';
+      mockAxiosGet(mockTxHex);
+
+      const result = await network.getTransactionHex(testData.txId);
+
+      expect(result).toEqual(mockTxHex);
+    });
+
+    /**
+     * @target `DogeEsploraNetwork.getTransactionHex` should throw error when
+     * request fails
+     * @dependencies
+     * @scenario
+     * - mock axios to throw error
+     * - run test and expect exception thrown
+     * @expected
+     * - it should throw FailedError with appropriate message
+     */
+    it('should throw error when request fails', async () => {
+      mockAxiosGetToThrow({
+        response: {
+          status: 404,
+          data: 'Transaction not found',
+        },
+      });
+
+      await expect(async () => {
+        await network.getTransactionHex(testData.txId);
+      }).rejects.toThrow(
+        `Failed to get transaction [${testData.txId}] hex from Esplora: Transaction not found`
+      );
     });
   });
 });

@@ -4,7 +4,7 @@
   "description": "this project contains doge chain for Rosen-bridge",
   "repository": "https://github.com/rosen-bridge/rosen-chains",
   "license": "GPL-3.0",
-  "author": "Mehran",
+  "author": "Rosen Team",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

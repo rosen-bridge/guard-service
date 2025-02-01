@@ -67,7 +67,9 @@ class DogeEsploraNetwork extends AbstractDogeNetwork {
    * @param transactionId the transaction id (only supports real signed tx id)
    * @returns the transaction confirmation
    */
-  getTxConfirmationSigned = async (transactionId: string): Promise<number> => {
+  protected getTxConfirmationSigned = async (
+    transactionId: string
+  ): Promise<number> => {
     const currentHeight = await this.getHeight();
     let txHeight = -1;
     try {
@@ -108,8 +110,10 @@ class DogeEsploraNetwork extends AbstractDogeNetwork {
     try {
       const realTx = await this.getSavedTransactionById(transactionId);
       if (realTx) {
-        const firstInputId = `${realTx?.inputs[0].txId}.${realTx?.inputs[0].index}`;
-        const spentTx = await this.getSpentTransactionByInputId(firstInputId);
+        const spentTx = await this.getSpentTransactionByInputId(
+          realTx?.inputs[0].index,
+          realTx?.inputs[0].txId
+        );
         if (spentTx) {
           const sameInputs = realTx.inputs.every(
             (input, i) =>
@@ -126,8 +130,10 @@ class DogeEsploraNetwork extends AbstractDogeNetwork {
           }
         }
       }
-    } catch (e) {
-      this.logger.debug(`tx [${transactionId}] is not found in DB`);
+    } catch (e: any) {
+      this.logger.debug(
+        `error while trying to see if the real transactionId differs from the input, will fallback to getTxConfirmationSigned: ${e.message}`
+      );
     }
 
     return await this.getTxConfirmationSigned(realTxId);
@@ -482,13 +488,23 @@ class DogeEsploraNetwork extends AbstractDogeNetwork {
   getTransactionHex = async (txId: string): Promise<string> => {
     return this.client
       .get<string>(`/api/tx/${txId}/hex`)
-      .then((res) => res.data);
+      .then((res) => res.data)
+      .catch((e) => {
+        const baseError = `Failed to get transaction [${txId}] hex from Esplora: `;
+        if (e.response) {
+          throw new FailedError(baseError + e.response.data);
+        } else if (e.request) {
+          throw new NetworkError(baseError + e.message);
+        } else {
+          throw new UnexpectedApiError(baseError + e.message);
+        }
+      });
   };
 
-  getSpentTransactionByInputId = async (
-    boxId: string
+  protected getSpentTransactionByInputId = async (
+    index: number,
+    txId: string
   ): Promise<DogeTx | undefined> => {
-    const [txId, index] = boxId.split('.');
     const box = (
       await this.client.get<EsploraUtxoInfo>(
         `/api/tx/${txId}/outspends/${index}`
