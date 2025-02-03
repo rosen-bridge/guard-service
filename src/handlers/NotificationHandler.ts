@@ -60,11 +60,20 @@ export class NotificationHandler {
     title: string,
     message: string
   ) => {
-    if (this.notification) {
-      await this.notification.notify(severity, title, message);
-    } else {
+    try {
+      if (this.notification) {
+        await this.notification.notify(severity, title, message);
+      } else {
+        logger.warn(
+          `No endpoint is set in NotificationHandler. Failed to notify about [${title}] with severity [${severity}]: ${message}`
+        );
+      }
+    } catch (e) {
       logger.warn(
-        `No endpoint is set in NotificationHandler. Failed to notify about [${title}] with severity [${severity}]: ${message}`
+        `An error occurred while sending notification about [${title}] with severity [${severity}]: ${e}`
+      );
+      logger.debug(
+        `Failed to notify about [${title}] with severity [${severity}]: ${message}`
       );
     }
   };
