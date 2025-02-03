@@ -6,6 +6,7 @@ import { ChainMinimumFee } from '@rosen-bridge/minimum-fee';
 import EventBoxes from '../event/EventBoxes';
 import { ConfirmedEventEntity } from '../db/entities/ConfirmedEventEntity';
 import { EventStatus } from '../utils/constants';
+import EventSynchronization from '../synchronization/EventSynchronization';
 
 class EventVerifier {
   /**
@@ -76,7 +77,15 @@ class EventVerifier {
       type === TransactionType.reward
     )
       return true;
-    else return false;
+    else {
+      if (
+        eventEntity.status === EventStatus.pendingPayment &&
+        type === TransactionType.reward
+      ) {
+        EventSynchronization.getInstance().addEventToQueue(eventEntity.id);
+      }
+      return false;
+    }
   };
 }
 
