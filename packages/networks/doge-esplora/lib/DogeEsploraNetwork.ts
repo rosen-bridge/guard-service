@@ -111,8 +111,8 @@ class DogeEsploraNetwork extends AbstractDogeNetwork {
       const realTx = await this.getSavedTransactionById(transactionId);
       if (realTx) {
         const spentTx = await this.getSpentTransactionByInputId(
-          realTx?.inputs[0].index,
-          realTx?.inputs[0].txId
+          realTx.inputs[0].index,
+          realTx.inputs[0].txId
         );
         if (spentTx) {
           const sameInputs = realTx.inputs.every(
@@ -131,9 +131,14 @@ class DogeEsploraNetwork extends AbstractDogeNetwork {
         }
       }
     } catch (e: any) {
-      this.logger.debug(
-        `error while trying to see if the real transactionId differs from the input, will fallback to getTxConfirmationSigned: ${e.message}`
-      );
+      const baseError = `Failed to get confirmation for tx [${transactionId}] which was found in the database: `;
+      if (e.response) {
+        throw new FailedError(baseError + e.response.data);
+      } else if (e.request) {
+        throw new NetworkError(baseError + e.message);
+      } else {
+        throw new UnexpectedApiError(baseError + e.message);
+      }
     }
 
     return await this.getTxConfirmationSigned(realTxId);

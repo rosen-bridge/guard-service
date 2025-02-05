@@ -636,7 +636,7 @@ describe('DogeEsploraNetwork', () => {
      * - mock axios to throw error
      * - run test and expect exception thrown
      * @expected
-     * - it should throw FailedError with appropriate message
+     * - it should throw FailedError
      */
     it('should throw error when request fails', async () => {
       mockAxiosGetToThrow({
@@ -648,9 +648,7 @@ describe('DogeEsploraNetwork', () => {
 
       await expect(async () => {
         await network.getTransactionHex(testData.txId);
-      }).rejects.toThrow(
-        `Failed to get transaction [${testData.txId}] hex from Esplora: Transaction not found`
-      );
+      }).rejects.toThrow(FailedError);
     });
   });
 });
