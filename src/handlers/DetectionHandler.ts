@@ -2,7 +2,6 @@ import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { ECDSA, EdDSA, GuardDetection } from '@rosen-bridge/tss';
 import Dialer from '../communication/Dialer';
 import Configs from '../configs/Configs';
-import GuardPkHandler from './GuardPkHandler';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -61,14 +60,6 @@ class DetectionHandler {
       DetectionHandler.CHANNELS.edward,
       async (msg: string, channal: string, peerId: string) =>
         await this.instance.edwardDetection.handleMessage(msg, peerId)
-    );
-
-    // set required guards
-    this.instance.curveDetection.setNeedGuardThreshold(
-      GuardPkHandler.getInstance().requiredSign
-    );
-    this.instance.edwardDetection.setNeedGuardThreshold(
-      GuardPkHandler.getInstance().requiredSign
     );
 
     // initialize detection instances
