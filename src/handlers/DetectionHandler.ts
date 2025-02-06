@@ -50,10 +50,6 @@ class DetectionHandler {
     DetectionHandler.dialer = await Dialer.getInstance();
     DetectionHandler.instance = new DetectionHandler();
 
-    // initialize detection instances
-    await this.instance.curveDetection.init();
-    await this.instance.edwardDetection.init();
-
     // subscribe to channels
     DetectionHandler.dialer.subscribeChannel(
       DetectionHandler.CHANNELS.curve,
@@ -65,6 +61,10 @@ class DetectionHandler {
       async (msg: string, channal: string, peerId: string) =>
         await this.instance.edwardDetection.handleMessage(msg, peerId)
     );
+
+    // initialize detection instances
+    await this.instance.curveDetection.init();
+    await this.instance.edwardDetection.init();
 
     logger.debug('DetectionHandler initialized');
   };
