@@ -22,6 +22,10 @@
 - Use @rosen-bridge/extended-typeorm to prevent db transaction conflicts
 - Fix event status on `/events` API when event is just scanned
 - Fix p2p connection check to restart the guard
+- Notable updates in rosen-chains packages:
+  - Add verifyPaymentTransaction function which checks data consistency within a PaymentTransaction Object
+  - Rethrow any unexpected errors while verifying events
+  - Fix EVM gas estimation so that only required fields are sent to the RPC
 
 ## 5.0.8
 
