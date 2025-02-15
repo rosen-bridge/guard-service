@@ -65,9 +65,11 @@ class EventSynchronization extends Communicator {
    * initializes EventSynchronization
    */
   static init = async () => {
-    EventSynchronization.instance = new EventSynchronization(
-      DetectionHandler.getInstance().getDetection()
-    );
+    const detection = DetectionHandler.getInstance().getDetection();
+    // TODO: Definition of the required guard in the detection is not in the duty of this module!
+    //  local:ergo/rosen-bridge/guard-service#428
+    detection.setNeedGuardThreshold(GuardPkHandler.getInstance().requiredSign);
+    EventSynchronization.instance = new EventSynchronization(detection);
     this.dialer = await Dialer.getInstance();
     this.dialer.subscribeChannel(
       EventSynchronization.CHANNEL,
