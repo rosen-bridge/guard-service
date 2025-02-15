@@ -1,5 +1,32 @@
 # guard-service
 
+## 6.0.0
+
+### Major Changes
+
+- Integrate binance
+
+### Minor Changes
+
+- Add Event Reprocess feature: Allow requesting other guards through API to reprocess an event where its status is either 'timeout', 'rejected', 'payment-waiting' or 'reward-waiting'
+- Add Event Synchronization feature: Communicate with other guards to get the payment transaction of an event and move it to reward distribution
+- Add Arbitrary Order feature: Submit a request in guard to consensus on a transaction to satisfy it
+- Migrate from node 18.17 to 20.11
+- Add event progress health-check parameter
+
+### Patch Changes
+
+- Catch errors in NotificationHandler
+- Schedule transaction and scanned-events jobs on start instead of running them
+- Add transaction network validation in case of event transactions
+- Use @rosen-bridge/extended-typeorm to prevent db transaction conflicts
+- Fix event status on `/events` API when event is just scanned
+- Fix p2p connection check to restart the guard
+- Notable updates in rosen-chains packages:
+  - Add verifyPaymentTransaction function which checks data consistency within a PaymentTransaction Object
+  - Rethrow any unexpected errors while verifying events
+  - Fix EVM gas estimation so that only required fields are sent to the RPC
+
 ## 5.0.8
 
 ### Patch Changes
