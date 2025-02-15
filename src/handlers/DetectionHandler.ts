@@ -30,15 +30,15 @@ class DetectionHandler {
     DetectionHandler.dialer = await Dialer.getInstance();
     DetectionHandler.instance = new DetectionHandler();
 
-    // initialize detection instance
-    await this.instance.detection.init();
-
     // subscribe to channels
     DetectionHandler.dialer.subscribeChannel(
       DetectionHandler.CHANNEL,
       async (msg: string, channal: string, peerId: string) =>
         await this.instance.detection.handleMessage(msg, peerId)
     );
+
+    // initialize detection instance
+    await this.instance.detection.init();
 
     logger.debug('DetectionHandler initialized');
   };
