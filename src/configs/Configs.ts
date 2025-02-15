@@ -15,13 +15,15 @@ import { cloneDeep } from 'lodash-es';
  * @param defaultValue
  */
 const getConfigIntKeyOrDefault = (key: string, defaultValue: number) => {
-  const val: string = config.get(key);
-  if (val !== undefined) {
-    const valNum = parseInt(val);
-    if (isNaN(valNum)) {
-      throw Error(`Invalid value ${val} for ${key}`);
+  if (config.has(key)) {
+    const val: string = config.get(key);
+    if (val !== undefined) {
+      const valNum = parseInt(val);
+      if (isNaN(valNum)) {
+        throw Error(`Invalid value ${val} for ${key}`);
+      }
+      return valNum;
     }
-    return valNum;
   }
   return defaultValue;
 };
@@ -83,6 +85,10 @@ class Configs {
     'api.isManualTxRequestActive',
     false
   );
+  static isArbitraryOrderRequestActive = getOptionalConfig<boolean>(
+    'api.isArbitraryOrderRequestActive',
+    false
+  );
 
   // config of API's route
   static MAX_LENGTH_CHANNEL_SIZE = 200;
@@ -105,6 +111,24 @@ class Configs {
       }>
     >('tss.pubs'),
   };
+
+  // event synchronization
+  static parallelSyncLimit = getConfigIntKeyOrDefault(
+    'eventSync.parallelSyncLimit',
+    3
+  );
+  static parallelRequestCount = getConfigIntKeyOrDefault(
+    'eventSync.parallelRequestCount',
+    3
+  );
+  static eventSyncTimeout = getConfigIntKeyOrDefault('eventSync.timeout', 3600);
+  static eventSyncInterval = getConfigIntKeyOrDefault('eventSync.interval', 60);
+
+  // event reprocess
+  static eventReprocessCooldown = getConfigIntKeyOrDefault(
+    'eventReprocessCooldown',
+    43200
+  );
 
   // guards configs
   static guardMnemonic = config.get<string>('guard.mnemonic');
@@ -171,6 +195,7 @@ class Configs {
 
   // timeout configs
   static eventTimeout = getConfigIntKeyOrDefault('eventTimeout', 24 * 60 * 60); // seconds
+  static orderTimeout = getConfigIntKeyOrDefault('orderTimeout', 48 * 60 * 60); // seconds
   static txSignTimeout = getConfigIntKeyOrDefault('txSignTimeout', 5 * 60); // seconds
 
   // jobs configs
@@ -185,6 +210,7 @@ class Configs {
   static multiSigCleanUpInterval = 120; // seconds
   static tssInstanceRestartGap = 5; // seconds
   static tssUpdateInterval = 10; // seconds
+  static detectionUpdateInterval = 10; // seconds
   static timeoutProcessorInterval = getConfigIntKeyOrDefault(
     'intervals.timeoutProcessorInterval',
     3600
@@ -257,6 +283,10 @@ class Configs {
     'healthCheck.interval',
     60
   );
+  static healthCheckTimeout = getConfigIntKeyOrDefault(
+    'healthCheck.timeout',
+    20
+  );
   static ergWarnThreshold = BigInt(
     config.get<string>('healthCheck.asset.erg.warnThreshold')
   );
@@ -287,6 +317,12 @@ class Configs {
   static ethCriticalThreshold = BigInt(
     config.get<string>('healthCheck.asset.eth.criticalThreshold')
   );
+  static bnbWarnThreshold = BigInt(
+    config.get<string>('healthCheck.asset.bnb.warnThreshold')
+  );
+  static bnbCriticalThreshold = BigInt(
+    config.get<string>('healthCheck.asset.bnb.criticalThreshold')
+  );
   static ergoScannerWarnDiff = getConfigIntKeyOrDefault(
     'healthCheck.ergoScanner.warnDifference',
     5
@@ -297,11 +333,19 @@ class Configs {
   );
   static ethereumScannerWarnDiff = getConfigIntKeyOrDefault(
     'healthCheck.ethereumScanner.warnDifference',
-    5
+    50
   );
   static ethereumScannerCriticalDiff = getConfigIntKeyOrDefault(
     'healthCheck.ethereumScanner.criticalDifference',
-    20
+    200
+  );
+  static binanceScannerWarnDiff = getConfigIntKeyOrDefault(
+    'healthCheck.binanceScanner.warnDifference',
+    200
+  );
+  static binanceScannerCriticalDiff = getConfigIntKeyOrDefault(
+    'healthCheck.binanceScanner.criticalDifference',
+    800
   );
   static ergoNodeMaxHeightDiff = getConfigIntKeyOrDefault(
     'healthCheck.ergoNode.maxHeightDifference',
@@ -340,6 +384,14 @@ class Configs {
   static txSignFailedCriticalThreshold = getConfigIntKeyOrDefault(
     'healthCheck.txSignFailed.criticalThreshold',
     7
+  );
+  static eventDurationWarnThreshold = getConfigIntKeyOrDefault(
+    'healthCheck.eventDuration.warnThreshold',
+    7200 // 2 hours
+  );
+  static eventDurationCriticalThreshold = getConfigIntKeyOrDefault(
+    'healthCheck.eventDuration.criticalThreshold',
+    18000 // 5 hours
   );
 
   // Revenue Config

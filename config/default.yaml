@@ -7,8 +7,31 @@ api:
   apiKeyHash: '' # blake2b hash of Api-Key
   jsonBodyLimit: 50
   isManualTxRequestActive: false
+  isArbitraryOrderRequestActive: false
   allowedOrigins: [] # List of allowed origins for CORS headers
   maxRequestsPerMinute: 100_000
+binance:
+  networkType: 'mainnet' # Binance network type [testnet, mainnet]
+  chainNetwork: 'rpc' # 'rpc'
+  rpc:
+    url: ''
+    timeout: 8
+    initialHeight: -1
+    scannerInterval: 10
+  maxParallelTx: 2 # maximum number of txs to be processed with the same nonce (note that only one of these transactions will be succeed)
+  gasPriceSlippage: 50 # allowed slippage percentage for gas price
+  gasLimitSlippage: 50 # allowed slippage percentage for gas limit
+  gasLimitMultiplier: 3 # a multiplication of current gas limit will be used in txs
+  gasLimitCap: 80000 # the maximum required gas limit that is allowed (the cap is used if required gas is higher)
+  confirmation: # required block confirmation
+    observation: 200 # an observation transaction (lock transaction) on Binance get confirmed
+    payment: 200 # a payment transaction on Binance get confirmed
+    cold: 200 # a cold storage transaction on Binance get confirmed
+    manual: 200 # a manual transaction on Binance get confirmed
+    arbitrary: 200 # an arbitrary transaction on Binance get confirmed
+  tssChainCode: ''
+  derivationPath:
+    -
 bitcoin:
   networkType: 'mainnet' # Bitcoin network type [testnet, mainnet]
   chainNetwork: 'esplora' # 'esplora'
@@ -22,6 +45,7 @@ bitcoin:
     payment: 6 # a payment transaction on Bitcoin get confirmed
     cold: 6 # a cold storage transaction on Bitcoin get confirmed
     manual: 6 # a manual transaction on Bitcoin get confirmed
+    arbitrary: 6 # an arbitrary transaction on Bitcoin get confirmed
   tssChainCode: ''
   derivationPath:
     -
@@ -42,6 +66,7 @@ cardano:
     payment: 120 # a payment transaction on Cardano get confirmed
     cold: 120 # a cold storage transaction on Cardano get confirmed
     manual: 120 # a manual transaction on Cardano get confirmed
+    arbitrary: 120 # an arbitrary transaction on Cardano get confirmed
   tssChainCode: 'CardanoChainCode'
 ergo:
   networkType: 'mainnet' # Ergo network type [testnet, mainnet]
@@ -61,6 +86,7 @@ ergo:
     payment: 20 # a payment or reward distribution transaction on Ergo get confirmed
     cold: 20 # a cold storage transaction on Ergo get confirmed
     manual: 20 # a manual transaction on Ergo get confirmed
+    arbitrary: 20 # an arbitrary transaction on Ergo get confirmed
   initialHeight: 925000 # block scanner starting block height
   scannerInterval: 180 # scanner update interval
 ethereum:
@@ -81,6 +107,7 @@ ethereum:
     payment: 50 # a payment transaction on Ethereum get confirmed
     cold: 50 # a cold storage transaction on Ethereum get confirmed
     manual: 50 # a manual transaction on Ethereum get confirmed
+    arbitrary: 50 # an arbitrary transaction on Ethereum get confirmed
   tssChainCode: ''
   derivationPath:
     -
@@ -93,6 +120,12 @@ reward:
   networkFeeRepoAddress: '' # guards address for receiving network fee of events
   watchersSharePercent: 50 # watchers share for event fees (payed in tokens or native token)
   watchersEmissionSharePercent: 0 # watchers share for event fees (payed in emission token)
+eventSync:
+  parallelSyncLimit: 3
+  parallelRequestCount: 3
+  timeout: 3600
+  interval: 60
+eventReprocessCooldown: 43200
 tss:
   path: './bin/tss.exe' # path to tss executable file
   configPath: './bin/conf/conf.env'
@@ -155,6 +188,7 @@ database:
   # name: '' # database name (for postgres)
 healthCheck:
   interval: 60 # health check update interval (in seconds)
+  timeout: 20 # health check job timeout (in seconds)
   asset:
     erg:
       warnThreshold: 1000000000 # minimum recommended erg balance
@@ -171,12 +205,18 @@ healthCheck:
     eth:
       warnThreshold: '20000000000000000' # minimum recommended eth balance
       criticalThreshold: '4000000000000000' # minimum required eth balance
+    bnb:
+      warnThreshold: '5000000000000000' # minimum recommended bnb balance
+      criticalThreshold: '1000000000000000' # minimum required bnb balance
   ergoScanner:
     warnDifference: 5 # warning difference between existing and scanned blocks height
     criticalDifference: 20 # critical difference between existing and scanned blocks height
   ethereumScanner:
     warnDifference: 50 # warning difference between existing and scanned blocks height
     criticalDifference: 200 # critical difference between existing and scanned blocks height
+  binanceScanner:
+    warnDifference: 200 # warning difference between existing and scanned blocks height
+    criticalDifference: 800 # critical difference between existing and scanned blocks height
   ergoNode:
     maxHeightDifference: 2 # maximum difference between header height and full height
     maxBlockTime: 1800 # maximum time to see a new block
@@ -191,6 +231,9 @@ healthCheck:
   txSignFailed:
     warnThreshold: 3
     criticalThreshold: 7
+  eventDuration: # elapsed time from the last moment that tx generation is allowed for this event
+    warnThreshold: 7200 # 2 hours
+    criticalThreshold: 18000 # 5 hours
 revenue:
   interval: 120 # revenue update interval
 discordWebHookUrl: '' # Discord webhook url for sending notifications

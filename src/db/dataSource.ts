@@ -1,4 +1,4 @@
-import { DataSource } from 'typeorm';
+import { DataSource } from '@rosen-bridge/extended-typeorm';
 import Configs from '../configs/Configs';
 
 import {
@@ -24,6 +24,8 @@ import {
   AddressTxsEntity,
   migrations as addressTxExtractorMigrations,
 } from '@rosen-bridge/evm-address-tx-extractor';
+import { ArbitraryEntity } from './entities/ArbitraryEntity';
+import { ReprocessEntity } from './entities/ReprocessEntity';
 
 const dbType = Configs.dbType as keyof typeof migrations;
 const dbConfigs = {
@@ -39,6 +41,8 @@ const dbConfigs = {
     RevenueChartView,
     EventView,
     AddressTxsEntity,
+    ArbitraryEntity,
+    ReprocessEntity,
   ],
   migrations: [
     ...scannerMigrations[dbType],

@@ -4,6 +4,7 @@ import {
   In,
   IsNull,
   LessThan,
+  MoreThan,
   MoreThanOrEqual,
   Not,
   Repository,
@@ -12,6 +13,7 @@ import { ConfirmedEventEntity } from './entities/ConfirmedEventEntity';
 import { TransactionEntity } from './entities/TransactionEntity';
 import {
   EventStatus,
+  OrderStatus,
   RevenuePeriod,
   TransactionStatus,
 } from '../utils/constants';
@@ -34,6 +36,10 @@ import {
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { EventView } from './entities/EventView';
 import { BlockEntity, PROCEED } from '@rosen-bridge/scanner';
+import { ArbitraryEntity } from './entities/ArbitraryEntity';
+import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
+import { ReprocessEntity } from './entities/ReprocessEntity';
+import { ReprocessStatus } from '../reprocess/Interfaces';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -49,6 +55,8 @@ class DatabaseAction {
   RevenueView: Repository<RevenueView>;
   RevenueChartView: Repository<RevenueChartView>;
   EventView: Repository<EventView>;
+  ArbitraryRepository: Repository<ArbitraryEntity>;
+  ReprocessRepository: Repository<ReprocessEntity>;
 
   txSignSemaphore = new Semaphore(1);
 
@@ -62,9 +70,11 @@ class DatabaseAction {
     this.TransactionRepository =
       this.dataSource.getRepository(TransactionEntity);
     this.RevenueRepository = this.dataSource.getRepository(RevenueEntity);
-    this.RevenueView = dataSource.getRepository(RevenueView);
-    this.RevenueChartView = dataSource.getRepository(RevenueChartView);
-    this.EventView = dataSource.getRepository(EventView);
+    this.RevenueView = this.dataSource.getRepository(RevenueView);
+    this.RevenueChartView = this.dataSource.getRepository(RevenueChartView);
+    this.EventView = this.dataSource.getRepository(EventView);
+    this.ArbitraryRepository = this.dataSource.getRepository(ArbitraryEntity);
+    this.ReprocessRepository = this.dataSource.getRepository(ReprocessEntity);
   }
 
   /**
@@ -166,7 +176,7 @@ class DatabaseAction {
    */
   getActiveTransactions = async (): Promise<TransactionEntity[]> => {
     return await this.TransactionRepository.find({
-      relations: ['event'],
+      relations: ['event', 'order'],
       where: {
         status: In([
           TransactionStatus.sent,
@@ -249,7 +259,7 @@ class DatabaseAction {
    */
   getTxById = async (txId: string): Promise<TransactionEntity | null> => {
     return await this.TransactionRepository.findOne({
-      relations: ['event'],
+      relations: ['event', 'order'],
       where: {
         txId: txId,
       },
@@ -290,7 +300,7 @@ class DatabaseAction {
     const event = await this.getEventById(eventId);
     if (event === null) throw Error(`Event [${eventId}] not found`);
     return await this.TransactionRepository.find({
-      relations: ['event'],
+      relations: ['event', 'order'],
       where: {
         event: { id: event.id },
         type: type,
@@ -359,7 +369,8 @@ class DatabaseAction {
   insertNewTx = async (
     paymentTx: PaymentTransaction,
     event: ConfirmedEventEntity | null,
-    requiredSign: number
+    requiredSign: number,
+    order: ArbitraryEntity | null
   ): Promise<void> => {
     await this.TransactionRepository.insert({
       txId: paymentTx.txId,
@@ -370,6 +381,32 @@ class DatabaseAction {
       lastStatusUpdate: String(Math.round(Date.now() / 1000)),
       lastCheck: 0,
       event: event !== null ? event : undefined,
+      order: order !== null ? order : undefined,
+      failedInSign: false,
+      signFailedCount: 0,
+      requiredSign: requiredSign,
+    });
+  };
+
+  /**
+   * inserts a tx record into transactions table
+   */
+  insertCompletedTx = async (
+    paymentTx: PaymentTransaction,
+    event: ConfirmedEventEntity | null,
+    requiredSign: number,
+    order: ArbitraryEntity | null
+  ): Promise<void> => {
+    await this.TransactionRepository.insert({
+      txId: paymentTx.txId,
+      txJson: paymentTx.toJson(),
+      type: paymentTx.txType,
+      chain: paymentTx.network,
+      status: TransactionStatus.completed,
+      lastStatusUpdate: String(Math.round(Date.now() / 1000)),
+      lastCheck: 0,
+      event: event !== null ? event : undefined,
+      order: order !== null ? order : undefined,
       failedInSign: false,
       signFailedCount: 0,
       requiredSign: requiredSign,
@@ -427,7 +464,7 @@ class DatabaseAction {
     chain: string
   ): Promise<TransactionEntity[]> => {
     return await this.TransactionRepository.find({
-      relations: ['event'],
+      relations: ['event', 'order'],
       where: {
         type: TransactionType.coldStorage,
         status: Not(
@@ -446,7 +483,7 @@ class DatabaseAction {
     chain: string
   ): Promise<TransactionEntity[]> => {
     return await this.TransactionRepository.find({
-      relations: ['event'],
+      relations: ['event', 'order'],
       where: [
         {
           status: TransactionStatus.approved,
@@ -472,7 +509,7 @@ class DatabaseAction {
     chain: string
   ): Promise<TransactionEntity[]> => {
     return await this.TransactionRepository.find({
-      relations: ['event'],
+      relations: ['event', 'order'],
       where: [
         {
           status: TransactionStatus.signed,
@@ -496,7 +533,7 @@ class DatabaseAction {
     const event = await this.getEventById(eventId);
     if (event === null) throw new Error(`Event [${eventId}] not found`);
     const txs = await this.TransactionRepository.find({
-      relations: ['event'],
+      relations: ['event', 'order'],
       where: [
         {
           event: { id: event.id },
@@ -519,7 +556,7 @@ class DatabaseAction {
    */
   getUnsignedFailedSignTxs = async (): Promise<TransactionEntity[]> => {
     return await this.TransactionRepository.find({
-      relations: ['event'],
+      relations: ['event', 'order'],
       where: [
         {
           status: TransactionStatus.signFailed,
@@ -771,7 +808,7 @@ class DatabaseAction {
    */
   getValidTxsForEvents = (eventIds: string[]): Promise<TransactionEntity[]> => {
     return this.TransactionRepository.find({
-      relations: ['event'],
+      relations: ['event', 'order'],
       where: {
         event: In(eventIds),
         status: Not(TransactionStatus.invalid),
@@ -811,6 +848,155 @@ class DatabaseAction {
     });
     if (lastBlock.length !== 0) return lastBlock[0].height;
     throw new NotFoundError(`No block found in database`);
+  };
+
+  /**
+   * @param status order status
+   * @return the arbitrary orders with status
+   */
+  getOrdersByStatus = async (
+    orderStatus: string
+  ): Promise<ArbitraryEntity[]> => {
+    return await this.ArbitraryRepository.find({
+      where: {
+        status: orderStatus,
+      },
+    });
+  };
+
+  /**
+   * updates the status of an arbitrary order by id
+   * @param id order id
+   * @param status order status
+   * @param updateFirstTry if true, firstTry column will be updated to the current timestamp
+   * @param incrementUnexpectedFails if true, unexpectedFails column will be incremented
+   */
+  setOrderStatus = async (
+    id: string,
+    status: string,
+    updateFirstTry = false,
+    incrementUnexpectedFails = false
+  ): Promise<void> => {
+    const updatedRecord: QueryDeepPartialEntity<ArbitraryEntity> = {
+      status: status,
+    };
+    if (updateFirstTry)
+      updatedRecord.firstTry = String(Math.round(Date.now() / 1000));
+    if (incrementUnexpectedFails)
+      updatedRecord.unexpectedFails = () => '"unexpectedFails" + 1';
+
+    await this.ArbitraryRepository.update({ id: id }, updatedRecord);
+  };
+
+  /**
+   * @param id order id
+   */
+  getOrderById = async (id: string): Promise<ArbitraryEntity | null> => {
+    return await this.ArbitraryRepository.findOne({
+      where: {
+        id: id,
+      },
+    });
+  };
+
+  /**
+   * inserts an arbitrary order record into database
+   */
+  insertNewOrder = async (
+    id: string,
+    chain: string,
+    orderJson: string
+  ): Promise<void> => {
+    await this.ArbitraryRepository.insert({
+      id: id,
+      chain: chain,
+      orderJson: orderJson,
+      status: OrderStatus.pending,
+      firstTry: String(Math.round(Date.now() / 1000)),
+    });
+  };
+
+  /**
+   * returns all valid transaction for corresponding order
+   * @param id order id
+   */
+  getOrderValidTxs = async (id: string): Promise<TransactionEntity[]> => {
+    return await this.TransactionRepository.find({
+      relations: ['event', 'order'],
+      where: {
+        order: { id: id },
+        status: Not(TransactionStatus.invalid),
+      },
+    });
+  };
+
+  /**
+   * inserts reprocess request into db
+   * @param senderId
+   * @param requestId
+   * @param eventId
+   * @param timestamp
+   * @param peerIds
+   */
+  insertReprocessRequests = async (
+    senderId: string,
+    requestId: string,
+    eventId: string,
+    timestamp: number,
+    peerIds: string[]
+  ) => {
+    await this.ReprocessRepository.insert(
+      peerIds.map((peerId) => ({
+        requestId: requestId,
+        eventId: eventId,
+        sender: senderId,
+        receiver: peerId,
+        status: ReprocessStatus.noResponse,
+        timestamp: timestamp,
+      }))
+    );
+  };
+
+  /**
+   * gets all requests sent by the given peerId after the given timestamp
+   * @param senderId
+   * @param timestamp
+   */
+  getRecentReprocessRequestsByGuard = async (
+    senderId: string,
+    timestamp: number
+  ) => {
+    return await this.ReprocessRepository.find({
+      where: {
+        sender: senderId,
+        timestamp: MoreThan(timestamp),
+      },
+    });
+  };
+
+  /**
+   * updates the status of a reprocess request
+   * @param requestId
+   * @param senderId
+   * @param receiverId
+   * @param status
+   */
+  updateReprocessRequest = async (
+    requestId: string,
+    senderId: string,
+    receiverId: string,
+    status: ReprocessStatus
+  ) => {
+    return await this.ReprocessRepository.update(
+      {
+        requestId: requestId,
+        sender: senderId,
+        receiver: receiverId,
+      },
+      {
+        status: status,
+      }
+    );
   };
 }
 

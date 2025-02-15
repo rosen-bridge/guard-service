@@ -1,4 +1,5 @@
 import { Column, Entity, PrimaryColumn, ManyToOne, Relation } from 'typeorm';
+import { ArbitraryEntity } from './ArbitraryEntity';
 import { ConfirmedEventEntity } from './ConfirmedEventEntity';
 
 @Entity()
@@ -40,4 +41,10 @@ export class TransactionEntity {
 
   @Column('integer')
   requiredSign: number;
+
+  @ManyToOne('ArbitraryEntity', 'orderId', {
+    cascade: true,
+    nullable: true,
+  })
+  order: Relation<ArbitraryEntity>;
 }

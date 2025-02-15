@@ -6,11 +6,15 @@ import {
   PaymentTransaction,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
-import { EventStatus, TransactionStatus } from '../../src/utils/constants';
+import {
+  EventStatus,
+  OrderStatus,
+  TransactionStatus,
+} from '../../src/utils/constants';
 import DatabaseHandler from '../../src/db/DatabaseHandler';
 import DatabaseActionMock from './mocked/DatabaseAction.mock';
-import { rosenConfig } from '../../src/configs/RosenConfig';
 import GuardsErgoConfigs from '../../src/configs/GuardsErgoConfigs';
+import { CARDANO_CHAIN } from '@rosen-chains/cardano';
 
 describe('DatabaseHandler', () => {
   const requiredSign = 6;
@@ -42,9 +46,9 @@ describe('DatabaseHandler', () => {
     });
   });
 
-  describe('insertEventTx', () => {
+  describe('insertEventOrOderTx', () => {
     /**
-     * @target DatabaseHandler.insertEventTx should insert tx when
+     * @target DatabaseHandler.insertEventOrOderTx should insert tx when
      * there is no other tx for the event
      * @dependencies
      * - database
@@ -84,7 +88,49 @@ describe('DatabaseHandler', () => {
     });
 
     /**
-     * @target DatabaseHandler.insertEventTx should NOT insert tx when
+     * @target DatabaseHandler.insertEventOrOderTx should insert tx when
+     * there is no other tx for the order
+     * @dependencies
+     * - database
+     * @scenario
+     * - mock order and transaction
+     * - insert mocked order into db
+     * - run test (call `insertTx`)
+     * - check database
+     * @expected
+     * - tx should be inserted into db
+     */
+    it('should insert tx when there is no other tx for the order', async () => {
+      // mock order and transaction
+      const orderId = 'order-id';
+      const orderChain = CARDANO_CHAIN;
+      const tx = TxTestData.mockPaymentTransaction(
+        TransactionType.arbitrary,
+        orderChain,
+        orderId
+      );
+
+      // insert mocked order into db
+      await DatabaseActionMock.insertOrderRecord(
+        orderId,
+        orderChain,
+        `orderJson`,
+        OrderStatus.pending
+      );
+
+      // run test
+      await DatabaseHandler.insertTx(tx, requiredSign);
+
+      // tx should be inserted into db
+      const dbTxs = (await DatabaseHandlerMock.allTxRecords()).map((tx) => [
+        tx.txId,
+        tx.order.id,
+      ]);
+      expect(dbTxs).toEqual([[tx.txId, orderId]]);
+    });
+
+    /**
+     * @target DatabaseHandler.insertEventOrOderTx should NOT insert tx when
      * there is already an advanced tx for the event
      * @dependencies
      * - database
@@ -132,7 +178,57 @@ describe('DatabaseHandler', () => {
     });
 
     /**
-     * @target DatabaseHandler.insertEventTx should insert tx when
+     * @target DatabaseHandler.insertEventOrOderTx should NOT insert tx when
+     * there is already an advanced tx for the order
+     * @dependencies
+     * - database
+     * @scenario
+     * - mock order and two transactions
+     * - insert mocked order into db
+     * - insert one of the txs into db (with `inSign` status)
+     * - run test (call `insertTx`)
+     * - check database
+     * @expected
+     * - tx should NOT be inserted into db
+     */
+    it('should NOT insert tx when there is already an advanced tx for the order', async () => {
+      // mock order and two transactions
+      const orderId = 'order-id';
+      const orderChain = CARDANO_CHAIN;
+      const tx1 = TxTestData.mockPaymentTransaction(
+        TransactionType.arbitrary,
+        orderChain,
+        orderId
+      );
+      const tx2 = TxTestData.mockPaymentTransaction(
+        TransactionType.arbitrary,
+        orderChain,
+        orderId
+      );
+
+      // insert mocked order into db
+      await DatabaseActionMock.insertOrderRecord(
+        orderId,
+        orderChain,
+        `orderJson`,
+        OrderStatus.pending
+      );
+
+      // insert one of the txs into db
+      await DatabaseHandlerMock.insertTxRecord(tx2, TransactionStatus.inSign);
+
+      // run test
+      await DatabaseHandler.insertTx(tx1, requiredSign);
+
+      // tx should NOT be inserted into db
+      const dbTxs = (await DatabaseHandlerMock.allTxRecords()).map(
+        (tx) => tx.txId
+      );
+      expect(dbTxs).toEqual([tx2.txId]);
+    });
+
+    /**
+     * @target DatabaseHandler.insertEventOrOderTx should insert tx when
      * txId is lower than existing approved tx
      * @dependencies
      * - database
@@ -194,7 +290,7 @@ describe('DatabaseHandler', () => {
     });
 
     /**
-     * @target DatabaseHandler.insertEventTx should NOT insert tx when
+     * @target DatabaseHandler.insertEventOrOderTx should NOT insert tx when
      * txId is higher than existing approved tx
      * @dependencies
      * - database
@@ -256,7 +352,7 @@ describe('DatabaseHandler', () => {
     });
 
     /**
-     * @target DatabaseHandler.insertEventTx should update failedInSign when
+     * @target DatabaseHandler.insertEventOrOderTx should update failedInSign when
      * tx is already in database
      * @dependencies
      * - database

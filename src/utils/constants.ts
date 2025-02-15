@@ -1,3 +1,4 @@
+import { BINANCE_CHAIN, BNB } from '@rosen-chains/binance';
 import { BITCOIN_CHAIN, BTC } from '@rosen-chains/bitcoin';
 import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
 import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
@@ -33,6 +34,7 @@ enum RevenuePeriod {
   week = 'week',
 }
 const EventUnexpectedFailsLimit = 2;
+const OrderUnexpectedFailsLimit = 1;
 const DefaultApiLimit = 100;
 const DefaultAssetApiLimit = 10;
 const DefaultRevenueApiCount = 10;
@@ -44,6 +46,7 @@ const SUPPORTED_CHAINS = [
   CARDANO_CHAIN,
   BITCOIN_CHAIN,
   ETHEREUM_CHAIN,
+  BINANCE_CHAIN,
 ];
 
 enum RevenueType {
@@ -63,13 +66,24 @@ const ChainNativeToken: Record<string, string> = {
   [CARDANO_CHAIN]: ADA,
   [BITCOIN_CHAIN]: BTC,
   [ETHEREUM_CHAIN]: ETH,
+  [BINANCE_CHAIN]: BNB,
 };
+
+enum OrderStatus {
+  pending = 'pending',
+  inProcess = 'in-process',
+  completed = 'completed',
+  timeout = 'timeout',
+  waiting = 'waiting',
+  reachedLimit = 'reached-limit',
+}
 
 export {
   EventStatus,
   TransactionStatus,
   RevenuePeriod,
   EventUnexpectedFailsLimit,
+  OrderUnexpectedFailsLimit,
   DefaultApiLimit,
   DefaultRevenueApiCount,
   DefaultAssetApiLimit,
@@ -79,4 +93,5 @@ export {
   RevenueType,
   TssAlgorithms,
   ChainNativeToken,
+  OrderStatus,
 };

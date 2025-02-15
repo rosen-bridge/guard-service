@@ -88,11 +88,3 @@ chown -R 8080:8080 logs
 docker pull ghcr.io/rosen-bridge/guard-service
 docker-compose up
 ```
-
-## Contributing
-
-TBD
-
-## License
-
-TBD

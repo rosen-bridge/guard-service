@@ -20,6 +20,11 @@ import GuardPkHandler from './handlers/GuardPkHandler';
 import MinimumFeeHandler from './handlers/MinimumFeeHandler';
 import { minimumFeeUpdateJob } from './jobs/minimumFee';
 import { NotificationHandler } from './handlers/NotificationHandler';
+import Dialer from './communication/Dialer';
+import EventSynchronization from './synchronization/EventSynchronization';
+import DetectionHandler from './handlers/DetectionHandler';
+import EventReprocess from './reprocess/EventReprocess';
+import ArbitraryProcessor from './arbitrary/ArbitraryProcessor';
 
 const init = async () => {
   // initialize NotificationHandler object
@@ -33,6 +38,10 @@ const init = async () => {
 
   // initialize express Apis
   await initApiServer();
+
+  // initialize Dialer and DetectionHandler
+  await Dialer.getInstance();
+  await DetectionHandler.init();
 
   // initialize tss multiSig object
   await MultiSigHandler.init(Configs.guardSecret);
@@ -54,6 +63,15 @@ const init = async () => {
 
   // initialize TxAgreement object
   await TxAgreement.getInstance();
+
+  // initialize ArbitraryProcessor object
+  ArbitraryProcessor.getInstance();
+
+  // initialize EventSynchronization object
+  await EventSynchronization.init();
+
+  // initialize EventReprocess object
+  await EventReprocess.init();
 
   // initialize MinimumFeeHandler
   await MinimumFeeHandler.init(Configs.tokens());

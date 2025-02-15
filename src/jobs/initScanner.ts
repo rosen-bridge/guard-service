@@ -13,11 +13,14 @@ import GuardsEthereumConfigs from '../configs/GuardsEthereumConfigs';
 import { EvmRpcScanner } from '@rosen-bridge/evm-rpc-scanner';
 import { EvmTxExtractor } from '@rosen-bridge/evm-address-tx-extractor';
 import { ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
+import GuardsBinanceConfigs from '../configs/GuardsBinanceConfigs';
+import { BINANCE_CHAIN } from '@rosen-chains/binance';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
 let ergoScanner: ErgoScanner;
 let ethereumScanner: EvmRpcScanner;
+let binanceScanner: EvmRpcScanner;
 
 /**
  * runs ergo block scanner
@@ -53,6 +56,28 @@ const ethereumScannerJob = () => {
       setTimeout(
         ethereumScannerJob,
         GuardsEthereumConfigs.rpc.scannerInterval * 1000
+      );
+    });
+};
+
+/**
+ * runs binance block scanner
+ */
+const binanceScannerJob = () => {
+  binanceScanner
+    .update()
+    .then(() =>
+      setTimeout(
+        binanceScannerJob,
+        GuardsBinanceConfigs.rpc.scannerInterval * 1000
+      )
+    )
+    .catch((e) => {
+      logger.warn(`An error occurred in Binance scanner job: ${e}`);
+      logger.warn(e.stack);
+      setTimeout(
+        binanceScannerJob,
+        GuardsBinanceConfigs.rpc.scannerInterval * 1000
       );
     });
 };
@@ -99,6 +124,20 @@ const createLoggers = () => ({
   ethereumLockAddressTxExtractorLogger:
     DefaultLoggerFactory.getInstance().getLogger(
       'ethereum-lock-address-tx-extractor'
+    ),
+  binanceCommitmentExtractorLogger:
+    DefaultLoggerFactory.getInstance().getLogger(
+      'binance-commitment-extractor'
+    ),
+  binanceEventTriggerExtractorLogger:
+    DefaultLoggerFactory.getInstance().getLogger(
+      'binance-event-trigger-extractor'
+    ),
+  binanceScannerLogger:
+    DefaultLoggerFactory.getInstance().getLogger('binance-scanner'),
+  binanceLockAddressTxExtractorLogger:
+    DefaultLoggerFactory.getInstance().getLogger(
+      'binance-lock-address-tx-extractor'
     ),
 });
 
@@ -200,6 +239,24 @@ const initScanner = () => {
     loggers.ethereumEventTriggerExtractorLogger
   );
 
+  const binanceCommitmentExtractor = new CommitmentExtractor(
+    'binanceCommitment',
+    [GuardsBinanceConfigs.binanceContractConfig.commitmentAddress],
+    GuardsBinanceConfigs.binanceContractConfig.RWTId,
+    dataSource,
+    tokens,
+    loggers.binanceCommitmentExtractorLogger
+  );
+  const binanceEventTriggerExtractor = new EventTriggerExtractor(
+    'binanceEventTrigger',
+    dataSource,
+    GuardsBinanceConfigs.binanceContractConfig.eventTriggerAddress,
+    GuardsBinanceConfigs.binanceContractConfig.RWTId,
+    GuardsBinanceConfigs.binanceContractConfig.permitAddress,
+    GuardsBinanceConfigs.binanceContractConfig.fraudAddress,
+    loggers.binanceEventTriggerExtractorLogger
+  );
+
   ergoScanner.registerExtractor(bitcoinCommitmentExtractor);
   ergoScanner.registerExtractor(bitcoinEventTriggerExtractor);
   ergoScanner.registerExtractor(cardanoCommitmentExtractor);
@@ -208,6 +265,8 @@ const initScanner = () => {
   ergoScanner.registerExtractor(ergoEventTriggerExtractor);
   ergoScanner.registerExtractor(ethereumCommitmentExtractor);
   ergoScanner.registerExtractor(ethereumEventTriggerExtractor);
+  ergoScanner.registerExtractor(binanceCommitmentExtractor);
+  ergoScanner.registerExtractor(binanceEventTriggerExtractor);
 
   ergoScannerJob();
 
@@ -233,6 +292,30 @@ const initScanner = () => {
     ethereumScanner.registerExtractor(ethereumAddressTxExtractor);
     // run ethereum scanner job
     ethereumScannerJob();
+  }
+
+  if (GuardsBinanceConfigs.chainNetworkName === 'rpc') {
+    // RPC network requires Binance scanner
+    binanceScanner = new EvmRpcScanner(
+      BINANCE_CHAIN,
+      {
+        RpcUrl: GuardsBinanceConfigs.rpc.url,
+        timeout: GuardsBinanceConfigs.rpc.timeout,
+        initialHeight: GuardsBinanceConfigs.rpc.initialHeight,
+        dataSource: dataSource,
+      },
+      loggers.binanceScannerLogger,
+      GuardsBinanceConfigs.rpc.authToken
+    );
+    const BinanceAddressTxExtractor = new EvmTxExtractor(
+      dataSource,
+      'Binance-lock-address',
+      GuardsBinanceConfigs.binanceContractConfig.lockAddress,
+      loggers.binanceLockAddressTxExtractorLogger
+    );
+    binanceScanner.registerExtractor(BinanceAddressTxExtractor);
+    // run Binance scanner job
+    binanceScannerJob();
   }
 };
 

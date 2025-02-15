@@ -14,7 +14,7 @@ import { authenticateKey } from '../utils/authentication';
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
 /**
- * setup event history route
+ * setup sign transaction route
  * @param server
  */
 const signTxRoute = (server: FastifySeverInstance) => {
@@ -27,6 +27,7 @@ const signTxRoute = (server: FastifySeverInstance) => {
           200: MessageResponseSchema,
           400: MessageResponseSchema,
           403: MessageResponseSchema,
+          409: MessageResponseSchema,
         },
         security: [{ apiKey: [] }],
       },

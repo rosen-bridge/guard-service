@@ -71,7 +71,7 @@ const eventsHistoryRoute = (server: FastifySeverInstance) => {
           sourceTxId: event.sourceTxId,
           paymentTxId: event.paymentTxId ?? '',
           rewardTxId: event.spendTxId ?? '',
-          status: event.result ?? event.status,
+          status: event.result ?? event.status ?? 'not confirmed yet',
         };
       });
 

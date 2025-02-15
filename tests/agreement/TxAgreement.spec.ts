@@ -13,9 +13,14 @@ import {
 } from '../../src/agreement/Interfaces';
 import * as EventTestData from '../event/testData';
 import EventSerializer from '../../src/event/EventSerializer';
-import { EventStatus, TransactionStatus } from '../../src/utils/constants';
+import {
+  EventStatus,
+  OrderStatus,
+  TransactionStatus,
+} from '../../src/utils/constants';
 import { cloneDeep } from 'lodash-es';
 import TransactionVerifier from '../../src/verification/TransactionVerifier';
+import { CARDANO_CHAIN } from '@rosen-chains/cardano';
 
 describe('TxAgreement', () => {
   describe('addTransactionToQueue', () => {
@@ -293,6 +298,60 @@ describe('TxAgreement', () => {
       // memory chain cold storage map should contain mocked tx
       expect(
         txAgreement.getAgreedColdStorageTransactions().get(paymentTx.network)
+      ).toEqual(paymentTx.txId);
+    });
+
+    /**
+     * @target TxAgreement.verifyTransactionRequest should return true and add
+     * payment tx to orders agreed tx map when conditions met
+     * @dependencies
+     * - GuardTurn
+     * - RequestVerifier
+     * @scenario
+     * - mock testdata
+     * - mock GuardTurn to return creatorId
+     * - mock TransactionVerifier.verifyTxCommonConditions to return true
+     * - mock RequestVerifier.verifyArbitraryTransactionRequest to return true
+     * - run test
+     * - check returned value
+     * - check transactions in memory
+     * @expected
+     * - should return true
+     * - memory order map should contain mocked tx
+     */
+    it('should return true and add payment tx to orders agreed tx map when conditions met', async () => {
+      // mock testdata
+      const paymentTx = mockPaymentTransaction(TransactionType.arbitrary);
+      const creatorId = 0;
+
+      // mock GuardTurn
+      vi.spyOn(GuardTurn, 'guardTurn').mockReturnValue(creatorId);
+
+      // mock TransactionVerifier.verifyTxCommonConditions
+      vi.spyOn(
+        TransactionVerifier,
+        'verifyTxCommonConditions'
+      ).mockResolvedValue(true);
+
+      // mock RequestVerifier.verifyArbitraryTransactionRequest
+      vi.spyOn(
+        RequestVerifier,
+        'verifyArbitraryTransactionRequest'
+      ).mockResolvedValue(true);
+
+      // run test
+      const txAgreement = new TestTxAgreement();
+      const result = await txAgreement.callVerifyTransactionRequest(
+        paymentTx,
+        creatorId
+      );
+
+      // should return true
+      expect(result).toEqual(true);
+
+      // memory order map should contain mocked tx
+      expect(
+        txAgreement.getOrderAgreedTransactions().get(paymentTx.eventId)
       ).toEqual(paymentTx.txId);
     });
 
@@ -743,6 +802,180 @@ describe('TxAgreement', () => {
 
       // memory cold storage chain map should be empty
       expect(txAgreement.getAgreedColdStorageTransactions().size).toEqual(0);
+    });
+
+    /**
+     * @target TxAgreement.verifyTransactionRequest should return false
+     * when already agreed to another tx for the order
+     * @dependencies
+     * - GuardTurn
+     * - RequestVerifier
+     * @scenario
+     * - mock testdata
+     * - mock GuardTurn to return creatorId
+     * - insert a random txId into orderAgreedTransactions map
+     * - mock RequestVerifier.verifyArbitraryTransactionRequest to return true
+     * - run test
+     * - check returned value
+     * - check transactions in memory
+     * @expected
+     * - should return false
+     * - memory order map should contain another tx
+     */
+    it('should return false when already agreed to another tx for the order', async () => {
+      // mock testdata
+      const paymentTx = mockPaymentTransaction(TransactionType.arbitrary);
+      const creatorId = 0;
+
+      // mock GuardTurn
+      vi.spyOn(GuardTurn, 'guardTurn').mockReturnValue(creatorId);
+
+      // mock TransactionVerifier.verifyTxCommonConditions
+      vi.spyOn(
+        TransactionVerifier,
+        'verifyTxCommonConditions'
+      ).mockResolvedValue(true);
+
+      // insert a random txId into orderAgreedTransactions map
+      const txAgreement = new TestTxAgreement();
+      const previousTxId = TestUtils.generateRandomId();
+      txAgreement.insertOrderAgreedTransactions(
+        paymentTx.eventId,
+        previousTxId
+      );
+
+      // mock RequestVerifier.verifyArbitraryTransactionRequest
+      vi.spyOn(
+        RequestVerifier,
+        'verifyArbitraryTransactionRequest'
+      ).mockResolvedValue(true);
+
+      // run test
+      const result = await txAgreement.callVerifyTransactionRequest(
+        paymentTx,
+        creatorId
+      );
+
+      // should return false
+      expect(result).toEqual(false);
+
+      // memory order map should contain another tx
+      expect(txAgreement.getOrderAgreedTransactions().size).toEqual(1);
+      expect(
+        txAgreement.getOrderAgreedTransactions().get(paymentTx.eventId)
+      ).toEqual(previousTxId);
+    });
+
+    /**
+     * @target TxAgreement.verifyTransactionRequest should return true
+     * when already agreed to the arbitrary tx
+     * @dependencies
+     * - GuardTurn
+     * - RequestVerifier
+     * @scenario
+     * - mock testdata
+     * - mock GuardTurn to return creatorId
+     * - insert a random txId into orderAgreedTransactions map
+     * - mock RequestVerifier.verifyArbitraryTransactionRequest to return true
+     * - run test
+     * - check returned value
+     * - check transactions in memory
+     * @expected
+     * - should return true
+     * - memory order map should contain mocked tx
+     */
+    it('should return true when already agreed to the arbitrary tx', async () => {
+      // mock testdata
+      const paymentTx = mockPaymentTransaction(TransactionType.arbitrary);
+      const creatorId = 0;
+
+      // mock GuardTurn
+      vi.spyOn(GuardTurn, 'guardTurn').mockReturnValue(creatorId);
+
+      // mock TransactionVerifier.verifyTxCommonConditions
+      vi.spyOn(
+        TransactionVerifier,
+        'verifyTxCommonConditions'
+      ).mockResolvedValue(true);
+
+      // insert a random txId into orderAgreedTransactions map
+      const txAgreement = new TestTxAgreement();
+      txAgreement.insertOrderAgreedTransactions(
+        paymentTx.eventId,
+        paymentTx.txId
+      );
+
+      // mock RequestVerifier.verifyArbitraryTransactionRequest
+      vi.spyOn(
+        RequestVerifier,
+        'verifyArbitraryTransactionRequest'
+      ).mockResolvedValue(true);
+
+      // run test
+      const result = await txAgreement.callVerifyTransactionRequest(
+        paymentTx,
+        creatorId
+      );
+
+      // should return true
+      expect(result).toEqual(true);
+
+      // memory order map should contain mocked tx
+      expect(txAgreement.getOrderAgreedTransactions().size).toEqual(1);
+      expect(
+        txAgreement.getOrderAgreedTransactions().get(paymentTx.eventId)
+      ).toEqual(paymentTx.txId);
+    });
+
+    /**
+     * @target TxAgreement.verifyTransactionRequest should return false
+     * when arbitrary request is not verified
+     * @dependencies
+     * - GuardTurn
+     * - RequestVerifier
+     * @scenario
+     * - mock testdata
+     * - mock GuardTurn to return creatorId
+     * - mock RequestVerifier.verifyArbitraryTransactionRequest to return false
+     * - run test
+     * - check returned value
+     * - check transactions in memory
+     * @expected
+     * - should return false
+     * - memory order map should be empty
+     */
+    it('should return false when arbitrary request is not verified', async () => {
+      // mock testdata
+      const paymentTx = mockPaymentTransaction(TransactionType.arbitrary);
+      const creatorId = 0;
+
+      // mock GuardTurn
+      vi.spyOn(GuardTurn, 'guardTurn').mockReturnValue(creatorId);
+
+      // mock TransactionVerifier.verifyTxCommonConditions
+      vi.spyOn(
+        TransactionVerifier,
+        'verifyTxCommonConditions'
+      ).mockResolvedValue(true);
+
+      // mock RequestVerifier.verifyArbitraryTransactionRequest
+      vi.spyOn(
+        RequestVerifier,
+        'verifyArbitraryTransactionRequest'
+      ).mockResolvedValue(false);
+
+      // run test
+      const txAgreement = new TestTxAgreement();
+      const result = await txAgreement.callVerifyTransactionRequest(
+        paymentTx,
+        creatorId
+      );
+
+      // should return false
+      expect(result).toEqual(false);
+
+      // memory cold storage chain map should be empty
+      expect(txAgreement.getOrderAgreedTransactions().size).toEqual(0);
     });
 
     /**
@@ -1896,13 +2129,13 @@ describe('TxAgreement', () => {
     });
   });
 
-  describe('updateEventOfApprovedTx', () => {
+  describe('updateEventOrOrderOfApprovedTx', () => {
     beforeEach(async () => {
       await DatabaseActionMock.clearTables();
     });
 
     /**
-     * @target TxAgreement.updateEventOfApprovedTx should update
+     * @target TxAgreement.updateEventOrOrderOfApprovedTx should update
      * event status from pending-payment to in-payment
      * @dependencies
      * - database
@@ -1932,7 +2165,7 @@ describe('TxAgreement', () => {
 
       // run test
       const txAgreement = new TestTxAgreement();
-      await txAgreement.callUpdateEventOfApprovedTx(paymentTx);
+      await txAgreement.callUpdateEventOrOrderOfApprovedTx(paymentTx);
 
       // event status should be updated in db
       const dbEvents = (await DatabaseActionMock.allEventRecords()).map(
@@ -1943,7 +2176,7 @@ describe('TxAgreement', () => {
     });
 
     /**
-     * @target TxAgreement.updateEventOfApprovedTx should update
+     * @target TxAgreement.updateEventOrOrderOfApprovedTx should update
      * event status from pending-reward to in-reward
      * @dependencies
      * - database
@@ -1973,7 +2206,7 @@ describe('TxAgreement', () => {
 
       // run test
       const txAgreement = new TestTxAgreement();
-      await txAgreement.callUpdateEventOfApprovedTx(paymentTx);
+      await txAgreement.callUpdateEventOrOrderOfApprovedTx(paymentTx);
 
       // event status should be updated in db
       const dbEvents = (await DatabaseActionMock.allEventRecords()).map(
@@ -1981,6 +2214,49 @@ describe('TxAgreement', () => {
       );
       expect(dbEvents.length).toEqual(1);
       expect(dbEvents).to.deep.contain([eventId, EventStatus.inReward]);
+    });
+
+    /**
+     * @target TxAgreement.updateEventOrOrderOfApprovedTx should update
+     * order status from pending to in-process
+     * @dependencies
+     * - database
+     * @scenario
+     * - mock testdata
+     * - insert mocked order into db
+     * - run test
+     * - check order status in db
+     * @expected
+     * - order status should be updated in db
+     */
+    it('should update order status from pending to in-process', async () => {
+      // mock testdata
+      const orderId = 'order-id';
+      const orderChain = CARDANO_CHAIN;
+      const paymentTx = mockPaymentTransaction(
+        TransactionType.arbitrary,
+        orderChain,
+        orderId
+      );
+
+      // insert mocked order into db
+      await DatabaseActionMock.insertOrderRecord(
+        orderId,
+        orderChain,
+        `orderJson`,
+        OrderStatus.pending
+      );
+
+      // run test
+      const txAgreement = new TestTxAgreement();
+      await txAgreement.callUpdateEventOrOrderOfApprovedTx(paymentTx);
+
+      // order status should be updated in db
+      const dbOrders = (await DatabaseActionMock.allOrderRecords()).map(
+        (order) => [order.id, order.status]
+      );
+      expect(dbOrders.length).toEqual(1);
+      expect(dbOrders).to.deep.contain([orderId, OrderStatus.inProcess]);
     });
   });
 
