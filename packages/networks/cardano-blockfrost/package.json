@@ -33,7 +33,7 @@
     "node": ">=20.11.0"
   },
   "dependencies": {
-    "@blockfrost/blockfrost-js": "^5.4.0",
+    "@blockfrost/blockfrost-js": "^6.0.0",
     "@emurgo/cardano-serialization-lib-nodejs": "^13.2.0",
     "@rosen-bridge/abstract-logger": "^2.0.1",
     "@rosen-chains/abstract-chain": "^11.0.3",
