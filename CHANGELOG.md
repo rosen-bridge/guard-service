@@ -1,5 +1,11 @@
 # guard-service
 
+## 6.0.1
+
+### Patch Changes
+
+- Patch @rosen-bridge/evm-address-tx-extractor to improve speed
+
 ## 6.0.0
 
 ### Major Changes
