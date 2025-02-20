@@ -1,5 +1,14 @@
 # @rosen-chains/cardano-graphql-network
 
+## 6.0.9
+
+### Patch Changes
+
+- update CSL to version 13
+- Update dependencies
+  - @rosen-chains/cardano@11.0.0
+  - @rosen-chains/abstract-chain@12.0.0
+
 ## 6.0.8
 
 ### Patch Changes

@@ -1,5 +1,13 @@
 # @rosen-chains/ergo-node-network
 
+## 9.0.9
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-chains/abstract-chain@12.0.0
+  - @rosen-chains/ergo@11.0.0
+
 ## 9.0.8
 
 ### Patch Changes

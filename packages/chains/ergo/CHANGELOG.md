@@ -1,5 +1,16 @@
 # @rosen-chains/ergo
 
+## 11.0.0
+
+### Major Changes
+
+- Update rosen-extractor and token packages
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-chains/abstract-chain@12.0.0
+
 ## 10.1.4
 
 ### Patch Changes
@@ -137,7 +148,7 @@
 
 ### Patch Changes
 
-- Updated rosen-extractor version
+- Update rosen-extractor version
 - Update dependencies
   - @rosen-chains/abstract-chain@6.0.0
 
