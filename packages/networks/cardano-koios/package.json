@@ -1,6 +1,6 @@
 {
   "name": "@rosen-chains/cardano-koios-network",
-  "version": "10.0.8",
+  "version": "10.0.9",
   "description": "cardano koios network package for rosen cardano chain",
   "main": "dist/lib/index.js",
   "types": "dist/lib/index.d.ts",
@@ -23,8 +23,8 @@
     "@emurgo/cardano-serialization-lib-nodejs": "^13.2.0",
     "@rosen-bridge/abstract-logger": "^2.0.1",
     "@rosen-bridge/json-bigint": "^0.1.0",
-    "@rosen-chains/abstract-chain": "^11.0.3",
-    "@rosen-chains/cardano": "^10.1.4",
+    "@rosen-chains/abstract-chain": "^12.0.0",
+    "@rosen-chains/cardano": "^11.0.0",
     "@rosen-clients/cardano-koios": "^2.0.3"
   },
   "devDependencies": {

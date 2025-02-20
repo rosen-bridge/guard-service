@@ -1,5 +1,16 @@
 # @rosen-chains/bitcoin
 
+## 7.0.0
+
+### Major Changes
+
+- Update rosen-extractor and token packages
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-chains/abstract-chain@12.0.0
+
 ## 6.1.3
 
 ### Patch Changes
@@ -142,6 +153,6 @@
 
 ### Patch Changes
 
-- Updated rosen-extractor version
+- Update rosen-extractor version
 - Update dependencies
   - @rosen-chains/abstract-chain@6.0.0

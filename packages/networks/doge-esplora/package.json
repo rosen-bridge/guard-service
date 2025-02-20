@@ -1,6 +1,6 @@
 {
   "name": "@rosen-chains/doge-esplora",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "A package to be used as network api provider for @rosen-chains/doge package",
   "repository": "https://github.com/rosen-bridge/rosen-chains",
   "license": "GPL-3.0",
@@ -35,8 +35,8 @@
   "dependencies": {
     "@rosen-bridge/abstract-logger": "^2.0.1",
     "@rosen-bridge/json-bigint": "^0.1.0",
-    "@rosen-chains/abstract-chain": "^11.0.3",
-    "@rosen-chains/doge": "^0.1.0",
+    "@rosen-chains/abstract-chain": "^12.0.0",
+    "@rosen-chains/doge": "^1.0.0",
     "axios": "^1.6.7",
     "bitcoinjs-lib": "^6.1.5"
   }

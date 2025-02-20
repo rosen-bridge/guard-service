@@ -1,5 +1,17 @@
 # @rosen-chains/evm
 
+## 7.0.0
+
+### Major Changes
+
+- Update rosen-extractor and token packages
+- Removed `supportedTokens` from constructor arguments. Now, it is initialized by given TokenMap in constructor and can be updated using `updateSupportedTokens` function
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-chains/abstract-chain@12.0.0
+
 ## 6.0.1
 
 ### Patch Changes

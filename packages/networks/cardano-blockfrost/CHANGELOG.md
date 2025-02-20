@@ -1,5 +1,14 @@
 # @rosen-chains/cardano-blockfrost-network
 
+## 7.0.9
+
+### Patch Changes
+
+- update CSL to version 13
+- Update dependencies
+  - @rosen-chains/cardano@11.0.0
+  - @rosen-chains/abstract-chain@12.0.0
+
 ## 7.0.8
 
 ### Patch Changes

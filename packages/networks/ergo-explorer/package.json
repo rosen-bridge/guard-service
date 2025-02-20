@@ -1,6 +1,6 @@
 {
   "name": "@rosen-chains/ergo-explorer-network",
-  "version": "9.0.8",
+  "version": "9.0.9",
   "description": "ergo explorer network package for rosen ergo chain",
   "main": "dist/lib/index.js",
   "types": "dist/lib/index.d.ts",
@@ -22,8 +22,8 @@
   "dependencies": {
     "@rosen-bridge/abstract-logger": "^2.0.1",
     "@rosen-bridge/json-bigint": "^0.1.0",
-    "@rosen-chains/abstract-chain": "^11.0.3",
-    "@rosen-chains/ergo": "^10.1.4",
+    "@rosen-chains/abstract-chain": "^12.0.0",
+    "@rosen-chains/ergo": "^11.0.0",
     "@rosen-clients/ergo-explorer": "^1.1.1",
     "ergo-lib-wasm-nodejs": "^0.24.1",
     "it-all": "^3.0.1"
