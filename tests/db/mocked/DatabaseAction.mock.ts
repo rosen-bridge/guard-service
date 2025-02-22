@@ -7,6 +7,8 @@ import {
 import {
   CommitmentEntity,
   EventTriggerEntity,
+  PermitEntity,
+  CollateralEntity,
   migrations as watcherDataExtractorMigrations,
 } from '@rosen-bridge/watcher-data-extractor';
 import { ConfirmedEventEntity } from '../../../src/db/entities/ConfirmedEventEntity';
@@ -53,6 +55,8 @@ class DatabaseActionMock {
       AddressTxsEntity,
       ArbitraryEntity,
       ReprocessEntity,
+      PermitEntity,
+      CollateralEntity,
     ],
     migrations: [
       ...scannerMigrations.sqlite,
