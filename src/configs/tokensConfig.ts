@@ -48,7 +48,6 @@ class TokensConfig {
       for (const chain of chains) {
         transformedToken[chain] = {
           ...token[chain],
-          ...token[chain].metaData,
         };
         // Delete the metaData object since it's now flattened
         delete transformedToken[chain].metaData;

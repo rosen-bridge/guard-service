@@ -5,6 +5,38 @@ export class migration1737547744177 implements MigrationInterface {
   name = 'migration1737547744177';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
+    // add revenueChartView
+    await queryRunner.query(`
+            CREATE VIEW "revenue_chart" AS
+            SELECT re."tokenId" AS "tokenId",
+                re."amount" AS "amount",
+                re."revenueType" AS "revenueType",
+                be."timestamp" AS "timestamp",
+                be."timestamp" / 604800 AS "week_number",
+                be."month" AS "month",
+                be."year" AS "year"
+            FROM "revenue_entity" "re"
+                INNER JOIN "event_trigger_entity" "ete" ON "ete"."id" = "re"."eventDataId"
+                INNER JOIN "block_entity" "be" ON "ete"."spendBlock" = "be"."hash"
+        `);
+    await queryRunner.query(
+      `
+            INSERT INTO "typeorm_metadata"(
+                    "database",
+                    "schema",
+                    "table",
+                    "type",
+                    "name",
+                    "value"
+                )
+            VALUES (NULL, NULL, NULL, ?, ?, ?)
+        `,
+      [
+        'VIEW',
+        'revenue_chart',
+        'SELECT re."tokenId" AS "tokenId", re."amount" AS "amount", re."revenueType" AS "revenueType", be."timestamp" AS "timestamp", be."timestamp"/604800 AS "week_number", be."month" AS "month", be."year" AS "year" FROM "revenue_entity" "re" INNER JOIN "event_trigger_entity" "ete" ON "ete"."id" = "re"."eventDataId"  INNER JOIN "block_entity" "be" ON "ete"."spendBlock" = "be"."hash"',
+      ]
+    );
     // add revenueView
     await queryRunner.query(`
             CREATE VIEW "revenue_view" AS
@@ -49,6 +81,7 @@ export class migration1737547744177 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
+    // remove revenueView
     await queryRunner.query(
       `
             DELETE FROM "typeorm_metadata"
@@ -59,6 +92,18 @@ export class migration1737547744177 implements MigrationInterface {
     );
     await queryRunner.query(`
             DROP VIEW "revenue_view"
+        `);
+    // remove revenueChartView
+    await queryRunner.query(
+      `
+            DELETE FROM "typeorm_metadata"
+            WHERE "type" = ?
+                AND "name" = ?
+        `,
+      ['VIEW', 'revenue_chart']
+    );
+    await queryRunner.query(`
+            DROP VIEW "revenue_chart"
         `);
   }
 }

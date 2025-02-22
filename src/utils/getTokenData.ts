@@ -64,7 +64,7 @@ export const getTokenData = (
       name: tokenData.name,
       amount: 0,
       decimals: decimals,
-      isNativeToken: tokenData.metaData.type === 'native',
+      isNativeToken: tokenData.type === 'native',
     };
   }
 };

@@ -155,7 +155,7 @@ class EventOrder {
     const isNativeToken =
       TokensConfig.getInstance().getTokenMap().search(event.toChain, {
         tokenId: event.targetChainTokenId,
-      })[0][event.toChain].metaData.type === 'native';
+      })[0][event.toChain].type === 'native';
     const bridgeFee = Utils.maxBigint(
       Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee),
       (BigInt(event.amount) * feeConfig.feeRatio) / feeConfig.feeRatioDivisor

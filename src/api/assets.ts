@@ -98,8 +98,7 @@ const assetsRoute = (server: FastifySeverInstance) => {
                 coldAmount: 0,
                 decimals: significantDecimals!,
                 chain: currentChain,
-                isNativeToken:
-                  tokens[0][currentChain].metaData.type === 'native',
+                isNativeToken: tokens[0][currentChain].type === 'native',
               };
               break;
             }

@@ -52,6 +52,7 @@ export const extractRevenueFromView = async (
       let name = 'Unsupported token';
       let decimals = 0;
       let isNativeToken = false;
+      console.log(token);
 
       if (token.length) {
         ergoSideTokenId = token[0][ERGO_CHAIN].tokenId;
@@ -59,7 +60,7 @@ export const extractRevenueFromView = async (
         decimals = TokensConfig.getInstance()
           .getTokenMap()
           .getSignificantDecimals(event.lockTokenId)!;
-        isNativeToken = token[0][event.fromChain].metaData.type === 'native';
+        isNativeToken = token[0][event.fromChain].type === 'native';
       }
 
       const tokenData: TokenData = {
@@ -124,7 +125,7 @@ const fillTokensDetails = (token: TokenInfo): TokenData => {
     decimals = TokensConfig.getInstance()
       .getTokenMap()
       .getSignificantDecimals(token.id)!;
-    isNativeToken = tokenInfo[0][ERGO_CHAIN].metaData.type === 'native';
+    isNativeToken = tokenInfo[0][ERGO_CHAIN].type === 'native';
   }
 
   return {

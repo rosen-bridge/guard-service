@@ -77,7 +77,7 @@ class ColdStorage {
         const isNativeToken =
           TokensConfig.getInstance().getTokenMap().search(chainName, {
             tokenId,
-          })[0][chainName].metaData.type === 'native';
+          })[0][chainName].type === 'native';
         if (isNativeToken) {
           if (lockedAssets.nativeToken > thresholds[tokenId].high)
             transferringNativeToken =
