@@ -128,7 +128,7 @@ class DatabaseActionMock {
       .values({
         extractor: 'extractor',
         boxId: TestUtils.generateRandomId(),
-        boxSerialized: boxSerialized,
+        serialized: boxSerialized,
         block: 'blockId',
         height: eventHeight,
         fromChain: event.fromChain,
@@ -196,7 +196,7 @@ class DatabaseActionMock {
       .values({
         extractor: 'extractor',
         boxId: TestUtils.generateRandomId(),
-        boxSerialized: boxSerialized,
+        serialized: boxSerialized,
         block: 'blockId',
         height: height,
         fromChain: event.fromChain,

@@ -7,12 +7,12 @@ import {
 } from '@rosen-chains/abstract-chain';
 import Utils from '../utils/Utils';
 import { ChainMinimumFee } from '@rosen-bridge/minimum-fee';
-import Configs from '../configs/Configs';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import { ERG, ERGO_CHAIN, ErgoChain } from '@rosen-chains/ergo';
 import ChainHandler from '../handlers/ChainHandler';
 import EventBoxes from './EventBoxes';
 import { PermitBoxValue, RewardOrder } from './types';
+import { TokensConfig } from '../configs/tokensConfig';
 
 class EventOrder {
   /**
@@ -153,8 +153,8 @@ class EventOrder {
 
     // check if targetToken is native token
     const isNativeToken =
-      Configs.tokenMap.search(event.toChain, {
-        [Configs.tokenMap.getIdKey(event.toChain)]: event.targetChainTokenId,
+      TokensConfig.getInstance().getTokenMap().search(event.toChain, {
+        tokenId: event.targetChainTokenId,
       })[0][event.toChain].metaData.type === 'native';
     const bridgeFee = Utils.maxBigint(
       Utils.maxBigint(BigInt(event.bridgeFee), feeConfig.bridgeFee),
@@ -176,11 +176,13 @@ class EventOrder {
       });
     }
     if (event.toChain === ERGO_CHAIN) {
-      assets.nativeToken += Configs.tokenMap.wrapAmount(
-        ERG,
-        GuardsErgoConfigs.additionalErgOnPayment,
-        ERGO_CHAIN
-      ).amount;
+      assets.nativeToken += TokensConfig.getInstance()
+        .getTokenMap()
+        .wrapAmount(
+          ERG,
+          GuardsErgoConfigs.additionalErgOnPayment,
+          ERGO_CHAIN
+        ).amount;
     }
 
     return {
@@ -225,12 +227,14 @@ class EventOrder {
     const emissionFee =
       (bridgeFee * feeConfig.rsnRatio) / feeConfig.rsnRatioDivisor;
 
-    const tokenId = Configs.tokenMap.getID(
-      Configs.tokenMap.search(event.fromChain, {
-        [Configs.tokenMap.getIdKey(event.fromChain)]: event.sourceChainTokenId,
-      })[0],
-      ERGO_CHAIN
-    );
+    const tokenId = TokensConfig.getInstance()
+      .getTokenMap()
+      .getID(
+        TokensConfig.getInstance().getTokenMap().search(event.fromChain, {
+          tokenId: event.sourceChainTokenId,
+        })[0],
+        ERGO_CHAIN
+      );
     const permitAddress = ChainHandler.getInstance()
       .getChain(event.fromChain)
       .getChainConfigs().addresses.permit;
@@ -319,11 +323,9 @@ class EventOrder {
     });
 
     // add guard bridge fee to order
-    const minimumErg = Configs.tokenMap.wrapAmount(
-      ERG,
-      GuardsErgoConfigs.minimumErg,
-      ERGO_CHAIN
-    ).amount;
+    const minimumErg = TokensConfig.getInstance()
+      .getTokenMap()
+      .wrapAmount(ERG, GuardsErgoConfigs.minimumErg, ERGO_CHAIN).amount;
     const guardBridgeFeeErgAmount =
       bridgeFee - BigInt(watchersLen) * watcherErgAmount + minimumErg;
     const assets: AssetBalance = {
@@ -432,11 +434,9 @@ class EventOrder {
     });
 
     // add guard bridge fee to order
-    const minimumErg = Configs.tokenMap.wrapAmount(
-      ERG,
-      GuardsErgoConfigs.minimumErg,
-      ERGO_CHAIN
-    ).amount;
+    const minimumErg = TokensConfig.getInstance()
+      .getTokenMap()
+      .wrapAmount(ERG, GuardsErgoConfigs.minimumErg, ERGO_CHAIN).amount;
     const guardBridgeFeeTokenAmount =
       bridgeFee - BigInt(watchersLen) * watcherTokenAmount;
     const guardTokens: TokenInfo[] =

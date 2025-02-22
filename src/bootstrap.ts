@@ -12,4 +12,3 @@ const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
 logger.info(`Guard version: ${packageJson.version}`);
 logger.info(`Guard contract version: ${rosenConfig.contractVersion}`);
-logger.info(`Guard tokens version: ${Configs.tokensVersion}`);

@@ -19,6 +19,7 @@ import GuardTurn from '../utils/GuardTurn';
 import GuardPkHandler from '../handlers/GuardPkHandler';
 import DatabaseHandler from '../db/DatabaseHandler';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+import { TokensConfig } from '../configs/tokensConfig';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -59,7 +60,8 @@ class ColdStorage {
 
       const chain = ChainHandler.getInstance().getChain(chainName);
       const lockedAssets = await chain.getLockAddressAssets();
-      const thresholds = Configs.thresholds()[chainName].tokens;
+
+      const thresholds = (await Configs.thresholds())[chainName].tokens;
 
       let transferringNativeToken = 0n;
       const transferringTokens: TokenInfo[] = [];
@@ -73,8 +75,8 @@ class ColdStorage {
           return;
         }
         const isNativeToken =
-          Configs.tokenMap.search(chainName, {
-            [Configs.tokenMap.getIdKey(chainName)]: tokenId,
+          TokensConfig.getInstance().getTokenMap().search(chainName, {
+            tokenId,
           })[0][chainName].metaData.type === 'native';
         if (isNativeToken) {
           if (lockedAssets.nativeToken > thresholds[tokenId].high)

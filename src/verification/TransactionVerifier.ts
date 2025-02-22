@@ -172,7 +172,7 @@ class TransactionVerifier {
     const isNativeTokenForbade = forbiddenTokens.includes(nativeTokenId);
 
     // no active cold storage tx exist that is transferring the same token
-    const thresholdsConfig = Configs.thresholds()[tx.network];
+    const thresholdsConfig = (await Configs.thresholds())[tx.network];
     const transferringTokenIds = txOrder[0].assets.tokens.map(
       (token) => token.id
     );

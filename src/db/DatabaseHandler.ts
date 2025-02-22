@@ -7,12 +7,12 @@ import { ConfirmedEventEntity } from './entities/ConfirmedEventEntity';
 import { EventStatus, TransactionStatus } from '../utils/constants';
 import { DatabaseAction } from './DatabaseAction';
 import { ERGO_CHAIN } from '@rosen-chains/ergo';
-import Configs from '../configs/Configs';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { DuplicateOrder, DuplicateTransaction } from '../utils/errors';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import { ArbitraryEntity } from './entities/ArbitraryEntity';
 import { TransactionEntity } from './entities/TransactionEntity';
+import { TokensConfig } from '../configs/tokensConfig';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -221,13 +221,16 @@ class DatabaseHandler {
           requiredTokenIds.add(GuardsErgoConfigs.emissionTokenId);
       } else {
         requiredTokenIds.add(GuardsErgoConfigs.emissionTokenId);
-        const tokenIdOnErgo = Configs.tokenMap.getID(
-          Configs.tokenMap.search(event.eventData.fromChain, {
-            [Configs.tokenMap.getIdKey(event.eventData.fromChain)]:
-              event.eventData.sourceChainTokenId,
-          })[0],
-          ERGO_CHAIN
-        );
+        const tokenIdOnErgo = TokensConfig.getInstance()
+          .getTokenMap()
+          .getID(
+            TokensConfig.getInstance()
+              .getTokenMap()
+              .search(event.eventData.fromChain, {
+                tokenId: event.eventData.sourceChainTokenId,
+              })[0],
+            ERGO_CHAIN
+          );
         requiredTokenIds.add(tokenIdOnErgo);
       }
     });

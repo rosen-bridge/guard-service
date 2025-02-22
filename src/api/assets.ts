@@ -1,7 +1,6 @@
 import { ChainTokenData } from '../types/api';
 import { SUPPORTED_CHAINS, ChainNativeToken } from '../utils/constants';
 import ChainHandler from '../handlers/ChainHandler';
-import Configs from '../configs/Configs';
 import {
   AssetsQuerySchema,
   AssetsResponseSchema,
@@ -9,7 +8,7 @@ import {
   MessageResponseSchema,
 } from './schemas';
 import { getTokenData } from '../utils/getTokenData';
-
+import { TokensConfig } from '../configs/tokensConfig';
 /**
  * setup available assets route
  * @param server
@@ -83,11 +82,14 @@ const assetsRoute = (server: FastifySeverInstance) => {
         if (tokenList.length === 0) {
           let tokenData: ChainTokenData | undefined;
           for (const currentChain of chains) {
-            const tokens = Configs.tokenMap.search(currentChain, {
-              [Configs.tokenMap.getIdKey(currentChain)]: tokenId,
-            });
-            const significantDecimals =
-              Configs.tokenMap.getSignificantDecimals(tokenId);
+            const tokens = TokensConfig.getInstance()
+              .getTokenMap()
+              .search(currentChain, {
+                tokenId,
+              });
+            const significantDecimals = TokensConfig.getInstance()
+              .getTokenMap()
+              .getSignificantDecimals(tokenId);
             if (tokens.length) {
               tokenData = {
                 tokenId: tokenId,
