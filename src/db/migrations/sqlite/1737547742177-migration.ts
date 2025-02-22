@@ -1,8 +1,8 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
 // manually generated
-export class migration1737547740177 implements MigrationInterface {
-  name = 'migration1737547740177';
+export class migration1737547742177 implements MigrationInterface {
+  name = 'migration1737547742177';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // remove EventView

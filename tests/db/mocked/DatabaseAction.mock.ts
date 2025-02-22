@@ -65,7 +65,7 @@ class DatabaseActionMock {
       ...migrations.sqlite,
     ],
     synchronize: false,
-    logging: true,
+    logging: false,
   });
   static testDatabase: DatabaseAction;
 

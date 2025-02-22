@@ -1,8 +1,8 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
 // manually generated
-export class migration1737547741177 implements MigrationInterface {
-  name = 'migration1737547741177';
+export class migration1737547744177 implements MigrationInterface {
+  name = 'migration1737547744177';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // add ConfirmedEventEntity FK
