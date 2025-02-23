@@ -6,7 +6,6 @@ import { TokensConfig } from '../../src/configs/tokensConfig';
 import config from 'config';
 
 // initialize TokensConfig
-console.log(config.get<string>('tokensPath'));
 await TokensConfig.init(config.get<string>('tokensPath'));
 
 // mock database

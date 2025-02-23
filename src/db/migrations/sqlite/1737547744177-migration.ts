@@ -12,6 +12,7 @@ export class migration1737547744177 implements MigrationInterface {
                 "status" varchar NOT NULL,
                 "firstTry" varchar,
                 "eventDataId" integer,
+                "unexpectedFails" integer,
                 CONSTRAINT "REL_fada7feaf4c23ad7c0c2cf58ff" UNIQUE ("eventDataId"),
                 CONSTRAINT "FK_fada7feaf4c23ad7c0c2cf58ffd" FOREIGN KEY ("eventDataId") REFERENCES "event_trigger_entity" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION
             )
@@ -21,12 +22,14 @@ export class migration1737547744177 implements MigrationInterface {
                     "id",
                     "status",
                     "firstTry",
-                    "eventDataId"
+                    "eventDataId",
+                    "unexpectedFails"
                 )
             SELECT "id",
                 "status",
                 "firstTry",
-                "eventDataId"
+                "eventDataId",
+                "unexpectedFails"
             FROM "confirmed_event_entity"
         `);
     await queryRunner.query(`
@@ -50,7 +53,9 @@ export class migration1737547744177 implements MigrationInterface {
                 "signFailedCount" integer NOT NULL,
                 "eventId" varchar,
                 "requiredSign" integer NOT NULL,
-                CONSTRAINT "FK_392573e185afb94149a20cf87df" FOREIGN KEY ("eventId") REFERENCES "confirmed_event_entity" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION
+                "orderId" varchar,
+                CONSTRAINT "FK_392573e185afb94149a20cf87df" FOREIGN KEY ("eventId") REFERENCES "confirmed_event_entity" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION,
+                CONSTRAINT "FK_0e6ee481cd8e1a6b6bcc980b7d9" FOREIGN KEY ("orderId") REFERENCES "arbitrary_entity" ("id") ON DELETE NO ACTION ON UPDATE NO ACTION
             )
         `);
     await queryRunner.query(`
@@ -65,7 +70,8 @@ export class migration1737547744177 implements MigrationInterface {
                     "failedInSign",
                     "signFailedCount",
                     "requiredSign",
-                    "eventId"
+                    "eventId",
+                    "orderId"
                 )
             SELECT "txId",
                 "txJson",
@@ -77,7 +83,8 @@ export class migration1737547744177 implements MigrationInterface {
                 "failedInSign",
                 "signFailedCount",
                 "requiredSign",
-                "eventId"
+                "eventId",
+                "orderId"
             FROM "transaction_entity"
         `);
     await queryRunner.query(`
@@ -326,7 +333,8 @@ export class migration1737547744177 implements MigrationInterface {
                 "failedInSign" boolean NOT NULL,
                 "signFailedCount" integer NOT NULL,
                 "eventId" varchar,
-                "requiredSign" integer NOT NULL
+                "requiredSign" integer NOT NULL,
+                "orderId" varchar
             )
         `);
     await queryRunner.query(`
@@ -341,7 +349,8 @@ export class migration1737547744177 implements MigrationInterface {
                     "failedInSign",
                     "signFailedCount",
                     "requiredSign",
-                    "eventId"
+                    "eventId",
+                    "orderId"
                 )
             SELECT "txId",
                 "txJson",
@@ -353,7 +362,8 @@ export class migration1737547744177 implements MigrationInterface {
                 "failedInSign",
                 "signFailedCount",
                 "requiredSign",
-                "eventId"
+                "eventId",
+                "orderId"
             FROM "transaction_entity"
         `);
     await queryRunner.query(`
@@ -370,6 +380,7 @@ export class migration1737547744177 implements MigrationInterface {
                 "status" varchar NOT NULL,
                 "firstTry" varchar,
                 "eventDataId" integer,
+                "unexpectedFails" integer,
                 CONSTRAINT "REL_fada7feaf4c23ad7c0c2cf58ff" UNIQUE ("eventDataId")
             )
         `);
@@ -378,12 +389,14 @@ export class migration1737547744177 implements MigrationInterface {
                     "id",
                     "status",
                     "firstTry",
-                    "eventDataId"
+                    "eventDataId",
+                    "unexpectedFails"
                 )
             SELECT "id",
                 "status",
                 "firstTry",
-                "eventDataId"
+                "eventDataId",
+                "unexpectedFails"
             FROM "confirmed_event_entity"
         `);
     await queryRunner.query(`
