@@ -35,7 +35,7 @@ import { BinanceChain } from '@rosen-chains/binance';
 import GuardsBinanceConfigs from '../configs/GuardsBinanceConfigs';
 import { BINANCE_CHAIN } from '@rosen-chains/binance';
 import TssHandler from './TssHandler';
-import { TokensConfig } from '../configs/tokensConfig';
+import { TokenHandler } from './tokenHandler';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -97,7 +97,7 @@ class ChainHandler {
     return new ErgoChain(
       network,
       GuardsErgoConfigs.chainConfigs,
-      TokensConfig.getInstance().getTokenMap(),
+      TokenHandler.getInstance().getTokenMap(),
       multiSigSignFunction,
       DefaultLoggerFactory.getInstance().getLogger('ErgoChain')
     );
@@ -143,7 +143,7 @@ class ChainHandler {
     return new CardanoChain(
       network,
       GuardsCardanoConfigs.chainConfigs,
-      TokensConfig.getInstance().getTokenMap(),
+      TokenHandler.getInstance().getTokenMap(),
       tssSignFunctionWrapper,
       DefaultLoggerFactory.getInstance().getLogger('CardanoChain')
     );
@@ -189,7 +189,7 @@ class ChainHandler {
     return new BitcoinChain(
       network,
       GuardsBitcoinConfigs.chainConfigs,
-      TokensConfig.getInstance().getTokenMap(),
+      TokenHandler.getInstance().getTokenMap(),
       tssSignFunctionWrapper,
       DefaultLoggerFactory.getInstance().getLogger('BitcoinChain')
     );
@@ -239,7 +239,7 @@ class ChainHandler {
     return new EthereumChain(
       network,
       GuardsEthereumConfigs.chainConfigs,
-      TokensConfig.getInstance().getTokenMap(),
+      TokenHandler.getInstance().getTokenMap(),
       tssSignFunctionWrapper,
       DefaultLoggerFactory.getInstance().getLogger('EthereumChain')
     );
@@ -289,7 +289,7 @@ class ChainHandler {
     return new BinanceChain(
       network,
       GuardsBinanceConfigs.chainConfigs,
-      TokensConfig.getInstance().getTokenMap(),
+      TokenHandler.getInstance().getTokenMap(),
       tssSignFunctionWrapper,
       DefaultLoggerFactory.getInstance().getLogger('BinanceChain')
     );

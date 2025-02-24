@@ -9,7 +9,7 @@ import { SUPPORTED_CHAINS } from '../utils/constants';
 import { TransportOptions } from '@rosen-bridge/winston-logger';
 import { cloneDeep } from 'lodash-es';
 import { ECDSA } from '@rosen-bridge/encryption';
-import { TokensConfig } from './tokensConfig';
+import { TokenHandler } from '../handlers/tokenHandler';
 
 /**
  * reads a numerical config, set default value if it does not exits
@@ -147,8 +147,8 @@ class Configs {
 
   static thresholds = async (): Promise<ThresholdConfig> => {
     const thresholdsPath = config.get<string>('thresholdsPath');
-    await TokensConfig.init(config.get<string>('tokensPath'));
-    const tokenMap = TokensConfig.getInstance().getTokenMap();
+    await TokenHandler.init(config.get<string>('tokensPath'));
+    const tokenMap = TokenHandler.getInstance().getTokenMap();
     let thresholds: ThresholdConfig;
     if (!fs.existsSync(thresholdsPath)) {
       throw new Error(

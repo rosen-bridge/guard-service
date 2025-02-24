@@ -6,7 +6,7 @@ import { RevenueHistory, SingleRevenue, TokenData } from '../types/api';
 import { TokenInfo } from '@rosen-chains/abstract-chain';
 import { RevenueType } from './constants';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
-import { TokensConfig } from '../configs/tokensConfig';
+import { TokenHandler } from '../handlers/tokenHandler';
 /**
  * Extracts the revenue from the revenue view
  * @param events
@@ -40,7 +40,7 @@ export const extractRevenueFromView = async (
   return Promise.all(
     events.map(async (event): Promise<RevenueHistory> => {
       const eventRevenues = eventRevenuesMap.get(event.id) || [];
-      const token = TokensConfig.getInstance()
+      const token = TokenHandler.getInstance()
         .getTokenMap()
         .search(event.fromChain, {
           tokenId: event.lockTokenId,
@@ -57,7 +57,7 @@ export const extractRevenueFromView = async (
       if (token.length) {
         ergoSideTokenId = token[0][ERGO_CHAIN].tokenId;
         name = token[0][event.fromChain].name;
-        decimals = TokensConfig.getInstance()
+        decimals = TokenHandler.getInstance()
           .getTokenMap()
           .getSignificantDecimals(event.lockTokenId)!;
         isNativeToken = token[0][event.fromChain].type === 'native';
@@ -110,7 +110,7 @@ const fillTokensDetails = (token: TokenInfo): TokenData => {
     };
   }
 
-  const tokenInfo = TokensConfig.getInstance()
+  const tokenInfo = TokenHandler.getInstance()
     .getTokenMap()
     .search(ERGO_CHAIN, {
       tokenId: token.id,
@@ -122,7 +122,7 @@ const fillTokensDetails = (token: TokenInfo): TokenData => {
 
   if (tokenInfo.length) {
     name = tokenInfo[0][ERGO_CHAIN].name;
-    decimals = TokensConfig.getInstance()
+    decimals = TokenHandler.getInstance()
       .getTokenMap()
       .getSignificantDecimals(token.id)!;
     isNativeToken = tokenInfo[0][ERGO_CHAIN].type === 'native';

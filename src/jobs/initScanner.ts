@@ -15,7 +15,7 @@ import { EvmTxExtractor } from '@rosen-bridge/evm-address-tx-extractor';
 import { ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
 import GuardsBinanceConfigs from '../configs/GuardsBinanceConfigs';
 import { BINANCE_CHAIN } from '@rosen-chains/binance';
-import { TokensConfig } from '../configs/tokensConfig';
+import { TokenHandler } from '../handlers/tokenHandler';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -172,7 +172,7 @@ const initScanner = () => {
     [GuardsBitcoinConfigs.bitcoinContractConfig.commitmentAddress],
     GuardsBitcoinConfigs.bitcoinContractConfig.RWTId,
     dataSource,
-    TokensConfig.getInstance().getTokenMap(),
+    TokenHandler.getInstance().getTokenMap(),
     loggers.bitcoinCommitmentExtractorLogger
   );
   const bitcoinEventTriggerExtractor = new EventTriggerExtractor(
@@ -196,7 +196,7 @@ const initScanner = () => {
     [GuardsCardanoConfigs.cardanoContractConfig.commitmentAddress],
     GuardsCardanoConfigs.cardanoContractConfig.RWTId,
     dataSource,
-    TokensConfig.getInstance().getTokenMap(),
+    TokenHandler.getInstance().getTokenMap(),
     loggers.cardanoCommitmentExtractorLogger
   );
   const cardanoEventTriggerExtractor = new EventTriggerExtractor(
@@ -220,7 +220,7 @@ const initScanner = () => {
     [GuardsErgoConfigs.ergoContractConfig.commitmentAddress],
     GuardsErgoConfigs.ergoContractConfig.RWTId,
     dataSource,
-    TokensConfig.getInstance().getTokenMap(),
+    TokenHandler.getInstance().getTokenMap(),
     loggers.ergoCommitmentExtractorLogger
   );
   const ergoEventTriggerExtractor = new EventTriggerExtractor(
@@ -244,7 +244,7 @@ const initScanner = () => {
     [GuardsEthereumConfigs.ethereumContractConfig.commitmentAddress],
     GuardsEthereumConfigs.ethereumContractConfig.RWTId,
     dataSource,
-    TokensConfig.getInstance().getTokenMap(),
+    TokenHandler.getInstance().getTokenMap(),
     loggers.ethereumCommitmentExtractorLogger
   );
   const ethereumEventTriggerExtractor = new EventTriggerExtractor(
@@ -268,7 +268,7 @@ const initScanner = () => {
     [GuardsBinanceConfigs.binanceContractConfig.commitmentAddress],
     GuardsBinanceConfigs.binanceContractConfig.RWTId,
     dataSource,
-    TokensConfig.getInstance().getTokenMap(),
+    TokenHandler.getInstance().getTokenMap(),
     loggers.binanceCommitmentExtractorLogger
   );
   const binanceEventTriggerExtractor = new EventTriggerExtractor(

@@ -12,7 +12,7 @@ import { ERG, ERGO_CHAIN, ErgoChain } from '@rosen-chains/ergo';
 import ChainHandler from '../handlers/ChainHandler';
 import EventBoxes from './EventBoxes';
 import { PermitBoxValue, RewardOrder } from './types';
-import { TokensConfig } from '../configs/tokensConfig';
+import { TokenHandler } from '../handlers/tokenHandler';
 
 class EventOrder {
   /**
@@ -153,7 +153,7 @@ class EventOrder {
 
     // check if targetToken is native token
     const isNativeToken =
-      TokensConfig.getInstance().getTokenMap().search(event.toChain, {
+      TokenHandler.getInstance().getTokenMap().search(event.toChain, {
         tokenId: event.targetChainTokenId,
       })[0][event.toChain].type === 'native';
     const bridgeFee = Utils.maxBigint(
@@ -176,7 +176,7 @@ class EventOrder {
       });
     }
     if (event.toChain === ERGO_CHAIN) {
-      assets.nativeToken += TokensConfig.getInstance()
+      assets.nativeToken += TokenHandler.getInstance()
         .getTokenMap()
         .wrapAmount(
           ERG,
@@ -227,10 +227,10 @@ class EventOrder {
     const emissionFee =
       (bridgeFee * feeConfig.rsnRatio) / feeConfig.rsnRatioDivisor;
 
-    const tokenId = TokensConfig.getInstance()
+    const tokenId = TokenHandler.getInstance()
       .getTokenMap()
       .getID(
-        TokensConfig.getInstance().getTokenMap().search(event.fromChain, {
+        TokenHandler.getInstance().getTokenMap().search(event.fromChain, {
           tokenId: event.sourceChainTokenId,
         })[0],
         ERGO_CHAIN
@@ -323,7 +323,7 @@ class EventOrder {
     });
 
     // add guard bridge fee to order
-    const minimumErg = TokensConfig.getInstance()
+    const minimumErg = TokenHandler.getInstance()
       .getTokenMap()
       .wrapAmount(ERG, GuardsErgoConfigs.minimumErg, ERGO_CHAIN).amount;
     const guardBridgeFeeErgAmount =
@@ -434,7 +434,7 @@ class EventOrder {
     });
 
     // add guard bridge fee to order
-    const minimumErg = TokensConfig.getInstance()
+    const minimumErg = TokenHandler.getInstance()
       .getTokenMap()
       .wrapAmount(ERG, GuardsErgoConfigs.minimumErg, ERGO_CHAIN).amount;
     const guardBridgeFeeTokenAmount =

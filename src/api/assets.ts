@@ -8,7 +8,7 @@ import {
   MessageResponseSchema,
 } from './schemas';
 import { getTokenData } from '../utils/getTokenData';
-import { TokensConfig } from '../configs/tokensConfig';
+import { TokenHandler } from '../handlers/tokenHandler';
 /**
  * setup available assets route
  * @param server
@@ -82,12 +82,12 @@ const assetsRoute = (server: FastifySeverInstance) => {
         if (tokenList.length === 0) {
           let tokenData: ChainTokenData | undefined;
           for (const currentChain of chains) {
-            const tokens = TokensConfig.getInstance()
+            const tokens = TokenHandler.getInstance()
               .getTokenMap()
               .search(currentChain, {
                 tokenId,
               });
-            const significantDecimals = TokensConfig.getInstance()
+            const significantDecimals = TokenHandler.getInstance()
               .getTokenMap()
               .getSignificantDecimals(tokenId);
             if (tokens.length) {

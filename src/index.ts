@@ -25,12 +25,12 @@ import DetectionHandler from './handlers/DetectionHandler';
 import EventReprocess from './reprocess/EventReprocess';
 import ArbitraryProcessor from './arbitrary/ArbitraryProcessor';
 import TssHandler from './handlers/TssHandler';
-import { TokensConfig } from './configs/tokensConfig';
+import { TokenHandler } from './handlers/tokenHandler';
 import config from 'config';
 
 const init = async () => {
   // initialize tokens config
-  await TokensConfig.init(config.get<string>('tokensPath'));
+  await TokenHandler.init(config.get<string>('tokensPath'));
 
   // initialize NotificationHandler object
   NotificationHandler.setup();
@@ -79,7 +79,7 @@ const init = async () => {
   await EventReprocess.init();
 
   // initialize MinimumFeeHandler
-  await MinimumFeeHandler.init(TokensConfig.getInstance().getTokens());
+  await MinimumFeeHandler.init(TokenHandler.getInstance().getTokenMap());
   minimumFeeUpdateJob();
 
   // run network scanners

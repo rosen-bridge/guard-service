@@ -12,7 +12,7 @@ import { DuplicateOrder, DuplicateTransaction } from '../utils/errors';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import { ArbitraryEntity } from './entities/ArbitraryEntity';
 import { TransactionEntity } from './entities/TransactionEntity';
-import { TokensConfig } from '../configs/tokensConfig';
+import { TokenHandler } from '../handlers/tokenHandler';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -221,10 +221,10 @@ class DatabaseHandler {
           requiredTokenIds.add(GuardsErgoConfigs.emissionTokenId);
       } else {
         requiredTokenIds.add(GuardsErgoConfigs.emissionTokenId);
-        const tokenIdOnErgo = TokensConfig.getInstance()
+        const tokenIdOnErgo = TokenHandler.getInstance()
           .getTokenMap()
           .getID(
-            TokensConfig.getInstance()
+            TokenHandler.getInstance()
               .getTokenMap()
               .search(event.eventData.fromChain, {
                 tokenId: event.eventData.sourceChainTokenId,

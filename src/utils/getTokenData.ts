@@ -1,7 +1,7 @@
 import Configs from '../configs/Configs';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import { TokenData } from '../types/api';
-import { TokensConfig } from '../configs/tokensConfig';
+import { TokenHandler } from '../handlers/tokenHandler';
 
 /**
  * gets token data from tokenMap
@@ -28,7 +28,7 @@ export const getTokenData = (
     };
   }
 
-  const tokenMapRes = TokensConfig.getInstance()
+  const tokenMapRes = TokenHandler.getInstance()
     .getTokenMap()
     .search(sourceChain, {
       tokenId: sourceChainTokenId,
@@ -52,7 +52,7 @@ export const getTokenData = (
     }
   } else {
     const tokenData = tokenMapRes[0][targetChain];
-    const significantDecimals = TokensConfig.getInstance()
+    const significantDecimals = TokenHandler.getInstance()
       .getTokenMap()
       .getSignificantDecimals(sourceChainTokenId);
     const decimals =

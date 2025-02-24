@@ -3,7 +3,7 @@ import {
   ErgoNetworkType,
   MinimumFeeBox,
 } from '@rosen-bridge/minimum-fee';
-import { RosenTokens } from '@rosen-bridge/tokens';
+import { TokenMap } from '@rosen-bridge/tokens';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { EventTrigger } from '@rosen-chains/abstract-chain';
 import { ERGO_CHAIN } from '@rosen-chains/ergo';
@@ -11,7 +11,7 @@ import { NODE_NETWORK } from '@rosen-chains/ergo-node-network';
 import Configs from '../configs/Configs';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import { rosenConfig } from '../configs/RosenConfig';
-import { TokensConfig } from '../configs/tokensConfig';
+import { TokenHandler } from './tokenHandler';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -26,36 +26,39 @@ class MinimumFeeHandler {
   /**
    * initializes minimum fee handler
    */
-  static init = async (tokens: RosenTokens) => {
+  /**
+   * initializes minimum fee handler
+   */
+  static init = async (tokenMap: TokenMap) => {
     MinimumFeeHandler.instance = new MinimumFeeHandler();
     logger.debug('MinimumFeeHandler instantiated');
 
-    const promises = TokensConfig.getInstance()
-      .getTokens()
-      .map((chainToken) => {
-        const token = chainToken[ERGO_CHAIN];
-        const tokenId = token.tokenId;
+    // TODO: A function to apply token map updates is required for here
+    // local:ergo/rosen-bridge/guard-service#430
+    const promises = tokenMap.getConfig().map((chainToken) => {
+      const token = chainToken[ERGO_CHAIN];
+      const tokenId = token.tokenId;
 
-        const { networkType, url } =
-          GuardsErgoConfigs.chainNetworkName === NODE_NETWORK
-            ? {
-                networkType: ErgoNetworkType.node,
-                url: GuardsErgoConfigs.node.url,
-              }
-            : {
-                networkType: ErgoNetworkType.explorer,
-                url: GuardsErgoConfigs.explorer.url,
-              };
-        const tokenMinimumFeeBox = new MinimumFeeBox(
-          tokenId,
-          rosenConfig.rsnRatioNFT,
-          networkType,
-          url,
-          logger
-        );
-        MinimumFeeHandler.instance.minimumFees.set(tokenId, tokenMinimumFeeBox);
-        return tokenMinimumFeeBox.fetchBox();
-      });
+      const { networkType, url } =
+        GuardsErgoConfigs.chainNetworkName === NODE_NETWORK
+          ? {
+              networkType: ErgoNetworkType.node,
+              url: GuardsErgoConfigs.node.url,
+            }
+          : {
+              networkType: ErgoNetworkType.explorer,
+              url: GuardsErgoConfigs.explorer.url,
+            };
+      const tokenMinimumFeeBox = new MinimumFeeBox(
+        tokenId,
+        rosenConfig.rsnRatioNFT,
+        networkType,
+        url,
+        logger
+      );
+      MinimumFeeHandler.instance.minimumFees.set(tokenId, tokenMinimumFeeBox);
+      return tokenMinimumFeeBox.fetchBox();
+    });
 
     await Promise.all(promises);
     logger.info('MinimumFeeHandler initialized');
@@ -78,10 +81,10 @@ class MinimumFeeHandler {
   static getEventFeeConfig = (event: EventTrigger): ChainMinimumFee => {
     const instance = MinimumFeeHandler.getInstance();
 
-    const tokenId = TokensConfig.getInstance()
+    const tokenId = TokenHandler.getInstance()
       .getTokenMap()
       .getID(
-        TokensConfig.getInstance().getTokenMap().search(event.fromChain, {
+        TokenHandler.getInstance().getTokenMap().search(event.fromChain, {
           tokenId: event.sourceChainTokenId,
         })[0],
         ERGO_CHAIN

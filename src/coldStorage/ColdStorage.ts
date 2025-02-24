@@ -19,7 +19,7 @@ import GuardTurn from '../utils/GuardTurn';
 import GuardPkHandler from '../handlers/GuardPkHandler';
 import DatabaseHandler from '../db/DatabaseHandler';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
-import { TokensConfig } from '../configs/tokensConfig';
+import { TokenHandler } from '../handlers/tokenHandler';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -75,7 +75,7 @@ class ColdStorage {
           return;
         }
         const isNativeToken =
-          TokensConfig.getInstance().getTokenMap().search(chainName, {
+          TokenHandler.getInstance().getTokenMap().search(chainName, {
             tokenId,
           })[0][chainName].type === 'native';
         if (isNativeToken) {
