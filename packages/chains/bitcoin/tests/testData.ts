@@ -12,16 +12,19 @@ export const multiDecimalTokenMap: RosenTokens = [
       decimals: 3,
       type: 'EIP-004',
       residency: 'wrapped',
+      extra: {},
     },
     cardano: {
       tokenId:
         '6d7cc9577a04be165cc4f2cf36f580dbeaf88f68e78f790805430940.72734254432d6c6f656e',
-      policyId: '6d7cc9577a04be165cc4f2cf36f580dbeaf88f68e78f790805430940',
-      assetName: '72734254432d6c6f656e',
       name: 'rsBTC-loen',
       decimals: 6,
       type: 'CIP26',
       residency: 'wrapped',
+      extra: {
+        policyId: '6d7cc9577a04be165cc4f2cf36f580dbeaf88f68e78f790805430940',
+        assetName: '72734254432d6c6f656e',
+      },
     },
     bitcoin: {
       tokenId: 'btc',
@@ -29,6 +32,7 @@ export const multiDecimalTokenMap: RosenTokens = [
       decimals: 8,
       type: 'native',
       residency: 'native',
+      extra: {},
     },
   },
 ];
