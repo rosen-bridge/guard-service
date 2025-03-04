@@ -4,7 +4,7 @@
   "description": "this project contains doge chain for Rosen-bridge",
   "repository": "https://github.com/rosen-bridge/rosen-chains",
   "license": "GPL-3.0",
-  "author": "Mehran",
+  "author": "Rosen Team",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -35,7 +35,7 @@
     "@rosen-bridge/json-bigint": "^0.1.0",
     "@rosen-bridge/rosen-extractor": "^7.2.1",
     "@rosen-bridge/tokens": "^3.0.0",
-    "@rosen-chains/abstract-chain": "^11.0.1",
+    "@rosen-chains/abstract-chain": "^12.0.0",
     "bitcoinjs-lib": "^6.1.5"
   },
   "engines": {

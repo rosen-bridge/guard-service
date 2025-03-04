@@ -1,5 +1,11 @@
 # @rosen-chains/abstract-chain
 
+## 12.0.0
+
+### Major Changes
+
+- Update rosen-extractor and token packages
+
 ## 11.0.3
 
 ### Patch Changes
@@ -98,7 +104,7 @@
 ### Patch Changes
 
 - Allow undefined extractor
-- Updated rosen-extractor version
+- Update rosen-extractor version
 
 ## 5.0.0
 

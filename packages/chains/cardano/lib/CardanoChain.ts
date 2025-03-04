@@ -1,8 +1,4 @@
 import * as CardanoWasm from '@emurgo/cardano-serialization-lib-nodejs';
-import {
-  BigNum,
-  hash_transaction,
-} from '@emurgo/cardano-serialization-lib-nodejs';
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 import { TokenMap } from '@rosen-bridge/tokens';
 import {
@@ -181,7 +177,7 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
     const txBuilder = CardanoWasm.TransactionBuilder.new(
       await this.getTxBuilderConfig()
     );
-    let orderValue = BigNum.zero();
+    let orderValue = CardanoWasm.BigNum.zero();
 
     // add outputs
     order.forEach((order) => {
@@ -237,17 +233,19 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
     });
 
     // add inputs
+    const txInputsBuilder = CardanoWasm.TxInputsBuilder.new();
     bankBoxes.forEach((box) => {
       const txHash = CardanoWasm.TransactionHash.from_bytes(
         Buffer.from(box.txId, 'hex')
       );
       const inputBox = CardanoWasm.TransactionInput.new(txHash, box.index);
-      txBuilder.add_input(
+      txInputsBuilder.add_regular_input(
         CardanoWasm.Address.from_bech32(this.configs.addresses.lock),
         inputBox,
         CardanoWasm.Value.new(orderValue)
       );
     });
+    txBuilder.set_inputs(txInputsBuilder);
     this.logger.debug(
       `Remaining assets: ${JsonBigInt.stringify(remainingAssets)}`
     );
@@ -272,9 +270,11 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
       undefined
     );
     const txBytes = Serializer.serialize(tx);
-    const txId = Buffer.from(
-      CardanoWasm.hash_transaction(txBody).to_bytes()
-    ).toString('hex');
+    const txId = CardanoWasm.FixedTransaction.new_from_body_bytes(
+      txBody.to_bytes()
+    )
+      .transaction_hash()
+      .to_hex();
 
     // sort input utxos
     const inputUtxos = structuredClone(bankBoxes);
@@ -353,18 +353,20 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
   ): Promise<PaymentTransaction> => {
     const tx = Serializer.deserialize(transaction.txBytes);
     const cardanoTx = transaction as CardanoTransaction;
-    return this.signFunction(hash_transaction(tx.body()).to_bytes()).then(
-      (signature: string) => {
-        const signedTx = this.buildSignedTransaction(tx.body(), signature);
-        return new CardanoTransaction(
-          cardanoTx.txId,
-          cardanoTx.eventId,
-          Serializer.serialize(signedTx),
-          cardanoTx.txType,
-          cardanoTx.inputUtxos
-        );
-      }
-    );
+    return this.signFunction(
+      CardanoWasm.FixedTransaction.new_from_body_bytes(tx.body().to_bytes())
+        .transaction_hash()
+        .to_bytes()
+    ).then((signature: string) => {
+      const signedTx = this.buildSignedTransaction(tx.body(), signature);
+      return new CardanoTransaction(
+        cardanoTx.txId,
+        cardanoTx.eventId,
+        Serializer.serialize(signedTx),
+        cardanoTx.txType,
+        cardanoTx.inputUtxos
+      );
+    });
   };
 
   /**
@@ -643,6 +645,11 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
 
     txs.forEach((tx) => {
       const txBody = tx.body();
+      const txId = CardanoWasm.FixedTransaction.new_from_body_bytes(
+        txBody.to_bytes()
+      )
+        .transaction_hash()
+        .to_hex();
       // iterate over tx inputs
       for (let i = 0; i < txBody.inputs().len(); i++) {
         let trackedBox: CardanoWasm.TransactionOutput | undefined;
@@ -684,7 +691,7 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
             }
           }
           const cardanoBox: CardanoUtxo = {
-            txId: CardanoWasm.hash_transaction(txBody).to_hex(),
+            txId: txId,
             index: index,
             value: BigInt(trackedBox.amount().coin().to_str()),
             assets: boxAssets,
@@ -764,7 +771,11 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
   ): Promise<CardanoTransaction> => {
     const tx = CardanoWasm.Transaction.from_json(rawTxJsonString);
     const txBytes = Serializer.serialize(tx);
-    const txId = CardanoWasm.hash_transaction(tx.body()).to_hex();
+    const txId = CardanoWasm.FixedTransaction.new_from_body_bytes(
+      tx.body().to_bytes()
+    )
+      .transaction_hash()
+      .to_hex();
 
     const inputBoxes: Array<CardanoUtxo> = [];
     const inputs = tx.body().inputs();
@@ -804,9 +815,11 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
     const baseError = `Tx [${transaction.txId}] is not verified: `;
 
     // verify txId
-    const txId = Buffer.from(
-      CardanoWasm.hash_transaction(tx.body()).to_bytes()
-    ).toString('hex');
+    const txId = CardanoWasm.FixedTransaction.new_from_body_bytes(
+      tx.body().to_bytes()
+    )
+      .transaction_hash()
+      .to_hex();
     if (transaction.txId !== txId) {
       this.logger.warn(
         baseError +
