@@ -16,16 +16,19 @@ export const multiDecimalTokenMap: RosenTokens = [
       decimals: 9,
       type: 'ERG',
       residency: 'native',
+      extra: {},
     },
     cardano: {
       tokenId:
         'ef6aa6200e21634e58ce6796b4b61d1d7d059d2ebe93c2996eeaf286.5273744552477654657374',
       name: 'RstERGvTest',
-      policyId: 'ef6aa6200e21634e58ce6796b4b61d1d7d059d2ebe93c2996eeaf286',
-      assetName: '5273744552477654657374',
       decimals: 10,
       type: 'native',
       residency: 'wrapped',
+      extra: {
+        policyId: 'ef6aa6200e21634e58ce6796b4b61d1d7d059d2ebe93c2996eeaf286',
+        assetName: '5273744552477654657374',
+      },
     },
   },
   {
@@ -36,16 +39,19 @@ export const multiDecimalTokenMap: RosenTokens = [
       decimals: 1,
       type: 'EIP-004',
       residency: 'native',
+      extra: {},
     },
     cardano: {
       tokenId:
         '48d4a14b8407af8407702df3afda4cc8a945ce55235e9808c62c5f9b.5273744572676f546f6b656e7654657374',
       name: 'RstErgoTokenvTest',
-      policyId: '48d4a14b8407af8407702df3afda4cc8a945ce55235e9808c62c5f9b',
-      assetName: '5273744572676f546f6b656e7654657374',
       decimals: 0,
       type: 'native',
       residency: 'wrapped',
+      extra: {
+        policyId: '48d4a14b8407af8407702df3afda4cc8a945ce55235e9808c62c5f9b',
+        assetName: '5273744572676f546f6b656e7654657374',
+      },
     },
   },
   {
@@ -56,16 +62,19 @@ export const multiDecimalTokenMap: RosenTokens = [
       decimals: 4,
       type: 'EIP-004',
       residency: 'wrapped',
+      extra: {},
     },
     cardano: {
       tokenId:
         'cfd784ccfe5fe8ce7d09f4ddb65624378cc8022bf3ec240cf41ea6be.43617264616e6f546f6b656e7654657374',
       name: 'CardanoTokenvTest',
-      policyId: 'cfd784ccfe5fe8ce7d09f4ddb65624378cc8022bf3ec240cf41ea6be',
-      assetName: '43617264616e6f546f6b656e7654657374',
       decimals: 3,
       type: 'native',
       residency: 'native',
+      extra: {
+        policyId: 'cfd784ccfe5fe8ce7d09f4ddb65624378cc8022bf3ec240cf41ea6be',
+        assetName: '43617264616e6f546f6b656e7654657374',
+      },
     },
   },
   {
@@ -76,16 +85,19 @@ export const multiDecimalTokenMap: RosenTokens = [
       decimals: 2,
       type: 'EIP-004',
       residency: 'wrapped',
+      extra: {},
     },
     cardano: {
       tokenId:
         'e043fa0e1adaa5abeca716791384b64be4d15c7d1e80817e43992e4a.43617264616e6f546f6b656e7654657374',
       name: 'test',
-      policyId: 'e043fa0e1adaa5abeca716791384b64be4d15c7d1e80817e43992e4a',
-      assetName: '43617264616e6f546f6b656e7654657374',
       decimals: 1,
       type: 'native',
       residency: 'native',
+      extra: {
+        policyId: 'e043fa0e1adaa5abeca716791384b64be4d15c7d1e80817e43992e4a',
+        assetName: '43617264616e6f546f6b656e7654657374',
+      },
     },
   },
   {
@@ -96,16 +108,19 @@ export const multiDecimalTokenMap: RosenTokens = [
       decimals: 2,
       type: 'EIP-004',
       residency: 'wrapped',
+      extra: {},
     },
     cardano: {
       tokenId:
         '55ca25ad5c788597f13e5c61d415315e8ac1f40e08d172a7809c016c.43617264616e6f546f6b656e7654657374',
       name: 'test',
-      policyId: 'e043fa0e1adaa5abeca716791384b64be4d15c7d1e80817e43992e4a',
-      assetName: '43617264616e6f546f6b656e7654657374',
       decimals: 2,
       type: 'native',
       residency: 'native',
+      extra: {
+        policyId: 'e043fa0e1adaa5abeca716791384b64be4d15c7d1e80817e43992e4a',
+        assetName: '43617264616e6f546f6b656e7654657374',
+      },
     },
   },
 ];
@@ -118,16 +133,19 @@ export const wrappedRwtTokenMap: RosenTokens = [
       decimals: 1,
       type: 'EIP-004',
       residency: 'wrapped',
+      extra: {},
     },
     cardano: {
       tokenId:
         'cfd784ccfe5fe8ce7d09f4ddb65624378cc8022bf3ec240cf41ea6be.43617264616e6f546f6b656e7654657374',
       name: 'CardanoTokenvTest',
-      policyId: 'cfd784ccfe5fe8ce7d09f4ddb65624378cc8022bf3ec240cf41ea6be',
-      assetName: '43617264616e6f546f6b656e7654657374',
       decimals: 0,
       type: 'native',
       residency: 'native',
+      extra: {
+        policyId: 'cfd784ccfe5fe8ce7d09f4ddb65624378cc8022bf3ec240cf41ea6be',
+        assetName: '43617264616e6f546f6b656e7654657374',
+      },
     },
   },
 ];

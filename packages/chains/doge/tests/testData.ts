@@ -12,6 +12,7 @@ export const multiDecimalTokenMap: RosenTokens = [
       decimals: 3,
       type: 'EIP-004',
       residency: 'wrapped',
+      extra: {},
     },
     doge: {
       tokenId: 'doge',
@@ -19,6 +20,7 @@ export const multiDecimalTokenMap: RosenTokens = [
       decimals: 8,
       type: 'native',
       residency: 'native',
+      extra: {},
     },
   },
 ];

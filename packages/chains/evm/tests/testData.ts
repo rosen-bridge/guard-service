@@ -502,16 +502,19 @@ export const multiDecimalTokenMap: RosenTokens = [
       decimals: 1,
       type: 'EIP-004',
       residency: 'wrapped',
+      extra: {},
     },
     cardano: {
       tokenId:
         '6d7cc9577a04be165cc4f2cf36f580dbeaf88f68e78f790805430940.727345544845522d6c6f656e',
-      policyId: '6d7cc9577a04be165cc4f2cf36f580dbeaf88f68e78f790805430940',
-      assetName: '727345544845522d6c6f656e',
       name: 'rsETHER-loen',
       decimals: 1,
       type: 'CIP26',
       residency: 'wrapped',
+      extra: {
+        policyId: '6d7cc9577a04be165cc4f2cf36f580dbeaf88f68e78f790805430940',
+        assetName: '727345544845522d6c6f656e',
+      },
     },
     test: {
       tokenId: 'test-native-token',
@@ -519,6 +522,7 @@ export const multiDecimalTokenMap: RosenTokens = [
       decimals: 3,
       type: 'native',
       residency: 'native',
+      extra: {},
     },
   },
 ];
@@ -532,6 +536,7 @@ export const tokenMapWithVariousTestTokens: RosenTokens = [
       decimals: 9,
       type: 'EIP-004',
       residency: 'wrapped',
+      extra: {},
     },
     test: {
       tokenId: 'test-native-token',
@@ -539,6 +544,7 @@ export const tokenMapWithVariousTestTokens: RosenTokens = [
       decimals: 18,
       type: 'native',
       residency: 'native',
+      extra: {},
     },
   },
   {
@@ -549,6 +555,7 @@ export const tokenMapWithVariousTestTokens: RosenTokens = [
       decimals: 3,
       type: 'EIP-004',
       residency: 'native',
+      extra: {},
     },
     test: {
       tokenId: '0xedee4752e5a2f595151c94762fb38e5730357785',
@@ -556,6 +563,7 @@ export const tokenMapWithVariousTestTokens: RosenTokens = [
       decimals: 3,
       type: 'ERC-20',
       residency: 'wrapped',
+      extra: {},
     },
   },
   {
@@ -566,6 +574,7 @@ export const tokenMapWithVariousTestTokens: RosenTokens = [
       decimals: 0,
       type: 'EIP-004',
       residency: 'native',
+      extra: {},
     },
     test: {
       tokenId: '0xa20bef5093783116611871d940f39e7aba3d14f9',
@@ -573,6 +582,7 @@ export const tokenMapWithVariousTestTokens: RosenTokens = [
       decimals: 0,
       type: 'ERC-20',
       residency: 'native',
+      extra: {},
     },
   },
 ];
