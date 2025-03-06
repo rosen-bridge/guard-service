@@ -1,6 +1,6 @@
 {
   "name": "@rosen-chains/cardano-blockfrost-network",
-  "version": "7.0.9",
+  "version": "7.0.10",
   "description": "a package to be used as network api provider for @rosen-chains/cardano package",
   "repository": "@rosen-chains/cardano-blockfrost-network",
   "license": "CC0-1.0",
@@ -36,7 +36,7 @@
     "@blockfrost/blockfrost-js": "^6.0.0",
     "@emurgo/cardano-serialization-lib-nodejs": "^13.2.0",
     "@rosen-bridge/abstract-logger": "^2.0.1",
-    "@rosen-chains/abstract-chain": "^12.0.0",
-    "@rosen-chains/cardano": "^11.0.0"
+    "@rosen-chains/abstract-chain": "^13.0.0",
+    "@rosen-chains/cardano": "^12.0.0"
   }
 }
