@@ -78,7 +78,7 @@ enum OrderStatus {
   reachedLimit = 'reached-limit',
 }
 
-const healthCheckBlockTime = 120;
+const healthCheckBlockTime = 12;
 
 export {
   EventStatus,
