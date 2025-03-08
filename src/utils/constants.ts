@@ -78,6 +78,8 @@ enum OrderStatus {
   reachedLimit = 'reached-limit',
 }
 
+const healthCheckBlockTime = 120;
+
 export {
   EventStatus,
   TransactionStatus,
@@ -94,4 +96,5 @@ export {
   TssAlgorithms,
   ChainNativeToken,
   OrderStatus,
+  healthCheckBlockTime,
 };
