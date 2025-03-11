@@ -10,7 +10,6 @@ export const logger = DefaultLoggerFactory.getInstance().getLogger(
   import.meta.url
 );
 
-// TODO: where should this go? need to be shared with api
 export type UpdateStatusDTO = {
   date: number;
   eventId: string;
@@ -27,7 +26,7 @@ class PublicStatusHandler {
 
   private constructor(dataSource: DataSource) {
     this.axios = axios.create({
-      baseURL: Configs.publicEventStatusBaseUrl,
+      baseURL: Configs.publicStatusBaseUrl,
     });
     this.txRepository = dataSource.getRepository(TransactionEntity);
   }
@@ -57,7 +56,6 @@ class PublicStatusHandler {
    * @returns string
    */
   protected dtoToSignMessage = (dto: UpdateStatusDTO): string => {
-    // TODO: move this fn with UpdateStatusDTO
     return `${dto.eventId}${dto.status}${dto.txId ?? ''}${dto.txType ?? ''}${
       dto.txStatus ?? ''
     }${dto.date}`;

@@ -45,7 +45,7 @@ describe('PublicStatusHandler', () => {
      * - call PublicStatusHandler.init with the stubbed dataSource
      * @expected
      * - instance should have been created
-     * - instance.axios should have been configured with the Configs.publicEventStatusBaseUrl
+     * - instance.axios should have been configured with the Configs.publicStatusBaseUrl
      * - instance.txRepository should have been set to the repository returned by dataSource.getRepository
      */
     it('should initialize the PublicStatusHandler instance with a valid dataSource', async () => {
@@ -56,7 +56,7 @@ describe('PublicStatusHandler', () => {
       const instance = PublicStatusHandler.getInstance();
       expect(instance).toBeDefined();
       expect(instance.axios.defaults.baseURL).toEqual(
-        Configs.publicEventStatusBaseUrl
+        Configs.publicStatusBaseUrl
       );
       expect(mockDataSource.getRepository).toHaveBeenCalled();
       expect(instance.txRepository).toEqual(mockRepository);
