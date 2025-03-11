@@ -167,6 +167,14 @@ const initScanner = () => {
 
   ergoScanner = new ErgoScanner(scannerConfig, loggers.ergoScannerLogger);
 
+  const networkType =
+    GuardsErgoConfigs.chainNetworkName === ErgoNetworkType.Node
+      ? ErgoNetworkType.Node
+      : ErgoNetworkType.Explorer;
+  const networkUrl =
+    networkType === ErgoNetworkType.Node
+      ? GuardsErgoConfigs.node.url
+      : GuardsErgoConfigs.explorer.url;
   const bitcoinCommitmentExtractor = new CommitmentExtractor(
     'bitcoinCommitment',
     [GuardsBitcoinConfigs.bitcoinContractConfig.commitmentAddress],
@@ -178,12 +186,8 @@ const initScanner = () => {
   const bitcoinEventTriggerExtractor = new EventTriggerExtractor(
     'bitcoinEventTrigger',
     dataSource,
-    GuardsErgoConfigs.chainNetworkName === ErgoNetworkType.Node
-      ? ErgoNetworkType.Node
-      : ErgoNetworkType.Explorer,
-    GuardsErgoConfigs.chainNetworkName === ErgoNetworkType.Node
-      ? GuardsErgoConfigs.node.url
-      : GuardsErgoConfigs.explorer.url,
+    networkType,
+    networkUrl,
     GuardsBitcoinConfigs.bitcoinContractConfig.eventTriggerAddress,
     GuardsBitcoinConfigs.bitcoinContractConfig.RWTId,
     GuardsBitcoinConfigs.bitcoinContractConfig.permitAddress,
@@ -202,12 +206,8 @@ const initScanner = () => {
   const cardanoEventTriggerExtractor = new EventTriggerExtractor(
     'cardanoEventTrigger',
     dataSource,
-    GuardsErgoConfigs.chainNetworkName === ErgoNetworkType.Node
-      ? ErgoNetworkType.Node
-      : ErgoNetworkType.Explorer,
-    GuardsErgoConfigs.chainNetworkName === ErgoNetworkType.Node
-      ? GuardsErgoConfigs.node.url
-      : GuardsErgoConfigs.explorer.url,
+    networkType,
+    networkUrl,
     GuardsCardanoConfigs.cardanoContractConfig.eventTriggerAddress,
     GuardsCardanoConfigs.cardanoContractConfig.RWTId,
     GuardsCardanoConfigs.cardanoContractConfig.permitAddress,
@@ -226,12 +226,8 @@ const initScanner = () => {
   const ergoEventTriggerExtractor = new EventTriggerExtractor(
     'ergoEventTrigger',
     dataSource,
-    GuardsErgoConfigs.chainNetworkName === ErgoNetworkType.Node
-      ? ErgoNetworkType.Node
-      : ErgoNetworkType.Explorer,
-    GuardsErgoConfigs.chainNetworkName === ErgoNetworkType.Node
-      ? GuardsErgoConfigs.node.url
-      : GuardsErgoConfigs.explorer.url,
+    networkType,
+    networkUrl,
     GuardsErgoConfigs.ergoContractConfig.eventTriggerAddress,
     GuardsErgoConfigs.ergoContractConfig.RWTId,
     GuardsErgoConfigs.ergoContractConfig.permitAddress,
@@ -250,12 +246,8 @@ const initScanner = () => {
   const ethereumEventTriggerExtractor = new EventTriggerExtractor(
     'ethereumEventTrigger',
     dataSource,
-    GuardsErgoConfigs.chainNetworkName === ErgoNetworkType.Node
-      ? ErgoNetworkType.Node
-      : ErgoNetworkType.Explorer,
-    GuardsErgoConfigs.chainNetworkName === ErgoNetworkType.Node
-      ? GuardsErgoConfigs.node.url
-      : GuardsErgoConfigs.explorer.url,
+    networkType,
+    networkUrl,
     GuardsEthereumConfigs.ethereumContractConfig.eventTriggerAddress,
     GuardsEthereumConfigs.ethereumContractConfig.RWTId,
     GuardsEthereumConfigs.ethereumContractConfig.permitAddress,
@@ -274,12 +266,8 @@ const initScanner = () => {
   const binanceEventTriggerExtractor = new EventTriggerExtractor(
     'binanceEventTrigger',
     dataSource,
-    GuardsErgoConfigs.chainNetworkName === ErgoNetworkType.Node
-      ? ErgoNetworkType.Node
-      : ErgoNetworkType.Explorer,
-    GuardsErgoConfigs.chainNetworkName === ErgoNetworkType.Node
-      ? GuardsErgoConfigs.node.url
-      : GuardsErgoConfigs.explorer.url,
+    networkType,
+    networkUrl,
     GuardsBinanceConfigs.binanceContractConfig.eventTriggerAddress,
     GuardsBinanceConfigs.binanceContractConfig.RWTId,
     GuardsBinanceConfigs.binanceContractConfig.permitAddress,

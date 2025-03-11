@@ -26,11 +26,10 @@ import EventReprocess from './reprocess/EventReprocess';
 import ArbitraryProcessor from './arbitrary/ArbitraryProcessor';
 import TssHandler from './handlers/TssHandler';
 import { TokenHandler } from './handlers/tokenHandler';
-import config from 'config';
 
 const init = async () => {
   // initialize tokens config
-  await TokenHandler.init(config.get<string>('tokensPath'));
+  await TokenHandler.init(Configs.tokensPath);
 
   // initialize NotificationHandler object
   NotificationHandler.setup();

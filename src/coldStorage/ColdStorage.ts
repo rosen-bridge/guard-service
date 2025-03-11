@@ -61,7 +61,7 @@ class ColdStorage {
       const chain = ChainHandler.getInstance().getChain(chainName);
       const lockedAssets = await chain.getLockAddressAssets();
 
-      const thresholds = (await Configs.thresholds())[chainName].tokens;
+      const thresholds = Configs.thresholds()[chainName].tokens;
 
       let transferringNativeToken = 0n;
       const transferringTokens: TokenInfo[] = [];

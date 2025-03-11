@@ -145,9 +145,10 @@ class Configs {
   );
   static addressesBasePath = config.get<string>('contracts.addressesBasePath');
 
-  static thresholds = async (): Promise<ThresholdConfig> => {
+  static tokensPath = config.get<string>('tokensPath');
+
+  static thresholds = (): ThresholdConfig => {
     const thresholdsPath = config.get<string>('thresholdsPath');
-    await TokenHandler.init(config.get<string>('tokensPath'));
     const tokenMap = TokenHandler.getInstance().getTokenMap();
     let thresholds: ThresholdConfig;
     if (!fs.existsSync(thresholdsPath)) {

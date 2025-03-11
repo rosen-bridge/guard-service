@@ -32,7 +32,8 @@ import {
   ADA_DECIMALS,
   ERG_DECIMALS,
   EventStatus,
-  healthCheckBlockTime,
+  ETHEREUM_BLOCK_TIME,
+  BINANCE_BLOCK_TIME,
 } from '../utils/constants';
 import GuardsBitcoinConfigs from '../configs/GuardsBitcoinConfigs';
 import { BITCOIN_CHAIN, BTC } from '@rosen-chains/bitcoin';
@@ -299,7 +300,7 @@ const getHealthCheck = async () => {
         Configs.ethereumScannerWarnDiff,
         Configs.ethereumScannerCriticalDiff,
         GuardsEthereumConfigs.rpc.url,
-        healthCheckBlockTime,
+        ETHEREUM_BLOCK_TIME,
         GuardsEthereumConfigs.rpc.authToken,
         GuardsEthereumConfigs.rpc.timeout
       );
@@ -327,7 +328,7 @@ const getHealthCheck = async () => {
         Configs.binanceScannerWarnDiff,
         Configs.binanceScannerCriticalDiff,
         GuardsBinanceConfigs.rpc.url,
-        healthCheckBlockTime,
+        BINANCE_BLOCK_TIME,
         GuardsBinanceConfigs.rpc.authToken,
         GuardsBinanceConfigs.rpc.timeout
       );

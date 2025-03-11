@@ -1,5 +1,4 @@
 import { ERGO_CHAIN } from '@rosen-chains/ergo';
-import Configs from '../configs/Configs';
 import { RevenueEntity } from '../db/entities/revenueEntity';
 import { RevenueView } from '../db/entities/revenueView';
 import { RevenueHistory, SingleRevenue, TokenData } from '../types/api';
@@ -52,7 +51,6 @@ export const extractRevenueFromView = async (
       let name = 'Unsupported token';
       let decimals = 0;
       let isNativeToken = false;
-      console.log(token);
 
       if (token.length) {
         ergoSideTokenId = token[0][ERGO_CHAIN].tokenId;
@@ -110,11 +108,11 @@ const fillTokensDetails = (token: TokenInfo): TokenData => {
     };
   }
 
-  const tokenInfo = TokenHandler.getInstance()
-    .getTokenMap()
-    .search(ERGO_CHAIN, {
-      tokenId: token.id,
-    });
+  const tokenMap = TokenHandler.getInstance().getTokenMap();
+
+  const tokenInfo = tokenMap.search(ERGO_CHAIN, {
+    tokenId: token.id,
+  });
 
   let name = 'Unsupported token';
   let decimals = 0;
@@ -122,9 +120,7 @@ const fillTokensDetails = (token: TokenInfo): TokenData => {
 
   if (tokenInfo.length) {
     name = tokenInfo[0][ERGO_CHAIN].name;
-    decimals = TokenHandler.getInstance()
-      .getTokenMap()
-      .getSignificantDecimals(token.id)!;
+    decimals = tokenMap.getSignificantDecimals(token.id)!;
     isNativeToken = tokenInfo[0][ERGO_CHAIN].type === 'native';
   }
 

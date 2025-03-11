@@ -2,4 +2,4 @@
 'guard-service': major
 ---
 
-Dependency packages are updated to latest versions
+Update tokens package to v3

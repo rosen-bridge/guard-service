@@ -20,7 +20,7 @@ class TokenHandler {
       }
       TokenHandler.instance = new TokenHandler();
       const tokensJson: string = fs.readFileSync(tokensPath, 'utf8');
-      const tokens = JSON.parse(tokensJson);
+      const tokens = JSON.parse(tokensJson).tokens;
       TokenHandler.instance.tokenMap = new TokenMap();
       await TokenHandler.instance.tokenMap.updateConfigByJson(tokens);
     }
@@ -35,13 +35,6 @@ class TokenHandler {
       throw new Error('TokenHandler is not initialized');
     }
     return TokenHandler.instance;
-  };
-
-  /**
-   * @returns whether TokenHandler is initialized
-   */
-  static isInitialized = (): boolean => {
-    return !!TokenHandler.instance;
   };
 
   /**

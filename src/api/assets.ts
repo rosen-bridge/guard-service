@@ -81,15 +81,13 @@ const assetsRoute = (server: FastifySeverInstance) => {
         // add requested token if does not exists
         if (tokenList.length === 0) {
           let tokenData: ChainTokenData | undefined;
+          const tokenMap = TokenHandler.getInstance().getTokenMap();
           for (const currentChain of chains) {
-            const tokens = TokenHandler.getInstance()
-              .getTokenMap()
-              .search(currentChain, {
-                tokenId,
-              });
-            const significantDecimals = TokenHandler.getInstance()
-              .getTokenMap()
-              .getSignificantDecimals(tokenId);
+            const tokens = tokenMap.search(currentChain, {
+              tokenId,
+            });
+            const significantDecimals =
+              tokenMap.getSignificantDecimals(tokenId);
             if (tokens.length) {
               tokenData = {
                 tokenId: tokenId,
