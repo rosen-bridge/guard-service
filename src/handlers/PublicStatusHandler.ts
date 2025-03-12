@@ -10,13 +10,18 @@ export const logger = DefaultLoggerFactory.getInstance().getLogger(
   import.meta.url
 );
 
+export type UpdateTxStatusDTO = {
+  txId: string;
+  chain: string;
+  txType: string;
+  txStatus: TransactionStatus;
+};
+
 export type UpdateStatusDTO = {
   date: number;
   eventId: string;
   status: EventStatus;
-  txId: string | undefined;
-  txType: string | undefined;
-  txStatus: TransactionStatus | undefined;
+  tx?: UpdateTxStatusDTO;
 };
 
 class PublicStatusHandler {
@@ -56,23 +61,25 @@ class PublicStatusHandler {
    * @returns string
    */
   protected dtoToSignMessage = (dto: UpdateStatusDTO): string => {
-    return `${dto.eventId}${dto.status}${dto.txId ?? ''}${dto.txType ?? ''}${
-      dto.txStatus ?? ''
-    }${dto.date}`;
+    return dto.tx
+      ? `${dto.eventId}${dto.status}${dto.tx.txId}${dto.tx.chain}${dto.tx.txType}${dto.tx.txStatus}${dto.date}`
+      : `${dto.eventId}${dto.status}${dto.date}`;
   };
 
   /**
    * submits a request with updated status information
    * @param dto - UpdateStatusDTO containing the update status details
-   * @returns promise of void
+   * @returns a promise that resolves to void
    */
   protected submitRequest = async (dto: UpdateStatusDTO): Promise<void> => {
-    const signMessage = this.dtoToSignMessage(dto);
+    const now = Date.now();
+    const signMessage = this.dtoToSignMessage({ ...dto, date: now });
 
     try {
       await this.axios.post('/status', {
         body: {
           ...dto,
+          date: now,
           pk: await Configs.tssKeys.encryptor.getPk(),
           signature: await Configs.tssKeys.encryptor.sign(signMessage),
         },
@@ -86,23 +93,17 @@ class PublicStatusHandler {
    * sends a request to update public status of an event
    * @param eventId
    * @param status
-   * @returns promise of void
+   * @returns a promise that resolves to void
    */
   updatePublicEventStatus = async (
     eventId: string,
     status: EventStatus
   ): Promise<void> => {
-    let txId: string | undefined;
-    let txType: string | undefined;
-    let txStatus: string | undefined;
-
-    const dto = {
-      date: Date.now(),
+    const dto: UpdateStatusDTO = {
+      date: 0,
       eventId,
       status,
-      txId,
-      txType,
-      txStatus,
+      tx: undefined,
     };
 
     if (status === EventStatus.inPayment || status === EventStatus.inReward) {
@@ -126,9 +127,12 @@ class PublicStatusHandler {
         );
       }
 
-      dto.txId = tx.txId;
-      dto.txType = tx.type;
-      dto.txStatus = tx.status;
+      dto.tx = {
+        txId: tx.txId,
+        chain: tx.chain,
+        txType: tx.type,
+        txStatus: tx.status,
+      };
     }
 
     return this.submitRequest(dto);
@@ -138,21 +142,17 @@ class PublicStatusHandler {
    * sends a request to update public status of a transaction
    * @param txId
    * @param txStatus
-   * @returns promise of void
+   * @returns a promise that resolves to void
    */
   updatePublicTxStatus = async (
     txId: string,
     txStatus: TransactionStatus
   ): Promise<void> => {
-    let txType: string | undefined;
-
-    const dto = {
-      date: Date.now(),
+    const dto: UpdateStatusDTO = {
+      date: 0,
       eventId: '',
       status: EventStatus.pendingPayment,
-      txId,
-      txType,
-      txStatus,
+      tx: undefined,
     };
 
     const tx = await this.txRepository.findOne({
@@ -170,7 +170,12 @@ class PublicStatusHandler {
 
     dto.eventId = tx.event.id;
     dto.status = tx.event.status;
-    dto.txType = tx.type;
+    dto.tx = {
+      txId: tx.txId,
+      chain: tx.chain,
+      txType: tx.type,
+      txStatus,
+    };
 
     return this.submitRequest(dto);
   };

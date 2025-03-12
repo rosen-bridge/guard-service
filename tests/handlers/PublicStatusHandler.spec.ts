@@ -104,9 +104,7 @@ describe('PublicStatusHandler', () => {
       date: Date.now(),
       eventId: id,
       status: 'inPayment',
-      txId: undefined,
-      txType: undefined,
-      txStatus: undefined,
+      tx: undefined,
     };
 
     beforeEach(async () => {
@@ -151,14 +149,22 @@ describe('PublicStatusHandler', () => {
       await instance['submitRequest'](validDto);
 
       // assert
-      expect(dtoToSignMessageSpy).toHaveBeenCalledWith(validDto);
+      expect(dtoToSignMessageSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          eventId: id,
+          status: 'inPayment',
+          tx: undefined,
+        })
+      );
       expect(signSpy).toHaveBeenCalledWith(signMessage);
       expect(axiosPostSpy).toHaveBeenCalledWith('/status', {
-        body: {
-          ...validDto,
+        body: expect.objectContaining({
+          eventId: id,
+          status: 'inPayment',
+          tx: undefined,
           pk: stubbedPk,
           signature: stubbedSignature,
-        },
+        }),
       });
     });
 
@@ -236,7 +242,7 @@ describe('PublicStatusHandler', () => {
      * @target PublicStatusHandler.updatePublicEventStatus should call submitRequest with the dto including transaction details when status is "inPayment" and a valid transaction is found
      * @dependencies
      * @scenario
-     * - stub txRepository.findOne to resolve to a valid transaction object containing txId, type, and status for eventId provided
+     * - stub txRepository.findOne to resolve to a valid transaction object containing txId, chain, type, and status for eventId provided
      * - spy on the submitRequest method
      * - call updateEventStatus with an eventId and status set to "inPayment"
      * @expected
@@ -249,6 +255,7 @@ describe('PublicStatusHandler', () => {
       // arrange
       const transactionStub = {
         txId: 'tx-123',
+        chain: 'c1',
         type: TransactionType.payment,
         status: 'completed',
       };
@@ -263,9 +270,12 @@ describe('PublicStatusHandler', () => {
         expect.objectContaining({
           eventId,
           status: EventStatus.inPayment,
-          txId: transactionStub.txId,
-          txType: transactionStub.type,
-          txStatus: transactionStub.status,
+          tx: {
+            txId: transactionStub.txId,
+            chain: transactionStub.chain,
+            txType: transactionStub.type,
+            txStatus: transactionStub.status,
+          },
         })
       );
     });
@@ -287,6 +297,7 @@ describe('PublicStatusHandler', () => {
       // arrange
       const transactionStub = {
         txId: 'tx-456',
+        chain: 'c1',
         type: TransactionType.reward,
         status: 'pending',
       };
@@ -301,9 +312,12 @@ describe('PublicStatusHandler', () => {
         expect.objectContaining({
           eventId,
           status: EventStatus.inReward,
-          txId: transactionStub.txId,
-          txType: transactionStub.type,
-          txStatus: transactionStub.status,
+          tx: {
+            txId: transactionStub.txId,
+            chain: transactionStub.chain,
+            txType: transactionStub.type,
+            txStatus: transactionStub.status,
+          },
         })
       );
     });
@@ -330,15 +344,12 @@ describe('PublicStatusHandler', () => {
 
       // assert
       // @ts-ignore
-      expect(instance.submitRequest).toHaveBeenCalledWith(
-        expect.objectContaining({
-          eventId,
-          status,
-          txId: undefined,
-          txType: undefined,
-          txStatus: undefined,
-        })
-      );
+      expect(instance.submitRequest).toHaveBeenCalledWith({
+        date: 0,
+        eventId,
+        status,
+        tx: undefined,
+      });
     });
   });
 
@@ -398,7 +409,8 @@ describe('PublicStatusHandler', () => {
       // arrange
       const transactionStub = {
         txId,
-        type: 'some-tx-type',
+        chain: 'c1',
+        type: 'reward',
         // The tx entity has a related event object:
         event: {
           id: 'event-2',
@@ -412,15 +424,17 @@ describe('PublicStatusHandler', () => {
 
       // assert
       // @ts-ignore
-      expect(instance.submitRequest).toHaveBeenCalledWith(
-        expect.objectContaining({
-          eventId: transactionStub.event.id,
-          status: transactionStub.event.status,
+      expect(instance.submitRequest).toHaveBeenCalledWith({
+        date: 0,
+        eventId: transactionStub.event.id,
+        status: transactionStub.event.status,
+        tx: {
           txId: txId,
+          chain: 'c1',
           txType: transactionStub.type,
           txStatus: newTxStatus,
-        })
-      );
+        },
+      });
     });
   });
 });
