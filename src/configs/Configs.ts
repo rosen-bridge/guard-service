@@ -9,6 +9,7 @@ import { SUPPORTED_CHAINS } from '../utils/constants';
 import { TransportOptions } from '@rosen-bridge/winston-logger';
 import { cloneDeep } from 'lodash-es';
 import { ECDSA } from '@rosen-bridge/encryption';
+import { TokenHandler } from '../handlers/tokenHandler';
 
 /**
  * reads a numerical config, set default value if it does not exits
@@ -143,27 +144,12 @@ class Configs {
     config.get<string>(`${network}.networkType`).toLowerCase()
   );
   static addressesBasePath = config.get<string>('contracts.addressesBasePath');
-  private static tokensConfig: RosenTokens;
-  static tokensVersion: string;
-  static tokens = (): RosenTokens => {
-    if (!this.tokensConfig) {
-      const tokensPath = config.get<string>('tokensPath');
-      if (!fs.existsSync(tokensPath)) {
-        throw new Error(
-          `Tokens config file with path ${tokensPath} doesn't exist`
-        );
-      } else {
-        const configJson: string = fs.readFileSync(tokensPath, 'utf8');
-        const tokensConfig = JSON.parse(configJson);
-        this.tokensConfig = tokensConfig;
-        this.tokensVersion = tokensConfig.version;
-      }
-    }
-    return this.tokensConfig;
-  };
-  static tokenMap = new TokenMap(this.tokens());
+
+  static tokensPath = config.get<string>('tokensPath');
+
   static thresholds = (): ThresholdConfig => {
     const thresholdsPath = config.get<string>('thresholdsPath');
+    const tokenMap = TokenHandler.getInstance().getTokenMap();
     let thresholds: ThresholdConfig;
     if (!fs.existsSync(thresholdsPath)) {
       throw new Error(
@@ -177,12 +163,12 @@ class Configs {
     for (const chain of Object.keys(thresholds)) {
       const tokenIds = Object.keys(thresholds[chain].tokens);
       tokenIds.forEach((tokenId) => {
-        thresholds[chain].tokens[tokenId].high = this.tokenMap.wrapAmount(
+        thresholds[chain].tokens[tokenId].high = tokenMap.wrapAmount(
           tokenId,
           thresholds[chain].tokens[tokenId].high,
           chain
         ).amount;
-        thresholds[chain].tokens[tokenId].low = this.tokenMap.wrapAmount(
+        thresholds[chain].tokens[tokenId].low = tokenMap.wrapAmount(
           tokenId,
           thresholds[chain].tokens[tokenId].low,
           chain

@@ -17,7 +17,6 @@ import ErgoNodeNetwork, { NODE_NETWORK } from '@rosen-chains/ergo-node-network';
 import ErgoExplorerNetwork, {
   EXPLORER_NETWORK,
 } from '@rosen-chains/ergo-explorer-network';
-import Configs from '../configs/Configs';
 import GuardsCardanoConfigs from '../configs/GuardsCardanoConfigs';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import MultiSigHandler from '../guard/multisig/MultiSigHandler';
@@ -36,6 +35,7 @@ import { BinanceChain } from '@rosen-chains/binance';
 import GuardsBinanceConfigs from '../configs/GuardsBinanceConfigs';
 import { BINANCE_CHAIN } from '@rosen-chains/binance';
 import TssHandler from './TssHandler';
+import { TokenHandler } from './tokenHandler';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -97,7 +97,7 @@ class ChainHandler {
     return new ErgoChain(
       network,
       GuardsErgoConfigs.chainConfigs,
-      Configs.tokens(),
+      TokenHandler.getInstance().getTokenMap(),
       multiSigSignFunction,
       DefaultLoggerFactory.getInstance().getLogger('ErgoChain')
     );
@@ -143,7 +143,7 @@ class ChainHandler {
     return new CardanoChain(
       network,
       GuardsCardanoConfigs.chainConfigs,
-      Configs.tokens(),
+      TokenHandler.getInstance().getTokenMap(),
       tssSignFunctionWrapper,
       DefaultLoggerFactory.getInstance().getLogger('CardanoChain')
     );
@@ -189,7 +189,7 @@ class ChainHandler {
     return new BitcoinChain(
       network,
       GuardsBitcoinConfigs.chainConfigs,
-      Configs.tokens(),
+      TokenHandler.getInstance().getTokenMap(),
       tssSignFunctionWrapper,
       DefaultLoggerFactory.getInstance().getLogger('BitcoinChain')
     );
@@ -236,22 +236,10 @@ class ChainHandler {
         signatureRecovery: res.signatureRecovery!,
       };
     };
-    // get all supported tokens on Ethereum
-    const supportedTokens = Configs.tokens()
-      .tokens.filter(
-        (tokenSet) =>
-          Object.keys(tokenSet).includes(ETHEREUM_CHAIN) &&
-          tokenSet[ETHEREUM_CHAIN].metaData.type !== 'native'
-      )
-      .map(
-        (tokenSet) =>
-          tokenSet[ETHEREUM_CHAIN][Configs.tokenMap.getIdKey(ETHEREUM_CHAIN)]
-      );
     return new EthereumChain(
       network,
       GuardsEthereumConfigs.chainConfigs,
-      Configs.tokens(),
-      supportedTokens,
+      TokenHandler.getInstance().getTokenMap(),
       tssSignFunctionWrapper,
       DefaultLoggerFactory.getInstance().getLogger('EthereumChain')
     );
@@ -298,22 +286,10 @@ class ChainHandler {
         signatureRecovery: res.signatureRecovery!,
       };
     };
-    // get all supported tokens on Binance
-    const supportedTokens = Configs.tokens()
-      .tokens.filter(
-        (tokenSet) =>
-          Object.keys(tokenSet).includes(BINANCE_CHAIN) &&
-          tokenSet[BINANCE_CHAIN].metaData.type !== 'native'
-      )
-      .map(
-        (tokenSet) =>
-          tokenSet[BINANCE_CHAIN][Configs.tokenMap.getIdKey(BINANCE_CHAIN)]
-      );
     return new BinanceChain(
       network,
       GuardsBinanceConfigs.chainConfigs,
-      Configs.tokens(),
-      supportedTokens,
+      TokenHandler.getInstance().getTokenMap(),
       tssSignFunctionWrapper,
       DefaultLoggerFactory.getInstance().getLogger('BinanceChain')
     );

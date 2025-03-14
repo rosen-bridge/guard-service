@@ -1,7 +1,6 @@
 import { ChainTokenData } from '../types/api';
 import { SUPPORTED_CHAINS, ChainNativeToken } from '../utils/constants';
 import ChainHandler from '../handlers/ChainHandler';
-import Configs from '../configs/Configs';
 import {
   AssetsQuerySchema,
   AssetsResponseSchema,
@@ -9,7 +8,7 @@ import {
   MessageResponseSchema,
 } from './schemas';
 import { getTokenData } from '../utils/getTokenData';
-
+import { TokenHandler } from '../handlers/tokenHandler';
 /**
  * setup available assets route
  * @param server
@@ -82,12 +81,13 @@ const assetsRoute = (server: FastifySeverInstance) => {
         // add requested token if does not exists
         if (tokenList.length === 0) {
           let tokenData: ChainTokenData | undefined;
+          const tokenMap = TokenHandler.getInstance().getTokenMap();
           for (const currentChain of chains) {
-            const tokens = Configs.tokenMap.search(currentChain, {
-              [Configs.tokenMap.getIdKey(currentChain)]: tokenId,
+            const tokens = tokenMap.search(currentChain, {
+              tokenId,
             });
             const significantDecimals =
-              Configs.tokenMap.getSignificantDecimals(tokenId);
+              tokenMap.getSignificantDecimals(tokenId);
             if (tokens.length) {
               tokenData = {
                 tokenId: tokenId,
@@ -96,8 +96,7 @@ const assetsRoute = (server: FastifySeverInstance) => {
                 coldAmount: 0,
                 decimals: significantDecimals!,
                 chain: currentChain,
-                isNativeToken:
-                  tokens[0][currentChain].metaData.type === 'native',
+                isNativeToken: tokens[0][currentChain].type === 'native',
               };
               break;
             }

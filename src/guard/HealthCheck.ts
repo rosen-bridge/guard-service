@@ -28,7 +28,13 @@ import GuardsCardanoConfigs from '../configs/GuardsCardanoConfigs';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import { rosenConfig } from '../configs/RosenConfig';
 import GuardPkHandler from '../handlers/GuardPkHandler';
-import { ADA_DECIMALS, ERG_DECIMALS, EventStatus } from '../utils/constants';
+import {
+  ADA_DECIMALS,
+  ERG_DECIMALS,
+  EventStatus,
+  ETHEREUM_BLOCK_TIME,
+  BINANCE_BLOCK_TIME,
+} from '../utils/constants';
 import GuardsBitcoinConfigs from '../configs/GuardsBitcoinConfigs';
 import { BITCOIN_CHAIN, BTC } from '@rosen-chains/bitcoin';
 import { DatabaseAction } from '../db/DatabaseAction';
@@ -183,7 +189,6 @@ const getHealthCheck = async () => {
       const scannerName = 'ergo-node';
       const ergoScannerSyncCheck = new ErgoNodeScannerHealthCheck(
         generateLastBlockFetcher(scannerName),
-        scannerName,
         Configs.ergoScannerWarnDiff,
         Configs.ergoScannerCriticalDiff,
         GuardsErgoConfigs.node.url
@@ -225,7 +230,6 @@ const getHealthCheck = async () => {
       const scannerName = 'ergo-explorer';
       const ergoScannerSyncCheck = new ErgoExplorerScannerHealthCheck(
         generateLastBlockFetcher(scannerName),
-        scannerName,
         Configs.ergoScannerWarnDiff,
         Configs.ergoScannerCriticalDiff,
         GuardsErgoConfigs.explorer.url
@@ -293,10 +297,10 @@ const getHealthCheck = async () => {
       const ethereumScannerSyncCheck = new EvmRPCScannerHealthCheck(
         ETHEREUM_CHAIN,
         generateLastBlockFetcher(scannerName),
-        scannerName,
         Configs.ethereumScannerWarnDiff,
         Configs.ethereumScannerCriticalDiff,
         GuardsEthereumConfigs.rpc.url,
+        ETHEREUM_BLOCK_TIME,
         GuardsEthereumConfigs.rpc.authToken,
         GuardsEthereumConfigs.rpc.timeout
       );
@@ -321,10 +325,10 @@ const getHealthCheck = async () => {
       const binanceScannerSyncCheck = new EvmRPCScannerHealthCheck(
         BINANCE_CHAIN,
         generateLastBlockFetcher(scannerName),
-        scannerName,
         Configs.binanceScannerWarnDiff,
         Configs.binanceScannerCriticalDiff,
         GuardsBinanceConfigs.rpc.url,
+        BINANCE_BLOCK_TIME,
         GuardsBinanceConfigs.rpc.authToken,
         GuardsBinanceConfigs.rpc.timeout
       );

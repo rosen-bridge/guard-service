@@ -78,6 +78,9 @@ enum OrderStatus {
   reachedLimit = 'reached-limit',
 }
 
+const ETHEREUM_BLOCK_TIME = 12;
+const BINANCE_BLOCK_TIME = 3;
+
 export {
   EventStatus,
   TransactionStatus,
@@ -94,4 +97,6 @@ export {
   TssAlgorithms,
   ChainNativeToken,
   OrderStatus,
+  ETHEREUM_BLOCK_TIME,
+  BINANCE_BLOCK_TIME,
 };

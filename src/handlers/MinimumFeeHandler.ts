@@ -3,7 +3,7 @@ import {
   ErgoNetworkType,
   MinimumFeeBox,
 } from '@rosen-bridge/minimum-fee';
-import { RosenTokens } from '@rosen-bridge/tokens';
+import { TokenMap } from '@rosen-bridge/tokens';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { EventTrigger } from '@rosen-chains/abstract-chain';
 import { ERGO_CHAIN } from '@rosen-chains/ergo';
@@ -11,6 +11,7 @@ import { NODE_NETWORK } from '@rosen-chains/ergo-node-network';
 import Configs from '../configs/Configs';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import { rosenConfig } from '../configs/RosenConfig';
+import { TokenHandler } from './tokenHandler';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -25,14 +26,18 @@ class MinimumFeeHandler {
   /**
    * initializes minimum fee handler
    */
-  static init = async (tokens: RosenTokens) => {
+  /**
+   * initializes minimum fee handler
+   */
+  static init = async (tokenMap: TokenMap) => {
     MinimumFeeHandler.instance = new MinimumFeeHandler();
     logger.debug('MinimumFeeHandler instantiated');
-    const ergoTokenIdKey = Configs.tokenMap.getIdKey(ERGO_CHAIN);
 
-    const promises = tokens.tokens.map((chainToken) => {
+    // TODO: A function to apply token map updates is required for here
+    // local:ergo/rosen-bridge/guard-service#430
+    const promises = tokenMap.getConfig().map((chainToken) => {
       const token = chainToken[ERGO_CHAIN];
-      const tokenId = token[ergoTokenIdKey];
+      const tokenId = token.tokenId;
 
       const { networkType, url } =
         GuardsErgoConfigs.chainNetworkName === NODE_NETWORK
@@ -76,12 +81,14 @@ class MinimumFeeHandler {
   static getEventFeeConfig = (event: EventTrigger): ChainMinimumFee => {
     const instance = MinimumFeeHandler.getInstance();
 
-    const tokenId = Configs.tokenMap.getID(
-      Configs.tokenMap.search(event.fromChain, {
-        [Configs.tokenMap.getIdKey(event.fromChain)]: event.sourceChainTokenId,
-      })[0],
-      ERGO_CHAIN
-    );
+    const tokenId = TokenHandler.getInstance()
+      .getTokenMap()
+      .getID(
+        TokenHandler.getInstance().getTokenMap().search(event.fromChain, {
+          tokenId: event.sourceChainTokenId,
+        })[0],
+        ERGO_CHAIN
+      );
 
     const feeBox = instance.getMinimumFeeBoxObject(tokenId);
 

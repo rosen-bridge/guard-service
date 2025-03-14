@@ -15,6 +15,7 @@ import { EvmTxExtractor } from '@rosen-bridge/evm-address-tx-extractor';
 import { ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
 import GuardsBinanceConfigs from '../configs/GuardsBinanceConfigs';
 import { BINANCE_CHAIN } from '@rosen-chains/binance';
+import { TokenHandler } from '../handlers/tokenHandler';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -163,21 +164,30 @@ const initScanner = () => {
         };
 
   const loggers = createLoggers();
-  const tokens = Configs.tokens();
 
   ergoScanner = new ErgoScanner(scannerConfig, loggers.ergoScannerLogger);
 
+  const networkType =
+    GuardsErgoConfigs.chainNetworkName === ErgoNetworkType.Node
+      ? ErgoNetworkType.Node
+      : ErgoNetworkType.Explorer;
+  const networkUrl =
+    networkType === ErgoNetworkType.Node
+      ? GuardsErgoConfigs.node.url
+      : GuardsErgoConfigs.explorer.url;
   const bitcoinCommitmentExtractor = new CommitmentExtractor(
     'bitcoinCommitment',
     [GuardsBitcoinConfigs.bitcoinContractConfig.commitmentAddress],
     GuardsBitcoinConfigs.bitcoinContractConfig.RWTId,
     dataSource,
-    tokens,
+    TokenHandler.getInstance().getTokenMap(),
     loggers.bitcoinCommitmentExtractorLogger
   );
   const bitcoinEventTriggerExtractor = new EventTriggerExtractor(
     'bitcoinEventTrigger',
     dataSource,
+    networkType,
+    networkUrl,
     GuardsBitcoinConfigs.bitcoinContractConfig.eventTriggerAddress,
     GuardsBitcoinConfigs.bitcoinContractConfig.RWTId,
     GuardsBitcoinConfigs.bitcoinContractConfig.permitAddress,
@@ -190,12 +200,14 @@ const initScanner = () => {
     [GuardsCardanoConfigs.cardanoContractConfig.commitmentAddress],
     GuardsCardanoConfigs.cardanoContractConfig.RWTId,
     dataSource,
-    tokens,
+    TokenHandler.getInstance().getTokenMap(),
     loggers.cardanoCommitmentExtractorLogger
   );
   const cardanoEventTriggerExtractor = new EventTriggerExtractor(
     'cardanoEventTrigger',
     dataSource,
+    networkType,
+    networkUrl,
     GuardsCardanoConfigs.cardanoContractConfig.eventTriggerAddress,
     GuardsCardanoConfigs.cardanoContractConfig.RWTId,
     GuardsCardanoConfigs.cardanoContractConfig.permitAddress,
@@ -208,12 +220,14 @@ const initScanner = () => {
     [GuardsErgoConfigs.ergoContractConfig.commitmentAddress],
     GuardsErgoConfigs.ergoContractConfig.RWTId,
     dataSource,
-    tokens,
+    TokenHandler.getInstance().getTokenMap(),
     loggers.ergoCommitmentExtractorLogger
   );
   const ergoEventTriggerExtractor = new EventTriggerExtractor(
     'ergoEventTrigger',
     dataSource,
+    networkType,
+    networkUrl,
     GuardsErgoConfigs.ergoContractConfig.eventTriggerAddress,
     GuardsErgoConfigs.ergoContractConfig.RWTId,
     GuardsErgoConfigs.ergoContractConfig.permitAddress,
@@ -226,12 +240,14 @@ const initScanner = () => {
     [GuardsEthereumConfigs.ethereumContractConfig.commitmentAddress],
     GuardsEthereumConfigs.ethereumContractConfig.RWTId,
     dataSource,
-    tokens,
+    TokenHandler.getInstance().getTokenMap(),
     loggers.ethereumCommitmentExtractorLogger
   );
   const ethereumEventTriggerExtractor = new EventTriggerExtractor(
     'ethereumEventTrigger',
     dataSource,
+    networkType,
+    networkUrl,
     GuardsEthereumConfigs.ethereumContractConfig.eventTriggerAddress,
     GuardsEthereumConfigs.ethereumContractConfig.RWTId,
     GuardsEthereumConfigs.ethereumContractConfig.permitAddress,
@@ -244,12 +260,14 @@ const initScanner = () => {
     [GuardsBinanceConfigs.binanceContractConfig.commitmentAddress],
     GuardsBinanceConfigs.binanceContractConfig.RWTId,
     dataSource,
-    tokens,
+    TokenHandler.getInstance().getTokenMap(),
     loggers.binanceCommitmentExtractorLogger
   );
   const binanceEventTriggerExtractor = new EventTriggerExtractor(
     'binanceEventTrigger',
     dataSource,
+    networkType,
+    networkUrl,
     GuardsBinanceConfigs.binanceContractConfig.eventTriggerAddress,
     GuardsBinanceConfigs.binanceContractConfig.RWTId,
     GuardsBinanceConfigs.binanceContractConfig.permitAddress,
