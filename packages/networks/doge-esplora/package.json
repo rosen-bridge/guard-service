@@ -1,6 +1,6 @@
 {
   "name": "@rosen-chains/doge-esplora",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "A package to be used as network api provider for @rosen-chains/doge package",
   "repository": "https://github.com/rosen-bridge/rosen-chains",
   "license": "GPL-3.0",
