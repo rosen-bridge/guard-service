@@ -11,12 +11,16 @@ import Configs from '../configs/Configs';
 import { DatabaseAction } from '../db/DatabaseAction';
 import { TransactionEntity } from '../db/entities/TransactionEntity';
 import ChainHandler from '../handlers/ChainHandler';
-import { EventStatus, TransactionStatus } from '../utils/constants';
+import {
+  EventStatus,
+  OrderStatus,
+  TransactionStatus,
+} from '../utils/constants';
 import * as TransactionSerializer from './TransactionSerializer';
-import WinstonLogger from '@rosen-bridge/winston-logger';
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { NotificationHandler } from '../handlers/NotificationHandler';
 
-const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
+const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
 class TransactionProcessor {
   /**
@@ -222,6 +226,15 @@ class TransactionProcessor {
           logger.info(
             `Tx [${tx.txId}] is confirmed. Event [${tx.event.id}] is complete`
           );
+        } else if (tx.type === TransactionType.arbitrary) {
+          // set order as complete
+          await DatabaseAction.getInstance().setOrderStatus(
+            tx.order.id,
+            OrderStatus.completed
+          );
+          logger.info(
+            `Tx [${tx.txId}] is confirmed. Order [${tx.order.id}] is complete`
+          );
         } else {
           // no need to do anything about event, just log that tx confirmed
           logger.info(
@@ -326,6 +339,17 @@ class TransactionProcessor {
           );
           logger.info(
             `Tx [${tx.txId}] is invalid. Event [${tx.event.id}] is now waiting for reward distribution. Reason: ${invalidationDetails.reason}`
+          );
+          break;
+        case TransactionType.arbitrary:
+          await DatabaseAction.getInstance().setOrderStatus(
+            tx.order.id,
+            OrderStatus.pending,
+            false,
+            invalidationDetails?.unexpected
+          );
+          logger.info(
+            `Tx [${tx.txId}] is invalid. Order [${tx.order.id}] is now waiting for payment. Reason: ${invalidationDetails.reason}`
           );
           break;
         case TransactionType.coldStorage:

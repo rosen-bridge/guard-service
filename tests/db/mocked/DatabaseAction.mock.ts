@@ -7,6 +7,8 @@ import {
 import {
   CommitmentEntity,
   EventTriggerEntity,
+  PermitEntity,
+  CollateralEntity,
   migrations as watcherDataExtractorMigrations,
 } from '@rosen-bridge/watcher-data-extractor';
 import { ConfirmedEventEntity } from '../../../src/db/entities/ConfirmedEventEntity';
@@ -14,15 +16,27 @@ import { TransactionEntity } from '../../../src/db/entities/TransactionEntity';
 import migrations from '../../../src/db/migrations';
 import Utils from '../../../src/utils/Utils';
 import TestUtils from '../../testUtils/TestUtils';
-import { EventTrigger, PaymentTransaction } from '@rosen-chains/abstract-chain';
+import {
+  EventTrigger,
+  PaymentTransaction,
+  TransactionType,
+} from '@rosen-chains/abstract-chain';
 import { DatabaseAction } from '../../../src/db/DatabaseAction';
 import { RevenueEntity } from '../../../src/db/entities/revenueEntity';
 import { RevenueChartView } from '../../../src/db/entities/revenueChartView';
 import { RevenueView } from '../../../src/db/entities/revenueView';
-import WinstonLogger from '@rosen-bridge/winston-logger';
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { EventView } from '../../../src/db/entities/EventView';
+import { OrderStatus } from '../../../src/utils/constants';
+import {
+  AddressTxsEntity,
+  migrations as addressTxExtractorMigrations,
+} from '@rosen-bridge/evm-address-tx-extractor';
+import { ArbitraryEntity } from '../../../src/db/entities/ArbitraryEntity';
+import { ReprocessEntity } from '../../../src/db/entities/ReprocessEntity';
+import { ReprocessStatus } from '../../../src/reprocess/Interfaces';
 
-const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
+const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
 class DatabaseActionMock {
   static testDataSource = new DataSource({
@@ -38,10 +52,16 @@ class DatabaseActionMock {
       RevenueView,
       RevenueChartView,
       EventView,
+      AddressTxsEntity,
+      ArbitraryEntity,
+      ReprocessEntity,
+      PermitEntity,
+      CollateralEntity,
     ],
     migrations: [
       ...scannerMigrations.sqlite,
       ...watcherDataExtractorMigrations.sqlite,
+      ...addressTxExtractorMigrations.sqlite,
       ...migrations.sqlite,
     ],
     synchronize: false,
@@ -74,6 +94,8 @@ class DatabaseActionMock {
     await this.testDatabase.TransactionRepository.clear();
     await this.testDatabase.ConfirmedEventRepository.clear();
     await this.testDatabase.EventRepository.clear();
+    await this.testDatabase.ArbitraryRepository.clear();
+    await this.testDatabase.ReprocessRepository.clear();
     await this.testDataSource.getRepository(BlockEntity).clear();
   };
 
@@ -110,7 +132,7 @@ class DatabaseActionMock {
       .values({
         extractor: 'extractor',
         boxId: TestUtils.generateRandomId(),
-        boxSerialized: boxSerialized,
+        serialized: boxSerialized,
         block: 'blockId',
         height: eventHeight,
         fromChain: event.fromChain,
@@ -178,7 +200,7 @@ class DatabaseActionMock {
       .values({
         extractor: 'extractor',
         boxId: TestUtils.generateRandomId(),
-        boxSerialized: boxSerialized,
+        serialized: boxSerialized,
         block: 'blockId',
         height: height,
         fromChain: event.fromChain,
@@ -224,9 +246,17 @@ class DatabaseActionMock {
     signFailedCount = 0,
     requiredSign = 6
   ) => {
-    const event = await this.testDatabase.ConfirmedEventRepository.findOneBy({
-      id: paymentTx.eventId,
-    });
+    let order: ArbitraryEntity | null | undefined;
+    let event: ConfirmedEventEntity | null | undefined;
+    if (paymentTx.txType === TransactionType.arbitrary) {
+      order = await this.testDatabase.ArbitraryRepository.findOneBy({
+        id: paymentTx.eventId,
+      });
+    } else {
+      event = await this.testDatabase.ConfirmedEventRepository.findOneBy({
+        id: paymentTx.eventId,
+      });
+    }
     await this.testDatabase.TransactionRepository.insert({
       txId: paymentTx.txId,
       txJson: paymentTx.toJson(),
@@ -234,7 +264,8 @@ class DatabaseActionMock {
       chain: paymentTx.network,
       status: status,
       lastCheck: lastCheck,
-      event: event!,
+      event: event !== null ? event : undefined,
+      order: order !== null ? order : undefined,
       lastStatusUpdate: lastStatusUpdate,
       failedInSign: failedInSign,
       signFailedCount: signFailedCount,
@@ -243,14 +274,18 @@ class DatabaseActionMock {
   };
 
   /**
-   * inserts a record to Event table in
+   * inserts a record to Event table in database
+   * @param event
    * @param eventId
    * @param boxSerialized
    * @param wid
    * @param height
    * @param rwtCount
+   * @param spendTxId
+   * @param spendIndex
    */
   static insertCommitmentBoxRecord = async (
+    event: EventTrigger,
     eventId: string,
     boxSerialized: string,
     wid: string,
@@ -259,12 +294,13 @@ class DatabaseActionMock {
     spendTxId?: string,
     spendIndex?: number
   ) => {
+    const commitment = Utils.commitmentFromEvent(event, wid);
     await this.testDatabase.CommitmentRepository.createQueryBuilder()
       .insert()
       .values({
         extractor: 'extractor',
         eventId: eventId,
-        commitment: 'commitment',
+        commitment: commitment,
         WID: wid,
         boxId: TestUtils.generateRandomId(),
         block: 'blockId',
@@ -310,6 +346,66 @@ class DatabaseActionMock {
   };
 
   /**
+   * inserts a record to ArbitraryOrder table in database
+   * @param id
+   * @param chain
+   * @param orderJson
+   * @param status
+   * @param firstTry
+   * @param unexpectedFails
+   */
+  static insertOrderRecord = async (
+    id: string,
+    chain: string,
+    orderJson: string,
+    status: OrderStatus,
+    firstTry?: string,
+    unexpectedFails?: number
+  ) => {
+    await this.testDatabase.ArbitraryRepository.createQueryBuilder()
+      .insert()
+      .values({
+        id: id,
+        chain: chain,
+        orderJson: orderJson,
+        status: status,
+        firstTry: firstTry,
+        unexpectedFails: unexpectedFails,
+      })
+      .execute();
+  };
+
+  /**
+   * inserts a record to Reprocess table in
+   * @param requestId
+   * @param eventId
+   * @param senderId
+   * @param receiverId
+   * @param status
+   * @param timestamp
+   */
+  static insertReprocessRecord = async (
+    requestId: string,
+    eventId: string,
+    senderId: string,
+    receiverId: string,
+    status: ReprocessStatus,
+    timestamp: number
+  ) => {
+    await this.testDatabase.ReprocessRepository.createQueryBuilder()
+      .insert()
+      .values({
+        requestId: requestId,
+        eventId: eventId,
+        sender: senderId,
+        receiver: receiverId,
+        status: status,
+        timestamp: timestamp,
+      })
+      .execute();
+  };
+
+  /**
    * returns all records in Event table in database
    */
   static allRawEventRecords = async () => {
@@ -332,7 +428,7 @@ class DatabaseActionMock {
    */
   static allTxRecords = async () => {
     return await this.testDatabase.TransactionRepository.find({
-      relations: ['event'],
+      relations: ['event', 'order'],
     });
   };
 
@@ -350,6 +446,24 @@ class DatabaseActionMock {
    */
   static eventViewRecords = async () => {
     return await this.testDatabase.EventView.createQueryBuilder()
+      .select()
+      .getMany();
+  };
+
+  /**
+   * returns all records in Order table in database
+   */
+  static allOrderRecords = async () => {
+    return await this.testDatabase.ArbitraryRepository.createQueryBuilder()
+      .select()
+      .getMany();
+  };
+
+  /**
+   * returns all records in Reprocess table in database
+   */
+  static allReprocessRecords = async () => {
+    return await this.testDatabase.ReprocessRepository.createQueryBuilder()
       .select()
       .getMany();
   };

@@ -1,23 +1,21 @@
 import {
   BitcoinEsploraAssetHealthCheckParam,
-  DogeEsploraAssetHealthCheckParam,
   CardanoBlockFrostAssetHealthCheckParam,
   CardanoKoiosAssetHealthCheckParam,
   ErgoExplorerAssetHealthCheckParam,
   ErgoNodeAssetHealthCheckParam,
-  EthereumRpcAssetHealthCheckParam,
+  EvmRpcAssetHealthCheckParam,
 } from '@rosen-bridge/asset-check';
-import { HealthCheck, HealthStatusLevel } from '@rosen-bridge/health-check';
-import { LogLevelHealthCheck } from '@rosen-bridge/log-level-check';
+import { HealthCheck } from '@rosen-bridge/health-check';
 import { ErgoNodeSyncHealthCheckParam } from '@rosen-bridge/node-sync-check';
 import { P2PNetworkHealthCheck } from '@rosen-bridge/p2p-network-check';
 import {
   ErgoExplorerScannerHealthCheck,
   ErgoNodeScannerHealthCheck,
-  EthereumRPCScannerHealthCheck,
+  EvmRPCScannerHealthCheck,
 } from '@rosen-bridge/scanner-sync-check';
 
-import WinstonLogger from '@rosen-bridge/winston-logger';
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
 import { BLOCKFROST_NETWORK } from '@rosen-chains/cardano-blockfrost-network';
 import { KOIOS_NETWORK } from '@rosen-chains/cardano-koios-network';
@@ -30,7 +28,13 @@ import GuardsCardanoConfigs from '../configs/GuardsCardanoConfigs';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import { rosenConfig } from '../configs/RosenConfig';
 import GuardPkHandler from '../handlers/GuardPkHandler';
-import { ADA_DECIMALS, ERG_DECIMALS } from '../utils/constants';
+import {
+  ADA_DECIMALS,
+  ERG_DECIMALS,
+  EventStatus,
+  ETHEREUM_BLOCK_TIME,
+  BINANCE_BLOCK_TIME,
+} from '../utils/constants';
 import GuardsBitcoinConfigs from '../configs/GuardsBitcoinConfigs';
 import { BITCOIN_CHAIN, BTC } from '@rosen-chains/bitcoin';
 import GuardsDogeConfigs from '../configs/GuardsDogeConfigs';
@@ -44,8 +48,14 @@ import {
 } from '@rosen-bridge/tx-progress-check';
 import GuardsEthereumConfigs from '../configs/GuardsEthereumConfigs';
 import { ETH, ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
+import GuardsBinanceConfigs from '../configs/GuardsBinanceConfigs';
+import { BINANCE_CHAIN, BNB } from '@rosen-chains/binance';
+import {
+  EventInfo,
+  EventProgressHealthCheckParam,
+} from '@rosen-bridge/event-progress-check';
 
-const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
+const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 let healthCheck: HealthCheck | undefined;
 
 /**
@@ -77,16 +87,6 @@ const getHealthCheck = async () => {
       notificationConfig
     );
 
-    // add LogLevel param
-    const errorLogHealthCheck = new LogLevelHealthCheck(
-      logger,
-      HealthStatusLevel.UNSTABLE,
-      Configs.errorLogAllowedCount,
-      Configs.errorLogDuration,
-      'error'
-    );
-    healthCheck.register(errorLogHealthCheck);
-
     // add P2PNetwork param
     const dialer = await Dialer.getInstance();
     const p2pHealthCheck = new P2PNetworkHealthCheck({
@@ -111,7 +111,7 @@ const getHealthCheck = async () => {
           txType: txEntity.type,
           signFailedCount: txEntity.signFailedCount,
           chain: txEntity.chain,
-          eventId: txEntity.event.id,
+          eventId: txEntity.event?.id ?? '',
         })
       );
     };
@@ -122,10 +122,31 @@ const getHealthCheck = async () => {
     );
     healthCheck.register(txProgressHealthCheck);
 
+    // add EventProgress param
+    const getActiveEvents = async (): Promise<EventInfo[]> => {
+      return (
+        await DatabaseAction.getInstance().getEventsByStatuses([
+          EventStatus.pendingPayment,
+          EventStatus.pendingReward,
+        ])
+      ).map((eventEntity) => ({
+        id: eventEntity.id,
+        firstTry: eventEntity.firstTry,
+        status: eventEntity.status,
+      }));
+    };
+    const eventProgressHealthCheck = new EventProgressHealthCheckParam(
+      getActiveEvents,
+      Configs.eventDurationWarnThreshold,
+      Configs.eventDurationCriticalThreshold
+    );
+    healthCheck.register(eventProgressHealthCheck);
+
     const ergoContracts = rosenConfig.contractReader(ERGO_CHAIN);
     const cardanoContracts = rosenConfig.contractReader(CARDANO_CHAIN);
     const bitcoinContracts = rosenConfig.contractReader(BITCOIN_CHAIN);
     const ethereumContracts = rosenConfig.contractReader(ETHEREUM_CHAIN);
+    const binanceContracts = rosenConfig.contractReader(BINANCE_CHAIN);
     const dogeContracts = rosenConfig.contractReader(DOGE_CHAIN);
     const generateLastBlockFetcher = (scannerName: string) => {
       return async () => {
@@ -170,7 +191,6 @@ const getHealthCheck = async () => {
       const scannerName = 'ergo-node';
       const ergoScannerSyncCheck = new ErgoNodeScannerHealthCheck(
         generateLastBlockFetcher(scannerName),
-        scannerName,
         Configs.ergoScannerWarnDiff,
         Configs.ergoScannerCriticalDiff,
         GuardsErgoConfigs.node.url
@@ -212,7 +232,6 @@ const getHealthCheck = async () => {
       const scannerName = 'ergo-explorer';
       const ergoScannerSyncCheck = new ErgoExplorerScannerHealthCheck(
         generateLastBlockFetcher(scannerName),
-        scannerName,
         Configs.ergoScannerWarnDiff,
         Configs.ergoScannerCriticalDiff,
         GuardsErgoConfigs.explorer.url
@@ -262,7 +281,7 @@ const getHealthCheck = async () => {
       healthCheck.register(btcAssetHealthCheck);
     }
     if (GuardsDogeConfigs.chainNetworkName === 'esplora') {
-      const dogeAssetHealthCheck = new DogeEsploraAssetHealthCheckParam(
+      const dogeAssetHealthCheck = new BitcoinEsploraAssetHealthCheckParam(
         DOGE,
         dogeContracts.lockAddress,
         Configs.dogeWarnThreshold,
@@ -273,28 +292,60 @@ const getHealthCheck = async () => {
       healthCheck.register(dogeAssetHealthCheck);
     }
     if (GuardsEthereumConfigs.chainNetworkName === 'rpc') {
-      const ethAssetHealthCheck = new EthereumRpcAssetHealthCheckParam(
+      const ethAssetHealthCheck = new EvmRpcAssetHealthCheckParam(
+        ETH,
         ETH,
         ETH,
         ethereumContracts.lockAddress,
         Configs.ethWarnThreshold,
         Configs.ethCriticalThreshold,
         GuardsEthereumConfigs.rpc.url,
-        8
+        8,
+        GuardsEthereumConfigs.rpc.authToken,
+        18
       );
       healthCheck.register(ethAssetHealthCheck);
 
       const scannerName = 'ethereum-evm-rpc';
-      const ethereumScannerSyncCheck = new EthereumRPCScannerHealthCheck(
+      const ethereumScannerSyncCheck = new EvmRPCScannerHealthCheck(
+        ETHEREUM_CHAIN,
         generateLastBlockFetcher(scannerName),
-        scannerName,
         Configs.ethereumScannerWarnDiff,
         Configs.ethereumScannerCriticalDiff,
         GuardsEthereumConfigs.rpc.url,
+        ETHEREUM_BLOCK_TIME,
         GuardsEthereumConfigs.rpc.authToken,
         GuardsEthereumConfigs.rpc.timeout
       );
       healthCheck.register(ethereumScannerSyncCheck);
+    }
+    if (GuardsBinanceConfigs.chainNetworkName === 'rpc') {
+      const bnbAssetHealthCheck = new EvmRpcAssetHealthCheckParam(
+        BNB,
+        BNB,
+        BNB,
+        binanceContracts.lockAddress,
+        Configs.bnbWarnThreshold,
+        Configs.bnbCriticalThreshold,
+        GuardsBinanceConfigs.rpc.url,
+        8,
+        GuardsBinanceConfigs.rpc.authToken,
+        18
+      );
+      healthCheck.register(bnbAssetHealthCheck);
+
+      const scannerName = 'binance-evm-rpc';
+      const binanceScannerSyncCheck = new EvmRPCScannerHealthCheck(
+        BINANCE_CHAIN,
+        generateLastBlockFetcher(scannerName),
+        Configs.binanceScannerWarnDiff,
+        Configs.binanceScannerCriticalDiff,
+        GuardsBinanceConfigs.rpc.url,
+        BINANCE_BLOCK_TIME,
+        GuardsBinanceConfigs.rpc.authToken,
+        GuardsBinanceConfigs.rpc.timeout
+      );
+      healthCheck.register(binanceScannerSyncCheck);
     }
   }
 

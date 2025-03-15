@@ -18,9 +18,10 @@ import { DatabaseAction } from '../db/DatabaseAction';
 import GuardTurn from '../utils/GuardTurn';
 import GuardPkHandler from '../handlers/GuardPkHandler';
 import DatabaseHandler from '../db/DatabaseHandler';
-import WinstonLogger from '@rosen-bridge/winston-logger';
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+import { TokenHandler } from '../handlers/tokenHandler';
 
-const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
+const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
 class ColdStorage {
   /**
@@ -59,6 +60,7 @@ class ColdStorage {
 
       const chain = ChainHandler.getInstance().getChain(chainName);
       const lockedAssets = await chain.getLockAddressAssets();
+
       const thresholds = Configs.thresholds()[chainName].tokens;
 
       let transferringNativeToken = 0n;
@@ -73,9 +75,9 @@ class ColdStorage {
           return;
         }
         const isNativeToken =
-          Configs.tokenMap.search(chainName, {
-            [Configs.tokenMap.getIdKey(chainName)]: tokenId,
-          })[0][chainName].metaData.type === 'native';
+          TokenHandler.getInstance().getTokenMap().search(chainName, {
+            tokenId,
+          })[0][chainName].type === 'native';
         if (isNativeToken) {
           if (lockedAssets.nativeToken > thresholds[tokenId].high)
             transferringNativeToken =

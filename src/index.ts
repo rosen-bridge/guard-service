@@ -13,15 +13,24 @@ import { configUpdateJob } from './jobs/guardConfigUpdate';
 import MultiSigUtils from './guard/multisig/MultiSigUtils';
 import { DatabaseAction } from './db/DatabaseAction';
 import { dataSource } from './db/dataSource';
-import Tss from './guard/Tss';
 import { tssUpdateJob } from './jobs/tss';
 import { revenueJob } from './jobs/revenue';
 import GuardPkHandler from './handlers/GuardPkHandler';
 import MinimumFeeHandler from './handlers/MinimumFeeHandler';
 import { minimumFeeUpdateJob } from './jobs/minimumFee';
 import { NotificationHandler } from './handlers/NotificationHandler';
+import Dialer from './communication/Dialer';
+import EventSynchronization from './synchronization/EventSynchronization';
+import DetectionHandler from './handlers/DetectionHandler';
+import EventReprocess from './reprocess/EventReprocess';
+import ArbitraryProcessor from './arbitrary/ArbitraryProcessor';
+import TssHandler from './handlers/TssHandler';
+import { TokenHandler } from './handlers/tokenHandler';
 
 const init = async () => {
+  // initialize tokens config
+  await TokenHandler.init(Configs.tokensPath);
+
   // initialize NotificationHandler object
   NotificationHandler.setup();
 
@@ -34,12 +43,16 @@ const init = async () => {
   // initialize express Apis
   await initApiServer();
 
+  // initialize Dialer and DetectionHandler
+  await Dialer.getInstance();
+  await DetectionHandler.init();
+
   // initialize tss multiSig object
   await MultiSigHandler.init(Configs.guardSecret);
   initializeMultiSigJobs();
 
   // start tss instance
-  await Tss.init();
+  await TssHandler.init();
   tssUpdateJob();
 
   // initialize chain objects
@@ -55,8 +68,17 @@ const init = async () => {
   // initialize TxAgreement object
   await TxAgreement.getInstance();
 
+  // initialize ArbitraryProcessor object
+  ArbitraryProcessor.getInstance();
+
+  // initialize EventSynchronization object
+  await EventSynchronization.init();
+
+  // initialize EventReprocess object
+  await EventReprocess.init();
+
   // initialize MinimumFeeHandler
-  await MinimumFeeHandler.init(Configs.tokens());
+  await MinimumFeeHandler.init(TokenHandler.getInstance().getTokenMap());
   minimumFeeUpdateJob();
 
   // run network scanners

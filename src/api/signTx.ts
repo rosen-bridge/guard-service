@@ -6,15 +6,15 @@ import {
 import Configs from '../configs/Configs';
 import ChainHandler from '../handlers/ChainHandler';
 import DatabaseHandler from '../db/DatabaseHandler';
-import WinstonLogger from '@rosen-bridge/winston-logger';
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { DuplicateTransaction } from '../utils/errors';
 import GuardPkHandler from '../handlers/GuardPkHandler';
 import { authenticateKey } from '../utils/authentication';
 
-const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
+const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
 /**
- * setup event history route
+ * setup sign transaction route
  * @param server
  */
 const signTxRoute = (server: FastifySeverInstance) => {
@@ -27,6 +27,7 @@ const signTxRoute = (server: FastifySeverInstance) => {
           200: MessageResponseSchema,
           400: MessageResponseSchema,
           403: MessageResponseSchema,
+          409: MessageResponseSchema,
         },
         security: [{ apiKey: [] }],
       },
@@ -34,16 +35,20 @@ const signTxRoute = (server: FastifySeverInstance) => {
     },
     async (request, reply) => {
       const { chain, txJson, requiredSign, overwrite } = request.body;
-      if (!Configs.isManualTxRequestActive)
+      if (!Configs.isManualTxRequestActive) {
         reply.status(400).send({
           message: `Manual transaction request is disabled in config`,
         });
+        return;
+      }
 
       const guardsLen = GuardPkHandler.getInstance().guardsLen;
-      if (requiredSign > guardsLen || requiredSign <= 0)
+      if (requiredSign > guardsLen || requiredSign <= 0) {
         reply.status(400).send({
           message: `Invalid value for required sign (expected 1 to ${guardsLen}, found ${requiredSign})`,
         });
+        return;
+      }
 
       try {
         const tx = await ChainHandler.getInstance()

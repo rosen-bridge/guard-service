@@ -12,7 +12,6 @@ export const guardInfo = {
   versions: {
     app: expect.any(String),
     contract: rosenConfig.contractVersion,
-    tokensMap: Configs.tokensVersion,
   },
   health: {
     status: HealthStatusLevel.HEALTHY,
@@ -93,3 +92,6 @@ export const guardInfo = {
   rsnTokenId: rosenConfig.RSN,
   emissionTokenId: GuardsErgoConfigs.emissionTokenId,
 };
+
+export const invalidOrderJson =
+  '[{"address":"address-1","assets":{"nativeToken":100,"tokens":[]}},{"address":"address-2","assets":{"nativeToken":200,"tokens":[{"id":"token-1","value":10000}]}]';

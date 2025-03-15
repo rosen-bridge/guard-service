@@ -33,6 +33,10 @@ class GuardsDogeConfigs {
     'doge.confirmation.manual',
     6
   );
+  static arbitraryTxConfirmation = getConfigIntKeyOrDefault(
+    'doge.confirmation.arbitrary',
+    6
+  );
 
   // the doge-related contract, addresses and tokens in rosen bridge
   static dogeContractConfig = rosenConfig.contractReader(DOGE_CHAIN);
@@ -52,6 +56,7 @@ class GuardsDogeConfigs {
       payment: this.paymentConfirmation,
       cold: this.coldTxConfirmation,
       manual: this.manualTxConfirmation,
+      arbitrary: this.arbitraryTxConfirmation,
     },
     addresses: {
       lock: this.dogeContractConfig.lockAddress,
@@ -65,4 +70,4 @@ class GuardsDogeConfigs {
   };
 }
 
-export default GuardsDogeConfigs; 
+export default GuardsDogeConfigs;

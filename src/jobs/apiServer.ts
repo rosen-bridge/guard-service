@@ -11,11 +11,13 @@ import { assetRoutes } from '../api/assets';
 import { revenueRoutes } from '../api/revenue';
 import { healthRoutes } from '../api/healthCheck';
 import { tssRoute } from '../api/tss';
-import WinstonLogger from '@rosen-bridge/winston-logger';
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { signRoute } from '../api/signTx';
 import rateLimit from '@fastify/rate-limit';
+import { arbitraryOrderRoute } from '../api/arbitrary';
+import { eventReprocessRoute } from '../api/reprocess';
 
-const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
+const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
 /**
  * initialize api server
@@ -102,6 +104,8 @@ const initApiServer = async () => {
   await apiServer.register(revenueRoutes);
   await apiServer.register(assetRoutes);
   await apiServer.register(signRoute);
+  await apiServer.register(arbitraryOrderRoute);
+  await apiServer.register(eventReprocessRoute);
 
   apiServer.get('/', (request, reply) => {
     reply.redirect('/swagger');

@@ -1,12 +1,45 @@
 ---
 api:
   isManualTxRequestActive: true
+  isArbitraryOrderRequestActive: true
   apiKeyHash: '324dcf027dd4a30a932c441f365a25e86b173defa4b8e58948253471b81b72cf'
+binance:
+  networkType: 'testnet'
+  chainNetwork: 'rpc'
+  rpc:
+    url: ''
+    timeout: 8
+    initialHeight: 1000000
+  tssChainCode: 'BinanceChainCode'
+  derivationPath:
+    - 44
+    - 60
+    - 0
+    - 0
 bitcoin:
   networkType: 'testnet'
   chainNetwork: 'esplora'
   esplora:
     url: 'https://blockstream.info'
+    timeout: 8
+  bankPublicKey: 'bcb07faa6c0f19e2f2587aa9ef6f43a68fc0135321216a71dc87c8527af4ca6a'
+  txFeeSlippage: 10
+  confirmation:
+    observation: 6
+    payment: 7
+    cold: 8
+    manual: 5
+  tssChainCode: 'BitcoinChainCode'
+  derivationPath:
+    - 82
+    - 84
+    - 0
+    - 0
+doge:
+  networkType: 'testnet'
+  chainNetwork: 'esplora'
+  esplora:
+    url: 'https://doge-electrs-demo.qed.me/'
     timeout: 8
   bankPublicKey: 'bcb07faa6c0f19e2f2587aa9ef6f43a68fc0135321216a71dc87c8527af4ca6a'
   txFeeSlippage: 10
@@ -71,6 +104,24 @@ reward:
   networkFeeRepoAddress: '9es3xKFSehNNwCpuNpY31ScAubDqeLbSWwaCysjN1ee51bgHKTq'
   watchersSharePercent: 50
   watchersEmissionSharePercent: 20
+tss:
+  secret: 'd3995e34a3870748f14958b24a79c7015cdae46f35a24f06cf935a8d7993a5c9' # guard index: 1
+  pubs:
+    - curveShareId: 'cs-0'
+      edwardShareId: 'es-0'
+      curvePub: '02a196b00f674182cbd2507c1321179d0e21ae7b95c57a46b3fcb03d27c05102a7'
+    - curveShareId: 'cs-1'
+      edwardShareId: 'es-1'
+      curvePub: '02dc253d23b0f843ef30f9f0d1d39ff547640aea40b21679e572b4add9e8e30c7c'
+    - curveShareId: 'cs-2'
+      edwardShareId: 'es-2'
+      curvePub: '03f47ae7692d77ab57faac9f46c0c47a4fe8c019caa009c7c48c7481a114d777bc'
+    - curveShareId: 'cs-3'
+      edwardShareId: 'es-3'
+      curvePub: '0338320cb1e7d0fa0ae923157592346408bbecdf447da25169f7b06c4119bc177d'
+    - curveShareId: 'cs-4'
+      edwardShareId: 'es-4'
+      curvePub: '034af770b46f5d566c642a4c19da90f76b13cd389dd44d41e9c92611214d01556a'
 guard:
   mnemonic: ''
 txSignTimeout: 1

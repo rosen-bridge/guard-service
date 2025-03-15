@@ -1,13 +1,13 @@
 import Configs from '../configs/Configs';
-import Tss from '../guard/Tss';
-import WinstonLogger from '@rosen-bridge/winston-logger';
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+import TssHandler from '../handlers/TssHandler';
 
-const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
+const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 /**
  * runs Tss service update job
  */
 const tssUpdateJob = () => {
-  Tss.getInstance()
+  TssHandler.getInstance()
     .update()
     .then(() => setTimeout(tssUpdateJob, Configs.tssUpdateInterval * 1000))
     .catch((e) => {

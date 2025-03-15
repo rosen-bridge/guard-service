@@ -55,7 +55,6 @@ export const InfoResponseSchema = Type.Object({
   versions: Type.Object({
     app: Type.String(),
     contract: Type.String(),
-    tokensMap: Type.String(),
   }),
   health: Type.Object({
     status: Type.String(),
@@ -220,4 +219,15 @@ export const TssCallbackSchema = Type.Object({
   signature: Type.Optional(Type.String()),
   signatureRecovery: Type.Optional(Type.String()),
   trustKey: Type.String(),
+});
+
+export const OrderQuerySchema = Type.Object({
+  id: Type.String(),
+  chain: Type.String(),
+  orderJson: Type.String(),
+});
+
+export const ReprocessQuerySchema = Type.Object({
+  eventId: Type.String(),
+  peerIds: Type.Array(Type.String()),
 });

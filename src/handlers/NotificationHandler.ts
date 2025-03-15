@@ -4,10 +4,10 @@ import {
   NotifyWithSeverity,
 } from '@rosen-bridge/abstract-notification';
 import { DiscordNotification } from '@rosen-bridge/discord-notification';
-import WinstonLogger from '@rosen-bridge/winston-logger';
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import Configs from '../configs/Configs';
 
-const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
+const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
 export class NotificationHandler {
   private static instance: NotificationHandler;
@@ -60,11 +60,20 @@ export class NotificationHandler {
     title: string,
     message: string
   ) => {
-    if (this.notification) {
-      await this.notification.notify(severity, title, message);
-    } else {
+    try {
+      if (this.notification) {
+        await this.notification.notify(severity, title, message);
+      } else {
+        logger.warn(
+          `No endpoint is set in NotificationHandler. Failed to notify about [${title}] with severity [${severity}]: ${message}`
+        );
+      }
+    } catch (e) {
       logger.warn(
-        `No endpoint is set in NotificationHandler. Failed to notify about [${title}] with severity [${severity}]: ${message}`
+        `An error occurred while sending notification about [${title}] with severity [${severity}]: ${e}`
+      );
+      logger.debug(
+        `Failed to notify about [${title}] with severity [${severity}]: ${message}`
       );
     }
   };

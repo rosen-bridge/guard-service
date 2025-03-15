@@ -26,6 +26,10 @@ class TestTxAgreement extends TxAgreement {
     return this.agreedColdStorageTransactions;
   };
 
+  getOrderAgreedTransactions = (): Map<string, string> => {
+    return this.orderAgreedTransactions;
+  };
+
   getTransactionApprovals = (): Map<string, string[]> => {
     return this.transactionApprovals;
   };
@@ -50,6 +54,10 @@ class TestTxAgreement extends TxAgreement {
     this.agreedColdStorageTransactions.set(key, value);
   };
 
+  insertOrderAgreedTransactions = (key: string, value: string): void => {
+    this.orderAgreedTransactions.set(key, value);
+  };
+
   insertTransactionApprovals = (key: string, value: string[]): void => {
     this.transactionApprovals.set(key, value);
   };
@@ -63,10 +71,10 @@ class TestTxAgreement extends TxAgreement {
 
   callSetTxAsApproved = (tx: PaymentTransaction) => this.setTxAsApproved(tx);
 
-  callUpdateEventOfApprovedTx = (tx: PaymentTransaction) =>
-    this.updateEventOfApprovedTx(tx);
+  callUpdateEventOrOrderOfApprovedTx = (tx: PaymentTransaction) =>
+    this.updateEventOrOrderOfApprovedTx(tx);
 
-  getSigner = () => this.signer;
+  getSigner = () => this.messageEnc;
 }
 
 export default TestTxAgreement;

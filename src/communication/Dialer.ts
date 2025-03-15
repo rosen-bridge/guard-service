@@ -37,9 +37,9 @@ import {
 } from './Interfaces';
 import { JsonBI } from '../network/NetworkModels';
 import { NotStartedDialerNodeError } from '../utils/errors';
-import WinstonLogger from '@rosen-bridge/winston-logger';
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 
-const logger = WinstonLogger.getInstance().getLogger(import.meta.url);
+const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
 // TODO: Need to write test for This package
 //  https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/21
@@ -144,7 +144,7 @@ class Dialer {
             logger.warn(
               `An error occurred while writing created PeerId to the file.`
             );
-            logger.warn(error.stack);
+            if (error.stack) logger.warn(error.stack);
             throw error;
           }
           logger.info('PeerId file created.');
