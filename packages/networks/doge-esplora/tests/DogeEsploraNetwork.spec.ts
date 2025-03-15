@@ -1,4 +1,8 @@
-import { FailedError } from '@rosen-chains/abstract-chain';
+import {
+  FailedError,
+  PaymentTransaction,
+  TransactionType,
+} from '@rosen-chains/abstract-chain';
 import DogeEsploraNetwork from '../lib/DogeEsploraNetwork';
 import {
   mockAxiosGet,
@@ -116,11 +120,19 @@ describe('DogeEsploraNetwork', () => {
      */
     it('should fetch confirmation using unsigned hash successfully', async () => {
       // Create a new instance of DogeEsploraNetwork with a custom getSavedTransactionById
+      const dogePayment = new PaymentTransaction(
+        'doge',
+        testData.unsignedTxId,
+        'eventId',
+        Buffer.from(testData.dogePaymentBytes, 'hex'),
+        TransactionType.payment
+      );
+
       const customNetwork = new DogeEsploraNetwork(
         'esplora-url',
         async (txId) => {
           if (txId === testData.unsignedTxId) {
-            return testData.dogeTx;
+            return dogePayment;
           }
           return undefined;
         }
