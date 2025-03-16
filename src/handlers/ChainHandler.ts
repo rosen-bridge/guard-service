@@ -221,9 +221,7 @@ class ChainHandler {
           async (txId: string) => {
             const tx = await DatabaseAction.getInstance().getTxById(txId);
             if (tx === null) return undefined;
-            return TransactionSerializer.fromJson(
-              tx.txJson
-            ) as unknown as DogeTx;
+            return TransactionSerializer.fromJson(tx.txJson);
           },
           DefaultLoggerFactory.getInstance().getLogger('EsploraNetwork')
         );
