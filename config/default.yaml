@@ -54,7 +54,7 @@ doge:
   networkType: 'mainnet' # Doge network type [testnet, mainnet]
   chainNetwork: 'esplora' # 'esplora'
   esplora:
-    url: 'https://doge-electrs-demo.qed.me/'
+    url: ''
     timeout: 8
   bankPublicKey: '' # corresponding public key of lock address
   txFeeSlippage: 20 # allowed slippage percentage for tx fees
