@@ -48,7 +48,7 @@ doge:
     payment: 7
     cold: 8
     manual: 5
-  tssChainCode: 'BitcoinChainCode'
+  tssChainCode: 'DogeChainCode'
   derivationPath:
     - 82
     - 84

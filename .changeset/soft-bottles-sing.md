@@ -1,5 +1,5 @@
 ---
-'guard-service': patch
+'guard-service': major
 ---
 
 Integrate Doge network

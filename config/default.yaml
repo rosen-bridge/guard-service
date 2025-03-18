@@ -219,8 +219,8 @@ healthCheck:
       warnThreshold: 5000000 # minimum recommended btc balance
       criticalThreshold: 1000000 # minimum required btc balance
     doge:
-      warnThreshold: 5000000000 # minimum recommended doge balance
-      criticalThreshold: 1000000000 # minimum required doge balance
+      warnThreshold: 2500000000 # minimum recommended doge balance
+      criticalThreshold: 500000000 # minimum required doge balance
     eth:
       warnThreshold: '20000000000000000' # minimum recommended eth balance
       criticalThreshold: '4000000000000000' # minimum required eth balance
