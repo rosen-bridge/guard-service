@@ -26,12 +26,14 @@ import {
 
 class BitcoinEsploraNetwork extends AbstractBitcoinNetwork {
   protected client: AxiosInstance;
+  private apiPrefix: string;
 
-  constructor(url: string, logger?: AbstractLogger) {
+  constructor(url: string, logger?: AbstractLogger, apiPrefix?: string) {
     super(logger);
     this.client = axios.create({
       baseURL: url,
     });
+    this.apiPrefix = apiPrefix || '/api';
   }
 
   /**
@@ -40,7 +42,7 @@ class BitcoinEsploraNetwork extends AbstractBitcoinNetwork {
    */
   getHeight = async (): Promise<number> => {
     return this.client
-      .get<number>(`/api/blocks/tip/height`)
+      .get<number>(`${this.apiPrefix}/blocks/tip/height`)
       .then((res) => Number(res.data))
       .catch((e) => {
         const baseError = `Failed to fetch current height from Esplora: `;
@@ -64,7 +66,9 @@ class BitcoinEsploraNetwork extends AbstractBitcoinNetwork {
     let txHeight = -1;
     try {
       const txInfo = (
-        await this.client.get<EsploraTx>(`/api/tx/${transactionId}`)
+        await this.client.get<EsploraTx>(
+          `${this.apiPrefix}/tx/${transactionId}`
+        )
       ).data;
       this.logger.debug(
         `requested 'tx' for txId [${transactionId}]. res: ${JsonBigInt.stringify(
@@ -100,7 +104,7 @@ class BitcoinEsploraNetwork extends AbstractBitcoinNetwork {
     const tokens: Array<TokenInfo> = [];
 
     return this.client
-      .get<EsploraAddress>(`/api/address/${address}`)
+      .get<EsploraAddress>(`${this.apiPrefix}/address/${address}`)
       .then((res) => {
         this.logger.debug(
           `requested 'address' for address [${address}]. res: ${JsonBigInt.stringify(
@@ -132,7 +136,7 @@ class BitcoinEsploraNetwork extends AbstractBitcoinNetwork {
    */
   getBlockTransactionIds = (blockId: string): Promise<Array<string>> => {
     return this.client
-      .get<Array<string>>(`/api/block/${blockId}/txids`)
+      .get<Array<string>>(`${this.apiPrefix}/block/${blockId}/txids`)
       .then((res) => {
         this.logger.debug(
           `requested 'block/:hash/txids' for blockId [${blockId}]. received: ${JsonBigInt.stringify(
@@ -160,7 +164,7 @@ class BitcoinEsploraNetwork extends AbstractBitcoinNetwork {
    */
   getBlockInfo = (blockId: string): Promise<BlockInfo> => {
     return this.client
-      .get<EsploraBlock>(`/api/block/${blockId}`)
+      .get<EsploraBlock>(`${this.apiPrefix}/block/${blockId}`)
       .then((res) => {
         this.logger.debug(
           `requested 'block' for blockId [${blockId}]. res: ${JsonBigInt.stringify(
@@ -198,8 +202,11 @@ class BitcoinEsploraNetwork extends AbstractBitcoinNetwork {
   ): Promise<BitcoinTx> => {
     let txInfo: EsploraTx;
     try {
-      txInfo = (await this.client.get<EsploraTx>(`/api/tx/${transactionId}`))
-        .data;
+      txInfo = (
+        await this.client.get<EsploraTx>(
+          `${this.apiPrefix}/tx/${transactionId}`
+        )
+      ).data;
       this.logger.debug(
         `requested 'tx' for txId [${transactionId}]. res: ${JsonBigInt.stringify(
           txInfo
@@ -242,7 +249,10 @@ class BitcoinEsploraNetwork extends AbstractBitcoinNetwork {
    * @param transaction the transaction
    */
   submitTransaction = async (transaction: Psbt): Promise<void> => {
-    await this.client.post(`/api/tx`, transaction.extractTransaction().toHex());
+    await this.client.post(
+      `${this.apiPrefix}/tx`,
+      transaction.extractTransaction().toHex()
+    );
   };
 
   /**
@@ -258,7 +268,7 @@ class BitcoinEsploraNetwork extends AbstractBitcoinNetwork {
     limit: number
   ): Promise<Array<BitcoinUtxo>> => {
     const boxes = await this.client
-      .get<Array<EsploraUtxo>>(`/api/address/${address}/utxo`)
+      .get<Array<EsploraUtxo>>(`${this.apiPrefix}/address/${address}/utxo`)
       .then((res) => {
         this.logger.debug(
           `requested 'address/:address/utxo' for address [${address}]. res: ${JsonBigInt.stringify(
@@ -303,7 +313,7 @@ class BitcoinEsploraNetwork extends AbstractBitcoinNetwork {
     try {
       utxosInfo = (
         await this.client.get<Array<EsploraUtxoInfo>>(
-          `/api/tx/${txId}/outspends`
+          `${this.apiPrefix}/tx/${txId}/outspends`
         )
       ).data;
       this.logger.debug(
@@ -348,7 +358,9 @@ class BitcoinEsploraNetwork extends AbstractBitcoinNetwork {
     let txInfo: EsploraTx;
 
     try {
-      txInfo = (await this.client.get<EsploraTx>(`/api/tx/${txId}`)).data;
+      txInfo = (
+        await this.client.get<EsploraTx>(`${this.apiPrefix}/tx/${txId}`)
+      ).data;
       this.logger.debug(
         `requested 'tx' for tx [${txId}]. res: ${JsonBigInt.stringify(txInfo)}`
       );
@@ -388,7 +400,7 @@ class BitcoinEsploraNetwork extends AbstractBitcoinNetwork {
       );
 
     return this.client
-      .get<Record<string, number>>(`/api/fee-estimates`)
+      .get<Record<string, number>>(`${this.apiPrefix}/fee-estimates`)
       .then((res) => {
         this.logger.debug(
           `requested 'fee-estimates'. res: ${JsonBigInt.stringify(res.data)}`
@@ -413,7 +425,7 @@ class BitcoinEsploraNetwork extends AbstractBitcoinNetwork {
    */
   getMempoolTxIds = async (): Promise<Array<string>> => {
     return this.client
-      .get<Array<string>>(`/api/mempool/txids`)
+      .get<Array<string>>(`${this.apiPrefix}/mempool/txids`)
       .then((res) => {
         this.logger.debug(
           `requested 'mempool/txids'. received [${res.data.length}] txs`

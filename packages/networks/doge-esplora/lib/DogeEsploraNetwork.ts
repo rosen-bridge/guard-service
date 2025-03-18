@@ -28,6 +28,7 @@ import {
 
 class DogeEsploraNetwork extends AbstractDogeNetwork {
   protected client: AxiosInstance;
+  private apiPrefix: string;
   private getSavedTransactionById: (
     txId: string
   ) => Promise<PaymentTransaction | undefined>;
@@ -37,13 +38,15 @@ class DogeEsploraNetwork extends AbstractDogeNetwork {
     getSavedTransactionById: (
       txId: string
     ) => Promise<PaymentTransaction | undefined>,
-    logger?: AbstractLogger
+    logger?: AbstractLogger,
+    apiPrefix?: string
   ) {
     super(logger);
     this.client = axios.create({
       baseURL: url,
     });
     this.getSavedTransactionById = getSavedTransactionById;
+    this.apiPrefix = apiPrefix || '/api';
   }
 
   /**
@@ -52,7 +55,7 @@ class DogeEsploraNetwork extends AbstractDogeNetwork {
    */
   getHeight = async (): Promise<number> => {
     return this.client
-      .get<number>(`/api/blocks/tip/height`)
+      .get<number>(`${this.apiPrefix}/blocks/tip/height`)
       .then((res) => Number(res.data))
       .catch((e) => {
         const baseError = `Failed to fetch current height from Esplora: `;
@@ -78,7 +81,9 @@ class DogeEsploraNetwork extends AbstractDogeNetwork {
     let txHeight = -1;
     try {
       const txInfo = (
-        await this.client.get<EsploraTx>(`/api/tx/${transactionId}`)
+        await this.client.get<EsploraTx>(
+          `${this.apiPrefix}/tx/${transactionId}`
+        )
       ).data;
       this.logger.debug(
         `requested 'tx' for txId [${transactionId}]. res: ${JsonBigInt.stringify(
@@ -164,7 +169,7 @@ class DogeEsploraNetwork extends AbstractDogeNetwork {
     const tokens: Array<TokenInfo> = [];
 
     return this.client
-      .get<EsploraAddress>(`/api/address/${address}`)
+      .get<EsploraAddress>(`${this.apiPrefix}/address/${address}`)
       .then((res) => {
         this.logger.debug(
           `requested 'address' for address [${address}]. res: ${JsonBigInt.stringify(
@@ -196,7 +201,7 @@ class DogeEsploraNetwork extends AbstractDogeNetwork {
    */
   getBlockTransactionIds = (blockId: string): Promise<Array<string>> => {
     return this.client
-      .get<Array<string>>(`/api/block/${blockId}/txids`)
+      .get<Array<string>>(`${this.apiPrefix}/block/${blockId}/txids`)
       .then((res) => {
         this.logger.debug(
           `requested 'block/:hash/txids' for blockId [${blockId}]. received: ${JsonBigInt.stringify(
@@ -224,7 +229,7 @@ class DogeEsploraNetwork extends AbstractDogeNetwork {
    */
   getBlockInfo = (blockId: string): Promise<BlockInfo> => {
     return this.client
-      .get<EsploraBlock>(`/api/block/${blockId}`)
+      .get<EsploraBlock>(`${this.apiPrefix}/block/${blockId}`)
       .then((res) => {
         this.logger.debug(
           `requested 'block' for blockId [${blockId}]. res: ${JsonBigInt.stringify(
@@ -261,8 +266,11 @@ class DogeEsploraNetwork extends AbstractDogeNetwork {
   ): Promise<DogeTx> => {
     let txInfo: EsploraTx;
     try {
-      txInfo = (await this.client.get<EsploraTx>(`/api/tx/${transactionId}`))
-        .data;
+      txInfo = (
+        await this.client.get<EsploraTx>(
+          `${this.apiPrefix}/tx/${transactionId}`
+        )
+      ).data;
       this.logger.debug(
         `requested 'tx' for txId [${transactionId}]. res: ${JsonBigInt.stringify(
           txInfo
@@ -305,7 +313,10 @@ class DogeEsploraNetwork extends AbstractDogeNetwork {
    * @param transaction the transaction
    */
   submitTransaction = async (transaction: Psbt): Promise<void> => {
-    await this.client.post(`/api/tx`, transaction.extractTransaction().toHex());
+    await this.client.post(
+      `${this.apiPrefix}/tx`,
+      transaction.extractTransaction().toHex()
+    );
   };
 
   /**
@@ -321,7 +332,7 @@ class DogeEsploraNetwork extends AbstractDogeNetwork {
     limit: number
   ): Promise<Array<DogeUtxo>> => {
     const boxes = await this.client
-      .get<Array<EsploraUtxo>>(`/api/address/${address}/utxo`)
+      .get<Array<EsploraUtxo>>(`${this.apiPrefix}/address/${address}/utxo`)
       .then((res) => {
         this.logger.debug(
           `requested 'address/:address/utxo' for address [${address}]. res: ${JsonBigInt.stringify(
@@ -366,7 +377,7 @@ class DogeEsploraNetwork extends AbstractDogeNetwork {
     try {
       utxosInfo = (
         await this.client.get<Array<EsploraUtxoInfo>>(
-          `/api/tx/${txId}/outspends`
+          `${this.apiPrefix}/tx/${txId}/outspends`
         )
       ).data;
       this.logger.debug(
@@ -411,7 +422,9 @@ class DogeEsploraNetwork extends AbstractDogeNetwork {
     let txInfo: EsploraTx;
 
     try {
-      txInfo = (await this.client.get<EsploraTx>(`/api/tx/${txId}`)).data;
+      txInfo = (
+        await this.client.get<EsploraTx>(`${this.apiPrefix}/tx/${txId}`)
+      ).data;
       this.logger.debug(
         `requested 'tx' for tx [${txId}]. res: ${JsonBigInt.stringify(txInfo)}`
       );
@@ -451,7 +464,7 @@ class DogeEsploraNetwork extends AbstractDogeNetwork {
       );
 
     return this.client
-      .get<Record<string, number>>(`/api/fee-estimates`)
+      .get<Record<string, number>>(`${this.apiPrefix}/fee-estimates`)
       .then((res) => {
         this.logger.debug(
           `requested 'fee-estimates'. res: ${JsonBigInt.stringify(res.data)}`
@@ -476,7 +489,7 @@ class DogeEsploraNetwork extends AbstractDogeNetwork {
    */
   getMempoolTxIds = async (): Promise<Array<string>> => {
     return this.client
-      .get<Array<string>>(`/api/mempool/txids`)
+      .get<Array<string>>(`${this.apiPrefix}/mempool/txids`)
       .then((res) => {
         this.logger.debug(
           `requested 'mempool/txids'. received [${res.data.length}] txs`
@@ -502,7 +515,7 @@ class DogeEsploraNetwork extends AbstractDogeNetwork {
    */
   getTransactionHex = async (txId: string): Promise<string> => {
     return this.client
-      .get<string>(`/api/tx/${txId}/hex`)
+      .get<string>(`${this.apiPrefix}/tx/${txId}/hex`)
       .then((res) => res.data)
       .catch((e) => {
         const baseError = `Failed to get transaction [${txId}] hex from Esplora: `;
@@ -522,7 +535,7 @@ class DogeEsploraNetwork extends AbstractDogeNetwork {
   ): Promise<DogeTx | undefined> => {
     const box = (
       await this.client.get<EsploraUtxoInfo>(
-        `/api/tx/${txId}/outspends/${index}`
+        `${this.apiPrefix}/tx/${txId}/outspends/${index}`
       )
     ).data;
     if (!box.spent) return undefined;
