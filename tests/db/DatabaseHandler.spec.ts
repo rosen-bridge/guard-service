@@ -19,7 +19,7 @@ import { CARDANO_CHAIN } from '@rosen-chains/cardano';
 describe('DatabaseHandler', () => {
   const requiredSign = 6;
 
-  beforeEach(async () => {
+  afterEach(async () => {
     await DatabaseHandlerMock.clearTables();
   });
 
