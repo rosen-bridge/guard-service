@@ -23,14 +23,9 @@ import TestConfigs from '../testUtils/TestConfigs';
 import TestUtils from '../testUtils/TestUtils';
 import PublicStatusHandlerMock from '../handlers/mocked/PublicStatusHandler.mock';
 import Utils from '../../src/utils/Utils';
-import PublicStatusHandler from '../../src/handlers/PublicStatusHandler';
 import { EventTriggerEntity } from '@rosen-bridge/watcher-data-extractor';
 
 describe('DatabaseActions', () => {
-  beforeAll(async () => {
-    await PublicStatusHandler.init(DatabaseActionMock.testDataSource);
-  });
-
   beforeEach(async () => {
     await DatabaseActionMock.clearTables();
   });
@@ -1190,10 +1185,6 @@ describe('DatabaseActions', () => {
     });
   });
 
-  // TODO: checked till here
-  // TODO: checked till here
-  // TODO: checked till here
-  // TODO: checked till here
   describe('replaceTx', () => {
     beforeEach(async () => {
       PublicStatusHandlerMock.resetMock();
