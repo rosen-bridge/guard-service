@@ -21,9 +21,16 @@ import * as TxTestData from '../agreement/testData';
 import { TransactionType } from '@rosen-chains/abstract-chain';
 import TestConfigs from '../testUtils/TestConfigs';
 import TestUtils from '../testUtils/TestUtils';
+import PublicStatusHandlerMock from '../handlers/mocked/PublicStatusHandler.mock';
+import Utils from '../../src/utils/Utils';
 import PublicStatusHandler from '../../src/handlers/PublicStatusHandler';
+import { EventTriggerEntity } from '@rosen-bridge/watcher-data-extractor';
 
 describe('DatabaseActions', () => {
+  beforeAll(async () => {
+    await PublicStatusHandler.init(DatabaseActionMock.testDataSource);
+  });
+
   beforeEach(async () => {
     await DatabaseActionMock.clearTables();
   });
@@ -837,65 +844,519 @@ describe('DatabaseActions', () => {
     });
   });
 
-  describe('updatePublicEventStatus', () => {
+  describe('setEventStatus', () => {
+    beforeEach(async () => {
+      PublicStatusHandlerMock.resetMock();
+      PublicStatusHandlerMock.mock();
+    });
+
     /**
-     * @target DatabaseAction.updatePublicEventStatus should catch errors thrown by PublicStatusHandler.updatePublicEventStatus
+     * @target DatabaseAction.setEventStatus should call updatePublicEventStatus after updating database record
      * @dependencies
+     * - database
      * @scenario
-     * - stub PublicStatusHandler.updatePublicEventStatus to throw an error
-     * - call updatePublicEventStatus
+     * - stub PublicStatusHandler.updatePublicEventStatus to resolve
+     * - define a mock EventTrigger
+     * - call DatabaseAction.insertEventRecord to insert a mock ConfirmedEventEntity
+     * - call DatabaseAction.setEventStatus
+     * - call ConfirmedEventRepository.findOne with eventId
      * @expected
-     * - should not have thrown
-     * - updatePublicEventStatusSpy should have been called
+     * - database record should have been updated
+     * - PublicStatusHandler.updatePublicEventStatus should have been called once with the correct dto
      */
-    it('should catch errors thrown by PublicStatusHandler.updatePublicEventStatus', async () => {
+    it('should call updatePublicEventStatus after updating database record', async () => {
       // arrange
-      const updatePublicEventStatusSpy = vi
-        .spyOn(PublicStatusHandler.getInstance(), 'updatePublicEventStatus')
-        .mockRejectedValue('custom-error');
+      const updatePublicEventStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicEventStatus();
+
+      const event = EventTestData.mockEventTrigger().event;
+      const eventId = Utils.txIdToEventId(event.sourceTxId);
+
+      await DatabaseHandlerMock.insertEventRecord(
+        event,
+        EventStatus.pendingPayment
+      );
 
       // act
-      DatabaseActionMock.testDatabase.updatePublicEventStatus(
-        'eventId',
-        EventStatus.inReward
+      await DatabaseActionMock.testDatabase.setEventStatus(
+        eventId,
+        EventStatus.pendingReward
       );
 
+      const record =
+        await DatabaseActionMock.testDatabase.ConfirmedEventRepository.findOneBy(
+          {
+            id: eventId,
+          }
+        );
+
       // assert
-      expect(updatePublicEventStatusSpy).toHaveBeenCalledWith(
-        'eventId',
-        EventStatus.inReward
-      );
+      expect(record).toBeTruthy();
+      expect(record!.status).toBe(EventStatus.pendingReward);
+
+      expect(updatePublicEventStatusSpy).toHaveBeenCalledOnce();
+      expect(updatePublicEventStatusSpy.mock.calls[0][0]).toEqual({
+        date: (updatePublicEventStatusSpy.mock.calls[0][0] as any).date,
+        eventId,
+        status: EventStatus.pendingReward,
+        tx: undefined,
+      });
     });
   });
 
-  describe('updatePublicTxStatus', () => {
+  describe('setEventStatusToPending', () => {
+    beforeEach(async () => {
+      PublicStatusHandlerMock.resetMock();
+      PublicStatusHandlerMock.mock();
+    });
+
     /**
-     * @target DatabaseAction.updatePublicTxStatus should catch errors thrown by PublicStatusHandler.updatePublicTxStatus
+     * @target DatabaseAction.setEventStatusToPending should call updatePublicEventStatus after updating database record
      * @dependencies
+     * - database
      * @scenario
-     * - stub PublicStatusHandler.updatePublicTxStatus to throw an error
-     * - call updatePublicTxStatus
+     * - stub PublicStatusHandler.updatePublicEventStatus to resolve
+     * - define a mock EventTrigger
+     * - call DatabaseAction.insertEventRecord to insert a mock ConfirmedEventEntity
+     * - call DatabaseAction.setEventStatusToPending
+     * - call ConfirmedEventRepository.findOne with eventId
      * @expected
-     * - should not have thrown
-     * - updatePublicTxStatusSpy should have been called
+     * - database record should have been updated
+     * - PublicStatusHandler.updatePublicEventStatus should have been called once with the correct dto
      */
-    it('should catch errors thrown by PublicStatusHandler.updatePublicTxStatus', async () => {
+    it('should call updatePublicEventStatus after updating database record', async () => {
       // arrange
-      const updatePublicTxStatusSpy = vi
-        .spyOn(PublicStatusHandler.getInstance(), 'updatePublicTxStatus')
-        .mockRejectedValue('custom-error');
+      const updatePublicEventStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicEventStatus();
+
+      const event = EventTestData.mockEventTrigger().event;
+      const eventId = Utils.txIdToEventId(event.sourceTxId);
+
+      await DatabaseHandlerMock.insertEventRecord(
+        event,
+        EventStatus.pendingPayment
+      );
 
       // act
-      DatabaseActionMock.testDatabase.updatePublicTxStatus(
-        'eventId',
-        EventStatus.inReward
+      await DatabaseActionMock.testDatabase.setEventStatusToPending(
+        eventId,
+        EventStatus.pendingReward
       );
 
+      const record =
+        await DatabaseActionMock.testDatabase.ConfirmedEventRepository.findOneBy(
+          {
+            id: eventId,
+          }
+        );
+
       // assert
-      expect(updatePublicTxStatusSpy).toHaveBeenCalledWith(
-        'eventId',
-        EventStatus.inReward
+      expect(record).toBeTruthy();
+      expect(record!.status).toBe(EventStatus.pendingReward);
+
+      expect(updatePublicEventStatusSpy).toHaveBeenCalledOnce();
+      expect(updatePublicEventStatusSpy.mock.calls[0][0]).toEqual({
+        date: (updatePublicEventStatusSpy.mock.calls[0][0] as any).date,
+        eventId,
+        status: EventStatus.pendingReward,
+        tx: undefined,
+      });
+    });
+  });
+
+  describe('insertConfirmedEvent', () => {
+    beforeEach(async () => {
+      PublicStatusHandlerMock.resetMock();
+      PublicStatusHandlerMock.mock();
+    });
+
+    /**
+     * @target DatabaseAction.insertConfirmedEvent should call updatePublicEventStatus after updating database record
+     * @dependencies
+     * - database
+     * @scenario
+     * - stub PublicStatusHandler.updatePublicEventStatus to resolve
+     * - define a mock EventTrigger
+     * - call DatabaseAction.insertEventRecord to insert a mock ConfirmedEventEntity
+     * - call DatabaseAction.insertConfirmedEvent
+     * - call ConfirmedEventRepository.findOne with eventId
+     * @expected
+     * - database record should have been updated
+     * - PublicStatusHandler.updatePublicEventStatus should have been called once with the correct dto
+     */
+    it('should call updatePublicEventStatus after updating database record', async () => {
+      // arrange
+      const updatePublicEventStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicEventStatus();
+
+      const event = EventTestData.mockEventTrigger().event;
+      const eventId = Utils.txIdToEventId(event.sourceTxId);
+
+      // act
+      await DatabaseActionMock.testDatabase.insertConfirmedEvent(
+        event as EventTriggerEntity
       );
+
+      const record =
+        await DatabaseActionMock.testDatabase.ConfirmedEventRepository.findOneBy(
+          {
+            id: eventId,
+          }
+        );
+
+      // assert
+      expect(record).toBeTruthy();
+      expect(record!.status).toBe(EventStatus.pendingPayment);
+
+      expect(updatePublicEventStatusSpy).toHaveBeenCalledOnce();
+      expect(updatePublicEventStatusSpy.mock.calls[0][0]).toEqual({
+        date: (updatePublicEventStatusSpy.mock.calls[0][0] as any).date,
+        eventId,
+        status: EventStatus.pendingPayment,
+        tx: undefined,
+      });
+    });
+  });
+
+  describe('setTxStatus', () => {
+    beforeEach(async () => {
+      PublicStatusHandlerMock.resetMock();
+      PublicStatusHandlerMock.mock();
+    });
+
+    /**
+     * @target DatabaseAction.setTxStatus should call updatePublicTxStatus after updating database record
+     * @dependencies
+     * - database
+     * @scenario
+     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
+     * - define a mock PaymentTransaction
+     * - call DatabaseAction.insertTxRecord to insert a mock TransactionEntity
+     * - call DatabaseAction.setTxStatus
+     * - call TransactionRepository.findOne with txId
+     * @expected
+     * - database record should have been updated
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once with the correct dto
+     */
+    it('should call updatePublicTxStatus after updating database record', async () => {
+      // arrange
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
+      const mockTx = TxTestData.mockPaymentTransaction(TransactionType.reward);
+
+      await DatabaseActionMock.insertTxRecord(mockTx, TransactionStatus.sent);
+
+      // act
+      await DatabaseActionMock.testDatabase.setTxStatus(
+        mockTx.txId,
+        TransactionStatus.approved
+      );
+
+      const record =
+        await DatabaseActionMock.testDatabase.TransactionRepository.findOneBy({
+          txId: mockTx.txId,
+        });
+
+      // assert
+      expect(record).toBeTruthy();
+      expect(record!.status).toBe(TransactionStatus.approved);
+
+      expect(updatePublicTxStatusSpy).toHaveBeenCalledOnce();
+      expect(updatePublicTxStatusSpy.mock.calls[0][0]).toEqual({
+        date: (updatePublicTxStatusSpy.mock.calls[0][0] as any).date,
+        eventId: '',
+        status: (updatePublicTxStatusSpy.mock.calls[0][0] as any).status,
+        tx: {
+          ...(updatePublicTxStatusSpy.mock.calls[0][0] as any).tx,
+          txId: mockTx.txId,
+          txStatus: TransactionStatus.approved,
+        },
+      });
+    });
+  });
+
+  describe('setTxAsSignFailed', () => {
+    beforeEach(async () => {
+      PublicStatusHandlerMock.resetMock();
+      PublicStatusHandlerMock.mock();
+    });
+
+    /**
+     * @target DatabaseAction.setTxAsSignFailed should call updatePublicTxStatus after updating database record
+     * @dependencies
+     * - database
+     * @scenario
+     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
+     * - define a mock PaymentTransaction
+     * - call DatabaseAction.insertTxRecord to insert a mock TransactionEntity
+     * - call DatabaseAction.setTxAsSignFailed
+     * - call TransactionRepository.findOne with txId
+     * @expected
+     * - database record should have been updated
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once with the correct dto
+     */
+    it('should call updatePublicTxStatus after updating database record', async () => {
+      // arrange
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
+      const mockTx = TxTestData.mockPaymentTransaction(TransactionType.reward);
+
+      await DatabaseActionMock.insertTxRecord(mockTx, TransactionStatus.inSign);
+
+      // act
+      await DatabaseActionMock.testDatabase.setTxAsSignFailed(mockTx.txId);
+
+      const record =
+        await DatabaseActionMock.testDatabase.TransactionRepository.findOneBy({
+          txId: mockTx.txId,
+        });
+
+      // assert
+      expect(record).toBeTruthy();
+      expect(record!.status).toBe(TransactionStatus.signFailed);
+
+      expect(updatePublicTxStatusSpy).toHaveBeenCalledOnce();
+      expect(updatePublicTxStatusSpy.mock.calls[0][0]).toEqual({
+        date: (updatePublicTxStatusSpy.mock.calls[0][0] as any).date,
+        eventId: '',
+        status: (updatePublicTxStatusSpy.mock.calls[0][0] as any).status,
+        tx: {
+          ...(updatePublicTxStatusSpy.mock.calls[0][0] as any).tx,
+          txId: mockTx.txId,
+          txStatus: TransactionStatus.signFailed,
+        },
+      });
+    });
+  });
+
+  describe('updateWithSignedTx', () => {
+    beforeEach(async () => {
+      PublicStatusHandlerMock.resetMock();
+      PublicStatusHandlerMock.mock();
+    });
+
+    /**
+     * @target DatabaseAction.updateWithSignedTx should call updatePublicTxStatus after updating database record
+     * @dependencies
+     * - database
+     * @scenario
+     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
+     * - define a mock PaymentTransaction
+     * - call DatabaseAction.insertTxRecord to insert a mock TransactionEntity
+     * - call DatabaseAction.updateWithSignedTx
+     * - call TransactionRepository.findOne with txId
+     * @expected
+     * - database record should have been updated
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once with the correct dto
+     */
+    it('should call updatePublicTxStatus after updating database record', async () => {
+      // arrange
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
+      const mockTx = TxTestData.mockPaymentTransaction(TransactionType.reward);
+
+      await DatabaseActionMock.insertTxRecord(mockTx, TransactionStatus.inSign);
+
+      // act
+      await DatabaseActionMock.testDatabase.updateWithSignedTx(
+        mockTx.txId,
+        '{}',
+        10
+      );
+
+      const record =
+        await DatabaseActionMock.testDatabase.TransactionRepository.findOneBy({
+          txId: mockTx.txId,
+        });
+
+      // assert
+      expect(record).toBeTruthy();
+      expect(record!.status).toBe(TransactionStatus.signed);
+
+      expect(updatePublicTxStatusSpy).toHaveBeenCalledOnce();
+      expect(updatePublicTxStatusSpy.mock.calls[0][0]).toEqual({
+        date: (updatePublicTxStatusSpy.mock.calls[0][0] as any).date,
+        eventId: '',
+        status: (updatePublicTxStatusSpy.mock.calls[0][0] as any).status,
+        tx: {
+          ...(updatePublicTxStatusSpy.mock.calls[0][0] as any).tx,
+          txId: mockTx.txId,
+          txStatus: TransactionStatus.signed,
+        },
+      });
+    });
+  });
+
+  // TODO: checked till here
+  // TODO: checked till here
+  // TODO: checked till here
+  // TODO: checked till here
+  describe('replaceTx', () => {
+    beforeEach(async () => {
+      PublicStatusHandlerMock.resetMock();
+      PublicStatusHandlerMock.mock();
+    });
+
+    /**
+     * @target DatabaseAction.replaceTx should call updatePublicTxStatus after updating database record
+     * @dependencies
+     * - database
+     * @scenario
+     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
+     * - define a mock PaymentTransaction
+     * - define a mock PaymentTransaction with a different id
+     * - call DatabaseAction.insertTxRecord to insert a mock TransactionEntity
+     * - call DatabaseAction.replaceTx
+     * - call TransactionRepository.findOne with txId
+     * @expected
+     * - database record should have been updated
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once with the correct dto
+     */
+    it('should call updatePublicTxStatus after updating database record', async () => {
+      // arrange
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
+      const mockTx = TxTestData.mockPaymentTransaction(TransactionType.reward);
+      const mockTx2 = TxTestData.mockPaymentTransaction(TransactionType.reward);
+
+      await DatabaseActionMock.insertTxRecord(mockTx, TransactionStatus.inSign);
+
+      // act
+      await DatabaseActionMock.testDatabase.replaceTx(mockTx.txId, mockTx2);
+
+      const record =
+        await DatabaseActionMock.testDatabase.TransactionRepository.findOneBy({
+          txId: mockTx2.txId,
+        });
+
+      // assert
+      expect(record).toBeTruthy();
+      expect(record!.txId).toBe(mockTx2.txId);
+
+      expect(updatePublicTxStatusSpy).toHaveBeenCalledOnce();
+      expect(updatePublicTxStatusSpy.mock.calls[0][0]).toEqual({
+        date: (updatePublicTxStatusSpy.mock.calls[0][0] as any).date,
+        eventId: '',
+        status: (updatePublicTxStatusSpy.mock.calls[0][0] as any).status,
+        tx: {
+          ...(updatePublicTxStatusSpy.mock.calls[0][0] as any).tx,
+          txId: mockTx2.txId,
+          txStatus: TransactionStatus.approved,
+        },
+      });
+    });
+  });
+
+  describe('insertNewTx', () => {
+    beforeEach(async () => {
+      PublicStatusHandlerMock.resetMock();
+      PublicStatusHandlerMock.mock();
+    });
+
+    /**
+     * @target DatabaseAction.insertNewTx should call updatePublicTxStatus after inserting database record
+     * @dependencies
+     * - database
+     * @scenario
+     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
+     * - define a mock PaymentTransaction
+     * - call DatabaseAction.insertNewTx
+     * - call TransactionRepository.findOne with txId
+     * @expected
+     * - database record should have been inserted
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once with the correct dto
+     */
+    it('should call updatePublicTxStatus after inserting database record', async () => {
+      // arrange
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
+      const mockTx = TxTestData.mockPaymentTransaction(TransactionType.reward);
+
+      // act
+      await DatabaseActionMock.testDatabase.insertNewTx(mockTx, null, 2, null);
+
+      const record =
+        await DatabaseActionMock.testDatabase.TransactionRepository.findOneBy({
+          txId: mockTx.txId,
+        });
+
+      // assert
+      expect(record).toBeTruthy();
+      expect(record!.txId).toBe(mockTx.txId);
+
+      expect(updatePublicTxStatusSpy).toHaveBeenCalledOnce();
+      expect(updatePublicTxStatusSpy.mock.calls[0][0]).toEqual({
+        date: (updatePublicTxStatusSpy.mock.calls[0][0] as any).date,
+        eventId: '',
+        status: (updatePublicTxStatusSpy.mock.calls[0][0] as any).status,
+        tx: {
+          ...(updatePublicTxStatusSpy.mock.calls[0][0] as any).tx,
+          txId: mockTx.txId,
+          txStatus: TransactionStatus.approved,
+        },
+      });
+    });
+  });
+
+  describe('insertCompletedTx', () => {
+    beforeEach(async () => {
+      PublicStatusHandlerMock.resetMock();
+      PublicStatusHandlerMock.mock();
+    });
+
+    /**
+     * @target DatabaseAction.insertCompletedTx should call updatePublicTxStatus after inserting database record
+     * @dependencies
+     * - database
+     * @scenario
+     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
+     * - define a mock PaymentTransaction
+     * - call DatabaseAction.insertCompletedTx
+     * - call TransactionRepository.findOne with txId
+     * @expected
+     * - database record should have been inserted
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once with the correct dto
+     */
+    it('should call updatePublicTxStatus after inserting database record', async () => {
+      // arrange
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
+      const mockTx = TxTestData.mockPaymentTransaction(TransactionType.reward);
+
+      // act
+      await DatabaseActionMock.testDatabase.insertCompletedTx(
+        mockTx,
+        null,
+        2,
+        null
+      );
+
+      const record =
+        await DatabaseActionMock.testDatabase.TransactionRepository.findOneBy({
+          txId: mockTx.txId,
+        });
+
+      // assert
+      expect(record).toBeTruthy();
+      expect(record!.txId).toBe(mockTx.txId);
+
+      expect(updatePublicTxStatusSpy).toHaveBeenCalledOnce();
+      expect(updatePublicTxStatusSpy.mock.calls[0][0]).toEqual({
+        date: (updatePublicTxStatusSpy.mock.calls[0][0] as any).date,
+        eventId: '',
+        status: (updatePublicTxStatusSpy.mock.calls[0][0] as any).status,
+        tx: {
+          ...(updatePublicTxStatusSpy.mock.calls[0][0] as any).tx,
+          txId: mockTx.txId,
+          txStatus: TransactionStatus.completed,
+        },
+      });
     });
   });
 });

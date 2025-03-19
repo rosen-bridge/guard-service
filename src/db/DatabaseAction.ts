@@ -8,6 +8,7 @@ import {
   MoreThanOrEqual,
   Not,
   Repository,
+  UpdateResult,
 } from 'typeorm';
 import { ConfirmedEventEntity } from './entities/ConfirmedEventEntity';
 import { TransactionEntity } from './entities/TransactionEntity';
@@ -124,7 +125,12 @@ class DatabaseAction {
         { status: status }
       );
 
-    this.updatePublicEventStatus(eventId, status);
+    PublicStatusHandler.getInstance().updatePublicEventStatus({
+      date: Date.now(),
+      eventId,
+      status,
+      tx: undefined,
+    });
   };
 
   /**
@@ -205,7 +211,17 @@ class DatabaseAction {
         lastStatusUpdate: String(Math.round(Date.now() / 1000)),
       }
     );
-    this.updatePublicTxStatus(txId, status);
+    PublicStatusHandler.getInstance().updatePublicTxStatus({
+      date: Date.now(),
+      eventId: '',
+      status: EventStatus.pendingPayment,
+      tx: {
+        txId,
+        txStatus: status,
+        txType: TransactionType.payment,
+        chain: '',
+      },
+    });
   };
 
   /**
@@ -213,7 +229,7 @@ class DatabaseAction {
    * @param txId the transaction id
    */
   setTxAsSignFailed = async (txId: string): Promise<void> => {
-    await this.TransactionRepository.update(
+    const result: UpdateResult = await this.TransactionRepository.update(
       {
         txId: txId,
         status: TransactionStatus.inSign,
@@ -225,7 +241,18 @@ class DatabaseAction {
         failedInSign: true,
       }
     );
-    this.updatePublicTxStatus(txId, TransactionStatus.signFailed);
+    if ((result.affected ?? 0) === 0) return;
+    PublicStatusHandler.getInstance().updatePublicTxStatus({
+      date: Date.now(),
+      eventId: '',
+      status: EventStatus.pendingPayment,
+      tx: {
+        txId,
+        txStatus: TransactionStatus.signFailed,
+        txType: TransactionType.payment,
+        chain: '',
+      },
+    });
   };
 
   /**
@@ -256,7 +283,12 @@ class DatabaseAction {
       { id: eventId },
       { status: status, firstTry: String(Math.round(Date.now() / 1000)) }
     );
-    this.updatePublicEventStatus(eventId, status);
+    PublicStatusHandler.getInstance().updatePublicEventStatus({
+      date: Date.now(),
+      eventId,
+      status,
+      tx: undefined,
+    });
   };
 
   /**
@@ -292,7 +324,17 @@ class DatabaseAction {
         lastCheck: currentHeight,
       }
     );
-    this.updatePublicTxStatus(txId, TransactionStatus.signed);
+    PublicStatusHandler.getInstance().updatePublicTxStatus({
+      date: Date.now(),
+      eventId: '',
+      status: EventStatus.pendingPayment,
+      tx: {
+        txId,
+        txStatus: TransactionStatus.signed,
+        txType: TransactionType.payment,
+        chain: '',
+      },
+    });
   };
 
   /**
@@ -338,7 +380,17 @@ class DatabaseAction {
         failedInSign: false,
       }
     );
-    this.updatePublicTxStatus(tx.txId, TransactionStatus.approved);
+    PublicStatusHandler.getInstance().updatePublicTxStatus({
+      date: Date.now(),
+      eventId: '',
+      status: EventStatus.pendingPayment,
+      tx: {
+        txId: tx.txId,
+        txStatus: TransactionStatus.approved,
+        txType: TransactionType.payment,
+        chain: '',
+      },
+    });
   };
 
   /**
@@ -394,7 +446,17 @@ class DatabaseAction {
       signFailedCount: 0,
       requiredSign: requiredSign,
     });
-    this.updatePublicTxStatus(paymentTx.txId, TransactionStatus.approved);
+    PublicStatusHandler.getInstance().updatePublicTxStatus({
+      date: Date.now(),
+      eventId: '',
+      status: EventStatus.pendingPayment,
+      tx: {
+        txId: paymentTx.txId,
+        txStatus: TransactionStatus.approved,
+        txType: TransactionType.payment,
+        chain: '',
+      },
+    });
   };
 
   /**
@@ -420,7 +482,18 @@ class DatabaseAction {
       signFailedCount: 0,
       requiredSign: requiredSign,
     });
-    this.updatePublicTxStatus(paymentTx.txId, TransactionStatus.completed);
+
+    PublicStatusHandler.getInstance().updatePublicTxStatus({
+      date: Date.now(),
+      eventId: '',
+      status: EventStatus.pendingPayment,
+      tx: {
+        txId: paymentTx.txId,
+        txStatus: TransactionStatus.completed,
+        txType: TransactionType.payment,
+        chain: '',
+      },
+    });
   };
 
   /**
@@ -468,7 +541,12 @@ class DatabaseAction {
       firstTry: String(Math.round(Date.now() / 1000)),
     });
 
-    this.updatePublicEventStatus(eventId, status);
+    PublicStatusHandler.getInstance().updatePublicEventStatus({
+      date: Date.now(),
+      eventId,
+      status,
+      tx: undefined,
+    });
   };
 
   /**
@@ -1012,60 +1090,6 @@ class DatabaseAction {
         status: status,
       }
     );
-  };
-
-  /**
-   * updates the public status of an event
-   * @param eventId
-   * @param status
-   */
-  updatePublicEventStatus = async (eventId: string, status: EventStatus) => {
-    try {
-      await PublicStatusHandler.getInstance().updatePublicEventStatus(
-        eventId,
-        status
-      );
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message.toString()
-          : JSON.stringify(error);
-
-      logger.error(
-        `An error occurred while submitting event status, error: ${errorMessage}`
-      );
-
-      if (error instanceof Error && error.stack) {
-        logger.error(error.stack);
-      }
-    }
-  };
-
-  /**
-   * updates the public status of a tx
-   * @param txId
-   * @param txStatus
-   */
-  updatePublicTxStatus = async (txId: string, txStatus: TransactionStatus) => {
-    try {
-      await PublicStatusHandler.getInstance().updatePublicTxStatus(
-        txId,
-        txStatus
-      );
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message.toString()
-          : JSON.stringify(error);
-
-      logger.error(
-        `An error occurred while submitting event status, error: ${errorMessage}`
-      );
-
-      if (error instanceof Error && error.stack) {
-        logger.error(error.stack);
-      }
-    }
   };
 }
 

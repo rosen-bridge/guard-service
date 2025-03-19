@@ -163,7 +163,6 @@ class DatabaseActionMock {
       .insert()
       .values({
         id: Utils.txIdToEventId(event.sourceTxId),
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         eventData: eventData!,
         status: status,
         firstTry: firstTry,

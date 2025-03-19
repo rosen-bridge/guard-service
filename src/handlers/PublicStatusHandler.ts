@@ -1,10 +1,13 @@
 import { DataSource, Not, Repository } from 'typeorm';
 import axios, { AxiosInstance } from 'axios';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
-import { TransactionType } from '@rosen-chains/abstract-chain';
 import Configs from '../configs/Configs';
 import { EventStatus, TransactionStatus } from '../utils/constants';
 import { TransactionEntity } from '../db/entities/TransactionEntity';
+import {
+  ImpossibleBehavior,
+  TransactionType,
+} from '@rosen-chains/abstract-chain';
 
 export const logger = DefaultLoggerFactory.getInstance().getLogger(
   import.meta.url
@@ -25,11 +28,11 @@ export type UpdateStatusDTO = {
 };
 
 class PublicStatusHandler {
-  private static instance: PublicStatusHandler;
+  private static instance?: PublicStatusHandler;
   readonly axios: AxiosInstance;
   readonly txRepository: Repository<TransactionEntity>;
 
-  private constructor(dataSource: DataSource) {
+  protected constructor(dataSource: DataSource) {
     this.axios = axios.create({
       baseURL: Configs.publicStatusBaseUrl,
     });
@@ -72,21 +75,15 @@ class PublicStatusHandler {
    * @returns a promise that resolves to void
    */
   protected submitRequest = async (dto: UpdateStatusDTO): Promise<void> => {
-    const now = Date.now();
-    const signMessage = this.dtoToSignMessage({ ...dto, date: now });
+    const signMessage = this.dtoToSignMessage(dto);
 
-    try {
-      await this.axios.post('/status', {
-        body: {
-          ...dto,
-          date: now,
-          pk: await Configs.tssKeys.encryptor.getPk(),
-          signature: await Configs.tssKeys.encryptor.sign(signMessage),
-        },
-      });
-    } catch (error) {
-      logger.error(error);
-    }
+    await this.axios.post('/status', {
+      body: {
+        ...dto,
+        pk: await Configs.tssKeys.encryptor.getPk(),
+        signature: await Configs.tssKeys.encryptor.sign(signMessage),
+      },
+    });
   };
 
   /**
@@ -95,47 +92,40 @@ class PublicStatusHandler {
    * @param status
    * @returns a promise that resolves to void
    */
-  updatePublicEventStatus = async (
-    eventId: string,
-    status: EventStatus
-  ): Promise<void> => {
-    const dto: UpdateStatusDTO = {
-      date: 0,
-      eventId,
-      status,
-      tx: undefined,
-    };
+  updatePublicEventStatus = async (dto: UpdateStatusDTO): Promise<void> => {
+    try {
+      if (
+        dto.status === EventStatus.inPayment ||
+        dto.status === EventStatus.inReward
+      ) {
+        const tx = await this.txRepository.findOne({
+          where: {
+            event: { id: dto.eventId },
+            status: Not(TransactionStatus.invalid),
+          },
+        });
 
-    if (status === EventStatus.inPayment || status === EventStatus.inReward) {
-      const tx = await this.txRepository.findOne({
-        where: {
-          event: { id: eventId },
-          status: Not(TransactionStatus.invalid),
-          type:
-            status === EventStatus.inPayment
-              ? TransactionType.payment
-              : TransactionType.reward,
-        },
-        order: {
-          lastStatusUpdate: 'DESC',
-        },
-      });
+        if (!tx) {
+          throw new ImpossibleBehavior(
+            `No valid tx is found for event [${dto.eventId}]`
+          );
+        }
 
-      if (!tx) {
-        throw new Error(
-          `a tx should have existed for eventId: ${eventId}, but none was found.`
-        );
+        dto.tx = {
+          txId: tx.txId,
+          chain: tx.chain,
+          txType: tx.type,
+          txStatus: tx.status,
+        };
       }
 
-      dto.tx = {
-        txId: tx.txId,
-        chain: tx.chain,
-        txType: tx.type,
-        txStatus: tx.status,
-      };
+      await this.submitRequest(dto);
+    } catch (e) {
+      logger.error(
+        `An error occurred while submitting status change signal on Event: ${e}`
+      );
+      if (e.stack) logger.error(e.stack);
     }
-
-    return this.submitRequest(dto);
   };
 
   /**
@@ -144,40 +134,42 @@ class PublicStatusHandler {
    * @param txStatus
    * @returns a promise that resolves to void
    */
-  updatePublicTxStatus = async (
-    txId: string,
-    txStatus: TransactionStatus
-  ): Promise<void> => {
-    const dto: UpdateStatusDTO = {
-      date: 0,
-      eventId: '',
-      status: EventStatus.pendingPayment,
-      tx: undefined,
-    };
+  updatePublicTxStatus = async (dto: UpdateStatusDTO): Promise<void> => {
+    try {
+      const tx = await this.txRepository.findOne({
+        relations: ['event'],
+        where: {
+          txId: dto.tx!.txId,
+        },
+      });
 
-    const tx = await this.txRepository.findOne({
-      relations: ['event'],
-      where: {
-        txId,
-      },
-    });
+      if (!tx) {
+        throw new ImpossibleBehavior(`Tx [${dto.tx!.txId}] is not found!`);
+      }
 
-    if (!tx) {
-      throw new Error(
-        `a tx should have existed with id: ${txId}, but none was found.`
+      if (
+        tx.type !== TransactionType.payment &&
+        tx.type !== TransactionType.reward
+      ) {
+        return;
+      }
+
+      dto.eventId = tx.event.id;
+      dto.status = tx.event.status;
+      dto.tx = {
+        txId: tx.txId,
+        chain: tx.chain,
+        txType: tx.type,
+        txStatus: dto.tx!.txStatus,
+      };
+
+      await this.submitRequest(dto);
+    } catch (e) {
+      logger.error(
+        `An error occurred while submitting status change signal on Transaction: ${e}`
       );
+      if (e.stack) logger.error(e.stack);
     }
-
-    dto.eventId = tx.event.id;
-    dto.status = tx.event.status;
-    dto.tx = {
-      txId: tx.txId,
-      chain: tx.chain,
-      txType: tx.type,
-      txStatus,
-    };
-
-    return this.submitRequest(dto);
   };
 }
 

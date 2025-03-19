@@ -71,7 +71,7 @@ describe('TransactionProcessor', () => {
       const chain = tx.network;
       ChainHandlerMock.mockChainName(chain);
       // mock `signTransaction`
-      ChainHandlerMock.mockChainFunction(chain, 'signTransaction', null, false);
+      ChainHandlerMock.mockChainFunction(chain, 'signTransaction', null, true);
 
       // run test
       await TransactionProcessor.processTransactions();

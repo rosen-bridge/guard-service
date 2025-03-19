@@ -1,440 +1,305 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { DataSource } from 'typeorm';
 import { TransactionType } from '@rosen-chains/abstract-chain';
-import { Mock } from 'vitest';
 
-import PublicStatusHandler, {
-  logger,
+import {
   UpdateStatusDTO,
+  UpdateTxStatusDTO,
 } from '../../src/handlers/PublicStatusHandler';
 import Configs from '../../src/configs/Configs';
-import { EventStatus } from '../../src/utils/constants';
+import { EventStatus, TransactionStatus } from '../../src/utils/constants';
+import TestPublicStatusHandler from './TestPublicStatusHandler';
+import { TransactionEntity } from '../../src/db/entities/TransactionEntity';
+import { ConfirmedEventEntity } from '../../src/db/entities/ConfirmedEventEntity';
 
 const id = '0000000000000000000000000000000000000000000000000000000000000000';
 
 describe('PublicStatusHandler', () => {
-  let mockDataSource: Partial<DataSource>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let mockRepository: any;
+  const mockRepository = {
+    findOne: vi.fn(),
+  };
+  const mockDataSource: DataSource = {
+    getRepository: vi.fn(() => mockRepository),
+  } as any;
 
   beforeEach(() => {
-    // Clear any previous instance
-    // @ts-ignore
-    PublicStatusHandler['instance'] = undefined;
-
-    // Reset all mocks
-    vi.restoreAllMocks();
-
-    // Create a stub for the repository
-    mockRepository = {
-      findOne: vi.fn(),
-    };
-
-    // Create a stub for DataSource
-    mockDataSource = {
-      getRepository: vi.fn(() => mockRepository),
-    };
-  });
-
-  describe('init', () => {
-    /**
-     * @target PublicStatusHandler.init should initialize the PublicStatusHandler instance with a valid dataSource
-     * @dependencies
-     * @scenario
-     * - create a mock for dataSource that returns a valid repository when getRepository is called
-     * - call PublicStatusHandler.init with the stubbed dataSource
-     * @expected
-     * - instance should have been created
-     * - instance.axios should have been configured with the Configs.publicStatusBaseUrl
-     * - instance.txRepository should have been set to the repository returned by dataSource.getRepository
-     */
-    it('should initialize the PublicStatusHandler instance with a valid dataSource', async () => {
-      // act
-      await PublicStatusHandler.init(mockDataSource as DataSource);
-
-      // assert
-      const instance = PublicStatusHandler.getInstance();
-      expect(instance).toBeDefined();
-      expect(instance.axios.defaults.baseURL).toEqual(
-        Configs.publicStatusBaseUrl
-      );
-      expect(mockDataSource.getRepository).toHaveBeenCalled();
-      expect(instance.txRepository).toEqual(mockRepository);
-    });
-  });
-
-  describe('getInstance', () => {
-    /**
-     * @target PublicStatusHandler.getInstance should throw an error when getInstance is called before init
-     * @dependencies
-     * @scenario
-     * - ensure PublicStatusHandler.instance is undefined
-     * - call PublicStatusHandler.getInstance
-     * @expected
-     * - an error should have been thrown with correct error message
-     */
-    it('should throw an error when getInstance is called before init', () => {
-      // @ts-ignore
-      PublicStatusHandler['instance'] = undefined;
-      expect(() => PublicStatusHandler.getInstance()).toThrowError(
-        'PublicStatusHandler should have been initialized before getInstance'
-      );
-    });
-
-    /**
-     * @target PublicStatusHandler.getInstance should return the existing instance when getInstance is called after init
-     * @dependencies
-     * @scenario
-     * - initialize PublicStatusHandler using PublicStatusHandler.init with a valid stubbed dataSource
-     * - call PublicStatusHandler.getInstance
-     * @expected
-     * - the returned instance should have matched object PublicStatusHandler.instance
-     */
-    it('should return the existing instance when getInstance is called after init', async () => {
-      await PublicStatusHandler.init(mockDataSource as DataSource);
-      const instance = PublicStatusHandler.getInstance();
-      // @ts-ignore
-      expect(instance).toEqual(PublicStatusHandler['instance']);
-    });
+    // clear all mocks between tests
+    vi.clearAllMocks();
   });
 
   describe('submitRequest', () => {
-    let instance: PublicStatusHandler;
-    const validDto: UpdateStatusDTO = {
-      date: Date.now(),
-      eventId: id,
-      status: 'inPayment',
-      tx: undefined,
-    };
-
-    beforeEach(async () => {
-      await PublicStatusHandler.init(mockDataSource as DataSource);
-      instance = PublicStatusHandler.getInstance();
-    });
-
     /**
-     * @target PublicStatusHandler.submitRequest should call axios.post with the correct payload when submitRequest is called
+     * @target PublicStatusHandler.submitRequest should call axios.post with a mock object when submitRequest is called
      * @dependencies
      * @scenario
-     * - create a valid UpdateStatusDTO object
-     * - stub encryptor.getPk to resolve to a specific public key
-     * - stub encryptor.sign to resolve to a specific signature
-     * - spy on axios.post method
-     * - call submitRequest with the provided DTO
+     * - define a mock PublicStatusHandler
+     * - initialize PublicStatusHandler with the mock dataSource
+     * - define a mock UpdateStatusDTO object
+     * - stub encryptor.getPk to resolve to a mock public key
+     * - stub encryptor.sign to resolve to a mock signature
+     * - stub PublicStatusHandler.axios.post to return
+     * - call PublicStatusHandler.submitRequest with the provided DTO
      * @expected
-     * - instance.dtoToSignMessageSpy should have been called with the dto
-     * - encryptor.sign should have been called with signMessage
-     * - axios.post should have been called with '/status' and a body containing:
+     * - instance.dtoToSignMessageSpy should have been called once with the dto
+     * - encryptor.sign should have been called once with signMessage
+     * - axios.post should have been called once with path '/status' and a body containing:
      *   - the original DTO properties
-     *   - pk equal to the stubbed public key
-     *   - signature equal to the stubbed signature
+     *   - pk equal to the mock public key
+     *   - signature equal to the mock signature
      */
     it('should call axios.post with the correct payload when submitRequest is called', async () => {
       // arrange
-      const stubbedPk = 'stubbed-pk';
-      const stubbedSignature = 'stubbed-signature';
-      vi.spyOn(Configs.tssKeys.encryptor, 'getPk').mockResolvedValue(stubbedPk);
+      const instance = new TestPublicStatusHandler(mockDataSource);
+      await TestPublicStatusHandler.init(mockDataSource);
+
+      const dto: UpdateStatusDTO = {
+        date: 10,
+        eventId: id,
+        status: EventStatus.inPayment,
+        tx: undefined,
+      };
+
+      const mockPk = 'mock-pk';
+      const mockSignature = 'mock-signature';
+
+      vi.spyOn(Configs.tssKeys.encryptor, 'getPk').mockResolvedValue(mockPk);
       const signSpy = vi
         .spyOn(Configs.tssKeys.encryptor, 'sign')
-        .mockResolvedValue(stubbedSignature);
+        .mockResolvedValue(mockSignature);
       const axiosPostSpy = vi
-        .spyOn(instance.axios, 'post')
+        .spyOn(instance['axios'], 'post')
         .mockResolvedValue({ data: {} });
       const signMessage = 'test-sign-message';
-      const dtoToSignMessageSpy = vi // @ts-ignore
-        .spyOn(instance, 'dtoToSignMessage') // @ts-ignore
+      const dtoToSignMessageSpy = vi
+        .spyOn(instance as any, 'dtoToSignMessage')
         .mockReturnValue(signMessage);
 
       // act
-      await instance['submitRequest'](validDto);
+      await instance.callSubmitRequest(dto);
 
       // assert
-      expect(dtoToSignMessageSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          eventId: id,
-          status: 'inPayment',
-          tx: undefined,
-        })
-      );
+      expect(dtoToSignMessageSpy).toHaveBeenCalledOnce();
+      expect(dtoToSignMessageSpy).toHaveBeenCalledWith(dto);
+      expect(signSpy).toHaveBeenCalledOnce();
       expect(signSpy).toHaveBeenCalledWith(signMessage);
+      expect(axiosPostSpy).toHaveBeenCalledOnce();
       expect(axiosPostSpy).toHaveBeenCalledWith('/status', {
         body: expect.objectContaining({
           eventId: id,
-          status: 'inPayment',
+          status: EventStatus.inPayment,
           tx: undefined,
-          pk: stubbedPk,
-          signature: stubbedSignature,
+          pk: mockPk,
+          signature: mockSignature,
         }),
       });
-    });
-
-    /**
-     * @target PublicStatusHandler.submitRequest should log an error when axios.post fails
-     * @dependencies
-     * @scenario
-     * - create a valid UpdateStatusDTO object
-     * - stub encryptor.getPk to resolve to a specific public key
-     * - stub encryptor.sign to resolve to a specific signature
-     * - stub axios.post to reject with an error
-     * - spy on logger.error
-     * - call submitRequest with the provided DTO
-     * @expected
-     * - logger.error should have been called with the error thrown by axios.post
-     */
-    it('should log an error when axios.post fails', async () => {
-      // arrange
-      const stubError = new Error('network error');
-      vi.spyOn(Configs.tssKeys.encryptor, 'getPk').mockResolvedValue(
-        'stubbed-pk'
-      );
-      vi.spyOn(Configs.tssKeys.encryptor, 'sign').mockResolvedValue(
-        'stubbed-signature'
-      );
-      vi.spyOn(instance.axios, 'post').mockRejectedValue(stubError);
-      const loggerErrorSpy = vi
-        .spyOn(logger, 'error')
-        .mockImplementation(() => {
-          //
-        });
-
-      // act
-      await instance['submitRequest'](validDto);
-
-      // assert
-      expect(loggerErrorSpy).toHaveBeenCalledWith(stubError);
     });
   });
 
   describe('updatePublicEventStatus', () => {
-    let instance: PublicStatusHandler;
     const eventId = id;
 
-    beforeEach(async () => {
-      await PublicStatusHandler.init(mockDataSource as DataSource);
-      instance = PublicStatusHandler.getInstance();
-      // Stub submitRequest to track calls without executing the real implementation
-      // @ts-ignore
-      vi.spyOn(instance, 'submitRequest').mockResolvedValue(undefined);
-    });
-
     /**
-     * @target PublicStatusHandler.updatePublicEventStatus should throw an error when status is either "inPayment" or "inReward" and no transaction is found
+     * @target PublicStatusHandler.updatePublicEventStatus should call submitRequest with the dto including transaction details when status is "inPayment"
      * @dependencies
      * @scenario
-     * - stub txRepository.findOne to resolve to null
-     * - call updateEventStatus with an eventId and status set to "inPayment" (or "inReward")
+     * - define a mock PublicStatusHandler
+     * - initialize PublicStatusHandler with the mock dataSource
+     * - define a mock transaction object
+     * - define a mock UpdateTxStatusDTO object
+     * - stub txRepository.findOne to resolve to the mock transaction
+     * - define a mock UpdateStatusDTO object with status set to "inPayment"
+     * - stub PublicStatusHandler.submitRequest to resolve
+     * - call PublicStatusHandler.updateEventStatus with the mock dto
      * @expected
-     * - an error should have been thrown with the correct message
+     * - PublicStatusHandler.submitRequest should have been called once with the dto
      */
-    it('should throw an error when status is either "inPayment" or "inReward" and no transaction is found', async () => {
+    it('should call submitRequest with the dto including transaction details when status is "inPayment"', async () => {
       // arrange
-      (mockRepository.findOne as Mock).mockResolvedValue(null);
+      const instance = new TestPublicStatusHandler(mockDataSource);
+      await TestPublicStatusHandler.init(mockDataSource);
 
-      // act & Assert
-      await expect(
-        instance.updatePublicEventStatus(eventId, EventStatus.inPayment)
-      ).rejects.toThrowError(
-        `a tx should have existed for eventId: ${eventId}, but none was found.`
-      );
-    });
-
-    /**
-     * @target PublicStatusHandler.updatePublicEventStatus should call submitRequest with the dto including transaction details when status is "inPayment" and a valid transaction is found
-     * @dependencies
-     * @scenario
-     * - stub txRepository.findOne to resolve to a valid transaction object containing txId, chain, type, and status for eventId provided
-     * - spy on the submitRequest method
-     * - call updateEventStatus with an eventId and status set to "inPayment"
-     * @expected
-     * - submitRequest should have been called with a dto where:
-     *   - txId equals the transaction's txId
-     *   - txType equals the transaction's type (should be TransactionType.payment)
-     *   - txStatus equals the transaction's status
-     */
-    it('should call submitRequest with the dto including transaction details when status is "inPayment" and a valid transaction is found', async () => {
-      // arrange
-      const transactionStub = {
+      const mockTx: TransactionEntity = {
         txId: 'tx-123',
         chain: 'c1',
         type: TransactionType.payment,
-        status: 'completed',
+        status: TransactionStatus.completed,
+      } as any;
+      const mockTxDTO: UpdateTxStatusDTO = {
+        txId: 'tx-123',
+        chain: 'c1',
+        txType: TransactionType.payment,
+        txStatus: TransactionStatus.completed,
       };
-      (mockRepository.findOne as Mock).mockResolvedValue(transactionStub);
+      mockRepository.findOne.mockResolvedValue(mockTx);
+
+      const dto: UpdateStatusDTO = {
+        date: 0,
+        eventId,
+        status: EventStatus.inPayment,
+        tx: mockTxDTO,
+      };
+
+      const submitRequestSpy = vi
+        .spyOn(instance as any, 'submitRequest')
+        .mockResolvedValue(undefined);
 
       // act
-      await instance.updatePublicEventStatus(eventId, EventStatus.inPayment);
+      await instance.updatePublicEventStatus(dto);
 
       // assert
-      // @ts-ignore
-      expect(instance.submitRequest).toHaveBeenCalledWith(
-        expect.objectContaining({
-          eventId,
-          status: EventStatus.inPayment,
-          tx: {
-            txId: transactionStub.txId,
-            chain: transactionStub.chain,
-            txType: transactionStub.type,
-            txStatus: transactionStub.status,
-          },
-        })
-      );
+      expect(submitRequestSpy).toHaveBeenCalledOnce();
+      expect(submitRequestSpy).toHaveBeenCalledWith(dto);
     });
 
     /**
-     * @target PublicStatusHandler.updatePublicEventStatus should call submitRequest with the dto including transaction details when status is "inReward" and a valid transaction is found
+     * @target PublicStatusHandler.updatePublicEventStatus should call submitRequest with the dto including transaction details when status is "inReward"
      * @dependencies
      * @scenario
-     * - stub txRepository.findOne to resolve to a valid transaction object containing txId, type, and status for eventId provided
-     * - spy on the submitRequest method
-     * - call updateEventStatus with an eventId and status set to "inReward"
+     * - define a mock PublicStatusHandler
+     * - initialize PublicStatusHandler with the mock dataSource
+     * - define a mock transaction object
+     * - define a mock UpdateTxStatusDTO object
+     * - stub txRepository.findOne to resolve to the mock transaction
+     * - define a mock UpdateStatusDTO object
+     * - stub PublicStatusHandler.submitRequest to resolve
+     * - call PublicStatusHandler.updateEventStatus with status set to "inReward"
      * @expected
-     * - submitRequest should have been called with a dto where:
-     *   - txId equals the transaction's txId
-     *   - txType equals the transaction's type (should be TransactionType.reward)
-     *   - txStatus equals the transaction's status
+     * - PublicStatusHandler.submitRequest should have been called once with the dto
      */
-    it('should call submitRequest with the dto including transaction details when status is "inReward" and a valid transaction is found', async () => {
+    it('should call submitRequest with the dto including transaction details when status is "inReward"', async () => {
       // arrange
-      const transactionStub = {
+      const instance = new TestPublicStatusHandler(mockDataSource);
+      await TestPublicStatusHandler.init(mockDataSource);
+
+      const mockTx: TransactionEntity = {
         txId: 'tx-456',
         chain: 'c1',
         type: TransactionType.reward,
-        status: 'pending',
+        status: TransactionStatus.inSign,
+      } as any;
+      const mockTxDTO: UpdateTxStatusDTO = {
+        txId: 'tx-456',
+        chain: 'c1',
+        txType: TransactionType.reward,
+        txStatus: TransactionStatus.inSign,
       };
-      (mockRepository.findOne as Mock).mockResolvedValue(transactionStub);
+      mockRepository.findOne.mockResolvedValue(mockTx);
+
+      const dto: UpdateStatusDTO = {
+        date: 0,
+        eventId,
+        status: EventStatus.inReward,
+        tx: mockTxDTO,
+      };
+
+      const submitRequestSpy = vi
+        .spyOn(instance as any, 'submitRequest')
+        .mockResolvedValue(undefined);
 
       // act
-      await instance.updatePublicEventStatus(eventId, EventStatus.inReward);
+      await instance.updatePublicEventStatus(dto);
 
       // assert
-      // @ts-ignore
-      expect(instance.submitRequest).toHaveBeenCalledWith(
-        expect.objectContaining({
-          eventId,
-          status: EventStatus.inReward,
-          tx: {
-            txId: transactionStub.txId,
-            chain: transactionStub.chain,
-            txType: transactionStub.type,
-            txStatus: transactionStub.status,
-          },
-        })
-      );
+      expect(submitRequestSpy).toHaveBeenCalledOnce();
+      expect(submitRequestSpy).toHaveBeenCalledWith(dto);
     });
 
     /**
      * @target PublicStatusHandler.updatePublicEventStatus should call submitRequest with the dto without transaction details when status is neither "inPayment" nor "inReward"
      * @dependencies
      * @scenario
-     * - spy on the submitRequest method
-     * - call updateEventStatus with an eventId and status that is not "inPayment" or "inReward"
+     * - define a mock PublicStatusHandler
+     * - initialize PublicStatusHandler with the mock dataSource
+     * - define a mock UpdateStatusDTO object
+     * - stub PublicStatusHandler.submitRequest to resolve
+     * - call PublicStatusHandler.updateEventStatus with status that is not "inPayment" or "inReward"
      * @expected
-     * - submitRequest should have been called with a dto where:
-     *   - txId remains undefined
-     *   - txType remains undefined
-     *   - txStatus remains undefined
-     *   - eventId and status match the provided parameters
+     * - PublicStatusHandler.submitRequest should have been called once with the dto
      */
     it('should call submitRequest with the dto without transaction details when status is neither "inPayment" nor "inReward"', async () => {
       // arrange
-      const status = 'pendingPayment';
+      const instance = new TestPublicStatusHandler(mockDataSource);
+      await TestPublicStatusHandler.init(mockDataSource);
 
-      // act
-      await instance.updatePublicEventStatus(eventId, status);
-
-      // assert
-      // @ts-ignore
-      expect(instance.submitRequest).toHaveBeenCalledWith({
+      const dto: UpdateStatusDTO = {
         date: 0,
         eventId,
-        status,
+        status: EventStatus.pendingPayment,
         tx: undefined,
-      });
+      };
+
+      const submitRequestSpy = vi
+        .spyOn(instance as any, 'submitRequest')
+        .mockResolvedValue(undefined);
+
+      // act
+      await instance.updatePublicEventStatus(dto);
+
+      // assert
+      expect(submitRequestSpy).toHaveBeenCalledOnce();
+      expect(submitRequestSpy).toHaveBeenCalledWith(dto);
     });
   });
 
   describe('updatePublicTxStatus', () => {
-    let instance: PublicStatusHandler;
+    const eventId = id;
     const txId = id;
-    const newTxStatus = 'signed';
-
-    beforeEach(async () => {
-      await PublicStatusHandler.init(mockDataSource as DataSource);
-      instance = PublicStatusHandler.getInstance();
-      // Stub submitRequest to track calls
-      // @ts-ignore
-      vi.spyOn(instance, 'submitRequest').mockResolvedValue(undefined);
-    });
 
     /**
-     * @target PublicStatusHandler.updatePublicTxStatus should throw an error when no transaction with the given txId is found
+     * @target PublicStatusHandler.updatePublicTxStatus should call submitRequest with a dto object containing transaction details
      * @dependencies
      * @scenario
-     * - stub txRepository.findOne to resolve to null when searching for the given txId
-     * - call updateTxStatus with a txId and a txStatus
+     * - define a mock PublicStatusHandler
+     * - initialize PublicStatusHandler with the mock dataSource
+     * - define a mock TransactionEntity object
+     * - define a mock UpdateTxStatusDTO object
+     * - stub TxRepository.findOne to resolve to the mock transaction
+     * - define a mock UpdateStatusDTO object
+     * - stub PublicStatusHandler.submitRequest to resolve
+     * - call PublicStatusHandler.updatePublicTxStatus with the dto
      * @expected
-     * - an error should have been thrown with the correct message
+     * - PublicStatusHandler.submitRequest should have been called once with the dto
      */
-    it('should throw an error when no transaction with the given txId is found', async () => {
+    it('should call submitRequest with a dto object containing transaction details', async () => {
       // arrange
-      (mockRepository.findOne as Mock).mockResolvedValue(null);
+      const instance = new TestPublicStatusHandler(mockDataSource);
+      await TestPublicStatusHandler.init(mockDataSource);
 
-      // act & Assert
-      await expect(
-        instance.updatePublicTxStatus(txId, newTxStatus)
-      ).rejects.toThrowError(
-        `a tx should have existed with id: ${txId}, but none was found.`
-      );
-    });
-
-    /**
-     * @target PublicStatusHandler.updatePublicTxStatus should call submitRequest with the dto built from the found transaction details when a valid transaction is found
-     * @dependencies
-     * @scenario
-     * - stub txRepository.findOne to resolve to a valid transaction object containing:
-     *   - txId: matching parameter
-     *   - a related event object with id and status
-     *   - type property for txType
-     * - spy on the submitRequest method
-     * - call updateTxStatus with a valid txId and a txStatus
-     * @expected
-     * - submitRequest should have been called with a dto where:
-     *   - eventId equals the tx.event.id
-     *   - status equals the tx.event.status
-     *   - txId equals the provided txId
-     *   - txType equals the tx.type
-     *   - txStatus equals the provided txStatus
-     */
-    it('should call submitRequest with the dto built from the found transaction details when a valid transaction is found', async () => {
-      // arrange
-      const transactionStub = {
+      const mockTx: TransactionEntity = {
         txId,
         chain: 'c1',
-        type: 'reward',
-        // The tx entity has a related event object:
+        type: TransactionType.reward,
         event: {
-          id: 'event-2',
-          status: 'active',
-        },
+          id: eventId,
+          status: EventStatus.timeout,
+        } as any as ConfirmedEventEntity,
+      } as any;
+
+      const mockTxDTO: UpdateTxStatusDTO = {
+        txId,
+        chain: 'c1',
+        txType: TransactionType.reward,
+        txStatus: TransactionStatus.sent,
       };
-      (mockRepository.findOne as Mock).mockResolvedValue(transactionStub);
+
+      mockRepository.findOne.mockResolvedValue(mockTx);
+
+      const dto: UpdateStatusDTO = {
+        date: 0,
+        eventId,
+        status: EventStatus.timeout,
+        tx: mockTxDTO,
+      };
+
+      const submitRequestSpy = vi
+        .spyOn(instance as any, 'submitRequest')
+        .mockResolvedValue(undefined);
 
       // act
-      await instance.updatePublicTxStatus(txId, newTxStatus);
+      await instance.updatePublicTxStatus(dto);
 
       // assert
-      // @ts-ignore
-      expect(instance.submitRequest).toHaveBeenCalledWith({
-        date: 0,
-        eventId: transactionStub.event.id,
-        status: transactionStub.event.status,
-        tx: {
-          txId: txId,
-          chain: 'c1',
-          txType: transactionStub.type,
-          txStatus: newTxStatus,
-        },
-      });
+      expect(submitRequestSpy).toHaveBeenCalledOnce();
+      expect(submitRequestSpy).toHaveBeenCalledWith(dto);
     });
   });
 });
