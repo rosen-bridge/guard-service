@@ -42,7 +42,7 @@
     "@multiformats/multiaddr": "^11.0.3",
     "@rosen-bridge/abstract-logger": "^2.0.1",
     "@rosen-bridge/abstract-notification": "^0.2.1",
-    "@rosen-bridge/asset-check": "^2.0.1",
+    "@rosen-bridge/asset-check": "^3.0.0",
     "@rosen-bridge/communication": "^1.0.1",
     "@rosen-bridge/detection": "^1.0.1",
     "@rosen-bridge/discord-notification": "^0.1.3",

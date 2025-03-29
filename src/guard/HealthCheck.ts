@@ -1,5 +1,5 @@
 import {
-  BitcoinEsploraAssetHealthCheckParam,
+  EsploraAssetHealthCheckParam,
   CardanoBlockFrostAssetHealthCheckParam,
   CardanoKoiosAssetHealthCheckParam,
   ErgoExplorerAssetHealthCheckParam,
@@ -270,7 +270,7 @@ const getHealthCheck = async () => {
       healthCheck.register(adaAssetHealthCheck);
     }
     if (GuardsBitcoinConfigs.chainNetworkName === 'esplora') {
-      const btcAssetHealthCheck = new BitcoinEsploraAssetHealthCheckParam(
+      const btcAssetHealthCheck = new EsploraAssetHealthCheckParam(
         BTC,
         bitcoinContracts.lockAddress,
         Configs.btcWarnThreshold,
@@ -281,7 +281,7 @@ const getHealthCheck = async () => {
       healthCheck.register(btcAssetHealthCheck);
     }
     if (GuardsDogeConfigs.chainNetworkName === 'esplora') {
-      const dogeAssetHealthCheck = new BitcoinEsploraAssetHealthCheckParam(
+      const dogeAssetHealthCheck = new EsploraAssetHealthCheckParam(
         DOGE,
         dogeContracts.lockAddress,
         Configs.dogeWarnThreshold,
