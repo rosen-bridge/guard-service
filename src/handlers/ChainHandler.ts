@@ -9,6 +9,12 @@ import {
   BITCOIN_CHAIN,
   BitcoinChain,
 } from '@rosen-chains/bitcoin';
+import {
+  AbstractDogeNetwork,
+  DOGE_CHAIN,
+  DogeChain,
+  DogeTx,
+} from '@rosen-chains/doge';
 import { AbstractErgoNetwork, ERGO_CHAIN, ErgoChain } from '@rosen-chains/ergo';
 import CardanoKoiosNetwork, {
   KOIOS_NETWORK,
@@ -24,7 +30,9 @@ import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { BLOCKFROST_NETWORK } from '@rosen-chains/cardano-blockfrost-network';
 import CardanoBlockFrostNetwork from '@rosen-chains/cardano-blockfrost-network';
 import BitcoinEsploraNetwork from '@rosen-chains/bitcoin-esplora';
+import { DogeEsploraNetwork } from '@rosen-chains/doge-esplora';
 import GuardsBitcoinConfigs from '../configs/GuardsBitcoinConfigs';
+import GuardsDogeConfigs from '../configs/GuardsDogeConfigs';
 import { EthereumChain } from '@rosen-chains/ethereum';
 import { AbstractEvmNetwork } from '@rosen-chains/evm';
 import GuardsEthereumConfigs from '../configs/GuardsEthereumConfigs';
@@ -37,6 +45,9 @@ import { BINANCE_CHAIN } from '@rosen-chains/binance';
 import TssHandler from './TssHandler';
 import { TokenHandler } from './tokenHandler';
 
+import { DatabaseAction } from 'src/db/DatabaseAction';
+import * as TransactionSerializer from '../transaction/TransactionSerializer';
+
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
 class ChainHandler {
@@ -44,6 +55,7 @@ class ChainHandler {
   private readonly ergoChain: ErgoChain;
   private readonly cardanoChain: CardanoChain;
   private readonly bitcoinChain: BitcoinChain;
+  private readonly dogeChain: DogeChain;
   private readonly ethereumChain: EthereumChain;
   private readonly binanceChain: BinanceChain;
 
@@ -51,6 +63,7 @@ class ChainHandler {
     this.ergoChain = this.generateErgoChain();
     this.cardanoChain = this.generateCardanoChain();
     this.bitcoinChain = this.generateBitcoinChain();
+    this.dogeChain = this.generateDogeChain();
     this.ethereumChain = this.generateEthereumChain();
     this.binanceChain = this.generateBinanceChain();
     logger.info('ChainHandler instantiated');
@@ -196,6 +209,57 @@ class ChainHandler {
   };
 
   /**
+   * generates Doge network and chain objects using configs
+   * @returns DogeChain object
+   */
+  private generateDogeChain = (): DogeChain => {
+    let network: AbstractDogeNetwork;
+    switch (GuardsDogeConfigs.chainNetworkName) {
+      case 'esplora':
+        network = new DogeEsploraNetwork(
+          GuardsDogeConfigs.esplora.url,
+          async (txId: string) => {
+            const tx = await DatabaseAction.getInstance().getTxById(txId);
+            if (tx === null) return undefined;
+            return TransactionSerializer.fromJson(tx.txJson);
+          },
+          DefaultLoggerFactory.getInstance().getLogger('EsploraNetwork')
+        );
+        break;
+      default:
+        throw Error(
+          `No case is defined for network [${GuardsDogeConfigs.chainNetworkName}]`
+        );
+    }
+    const chainCode = GuardsDogeConfigs.tssChainCode;
+    const derivationPath = GuardsDogeConfigs.derivationPath;
+    const curveSign = TssHandler.getInstance().curveSign;
+    const tssSignFunctionWrapper = async (
+      txHash: Uint8Array
+    ): Promise<{
+      signature: string;
+      signatureRecovery: string;
+    }> => {
+      const res = await curveSign(
+        Buffer.from(txHash).toString('hex'),
+        chainCode,
+        derivationPath
+      );
+      return {
+        signature: res.signature,
+        signatureRecovery: res.signatureRecovery!,
+      };
+    };
+    return new DogeChain(
+      network,
+      GuardsDogeConfigs.chainConfigs,
+      TokenHandler.getInstance().getTokenMap(),
+      tssSignFunctionWrapper,
+      DefaultLoggerFactory.getInstance().getLogger('DogeChain')
+    );
+  };
+
+  /**
    * generates Ethereum network and chain objects using configs
    * @returns EthereumChain object
    */
@@ -308,6 +372,8 @@ class ChainHandler {
         return this.cardanoChain;
       case BITCOIN_CHAIN:
         return this.bitcoinChain;
+      case DOGE_CHAIN:
+        return this.dogeChain;
       case ETHEREUM_CHAIN:
         return this.ethereumChain;
       case BINANCE_CHAIN:

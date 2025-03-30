@@ -1,5 +1,5 @@
 import {
-  BitcoinEsploraAssetHealthCheckParam,
+  EsploraAssetHealthCheckParam,
   CardanoBlockFrostAssetHealthCheckParam,
   CardanoKoiosAssetHealthCheckParam,
   ErgoExplorerAssetHealthCheckParam,
@@ -37,6 +37,8 @@ import {
 } from '../utils/constants';
 import GuardsBitcoinConfigs from '../configs/GuardsBitcoinConfigs';
 import { BITCOIN_CHAIN, BTC } from '@rosen-chains/bitcoin';
+import GuardsDogeConfigs from '../configs/GuardsDogeConfigs';
+import { DOGE, DOGE_CHAIN } from '@rosen-chains/doge';
 import { DatabaseAction } from '../db/DatabaseAction';
 import { NotFoundError } from '@rosen-chains/abstract-chain';
 import { NotificationHandler } from '../handlers/NotificationHandler';
@@ -145,7 +147,7 @@ const getHealthCheck = async () => {
     const bitcoinContracts = rosenConfig.contractReader(BITCOIN_CHAIN);
     const ethereumContracts = rosenConfig.contractReader(ETHEREUM_CHAIN);
     const binanceContracts = rosenConfig.contractReader(BINANCE_CHAIN);
-
+    const dogeContracts = rosenConfig.contractReader(DOGE_CHAIN);
     const generateLastBlockFetcher = (scannerName: string) => {
       return async () => {
         try {
@@ -268,7 +270,7 @@ const getHealthCheck = async () => {
       healthCheck.register(adaAssetHealthCheck);
     }
     if (GuardsBitcoinConfigs.chainNetworkName === 'esplora') {
-      const btcAssetHealthCheck = new BitcoinEsploraAssetHealthCheckParam(
+      const btcAssetHealthCheck = new EsploraAssetHealthCheckParam(
         BTC,
         bitcoinContracts.lockAddress,
         Configs.btcWarnThreshold,
@@ -277,6 +279,17 @@ const getHealthCheck = async () => {
         8
       );
       healthCheck.register(btcAssetHealthCheck);
+    }
+    if (GuardsDogeConfigs.chainNetworkName === 'esplora') {
+      const dogeAssetHealthCheck = new EsploraAssetHealthCheckParam(
+        DOGE,
+        dogeContracts.lockAddress,
+        Configs.dogeWarnThreshold,
+        Configs.dogeCriticalThreshold,
+        GuardsDogeConfigs.esplora.url,
+        8
+      );
+      healthCheck.register(dogeAssetHealthCheck);
     }
     if (GuardsEthereumConfigs.chainNetworkName === 'rpc') {
       const ethAssetHealthCheck = new EvmRpcAssetHealthCheckParam(
