@@ -33,7 +33,7 @@ export const eventData = {
   txId: 'event-creation-tx-id',
   extractor: 'extractor',
   boxId: '1f2fad80063525dbb2660429be4bbcbcf8eb965cbdc63de1eab118991786c4fa',
-  boxSerialized: 'box-serialized',
+  serialized: 'box-serialized',
   block: 'blockId',
   height: 12000,
   fromChain: 'cardano',

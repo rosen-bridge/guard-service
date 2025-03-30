@@ -3,7 +3,7 @@ import { BITCOIN_CHAIN, BTC } from '@rosen-chains/bitcoin';
 import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
 import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
 import { ETH, ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
-
+import { DOGE, DOGE_CHAIN } from '@rosen-chains/doge';
 class EventStatus {
   static pendingPayment = 'pending-payment';
   static pendingReward = 'pending-reward';
@@ -46,6 +46,7 @@ const SUPPORTED_CHAINS = [
   CARDANO_CHAIN,
   BITCOIN_CHAIN,
   ETHEREUM_CHAIN,
+  DOGE_CHAIN,
   BINANCE_CHAIN,
 ];
 
@@ -66,6 +67,7 @@ const ChainNativeToken: Record<string, string> = {
   [CARDANO_CHAIN]: ADA,
   [BITCOIN_CHAIN]: BTC,
   [ETHEREUM_CHAIN]: ETH,
+  [DOGE_CHAIN]: DOGE,
   [BINANCE_CHAIN]: BNB,
 };
 
@@ -77,6 +79,9 @@ enum OrderStatus {
   waiting = 'waiting',
   reachedLimit = 'reached-limit',
 }
+
+const ETHEREUM_BLOCK_TIME = 12;
+const BINANCE_BLOCK_TIME = 3;
 
 export {
   EventStatus,
@@ -94,4 +99,6 @@ export {
   TssAlgorithms,
   ChainNativeToken,
   OrderStatus,
+  ETHEREUM_BLOCK_TIME,
+  BINANCE_BLOCK_TIME,
 };

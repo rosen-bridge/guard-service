@@ -55,7 +55,6 @@ export const InfoResponseSchema = Type.Object({
   versions: Type.Object({
     app: Type.String(),
     contract: Type.String(),
-    tokensMap: Type.String(),
   }),
   health: Type.Object({
     status: Type.String(),

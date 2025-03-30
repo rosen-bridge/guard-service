@@ -88,7 +88,6 @@ const infoRoute = (server: FastifySeverInstance) => {
           versions: {
             app: packageJson.version,
             contract: rosenConfig.contractVersion,
-            tokensMap: Configs.tokensVersion,
           },
           health: {
             status: healthStatus,

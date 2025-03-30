@@ -12,7 +12,6 @@ export const guardInfo = {
   versions: {
     app: expect.any(String),
     contract: rosenConfig.contractVersion,
-    tokensMap: Configs.tokensVersion,
   },
   health: {
     status: HealthStatusLevel.HEALTHY,

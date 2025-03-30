@@ -1,30 +1,24 @@
 {
-  "version": "testVersion",
-  "idKeys": {
-    "ergo": "tokenId",
-    "cardano": "tokenId",
-    "bitcoin": "tokenId"
-  },
+  "version": "",
   "tokens": [
     {
       "ergo": {
         "tokenId": "erg",
         "name": "erg",
         "decimals": 9,
-        "metaData": {
-          "type": "native",
-          "residency": "native"
-        }
+        "type": "native",
+        "residency": "native",
+        "extra": {}
       },
       "cardano": {
         "tokenId": "d2f6eb37450a3d568de93d623e69bd0ba1238daacc883d75736abd23.527374457267565465737432",
-        "policyId": "d2f6eb37450a3d568de93d623e69bd0ba1238daacc883d75736abd23",
-        "assetName": "527374457267565465737432",
         "name": "wrapped-erg",
         "decimals": 9,
-        "metaData": {
-          "type": "CIP26",
-          "residency": "wrapped"
+        "type": "CIP26",
+        "residency": "wrapped",
+        "extra": {
+          "policyId": "d2f6eb37450a3d568de93d623e69bd0ba1238daacc883d75736abd23",
+          "assetName": "527374457267565465737432"
         }
       }
     },
@@ -33,20 +27,19 @@
         "tokenId": "0cd8c9f416e5b1ca9f986a7f10a84191dfb85941619e49e53c0dc30ebf83324b",
         "name": "COMET",
         "decimals": 0,
-        "metaData": {
-          "type": "EIP-004",
-          "residency": "native"
-        }
+        "type": "EIP-004",
+        "residency": "native",
+        "extra": {}
       },
       "cardano": {
         "tokenId": "bb2250e4c589539fd141fbbd2c322d380f1ce2aaef812cd87110d61b.527374434f4d4554565465737432",
-        "policyId": "bb2250e4c589539fd141fbbd2c322d380f1ce2aaef812cd87110d61b",
-        "assetName": "527374434f4d4554565465737432",
         "name": "wrapped-comet",
         "decimals": 0,
-        "metaData": {
-          "type": "CIP26",
-          "residency": "wrapped"
+        "type": "CIP26",
+        "residency": "wrapped",
+        "extra": {
+          "policyId": "bb2250e4c589539fd141fbbd2c322d380f1ce2aaef812cd87110d61b",
+          "assetName": "527374434f4d4554565465737432"
         }
       }
     },
@@ -55,20 +48,19 @@
         "tokenId": "b37bfa41c2d9e61b4e478ddfc459a03d25b658a2305ffb428fbc47ad6abbeeaa",
         "name": "RstHoskyVTest2",
         "decimals": 0,
-        "metaData": {
-          "type": "EIP-004",
-          "residency": "wrapped"
-        }
+        "type": "EIP-004",
+        "residency": "wrapped",
+        "extra": {}
       },
       "cardano": {
         "tokenId": "a0028f350aaabe0545fdcb56b039bfb08e4bb4d8c4d7c3c7d481c235.484f534b59",
-        "policyId": "a0028f350aaabe0545fdcb56b039bfb08e4bb4d8c4d7c3c7d481c235",
-        "assetName": "484f534b59",
         "name": "Hosky",
         "decimals": 0,
-        "metaData": {
-          "type": "CIP26",
-          "residency": "native"
+        "type": "CIP26",
+        "residency": "native",
+        "extra": {
+          "policyId": "a0028f350aaabe0545fdcb56b039bfb08e4bb4d8c4d7c3c7d481c235",
+          "assetName": "484f534b59"
         }
       }
     },
@@ -77,20 +69,19 @@
         "tokenId": "a2a6c892c38d508a659caf857dbe29da4343371e597efd42e40f9bc99099a516",
         "name": "RSN",
         "decimals": 3,
-        "metaData": {
-          "type": "EIP-004",
-          "residency": "native"
-        }
+        "type": "EIP-004",
+        "residency": "native",
+        "extra": {}
       },
       "cardano": {
         "tokenId": "45fdcb56b039bfba0028f350aaabe0508e4bb4d8c4d7c3c7d481c235.48",
-        "policyId": "45fdcb56b039bfba0028f350aaabe0508e4bb4d8c4d7c3c7d481c235",
-        "assetName": "48",
         "name": "H",
         "decimals": 3,
-        "metaData": {
-          "type": "CIP26",
-          "residency": "wrapped"
+        "type": "CIP26",
+        "residency": "wrapped",
+        "extra": {
+          "policyId": "45fdcb56b039bfba0028f350aaabe0508e4bb4d8c4d7c3c7d481c235",
+          "assetName": "48"
         }
       }
     },
@@ -99,20 +90,19 @@
         "tokenId": "38cb230f68a28436fb3b73ae4b927626673e4620bc7c94896178567d436e416b",
         "name": "RstAdaVTest2",
         "decimals": 6,
-        "metaData": {
-          "type": "EIP-004",
-          "residency": "wrapped"
-        }
+        "type": "EIP-004",
+        "residency": "wrapped",
+        "extra": {}
       },
       "cardano": {
         "tokenId": "ada",
-        "policyId": "",
-        "assetName": "414441",
         "name": "ada",
         "decimals": 6,
-        "metaData": {
-          "type": "native",
-          "residency": "native"
+        "type": "native",
+        "residency": "native",
+        "extra": {
+          "policyId": "",
+          "assetName": "414441"
         }
       }
     },
@@ -121,30 +111,28 @@
         "tokenId": "98bc813d77b8b938fddb08f75c5c686ffe38cf1d99a887f91403cc6f0c5c76bf",
         "name": "rsBTC-loen",
         "decimals": 8,
-        "metaData": {
-          "type": "EIP-004",
-          "residency": "wrapped"
-        }
+        "type": "EIP-004",
+        "residency": "wrapped",
+        "extra": {}
       },
       "cardano": {
         "tokenId": "3122541486c983d637e7ed9330c94e490e1fe4a1758725fab7f6d9e0.72734254432d6c6f656e",
-        "policyId": "3122541486c983d637e7ed9330c94e490e1fe4a1758725fab7f6d9e0",
-        "assetName": "72734254432d6c6f656e",
         "name": "rsBTC-loen",
         "decimals": 8,
-        "metaData": {
-          "type": "CIP26",
-          "residency": "wrapped"
+        "type": "CIP26",
+        "residency": "wrapped",
+        "extra": {
+          "policyId": "3122541486c983d637e7ed9330c94e490e1fe4a1758725fab7f6d9e0",
+          "assetName": "72734254432d6c6f656e"
         }
       },
       "bitcoin": {
         "tokenId": "btc",
         "name": "BTC",
         "decimals": 8,
-        "metaData": {
-          "type": "native",
-          "residency": "native"
-        }
+        "type": "native",
+        "residency": "native",
+        "extra": {}
       }
     },
     {
@@ -152,20 +140,19 @@
         "tokenId": "79b6e982d95211bbc2a8ffc6d087694511f0b85ca6d4894e58b766c8fa69dfd4",
         "name": "MDToken-loen",
         "decimals": 4,
-        "metaData": {
-          "type": "EIP-004",
-          "residency": "native"
-        }
+        "type": "EIP-004",
+        "residency": "native",
+        "extra": {}
       },
       "cardano": {
         "tokenId": "ac0a478c70238bff24e20107ebe399e7f3a3e854037622427206b024.72734d44546f6b656e2d6c6f656e",
-        "policyId": "ac0a478c70238bff24e20107ebe399e7f3a3e854037622427206b024",
-        "assetName": "72734d44546f6b656e2d6c6f656e",
         "name": "rsMDToken-loen",
         "decimals": 1,
-        "metaData": {
-          "type": "CIP26",
-          "residency": "wrapped"
+        "type": "CIP26",
+        "residency": "wrapped",
+        "extra": {
+          "policyId": "ac0a478c70238bff24e20107ebe399e7f3a3e854037622427206b024",
+          "assetName": "72734d44546f6b656e2d6c6f656e"
         }
       }
     }

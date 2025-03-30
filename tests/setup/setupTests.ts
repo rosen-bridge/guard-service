@@ -3,6 +3,11 @@ import DatabaseActionMock from '../db/mocked/DatabaseAction.mock';
 import TestConfigs from '../testUtils/TestConfigs';
 import * as TestTransactionSerializer from '../../tests/transaction/TestTransactionSerializer';
 import TestPublicStatusHandler from '../handlers/TestPublicStatusHandler';
+import { TokenHandler } from '../../src/handlers/tokenHandler';
+import Configs from '../../src/configs/Configs';
+
+// initialize TokenHandler
+await TokenHandler.init(Configs.tokensPath);
 
 // mock database
 await DatabaseActionMock.initDatabase();
