@@ -61,9 +61,7 @@ export const mockHasLockAddressEnoughAssets = (
 export const mockGetAddressBalanceForNativeToken = (
   network: AbstractEvmNetwork,
   value: bigint
-) => {
-  spyOn(network, 'getAddressBalanceForNativeToken').mockResolvedValue(value);
-};
+) => spyOn(network, 'getAddressBalanceForNativeToken').mockResolvedValue(value);
 
 export const mockGetFeeData = (network: AbstractEvmNetwork, value: FeeData) => {
   spyOn(network, 'getFeeData').mockResolvedValue(value);

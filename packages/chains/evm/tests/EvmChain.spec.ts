@@ -2632,7 +2632,7 @@ describe('EvmChain', () => {
      * @scenario
      * - mock getAddressBalanceForNativeToken
      * - mock getAddressBalanceForERC20Asset for each supported tokens
-     * - call the function
+     * - call the function without tokens arg
      * - check returned value
      * @expected
      * - it should return mocked address assets (both input and output assets)
@@ -2733,6 +2733,121 @@ describe('EvmChain', () => {
           { id: '0xedee4752e5a2f595151c94762fb38e5730357785', value: 0n },
           { id: '0x12345752e5a2f595151c94762fb38e5730357785', value: 10n },
           { id: '0xedee4752e5a2f595151c94762fb38e5730357786', value: 30n },
+          { id: '0xedee4752e5a2f595151c94762fb38e5730357787', value: 40n },
+        ],
+      });
+    });
+
+    /**
+     * @target EvmChain.getAddressAssets should get address balance of only native token
+     * @dependencies
+     * @scenario
+     * - stub getAddressBalanceForNativeToken to return mock value
+     * - stub getAddressBalanceForERC20Asset to return mock balance for a requested token
+     * - call EvmChain.getAddressAssets with tokens set to an empty array
+     * @expected
+     * - getAddressBalanceForNativeToken should have been called once with the requested address
+     * - getAddressBalanceForERC20Asset should not have been called
+     * - result tokens array should have been empty
+     */
+    it('should get address balance of only native token', async () => {
+      // arrange
+      const network = new TestEvmNetwork();
+      const nativeTokenSpy = mockGetAddressBalanceForNativeToken(
+        network,
+        1000n
+      );
+      const erc20Spy = vi
+        .spyOn(network, 'getAddressBalanceForERC20Asset')
+        .mockImplementation(async (address, tokenId) => {
+          if (tokenId === '0xedee4752e5a2f595151c94762fb38e5730357785')
+            return 0n;
+          else if (tokenId === '0x12345752e5a2f595151c94762fb38e5730357785')
+            return 10n;
+          else if (tokenId === '0xedee4752e5a2f595151c94762fb38e5730357786')
+            return 30n;
+          else if (tokenId === '0xedee4752e5a2f595151c94762fb38e5730357787')
+            return 40n;
+          else return 0n;
+        });
+      const evmChain = await testUtils.generateChainObject(network);
+      evmChain.updateSupportedTokens(TestData.supportedTokens);
+
+      // act
+      const result = await evmChain.getAddressAssets(TestData.lockAddress, []);
+
+      // assert
+      expect(nativeTokenSpy).toHaveBeenCalledOnce();
+      expect(nativeTokenSpy).toHaveBeenLastCalledWith(TestData.lockAddress);
+      expect(erc20Spy).not.toHaveBeenCalled();
+      expect(result).toEqual({
+        nativeToken: 1000n,
+        tokens: [],
+      });
+    });
+
+    /**
+     * @target EvmChain.getAddressAssets should get address balance of native token and
+     *  2 supported tokens, and ignore 1 unsupported token
+     * @dependencies
+     * @scenario
+     * - stub getAddressBalanceForNativeToken to return mock value
+     * - stub getAddressBalanceForERC20Asset to return mock balance for a requested token
+     * - call EvmChain.getAddressAssets with tokens set to 3 different token ids
+     * @expected
+     * - getAddressBalanceForNativeToken should have been called once with the requested address
+     * - getAddressBalanceForERC20Asset should have been called 2 times for each supported token id
+     * - result tokens array should have contained 2 asset balance objects for each supported token
+     * - result tokens array should not have contained balance value for the unsupported token
+     */
+    it('should get address balance of native token and 2 supported tokens, and ignore 1 unsupported token', async () => {
+      // arrange
+      const network = new TestEvmNetwork();
+      const nativeTokenSpy = mockGetAddressBalanceForNativeToken(
+        network,
+        1000n
+      );
+      const erc20Spy = vi
+        .spyOn(network, 'getAddressBalanceForERC20Asset')
+        .mockImplementation(async (address, tokenId) => {
+          if (tokenId === '0xedee4752e5a2f595151c94762fb38e5730357785')
+            return 0n;
+          else if (tokenId === '0x12345752e5a2f595151c94762fb38e5730357785')
+            return 10n;
+          else if (tokenId === '0xedee4752e5a2f595151c94762fb38e5730357786')
+            return 30n;
+          else if (tokenId === '0xedee4752e5a2f595151c94762fb38e5730357787')
+            return 40n;
+          else return 0n;
+        });
+      const evmChain = await testUtils.generateChainObject(network);
+      evmChain.updateSupportedTokens(TestData.supportedTokens);
+
+      // act
+      const result = await evmChain.getAddressAssets(TestData.lockAddress, [
+        '0xedee4752e5a2f595151c94762fb38e5730357785',
+        '0xedee4752e5a2f595151c94762fb38e5730357787',
+        '0xedee4752e5a2f595151c94762fb38e5730357790',
+      ]);
+
+      // assert
+      expect(nativeTokenSpy).toHaveBeenCalledOnce();
+      expect(nativeTokenSpy).toHaveBeenLastCalledWith(TestData.lockAddress);
+      expect(erc20Spy).toHaveBeenCalledTimes(2);
+      expect(erc20Spy).toHaveBeenNthCalledWith(
+        1,
+        TestData.lockAddress,
+        '0xedee4752e5a2f595151c94762fb38e5730357785'
+      );
+      expect(erc20Spy).toHaveBeenNthCalledWith(
+        2,
+        TestData.lockAddress,
+        '0xedee4752e5a2f595151c94762fb38e5730357787'
+      );
+      expect(result).toEqual({
+        nativeToken: 1000n,
+        tokens: [
+          { id: '0xedee4752e5a2f595151c94762fb38e5730357785', value: 0n },
           { id: '0xedee4752e5a2f595151c94762fb38e5730357787', value: 40n },
         ],
       });

@@ -343,9 +343,13 @@ abstract class AbstractChain<TxType> {
   /**
    * gets the amount of each asset in the address
    * @param address
+   * @param tokenIds
    * @returns an object containing the amount of each asset
    */
-  getAddressAssets = async (address: string): Promise<AssetBalance> => {
+  getAddressAssets = async (
+    address: string,
+    tokenIds?: string[]
+  ): Promise<AssetBalance> => {
     if (address === '') {
       this.logger.debug(`returning empty assets for address [${address}]`);
       return { nativeToken: 0n, tokens: [] };
@@ -356,7 +360,11 @@ abstract class AbstractChain<TxType> {
       rawBalance.nativeToken,
       this.CHAIN
     ).amount;
-    const wrappedAssets = rawBalance.tokens.map((token) => ({
+    const targetAssets =
+      tokenIds === undefined
+        ? rawBalance.tokens
+        : rawBalance.tokens.filter((token) => tokenIds.includes(token.id));
+    const wrappedAssets = targetAssets.map((token) => ({
       id: token.id,
       value: this.tokenMap.wrapAmount(token.id, token.value, this.CHAIN).amount,
     }));
@@ -368,17 +376,19 @@ abstract class AbstractChain<TxType> {
 
   /**
    * gets the amount of each asset in the lock address
+   * @param tokenIds
    * @returns an object containing the amount of each asset
    */
-  getLockAddressAssets = async (): Promise<AssetBalance> =>
-    await this.getAddressAssets(this.configs.addresses.lock);
+  getLockAddressAssets = async (tokenIds?: string[]): Promise<AssetBalance> =>
+    await this.getAddressAssets(this.configs.addresses.lock, tokenIds);
 
   /**
    * gets the amount of each asset in the cold storage address
+   * @param tokenIds
    * @returns an object containing the amount of each asset
    */
-  getColdAddressAssets = async (): Promise<AssetBalance> =>
-    await this.getAddressAssets(this.configs.addresses.cold);
+  getColdAddressAssets = async (tokenIds?: string[]): Promise<AssetBalance> =>
+    await this.getAddressAssets(this.configs.addresses.cold, tokenIds);
 
   /**
    * gets the blockchain height
@@ -409,7 +419,9 @@ abstract class AbstractChain<TxType> {
   hasLockAddressEnoughAssets = async (
     required: AssetBalance
   ): Promise<boolean> => {
-    const lockAssets = await this.getLockAddressAssets();
+    const lockAssets = await this.getLockAddressAssets(
+      required.tokens.map((token) => token.id)
+    );
     try {
       ChainUtils.subtractAssetBalance(lockAssets, required);
     } catch (e) {
