@@ -13,7 +13,6 @@ import {
   AbstractDogeNetwork,
   DogeTx,
   DogeUtxo,
-  CONFIRMATION_TARGET,
   DOGE_NETWORK,
 } from '@rosen-chains/doge';
 import axios, { AxiosInstance } from 'axios';
@@ -25,7 +24,7 @@ import {
   BlockCypherTx,
 } from './types';
 
-class DogeExplorerNetwork extends AbstractDogeNetwork {
+class DogeBlockCypherNetwork extends AbstractDogeNetwork {
   protected client: AxiosInstance;
   private getSavedTransactionById: (
     txId: string
@@ -586,4 +585,4 @@ class DogeExplorerNetwork extends AbstractDogeNetwork {
   };
 }
 
-export default DogeExplorerNetwork;
+export default DogeBlockCypherNetwork;

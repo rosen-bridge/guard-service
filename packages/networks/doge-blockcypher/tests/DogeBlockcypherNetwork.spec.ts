@@ -3,7 +3,7 @@ import {
   PaymentTransaction,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
-import DogeExplorerNetwork from '../lib/DogeExplorerNetwork';
+import DogeBlockcypherNetwork from '../lib/DogeBlockcypherNetwork';
 import {
   mockAxiosGet,
   mockAxiosGetToThrow,
@@ -13,11 +13,14 @@ import * as testData from './testData';
 import { vi } from 'vitest';
 
 describe('DogeExplorerNetwork', () => {
-  let network: DogeExplorerNetwork;
+  let network: DogeBlockcypherNetwork;
 
   beforeEach(() => {
     resetAxiosMock();
-    network = new DogeExplorerNetwork('blockcypher-url', async () => undefined);
+    network = new DogeBlockcypherNetwork(
+      'blockcypher-url',
+      async () => undefined
+    );
   });
 
   describe('getHeight', () => {
@@ -125,9 +128,9 @@ describe('DogeExplorerNetwork', () => {
         TransactionType.payment
       );
 
-      const customNetwork = new DogeExplorerNetwork(
+      const customNetwork = new DogeBlockcypherNetwork(
         'blockcypher-url',
-        async (txId) => {
+        async (txId: string) => {
           if (txId === testData.unsignedTxId) {
             return dogePayment;
           }
