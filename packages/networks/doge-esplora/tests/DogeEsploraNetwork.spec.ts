@@ -545,23 +545,41 @@ describe('DogeEsploraNetwork', () => {
     });
   });
 
-  describe('getMempoolTxIds', () => {
+  describe('isTxInMempool', () => {
     /**
-     * @target `DogeEsploraNetwork.getMempoolTxIds` should return mempool tx ids successfully
+     * @target `DogeEsploraNetwork.isTxInMempool` should return true when tx is in mempool
      * @dependencies
      * @scenario
      * - mock axios to return tx ids
      * - run test
      * - check returned value
      * @expected
-     * - it should be mocked tx ids
+     * - it should be true
      */
-    it('should return mempool tx ids successfully', async () => {
+    it('should return true when tx is in mempool', async () => {
       mockAxiosGet(testData.txIds);
 
-      const result = await network.getMempoolTxIds();
+      const result = await network.isTxInMempool(testData.txIds[0]);
 
-      expect(result).toEqual(testData.txIds);
+      expect(result).toEqual(true);
+    });
+
+    /**
+     * @target `DogeEsploraNetwork.isTxInMempool` should return false when tx is not in mempool
+     * @dependencies
+     * @scenario
+     * - mock axios to return tx ids
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should be false
+     */
+    it('should return false when tx is not in mempool', async () => {
+      mockAxiosGet(testData.txIds);
+
+      const result = await network.isTxInMempool('random-tx-id');
+
+      expect(result).toEqual(false);
     });
   });
 

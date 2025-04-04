@@ -487,14 +487,14 @@ class DogeEsploraNetwork extends AbstractDogeNetwork {
    * gets id of transactions in mempool
    * @returns
    */
-  getMempoolTxIds = async (): Promise<Array<string>> => {
+  isTxInMempool = async (txId: string): Promise<boolean> => {
     return this.client
       .get<Array<string>>(`${this.apiPrefix}/mempool/txids`)
       .then((res) => {
         this.logger.debug(
           `requested 'mempool/txids'. received [${res.data.length}] txs`
         );
-        return res.data;
+        return res.data.includes(txId);
       })
       .catch((e) => {
         const baseError = `Failed to get mempool transaction ids from Esplora: `;
