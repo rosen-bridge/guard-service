@@ -522,7 +522,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
    * @returns true if the transaction is in mempool
    */
   isTxInMempool = async (transactionId: string): Promise<boolean> => {
-    return (await this.network.getMempoolTxIds()).includes(transactionId);
+    return await this.network.isTxInMempool(transactionId);
   };
 
   /**

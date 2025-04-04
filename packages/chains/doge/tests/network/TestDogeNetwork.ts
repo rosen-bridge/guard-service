@@ -67,10 +67,6 @@ class TestDogeNetwork extends AbstractDogeNetwork {
     throw Error('Not mocked');
   };
 
-  getMempoolTxIds = (): Promise<Array<string>> => {
-    throw Error('Not mocked');
-  };
-
   getTransactionHex = (txId: string): Promise<string> => {
     throw Error('Not mocked');
   };
@@ -78,6 +74,10 @@ class TestDogeNetwork extends AbstractDogeNetwork {
   getSpentTransactionByInputId = (
     boxId: string
   ): Promise<DogeTx | undefined> => {
+    throw Error('Not mocked');
+  };
+
+  isTxInMempool = (txId: string): Promise<boolean> => {
     throw Error('Not mocked');
   };
 }
