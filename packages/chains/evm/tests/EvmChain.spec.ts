@@ -2788,7 +2788,7 @@ describe('EvmChain', () => {
 
     /**
      * @target EvmChain.getAddressAssets should get address balance of native token and
-     *  2 supported tokens, and ignore 1 unsupported token
+     *  2 requested tokens, and ignore 1 other tokens
      * @dependencies
      * @scenario
      * - stub getAddressBalanceForNativeToken to return mock value
@@ -2796,9 +2796,9 @@ describe('EvmChain', () => {
      * - call EvmChain.getAddressAssets with tokens set to 3 different token ids
      * @expected
      * - getAddressBalanceForNativeToken should have been called once with the requested address
-     * - getAddressBalanceForERC20Asset should have been called 2 times for each supported token id
-     * - result tokens array should have contained 2 asset balance objects for each supported token
-     * - result tokens array should not have contained balance value for the unsupported token
+     * - getAddressBalanceForERC20Asset should have been called 2 times for each requested token id
+     * - result tokens array should contain 2 asset balance objects for each requested tokens
+     * - result tokens array should not contain balance value for the other tokens
      */
     it('should get address balance of native token and 2 supported tokens, and ignore 1 unsupported token', async () => {
       // arrange

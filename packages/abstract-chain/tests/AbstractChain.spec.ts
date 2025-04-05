@@ -860,17 +860,17 @@ describe('AbstractChain', () => {
 
     /**
      * @target AbstractChain.getAddressAssets should get address balance of native token and
-     *  2 supported tokens, and ignore 1 unsupported token
+     *  2 requested tokens, and ignore other tokens
      * @dependencies
      * @scenario
      * - stub network.getAddressAssets to return mock asset balance object
      * - call AbstractChain.getAddressAssets with tokens set to array of 2 supported and
      *   1 unsupported token ids
      * @expected
-     * - result tokens array should have contained 2 asset balance objects for each supported token
-     * - result tokens array should not have contained balance value for the unsupported token
+     * - result tokens array should contain 2 asset balance objects for each requested tokens
+     * - result tokens array should not contain balance value for the other tokens
      */
-    it('should get address balance of native token and 2 supported tokens, and ignore 1 unsupported token', async () => {
+    it('should get address balance of native token and 2 requested tokens, and ignore other tokens', async () => {
       // arrange
       vi.spyOn(network, 'getAddressAssets').mockResolvedValueOnce(
         testData.actualBalance
