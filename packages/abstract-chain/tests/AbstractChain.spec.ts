@@ -1005,5 +1005,38 @@ describe('AbstractChain', () => {
       // Check returned value
       expect(result).toEqual(false);
     });
+
+    /**
+     * @target AbstractChain.hasLockAddressEnoughAssets should return false when
+     * address does not have the required asset at all
+     * @dependencies
+     * @scenario
+     * - mock an AssetBalance without any tokens
+     * - mock chain 'getLockAddressAssets' function to return mocked assets
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when address does not have the required asset at all', async () => {
+      // mock an AssetBalance without any tokens
+      const lockAssets: AssetBalance = {
+        nativeToken: 200n,
+        tokens: [],
+      };
+
+      // mock chain 'getLockAddressAssets' function to return mocked assets
+      const chain = generateChainObject(network);
+      const getLockAddressAssetsSpy = vi.spyOn(chain, 'getLockAddressAssets');
+      getLockAddressAssetsSpy.mockResolvedValueOnce(lockAssets);
+
+      // run test
+      const result = await chain.hasLockAddressEnoughAssets(requiredAssets);
+
+      // Check returned value
+      expect(result).toEqual(false);
+    });
+
+    //
   });
 });
