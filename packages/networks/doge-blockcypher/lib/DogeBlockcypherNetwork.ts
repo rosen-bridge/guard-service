@@ -35,13 +35,20 @@ class DogeBlockCypherNetwork extends AbstractDogeNetwork {
     getSavedTransactionById: (
       txId: string
     ) => Promise<PaymentTransaction | undefined>,
-    logger?: AbstractLogger
+    logger?: AbstractLogger,
+    delay = 333
   ) {
     super(logger);
     this.client = axios.create({
       baseURL: url,
     });
     this.getSavedTransactionById = getSavedTransactionById;
+
+    // Add a request interceptor to introduce a delay
+    this.client.interceptors.request.use(async (config) => {
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      return config;
+    });
   }
 
   /**
@@ -271,7 +278,7 @@ class DogeBlockCypherNetwork extends AbstractDogeNetwork {
     try {
       txInfo = (
         await this.client.get<BlockCypherTx>(
-          `/v1/doge/main/txs/${transactionId}`
+          `/v1/doge/main/txs/${transactionId}?limit=5000`
         )
       ).data;
       this.logger.debug(
@@ -337,50 +344,53 @@ class DogeBlockCypherNetwork extends AbstractDogeNetwork {
   };
 
   /**
-   * gets all unspent transaction outputs for an address
+   * gets address boxes
    * @param address the address
    * @param offset the offset
    * @param limit the limit
-   * @returns list of unspent transaction outputs
+   * @returns list of boxes
    */
   getAddressBoxes = async (
     address: string,
-    beforeHeight: number,
+    offset: number,
     limit: number
   ): Promise<Array<DogeUtxo>> => {
-    return this.client
-      .get<BlockCypherAddress>(
-        `/v1/doge/main/addrs/${address}?unspentOnly=true&before=${beforeHeight}&limit=${limit}`
-      )
-      .then((res) => {
-        this.logger.debug(
-          `requested 'address' for address [${address}]. res: ${JsonBigInt.stringify(
-            res.data
-          )}`
-        );
-        const txrefs = res.data.txrefs;
-        const utxos: Array<DogeUtxo> = [];
-        for (const txref of txrefs) {
-          if (!txref.spent) {
-            utxos.push({
-              txId: txref.tx_hash,
-              index: txref.tx_output_n,
-              value: BigInt(txref.value),
-            });
-          }
+    const currentHeight = await this.getHeight();
+    const totalToFetch = offset + limit;
+    let allUtxos: Array<DogeUtxo> = [];
+    let beforeHeight = currentHeight + 1;
+    const batchSize = Math.min(500, totalToFetch);
+
+    while (allUtxos.length < totalToFetch) {
+      const response = await this.client.get<BlockCypherAddress>(
+        `/v1/doge/main/addrs/${address}?unspentOnly=true&before=${beforeHeight}&limit=${batchSize}`
+      );
+
+      const txrefs = response.data.txrefs;
+      const batchUtxos: Array<DogeUtxo> = [];
+      let minHeight = beforeHeight;
+
+      for (const txref of txrefs) {
+        if (!txref.spent) {
+          batchUtxos.push({
+            txId: txref.tx_hash,
+            index: txref.tx_output_n,
+            value: BigInt(txref.value),
+          });
+          minHeight = Math.min(minHeight, txref.block_height);
         }
-        return utxos;
-      })
-      .catch((e) => {
-        const baseError = `Failed to get address [${address}] boxes from BlockCypher: `;
-        if (e.response) {
-          throw new FailedError(baseError + e.response.data);
-        } else if (e.request) {
-          throw new NetworkError(baseError + e.message);
-        } else {
-          throw new UnexpectedApiError(baseError + e.message);
-        }
-      });
+      }
+
+      allUtxos = allUtxos.concat(batchUtxos);
+
+      if (batchUtxos.length === 0 || allUtxos.length >= totalToFetch) {
+        break;
+      }
+
+      beforeHeight = minHeight;
+    }
+
+    return allUtxos.slice(offset, offset + limit);
   };
 
   /**
@@ -391,7 +401,7 @@ class DogeBlockCypherNetwork extends AbstractDogeNetwork {
   isBoxUnspentAndValid = async (boxId: string): Promise<boolean> => {
     const [txId, index] = boxId.split('.');
     return this.client
-      .get<BlockCypherTx>(`/v1/doge/main/txs/${txId}`)
+      .get<BlockCypherTx>(`/v1/doge/main/txs/${txId}?limit=5000`)
       .then((res) => {
         this.logger.debug(
           `requested 'tx' for txId [${txId}]. res: ${JsonBigInt.stringify(
@@ -431,7 +441,9 @@ class DogeBlockCypherNetwork extends AbstractDogeNetwork {
 
     try {
       txInfo = (
-        await this.client.get<BlockCypherTx>(`/v1/doge/main/txs/${txId}`)
+        await this.client.get<BlockCypherTx>(
+          `/v1/doge/main/txs/${txId}?limit=5000`
+        )
       ).data;
       this.logger.debug(
         `requested 'tx' for tx [${txId}]. res: ${JsonBigInt.stringify(txInfo)}`
@@ -558,7 +570,7 @@ class DogeBlockCypherNetwork extends AbstractDogeNetwork {
     txId: string
   ): Promise<DogeTx | undefined> => {
     return this.client
-      .get<BlockCypherTx>(`/v1/doge/main/txs/${txId}`)
+      .get<BlockCypherTx>(`/v1/doge/main/txs/${txId}?limit=5000`)
       .then((res) => {
         this.logger.debug(
           `requested 'tx' for txId [${txId}]. res: ${JsonBigInt.stringify(

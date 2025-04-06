@@ -376,7 +376,13 @@ describe('DogeExplorerNetwork', () => {
      * - it should be mocked utxos in DogeUtxo format
      */
     it('should return address utxos successfully', async () => {
+      mockAxiosGet(testData.blockHeightResponse);
       mockAxiosGet(testData.addressUtxoResponse);
+      const emptyAddressUtxoResponse = JSON.parse(
+        JSON.stringify(testData.addressUtxoResponse)
+      );
+      emptyAddressUtxoResponse.txrefs = [];
+      mockAxiosGet(emptyAddressUtxoResponse);
 
       const result = await network.getAddressBoxes(
         testData.lockAddress,
@@ -399,8 +405,11 @@ describe('DogeExplorerNetwork', () => {
      */
     it('should return address utxos successfully with correct pagination', async () => {
       const limit = 1;
-      const addressUtxoResponse = testData.addressUtxoResponse;
+      const addressUtxoResponse = JSON.parse(
+        JSON.stringify(testData.addressUtxoResponse)
+      );
       addressUtxoResponse.txrefs = addressUtxoResponse.txrefs.slice(0, limit);
+      mockAxiosGet(testData.blockHeightResponse);
       mockAxiosGet(addressUtxoResponse);
 
       const result = await network.getAddressBoxes(
@@ -410,6 +419,38 @@ describe('DogeExplorerNetwork', () => {
       );
 
       expect(result).toEqual(testData.addressUtxos.slice(0, limit));
+    });
+
+    it('should return address utxos successfully with offset', async () => {
+      const offset = 1;
+      const limit = 1;
+      const addressUtxoResponseFirst = JSON.parse(
+        JSON.stringify(testData.addressUtxoResponse)
+      );
+      addressUtxoResponseFirst.txrefs = addressUtxoResponseFirst.txrefs.slice(
+        0,
+        offset
+      );
+      const addressUtxoResponseSecond = JSON.parse(
+        JSON.stringify(testData.addressUtxoResponse)
+      );
+      addressUtxoResponseSecond.txrefs = addressUtxoResponseSecond.txrefs.slice(
+        offset,
+        offset + limit
+      );
+      mockAxiosGet(testData.blockHeightResponse);
+      mockAxiosGet(addressUtxoResponseFirst);
+      mockAxiosGet(addressUtxoResponseSecond);
+
+      const result = await network.getAddressBoxes(
+        testData.lockAddress,
+        offset,
+        limit
+      );
+
+      expect(result).toEqual(
+        testData.addressUtxos.slice(offset, offset + limit)
+      );
     });
 
     /**
@@ -426,6 +467,7 @@ describe('DogeExplorerNetwork', () => {
     it('should return empty list when no utxo is returned', async () => {
       const addrUtxoResponse = testData.addressUtxoResponse;
       addrUtxoResponse.txrefs = [];
+      mockAxiosGet(testData.blockHeightResponse);
       mockAxiosGet(addrUtxoResponse);
 
       const result = await network.getAddressBoxes(
