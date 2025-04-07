@@ -1036,7 +1036,5 @@ describe('AbstractChain', () => {
       // Check returned value
       expect(result).toEqual(false);
     });
-
-    //
   });
 });
