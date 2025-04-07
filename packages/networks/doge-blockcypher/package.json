@@ -38,6 +38,7 @@
     "@rosen-chains/abstract-chain": "^13.0.0",
     "@rosen-chains/doge": "^1.0.0",
     "axios": "^1.6.7",
+    "axios-rate-limit": "^1.4.0",
     "bitcoinjs-lib": "^6.1.5"
   }
 }

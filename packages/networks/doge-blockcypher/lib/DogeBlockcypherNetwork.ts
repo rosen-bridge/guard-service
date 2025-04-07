@@ -16,6 +16,7 @@ import {
   DOGE_NETWORK,
 } from '@rosen-chains/doge';
 import axios, { AxiosInstance } from 'axios';
+import rateLimit from 'axios-rate-limit';
 import { Psbt } from 'bitcoinjs-lib';
 import {
   BlockCypherAddress,
@@ -36,19 +37,17 @@ class DogeBlockCypherNetwork extends AbstractDogeNetwork {
       txId: string
     ) => Promise<PaymentTransaction | undefined>,
     logger?: AbstractLogger,
-    delay = 333
+    maxRPS = 3
   ) {
     super(logger);
-    this.client = axios.create({
-      baseURL: url,
-    });
+    // Use axios-rate-limit to limit to 3 requests per second
+    this.client = rateLimit(
+      axios.create({
+        baseURL: url,
+      }),
+      { maxRPS }
+    ) as AxiosInstance;
     this.getSavedTransactionById = getSavedTransactionById;
-
-    // Add a request interceptor to introduce a delay
-    this.client.interceptors.request.use(async (config) => {
-      await new Promise((resolve) => setTimeout(resolve, delay));
-      return config;
-    });
   }
 
   /**
