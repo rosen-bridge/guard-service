@@ -820,7 +820,7 @@ describe('AbstractChain', () => {
       getAddressAssetsSpy.mockResolvedValueOnce(testData.actualBalance);
 
       const tokenMap = new TokenMap();
-      await tokenMap.updateConfigByJson(testData.testTokenMap); 
+      await tokenMap.updateConfigByJson(testData.testTokenMap);
       // run test
       const chain = generateChainObject(network, tokenMap);
       const result = await chain.getAddressAssets('address');
@@ -828,12 +828,82 @@ describe('AbstractChain', () => {
       // check returned value
       expect(result).toEqual(testData.wrappedBalance);
     });
+
+    /**
+     * @target AbstractChain.getAddressAssets should get address balance of only native token
+     * @dependencies
+     * @scenario
+     * - stub network.getAddressAssets to return mock asset balance object
+     * - call AbstractChain.getAddressAssets with tokens set to an empty array
+     * @expected
+     * - result tokens array should have been empty
+     */
+    it('should get address balance of only native token', async () => {
+      // arrange
+      vi.spyOn(network, 'getAddressAssets').mockResolvedValueOnce(
+        testData.actualBalance
+      );
+
+      const tokenMap = new TokenMap();
+      await tokenMap.updateConfigByJson(testData.testTokenMap);
+      const chain = generateChainObject(network, tokenMap);
+
+      // act
+      const result = await chain.getAddressAssets('address', []);
+
+      // assert
+      expect(result).toEqual({
+        nativeToken: 1000n,
+        tokens: [],
+      });
+    });
+
+    /**
+     * @target AbstractChain.getAddressAssets should get address balance of native token and
+     *  2 requested tokens, and ignore other tokens
+     * @dependencies
+     * @scenario
+     * - stub network.getAddressAssets to return mock asset balance object
+     * - call AbstractChain.getAddressAssets with tokens set to array of 2 supported and
+     *   1 unsupported token ids
+     * @expected
+     * - result tokens array should contain 2 asset balance objects for each requested tokens
+     * - result tokens array should not contain balance value for the other tokens
+     */
+    it('should get address balance of native token and 2 requested tokens, and ignore other tokens', async () => {
+      // arrange
+      vi.spyOn(network, 'getAddressAssets').mockResolvedValueOnce(
+        testData.actualBalance
+      );
+
+      const tokenMap = new TokenMap();
+      await tokenMap.updateConfigByJson(testData.testTokenMap);
+      const chain = generateChainObject(network, tokenMap);
+
+      // act
+      const result = await chain.getAddressAssets('address', [
+        'multi-decimal-token1',
+        'wrapped-multi-decimal-token2',
+        'multi-decimal-token3',
+      ]);
+
+      // assert
+      expect(result).toEqual({
+        nativeToken: 1000n,
+        tokens: [
+          { id: 'multi-decimal-token1', value: 45n },
+          { id: 'wrapped-multi-decimal-token2', value: 56n },
+        ],
+      });
+    });
   });
 
   describe('hasLockAddressEnoughAssets', () => {
     const requiredAssets = {
       nativeToken: 100n,
-      tokens: [],
+      tokens: [
+        { id: '0x12345752e5a2f595151c94762fb38e5730357785', value: 300n },
+      ],
     };
     const network = new TestChainNetwork();
 
@@ -853,7 +923,9 @@ describe('AbstractChain', () => {
       // mock an AssetBalance with assets more than required assets
       const lockAssets: AssetBalance = {
         nativeToken: 200n,
-        tokens: [],
+        tokens: [
+          { id: '0x12345752e5a2f595151c94762fb38e5730357785', value: 300n },
+        ],
       };
 
       // mock chain 'getLockAddressAssets' function to return mocked assets
@@ -866,6 +938,39 @@ describe('AbstractChain', () => {
 
       // Check returned value
       expect(result).toEqual(true);
+    });
+
+    /**
+     * @target AbstractChain.hasLockAddressEnoughAssets should return false when
+     * native tokens are NOT enough
+     * @dependencies
+     * @scenario
+     * - mock an AssetBalance with assets less than required assets
+     * - mock chain 'getLockAddressAssets' function to return mocked assets
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when native tokens are NOT enough', async () => {
+      // mock an AssetBalance with assets less than required assets
+      const lockAssets: AssetBalance = {
+        nativeToken: 20n,
+        tokens: [
+          { id: '0x12345752e5a2f595151c94762fb38e5730357785', value: 300n },
+        ],
+      };
+
+      // mock chain 'getLockAddressAssets' function to return mocked assets
+      const chain = generateChainObject(network);
+      const getLockAddressAssetsSpy = vi.spyOn(chain, 'getLockAddressAssets');
+      getLockAddressAssetsSpy.mockResolvedValueOnce(lockAssets);
+
+      // run test
+      const result = await chain.hasLockAddressEnoughAssets(requiredAssets);
+
+      // Check returned value
+      expect(result).toEqual(false);
     });
 
     /**
@@ -883,7 +988,40 @@ describe('AbstractChain', () => {
     it('should return false when assets are NOT enough', async () => {
       // mock an AssetBalance with assets less than required assets
       const lockAssets: AssetBalance = {
-        nativeToken: 20n,
+        nativeToken: 200n,
+        tokens: [
+          { id: '0x12345752e5a2f595151c94762fb38e5730357785', value: 299n },
+        ],
+      };
+
+      // mock chain 'getLockAddressAssets' function to return mocked assets
+      const chain = generateChainObject(network);
+      const getLockAddressAssetsSpy = vi.spyOn(chain, 'getLockAddressAssets');
+      getLockAddressAssetsSpy.mockResolvedValueOnce(lockAssets);
+
+      // run test
+      const result = await chain.hasLockAddressEnoughAssets(requiredAssets);
+
+      // Check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target AbstractChain.hasLockAddressEnoughAssets should return false when
+     * address does not have the required asset at all
+     * @dependencies
+     * @scenario
+     * - mock an AssetBalance without any tokens
+     * - mock chain 'getLockAddressAssets' function to return mocked assets
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when address does not have the required asset at all', async () => {
+      // mock an AssetBalance without any tokens
+      const lockAssets: AssetBalance = {
+        nativeToken: 200n,
         tokens: [],
       };
 
