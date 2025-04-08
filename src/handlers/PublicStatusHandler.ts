@@ -146,6 +146,11 @@ class PublicStatusHandler {
       if (!tx) {
         throw new ImpossibleBehavior(`Tx [${dto.tx!.txId}] is not found!`);
       }
+      if (!tx.event) {
+        throw new ImpossibleBehavior(
+          `Event of tx [${dto.tx!.txId}] is not found!`
+        );
+      }
 
       if (
         tx.type !== TransactionType.payment &&

@@ -15,6 +15,11 @@ await DatabaseActionMock.initDatabase();
 // init PublicStatusHandler
 await TestPublicStatusHandler.init(DatabaseActionMock.testDataSource);
 
+vi.spyOn(
+  TestPublicStatusHandler.getInstance().axios,
+  'post'
+).mockImplementation(async () => ({}));
+
 // mock GuardPkHandler
 vi.doMock('../../src/handlers/GuardPkHandler', () => ({
   default: {

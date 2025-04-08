@@ -10,8 +10,7 @@ import { EventStatus, TransactionStatus } from '../../src/utils/constants';
 import TestPublicStatusHandler from './TestPublicStatusHandler';
 import { TransactionEntity } from '../../src/db/entities/TransactionEntity';
 import { ConfirmedEventEntity } from '../../src/db/entities/ConfirmedEventEntity';
-
-const id = '0000000000000000000000000000000000000000000000000000000000000000';
+import { id0 } from './testData';
 
 describe('PublicStatusHandler', () => {
   const mockRepository = {
@@ -21,18 +20,12 @@ describe('PublicStatusHandler', () => {
     getRepository: vi.fn(() => mockRepository),
   } as any;
 
-  beforeEach(() => {
-    // clear all mocks between tests
-    vi.clearAllMocks();
-  });
-
   describe('submitRequest', () => {
     /**
      * @target PublicStatusHandler.submitRequest should call axios.post with a mock object when submitRequest is called
      * @dependencies
      * @scenario
-     * - define a mock PublicStatusHandler
-     * - initialize PublicStatusHandler with the mock dataSource
+     * - define a mock PublicStatusHandler with a mock dataSource
      * - define a mock UpdateStatusDTO object
      * - stub encryptor.getPk to resolve to a mock public key
      * - stub encryptor.sign to resolve to a mock signature
@@ -49,11 +42,10 @@ describe('PublicStatusHandler', () => {
     it('should call axios.post with the correct payload when submitRequest is called', async () => {
       // arrange
       const instance = new TestPublicStatusHandler(mockDataSource);
-      await TestPublicStatusHandler.init(mockDataSource);
 
       const dto: UpdateStatusDTO = {
         date: 10,
-        eventId: id,
+        eventId: id0,
         status: EventStatus.inPayment,
         tx: undefined,
       };
@@ -84,7 +76,7 @@ describe('PublicStatusHandler', () => {
       expect(axiosPostSpy).toHaveBeenCalledOnce();
       expect(axiosPostSpy).toHaveBeenCalledWith('/status', {
         body: expect.objectContaining({
-          eventId: id,
+          eventId: id0,
           status: EventStatus.inPayment,
           tx: undefined,
           pk: mockPk,
@@ -95,14 +87,13 @@ describe('PublicStatusHandler', () => {
   });
 
   describe('updatePublicEventStatus', () => {
-    const eventId = id;
+    const eventId = id0;
 
     /**
      * @target PublicStatusHandler.updatePublicEventStatus should call submitRequest with the dto including transaction details when status is "inPayment"
      * @dependencies
      * @scenario
-     * - define a mock PublicStatusHandler
-     * - initialize PublicStatusHandler with the mock dataSource
+     * - define a mock PublicStatusHandler with a mock dataSource
      * - define a mock transaction object
      * - define a mock UpdateTxStatusDTO object
      * - stub txRepository.findOne to resolve to the mock transaction
@@ -115,22 +106,25 @@ describe('PublicStatusHandler', () => {
     it('should call submitRequest with the dto including transaction details when status is "inPayment"', async () => {
       // arrange
       const instance = new TestPublicStatusHandler(mockDataSource);
-      await TestPublicStatusHandler.init(mockDataSource);
 
       const mockTx: TransactionEntity = {
         txId: 'tx-123',
         chain: 'c1',
         type: TransactionType.payment,
-        status: TransactionStatus.completed,
+        status: TransactionStatus.sent,
+        event: {
+          id: eventId,
+          status: EventStatus.inPayment,
+        } as any as ConfirmedEventEntity,
       } as any;
+      mockRepository.findOne.mockResolvedValue(mockTx);
+
       const mockTxDTO: UpdateTxStatusDTO = {
         txId: 'tx-123',
         chain: 'c1',
         txType: TransactionType.payment,
         txStatus: TransactionStatus.completed,
       };
-      mockRepository.findOne.mockResolvedValue(mockTx);
-
       const dto: UpdateStatusDTO = {
         date: 0,
         eventId,
@@ -154,8 +148,7 @@ describe('PublicStatusHandler', () => {
      * @target PublicStatusHandler.updatePublicEventStatus should call submitRequest with the dto including transaction details when status is "inReward"
      * @dependencies
      * @scenario
-     * - define a mock PublicStatusHandler
-     * - initialize PublicStatusHandler with the mock dataSource
+     * - define a mock PublicStatusHandler with a mock dataSource
      * - define a mock transaction object
      * - define a mock UpdateTxStatusDTO object
      * - stub txRepository.findOne to resolve to the mock transaction
@@ -168,22 +161,25 @@ describe('PublicStatusHandler', () => {
     it('should call submitRequest with the dto including transaction details when status is "inReward"', async () => {
       // arrange
       const instance = new TestPublicStatusHandler(mockDataSource);
-      await TestPublicStatusHandler.init(mockDataSource);
 
       const mockTx: TransactionEntity = {
         txId: 'tx-456',
         chain: 'c1',
         type: TransactionType.reward,
         status: TransactionStatus.inSign,
+        event: {
+          id: eventId,
+          status: EventStatus.inReward,
+        } as any as ConfirmedEventEntity,
       } as any;
+      mockRepository.findOne.mockResolvedValue(mockTx);
+
       const mockTxDTO: UpdateTxStatusDTO = {
         txId: 'tx-456',
         chain: 'c1',
         txType: TransactionType.reward,
-        txStatus: TransactionStatus.inSign,
+        txStatus: TransactionStatus.signed,
       };
-      mockRepository.findOne.mockResolvedValue(mockTx);
-
       const dto: UpdateStatusDTO = {
         date: 0,
         eventId,
@@ -207,8 +203,7 @@ describe('PublicStatusHandler', () => {
      * @target PublicStatusHandler.updatePublicEventStatus should call submitRequest with the dto without transaction details when status is neither "inPayment" nor "inReward"
      * @dependencies
      * @scenario
-     * - define a mock PublicStatusHandler
-     * - initialize PublicStatusHandler with the mock dataSource
+     * - define a mock PublicStatusHandler with a mock dataSource
      * - define a mock UpdateStatusDTO object
      * - stub PublicStatusHandler.submitRequest to resolve
      * - call PublicStatusHandler.updateEventStatus with status that is not "inPayment" or "inReward"
@@ -218,7 +213,6 @@ describe('PublicStatusHandler', () => {
     it('should call submitRequest with the dto without transaction details when status is neither "inPayment" nor "inReward"', async () => {
       // arrange
       const instance = new TestPublicStatusHandler(mockDataSource);
-      await TestPublicStatusHandler.init(mockDataSource);
 
       const dto: UpdateStatusDTO = {
         date: 0,
@@ -241,15 +235,14 @@ describe('PublicStatusHandler', () => {
   });
 
   describe('updatePublicTxStatus', () => {
-    const eventId = id;
-    const txId = id;
+    const eventId = id0;
+    const txId = id0;
 
     /**
      * @target PublicStatusHandler.updatePublicTxStatus should call submitRequest with a dto object containing transaction details
      * @dependencies
      * @scenario
-     * - define a mock PublicStatusHandler
-     * - initialize PublicStatusHandler with the mock dataSource
+     * - define a mock PublicStatusHandler with a mock dataSource
      * - define a mock TransactionEntity object
      * - define a mock UpdateTxStatusDTO object
      * - stub TxRepository.findOne to resolve to the mock transaction
@@ -262,17 +255,18 @@ describe('PublicStatusHandler', () => {
     it('should call submitRequest with a dto object containing transaction details', async () => {
       // arrange
       const instance = new TestPublicStatusHandler(mockDataSource);
-      await TestPublicStatusHandler.init(mockDataSource);
 
       const mockTx: TransactionEntity = {
         txId,
         chain: 'c1',
         type: TransactionType.reward,
+        status: TransactionStatus.signed,
         event: {
           id: eventId,
-          status: EventStatus.timeout,
+          status: EventStatus.inReward,
         } as any as ConfirmedEventEntity,
       } as any;
+      mockRepository.findOne.mockResolvedValue(mockTx);
 
       const mockTxDTO: UpdateTxStatusDTO = {
         txId,
@@ -280,13 +274,10 @@ describe('PublicStatusHandler', () => {
         txType: TransactionType.reward,
         txStatus: TransactionStatus.sent,
       };
-
-      mockRepository.findOne.mockResolvedValue(mockTx);
-
       const dto: UpdateStatusDTO = {
         date: 0,
         eventId,
-        status: EventStatus.timeout,
+        status: EventStatus.inReward,
         tx: mockTxDTO,
       };
 
