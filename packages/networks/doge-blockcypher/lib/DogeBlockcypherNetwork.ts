@@ -46,7 +46,7 @@ class DogeBlockCypherNetwork extends AbstractDogeNetwork {
         baseURL: url,
       }),
       { maxRPS }
-    ) as AxiosInstance;
+    );
     this.getSavedTransactionById = getSavedTransactionById;
   }
 
