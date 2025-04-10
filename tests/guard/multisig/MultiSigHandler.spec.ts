@@ -1,8 +1,7 @@
 import { MockInstance } from 'vitest';
 import MultiSigHandler from '../../../src/guard/multisig/MultiSigHandler';
-import DialerMock, {
-  dialerInstance,
-} from '../../communication/mocked/Dialer.mock';
+import RosenDialerMock from '../../communication/mocked/RosenDialer.mock';
+
 import * as wasm from 'ergo-lib-wasm-nodejs';
 import MultiSigUtils from '../../../src/guard/multisig/MultiSigUtils';
 import {
@@ -12,8 +11,14 @@ import {
 import { CommitmentMisMatch } from '../../../src/utils/errors';
 import TestConfigs from '../../testUtils/TestConfigs';
 import { invalidTx, promiseCallback, validTx } from './testData';
+import RosenDialer from '../../../src/communication/RosenDialer';
 
 describe('MultiSigHandler', () => {
+  beforeAll(async () => {
+    vi.spyOn(RosenDialer, 'getInstance').mockReturnValue(
+      RosenDialerMock.getInstance() as unknown as RosenDialer
+    );
+  });
   const publicKeys = [
     '028d938d67befbb8ab3513c44886c16c2bcd62ed4595b9b216b20ef03eb8fb8fb8',
     '03074e09c476bb215dc3aeff908d0b7691895a99dfc3bd950fa629defe541e0364',
@@ -41,7 +46,7 @@ describe('MultiSigHandler', () => {
     bodyKeys: Array<string>,
     payloadKeys: Array<string>
   ) => {
-    DialerMock.mockSendMessageImplementation(
+    RosenDialerMock.mockSendMessageImplementation(
       async (channel: string, msg: string, receiver?: string) => {
         const json = JSON.parse(msg);
         if (json.type === 'approve') {
@@ -59,7 +64,7 @@ describe('MultiSigHandler', () => {
 
   describe('sendMessage', () => {
     beforeEach(() => {
-      DialerMock.resetMock();
+      RosenDialerMock.getInstance().resetMock();
     });
 
     /**
@@ -133,7 +138,7 @@ describe('MultiSigHandler', () => {
 
   describe('handleApprove', () => {
     beforeEach(() => {
-      DialerMock.resetMock();
+      RosenDialerMock.getInstance().resetMock();
     });
 
     /**
@@ -242,7 +247,9 @@ describe('MultiSigHandler', () => {
       const handler = await generateMultiSigHandlerInstance(
         '5bc1d17d0612e696a9138ab8e85ca2a02d0171440ec128a9ad557c28bd5ea046'
       );
-      const mockedDialerPeerId = dialerInstance.getDialerId();
+      const mockedDialerPeerId = RosenDialerMock.getInstance()
+        .getDialer()
+        .getDialerId();
       expect(handler.getPeerId()).toEqual(mockedDialerPeerId);
     });
   });

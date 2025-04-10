@@ -16,7 +16,6 @@ import {
   SyncRequest,
   SyncResponse,
 } from './Interfaces';
-import Dialer from '../communication/Dialer';
 import * as TransactionSerializer from '../transaction/TransactionSerializer';
 import Configs from '../configs/Configs';
 import GuardTurn from '../utils/GuardTurn';
@@ -28,13 +27,15 @@ import MinimumFeeHandler from '../handlers/MinimumFeeHandler';
 import ChainHandler from '../handlers/ChainHandler';
 import EventOrder from '../event/EventOrder';
 import DetectionHandler from '../handlers/DetectionHandler';
+import { RosenDialerNode } from '@rosen-bridge/dialer';
+import RosenDialer from '../communication/RosenDialer';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
 class EventSynchronization extends Communicator {
   private static instance: EventSynchronization;
   protected static CHANNEL = 'event-synchronization';
-  protected static dialer: Dialer;
+  protected static dialer: RosenDialerNode;
   protected detection: GuardDetection;
   protected eventQueue: string[];
   protected activeSyncMap: Map<string, ActiveSync>;
@@ -68,7 +69,7 @@ class EventSynchronization extends Communicator {
       Configs.tssKeys.pubs.map((pub) => pub.curvePub),
       DetectionHandler.getInstance().getDetection().curve
     );
-    this.dialer = await Dialer.getInstance();
+    this.dialer = RosenDialer.getInstance().getDialer();
     this.dialer.subscribeChannel(
       EventSynchronization.CHANNEL,
       EventSynchronization.instance.messageHandlerWrapper

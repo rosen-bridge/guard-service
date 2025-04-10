@@ -20,7 +20,7 @@ import GuardPkHandler from './handlers/GuardPkHandler';
 import MinimumFeeHandler from './handlers/MinimumFeeHandler';
 import { minimumFeeUpdateJob } from './jobs/minimumFee';
 import { NotificationHandler } from './handlers/NotificationHandler';
-import Dialer from './communication/Dialer';
+import RosenDialer from './communication/RosenDialer';
 import EventSynchronization from './synchronization/EventSynchronization';
 import DetectionHandler from './handlers/DetectionHandler';
 import EventReprocess from './reprocess/EventReprocess';
@@ -34,13 +34,13 @@ const init = async () => {
   await initDataSources();
 
   // initialize DatabaseAction
-  const dbAction = DatabaseAction.init(dataSource);
+  DatabaseAction.init(dataSource);
 
   // initialize express Apis
   await initApiServer();
 
   // initialize Dialer and DetectionHandler
-  await Dialer.getInstance();
+  await RosenDialer.init();
   await DetectionHandler.init();
 
   // initialize tss multiSig object

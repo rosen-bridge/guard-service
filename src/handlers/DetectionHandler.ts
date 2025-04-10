@@ -1,13 +1,14 @@
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { ECDSA, EdDSA, GuardDetection } from '@rosen-bridge/tss';
-import Dialer from '../communication/Dialer';
 import Configs from '../configs/Configs';
+import { RosenDialerNode } from '@rosen-bridge/dialer';
+import RosenDialer from '../communication/RosenDialer';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
 class DetectionHandler {
   private static instance: DetectionHandler;
-  protected static dialer: Dialer;
+  protected static dialer: RosenDialerNode;
   protected static CHANNELS = {
     curve: 'ecdsa-detection',
     edward: 'eddsa-detection',
@@ -45,7 +46,7 @@ class DetectionHandler {
    * initializes DetectionHandler
    */
   static init = async () => {
-    DetectionHandler.dialer = await Dialer.getInstance();
+    DetectionHandler.dialer = RosenDialer.getInstance().getDialer();
     DetectionHandler.instance = new DetectionHandler();
 
     // initialize detection instances
