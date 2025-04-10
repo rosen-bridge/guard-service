@@ -2,4 +2,4 @@
 'guard-service': major
 ---
 
-integrate binance
+Update tokens package to v3

@@ -1,4 +1,8 @@
-import { EventStatus, TransactionStatus } from '../utils/constants';
+import {
+  EventStatus,
+  OrderStatus,
+  TransactionStatus,
+} from '../utils/constants';
 import {
   CandidateTransaction,
   TransactionRequest,
@@ -20,7 +24,8 @@ import TransactionVerifier from '../verification/TransactionVerifier';
 import DatabaseHandler from '../db/DatabaseHandler';
 import GuardPkHandler from '../handlers/GuardPkHandler';
 import { DatabaseAction } from '../db/DatabaseAction';
-import { Communicator, ECDSA } from '@rosen-bridge/tss';
+import { Communicator } from '@rosen-bridge/communication';
+import { ECDSA } from '@rosen-bridge/encryption';
 import { Semaphore } from 'await-semaphore';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { RosenDialerNode } from '@rosen-bridge/dialer';
@@ -486,7 +491,11 @@ class TxAgreement extends Communicator {
         this.guardPks[i]
       }`;
       if (
-        !(await this.signer.verify(message, signatures[i], this.guardPks[i]))
+        !(await this.messageEnc.verify(
+          message,
+          signatures[i],
+          this.guardPks[i]
+        ))
       ) {
         logger.warn(baseError + `but guard [${i}] signature doesn't verify`);
         return;
@@ -543,7 +552,7 @@ class TxAgreement extends Communicator {
           tx,
           GuardPkHandler.getInstance().requiredSign
         );
-        await this.updateEventOfApprovedTx(tx);
+        await this.updateEventOrOrderOfApprovedTx(tx);
       } else {
         if (txRecord.status === TransactionStatus.invalid) {
           logger.debug(
@@ -574,10 +583,10 @@ class TxAgreement extends Communicator {
   };
 
   /**
-   * updates event status for a tx
+   * updates event or order status for a tx
    * @param tx
    */
-  protected updateEventOfApprovedTx = async (
+  protected updateEventOrOrderOfApprovedTx = async (
     tx: PaymentTransaction
   ): Promise<void> => {
     try {
@@ -591,9 +600,16 @@ class TxAgreement extends Communicator {
           tx.eventId,
           EventStatus.inReward
         );
+      else if (tx.txType === TransactionType.arbitrary)
+        await DatabaseAction.getInstance().setOrderStatus(
+          tx.eventId,
+          OrderStatus.inProcess
+        );
     } catch (e) {
       logger.warn(
-        `An error occurred while setting database event [${tx.eventId}] status: ${e}`
+        `An error occurred while setting database ${
+          tx.txType === TransactionType.arbitrary ? 'order' : 'event'
+        } [${tx.eventId}] status: ${e}`
       );
       logger.warn(e.stack);
     }
@@ -608,7 +624,7 @@ class TxAgreement extends Communicator {
     txId: string,
     timestamp: number
   ): Promise<string> => {
-    return await this.signer.sign(
+    return await this.messageEnc.sign(
       `${JSON.stringify({ txId })}${timestamp}${this.guardPks[this.index]}`
     );
   };

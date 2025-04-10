@@ -1,4 +1,4 @@
-import Tss from '../guard/Tss';
+import TssHandler from '../handlers/TssHandler';
 import {
   FastifySeverInstance,
   MessageResponseSchema,
@@ -37,14 +37,14 @@ const signRoute = (server: FastifySeverInstance) => {
           signatureRecovery,
           trustKey,
         } = request.body;
-        if (trustKey !== Tss.getTrustKey()) {
+        if (trustKey !== TssHandler.getTrustKey()) {
           logger.warn(
             `Received message on Tss tx sign callback with wrong trust key`
           );
           reply.status(400).send({ message: 'Trust key is wrong' });
           return;
         }
-        await Tss.getInstance().handleSignData(
+        await TssHandler.getInstance().handleSignData(
           algorithm,
           status,
           error,

@@ -1,12 +1,11 @@
 import { ERGO_CHAIN } from '@rosen-chains/ergo';
-import Configs from '../configs/Configs';
 import { RevenueEntity } from '../db/entities/revenueEntity';
 import { RevenueView } from '../db/entities/revenueView';
 import { RevenueHistory, SingleRevenue, TokenData } from '../types/api';
 import { TokenInfo } from '@rosen-chains/abstract-chain';
 import { RevenueType } from './constants';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
-
+import { TokenHandler } from '../handlers/tokenHandler';
 /**
  * Extracts the revenue from the revenue view
  * @param events
@@ -40,9 +39,11 @@ export const extractRevenueFromView = async (
   return Promise.all(
     events.map(async (event): Promise<RevenueHistory> => {
       const eventRevenues = eventRevenuesMap.get(event.id) || [];
-      const token = Configs.tokenMap.search(event.fromChain, {
-        [Configs.tokenMap.getIdKey(event.fromChain)]: event.lockTokenId,
-      });
+      const token = TokenHandler.getInstance()
+        .getTokenMap()
+        .search(event.fromChain, {
+          tokenId: event.lockTokenId,
+        });
 
       // TODO: improve getting ergo side tokenId
       //  local:ergo/rosen-bridge/guard-service#332
@@ -52,11 +53,12 @@ export const extractRevenueFromView = async (
       let isNativeToken = false;
 
       if (token.length) {
-        ergoSideTokenId =
-          token[0][ERGO_CHAIN][Configs.tokenMap.getIdKey(ERGO_CHAIN)];
+        ergoSideTokenId = token[0][ERGO_CHAIN].tokenId;
         name = token[0][event.fromChain].name;
-        decimals = Configs.tokenMap.getSignificantDecimals(event.lockTokenId)!;
-        isNativeToken = token[0][event.fromChain].metaData.type === 'native';
+        decimals = TokenHandler.getInstance()
+          .getTokenMap()
+          .getSignificantDecimals(event.lockTokenId)!;
+        isNativeToken = token[0][event.fromChain].type === 'native';
       }
 
       const tokenData: TokenData = {
@@ -106,8 +108,10 @@ const fillTokensDetails = (token: TokenInfo): TokenData => {
     };
   }
 
-  const tokenInfo = Configs.tokenMap.search(ERGO_CHAIN, {
-    [Configs.tokenMap.getIdKey(ERGO_CHAIN)]: token.id,
+  const tokenMap = TokenHandler.getInstance().getTokenMap();
+
+  const tokenInfo = tokenMap.search(ERGO_CHAIN, {
+    tokenId: token.id,
   });
 
   let name = 'Unsupported token';
@@ -116,8 +120,8 @@ const fillTokensDetails = (token: TokenInfo): TokenData => {
 
   if (tokenInfo.length) {
     name = tokenInfo[0][ERGO_CHAIN].name;
-    decimals = Configs.tokenMap.getSignificantDecimals(token.id)!;
-    isNativeToken = tokenInfo[0][ERGO_CHAIN].metaData.type === 'native';
+    decimals = tokenMap.getSignificantDecimals(token.id)!;
+    isNativeToken = tokenInfo[0][ERGO_CHAIN].type === 'native';
   }
 
   return {

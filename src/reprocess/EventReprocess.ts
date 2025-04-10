@@ -1,4 +1,4 @@
-import { Communicator, ECDSA } from '@rosen-bridge/tss';
+import { Communicator } from '@rosen-bridge/communication';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { EventStatus } from '../utils/constants';
 import {
@@ -23,12 +23,12 @@ class EventReprocess extends Communicator {
   protected static dialer: RosenDialerNode;
   protected reprocessCooldown: number;
 
-  protected constructor(publicKeys: string[]) {
+  protected constructor() {
     super(
       logger,
-      new ECDSA(Configs.tssKeys.secret),
+      Configs.tssKeys.encryptor,
       EventReprocess.sendMessageWrapper,
-      publicKeys,
+      Configs.tssKeys.pubs.map((pub) => pub.curvePub),
       GuardTurn.UP_TIME_LENGTH
     );
     this.reprocessCooldown = Configs.eventReprocessCooldown;
@@ -38,9 +38,7 @@ class EventReprocess extends Communicator {
    * initializes EventReprocess
    */
   static init = async () => {
-    EventReprocess.instance = new EventReprocess(
-      Configs.tssKeys.pubs.map((pub) => pub.curvePub)
-    );
+    EventReprocess.instance = new EventReprocess();
     this.dialer = RosenDialer.getInstance().getDialer();
     this.dialer.subscribeChannel(
       EventReprocess.CHANNEL,

@@ -49,6 +49,23 @@ bitcoin:
   tssChainCode: ''
   derivationPath:
     -
+
+doge:
+  networkType: 'mainnet' # Doge network type [testnet, mainnet]
+  chainNetwork: 'esplora' # 'esplora'
+  esplora:
+    url: ''
+    timeout: 8
+  bankPublicKey: '' # corresponding public key of lock address
+  txFeeSlippage: 20 # allowed slippage percentage for tx fees
+  confirmation: # required block confirmation
+    observation: 6 # an observation transaction (lock transaction) on Doge get confirmed
+    payment: 6 # a payment transaction on Doge get confirmed
+    cold: 6 # a cold storage transaction on Doge get confirmed
+    manual: 6 # a manual transaction on Doge get confirmed
+  tssChainCode: ''
+  derivationPath:
+    -
 cardano:
   networkType: 'mainnet' # Cardano network type [testnet, mainnet]
   chainNetwork: 'koios' # 'ogmios', 'koios' or 'blockfrost'
@@ -135,7 +152,6 @@ tss:
   secret: ''
   pubs:
     - curvePub: '' # ECDSA
-      edwardPub: '' # EdDSA
       curveShareId: ''
       edwardShareId: ''
 p2p:
@@ -189,6 +205,7 @@ database:
   # name: '' # database name (for postgres)
 healthCheck:
   interval: 60 # health check update interval (in seconds)
+  timeout: 20 # health check job timeout (in seconds)
   asset:
     erg:
       warnThreshold: 1000000000 # minimum recommended erg balance
@@ -202,6 +219,9 @@ healthCheck:
     btc:
       warnThreshold: 5000000 # minimum recommended btc balance
       criticalThreshold: 1000000 # minimum required btc balance
+    doge:
+      warnThreshold: 2500000000 # minimum recommended doge balance
+      criticalThreshold: 500000000 # minimum required doge balance
     eth:
       warnThreshold: '20000000000000000' # minimum recommended eth balance
       criticalThreshold: '4000000000000000' # minimum required eth balance

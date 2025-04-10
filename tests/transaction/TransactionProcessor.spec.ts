@@ -12,12 +12,17 @@ import {
 } from '../agreement/testData';
 import TransactionProcessor from '../../src/transaction/TransactionProcessor';
 import TestConfigs from '../testUtils/TestConfigs';
-import { EventStatus, TransactionStatus } from '../../src/utils/constants';
+import {
+  EventStatus,
+  OrderStatus,
+  TransactionStatus,
+} from '../../src/utils/constants';
 import Configs from '../../src/configs/Configs';
 import * as EventTestData from '../event/testData';
 import EventSerializer from '../../src/event/EventSerializer';
 import TransactionProcessorMock from './TransactionProcessor.mock';
 import NotificationHandlerMock from '../handlers/NotificationHandler.mock';
+import { CARDANO_CHAIN } from '@rosen-chains/cardano';
 
 describe('TransactionProcessor', () => {
   const currentTimeStampSeconds = Math.round(
@@ -943,6 +948,68 @@ describe('TransactionProcessor', () => {
 
     /**
      * @target TransactionProcessor.processSentTx should update tx status
+     * and order status to completed when it's tx is confirmed enough
+     * @dependencies
+     * - database
+     * - ChainHandler
+     * @scenario
+     * - mock order and transaction and insert into db
+     * - mock ChainHandler `getChain`
+     *   - mock `getTxConfirmationStatus`
+     * - run test (call `processTransactions`)
+     * - check tx in database
+     * @expected
+     * - tx status should be updated to 'completed'
+     * - order status should be updated to 'completed'
+     */
+    it("should update tx status and order status to completed when it's tx is confirmed enough", async () => {
+      // mock order and transaction and insert into db
+      const orderId = 'order-id';
+      const chain = CARDANO_CHAIN;
+      const tx = mockErgoPaymentTransaction(TransactionType.arbitrary, orderId);
+      await DatabaseActionMock.insertOrderRecord(
+        orderId,
+        chain,
+        `orderJson`,
+        OrderStatus.pending
+      );
+      await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.sent);
+
+      // mock ChainHandler `getChain`
+      ChainHandlerMock.mockChainName(chain);
+      // mock `getTxConfirmationStatus`
+      ChainHandlerMock.mockErgoFunctionReturnValue(
+        'getTxConfirmationStatus',
+        ConfirmationStatus.ConfirmedEnough,
+        true
+      );
+
+      // run test
+      await TransactionProcessor.processTransactions();
+
+      // tx status should be updated to 'completed'
+      const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
+        tx.txId,
+        tx.status,
+        tx.lastStatusUpdate,
+      ]);
+      expect(dbTxs).toEqual([
+        [
+          tx.txId,
+          TransactionStatus.completed,
+          currentTimeStampSeconds.toString(),
+        ],
+      ]);
+
+      // order status should be updated to 'completed'
+      const dbOrders = (await DatabaseActionMock.allOrderRecords()).map(
+        (order) => [order.id, order.status]
+      );
+      expect(dbOrders).toEqual([[orderId, OrderStatus.completed]]);
+    });
+
+    /**
+     * @target TransactionProcessor.processSentTx should update tx status
      * to completed when cold storage tx is confirmed enough
      * @dependencies
      * - database
@@ -1479,6 +1546,100 @@ describe('TransactionProcessor', () => {
 
     /**
      * @target TransactionProcessor.setTransactionAsInvalid should update
+     * tx status to invalid and order status to pending when it's tx is invalid
+     * @dependencies
+     * - database
+     * - ChainHandler
+     * @scenario
+     * - mock order and transaction and insert into db
+     * - mock ChainHandler `getChain`
+     *   - mock `getHeight`
+     *   - mock `getTxRequiredConfirmation`
+     * - run test
+     * - check tx in database
+     * @expected
+     * - tx status should be updated to 'invalid'
+     * - order status should be updated to 'pending'
+     * - order firstTry should remain unchanged
+     * - order unexpectedFails should remain unchanged
+     */
+    it("should update tx status to invalid and order status to pending when it's tx is invalid", async () => {
+      // mock order and transaction and insert into db
+      const orderId = 'order-id';
+      const chain = CARDANO_CHAIN;
+      const tx = mockPaymentTransaction(
+        TransactionType.arbitrary,
+        chain,
+        orderId
+      );
+      const firstTry = '1000';
+      const unexpectedFails = 1;
+      await DatabaseActionMock.insertOrderRecord(
+        orderId,
+        chain,
+        `orderJson`,
+        OrderStatus.pending,
+        firstTry,
+        unexpectedFails
+      );
+      await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.sent, 100);
+
+      // mock ChainHandler `getChain`
+      ChainHandlerMock.mockChainName(chain);
+      // mock `getHeight`
+      const mockedCurrentHeight = 111;
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'getHeight',
+        mockedCurrentHeight,
+        true
+      );
+      // mock `getTxRequiredConfirmation`
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'getTxRequiredConfirmation',
+        10
+      );
+
+      // run test
+      const txEntity = (await DatabaseActionMock.allTxRecords())[0];
+      const mockedChain = chainHandlerInstance.getChain(chain);
+      await TransactionProcessor.setTransactionAsInvalid(
+        txEntity,
+        mockedChain,
+        invalidationDetails(false)
+      );
+
+      // tx status should be updated to 'invalid'
+      const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
+        tx.txId,
+        tx.status,
+        tx.lastStatusUpdate,
+      ]);
+      expect(dbTxs).toEqual([
+        [
+          tx.txId,
+          TransactionStatus.invalid,
+          currentTimeStampSeconds.toString(),
+        ],
+      ]);
+
+      // order status should be updated to 'pending'
+      const dbOrders = (await DatabaseActionMock.allOrderRecords()).map(
+        (order) => [
+          order.id,
+          order.status,
+          order.firstTry,
+          order.unexpectedFails,
+        ]
+      );
+      expect(dbOrders).toEqual([
+        [orderId, OrderStatus.pending, firstTry, unexpectedFails],
+      ]);
+    });
+
+    /**
+     * @target TransactionProcessor.setTransactionAsInvalid should update
      * tx status to invalid when cold storage tx is invalid
      * @dependencies
      * - database
@@ -1889,6 +2050,105 @@ describe('TransactionProcessor', () => {
       );
       expect(dbEvents).toEqual([
         [eventId, EventStatus.pendingReward, firstTry, unexpectedFails + 1],
+      ]);
+    });
+
+    /**
+     * @target TransactionProcessor.setTransactionAsInvalid should update
+     * tx status to invalid and order status to pending and increment unexpectedFails
+     * when it's tx has become invalid unexpectedly
+     * @dependencies
+     * - database
+     * - ChainHandler
+     * @scenario
+     * - mock order and transaction and insert into db
+     * - mock ChainHandler `getChain`
+     *   - mock `getHeight`
+     *   - mock `getTxRequiredConfirmation`
+     * - mock NotificationHandler `notify`
+     * - run test
+     * - check tx in database
+     * @expected
+     * - tx status should be updated to 'invalid'
+     * - order status should be updated to 'pending'
+     * - order firstTry should remain unchanged
+     * - order unexpectedFails should be incremented
+     */
+    it("should update tx status to invalid and order status to pending and increment unexpectedFails when it's tx has become invalid unexpectedly", async () => {
+      // mock order and transaction and insert into db
+      const orderId = 'order-id';
+      const chain = CARDANO_CHAIN;
+      const tx = mockPaymentTransaction(
+        TransactionType.arbitrary,
+        chain,
+        orderId
+      );
+      const firstTry = '1000';
+      const unexpectedFails = 1;
+      await DatabaseActionMock.insertOrderRecord(
+        orderId,
+        chain,
+        `orderJson`,
+        OrderStatus.pending,
+        firstTry,
+        unexpectedFails
+      );
+      await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.sent, 100);
+
+      // mock ChainHandler `getChain`
+      ChainHandlerMock.mockChainName(chain);
+      // mock `getHeight`
+      const mockedCurrentHeight = 111;
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'getHeight',
+        mockedCurrentHeight,
+        true
+      );
+      // mock `getTxRequiredConfirmation`
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'getTxRequiredConfirmation',
+        10
+      );
+
+      // mock NotificationHandler `notify`
+      NotificationHandlerMock.mockNotify();
+
+      // run test
+      const txEntity = (await DatabaseActionMock.allTxRecords())[0];
+      const mockedChain = chainHandlerInstance.getChain(chain);
+      await TransactionProcessor.setTransactionAsInvalid(
+        txEntity,
+        mockedChain,
+        invalidationDetails(true)
+      );
+
+      // tx status should be updated to 'invalid'
+      const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
+        tx.txId,
+        tx.status,
+        tx.lastStatusUpdate,
+      ]);
+      expect(dbTxs).toEqual([
+        [
+          tx.txId,
+          TransactionStatus.invalid,
+          currentTimeStampSeconds.toString(),
+        ],
+      ]);
+
+      // order status should be updated to 'pending-payment'
+      const dbOrders = (await DatabaseActionMock.allOrderRecords()).map(
+        (order) => [
+          order.id,
+          order.status,
+          order.firstTry,
+          order.unexpectedFails,
+        ]
+      );
+      expect(dbOrders).toEqual([
+        [orderId, OrderStatus.pending, firstTry, unexpectedFails + 1],
       ]);
     });
 

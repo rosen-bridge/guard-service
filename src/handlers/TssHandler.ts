@@ -15,8 +15,8 @@ import { RosenDialerNode } from '@rosen-bridge/dialer';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
-class Tss {
-  private static instance: Tss;
+class TssHandler {
+  private static instance: TssHandler;
   protected static CHANNELS = {
     curve: 'tss-ecdsa-signing',
     edward: 'tss-eddsa-signing',
@@ -35,20 +35,20 @@ class Tss {
    * @returns Tss instance
    */
   public static getInstance = () => {
-    if (!Tss.instance) throw new Error('Tss is not instantiated yet');
-    return Tss.instance;
+    if (!TssHandler.instance) throw new Error('Tss is not instantiated yet');
+    return TssHandler.instance;
   };
 
   /**
    * @returns the trust key
    */
-  static getTrustKey = (): string => Tss.trustKey;
+  static getTrustKey = (): string => TssHandler.trustKey;
 
   /**
    * runs tss binary file
    */
   protected static runBinary = (): void => {
-    Tss.trustKey = crypto.randomUUID();
+    TssHandler.trustKey = crypto.randomUUID();
     const args = [
       '-configFile',
       Configs.tssConfigPath,
@@ -57,7 +57,7 @@ class Tss {
       '-host',
       `${Configs.tssUrl}:${Configs.tssPort}`,
       '-trustKey',
-      Tss.trustKey,
+      TssHandler.trustKey,
     ];
     spawn(Configs.tssExecutionPath, args, {
       detached: false,
@@ -70,7 +70,7 @@ class Tss {
         );
         logger.debug(`Tss failure error code: ${code}`);
         // wait some seconds to start again
-        setTimeout(Tss.runBinary, timeout * 1000);
+        setTimeout(TssHandler.runBinary, timeout * 1000);
       })
       .addListener('spawn', () => {
         logger.info('TSS binary started');
@@ -92,11 +92,11 @@ class Tss {
    * initializes tss prerequisites
    */
   static init = async () => {
-    Tss.instance = new Tss();
-    Tss.runBinary();
+    TssHandler.instance = new TssHandler();
+    TssHandler.runBinary();
 
     // initialize dialer
-    Tss.dialer = RosenDialer.getInstance().getDialer();
+    TssHandler.dialer = RosenDialer.getInstance().getDialer();
 
     // initialize guard detection and tss
     await this.initCurveTss();
@@ -108,27 +108,27 @@ class Tss {
    */
   static initCurveTss = async () => {
     // initialize tss
-    const curvePublicKeys = Configs.tssKeys.pubs.map((pub) => pub.curvePub);
+    const tssPks = Configs.tssKeys.pubs.map((pub) => pub.curvePub);
     const shareIds = Configs.tssKeys.pubs.map((pub) => pub.curveShareId);
 
-    Tss.tssCurveSigner = new EcdsaSigner({
+    TssHandler.tssCurveSigner = new EcdsaSigner({
       tssApiUrl: `${Configs.tssUrl}:${Configs.tssPort}`,
-      getPeerId: () => Promise.resolve(Tss.dialer.getDialerId()),
+      getPeerId: () => Promise.resolve(TssHandler.dialer.getDialerId()),
       callbackUrl: Configs.tssBaseCallBackUrl + '/' + TssAlgorithms.curve,
       shares: shareIds,
-      submitMsg: this.generateSubmitMessageWrapper(Tss.CHANNELS.curve),
-      secret: Configs.tssKeys.secret,
-      detection: DetectionHandler.getInstance().getDetection().curve,
-      guardsPk: curvePublicKeys,
+      submitMsg: this.generateSubmitMessageWrapper(TssHandler.CHANNELS.curve),
+      messageEnc: Configs.tssKeys.encryptor,
+      detection: DetectionHandler.getInstance().getDetection(),
+      guardsPk: tssPks,
       signPerRoundLimit: Configs.tssParallelSignCount,
       logger: DefaultLoggerFactory.getInstance().getLogger('tssSigner'),
     });
 
     // subscribe to channel
-    Tss.dialer.subscribeChannel(
-      Tss.CHANNELS.curve,
+    TssHandler.dialer.subscribeChannel(
+      TssHandler.CHANNELS.curve,
       async (msg: string, channal: string, peerId: string) =>
-        await Tss.tssCurveSigner.handleMessage(msg, peerId)
+        await TssHandler.tssCurveSigner.handleMessage(msg, peerId)
     );
   };
 
@@ -137,27 +137,27 @@ class Tss {
    */
   static initEdwardTss = async () => {
     // initialize tss
-    const edwardPublicKeys = Configs.tssKeys.pubs.map((pub) => pub.edwardPub);
+    const tssPks = Configs.tssKeys.pubs.map((pub) => pub.curvePub);
     const shareIds = Configs.tssKeys.pubs.map((pub) => pub.edwardShareId);
 
-    Tss.tssEdwardSigner = new EddsaSigner({
+    TssHandler.tssEdwardSigner = new EddsaSigner({
       tssApiUrl: `${Configs.tssUrl}:${Configs.tssPort}`,
-      getPeerId: () => Promise.resolve(Tss.dialer.getDialerId()),
+      getPeerId: () => Promise.resolve(TssHandler.dialer.getDialerId()),
       callbackUrl: Configs.tssBaseCallBackUrl + '/' + TssAlgorithms.edward,
       shares: shareIds,
-      submitMsg: this.generateSubmitMessageWrapper(Tss.CHANNELS.edward),
-      secret: Configs.tssKeys.secret,
-      detection: DetectionHandler.getInstance().getDetection().edward,
-      guardsPk: edwardPublicKeys,
+      submitMsg: this.generateSubmitMessageWrapper(TssHandler.CHANNELS.edward),
+      messageEnc: Configs.tssKeys.encryptor,
+      detection: DetectionHandler.getInstance().getDetection(),
+      guardsPk: tssPks,
       signPerRoundLimit: Configs.tssParallelSignCount,
       logger: DefaultLoggerFactory.getInstance().getLogger('tssSigner'),
     });
 
     // subscribe to channel
-    Tss.dialer.subscribeChannel(
-      Tss.CHANNELS.edward,
+    TssHandler.dialer.subscribeChannel(
+      TssHandler.CHANNELS.edward,
       async (msg: string, channal: string, peerId: string) =>
-        await Tss.tssEdwardSigner.handleMessage(msg, peerId)
+        await TssHandler.tssEdwardSigner.handleMessage(msg, peerId)
     );
   };
 
@@ -167,10 +167,12 @@ class Tss {
    */
   protected static generateSubmitMessageWrapper = (channel: string) => {
     return async (msg: string, peers: Array<string>) => {
-      if (peers.length === 0) await Tss.dialer.sendMessage(channel, msg);
+      if (peers.length === 0) await TssHandler.dialer.sendMessage(channel, msg);
       else
         await Promise.all(
-          peers.map(async (peer) => Tss.dialer.sendMessage(channel, msg, peer))
+          peers.map(async (peer) =>
+            TssHandler.dialer.sendMessage(channel, msg, peer)
+          )
         );
     };
   };
@@ -193,9 +195,10 @@ class Tss {
     signatureRecovery: string | undefined
   ) => {
     let tssSigner: TssSigner;
-    if (algorithm === TssAlgorithms.curve) tssSigner = Tss.tssCurveSigner;
+    if (algorithm === TssAlgorithms.curve)
+      tssSigner = TssHandler.tssCurveSigner;
     else if (algorithm === TssAlgorithms.edward)
-      tssSigner = Tss.tssEdwardSigner;
+      tssSigner = TssHandler.tssEdwardSigner;
     else throw Error(`Unsupported tss algorithm [${algorithm}]`);
 
     if (status === 'success')
@@ -219,23 +222,23 @@ class Tss {
    * returns curve (ECDSA) signer function
    */
   get curveSign() {
-    return Tss.tssCurveSigner.signPromised;
+    return TssHandler.tssCurveSigner.signPromised;
   }
 
   /**
    * returns (EdDSA) signer signer function
    */
   get edwardSign() {
-    return Tss.tssEdwardSigner.signPromised;
+    return TssHandler.tssEdwardSigner.signPromised;
   }
 
   /**
    * update tss instances
    */
   update = async (): Promise<void> => {
-    await Tss.tssCurveSigner.update();
-    await Tss.tssEdwardSigner.update();
+    await TssHandler.tssCurveSigner.update();
+    await TssHandler.tssEdwardSigner.update();
   };
 }
 
-export default Tss;
+export default TssHandler;

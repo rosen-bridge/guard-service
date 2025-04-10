@@ -7,6 +7,8 @@ import {
 import {
   CommitmentEntity,
   EventTriggerEntity,
+  PermitEntity,
+  CollateralEntity,
   migrations as watcherDataExtractorMigrations,
 } from '@rosen-bridge/watcher-data-extractor';
 import { ConfirmedEventEntity } from '../../../src/db/entities/ConfirmedEventEntity';
@@ -53,6 +55,8 @@ class DatabaseActionMock {
       AddressTxsEntity,
       ArbitraryEntity,
       ReprocessEntity,
+      PermitEntity,
+      CollateralEntity,
     ],
     migrations: [
       ...scannerMigrations.sqlite,
@@ -128,7 +132,7 @@ class DatabaseActionMock {
       .values({
         extractor: 'extractor',
         boxId: TestUtils.generateRandomId(),
-        boxSerialized: boxSerialized,
+        serialized: boxSerialized,
         block: 'blockId',
         height: eventHeight,
         fromChain: event.fromChain,
@@ -196,7 +200,7 @@ class DatabaseActionMock {
       .values({
         extractor: 'extractor',
         boxId: TestUtils.generateRandomId(),
-        boxSerialized: boxSerialized,
+        serialized: boxSerialized,
         block: 'blockId',
         height: height,
         fromChain: event.fromChain,
@@ -424,7 +428,7 @@ class DatabaseActionMock {
    */
   static allTxRecords = async () => {
     return await this.testDatabase.TransactionRepository.find({
-      relations: ['event'],
+      relations: ['event', 'order'],
     });
   };
 

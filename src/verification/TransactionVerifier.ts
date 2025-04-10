@@ -258,14 +258,14 @@ class TransactionVerifier {
     // verify transfer conditions for native token
     if (
       isNativeTokenForbade === false &&
-      lockedAssets.nativeToken > thresholds[nativeTokenId].high
+      lockedAssets.nativeToken > thresholds[nativeTokenId]?.high
     ) {
       if (
-        remainingAssets.nativeToken > thresholds[nativeTokenId].high ||
-        remainingAssets.nativeToken < thresholds[nativeTokenId].low
+        remainingAssets.nativeToken > thresholds[nativeTokenId]?.high ||
+        remainingAssets.nativeToken < thresholds[nativeTokenId]?.low
       ) {
         logger.debug(
-          `Transaction [${tx.txId}] is invalid: Native token condition does not satisfy. Expected: [${thresholds[nativeTokenId].high} > ${remainingAssets.nativeToken} > ${thresholds[nativeTokenId].low}]`
+          `Transaction [${tx.txId}] is invalid: Native token condition does not satisfy. Expected: [${thresholds[nativeTokenId]?.high} > ${remainingAssets.nativeToken} > ${thresholds[nativeTokenId]?.low}]`
         );
         return false;
       }
@@ -303,7 +303,9 @@ class TransactionVerifier {
 
     // verify tx order
     const expectedOrder = ChainUtils.decodeOrder(orderJson);
-    const txOrder = chain.extractTransactionOrder(tx);
+    const txOrder = ChainUtils.decodeOrder(
+      ChainUtils.encodeOrder(chain.extractTransactionOrder(tx))
+    );
     if (!isEqual(txOrder, expectedOrder)) {
       logger.debug(
         `Transaction [${tx.txId}] is invalid: Tx extracted order is not verified`

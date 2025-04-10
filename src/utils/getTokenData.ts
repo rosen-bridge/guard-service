@@ -1,6 +1,7 @@
 import Configs from '../configs/Configs';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import { TokenData } from '../types/api';
+import { TokenHandler } from '../handlers/tokenHandler';
 
 /**
  * gets token data from tokenMap
@@ -27,9 +28,11 @@ export const getTokenData = (
     };
   }
 
-  const tokenMapRes = Configs.tokenMap.search(sourceChain, {
-    [Configs.tokenMap.getIdKey(sourceChain)]: sourceChainTokenId,
-  });
+  const tokenMapRes = TokenHandler.getInstance()
+    .getTokenMap()
+    .search(sourceChain, {
+      tokenId: sourceChainTokenId,
+    });
   if (tokenMapRes.length === 0) {
     // token is not found in token map
     if (sourceChain === targetChain) {
@@ -49,18 +52,19 @@ export const getTokenData = (
     }
   } else {
     const tokenData = tokenMapRes[0][targetChain];
-    const significantDecimals =
-      Configs.tokenMap.getSignificantDecimals(sourceChainTokenId);
+    const significantDecimals = TokenHandler.getInstance()
+      .getTokenMap()
+      .getSignificantDecimals(sourceChainTokenId);
     const decimals =
       returnSignificantDecimal && significantDecimals !== undefined
         ? significantDecimals
         : tokenData.decimals;
     return {
-      tokenId: tokenData[Configs.tokenMap.getIdKey(targetChain)],
+      tokenId: tokenData.tokenId,
       name: tokenData.name,
       amount: 0,
       decimals: decimals,
-      isNativeToken: tokenData.metaData.type === 'native',
+      isNativeToken: tokenData.type === 'native',
     };
   }
 };

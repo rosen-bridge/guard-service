@@ -1,4 +1,4 @@
-import { Communicator, ECDSA, GuardDetection } from '@rosen-bridge/tss';
+import { GuardDetection } from '@rosen-bridge/detection';
 import { Semaphore } from 'await-semaphore';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import {
@@ -29,6 +29,7 @@ import EventOrder from '../event/EventOrder';
 import DetectionHandler from '../handlers/DetectionHandler';
 import { RosenDialerNode } from '@rosen-bridge/dialer';
 import RosenDialer from '../communication/RosenDialer';
+import { Communicator } from '@rosen-bridge/communication';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -44,12 +45,12 @@ class EventSynchronization extends Communicator {
   protected parallelRequestCount: number;
   protected requiredApproval: number;
 
-  protected constructor(publicKeys: string[], detection: GuardDetection) {
+  protected constructor(detection: GuardDetection) {
     super(
       logger,
-      new ECDSA(Configs.tssKeys.secret),
+      Configs.tssKeys.encryptor,
       EventSynchronization.sendMessageWrapper,
-      publicKeys,
+      Configs.tssKeys.pubs.map((pub) => pub.curvePub),
       GuardTurn.UP_TIME_LENGTH
     );
     this.detection = detection;
@@ -65,10 +66,11 @@ class EventSynchronization extends Communicator {
    * initializes EventSynchronization
    */
   static init = async () => {
-    EventSynchronization.instance = new EventSynchronization(
-      Configs.tssKeys.pubs.map((pub) => pub.curvePub),
-      DetectionHandler.getInstance().getDetection().curve
-    );
+    const detection = DetectionHandler.getInstance().getDetection();
+    // TODO: Definition of the required guard in the detection is not in the duty of this module!
+    //  local:ergo/rosen-bridge/guard-service#428
+    detection.setNeedGuardThreshold(GuardPkHandler.getInstance().requiredSign);
+    EventSynchronization.instance = new EventSynchronization(detection);
     this.dialer = RosenDialer.getInstance().getDialer();
     this.dialer.subscribeChannel(
       EventSynchronization.CHANNEL,
@@ -206,9 +208,8 @@ class EventSynchronization extends Communicator {
   protected getPeerIdByIndex = async (
     index: number
   ): Promise<string | undefined> => {
-    const pk = this.guardPks[index];
     const activeGuards = await this.detection.activeGuards();
-    return activeGuards.find((_) => _.publicKey === pk)?.peerId;
+    return activeGuards.find((_) => _.index === index)?.peerId;
   };
 
   /**
@@ -217,13 +218,15 @@ class EventSynchronization extends Communicator {
   sendSyncBatch = async (): Promise<void> => {
     logger.info(`Sending event synchronization batches`);
     for (const [eventId, activeSync] of this.activeSyncMap) {
+      const restrictedIndex = await this.getIndex();
       const indexes = activeSync.responses.reduce(
         (
           indexes: number[],
           response: PaymentTransaction | undefined,
           index: number
         ) => {
-          if (response === undefined) indexes.push(index);
+          if (response === undefined && index !== restrictedIndex)
+            indexes.push(index);
           return indexes;
         },
         []

@@ -1,5 +1,5 @@
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
-import { ECDSA, EdDSA, GuardDetection } from '@rosen-bridge/tss';
+import { GuardDetection } from '@rosen-bridge/detection';
 import Configs from '../configs/Configs';
 import { RosenDialerNode } from '@rosen-bridge/dialer';
 import RosenDialer from '../communication/RosenDialer';
@@ -9,35 +9,17 @@ const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 class DetectionHandler {
   private static instance: DetectionHandler;
   protected static dialer: RosenDialerNode;
-  protected static CHANNELS = {
-    curve: 'ecdsa-detection',
-    edward: 'eddsa-detection',
-  };
-  protected curveDetection: GuardDetection;
-  protected edwardDetection: GuardDetection;
+  protected static CHANNEL = 'ecdsa-detection';
+  protected detection: GuardDetection;
 
   private constructor() {
     // generate ECDSA guard detection
     const curvePublicKeys = Configs.tssKeys.pubs.map((pub) => pub.curvePub);
-    const ecdsaSigner = new ECDSA(Configs.tssKeys.secret);
-    this.curveDetection = new GuardDetection({
+    this.detection = new GuardDetection({
+      logger: DefaultLoggerFactory.getInstance().getLogger('Detection'),
       guardsPublicKey: curvePublicKeys,
-      signer: ecdsaSigner,
-      submit: this.generateSubmitMessageWrapper(
-        DetectionHandler.CHANNELS.curve
-      ),
-      getPeerId: () => Promise.resolve(DetectionHandler.dialer.getDialerId()),
-    });
-
-    // generate EdDSA guard detection
-    const edwardPublicKeys = Configs.tssKeys.pubs.map((pub) => pub.edwardPub);
-    const eddsaSigner = new EdDSA(Configs.tssKeys.secret);
-    this.edwardDetection = new GuardDetection({
-      guardsPublicKey: edwardPublicKeys,
-      signer: eddsaSigner,
-      submit: this.generateSubmitMessageWrapper(
-        DetectionHandler.CHANNELS.edward
-      ),
+      messageEnc: Configs.tssKeys.encryptor,
+      submit: this.generateSubmitMessageWrapper(DetectionHandler.CHANNEL),
       getPeerId: () => Promise.resolve(DetectionHandler.dialer.getDialerId()),
     });
   }
@@ -49,21 +31,15 @@ class DetectionHandler {
     DetectionHandler.dialer = RosenDialer.getInstance().getDialer();
     DetectionHandler.instance = new DetectionHandler();
 
-    // initialize detection instances
-    await this.instance.curveDetection.init();
-    await this.instance.edwardDetection.init();
-
     // subscribe to channels
     DetectionHandler.dialer.subscribeChannel(
-      DetectionHandler.CHANNELS.curve,
+      DetectionHandler.CHANNEL,
       async (msg: string, channal: string, peerId: string) =>
-        await this.instance.curveDetection.handleMessage(msg, peerId)
+        await this.instance.detection.handleMessage(msg, peerId)
     );
-    DetectionHandler.dialer.subscribeChannel(
-      DetectionHandler.CHANNELS.edward,
-      async (msg: string, channal: string, peerId: string) =>
-        await this.instance.edwardDetection.handleMessage(msg, peerId)
-    );
+
+    // initialize detection instance
+    await this.instance.detection.init();
 
     logger.debug('DetectionHandler initialized');
   };
@@ -96,21 +72,17 @@ class DetectionHandler {
   };
 
   /**
-   * @returns both ECDSA and EdDSA guard detection instances
+   * @returns guard detection instance
    */
   getDetection = () => {
-    return {
-      curve: this.curveDetection,
-      edward: this.edwardDetection,
-    };
+    return this.detection;
   };
 
   /**
-   * update guard detection instances
+   * update guard detection instance
    */
   update = async (): Promise<void> => {
-    await this.curveDetection.update();
-    await this.edwardDetection.update();
+    await this.detection.update();
   };
 }
 

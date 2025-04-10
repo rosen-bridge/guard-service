@@ -46,7 +46,7 @@ describe('EventSynchronization', () => {
   });
 
   describe('processSyncQueue', () => {
-    const guardsLen = GuardPkHandler.getInstance().guardsLen;
+    const guardsLen = Configs.tssKeys.pubs.length;
 
     beforeAll(() => {
       vi.useFakeTimers();
@@ -396,8 +396,9 @@ describe('EventSynchronization', () => {
   });
 
   describe('sendSyncBatch', () => {
-    const guardsLen = GuardPkHandler.getInstance().guardsLen;
-    const publicKeys = GuardPkHandler.getInstance().publicKeys;
+    const guardIndex = TestConfigs.guardIndex;
+    const guardsLen = Configs.tssKeys.pubs.length;
+    const publicKeys = Configs.tssKeys.pubs.map((pub) => pub.curvePub);
 
     beforeAll(() => {
       vi.useFakeTimers();
@@ -453,6 +454,7 @@ describe('EventSynchronization', () => {
         publicKeys.map((pk, index) => ({
           publicKey: pk,
           peerId: `peer-${index}`,
+          index: index,
         }))
       );
 
@@ -463,13 +465,13 @@ describe('EventSynchronization', () => {
       expect(mockedSendMessage).toHaveBeenCalledWith(
         SynchronizationMessageTypes.request,
         { eventId: eventId1 },
-        expect.any(Array),
+        expect.not.arrayContaining([`peer-${guardIndex}`]),
         TestConfigs.currentTimeStamp / 1000
       );
       expect(mockedSendMessage).toHaveBeenCalledWith(
         SynchronizationMessageTypes.request,
         { eventId: eventId2 },
-        expect.any(Array),
+        expect.not.arrayContaining([`peer-${guardIndex}`]),
         TestConfigs.currentTimeStamp / 1000
       );
     });
@@ -517,6 +519,7 @@ describe('EventSynchronization', () => {
         publicKeys.map((pk, index) => ({
           publicKey: pk,
           peerId: `peer-${index}`,
+          index: index,
         }))
       );
 
@@ -775,7 +778,7 @@ describe('EventSynchronization', () => {
   });
 
   describe('processSyncResponse', () => {
-    const guardsLen = GuardPkHandler.getInstance().guardsLen;
+    const guardsLen = Configs.tssKeys.pubs.length;
     const requiredApproval = GuardPkHandler.getInstance().requiredSign - 1;
 
     beforeEach(async () => {
@@ -991,7 +994,7 @@ describe('EventSynchronization', () => {
   });
 
   describe(`verifySynchronizationResponse`, () => {
-    const guardsLen = GuardPkHandler.getInstance().guardsLen;
+    const guardsLen = Configs.tssKeys.pubs.length;
 
     beforeAll(() => {
       mockGetEventFeeConfig({
@@ -1823,9 +1826,7 @@ describe('EventSynchronization', () => {
 
       // insert event into active sync
       const eventSync = new TestEventSynchronization();
-      const responses = Array(GuardPkHandler.getInstance().guardsLen).fill(
-        undefined
-      );
+      const responses = Array(Configs.tssKeys.pubs.length).fill(undefined);
       eventSync.insertEventIntoActiveSync(eventId, {
         timestamp: TestConfigs.currentTimeStamp / 1000 - 100,
         responses: responses,
@@ -1862,7 +1863,7 @@ describe('EventSynchronization', () => {
   });
 
   describe('timeoutActiveSyncs', () => {
-    const guardsLen = GuardPkHandler.getInstance().guardsLen;
+    const guardsLen = Configs.tssKeys.pubs.length;
 
     beforeAll(() => {
       vi.useFakeTimers();

@@ -1,5 +1,38 @@
 # guard-service
 
+## 6.0.0
+
+### Major Changes
+
+- Integrate binance
+
+### Minor Changes
+
+- Add Event Reprocess feature: Allow requesting other guards through API to reprocess an event where its status is either 'timeout', 'rejected', 'payment-waiting' or 'reward-waiting'
+- Add Event Synchronization feature: Communicate with other guards to get the payment transaction of an event and move it to reward distribution
+- Add Arbitrary Order feature: Submit a request in guard to consensus on a transaction to satisfy it
+- Migrate from node 18.17 to 20.11
+- Add event progress health-check parameter
+
+### Patch Changes
+
+- Catch errors in NotificationHandler
+- Schedule transaction and scanned-events jobs on start instead of running them
+- Add transaction network validation in case of event transactions
+- Use @rosen-bridge/extended-typeorm to prevent db transaction conflicts
+- Fix event status on `/events` API when event is just scanned
+- Fix p2p connection check to restart the guard
+- Notable updates in rosen-chains packages:
+  - Add verifyPaymentTransaction function which checks data consistency within a PaymentTransaction Object
+  - Rethrow any unexpected errors while verifying events
+  - Fix EVM gas estimation so that only required fields are sent to the RPC
+
+## 5.0.8
+
+### Patch Changes
+
+- Add logger for GuardDetection instances
+
 ## 5.0.7
 
 ### Patch Changes
@@ -10,30 +43,29 @@
 
 ### Patch Changes
 
-Support new tokens:
-
-- AHT
-- BANA
-- Bober
-- COS
-- CYPX
-- EPOS
-- ErgOne
-- GIF
-- GluonW GAU
-- GluonW GAUC
-- MEW
-- MNT
-- NIKEPIG
-- Paideia
-- QUACKS
-- SUGAR
-- O
-- Troll
-- WALRUS
-- DIS
-- sOADA
-- OADA
+- Support new tokens
+  - AHT
+  - BANA
+  - Bober
+  - COS
+  - CYPX
+  - EPOS
+  - ErgOne
+  - GIF
+  - GluonW GAU
+  - GluonW GAUC
+  - MEW
+  - MNT
+  - NIKEPIG
+  - Paideia
+  - QUACKS
+  - SUGAR
+  - O
+  - Troll
+  - WALRUS
+  - DIS
+  - sOADA
+  - OADA
 
 ## 5.0.5
 
@@ -64,105 +96,105 @@ Support new tokens:
 
 ### Patch Changes
 
-- change default maxAllowedErrorCount to 35
-- fix RPC auth token and ETH decimals in asset health-check
-- fix health-check notification repeat
-- fix reading event ID in tx-progress health-check parameter
-- fix logger
-- fix emission token name and decimals in revenue API
-- fix health-check error handling
+- Change default maxAllowedErrorCount to 35
+- Fix RPC auth token and ETH decimals in asset health-check
+- Fix health-check notification repeat
+- Fix reading event ID in tx-progress health-check parameter
+- Fix logger
+- Fix emission token name and decimals in revenue API
+- Fix health-check error handling
 
 ## 5.0.0
 
 ### Major Changes
 
-- integrate ethereum
-- change paymentTxId format in R4 from hex string to string
-- support contract and tokensMap version and update info controller for version configs
-- consider decimals drop
+- Integrate ethereum
+- Change paymentTxId format in R4 from hex string to string
+- Support contract and tokensMap version and update info controller for version configs
+- Consider decimals drop
 
 ### Minor Changes
 
-- update health-check APIs regarding to latest changes
-- consider reason of invalidation while marking txs as invalid
-- limit number of try for events based on their unexpected failures
-- add notification to health-check
-- add warn level to logger health parameter and tune the thresholds
-- add tx progress health-check parameter
-- refactor cold storage tx verification and its insertion handler to support parallel cold storage txs
+- Update health-check APIs regarding to latest changes
+- Consider reason of invalidation while marking txs as invalid
+- Limit number of try for events based on their unexpected failures
+- Add notification to health-check
+- Add warn level to logger health parameter and tune the thresholds
+- Add tx progress health-check parameter
+- Refactor cold storage tx verification and its insertion handler to support parallel cold storage txs
 
 ### Patch Changes
 
-- update notification handler
-- send notification whenever a transaction becomes invalid
-- change ergo scanner sync health-check thresholds
-- add guard current version to logs
-- update dependencies
-- add TSS parallel sign limit to config
-- change default requeue waiting events interval to 6 hours
-- catch scanner errors to avoid crash
-- fix bug in TransactionProcessor while recognizing a potential signed tx as unsigned
-- skip tx reinsertion for invalid txs
-- change default tx processor interval to 1 minute
-- fix unhandled promise in TransactionVerifier
+- Update notification handler
+- Send notification whenever a transaction becomes invalid
+- Change ergo scanner sync health-check thresholds
+- Add guard current version to logs
+- Update dependencies
+- Add TSS parallel sign limit to config
+- Change default requeue waiting events interval to 6 hours
+- Catch scanner errors to avoid crash
+- Fix bug in TransactionProcessor while recognizing a potential signed tx as unsigned
+- Skip tx reinsertion for invalid txs
+- Change default tx processor interval to 1 minute
+- Fix unhandled promise in TransactionVerifier
 
 ## 4.1.2
 
 ### Patch Changes
 
-- patch koios client
+- Patch koios client
 
 ## 4.1.1
 
 ### Patch Changes
 
-- fix handling invalid cold storage tx as active ones
+- Fix handling invalid cold storage tx as active ones
 
 ## 4.1.0
 
 ### Minor Changes
 
-- refactor cold storage config structure and verification process
+- Refactor cold storage config structure and verification process
 
 ## 4.0.0
 
 ### Major Changes
 
-- configurable emission token
+- Configurable emission token
 
 ### Patch Changes
 
-- remove keygen scenario from guard-service
-- read cold address from contract files
+- Remove keygen scenario from guard-service
+- Read cold address from contract files
 
 ## 3.0.1
 
 ### Patch Changes
 
-- patch release version
+- Patch release version
 
 ## 3.0.0
 
 ### Major Changes
 
-- integrate bitcoin
-- update tss to latest version and add ecdsa signer
-- update minimum-fee to v1
+- Integrate bitcoin
+- Update tss to latest version and add ecdsa signer
+- Update minimum-fee to v1
 
 ### Minor Changes
 
-- register bitcoin health check parameters
-- register bitcoin scanner and extractors
-- change payment box index in ErgoTransactions
-- revamp tss key configs
+- Register bitcoin health check parameters
+- Register bitcoin scanner and extractors
+- Change payment box index in ErgoTransactions
+- Revamp tss key configs
 
 ### Patch Changes
 
-- update dependencies
-- improve rewardTxId and paymentTxId columns in events history API
-- update scanner and watcher-data-extractor
-- update health-check and network packages
-- update typeorm to latest
+- Update dependencies
+- Improve rewardTxId and paymentTxId columns in events history API
+- Update scanner and watcher-data-extractor
+- Update health-check and network packages
+- Update typeorm to latest
 
 ## 2.1.1
 
@@ -177,18 +209,18 @@ Support new tokens:
 
 - Add Cors headers to all apis according to config
 - Add rate limit to all apis
-- add trust key to Tss
+- Add trust key to Tss
 
 ### Patch Changes
 
-- add salt to the apiKey to prevent precomputed hash attacks
+- Add salt to the apiKey to prevent precomputed hash attacks
 
 ## 2.0.0
 
 ### Major Changes
 
-- update guard according to contracts_V3 changes
+- Update guard according to contracts_V3 changes
 
 ### Patch Changes
 
-- add version to /info api
+- Add version to /info api
