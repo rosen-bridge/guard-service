@@ -1,5 +1,16 @@
 # @rosen-chains/evm
 
+## 8.1.0
+
+### Minor Changes
+
+- Add optional 'tokens' arg to getAddressAssets
+
+### Patch Changes
+
+- Updated dependencies
+  - @rosen-chains/abstract-chain@13.1.0
+
 ## 8.0.0
 
 ### Major Changes

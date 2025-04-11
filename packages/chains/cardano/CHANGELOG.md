@@ -1,5 +1,12 @@
 # @rosen-chains/cardano
 
+## 12.0.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @rosen-chains/abstract-chain@13.1.0
+
 ## 12.0.0
 
 ### Major Changes

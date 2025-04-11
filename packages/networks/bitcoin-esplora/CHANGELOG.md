@@ -1,5 +1,17 @@
 # @rosen-chains/bitcoin-esplora
 
+## 4.1.0
+
+### Minor Changes
+
+- Add optional API prefix for the Esplora network
+
+### Patch Changes
+
+- Updated dependencies
+  - @rosen-chains/abstract-chain@13.1.0
+  - @rosen-chains/bitcoin@8.0.1
+
 ## 4.0.10
 
 ### Patch Changes
