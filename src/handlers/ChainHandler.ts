@@ -13,7 +13,6 @@ import {
   AbstractDogeNetwork,
   DOGE_CHAIN,
   DogeChain,
-  DogeTx,
 } from '@rosen-chains/doge';
 import { AbstractErgoNetwork, ERGO_CHAIN, ErgoChain } from '@rosen-chains/ergo';
 import CardanoKoiosNetwork, {
@@ -30,7 +29,7 @@ import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { BLOCKFROST_NETWORK } from '@rosen-chains/cardano-blockfrost-network';
 import CardanoBlockFrostNetwork from '@rosen-chains/cardano-blockfrost-network';
 import BitcoinEsploraNetwork from '@rosen-chains/bitcoin-esplora';
-import { DogeEsploraNetwork } from '@rosen-chains/doge-esplora';
+import { DogeBlockcypherNetwork } from '@rosen-chains/doge-blockcypher';
 import GuardsBitcoinConfigs from '../configs/GuardsBitcoinConfigs';
 import GuardsDogeConfigs from '../configs/GuardsDogeConfigs';
 import { EthereumChain } from '@rosen-chains/ethereum';
@@ -215,15 +214,15 @@ class ChainHandler {
   private generateDogeChain = (): DogeChain => {
     let network: AbstractDogeNetwork;
     switch (GuardsDogeConfigs.chainNetworkName) {
-      case 'esplora':
-        network = new DogeEsploraNetwork(
-          GuardsDogeConfigs.esplora.url,
+      case 'blockcypher':
+        network = new DogeBlockcypherNetwork(
+          GuardsDogeConfigs.blockcypher.url,
           async (txId: string) => {
             const tx = await DatabaseAction.getInstance().getTxById(txId);
             if (tx === null) return undefined;
             return TransactionSerializer.fromJson(tx.txJson);
           },
-          DefaultLoggerFactory.getInstance().getLogger('EsploraNetwork')
+          DefaultLoggerFactory.getInstance().getLogger('BlockcypherNetwork')
         );
         break;
       default:

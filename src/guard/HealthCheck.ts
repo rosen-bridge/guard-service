@@ -1,5 +1,6 @@
 import {
   EsploraAssetHealthCheckParam,
+  DogeBlockCypherAssetHealthCheckParam,
   CardanoBlockFrostAssetHealthCheckParam,
   CardanoKoiosAssetHealthCheckParam,
   ErgoExplorerAssetHealthCheckParam,
@@ -287,6 +288,16 @@ const getHealthCheck = async () => {
         Configs.dogeWarnThreshold,
         Configs.dogeCriticalThreshold,
         GuardsDogeConfigs.esplora.url,
+        8
+      );
+      healthCheck.register(dogeAssetHealthCheck);
+    } else if (GuardsDogeConfigs.chainNetworkName === 'blockcypher') {
+      const dogeAssetHealthCheck = new DogeBlockCypherAssetHealthCheckParam(
+        DOGE,
+        dogeContracts.lockAddress,
+        Configs.dogeWarnThreshold,
+        Configs.dogeCriticalThreshold,
+        GuardsDogeConfigs.blockcypher.url,
         8
       );
       healthCheck.register(dogeAssetHealthCheck);
