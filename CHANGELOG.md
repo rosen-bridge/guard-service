@@ -1,5 +1,13 @@
 # guard-service
 
+## 6.0.2
+
+### Patch Changes
+
+- Support new tokens
+  - PALM
+  - SOCKZ
+
 ## 6.0.1
 
 ### Patch Changes
