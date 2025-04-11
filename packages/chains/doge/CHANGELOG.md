@@ -1,5 +1,16 @@
 # @rosen-chains/doge
 
+## 2.0.0
+
+### Major Changes
+
+- Update abstract network to be more efficient for finding txs in the mempool
+
+### Patch Changes
+
+- Updated dependencies
+  - @rosen-chains/abstract-chain@13.1.0
+
 ## 1.0.0
 
 ### Major Changes

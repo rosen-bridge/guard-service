@@ -1,5 +1,22 @@
 # @rosen-chains/doge-esplora
 
+## 1.0.0
+
+### Major Changes
+
+- Implement isTxInMempool method and removed getMempoolTxIds
+
+### Minor Changes
+
+- Add optional API prefix for the Esplora network
+
+### Patch Changes
+
+- Updated dependencies
+- Updated dependencies
+  - @rosen-chains/abstract-chain@13.1.0
+  - @rosen-chains/doge@2.0.0
+
 ## 0.2.0
 
 ### Minor Changes

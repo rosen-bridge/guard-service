@@ -1,6 +1,6 @@
 {
   "name": "@rosen-chains/bitcoin",
-  "version": "8.0.0",
+  "version": "8.0.1",
   "description": "this project contains bitcoin chain for Rosen-bridge",
   "repository": "https://github.com/rosen-bridge/rosen-chains",
   "license": "CC0-1.0",
@@ -38,7 +38,7 @@
     "@rosen-bridge/json-bigint": "^0.1.0",
     "@rosen-bridge/rosen-extractor": "^7.2.1",
     "@rosen-bridge/tokens": "^3.0.0",
-    "@rosen-chains/abstract-chain": "^13.0.0",
+    "@rosen-chains/abstract-chain": "^13.1.0",
     "bitcoinjs-lib": "^6.1.5"
   }
 }
