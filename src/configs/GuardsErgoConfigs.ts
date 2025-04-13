@@ -17,10 +17,12 @@ class GuardsErgoConfigs {
   static explorer = {
     url: config.get<string>('ergo.explorer.url'),
     timeout: config.get<number>('ergo.explorer.timeout'), // seconds
+    tokensPerMinute: config.get<number>('ergo.explorer.tokensPerMinute'),
   };
   static node = {
     url: config.get<string>('ergo.node.url'),
     timeout: config.get<number>('ergo.node.timeout'), // seconds
+    tokensPerMinute: config.get<number>('ergo.node.tokensPerMinute'),
   };
 
   // value configs
@@ -76,6 +78,19 @@ class GuardsErgoConfigs {
   static arbitraryTxConfirmation = getConfigIntKeyOrDefault(
     'ergo.confirmation.arbitrary',
     20
+  );
+
+  static updateBalanceInterval = getConfigIntKeyOrDefault(
+    'ergo.updateBalanceInterval',
+    300
+  );
+  static updateChainBatchBalancesInterval = getConfigIntKeyOrDefault(
+    'ergo.updateChainBatchBalancesInterval',
+    60
+  );
+  static updateBatchBalanceMaxRetries = getConfigIntKeyOrDefault(
+    'ergo.updateBatchBalanceMaxRetries',
+    5
   );
 
   // scanner configs

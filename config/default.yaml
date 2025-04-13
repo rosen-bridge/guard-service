@@ -20,6 +20,7 @@ binance:
     timeout: 8
     initialHeight: -1
     scannerInterval: 10
+    tokensPerMinute: 30
   maxParallelTx: 2 # maximum number of txs to be processed with the same nonce (note that only one of these transactions will be succeed)
   gasPriceSlippage: 50 # allowed slippage percentage for gas price
   gasLimitSlippage: 50 # allowed slippage percentage for gas limit
@@ -31,6 +32,9 @@ binance:
     cold: 200 # a cold storage transaction on Binance get confirmed
     manual: 200 # a manual transaction on Binance get confirmed
     arbitrary: 200 # an arbitrary transaction on Binance get confirmed
+  updateBalanceInterval: 300
+  updateChainBatchBalancesInterval: 60
+  updateBatchBalanceMaxRetries: 5
   tssChainCode: ''
   derivationPath:
     -
@@ -40,6 +44,7 @@ bitcoin:
   esplora:
     url: 'https://blockstream.info'
     timeout: 8
+    tokensPerMinute: 30
   bankPublicKey: '' # corresponding public key of lock address
   txFeeSlippage: 10 # allowed slippage percentage for tx fees
   confirmation: # required block confirmation
@@ -48,6 +53,9 @@ bitcoin:
     cold: 6 # a cold storage transaction on Bitcoin get confirmed
     manual: 6 # a manual transaction on Bitcoin get confirmed
     arbitrary: 6 # an arbitrary transaction on Bitcoin get confirmed
+  updateBalanceInterval: 300
+  updateChainBatchBalancesInterval: 60
+  updateBatchBalanceMaxRetries: 5
   tssChainCode: ''
   derivationPath:
     -
@@ -58,6 +66,7 @@ doge:
   esplora:
     url: ''
     timeout: 8
+    tokensPerMinute: 30
   bankPublicKey: '' # corresponding public key of lock address
   txFeeSlippage: 20 # allowed slippage percentage for tx fees
   confirmation: # required block confirmation
@@ -65,6 +74,9 @@ doge:
     payment: 6 # a payment transaction on Doge get confirmed
     cold: 6 # a cold storage transaction on Doge get confirmed
     manual: 6 # a manual transaction on Doge get confirmed
+  updateBalanceInterval: 300
+  updateChainBatchBalancesInterval: 60
+  updateBatchBalanceMaxRetries: 5
   tssChainCode: ''
   derivationPath:
     -
@@ -73,9 +85,11 @@ cardano:
   chainNetwork: 'koios' # 'ogmios', 'koios' or 'blockfrost'
   blockfrost:
     projectId: ''
+    tokensPerMinute: 30
   koios:
     url: 'https://api.koios.rest/api/v1'
     timeout: 8
+    tokensPerMinute: 30
   bankPublicKey: '' # corresponding public key of lock address
   minUtxoValue: '3000000' # minimum lovelace for a Utxo (box)
   fee: '400000' # Cardano transaction fee
@@ -86,6 +100,9 @@ cardano:
     cold: 120 # a cold storage transaction on Cardano get confirmed
     manual: 120 # a manual transaction on Cardano get confirmed
     arbitrary: 120 # an arbitrary transaction on Cardano get confirmed
+  updateBalanceInterval: 300
+  updateChainBatchBalancesInterval: 60
+  updateBatchBalanceMaxRetries: 5
   tssChainCode: 'CardanoChainCode'
 ergo:
   networkType: 'mainnet' # Ergo network type [testnet, mainnet]
@@ -93,9 +110,11 @@ ergo:
   explorer:
     url: 'https://api.ergoplatform.com/'
     timeout: 8
+    tokensPerMinute: 30
   node:
     url: ''
     timeout: 8
+    tokensPerMinute: 30
   minBoxValue: '300000' # minimum nano-erg for a box
   additionalErgOnPayment: '0' # additional erg payment for events that are targeted to Ergo
   fee: '1100000' # Ergo transaction fee
@@ -106,6 +125,9 @@ ergo:
     cold: 20 # a cold storage transaction on Ergo get confirmed
     manual: 20 # a manual transaction on Ergo get confirmed
     arbitrary: 20 # an arbitrary transaction on Ergo get confirmed
+  updateBalanceInterval: 300
+  updateChainBatchBalancesInterval: 60
+  updateBatchBalanceMaxRetries: 5
   initialHeight: 925000 # block scanner starting block height
   scannerInterval: 180 # scanner update interval
 ethereum:
@@ -116,6 +138,7 @@ ethereum:
     timeout: 8
     initialHeight: -1
     scannerInterval: 20
+    tokensPerMinute: 30
   maxParallelTx: 2 # maximum number of txs to be processed with the same nonce (note that only one of these transactions will be succeed)
   gasPriceSlippage: 50 # allowed slippage percentage for gas price
   gasLimitSlippage: 50 # allowed slippage percentage for gas limit
@@ -127,6 +150,9 @@ ethereum:
     cold: 50 # a cold storage transaction on Ethereum get confirmed
     manual: 50 # a manual transaction on Ethereum get confirmed
     arbitrary: 50 # an arbitrary transaction on Ethereum get confirmed
+  updateBalanceInterval: 300
+  updateChainBatchBalancesInterval: 60
+  updateBatchBalanceMaxRetries: 5
   tssChainCode: ''
   derivationPath:
     -

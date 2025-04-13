@@ -17,6 +17,7 @@ class GuardsBinanceConfigs {
     timeout: config.get<number>('binance.rpc.timeout'), // seconds
     scannerInterval: config.get<number>('binance.rpc.scannerInterval'),
     initialHeight: config.get<number>('binance.rpc.initialHeight'),
+    tokensPerMinute: config.get<number>('binance.rpc.tokensPerMinute'),
   };
 
   // value configs
@@ -52,6 +53,19 @@ class GuardsBinanceConfigs {
   static arbitraryTxConfirmation = getConfigIntKeyOrDefault(
     'binance.confirmation.arbitrary',
     200
+  );
+
+  static updateBalanceInterval = getConfigIntKeyOrDefault(
+    'binance.updateBalanceInterval',
+    300
+  );
+  static updateChainBatchBalancesInterval = getConfigIntKeyOrDefault(
+    'binance.updateChainBatchBalancesInterval',
+    60
+  );
+  static updateBatchBalanceMaxRetries = getConfigIntKeyOrDefault(
+    'binance.updateBatchBalanceMaxRetries',
+    5
   );
 
   // the ergo-related contract, addresses and tokens in rosen bridge

@@ -11,6 +11,7 @@ class GuardsBitcoinConfigs {
   static esplora = {
     url: config.get<string>('bitcoin.esplora.url'),
     timeout: config.get<number>('bitcoin.esplora.timeout'), // seconds
+    tokensPerMinute: config.get<number>('bitcoin.esplora.tokensPerMinute'),
   };
 
   // value configs
@@ -36,6 +37,19 @@ class GuardsBitcoinConfigs {
   static arbitraryTxConfirmation = getConfigIntKeyOrDefault(
     'bitcoin.confirmation.arbitrary',
     6
+  );
+
+  static updateBalanceInterval = getConfigIntKeyOrDefault(
+    'bitcoin.updateBalanceInterval',
+    300
+  );
+  static updateChainBatchBalancesInterval = getConfigIntKeyOrDefault(
+    'bitcoin.updateChainBatchBalancesInterval',
+    60
+  );
+  static updateBatchBalanceMaxRetries = getConfigIntKeyOrDefault(
+    'bitcoin.updateBatchBalanceMaxRetries',
+    5
   );
 
   // the ergo-related contract, addresses and tokens in rosen bridge
