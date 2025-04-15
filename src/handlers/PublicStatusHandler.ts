@@ -92,32 +92,41 @@ class PublicStatusHandler {
    * @param status
    * @returns a promise that resolves to void
    */
-  updatePublicEventStatus = async (dto: UpdateStatusDTO): Promise<void> => {
+  updatePublicEventStatus = async (
+    eventId: string,
+    status: EventStatus
+  ): Promise<void> => {
     try {
-      if (
-        dto.status === EventStatus.inPayment ||
-        dto.status === EventStatus.inReward
-      ) {
+      let txDto: UpdateTxStatusDTO | undefined;
+
+      if (status === EventStatus.inPayment || status === EventStatus.inReward) {
         const tx = await this.txRepository.findOne({
           where: {
-            event: { id: dto.eventId },
+            event: { id: eventId },
             status: Not(TransactionStatus.invalid),
           },
         });
 
         if (!tx) {
           throw new ImpossibleBehavior(
-            `No valid tx is found for event [${dto.eventId}]`
+            `No valid tx is found for event [${eventId}]`
           );
         }
 
-        dto.tx = {
+        txDto = {
           txId: tx.txId,
           chain: tx.chain,
           txType: tx.type,
           txStatus: tx.status,
         };
       }
+
+      const dto: UpdateStatusDTO = {
+        date: Date.now(),
+        eventId,
+        status,
+        tx: txDto,
+      };
 
       await this.submitRequest(dto);
     } catch (e) {
@@ -134,22 +143,23 @@ class PublicStatusHandler {
    * @param txStatus
    * @returns a promise that resolves to void
    */
-  updatePublicTxStatus = async (dto: UpdateStatusDTO): Promise<void> => {
+  updatePublicTxStatus = async (
+    txId: string,
+    txStatus: TransactionStatus
+  ): Promise<void> => {
     try {
       const tx = await this.txRepository.findOne({
         relations: ['event'],
         where: {
-          txId: dto.tx!.txId,
+          txId,
         },
       });
 
       if (!tx) {
-        throw new ImpossibleBehavior(`Tx [${dto.tx!.txId}] is not found!`);
+        throw new ImpossibleBehavior(`Tx [${txId}] is not found!`);
       }
       if (!tx.event) {
-        throw new ImpossibleBehavior(
-          `Event of tx [${dto.tx!.txId}] is not found!`
-        );
+        throw new ImpossibleBehavior(`Event of tx [${txId}] is not found!`);
       }
 
       if (
@@ -159,13 +169,16 @@ class PublicStatusHandler {
         return;
       }
 
-      dto.eventId = tx.event.id;
-      dto.status = tx.event.status;
-      dto.tx = {
-        txId: tx.txId,
-        chain: tx.chain,
-        txType: tx.type,
-        txStatus: dto.tx!.txStatus,
+      const dto: UpdateStatusDTO = {
+        date: Date.now(),
+        eventId: tx.event.id,
+        status: tx.event.status,
+        tx: {
+          txId,
+          chain: tx.chain,
+          txType: tx.type,
+          txStatus,
+        },
       };
 
       await this.submitRequest(dto);

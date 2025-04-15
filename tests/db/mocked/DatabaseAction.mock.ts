@@ -35,8 +35,18 @@ import {
 import { ArbitraryEntity } from '../../../src/db/entities/ArbitraryEntity';
 import { ReprocessEntity } from '../../../src/db/entities/ReprocessEntity';
 import { ReprocessStatus } from '../../../src/reprocess/Interfaces';
+import PublicStatusHandler from '../../../src/handlers/PublicStatusHandler';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
+
+vi.spyOn(PublicStatusHandler, 'getInstance').mockImplementation(
+  (): PublicStatusHandler => {
+    return {
+      updatePublicEventStatus: vi.fn().mockResolvedValue(undefined),
+      updatePublicTxStatus: vi.fn().mockResolvedValue(undefined),
+    } as any;
+  }
+);
 
 class DatabaseActionMock {
   static testDataSource = new DataSource({

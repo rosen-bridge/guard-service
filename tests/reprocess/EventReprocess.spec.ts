@@ -10,9 +10,11 @@ import EventSerializer from '../../src/event/EventSerializer';
 import { EventStatus } from '../../src/utils/constants';
 import TestUtils from '../testUtils/TestUtils';
 import { NotFoundError } from '@rosen-chains/abstract-chain';
+import PublicStatusHandlerMock from '../handlers/mocked/PublicStatusHandler.mock';
 
 describe('EventReprocess', async () => {
   await EventReprocess.init();
+
   describe('sendReprocessRequest', () => {
     beforeAll(() => {
       vi.useFakeTimers();
@@ -25,6 +27,8 @@ describe('EventReprocess', async () => {
 
     beforeEach(async () => {
       await DatabaseActionMock.clearTables();
+      PublicStatusHandlerMock.resetMock();
+      PublicStatusHandlerMock.mock();
     });
 
     /**
@@ -34,6 +38,7 @@ describe('EventReprocess', async () => {
      * - database
      * - Date
      * @scenario
+     * - stub PublicStatusHandler.updatePublicEventStatus to resolve
      * - mock event and insert into db
      * - mock EventReprocess.sendMessage
      * - run test
@@ -44,8 +49,12 @@ describe('EventReprocess', async () => {
      * - the requests should be inserted into database with the same
      *   request id and timestamp
      * - `sendMessage` should got called with expected arguments
+     * - PublicStatusHandler.updatePublicEventStatus should have been called once
      */
     it('should send request messages to other guards and insert them into db', async () => {
+      const updatePublicEventStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicEventStatus();
+
       // mock event and insert into db
       const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
@@ -93,6 +102,12 @@ describe('EventReprocess', async () => {
         peers,
         TestConfigs.currentTimeStamp / 1000
       );
+
+      expect(updatePublicEventStatusSpy).toHaveBeenCalledOnce();
+      expect(updatePublicEventStatusSpy.mock.calls[0]).toEqual([
+        eventId,
+        EventStatus.pendingPayment,
+      ]);
     });
 
     /**
@@ -102,6 +117,7 @@ describe('EventReprocess', async () => {
      * - database
      * - Date
      * @scenario
+     * - stub PublicStatusHandler.updatePublicEventStatus to resolve
      * - mock event and insert into db
      * - mock EventReprocess.sendMessage
      * - run test
@@ -112,8 +128,12 @@ describe('EventReprocess', async () => {
      * - the requests should be inserted into database with the same
      *   request id and timestamp
      * - `sendMessage` should got called with expected arguments
+     * - PublicStatusHandler.updatePublicEventStatus should have been called once
      */
     it('should also update the event to pending-reward when event status is reward-waiting', async () => {
+      const updatePublicEventStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicEventStatus();
+
       // mock event and insert into db
       const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
@@ -161,6 +181,12 @@ describe('EventReprocess', async () => {
         peers,
         TestConfigs.currentTimeStamp / 1000
       );
+
+      expect(updatePublicEventStatusSpy).toHaveBeenCalledOnce();
+      expect(updatePublicEventStatusSpy.mock.calls[0]).toEqual([
+        eventId,
+        EventStatus.pendingReward,
+      ]);
     });
 
     /**
@@ -273,6 +299,8 @@ describe('EventReprocess', async () => {
 
     beforeEach(async () => {
       await DatabaseActionMock.clearTables();
+      PublicStatusHandlerMock.resetMock();
+      PublicStatusHandlerMock.mock();
     });
 
     /**
@@ -282,6 +310,7 @@ describe('EventReprocess', async () => {
      * - database
      * - Date
      * @scenario
+     * - stub PublicStatusHandler.updatePublicEventStatus to resolve
      * - mock event and insert into db
      * - mock EventReprocess.sendMessage
      * - run test
@@ -291,8 +320,12 @@ describe('EventReprocess', async () => {
      * - the event status should be updated in database
      * - the request should be added to database
      * - `sendMessage` should got called with expected arguments
+     * - PublicStatusHandler.updatePublicEventStatus should have been called once
      */
     it('should update event status to pending-payment and insert request into db when all conditions are met', async () => {
+      const updatePublicEventStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicEventStatus();
+
       // mock event and insert into db
       const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
@@ -346,6 +379,12 @@ describe('EventReprocess', async () => {
         ['peer0'],
         timestamp
       );
+
+      expect(updatePublicEventStatusSpy).toHaveBeenCalledOnce();
+      expect(updatePublicEventStatusSpy.mock.calls[0]).toEqual([
+        eventId,
+        EventStatus.pendingPayment,
+      ]);
     });
 
     /**
@@ -355,6 +394,7 @@ describe('EventReprocess', async () => {
      * - database
      * - Date
      * @scenario
+     * - stub PublicStatusHandler.updatePublicEventStatus to resolve
      * - mock event and insert into db
      * - mock EventReprocess.sendMessage
      * - run test
@@ -364,8 +404,12 @@ describe('EventReprocess', async () => {
      * - the event status should be updated in database
      * - the request should be added to database
      * - `sendMessage` should got called with expected arguments
+     * - PublicStatusHandler.updatePublicEventStatus should have been called once
      */
     it('should update event status to pending-reward when all conditions are met', async () => {
+      const updatePublicEventStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicEventStatus();
+
       // mock event and insert into db
       const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
@@ -419,6 +463,12 @@ describe('EventReprocess', async () => {
         ['peer0'],
         timestamp
       );
+
+      expect(updatePublicEventStatusSpy).toHaveBeenCalledOnce();
+      expect(updatePublicEventStatusSpy.mock.calls[0]).toEqual([
+        eventId,
+        EventStatus.pendingReward,
+      ]);
     });
 
     /**

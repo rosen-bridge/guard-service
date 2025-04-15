@@ -28,6 +28,8 @@ import { EventTriggerEntity } from '@rosen-bridge/watcher-data-extractor';
 describe('DatabaseActions', () => {
   beforeEach(async () => {
     await DatabaseActionMock.clearTables();
+    PublicStatusHandlerMock.resetMock();
+    PublicStatusHandlerMock.mock();
   });
 
   describe('getEvents', () => {
@@ -775,6 +777,7 @@ describe('DatabaseActions', () => {
      * - database
      * - Date
      * @scenario
+     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
      * - mock transaction and insert into db as 'in-sign'
      * - run test
      * - check tx
@@ -782,8 +785,12 @@ describe('DatabaseActions', () => {
      * - status should be updated to 'sign-failed'
      * - signFailedCount should be incremented
      * - failedInSign should be updated to true
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once
      */
     it('should set tx as sign-failed successfully', async () => {
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
       // mock transaction and insert into db as 'in-sign'
       const tx = TxTestData.mockPaymentTransaction();
       await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.inSign);
@@ -807,6 +814,11 @@ describe('DatabaseActions', () => {
           true,
           1,
         ],
+      ]);
+      expect(updatePublicTxStatusSpy).toHaveBeenCalledOnce();
+      expect(updatePublicTxStatusSpy.mock.calls[0]).toEqual([
+        tx.txId,
+        TransactionStatus.signFailed,
       ]);
     });
 
@@ -840,11 +852,6 @@ describe('DatabaseActions', () => {
   });
 
   describe('setEventStatus', () => {
-    beforeEach(async () => {
-      PublicStatusHandlerMock.resetMock();
-      PublicStatusHandlerMock.mock();
-    });
-
     /**
      * @target DatabaseAction.setEventStatus should call updatePublicEventStatus after updating database record
      * @dependencies
@@ -857,7 +864,7 @@ describe('DatabaseActions', () => {
      * - call ConfirmedEventRepository.findOne with eventId
      * @expected
      * - database record should have been updated
-     * - PublicStatusHandler.updatePublicEventStatus should have been called once with the correct dto
+     * - PublicStatusHandler.updatePublicEventStatus should have been called once
      */
     it('should call updatePublicEventStatus after updating database record', async () => {
       // arrange
@@ -890,21 +897,14 @@ describe('DatabaseActions', () => {
       expect(record!.status).toBe(EventStatus.pendingReward);
 
       expect(updatePublicEventStatusSpy).toHaveBeenCalledOnce();
-      expect(updatePublicEventStatusSpy.mock.calls[0][0]).toEqual({
-        date: (updatePublicEventStatusSpy.mock.calls[0][0] as any).date,
+      expect(updatePublicEventStatusSpy.mock.calls[0]).toEqual([
         eventId,
-        status: EventStatus.pendingReward,
-        tx: undefined,
-      });
+        EventStatus.pendingReward,
+      ]);
     });
   });
 
   describe('setEventStatusToPending', () => {
-    beforeEach(async () => {
-      PublicStatusHandlerMock.resetMock();
-      PublicStatusHandlerMock.mock();
-    });
-
     /**
      * @target DatabaseAction.setEventStatusToPending should call updatePublicEventStatus after updating database record
      * @dependencies
@@ -917,7 +917,7 @@ describe('DatabaseActions', () => {
      * - call ConfirmedEventRepository.findOne with eventId
      * @expected
      * - database record should have been updated
-     * - PublicStatusHandler.updatePublicEventStatus should have been called once with the correct dto
+     * - PublicStatusHandler.updatePublicEventStatus should have been called once
      */
     it('should call updatePublicEventStatus after updating database record', async () => {
       // arrange
@@ -950,21 +950,14 @@ describe('DatabaseActions', () => {
       expect(record!.status).toBe(EventStatus.pendingReward);
 
       expect(updatePublicEventStatusSpy).toHaveBeenCalledOnce();
-      expect(updatePublicEventStatusSpy.mock.calls[0][0]).toEqual({
-        date: (updatePublicEventStatusSpy.mock.calls[0][0] as any).date,
+      expect(updatePublicEventStatusSpy.mock.calls[0]).toEqual([
         eventId,
-        status: EventStatus.pendingReward,
-        tx: undefined,
-      });
+        EventStatus.pendingReward,
+      ]);
     });
   });
 
   describe('insertConfirmedEvent', () => {
-    beforeEach(async () => {
-      PublicStatusHandlerMock.resetMock();
-      PublicStatusHandlerMock.mock();
-    });
-
     /**
      * @target DatabaseAction.insertConfirmedEvent should call updatePublicEventStatus after updating database record
      * @dependencies
@@ -977,7 +970,7 @@ describe('DatabaseActions', () => {
      * - call ConfirmedEventRepository.findOne with eventId
      * @expected
      * - database record should have been updated
-     * - PublicStatusHandler.updatePublicEventStatus should have been called once with the correct dto
+     * - PublicStatusHandler.updatePublicEventStatus should have been called once
      */
     it('should call updatePublicEventStatus after updating database record', async () => {
       // arrange
@@ -1004,21 +997,14 @@ describe('DatabaseActions', () => {
       expect(record!.status).toBe(EventStatus.pendingPayment);
 
       expect(updatePublicEventStatusSpy).toHaveBeenCalledOnce();
-      expect(updatePublicEventStatusSpy.mock.calls[0][0]).toEqual({
-        date: (updatePublicEventStatusSpy.mock.calls[0][0] as any).date,
+      expect(updatePublicEventStatusSpy.mock.calls[0]).toEqual([
         eventId,
-        status: EventStatus.pendingPayment,
-        tx: undefined,
-      });
+        EventStatus.pendingPayment,
+      ]);
     });
   });
 
   describe('setTxStatus', () => {
-    beforeEach(async () => {
-      PublicStatusHandlerMock.resetMock();
-      PublicStatusHandlerMock.mock();
-    });
-
     /**
      * @target DatabaseAction.setTxStatus should call updatePublicTxStatus after updating database record
      * @dependencies
@@ -1031,7 +1017,7 @@ describe('DatabaseActions', () => {
      * - call TransactionRepository.findOne with txId
      * @expected
      * - database record should have been updated
-     * - PublicStatusHandler.updatePublicTxStatus should have been called once with the correct dto
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once
      */
     it('should call updatePublicTxStatus after updating database record', async () => {
       // arrange
@@ -1058,25 +1044,14 @@ describe('DatabaseActions', () => {
       expect(record!.status).toBe(TransactionStatus.approved);
 
       expect(updatePublicTxStatusSpy).toHaveBeenCalledOnce();
-      expect(updatePublicTxStatusSpy.mock.calls[0][0]).toEqual({
-        date: (updatePublicTxStatusSpy.mock.calls[0][0] as any).date,
-        eventId: '',
-        status: (updatePublicTxStatusSpy.mock.calls[0][0] as any).status,
-        tx: {
-          ...(updatePublicTxStatusSpy.mock.calls[0][0] as any).tx,
-          txId: mockTx.txId,
-          txStatus: TransactionStatus.approved,
-        },
-      });
+      expect(updatePublicTxStatusSpy.mock.calls[0]).toEqual([
+        mockTx.txId,
+        TransactionStatus.approved,
+      ]);
     });
   });
 
   describe('setTxAsSignFailed', () => {
-    beforeEach(async () => {
-      PublicStatusHandlerMock.resetMock();
-      PublicStatusHandlerMock.mock();
-    });
-
     /**
      * @target DatabaseAction.setTxAsSignFailed should call updatePublicTxStatus after updating database record
      * @dependencies
@@ -1089,7 +1064,7 @@ describe('DatabaseActions', () => {
      * - call TransactionRepository.findOne with txId
      * @expected
      * - database record should have been updated
-     * - PublicStatusHandler.updatePublicTxStatus should have been called once with the correct dto
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once
      */
     it('should call updatePublicTxStatus after updating database record', async () => {
       // arrange
@@ -1113,25 +1088,14 @@ describe('DatabaseActions', () => {
       expect(record!.status).toBe(TransactionStatus.signFailed);
 
       expect(updatePublicTxStatusSpy).toHaveBeenCalledOnce();
-      expect(updatePublicTxStatusSpy.mock.calls[0][0]).toEqual({
-        date: (updatePublicTxStatusSpy.mock.calls[0][0] as any).date,
-        eventId: '',
-        status: (updatePublicTxStatusSpy.mock.calls[0][0] as any).status,
-        tx: {
-          ...(updatePublicTxStatusSpy.mock.calls[0][0] as any).tx,
-          txId: mockTx.txId,
-          txStatus: TransactionStatus.signFailed,
-        },
-      });
+      expect(updatePublicTxStatusSpy.mock.calls[0]).toEqual([
+        mockTx.txId,
+        TransactionStatus.signFailed,
+      ]);
     });
   });
 
   describe('updateWithSignedTx', () => {
-    beforeEach(async () => {
-      PublicStatusHandlerMock.resetMock();
-      PublicStatusHandlerMock.mock();
-    });
-
     /**
      * @target DatabaseAction.updateWithSignedTx should call updatePublicTxStatus after updating database record
      * @dependencies
@@ -1144,7 +1108,7 @@ describe('DatabaseActions', () => {
      * - call TransactionRepository.findOne with txId
      * @expected
      * - database record should have been updated
-     * - PublicStatusHandler.updatePublicTxStatus should have been called once with the correct dto
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once
      */
     it('should call updatePublicTxStatus after updating database record', async () => {
       // arrange
@@ -1172,25 +1136,14 @@ describe('DatabaseActions', () => {
       expect(record!.status).toBe(TransactionStatus.signed);
 
       expect(updatePublicTxStatusSpy).toHaveBeenCalledOnce();
-      expect(updatePublicTxStatusSpy.mock.calls[0][0]).toEqual({
-        date: (updatePublicTxStatusSpy.mock.calls[0][0] as any).date,
-        eventId: '',
-        status: (updatePublicTxStatusSpy.mock.calls[0][0] as any).status,
-        tx: {
-          ...(updatePublicTxStatusSpy.mock.calls[0][0] as any).tx,
-          txId: mockTx.txId,
-          txStatus: TransactionStatus.signed,
-        },
-      });
+      expect(updatePublicTxStatusSpy.mock.calls[0]).toEqual([
+        mockTx.txId,
+        TransactionStatus.signed,
+      ]);
     });
   });
 
   describe('replaceTx', () => {
-    beforeEach(async () => {
-      PublicStatusHandlerMock.resetMock();
-      PublicStatusHandlerMock.mock();
-    });
-
     /**
      * @target DatabaseAction.replaceTx should call updatePublicTxStatus after updating database record
      * @dependencies
@@ -1204,7 +1157,7 @@ describe('DatabaseActions', () => {
      * - call TransactionRepository.findOne with txId
      * @expected
      * - database record should have been updated
-     * - PublicStatusHandler.updatePublicTxStatus should have been called once with the correct dto
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once
      */
     it('should call updatePublicTxStatus after updating database record', async () => {
       // arrange
@@ -1229,25 +1182,14 @@ describe('DatabaseActions', () => {
       expect(record!.txId).toBe(mockTx2.txId);
 
       expect(updatePublicTxStatusSpy).toHaveBeenCalledOnce();
-      expect(updatePublicTxStatusSpy.mock.calls[0][0]).toEqual({
-        date: (updatePublicTxStatusSpy.mock.calls[0][0] as any).date,
-        eventId: '',
-        status: (updatePublicTxStatusSpy.mock.calls[0][0] as any).status,
-        tx: {
-          ...(updatePublicTxStatusSpy.mock.calls[0][0] as any).tx,
-          txId: mockTx2.txId,
-          txStatus: TransactionStatus.approved,
-        },
-      });
+      expect(updatePublicTxStatusSpy.mock.calls[0]).toEqual([
+        mockTx2.txId,
+        TransactionStatus.approved,
+      ]);
     });
   });
 
   describe('insertNewTx', () => {
-    beforeEach(async () => {
-      PublicStatusHandlerMock.resetMock();
-      PublicStatusHandlerMock.mock();
-    });
-
     /**
      * @target DatabaseAction.insertNewTx should call updatePublicTxStatus after inserting database record
      * @dependencies
@@ -1259,7 +1201,7 @@ describe('DatabaseActions', () => {
      * - call TransactionRepository.findOne with txId
      * @expected
      * - database record should have been inserted
-     * - PublicStatusHandler.updatePublicTxStatus should have been called once with the correct dto
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once
      */
     it('should call updatePublicTxStatus after inserting database record', async () => {
       // arrange
@@ -1281,25 +1223,14 @@ describe('DatabaseActions', () => {
       expect(record!.txId).toBe(mockTx.txId);
 
       expect(updatePublicTxStatusSpy).toHaveBeenCalledOnce();
-      expect(updatePublicTxStatusSpy.mock.calls[0][0]).toEqual({
-        date: (updatePublicTxStatusSpy.mock.calls[0][0] as any).date,
-        eventId: '',
-        status: (updatePublicTxStatusSpy.mock.calls[0][0] as any).status,
-        tx: {
-          ...(updatePublicTxStatusSpy.mock.calls[0][0] as any).tx,
-          txId: mockTx.txId,
-          txStatus: TransactionStatus.approved,
-        },
-      });
+      expect(updatePublicTxStatusSpy.mock.calls[0]).toEqual([
+        mockTx.txId,
+        TransactionStatus.approved,
+      ]);
     });
   });
 
   describe('insertCompletedTx', () => {
-    beforeEach(async () => {
-      PublicStatusHandlerMock.resetMock();
-      PublicStatusHandlerMock.mock();
-    });
-
     /**
      * @target DatabaseAction.insertCompletedTx should call updatePublicTxStatus after inserting database record
      * @dependencies
@@ -1311,7 +1242,7 @@ describe('DatabaseActions', () => {
      * - call TransactionRepository.findOne with txId
      * @expected
      * - database record should have been inserted
-     * - PublicStatusHandler.updatePublicTxStatus should have been called once with the correct dto
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once
      */
     it('should call updatePublicTxStatus after inserting database record', async () => {
       // arrange
@@ -1338,16 +1269,10 @@ describe('DatabaseActions', () => {
       expect(record!.txId).toBe(mockTx.txId);
 
       expect(updatePublicTxStatusSpy).toHaveBeenCalledOnce();
-      expect(updatePublicTxStatusSpy.mock.calls[0][0]).toEqual({
-        date: (updatePublicTxStatusSpy.mock.calls[0][0] as any).date,
-        eventId: '',
-        status: (updatePublicTxStatusSpy.mock.calls[0][0] as any).status,
-        tx: {
-          ...(updatePublicTxStatusSpy.mock.calls[0][0] as any).tx,
-          txId: mockTx.txId,
-          txStatus: TransactionStatus.completed,
-        },
-      });
+      expect(updatePublicTxStatusSpy.mock.calls[0]).toEqual([
+        mockTx.txId,
+        TransactionStatus.completed,
+      ]);
     });
   });
 });

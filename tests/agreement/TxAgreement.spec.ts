@@ -21,6 +21,7 @@ import {
 import { cloneDeep } from 'lodash-es';
 import TransactionVerifier from '../../src/verification/TransactionVerifier';
 import { CARDANO_CHAIN } from '@rosen-chains/cardano';
+import PublicStatusHandlerMock from '../handlers/mocked/PublicStatusHandler.mock';
 
 describe('TxAgreement', () => {
   describe('addTransactionToQueue', () => {
@@ -1136,6 +1137,9 @@ describe('TxAgreement', () => {
   describe('processAgreementResponse', () => {
     beforeEach(async () => {
       await DatabaseActionMock.clearTables();
+
+      PublicStatusHandlerMock.resetMock();
+      PublicStatusHandlerMock.mock();
     });
 
     /**
@@ -1317,6 +1321,7 @@ describe('TxAgreement', () => {
      * @dependencies
      * - database
      * @scenario
+     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
      * - mock testdata
      * - insert mocked event into db
      * - mock txAgreement.sendMessage
@@ -1331,8 +1336,12 @@ describe('TxAgreement', () => {
      * - memory txs should be empty
      * - event status should be updated in db
      * - tx should be inserted into db
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once
      */
     it('should broadcast approval message for payment tx when sufficient number of guards agreed', async () => {
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
       // mock testdata
       const type = AgreementMessageTypes.response;
       const mockedEvent = EventTestData.mockEventTrigger().event;
@@ -1425,6 +1434,12 @@ describe('TxAgreement', () => {
       ]);
       expect(dbTxs.length).toEqual(1);
       expect(dbTxs).to.deep.contain([paymentTx.txId, eventId]);
+
+      expect(updatePublicTxStatusSpy).toHaveBeenCalledOnce();
+      expect(updatePublicTxStatusSpy.mock.calls[0]).toEqual([
+        paymentTx.txId,
+        TransactionStatus.approved,
+      ]);
     });
 
     /**
@@ -1433,6 +1448,7 @@ describe('TxAgreement', () => {
      * @dependencies
      * - database
      * @scenario
+     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
      * - mock testdata
      * - mock txAgreement.sendMessage
      * - insert mocked tx into memory
@@ -1445,8 +1461,12 @@ describe('TxAgreement', () => {
      * - tx should be inserted to approvedTransactions
      * - memory txs should be empty
      * - tx should be inserted into db
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once
      */
     it('should broadcast approval message for cold storage tx when sufficient number of guards agreed', async () => {
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
       // mock testdata
       const type = AgreementMessageTypes.response;
       const chain = 'chain';
@@ -1523,12 +1543,21 @@ describe('TxAgreement', () => {
       ]);
       expect(dbTxs.length).toEqual(1);
       expect(dbTxs).to.deep.contain([paymentTx.txId, null, chain]);
+
+      expect(updatePublicTxStatusSpy).toHaveBeenCalledOnce();
+      expect(updatePublicTxStatusSpy.mock.calls[0]).toEqual([
+        paymentTx.txId,
+        TransactionStatus.approved,
+      ]);
     });
   });
 
   describe('processApprovalMessage', () => {
     beforeEach(async () => {
       await DatabaseActionMock.clearTables();
+
+      PublicStatusHandlerMock.resetMock();
+      PublicStatusHandlerMock.mock();
     });
 
     /**
@@ -1676,6 +1705,7 @@ describe('TxAgreement', () => {
      * @dependencies
      * - database
      * @scenario
+     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
      * - mock testdata
      * - insert mocked event into db
      * - mock signer verify function to return true
@@ -1687,8 +1717,12 @@ describe('TxAgreement', () => {
      * - memory txs should be empty
      * - event status should be updated in db
      * - tx should be inserted into db
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once
      */
     it('should set tx as approved when required number of signs met for a payment tx', async () => {
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
       // mock testdata
       const type = AgreementMessageTypes.approval;
       const mockedEvent = EventTestData.mockEventTrigger().event;
@@ -1757,6 +1791,12 @@ describe('TxAgreement', () => {
       ]);
       expect(dbTxs.length).toEqual(1);
       expect(dbTxs).to.deep.contain([paymentTx.txId, eventId]);
+
+      expect(updatePublicTxStatusSpy).toHaveBeenCalledOnce();
+      expect(updatePublicTxStatusSpy.mock.calls[0]).toEqual([
+        paymentTx.txId,
+        TransactionStatus.approved,
+      ]);
     });
 
     /**
@@ -1765,6 +1805,7 @@ describe('TxAgreement', () => {
      * @dependencies
      * - database
      * @scenario
+     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
      * - mock testdata
      * - mock signer verify function to return true
      * - insert mocked tx into memory
@@ -1774,8 +1815,12 @@ describe('TxAgreement', () => {
      * @expected
      * - memory txs should be empty
      * - tx should be inserted into db
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once
      */
     it('should set tx as approved when required number of signs met for a cold storage tx', async () => {
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
       // mock testdata
       const type = AgreementMessageTypes.approval;
       const chain = 'chain';
@@ -1831,6 +1876,12 @@ describe('TxAgreement', () => {
       ]);
       expect(dbTxs.length).toEqual(1);
       expect(dbTxs).to.deep.contain([paymentTx.txId, null, paymentTx.network]);
+
+      expect(updatePublicTxStatusSpy).toHaveBeenCalledOnce();
+      expect(updatePublicTxStatusSpy.mock.calls[0]).toEqual([
+        paymentTx.txId,
+        TransactionStatus.approved,
+      ]);
     });
 
     /**
@@ -1839,6 +1890,7 @@ describe('TxAgreement', () => {
      * @dependencies
      * - database
      * @scenario
+     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
      * - mock testdata
      * - insert mocked event into db
      * - mock signer verify function to return true
@@ -1850,8 +1902,12 @@ describe('TxAgreement', () => {
      * - memory txs should be empty
      * - event status should be updated in db
      * - tx should be inserted into db
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once
      */
     it('should set tx as approved when transaction not found but verified', async () => {
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
       // mock testdata
       const type = AgreementMessageTypes.approval;
       const mockedEvent = EventTestData.mockEventTrigger().event;
@@ -1916,6 +1972,12 @@ describe('TxAgreement', () => {
       ]);
       expect(dbTxs.length).toEqual(1);
       expect(dbTxs).to.deep.contain([paymentTx.txId, eventId]);
+
+      expect(updatePublicTxStatusSpy).toHaveBeenCalledOnce();
+      expect(updatePublicTxStatusSpy.mock.calls[0]).toEqual([
+        paymentTx.txId,
+        TransactionStatus.approved,
+      ]);
     });
 
     /**

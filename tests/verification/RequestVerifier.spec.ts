@@ -25,6 +25,8 @@ import {
   TransactionStatus,
 } from '../../src/utils/constants';
 import TestUtils from '../testUtils/TestUtils';
+import PublicStatusHandlerMock from '../handlers/mocked/PublicStatusHandler.mock';
+import Utils from '../../src/utils/Utils';
 
 describe('RequestVerifier', () => {
   describe('verifyEventTransactionRequest', () => {
@@ -38,6 +40,8 @@ describe('RequestVerifier', () => {
         rsnRatioDivisor,
         feeRatioDivisor,
       });
+      PublicStatusHandlerMock.resetMock();
+      PublicStatusHandlerMock.mock();
     });
 
     /**
@@ -372,6 +376,7 @@ describe('RequestVerifier', () => {
      * - TransactionVerifier
      * - database
      * @scenario
+     * - stub PublicStatusHandler.updatePublicEventStatus to resolve
      * - mock event and transaction
      * - insert mocked event into db
      * - mock EventVerifier
@@ -383,8 +388,12 @@ describe('RequestVerifier', () => {
      * - verify returned value
      * @expected
      * - returned value should be false
+     * - PublicStatusHandler.updatePublicEventStatus should have been called once
      */
     it('should return false when event is not verified', async () => {
+      const updatePublicEventStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicEventStatus();
+
       // mock event and transaction
       const mockedEvent = mockEventTrigger().event;
       const paymentTx = mockPaymentTransaction(
@@ -416,6 +425,12 @@ describe('RequestVerifier', () => {
 
       // verify returned value
       expect(result).toEqual(false);
+
+      expect(updatePublicEventStatusSpy).toHaveBeenCalledOnce();
+      expect(updatePublicEventStatusSpy.mock.calls[0]).toEqual([
+        Utils.txIdToEventId(mockedEvent.sourceTxId),
+        EventStatus.rejected,
+      ]);
     });
 
     /**
