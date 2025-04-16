@@ -9,11 +9,7 @@ import {
   BITCOIN_CHAIN,
   BitcoinChain,
 } from '@rosen-chains/bitcoin';
-import {
-  AbstractDogeNetwork,
-  DOGE_CHAIN,
-  DogeChain,
-} from '@rosen-chains/doge';
+import { AbstractDogeNetwork, DOGE_CHAIN, DogeChain } from '@rosen-chains/doge';
 import { AbstractErgoNetwork, ERGO_CHAIN, ErgoChain } from '@rosen-chains/ergo';
 import CardanoKoiosNetwork, {
   KOIOS_NETWORK,
@@ -46,6 +42,7 @@ import { TokenHandler } from './tokenHandler';
 
 import { DatabaseAction } from 'src/db/DatabaseAction';
 import * as TransactionSerializer from '../transaction/TransactionSerializer';
+import { DogeEsploraNetwork } from '@rosen-chains/doge-esplora';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -214,6 +211,17 @@ class ChainHandler {
   private generateDogeChain = (): DogeChain => {
     let network: AbstractDogeNetwork;
     switch (GuardsDogeConfigs.chainNetworkName) {
+      case 'esplora':
+        network = new DogeEsploraNetwork(
+          GuardsDogeConfigs.esplora.url,
+          async (txId: string) => {
+            const tx = await DatabaseAction.getInstance().getTxById(txId);
+            if (tx === null) return undefined;
+            return TransactionSerializer.fromJson(tx.txJson);
+          },
+          DefaultLoggerFactory.getInstance().getLogger('BlockcypherNetwork')
+        );
+        break;
       case 'blockcypher':
         network = new DogeBlockcypherNetwork(
           GuardsDogeConfigs.blockcypher.url,

@@ -38,9 +38,6 @@ bitcoin:
 doge:
   networkType: 'testnet'
   chainNetwork: 'blockcypher'
-  blockcypher:
-    url: 'https://api.blockcypher.com'
-    timeout: 8
   bankPublicKey: 'bcb07faa6c0f19e2f2587aa9ef6f43a68fc0135321216a71dc87c8527af4ca6a'
   txFeeSlippage: 10
   confirmation:

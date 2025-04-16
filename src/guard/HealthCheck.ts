@@ -1,12 +1,12 @@
 import {
   EsploraAssetHealthCheckParam,
-  DogeBlockCypherAssetHealthCheckParam,
   CardanoBlockFrostAssetHealthCheckParam,
   CardanoKoiosAssetHealthCheckParam,
   ErgoExplorerAssetHealthCheckParam,
   ErgoNodeAssetHealthCheckParam,
   EvmRpcAssetHealthCheckParam,
 } from '@rosen-bridge/asset-check';
+import { DogeBlockCypherAssetHealthCheckParam } from '@rosen-bridge/asset-check/dist/doge';
 import { HealthCheck } from '@rosen-bridge/health-check';
 import { ErgoNodeSyncHealthCheckParam } from '@rosen-bridge/node-sync-check';
 import { P2PNetworkHealthCheck } from '@rosen-bridge/p2p-network-check';
