@@ -3,7 +3,11 @@ import { FastifySeverInstance } from '../../src/api/schemas';
 import DatabaseActionMock from '../db/mocked/DatabaseAction.mock';
 import { OrderStatus } from '../../src/utils/constants';
 import { ERGO_CHAIN } from '@rosen-chains/ergo';
-import { orderJson } from '../arbitrary/testData';
+import {
+  arrangedOrderJson,
+  disarrangedOrderJson,
+  orderJson,
+} from '../arbitrary/testData';
 import { arbitraryOrderRoute } from '../../src/api/arbitrary';
 import { invalidOrderJson } from './testData';
 
@@ -60,6 +64,49 @@ describe('arbitrary', () => {
         '85b5cb7f4e81e1db4e95803b6144c64983f76e776ff75fd04c0ebfc95ae46e4d',
         ERGO_CHAIN,
         orderJson,
+        OrderStatus.pending,
+      ]);
+    });
+
+    /**
+     * @target fastifyServer[POST /order] should insert encoded version of the order
+     * @dependencies
+     * - database
+     * @scenario
+     * - send a request to the server
+     * - check the result
+     * - check database
+     * @expected
+     * - it should return status code 200
+     * - the encoded version of order should be inserted into db
+     */
+    it('should insert encoded version of the order', async () => {
+      // send a request to the server
+      const result = await mockedServer.inject({
+        method: 'POST',
+        url: '/order',
+        body: {
+          id: '85b5cb7f4e81e1db4e95803b6144c64983f76e776ff75fd04c0ebfc95ae46e4d',
+          chain: ERGO_CHAIN,
+          orderJson: disarrangedOrderJson,
+        },
+        headers: {
+          'Api-Key': 'hello',
+        },
+      });
+
+      // check the result
+      expect(result.statusCode).toEqual(200);
+
+      // check database
+      const dbOrders = (await DatabaseActionMock.allOrderRecords()).map(
+        (order) => [order.id, order.chain, order.orderJson, order.status]
+      );
+      expect(dbOrders.length).toEqual(1);
+      expect(dbOrders).to.deep.contain([
+        '85b5cb7f4e81e1db4e95803b6144c64983f76e776ff75fd04c0ebfc95ae46e4d',
+        ERGO_CHAIN,
+        arrangedOrderJson,
         OrderStatus.pending,
       ]);
     });
