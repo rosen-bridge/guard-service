@@ -6,6 +6,7 @@ import {
   ErgoNodeAssetHealthCheckParam,
   EvmRpcAssetHealthCheckParam,
 } from '@rosen-bridge/asset-check';
+import { DogeBlockCypherAssetHealthCheckParam } from '@rosen-bridge/asset-check/dist/doge';
 import { HealthCheck } from '@rosen-bridge/health-check';
 import { ErgoNodeSyncHealthCheckParam } from '@rosen-bridge/node-sync-check';
 import {
@@ -285,6 +286,16 @@ const getHealthCheck = async () => {
         Configs.dogeWarnThreshold,
         Configs.dogeCriticalThreshold,
         GuardsDogeConfigs.esplora.url,
+        8
+      );
+      healthCheck.register(dogeAssetHealthCheck);
+    } else if (GuardsDogeConfigs.chainNetworkName === 'blockcypher') {
+      const dogeAssetHealthCheck = new DogeBlockCypherAssetHealthCheckParam(
+        DOGE,
+        dogeContracts.lockAddress,
+        Configs.dogeWarnThreshold,
+        Configs.dogeCriticalThreshold,
+        GuardsDogeConfigs.blockcypher.url,
         8
       );
       healthCheck.register(dogeAssetHealthCheck);
