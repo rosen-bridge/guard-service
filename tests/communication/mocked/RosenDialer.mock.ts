@@ -30,7 +30,7 @@ class RosenDialerMock {
           receiver
         );
       },
-    } as RosenDialerNode; // Mock implementation of RosenDialerNode
+    } as RosenDialerNode;
   }
 
   static getInstance(): RosenDialerMock {
