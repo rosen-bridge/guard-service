@@ -85,22 +85,8 @@ const getHealthCheck = async () => {
       notificationConfig
     );
 
-    // TODO: should replace this param with detected active guards with detection scenario
-    // add P2PNetwork param
-    // const dialer = await RosenDialer.getInstance();
-    // const p2pHealthCheck = new P2PNetworkHealthCheck({
-    //   defectConfirmationTimeWindow: Configs.p2pDefectConfirmationTimeWindow,
-    //   connectedGuardsHealthyThreshold:
-    //     GuardPkHandler.getInstance().requiredSign - 1,
-    //   getConnectedGuards: () => {
-    //     const connectedRelays = dialer.getRelayStates().connected?.length ?? 0;
-    //     return dialer.getPeerIds(true).length - connectedRelays;
-    //   },
-    //   getIsAtLeastOneRelayConnected: () => {
-    //     return dialer.getRelayStates().connected?.length > 0 ?? 0;
-    //   },
-    // });
-    // healthCheck.register(p2pHealthCheck);
+    // TODO: local:ergo/rosen-bridge/health-check/55
+    //  should replace p2p healthcheck param with detected active guards in detection scenario
 
     // add TxProgress param
     const getActiveTransactions = async (): Promise<TxInfo[]> => {

@@ -40,11 +40,13 @@ const init = async () => {
   // initialize DatabaseAction
   DatabaseAction.init(dataSource);
 
+  // initialize Dialer
+  await RosenDialer.init();
+
   // initialize express Apis
   await initApiServer();
 
-  // initialize Dialer and DetectionHandler
-  await RosenDialer.init();
+  // initialize DetectionHandler
   await DetectionHandler.init();
 
   // initialize tss multiSig object

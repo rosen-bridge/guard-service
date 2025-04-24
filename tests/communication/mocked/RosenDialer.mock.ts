@@ -52,6 +52,10 @@ class RosenDialerMock {
     this.sendMessageMock.mockReset();
   }
 
+  /**
+   * Mock the sendMessage implementation
+   * @param imp A callback function that will be called when sendMessage is invoked
+   */
   static mockSendMessageImplementation(
     imp: (channel: string, msg: string, receiver?: string) => Promise<void>
   ) {
