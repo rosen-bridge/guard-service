@@ -7,11 +7,16 @@ class GuardsDogeConfigs {
   // service configs
   static chainNetworkName = getChainNetworkName('doge.chainNetwork', [
     'esplora',
+    'blockcypher',
   ]);
   static esplora = {
     url: config.get<string>('doge.esplora.url'),
     timeout: config.get<number>('doge.esplora.timeout'), // seconds
     tokensPerMinute: config.get<number>('doge.esplora.tokensPerMinute'),
+  };
+  static blockcypher = {
+    url: config.get<string>('doge.blockcypher.url'),
+    timeout: config.get<number>('doge.blockcypher.timeout'), // seconds
   };
 
   // value configs

@@ -59,12 +59,15 @@ bitcoin:
   tssChainCode: ''
   derivationPath:
     -
-
 doge:
   networkType: 'mainnet' # Doge network type [testnet, mainnet]
-  chainNetwork: 'esplora' # 'esplora'
+  chainNetwork: 'blockcypher' # [esplora, blockcypher]
   esplora:
     url: ''
+    timeout: 8
+    tokensPerMinute: 30
+  blockcypher:
+    url: 'https://api.blockcypher.com'
     timeout: 8
     tokensPerMinute: 30
   bankPublicKey: '' # corresponding public key of lock address
