@@ -681,4 +681,52 @@ describe('DogeEsploraNetwork', () => {
       }).rejects.toThrow(FailedError);
     });
   });
+
+  describe('getTxId', () => {
+    /**
+     * @target `DogeEsploraNetwork.getTxId` should fetch txId using unsigned hash successfully
+     * @dependencies
+     * @scenario
+     * - create a new instance of DogeEsploraNetwork with a custom getSavedTransactionById
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should fetch txId using unsigned hash successfully
+     */
+    it('should fetch txId using unsigned hash successfully', async () => {
+      // Create a new instance of DogeEsploraNetwork with a custom getSavedTransactionById
+      const dogePayment = new PaymentTransaction(
+        'doge',
+        testData.unsignedTxId,
+        'eventId',
+        Buffer.from(testData.dogePaymentBytes, 'hex'),
+        TransactionType.payment
+      );
+
+      const customNetwork = new DogeEsploraNetwork(
+        'blockcypher-url',
+        async (txId: string) => {
+          if (txId === testData.unsignedTxId) {
+            return dogePayment;
+          }
+          return undefined;
+        }
+      );
+
+      // Mock getSpentTransactionByInputId to return a transaction when called with the correct input
+      const getSpentTransactionByInputIdSpy = vi
+        .spyOn(customNetwork as any, 'getSpentTransactionByInputId')
+        .mockResolvedValue(testData.dogeTx);
+
+      mockAxiosGet(testData.txResponse);
+
+      const result = await customNetwork.getTxId(testData.unsignedTxId);
+
+      expect(getSpentTransactionByInputIdSpy).toHaveBeenCalledWith(
+        testData.dogeTx.inputs[0].index,
+        testData.dogeTx.inputs[0].txId
+      );
+      expect(result).toEqual(testData.txId);
+    });
+  });
 });

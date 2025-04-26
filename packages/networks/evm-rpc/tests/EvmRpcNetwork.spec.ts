@@ -648,4 +648,62 @@ describe('EvmRpcNetwork', () => {
       }).rejects.toThrow(Error);
     });
   });
+
+  describe('getTxId', () => {
+    /**
+     * @target `EvmRpcNetwork.getTxId` should return signed hash from db when tx exists in db
+     * @dependencies
+     * @scenario
+     * - define a mock unsigned hash
+     * - define a mock tx
+     * - mock dbAction.getTxByUnsignedHash to return the mock tx
+     * - call getTxId using the unsigned hash
+     * @expected
+     * - getTxId should have returned the signed hash of requested tx
+     * - getTxByUnsignedHash should have been called once with the unsigned hash
+     */
+    it('should return signed hash from db when tx exists in db', async () => {
+      // arrange
+      const unsignedHash = testData.transaction0.unsignedHash;
+      const mockTx = { signedHash: testData.transaction0Id };
+      const getTxByUnsignedHashSpy = vi
+        .spyOn(network.getDbAction(), 'getTxByUnsignedHash')
+        .mockResolvedValue(mockTx as AddressTxsEntity);
+
+      // act
+      const txId = await network.getTxId(unsignedHash);
+
+      // assert
+      expect(txId).toEqual(testData.transaction0Id);
+      expect(getTxByUnsignedHashSpy).toHaveBeenCalledOnce();
+      expect(getTxByUnsignedHashSpy).toHaveBeenCalledWith(unsignedHash);
+    });
+
+    /**
+     * @target `EvmRpcNetwork.getTxId` should return the same hash when tx does not exist in db
+     * @dependencies
+     * @scenario
+     * - define a mock unsigned hash
+     * - mock dbAction.getTxByUnsignedHash to return null
+     * - call getTxId using the unsigned hash
+     * @expected
+     * - getTxId should have returned the the same hash
+     * - getTxByUnsignedHash should have been called once with the unsigned hash
+     */
+    it('should return the same hash when tx does not exist in db', async () => {
+      // arrange
+      const unsignedHash = testData.transaction0.unsignedHash;
+      const getTxByUnsignedHashSpy = vi
+        .spyOn(network.getDbAction(), 'getTxByUnsignedHash')
+        .mockResolvedValue(null);
+
+      // act
+      const txId = await network.getTxId(unsignedHash);
+
+      // assert
+      expect(txId).toEqual(unsignedHash);
+      expect(getTxByUnsignedHashSpy).toHaveBeenCalledOnce();
+      expect(getTxByUnsignedHashSpy).toHaveBeenCalledWith(unsignedHash);
+    });
+  });
 });

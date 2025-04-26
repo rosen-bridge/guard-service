@@ -33,6 +33,10 @@ class TestUtxoChainNetwork extends AbstractChainNetwork<string> {
   getTxConfirmation = (transactionId: string): Promise<number> => {
     throw Error('Not mocked');
   };
+
+  getTxId = (hash: string): Promise<string> => {
+    throw Error('Not mocked');
+  };
 }
 
 export default TestUtxoChainNetwork;

@@ -69,9 +69,7 @@ class EvmRpcNetwork extends AbstractEvmNetwork {
    * @returns the transaction confirmation
    */
   getTxConfirmation = async (hash: string): Promise<number> => {
-    // check if hash is representing signed or unsigned version of the tx
-    const txRecord = await this.dbAction.getTxByUnsignedHash(hash);
-    const transactionId = txRecord === null ? hash : txRecord.signedHash;
+    const transactionId = await this.getTxId(hash);
 
     // get transaction confirmation
     const baseError = `Failed to get transaction [${transactionId}] from ${this.chain} RPC: `;
@@ -455,6 +453,15 @@ class EvmRpcNetwork extends AbstractEvmNetwork {
       if (isCallException(e)) return EvmTxStatus.failed;
       else throw e;
     }
+  };
+
+  /**
+   * gets the actual id of a transaction by its hash
+   * @param hash
+   */
+  getTxId = async (hash: string): Promise<string> => {
+    const txRecord = await this.dbAction.getTxByUnsignedHash(hash);
+    return txRecord === null ? hash : txRecord.signedHash;
   };
 }
 

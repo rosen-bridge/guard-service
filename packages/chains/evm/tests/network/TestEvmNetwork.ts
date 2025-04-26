@@ -77,6 +77,10 @@ class TestEvmNetwork extends AbstractEvmNetwork {
   getTransactionByNonce = (nonce: number): Promise<TransactionHashes> => {
     throw Error('Not mocked');
   };
+
+  getTxId = (hash: string): Promise<string> => {
+    throw Error('Not mocked');
+  };
 }
 
 export default TestEvmNetwork;
