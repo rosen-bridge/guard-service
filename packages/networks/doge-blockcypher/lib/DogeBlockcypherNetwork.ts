@@ -61,7 +61,9 @@ class DogeBlockCypherNetwork extends AbstractDogeNetwork {
       .catch((e) => {
         const baseError = `Failed to fetch current height from BlockCypher: `;
         if (e.response) {
-          throw new FailedError(baseError + `${e.response.data}`);
+          throw new FailedError(
+            baseError + `${JsonBigInt.stringify(e.response.data)}`
+          );
         } else if (e.request) {
           throw new NetworkError(baseError + e.message);
         } else {
@@ -97,7 +99,9 @@ class DogeBlockCypherNetwork extends AbstractDogeNetwork {
         this.logger.debug(`tx [${transactionId}] is not found`);
         return -1;
       } else if (e.response) {
-        throw new FailedError(baseError + e.response.data);
+        throw new FailedError(
+          baseError + JsonBigInt.stringify(e.response.data)
+        );
       } else if (e.request) {
         throw new NetworkError(baseError + e.message);
       } else {
@@ -145,7 +149,9 @@ class DogeBlockCypherNetwork extends AbstractDogeNetwork {
     } catch (e: any) {
       const baseError = `Failed to get confirmation for tx [${transactionId}] which was found in the database: `;
       if (e.response) {
-        throw new FailedError(baseError + e.response.data);
+        throw new FailedError(
+          baseError + JsonBigInt.stringify(e.response.data)
+        );
       } else if (e.request) {
         throw new NetworkError(baseError + e.message);
       } else {
@@ -179,7 +185,9 @@ class DogeBlockCypherNetwork extends AbstractDogeNetwork {
       .catch((e) => {
         const baseError = `Failed to get address [${address}] assets from BlockCypher: `;
         if (e.response) {
-          throw new FailedError(baseError + e.response.data);
+          throw new FailedError(
+            baseError + JsonBigInt.stringify(e.response.data)
+          );
         } else if (e.request) {
           throw new NetworkError(baseError + e.message);
         } else {
@@ -218,7 +226,9 @@ class DogeBlockCypherNetwork extends AbstractDogeNetwork {
       } catch (e: any) {
         const baseError = `Failed to get block [${blockId}] transaction ids from BlockCypher: `;
         if (e.response) {
-          throw new FailedError(baseError + e.response.data);
+          throw new FailedError(
+            baseError + JsonBigInt.stringify(e.response.data)
+          );
         } else if (e.request) {
           throw new NetworkError(baseError + e.message);
         } else {
@@ -254,7 +264,9 @@ class DogeBlockCypherNetwork extends AbstractDogeNetwork {
       .catch((e) => {
         const baseError = `Failed to get block [${blockId}] info from BlockCypher: `;
         if (e.response) {
-          throw new FailedError(baseError + e.response.data);
+          throw new FailedError(
+            baseError + JsonBigInt.stringify(e.response.data)
+          );
         } else if (e.request) {
           throw new NetworkError(baseError + e.message);
         } else {
@@ -288,7 +300,9 @@ class DogeBlockCypherNetwork extends AbstractDogeNetwork {
     } catch (e: any) {
       const baseError = `Failed to get transaction [${transactionId}] from BlockCypher: `;
       if (e.response) {
-        throw new FailedError(baseError + e.response.data);
+        throw new FailedError(
+          baseError + JsonBigInt.stringify(e.response.data)
+        );
       } else if (e.request) {
         throw new NetworkError(baseError + e.message);
       } else {
@@ -333,7 +347,9 @@ class DogeBlockCypherNetwork extends AbstractDogeNetwork {
       .catch((e) => {
         const baseError = `Failed to submit transaction to BlockCypher: `;
         if (e.response) {
-          throw new FailedError(baseError + e.response.data);
+          throw new FailedError(
+            baseError + JsonBigInt.stringify(e.response.data)
+          );
         } else if (e.request) {
           throw new NetworkError(baseError + e.message);
         } else {
@@ -365,7 +381,7 @@ class DogeBlockCypherNetwork extends AbstractDogeNetwork {
         `/v1/doge/main/addrs/${address}?unspentOnly=true&before=${beforeHeight}&limit=${batchSize}`
       );
 
-      const txrefs = response.data.txrefs;
+      const txrefs = response.data.txrefs ?? [];
       const batchUtxos: Array<DogeUtxo> = [];
       let minHeight = beforeHeight;
 
@@ -420,7 +436,9 @@ class DogeBlockCypherNetwork extends AbstractDogeNetwork {
           this.logger.debug(`Transaction [${txId}] is not found`);
           return false;
         } else if (e.response) {
-          throw new FailedError(baseError + e.response.data);
+          throw new FailedError(
+            baseError + JsonBigInt.stringify(e.response.data)
+          );
         } else if (e.request) {
           throw new NetworkError(baseError + e.message);
         } else {
@@ -452,7 +470,9 @@ class DogeBlockCypherNetwork extends AbstractDogeNetwork {
       if (e.response && e.response.status === 404) {
         throw new FailedError(`Transaction [${txId}] is not found`);
       } else if (e.response) {
-        throw new FailedError(baseError + e.response.data);
+        throw new FailedError(
+          baseError + JsonBigInt.stringify(e.response.data)
+        );
       } else if (e.request) {
         throw new NetworkError(baseError + e.message);
       } else {
@@ -491,7 +511,9 @@ class DogeBlockCypherNetwork extends AbstractDogeNetwork {
       .catch((e) => {
         const baseError = `Failed to get fee ratio from BlockCypher: `;
         if (e.response) {
-          throw new FailedError(baseError + e.response.data);
+          throw new FailedError(
+            baseError + JsonBigInt.stringify(e.response.data)
+          );
         } else if (e.request) {
           throw new NetworkError(baseError + e.message);
         } else {
@@ -521,7 +543,9 @@ class DogeBlockCypherNetwork extends AbstractDogeNetwork {
         if (e.response && e.response.status === 404) {
           return false;
         } else if (e.response) {
-          throw new FailedError(baseError + e.response.data);
+          throw new FailedError(
+            baseError + JsonBigInt.stringify(e.response.data)
+          );
         } else if (e.request) {
           throw new NetworkError(baseError + e.message);
         } else {
@@ -549,7 +573,9 @@ class DogeBlockCypherNetwork extends AbstractDogeNetwork {
       .catch((e) => {
         const baseError = `Failed to get transaction hex [${txId}] from BlockCypher: `;
         if (e.response) {
-          throw new FailedError(baseError + e.response.data);
+          throw new FailedError(
+            baseError + JsonBigInt.stringify(e.response.data)
+          );
         } else if (e.request) {
           throw new NetworkError(baseError + e.message);
         } else {
@@ -586,7 +612,9 @@ class DogeBlockCypherNetwork extends AbstractDogeNetwork {
       .catch((e) => {
         const baseError = `Failed to get spent transaction for input [${txId}:${index}] from BlockCypher: `;
         if (e.response) {
-          throw new FailedError(baseError + e.response.data);
+          throw new FailedError(
+            baseError + JsonBigInt.stringify(e.response.data)
+          );
         } else if (e.request) {
           throw new NetworkError(baseError + e.message);
         } else {
