@@ -58,7 +58,7 @@ class RosenDialerMock {
   }
 
   /**
-   * resets all mocked functions
+   * resets the mock on `sendMessage` function
    */
   resetMock() {
     this.sendMessageMock.mockReset();
