@@ -33,6 +33,9 @@ class RosenDialerMock {
     } as RosenDialerNode;
   }
 
+  /**
+   * get the singleton instance of RosenDialerMock
+   */
   static getInstance(): RosenDialerMock {
     if (!RosenDialerMock.instance) {
       RosenDialerMock.instance = new RosenDialerMock();
@@ -40,14 +43,23 @@ class RosenDialerMock {
     return RosenDialerMock.instance;
   }
 
+  /**
+   * returns the dialer instance
+   */
   getDialer(): RosenDialerNode {
     return this.dialer;
   }
 
+  /**
+   * returns mock the implementation of startNode function
+   */
   startNode(): Promise<void> {
     return Promise.resolve(); // Mock implementation
   }
 
+  /**
+   * resets all mocked functions
+   */
   resetMock() {
     this.sendMessageMock.mockReset();
   }
