@@ -11,20 +11,21 @@ import {
 } from './Interfaces';
 import * as crypto from 'crypto';
 import { shuffle } from 'lodash-es';
-import Dialer from '../../communication/Dialer';
 import Configs from '../../configs/Configs';
 import { Semaphore } from 'await-semaphore';
 import Encryption from '../../utils/Encryption';
 import MultiSigUtils from './MultiSigUtils';
 import { CommitmentMisMatch } from '../../utils/errors';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+import RosenDialer from '../../communication/RosenDialer';
+import { RosenDialerNode } from '@rosen-bridge/dialer';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
 class MultiSigHandler {
   private static instance: MultiSigHandler;
   private static CHANNEL = 'multi-sig';
-  private dialer: Dialer;
+  private dialer: RosenDialerNode;
   private readonly transactions: Map<string, TxQueued>;
   private peers: Array<Signer>;
   private readonly secret: Uint8Array;
@@ -49,7 +50,7 @@ class MultiSigHandler {
    */
   static init = async (secretHex: string) => {
     MultiSigHandler.instance = new MultiSigHandler([], secretHex);
-    MultiSigHandler.instance.dialer = await Dialer.getInstance();
+    MultiSigHandler.instance.dialer = RosenDialer.getInstance().getDialer();
     logger.debug(`Subscribing to [${MultiSigHandler.CHANNEL}]`);
     MultiSigHandler.instance.dialer.subscribeChannel(
       MultiSigHandler.CHANNEL,
