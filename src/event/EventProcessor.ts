@@ -270,7 +270,9 @@ class EventProcessor {
       throw new ImpossibleBehavior(
         `Processing event [${eventId}] for reward distribution but no payment tx found for it in database`
       );
-    const paymentTxId = eventTxs[0].txId;
+
+    const targetChain = ChainHandler.getInstance().getChain(event.toChain);
+    const paymentTxId = await targetChain.getActualTxId(eventTxs[0].txId);
 
     // get minimum-fee and verify event
     const feeConfig = MinimumFeeHandler.getEventFeeConfig(event);
