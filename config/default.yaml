@@ -10,8 +10,6 @@ api:
   isArbitraryOrderRequestActive: false
   allowedOrigins: [] # List of allowed origins for CORS headers
   maxRequestsPerMinute: 100_000
-publicStatus:
-  baseUrl: 'http://localhost:3000'
 binance:
   networkType: 'mainnet' # Binance network type [testnet, mainnet]
   chainNetwork: 'rpc' # 'rpc'

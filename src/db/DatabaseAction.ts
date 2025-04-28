@@ -8,7 +8,6 @@ import {
   MoreThanOrEqual,
   Not,
   Repository,
-  UpdateResult,
 } from 'typeorm';
 import { ConfirmedEventEntity } from './entities/ConfirmedEventEntity';
 import { TransactionEntity } from './entities/TransactionEntity';
@@ -41,7 +40,6 @@ import { ArbitraryEntity } from './entities/ArbitraryEntity';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 import { ReprocessEntity } from './entities/ReprocessEntity';
 import { ReprocessStatus } from '../reprocess/Interfaces';
-import PublicStatusHandler from '../handlers/PublicStatusHandler';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -124,13 +122,6 @@ class DatabaseAction {
         { id: eventId },
         { status: status }
       );
-
-    PublicStatusHandler.getInstance().updatePublicEventStatus({
-      date: Date.now(),
-      eventId,
-      status,
-      tx: undefined,
-    });
   };
 
   /**
@@ -211,17 +202,6 @@ class DatabaseAction {
         lastStatusUpdate: String(Math.round(Date.now() / 1000)),
       }
     );
-    PublicStatusHandler.getInstance().updatePublicTxStatus({
-      date: Date.now(),
-      eventId: '',
-      status: EventStatus.pendingPayment,
-      tx: {
-        txId,
-        txStatus: status,
-        txType: TransactionType.payment,
-        chain: '',
-      },
-    });
   };
 
   /**
@@ -229,7 +209,7 @@ class DatabaseAction {
    * @param txId the transaction id
    */
   setTxAsSignFailed = async (txId: string): Promise<void> => {
-    const result: UpdateResult = await this.TransactionRepository.update(
+    await this.TransactionRepository.update(
       {
         txId: txId,
         status: TransactionStatus.inSign,
@@ -241,18 +221,6 @@ class DatabaseAction {
         failedInSign: true,
       }
     );
-    if ((result.affected ?? 0) === 0) return;
-    PublicStatusHandler.getInstance().updatePublicTxStatus({
-      date: Date.now(),
-      eventId: '',
-      status: EventStatus.pendingPayment,
-      tx: {
-        txId,
-        txStatus: TransactionStatus.signFailed,
-        txType: TransactionType.payment,
-        chain: '',
-      },
-    });
   };
 
   /**
@@ -283,12 +251,6 @@ class DatabaseAction {
       { id: eventId },
       { status: status, firstTry: String(Math.round(Date.now() / 1000)) }
     );
-    PublicStatusHandler.getInstance().updatePublicEventStatus({
-      date: Date.now(),
-      eventId,
-      status,
-      tx: undefined,
-    });
   };
 
   /**
@@ -324,17 +286,6 @@ class DatabaseAction {
         lastCheck: currentHeight,
       }
     );
-    PublicStatusHandler.getInstance().updatePublicTxStatus({
-      date: Date.now(),
-      eventId: '',
-      status: EventStatus.pendingPayment,
-      tx: {
-        txId,
-        txStatus: TransactionStatus.signed,
-        txType: TransactionType.payment,
-        chain: '',
-      },
-    });
   };
 
   /**
@@ -380,17 +331,6 @@ class DatabaseAction {
         failedInSign: false,
       }
     );
-    PublicStatusHandler.getInstance().updatePublicTxStatus({
-      date: Date.now(),
-      eventId: '',
-      status: EventStatus.pendingPayment,
-      tx: {
-        txId: tx.txId,
-        txStatus: TransactionStatus.approved,
-        txType: TransactionType.payment,
-        chain: '',
-      },
-    });
   };
 
   /**
@@ -446,17 +386,6 @@ class DatabaseAction {
       signFailedCount: 0,
       requiredSign: requiredSign,
     });
-    PublicStatusHandler.getInstance().updatePublicTxStatus({
-      date: Date.now(),
-      eventId: '',
-      status: EventStatus.pendingPayment,
-      tx: {
-        txId: paymentTx.txId,
-        txStatus: TransactionStatus.approved,
-        txType: TransactionType.payment,
-        chain: '',
-      },
-    });
   };
 
   /**
@@ -481,18 +410,6 @@ class DatabaseAction {
       failedInSign: false,
       signFailedCount: 0,
       requiredSign: requiredSign,
-    });
-
-    PublicStatusHandler.getInstance().updatePublicTxStatus({
-      date: Date.now(),
-      eventId: '',
-      status: EventStatus.pendingPayment,
-      tx: {
-        txId: paymentTx.txId,
-        txStatus: TransactionStatus.completed,
-        txType: TransactionType.payment,
-        chain: '',
-      },
     });
   };
 
@@ -531,21 +448,11 @@ class DatabaseAction {
   insertConfirmedEvent = async (
     eventData: EventTriggerEntity
   ): Promise<void> => {
-    const eventId = Utils.txIdToEventId(eventData.sourceTxId);
-    const status = EventStatus.pendingPayment;
-
     await this.ConfirmedEventRepository.insert({
-      id: eventId,
+      id: Utils.txIdToEventId(eventData.sourceTxId),
       eventData: eventData,
-      status,
+      status: EventStatus.pendingPayment,
       firstTry: String(Math.round(Date.now() / 1000)),
-    });
-
-    PublicStatusHandler.getInstance().updatePublicEventStatus({
-      date: Date.now(),
-      eventId,
-      status,
-      tx: undefined,
     });
   };
 

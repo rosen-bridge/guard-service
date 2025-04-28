@@ -25,7 +25,6 @@ import DetectionHandler from './handlers/DetectionHandler';
 import EventReprocess from './reprocess/EventReprocess';
 import ArbitraryProcessor from './arbitrary/ArbitraryProcessor';
 import TssHandler from './handlers/TssHandler';
-import PublicStatusHandler from './handlers/PublicStatusHandler';
 import { TokenHandler } from './handlers/tokenHandler';
 
 const init = async () => {
@@ -39,10 +38,7 @@ const init = async () => {
   await initDataSources();
 
   // initialize DatabaseAction
-  DatabaseAction.init(dataSource);
-
-  // initialize PublicStatusHandler
-  PublicStatusHandler.init(dataSource);
+  const dbAction = DatabaseAction.init(dataSource);
 
   // initialize express Apis
   await initApiServer();
