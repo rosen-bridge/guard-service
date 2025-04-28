@@ -11,9 +11,16 @@ import { EventStatus } from '../../src/utils/constants';
 import TestUtils from '../testUtils/TestUtils';
 import { NotFoundError } from '@rosen-chains/abstract-chain';
 import PublicStatusHandlerMock from '../handlers/mocked/PublicStatusHandler.mock';
+import RosenDialer from '../../src/communication/RosenDialer';
+import RosenDialerMock from '../communication/mocked/RosenDialer.mock';
 
 describe('EventReprocess', async () => {
-  await EventReprocess.init();
+  beforeAll(async () => {
+    vi.spyOn(RosenDialer, 'getInstance').mockReturnValue(
+      RosenDialerMock.getInstance() as unknown as RosenDialer
+    );
+    await EventReprocess.init();
+  });
 
   describe('sendReprocessRequest', () => {
     beforeAll(() => {

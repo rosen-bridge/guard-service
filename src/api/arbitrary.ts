@@ -61,7 +61,11 @@ const orderRoute = (server: FastifySeverInstance) => {
         // try to decode order
         const order = ChainUtils.decodeOrder(orderJson);
 
-        await DatabaseHandler.insertOrder(id, chain, orderJson);
+        await DatabaseHandler.insertOrder(
+          id,
+          chain,
+          ChainUtils.encodeOrder(order)
+        );
         reply.status(200).send({
           message: 'Ok',
         });
