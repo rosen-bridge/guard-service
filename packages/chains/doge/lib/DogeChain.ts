@@ -184,7 +184,6 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
         hash: box.txId,
         index: box.index,
         nonWitnessUtxo: Buffer.from(txToHex[box.txId], 'hex'),
-        redeemScript: Buffer.from(this.lockScript, 'hex'),
       });
     }
     // calculate input boxes assets

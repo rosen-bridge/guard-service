@@ -310,6 +310,10 @@ class DogeBlockCypherNetwork extends AbstractDogeNetwork {
       }
     }
 
+    if (txInfo.confirmations === 0) {
+      throw new FailedError(`Tx [${transactionId}] is not confirmed`);
+    }
+
     if (txInfo.block_hash !== blockId && blockId !== '')
       throw new FailedError(
         `Tx [${transactionId}] doesn't belong to block [${blockId}]`
