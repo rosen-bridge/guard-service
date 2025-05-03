@@ -38,7 +38,7 @@ class DogeRpcNetwork extends PartialDogeNetwork {
     // List of functions this class implements from DogeNetworkFunction
     readonly implements = [
         DogeNetworkFunction.getHeight,
-        DogeNetworkFunction.getTxConfirmation,
+        // DogeNetworkFunction.getTxConfirmation, // Not fully implemented due to dependency on getSpentTransactionByInputId
         DogeNetworkFunction.getBlockTransactionIds,
         DogeNetworkFunction.getBlockInfo,
         DogeNetworkFunction.getTransaction,
@@ -49,7 +49,7 @@ class DogeRpcNetwork extends PartialDogeNetwork {
         DogeNetworkFunction.getFeeRatio,
         DogeNetworkFunction.isTxInMempool,
         DogeNetworkFunction.getTransactionHex,
-        // Note: getAddressAssets and getSpentTransactionByInputId are not implemented
+        // Note: getAddressAssets, getSpentTransactionByInputId, and getTxConfirmation are not implemented
     ] as DogeNetworkFunction[];
 
     constructor(
@@ -166,62 +166,7 @@ class DogeRpcNetwork extends PartialDogeNetwork {
      * @returns the transaction confirmation (returns -1 if tx is not mined or found)
      */
     getTxConfirmation = async (transactionId: string): Promise<number> => {
-        let realTxId = transactionId;
-        try {
-            const realPaymentTx = await this.getSavedTransactionById(transactionId);
-
-            if (realPaymentTx) {
-                try {
-                    const realTx = Psbt.fromBuffer(Buffer.from(realPaymentTx.txBytes), {
-                        network: DOGE_NETWORK,
-                    });
-
-                    // Note: We're not using getSpentTransactionByInputId since it's not implemented in this connector
-                    // If it were implemented, it would be used to find the real txId of a confirmed transaction
-
-                    // The following code is kept as a reference for future implementation
-                    /*
-                    const spentTx = await this.getSpentTransactionByInputId(
-                        realTx.txInputs[0].index,
-                        Buffer.from(realTx.txInputs[0].hash.reverse()).toString('hex')
-                    );
-                    if (spentTx) {
-                        const sameInputs = realTx.txInputs.every(
-                            (input, i) =>
-                                spentTx.inputs[i].txId ===
-                                Buffer.from(input.hash.reverse()).toString('hex') &&
-                                spentTx.inputs[i].index === input.index
-                        );
-                        const sameOutputs = realTx.txOutputs.every(
-                            (output, i) =>
-                                spentTx.outputs[i].scriptPubKey ===
-                                Buffer.from(output.script).toString('hex') &&
-                                spentTx.outputs[i].value === BigInt(output.value)
-                        );
-                        if (sameInputs && sameOutputs) {
-                            realTxId = spentTx.id;
-                        }
-                    }
-                    */
-                } catch (innerError: any) {
-                    this.logger?.debug(`Error processing transaction bytes: ${innerError.message}`);
-                    // Continue with the original txId if there's an error
-                }
-            }
-        } catch (e: any) {
-            const baseError = `Failed to get confirmation for tx [${transactionId}] which was found in the database: `;
-            if (e.response) {
-                throw new FailedError(
-                    baseError + JsonBigInt.stringify(e.response.data)
-                );
-            } else if (e.request) {
-                throw new NetworkError(baseError + e.message);
-            } else {
-                throw new UnexpectedApiError(baseError + e.message);
-            }
-        }
-
-        return await this.getTxConfirmationSigned(realTxId);
+        throw new Error('Not implemented');
     };
 
     /**
