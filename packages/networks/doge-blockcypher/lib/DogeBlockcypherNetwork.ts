@@ -33,9 +33,22 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
   ) => Promise<PaymentTransaction | undefined>;
 
   // Implement all DogeNetworkFunction functions
-  readonly implements = Object.values(
-    DogeNetworkFunction
-  ) as DogeNetworkFunction[];
+  readonly implements = [
+    'getHeight',
+    'getTxConfirmation',
+    'getAddressAssets',
+    'getBlockTransactionIds',
+    'getBlockInfo',
+    'getTransaction',
+    'submitTransaction',
+    'getMempoolTransactions',
+    'getAddressBoxes',
+    'isBoxUnspentAndValid',
+    'getUtxo',
+    'getFeeRatio',
+    'isTxInMempool',
+    'getTransactionHex',
+  ] as DogeNetworkFunction[];
 
   constructor(
     url: string,
