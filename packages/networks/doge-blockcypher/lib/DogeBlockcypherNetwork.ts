@@ -10,7 +10,8 @@ import {
 } from '@rosen-chains/abstract-chain';
 import JsonBigInt from '@rosen-bridge/json-bigint';
 import {
-  AbstractDogeNetwork,
+  PartialDogeNetwork,
+  DogeNetworkFunction,
   DogeTx,
   DogeUtxo,
   DOGE_NETWORK,
@@ -25,11 +26,16 @@ import {
   BlockCypherTx,
 } from './types';
 
-class DogeBlockCypherNetwork extends AbstractDogeNetwork {
+class DogeBlockCypherNetwork extends PartialDogeNetwork {
   protected client: AxiosInstance;
   private getSavedTransactionById: (
     txId: string
   ) => Promise<PaymentTransaction | undefined>;
+
+  // Implement all DogeNetworkFunction functions
+  readonly implements = Object.values(
+    DogeNetworkFunction
+  ) as DogeNetworkFunction[];
 
   constructor(
     url: string,
