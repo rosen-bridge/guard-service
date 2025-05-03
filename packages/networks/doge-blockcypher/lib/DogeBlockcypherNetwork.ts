@@ -347,7 +347,7 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
   submitTransaction = async (transaction: Psbt): Promise<void> => {
     return this.client
       .post<{ tx: { hash: string } }>('/v1/doge/main/txs/push', {
-        tx: transaction.toHex(),
+        tx: transaction.extractTransaction(true).toHex(),
       })
       .then((res) => {
         this.logger.debug(
