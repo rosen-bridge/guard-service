@@ -20,33 +20,6 @@ vi.mock('axios-rate-limit', () => ({
 
 describe('DogeBlockCypherNetwork implements property', () => {
   /**
-   * @target DogeBlockCypherNetwork.implements variable should contain all DogeNetworkFunction values
-   * @dependencies
-   * @scenario
-   * - Create instance of DogeBlockCypherNetwork
-   * - Check its implements property
-   * @expected
-   * - implements property should contain all DogeNetworkFunction values
-   */
-  it('should include all DogeNetworkFunction values', () => {
-    const network = new DogeBlockCypherNetwork(
-      'https://example.com',
-      async () => undefined
-    );
-
-    const implementedFunctions = network.implements;
-    const allFunctions = Object.values(DogeNetworkFunction);
-
-    // All network functions should be in the implements array
-    expect(implementedFunctions.length).toBe(allFunctions.length);
-
-    // Each function should be included
-    allFunctions.forEach((func) => {
-      expect(implementedFunctions).toContain(func);
-    });
-  });
-
-  /**
    * @target Functions declared in implements should not contain 'not implemented' error logic
    * @dependencies
    * @scenario

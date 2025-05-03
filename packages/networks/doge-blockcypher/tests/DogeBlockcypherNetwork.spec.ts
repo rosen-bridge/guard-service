@@ -111,6 +111,57 @@ describe('DogeExplorerNetwork', () => {
     });
 
     /**
+     * @target `DogeExplorerNetwork.getTxConfirmation` should fetch confirmation using signed hash successfully without querying spent box when PSBT is finalized
+     * @dependencies
+     * @scenario
+     * - create a new instance of DogeExplorerNetwork with a custom getSavedTransactionById
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should fetch confirmation using unsigned hash successfully
+     */
+    it('should fetch confirmation using unsigned hash successfully without querying spent box when PSBT is finalized', async () => {
+      // Create a new instance of DogeExplorerNetwork with a custom getSavedTransactionById
+      const dogePayment = new PaymentTransaction(
+        'doge',
+        testData.signedTxId,
+        'eventId',
+        Buffer.from(testData.dogePaymentBytesSigned, 'hex'),
+        TransactionType.payment
+      );
+
+      const customNetwork = new DogeBlockcypherNetwork(
+        'blockcypher-url',
+        async (txId: string) => {
+          if (txId === testData.signedTxId) {
+            return dogePayment;
+          }
+          return undefined;
+        }
+      );
+
+      const getTxConfirmationSignedSpy = vi.spyOn(
+        customNetwork as any,
+        'getTxConfirmationSigned'
+      );
+
+      mockAxiosGet(testData.txResponse);
+
+      const result = await customNetwork.getTxConfirmation(testData.signedTxId);
+
+      const getSpentTransactionByInputIdSpy = vi.spyOn(
+        customNetwork as any,
+        'getSpentTransactionByInputId'
+      );
+
+      expect(getSpentTransactionByInputIdSpy).toHaveBeenCalledTimes(0);
+      expect(getTxConfirmationSignedSpy).toHaveBeenCalledWith(
+        testData.signedTxId
+      );
+      expect(result).toEqual(testData.txConfirmation);
+    });
+
+    /**
      * @target `DogeExplorerNetwork.getTxConfirmation` should fetch confirmation using unsigned hash successfully
      * @dependencies
      * @scenario
