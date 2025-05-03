@@ -3,7 +3,7 @@ import { Psbt } from 'bitcoinjs-lib';
 import { AssetBalance, BlockInfo } from '@rosen-chains/abstract-chain';
 import { DogeTx, DogeUtxo } from '../types';
 import AbstractDogeNetwork from './AbstractDogeNetwork';
-import DogeNetworkFunction from './DogeNetworkFunctions';
+import { DogeNetworkFunction } from '../types';
 
 /**
  * This class provides a partial implementation of the AbstractDogeNetwork.
