@@ -34,20 +34,20 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
 
   // Implement all DogeNetworkFunction functions
   readonly implements = [
-    'getHeight',
-    'getTxConfirmation',
-    'getAddressAssets',
-    'getBlockTransactionIds',
-    'getBlockInfo',
-    'getTransaction',
-    'submitTransaction',
-    'getMempoolTransactions',
-    'getAddressBoxes',
-    'isBoxUnspentAndValid',
-    'getUtxo',
-    'getFeeRatio',
-    'isTxInMempool',
-    'getTransactionHex',
+    DogeNetworkFunction.getHeight,
+    DogeNetworkFunction.getTxConfirmation,
+    DogeNetworkFunction.getAddressAssets,
+    DogeNetworkFunction.getBlockTransactionIds,
+    DogeNetworkFunction.getBlockInfo,
+    DogeNetworkFunction.getTransaction,
+    DogeNetworkFunction.submitTransaction,
+    DogeNetworkFunction.getMempoolTransactions,
+    DogeNetworkFunction.getAddressBoxes,
+    DogeNetworkFunction.isBoxUnspentAndValid,
+    DogeNetworkFunction.getUtxo,
+    DogeNetworkFunction.getFeeRatio,
+    DogeNetworkFunction.isTxInMempool,
+    DogeNetworkFunction.getTransactionHex,
   ] as DogeNetworkFunction[];
 
   constructor(
