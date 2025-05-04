@@ -1,5 +1,11 @@
 # @rosen-chains/doge
 
+## 2.0.1
+
+### Patch Changes
+
+- Remove redundant `redeemScript` in the `generateMultipleTransactions`
+
 ## 2.0.0
 
 ### Major Changes
