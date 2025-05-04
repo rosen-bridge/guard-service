@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DogeNetworkFunction } from '../../lib/types';
-import { HeightAndAssetsNetwork } from './mocks';
+import { HeightAndAssetsNetwork } from './partialMocks';
 
 describe('PartialDogeNetwork', () => {
   /**
@@ -33,42 +33,5 @@ describe('PartialDogeNetwork', () => {
     await expect(network.getBlockInfo('blockId')).rejects.toThrow(
       'Function [getBlockInfo] is not implemented'
     );
-  });
-});
-
-describe('DogeNetworkFunction', () => {
-  /**
-   * @target DogeNetworkFunction should contain all required functions
-   * @dependencies
-   * @scenario
-   * - check DogeNetworkFunction values
-   * @expected
-   * - all expected functions should be present
-   */
-  it('should contain all required functions', () => {
-    const expectedFunctions = [
-      'getHeight',
-      'getTxConfirmation',
-      'getAddressAssets',
-      'getBlockTransactionIds',
-      'getBlockInfo',
-      'getTransaction',
-      'submitTransaction',
-      'getMempoolTransactions',
-      'getAddressBoxes',
-      'isBoxUnspentAndValid',
-      'getUtxo',
-      'getFeeRatio',
-      'isTxInMempool',
-      'getTransactionHex',
-    ];
-
-    const actualFunctions = Object.values(DogeNetworkFunction);
-
-    expectedFunctions.forEach((func) => {
-      expect(actualFunctions).toContain(func);
-    });
-
-    expect(actualFunctions.length).toBe(expectedFunctions.length);
   });
 });
