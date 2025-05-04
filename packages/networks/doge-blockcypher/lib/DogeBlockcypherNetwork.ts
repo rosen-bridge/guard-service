@@ -41,7 +41,6 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
     DogeNetworkFunction.getBlockInfo,
     DogeNetworkFunction.getTransaction,
     DogeNetworkFunction.submitTransaction,
-    DogeNetworkFunction.getMempoolTransactions,
     DogeNetworkFunction.getAddressBoxes,
     DogeNetworkFunction.isBoxUnspentAndValid,
     DogeNetworkFunction.getUtxo,
