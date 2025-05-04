@@ -75,7 +75,7 @@ abstract class AbstractChainNetwork<TxType> {
    * gets the actual id of a transaction by its hash
    * @param hash
    */
-  abstract getTxId: (hash: string) => Promise<string>;
+  abstract getActualTxId: (hash: string) => Promise<string>;
 }
 
 export default AbstractChainNetwork;

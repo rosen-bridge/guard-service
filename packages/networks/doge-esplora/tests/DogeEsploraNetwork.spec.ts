@@ -682,9 +682,9 @@ describe('DogeEsploraNetwork', () => {
     });
   });
 
-  describe('getTxId', () => {
+  describe('getActualTxId', () => {
     /**
-     * @target `DogeEsploraNetwork.getTxId` should fetch txId using unsigned hash successfully
+     * @target `DogeEsploraNetwork.getActualTxId` should fetch txId using unsigned hash successfully
      * @dependencies
      * @scenario
      * - create a new instance of DogeEsploraNetwork with a custom getSavedTransactionById
@@ -720,7 +720,7 @@ describe('DogeEsploraNetwork', () => {
 
       mockAxiosGet(testData.txResponse);
 
-      const result = await customNetwork.getTxId(testData.unsignedTxId);
+      const result = await customNetwork.getActualTxId(testData.unsignedTxId);
 
       expect(getSpentTransactionByInputIdSpy).toHaveBeenCalledWith(
         testData.dogeTx.inputs[0].index,

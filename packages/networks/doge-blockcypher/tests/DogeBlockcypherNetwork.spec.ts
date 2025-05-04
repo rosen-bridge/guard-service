@@ -862,9 +862,9 @@ describe('DogeExplorerNetwork', () => {
     expect(axiosInstance.getMaxRPS()).toBe(5);
   });
 
-  describe('getTxId', () => {
+  describe('getActualTxId', () => {
     /**
-     * @target `DogeExplorerNetwork.getTxId` should fetch txId using unsigned hash successfully
+     * @target `DogeExplorerNetwork.getActualTxId` should fetch txId using unsigned hash successfully
      * @dependencies
      * @scenario
      * - create a new instance of DogeExplorerNetwork with a custom getSavedTransactionById
@@ -900,7 +900,7 @@ describe('DogeExplorerNetwork', () => {
 
       mockAxiosGet(testData.txResponse);
 
-      const result = await customNetwork.getTxId(testData.unsignedTxId);
+      const result = await customNetwork.getActualTxId(testData.unsignedTxId);
 
       expect(getSpentTransactionByInputIdSpy).toHaveBeenCalledWith(
         testData.dogeTx.inputs[0].index,

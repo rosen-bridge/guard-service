@@ -34,7 +34,7 @@ class TestUtxoChainNetwork extends AbstractChainNetwork<string> {
     throw Error('Not mocked');
   };
 
-  getTxId = (hash: string): Promise<string> => {
+  getActualTxId = (hash: string): Promise<string> => {
     throw Error('Not mocked');
   };
 }

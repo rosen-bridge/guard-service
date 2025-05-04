@@ -116,7 +116,7 @@ class DogeBlockCypherNetwork extends AbstractDogeNetwork {
    * @returns the transaction confirmation (returns -1 if tx is not mined or found)
    */
   getTxConfirmation = async (transactionId: string): Promise<number> => {
-    const realTxId = await this.getTxId(transactionId);
+    const realTxId = await this.getActualTxId(transactionId);
     return await this.getTxConfirmationSigned(realTxId);
   };
 
@@ -589,7 +589,7 @@ class DogeBlockCypherNetwork extends AbstractDogeNetwork {
    * gets the actual id of a transaction by its hash
    * @param hash
    */
-  getTxId = async (hash: string): Promise<string> => {
+  getActualTxId = async (hash: string): Promise<string> => {
     let actualTxId = hash;
     try {
       const realPaymentTx = await this.getSavedTransactionById(hash);

@@ -649,17 +649,17 @@ describe('EvmRpcNetwork', () => {
     });
   });
 
-  describe('getTxId', () => {
+  describe('getActualTxId', () => {
     /**
-     * @target `EvmRpcNetwork.getTxId` should return signed hash from db when tx exists in db
+     * @target `EvmRpcNetwork.getActualTxId` should return signed hash from db when tx exists in db
      * @dependencies
      * @scenario
      * - define a mock unsigned hash
      * - define a mock tx
      * - mock dbAction.getTxByUnsignedHash to return the mock tx
-     * - call getTxId using the unsigned hash
+     * - call getActualTxId using the unsigned hash
      * @expected
-     * - getTxId should have returned the signed hash of requested tx
+     * - getActualTxId should have returned the signed hash of requested tx
      * - getTxByUnsignedHash should have been called once with the unsigned hash
      */
     it('should return signed hash from db when tx exists in db', async () => {
@@ -671,7 +671,7 @@ describe('EvmRpcNetwork', () => {
         .mockResolvedValue(mockTx as AddressTxsEntity);
 
       // act
-      const txId = await network.getTxId(unsignedHash);
+      const txId = await network.getActualTxId(unsignedHash);
 
       // assert
       expect(txId).toEqual(testData.transaction0Id);
@@ -680,14 +680,14 @@ describe('EvmRpcNetwork', () => {
     });
 
     /**
-     * @target `EvmRpcNetwork.getTxId` should return the same hash when tx does not exist in db
+     * @target `EvmRpcNetwork.getActualTxId` should return the same hash when tx does not exist in db
      * @dependencies
      * @scenario
      * - define a mock unsigned hash
      * - mock dbAction.getTxByUnsignedHash to return null
-     * - call getTxId using the unsigned hash
+     * - call getActualTxId using the unsigned hash
      * @expected
-     * - getTxId should have returned the the same hash
+     * - getActualTxId should have returned the the same hash
      * - getTxByUnsignedHash should have been called once with the unsigned hash
      */
     it('should return the same hash when tx does not exist in db', async () => {
@@ -698,7 +698,7 @@ describe('EvmRpcNetwork', () => {
         .mockResolvedValue(null);
 
       // act
-      const txId = await network.getTxId(unsignedHash);
+      const txId = await network.getActualTxId(unsignedHash);
 
       // assert
       expect(txId).toEqual(unsignedHash);

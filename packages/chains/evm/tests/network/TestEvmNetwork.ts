@@ -78,7 +78,7 @@ class TestEvmNetwork extends AbstractEvmNetwork {
     throw Error('Not mocked');
   };
 
-  getTxId = (hash: string): Promise<string> => {
+  getActualTxId = (hash: string): Promise<string> => {
     throw Error('Not mocked');
   };
 }

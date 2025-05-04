@@ -26,7 +26,7 @@ abstract class AbstractUtxoChainNetwork<
    * gets the actual id of a transaction by its hash
    * @param hash
    */
-  getTxId = async (hash: string): Promise<string> => hash;
+  getActualTxId = async (hash: string): Promise<string> => hash;
 }
 
 export default AbstractUtxoChainNetwork;
