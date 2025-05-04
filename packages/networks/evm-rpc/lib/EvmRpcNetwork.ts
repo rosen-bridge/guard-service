@@ -69,6 +69,7 @@ class EvmRpcNetwork extends AbstractEvmNetwork {
    * @returns the transaction confirmation
    */
   getTxConfirmation = async (hash: string): Promise<number> => {
+    // check if hash is representing signed or unsigned version of the tx
     const txRecord = await this.dbAction.getTxByUnsignedHash(hash);
     const transactionId = txRecord === null ? hash : txRecord.signedHash;
 
@@ -401,6 +402,7 @@ class EvmRpcNetwork extends AbstractEvmNetwork {
    * @returns the transaction status
    */
   getTransactionStatus = async (hash: string): Promise<EvmTxStatus> => {
+    // check if hash is representing signed or unsigned version of the tx
     const txRecord = await this.dbAction.getTxByUnsignedHash(hash);
     const transactionId = txRecord === null ? hash : txRecord.signedHash;
 
