@@ -6,9 +6,11 @@ import {
   TransactionNetwork,
   BlockAndUtxoNetwork,
   CompleteDogeNetwork,
-} from './mocks';
+} from './combinedMocks';
 
 describe('CombinedDogeNetwork', () => {
+  const logger = new DummyLogger();
+
   /**
    * @target CombinedDogeNetwork should delegate calls to appropriate network
    * @dependencies
@@ -26,7 +28,7 @@ describe('CombinedDogeNetwork', () => {
 
     const combinedNetwork = new CombinedDogeNetwork(
       [heightAndAssetsNetwork, transactionNetwork, blockAndUtxoNetwork],
-      new DummyLogger()
+      logger
     );
 
     // Test functions from HeightAndAssetsNetwork
@@ -80,7 +82,7 @@ describe('CombinedDogeNetwork', () => {
     // When network1 has priority
     const combinedNetwork1 = new CombinedDogeNetwork(
       [network1, network2],
-      new DummyLogger()
+      logger
     );
     const height1 = await combinedNetwork1.getHeight();
     expect(height1).toBe(100);
@@ -88,7 +90,7 @@ describe('CombinedDogeNetwork', () => {
     // When network2 has priority
     const combinedNetwork2 = new CombinedDogeNetwork(
       [network2, network1],
-      new DummyLogger()
+      logger
     );
     const height2 = await combinedNetwork2.getHeight();
     expect(height2).toBe(200);
@@ -106,47 +108,82 @@ describe('CombinedDogeNetwork', () => {
   it('should validate completeness', () => {
     const network1 = new HeightAndAssetsNetwork();
     const network2 = new TransactionNetwork();
+    const networks = [network1, network2];
 
     // Missing BlockAndUtxoNetwork functions
     expect(() => {
-      new CombinedDogeNetwork([network1, network2], new DummyLogger());
+      new CombinedDogeNetwork(networks, logger);
     }).toThrow(/The following functions have no implementation/);
   });
 
   /**
-   * @target CombinedDogeNetwork should throw error when functions are missing
+   * @target CombinedDogeNetwork should throw error when only HeightAndAssetsNetwork is provided
    * @dependencies
    * @scenario
-   * - create different combinations of network implementations with missing functions
+   * - create a HeightAndAssetsNetwork implementation
+   * - try to create CombinedDogeNetwork with this network
+   * @expected
+   * - constructor should throw error listing missing transaction and block functions
+   */
+  it('should throw error when only HeightAndAssetsNetwork is provided', () => {
+    const network = new HeightAndAssetsNetwork();
+    const networks = [network];
+
+    expect(() => {
+      new CombinedDogeNetwork(networks, logger);
+    }).toThrow(/The following functions have no implementation/);
+  });
+
+  /**
+   * @target CombinedDogeNetwork should throw error when HeightAndAssetsNetwork and TransactionNetwork are provided
+   * @dependencies
+   * @scenario
+   * - create HeightAndAssetsNetwork and TransactionNetwork implementations
    * - try to create CombinedDogeNetwork with these networks
    * @expected
-   * - constructor should throw error for each incomplete combination
+   * - constructor should throw error listing missing block functions
    */
-  it('should throw error when functions are missing', () => {
-    // Test case 1: Only HeightAndAssetsNetwork - missing transaction and block functions
-    expect(() => {
-      new CombinedDogeNetwork(
-        [new HeightAndAssetsNetwork()],
-        new DummyLogger()
-      );
-    }).toThrow(/The following functions have no implementation/);
+  it('should throw error when HeightAndAssetsNetwork and TransactionNetwork are provided', () => {
+    const heightAndAssetsNetwork = new HeightAndAssetsNetwork();
+    const transactionNetwork = new TransactionNetwork();
+    const networks = [heightAndAssetsNetwork, transactionNetwork];
 
-    // Test case 2: HeightAndAssetsNetwork + TransactionNetwork - missing block functions
     expect(() => {
-      new CombinedDogeNetwork(
-        [new HeightAndAssetsNetwork(), new TransactionNetwork()],
-        new DummyLogger()
-      );
+      new CombinedDogeNetwork(networks, logger);
     }).toThrow(/The following functions have no implementation/);
+  });
 
-    // Test case 3: Only BlockAndUtxoNetwork - missing height, assets, and transaction functions
+  /**
+   * @target CombinedDogeNetwork should throw error when only BlockAndUtxoNetwork is provided
+   * @dependencies
+   * @scenario
+   * - create a BlockAndUtxoNetwork implementation
+   * - try to create CombinedDogeNetwork with this network
+   * @expected
+   * - constructor should throw error listing missing height, assets, and transaction functions
+   */
+  it('should throw error when only BlockAndUtxoNetwork is provided', () => {
+    const network = new BlockAndUtxoNetwork();
+    const networks = [network];
+
     expect(() => {
-      new CombinedDogeNetwork([new BlockAndUtxoNetwork()], new DummyLogger());
+      new CombinedDogeNetwork(networks, logger);
     }).toThrow(/The following functions have no implementation/);
+  });
 
-    // Test case 4: Completely empty array - all functions missing
+  /**
+   * @target CombinedDogeNetwork should throw error when no networks are provided
+   * @dependencies
+   * @scenario
+   * - try to create CombinedDogeNetwork with an empty array
+   * @expected
+   * - constructor should throw error listing all missing functions
+   */
+  it('should throw error when no networks are provided', () => {
+    const networks: any[] = [];
+
     expect(() => {
-      new CombinedDogeNetwork([], new DummyLogger());
+      new CombinedDogeNetwork(networks, logger);
     }).toThrow(/The following functions have no implementation/);
   });
 });

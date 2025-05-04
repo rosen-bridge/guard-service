@@ -40,8 +40,10 @@ describe('DogeBlockCypherNetwork implements property', () => {
       const method = network[funcName as keyof typeof network];
 
       // The method should exist and be a function
-      expect(method).toBeDefined();
-      expect(typeof method).toBe('function');
+      expect(method, `Method ${funcName} should be defined`).toBeDefined();
+      expect(typeof method, `Method ${funcName} should be a function`).toBe(
+        'function'
+      );
 
       // Convert method to string to check its implementation
       const methodStr = method.toString();

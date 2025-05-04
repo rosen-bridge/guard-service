@@ -84,7 +84,6 @@ export class BlockAndUtxoNetwork extends PartialDogeNetwork {
     DogeNetworkFunction.getUtxo,
     DogeNetworkFunction.getFeeRatio,
     DogeNetworkFunction.isTxInMempool,
-    DogeNetworkFunction.getMempoolTransactions,
   ];
 
   mockBlockInfo: BlockInfo = {
@@ -136,10 +135,6 @@ export class BlockAndUtxoNetwork extends PartialDogeNetwork {
 
   isTxInMempool = async (_txId: string): Promise<boolean> => {
     return false;
-  };
-
-  getMempoolTransactions = async (): Promise<Array<DogeTx>> => {
-    return [];
   };
 }
 
@@ -224,9 +219,5 @@ export class CompleteDogeNetwork extends PartialDogeNetwork {
 
   isTxInMempool = async (_txId: string): Promise<boolean> => {
     return false;
-  };
-
-  getMempoolTransactions = async (): Promise<Array<DogeTx>> => {
-    return [];
   };
 }
