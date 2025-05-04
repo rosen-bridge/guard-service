@@ -69,7 +69,8 @@ class EvmRpcNetwork extends AbstractEvmNetwork {
    * @returns the transaction confirmation
    */
   getTxConfirmation = async (hash: string): Promise<number> => {
-    const transactionId = await this.getActualTxId(hash);
+    const txRecord = await this.dbAction.getTxByUnsignedHash(hash);
+    const transactionId = txRecord === null ? hash : txRecord.signedHash;
 
     // get transaction confirmation
     const baseError = `Failed to get transaction [${transactionId}] from ${this.chain} RPC: `;
@@ -400,7 +401,6 @@ class EvmRpcNetwork extends AbstractEvmNetwork {
    * @returns the transaction status
    */
   getTransactionStatus = async (hash: string): Promise<EvmTxStatus> => {
-    // check if hash is representing signed or unsigned version of the tx
     const txRecord = await this.dbAction.getTxByUnsignedHash(hash);
     const transactionId = txRecord === null ? hash : txRecord.signedHash;
 
@@ -461,7 +461,20 @@ class EvmRpcNetwork extends AbstractEvmNetwork {
    */
   getActualTxId = async (hash: string): Promise<string> => {
     const txRecord = await this.dbAction.getTxByUnsignedHash(hash);
-    return txRecord === null ? hash : txRecord.signedHash;
+    const txId = txRecord === null ? hash : txRecord.signedHash;
+
+    const baseError = `Failed to get actual TxId for hash [${hash}]: `;
+
+    try {
+      const tx = await this.provider.getTransaction(txId);
+      if (!tx) {
+        throw new Error(baseError + `Transaction [${txId}] is not found`);
+      }
+    } catch (e: unknown) {
+      throw new UnexpectedApiError(baseError + `${e}`);
+    }
+
+    return txId;
   };
 }
 

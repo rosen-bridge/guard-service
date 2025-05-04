@@ -656,7 +656,8 @@ describe('EvmRpcNetwork', () => {
      * @scenario
      * - define a mock unsigned hash
      * - define a mock tx
-     * - mock dbAction.getTxByUnsignedHash to return the mock tx
+     * - stub dbAction.getTxByUnsignedHash to return the mock tx
+     * - stub provider.getTransaction to return a mock response
      * - call getActualTxId using the unsigned hash
      * @expected
      * - getActualTxId should have returned the signed hash of requested tx
@@ -669,6 +670,9 @@ describe('EvmRpcNetwork', () => {
       const getTxByUnsignedHashSpy = vi
         .spyOn(network.getDbAction(), 'getTxByUnsignedHash')
         .mockResolvedValue(mockTx as AddressTxsEntity);
+      vi.spyOn(network.getProvider(), 'getTransaction').mockResolvedValue(
+        testData.transaction0Response
+      );
 
       // act
       const txId = await network.getActualTxId(unsignedHash);
@@ -684,7 +688,8 @@ describe('EvmRpcNetwork', () => {
      * @dependencies
      * @scenario
      * - define a mock unsigned hash
-     * - mock dbAction.getTxByUnsignedHash to return null
+     * - stub dbAction.getTxByUnsignedHash to return null
+     * - stub provider.getTransaction to return a mock response
      * - call getActualTxId using the unsigned hash
      * @expected
      * - getActualTxId should have returned the the same hash
@@ -696,6 +701,9 @@ describe('EvmRpcNetwork', () => {
       const getTxByUnsignedHashSpy = vi
         .spyOn(network.getDbAction(), 'getTxByUnsignedHash')
         .mockResolvedValue(null);
+      vi.spyOn(network.getProvider(), 'getTransaction').mockResolvedValue(
+        testData.transaction0Response
+      );
 
       // act
       const txId = await network.getActualTxId(unsignedHash);
