@@ -70,6 +70,7 @@ export enum DogeNetworkFunction {
   getTransaction = 'getTransaction',
   submitTransaction = 'submitTransaction',
   getMempoolTransactions = 'getMempoolTransactions',
+  getTokenDetail = 'getTokenDetail',
 
   // AbstractUtxoChainNetwork functions
   getAddressBoxes = 'getAddressBoxes',
