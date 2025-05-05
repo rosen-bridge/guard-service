@@ -1,6 +1,10 @@
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 import { Psbt } from 'bitcoinjs-lib';
-import { AssetBalance, BlockInfo } from '@rosen-chains/abstract-chain';
+import {
+  AssetBalance,
+  BlockInfo,
+  ImpossibleBehavior,
+} from '@rosen-chains/abstract-chain';
 import { DogeTx, DogeUtxo } from '../types';
 import AbstractDogeNetwork from './AbstractDogeNetwork';
 import PartialDogeNetwork from './PartialDogeNetwork';
@@ -73,7 +77,9 @@ class CombinedDogeNetwork extends AbstractDogeNetwork {
   private getNetworkForFunction(func: DogeNetworkFunction): PartialDogeNetwork {
     const network = this.implementations.get(func);
     if (!network) {
-      throw new Error(`No implementation found for function [${func}]`);
+      throw new ImpossibleBehavior(
+        `No implementation found for function [${func}]`
+      );
     }
     return network;
   }
