@@ -143,10 +143,7 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
           network: DOGE_NETWORK,
         });
         try {
-          const extractedTx = realTx.extractTransaction(true);
-          if (extractedTx.getId() === transactionId) {
-            realTxId = transactionId;
-          }
+          realTxId = realTx.extractTransaction(true).getId();
         } catch (e: any) {
           const spentTx = await this.getSpentTransactionByInputId(
             realTx.txInputs[0].index,
