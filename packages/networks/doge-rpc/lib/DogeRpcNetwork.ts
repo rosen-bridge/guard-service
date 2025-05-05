@@ -5,7 +5,6 @@ import {
   FailedError,
   NetworkError,
   PaymentTransaction,
-  TokenInfo,
   UnexpectedApiError,
 } from '@rosen-chains/abstract-chain';
 import JsonBigInt from '@rosen-bridge/json-bigint';
@@ -23,7 +22,6 @@ import {
   JsonRpcResult,
   DogeBlockSummary,
   DogeChainInfo,
-  DogeUtxo as DogeRpcUtxo,
 } from './types';
 
 class DogeRpcNetwork extends PartialDogeNetwork {
@@ -46,7 +44,6 @@ class DogeRpcNetwork extends PartialDogeNetwork {
     DogeNetworkFunction.getFeeRatio,
     DogeNetworkFunction.isTxInMempool,
     DogeNetworkFunction.getTransactionHex,
-    // Note: getAddressAssets, getSpentTransactionByInputId, getTxConfirmation, and getAddressBoxes are not implemented
   ] as DogeNetworkFunction[];
 
   constructor(
@@ -107,56 +104,6 @@ class DogeRpcNetwork extends PartialDogeNetwork {
       if (e.response) {
         throw new FailedError(
           baseError + `${JsonBigInt.stringify(e.response.data)}`
-        );
-      } else if (e.request) {
-        throw new NetworkError(baseError + e.message);
-      } else {
-        throw new UnexpectedApiError(baseError + e.message);
-      }
-    }
-  };
-
-  /**
-   * gets confirmation for a transaction (returns -1 if tx is not mined or found)
-   * @param transactionId the transaction id (only supports real signed tx id)
-   * @returns the transaction confirmation
-   */
-  protected getTxConfirmationSigned = async (
-    transactionId: string
-  ): Promise<number> => {
-    const randomId = this.generateRandomId();
-    try {
-      const response = await this.client.post<JsonRpcResult>('', {
-        method: 'getrawtransaction',
-        id: randomId,
-        params: [transactionId, true],
-      });
-
-      if (response.data.id !== randomId) {
-        throw new Error(
-          `UnexpectedBehavior: Request and response id are different`
-        );
-      }
-
-      const txInfo: DogeRpcTransaction = response.data.result;
-      this.logger?.debug(
-        `Requested 'tx' for txId [${transactionId}]. Response: ${JsonBigInt.stringify(
-          txInfo
-        )}`
-      );
-
-      if (!txInfo.confirmations || txInfo.confirmations === 0) return -1;
-      return txInfo.confirmations;
-    } catch (e: any) {
-      const baseError = `Failed to get confirmation for tx [${transactionId}] from Dogecoin RPC: `;
-      if (e.response && e.response.data && e.response.data.error) {
-        if (e.response.data.error.code === -5) {
-          // No such transaction error
-          this.logger?.debug(`tx [${transactionId}] is not found`);
-          return -1;
-        }
-        throw new FailedError(
-          baseError + JsonBigInt.stringify(e.response.data)
         );
       } else if (e.request) {
         throw new NetworkError(baseError + e.message);

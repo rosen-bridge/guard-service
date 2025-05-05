@@ -29,6 +29,42 @@ describe('DogeRpcNetwork', () => {
     vi.restoreAllMocks();
   });
 
+  /**
+   * @target Functions that are not in implements should contain 'not implemented' error logic
+   * @dependencies
+   * @scenario
+   * - Create instance of DogeRpcNetwork
+   * - Check specific functions that are not implemented
+   * @expected
+   * - Those functions should contain the 'not implemented' error message
+   */
+  it('should include "not implemented" error logic in non-implemented functions', () => {
+    const network = new DogeRpcNetwork(URL, TIMEOUT, getSavedTransactionById);
+
+    const nonImplementedFunctions = [
+      'getTxConfirmation',
+      'getAddressAssets',
+      'getAddressBoxes',
+      'getSpentTransactionByInputId',
+    ];
+
+    // For each non-implemented function
+    nonImplementedFunctions.forEach((funcName) => {
+      // Get the function from the network instance
+      const method = network[funcName as keyof typeof network];
+
+      // The method should exist and be a function
+      expect(method).toBeDefined();
+      expect(typeof method).toBe('function');
+
+      // Convert method to string to check its implementation
+      const methodStr = method.toString();
+
+      // Should contain the "not implemented" error message
+      expect(methodStr).toContain('Not implemented');
+    });
+  });
+
   describe('getHeight', () => {
     /**
      * @target `DogeRpcNetwork.getHeight` should return block height successfully
