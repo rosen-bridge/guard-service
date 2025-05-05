@@ -14,7 +14,7 @@ import * as testData from './testData';
 import { vi } from 'vitest';
 import axios from 'axios';
 
-describe('DogeExplorerNetwork', () => {
+describe('DogeBlockcypherNetwork', () => {
   let network: DogeBlockcypherNetwork;
 
   beforeEach(() => {
@@ -23,6 +23,35 @@ describe('DogeExplorerNetwork', () => {
       'blockcypher-url',
       async () => undefined
     );
+  });
+
+  /**
+   * @target Functions declared in implements should not contain 'not implemented' error logic
+   * @dependencies
+   * @scenario
+   * - Create instance of DogeBlockCypherNetwork
+   * - Check each function in the implements array
+   * @expected
+   * - None of the functions should contain the 'not implemented' error message
+   */
+  it('should not contain "not implemented" error logic in implemented functions', () => {
+    // For each function in the implements array
+    network.implements.forEach((funcName) => {
+      // Get the function from the network instance
+      const method = network[funcName as keyof typeof network];
+
+      // The method should exist and be a function
+      expect(method, `Method ${funcName} should be defined`).toBeDefined();
+      expect(typeof method, `Method ${funcName} should be a function`).toBe(
+        'function'
+      );
+
+      // Convert method to string to check its implementation
+      const methodStr = method.toString();
+
+      // Should not contain the "not implemented" error message
+      expect(methodStr).not.toContain('not implemented');
+    });
   });
 
   describe('getHeight', () => {
