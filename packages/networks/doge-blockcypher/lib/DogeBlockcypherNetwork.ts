@@ -10,7 +10,8 @@ import {
 } from '@rosen-chains/abstract-chain';
 import JsonBigInt from '@rosen-bridge/json-bigint';
 import {
-  AbstractDogeNetwork,
+  PartialDogeNetwork,
+  DogeNetworkFunction,
   DogeTx,
   DogeUtxo,
   DOGE_NETWORK,
@@ -25,11 +26,28 @@ import {
   BlockCypherTx,
 } from './types';
 
-class DogeBlockCypherNetwork extends AbstractDogeNetwork {
+class DogeBlockCypherNetwork extends PartialDogeNetwork {
   protected client: AxiosInstance;
   private getSavedTransactionById: (
     txId: string
   ) => Promise<PaymentTransaction | undefined>;
+
+  // Implement all DogeNetworkFunction functions
+  readonly implements = [
+    DogeNetworkFunction.getHeight,
+    DogeNetworkFunction.getTxConfirmation,
+    DogeNetworkFunction.getAddressAssets,
+    DogeNetworkFunction.getBlockTransactionIds,
+    DogeNetworkFunction.getBlockInfo,
+    DogeNetworkFunction.getTransaction,
+    DogeNetworkFunction.submitTransaction,
+    DogeNetworkFunction.getAddressBoxes,
+    DogeNetworkFunction.isBoxUnspentAndValid,
+    DogeNetworkFunction.getUtxo,
+    DogeNetworkFunction.getFeeRatio,
+    DogeNetworkFunction.isTxInMempool,
+    DogeNetworkFunction.getTransactionHex,
+  ] as DogeNetworkFunction[];
 
   constructor(
     url: string,
@@ -124,25 +142,29 @@ class DogeBlockCypherNetwork extends AbstractDogeNetwork {
         const realTx = Psbt.fromBuffer(Buffer.from(realPaymentTx.txBytes), {
           network: DOGE_NETWORK,
         });
-        const spentTx = await this.getSpentTransactionByInputId(
-          realTx.txInputs[0].index,
-          Buffer.from(realTx.txInputs[0].hash.reverse()).toString('hex')
-        );
-        if (spentTx) {
-          const sameInputs = realTx.txInputs.every(
-            (input, i) =>
-              spentTx.inputs[i].txId ===
-                Buffer.from(input.hash.reverse()).toString('hex') &&
-              spentTx.inputs[i].index === input.index
+        try {
+          realTxId = realTx.extractTransaction(true).getId();
+        } catch (e: any) {
+          const spentTx = await this.getSpentTransactionByInputId(
+            realTx.txInputs[0].index,
+            Buffer.from(realTx.txInputs[0].hash.reverse()).toString('hex')
           );
-          const sameOutputs = realTx.txOutputs.every(
-            (output, i) =>
-              spentTx.outputs[i].scriptPubKey ===
-                Buffer.from(output.script).toString('hex') &&
-              spentTx.outputs[i].value === BigInt(output.value)
-          );
-          if (sameInputs && sameOutputs) {
-            realTxId = spentTx.id;
+          if (spentTx) {
+            const sameInputs = realTx.txInputs.every(
+              (input, i) =>
+                spentTx.inputs[i].txId ===
+                  Buffer.from(input.hash.reverse()).toString('hex') &&
+                spentTx.inputs[i].index === input.index
+            );
+            const sameOutputs = realTx.txOutputs.every(
+              (output, i) =>
+                spentTx.outputs[i].scriptPubKey ===
+                  Buffer.from(output.script).toString('hex') &&
+                spentTx.outputs[i].value === BigInt(output.value)
+            );
+            if (sameInputs && sameOutputs) {
+              realTxId = spentTx.id;
+            }
           }
         }
       }
