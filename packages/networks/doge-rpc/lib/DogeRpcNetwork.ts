@@ -69,19 +69,21 @@ class DogeRpcNetwork extends PartialDogeNetwork {
       Object.assign(headers, { 'x-api-key': auth.apiKey });
     }
 
-    this.client = axios.create({
-      baseURL: url,
-      timeout: timeout,
-      headers: headers,
-      // Include auth if username or password is provided, using empty strings as fallbacks
-      ...(auth?.username || auth?.password
+    const authConfig =
+      auth?.username || auth?.password
         ? {
             auth: {
               username: auth?.username || '',
               password: auth?.password || '',
             },
           }
-        : {}),
+        : {};
+
+    this.client = axios.create({
+      baseURL: url,
+      timeout: timeout,
+      headers: headers,
+      ...authConfig,
     });
   }
 
@@ -93,13 +95,27 @@ class DogeRpcNetwork extends PartialDogeNetwork {
    * @param responseId the response ID
    * @throws UnexpectedApiError if IDs don't match
    */
-  protected validateResponseId(requestId: string, responseId: string): void {
+  protected validateResponseId = (
+    requestId: string,
+    responseId: string
+  ): void => {
     if (responseId !== requestId) {
       throw new UnexpectedApiError(
         `Request and response id are different ['${requestId}' != '${responseId}']`
       );
     }
-  }
+  };
+
+  /**
+   * Converts DOGE value to satoshis using string manipulation to avoid floating-point issues
+   * @param value DOGE value as a number
+   * @returns satoshis as a bigint
+   */
+  protected convertToSatoshis = (value: number): bigint => {
+    const parts = value.toString().split('.');
+    const part1 = ((parts[1] ?? '') + '0'.repeat(8)).substring(0, 8);
+    return BigInt((parts[0] === '0' ? '' : parts[0]) + part1);
+  };
 
   /**
    * gets the blockchain height
@@ -254,12 +270,7 @@ class DogeRpcNetwork extends PartialDogeNetwork {
           scriptPubKey: input.scriptSig.hex,
         })),
         outputs: tx.vout.map((output) => ({
-          // Convert DOGE to satoshis using string manipulation to avoid floating-point issues
-          value: (() => {
-            const parts = output.value.toString().split('.');
-            const part1 = ((parts[1] ?? '') + '0'.repeat(8)).substring(0, 8);
-            return BigInt((parts[0] === '0' ? '' : parts[0]) + part1);
-          })(),
+          value: this.convertToSatoshis(output.value),
           scriptPubKey: output.scriptPubKey.hex,
         })),
       };
@@ -384,25 +395,10 @@ class DogeRpcNetwork extends PartialDogeNetwork {
 
       const output = tx.vout[outputIndex];
 
-      // Get the confirmation status
-      const randomId2 = this.generateRandomId();
-      const txOutResponse = await this.client.post<JsonRpcResult>('', {
-        method: 'gettxout',
-        id: randomId2,
-        params: [txId, outputIndex, true], // txid, n, include_mempool
-      });
-
-      this.validateResponseId(randomId2, txOutResponse.data.id);
-
       return {
         txId: txId,
         index: outputIndex,
-        // Convert DOGE to satoshis using string manipulation to avoid floating-point issues
-        value: (() => {
-          const parts = output.value.toString().split('.');
-          const part1 = ((parts[1] ?? '') + '0'.repeat(8)).substring(0, 8);
-          return BigInt((parts[0] === '0' ? '' : parts[0]) + part1);
-        })(),
+        value: this.convertToSatoshis(output.value),
       };
     } catch (e: any) {
       const baseError = `Failed to get UTXO [${boxId}] from Dogecoin RPC: `;
@@ -432,29 +428,15 @@ class DogeRpcNetwork extends PartialDogeNetwork {
       });
 
       this.validateResponseId(randomId, response.data.id);
-
-      // Convert feerate from DOGE/kB to satoshis/byte
-      const feeRate = (() => {
-        // Convert DOGE to satoshis first
-        const feeDoge = response.data.result.feerate;
-        const parts = feeDoge.toString().split('.');
-        const part1 = ((parts[1] ?? '') + '0'.repeat(8)).substring(0, 8);
-        const feeSatoshis = BigInt((parts[0] === '0' ? '' : parts[0]) + part1);
-
-        // Convert from satoshis/kB to satoshis/byte (divide by 1024)
-        return Number(feeSatoshis) / 1024;
-      })();
-
-      // Round up to the nearest integer
-      const roundedFeeRate = Math.ceil(feeRate);
+      const feeSatoshis = this.convertToSatoshis(response.data.result.feerate);
+      const feeRate = Number(feeSatoshis) / 1024;
 
       this.logger?.debug(
         `Requested 'estimatesmartfee'. Response: ${JsonBigInt.stringify(
           response.data.result
         )}`
       );
-
-      return roundedFeeRate;
+      return Math.ceil(feeRate);
     } catch (e: any) {
       const baseError = `Failed to get fee ratio from Dogecoin RPC: `;
       if (e.response) {
