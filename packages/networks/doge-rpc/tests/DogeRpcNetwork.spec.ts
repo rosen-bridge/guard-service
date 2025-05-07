@@ -25,12 +25,8 @@ describe('DogeRpcNetwork', () => {
     resetAxiosMock();
   });
 
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
   /**
-   * @target Functions that are not in implements should contain 'not implemented' error logic
+   * @target `DogeBlockcypherNetwork` should not contain "not implemented" error logic in implemented functions
    * @dependencies
    * @scenario
    * - Create instance of DogeRpcNetwork
@@ -38,30 +34,25 @@ describe('DogeRpcNetwork', () => {
    * @expected
    * - Those functions should contain the 'not implemented' error message
    */
-  it('should include "not implemented" error logic in non-implemented functions', () => {
+  it('should not contain "not implemented" error logic in implemented functions', () => {
     const network = new DogeRpcNetwork(URL, TIMEOUT, getSavedTransactionById);
-
-    const nonImplementedFunctions = [
-      'getTxConfirmation',
-      'getAddressAssets',
-      'getAddressBoxes',
-      'getSpentTransactionByInputId',
-    ];
-
-    // For each non-implemented function
-    nonImplementedFunctions.forEach((funcName) => {
+    // For each function in the implements array
+    network.implements.forEach((funcName) => {
       // Get the function from the network instance
       const method = network[funcName as keyof typeof network];
 
       // The method should exist and be a function
-      expect(method).toBeDefined();
-      expect(typeof method).toBe('function');
+      expect(method, `Method ${funcName} should be defined`).toBeDefined();
+      expect(typeof method, `Method ${funcName} should be a function`).toBe(
+        'function'
+      );
 
       // Convert method to string to check its implementation
       const methodStr = method.toString();
 
-      // Should contain the "not implemented" error message
-      expect(methodStr).toContain('Not implemented');
+      // Should not contain the "not implemented" error message
+      expect(methodStr).not.toContain('not implemented');
+      expect(methodStr).not.toContain('notImplemented');
     });
   });
 
@@ -351,53 +342,6 @@ describe('DogeRpcNetwork', () => {
       expect(result.index).toEqual(0);
       expect(result.value).toEqual(testData.dogeUtxo.value);
     });
-
-    /**
-     * @target `DogeRpcNetwork.getUtxo` should throw error when UTXO is spent
-     * @dependencies
-     * @scenario
-     * - mock axios for transaction data
-     * - mock axios for spent UTXO (null result)
-     * - run test
-     * - check error is thrown
-     * @expected
-     * - it should throw an error
-     */
-    it('should throw error when UTXO is spent', async () => {
-      // Track which API call we're on
-      let callCount = 0;
-
-      axiosInstance.post.mockImplementation((url, data) => {
-        const { method, id } = data;
-        callCount++;
-
-        if (callCount === 1 && method === 'getrawtransaction') {
-          return Promise.resolve({
-            data: {
-              ...testData.txResponse,
-              id: id,
-            },
-          });
-        } else if (callCount === 2 && method === 'gettxout') {
-          return Promise.resolve({
-            data: {
-              result: null,
-              error: null,
-              id: id,
-            },
-          });
-        }
-
-        return Promise.reject(
-          new Error(`Unexpected method or call count: ${method}, ${callCount}`)
-        );
-      });
-
-      const network = new DogeRpcNetwork(URL, TIMEOUT, getSavedTransactionById);
-      await expect(network.getUtxo(`${testData.txId}_0`)).rejects.toThrow(
-        'UTXO with boxId'
-      );
-    });
   });
 
   describe('getFeeRatio', () => {
@@ -430,34 +374,6 @@ describe('DogeRpcNetwork', () => {
         (testData.estimateSmartFeeResponse.result.feerate * 100000000) / 1024
       );
       expect(result).toEqual(expectedFeeRate);
-    });
-
-    /**
-     * @target `DogeRpcNetwork.getFeeRatio` should return default fee when estimation fails
-     * @dependencies
-     * @scenario
-     * - mock axios to return error for fee estimation
-     * - run test
-     * - check default value is returned
-     * @expected
-     * - it should return default fee value
-     */
-    it('should return default fee when estimation fails', async () => {
-      axiosInstance.post.mockImplementation((url, data) => {
-        return Promise.resolve({
-          data: {
-            result: {},
-            error: 'Failed to estimate fee',
-            id: data.id,
-          },
-        });
-      });
-
-      const network = new DogeRpcNetwork(URL, TIMEOUT, getSavedTransactionById);
-      const result = await network.getFeeRatio();
-
-      // Should use default value (1000 satoshis/byte)
-      expect(result).toEqual(1000);
     });
   });
 

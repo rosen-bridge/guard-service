@@ -26,7 +26,7 @@ describe('DogeBlockcypherNetwork', () => {
   });
 
   /**
-   * @target Functions declared in implements should not contain 'not implemented' error logic
+   * @target `DogeBlockcypherNetwork` should not contain "not implemented" error logic in implemented functions
    * @dependencies
    * @scenario
    * - Create instance of DogeBlockCypherNetwork
@@ -51,6 +51,7 @@ describe('DogeBlockcypherNetwork', () => {
 
       // Should not contain the "not implemented" error message
       expect(methodStr).not.toContain('not implemented');
+      expect(methodStr).not.toContain('notImplemented');
     });
   });
 

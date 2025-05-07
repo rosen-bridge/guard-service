@@ -13,6 +13,7 @@ import {
   DogeNetworkFunction,
   DogeTx,
   DogeUtxo,
+  CONFIRMATION_TARGET,
 } from '@rosen-chains/doge';
 import axios, { AxiosInstance } from 'axios';
 import { Psbt } from 'bitcoinjs-lib';
@@ -22,6 +23,7 @@ import {
   JsonRpcResult,
   DogeBlockSummary,
   DogeChainInfo,
+  RpcAuth,
 } from './types';
 
 class DogeRpcNetwork extends PartialDogeNetwork {
@@ -53,24 +55,51 @@ class DogeRpcNetwork extends PartialDogeNetwork {
       txId: string
     ) => Promise<PaymentTransaction | undefined>,
     logger?: AbstractLogger,
-    auth?: {
-      username: string;
-      password: string;
-    }
+    auth?: RpcAuth
   ) {
     super(logger);
     this.url = url;
     this.timeout = timeout;
     this.getSavedTransactionById = getSavedTransactionById;
+
+    const headers = { 'Content-Type': 'application/json' };
+
+    // Add API key to headers if provided
+    if (auth?.apiKey) {
+      Object.assign(headers, { 'x-api-key': auth.apiKey });
+    }
+
     this.client = axios.create({
       baseURL: url,
       timeout: timeout,
-      headers: { 'Content-Type': 'application/json' },
-      auth: auth,
+      headers: headers,
+      // Include auth if username or password is provided, using empty strings as fallbacks
+      ...(auth?.username || auth?.password
+        ? {
+            auth: {
+              username: auth?.username || '',
+              password: auth?.password || '',
+            },
+          }
+        : {}),
     });
   }
 
   private generateRandomId = () => randomBytes(32).toString('hex');
+
+  /**
+   * Validates that the response ID matches the request ID
+   * @param requestId the request ID
+   * @param responseId the response ID
+   * @throws UnexpectedApiError if IDs don't match
+   */
+  protected validateResponseId(requestId: string, responseId: string): void {
+    if (responseId !== requestId) {
+      throw new UnexpectedApiError(
+        `Request and response id are different ['${requestId}' != '${responseId}']`
+      );
+    }
+  }
 
   /**
    * gets the blockchain height
@@ -85,15 +114,11 @@ class DogeRpcNetwork extends PartialDogeNetwork {
         params: [],
       });
 
-      if (response.data.id !== randomId) {
-        throw new Error(
-          `UnexpectedBehavior: Request and response id are different`
-        );
-      }
+      this.validateResponseId(randomId, response.data.id);
 
       const chainInfo: DogeChainInfo = response.data.result;
       this.logger?.debug(
-        `Requested blockchain height. Response: ${JsonBigInt.stringify(
+        `Requested 'getblockchaininfo'. Response: ${JsonBigInt.stringify(
           chainInfo
         )}`
       );
@@ -114,25 +139,6 @@ class DogeRpcNetwork extends PartialDogeNetwork {
   };
 
   /**
-   * gets confirmation for a transaction (returns -1 if tx is not mined or found)
-   * @param transactionId the transaction id (supports both real signed tx id and unsigned tx id)
-   * @returns the transaction confirmation (returns -1 if tx is not mined or found)
-   */
-  getTxConfirmation = async (transactionId: string): Promise<number> => {
-    throw new Error('Not implemented');
-  };
-
-  /**
-   * gets the amount of each asset in an address
-   * @param address the address
-   * @returns an object containing the amount of each asset
-   */
-  getAddressAssets = async (address: string): Promise<AssetBalance> => {
-    // Return not implemented as specified in the requirements
-    throw new Error('Not implemented');
-  };
-
-  /**
    * gets id of all transactions in the given block
    * @param blockId the block id
    * @returns list of the transaction ids in the block
@@ -146,15 +152,11 @@ class DogeRpcNetwork extends PartialDogeNetwork {
         params: [blockId, 1],
       });
 
-      if (response.data.id !== randomId) {
-        throw new Error(
-          `UnexpectedBehavior: Request and response id are different`
-        );
-      }
+      this.validateResponseId(randomId, response.data.id);
 
       const blockData: DogeBlockSummary = response.data.result;
       this.logger?.debug(
-        `Requested 'block/:hash/txids' for blockId [${blockId}]. Response: ${JsonBigInt.stringify(
+        `Requested 'getblock' for blockId [${blockId}]. Response: ${JsonBigInt.stringify(
           blockData
         )}`
       );
@@ -188,15 +190,11 @@ class DogeRpcNetwork extends PartialDogeNetwork {
         params: [blockId, 1],
       });
 
-      if (response.data.id !== randomId) {
-        throw new Error(
-          `UnexpectedBehavior: Request and response id are different`
-        );
-      }
+      this.validateResponseId(randomId, response.data.id);
 
       const blockData: DogeBlockSummary = response.data.result;
       this.logger?.debug(
-        `Requested 'block' info for blockId [${blockId}]. Response: ${JsonBigInt.stringify(
+        `Requested 'getblock' for blockId [${blockId}]. Response: ${JsonBigInt.stringify(
           blockData
         )}`
       );
@@ -238,15 +236,11 @@ class DogeRpcNetwork extends PartialDogeNetwork {
         params: [transactionId, true],
       });
 
-      if (response.data.id !== randomId) {
-        throw new Error(
-          `UnexpectedBehavior: Request and response id are different`
-        );
-      }
+      this.validateResponseId(randomId, response.data.id);
 
       const tx: DogeRpcTransaction = response.data.result;
       this.logger?.debug(
-        `Requested 'transaction' for txId [${transactionId}]. Response: ${JsonBigInt.stringify(
+        `Requested 'getrawtransaction' for txId [${transactionId}]. Response: ${JsonBigInt.stringify(
           tx
         )}`
       );
@@ -260,7 +254,12 @@ class DogeRpcNetwork extends PartialDogeNetwork {
           scriptPubKey: input.scriptSig.hex,
         })),
         outputs: tx.vout.map((output) => ({
-          value: BigInt(Math.round(output.value * 100000000)), // Convert DOGE to satoshis
+          // Convert DOGE to satoshis using string manipulation to avoid floating-point issues
+          value: (() => {
+            const parts = output.value.toString().split('.');
+            const part1 = ((parts[1] ?? '') + '0'.repeat(8)).substring(0, 8);
+            return BigInt((parts[0] === '0' ? '' : parts[0]) + part1);
+          })(),
           scriptPubKey: output.scriptPubKey.hex,
         })),
       };
@@ -286,8 +285,7 @@ class DogeRpcNetwork extends PartialDogeNetwork {
    */
   submitTransaction = async (transaction: Psbt): Promise<void> => {
     // Extract the raw transaction hex
-    transaction.finalizeAllInputs();
-    const txHex = transaction.extractTransaction().toHex();
+    const txHex = transaction.extractTransaction(true).toHex();
 
     const randomId = this.generateRandomId();
     try {
@@ -297,11 +295,7 @@ class DogeRpcNetwork extends PartialDogeNetwork {
         params: [txHex],
       });
 
-      if (response.data.id !== randomId) {
-        throw new Error(
-          `UnexpectedBehavior: Request and response id are different`
-        );
-      }
+      this.validateResponseId(randomId, response.data.id);
 
       this.logger?.debug(
         `Submitted transaction. Response: ${JsonBigInt.stringify(
@@ -323,20 +317,6 @@ class DogeRpcNetwork extends PartialDogeNetwork {
   };
 
   /**
-   * gets boxes of an address
-   * @param address address
-   * @param offset offset
-   * @param limit limit
-   */
-  getAddressBoxes = async (
-    address: string,
-    offset: number,
-    limit: number
-  ): Promise<Array<DogeUtxo>> => {
-    throw new Error('Not implemented');
-  };
-
-  /**
    * checks if a box is unspent and valid
    * @param boxId the box id
    * @returns true if the box is unspent and valid
@@ -348,18 +328,13 @@ class DogeRpcNetwork extends PartialDogeNetwork {
     const randomId = this.generateRandomId();
     try {
       // Check if the output is spent
-      const randomId2 = this.generateRandomId();
       const listUnspentResponse = await this.client.post<JsonRpcResult>('', {
         method: 'gettxout',
-        id: randomId2,
-        params: [txId, outputIndex, true], // txid, n, include_mempool
+        id: randomId,
+        params: [txId, outputIndex, false], // txid, n, include_mempool
       });
 
-      if (listUnspentResponse.data.id !== randomId2) {
-        throw new Error(
-          `UnexpectedBehavior: Request and response id are different`
-        );
-      }
+      this.validateResponseId(randomId, listUnspentResponse.data.id);
 
       // If the result is null, the output is spent
       return listUnspentResponse.data.result !== null;
@@ -399,16 +374,12 @@ class DogeRpcNetwork extends PartialDogeNetwork {
         params: [txId, true],
       });
 
-      if (txResponse.data.id !== randomId) {
-        throw new Error(
-          `UnexpectedBehavior: Request and response id are different`
-        );
-      }
+      this.validateResponseId(randomId, txResponse.data.id);
 
       const tx: DogeRpcTransaction = txResponse.data.result;
 
       if (!tx || outputIndex >= tx.vout.length) {
-        throw new Error(`UTXO with boxId [${boxId}] not found`);
+        throw new FailedError(`UTXO with boxId [${boxId}] not found`);
       }
 
       const output = tx.vout[outputIndex];
@@ -421,21 +392,17 @@ class DogeRpcNetwork extends PartialDogeNetwork {
         params: [txId, outputIndex, true], // txid, n, include_mempool
       });
 
-      if (txOutResponse.data.id !== randomId2) {
-        throw new Error(
-          `UnexpectedBehavior: Request and response id are different`
-        );
-      }
-
-      // If gettxout returns null, the output is spent
-      if (txOutResponse.data.result === null) {
-        throw new Error(`UTXO with boxId [${boxId}] is spent`);
-      }
+      this.validateResponseId(randomId2, txOutResponse.data.id);
 
       return {
         txId: txId,
         index: outputIndex,
-        value: BigInt(Math.round(output.value * 100000000)), // Convert DOGE to satoshis
+        // Convert DOGE to satoshis using string manipulation to avoid floating-point issues
+        value: (() => {
+          const parts = output.value.toString().split('.');
+          const part1 = ((parts[1] ?? '') + '0'.repeat(8)).substring(0, 8);
+          return BigInt((parts[0] === '0' ? '' : parts[0]) + part1);
+        })(),
       };
     } catch (e: any) {
       const baseError = `Failed to get UTXO [${boxId}] from Dogecoin RPC: `;
@@ -461,40 +428,33 @@ class DogeRpcNetwork extends PartialDogeNetwork {
       const response = await this.client.post<JsonRpcResult>('', {
         method: 'estimatesmartfee',
         id: randomId,
-        params: [10], // Number of blocks to target for confirmation
+        params: [CONFIRMATION_TARGET], // Number of blocks to target for confirmation
       });
 
-      if (response.data.id !== randomId) {
-        throw new Error(
-          `UnexpectedBehavior: Request and response id are different`
-        );
-      }
+      this.validateResponseId(randomId, response.data.id);
 
-      // If there's an error or no feerate, use a default value
-      if (
-        response.data.error ||
-        !response.data.result ||
-        !response.data.result.feerate
-      ) {
-        this.logger?.debug(
-          `Failed to get fee estimate, using default. Response: ${JsonBigInt.stringify(
-            response.data
-          )}`
-        );
-        return 1000; // Default fee in Dogecoin
-      }
+      // Convert feerate from DOGE/kB to satoshis/byte
+      const feeRate = (() => {
+        // Convert DOGE to satoshis first
+        const feeDoge = response.data.result.feerate;
+        const parts = feeDoge.toString().split('.');
+        const part1 = ((parts[1] ?? '') + '0'.repeat(8)).substring(0, 8);
+        const feeSatoshis = BigInt((parts[0] === '0' ? '' : parts[0]) + part1);
 
-      // Convert DOGE/kB to satoshis/byte and round up
-      const feeRate = Math.ceil(
-        (response.data.result.feerate * 100000000) / 1024
-      );
+        // Convert from satoshis/kB to satoshis/byte (divide by 1024)
+        return Number(feeSatoshis) / 1024;
+      })();
+
+      // Round up to the nearest integer
+      const roundedFeeRate = Math.ceil(feeRate);
+
       this.logger?.debug(
-        `Requested fee ratio. Response: ${JsonBigInt.stringify(
+        `Requested 'estimatesmartfee'. Response: ${JsonBigInt.stringify(
           response.data.result
         )}`
       );
 
-      return feeRate;
+      return roundedFeeRate;
     } catch (e: any) {
       const baseError = `Failed to get fee ratio from Dogecoin RPC: `;
       if (e.response) {
@@ -523,11 +483,7 @@ class DogeRpcNetwork extends PartialDogeNetwork {
         params: [txId],
       });
 
-      if (response.data.id !== randomId) {
-        throw new Error(
-          `UnexpectedBehavior: Request and response id are different`
-        );
-      }
+      this.validateResponseId(randomId, response.data.id);
 
       // If we get a successful response, the transaction is in the mempool
       return true;
@@ -567,11 +523,7 @@ class DogeRpcNetwork extends PartialDogeNetwork {
         params: [txId, false], // txid, verbose (false = return hex)
       });
 
-      if (response.data.id !== randomId) {
-        throw new Error(
-          `UnexpectedBehavior: Request and response id are different`
-        );
-      }
+      this.validateResponseId(randomId, response.data.id);
 
       const txHex: string = response.data.result;
       this.logger?.debug(`Requested transaction hex for txId [${txId}].`);
@@ -589,19 +541,6 @@ class DogeRpcNetwork extends PartialDogeNetwork {
         throw new UnexpectedApiError(baseError + e.message);
       }
     }
-  };
-
-  /**
-   * Returns a spent transaction that has spent the UTXO specified by txId:index
-   * @param index index of output
-   * @param txId transaction id
-   */
-  getSpentTransactionByInputId = async (
-    index: number,
-    txId: string
-  ): Promise<DogeTx | undefined> => {
-    // This functionality is not directly supported by the Dogecoin RPC API without additional indexing
-    throw new Error('Not implemented');
   };
 }
 
