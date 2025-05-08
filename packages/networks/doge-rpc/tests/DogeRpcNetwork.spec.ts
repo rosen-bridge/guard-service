@@ -19,7 +19,6 @@ import axios from 'axios';
 describe('DogeRpcNetwork', () => {
   const getSavedTransactionById = async () => undefined;
   const URL = 'doge-rpc-url';
-  const TIMEOUT = 1000;
 
   beforeEach(() => {
     resetAxiosMock();
@@ -35,7 +34,7 @@ describe('DogeRpcNetwork', () => {
    * - Those functions should contain the 'not implemented' error message
    */
   it('should not contain "not implemented" error logic in implemented functions', () => {
-    const network = new DogeRpcNetwork(URL, TIMEOUT, getSavedTransactionById);
+    const network = new DogeRpcNetwork(URL);
     // For each function in the implements array
     network.implements.forEach((funcName) => {
       // Get the function from the network instance
@@ -79,7 +78,7 @@ describe('DogeRpcNetwork', () => {
         });
       });
 
-      const network = new DogeRpcNetwork(URL, TIMEOUT, getSavedTransactionById);
+      const network = new DogeRpcNetwork(URL);
       const result = await network.getHeight();
 
       expect(result).toEqual(testData.blockHeightResponse.result.blocks);
@@ -103,7 +102,7 @@ describe('DogeRpcNetwork', () => {
         },
       });
 
-      const network = new DogeRpcNetwork(URL, TIMEOUT, getSavedTransactionById);
+      const network = new DogeRpcNetwork(URL);
       await expect(network.getHeight()).rejects.toThrow(FailedError);
     });
 
@@ -122,7 +121,7 @@ describe('DogeRpcNetwork', () => {
         message: 'Network error',
       });
 
-      const network = new DogeRpcNetwork(URL, TIMEOUT, getSavedTransactionById);
+      const network = new DogeRpcNetwork(URL);
       await expect(network.getHeight()).rejects.toThrow(NetworkError);
     });
   });
@@ -149,7 +148,7 @@ describe('DogeRpcNetwork', () => {
         });
       });
 
-      const network = new DogeRpcNetwork(URL, TIMEOUT, getSavedTransactionById);
+      const network = new DogeRpcNetwork(URL);
       const result = await network.getBlockTransactionIds(testData.blockHash);
 
       expect(result).toEqual(testData.blockResponse.result.tx);
@@ -178,7 +177,7 @@ describe('DogeRpcNetwork', () => {
         });
       });
 
-      const network = new DogeRpcNetwork(URL, TIMEOUT, getSavedTransactionById);
+      const network = new DogeRpcNetwork(URL);
       const result = await network.getBlockInfo(testData.blockHash);
 
       expect(result).toEqual(testData.blockInfo);
@@ -207,7 +206,7 @@ describe('DogeRpcNetwork', () => {
         });
       });
 
-      const network = new DogeRpcNetwork(URL, TIMEOUT, getSavedTransactionById);
+      const network = new DogeRpcNetwork(URL);
       const result = await network.getTransaction(
         testData.txId,
         testData.txBlockHash
@@ -239,7 +238,7 @@ describe('DogeRpcNetwork', () => {
         });
       });
 
-      const network = new DogeRpcNetwork(URL, TIMEOUT, getSavedTransactionById);
+      const network = new DogeRpcNetwork(URL);
       const result = await network.isBoxUnspentAndValid(`${testData.txId}_0`);
 
       expect(result).toEqual(true);
@@ -266,7 +265,7 @@ describe('DogeRpcNetwork', () => {
         });
       });
 
-      const network = new DogeRpcNetwork(URL, TIMEOUT, getSavedTransactionById);
+      const network = new DogeRpcNetwork(URL);
       const result = await network.isBoxUnspentAndValid(`${testData.txId}_0`);
 
       expect(result).toEqual(false);
@@ -294,7 +293,7 @@ describe('DogeRpcNetwork', () => {
         },
       });
 
-      const network = new DogeRpcNetwork(URL, TIMEOUT, getSavedTransactionById);
+      const network = new DogeRpcNetwork(URL);
       const result = await network.isBoxUnspentAndValid(`${testData.txId}_0`);
 
       expect(result).toEqual(false);
@@ -335,7 +334,7 @@ describe('DogeRpcNetwork', () => {
         return Promise.reject(new Error(`Unexpected method: ${method}`));
       });
 
-      const network = new DogeRpcNetwork(URL, TIMEOUT, getSavedTransactionById);
+      const network = new DogeRpcNetwork(URL);
       const result = await network.getUtxo(`${testData.txId}_0`);
 
       expect(result.txId).toEqual(testData.txId);
@@ -366,7 +365,7 @@ describe('DogeRpcNetwork', () => {
         });
       });
 
-      const network = new DogeRpcNetwork(URL, TIMEOUT, getSavedTransactionById);
+      const network = new DogeRpcNetwork(URL);
       const result = await network.getFeeRatio();
 
       // Convert DOGE/kB to satoshis/byte
@@ -400,7 +399,7 @@ describe('DogeRpcNetwork', () => {
         });
       });
 
-      const network = new DogeRpcNetwork(URL, TIMEOUT, getSavedTransactionById);
+      const network = new DogeRpcNetwork(URL);
       const result = await network.isTxInMempool(testData.txId);
 
       expect(result).toEqual(true);
@@ -425,7 +424,7 @@ describe('DogeRpcNetwork', () => {
         },
       });
 
-      const network = new DogeRpcNetwork(URL, TIMEOUT, getSavedTransactionById);
+      const network = new DogeRpcNetwork(URL);
       const result = await network.isTxInMempool(testData.txId);
 
       expect(result).toEqual(false);
@@ -454,7 +453,7 @@ describe('DogeRpcNetwork', () => {
         });
       });
 
-      const network = new DogeRpcNetwork(URL, TIMEOUT, getSavedTransactionById);
+      const network = new DogeRpcNetwork(URL);
       const result = await network.getTransactionHex(testData.txId);
 
       expect(result).toEqual(testData.txHexResponse.result);
@@ -492,7 +491,7 @@ describe('DogeRpcNetwork', () => {
         }),
       };
 
-      const network = new DogeRpcNetwork(URL, TIMEOUT, getSavedTransactionById);
+      const network = new DogeRpcNetwork(URL);
       // This should not throw an error
       await expect(
         network.submitTransaction(mockPsbt as any)
