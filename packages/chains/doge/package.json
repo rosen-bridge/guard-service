@@ -1,6 +1,6 @@
 {
   "name": "@rosen-chains/doge",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "description": "this project contains doge chain for Rosen-bridge",
   "repository": "https://github.com/rosen-bridge/rosen-chains",
   "license": "GPL-3.0",
