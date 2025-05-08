@@ -1,5 +1,11 @@
 # @rosen-chains/doge
 
+## 2.1.0
+
+### Minor Changes
+
+- Add partial and combined network definitions to account for issues in different block explorers.
+
 ## 2.0.1
 
 ### Patch Changes
