@@ -239,7 +239,7 @@ describe('DogeRpcNetwork', () => {
       });
 
       const network = new DogeRpcNetwork(URL);
-      const result = await network.isBoxUnspentAndValid(`${testData.txId}_0`);
+      const result = await network.isBoxUnspentAndValid(`${testData.txId}.0`);
 
       expect(result).toEqual(true);
     });
@@ -266,7 +266,7 @@ describe('DogeRpcNetwork', () => {
       });
 
       const network = new DogeRpcNetwork(URL);
-      const result = await network.isBoxUnspentAndValid(`${testData.txId}_0`);
+      const result = await network.isBoxUnspentAndValid(`${testData.txId}.0`);
 
       expect(result).toEqual(false);
     });
@@ -294,7 +294,7 @@ describe('DogeRpcNetwork', () => {
       });
 
       const network = new DogeRpcNetwork(URL);
-      const result = await network.isBoxUnspentAndValid(`${testData.txId}_0`);
+      const result = await network.isBoxUnspentAndValid(`${testData.txId}.0`);
 
       expect(result).toEqual(false);
     });
@@ -335,7 +335,7 @@ describe('DogeRpcNetwork', () => {
       });
 
       const network = new DogeRpcNetwork(URL);
-      const result = await network.getUtxo(`${testData.txId}_0`);
+      const result = await network.getUtxo(`${testData.txId}.0`);
 
       expect(result.txId).toEqual(testData.txId);
       expect(result.index).toEqual(0);
