@@ -396,42 +396,55 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
     offset: number,
     limit: number
   ): Promise<Array<DogeUtxo>> => {
-    const currentHeight = await this.getHeight();
-    const totalToFetch = offset + limit;
-    let allUtxos: Array<DogeUtxo> = [];
-    let beforeHeight = currentHeight + 1;
-    const batchSize = Math.min(500, totalToFetch);
+    try {
+      const currentHeight = await this.getHeight();
+      const totalToFetch = offset + limit;
+      let allUtxos: Array<DogeUtxo> = [];
+      let beforeHeight = currentHeight + 1;
+      const batchSize = Math.min(500, totalToFetch);
 
-    while (allUtxos.length < totalToFetch) {
-      const response = await this.client.get<BlockCypherAddress>(
-        `/v1/doge/main/addrs/${address}?unspentOnly=true&before=${beforeHeight}&limit=${batchSize}`
-      );
+      while (allUtxos.length < totalToFetch) {
+        const response = await this.client.get<BlockCypherAddress>(
+          `/v1/doge/main/addrs/${address}?unspentOnly=true&before=${beforeHeight}&limit=${batchSize}`
+        );
 
-      const txrefs = response.data.txrefs ?? [];
-      const batchUtxos: Array<DogeUtxo> = [];
-      let minHeight = beforeHeight;
+        const txrefs = response.data.txrefs ?? [];
+        const batchUtxos: Array<DogeUtxo> = [];
+        let minHeight = beforeHeight;
 
-      for (const txref of txrefs) {
-        if (!txref.spent) {
-          batchUtxos.push({
-            txId: txref.tx_hash,
-            index: txref.tx_output_n,
-            value: BigInt(txref.value),
-          });
-          minHeight = Math.min(minHeight, txref.block_height);
+        for (const txref of txrefs) {
+          if (!txref.spent) {
+            batchUtxos.push({
+              txId: txref.tx_hash,
+              index: txref.tx_output_n,
+              value: BigInt(txref.value),
+            });
+            minHeight = Math.min(minHeight, txref.block_height);
+          }
         }
+
+        allUtxos = allUtxos.concat(batchUtxos);
+
+        if (batchUtxos.length === 0 || allUtxos.length >= totalToFetch) {
+          break;
+        }
+
+        beforeHeight = minHeight;
       }
 
-      allUtxos = allUtxos.concat(batchUtxos);
-
-      if (batchUtxos.length === 0 || allUtxos.length >= totalToFetch) {
-        break;
+      return allUtxos.slice(offset, offset + limit);
+    } catch (e: any) {
+      const baseError = `Failed to get address [${address}] boxes from BlockCypher: `;
+      if (e.response) {
+        throw new FailedError(
+          baseError + JsonBigInt.stringify(e.response.data)
+        );
+      } else if (e.request) {
+        throw new NetworkError(baseError + e.message);
+      } else {
+        throw new UnexpectedApiError(baseError + e.message);
       }
-
-      beforeHeight = minHeight;
     }
-
-    return allUtxos.slice(offset, offset + limit);
   };
 
   /**

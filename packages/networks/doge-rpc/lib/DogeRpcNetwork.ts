@@ -28,11 +28,6 @@ import {
 
 class DogeRpcNetwork extends PartialDogeNetwork {
   protected client: AxiosInstance;
-  private readonly url: string;
-  private readonly timeout: number;
-  private getSavedTransactionById: (
-    txId: string
-  ) => Promise<PaymentTransaction | undefined>;
 
   // List of functions this class implements from DogeNetworkFunction
   readonly implements = [
@@ -48,19 +43,8 @@ class DogeRpcNetwork extends PartialDogeNetwork {
     DogeNetworkFunction.getTransactionHex,
   ] as DogeNetworkFunction[];
 
-  constructor(
-    url: string,
-    timeout: number,
-    getSavedTransactionById: (
-      txId: string
-    ) => Promise<PaymentTransaction | undefined>,
-    logger?: AbstractLogger,
-    auth?: RpcAuth
-  ) {
+  constructor(url: string, logger?: AbstractLogger, auth?: RpcAuth) {
     super(logger);
-    this.url = url;
-    this.timeout = timeout;
-    this.getSavedTransactionById = getSavedTransactionById;
 
     const headers = { 'Content-Type': 'application/json' };
 
@@ -81,7 +65,6 @@ class DogeRpcNetwork extends PartialDogeNetwork {
 
     this.client = axios.create({
       baseURL: url,
-      timeout: timeout,
       headers: headers,
       ...authConfig,
     });
@@ -333,7 +316,7 @@ class DogeRpcNetwork extends PartialDogeNetwork {
    * @returns true if the box is unspent and valid
    */
   isBoxUnspentAndValid = async (boxId: string): Promise<boolean> => {
-    const [txId, outputIndexStr] = boxId.split('_');
+    const [txId, outputIndexStr] = boxId.split('.');
     const outputIndex = parseInt(outputIndexStr);
 
     const randomId = this.generateRandomId();
@@ -373,7 +356,7 @@ class DogeRpcNetwork extends PartialDogeNetwork {
    * @returns the utxo
    */
   getUtxo = async (boxId: string): Promise<DogeUtxo> => {
-    const [txId, outputIndexStr] = boxId.split('_');
+    const [txId, outputIndexStr] = boxId.split('.');
     const outputIndex = parseInt(outputIndexStr);
 
     const randomId = this.generateRandomId();
