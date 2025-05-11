@@ -7,7 +7,7 @@ class GuardsDogeConfigs {
   // service configs
   static chainNetworkName = getChainNetworkName('doge.chainNetwork', [
     'esplora',
-    'blockcypher',
+    'rpc-blockcypher',
   ]);
   static esplora = {
     url: config.get<string>('doge.esplora.url'),
@@ -16,6 +16,19 @@ class GuardsDogeConfigs {
   static blockcypher = {
     url: config.get<string>('doge.blockcypher.url'),
     timeout: config.get<number>('doge.blockcypher.timeout'), // seconds
+  };
+  static rpc = {
+    url: config.get<string>('doge.rpc.url'),
+    timeout: config.get<number>('doge.rpc.timeout'), // seconds
+    username: config.has('doge.rpc.username')
+      ? config.get<string>('doge.rpc.username')
+      : undefined,
+    password: config.has('doge.rpc.password')
+      ? config.get<string>('doge.rpc.password')
+      : undefined,
+    apiKey: config.has('doge.rpc.apiKey')
+      ? config.get<string>('doge.rpc.apiKey')
+      : undefined,
   };
 
   // value configs

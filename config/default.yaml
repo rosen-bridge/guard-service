@@ -51,13 +51,19 @@ bitcoin:
     -
 doge:
   networkType: 'mainnet' # Doge network type [testnet, mainnet]
-  chainNetwork: 'blockcypher' # [esplora, blockcypher]
+  chainNetwork: 'rpc-blockcypher' # [esplora, rpc-blockcypher]
   esplora:
     url: ''
     timeout: 8
   blockcypher:
     url: 'https://api.blockcypher.com'
     timeout: 8
+  rpc:
+    url: ''
+    timeout: 8
+    # username: ''
+    # password: ''
+    # apiKey: ''
   bankPublicKey: '' # corresponding public key of lock address
   txFeeSlippage: 20 # allowed slippage percentage for tx fees
   confirmation: # required block confirmation
