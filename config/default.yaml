@@ -14,7 +14,7 @@ binance:
   networkType: 'mainnet' # Binance network type [testnet, mainnet]
   chainNetwork: 'rpc' # 'rpc'
   rpc:
-    url: 'https://bsc-rpc.publicnode.com'
+    url: ''
     timeout: 8
     initialHeight: -1
     scannerInterval: 10
@@ -118,7 +118,7 @@ ethereum:
   networkType: 'mainnet' # Ethereum network type [testnet, mainnet]
   chainNetwork: 'rpc' # 'rpc'
   rpc:
-    url: 'https://ethereum-rpc.publicnode.com'
+    url: ''
     timeout: 8
     initialHeight: -1
     scannerInterval: 20
