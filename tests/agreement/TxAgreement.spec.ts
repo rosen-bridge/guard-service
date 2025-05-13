@@ -1,5 +1,4 @@
 import { TransactionType } from '@rosen-chains/abstract-chain';
-import * as TestTransactionSerializer from '../../tests/transaction/TestTransactionSerializer';
 import TestConfigs from '../testUtils/TestConfigs';
 import TestTxAgreement from './TestTxAgreement';
 import { mockPaymentTransaction } from './testData';
@@ -1430,7 +1429,7 @@ describe('TxAgreement', () => {
       // tx should be inserted into db
       const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
         tx.txId,
-        tx.event.id,
+        tx.event?.id,
       ]);
       expect(dbTxs.length).toEqual(1);
       expect(dbTxs).to.deep.contain([paymentTx.txId, eventId]);
@@ -1787,7 +1786,7 @@ describe('TxAgreement', () => {
       // tx should be inserted into db
       const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
         tx.txId,
-        tx.event.id,
+        tx.event?.id,
       ]);
       expect(dbTxs.length).toEqual(1);
       expect(dbTxs).to.deep.contain([paymentTx.txId, eventId]);
@@ -1968,7 +1967,7 @@ describe('TxAgreement', () => {
       // tx should be inserted into db
       const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
         tx.txId,
-        tx.event.id,
+        tx.event?.id,
       ]);
       expect(dbTxs.length).toEqual(1);
       expect(dbTxs).to.deep.contain([paymentTx.txId, eventId]);

@@ -111,8 +111,10 @@ class DatabaseAction {
     status: string,
     incrementUnexpectedFails = false
   ): Promise<void> => {
+    let result: UpdateResult;
+
     if (incrementUnexpectedFails)
-      await this.ConfirmedEventRepository.update(
+      result = await this.ConfirmedEventRepository.update(
         { id: eventId },
         {
           status: status,
@@ -120,11 +122,12 @@ class DatabaseAction {
         }
       );
     else
-      await this.ConfirmedEventRepository.update(
+      result = await this.ConfirmedEventRepository.update(
         { id: eventId },
         { status: status }
       );
 
+    if ((result.affected ?? 0) === 0) return;
     PublicStatusHandler.getInstance().updatePublicEventStatus(eventId, status);
   };
 
@@ -199,13 +202,14 @@ class DatabaseAction {
    * @param status tx status
    */
   setTxStatus = async (txId: string, status: string): Promise<void> => {
-    await this.TransactionRepository.update(
+    const result: UpdateResult = await this.TransactionRepository.update(
       { txId: txId },
       {
         status: status,
         lastStatusUpdate: String(Math.round(Date.now() / 1000)),
       }
     );
+    if ((result.affected ?? 0) === 0) return;
     PublicStatusHandler.getInstance().updatePublicTxStatus(txId, status);
   };
 
@@ -257,10 +261,11 @@ class DatabaseAction {
     eventId: string,
     status: string
   ): Promise<void> => {
-    await this.ConfirmedEventRepository.update(
+    const result: UpdateResult = await this.ConfirmedEventRepository.update(
       { id: eventId },
       { status: status, firstTry: String(Math.round(Date.now() / 1000)) }
     );
+    if ((result.affected ?? 0) === 0) return;
     PublicStatusHandler.getInstance().updatePublicEventStatus(eventId, status);
   };
 
@@ -288,7 +293,7 @@ class DatabaseAction {
     txJson: string,
     currentHeight: number
   ): Promise<void> => {
-    await this.TransactionRepository.update(
+    const result: UpdateResult = await this.TransactionRepository.update(
       { txId: txId },
       {
         txJson: txJson,
@@ -297,6 +302,7 @@ class DatabaseAction {
         lastCheck: currentHeight,
       }
     );
+    if ((result.affected ?? 0) === 0) return;
     PublicStatusHandler.getInstance().updatePublicTxStatus(
       txId,
       TransactionStatus.signed
@@ -333,7 +339,7 @@ class DatabaseAction {
     previousTxId: string,
     tx: PaymentTransaction
   ): Promise<void> => {
-    await this.TransactionRepository.update(
+    const result: UpdateResult = await this.TransactionRepository.update(
       { txId: previousTxId },
       {
         txId: tx.txId,
@@ -346,6 +352,7 @@ class DatabaseAction {
         failedInSign: false,
       }
     );
+    if ((result.affected ?? 0) === 0) return;
     PublicStatusHandler.getInstance().updatePublicTxStatus(
       tx.txId,
       TransactionStatus.approved
@@ -434,7 +441,6 @@ class DatabaseAction {
       signFailedCount: 0,
       requiredSign: requiredSign,
     });
-
     PublicStatusHandler.getInstance().updatePublicTxStatus(
       paymentTx.txId,
       TransactionStatus.completed

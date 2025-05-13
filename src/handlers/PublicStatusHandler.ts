@@ -29,13 +29,22 @@ export type UpdateStatusDTO = {
 
 class PublicStatusHandler {
   private static instance?: PublicStatusHandler;
-  readonly axios: AxiosInstance;
+  readonly axios?: AxiosInstance;
   readonly txRepository: Repository<TransactionEntity>;
 
-  protected constructor(dataSource: DataSource) {
-    this.axios = axios.create({
-      baseURL: Configs.publicStatusBaseUrl,
-    });
+  protected constructor(
+    dataSource: DataSource,
+    publicStatusBaseUrl: string | undefined = undefined
+  ) {
+    if (publicStatusBaseUrl) {
+      logger.debug('publicStatusBaseUrl exists, initialize axios instance');
+      this.axios = axios.create({
+        baseURL: publicStatusBaseUrl,
+      });
+    } else
+      logger.debug(
+        'publicStatusBaseUrl does not exist, skipping axios initialization'
+      );
     this.txRepository = dataSource.getRepository(TransactionEntity);
   }
 
@@ -43,7 +52,10 @@ class PublicStatusHandler {
    * initialize PublicStatusHandler
    */
   static init = async (dataSource: DataSource) => {
-    PublicStatusHandler.instance = new PublicStatusHandler(dataSource);
+    PublicStatusHandler.instance = new PublicStatusHandler(
+      dataSource,
+      Configs.publicStatusBaseUrl
+    );
   };
 
   /**
@@ -75,9 +87,14 @@ class PublicStatusHandler {
    * @returns a promise that resolves to void
    */
   protected submitRequest = async (dto: UpdateStatusDTO): Promise<void> => {
+    if (!this.axios) {
+      logger.debug('axios is not initialized, skipping submitRequest');
+      return;
+    }
+
     const signMessage = this.dtoToSignMessage(dto);
 
-    await this.axios.post('/status', {
+    await this.axios!.post('/status', {
       body: {
         ...dto,
         pk: await Configs.tssKeys.encryptor.getPk(),
