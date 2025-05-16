@@ -10,7 +10,8 @@ import {
 } from '@rosen-chains/abstract-chain';
 import JsonBigInt from '@rosen-bridge/json-bigint';
 import {
-  AbstractDogeNetwork,
+  PartialDogeNetwork,
+  DogeNetworkFunction,
   DogeTx,
   DogeUtxo,
   DOGE_NETWORK,
@@ -25,11 +26,28 @@ import {
   BlockCypherTx,
 } from './types';
 
-class DogeBlockCypherNetwork extends AbstractDogeNetwork {
+class DogeBlockCypherNetwork extends PartialDogeNetwork {
   protected client: AxiosInstance;
   private getSavedTransactionById: (
     txId: string
   ) => Promise<PaymentTransaction | undefined>;
+
+  // Implement all DogeNetworkFunction functions
+  readonly implements = [
+    DogeNetworkFunction.getHeight,
+    DogeNetworkFunction.getTxConfirmation,
+    DogeNetworkFunction.getAddressAssets,
+    DogeNetworkFunction.getBlockTransactionIds,
+    DogeNetworkFunction.getBlockInfo,
+    DogeNetworkFunction.getTransaction,
+    DogeNetworkFunction.submitTransaction,
+    DogeNetworkFunction.getAddressBoxes,
+    DogeNetworkFunction.isBoxUnspentAndValid,
+    DogeNetworkFunction.getUtxo,
+    DogeNetworkFunction.getFeeRatio,
+    DogeNetworkFunction.isTxInMempool,
+    DogeNetworkFunction.getTransactionHex,
+  ] as DogeNetworkFunction[];
 
   constructor(
     url: string,
@@ -299,7 +317,7 @@ class DogeBlockCypherNetwork extends AbstractDogeNetwork {
   submitTransaction = async (transaction: Psbt): Promise<void> => {
     return this.client
       .post<{ tx: { hash: string } }>('/v1/doge/main/txs/push', {
-        tx: transaction.extractTransaction().toHex(),
+        tx: transaction.extractTransaction(true).toHex(),
       })
       .then((res) => {
         this.logger.debug(
@@ -332,42 +350,55 @@ class DogeBlockCypherNetwork extends AbstractDogeNetwork {
     offset: number,
     limit: number
   ): Promise<Array<DogeUtxo>> => {
-    const currentHeight = await this.getHeight();
-    const totalToFetch = offset + limit;
-    let allUtxos: Array<DogeUtxo> = [];
-    let beforeHeight = currentHeight + 1;
-    const batchSize = Math.min(500, totalToFetch);
+    try {
+      const currentHeight = await this.getHeight();
+      const totalToFetch = offset + limit;
+      let allUtxos: Array<DogeUtxo> = [];
+      let beforeHeight = currentHeight + 1;
+      const batchSize = Math.min(500, totalToFetch);
 
-    while (allUtxos.length < totalToFetch) {
-      const response = await this.client.get<BlockCypherAddress>(
-        `/v1/doge/main/addrs/${address}?unspentOnly=true&before=${beforeHeight}&limit=${batchSize}`
-      );
+      while (allUtxos.length < totalToFetch) {
+        const response = await this.client.get<BlockCypherAddress>(
+          `/v1/doge/main/addrs/${address}?unspentOnly=true&before=${beforeHeight}&limit=${batchSize}`
+        );
 
-      const txrefs = response.data.txrefs ?? [];
-      const batchUtxos: Array<DogeUtxo> = [];
-      let minHeight = beforeHeight;
+        const txrefs = response.data.txrefs ?? [];
+        const batchUtxos: Array<DogeUtxo> = [];
+        let minHeight = beforeHeight;
 
-      for (const txref of txrefs) {
-        if (!txref.spent) {
-          batchUtxos.push({
-            txId: txref.tx_hash,
-            index: txref.tx_output_n,
-            value: BigInt(txref.value),
-          });
-          minHeight = Math.min(minHeight, txref.block_height);
+        for (const txref of txrefs) {
+          if (!txref.spent) {
+            batchUtxos.push({
+              txId: txref.tx_hash,
+              index: txref.tx_output_n,
+              value: BigInt(txref.value),
+            });
+            minHeight = Math.min(minHeight, txref.block_height);
+          }
         }
+
+        allUtxos = allUtxos.concat(batchUtxos);
+
+        if (batchUtxos.length === 0 || allUtxos.length >= totalToFetch) {
+          break;
+        }
+
+        beforeHeight = minHeight;
       }
 
-      allUtxos = allUtxos.concat(batchUtxos);
-
-      if (batchUtxos.length === 0 || allUtxos.length >= totalToFetch) {
-        break;
+      return allUtxos.slice(offset, offset + limit);
+    } catch (e: any) {
+      const baseError = `Failed to get address [${address}] boxes from BlockCypher: `;
+      if (e.response) {
+        throw new FailedError(
+          baseError + JsonBigInt.stringify(e.response.data)
+        );
+      } else if (e.request) {
+        throw new NetworkError(baseError + e.message);
+      } else {
+        throw new UnexpectedApiError(baseError + e.message);
       }
-
-      beforeHeight = minHeight;
     }
-
-    return allUtxos.slice(offset, offset + limit);
   };
 
   /**
@@ -598,32 +629,38 @@ class DogeBlockCypherNetwork extends AbstractDogeNetwork {
         const realTx = Psbt.fromBuffer(Buffer.from(realPaymentTx.txBytes), {
           network: DOGE_NETWORK,
         });
-        const spentTx = await this.getSpentTransactionByInputId(
-          realTx.txInputs[0].index,
-          Buffer.from(realTx.txInputs[0].hash.reverse()).toString('hex')
-        );
-        if (spentTx) {
-          const sameInputs = realTx.txInputs.every(
-            (input, i) =>
-              spentTx.inputs[i].txId ===
-                Buffer.from(input.hash.reverse()).toString('hex') &&
-              spentTx.inputs[i].index === input.index
+        try {
+          actualTxId = realTx.extractTransaction(true).getId();
+        } catch (e: any) {
+          const spentTx = await this.getSpentTransactionByInputId(
+            realTx.txInputs[0].index,
+            Buffer.from(realTx.txInputs[0].hash.reverse()).toString('hex')
           );
-          const sameOutputs = realTx.txOutputs.every(
-            (output, i) =>
-              spentTx.outputs[i].scriptPubKey ===
-                Buffer.from(output.script).toString('hex') &&
-              spentTx.outputs[i].value === BigInt(output.value)
-          );
-          if (sameInputs && sameOutputs) {
-            actualTxId = spentTx.id;
+          if (spentTx) {
+            const sameInputs = realTx.txInputs.every(
+              (input, i) =>
+                spentTx.inputs[i].txId ===
+                  Buffer.from(input.hash.reverse()).toString('hex') &&
+                spentTx.inputs[i].index === input.index
+            );
+            const sameOutputs = realTx.txOutputs.every(
+              (output, i) =>
+                spentTx.outputs[i].scriptPubKey ===
+                  Buffer.from(output.script).toString('hex') &&
+                spentTx.outputs[i].value === BigInt(output.value)
+            );
+            if (sameInputs && sameOutputs) {
+              actualTxId = spentTx.id;
+            }
           }
         }
       }
     } catch (e: any) {
-      const baseError = `Failed to get actual txId for tx [${hash}] which was found in the database: `;
+      const baseError = `Failed to get confirmation for tx [${hash}] which was found in the database: `;
       if (e.response) {
-        throw new FailedError(baseError + e.response.data);
+        throw new FailedError(
+          baseError + JsonBigInt.stringify(e.response.data)
+        );
       } else if (e.request) {
         throw new NetworkError(baseError + e.message);
       } else {
