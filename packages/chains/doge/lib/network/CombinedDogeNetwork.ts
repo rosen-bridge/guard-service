@@ -171,6 +171,12 @@ class CombinedDogeNetwork extends AbstractDogeNetwork {
       DogeNetworkFunction.getTransactionHex
     ).getTransactionHex(txId);
   };
+
+  getActualTxId = async (hash: string): Promise<string> => {
+    return this.getNetworkForFunction(
+      DogeNetworkFunction.getActualTxId
+    ).getActualTxId(hash);
+  };
 }
 
 export default CombinedDogeNetwork;

@@ -21,12 +21,6 @@ abstract class AbstractUtxoChainNetwork<
    * @returns true if the box is unspent and valid
    */
   abstract isBoxUnspentAndValid: (boxId: string) => Promise<boolean>;
-
-  /**
-   * gets the actual id of a transaction by its hash
-   * @param hash
-   */
-  getActualTxId = async (hash: string): Promise<string> => hash;
 }
 
 export default AbstractUtxoChainNetwork;

@@ -12,6 +12,7 @@ export class TransactionNetwork extends PartialDogeNetwork {
     DogeNetworkFunction.submitTransaction,
     DogeNetworkFunction.getTxConfirmation,
     DogeNetworkFunction.getTransactionHex,
+    DogeNetworkFunction.getActualTxId,
   ];
 
   mockTx: DogeTx = {
@@ -40,5 +41,9 @@ export class TransactionNetwork extends PartialDogeNetwork {
 
   getTransactionHex = async (_txId: string): Promise<string> => {
     return this.mockTxHex;
+  };
+
+  getActualTxId = async (hash: string): Promise<string> => {
+    return hash;
   };
 }
