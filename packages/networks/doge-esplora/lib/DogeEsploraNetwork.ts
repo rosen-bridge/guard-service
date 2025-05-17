@@ -515,25 +515,29 @@ class DogeEsploraNetwork extends AbstractDogeNetwork {
         const realTx = Psbt.fromBuffer(Buffer.from(realPaymentTx.txBytes), {
           network: DOGE_NETWORK,
         });
-        const spentTx = await this.getSpentTransactionByInputId(
-          realTx.txInputs[0].index,
-          Buffer.from(realTx.txInputs[0].hash.reverse()).toString('hex')
-        );
-        if (spentTx) {
-          const sameInputs = realTx.txInputs.every(
-            (input, i) =>
-              spentTx.inputs[i].txId ===
-                Buffer.from(input.hash.reverse()).toString('hex') &&
-              spentTx.inputs[i].index === input.index
+        try {
+          actualTxId = realTx.extractTransaction(true).getId();
+        } catch (e: any) {
+          const spentTx = await this.getSpentTransactionByInputId(
+            realTx.txInputs[0].index,
+            Buffer.from(realTx.txInputs[0].hash.reverse()).toString('hex')
           );
-          const sameOutputs = realTx.txOutputs.every(
-            (output, i) =>
-              spentTx.outputs[i].scriptPubKey ===
-                Buffer.from(output.script).toString('hex') &&
-              spentTx.outputs[i].value === BigInt(output.value)
-          );
-          if (sameInputs && sameOutputs) {
-            actualTxId = spentTx.id;
+          if (spentTx) {
+            const sameInputs = realTx.txInputs.every(
+              (input, i) =>
+                spentTx.inputs[i].txId ===
+                  Buffer.from(input.hash.reverse()).toString('hex') &&
+                spentTx.inputs[i].index === input.index
+            );
+            const sameOutputs = realTx.txOutputs.every(
+              (output, i) =>
+                spentTx.outputs[i].scriptPubKey ===
+                  Buffer.from(output.script).toString('hex') &&
+                spentTx.outputs[i].value === BigInt(output.value)
+            );
+            if (sameInputs && sameOutputs) {
+              actualTxId = spentTx.id;
+            }
           }
         }
       }
