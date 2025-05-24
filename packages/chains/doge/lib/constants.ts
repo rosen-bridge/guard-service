@@ -7,7 +7,7 @@ export const CONFIRMATION_TARGET = 10;
 export const DOGE_TX_BASE_SIZE = 10; // Dogecoin base transaction size in bytes
 export const DOGE_INPUT_SIZE = 148; // Typical Dogecoin input size in bytes (non-SegWit)
 export const DOGE_OUTPUT_SIZE = 34; // Typical Dogecoin output size in bytes
-export const MINIMUM_UTXO_VALUE = 546; // Minimum Dogecoin UTXO value in satoshis
+export const MINIMUM_UTXO_VALUE = 1000000n; // Minimum Dogecoin UTXO value in satoshis
 export const DOGE_NETWORK = {
   // Doge network parameters
   messagePrefix: '\x19Dogecoin Signed Message:\n',
