@@ -57,7 +57,7 @@ describe('DogeBlockcypherNetwork', () => {
 
   describe('getHeight', () => {
     /**
-     * @target `DogeExplorerNetwork.getHeight` should return block height successfully
+     * @target `DogeBlockcypherNetwork.getHeight` should return block height successfully
      * @dependencies
      * @scenario
      * - mock axios to return height
@@ -77,7 +77,7 @@ describe('DogeBlockcypherNetwork', () => {
 
   describe('getTxConfirmation', () => {
     /**
-     * @target `DogeExplorerNetwork.getTxConfirmation` should return tx confirmation successfully
+     * @target `DogeBlockcypherNetwork.getTxConfirmation` should return tx confirmation successfully
      * @dependencies
      * @scenario
      * - mock axios to return height
@@ -96,7 +96,7 @@ describe('DogeBlockcypherNetwork', () => {
     });
 
     /**
-     * @target `DogeExplorerNetwork.getTxConfirmation` should return -1
+     * @target `DogeBlockcypherNetwork.getTxConfirmation` should return -1
      * when transaction is not found
      * @dependencies
      * @scenario
@@ -121,7 +121,7 @@ describe('DogeBlockcypherNetwork', () => {
     });
 
     /**
-     * @target `DogeExplorerNetwork.getTxConfirmation` should return -1
+     * @target `DogeBlockcypherNetwork.getTxConfirmation` should return -1
      * when transaction is unconfirmed
      * @dependencies
      * @scenario
@@ -141,17 +141,17 @@ describe('DogeBlockcypherNetwork', () => {
     });
 
     /**
-     * @target `DogeExplorerNetwork.getTxConfirmation` should fetch confirmation using signed hash successfully without querying spent box when PSBT is finalized
+     * @target `DogeBlockcypherNetwork.getTxConfirmation` should fetch confirmation using signed hash successfully without querying spent box when PSBT is finalized
      * @dependencies
      * @scenario
-     * - create a new instance of DogeExplorerNetwork with a custom getSavedTransactionById
+     * - create a new instance of DogeBlockcypherNetwork with a custom getSavedTransactionById
      * - run test
      * - check returned value
      * @expected
      * - it should fetch confirmation using unsigned hash successfully
      */
     it('should fetch confirmation using unsigned hash successfully without querying spent box when PSBT is finalized', async () => {
-      // Create a new instance of DogeExplorerNetwork with a custom getSavedTransactionById
+      // Create a new instance of DogeBlockcypherNetwork with a custom getSavedTransactionById
       const dogePayment = new PaymentTransaction(
         'doge',
         testData.signedTxId,
@@ -192,17 +192,17 @@ describe('DogeBlockcypherNetwork', () => {
     });
 
     /**
-     * @target `DogeExplorerNetwork.getTxConfirmation` should fetch confirmation using unsigned hash successfully
+     * @target `DogeBlockcypherNetwork.getTxConfirmation` should fetch confirmation using unsigned hash successfully
      * @dependencies
      * @scenario
-     * - create a new instance of DogeExplorerNetwork with a custom getSavedTransactionById
+     * - create a new instance of DogeBlockcypherNetwork with a custom getSavedTransactionById
      * - run test
      * - check returned value
      * @expected
      * - it should fetch confirmation using unsigned hash successfully
      */
     it('should fetch confirmation using unsigned hash successfully', async () => {
-      // Create a new instance of DogeExplorerNetwork with a custom getSavedTransactionById
+      // Create a new instance of DogeBlockcypherNetwork with a custom getSavedTransactionById
       const dogePayment = new PaymentTransaction(
         'doge',
         testData.unsignedTxId,
@@ -248,7 +248,7 @@ describe('DogeBlockcypherNetwork', () => {
 
   describe('getAddressAssets', () => {
     /**
-     * @target `DogeExplorerNetwork.getAddressAssets` should return address assets successfully
+     * @target `DogeBlockcypherNetwork.getAddressAssets` should return address assets successfully
      * @dependencies
      * @scenario
      * - mock axios to return address utxo info
@@ -269,7 +269,7 @@ describe('DogeBlockcypherNetwork', () => {
     });
 
     /**
-     * @target `DogeExplorerNetwork.getAddressAssets` should return 0 balance
+     * @target `DogeBlockcypherNetwork.getAddressAssets` should return 0 balance
      * when address has no DOGE
      * @dependencies
      * @scenario
@@ -288,7 +288,7 @@ describe('DogeBlockcypherNetwork', () => {
     });
 
     /**
-     * @target `DogeExplorerNetwork.getAddressAssets` should return 0 balance
+     * @target `DogeBlockcypherNetwork.getAddressAssets` should return 0 balance
      * when address has no history of transactions
      * @dependencies
      * @scenario
@@ -309,7 +309,7 @@ describe('DogeBlockcypherNetwork', () => {
 
   describe('getBlockTransactionIds', () => {
     /**
-     * @target `DogeExplorerNetwork.getBlockTransactionIds` should return block tx ids successfully
+     * @target `DogeBlockcypherNetwork.getBlockTransactionIds` should return block tx ids successfully
      * @dependencies
      * @scenario
      * - mock axios to return tx ids
@@ -327,7 +327,7 @@ describe('DogeBlockcypherNetwork', () => {
     });
 
     /**
-     * @target `DogeExplorerNetwork.getBlockTransactionIds` should handle pagination for blocks with more than 500 transactions
+     * @target `DogeBlockcypherNetwork.getBlockTransactionIds` should handle pagination for blocks with more than 500 transactions
      * @dependencies
      * @scenario
      * - mock axios to return first batch of tx ids (500 transactions)
@@ -359,7 +359,7 @@ describe('DogeBlockcypherNetwork', () => {
     });
 
     /**
-     * @target `DogeExplorerNetwork.getBlockTransactionIds` should handle errors during pagination
+     * @target `DogeBlockcypherNetwork.getBlockTransactionIds` should handle errors during pagination
      * @dependencies
      * @scenario
      * - mock axios to return first batch of tx ids (500 transactions)
@@ -388,7 +388,7 @@ describe('DogeBlockcypherNetwork', () => {
 
   describe('getBlockInfo', () => {
     /**
-     * @target `DogeExplorerNetwork.getBlockInfo` should return block info successfully
+     * @target `DogeBlockcypherNetwork.getBlockInfo` should return block info successfully
      * @dependencies
      * @scenario
      * - mock axios to return block info
@@ -408,7 +408,7 @@ describe('DogeBlockcypherNetwork', () => {
 
   describe('getTransaction', () => {
     /**
-     * @target `DogeExplorerNetwork.getTransaction` should return transaction successfully
+     * @target `DogeBlockcypherNetwork.getTransaction` should return transaction successfully
      * @dependencies
      * @scenario
      * - mock axios to return transaction
@@ -429,7 +429,7 @@ describe('DogeBlockcypherNetwork', () => {
     });
 
     /**
-     * @target `DogeExplorerNetwork.getTransaction` should throw error when
+     * @target `DogeBlockcypherNetwork.getTransaction` should throw error when
      * block id is not matched with tx block
      * @dependencies
      * @scenario
@@ -449,7 +449,7 @@ describe('DogeBlockcypherNetwork', () => {
 
   describe('getAddressBoxes', () => {
     /**
-     * @target `DogeExplorerNetwork.getAddressBoxes` should return address utxos successfully
+     * @target `DogeBlockcypherNetwork.getAddressBoxes` should return address utxos successfully
      * @dependencies
      * @scenario
      * - mock axios to return address utxo info
@@ -477,7 +477,7 @@ describe('DogeBlockcypherNetwork', () => {
     });
 
     /**
-     * @target `DogeExplorerNetwork.getAddressBoxes` should return address utxos successfully with correct pagination
+     * @target `DogeBlockcypherNetwork.getAddressBoxes` should return address utxos successfully with correct pagination
      * @dependencies
      * @scenario
      * - mock axios to return address utxo info with correct pagination
@@ -537,7 +537,7 @@ describe('DogeBlockcypherNetwork', () => {
     });
 
     /**
-     * @target `DogeExplorerNetwork.getAddressBoxes` should return empty list
+     * @target `DogeBlockcypherNetwork.getAddressBoxes` should return empty list
      * when no utxo is returned
      * @dependencies
      * @scenario
@@ -565,7 +565,7 @@ describe('DogeBlockcypherNetwork', () => {
 
   describe('isBoxUnspentAndValid', () => {
     /**
-     * @target `DogeExplorerNetwork.isBoxUnspentAndValid` should return true when box is unspent
+     * @target `DogeBlockcypherNetwork.isBoxUnspentAndValid` should return true when box is unspent
      * @dependencies
      * @scenario
      * - mock axios to return tx outspends
@@ -584,7 +584,7 @@ describe('DogeBlockcypherNetwork', () => {
     });
 
     /**
-     * @target `DogeExplorerNetwork.isBoxUnspentAndValid` should return false when
+     * @target `DogeBlockcypherNetwork.isBoxUnspentAndValid` should return false when
      * box is spent
      * @dependencies
      * @scenario
@@ -604,7 +604,7 @@ describe('DogeBlockcypherNetwork', () => {
     });
 
     /**
-     * @target `DogeExplorerNetwork.isBoxUnspentAndValid` should return false when
+     * @target `DogeBlockcypherNetwork.isBoxUnspentAndValid` should return false when
      * tx is not found
      * @dependencies
      * @scenario
@@ -629,7 +629,7 @@ describe('DogeBlockcypherNetwork', () => {
     });
 
     /**
-     * @target `DogeExplorerNetwork.isBoxUnspentAndValid` should return false when
+     * @target `DogeBlockcypherNetwork.isBoxUnspentAndValid` should return false when
      * box index is more than number of tx outputs
      * @dependencies
      * @scenario
@@ -651,7 +651,7 @@ describe('DogeBlockcypherNetwork', () => {
 
   describe('getUtxo', () => {
     /**
-     * @target `DogeExplorerNetwork.getUtxo` should return utxo successfully
+     * @target `DogeBlockcypherNetwork.getUtxo` should return utxo successfully
      * @dependencies
      * @scenario
      * - mock axios to return transaction
@@ -670,7 +670,7 @@ describe('DogeBlockcypherNetwork', () => {
     });
 
     /**
-     * @target `DogeExplorerNetwork.getUtxo` should throw error when
+     * @target `DogeBlockcypherNetwork.getUtxo` should throw error when
      * tx is not found
      * @dependencies
      * @scenario
@@ -694,7 +694,7 @@ describe('DogeBlockcypherNetwork', () => {
     });
 
     /**
-     * @target `DogeExplorerNetwork.getUtxo` should throw error when
+     * @target `DogeBlockcypherNetwork.getUtxo` should throw error when
      * box index is more than number of tx outputs
      * @dependencies
      * @scenario
@@ -715,7 +715,7 @@ describe('DogeBlockcypherNetwork', () => {
 
   describe('getFeeRatio', () => {
     /**
-     * @target `DogeExplorerNetwork.getFeeRatio` should return fee ratio successfully
+     * @target `DogeBlockcypherNetwork.getFeeRatio` should return fee ratio successfully
      * @dependencies
      * @scenario
      * - mock axios to return fee estimates
@@ -735,7 +735,7 @@ describe('DogeBlockcypherNetwork', () => {
 
   describe('getSpentTransactionByInputId', () => {
     /**
-     * @target `DogeExplorerNetwork.getSpentTransactionByInputId` should return transaction
+     * @target `DogeBlockcypherNetwork.getSpentTransactionByInputId` should return transaction
      * when box is spent
      * @dependencies
      * @scenario
@@ -762,7 +762,7 @@ describe('DogeBlockcypherNetwork', () => {
     });
 
     /**
-     * @target `DogeExplorerNetwork.getSpentTransactionByInputId` should return undefined
+     * @target `DogeBlockcypherNetwork.getSpentTransactionByInputId` should return undefined
      * when box is unspent
      * @dependencies
      * @scenario
@@ -788,7 +788,7 @@ describe('DogeBlockcypherNetwork', () => {
 
   describe('getTransactionHex', () => {
     /**
-     * @target `DogeExplorerNetwork.getTransactionHex` should return transaction hex successfully
+     * @target `DogeBlockcypherNetwork.getTransactionHex` should return transaction hex successfully
      * @dependencies
      * @scenario
      * - mock axios to return tx hex
@@ -806,7 +806,7 @@ describe('DogeBlockcypherNetwork', () => {
     });
 
     /**
-     * @target `DogeExplorerNetwork.getTransactionHex` should throw error when
+     * @target `DogeBlockcypherNetwork.getTransactionHex` should throw error when
      * request fails
      * @dependencies
      * @scenario
@@ -831,7 +831,7 @@ describe('DogeBlockcypherNetwork', () => {
 
   describe('isTxInMempool', () => {
     /**
-     * @target `DogeExplorerNetwork.isTxInMempool` should return true when transaction is in mempool
+     * @target `DogeBlockcypherNetwork.isTxInMempool` should return true when transaction is in mempool
      * @dependencies
      * @scenario
      * - mock axios to return transaction with 0 confirmations
@@ -850,7 +850,7 @@ describe('DogeBlockcypherNetwork', () => {
     });
 
     /**
-     * @target `DogeExplorerNetwork.isTxInMempool` should return false when transaction is confirmed
+     * @target `DogeBlockcypherNetwork.isTxInMempool` should return false when transaction is confirmed
      * @dependencies
      * @scenario
      * - mock axios to return transaction with confirmations > 0
@@ -869,7 +869,7 @@ describe('DogeBlockcypherNetwork', () => {
     });
 
     /**
-     * @target `DogeExplorerNetwork.isTxInMempool` should return false when transaction is not found
+     * @target `DogeBlockcypherNetwork.isTxInMempool` should return false when transaction is not found
      * @dependencies
      * @scenario
      * - mock axios to throw 404 error
@@ -945,17 +945,17 @@ describe('DogeBlockcypherNetwork', () => {
 
   describe('getActualTxId', () => {
     /**
-     * @target `DogeExplorerNetwork.getActualTxId` should fetch txId using unsigned hash successfully
+     * @target `DogeBlockcypherNetwork.getActualTxId` should fetch txId using unsigned hash successfully
      * @dependencies
      * @scenario
-     * - create a new instance of DogeExplorerNetwork with a custom getSavedTransactionById
+     * - create a new instance of DogeBlockcypherNetwork with a custom getSavedTransactionById
      * - run test
      * - check returned value
      * @expected
      * - it should fetch txId using unsigned hash successfully
      */
     it('should fetch txId using unsigned hash successfully', async () => {
-      // Create a new instance of DogeExplorerNetwork with a custom getSavedTransactionById
+      // Create a new instance of DogeBlockcypherNetwork with a custom getSavedTransactionById
       const dogePayment = new PaymentTransaction(
         'doge',
         testData.unsignedTxId,

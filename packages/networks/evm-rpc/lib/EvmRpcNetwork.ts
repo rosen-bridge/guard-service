@@ -467,13 +467,14 @@ class EvmRpcNetwork extends AbstractEvmNetwork {
 
     const baseError = `Failed to get actual TxId for hash [${hash}]: `;
 
+    let tx: TransactionResponse | null;
     try {
-      const tx = await this.provider.getTransaction(txId);
-      if (!tx) {
-        throw new Error(baseError + `Transaction [${txId}] is not found`);
-      }
+      tx = await this.provider.getTransaction(txId);
     } catch (e: unknown) {
       throw new UnexpectedApiError(baseError + `${e}`);
+    }
+    if (!tx) {
+      throw new Error(baseError + `Transaction [${txId}] is not found`);
     }
 
     return txId;
