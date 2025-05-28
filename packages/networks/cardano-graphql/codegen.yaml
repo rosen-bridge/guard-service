@@ -1,7 +1,0 @@
-schema: ./schema.graphql
-documents: ./lib/queries.ts
-generates:
-  lib/graphQLTypes.ts:
-    plugins:
-      - typescript
-      - typescript-operations
