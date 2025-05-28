@@ -1,5 +1,11 @@
 # @rosen-chains/doge
 
+## 2.1.1
+
+### Patch Changes
+
+- Fix Doge minimum UTxO value (changed to 0.01 DOGE)
+
 ## 2.1.0
 
 ### Minor Changes
@@ -20,7 +26,7 @@
 
 ### Patch Changes
 
-- Updated dependencies
+- Update dependencies
   - @rosen-chains/abstract-chain@13.1.0
 
 ## 1.0.0
