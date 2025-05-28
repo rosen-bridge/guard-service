@@ -35,6 +35,14 @@ class GuardsDogeConfigs {
   static txFeeSlippage = config.get<number>('doge.txFeeSlippage');
 
   // confirmation configs
+  static signFailedConfirmationCheckPercent = getConfigIntKeyOrDefault(
+    'doge.confirmationCheckPercent.signFailedTx',
+    10
+  );
+  static sentConfirmationCheckPercent = getConfigIntKeyOrDefault(
+    'doge.confirmationCheckPercent.sentTx',
+    60
+  );
   static observationConfirmation = getConfigIntKeyOrDefault(
     'doge.confirmation.observation',
     6
