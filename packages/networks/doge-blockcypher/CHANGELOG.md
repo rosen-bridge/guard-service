@@ -1,5 +1,12 @@
 # @rosen-chains/doge-blockcypher
 
+## 0.1.3
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-chains/doge@2.1.1
+
 ## 0.1.2
 
 ### Patch Changes
@@ -17,5 +24,5 @@
 
 - Enhance logging and fix undefined issue for the txrefs field
 - Filter out unconfirmed txs
-- Updated dependencies
+- Update dependencies
   - @rosen-chains/doge@2.0.1
