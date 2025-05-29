@@ -142,6 +142,8 @@ class TransactionProcessor {
    */
   static processSignFailedTx = async (tx: TransactionEntity): Promise<void> => {
     const chain = ChainHandler.getInstance().getChain(tx.chain);
+    // TODO: Remove this if and implement a general way to reduce confirmation check frequency
+    // local:ergo/rosen-bridge/guard-service#447
     if (tx.chain === DOGE_CHAIN) {
       // in case of Doge, we only check confirmation of sign-failed txs in 10% of times (configurable with default value of 10)
       if (
@@ -211,6 +213,8 @@ class TransactionProcessor {
    */
   static processSentTx = async (tx: TransactionEntity): Promise<void> => {
     const chain = ChainHandler.getInstance().getChain(tx.chain);
+    // TODO: Remove this if and implement a general way to reduce confirmation check frequency
+    // local:ergo/rosen-bridge/guard-service#447
     if (tx.chain === DOGE_CHAIN) {
       // in case of Doge, we only check confirmation of sign-failed txs in 60% of times (configurable with default value of 60)
       if (
