@@ -71,6 +71,9 @@ doge:
     payment: 6 # a payment transaction on Doge get confirmed
     cold: 6 # a cold storage transaction on Doge get confirmed
     manual: 6 # a manual transaction on Doge get confirmed
+  confirmationCheckPercent:
+    signFailedTx: 10
+    sentTx: 60
   tssChainCode: ''
   derivationPath:
     -
