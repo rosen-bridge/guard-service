@@ -1,198 +1,112 @@
-import { RosenChainToken } from '@rosen-bridge/tokens';
-
-import { balanceRoutes } from '../../src/api/balance';
-import { FastifySeverInstance } from '../../src/api/schemas';
-import { ChainAddressTokenBalanceEntity } from '../../src/db/entities/ChainAddressTokenBalanceEntity';
+import { BITCOIN_CHAIN } from '@rosen-chains/bitcoin';
+import { CARDANO_CHAIN } from '@rosen-chains/cardano';
+import { ERGO_CHAIN } from '@rosen-chains/ergo';
+import fastify from 'fastify';
+import { mockBalances, mockBalancesObj } from './testData';
 import ChainHandlerMock from '../handlers/ChainHandler.mock';
+import GuardsErgoConfigs from '../../src/configs/GuardsErgoConfigs';
+import GuardsCardanoConfigs from '../../src/configs/GuardsCardanoConfigs';
+import { FastifySeverInstance } from '../../src/api/schemas';
+import GuardsBitcoinConfigs from '../../src/configs/GuardsBitcoinConfigs';
 import BalanceHandlerMock from '../handlers/mocked/BalanceHandler.mock';
-import MockFastifyServer from '../utils/fastify.mock';
+import { balanceRoutes } from '../../src/api/balance';
 
-vi.mock('../../src/utils/constants', async () => {
-  const originalModule = await vi.importActual('../../src/utils/constants');
-
+vi.mock('../../src/utils/constants', async (importOriginal) => {
+  const mod = await importOriginal<
+    typeof import('../../src/utils/constants')
+  >();
   return {
-    ...originalModule,
-    SUPPORTED_CHAINS: ['chain1', 'chain2'],
-    ChainNativeToken: { chain1: 't1', chain2: 't2' },
-  };
-});
-
-vi.mock('../../src/handlers/tokenHandler', async () => {
-  return {
-    TokenHandler: {
-      getInstance: vi.fn().mockReturnValue({
-        getTokenMap: vi.fn().mockReturnValue({
-          search: vi
-            .fn()
-            .mockImplementation(
-              (chain: string, condition: Partial<RosenChainToken>) => {
-                if (chain === 'chain1' && condition.tokenId === 't1')
-                  return [
-                    {
-                      chain1: {
-                        tokenId: 't1',
-                        name: 't1',
-                        decimals: 2,
-                        type: 't1',
-                        residency: 'chain1',
-                        extra: {
-                          someKey: 'someValue',
-                        },
-                      },
-                    },
-                  ];
-                else if (chain === 'chain2' && condition.tokenId === 't2')
-                  return [
-                    {
-                      chain2: {
-                        tokenId: 't2',
-                        name: 't2',
-                        decimals: 3,
-                        type: 't2',
-                        residency: 'chain2',
-                        extra: {},
-                      },
-                    },
-                  ];
-
-                return [];
-              }
-            ),
-          getSignificantDecimals: vi
-            .fn()
-            .mockImplementation((tokenId: string) => {
-              switch (tokenId) {
-                case 't1':
-                  return 2;
-
-                case 't2':
-                  return 3;
-
-                default:
-                  return undefined;
-              }
-            }),
-        }),
-      }),
-    },
+    ...mod,
+    SUPPORTED_CHAINS: [ERGO_CHAIN, CARDANO_CHAIN, BITCOIN_CHAIN],
   };
 });
 
 describe('balanceRoutes', () => {
-  describe('getBalanceRoute', () => {
-    beforeEach(() => {
-      ChainHandlerMock.resetMock();
-      BalanceHandlerMock.resetMock();
-      MockFastifyServer.resetMock();
+  describe('GET /balance', () => {
+    let mockedServer: FastifySeverInstance;
 
-      ChainHandlerMock.mockChainName('chain1');
+    beforeEach(() => {
+      mockedServer = fastify();
+      mockedServer.register(balanceRoutes);
+      ChainHandlerMock.resetMock();
+
+      BalanceHandlerMock.resetMock();
+
+      ChainHandlerMock.mockChainName(ERGO_CHAIN);
       ChainHandlerMock.mockChainFunction(
-        'chain1',
+        ERGO_CHAIN,
         'getChainConfigs',
-        { addresses: { lock: `lock-address1` } },
+        {
+          addresses: {
+            lock: GuardsErgoConfigs.chainConfigs.addresses.lock,
+            cold: GuardsErgoConfigs.chainConfigs.addresses.cold,
+          },
+        },
         false
       );
 
-      ChainHandlerMock.mockChainName('chain2');
+      ChainHandlerMock.mockChainName(CARDANO_CHAIN);
       ChainHandlerMock.mockChainFunction(
-        'chain2',
+        CARDANO_CHAIN,
         'getChainConfigs',
-        { addresses: { lock: `lock-address2`, cold: `cold-address2` } },
+        {
+          addresses: {
+            lock: GuardsCardanoConfigs.chainConfigs.addresses.lock,
+            cold: GuardsCardanoConfigs.chainConfigs.addresses.cold,
+          },
+        },
+        false
+      );
+
+      ChainHandlerMock.mockChainName(BITCOIN_CHAIN);
+      ChainHandlerMock.mockChainFunction(
+        BITCOIN_CHAIN,
+        'getChainConfigs',
+        {
+          addresses: {
+            lock: GuardsBitcoinConfigs.chainConfigs.addresses.lock,
+            cold: GuardsBitcoinConfigs.chainConfigs.addresses.cold,
+          },
+        },
         false
       );
     });
 
+    afterEach(() => {
+      mockedServer.close();
+    });
+
     /**
      * @target fastifyServer[GET /balance] should return lock balance with hot and cold arrays populated
+     * @dependencies
      * @scenario
      * - stub BalanceHandler.getBalances to return mock balances
-     * - call handler with mock request/reply
+     * - call handler
      * @expected
      * - response status should have been 200
      * - response should have matched hot and cold balances from mockBalances
      */
     it('should return lock balance with hot and cold arrays populated', async () => {
       // arrange
-      const mockBalances: ChainAddressTokenBalanceEntity[] = [
-        {
-          chain: 'chain1',
-          tokenId: 't1',
-          address: 'lock-address1',
-          lastUpdate: 0,
-          balance: 1000n,
-        },
-        {
-          chain: 'chain2',
-          tokenId: 't2',
-          address: 'lock-address2',
-          lastUpdate: 10,
-          balance: 1200n,
-        },
-        {
-          chain: 'chain2',
-          tokenId: 't2',
-          address: 'cold-address2',
-          lastUpdate: 13,
-          balance: 21000n,
-        },
-      ];
-
       BalanceHandlerMock.mock();
       BalanceHandlerMock.mockGetBalances().mockResolvedValue(mockBalances);
 
-      const mockReply = { status: vi.fn().mockReturnThis(), send: vi.fn() };
-
       // act
-      balanceRoutes(MockFastifyServer as any as FastifySeverInstance);
-      await MockFastifyServer.simulateRequest('/balance', {}, mockReply);
+      const result = await mockedServer.inject({
+        method: 'GET',
+        url: '/balance',
+      });
 
       // assert
-      expect(mockReply.status).toHaveBeenCalledWith(200);
-      expect(mockReply.send).toHaveBeenCalledWith({
-        hot: [
-          {
-            address: 'lock-address1',
-            chain: 'chain1',
-            balance: {
-              tokenId: 't1',
-              name: 'T1',
-              decimals: 2,
-              isNativeToken: true,
-              amount: 1000,
-            },
-          },
-          {
-            address: 'lock-address2',
-            chain: 'chain2',
-            balance: {
-              tokenId: 't2',
-              name: 'T2',
-              decimals: 3,
-              isNativeToken: true,
-              amount: 1200,
-            },
-          },
-        ],
-        cold: [
-          {
-            address: 'cold-address2',
-            chain: 'chain2',
-            balance: {
-              tokenId: 't2',
-              name: 'T2',
-              decimals: 3,
-              isNativeToken: true,
-              amount: 21000,
-            },
-          },
-        ],
-      });
+      expect(result.statusCode).toEqual(200);
+      expect(result.json()).toEqual(mockBalancesObj);
     });
 
     /**
      * @target fastifyServer[GET /balance] should return empty lock balance when no balances are returned
+     * @dependencies
      * @scenario
-     * - stub BalanceHandler.getBalances to return empty array
+     * - stub BalanceHandler.getBalances to return mock balances
      * - call handler
      * @expected
      * - response status should have been 200
@@ -203,19 +117,20 @@ describe('balanceRoutes', () => {
       BalanceHandlerMock.mock();
       BalanceHandlerMock.mockGetBalances().mockResolvedValue([]);
 
-      const mockReply = { status: vi.fn().mockReturnThis(), send: vi.fn() };
-
       // act
-      balanceRoutes(MockFastifyServer as any as FastifySeverInstance);
-      await MockFastifyServer.simulateRequest('/balance', {}, mockReply);
+      const result = await mockedServer.inject({
+        method: 'GET',
+        url: '/balance',
+      });
 
       // assert
-      expect(mockReply.status).toHaveBeenCalledWith(200);
-      expect(mockReply.send).toHaveBeenCalledWith({ hot: [], cold: [] });
+      expect(result.statusCode).toEqual(200);
+      expect(result.json()).toEqual({ hot: [], cold: [] });
     });
 
     /**
      * @target fastifyServer[GET /balance] should return error response when an exception is thrown during balance retrieval
+     * @dependencies
      * @scenario
      * - stub BalanceHandler.getBalances to reject
      * - call handler
@@ -230,15 +145,15 @@ describe('balanceRoutes', () => {
         throw new Error('error');
       });
 
-      const mockReply = { status: vi.fn().mockReturnThis(), send: vi.fn() };
-
       // act
-      balanceRoutes(MockFastifyServer as any as FastifySeverInstance);
-      await MockFastifyServer.simulateRequest('/balance', {}, mockReply);
+      const result = await mockedServer.inject({
+        method: 'GET',
+        url: '/balance',
+      });
 
       // assert
-      expect(mockReply.status).toHaveBeenCalledWith(500);
-      expect(mockReply.send).toHaveBeenCalledWith({
+      expect(result.statusCode).toEqual(500);
+      expect(result.json()).toEqual({
         message: 'error',
       });
     });

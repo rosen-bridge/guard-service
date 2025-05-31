@@ -17,7 +17,6 @@ class GuardsEthereumConfigs {
     timeout: config.get<number>('ethereum.rpc.timeout'), // seconds
     scannerInterval: config.get<number>('ethereum.rpc.scannerInterval'),
     initialHeight: config.get<number>('ethereum.rpc.initialHeight'),
-    tokensPerMinute: config.get<number>('ethereum.rpc.tokensPerMinute'),
   };
 
   // value configs
@@ -53,19 +52,6 @@ class GuardsEthereumConfigs {
   static arbitraryTxConfirmation = getConfigIntKeyOrDefault(
     'ethereum.confirmation.arbitrary',
     200
-  );
-
-  static updateBalanceInterval = getConfigIntKeyOrDefault(
-    'ethereum.updateBalanceInterval',
-    300
-  );
-  static updateChainBatchBalancesInterval = getConfigIntKeyOrDefault(
-    'ethereum.updateChainBatchBalancesInterval',
-    60
-  );
-  static updateBatchBalanceMaxRetries = getConfigIntKeyOrDefault(
-    'ethereum.updateBatchBalanceMaxRetries',
-    5
   );
 
   // the ergo-related contract, addresses and tokens in rosen bridge

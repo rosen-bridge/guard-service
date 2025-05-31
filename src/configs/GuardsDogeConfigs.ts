@@ -12,7 +12,6 @@ class GuardsDogeConfigs {
   static esplora = {
     url: config.get<string>('doge.esplora.url'),
     timeout: config.get<number>('doge.esplora.timeout'), // seconds
-    tokensPerMinute: config.get<number>('doge.esplora.tokensPerMinute'),
   };
   static blockcypher = {
     url: config.get<string>('doge.blockcypher.url'),
@@ -42,19 +41,6 @@ class GuardsDogeConfigs {
   static arbitraryTxConfirmation = getConfigIntKeyOrDefault(
     'doge.confirmation.arbitrary',
     6
-  );
-
-  static updateBalanceInterval = getConfigIntKeyOrDefault(
-    'doge.updateBalanceInterval',
-    300
-  );
-  static updateChainBatchBalancesInterval = getConfigIntKeyOrDefault(
-    'doge.updateChainBatchBalancesInterval',
-    60
-  );
-  static updateBatchBalanceMaxRetries = getConfigIntKeyOrDefault(
-    'doge.updateBatchBalanceMaxRetries',
-    5
   );
 
   // the doge-related contract, addresses and tokens in rosen bridge

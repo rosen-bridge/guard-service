@@ -331,7 +331,7 @@ describe('BalanceHandler', () => {
     const maxRetries = 3;
 
     const chainBalanceConfigsMock = {
-      [chain]: { updateBatchBalanceMaxRetries: maxRetries },
+      [chain]: { updateBatchMaxRetries: maxRetries },
     };
 
     const retryUntilSpy = vi

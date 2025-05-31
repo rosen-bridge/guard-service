@@ -8,6 +8,7 @@ import { DOGE_CHAIN } from '@rosen-chains/doge';
 import { ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
 import { BINANCE_CHAIN } from '@rosen-chains/binance';
 import { RosenTokens } from '@rosen-bridge/tokens';
+import { chunk } from 'lodash-es';
 
 import { ChainAddressTokenBalanceEntity } from '../db/entities/ChainAddressTokenBalanceEntity';
 import { ChainNativeToken, SUPPORTED_CHAINS } from '../utils/constants';
@@ -18,16 +19,13 @@ import NestedIterator from '../utils/NestedIterator';
 import IntervalTimer from '../utils/IntervalTimer';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import GuardsCardanoConfigs from '../configs/GuardsCardanoConfigs';
-import GuardsBitcoinConfigs from '../configs/GuardsBitcoinConfigs';
-import GuardsDogeConfigs from '../configs/GuardsDogeConfigs';
-import GuardsEthereumConfigs from '../configs/GuardsEthereumConfigs';
-import GuardsBinanceConfigs from '../configs/GuardsBinanceConfigs';
+import Configs from '../configs/Configs';
 
 export type ChainBalanceConfig = {
   tokensPerMinute: number;
-  updateBalanceInterval: number;
-  updateChainBatchBalancesInterval: number;
-  updateBatchBalanceMaxRetries: number;
+  updateInterval: number;
+  updateBatchInterval: number;
+  updateBatchMaxRetries: number;
 };
 
 class BalanceHandler {
@@ -50,9 +48,9 @@ class BalanceHandler {
     for (const chain of SUPPORTED_CHAINS) {
       let config: ChainBalanceConfig = {
         tokensPerMinute: 0,
-        updateBalanceInterval: 0,
-        updateChainBatchBalancesInterval: 0,
-        updateBatchBalanceMaxRetries: 0,
+        updateInterval: 0,
+        updateBatchInterval: 0,
+        updateBatchMaxRetries: 0,
       };
 
       switch (chain) {
@@ -60,66 +58,69 @@ class BalanceHandler {
           config = {
             tokensPerMinute:
               GuardsErgoConfigs.chainNetworkName === NODE_NETWORK
-                ? GuardsErgoConfigs.node.tokensPerMinute
-                : GuardsErgoConfigs.explorer.tokensPerMinute,
-            updateBalanceInterval: GuardsErgoConfigs.updateBalanceInterval,
-            updateChainBatchBalancesInterval:
-              GuardsErgoConfigs.updateChainBatchBalancesInterval,
-            updateBatchBalanceMaxRetries:
-              GuardsErgoConfigs.updateBatchBalanceMaxRetries,
+                ? Configs.balanceHandler.ergo.tokensPerMinute.node
+                : Configs.balanceHandler.ergo.tokensPerMinute.explorer,
+            updateInterval: Configs.balanceHandler.ergo.updateInterval,
+            updateBatchInterval:
+              Configs.balanceHandler.ergo.updateBatchInterval,
+            updateBatchMaxRetries:
+              Configs.balanceHandler.ergo.updateBatchMaxRetries,
           };
           break;
         case CARDANO_CHAIN:
           config = {
             tokensPerMinute:
               GuardsCardanoConfigs.chainNetworkName === KOIOS_NETWORK
-                ? GuardsCardanoConfigs.koios.tokensPerMinute
-                : GuardsCardanoConfigs.blockfrost.tokensPerMinute,
-            updateBalanceInterval: GuardsCardanoConfigs.updateBalanceInterval,
-            updateChainBatchBalancesInterval:
-              GuardsCardanoConfigs.updateChainBatchBalancesInterval,
-            updateBatchBalanceMaxRetries:
-              GuardsCardanoConfigs.updateBatchBalanceMaxRetries,
+                ? Configs.balanceHandler.cardano.tokensPerMinute.koios
+                : Configs.balanceHandler.cardano.tokensPerMinute.blockfrost,
+            updateInterval: Configs.balanceHandler.cardano.updateInterval,
+            updateBatchInterval:
+              Configs.balanceHandler.cardano.updateBatchInterval,
+            updateBatchMaxRetries:
+              Configs.balanceHandler.cardano.updateBatchMaxRetries,
           };
           break;
         case BITCOIN_CHAIN:
           config = {
-            tokensPerMinute: GuardsBitcoinConfigs.esplora.tokensPerMinute,
-            updateBalanceInterval: GuardsBitcoinConfigs.updateBalanceInterval,
-            updateChainBatchBalancesInterval:
-              GuardsBitcoinConfigs.updateChainBatchBalancesInterval,
-            updateBatchBalanceMaxRetries:
-              GuardsBitcoinConfigs.updateBatchBalanceMaxRetries,
+            tokensPerMinute:
+              Configs.balanceHandler.bitcoin.tokensPerMinute.esplora,
+            updateInterval: Configs.balanceHandler.bitcoin.updateInterval,
+            updateBatchInterval:
+              Configs.balanceHandler.bitcoin.updateBatchInterval,
+            updateBatchMaxRetries:
+              Configs.balanceHandler.bitcoin.updateBatchMaxRetries,
           };
           break;
         case DOGE_CHAIN:
           config = {
-            tokensPerMinute: GuardsDogeConfigs.esplora.tokensPerMinute,
-            updateBalanceInterval: GuardsDogeConfigs.updateBalanceInterval,
-            updateChainBatchBalancesInterval:
-              GuardsDogeConfigs.updateChainBatchBalancesInterval,
-            updateBatchBalanceMaxRetries:
-              GuardsDogeConfigs.updateBatchBalanceMaxRetries,
+            tokensPerMinute:
+              Configs.balanceHandler.doge.tokensPerMinute.esplora,
+            updateInterval: Configs.balanceHandler.doge.updateInterval,
+            updateBatchInterval:
+              Configs.balanceHandler.doge.updateBatchInterval,
+            updateBatchMaxRetries:
+              Configs.balanceHandler.doge.updateBatchMaxRetries,
           };
           break;
         case ETHEREUM_CHAIN:
           config = {
-            tokensPerMinute: GuardsEthereumConfigs.rpc.tokensPerMinute,
-            updateBalanceInterval: GuardsEthereumConfigs.updateBalanceInterval,
-            updateChainBatchBalancesInterval:
-              GuardsEthereumConfigs.updateChainBatchBalancesInterval,
-            updateBatchBalanceMaxRetries:
-              GuardsEthereumConfigs.updateBatchBalanceMaxRetries,
+            tokensPerMinute:
+              Configs.balanceHandler.ethereum.tokensPerMinute.rpc,
+            updateInterval: Configs.balanceHandler.ethereum.updateInterval,
+            updateBatchInterval:
+              Configs.balanceHandler.ethereum.updateBatchInterval,
+            updateBatchMaxRetries:
+              Configs.balanceHandler.ethereum.updateBatchMaxRetries,
           };
           break;
         case BINANCE_CHAIN:
           config = {
-            tokensPerMinute: GuardsBinanceConfigs.rpc.tokensPerMinute,
-            updateBalanceInterval: GuardsBinanceConfigs.updateBalanceInterval,
-            updateChainBatchBalancesInterval:
-              GuardsBinanceConfigs.updateChainBatchBalancesInterval,
-            updateBatchBalanceMaxRetries:
-              GuardsBinanceConfigs.updateBatchBalanceMaxRetries,
+            tokensPerMinute: Configs.balanceHandler.binance.tokensPerMinute.rpc,
+            updateInterval: Configs.balanceHandler.binance.updateInterval,
+            updateBatchInterval:
+              Configs.balanceHandler.binance.updateBatchInterval,
+            updateBatchMaxRetries:
+              Configs.balanceHandler.binance.updateBatchMaxRetries,
           };
           break;
         default:
@@ -129,7 +130,7 @@ class BalanceHandler {
       this.chainConfigs[chain] = config;
 
       this.chainTimers[chain] = new IntervalTimer(
-        config.updateBalanceInterval * 1000,
+        config.updateInterval * 1000,
         async () => {
           try {
             await this.updateChainBalances(chain);
@@ -230,7 +231,7 @@ class BalanceHandler {
     const supportedTokenIds = this.getChainTokens(chain);
 
     // batch the tokens by token per minute config of the chain
-    const tokensBatches = Utils.batchArray(
+    const tokensBatches = chunk(
       supportedTokenIds,
       this.chainConfigs[chain].tokensPerMinute
     );
@@ -250,8 +251,7 @@ class BalanceHandler {
       this.getChainJobs(chain);
 
     // interval
-    const batchJobInterval =
-      this.chainConfigs[chain].updateChainBatchBalancesInterval;
+    const batchJobInterval = this.chainConfigs[chain].updateBatchInterval;
 
     const job = (value: (string | string[])[]) =>
       this.updateChainBatchBalances(
@@ -277,7 +277,7 @@ class BalanceHandler {
   ) => {
     // retry if failed, until max-retry count
     await Utils.retryUntil(
-      this.chainConfigs[chain].updateBatchBalanceMaxRetries,
+      this.chainConfigs[chain].updateBatchMaxRetries,
       async () => {
         // get address assets
         const abstractChain = ChainHandler.getInstance().getChain(chain);

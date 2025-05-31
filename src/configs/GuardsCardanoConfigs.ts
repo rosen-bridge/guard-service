@@ -17,14 +17,12 @@ class GuardsCardanoConfigs {
     authToken: config.has('cardano.koios.authToken')
       ? config.get<string>('cardano.koios.authToken')
       : undefined,
-    tokensPerMinute: config.get<number>('cardano.koios.tokensPerMinute'),
   };
   static blockfrost = {
     projectId: config.get<string>('cardano.blockfrost.projectId'),
     url: config.has('cardano.blockfrost.url')
       ? config.get<string>('cardano.blockfrost.url')
       : undefined,
-    tokensPerMinute: config.get<number>('cardano.blockfrost.tokensPerMinute'),
   };
 
   // value configs
@@ -53,19 +51,6 @@ class GuardsCardanoConfigs {
   static arbitraryTxConfirmation = getConfigIntKeyOrDefault(
     'cardano.confirmation.arbitrary',
     120
-  );
-
-  static updateBalanceInterval = getConfigIntKeyOrDefault(
-    'cardano.updateBalanceInterval',
-    300
-  );
-  static updateChainBatchBalancesInterval = getConfigIntKeyOrDefault(
-    'cardano.updateChainBatchBalancesInterval',
-    60
-  );
-  static updateBatchBalanceMaxRetries = getConfigIntKeyOrDefault(
-    'cardano.updateBatchBalanceMaxRetries',
-    5
   );
 
   // the ergo-related contract, addresses and tokens in rosen bridge

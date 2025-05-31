@@ -72,26 +72,6 @@ class Utils {
   };
 
   /**
-   * chunks an array into sub-arrays each of length n
-   * if the array can't be evenly chunked, the final chunk will contain the remaining elements
-   * @param array - the array to be chunked
-   * @param n - the chunk size
-   * @returns an array containing the chunked arrays
-   */
-  static batchArray = <T>(array: T[], n: number): T[][] => {
-    if (n <= 0) {
-      throw new Error('batch size must be greater than 0');
-    }
-
-    const result: T[][] = [];
-    for (let i = 0; i < array.length; i += n) {
-      result.push(array.slice(i, i + n));
-    }
-
-    return result;
-  };
-
-  /**
    * retries execution of the action by the given maximum retry count and waits for the retry timeout if the action fails
    * @param maxTries
    * @param action

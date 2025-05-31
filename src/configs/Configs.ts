@@ -10,6 +10,7 @@ import { TransportOptions } from '@rosen-bridge/winston-logger';
 import { cloneDeep } from 'lodash-es';
 import { ECDSA } from '@rosen-bridge/encryption';
 import { TokenHandler } from '../handlers/tokenHandler';
+import { BalanceHandlerConfig } from '../types/config';
 
 /**
  * reads a numerical config, set default value if it does not exits
@@ -406,6 +407,9 @@ class Configs {
   static isStillUnhealthyWindowDuration = config.get<number>(
     'notification.windowDurations.isStillUnhealthy'
   );
+
+  // balance handler configs
+  static balanceHandler = config.get<BalanceHandlerConfig>('balanceHandler');
 }
 
 export default Configs;
