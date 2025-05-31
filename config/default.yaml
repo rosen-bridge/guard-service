@@ -67,10 +67,11 @@ doge:
   bankPublicKey: '' # corresponding public key of lock address
   txFeeSlippage: 20 # allowed slippage percentage for tx fees
   confirmation: # required block confirmation
-    observation: 6 # an observation transaction (lock transaction) on Doge get confirmed
-    payment: 6 # a payment transaction on Doge get confirmed
-    cold: 6 # a cold storage transaction on Doge get confirmed
-    manual: 6 # a manual transaction on Doge get confirmed
+    observation: 40 # an observation transaction (lock transaction) on Doge get confirmed
+    payment: 40 # a payment transaction on Doge get confirmed
+    cold: 40 # a cold storage transaction on Doge get confirmed
+    manual: 40 # a manual transaction on Doge get confirmed
+    arbitrary: 40 # an arbitrary transaction on Doge get confirmed
   confirmationCheckPercent:
     signFailedTx: 10
     sentTx: 60
