@@ -45,23 +45,23 @@ class GuardsDogeConfigs {
   );
   static observationConfirmation = getConfigIntKeyOrDefault(
     'doge.confirmation.observation',
-    6
+    40
   );
   static paymentConfirmation = getConfigIntKeyOrDefault(
     'doge.confirmation.payment',
-    6
+    40
   );
   static coldTxConfirmation = getConfigIntKeyOrDefault(
     'doge.confirmation.cold',
-    6
+    40
   );
   static manualTxConfirmation = getConfigIntKeyOrDefault(
     'doge.confirmation.manual',
-    6
+    40
   );
   static arbitraryTxConfirmation = getConfigIntKeyOrDefault(
     'doge.confirmation.arbitrary',
-    6
+    40
   );
 
   // the doge-related contract, addresses and tokens in rosen bridge
