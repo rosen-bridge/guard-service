@@ -648,4 +648,99 @@ describe('EvmRpcNetwork', () => {
       }).rejects.toThrow(Error);
     });
   });
+
+  describe('getActualTxId', () => {
+    /**
+     * @target `EvmRpcNetwork.getActualTxId` should return signed hash from db when tx exists in db and network
+     * @dependencies
+     * @scenario
+     * - define a mock unsigned hash
+     * - define a mock tx
+     * - stub dbAction.getTxByUnsignedHash to return the mock tx
+     * - stub provider.getTransaction to return a mock response
+     * - call getActualTxId using the unsigned hash
+     * @expected
+     * - getActualTxId should have returned the signed hash of requested tx
+     * - getTxByUnsignedHash should have been called once with the unsigned hash
+     */
+    it('should return signed hash from db when tx exists in db and network', async () => {
+      // arrange
+      const unsignedHash = testData.transaction0.unsignedHash;
+      const mockTx = { signedHash: testData.transaction0Id };
+      const getTxByUnsignedHashSpy = vi
+        .spyOn(network.getDbAction(), 'getTxByUnsignedHash')
+        .mockResolvedValue(mockTx as AddressTxsEntity);
+      vi.spyOn(network.getProvider(), 'getTransaction').mockResolvedValue(
+        testData.transaction0Response
+      );
+
+      // act
+      const txId = await network.getActualTxId(unsignedHash);
+
+      // assert
+      expect(txId).toEqual(testData.transaction0Id);
+      expect(getTxByUnsignedHashSpy).toHaveBeenCalledOnce();
+      expect(getTxByUnsignedHashSpy).toHaveBeenCalledWith(unsignedHash);
+    });
+
+    /**
+     * @target `EvmRpcNetwork.getActualTxId` should return the same hash when tx exists in network but not in db
+     * @dependencies
+     * @scenario
+     * - define a mock unsigned hash
+     * - stub dbAction.getTxByUnsignedHash to return null
+     * - stub provider.getTransaction to return a mock response
+     * - call getActualTxId using the unsigned hash
+     * @expected
+     * - getActualTxId should have returned the the same hash
+     * - getTxByUnsignedHash should have been called once with the unsigned hash
+     */
+    it('should return the same hash when tx exists in network but not in db', async () => {
+      // arrange
+      const unsignedHash = testData.transaction0.unsignedHash;
+      const getTxByUnsignedHashSpy = vi
+        .spyOn(network.getDbAction(), 'getTxByUnsignedHash')
+        .mockResolvedValue(null);
+      vi.spyOn(network.getProvider(), 'getTransaction').mockResolvedValue(
+        testData.transaction0Response
+      );
+
+      // act
+      const txId = await network.getActualTxId(unsignedHash);
+
+      // assert
+      expect(txId).toEqual(unsignedHash);
+      expect(getTxByUnsignedHashSpy).toHaveBeenCalledOnce();
+      expect(getTxByUnsignedHashSpy).toHaveBeenCalledWith(unsignedHash);
+    });
+
+    /**
+     * @target `EvmRpcNetwork.getActualTxId` should throw when tx exists in db but not in network
+     * @dependencies
+     * @scenario
+     * - define a mock unsigned hash
+     * - stub dbAction.getTxByUnsignedHash to return a mock tx
+     * - stub provider.getTransaction to return null
+     * - call getActualTxId using the unsigned hash
+     * @expected
+     * - getActualTxId should have thrown
+     * - getTxByUnsignedHash should have been called once with the unsigned hash
+     */
+    it('should throw when tx exists in db but not in network', async () => {
+      // arrange
+      const unsignedHash = testData.transaction0.unsignedHash;
+      const getTxByUnsignedHashSpy = vi
+        .spyOn(network.getDbAction(), 'getTxByUnsignedHash')
+        .mockResolvedValue({ signedHash: 'signedHash' } as any);
+      vi.spyOn(network.getProvider(), 'getTransaction').mockResolvedValue(null);
+
+      // act and assert
+      await expect(async () => {
+        await network.getActualTxId(unsignedHash);
+      }).rejects.toThrow();
+
+      expect(getTxByUnsignedHashSpy).toHaveBeenCalledOnce();
+      expect(getTxByUnsignedHashSpy).toHaveBeenCalledWith(unsignedHash);
+    });
+  });
 });

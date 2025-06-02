@@ -134,53 +134,7 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
    * @returns the transaction confirmation (returns -1 if tx is not mined or found)
    */
   getTxConfirmation = async (transactionId: string): Promise<number> => {
-    let realTxId = transactionId;
-    try {
-      const realPaymentTx = await this.getSavedTransactionById(transactionId);
-
-      if (realPaymentTx) {
-        const realTx = Psbt.fromBuffer(Buffer.from(realPaymentTx.txBytes), {
-          network: DOGE_NETWORK,
-        });
-        try {
-          realTxId = realTx.extractTransaction(true).getId();
-        } catch (e: any) {
-          const spentTx = await this.getSpentTransactionByInputId(
-            realTx.txInputs[0].index,
-            Buffer.from(realTx.txInputs[0].hash.reverse()).toString('hex')
-          );
-          if (spentTx) {
-            const sameInputs = realTx.txInputs.every(
-              (input, i) =>
-                spentTx.inputs[i].txId ===
-                  Buffer.from(input.hash.reverse()).toString('hex') &&
-                spentTx.inputs[i].index === input.index
-            );
-            const sameOutputs = realTx.txOutputs.every(
-              (output, i) =>
-                spentTx.outputs[i].scriptPubKey ===
-                  Buffer.from(output.script).toString('hex') &&
-                spentTx.outputs[i].value === BigInt(output.value)
-            );
-            if (sameInputs && sameOutputs) {
-              realTxId = spentTx.id;
-            }
-          }
-        }
-      }
-    } catch (e: any) {
-      const baseError = `Failed to get confirmation for tx [${transactionId}] which was found in the database: `;
-      if (e.response) {
-        throw new FailedError(
-          baseError + JsonBigInt.stringify(e.response.data)
-        );
-      } else if (e.request) {
-        throw new NetworkError(baseError + e.message);
-      } else {
-        throw new UnexpectedApiError(baseError + e.message);
-      }
-    }
-
+    const realTxId = await this.getActualTxId(transactionId);
     return await this.getTxConfirmationSigned(realTxId);
   };
 
@@ -660,6 +614,60 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
           throw new UnexpectedApiError(baseError + e.message);
         }
       });
+  };
+
+  /**
+   * gets the actual id of a transaction by its hash
+   * @param hash
+   */
+  getActualTxId = async (hash: string): Promise<string> => {
+    let actualTxId = hash;
+    try {
+      const realPaymentTx = await this.getSavedTransactionById(hash);
+
+      if (realPaymentTx) {
+        const realTx = Psbt.fromBuffer(Buffer.from(realPaymentTx.txBytes), {
+          network: DOGE_NETWORK,
+        });
+        try {
+          actualTxId = realTx.extractTransaction(true).getId();
+        } catch (e: any) {
+          const spentTx = await this.getSpentTransactionByInputId(
+            realTx.txInputs[0].index,
+            Buffer.from(realTx.txInputs[0].hash.reverse()).toString('hex')
+          );
+          if (spentTx) {
+            const sameInputs = realTx.txInputs.every(
+              (input, i) =>
+                spentTx.inputs[i].txId ===
+                  Buffer.from(input.hash.reverse()).toString('hex') &&
+                spentTx.inputs[i].index === input.index
+            );
+            const sameOutputs = realTx.txOutputs.every(
+              (output, i) =>
+                spentTx.outputs[i].scriptPubKey ===
+                  Buffer.from(output.script).toString('hex') &&
+                spentTx.outputs[i].value === BigInt(output.value)
+            );
+            if (sameInputs && sameOutputs) {
+              actualTxId = spentTx.id;
+            }
+          }
+        }
+      }
+    } catch (e: any) {
+      const baseError = `Failed to get confirmation for tx [${hash}] which was found in the database: `;
+      if (e.response) {
+        throw new FailedError(
+          baseError + JsonBigInt.stringify(e.response.data)
+        );
+      } else if (e.request) {
+        throw new NetworkError(baseError + e.message);
+      } else {
+        throw new UnexpectedApiError(baseError + e.message);
+      }
+    }
+    return actualTxId;
   };
 }
 

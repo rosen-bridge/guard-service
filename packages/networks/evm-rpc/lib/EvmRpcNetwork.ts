@@ -456,6 +456,29 @@ class EvmRpcNetwork extends AbstractEvmNetwork {
       else throw e;
     }
   };
+
+  /**
+   * gets the actual id of a transaction by its hash
+   * @param hash
+   */
+  getActualTxId = async (hash: string): Promise<string> => {
+    const txRecord = await this.dbAction.getTxByUnsignedHash(hash);
+    const txId = txRecord === null ? hash : txRecord.signedHash;
+
+    const baseError = `Failed to get actual TxId for hash [${hash}]: `;
+
+    let tx: TransactionResponse | null;
+    try {
+      tx = await this.provider.getTransaction(txId);
+    } catch (e: unknown) {
+      throw new UnexpectedApiError(baseError + `${e}`);
+    }
+    if (!tx) {
+      throw new Error(baseError + `Transaction [${txId}] is not found`);
+    }
+
+    return txId;
+  };
 }
 
 export default EvmRpcNetwork;
