@@ -116,8 +116,6 @@ export const noMetadataTransactionInCardanoTx: CardanoTx = {
     {
       txId: '4f868ccfc7abfc70a154e4fbe6e8c671add4852716fbb56bc713305744360f22',
       index: 0,
-      value: 608950932n,
-      assets: [],
     },
   ],
   outputs: [
@@ -251,14 +249,6 @@ export const rosenTransactionInCardanoTx: CardanoTx = {
     {
       txId: 'ed688bc21f5ed822adadd1f61415821def778201323c8e998baf350e0647ce49',
       index: 0,
-      value: 3000000n,
-      assets: [
-        {
-          policy_id: '8e3e19131f96c186335b23bf7983ab00867a987ca900abb27ae0f2b9',
-          asset_name: '52535457',
-          quantity: 1455n,
-        },
-      ],
     },
   ],
   outputs: [
@@ -445,26 +435,14 @@ export const differentMetadataTransactionInCardanoTx: CardanoTx = {
     {
       txId: '6173600230d8e09bd61520c4f451ab9f1efca9e3a082a149bcc6914896997695',
       index: 1,
-      value: 932000000n,
-      assets: [
-        {
-          policy_id: '40fa2aa67258b4ce7b5782f74831d46a84c59a0ff0c28262fab21728',
-          asset_name: '436c61794e6174696f6e39353837',
-          quantity: 1n,
-        },
-      ],
     },
     {
       txId: '86bd079733207c6b4ba764fb5408fa59b74ef1733e8b3f9f6e8ef41ac3c048f9',
       index: 0,
-      value: 350077236n,
-      assets: [],
     },
     {
       txId: 'f8b1f77f72c28b2a99ebab191b28d9d7959f0fc9f07c912470050b9ea9a82ce6',
       index: 4,
-      value: 5000000n,
-      assets: [],
     },
   ],
   outputs: [

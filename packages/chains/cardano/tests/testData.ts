@@ -569,14 +569,6 @@ export const cardanoTx1: CardanoTx = {
     {
       txId: 'faf9346ebeaf65c2720464eb9126e43dfd7b40742e337370b67b84ae0f03dc2b',
       index: 0,
-      value: 3000000n,
-      assets: [
-        {
-          policy_id: 'a0028f350aaabe0545fdcb56b039bfb08e4bb4d8c4d7c3c7d481c235',
-          asset_name: '484f534b59',
-          quantity: 184272501n,
-        },
-      ],
     },
   ],
   outputs: [
