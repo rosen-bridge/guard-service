@@ -38,6 +38,12 @@ abstract class AbstractErgoNetwork extends AbstractUtxoChainNetwork<
    * @returns the ergo box
    */
   abstract getBox: (boxId: string) => Promise<ErgoBox>;
+
+  /**
+   * gets the actual id of a transaction by its hash
+   * @param hash
+   */
+  getActualTxId = async (hash: string): Promise<string> => hash;
 }
 
 export default AbstractErgoNetwork;

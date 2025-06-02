@@ -91,6 +91,10 @@ abstract class PartialDogeNetwork extends AbstractDogeNetwork {
   getTransactionHex = async (txId: string): Promise<string> => {
     return this.notImplemented(DogeNetworkFunction.getTransactionHex);
   };
+
+  getActualTxId = async (hash: string): Promise<string> => {
+    return this.notImplemented(DogeNetworkFunction.getActualTxId);
+  };
 }
 
 export default PartialDogeNetwork;

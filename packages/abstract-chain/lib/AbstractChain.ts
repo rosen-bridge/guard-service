@@ -490,6 +490,12 @@ abstract class AbstractChain<TxType> {
   abstract verifyPaymentTransaction: (
     transaction: PaymentTransaction
   ) => Promise<boolean>;
+
+  /**
+   * gets the actual id of a transaction by its txId
+   * @param txId
+   */
+  getActualTxId = (txId: string) => this.network.getActualTxId(txId);
 }
 
 export default AbstractChain;

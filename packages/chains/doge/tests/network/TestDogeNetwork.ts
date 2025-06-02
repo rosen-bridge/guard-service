@@ -80,6 +80,10 @@ class TestDogeNetwork extends AbstractDogeNetwork {
   isTxInMempool = (txId: string): Promise<boolean> => {
     throw Error('Not mocked');
   };
+
+  getActualTxId = (hash: string): Promise<string> => {
+    throw Error('Not mocked');
+  };
 }
 
 export default TestDogeNetwork;
