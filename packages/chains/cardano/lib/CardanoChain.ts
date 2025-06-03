@@ -270,9 +270,7 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
       undefined
     );
     const txBytes = Serializer.serialize(tx);
-    const txId = CardanoWasm.FixedTransaction.new_from_body_bytes(
-      txBody.to_bytes()
-    )
+    const txId = CardanoWasm.FixedTransaction.from_hex(tx.to_hex())
       .transaction_hash()
       .to_hex();
 
@@ -354,7 +352,7 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
     const tx = Serializer.deserialize(transaction.txBytes);
     const cardanoTx = transaction as CardanoTransaction;
     return this.signFunction(
-      CardanoWasm.FixedTransaction.new_from_body_bytes(tx.body().to_bytes())
+      CardanoWasm.FixedTransaction.from_hex(tx.to_hex())
         .transaction_hash()
         .to_bytes()
     ).then((signature: string) => {
@@ -645,9 +643,7 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
 
     txs.forEach((tx) => {
       const txBody = tx.body();
-      const txId = CardanoWasm.FixedTransaction.new_from_body_bytes(
-        txBody.to_bytes()
-      )
+      const txId = CardanoWasm.FixedTransaction.from_hex(tx.to_hex())
         .transaction_hash()
         .to_hex();
       // iterate over tx inputs
@@ -771,9 +767,7 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
   ): Promise<CardanoTransaction> => {
     const tx = CardanoWasm.Transaction.from_json(rawTxJsonString);
     const txBytes = Serializer.serialize(tx);
-    const txId = CardanoWasm.FixedTransaction.new_from_body_bytes(
-      tx.body().to_bytes()
-    )
+    const txId = CardanoWasm.FixedTransaction.from_hex(tx.to_hex())
       .transaction_hash()
       .to_hex();
 
@@ -815,9 +809,7 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
     const baseError = `Tx [${transaction.txId}] is not verified: `;
 
     // verify txId
-    const txId = CardanoWasm.FixedTransaction.new_from_body_bytes(
-      tx.body().to_bytes()
-    )
+    const txId = CardanoWasm.FixedTransaction.from_hex(tx.to_hex())
       .transaction_hash()
       .to_hex();
     if (transaction.txId !== txId) {

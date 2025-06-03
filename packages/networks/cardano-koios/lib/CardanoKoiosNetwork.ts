@@ -12,6 +12,9 @@ import {
   CardanoAsset,
   CardanoProtocolParameters,
   CardanoUtils,
+  CardanoMetadata,
+  CardanoTxInput,
+  CardanoBoxCandidate,
 } from '@rosen-chains/cardano';
 import {
   AssetBalance,
@@ -25,9 +28,18 @@ import {
 } from '@rosen-chains/abstract-chain';
 import {
   TxInfoItemInputsItem,
-  TxInfoItemOutputsItemAssetListItem,
+  TxInfoItemInputsItemAssetListAnyOfItem,
 } from '@rosen-clients/cardano-koios';
-import { Transaction } from '@emurgo/cardano-serialization-lib-nodejs';
+import {
+  decode_metadatum_to_json_str,
+  FixedTransaction,
+  GeneralTransactionMetadata,
+  MetadataJsonSchema,
+  MultiAsset,
+  Transaction,
+  TransactionInput,
+  TransactionOutput,
+} from '@emurgo/cardano-serialization-lib-nodejs';
 import JsonBigInt from '@rosen-bridge/json-bigint';
 
 class CardanoKoiosNetwork extends AbstractCardanoNetwork {
@@ -44,10 +56,10 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
    */
   getHeight = async (): Promise<number> => {
     return this.client
-      .getTip()
+      .tip()
       .then((block) => {
         this.logger.debug(
-          `requested 'getTip'. res: ${JsonBigInt.stringify(block)}`
+          `requested 'tip'. res: ${JsonBigInt.stringify(block)}`
         );
         const height = block[0].block_no;
         if (height) return Number(height);
@@ -72,10 +84,10 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
    */
   getTxConfirmation = async (transactionId: string): Promise<number> => {
     return this.client
-      .postTxStatus({ _tx_hashes: [transactionId] })
+      .txStatus({ _tx_hashes: [transactionId] })
       .then((res) => {
         this.logger.debug(
-          `requested 'postTxStatus' for txId [${transactionId}]. res: ${JsonBigInt.stringify(
+          `requested 'txStatus' for txId [${transactionId}]. res: ${JsonBigInt.stringify(
             res
           )}`
         );
@@ -108,11 +120,11 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
     // get ADA value
     let addressInfo: AddressInfo;
     try {
-      addressInfo = await this.client.postAddressInfo({
+      addressInfo = await this.client.addressInfo({
         _addresses: [address],
       });
       this.logger.debug(
-        `requested 'postAddressInfo' for address [${address}]. res: ${JsonBigInt.stringify(
+        `requested 'addressInfo' for address [${address}]. res: ${JsonBigInt.stringify(
           addressInfo
         )}`
       );
@@ -135,11 +147,11 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
     // get tokens value
     let addressAssets: AddressAssets;
     try {
-      addressAssets = await this.client.postAddressAssets({
+      addressAssets = await this.client.addressAssets({
         _addresses: [address],
       });
       this.logger.debug(
-        `requested 'postAddressAssets' for address [${address}]. res: ${JsonBigInt.stringify(
+        `requested 'addressAssets' for address [${address}]. res: ${JsonBigInt.stringify(
           addressAssets
         )}`
       );
@@ -180,10 +192,10 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
    */
   getBlockTransactionIds = (blockId: string): Promise<Array<string>> => {
     return this.client
-      .postBlockTxs({ _block_hashes: [blockId] })
+      .blockTxs({ _block_hashes: [blockId] })
       .then((res) => {
         this.logger.debug(
-          `requested 'postBlockTxs' for blockId [${blockId}]. res: ${JsonBigInt.stringify(
+          `requested 'blockTxs' for blockId [${blockId}]. res: ${JsonBigInt.stringify(
             res
           )}`
         );
@@ -212,10 +224,10 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
    */
   getBlockInfo = (blockId: string): Promise<BlockInfo> => {
     return this.client
-      .postBlockInfo({ _block_hashes: [blockId] })
+      .blockInfo({ _block_hashes: [blockId] })
       .then((res) => {
         this.logger.debug(
-          `requested 'postBlockInfo' for blockId [${blockId}]. res: ${JsonBigInt.stringify(
+          `requested 'blockInfo' for blockId [${blockId}]. res: ${JsonBigInt.stringify(
             res
           )}`
         );
@@ -250,17 +262,22 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
     transactionId: string,
     blockId: string
   ): Promise<CardanoTx> => {
-    const koiosTx = await this.client
-      .postTxInfo({ _tx_hashes: [transactionId] })
+    const cborTx = await this.client
+      .txCbor({ _tx_hashes: [transactionId] })
       .then((res) => {
         this.logger.debug(
-          `requested 'postTxInfo' for txId [${transactionId}]. res: ${JsonBigInt.stringify(
+          `requested 'txCbor' for txId [${transactionId}]. res: ${JsonBigInt.stringify(
             res
           )}`
         );
-        return res[0];
+        if (res.length > 0 && res[0].cbor) {
+          return res[0].cbor;
+        }
+        throw new FailedError(
+          `No transaction data received for txId [${transactionId}]`
+        );
       })
-      .catch((e) => {
+      .catch((e: any) => {
         const baseError = `Failed to get transaction [${transactionId}] from Koios: `;
         if (e.response) {
           throw new FailedError(baseError + e.response.data.reason);
@@ -270,32 +287,38 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
           throw new UnexpectedApiError(baseError + e.message);
         }
       });
-    if (!(koiosTx.tx_hash && koiosTx.inputs && koiosTx.outputs && koiosTx.fee))
-      throw new KoiosNullValueError('Tx info items are null');
+    // Parse CBOR transaction
+    const tx = Transaction.from_hex(cborTx);
 
-    if (koiosTx.block_hash !== blockId)
-      throw new FailedError(
-        `Tx [${transactionId}] doesn't belong to block [${blockId}]`
-      );
+    // Extract metadata
+    const metadata = tx.auxiliary_data()?.metadata()
+      ? this.parseMetadata(tx.auxiliary_data()!.metadata()!)
+      : undefined;
 
-    const tx: CardanoTx = {
-      id: koiosTx.tx_hash,
-      inputs: koiosTx.inputs.map(this.parseCardanoUTxO),
-      outputs: koiosTx.outputs.map((output) => {
-        if (!(output.payment_addr?.bech32 && output.value && output.asset_list))
-          throw new KoiosNullValueError('Tx output info items are null');
+    const txBody = tx.body();
+    // Extract inputs and outputs
+    const inputs: Array<CardanoTxInput> = [];
+    const txInputs = txBody.inputs();
+    for (let i = 0; i < txInputs.len(); i++)
+      inputs.push(this.convertToCardanoTxInput(txInputs.get(i)));
 
-        return {
-          address: output.payment_addr.bech32,
-          value: BigInt(output.value),
-          assets: output.asset_list.map(this.parseAssetList),
-        };
-      }),
-      fee: BigInt(koiosTx.fee),
+    const outputs: Array<CardanoBoxCandidate> = [];
+    const txOutputs = txBody.outputs();
+    for (let i = 0; i < txOutputs.len(); i++)
+      outputs.push(this.convertToCardanoBoxCandidate(txOutputs.get(i)));
+
+    // Calculate fee
+    const fee = BigInt(txBody.fee().to_str());
+
+    // Generate txId
+    const txId = FixedTransaction.from_hex(cborTx).transaction_hash().to_hex();
+    return {
+      id: txId,
+      inputs,
+      outputs,
+      fee,
+      metadata,
     };
-    if (koiosTx.metadata) tx.metadata = koiosTx.metadata;
-
-    return tx;
   };
 
   /**
@@ -306,7 +329,7 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
     const txBlob = new Blob([transaction.to_bytes()], {
       type: 'application/cbor',
     });
-    await this.client.postSubmittx(txBlob);
+    await this.client.submittx(txBlob);
   };
 
   /**
@@ -332,10 +355,10 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
     limit: number
   ): Promise<Array<CardanoUtxo>> => {
     const boxes = await this.client
-      .postAddressInfo({ _addresses: [address] })
+      .addressInfo({ _addresses: [address] })
       .then((res) => {
         this.logger.debug(
-          `requested 'postAddressInfo' for address [${address}]. res: ${JsonBigInt.stringify(
+          `requested 'addressInfo' for address [${address}]. res: ${JsonBigInt.stringify(
             res
           )}`
         );
@@ -364,17 +387,21 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
    */
   isBoxUnspentAndValid = async (boxId: string): Promise<boolean> => {
     const [txId, index] = boxId.split('.');
-    const tx = await this.client
-      .postTxInfo({ _tx_hashes: [txId] })
+
+    const cborTx = await this.client
+      .txCbor({ _tx_hashes: [txId] })
       .then((res) => {
         this.logger.debug(
-          `requested 'postTxUtxos' for txId [${txId}]. res: ${JsonBigInt.stringify(
+          `requested 'txCbor' for txId [${txId}]. res: ${JsonBigInt.stringify(
             res
           )}`
         );
-        return res.length === 0 ? undefined : res[0];
+        if (res.length > 0 && res[0].cbor) {
+          return res[0].cbor;
+        }
+        return undefined;
       })
-      .catch((e) => {
+      .catch((e: any) => {
         const baseError = `Failed to get transaction [${txId}] UTxOs from Koios: `;
         if (e.response) {
           throw new FailedError(baseError + e.response.data.reason);
@@ -384,20 +411,34 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
           throw new UnexpectedApiError(baseError + e.message);
         }
       });
-    if (!tx) {
+    if (!cborTx) {
       this.logger.debug(
         `Utxo [${boxId}] is invalid. Tx [${txId}] is not found`
       );
       return false;
     }
-    const boxAddressCred = tx.outputs?.find(
-      (utxo) => utxo.tx_index?.toString() === index
-    )?.payment_addr?.cred;
+    const tx = Transaction.from_hex(cborTx);
+    const boxAddressCred = tx
+      .body()
+      .outputs()
+      .get(Number(index))
+      .address()
+      .payment_cred()
+      ?.to_keyhash()
+      ?.to_hex();
     if (!boxAddressCred)
-      throw new KoiosNullValueError(`Box address credential is null`);
+      throw new UnexpectedApiError(
+        `Failed to extract address credential: ${tx
+          .body()
+          .outputs()
+          .get(Number(index))
+          .address()
+          .payment_cred()
+          ?.to_json()}`
+      );
 
     const utxos = await this.client
-      .postCredentialUtxos({ _payment_credentials: [boxAddressCred] })
+      .credentialUtxos({ _payment_credentials: [boxAddressCred] })
       .catch((e) => {
         const baseError = `Failed to get address credential [${boxAddressCred}] UTxOs from Koios: `;
         if (e.response) {
@@ -409,7 +450,7 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
         }
       });
     this.logger.debug(
-      `requested 'postCredentialUtxos' for box cred [${boxAddressCred}]. res: ${JsonBigInt.stringify(
+      `requested 'credentialUtxos' for box cred [${boxAddressCred}]. res: ${JsonBigInt.stringify(
         utxos
       )}`
     );
@@ -425,10 +466,10 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
    */
   currentSlot = (): Promise<number> => {
     return this.client
-      .getTip()
+      .tip()
       .then((block) => {
         this.logger.debug(
-          `requested 'getTip'. res: ${JsonBigInt.stringify(block)}`
+          `requested 'tip'. res: ${JsonBigInt.stringify(block)}`
         );
         const slot = block[0].abs_slot;
         if (slot) return Number(slot);
@@ -453,17 +494,23 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
    */
   getUtxo = async (boxId: string): Promise<CardanoUtxo> => {
     const [txId, index] = boxId.split('.');
-    const tx = await this.client
-      .postTxInfo({ _tx_hashes: [txId] })
+
+    const cborTx = await this.client
+      .txCbor({ _tx_hashes: [txId] })
       .then((res) => {
         this.logger.debug(
-          `requested 'postTxInfo' for txId [${txId}]. res: ${JsonBigInt.stringify(
+          `requested 'txCbor' for txId [${txId}]. res: ${JsonBigInt.stringify(
             res
           )}`
         );
-        return res[0];
+        if (res.length > 0 && res[0].cbor) {
+          return res[0].cbor;
+        }
+        throw new FailedError(
+          `No transaction data received for txId [${txId}]`
+        );
       })
-      .catch((e) => {
+      .catch((e: any) => {
         const baseError = `Failed to get transaction [${txId}] UTxOs from Koios: `;
         if (e.response) {
           throw new FailedError(baseError + e.response.data.reason);
@@ -473,16 +520,22 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
           throw new UnexpectedApiError(baseError + e.message);
         }
       });
-
-    if (!tx)
-      throw new KoiosNullValueError(
-        `Tx with [${txId}] id was not found on the blockchain, so none of its utxos can be gotten.`
+    const tx = Transaction.from_hex(cborTx);
+    const txOutputs = tx.body().outputs();
+    if (txOutputs.len() <= Number(index))
+      throw new FailedError(
+        `Tx [${txId}] has only [${txOutputs.len()}] outputs but requested index [${index}]`
       );
 
-    const box = tx.outputs?.find((utxo) => utxo.tx_index?.toString() === index);
-    if (!box) throw new KoiosNullValueError(`Tx input box is null`);
-
-    return this.parseCardanoUTxO(box);
+    const boxCandidate = this.convertToCardanoBoxCandidate(
+      txOutputs.get(Number(index))
+    );
+    return {
+      txId: txId,
+      index: Number(index),
+      value: boxCandidate.value,
+      assets: boxCandidate.assets,
+    };
   };
 
   /**
@@ -491,7 +544,7 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
    * @returns CardanoAssets object
    */
   private parseAssetList = (
-    asset: TxInfoItemOutputsItemAssetListItem
+    asset: TxInfoItemInputsItemAssetListAnyOfItem
   ): CardanoAsset => {
     if (
       !(
@@ -537,12 +590,10 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
    * @returns an object containing required protocol parameters
    */
   getProtocolParameters = async (): Promise<CardanoProtocolParameters> => {
-    const allParams = await this.client.getEpochParams();
+    const allParams = await this.client.epochParams();
     const epochParams = allParams[0];
     this.logger.debug(
-      `requested 'getEpochParams'. index 0: ${JsonBigInt.stringify(
-        epochParams
-      )}`
+      `requested 'epochParams'. index 0: ${JsonBigInt.stringify(epochParams)}`
     );
 
     if (
@@ -576,11 +627,11 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
   getTokenDetail = async (tokenId: string): Promise<TokenDetail> => {
     let tokenDetail: AssetInfo;
     try {
-      tokenDetail = await this.client.postAssetInfo({
+      tokenDetail = await this.client.assetInfo({
         _asset_list: [tokenId.split('.')],
       });
       this.logger.debug(
-        `requested 'postAssetInfo' for asset [${tokenId}]. res: ${JsonBigInt.stringify(
+        `requested 'assetInfo' for asset [${tokenId}]. res: ${JsonBigInt.stringify(
           tokenDetail
         )}`
       );
@@ -601,6 +652,85 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
       name: tokenDetail[0].token_registry_metadata?.name ?? UNKNOWN_TOKEN,
       decimals: tokenDetail[0].token_registry_metadata?.decimals ?? 0,
     };
+  };
+
+  /**
+   * converts CardanoAssets object from MultiAsset
+   * @param asset MultiAsset object
+   * @returns CardanoAssets object
+   */
+  protected convertAssetList = (
+    assets: MultiAsset | undefined
+  ): Array<CardanoAsset> => {
+    const cardanoAssets: Array<CardanoAsset> = [];
+
+    if (assets) {
+      for (let i = 0; i < assets.keys().len(); i++) {
+        const scriptHash = assets.keys().get(i);
+        const asset = assets.get(scriptHash)!;
+        for (let j = 0; j < asset.keys().len(); j++) {
+          const assetName = asset.keys().get(j);
+          const assetAmount = asset.get(assetName)!;
+          cardanoAssets.push({
+            policy_id: scriptHash.to_hex(),
+            asset_name: CardanoUtils.assetNameToHex(assetName),
+            quantity: BigInt(assetAmount.to_str()),
+          });
+        }
+      }
+    }
+    return cardanoAssets;
+  };
+
+  /**
+   * converts BlockFrost tx input schema to CardanoTxInput
+   * @param input
+   * @returns
+   */
+  protected convertToCardanoTxInput = (
+    input: TransactionInput
+  ): CardanoTxInput => {
+    return {
+      txId: input.transaction_id().to_hex(),
+      index: input.index(),
+    };
+  };
+
+  /**
+   * converts BlockFrost tx output schema to CardanoBoxCandidate
+   * @param output
+   * @returns
+   */
+  protected convertToCardanoBoxCandidate = (
+    output: TransactionOutput
+  ): CardanoBoxCandidate => {
+    return {
+      address: output.address().to_bech32(),
+      value: BigInt(output.amount().coin().to_str()),
+      assets: this.convertAssetList(output.amount().multiasset()),
+    };
+  };
+
+  /**
+   * parses metadata object from BlockFrost tx metadata schema
+   * @param output
+   * @returns
+   */
+  protected parseMetadata = (
+    metadata: GeneralTransactionMetadata
+  ): CardanoMetadata => {
+    const keys = metadata.keys();
+    const result: CardanoMetadata = {};
+    for (let i = 0; i < keys.len(); i++) {
+      const key = keys.get(i);
+      result[key.to_str()] = JsonBigInt.parse(
+        decode_metadatum_to_json_str(
+          metadata.get(key)!,
+          MetadataJsonSchema.NoConversions
+        )
+      );
+    }
+    return result;
   };
 }
 

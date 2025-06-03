@@ -22,6 +22,11 @@ interface CardanoUtxo {
   assets: Array<CardanoAsset>;
 }
 
+interface CardanoTxInput {
+  txId: string;
+  index: number;
+}
+
 interface CardanoBoxCandidate {
   address: string;
   value: bigint;
@@ -32,7 +37,7 @@ type CardanoMetadata = Record<string, string | Record<string, any>>;
 
 interface CardanoTx {
   id: string;
-  inputs: CardanoUtxo[];
+  inputs: CardanoTxInput[];
   outputs: CardanoBoxCandidate[];
   fee: bigint;
   metadata?: CardanoMetadata;
@@ -56,6 +61,7 @@ export {
   CardanoConfigs,
   CardanoAsset,
   CardanoUtxo,
+  CardanoTxInput,
   CardanoBoxCandidate,
   CardanoMetadata,
   CardanoTx,

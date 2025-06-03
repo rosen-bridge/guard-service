@@ -1,4 +1,9 @@
-import { CardanoUtxo, CardanoBoxCandidate, CardanoAsset } from './types';
+import {
+  CardanoUtxo,
+  CardanoBoxCandidate,
+  CardanoAsset,
+  CardanoTxInput,
+} from './types';
 import {
   AssetBalance,
   ChainUtils,
@@ -95,12 +100,12 @@ class CardanoUtils {
     Buffer.from(assetName.name()).toString('hex');
 
   /**
-   * get box id from CardanoWasm.TransactionInput or CardanoUtxo
+   * get box id from CardanoWasm.TransactionInput, CardanoTxInput or CardanoUtxo
    * @param box to fetch d
    * @returns tx_hash.index as box id
    */
   static getBoxId = (
-    box: CardanoUtxo | CardanoWasm.TransactionInput
+    box: CardanoUtxo | CardanoTxInput | CardanoWasm.TransactionInput
   ): string => {
     if (box instanceof CardanoWasm.TransactionInput) {
       const boxJS = box.to_js_value();

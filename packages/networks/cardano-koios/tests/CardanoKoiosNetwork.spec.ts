@@ -3,18 +3,17 @@ import CardanoKoiosNetwork from '../lib';
 import {
   mockAddressAssets,
   mockEmptyAddressAssets,
-  mockGetEpochParams,
-  mockGetTip,
+  mockEpochParams,
+  mockTip,
   mockNoHistoryAddressAssets,
-  mockPostAddressInfo,
-  mockPostAddressInfoNoHistory,
-  mockPostAssetInfo,
-  mockPostBlockInfo,
-  mockPostBlockTxs,
-  mockPostSubmittx,
-  mockPostTxInfo,
-  mockPostTxStatus,
-  mockPostTxUtxos,
+  mockAddressInfo,
+  mockAddressInfoNoHistory,
+  mockAssetInfo,
+  mockBlockInfo,
+  mockBlockTxs,
+  mockSubmittx,
+  mockTxCbor,
+  mockTxStatus,
   mockUtxoValidation,
 } from './mocked/CardanoKoiosClient.mock';
 import * as testData from './testData';
@@ -30,7 +29,7 @@ describe('CardanoKoiosNetwork', () => {
      * @target `CardanoKoiosNetwork.getHeight` should return current block height
      * @dependencies
      * @scenario
-     * - mock `getBlocks` of cardano koios client
+     * - mock `tip` of cardano koios client
      * - run test
      * - check returned value
      * @expected
@@ -38,7 +37,7 @@ describe('CardanoKoiosNetwork', () => {
      */
     it('should return current block height', async () => {
       // mock client response
-      mockGetTip();
+      mockTip();
 
       // run test
       const network = mockNetwork();
@@ -54,7 +53,7 @@ describe('CardanoKoiosNetwork', () => {
      * @target `CardanoKoiosNetwork.getTxConfirmation` should return tx confirmation
      * @dependencies
      * @scenario
-     * - mock `postTxStatus` of cardano koios client
+     * - mock `txStatus` of cardano koios client
      * - run test
      * - check returned value
      * @expected
@@ -63,7 +62,7 @@ describe('CardanoKoiosNetwork', () => {
     it('should return tx confirmation', async () => {
       // mock client response
       const mockedConfirmation = 100n;
-      mockPostTxStatus(testData.txId, mockedConfirmation);
+      mockTxStatus(testData.txId, mockedConfirmation);
 
       // run test
       const network = mockNetwork();
@@ -78,7 +77,7 @@ describe('CardanoKoiosNetwork', () => {
      * when transaction is not found
      * @dependencies
      * @scenario
-     * - mock `postTxStatus` of cardano koios client
+     * - mock `txStatus` of cardano koios client
      * - run test
      * - check returned value
      * @expected
@@ -87,7 +86,7 @@ describe('CardanoKoiosNetwork', () => {
     it('should return -1 when transaction is not found', async () => {
       // mock client response
       const mockedConfirmation = null;
-      mockPostTxStatus(testData.txId, mockedConfirmation);
+      mockTxStatus(testData.txId, mockedConfirmation);
 
       // run test
       const network = mockNetwork();
@@ -103,7 +102,7 @@ describe('CardanoKoiosNetwork', () => {
      * @target `CardanoKoiosNetwork.getAddressAssets` should return address assets
      * @dependencies
      * @scenario
-     * - mock `postAddressInfo` and `postAddressAssets` of cardano koios client
+     * - mock `addressInfo` and `addressAssets` of cardano koios client
      * - run test
      * - check returned value
      * @expected
@@ -132,7 +131,7 @@ describe('CardanoKoiosNetwork', () => {
      * even when address has no assets
      * @dependencies
      * @scenario
-     * - mock `postAddressInfo` and `postAddressAssets` of cardano koios client
+     * - mock `addressInfo` and `addressAssets` of cardano koios client
      * - run test
      * - check returned value
      * @expected
@@ -158,7 +157,7 @@ describe('CardanoKoiosNetwork', () => {
      * even when address has no history of transactions
      * @dependencies
      * @scenario
-     * - mock `postAddressInfo` and `postAddressAssets` of cardano koios client
+     * - mock `addressInfo` and `addressAssets` of cardano koios client
      * - run test
      * - check returned value
      * @expected
@@ -186,7 +185,7 @@ describe('CardanoKoiosNetwork', () => {
      * id of block transactions
      * @dependencies
      * @scenario
-     * - mock `postBlockTxs` of cardano koios client
+     * - mock `blockTxs` of cardano koios client
      * - run test
      * - check returned value
      * @expected
@@ -194,7 +193,7 @@ describe('CardanoKoiosNetwork', () => {
      */
     it('should return id of block transactions', async () => {
       // mock client response
-      mockPostBlockTxs();
+      mockBlockTxs();
 
       // run test
       const network = mockNetwork();
@@ -211,7 +210,7 @@ describe('CardanoKoiosNetwork', () => {
      * block hash, parent hash and height
      * @dependencies
      * @scenario
-     * - mock `postBlockInfo` of cardano koios client
+     * - mock `blockInfo` of cardano koios client
      * - run test
      * - check returned value
      * @expected
@@ -219,7 +218,7 @@ describe('CardanoKoiosNetwork', () => {
      */
     it('should return block hash, parent hash and height', async () => {
       // mock client response
-      mockPostBlockInfo();
+      mockBlockInfo();
 
       // run test
       const network = mockNetwork();
@@ -240,7 +239,7 @@ describe('CardanoKoiosNetwork', () => {
      * with no metadata
      * @dependencies
      * @scenario
-     * - mock `postTxInfo` of cardano koios client
+     * - mock `txCbor` of cardano koios client
      * - run test
      * - check returned value
      * @expected
@@ -248,7 +247,7 @@ describe('CardanoKoiosNetwork', () => {
      */
     it('should return transaction with no metadata', async () => {
       // mock client response
-      mockPostTxInfo(JsonBigInt.parse(testData.noMetadataTxKoiosResponse));
+      mockTxCbor(testData.noMetadataTxKoiosResponse);
 
       // run test
       const network = mockNetwork();
@@ -268,7 +267,7 @@ describe('CardanoKoiosNetwork', () => {
      * with rosen metadata
      * @dependencies
      * @scenario
-     * - mock `postTxInfo` of cardano koios client
+     * - mock `txCbor` of cardano koios client
      * - run test
      * - check returned value
      * @expected
@@ -276,7 +275,7 @@ describe('CardanoKoiosNetwork', () => {
      */
     it('should return transaction with rosen metadata', async () => {
       // mock client response
-      mockPostTxInfo(JsonBigInt.parse(testData.rosenMetadataTxKoiosResponse));
+      mockTxCbor(testData.rosenMetadataTxKoiosResponse);
 
       // run test
       const network = mockNetwork();
@@ -296,7 +295,7 @@ describe('CardanoKoiosNetwork', () => {
      * with different metadata
      * @dependencies
      * @scenario
-     * - mock `postTxInfo` of cardano koios client
+     * - mock `txCbor` of cardano koios client
      * - run test
      * - check returned value
      * @expected
@@ -304,9 +303,7 @@ describe('CardanoKoiosNetwork', () => {
      */
     it('should return transaction with different metadata', async () => {
       // mock client response
-      mockPostTxInfo(
-        JsonBigInt.parse(testData.differentMetadataTxKoiosResponse)
-      );
+      mockTxCbor(testData.differentMetadataTxKoiosResponse);
 
       // run test
       const network = mockNetwork();
@@ -328,17 +325,17 @@ describe('CardanoKoiosNetwork', () => {
      * @dependencies
      * @scenario
      * - mock transaction
-     * - mock `postSubmittx` of cardano koios client
+     * - mock `submittx` of cardano koios client
      * - run test
      * @expected
-     * - function excution finish without any error
+     * - function execution finish without any error
      */
     it('should submit transaction successfully', async () => {
       // mock transaction
       const tx = Transaction.from_hex(testData.txBytes);
 
       // mock client response
-      mockPostSubmittx();
+      mockSubmittx();
 
       // run test
       const network = mockNetwork();
@@ -371,7 +368,7 @@ describe('CardanoKoiosNetwork', () => {
      * @target `CardanoKoiosNetwork.getAddressBoxes` should return address Utxos
      * @dependencies
      * @scenario
-     * - mock `postAddressInfo` of cardano koios client
+     * - mock `addressInfo` of cardano koios client
      * - run test
      * - check returned value
      * @expected
@@ -379,7 +376,7 @@ describe('CardanoKoiosNetwork', () => {
      */
     it('should return address Utxos', async () => {
       // mock client response
-      mockPostAddressInfo(JsonBigInt.parse(testData.addressUtxoSet));
+      mockAddressInfo(testData.addressUtxoSet);
 
       // run test
       const network = mockNetwork();
@@ -396,7 +393,7 @@ describe('CardanoKoiosNetwork', () => {
      * list when address has no boxes
      * @dependencies
      * @scenario
-     * - mock `postAddressInfo` of cardano koios client
+     * - mock `addressInfo` of cardano koios client
      * - run test
      * - check returned value
      * @expected
@@ -404,7 +401,7 @@ describe('CardanoKoiosNetwork', () => {
      */
     it('should return empty list when address has no boxes', async () => {
       // mock client response
-      mockPostAddressInfo([]);
+      mockAddressInfo([]);
 
       // run test
       const network = mockNetwork();
@@ -419,7 +416,7 @@ describe('CardanoKoiosNetwork', () => {
      * list when address has no history of transactions
      * @dependencies
      * @scenario
-     * - mock `postAddressInfo` of cardano koios client
+     * - mock `addressInfo` of cardano koios client
      * - run test
      * - check returned value
      * @expected
@@ -427,7 +424,7 @@ describe('CardanoKoiosNetwork', () => {
      */
     it('should return empty list when address has no history of transactions', async () => {
       // mock client response
-      mockPostAddressInfoNoHistory();
+      mockAddressInfoNoHistory();
 
       // run test
       const network = mockNetwork();
@@ -442,7 +439,7 @@ describe('CardanoKoiosNetwork', () => {
      * list when offset is more than boxes
      * @dependencies
      * @scenario
-     * - mock `postAddressInfo` of cardano koios client
+     * - mock `addressInfo` of cardano koios client
      * - run test
      * - check returned value
      * @expected
@@ -450,7 +447,7 @@ describe('CardanoKoiosNetwork', () => {
      */
     it('should return empty list when offset is more than boxes', async () => {
       // mock client response
-      mockPostAddressInfo(JsonBigInt.parse(testData.addressUtxoSet));
+      mockAddressInfo(testData.addressUtxoSet);
 
       // run test
       const network = mockNetwork();
@@ -467,7 +464,7 @@ describe('CardanoKoiosNetwork', () => {
      * when box is unspent and valid
      * @dependencies
      * @scenario
-     * - mock `mockUtxoValidation` of cardano koios client
+     * - mock `txCbor` and `credentialUtxos` of cardano koios client
      * - run test
      * - check returned value
      * @expected
@@ -476,8 +473,8 @@ describe('CardanoKoiosNetwork', () => {
     it('should return true when box is unspent and valid', async () => {
       // mock client response
       mockUtxoValidation(
-        JsonBigInt.parse(testData.unspentUtxoTransaction),
-        JsonBigInt.parse(testData.credentialUtxos)
+        testData.unspentUtxoTxKoiosResponse,
+        testData.credentialUtxos
       );
 
       // run test
@@ -493,7 +490,7 @@ describe('CardanoKoiosNetwork', () => {
      * when box is spent
      * @dependencies
      * @scenario
-     * - mock `mockUtxoValidation` of cardano koios client
+     * - mock `txCbor` and `credentialUtxos` of cardano koios client
      * - run test
      * - check returned value
      * @expected
@@ -502,8 +499,8 @@ describe('CardanoKoiosNetwork', () => {
     it('should return false when box is spent', async () => {
       // mock client response
       mockUtxoValidation(
-        JsonBigInt.parse(testData.transactionUtxos),
-        JsonBigInt.parse(testData.credentialUtxos)
+        testData.rosenMetadataTxKoiosResponse,
+        testData.credentialUtxos
       );
 
       // run test
@@ -519,7 +516,7 @@ describe('CardanoKoiosNetwork', () => {
      * when box is invalid (source tx is not found)
      * @dependencies
      * @scenario
-     * - mock `mockUtxoValidation` of cardano koios client
+     * - mock `txCbor` and `credentialUtxos` of cardano koios client
      * - run test
      * - check returned value
      * @expected
@@ -527,7 +524,7 @@ describe('CardanoKoiosNetwork', () => {
      */
     it('should return false when box is invalid', async () => {
       // mock client response
-      mockUtxoValidation(undefined, JsonBigInt.parse(testData.credentialUtxos));
+      mockUtxoValidation(undefined, testData.credentialUtxos);
 
       // run test
       const network = mockNetwork();
@@ -543,7 +540,7 @@ describe('CardanoKoiosNetwork', () => {
      * @target `CardanoKoiosNetwork.currentSlot` should return current slot
      * @dependencies
      * @scenario
-     * - mock `getBlocks` of cardano koios client
+     * - mock `tip` of cardano koios client
      * - run test
      * - check returned value
      * @expected
@@ -551,7 +548,7 @@ describe('CardanoKoiosNetwork', () => {
      */
     it('should return current slot', async () => {
       // mock client response
-      mockGetTip();
+      mockTip();
 
       // run test
       const network = mockNetwork();
@@ -567,7 +564,7 @@ describe('CardanoKoiosNetwork', () => {
      * @target `CardanoKoiosNetwork.getUtxo` should return utxo successfully
      * @dependencies
      * @scenario
-     * - mock `postTxUtxos` of cardano koios client
+     * - mock `txCbor` of cardano koios client
      * - run test
      * - check returned value
      * @expected
@@ -575,7 +572,7 @@ describe('CardanoKoiosNetwork', () => {
      */
     it('should return utxo successfully', async () => {
       // mock client response
-      mockPostTxUtxos(JsonBigInt.parse(testData.transactionUtxos));
+      mockTxCbor(testData.rosenMetadataTxKoiosResponse);
 
       // run test
       const network = mockNetwork();
@@ -591,7 +588,7 @@ describe('CardanoKoiosNetwork', () => {
      * @target `CardanoKoiosNetwork.getProtocolParameters` should return required parameters
      * @dependencies
      * @scenario
-     * - mock `getEpochParams` of cardano koios client
+     * - mock `epochParams` of cardano koios client
      * - run test
      * - check returned value
      * @expected
@@ -599,7 +596,7 @@ describe('CardanoKoiosNetwork', () => {
      */
     it('should return required parameters', async () => {
       // mock client response
-      mockGetEpochParams();
+      mockEpochParams();
 
       // run test
       const network = mockNetwork();
@@ -615,7 +612,7 @@ describe('CardanoKoiosNetwork', () => {
      * @target `CardanoKoiosNetwork.getTokenDetail` should return token detail successfully
      * @dependencies
      * @scenario
-     * - mock `postAssetInfo` of cardano koios client
+     * - mock `assetInfo` of cardano koios client
      * - run test
      * - check returned value
      * @expected
@@ -623,7 +620,7 @@ describe('CardanoKoiosNetwork', () => {
      */
     it('should return token detail successfully', async () => {
       // mock client response
-      mockPostAssetInfo();
+      mockAssetInfo();
 
       // run test
       const network = mockNetwork();

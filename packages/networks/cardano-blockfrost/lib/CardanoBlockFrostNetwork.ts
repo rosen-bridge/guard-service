@@ -8,6 +8,7 @@ import {
   CardanoProtocolParameters,
   CardanoMetadata,
   CardanoUtils,
+  CardanoTxInput,
 } from '@rosen-chains/cardano';
 import {
   AssetBalance,
@@ -299,7 +300,7 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
 
     const tx: CardanoTx = {
       id: txInfo.hash,
-      inputs: txUtxos.inputs.map(this.convertToCardanoUTxO),
+      inputs: txUtxos.inputs.map(this.convertToCardanoTxInput),
       outputs: txUtxos.outputs.map(this.convertToCardanoBoxCandidate),
       fee: BigInt(txInfo.fees),
     };
@@ -563,6 +564,20 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
       index: Number(input.output_index),
       value: utxoAssets.lovelace,
       assets: utxoAssets.assets,
+    };
+  };
+
+  /**
+   * converts BlockFrost tx input schema to CardanoTxInput
+   * @param input
+   * @returns
+   */
+  protected convertToCardanoTxInput = (
+    input: PartialBlockFrostInput
+  ): CardanoTxInput => {
+    return {
+      txId: input.tx_hash,
+      index: Number(input.output_index),
     };
   };
 
