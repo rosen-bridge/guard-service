@@ -9,4 +9,4 @@
 '@rosen-chains/evm': patch
 ---
 
-Update `@rosen-bridge/rosen-extractor` and `@rosen-bridge/tokens` packages to their latest version
+Update `@rosen-bridge/rosen-extractor`, `@rosen-bridge/tokens` and `@rosen-bridge/minimum-fee` packages to their latest version
