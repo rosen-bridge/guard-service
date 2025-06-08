@@ -10,7 +10,6 @@ import {
   TokenInfo,
 } from '@rosen-chains/abstract-chain';
 import * as CardanoWasm from '@emurgo/cardano-serialization-lib-nodejs';
-import { BigNum } from '@emurgo/cardano-serialization-lib-nodejs';
 
 class CardanoUtils {
   /**
@@ -27,7 +26,7 @@ class CardanoUtils {
    * @returns
    */
   static getAssetId = (asset: CardanoAsset) =>
-    this.generateAssetId(asset.policy_id, asset.asset_name);
+    this.generateAssetId(asset.policyId, asset.assetName);
 
   /**
    * calculates total amount of lovelace and assets in list of CardanoUtxo

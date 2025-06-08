@@ -14,13 +14,13 @@ export const mockBankBoxes = (): CardanoUtxo[] => {
     value: adaToLovelace(30),
     assets: [
       {
-        policy_id: 'cfd784ccfe5fe8ce7d09f4ddb65624378cc8022bf3ec240cf41ea6be',
-        asset_name: '43617264616e6f546f6b656e7654657374',
+        policyId: 'cfd784ccfe5fe8ce7d09f4ddb65624378cc8022bf3ec240cf41ea6be',
+        assetName: '43617264616e6f546f6b656e7654657374',
         quantity: 55n,
       },
       {
-        policy_id: '48d4a14b8407af8407702df3afda4cc8a945ce55235e9808c62c5f9b',
-        asset_name: '5273744572676f546f6b656e7654657374',
+        policyId: '48d4a14b8407af8407702df3afda4cc8a945ce55235e9808c62c5f9b',
+        assetName: '5273744572676f546f6b656e7654657374',
         quantity: 5000n,
       },
     ],
@@ -31,8 +31,8 @@ export const mockBankBoxes = (): CardanoUtxo[] => {
     value: adaToLovelace(1234567891011),
     assets: [
       {
-        policy_id: 'cfd784ccfe5fe8ce7d09f4ddb65624378cc8022bf3ec240cf41ea6be',
-        asset_name: '43617264616e6f546f6b656e7654657374',
+        policyId: 'cfd784ccfe5fe8ce7d09f4ddb65624378cc8022bf3ec240cf41ea6be',
+        assetName: '43617264616e6f546f6b656e7654657374',
         quantity: 45n,
       },
     ],
@@ -49,8 +49,8 @@ export const mockBankBoxes = (): CardanoUtxo[] => {
     value: 10000n,
     assets: [
       {
-        policy_id: 'ef6aa6200e21634e58ce6796b4b61d1d7d059d2ebe93c2996eeaf286',
-        asset_name: '5273744552477654657374',
+        policyId: 'ef6aa6200e21634e58ce6796b4b61d1d7d059d2ebe93c2996eeaf286',
+        assetName: '5273744552477654657374',
         quantity: 1000n,
       },
     ],
@@ -61,13 +61,13 @@ export const mockBankBoxes = (): CardanoUtxo[] => {
     value: 10000000n,
     assets: [
       {
-        policy_id: '8e3e19131f96c186335b23bf7983ab00867a987ca900abb27ae0f2b9',
-        asset_name: '52535457',
+        policyId: '8e3e19131f96c186335b23bf7983ab00867a987ca900abb27ae0f2b9',
+        assetName: '52535457',
         quantity: 30n,
       },
       {
-        policy_id: '8e3e19131f96c186335b23bf7983ab00867a987ca900abb27ae0f2b9',
-        asset_name: '52535450',
+        policyId: '8e3e19131f96c186335b23bf7983ab00867a987ca900abb27ae0f2b9',
+        assetName: '52535450',
         quantity: 40n,
       },
     ],
@@ -85,10 +85,10 @@ export const AddressUtxoToTransactionOutput = (
   box.assets.forEach((asset) => {
     const assets = CardanoWasm.Assets.new();
     assets.insert(
-      CardanoWasm.AssetName.new(Buffer.from(asset.asset_name, 'hex')),
+      CardanoWasm.AssetName.new(Buffer.from(asset.assetName, 'hex')),
       CardanoUtils.bigIntToBigNum(asset.quantity)
     );
-    multiAsset.insert(CardanoWasm.ScriptHash.from_hex(asset.policy_id), assets);
+    multiAsset.insert(CardanoWasm.ScriptHash.from_hex(asset.policyId), assets);
   });
 
   value.set_multiasset(multiAsset);

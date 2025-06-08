@@ -263,8 +263,8 @@ export const rosenTransactionInCardanoTx: CardanoTx = {
       value: 1444518n,
       assets: [
         {
-          policy_id: '8e3e19131f96c186335b23bf7983ab00867a987ca900abb27ae0f2b9',
-          asset_name: '52535457',
+          policyId: '8e3e19131f96c186335b23bf7983ab00867a987ca900abb27ae0f2b9',
+          assetName: '52535457',
           quantity: 1455n,
         },
       ],
@@ -457,8 +457,8 @@ export const differentMetadataTransactionInCardanoTx: CardanoTx = {
       value: 962000000n,
       assets: [
         {
-          policy_id: '40fa2aa67258b4ce7b5782f74831d46a84c59a0ff0c28262fab21728',
-          asset_name: '436c61794e6174696f6e39353837',
+          policyId: '40fa2aa67258b4ce7b5782f74831d46a84c59a0ff0c28262fab21728',
+          assetName: '436c61794e6174696f6e39353837',
           quantity: 1n,
         },
       ],
@@ -596,15 +596,15 @@ export const addressUtxoSet: components['schemas']['address_utxo_content'] = [
     reference_script_hash: null,
   },
 ];
-export const expectedAddressUtxoSet = [
+export const expectedAddressUtxoSet: CardanoUtxo[] = [
   {
     txId: '4eb16141fb4f2ca1cabc0dfb16491e54a1b4464b75591ccc3942eb4c6f4273fb',
     index: 0,
     value: 1344798n,
     assets: [
       {
-        policy_id: '0dad352d8f0d5ce3f5be8b025d6a16141ecceab5a921871792d91f47',
-        asset_name: '5273455247',
+        policyId: '0dad352d8f0d5ce3f5be8b025d6a16141ecceab5a921871792d91f47',
+        assetName: '5273455247',
         quantity: 64576047n,
       },
     ],
@@ -615,8 +615,8 @@ export const expectedAddressUtxoSet = [
     value: 1344798n,
     assets: [
       {
-        policy_id: '0dad352d8f0d5ce3f5be8b025d6a16141ecceab5a921871792d91f47',
-        asset_name: '5273455247',
+        policyId: '0dad352d8f0d5ce3f5be8b025d6a16141ecceab5a921871792d91f47',
+        assetName: '5273455247',
         quantity: 57617503n,
       },
     ],
@@ -743,8 +743,8 @@ export const txUtxo: CardanoUtxo = {
   value: 1344798n,
   assets: [
     {
-      policy_id: '0dad352d8f0d5ce3f5be8b025d6a16141ecceab5a921871792d91f47',
-      asset_name: '5273455247',
+      policyId: '0dad352d8f0d5ce3f5be8b025d6a16141ecceab5a921871792d91f47',
+      assetName: '5273455247',
       quantity: 64576047n,
     },
   ],
