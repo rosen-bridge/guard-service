@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "@rosen-bridge/abstract-logger": "^2.0.1",
-    "@rosen-bridge/tokens": "^3.0.0",
+    "@rosen-bridge/tokens": "^3.1.1",
     "@rosen-chains/abstract-chain": "^13.1.0",
     "@rosen-chains/evm": "^8.1.0"
   }
