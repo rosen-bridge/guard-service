@@ -525,6 +525,25 @@ export const multiDecimalTokenMap: RosenTokens = [
       extra: {},
     },
   },
+  {
+    ergo: {
+      tokenId:
+        '87c3212bc43e17be4ec735ba13b90802fe1eb9c4aae250d27f24e76ddd39ed72',
+      name: 'test-wrapped-multi-decimal-token',
+      decimals: 6,
+      type: 'EIP-004',
+      residency: 'wrapped',
+      extra: {},
+    },
+    test: {
+      tokenId: '0x44445752e5a2f595151c94762fb38e5730357799',
+      name: 'MULTI-DECIMAL-TOKEN',
+      decimals: 9,
+      type: 'ERC-20',
+      residency: 'native',
+      extra: {},
+    },
+  },
 ];
 
 export const tokenMapWithVariousTestTokens: RosenTokens = [
@@ -541,7 +560,7 @@ export const tokenMapWithVariousTestTokens: RosenTokens = [
     test: {
       tokenId: 'test-native-token',
       name: 'ETHER',
-      decimals: 18,
+      decimals: 9,
       type: 'native',
       residency: 'native',
       extra: {},
@@ -573,12 +592,50 @@ export const tokenMapWithVariousTestTokens: RosenTokens = [
       name: 'test-wrapped-token',
       decimals: 0,
       type: 'EIP-004',
+      residency: 'wrapped',
+      extra: {},
+    },
+    test: {
+      tokenId: '0x12345752e5a2f595151c94762fb38e5730357785',
+      name: 'TOKEN',
+      decimals: 0,
+      type: 'ERC-20',
+      residency: 'native',
+      extra: {},
+    },
+  },
+  {
+    ergo: {
+      tokenId:
+        '87c3212bc43e17be4ec735ba13b90802fe1eb9c4aae250d27f24e76ddd39ed72',
+      name: 'test-ergo-token-2',
+      decimals: 3,
+      type: 'EIP-004',
       residency: 'native',
       extra: {},
     },
     test: {
-      tokenId: '0xa20bef5093783116611871d940f39e7aba3d14f9',
-      name: 'TOKEN',
+      tokenId: '0xedee4752e5a2f595151c94762fb38e5730357786',
+      name: 'WRAPPED-TOKEN-2',
+      decimals: 3,
+      type: 'ERC-20',
+      residency: 'wrapped',
+      extra: {},
+    },
+  },
+  {
+    ergo: {
+      tokenId:
+        '87c3212bc43e17be4ec735ba13b90802fe1eb9c4aae250d27f24e76ddd39ed72',
+      name: 'test-wrapped-token-2',
+      decimals: 0,
+      type: 'EIP-004',
+      residency: 'wrapped',
+      extra: {},
+    },
+    test: {
+      tokenId: '0xedee4752e5a2f595151c94762fb38e5730357787',
+      name: 'TOKEN-2',
       decimals: 0,
       type: 'ERC-20',
       residency: 'native',
@@ -588,5 +645,7 @@ export const tokenMapWithVariousTestTokens: RosenTokens = [
 ];
 export const supportedTokensOfVariousTestTokens = [
   '0xedee4752e5a2f595151c94762fb38e5730357785',
-  '0xa20bef5093783116611871d940f39e7aba3d14f9',
+  '0x12345752e5a2f595151c94762fb38e5730357785',
+  '0xedee4752e5a2f595151c94762fb38e5730357786',
+  '0xedee4752e5a2f595151c94762fb38e5730357787',
 ];

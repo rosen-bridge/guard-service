@@ -91,18 +91,8 @@ export const mockGetTransactionByNonce = (
 export const generateChainObject = async (
   network: TestEvmNetwork,
   signFn: TssSignFunction = mockedSignFn,
-  evmTxType = 2
-) => {
-  const tokenMap = new TokenMap();
-  await tokenMap.updateConfigByJson(testData.testTokenMap);
-  return new TestChain(network, configs, tokenMap, signFn, evmTxType);
-};
-
-export const generateChainObjectWithMultiDecimalTokenMap = async (
-  network: TestEvmNetwork,
-  signFn: TssSignFunction = mockedSignFn,
   evmTxType = 2,
-  rosenTokens: RosenTokens = testData.multiDecimalTokenMap
+  rosenTokens: RosenTokens = testData.testTokenMap
 ) => {
   const tokenMap = new TokenMap();
   await tokenMap.updateConfigByJson(rosenTokens);

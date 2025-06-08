@@ -18,6 +18,35 @@ import TestChain from './TestChain';
 import { TokenMap } from '@rosen-bridge/tokens';
 
 describe('EvmChain', () => {
+  /**
+   * @target EvmChain should successfully update supported tokens on token map update
+   * @dependencies
+   * @scenario
+   * - initialize EvmChain with an empty token map
+   * - check supported tokens
+   * - update the token map
+   * - check supported tokens
+   * @expected
+   * - before update, supported tokens should be empty
+   * - after update, supported tokens should be updated
+   */
+  it('should successfully update supported tokens on token map update', async () => {
+    const network = new TestEvmNetwork();
+    const tokenMap = new TokenMap();
+    const chain = new TestChain(
+      network,
+      testUtils.configs,
+      tokenMap,
+      testUtils.mockedSignFn,
+      2
+    );
+    expect(chain.supportedTokens).toEqual([]);
+    await tokenMap.updateConfigByJson(TestData.tokenMapWithVariousTestTokens);
+    expect(chain.supportedTokens).toEqual(
+      TestData.supportedTokensOfVariousTestTokens
+    );
+  });
+
   describe(`constructor`, () => {
     /**
      * @target EvmChain.constructor should initialize rosen-extractor successfully
@@ -39,7 +68,6 @@ describe('EvmChain', () => {
         testUtils.mockedSignFn,
         2
       );
-      chain.updateSupportedTokens(TestData.supportedTokens);
       expect(chain.extractor?.chain).toEqual(chain.CHAIN);
     });
 
@@ -114,8 +142,12 @@ describe('EvmChain', () => {
       // mock hasLockAddressEnoughAssets, getFeeData,
       // getGasRequired, getAddressNextNonce
       const network = new TestEvmNetwork();
-      const evmChain = await testUtils.generateChainObject(network);
-      evmChain.updateSupportedTokens(TestData.supportedTokens);
+      const evmChain = await testUtils.generateChainObject(
+        network,
+        undefined,
+        undefined,
+        TestData.tokenMapWithVariousTestTokens
+      );
       const requiredGas = 100000n;
       testUtils.mockHasLockAddressEnoughAssets(evmChain, true);
       testUtils.mockGetFeeData(network, new FeeData(10n, 10n, 10n));
@@ -370,8 +402,12 @@ describe('EvmChain', () => {
 
       // mock hasLockAddressEnoughAssets and getAddressNextNonce
       const network = new TestEvmNetwork();
-      const evmChain = await testUtils.generateChainObject(network);
-      evmChain.updateSupportedTokens(TestData.supportedTokens);
+      const evmChain = await testUtils.generateChainObject(
+        network,
+        undefined,
+        undefined,
+        TestData.tokenMapWithVariousTestTokens
+      );
       testUtils.mockHasLockAddressEnoughAssets(evmChain, false);
       testUtils.mockGetFeeData(network, new FeeData(10n, 10n, 10n));
       testUtils.mockGetAddressNextAvailableNonce(network, nonce);
@@ -509,8 +545,12 @@ describe('EvmChain', () => {
 
       // mock hasLockAddressEnoughAssets, getAddressNextNonce,
       const network = new TestEvmNetwork();
-      const evmChain = await testUtils.generateChainObject(network);
-      evmChain.updateSupportedTokens(TestData.supportedTokens);
+      const evmChain = await testUtils.generateChainObject(
+        network,
+        undefined,
+        undefined,
+        TestData.tokenMapWithVariousTestTokens
+      );
       testUtils.mockHasLockAddressEnoughAssets(evmChain, true);
       testUtils.mockGetFeeData(network, new FeeData(10n, 10n, 10n));
       testUtils.mockGetGasRequired(network, 200000n);
@@ -550,8 +590,12 @@ describe('EvmChain', () => {
      */
     it('should generate payment transaction successfully for wrapped order', async () => {
       const network = new TestEvmNetwork();
-      const evmChain =
-        await testUtils.generateChainObjectWithMultiDecimalTokenMap(network);
+      const evmChain = await testUtils.generateChainObject(
+        network,
+        undefined,
+        undefined,
+        TestData.multiDecimalTokenMap
+      );
 
       const order = TestData.nativePaymentWrappedOrder;
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
@@ -728,7 +772,7 @@ describe('EvmChain', () => {
         undefined,
         0
       );
-      expect(async () => {
+      await expect(async () => {
         await evmChain.rawTxToPaymentTransaction(
           TestData.transaction1JsonString
         );
@@ -836,7 +880,7 @@ describe('EvmChain', () => {
       );
 
       // run test function and expect error
-      expect(async () => {
+      await expect(async () => {
         await evmChain.getTransactionAssets(paymentTx);
       }).rejects.toThrowError(TransactionFormatError);
     });
@@ -895,8 +939,12 @@ describe('EvmChain', () => {
      */
     it('should wrap transaction assets successfully', async () => {
       const network = new TestEvmNetwork();
-      const evmChain =
-        await testUtils.generateChainObjectWithMultiDecimalTokenMap(network);
+      const evmChain = await testUtils.generateChainObject(
+        network,
+        undefined,
+        undefined,
+        TestData.multiDecimalTokenMap
+      );
 
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
       const txType = TransactionType.payment;
@@ -1688,7 +1736,7 @@ describe('EvmChain', () => {
      * @expected
      * - throw error
      */
-    it('should throw error when `to` is null', () => {
+    it('should throw error when `to` is null', async () => {
       // mock PaymentTransaction
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
       const txType = TransactionType.payment;
@@ -1704,7 +1752,7 @@ describe('EvmChain', () => {
       );
 
       // run test
-      expect(async () =>
+      await expect(async () =>
         evmChain.extractTransactionOrder(paymentTx)
       ).rejects.toThrowError(TransactionFormatError);
     });
@@ -1721,8 +1769,12 @@ describe('EvmChain', () => {
      * - it should return mocked transaction order
      */
     it('should wrap transaction order successfully', async () => {
-      const evmChain =
-        await testUtils.generateChainObjectWithMultiDecimalTokenMap(network);
+      const evmChain = await testUtils.generateChainObject(
+        network,
+        undefined,
+        undefined,
+        TestData.multiDecimalTokenMap
+      );
 
       // mock PaymentTransaction
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
@@ -2655,8 +2707,12 @@ describe('EvmChain', () => {
       );
 
       // run test
-      const evmChain = await testUtils.generateChainObject(network);
-      evmChain.updateSupportedTokens(TestData.supportedTokens);
+      const evmChain = await testUtils.generateChainObject(
+        network,
+        undefined,
+        undefined,
+        TestData.tokenMapWithVariousTestTokens
+      );
       const result = await evmChain.getAddressAssets(TestData.lockAddress);
 
       // check returned value
@@ -2704,23 +2760,16 @@ describe('EvmChain', () => {
      */
     it('should wrap address assets successfully', async () => {
       const network = new TestEvmNetwork();
-      const evmChain =
-        await testUtils.generateChainObjectWithMultiDecimalTokenMap(network);
-      evmChain.updateSupportedTokens(TestData.supportedTokens);
+      const evmChain = await testUtils.generateChainObject(
+        network,
+        undefined,
+        undefined,
+        TestData.multiDecimalTokenMap
+      );
 
       mockGetAddressBalanceForNativeToken(evmChain.network, 1000n);
-      vi.spyOn(network, 'getAddressBalanceForERC20Asset').mockImplementation(
-        async (address, tokenId) => {
-          if (tokenId === '0xedee4752e5a2f595151c94762fb38e5730357785')
-            return 0n;
-          else if (tokenId === '0x12345752e5a2f595151c94762fb38e5730357785')
-            return 10n;
-          else if (tokenId === '0xedee4752e5a2f595151c94762fb38e5730357786')
-            return 30n;
-          else if (tokenId === '0xedee4752e5a2f595151c94762fb38e5730357787')
-            return 40n;
-          else return 0n;
-        }
+      vi.spyOn(network, 'getAddressBalanceForERC20Asset').mockResolvedValue(
+        5400n
       );
 
       // run test
@@ -2730,10 +2779,7 @@ describe('EvmChain', () => {
       expect(result).toEqual({
         nativeToken: 10n,
         tokens: [
-          { id: '0xedee4752e5a2f595151c94762fb38e5730357785', value: 0n },
-          { id: '0x12345752e5a2f595151c94762fb38e5730357785', value: 10n },
-          { id: '0xedee4752e5a2f595151c94762fb38e5730357786', value: 30n },
-          { id: '0xedee4752e5a2f595151c94762fb38e5730357787', value: 40n },
+          { id: '0x44445752e5a2f595151c94762fb38e5730357799', value: 6n },
         ],
       });
     });
@@ -2771,7 +2817,6 @@ describe('EvmChain', () => {
           else return 0n;
         });
       const evmChain = await testUtils.generateChainObject(network);
-      evmChain.updateSupportedTokens(TestData.supportedTokens);
 
       // act
       const result = await evmChain.getAddressAssets(TestData.lockAddress, []);
@@ -2820,8 +2865,12 @@ describe('EvmChain', () => {
             return 40n;
           else return 0n;
         });
-      const evmChain = await testUtils.generateChainObject(network);
-      evmChain.updateSupportedTokens(TestData.supportedTokens);
+      const evmChain = await testUtils.generateChainObject(
+        network,
+        undefined,
+        undefined,
+        TestData.tokenMapWithVariousTestTokens
+      );
 
       // act
       const result = await evmChain.getAddressAssets(TestData.lockAddress, [
