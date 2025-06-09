@@ -2,12 +2,19 @@
   "name": "@rosen-chains/binance",
   "version": "2.0.1",
   "description": "this project contains binance chain for Rosen-bridge",
-  "repository": "https://github.com/rosen-bridge/rosen-chains",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rosen-bridge/rosen-chains.git"
+  },
   "license": "CC0-1.0",
   "author": "Rosen Team",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "CHANGELOG.md"
+  ],
   "scripts": {
     "build": "tsc --build tsconfig.build.json",
     "lint": "eslint --fix . && npm run prettify",
