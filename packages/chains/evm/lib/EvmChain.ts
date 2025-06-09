@@ -57,15 +57,21 @@ abstract class EvmChain extends AbstractChain<Transaction> {
       NATIVE_TOKEN_ID,
       logger
     );
-    const supportedTokens = tokens
-      .getConfig()
-      .filter(
-        (tokenSet) =>
-          Object.keys(tokenSet).includes(CHAIN) &&
-          tokenSet[CHAIN].type !== 'native'
-      )
-      .map((tokenSet) => tokenSet[CHAIN].tokenId);
-    this.updateSupportedTokens(supportedTokens);
+    const updateSupportedTokens = () => {
+      const supportedTokens = tokens
+        .getConfig()
+        .filter(
+          (tokenSet) =>
+            Object.keys(tokenSet).includes(CHAIN) &&
+            tokenSet[CHAIN].type !== 'native'
+        )
+        .map((tokenSet) => tokenSet[CHAIN].tokenId);
+      this.supportedTokens = supportedTokens;
+    };
+    // update supported tokens with current token map
+    updateSupportedTokens();
+    // register a callback on token map to update supported tokens on next updates
+    tokens.registerCallback(updateSupportedTokens);
   }
 
   /**
@@ -965,10 +971,6 @@ abstract class EvmChain extends AbstractChain<Transaction> {
     }
 
     return true;
-  };
-
-  updateSupportedTokens = async (supportedTokens: Array<string>) => {
-    this.supportedTokens = supportedTokens;
   };
 }
 
