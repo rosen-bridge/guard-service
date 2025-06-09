@@ -679,8 +679,8 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
                 const assetName = asset.keys().get(j);
                 const assetAmount = asset.get(assetName)!;
                 boxAssets.push({
-                  policy_id: scriptHash.to_hex(),
-                  asset_name: CardanoUtils.assetNameToHex(assetName),
+                  policyId: scriptHash.to_hex(),
+                  assetName: CardanoUtils.assetNameToHex(assetName),
                   quantity: BigInt(assetAmount.to_str()),
                 });
               }

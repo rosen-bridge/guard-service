@@ -538,8 +538,8 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
       const policyId = asset.unit.slice(0, 56);
       const assetName = asset.unit.slice(56);
       cardanoAssets.push({
-        policy_id: policyId,
-        asset_name: assetName,
+        policyId: policyId,
+        assetName: assetName,
         quantity: BigInt(asset.quantity),
       });
     });

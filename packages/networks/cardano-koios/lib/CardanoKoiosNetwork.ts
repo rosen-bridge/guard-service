@@ -557,8 +557,8 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
       throw new KoiosNullValueError('UTxO asset info items are null');
 
     return {
-      policy_id: asset.policy_id,
-      asset_name: asset.asset_name,
+      policyId: asset.policy_id,
+      assetName: asset.asset_name,
       quantity: BigInt(asset.quantity),
     };
   };
@@ -672,8 +672,8 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
           const assetName = asset.keys().get(j);
           const assetAmount = asset.get(assetName)!;
           cardanoAssets.push({
-            policy_id: scriptHash.to_hex(),
-            asset_name: CardanoUtils.assetNameToHex(assetName),
+            policyId: scriptHash.to_hex(),
+            assetName: CardanoUtils.assetNameToHex(assetName),
             quantity: BigInt(assetAmount.to_str()),
           });
         }
