@@ -7,6 +7,7 @@ import {
   BlockInfo,
   BoxInfo,
   ChainUtils,
+  GET_BOX_API_LIMIT,
   NotEnoughAssetsError,
   NotEnoughValidBoxesError,
   PaymentOrder,
@@ -17,9 +18,10 @@ import {
   TransactionType,
   ValidityStatus,
 } from '@rosen-chains/abstract-chain';
-import JSONBigInt from '@rosen-bridge/json-bigint';
+import JsonBigInt from '@rosen-bridge/json-bigint';
+import { CardanoRosenExtractor } from '@rosen-bridge/rosen-extractor';
+import { CardanoBoxSelection } from '@rosen-bridge/cardano-utxo-selection';
 import CardanoTransaction from './CardanoTransaction';
-import CardanoUtils from './CardanoUtils';
 import cardanoUtils from './CardanoUtils';
 import { ADA, CARDANO_CHAIN } from './constants';
 import AbstractCardanoNetwork from './network/AbstractCardanoNetwork';
@@ -31,8 +33,7 @@ import {
   CardanoTx,
   CardanoUtxo,
 } from './types';
-import JsonBigInt from '@rosen-bridge/json-bigint';
-import { CardanoRosenExtractor } from '@rosen-bridge/rosen-extractor';
+import CardanoUtils from './CardanoUtils';
 
 class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
   declare network: AbstractCardanoNetwork;
@@ -40,6 +41,7 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
   CHAIN = CARDANO_CHAIN;
   NATIVE_TOKEN_ID = ADA;
   extractor: CardanoRosenExtractor;
+  protected boxSelection: CardanoBoxSelection;
   protected signFunction: (txHash: Uint8Array) => Promise<string>;
 
   constructor(
@@ -56,6 +58,7 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
       logger
     );
     this.signFunction = signFunction;
+    this.boxSelection = new CardanoBoxSelection();
   }
 
   /**
@@ -135,7 +138,7 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
 
     if (!(await this.hasLockAddressEnoughAssets(requiredAssets))) {
       const neededADA = unwrappedRequiredAssets.nativeToken.toString();
-      const neededTokens = JSONBigInt.stringify(unwrappedRequiredAssets.tokens);
+      const neededTokens = JsonBigInt.stringify(unwrappedRequiredAssets.tokens);
       throw new NotEnoughAssetsError(
         `Locked assets cannot cover required assets. ADA: ${neededADA}, Tokens: ${neededTokens}`
       );
@@ -156,15 +159,32 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
       this.configs.addresses.lock
     );
 
-    const coveredBoxes = await this.getCoveringBoxes(
-      this.configs.addresses.lock,
+    // generate iterator for address boxes
+    const getAddressBoxes = this.network.getAddressBoxes;
+    const lockAddress = this.configs.addresses.lock;
+    async function* generator() {
+      let offset = 0;
+      const limit = GET_BOX_API_LIMIT;
+      while (true) {
+        const page = await getAddressBoxes(lockAddress, offset, limit);
+        if (page.length === 0) break;
+        yield* page;
+        offset += limit;
+      }
+      return undefined;
+    }
+    const utxoIterator = generator();
+
+    const coveredBoxes = await this.boxSelection.getCoveringBoxes(
       unwrappedRequiredAssets,
       forbiddenBoxIds,
-      trackMap
+      trackMap,
+      utxoIterator,
+      this.configs.minBoxValue
     );
     if (!coveredBoxes.covered) {
       const neededAdas = unwrappedRequiredAssets.nativeToken.toString();
-      const neededTokens = JSONBigInt.stringify(unwrappedRequiredAssets.tokens);
+      const neededTokens = JsonBigInt.stringify(unwrappedRequiredAssets.tokens);
       throw new NotEnoughValidBoxesError(
         `Available boxes didn't cover required assets. ADA: ${neededAdas}, Tokens: ${neededTokens}`
       );
@@ -284,7 +304,7 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
       eventId,
       txBytes,
       txType,
-      inputUtxos.map((box) => JSONBigInt.stringify(box))
+      inputUtxos.map((box) => JsonBigInt.stringify(box))
     );
 
     this.logger.info(
@@ -386,7 +406,7 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
     // extract input box assets
     const inputUtxos = Array.from(new Set(cardanoTx.inputUtxos));
     for (let i = 0; i < inputUtxos.length; i++) {
-      const input = JSONBigInt.parse(inputUtxos[i]) as CardanoUtxo;
+      const input = JsonBigInt.parse(inputUtxos[i]) as CardanoUtxo;
       const boxAssets = this.getBoxInfo(input).assets;
       inputAssets = ChainUtils.sumAssetBalance(inputAssets, boxAssets);
     }
@@ -784,7 +804,7 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
       '',
       txBytes,
       TransactionType.manual,
-      inputBoxes.map((box) => JSONBigInt.stringify(box))
+      inputBoxes.map((box) => JsonBigInt.stringify(box))
     );
 
     this.logger.info(`Parsed Cardano transaction [${txId}] successfully`);

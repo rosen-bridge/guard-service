@@ -49,7 +49,10 @@ describe('CardanoChain', () => {
 
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
       const cardanoChain = await TestUtils.generateChainObject(network);
-      const getCovBoxesSpy = vi.spyOn(cardanoChain as any, 'getCoveringBoxes');
+      const getCovBoxesSpy = vi.spyOn(
+        (cardanoChain as any).boxSelection,
+        'getCoveringBoxes'
+      );
       getCovBoxesSpy.mockResolvedValue({
         covered: true,
         boxes: bankBoxes,
@@ -106,10 +109,11 @@ describe('CardanoChain', () => {
       expectedRequiredAssets.nativeToken +=
         TestUtils.minBoxValue + TestUtils.configs.fee;
       expect(getCovBoxesSpy).toHaveBeenCalledWith(
-        TestUtils.configs.addresses.lock,
         expectedRequiredAssets,
         TestData.transaction1InputIds,
-        new Map()
+        new Map(),
+        expect.any(Object),
+        expect.any(BigInt)
       );
     });
 
@@ -141,7 +145,10 @@ describe('CardanoChain', () => {
 
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
       const cardanoChain = await TestUtils.generateChainObject(network);
-      const getCovBoxesSpy = vi.spyOn(cardanoChain as any, 'getCoveringBoxes');
+      const getCovBoxesSpy = vi.spyOn(
+        (cardanoChain as any).boxSelection,
+        'getCoveringBoxes'
+      );
       const mockedBoxes = bankBoxes.slice(2);
       getCovBoxesSpy.mockResolvedValue({
         covered: true,
@@ -242,7 +249,10 @@ describe('CardanoChain', () => {
     it('should throw error when bank boxes can not cover order assets', async () => {
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
       const cardanoChain = await TestUtils.generateChainObject(network);
-      const getCovBoxesSpy = vi.spyOn(cardanoChain as any, 'getCoveringBoxes');
+      const getCovBoxesSpy = vi.spyOn(
+        (cardanoChain as any).boxSelection,
+        'getCoveringBoxes'
+      );
       getCovBoxesSpy.mockResolvedValue({
         covered: false,
         boxes: bankBoxes,
@@ -294,7 +304,10 @@ describe('CardanoChain', () => {
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
       const cardanoChain =
         await TestUtils.generateChainObjectWithMultiDecimalTokenMap(network);
-      const getCovBoxesSpy = vi.spyOn(cardanoChain as any, 'getCoveringBoxes');
+      const getCovBoxesSpy = vi.spyOn(
+        (cardanoChain as any).boxSelection,
+        'getCoveringBoxes'
+      );
       const mockedBoxes = bankBoxes.slice(2);
       getCovBoxesSpy.mockResolvedValue({
         covered: true,

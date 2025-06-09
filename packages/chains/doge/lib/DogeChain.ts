@@ -39,7 +39,10 @@ import {
 } from './constants';
 import { DogeRosenExtractor } from '@rosen-bridge/rosen-extractor';
 import { RosenAmount, TokenMap } from '@rosen-bridge/tokens';
-import { selectBitcoinUtxos } from '@rosen-bridge/bitcoin-utxo-selection';
+import {
+  BitcoinBoxSelection,
+  generateFeeEstimator,
+} from '@rosen-bridge/bitcoin-utxo-selection';
 
 class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
   declare network: AbstractDogeNetwork;
@@ -47,6 +50,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
   CHAIN = DOGE_CHAIN;
   NATIVE_TOKEN_ID = DOGE;
   extractor: DogeRosenExtractor;
+  protected boxSelection: BitcoinBoxSelection;
   protected signFunction: TssSignFunction;
   protected lockScript: string;
 
@@ -67,6 +71,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
     this.lockScript = address
       .toOutputScript(this.configs.addresses.lock, DOGE_NETWORK)
       .toString('hex');
+    this.boxSelection = new BitcoinBoxSelection();
   }
 
   /**
@@ -154,6 +159,32 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
       this.configs.addresses.lock
     );
 
+    // generate iterator for address boxes
+    const getAddressBoxes = this.network.getAddressBoxes;
+    const lockAddress = this.configs.addresses.lock;
+    async function* generator() {
+      let offset = 0;
+      const limit = GET_BOX_API_LIMIT;
+      while (true) {
+        const page = await getAddressBoxes(lockAddress, offset, limit);
+        if (page.length === 0) break;
+        yield* page;
+        offset += limit;
+      }
+      return undefined;
+    }
+    const utxoIterator = generator();
+
+    // generate fee estimator
+    const estimateFee = generateFeeEstimator(
+      1,
+      DOGE_TX_BASE_SIZE,
+      DOGE_INPUT_SIZE,
+      DOGE_OUTPUT_SIZE,
+      feeRatio,
+      1 // the virtual size matters for fee estimation of native-segwit transactions
+    );
+
     // fetch input boxes
     const unwrappedRequiredAssets = ChainUtils.unwrapAssetBalance(
       requiredAssets,
@@ -161,11 +192,14 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
       this.NATIVE_TOKEN_ID,
       this.CHAIN
     );
-    const coveredBoxes = await this.getCoveringBoxes(
-      this.configs.addresses.lock,
+    const coveredBoxes = await this.boxSelection.getCoveringBoxes(
       unwrappedRequiredAssets,
       forbiddenBoxIds,
-      trackMap
+      trackMap,
+      utxoIterator,
+      BigInt(MINIMUM_UTXO_VALUE),
+      undefined,
+      estimateFee
     );
     if (!coveredBoxes.covered) {
       const neededDoge = unwrappedRequiredAssets.nativeToken;
@@ -586,22 +620,6 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
   protected getBoxId = (box: DogeUtxo): string => box.txId + '.' + box.index;
 
   /**
-   * extracts box id and assets of a box
-   * Note: it returns the actual value
-   * @param box the box
-   * @returns an object containing the box id and assets
-   */
-  protected getBoxInfo = (box: DogeUtxo): BoxInfo => {
-    return {
-      id: this.getBoxId(box),
-      assets: {
-        nativeToken: box.value,
-        tokens: [],
-      },
-    };
-  };
-
-  /**
    * generates mapping from input box id to serialized string of output box (filtered by address, containing the token)
    * @param txs list of transactions
    * @param address the address
@@ -686,51 +704,6 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
    */
   protected unwrapDoge = (amount: bigint): RosenAmount =>
     this.tokenMap.unwrapAmount(this.NATIVE_TOKEN_ID, amount, this.CHAIN);
-
-  /**
-   * gets useful, allowable and last boxes for an address until required assets are satisfied
-   * Note: it returns the actual value
-   * @param address the address
-   * @param requiredAssets the required assets (actual values)
-   * @param forbiddenBoxIds the id of forbidden boxes
-   * @param trackMap the mapping of a box id to it's next box
-   * @returns an object containing the selected boxes with a boolean showing if requirements covered or not
-   */
-  protected getCoveringBoxes = async (
-    address: string,
-    requiredAssets: AssetBalance,
-    forbiddenBoxIds: Array<string>,
-    trackMap: Map<string, DogeUtxo | undefined>
-  ): Promise<CoveringBoxes<DogeUtxo>> => {
-    const getAddressBoxes = this.network.getAddressBoxes;
-    async function* generator() {
-      let offset = 0;
-      const limit = GET_BOX_API_LIMIT;
-      while (true) {
-        const page = await getAddressBoxes(address, offset, limit);
-        if (page.length === 0) break;
-        yield* page;
-        offset += limit;
-      }
-      return undefined;
-    }
-    const utxoIterator = generator();
-
-    const feeRatio = await this.network.getFeeRatio();
-    const estimatedTxWeight = DOGE_TX_BASE_SIZE + DOGE_OUTPUT_SIZE * 2;
-    return selectBitcoinUtxos(
-      requiredAssets.nativeToken,
-      forbiddenBoxIds,
-      trackMap,
-      utxoIterator,
-      BigInt(MINIMUM_UTXO_VALUE),
-      DOGE_INPUT_SIZE,
-      estimatedTxWeight,
-      feeRatio,
-      this.logger,
-      1
-    );
-  };
 
   /**
    * verifies consistency within the PaymentTransaction object

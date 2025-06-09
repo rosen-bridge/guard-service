@@ -3,13 +3,14 @@ import TestChainNetwork from './network/TestChainNetwork';
 import { ChainConfigs } from '../lib';
 import TestChain from './TestChain';
 import * as testData from './testData';
-import TestUtxoChainNetwork from './network/TestChainNetwork';
-import TestUtxoChain from './TestUtxoChain';
 import { TokenMap } from '@rosen-bridge/tokens';
 
 export const generateRandomId = (): string => randomBytes(32).toString('hex');
 
-export const generateChainObject = (network: TestChainNetwork, tokens: TokenMap = new TokenMap()) => {
+export const generateChainObject = (
+  network: TestChainNetwork,
+  tokens: TokenMap = new TokenMap()
+) => {
   const config: ChainConfigs = {
     fee: 100n,
     confirmations: {
@@ -28,25 +29,4 @@ export const generateChainObject = (network: TestChainNetwork, tokens: TokenMap 
     rwtId: 'rwt',
   };
   return new TestChain(network, config, tokens);
-};
-
-export const generateUtxoChainObject = (network: TestUtxoChainNetwork, tokens: TokenMap = new TokenMap()) => {
-  const config: ChainConfigs = {
-    fee: 100n,
-    confirmations: {
-      observation: 5,
-      payment: 6,
-      cold: 7,
-      manual: 8,
-      arbitrary: 9,
-    },
-    addresses: {
-      lock: 'lock_addr',
-      cold: 'cold_addr',
-      permit: 'permit_addr',
-      fraud: 'fraud_addr',
-    },
-    rwtId: 'rwt',
-  };
-  return new TestUtxoChain(network, config, tokens);
 };

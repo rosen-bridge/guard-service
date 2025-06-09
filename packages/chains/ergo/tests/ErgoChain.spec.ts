@@ -143,7 +143,7 @@ describe('ErgoChain', () => {
         ergoTestUtils.defaultSignFunction
       );
       const getCoveringBoxesSpy = vi.spyOn(
-        ergoChain as any,
+        (ergoChain as any).boxSelection,
         'getCoveringBoxes'
       );
       getCoveringBoxesSpy.mockResolvedValue({
@@ -421,7 +421,7 @@ describe('ErgoChain', () => {
         ergoTestUtils.defaultSignFunction
       );
       const getCoveringBoxesSpy = vi.spyOn(
-        ergoChain as any,
+        (ergoChain as any).boxSelection,
         'getCoveringBoxes'
       );
       getCoveringBoxesSpy.mockResolvedValue({
@@ -469,7 +469,7 @@ describe('ErgoChain', () => {
      * @expected
      * - it should thrown NotEnoughValidBoxesError
      */
-    it('should throw appropriate error when available boxes cannot cover required assets to generate transaction', async () => {
+    it('should filter boxes that are used in unsigned transactions successfully', async () => {
       // mock transaction order, input and data input boxes
       const paymentTx = ErgoTransaction.fromJson(
         transactionTestData.transaction3PaymentTransaction
@@ -547,44 +547,31 @@ describe('ErgoChain', () => {
         ergoTestUtils.defaultSignFunction
       );
       const getCoveringBoxesSpy = vi.spyOn(
-        ergoChain as any,
+        (ergoChain as any).boxSelection,
         'getCoveringBoxes'
-      ) as MockInstance<
-        (
-          address: string,
-          requiredAssets: AssetBalance,
-          forbiddenBoxIds: string[],
-          trackMap: Map<string, wasm.ErgoBox | undefined>
-        ) => Promise<CoveringBoxes<wasm.ErgoBox>>
-      >;
-      getCoveringBoxesSpy.mockImplementation(
-        async (
-          address: string,
-          requiredAssets: AssetBalance,
-          forbiddenBoxIds: Array<string>,
-          trackMap: Map<string, wasm.ErgoBox | undefined>
-        ) => {
-          // returns NOT covered when forbiddenBoxIds argument equals to expected value
-          if (
-            forbiddenBoxIds.length === 1 &&
-            forbiddenBoxIds[0] === unsignedTxInputBoxIds[0]
-          )
-            return {
-              covered: false,
-              boxes: [],
-            };
-          // otherwise returns covered
-          else
-            return {
-              covered: true,
-              boxes: paymentTx.inputBoxes
-                .slice(1)
-                .map((serializedBox) =>
-                  wasm.ErgoBox.sigma_parse_bytes(serializedBox)
-                ),
-            };
-        }
       );
+      getCoveringBoxesSpy.mockImplementation(async (...args: any[]) => {
+        const forbiddenBoxIds = args[1] as Array<string>;
+        // returns NOT covered when forbiddenBoxIds argument equals to expected value
+        if (
+          forbiddenBoxIds.length === 1 &&
+          forbiddenBoxIds[0] === unsignedTxInputBoxIds[0]
+        )
+          return {
+            covered: false,
+            boxes: [],
+          };
+        // otherwise returns covered
+        else
+          return {
+            covered: true,
+            boxes: paymentTx.inputBoxes
+              .slice(1)
+              .map((serializedBox) =>
+                wasm.ErgoBox.sigma_parse_bytes(serializedBox)
+              ),
+          };
+      });
 
       // run test and expect exception thrown
       await expect(async () => {
@@ -696,7 +683,7 @@ describe('ErgoChain', () => {
         ergoTestUtils.defaultSignFunction
       );
       const getCoveringBoxesSpy = vi.spyOn(
-        ergoChain as any,
+        (ergoChain as any).boxSelection,
         'getCoveringBoxes'
       );
       getCoveringBoxesSpy.mockResolvedValue({

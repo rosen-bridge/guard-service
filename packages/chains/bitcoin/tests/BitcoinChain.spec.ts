@@ -51,7 +51,10 @@ describe('BitcoinChain', () => {
 
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
       const bitcoinChain = await testUtils.generateChainObject(network);
-      const getCovBoxesSpy = vi.spyOn(bitcoinChain as any, 'getCoveringBoxes');
+      const getCovBoxesSpy = vi.spyOn(
+        (bitcoinChain as any).boxSelection,
+        'getCoveringBoxes'
+      );
       getCovBoxesSpy.mockResolvedValue({
         covered: true,
         boxes: testData.lockAddressUtxos,
@@ -91,10 +94,13 @@ describe('BitcoinChain', () => {
       expectedRequiredAssets.nativeToken +=
         bitcoinChain.getMinimumNativeToken();
       expect(getCovBoxesSpy).toHaveBeenCalledWith(
-        testUtils.configs.addresses.lock,
         expectedRequiredAssets,
         testData.transaction1InputIds,
-        new Map()
+        new Map(),
+        expect.any(Object),
+        expect.any(BigInt),
+        undefined,
+        expect.any(Function)
       );
     });
 
@@ -142,7 +148,10 @@ describe('BitcoinChain', () => {
     it('should throw error when bank boxes can not cover order assets', async () => {
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
       const bitcoinChain = await testUtils.generateChainObject(network);
-      const getCovBoxesSpy = vi.spyOn(bitcoinChain as any, 'getCoveringBoxes');
+      const getCovBoxesSpy = vi.spyOn(
+        (bitcoinChain as any).boxSelection,
+        'getCoveringBoxes'
+      );
       getCovBoxesSpy.mockResolvedValue({
         covered: false,
         boxes: testData.lockAddressUtxos,
@@ -193,7 +202,10 @@ describe('BitcoinChain', () => {
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
       const bitcoinChain =
         await testUtils.generateChainObjectWithMultiDecimalTokenMap(network);
-      const getCovBoxesSpy = vi.spyOn(bitcoinChain as any, 'getCoveringBoxes');
+      const getCovBoxesSpy = vi.spyOn(
+        (bitcoinChain as any).boxSelection,
+        'getCoveringBoxes'
+      );
       getCovBoxesSpy.mockResolvedValue({
         covered: true,
         boxes: testData.lockAddressUtxos,
@@ -240,7 +252,6 @@ describe('BitcoinChain', () => {
         bitcoinChain.CHAIN
       ).amount;
       expect(getCovBoxesSpy).toHaveBeenCalledWith(
-        testUtils.configs.addresses.lock,
         ChainUtils.unwrapAssetBalance(
           expectedRequiredAssets,
           tokenMap,
@@ -248,7 +259,11 @@ describe('BitcoinChain', () => {
           bitcoinChain.CHAIN
         ),
         testData.transaction1InputIds,
-        new Map()
+        new Map(),
+        expect.any(Object),
+        expect.any(BigInt),
+        undefined,
+        expect.any(Function)
       );
     });
   });
@@ -721,35 +736,6 @@ describe('BitcoinChain', () => {
 
       // check returned value
       expect(result.toJson()).toEqual(expectedTx.toJson());
-    });
-  });
-
-  describe('getBoxInfo', () => {
-    const network = new TestBitcoinNetwork();
-
-    /**
-     * @target BitcoinChain.getBoxInfo should get box info successfully
-     * @dependencies
-     * @scenario
-     * - mock a BitcoinUtxo with assets
-     * - run test
-     * - check returned value
-     * @expected
-     * - it should return constructed BoxInfo
-     */
-    it('should get box info successfully', async () => {
-      // mock a BitcoinUtxo with assets
-      const rawBox = testData.lockUtxo;
-
-      // run test
-      const bitcoinChain = await testUtils.generateChainObject(network);
-
-      // check returned value
-      const result = (bitcoinChain as any).getBoxInfo(rawBox);
-      expect(result.id).toEqual(rawBox.txId + '.' + rawBox.index);
-      expect(result.assets.nativeToken.toString()).toEqual(
-        rawBox.value.toString()
-      );
     });
   });
 
