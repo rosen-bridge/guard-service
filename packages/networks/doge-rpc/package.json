@@ -2,12 +2,19 @@
   "name": "@rosen-chains/doge-rpc",
   "version": "0.1.1",
   "description": "A package to be used as network api provider for @rosen-chains/doge package using RPC API",
-  "repository": "https://github.com/rosen-bridge/rosen-chains",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rosen-bridge/rosen-chains.git"
+  },
   "license": "GPL-3.0",
   "author": "Rosen Team",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "CHANGELOG.md"
+  ],
   "scripts": {
     "build": "tsc --build tsconfig.build.json",
     "coverage": "npm run test -- --run --coverage",

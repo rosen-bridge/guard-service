@@ -4,6 +4,10 @@
   "description": "ergo explorer network package for rosen ergo chain",
   "main": "dist/lib/index.js",
   "types": "dist/lib/index.d.ts",
+  "files": [
+    "dist",
+    "CHANGELOG.md"
+  ],
   "type": "module",
   "scripts": {
     "prettify": "prettier --write . --ignore-path .gitignore",

@@ -5,6 +5,10 @@
   "main": "dist/lib/index.js",
   "types": "dist/lib/index.d.ts",
   "type": "module",
+  "files": [
+    "dist",
+    "CHANGELOG.md"
+  ],
   "scripts": {
     "prettify": "prettier --write . --ignore-path .gitignore",
     "lint": "eslint --fix . && npm run prettify",
