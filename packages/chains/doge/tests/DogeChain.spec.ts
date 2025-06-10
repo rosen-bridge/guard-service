@@ -17,7 +17,6 @@ import { TestDogeChain } from './TestDogeChain';
 import * as testData from './testData';
 import * as testUtils from './testUtils';
 import { TokenMap } from '@rosen-bridge/tokens';
-import { AssetBalance } from '@rosen-chains/abstract-chain';
 
 describe('DogeChain', () => {
   describe('generateTransaction', () => {
@@ -50,7 +49,10 @@ describe('DogeChain', () => {
 
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
       const dogeChain = await testUtils.generateChainObject(network);
-      const getCovBoxesSpy = vi.spyOn(dogeChain as any, 'getCoveringBoxes');
+      const getCovBoxesSpy = vi.spyOn(
+        (dogeChain as any).boxSelection,
+        'getCoveringBoxes'
+      );
       getCovBoxesSpy.mockResolvedValue({
         covered: true,
         boxes: testData.lockAddressUtxos,
@@ -95,10 +97,13 @@ describe('DogeChain', () => {
       );
       expectedRequiredAssets.nativeToken += dogeChain.getMinimumNativeToken();
       expect(getCovBoxesSpy).toHaveBeenCalledWith(
-        testUtils.configs.addresses.lock,
         expectedRequiredAssets,
         [],
-        new Map()
+        new Map(),
+        expect.any(Object),
+        expect.any(BigInt),
+        undefined,
+        expect.any(Function)
       );
     });
 
@@ -124,7 +129,10 @@ describe('DogeChain', () => {
 
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
       const dogeChain = await testUtils.generateChainObject(network);
-      const getCovBoxesSpy = vi.spyOn(dogeChain as any, 'getCoveringBoxes');
+      const getCovBoxesSpy = vi.spyOn(
+        (dogeChain as any).boxSelection,
+        'getCoveringBoxes'
+      );
       getCovBoxesSpy.mockResolvedValue({
         covered: true,
         boxes: testData.coveredBoxes,
@@ -192,9 +200,12 @@ describe('DogeChain', () => {
 
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
       const dogeChain = await testUtils.generateChainObject(network);
-      const getCovBoxesSpy = vi.spyOn(dogeChain as any, 'getCoveringBoxes');
+      const getCovBoxesSpy = vi.spyOn(
+        (dogeChain as any).boxSelection,
+        'getCoveringBoxes'
+      );
       getCovBoxesSpy.mockImplementation(async (...args: any[]) => {
-        const forbiddenBoxIds = args[2] as Array<string>;
+        const forbiddenBoxIds = args[1] as Array<string>;
         // Only return covered boxes if forbidden box IDs match expected values
         if (
           forbiddenBoxIds.length === 2 &&
@@ -274,13 +285,16 @@ describe('DogeChain', () => {
 
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
       const dogeChain = await testUtils.generateChainObject(network);
-      const getCovBoxesSpy = vi.spyOn(dogeChain as any, 'getCoveringBoxes');
+      const getCovBoxesSpy = vi.spyOn(
+        (dogeChain as any).boxSelection,
+        'getCoveringBoxes'
+      );
       getCovBoxesSpy.mockResolvedValue({
         covered: false,
         boxes: [],
       });
       getCovBoxesSpy.mockImplementation(async (...args: any[]) => {
-        const forbiddenBoxIds = args[2] as Array<string>;
+        const forbiddenBoxIds = args[1] as Array<string>;
         // Only return empty boxes if forbidden box IDs match expected values
         if (
           forbiddenBoxIds.length === 2 &&
@@ -368,7 +382,10 @@ describe('DogeChain', () => {
     it('should throw error when bank boxes can not cover order assets', async () => {
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
       const dogeChain = await testUtils.generateChainObject(network);
-      const getCovBoxesSpy = vi.spyOn(dogeChain as any, 'getCoveringBoxes');
+      const getCovBoxesSpy = vi.spyOn(
+        (dogeChain as any).boxSelection,
+        'getCoveringBoxes'
+      );
       getCovBoxesSpy.mockResolvedValue({
         covered: false,
         boxes: [],
@@ -862,35 +879,6 @@ describe('DogeChain', () => {
 
       // check returned value
       expect(result.toJson()).toEqual(expectedTx.toJson());
-    });
-  });
-
-  describe('getBoxInfo', () => {
-    const network = new TestDogeNetwork();
-
-    /**
-     * @target DogeChain.getBoxInfo should get box id and assets correctly
-     * @dependencies
-     * @scenario
-     * - mock a DogeUtxo with assets
-     * - run test
-     * - check returned value
-     * @expected
-     * - it should return constructed BoxInfo
-     */
-    it('should get box info successfully', async () => {
-      // mock a DogeUtxo with assets
-      const rawBox = testData.lockUtxo;
-
-      // run test
-      const dogeChain = await testUtils.generateChainObject(network);
-
-      // check returned value
-      const result = (dogeChain as any).getBoxInfo(rawBox);
-      expect(result.id).toEqual(rawBox.txId + '.' + rawBox.index);
-      expect(result.assets.nativeToken.toString()).toEqual(
-        rawBox.value.toString()
-      );
     });
   });
 

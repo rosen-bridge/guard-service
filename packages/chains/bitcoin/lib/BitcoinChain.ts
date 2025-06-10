@@ -1,11 +1,9 @@
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 import {
   AbstractUtxoChain,
-  AssetBalance,
   BlockInfo,
   BoxInfo,
   ChainUtils,
-  CoveringBoxes,
   GET_BOX_API_LIMIT,
   NotEnoughAssetsError,
   NotEnoughValidBoxesError,
@@ -29,8 +27,16 @@ import Serializer from './Serializer';
 import { Psbt, Transaction, address, payments, script } from 'bitcoinjs-lib';
 import JsonBigInt from '@rosen-bridge/json-bigint';
 import { estimateTxFee, getPsbtTxInputBoxId } from './bitcoinUtils';
-import { BITCOIN_CHAIN, BTC, SEGWIT_INPUT_WEIGHT_UNIT } from './constants';
-import { selectBitcoinUtxos } from '@rosen-bridge/bitcoin-utxo-selection';
+import {
+  BITCOIN_CHAIN,
+  BTC,
+  SEGWIT_INPUT_WEIGHT_UNIT,
+  SEGWIT_OUTPUT_WEIGHT_UNIT,
+} from './constants';
+import {
+  BitcoinBoxSelection,
+  generateFeeEstimator,
+} from '@rosen-bridge/bitcoin-utxo-selection';
 import { BitcoinRosenExtractor } from '@rosen-bridge/rosen-extractor';
 import { RosenAmount, TokenMap } from '@rosen-bridge/tokens';
 
@@ -40,6 +46,7 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
   CHAIN = BITCOIN_CHAIN;
   NATIVE_TOKEN_ID = BTC;
   extractor: BitcoinRosenExtractor;
+  protected boxSelection: BitcoinBoxSelection;
   protected signFunction: TssSignFunction;
   protected lockScript: string;
   protected signingScript: Buffer;
@@ -64,6 +71,7 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
     this.signingScript = payments.p2pkh({
       hash: Buffer.from(this.lockScript, 'hex').subarray(2),
     }).output!;
+    this.boxSelection = new BitcoinBoxSelection();
   }
 
   /**
@@ -123,6 +131,32 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
       this.configs.addresses.lock
     );
 
+    // generate iterator for address boxes
+    const getAddressBoxes = this.network.getAddressBoxes;
+    const lockAddress = this.configs.addresses.lock;
+    async function* generator() {
+      let offset = 0;
+      const limit = GET_BOX_API_LIMIT;
+      while (true) {
+        const page = await getAddressBoxes(lockAddress, offset, limit);
+        if (page.length === 0) break;
+        yield* page;
+        offset += limit;
+      }
+      return undefined;
+    }
+    const utxoIterator = generator();
+
+    // generate fee estimator
+    const estimateFee = generateFeeEstimator(
+      1,
+      42, // all txs include 40W. P2WPKH txs need additional 2W
+      SEGWIT_INPUT_WEIGHT_UNIT,
+      SEGWIT_OUTPUT_WEIGHT_UNIT,
+      feeRatio,
+      4 // the virtual size matters for fee estimation of native-segwit transactions
+    );
+
     // fetch input boxes
     const unwrappedRequiredAssets = ChainUtils.unwrapAssetBalance(
       requiredAssets,
@@ -130,11 +164,14 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
       this.NATIVE_TOKEN_ID,
       this.CHAIN
     );
-    const coveredBoxes = await this.getCoveringBoxes(
-      this.configs.addresses.lock,
+    const coveredBoxes = await this.boxSelection.getCoveringBoxes(
       unwrappedRequiredAssets,
       forbiddenBoxIds,
-      trackMap
+      trackMap,
+      utxoIterator,
+      this.minimumMeaningfulSatoshi(feeRatio),
+      undefined,
+      estimateFee
     );
     if (!coveredBoxes.covered) {
       const neededBtc = unwrappedRequiredAssets.nativeToken;
@@ -557,22 +594,6 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
   };
 
   /**
-   * extracts box id and assets of a box
-   * Note: it returns the actual value
-   * @param box the box
-   * @returns an object containing the box id and assets
-   */
-  protected getBoxInfo = (box: BitcoinUtxo): BoxInfo => {
-    return {
-      id: this.getBoxId(box),
-      assets: {
-        nativeToken: box.value,
-        tokens: [],
-      },
-    };
-  };
-
-  /**
    * generates mapping from input box id to serialized string of output box (filtered by address, containing the token)
    * @param txs list of transactions
    * @param address the address
@@ -659,53 +680,6 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
         ),
         Number(this.getMinimumNativeToken())
       )
-    );
-  };
-
-  /**
-   * gets useful, allowable and last boxes for an address until required assets are satisfied
-   * Note: it returns the actual value
-   * @param address the address
-   * @param requiredAssets the required assets (actual values)
-   * @param forbiddenBoxIds the id of forbidden boxes
-   * @param trackMap the mapping of a box id to it's next box
-   * @returns an object containing the selected boxes with a boolean showing if requirements covered or not
-   */
-  protected getCoveringBoxes = async (
-    address: string,
-    requiredAssets: AssetBalance,
-    forbiddenBoxIds: Array<string>,
-    trackMap: Map<string, BitcoinUtxo | undefined>
-  ): Promise<CoveringBoxes<BitcoinUtxo>> => {
-    const getAddressBoxes = this.network.getAddressBoxes;
-    async function* generator() {
-      let offset = 0;
-      const limit = GET_BOX_API_LIMIT;
-      while (true) {
-        const page = await getAddressBoxes(address, offset, limit);
-        if (page.length === 0) break;
-        yield* page;
-        offset += limit;
-      }
-      return undefined;
-    }
-    const utxoIterator = generator();
-
-    // estimate tx weight without considering inputs
-    //  0 inputs, 2 outputs, 1 for feeRatio to get weights only, multiply by 4 to convert vSize to weight unit
-    const estimatedTxWeight = Number(estimateTxFee(0, 2, 1)) * 4;
-
-    const feeRatio = await this.network.getFeeRatio();
-    return selectBitcoinUtxos(
-      requiredAssets.nativeToken,
-      forbiddenBoxIds,
-      trackMap,
-      utxoIterator,
-      this.minimumMeaningfulSatoshi(feeRatio),
-      SEGWIT_INPUT_WEIGHT_UNIT,
-      estimatedTxWeight,
-      feeRatio,
-      this.logger
     );
   };
 

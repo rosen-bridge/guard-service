@@ -5,6 +5,7 @@ import {
   BlockInfo,
   BoxInfo,
   ChainUtils,
+  GET_BOX_API_LIMIT,
   ImpossibleBehavior,
   NotEnoughAssetsError,
   NotEnoughValidBoxesError,
@@ -27,11 +28,13 @@ import JsonBI from '@rosen-bridge/json-bigint';
 import JsonBigInt from '@rosen-bridge/json-bigint';
 import { ErgoRosenExtractor } from '@rosen-bridge/rosen-extractor';
 import { TokenMap } from '@rosen-bridge/tokens';
+import { ErgoBoxSelection } from '@rosen-bridge/ergo-box-selection';
 
 class ErgoChain extends AbstractUtxoChain<wasm.Transaction, wasm.ErgoBox> {
   CHAIN = ERGO_CHAIN;
   NATIVE_TOKEN_ID = ERG;
   extractor: ErgoRosenExtractor;
+  protected boxSelection: ErgoBoxSelection;
   static feeBoxErgoTree =
     '1005040004000e36100204a00b08cd0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798ea02d192a39a8cc7a701730073011001020402d19683030193a38cc7b2a57300000193c2b2a57301007473027303830108cdeeac93b1a57304';
   declare network: AbstractErgoNetwork;
@@ -62,6 +65,7 @@ class ErgoChain extends AbstractUtxoChain<wasm.Transaction, wasm.ErgoBox> {
       logger
     );
     this.signFunction = signFunction;
+    this.boxSelection = new ErgoBoxSelection();
   }
 
   /**
@@ -129,10 +133,7 @@ class ErgoChain extends AbstractUtxoChain<wasm.Transaction, wasm.ErgoBox> {
         true
       ),
       {
-        nativeToken:
-          2n * this.getMinimumNativeToken() +
-          this.tokenMap.wrapAmount(this.NATIVE_TOKEN_ID, fee, this.CHAIN)
-            .amount,
+        nativeToken: 2n * this.getMinimumNativeToken(),
         tokens: [],
       }
     );
@@ -176,12 +177,30 @@ class ErgoChain extends AbstractUtxoChain<wasm.Transaction, wasm.ErgoBox> {
       (value, key) => trackMap.set(key, value)
     );
 
+    // generate iterator for address boxes
+    const getAddressBoxes = this.network.getAddressBoxes;
+    const lockAddress = this.configs.addresses.lock;
+    async function* generator() {
+      let offset = 0;
+      const limit = GET_BOX_API_LIMIT;
+      while (true) {
+        const page = await getAddressBoxes(lockAddress, offset, limit);
+        if (page.length === 0) break;
+        yield* page;
+        offset += limit;
+      }
+      return undefined;
+    }
+    const utxoIterator = generator();
+
     // call getCovering to get enough boxes
-    const coveredBoxes = await this.getCoveringBoxes(
-      this.configs.addresses.lock,
+    const coveredBoxes = await this.boxSelection.getCoveringBoxes(
       unwrappedRequiredAssets,
       forbiddenBoxIds,
-      trackMap
+      trackMap,
+      utxoIterator,
+      this.configs.minBoxValue,
+      undefined
     );
 
     // check if boxes covered requirements
