@@ -1,5 +1,38 @@
 # guard-service
 
+## 7.0.0
+
+### Major Changes
+
+- Update tokens package to v3
+- Integrate Doge network
+
+### Minor Changes
+
+- Integrate new TSS package with new detection structure
+
+### Patch Changes
+
+- Add error handling to NotificationHandler
+- Fix bug where arbitrary order is not arranged before inserting
+- Reduce number of confirmation check for Doge transactions by randomness
+- Fix cold storage tx verification failure when threshold is not defined for the native token
+- Improve Cold Storage process to skip the chain when no threshold config is set for it
+
+## 6.0.2
+
+### Patch Changes
+
+- Support new tokens
+  - PALM
+  - SOCKZ
+
+## 6.0.1
+
+### Patch Changes
+
+- Patch @rosen-bridge/evm-address-tx-extractor to improve speed
+
 ## 6.0.0
 
 ### Major Changes
