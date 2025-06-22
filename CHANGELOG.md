@@ -18,6 +18,7 @@
 - Reduce number of confirmation check for Doge transactions by randomness
 - Fix cold storage tx verification failure when threshold is not defined for the native token
 - Improve Cold Storage process to skip the chain when no threshold config is set for it
+- Fix p2p restart after broken period
 
 ## 6.0.2
 
