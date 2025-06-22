@@ -1,5 +1,5 @@
 import { HealthCheck, HealthStatusLevel } from '@rosen-bridge/health-check';
-import { getHealthCheck } from '../guard/HealthCheck';
+import { getHealthCheck, p2pHealthCheck } from '../guard/HealthCheck';
 import Configs from '../configs/Configs';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { exit } from 'process';
@@ -32,9 +32,9 @@ const healthCheckUpdateJob = async (healthCheck: HealthCheck) => {
   try {
     // TODO: remove this part after fixing p2p problem
     //  local:ergo/rosen-bridge/p2p#11
-    if (Configs.p2pBrokenTimeAllowed !== 0) {
+    if (Configs.p2pBrokenTimeAllowed !== 0 && p2pHealthCheck) {
       const status = await healthCheck.getHealthStatusWithParamId(
-        'P2P Network'
+        p2pHealthCheck.getId()
       );
       if (status?.status === HealthStatusLevel.BROKEN) {
         const diff = Date.now() - lastP2pUp;
