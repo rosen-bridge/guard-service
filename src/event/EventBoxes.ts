@@ -18,7 +18,7 @@ class EventBoxes {
     if (eventData === undefined)
       throw new Error(`event [${eventId}] not found`);
 
-    return Buffer.from(eventData.boxSerialized, 'base64').toString('hex');
+    return Buffer.from(eventData.serialized, 'base64').toString('hex');
   };
 
   /**

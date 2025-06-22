@@ -49,6 +49,35 @@ bitcoin:
   tssChainCode: ''
   derivationPath:
     -
+doge:
+  networkType: 'mainnet' # Doge network type [testnet, mainnet]
+  chainNetwork: 'rpc-blockcypher' # [esplora, rpc-blockcypher]
+  esplora:
+    url: ''
+    timeout: 8
+  blockcypher:
+    url: 'https://api.blockcypher.com'
+    timeout: 8
+  rpc:
+    url: ''
+    timeout: 8
+    # username: ''
+    # password: ''
+    # apiKey: ''
+  bankPublicKey: '' # corresponding public key of lock address
+  txFeeSlippage: 20 # allowed slippage percentage for tx fees
+  confirmation: # required block confirmation
+    observation: 40 # an observation transaction (lock transaction) on Doge get confirmed
+    payment: 40 # a payment transaction on Doge get confirmed
+    cold: 40 # a cold storage transaction on Doge get confirmed
+    manual: 40 # a manual transaction on Doge get confirmed
+    arbitrary: 40 # an arbitrary transaction on Doge get confirmed
+  confirmationCheckPercent:
+    signFailedTx: 10
+    sentTx: 60
+  tssChainCode: ''
+  derivationPath:
+    -
 cardano:
   networkType: 'mainnet' # Cardano network type [testnet, mainnet]
   chainNetwork: 'koios' # 'ogmios', 'koios' or 'blockfrost'
@@ -135,7 +164,6 @@ tss:
   secret: ''
   pubs:
     - curvePub: '' # ECDSA
-      edwardPub: '' # EdDSA
       curveShareId: ''
       edwardShareId: ''
 p2p:
@@ -202,6 +230,9 @@ healthCheck:
     btc:
       warnThreshold: 5000000 # minimum recommended btc balance
       criticalThreshold: 1000000 # minimum required btc balance
+    doge:
+      warnThreshold: 2500000000 # minimum recommended doge balance
+      criticalThreshold: 500000000 # minimum required doge balance
     eth:
       warnThreshold: '20000000000000000' # minimum recommended eth balance
       criticalThreshold: '4000000000000000' # minimum required eth balance

@@ -9,6 +9,12 @@ import {
   BITCOIN_CHAIN,
   BitcoinChain,
 } from '@rosen-chains/bitcoin';
+import {
+  AbstractDogeNetwork,
+  DOGE_CHAIN,
+  DogeChain,
+  CombinedDogeNetwork,
+} from '@rosen-chains/doge';
 import { AbstractErgoNetwork, ERGO_CHAIN, ErgoChain } from '@rosen-chains/ergo';
 import CardanoKoiosNetwork, {
   KOIOS_NETWORK,
@@ -17,16 +23,17 @@ import ErgoNodeNetwork, { NODE_NETWORK } from '@rosen-chains/ergo-node-network';
 import ErgoExplorerNetwork, {
   EXPLORER_NETWORK,
 } from '@rosen-chains/ergo-explorer-network';
-import Configs from '../configs/Configs';
 import GuardsCardanoConfigs from '../configs/GuardsCardanoConfigs';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import MultiSigHandler from '../guard/multisig/MultiSigHandler';
-import Tss from '../guard/Tss';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { BLOCKFROST_NETWORK } from '@rosen-chains/cardano-blockfrost-network';
 import CardanoBlockFrostNetwork from '@rosen-chains/cardano-blockfrost-network';
 import BitcoinEsploraNetwork from '@rosen-chains/bitcoin-esplora';
+import { DogeBlockcypherNetwork } from '@rosen-chains/doge-blockcypher';
+import { DogeRpcNetwork } from '@rosen-chains/doge-rpc';
 import GuardsBitcoinConfigs from '../configs/GuardsBitcoinConfigs';
+import GuardsDogeConfigs from '../configs/GuardsDogeConfigs';
 import { EthereumChain } from '@rosen-chains/ethereum';
 import { AbstractEvmNetwork } from '@rosen-chains/evm';
 import GuardsEthereumConfigs from '../configs/GuardsEthereumConfigs';
@@ -36,6 +43,12 @@ import { ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
 import { BinanceChain } from '@rosen-chains/binance';
 import GuardsBinanceConfigs from '../configs/GuardsBinanceConfigs';
 import { BINANCE_CHAIN } from '@rosen-chains/binance';
+import TssHandler from './TssHandler';
+import { TokenHandler } from './tokenHandler';
+
+import { DatabaseAction } from 'src/db/DatabaseAction';
+import * as TransactionSerializer from '../transaction/TransactionSerializer';
+import { DogeEsploraNetwork } from '@rosen-chains/doge-esplora';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -44,6 +57,7 @@ class ChainHandler {
   private readonly ergoChain: ErgoChain;
   private readonly cardanoChain: CardanoChain;
   private readonly bitcoinChain: BitcoinChain;
+  private readonly dogeChain: DogeChain;
   private readonly ethereumChain: EthereumChain;
   private readonly binanceChain: BinanceChain;
 
@@ -51,6 +65,7 @@ class ChainHandler {
     this.ergoChain = this.generateErgoChain();
     this.cardanoChain = this.generateCardanoChain();
     this.bitcoinChain = this.generateBitcoinChain();
+    this.dogeChain = this.generateDogeChain();
     this.ethereumChain = this.generateEthereumChain();
     this.binanceChain = this.generateBinanceChain();
     logger.info('ChainHandler instantiated');
@@ -97,7 +112,7 @@ class ChainHandler {
     return new ErgoChain(
       network,
       GuardsErgoConfigs.chainConfigs,
-      Configs.tokens(),
+      TokenHandler.getInstance().getTokenMap(),
       multiSigSignFunction,
       DefaultLoggerFactory.getInstance().getLogger('ErgoChain')
     );
@@ -130,7 +145,7 @@ class ChainHandler {
         );
     }
     const chainCode = GuardsCardanoConfigs.tssChainCode;
-    const edwardSign = Tss.getInstance().edwardSign;
+    const edwardSign = TssHandler.getInstance().edwardSign;
     const tssSignFunctionWrapper = async (
       txHash: Uint8Array
     ): Promise<string> => {
@@ -143,7 +158,7 @@ class ChainHandler {
     return new CardanoChain(
       network,
       GuardsCardanoConfigs.chainConfigs,
-      Configs.tokens(),
+      TokenHandler.getInstance().getTokenMap(),
       tssSignFunctionWrapper,
       DefaultLoggerFactory.getInstance().getLogger('CardanoChain')
     );
@@ -169,7 +184,7 @@ class ChainHandler {
     }
     const chainCode = GuardsBitcoinConfigs.tssChainCode;
     const derivationPath = GuardsBitcoinConfigs.derivationPath;
-    const curveSign = Tss.getInstance().curveSign;
+    const curveSign = TssHandler.getInstance().curveSign;
     const tssSignFunctionWrapper = async (
       txHash: Uint8Array
     ): Promise<{
@@ -189,9 +204,82 @@ class ChainHandler {
     return new BitcoinChain(
       network,
       GuardsBitcoinConfigs.chainConfigs,
-      Configs.tokens(),
+      TokenHandler.getInstance().getTokenMap(),
       tssSignFunctionWrapper,
       DefaultLoggerFactory.getInstance().getLogger('BitcoinChain')
+    );
+  };
+
+  /**
+   * generates Doge network and chain objects using configs
+   * @returns DogeChain object
+   */
+  private generateDogeChain = (): DogeChain => {
+    let network: AbstractDogeNetwork;
+    switch (GuardsDogeConfigs.chainNetworkName) {
+      case 'esplora':
+        network = new DogeEsploraNetwork(
+          GuardsDogeConfigs.esplora.url,
+          async (txId: string) => {
+            const tx = await DatabaseAction.getInstance().getTxById(txId);
+            if (tx === null) return undefined;
+            return TransactionSerializer.fromJson(tx.txJson);
+          },
+          DefaultLoggerFactory.getInstance().getLogger('DogeEsploraNetwork')
+        );
+        break;
+      case 'rpc-blockcypher': {
+        const rpc = new DogeRpcNetwork(
+          GuardsDogeConfigs.rpc.url,
+          DefaultLoggerFactory.getInstance().getLogger('DogeRpcNetwork'),
+          {
+            username: GuardsDogeConfigs.rpc.username,
+            password: GuardsDogeConfigs.rpc.password,
+            apiKey: GuardsDogeConfigs.rpc.apiKey,
+          }
+        );
+        const blockcypher = new DogeBlockcypherNetwork(
+          GuardsDogeConfigs.blockcypher.url,
+          async (txId: string) => {
+            const tx = await DatabaseAction.getInstance().getTxById(txId);
+            if (tx === null) return undefined;
+            return TransactionSerializer.fromJson(tx.txJson);
+          },
+          DefaultLoggerFactory.getInstance().getLogger('BlockcypherNetwork')
+        );
+        network = new CombinedDogeNetwork([rpc, blockcypher]);
+        break;
+      }
+      default:
+        throw Error(
+          `No case is defined for network [${GuardsDogeConfigs.chainNetworkName}]`
+        );
+    }
+    const chainCode = GuardsDogeConfigs.tssChainCode;
+    const derivationPath = GuardsDogeConfigs.derivationPath;
+    const curveSign = TssHandler.getInstance().curveSign;
+    const tssSignFunctionWrapper = async (
+      txHash: Uint8Array
+    ): Promise<{
+      signature: string;
+      signatureRecovery: string;
+    }> => {
+      const res = await curveSign(
+        Buffer.from(txHash).toString('hex'),
+        chainCode,
+        derivationPath
+      );
+      return {
+        signature: res.signature,
+        signatureRecovery: res.signatureRecovery!,
+      };
+    };
+    return new DogeChain(
+      network,
+      GuardsDogeConfigs.chainConfigs,
+      TokenHandler.getInstance().getTokenMap(),
+      tssSignFunctionWrapper,
+      DefaultLoggerFactory.getInstance().getLogger('DogeChain')
     );
   };
 
@@ -219,7 +307,7 @@ class ChainHandler {
     }
     const chainCode = GuardsEthereumConfigs.tssChainCode;
     const derivationPath = GuardsEthereumConfigs.derivationPath;
-    const curveSign = Tss.getInstance().curveSign;
+    const curveSign = TssHandler.getInstance().curveSign;
     const tssSignFunctionWrapper = async (
       txHash: Uint8Array
     ): Promise<{
@@ -236,22 +324,10 @@ class ChainHandler {
         signatureRecovery: res.signatureRecovery!,
       };
     };
-    // get all supported tokens on Ethereum
-    const supportedTokens = Configs.tokens()
-      .tokens.filter(
-        (tokenSet) =>
-          Object.keys(tokenSet).includes(ETHEREUM_CHAIN) &&
-          tokenSet[ETHEREUM_CHAIN].metaData.type !== 'native'
-      )
-      .map(
-        (tokenSet) =>
-          tokenSet[ETHEREUM_CHAIN][Configs.tokenMap.getIdKey(ETHEREUM_CHAIN)]
-      );
     return new EthereumChain(
       network,
       GuardsEthereumConfigs.chainConfigs,
-      Configs.tokens(),
-      supportedTokens,
+      TokenHandler.getInstance().getTokenMap(),
       tssSignFunctionWrapper,
       DefaultLoggerFactory.getInstance().getLogger('EthereumChain')
     );
@@ -281,7 +357,7 @@ class ChainHandler {
     }
     const chainCode = GuardsBinanceConfigs.tssChainCode;
     const derivationPath = GuardsBinanceConfigs.derivationPath;
-    const curveSign = Tss.getInstance().curveSign;
+    const curveSign = TssHandler.getInstance().curveSign;
     const tssSignFunctionWrapper = async (
       txHash: Uint8Array
     ): Promise<{
@@ -298,22 +374,10 @@ class ChainHandler {
         signatureRecovery: res.signatureRecovery!,
       };
     };
-    // get all supported tokens on Binance
-    const supportedTokens = Configs.tokens()
-      .tokens.filter(
-        (tokenSet) =>
-          Object.keys(tokenSet).includes(BINANCE_CHAIN) &&
-          tokenSet[BINANCE_CHAIN].metaData.type !== 'native'
-      )
-      .map(
-        (tokenSet) =>
-          tokenSet[BINANCE_CHAIN][Configs.tokenMap.getIdKey(BINANCE_CHAIN)]
-      );
     return new BinanceChain(
       network,
       GuardsBinanceConfigs.chainConfigs,
-      Configs.tokens(),
-      supportedTokens,
+      TokenHandler.getInstance().getTokenMap(),
       tssSignFunctionWrapper,
       DefaultLoggerFactory.getInstance().getLogger('BinanceChain')
     );
@@ -332,6 +396,8 @@ class ChainHandler {
         return this.cardanoChain;
       case BITCOIN_CHAIN:
         return this.bitcoinChain;
+      case DOGE_CHAIN:
+        return this.dogeChain;
       case ETHEREUM_CHAIN:
         return this.ethereumChain;
       case BINANCE_CHAIN:
