@@ -291,7 +291,7 @@ const getHealthCheck = async () => {
         8
       );
       healthCheck.register(dogeAssetHealthCheck);
-    } else if (GuardsDogeConfigs.chainNetworkName === 'blockcypher') {
+    } else if (GuardsDogeConfigs.chainNetworkName === 'rpc-blockcypher') {
       const dogeAssetHealthCheck = new DogeBlockCypherAssetHealthCheckParam(
         DOGE,
         dogeContracts.lockAddress,
