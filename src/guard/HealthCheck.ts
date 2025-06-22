@@ -58,6 +58,7 @@ import {
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 let healthCheck: HealthCheck | undefined;
+let p2pHealthCheck: P2PNetworkHealthCheck | undefined;
 
 /**
  * Returns the instance of the health check with all required parameters
@@ -90,7 +91,7 @@ const getHealthCheck = async () => {
 
     // add P2PNetwork param
     const dialer = await Dialer.getInstance();
-    const p2pHealthCheck = new P2PNetworkHealthCheck({
+    p2pHealthCheck = new P2PNetworkHealthCheck({
       defectConfirmationTimeWindow: Configs.p2pDefectConfirmationTimeWindow,
       connectedGuardsHealthyThreshold:
         GuardPkHandler.getInstance().requiredSign - 1,
@@ -363,4 +364,4 @@ const getHealthCheck = async () => {
   return healthCheck;
 };
 
-export { getHealthCheck };
+export { getHealthCheck, p2pHealthCheck };
