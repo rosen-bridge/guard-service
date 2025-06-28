@@ -282,27 +282,6 @@ const getHealthCheck = async () => {
       );
       healthCheck.register(btcAssetHealthCheck);
     }
-    if (GuardsDogeConfigs.chainNetworkName === 'esplora') {
-      const dogeAssetHealthCheck = new EsploraAssetHealthCheckParam(
-        DOGE,
-        dogeContracts.lockAddress,
-        Configs.dogeWarnThreshold,
-        Configs.dogeCriticalThreshold,
-        GuardsDogeConfigs.esplora.url,
-        8
-      );
-      healthCheck.register(dogeAssetHealthCheck);
-    } else if (GuardsDogeConfigs.chainNetworkName === 'rpc-blockcypher') {
-      const dogeAssetHealthCheck = new DogeBlockCypherAssetHealthCheckParam(
-        DOGE,
-        dogeContracts.lockAddress,
-        Configs.dogeWarnThreshold,
-        Configs.dogeCriticalThreshold,
-        GuardsDogeConfigs.blockcypher.url,
-        8
-      );
-      healthCheck.register(dogeAssetHealthCheck);
-    }
     if (GuardsEthereumConfigs.chainNetworkName === 'rpc') {
       const ethAssetHealthCheck = new EvmRpcAssetHealthCheckParam(
         ETH,

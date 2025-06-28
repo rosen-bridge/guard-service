@@ -17,6 +17,7 @@
 - Improve Cold Storage process to skip the chain when no threshold config is set for it
 - Fix p2p restart after broken period
 - (Docker only) Fix Doge lock address
+- (_v7.0.0 to v7.0.1_) Remove Doge balance check
 
 ~~## 7.0.0~~
 
