@@ -1,14 +1,11 @@
 # guard-service
 
-## 7.0.0
+## 7.0.1
 
 ### Major Changes
 
 - Update tokens package to v3
 - Integrate Doge network
-
-### Minor Changes
-
 - Integrate new TSS package with new detection structure
 
 ### Patch Changes
@@ -19,6 +16,9 @@
 - Fix cold storage tx verification failure when threshold is not defined for the native token
 - Improve Cold Storage process to skip the chain when no threshold config is set for it
 - Fix p2p restart after broken period
+- (Docker only) Fix Doge lock address
+
+~~## 7.0.0~~
 
 ## 6.0.2
 
