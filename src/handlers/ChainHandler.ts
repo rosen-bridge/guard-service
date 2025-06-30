@@ -9,7 +9,12 @@ import {
   BITCOIN_CHAIN,
   BitcoinChain,
 } from '@rosen-chains/bitcoin';
-import { AbstractDogeNetwork, DOGE_CHAIN, DogeChain } from '@rosen-chains/doge';
+import {
+  AbstractDogeNetwork,
+  DOGE_CHAIN,
+  DogeChain,
+  CombinedDogeNetwork,
+} from '@rosen-chains/doge';
 import { AbstractErgoNetwork, ERGO_CHAIN, ErgoChain } from '@rosen-chains/ergo';
 import CardanoKoiosNetwork, {
   KOIOS_NETWORK,
@@ -26,6 +31,7 @@ import { BLOCKFROST_NETWORK } from '@rosen-chains/cardano-blockfrost-network';
 import CardanoBlockFrostNetwork from '@rosen-chains/cardano-blockfrost-network';
 import BitcoinEsploraNetwork from '@rosen-chains/bitcoin-esplora';
 import { DogeBlockcypherNetwork } from '@rosen-chains/doge-blockcypher';
+import { DogeRpcNetwork } from '@rosen-chains/doge-rpc';
 import GuardsBitcoinConfigs from '../configs/GuardsBitcoinConfigs';
 import GuardsDogeConfigs from '../configs/GuardsDogeConfigs';
 import { EthereumChain } from '@rosen-chains/ethereum';
@@ -219,11 +225,20 @@ class ChainHandler {
             if (tx === null) return undefined;
             return TransactionSerializer.fromJson(tx.txJson);
           },
-          DefaultLoggerFactory.getInstance().getLogger('BlockcypherNetwork')
+          DefaultLoggerFactory.getInstance().getLogger('DogeEsploraNetwork')
         );
         break;
-      case 'blockcypher':
-        network = new DogeBlockcypherNetwork(
+      case 'rpc-blockcypher': {
+        const rpc = new DogeRpcNetwork(
+          GuardsDogeConfigs.rpc.url,
+          DefaultLoggerFactory.getInstance().getLogger('DogeRpcNetwork'),
+          {
+            username: GuardsDogeConfigs.rpc.username,
+            password: GuardsDogeConfigs.rpc.password,
+            apiKey: GuardsDogeConfigs.rpc.apiKey,
+          }
+        );
+        const blockcypher = new DogeBlockcypherNetwork(
           GuardsDogeConfigs.blockcypher.url,
           async (txId: string) => {
             const tx = await DatabaseAction.getInstance().getTxById(txId);
@@ -232,7 +247,9 @@ class ChainHandler {
           },
           DefaultLoggerFactory.getInstance().getLogger('BlockcypherNetwork')
         );
+        network = new CombinedDogeNetwork([rpc, blockcypher]);
         break;
+      }
       default:
         throw Error(
           `No case is defined for network [${GuardsDogeConfigs.chainNetworkName}]`

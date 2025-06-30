@@ -58,10 +58,16 @@ class ColdStorage {
         return;
       }
 
+      const thresholds = Configs.thresholds()[chainName].tokens;
+      if (Object.keys(thresholds).length === 0) {
+        logger.info(
+          `Abort cold storage process on chain [${chainName}] since no thresholds is set for it`
+        );
+        return;
+      }
+
       const chain = ChainHandler.getInstance().getChain(chainName);
       const lockedAssets = await chain.getLockAddressAssets();
-
-      const thresholds = Configs.thresholds()[chainName].tokens;
 
       let transferringNativeToken = 0n;
       const transferringTokens: TokenInfo[] = [];

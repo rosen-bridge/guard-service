@@ -17,6 +17,7 @@ import { mockGuardTurn } from '../utils/mocked/GuardTurn.mock';
 import TestConfigs from '../testUtils/TestConfigs';
 import TestUtils from '../testUtils/TestUtils';
 import { mockTokenPaymentFromErgoEvent } from '../event/testData';
+import { BITCOIN_CHAIN } from '@rosen-chains/bitcoin';
 
 describe('ColdStorage', () => {
   describe('chainColdStorageProcess', () => {
@@ -64,6 +65,45 @@ describe('ColdStorage', () => {
 
       // run test
       await ColdStorage.chainColdStorageProcess(tx.network);
+
+      // `getLockAddressAssets` should NOT got called
+      expect(
+        ChainHandlerMock.getChainMockedFunction(chain, 'getLockAddressAssets')
+      ).not.toHaveBeenCalled();
+    });
+
+    /**
+     * @target ColdStorage.chainColdStorageProcess should do nothing
+     * when no thresholds is set for the chain
+     * @dependencies
+     * - ChainHandler
+     * - GuardTurn
+     * @scenario
+     * - mock ChainHandler `getChain`
+     *   - mock `getLockAddressAssets`
+     * - mock GuardTurn to return guard index
+     * - run test
+     * - check if function got called
+     * @expected
+     * - `getLockAddressAssets` should NOT got called
+     */
+    it(`should do nothing when no thresholds is set for the chain`, async () => {
+      // mock ChainHandler `getChain`
+      const chain = BITCOIN_CHAIN;
+      ChainHandlerMock.mockChainName(chain);
+      // mock `getLockAddressAssets`
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'getLockAddressAssets',
+        null,
+        true
+      );
+
+      // mock GuardTurn to return guard index
+      mockGuardTurn(TestConfigs.guardIndex);
+
+      // run test
+      await ColdStorage.chainColdStorageProcess(chain);
 
       // `getLockAddressAssets` should NOT got called
       expect(

@@ -19,6 +19,8 @@ import {
 import * as TransactionSerializer from './TransactionSerializer';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { NotificationHandler } from '../handlers/NotificationHandler';
+import { DOGE_CHAIN } from '@rosen-chains/doge';
+import GuardsDogeConfigs from '../configs/GuardsDogeConfigs';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -140,6 +142,23 @@ class TransactionProcessor {
    */
   static processSignFailedTx = async (tx: TransactionEntity): Promise<void> => {
     const chain = ChainHandler.getInstance().getChain(tx.chain);
+    // TODO: Remove this if and implement a general way to reduce confirmation check frequency
+    // local:ergo/rosen-bridge/guard-service#447
+    if (tx.chain === DOGE_CHAIN) {
+      // in case of Doge, we only check confirmation of sign-failed txs in 10% of times (configurable with default value of 10)
+      if (
+        Math.random() >
+        GuardsDogeConfigs.signFailedConfirmationCheckPercent / 100
+      ) {
+        logger.info(
+          `Ignored confirmation check for Doge tx [${tx.txId}]. Requesting to sign tx...`
+        );
+        await this.processApprovedTx(tx);
+        return;
+      } else {
+        logger.info(`Checking confirmation status for Doge tx [${tx.txId}]...`);
+      }
+    }
     const txConfirmation = await chain.getTxConfirmationStatus(
       tx.txId,
       tx.type as TransactionType
@@ -194,6 +213,20 @@ class TransactionProcessor {
    */
   static processSentTx = async (tx: TransactionEntity): Promise<void> => {
     const chain = ChainHandler.getInstance().getChain(tx.chain);
+    // TODO: Remove this if and implement a general way to reduce confirmation check frequency
+    // local:ergo/rosen-bridge/guard-service#447
+    if (tx.chain === DOGE_CHAIN) {
+      // in case of Doge, we only check confirmation of sign-failed txs in 60% of times (configurable with default value of 60)
+      if (
+        Math.random() >
+        GuardsDogeConfigs.sentConfirmationCheckPercent / 100
+      ) {
+        logger.info(`Ignored confirmation check for Doge tx [${tx.txId}].`);
+        return;
+      } else {
+        logger.info(`Checking confirmation status for Doge tx [${tx.txId}]...`);
+      }
+    }
     const txConfirmation = await chain.getTxConfirmationStatus(
       tx.txId,
       tx.type as TransactionType

@@ -6,7 +6,6 @@ import {
   ErgoNodeAssetHealthCheckParam,
   EvmRpcAssetHealthCheckParam,
 } from '@rosen-bridge/asset-check';
-import { DogeBlockCypherAssetHealthCheckParam } from '@rosen-bridge/asset-check/dist/doge';
 import { HealthCheck } from '@rosen-bridge/health-check';
 import { ErgoNodeSyncHealthCheckParam } from '@rosen-bridge/node-sync-check';
 import {
@@ -35,8 +34,7 @@ import {
 } from '../utils/constants';
 import GuardsBitcoinConfigs from '../configs/GuardsBitcoinConfigs';
 import { BITCOIN_CHAIN, BTC } from '@rosen-chains/bitcoin';
-import GuardsDogeConfigs from '../configs/GuardsDogeConfigs';
-import { DOGE, DOGE_CHAIN } from '@rosen-chains/doge';
+import { DOGE_CHAIN } from '@rosen-chains/doge';
 import { DatabaseAction } from '../db/DatabaseAction';
 import { NotFoundError } from '@rosen-chains/abstract-chain';
 import { NotificationHandler } from '../handlers/NotificationHandler';
@@ -264,27 +262,6 @@ const getHealthCheck = async () => {
         8
       );
       healthCheck.register(btcAssetHealthCheck);
-    }
-    if (GuardsDogeConfigs.chainNetworkName === 'esplora') {
-      const dogeAssetHealthCheck = new EsploraAssetHealthCheckParam(
-        DOGE,
-        dogeContracts.lockAddress,
-        Configs.dogeWarnThreshold,
-        Configs.dogeCriticalThreshold,
-        GuardsDogeConfigs.esplora.url,
-        8
-      );
-      healthCheck.register(dogeAssetHealthCheck);
-    } else if (GuardsDogeConfigs.chainNetworkName === 'blockcypher') {
-      const dogeAssetHealthCheck = new DogeBlockCypherAssetHealthCheckParam(
-        DOGE,
-        dogeContracts.lockAddress,
-        Configs.dogeWarnThreshold,
-        Configs.dogeCriticalThreshold,
-        GuardsDogeConfigs.blockcypher.url,
-        8
-      );
-      healthCheck.register(dogeAssetHealthCheck);
     }
     if (GuardsEthereumConfigs.chainNetworkName === 'rpc') {
       const ethAssetHealthCheck = new EvmRpcAssetHealthCheckParam(

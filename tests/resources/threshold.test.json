@@ -32,5 +32,9 @@
         "high": 444000000000
       }
     }
+  },
+  "bitcoin": {
+    "maxNativeTransfer": 1000000,
+    "tokens": {}
   }
 }

@@ -7,7 +7,7 @@ class GuardsDogeConfigs {
   // service configs
   static chainNetworkName = getChainNetworkName('doge.chainNetwork', [
     'esplora',
-    'blockcypher',
+    'rpc-blockcypher',
   ]);
   static esplora = {
     url: config.get<string>('doge.esplora.url'),
@@ -17,30 +17,51 @@ class GuardsDogeConfigs {
     url: config.get<string>('doge.blockcypher.url'),
     timeout: config.get<number>('doge.blockcypher.timeout'), // seconds
   };
+  static rpc = {
+    url: config.get<string>('doge.rpc.url'),
+    timeout: config.get<number>('doge.rpc.timeout'), // seconds
+    username: config.has('doge.rpc.username')
+      ? config.get<string>('doge.rpc.username')
+      : undefined,
+    password: config.has('doge.rpc.password')
+      ? config.get<string>('doge.rpc.password')
+      : undefined,
+    apiKey: config.has('doge.rpc.apiKey')
+      ? config.get<string>('doge.rpc.apiKey')
+      : undefined,
+  };
 
   // value configs
   static txFeeSlippage = config.get<number>('doge.txFeeSlippage');
 
   // confirmation configs
+  static signFailedConfirmationCheckPercent = getConfigIntKeyOrDefault(
+    'doge.confirmationCheckPercent.signFailedTx',
+    10
+  );
+  static sentConfirmationCheckPercent = getConfigIntKeyOrDefault(
+    'doge.confirmationCheckPercent.sentTx',
+    60
+  );
   static observationConfirmation = getConfigIntKeyOrDefault(
     'doge.confirmation.observation',
-    6
+    40
   );
   static paymentConfirmation = getConfigIntKeyOrDefault(
     'doge.confirmation.payment',
-    6
+    40
   );
   static coldTxConfirmation = getConfigIntKeyOrDefault(
     'doge.confirmation.cold',
-    6
+    40
   );
   static manualTxConfirmation = getConfigIntKeyOrDefault(
     'doge.confirmation.manual',
-    6
+    40
   );
   static arbitraryTxConfirmation = getConfigIntKeyOrDefault(
     'doge.confirmation.arbitrary',
-    6
+    40
   );
 
   // the doge-related contract, addresses and tokens in rosen bridge
