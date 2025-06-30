@@ -9,6 +9,9 @@ database:
   user: 'POSTGRES_USER'
   password: 'POSTGRES_PASSWORD'
   name: 'POSTGRES_DB'
+p2p:
+  host: 'P2P_HOST'
+  port: 'P2P_PORT'
 guard:
   mnemonic: 'MNEMONIC'
 tss:

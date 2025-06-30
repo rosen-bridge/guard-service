@@ -9,7 +9,6 @@ import {
 import { DogeBlockCypherAssetHealthCheckParam } from '@rosen-bridge/asset-check/dist/doge';
 import { HealthCheck } from '@rosen-bridge/health-check';
 import { ErgoNodeSyncHealthCheckParam } from '@rosen-bridge/node-sync-check';
-import { P2PNetworkHealthCheck } from '@rosen-bridge/p2p-network-check';
 import {
   ErgoExplorerScannerHealthCheck,
   ErgoNodeScannerHealthCheck,
@@ -23,12 +22,10 @@ import { KOIOS_NETWORK } from '@rosen-chains/cardano-koios-network';
 import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
 import { EXPLORER_NETWORK } from '@rosen-chains/ergo-explorer-network';
 import { NODE_NETWORK } from '@rosen-chains/ergo-node-network';
-import Dialer from '../communication/Dialer';
 import Configs from '../configs/Configs';
 import GuardsCardanoConfigs from '../configs/GuardsCardanoConfigs';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import { rosenConfig } from '../configs/RosenConfig';
-import GuardPkHandler from '../handlers/GuardPkHandler';
 import {
   ADA_DECIMALS,
   ERG_DECIMALS,
@@ -88,21 +85,8 @@ const getHealthCheck = async () => {
       notificationConfig
     );
 
-    // add P2PNetwork param
-    const dialer = await Dialer.getInstance();
-    const p2pHealthCheck = new P2PNetworkHealthCheck({
-      defectConfirmationTimeWindow: Configs.p2pDefectConfirmationTimeWindow,
-      connectedGuardsHealthyThreshold:
-        GuardPkHandler.getInstance().requiredSign - 1,
-      getConnectedGuards: () => {
-        const connectedRelays = dialer.getRelayStates().connected?.length ?? 0;
-        return dialer.getConnectedPeersCount() - connectedRelays;
-      },
-      getIsAtLeastOneRelayConnected: () => {
-        return dialer.getRelayStates().connected?.length > 0 ?? 0;
-      },
-    });
-    healthCheck.register(p2pHealthCheck);
+    // TODO: local:ergo/rosen-bridge/health-check/55
+    //  should replace p2p healthcheck param with detected active guards in detection scenario
 
     // add TxProgress param
     const getActiveTransactions = async (): Promise<TxInfo[]> => {
