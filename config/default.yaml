@@ -167,9 +167,10 @@ tss:
       curveShareId: ''
       edwardShareId: ''
 p2p:
-  addresses: # relay configs
-    - peerId: ''
-      address: ''
+  relays:
+    - ''
+  host: '0.0.0.0'
+  port: 5243
   bootstrapTimeout: 10 # timeout of connecting to bootstrap nodes (which are relays in our case)
   pubsubInterval: 10 # interval of publishing peer ids to the network for peer discovery
   apiCallbackTimeout: 8 # timeout of api calls which happen when subscribing a channel in dialer

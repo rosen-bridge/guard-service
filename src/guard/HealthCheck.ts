@@ -6,10 +6,8 @@ import {
   ErgoNodeAssetHealthCheckParam,
   EvmRpcAssetHealthCheckParam,
 } from '@rosen-bridge/asset-check';
-import { DogeBlockCypherAssetHealthCheckParam } from '@rosen-bridge/asset-check/dist/doge';
 import { HealthCheck } from '@rosen-bridge/health-check';
 import { ErgoNodeSyncHealthCheckParam } from '@rosen-bridge/node-sync-check';
-import { P2PNetworkHealthCheck } from '@rosen-bridge/p2p-network-check';
 import {
   ErgoExplorerScannerHealthCheck,
   ErgoNodeScannerHealthCheck,
@@ -23,12 +21,10 @@ import { KOIOS_NETWORK } from '@rosen-chains/cardano-koios-network';
 import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
 import { EXPLORER_NETWORK } from '@rosen-chains/ergo-explorer-network';
 import { NODE_NETWORK } from '@rosen-chains/ergo-node-network';
-import Dialer from '../communication/Dialer';
 import Configs from '../configs/Configs';
 import GuardsCardanoConfigs from '../configs/GuardsCardanoConfigs';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import { rosenConfig } from '../configs/RosenConfig';
-import GuardPkHandler from '../handlers/GuardPkHandler';
 import {
   ADA_DECIMALS,
   ERG_DECIMALS,
@@ -38,8 +34,7 @@ import {
 } from '../utils/constants';
 import GuardsBitcoinConfigs from '../configs/GuardsBitcoinConfigs';
 import { BITCOIN_CHAIN, BTC } from '@rosen-chains/bitcoin';
-import GuardsDogeConfigs from '../configs/GuardsDogeConfigs';
-import { DOGE, DOGE_CHAIN } from '@rosen-chains/doge';
+import { DOGE_CHAIN } from '@rosen-chains/doge';
 import { DatabaseAction } from '../db/DatabaseAction';
 import { NotFoundError } from '@rosen-chains/abstract-chain';
 import { NotificationHandler } from '../handlers/NotificationHandler';
@@ -58,7 +53,6 @@ import {
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 let healthCheck: HealthCheck | undefined;
-let p2pHealthCheck: P2PNetworkHealthCheck | undefined;
 
 /**
  * Returns the instance of the health check with all required parameters
@@ -89,21 +83,8 @@ const getHealthCheck = async () => {
       notificationConfig
     );
 
-    // add P2PNetwork param
-    const dialer = await Dialer.getInstance();
-    p2pHealthCheck = new P2PNetworkHealthCheck({
-      defectConfirmationTimeWindow: Configs.p2pDefectConfirmationTimeWindow,
-      connectedGuardsHealthyThreshold:
-        GuardPkHandler.getInstance().requiredSign - 1,
-      getConnectedGuards: () => {
-        const connectedRelays = dialer.getRelayStates().connected?.length ?? 0;
-        return dialer.getConnectedPeersCount() - connectedRelays;
-      },
-      getIsAtLeastOneRelayConnected: () => {
-        return dialer.getRelayStates().connected?.length > 0 ?? 0;
-      },
-    });
-    healthCheck.register(p2pHealthCheck);
+    // TODO: local:ergo/rosen-bridge/health-check/55
+    //  should replace p2p healthcheck param with detected active guards in detection scenario
 
     // add TxProgress param
     const getActiveTransactions = async (): Promise<TxInfo[]> => {
@@ -343,4 +324,4 @@ const getHealthCheck = async () => {
   return healthCheck;
 };
 
-export { getHealthCheck, p2pHealthCheck };
+export { getHealthCheck };

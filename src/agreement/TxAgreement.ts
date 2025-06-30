@@ -11,7 +11,6 @@ import {
   ApprovedCandidate,
   AgreementMessageTypes,
 } from './Interfaces';
-import Dialer from '../communication/Dialer';
 import {
   ImpossibleBehavior,
   PaymentTransaction,
@@ -29,13 +28,15 @@ import { Communicator } from '@rosen-bridge/communication';
 import { ECDSA } from '@rosen-bridge/encryption';
 import { Semaphore } from 'await-semaphore';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+import { RosenDialerNode } from '@rosen-bridge/dialer';
+import RosenDialer from '../communication/RosenDialer';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
 class TxAgreement extends Communicator {
   private static instance: TxAgreement;
   protected static CHANNEL = 'tx-agreement';
-  protected static dialer: Dialer;
+  protected static dialer: RosenDialerNode;
   protected transactionQueue: PaymentTransaction[];
   protected transactions: Map<string, CandidateTransaction>;
   protected eventAgreedTransactions: Map<string, string>; // eventId -> txId
@@ -100,7 +101,7 @@ class TxAgreement extends Communicator {
     if (!TxAgreement.instance) {
       logger.debug("TxAgreement instance didn't exist. Creating a new one");
       TxAgreement.instance = new TxAgreement();
-      this.dialer = await Dialer.getInstance();
+      this.dialer = RosenDialer.getInstance().getDialer();
       this.dialer.subscribeChannel(
         TxAgreement.CHANNEL,
         TxAgreement.instance.messageHandlerWrapper
