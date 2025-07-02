@@ -8,7 +8,7 @@ class TestBalanceHandler extends BalanceHandler {
 
   callGetChainAddresses = (chain: string) => this.getChainAddresses(chain);
 
-  callGetChainTokens = (chain: string) => this.getChainTokens(chain);
+  callGetChainTokenIds = (chain: string) => this.getChainTokenIds(chain);
 }
 
 export default TestBalanceHandler;

@@ -1,25 +1,12 @@
-import { BITCOIN_CHAIN } from '@rosen-chains/bitcoin';
-import { CARDANO_CHAIN } from '@rosen-chains/cardano';
-import { ERGO_CHAIN } from '@rosen-chains/ergo';
 import fastify from 'fastify';
-import { mockBalances, mockBalancesObj } from './testData';
-import ChainHandlerMock from '../handlers/ChainHandler.mock';
-import GuardsErgoConfigs from '../../src/configs/GuardsErgoConfigs';
-import GuardsCardanoConfigs from '../../src/configs/GuardsCardanoConfigs';
+import {
+  mockLockBalances,
+  mockColdBalances,
+  mockBalancesObj,
+} from './testData';
 import { FastifySeverInstance } from '../../src/api/schemas';
-import GuardsBitcoinConfigs from '../../src/configs/GuardsBitcoinConfigs';
 import BalanceHandlerMock from '../handlers/mocked/BalanceHandler.mock';
 import { balanceRoutes } from '../../src/api/balance';
-
-vi.mock('../../src/utils/constants', async (importOriginal) => {
-  const mod = await importOriginal<
-    typeof import('../../src/utils/constants')
-  >();
-  return {
-    ...mod,
-    SUPPORTED_CHAINS: [ERGO_CHAIN, CARDANO_CHAIN, BITCOIN_CHAIN],
-  };
-});
 
 describe('balanceRoutes', () => {
   describe('GET /balance', () => {
@@ -28,48 +15,9 @@ describe('balanceRoutes', () => {
     beforeEach(() => {
       mockedServer = fastify();
       mockedServer.register(balanceRoutes);
-      ChainHandlerMock.resetMock();
 
       BalanceHandlerMock.resetMock();
-
-      ChainHandlerMock.mockChainName(ERGO_CHAIN);
-      ChainHandlerMock.mockChainFunction(
-        ERGO_CHAIN,
-        'getChainConfigs',
-        {
-          addresses: {
-            lock: GuardsErgoConfigs.chainConfigs.addresses.lock,
-            cold: GuardsErgoConfigs.chainConfigs.addresses.cold,
-          },
-        },
-        false
-      );
-
-      ChainHandlerMock.mockChainName(CARDANO_CHAIN);
-      ChainHandlerMock.mockChainFunction(
-        CARDANO_CHAIN,
-        'getChainConfigs',
-        {
-          addresses: {
-            lock: GuardsCardanoConfigs.chainConfigs.addresses.lock,
-            cold: GuardsCardanoConfigs.chainConfigs.addresses.cold,
-          },
-        },
-        false
-      );
-
-      ChainHandlerMock.mockChainName(BITCOIN_CHAIN);
-      ChainHandlerMock.mockChainFunction(
-        BITCOIN_CHAIN,
-        'getChainConfigs',
-        {
-          addresses: {
-            lock: GuardsBitcoinConfigs.chainConfigs.addresses.lock,
-            cold: GuardsBitcoinConfigs.chainConfigs.addresses.cold,
-          },
-        },
-        false
-      );
+      BalanceHandlerMock.mock();
     });
 
     afterEach(() => {
@@ -80,7 +28,8 @@ describe('balanceRoutes', () => {
      * @target fastifyServer[GET /balance] should return lock balance with hot and cold arrays populated
      * @dependencies
      * @scenario
-     * - stub BalanceHandler.getBalances to return mock balances
+     * - stub BalanceHandler.getLockAddressAssets to return mock balances
+     * - stub BalanceHandler.getColdAddressAssets to return mock balances
      * - call handler
      * @expected
      * - response status should have been 200
@@ -88,8 +37,12 @@ describe('balanceRoutes', () => {
      */
     it('should return lock balance with hot and cold arrays populated', async () => {
       // arrange
-      BalanceHandlerMock.mock();
-      BalanceHandlerMock.mockGetBalances().mockResolvedValue(mockBalances);
+      BalanceHandlerMock.mockGetLockAddressAssets().mockResolvedValue(
+        mockLockBalances
+      );
+      BalanceHandlerMock.mockGetColdAddressAssets().mockResolvedValue(
+        mockColdBalances
+      );
 
       // act
       const result = await mockedServer.inject({
@@ -98,15 +51,16 @@ describe('balanceRoutes', () => {
       });
 
       // assert
-      expect(result.statusCode).toEqual(200);
       expect(result.json()).toEqual(mockBalancesObj);
+      expect(result.statusCode).toEqual(200);
     });
 
     /**
      * @target fastifyServer[GET /balance] should return empty lock balance when no balances are returned
      * @dependencies
      * @scenario
-     * - stub BalanceHandler.getBalances to return mock balances
+     * - stub BalanceHandler.getLockAddressAssets to return mock balances
+     * - stub BalanceHandler.getColdAddressAssets to return mock balances
      * - call handler
      * @expected
      * - response status should have been 200
@@ -114,8 +68,8 @@ describe('balanceRoutes', () => {
      */
     it('should return empty lock balance when no balances are returned', async () => {
       // arrange
-      BalanceHandlerMock.mock();
-      BalanceHandlerMock.mockGetBalances().mockResolvedValue([]);
+      BalanceHandlerMock.mockGetLockAddressAssets().mockResolvedValue([]);
+      BalanceHandlerMock.mockGetColdAddressAssets().mockResolvedValue([]);
 
       // act
       const result = await mockedServer.inject({
@@ -132,7 +86,8 @@ describe('balanceRoutes', () => {
      * @target fastifyServer[GET /balance] should return error response when an exception is thrown during balance retrieval
      * @dependencies
      * @scenario
-     * - stub BalanceHandler.getBalances to reject
+     * - stub BalanceHandler.getLockAddressAssets to reject
+     * - stub BalanceHandler.getColdAddressAssets to return mock balances
      * - call handler
      * @expected
      * - response status should have been 500
@@ -140,10 +95,10 @@ describe('balanceRoutes', () => {
      */
     it('should return error response when an exception is thrown during balance retrieval', async () => {
       // arrange
-      BalanceHandlerMock.mock();
-      BalanceHandlerMock.mockGetBalances().mockImplementation(() => {
-        throw new Error('error');
+      BalanceHandlerMock.mockGetLockAddressAssets().mockImplementation(() => {
+        throw new Error('custom_error');
       });
+      BalanceHandlerMock.mockGetColdAddressAssets().mockResolvedValue([]);
 
       // act
       const result = await mockedServer.inject({
@@ -154,7 +109,7 @@ describe('balanceRoutes', () => {
       // assert
       expect(result.statusCode).toEqual(500);
       expect(result.json()).toEqual({
-        message: 'error',
+        message: 'custom_error',
       });
     });
   });

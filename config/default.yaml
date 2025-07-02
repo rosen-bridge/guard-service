@@ -276,42 +276,29 @@ notification:
     hasBeenUnknownForAWhile: 900
     isStillUnhealthy: 86400 # 1 day
 balanceHandler:
-  ergo:
+  default:
     updateInterval: 300
     updateBatchInterval: 60
-    updateBatchMaxRetries: 5
+  ergo:
+    # updateInterval: ...
+    # updateBatchInterval: ...
     tokensPerMinute:
       node: 30
       explorer: 30
   cardano:
-    updateInterval: 300
-    updateBatchInterval: 60
-    updateBatchMaxRetries: 5
     tokensPerMinute:
       blockfrost: 30
       koios: 30
   bitcoin:
-    updateInterval: 300
-    updateBatchInterval: 60
-    updateBatchMaxRetries: 5
     tokensPerMinute:
       esplora: 30
   doge:
-    updateInterval: 300
-    updateBatchInterval: 60
-    updateBatchMaxRetries: 5
     tokensPerMinute:
       esplora: 30
       blockcypher: 30
   ethereum:
-    updateInterval: 300
-    updateBatchInterval: 60
-    updateBatchMaxRetries: 5
     tokensPerMinute:
       rpc: 30
   binance:
-    updateInterval: 300
-    updateBatchInterval: 60
-    updateBatchMaxRetries: 5
     tokensPerMinute:
       rpc: 30

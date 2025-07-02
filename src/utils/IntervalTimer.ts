@@ -18,11 +18,11 @@ class IntervalTimer {
   constructor(
     intervalMs: number,
     callback: () => Promise<void>,
-    checkIntervalMs = 1000
+    checkIntervalMs: number | undefined = undefined
   ) {
     this.intervalMs = intervalMs;
     this.callback = callback;
-    this.checkIntervalMs = checkIntervalMs;
+    this.checkIntervalMs = checkIntervalMs ?? intervalMs;
 
     this.callbackRunning = false;
     this.lastRun = 0;
@@ -60,7 +60,7 @@ class IntervalTimer {
         await this.callback();
       } catch (error) {
         throw new Error(
-          'IntervalTimer callback error occured. this should be unreachable, handle errors in the job itself.'
+          `An error occurred in IntervalTimer callback (THIS SHOULD BE UNREACHABLE! please handle errors in the callback itself): ${error}`
         );
       }
 
