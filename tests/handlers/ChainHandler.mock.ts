@@ -97,6 +97,39 @@ class ChainHandlerMock {
   };
 
   /**
+   * mocks a function for mocked chain returning from sequence
+   * @param chainName mocked chain name
+   * @param name function name
+   * @param results function mocked sequence of results
+   * @param isAsync true if function is async
+   */
+  static mockChainFunctionSequence = (
+    chainName: string,
+    name: string,
+    results: any[],
+    isAsync = false
+  ) => {
+    const chain = this.getMockedChain(chainName);
+    chain[name] = vi.fn();
+
+    const spy = vi.spyOn(chain, name);
+
+    if (isAsync) {
+      for (const result of results) {
+        if (result instanceof Error) {
+          spy.mockRejectedValueOnce(result);
+        } else {
+          spy.mockResolvedValueOnce(result);
+        }
+      }
+    } else {
+      for (const result of results) {
+        spy.mockReturnValueOnce(result);
+      }
+    }
+  };
+
+  /**
    * mocks a function for mocked chain to throw `error`
    * @param chainName mocked chain name
    * @param name function name
