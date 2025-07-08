@@ -7,6 +7,7 @@ import {
 } from '../lib';
 import { TestBitcoinRunesNetwork } from './network/TestBitcoinRunesNetwork';
 import * as testData from './testData';
+import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 
 export const generateRandomId = (): string => randomBytes(32).toString('hex');
 
@@ -35,6 +36,7 @@ export const configs: BitcoinRunesConfigs = {
   },
   aggregatedPublicKey: testData.lockAddressPublicKey,
   txFeeSlippage: 10,
+  maxRunesPerUtxo: 5,
 };
 export const mockedSignFn = () =>
   Promise.resolve({
@@ -44,9 +46,10 @@ export const mockedSignFn = () =>
 export const generateChainObject = async (
   network: TestBitcoinRunesNetwork,
   signFn: TssSignFunction = mockedSignFn,
-  tokens = testData.testTokenMap
+  tokens = testData.testTokenMap,
+  logger?: AbstractLogger // this is for convenient purposes while debugging the tests
 ) => {
   const tokenMap = new TokenMap();
   await tokenMap.updateConfigByJson(tokens);
-  return new BitcoinRunesChain(network, configs, tokenMap, signFn);
+  return new BitcoinRunesChain(network, configs, tokenMap, signFn, logger);
 };
