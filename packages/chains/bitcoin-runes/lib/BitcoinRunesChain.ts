@@ -1138,28 +1138,6 @@ class BitcoinRunesChain extends AbstractUtxoChain<
     this.tokenMap.unwrapAmount(this.NATIVE_TOKEN_ID, amount, BITCOIN_CHAIN);
 
   /**
-   * wraps amount of the native token and all tokens in AssetBalance
-   * @param balance the AssetBalance object
-   */
-  protected wrapAssetBalance = (balance: AssetBalance): AssetBalance => {
-    const result = structuredClone(balance);
-    result.nativeToken = this.tokenMap.wrapAmount(
-      BTC,
-      result.nativeToken,
-      BITCOIN_CHAIN
-    ).amount;
-    result.tokens.forEach(
-      (token) =>
-        (token.value = this.tokenMap.wrapAmount(
-          token.id,
-          token.value,
-          BITCOIN_RUNES_CHAIN
-        ).amount)
-    );
-    return result;
-  };
-
-  /**
    * unwraps amount of the native token and all tokens in AssetBalance
    * @param balance the AssetBalance object
    */

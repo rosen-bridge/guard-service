@@ -390,7 +390,7 @@ describe('BitcoinRunesChain', () => {
       // mock PaymentTransaction
       const paymentTx = BitcoinRunesTransaction.fromJson(
         testData.transaction1InvalidForms.generatePaymentTxString(
-          testData.transaction1InvalidForms.txData.nullRunestone
+          testData.transaction1InvalidForms.txData.invalidPointer
         )
       );
       const expectedOrder = [
@@ -603,6 +603,33 @@ describe('BitcoinRunesChain', () => {
 
       // check returned value
       expect(result).toEqual(false);
+    });
+
+    /**
+     * @target: BitcoinRunesChain.verifyNoTokenBurned should return true
+     * when Runestone has no edict
+     * @dependencies
+     * @scenario
+     * - mock a payment transaction with invalid Runestone pointer
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return true
+     */
+    it('should return true when Runestone has no edict', async () => {
+      // mock a payment transaction
+      const paymentTx = BitcoinRunesTransaction.fromJson(
+        testData.transaction1InvalidForms.generatePaymentTxString(
+          testData.transaction1InvalidForms.txData.noEdict
+        )
+      );
+
+      // run test
+      const bitcoinRunesChain = await generateChainObject(network);
+      const result = await bitcoinRunesChain.verifyNoTokenBurned(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(true);
     });
 
     /**
