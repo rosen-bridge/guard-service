@@ -1,16 +1,16 @@
 import { DataSource, In, Repository } from 'typeorm';
 import { NODE_NETWORK } from '@rosen-chains/ergo-node-network';
-import { ERGO_CHAIN } from '@rosen-chains/ergo';
+import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
 import { KOIOS_NETWORK } from '@rosen-chains/cardano-koios-network';
-import { CARDANO_CHAIN } from '@rosen-chains/cardano';
-import { BITCOIN_CHAIN } from '@rosen-chains/bitcoin';
-import { DOGE_CHAIN } from '@rosen-chains/doge';
-import { ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
-import { BINANCE_CHAIN } from '@rosen-chains/binance';
+import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
+import { BITCOIN_CHAIN, BTC } from '@rosen-chains/bitcoin';
+import { DOGE, DOGE_CHAIN } from '@rosen-chains/doge';
+import { ETH, ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
+import { BINANCE_CHAIN, BNB } from '@rosen-chains/binance';
 import { RosenTokens } from '@rosen-bridge/tokens';
 import { chunk } from 'lodash-es';
 
-import { ChainAddressTokenBalanceEntity } from '../db/entities/ChainAddressTokenBalanceEntity';
+import { ChainAddressBalanceEntity } from '../db/entities/ChainAddressBalanceEntity';
 import { ChainNativeToken, SUPPORTED_CHAINS } from '../utils/constants';
 import ChainHandler from './ChainHandler';
 import { TokenHandler } from './tokenHandler';
@@ -28,8 +28,9 @@ export type ChainBalanceConfig = {
 
 class BalanceHandler {
   private static instance?: BalanceHandler;
-  readonly chainAddressTokenBalanceRepository: Repository<ChainAddressTokenBalanceEntity>;
+  readonly chainAddressBalanceRepository: Repository<ChainAddressBalanceEntity>;
   protected chainConfigs: Record<string, ChainBalanceConfig> = {};
+  protected nativeTokenIds: Record<string, string> = {};
 
   /**
    * creates a BalanceHandler instance by the given DataSource
@@ -37,8 +38,8 @@ class BalanceHandler {
    * @returns BalanceHandler instance
    */
   protected constructor(dataSource: DataSource) {
-    this.chainAddressTokenBalanceRepository = dataSource.getRepository(
-      ChainAddressTokenBalanceEntity
+    this.chainAddressBalanceRepository = dataSource.getRepository(
+      ChainAddressBalanceEntity
     );
 
     for (const chain of SUPPORTED_CHAINS) {
@@ -46,10 +47,11 @@ class BalanceHandler {
 
       switch (chain) {
         case ERGO_CHAIN:
+          this.nativeTokenIds[ERGO_CHAIN] = ERG;
           config = {
-            updateInterval: Configs.balanceHandler['ergo'].updateInterval,
+            updateInterval: Configs.balanceHandler[ERGO_CHAIN].updateInterval,
             updateBatchInterval:
-              Configs.balanceHandler['ergo'].updateBatchInterval,
+              Configs.balanceHandler[ERGO_CHAIN].updateBatchInterval,
             tokensPerMinute:
               GuardsErgoConfigs.chainNetworkName === NODE_NETWORK
                 ? Configs.balanceHandler.ergo.tokensPerMinute.node
@@ -57,10 +59,12 @@ class BalanceHandler {
           };
           break;
         case CARDANO_CHAIN:
+          this.nativeTokenIds[CARDANO_CHAIN] = ERG;
           config = {
-            updateInterval: Configs.balanceHandler['cardano'].updateInterval,
+            updateInterval:
+              Configs.balanceHandler[CARDANO_CHAIN].updateInterval,
             updateBatchInterval:
-              Configs.balanceHandler['cardano'].updateBatchInterval,
+              Configs.balanceHandler[CARDANO_CHAIN].updateBatchInterval,
             tokensPerMinute:
               GuardsCardanoConfigs.chainNetworkName === KOIOS_NETWORK
                 ? Configs.balanceHandler.cardano.tokensPerMinute.koios
@@ -68,37 +72,44 @@ class BalanceHandler {
           };
           break;
         case BITCOIN_CHAIN:
+          this.nativeTokenIds[BITCOIN_CHAIN] = BTC;
           config = {
-            updateInterval: Configs.balanceHandler['bitcoin'].updateInterval,
+            updateInterval:
+              Configs.balanceHandler[BITCOIN_CHAIN].updateInterval,
             updateBatchInterval:
-              Configs.balanceHandler['bitcoin'].updateBatchInterval,
+              Configs.balanceHandler[BITCOIN_CHAIN].updateBatchInterval,
             tokensPerMinute:
               Configs.balanceHandler.bitcoin.tokensPerMinute.esplora,
           };
           break;
         case DOGE_CHAIN:
+          this.nativeTokenIds[DOGE_CHAIN] = DOGE;
           config = {
-            updateInterval: Configs.balanceHandler['doge'].updateInterval,
+            updateInterval: Configs.balanceHandler[DOGE_CHAIN].updateInterval,
             updateBatchInterval:
-              Configs.balanceHandler['doge'].updateBatchInterval,
+              Configs.balanceHandler[DOGE_CHAIN].updateBatchInterval,
             tokensPerMinute:
               Configs.balanceHandler.doge.tokensPerMinute.esplora,
           };
           break;
         case ETHEREUM_CHAIN:
+          this.nativeTokenIds[ETHEREUM_CHAIN] = ETH;
           config = {
-            updateInterval: Configs.balanceHandler['ethereum'].updateInterval,
+            updateInterval:
+              Configs.balanceHandler[ETHEREUM_CHAIN].updateInterval,
             updateBatchInterval:
-              Configs.balanceHandler['ethereum'].updateBatchInterval,
+              Configs.balanceHandler[ETHEREUM_CHAIN].updateBatchInterval,
             tokensPerMinute:
               Configs.balanceHandler.ethereum.tokensPerMinute.rpc,
           };
           break;
         case BINANCE_CHAIN:
+          this.nativeTokenIds[BINANCE_CHAIN] = BNB;
           config = {
-            updateInterval: Configs.balanceHandler['binance'].updateInterval,
+            updateInterval:
+              Configs.balanceHandler[BINANCE_CHAIN].updateInterval,
             updateBatchInterval:
-              Configs.balanceHandler['binance'].updateBatchInterval,
+              Configs.balanceHandler[BINANCE_CHAIN].updateBatchInterval,
             tokensPerMinute: Configs.balanceHandler.binance.tokensPerMinute.rpc,
           };
           break;
@@ -142,7 +153,7 @@ class BalanceHandler {
       nativeTokenIds.add(ChainNativeToken[chain]);
     }
 
-    const balances = await this.chainAddressTokenBalanceRepository.findBy({
+    const balances = await this.chainAddressBalanceRepository.findBy({
       tokenId: In([...nativeTokenIds]),
     });
 
@@ -163,7 +174,7 @@ class BalanceHandler {
       lockAddresses.add(chainConfig.addresses.lock);
     }
 
-    const balances = await this.chainAddressTokenBalanceRepository.findBy({
+    const balances = await this.chainAddressBalanceRepository.findBy({
       address: In([...lockAddresses]),
     });
 
@@ -184,7 +195,7 @@ class BalanceHandler {
       coldAddresses.add(chainConfig.addresses.cold);
     }
 
-    const balances = await this.chainAddressTokenBalanceRepository.findBy({
+    const balances = await this.chainAddressBalanceRepository.findBy({
       address: In([...coldAddresses]),
     });
 
@@ -192,12 +203,12 @@ class BalanceHandler {
   };
 
   /**
-   * maps a ChainAddressTokenBalanceEntity record to AddressBalance
+   * maps a ChainAddressBalanceEntity record to AddressBalance
    * @param balance
    * @returns an AddressBalance object
    */
   protected balanceEntityToAddressBalance = (
-    balance: ChainAddressTokenBalanceEntity
+    balance: ChainAddressBalanceEntity
   ): AddressBalance => {
     const tokenData = getTokenData(
       balance.chain,
@@ -289,14 +300,23 @@ class BalanceHandler {
     const balance = await abstractChain.getAddressAssets(address, tokensBatch);
 
     // upsert batch tokens balances
-    await this.chainAddressTokenBalanceRepository.upsert(
-      balance.tokens.map((token) => ({
-        chain,
-        address,
-        tokenId: token.id,
-        lastUpdate: Date.now(),
-        balance: token.value,
-      })),
+    await this.chainAddressBalanceRepository.upsert(
+      [
+        {
+          chain,
+          address,
+          tokenId: this.nativeTokenIds[chain],
+          lastUpdate: Date.now(),
+          balance: balance.nativeToken,
+        },
+        ...balance.tokens.map((token) => ({
+          chain,
+          address,
+          tokenId: token.id,
+          lastUpdate: Date.now(),
+          balance: token.value,
+        })),
+      ],
       ['chain', 'address', 'tokenId']
     );
   };

@@ -1,34 +1,25 @@
 import { describe, it, expect, vi } from 'vitest';
-import { In } from 'typeorm';
-import { DataSource } from '@rosen-bridge/extended-typeorm';
 import { ETH, ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
 import { BINANCE_CHAIN } from '@rosen-chains/binance';
 import { BITCOIN_CHAIN } from '@rosen-chains/bitcoin';
+import { AssetBalance } from '@rosen-chains/abstract-chain';
 
-import { ChainAddressTokenBalanceEntity } from '../../src/db/entities/ChainAddressTokenBalanceEntity';
+import { ChainAddressBalanceEntity } from '../../src/db/entities/ChainAddressBalanceEntity';
 import { ChainNativeToken, SUPPORTED_CHAINS } from '../../src/utils/constants';
 import { TokenHandler } from '../../src/handlers/tokenHandler';
 import { TokenData } from '../../src/types/api';
 import TestBalanceHandler from './TestBalanceHandler';
 import ChainHandlerMock from './ChainHandler.mock';
 import * as testData from './testData';
+import DatabaseActionMock from '../db/mocked/DatabaseAction.mock';
 
 describe('BalanceHandler', () => {
-  const mockRepository = {
-    findBy: vi.fn(),
-    upsert: vi.fn(),
-  };
-  const mockDataSource: DataSource = {
-    getRepository: vi.fn(() => mockRepository),
-  } as any;
-
   let balanceHandler: TestBalanceHandler;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    await DatabaseActionMock.clearTables();
     ChainHandlerMock.resetMock();
-    mockRepository.findBy.mockClear();
-    mockRepository.upsert.mockClear();
-    balanceHandler = new TestBalanceHandler(mockDataSource);
+    balanceHandler = new TestBalanceHandler(DatabaseActionMock.testDataSource);
   });
 
   describe('getNativeTokenBalances', () => {
@@ -42,24 +33,15 @@ describe('BalanceHandler', () => {
     /**
      * @target getNativeTokenBalances should return an empty array when repository returns no balances
      * @scenario
-     * - stub chainAddressTokenBalanceRepository.findBy to resolve to an empty array
      * - call getNativeTokenBalances
      * @expected
-     * - chainAddressTokenBalanceRepository.findBy should have been called once with object containing native token ids of all supported chains
      * - getNativeTokenBalances should have resolved to an empty array
      */
     it('should return an empty array when repository returns no balances', async () => {
-      // arrange
-      mockRepository.findBy.mockResolvedValue([]);
-
       // act
       const result = await balanceHandler.getNativeTokenBalances();
 
       // assert
-      expect(mockRepository.findBy).toHaveBeenCalledOnce();
-      expect(mockRepository.findBy).toHaveBeenCalledWith({
-        tokenId: In([...allNativeTokenIds]),
-      });
       expect(result).toEqual([]);
     });
 
@@ -68,11 +50,9 @@ describe('BalanceHandler', () => {
      * @scenario
      * - stub getTokenData to return a mock TokenData
      * - stub TokenMap.getConfig to return 2 token objects
-     * - define a mock array with two balance objects
-     * - stub chainAddressTokenBalanceRepository.findBy to resolve to the mock balance array
+     * - insert two balance objects into database
      * - call getNativeTokenBalances
      * @expected
-     * - chainAddressTokenBalanceRepository.findBy should have been called once with object containing native token ids of all supported chains
      * - getNativeTokenBalances should have resolved to the mock balance array
      */
     it('should return balances when repository returns a non empty array', async () => {
@@ -101,39 +81,36 @@ describe('BalanceHandler', () => {
         }),
       } as any);
 
-      const mockBalances: ChainAddressTokenBalanceEntity[] = [
-        testData.mockBalances.eth,
-        testData.mockBalances.bnb,
-      ];
-      mockRepository.findBy.mockResolvedValue(mockBalances);
+      await DatabaseActionMock.testDataSource
+        .getRepository(ChainAddressBalanceEntity)
+        .insert(testData.mockBalances.eth);
+      await DatabaseActionMock.testDataSource
+        .getRepository(ChainAddressBalanceEntity)
+        .insert(testData.mockBalances.bnb);
 
       // act
       const result = await balanceHandler.getNativeTokenBalances();
 
       // assert
-      expect(mockRepository.findBy).toHaveBeenCalledOnce();
-      expect(mockRepository.findBy).toHaveBeenCalledWith({
-        tokenId: In([...allNativeTokenIds]),
-      });
       expect(result).toEqual([
         {
-          address: mockBalances[0].address,
-          chain: mockBalances[0].chain,
+          address: testData.mockBalances.eth.address,
+          chain: testData.mockBalances.eth.chain,
           balance: {
-            tokenId: mockBalances[0].tokenId,
-            amount: Number(mockBalances[0].balance),
-            name: mockBalances[0].tokenId.toUpperCase(),
+            tokenId: testData.mockBalances.eth.tokenId,
+            amount: Number(testData.mockBalances.eth.balance),
+            name: testData.mockBalances.eth.tokenId.toUpperCase(),
             decimals: 8,
             isNativeToken: true,
           },
         },
         {
-          address: mockBalances[1].address,
-          chain: mockBalances[1].chain,
+          address: testData.mockBalances.bnb.address,
+          chain: testData.mockBalances.bnb.chain,
           balance: {
-            tokenId: mockBalances[1].tokenId,
-            amount: Number(mockBalances[1].balance),
-            name: mockBalances[1].tokenId.toUpperCase(),
+            tokenId: testData.mockBalances.bnb.tokenId,
+            amount: Number(testData.mockBalances.bnb.balance),
+            name: testData.mockBalances.bnb.tokenId.toUpperCase(),
             decimals: 8,
             isNativeToken: true,
           },
@@ -149,7 +126,7 @@ describe('BalanceHandler', () => {
      * - stub TokenMap.getConfig to return empty array
      * - call getChainTokens with ETHEREUM_CHAIN
      * @expected
-     * - result should have been equal to empty array
+     * - result should have been an empty array
      */
     it('should return empty array when token map is empty', () => {
       // arrange
@@ -172,7 +149,7 @@ describe('BalanceHandler', () => {
      * - stub TokenMap.getConfig to return a token for BITCOIN_CHAIN
      * - call getChainTokens with ETHEREUM_CHAIN
      * @expected
-     * - result should have been equal to []
+     * - result should have been an empty array
      */
     it('should return empty array when no tokens exist for specified chain', () => {
       // arrange
@@ -269,7 +246,7 @@ describe('BalanceHandler', () => {
               [BINANCE_CHAIN]: {
                 tokenId: 'id2',
                 type: 'native',
-                name: '',
+                name: '1d2',
                 decimals: 0,
                 residency: '',
                 extra: {},
@@ -289,6 +266,186 @@ describe('BalanceHandler', () => {
     });
   });
 
+  describe('getLockAddressAssets', () => {
+    /**
+     * @target getLockAddressAssets should successfully read balance records of lock addresses from database
+     * @scenario
+     * - stub ChainHandler getChainConfigs to return a mock chainConfig for supported chains
+     * - insert 2 ChainAddressBalanceEntity objects into database for lock and cold addresses
+     * - stub balanceEntityToAddressBalance to return a mock object
+     * - call getLockAddressAssets
+     * @expected
+     * - getLockAddressAssets should have resolved to an array of one AddressBalance object corresponding to lockAddress
+     */
+    it('should successfully read balance records of lock addresses from database', async () => {
+      // arrange
+      const lockAddresses = [];
+      for (const chain of SUPPORTED_CHAINS) {
+        const lockAddress = `${chain}_mock_lock_address`;
+        lockAddresses.push(lockAddress);
+        ChainHandlerMock.mockChainName(chain);
+        ChainHandlerMock.mockChainFunction(
+          chain,
+          'getChainConfigs',
+          {
+            addresses: {
+              lock: lockAddress,
+              cold: `${chain}_mock_cold_address`,
+            },
+          },
+          false
+        );
+      }
+
+      const mockBalance = {
+        chain: ETHEREUM_CHAIN,
+        address: `${ETHEREUM_CHAIN}_mock_lock_address`,
+        tokenId: 'tokenId',
+        lastUpdate: 1,
+        balance: 123n,
+      };
+      await DatabaseActionMock.testDataSource
+        .getRepository(ChainAddressBalanceEntity)
+        .insert(mockBalance);
+
+      const mockColdBalance = {
+        chain: ETHEREUM_CHAIN,
+        address: `${ETHEREUM_CHAIN}_mock_cold_address`,
+        tokenId: 'tokenId2',
+        lastUpdate: 1,
+        balance: 1234n,
+      };
+      await DatabaseActionMock.testDataSource
+        .getRepository(ChainAddressBalanceEntity)
+        .insert(mockColdBalance);
+
+      vi.spyOn(
+        balanceHandler as any,
+        'balanceEntityToAddressBalance'
+      ).mockImplementation((balance: any) => {
+        return {
+          address: balance.address,
+          chain: balance.chain,
+          balance: {
+            tokenId: balance.tokenId,
+            amount: Number(balance.balance),
+            name: 'name',
+            decimals: 8,
+            isNativeToken: true,
+          },
+        };
+      });
+
+      // act
+      const result = await balanceHandler.getLockAddressAssets();
+
+      // assert
+      expect(result).toEqual([
+        {
+          address: mockBalance.address,
+          chain: mockBalance.chain,
+          balance: {
+            tokenId: mockBalance.tokenId,
+            amount: Number(mockBalance.balance),
+            name: 'name',
+            decimals: 8,
+            isNativeToken: true,
+          },
+        },
+      ]);
+    });
+  });
+
+  describe('getColdAddressAssets', () => {
+    /**
+     * @target getColdAddressAssets should successfully read balance records of cold addresses from database
+     * @scenario
+     * - stub ChainHandler getChainConfigs to return a mock chainConfig for supported chains
+     * - insert 2 ChainAddressBalanceEntity objects into database for lock and cold addresses
+     * - stub balanceEntityToAddressBalance to return a mock object
+     * - call getColdAddressAssets
+     * @expected
+     * - getColdAddressAssets should have resolved to an array of one AddressBalance object corresponding to coldAddress
+     */
+    it('should successfully read balance records of cold addresses from database', async () => {
+      // arrange
+      const coldAddresses = [];
+      for (const chain of SUPPORTED_CHAINS) {
+        const coldAddress = `${chain}_mock_cold_address`;
+        coldAddresses.push(coldAddress);
+        ChainHandlerMock.mockChainName(chain);
+        ChainHandlerMock.mockChainFunction(
+          chain,
+          'getChainConfigs',
+          {
+            addresses: {
+              cold: coldAddress,
+              lock: `${chain}_mock_lock_address`,
+            },
+          },
+          false
+        );
+      }
+
+      const mockBalance = {
+        chain: ETHEREUM_CHAIN,
+        address: `${ETHEREUM_CHAIN}_mock_cold_address`,
+        tokenId: 'tokenId',
+        lastUpdate: 1,
+        balance: 123n,
+      };
+      await DatabaseActionMock.testDataSource
+        .getRepository(ChainAddressBalanceEntity)
+        .insert(mockBalance);
+
+      const mockLockBalance = {
+        chain: ETHEREUM_CHAIN,
+        address: `${ETHEREUM_CHAIN}_mock_lock_address`,
+        tokenId: 'tokenId2',
+        lastUpdate: 1,
+        balance: 1234n,
+      };
+      await DatabaseActionMock.testDataSource
+        .getRepository(ChainAddressBalanceEntity)
+        .insert(mockLockBalance);
+
+      vi.spyOn(
+        balanceHandler as any,
+        'balanceEntityToAddressBalance'
+      ).mockImplementation((balance: any) => {
+        return {
+          address: balance.address,
+          chain: balance.chain,
+          balance: {
+            tokenId: balance.tokenId,
+            amount: Number(balance.balance),
+            name: 'name',
+            decimals: 8,
+            isNativeToken: true,
+          },
+        };
+      });
+
+      // act
+      const result = await balanceHandler.getColdAddressAssets();
+
+      // assert
+      expect(result).toEqual([
+        {
+          address: mockBalance.address,
+          chain: mockBalance.chain,
+          balance: {
+            tokenId: mockBalance.tokenId,
+            amount: Number(mockBalance.balance),
+            name: 'name',
+            decimals: 8,
+            isNativeToken: true,
+          },
+        },
+      ]);
+    });
+  });
+
   describe('updateChainBatchBalances', () => {
     const chain = ETHEREUM_CHAIN;
     const address = '0x123';
@@ -297,19 +454,18 @@ describe('BalanceHandler', () => {
     /**
      * @target updateChainBatchBalances should update batch balances successfully
      * @scenario
-     * - stub ChainHandler.getAddressAssets to resolve to a balance object with 2 tokens
-     * - stub chainAddressTokenBalanceRepository.upsert to resolve
+     * - stub ChainHandler.getAddressAssets to resolve to a balance object with 2 non-native tokens
      * - call updateChainBatchBalances
      * @expected
-     * - ChainHandler.getAddressAssets should have been called once with address and tokensBatch
-     * - chainAddressTokenBalanceRepository.upsert should have been called once
+     * - database should have contained 3 ChainAddressBalanceEntity objects
      */
     it('should update batch balances successfully', async () => {
       // arrange
-      const balance = {
+      const balance: AssetBalance = {
+        nativeToken: 123n,
         tokens: [
-          { id: 'token1', value: 100 },
-          { id: 'token2', value: 200 },
+          { id: 'token1', value: 100n },
+          { id: 'token2', value: 200n },
         ],
       };
 
@@ -336,26 +492,109 @@ describe('BalanceHandler', () => {
         ChainHandlerMock.getChainMockedFunction(chain, 'getAddressAssets')
       ).toHaveBeenCalledWith(address, tokensBatch);
 
-      expect(
-        balanceHandler.chainAddressTokenBalanceRepository.upsert
-      ).toHaveBeenCalledOnce();
-      const upsertArgs = (
-        balanceHandler.chainAddressTokenBalanceRepository.upsert as any
-      ).mock.calls[0];
-      expect(upsertArgs[0]).toHaveLength(2);
-      expect(upsertArgs[0][0]).toMatchObject({
+      const balances = await DatabaseActionMock.testDataSource
+        .getRepository(ChainAddressBalanceEntity)
+        .find({});
+      expect(balances).toHaveLength(3);
+      expect(balances[0]).toEqual({
+        chain,
+        address,
+        tokenId: ETH,
+        lastUpdate: expect.any(Number),
+        balance: 123n,
+      });
+      expect(balances[1]).toEqual({
         chain,
         address,
         tokenId: 'token1',
-        balance: 100,
+        lastUpdate: expect.any(Number),
+        balance: 100n,
       });
-      expect(upsertArgs[0][1]).toMatchObject({
+      expect(balances[2]).toEqual({
         chain,
         address,
         tokenId: 'token2',
-        balance: 200,
+        lastUpdate: expect.any(Number),
+        balance: 200n,
       });
-      expect(upsertArgs[1]).toEqual(['chain', 'address', 'tokenId']);
+    });
+  });
+
+  describe('updateChainBalances', () => {
+    /**
+     * @target updateChainBalances should successfully update all balances of a chain
+     * @scenario
+     * - stub ChainHandler getChainConfigs to return a mock chainConfig
+     * - stub getChainTokenIds to return a mock array
+     * - stub updateChainBatchBalances to resolve
+     * - call updateChainBalances
+     * @expected
+     * - updateChainBatchBalances should have been called 4 times in this order
+     *  - lockAddress x [token1]
+     *  - lockAddress x [token2]
+     *  - coldAddress x [token1]
+     *  - coldAddress x [token2]
+     */
+    it('should successfully update all balances of a chain', async () => {
+      // arrange
+      const chain = ETHEREUM_CHAIN;
+      const lockAddress = `${chain}_mock_lock_address`;
+      const coldAddress = `${chain}_mock_cold_address`;
+
+      ChainHandlerMock.mockChainName(chain);
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'getChainConfigs',
+        {
+          addresses: {
+            lock: lockAddress,
+            cold: coldAddress,
+          },
+        },
+        false
+      );
+
+      vi.spyOn(balanceHandler as any, 'getChainTokenIds').mockReturnValue([
+        'token1',
+        'token2',
+      ]);
+
+      const updateChainBatchBalancesSpy = vi
+        .spyOn(balanceHandler as any, 'updateChainBatchBalances')
+        .mockResolvedValue(null);
+
+      balanceHandler['chainConfigs'][chain].tokensPerMinute = 1;
+      balanceHandler['chainConfigs'][chain].updateBatchInterval = 1;
+
+      // act
+      await balanceHandler.updateChainBalances(chain);
+
+      // assert
+      expect(updateChainBatchBalancesSpy).toHaveBeenCalledTimes(4);
+      expect(updateChainBatchBalancesSpy).toHaveBeenNthCalledWith(
+        1,
+        chain,
+        lockAddress,
+        ['token1']
+      );
+      expect(updateChainBatchBalancesSpy).toHaveBeenNthCalledWith(
+        2,
+        chain,
+        lockAddress,
+        ['token2']
+      );
+      expect(updateChainBatchBalancesSpy).toHaveBeenNthCalledWith(
+        3,
+        chain,
+        coldAddress,
+        ['token1']
+      );
+      expect(updateChainBatchBalancesSpy).toHaveBeenNthCalledWith(
+        4,
+        chain,
+        coldAddress,
+        ['token2']
+      );
     });
   });
 });

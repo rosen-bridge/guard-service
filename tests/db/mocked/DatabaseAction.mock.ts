@@ -35,7 +35,7 @@ import {
 import { ArbitraryEntity } from '../../../src/db/entities/ArbitraryEntity';
 import { ReprocessEntity } from '../../../src/db/entities/ReprocessEntity';
 import { ReprocessStatus } from '../../../src/reprocess/Interfaces';
-import { ChainAddressTokenBalanceEntity } from '../../../src/db/entities/ChainAddressTokenBalanceEntity';
+import { ChainAddressBalanceEntity } from '../../../src/db/entities/ChainAddressBalanceEntity';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -58,7 +58,7 @@ class DatabaseActionMock {
       ReprocessEntity,
       PermitEntity,
       CollateralEntity,
-      ChainAddressTokenBalanceEntity,
+      ChainAddressBalanceEntity,
     ],
     migrations: [
       ...scannerMigrations.sqlite,
@@ -99,6 +99,7 @@ class DatabaseActionMock {
     await this.testDatabase.ArbitraryRepository.clear();
     await this.testDatabase.ReprocessRepository.clear();
     await this.testDataSource.getRepository(BlockEntity).clear();
+    await this.testDataSource.getRepository(ChainAddressBalanceEntity).clear();
   };
 
   /**

@@ -153,7 +153,7 @@ const balanceUpdateJob = () => {
           await BalanceHandler.getInstance().updateChainBalances(chain);
         } catch (error) {
           logger.error(
-            `Balance update job of chain ${chain} failed with error: ${error}`
+            `Balance update job of chain [${chain}] failed with error: ${error}`
           );
           if (error.stack) logger.error(error.stack);
         }

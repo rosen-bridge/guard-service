@@ -2,7 +2,7 @@ import { BigIntValueTransformer } from '@rosen-bridge/extended-typeorm';
 import { Column, Entity, PrimaryColumn } from 'typeorm';
 
 @Entity()
-export class ChainAddressTokenBalanceEntity {
+export class ChainAddressBalanceEntity {
   @PrimaryColumn('varchar')
   chain: string;
 

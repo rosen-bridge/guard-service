@@ -5,7 +5,7 @@ export class migration1751451331001 implements MigrationInterface {
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-            CREATE TABLE "chain_address_token_balance_entity" (
+            CREATE TABLE "chain_address_balance_entity" (
                 "chain" varchar NOT NULL,
                 "address" varchar NOT NULL,
                 "tokenId" varchar NOT NULL,
@@ -18,7 +18,7 @@ export class migration1751451331001 implements MigrationInterface {
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-            DROP TABLE "chain_address_token_balance_entity"
+            DROP TABLE "chain_address_balance_entity"
         `);
   }
 }
