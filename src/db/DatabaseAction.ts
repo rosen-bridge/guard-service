@@ -40,6 +40,7 @@ import { ArbitraryEntity } from './entities/ArbitraryEntity';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 import { ReprocessEntity } from './entities/ReprocessEntity';
 import { ReprocessStatus } from '../reprocess/Interfaces';
+import { ChainAddressBalanceEntity } from './entities/ChainAddressBalanceEntity';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -57,6 +58,7 @@ class DatabaseAction {
   EventView: Repository<EventView>;
   ArbitraryRepository: Repository<ArbitraryEntity>;
   ReprocessRepository: Repository<ReprocessEntity>;
+  ChainAddressBalanceRepository: Repository<ChainAddressBalanceEntity>;
 
   txSignSemaphore = new Semaphore(1);
 
@@ -75,6 +77,9 @@ class DatabaseAction {
     this.EventView = this.dataSource.getRepository(EventView);
     this.ArbitraryRepository = this.dataSource.getRepository(ArbitraryEntity);
     this.ReprocessRepository = this.dataSource.getRepository(ReprocessEntity);
+    this.ChainAddressBalanceRepository = this.dataSource.getRepository(
+      ChainAddressBalanceEntity
+    );
   }
 
   /**

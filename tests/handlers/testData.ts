@@ -67,3 +67,19 @@ export const mockBalances = {
     balance: 500000000n,
   },
 };
+
+export const mockColdBalance = {
+  chain: ETHEREUM_CHAIN,
+  address: `${ETHEREUM_CHAIN}_mock_cold_address`,
+  tokenId: 'tokenId',
+  lastUpdate: 1,
+  balance: 123n,
+};
+
+export const mockLockBalance = {
+  chain: ETHEREUM_CHAIN,
+  address: `${ETHEREUM_CHAIN}_mock_lock_address`,
+  tokenId: 'tokenId2',
+  lastUpdate: 1,
+  balance: 1234n,
+};

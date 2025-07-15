@@ -409,6 +409,19 @@ class DatabaseActionMock {
   };
 
   /**
+   * inserts a record to ChainAddressBalance table in
+   * @param record
+   */
+  static insertChainAddressBalanceRecord = async (
+    record: ChainAddressBalanceEntity
+  ) => {
+    await this.testDatabase.ChainAddressBalanceRepository.createQueryBuilder()
+      .insert()
+      .values(record)
+      .execute();
+  };
+
+  /**
    * returns all records in Event table in database
    */
   static allRawEventRecords = async () => {
@@ -467,6 +480,15 @@ class DatabaseActionMock {
    */
   static allReprocessRecords = async () => {
     return await this.testDatabase.ReprocessRepository.createQueryBuilder()
+      .select()
+      .getMany();
+  };
+
+  /**
+   * returns all records in ChainAddressBalance table in database
+   */
+  static allChainAddressBalanceRecords = async () => {
+    return await this.testDatabase.ChainAddressBalanceRepository.createQueryBuilder()
       .select()
       .getMany();
   };

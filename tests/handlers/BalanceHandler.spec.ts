@@ -4,8 +4,7 @@ import { BINANCE_CHAIN } from '@rosen-chains/binance';
 import { BITCOIN_CHAIN } from '@rosen-chains/bitcoin';
 import { AssetBalance } from '@rosen-chains/abstract-chain';
 
-import { ChainAddressBalanceEntity } from '../../src/db/entities/ChainAddressBalanceEntity';
-import { ChainNativeToken, SUPPORTED_CHAINS } from '../../src/utils/constants';
+import { SUPPORTED_CHAINS } from '../../src/utils/constants';
 import { TokenHandler } from '../../src/handlers/tokenHandler';
 import { TokenData } from '../../src/types/api';
 import TestBalanceHandler from './TestBalanceHandler';
@@ -14,20 +13,13 @@ import * as testData from './testData';
 import DatabaseActionMock from '../db/mocked/DatabaseAction.mock';
 
 describe('BalanceHandler', () => {
-  let balanceHandler: TestBalanceHandler;
-
-  beforeEach(async () => {
-    await DatabaseActionMock.clearTables();
-    ChainHandlerMock.resetMock();
-    balanceHandler = new TestBalanceHandler(DatabaseActionMock.testDataSource);
-  });
+  const balanceHandler = new TestBalanceHandler(
+    DatabaseActionMock.testDataSource
+  );
 
   describe('getNativeTokenBalances', () => {
-    const allNativeTokenIds: Set<string> = new Set();
-    beforeAll(() => {
-      for (const chain of SUPPORTED_CHAINS) {
-        allNativeTokenIds.add(ChainNativeToken[chain]);
-      }
+    beforeEach(async () => {
+      await DatabaseActionMock.clearTables();
     });
 
     /**
@@ -81,12 +73,12 @@ describe('BalanceHandler', () => {
         }),
       } as any);
 
-      await DatabaseActionMock.testDataSource
-        .getRepository(ChainAddressBalanceEntity)
-        .insert(testData.mockBalances.eth);
-      await DatabaseActionMock.testDataSource
-        .getRepository(ChainAddressBalanceEntity)
-        .insert(testData.mockBalances.bnb);
+      await DatabaseActionMock.insertChainAddressBalanceRecord(
+        testData.mockBalances.eth
+      );
+      await DatabaseActionMock.insertChainAddressBalanceRecord(
+        testData.mockBalances.bnb
+      );
 
       // act
       const result = await balanceHandler.getNativeTokenBalances();
@@ -267,6 +259,11 @@ describe('BalanceHandler', () => {
   });
 
   describe('getLockAddressAssets', () => {
+    beforeEach(async () => {
+      await DatabaseActionMock.clearTables();
+      ChainHandlerMock.resetMock();
+    });
+
     /**
      * @target getLockAddressAssets should successfully read balance records of lock addresses from database
      * @scenario
@@ -279,17 +276,14 @@ describe('BalanceHandler', () => {
      */
     it('should successfully read balance records of lock addresses from database', async () => {
       // arrange
-      const lockAddresses = [];
       for (const chain of SUPPORTED_CHAINS) {
-        const lockAddress = `${chain}_mock_lock_address`;
-        lockAddresses.push(lockAddress);
         ChainHandlerMock.mockChainName(chain);
         ChainHandlerMock.mockChainFunction(
           chain,
           'getChainConfigs',
           {
             addresses: {
-              lock: lockAddress,
+              lock: `${chain}_mock_lock_address`,
               cold: `${chain}_mock_cold_address`,
             },
           },
@@ -297,27 +291,12 @@ describe('BalanceHandler', () => {
         );
       }
 
-      const mockBalance = {
-        chain: ETHEREUM_CHAIN,
-        address: `${ETHEREUM_CHAIN}_mock_lock_address`,
-        tokenId: 'tokenId',
-        lastUpdate: 1,
-        balance: 123n,
-      };
-      await DatabaseActionMock.testDataSource
-        .getRepository(ChainAddressBalanceEntity)
-        .insert(mockBalance);
-
-      const mockColdBalance = {
-        chain: ETHEREUM_CHAIN,
-        address: `${ETHEREUM_CHAIN}_mock_cold_address`,
-        tokenId: 'tokenId2',
-        lastUpdate: 1,
-        balance: 1234n,
-      };
-      await DatabaseActionMock.testDataSource
-        .getRepository(ChainAddressBalanceEntity)
-        .insert(mockColdBalance);
+      await DatabaseActionMock.insertChainAddressBalanceRecord(
+        testData.mockLockBalance
+      );
+      await DatabaseActionMock.insertChainAddressBalanceRecord(
+        testData.mockColdBalance
+      );
 
       vi.spyOn(
         balanceHandler as any,
@@ -342,11 +321,11 @@ describe('BalanceHandler', () => {
       // assert
       expect(result).toEqual([
         {
-          address: mockBalance.address,
-          chain: mockBalance.chain,
+          address: testData.mockLockBalance.address,
+          chain: testData.mockLockBalance.chain,
           balance: {
-            tokenId: mockBalance.tokenId,
-            amount: Number(mockBalance.balance),
+            tokenId: testData.mockLockBalance.tokenId,
+            amount: Number(testData.mockLockBalance.balance),
             name: 'name',
             decimals: 8,
             isNativeToken: true,
@@ -357,6 +336,11 @@ describe('BalanceHandler', () => {
   });
 
   describe('getColdAddressAssets', () => {
+    beforeEach(async () => {
+      await DatabaseActionMock.clearTables();
+      ChainHandlerMock.resetMock();
+    });
+
     /**
      * @target getColdAddressAssets should successfully read balance records of cold addresses from database
      * @scenario
@@ -369,17 +353,14 @@ describe('BalanceHandler', () => {
      */
     it('should successfully read balance records of cold addresses from database', async () => {
       // arrange
-      const coldAddresses = [];
       for (const chain of SUPPORTED_CHAINS) {
-        const coldAddress = `${chain}_mock_cold_address`;
-        coldAddresses.push(coldAddress);
         ChainHandlerMock.mockChainName(chain);
         ChainHandlerMock.mockChainFunction(
           chain,
           'getChainConfigs',
           {
             addresses: {
-              cold: coldAddress,
+              cold: `${chain}_mock_cold_address`,
               lock: `${chain}_mock_lock_address`,
             },
           },
@@ -387,27 +368,12 @@ describe('BalanceHandler', () => {
         );
       }
 
-      const mockBalance = {
-        chain: ETHEREUM_CHAIN,
-        address: `${ETHEREUM_CHAIN}_mock_cold_address`,
-        tokenId: 'tokenId',
-        lastUpdate: 1,
-        balance: 123n,
-      };
-      await DatabaseActionMock.testDataSource
-        .getRepository(ChainAddressBalanceEntity)
-        .insert(mockBalance);
-
-      const mockLockBalance = {
-        chain: ETHEREUM_CHAIN,
-        address: `${ETHEREUM_CHAIN}_mock_lock_address`,
-        tokenId: 'tokenId2',
-        lastUpdate: 1,
-        balance: 1234n,
-      };
-      await DatabaseActionMock.testDataSource
-        .getRepository(ChainAddressBalanceEntity)
-        .insert(mockLockBalance);
+      await DatabaseActionMock.insertChainAddressBalanceRecord(
+        testData.mockColdBalance
+      );
+      await DatabaseActionMock.insertChainAddressBalanceRecord(
+        testData.mockLockBalance
+      );
 
       vi.spyOn(
         balanceHandler as any,
@@ -432,11 +398,11 @@ describe('BalanceHandler', () => {
       // assert
       expect(result).toEqual([
         {
-          address: mockBalance.address,
-          chain: mockBalance.chain,
+          address: testData.mockColdBalance.address,
+          chain: testData.mockColdBalance.chain,
           balance: {
-            tokenId: mockBalance.tokenId,
-            amount: Number(mockBalance.balance),
+            tokenId: testData.mockColdBalance.tokenId,
+            amount: Number(testData.mockColdBalance.balance),
             name: 'name',
             decimals: 8,
             isNativeToken: true,
@@ -447,6 +413,11 @@ describe('BalanceHandler', () => {
   });
 
   describe('updateChainBatchBalances', () => {
+    beforeEach(async () => {
+      await DatabaseActionMock.clearTables();
+      ChainHandlerMock.resetMock();
+    });
+
     const chain = ETHEREUM_CHAIN;
     const address = '0x123';
     const tokensBatch = ['token1', 'token2'];
@@ -492,9 +463,8 @@ describe('BalanceHandler', () => {
         ChainHandlerMock.getChainMockedFunction(chain, 'getAddressAssets')
       ).toHaveBeenCalledWith(address, tokensBatch);
 
-      const balances = await DatabaseActionMock.testDataSource
-        .getRepository(ChainAddressBalanceEntity)
-        .find({});
+      const balances = await DatabaseActionMock.allChainAddressBalanceRecords();
+
       expect(balances).toHaveLength(3);
       expect(balances[0]).toEqual({
         chain,
@@ -521,6 +491,10 @@ describe('BalanceHandler', () => {
   });
 
   describe('updateChainBalances', () => {
+    beforeEach(async () => {
+      ChainHandlerMock.resetMock();
+    });
+
     /**
      * @target updateChainBalances should successfully update all balances of a chain
      * @scenario
