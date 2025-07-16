@@ -363,25 +363,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
       order.push(payment);
     }
 
-    // calculate input assets
-    let inputAssets: AssetBalance = {
-      nativeToken: 0n,
-      tokens: [],
-    };
-    const inputUtxos = Array.from(new Set(bitcoinTx.inputUtxos));
-    for (let i = 0; i < inputUtxos.length; i++) {
-      const input = JsonBigInt.parse(inputUtxos[i]) as BitcoinRunesUtxo;
-      const inputBalance: AssetBalance = {
-        nativeToken: input.value,
-        tokens: input.runes.map((rune) => ({
-          id: rune.runeId,
-          value: rune.quantity,
-        })),
-      };
-      inputAssets = ChainUtils.sumAssetBalance(inputAssets, inputBalance);
-    }
-
-    // extract runes transfer (parse edicts)
+    // parse runestone
     const rawTx = psbt.data.getTransaction();
     const artifact = runelib.tryDecodeRunestone({
       vout: Transaction.fromBuffer(rawTx).outs.map((out) => ({
@@ -407,8 +389,27 @@ class BitcoinRunesChain extends AbstractUtxoChain<
       );
       return order;
     }
-
     const stone: runelib.RunestoneSpec = artifact;
+
+    // calculate input assets
+    let inputAssets: AssetBalance = {
+      nativeToken: 0n,
+      tokens: [],
+    };
+    const inputUtxos = Array.from(new Set(bitcoinTx.inputUtxos));
+    for (let i = 0; i < inputUtxos.length; i++) {
+      const input = JsonBigInt.parse(inputUtxos[i]) as BitcoinRunesUtxo;
+      const inputBalance: AssetBalance = {
+        nativeToken: input.value,
+        tokens: input.runes.map((rune) => ({
+          id: rune.runeId,
+          value: rune.quantity,
+        })),
+      };
+      inputAssets = ChainUtils.sumAssetBalance(inputAssets, inputBalance);
+    }
+
+    // extract runes transfer (parse edicts)
     for (const edict of stone.edicts ?? []) {
       // skip edict with invalid output index or pointing to change box
       if (edict.output > order.length) continue;
