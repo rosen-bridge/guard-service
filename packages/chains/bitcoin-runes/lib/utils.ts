@@ -25,7 +25,7 @@ export const generateAssetId = (
  * @param nativeSegwitOutputSize
  * @param taprootOutputSize
  */
-export const estimateTxVsize = (
+const estimateTxVsize = (
   inputSize: number,
   opReturnScriptLength: number,
   nativeSegwitOutputSize: number,
