@@ -26,6 +26,7 @@ import {
 } from '@rosen-bridge/evm-address-tx-extractor';
 import { ArbitraryEntity } from './entities/ArbitraryEntity';
 import { ReprocessEntity } from './entities/ReprocessEntity';
+import { ChainAddressBalanceEntity } from './entities/ChainAddressBalanceEntity';
 
 const dbType = Configs.dbType as keyof typeof migrations;
 const dbConfigs = {
@@ -43,6 +44,7 @@ const dbConfigs = {
     AddressTxsEntity,
     ArbitraryEntity,
     ReprocessEntity,
+    ChainAddressBalanceEntity,
   ],
   migrations: [
     ...scannerMigrations[dbType],

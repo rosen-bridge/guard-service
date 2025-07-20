@@ -26,6 +26,7 @@ import EventReprocess from './reprocess/EventReprocess';
 import ArbitraryProcessor from './arbitrary/ArbitraryProcessor';
 import TssHandler from './handlers/TssHandler';
 import { TokenHandler } from './handlers/tokenHandler';
+import BalanceHandler from './handlers/BalanceHandler';
 
 const init = async () => {
   // initialize tokens config
@@ -82,6 +83,9 @@ const init = async () => {
   // initialize MinimumFeeHandler
   await MinimumFeeHandler.init(TokenHandler.getInstance().getTokenMap());
   minimumFeeUpdateJob();
+
+  // initialize BalanceHandler
+  BalanceHandler.init();
 
   // run network scanners
   initScanner();
