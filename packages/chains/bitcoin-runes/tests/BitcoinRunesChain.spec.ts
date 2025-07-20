@@ -342,14 +342,41 @@ describe('BitcoinRunesChain', () => {
     });
 
     /**
+     * @target BitcoinRunesChain.extractTransactionOrder should extract transaction
+     * order successfully even when there is multiple change boxes
+     * @dependencies
+     * @scenario
+     * - mock PaymentTransaction
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return mocked transaction order
+     */
+    it('should extract transaction order successfully even when there is multiple change boxes', async () => {
+      // mock PaymentTransaction
+      const paymentTx = BitcoinRunesTransaction.fromJson(
+        testData.transaction4PaymentTransaction
+      );
+      const expectedOrder = testData.transaction4Order;
+
+      // run test
+      const bitcoinChain = await testUtils.generateChainObject(network);
+      const result = bitcoinChain.extractTransactionOrder(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(expectedOrder);
+    });
+
+    /**
      * @target BitcoinRunesChain.extractTransactionOrder should successfully skip rune transfer
      * when tx has no Runestone
      * @dependencies
      * @scenario
-     * - mock PaymentTransaction with OP_RETURN output
-     * - run test & check thrown exception
+     * - mock PaymentTransaction with custom OP_RETURN output
+     * - run test
+     * - check returned value
      * @expected
-     * - it should throw Error
+     * - it should return mocked transaction order without token
      */
     it('should successfully skip rune transfer when tx has no Runestone', async () => {
       // mock PaymentTransaction
@@ -381,10 +408,11 @@ describe('BitcoinRunesChain', () => {
      * when Runestone is a cenotaph
      * @dependencies
      * @scenario
-     * - mock PaymentTransaction with OP_RETURN output
-     * - run test & check thrown exception
+     * - mock PaymentTransaction where Runestone is a cenotaph
+     * - run test
+     * - check returned value
      * @expected
-     * - it should throw Error
+     * - it should return mocked transaction order without token
      */
     it('should successfully skip rune transfer when Runestone is a cenotaph', async () => {
       // mock PaymentTransaction
@@ -892,6 +920,62 @@ describe('BitcoinRunesChain', () => {
       // check returned value
       expect(result).toEqual(false);
     });
+
+    /**
+     * @target: BitcoinRunesChain.verifyTransactionExtraConditions should return false
+     * when Runestone has no edicts
+     * @dependencies
+     * @scenario
+     * - mock a payment transaction with Runestone with empty edicts
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when Runestone has no edicts', async () => {
+      // mock a payment transaction
+      const paymentTx = BitcoinRunesTransaction.fromJson(
+        testData.transaction1InvalidForms.generatePaymentTxString(
+          testData.transaction1InvalidForms.txData.noEdict
+        )
+      );
+
+      // run test
+      const bitcoinRunesChain = await generateChainObject(network);
+      const result =
+        bitcoinRunesChain.verifyTransactionExtraConditions(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target: BitcoinRunesChain.verifyTransactionExtraConditions should return false
+     * when Runestone has redundant edicts
+     * @dependencies
+     * @scenario
+     * - mock a payment transaction with Runestone that has two edicts with same Rune and output
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when Runestone has redundant edicts', async () => {
+      // mock a payment transaction
+      const paymentTx = BitcoinRunesTransaction.fromJson(
+        testData.transaction1InvalidForms.generatePaymentTxString(
+          testData.transaction1InvalidForms.txData.redundantEdict
+        )
+      );
+
+      // run test
+      const bitcoinRunesChain = await generateChainObject(network);
+      const result =
+        bitcoinRunesChain.verifyTransactionExtraConditions(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
   });
 
   describe('isTxValid', () => {
@@ -944,6 +1028,7 @@ describe('BitcoinRunesChain', () => {
      * - check if function got called
      * @expected
      * - it should return false and as expected invalidation
+     * - `isBoxUnspentAndValidSpy` should have been called with tx input ids
      */
     it('should return false when at least one input id is invalid', async () => {
       const payment1 = BitcoinRunesTransaction.fromJson(
