@@ -6,6 +6,7 @@ import {
 export interface BitcoinRunesConfigs extends ChainConfigs {
   aggregatedPublicKey: string;
   txFeeSlippage: number;
+  maxRunesPerUtxo: number;
 }
 
 export interface BitcoinTransactionJsonModel
