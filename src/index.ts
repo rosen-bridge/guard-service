@@ -8,9 +8,8 @@ import { initScanner } from './jobs/initScanner';
 import { healthCheckStart } from './jobs/healthCheck';
 import ChainHandler from './handlers/ChainHandler';
 import TxAgreement from './agreement/TxAgreement';
-import MultiSigHandler from './guard/multisig/MultiSigHandler';
+import MultiSigHandler from './handlers/MultiSigHandler';
 import { configUpdateJob } from './jobs/guardConfigUpdate';
-import MultiSigUtils from './guard/multisig/MultiSigUtils';
 import { DatabaseAction } from './db/DatabaseAction';
 import { dataSource } from './db/dataSource';
 import { tssUpdateJob } from './jobs/tss';
@@ -50,7 +49,7 @@ const init = async () => {
   await DetectionHandler.init();
 
   // initialize tss multiSig object
-  await MultiSigHandler.init(Configs.guardSecret);
+  await MultiSigHandler.init();
   initializeMultiSigJobs();
 
   // start tss instance
@@ -58,8 +57,7 @@ const init = async () => {
   tssUpdateJob();
 
   // initialize chain objects
-  const chainHandler = ChainHandler.getInstance();
-  MultiSigUtils.getInstance().init(chainHandler.getErgoChain().getStateContext);
+  ChainHandler.getInstance();
 
   // guard config update job
   const pkHandler = GuardPkHandler.getInstance();

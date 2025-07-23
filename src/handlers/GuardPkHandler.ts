@@ -1,4 +1,4 @@
-import MultiSigHandler from '../guard/multisig/MultiSigHandler';
+import MultiSigHandler from '../handlers/MultiSigHandler';
 import Configs from '../configs/Configs';
 import { rosenConfig } from '../configs/RosenConfig';
 import ChainHandler from './ChainHandler';
@@ -17,7 +17,7 @@ class GuardPkHandler {
 
   private constructor() {
     this.dependentModuleUpdateFunctions = [
-      MultiSigHandler.getInstance().handlePublicKeysChange,
+      MultiSigHandler.getInstance().getErgoMultiSig().handlePublicKeysChange,
     ];
   }
 

@@ -25,7 +25,7 @@ import ErgoExplorerNetwork, {
 } from '@rosen-chains/ergo-explorer-network';
 import GuardsCardanoConfigs from '../configs/GuardsCardanoConfigs';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
-import MultiSigHandler from '../guard/multisig/MultiSigHandler';
+import MultiSigHandler from '../handlers/MultiSigHandler';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { BLOCKFROST_NETWORK } from '@rosen-chains/cardano-blockfrost-network';
 import CardanoBlockFrostNetwork from '@rosen-chains/cardano-blockfrost-network';
@@ -108,7 +108,8 @@ class ChainHandler {
           `No case is defined for network [${GuardsErgoConfigs.chainNetworkName}]`
         );
     }
-    const multiSigSignFunction = MultiSigHandler.getInstance().sign;
+    const multiSigSignFunction =
+      MultiSigHandler.getInstance().getErgoMultiSig().sign;
     return new ErgoChain(
       network,
       GuardsErgoConfigs.chainConfigs,
