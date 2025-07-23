@@ -1,4 +1,4 @@
-import MultiSigHandler from '../handlers/MultiSigHandler';
+import MultiSigHandler from './MultiSigHandler';
 import Configs from '../configs/Configs';
 import { rosenConfig } from '../configs/RosenConfig';
 import ChainHandler from './ChainHandler';
