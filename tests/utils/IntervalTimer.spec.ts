@@ -8,7 +8,6 @@ describe('IntervalTimer', () => {
 
   afterEach(() => {
     vi.useRealTimers();
-    vi.restoreAllMocks();
   });
 
   /**
