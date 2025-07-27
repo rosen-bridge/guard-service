@@ -16,6 +16,7 @@ import { signRoute } from '../api/signTx';
 import rateLimit from '@fastify/rate-limit';
 import { arbitraryOrderRoute } from '../api/arbitrary';
 import { eventReprocessRoute } from '../api/reprocess';
+import { balanceRoutes } from '../api/balance';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -106,6 +107,7 @@ const initApiServer = async () => {
   await apiServer.register(signRoute);
   await apiServer.register(arbitraryOrderRoute);
   await apiServer.register(eventReprocessRoute);
+  await apiServer.register(balanceRoutes);
 
   apiServer.get('/', (request, reply) => {
     reply.redirect('/swagger');
