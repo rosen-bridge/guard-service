@@ -62,7 +62,6 @@ export const InfoResponseSchema = Type.Object({
   }),
   rsnTokenId: Type.String(),
   emissionTokenId: Type.String(),
-  balances: LockBalanceSchema,
 });
 
 export const HealthStatusTypeSchema = Type.Object({
