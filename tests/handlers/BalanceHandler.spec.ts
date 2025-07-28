@@ -257,98 +257,21 @@ describe('BalanceHandler', () => {
     });
   });
 
-  describe('getLockAddressAssets', () => {
+  describe('getAddressAssets', () => {
     beforeEach(async () => {
       await DatabaseActionMock.clearTables();
       ChainHandlerMock.resetMock();
     });
 
     /**
-     * @target getLockAddressAssets should successfully read balance records of lock addresses from database
+     * @target getAddressAssets should successfully read balance records of cold addresses from database
      * @scenario
      * - stub ChainHandler getChainConfigs to return a mock chainConfig for supported chains
      * - insert 2 ChainAddressBalanceEntity objects into database for lock and cold addresses
      * - stub balanceEntityToAddressBalance to return a mock object
-     * - call getLockAddressAssets
+     * - call getAddressAssets
      * @expected
-     * - getLockAddressAssets should have resolved to an array of one AddressBalance object corresponding to lockAddress
-     */
-    it('should successfully read balance records of lock addresses from database', async () => {
-      // arrange
-      for (const chain of SUPPORTED_CHAINS) {
-        ChainHandlerMock.mockChainName(chain);
-        ChainHandlerMock.mockChainFunction(
-          chain,
-          'getChainConfigs',
-          {
-            addresses: {
-              lock: `${chain}_mock_lock_address`,
-              cold: `${chain}_mock_cold_address`,
-            },
-          },
-          false
-        );
-      }
-
-      await DatabaseActionMock.insertChainAddressBalanceRecord(
-        testData.mockLockBalance
-      );
-      await DatabaseActionMock.insertChainAddressBalanceRecord(
-        testData.mockColdBalance
-      );
-
-      vi.spyOn(
-        balanceHandler as any,
-        'balanceEntityToAddressBalance'
-      ).mockImplementation((balance: any) => {
-        return {
-          address: balance.address,
-          chain: balance.chain,
-          balance: {
-            tokenId: balance.tokenId,
-            amount: Number(balance.balance),
-            name: 'name',
-            decimals: 8,
-            isNativeToken: true,
-          },
-        };
-      });
-
-      // act
-      const result = await balanceHandler.getLockAddressAssets();
-
-      // assert
-      expect(result).toEqual([
-        {
-          address: testData.mockLockBalance.address,
-          chain: testData.mockLockBalance.chain,
-          balance: {
-            tokenId: testData.mockLockBalance.tokenId,
-            amount: Number(testData.mockLockBalance.balance),
-            name: 'name',
-            decimals: 8,
-            isNativeToken: true,
-          },
-        },
-      ]);
-    });
-  });
-
-  describe('getColdAddressAssets', () => {
-    beforeEach(async () => {
-      await DatabaseActionMock.clearTables();
-      ChainHandlerMock.resetMock();
-    });
-
-    /**
-     * @target getColdAddressAssets should successfully read balance records of cold addresses from database
-     * @scenario
-     * - stub ChainHandler getChainConfigs to return a mock chainConfig for supported chains
-     * - insert 2 ChainAddressBalanceEntity objects into database for lock and cold addresses
-     * - stub balanceEntityToAddressBalance to return a mock object
-     * - call getColdAddressAssets
-     * @expected
-     * - getColdAddressAssets should have resolved to an array of one AddressBalance object corresponding to coldAddress
+     * - getAddressAssets should have resolved to an array of one AddressBalance object corresponding to coldAddress
      */
     it('should successfully read balance records of cold addresses from database', async () => {
       // arrange
@@ -392,7 +315,7 @@ describe('BalanceHandler', () => {
       });
 
       // act
-      const result = await balanceHandler.getColdAddressAssets();
+      const result = await balanceHandler.getAddressAssets('cold');
 
       // assert
       expect(result).toEqual([
@@ -402,6 +325,76 @@ describe('BalanceHandler', () => {
           balance: {
             tokenId: testData.mockColdBalance.tokenId,
             amount: Number(testData.mockColdBalance.balance),
+            name: 'name',
+            decimals: 8,
+            isNativeToken: true,
+          },
+        },
+      ]);
+    });
+
+    /**
+     * @target getAddressAssets should successfully read balance records of lock addresses from database
+     * @scenario
+     * - stub ChainHandler getChainConfigs to return a mock chainConfig for supported chains
+     * - insert 2 ChainAddressBalanceEntity objects into database for lock and cold addresses
+     * - stub balanceEntityToAddressBalance to return a mock object
+     * - call getAddressAssets
+     * @expected
+     * - getAddressAssets should have resolved to an array of one AddressBalance object corresponding to lockAddress
+     */
+    it('should successfully read balance records of lock addresses from database', async () => {
+      // arrange
+      for (const chain of SUPPORTED_CHAINS) {
+        ChainHandlerMock.mockChainName(chain);
+        ChainHandlerMock.mockChainFunction(
+          chain,
+          'getChainConfigs',
+          {
+            addresses: {
+              lock: `${chain}_mock_lock_address`,
+              cold: `${chain}_mock_cold_address`,
+            },
+          },
+          false
+        );
+      }
+
+      await DatabaseActionMock.insertChainAddressBalanceRecord(
+        testData.mockLockBalance
+      );
+      await DatabaseActionMock.insertChainAddressBalanceRecord(
+        testData.mockColdBalance
+      );
+
+      vi.spyOn(
+        balanceHandler as any,
+        'balanceEntityToAddressBalance'
+      ).mockImplementation((balance: any) => {
+        return {
+          address: balance.address,
+          chain: balance.chain,
+          balance: {
+            tokenId: balance.tokenId,
+            amount: Number(balance.balance),
+            name: 'name',
+            decimals: 8,
+            isNativeToken: true,
+          },
+        };
+      });
+
+      // act
+      const result = await balanceHandler.getAddressAssets('lock');
+
+      // assert
+      expect(result).toEqual([
+        {
+          address: testData.mockLockBalance.address,
+          chain: testData.mockLockBalance.chain,
+          balance: {
+            tokenId: testData.mockLockBalance.tokenId,
+            amount: Number(testData.mockLockBalance.balance),
             name: 'name',
             decimals: 8,
             isNativeToken: true,

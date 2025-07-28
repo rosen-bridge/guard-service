@@ -115,45 +115,25 @@ class BalanceHandler {
   };
 
   /**
-   * get lock address assets of supported chains
+   * get cold or lock address assets of supported chains
    * @returns promise of AddressBalance array
    */
-  getLockAddressAssets = async (): Promise<AddressBalance[]> => {
-    const lockAddresses: Set<string> = new Set();
+  getAddressAssets = async (
+    address: 'cold' | 'lock'
+  ): Promise<AddressBalance[]> => {
+    const addresses: string[] = [];
 
     for (const chain of SUPPORTED_CHAINS) {
       const chainConfig = ChainHandler.getInstance()
         .getChain(chain)
         .getChainConfigs();
-      lockAddresses.add(chainConfig.addresses.lock);
+      addresses.push(chainConfig.addresses[address]);
     }
 
     const balances =
-      await DatabaseAction.getInstance().getChainAddressBalanceByAddresses([
-        ...lockAddresses,
-      ]);
-
-    return balances.map(this.balanceEntityToAddressBalance);
-  };
-
-  /**
-   * get cold address assets of supported chains
-   * @returns promise of AddressBalance array
-   */
-  getColdAddressAssets = async (): Promise<AddressBalance[]> => {
-    const coldAddresses: Set<string> = new Set();
-
-    for (const chain of SUPPORTED_CHAINS) {
-      const chainConfig = ChainHandler.getInstance()
-        .getChain(chain)
-        .getChainConfigs();
-      coldAddresses.add(chainConfig.addresses.cold);
-    }
-
-    const balances =
-      await DatabaseAction.getInstance().getChainAddressBalanceByAddresses([
-        ...coldAddresses,
-      ]);
+      await DatabaseAction.getInstance().getChainAddressBalanceByAddresses(
+        addresses
+      );
 
     return balances.map(this.balanceEntityToAddressBalance);
   };
