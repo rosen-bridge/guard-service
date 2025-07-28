@@ -35,6 +35,7 @@ import {
 import { ArbitraryEntity } from '../../../src/db/entities/ArbitraryEntity';
 import { ReprocessEntity } from '../../../src/db/entities/ReprocessEntity';
 import { ReprocessStatus } from '../../../src/reprocess/Interfaces';
+import { ChainAddressBalanceEntity } from '../../../src/db/entities/ChainAddressBalanceEntity';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -57,6 +58,7 @@ class DatabaseActionMock {
       ReprocessEntity,
       PermitEntity,
       CollateralEntity,
+      ChainAddressBalanceEntity,
     ],
     migrations: [
       ...scannerMigrations.sqlite,
@@ -97,6 +99,7 @@ class DatabaseActionMock {
     await this.testDatabase.ArbitraryRepository.clear();
     await this.testDatabase.ReprocessRepository.clear();
     await this.testDataSource.getRepository(BlockEntity).clear();
+    await this.testDatabase.ChainAddressBalanceRepository.clear();
   };
 
   /**
@@ -466,6 +469,28 @@ class DatabaseActionMock {
     return await this.testDatabase.ReprocessRepository.createQueryBuilder()
       .select()
       .getMany();
+  };
+
+  /**
+   * returns all records in ChainAddressBalance table in database
+   */
+  static allChainAddressBalanceRecords = async () => {
+    return await this.testDatabase.ChainAddressBalanceRepository.createQueryBuilder()
+      .select()
+      .getMany();
+  };
+
+  /**
+   * inserts a record to ChainAddressBalance table in database
+   * @param record
+   */
+  static insertChainAddressBalanceRecord = async (
+    record: ChainAddressBalanceEntity
+  ) => {
+    await this.testDatabase.ChainAddressBalanceRepository.createQueryBuilder()
+      .insert()
+      .values(record)
+      .execute();
   };
 }
 

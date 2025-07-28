@@ -9,6 +9,9 @@ import ArbitraryProcessor from '../arbitrary/ArbitraryProcessor';
 import EventSynchronization from '../synchronization/EventSynchronization';
 import DetectionHandler from '../handlers/DetectionHandler';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+import BalanceHandler from '../handlers/BalanceHandler';
+import IntervalTimer from '../utils/IntervalTimer';
+import { SUPPORTED_CHAINS } from '../utils/constants';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -139,6 +142,27 @@ const detectionUpdateJob = () => {
 };
 
 /**
+ * runs Balance update job
+ */
+const balanceUpdateJob = () => {
+  for (const chain of SUPPORTED_CHAINS) {
+    new IntervalTimer(
+      Configs.balanceHandler[chain].updateInterval * 1000,
+      async () => {
+        try {
+          await BalanceHandler.getInstance().updateChainBalances(chain);
+        } catch (error) {
+          logger.error(
+            `Balance update job of chain [${chain}] failed with error: ${error}`
+          );
+          if (error.stack) logger.error(error.stack);
+        }
+      }
+    ).start();
+  }
+};
+
+/**
  * runs all processors and their related jobs
  */
 const runProcessors = () => {
@@ -153,6 +177,7 @@ const runProcessors = () => {
   );
   setTimeout(eventSyncJob, Configs.eventSyncInterval * 1000);
   setTimeout(detectionUpdateJob, Configs.detectionUpdateInterval * 1000);
+  balanceUpdateJob();
 };
 
 export { runProcessors };
