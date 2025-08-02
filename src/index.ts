@@ -25,6 +25,7 @@ import EventReprocess from './reprocess/EventReprocess';
 import ArbitraryProcessor from './arbitrary/ArbitraryProcessor';
 import TssHandler from './handlers/TssHandler';
 import { TokenHandler } from './handlers/tokenHandler';
+import { MultiSigUtils } from '@rosen-bridge/ergo-multi-sig';
 
 const init = async () => {
   // initialize tokens config
@@ -48,8 +49,12 @@ const init = async () => {
   // initialize DetectionHandler
   await DetectionHandler.init();
 
+  // initialize multiSig utils object
+  const multiSigUtils = new MultiSigUtils(() =>
+    ChainHandler.getInstance().getErgoChain().getStateContext()
+  );
   // initialize tss multiSig object
-  await MultiSigHandler.init();
+  await MultiSigHandler.init(multiSigUtils);
   initializeMultiSigJobs();
 
   // start tss instance

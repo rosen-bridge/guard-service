@@ -3,7 +3,6 @@ import {
   MultiSigUtils,
 } from '@rosen-bridge/ergo-multi-sig';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
-import ChainHandler from './ChainHandler';
 import Configs from '../configs/Configs';
 import { RosenDialerNode } from '@rosen-bridge/dialer';
 import DetectionHandler from './DetectionHandler';
@@ -17,13 +16,10 @@ class MultiSigHandler {
   protected static dialer: RosenDialerNode;
   protected ergoMultiSig: ErgoMultiSig;
 
-  private constructor() {
-    const chainHandler = ChainHandler.getInstance();
+  private constructor(multiSigUtilsInstance: MultiSigUtils) {
     this.ergoMultiSig = new ErgoMultiSig({
       logger: DefaultLoggerFactory.getInstance().getLogger('MultiSig'),
-      multiSigUtilsInstance: new MultiSigUtils(
-        chainHandler.getErgoChain().getStateContext
-      ),
+      multiSigUtilsInstance: multiSigUtilsInstance,
       messageEnc: Configs.tssKeys.encryptor,
       secretHex: Configs.guardSecret,
       txSignTimeout: Configs.txSignTimeout,
@@ -35,9 +31,9 @@ class MultiSigHandler {
     });
   }
 
-  static init = async () => {
+  static init = async (multiSigUtilsInstance: MultiSigUtils) => {
     MultiSigHandler.dialer = RosenDialer.getInstance().getDialer();
-    MultiSigHandler.instance = new MultiSigHandler();
+    MultiSigHandler.instance = new MultiSigHandler(multiSigUtilsInstance);
 
     // subscribe to channels
     MultiSigHandler.dialer.subscribeChannel(
