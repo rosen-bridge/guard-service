@@ -40,6 +40,7 @@ import { ArbitraryEntity } from './entities/ArbitraryEntity';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 import { ReprocessEntity } from './entities/ReprocessEntity';
 import { ReprocessStatus } from '../reprocess/Interfaces';
+import { ChainAddressBalanceEntity } from './entities/ChainAddressBalanceEntity';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -57,6 +58,7 @@ class DatabaseAction {
   EventView: Repository<EventView>;
   ArbitraryRepository: Repository<ArbitraryEntity>;
   ReprocessRepository: Repository<ReprocessEntity>;
+  ChainAddressBalanceRepository: Repository<ChainAddressBalanceEntity>;
 
   txSignSemaphore = new Semaphore(1);
 
@@ -75,6 +77,9 @@ class DatabaseAction {
     this.EventView = this.dataSource.getRepository(EventView);
     this.ArbitraryRepository = this.dataSource.getRepository(ArbitraryEntity);
     this.ReprocessRepository = this.dataSource.getRepository(ReprocessEntity);
+    this.ChainAddressBalanceRepository = this.dataSource.getRepository(
+      ChainAddressBalanceEntity
+    );
   }
 
   /**
@@ -997,6 +1002,44 @@ class DatabaseAction {
         status: status,
       }
     );
+  };
+
+  /**
+   * gets all ChainAddressBalanceEntity by array of tokenIds
+   * @param tokenIds
+   * @returns array of ChainAddressBalanceEntity
+   */
+  getChainAddressBalanceByTokenIds = async (
+    tokenIds: string[]
+  ): Promise<ChainAddressBalanceEntity[]> => {
+    return await this.ChainAddressBalanceRepository.findBy({
+      tokenId: In(tokenIds),
+    });
+  };
+
+  /**
+   * gets all ChainAddressBalanceEntity by array of addresses
+   * @param addresses
+   * @returns array of ChainAddressBalanceEntity
+   */
+  getChainAddressBalanceByAddresses = async (
+    addresses: string[]
+  ): Promise<ChainAddressBalanceEntity[]> => {
+    return await this.ChainAddressBalanceRepository.findBy({
+      address: In(addresses),
+    });
+  };
+
+  /**
+   * upserts array of ChainAddressBalanceEntity objects
+   * @param records
+   */
+  upsertChainAddressBalances = async (records: ChainAddressBalanceEntity[]) => {
+    return await this.ChainAddressBalanceRepository.upsert(records, [
+      'chain',
+      'address',
+      'tokenId',
+    ]);
   };
 }
 

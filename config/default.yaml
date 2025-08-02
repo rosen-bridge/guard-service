@@ -275,3 +275,30 @@ notification:
     hasBeenUnstableForAWhile: 900
     hasBeenUnknownForAWhile: 900
     isStillUnhealthy: 86400 # 1 day
+balanceHandler:
+  default:
+    updateInterval: 300
+    updateBatchInterval: 60
+  ergo:
+    # updateInterval: ...
+    # updateBatchInterval: ...
+    tokensPerIteration:
+      node: 30
+      explorer: 30
+  cardano:
+    tokensPerIteration:
+      blockfrost: 30
+      koios: 30
+  bitcoin:
+    tokensPerIteration:
+      esplora: 30
+  doge:
+    tokensPerIteration:
+      esplora: 30
+      blockcypher: 30
+  ethereum:
+    tokensPerIteration:
+      rpc: 30
+  binance:
+    tokensPerIteration:
+      rpc: 30

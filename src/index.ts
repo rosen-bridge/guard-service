@@ -25,6 +25,7 @@ import EventReprocess from './reprocess/EventReprocess';
 import ArbitraryProcessor from './arbitrary/ArbitraryProcessor';
 import TssHandler from './handlers/TssHandler';
 import { TokenHandler } from './handlers/tokenHandler';
+import BalanceHandler from './handlers/BalanceHandler';
 import { MultiSigUtils } from '@rosen-bridge/ergo-multi-sig';
 
 const init = async () => {
@@ -85,6 +86,9 @@ const init = async () => {
   // initialize MinimumFeeHandler
   await MinimumFeeHandler.init(TokenHandler.getInstance().getTokenMap());
   minimumFeeUpdateJob();
+
+  // initialize BalanceHandler
+  BalanceHandler.init();
 
   // run network scanners
   initScanner();
