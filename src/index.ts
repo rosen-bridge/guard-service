@@ -25,6 +25,7 @@ import DetectionHandler from './handlers/DetectionHandler';
 import EventReprocess from './reprocess/EventReprocess';
 import ArbitraryProcessor from './arbitrary/ArbitraryProcessor';
 import TssHandler from './handlers/TssHandler';
+import PublicStatusHandler from './handlers/PublicStatusHandler';
 import { TokenHandler } from './handlers/tokenHandler';
 import BalanceHandler from './handlers/BalanceHandler';
 
@@ -40,6 +41,9 @@ const init = async () => {
 
   // initialize DatabaseAction
   DatabaseAction.init(dataSource);
+
+  // initialize PublicStatusHandler
+  PublicStatusHandler.init(dataSource);
 
   // initialize Dialer
   await RosenDialer.init();

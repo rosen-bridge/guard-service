@@ -8,6 +8,7 @@ import { mockPaymentTransaction } from '../agreement/testData';
 import DatabaseActionMock from '../db/mocked/DatabaseAction.mock';
 import { TransactionStatus } from '../../src/utils/constants';
 import GuardPkHandler from '../../src/handlers/GuardPkHandler';
+import PublicStatusHandlerMock from '../handlers/mocked/PublicStatusHandler.mock';
 
 describe('signTx', () => {
   const requiredSign = 3;
@@ -20,6 +21,9 @@ describe('signTx', () => {
       mockedServer.register(signRoute);
       ChainHandlerMock.resetMock();
       await DatabaseActionMock.clearTables();
+
+      PublicStatusHandlerMock.resetMock();
+      PublicStatusHandlerMock.mock();
     });
 
     afterEach(() => {
@@ -32,6 +36,7 @@ describe('signTx', () => {
      * - ChainHandler
      * - database
      * @scenario
+     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
      * - mock PaymentTransaction
      * - mock ChainHandler `getChain`
      *   - mock `rawTxToPaymentTransaction`
@@ -41,8 +46,12 @@ describe('signTx', () => {
      * @expected
      * - it should return status code 200
      * - tx should be inserted into db
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once
      */
     it('should insert new tx successfully', async () => {
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
       // mock PaymentTransaction
       const paymentTx = mockPaymentTransaction(
         TransactionType.manual,
@@ -91,6 +100,12 @@ describe('signTx', () => {
         null,
         paymentTx.network,
         paymentTx.txType,
+      ]);
+
+      expect(updatePublicTxStatusSpy).toHaveBeenCalledOnce();
+      expect(updatePublicTxStatusSpy.mock.calls[0]).toEqual([
+        paymentTx.txId,
+        TransactionStatus.approved,
       ]);
     });
 

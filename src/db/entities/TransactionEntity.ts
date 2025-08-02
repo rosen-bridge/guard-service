@@ -26,7 +26,7 @@ export class TransactionEntity {
     cascade: true,
     nullable: true,
   })
-  event: Relation<ConfirmedEventEntity>;
+  event: Relation<ConfirmedEventEntity> | null;
 
   @Column('varchar', {
     nullable: true,
@@ -46,5 +46,5 @@ export class TransactionEntity {
     cascade: true,
     nullable: true,
   })
-  order: Relation<ArbitraryEntity>;
+  order: Relation<ArbitraryEntity> | null;
 }
