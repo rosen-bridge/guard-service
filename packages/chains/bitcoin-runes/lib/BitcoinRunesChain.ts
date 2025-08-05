@@ -6,6 +6,7 @@ import {
   BlockInfo,
   ChainUtils,
   GET_BOX_API_LIMIT,
+  ImpossibleBehavior,
   NotEnoughAssetsError,
   NotEnoughValidBoxesError,
   PaymentOrder,
@@ -16,12 +17,7 @@ import {
   TransactionType,
   ValidityStatus,
 } from '@rosen-chains/abstract-chain';
-import {
-  BITCOIN_CHAIN,
-  BTC,
-  getPsbtTxInputBoxId,
-  SEGWIT_INPUT_WEIGHT_UNIT,
-} from '@rosen-chains/bitcoin';
+import { BITCOIN_CHAIN, BTC, getPsbtTxInputBoxId } from '@rosen-chains/bitcoin';
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 import JsonBigInt from '@rosen-bridge/json-bigint';
 import { BitcoinRunesBoxSelection } from '@rosen-bridge/bitcoin-runes-utxo-selection';
@@ -34,13 +30,20 @@ import {
   BitcoinRunesUtxo,
   TssSignFunction,
 } from './types';
-import { BITCOIN_RUNES_CHAIN, OP_RETURN_OPCODE } from './constants';
+import {
+  BITCOIN_RUNES_CHAIN,
+  MINIMUM_BTC_FOR_NATIVE_SEGWIT_OUTPUT,
+  NATIVE_SEGWIT_SCRIPT_PREFIX,
+  OP_RETURN_OPCODE,
+} from './constants';
 import Serializer from './Serializer';
 import AbstractBitcoinRunesNetwork from './network/AbstractBitcoinRunesNetwork';
 import {
   generateAssetId,
   generateFeeEstimatorWithAssumptions,
   generateFeeEstimatorWithPsbt,
+  splitPaymentOrders,
+  sumBitcoinRunesUtxosBalance,
 } from './utils';
 
 class BitcoinRunesChain extends AbstractUtxoChain<
@@ -82,6 +85,19 @@ class BitcoinRunesChain extends AbstractUtxoChain<
 
   /**
    * generates unsigned PaymentTransaction for payment order
+   *
+   * Note: **all items of order should have at least one token**
+   *
+   * Note: this function creates a transaction for each token (e.g., having two different
+   * tokens in single order results in two transactions. also having the same token in
+   * two items of the order results in two transactions)
+   *
+   * Note: the structure of each generated transaction is as follow:
+   * - (optional) universal change (only if there are multiple tokens in the input)
+   * - transferring rune change
+   * - OP_RETURN
+   * - order output
+   * - BTC change
    * @param eventId the id of event
    * @param txType transaction type
    * @param order the payment order (list of single payments)
@@ -103,14 +119,21 @@ class BitcoinRunesChain extends AbstractUtxoChain<
     );
     const feeRatio = await this.network.getFeeRatio();
 
+    // split the order
+    const orders = splitPaymentOrders(order, this.getMinimumNativeToken());
+    this.logger.debug(`Splitted order: ${JsonBigInt.stringify(orders)}`);
+
     // calculate required assets
-    const minUtxoValue = this.wrapBtc(
-      this.minimumMeaningfulSatoshi(feeRatio)
-    ).amount;
-    const requiredAssets = order
+    const requiredAssets = orders
       .map((order) => order.assets)
       .reduce(ChainUtils.sumAssetBalance, {
-        nativeToken: minUtxoValue,
+        // There are two additional utxos both into native-segwit output
+        // (universal change, which may be omitted, and the transferring rune change)
+        // these additional utxos are per each order item, as a separate transaction
+        // will be generated for them
+        nativeToken: this.wrapBtc(
+          MINIMUM_BTC_FOR_NATIVE_SEGWIT_OUTPUT * 2n * BigInt(orders.length)
+        ).amount,
         tokens: [],
       });
     this.logger.debug(
@@ -125,62 +148,6 @@ class BitcoinRunesChain extends AbstractUtxoChain<
         `Locked assets cannot cover required assets. BTC: ${neededBtc}, Runes: ${neededRunes}`
       );
     }
-
-    // generate psbt and runestone
-    const psbt = new Psbt();
-    const edicts: runelib.RunestoneSpec['edicts'] = [];
-
-    // check order
-    if (order.length > 1) {
-      throw Error(`Bitcoin Runes currently supports single payment only`);
-    }
-    const isFirstOutputNativeSegwit = address
-      .toOutputScript(order[0].address)
-      .toString('hex')
-      .startsWith('0014');
-
-    // add outputs
-    for (let i = 0; i < order.length; i++) {
-      const payment = order[i];
-      if (payment.extra) {
-        throw Error(
-          'Bitcoin Runes does not support extra data in payment order'
-        );
-      }
-      const outputAddressPrefix = payment.address.slice(0, 4);
-      if (outputAddressPrefix !== 'bc1q' && outputAddressPrefix !== 'bc1p') {
-        throw Error(
-          'Bitcoin Runes supports payments only to native-segwit or taproot addresses'
-        );
-      }
-
-      // create order output
-      psbt.addOutput({
-        script: address.toOutputScript(payment.address),
-        value: Number(this.unwrapBtc(payment.assets.nativeToken).amount),
-      });
-
-      // add runes transfer to edicts list
-      payment.assets.tokens.forEach((token) => {
-        const [blockId, txIndex] = token.id.split(':');
-        edicts.push({
-          id: {
-            block: BigInt(blockId),
-            tx: Number(txIndex),
-          },
-          amount: this.tokenMap.unwrapAmount(token.id, token.value, this.CHAIN)
-            .amount,
-          output: i,
-        });
-      });
-    }
-
-    // generate runes data and add OP_RETURN output
-    // TODO: the runestone will be modified later and new edicts will be added (local:ergo/rosen-bridge/rosen-chains#170)
-    const draftRunestone = runelib.encodeRunestone({
-      edicts: edicts,
-      pointer: order.length + 1, // the 2nd output after the last target output (1st one is OP_RETURN)
-    });
 
     // generate utxo-selection parameters
     const forbiddenBoxIds = unsignedTransactions.flatMap((paymentTx) =>
@@ -213,106 +180,230 @@ class BitcoinRunesChain extends AbstractUtxoChain<
     }
     const utxoIterator = generator();
 
-    // generate fee estimator
-    const estimateFee = generateFeeEstimatorWithAssumptions(
-      isFirstOutputNativeSegwit,
-      draftRunestone.encodedRunestone.length,
-      feeRatio
-    );
+    // generate a transaction for each item of order
+    const transactions: BitcoinRunesTransaction[] = [];
+    for (const order of orders) {
+      // generate psbt and Runestone
+      const psbt = new Psbt();
+      const edicts: runelib.RunestoneSpec['edicts'] = [];
+      const orderOutputs: Array<Parameters<typeof psbt.addOutput>[0]> = [];
 
-    // fetch input boxes
-    const unwrappedRequiredAssets = this.unwrapAssetBalance(requiredAssets);
-    const coveredBoxes = await this.boxSelection.getCoveringBoxes(
-      unwrappedRequiredAssets,
-      forbiddenBoxIds,
-      trackMap,
-      utxoIterator,
-      this.minimumMeaningfulSatoshi(feeRatio),
-      this.configs.maxRunesPerUtxo,
-      estimateFee
-    );
-    if (!coveredBoxes.covered) {
-      throw new NotEnoughValidBoxesError(
-        `Available boxes didn't cover required assets. Required assets: ${JsonBigInt.stringify(
-          unwrappedRequiredAssets
-        )}`
-      );
-    }
+      // check order
+      if (order.extra) {
+        throw Error(
+          'Bitcoin Runes does not support extra data in payment order'
+        );
+      }
+      const outputAddressPrefix = order.address.slice(0, 4);
+      if (outputAddressPrefix !== 'bc1q' && outputAddressPrefix !== 'bc1p') {
+        throw Error(
+          'Bitcoin Runes supports payments only to native-segwit or taproot addresses'
+        );
+      }
+      if (order.assets.tokens.length !== 1) {
+        throw new ImpossibleBehavior(
+          `Bitcoin Runes order should have exactly 1 token after split while order [${JsonBigInt.stringify(
+            order
+          )}] does not`
+        );
+      }
 
-    // add inputs
-    coveredBoxes.boxes.forEach((box) => {
-      psbt.addInput({
-        hash: box.txId,
-        index: box.index,
-        witnessUtxo: {
-          script: Buffer.from(this.lockScript, 'hex'),
-          value: Number(box.value),
+      // add runes transfer to edicts list
+      const token = order.assets.tokens[0];
+      const [blockId, txIndex] = token.id.split(':');
+      edicts.push({
+        id: {
+          block: BigInt(blockId),
+          tx: Number(txIndex),
         },
+        amount: this.tokenMap.unwrapAmount(token.id, token.value, this.CHAIN)
+          .amount,
+        output: 3, // there are 3 UTxOs before order UTxOs
       });
-    });
 
-    const changeOutputs: Array<Parameters<typeof psbt.addOutput>[0]> = [];
-    const firstChangeOutputIndex = order.length + 1;
-    for (let i = 0; i < coveredBoxes.additionalAssets.list.length; i++) {
-      const balance = coveredBoxes.additionalAssets.list[i];
-      // generate change output
-      changeOutputs.push({
-        script: Buffer.from(this.lockScript, 'hex'),
-        value: Number(balance.nativeToken),
+      // create order output
+      orderOutputs.push({
+        script: address.toOutputScript(order.address),
+        value: Number(this.unwrapBtc(order.assets.nativeToken).amount),
       });
-      // add change runes to edicts list
-      balance.tokens.forEach((token) => {
-        const [blockId, txIndex] = token.id.split(':');
-        edicts.push({
-          id: {
-            block: BigInt(blockId),
-            tx: Number(txIndex),
+
+      // generate runes data
+      // in case that no transferring rune remains, the Runestone will be modified later
+      // so the Runestone with biggest size is used for generating fee estimator
+      // which should have two edicts (one for payment and one for change)
+      const mockedChangeEdict = {
+        id: {
+          block: BigInt(blockId),
+          tx: Number(txIndex),
+        },
+        amount: 1n, // the value does not matter here
+        output: 1, // the transferring rune change box is the 2nd output
+      };
+      const draftRunestone = runelib.encodeRunestone({
+        edicts: [...edicts, mockedChangeEdict],
+        pointer: 0,
+      });
+
+      // generate fee estimator
+      const isNativeSegwit = address
+        .toOutputScript(order.address)
+        .toString('hex')
+        .startsWith(NATIVE_SEGWIT_SCRIPT_PREFIX);
+      const estimateFee = isNativeSegwit
+        ? generateFeeEstimatorWithAssumptions(
+            draftRunestone.encodedRunestone.length,
+            feeRatio,
+            4,
+            0
+          )
+        : generateFeeEstimatorWithAssumptions(
+            draftRunestone.encodedRunestone.length,
+            feeRatio,
+            3,
+            1
+          );
+
+      // calculated required assets for this transaction
+      const orderRequiredAssets = structuredClone(order.assets);
+      orderRequiredAssets.nativeToken +=
+        2n * MINIMUM_BTC_FOR_NATIVE_SEGWIT_OUTPUT;
+      const unwrappedRequiredAssets =
+        this.unwrapAssetBalance(orderRequiredAssets);
+
+      // fetch input boxes
+      // TODO: the box selection should NOT select boxes with minimum BTC
+      const coveredBoxes = await this.boxSelection.getCoveringBoxes(
+        unwrappedRequiredAssets,
+        forbiddenBoxIds,
+        trackMap,
+        utxoIterator,
+        MINIMUM_BTC_FOR_NATIVE_SEGWIT_OUTPUT,
+        undefined,
+        estimateFee
+      );
+      if (!coveredBoxes.covered) {
+        throw new NotEnoughValidBoxesError(
+          `Available boxes didn't cover required assets. Required assets: ${JsonBigInt.stringify(
+            unwrappedRequiredAssets
+          )}`
+        );
+      }
+
+      // add inputs
+      coveredBoxes.boxes.forEach((box) => {
+        psbt.addInput({
+          hash: box.txId,
+          index: box.index,
+          witnessUtxo: {
+            script: Buffer.from(this.lockScript, 'hex'),
+            value: Number(box.value),
           },
-          amount: this.tokenMap.unwrapAmount(token.id, token.value, this.CHAIN)
-            .amount,
-          output: firstChangeOutputIndex + i,
         });
+        // mark selected boxes as forbidden for next transactions
+        forbiddenBoxIds.push(getPsbtTxInputBoxId(psbt.txInputs.at(-1)!));
       });
+
+      const additionalAssets = coveredBoxes.additionalAssets.aggregated;
+      let isUniversalChangeBoxPresent = true;
+      if (additionalAssets.tokens.length === 0) {
+        // no need to add the universal change box
+        isUniversalChangeBoxPresent = false;
+        additionalAssets.nativeToken += MINIMUM_BTC_FOR_NATIVE_SEGWIT_OUTPUT;
+      } else {
+        const otherRunes = additionalAssets.tokens.filter(
+          (token) => token.id !== order.assets.tokens[0].id
+        );
+        if (otherRunes.length > 0) {
+          // some other runes are transferred, so the change box is required
+          psbt.addOutput({
+            script: Buffer.from(this.lockScript, 'hex'),
+            value: Number(MINIMUM_BTC_FOR_NATIVE_SEGWIT_OUTPUT),
+          });
+        } else {
+          // no other runes is transferred, so no need to add the universal change box
+          isUniversalChangeBoxPresent = false;
+        }
+        const remainingTransferringRune = additionalAssets.tokens.find(
+          (token) => token.id === order.assets.tokens[0].id
+        );
+        if (remainingTransferringRune) {
+          // some transferring rune is left, so the change edict is required
+          edicts.push({
+            id: {
+              block: BigInt(blockId),
+              tx: Number(txIndex),
+            },
+            amount: remainingTransferringRune.value,
+            output: 1, // there is only 1 UTxO before transferring Rune change
+          });
+        }
+      }
+
+      // add transferring rune change UTxO
+      psbt.addOutput({
+        script: Buffer.from(this.lockScript, 'hex'),
+        value: Number(MINIMUM_BTC_FOR_NATIVE_SEGWIT_OUTPUT),
+      });
+
+      // if universal change box is not present, the UTxOs are shifted one place
+      // so all edict outputs should be decremented
+      if (!isUniversalChangeBoxPresent)
+        edicts.forEach((edict) => edict.output--);
+
+      // add OP_RETURN output
+      const runestone = runelib.encodeRunestone({
+        edicts: edicts,
+        pointer: 0, // the first UTxO is always targeted to the lock address
+      });
+      psbt.addOutput({
+        script: runestone.encodedRunestone,
+        value: 0,
+      });
+
+      // add order outputs
+      orderOutputs.forEach((output) => psbt.addOutput(output));
+
+      // calculate fee and remaining BTC
+      const estimatedFee = coveredBoxes.additionalAssets.fee;
+      const fee = generateFeeEstimatorWithPsbt(psbt, feeRatio)(
+        coveredBoxes.boxes,
+        1 // only 1 box is remained to be added to the transaction
+      );
+      this.logger.debug(
+        `Fee related info: [is change box present: ${isUniversalChangeBoxPresent}, box-selection fee estimation: ${estimatedFee}, tx fee: ${fee}]`
+      );
+      const remainingBtc = additionalAssets.nativeToken + estimatedFee - fee;
+      if (remainingBtc <= MINIMUM_BTC_FOR_NATIVE_SEGWIT_OUTPUT)
+        throw new ImpossibleBehavior(
+          `Remaining BTC does not reach minimum UTxO value [${remainingBtc} < ${MINIMUM_BTC_FOR_NATIVE_SEGWIT_OUTPUT}] while utxo selection covered`
+        );
+
+      // add BTC change output
+      psbt.addOutput({
+        script: Buffer.from(this.lockScript, 'hex'),
+        value: Number(remainingBtc),
+      });
+
+      // create the transaction
+      const txId = Transaction.fromBuffer(psbt.data.getTransaction()).getId();
+      const txBytes = Serializer.serialize(psbt);
+      const bitcoinTx = new BitcoinRunesTransaction(
+        txId,
+        eventId,
+        txBytes,
+        txType,
+        coveredBoxes.boxes.map((box) => JsonBigInt.stringify(box))
+      );
+
+      transactions.push(bitcoinTx);
     }
 
-    // add OP_RETURN output
-    const runestone = runelib.encodeRunestone({
-      edicts: edicts,
-      pointer: order.length + 1, // the 2nd output after the last target output (1st one is OP_RETURN)
+    transactions.forEach((transaction) => {
+      this.logger.info(
+        `Bitcoin Runes transaction [${transaction.txId}] as type [${transaction.txType}] generated for event [${transaction.eventId}]`
+      );
     });
-    psbt.addOutput({
-      script: runestone.encodedRunestone,
-      value: 0,
-    });
-
-    // add change outputs
-    changeOutputs.forEach((output) => psbt.addOutput(output));
-
-    // log fee data
-    const usedFee = coveredBoxes.additionalAssets.fee;
-    const estimatedFee = generateFeeEstimatorWithPsbt(psbt, feeRatio)(
-      coveredBoxes.boxes,
-      changeOutputs.length
-    );
-    const txId = Transaction.fromBuffer(psbt.data.getTransaction()).getId();
-    this.logger.debug(
-      `Fee data for tx [${txId}]: [used: ${usedFee}, estimated: ${estimatedFee}]`
-    );
-
-    // create the transaction
-    const txBytes = Serializer.serialize(psbt);
-    const bitcoinTx = new BitcoinRunesTransaction(
-      txId,
-      eventId,
-      txBytes,
-      txType,
-      coveredBoxes.boxes.map((box) => JsonBigInt.stringify(box))
-    );
-
-    this.logger.info(
-      `Bitcoin Runes transaction [${txId}] as type [${txType}] generated for event [${eventId}]`
-    );
-    return [bitcoinTx];
+    return transactions;
   };
 
   /**
@@ -333,11 +424,10 @@ class BitcoinRunesChain extends AbstractUtxoChain<
   /**
    * extracts payment order of a PaymentTransaction
    *
-   * Note: this function assumes that input and edicted runes are equal (make sure to call `verifyPaymentTransaction` before calling this function as it does this verification)
-   *
-   * Note: **this function only includes the edicts in the order and skips the Runes transferred by Runestone pointer**
-   *
-   * Note: **this function assumes all boxes after OP_RETURN are change box and does not include them in the order**
+   * Note: **this function only includes boxes after OP_RETURN and before
+   * lock address UTxO, meaning:**
+   * - if there is an UTxO before OP_RETURN with another address, it is not included in order
+   * - if there is an UTxO after lock address UTxO and OP_RETURN, it is not included either
    * @param transaction the PaymentTransaction
    * @returns the transaction payment order (list of single payments)
    */
@@ -346,12 +436,18 @@ class BitcoinRunesChain extends AbstractUtxoChain<
     const bitcoinTx = transaction as BitcoinRunesTransaction;
 
     // extract BTC transfer
+    let opReturnIndex = -1;
     const order: PaymentOrder = [];
     for (let i = 0; i < psbt.txOutputs.length; i++) {
       const output = psbt.txOutputs[i];
 
       // skip OP_RETURN and next boxes
-      if (output.script.toString('hex').startsWith(OP_RETURN_OPCODE)) break;
+      if (output.script.toString('hex').startsWith(OP_RETURN_OPCODE)) {
+        opReturnIndex = i;
+        continue; // skip the OP_RETURN box
+      }
+      if (opReturnIndex === -1) continue; // skip all boxes before OP_RETURN
+      if (output.script.toString('hex') === this.lockScript) break; // skip all boxes after lock address
 
       const payment: SinglePayment = {
         address: address.fromOutputScript(output.script),
@@ -363,7 +459,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
       order.push(payment);
     }
 
-    // parse runestone
+    // parse Runestone
     const rawTx = psbt.data.getTransaction();
     const artifact = runelib.tryDecodeRunestone({
       vout: Transaction.fromBuffer(rawTx).outs.map((out) => ({
@@ -411,29 +507,74 @@ class BitcoinRunesChain extends AbstractUtxoChain<
 
     // extract runes transfer (parse edicts)
     for (const edict of stone.edicts ?? []) {
-      // skip edict with invalid output index or pointing to change box
-      if (edict.output > order.length) continue;
+      const tokenId = generateAssetId(edict.id.block, edict.id.tx);
 
       // skip edict pointing to OP_RETURN
       const pointedOutputScript =
         psbt.txOutputs[edict.output].script.toString('hex');
-      if (pointedOutputScript.startsWith(OP_RETURN_OPCODE)) continue;
+      if (pointedOutputScript.startsWith(OP_RETURN_OPCODE)) {
+        this.logger.debug(
+          `Skipping edict [${JsonBigInt.stringify(
+            edict
+          )}] while extracting order: token [${tokenId}] is burned by edicting to OP_RETURN output`
+        );
+        continue;
+      }
 
-      const tokenId = generateAssetId(edict.id.block, edict.id.tx);
-      const tokenIndex = order[edict.output].assets.tokens.findIndex(
+      // find remaining amount in the inputs
+      const tokenIndexInInput = inputAssets.tokens.findIndex(
         (token) => token.id === tokenId
       );
-      const value = this.tokenMap.wrapAmount(
-        tokenId,
-        edict.amount,
-        this.CHAIN
-      ).amount;
-      if (tokenIndex === -1)
-        order[edict.output].assets.tokens.push({
-          id: tokenId,
-          value: value,
-        });
-      else order[edict.output].assets.tokens[tokenIndex].value += value;
+      if (tokenIndexInInput === -1) {
+        this.logger.debug(
+          `Skipping edict [${JsonBigInt.stringify(
+            edict
+          )}] while extracting order: token [${tokenId}] is not found in input assets`
+        );
+        continue;
+      } else {
+        // extract amount of transfer based on remaining amount in the inputs
+        let transferAmount = edict.amount;
+        if (inputAssets.tokens[tokenIndexInInput].value < edict.amount) {
+          this.logger.debug(
+            `Overdrawn edict [${JsonBigInt.stringify(
+              edict
+            )}] is found while extracting order: token [${tokenId}] is edicted for [${
+              edict.amount
+            }] while only [${
+              inputAssets.tokens[tokenIndexInInput].value
+            }] is remained in input assets. Full edicts in the Runestone: ${JsonBigInt.stringify(
+              stone.edicts
+            )}`
+          );
+          transferAmount = inputAssets.tokens[tokenIndexInInput].value;
+          inputAssets.tokens.splice(tokenIndexInInput, 1);
+        } else if (
+          inputAssets.tokens[tokenIndexInInput].value === edict.amount
+        ) {
+          inputAssets.tokens.splice(tokenIndexInInput, 1);
+        } else {
+          inputAssets.tokens[tokenIndexInInput].value -= edict.amount;
+        }
+
+        // add transfer amount to order
+        const orderIndex = edict.output - opReturnIndex - 1; // the OP_RETURN and boxes before it are not included in order
+        if (orderIndex < 0 || orderIndex >= order.length) continue; // skip edict pointing to boxes that are not included in order (which are supposed to be change boxes)
+        const tokenIndexInOrder = order[orderIndex].assets.tokens.findIndex(
+          (token) => token.id === tokenId
+        );
+        const value = this.tokenMap.wrapAmount(
+          tokenId,
+          transferAmount,
+          this.CHAIN
+        ).amount;
+        if (tokenIndexInOrder === -1)
+          order[orderIndex].assets.tokens.push({
+            id: tokenId,
+            value: value,
+          });
+        else order[orderIndex].assets.tokens[tokenIndexInOrder].value += value;
+      }
     }
     return order;
   };
@@ -469,7 +610,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
     );
     const estimatedFee = estimateFee(
       inputUtxos, // selected inputs
-      tx.txOutputs.length - 2 // 1 OP_RETURN + 1 target utxo, others are change boxes
+      0 // all boxes are already added
     );
 
     const feeDifferencePercent = Math.abs(
@@ -576,12 +717,21 @@ class BitcoinRunesChain extends AbstractUtxoChain<
 
   /**
    * verifies additional conditions for a BitcoinRunesTransaction
-   * - check change box
+   * - check transaction structure
+   *   - if there are multiple tokens, there should be a universal change box
+   *   - otherwise there should be no universal change box
+   *   - the overall structure should be as follow
+   *     - (optional) universal change
+   *     - transferring rune change
+   *     - OP_RETURN
+   *     - order utxo
+   *     - BTC change
    * - check Runestone
    *   - Runestone should be defined
    *   - Runestone should not be a cenotaph
-   *   - pointer should be defined and point to the changebox
+   *   - pointer should be defined and zero
    *   - no edict should be redundant
+   *   - edicts are only to order and transferring rune utxos
    * @param transaction the PaymentTransaction
    * @param signingStatus the signing status of transaction
    * @returns true if the transaction is verified
@@ -591,24 +741,69 @@ class BitcoinRunesChain extends AbstractUtxoChain<
     signingStatus: SigningStatus = SigningStatus.UnSigned
   ): boolean => {
     const psbt = Serializer.deserialize(transaction.txBytes);
+    const bitcoinTx = transaction as BitcoinRunesTransaction;
     const baseError = `Tx [${transaction.txId}] is not verified: `;
 
-    // check change boxes
-    let i = 0;
-    for (i = psbt.txOutputs.length - 1; i >= 0; i--) {
-      // change and payment utxos are splitted by an OP_RETURN box
-      if (psbt.txOutputs[i].script.toString('hex').startsWith(OP_RETURN_OPCODE))
-        break;
+    // calculate input runes
+    const inputAssets = sumBitcoinRunesUtxosBalance(
+      bitcoinTx.inputUtxos.map(
+        (utxo) => JsonBigInt.parse(utxo) as BitcoinRunesUtxo
+      )
+    );
+    const utxoOffset = inputAssets.tokens.length > 1 ? 1 : 0;
+    const universalChangeBoxStatusString = `universal change box should${
+      utxoOffset ? '' : ' not'
+    } be present`;
 
-      const changeBox = psbt.txOutputs[i];
-      if (changeBox.script.toString('hex') !== this.lockScript) {
+    if (psbt.txOutputs.length !== utxoOffset + 4) {
+      this.logger.warn(
+        baseError +
+          `Transaction output count is incorrect [expected ${
+            utxoOffset + 4
+          } (${universalChangeBoxStatusString}), found ${
+            psbt.txOutputs.length
+          }]`
+      );
+      return false;
+    }
+    if (utxoOffset === 1) {
+      // universal change box should be present (thus, 5 outputs) and its script should be verified to be the lock script
+      if (psbt.txOutputs[0].script.toString('hex') !== this.lockScript) {
         this.logger.warn(
-          baseError + `Address of change box at index [${i}] is wrong`
+          baseError +
+            `Universal change box has wrong script [expected ${
+              this.lockScript
+            }, found ${psbt.txOutputs[0].script.toString('hex')}]`
         );
         return false;
       }
     }
-    const firstChangeBoxIndex = i + 1;
+
+    // check script of OP_RETURN and change boxes
+    let outputScript = psbt.txOutputs[0 + utxoOffset].script.toString('hex');
+    if (outputScript !== this.lockScript) {
+      this.logger.warn(
+        baseError +
+          `transferring rune change box has wrong script [expected ${this.lockScript}, found ${outputScript}]`
+      );
+      return false;
+    }
+    outputScript = psbt.txOutputs[1 + utxoOffset].script.toString('hex');
+    if (!outputScript.startsWith(OP_RETURN_OPCODE)) {
+      this.logger.warn(
+        baseError +
+          `Expected an OP_RETURN utxo but found script [${outputScript}]`
+      );
+      return false;
+    }
+    outputScript = psbt.txOutputs[3 + utxoOffset].script.toString('hex');
+    if (outputScript !== this.lockScript) {
+      this.logger.warn(
+        baseError +
+          `BTC rune change box has wrong script [expected ${this.lockScript}, found ${outputScript}]`
+      );
+      return false;
+    }
 
     // check Runestone
     const rawTx = psbt.data.getTransaction();
@@ -634,18 +829,11 @@ class BitcoinRunesChain extends AbstractUtxoChain<
       return false;
     }
 
-    //-- pointer should be defined and point to the changebox
+    //-- pointer should be defined and zero
     const stone: runelib.RunestoneSpec = artifact;
     const pointer = stone.pointer;
-    if (pointer === undefined) {
-      this.logger.warn(baseError + `Runestone pointer is undefined`);
-      return false;
-    }
-    if (pointer !== firstChangeBoxIndex) {
-      this.logger.warn(
-        baseError +
-          `Runestone pointer is not pointing to the first changebox [expected ${firstChangeBoxIndex}, found ${pointer}]`
-      );
+    if (pointer !== 0) {
+      this.logger.warn(baseError + `Unexpected Runestone pointer [${pointer}]`);
       return false;
     }
 
@@ -668,6 +856,20 @@ class BitcoinRunesChain extends AbstractUtxoChain<
           );
           return false;
         }
+      }
+    }
+
+    //-- edicts are only to order and transferring rune utxos
+    for (let i = 0; i < edictsLength; i++) {
+      if (
+        stone.edicts[i].output !== 0 + utxoOffset && // transferring run change index
+        stone.edicts[i].output !== 2 + utxoOffset // order utxo index
+      ) {
+        this.logger.warn(
+          baseError +
+            `Runestone edict at index [${i}] is targeting an unexpected output [${stone.edicts[i].output}] (${universalChangeBoxStatusString})`
+        );
+        return false;
       }
     }
 
@@ -847,7 +1049,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
    * @returns the minimum amount
    */
   getMinimumNativeToken = (): bigint => {
-    return 546n; // smallest non-dust value
+    return 330n; // only taproot and native-segwit are allowed, so minimum is 330 satoshi which is taproot smallest non-dust value
   };
 
   /**
@@ -951,23 +1153,6 @@ class BitcoinRunesChain extends AbstractUtxoChain<
   };
 
   /**
-   * gets the minimum amount of satoshi for a utxo that can cover
-   * additional fee for adding it to a tx
-   * Note: it returns the actual value
-   * @returns the minimum amount
-   */
-  minimumMeaningfulSatoshi = (feeRatio: number): bigint => {
-    return BigInt(
-      Math.max(
-        Math.ceil(
-          (feeRatio * SEGWIT_INPUT_WEIGHT_UNIT) / 4 // estimate fee per weight and convert to virtual size
-        ),
-        Number(this.getMinimumNativeToken())
-      )
-    );
-  };
-
-  /**
    * serializes the transaction of this chain into string
    */
   protected serializeTx = (tx: BitcoinRunesTx): string =>
@@ -980,12 +1165,11 @@ class BitcoinRunesChain extends AbstractUtxoChain<
    *   - verify input box id
    *   - verify input box value
    *   - verify input box runes
-   * - verify that runestone is not cenotaph (even though the protocol allows it)
-   * - verify equality of input runes and edicted ones (even though the protocol allows it)
+   * - verify that Runestone is not cenotaph (even though the protocol allows it)
    *
    * Note: Runestone can be null and the last two checks are skipped in this case
    *
-   * Note: Since this functions relies on network data for input runes, the transaction with invalid inputs cannot be verified by this function
+   * Note: Since this function relies on network data for input runes, the transaction with invalid inputs cannot be verified by this function
    * @param transaction the PaymentTransaction
    * @returns true if the transaction is verified
    */
@@ -1001,7 +1185,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
     if (transaction.txId !== txId) {
       this.logger.warn(
         baseError +
-          `Transaction id is inconsistent (expected [${txId}] found [${transaction.txId}])`
+          `Transaction id is inconsistent [expected ${txId}, found ${transaction.txId}]`
       );
       return false;
     }
@@ -1094,7 +1278,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
     //-- skip if Runestone is null
     if (artifact === null) {
       this.logger.info(
-        `Skipped equality check of input and edicted runes for tx [${transaction.txId}]: Runestone is null`
+        `Skipped Runestone check for tx [${transaction.txId}]: Runestone is null`
       );
       return true;
     }
@@ -1109,39 +1293,6 @@ class BitcoinRunesChain extends AbstractUtxoChain<
           )}`
       );
       return false;
-    }
-    const stone: runelib.RunestoneSpec = artifact;
-    const edictedRunes = new Map<string, bigint>();
-
-    // verify equality of input and edicted runes
-    const baseRunesError =
-      baseError +
-      `Edicted runes are not equal to input runes (even though the protocol allows it, the PaymentTransaction does not allow it): `;
-    //-- sum edicted runes
-    for (const edict of stone.edicts ?? []) {
-      const tokenId = generateAssetId(edict.id.block, edict.id.tx);
-      const current = edictedRunes.get(tokenId) || 0n;
-      edictedRunes.set(tokenId, current + edict.amount);
-    }
-
-    // compare input and edicted runes
-    if (totalInputRunes.size !== edictedRunes.size) {
-      this.logger.warn(
-        baseRunesError +
-          `Mismatch in number of rune types between inputs and edicts ([${totalInputRunes.size}] in inputs vs [${edictedRunes.size}] in edicts)`
-      );
-      return false;
-    }
-
-    for (const [runeId, inputQuantity] of totalInputRunes.entries()) {
-      const edictedQuantity = edictedRunes.get(runeId);
-      if (edictedQuantity === undefined || edictedQuantity !== inputQuantity) {
-        this.logger.warn(
-          baseRunesError +
-            `Mismatch in Rune ${runeId} quantity ([${inputQuantity}] in inputs vs [${edictedQuantity}] in edicts)`
-        );
-        return false;
-      }
     }
 
     return true;

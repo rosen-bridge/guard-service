@@ -42,7 +42,7 @@
   },
   "dependencies": {
     "@magiceden-oss/runestone-lib": "^1.0.2",
-    "@rosen-bridge/abstract-box-selection": "^0.2.1",
+    "@rosen-bridge/abstract-box-selection": "^0.2.2",
     "@rosen-bridge/abstract-logger": "^2.0.1",
     "@rosen-bridge/bitcoin-runes-utxo-selection": "^1.0.1",
     "@rosen-bridge/json-bigint": "^0.1.0",
