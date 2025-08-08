@@ -21,22 +21,12 @@ class BalanceHandlerMock {
   };
 
   /**
-   * mocks BalanceHandler.getLockAddressAssets
+   * mocks BalanceHandler.getAddressAssets
    */
-  static mockGetLockAddressAssets = () => {
-    this.mockedBalanceHandler.getLockAddressAssets = vi.fn();
+  static mockGetAddressAssets = () => {
+    this.mockedBalanceHandler.getAddressAssets = vi.fn();
     return vi
-      .spyOn(this.mockedBalanceHandler, 'getLockAddressAssets')
-      .mockImplementation(() => null);
-  };
-
-  /**
-   * mocks BalanceHandler.getColdAddressAssets
-   */
-  static mockGetColdAddressAssets = () => {
-    this.mockedBalanceHandler.getColdAddressAssets = vi.fn();
-    return vi
-      .spyOn(this.mockedBalanceHandler, 'getColdAddressAssets')
+      .spyOn(this.mockedBalanceHandler, 'getAddressAssets')
       .mockImplementation(() => null);
   };
 
