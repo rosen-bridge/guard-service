@@ -36,8 +36,9 @@ describe('balanceRoutes', () => {
      */
     it('should return lock balance with hot and cold arrays populated', async () => {
       // arrange
-      BalanceHandlerMock.mockGetAddressAssets().mockImplementation((address) =>
-        address === 'lock' ? mockLockBalances : mockColdBalances
+      BalanceHandlerMock.mockGetAddressAssets().mockImplementation(
+        async (address) =>
+          address === 'lock' ? mockLockBalances : mockColdBalances
       );
 
       // act
@@ -89,7 +90,7 @@ describe('balanceRoutes', () => {
     it('should return error response when an exception is thrown during balance retrieval', async () => {
       // arrange
       BalanceHandlerMock.mockGetAddressAssets().mockImplementation(
-        (address) => {
+        async (address) => {
           if (address === 'lock') throw new Error('custom_error');
           else return [];
         }
