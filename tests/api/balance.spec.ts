@@ -28,8 +28,7 @@ describe('balanceRoutes', () => {
      * @target fastifyServer[GET /balance] should return lock balance with hot and cold arrays populated
      * @dependencies
      * @scenario
-     * - stub BalanceHandler.getLockAddressAssets to return mock balances
-     * - stub BalanceHandler.getColdAddressAssets to return mock balances
+     * - stub BalanceHandler.getAddressAssets to return mock balances for both lock and cold addresses
      * - call handler
      * @expected
      * - response status should have been 200
@@ -37,11 +36,9 @@ describe('balanceRoutes', () => {
      */
     it('should return lock balance with hot and cold arrays populated', async () => {
       // arrange
-      BalanceHandlerMock.mockGetLockAddressAssets().mockResolvedValue(
-        mockLockBalances
-      );
-      BalanceHandlerMock.mockGetColdAddressAssets().mockResolvedValue(
-        mockColdBalances
+      BalanceHandlerMock.mockGetAddressAssets().mockImplementation(
+        async (address) =>
+          address === 'lock' ? mockLockBalances : mockColdBalances
       );
 
       // act
@@ -59,8 +56,7 @@ describe('balanceRoutes', () => {
      * @target fastifyServer[GET /balance] should return empty lock balance when no balances are returned
      * @dependencies
      * @scenario
-     * - stub BalanceHandler.getLockAddressAssets to return mock balances
-     * - stub BalanceHandler.getColdAddressAssets to return mock balances
+     * - stub BalanceHandler.getAddressAssets to return empty array for both lock and cold addresses
      * - call handler
      * @expected
      * - response status should have been 200
@@ -68,8 +64,7 @@ describe('balanceRoutes', () => {
      */
     it('should return empty lock balance when no balances are returned', async () => {
       // arrange
-      BalanceHandlerMock.mockGetLockAddressAssets().mockResolvedValue([]);
-      BalanceHandlerMock.mockGetColdAddressAssets().mockResolvedValue([]);
+      BalanceHandlerMock.mockGetAddressAssets().mockResolvedValue([]);
 
       // act
       const result = await mockedServer.inject({
@@ -86,8 +81,7 @@ describe('balanceRoutes', () => {
      * @target fastifyServer[GET /balance] should return error response when an exception is thrown during balance retrieval
      * @dependencies
      * @scenario
-     * - stub BalanceHandler.getLockAddressAssets to reject
-     * - stub BalanceHandler.getColdAddressAssets to return mock balances
+     * - stub BalanceHandler.getAddressAssets to reject for lock address and return mock balances for cold address
      * - call handler
      * @expected
      * - response status should have been 500
@@ -95,10 +89,12 @@ describe('balanceRoutes', () => {
      */
     it('should return error response when an exception is thrown during balance retrieval', async () => {
       // arrange
-      BalanceHandlerMock.mockGetLockAddressAssets().mockImplementation(() => {
-        throw new Error('custom_error');
-      });
-      BalanceHandlerMock.mockGetColdAddressAssets().mockResolvedValue([]);
+      BalanceHandlerMock.mockGetAddressAssets().mockImplementation(
+        async (address) => {
+          if (address === 'lock') throw new Error('custom_error');
+          else return [];
+        }
+      );
 
       // act
       const result = await mockedServer.inject({

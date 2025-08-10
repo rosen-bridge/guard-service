@@ -31,9 +31,12 @@ const getBalanceRoute = (server: FastifySeverInstance) => {
           cold: [],
         };
 
-        balance.hot = await BalanceHandler.getInstance().getLockAddressAssets();
-        balance.cold =
-          await BalanceHandler.getInstance().getColdAddressAssets();
+        balance.hot = await BalanceHandler.getInstance().getAddressAssets(
+          'lock'
+        );
+        balance.cold = await BalanceHandler.getInstance().getAddressAssets(
+          'cold'
+        );
 
         reply.status(200).send(balance);
       } catch (error) {
