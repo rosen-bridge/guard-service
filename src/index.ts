@@ -8,9 +8,8 @@ import { initScanner } from './jobs/initScanner';
 import { healthCheckStart } from './jobs/healthCheck';
 import ChainHandler from './handlers/ChainHandler';
 import TxAgreement from './agreement/TxAgreement';
-import MultiSigHandler from './guard/multisig/MultiSigHandler';
+import MultiSigHandler from './handlers/MultiSigHandler';
 import { configUpdateJob } from './jobs/guardConfigUpdate';
-import MultiSigUtils from './guard/multisig/MultiSigUtils';
 import { DatabaseAction } from './db/DatabaseAction';
 import { dataSource } from './db/dataSource';
 import { tssUpdateJob } from './jobs/tss';
@@ -27,6 +26,7 @@ import ArbitraryProcessor from './arbitrary/ArbitraryProcessor';
 import TssHandler from './handlers/TssHandler';
 import { TokenHandler } from './handlers/tokenHandler';
 import BalanceHandler from './handlers/BalanceHandler';
+import { MultiSigUtils } from '@rosen-bridge/ergo-multi-sig';
 
 const init = async () => {
   // initialize tokens config
@@ -50,8 +50,12 @@ const init = async () => {
   // initialize DetectionHandler
   await DetectionHandler.init();
 
+  // initialize multiSig utils object
+  const multiSigUtils = new MultiSigUtils(() =>
+    ChainHandler.getInstance().getErgoChain().getStateContext()
+  );
   // initialize tss multiSig object
-  await MultiSigHandler.init(Configs.guardSecret);
+  await MultiSigHandler.init(multiSigUtils);
   initializeMultiSigJobs();
 
   // start tss instance
@@ -59,8 +63,7 @@ const init = async () => {
   tssUpdateJob();
 
   // initialize chain objects
-  const chainHandler = ChainHandler.getInstance();
-  MultiSigUtils.getInstance().init(chainHandler.getErgoChain().getStateContext);
+  ChainHandler.getInstance();
 
   // guard config update job
   const pkHandler = GuardPkHandler.getInstance();
