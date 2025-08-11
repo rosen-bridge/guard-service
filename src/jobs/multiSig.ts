@@ -1,11 +1,11 @@
-import MultiSigHandler from '../guard/multisig/MultiSigHandler';
+import MultiSigHandler from '../handlers/MultiSigHandler';
 import Configs from '../configs/Configs';
 
 /**
  * runs MultiSig service cleanUp job
  */
 const multiSigCleanupJob = () => {
-  MultiSigHandler.getInstance().cleanup();
+  MultiSigHandler.getInstance().getErgoMultiSig().cleanup();
   setTimeout(multiSigCleanupJob, Configs.multiSigCleanUpInterval * 1000);
 };
 
