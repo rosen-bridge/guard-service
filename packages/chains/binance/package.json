@@ -1,12 +1,12 @@
 {
   "name": "@rosen-chains/binance",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "description": "this project contains binance chain for Rosen-bridge",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rosen-bridge/rosen-chains.git"
   },
-  "license": "CC0-1.0",
+  "license": "MIT",
   "author": "Rosen Team",
   "type": "module",
   "main": "dist/index.js",
@@ -40,7 +40,7 @@
   "dependencies": {
     "@rosen-bridge/abstract-logger": "^2.0.1",
     "@rosen-bridge/tokens": "^3.1.1",
-    "@rosen-chains/abstract-chain": "^13.1.0",
-    "@rosen-chains/evm": "^8.1.0"
+    "@rosen-chains/abstract-chain": "^14.0.0",
+    "@rosen-chains/evm": "^8.2.0"
   }
 }

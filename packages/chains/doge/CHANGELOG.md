@@ -1,5 +1,19 @@
 # @rosen-chains/doge
 
+## 2.2.0
+
+### Minor Changes
+
+- Integrate new Rosen box selection packages
+- Add getActualTxId method to chains
+
+### Patch Changes
+
+- Update `@rosen-bridge/rosen-extractor`, `@rosen-bridge/tokens` and `@rosen-bridge/minimum-fee` packages to their latest version
+- Update box-selection packages
+- Updated dependencies
+  - @rosen-chains/abstract-chain@14.0.0
+
 ## 2.1.1
 
 ### Patch Changes

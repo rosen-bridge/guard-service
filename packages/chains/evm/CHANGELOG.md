@@ -1,5 +1,20 @@
 # @rosen-chains/evm
 
+## 8.2.0
+
+### Minor Changes
+
+- Add getActualTxId method to chains
+- Add token map callback registration in `EvmChain.constructor` to update `supportedTokens` on token map updates
+- Add token map callback registeration on `EvmChain.constructor` to update `supportedTokens` on each token map update
+
+### Patch Changes
+
+- Update `@rosen-bridge/rosen-extractor`, `@rosen-bridge/tokens` and `@rosen-bridge/minimum-fee` packages to their latest version
+- Update ethers version to v6.14.3
+- Updated dependencies
+  - @rosen-chains/abstract-chain@14.0.0
+
 ## 8.1.0
 
 ### Minor Changes

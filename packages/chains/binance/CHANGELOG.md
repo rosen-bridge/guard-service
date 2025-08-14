@@ -1,5 +1,19 @@
 # @rosen-chains/binance
 
+## 2.1.0
+
+### Minor Changes
+
+- Add getActualTxId method to chains
+
+### Patch Changes
+
+- Update `@rosen-bridge/rosen-extractor`, `@rosen-bridge/tokens` and `@rosen-bridge/minimum-fee` packages to their latest version
+
+- Updated dependencies
+  - @rosen-chains/abstract-chain@14.0.0
+  - @rosen-chains/evm@8.2.0
+
 ## 2.0.1
 
 ### Patch Changes

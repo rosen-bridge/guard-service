@@ -1,5 +1,23 @@
 # @rosen-chains/cardano-koios-network
 
+## 11.0.0
+
+### Major Changes
+
+- Remove `value` and `assets` fields from `CardanoTx.inputs` type
+- Rename `policy_id` to **`policyId`** and `asset_name` to **`assetName`** in `CardanoAsset` interface (which affects `CardanoUtxo`, `CardanoBoxCandidate` and `CardanoTx` interfaces)
+
+### Minor Changes
+
+- Add getActualTxId method to chains
+- Replace `/tx_info` API calls with `/tx_cbor`
+
+### Patch Changes
+
+- Updated dependencies
+  - @rosen-chains/cardano@13.0.0
+  - @rosen-chains/abstract-chain@14.0.0
+
 ## 10.0.11
 
 ### Patch Changes

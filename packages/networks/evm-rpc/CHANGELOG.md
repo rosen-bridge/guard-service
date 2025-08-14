@@ -1,5 +1,17 @@
 # @rosen-chains/evm-rpc
 
+## 3.1.0
+
+### Minor Changes
+
+- Add getActualTxId method to chains
+
+### Patch Changes
+
+- Updated dependencies
+  - @rosen-chains/abstract-chain@14.0.0
+  - @rosen-chains/evm@8.2.0
+
 ## 3.0.5
 
 ### Patch Changes

@@ -1,5 +1,17 @@
 # @rosen-chains/abstract-chain
 
+## 14.0.0
+
+### Major Changes
+
+- Add getActualTxId method to chains
+- Remove `getBoxInfo` and `getCoveringBoxes` from `AbstractUtxoChain` and replace it with `boxSelection` property with type `AbstractBoxSelection` with generic type
+
+### Patch Changes
+
+- Update `@rosen-bridge/rosen-extractor`, `@rosen-bridge/tokens` and `@rosen-bridge/minimum-fee` packages to their latest version
+- Update box-selection packages
+
 ## 13.1.0
 
 ### Minor Changes

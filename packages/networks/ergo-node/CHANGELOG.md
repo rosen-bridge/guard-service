@@ -1,5 +1,18 @@
 # @rosen-chains/ergo-node-network
 
+## 9.1.0
+
+### Minor Changes
+
+- Add getActualTxId method to chains
+
+### Patch Changes
+
+- Update client
+- Updated dependencies
+  - @rosen-chains/ergo@12.1.0
+  - @rosen-chains/abstract-chain@14.0.0
+
 ## 9.0.11
 
 ### Patch Changes
