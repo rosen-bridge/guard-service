@@ -12,7 +12,7 @@
 
 - Update `@rosen-bridge/rosen-extractor`, `@rosen-bridge/tokens` and `@rosen-bridge/minimum-fee` packages to their latest version
 - Update ethers version to v6.14.3
-- Updated dependencies
+- Update dependencies
   - @rosen-chains/abstract-chain@14.0.0
 
 ## 8.1.0
