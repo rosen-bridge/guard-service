@@ -1,5 +1,25 @@
 # @rosen-chains/cardano
 
+## 13.0.0
+
+### Major Changes
+
+- Remove `value` and `assets` fields from `CardanoTx.inputs` type
+- Rename `policy_id` to **`policyId`** and `asset_name` to **`assetName`** in `CardanoAsset` interface (which affects `CardanoUtxo`, `CardanoBoxCandidate` and `CardanoTx` interfaces)
+
+### Minor Changes
+
+- Integrate new Rosen box selection packages
+- Add getActualTxId method to chains
+
+### Patch Changes
+
+- Update `@rosen-bridge/rosen-extractor`, `@rosen-bridge/tokens` and `@rosen-bridge/minimum-fee` packages to their latest version
+- Fix bug in calculating tx ID
+- Update box-selection packages
+- Updated dependencies
+  - @rosen-chains/abstract-chain@14.0.0
+
 ## 12.0.1
 
 ### Patch Changes

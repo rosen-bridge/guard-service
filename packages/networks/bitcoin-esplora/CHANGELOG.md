@@ -1,5 +1,17 @@
 # @rosen-chains/bitcoin-esplora
 
+## 4.2.0
+
+### Minor Changes
+
+- Add getActualTxId method to chains
+
+### Patch Changes
+
+- Updated dependencies
+  - @rosen-chains/bitcoin@8.1.0
+  - @rosen-chains/abstract-chain@14.0.0
+
 ## 4.1.0
 
 ### Minor Changes

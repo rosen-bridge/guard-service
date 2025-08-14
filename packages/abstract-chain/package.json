@@ -1,6 +1,6 @@
 {
   "name": "@rosen-chains/abstract-chain",
-  "version": "13.1.0",
+  "version": "14.0.0",
   "description": "this project contains abstract classes to implement any chain for Rosen-bridge",
   "main": "dist/lib/index.js",
   "types": "dist/lib/index.d.ts",
@@ -22,7 +22,7 @@
     "type": "git",
     "url": "git+https://github.com/rosen-bridge/rosen-chains.git"
   },
-  "license": "CC0-1.0",
+  "license": "MIT",
   "dependencies": {
     "@rosen-bridge/abstract-box-selection": "^0.2.1",
     "@rosen-bridge/abstract-logger": "^2.0.1",

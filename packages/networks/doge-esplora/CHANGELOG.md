@@ -1,5 +1,17 @@
 # @rosen-chains/doge-esplora
 
+## 1.1.0
+
+### Minor Changes
+
+- Add getActualTxId method to chains
+
+### Patch Changes
+
+- Updated dependencies
+  - @rosen-chains/doge@2.2.0
+  - @rosen-chains/abstract-chain@14.0.0
+
 ## 1.0.3
 
 ### Patch Changes
