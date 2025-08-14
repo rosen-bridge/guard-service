@@ -22,7 +22,7 @@
     "prepare": "husky install"
   },
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "@blockfrost/blockfrost-js": "^5.0.0",
     "@emurgo/cardano-serialization-lib-nodejs": "^11.1.0",
