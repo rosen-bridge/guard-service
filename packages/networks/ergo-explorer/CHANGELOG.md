@@ -9,7 +9,7 @@
 ### Patch Changes
 
 - Update client
-- Updated dependencies
+- Update dependencies
   - @rosen-chains/ergo@12.1.0
   - @rosen-chains/abstract-chain@14.0.0
 

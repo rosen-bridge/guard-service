@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- Updated dependencies
+- Update dependencies
   - @rosen-chains/doge@2.2.0
   - @rosen-chains/abstract-chain@14.0.0
 

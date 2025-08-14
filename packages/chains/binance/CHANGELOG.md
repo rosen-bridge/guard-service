@@ -10,7 +10,7 @@
 
 - Update `@rosen-bridge/rosen-extractor`, `@rosen-bridge/tokens` and `@rosen-bridge/minimum-fee` packages to their latest version
 
-- Updated dependencies
+- Update dependencies
   - @rosen-chains/abstract-chain@14.0.0
   - @rosen-chains/evm@8.2.0
 

@@ -11,7 +11,7 @@
 
 - Update `@rosen-bridge/rosen-extractor`, `@rosen-bridge/tokens` and `@rosen-bridge/minimum-fee` packages to their latest version
 - Update box-selection packages
-- Updated dependencies
+- Update dependencies
   - @rosen-chains/abstract-chain@14.0.0
 
 ## 2.1.1

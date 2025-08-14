@@ -13,7 +13,7 @@
 
 ### Patch Changes
 
-- Updated dependencies
+- Update dependencies
   - @rosen-chains/cardano@13.0.0
   - @rosen-chains/abstract-chain@14.0.0
 
