@@ -244,14 +244,14 @@ class BalanceHandler {
         chain,
         address,
         tokenId: this.nativeTokenIds[chain],
-        lastUpdate: Date.now(),
+        lastUpdate: String(Math.floor(Date.now() / 1000)),
         balance: balance.nativeToken,
       },
       ...balance.tokens.map((token) => ({
         chain,
         address,
         tokenId: token.id,
-        lastUpdate: Date.now(),
+        lastUpdate: String(Math.floor(Date.now() / 1000)),
         balance: token.value,
       })),
     ]);
