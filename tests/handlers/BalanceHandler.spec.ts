@@ -462,21 +462,21 @@ describe('BalanceHandler', () => {
         chain,
         address,
         tokenId: ETH,
-        lastUpdate: expect.any(Number),
+        lastUpdate: expect.any(String),
         balance: 123n,
       });
       expect(balances[1]).toEqual({
         chain,
         address,
         tokenId: 'token1',
-        lastUpdate: expect.any(Number),
+        lastUpdate: expect.any(String),
         balance: 100n,
       });
       expect(balances[2]).toEqual({
         chain,
         address,
         tokenId: 'token2',
-        lastUpdate: expect.any(Number),
+        lastUpdate: expect.any(String),
         balance: 200n,
       });
     });

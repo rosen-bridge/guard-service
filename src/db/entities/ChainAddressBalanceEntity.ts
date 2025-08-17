@@ -12,8 +12,8 @@ export class ChainAddressBalanceEntity {
   @PrimaryColumn('varchar')
   tokenId: string;
 
-  @Column('integer')
-  lastUpdate: number;
+  @Column('varchar')
+  lastUpdate: string;
 
   @Column({ type: 'bigint', transformer: new BigIntValueTransformer() })
   balance: bigint;

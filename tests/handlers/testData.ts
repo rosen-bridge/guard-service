@@ -56,14 +56,14 @@ export const mockBalances = {
     chain: ETHEREUM_CHAIN,
     address: '1',
     tokenId: ETH,
-    lastUpdate: 1643723400,
+    lastUpdate: '1643723400',
     balance: 1000000000n,
   },
   [BNB]: {
     chain: BINANCE_CHAIN,
     address: '2',
     tokenId: BNB,
-    lastUpdate: 1643723401,
+    lastUpdate: '1643723401',
     balance: 500000000n,
   },
 };
@@ -72,7 +72,7 @@ export const mockColdBalance = {
   chain: ETHEREUM_CHAIN,
   address: `${ETHEREUM_CHAIN}_mock_cold_address`,
   tokenId: 'tokenId',
-  lastUpdate: 1,
+  lastUpdate: '1',
   balance: 123n,
 };
 
@@ -80,6 +80,6 @@ export const mockLockBalance = {
   chain: ETHEREUM_CHAIN,
   address: `${ETHEREUM_CHAIN}_mock_lock_address`,
   tokenId: 'tokenId2',
-  lastUpdate: 1,
+  lastUpdate: '1',
   balance: 1234n,
 };
