@@ -36,7 +36,6 @@ export const configs: BitcoinRunesConfigs = {
   },
   aggregatedPublicKey: testData.lockAddressPublicKey,
   txFeeSlippage: 10,
-  maxRunesPerUtxo: 5,
 };
 export const mockedSignFn = () =>
   Promise.resolve({
