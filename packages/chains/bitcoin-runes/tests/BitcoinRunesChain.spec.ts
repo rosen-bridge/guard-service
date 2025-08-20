@@ -157,6 +157,136 @@ describe('BitcoinRunesChain', () => {
 
     /**
      * @target BitcoinRunesChain.generateTransaction should generate payment
+     * transaction successfully even when no transferring rune remains
+     * @dependencies
+     * @scenario
+     * - mock transaction order, getFeeRatio
+     * - mock getCoveringBoxes, hasLockAddressEnoughAssets
+     * - run test
+     * - check returned value
+     * @expected
+     * - PaymentTransaction txType, eventId, network and inputUtxos should be as
+     *   expected
+     * - transaction artifact should be a Runestone
+     * - extracted order of generated transaction should be the same as input
+     *   order
+     * - getCoveringBoxes should have been called with correct arguments
+     */
+    it('should generate payment transaction successfully even when no transferring rune remains', async () => {
+      // mock transaction order
+      const order = structuredClone(testData.transaction1Order);
+      order[0].assets.tokens[0].value = 5500000n;
+      const payment1 = BitcoinRunesTransaction.fromJson(
+        testData.transaction1PaymentTransaction
+      );
+      const getFeeRatioSpy = vi.spyOn(network, 'getFeeRatio');
+      getFeeRatioSpy.mockResolvedValue(1);
+
+      // mock getCoveringBoxes, hasLockAddressEnoughAssets
+      const bitcoinRunesChain = await testUtils.generateChainObject(network);
+      const getCovBoxesSpy = {
+        fn: vi.spyOn(
+          (bitcoinRunesChain as any).boxSelection,
+          'getCoveringBoxes'
+        ),
+        callArgs: {
+          forbiddenBoxIds: Array<string>(),
+        },
+      };
+      const selectedBoxes = testData.lockAddressUtxos.slice(0, 1);
+      getCovBoxesSpy.fn.mockImplementation((...args: any[]) => {
+        getCovBoxesSpy.callArgs.forbiddenBoxIds.push(structuredClone(args[1]));
+        const fee = 215n;
+        const remainingNativeToken =
+          selectedBoxes
+            .map((box) => box.value)
+            .reduce((sum, value) => sum + value, 0n) -
+          args[0].nativeToken -
+          fee;
+        return {
+          covered: true,
+          boxes: selectedBoxes,
+          additionalAssets: {
+            aggregated: {
+              nativeToken: remainingNativeToken,
+              tokens: [],
+            },
+            list: [
+              {
+                nativeToken: remainingNativeToken,
+                tokens: [],
+              },
+            ],
+            fee: fee,
+          },
+        };
+      });
+      const hasLockAddressEnoughAssetsSpy = vi.spyOn(
+        bitcoinRunesChain,
+        'hasLockAddressEnoughAssets'
+      );
+      hasLockAddressEnoughAssetsSpy.mockResolvedValue(true);
+
+      // run test
+      const result = await bitcoinRunesChain.generateTransaction(
+        payment1.eventId,
+        payment1.txType,
+        order,
+        [
+          BitcoinRunesTransaction.fromJson(
+            testData.transaction2PaymentTransaction
+          ),
+        ],
+        []
+      );
+      const bitcoinTx = result as BitcoinRunesTransaction;
+
+      // check returned value
+      expect(bitcoinTx.txType).toEqual(payment1.txType);
+      expect(bitcoinTx.eventId).toEqual(payment1.eventId);
+      expect(bitcoinTx.network).toEqual(payment1.network);
+      expect(bitcoinTx.inputUtxos).toEqual(
+        selectedBoxes.map((utxo) => JsonBigInt.stringify(utxo))
+      );
+
+      // transaction artifact should be a Runestone
+      const psbt = Psbt.fromBuffer(Buffer.from(bitcoinTx.txBytes));
+      const runestone = tryDecodeRunestone({
+        vout: Transaction.fromBuffer(psbt.data.getTransaction()).outs.map(
+          (out) => ({
+            scriptPubKey: { hex: out.script.toString('hex') },
+          })
+        ),
+      });
+      expect(runestone).toBeDefined();
+      expect(isRunestone(runestone!)).toEqual(true);
+
+      // extracted order of generated transaction should be the same as input order
+      const extractedOrder =
+        bitcoinRunesChain.extractTransactionOrder(bitcoinTx);
+      expect(extractedOrder).toEqual(order);
+
+      // getCoveringBoxes should have been called with correct arguments
+      const expectedRequiredAssets = structuredClone(order[0].assets);
+      expectedRequiredAssets.nativeToken +=
+        2n * MINIMUM_BTC_FOR_NATIVE_SEGWIT_OUTPUT;
+      expect(getCovBoxesSpy.fn).toHaveBeenCalledWith(
+        expectedRequiredAssets,
+        expect.any(Array), // Since the argument is mutated, it's not possible to check it here
+        new Map(),
+        expect.any(Object),
+        expect.any(BigInt),
+        undefined,
+        expect.any(Function)
+      );
+      //-- check forbiddenBoxIds
+      expect(getCovBoxesSpy.callArgs.forbiddenBoxIds.at(-1)).toEqual(
+        testData.transaction2InputIds
+      );
+    });
+
+    /**
+     * @target BitcoinRunesChain.generateTransaction should generate payment
      * transaction with universal change box when inputs contain other runes
      * @dependencies
      * @scenario
@@ -772,6 +902,88 @@ describe('BitcoinRunesChain', () => {
     });
 
     /**
+     * @target BitcoinRunesChain.extractTransactionOrder should successfully extract
+     * transaction order even when some runes are burned
+     * @dependencies
+     * @scenario
+     * - mock PaymentTransaction
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return mocked transaction order
+     */
+    it('should successfully extract transaction order even when some runes are burned', async () => {
+      // mock PaymentTransaction
+      const paymentTx = BitcoinRunesTransaction.fromJson(
+        testData.transaction1InvalidForms.generatePaymentTxString(
+          testData.transaction1InvalidForms.txData.burningRunesByEdict
+        )
+      );
+      const expectedOrder = [
+        {
+          ...testData.transaction1Order[0],
+          assets: {
+            ...testData.transaction1Order[0].assets,
+            tokens: [
+              {
+                id: '880890:3052',
+                value: 2000000n,
+              },
+            ],
+          },
+        },
+      ];
+
+      // run test
+      const bitcoinRunesChain = await testUtils.generateChainObject(network);
+      const result = bitcoinRunesChain.extractTransactionOrder(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(expectedOrder);
+    });
+
+    /**
+     * @target BitcoinRunesChain.extractTransactionOrder should successfully extract
+     * transaction order even when edicts exceed input assets
+     * @dependencies
+     * @scenario
+     * - mock PaymentTransaction
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return mocked transaction order
+     */
+    it('should successfully extract transaction order even when edicts exceed input assets', async () => {
+      // mock PaymentTransaction
+      const paymentTx = BitcoinRunesTransaction.fromJson(
+        testData.transaction1InvalidForms.generatePaymentTxString(
+          testData.transaction1InvalidForms.txData.overdrawnEdict
+        )
+      );
+      const expectedOrder = [
+        {
+          ...testData.transaction1Order[0],
+          assets: {
+            ...testData.transaction1Order[0].assets,
+            tokens: [
+              {
+                id: '880890:3052',
+                value: 4000000n,
+              },
+            ],
+          },
+        },
+      ];
+
+      // run test
+      const bitcoinRunesChain = await testUtils.generateChainObject(network);
+      const result = bitcoinRunesChain.extractTransactionOrder(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(expectedOrder);
+    });
+
+    /**
      * @target BitcoinRunesChain.extractTransactionOrder should wrap transaction
      * order successfully
      * @dependencies
@@ -1171,6 +1383,46 @@ describe('BitcoinRunesChain', () => {
 
     /**
      * @target: BitcoinRunesChain.verifyTransactionExtraConditions should return false
+     * when universal change box address is wrong
+     * @dependencies
+     * @scenario
+     * - mock a payment transaction
+     * - create a new BitcoinRunesChain object with custom lock address
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when universal change box address is wrong', async () => {
+      // mock a payment transaction
+      const paymentTx = BitcoinRunesTransaction.fromJson(
+        testData.transaction2Forms.generatePaymentTxString(
+          testData.transaction2Forms.txData.valid
+        )
+      );
+
+      // create a new BitcoinRunesChain object with custom lock address
+      const newConfigs = structuredClone(testUtils.configs);
+      newConfigs.addresses.lock = 'bc1qs2qr0j7ta5pvdkv53egm38zymgarhq0ugr7x8j';
+      const tokenMap = new TokenMap();
+      await tokenMap.updateConfigByJson(testData.testTokenMap);
+      const bitcoinRunesChain = new BitcoinRunesChain(
+        network,
+        newConfigs,
+        tokenMap,
+        testUtils.mockedSignFn
+      );
+
+      // run test
+      const result =
+        bitcoinRunesChain.verifyTransactionExtraConditions(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target: BitcoinRunesChain.verifyTransactionExtraConditions should return false
      * when Runestone is null
      * @dependencies
      * @scenario
@@ -1467,6 +1719,34 @@ describe('BitcoinRunesChain', () => {
       const paymentTx = BitcoinRunesTransaction.fromJson(
         testData.transaction2Forms.generatePaymentTxString(
           testData.transaction2Forms.txData.wrongBtcChangeScript
+        )
+      );
+
+      // run test
+      const bitcoinRunesChain = await generateChainObject(network);
+      const result =
+        bitcoinRunesChain.verifyTransactionExtraConditions(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target: BitcoinRunesChain.verifyTransactionExtraConditions should return false
+     * when Runestone has edict to an unexpected output
+     * @dependencies
+     * @scenario
+     * - mock a payment transaction with Runestone that has edicts to universal change box
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when Runestone has edict to an unexpected output', async () => {
+      // mock a payment transaction
+      const paymentTx = BitcoinRunesTransaction.fromJson(
+        testData.transaction2Forms.generatePaymentTxString(
+          testData.transaction2Forms.txData.hasUnexpectedEdict
         )
       );
 
