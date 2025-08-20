@@ -40,6 +40,7 @@ import Serializer from './Serializer';
 import AbstractBitcoinRunesNetwork from './network/AbstractBitcoinRunesNetwork';
 import {
   generateAssetId,
+  generateBoxId,
   generateFeeEstimatorWithAssumptions,
   generateFeeEstimatorWithPsbt,
   splitPaymentOrders,
@@ -300,7 +301,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
           },
         });
         // mark selected boxes as forbidden for next transactions
-        forbiddenBoxIds.push(getPsbtTxInputBoxId(psbt.txInputs.at(-1)!));
+        forbiddenBoxIds.push(generateBoxId(box.txId, box.index));
       });
 
       const additionalAssets = coveredBoxes.additionalAssets.aggregated;
@@ -1204,11 +1205,11 @@ class BitcoinRunesChain extends AbstractUtxoChain<
       //-- verify input box id
       const input = psbt.txInputs[i];
       const txId = Buffer.from(input.hash).reverse().toString('hex');
-      const psbtInputId = `${txId}.${input.index}`;
+      const psbtInputId = generateBoxId(txId, input.index);
       const bitcoinInput = JsonBigInt.parse(
         bitcoinTx.inputUtxos[i]
       ) as BitcoinRunesUtxo;
-      const expectedId = `${bitcoinInput.txId}.${bitcoinInput.index}`;
+      const expectedId = generateBoxId(bitcoinInput.txId, bitcoinInput.index);
       if (expectedId !== psbtInputId) {
         this.logger.warn(
           baseError +

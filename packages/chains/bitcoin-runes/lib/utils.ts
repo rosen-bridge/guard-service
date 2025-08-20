@@ -30,6 +30,14 @@ export const generateAssetId = (
 ) => `${block}:${txIndex}`;
 
 /**
+ * generates box id from tx id and index
+ * @param txId
+ * @param index
+ */
+export const generateBoxId = (txId: string, index: number) =>
+  `${txId}.${index}`;
+
+/**
  * estimates the virtual size of the transaciton based on the number of inputs, OP_RETURN output script, number of native segwit and taproot outputs
  * @param inputSize
  * @param opReturnScriptLength
