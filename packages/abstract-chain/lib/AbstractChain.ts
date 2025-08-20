@@ -219,9 +219,9 @@ abstract class AbstractChain<TxType> {
             BigInt(event.networkFee) > feeConfig.networkFee
               ? BigInt(event.networkFee)
               : feeConfig.networkFee;
-          if (eventAmount < bridgeFee + networkFee) {
-            this.logger.info(
-              `Event [${eventId}] is not valid, event amount [${eventAmount}] is less than sum of bridgeFee [${bridgeFee}] and networkFee [${networkFee}]`
+          if (eventAmount <= bridgeFee + networkFee) {
+            this.logger.warn(
+              `Event [${eventId}] is not valid, event amount [${eventAmount}] is less than or equal to sum of bridgeFee [${bridgeFee}] and networkFee [${networkFee}]`
             );
             return false;
           }
