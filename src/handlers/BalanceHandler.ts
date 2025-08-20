@@ -159,7 +159,7 @@ class BalanceHandler {
       balance: {
         tokenId: balance.tokenId,
         amount: Number(balance.balance),
-        name: tokenData.name!.toUpperCase(),
+        name: tokenData.name,
         decimals: tokenData.decimals,
         isNativeToken: tokenData.isNativeToken,
       },
