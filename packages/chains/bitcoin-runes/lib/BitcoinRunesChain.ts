@@ -121,7 +121,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
 
     // split the order
     const orders = splitPaymentOrders(order, this.getMinimumNativeToken());
-    this.logger.debug(`Splitted order: ${JsonBigInt.stringify(orders)}`);
+    this.logger.debug(`Split order: ${JsonBigInt.stringify(orders)}`);
 
     // calculate required assets
     const requiredAssets = orders
@@ -271,7 +271,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
         this.unwrapAssetBalance(orderRequiredAssets);
 
       // fetch input boxes
-      // TODO: the box selection should NOT select boxes with minimum BTC
+      // TODO: the box selection should NOT select boxes with minimum BTC (refactor selection part: local:ergo/rosen-bridge/rosen-chains#174)
       const coveredBoxes = await this.boxSelection.getCoveringBoxes(
         unwrappedRequiredAssets,
         forbiddenBoxIds,
@@ -314,7 +314,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
           (token) => token.id !== order.assets.tokens[0].id
         );
         if (otherRunes.length > 0) {
-          // some other runes are transferred, so the change box is required
+          // some other runes are transferred, so the universal change box is required
           psbt.addOutput({
             script: Buffer.from(this.lockScript, 'hex'),
             value: Number(MINIMUM_BTC_FOR_NATIVE_SEGWIT_OUTPUT),
@@ -370,7 +370,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
         1 // only 1 box is remained to be added to the transaction
       );
       this.logger.debug(
-        `Fee related info: [is change box present: ${isUniversalChangeBoxPresent}, box-selection fee estimation: ${estimatedFee}, tx fee: ${fee}]`
+        `Fee related info: [is universal change box present: ${isUniversalChangeBoxPresent}, box-selection fee estimation: ${estimatedFee}, tx fee: ${fee}]`
       );
       const remainingBtc = additionalAssets.nativeToken + estimatedFee - fee;
       if (remainingBtc <= MINIMUM_BTC_FOR_NATIVE_SEGWIT_OUTPUT)
