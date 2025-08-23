@@ -30,14 +30,6 @@ export class TestBitcoinRunesNetwork extends AbstractBitcoinRunesNetwork {
     throw Error('Not mocked');
   };
 
-  getAddressBoxes = (
-    address: string,
-    offset: number,
-    limit: number
-  ): Promise<Array<BitcoinRunesUtxo>> => {
-    throw Error('Not mocked');
-  };
-
   getBlockTransactionIds = (blockId: string): Promise<Array<string>> => {
     throw Error('Not mocked');
   };
@@ -79,6 +71,26 @@ export class TestBitcoinRunesNetwork extends AbstractBitcoinRunesNetwork {
   };
 
   getMempoolTxIds = (): Promise<Array<string>> => {
+    throw Error('Not mocked');
+  };
+
+  getAddressRunesBoxes = (
+    address: string,
+    runeId: string,
+    offset: number,
+    limit: number
+  ): Promise<Array<BitcoinRunesUtxo>> => {
+    throw Error('Not mocked');
+  };
+
+  getAddressBtcBoxes = (address: string): Promise<Array<BitcoinRunesUtxo>> => {
+    throw Error('Not mocked');
+  };
+
+  getRemainingBoxes = (
+    fetchedBoxIds: Array<string>,
+    address: string
+  ): Promise<Array<BitcoinRunesUtxo>> => {
     throw Error('Not mocked');
   };
 }

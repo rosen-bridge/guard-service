@@ -189,6 +189,49 @@ export const lockBalance: AssetBalance = {
   ],
 };
 
+export const realisticLockAddressUtxos: BitcoinRunesUtxo[] = [
+  {
+    txId: 'd1797fa384ada5953128474f397b31d18681376fb542e24c2e1f79ee94799637',
+    index: 0,
+    value: 294n,
+    runes: [{ runeId: '880890:3052', quantity: 5500000n }],
+  },
+  {
+    txId: 'b5083b8cf78c5614228c64fe49f2372f1e3dd04fd836ee34054bd578abca5a76',
+    index: 2,
+    value: 294n,
+    runes: [{ runeId: '880891:4054', quantity: 1000n }],
+  },
+  {
+    txId: 'ecbcf2c087f0a884147d98a0775c1e3bc77ee7ea924c57d204b2d653c4f54bdf',
+    index: 0,
+    value: 800n,
+    runes: [],
+  },
+  {
+    txId: '805b71cde3d19223fabf9bb84cb3bb2132e0eb002de7dd9278ea62529e64f7be',
+    index: 0,
+    value: 1500n,
+    runes: [],
+  },
+];
+export const realisticLockAddressBoxIds = lockAddressUtxos.map(
+  (utxo) => `${utxo.txId}.${utxo.index}`
+);
+export const realisticLockBalance: AssetBalance = {
+  nativeToken: 2888n,
+  tokens: [
+    {
+      id: '880890:3052',
+      value: 5500000n,
+    },
+    {
+      id: '880891:4054',
+      value: 1000n,
+    },
+  ],
+};
+
 export const transaction1PaymentTransaction = `{
   "network": "bitcoin-runes",
   "eventId": "",

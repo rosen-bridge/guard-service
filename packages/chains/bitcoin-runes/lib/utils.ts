@@ -105,6 +105,7 @@ export const generateFeeEstimatorWithPsbt = (
   return generateFeeEstimatorWithAssumptions(
     opReturnScriptLength,
     feeRatio,
+    0,
     nativeSegwitOutputs.length,
     taprootOutputs.length
   );
@@ -114,24 +115,26 @@ export const generateFeeEstimatorWithPsbt = (
  * generates fee estimator for tx based on the OP_RETURN data length and type of the outputs
  * @param opReturnScriptLength
  * @param feeRatio
- * @param nativeSegwitOutputSize
- * @param taprootOutputSize
+ * @param preSelectedInputCount
+ * @param nativeSegwitOutputCount
+ * @param taprootOutputCount
  */
 export const generateFeeEstimatorWithAssumptions = (
   opReturnScriptLength: number,
   feeRatio: number,
-  nativeSegwitOutputSize: number,
-  taprootOutputSize: number
+  preSelectedInputCount: number,
+  nativeSegwitOutputCount: number,
+  taprootOutputCount: number
 ): FeeEstimator<BitcoinRunesUtxo> => {
   return (
     selectedBoxes: Array<BitcoinRunesUtxo>,
     changeBoxesCount: number
   ): bigint => {
     const estimatedVsize = estimateTxVsize(
-      selectedBoxes.length,
+      selectedBoxes.length + preSelectedInputCount,
       opReturnScriptLength,
-      nativeSegwitOutputSize + changeBoxesCount, // There is always a native-segwit change output
-      taprootOutputSize
+      nativeSegwitOutputCount + changeBoxesCount, // There is always a native-segwit change output
+      taprootOutputCount
     );
     return BigInt(Math.ceil(estimatedVsize * feeRatio));
   };
