@@ -159,7 +159,7 @@ class BalanceHandler {
       balance: {
         tokenId: balance.tokenId,
         amount: Number(balance.balance),
-        name: tokenData.name!.toUpperCase(),
+        name: tokenData.name,
         decimals: tokenData.decimals,
         isNativeToken: tokenData.isNativeToken,
       },
@@ -219,6 +219,9 @@ class BalanceHandler {
           )
         );
       }
+      if (supportedTokenIds.length === 0) {
+        await this.updateChainBatchBalances(chain, address);
+      }
     }
   };
 
@@ -232,7 +235,7 @@ class BalanceHandler {
   updateChainBatchBalances = async (
     chain: string,
     address: string,
-    tokensBatch: string[]
+    tokensBatch?: string[]
   ) => {
     // get address assets
     const abstractChain = ChainHandler.getInstance().getChain(chain);
