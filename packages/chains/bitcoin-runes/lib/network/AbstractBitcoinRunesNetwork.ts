@@ -48,7 +48,11 @@ abstract class AbstractBitcoinRunesNetwork extends AbstractUtxoChainNetwork<
 
   /**
    * gets confirmed and unspent boxes of an address
+   * 
+   * Note: This function is not implemented for any network of BitcoinRunesChain and should not be used!
    * @param address the address
+   * @param offset
+   * @param limit
    * @returns list of boxes
    */
   getAddressBoxes = (
