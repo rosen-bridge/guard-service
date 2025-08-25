@@ -553,11 +553,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       return listUnspentResponse.data.result !== null;
     } catch (e: any) {
       const baseError = `Failed to check if box [${boxId}] is unspent using Bitcoin RPC: `;
-      if (e.response && e.response.data && e.response.data.error) {
-        if (e.response.data.error.code === -5) {
-          // No such transaction error
-          return false;
-        }
+      if (e.response) {
         throw new FailedError(
           baseError + JsonBigInt.stringify(e.response.data)
         );
