@@ -302,3 +302,5 @@ balanceHandler:
   binance:
     tokensPerIteration:
       rpc: 10
+ergoMultiSig:
+  turnTime: 60
