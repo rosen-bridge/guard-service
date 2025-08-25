@@ -45,6 +45,63 @@ abstract class AbstractBitcoinRunesNetwork extends AbstractUtxoChainNetwork<
    * @param hash
    */
   getActualTxId = async (hash: string): Promise<string> => hash;
+
+  /**
+   * gets confirmed and unspent boxes of an address
+   * 
+   * Note: This function is not implemented for any network of BitcoinRunesChain and should not be used!
+   * @param address the address
+   * @param offset
+   * @param limit
+   * @returns list of boxes
+   */
+  getAddressBoxes = (
+    address: string,
+    offset: number,
+    limit: number
+  ): Promise<Array<BitcoinRunesUtxo>> => {
+    throw Error(
+      `The "getAddressBoxes" is not implemented for any network of "BitcoinRunesChain" and should not be used!`
+    );
+  };
+
+  /**
+   * gets confirmed and unspent boxes of an address that contains given rune
+   * @param address the address
+   * @param runeId the rune ID
+   * @param offset
+   * @param limit
+   * @returns list of boxes
+   */
+  abstract getAddressRunesBoxes: (
+    address: string,
+    runeId: string,
+    offset: number,
+    limit: number
+  ) => Promise<Array<BitcoinRunesUtxo>>;
+
+  /**
+   * gets confirmed and unspent boxes of an address that contains no rune
+   * @param address the address
+   * @returns list of boxes
+   */
+  abstract getAddressBtcBoxes: (
+    address: string
+  ) => Promise<Array<BitcoinRunesUtxo>>;
+
+  /**
+   * gets confirmed and unspent boxes of an address that are not fetched yet
+   *
+   * Note: this function ignores the `fetchedBoxIds`, meaning it does not
+   * return it nor fetch its Runes balance
+   * @param fetchedBoxIds the list of fetched box IDs
+   * @param address the address
+   * @returns list of boxes
+   */
+  abstract getRemainingBoxes: (
+    fetchedBoxIds: Array<string>,
+    address: string
+  ) => Promise<Array<BitcoinRunesUtxo>>;
 }
 
 export default AbstractBitcoinRunesNetwork;

@@ -165,22 +165,6 @@ class BitcoinRunesChain extends AbstractUtxoChain<
       )
     );
 
-    // generate iterator for address boxes
-    const getAddressBoxes = this.network.getAddressBoxes;
-    const lockAddress = this.configs.addresses.lock;
-    async function* generator() {
-      let offset = 0;
-      const limit = GET_BOX_API_LIMIT;
-      while (true) {
-        const page = await getAddressBoxes(lockAddress, offset, limit);
-        if (page.length === 0) break;
-        yield* page;
-        offset += limit;
-      }
-      return undefined;
-    }
-    const utxoIterator = generator();
-
     // generate a transaction for each item of order
     const transactions: BitcoinRunesTransaction[] = [];
     for (const order of orders) {
@@ -250,19 +234,22 @@ class BitcoinRunesChain extends AbstractUtxoChain<
         .toOutputScript(order.address)
         .toString('hex')
         .startsWith(NATIVE_SEGWIT_SCRIPT_PREFIX);
-      const estimateFee = isNativeSegwit
-        ? generateFeeEstimatorWithAssumptions(
-            draftRunestone.encodedRunestone.length,
-            feeRatio,
-            4,
-            0
-          )
-        : generateFeeEstimatorWithAssumptions(
-            draftRunestone.encodedRunestone.length,
-            feeRatio,
-            3,
-            1
-          );
+      let nativeSegwitOutputCount: number;
+      let taprootOutputCount: number;
+      if (isNativeSegwit) {
+        nativeSegwitOutputCount = 4;
+        taprootOutputCount = 0;
+      } else {
+        nativeSegwitOutputCount = 3;
+        taprootOutputCount = 1;
+      }
+      const feeEstimator = generateFeeEstimatorWithAssumptions(
+        draftRunestone.encodedRunestone.length,
+        feeRatio,
+        0,
+        nativeSegwitOutputCount,
+        taprootOutputCount
+      );
 
       // calculated required assets for this transaction
       const orderRequiredAssets = structuredClone(order.assets);
@@ -271,27 +258,122 @@ class BitcoinRunesChain extends AbstractUtxoChain<
       const unwrappedRequiredAssets =
         this.unwrapAssetBalance(orderRequiredAssets);
 
-      // fetch input boxes
-      // TODO: the box selection should NOT select boxes with minimum BTC (refactor selection part: local:ergo/rosen-bridge/rosen-chains#174)
-      const coveredBoxes = await this.boxSelection.getCoveringBoxes(
-        unwrappedRequiredAssets,
+      // generate iterator for address boxes to cover required runes
+      const getAddressRunesBoxes = this.network.getAddressRunesBoxes;
+      const lockAddress = this.configs.addresses.lock;
+      const runesUtxoIterator = async function* () {
+        let offset = 0;
+        const limit = GET_BOX_API_LIMIT;
+        while (true) {
+          const page = await getAddressRunesBoxes(
+            lockAddress,
+            token.id,
+            offset,
+            limit
+          );
+          if (page.length === 0) break;
+          yield* page;
+          offset += limit;
+        }
+        return undefined;
+      };
+
+      // fetch input boxes to cover required runes
+      const selectedBoxes: BitcoinRunesUtxo[] = [];
+      const coveredRunesBoxes = await this.boxSelection.getCoveringBoxes(
+        {
+          nativeToken: 0n,
+          tokens: unwrappedRequiredAssets.tokens,
+        },
         forbiddenBoxIds,
         trackMap,
-        utxoIterator,
+        runesUtxoIterator(),
         MINIMUM_BTC_FOR_NATIVE_SEGWIT_OUTPUT,
         undefined,
-        estimateFee
+        feeEstimator
       );
-      if (!coveredBoxes.covered) {
+      if (!coveredRunesBoxes.covered) {
         throw new NotEnoughValidBoxesError(
-          `Available boxes didn't cover required assets. Required assets: ${JsonBigInt.stringify(
-            unwrappedRequiredAssets
+          `Available boxes didn't cover required Runes. Required Runes: ${JsonBigInt.stringify(
+            unwrappedRequiredAssets.tokens
           )}`
+        );
+      }
+      selectedBoxes.push(...coveredRunesBoxes.boxes);
+      const preSelectedBtc = coveredRunesBoxes.boxes.reduce(
+        (a, b) => a + b.value,
+        0n
+      );
+      const additionalAssets = coveredRunesBoxes.additionalAssets.aggregated;
+      let estimatedFee = coveredRunesBoxes.additionalAssets.fee;
+      if (preSelectedBtc < unwrappedRequiredAssets.nativeToken) {
+        this.logger.debug(
+          `Selected Runes boxes cannot cover required amount of BTC [${preSelectedBtc} < ${unwrappedRequiredAssets.nativeToken}]. Fetching BTC only boxes...`
+        );
+        const requiredBtc =
+          unwrappedRequiredAssets.nativeToken - preSelectedBtc;
+
+        // generate fee estimator for 2nd box selection
+        const feeEstimator = generateFeeEstimatorWithAssumptions(
+          draftRunestone.encodedRunestone.length,
+          feeRatio,
+          selectedBoxes.length,
+          nativeSegwitOutputCount,
+          taprootOutputCount
+        );
+
+        // generate iterator for address boxes to cover required runes
+        const getAddressBtcBoxes = this.network.getAddressBtcBoxes;
+        const getRemainingBoxes = this.network.getRemainingBoxes;
+        const lockAddress = this.configs.addresses.lock;
+        const btcUtxoIterator = async function* () {
+          const btcBoxes = await getAddressBtcBoxes(lockAddress);
+          if (btcBoxes.length !== 0) yield* btcBoxes;
+
+          selectedBoxes.push(...btcBoxes);
+          const fetchedBoxIds = selectedBoxes.map((box) =>
+            generateBoxId(box.txId, box.index)
+          );
+          const remainingBoxes = await getRemainingBoxes(
+            fetchedBoxIds,
+            lockAddress
+          );
+          if (remainingBoxes.length !== 0) yield* remainingBoxes;
+
+          return undefined;
+        };
+
+        // fetch input boxes to cover required BTC
+        const coveredBtcBoxes = await this.boxSelection.getCoveringBoxes(
+          { nativeToken: requiredBtc, tokens: [] },
+          forbiddenBoxIds,
+          trackMap,
+          btcUtxoIterator(),
+          MINIMUM_BTC_FOR_NATIVE_SEGWIT_OUTPUT,
+          undefined,
+          feeEstimator
+        );
+        if (!coveredBtcBoxes.covered) {
+          throw new NotEnoughValidBoxesError(
+            `Available boxes didn't cover required assets. Required assets: ${JsonBigInt.stringify(
+              unwrappedRequiredAssets
+            )}`
+          );
+        }
+        // add selected boxes
+        selectedBoxes.push(...coveredBtcBoxes.boxes);
+        // the fee and additional BTC are only based on the additional assets of the 2nd selection
+        additionalAssets.nativeToken =
+          coveredBtcBoxes.additionalAssets.aggregated.nativeToken;
+        estimatedFee = coveredBtcBoxes.additionalAssets.fee;
+      } else {
+        this.logger.debug(
+          `Selected Runes boxes also covered required amount of BTC`
         );
       }
 
       // add inputs
-      coveredBoxes.boxes.forEach((box) => {
+      selectedBoxes.forEach((box) => {
         psbt.addInput({
           hash: box.txId,
           index: box.index,
@@ -304,7 +386,6 @@ class BitcoinRunesChain extends AbstractUtxoChain<
         forbiddenBoxIds.push(generateBoxId(box.txId, box.index));
       });
 
-      const additionalAssets = coveredBoxes.additionalAssets.aggregated;
       let isUniversalChangeBoxPresent = true;
       if (additionalAssets.tokens.length === 0) {
         // no need to add the universal change box
@@ -365,9 +446,8 @@ class BitcoinRunesChain extends AbstractUtxoChain<
       orderOutputs.forEach((output) => psbt.addOutput(output));
 
       // calculate fee and remaining BTC
-      const estimatedFee = coveredBoxes.additionalAssets.fee;
       const fee = generateFeeEstimatorWithPsbt(psbt, feeRatio)(
-        coveredBoxes.boxes,
+        selectedBoxes,
         1 // only 1 box is remained to be added to the transaction
       );
       this.logger.debug(
@@ -393,7 +473,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
         eventId,
         txBytes,
         txType,
-        coveredBoxes.boxes.map((box) => JsonBigInt.stringify(box))
+        selectedBoxes.map((box) => JsonBigInt.stringify(box))
       );
 
       transactions.push(bitcoinTx);

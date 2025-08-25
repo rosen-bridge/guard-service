@@ -135,13 +135,11 @@ describe('BitcoinRunesChain', () => {
       expect(extractedOrder).toEqual(order);
 
       // getCoveringBoxes should have been called with correct arguments
-      const expectedRequiredAssets = structuredClone(
-        testData.transaction1Order[0].assets
-      );
-      expectedRequiredAssets.nativeToken +=
-        2n * MINIMUM_BTC_FOR_NATIVE_SEGWIT_OUTPUT;
       expect(getCovBoxesSpy.fn).toHaveBeenCalledWith(
-        expectedRequiredAssets,
+        {
+          nativeToken: 0n,
+          tokens: testData.transaction1Order[0].assets.tokens,
+        },
         expect.any(Array), // Since the argument is mutated, it's not possible to check it here
         new Map(),
         expect.any(Object),
@@ -267,11 +265,8 @@ describe('BitcoinRunesChain', () => {
       expect(extractedOrder).toEqual(order);
 
       // getCoveringBoxes should have been called with correct arguments
-      const expectedRequiredAssets = structuredClone(order[0].assets);
-      expectedRequiredAssets.nativeToken +=
-        2n * MINIMUM_BTC_FOR_NATIVE_SEGWIT_OUTPUT;
       expect(getCovBoxesSpy.fn).toHaveBeenCalledWith(
-        expectedRequiredAssets,
+        { nativeToken: 0n, tokens: order[0].assets.tokens },
         expect.any(Array), // Since the argument is mutated, it's not possible to check it here
         new Map(),
         expect.any(Object),
@@ -405,13 +400,11 @@ describe('BitcoinRunesChain', () => {
       );
 
       // getCoveringBoxes should have been called with correct arguments
-      const expectedRequiredAssets = structuredClone(
-        testData.transaction3Order[0].assets
-      );
-      expectedRequiredAssets.nativeToken +=
-        2n * MINIMUM_BTC_FOR_NATIVE_SEGWIT_OUTPUT;
       expect(getCovBoxesSpy.fn).toHaveBeenCalledWith(
-        expectedRequiredAssets,
+        {
+          nativeToken: 0n,
+          tokens: testData.transaction3Order[0].assets.tokens,
+        },
         expect.any(Array), // Since the argument is mutated, it's not possible to check it here
         new Map(),
         expect.any(Object),
@@ -421,6 +414,158 @@ describe('BitcoinRunesChain', () => {
       );
       //-- check forbiddenBoxIds
       expect(getCovBoxesSpy.callArgs.forbiddenBoxIds.at(-1)).toEqual([]);
+    });
+
+    /**
+     * @target BitcoinRunesChain.generateTransaction should generate payment
+     * transaction while fetching BTC boxes from different API
+     * @dependencies
+     * @scenario
+     * - mock transaction order, getFeeRatio
+     * - mock getCoveringBoxes, hasLockAddressEnoughAssets
+     * - run test
+     * - check returned value
+     * @expected
+     * - PaymentTransaction txType, eventId, network and inputUtxos should be as
+     *   expected
+     * - transaction artifact should be a Runestone
+     * - extracted order of generated transaction should be the same as input
+     *   order
+     * - getCoveringBoxes should have been called twice with correct arguments
+     */
+    it('should generate payment transaction while fetching BTC boxes from different API', async () => {
+      // mock transaction order
+      const order = testData.transaction1Order;
+      const payment1 = BitcoinRunesTransaction.fromJson(
+        testData.transaction1PaymentTransaction
+      );
+      const getFeeRatioSpy = vi.spyOn(network, 'getFeeRatio');
+      getFeeRatioSpy.mockResolvedValue(1);
+
+      // mock getCoveringBoxes, hasLockAddressEnoughAssets
+      const bitcoinRunesChain = await testUtils.generateChainObject(network);
+      const getCovBoxesSpy = {
+        fn: vi.spyOn(
+          (bitcoinRunesChain as any).boxSelection,
+          'getCoveringBoxes'
+        ),
+        callArgs: {
+          forbiddenBoxIds: Array<string>(),
+        },
+      };
+      const selectedBoxesOfEachCall = [
+        testData.realisticLockAddressUtxos.slice(0, 1),
+        testData.realisticLockAddressUtxos.slice(2, 4),
+      ];
+      const totalSelectedBoxes = selectedBoxesOfEachCall.flat();
+      getCovBoxesSpy.fn.mockImplementation((...args: any[]) => {
+        const selectedBoxes =
+          selectedBoxesOfEachCall[
+            getCovBoxesSpy.callArgs.forbiddenBoxIds.length
+          ];
+        getCovBoxesSpy.callArgs.forbiddenBoxIds.push(structuredClone(args[1]));
+        const fee = 314n;
+        const remainingNativeToken =
+          selectedBoxes
+            .map((box) => box.value)
+            .reduce((sum, value) => sum + value, 0n) -
+          args[0].nativeToken -
+          fee;
+        const remainingAssets = {
+          nativeToken: remainingNativeToken,
+          tokens: [
+            {
+              id: '880890:3052',
+              value: 5500000n - (args[0].tokens.at(0)?.value ?? 0n),
+            },
+          ],
+        };
+        return {
+          covered: true,
+          boxes: selectedBoxes,
+          additionalAssets: {
+            aggregated: remainingAssets,
+            list: [remainingAssets],
+            fee: fee,
+          },
+        };
+      });
+      const hasLockAddressEnoughAssetsSpy = vi.spyOn(
+        bitcoinRunesChain,
+        'hasLockAddressEnoughAssets'
+      );
+      hasLockAddressEnoughAssetsSpy.mockResolvedValue(true);
+
+      // run test
+      const result = await bitcoinRunesChain.generateTransaction(
+        payment1.eventId,
+        payment1.txType,
+        order,
+        [
+          BitcoinRunesTransaction.fromJson(
+            testData.transaction2PaymentTransaction
+          ),
+        ],
+        []
+      );
+      const bitcoinTx = result as BitcoinRunesTransaction;
+
+      // check returned value
+      expect(bitcoinTx.txType).toEqual(payment1.txType);
+      expect(bitcoinTx.eventId).toEqual(payment1.eventId);
+      expect(bitcoinTx.network).toEqual(payment1.network);
+      expect(bitcoinTx.inputUtxos).toEqual(
+        totalSelectedBoxes.map((utxo) => JsonBigInt.stringify(utxo))
+      );
+
+      // transaction artifact should be a Runestone
+      const psbt = Psbt.fromBuffer(Buffer.from(bitcoinTx.txBytes));
+      const runestone = tryDecodeRunestone({
+        vout: Transaction.fromBuffer(psbt.data.getTransaction()).outs.map(
+          (out) => ({
+            scriptPubKey: { hex: out.script.toString('hex') },
+          })
+        ),
+      });
+      expect(runestone).toBeDefined();
+      expect(isRunestone(runestone!)).toEqual(true);
+
+      // extracted order of generated transaction should be the same as input order
+      const extractedOrder =
+        bitcoinRunesChain.extractTransactionOrder(bitcoinTx);
+      expect(extractedOrder).toEqual(order);
+
+      // getCoveringBoxes should have been called twice with correct arguments
+      expect(getCovBoxesSpy.fn).toHaveBeenNthCalledWith(
+        1,
+        {
+          nativeToken: 0n,
+          tokens: testData.transaction1Order[0].assets.tokens,
+        },
+        expect.any(Array), // Since the argument is mutated, it's not possible to check it here
+        new Map(),
+        expect.any(Object),
+        expect.any(BigInt),
+        undefined,
+        expect.any(Function)
+      );
+      expect(getCovBoxesSpy.fn).toHaveBeenNthCalledWith(
+        2,
+        { nativeToken: 330n + 294n, tokens: [] }, // Sum of MinUtxoValue of taproot and native-segwit
+        expect.any(Array), // Since the argument is mutated, it's not possible to check it here
+        new Map(),
+        expect.any(Object),
+        expect.any(BigInt),
+        undefined,
+        expect.any(Function)
+      );
+      //-- check forbiddenBoxIds
+      expect(getCovBoxesSpy.callArgs.forbiddenBoxIds[0]).toEqual(
+        testData.transaction2InputIds
+      );
+      expect(getCovBoxesSpy.callArgs.forbiddenBoxIds[1]).toEqual(
+        testData.transaction2InputIds
+      );
     });
 
     /**
@@ -608,13 +753,11 @@ describe('BitcoinRunesChain', () => {
       expect(extractedOrder).toEqual(order);
 
       // getCoveringBoxes should have been called with correct arguments
-      const expectedRequiredAssets = structuredClone(
-        testData.transaction1Order[0].assets
-      );
-      expectedRequiredAssets.nativeToken +=
-        2n * MINIMUM_BTC_FOR_NATIVE_SEGWIT_OUTPUT;
       expect(getCovBoxesSpy.fn).toHaveBeenCalledWith(
-        expectedRequiredAssets,
+        {
+          nativeToken: 0n,
+          tokens: testData.transaction1Order[0].assets.tokens,
+        },
         expect.any(Array), // Since the argument is mutated, it's not possible to check it here
         new Map(),
         expect.any(Object),
@@ -736,14 +879,12 @@ describe('BitcoinRunesChain', () => {
       ]);
 
       // getCoveringBoxes should have been called with correct arguments
-      const firstExpectedRequiredAssets = structuredClone(
-        testData.splittedColdOrder[0].assets
-      );
-      firstExpectedRequiredAssets.nativeToken +=
-        2n * MINIMUM_BTC_FOR_NATIVE_SEGWIT_OUTPUT;
       expect(getCovBoxesSpy.fn).toHaveBeenNthCalledWith(
         1,
-        firstExpectedRequiredAssets,
+        {
+          nativeToken: 0n,
+          tokens: testData.splittedColdOrder[0].assets.tokens,
+        },
         expect.any(Array), // Since the argument is mutated, it's not possible to check it here
         new Map(),
         expect.any(Object),
@@ -751,14 +892,12 @@ describe('BitcoinRunesChain', () => {
         undefined,
         expect.any(Function)
       );
-      const secondExpectedRequiredAssets = structuredClone(
-        testData.splittedColdOrder[1].assets
-      );
-      secondExpectedRequiredAssets.nativeToken +=
-        2n * MINIMUM_BTC_FOR_NATIVE_SEGWIT_OUTPUT;
       expect(getCovBoxesSpy.fn).toHaveBeenNthCalledWith(
         2,
-        secondExpectedRequiredAssets,
+        {
+          nativeToken: 0n,
+          tokens: testData.splittedColdOrder[1].assets.tokens,
+        },
         expect.any(Array), // Since the argument is mutated, it's not possible to check it here
         new Map(),
         expect.any(Object),
