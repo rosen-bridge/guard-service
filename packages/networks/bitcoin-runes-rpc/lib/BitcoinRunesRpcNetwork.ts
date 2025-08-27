@@ -1,7 +1,8 @@
-import axios, { AxiosInstance } from 'axios';
+import RateLimitedAxios, {
+  RateLimitedAxiosConfig,
+} from '@rosen-bridge/rate-limited-axios';
 import { Psbt } from 'bitcoinjs-lib';
 import { randomBytes } from 'crypto';
-import rateLimit from 'axios-rate-limit';
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 import {
   AssetBalance,
@@ -21,7 +22,6 @@ import {
 } from '@rosen-chains/bitcoin-runes';
 import JsonBigInt from '@rosen-bridge/json-bigint';
 import {
-  BitcoinRunesAuth,
   JsonRpcResult,
   BitcoinRpcChainInfo,
   BitcoinRpcTransaction,
@@ -37,59 +37,60 @@ import {
   UnisatAddressRunesUtxos,
   UnisatAddressBtcUtxos,
   UnisatRunesInfo,
+  RpcConfig,
+  UnisatConfig,
 } from './types';
 
 export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
-  protected rpcClient: AxiosInstance;
-  protected unisatClient: AxiosInstance;
+  protected rpcClient: RateLimitedAxios;
+  protected unisatClient: RateLimitedAxios;
 
   constructor(
-    rpcUrl: string,
-    unisatUrl = 'https://open-api.unisat.io',
-    logger?: AbstractLogger,
-    auth?: BitcoinRunesAuth,
-    rpcMaxRps?: number,
-    unisatMaxRps = 5
+    rpcConfig: RpcConfig,
+    unisatConfig?: UnisatConfig,
+    logger?: AbstractLogger
   ) {
     super(logger);
 
     // init Bitcoin RPC client
     const rpcHeaders = { 'Content-Type': 'application/json' };
     // Add API key to headers if provided
-    if (auth?.rpcApiKey) {
-      Object.assign(rpcHeaders, { 'x-api-key': auth.rpcApiKey });
+    if (rpcConfig.rpcApiKey) {
+      Object.assign(rpcHeaders, { 'x-api-key': rpcConfig.rpcApiKey });
     }
     const rpcAuthConfig =
-      auth?.rpcUsername || auth?.rpcPassword
+      rpcConfig.rpcUsername || rpcConfig.rpcPassword
         ? {
             auth: {
-              username: auth?.rpcUsername || '',
-              password: auth?.rpcPassword || '',
+              username: rpcConfig.rpcUsername || '',
+              password: rpcConfig.rpcPassword || '',
             },
           }
         : {};
-    this.rpcClient = rateLimit(
-      axios.create({
-        baseURL: rpcUrl,
-        headers: rpcHeaders,
-        ...rpcAuthConfig,
-      }),
-      { maxRPS: rpcMaxRps }
-    );
+    this.rpcClient = RateLimitedAxios.create({
+      baseURL: rpcConfig.url,
+      headers: rpcHeaders,
+      ...rpcAuthConfig,
+    });
+    if (rpcConfig.rps)
+      RateLimitedAxiosConfig.addRule(`^${rpcConfig.url}$`, rpcConfig.rps, 1);
 
     // init Unisat client
     const unisatHeaders = { 'Content-Type': 'application/json' };
     // Add API key to headers if provided
-    if (auth?.unisatApiKey) {
-      Object.assign(unisatHeaders, { 'x-api-key': auth.unisatApiKey });
+    if (unisatConfig?.unisatApiKey) {
+      Object.assign(unisatHeaders, { 'x-api-key': unisatConfig.unisatApiKey });
     }
-    this.unisatClient = rateLimit(
-      axios.create({
-        baseURL: unisatUrl,
-        headers: unisatHeaders,
-      }),
-      { maxRPS: unisatMaxRps }
-    );
+    this.unisatClient = RateLimitedAxios.create({
+      baseURL: unisatConfig?.url ?? 'https://open-api.unisat.io',
+      headers: unisatHeaders,
+    });
+    if (unisatConfig && unisatConfig.rps)
+      RateLimitedAxiosConfig.addRule(
+        `^${unisatConfig.url}$`,
+        unisatConfig.rps,
+        1
+      );
   }
 
   private generateRandomId = () => randomBytes(32).toString('hex');

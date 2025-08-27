@@ -1,10 +1,3 @@
-export interface BitcoinRunesAuth {
-  rpcUsername?: string;
-  rpcPassword?: string;
-  rpcApiKey?: string;
-  unisatApiKey?: string;
-}
-
 export interface JsonRpcResult<Result> {
   result: Result;
   error: any;
@@ -279,4 +272,18 @@ export interface UnisatRunesTerms {
   heightEnd: number;
   offsetStart: number;
   offsetEnd: number;
+}
+
+export interface RpcConfig {
+  url: string;
+  rpcUsername?: string;
+  rpcPassword?: string;
+  rpcApiKey?: string;
+  rps?: number;
+}
+
+export interface UnisatConfig {
+  url?: string;
+  unisatApiKey?: string;
+  rps?: number;
 }

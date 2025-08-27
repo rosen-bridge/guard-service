@@ -14,7 +14,7 @@ describe('BitcoinRunesRpcNetwork', () => {
 
   beforeEach(() => {
     resetAxiosMock();
-    network = new BitcoinRunesRpcNetwork('rpc-url');
+    network = new BitcoinRunesRpcNetwork({ url: 'rpc-url' });
     vi.spyOn(network as any, 'generateRandomId').mockReturnValue(
       testData.requestId
     );
@@ -108,7 +108,7 @@ describe('BitcoinRunesRpcNetwork', () => {
      * when address has no BTC
      * @dependencies
      * @scenario
-     * - mock axios to return address utxo info with zero balance
+     * - mock Unisat axios to return address balance response with zero BTC
      * - run test
      * - check returned value
      * @expected
@@ -134,11 +134,12 @@ describe('BitcoinRunesRpcNetwork', () => {
      * when address has only BTC
      * @dependencies
      * @scenario
-     * - mock axios to return address utxo info with correct transactions
+     * - mock Unisat axios to return address balance response
+     * - mock Unisat axios to return address Runes balance response with empty list
      * - run test
      * - check returned value
      * @expected
-     * - it should be zero native tokens with no tokens
+     * - it should be expected BTC balance with no tokens
      */
     it('should return correct balance when address has only BTC', async () => {
       mockAxiosGet(ClientType.UNISAT, testData.unisatAddressBalanceReponse);
@@ -185,7 +186,7 @@ describe('BitcoinRunesRpcNetwork', () => {
      * - run test
      * - check returned value
      * @expected
-     * - it should be expected id list
+     * - it should be expected info
      */
     it('should return block info successfully', async () => {
       mockAxiosPost(ClientType.RPC, testData.blockResponse);
