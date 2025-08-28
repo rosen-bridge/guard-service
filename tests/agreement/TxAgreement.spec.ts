@@ -2492,6 +2492,8 @@ describe('TxAgreement', () => {
       const timestamp1 = Math.round(TestConfigs.currentTimeStamp / 1000) - 50;
       const paymentTx2 = mockPaymentTransaction(TransactionType.coldStorage);
       const timestamp2 = Math.round(TestConfigs.currentTimeStamp / 1000) - 10;
+      const paymentTx3 = mockPaymentTransaction(TransactionType.arbitrary);
+      const timestamp3 = Math.round(TestConfigs.currentTimeStamp / 1000) - 10;
 
       // insert mocked txs into memory
       const txAgreement = new TestTxAgreement();
@@ -2513,6 +2515,15 @@ describe('TxAgreement', () => {
         paymentTx2.txId
       );
 
+      txAgreement.insertTransactions(paymentTx3.txId, {
+        tx: paymentTx3,
+        timestamp: timestamp3,
+      });
+      txAgreement.insertOrderAgreedTransactions(
+        paymentTx3.network,
+        paymentTx3.txId
+      );
+
       // run test
       txAgreement.clearAgreedTransactions();
 
@@ -2520,6 +2531,7 @@ describe('TxAgreement', () => {
       expect(txAgreement.getTransactions().size).toEqual(0);
       expect(txAgreement.getEventAgreedTransactions().size).toEqual(0);
       expect(txAgreement.getAgreedColdStorageTransactions().size).toEqual(0);
+      expect(txAgreement.getOrderAgreedTransactions().size).toEqual(0);
     });
   });
 
