@@ -574,6 +574,8 @@ class TxAgreement extends Communicator {
         this.eventAgreedTransactions.delete(tx.eventId);
       if (this.agreedColdStorageTransactions.has(tx.network))
         this.agreedColdStorageTransactions.delete(tx.network);
+      if (this.orderAgreedTransactions.has(tx.eventId))
+        this.orderAgreedTransactions.delete(tx.eventId);
     } catch (e) {
       logger.warn(
         `An error occurred while setting tx [${tx.txId}] as approved: ${e}`
@@ -687,14 +689,12 @@ class TxAgreement extends Communicator {
    */
   clearAgreedTransactions = async (): Promise<void> => {
     logger.info(
-      `Removing [${
-        this.eventAgreedTransactions.size +
-        this.agreedColdStorageTransactions.size
-      }] agreed transactions from memory`
+      `Removing [${this.eventAgreedTransactions.size}e, ${this.agreedColdStorageTransactions.size}c, ${this.orderAgreedTransactions.size}o] agreed transactions from memory`
     );
     this.transactions.clear();
     this.eventAgreedTransactions.clear();
     this.agreedColdStorageTransactions.clear();
+    this.orderAgreedTransactions.clear();
   };
 
   /**
