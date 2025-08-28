@@ -1,4 +1,4 @@
-import axios from 'axios';
+import RateLimitedAxios from '@rosen-bridge/rate-limited-axios';
 import { vi } from 'vitest';
 import { RPC_URL, UNISAT_URL } from '../testData';
 
@@ -93,7 +93,7 @@ export const resetAxiosMock = () => {
   unisatAxiosInstance.post.mockReset();
 
   // Mock axios.create to return our mocked instance
-  vi.spyOn(axios, 'create').mockImplementation((config) => {
+  vi.spyOn(RateLimitedAxios, 'create').mockImplementation((config) => {
     const url = config?.baseURL;
     if (url?.includes(RPC_URL)) {
       return rpcAxiosInstance as any;
