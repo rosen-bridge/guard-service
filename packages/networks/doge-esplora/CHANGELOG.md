@@ -1,5 +1,14 @@
 # @rosen-chains/doge-esplora
 
+## 1.1.1
+
+### Patch Changes
+
+- Update Rosen utility packages
+- Update dependencies
+  - @rosen-chains/abstract-chain@14.0.1
+  - @rosen-chains/doge@2.2.1
+
 ## 1.1.0
 
 ### Minor Changes

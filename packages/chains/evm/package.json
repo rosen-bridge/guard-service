@@ -1,6 +1,6 @@
 {
   "name": "@rosen-chains/evm",
-  "version": "8.2.0",
+  "version": "8.2.1",
   "description": "this project contains evm chains for Rosen-bridge",
   "repository": {
     "type": "git",
@@ -40,11 +40,11 @@
     "node": ">=20.11.0"
   },
   "dependencies": {
-    "@rosen-bridge/abstract-logger": "^2.0.1",
-    "@rosen-bridge/json-bigint": "^0.1.0",
-    "@rosen-bridge/rosen-extractor": "^8.0.0",
-    "@rosen-bridge/tokens": "^3.1.1",
-    "@rosen-chains/abstract-chain": "^14.0.0",
-    "ethers": "^6.14.3"
+    "@rosen-bridge/abstract-logger": "^2.1.0",
+    "@rosen-bridge/json-bigint": "^0.2.0",
+    "@rosen-bridge/rosen-extractor": "^8.1.0",
+    "@rosen-bridge/tokens": "^3.2.0",
+    "@rosen-chains/abstract-chain": "^14.0.1",
+    "ethers": "6.13.2"
   }
 }

@@ -1,5 +1,14 @@
 # @rosen-chains/doge-blockcypher
 
+## 0.2.1
+
+### Patch Changes
+
+- Update Rosen utility packages
+- Update dependencies
+  - @rosen-chains/abstract-chain@14.0.1
+  - @rosen-chains/doge@2.2.1
+
 ## 0.2.0
 
 ### Minor Changes

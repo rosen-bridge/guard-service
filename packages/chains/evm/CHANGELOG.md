@@ -1,5 +1,14 @@
 # @rosen-chains/evm
 
+## 8.2.1
+
+### Patch Changes
+
+- Downgrade `ethers` to v6.13.2
+- Update Rosen utility packages
+- Update dependencies
+  - @rosen-chains/abstract-chain@14.0.1
+
 ## 8.2.0
 
 ### Minor Changes

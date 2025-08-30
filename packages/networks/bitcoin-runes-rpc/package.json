@@ -40,10 +40,10 @@
     "node": ">=20.11.0"
   },
   "dependencies": {
-    "@rosen-bridge/abstract-logger": "^2.0.1",
-    "@rosen-bridge/json-bigint": "^0.1.0",
-    "@rosen-chains/abstract-chain": "^14.0.0",
-    "@rosen-chains/bitcoin-runes": "^0.1.0",
+    "@rosen-bridge/abstract-logger": "^2.1.0",
+    "@rosen-bridge/json-bigint": "^0.2.0",
+    "@rosen-chains/abstract-chain": "^14.0.1",
+    "@rosen-chains/bitcoin-runes": "^1.0.0",
     "@rosen-bridge/rate-limited-axios": "^0.2.1",
     "bitcoinjs-lib": "^6.1.5"
   }
