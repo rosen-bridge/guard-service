@@ -47,7 +47,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
 
   constructor(
     rpcConfig: RpcConfig,
-    unisatConfig?: UnisatConfig,
+    unisatConfig: UnisatConfig,
     logger?: AbstractLogger
   ) {
     super(logger);
@@ -72,25 +72,17 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       headers: rpcHeaders,
       ...rpcAuthConfig,
     });
-    if (rpcConfig.rps)
-      RateLimitedAxiosConfig.addRule(`^${rpcConfig.url}$`, rpcConfig.rps, 1);
 
     // init Unisat client
     const unisatHeaders = { 'Content-Type': 'application/json' };
     // Add API key to headers if provided
-    if (unisatConfig?.unisatApiKey) {
+    if (unisatConfig.unisatApiKey) {
       Object.assign(unisatHeaders, { 'x-api-key': unisatConfig.unisatApiKey });
     }
     this.unisatClient = RateLimitedAxios.create({
-      baseURL: unisatConfig?.url ?? 'https://open-api.unisat.io',
+      baseURL: unisatConfig.url,
       headers: unisatHeaders,
     });
-    if (unisatConfig && unisatConfig.rps)
-      RateLimitedAxiosConfig.addRule(
-        `^${unisatConfig.url}$`,
-        unisatConfig.rps,
-        1
-      );
   }
 
   private generateRandomId = () => randomBytes(32).toString('hex');

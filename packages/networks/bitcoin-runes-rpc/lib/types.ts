@@ -279,11 +279,9 @@ export interface RpcConfig {
   rpcUsername?: string;
   rpcPassword?: string;
   rpcApiKey?: string;
-  rps?: number;
 }
 
 export interface UnisatConfig {
-  url?: string;
+  url: string;
   unisatApiKey?: string;
-  rps?: number;
 }

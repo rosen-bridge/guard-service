@@ -14,7 +14,10 @@ describe('BitcoinRunesRpcNetwork', () => {
 
   beforeEach(() => {
     resetAxiosMock();
-    network = new BitcoinRunesRpcNetwork({ url: 'rpc-url' });
+    network = new BitcoinRunesRpcNetwork(
+      { url: 'rpc-url' },
+      { url: 'unisat-url' }
+    );
     vi.spyOn(network as any, 'generateRandomId').mockReturnValue(
       testData.requestId
     );
