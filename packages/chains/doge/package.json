@@ -1,6 +1,6 @@
 {
   "name": "@rosen-chains/doge",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "description": "this project contains doge chain for Rosen-bridge",
   "repository": {
     "type": "git",
@@ -43,7 +43,7 @@
     "@rosen-bridge/rosen-extractor": "^8.1.0",
     "@rosen-bridge/selection-types": "^0.1.0",
     "@rosen-bridge/tokens": "^3.2.0",
-    "@rosen-chains/abstract-chain": "^14.0.0",
+    "@rosen-chains/abstract-chain": "^14.0.1",
     "bitcoinjs-lib": "^6.1.5"
   },
   "engines": {

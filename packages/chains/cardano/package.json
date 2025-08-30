@@ -1,6 +1,6 @@
 {
   "name": "@rosen-chains/cardano",
-  "version": "13.0.0",
+  "version": "13.0.1",
   "description": "this project contains cardano chain for Rosen-bridge",
   "main": "dist/lib/index.js",
   "types": "dist/lib/index.d.ts",
@@ -31,7 +31,7 @@
     "@rosen-bridge/rosen-extractor": "^8.1.0",
     "@rosen-bridge/selection-types": "^0.1.0",
     "@rosen-bridge/tokens": "^3.2.0",
-    "@rosen-chains/abstract-chain": "^14.0.0",
+    "@rosen-chains/abstract-chain": "^14.0.1",
     "bech32": "^2.0.0"
   },
   "devDependencies": {

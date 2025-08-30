@@ -1,6 +1,6 @@
 {
   "name": "@rosen-chains/ergo",
-  "version": "12.1.0",
+  "version": "12.1.1",
   "description": "this project contains ergo chain for Rosen-bridge",
   "main": "dist/lib/index.js",
   "types": "dist/lib/index.d.ts",
@@ -30,7 +30,7 @@
     "@rosen-bridge/rosen-extractor": "^8.1.0",
     "@rosen-bridge/selection-types": "^0.1.0",
     "@rosen-bridge/tokens": "^3.2.0",
-    "@rosen-chains/abstract-chain": "^14.0.0",
+    "@rosen-chains/abstract-chain": "^14.0.1",
     "ergo-lib-wasm-nodejs": "^0.24.1"
   },
   "devDependencies": {

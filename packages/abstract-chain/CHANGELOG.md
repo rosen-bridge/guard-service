@@ -1,5 +1,13 @@
 # @rosen-chains/abstract-chain
 
+## 14.0.1
+
+### Patch Changes
+
+- Fix validation of event amount
+- Update box-selection packages
+- Update Rosen utility packages
+
 ## 14.0.0
 
 ### Major Changes

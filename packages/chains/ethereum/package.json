@@ -1,6 +1,6 @@
 {
   "name": "@rosen-chains/ethereum",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "this project contains ethereum chain for Rosen-bridge",
   "repository": {
     "type": "git",
@@ -40,7 +40,7 @@
   "dependencies": {
     "@rosen-bridge/abstract-logger": "^2.1.0",
     "@rosen-bridge/tokens": "^3.2.0",
-    "@rosen-chains/abstract-chain": "^14.0.0",
-    "@rosen-chains/evm": "^8.2.0"
+    "@rosen-chains/abstract-chain": "^14.0.1",
+    "@rosen-chains/evm": "^8.2.1"
   }
 }
