@@ -1,6 +1,6 @@
 {
   "name": "@rosen-chains/bitcoin-runes-rpc",
-  "version": "0.1.1",
+  "version": "0.1.0",
   "description": "A package to be used as network api provider for @rosen-chains/bitcoin-runes package",
   "repository": {
     "type": "git",
