@@ -70,7 +70,7 @@ export class TestBitcoinRunesNetwork extends AbstractBitcoinRunesNetwork {
     throw Error('Not mocked');
   };
 
-  getMempoolTxIds = (): Promise<Array<string>> => {
+  isTxInMempool = (txId: string): Promise<boolean> => {
     throw Error('Not mocked');
   };
 

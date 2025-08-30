@@ -26,10 +26,11 @@ abstract class AbstractBitcoinRunesNetwork extends AbstractUtxoChainNetwork<
   abstract getFeeRatio: () => Promise<number>;
 
   /**
-   * gets id of transactions in mempool
-   * @returns
+   * checks if a transaction is in mempool
+   * @param txId the transaction id
+   * @returns true if the transaction is in mempool, false otherwise
    */
-  abstract getMempoolTxIds: () => Promise<Array<string>>;
+  abstract isTxInMempool: (txId: string) => Promise<boolean>;
 
   /**
    * gets all transactions in mempool (returns empty list if the chain has no mempool)
@@ -48,7 +49,7 @@ abstract class AbstractBitcoinRunesNetwork extends AbstractUtxoChainNetwork<
 
   /**
    * gets confirmed and unspent boxes of an address
-   * 
+   *
    * Note: This function is not implemented for any network of BitcoinRunesChain and should not be used!
    * @param address the address
    * @param offset
