@@ -84,7 +84,6 @@ export const transaction0Response = new TransactionResponse(
       networkV: null,
     }),
     accessList: [],
-    authorizationList: [],
   },
   new JsonRpcProvider()
 );

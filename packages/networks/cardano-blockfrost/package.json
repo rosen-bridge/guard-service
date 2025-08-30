@@ -43,6 +43,7 @@
     "@blockfrost/blockfrost-js": "^6.0.0",
     "@emurgo/cardano-serialization-lib-nodejs": "^13.2.0",
     "@rosen-bridge/abstract-logger": "^2.1.0",
+    "@rosen-bridge/json-bigint": "^0.2.0",
     "@rosen-chains/abstract-chain": "^14.0.1",
     "@rosen-chains/cardano": "^13.0.1"
   }
