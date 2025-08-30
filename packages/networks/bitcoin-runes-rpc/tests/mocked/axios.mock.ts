@@ -1,5 +1,4 @@
 import RateLimitedAxios from '@rosen-bridge/rate-limited-axios';
-import { vi } from 'vitest';
 import { RPC_URL, UNISAT_URL } from '../testData';
 
 export enum ClientType {

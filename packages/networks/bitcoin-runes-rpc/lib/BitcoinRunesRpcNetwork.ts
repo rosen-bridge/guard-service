@@ -1,6 +1,4 @@
-import RateLimitedAxios, {
-  RateLimitedAxiosConfig,
-} from '@rosen-bridge/rate-limited-axios';
+import RateLimitedAxios from '@rosen-bridge/rate-limited-axios';
 import { Psbt } from 'bitcoinjs-lib';
 import { randomBytes } from 'crypto';
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
@@ -130,7 +128,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
         params: [],
       });
       this.validateResponseId(randomId, response.data.id);
-      this.logger?.debug(
+      this.logger.debug(
         `requested 'getblockchaininfo'. Response: ${JsonBigInt.stringify(
           response.data
         )}`
@@ -168,7 +166,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
         params: [transactionId, true],
       });
       this.validateResponseId(randomId, response.data.id);
-      this.logger?.debug(
+      this.logger.debug(
         `requested 'getrawtransaction' for txId [${transactionId}]. Response: ${JsonBigInt.stringify(
           response.data
         )}`
@@ -204,7 +202,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       const response = await this.unisatClient.get<
         UnisatResponse<UnisatAddressBalance>
       >(`/v1/indexer/address/${address}/balance`);
-      this.logger?.debug(
+      this.logger.debug(
         `requested 'address/:address/balance' for address [${address}]. Response: ${JsonBigInt.stringify(
           response.data
         )}`
@@ -227,7 +225,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       const response = await this.unisatClient.get<
         UnisatResponse<UnisatAddressRunesBalance>
       >(`/v1/indexer/address/${address}/runes/balance-list`);
-      this.logger?.debug(
+      this.logger.debug(
         `requested 'address/:address/runes/balance-list' for address [${address}]. Response: ${JsonBigInt.stringify(
           response.data
         )}`
@@ -271,7 +269,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
         params: [blockId, 1],
       });
       this.validateResponseId(randomId, response.data.id);
-      this.logger?.debug(
+      this.logger.debug(
         `requested 'getblock' for blockId [${blockId}]. Response: ${JsonBigInt.stringify(
           response.data
         )}`
@@ -309,7 +307,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
         params: [blockId, 1],
       });
       this.validateResponseId(randomId, response.data.id);
-      this.logger?.debug(
+      this.logger.debug(
         `requested 'getblock' for blockId [${blockId}]. Response: ${JsonBigInt.stringify(
           response.data
         )}`
@@ -357,7 +355,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
         params: [transactionId, true],
       });
       this.validateResponseId(randomId, response.data.id);
-      this.logger?.debug(
+      this.logger.debug(
         `Requested 'getrawtransaction' for txId [${transactionId}]. Response: ${JsonBigInt.stringify(
           response.data
         )}`
@@ -402,7 +400,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       const response = await this.unisatClient.get<
         UnisatResponse<UnisatTxRunes>
       >(`/v1/indexer/runes/event?txid=${transactionId}`);
-      this.logger?.debug(
+      this.logger.debug(
         `requested 'indexer/runes/event' filtering txId [${transactionId}]. Response: ${JsonBigInt.stringify(
           response.data
         )}`
@@ -460,7 +458,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
         params: [txHex],
       });
       this.validateResponseId(randomId, response.data.id);
-      this.logger?.debug(
+      this.logger.debug(
         `Submitted transaction. Response: ${JsonBigInt.stringify(
           response.data
         )}`
@@ -489,7 +487,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       const response = await this.unisatClient.get<
         UnisatResponse<UnisatRunesInfo | null>
       >(`/v1/indexer/runes/${tokenId}/info`);
-      this.logger?.debug(
+      this.logger.debug(
         `requested '/info' for rune [${tokenId}]. Response: ${JsonBigInt.stringify(
           response.data
         )}`
@@ -536,7 +534,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
         params: [txId, outputIndex, false], // txid, n, include_mempool
       });
       this.validateResponseId(randomId, listUnspentResponse.data.id);
-      this.logger?.debug(
+      this.logger.debug(
         `Requested 'gettxout' for txId [${txId}] and index [${outputIndex}]. Response: ${JsonBigInt.stringify(
           listUnspentResponse.data
         )}`
@@ -579,7 +577,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
         params: [txId, true],
       });
       this.validateResponseId(randomId, response.data.id);
-      this.logger?.debug(
+      this.logger.debug(
         `Requested 'getrawtransaction' for txId [${txId}]. Response: ${JsonBigInt.stringify(
           response.data
         )}`
@@ -629,7 +627,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
         params: [CONFIRMATION_TARGET], // Number of blocks to target for confirmation
       });
       this.validateResponseId(randomId, response.data.id);
-      this.logger?.debug(
+      this.logger.debug(
         `requested 'estimatesmartfee'. Response: ${JsonBigInt.stringify(
           response.data
         )}`
@@ -668,7 +666,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
         params: [txId],
       });
       this.validateResponseId(randomId, response.data.id);
-      this.logger?.debug(
+      this.logger.debug(
         `requested 'getmempoolentry' with txId [${txId}]. Response: ${JsonBigInt.stringify(
           response.data
         )}`
@@ -714,7 +712,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       const response = await this.unisatClient.get<
         UnisatResponse<UnisatRunesDetail[]>
       >(`/v1/indexer/runes/utxo/${txId}/${outputIndex}/balance`);
-      this.logger?.debug(
+      this.logger.debug(
         `requested 'runes/utxo/:txid/:vout/balance' for box [${boxId}]. Response: ${JsonBigInt.stringify(
           response.data
         )}`
@@ -762,7 +760,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       >(
         `/v1/indexer/address/${address}/runes/${runeId}/utxo?start=${offset}&limit=${limit}`
       );
-      this.logger?.debug(
+      this.logger.debug(
         `requested 'utxo?start=${offset}&limit=${limit}' for address [${address}] and rune [${runeId}]. Response: ${JsonBigInt.stringify(
           response.data
         )}`
@@ -805,7 +803,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       const response = await this.unisatClient.get<
         UnisatResponse<UnisatAddressBtcUtxos | undefined>
       >(`/v1/indexer/address/${address}/available-utxo-data`);
-      this.logger?.debug(
+      this.logger.debug(
         `requested 'available-utxo-data' for address [${address}]. Response: ${JsonBigInt.stringify(
           response.data
         )}`
@@ -851,7 +849,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       const response = await this.unisatClient.get<
         UnisatResponse<UnisatAddressBtcUtxos | undefined>
       >(`/v1/indexer/address/${address}/all-utxo-data`);
-      this.logger?.debug(
+      this.logger.debug(
         `requested 'all-utxo-data' for address [${address}]. Response: ${JsonBigInt.stringify(
           response.data
         )}`
