@@ -6,6 +6,7 @@ import { BITCOIN_CHAIN, BTC } from '@rosen-chains/bitcoin';
 import { DOGE, DOGE_CHAIN } from '@rosen-chains/doge';
 import { ETH, ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
 import { BINANCE_CHAIN, BNB } from '@rosen-chains/binance';
+import { BITCOIN_RUNES_CHAIN } from '@rosen-chains/bitcoin-runes';
 import { RosenTokens } from '@rosen-bridge/tokens';
 import { chunk } from 'lodash-es';
 
@@ -68,6 +69,11 @@ class BalanceHandler {
           this.nativeTokenIds[chain] = BNB;
           this.chainsTokensPerIteration[chain] =
             Configs.balanceHandler.binance.tokensPerIteration.rpc;
+          break;
+        case BITCOIN_RUNES_CHAIN:
+          this.nativeTokenIds[chain] = BTC;
+          this.chainsTokensPerIteration[chain] =
+            Configs.balanceHandler.bitcoinRunes.tokensPerIteration.rpc;
           break;
         default:
           throw Error(`Chain [${chain}] is not implemented`);

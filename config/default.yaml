@@ -326,3 +326,6 @@ balanceHandler:
   binance:
     tokensPerIteration:
       rpc: 10
+  bitcoinRunes:
+    tokensPerIteration:
+      rpc: 9999
