@@ -50,6 +50,7 @@ import {
   EventInfo,
   EventProgressHealthCheckParam,
 } from '@rosen-bridge/event-progress-check';
+import { BITCOIN_RUNES_CHAIN } from '@rosen-chains/bitcoin-runes';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 let healthCheck: HealthCheck | undefined;
@@ -131,6 +132,8 @@ const getHealthCheck = async () => {
     const ethereumContracts = rosenConfig.contractReader(ETHEREUM_CHAIN);
     const binanceContracts = rosenConfig.contractReader(BINANCE_CHAIN);
     const dogeContracts = rosenConfig.contractReader(DOGE_CHAIN);
+    const bitcoinRunesContracts =
+      rosenConfig.contractReader(BITCOIN_RUNES_CHAIN);
     const generateLastBlockFetcher = (scannerName: string) => {
       return async () => {
         try {
@@ -253,6 +256,7 @@ const getHealthCheck = async () => {
       healthCheck.register(adaAssetHealthCheck);
     }
     if (GuardsBitcoinConfigs.chainNetworkName === 'esplora') {
+      // register BTC asset-check on Bitcoin lock address
       const btcAssetHealthCheck = new EsploraAssetHealthCheckParam(
         BTC,
         bitcoinContracts.lockAddress,
@@ -262,6 +266,16 @@ const getHealthCheck = async () => {
         8
       );
       healthCheck.register(btcAssetHealthCheck);
+      // register BTC asset-check on Bitcoin Runes lock address
+      const btcRunesAssetHealthCheck = new EsploraAssetHealthCheckParam(
+        BTC,
+        bitcoinRunesContracts.lockAddress,
+        Configs.btcWarnThreshold,
+        Configs.btcCriticalThreshold,
+        GuardsBitcoinConfigs.esplora.url,
+        8
+      );
+      healthCheck.register(btcRunesAssetHealthCheck);
     }
     if (GuardsEthereumConfigs.chainNetworkName === 'rpc') {
       const ethAssetHealthCheck = new EvmRpcAssetHealthCheckParam(

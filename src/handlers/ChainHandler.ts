@@ -1,3 +1,4 @@
+import { RateLimitedAxiosConfig } from '@rosen-bridge/rate-limited-axios';
 import { AbstractChain } from '@rosen-chains/abstract-chain';
 import {
   AbstractCardanoNetwork,
@@ -49,6 +50,12 @@ import { TokenHandler } from './tokenHandler';
 import { DatabaseAction } from 'src/db/DatabaseAction';
 import * as TransactionSerializer from '../transaction/TransactionSerializer';
 import { DogeEsploraNetwork } from '@rosen-chains/doge-esplora';
+import {
+  BitcoinRunesChain,
+  AbstractBitcoinRunesNetwork,
+} from '@rosen-chains/bitcoin-runes';
+import { BitcoinRunesRpcNetwork } from '@rosen-chains/bitcoin-runes-rpc';
+import GuardsBitcoinRunesConfigs from '../configs/GuardsBitcoinRunesConfigs';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -60,6 +67,7 @@ class ChainHandler {
   private readonly dogeChain: DogeChain;
   private readonly ethereumChain: EthereumChain;
   private readonly binanceChain: BinanceChain;
+  private readonly bitcoinRunesChain: BitcoinRunesChain;
 
   private constructor() {
     this.ergoChain = this.generateErgoChain();
@@ -68,6 +76,7 @@ class ChainHandler {
     this.dogeChain = this.generateDogeChain();
     this.ethereumChain = this.generateEthereumChain();
     this.binanceChain = this.generateBinanceChain();
+    this.bitcoinRunesChain = this.generateBitcoinRunesChain();
     logger.info('ChainHandler instantiated');
   }
 
@@ -381,6 +390,74 @@ class ChainHandler {
       TokenHandler.getInstance().getTokenMap(),
       tssSignFunctionWrapper,
       DefaultLoggerFactory.getInstance().getLogger('BinanceChain')
+    );
+  };
+
+  /**
+   * generates BitcoinRunes network and chain objects using configs
+   * @returns BitcoinRunesChain object
+   */
+  private generateBitcoinRunesChain = (): BitcoinRunesChain => {
+    let network: AbstractBitcoinRunesNetwork;
+    switch (GuardsBitcoinRunesConfigs.chainNetworkName) {
+      case 'rpc': {
+        network = new BitcoinRunesRpcNetwork(
+          {
+            url: GuardsBitcoinRunesConfigs.rpc.url,
+            rpcUsername: GuardsBitcoinRunesConfigs.rpc.username,
+            rpcPassword: GuardsBitcoinRunesConfigs.rpc.password,
+            rpcApiKey: GuardsBitcoinRunesConfigs.rpc.apiKey,
+          },
+          {
+            url: GuardsBitcoinRunesConfigs.unisat.url,
+            unisatApiKey: GuardsBitcoinRunesConfigs.unisat.apiKey,
+          },
+          DefaultLoggerFactory.getInstance().getLogger('RpcNetwork')
+        );
+        if (GuardsBitcoinRunesConfigs.rpc.rps !== undefined)
+          RateLimitedAxiosConfig.addRule(
+            GuardsBitcoinRunesConfigs.rpc.url,
+            GuardsBitcoinRunesConfigs.rpc.rps,
+            1
+          );
+        if (GuardsBitcoinRunesConfigs.unisat.rps !== undefined)
+          RateLimitedAxiosConfig.addRule(
+            GuardsBitcoinRunesConfigs.unisat.url,
+            GuardsBitcoinRunesConfigs.unisat.rps,
+            1
+          );
+        break;
+      }
+      default:
+        throw Error(
+          `No case is defined for network [${GuardsBitcoinRunesConfigs.chainNetworkName}]`
+        );
+    }
+    const chainCode = GuardsBitcoinRunesConfigs.tssChainCode;
+    const derivationPath = GuardsBitcoinRunesConfigs.derivationPath;
+    const curveSign = TssHandler.getInstance().curveSign;
+    const tssSignFunctionWrapper = async (
+      txHash: Uint8Array
+    ): Promise<{
+      signature: string;
+      signatureRecovery: string;
+    }> => {
+      const res = await curveSign(
+        Buffer.from(txHash).toString('hex'),
+        chainCode,
+        derivationPath
+      );
+      return {
+        signature: res.signature,
+        signatureRecovery: res.signatureRecovery!,
+      };
+    };
+    return new BitcoinRunesChain(
+      network,
+      GuardsBitcoinRunesConfigs.chainConfigs,
+      TokenHandler.getInstance().getTokenMap(),
+      tssSignFunctionWrapper,
+      DefaultLoggerFactory.getInstance().getLogger('BitcoinRunesChain')
     );
   };
 
