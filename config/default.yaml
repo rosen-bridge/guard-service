@@ -63,13 +63,6 @@ bitcoinRunes:
     # apiKey: ''
     rps: 5 # request per second for Unisat API requests
   bankPublicKey: '' # corresponding public key of lock address
-  txFeeSlippage: 10 # allowed slippage percentage for tx fees
-  confirmation: # required block confirmation
-    observation: 6 # an observation transaction (lock transaction) on Bitcoin Runes get confirmed
-    payment: 6 # a payment transaction on Bitcoin Runes get confirmed
-    cold: 6 # a cold storage transaction on Bitcoin Runes get confirmed
-    manual: 6 # a manual transaction on Bitcoin Runes get confirmed
-    arbitrary: 6 # an arbitrary transaction on Bitcoin Runes get confirmed
   tssChainCode: ''
   derivationPath:
     -

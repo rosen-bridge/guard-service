@@ -5,6 +5,7 @@ import {
   BITCOIN_RUNES_CHAIN,
   BitcoinRunesConfigs,
 } from '@rosen-chains/bitcoin-runes';
+import GuardsBitcoinConfigs from './GuardsBitcoinConfigs';
 
 class GuardsBitcoinRunesConfigs {
   // service configs
@@ -36,31 +37,6 @@ class GuardsBitcoinRunesConfigs {
       : undefined,
   };
 
-  // value configs
-  static txFeeSlippage = config.get<number>('bitcoinRunes.txFeeSlippage');
-
-  // confirmation configs
-  static observationConfirmation = getConfigIntKeyOrDefault(
-    'bitcoinRunes.confirmation.observation',
-    6
-  );
-  static paymentConfirmation = getConfigIntKeyOrDefault(
-    'bitcoinRunes.confirmation.payment',
-    6
-  );
-  static coldTxConfirmation = getConfigIntKeyOrDefault(
-    'bitcoinRunes.confirmation.cold',
-    6
-  );
-  static manualTxConfirmation = getConfigIntKeyOrDefault(
-    'bitcoinRunes.confirmation.manual',
-    6
-  );
-  static arbitraryTxConfirmation = getConfigIntKeyOrDefault(
-    'bitcoinRunes.confirmation.arbitrary',
-    6
-  );
-
   // the ergo-related contract, addresses and tokens in rosen bridge
   static bitcoinRunesContractConfig =
     rosenConfig.contractReader(BITCOIN_RUNES_CHAIN);
@@ -76,11 +52,11 @@ class GuardsBitcoinRunesConfigs {
   static chainConfigs: BitcoinRunesConfigs = {
     fee: 0n, // fee config is not used in BitcoinRunesChain
     confirmations: {
-      observation: this.observationConfirmation,
-      payment: this.paymentConfirmation,
-      cold: this.coldTxConfirmation,
-      manual: this.manualTxConfirmation,
-      arbitrary: this.arbitraryTxConfirmation,
+      observation: GuardsBitcoinConfigs.observationConfirmation,
+      payment: GuardsBitcoinConfigs.paymentConfirmation,
+      cold: GuardsBitcoinConfigs.coldTxConfirmation,
+      manual: GuardsBitcoinConfigs.manualTxConfirmation,
+      arbitrary: GuardsBitcoinConfigs.arbitraryTxConfirmation,
     },
     addresses: {
       lock: this.bitcoinRunesContractConfig.lockAddress,
@@ -90,7 +66,7 @@ class GuardsBitcoinRunesConfigs {
     },
     rwtId: this.bitcoinRunesContractConfig.RWTId,
     aggregatedPublicKey: this.aggregatedPublicKey,
-    txFeeSlippage: this.txFeeSlippage,
+    txFeeSlippage: GuardsBitcoinConfigs.txFeeSlippage,
   };
 }
 
