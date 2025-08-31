@@ -412,7 +412,7 @@ class ChainHandler {
             url: GuardsBitcoinRunesConfigs.unisat.url,
             unisatApiKey: GuardsBitcoinRunesConfigs.unisat.apiKey,
           },
-          DefaultLoggerFactory.getInstance().getLogger('RpcNetwork')
+          DefaultLoggerFactory.getInstance().getLogger('BitcoinRunesRpcNetwork')
         );
         if (GuardsBitcoinRunesConfigs.rpc.rps !== undefined)
           RateLimitedAxiosConfig.addRule(
