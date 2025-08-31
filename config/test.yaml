@@ -92,6 +92,16 @@ ethereum:
     - 60
     - 0
     - 0
+bitcoin-runes:
+  networkType: 'testnet'
+  chainNetwork: 'rpc'
+  bankPublicKey: 'bcb07faa6c0f19e2f2587aa9ef6f43a68fc0135321216a71dc87c8527af4ca6a'
+  tssChainCode: 'BitcoinRunesChainCode'
+  derivationPath:
+    - 82
+    - 84
+    - 0
+    - 0
 reward:
   emissionTokenId: '94e3590122b5546b067166d3b531900158c2f2d5d61e2b00e42fa312801833b2'
   emissionTokenName: 'eRSN'

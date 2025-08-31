@@ -47,11 +47,9 @@ class RosenConfig {
   readonly contracts: Map<string, ContractConfig>;
 
   constructor() {
-    const supportingNetworks = SUPPORTED_CHAINS.map(
-      (network, index) => `${network}-${Configs.networksType[index]}`
-    );
+    const firstSupportedNetwork = `${SUPPORTED_CHAINS[0]}-${Configs.networksType[0]}`;
     this.contracts = new Map<string, ContractConfig>();
-    const rosenConfigPath = this.getAddress(supportingNetworks[0]);
+    const rosenConfigPath = this.getAddress(firstSupportedNetwork);
     if (!fs.existsSync(rosenConfigPath)) {
       throw new Error(
         `rosenConfig file with path ${rosenConfigPath} doesn't exist`
@@ -65,8 +63,9 @@ class RosenConfig {
       this.rsnRatioNFT = config.tokens.RSNRatioNFT;
       this.contractVersion = config.version;
     }
-    supportingNetworks.forEach((network) => {
-      const networkName = network.split('-')[0].toLowerCase();
+    SUPPORTED_CHAINS.forEach((networkName, index) => {
+      const network =
+        `${networkName}-${Configs.networksType[index]}`.toLowerCase();
       const contractConfig = new ContractConfig(
         this.getAddress(network),
         this.contractVersion
