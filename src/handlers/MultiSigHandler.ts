@@ -28,6 +28,7 @@ class MultiSigHandler {
       guardDetection: DetectionHandler.getInstance().getDetection(),
       commGuardsPk: Configs.tssKeys.pubs.map((p) => p.curvePub),
       ergoGuardPks: [],
+      turnTime: Configs.multiSigTurnTime,
     });
   }
 

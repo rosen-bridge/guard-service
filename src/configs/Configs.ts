@@ -1,6 +1,5 @@
 import fs from 'fs';
 import config from 'config';
-import { RosenTokens, TokenMap } from '@rosen-bridge/tokens';
 import { ThresholdConfig } from '../coldStorage/types';
 import { JsonBI } from '../network/NetworkModels';
 import Utils from '../utils/Utils';
@@ -195,6 +194,7 @@ class Configs {
   static txResendInterval = 25; // seconds
   static approvalResendDelay = 5; // seconds
   static multiSigCleanUpInterval = 120; // seconds
+  static multiSigHandleTurnInterval = 30; // seconds
   static tssInstanceRestartGap = 5; // seconds
   static tssUpdateInterval = 10; // seconds
   static detectionUpdateInterval = 10; // seconds
@@ -407,6 +407,9 @@ class Configs {
   static isStillUnhealthyWindowDuration = config.get<number>(
     'notification.windowDurations.isStillUnhealthy'
   );
+  static multiSigTurnTime = config.has('ergoMultiSig.turnTime')
+    ? config.get<number>('ergoMultiSig.turnTime')
+    : undefined;
 
   // balance handler configs
   static balanceHandler;
