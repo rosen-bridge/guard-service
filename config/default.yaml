@@ -322,3 +322,5 @@ balanceHandler:
   bitcoinRunes:
     tokensPerIteration:
       rpc: 9999
+ergoMultiSig:
+  turnTime: 60
