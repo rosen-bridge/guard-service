@@ -299,14 +299,21 @@ class BitcoinRunesChain extends AbstractUtxoChain<
           )}`
         );
       }
-      selectedBoxes.push(...coveredRunesBoxes.boxes);
+      coveredRunesBoxes.boxes.forEach((box) => {
+        selectedBoxes.push(box);
+        // mark selected boxes as forbidden for next selection and transactions
+        forbiddenBoxIds.push(generateBoxId(box.txId, box.index));
+      });
       const preSelectedBtc = coveredRunesBoxes.boxes.reduce(
         (a, b) => a + b.value,
         0n
       );
       const additionalAssets = coveredRunesBoxes.additionalAssets.aggregated;
+      additionalAssets.nativeToken -= unwrappedRequiredAssets.nativeToken;
       let estimatedFee = coveredRunesBoxes.additionalAssets.fee;
-      if (preSelectedBtc < unwrappedRequiredAssets.nativeToken) {
+
+      // check if selected boxes can cover required BTC
+      if (preSelectedBtc < unwrappedRequiredAssets.nativeToken + estimatedFee) {
         this.logger.debug(
           `Selected Runes boxes cannot cover required amount of BTC [${preSelectedBtc} < ${unwrappedRequiredAssets.nativeToken}]. Fetching BTC only boxes...`
         );
@@ -361,7 +368,11 @@ class BitcoinRunesChain extends AbstractUtxoChain<
           );
         }
         // add selected boxes
-        selectedBoxes.push(...coveredBtcBoxes.boxes);
+        coveredBtcBoxes.boxes.forEach((box) => {
+          selectedBoxes.push(box);
+          // mark selected boxes as forbidden for next transactions
+          forbiddenBoxIds.push(generateBoxId(box.txId, box.index));
+        });
         // the fee and additional BTC are only based on the additional assets of the 2nd selection
         additionalAssets.nativeToken =
           coveredBtcBoxes.additionalAssets.aggregated.nativeToken;
@@ -382,8 +393,6 @@ class BitcoinRunesChain extends AbstractUtxoChain<
             value: Number(box.value),
           },
         });
-        // mark selected boxes as forbidden for next transactions
-        forbiddenBoxIds.push(generateBoxId(box.txId, box.index));
       });
 
       let isUniversalChangeBoxPresent = true;

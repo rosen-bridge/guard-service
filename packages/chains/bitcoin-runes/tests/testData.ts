@@ -215,7 +215,7 @@ export const realisticLockAddressUtxos: BitcoinRunesUtxo[] = [
     runes: [],
   },
 ];
-export const realisticLockAddressBoxIds = lockAddressUtxos.map(
+export const realisticLockAddressBoxIds = realisticLockAddressUtxos.map(
   (utxo) => `${utxo.txId}.${utxo.index}`
 );
 export const realisticLockBalance: AssetBalance = {

@@ -563,9 +563,10 @@ describe('BitcoinRunesChain', () => {
       expect(getCovBoxesSpy.callArgs.forbiddenBoxIds[0]).toEqual(
         testData.transaction2InputIds
       );
-      expect(getCovBoxesSpy.callArgs.forbiddenBoxIds[1]).toEqual(
-        testData.transaction2InputIds
-      );
+      expect(getCovBoxesSpy.callArgs.forbiddenBoxIds[1]).toEqual([
+        ...testData.transaction2InputIds,
+        testData.realisticLockAddressBoxIds[0],
+      ]);
     });
 
     /**
