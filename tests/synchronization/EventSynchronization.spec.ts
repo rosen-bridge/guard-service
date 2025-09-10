@@ -608,6 +608,7 @@ describe('EventSynchronization', () => {
      * @scenario
      * - mock event and transaction and insert into db
      * - mock EventSynchronization.sendMessage
+     * - mock ChainHandler.getActualTxId
      * - run test
      * - check if function got called
      * @expected
@@ -634,6 +635,16 @@ describe('EventSynchronization', () => {
       const sendMessageSpy = vi.spyOn(eventSync as any, 'sendMessage');
       sendMessageSpy.mockImplementation(mockedSendMessage);
 
+      // mock `getActualTxId`
+      ChainHandlerMock.resetMock();
+      ChainHandlerMock.mockChainName(mockedEvent.toChain);
+      ChainHandlerMock.mockChainFunction(
+        mockedEvent.toChain,
+        'getActualTxId',
+        tx.txId,
+        true
+      );
+
       // run test
       await eventSync.processMessage(
         SynchronizationMessageTypes.request,
@@ -647,7 +658,7 @@ describe('EventSynchronization', () => {
       // `sendMessage` should got called with expected arguments
       expect(mockedSendMessage).toHaveBeenCalledWith(
         SynchronizationMessageTypes.response,
-        { txJson: tx.toJson() },
+        { txJson: tx.toJson(), actualTxId: tx.txId },
         expect.any(Array),
         TestConfigs.currentTimeStamp / 1000
       );
@@ -1029,6 +1040,7 @@ describe('EventSynchronization', () => {
      *   - mock `extractTransactionOrder`
      *   - mock `getTxConfirmationStatus`
      *   - mock `verifyTransactionExtraConditions`
+     *   - mock `getActualTxId`
      * - mock EventOrder.createEventPaymentOrder to return mocked order
      * - run test
      * - check returned value
@@ -1098,12 +1110,22 @@ describe('EventSynchronization', () => {
         true,
         false
       );
+      // mock `getActualTxId`
+      ChainHandlerMock.mockChainFunction(
+        mockedEvent.toChain,
+        'getActualTxId',
+        tx.txId,
+        true
+      );
 
       // mock EventOrder.createEventPaymentOrder to return mocked order
       mockCreateEventPaymentOrder(mockedOrder);
 
       // run test
-      const result = await eventSync.callVerifySynchronizationResponse(tx);
+      const result = await eventSync.callVerifySynchronizationResponse(
+        tx,
+        tx.txId
+      );
 
       // check returned value
       expect(result).toEqual(true);
@@ -1192,7 +1214,10 @@ describe('EventSynchronization', () => {
 
       // run test
       const eventSync = new TestEventSynchronization();
-      const result = await eventSync.callVerifySynchronizationResponse(tx);
+      const result = await eventSync.callVerifySynchronizationResponse(
+        tx,
+        tx.txId
+      );
 
       // check returned value
       expect(result).toEqual(false);
@@ -1289,7 +1314,10 @@ describe('EventSynchronization', () => {
       mockCreateEventPaymentOrder(mockedOrder);
 
       // run test
-      const result = await eventSync.callVerifySynchronizationResponse(tx);
+      const result = await eventSync.callVerifySynchronizationResponse(
+        tx,
+        tx.txId
+      );
 
       // check returned value
       expect(result).toEqual(false);
@@ -1386,7 +1414,10 @@ describe('EventSynchronization', () => {
       mockCreateEventPaymentOrder(mockedOrder);
 
       // run test
-      const result = await eventSync.callVerifySynchronizationResponse(tx);
+      const result = await eventSync.callVerifySynchronizationResponse(
+        tx,
+        tx.txId
+      );
 
       // check returned value
       expect(result).toEqual(false);
@@ -1491,7 +1522,10 @@ describe('EventSynchronization', () => {
       ]);
 
       // run test
-      const result = await eventSync.callVerifySynchronizationResponse(tx);
+      const result = await eventSync.callVerifySynchronizationResponse(
+        tx,
+        tx.txId
+      );
 
       // check returned value
       expect(result).toEqual(false);
@@ -1588,7 +1622,10 @@ describe('EventSynchronization', () => {
       mockCreateEventPaymentOrder(mockedOrder);
 
       // run test
-      const result = await eventSync.callVerifySynchronizationResponse(tx);
+      const result = await eventSync.callVerifySynchronizationResponse(
+        tx,
+        tx.txId
+      );
 
       // check returned value
       expect(result).toEqual(false);
@@ -1685,7 +1722,10 @@ describe('EventSynchronization', () => {
       mockCreateEventPaymentOrder(mockedOrder);
 
       // run test
-      const result = await eventSync.callVerifySynchronizationResponse(tx);
+      const result = await eventSync.callVerifySynchronizationResponse(
+        tx,
+        tx.txId
+      );
 
       // check returned value
       expect(result).toEqual(false);
@@ -1708,6 +1748,7 @@ describe('EventSynchronization', () => {
      *   - mock `extractTransactionOrder`
      *   - mock `getTxConfirmationStatus`
      *   - mock `verifyTransactionExtraConditions` to return false
+     *   - mock `getActualTxId`
      * - mock EventOrder.createEventPaymentOrder to return mocked order
      * - run test
      * - check returned value
@@ -1777,12 +1818,22 @@ describe('EventSynchronization', () => {
         false,
         false
       );
+      // mock `getActualTxId`
+      ChainHandlerMock.mockChainFunction(
+        mockedEvent.toChain,
+        'getActualTxId',
+        tx.txId,
+        true
+      );
 
       // mock EventOrder.createEventPaymentOrder to return mocked order
       mockCreateEventPaymentOrder(mockedOrder);
 
       // run test
-      const result = await eventSync.callVerifySynchronizationResponse(tx);
+      const result = await eventSync.callVerifySynchronizationResponse(
+        tx,
+        tx.txId
+      );
 
       // check returned value
       expect(result).toEqual(false);

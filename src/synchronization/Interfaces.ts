@@ -11,6 +11,7 @@ export interface SyncRequest {
 
 export interface SyncResponse {
   txJson: string;
+  actualTxId: string;
 }
 
 export enum SynchronizationMessageTypes {
