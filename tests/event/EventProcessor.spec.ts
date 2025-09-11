@@ -1032,6 +1032,7 @@ describe('EventProcessor', () => {
      *   - mock `getRWTToken` of Ergo
      *   - mock `getBoxRWT` of Ergo
      *   - mock `getSerializedBoxInfo` of Ergo
+     *   - mock `getActualTxId`
      * - mock event box and commitments
      * - mock event payment and reward order generations
      * - mock txAgreement
@@ -1137,6 +1138,13 @@ describe('EventProcessor', () => {
       // mock GuardTurn to return guard index
       mockGuardTurn(TestConfigs.guardIndex);
 
+      ChainHandlerMock.mockChainName(mockedEvent.toChain);
+      ChainHandlerMock.mockChainFunction(
+        mockedEvent.toChain,
+        'getActualTxId',
+        paymentTx.txId
+      );
+
       // run test
       await EventProcessor.processRewardEvent(mockedEvent);
 
@@ -1167,6 +1175,7 @@ describe('EventProcessor', () => {
      *   - mock `getRWTToken` of Ergo
      *   - mock `getBoxRWT` of Ergo
      *   - mock `getSerializedBoxInfo` of Ergo
+     *   - mock `getActualTxId`
      * - mock event box and commitments
      * - mock event payment and reward order generations
      * - mock txAgreement `getChainPendingTransactions` to return empty list
@@ -1264,6 +1273,13 @@ describe('EventProcessor', () => {
       // mock GuardTurn to return guard index
       mockGuardTurn(TestConfigs.guardIndex);
 
+      ChainHandlerMock.mockChainName(mockedEvent.toChain);
+      ChainHandlerMock.mockChainFunction(
+        mockedEvent.toChain,
+        'getActualTxId',
+        paymentTx.txId
+      );
+
       // run test
       await EventProcessor.processRewardEvent(mockedEvent);
 
@@ -1304,6 +1320,7 @@ describe('EventProcessor', () => {
      *   - mock `getRWTToken` of Ergo
      *   - mock `getBoxRWT` of Ergo
      *   - mock `getSerializedBoxInfo` of Ergo
+     *   - mock `getActualTxId`
      * - mock event box and commitments
      * - mock event payment and reward order generations
      * - mock txAgreement
@@ -1386,6 +1403,13 @@ describe('EventProcessor', () => {
           nativeToken: 100000n,
         },
       });
+
+      ChainHandlerMock.mockChainName(mockedEvent.toChain);
+      ChainHandlerMock.mockChainFunction(
+        mockedEvent.toChain,
+        'getActualTxId',
+        paymentTx.txId
+      );
 
       // mock event box and commitments
       mockGetEventBox('serialized-event-box');
