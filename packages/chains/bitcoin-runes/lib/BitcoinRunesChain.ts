@@ -21,7 +21,7 @@ import { BITCOIN_CHAIN, BTC, getPsbtTxInputBoxId } from '@rosen-chains/bitcoin';
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 import JsonBigInt from '@rosen-bridge/json-bigint';
 import { BitcoinRunesBoxSelection } from '@rosen-bridge/bitcoin-runes-utxo-selection';
-import { RunesRosenExtractor } from '@rosen-bridge/rosen-extractor';
+import { BitcoinRunesRosenExtractor } from '@rosen-bridge/rosen-extractor';
 import { RosenAmount, TokenMap } from '@rosen-bridge/tokens';
 import BitcoinRunesTransaction from './BitcoinRunesTransaction';
 import {
@@ -55,7 +55,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
   declare configs: BitcoinRunesConfigs;
   CHAIN = BITCOIN_RUNES_CHAIN;
   NATIVE_TOKEN_ID = BTC;
-  extractor: RunesRosenExtractor;
+  extractor: BitcoinRunesRosenExtractor;
   protected boxSelection: BitcoinRunesBoxSelection;
   protected signFunction: TssSignFunction;
   protected lockScript: string;
@@ -69,7 +69,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
     logger?: AbstractLogger
   ) {
     super(network, configs, tokens, logger);
-    this.extractor = new RunesRosenExtractor(
+    this.extractor = new BitcoinRunesRosenExtractor(
       configs.addresses.lock,
       tokens,
       logger
