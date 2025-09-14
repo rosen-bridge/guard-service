@@ -491,13 +491,6 @@ class EventSynchronization extends Communicator {
       return false;
     }
 
-    // check if actualTxId is consistent with the tx
-    const expectingActualTxId = await chain.getActualTxId(tx.txId);
-    if (actualTxId !== expectingActualTxId) {
-      logger.warn(baseError + `actualTxId is not consistent with the tx`);
-      return false;
-    }
-
     // check chain-specific conditions
     if (!chain.verifyTransactionExtraConditions(tx, SigningStatus.Signed)) {
       logger.warn(baseError + `extra conditions are not verified`);

@@ -597,6 +597,7 @@ describe('EventSynchronization', () => {
 
     beforeEach(async () => {
       await DatabaseActionMock.clearTables();
+      ChainHandlerMock.resetMock();
     });
 
     /**
@@ -636,7 +637,6 @@ describe('EventSynchronization', () => {
       sendMessageSpy.mockImplementation(mockedSendMessage);
 
       // mock `getActualTxId`
-      ChainHandlerMock.resetMock();
       ChainHandlerMock.mockChainName(mockedEvent.toChain);
       ChainHandlerMock.mockChainFunction(
         mockedEvent.toChain,
