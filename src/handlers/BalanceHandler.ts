@@ -21,6 +21,7 @@ import GuardsDogeConfigs from '../configs/GuardsDogeConfigs';
 import Configs from '../configs/Configs';
 import { AddressBalance } from '../types/api';
 import { getTokenData } from '../utils/getTokenData';
+import { Paginated } from '../types/databaseAction';
 
 class BalanceHandler {
   private static instance?: BalanceHandler;
@@ -122,14 +123,24 @@ class BalanceHandler {
 
   /**
    * get cold or lock address assets of supported chains
-   * @returns promise of AddressBalance array
+   * @param address
+   * @param chain
+   * @param tokenId
+   * @param offset
+   * @param limit
+   * @returns a promise of Paginated AddressBalance object
    */
   getAddressAssets = async (
-    address: 'cold' | 'lock'
-  ): Promise<AddressBalance[]> => {
+    address: 'cold' | 'lock',
+    chain?: string,
+    tokenId?: string,
+    offset?: number,
+    limit?: number
+  ): Promise<Paginated<AddressBalance>> => {
     const addresses: string[] = [];
 
-    for (const chain of SUPPORTED_CHAINS) {
+    const chains = chain ? [chain] : SUPPORTED_CHAINS;
+    for (const chain of chains) {
       const chainConfig = ChainHandler.getInstance()
         .getChain(chain)
         .getChainConfigs();
@@ -138,10 +149,17 @@ class BalanceHandler {
 
     const balances =
       await DatabaseAction.getInstance().getChainAddressBalanceByAddresses(
-        addresses
+        addresses,
+        chain,
+        tokenId,
+        offset,
+        limit
       );
 
-    return balances.map(this.balanceEntityToAddressBalance);
+    return {
+      items: balances.items.map(this.balanceEntityToAddressBalance),
+      total: balances.total,
+    };
   };
 
   /**

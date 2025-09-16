@@ -64,7 +64,10 @@ describe('balanceRoutes', () => {
      */
     it('should return empty lock balance when no balances are returned', async () => {
       // arrange
-      BalanceHandlerMock.mockGetAddressAssets().mockResolvedValue([]);
+      BalanceHandlerMock.mockGetAddressAssets().mockResolvedValue({
+        items: [],
+        total: 0,
+      });
 
       // act
       const result = await mockedServer.inject({
@@ -74,7 +77,16 @@ describe('balanceRoutes', () => {
 
       // assert
       expect(result.statusCode).toEqual(200);
-      expect(result.json()).toEqual({ hot: [], cold: [] });
+      expect(result.json()).toEqual({
+        hot: {
+          items: [],
+          total: 0,
+        },
+        cold: {
+          items: [],
+          total: 0,
+        },
+      });
     });
 
     /**
@@ -92,7 +104,7 @@ describe('balanceRoutes', () => {
       BalanceHandlerMock.mockGetAddressAssets().mockImplementation(
         async (address) => {
           if (address === 'lock') throw new Error('custom_error');
-          else return [];
+          else return { items: [], total: 0 };
         }
       );
 

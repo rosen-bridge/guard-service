@@ -1,5 +1,6 @@
 import { EventTriggerEntity } from '@rosen-bridge/watcher-data-extractor';
 import { RevenueType } from '../utils/constants';
+import { Paginated } from './databaseAction';
 
 enum SortRequest {
   ASC = 'ASC',
@@ -34,8 +35,8 @@ interface AddressBalance {
 }
 
 interface LockBalance {
-  hot: Array<AddressBalance>;
-  cold: Array<AddressBalance>;
+  hot: Paginated<AddressBalance>;
+  cold: Paginated<AddressBalance>;
 }
 
 interface SingleRevenue {
