@@ -6,8 +6,7 @@ import GuardsErgoConfigs from '../../src/configs/GuardsErgoConfigs';
 import GuardsCardanoConfigs from '../../src/configs/GuardsCardanoConfigs';
 import { rosenConfig } from '../../src/configs/RosenConfig';
 import GuardsBitcoinConfigs from '../../src/configs/GuardsBitcoinConfigs';
-import { AddressBalance } from '../../src/types/api';
-import { Paginated } from '../../src/types/databaseAction';
+import { AddressBalance, Page } from '../../src/types/api';
 
 export const guardInfo = {
   versions: {
@@ -25,7 +24,7 @@ export const guardInfo = {
 export const invalidOrderJson =
   '[{"address":"address-1","assets":{"nativeToken":100,"tokens":[]}},{"address":"address-2","assets":{"nativeToken":200,"tokens":[{"id":"token-1","value":10000}]}]';
 
-export const mockLockBalances: Paginated<AddressBalance> = {
+export const mockLockBalances: Page<AddressBalance> = {
   items: [
     {
       address: GuardsErgoConfigs.chainConfigs.addresses.lock,
@@ -64,7 +63,7 @@ export const mockLockBalances: Paginated<AddressBalance> = {
   total: 3,
 };
 
-export const mockColdBalances: Paginated<AddressBalance> = {
+export const mockColdBalances: Page<AddressBalance> = {
   items: [
     {
       address: GuardsErgoConfigs.chainConfigs.addresses.cold,

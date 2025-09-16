@@ -19,9 +19,8 @@ import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import GuardsCardanoConfigs from '../configs/GuardsCardanoConfigs';
 import GuardsDogeConfigs from '../configs/GuardsDogeConfigs';
 import Configs from '../configs/Configs';
-import { AddressBalance } from '../types/api';
+import { AddressBalance, Page } from '../types/api';
 import { getTokenData } from '../utils/getTokenData';
-import { Paginated } from '../types/databaseAction';
 
 class BalanceHandler {
   private static instance?: BalanceHandler;
@@ -128,7 +127,7 @@ class BalanceHandler {
    * @param tokenId
    * @param offset
    * @param limit
-   * @returns a promise of Paginated AddressBalance object
+   * @returns a promise of Page AddressBalance object
    */
   getAddressAssets = async (
     address: 'cold' | 'lock',
@@ -136,7 +135,7 @@ class BalanceHandler {
     tokenId?: string,
     offset?: number,
     limit?: number
-  ): Promise<Paginated<AddressBalance>> => {
+  ): Promise<Page<AddressBalance>> => {
     const addresses: string[] = [];
 
     const chains = chain ? [chain] : SUPPORTED_CHAINS;

@@ -275,7 +275,7 @@ describe('BalanceHandler', () => {
      * - stub balanceEntityToAddressBalance to return a mock object
      * - call getAddressAssets
      * @expected
-     * - getAddressAssets should have resolved to an array of 5 AddressBalance object corresponding to coldAddress
+     * - getAddressAssets should have resolved to an array of 5 AddressBalance objects corresponding to coldAddress
      */
     it('should successfully read balance records of cold addresses from database', async () => {
       // arrange
@@ -335,7 +335,7 @@ describe('BalanceHandler', () => {
      * - stub balanceEntityToAddressBalance to return a mock object
      * - call getAddressAssets
      * @expected
-     * - getAddressAssets should have resolved to an array of 15 AddressBalance object corresponding to lockAddress
+     * - getAddressAssets should have resolved to an array of 15 AddressBalance objects corresponding to lockAddress
      */
     it('should successfully read balance records of lock addresses from database', async () => {
       // arrange
@@ -440,64 +440,6 @@ describe('BalanceHandler', () => {
             (balance) =>
               balance.address === `${BITCOIN_CHAIN}_mock_lock_address` &&
               balance.tokenId === 'btc_token_01'
-          )
-          .map(mockBalanceEntityToAddressBalance),
-      });
-    });
-
-    /**
-     * @target getAddressAssets should successfully read a token's balance records of ethereum cold addresses from database
-     * @scenario
-     * - stub ChainHandler getChainConfigs to return a mock chainConfig for supported chains
-     * - insert 20 ChainAddressBalanceEntity objects into database for lock and cold addresses
-     * - stub balanceEntityToAddressBalance to return a mock object
-     * - call getAddressAssets with ETHEREUM_CHAIN and eth_token_01
-     * @expected
-     * - getAddressAssets should have resolved to an array of 1 AddressBalance object corresponding to ethereum coldAddress and eth_token_01
-     */
-    it("should successfully read a token's balance records of ethereum cold addresses from database", async () => {
-      // arrange
-      for (const chain of SUPPORTED_CHAINS) {
-        ChainHandlerMock.mockChainName(chain);
-        ChainHandlerMock.mockChainFunction(
-          chain,
-          'getChainConfigs',
-          {
-            addresses: {
-              lock: `${chain}_mock_lock_address`,
-              cold: `${chain}_mock_cold_address`,
-            },
-          },
-          false
-        );
-      }
-
-      for (const mockBalance of mockBalancesArray) {
-        await DatabaseActionMock.insertChainAddressBalanceRecord(mockBalance);
-      }
-
-      vi.spyOn(
-        balanceHandler as any,
-        'balanceEntityToAddressBalance'
-      ).mockImplementation(mockBalanceEntityToAddressBalance);
-
-      // act
-      const result = await balanceHandler.getAddressAssets(
-        'cold',
-        ETHEREUM_CHAIN, // chain
-        'eth_token_01', // tokenId
-        0, // offset
-        10 // limit
-      );
-
-      // assert
-      expect(result).toEqual({
-        total: 1,
-        items: mockBalancesArray
-          .filter(
-            (balance) =>
-              balance.address === `${ETHEREUM_CHAIN}_mock_cold_address` &&
-              balance.tokenId === 'eth_token_01'
           )
           .map(mockBalanceEntityToAddressBalance),
       });

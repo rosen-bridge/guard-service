@@ -41,7 +41,6 @@ import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity
 import { ReprocessEntity } from './entities/ReprocessEntity';
 import { ReprocessStatus } from '../reprocess/Interfaces';
 import { ChainAddressBalanceEntity } from './entities/ChainAddressBalanceEntity';
-import { Paginated } from '../types/databaseAction';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -1025,7 +1024,7 @@ class DatabaseAction {
    * @param tokenId
    * @param offset
    * @param limit
-   * @returns a promise of Paginated ChainAddressBalanceEntity object
+   * @returns a promise of Page ChainAddressBalanceEntity object
    */
   getChainAddressBalanceByAddresses = async (
     addresses: string[],
@@ -1033,7 +1032,7 @@ class DatabaseAction {
     tokenId?: string,
     offset?: number,
     limit?: number
-  ): Promise<Paginated<ChainAddressBalanceEntity>> => {
+  ): Promise<Page<ChainAddressBalanceEntity>> => {
     const [items, total] =
       await this.ChainAddressBalanceRepository.findAndCount({
         where: {

@@ -128,7 +128,9 @@ export const BalanceQuerySchema = Type.Object({
     maximum: 100,
   }),
   chain: Type.Optional(SupportedChainsSchema),
-  tokenId: Type.Optional(Type.String()), // TODO: add validation
+  tokenId: Type.Optional(
+    Type.String({ maxLength: 100, pattern: '^[0-9a-z.:]*$' })
+  ),
 });
 
 export const AssetsResponseSchema = OutputItemsSchema(
