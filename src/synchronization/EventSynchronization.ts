@@ -290,7 +290,7 @@ class EventSynchronization extends Communicator {
         case SynchronizationMessageTypes.response: {
           const response = payload as SyncResponse;
           const tx = TransactionSerializer.fromJson(response.txJson);
-          await this.processSyncResponse(tx, senderIndex);
+          await this.processSyncResponse(tx, response.actualTxId, senderIndex);
           break;
         }
         default:
@@ -344,8 +344,12 @@ class EventSynchronization extends Communicator {
         logger.info(
           `Sending tx [${txEntity.txId}] for syncing event [${eventId}] to guard [${senderIndex}]`
         );
+
+        const targetChain = ChainHandler.getInstance().getChain(txEntity.chain);
+        const actualTxId = await targetChain.getActualTxId(txEntity.txId);
+
         // send response to sender guard
-        const payload: SyncResponse = { txJson: txEntity.txJson };
+        const payload: SyncResponse = { txJson: txEntity.txJson, actualTxId };
         await this.sendMessage(
           SynchronizationMessageTypes.response,
           payload,
@@ -377,9 +381,10 @@ class EventSynchronization extends Communicator {
    */
   protected processSyncResponse = async (
     tx: PaymentTransaction,
+    actualTxId: string,
     senderIndex: number
   ): Promise<void> => {
-    if (!(await this.verifySynchronizationResponse(tx))) return;
+    if (!(await this.verifySynchronizationResponse(tx, actualTxId))) return;
     logger.info(
       `Guard [${senderIndex}] responded the sync request of event [${tx.eventId}] with transaction [${tx.txId}]`
     );
@@ -427,7 +432,8 @@ class EventSynchronization extends Communicator {
    * @returns true if transaction verified
    */
   protected verifySynchronizationResponse = async (
-    tx: PaymentTransaction
+    tx: PaymentTransaction,
+    actualTxId: string
   ): Promise<boolean> => {
     const baseError = `Received tx [${tx.txId}] for syncing event [${tx.eventId}] but `;
     // verify sync request
@@ -474,7 +480,7 @@ class EventSynchronization extends Communicator {
 
     // check if tx is confirmed enough
     const txConfirmation = await chain.getTxConfirmationStatus(
-      tx.txId,
+      actualTxId,
       tx.txType
     );
     if (txConfirmation === ConfirmationStatus.NotConfirmedEnough) {
