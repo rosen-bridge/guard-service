@@ -125,11 +125,11 @@ export const mockGetLastHeaders = () =>
   } as any);
 
 /**
- * mock `getBoxById` of ergo node client
+ * mock `getIndexedBoxById` of ergo node client
  */
-export const mockGetBoxById = () =>
+export const mockIndexedBoxById = () =>
   vi.mocked(ergoNodeClientFactory).mockReturnValueOnce({
-    getBoxById: async () => testAddressBoxes[0],
+    getIndexedBoxById: async () => testAddressBoxes[0],
   } as any);
 
 /**

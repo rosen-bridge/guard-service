@@ -7,7 +7,7 @@ import {
   mockGetAddressBalanceTotal,
   mockGetBlockHeaderById,
   mockGetBlockTransactionsById,
-  mockGetBoxById,
+  mockIndexedBoxById,
   mockGetBoxesByAddressUnspent,
   mockGetLastHeaders,
   mockGetNodeInfo,
@@ -526,12 +526,12 @@ describe('ErgoNodeNetwork', () => {
      * unspent and valid
      * @dependencies
      * @scenario
-     * - mock `getBoxById` of ergo node client
+     * - mock `getIndexedBoxById` of ergo node client
      * @expected
      * - should return true
      */
     it('should check if box is unspent and valid', async () => {
-      mockGetBoxById();
+      mockIndexedBoxById();
       const network = getNetwork();
 
       const actualIsValid = await network.isBoxUnspentAndValid(
@@ -546,12 +546,12 @@ describe('ErgoNodeNetwork', () => {
      * box is not found in the blockchain
      * @dependencies
      * @scenario
-     * - mock `getBoxById` of ergo node client to reject with a 404 error
+     * - mock `getIndexedBoxById` of ergo node client to reject with a 404 error
      * @expected
      * - should return false
      */
     it('should return `false` if box is not found in the blockchain', async () => {
-      mockApiToThrow('getBoxById', {
+      mockApiToThrow('getIndexedBoxById', {
         response: {
           status: 404,
         },
@@ -571,12 +571,12 @@ describe('ErgoNodeNetwork', () => {
      * @target `ErgoNodeNetwork.getBox` should return the box successfully
      * @dependencies
      * @scenario
-     * - mock `getBoxById` of ergo node client
+     * - mock `getIndexedBoxById` of ergo node client
      * @expected
      * - returned expected box
      */
     it('should return the box successfully', async () => {
-      mockGetBoxById();
+      mockIndexedBoxById();
       const network = getNetwork();
       const serializedBox = testAddressBoxes[0];
       const expectedBoxesBytes = Buffer.from(

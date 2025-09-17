@@ -417,9 +417,9 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
    */
   public isBoxUnspentAndValid = async (boxId: string) => {
     try {
-      const box = await this.client.getBoxById(boxId);
+      const box = await this.client.getIndexedBoxById(boxId);
       this.logger.debug(
-        `requested 'getBoxById' for boxId [${boxId}]. res: ${JsonBigInt.stringify(
+        `requested 'getIndexedBoxById' for boxId [${boxId}]. res: ${JsonBigInt.stringify(
           box
         )}`
       );
@@ -446,9 +446,9 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
    */
   getBox = async (boxId: string): Promise<ergoLib.ErgoBox> => {
     try {
-      const box = await this.client.getBoxById(boxId);
+      const box = await this.client.getIndexedBoxById(boxId);
       this.logger.debug(
-        `requested 'getBoxById' for boxId [${boxId}]. res: ${JsonBigInt.stringify(
+        `requested 'getIndexedBoxById' for boxId [${boxId}]. res: ${JsonBigInt.stringify(
           box
         )}`
       );
