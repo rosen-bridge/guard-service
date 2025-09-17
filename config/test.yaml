@@ -4,7 +4,6 @@ api:
   isArbitraryOrderRequestActive: true
   apiKeyHash: '324dcf027dd4a30a932c441f365a25e86b173defa4b8e58948253471b81b72cf'
 binance:
-  networkType: 'testnet'
   chainNetwork: 'rpc'
   rpc:
     url: ''
@@ -17,7 +16,6 @@ binance:
     - 0
     - 0
 bitcoin:
-  networkType: 'testnet'
   chainNetwork: 'esplora'
   esplora:
     url: 'https://blockstream.info'
@@ -36,7 +34,6 @@ bitcoin:
     - 0
     - 0
 doge:
-  networkType: 'testnet'
   chainNetwork: 'rpc-blockcypher'
   bankPublicKey: 'bcb07faa6c0f19e2f2587aa9ef6f43a68fc0135321216a71dc87c8527af4ca6a'
   txFeeSlippage: 10
@@ -52,7 +49,6 @@ doge:
     - 0
     - 0
 cardano:
-  networkType: 'testnet'
   chainNetwork: 'koios'
   blockfrost:
     projectId: ''
@@ -67,7 +63,6 @@ cardano:
     payment: 15
     cold: 20
 ergo:
-  networkType: 'testnet'
   chainNetwork: 'node'
   node:
     url: 'http://213.239.193.208:9053/'
@@ -80,7 +75,6 @@ ergo:
     payment: 35
     cold: 40
 ethereum:
-  networkType: 'testnet'
   chainNetwork: 'rpc'
   rpc:
     url: ''
@@ -93,7 +87,6 @@ ethereum:
     - 0
     - 0
 bitcoin-runes:
-  networkType: 'testnet'
   chainNetwork: 'rpc'
   bankPublicKey: 'bcb07faa6c0f19e2f2587aa9ef6f43a68fc0135321216a71dc87c8527af4ca6a'
   tssChainCode: 'BitcoinRunesChainCode'
