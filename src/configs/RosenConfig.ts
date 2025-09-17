@@ -47,7 +47,7 @@ class RosenConfig {
   readonly contracts: Map<string, ContractConfig>;
 
   constructor() {
-    const firstSupportedNetwork = `${SUPPORTED_CHAINS[0]}-${Configs.networksType[0]}`;
+    const firstSupportedNetwork = `${SUPPORTED_CHAINS[0]}-mainnet`;
     this.contracts = new Map<string, ContractConfig>();
     const rosenConfigPath = this.getAddress(firstSupportedNetwork);
     if (!fs.existsSync(rosenConfigPath)) {
@@ -64,8 +64,7 @@ class RosenConfig {
       this.contractVersion = config.version;
     }
     SUPPORTED_CHAINS.forEach((networkName, index) => {
-      const network =
-        `${networkName}-${Configs.networksType[index]}`.toLowerCase();
+      const network = `${networkName}-mainnet`.toLowerCase();
       const contractConfig = new ContractConfig(
         this.getAddress(network),
         this.contractVersion

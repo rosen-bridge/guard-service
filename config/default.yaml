@@ -11,7 +11,6 @@ api:
   allowedOrigins: [] # List of allowed origins for CORS headers
   maxRequestsPerMinute: 100_000
 binance:
-  networkType: 'mainnet' # Binance network type [testnet, mainnet]
   chainNetwork: 'rpc' # 'rpc'
   rpc:
     url: ''
@@ -33,7 +32,6 @@ binance:
   derivationPath:
     -
 bitcoin:
-  networkType: 'mainnet' # Bitcoin network type [testnet, mainnet]
   chainNetwork: 'esplora' # 'esplora'
   esplora:
     url: 'https://blockstream.info'
@@ -50,7 +48,6 @@ bitcoin:
   derivationPath:
     -
 bitcoinRunes:
-  networkType: 'mainnet' # Bitcoin Runes network type [testnet, mainnet]
   chainNetwork: 'rpc' # 'rpc'
   rpc:
     url: ''
@@ -67,7 +64,6 @@ bitcoinRunes:
   derivationPath:
     -
 doge:
-  networkType: 'mainnet' # Doge network type [testnet, mainnet]
   chainNetwork: 'rpc-blockcypher' # [esplora, rpc-blockcypher]
   esplora:
     url: ''
@@ -96,7 +92,6 @@ doge:
   derivationPath:
     -
 cardano:
-  networkType: 'mainnet' # Cardano network type [testnet, mainnet]
   chainNetwork: 'koios' # 'ogmios', 'koios' or 'blockfrost'
   blockfrost:
     projectId: ''
@@ -115,7 +110,6 @@ cardano:
     arbitrary: 120 # an arbitrary transaction on Cardano get confirmed
   tssChainCode: 'CardanoChainCode'
 ergo:
-  networkType: 'mainnet' # Ergo network type [testnet, mainnet]
   chainNetwork: 'explorer' # 'explorer' or 'node'
   explorer:
     url: 'https://api.ergoplatform.com/'
@@ -136,7 +130,6 @@ ergo:
   initialHeight: 925000 # block scanner starting block height
   scannerInterval: 180 # scanner update interval
 ethereum:
-  networkType: 'mainnet' # Ethereum network type [testnet, mainnet]
   chainNetwork: 'rpc' # 'rpc'
   rpc:
     url: ''

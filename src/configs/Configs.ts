@@ -139,10 +139,6 @@ class Configs {
     180
   );
 
-  // contract, addresses and tokens config
-  static networksType = SUPPORTED_CHAINS.map((network) =>
-    config.get<string>(`${network}.networkType`).toLowerCase()
-  );
   static addressesBasePath = config.get<string>('contracts.addressesBasePath');
 
   static tokensPath = config.get<string>('tokensPath');
