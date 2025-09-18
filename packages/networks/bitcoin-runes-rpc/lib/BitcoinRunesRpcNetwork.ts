@@ -75,7 +75,9 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
     const unisatHeaders = { 'Content-Type': 'application/json' };
     // Add API key to headers if provided
     if (unisatConfig.unisatApiKey) {
-      Object.assign(unisatHeaders, { 'x-api-key': unisatConfig.unisatApiKey });
+      Object.assign(unisatHeaders, {
+        Authorization: `Bearer ${unisatConfig.unisatApiKey}`,
+      });
     }
     this.unisatClient = RateLimitedAxios.create({
       baseURL: unisatConfig.url,
