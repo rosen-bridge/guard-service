@@ -221,7 +221,7 @@ class BalanceHandler {
         await new Promise((r) =>
           setTimeout(
             r,
-            Configs.balanceHandler[chain].updateBatchInterval * 1000
+            Configs.balanceHandler[chain].updateBatchInterval * 1000 // TODO: fix this for bitcoin-runes!
           )
         );
       }
