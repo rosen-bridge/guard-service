@@ -53,6 +53,7 @@ import { DogeEsploraNetwork } from '@rosen-chains/doge-esplora';
 import {
   BitcoinRunesChain,
   AbstractBitcoinRunesNetwork,
+  BITCOIN_RUNES_CHAIN,
 } from '@rosen-chains/bitcoin-runes';
 import { BitcoinRunesRpcNetwork } from '@rosen-chains/bitcoin-runes-rpc';
 import GuardsBitcoinRunesConfigs from '../configs/GuardsBitcoinRunesConfigs';
@@ -480,6 +481,8 @@ class ChainHandler {
         return this.ethereumChain;
       case BINANCE_CHAIN:
         return this.binanceChain;
+      case BITCOIN_RUNES_CHAIN:
+        return this.bitcoinRunesChain;
       default:
         throw Error(`Chain [${chain}] is not implemented`);
     }

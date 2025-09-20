@@ -147,7 +147,7 @@ const detectionUpdateJob = () => {
 const balanceUpdateJob = () => {
   for (const chain of SUPPORTED_CHAINS) {
     new IntervalTimer(
-      Configs.balanceHandler[chain].updateInterval * 1000,
+      Configs.balanceHandler[chain].updateInterval * 1000, // TODO: fix this for bitcoin-runes!
       async () => {
         try {
           await BalanceHandler.getInstance().updateChainBalances(chain);
