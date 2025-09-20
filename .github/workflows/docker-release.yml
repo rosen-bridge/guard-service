@@ -27,10 +27,8 @@ jobs:
           node-version: ${{ matrix.node-version }}
 
       - name: Download Contracts
-        uses: rosen-bridge/operation@V0.1
-        with:
-          type: ${{ vars.RELEASE_NAME }}
-          tag: ${{ vars.RELEASE_TAG }}
+        run: |
+          npx @rosen-bridge/cli@${{ vars.ROSEN_CLI_VERSION || 'latest' }} download-assets -c ${{ vars.RELEASE_NAME }} -t ${{ vars.RELEASE_TAG }} -o .
 
       - name: Move the Files
         run: |
