@@ -28,7 +28,9 @@ jobs:
 
       - name: Download Contracts
         run: |
-          npx @rosen-bridge/cli@${{ vars.ROSEN_CLI_VERSION || 'latest' }} download-assets -c ${{ vars.RELEASE_NAME }} -t ${{ vars.RELEASE_TAG }} -o .
+          mkdir -p ./config/rosen
+          npx @rosen-bridge/cli@${{ vars.ROSEN_CLI_VERSION || 'latest' }} download-assets -c ${{ vars.RELEASE_NAME }} ${{ vars.RELEASE_TAG }} -o ./config/rosen -s mainnet
+          mv ./config/rosen/tokens*.json ./config/rosen/tokens.json
 
       - name: Move the Files
         run: |
@@ -37,8 +39,6 @@ jobs:
           mv ./docker/custom-environment-variables.yaml ./config/
           7z x ./bin/rosenTss-linux-* -obin/ && rm -rf ./bin/*.zip
           mv ./bin/rosenTss-* ./bin/rosenTss
-          mkdir -p ./config/rosen/
-          mv {tokens,contracts}*.json ./config/rosen/
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
