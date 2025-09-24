@@ -47,6 +47,7 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
     DogeNetworkFunction.getFeeRatio,
     DogeNetworkFunction.isTxInMempool,
     DogeNetworkFunction.getTransactionHex,
+    DogeNetworkFunction.getActualTxId,
   ] as DogeNetworkFunction[];
 
   constructor(

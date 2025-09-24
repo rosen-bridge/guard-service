@@ -21,7 +21,7 @@ import { BITCOIN_CHAIN, BTC, getPsbtTxInputBoxId } from '@rosen-chains/bitcoin';
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 import JsonBigInt from '@rosen-bridge/json-bigint';
 import { BitcoinRunesBoxSelection } from '@rosen-bridge/bitcoin-runes-utxo-selection';
-import { RunesRosenExtractor } from '@rosen-bridge/rosen-extractor';
+import { BitcoinRunesRosenExtractor } from '@rosen-bridge/rosen-extractor';
 import { RosenAmount, TokenMap } from '@rosen-bridge/tokens';
 import BitcoinRunesTransaction from './BitcoinRunesTransaction';
 import {
@@ -55,7 +55,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
   declare configs: BitcoinRunesConfigs;
   CHAIN = BITCOIN_RUNES_CHAIN;
   NATIVE_TOKEN_ID = BTC;
-  extractor: RunesRosenExtractor;
+  extractor: BitcoinRunesRosenExtractor;
   protected boxSelection: BitcoinRunesBoxSelection;
   protected signFunction: TssSignFunction;
   protected lockScript: string;
@@ -69,7 +69,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
     logger?: AbstractLogger
   ) {
     super(network, configs, tokens, logger);
-    this.extractor = new RunesRosenExtractor(
+    this.extractor = new BitcoinRunesRosenExtractor(
       configs.addresses.lock,
       tokens,
       logger
@@ -237,10 +237,11 @@ class BitcoinRunesChain extends AbstractUtxoChain<
       let nativeSegwitOutputCount: number;
       let taprootOutputCount: number;
       if (isNativeSegwit) {
-        nativeSegwitOutputCount = 4;
+        nativeSegwitOutputCount = 3;
         taprootOutputCount = 0;
       } else {
-        nativeSegwitOutputCount = 3;
+        // Universal change and transferring change boxes (the BTC change box will be considered by box-selection)
+        nativeSegwitOutputCount = 2;
         taprootOutputCount = 1;
       }
       const feeEstimator = generateFeeEstimatorWithAssumptions(
@@ -254,7 +255,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
       // calculated required assets for this transaction
       const orderRequiredAssets = structuredClone(order.assets);
       orderRequiredAssets.nativeToken +=
-        2n * MINIMUM_BTC_FOR_NATIVE_SEGWIT_OUTPUT;
+        2n * MINIMUM_BTC_FOR_NATIVE_SEGWIT_OUTPUT; // Required BTC for Universal change and transferring Rune change boxes are considered here
       const unwrappedRequiredAssets =
         this.unwrapAssetBalance(orderRequiredAssets);
 
@@ -288,9 +289,9 @@ class BitcoinRunesChain extends AbstractUtxoChain<
         forbiddenBoxIds,
         trackMap,
         runesUtxoIterator(),
-        MINIMUM_BTC_FOR_NATIVE_SEGWIT_OUTPUT,
+        0n,
         undefined,
-        feeEstimator
+        () => 0n
       );
       if (!coveredRunesBoxes.covered) {
         throw new NotEnoughValidBoxesError(
@@ -299,16 +300,28 @@ class BitcoinRunesChain extends AbstractUtxoChain<
           )}`
         );
       }
-      selectedBoxes.push(...coveredRunesBoxes.boxes);
+      coveredRunesBoxes.boxes.forEach((box) => {
+        selectedBoxes.push(box);
+        // mark selected boxes as forbidden for next selection and transactions
+        forbiddenBoxIds.push(generateBoxId(box.txId, box.index));
+      });
       const preSelectedBtc = coveredRunesBoxes.boxes.reduce(
         (a, b) => a + b.value,
         0n
       );
-      const additionalAssets = coveredRunesBoxes.additionalAssets.aggregated;
-      let estimatedFee = coveredRunesBoxes.additionalAssets.fee;
-      if (preSelectedBtc < unwrappedRequiredAssets.nativeToken) {
+      let estimatedFee = feeEstimator(coveredRunesBoxes.boxes, 1);
+      const additionalAssets: AssetBalance = {
+        nativeToken:
+          preSelectedBtc - unwrappedRequiredAssets.nativeToken - estimatedFee,
+        tokens: coveredRunesBoxes.additionalAssets.aggregated.tokens,
+      };
+
+      // check if selected boxes can cover required BTC
+      if (additionalAssets.nativeToken < 0n) {
         this.logger.debug(
-          `Selected Runes boxes cannot cover required amount of BTC [${preSelectedBtc} < ${unwrappedRequiredAssets.nativeToken}]. Fetching BTC only boxes...`
+          `Selected Runes boxes cannot cover required amount of BTC [required at least ${
+            additionalAssets.nativeToken * -1n
+          } more]. Fetching BTC only boxes...`
         );
         const requiredBtc =
           unwrappedRequiredAssets.nativeToken - preSelectedBtc;
@@ -325,7 +338,6 @@ class BitcoinRunesChain extends AbstractUtxoChain<
         // generate iterator for address boxes to cover required runes
         const getAddressBtcBoxes = this.network.getAddressBtcBoxes;
         const getRemainingBoxes = this.network.getRemainingBoxes;
-        const lockAddress = this.configs.addresses.lock;
         const btcUtxoIterator = async function* () {
           const btcBoxes = await getAddressBtcBoxes(lockAddress);
           if (btcBoxes.length !== 0) yield* btcBoxes;
@@ -355,13 +367,17 @@ class BitcoinRunesChain extends AbstractUtxoChain<
         );
         if (!coveredBtcBoxes.covered) {
           throw new NotEnoughValidBoxesError(
-            `Available boxes didn't cover required assets. Required assets: ${JsonBigInt.stringify(
-              unwrappedRequiredAssets
+            `Available boxes didn't cover required BTC. Required BTC: ${JsonBigInt.stringify(
+              unwrappedRequiredAssets.nativeToken
             )}`
           );
         }
         // add selected boxes
-        selectedBoxes.push(...coveredBtcBoxes.boxes);
+        coveredBtcBoxes.boxes.forEach((box) => {
+          selectedBoxes.push(box);
+          // mark selected boxes as forbidden for next transactions
+          forbiddenBoxIds.push(generateBoxId(box.txId, box.index));
+        });
         // the fee and additional BTC are only based on the additional assets of the 2nd selection
         additionalAssets.nativeToken =
           coveredBtcBoxes.additionalAssets.aggregated.nativeToken;
@@ -382,8 +398,6 @@ class BitcoinRunesChain extends AbstractUtxoChain<
             value: Number(box.value),
           },
         });
-        // mark selected boxes as forbidden for next transactions
-        forbiddenBoxIds.push(generateBoxId(box.txId, box.index));
       });
 
       let isUniversalChangeBoxPresent = true;

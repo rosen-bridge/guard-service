@@ -214,6 +214,7 @@ describe('BitcoinRunesRpcNetwork', () => {
      */
     it('should return transaction successfully', async () => {
       mockAxiosPost(ClientType.RPC, testData.lockTxRawTransactionResponse);
+      mockAxiosPost(ClientType.RPC, testData.blockResponse);
       mockAxiosGet(ClientType.UNISAT, testData.lockTxRunesEventResponse);
 
       const result = await network.getTransaction(

@@ -3,7 +3,6 @@ import {
   BITCOIN_RUNES_CHAIN,
   BitcoinRunesChain,
   BitcoinRunesTransaction,
-  MINIMUM_BTC_FOR_NATIVE_SEGWIT_OUTPUT,
   TssSignFunction,
 } from '../lib';
 import { TestBitcoinRunesNetwork } from './network/TestBitcoinRunesNetwork';
@@ -563,9 +562,10 @@ describe('BitcoinRunesChain', () => {
       expect(getCovBoxesSpy.callArgs.forbiddenBoxIds[0]).toEqual(
         testData.transaction2InputIds
       );
-      expect(getCovBoxesSpy.callArgs.forbiddenBoxIds[1]).toEqual(
-        testData.transaction2InputIds
-      );
+      expect(getCovBoxesSpy.callArgs.forbiddenBoxIds[1]).toEqual([
+        ...testData.transaction2InputIds,
+        testData.realisticLockAddressBoxIds[0],
+      ]);
     });
 
     /**

@@ -75,7 +75,9 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
     const unisatHeaders = { 'Content-Type': 'application/json' };
     // Add API key to headers if provided
     if (unisatConfig.unisatApiKey) {
-      Object.assign(unisatHeaders, { 'x-api-key': unisatConfig.unisatApiKey });
+      Object.assign(unisatHeaders, {
+        Authorization: `Bearer ${unisatConfig.unisatApiKey}`,
+      });
     }
     this.unisatClient = RateLimitedAxios.create({
       baseURL: unisatConfig.url,
@@ -394,6 +396,9 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       })),
     };
 
+    // get transaction height
+    const blockInfo = await this.getBlockInfo(blockId);
+
     // get the runes transfers of the transaction from Unisat
     let txRunes: UnisatTxRunes;
     try {
@@ -407,6 +412,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       );
 
       txRunes = response.data.data;
+      this.validateResponseHeight(blockInfo.height, txRunes.height);
       if (txRunes.detail.length !== txRunes.total) {
         throw Error(
           `Unexpected pagination: expected [${txRunes.total}] runes but got [${txRunes.detail.length}]`
@@ -718,6 +724,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
         )}`
       );
 
+      // TODO: validate Unisat indexed height (local:ergo/rosen-bridge/rosen-chains#179)
       const runes = response.data.data;
       runes.forEach((rune) => {
         utxoRunes.push({
@@ -778,7 +785,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
         })),
       }));
     } catch (e: any) {
-      const baseError = `Failed to get UTxOs conataining rune [${runeId}] for address [${address}] with offset/limit [${offset}/${limit}] from Unisat: `;
+      const baseError = `Failed to get UTxOs containing rune [${runeId}] for address [${address}] with offset/limit [${offset}/${limit}] from Unisat: `;
       if (e.response) {
         throw new FailedError(
           baseError + `${JsonBigInt.stringify(e.response.data)}`
@@ -818,7 +825,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
         runes: [],
       }));
     } catch (e: any) {
-      const baseError = `Failed to get UTxOs conataining BTC only for address [${address}] from Unisat: `;
+      const baseError = `Failed to get UTxOs containing BTC only for address [${address}] from Unisat: `;
       if (e.response) {
         throw new FailedError(
           baseError + `${JsonBigInt.stringify(e.response.data)}`
@@ -870,7 +877,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
           }))
       );
     } catch (e: any) {
-      const baseError = `Failed to get UTxOs conataining BTC only for address [${address}] from Unisat: `;
+      const baseError = `Failed to get UTxOs containing BTC only for address [${address}] from Unisat: `;
       if (e.response) {
         throw new FailedError(
           baseError + `${JsonBigInt.stringify(e.response.data)}`
@@ -887,5 +894,20 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
     }
 
     return utxos;
+  };
+
+  /**
+   * throws error if response height (Unisat height) is less than the expected height
+   * @param expectedHeight
+   * @param responseHeight
+   */
+  protected validateResponseHeight = (
+    expectedHeight: number,
+    responseHeight: number
+  ): void => {
+    if (expectedHeight > responseHeight)
+      throw Error(
+        `Unisat is not synced enough [${responseHeight} < ${expectedHeight}]`
+      );
   };
 }
