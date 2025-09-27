@@ -38,11 +38,6 @@ export const AddressBalanceSchema = Type.Object({
   balance: TokenDataSchema,
 });
 
-export const LockBalanceSchema = Type.Object({
-  hot: Type.Array(AddressBalanceSchema),
-  cold: Type.Array(AddressBalanceSchema),
-});
-
 export const OutputItemsSchema = <T extends TProperties>(
   itemType: TObject<T>
 ) =>
@@ -50,6 +45,11 @@ export const OutputItemsSchema = <T extends TProperties>(
     items: Type.Array(itemType),
     total: Type.Number(),
   });
+
+export const LockBalanceSchema = Type.Object({
+  hot: OutputItemsSchema(AddressBalanceSchema),
+  cold: OutputItemsSchema(AddressBalanceSchema),
+});
 
 export const InfoResponseSchema = Type.Object({
   versions: Type.Object({
@@ -120,12 +120,17 @@ export const SupportedChainsSchema = Type.Enum(
   }, {})
 );
 
-export const AssetsQuerySchema = Type.Object({
-  limit: Type.Number({ default: DefaultAssetApiLimit }),
-  offset: Type.Number({ default: 0 }),
+export const BalanceQuerySchema = Type.Object({
+  offset: Type.Integer({ default: 0, minimum: 0 }),
+  limit: Type.Integer({
+    default: DefaultAssetApiLimit,
+    minimum: 1,
+    maximum: 100,
+  }),
   chain: Type.Optional(SupportedChainsSchema),
-  tokenId: Type.Optional(Type.String()),
-  name: Type.Optional(Type.String()),
+  tokenId: Type.Optional(
+    Type.String({ maxLength: 100, pattern: '^[0-9a-z.:]*$' })
+  ),
 });
 
 export const AssetsResponseSchema = OutputItemsSchema(

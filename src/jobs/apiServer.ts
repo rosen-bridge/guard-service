@@ -7,7 +7,6 @@ import { p2pRoutes } from '../api/p2p';
 import Configs from '../configs/Configs';
 import { generalInfoRoute } from '../api/generalInfo';
 import { eventRoutes } from '../api/events';
-import { assetRoutes } from '../api/assets';
 import { revenueRoutes } from '../api/revenue';
 import { healthRoutes } from '../api/healthCheck';
 import { tssRoute } from '../api/tss';
@@ -103,7 +102,6 @@ const initApiServer = async () => {
   await apiServer.register(eventRoutes);
   await apiServer.register(healthRoutes);
   await apiServer.register(revenueRoutes);
-  await apiServer.register(assetRoutes);
   await apiServer.register(signRoute);
   await apiServer.register(arbitraryOrderRoute);
   await apiServer.register(eventReprocessRoute);

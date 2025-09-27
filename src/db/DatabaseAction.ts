@@ -1020,14 +1020,34 @@ class DatabaseAction {
   /**
    * gets all ChainAddressBalanceEntity by array of addresses
    * @param addresses
-   * @returns array of ChainAddressBalanceEntity
+   * @param chain
+   * @param tokenId
+   * @param offset
+   * @param limit
+   * @returns a promise of Page ChainAddressBalanceEntity object
    */
   getChainAddressBalanceByAddresses = async (
-    addresses: string[]
-  ): Promise<ChainAddressBalanceEntity[]> => {
-    return await this.ChainAddressBalanceRepository.findBy({
-      address: In(addresses),
-    });
+    addresses: string[],
+    chain?: string,
+    tokenId?: string,
+    offset?: number,
+    limit?: number
+  ): Promise<Page<ChainAddressBalanceEntity>> => {
+    const [items, total] =
+      await this.ChainAddressBalanceRepository.findAndCount({
+        where: {
+          address: In(addresses),
+          ...(chain ? { chain } : {}),
+          ...(tokenId ? { tokenId } : {}),
+        },
+        ...(Number.isFinite(offset) ? { skip: offset } : {}),
+        ...(Number.isFinite(limit) ? { take: limit } : {}),
+      });
+
+    return {
+      items,
+      total,
+    };
   };
 
   /**

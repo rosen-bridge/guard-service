@@ -6,7 +6,7 @@ import GuardsErgoConfigs from '../../src/configs/GuardsErgoConfigs';
 import GuardsCardanoConfigs from '../../src/configs/GuardsCardanoConfigs';
 import { rosenConfig } from '../../src/configs/RosenConfig';
 import GuardsBitcoinConfigs from '../../src/configs/GuardsBitcoinConfigs';
-import { AddressBalance } from '../../src/types/api';
+import { AddressBalance, Page } from '../../src/types/api';
 
 export const guardInfo = {
   versions: {
@@ -24,80 +24,8 @@ export const guardInfo = {
 export const invalidOrderJson =
   '[{"address":"address-1","assets":{"nativeToken":100,"tokens":[]}},{"address":"address-2","assets":{"nativeToken":200,"tokens":[{"id":"token-1","value":10000}]}]';
 
-export const mockLockBalances: AddressBalance[] = [
-  {
-    address: GuardsErgoConfigs.chainConfigs.addresses.lock,
-    chain: ERGO_CHAIN,
-    balance: {
-      tokenId: ERG,
-      amount: 10,
-      name: 'ERG',
-      decimals: 9,
-      isNativeToken: true,
-    },
-  },
-  {
-    address: GuardsCardanoConfigs.chainConfigs.addresses.lock,
-    chain: CARDANO_CHAIN,
-    balance: {
-      tokenId: ADA,
-      amount: 20,
-      name: 'ADA',
-      decimals: 6,
-      isNativeToken: true,
-    },
-  },
-  {
-    address: GuardsBitcoinConfigs.chainConfigs.addresses.lock,
-    chain: BITCOIN_CHAIN,
-    balance: {
-      tokenId: BTC,
-      amount: 30,
-      name: 'BTC',
-      decimals: 8,
-      isNativeToken: true,
-    },
-  },
-];
-
-export const mockColdBalances: AddressBalance[] = [
-  {
-    address: GuardsErgoConfigs.chainConfigs.addresses.cold,
-    chain: ERGO_CHAIN,
-    balance: {
-      tokenId: ERG,
-      amount: 100,
-      name: 'ERG',
-      decimals: 9,
-      isNativeToken: true,
-    },
-  },
-  {
-    address: GuardsCardanoConfigs.chainConfigs.addresses.cold,
-    chain: CARDANO_CHAIN,
-    balance: {
-      tokenId: ADA,
-      amount: 200,
-      name: 'ADA',
-      decimals: 6,
-      isNativeToken: true,
-    },
-  },
-  {
-    address: GuardsBitcoinConfigs.chainConfigs.addresses.cold,
-    chain: BITCOIN_CHAIN,
-    balance: {
-      tokenId: BTC,
-      amount: 300,
-      name: 'BTC',
-      decimals: 8,
-      isNativeToken: true,
-    },
-  },
-];
-
-export const mockBalancesObj = {
-  hot: [
+export const mockLockBalances: Page<AddressBalance> = {
+  items: [
     {
       address: GuardsErgoConfigs.chainConfigs.addresses.lock,
       chain: ERGO_CHAIN,
@@ -132,7 +60,11 @@ export const mockBalancesObj = {
       },
     },
   ],
-  cold: [
+  total: 3,
+};
+
+export const mockColdBalances: Page<AddressBalance> = {
+  items: [
     {
       address: GuardsErgoConfigs.chainConfigs.addresses.cold,
       chain: ERGO_CHAIN,
@@ -167,4 +99,84 @@ export const mockBalancesObj = {
       },
     },
   ],
+  total: 3,
+};
+
+export const mockBalancesObj = {
+  hot: {
+    items: [
+      {
+        address: GuardsErgoConfigs.chainConfigs.addresses.lock,
+        chain: ERGO_CHAIN,
+        balance: {
+          tokenId: ERG,
+          amount: 10,
+          name: 'ERG',
+          decimals: 9,
+          isNativeToken: true,
+        },
+      },
+      {
+        address: GuardsCardanoConfigs.chainConfigs.addresses.lock,
+        chain: CARDANO_CHAIN,
+        balance: {
+          tokenId: ADA,
+          amount: 20,
+          name: 'ADA',
+          decimals: 6,
+          isNativeToken: true,
+        },
+      },
+      {
+        address: GuardsBitcoinConfigs.chainConfigs.addresses.lock,
+        chain: BITCOIN_CHAIN,
+        balance: {
+          tokenId: BTC,
+          amount: 30,
+          name: 'BTC',
+          decimals: 8,
+          isNativeToken: true,
+        },
+      },
+    ],
+    total: 3,
+  },
+  cold: {
+    items: [
+      {
+        address: GuardsErgoConfigs.chainConfigs.addresses.cold,
+        chain: ERGO_CHAIN,
+        balance: {
+          tokenId: ERG,
+          amount: 100,
+          name: 'ERG',
+          decimals: 9,
+          isNativeToken: true,
+        },
+      },
+      {
+        address: GuardsCardanoConfigs.chainConfigs.addresses.cold,
+        chain: CARDANO_CHAIN,
+        balance: {
+          tokenId: ADA,
+          amount: 200,
+          name: 'ADA',
+          decimals: 6,
+          isNativeToken: true,
+        },
+      },
+      {
+        address: GuardsBitcoinConfigs.chainConfigs.addresses.cold,
+        chain: BITCOIN_CHAIN,
+        balance: {
+          tokenId: BTC,
+          amount: 300,
+          name: 'BTC',
+          decimals: 8,
+          isNativeToken: true,
+        },
+      },
+    ],
+    total: 3,
+  },
 };

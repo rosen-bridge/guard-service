@@ -1,5 +1,6 @@
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import {
+  BalanceQuerySchema,
   FastifySeverInstance,
   LockBalanceSchema,
   MessageResponseSchema,
@@ -18,24 +19,35 @@ const getBalanceRoute = (server: FastifySeverInstance) => {
     '/balance',
     {
       schema: {
+        querystring: BalanceQuerySchema,
         response: {
           200: LockBalanceSchema,
           500: MessageResponseSchema,
         },
       },
     },
-    async (_request, reply) => {
+    async (request, reply) => {
+      const { offset, limit, chain, tokenId } = request.query;
+
       try {
         const balance: LockBalance = {
-          hot: [],
-          cold: [],
+          hot: { items: [], total: 0 },
+          cold: { items: [], total: 0 },
         };
 
         balance.hot = await BalanceHandler.getInstance().getAddressAssets(
-          'lock'
+          'lock',
+          chain,
+          tokenId,
+          offset,
+          limit
         );
         balance.cold = await BalanceHandler.getInstance().getAddressAssets(
-          'cold'
+          'cold',
+          chain,
+          tokenId,
+          offset,
+          limit
         );
 
         reply.status(200).send(balance);

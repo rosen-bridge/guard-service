@@ -34,8 +34,8 @@ interface AddressBalance {
 }
 
 interface LockBalance {
-  hot: Array<AddressBalance>;
-  cold: Array<AddressBalance>;
+  hot: Page<AddressBalance>;
+  cold: Page<AddressBalance>;
 }
 
 interface SingleRevenue {
