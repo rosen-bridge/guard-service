@@ -17,6 +17,7 @@ const mockCreateEventPaymentOrder = (result: PaymentOrder) => {
 const mockCreateEventRewardOrder = (result: PaymentOrder) => {
   const functionSpy = vi.spyOn(EventOrder, 'createEventRewardOrder');
   functionSpy.mockResolvedValue(result);
+  return functionSpy;
 };
 
 /**

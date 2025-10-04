@@ -106,7 +106,9 @@ class TransactionVerifier {
         throw new ImpossibleBehavior(
           `Received tx [${tx.txId}] for reward distribution of event [${tx.eventId}] but no payment tx found for the event in database`
         );
-      const paymentTxId = eventTxs[0].txId;
+      const paymentTxId = await ChainHandler.getInstance()
+        .getChain(event.toChain)
+        .getActualTxId(eventTxs[0].txId);
       expectedOrder = await EventOrder.createEventRewardOrder(
         event,
         feeConfig,
