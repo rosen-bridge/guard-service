@@ -392,11 +392,14 @@ describe('TransactionVerifier', () => {
      * - mock a PaymentOrder
      * - mock ChainHandler
      *   - mock `extractTransactionOrder` to return mocked order
+     *   - mock `getActualTxId` to return mocked id
      * - mock EventOrder.createEventRewardOrder to return mocked order
      * - run test
      * - verify returned value
+     * - check if function got called
      * @expected
      * - returned value should be true
+     * - `createEventPaymentOrder` should got called with actual payment tx id
      */
     it('should return true when all conditions for reward distribution tx are met', async () => {
       // mock event and transaction
@@ -407,6 +410,7 @@ describe('TransactionVerifier', () => {
         mockedEvent.event.toChain,
         eventId
       );
+      const paymentTxActualId = TestUtils.generateRandomId();
       const rewardTx = mockPaymentTransaction(
         TransactionType.reward,
         ERGO_CHAIN,
@@ -449,14 +453,22 @@ describe('TransactionVerifier', () => {
       ];
 
       // mock ChainHandler
+      ChainHandlerMock.mockChainName(mockedEvent.event.toChain);
       // mock `extractTransactionOrder`
       ChainHandlerMock.mockErgoFunctionReturnValue(
         'extractTransactionOrder',
         mockedOrder
       );
+      // mock `getActualTxId`
+      ChainHandlerMock.mockChainFunction(
+        mockedEvent.event.toChain,
+        'getActualTxId',
+        paymentTxActualId
+      );
 
       // mock EventOrder.createEventPaymentOrder to return mocked order
-      mockCreateEventRewardOrder(mockedOrder);
+      const mockedCreateEventRewardOrder =
+        mockCreateEventRewardOrder(mockedOrder);
 
       // run test
       const result = await TransactionVerifier.verifyEventTransaction(
@@ -466,6 +478,14 @@ describe('TransactionVerifier', () => {
 
       // verify returned value
       expect(result).toEqual(true);
+
+      //
+      expect(mockedCreateEventRewardOrder).toHaveBeenCalledWith(
+        mockedEvent.event,
+        expect.any(Object),
+        paymentTxActualId,
+        expect.any(Array)
+      );
     });
 
     /**
