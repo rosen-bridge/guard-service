@@ -6,7 +6,7 @@ import { TokenMap } from '@rosen-bridge/tokens';
 class TestBitcoinNetwork extends AbstractBitcoinNetwork {
   extractor = new BitcoinRosenExtractor(
     'bc1qkgp89fjerymm5ltg0hygnumr0m2qa7n22gyw6h',
-    new TokenMap()
+    new TokenMap(),
   );
   notImplemented = () => {
     throw Error('Not implemented');
@@ -25,7 +25,7 @@ class TestBitcoinNetwork extends AbstractBitcoinNetwork {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     offset: number,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    limit: number
+    limit: number,
   ): Promise<Array<BitcoinUtxo>> => {
     throw Error('Not mocked');
   };

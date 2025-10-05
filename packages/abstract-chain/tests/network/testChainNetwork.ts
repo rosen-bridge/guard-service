@@ -30,7 +30,7 @@ class TestUtxoChainNetwork extends AbstractChainNetwork<string> {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     transactionId: string,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    blockId: string
+    blockId: string,
   ): Promise<string> => {
     throw Error('Not mocked');
   };

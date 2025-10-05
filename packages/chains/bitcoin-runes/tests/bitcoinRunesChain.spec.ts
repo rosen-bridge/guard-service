@@ -44,7 +44,7 @@ describe('BitcoinRunesChain', () => {
       // mock transaction order
       const order = testData.transaction1Order;
       const payment1 = BitcoinRunesTransaction.fromJson(
-        testData.transaction1PaymentTransaction
+        testData.transaction1PaymentTransaction,
       );
       const getFeeRatioSpy = vi.spyOn(network, 'getFeeRatio');
       getFeeRatioSpy.mockResolvedValue(1);
@@ -54,7 +54,7 @@ describe('BitcoinRunesChain', () => {
       const getCovBoxesSpy = {
         fn: vi.spyOn(
           (bitcoinRunesChain as any).boxSelection,
-          'getCoveringBoxes'
+          'getCoveringBoxes',
         ),
         callArgs: {
           forbiddenBoxIds: Array<string>(),
@@ -90,7 +90,7 @@ describe('BitcoinRunesChain', () => {
       });
       const hasLockAddressEnoughAssetsSpy = vi.spyOn(
         bitcoinRunesChain,
-        'hasLockAddressEnoughAssets'
+        'hasLockAddressEnoughAssets',
       );
       hasLockAddressEnoughAssetsSpy.mockResolvedValue(true);
 
@@ -101,10 +101,10 @@ describe('BitcoinRunesChain', () => {
         order,
         [
           BitcoinRunesTransaction.fromJson(
-            testData.transaction2PaymentTransaction
+            testData.transaction2PaymentTransaction,
           ),
         ],
-        []
+        [],
       );
       const bitcoinTx = result as BitcoinRunesTransaction;
 
@@ -113,7 +113,7 @@ describe('BitcoinRunesChain', () => {
       expect(bitcoinTx.eventId).toEqual(payment1.eventId);
       expect(bitcoinTx.network).toEqual(payment1.network);
       expect(bitcoinTx.inputUtxos).toEqual(
-        selectedBoxes.map((utxo) => JsonBigInt.stringify(utxo))
+        selectedBoxes.map((utxo) => JsonBigInt.stringify(utxo)),
       );
 
       // transaction artifact should be a Runestone
@@ -122,7 +122,7 @@ describe('BitcoinRunesChain', () => {
         vout: Transaction.fromBuffer(psbt.data.getTransaction()).outs.map(
           (out) => ({
             scriptPubKey: { hex: out.script.toString('hex') },
-          })
+          }),
         ),
       });
       expect(runestone).toBeDefined();
@@ -145,11 +145,11 @@ describe('BitcoinRunesChain', () => {
         expect.any(Object),
         expect.any(BigInt),
         undefined,
-        expect.any(Function)
+        expect.any(Function),
       );
       //-- check forbiddenBoxIds
       expect(getCovBoxesSpy.callArgs.forbiddenBoxIds.at(-1)).toEqual(
-        testData.transaction2InputIds
+        testData.transaction2InputIds,
       );
     });
 
@@ -175,7 +175,7 @@ describe('BitcoinRunesChain', () => {
       const order = structuredClone(testData.transaction1Order);
       order[0].assets.tokens[0].value = 5500000n;
       const payment1 = BitcoinRunesTransaction.fromJson(
-        testData.transaction1PaymentTransaction
+        testData.transaction1PaymentTransaction,
       );
       const getFeeRatioSpy = vi.spyOn(network, 'getFeeRatio');
       getFeeRatioSpy.mockResolvedValue(1);
@@ -185,7 +185,7 @@ describe('BitcoinRunesChain', () => {
       const getCovBoxesSpy = {
         fn: vi.spyOn(
           (bitcoinRunesChain as any).boxSelection,
-          'getCoveringBoxes'
+          'getCoveringBoxes',
         ),
         callArgs: {
           forbiddenBoxIds: Array<string>(),
@@ -221,7 +221,7 @@ describe('BitcoinRunesChain', () => {
       });
       const hasLockAddressEnoughAssetsSpy = vi.spyOn(
         bitcoinRunesChain,
-        'hasLockAddressEnoughAssets'
+        'hasLockAddressEnoughAssets',
       );
       hasLockAddressEnoughAssetsSpy.mockResolvedValue(true);
 
@@ -232,10 +232,10 @@ describe('BitcoinRunesChain', () => {
         order,
         [
           BitcoinRunesTransaction.fromJson(
-            testData.transaction2PaymentTransaction
+            testData.transaction2PaymentTransaction,
           ),
         ],
-        []
+        [],
       );
       const bitcoinTx = result as BitcoinRunesTransaction;
 
@@ -244,7 +244,7 @@ describe('BitcoinRunesChain', () => {
       expect(bitcoinTx.eventId).toEqual(payment1.eventId);
       expect(bitcoinTx.network).toEqual(payment1.network);
       expect(bitcoinTx.inputUtxos).toEqual(
-        selectedBoxes.map((utxo) => JsonBigInt.stringify(utxo))
+        selectedBoxes.map((utxo) => JsonBigInt.stringify(utxo)),
       );
 
       // transaction artifact should be a Runestone
@@ -253,7 +253,7 @@ describe('BitcoinRunesChain', () => {
         vout: Transaction.fromBuffer(psbt.data.getTransaction()).outs.map(
           (out) => ({
             scriptPubKey: { hex: out.script.toString('hex') },
-          })
+          }),
         ),
       });
       expect(runestone).toBeDefined();
@@ -273,11 +273,11 @@ describe('BitcoinRunesChain', () => {
         expect.any(Object),
         expect.any(BigInt),
         undefined,
-        expect.any(Function)
+        expect.any(Function),
       );
       //-- check forbiddenBoxIds
       expect(getCovBoxesSpy.callArgs.forbiddenBoxIds.at(-1)).toEqual(
-        testData.transaction2InputIds
+        testData.transaction2InputIds,
       );
     });
 
@@ -308,7 +308,7 @@ describe('BitcoinRunesChain', () => {
       // mock transaction order
       const order = testData.transaction3Order;
       const payment1 = BitcoinRunesTransaction.fromJson(
-        testData.transaction3PaymentTransaction
+        testData.transaction3PaymentTransaction,
       );
       const getFeeRatioSpy = vi.spyOn(network, 'getFeeRatio');
       getFeeRatioSpy.mockResolvedValue(1);
@@ -318,7 +318,7 @@ describe('BitcoinRunesChain', () => {
       const getCovBoxesSpy = {
         fn: vi.spyOn(
           (bitcoinRunesChain as any).boxSelection,
-          'getCoveringBoxes'
+          'getCoveringBoxes',
         ),
         callArgs: {
           forbiddenBoxIds: Array<string>(),
@@ -329,7 +329,7 @@ describe('BitcoinRunesChain', () => {
         getCovBoxesSpy.callArgs.forbiddenBoxIds.push(structuredClone(args[1]));
         const remainingAsset = ChainUtils.subtractAssetBalance(
           structuredClone(testData.lockBalance),
-          args[0]
+          args[0],
         );
         const fee = 381n;
         remainingAsset.nativeToken -= fee;
@@ -345,7 +345,7 @@ describe('BitcoinRunesChain', () => {
       });
       const hasLockAddressEnoughAssetsSpy = vi.spyOn(
         bitcoinRunesChain,
-        'hasLockAddressEnoughAssets'
+        'hasLockAddressEnoughAssets',
       );
       hasLockAddressEnoughAssetsSpy.mockResolvedValue(true);
 
@@ -355,7 +355,7 @@ describe('BitcoinRunesChain', () => {
         payment1.txType,
         order,
         [],
-        []
+        [],
       );
       const bitcoinTx = result as BitcoinRunesTransaction;
 
@@ -364,7 +364,7 @@ describe('BitcoinRunesChain', () => {
       expect(bitcoinTx.eventId).toEqual(payment1.eventId);
       expect(bitcoinTx.network).toEqual(payment1.network);
       expect(bitcoinTx.inputUtxos).toEqual(
-        selectedBoxes.map((utxo) => JsonBigInt.stringify(utxo))
+        selectedBoxes.map((utxo) => JsonBigInt.stringify(utxo)),
       );
 
       // transaction artifact should be a Runestone
@@ -373,7 +373,7 @@ describe('BitcoinRunesChain', () => {
         vout: Transaction.fromBuffer(psbt.data.getTransaction()).outs.map(
           (out) => ({
             scriptPubKey: { hex: out.script.toString('hex') },
-          })
+          }),
         ),
       });
       expect(runestone).toBeDefined();
@@ -387,17 +387,17 @@ describe('BitcoinRunesChain', () => {
       // address/script of each utxo should be as expected
       expect(psbt.txOutputs.length).toEqual(5);
       expect(address.fromOutputScript(psbt.txOutputs[0].script)).toEqual(
-        testData.lockAddress
+        testData.lockAddress,
       );
       expect(address.fromOutputScript(psbt.txOutputs[1].script)).toEqual(
-        testData.lockAddress
+        testData.lockAddress,
       );
       expect(psbt.txOutputs[2].script.toString('hex')).toMatch(/^6a/); // assert that script starts with OP_RETURN opcode (6a)
       expect(address.fromOutputScript(psbt.txOutputs[3].script)).toEqual(
-        order[0].address
+        order[0].address,
       );
       expect(address.fromOutputScript(psbt.txOutputs[4].script)).toEqual(
-        testData.lockAddress
+        testData.lockAddress,
       );
 
       // getCoveringBoxes should have been called with correct arguments
@@ -412,7 +412,7 @@ describe('BitcoinRunesChain', () => {
         expect.any(Object),
         expect.any(BigInt),
         undefined,
-        expect.any(Function)
+        expect.any(Function),
       );
       //-- check forbiddenBoxIds
       expect(getCovBoxesSpy.callArgs.forbiddenBoxIds.at(-1)).toEqual([]);
@@ -439,7 +439,7 @@ describe('BitcoinRunesChain', () => {
       // mock transaction order
       const order = testData.transaction1Order;
       const payment1 = BitcoinRunesTransaction.fromJson(
-        testData.transaction1PaymentTransaction
+        testData.transaction1PaymentTransaction,
       );
       const getFeeRatioSpy = vi.spyOn(network, 'getFeeRatio');
       getFeeRatioSpy.mockResolvedValue(1);
@@ -449,7 +449,7 @@ describe('BitcoinRunesChain', () => {
       const getCovBoxesSpy = {
         fn: vi.spyOn(
           (bitcoinRunesChain as any).boxSelection,
-          'getCoveringBoxes'
+          'getCoveringBoxes',
         ),
         callArgs: {
           forbiddenBoxIds: Array<string>(),
@@ -494,7 +494,7 @@ describe('BitcoinRunesChain', () => {
       });
       const hasLockAddressEnoughAssetsSpy = vi.spyOn(
         bitcoinRunesChain,
-        'hasLockAddressEnoughAssets'
+        'hasLockAddressEnoughAssets',
       );
       hasLockAddressEnoughAssetsSpy.mockResolvedValue(true);
 
@@ -505,10 +505,10 @@ describe('BitcoinRunesChain', () => {
         order,
         [
           BitcoinRunesTransaction.fromJson(
-            testData.transaction2PaymentTransaction
+            testData.transaction2PaymentTransaction,
           ),
         ],
-        []
+        [],
       );
       const bitcoinTx = result as BitcoinRunesTransaction;
 
@@ -517,7 +517,7 @@ describe('BitcoinRunesChain', () => {
       expect(bitcoinTx.eventId).toEqual(payment1.eventId);
       expect(bitcoinTx.network).toEqual(payment1.network);
       expect(bitcoinTx.inputUtxos).toEqual(
-        totalSelectedBoxes.map((utxo) => JsonBigInt.stringify(utxo))
+        totalSelectedBoxes.map((utxo) => JsonBigInt.stringify(utxo)),
       );
 
       // transaction artifact should be a Runestone
@@ -526,7 +526,7 @@ describe('BitcoinRunesChain', () => {
         vout: Transaction.fromBuffer(psbt.data.getTransaction()).outs.map(
           (out) => ({
             scriptPubKey: { hex: out.script.toString('hex') },
-          })
+          }),
         ),
       });
       expect(runestone).toBeDefined();
@@ -549,7 +549,7 @@ describe('BitcoinRunesChain', () => {
         expect.any(Object),
         expect.any(BigInt),
         undefined,
-        expect.any(Function)
+        expect.any(Function),
       );
       expect(getCovBoxesSpy.fn).toHaveBeenNthCalledWith(
         2,
@@ -559,11 +559,11 @@ describe('BitcoinRunesChain', () => {
         expect.any(Object),
         expect.any(BigInt),
         undefined,
-        expect.any(Function)
+        expect.any(Function),
       );
       //-- check forbiddenBoxIds
       expect(getCovBoxesSpy.callArgs.forbiddenBoxIds[0]).toEqual(
-        testData.transaction2InputIds
+        testData.transaction2InputIds,
       );
       expect(getCovBoxesSpy.callArgs.forbiddenBoxIds[1]).toEqual([
         ...testData.transaction2InputIds,
@@ -586,7 +586,7 @@ describe('BitcoinRunesChain', () => {
       const bitcoinRunesChain = await testUtils.generateChainObject(network);
       const hasLockAddressEnoughAssetsSpy = vi.spyOn(
         bitcoinRunesChain,
-        'hasLockAddressEnoughAssets'
+        'hasLockAddressEnoughAssets',
       );
       hasLockAddressEnoughAssetsSpy.mockResolvedValue(false);
 
@@ -597,7 +597,7 @@ describe('BitcoinRunesChain', () => {
           TransactionType.payment,
           testData.transaction1Order,
           [],
-          []
+          [],
         );
       }).rejects.toThrow(NotEnoughAssetsError);
     });
@@ -617,7 +617,7 @@ describe('BitcoinRunesChain', () => {
       const bitcoinRunesChain = await testUtils.generateChainObject(network);
       const getCovBoxesSpy = vi.spyOn(
         (bitcoinRunesChain as any).boxSelection,
-        'getCoveringBoxes'
+        'getCoveringBoxes',
       );
       getCovBoxesSpy.mockResolvedValue({
         covered: false,
@@ -625,7 +625,7 @@ describe('BitcoinRunesChain', () => {
       });
       const hasLockAddressEnoughAssetsSpy = vi.spyOn(
         bitcoinRunesChain,
-        'hasLockAddressEnoughAssets'
+        'hasLockAddressEnoughAssets',
       );
       hasLockAddressEnoughAssetsSpy.mockResolvedValue(true);
 
@@ -636,7 +636,7 @@ describe('BitcoinRunesChain', () => {
           TransactionType.payment,
           testData.transaction1Order,
           [],
-          []
+          [],
         );
       }).rejects.toThrow(NotEnoughValidBoxesError);
     });
@@ -662,7 +662,7 @@ describe('BitcoinRunesChain', () => {
       // mock transaction order
       const order = testData.transaction1WrappedOrder;
       const payment1 = BitcoinRunesTransaction.fromJson(
-        testData.transaction1PaymentTransaction
+        testData.transaction1PaymentTransaction,
       );
       const getFeeRatioSpy = vi.spyOn(network, 'getFeeRatio');
       getFeeRatioSpy.mockResolvedValue(1);
@@ -671,12 +671,12 @@ describe('BitcoinRunesChain', () => {
       const bitcoinRunesChain = await testUtils.generateChainObject(
         network,
         undefined,
-        testData.multiDecimalTokenMap
+        testData.multiDecimalTokenMap,
       );
       const getCovBoxesSpy = {
         fn: vi.spyOn(
           (bitcoinRunesChain as any).boxSelection,
-          'getCoveringBoxes'
+          'getCoveringBoxes',
         ),
         callArgs: {
           forbiddenBoxIds: Array<string>(),
@@ -712,7 +712,7 @@ describe('BitcoinRunesChain', () => {
       });
       const hasLockAddressEnoughAssetsSpy = vi.spyOn(
         bitcoinRunesChain,
-        'hasLockAddressEnoughAssets'
+        'hasLockAddressEnoughAssets',
       );
       hasLockAddressEnoughAssetsSpy.mockResolvedValue(true);
 
@@ -723,10 +723,10 @@ describe('BitcoinRunesChain', () => {
         order,
         [
           BitcoinRunesTransaction.fromJson(
-            testData.transaction2PaymentTransaction
+            testData.transaction2PaymentTransaction,
           ),
         ],
-        []
+        [],
       );
       const bitcoinTx = result as BitcoinRunesTransaction;
 
@@ -735,7 +735,7 @@ describe('BitcoinRunesChain', () => {
       expect(bitcoinTx.eventId).toEqual(payment1.eventId);
       expect(bitcoinTx.network).toEqual(payment1.network);
       expect(bitcoinTx.inputUtxos).toEqual(
-        selectedBoxes.map((utxo) => JsonBigInt.stringify(utxo))
+        selectedBoxes.map((utxo) => JsonBigInt.stringify(utxo)),
       );
 
       // transaction artifact should be a Runestone
@@ -744,7 +744,7 @@ describe('BitcoinRunesChain', () => {
         vout: Transaction.fromBuffer(psbt.data.getTransaction()).outs.map(
           (out) => ({
             scriptPubKey: { hex: out.script.toString('hex') },
-          })
+          }),
         ),
       });
       expect(runestone).toBeDefined();
@@ -767,11 +767,11 @@ describe('BitcoinRunesChain', () => {
         expect.any(Object),
         expect.any(BigInt),
         undefined,
-        expect.any(Function)
+        expect.any(Function),
       );
       //-- check forbiddenBoxIds
       expect(getCovBoxesSpy.callArgs.forbiddenBoxIds.at(-1)).toEqual(
-        testData.transaction2InputIds
+        testData.transaction2InputIds,
       );
     });
   });
@@ -807,7 +807,7 @@ describe('BitcoinRunesChain', () => {
       const getCovBoxesSpy = {
         fn: vi.spyOn(
           (bitcoinRunesChain as any).boxSelection,
-          'getCoveringBoxes'
+          'getCoveringBoxes',
         ),
         callArgs: {
           forbiddenBoxIds: Array<string>(),
@@ -835,7 +835,7 @@ describe('BitcoinRunesChain', () => {
       });
       const hasLockAddressEnoughAssetsSpy = vi.spyOn(
         bitcoinRunesChain,
-        'hasLockAddressEnoughAssets'
+        'hasLockAddressEnoughAssets',
       );
       hasLockAddressEnoughAssetsSpy.mockResolvedValue(true);
 
@@ -845,7 +845,7 @@ describe('BitcoinRunesChain', () => {
         TransactionType.coldStorage,
         order,
         [],
-        []
+        [],
       );
 
       // check returned value
@@ -861,17 +861,17 @@ describe('BitcoinRunesChain', () => {
           vout: Transaction.fromBuffer(psbt.data.getTransaction()).outs.map(
             (out) => ({
               scriptPubKey: { hex: out.script.toString('hex') },
-            })
+            }),
           ),
         });
         expect(runestone).toBeDefined();
         expect(isRunestone(runestone!)).toEqual(true);
       });
       expect(result[0].inputUtxos).toEqual(
-        selectedBoxesList[0].map((utxo) => JsonBigInt.stringify(utxo))
+        selectedBoxesList[0].map((utxo) => JsonBigInt.stringify(utxo)),
       );
       expect(result[1].inputUtxos).toEqual(
-        selectedBoxesList[1].map((utxo) => JsonBigInt.stringify(utxo))
+        selectedBoxesList[1].map((utxo) => JsonBigInt.stringify(utxo)),
       );
 
       // extracted order of each generated transaction should be as expected
@@ -894,7 +894,7 @@ describe('BitcoinRunesChain', () => {
         expect.any(Object),
         expect.any(BigInt),
         undefined,
-        expect.any(Function)
+        expect.any(Function),
       );
       expect(getCovBoxesSpy.fn).toHaveBeenNthCalledWith(
         2,
@@ -907,12 +907,12 @@ describe('BitcoinRunesChain', () => {
         expect.any(Object),
         expect.any(BigInt),
         undefined,
-        expect.any(Function)
+        expect.any(Function),
       );
       //-- check forbiddenBoxIds
       expect(getCovBoxesSpy.callArgs.forbiddenBoxIds[0]).toEqual([]); // no box is forbidden in 1st call
       expect(getCovBoxesSpy.callArgs.forbiddenBoxIds[1]).toEqual(
-        testData.lockAddressBoxIds.slice(0, 2)
+        testData.lockAddressBoxIds.slice(0, 2),
       ); // the boxes selected by first transaction is forbidden in 2nd call
     });
   });
@@ -934,7 +934,7 @@ describe('BitcoinRunesChain', () => {
     it('should extract transaction order successfully', async () => {
       // mock PaymentTransaction
       const paymentTx = BitcoinRunesTransaction.fromJson(
-        testData.transaction1PaymentTransaction
+        testData.transaction1PaymentTransaction,
       );
       const expectedOrder = testData.transaction1Order;
 
@@ -960,7 +960,7 @@ describe('BitcoinRunesChain', () => {
     it('should extract transaction order successfully even when there are multiple change boxes', async () => {
       // mock PaymentTransaction
       const paymentTx = BitcoinRunesTransaction.fromJson(
-        testData.transaction3PaymentTransaction
+        testData.transaction3PaymentTransaction,
       );
       const expectedOrder = testData.transaction3Order;
 
@@ -987,8 +987,8 @@ describe('BitcoinRunesChain', () => {
       // mock PaymentTransaction
       const paymentTx = BitcoinRunesTransaction.fromJson(
         testData.transaction1InvalidForms.generatePaymentTxString(
-          testData.transaction1InvalidForms.txData.nullRunestone
-        )
+          testData.transaction1InvalidForms.txData.nullRunestone,
+        ),
       );
       const expectedOrder = [
         {
@@ -1023,8 +1023,8 @@ describe('BitcoinRunesChain', () => {
       // mock PaymentTransaction
       const paymentTx = BitcoinRunesTransaction.fromJson(
         testData.transaction1InvalidForms.generatePaymentTxString(
-          testData.transaction1InvalidForms.txData.invalidPointer
-        )
+          testData.transaction1InvalidForms.txData.invalidPointer,
+        ),
       );
       const expectedOrder = [
         {
@@ -1059,8 +1059,8 @@ describe('BitcoinRunesChain', () => {
       // mock PaymentTransaction
       const paymentTx = BitcoinRunesTransaction.fromJson(
         testData.transaction1InvalidForms.generatePaymentTxString(
-          testData.transaction1InvalidForms.txData.burningRunesByEdict
-        )
+          testData.transaction1InvalidForms.txData.burningRunesByEdict,
+        ),
       );
       const expectedOrder = [
         {
@@ -1100,8 +1100,8 @@ describe('BitcoinRunesChain', () => {
       // mock PaymentTransaction
       const paymentTx = BitcoinRunesTransaction.fromJson(
         testData.transaction1InvalidForms.generatePaymentTxString(
-          testData.transaction1InvalidForms.txData.overdrawnEdict
-        )
+          testData.transaction1InvalidForms.txData.overdrawnEdict,
+        ),
       );
       const expectedOrder = [
         {
@@ -1140,7 +1140,7 @@ describe('BitcoinRunesChain', () => {
     it('should wrap transaction order successfully', async () => {
       // mock PaymentTransaction
       const paymentTx = BitcoinRunesTransaction.fromJson(
-        testData.transaction1PaymentTransaction
+        testData.transaction1PaymentTransaction,
       );
       const expectedOrder = testData.transaction1WrappedOrder;
 
@@ -1148,7 +1148,7 @@ describe('BitcoinRunesChain', () => {
       const bitcoinRunesChain = await testUtils.generateChainObject(
         network,
         undefined,
-        testData.multiDecimalTokenMap
+        testData.multiDecimalTokenMap,
       );
       const result = bitcoinRunesChain.extractTransactionOrder(paymentTx);
 
@@ -1174,7 +1174,7 @@ describe('BitcoinRunesChain', () => {
      */
     it('should return true when fee difference is less than allowed slippage', async () => {
       const paymentTx = BitcoinRunesTransaction.fromJson(
-        testData.transaction0PaymentTransaction
+        testData.transaction0PaymentTransaction,
       );
       const getFeeRatioSpy = vi.spyOn(network, 'getFeeRatio');
       getFeeRatioSpy.mockResolvedValue(2);
@@ -1199,7 +1199,7 @@ describe('BitcoinRunesChain', () => {
      */
     it('should return false when fee difference is more than allowed slippage', async () => {
       const paymentTx = BitcoinRunesTransaction.fromJson(
-        testData.transaction0PaymentTransaction
+        testData.transaction0PaymentTransaction,
       );
       const getFeeRatioSpy = vi.spyOn(network, 'getFeeRatio');
       getFeeRatioSpy.mockResolvedValue(1.8);
@@ -1228,7 +1228,7 @@ describe('BitcoinRunesChain', () => {
     it('should return true when no runes is burned', async () => {
       // mock a payment transaction
       const paymentTx = BitcoinRunesTransaction.fromJson(
-        testData.transaction1PaymentTransaction
+        testData.transaction1PaymentTransaction,
       );
 
       // run test
@@ -1254,8 +1254,8 @@ describe('BitcoinRunesChain', () => {
       // mock a payment transaction
       const paymentTx = BitcoinRunesTransaction.fromJson(
         testData.transaction1InvalidForms.generatePaymentTxString(
-          testData.transaction1InvalidForms.txData.nullRunestone
-        )
+          testData.transaction1InvalidForms.txData.nullRunestone,
+        ),
       );
 
       // run test
@@ -1281,8 +1281,8 @@ describe('BitcoinRunesChain', () => {
       // mock a payment transaction
       const paymentTx = BitcoinRunesTransaction.fromJson(
         testData.transaction1InvalidForms.generatePaymentTxString(
-          testData.transaction1InvalidForms.txData.burningRunesByPointer
-        )
+          testData.transaction1InvalidForms.txData.burningRunesByPointer,
+        ),
       );
 
       // run test
@@ -1308,8 +1308,8 @@ describe('BitcoinRunesChain', () => {
       // mock a payment transaction
       const paymentTx = BitcoinRunesTransaction.fromJson(
         testData.transaction1InvalidForms.generatePaymentTxString(
-          testData.transaction1InvalidForms.txData.invalidPointer
-        )
+          testData.transaction1InvalidForms.txData.invalidPointer,
+        ),
       );
 
       // run test
@@ -1335,8 +1335,8 @@ describe('BitcoinRunesChain', () => {
       // mock a payment transaction
       const paymentTx = BitcoinRunesTransaction.fromJson(
         testData.transaction1InvalidForms.generatePaymentTxString(
-          testData.transaction1InvalidForms.txData.noEdict
-        )
+          testData.transaction1InvalidForms.txData.noEdict,
+        ),
       );
 
       // run test
@@ -1362,8 +1362,8 @@ describe('BitcoinRunesChain', () => {
       // mock a payment transaction
       const paymentTx = BitcoinRunesTransaction.fromJson(
         testData.transaction1InvalidForms.generatePaymentTxString(
-          testData.transaction1InvalidForms.txData.invalidEdictRuneId
-        )
+          testData.transaction1InvalidForms.txData.invalidEdictRuneId,
+        ),
       );
 
       // run test
@@ -1389,8 +1389,8 @@ describe('BitcoinRunesChain', () => {
       // mock a payment transaction
       const paymentTx = BitcoinRunesTransaction.fromJson(
         testData.transaction1InvalidForms.generatePaymentTxString(
-          testData.transaction1InvalidForms.txData.burningRunesByEdict
-        )
+          testData.transaction1InvalidForms.txData.burningRunesByEdict,
+        ),
       );
 
       // run test
@@ -1416,8 +1416,8 @@ describe('BitcoinRunesChain', () => {
       // mock a payment transaction
       const paymentTx = BitcoinRunesTransaction.fromJson(
         testData.transaction1InvalidForms.generatePaymentTxString(
-          testData.transaction1InvalidForms.txData.invalidEdictOutput
-        )
+          testData.transaction1InvalidForms.txData.invalidEdictOutput,
+        ),
       );
 
       // run test
@@ -1446,7 +1446,7 @@ describe('BitcoinRunesChain', () => {
     it('should return true when all extra conditions are met', async () => {
       // mock a payment transaction
       const paymentTx = BitcoinRunesTransaction.fromJson(
-        testData.transaction1PaymentTransaction
+        testData.transaction1PaymentTransaction,
       );
 
       // run test
@@ -1473,8 +1473,8 @@ describe('BitcoinRunesChain', () => {
       // mock a payment transaction
       const paymentTx = BitcoinRunesTransaction.fromJson(
         testData.transaction2Forms.generatePaymentTxString(
-          testData.transaction2Forms.txData.valid
-        )
+          testData.transaction2Forms.txData.valid,
+        ),
       );
 
       // run test
@@ -1501,7 +1501,7 @@ describe('BitcoinRunesChain', () => {
     it('should return false when change box address is wrong', async () => {
       // mock a payment transaction
       const paymentTx = BitcoinRunesTransaction.fromJson(
-        testData.transaction1PaymentTransaction
+        testData.transaction1PaymentTransaction,
       );
 
       // create a new BitcoinRunesChain object with custom lock address
@@ -1513,7 +1513,7 @@ describe('BitcoinRunesChain', () => {
         network,
         newConfigs,
         tokenMap,
-        testUtils.mockedSignFn
+        testUtils.mockedSignFn,
       );
 
       // run test
@@ -1540,8 +1540,8 @@ describe('BitcoinRunesChain', () => {
       // mock a payment transaction
       const paymentTx = BitcoinRunesTransaction.fromJson(
         testData.transaction2Forms.generatePaymentTxString(
-          testData.transaction2Forms.txData.valid
-        )
+          testData.transaction2Forms.txData.valid,
+        ),
       );
 
       // create a new BitcoinRunesChain object with custom lock address
@@ -1553,7 +1553,7 @@ describe('BitcoinRunesChain', () => {
         network,
         newConfigs,
         tokenMap,
-        testUtils.mockedSignFn
+        testUtils.mockedSignFn,
       );
 
       // run test
@@ -1579,8 +1579,8 @@ describe('BitcoinRunesChain', () => {
       // mock a payment transaction
       const paymentTx = BitcoinRunesTransaction.fromJson(
         testData.transaction1InvalidForms.generatePaymentTxString(
-          testData.transaction1InvalidForms.txData.nullRunestone
-        )
+          testData.transaction1InvalidForms.txData.nullRunestone,
+        ),
       );
 
       // run test
@@ -1607,8 +1607,8 @@ describe('BitcoinRunesChain', () => {
       // mock a payment transaction
       const paymentTx = BitcoinRunesTransaction.fromJson(
         testData.transaction1InvalidForms.generatePaymentTxString(
-          testData.transaction1InvalidForms.txData.invalidPointer
-        )
+          testData.transaction1InvalidForms.txData.invalidPointer,
+        ),
       );
 
       // run test
@@ -1635,8 +1635,8 @@ describe('BitcoinRunesChain', () => {
       // mock a payment transaction
       const paymentTx = BitcoinRunesTransaction.fromJson(
         testData.transaction1InvalidForms.generatePaymentTxString(
-          testData.transaction1InvalidForms.txData.nullPointer
-        )
+          testData.transaction1InvalidForms.txData.nullPointer,
+        ),
       );
 
       // run test
@@ -1663,8 +1663,8 @@ describe('BitcoinRunesChain', () => {
       // mock a payment transaction
       const paymentTx = BitcoinRunesTransaction.fromJson(
         testData.transaction1InvalidForms.generatePaymentTxString(
-          testData.transaction1InvalidForms.txData.destinationOutputPointer
-        )
+          testData.transaction1InvalidForms.txData.destinationOutputPointer,
+        ),
       );
 
       // run test
@@ -1691,8 +1691,8 @@ describe('BitcoinRunesChain', () => {
       // mock a payment transaction
       const paymentTx = BitcoinRunesTransaction.fromJson(
         testData.transaction1InvalidForms.generatePaymentTxString(
-          testData.transaction1InvalidForms.txData.noEdict
-        )
+          testData.transaction1InvalidForms.txData.noEdict,
+        ),
       );
 
       // run test
@@ -1719,8 +1719,8 @@ describe('BitcoinRunesChain', () => {
       // mock a payment transaction
       const paymentTx = BitcoinRunesTransaction.fromJson(
         testData.transaction1InvalidForms.generatePaymentTxString(
-          testData.transaction1InvalidForms.txData.redundantEdict
-        )
+          testData.transaction1InvalidForms.txData.redundantEdict,
+        ),
       );
 
       // run test
@@ -1748,8 +1748,8 @@ describe('BitcoinRunesChain', () => {
       // mock a payment transaction
       const paymentTx = BitcoinRunesTransaction.fromJson(
         testData.transaction1InvalidForms.generatePaymentTxString(
-          testData.transaction1InvalidForms.txData.redundantUniversalChange
-        )
+          testData.transaction1InvalidForms.txData.redundantUniversalChange,
+        ),
       );
 
       // run test
@@ -1777,8 +1777,8 @@ describe('BitcoinRunesChain', () => {
       // mock a payment transaction
       const paymentTx = BitcoinRunesTransaction.fromJson(
         testData.transaction2Forms.generatePaymentTxString(
-          testData.transaction2Forms.txData.withoutRequiredUniversalChange
-        )
+          testData.transaction2Forms.txData.withoutRequiredUniversalChange,
+        ),
       );
 
       // run test
@@ -1805,8 +1805,8 @@ describe('BitcoinRunesChain', () => {
       // mock a payment transaction
       const paymentTx = BitcoinRunesTransaction.fromJson(
         testData.transaction2Forms.generatePaymentTxString(
-          testData.transaction2Forms.txData.wrongTransferringRuneChangeScript
-        )
+          testData.transaction2Forms.txData.wrongTransferringRuneChangeScript,
+        ),
       );
 
       // run test
@@ -1833,8 +1833,8 @@ describe('BitcoinRunesChain', () => {
       // mock a payment transaction
       const paymentTx = BitcoinRunesTransaction.fromJson(
         testData.transaction2Forms.generatePaymentTxString(
-          testData.transaction2Forms.txData.wrongOpReturnIndex
-        )
+          testData.transaction2Forms.txData.wrongOpReturnIndex,
+        ),
       );
 
       // run test
@@ -1861,8 +1861,8 @@ describe('BitcoinRunesChain', () => {
       // mock a payment transaction
       const paymentTx = BitcoinRunesTransaction.fromJson(
         testData.transaction2Forms.generatePaymentTxString(
-          testData.transaction2Forms.txData.wrongBtcChangeScript
-        )
+          testData.transaction2Forms.txData.wrongBtcChangeScript,
+        ),
       );
 
       // run test
@@ -1889,8 +1889,8 @@ describe('BitcoinRunesChain', () => {
       // mock a payment transaction
       const paymentTx = BitcoinRunesTransaction.fromJson(
         testData.transaction2Forms.generatePaymentTxString(
-          testData.transaction2Forms.txData.hasUnexpectedEdict
-        )
+          testData.transaction2Forms.txData.hasUnexpectedEdict,
+        ),
       );
 
       // run test
@@ -1922,7 +1922,7 @@ describe('BitcoinRunesChain', () => {
      */
     it('should return true when all tx inputs are valid', async () => {
       const payment1 = BitcoinRunesTransaction.fromJson(
-        testData.transaction1PaymentTransaction
+        testData.transaction1PaymentTransaction,
       );
 
       const isBoxUnspentAndValidSpy = vi.spyOn(network, 'isBoxUnspentAndValid');
@@ -1937,7 +1937,7 @@ describe('BitcoinRunesChain', () => {
       });
       // eslint-disable-next-line vitest/prefer-called-exactly-once-with
       expect(isBoxUnspentAndValidSpy).toHaveBeenCalledWith(
-        testData.transaction1Input0BoxId
+        testData.transaction1Input0BoxId,
       );
     });
 
@@ -1958,7 +1958,7 @@ describe('BitcoinRunesChain', () => {
      */
     it('should return false when at least one input id is invalid', async () => {
       const payment1 = BitcoinRunesTransaction.fromJson(
-        testData.transaction1PaymentTransaction
+        testData.transaction1PaymentTransaction,
       );
 
       const isBoxUnspentAndValidSpy = vi.spyOn(network, 'isBoxUnspentAndValid');
@@ -1978,7 +1978,7 @@ describe('BitcoinRunesChain', () => {
       });
       // eslint-disable-next-line vitest/prefer-called-exactly-once-with
       expect(isBoxUnspentAndValidSpy).toHaveBeenCalledWith(
-        testData.transaction1Input0BoxId
+        testData.transaction1Input0BoxId,
       );
     });
   });
@@ -2010,19 +2010,19 @@ describe('BitcoinRunesChain', () => {
           };
         else
           throw Error(
-            `TestError: sign function is called with wrong message [${hashHex}]`
+            `TestError: sign function is called with wrong message [${hashHex}]`,
           );
       };
 
       // mock PaymentTransaction of unsigned transaction
       const paymentTx = BitcoinRunesTransaction.fromJson(
-        testData.transaction1PaymentTransaction
+        testData.transaction1PaymentTransaction,
       );
 
       // run test
       const bitcoinRunesChain = await generateChainObject(
         network,
-        signFunction
+        signFunction,
       );
       const result = await bitcoinRunesChain.signTransaction(paymentTx, 0);
 
@@ -2030,7 +2030,7 @@ describe('BitcoinRunesChain', () => {
       expect(result.txId).toEqual(paymentTx.txId);
       expect(result.eventId).toEqual(paymentTx.eventId);
       expect(Buffer.from(result.txBytes).toString('hex')).toEqual(
-        testData.transaction1SignedTxBytesHex
+        testData.transaction1SignedTxBytesHex,
       );
       expect(result.txType).toEqual(paymentTx.txType);
       expect(result.network).toEqual(paymentTx.network);
@@ -2055,13 +2055,13 @@ describe('BitcoinRunesChain', () => {
 
       // mock PaymentTransaction of unsigned transaction
       const paymentTx = BitcoinRunesTransaction.fromJson(
-        testData.transaction1PaymentTransaction
+        testData.transaction1PaymentTransaction,
       );
 
       // run test
       const bitcoinRunesChain = await generateChainObject(
         network,
-        signFunction
+        signFunction,
       );
 
       await expect(async () => {
@@ -2092,7 +2092,7 @@ describe('BitcoinRunesChain', () => {
       const chain = await generateChainObject(
         network,
         undefined,
-        testData.multiDecimalTokenMap
+        testData.multiDecimalTokenMap,
       );
       const result = await chain.getAddressAssets('address');
 
@@ -2144,7 +2144,7 @@ describe('BitcoinRunesChain', () => {
     it('should construct transaction successfully', async () => {
       // mock PaymentTransaction
       const expectedTx = BitcoinRunesTransaction.fromJson(
-        testData.transaction1PaymentTransaction
+        testData.transaction1PaymentTransaction,
       );
       expectedTx.eventId = '';
       expectedTx.txType = TransactionType.manual;
@@ -2152,13 +2152,13 @@ describe('BitcoinRunesChain', () => {
       // mock getUtxo
       const getUtxoSpy = vi.spyOn(network, 'getUtxo');
       expectedTx.inputUtxos.forEach((utxo) =>
-        getUtxoSpy.mockResolvedValueOnce(JsonBigInt.parse(utxo))
+        getUtxoSpy.mockResolvedValueOnce(JsonBigInt.parse(utxo)),
       );
 
       // run test
       const bitcoinRunesChain = await generateChainObject(network);
       const result = await bitcoinRunesChain.rawTxToPaymentTransaction(
-        Buffer.from(expectedTx.txBytes).toString('hex')
+        Buffer.from(expectedTx.txBytes).toString('hex'),
       );
 
       // check returned value
@@ -2186,7 +2186,7 @@ describe('BitcoinRunesChain', () => {
     it('should return true when data is consistent', async () => {
       // mock a BitcoinRunesTransaction
       const paymentTx = BitcoinRunesTransaction.fromJson(
-        testData.transaction2PaymentTransaction
+        testData.transaction2PaymentTransaction,
       );
 
       // mock getUtxo to return mocked values
@@ -2198,7 +2198,7 @@ describe('BitcoinRunesChain', () => {
           return testData.transaction2Input1Utxo;
         else
           throw Error(
-            `TestError: getUtxo is called with wrong boxId [${boxId}]`
+            `TestError: getUtxo is called with wrong boxId [${boxId}]`,
           );
       });
 
@@ -2213,10 +2213,10 @@ describe('BitcoinRunesChain', () => {
       // check if function got called
       expect(getUtxoSpy).toHaveBeenCalledTimes(2);
       expect(getUtxoSpy.mock.calls[0][0]).toEqual(
-        testData.transaction2Input0BoxId
+        testData.transaction2Input0BoxId,
       );
       expect(getUtxoSpy.mock.calls[1][0]).toEqual(
-        testData.transaction2Input1BoxId
+        testData.transaction2Input1BoxId,
       );
     });
 
@@ -2234,7 +2234,7 @@ describe('BitcoinRunesChain', () => {
     it('should return false when transaction id is wrong', async () => {
       // mock a BitcoinRunesTransaction with changed txId
       const paymentTx = BitcoinRunesTransaction.fromJson(
-        testData.transaction2PaymentTransaction
+        testData.transaction2PaymentTransaction,
       );
       paymentTx.txId = generateRandomId();
 
@@ -2261,7 +2261,7 @@ describe('BitcoinRunesChain', () => {
     it('should return false when number of utxos is wrong', async () => {
       // mock a BitcoinRunesTransaction with less utxos
       const paymentTx = BitcoinRunesTransaction.fromJson(
-        testData.transaction2PaymentTransaction
+        testData.transaction2PaymentTransaction,
       );
       paymentTx.inputUtxos.pop();
 
@@ -2288,7 +2288,7 @@ describe('BitcoinRunesChain', () => {
     it('should return false when at least one input box id is wrong', async () => {
       // mock a BitcoinRunesTransaction with changed utxo
       const paymentTx = BitcoinRunesTransaction.fromJson(
-        testData.transaction2PaymentTransaction
+        testData.transaction2PaymentTransaction,
       );
       paymentTx.inputUtxos[0] = JsonBigInt.stringify({
         txId: generateRandomId(),
@@ -2321,7 +2321,7 @@ describe('BitcoinRunesChain', () => {
     it('should return false when at least one input BTC is incorrect', async () => {
       // mock a BitcoinRunesTransaction
       const paymentTx = BitcoinRunesTransaction.fromJson(
-        testData.transaction2PaymentTransaction
+        testData.transaction2PaymentTransaction,
       );
 
       // mock getUtxo to return mocked values with changed BTC of the 2nd input
@@ -2336,7 +2336,7 @@ describe('BitcoinRunesChain', () => {
           };
         else
           throw Error(
-            `TestError: getUtxo is called with wrong boxId [${boxId}]`
+            `TestError: getUtxo is called with wrong boxId [${boxId}]`,
           );
       });
 
@@ -2351,10 +2351,10 @@ describe('BitcoinRunesChain', () => {
       // check if function got called
       expect(getUtxoSpy).toHaveBeenCalledTimes(2);
       expect(getUtxoSpy.mock.calls[0][0]).toEqual(
-        testData.transaction2Input0BoxId
+        testData.transaction2Input0BoxId,
       );
       expect(getUtxoSpy.mock.calls[1][0]).toEqual(
-        testData.transaction2Input1BoxId
+        testData.transaction2Input1BoxId,
       );
     });
 
@@ -2375,7 +2375,7 @@ describe('BitcoinRunesChain', () => {
     it('should return false when at least one input contains more runes', async () => {
       // mock a BitcoinRunesTransaction
       const paymentTx = BitcoinRunesTransaction.fromJson(
-        testData.transaction2PaymentTransaction
+        testData.transaction2PaymentTransaction,
       );
 
       // mock getUtxo to return mocked values with additional runes for the 2nd input
@@ -2396,7 +2396,7 @@ describe('BitcoinRunesChain', () => {
           };
         else
           throw Error(
-            `TestError: getUtxo is called with wrong boxId [${boxId}]`
+            `TestError: getUtxo is called with wrong boxId [${boxId}]`,
           );
       });
 
@@ -2411,10 +2411,10 @@ describe('BitcoinRunesChain', () => {
       // check if function got called
       expect(getUtxoSpy).toHaveBeenCalledTimes(2);
       expect(getUtxoSpy.mock.calls[0][0]).toEqual(
-        testData.transaction2Input0BoxId
+        testData.transaction2Input0BoxId,
       );
       expect(getUtxoSpy.mock.calls[1][0]).toEqual(
-        testData.transaction2Input1BoxId
+        testData.transaction2Input1BoxId,
       );
     });
 
@@ -2435,7 +2435,7 @@ describe('BitcoinRunesChain', () => {
     it('should return false when at least one input runes is incorrect', async () => {
       // mock a BitcoinRunesTransaction
       const paymentTx = BitcoinRunesTransaction.fromJson(
-        testData.transaction2PaymentTransaction
+        testData.transaction2PaymentTransaction,
       );
 
       // mock getUtxo to return mocked values with changed runes of the 2nd input
@@ -2455,7 +2455,7 @@ describe('BitcoinRunesChain', () => {
           };
         else
           throw Error(
-            `TestError: getUtxo is called with wrong boxId [${boxId}]`
+            `TestError: getUtxo is called with wrong boxId [${boxId}]`,
           );
       });
 
@@ -2470,10 +2470,10 @@ describe('BitcoinRunesChain', () => {
       // check if function got called
       expect(getUtxoSpy).toHaveBeenCalledTimes(2);
       expect(getUtxoSpy.mock.calls[0][0]).toEqual(
-        testData.transaction2Input0BoxId
+        testData.transaction2Input0BoxId,
       );
       expect(getUtxoSpy.mock.calls[1][0]).toEqual(
-        testData.transaction2Input1BoxId
+        testData.transaction2Input1BoxId,
       );
     });
 
@@ -2495,8 +2495,8 @@ describe('BitcoinRunesChain', () => {
       // mock a BitcoinRunesTransaction
       const paymentTx = BitcoinRunesTransaction.fromJson(
         testData.transaction1InvalidForms.generatePaymentTxString(
-          testData.transaction1InvalidForms.txData.nullRunestone
-        )
+          testData.transaction1InvalidForms.txData.nullRunestone,
+        ),
       );
 
       // mock getUtxo to return mocked values
@@ -2506,7 +2506,7 @@ describe('BitcoinRunesChain', () => {
           return testData.transaction1Input0Utxo;
         else
           throw Error(
-            `TestError: getUtxo is called with wrong boxId [${boxId}]`
+            `TestError: getUtxo is called with wrong boxId [${boxId}]`,
           );
       });
 
@@ -2521,7 +2521,7 @@ describe('BitcoinRunesChain', () => {
       // check if function got called
       expect(getUtxoSpy).toHaveBeenCalledTimes(1);
       expect(getUtxoSpy.mock.calls[0][0]).toEqual(
-        testData.transaction1Input0BoxId
+        testData.transaction1Input0BoxId,
       );
     });
 
@@ -2543,8 +2543,8 @@ describe('BitcoinRunesChain', () => {
       // mock a BitcoinRunesTransaction
       const paymentTx = BitcoinRunesTransaction.fromJson(
         testData.transaction1InvalidForms.generatePaymentTxString(
-          testData.transaction1InvalidForms.txData.invalidEdictOutput
-        )
+          testData.transaction1InvalidForms.txData.invalidEdictOutput,
+        ),
       );
 
       // mock getUtxo to return mocked values
@@ -2554,7 +2554,7 @@ describe('BitcoinRunesChain', () => {
           return testData.transaction1Input0Utxo;
         else
           throw Error(
-            `TestError: getUtxo is called with wrong boxId [${boxId}]`
+            `TestError: getUtxo is called with wrong boxId [${boxId}]`,
           );
       });
 
@@ -2569,7 +2569,7 @@ describe('BitcoinRunesChain', () => {
       // check if function got called
       expect(getUtxoSpy).toHaveBeenCalledTimes(1);
       expect(getUtxoSpy.mock.calls[0][0]).toEqual(
-        testData.transaction1Input0BoxId
+        testData.transaction1Input0BoxId,
       );
     });
   });

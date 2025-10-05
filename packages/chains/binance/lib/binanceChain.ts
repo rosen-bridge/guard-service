@@ -18,7 +18,7 @@ class BinanceChain extends EvmChain {
     configs: EvmConfigs,
     tokens: TokenMap,
     signFunction: TssSignFunction,
-    logger?: AbstractLogger
+    logger?: AbstractLogger,
   ) {
     super(
       network,
@@ -28,7 +28,7 @@ class BinanceChain extends EvmChain {
       BINANCE_CHAIN,
       BNB,
       0,
-      logger
+      logger,
     );
   }
 }

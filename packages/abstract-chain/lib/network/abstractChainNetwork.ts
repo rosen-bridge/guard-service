@@ -50,7 +50,7 @@ abstract class AbstractChainNetwork<TxType> {
    */
   abstract getTransaction: (
     transactionId: string,
-    blockId: string
+    blockId: string,
   ) => Promise<TxType>;
 
   /**

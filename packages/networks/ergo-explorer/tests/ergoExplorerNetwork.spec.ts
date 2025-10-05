@@ -87,7 +87,7 @@ describe('ErgoExplorerNetwork', () => {
       const network = getNetwork();
 
       const actualConfirmations = await network.getTxConfirmation(
-        testTransaction.id
+        testTransaction.id,
       );
 
       const expectedConfirmations = Number(testTransaction.numConfirmations);
@@ -113,7 +113,7 @@ describe('ErgoExplorerNetwork', () => {
       const network = getNetwork();
 
       const actualConfirmations = await network.getTxConfirmation(
-        testTransaction.id
+        testTransaction.id,
       );
 
       const expectedConfirmations = -1;
@@ -206,7 +206,7 @@ describe('ErgoExplorerNetwork', () => {
       const network = getNetwork();
 
       await expect(network.getBlockTransactionIds(testBlockId)).rejects.toThrow(
-        FailedError
+        FailedError,
       );
     });
 
@@ -275,12 +275,12 @@ describe('ErgoExplorerNetwork', () => {
 
       const actual = await network.getTransaction(
         testTransaction.id,
-        testTransaction.blockId
+        testTransaction.blockId,
       );
 
       const expectedBytes = testTransactionBytes;
       expect(
-        Buffer.from(actual.sigma_serialize_bytes()).toString('hex')
+        Buffer.from(actual.sigma_serialize_bytes()).toString('hex'),
       ).toEqual(expectedBytes);
     });
 
@@ -301,12 +301,12 @@ describe('ErgoExplorerNetwork', () => {
 
       const actual = await network.getTransaction(
         testTransaction.id,
-        testTransaction.blockId
+        testTransaction.blockId,
       );
 
       const expectedBytes = testTransactionWithNullSpendingProofBytes;
       expect(
-        Buffer.from(actual.sigma_serialize_bytes()).toString('hex')
+        Buffer.from(actual.sigma_serialize_bytes()).toString('hex'),
       ).toEqual(expectedBytes);
     });
 
@@ -324,7 +324,7 @@ describe('ErgoExplorerNetwork', () => {
       const network = getNetwork();
 
       await expect(
-        network.getTransaction(testTransaction.id, testBlockId)
+        network.getTransaction(testTransaction.id, testBlockId),
       ).rejects.toThrow();
     });
   });
@@ -344,8 +344,8 @@ describe('ErgoExplorerNetwork', () => {
 
       await network.submitTransaction(
         ergoLib.Transaction.sigma_parse_bytes(
-          Buffer.from(testTransactionBytes, 'hex')
-        )
+          Buffer.from(testTransactionBytes, 'hex'),
+        ),
       );
 
       expect(sendTransactionAsBytesSpy).toHaveBeenCalled();
@@ -369,12 +369,12 @@ describe('ErgoExplorerNetwork', () => {
       const actualTxs = await network.getMempoolTransactions();
 
       const expectedTxs = testMempoolTransactions.map(
-        () => testTransactionWithNullSpendingProofBytes
+        () => testTransactionWithNullSpendingProofBytes,
       );
       expect(
         actualTxs.map((tx) =>
-          Buffer.from(tx.sigma_serialize_bytes()).toString('hex')
-        )
+          Buffer.from(tx.sigma_serialize_bytes()).toString('hex'),
+        ),
       ).toEqual(expectedTxs);
     });
   });
@@ -397,8 +397,8 @@ describe('ErgoExplorerNetwork', () => {
       const expectedBoxesBytes = testAddressBoxesBytes;
       expect(
         actualBoxes.map((box) =>
-          Buffer.from(box.sigma_serialize_bytes()).toString('hex')
-        )
+          Buffer.from(box.sigma_serialize_bytes()).toString('hex'),
+        ),
       ).toEqual(expectedBoxesBytes);
     });
 
@@ -421,8 +421,8 @@ describe('ErgoExplorerNetwork', () => {
       const expectedBoxesBytes: string[] = [];
       expect(
         actualBoxes.map((box) =>
-          Buffer.from(box.sigma_serialize_bytes()).toString('hex')
-        )
+          Buffer.from(box.sigma_serialize_bytes()).toString('hex'),
+        ),
       ).toEqual(expectedBoxesBytes);
     });
   });
@@ -446,14 +446,14 @@ describe('ErgoExplorerNetwork', () => {
         testTokenId,
         testAddress,
         0,
-        10
+        10,
       );
 
       const expectedBoxesBytes = testTokenIdBoxesBytes.slice(0, 2);
       expect(
         actualBoxes.map((box) =>
-          Buffer.from(box.sigma_serialize_bytes()).toString('hex')
-        )
+          Buffer.from(box.sigma_serialize_bytes()).toString('hex'),
+        ),
       ).toEqual(expectedBoxesBytes);
     });
 
@@ -476,7 +476,7 @@ describe('ErgoExplorerNetwork', () => {
         testTokenId,
         testAddress,
         0,
-        10
+        10,
       );
 
       const expectedBoxesBytes: string[] = [];
@@ -502,14 +502,14 @@ describe('ErgoExplorerNetwork', () => {
         testTokenId,
         testAddress,
         0,
-        2
+        2,
       );
 
       const expectedBoxesBytes = testTokenIdBoxesBytes.slice(2, 4);
       expect(
         actualBoxes.map((box) =>
-          Buffer.from(box.sigma_serialize_bytes()).toString('hex')
-        )
+          Buffer.from(box.sigma_serialize_bytes()).toString('hex'),
+        ),
       ).toEqual(expectedBoxesBytes);
     });
   });
@@ -564,7 +564,7 @@ describe('ErgoExplorerNetwork', () => {
       const network = getNetwork();
 
       const actualIsValid = await network.isBoxUnspentAndValid(
-        testAddressBoxes[0].boxId
+        testAddressBoxes[0].boxId,
       );
 
       expect(actualIsValid).toEqual(true);
@@ -589,7 +589,7 @@ describe('ErgoExplorerNetwork', () => {
       const network = getNetwork();
 
       const actualIsValid = await network.isBoxUnspentAndValid(
-        testAddressBoxes[0].boxId
+        testAddressBoxes[0].boxId,
       );
 
       expect(actualIsValid).toEqual(false);
@@ -611,13 +611,13 @@ describe('ErgoExplorerNetwork', () => {
       const serializedBox = testBox;
       const expectedBoxesBytes = Buffer.from(
         ergoLib.ErgoBox.from_json(
-          JsonBigInt.stringify(serializedBox)
-        ).sigma_serialize_bytes()
+          JsonBigInt.stringify(serializedBox),
+        ).sigma_serialize_bytes(),
       ).toString('hex');
 
       const box = await network.getBox(serializedBox.boxId);
       expect(Buffer.from(box.sigma_serialize_bytes()).toString('hex')).toEqual(
-        expectedBoxesBytes
+        expectedBoxesBytes,
       );
     });
   });

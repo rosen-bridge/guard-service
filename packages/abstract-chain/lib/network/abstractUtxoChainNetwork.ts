@@ -12,7 +12,7 @@ abstract class AbstractUtxoChainNetwork<
   abstract getAddressBoxes: (
     address: string,
     offset: number,
-    limit: number
+    limit: number,
   ) => Promise<Array<BoxType>>;
 
   /**

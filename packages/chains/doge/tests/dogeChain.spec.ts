@@ -42,7 +42,7 @@ describe('DogeChain', () => {
       // mock transaction order
       const order = testData.transaction2Order;
       const payment1 = DogeTransaction.fromJson(
-        testData.transaction0PaymentTransaction
+        testData.transaction0PaymentTransaction,
       );
       const getFeeRatioSpy = vi.spyOn(network, 'getFeeRatio');
       getFeeRatioSpy.mockResolvedValue(1);
@@ -51,7 +51,7 @@ describe('DogeChain', () => {
       const dogeChain = await testUtils.generateChainObject(network);
       const getCovBoxesSpy = vi.spyOn(
         (dogeChain as any).boxSelection,
-        'getCoveringBoxes'
+        'getCoveringBoxes',
       );
       getCovBoxesSpy.mockResolvedValue({
         covered: true,
@@ -59,7 +59,7 @@ describe('DogeChain', () => {
       });
       const hasLockAddressEnoughAssetsSpy = vi.spyOn(
         dogeChain,
-        'hasLockAddressEnoughAssets'
+        'hasLockAddressEnoughAssets',
       );
       hasLockAddressEnoughAssetsSpy.mockResolvedValue(true);
 
@@ -75,7 +75,7 @@ describe('DogeChain', () => {
         payment1.txType,
         order,
         [],
-        []
+        [],
       );
       const dogeTx = result as DogeTransaction;
 
@@ -84,7 +84,7 @@ describe('DogeChain', () => {
       expect(dogeTx.eventId).toEqual(payment1.eventId);
       expect(dogeTx.network).toEqual(payment1.network);
       expect(dogeTx.inputUtxos).toEqual(
-        testData.lockAddressUtxos.map((utxo) => JsonBigInt.stringify(utxo))
+        testData.lockAddressUtxos.map((utxo) => JsonBigInt.stringify(utxo)),
       );
 
       // extracted order of generated transaction should be the same as input order
@@ -93,7 +93,7 @@ describe('DogeChain', () => {
 
       // getCoveringBoxes should have been called with correct arguments
       const expectedRequiredAssets = structuredClone(
-        testData.transaction2Order[0].assets
+        testData.transaction2Order[0].assets,
       );
       expectedRequiredAssets.nativeToken += dogeChain.getMinimumNativeToken();
       // eslint-disable-next-line vitest/prefer-called-exactly-once-with
@@ -104,7 +104,7 @@ describe('DogeChain', () => {
         expect.any(Object),
         expect.any(BigInt),
         undefined,
-        expect.any(Function)
+        expect.any(Function),
       );
     });
 
@@ -123,7 +123,7 @@ describe('DogeChain', () => {
       // mock transaction order
       const order = testData.transaction2Order;
       const payment1 = DogeTransaction.fromJson(
-        testData.transaction1PaymentTransaction
+        testData.transaction1PaymentTransaction,
       );
       const getFeeRatioSpy = vi.spyOn(network, 'getFeeRatio');
       getFeeRatioSpy.mockResolvedValue(1);
@@ -132,7 +132,7 @@ describe('DogeChain', () => {
       const dogeChain = await testUtils.generateChainObject(network);
       const getCovBoxesSpy = vi.spyOn(
         (dogeChain as any).boxSelection,
-        'getCoveringBoxes'
+        'getCoveringBoxes',
       );
       getCovBoxesSpy.mockResolvedValue({
         covered: true,
@@ -141,7 +141,7 @@ describe('DogeChain', () => {
 
       const hasLockAddressEnoughAssetsSpy = vi.spyOn(
         dogeChain,
-        'hasLockAddressEnoughAssets'
+        'hasLockAddressEnoughAssets',
       );
       hasLockAddressEnoughAssetsSpy.mockResolvedValue(true);
 
@@ -157,7 +157,7 @@ describe('DogeChain', () => {
         payment1.txType,
         order,
         [],
-        [testData.transaction0SignedTxBytesHex]
+        [testData.transaction0SignedTxBytesHex],
       );
       const dogeTx = result as DogeTransaction;
 
@@ -173,7 +173,7 @@ describe('DogeChain', () => {
 
       // getCoveringBoxes should have been called with correct arguments
       const expectedRequiredAssets = structuredClone(
-        testData.transaction2Order[0].assets
+        testData.transaction2Order[0].assets,
       );
       expectedRequiredAssets.nativeToken += dogeChain.getMinimumNativeToken();
     });
@@ -194,7 +194,7 @@ describe('DogeChain', () => {
       // mock transaction order
       const order = testData.transaction2Order;
       const payment1 = DogeTransaction.fromJson(
-        testData.transaction1PaymentTransaction
+        testData.transaction1PaymentTransaction,
       );
       const getFeeRatioSpy = vi.spyOn(network, 'getFeeRatio');
       getFeeRatioSpy.mockResolvedValue(1);
@@ -203,7 +203,7 @@ describe('DogeChain', () => {
       const dogeChain = await testUtils.generateChainObject(network);
       const getCovBoxesSpy = vi.spyOn(
         (dogeChain as any).boxSelection,
-        'getCoveringBoxes'
+        'getCoveringBoxes',
       );
       getCovBoxesSpy.mockImplementation(async (...args: any[]) => {
         const forbiddenBoxIds = args[1] as Array<string>;
@@ -211,10 +211,10 @@ describe('DogeChain', () => {
         if (
           forbiddenBoxIds.length === 2 &&
           forbiddenBoxIds.includes(
-            'a2623a8e6358b44df7c672cee5a6ff1df2b45721b2f506d22ef59a0634f7641d.0'
+            'a2623a8e6358b44df7c672cee5a6ff1df2b45721b2f506d22ef59a0634f7641d.0',
           ) &&
           forbiddenBoxIds.includes(
-            'f7fdbfcb582dd9e34997df257bfff291c1ea98a5622ba18400794f3337113b0e.2'
+            'f7fdbfcb582dd9e34997df257bfff291c1ea98a5622ba18400794f3337113b0e.2',
           )
         ) {
           return {
@@ -229,21 +229,21 @@ describe('DogeChain', () => {
       });
       const hasLockAddressEnoughAssetsSpy = vi.spyOn(
         dogeChain,
-        'hasLockAddressEnoughAssets'
+        'hasLockAddressEnoughAssets',
       );
       hasLockAddressEnoughAssetsSpy.mockResolvedValue(true);
 
       // run test
       const faultyTx = Buffer.from(
         DogeTransaction.fromJson(testData.transaction0PaymentTransaction)
-          .txBytes
+          .txBytes,
       ).toString('hex');
       const result = await dogeChain.generateTransaction(
         payment1.eventId,
         payment1.txType,
         order,
         [],
-        [testData.transaction0SignedTxBytesHex, faultyTx]
+        [testData.transaction0SignedTxBytesHex, faultyTx],
       );
       const dogeTx = result as DogeTransaction;
 
@@ -259,7 +259,7 @@ describe('DogeChain', () => {
 
       // getCoveringBoxes should have been called with correct arguments
       const expectedRequiredAssets = structuredClone(
-        testData.transaction2Order[0].assets
+        testData.transaction2Order[0].assets,
       );
       expectedRequiredAssets.nativeToken += dogeChain.getMinimumNativeToken();
     });
@@ -279,7 +279,7 @@ describe('DogeChain', () => {
       // mock transaction order
       const order = testData.transaction2Order;
       const payment1 = DogeTransaction.fromJson(
-        testData.transaction1PaymentTransaction
+        testData.transaction1PaymentTransaction,
       );
       const getFeeRatioSpy = vi.spyOn(network, 'getFeeRatio');
       getFeeRatioSpy.mockResolvedValue(1);
@@ -288,7 +288,7 @@ describe('DogeChain', () => {
       const dogeChain = await testUtils.generateChainObject(network);
       const getCovBoxesSpy = vi.spyOn(
         (dogeChain as any).boxSelection,
-        'getCoveringBoxes'
+        'getCoveringBoxes',
       );
       getCovBoxesSpy.mockResolvedValue({
         covered: false,
@@ -300,10 +300,10 @@ describe('DogeChain', () => {
         if (
           forbiddenBoxIds.length === 2 &&
           forbiddenBoxIds.includes(
-            'a2623a8e6358b44df7c672cee5a6ff1df2b45721b2f506d22ef59a0634f7641d.0'
+            'a2623a8e6358b44df7c672cee5a6ff1df2b45721b2f506d22ef59a0634f7641d.0',
           ) &&
           forbiddenBoxIds.includes(
-            'f7fdbfcb582dd9e34997df257bfff291c1ea98a5622ba18400794f3337113b0e.2'
+            'f7fdbfcb582dd9e34997df257bfff291c1ea98a5622ba18400794f3337113b0e.2',
           )
         ) {
           return {
@@ -318,7 +318,7 @@ describe('DogeChain', () => {
       });
       const hasLockAddressEnoughAssetsSpy = vi.spyOn(
         dogeChain,
-        'hasLockAddressEnoughAssets'
+        'hasLockAddressEnoughAssets',
       );
       hasLockAddressEnoughAssetsSpy.mockResolvedValue(true);
 
@@ -329,7 +329,7 @@ describe('DogeChain', () => {
           payment1.txType,
           order,
           [DogeTransaction.fromJson(testData.transaction0PaymentTransaction)],
-          []
+          [],
         );
       }).rejects.toThrow(NotEnoughValidBoxesError);
     });
@@ -350,7 +350,7 @@ describe('DogeChain', () => {
       const dogeChain = await testUtils.generateChainObject(network);
       const hasLockAddressEnoughAssetsSpy = vi.spyOn(
         dogeChain,
-        'hasLockAddressEnoughAssets'
+        'hasLockAddressEnoughAssets',
       );
       hasLockAddressEnoughAssetsSpy.mockResolvedValue(false);
       const getFeeRatioSpy = vi.spyOn(network, 'getFeeRatio');
@@ -363,7 +363,7 @@ describe('DogeChain', () => {
           TransactionType.payment,
           testData.transaction2Order,
           [],
-          []
+          [],
         );
       }).rejects.toThrow(NotEnoughAssetsError);
     });
@@ -385,7 +385,7 @@ describe('DogeChain', () => {
       const dogeChain = await testUtils.generateChainObject(network);
       const getCovBoxesSpy = vi.spyOn(
         (dogeChain as any).boxSelection,
-        'getCoveringBoxes'
+        'getCoveringBoxes',
       );
       getCovBoxesSpy.mockResolvedValue({
         covered: false,
@@ -393,7 +393,7 @@ describe('DogeChain', () => {
       });
       const hasLockAddressEnoughAssetsSpy = vi.spyOn(
         dogeChain,
-        'hasLockAddressEnoughAssets'
+        'hasLockAddressEnoughAssets',
       );
       hasLockAddressEnoughAssetsSpy.mockResolvedValue(true);
       const getFeeRatioSpy = vi.spyOn(network, 'getFeeRatio');
@@ -406,7 +406,7 @@ describe('DogeChain', () => {
           TransactionType.payment,
           testData.transaction2Order,
           [],
-          []
+          [],
         );
       }).rejects.toThrow(NotEnoughValidBoxesError);
     });
@@ -429,7 +429,7 @@ describe('DogeChain', () => {
     it('should get transaction assets successfully', async () => {
       // mock PaymentTransaction
       const paymentTx = DogeTransaction.fromJson(
-        testData.transaction0PaymentTransaction
+        testData.transaction0PaymentTransaction,
       );
 
       // run test
@@ -454,7 +454,7 @@ describe('DogeChain', () => {
     it('should wrap transaction assets successfully', async () => {
       // mock PaymentTransaction
       const paymentTx = DogeTransaction.fromJson(
-        testData.transaction0PaymentTransaction
+        testData.transaction0PaymentTransaction,
       );
 
       // run test
@@ -484,7 +484,7 @@ describe('DogeChain', () => {
     it('should extract transaction order successfully', async () => {
       // mock PaymentTransaction
       const paymentTx = DogeTransaction.fromJson(
-        testData.transaction0PaymentTransaction
+        testData.transaction0PaymentTransaction,
       );
       const expectedOrder = testData.transaction2Order;
 
@@ -509,7 +509,7 @@ describe('DogeChain', () => {
     it('should throw error when tx has OP_RETURN utxo', async () => {
       // mock PaymentTransaction
       const paymentTx = DogeTransaction.fromJson(
-        testData.transactionOpReturnPaymentTransaction
+        testData.transactionOpReturnPaymentTransaction,
       );
 
       // run test & check thrown exception
@@ -533,7 +533,7 @@ describe('DogeChain', () => {
     it('should wrap transaction order successfully', async () => {
       // mock PaymentTransaction
       const paymentTx = DogeTransaction.fromJson(
-        testData.transaction0PaymentTransaction
+        testData.transaction0PaymentTransaction,
       );
       const expectedOrder = testData.transaction2WrappedOrder;
 
@@ -564,7 +564,7 @@ describe('DogeChain', () => {
      */
     it('should return true when fee difference is less than allowed slippage', async () => {
       const paymentTx = DogeTransaction.fromJson(
-        testData.transaction1PaymentTransaction
+        testData.transaction1PaymentTransaction,
       );
       const getFeeRatioSpy = vi.spyOn(network, 'getFeeRatio');
       getFeeRatioSpy.mockResolvedValue(176991);
@@ -589,7 +589,7 @@ describe('DogeChain', () => {
      */
     it('should return false when fee difference is more than allowed slippage', async () => {
       const paymentTx = DogeTransaction.fromJson(
-        testData.transaction1PaymentTransaction
+        testData.transaction1PaymentTransaction,
       );
       const getFeeRatioSpy = vi.spyOn(network, 'getFeeRatio');
       getFeeRatioSpy.mockResolvedValue(100);
@@ -618,7 +618,7 @@ describe('DogeChain', () => {
     it('should return true when all extra conditions are met', async () => {
       // mock a payment transaction
       const paymentTx = DogeTransaction.fromJson(
-        testData.transaction0PaymentTransaction
+        testData.transaction0PaymentTransaction,
       );
 
       // run test
@@ -644,7 +644,7 @@ describe('DogeChain', () => {
     it('should return false when change box address is wrong', async () => {
       // mock a payment transaction
       const paymentTx = DogeTransaction.fromJson(
-        testData.transaction0PaymentTransaction
+        testData.transaction0PaymentTransaction,
       );
 
       const tokenMap = new TokenMap();
@@ -657,7 +657,7 @@ describe('DogeChain', () => {
         network,
         newConfigs,
         tokenMap,
-        testUtils.mockedSignFn
+        testUtils.mockedSignFn,
       );
 
       // run test
@@ -688,7 +688,7 @@ describe('DogeChain', () => {
      */
     it('should return true when all tx inputs are valid and ttl is less than current slot', async () => {
       const payment1 = DogeTransaction.fromJson(
-        testData.transaction0PaymentTransaction
+        testData.transaction0PaymentTransaction,
       );
 
       const isBoxUnspentAndValidSpy = vi.spyOn(network, 'isBoxUnspentAndValid');
@@ -703,7 +703,7 @@ describe('DogeChain', () => {
       });
       // eslint-disable-next-line vitest/prefer-called-exactly-once-with
       expect(isBoxUnspentAndValidSpy).toHaveBeenCalledWith(
-        testData.transaction0Input0BoxId
+        testData.transaction0Input0BoxId,
       );
     });
 
@@ -723,7 +723,7 @@ describe('DogeChain', () => {
      */
     it('should return false when at least one input is invalid', async () => {
       const payment1 = DogeTransaction.fromJson(
-        testData.transaction0PaymentTransaction
+        testData.transaction0PaymentTransaction,
       );
 
       const isBoxUnspentAndValidSpy = vi.spyOn(network, 'isBoxUnspentAndValid');
@@ -743,7 +743,7 @@ describe('DogeChain', () => {
       });
       // eslint-disable-next-line vitest/prefer-called-exactly-once-with
       expect(isBoxUnspentAndValidSpy).toHaveBeenCalledWith(
-        testData.transaction0Input0BoxId
+        testData.transaction0Input0BoxId,
       );
     });
   });
@@ -780,19 +780,19 @@ describe('DogeChain', () => {
           };
         else
           throw Error(
-            `TestError: sign function is called with wrong message [${hashHex}]`
+            `TestError: sign function is called with wrong message [${hashHex}]`,
           );
       };
 
       // mock PaymentTransaction of unsigned transaction
       const paymentTx = DogeTransaction.fromJson(
-        testData.transaction0PaymentTransaction
+        testData.transaction0PaymentTransaction,
       );
 
       // run test
       const dogeChain = await testUtils.generateChainObject(
         network,
-        signFunction
+        signFunction,
       );
       const result = await dogeChain.signTransaction(paymentTx);
 
@@ -800,7 +800,7 @@ describe('DogeChain', () => {
       expect(result.txId).toEqual(paymentTx.txId);
       expect(result.eventId).toEqual(paymentTx.eventId);
       expect(Buffer.from(result.txBytes).toString('hex')).toEqual(
-        testData.transaction0SignedTxBytesHex
+        testData.transaction0SignedTxBytesHex,
       );
       expect(result.txType).toEqual(paymentTx.txType);
       expect(result.network).toEqual(paymentTx.network);
@@ -832,13 +832,13 @@ describe('DogeChain', () => {
 
       // mock PaymentTransaction of unsigned transaction
       const paymentTx = DogeTransaction.fromJson(
-        testData.transaction0PaymentTransaction
+        testData.transaction0PaymentTransaction,
       );
 
       // run test
       const dogeChain = await testUtils.generateChainObject(
         network,
-        signFunction
+        signFunction,
       );
 
       await expect(async () => {
@@ -863,7 +863,7 @@ describe('DogeChain', () => {
     it('should construct transaction successfully', async () => {
       // mock PaymentTransaction
       const expectedTx = DogeTransaction.fromJson(
-        testData.transaction0PaymentTransaction
+        testData.transaction0PaymentTransaction,
       );
       expectedTx.eventId = '';
       expectedTx.txType = TransactionType.manual;
@@ -871,13 +871,13 @@ describe('DogeChain', () => {
       // mock getUtxo
       const getUtxoSpy = vi.spyOn(network, 'getUtxo');
       expectedTx.inputUtxos.forEach((utxo) =>
-        getUtxoSpy.mockResolvedValueOnce(JsonBigInt.parse(utxo))
+        getUtxoSpy.mockResolvedValueOnce(JsonBigInt.parse(utxo)),
       );
 
       // run test
       const dogeChain = await testUtils.generateChainObject(network);
       const result = await dogeChain.rawTxToPaymentTransaction(
-        Buffer.from(expectedTx.txBytes).toString('hex')
+        Buffer.from(expectedTx.txBytes).toString('hex'),
       );
 
       // check returned value
@@ -893,7 +893,7 @@ describe('DogeChain', () => {
       network,
       testUtils.configs,
       tokenMap,
-      null as any
+      null as any,
     );
 
     /**
@@ -918,7 +918,7 @@ describe('DogeChain', () => {
       // run test
       const result = testInstance.callGetTransactionsBoxMapping(
         transactions,
-        testUtils.configs.addresses.lock
+        testUtils.configs.addresses.lock,
       );
 
       // check returned value
@@ -926,7 +926,7 @@ describe('DogeChain', () => {
       const boxMapping = testData.transaction2BoxMapping;
       boxMapping.forEach((mapping) => {
         const candidate = JsonBigInt.parse(
-          mapping.serializedOutput
+          mapping.serializedOutput,
         ) as DogeUtxo;
         trackMap.set(mapping.inputId, {
           txId: candidate.txId,
@@ -959,7 +959,7 @@ describe('DogeChain', () => {
       // run test
       const result = testInstance.callGetTransactionsBoxMapping(
         transactions,
-        'another address'
+        'another address',
       );
 
       // check returned value
@@ -989,7 +989,7 @@ describe('DogeChain', () => {
     it('should return true when data is consistent', async () => {
       // mock a DogeTransaction
       const paymentTx = DogeTransaction.fromJson(
-        testData.transaction2PaymentTransaction
+        testData.transaction2PaymentTransaction,
       );
 
       // run test
@@ -1014,7 +1014,7 @@ describe('DogeChain', () => {
     it('should return false when transaction id is wrong', async () => {
       // mock a DogeTransaction with changed txId
       const paymentTx = DogeTransaction.fromJson(
-        testData.transaction2PaymentTransaction
+        testData.transaction2PaymentTransaction,
       );
       paymentTx.txId = testUtils.generateRandomId();
 
@@ -1040,7 +1040,7 @@ describe('DogeChain', () => {
     it('should return false when number of utxos is wrong', async () => {
       // mock a DogeTransaction with less utxos
       const paymentTx = DogeTransaction.fromJson(
-        testData.transaction2PaymentTransaction
+        testData.transaction2PaymentTransaction,
       );
       paymentTx.inputUtxos.pop();
 
@@ -1066,7 +1066,7 @@ describe('DogeChain', () => {
     it('should return false when at least one of the utxos is wrong', async () => {
       // mock a DogeTransaction with changed utxo
       const paymentTx = DogeTransaction.fromJson(
-        testData.transaction2PaymentTransaction
+        testData.transaction2PaymentTransaction,
       );
       paymentTx.inputUtxos[1] = JsonBigInt.stringify({
         txId: testUtils.generateRandomId(),

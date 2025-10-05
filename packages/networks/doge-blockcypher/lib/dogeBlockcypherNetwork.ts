@@ -29,7 +29,7 @@ import {
 class DogeBlockCypherNetwork extends PartialDogeNetwork {
   protected client: AxiosInstance;
   private getSavedTransactionById: (
-    txId: string
+    txId: string,
   ) => Promise<PaymentTransaction | undefined>;
 
   // Implement all DogeNetworkFunction functions
@@ -53,10 +53,10 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
   constructor(
     url: string,
     getSavedTransactionById: (
-      txId: string
+      txId: string,
     ) => Promise<PaymentTransaction | undefined>,
     logger?: AbstractLogger,
-    maxRPS = 3
+    maxRPS = 3,
   ) {
     super(logger);
     // Use axios-rate-limit to limit to 3 requests per second
@@ -64,7 +64,7 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
       axios.create({
         baseURL: url,
       }),
-      { maxRPS }
+      { maxRPS },
     );
     this.getSavedTransactionById = getSavedTransactionById;
   }
@@ -81,7 +81,7 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
         const baseError = `Failed to fetch current height from BlockCypher: `;
         if (e.response) {
           throw new FailedError(
-            baseError + `${JsonBigInt.stringify(e.response.data)}`
+            baseError + `${JsonBigInt.stringify(e.response.data)}`,
           );
         } else if (e.request) {
           throw new NetworkError(baseError + e.message);
@@ -97,18 +97,18 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
    * @returns the transaction confirmation
    */
   protected getTxConfirmationSigned = async (
-    transactionId: string
+    transactionId: string,
   ): Promise<number> => {
     try {
       const txInfo = (
         await this.client.get<BlockCypherTx>(
-          `/v1/doge/main/txs/${transactionId}`
+          `/v1/doge/main/txs/${transactionId}`,
         )
       ).data;
       this.logger.debug(
         `requested 'tx' for txId [${transactionId}]. res: ${JsonBigInt.stringify(
-          txInfo
-        )}`
+          txInfo,
+        )}`,
       );
       if (txInfo.confirmations === 0) return -1;
       return txInfo.confirmations;
@@ -119,7 +119,7 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
         return -1;
       } else if (e.response) {
         throw new FailedError(
-          baseError + JsonBigInt.stringify(e.response.data)
+          baseError + JsonBigInt.stringify(e.response.data),
         );
       } else if (e.request) {
         throw new NetworkError(baseError + e.message);
@@ -153,8 +153,8 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
       .then((res) => {
         this.logger.debug(
           `requested 'address' for address [${address}]. res: ${JsonBigInt.stringify(
-            res.data
-          )}`
+            res.data,
+          )}`,
         );
         nativeToken = BigInt(res.data.final_balance);
         return { nativeToken, tokens };
@@ -163,7 +163,7 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
         const baseError = `Failed to get address [${address}] assets from BlockCypher: `;
         if (e.response) {
           throw new FailedError(
-            baseError + JsonBigInt.stringify(e.response.data)
+            baseError + JsonBigInt.stringify(e.response.data),
           );
         } else if (e.request) {
           throw new NetworkError(baseError + e.message);
@@ -191,8 +191,8 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
           await this.client.get<BlockCypherBlock>(url);
         this.logger.debug(
           `requested 'block/:hash/txids' for blockId [${blockId}]. received: ${JsonBigInt.stringify(
-            res.data
-          )}`
+            res.data,
+          )}`,
         );
 
         // Add the current batch of transaction IDs
@@ -204,7 +204,7 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
         const baseError = `Failed to get block [${blockId}] transaction ids from BlockCypher: `;
         if (e.response) {
           throw new FailedError(
-            baseError + JsonBigInt.stringify(e.response.data)
+            baseError + JsonBigInt.stringify(e.response.data),
           );
         } else if (e.request) {
           throw new NetworkError(baseError + e.message);
@@ -228,8 +228,8 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
       .then((res) => {
         this.logger.debug(
           `requested 'block' for blockId [${blockId}]. res: ${JsonBigInt.stringify(
-            res.data
-          )}`
+            res.data,
+          )}`,
         );
         const block = res.data;
         return {
@@ -242,7 +242,7 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
         const baseError = `Failed to get block [${blockId}] info from BlockCypher: `;
         if (e.response) {
           throw new FailedError(
-            baseError + JsonBigInt.stringify(e.response.data)
+            baseError + JsonBigInt.stringify(e.response.data),
           );
         } else if (e.request) {
           throw new NetworkError(baseError + e.message);
@@ -260,25 +260,25 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
    */
   getTransaction = async (
     transactionId: string,
-    blockId: string
+    blockId: string,
   ): Promise<DogeTx> => {
     let txInfo: BlockCypherTx;
     try {
       txInfo = (
         await this.client.get<BlockCypherTx>(
-          `/v1/doge/main/txs/${transactionId}?limit=5000`
+          `/v1/doge/main/txs/${transactionId}?limit=5000`,
         )
       ).data;
       this.logger.debug(
         `requested 'tx' for txId [${transactionId}]. res: ${JsonBigInt.stringify(
-          txInfo
-        )}`
+          txInfo,
+        )}`,
       );
     } catch (e: any) {
       const baseError = `Failed to get transaction [${transactionId}] from BlockCypher: `;
       if (e.response) {
         throw new FailedError(
-          baseError + JsonBigInt.stringify(e.response.data)
+          baseError + JsonBigInt.stringify(e.response.data),
         );
       } else if (e.request) {
         throw new NetworkError(baseError + e.message);
@@ -293,7 +293,7 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
 
     if (txInfo.block_hash !== blockId && blockId !== '')
       throw new FailedError(
-        `Tx [${transactionId}] doesn't belong to block [${blockId}]`
+        `Tx [${transactionId}] doesn't belong to block [${blockId}]`,
       );
 
     return {
@@ -322,14 +322,14 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
       })
       .then((res) => {
         this.logger.debug(
-          `submitted transaction. res: ${JsonBigInt.stringify(res.data)}`
+          `submitted transaction. res: ${JsonBigInt.stringify(res.data)}`,
         );
       })
       .catch((e) => {
         const baseError = `Failed to submit transaction to BlockCypher: `;
         if (e.response) {
           throw new FailedError(
-            baseError + JsonBigInt.stringify(e.response.data)
+            baseError + JsonBigInt.stringify(e.response.data),
           );
         } else if (e.request) {
           throw new NetworkError(baseError + e.message);
@@ -349,7 +349,7 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
   getAddressBoxes = async (
     address: string,
     offset: number,
-    limit: number
+    limit: number,
   ): Promise<Array<DogeUtxo>> => {
     try {
       const currentHeight = await this.getHeight();
@@ -360,7 +360,7 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
 
       while (allUtxos.length < totalToFetch) {
         const response = await this.client.get<BlockCypherAddress>(
-          `/v1/doge/main/addrs/${address}?unspentOnly=true&before=${beforeHeight}&limit=${batchSize}`
+          `/v1/doge/main/addrs/${address}?unspentOnly=true&before=${beforeHeight}&limit=${batchSize}`,
         );
 
         const txrefs = response.data.txrefs ?? [];
@@ -392,7 +392,7 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
       const baseError = `Failed to get address [${address}] boxes from BlockCypher: `;
       if (e.response) {
         throw new FailedError(
-          baseError + JsonBigInt.stringify(e.response.data)
+          baseError + JsonBigInt.stringify(e.response.data),
         );
       } else if (e.request) {
         throw new NetworkError(baseError + e.message);
@@ -414,8 +414,8 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
       .then((res) => {
         this.logger.debug(
           `requested 'tx' for txId [${txId}]. res: ${JsonBigInt.stringify(
-            res.data
-          )}`
+            res.data,
+          )}`,
         );
         const tx = res.data;
         if (parseInt(index) >= tx.outputs.length) {
@@ -431,7 +431,7 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
           return false;
         } else if (e.response) {
           throw new FailedError(
-            baseError + JsonBigInt.stringify(e.response.data)
+            baseError + JsonBigInt.stringify(e.response.data),
           );
         } else if (e.request) {
           throw new NetworkError(baseError + e.message);
@@ -453,11 +453,11 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
     try {
       txInfo = (
         await this.client.get<BlockCypherTx>(
-          `/v1/doge/main/txs/${txId}?limit=5000`
+          `/v1/doge/main/txs/${txId}?limit=5000`,
         )
       ).data;
       this.logger.debug(
-        `requested 'tx' for tx [${txId}]. res: ${JsonBigInt.stringify(txInfo)}`
+        `requested 'tx' for tx [${txId}]. res: ${JsonBigInt.stringify(txInfo)}`,
       );
     } catch (e: any) {
       const baseError = `Failed to get tx [${txId}] Utxos status from BlockCypher: `;
@@ -465,7 +465,7 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
         throw new FailedError(`Transaction [${txId}] is not found`);
       } else if (e.response) {
         throw new FailedError(
-          baseError + JsonBigInt.stringify(e.response.data)
+          baseError + JsonBigInt.stringify(e.response.data),
         );
       } else if (e.request) {
         throw new NetworkError(baseError + e.message);
@@ -476,7 +476,7 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
 
     if (txInfo.outputs.length <= Number(index)) {
       throw new FailedError(
-        `Transaction [${txId}] doesn't have index [${index}]`
+        `Transaction [${txId}] doesn't have index [${index}]`,
       );
     }
 
@@ -497,8 +497,8 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
       .then((res) => {
         this.logger.debug(
           `requested 'chain' for fee ratio. res: ${JsonBigInt.stringify(
-            res.data
-          )}`
+            res.data,
+          )}`,
         );
         return res.data.medium_fee_per_kb / 1000;
       })
@@ -506,7 +506,7 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
         const baseError = `Failed to get fee ratio from BlockCypher: `;
         if (e.response) {
           throw new FailedError(
-            baseError + JsonBigInt.stringify(e.response.data)
+            baseError + JsonBigInt.stringify(e.response.data),
           );
         } else if (e.request) {
           throw new NetworkError(baseError + e.message);
@@ -527,8 +527,8 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
       .then((res) => {
         this.logger.debug(
           `requested 'tx' for txId [${txId}]. res: ${JsonBigInt.stringify(
-            res.data
-          )}`
+            res.data,
+          )}`,
         );
         return res.data.confirmations === 0;
       })
@@ -538,7 +538,7 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
           return false;
         } else if (e.response) {
           throw new FailedError(
-            baseError + JsonBigInt.stringify(e.response.data)
+            baseError + JsonBigInt.stringify(e.response.data),
           );
         } else if (e.request) {
           throw new NetworkError(baseError + e.message);
@@ -559,8 +559,8 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
       .then((res) => {
         this.logger.debug(
           `requested 'tx' for txId [${txId}]. res: ${JsonBigInt.stringify(
-            res.data
-          )}`
+            res.data,
+          )}`,
         );
         return res.data.hex!;
       })
@@ -568,7 +568,7 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
         const baseError = `Failed to get transaction hex [${txId}] from BlockCypher: `;
         if (e.response) {
           throw new FailedError(
-            baseError + JsonBigInt.stringify(e.response.data)
+            baseError + JsonBigInt.stringify(e.response.data),
           );
         } else if (e.request) {
           throw new NetworkError(baseError + e.message);
@@ -586,15 +586,15 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
    */
   getSpentTransactionByInputId = async (
     index: number,
-    txId: string
+    txId: string,
   ): Promise<DogeTx | undefined> => {
     return this.client
       .get<BlockCypherTx>(`/v1/doge/main/txs/${txId}?limit=5000`)
       .then((res) => {
         this.logger.debug(
           `requested 'tx' for txId [${txId}]. res: ${JsonBigInt.stringify(
-            res.data
-          )}`
+            res.data,
+          )}`,
         );
         const tx = res.data;
         const output = tx.outputs[index];
@@ -607,7 +607,7 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
         const baseError = `Failed to get spent transaction for input [${txId}:${index}] from BlockCypher: `;
         if (e.response) {
           throw new FailedError(
-            baseError + JsonBigInt.stringify(e.response.data)
+            baseError + JsonBigInt.stringify(e.response.data),
           );
         } else if (e.request) {
           throw new NetworkError(baseError + e.message);
@@ -636,20 +636,20 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
         } catch (e: any) {
           const spentTx = await this.getSpentTransactionByInputId(
             realTx.txInputs[0].index,
-            Buffer.from(realTx.txInputs[0].hash.reverse()).toString('hex')
+            Buffer.from(realTx.txInputs[0].hash.reverse()).toString('hex'),
           );
           if (spentTx) {
             const sameInputs = realTx.txInputs.every(
               (input, i) =>
                 spentTx.inputs[i].txId ===
                   Buffer.from(input.hash.reverse()).toString('hex') &&
-                spentTx.inputs[i].index === input.index
+                spentTx.inputs[i].index === input.index,
             );
             const sameOutputs = realTx.txOutputs.every(
               (output, i) =>
                 spentTx.outputs[i].scriptPubKey ===
                   Buffer.from(output.script).toString('hex') &&
-                spentTx.outputs[i].value === BigInt(output.value)
+                spentTx.outputs[i].value === BigInt(output.value),
             );
             if (sameInputs && sameOutputs) {
               actualTxId = spentTx.id;
@@ -661,7 +661,7 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
       const baseError = `Failed to get confirmation for tx [${hash}] which was found in the database: `;
       if (e.response) {
         throw new FailedError(
-          baseError + JsonBigInt.stringify(e.response.data)
+          baseError + JsonBigInt.stringify(e.response.data),
         );
       } else if (e.request) {
         throw new NetworkError(baseError + e.message);

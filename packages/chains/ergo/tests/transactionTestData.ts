@@ -1143,12 +1143,12 @@ const mockedBlockHeaders = BlockHeaders.from_json(
       '0000000000000000000000000000000000000000000000000000000000000000',
     parentId:
       '0000000000000000000000000000000000000000000000000000000000000000',
-  })
+  }),
 );
 
 export const mockedStateContext: ErgoStateContext = new ErgoStateContext(
   PreHeader.from_block_header(mockedBlockHeaders.get(0)),
-  mockedBlockHeaders
+  mockedBlockHeaders,
 );
 
 export const transaction5UnsignedJson = `

@@ -21,7 +21,7 @@ describe('DogeBlockcypherNetwork', () => {
     resetAxiosMock();
     network = new DogeBlockcypherNetwork(
       'blockcypher-url',
-      async () => undefined
+      async () => undefined,
     );
   });
 
@@ -43,7 +43,7 @@ describe('DogeBlockcypherNetwork', () => {
       // The method should exist and be a function
       expect(method, `Method ${funcName} should be defined`).toBeDefined();
       expect(typeof method, `Method ${funcName} should be a function`).toBe(
-        'function'
+        'function',
       );
 
       // Convert method to string to check its implementation
@@ -157,7 +157,7 @@ describe('DogeBlockcypherNetwork', () => {
         testData.signedTxId,
         'eventId',
         Buffer.from(testData.dogePaymentBytesSigned, 'hex'),
-        TransactionType.payment
+        TransactionType.payment,
       );
 
       const customNetwork = new DogeBlockcypherNetwork(
@@ -167,12 +167,12 @@ describe('DogeBlockcypherNetwork', () => {
             return dogePayment;
           }
           return undefined;
-        }
+        },
       );
 
       const getTxConfirmationSignedSpy = vi.spyOn(
         customNetwork as any,
-        'getTxConfirmationSigned'
+        'getTxConfirmationSigned',
       );
 
       mockAxiosGet(testData.txResponse);
@@ -181,13 +181,13 @@ describe('DogeBlockcypherNetwork', () => {
 
       const getSpentTransactionByInputIdSpy = vi.spyOn(
         customNetwork as any,
-        'getSpentTransactionByInputId'
+        'getSpentTransactionByInputId',
       );
 
       expect(getSpentTransactionByInputIdSpy).toHaveBeenCalledTimes(0);
       // eslint-disable-next-line vitest/prefer-called-exactly-once-with
       expect(getTxConfirmationSignedSpy).toHaveBeenCalledWith(
-        testData.signedTxId
+        testData.signedTxId,
       );
       expect(result).toEqual(testData.txConfirmation);
     });
@@ -209,7 +209,7 @@ describe('DogeBlockcypherNetwork', () => {
         testData.unsignedTxId,
         'eventId',
         Buffer.from(testData.dogePaymentBytes, 'hex'),
-        TransactionType.payment
+        TransactionType.payment,
       );
 
       const customNetwork = new DogeBlockcypherNetwork(
@@ -219,12 +219,12 @@ describe('DogeBlockcypherNetwork', () => {
             return dogePayment;
           }
           return undefined;
-        }
+        },
       );
 
       const getTxConfirmationSignedSpy = vi.spyOn(
         customNetwork as any,
-        'getTxConfirmationSigned'
+        'getTxConfirmationSigned',
       );
 
       // Mock getSpentTransactionByInputId to return a transaction when called with the correct input
@@ -235,13 +235,13 @@ describe('DogeBlockcypherNetwork', () => {
       mockAxiosGet(testData.txResponse);
 
       const result = await customNetwork.getTxConfirmation(
-        testData.unsignedTxId
+        testData.unsignedTxId,
       );
 
       // eslint-disable-next-line vitest/prefer-called-exactly-once-with
       expect(getSpentTransactionByInputIdSpy).toHaveBeenCalledWith(
         testData.dogeTx.inputs[0].index,
-        testData.dogeTx.inputs[0].txId
+        testData.dogeTx.inputs[0].txId,
       );
       // eslint-disable-next-line vitest/prefer-called-exactly-once-with
       expect(getTxConfirmationSignedSpy).toHaveBeenCalledWith(testData.txId);
@@ -348,7 +348,7 @@ describe('DogeBlockcypherNetwork', () => {
       mockAxiosGet(testData.largeBlockSecondBatch);
 
       const result = await network.getBlockTransactionIds(
-        testData.largeBlockHash
+        testData.largeBlockHash,
       );
 
       // Expected result should be all transaction IDs combined
@@ -425,7 +425,7 @@ describe('DogeBlockcypherNetwork', () => {
 
       const result = await network.getTransaction(
         testData.txId,
-        testData.txBlockHash
+        testData.txBlockHash,
       );
 
       expect(result).toEqual(testData.dogeTx);
@@ -465,7 +465,7 @@ describe('DogeBlockcypherNetwork', () => {
       mockAxiosGet(testData.blockHeightResponse);
       mockAxiosGet(testData.addressUtxoResponse);
       const emptyAddressUtxoResponse = JSON.parse(
-        JSON.stringify(testData.addressUtxoResponse)
+        JSON.stringify(testData.addressUtxoResponse),
       );
       emptyAddressUtxoResponse.txrefs = [];
       mockAxiosGet(emptyAddressUtxoResponse);
@@ -473,7 +473,7 @@ describe('DogeBlockcypherNetwork', () => {
       const result = await network.getAddressBoxes(
         testData.lockAddress,
         0,
-        100
+        100,
       );
 
       expect(result).toEqual(testData.addressUtxos);
@@ -492,7 +492,7 @@ describe('DogeBlockcypherNetwork', () => {
     it('should return address utxos successfully with correct pagination', async () => {
       const limit = 1;
       const addressUtxoResponse = JSON.parse(
-        JSON.stringify(testData.addressUtxoResponse)
+        JSON.stringify(testData.addressUtxoResponse),
       );
       addressUtxoResponse.txrefs = addressUtxoResponse.txrefs.slice(0, limit);
       mockAxiosGet(testData.blockHeightResponse);
@@ -501,7 +501,7 @@ describe('DogeBlockcypherNetwork', () => {
       const result = await network.getAddressBoxes(
         testData.lockAddress,
         0,
-        limit
+        limit,
       );
 
       expect(result).toEqual(testData.addressUtxos.slice(0, limit));
@@ -511,18 +511,18 @@ describe('DogeBlockcypherNetwork', () => {
       const offset = 1;
       const limit = 1;
       const addressUtxoResponseFirst = JSON.parse(
-        JSON.stringify(testData.addressUtxoResponse)
+        JSON.stringify(testData.addressUtxoResponse),
       );
       addressUtxoResponseFirst.txrefs = addressUtxoResponseFirst.txrefs.slice(
         0,
-        offset
+        offset,
       );
       const addressUtxoResponseSecond = JSON.parse(
-        JSON.stringify(testData.addressUtxoResponse)
+        JSON.stringify(testData.addressUtxoResponse),
       );
       addressUtxoResponseSecond.txrefs = addressUtxoResponseSecond.txrefs.slice(
         offset,
-        offset + limit
+        offset + limit,
       );
       mockAxiosGet(testData.blockHeightResponse);
       mockAxiosGet(addressUtxoResponseFirst);
@@ -531,11 +531,11 @@ describe('DogeBlockcypherNetwork', () => {
       const result = await network.getAddressBoxes(
         testData.lockAddress,
         offset,
-        limit
+        limit,
       );
 
       expect(result).toEqual(
-        testData.addressUtxos.slice(offset, offset + limit)
+        testData.addressUtxos.slice(offset, offset + limit),
       );
     });
 
@@ -559,7 +559,7 @@ describe('DogeBlockcypherNetwork', () => {
       const result = await network.getAddressBoxes(
         testData.lockAddress,
         0,
-        100
+        100,
       );
 
       expect(result).toEqual([]);
@@ -757,7 +757,7 @@ describe('DogeBlockcypherNetwork', () => {
 
       const result = await (network as any).getSpentTransactionByInputId(
         testData.spentIndex,
-        testData.spentTxId
+        testData.spentTxId,
       );
 
       expect(result).toEqual(testData.dogeTx);
@@ -783,7 +783,7 @@ describe('DogeBlockcypherNetwork', () => {
 
       const result = await (network as any).getSpentTransactionByInputId(
         testData.unspentIndex,
-        testData.unspentTxId
+        testData.unspentTxId,
       );
 
       expect(result).toBeUndefined();
@@ -935,7 +935,7 @@ describe('DogeBlockcypherNetwork', () => {
       'blockcypher-url',
       async () => undefined,
       undefined,
-      5 // custom RPS of 5
+      5, // custom RPS of 5
     );
 
     // Verify the network was created successfully
@@ -967,7 +967,7 @@ describe('DogeBlockcypherNetwork', () => {
         testData.unsignedTxId,
         'eventId',
         Buffer.from(testData.dogePaymentBytes, 'hex'),
-        TransactionType.payment
+        TransactionType.payment,
       );
 
       const customNetwork = new DogeBlockcypherNetwork(
@@ -977,7 +977,7 @@ describe('DogeBlockcypherNetwork', () => {
             return dogePayment;
           }
           return undefined;
-        }
+        },
       );
 
       // Mock getSpentTransactionByInputId to return a transaction when called with the correct input
@@ -992,7 +992,7 @@ describe('DogeBlockcypherNetwork', () => {
       // eslint-disable-next-line vitest/prefer-called-exactly-once-with
       expect(getSpentTransactionByInputIdSpy).toHaveBeenCalledWith(
         testData.dogeTx.inputs[0].index,
-        testData.dogeTx.inputs[0].txId
+        testData.dogeTx.inputs[0].txId,
       );
       expect(result).toEqual(testData.txId);
     });

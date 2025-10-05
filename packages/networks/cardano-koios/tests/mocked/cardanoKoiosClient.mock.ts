@@ -133,7 +133,7 @@ export const mockAddressInfo = (utxoSet: AddressInfoItemUtxoSetItem[]) => {
  */
 export const mockUtxoValidation = (
   txCbor: TxCborItem | undefined,
-  credentialUtxos: UtxoInfos
+  credentialUtxos: UtxoInfos,
 ) => {
   vi.mocked(cardanoKoiosClientFactory).mockReturnValueOnce({
     txCbor: async () => (txCbor ? [txCbor] : []),

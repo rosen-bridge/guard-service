@@ -43,7 +43,7 @@ export const splitPaymentOrders = (orders: PaymentOrder): PaymentOrder => {
 export const encodeTransferCallData = (
   contractAddress: string,
   to: string,
-  amount: bigint
+  amount: bigint,
 ): string => {
   const contract = new Contract(contractAddress, transferABI, null);
   return contract.interface.encodeFunctionData('transfer', [to, amount]);
@@ -78,7 +78,7 @@ export const isTransfer = (contractAddress: string, data: string): boolean => {
  */
 export const decodeTransferCallData = (
   contractAddress: string,
-  calldata: string
+  calldata: string,
 ): Array<any> => {
   const contract = new Contract(contractAddress, transferABI, null);
   return contract.interface.decodeFunctionData('transfer', calldata);

@@ -39,7 +39,7 @@ export const mockedSignFn = () =>
   });
 export const generateChainObject = async (
   network: TestDogeNetwork,
-  signFn: TssSignFunction = mockedSignFn
+  signFn: TssSignFunction = mockedSignFn,
 ) => {
   const tokenMap = new TokenMap();
   await tokenMap.updateConfigByJson(testData.testTokenMap);
@@ -47,7 +47,7 @@ export const generateChainObject = async (
 };
 export const generateChainObjectWithMultiDecimalTokenMap = async (
   network: TestDogeNetwork,
-  signFn: TssSignFunction = mockedSignFn
+  signFn: TssSignFunction = mockedSignFn,
 ) => {
   const tokenMap = new TokenMap();
   await tokenMap.updateConfigByJson(testData.multiDecimalTokenMap);

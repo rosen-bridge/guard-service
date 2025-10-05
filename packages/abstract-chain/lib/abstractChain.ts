@@ -39,7 +39,7 @@ abstract class AbstractChain<TxType> {
     network: AbstractChainNetwork<TxType>,
     configs: ChainConfigs,
     tokens: TokenMap,
-    logger?: AbstractLogger
+    logger?: AbstractLogger,
   ) {
     this.network = network;
     this.configs = configs;
@@ -71,11 +71,11 @@ abstract class AbstractChain<TxType> {
       order,
       unsignedTransactions,
       serializedSignedTransactions,
-      ...extra
+      ...extra,
     );
     if (txs.length !== 1)
       throw Error(
-        `Cannot generate single tx for given order. [${txs.length}] txs are generated`
+        `Cannot generate single tx for given order. [${txs.length}] txs are generated`,
       );
     return txs[0];
   };
@@ -104,7 +104,7 @@ abstract class AbstractChain<TxType> {
    * @returns an object containing the amount of input and output assets
    */
   abstract getTransactionAssets: (
-    transaction: PaymentTransaction
+    transaction: PaymentTransaction,
   ) => Promise<TransactionAssetBalance>;
 
   /**
@@ -113,7 +113,7 @@ abstract class AbstractChain<TxType> {
    * @returns the transaction payment order (list of single payments)
    */
   abstract extractTransactionOrder: (
-    transaction: PaymentTransaction
+    transaction: PaymentTransaction,
   ) => PaymentOrder;
 
   /**
@@ -122,7 +122,7 @@ abstract class AbstractChain<TxType> {
    * @returns true if the transaction fee is verified
    */
   abstract verifyTransactionFee: (
-    transaction: PaymentTransaction
+    transaction: PaymentTransaction,
   ) => Promise<boolean>;
 
   /**
@@ -131,12 +131,12 @@ abstract class AbstractChain<TxType> {
    * @returns true if no token burned
    */
   verifyNoTokenBurned = async (
-    transaction: PaymentTransaction
+    transaction: PaymentTransaction,
   ): Promise<boolean> => {
     const assets = await this.getTransactionAssets(transaction);
     return ChainUtils.isEqualAssetBalance(
       assets.inputAssets,
-      assets.outputAssets
+      assets.outputAssets,
     );
   };
 
@@ -148,7 +148,7 @@ abstract class AbstractChain<TxType> {
    */
   abstract verifyTransactionExtraConditions: (
     transaction: PaymentTransaction,
-    signingStatus: SigningStatus
+    signingStatus: SigningStatus,
   ) => boolean;
 
   /**
@@ -159,36 +159,36 @@ abstract class AbstractChain<TxType> {
    */
   verifyEvent = async (
     event: EventTrigger,
-    feeConfig: ChainMinimumFee
+    feeConfig: ChainMinimumFee,
   ): Promise<boolean> => {
     if (!this.extractor)
       throw new ImpossibleBehavior(
-        `rosen-extractor is not defined for chain [${this.CHAIN}]`
+        `rosen-extractor is not defined for chain [${this.CHAIN}]`,
       );
 
     const eventId = Buffer.from(
-      blake2b(event.sourceTxId, undefined, 32)
+      blake2b(event.sourceTxId, undefined, 32),
     ).toString('hex');
 
     try {
       const blockTxs = await this.network.getBlockTransactionIds(
-        event.sourceBlockId
+        event.sourceBlockId,
       );
       if (!blockTxs.includes(event.sourceTxId)) {
         this.logger.info(
-          `Event [${eventId}] is not valid, lock tx [${event.sourceTxId}] is not in event source block [${event.sourceBlockId}]`
+          `Event [${eventId}] is not valid, lock tx [${event.sourceTxId}] is not in event source block [${event.sourceBlockId}]`,
         );
         return false;
       }
       const tx = await this.network.getTransaction(
         event.sourceTxId,
-        event.sourceBlockId
+        event.sourceBlockId,
       );
       const blockInfo = await this.network.getBlockInfo(event.sourceBlockId);
       const data = this.extractor.get(this.serializeTx(tx));
       if (!data) {
         this.logger.info(
-          `Event [${eventId}] is not valid, failed to extract rosen data from lock transaction`
+          `Event [${eventId}] is not valid, failed to extract rosen data from lock transaction`,
         );
         return false;
       }
@@ -219,36 +219,36 @@ abstract class AbstractChain<TxType> {
               : feeConfig.networkFee;
           if (eventAmount <= bridgeFee + networkFee) {
             this.logger.warn(
-              `Event [${eventId}] is not valid, event amount [${eventAmount}] is less than or equal to sum of bridgeFee [${bridgeFee}] and networkFee [${networkFee}]`
+              `Event [${eventId}] is not valid, event amount [${eventAmount}] is less than or equal to sum of bridgeFee [${bridgeFee}] and networkFee [${networkFee}]`,
             );
             return false;
           }
         } catch (e) {
           throw new UnexpectedApiError(
-            `Failed in comparing event amount to fees: ${e}`
+            `Failed in comparing event amount to fees: ${e}`,
           );
         }
         if (await this.verifyLockTransactionExtraConditions(tx, blockInfo)) {
           this.logger.info(
-            `Event [${eventId}] has been successfully validated`
+            `Event [${eventId}] has been successfully validated`,
           );
           return true;
         } else {
           this.logger.info(
-            `Event [${eventId}] is not valid, lock tx [${event.sourceTxId}] is not verified`
+            `Event [${eventId}] is not valid, lock tx [${event.sourceTxId}] is not verified`,
           );
           return false;
         }
       } else {
         this.logger.info(
-          `Event [${eventId}] is not valid, event data does not match with lock tx [${event.sourceTxId}]`
+          `Event [${eventId}] is not valid, event data does not match with lock tx [${event.sourceTxId}]`,
         );
         return false;
       }
     } catch (e) {
       if (e instanceof NotFoundError) {
         this.logger.info(
-          `Event [${eventId}] is not valid, lock tx [${event.sourceTxId}] is not available in network`
+          `Event [${eventId}] is not valid, lock tx [${event.sourceTxId}] is not available in network`,
         );
         return false;
       } else {
@@ -267,10 +267,10 @@ abstract class AbstractChain<TxType> {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     transaction: TxType,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    blockInfo: BlockInfo
+    blockInfo: BlockInfo,
   ): Promise<boolean> => {
     throw Error(
-      `You must implement 'verifyLockTransactionExtraConditions' or override 'verifyEvent' implementation`
+      `You must implement 'verifyLockTransactionExtraConditions' or override 'verifyEvent' implementation`,
     );
   };
 
@@ -284,7 +284,7 @@ abstract class AbstractChain<TxType> {
    */
   abstract isTxValid: (
     transaction: PaymentTransaction,
-    signingStatus: SigningStatus
+    signingStatus: SigningStatus,
   ) => Promise<ValidityStatus>;
 
   /**
@@ -295,7 +295,7 @@ abstract class AbstractChain<TxType> {
    */
   abstract signTransaction: (
     transaction: PaymentTransaction,
-    requiredSign: number
+    requiredSign: number,
   ) => Promise<PaymentTransaction>;
 
   /**
@@ -316,7 +316,7 @@ abstract class AbstractChain<TxType> {
         return this.configs.confirmations.arbitrary;
       default:
         throw Error(
-          `Confirmation for type [${transactionType}] is not defined in abstract chain`
+          `Confirmation for type [${transactionType}] is not defined in abstract chain`,
         );
     }
   };
@@ -329,7 +329,7 @@ abstract class AbstractChain<TxType> {
    */
   getTxConfirmationStatus = async (
     transactionId: string,
-    transactionType: TransactionType
+    transactionType: TransactionType,
   ): Promise<ConfirmationStatus> => {
     const requiredConfirmation =
       this.getTxRequiredConfirmation(transactionType);
@@ -348,7 +348,7 @@ abstract class AbstractChain<TxType> {
    */
   getAddressAssets = async (
     address: string,
-    tokenIds?: string[]
+    tokenIds?: string[],
   ): Promise<AssetBalance> => {
     if (address === '') {
       this.logger.debug(`returning empty assets for address [${address}]`);
@@ -358,7 +358,7 @@ abstract class AbstractChain<TxType> {
     const wrappedNativeToken = this.tokenMap.wrapAmount(
       this.NATIVE_TOKEN_ID,
       rawBalance.nativeToken,
-      this.CHAIN
+      this.CHAIN,
     ).amount;
     const targetAssets =
       tokenIds === undefined
@@ -401,7 +401,7 @@ abstract class AbstractChain<TxType> {
    * @param transaction the transaction
    */
   abstract submitTransaction: (
-    transaction: PaymentTransaction
+    transaction: PaymentTransaction,
   ) => Promise<void>;
 
   /**
@@ -417,10 +417,10 @@ abstract class AbstractChain<TxType> {
    * @returns true if lock assets are more than required assets
    */
   hasLockAddressEnoughAssets = async (
-    required: AssetBalance
+    required: AssetBalance,
   ): Promise<boolean> => {
     const lockAssets = await this.getLockAddressAssets(
-      required.tokens.map((token) => token.id)
+      required.tokens.map((token) => token.id),
     );
     try {
       ChainUtils.subtractAssetBalance(lockAssets, required);
@@ -452,7 +452,7 @@ abstract class AbstractChain<TxType> {
    * @returns PaymentTransaction object
    */
   abstract PaymentTransactionFromJson: (
-    jsonString: string
+    jsonString: string,
   ) => PaymentTransaction;
 
   /**
@@ -461,7 +461,7 @@ abstract class AbstractChain<TxType> {
    * @returns PaymentTransaction object
    */
   abstract rawTxToPaymentTransaction: (
-    rawTxJsonString: string
+    rawTxJsonString: string,
   ) => Promise<PaymentTransaction>;
 
   /**
@@ -488,7 +488,7 @@ abstract class AbstractChain<TxType> {
    * @returns true if the transaction is verified
    */
   abstract verifyPaymentTransaction: (
-    transaction: PaymentTransaction
+    transaction: PaymentTransaction,
   ) => Promise<boolean>;
 
   /**

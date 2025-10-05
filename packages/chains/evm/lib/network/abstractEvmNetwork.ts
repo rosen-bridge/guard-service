@@ -11,7 +11,7 @@ abstract class AbstractEvmNetwork extends AbstractChainNetwork<Transaction> {
    */
   abstract getAddressBalanceForERC20Asset: (
     address: string,
-    tokenId: string
+    tokenId: string,
   ) => Promise<bigint>;
 
   /**
@@ -20,7 +20,7 @@ abstract class AbstractEvmNetwork extends AbstractChainNetwork<Transaction> {
    * @returns the amount of native token in bigint
    */
   abstract getAddressBalanceForNativeToken: (
-    address: string
+    address: string,
   ) => Promise<bigint>;
 
   /**

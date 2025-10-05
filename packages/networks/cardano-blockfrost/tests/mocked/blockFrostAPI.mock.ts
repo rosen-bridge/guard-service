@@ -28,7 +28,7 @@ export const mockBlockLatest = (client: BlockFrostAPI) => {
  */
 export const mockTxs = (
   client: BlockFrostAPI,
-  txInfo: components['schemas']['tx_content']
+  txInfo: components['schemas']['tx_content'],
 ) => {
   vi.spyOn(client, 'txs').mockResolvedValue(txInfo);
 };
@@ -47,7 +47,7 @@ export const mockTxsNotFound = (client: BlockFrostAPI) => {
  */
 export const mockAddresses = (
   client: BlockFrostAPI,
-  result: components['schemas']['address_content']
+  result: components['schemas']['address_content'],
 ) => {
   vi.spyOn(client, 'addresses').mockResolvedValue(result);
 };
@@ -82,7 +82,7 @@ export const mockBlocks = (client: BlockFrostAPI) => {
  */
 export const mockTxsUtxos = (
   client: BlockFrostAPI,
-  txUtxos: components['schemas']['tx_content_utxo']
+  txUtxos: components['schemas']['tx_content_utxo'],
 ) => {
   vi.spyOn(client, 'txsUtxos').mockResolvedValue(txUtxos);
 };
@@ -101,7 +101,7 @@ export const mockTxsUtxosNotFound = (client: BlockFrostAPI) => {
  */
 export const mockTxsMetadata = (
   client: BlockFrostAPI,
-  txMetadata: components['schemas']['tx_content_metadata']
+  txMetadata: components['schemas']['tx_content_metadata'],
 ) => {
   vi.spyOn(client, 'txsMetadata').mockResolvedValue(txMetadata);
 };
@@ -112,7 +112,7 @@ export const mockTxsMetadata = (
  */
 export const mockAddressesUtxos = (
   client: BlockFrostAPI,
-  result: components['schemas']['address_utxo_content']
+  result: components['schemas']['address_utxo_content'],
 ) => {
   const addressUtxoSpy = vi.spyOn(client, 'addressesUtxos');
   for (let i = 0; i < result.length; i += PAGE_ITEM_COUNT)
@@ -134,7 +134,7 @@ export const mockAddressesUtxosNotFound = (client: BlockFrostAPI) => {
  */
 export const mockAddressesUtxosAll = (
   client: BlockFrostAPI,
-  result: components['schemas']['address_utxo_content']
+  result: components['schemas']['address_utxo_content'],
 ) => {
   vi.spyOn(client, 'addressesUtxosAll').mockResolvedValue(result);
 };
@@ -145,7 +145,7 @@ export const mockAddressesUtxosAll = (
  */
 export const mockEpochsLatestParameters = (client: BlockFrostAPI) => {
   vi.spyOn(client, 'epochsLatestParameters').mockResolvedValue(
-    testData.epochParams
+    testData.epochParams,
   );
 };
 

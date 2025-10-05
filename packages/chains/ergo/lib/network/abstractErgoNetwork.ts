@@ -29,7 +29,7 @@ abstract class AbstractErgoNetwork extends AbstractUtxoChainNetwork<
     tokenId: string,
     address: string,
     offset?: number,
-    limit?: number
+    limit?: number,
   ) => Promise<Array<ErgoBox>>;
 
   /**

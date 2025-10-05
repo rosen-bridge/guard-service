@@ -30,7 +30,7 @@ describe('DogeRpcNetwork', () => {
       // The method should exist and be a function
       expect(method, `Method ${funcName} should be defined`).toBeDefined();
       expect(typeof method, `Method ${funcName} should be a function`).toBe(
-        'function'
+        'function',
       );
 
       // Convert method to string to check its implementation
@@ -196,7 +196,7 @@ describe('DogeRpcNetwork', () => {
       const network = new DogeRpcNetwork(URL);
       const result = await network.getTransaction(
         testData.txId,
-        testData.txBlockHash
+        testData.txBlockHash,
       );
 
       expect(result).toEqual(testData.dogeTx);
@@ -357,7 +357,7 @@ describe('DogeRpcNetwork', () => {
 
       // Convert DOGE/kB to satoshis/byte
       const expectedFeeRate = Math.ceil(
-        (testData.estimateSmartFeeResponse.result.feerate * 100000000) / 1024
+        (testData.estimateSmartFeeResponse.result.feerate * 100000000) / 1024,
       );
       expect(result).toEqual(expectedFeeRate);
     });
@@ -481,7 +481,7 @@ describe('DogeRpcNetwork', () => {
       const network = new DogeRpcNetwork(URL);
       // This should not throw an error
       await expect(
-        network.submitTransaction(mockPsbt as any)
+        network.submitTransaction(mockPsbt as any),
       ).resolves.not.toThrow();
     });
   });

@@ -10,7 +10,7 @@ class AddressTxAction {
   constructor(
     address: string,
     dataSource: DataSource,
-    logger?: AbstractLogger
+    logger?: AbstractLogger,
   ) {
     this.repository = dataSource.getRepository(AddressTxsEntity);
     this.address = address;
@@ -22,7 +22,7 @@ class AddressTxAction {
    * @param unsignedHash
    */
   getTxByUnsignedHash = async (
-    unsignedHash: string
+    unsignedHash: string,
   ): Promise<AddressTxsEntity | null> => {
     const res = await this.repository.find({
       where: {
@@ -32,12 +32,12 @@ class AddressTxAction {
     });
     if (res.length === 0) {
       this.logger.debug(
-        `No transaction is found with unsigned hash [${unsignedHash}]`
+        `No transaction is found with unsigned hash [${unsignedHash}]`,
       );
       return null;
     } else if (res.length > 1) {
       this.logger.warn(
-        `Found [${res.length}] transactions with unsigned hash [${unsignedHash}]. returning the first one...`
+        `Found [${res.length}] transactions with unsigned hash [${unsignedHash}]. returning the first one...`,
       );
     }
     return res[0];
@@ -58,7 +58,7 @@ class AddressTxAction {
       throw new Error(`No transaction is found with nonce [${nonce}]`);
     } else if (res.length > 1) {
       this.logger.warn(
-        `Found [${res.length}] transactions with nonce [${nonce}]. returning the first one...`
+        `Found [${res.length}] transactions with nonce [${nonce}]. returning the first one...`,
       );
     }
     return res[0];

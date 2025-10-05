@@ -253,12 +253,12 @@ describe('CardanoKoiosNetwork', () => {
       const network = mockNetwork();
       const result = await network.getTransaction(
         testData.noMetadataTxId,
-        testData.noMetadataTxBlockId
+        testData.noMetadataTxBlockId,
       );
 
       // check returned value
       expect(JsonBigInt.stringify(result)).toEqual(
-        testData.expectedNoMetadataTxResponse
+        testData.expectedNoMetadataTxResponse,
       );
     });
 
@@ -281,12 +281,12 @@ describe('CardanoKoiosNetwork', () => {
       const network = mockNetwork();
       const result = await network.getTransaction(
         testData.rosenMetadataTxId,
-        testData.rosenMetadataTxBlockId
+        testData.rosenMetadataTxBlockId,
       );
 
       // check returned value
       expect(JsonBigInt.stringify(result)).toEqual(
-        testData.expectedRosenMetadataTxResponse
+        testData.expectedRosenMetadataTxResponse,
       );
     });
 
@@ -309,12 +309,12 @@ describe('CardanoKoiosNetwork', () => {
       const network = mockNetwork();
       const result = await network.getTransaction(
         testData.differentMetadataTxId,
-        testData.differentnoMetadataTxBlockId
+        testData.differentnoMetadataTxBlockId,
       );
 
       // check returned value
       expect(JsonBigInt.stringify(result)).toEqual(
-        testData.expectedDifferentMetadataTxResponse
+        testData.expectedDifferentMetadataTxResponse,
       );
     });
   });
@@ -385,7 +385,7 @@ describe('CardanoKoiosNetwork', () => {
 
       // check returned value
       expect(result.map((box) => JsonBigInt.stringify(box))).toEqual(
-        testData.expectedAdressUtxoSet
+        testData.expectedAdressUtxoSet,
       );
     });
 
@@ -475,7 +475,7 @@ describe('CardanoKoiosNetwork', () => {
       // mock client response
       mockUtxoValidation(
         testData.unspentUtxoTxKoiosResponse,
-        testData.credentialUtxos
+        testData.credentialUtxos,
       );
 
       // run test
@@ -501,7 +501,7 @@ describe('CardanoKoiosNetwork', () => {
       // mock client response
       mockUtxoValidation(
         testData.rosenMetadataTxKoiosResponse,
-        testData.credentialUtxos
+        testData.credentialUtxos,
       );
 
       // run test

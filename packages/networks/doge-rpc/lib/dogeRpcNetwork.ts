@@ -78,11 +78,11 @@ class DogeRpcNetwork extends PartialDogeNetwork {
    */
   protected validateResponseId = (
     requestId: string,
-    responseId: string
+    responseId: string,
   ): void => {
     if (responseId !== requestId) {
       throw new UnexpectedApiError(
-        `Request and response id are different ['${requestId}' != '${responseId}']`
+        `Request and response id are different ['${requestId}' != '${responseId}']`,
       );
     }
   };
@@ -116,8 +116,8 @@ class DogeRpcNetwork extends PartialDogeNetwork {
       const chainInfo: DogeChainInfo = response.data.result;
       this.logger?.debug(
         `Requested 'getblockchaininfo'. Response: ${JsonBigInt.stringify(
-          chainInfo
-        )}`
+          chainInfo,
+        )}`,
       );
 
       return chainInfo.blocks;
@@ -125,7 +125,7 @@ class DogeRpcNetwork extends PartialDogeNetwork {
       const baseError = `Failed to fetch current height from Dogecoin RPC: `;
       if (e.response) {
         throw new FailedError(
-          baseError + `${JsonBigInt.stringify(e.response.data)}`
+          baseError + `${JsonBigInt.stringify(e.response.data)}`,
         );
       } else if (e.request) {
         throw new NetworkError(baseError + e.message);
@@ -154,8 +154,8 @@ class DogeRpcNetwork extends PartialDogeNetwork {
       const blockData: DogeBlockSummary = response.data.result;
       this.logger?.debug(
         `Requested 'getblock' for blockId [${blockId}]. Response: ${JsonBigInt.stringify(
-          blockData
-        )}`
+          blockData,
+        )}`,
       );
 
       return blockData.tx;
@@ -163,7 +163,7 @@ class DogeRpcNetwork extends PartialDogeNetwork {
       const baseError = `Failed to get block [${blockId}] transaction ids from Dogecoin RPC: `;
       if (e.response) {
         throw new FailedError(
-          baseError + JsonBigInt.stringify(e.response.data)
+          baseError + JsonBigInt.stringify(e.response.data),
         );
       } else if (e.request) {
         throw new NetworkError(baseError + e.message);
@@ -192,8 +192,8 @@ class DogeRpcNetwork extends PartialDogeNetwork {
       const blockData: DogeBlockSummary = response.data.result;
       this.logger?.debug(
         `Requested 'getblock' for blockId [${blockId}]. Response: ${JsonBigInt.stringify(
-          blockData
-        )}`
+          blockData,
+        )}`,
       );
 
       return {
@@ -205,7 +205,7 @@ class DogeRpcNetwork extends PartialDogeNetwork {
       const baseError = `Failed to get block [${blockId}] info from Dogecoin RPC: `;
       if (e.response) {
         throw new FailedError(
-          baseError + JsonBigInt.stringify(e.response.data)
+          baseError + JsonBigInt.stringify(e.response.data),
         );
       } else if (e.request) {
         throw new NetworkError(baseError + e.message);
@@ -224,7 +224,7 @@ class DogeRpcNetwork extends PartialDogeNetwork {
   getTransaction = async (
     transactionId: string,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    blockId: string
+    blockId: string,
   ): Promise<DogeTx> => {
     const randomId = this.generateRandomId();
     try {
@@ -239,8 +239,8 @@ class DogeRpcNetwork extends PartialDogeNetwork {
       const tx: DogeRpcTransaction = response.data.result;
       this.logger?.debug(
         `Requested 'getrawtransaction' for txId [${transactionId}]. Response: ${JsonBigInt.stringify(
-          tx
-        )}`
+          tx,
+        )}`,
       );
 
       // Transform the RPC transaction to the expected DogeTx format
@@ -262,7 +262,7 @@ class DogeRpcNetwork extends PartialDogeNetwork {
       const baseError = `Failed to get transaction [${transactionId}] from Dogecoin RPC: `;
       if (e.response) {
         throw new FailedError(
-          baseError + JsonBigInt.stringify(e.response.data)
+          baseError + JsonBigInt.stringify(e.response.data),
         );
       } else if (e.request) {
         throw new NetworkError(baseError + e.message);
@@ -292,14 +292,14 @@ class DogeRpcNetwork extends PartialDogeNetwork {
 
       this.logger?.debug(
         `Submitted transaction. Response: ${JsonBigInt.stringify(
-          response.data
-        )}`
+          response.data,
+        )}`,
       );
     } catch (e: any) {
       const baseError = `Failed to submit transaction to Dogecoin RPC: `;
       if (e.response) {
         throw new FailedError(
-          baseError + JsonBigInt.stringify(e.response.data)
+          baseError + JsonBigInt.stringify(e.response.data),
         );
       } else if (e.request) {
         throw new NetworkError(baseError + e.message);
@@ -339,7 +339,7 @@ class DogeRpcNetwork extends PartialDogeNetwork {
           return false;
         }
         throw new FailedError(
-          baseError + JsonBigInt.stringify(e.response.data)
+          baseError + JsonBigInt.stringify(e.response.data),
         );
       } else if (e.request) {
         throw new NetworkError(baseError + e.message);
@@ -386,7 +386,7 @@ class DogeRpcNetwork extends PartialDogeNetwork {
       const baseError = `Failed to get UTXO [${boxId}] from Dogecoin RPC: `;
       if (e.response) {
         throw new FailedError(
-          baseError + JsonBigInt.stringify(e.response.data)
+          baseError + JsonBigInt.stringify(e.response.data),
         );
       } else if (e.request) {
         throw new NetworkError(baseError + e.message);
@@ -415,15 +415,15 @@ class DogeRpcNetwork extends PartialDogeNetwork {
 
       this.logger?.debug(
         `Requested 'estimatesmartfee'. Response: ${JsonBigInt.stringify(
-          response.data.result
-        )}`
+          response.data.result,
+        )}`,
       );
       return Math.ceil(feeRate);
     } catch (e: any) {
       const baseError = `Failed to get fee ratio from Dogecoin RPC: `;
       if (e.response) {
         throw new FailedError(
-          baseError + JsonBigInt.stringify(e.response.data)
+          baseError + JsonBigInt.stringify(e.response.data),
         );
       } else if (e.request) {
         throw new NetworkError(baseError + e.message);
@@ -463,7 +463,7 @@ class DogeRpcNetwork extends PartialDogeNetwork {
       const baseError = `Failed to check if tx [${txId}] is in mempool from Dogecoin RPC: `;
       if (e.response) {
         throw new FailedError(
-          baseError + JsonBigInt.stringify(e.response.data)
+          baseError + JsonBigInt.stringify(e.response.data),
         );
       } else if (e.request) {
         throw new NetworkError(baseError + e.message);
@@ -497,7 +497,7 @@ class DogeRpcNetwork extends PartialDogeNetwork {
       const baseError = `Failed to get transaction hex [${txId}] from Dogecoin RPC: `;
       if (e.response) {
         throw new FailedError(
-          baseError + JsonBigInt.stringify(e.response.data)
+          baseError + JsonBigInt.stringify(e.response.data),
         );
       } else if (e.request) {
         throw new NetworkError(baseError + e.message);

@@ -57,7 +57,7 @@ class TestEvmNetwork extends AbstractEvmNetwork {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     address: string,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    tokenId: string
+    tokenId: string,
   ): Promise<bigint> => {
     throw Error('Not mocked');
   };

@@ -41,9 +41,9 @@ class CardanoUtils {
             (asset): TokenInfo => ({
               id: this.getAssetId(asset),
               value: asset.quantity,
-            })
+            }),
           ),
-        })
+        }),
       )
       .reduce(ChainUtils.sumAssetBalance, {
         nativeToken: 0n,
@@ -69,7 +69,7 @@ class CardanoUtils {
           tokens.push({
             id: this.generateAssetId(
               scriptHash.to_hex(),
-              this.assetNameToHex(assetName)
+              this.assetNameToHex(assetName),
             ),
             value: BigInt(assetAmount.to_str()),
           });
@@ -104,7 +104,7 @@ class CardanoUtils {
    * @returns tx_hash.index as box id
    */
   static getBoxId = (
-    box: CardanoUtxo | CardanoTxInput | CardanoWasm.TransactionInput
+    box: CardanoUtxo | CardanoTxInput | CardanoWasm.TransactionInput,
   ): string => {
     if (box instanceof CardanoWasm.TransactionInput) {
       const boxJS = box.to_js_value();
@@ -122,7 +122,7 @@ class CardanoUtils {
   static convertCandidateToUtxo = (
     candidate: CardanoBoxCandidate,
     txId: string,
-    index: number
+    index: number,
   ): CardanoUtxo => ({
     txId: txId,
     index: index,
@@ -138,31 +138,31 @@ class CardanoUtils {
    */
   static createTransactionOutput = (
     assets: AssetBalance,
-    address: string
+    address: string,
   ): CardanoWasm.TransactionOutput => {
     const changeBoxMultiAsset = CardanoWasm.MultiAsset.new();
     assets.tokens.forEach((asset) => {
       const assetInfo = asset.id.split('.');
       const policyId: CardanoWasm.ScriptHash = CardanoWasm.ScriptHash.from_hex(
-        assetInfo[0]
+        assetInfo[0],
       );
       const assetName: CardanoWasm.AssetName = CardanoWasm.AssetName.new(
-        Buffer.from(assetInfo[1], 'hex')
+        Buffer.from(assetInfo[1], 'hex'),
       );
       changeBoxMultiAsset.set_asset(
         policyId,
         assetName,
-        CardanoUtils.bigIntToBigNum(asset.value)
+        CardanoUtils.bigIntToBigNum(asset.value),
       );
     });
 
     const changeAmount: CardanoWasm.Value = CardanoWasm.Value.new(
-      CardanoWasm.BigNum.from_str(assets.nativeToken.toString())
+      CardanoWasm.BigNum.from_str(assets.nativeToken.toString()),
     );
     changeAmount.set_multiasset(changeBoxMultiAsset);
     return CardanoWasm.TransactionOutput.new(
       CardanoWasm.Address.from_bech32(address),
-      changeAmount
+      changeAmount,
     );
   };
 }

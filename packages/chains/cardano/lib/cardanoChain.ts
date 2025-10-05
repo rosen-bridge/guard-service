@@ -49,13 +49,13 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
     configs: CardanoConfigs,
     tokens: TokenMap,
     signFunction: (txHash: Uint8Array) => Promise<string>,
-    logger?: AbstractLogger
+    logger?: AbstractLogger,
   ) {
     super(network, configs, tokens, logger);
     this.extractor = new CardanoRosenExtractor(
       configs.addresses.lock,
       tokens,
-      logger
+      logger,
     );
     this.signFunction = signFunction;
     this.boxSelection = new CardanoBoxSelection();
@@ -85,7 +85,7 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
         assetBalance,
         this.tokenMap,
         this.NATIVE_TOKEN_ID,
-        this.CHAIN
+        this.CHAIN,
       );
       const payment: SinglePayment = {
         address: output.address().to_bech32(),
@@ -110,10 +110,10 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
     txType: TransactionType,
     order: PaymentOrder,
     unsignedTransactions: PaymentTransaction[],
-    serializedSignedTransactions: string[]
+    serializedSignedTransactions: string[],
   ): Promise<PaymentTransaction[]> => {
     this.logger.debug(
-      `Generating Cardano transaction for Order: ${JsonBigInt.stringify(order)}`
+      `Generating Cardano transaction for Order: ${JsonBigInt.stringify(order)}`,
     );
     // calculate required assets
     const fee = this.configs.fee;
@@ -127,20 +127,20 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
         tokens: [],
       });
     this.logger.debug(
-      `Required assets: ${JsonBigInt.stringify(requiredAssets)}`
+      `Required assets: ${JsonBigInt.stringify(requiredAssets)}`,
     );
     const unwrappedRequiredAssets = ChainUtils.unwrapAssetBalance(
       requiredAssets,
       this.tokenMap,
       this.NATIVE_TOKEN_ID,
-      this.CHAIN
+      this.CHAIN,
     );
 
     if (!(await this.hasLockAddressEnoughAssets(requiredAssets))) {
       const neededADA = unwrappedRequiredAssets.nativeToken.toString();
       const neededTokens = JsonBigInt.stringify(unwrappedRequiredAssets.tokens);
       throw new NotEnoughAssetsError(
-        `Locked assets cannot cover required assets. ADA: ${neededADA}, Tokens: ${neededTokens}`
+        `Locked assets cannot cover required assets. ADA: ${neededADA}, Tokens: ${neededTokens}`,
       );
     }
 
@@ -154,9 +154,9 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
     });
     const trackMap = this.getTransactionsBoxMapping(
       serializedSignedTransactions.map((serializedTx) =>
-        CardanoWasm.Transaction.from_bytes(Buffer.from(serializedTx, 'hex'))
+        CardanoWasm.Transaction.from_bytes(Buffer.from(serializedTx, 'hex')),
       ),
-      this.configs.addresses.lock
+      this.configs.addresses.lock,
     );
 
     // generate iterator for address boxes
@@ -180,13 +180,13 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
       forbiddenBoxIds,
       trackMap,
       utxoIterator,
-      this.configs.minBoxValue
+      this.configs.minBoxValue,
     );
     if (!coveredBoxes.covered) {
       const neededAdas = unwrappedRequiredAssets.nativeToken.toString();
       const neededTokens = JsonBigInt.stringify(unwrappedRequiredAssets.tokens);
       throw new NotEnoughValidBoxesError(
-        `Available boxes didn't cover required assets. ADA: ${neededAdas}, Tokens: ${neededTokens}`
+        `Available boxes didn't cover required assets. ADA: ${neededAdas}, Tokens: ${neededTokens}`,
       );
     }
     const bankBoxes = coveredBoxes.boxes;
@@ -195,7 +195,7 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
     this.logger.debug(`Input assets: ${JsonBigInt.stringify(remainingAssets)}`);
 
     const txBuilder = CardanoWasm.TransactionBuilder.new(
-      await this.getTxBuilderConfig()
+      await this.getTxBuilderConfig(),
     );
     let orderValue = CardanoWasm.BigNum.zero();
 
@@ -208,10 +208,10 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
       const orderLovelace = this.tokenMap.unwrapAmount(
         this.NATIVE_TOKEN_ID,
         order.assets.nativeToken,
-        this.CHAIN
+        this.CHAIN,
       ).amount;
       orderValue = orderValue.checked_add(
-        CardanoUtils.bigIntToBigNum(orderLovelace)
+        CardanoUtils.bigIntToBigNum(orderLovelace),
       );
 
       // reduce order value from remaining assets
@@ -221,14 +221,14 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
           order.assets,
           this.tokenMap,
           this.NATIVE_TOKEN_ID,
-          this.CHAIN
-        )
+          this.CHAIN,
+        ),
       );
 
       // create order output
       const address = CardanoWasm.Address.from_bech32(order.address);
       const value = CardanoWasm.Value.new(
-        CardanoUtils.bigIntToBigNum(orderLovelace)
+        CardanoUtils.bigIntToBigNum(orderLovelace),
       );
       // inserting assets
       const orderMultiAsset = CardanoWasm.MultiAsset.new();
@@ -237,14 +237,15 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
         const policyId: CardanoWasm.ScriptHash =
           CardanoWasm.ScriptHash.from_hex(assetInfo[0]);
         const assetName: CardanoWasm.AssetName = CardanoWasm.AssetName.new(
-          Buffer.from(assetInfo[1], 'hex')
+          Buffer.from(assetInfo[1], 'hex'),
         );
         orderMultiAsset.set_asset(
           policyId,
           assetName,
           CardanoUtils.bigIntToBigNum(
-            this.tokenMap.unwrapAmount(asset.id, asset.value, this.CHAIN).amount
-          )
+            this.tokenMap.unwrapAmount(asset.id, asset.value, this.CHAIN)
+              .amount,
+          ),
         );
       });
       value.set_multiasset(orderMultiAsset);
@@ -256,25 +257,25 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
     const txInputsBuilder = CardanoWasm.TxInputsBuilder.new();
     bankBoxes.forEach((box) => {
       const txHash = CardanoWasm.TransactionHash.from_bytes(
-        Buffer.from(box.txId, 'hex')
+        Buffer.from(box.txId, 'hex'),
       );
       const inputBox = CardanoWasm.TransactionInput.new(txHash, box.index);
       txInputsBuilder.add_regular_input(
         CardanoWasm.Address.from_bech32(this.configs.addresses.lock),
         inputBox,
-        CardanoWasm.Value.new(orderValue)
+        CardanoWasm.Value.new(orderValue),
       );
     });
     txBuilder.set_inputs(txInputsBuilder);
     this.logger.debug(
-      `Remaining assets: ${JsonBigInt.stringify(remainingAssets)}`
+      `Remaining assets: ${JsonBigInt.stringify(remainingAssets)}`,
     );
 
     // create change output
     remainingAssets.nativeToken -= fee;
     const changeBox = CardanoUtils.createTransactionOutput(
       remainingAssets,
-      this.configs.addresses.lock
+      this.configs.addresses.lock,
     );
     txBuilder.add_output(changeBox);
 
@@ -287,7 +288,7 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
     const tx = CardanoWasm.Transaction.new(
       txBody,
       CardanoWasm.TransactionWitnessSet.new(),
-      undefined
+      undefined,
     );
     const txBytes = Serializer.serialize(tx);
     const txId = CardanoWasm.FixedTransaction.from_hex(tx.to_hex())
@@ -297,18 +298,18 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
     // sort input utxos
     const inputUtxos = structuredClone(bankBoxes);
     inputUtxos.sort((a, b) =>
-      a.txId === b.txId ? a.index - b.index : a.txId < b.txId ? -1 : 1
+      a.txId === b.txId ? a.index - b.index : a.txId < b.txId ? -1 : 1,
     );
     const cardanoTx = new CardanoTransaction(
       txId,
       eventId,
       txBytes,
       txType,
-      inputUtxos.map((box) => JsonBigInt.stringify(box))
+      inputUtxos.map((box) => JsonBigInt.stringify(box)),
     );
 
     this.logger.info(
-      `Cardano transaction [${txId}] as type [${txType}] generated for event [${eventId}]`
+      `Cardano transaction [${txId}] as type [${txType}] generated for event [${eventId}]`,
     );
     return [cardanoTx];
   };
@@ -337,7 +338,7 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
    * @param transaction the transaction
    */
   submitTransaction = async (
-    transaction: PaymentTransaction
+    transaction: PaymentTransaction,
   ): Promise<void> => {
     // deserialize transaction
     const tx = Serializer.deserialize(transaction.txBytes);
@@ -346,11 +347,11 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
     try {
       const response = await this.network.submitTransaction(tx);
       this.logger.info(
-        `Cardano Transaction [${transaction.txId}] submitted. Response: ${response}`
+        `Cardano Transaction [${transaction.txId}] submitted. Response: ${response}`,
       );
     } catch (e) {
       this.logger.warn(
-        `An error occurred while submitting Cardano transaction [${transaction.txId}]: ${e}`
+        `An error occurred while submitting Cardano transaction [${transaction.txId}]: ${e}`,
       );
       if (e instanceof Error && e.stack) {
         this.logger.warn(e.stack);
@@ -368,14 +369,14 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
   signTransaction = (
     transaction: PaymentTransaction,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    requiredSign: number
+    requiredSign: number,
   ): Promise<PaymentTransaction> => {
     const tx = Serializer.deserialize(transaction.txBytes);
     const cardanoTx = transaction as CardanoTransaction;
     return this.signFunction(
       CardanoWasm.FixedTransaction.from_hex(tx.to_hex())
         .transaction_hash()
-        .to_bytes()
+        .to_bytes(),
     ).then((signature: string) => {
       const signedTx = this.buildSignedTransaction(tx.body(), signature);
       return new CardanoTransaction(
@@ -383,7 +384,7 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
         cardanoTx.eventId,
         Serializer.serialize(signedTx),
         cardanoTx.txType,
-        cardanoTx.inputUtxos
+        cardanoTx.inputUtxos,
       );
     });
   };
@@ -394,7 +395,7 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
    * @returns assets of input and output boxes
    */
   getTransactionAssets = async (
-    transaction: PaymentTransaction
+    transaction: PaymentTransaction,
   ): Promise<TransactionAssetBalance> => {
     const tx = Serializer.deserialize(transaction.txBytes);
     const cardanoTx = transaction as CardanoTransaction;
@@ -427,13 +428,13 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
         inputAssets,
         this.tokenMap,
         this.NATIVE_TOKEN_ID,
-        this.CHAIN
+        this.CHAIN,
       ),
       outputAssets: ChainUtils.wrapAssetBalance(
         outputAssets,
         this.tokenMap,
         this.NATIVE_TOKEN_ID,
-        this.CHAIN
+        this.CHAIN,
       ),
     };
   };
@@ -446,7 +447,7 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
    */
   getMempoolBoxMapping = async (
     address: string,
-    tokenId?: string
+    tokenId?: string,
   ): Promise<Map<string, CardanoUtxo | undefined>> => {
     const mempoolTxs = await this.network.getMempoolTransactions();
     const trackMap = new Map<string, CardanoUtxo | undefined>();
@@ -463,7 +464,7 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
           if (tokenId) {
             if (
               !output.assets.find(
-                (asset) => CardanoUtils.getAssetId(asset) === tokenId
+                (asset) => CardanoUtils.getAssetId(asset) === tokenId,
               )
             )
               continue;
@@ -482,9 +483,9 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
             ? CardanoUtils.convertCandidateToUtxo(
                 trackedBox,
                 cardanoTx.id,
-                index
+                index,
               )
-            : undefined
+            : undefined,
         );
       }
     });
@@ -499,7 +500,7 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
    */
   isTxInMempool = async (transactionId: string): Promise<boolean> => {
     const mempoolTxIds = (await this.network.getMempoolTransactions()).map(
-      (tx) => tx.id
+      (tx) => tx.id,
     );
 
     return mempoolTxIds.includes(transactionId);
@@ -514,7 +515,7 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
   isTxValid = async (
     transaction: PaymentTransaction,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    _signingStatus: SigningStatus = SigningStatus.Signed
+    _signingStatus: SigningStatus = SigningStatus.Signed,
   ): Promise<ValidityStatus> => {
     const tx = Serializer.deserialize(transaction.txBytes);
     const txBody = tx.body();
@@ -523,7 +524,7 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
     const ttl = txBody.ttl();
     if (ttl && ttl < (await this.network.currentSlot())) {
       this.logger.info(
-        `Tx [${transaction.txId}] is invalid: ttl [${ttl}] is expired`
+        `Tx [${transaction.txId}] is invalid: ttl [${ttl}] is expired`,
       );
       return {
         isValid: false,
@@ -539,7 +540,7 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
       const boxId = CardanoUtils.getBoxId(txBody.inputs().get(i));
       if (!(await this.network.isBoxUnspentAndValid(boxId))) {
         this.logger.info(
-          `Tx [${transaction.txId}] is invalid due to spending invalid input box [${boxId}] at index [${i}]`
+          `Tx [${transaction.txId}] is invalid due to spending invalid input box [${boxId}] at index [${i}]`,
         );
         return {
           isValid: false,
@@ -555,7 +556,7 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
     const txAssets = await this.getTransactionAssets(transaction);
     const isValid = ChainUtils.isEqualAssetBalance(
       txAssets.inputAssets,
-      txAssets.outputAssets
+      txAssets.outputAssets,
     );
     return {
       isValid: isValid,
@@ -578,7 +579,7 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     transaction: CardanoTx,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    blockInfo: BlockInfo
+    blockInfo: BlockInfo,
   ): Promise<boolean> => {
     return true;
   };
@@ -589,7 +590,7 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
    * @returns true if the transaction verified
    */
   verifyTransactionFee = async (
-    transaction: PaymentTransaction
+    transaction: PaymentTransaction,
   ): Promise<boolean> => {
     const tx = Serializer.deserialize(transaction.txBytes);
     if (
@@ -599,7 +600,7 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
         `Tx [${transaction.txId}] is not verified: Transaction fee [${tx
           .body()
           .fee()
-          .to_str()}] is more than maximum allowed fee [${this.configs.fee.toString()}]`
+          .to_str()}] is more than maximum allowed fee [${this.configs.fee.toString()}]`,
       );
       return false;
     }
@@ -615,14 +616,14 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
   verifyTransactionExtraConditions = (
     transaction: PaymentTransaction,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    signingStatus: SigningStatus = SigningStatus.UnSigned
+    signingStatus: SigningStatus = SigningStatus.UnSigned,
   ): boolean => {
     const tx = Serializer.deserialize(transaction.txBytes);
 
     // check metadata
     if (tx.auxiliary_data()) {
       this.logger.warn(
-        `Tx [${transaction.txId}] is not verified: Contains metadata`
+        `Tx [${transaction.txId}] is not verified: Contains metadata`,
       );
       return false;
     }
@@ -632,7 +633,7 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
     const changeBox = tx.body().outputs().get(changeBoxIndex);
     if (changeBox.address().to_bech32() !== this.configs.addresses.lock) {
       this.logger.warn(
-        `Tx [${transaction.txId}] is not verified: Change box address is wrong`
+        `Tx [${transaction.txId}] is not verified: Change box address is wrong`,
       );
       return false;
     }
@@ -648,7 +649,7 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
     return this.tokenMap.wrapAmount(
       this.NATIVE_TOKEN_ID,
       this.configs.minBoxValue,
-      this.CHAIN
+      this.CHAIN,
     ).amount;
   };
 
@@ -662,7 +663,7 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
   protected getTransactionsBoxMapping = (
     txs: CardanoWasm.Transaction[],
     address: string,
-    tokenId?: string
+    tokenId?: string,
   ): Map<string, CardanoUtxo | undefined> => {
     const trackMap = new Map<string, CardanoUtxo | undefined>();
 
@@ -735,13 +736,13 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
    */
   protected buildSignedTransaction = (
     txBody: CardanoWasm.TransactionBody,
-    signature: string
+    signature: string,
   ): CardanoWasm.Transaction => {
     const vKeyWitness = CardanoWasm.Vkeywitness.from_bytes(
       Buffer.from(
         `825820${this.configs.aggregatedPublicKey}5840${signature}`,
-        'hex'
-      )
+        'hex',
+      ),
     );
     const vkeyWitnesses = CardanoWasm.Vkeywitnesses.new();
     vkeyWitnesses.add(vKeyWitness);
@@ -768,13 +769,13 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
         .fee_algo(
           CardanoWasm.LinearFee.new(
             CardanoWasm.BigNum.from_str(params.minFeeA.toString()),
-            CardanoWasm.BigNum.from_str(params.minFeeB.toString())
-          )
+            CardanoWasm.BigNum.from_str(params.minFeeB.toString()),
+          ),
         )
         .pool_deposit(CardanoWasm.BigNum.from_str(params.poolDeposit))
         .key_deposit(CardanoWasm.BigNum.from_str(params.keyDeposit))
         .coins_per_utxo_byte(
-          CardanoWasm.BigNum.from_str(params.coinsPerUtxoSize)
+          CardanoWasm.BigNum.from_str(params.coinsPerUtxoSize),
         )
         .max_value_size(params.maxValueSize)
         .max_tx_size(params.maxTxSize)
@@ -788,7 +789,7 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
    * @returns PaymentTransaction object
    */
   rawTxToPaymentTransaction = async (
-    rawTxJsonString: string
+    rawTxJsonString: string,
   ): Promise<CardanoTransaction> => {
     const tx = CardanoWasm.Transaction.from_json(rawTxJsonString);
     const txBytes = Serializer.serialize(tx);
@@ -809,7 +810,7 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
       '',
       txBytes,
       TransactionType.manual,
-      inputBoxes.map((box) => JsonBigInt.stringify(box))
+      inputBoxes.map((box) => JsonBigInt.stringify(box)),
     );
 
     this.logger.info(`Parsed Cardano transaction [${txId}] successfully`);
@@ -827,7 +828,7 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
    * @returns true if the transaction is verified
    */
   verifyPaymentTransaction = async (
-    transaction: PaymentTransaction
+    transaction: PaymentTransaction,
   ): Promise<boolean> => {
     const tx = Serializer.deserialize(transaction.txBytes);
     const cardanoTx = transaction as CardanoTransaction;
@@ -840,7 +841,7 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
     if (transaction.txId !== txId) {
       this.logger.warn(
         baseError +
-          `Transaction ID is inconsistent (expected [${transaction.txId}] found [${txId}])`
+          `Transaction ID is inconsistent (expected [${transaction.txId}] found [${txId}])`,
       );
       return false;
     }
@@ -852,7 +853,7 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
         baseError +
           `CardanoTransaction object input counts is inconsistent [${
             cardanoTx.inputUtxos.length
-          } != ${txInputs.len()}]`
+          } != ${txInputs.len()}]`,
       );
       return false;
     }
@@ -862,13 +863,13 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
         .transaction_id()
         .to_hex()}.${input.index()}`;
       const cardanoInput = JsonBigInt.parse(
-        cardanoTx.inputUtxos[i]
+        cardanoTx.inputUtxos[i],
       ) as CardanoUtxo;
       const expectedId = `${cardanoInput.txId}.${cardanoInput.index}`;
       if (expectedId !== actualInputId) {
         this.logger.warn(
           baseError +
-            `BoxId for input at index [${i}] is inconsistent [expected ${expectedId} found ${actualInputId}]`
+            `BoxId for input at index [${i}] is inconsistent [expected ${expectedId} found ${actualInputId}]`,
         );
         return false;
       }

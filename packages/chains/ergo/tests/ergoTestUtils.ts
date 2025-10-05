@@ -160,7 +160,7 @@ export const defaultSignFunction = async (
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   boxes: Array<wasm.ErgoBox>,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  dataBoxes?: Array<wasm.ErgoBox>
+  dataBoxes?: Array<wasm.ErgoBox>,
 ): Promise<wasm.Transaction> =>
   deserializeTransaction(transaction2SignedSerialized);
 
@@ -185,8 +185,8 @@ export const generateChainObject = (
     tx: wasm.ReducedTransaction,
     requiredSign: number,
     boxes: Array<wasm.ErgoBox>,
-    dataBoxes?: Array<wasm.ErgoBox>
-  ) => Promise<wasm.Transaction> = defaultSignFunction
+    dataBoxes?: Array<wasm.ErgoBox>,
+  ) => Promise<wasm.Transaction> = defaultSignFunction,
 ) => {
   const config: ErgoConfigs = {
     fee: 100n,
@@ -208,7 +208,7 @@ export const generateChainObject = (
 };
 export const generateDefaultChainObjectWithTokenMap = async (
   network: TestErgoNetwork,
-  rosenTokens: RosenTokens
+  rosenTokens: RosenTokens,
 ) => {
   const config: ErgoConfigs = {
     fee: 100n,
@@ -253,6 +253,6 @@ export const toTransaction = (txJson: string): wasm.Transaction =>
  * @param serializedTx
  */
 export const deserializeTransaction = (
-  serializedTx: string
+  serializedTx: string,
 ): wasm.Transaction =>
   wasm.Transaction.sigma_parse_bytes(Buffer.from(serializedTx, 'hex'));

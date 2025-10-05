@@ -21,7 +21,7 @@ describe('EvmRpcNetwork', () => {
       'test',
       'custom-url',
       dataSource,
-      testData.lockAddress
+      testData.lockAddress,
     );
     addressTxRepository = dataSource.getRepository(AddressTxsEntity);
   });
@@ -39,7 +39,7 @@ describe('EvmRpcNetwork', () => {
      */
     it('should return block height successfully', async () => {
       vi.spyOn(network.getProvider(), 'getBlockNumber').mockResolvedValue(
-        testData.blockHeight
+        testData.blockHeight,
       );
 
       const result = await network.getHeight();
@@ -88,7 +88,7 @@ describe('EvmRpcNetwork', () => {
       transactionInstance.confirmations.mockResolvedValue(mockedConfirmation);
       const getTransactionSpy = vi.spyOn(
         network.getProvider(),
-        'getTransaction'
+        'getTransaction',
       );
       getTransactionSpy.mockResolvedValue(transactionInstance as any);
 
@@ -124,7 +124,7 @@ describe('EvmRpcNetwork', () => {
       transactionInstance.confirmations.mockResolvedValue(mockedConfirmation);
       const getTransactionSpy = vi.spyOn(
         network.getProvider(),
-        'getTransaction'
+        'getTransaction',
       );
       getTransactionSpy.mockResolvedValue(transactionInstance as any);
 
@@ -152,7 +152,7 @@ describe('EvmRpcNetwork', () => {
 
       const getTransactionSpy = vi.spyOn(
         network.getProvider(),
-        'getTransaction'
+        'getTransaction',
       );
       getTransactionSpy.mockResolvedValue(null);
 
@@ -201,7 +201,7 @@ describe('EvmRpcNetwork', () => {
       transactionInstance.confirmations.mockResolvedValue(mockedConfirmation);
       const getTransactionSpy = vi.spyOn(
         network.getProvider(),
-        'getTransaction'
+        'getTransaction',
       );
       getTransactionSpy.mockResolvedValue(transactionInstance as any);
 
@@ -237,7 +237,7 @@ describe('EvmRpcNetwork', () => {
       transactionInstance.confirmations.mockResolvedValue(mockedConfirmation);
       const getTransactionSpy = vi.spyOn(
         network.getProvider(),
-        'getTransaction'
+        'getTransaction',
       );
       getTransactionSpy.mockResolvedValue(transactionInstance as any);
 
@@ -261,7 +261,7 @@ describe('EvmRpcNetwork', () => {
      */
     it('should return block txIds successfully', async () => {
       vi.spyOn(network.getProvider(), 'getBlock').mockResolvedValue(
-        testData.getBlockResponse
+        testData.getBlockResponse,
       );
 
       const result = await network.getBlockTransactionIds(testData.blockHash);
@@ -283,7 +283,7 @@ describe('EvmRpcNetwork', () => {
      */
     it('should return block info successfully', async () => {
       vi.spyOn(network.getProvider(), 'getBlock').mockResolvedValue(
-        testData.getBlockResponse
+        testData.getBlockResponse,
       );
 
       const result = await network.getBlockInfo(testData.blockHash);
@@ -309,7 +309,7 @@ describe('EvmRpcNetwork', () => {
       await expect(async () => {
         await network.getTransaction(
           testData.transaction0Id,
-          testData.transaction0BlockId
+          testData.transaction0BlockId,
         );
       }).rejects.toThrow(FailedError);
     });
@@ -327,13 +327,13 @@ describe('EvmRpcNetwork', () => {
      */
     it('should throw error when tx block does not match with given block id', async () => {
       vi.spyOn(network.getProvider(), 'getTransaction').mockResolvedValue(
-        testData.transaction0Response
+        testData.transaction0Response,
       );
 
       await expect(async () => {
         await network.getTransaction(
           testData.transaction0Id,
-          testData.blockHash
+          testData.blockHash,
         );
       }).rejects.toThrow(FailedError);
     });
@@ -353,7 +353,7 @@ describe('EvmRpcNetwork', () => {
     it('should fetch token info successfully', async () => {
       vi.spyOn(ContractInstance, 'name').mockResolvedValue(testData.tokenName);
       vi.spyOn(ContractInstance, 'decimals').mockResolvedValue(
-        testData.tokenDecimals
+        testData.tokenDecimals,
       );
       const result = await network.getTokenDetail(testData.tokenId);
       expect(result).toEqual({
@@ -380,12 +380,12 @@ describe('EvmRpcNetwork', () => {
     it('should fetch token balance successfully', async () => {
       const address = testData.lockAddress;
       vi.spyOn(ContractInstance, 'balanceOf').mockResolvedValue(
-        testData.balance
+        testData.balance,
       );
 
       const result = await network.getAddressBalanceForERC20Asset(
         address,
-        testData.tokenId
+        testData.tokenId,
       );
       expect(result).toEqual(testData.balance);
       // eslint-disable-next-line vitest/prefer-called-exactly-once-with
@@ -406,11 +406,11 @@ describe('EvmRpcNetwork', () => {
      */
     it('should return address balance successfully', async () => {
       vi.spyOn(network.getProvider(), 'getBalance').mockResolvedValue(
-        testData.balance
+        testData.balance,
       );
 
       const result = await network.getAddressBalanceForNativeToken(
-        testData.lockAddress
+        testData.lockAddress,
       );
 
       expect(result).toEqual(testData.balance);
@@ -430,11 +430,11 @@ describe('EvmRpcNetwork', () => {
      */
     it('should return address nonce successfully', async () => {
       vi.spyOn(network.getProvider(), 'getTransactionCount').mockResolvedValue(
-        testData.addressTxCount
+        testData.addressTxCount,
       );
 
       const result = await network.getAddressNextAvailableNonce(
-        testData.lockAddress
+        testData.lockAddress,
       );
 
       expect(result).toEqual(testData.addressTxCount);
@@ -454,7 +454,7 @@ describe('EvmRpcNetwork', () => {
      */
     it('should return gas estimation successfully', async () => {
       vi.spyOn(network.getProvider(), 'estimateGas').mockResolvedValue(
-        testData.gasLimit
+        testData.gasLimit,
       );
 
       const result = await network.getGasRequired(testData.transaction0);
@@ -476,7 +476,7 @@ describe('EvmRpcNetwork', () => {
      */
     it('should return fee data successfully', async () => {
       vi.spyOn(network.getProvider(), 'getFeeData').mockResolvedValue(
-        testData.feeDataResponse
+        testData.feeDataResponse,
       );
 
       const result = await network.getFeeData();
@@ -503,7 +503,7 @@ describe('EvmRpcNetwork', () => {
 
       const getTransactionSpy = vi.spyOn(
         network.getProvider(),
-        'getTransaction'
+        'getTransaction',
       );
       getTransactionSpy.mockResolvedValue(null);
 
@@ -533,7 +533,7 @@ describe('EvmRpcNetwork', () => {
       transactionInstance.wait.mockResolvedValue(testData.transaction0);
       const getTransactionSpy = vi.spyOn(
         network.getProvider(),
-        'getTransaction'
+        'getTransaction',
       );
       getTransactionSpy.mockResolvedValue(transactionInstance as any);
 
@@ -563,7 +563,7 @@ describe('EvmRpcNetwork', () => {
       transactionInstance.wait.mockResolvedValue(null);
       const getTransactionSpy = vi.spyOn(
         network.getProvider(),
-        'getTransaction'
+        'getTransaction',
       );
       getTransactionSpy.mockResolvedValue(transactionInstance as any);
 
@@ -595,7 +595,7 @@ describe('EvmRpcNetwork', () => {
       });
       const getTransactionSpy = vi.spyOn(
         network.getProvider(),
-        'getTransaction'
+        'getTransaction',
       );
       getTransactionSpy.mockResolvedValue(transactionInstance as any);
 
@@ -677,7 +677,7 @@ describe('EvmRpcNetwork', () => {
         .spyOn(network.getDbAction(), 'getTxByUnsignedHash')
         .mockResolvedValue(mockTx as AddressTxsEntity);
       vi.spyOn(network.getProvider(), 'getTransaction').mockResolvedValue(
-        testData.transaction0Response
+        testData.transaction0Response,
       );
 
       // act
@@ -710,7 +710,7 @@ describe('EvmRpcNetwork', () => {
         .spyOn(network.getDbAction(), 'getTxByUnsignedHash')
         .mockResolvedValue(null);
       vi.spyOn(network.getProvider(), 'getTransaction').mockResolvedValue(
-        testData.transaction0Response
+        testData.transaction0Response,
       );
 
       // act

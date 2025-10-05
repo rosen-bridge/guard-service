@@ -13,7 +13,7 @@ class PaymentTransaction {
     txId: string,
     eventId: string,
     txBytes: Uint8Array,
-    txType: TransactionType
+    txType: TransactionType,
   ) {
     this.network = chain;
     this.eventId = eventId;

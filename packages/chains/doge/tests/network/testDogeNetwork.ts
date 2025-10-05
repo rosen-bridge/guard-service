@@ -6,7 +6,7 @@ import { TokenMap } from '@rosen-bridge/tokens';
 class TestDogeNetwork extends AbstractDogeNetwork {
   extractor = new DogeRosenExtractor(
     'DHTom1rFwsgAn5raKU1nok8E5MdQ4GBkAN',
-    new TokenMap()
+    new TokenMap(),
   );
   notImplemented = () => {
     throw Error('Not implemented');
@@ -25,7 +25,7 @@ class TestDogeNetwork extends AbstractDogeNetwork {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     offset: number,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    limit: number
+    limit: number,
   ): Promise<Array<DogeUtxo>> => {
     throw Error('Not mocked');
   };
@@ -84,7 +84,7 @@ class TestDogeNetwork extends AbstractDogeNetwork {
 
   getSpentTransactionByInputId = (
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    boxId: string
+    boxId: string,
   ): Promise<DogeTx | undefined> => {
     throw Error('Not mocked');
   };

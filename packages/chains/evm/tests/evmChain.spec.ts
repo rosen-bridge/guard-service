@@ -38,12 +38,12 @@ describe('EvmChain', () => {
       testUtils.configs,
       tokenMap,
       testUtils.mockedSignFn,
-      2
+      2,
     );
     expect(chain.supportedTokens).toEqual([]);
     await tokenMap.updateConfigByJson(TestData.tokenMapWithVariousTestTokens);
     expect(chain.supportedTokens).toEqual(
-      TestData.supportedTokensOfVariousTestTokens
+      TestData.supportedTokensOfVariousTestTokens,
     );
   });
 
@@ -66,7 +66,7 @@ describe('EvmChain', () => {
         testUtils.configs,
         tokenMap,
         testUtils.mockedSignFn,
-        2
+        2,
       );
       expect(chain.extractor?.chain).toEqual(chain.CHAIN);
     });
@@ -90,10 +90,10 @@ describe('EvmChain', () => {
         testUtils.configs,
         tokenMap,
         testUtils.mockedSignFn,
-        2
+        2,
       );
       expect(chain.supportedTokens).toEqual(
-        TestData.supportedTokensOfVariousTestTokens
+        TestData.supportedTokensOfVariousTestTokens,
       );
     });
   });
@@ -132,11 +132,11 @@ describe('EvmChain', () => {
           elem.unsignedHash,
           eventId,
           Serializer.serialize(elem),
-          txType
+          txType,
         );
       });
       const signed = TestData.paralelTransactions.map((elem) =>
-        Buffer.from(Serializer.signedSerialize(elem)).toString('hex')
+        Buffer.from(Serializer.signedSerialize(elem)).toString('hex'),
       );
 
       // mock hasLockAddressEnoughAssets, getFeeData,
@@ -146,7 +146,7 @@ describe('EvmChain', () => {
         network,
         undefined,
         undefined,
-        TestData.tokenMapWithVariousTestTokens
+        TestData.tokenMapWithVariousTestTokens,
       );
       const requiredGas = 100000n;
       testUtils.mockHasLockAddressEnoughAssets(evmChain, true);
@@ -160,7 +160,7 @@ describe('EvmChain', () => {
         txType,
         orders,
         unsigned,
-        signed
+        signed,
       );
 
       // check returned value
@@ -243,7 +243,7 @@ describe('EvmChain', () => {
         txType,
         order,
         [],
-        []
+        [],
       );
 
       // check returned value
@@ -321,7 +321,7 @@ describe('EvmChain', () => {
         txType,
         order,
         [],
-        []
+        [],
       );
 
       // check returned value
@@ -379,7 +379,7 @@ describe('EvmChain', () => {
           txType,
           orders,
           [],
-          []
+          [],
         );
       }).rejects.toThrow(AssetNotSupportedError);
     });
@@ -406,7 +406,7 @@ describe('EvmChain', () => {
         network,
         undefined,
         undefined,
-        TestData.tokenMapWithVariousTestTokens
+        TestData.tokenMapWithVariousTestTokens,
       );
       testUtils.mockHasLockAddressEnoughAssets(evmChain, false);
       testUtils.mockGetFeeData(network, new FeeData(10n, 10n, 10n));
@@ -419,7 +419,7 @@ describe('EvmChain', () => {
           txType,
           order,
           [],
-          []
+          [],
         );
       }).rejects.toThrow(NotEnoughAssetsError);
     });
@@ -456,11 +456,11 @@ describe('EvmChain', () => {
           elem.unsignedHash,
           eventId,
           Serializer.serialize(elem),
-          txType
+          txType,
         );
       });
       const signed = TestData.paralelTransactions.map((elem) =>
-        Buffer.from(Serializer.signedSerialize(elem)).toString('hex')
+        Buffer.from(Serializer.signedSerialize(elem)).toString('hex'),
       );
       const nonce = 53;
 
@@ -480,7 +480,7 @@ describe('EvmChain', () => {
         txType,
         order,
         unsigned,
-        signed
+        signed,
       );
 
       // check returned value
@@ -536,11 +536,11 @@ describe('EvmChain', () => {
           elem.unsignedHash,
           eventId,
           Serializer.serialize(elem),
-          txType
+          txType,
         );
       });
       const signed = TestData.paralelTransactions.map((elem) =>
-        Buffer.from(Serializer.signedSerialize(elem)).toString('hex')
+        Buffer.from(Serializer.signedSerialize(elem)).toString('hex'),
       );
 
       // mock hasLockAddressEnoughAssets, getAddressNextNonce,
@@ -549,7 +549,7 @@ describe('EvmChain', () => {
         network,
         undefined,
         undefined,
-        TestData.tokenMapWithVariousTestTokens
+        TestData.tokenMapWithVariousTestTokens,
       );
       testUtils.mockHasLockAddressEnoughAssets(evmChain, true);
       testUtils.mockGetFeeData(network, new FeeData(10n, 10n, 10n));
@@ -564,7 +564,7 @@ describe('EvmChain', () => {
           txType,
           order,
           unsigned,
-          signed
+          signed,
         );
         // eslint-disable-next-line vitest/valid-expect
       }).not.rejects;
@@ -595,7 +595,7 @@ describe('EvmChain', () => {
         network,
         undefined,
         undefined,
-        TestData.multiDecimalTokenMap
+        TestData.multiDecimalTokenMap,
       );
 
       const order = TestData.nativePaymentWrappedOrder;
@@ -616,7 +616,7 @@ describe('EvmChain', () => {
         txType,
         order,
         [],
-        []
+        [],
       );
 
       // check returned value
@@ -679,7 +679,7 @@ describe('EvmChain', () => {
       const evmChain = await testUtils.generateChainObject(
         network,
         undefined,
-        0
+        0,
       );
       const requiredGas = 21000n;
       testUtils.mockHasLockAddressEnoughAssets(evmChain, true);
@@ -693,7 +693,7 @@ describe('EvmChain', () => {
         txType,
         order,
         [],
-        []
+        [],
       );
 
       // check returned value
@@ -748,12 +748,12 @@ describe('EvmChain', () => {
      */
     it('should construct transaction successfully', async () => {
       const result = await evmChain.rawTxToPaymentTransaction(
-        TestData.transaction0JsonString
+        TestData.transaction0JsonString,
       );
 
       // run test
       expect(result.toJson()).toEqual(
-        TestData.transaction0PaymentTransaction.toJson()
+        TestData.transaction0PaymentTransaction.toJson(),
       );
     });
 
@@ -771,11 +771,11 @@ describe('EvmChain', () => {
       const evmChain = await testUtils.generateChainObject(
         network,
         undefined,
-        0
+        0,
       );
       await expect(async () => {
         await evmChain.rawTxToPaymentTransaction(
-          TestData.transaction1JsonString
+          TestData.transaction1JsonString,
         );
       }).rejects.toThrow(TransactionFormatError);
     });
@@ -806,7 +806,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // run test
@@ -842,7 +842,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // check returned value
@@ -877,7 +877,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // run test function and expect error
@@ -901,7 +901,7 @@ describe('EvmChain', () => {
       const evmChain = await testUtils.generateChainObject(
         network,
         undefined,
-        0
+        0,
       );
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
       const txType = TransactionType.payment;
@@ -916,7 +916,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // check returned value
@@ -944,7 +944,7 @@ describe('EvmChain', () => {
         network,
         undefined,
         undefined,
-        TestData.multiDecimalTokenMap
+        TestData.multiDecimalTokenMap,
       );
 
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
@@ -960,7 +960,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // check returned value
@@ -1006,7 +1006,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // run test
@@ -1048,7 +1048,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // run test
@@ -1078,7 +1078,7 @@ describe('EvmChain', () => {
       const evmChain = await testUtils.generateChainObject(
         network,
         undefined,
-        0
+        0,
       );
       const tx = Transaction.from(TestData.transaction1Json);
       tx.gasLimit = 55000n * evmChain.configs.gasLimitMultiplier;
@@ -1094,7 +1094,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // run test
@@ -1138,7 +1138,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // run test
@@ -1182,7 +1182,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // run test
@@ -1227,7 +1227,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // run test
@@ -1270,7 +1270,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // run test
@@ -1313,7 +1313,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // run test
@@ -1356,7 +1356,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // run test
@@ -1399,7 +1399,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // run test
@@ -1431,7 +1431,7 @@ describe('EvmChain', () => {
       const evmChain = await testUtils.generateChainObject(
         network,
         undefined,
-        0
+        0,
       );
       const tx = Transaction.from(TestData.transaction1WithType0Json);
       tx.gasLimit = 85000n * evmChain.configs.gasLimitMultiplier;
@@ -1445,7 +1445,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // run test
@@ -1477,7 +1477,7 @@ describe('EvmChain', () => {
       const evmChain = await testUtils.generateChainObject(
         network,
         undefined,
-        0
+        0,
       );
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
       const txType = TransactionType.payment;
@@ -1491,7 +1491,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // run test
@@ -1523,7 +1523,7 @@ describe('EvmChain', () => {
       const evmChain = await testUtils.generateChainObject(
         network,
         undefined,
-        0
+        0,
       );
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
       const txType = TransactionType.payment;
@@ -1537,7 +1537,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // run test
@@ -1573,7 +1573,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // run test
@@ -1608,7 +1608,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // run test
@@ -1651,7 +1651,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // run test
@@ -1698,7 +1698,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // run test
@@ -1749,12 +1749,12 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // run test
       await expect(async () =>
-        evmChain.extractTransactionOrder(paymentTx)
+        evmChain.extractTransactionOrder(paymentTx),
       ).rejects.toThrowError(TransactionFormatError);
     });
 
@@ -1774,7 +1774,7 @@ describe('EvmChain', () => {
         network,
         undefined,
         undefined,
-        TestData.multiDecimalTokenMap
+        TestData.multiDecimalTokenMap,
       );
 
       // mock PaymentTransaction
@@ -1790,7 +1790,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // run test
@@ -1847,7 +1847,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
       const submitTransactionSpy = vi.spyOn(network, 'submitTransaction');
       submitTransactionSpy.mockImplementation(async () => undefined);
@@ -1892,7 +1892,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
       const submitTransactionSpy = vi.spyOn(network, 'submitTransaction');
       submitTransactionSpy.mockImplementation(async () => undefined);
@@ -1937,7 +1937,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
       const submitTransactionSpy = vi.spyOn(network, 'submitTransaction');
       submitTransactionSpy.mockImplementation(async () => undefined);
@@ -1984,7 +1984,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
       const submitTransactionSpy = vi.spyOn(network, 'submitTransaction');
       submitTransactionSpy.mockImplementation(async () => undefined);
@@ -2018,7 +2018,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // run test
@@ -2050,7 +2050,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // run test
@@ -2084,7 +2084,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // run test
@@ -2120,7 +2120,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // run test
@@ -2154,7 +2154,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // run test
@@ -2188,7 +2188,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // run test
@@ -2224,7 +2224,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // run test
@@ -2257,7 +2257,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // run test
@@ -2292,7 +2292,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // run test
@@ -2326,7 +2326,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // run test
@@ -2360,7 +2360,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // run test
@@ -2397,7 +2397,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // mock getTransactionStatus
@@ -2443,7 +2443,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // mock getTransactionStatus
@@ -2499,7 +2499,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // mock getTransactionStatus
@@ -2550,7 +2550,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // mock getTransactionStatus
@@ -2604,7 +2604,7 @@ describe('EvmChain', () => {
       });
       const evmChain = await testUtils.generateChainObject(
         network,
-        signFunction
+        signFunction,
       );
 
       // mock PaymentTransaction of unsigned transaction
@@ -2617,7 +2617,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // call the function
@@ -2637,7 +2637,7 @@ describe('EvmChain', () => {
       expect(signFunction).toHaveBeenCalledOnce();
       const callArguments = signFunction.mock.lastCall as Uint8Array[];
       expect(Buffer.from(callArguments[0]).toString('hex')).toEqual(
-        tx.unsignedHash.slice(2)
+        tx.unsignedHash.slice(2),
       );
     });
 
@@ -2659,7 +2659,7 @@ describe('EvmChain', () => {
       };
       const evmChain = await testUtils.generateChainObject(
         network,
-        signFunction
+        signFunction,
       );
 
       // mock PaymentTransaction of unsigned transaction
@@ -2672,7 +2672,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         eventId,
         Serializer.serialize(tx),
-        txType
+        txType,
       );
 
       // call the function & check thrown exception
@@ -2708,7 +2708,7 @@ describe('EvmChain', () => {
           else if (tokenId === '0xedee4752e5a2f595151c94762fb38e5730357787')
             return 40n;
           else return 0n;
-        }
+        },
       );
 
       // run test
@@ -2716,7 +2716,7 @@ describe('EvmChain', () => {
         network,
         undefined,
         undefined,
-        TestData.tokenMapWithVariousTestTokens
+        TestData.tokenMapWithVariousTestTokens,
       );
       const result = await evmChain.getAddressAssets(TestData.lockAddress);
 
@@ -2744,7 +2744,7 @@ describe('EvmChain', () => {
     it('should return 0 balance with no token if address is empty', async () => {
       // run test
       const evmChain = await testUtils.generateChainObject(
-        new TestEvmNetwork()
+        new TestEvmNetwork(),
       );
       const result = await evmChain.getAddressAssets('');
 
@@ -2769,12 +2769,12 @@ describe('EvmChain', () => {
         network,
         undefined,
         undefined,
-        TestData.multiDecimalTokenMap
+        TestData.multiDecimalTokenMap,
       );
 
       mockGetAddressBalanceForNativeToken(evmChain.network, 1000n);
       vi.spyOn(network, 'getAddressBalanceForERC20Asset').mockResolvedValue(
-        5400n
+        5400n,
       );
 
       // run test
@@ -2806,7 +2806,7 @@ describe('EvmChain', () => {
       const network = new TestEvmNetwork();
       const nativeTokenSpy = mockGetAddressBalanceForNativeToken(
         network,
-        1000n
+        1000n,
       );
       const erc20Spy = vi
         .spyOn(network, 'getAddressBalanceForERC20Asset')
@@ -2856,7 +2856,7 @@ describe('EvmChain', () => {
       const network = new TestEvmNetwork();
       const nativeTokenSpy = mockGetAddressBalanceForNativeToken(
         network,
-        1000n
+        1000n,
       );
       const erc20Spy = vi
         .spyOn(network, 'getAddressBalanceForERC20Asset')
@@ -2875,7 +2875,7 @@ describe('EvmChain', () => {
         network,
         undefined,
         undefined,
-        TestData.tokenMapWithVariousTestTokens
+        TestData.tokenMapWithVariousTestTokens,
       );
 
       // act
@@ -2893,12 +2893,12 @@ describe('EvmChain', () => {
       expect(erc20Spy).toHaveBeenNthCalledWith(
         1,
         TestData.lockAddress,
-        '0xedee4752e5a2f595151c94762fb38e5730357785'
+        '0xedee4752e5a2f595151c94762fb38e5730357785',
       );
       expect(erc20Spy).toHaveBeenNthCalledWith(
         2,
         TestData.lockAddress,
-        '0xedee4752e5a2f595151c94762fb38e5730357787'
+        '0xedee4752e5a2f595151c94762fb38e5730357787',
       );
       expect(result).toEqual({
         nativeToken: 1000n,
@@ -2935,7 +2935,7 @@ describe('EvmChain', () => {
       const evmChain = await testUtils.generateChainObject(network);
       const result = await evmChain.verifyLockTransactionExtraConditions(
         tx,
-        {} as any
+        {} as any,
       );
 
       // check returned value
@@ -2966,7 +2966,7 @@ describe('EvmChain', () => {
       const evmChain = await testUtils.generateChainObject(network);
       const result = await evmChain.verifyLockTransactionExtraConditions(
         tx,
-        {} as any
+        {} as any,
       );
 
       // check returned value
@@ -2997,7 +2997,7 @@ describe('EvmChain', () => {
         tx.unsignedHash,
         '',
         Serializer.serialize(tx),
-        TransactionType.manual
+        TransactionType.manual,
       );
 
       // run test
@@ -3027,7 +3027,7 @@ describe('EvmChain', () => {
         '904888037623f5a73eab986f2caf0f8765cd86ea1deeaedbb83de14f67e40874',
         '',
         Serializer.serialize(tx),
-        TransactionType.manual
+        TransactionType.manual,
       );
 
       // run test

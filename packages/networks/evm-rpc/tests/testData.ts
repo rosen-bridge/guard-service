@@ -39,7 +39,7 @@ export const getBlockResponse = new Block(
       '0xed7acbcbd305f7fb85a4e7ac971eb82bb0bdb5b4894fada42399176378b46955',
     ],
   },
-  new JsonRpcProvider()
+  new JsonRpcProvider(),
 );
 export const blockTxIds = [
   '0x5861229ef0f76a5ceb80ba2811c397eb017de5b5374af96815a6eb38b8e0d187',
@@ -85,7 +85,7 @@ export const transaction0Response = new TransactionResponse(
     }),
     accessList: [],
   },
-  new JsonRpcProvider()
+  new JsonRpcProvider(),
 );
 export const transaction0 = Transaction.from(transaction0Response);
 export const transaction0Id =
@@ -106,5 +106,5 @@ export const maxPriorityFeePerGas = 1000000n;
 export const feeDataResponse = new FeeData(
   gasPrice,
   maxFeePerGas,
-  maxPriorityFeePerGas
+  maxPriorityFeePerGas,
 );

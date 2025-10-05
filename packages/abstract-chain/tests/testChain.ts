@@ -47,7 +47,7 @@ class TestChain extends AbstractChain<string> {
 
   getTransactionAssets = (
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    transaction: PaymentTransaction
+    transaction: PaymentTransaction,
   ): Promise<TransactionAssetBalance> => {
     throw Error('Not mocked');
   };

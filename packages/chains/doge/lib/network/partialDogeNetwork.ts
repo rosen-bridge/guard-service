@@ -26,7 +26,7 @@ abstract class PartialDogeNetwork extends AbstractDogeNetwork {
    */
   protected notImplemented = (functionName: string): never => {
     throw new Error(
-      `Function [${functionName}] is not implemented by this partial network implementation`
+      `Function [${functionName}] is not implemented by this partial network implementation`,
     );
   };
 
@@ -59,7 +59,7 @@ abstract class PartialDogeNetwork extends AbstractDogeNetwork {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     transactionId: string,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    blockId: string
+    blockId: string,
   ): Promise<DogeTx> => {
     return this.notImplemented(DogeNetworkFunction.getTransaction);
   };
@@ -76,7 +76,7 @@ abstract class PartialDogeNetwork extends AbstractDogeNetwork {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     offset: number,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    limit: number
+    limit: number,
   ): Promise<Array<DogeUtxo>> => {
     return this.notImplemented(DogeNetworkFunction.getAddressBoxes);
   };

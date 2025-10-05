@@ -66,13 +66,13 @@ class BitcoinRunesChain extends AbstractUtxoChain<
     configs: BitcoinRunesConfigs,
     tokens: TokenMap,
     signFunction: TssSignFunction,
-    logger?: AbstractLogger
+    logger?: AbstractLogger,
   ) {
     super(network, configs, tokens, logger);
     this.extractor = new BitcoinRunesRosenExtractor(
       configs.addresses.lock,
       tokens,
-      logger
+      logger,
     );
     this.signFunction = signFunction;
     this.lockScript = address
@@ -111,12 +111,12 @@ class BitcoinRunesChain extends AbstractUtxoChain<
     txType: TransactionType,
     order: PaymentOrder,
     unsignedTransactions: PaymentTransaction[],
-    serializedSignedTransactions: string[]
+    serializedSignedTransactions: string[],
   ): Promise<BitcoinRunesTransaction[]> => {
     this.logger.debug(
       `Generating Bitcoin Runes transaction for Order: ${JsonBigInt.stringify(
-        order
-      )}`
+        order,
+      )}`,
     );
     const feeRatio = await this.network.getFeeRatio();
 
@@ -133,12 +133,12 @@ class BitcoinRunesChain extends AbstractUtxoChain<
         // these additional utxos are per each order item, as a separate transaction
         // will be generated for them
         nativeToken: this.wrapBtc(
-          MINIMUM_BTC_FOR_NATIVE_SEGWIT_OUTPUT * 2n * BigInt(orders.length)
+          MINIMUM_BTC_FOR_NATIVE_SEGWIT_OUTPUT * 2n * BigInt(orders.length),
         ).amount,
         tokens: [],
       });
     this.logger.debug(
-      `Required assets: ${JsonBigInt.stringify(requiredAssets)}`
+      `Required assets: ${JsonBigInt.stringify(requiredAssets)}`,
     );
 
     if (!(await this.hasLockAddressEnoughAssets(requiredAssets))) {
@@ -146,23 +146,23 @@ class BitcoinRunesChain extends AbstractUtxoChain<
       const neededBtc = requiredAssets.nativeToken;
       const neededRunes = JsonBigInt.stringify(requiredAssets.tokens);
       throw new NotEnoughAssetsError(
-        `Locked assets cannot cover required assets. BTC: ${neededBtc}, Runes: ${neededRunes}`
+        `Locked assets cannot cover required assets. BTC: ${neededBtc}, Runes: ${neededRunes}`,
       );
     }
 
     // generate utxo-selection parameters
     const forbiddenBoxIds = unsignedTransactions.flatMap((paymentTx) =>
       Serializer.deserialize(paymentTx.txBytes).txInputs.map(
-        getPsbtTxInputBoxId
-      )
+        getPsbtTxInputBoxId,
+      ),
     );
     // since the input utxo should be confirmed for the purpose of runes verification, the transaction chaining is disabled
     const trackMap = new Map();
     // also all inputs of signed transaction are also marked as forbidden boxes
     forbiddenBoxIds.push(
       ...serializedSignedTransactions.flatMap((serializedSignedTx) =>
-        Psbt.fromHex(serializedSignedTx).txInputs.map(getPsbtTxInputBoxId)
-      )
+        Psbt.fromHex(serializedSignedTx).txInputs.map(getPsbtTxInputBoxId),
+      ),
     );
 
     // generate a transaction for each item of order
@@ -176,20 +176,20 @@ class BitcoinRunesChain extends AbstractUtxoChain<
       // check order
       if (order.extra) {
         throw Error(
-          'Bitcoin Runes does not support extra data in payment order'
+          'Bitcoin Runes does not support extra data in payment order',
         );
       }
       const outputAddressPrefix = order.address.slice(0, 4);
       if (outputAddressPrefix !== 'bc1q' && outputAddressPrefix !== 'bc1p') {
         throw Error(
-          'Bitcoin Runes supports payments only to native-segwit or taproot addresses'
+          'Bitcoin Runes supports payments only to native-segwit or taproot addresses',
         );
       }
       if (order.assets.tokens.length !== 1) {
         throw new ImpossibleBehavior(
           `Bitcoin Runes order should have exactly 1 token after split while order [${JsonBigInt.stringify(
-            order
-          )}] does not`
+            order,
+          )}] does not`,
         );
       }
 
@@ -249,7 +249,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
         feeRatio,
         0,
         nativeSegwitOutputCount,
-        taprootOutputCount
+        taprootOutputCount,
       );
 
       // calculated required assets for this transaction
@@ -270,7 +270,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
             lockAddress,
             token.id,
             offset,
-            limit
+            limit,
           );
           if (page.length === 0) break;
           yield* page;
@@ -291,13 +291,13 @@ class BitcoinRunesChain extends AbstractUtxoChain<
         runesUtxoIterator(),
         0n,
         undefined,
-        () => 0n
+        () => 0n,
       );
       if (!coveredRunesBoxes.covered) {
         throw new NotEnoughValidBoxesError(
           `Available boxes didn't cover required Runes. Required Runes: ${JsonBigInt.stringify(
-            unwrappedRequiredAssets.tokens
-          )}`
+            unwrappedRequiredAssets.tokens,
+          )}`,
         );
       }
       coveredRunesBoxes.boxes.forEach((box) => {
@@ -307,7 +307,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
       });
       const preSelectedBtc = coveredRunesBoxes.boxes.reduce(
         (a, b) => a + b.value,
-        0n
+        0n,
       );
       let estimatedFee = feeEstimator(coveredRunesBoxes.boxes, 1);
       const additionalAssets: AssetBalance = {
@@ -321,7 +321,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
         this.logger.debug(
           `Selected Runes boxes cannot cover required amount of BTC [required at least ${
             additionalAssets.nativeToken * -1n
-          } more]. Fetching BTC only boxes...`
+          } more]. Fetching BTC only boxes...`,
         );
         const requiredBtc =
           unwrappedRequiredAssets.nativeToken - preSelectedBtc;
@@ -332,7 +332,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
           feeRatio,
           selectedBoxes.length,
           nativeSegwitOutputCount,
-          taprootOutputCount
+          taprootOutputCount,
         );
 
         // generate iterator for address boxes to cover required runes
@@ -344,11 +344,11 @@ class BitcoinRunesChain extends AbstractUtxoChain<
 
           selectedBoxes.push(...btcBoxes);
           const fetchedBoxIds = selectedBoxes.map((box) =>
-            generateBoxId(box.txId, box.index)
+            generateBoxId(box.txId, box.index),
           );
           const remainingBoxes = await getRemainingBoxes(
             fetchedBoxIds,
-            lockAddress
+            lockAddress,
           );
           if (remainingBoxes.length !== 0) yield* remainingBoxes;
 
@@ -363,13 +363,13 @@ class BitcoinRunesChain extends AbstractUtxoChain<
           btcUtxoIterator(),
           MINIMUM_BTC_FOR_NATIVE_SEGWIT_OUTPUT,
           undefined,
-          feeEstimator
+          feeEstimator,
         );
         if (!coveredBtcBoxes.covered) {
           throw new NotEnoughValidBoxesError(
             `Available boxes didn't cover required BTC. Required BTC: ${JsonBigInt.stringify(
-              unwrappedRequiredAssets.nativeToken
-            )}`
+              unwrappedRequiredAssets.nativeToken,
+            )}`,
           );
         }
         // add selected boxes
@@ -384,7 +384,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
         estimatedFee = coveredBtcBoxes.additionalAssets.fee;
       } else {
         this.logger.debug(
-          `Selected Runes boxes also covered required amount of BTC`
+          `Selected Runes boxes also covered required amount of BTC`,
         );
       }
 
@@ -407,7 +407,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
         additionalAssets.nativeToken += MINIMUM_BTC_FOR_NATIVE_SEGWIT_OUTPUT;
       } else {
         const otherRunes = additionalAssets.tokens.filter(
-          (token) => token.id !== order.assets.tokens[0].id
+          (token) => token.id !== order.assets.tokens[0].id,
         );
         if (otherRunes.length > 0) {
           // some other runes are transferred, so the universal change box is required
@@ -420,7 +420,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
           isUniversalChangeBoxPresent = false;
         }
         const remainingTransferringRune = additionalAssets.tokens.find(
-          (token) => token.id === order.assets.tokens[0].id
+          (token) => token.id === order.assets.tokens[0].id,
         );
         if (remainingTransferringRune) {
           // some transferring rune is left, so the change edict is required
@@ -462,15 +462,15 @@ class BitcoinRunesChain extends AbstractUtxoChain<
       // calculate fee and remaining BTC
       const fee = generateFeeEstimatorWithPsbt(psbt, feeRatio)(
         selectedBoxes,
-        1 // only 1 box is remained to be added to the transaction
+        1, // only 1 box is remained to be added to the transaction
       );
       this.logger.debug(
-        `Fee related info: [is universal change box present: ${isUniversalChangeBoxPresent}, box-selection fee estimation: ${estimatedFee}, tx fee: ${fee}]`
+        `Fee related info: [is universal change box present: ${isUniversalChangeBoxPresent}, box-selection fee estimation: ${estimatedFee}, tx fee: ${fee}]`,
       );
       const remainingBtc = additionalAssets.nativeToken + estimatedFee - fee;
       if (remainingBtc <= MINIMUM_BTC_FOR_NATIVE_SEGWIT_OUTPUT)
         throw new ImpossibleBehavior(
-          `Remaining BTC does not reach minimum UTxO value [${remainingBtc} < ${MINIMUM_BTC_FOR_NATIVE_SEGWIT_OUTPUT}] while utxo selection covered`
+          `Remaining BTC does not reach minimum UTxO value [${remainingBtc} < ${MINIMUM_BTC_FOR_NATIVE_SEGWIT_OUTPUT}] while utxo selection covered`,
         );
 
       // add BTC change output
@@ -487,7 +487,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
         eventId,
         txBytes,
         txType,
-        selectedBoxes.map((box) => JsonBigInt.stringify(box))
+        selectedBoxes.map((box) => JsonBigInt.stringify(box)),
       );
 
       transactions.push(bitcoinTx);
@@ -495,7 +495,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
 
     transactions.forEach((transaction) => {
       this.logger.info(
-        `Bitcoin Runes transaction [${transaction.txId}] as type [${transaction.txType}] generated for event [${transaction.eventId}]`
+        `Bitcoin Runes transaction [${transaction.txId}] as type [${transaction.txType}] generated for event [${transaction.eventId}]`,
       );
     });
     return transactions;
@@ -510,10 +510,10 @@ class BitcoinRunesChain extends AbstractUtxoChain<
    */
   getTransactionAssets = async (
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    transaction: PaymentTransaction
+    transaction: PaymentTransaction,
   ): Promise<TransactionAssetBalance> => {
     throw Error(
-      `The "getTransactionAssets" is not implemented for "BitcoinRunesChain" and should not be used!`
+      `The "getTransactionAssets" is not implemented for "BitcoinRunesChain" and should not be used!`,
     );
   };
 
@@ -565,7 +565,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
 
     if (artifact === null) {
       this.logger.warn(
-        `Skipping Runes transfer of tx [${transaction.txId}] while extracting order: Runestone is null`
+        `Skipping Runes transfer of tx [${transaction.txId}] while extracting order: Runestone is null`,
       );
       return order;
     }
@@ -576,8 +576,8 @@ class BitcoinRunesChain extends AbstractUtxoChain<
         `no Runes is transferred in tx [${
           transaction.txId
         }] since Runestone is cenotaph! Flaws: ${JSON.stringify(
-          cenotaph.flaws
-        )}`
+          cenotaph.flaws,
+        )}`,
       );
       return order;
     }
@@ -611,21 +611,21 @@ class BitcoinRunesChain extends AbstractUtxoChain<
       if (pointedOutputScript.startsWith(OP_RETURN_OPCODE)) {
         this.logger.debug(
           `Skipping edict [${JsonBigInt.stringify(
-            edict
-          )}] while extracting order: token [${tokenId}] is burned by edicting to OP_RETURN output`
+            edict,
+          )}] while extracting order: token [${tokenId}] is burned by edicting to OP_RETURN output`,
         );
         continue;
       }
 
       // find remaining amount in the inputs
       const tokenIndexInInput = inputAssets.tokens.findIndex(
-        (token) => token.id === tokenId
+        (token) => token.id === tokenId,
       );
       if (tokenIndexInInput === -1) {
         this.logger.debug(
           `Skipping edict [${JsonBigInt.stringify(
-            edict
-          )}] while extracting order: token [${tokenId}] is not found in input assets`
+            edict,
+          )}] while extracting order: token [${tokenId}] is not found in input assets`,
         );
         continue;
       } else {
@@ -634,14 +634,14 @@ class BitcoinRunesChain extends AbstractUtxoChain<
         if (inputAssets.tokens[tokenIndexInInput].value < edict.amount) {
           this.logger.debug(
             `Overdrawn edict [${JsonBigInt.stringify(
-              edict
+              edict,
             )}] is found while extracting order: token [${tokenId}] is edicted for [${
               edict.amount
             }] while only [${
               inputAssets.tokens[tokenIndexInInput].value
             }] is remained in input assets. Full edicts in the Runestone: ${JsonBigInt.stringify(
-              stone.edicts
-            )}`
+              stone.edicts,
+            )}`,
           );
           transferAmount = inputAssets.tokens[tokenIndexInInput].value;
           inputAssets.tokens.splice(tokenIndexInInput, 1);
@@ -657,12 +657,12 @@ class BitcoinRunesChain extends AbstractUtxoChain<
         const orderIndex = edict.output - opReturnIndex - 1; // the OP_RETURN and boxes before it are not included in order
         if (orderIndex < 0 || orderIndex >= order.length) continue; // skip edict pointing to boxes that are not included in order (which are supposed to be change boxes)
         const tokenIndexInOrder = order[orderIndex].assets.tokens.findIndex(
-          (token) => token.id === tokenId
+          (token) => token.id === tokenId,
         );
         const value = this.tokenMap.wrapAmount(
           tokenId,
           transferAmount,
-          this.CHAIN
+          this.CHAIN,
         ).amount;
         if (tokenIndexInOrder === -1)
           order[orderIndex].assets.tokens.push({
@@ -681,13 +681,13 @@ class BitcoinRunesChain extends AbstractUtxoChain<
    * @returns true if the transaction fee is verified
    */
   verifyTransactionFee = async (
-    transaction: PaymentTransaction
+    transaction: PaymentTransaction,
   ): Promise<boolean> => {
     const tx = Serializer.deserialize(transaction.txBytes);
     const bitcoinTx = transaction as BitcoinRunesTransaction;
 
     const inputUtxos = Array.from(new Set(bitcoinTx.inputUtxos)).map(
-      (serializedUtxo) => JsonBigInt.parse(serializedUtxo) as BitcoinRunesUtxo
+      (serializedUtxo) => JsonBigInt.parse(serializedUtxo) as BitcoinRunesUtxo,
     );
     const inBtc = inputUtxos
       .map((input) => input.value)
@@ -702,19 +702,19 @@ class BitcoinRunesChain extends AbstractUtxoChain<
     const fee = inBtc - outBtc;
     const estimateFee = generateFeeEstimatorWithPsbt(
       tx,
-      await this.network.getFeeRatio()
+      await this.network.getFeeRatio(),
     );
     const estimatedFee = estimateFee(
       inputUtxos, // selected inputs
-      0 // all boxes are already added
+      0, // all boxes are already added
     );
 
     const feeDifferencePercent = Math.abs(
-      (Number(fee - estimatedFee) * 100) / Number(fee)
+      (Number(fee - estimatedFee) * 100) / Number(fee),
     );
     if (feeDifferencePercent > this.configs.txFeeSlippage) {
       this.logger.warn(
-        `Tx [${transaction.txId}] is not verified: Fee difference is too high. Slippage is higher than allowed value [${feeDifferencePercent} > ${this.configs.txFeeSlippage}]. fee: ${fee}, estimated fee: ${estimatedFee}`
+        `Tx [${transaction.txId}] is not verified: Fee difference is too high. Slippage is higher than allowed value [${feeDifferencePercent} > ${this.configs.txFeeSlippage}]. fee: ${fee}, estimated fee: ${estimatedFee}`,
       );
       return false;
     }
@@ -730,7 +730,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
    * @returns true if no token burned
    */
   verifyNoTokenBurned = async (
-    transaction: PaymentTransaction
+    transaction: PaymentTransaction,
   ): Promise<boolean> => {
     const psbt = Serializer.deserialize(transaction.txBytes);
     const rawTx = psbt.data.getTransaction();
@@ -742,7 +742,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
 
     if (artifact === null) {
       this.logger.warn(
-        `Skipping "NoTokenBurned" verification for tx [${transaction.txId}]: Runestone is null`
+        `Skipping "NoTokenBurned" verification for tx [${transaction.txId}]: Runestone is null`,
       );
       return true;
     }
@@ -752,7 +752,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
       const cenotaph: runelib.Cenotaph = artifact;
       this.logger.warn(
         baseError +
-          `Runestone is cenotaph! Flaws: ${JSON.stringify(cenotaph.flaws)}`
+          `Runestone is cenotaph! Flaws: ${JSON.stringify(cenotaph.flaws)}`,
       );
       return false;
     }
@@ -766,14 +766,14 @@ class BitcoinRunesChain extends AbstractUtxoChain<
         if (pointedOutputScript.startsWith(OP_RETURN_OPCODE)) {
           this.logger.warn(
             baseError +
-              `Runestone points to index [${pointer}] which is OP_RETURN with script [${pointedOutputScript}]`
+              `Runestone points to index [${pointer}] which is OP_RETURN with script [${pointedOutputScript}]`,
           );
           return false;
         }
       } else {
         this.logger.warn(
           baseError +
-            `Runestone is cenotaph, since pointer is out of bound [${psbt.txOutputs.length} <= ${pointer}]`
+            `Runestone is cenotaph, since pointer is out of bound [${psbt.txOutputs.length} <= ${pointer}]`,
         );
         return false;
       }
@@ -781,7 +781,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
 
     if (stone.edicts === undefined) {
       this.logger.warn(
-        `Skipping "NoTokenBurned" verification for tx [${transaction.txId}]: Runestone has no edicts`
+        `Skipping "NoTokenBurned" verification for tx [${transaction.txId}]: Runestone has no edicts`,
       );
       return true;
     }
@@ -795,14 +795,14 @@ class BitcoinRunesChain extends AbstractUtxoChain<
         if (pointedOutputScript.startsWith(OP_RETURN_OPCODE)) {
           this.logger.warn(
             baseError +
-              `Runestone edicts to index [${edict.output}] which is OP_RETURN with script [${pointedOutputScript}]`
+              `Runestone edicts to index [${edict.output}] which is OP_RETURN with script [${pointedOutputScript}]`,
           );
           return false;
         }
       } else {
         this.logger.warn(
           baseError +
-            `Runestone is cenotaph, since edict[${i}] output is out of bound [${psbt.txOutputs.length} <= ${edict.output}]`
+            `Runestone is cenotaph, since edict[${i}] output is out of bound [${psbt.txOutputs.length} <= ${edict.output}]`,
         );
         return false;
       }
@@ -835,7 +835,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
   verifyTransactionExtraConditions = (
     transaction: PaymentTransaction,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    signingStatus: SigningStatus = SigningStatus.UnSigned
+    signingStatus: SigningStatus = SigningStatus.UnSigned,
   ): boolean => {
     const psbt = Serializer.deserialize(transaction.txBytes);
     const bitcoinTx = transaction as BitcoinRunesTransaction;
@@ -844,8 +844,8 @@ class BitcoinRunesChain extends AbstractUtxoChain<
     // calculate input runes
     const inputAssets = sumBitcoinRunesUtxosBalance(
       bitcoinTx.inputUtxos.map(
-        (utxo) => JsonBigInt.parse(utxo) as BitcoinRunesUtxo
-      )
+        (utxo) => JsonBigInt.parse(utxo) as BitcoinRunesUtxo,
+      ),
     );
     const utxoOffset = inputAssets.tokens.length > 1 ? 1 : 0;
     const universalChangeBoxStatusString = `universal change box should${
@@ -859,7 +859,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
             utxoOffset + 4
           } (${universalChangeBoxStatusString}), found ${
             psbt.txOutputs.length
-          }]`
+          }]`,
       );
       return false;
     }
@@ -870,7 +870,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
           baseError +
             `Universal change box has wrong script [expected ${
               this.lockScript
-            }, found ${psbt.txOutputs[0].script.toString('hex')}]`
+            }, found ${psbt.txOutputs[0].script.toString('hex')}]`,
         );
         return false;
       }
@@ -881,7 +881,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
     if (outputScript !== this.lockScript) {
       this.logger.warn(
         baseError +
-          `transferring rune change box has wrong script [expected ${this.lockScript}, found ${outputScript}]`
+          `transferring rune change box has wrong script [expected ${this.lockScript}, found ${outputScript}]`,
       );
       return false;
     }
@@ -889,7 +889,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
     if (!outputScript.startsWith(OP_RETURN_OPCODE)) {
       this.logger.warn(
         baseError +
-          `Expected an OP_RETURN utxo but found script [${outputScript}]`
+          `Expected an OP_RETURN utxo but found script [${outputScript}]`,
       );
       return false;
     }
@@ -897,7 +897,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
     if (outputScript !== this.lockScript) {
       this.logger.warn(
         baseError +
-          `BTC rune change box has wrong script [expected ${this.lockScript}, found ${outputScript}]`
+          `BTC rune change box has wrong script [expected ${this.lockScript}, found ${outputScript}]`,
       );
       return false;
     }
@@ -921,7 +921,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
       const cenotaph: runelib.Cenotaph = artifact;
       this.logger.warn(
         baseError +
-          `Runestone is cenotaph! Flaws: ${JSON.stringify(cenotaph.flaws)}`
+          `Runestone is cenotaph! Flaws: ${JSON.stringify(cenotaph.flaws)}`,
       );
       return false;
     }
@@ -949,7 +949,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
         ) {
           this.logger.warn(
             baseError +
-              `Runestone has redundant edict: edicts at [${i}] and [${j}] can be merged since they are both Rune [${stone.edicts[i].id.block}:${stone.edicts[i].id.tx}] targeted to output [${stone.edicts[i].output}]`
+              `Runestone has redundant edict: edicts at [${i}] and [${j}] can be merged since they are both Rune [${stone.edicts[i].id.block}:${stone.edicts[i].id.tx}] targeted to output [${stone.edicts[i].output}]`,
           );
           return false;
         }
@@ -964,7 +964,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
       ) {
         this.logger.warn(
           baseError +
-            `Runestone edict at index [${i}] is targeting an unexpected output [${stone.edicts[i].output}] (${universalChangeBoxStatusString})`
+            `Runestone edict at index [${i}] is targeting an unexpected output [${stone.edicts[i].output}] (${universalChangeBoxStatusString})`,
         );
         return false;
       }
@@ -983,7 +983,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     transaction: BitcoinRunesTx,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    blockInfo: BlockInfo
+    blockInfo: BlockInfo,
   ): Promise<boolean> => {
     // no extra condition for runes lock transactions
     return true;
@@ -998,14 +998,14 @@ class BitcoinRunesChain extends AbstractUtxoChain<
   isTxValid = async (
     transaction: PaymentTransaction,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    signingStatus: SigningStatus = SigningStatus.Signed
+    signingStatus: SigningStatus = SigningStatus.Signed,
   ): Promise<ValidityStatus> => {
     const tx = Serializer.deserialize(transaction.txBytes);
     for (let i = 0; i < tx.txInputs.length; i++) {
       const boxId = getPsbtTxInputBoxId(tx.txInputs[i]);
       if (!(await this.network.isBoxUnspentAndValid(boxId))) {
         this.logger.info(
-          `Tx [${transaction.txId}] is invalid due to spending invalid input box [${boxId}] at index [${i}]`
+          `Tx [${transaction.txId}] is invalid due to spending invalid input box [${boxId}] at index [${i}]`,
         );
         return {
           isValid: false,
@@ -1031,7 +1031,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
   signTransaction = (
     transaction: PaymentTransaction,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    requiredSign: number
+    requiredSign: number,
   ): Promise<PaymentTransaction> => {
     const psbt = Serializer.deserialize(transaction.txBytes);
     const tx = Transaction.fromBuffer(psbt.data.getTransaction());
@@ -1040,18 +1040,18 @@ class BitcoinRunesChain extends AbstractUtxoChain<
     const signaturePromises: Promise<string>[] = [];
     for (let i = 0; i < bitcoinTx.inputUtxos.length; i++) {
       const input = JsonBigInt.parse(
-        bitcoinTx.inputUtxos[i]
+        bitcoinTx.inputUtxos[i],
       ) as BitcoinRunesUtxo;
       const signMessage = tx.hashForWitnessV0(
         i,
         this.signingScript,
         Number(input.value),
-        Transaction.SIGHASH_ALL
+        Transaction.SIGHASH_ALL,
       );
 
       const signatureHex = this.signFunction(signMessage).then((response) => {
         this.logger.debug(
-          `Input [${i}] of tx [${bitcoinTx.txId}] is signed. signature: ${response.signature}`
+          `Input [${i}] of tx [${bitcoinTx.txId}] is signed. signature: ${response.signature}`,
         );
         return response.signature;
       });
@@ -1061,7 +1061,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
     return Promise.all(signaturePromises).then((signatures) => {
       const signedPsbt = this.buildSignedTransaction(
         bitcoinTx.txBytes,
-        signatures
+        signatures,
       );
       // check if transaction can be finalized
       signedPsbt.finalizeAllInputs().extractTransaction();
@@ -1072,7 +1072,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
         bitcoinTx.eventId,
         Serializer.serialize(signedPsbt),
         bitcoinTx.txType,
-        bitcoinTx.inputUtxos
+        bitcoinTx.inputUtxos,
       );
     });
   };
@@ -1088,7 +1088,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
    */
   getAddressAssets = async (
     address: string,
-    tokenIds?: string[]
+    tokenIds?: string[],
   ): Promise<AssetBalance> => {
     if (address === '') {
       this.logger.debug(`returning empty assets for address [${address}]`);
@@ -1115,7 +1115,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
    * @param transaction the transaction
    */
   submitTransaction = async (
-    transaction: PaymentTransaction
+    transaction: PaymentTransaction,
   ): Promise<void> => {
     // deserialize transaction
     const tx = Serializer.deserialize(transaction.txBytes);
@@ -1124,11 +1124,11 @@ class BitcoinRunesChain extends AbstractUtxoChain<
     try {
       await this.network.submitTransaction(tx);
       this.logger.info(
-        `Bitcoin Runes Transaction [${transaction.txId}] is submitted`
+        `Bitcoin Runes Transaction [${transaction.txId}] is submitted`,
       );
     } catch (e) {
       this.logger.warn(
-        `An error occurred while submitting Bitcoin Runes transaction [${transaction.txId}]: ${e}`
+        `An error occurred while submitting Bitcoin Runes transaction [${transaction.txId}]: ${e}`,
       );
       if (e instanceof Error && e.stack) {
         this.logger.warn(e.stack);
@@ -1166,7 +1166,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
    * @returns PaymentTransaction object
    */
   rawTxToPaymentTransaction = async (
-    psbtHex: string
+    psbtHex: string,
   ): Promise<PaymentTransaction> => {
     const psbt = Psbt.fromHex(psbtHex);
     const txBytes = Serializer.serialize(psbt);
@@ -1184,7 +1184,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
       '',
       txBytes,
       TransactionType.manual,
-      inputBoxes.map((box) => JsonBigInt.stringify(box))
+      inputBoxes.map((box) => JsonBigInt.stringify(box)),
     );
 
     this.logger.info(`Parsed Bitcoin Runes transaction [${txId}] successfully`);
@@ -1201,7 +1201,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     address: string,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    tokenId?: string
+    tokenId?: string,
   ): Promise<Map<string, BitcoinRunesUtxo | undefined>> => {
     // chaining transaction won't be done in BitcoinChain
     // due to heavy size of transactions in mempool
@@ -1218,7 +1218,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     txs: Psbt[],
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    address: string
+    address: string,
   ): Map<string, BitcoinRunesUtxo | undefined> => {
     // its not possible to get runes of a utxo from a transaction
     // even though data is written in OP_RETURN, it can be less than that
@@ -1240,7 +1240,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
    */
   protected buildSignedTransaction = (
     txBytes: Uint8Array,
-    signatures: string[]
+    signatures: string[],
   ): Psbt => {
     const psbt = Serializer.deserialize(txBytes);
     for (let i = 0; i < signatures.length; i++) {
@@ -1279,7 +1279,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
    * @returns true if the transaction is verified
    */
   verifyPaymentTransaction = async (
-    transaction: PaymentTransaction
+    transaction: PaymentTransaction,
   ): Promise<boolean> => {
     const psbt = Serializer.deserialize(transaction.txBytes);
     const bitcoinTx = transaction as BitcoinRunesTransaction;
@@ -1290,7 +1290,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
     if (transaction.txId !== txId) {
       this.logger.warn(
         baseError +
-          `Transaction id is inconsistent [expected ${txId}, found ${transaction.txId}]`
+          `Transaction id is inconsistent [expected ${txId}, found ${transaction.txId}]`,
       );
       return false;
     }
@@ -1299,7 +1299,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
     if (bitcoinTx.inputUtxos.length !== psbt.inputCount) {
       this.logger.warn(
         baseError +
-          `BitcoinRunesTransaction object input counts is inconsistent [${bitcoinTx.inputUtxos.length} != ${psbt.inputCount}]`
+          `BitcoinRunesTransaction object input counts is inconsistent [${bitcoinTx.inputUtxos.length} != ${psbt.inputCount}]`,
       );
       return false;
     }
@@ -1311,13 +1311,13 @@ class BitcoinRunesChain extends AbstractUtxoChain<
       const txId = Buffer.from(input.hash).reverse().toString('hex');
       const psbtInputId = generateBoxId(txId, input.index);
       const bitcoinInput = JsonBigInt.parse(
-        bitcoinTx.inputUtxos[i]
+        bitcoinTx.inputUtxos[i],
       ) as BitcoinRunesUtxo;
       const expectedId = generateBoxId(bitcoinInput.txId, bitcoinInput.index);
       if (expectedId !== psbtInputId) {
         this.logger.warn(
           baseError +
-            `Utxo id for input at index [${i}] is inconsistent [expected ${expectedId} found ${psbtInputId}]`
+            `Utxo id for input at index [${i}] is inconsistent [expected ${expectedId} found ${psbtInputId}]`,
         );
         return false;
       }
@@ -1329,7 +1329,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
       if (bitcoinInput.value !== utxo.value) {
         this.logger.warn(
           baseAssetError +
-            `has incorrect BTC value [expected ${bitcoinInput.value} found ${utxo.value}]`
+            `has incorrect BTC value [expected ${bitcoinInput.value} found ${utxo.value}]`,
         );
         return false;
       }
@@ -1341,13 +1341,13 @@ class BitcoinRunesChain extends AbstractUtxoChain<
       if (expectedRunes.length !== receivedRunes.length) {
         this.logger.warn(
           baseAssetError +
-            `has incorrect Runes count [expected ${expectedRunes.length} found ${receivedRunes.length}]`
+            `has incorrect Runes count [expected ${expectedRunes.length} found ${receivedRunes.length}]`,
         );
         return false;
       }
 
       const expectedRunesMap = new Map(
-        expectedRunes.map((rune) => [rune.runeId, rune.quantity])
+        expectedRunes.map((rune) => [rune.runeId, rune.quantity]),
       );
       for (const actualRune of receivedRunes) {
         // verify this input's runes match expected
@@ -1358,7 +1358,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
         ) {
           this.logger.warn(
             baseAssetError +
-              `has incorrect Rune [${actualRune.runeId}] value [expected ${expectedQuantity} found ${actualRune.quantity}]`
+              `has incorrect Rune [${actualRune.runeId}] value [expected ${expectedQuantity} found ${actualRune.quantity}]`,
           );
           return false;
         }
@@ -1367,7 +1367,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
         const currentTotal = totalInputRunes.get(actualRune.runeId) || 0n;
         totalInputRunes.set(
           actualRune.runeId,
-          currentTotal + actualRune.quantity
+          currentTotal + actualRune.quantity,
         );
       }
     }
@@ -1383,7 +1383,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
     //-- skip if Runestone is null
     if (artifact === null) {
       this.logger.info(
-        `Skipped Runestone check for tx [${transaction.txId}]: Runestone is null`
+        `Skipped Runestone check for tx [${transaction.txId}]: Runestone is null`,
       );
       return true;
     }
@@ -1394,8 +1394,8 @@ class BitcoinRunesChain extends AbstractUtxoChain<
       this.logger.warn(
         baseError +
           `Runestone is cenotaph (even though the protocol allows it, the PaymentTransaction does not allow Cenotaph)! Flaws: ${JSON.stringify(
-            cenotaph.flaws
-          )}`
+            cenotaph.flaws,
+          )}`,
       );
       return false;
     }
@@ -1426,15 +1426,15 @@ class BitcoinRunesChain extends AbstractUtxoChain<
     result.nativeToken = this.tokenMap.unwrapAmount(
       this.NATIVE_TOKEN_ID,
       result.nativeToken,
-      BITCOIN_CHAIN
+      BITCOIN_CHAIN,
     ).amount;
     result.tokens.forEach(
       (token) =>
         (token.value = this.tokenMap.unwrapAmount(
           token.id,
           token.value,
-          this.CHAIN
-        ).amount)
+          this.CHAIN,
+        ).amount),
     );
     return result;
   };

@@ -46,7 +46,7 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
   constructor(
     projectId: string,
     blockFrostUrl?: string,
-    logger?: AbstractLogger
+    logger?: AbstractLogger,
   ) {
     super(logger);
     this.client = new BlockFrostAPI({
@@ -65,7 +65,7 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
       .blocksLatest()
       .then((block) => {
         this.logger.debug(
-          `requested 'blocksLatest'. res: ${JsonBigInt.stringify(block)}`
+          `requested 'blocksLatest'. res: ${JsonBigInt.stringify(block)}`,
         );
         const height = block.height;
         if (height) return height;
@@ -93,8 +93,8 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
       const txInfo = await this.client.txs(transactionId);
       this.logger.debug(
         `requested 'txs' for txId [${transactionId}]. res: ${JsonBigInt.stringify(
-          txInfo
-        )}`
+          txInfo,
+        )}`,
       );
       txHeight = txInfo.block_height;
     } catch (e: any) {
@@ -125,17 +125,17 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
       .then((res) => {
         this.logger.debug(
           `requested 'addresses' for address [${address}]. res: ${JsonBigInt.stringify(
-            res
-          )}`
+            res,
+          )}`,
         );
         const assets = res.amount;
         // get ADA value
         const lovelaceAmount = assets.find(
-          (token) => token.unit === 'lovelace'
+          (token) => token.unit === 'lovelace',
         )?.quantity;
         if (!lovelaceAmount)
           throw new BlockFrostNullValueError(
-            `Found assets for address without lovelace`
+            `Found assets for address without lovelace`,
           );
         nativeToken = BigInt(lovelaceAmount);
         // get tokens value
@@ -173,8 +173,8 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
       .then((res) => {
         this.logger.debug(
           `requested 'blocksTxsAll' for blockId [${blockId}]. res: ${JsonBigInt.stringify(
-            res
-          )}`
+            res,
+          )}`,
         );
         return res;
       })
@@ -201,12 +201,12 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
       .then((res) => {
         this.logger.debug(
           `requested 'blocks' for blockId [${blockId}]. res: ${JsonBigInt.stringify(
-            res
-          )}`
+            res,
+          )}`,
         );
         if (!res.previous_block || !res.height)
           throw new BlockFrostNullValueError(
-            'Height or previous block of the requested block is null'
+            'Height or previous block of the requested block is null',
           );
         return {
           hash: res.hash,
@@ -234,15 +234,15 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
    */
   getTransaction = async (
     transactionId: string,
-    blockId: string
+    blockId: string,
   ): Promise<CardanoTx> => {
     let txInfo: components['schemas']['tx_content'];
     try {
       txInfo = await this.client.txs(transactionId);
       this.logger.debug(
         `requested 'txs' for txId [${transactionId}]. res: ${JsonBigInt.stringify(
-          txInfo
-        )}`
+          txInfo,
+        )}`,
       );
     } catch (e: any) {
       const baseError = `Failed to get transaction [${transactionId}] from BlockFrost: `;
@@ -260,8 +260,8 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
       txUtxos = await this.client.txsUtxos(transactionId);
       this.logger.debug(
         `requested 'txsUtxos' for txId [${transactionId}]. res: ${JsonBigInt.stringify(
-          txUtxos
-        )}`
+          txUtxos,
+        )}`,
       );
     } catch (e: any) {
       const baseError = `Failed to get transaction [${transactionId}] utxos from BlockFrost: `;
@@ -279,8 +279,8 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
       txMetadata = await this.client.txsMetadata(transactionId);
       this.logger.debug(
         `requested 'txsMetadata' for txId [${transactionId}]. res: ${JsonBigInt.stringify(
-          txMetadata
-        )}`
+          txMetadata,
+        )}`,
       );
     } catch (e: any) {
       const baseError = `Failed to get transaction [${transactionId}] metadata from BlockFrost: `;
@@ -295,7 +295,7 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
 
     if (txInfo.block !== blockId)
       throw new FailedError(
-        `Tx [${transactionId}] doesn't belong to block [${blockId}]`
+        `Tx [${transactionId}] doesn't belong to block [${blockId}]`,
       );
 
     const tx: CardanoTx = {
@@ -337,7 +337,7 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
   getAddressBoxes = async (
     address: string,
     offset: number,
-    limit: number
+    limit: number,
   ): Promise<Array<CardanoUtxo>> => {
     const count = PAGE_ITEM_COUNT;
     let page = 1 + Math.floor(offset / PAGE_ITEM_COUNT);
@@ -353,8 +353,8 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
         });
         this.logger.debug(
           `requested 'addressesUtxos' for address [${address}]. res: ${JsonBigInt.stringify(
-            addressUtxos
-          )}`
+            addressUtxos,
+          )}`,
         );
         boxes.push(...addressUtxos);
       } catch (e: any) {
@@ -388,14 +388,14 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
       txUtxos = await this.client.txsUtxos(txId);
       this.logger.debug(
         `requested 'txsUtxos' for txId [${txId}]. res: ${JsonBigInt.stringify(
-          txUtxos
-        )}`
+          txUtxos,
+        )}`,
       );
     } catch (e: any) {
       const baseError = `Failed to get transaction [${txId}] utxos from BlockFrost: `;
       if (e instanceof BlockfrostServerError && e.status_code === 404) {
         this.logger.debug(
-          `Utxo [${boxId}] is invalid: Transaction [${txId}] is not found`
+          `Utxo [${boxId}] is invalid: Transaction [${txId}] is not found`,
         );
         return false;
       } else if (e instanceof BlockfrostClientError) {
@@ -406,7 +406,7 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
     }
     if (txUtxos.outputs.length <= Number(index)) {
       this.logger.debug(
-        `Utxo [${boxId}] is invalid: Transaction [${txId}] doesn't have index [${index}]`
+        `Utxo [${boxId}] is invalid: Transaction [${txId}] doesn't have index [${index}]`,
       );
       return false;
     }
@@ -416,14 +416,14 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
       addressUtxos = await this.client.addressesUtxosAll(address);
       this.logger.debug(
         `requested 'addressesUtxosAll' for address [${address}]. res: ${JsonBigInt.stringify(
-          addressUtxos
-        )}`
+          addressUtxos,
+        )}`,
       );
     } catch (e: any) {
       const baseError = `Failed to get address [${address}] UTxOs from BlockFrost: `;
       if (e instanceof BlockfrostServerError && e.status_code === 404) {
         throw new ImpossibleBehavior(
-          `Found box [${boxId}] for address [${address}] with no transaction history`
+          `Found box [${boxId}] for address [${address}] with no transaction history`,
         );
       } else if (e instanceof BlockfrostClientError) {
         throw new NetworkError(baseError + e.message);
@@ -432,12 +432,12 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
       }
     }
     const box = addressUtxos.find(
-      (utxo) => utxo.tx_hash === txId && utxo.output_index === Number(index)
+      (utxo) => utxo.tx_hash === txId && utxo.output_index === Number(index),
     );
 
     if (box) return true;
     this.logger.debug(
-      `box [${boxId}] is spent: Box was not found in address [${address}] UTxOs`
+      `box [${boxId}] is spent: Box was not found in address [${address}] UTxOs`,
     );
     return false;
   };
@@ -451,7 +451,7 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
       .blocksLatest()
       .then((block) => {
         this.logger.debug(
-          `requested 'blocksLatest'. res: ${JsonBigInt.stringify(block)}`
+          `requested 'blocksLatest'. res: ${JsonBigInt.stringify(block)}`,
         );
         const slot = block.slot;
         if (slot) return Number(slot);
@@ -481,14 +481,14 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
       txUtxos = await this.client.txsUtxos(txId);
       this.logger.debug(
         `requested 'txsUtxos' for txId [${txId}]. res: ${JsonBigInt.stringify(
-          txUtxos
-        )}`
+          txUtxos,
+        )}`,
       );
     } catch (e: any) {
       const baseError = `Failed to get transaction [${txId}] utxos from BlockFrost: `;
       if (e instanceof BlockfrostServerError && e.status_code === 404) {
         throw new FailedError(
-          baseFailedError + `Transaction [${txId}] is not found`
+          baseFailedError + `Transaction [${txId}] is not found`,
         );
       } else if (e instanceof BlockfrostClientError) {
         throw new NetworkError(baseError + e.message);
@@ -500,12 +500,12 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
     if (txUtxos.outputs.length <= Number(index)) {
       throw new FailedError(
         baseFailedError +
-          `Transaction [${txId}] outputs does not have index [${index}]`
+          `Transaction [${txId}] outputs does not have index [${index}]`,
       );
     }
 
     const boxCandidate = this.convertToCardanoBoxCandidate(
-      txUtxos.outputs[Number(index)]
+      txUtxos.outputs[Number(index)],
     );
     return {
       txId: txId,
@@ -521,14 +521,14 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
    * @returns CardanoAssets object
    */
   protected convertAssetList = (
-    assets: Array<BlockFrostAsset>
+    assets: Array<BlockFrostAsset>,
   ): CardanoBalance => {
     if (assets.length === 0) return { lovelace: 0n, assets: [] };
 
     const cardanoAssets: Array<CardanoAsset> = [];
     // get ADA value
     const loveLaceAmount = assets.find(
-      (token) => token.unit === 'lovelace'
+      (token) => token.unit === 'lovelace',
     )?.quantity;
     if (!loveLaceAmount)
       throw new BlockFrostNullValueError(`Found assets without lovelace`);
@@ -556,7 +556,7 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
    * @returns
    */
   protected convertToCardanoUTxO = (
-    input: PartialBlockFrostInput
+    input: PartialBlockFrostInput,
   ): CardanoUtxo => {
     const utxoAssets = this.convertAssetList(input.amount);
     return {
@@ -573,7 +573,7 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
    * @returns
    */
   protected convertToCardanoTxInput = (
-    input: PartialBlockFrostInput
+    input: PartialBlockFrostInput,
   ): CardanoTxInput => {
     return {
       txId: input.tx_hash,
@@ -587,7 +587,7 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
    * @returns
    */
   protected convertToCardanoBoxCandidate = (
-    output: BlockFrostOutput
+    output: BlockFrostOutput,
   ): CardanoBoxCandidate => {
     const utxoAssets = this.convertAssetList(output.amount);
     return {
@@ -603,7 +603,7 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
    * @returns
    */
   protected parseMetadata = (
-    metadata: BlockFrostTxMetadata
+    metadata: BlockFrostTxMetadata,
   ): CardanoMetadata => {
     return metadata.reduce((result: CardanoMetadata, labelObject) => {
       result[labelObject.label] = labelObject.json_metadata;
@@ -621,12 +621,12 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
       .then((parameters) => {
         this.logger.debug(
           `requested 'epochsLatestParameters'. res: ${JsonBigInt.stringify(
-            parameters
-          )}`
+            parameters,
+          )}`,
         );
         if (!parameters.max_val_size || !parameters.coins_per_utxo_size)
           throw new BlockFrostNullValueError(
-            `Some required Cardano protocol params are null`
+            `Some required Cardano protocol params are null`,
           );
         return {
           minFeeA: parameters.min_fee_a,
@@ -659,8 +659,8 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
       .then((res) => {
         this.logger.debug(
           `requested 'assetsById' for unit [${assetUnit}]. res: ${JsonBigInt.stringify(
-            res
-          )}`
+            res,
+          )}`,
         );
         return {
           tokenId: tokenId,

@@ -17,7 +17,7 @@ abstract class AbstractUtxoChain<
    */
   abstract getMempoolBoxMapping: (
     address: string,
-    tokenId?: string
+    tokenId?: string,
   ) => Promise<Map<string, BoxType | undefined>>;
 }
 

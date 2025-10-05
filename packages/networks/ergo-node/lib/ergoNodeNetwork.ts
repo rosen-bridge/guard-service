@@ -43,7 +43,7 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
     try {
       const nodeInfo = await this.client.getNodeInfo();
       this.logger.debug(
-        `requested 'getNodeInfo'. res: ${JsonBigInt.stringify(nodeInfo)}`
+        `requested 'getNodeInfo'. res: ${JsonBigInt.stringify(nodeInfo)}`,
       );
       return Number(nodeInfo.fullHeight);
     } catch (error: any) {
@@ -60,8 +60,8 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
       const tx = await this.client.getTxById(txId);
       this.logger.debug(
         `requested 'getTxById' for txId [${txId}]. res: ${JsonBigInt.stringify(
-          tx
-        )}`
+          tx,
+        )}`,
       );
       return Number(tx.numConfirmations);
     } catch (error: any) {
@@ -70,7 +70,7 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
         handleRespondedState: (error) => {
           if (error.response.status === 404) return -1;
           throw new FailedError(
-            `${baseError} [${error.response.status}] ${error.response.data.reason}`
+            `${baseError} [${error.response.status}] ${error.response.data.reason}`,
           );
         },
       });
@@ -86,8 +86,8 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
       const balance = await this.client.getAddressBalanceTotal(address);
       this.logger.debug(
         `requested 'getAddressBalanceTotal' for address [${address}]. res: ${JsonBigInt.stringify(
-          balance
-        )}`
+          balance,
+        )}`,
       );
       const confirmed = balance.confirmed;
       if (!confirmed) {
@@ -99,13 +99,13 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
 
       type BalanceInfoTokensItem = (typeof confirmed.tokens)[0];
       const areAllTokensValid = (
-        tokens: BalanceInfoTokensItem[]
+        tokens: BalanceInfoTokensItem[],
       ): tokens is Required<BalanceInfoTokensItem>[] =>
         tokens.every((token) => token.tokenId && token.amount);
 
       if (!areAllTokensValid(confirmed.tokens)) {
         throw new FailedError(
-          `An error occurred while getting address [${address}] assets: Some tokens don't have an id or amount.`
+          `An error occurred while getting address [${address}] assets: Some tokens don't have an id or amount.`,
         );
       }
 
@@ -119,7 +119,7 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
     } catch (error) {
       return handleApiError(
         error,
-        'Failed to get address assets from Ergo Node:'
+        'Failed to get address assets from Ergo Node:',
       );
     }
   };
@@ -135,13 +135,13 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
       const txIds = transactions.map((tx) => tx.id);
       this.logger.debug(
         `requested block transaction ids with 'getBlockTransactionsById' for blockId [${blockId}]. res: ${JsonBigInt.stringify(
-          txIds
-        )}`
+          txIds,
+        )}`,
       );
 
       if (txIds.includes(undefined)) {
         throw new FailedError(
-          `An error occurred while getting block [${blockId}] transaction ids: Some transactions don't have an id.`
+          `An error occurred while getting block [${blockId}] transaction ids: Some transactions don't have an id.`,
         );
       }
       return txIds as string[];
@@ -151,7 +151,7 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
         handleRespondedState: (error) => {
           if (error.response.status === 404) return [] as string[];
           throw new FailedError(
-            `${baseError} [${error.response.status}] ${error.response.data.reason}`
+            `${baseError} [${error.response.status}] ${error.response.data.reason}`,
           );
         },
       });
@@ -167,8 +167,8 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
       const blockInfo = await this.client.getBlockHeaderById(blockId);
       this.logger.debug(
         `requested block header with 'getBlockHeaderById' for blockId [${blockId}]. res: ${JsonBigInt.stringify(
-          blockInfo
-        )}`
+          blockInfo,
+        )}`,
       );
 
       return {
@@ -207,8 +207,8 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
       const tx = blockTxs.transactions.find((tx) => tx.id === txId);
       this.logger.debug(
         `requested transaction with 'getBlockTransactionsById' for txId [${txId}] and blockId [${blockId}]. res: ${JsonBigInt.stringify(
-          tx
-        )}`
+          tx,
+        )}`,
       );
       if (!tx) throw Error(`tx [${txId}] is not in block [${blockId}]`);
       return ergoLib.Transaction.from_json(JsonBigInt.stringify(tx));
@@ -224,12 +224,12 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
   public submitTransaction = async (tx: ergoLib.Transaction) => {
     try {
       await this.client.sendTransactionAsBytes(
-        Buffer.from(tx.sigma_serialize_bytes()).toString('hex')
+        Buffer.from(tx.sigma_serialize_bytes()).toString('hex'),
       );
     } catch (error) {
       return handleApiError(
         error,
-        'Failed to submit transaciton to Ergo Node:'
+        'Failed to submit transaciton to Ergo Node:',
       );
     }
   };
@@ -264,8 +264,8 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
       const txs = await all(txsPageIterator);
       this.logger.debug(
         `requested mempool transactions. res: ${JsonBigInt.stringify(
-          txs.map((tx) => tx.id)
-        )}`
+          txs.map((tx) => tx.id),
+        )}`,
       );
       return txs
         .filter((tx) => tx.id)
@@ -273,7 +273,7 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
     } catch (error) {
       return handleApiError(
         error,
-        'Failed to get mempool transactions from Ergo Node:'
+        'Failed to get mempool transactions from Ergo Node:',
       );
     }
   };
@@ -287,7 +287,7 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
   private getRawAddressBoxes = async (
     address: string,
     offset: number,
-    limit: number
+    limit: number,
   ) => {
     const res = await this.client.getBoxesByAddressUnspent(address, {
       offset: offset,
@@ -295,8 +295,8 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
     });
     this.logger.debug(
       `requested 'getBoxesByAddressUnspent' for address [${address}]. res: ${JsonBigInt.stringify(
-        res
-      )}`
+        res,
+      )}`,
     );
     return res;
   };
@@ -310,12 +310,12 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
   public getAddressBoxes = async (
     address: string,
     offset: number,
-    limit: number
+    limit: number,
   ): Promise<ergoLib.ErgoBox[]> => {
     try {
       return (await this.getRawAddressBoxes(address, offset, limit)).map(
         (box: IndexedErgoBox) =>
-          ergoLib.ErgoBox.from_json(JsonBigInt.stringify(box))
+          ergoLib.ErgoBox.from_json(JsonBigInt.stringify(box)),
       );
     } catch (error) {
       const baseError = 'Failed to get address boxes from Ergo Node:';
@@ -323,7 +323,7 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
         handleRespondedState: (error) => {
           if (error.response.status === 400) return [];
           throw new FailedError(
-            `${baseError} [${error.response.status}] ${error.response.data.reason}`
+            `${baseError} [${error.response.status}] ${error.response.data.reason}`,
           );
         },
       });
@@ -341,7 +341,7 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
     tokenId: string,
     address: string,
     offset = 0,
-    limit = 5
+    limit = 5,
   ): Promise<ergoLib.ErgoBox[]> => {
     try {
       const boxHasToken = (box: IndexedErgoBox) =>
@@ -353,7 +353,7 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
         const boxesPage = await this.getRawAddressBoxes(
           address,
           currentPage * BOX_FETCHING_PAGE_SIZE,
-          BOX_FETCHING_PAGE_SIZE
+          BOX_FETCHING_PAGE_SIZE,
         );
         if (boxesPage.length === 0) break;
 
@@ -361,8 +361,8 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
           ...boxesPage
             .filter(boxHasToken)
             .map((box: IndexedErgoBox) =>
-              ergoLib.ErgoBox.from_json(JsonBigInt.stringify(box))
-            )
+              ergoLib.ErgoBox.from_json(JsonBigInt.stringify(box)),
+            ),
         );
         currentPage++;
       }
@@ -374,7 +374,7 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
         handleRespondedState: (error) => {
           if (error.response.status === 400) return [];
           throw new FailedError(
-            `${baseError} [${error.response.status}] ${error.response.data.reason}`
+            `${baseError} [${error.response.status}] ${error.response.data.reason}`,
           );
         },
       });
@@ -389,23 +389,23 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
       const lastBlocks = await this.client.getLastHeaders(10);
 
       const lastBlocksStrings = lastBlocks.map((header) =>
-        JsonBigInt.stringify(header)
+        JsonBigInt.stringify(header),
       );
       const lastBlocksHeaders = BlockHeaders.from_json(lastBlocksStrings);
       const lastBlockPreHeader = ergoLib.PreHeader.from_block_header(
-        lastBlocksHeaders.get(0)
+        lastBlocksHeaders.get(0),
       );
 
       const stateContext = new ErgoStateContext(
         lastBlockPreHeader,
-        lastBlocksHeaders
+        lastBlocksHeaders,
       );
 
       return stateContext;
     } catch (error) {
       return handleApiError(
         error,
-        'Failed to get state context from Ergo Node:'
+        'Failed to get state context from Ergo Node:',
       );
     }
   };
@@ -419,8 +419,8 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
       const box = await this.client.getIndexedBoxById(boxId);
       this.logger.debug(
         `requested 'getIndexedBoxById' for boxId [${boxId}]. res: ${JsonBigInt.stringify(
-          box
-        )}`
+          box,
+        )}`,
       );
 
       return !box.spentTransactionId;
@@ -431,7 +431,7 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
         handleRespondedState: (error) => {
           if (error.response.status === 404) return false;
           throw new FailedError(
-            `${baseError} [${error.response.status}] ${error.response.data.reason}`
+            `${baseError} [${error.response.status}] ${error.response.data.reason}`,
           );
         },
       });
@@ -448,15 +448,15 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
       const box = await this.client.getIndexedBoxById(boxId);
       this.logger.debug(
         `requested 'getIndexedBoxById' for boxId [${boxId}]. res: ${JsonBigInt.stringify(
-          box
-        )}`
+          box,
+        )}`,
       );
 
       return ergoLib.ErgoBox.from_json(JsonBigInt.stringify(box));
     } catch (error: any) {
       return handleApiError(
         error,
-        `Failed to get box [${boxId}] from Ergo Node:`
+        `Failed to get box [${boxId}] from Ergo Node:`,
       );
     }
   };
@@ -470,8 +470,8 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
       const tokenDetail = await this.client.getTokenById(tokenId);
       this.logger.debug(
         `requested 'getTokenById' for boxId [${tokenId}]. res: ${JsonBigInt.stringify(
-          tokenDetail
-        )}`
+          tokenDetail,
+        )}`,
       );
 
       return {
@@ -482,7 +482,7 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
     } catch (error: any) {
       return handleApiError(
         error,
-        `Failed to get token [${tokenId}] info from Ergo Node:`
+        `Failed to get token [${tokenId}] info from Ergo Node:`,
       );
     }
   };

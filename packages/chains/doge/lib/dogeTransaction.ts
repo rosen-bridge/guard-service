@@ -13,7 +13,7 @@ class DogeTransaction extends PaymentTransaction {
     eventId: string,
     txBytes: Uint8Array,
     txType: TransactionType,
-    inputUtxos: Array<string>
+    inputUtxos: Array<string>,
   ) {
     super(DOGE_CHAIN, txId, eventId, txBytes, txType);
     this.inputUtxos = inputUtxos;
@@ -30,7 +30,7 @@ class DogeTransaction extends PaymentTransaction {
       obj.eventId,
       Buffer.from(obj.txBytes, 'hex'),
       obj.txType as TransactionType,
-      obj.inputUtxos
+      obj.inputUtxos,
     );
   };
 

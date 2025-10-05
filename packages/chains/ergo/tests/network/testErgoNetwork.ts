@@ -60,7 +60,7 @@ class TestErgoNetwork extends AbstractErgoNetwork {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     offset: number,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    limit: number
+    limit: number,
   ): Promise<Array<ErgoBox>> => {
     throw Error('Not mocked');
   };
@@ -77,7 +77,7 @@ class TestErgoNetwork extends AbstractErgoNetwork {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     offset?: number,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    limit?: number
+    limit?: number,
   ): Promise<Array<ErgoBox>> => {
     throw Error('Not mocked');
   };

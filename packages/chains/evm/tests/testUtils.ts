@@ -52,14 +52,14 @@ export const mockedSignFn = () =>
 
 export const mockHasLockAddressEnoughAssets = (
   chain: EvmChain,
-  value: boolean
+  value: boolean,
 ) => {
   spyOn(chain, 'hasLockAddressEnoughAssets').mockResolvedValue(value);
 };
 
 export const mockGetAddressBalanceForNativeToken = (
   network: AbstractEvmNetwork,
-  value: bigint
+  value: bigint,
 ) => spyOn(network, 'getAddressBalanceForNativeToken').mockResolvedValue(value);
 
 export const mockGetFeeData = (network: AbstractEvmNetwork, value: FeeData) => {
@@ -68,21 +68,21 @@ export const mockGetFeeData = (network: AbstractEvmNetwork, value: FeeData) => {
 
 export const mockGetGasRequired = (
   network: AbstractEvmNetwork,
-  value: bigint
+  value: bigint,
 ) => {
   spyOn(network, 'getGasRequired').mockResolvedValue(value);
 };
 
 export const mockGetAddressNextAvailableNonce = (
   network: AbstractEvmNetwork,
-  value: number
+  value: number,
 ) => {
   spyOn(network, 'getAddressNextAvailableNonce').mockResolvedValue(value);
 };
 
 export const mockGetTransactionByNonce = (
   network: AbstractEvmNetwork,
-  value: TransactionHashes
+  value: TransactionHashes,
 ) => {
   spyOn(network, 'getTransactionByNonce').mockResolvedValue(value);
 };
@@ -91,7 +91,7 @@ export const generateChainObject = async (
   network: TestEvmNetwork,
   signFn: TssSignFunction = mockedSignFn,
   evmTxType = 2,
-  rosenTokens: RosenTokens = testData.testTokenMap
+  rosenTokens: RosenTokens = testData.testTokenMap,
 ) => {
   const tokenMap = new TokenMap();
   await tokenMap.updateConfigByJson(rosenTokens);
@@ -100,7 +100,7 @@ export const generateChainObject = async (
 
 export const mockGetTransactionStatus = (
   network: AbstractEvmNetwork,
-  result: EvmTxStatus
+  result: EvmTxStatus,
 ) => {
   spyOn(network, 'getTransactionStatus').mockResolvedValue(result);
 };

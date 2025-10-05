@@ -622,7 +622,7 @@ describe('ChainUtils', () => {
         actualBalance,
         tokenMap,
         'test-native-token',
-        'test'
+        'test',
       );
 
       // check returned value
@@ -651,7 +651,7 @@ describe('ChainUtils', () => {
         wrappedBalance,
         tokenMap,
         'test-native-token',
-        'test'
+        'test',
       );
 
       // check returned value

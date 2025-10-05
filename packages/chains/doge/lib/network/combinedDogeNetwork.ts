@@ -63,8 +63,8 @@ class CombinedDogeNetwork extends AbstractDogeNetwork {
     if (missingFunctions.length > 0) {
       throw new Error(
         `The following functions have no implementation in any of the provided networks: ${missingFunctions.join(
-          ', '
-        )}`
+          ', ',
+        )}`,
       );
     }
   }
@@ -78,7 +78,7 @@ class CombinedDogeNetwork extends AbstractDogeNetwork {
     const network = this.implementations.get(func);
     if (!network) {
       throw new ImpossibleBehavior(
-        `No implementation found for function [${func}]`
+        `No implementation found for function [${func}]`,
       );
     }
     return network;
@@ -87,46 +87,46 @@ class CombinedDogeNetwork extends AbstractDogeNetwork {
   // AbstractChainNetwork function implementations
   getHeight = async (): Promise<number> => {
     return this.getNetworkForFunction(
-      DogeNetworkFunction.getHeight
+      DogeNetworkFunction.getHeight,
     ).getHeight();
   };
 
   getTxConfirmation = async (transactionId: string): Promise<number> => {
     return this.getNetworkForFunction(
-      DogeNetworkFunction.getTxConfirmation
+      DogeNetworkFunction.getTxConfirmation,
     ).getTxConfirmation(transactionId);
   };
 
   getAddressAssets = async (address: string): Promise<AssetBalance> => {
     return this.getNetworkForFunction(
-      DogeNetworkFunction.getAddressAssets
+      DogeNetworkFunction.getAddressAssets,
     ).getAddressAssets(address);
   };
 
   getBlockTransactionIds = async (blockId: string): Promise<Array<string>> => {
     return this.getNetworkForFunction(
-      DogeNetworkFunction.getBlockTransactionIds
+      DogeNetworkFunction.getBlockTransactionIds,
     ).getBlockTransactionIds(blockId);
   };
 
   getBlockInfo = async (blockId: string): Promise<BlockInfo> => {
     return this.getNetworkForFunction(
-      DogeNetworkFunction.getBlockInfo
+      DogeNetworkFunction.getBlockInfo,
     ).getBlockInfo(blockId);
   };
 
   getTransaction = async (
     transactionId: string,
-    blockId: string
+    blockId: string,
   ): Promise<DogeTx> => {
     return this.getNetworkForFunction(
-      DogeNetworkFunction.getTransaction
+      DogeNetworkFunction.getTransaction,
     ).getTransaction(transactionId, blockId);
   };
 
   submitTransaction = async (transaction: Psbt): Promise<void> => {
     return this.getNetworkForFunction(
-      DogeNetworkFunction.submitTransaction
+      DogeNetworkFunction.submitTransaction,
     ).submitTransaction(transaction);
   };
 
@@ -134,47 +134,47 @@ class CombinedDogeNetwork extends AbstractDogeNetwork {
   getAddressBoxes = async (
     address: string,
     offset: number,
-    limit: number
+    limit: number,
   ): Promise<Array<DogeUtxo>> => {
     return this.getNetworkForFunction(
-      DogeNetworkFunction.getAddressBoxes
+      DogeNetworkFunction.getAddressBoxes,
     ).getAddressBoxes(address, offset, limit);
   };
 
   isBoxUnspentAndValid = async (boxId: string): Promise<boolean> => {
     return this.getNetworkForFunction(
-      DogeNetworkFunction.isBoxUnspentAndValid
+      DogeNetworkFunction.isBoxUnspentAndValid,
     ).isBoxUnspentAndValid(boxId);
   };
 
   // AbstractDogeNetwork function implementations
   getUtxo = async (boxId: string): Promise<DogeUtxo> => {
     return this.getNetworkForFunction(DogeNetworkFunction.getUtxo).getUtxo(
-      boxId
+      boxId,
     );
   };
 
   getFeeRatio = async (): Promise<number> => {
     return this.getNetworkForFunction(
-      DogeNetworkFunction.getFeeRatio
+      DogeNetworkFunction.getFeeRatio,
     ).getFeeRatio();
   };
 
   isTxInMempool = async (txId: string): Promise<boolean> => {
     return this.getNetworkForFunction(
-      DogeNetworkFunction.isTxInMempool
+      DogeNetworkFunction.isTxInMempool,
     ).isTxInMempool(txId);
   };
 
   getTransactionHex = async (txId: string): Promise<string> => {
     return this.getNetworkForFunction(
-      DogeNetworkFunction.getTransactionHex
+      DogeNetworkFunction.getTransactionHex,
     ).getTransactionHex(txId);
   };
 
   getActualTxId = async (hash: string): Promise<string> => {
     return this.getNetworkForFunction(
-      DogeNetworkFunction.getActualTxId
+      DogeNetworkFunction.getActualTxId,
     ).getActualTxId(hash);
   };
 }

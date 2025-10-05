@@ -22,7 +22,7 @@ export const getPsbtTxInputBoxId = (input: PsbtTxInput) =>
 export const estimateTxFee = (
   inputSize: number,
   outputSize: number,
-  feeRatio: number
+  feeRatio: number,
 ): bigint => {
   const txSize =
     DOGE_TX_BASE_SIZE +

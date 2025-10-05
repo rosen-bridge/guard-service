@@ -45,7 +45,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
     CHAIN: string,
     NATIVE_TOKEN_ID: string,
     evmTxType = 0,
-    logger?: AbstractLogger
+    logger?: AbstractLogger,
   ) {
     super(network, configs, tokens, logger);
     this.evmTxType = evmTxType;
@@ -55,7 +55,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
       tokens,
       CHAIN,
       NATIVE_TOKEN_ID,
-      logger
+      logger,
     );
     const updateSupportedTokens = () => {
       const supportedTokens = tokens
@@ -63,7 +63,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
         .filter(
           (tokenSet) =>
             Object.keys(tokenSet).includes(CHAIN) &&
-            tokenSet[CHAIN].type !== 'native'
+            tokenSet[CHAIN].type !== 'native',
         )
         .map((tokenSet) => tokenSet[CHAIN].tokenId);
       this.supportedTokens = supportedTokens;
@@ -93,7 +93,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
     txType: TransactionType,
     order: PaymentOrder,
     unsignedTransactions: PaymentTransaction[],
-    serializedSignedTransactions: string[]
+    serializedSignedTransactions: string[],
   ): Promise<PaymentTransaction[]> => {
     // split orders and aggregate
     const orders = EvmUtils.splitPaymentOrders(order);
@@ -106,22 +106,22 @@ abstract class EvmChain extends AbstractChain<Transaction> {
         const assetId = singleOrder.assets.tokens[0].id;
         if (!this.supportedTokens.includes(assetId)) {
           throw new AssetNotSupportedError(
-            `Asset id [${assetId}] is not supported`
+            `Asset id [${assetId}] is not supported`,
           );
         }
         orderRequiredAssets = ChainUtils.sumAssetBalance(
           orderRequiredAssets,
-          singleOrder.assets
+          singleOrder.assets,
         );
       }
     });
     this.logger.debug(
-      `Order required assets: ${JsonBigInt.stringify(orderRequiredAssets)}`
+      `Order required assets: ${JsonBigInt.stringify(orderRequiredAssets)}`,
     );
 
     // check the number of parallel transactions won't be exceeded
     let nextNonce = await this.network.getAddressNextAvailableNonce(
-      this.configs.addresses.lock
+      this.configs.addresses.lock,
     );
     const nonceCount = new Map<number, number>();
     unsignedTransactions.map((tx) => {
@@ -133,7 +133,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
     });
     serializedSignedTransactions.map((tx) => {
       const nonce = Serializer.deserialize(
-        Uint8Array.from(Buffer.from(tx, 'hex'))
+        Uint8Array.from(Buffer.from(tx, 'hex')),
       ).nonce;
       const count = nonceCount.get(nonce);
       count !== undefined
@@ -153,7 +153,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
         feeData.maxPriorityFeePerGas === null
       ) {
         throw new ImpossibleBehavior(
-          `Tx type is 2 but max fee variables are null`
+          `Tx type is 2 but max fee variables are null`,
         );
       }
       requiredNativeToken =
@@ -174,7 +174,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
       }
     } else {
       throw new ImpossibleBehavior(
-        `Type ${this.evmTxType} transaction is not supported in EvmChain`
+        `Type ${this.evmTxType} transaction is not supported in EvmChain`,
       );
     }
 
@@ -185,20 +185,20 @@ abstract class EvmChain extends AbstractChain<Transaction> {
         nativeToken: this.tokenMap.wrapAmount(
           this.NATIVE_TOKEN_ID,
           requiredNativeToken,
-          this.CHAIN
+          this.CHAIN,
         ).amount,
         tokens: [],
-      }
+      },
     );
     this.logger.debug(
-      `Required assets: ${JsonBigInt.stringify(requiredAssets)}`
+      `Required assets: ${JsonBigInt.stringify(requiredAssets)}`,
     );
 
     if (!(await this.hasLockAddressEnoughAssets(requiredAssets))) {
       const neededETH = requiredAssets.nativeToken.toString();
       const neededTokens = JSONBigInt.stringify(requiredAssets.tokens);
       throw new NotEnoughAssetsError(
-        `Locked assets cannot cover required assets. native: ${neededETH}, erc-20: ${neededTokens}`
+        `Locked assets cannot cover required assets. native: ${neededETH}, erc-20: ${neededTokens}`,
       );
     }
 
@@ -211,7 +211,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
         const value = this.tokenMap.unwrapAmount(
           this.NATIVE_TOKEN_ID,
           singleOrder.assets.nativeToken,
-          this.CHAIN
+          this.CHAIN,
         ).amount;
         trx = Transaction.from({
           type: this.evmTxType,
@@ -227,12 +227,12 @@ abstract class EvmChain extends AbstractChain<Transaction> {
         const tokenValue = this.tokenMap.unwrapAmount(
           token.id,
           token.value,
-          this.CHAIN
+          this.CHAIN,
         ).amount;
         const data = EvmUtils.encodeTransferCallData(
           token.id,
           singleOrder.address,
-          tokenValue
+          tokenValue,
         );
 
         trx = Transaction.from({
@@ -248,7 +248,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
       let estimatedRequiredGas = await this.network.getGasRequired(trx);
       if (estimatedRequiredGas > this.configs.gasLimitCap) {
         this.logger.warn(
-          `Estimated required gas is more than gas limit cap config and cap is used for the tx [${estimatedRequiredGas} > ${this.configs.gasLimitCap}]`
+          `Estimated required gas is more than gas limit cap config and cap is used for the tx [${estimatedRequiredGas} > ${this.configs.gasLimitCap}]`,
         );
         estimatedRequiredGas = this.configs.gasLimitCap;
       }
@@ -262,8 +262,8 @@ abstract class EvmChain extends AbstractChain<Transaction> {
           trx.unsignedHash,
           eventId,
           Serializer.serialize(trx),
-          txType
-        )
+          txType,
+        ),
       );
       nextNonce += 1;
     }
@@ -271,7 +271,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
     // report result
     evmTrxs.forEach((trx) => {
       this.logger.info(
-        `${this.CHAIN} transaction [${trx.txId}] as type [${trx.txType}] generated for event [${trx.eventId}]`
+        `${this.CHAIN} transaction [${trx.txId}] as type [${trx.txType}] generated for event [${trx.eventId}]`,
       );
     });
 
@@ -284,13 +284,13 @@ abstract class EvmChain extends AbstractChain<Transaction> {
    * @returns an object containing the amount of input and output assets
    */
   getTransactionAssets = async (
-    transaction: PaymentTransaction
+    transaction: PaymentTransaction,
   ): Promise<TransactionAssetBalance> => {
     const tx = Serializer.deserialize(transaction.txBytes);
 
     if (tx.to === null) {
       throw new TransactionFormatError(
-        `Transaction [${transaction.txId}] does not have \`to\``
+        `Transaction [${transaction.txId}] does not have \`to\``,
       );
     }
 
@@ -303,18 +303,18 @@ abstract class EvmChain extends AbstractChain<Transaction> {
     if (tx.type === 2) {
       if (tx.maxFeePerGas === null)
         throw new ImpossibleBehavior(
-          "Type 2 transaction doesn't have null maxFeePerGas or maxPriorityFeePerGas"
+          "Type 2 transaction doesn't have null maxFeePerGas or maxPriorityFeePerGas",
         );
       networkFee *= tx.maxFeePerGas;
     } else if (tx.type === 0) {
       if (tx.gasPrice === null)
         throw new ImpossibleBehavior(
-          "Type 0 transaction doesn't have null gasPrice"
+          "Type 0 transaction doesn't have null gasPrice",
         );
       networkFee *= tx.gasPrice;
     } else {
       throw new ImpossibleBehavior(
-        `Type ${this.evmTxType} transaction is not supported in EvmChain`
+        `Type ${this.evmTxType} transaction is not supported in EvmChain`,
       );
     }
     assets.nativeToken = tx.value + networkFee;
@@ -332,7 +332,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
       assets,
       this.tokenMap,
       this.NATIVE_TOKEN_ID,
-      this.CHAIN
+      this.CHAIN,
     );
     // no need to calculate outputAssets separately, they are always equal in account-based
     return {
@@ -351,7 +351,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
 
     if (tx.to === null) {
       throw new TransactionFormatError(
-        `Transaction [${transaction.txId}] does not have \`to\``
+        `Transaction [${transaction.txId}] does not have \`to\``,
       );
     }
 
@@ -399,7 +399,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
         singleOrder.assets,
         this.tokenMap,
         this.NATIVE_TOKEN_ID,
-        this.CHAIN
+        this.CHAIN,
       );
       return singleOrder;
     });
@@ -419,7 +419,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
    * @returns true if the transaction fee is verified
    */
   verifyTransactionFee = async (
-    transaction: PaymentTransaction
+    transaction: PaymentTransaction,
   ): Promise<boolean> => {
     let tx: Transaction;
     const baseError = `Tx [${transaction.txId}] is not verified: `;
@@ -427,21 +427,21 @@ abstract class EvmChain extends AbstractChain<Transaction> {
       tx = Serializer.deserialize(transaction.txBytes);
     } catch (error) {
       this.logger.warn(
-        `Failed to deserialize tx [${transaction.txId}]: ${error}`
+        `Failed to deserialize tx [${transaction.txId}]: ${error}`,
       );
       return false;
     }
 
     if (tx.to === null) {
       this.logger.warn(
-        `Tx [${transaction.txId}] is not verified: does not have \`to\``
+        `Tx [${transaction.txId}] is not verified: does not have \`to\``,
       );
       return false;
     }
 
     if (tx.type !== this.evmTxType) {
       this.logger.warn(
-        `Tx [${transaction.txId}] is not verified: expected type [${this.evmTxType}] found [${tx.type}]`
+        `Tx [${transaction.txId}] is not verified: expected type [${this.evmTxType}] found [${tx.type}]`,
       );
       return false;
     }
@@ -450,7 +450,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
     let estimatedRequiredGas = await this.network.getGasRequired(tx);
     if (estimatedRequiredGas > this.configs.gasLimitCap) {
       this.logger.info(
-        `Estimated required gas is more than gas limit cap config and cap is used for verification [${estimatedRequiredGas} > ${this.configs.gasLimitCap}]`
+        `Estimated required gas is more than gas limit cap config and cap is used for verification [${estimatedRequiredGas} > ${this.configs.gasLimitCap}]`,
       );
       estimatedRequiredGas = this.configs.gasLimitCap;
     }
@@ -465,7 +465,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
     if (gasDifference > gasLimitSlippage) {
       this.logger.warn(
         baseError +
-          `Transaction gas limit [${tx.gasLimit}] is too far from calculated gas limit [${gasRequired}]`
+          `Transaction gas limit [${tx.gasLimit}] is too far from calculated gas limit [${gasRequired}]`,
       );
       return false;
     }
@@ -475,14 +475,14 @@ abstract class EvmChain extends AbstractChain<Transaction> {
     if (tx.type === 2) {
       if (tx.maxFeePerGas === null || tx.maxPriorityFeePerGas === null)
         throw new ImpossibleBehavior(
-          "Type 2 transaction can't have null maxFeePerGas or maxPriorityFeePerGas"
+          "Type 2 transaction can't have null maxFeePerGas or maxPriorityFeePerGas",
         );
       if (
         feeData.maxFeePerGas === null ||
         feeData.maxPriorityFeePerGas === null
       )
         throw new ImpossibleBehavior(
-          'Chain is using type 2 transactions but network is replying with null maxFeePerGas or maxPriorityFeePerGas'
+          'Chain is using type 2 transactions but network is replying with null maxFeePerGas or maxPriorityFeePerGas',
         );
 
       const networkMaxFee = feeData.maxFeePerGas;
@@ -496,7 +496,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
       if (maxFeeDifference > maxFeeSlippage) {
         this.logger.warn(
           baseError +
-            `Transaction max fee [${tx.maxFeePerGas}] is too far from network's max fee [${networkMaxFee}]`
+            `Transaction max fee [${tx.maxFeePerGas}] is too far from network's max fee [${networkMaxFee}]`,
         );
         return false;
       }
@@ -512,18 +512,18 @@ abstract class EvmChain extends AbstractChain<Transaction> {
       if (maxPriorityFeeDifference > priorityFeeSlippage) {
         this.logger.warn(
           baseError +
-            `Transaction max priority fee [${tx.maxPriorityFeePerGas}] is too far from network's max priority fee [${networkMaxPriorityFee}]`
+            `Transaction max priority fee [${tx.maxPriorityFeePerGas}] is too far from network's max priority fee [${networkMaxPriorityFee}]`,
         );
         return false;
       }
     } else if (tx.type === 0) {
       if (tx.gasPrice === null)
         throw new ImpossibleBehavior(
-          "Type 0 transaction can't have null gasPrice"
+          "Type 0 transaction can't have null gasPrice",
         );
       if (feeData.gasPrice === null)
         throw new ImpossibleBehavior(
-          'Chain is using type 0 transactions but network is replying with null gasPrice'
+          'Chain is using type 0 transactions but network is replying with null gasPrice',
         );
 
       const networkGasPrice = feeData.gasPrice;
@@ -537,13 +537,13 @@ abstract class EvmChain extends AbstractChain<Transaction> {
       if (gasPriceDifference > gasPriceSlippage) {
         this.logger.warn(
           baseError +
-            `Transaction gas price [${tx.gasPrice}] is too far from network's gas price [${networkGasPrice}]`
+            `Transaction gas price [${tx.gasPrice}] is too far from network's gas price [${networkGasPrice}]`,
         );
         return false;
       }
     } else {
       throw new ImpossibleBehavior(
-        `Type ${this.evmTxType} transaction is not supported in EvmChain`
+        `Type ${this.evmTxType} transaction is not supported in EvmChain`,
       );
     }
     return true;
@@ -560,7 +560,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
   isTxValid = async (
     transaction: PaymentTransaction,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    signingStatus: SigningStatus
+    signingStatus: SigningStatus,
   ): Promise<ValidityStatus> => {
     let trx: Transaction;
 
@@ -568,7 +568,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
       trx = Serializer.deserialize(transaction.txBytes);
     } catch (error) {
       this.logger.warn(
-        `Tx [${transaction.txId}] is invalid: failed to deserialized due to error: ${error}`
+        `Tx [${transaction.txId}] is invalid: failed to deserialized due to error: ${error}`,
       );
       return {
         isValid: false,
@@ -583,7 +583,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
     const txStatus = await this.network.getTransactionStatus(transaction.txId);
     if (txStatus === EvmTxStatus.failed) {
       this.logger.info(
-        `Tx [${transaction.txId}] is invalid: tx is failed in blockchain`
+        `Tx [${transaction.txId}] is invalid: tx is failed in blockchain`,
       );
       return {
         isValid: false,
@@ -596,7 +596,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
 
     // check the nonce wasn't increased
     const nextNonce = await this.network.getAddressNextAvailableNonce(
-      this.configs.addresses.lock
+      this.configs.addresses.lock,
     );
     if (nextNonce > trx.nonce) {
       const hashes = this.network.getTransactionByNonce(trx.nonce);
@@ -607,7 +607,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
         };
       }
       this.logger.info(
-        `Tx [${transaction.txId}] is invalid: Transaction's nonce [${trx.nonce}] is not available anymore according to address's current nonce [${nextNonce}]`
+        `Tx [${transaction.txId}] is invalid: Transaction's nonce [${trx.nonce}] is not available anymore according to address's current nonce [${nextNonce}]`,
       );
       return {
         isValid: false,
@@ -633,7 +633,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
   signTransaction = async (
     transaction: PaymentTransaction,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    requiredSign: number
+    requiredSign: number,
   ): Promise<PaymentTransaction> => {
     const tx = Serializer.deserialize(transaction.txBytes);
     const hash =
@@ -647,7 +647,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
         const yParity = Number(res.signatureRecovery);
         if (yParity !== 0 && yParity !== 1)
           throw new ImpossibleBehavior(
-            `non-binary signature recovery: ${res.signatureRecovery}`
+            `non-binary signature recovery: ${res.signatureRecovery}`,
           );
         const signature = Signature.from({
           r,
@@ -660,9 +660,9 @@ abstract class EvmChain extends AbstractChain<Transaction> {
           transaction.txId,
           transaction.eventId,
           Serializer.signedSerialize(tx),
-          transaction.txType
+          transaction.txType,
         );
-      }
+      },
     );
   };
 
@@ -674,7 +674,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
    * @param transaction the transaction
    */
   submitTransaction = async (
-    transaction: PaymentTransaction
+    transaction: PaymentTransaction,
   ): Promise<void> => {
     // deserialize transaction
     let tx: Transaction;
@@ -682,7 +682,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
       tx = Serializer.deserialize(transaction.txBytes);
     } catch (error) {
       this.logger.warn(
-        `Failed to deserialize tx [${transaction.txId}]: ${error}`
+        `Failed to deserialize tx [${transaction.txId}]: ${error}`,
       );
       return;
     }
@@ -692,7 +692,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
       const gasRequired = await this.network.getGasRequired(tx);
       if (gasRequired > tx.gasLimit) {
         this.logger.warn(
-          `Cannot submit transaction [${transaction.txId}]: Transaction gas limit [${tx.gasLimit}] is less than the required gas [${gasRequired}]`
+          `Cannot submit transaction [${transaction.txId}]: Transaction gas limit [${tx.gasLimit}] is less than the required gas [${gasRequired}]`,
         );
         return;
       }
@@ -704,14 +704,14 @@ abstract class EvmChain extends AbstractChain<Transaction> {
           `Cannot submit transaction [${
             transaction.txId
           }]: Locked assets cannot cover transaction assets: ${JSONBigInt.stringify(
-            txAssets.inputAssets
-          )}`
+            txAssets.inputAssets,
+          )}`,
         );
         return;
       }
     } catch (e) {
       this.logger.warn(
-        `An error occurred while checking transaction [${transaction.txId}] for submission: ${e}`
+        `An error occurred while checking transaction [${transaction.txId}] for submission: ${e}`,
       );
       if (e instanceof Error && e.stack) {
         this.logger.warn(e.stack);
@@ -723,11 +723,11 @@ abstract class EvmChain extends AbstractChain<Transaction> {
     try {
       const response = await this.network.submitTransaction(tx);
       this.logger.info(
-        `${this.CHAIN} Transaction [${transaction.txId}] submitted. Response: ${response}`
+        `${this.CHAIN} Transaction [${transaction.txId}] submitted. Response: ${response}`,
       );
     } catch (e) {
       this.logger.warn(
-        `An error occurred while submitting ${this.CHAIN} transaction [${transaction.txId}]: ${e}`
+        `An error occurred while submitting ${this.CHAIN} transaction [${transaction.txId}]: ${e}`,
       );
       if (e instanceof Error && e.stack) {
         this.logger.warn(e.stack);
@@ -764,7 +764,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
       obj.txId,
       obj.eventId,
       Uint8Array.from(Buffer.from(obj.txBytes, 'hex')),
-      obj.txType as TransactionType
+      obj.txType as TransactionType,
     );
   };
 
@@ -775,12 +775,12 @@ abstract class EvmChain extends AbstractChain<Transaction> {
    * @returns PaymentTransaction object
    */
   rawTxToPaymentTransaction = async (
-    rawTxJsonString: string
+    rawTxJsonString: string,
   ): Promise<PaymentTransaction> => {
     const trx = Transaction.from(JSON.parse(rawTxJsonString));
     if (trx.type !== this.evmTxType) {
       throw new TransactionFormatError(
-        `Expected type [${this.evmTxType}] transaction while parsing raw transaction, found type [${trx.type}]`
+        `Expected type [${this.evmTxType}] transaction while parsing raw transaction, found type [${trx.type}]`,
       );
     }
     const evmTx = new PaymentTransaction(
@@ -788,11 +788,11 @@ abstract class EvmChain extends AbstractChain<Transaction> {
       trx.unsignedHash,
       '',
       Serializer.serialize(trx),
-      TransactionType.manual
+      TransactionType.manual,
     );
 
     this.logger.info(
-      `Parsed ${this.CHAIN} transaction [${trx.unsignedHash}] successfully`
+      `Parsed ${this.CHAIN} transaction [${trx.unsignedHash}] successfully`,
     );
     return evmTx;
   };
@@ -814,21 +814,21 @@ abstract class EvmChain extends AbstractChain<Transaction> {
   verifyTransactionExtraConditions = (
     transaction: PaymentTransaction,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    signingStatus: SigningStatus = SigningStatus.UnSigned
+    signingStatus: SigningStatus = SigningStatus.UnSigned,
   ): boolean => {
     let tx: Transaction;
     try {
       tx = Serializer.deserialize(transaction.txBytes);
     } catch (error) {
       this.logger.warn(
-        `Tx [${transaction.txId}] is not verified: failed to deserialized due to error: ${error}`
+        `Tx [${transaction.txId}] is not verified: failed to deserialized due to error: ${error}`,
       );
       return false;
     }
 
     if (tx.to === null) {
       this.logger.warn(
-        `Tx [${transaction.txId}] is not verified. \`to\` is null`
+        `Tx [${transaction.txId}] is not verified. \`to\` is null`,
       );
       return false;
     }
@@ -842,7 +842,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
     // tx data must have correct length
     if (![eidlen + 2, eidlen + 2 + 136].includes(tx.data.length)) {
       this.logger.warn(
-        `Tx [${transaction.txId}] is not verified. Unexpected \`data\` bytes length [${tx.data.length}]`
+        `Tx [${transaction.txId}] is not verified. Unexpected \`data\` bytes length [${tx.data.length}]`,
       );
       return false;
     }
@@ -851,7 +851,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
     const eventId = tx.data.substring(tx.data.length - eidlen);
     if (eventId !== transaction.eventId) {
       this.logger.warn(
-        `Tx [${transaction.txId}] is not verified. Encoded eventId [${eventId}] does not match with the expected one [${transaction.eventId}]`
+        `Tx [${transaction.txId}] is not verified. Encoded eventId [${eventId}] does not match with the expected one [${transaction.eventId}]`,
       );
       return false;
     }
@@ -862,7 +862,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
       (tx.value !== 0n && tx.data.length === 136 + eidlen + 2)
     ) {
       this.logger.warn(
-        `Tx [${transaction.txId}] is not verified. It both transfers native-token and has extra data.`
+        `Tx [${transaction.txId}] is not verified. It both transfers native-token and has extra data.`,
       );
       return false;
     }
@@ -871,7 +871,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
     if (tx.value === 0n) {
       if (!EvmUtils.isTransfer(tx.to, tx.data)) {
         this.logger.warn(
-          `Tx [${transaction.txId}] is not verified. \`data\` field [${tx.data}] can not be parsed with 'transfer' ABI.`
+          `Tx [${transaction.txId}] is not verified. \`data\` field [${tx.data}] can not be parsed with 'transfer' ABI.`,
         );
         return false;
       }
@@ -890,17 +890,17 @@ abstract class EvmChain extends AbstractChain<Transaction> {
   verifyLockTransactionExtraConditions = async (
     transaction: Transaction,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    blockInfo: BlockInfo
+    blockInfo: BlockInfo,
   ): Promise<boolean> => {
     // check if tx is failed
     if (!transaction.hash)
       throw new ImpossibleBehavior(
-        `failed to get txId of the lock transaction while verifying the event`
+        `failed to get txId of the lock transaction while verifying the event`,
       );
     const txStatus = await this.network.getTransactionStatus(transaction.hash);
     if (txStatus !== EvmTxStatus.succeed) {
       this.logger.error(
-        `Lock tx [${transaction.hash}] is not succeed (failed or unexpected status)`
+        `Lock tx [${transaction.hash}] is not succeed (failed or unexpected status)`,
       );
       return false;
     }
@@ -921,7 +921,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
    */
   getAddressAssets = async (
     address: string,
-    tokenIds?: string[]
+    tokenIds?: string[],
   ): Promise<AssetBalance> => {
     if (address === '') {
       this.logger.debug(`returning empty assets for empty address`);
@@ -937,13 +937,13 @@ abstract class EvmChain extends AbstractChain<Transaction> {
       targetAssets.map(async (tokenId) => {
         const balance = await this.network.getAddressBalanceForERC20Asset(
           address,
-          tokenId
+          tokenId,
         );
         return {
           id: tokenId,
           value: balance,
         };
-      })
+      }),
     );
     const wrappedAssets = ChainUtils.wrapAssetBalance(
       {
@@ -952,7 +952,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
       },
       this.tokenMap,
       this.NATIVE_TOKEN_ID,
-      this.CHAIN
+      this.CHAIN,
     );
     return wrappedAssets;
   };
@@ -963,7 +963,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
    * @returns true if the transaction is verified
    */
   verifyPaymentTransaction = async (
-    transaction: PaymentTransaction
+    transaction: PaymentTransaction,
   ): Promise<boolean> => {
     const tx = Serializer.deserialize(transaction.txBytes);
     const baseError = `Tx [${transaction.txId}] is not verified: `;
@@ -972,7 +972,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
     if (transaction.txId !== tx.unsignedHash) {
       this.logger.warn(
         baseError +
-          `Transaction id is inconsistent (expected [${transaction.txId}] found [${tx.unsignedHash}])`
+          `Transaction id is inconsistent (expected [${transaction.txId}] found [${tx.unsignedHash}])`,
       );
       return false;
     }

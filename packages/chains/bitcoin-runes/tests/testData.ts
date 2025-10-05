@@ -172,7 +172,7 @@ export const lockAddressUtxos: BitcoinRunesUtxo[] = [
   },
 ];
 export const lockAddressBoxIds = lockAddressUtxos.map(
-  (utxo) => `${utxo.txId}.${utxo.index}`
+  (utxo) => `${utxo.txId}.${utxo.index}`,
 );
 export const lockBalance: AssetBalance = {
   nativeToken: 14692n,
@@ -215,7 +215,7 @@ export const realisticLockAddressUtxos: BitcoinRunesUtxo[] = [
   },
 ];
 export const realisticLockAddressBoxIds = realisticLockAddressUtxos.map(
-  (utxo) => `${utxo.txId}.${utxo.index}`
+  (utxo) => `${utxo.txId}.${utxo.index}`,
 );
 export const realisticLockBalance: AssetBalance = {
   nativeToken: 2888n,

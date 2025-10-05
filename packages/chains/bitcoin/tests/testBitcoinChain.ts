@@ -4,7 +4,7 @@ import { BitcoinChain } from '../lib';
 export class TestBitcoinChain extends BitcoinChain {
   callGetTransactionsBoxMapping = (
     serializedTransactions: Psbt[],
-    address: string
+    address: string,
   ) => {
     return this.getTransactionsBoxMapping(serializedTransactions, address);
   };

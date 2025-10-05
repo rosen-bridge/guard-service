@@ -32,7 +32,7 @@ export const mockGetApiV1Networkstate = () =>
  * mock `getApiV1TransactionsP1` of ergo explorer client
  */
 export const mockGetApiV1TransactionsP1 = (
-  tx: typeof testTransaction = testTransaction
+  tx: typeof testTransaction = testTransaction,
 ) =>
   vi.mocked(ergoExplorerClientFactory).mockReturnValueOnce({
     v1: {
@@ -45,7 +45,7 @@ export const mockGetApiV1TransactionsP1 = (
  * @param balance
  */
 export const mockGetApiV1AddressesP1BalanceConfirmed = (
-  balance: Partial<typeof testAddressBalance> | null = testAddressBalance
+  balance: Partial<typeof testAddressBalance> | null = testAddressBalance,
 ) =>
   vi.mocked(ergoExplorerClientFactory).mockReturnValueOnce({
     v1: {
@@ -58,7 +58,7 @@ export const mockGetApiV1AddressesP1BalanceConfirmed = (
  * @param txs
  */
 export const mockGetApiV1BlocksP1 = (
-  txs: typeof testPartialTransactions | null = testPartialTransactions
+  txs: typeof testPartialTransactions | null = testPartialTransactions,
 ) =>
   vi.mocked(ergoExplorerClientFactory).mockReturnValueOnce({
     v1: {
@@ -81,7 +81,7 @@ export const mockPostApiV0TransactionsSend = () => {
   vi.mocked(ergoExplorerClientFactory).mockReturnValueOnce({
     v0: {
       postApiV0TransactionsSend: postApiV0TransactionsSendSpy.mockResolvedValue(
-        testTransaction.id
+        testTransaction.id,
       ),
     },
   } as any);
@@ -103,7 +103,7 @@ export const mockGetApiV0TransactionsUnconfirmed = () =>
       }) => ({
         items: testMempoolTransactions.slice(
           Number(offset),
-          Number(offset + limit)
+          Number(offset + limit),
         ),
         total: testMempoolTransactions.length,
       }),
@@ -114,7 +114,7 @@ export const mockGetApiV0TransactionsUnconfirmed = () =>
  * mock `getApiV1BoxesUnspentByaddressP1` of ergo explorer client
  */
 export const mockGetApiV1BoxesUnspentByaddressP1 = (
-  shouldIncludeItemsField = true
+  shouldIncludeItemsField = true,
 ) =>
   vi.mocked(ergoExplorerClientFactory).mockReturnValueOnce({
     v1: {
@@ -126,7 +126,7 @@ export const mockGetApiV1BoxesUnspentByaddressP1 = (
         }: {
           offset: bigint;
           limit: bigint;
-        }
+        },
       ) => ({
         ...(shouldIncludeItemsField && {
           items: testAddressBoxes.slice(Number(offset), Number(offset + limit)),
@@ -140,7 +140,7 @@ export const mockGetApiV1BoxesUnspentByaddressP1 = (
  * mock `getApiV1BoxesUnspentBytokenidP1` of ergo explorer client
  */
 export const mockGetApiV1BoxesUnspentBytokenidP1 = (
-  shouldIncludeItemsField = true
+  shouldIncludeItemsField = true,
 ) =>
   vi.mocked(ergoExplorerClientFactory).mockReturnValueOnce({
     v1: {
@@ -152,7 +152,7 @@ export const mockGetApiV1BoxesUnspentBytokenidP1 = (
         }: {
           offset: bigint;
           limit: bigint;
-        }
+        },
       ) => ({
         ...(shouldIncludeItemsField && {
           items: testTokenIdBoxes.slice(Number(offset), Number(offset + limit)),
@@ -215,7 +215,7 @@ export const mockApiToThrow = <Version extends keyof ErgoExplorerClientSchema>(
   apiName: keyof ErgoExplorerClientSchema[Version],
   objectToThrow: {
     [key: string]: any;
-  }
+  },
 ) =>
   vi.mocked(ergoExplorerClientFactory).mockReturnValueOnce({
     [version]: {

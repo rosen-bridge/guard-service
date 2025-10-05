@@ -14,7 +14,7 @@ import {
 export class TestBitcoinRunesNetwork extends AbstractBitcoinRunesNetwork {
   extractor = new BitcoinRosenExtractor(
     'bc1qkgp89fjerymm5ltg0hygnumr0m2qa7n22gyw6h',
-    new TokenMap()
+    new TokenMap(),
   );
   notImplemented = () => {
     throw Error('Not implemented');
@@ -91,7 +91,7 @@ export class TestBitcoinRunesNetwork extends AbstractBitcoinRunesNetwork {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     offset: number,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    limit: number
+    limit: number,
   ): Promise<Array<BitcoinRunesUtxo>> => {
     throw Error('Not mocked');
   };
@@ -105,7 +105,7 @@ export class TestBitcoinRunesNetwork extends AbstractBitcoinRunesNetwork {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     fetchedBoxIds: Array<string>,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    address: string
+    address: string,
   ): Promise<Array<BitcoinRunesUtxo>> => {
     throw Error('Not mocked');
   };

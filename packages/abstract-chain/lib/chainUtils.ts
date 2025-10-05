@@ -67,7 +67,7 @@ class ChainUtils {
     a: AssetBalance,
     b: AssetBalance,
     minimumNativeToken = 0n,
-    allowNegativeNativeToken = false
+    allowNegativeNativeToken = false,
   ): AssetBalance => {
     // sum native token
     let nativeToken = 0n;
@@ -76,7 +76,7 @@ class ChainUtils {
     else if (allowNegativeNativeToken) nativeToken = 0n;
     else
       throw new ValueError(
-        `Cannot reduce native token: [${a.nativeToken.toString()}] is less than [${b.nativeToken.toString()} + ${minimumNativeToken.toString()}]`
+        `Cannot reduce native token: [${a.nativeToken.toString()}] is less than [${b.nativeToken.toString()} + ${minimumNativeToken.toString()}]`,
       );
 
     // reduce all `b` tokens
@@ -91,11 +91,11 @@ class ChainUtils {
           throw new ValueError(
             `Cannot reduce token [${token.id}]: [${tokens[
               index
-            ].value.toString()}] is less than [${token.value.toString()}]`
+            ].value.toString()}] is less than [${token.value.toString()}]`,
           );
       } else
         throw new ValueError(
-          `Cannot reduce token [${token.id}]: Token not found`
+          `Cannot reduce token [${token.id}]: Token not found`,
         );
     });
 
@@ -116,17 +116,21 @@ class ChainUtils {
     a: AssetBalance,
     tokenMap: TokenMap,
     nativeTokenId: string,
-    chain: string
+    chain: string,
   ): AssetBalance => {
     const result = structuredClone(a);
     result.nativeToken = tokenMap.wrapAmount(
       nativeTokenId,
       result.nativeToken,
-      chain
+      chain,
     ).amount;
     result.tokens.forEach(
       (token) =>
-        (token.value = tokenMap.wrapAmount(token.id, token.value, chain).amount)
+        (token.value = tokenMap.wrapAmount(
+          token.id,
+          token.value,
+          chain,
+        ).amount),
     );
     return result;
   };
@@ -142,21 +146,21 @@ class ChainUtils {
     a: AssetBalance,
     tokenMap: TokenMap,
     nativeTokenId: string,
-    chain: string
+    chain: string,
   ): AssetBalance => {
     const result = structuredClone(a);
     result.nativeToken = tokenMap.unwrapAmount(
       nativeTokenId,
       result.nativeToken,
-      chain
+      chain,
     ).amount;
     result.tokens.forEach(
       (token) =>
         (token.value = tokenMap.unwrapAmount(
           token.id,
           token.value,
-          chain
-        ).amount)
+          chain,
+        ).amount),
     );
     return result;
   };

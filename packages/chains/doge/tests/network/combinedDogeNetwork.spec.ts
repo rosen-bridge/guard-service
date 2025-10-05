@@ -26,7 +26,7 @@ describe('CombinedDogeNetwork', () => {
 
     const combinedNetwork = new CombinedDogeNetwork(
       [heightAndAssetsNetwork, transactionNetwork, blockAndUtxoNetwork],
-      logger
+      logger,
     );
 
     // Test functions from HeightAndAssetsNetwork
@@ -80,7 +80,7 @@ describe('CombinedDogeNetwork', () => {
     // When network1 has priority
     const combinedNetwork1 = new CombinedDogeNetwork(
       [network1, network2],
-      logger
+      logger,
     );
     const height1 = await combinedNetwork1.getHeight();
     expect(height1).toBe(100);
@@ -88,7 +88,7 @@ describe('CombinedDogeNetwork', () => {
     // When network2 has priority
     const combinedNetwork2 = new CombinedDogeNetwork(
       [network2, network1],
-      logger
+      logger,
     );
     const height2 = await combinedNetwork2.getHeight();
     expect(height2).toBe(200);

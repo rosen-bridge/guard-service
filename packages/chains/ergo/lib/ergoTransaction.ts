@@ -15,7 +15,7 @@ class ErgoTransaction extends PaymentTransaction {
     txBytes: Uint8Array,
     txType: TransactionType,
     inputBoxes: Array<Uint8Array>,
-    dataInputs: Array<Uint8Array>
+    dataInputs: Array<Uint8Array>,
   ) {
     super(ERGO_CHAIN, txId, eventId, txBytes, txType);
     this.inputBoxes = inputBoxes;
@@ -34,7 +34,7 @@ class ErgoTransaction extends PaymentTransaction {
       Buffer.from(obj.txBytes, 'hex'),
       obj.txType as TransactionType,
       obj.inputBoxes.map((box) => Buffer.from(box, 'hex')),
-      obj.dataInputs.map((box) => Buffer.from(box, 'hex'))
+      obj.dataInputs.map((box) => Buffer.from(box, 'hex')),
     );
   };
 

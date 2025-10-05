@@ -23,7 +23,7 @@ describe('CardanoBlockFrostNetwork', () => {
   const mockNetwork = () =>
     new TestCardanoBlockFrostNetwork(
       'testProjectId',
-      'http://blockfrost_test_url.test'
+      'http://blockfrost_test_url.test',
     );
 
   describe('getHeight', () => {
@@ -71,12 +71,12 @@ describe('CardanoBlockFrostNetwork', () => {
 
       // run test
       const result = await network.getTxConfirmation(
-        testData.rosenTransaction.hash
+        testData.rosenTransaction.hash,
       );
 
       // check returned value
       expect(result).toEqual(
-        testData.blockHeight - testData.rosenTransaction.block_height
+        testData.blockHeight - testData.rosenTransaction.block_height,
       );
     });
 
@@ -101,7 +101,7 @@ describe('CardanoBlockFrostNetwork', () => {
 
       // run test
       const result = await network.getTxConfirmation(
-        testData.rosenTransaction.hash
+        testData.rosenTransaction.hash,
       );
 
       // check returned value
@@ -266,13 +266,13 @@ describe('CardanoBlockFrostNetwork', () => {
       mockTxsUtxos(network.getClient(), testData.noMetadataTransactionUtxos);
       mockTxsMetadata(
         network.getClient(),
-        testData.noMetadataTransactionMetadata
+        testData.noMetadataTransactionMetadata,
       );
 
       // run test
       const result = await network.getTransaction(
         testData.noMetadataTransaction.hash,
-        testData.noMetadataTransaction.block
+        testData.noMetadataTransaction.block,
       );
       // check returned value
       expect(result).toEqual(testData.noMetadataTransactionInCardanoTx);
@@ -301,7 +301,7 @@ describe('CardanoBlockFrostNetwork', () => {
       // run test
       const result = await network.getTransaction(
         testData.rosenTransaction.hash,
-        testData.rosenTransaction.block
+        testData.rosenTransaction.block,
       );
       // check returned value
       expect(result).toEqual(testData.rosenTransactionInCardanoTx);
@@ -326,17 +326,17 @@ describe('CardanoBlockFrostNetwork', () => {
       mockTxs(network.getClient(), testData.differentMetadataTransaction);
       mockTxsUtxos(
         network.getClient(),
-        testData.differentMetadataTransactionUtxos
+        testData.differentMetadataTransactionUtxos,
       );
       mockTxsMetadata(
         network.getClient(),
-        testData.differentMetadataTransactionMetadata
+        testData.differentMetadataTransactionMetadata,
       );
 
       // run test
       const result = await network.getTransaction(
         testData.differentMetadataTransaction.hash,
-        testData.differentMetadataTransaction.block
+        testData.differentMetadataTransaction.block,
       );
       // check returned value
       expect(result).toEqual(testData.differentMetadataTransactionInCardanoTx);

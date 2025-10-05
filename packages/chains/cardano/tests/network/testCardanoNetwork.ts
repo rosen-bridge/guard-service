@@ -12,7 +12,7 @@ import { TokenMap } from '@rosen-bridge/tokens';
 class TestCardanoNetwork extends AbstractCardanoNetwork {
   extractor = new CardanoRosenExtractor(
     '9es3xKFSehNNwCpuNpY31ScAubDqeLbSWwaCysjN1ee51bgHKTq',
-    new TokenMap()
+    new TokenMap(),
   );
   notImplemented = () => {
     throw Error('Not implemented');
@@ -31,7 +31,7 @@ class TestCardanoNetwork extends AbstractCardanoNetwork {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     offset: number,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    limit: number
+    limit: number,
   ): Promise<Array<CardanoUtxo>> => {
     throw Error('Not mocked');
   };

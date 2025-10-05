@@ -22,7 +22,7 @@ export const getPsbtTxInputBoxId = (input: PsbtTxInput) =>
 export const estimateTxFee = (
   inputSize: number,
   outputSize: number,
-  feeRatio: number
+  feeRatio: number,
 ): bigint => {
   const txBaseWeight = 40 + 2; // all txs include 40W. P2WPKH txs need additional 2W
   const inputsWeight = inputSize * SEGWIT_INPUT_WEIGHT_UNIT;
@@ -30,7 +30,7 @@ export const estimateTxFee = (
   return BigInt(
     Math.ceil(
       ((txBaseWeight + inputsWeight + outputWeight) / 4) * // estimate tx weight and convert to virtual size
-        feeRatio
-    )
+        feeRatio,
+    ),
   );
 };

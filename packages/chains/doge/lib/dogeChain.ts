@@ -56,13 +56,13 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
     configs: DogeConfigs,
     tokens: TokenMap,
     signFunction: TssSignFunction,
-    logger?: AbstractLogger
+    logger?: AbstractLogger,
   ) {
     super(network, configs, tokens, logger);
     this.extractor = new DogeRosenExtractor(
       configs.addresses.lock,
       tokens,
-      logger
+      logger,
     );
     this.signFunction = signFunction;
     this.lockScript = address
@@ -85,12 +85,12 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
     txType: TransactionType,
     order: PaymentOrder,
     unsignedTransactions: PaymentTransaction[],
-    serializedSignedTransactions: string[]
+    serializedSignedTransactions: string[],
   ): Promise<DogeTransaction[]> => {
     this.logger.debug(
       `Generating Dogecoin transaction for Order: ${JsonBigInt.stringify(
-        order
-      )}`
+        order,
+      )}`,
     );
     const feeRatio = await this.network.getFeeRatio();
 
@@ -103,13 +103,13 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
         tokens: [],
       });
     this.logger.debug(
-      `Required assets: ${JsonBigInt.stringify(requiredAssets)}`
+      `Required assets: ${JsonBigInt.stringify(requiredAssets)}`,
     );
 
     if (!(await this.hasLockAddressEnoughAssets(requiredAssets))) {
       const neededDoge = this.unwrapDoge(requiredAssets.nativeToken);
       throw new NotEnoughAssetsError(
-        `Locked assets cannot cover required assets. DOGE: ${neededDoge.amount.toString()}`
+        `Locked assets cannot cover required assets. DOGE: ${neededDoge.amount.toString()}`,
       );
     }
 
@@ -139,7 +139,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
           }
           return false;
         }
-      }
+      },
     );
 
     // Save the hex bytes of the signed transaction in case their utxos are going to be spent in this transaction
@@ -151,9 +151,9 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
     }
     const trackMap = this.getTransactionsBoxMapping(
       finalizedSignedTransactions.map((serializedTx) =>
-        Psbt.fromHex(serializedTx, { network: DOGE_NETWORK })
+        Psbt.fromHex(serializedTx, { network: DOGE_NETWORK }),
       ),
-      this.configs.addresses.lock
+      this.configs.addresses.lock,
     );
 
     // generate iterator for address boxes
@@ -179,7 +179,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
       DOGE_INPUT_SIZE,
       DOGE_OUTPUT_SIZE,
       feeRatio,
-      1 // the virtual size matters for fee estimation of native-segwit transactions
+      1, // the virtual size matters for fee estimation of native-segwit transactions
     );
 
     // fetch input boxes
@@ -187,7 +187,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
       requiredAssets,
       this.tokenMap,
       this.NATIVE_TOKEN_ID,
-      this.CHAIN
+      this.CHAIN,
     );
     const coveredBoxes = await this.boxSelection.getCoveringBoxes(
       unwrappedRequiredAssets,
@@ -196,12 +196,12 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
       utxoIterator,
       BigInt(MINIMUM_UTXO_VALUE),
       undefined,
-      estimateFee
+      estimateFee,
     );
     if (!coveredBoxes.covered) {
       const neededDoge = unwrappedRequiredAssets.nativeToken;
       throw new NotEnoughValidBoxesError(
-        `Available boxes didn't cover required assets. DOGE: ${neededDoge.toString()}`
+        `Available boxes didn't cover required assets. DOGE: ${neededDoge.toString()}`,
       );
     }
 
@@ -246,7 +246,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
     const estimatedFee = estimateTxFee(
       psbt.txInputs.length,
       psbt.txOutputs.length + 1,
-      feeRatio
+      feeRatio,
     );
     this.logger.debug(`Estimated Fee: ${estimatedFee}`);
     remainingDoge -= estimatedFee;
@@ -264,11 +264,11 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
       eventId,
       txBytes,
       txType,
-      coveredBoxes.boxes.map((box) => JsonBigInt.stringify(box))
+      coveredBoxes.boxes.map((box) => JsonBigInt.stringify(box)),
     );
 
     this.logger.info(
-      `Dogecoin transaction [${txId}] as type [${txType}] generated for event [${eventId}]`
+      `Dogecoin transaction [${txId}] as type [${txType}] generated for event [${eventId}]`,
     );
     return [dogeTx];
   };
@@ -279,7 +279,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
    * @returns an object containing the amount of input and output assets
    */
   getTransactionAssets = async (
-    transaction: PaymentTransaction
+    transaction: PaymentTransaction,
   ): Promise<TransactionAssetBalance> => {
     const dogeTx = transaction as DogeTransaction;
 
@@ -312,7 +312,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
     return this.tokenMap.wrapAmount(
       this.NATIVE_TOKEN_ID,
       BigInt(MINIMUM_UTXO_VALUE),
-      this.CHAIN
+      this.CHAIN,
     ).amount;
   };
 
@@ -353,7 +353,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
    * @returns true if the transaction fee is verified
    */
   verifyTransactionFee = async (
-    transaction: PaymentTransaction
+    transaction: PaymentTransaction,
   ): Promise<boolean> => {
     const tx = Serializer.deserialize(transaction.txBytes);
     const dogeTx = transaction as DogeTransaction;
@@ -375,15 +375,15 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
     const estimatedFee = estimateTxFee(
       tx.txInputs.length,
       tx.txOutputs.length,
-      await this.network.getFeeRatio()
+      await this.network.getFeeRatio(),
     );
 
     const feeDifferencePercent = Math.abs(
-      (Number(fee - estimatedFee) * 100) / Number(fee)
+      (Number(fee - estimatedFee) * 100) / Number(fee),
     );
     if (feeDifferencePercent > this.configs.txFeeSlippage) {
       this.logger.warn(
-        `Tx [${transaction.txId}] is not verified: Fee difference is too high. Slippage is higher than allowed value [${feeDifferencePercent} > ${this.configs.txFeeSlippage}]. fee: ${fee}, estimated fee: ${estimatedFee}`
+        `Tx [${transaction.txId}] is not verified: Fee difference is too high. Slippage is higher than allowed value [${feeDifferencePercent} > ${this.configs.txFeeSlippage}]. fee: ${fee}, estimated fee: ${estimatedFee}`,
       );
       return false;
     }
@@ -397,7 +397,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
    */
   verifyNoTokenBurned = async (
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    transaction: PaymentTransaction
+    transaction: PaymentTransaction,
   ): Promise<boolean> => {
     // Dogecoin has no tokens and DOGE cannot be burned
     return true;
@@ -410,7 +410,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
    * @returns true if the transaction is verified
    */
   verifyTransactionExtraConditions = (
-    transaction: PaymentTransaction
+    transaction: PaymentTransaction,
   ): boolean => {
     const tx = Serializer.deserialize(transaction.txBytes);
 
@@ -419,7 +419,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
     const changeBox = tx.txOutputs[changeBoxIndex];
     if (changeBox.script.toString('hex') !== this.lockScript) {
       this.logger.warn(
-        `Tx [${transaction.txId}] is not verified: Change box address is wrong`
+        `Tx [${transaction.txId}] is not verified: Change box address is wrong`,
       );
       return false;
     }
@@ -437,7 +437,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     transaction: DogeTx,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    blockInfo: BlockInfo
+    blockInfo: BlockInfo,
   ): Promise<boolean> => {
     return true;
   };
@@ -451,14 +451,14 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
   isTxValid = async (
     transaction: PaymentTransaction,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    signingStatus: SigningStatus = SigningStatus.Signed
+    signingStatus: SigningStatus = SigningStatus.Signed,
   ): Promise<ValidityStatus> => {
     const tx = Serializer.deserialize(transaction.txBytes);
     for (let i = 0; i < tx.txInputs.length; i++) {
       const boxId = getPsbtTxInputBoxId(tx.txInputs[i]);
       if (!(await this.network.isBoxUnspentAndValid(boxId))) {
         this.logger.info(
-          `Tx [${transaction.txId}] is invalid due to spending invalid input box [${boxId}] at index [${i}]`
+          `Tx [${transaction.txId}] is invalid due to spending invalid input box [${boxId}] at index [${i}]`,
         );
         return {
           isValid: false,
@@ -482,7 +482,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
    * @returns the signed transaction
    */
   signTransaction = (
-    transaction: PaymentTransaction
+    transaction: PaymentTransaction,
   ): Promise<PaymentTransaction> => {
     const psbt = Serializer.deserialize(transaction.txBytes);
     const tx = Transaction.fromBuffer(psbt.data.getTransaction());
@@ -493,12 +493,12 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
       const signMessage = tx.hashForSignature(
         i,
         Buffer.from(this.lockScript, 'hex'),
-        Transaction.SIGHASH_ALL
+        Transaction.SIGHASH_ALL,
       );
 
       const signatureHex = this.signFunction(signMessage).then((response) => {
         this.logger.debug(
-          `Input [${i}] of tx [${dogeTx.txId}] is signed. signature: ${response.signature}`
+          `Input [${i}] of tx [${dogeTx.txId}] is signed. signature: ${response.signature}`,
         );
         return response.signature;
       });
@@ -508,7 +508,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
     return Promise.all(signaturePromises).then((signatures) => {
       const signedPsbt = this.buildSignedTransaction(
         dogeTx.txBytes,
-        signatures
+        signatures,
       );
       // check if transaction can be finalized
       signedPsbt.finalizeAllInputs().extractTransaction(true);
@@ -519,7 +519,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
         dogeTx.eventId,
         Serializer.serialize(signedPsbt),
         dogeTx.txType,
-        dogeTx.inputUtxos
+        dogeTx.inputUtxos,
       );
     });
   };
@@ -529,7 +529,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
    * @param transaction the transaction
    */
   submitTransaction = async (
-    transaction: PaymentTransaction
+    transaction: PaymentTransaction,
   ): Promise<void> => {
     // deserialize transaction
     const tx = Serializer.deserialize(transaction.txBytes);
@@ -538,11 +538,11 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
     try {
       const response = await this.network.submitTransaction(tx);
       this.logger.info(
-        `Dogecoin Transaction [${transaction.txId}] submitted. Response: ${response}`
+        `Dogecoin Transaction [${transaction.txId}] submitted. Response: ${response}`,
       );
     } catch (e) {
       this.logger.warn(
-        `An error occurred while submitting Dogecoin transaction [${transaction.txId}]: ${e}`
+        `An error occurred while submitting Dogecoin transaction [${transaction.txId}]: ${e}`,
       );
       if (e instanceof Error && e.stack) {
         this.logger.warn(e.stack);
@@ -572,7 +572,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
    * @returns PaymentTransaction object
    */
   rawTxToPaymentTransaction = async (
-    psbtHex: string
+    psbtHex: string,
   ): Promise<PaymentTransaction> => {
     const tx = Psbt.fromHex(psbtHex, { network: DOGE_NETWORK });
     const txBytes = Serializer.serialize(tx);
@@ -591,7 +591,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
       '',
       txBytes,
       TransactionType.manual,
-      inputBoxes.map((box) => JsonBigInt.stringify(box))
+      inputBoxes.map((box) => JsonBigInt.stringify(box)),
     );
 
     this.logger.info(`Parsed Dogecoin transaction [${txId}] successfully`);
@@ -608,7 +608,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     address: string,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    tokenId?: string
+    tokenId?: string,
   ): Promise<Map<string, DogeUtxo | undefined>> => {
     // chaining transaction won't be done in DogeChain
     // due to redundant complexity
@@ -630,7 +630,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
    */
   protected getTransactionsBoxMapping = (
     txs: Psbt[],
-    address: string
+    address: string,
   ): Map<string, DogeUtxo | undefined> => {
     const trackMap = new Map<string, DogeUtxo | undefined>();
 
@@ -672,7 +672,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
    */
   protected buildSignedTransaction = (
     txBytes: Uint8Array,
-    signatures: string[]
+    signatures: string[],
   ): Psbt => {
     const psbt = Serializer.deserialize(txBytes);
     for (let i = 0; i < signatures.length; i++) {
@@ -714,7 +714,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
    * @returns true if the transaction is verified
    */
   verifyPaymentTransaction = async (
-    transaction: PaymentTransaction
+    transaction: PaymentTransaction,
   ): Promise<boolean> => {
     const psbt = Serializer.deserialize(transaction.txBytes);
     const dogeTx = transaction as DogeTransaction;
@@ -725,7 +725,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
     if (transaction.txId !== txId) {
       this.logger.warn(
         baseError +
-          `Transaction id is inconsistent (expected [${transaction.txId}] found [${txId}])`
+          `Transaction id is inconsistent (expected [${transaction.txId}] found [${txId}])`,
       );
       return false;
     }
@@ -734,7 +734,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
     if (dogeTx.inputUtxos.length !== psbt.inputCount) {
       this.logger.warn(
         baseError +
-          `DogeTransaction object input counts is inconsistent [${dogeTx.inputUtxos.length} != ${psbt.inputCount}]`
+          `DogeTransaction object input counts is inconsistent [${dogeTx.inputUtxos.length} != ${psbt.inputCount}]`,
       );
       return false;
     }
@@ -747,7 +747,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
       if (expectedId !== actualInputId) {
         this.logger.warn(
           baseError +
-            `Utxo id for input at index [${i}] is inconsistent [expected ${expectedId} found ${actualInputId}]`
+            `Utxo id for input at index [${i}] is inconsistent [expected ${expectedId} found ${actualInputId}]`,
         );
         return false;
       }

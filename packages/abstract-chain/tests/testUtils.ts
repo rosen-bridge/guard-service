@@ -9,7 +9,7 @@ export const generateRandomId = (): string => randomBytes(32).toString('hex');
 
 export const generateChainObject = (
   network: TestChainNetwork,
-  tokens: TokenMap = new TokenMap()
+  tokens: TokenMap = new TokenMap(),
 ) => {
   const config: ChainConfigs = {
     fee: 100n,

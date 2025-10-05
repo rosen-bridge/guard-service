@@ -16,10 +16,10 @@ describe('BitcoinRunesRpcNetwork', () => {
     resetAxiosMock();
     network = new BitcoinRunesRpcNetwork(
       { url: 'rpc-url' },
-      { url: 'unisat-url' }
+      { url: 'unisat-url' },
     );
     vi.spyOn(network as any, 'generateRandomId').mockReturnValue(
-      testData.requestId
+      testData.requestId,
     );
   });
 
@@ -98,7 +98,7 @@ describe('BitcoinRunesRpcNetwork', () => {
       mockAxiosGet(ClientType.UNISAT, testData.unisatAddressBalanceReponse);
       mockAxiosGet(
         ClientType.UNISAT,
-        testData.unisatAddressRunesBalanceReponse
+        testData.unisatAddressRunesBalanceReponse,
       );
 
       const result = await network.getAddressAssets(testData.address);
@@ -120,11 +120,11 @@ describe('BitcoinRunesRpcNetwork', () => {
     it('should return 0 balance when address has no BTC', async () => {
       mockAxiosGet(
         ClientType.UNISAT,
-        testData.unisatAddressEmptyBalanceReponse
+        testData.unisatAddressEmptyBalanceReponse,
       );
       mockAxiosGet(
         ClientType.UNISAT,
-        testData.unisatAddressEmptyRunesBalanceReponse
+        testData.unisatAddressEmptyRunesBalanceReponse,
       );
 
       const result = await network.getAddressAssets(testData.address);
@@ -148,7 +148,7 @@ describe('BitcoinRunesRpcNetwork', () => {
       mockAxiosGet(ClientType.UNISAT, testData.unisatAddressBalanceReponse);
       mockAxiosGet(
         ClientType.UNISAT,
-        testData.unisatAddressEmptyRunesBalanceReponse
+        testData.unisatAddressEmptyRunesBalanceReponse,
       );
 
       const result = await network.getAddressAssets(testData.address);
@@ -219,7 +219,7 @@ describe('BitcoinRunesRpcNetwork', () => {
 
       const result = await network.getTransaction(
         testData.lockTxId,
-        testData.lockTxBlockHash
+        testData.lockTxBlockHash,
       );
 
       expect(result).toEqual(testData.lockTx);
@@ -461,7 +461,7 @@ describe('BitcoinRunesRpcNetwork', () => {
         testData.address,
         testData.runeId,
         0,
-        100
+        100,
       );
 
       expect(result).toEqual(testData.addressRunesUtxos);
@@ -485,7 +485,7 @@ describe('BitcoinRunesRpcNetwork', () => {
         testData.address,
         testData.runeId,
         0,
-        100
+        100,
       );
 
       expect(result).toEqual([]);
@@ -505,14 +505,14 @@ describe('BitcoinRunesRpcNetwork', () => {
     it('should return empty list when address is invalid', async () => {
       mockAxiosGet(
         ClientType.UNISAT,
-        testData.addressRunesUtxosWithInvalidAddress
+        testData.addressRunesUtxosWithInvalidAddress,
       );
 
       const result = await network.getAddressRunesBoxes(
         testData.invalidAddress,
         testData.runeId,
         0,
-        100
+        100,
       );
 
       expect(result).toEqual([]);
@@ -552,7 +552,7 @@ describe('BitcoinRunesRpcNetwork', () => {
     it('should return empty list when no utxo is returned', async () => {
       mockAxiosGet(
         ClientType.UNISAT,
-        testData.unisatAddressEmptyAvailableUtxoData
+        testData.unisatAddressEmptyAvailableUtxoData,
       );
 
       const result = await network.getAddressBtcBoxes(testData.address);
@@ -574,7 +574,7 @@ describe('BitcoinRunesRpcNetwork', () => {
     it('should return empty list when address is invalid', async () => {
       mockAxiosGet(
         ClientType.UNISAT,
-        testData.unisatInvalidAddressAvailableUtxoData
+        testData.unisatInvalidAddressAvailableUtxoData,
       );
 
       const result = await network.getAddressBtcBoxes(testData.invalidAddress);
@@ -603,7 +603,7 @@ describe('BitcoinRunesRpcNetwork', () => {
 
       const result = await network.getRemainingBoxes(
         [testData.alreadyFetchedUtxoId],
-        testData.address
+        testData.address,
       );
 
       expect(result).toEqual(testData.remainingUtxos);
@@ -644,7 +644,7 @@ describe('BitcoinRunesRpcNetwork', () => {
 
       const result = await network.getRemainingBoxes(
         [],
-        testData.invalidAddress
+        testData.invalidAddress,
       );
 
       expect(result).toEqual([]);

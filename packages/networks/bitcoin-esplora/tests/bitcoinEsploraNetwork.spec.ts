@@ -221,7 +221,7 @@ describe('BitcoinEsploraNetwork', () => {
 
       const result = await network.getTransaction(
         testData.txId,
-        testData.txBlockHash
+        testData.txBlockHash,
       );
 
       expect(result).toEqual(testData.bitcoinTx);
@@ -263,7 +263,7 @@ describe('BitcoinEsploraNetwork', () => {
       const result = await network.getAddressBoxes(
         testData.lockAddress,
         0,
-        100
+        100,
       );
 
       expect(result).toEqual(testData.addressUtxos);
@@ -286,7 +286,7 @@ describe('BitcoinEsploraNetwork', () => {
       const result = await network.getAddressBoxes(
         testData.lockAddress,
         0,
-        100
+        100,
       );
 
       expect(result).toEqual([]);

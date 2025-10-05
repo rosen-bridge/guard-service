@@ -81,7 +81,7 @@ describe('ErgoNodeNetwork', () => {
       const network = getNetwork();
 
       const actualConfirmations = await network.getTxConfirmation(
-        testTransaction.id
+        testTransaction.id,
       );
 
       const expectedConfirmations = Number(testTransaction.numConfirmations);
@@ -106,7 +106,7 @@ describe('ErgoNodeNetwork', () => {
       const network = getNetwork();
 
       const actualConfirmations = await network.getTxConfirmation(
-        testTransaction.id
+        testTransaction.id,
       );
 
       const expectedConfirmations = -1;
@@ -177,7 +177,7 @@ describe('ErgoNodeNetwork', () => {
       const network = getNetwork();
 
       await expect(() =>
-        network.getAddressAssets(testAddress)
+        network.getAddressAssets(testAddress),
       ).rejects.toThrow();
     });
   });
@@ -217,7 +217,7 @@ describe('ErgoNodeNetwork', () => {
       const network = getNetwork();
 
       await expect(() =>
-        network.getBlockTransactionIds(testBlockId)
+        network.getBlockTransactionIds(testBlockId),
       ).rejects.toThrow();
     });
 
@@ -286,12 +286,12 @@ describe('ErgoNodeNetwork', () => {
 
       const actual = await network.getTransaction(
         testTransaction.id,
-        testTransaction.blockId
+        testTransaction.blockId,
       );
 
       const expectedBytes = testTransactionBytes;
       expect(
-        Buffer.from(actual.sigma_serialize_bytes()).toString('hex')
+        Buffer.from(actual.sigma_serialize_bytes()).toString('hex'),
       ).toEqual(expectedBytes);
     });
   });
@@ -311,12 +311,12 @@ describe('ErgoNodeNetwork', () => {
       const network = getNetwork();
 
       await network.submitTransaction(
-        Transaction.sigma_parse_bytes(Buffer.from(testTransactionBytes, 'hex'))
+        Transaction.sigma_parse_bytes(Buffer.from(testTransactionBytes, 'hex')),
       );
 
       // eslint-disable-next-line vitest/prefer-called-exactly-once-with
       expect(sendTransactionAsBytesSpy).toHaveBeenCalledWith(
-        testTransactionBytes
+        testTransactionBytes,
       );
     });
   });
@@ -338,12 +338,12 @@ describe('ErgoNodeNetwork', () => {
       const actualTxs = await network.getMempoolTransactions();
 
       const expectedTxs = testMempoolTransactions.map(
-        () => testTransactionBytes
+        () => testTransactionBytes,
       );
       expect(
         actualTxs.map((tx) =>
-          Buffer.from(tx.sigma_serialize_bytes()).toString('hex')
-        )
+          Buffer.from(tx.sigma_serialize_bytes()).toString('hex'),
+        ),
       ).toEqual(expectedTxs);
     });
   });
@@ -366,8 +366,8 @@ describe('ErgoNodeNetwork', () => {
       const expectedBoxBytes = testAddressBoxesBytes.slice(0, 5);
       expect(
         actualBoxes.map((box) =>
-          Buffer.from(box.sigma_serialize_bytes()).toString('hex')
-        )
+          Buffer.from(box.sigma_serialize_bytes()).toString('hex'),
+        ),
       ).toEqual(expectedBoxBytes);
     });
 
@@ -394,8 +394,8 @@ describe('ErgoNodeNetwork', () => {
       const expectedBoxBytes: string[] = [];
       expect(
         actualBoxes.map((box) =>
-          Buffer.from(box.sigma_serialize_bytes()).toString('hex')
-        )
+          Buffer.from(box.sigma_serialize_bytes()).toString('hex'),
+        ),
       ).toEqual(expectedBoxBytes);
     });
   });
@@ -419,7 +419,7 @@ describe('ErgoNodeNetwork', () => {
         testTokenId,
         testAddress,
         0,
-        5
+        5,
       );
 
       const expectedBoxBytes = testAddressBoxes
@@ -428,14 +428,14 @@ describe('ErgoNodeNetwork', () => {
             box.assets.some((asset) => asset.tokenId === testTokenId)
               ? [...boxBytes, testAddressBoxesBytes[index]]
               : boxBytes,
-          [] as string[]
+          [] as string[],
         )
         .slice(0, 5);
 
       expect(
         actualBoxes.map((box) =>
-          Buffer.from(box.sigma_serialize_bytes()).toString('hex')
-        )
+          Buffer.from(box.sigma_serialize_bytes()).toString('hex'),
+        ),
       ).toEqual(expectedBoxBytes);
     });
 
@@ -462,14 +462,14 @@ describe('ErgoNodeNetwork', () => {
         testTokenId,
         testAddress,
         0,
-        5
+        5,
       );
 
       const expectedBoxBytes: string[] = [];
       expect(
         actualBoxes.map((box) =>
-          Buffer.from(box.sigma_serialize_bytes()).toString('hex')
-        )
+          Buffer.from(box.sigma_serialize_bytes()).toString('hex'),
+        ),
       ).toEqual(expectedBoxBytes);
     });
 
@@ -491,15 +491,15 @@ describe('ErgoNodeNetwork', () => {
         testTokenId,
         testAddress,
         0,
-        1
+        1,
       );
 
       const expectedBoxBytes = [testAddressBoxesBytes[2]];
 
       expect(
         actualBoxes.map((box) =>
-          Buffer.from(box.sigma_serialize_bytes()).toString('hex')
-        )
+          Buffer.from(box.sigma_serialize_bytes()).toString('hex'),
+        ),
       ).toEqual(expectedBoxBytes);
     });
   });
@@ -538,7 +538,7 @@ describe('ErgoNodeNetwork', () => {
       const network = getNetwork();
 
       const actualIsValid = await network.isBoxUnspentAndValid(
-        testAddressBoxes[0].boxId
+        testAddressBoxes[0].boxId,
       );
 
       expect(actualIsValid).toEqual(true);
@@ -562,7 +562,7 @@ describe('ErgoNodeNetwork', () => {
       const network = getNetwork();
 
       const actualIsValid = await network.isBoxUnspentAndValid(
-        testAddressBoxes[0].boxId
+        testAddressBoxes[0].boxId,
       );
 
       expect(actualIsValid).toEqual(false);
@@ -584,13 +584,13 @@ describe('ErgoNodeNetwork', () => {
       const serializedBox = testAddressBoxes[0];
       const expectedBoxesBytes = Buffer.from(
         ErgoBox.from_json(
-          JsonBigInt.stringify(serializedBox)
-        ).sigma_serialize_bytes()
+          JsonBigInt.stringify(serializedBox),
+        ).sigma_serialize_bytes(),
       ).toString('hex');
 
       const box = await network.getBox(serializedBox.boxId);
       expect(Buffer.from(box.sigma_serialize_bytes()).toString('hex')).toEqual(
-        expectedBoxesBytes
+        expectedBoxesBytes,
       );
     });
   });

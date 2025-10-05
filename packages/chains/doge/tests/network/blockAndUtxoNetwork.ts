@@ -52,7 +52,7 @@ export class BlockAndUtxoNetwork extends PartialDogeNetwork {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _offset: number,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    _limit: number
+    _limit: number,
   ): Promise<Array<DogeUtxo>> => {
     return this.mockUtxos;
   };

@@ -10,7 +10,7 @@ class Serializer {
   static serialize = (tx: Transaction): Uint8Array => {
     try {
       return Uint8Array.from(
-        Buffer.from(tx.unsignedSerialized.substring(2), 'hex')
+        Buffer.from(tx.unsignedSerialized.substring(2), 'hex'),
       );
     } catch (error) {
       throw new SerializationError(`${error}`);

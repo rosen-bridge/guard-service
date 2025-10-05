@@ -46,7 +46,7 @@ export const generateChainObject = async (
   network: TestBitcoinRunesNetwork,
   signFn: TssSignFunction = mockedSignFn,
   tokens = testData.testTokenMap,
-  logger?: AbstractLogger // this is for convenient purposes while debugging the tests
+  logger?: AbstractLogger, // this is for convenient purposes while debugging the tests
 ) => {
   const tokenMap = new TokenMap();
   await tokenMap.updateConfigByJson(tokens);

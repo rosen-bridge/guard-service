@@ -78,7 +78,7 @@ export const mockBankBoxes = (): CardanoUtxo[] => {
 
 export const AddressUtxoToTransactionOutput = (
   box: CardanoUtxo,
-  address: string
+  address: string,
 ): CardanoWasm.TransactionOutput => {
   const value = CardanoWasm.Value.new(CardanoUtils.bigIntToBigNum(box.value));
   const multiAsset = CardanoWasm.MultiAsset.new();
@@ -86,7 +86,7 @@ export const AddressUtxoToTransactionOutput = (
     const assets = CardanoWasm.Assets.new();
     assets.insert(
       CardanoWasm.AssetName.new(Buffer.from(asset.assetName, 'hex')),
-      CardanoUtils.bigIntToBigNum(asset.quantity)
+      CardanoUtils.bigIntToBigNum(asset.quantity),
     );
     multiAsset.insert(CardanoWasm.ScriptHash.from_hex(asset.policyId), assets);
   });
@@ -94,17 +94,17 @@ export const AddressUtxoToTransactionOutput = (
   value.set_multiasset(multiAsset);
   const output = CardanoWasm.TransactionOutput.new(
     CardanoWasm.Address.from_bech32(address),
-    value
+    value,
   );
   return output;
 };
 
 export const AddressUtxoToTransactionInput = (
-  box: CardanoUtxo
+  box: CardanoUtxo,
 ): CardanoWasm.TransactionInput => {
   const input = CardanoWasm.TransactionInput.new(
     CardanoWasm.TransactionHash.from_bytes(Buffer.from(box.txId, 'hex')),
-    box.index
+    box.index,
   );
   return input;
 };
@@ -156,7 +156,7 @@ export const configs: CardanoConfigs = {
 export const mockedSignFn = () => Promise.resolve('');
 export const generateChainObject = async (
   network: TestCardanoNetwork,
-  signFn: (txHash: Uint8Array) => Promise<string> = mockedSignFn
+  signFn: (txHash: Uint8Array) => Promise<string> = mockedSignFn,
 ) => {
   const tokenMap = new TokenMap();
   await tokenMap.updateConfigByJson(testTokenMap);
@@ -164,7 +164,7 @@ export const generateChainObject = async (
 };
 export const generateChainObjectWithMultiDecimalTokenMap = async (
   network: TestCardanoNetwork,
-  signFn: (txHash: Uint8Array) => Promise<string> = mockedSignFn
+  signFn: (txHash: Uint8Array) => Promise<string> = mockedSignFn,
 ) => {
   const tokenMap = new TokenMap();
   await tokenMap.updateConfigByJson(multiDecimalTokenMap);

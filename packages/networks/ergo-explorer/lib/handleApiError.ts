@@ -27,7 +27,7 @@ const handleApiError = <
     handleRespondedState?: ErrorHandler<RespondedStateHandlerReturnType>;
     handleNotRespondedState?: ErrorHandler<NotRespondedStateHandlerReturnType>;
     handleUnknownState?: ErrorHandler<UnknownStateHandlerReturnType>;
-  }
+  },
 ):
   | RespondedStateHandlerReturnType
   | NotRespondedStateHandlerReturnType

@@ -125,7 +125,7 @@ describe('DogeEsploraNetwork', () => {
         testData.unsignedTxId,
         'eventId',
         Buffer.from(testData.dogePaymentBytes, 'hex'),
-        TransactionType.payment
+        TransactionType.payment,
       );
 
       const customNetwork = new DogeEsploraNetwork(
@@ -135,12 +135,12 @@ describe('DogeEsploraNetwork', () => {
             return dogePayment;
           }
           return undefined;
-        }
+        },
       );
 
       const getTxConfirmationSignedSpy = vi.spyOn(
         customNetwork as any,
-        'getTxConfirmationSigned'
+        'getTxConfirmationSigned',
       );
 
       // Mock getSpentTransactionByInputId to return a transaction when called with the correct input
@@ -152,15 +152,15 @@ describe('DogeEsploraNetwork', () => {
       mockAxiosGet(testData.txResponse);
 
       const result = await customNetwork.getTxConfirmation(
-        testData.unsignedTxId
+        testData.unsignedTxId,
       );
 
       expect(
-        getSpentTransactionByInputIdSpy
+        getSpentTransactionByInputIdSpy,
         // eslint-disable-next-line vitest/prefer-called-exactly-once-with
       ).toHaveBeenCalledWith(
         testData.dogeTx.inputs[0].index,
-        testData.dogeTx.inputs[0].txId
+        testData.dogeTx.inputs[0].txId,
       );
       // eslint-disable-next-line vitest/prefer-called-exactly-once-with
       expect(getTxConfirmationSignedSpy).toHaveBeenCalledWith(testData.txId);
@@ -285,7 +285,7 @@ describe('DogeEsploraNetwork', () => {
 
       const result = await network.getTransaction(
         testData.txId,
-        testData.txBlockHash
+        testData.txBlockHash,
       );
 
       expect(result).toEqual(testData.dogeTx);
@@ -327,7 +327,7 @@ describe('DogeEsploraNetwork', () => {
       const result = await network.getAddressBoxes(
         testData.lockAddress,
         0,
-        100
+        100,
       );
 
       expect(result).toEqual(testData.addressUtxos);
@@ -350,7 +350,7 @@ describe('DogeEsploraNetwork', () => {
       const result = await network.getAddressBoxes(
         testData.lockAddress,
         0,
-        100
+        100,
       );
 
       expect(result).toEqual([]);
@@ -372,7 +372,7 @@ describe('DogeEsploraNetwork', () => {
       const result = await network.getAddressBoxes(
         testData.lockAddress,
         0,
-        100
+        100,
       );
 
       expect(result).toEqual(testData.sortedAddressUtxos);
@@ -608,14 +608,14 @@ describe('DogeEsploraNetwork', () => {
 
       const result = await (network as any).getSpentTransactionByInputId(
         testData.spentIndex,
-        testData.spentTxId
+        testData.spentTxId,
       );
 
       expect(result).toEqual(testData.dogeTx);
       // eslint-disable-next-line vitest/prefer-called-exactly-once-with
       expect(getTransactionSpy).toHaveBeenCalledWith(
         testData.spentResult.txid,
-        testData.spentResult.status.block_hash
+        testData.spentResult.status.block_hash,
       );
     });
 
@@ -635,7 +635,7 @@ describe('DogeEsploraNetwork', () => {
 
       const result = await (network as any).getSpentTransactionByInputId(
         testData.unspentIndex,
-        testData.unspentTxId
+        testData.unspentTxId,
       );
 
       expect(result).toBeUndefined();
@@ -705,7 +705,7 @@ describe('DogeEsploraNetwork', () => {
         testData.unsignedTxId,
         'eventId',
         Buffer.from(testData.dogePaymentBytes, 'hex'),
-        TransactionType.payment
+        TransactionType.payment,
       );
 
       const customNetwork = new DogeEsploraNetwork(
@@ -715,7 +715,7 @@ describe('DogeEsploraNetwork', () => {
             return dogePayment;
           }
           return undefined;
-        }
+        },
       );
 
       // Mock getSpentTransactionByInputId to return a transaction when called with the correct input
@@ -728,11 +728,11 @@ describe('DogeEsploraNetwork', () => {
       const result = await customNetwork.getActualTxId(testData.unsignedTxId);
 
       expect(
-        getSpentTransactionByInputIdSpy
+        getSpentTransactionByInputIdSpy,
         // eslint-disable-next-line vitest/prefer-called-exactly-once-with
       ).toHaveBeenCalledWith(
         testData.dogeTx.inputs[0].index,
-        testData.dogeTx.inputs[0].txId
+        testData.dogeTx.inputs[0].txId,
       );
       expect(result).toEqual(testData.txId);
     });

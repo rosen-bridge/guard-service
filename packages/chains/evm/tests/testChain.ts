@@ -11,7 +11,7 @@ class TestChain extends EvmChain {
     configs: any,
     tokens: TokenMap,
     signFunction: TssSignFunction,
-    evmTxType: number
+    evmTxType: number,
   ) {
     super(
       network,
@@ -20,7 +20,7 @@ class TestChain extends EvmChain {
       signFunction,
       'test',
       'test-native-token',
-      evmTxType
+      evmTxType,
     );
   }
 }

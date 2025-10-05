@@ -4,7 +4,7 @@ import { DogeChain } from '../lib';
 export class TestDogeChain extends DogeChain {
   callGetTransactionsBoxMapping = (
     serializedTransactions: Psbt[],
-    address: string
+    address: string,
   ) => {
     return this.getTransactionsBoxMapping(serializedTransactions, address);
   };

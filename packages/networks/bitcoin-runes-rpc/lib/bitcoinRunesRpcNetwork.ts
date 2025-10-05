@@ -46,7 +46,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
   constructor(
     rpcConfig: RpcConfig,
     unisatConfig: UnisatConfig,
-    logger?: AbstractLogger
+    logger?: AbstractLogger,
   ) {
     super(logger);
 
@@ -95,11 +95,11 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
    */
   protected validateResponseId = (
     requestId: string,
-    responseId: string
+    responseId: string,
   ): void => {
     if (responseId !== requestId) {
       throw new UnexpectedApiError(
-        `Request and response id are different ['${requestId}' != '${responseId}']`
+        `Request and response id are different ['${requestId}' != '${responseId}']`,
       );
     }
   };
@@ -132,8 +132,8 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       this.validateResponseId(randomId, response.data.id);
       this.logger.debug(
         `requested 'getblockchaininfo'. Response: ${JsonBigInt.stringify(
-          response.data
-        )}`
+          response.data,
+        )}`,
       );
 
       const chainInfo = response.data.result;
@@ -142,7 +142,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       const baseError = `Failed to fetch current height from Bitcoin RPC: `;
       if (e.response) {
         throw new FailedError(
-          baseError + `${JsonBigInt.stringify(e.response.data)}`
+          baseError + `${JsonBigInt.stringify(e.response.data)}`,
         );
       } else if (e.request) {
         throw new NetworkError(baseError + e.message);
@@ -170,8 +170,8 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       this.validateResponseId(randomId, response.data.id);
       this.logger.debug(
         `requested 'getrawtransaction' for txId [${transactionId}]. Response: ${JsonBigInt.stringify(
-          response.data
-        )}`
+          response.data,
+        )}`,
       );
 
       const tx = response.data.result;
@@ -206,8 +206,8 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       >(`/v1/indexer/address/${address}/balance`);
       this.logger.debug(
         `requested 'address/:address/balance' for address [${address}]. Response: ${JsonBigInt.stringify(
-          response.data
-        )}`
+          response.data,
+        )}`,
       );
 
       balance.nativeToken = BigInt(response.data.data.satoshi);
@@ -215,7 +215,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       const baseError = `Failed to get address [${address}] BTC balance from Unisat: `;
       if (e.response) {
         throw new FailedError(
-          baseError + `${JsonBigInt.stringify(e.response.data)}`
+          baseError + `${JsonBigInt.stringify(e.response.data)}`,
         );
       } else if (e.request) {
         throw new NetworkError(baseError + e.message);
@@ -229,8 +229,8 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       >(`/v1/indexer/address/${address}/runes/balance-list`);
       this.logger.debug(
         `requested 'address/:address/runes/balance-list' for address [${address}]. Response: ${JsonBigInt.stringify(
-          response.data
-        )}`
+          response.data,
+        )}`,
       );
 
       const runes = response.data.data.detail;
@@ -244,7 +244,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       const baseError = `Failed to get address [${address}] runes from Unisat: `;
       if (e.response) {
         throw new FailedError(
-          baseError + `${JsonBigInt.stringify(e.response.data)}`
+          baseError + `${JsonBigInt.stringify(e.response.data)}`,
         );
       } else if (e.request) {
         throw new NetworkError(baseError + e.message);
@@ -273,8 +273,8 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       this.validateResponseId(randomId, response.data.id);
       this.logger.debug(
         `requested 'getblock' for blockId [${blockId}]. Response: ${JsonBigInt.stringify(
-          response.data
-        )}`
+          response.data,
+        )}`,
       );
 
       const blockData: BitcoinRpcBlockSummary = response.data.result;
@@ -283,7 +283,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       const baseError = `Failed to get block [${blockId}] transaction ids from Bitcoin RPC: `;
       if (e.response) {
         throw new FailedError(
-          baseError + JsonBigInt.stringify(e.response.data)
+          baseError + JsonBigInt.stringify(e.response.data),
         );
       } else if (e.request) {
         throw new NetworkError(baseError + e.message);
@@ -311,8 +311,8 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       this.validateResponseId(randomId, response.data.id);
       this.logger.debug(
         `requested 'getblock' for blockId [${blockId}]. Response: ${JsonBigInt.stringify(
-          response.data
-        )}`
+          response.data,
+        )}`,
       );
 
       const blockData: BitcoinRpcBlockSummary = response.data.result;
@@ -325,7 +325,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       const baseError = `Failed to get block [${blockId}] info from Bitcoin RPC: `;
       if (e.response) {
         throw new FailedError(
-          baseError + JsonBigInt.stringify(e.response.data)
+          baseError + JsonBigInt.stringify(e.response.data),
         );
       } else if (e.request) {
         throw new NetworkError(baseError + e.message);
@@ -343,7 +343,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
    */
   getTransaction = async (
     transactionId: string,
-    blockId: string
+    blockId: string,
   ): Promise<BitcoinRunesTx> => {
     const randomId = this.generateRandomId();
     // get the raw transaction from RPC
@@ -359,8 +359,8 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       this.validateResponseId(randomId, response.data.id);
       this.logger.debug(
         `Requested 'getrawtransaction' for txId [${transactionId}]. Response: ${JsonBigInt.stringify(
-          response.data
-        )}`
+          response.data,
+        )}`,
       );
 
       tx = response.data.result;
@@ -368,7 +368,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       const baseError = `Failed to get transaction [${transactionId}] from Bitcoin RPC: `;
       if (e.response) {
         throw new FailedError(
-          baseError + JsonBigInt.stringify(e.response.data)
+          baseError + JsonBigInt.stringify(e.response.data),
         );
       } else if (e.request) {
         throw new NetworkError(baseError + e.message);
@@ -378,7 +378,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
     }
     if (tx.blockhash !== blockId)
       throw new FailedError(
-        `Tx [${transactionId}] doesn't belong to block [${blockId}]`
+        `Tx [${transactionId}] doesn't belong to block [${blockId}]`,
       );
 
     // Transform the RPC transaction to the expected BitcoinRunesTx format
@@ -407,22 +407,22 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       >(`/v1/indexer/runes/event?txid=${transactionId}`);
       this.logger.debug(
         `requested 'indexer/runes/event' filtering txId [${transactionId}]. Response: ${JsonBigInt.stringify(
-          response.data
-        )}`
+          response.data,
+        )}`,
       );
 
       txRunes = response.data.data;
       this.validateResponseHeight(blockInfo.height, txRunes.height);
       if (txRunes.detail.length !== txRunes.total) {
         throw Error(
-          `Unexpected pagination: expected [${txRunes.total}] runes but got [${txRunes.detail.length}]`
+          `Unexpected pagination: expected [${txRunes.total}] runes but got [${txRunes.detail.length}]`,
         );
       }
     } catch (e: any) {
       const baseError = `Failed to get runes event for tx [${transactionId}] from Unisat: `;
       if (e.response) {
         throw new FailedError(
-          baseError + `${JsonBigInt.stringify(e.response.data)}`
+          baseError + `${JsonBigInt.stringify(e.response.data)}`,
         );
       } else if (e.request) {
         throw new NetworkError(baseError + e.message);
@@ -434,7 +434,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
     for (const transfer of txRunes.detail) {
       if (transfer.txid !== transactionId) {
         throw new ImpossibleBehavior(
-          `Fetched runes event for tx [${transactionId}] but got a transfer with txId [${transfer.txid}]`
+          `Fetched runes event for tx [${transactionId}] but got a transfer with txId [${transfer.txid}]`,
         );
       }
       if (transfer.type === 'send') continue;
@@ -466,14 +466,14 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       this.validateResponseId(randomId, response.data.id);
       this.logger.debug(
         `Submitted transaction. Response: ${JsonBigInt.stringify(
-          response.data
-        )}`
+          response.data,
+        )}`,
       );
     } catch (e: any) {
       const baseError = `Failed to submit transaction to Bitcoin RPC: `;
       if (e.response) {
         throw new FailedError(
-          baseError + JsonBigInt.stringify(e.response.data)
+          baseError + JsonBigInt.stringify(e.response.data),
         );
       } else if (e.request) {
         throw new NetworkError(baseError + e.message);
@@ -495,8 +495,8 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       >(`/v1/indexer/runes/${tokenId}/info`);
       this.logger.debug(
         `requested '/info' for rune [${tokenId}]. Response: ${JsonBigInt.stringify(
-          response.data
-        )}`
+          response.data,
+        )}`,
       );
 
       info = response.data.data;
@@ -504,7 +504,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       const baseError = `Failed to get runes [${tokenId}] info from Unisat: `;
       if (e.response) {
         throw new FailedError(
-          baseError + `${JsonBigInt.stringify(e.response.data)}`
+          baseError + `${JsonBigInt.stringify(e.response.data)}`,
         );
       } else if (e.request) {
         throw new NetworkError(baseError + e.message);
@@ -542,8 +542,8 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       this.validateResponseId(randomId, listUnspentResponse.data.id);
       this.logger.debug(
         `Requested 'gettxout' for txId [${txId}] and index [${outputIndex}]. Response: ${JsonBigInt.stringify(
-          listUnspentResponse.data
-        )}`
+          listUnspentResponse.data,
+        )}`,
       );
 
       // If the result is null, the output is spent
@@ -552,7 +552,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       const baseError = `Failed to check if box [${boxId}] is unspent using Bitcoin RPC: `;
       if (e.response) {
         throw new FailedError(
-          baseError + JsonBigInt.stringify(e.response.data)
+          baseError + JsonBigInt.stringify(e.response.data),
         );
       } else if (e.request) {
         throw new NetworkError(baseError + e.message);
@@ -585,15 +585,15 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       this.validateResponseId(randomId, response.data.id);
       this.logger.debug(
         `Requested 'getrawtransaction' for txId [${txId}]. Response: ${JsonBigInt.stringify(
-          response.data
-        )}`
+          response.data,
+        )}`,
       );
       tx = response.data.result;
     } catch (e: any) {
       const baseError = `Failed to get transaction [${txId}] from Bitcoin RPC: `;
       if (e.response) {
         throw new FailedError(
-          baseError + JsonBigInt.stringify(e.response.data)
+          baseError + JsonBigInt.stringify(e.response.data),
         );
       } else if (e.request) {
         throw new NetworkError(baseError + e.message);
@@ -603,7 +603,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
     }
     if (tx.vout.length <= outputIndex)
       throw new FailedError(
-        `UTxO [${boxId}] is invalid: index is out of bound [${tx.vout.length} <= ${outputIndex}]`
+        `UTxO [${boxId}] is invalid: index is out of bound [${tx.vout.length} <= ${outputIndex}]`,
       );
     const btcAmount = this.convertToSatoshis(tx.vout[outputIndex].value);
 
@@ -635,8 +635,8 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       this.validateResponseId(randomId, response.data.id);
       this.logger.debug(
         `requested 'estimatesmartfee'. Response: ${JsonBigInt.stringify(
-          response.data
-        )}`
+          response.data,
+        )}`,
       );
 
       const feeSatoshis = this.convertToSatoshis(response.data.result.feerate);
@@ -646,7 +646,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       const baseError = `Failed to get fee ratio from Bitcoin RPC: `;
       if (e.response) {
         throw new FailedError(
-          baseError + JsonBigInt.stringify(e.response.data)
+          baseError + JsonBigInt.stringify(e.response.data),
         );
       } else if (e.request) {
         throw new NetworkError(baseError + e.message);
@@ -674,8 +674,8 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       this.validateResponseId(randomId, response.data.id);
       this.logger.debug(
         `requested 'getmempoolentry' with txId [${txId}]. Response: ${JsonBigInt.stringify(
-          response.data
-        )}`
+          response.data,
+        )}`,
       );
 
       // If we get a successful response, the transaction is in the mempool
@@ -692,7 +692,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       const baseError = `Failed to check if tx [${txId}] is in mempool from Bitcoin RPC: `;
       if (e.response) {
         throw new FailedError(
-          baseError + JsonBigInt.stringify(e.response.data)
+          baseError + JsonBigInt.stringify(e.response.data),
         );
       } else if (e.request) {
         throw new NetworkError(baseError + e.message);
@@ -708,7 +708,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
    * @returns the runes of the utxo
    */
   protected getUtxoRunesBalance = async (
-    boxId: string
+    boxId: string,
   ): Promise<BitcoinRunesAssets[]> => {
     const [txId, outputIndexStr] = boxId.split('.');
     const outputIndex = parseInt(outputIndexStr);
@@ -720,8 +720,8 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       >(`/v1/indexer/runes/utxo/${txId}/${outputIndex}/balance`);
       this.logger.debug(
         `requested 'runes/utxo/:txid/:vout/balance' for box [${boxId}]. Response: ${JsonBigInt.stringify(
-          response.data
-        )}`
+          response.data,
+        )}`,
       );
 
       // TODO: validate Unisat indexed height (local:ergo/rosen-bridge/rosen-chains#179)
@@ -736,7 +736,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       const baseError = `Failed to get runes for box [${boxId}] from Unisat: `;
       if (e.response) {
         throw new FailedError(
-          baseError + `${JsonBigInt.stringify(e.response.data)}`
+          baseError + `${JsonBigInt.stringify(e.response.data)}`,
         );
       } else if (e.request) {
         throw new NetworkError(baseError + e.message);
@@ -759,18 +759,18 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
     address: string,
     runeId: string,
     offset: number,
-    limit: number
+    limit: number,
   ): Promise<Array<BitcoinRunesUtxo>> => {
     try {
       const response = await this.unisatClient.get<
         UnisatResponse<UnisatAddressRunesUtxos | undefined>
       >(
-        `/v1/indexer/address/${address}/runes/${runeId}/utxo?start=${offset}&limit=${limit}`
+        `/v1/indexer/address/${address}/runes/${runeId}/utxo?start=${offset}&limit=${limit}`,
       );
       this.logger.debug(
         `requested 'utxo?start=${offset}&limit=${limit}' for address [${address}] and rune [${runeId}]. Response: ${JsonBigInt.stringify(
-          response.data
-        )}`
+          response.data,
+        )}`,
       );
 
       if (!response.data.data) return [];
@@ -788,7 +788,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       const baseError = `Failed to get UTxOs containing rune [${runeId}] for address [${address}] with offset/limit [${offset}/${limit}] from Unisat: `;
       if (e.response) {
         throw new FailedError(
-          baseError + `${JsonBigInt.stringify(e.response.data)}`
+          baseError + `${JsonBigInt.stringify(e.response.data)}`,
         );
       } else if (e.request) {
         throw new NetworkError(baseError + e.message);
@@ -804,7 +804,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
    * @returns list of boxes
    */
   getAddressBtcBoxes = async (
-    address: string
+    address: string,
   ): Promise<Array<BitcoinRunesUtxo>> => {
     try {
       const response = await this.unisatClient.get<
@@ -812,8 +812,8 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       >(`/v1/indexer/address/${address}/available-utxo-data`);
       this.logger.debug(
         `requested 'available-utxo-data' for address [${address}]. Response: ${JsonBigInt.stringify(
-          response.data
-        )}`
+          response.data,
+        )}`,
       );
 
       if (!response.data.data) return [];
@@ -828,7 +828,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       const baseError = `Failed to get UTxOs containing BTC only for address [${address}] from Unisat: `;
       if (e.response) {
         throw new FailedError(
-          baseError + `${JsonBigInt.stringify(e.response.data)}`
+          baseError + `${JsonBigInt.stringify(e.response.data)}`,
         );
       } else if (e.request) {
         throw new NetworkError(baseError + e.message);
@@ -849,7 +849,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
    */
   getRemainingBoxes = async (
     fetchedBoxIds: Array<string>,
-    address: string
+    address: string,
   ): Promise<Array<BitcoinRunesUtxo>> => {
     const utxos: Array<BitcoinRunesUtxo> = [];
     try {
@@ -858,8 +858,8 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       >(`/v1/indexer/address/${address}/all-utxo-data`);
       this.logger.debug(
         `requested 'all-utxo-data' for address [${address}]. Response: ${JsonBigInt.stringify(
-          response.data
-        )}`
+          response.data,
+        )}`,
       );
 
       if (!response.data.data) return [];
@@ -867,20 +867,20 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       utxos.push(
         ...allUtxos
           .filter(
-            (utxo) => !fetchedBoxIds.includes(`${utxo.txid}.${utxo.vout}`)
+            (utxo) => !fetchedBoxIds.includes(`${utxo.txid}.${utxo.vout}`),
           )
           .map((utxo) => ({
             txId: utxo.txid,
             index: utxo.vout,
             value: BigInt(utxo.satoshi),
             runes: [],
-          }))
+          })),
       );
     } catch (e: any) {
       const baseError = `Failed to get UTxOs containing BTC only for address [${address}] from Unisat: `;
       if (e.response) {
         throw new FailedError(
-          baseError + `${JsonBigInt.stringify(e.response.data)}`
+          baseError + `${JsonBigInt.stringify(e.response.data)}`,
         );
       } else if (e.request) {
         throw new NetworkError(baseError + e.message);
@@ -903,11 +903,11 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
    */
   protected validateResponseHeight = (
     expectedHeight: number,
-    responseHeight: number
+    responseHeight: number,
   ): void => {
     if (expectedHeight > responseHeight)
       throw Error(
-        `Unisat is not synced enough [${responseHeight} < ${expectedHeight}]`
+        `Unisat is not synced enough [${responseHeight} < ${expectedHeight}]`,
       );
   };
 }

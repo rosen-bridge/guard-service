@@ -29,7 +29,7 @@ describe('ErgoChain', () => {
      */
     it('should throw error when last item on order is to lock address', async () => {
       const ergoChain = ergoTestUtils.generateChainObject(
-        new TestErgoNetwork()
+        new TestErgoNetwork(),
       );
       await expect(async () => {
         await ergoChain.generateTransaction(
@@ -39,7 +39,7 @@ describe('ErgoChain', () => {
           [],
           [],
           [],
-          []
+          [],
         );
       }).rejects.toThrow(Error);
     });
@@ -72,12 +72,12 @@ describe('ErgoChain', () => {
     it('should generate payment transaction successfully', async () => {
       // mock transaction order, input and data input boxes
       const paymentTx = ErgoTransaction.fromJson(
-        transactionTestData.transaction3PaymentTransaction
+        transactionTestData.transaction3PaymentTransaction,
       );
       const order = transactionTestData.transaction3Order;
       const inputs = [Buffer.from(paymentTx.inputBoxes[0]).toString('hex')];
       const dataInputs = paymentTx.dataInputs.map((serializedBox) =>
-        Buffer.from(serializedBox).toString('hex')
+        Buffer.from(serializedBox).toString('hex'),
       );
 
       // mock an AssetBalance as lock address assets with enough assets
@@ -103,7 +103,7 @@ describe('ErgoChain', () => {
       // mock 'getStateContext'
       const getStateContextSpy = vi.spyOn(network, 'getStateContext');
       getStateContextSpy.mockResolvedValue(
-        transactionTestData.mockedStateContext
+        transactionTestData.mockedStateContext,
       );
       // mock 'getAddressAssets' to return mocked assets
       const getAddressAssetsSpy = vi.spyOn(network, 'getAddressAssets');
@@ -111,7 +111,7 @@ describe('ErgoChain', () => {
       // mock 'getMempoolTransactions'
       const getMempoolTransactionsSpy = vi.spyOn(
         network,
-        'getMempoolTransactions'
+        'getMempoolTransactions',
       );
       getMempoolTransactionsSpy.mockResolvedValue([]);
 
@@ -137,18 +137,18 @@ describe('ErgoChain', () => {
         network,
         config,
         tokenMap,
-        ergoTestUtils.defaultSignFunction
+        ergoTestUtils.defaultSignFunction,
       );
       const getCoveringBoxesSpy = vi.spyOn(
         (ergoChain as any).boxSelection,
-        'getCoveringBoxes'
+        'getCoveringBoxes',
       );
       getCoveringBoxesSpy.mockResolvedValue({
         covered: true,
         boxes: paymentTx.inputBoxes
           .slice(1)
           .map((serializedBox) =>
-            wasm.ErgoBox.sigma_parse_bytes(serializedBox)
+            wasm.ErgoBox.sigma_parse_bytes(serializedBox),
           ),
       });
 
@@ -156,11 +156,11 @@ describe('ErgoChain', () => {
       const mempoolTrackMap = new Map<string, wasm.ErgoBox | undefined>();
       mempoolTrackMap.set(
         'boxId',
-        ergoTestUtils.toErgoBox(boxTestData.ergoBox2)
+        ergoTestUtils.toErgoBox(boxTestData.ergoBox2),
       );
       const getMempoolBoxMappingSpy = vi.spyOn(
         ergoChain,
-        'getMempoolBoxMapping'
+        'getMempoolBoxMapping',
       );
       getMempoolBoxMappingSpy.mockResolvedValue(mempoolTrackMap);
 
@@ -172,7 +172,7 @@ describe('ErgoChain', () => {
         [],
         [],
         inputs,
-        dataInputs
+        dataInputs,
       );
 
       // check returned value
@@ -187,7 +187,7 @@ describe('ErgoChain', () => {
       expect(extractedOrder).toEqual(order);
       //  transaction fee should be the same as config fee
       const tx = wasm.ReducedTransaction.sigma_parse_bytes(
-        result.txBytes
+        result.txBytes,
       ).unsigned_tx();
       let boxChecked = false;
       for (let i = 0; i < tx.output_candidates().len(); i++) {
@@ -196,7 +196,7 @@ describe('ErgoChain', () => {
           ErgoChain.feeBoxErgoTree
         ) {
           expect(
-            BigInt(tx.output_candidates().get(i).value().as_i64().to_str())
+            BigInt(tx.output_candidates().get(i).value().as_i64().to_str()),
           ).toEqual(config.fee);
           boxChecked = true;
         }
@@ -206,40 +206,40 @@ describe('ErgoChain', () => {
       const outputsLength = tx.output_candidates().len();
       const changeBox1 = tx.output_candidates().get(outputsLength - 3);
       expect(changeBox1.value().as_i64().to_str()).toEqual(
-        transactionTestData.transaction3ChangeBox1Assets.nativeToken.toString()
+        transactionTestData.transaction3ChangeBox1Assets.nativeToken.toString(),
       );
       const changeBox1Tokens = changeBox1.tokens();
       expect(changeBox1Tokens.len()).toEqual(
-        transactionTestData.transaction3ChangeBox1Assets.tokens.length
+        transactionTestData.transaction3ChangeBox1Assets.tokens.length,
       );
       for (let i = 0; i < changeBox1Tokens.len(); i++) {
         const token = changeBox1Tokens.get(i);
         expect(token.id().to_str()).toEqual(
-          transactionTestData.transaction3ChangeBox1Assets.tokens[i].id
+          transactionTestData.transaction3ChangeBox1Assets.tokens[i].id,
         );
         expect(token.amount().as_i64().to_str()).toEqual(
           transactionTestData.transaction3ChangeBox1Assets.tokens[
             i
-          ].value.toString()
+          ].value.toString(),
         );
       }
       const changeBox2 = tx.output_candidates().get(outputsLength - 2);
       expect(changeBox2.value().as_i64().to_str()).toEqual(
-        transactionTestData.transaction3ChangeBox2Assets.nativeToken.toString()
+        transactionTestData.transaction3ChangeBox2Assets.nativeToken.toString(),
       );
       const changeBox2Tokens = changeBox2.tokens();
       expect(changeBox2Tokens.len()).toEqual(
-        transactionTestData.transaction3ChangeBox2Assets.tokens.length
+        transactionTestData.transaction3ChangeBox2Assets.tokens.length,
       );
       for (let i = 0; i < changeBox2Tokens.len(); i++) {
         const token = changeBox2Tokens.get(i);
         expect(token.id().to_str()).toEqual(
-          transactionTestData.transaction3ChangeBox2Assets.tokens[i].id
+          transactionTestData.transaction3ChangeBox2Assets.tokens[i].id,
         );
         expect(token.amount().as_i64().to_str()).toEqual(
           transactionTestData.transaction3ChangeBox2Assets.tokens[
             i
-          ].value.toString()
+          ].value.toString(),
         );
       }
     });
@@ -263,12 +263,12 @@ describe('ErgoChain', () => {
     it('should throw appropriate error when locked assets are not enough to generate transaction', async () => {
       // mock transaction order, input and data input boxes
       const paymentTx = ErgoTransaction.fromJson(
-        transactionTestData.transaction3PaymentTransaction
+        transactionTestData.transaction3PaymentTransaction,
       );
       const order = transactionTestData.transaction3Order;
       const inputs = [Buffer.from(paymentTx.inputBoxes[0]).toString('hex')];
       const dataInputs = paymentTx.dataInputs.map((serializedBox) =>
-        Buffer.from(serializedBox).toString('hex')
+        Buffer.from(serializedBox).toString('hex'),
       );
 
       // mock an AssetBalance as lock address assets lacking enough assets
@@ -285,7 +285,7 @@ describe('ErgoChain', () => {
       // mock 'getStateContext'
       const getStateContextSpy = vi.spyOn(network, 'getStateContext');
       getStateContextSpy.mockResolvedValue(
-        transactionTestData.mockedStateContext
+        transactionTestData.mockedStateContext,
       );
       // mock 'getAddressAssets' to return mocked assets
       const getAddressAssetsSpy = vi.spyOn(network, 'getAddressAssets');
@@ -313,7 +313,7 @@ describe('ErgoChain', () => {
         network,
         config,
         tokenMap,
-        ergoTestUtils.defaultSignFunction
+        ergoTestUtils.defaultSignFunction,
       );
       await expect(async () => {
         await ergoChain.generateTransaction(
@@ -323,7 +323,7 @@ describe('ErgoChain', () => {
           [],
           [],
           inputs,
-          dataInputs
+          dataInputs,
         );
       }).rejects.toThrow(NotEnoughAssetsError);
     });
@@ -350,12 +350,12 @@ describe('ErgoChain', () => {
     it('should throw appropriate error when available boxes cannot cover required assets to generate transaction', async () => {
       // mock transaction order, input and data input boxes
       const paymentTx = ErgoTransaction.fromJson(
-        transactionTestData.transaction3PaymentTransaction
+        transactionTestData.transaction3PaymentTransaction,
       );
       const order = transactionTestData.transaction3Order;
       const inputs = [Buffer.from(paymentTx.inputBoxes[0]).toString('hex')];
       const dataInputs = paymentTx.dataInputs.map((serializedBox) =>
-        Buffer.from(serializedBox).toString('hex')
+        Buffer.from(serializedBox).toString('hex'),
       );
 
       // mock an AssetBalance as lock address assets with enough assets
@@ -381,7 +381,7 @@ describe('ErgoChain', () => {
       // mock 'getStateContext'
       const getStateContextSpy = vi.spyOn(network, 'getStateContext');
       getStateContextSpy.mockResolvedValue(
-        transactionTestData.mockedStateContext
+        transactionTestData.mockedStateContext,
       );
       // mock 'getAddressAssets' to return mocked assets
       const getAddressAssetsSpy = vi.spyOn(network, 'getAddressAssets');
@@ -389,7 +389,7 @@ describe('ErgoChain', () => {
       // mock 'getMempoolTransactions'
       const getMempoolTransactionsSpy = vi.spyOn(
         network,
-        'getMempoolTransactions'
+        'getMempoolTransactions',
       );
       getMempoolTransactionsSpy.mockResolvedValue([]);
 
@@ -415,18 +415,18 @@ describe('ErgoChain', () => {
         network,
         config,
         tokenMap,
-        ergoTestUtils.defaultSignFunction
+        ergoTestUtils.defaultSignFunction,
       );
       const getCoveringBoxesSpy = vi.spyOn(
         (ergoChain as any).boxSelection,
-        'getCoveringBoxes'
+        'getCoveringBoxes',
       );
       getCoveringBoxesSpy.mockResolvedValue({
         covered: false,
         boxes: paymentTx.inputBoxes
           .slice(1, 2)
           .map((serializedBox) =>
-            wasm.ErgoBox.sigma_parse_bytes(serializedBox)
+            wasm.ErgoBox.sigma_parse_bytes(serializedBox),
           ),
       });
 
@@ -439,7 +439,7 @@ describe('ErgoChain', () => {
           [],
           [],
           inputs,
-          dataInputs
+          dataInputs,
         );
       }).rejects.toThrow(NotEnoughValidBoxesError);
     });
@@ -469,17 +469,17 @@ describe('ErgoChain', () => {
     it('should filter boxes that are used in unsigned transactions successfully', async () => {
       // mock transaction order, input and data input boxes
       const paymentTx = ErgoTransaction.fromJson(
-        transactionTestData.transaction3PaymentTransaction
+        transactionTestData.transaction3PaymentTransaction,
       );
       const order = transactionTestData.transaction3Order;
       const inputs = [Buffer.from(paymentTx.inputBoxes[0]).toString('hex')];
       const dataInputs = paymentTx.dataInputs.map((serializedBox) =>
-        Buffer.from(serializedBox).toString('hex')
+        Buffer.from(serializedBox).toString('hex'),
       );
 
       // mock an unsigned transaction with it's input boxess
       const unsignedTransaction = ErgoTransaction.fromJson(
-        transactionTestData.transaction2PartialUnsignedPaymentTransaction
+        transactionTestData.transaction2PartialUnsignedPaymentTransaction,
       );
       const unsignedTxInputBoxIds = transactionTestData.transaction2InputBoxIds;
 
@@ -506,7 +506,7 @@ describe('ErgoChain', () => {
       // mock 'getStateContext'
       const getStateContextSpy = vi.spyOn(network, 'getStateContext');
       getStateContextSpy.mockResolvedValue(
-        transactionTestData.mockedStateContext
+        transactionTestData.mockedStateContext,
       );
       // mock 'getAddressAssets' to return mocked assets
       const getAddressAssetsSpy = vi.spyOn(network, 'getAddressAssets');
@@ -514,7 +514,7 @@ describe('ErgoChain', () => {
       // mock 'getMempoolTransactions'
       const getMempoolTransactionsSpy = vi.spyOn(
         network,
-        'getMempoolTransactions'
+        'getMempoolTransactions',
       );
       getMempoolTransactionsSpy.mockResolvedValue([]);
 
@@ -541,11 +541,11 @@ describe('ErgoChain', () => {
         network,
         config,
         tokenMap,
-        ergoTestUtils.defaultSignFunction
+        ergoTestUtils.defaultSignFunction,
       );
       const getCoveringBoxesSpy = vi.spyOn(
         (ergoChain as any).boxSelection,
-        'getCoveringBoxes'
+        'getCoveringBoxes',
       );
       getCoveringBoxesSpy.mockImplementation(async (...args: any[]) => {
         const forbiddenBoxIds = args[1] as Array<string>;
@@ -565,7 +565,7 @@ describe('ErgoChain', () => {
             boxes: paymentTx.inputBoxes
               .slice(1)
               .map((serializedBox) =>
-                wasm.ErgoBox.sigma_parse_bytes(serializedBox)
+                wasm.ErgoBox.sigma_parse_bytes(serializedBox),
               ),
           };
       });
@@ -579,7 +579,7 @@ describe('ErgoChain', () => {
           [unsignedTransaction],
           [],
           inputs,
-          dataInputs
+          dataInputs,
         );
       }).rejects.toThrow(NotEnoughValidBoxesError);
     });
@@ -612,12 +612,12 @@ describe('ErgoChain', () => {
     it('should generate payment transaction with wrapped order successfully', async () => {
       // mock transaction order, input and data input boxes
       const paymentTx = ErgoTransaction.fromJson(
-        transactionTestData.transaction3PaymentTransaction
+        transactionTestData.transaction3PaymentTransaction,
       );
       const order = transactionTestData.transaction3WrappedOrder;
       const inputs = [Buffer.from(paymentTx.inputBoxes[0]).toString('hex')];
       const dataInputs = paymentTx.dataInputs.map((serializedBox) =>
-        Buffer.from(serializedBox).toString('hex')
+        Buffer.from(serializedBox).toString('hex'),
       );
 
       // mock an AssetBalance as lock address assets with enough assets
@@ -643,7 +643,7 @@ describe('ErgoChain', () => {
       // mock 'getStateContext'
       const getStateContextSpy = vi.spyOn(network, 'getStateContext');
       getStateContextSpy.mockResolvedValue(
-        transactionTestData.mockedStateContext
+        transactionTestData.mockedStateContext,
       );
       // mock 'getAddressAssets' to return mocked assets
       const getAddressAssetsSpy = vi.spyOn(network, 'getAddressAssets');
@@ -651,7 +651,7 @@ describe('ErgoChain', () => {
       // mock 'getMempoolTransactions'
       const getMempoolTransactionsSpy = vi.spyOn(
         network,
-        'getMempoolTransactions'
+        'getMempoolTransactions',
       );
       getMempoolTransactionsSpy.mockResolvedValue([]);
 
@@ -677,18 +677,18 @@ describe('ErgoChain', () => {
         network,
         config,
         tokenMap,
-        ergoTestUtils.defaultSignFunction
+        ergoTestUtils.defaultSignFunction,
       );
       const getCoveringBoxesSpy = vi.spyOn(
         (ergoChain as any).boxSelection,
-        'getCoveringBoxes'
+        'getCoveringBoxes',
       );
       getCoveringBoxesSpy.mockResolvedValue({
         covered: true,
         boxes: paymentTx.inputBoxes
           .slice(1)
           .map((serializedBox) =>
-            wasm.ErgoBox.sigma_parse_bytes(serializedBox)
+            wasm.ErgoBox.sigma_parse_bytes(serializedBox),
           ),
       });
 
@@ -696,11 +696,11 @@ describe('ErgoChain', () => {
       const mempoolTrackMap = new Map<string, wasm.ErgoBox | undefined>();
       mempoolTrackMap.set(
         'boxId',
-        ergoTestUtils.toErgoBox(boxTestData.ergoBox2)
+        ergoTestUtils.toErgoBox(boxTestData.ergoBox2),
       );
       const getMempoolBoxMappingSpy = vi.spyOn(
         ergoChain,
-        'getMempoolBoxMapping'
+        'getMempoolBoxMapping',
       );
       getMempoolBoxMappingSpy.mockResolvedValue(mempoolTrackMap);
 
@@ -712,7 +712,7 @@ describe('ErgoChain', () => {
         [],
         [],
         inputs,
-        dataInputs
+        dataInputs,
       );
 
       // check returned value
@@ -727,7 +727,7 @@ describe('ErgoChain', () => {
       expect(extractedOrder).toEqual(order);
       //  transaction fee should be the same as config fee
       const tx = wasm.ReducedTransaction.sigma_parse_bytes(
-        result.txBytes
+        result.txBytes,
       ).unsigned_tx();
       let boxChecked = false;
       for (let i = 0; i < tx.output_candidates().len(); i++) {
@@ -736,7 +736,7 @@ describe('ErgoChain', () => {
           ErgoChain.feeBoxErgoTree
         ) {
           expect(
-            BigInt(tx.output_candidates().get(i).value().as_i64().to_str())
+            BigInt(tx.output_candidates().get(i).value().as_i64().to_str()),
           ).toEqual(config.fee);
           boxChecked = true;
         }
@@ -746,40 +746,40 @@ describe('ErgoChain', () => {
       const outputsLength = tx.output_candidates().len();
       const changeBox1 = tx.output_candidates().get(outputsLength - 3);
       expect(changeBox1.value().as_i64().to_str()).toEqual(
-        transactionTestData.transaction3ChangeBox1Assets.nativeToken.toString()
+        transactionTestData.transaction3ChangeBox1Assets.nativeToken.toString(),
       );
       const changeBox1Tokens = changeBox1.tokens();
       expect(changeBox1Tokens.len()).toEqual(
-        transactionTestData.transaction3ChangeBox1Assets.tokens.length
+        transactionTestData.transaction3ChangeBox1Assets.tokens.length,
       );
       for (let i = 0; i < changeBox1Tokens.len(); i++) {
         const token = changeBox1Tokens.get(i);
         expect(token.id().to_str()).toEqual(
-          transactionTestData.transaction3ChangeBox1Assets.tokens[i].id
+          transactionTestData.transaction3ChangeBox1Assets.tokens[i].id,
         );
         expect(token.amount().as_i64().to_str()).toEqual(
           transactionTestData.transaction3ChangeBox1Assets.tokens[
             i
-          ].value.toString()
+          ].value.toString(),
         );
       }
       const changeBox2 = tx.output_candidates().get(outputsLength - 2);
       expect(changeBox2.value().as_i64().to_str()).toEqual(
-        transactionTestData.transaction3ChangeBox2Assets.nativeToken.toString()
+        transactionTestData.transaction3ChangeBox2Assets.nativeToken.toString(),
       );
       const changeBox2Tokens = changeBox2.tokens();
       expect(changeBox2Tokens.len()).toEqual(
-        transactionTestData.transaction3ChangeBox2Assets.tokens.length
+        transactionTestData.transaction3ChangeBox2Assets.tokens.length,
       );
       for (let i = 0; i < changeBox2Tokens.len(); i++) {
         const token = changeBox2Tokens.get(i);
         expect(token.id().to_str()).toEqual(
-          transactionTestData.transaction3ChangeBox2Assets.tokens[i].id
+          transactionTestData.transaction3ChangeBox2Assets.tokens[i].id,
         );
         expect(token.amount().as_i64().to_str()).toEqual(
           transactionTestData.transaction3ChangeBox2Assets.tokens[
             i
-          ].value.toString()
+          ].value.toString(),
         );
       }
     });
@@ -802,7 +802,7 @@ describe('ErgoChain', () => {
     it('should get transaction assets successfully', async () => {
       // mock PaymentTransaction
       const paymentTx = ErgoTransaction.fromJson(
-        transactionTestData.transaction3PaymentTransaction
+        transactionTestData.transaction3PaymentTransaction,
       );
       const expectedAssets = transactionTestData.transaction3Assets;
 
@@ -828,7 +828,7 @@ describe('ErgoChain', () => {
     it('should wrap transaction assets successfully', async () => {
       // mock PaymentTransaction
       const paymentTx = ErgoTransaction.fromJson(
-        transactionTestData.transaction3PaymentTransaction
+        transactionTestData.transaction3PaymentTransaction,
       );
       const expectedAssets = transactionTestData.transaction3WrappedAssets;
 
@@ -836,7 +836,7 @@ describe('ErgoChain', () => {
       const ergoChain =
         await ergoTestUtils.generateDefaultChainObjectWithTokenMap(
           network,
-          ergoTestUtils.multiDecimalTokenMap
+          ergoTestUtils.multiDecimalTokenMap,
         );
       const result = await ergoChain.getTransactionAssets(paymentTx);
 
@@ -862,7 +862,7 @@ describe('ErgoChain', () => {
     it('should extract transaction order successfully', async () => {
       // mock PaymentTransaction
       const paymentTx = ErgoTransaction.fromJson(
-        transactionTestData.transaction6PaymentTransaction
+        transactionTestData.transaction6PaymentTransaction,
       );
       const expectedOrder = transactionTestData.transaction6Order;
       const config: ErgoConfigs = {
@@ -886,7 +886,7 @@ describe('ErgoChain', () => {
         network,
         config,
         tokenMap,
-        ergoTestUtils.defaultSignFunction
+        ergoTestUtils.defaultSignFunction,
       );
       const result = ergoChain.extractTransactionOrder(paymentTx);
 
@@ -908,7 +908,7 @@ describe('ErgoChain', () => {
     it('should wrap transaction order successfully', async () => {
       // mock PaymentTransaction
       const paymentTx = ErgoTransaction.fromJson(
-        transactionTestData.transaction6PaymentTransaction
+        transactionTestData.transaction6PaymentTransaction,
       );
       const expectedOrder = transactionTestData.transaction6WrappedOrder;
       const config: ErgoConfigs = {
@@ -932,7 +932,7 @@ describe('ErgoChain', () => {
         network,
         config,
         tokenMap,
-        ergoTestUtils.defaultSignFunction
+        ergoTestUtils.defaultSignFunction,
       );
       const result = ergoChain.extractTransactionOrder(paymentTx);
 
@@ -962,11 +962,14 @@ describe('ErgoChain', () => {
         'txId',
         'eventId',
         wasm.ReducedTransaction.sigma_parse_bytes(
-          Buffer.from(transactionTestData.transaction2UnsignedSerialized, 'hex')
+          Buffer.from(
+            transactionTestData.transaction2UnsignedSerialized,
+            'hex',
+          ),
         ).sigma_serialize_bytes(),
         TransactionType.payment,
         [],
-        []
+        [],
       );
 
       // mock a config that has more fee comparing to mocked transaction fee
@@ -991,7 +994,7 @@ describe('ErgoChain', () => {
         network,
         config,
         tokenMap,
-        ergoTestUtils.defaultSignFunction
+        ergoTestUtils.defaultSignFunction,
       );
       const result = await ergoChain.verifyTransactionFee(paymentTx);
 
@@ -1017,11 +1020,14 @@ describe('ErgoChain', () => {
         'txId',
         'eventId',
         wasm.ReducedTransaction.sigma_parse_bytes(
-          Buffer.from(transactionTestData.transaction2UnsignedSerialized, 'hex')
+          Buffer.from(
+            transactionTestData.transaction2UnsignedSerialized,
+            'hex',
+          ),
         ).sigma_serialize_bytes(),
         TransactionType.payment,
         [],
-        []
+        [],
       );
 
       // mock a config that has less fee comparing to mocked transaction fee
@@ -1046,7 +1052,7 @@ describe('ErgoChain', () => {
         network,
         config,
         tokenMap,
-        ergoTestUtils.defaultSignFunction
+        ergoTestUtils.defaultSignFunction,
       );
       const result = await ergoChain.verifyTransactionFee(paymentTx);
 
@@ -1076,13 +1082,13 @@ describe('ErgoChain', () => {
         height: 2000000,
       };
       const mockedTx = ergoTestUtils.deserializeTransaction(
-        transactionTestData.transaction2SignedSerialized
+        transactionTestData.transaction2SignedSerialized,
       );
 
       const ergoChain = ergoTestUtils.generateChainObject(network);
       const result = await ergoChain.verifyLockTransactionExtraConditions(
         mockedTx,
-        blockInfo
+        blockInfo,
       );
 
       expect(result).toEqual(false);
@@ -1106,13 +1112,13 @@ describe('ErgoChain', () => {
         height: 100000,
       };
       const mockedTx = ergoTestUtils.deserializeTransaction(
-        transactionTestData.transaction2SignedSerialized
+        transactionTestData.transaction2SignedSerialized,
       );
 
       const ergoChain = ergoTestUtils.generateChainObject(network);
       const result = await ergoChain.verifyLockTransactionExtraConditions(
         mockedTx,
-        blockInfo
+        blockInfo,
       );
 
       expect(result).toEqual(true);
@@ -1137,7 +1143,7 @@ describe('ErgoChain', () => {
     it('should return true when change box conditions are met', async () => {
       // mock PaymentTransaction
       const paymentTx = ErgoTransaction.fromJson(
-        transactionTestData.transaction3PaymentTransaction
+        transactionTestData.transaction3PaymentTransaction,
       );
 
       // mock a config with valid lockAddress
@@ -1162,7 +1168,7 @@ describe('ErgoChain', () => {
         network,
         config,
         tokenMap,
-        ergoTestUtils.defaultSignFunction
+        ergoTestUtils.defaultSignFunction,
       );
       const result =
         await ergoChain.verifyTransactionExtraConditions(paymentTx);
@@ -1186,7 +1192,7 @@ describe('ErgoChain', () => {
     it('should return true event when signing status is wrong', async () => {
       // mock PaymentTransaction
       const paymentTx = ErgoTransaction.fromJson(
-        transactionTestData.transaction3PaymentTransaction
+        transactionTestData.transaction3PaymentTransaction,
       );
 
       // mock a config with valid lockAddress
@@ -1211,11 +1217,11 @@ describe('ErgoChain', () => {
         network,
         config,
         tokenMap,
-        ergoTestUtils.defaultSignFunction
+        ergoTestUtils.defaultSignFunction,
       );
       const result = await ergoChain.verifyTransactionExtraConditions(
         paymentTx,
-        SigningStatus.Signed
+        SigningStatus.Signed,
       );
 
       // check returned value
@@ -1240,11 +1246,11 @@ describe('ErgoChain', () => {
         'txId',
         'eventId',
         wasm.Transaction.sigma_parse_bytes(
-          Buffer.from(transactionTestData.transaction2SignedSerialized, 'hex')
+          Buffer.from(transactionTestData.transaction2SignedSerialized, 'hex'),
         ).sigma_serialize_bytes(),
         TransactionType.payment,
         [],
-        []
+        [],
       );
 
       // mock a config with valid lockAddress
@@ -1269,11 +1275,11 @@ describe('ErgoChain', () => {
         network,
         config,
         tokenMap,
-        ergoTestUtils.defaultSignFunction
+        ergoTestUtils.defaultSignFunction,
       );
       const result = await ergoChain.verifyTransactionExtraConditions(
         paymentTx,
-        SigningStatus.Signed
+        SigningStatus.Signed,
       );
 
       // check returned value
@@ -1295,7 +1301,7 @@ describe('ErgoChain', () => {
     it('should return false when change box has value in R4', async () => {
       // mock PaymentTransaction
       const paymentTx = ErgoTransaction.fromJson(
-        transactionTestData.transaction4PaymentTransaction
+        transactionTestData.transaction4PaymentTransaction,
       );
 
       // mock a config with valid lockAddress
@@ -1320,7 +1326,7 @@ describe('ErgoChain', () => {
         network,
         config,
         tokenMap,
-        ergoTestUtils.defaultSignFunction
+        ergoTestUtils.defaultSignFunction,
       );
       const result =
         await ergoChain.verifyTransactionExtraConditions(paymentTx);
@@ -1344,7 +1350,7 @@ describe('ErgoChain', () => {
     it('should return false when output creation height is less than an input', async () => {
       // mock PaymentTransaction
       const paymentTx = ErgoTransaction.fromJson(
-        transactionTestData.transaction7PaymentTransaction
+        transactionTestData.transaction7PaymentTransaction,
       );
 
       // mock a config with valid lockAddress
@@ -1369,7 +1375,7 @@ describe('ErgoChain', () => {
         network,
         config,
         tokenMap,
-        ergoTestUtils.defaultSignFunction
+        ergoTestUtils.defaultSignFunction,
       );
       const result =
         await ergoChain.verifyTransactionExtraConditions(paymentTx);
@@ -1409,7 +1415,7 @@ describe('ErgoChain', () => {
           .sigma_serialize_bytes(),
         TransactionType.payment,
         [],
-        []
+        [],
       );
 
       // run test
@@ -1425,7 +1431,7 @@ describe('ErgoChain', () => {
       // check if function got called
       transactionTestData.transaction0InputIds.forEach((inputId) =>
         // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-        expect(isBoxUnspentAndValidSpy).toHaveBeenCalledWith(inputId)
+        expect(isBoxUnspentAndValidSpy).toHaveBeenCalledWith(inputId),
       );
     });
 
@@ -1461,7 +1467,7 @@ describe('ErgoChain', () => {
           .sigma_serialize_bytes(),
         TransactionType.payment,
         [],
-        []
+        [],
       );
 
       // run test
@@ -1480,7 +1486,7 @@ describe('ErgoChain', () => {
       // check if function got called
       // eslint-disable-next-line vitest/prefer-called-exactly-once-with
       expect(isBoxUnspentAndValidSpy).toHaveBeenCalledWith(
-        transactionTestData.transaction0InputIds[0]
+        transactionTestData.transaction0InputIds[0],
       );
     });
   });
@@ -1507,17 +1513,20 @@ describe('ErgoChain', () => {
         'txId',
         'eventId',
         wasm.ReducedTransaction.sigma_parse_bytes(
-          Buffer.from(transactionTestData.transaction2UnsignedSerialized, 'hex')
+          Buffer.from(
+            transactionTestData.transaction2UnsignedSerialized,
+            'hex',
+          ),
         ).sigma_serialize_bytes(),
         TransactionType.payment,
         [],
-        []
+        [],
       );
 
       // run test
       const result = (await ergoChain.signTransaction(
         paymentTx,
-        0
+        0,
       )) as ErgoTransaction;
 
       // check returned value
@@ -1526,9 +1535,9 @@ describe('ErgoChain', () => {
       expect(result.txBytes).toEqual(
         ergoTestUtils
           .deserializeTransaction(
-            transactionTestData.transaction2SignedSerialized
+            transactionTestData.transaction2SignedSerialized,
           )
-          .sigma_serialize_bytes()
+          .sigma_serialize_bytes(),
       );
       expect(result.inputBoxes).toEqual(paymentTx.inputBoxes);
       expect(result.dataInputs).toEqual(paymentTx.dataInputs);
@@ -1555,25 +1564,28 @@ describe('ErgoChain', () => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         boxes: Array<wasm.ErgoBox>,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        dataBoxes?: Array<wasm.ErgoBox>
+        dataBoxes?: Array<wasm.ErgoBox>,
       ): Promise<wasm.Transaction> => {
         throw Error(`TestError: sign failed`);
       };
       const ergoChain = ergoTestUtils.generateChainObject(
         new TestErgoNetwork(),
         ergoTestUtils.rwtId,
-        signFunction
+        signFunction,
       );
       // mock PaymentTransaction of unsigned transaction
       const paymentTx = new ErgoTransaction(
         'txId',
         'eventId',
         wasm.ReducedTransaction.sigma_parse_bytes(
-          Buffer.from(transactionTestData.transaction2UnsignedSerialized, 'hex')
+          Buffer.from(
+            transactionTestData.transaction2UnsignedSerialized,
+            'hex',
+          ),
         ).sigma_serialize_bytes(),
         TransactionType.payment,
         [],
-        []
+        [],
       );
 
       // run test & check thrown exception
@@ -1606,7 +1618,7 @@ describe('ErgoChain', () => {
       // mock a network object to return mocked transactions for mempool
       const network = new TestErgoNetwork();
       vi.spyOn(network, 'getMempoolTransactions').mockResolvedValueOnce(
-        transactions
+        transactions,
       );
 
       // get txId of one of the transactions
@@ -1642,7 +1654,7 @@ describe('ErgoChain', () => {
       // mock a network object to return mocked transactions for mempool
       const network = new TestErgoNetwork();
       vi.spyOn(network, 'getMempoolTransactions').mockResolvedValueOnce(
-        transactions
+        transactions,
       );
 
       // generate a random txId
@@ -1677,20 +1689,20 @@ describe('ErgoChain', () => {
     it('should construct mapping successfully when no token provided', async () => {
       // mock list of transactions with their box mapping
       const transactions = [transactionTestData.transaction0].map(
-        ergoTestUtils.toTransaction
+        ergoTestUtils.toTransaction,
       );
       const boxMapping = transactionTestData.transaction0BoxMapping;
 
       // mock a network object to return mocked transactions for mempool
       const network = new TestErgoNetwork();
       vi.spyOn(network, 'getMempoolTransactions').mockResolvedValueOnce(
-        transactions
+        transactions,
       );
 
       // construct trackMap using transaction box mappings
       const trackMap = new Map<string, string | undefined>();
       boxMapping.forEach((mapping) =>
-        trackMap.set(mapping.inputId, mapping.serializedOutput)
+        trackMap.set(mapping.inputId, mapping.serializedOutput),
       );
 
       // run test
@@ -1704,8 +1716,8 @@ describe('ErgoChain', () => {
           key,
           value
             ? Buffer.from(value.sigma_serialize_bytes()).toString('hex')
-            : undefined
-        )
+            : undefined,
+        ),
       );
       expect(constructedMap).toEqual(trackMap);
     });
@@ -1726,7 +1738,7 @@ describe('ErgoChain', () => {
     it('should construct mapping successfully when token provided', async () => {
       // mock list of transactions with their box mapping
       const transactions = [transactionTestData.transaction0].map(
-        ergoTestUtils.toTransaction
+        ergoTestUtils.toTransaction,
       );
       const boxMapping = transactionTestData.transaction0BoxMapping;
       const trackingTokenId =
@@ -1735,20 +1747,20 @@ describe('ErgoChain', () => {
       // mock a network object to return mocked transactions for mempool
       const network = new TestErgoNetwork();
       vi.spyOn(network, 'getMempoolTransactions').mockResolvedValueOnce(
-        transactions
+        transactions,
       );
 
       // construct trackMap using transaction box mappings
       const trackMap = new Map<string, string | undefined>();
       boxMapping.forEach((mapping) =>
-        trackMap.set(mapping.inputId, mapping.serializedOutput)
+        trackMap.set(mapping.inputId, mapping.serializedOutput),
       );
 
       // run test
       const ergoChain = ergoTestUtils.generateChainObject(network);
       const result = await ergoChain.getMempoolBoxMapping(
         trackingAddress,
-        trackingTokenId
+        trackingTokenId,
       );
 
       // check returned value
@@ -1758,8 +1770,8 @@ describe('ErgoChain', () => {
           key,
           value
             ? Buffer.from(value.sigma_serialize_bytes()).toString('hex')
-            : undefined
-        )
+            : undefined,
+        ),
       );
       expect(constructedMap).toEqual(trackMap);
     });
@@ -1781,7 +1793,7 @@ describe('ErgoChain', () => {
     it('should map inputs to undefined when no valid output box found', async () => {
       // mock list of transactions with their box mapping
       const transactions = [transactionTestData.transaction0].map(
-        ergoTestUtils.toTransaction
+        ergoTestUtils.toTransaction,
       );
       const boxMapping = transactionTestData.transaction0BoxMapping;
       const trackingTokenId =
@@ -1790,7 +1802,7 @@ describe('ErgoChain', () => {
       // mock a network object to return mocked transactions for mempool
       const network = new TestErgoNetwork();
       vi.spyOn(network, 'getMempoolTransactions').mockResolvedValueOnce(
-        transactions
+        transactions,
       );
 
       // construct trackMap using transaction box mappings
@@ -1801,7 +1813,7 @@ describe('ErgoChain', () => {
       const ergoChain = ergoTestUtils.generateChainObject(network);
       const result = await ergoChain.getMempoolBoxMapping(
         trackingAddress,
-        trackingTokenId
+        trackingTokenId,
       );
 
       // check returned value
@@ -1857,7 +1869,7 @@ describe('ErgoChain', () => {
       // mock an ErgoBox and construct serialized box
       const box = ergoTestUtils.toErgoBox(boxTestData.ergoBox1);
       const serializedBox = Buffer.from(box.sigma_serialize_bytes()).toString(
-        'hex'
+        'hex',
       );
 
       // run test
@@ -1886,7 +1898,7 @@ describe('ErgoChain', () => {
       // mock an ErgoBox with WID and construct serialized box
       const box = ergoTestUtils.toErgoBox(boxTestData.ergoBox2);
       const serializedBox = Buffer.from(box.sigma_serialize_bytes()).toString(
-        'hex'
+        'hex',
       );
       const wid =
         '97a2dabcd974d69a07c3a03e20d05a36d13b986ffca5670302997484dd87e247';
@@ -1912,7 +1924,7 @@ describe('ErgoChain', () => {
       // mock an ErgoBox without WID and construct serialized box
       const box = ergoTestUtils.toErgoBox(boxTestData.ergoBox1);
       const serializedBox = Buffer.from(box.sigma_serialize_bytes()).toString(
-        'hex'
+        'hex',
       );
 
       // run test and expect exception thrown
@@ -1939,7 +1951,7 @@ describe('ErgoChain', () => {
     it('should get box RWT successfully', () => {
       // mock an ErgoBox with RWT and construct serialized box
       const serializedBox = Buffer.from(
-        ergoTestUtils.toErgoBox(boxTestData.eventBox1).sigma_serialize_bytes()
+        ergoTestUtils.toErgoBox(boxTestData.eventBox1).sigma_serialize_bytes(),
       ).toString('hex');
 
       // run test
@@ -1963,14 +1975,14 @@ describe('ErgoChain', () => {
     it('should wrap RWT amount successfully', async () => {
       // mock an ErgoBox with RWT and construct serialized box
       const serializedBox = Buffer.from(
-        ergoTestUtils.toErgoBox(boxTestData.eventBox1).sigma_serialize_bytes()
+        ergoTestUtils.toErgoBox(boxTestData.eventBox1).sigma_serialize_bytes(),
       ).toString('hex');
 
       // run test
       const ergoChain =
         await ergoTestUtils.generateDefaultChainObjectWithTokenMap(
           network,
-          ergoTestUtils.wrappedRwtTokenMap
+          ergoTestUtils.wrappedRwtTokenMap,
         );
       const result = ergoChain.getBoxRWT(serializedBox);
 
@@ -1990,7 +2002,7 @@ describe('ErgoChain', () => {
     it('should throw Error when box has no token', () => {
       // mock an ErgoBox without token and construct serialized box
       const serializedBox = Buffer.from(
-        ergoTestUtils.toErgoBox(boxTestData.ergoBox3).sigma_serialize_bytes()
+        ergoTestUtils.toErgoBox(boxTestData.ergoBox3).sigma_serialize_bytes(),
       ).toString('hex');
 
       // run test and expect exception thrown
@@ -2019,7 +2031,7 @@ describe('ErgoChain', () => {
       // mock an ErgoBox with assets
       const box = ergoTestUtils.toErgoBox(boxTestData.ergoBox1);
       const serializedBox = Buffer.from(box.sigma_serialize_bytes()).toString(
-        'hex'
+        'hex',
       );
       const boxInfo: BoxInfo = {
         id: box.box_id().to_str(),
@@ -2049,7 +2061,7 @@ describe('ErgoChain', () => {
       // mock an ErgoBox with assets
       const box = ergoTestUtils.toErgoBox(boxTestData.ergoBox1);
       const serializedBox = Buffer.from(box.sigma_serialize_bytes()).toString(
-        'hex'
+        'hex',
       );
       const boxInfo: BoxInfo = {
         id: box.box_id().to_str(),
@@ -2060,7 +2072,7 @@ describe('ErgoChain', () => {
       const ergoChain =
         await ergoTestUtils.generateDefaultChainObjectWithTokenMap(
           network,
-          ergoTestUtils.multiDecimalTokenMap
+          ergoTestUtils.multiDecimalTokenMap,
         );
       const result = ergoChain.getSerializedBoxInfo(serializedBox);
 
@@ -2085,7 +2097,7 @@ describe('ErgoChain', () => {
       // mock serialized box and guardNFT (the box itself doesn't matter)
       const box = ergoTestUtils.toErgoBox(boxTestData.ergoBox2);
       const serializedBox = Buffer.from(box.sigma_serialize_bytes()).toString(
-        'hex'
+        'hex',
       );
       const guardNFT = ergoTestUtils.generateRandomId();
 
@@ -2099,7 +2111,7 @@ describe('ErgoChain', () => {
       const ergoChain = ergoTestUtils.generateChainObject(network);
       const result = await ergoChain.getGuardsConfigBox(
         guardNFT,
-        ergoTestUtils.testLockAddress
+        ergoTestUtils.testLockAddress,
       );
 
       // check returned value
@@ -2132,7 +2144,7 @@ describe('ErgoChain', () => {
       await expect(async () => {
         await ergoChain.getGuardsConfigBox(
           guardNFT,
-          ergoTestUtils.testLockAddress
+          ergoTestUtils.testLockAddress,
         );
       }).rejects.toThrow(Error);
     });
@@ -2168,7 +2180,7 @@ describe('ErgoChain', () => {
       await expect(async () => {
         await ergoChain.getGuardsConfigBox(
           guardNFT,
-          ergoTestUtils.testLockAddress
+          ergoTestUtils.testLockAddress,
         );
       }).rejects.toThrow(Error);
     });
@@ -2177,7 +2189,7 @@ describe('ErgoChain', () => {
   describe('verifyEventRWT', () => {
     const network = new TestErgoNetwork();
     const serializedEventBox = Buffer.from(
-      ergoTestUtils.toErgoBox(boxTestData.eventBox1).sigma_serialize_bytes()
+      ergoTestUtils.toErgoBox(boxTestData.eventBox1).sigma_serialize_bytes(),
     ).toString('hex');
     const eventRwtId =
       '9410db5b39388c6b515160e7248346d7ec63d5457292326da12a26cc02efb526';
@@ -2215,7 +2227,7 @@ describe('ErgoChain', () => {
     it('should return false when box has no token', async () => {
       // mock an ergo box with no token
       const serializedBox = Buffer.from(
-        ergoTestUtils.toErgoBox(boxTestData.ergoBox3).sigma_serialize_bytes()
+        ergoTestUtils.toErgoBox(boxTestData.ergoBox3).sigma_serialize_bytes(),
       ).toString('hex');
 
       // run test
@@ -2241,7 +2253,7 @@ describe('ErgoChain', () => {
       const ergoChain = ergoTestUtils.generateChainObject(network);
       const result = ergoChain.verifyEventRWT(
         serializedEventBox,
-        'fake_rwt_id'
+        'fake_rwt_id',
       );
 
       // check returned value
@@ -2276,7 +2288,7 @@ describe('ErgoChain', () => {
       const ergoChain = ergoTestUtils.generateChainObject(network);
       const result = await ergoChain.getGuardsPkConfig(
         guardNFT,
-        ergoTestUtils.testLockAddress
+        ergoTestUtils.testLockAddress,
       );
 
       // check returned value
@@ -2310,7 +2322,7 @@ describe('ErgoChain', () => {
       await expect(async () => {
         await ergoChain.getGuardsPkConfig(
           guardNFT,
-          ergoTestUtils.testLockAddress
+          ergoTestUtils.testLockAddress,
         );
       }).rejects.toThrow(Error);
     });
@@ -2335,7 +2347,7 @@ describe('ErgoChain', () => {
       const serializedTx = Buffer.from(
         ergoTestUtils
           .toTransaction(transactionTestData.transaction6)
-          .sigma_serialize_bytes()
+          .sigma_serialize_bytes(),
       ).toString('hex');
 
       const expectedOrder = transactionTestData.transaction6Order;
@@ -2360,7 +2372,7 @@ describe('ErgoChain', () => {
         network,
         config,
         tokenMap,
-        ergoTestUtils.defaultSignFunction
+        ergoTestUtils.defaultSignFunction,
       );
       const result = ergoChain.extractSignedTransactionOrder(serializedTx);
 
@@ -2384,7 +2396,7 @@ describe('ErgoChain', () => {
       const serializedTx = Buffer.from(
         ergoTestUtils
           .toTransaction(transactionTestData.transaction6)
-          .sigma_serialize_bytes()
+          .sigma_serialize_bytes(),
       ).toString('hex');
 
       const expectedOrder = transactionTestData.transaction6WrappedOrder;
@@ -2409,7 +2421,7 @@ describe('ErgoChain', () => {
         network,
         config,
         tokenMap,
-        ergoTestUtils.defaultSignFunction
+        ergoTestUtils.defaultSignFunction,
       );
       const result = ergoChain.extractSignedTransactionOrder(serializedTx);
 
@@ -2435,7 +2447,7 @@ describe('ErgoChain', () => {
     it('should construct transaction successfully', async () => {
       // mock PaymentTransaction
       const expectedTx = ErgoTransaction.fromJson(
-        transactionTestData.transaction5PaymentTransaction
+        transactionTestData.transaction5PaymentTransaction,
       );
       const rawTxJsonString = transactionTestData.transaction5UnsignedJson;
       expectedTx.eventId = '';
@@ -2446,12 +2458,12 @@ describe('ErgoChain', () => {
       // mock 'getStateContext'
       const getStateContextSpy = vi.spyOn(network, 'getStateContext');
       getStateContextSpy.mockResolvedValue(
-        transactionTestData.mockedStateContext
+        transactionTestData.mockedStateContext,
       );
       // mock getBox
       const getBoxSpy = vi.spyOn(network, 'getBox');
       [...expectedTx.inputBoxes, ...expectedTx.dataInputs].forEach((box) =>
-        getBoxSpy.mockResolvedValueOnce(wasm.ErgoBox.sigma_parse_bytes(box))
+        getBoxSpy.mockResolvedValueOnce(wasm.ErgoBox.sigma_parse_bytes(box)),
       );
 
       // call the function
@@ -2480,7 +2492,7 @@ describe('ErgoChain', () => {
     it('should return true when data is consistent', async () => {
       // mock a ErgoTransaction
       const paymentTx = ErgoTransaction.fromJson(
-        transactionTestData.transaction5PaymentTransaction
+        transactionTestData.transaction5PaymentTransaction,
       );
 
       // run test
@@ -2505,7 +2517,7 @@ describe('ErgoChain', () => {
     it('should return false when transaction id is wrong', async () => {
       // mock a ErgoTransaction with changed txId
       const paymentTx = ErgoTransaction.fromJson(
-        transactionTestData.transaction5PaymentTransaction
+        transactionTestData.transaction5PaymentTransaction,
       );
       paymentTx.txId = ergoTestUtils.generateRandomId();
 
@@ -2531,7 +2543,7 @@ describe('ErgoChain', () => {
     it('should return false when number of boxes is wrong', async () => {
       // mock a ErgoTransaction with less boxes
       const paymentTx = ErgoTransaction.fromJson(
-        transactionTestData.transaction5PaymentTransaction
+        transactionTestData.transaction5PaymentTransaction,
       );
       paymentTx.inputBoxes.pop();
 
@@ -2557,7 +2569,7 @@ describe('ErgoChain', () => {
     it('should return false when at least one of the boxes is wrong', async () => {
       // mock a ErgoTransaction with changed box
       const paymentTx = ErgoTransaction.fromJson(
-        transactionTestData.transaction5PaymentTransaction
+        transactionTestData.transaction5PaymentTransaction,
       );
       const box = ergoTestUtils.toErgoBox(boxTestData.ergoBox1);
       paymentTx.inputBoxes[1] = box.sigma_serialize_bytes();
@@ -2584,7 +2596,7 @@ describe('ErgoChain', () => {
     it('should return false when number of data inputs is wrong', async () => {
       // mock a ErgoTransaction with less data inputs
       const paymentTx = ErgoTransaction.fromJson(
-        transactionTestData.transaction5PaymentTransaction
+        transactionTestData.transaction5PaymentTransaction,
       );
       paymentTx.dataInputs.pop();
 
@@ -2610,7 +2622,7 @@ describe('ErgoChain', () => {
     it('should return false when at least one of the data inputs is wrong', async () => {
       // mock a ErgoTransaction with changed data input
       const paymentTx = ErgoTransaction.fromJson(
-        transactionTestData.transaction5PaymentTransaction
+        transactionTestData.transaction5PaymentTransaction,
       );
       const box = ergoTestUtils.toErgoBox(boxTestData.ergoBox1);
       paymentTx.dataInputs[0] = box.sigma_serialize_bytes();

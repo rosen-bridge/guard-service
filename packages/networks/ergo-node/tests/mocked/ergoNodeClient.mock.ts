@@ -36,7 +36,7 @@ export const mockGetTxById = () =>
  * @param balance
  */
 export const mockGetAddressBalanceTotal = (
-  balance: typeof testAddressBalance | null = testAddressBalance
+  balance: typeof testAddressBalance | null = testAddressBalance,
 ) =>
   vi.mocked(ergoNodeClientFactory).mockReturnValueOnce({
     getAddressBalanceTotal: async () => ({
@@ -49,7 +49,7 @@ export const mockGetAddressBalanceTotal = (
  * @param txs
  */
 export const mockGetBlockTransactionsById = (
-  txs: typeof testPartialTransactions | null = testPartialTransactions
+  txs: typeof testPartialTransactions | null = testPartialTransactions,
 ) =>
   vi.mocked(ergoNodeClientFactory).mockReturnValueOnce({
     getBlockTransactionsById: async () => ({
@@ -85,7 +85,7 @@ export const mockSendTransactionAsBytes = () => {
   const sendTransactionAsBytesSpy = vi.fn();
   vi.mocked(ergoNodeClientFactory).mockReturnValueOnce({
     sendTransactionAsBytes: sendTransactionAsBytesSpy.mockResolvedValue(
-      testTransaction.id
+      testTransaction.id,
     ),
   } as any);
   return sendTransactionAsBytesSpy;
@@ -112,7 +112,7 @@ export const mockGetBoxesByAddressUnspent = () =>
   vi.mocked(ergoNodeClientFactory).mockReturnValueOnce({
     getBoxesByAddressUnspent: async (
       address: string,
-      { offset, limit }: { offset: number; limit: number }
+      { offset, limit }: { offset: number; limit: number },
     ) => testAddressBoxes.slice(Number(offset), Number(offset + limit)),
   } as any);
 
@@ -139,7 +139,7 @@ export const mockIndexedBoxById = () =>
  */
 export const mockApiToThrow = (
   apiName: string,
-  objectToThrow: { [p: string]: any }
+  objectToThrow: { [p: string]: any },
 ) =>
   vi.mocked(ergoNodeClientFactory).mockReturnValueOnce({
     [apiName]: vi.fn().mockRejectedValueOnce(objectToThrow),

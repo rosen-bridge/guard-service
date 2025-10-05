@@ -32,14 +32,14 @@ describe('AbstractChain', () => {
           'tx-id',
           'event-id',
           Buffer.from(''),
-          TransactionType.manual
+          TransactionType.manual,
         ),
       ];
 
       const chain = generateChainObject(network);
       const getLockAddressAssetsSpy = vi.spyOn(
         chain,
-        'generateMultipleTransactions'
+        'generateMultipleTransactions',
       );
       getLockAddressAssetsSpy.mockResolvedValueOnce(mockedTxs);
 
@@ -49,7 +49,7 @@ describe('AbstractChain', () => {
         TransactionType.manual,
         [],
         [],
-        []
+        [],
       );
 
       // Check returned value
@@ -73,21 +73,21 @@ describe('AbstractChain', () => {
           'tx-id',
           'event-id',
           Buffer.from(''),
-          TransactionType.manual
+          TransactionType.manual,
         ),
         new PaymentTransaction(
           'test',
           'tx-id',
           'event-id',
           Buffer.from(''),
-          TransactionType.manual
+          TransactionType.manual,
         ),
       ];
 
       const chain = generateChainObject(network);
       const getLockAddressAssetsSpy = vi.spyOn(
         chain,
-        'generateMultipleTransactions'
+        'generateMultipleTransactions',
       );
       getLockAddressAssetsSpy.mockResolvedValueOnce(mockedTxs);
 
@@ -98,7 +98,7 @@ describe('AbstractChain', () => {
           TransactionType.manual,
           [],
           [],
-          []
+          [],
         );
       }).rejects.toThrow(Error);
     });
@@ -234,7 +234,7 @@ describe('AbstractChain', () => {
       const network = new TestChainNetwork();
       const getBlockTransactionIdsSpy = vi.spyOn(
         network,
-        'getBlockTransactionIds'
+        'getBlockTransactionIds',
       );
       getBlockTransactionIdsSpy.mockResolvedValueOnce([
         generateRandomId(),
@@ -261,7 +261,7 @@ describe('AbstractChain', () => {
       // mock verifyLockTransactionExtraConditions to return true
       const verifyLockTxSpy = vi.spyOn(
         chain,
-        'verifyLockTransactionExtraConditions'
+        'verifyLockTransactionExtraConditions',
       );
       verifyLockTxSpy.mockResolvedValueOnce(true);
 
@@ -274,12 +274,12 @@ describe('AbstractChain', () => {
       // check if functions got called
       // eslint-disable-next-line vitest/prefer-called-exactly-once-with
       expect(getBlockTransactionIdsSpy).toHaveBeenCalledWith(
-        event.sourceBlockId
+        event.sourceBlockId,
       );
       // eslint-disable-next-line vitest/prefer-called-exactly-once-with
       expect(getTransactionSpy).toHaveBeenCalledWith(
         event.sourceTxId,
-        event.sourceBlockId
+        event.sourceBlockId,
       );
       // eslint-disable-next-line vitest/prefer-called-exactly-once-with
       expect(getBlockInfoSpy).toHaveBeenCalledWith(event.sourceBlockId);
@@ -306,7 +306,7 @@ describe('AbstractChain', () => {
       const network = new TestChainNetwork();
       const getBlockTransactionIdsSpy = vi.spyOn(
         network,
-        'getBlockTransactionIds'
+        'getBlockTransactionIds',
       );
       getBlockTransactionIdsSpy.mockResolvedValueOnce([
         generateRandomId(),
@@ -357,7 +357,7 @@ describe('AbstractChain', () => {
       const network = new TestChainNetwork();
       const getBlockTransactionIdsSpy = vi.spyOn(
         network,
-        'getBlockTransactionIds'
+        'getBlockTransactionIds',
       );
       getBlockTransactionIdsSpy.mockResolvedValueOnce([
         generateRandomId(),
@@ -417,7 +417,7 @@ describe('AbstractChain', () => {
       const network = new TestChainNetwork();
       const getBlockTransactionIdsSpy = vi.spyOn(
         network,
-        'getBlockTransactionIds'
+        'getBlockTransactionIds',
       );
       getBlockTransactionIdsSpy.mockResolvedValueOnce([
         generateRandomId(),
@@ -474,7 +474,7 @@ describe('AbstractChain', () => {
       const network = new TestChainNetwork();
       const getBlockTransactionIdsSpy = vi.spyOn(
         network,
-        'getBlockTransactionIds'
+        'getBlockTransactionIds',
       );
       getBlockTransactionIdsSpy.mockResolvedValueOnce([
         generateRandomId(),
@@ -501,7 +501,7 @@ describe('AbstractChain', () => {
       // mock verifyLockTransactionExtraConditions to return true
       const verifyLockTxSpy = vi.spyOn(
         chain,
-        'verifyLockTransactionExtraConditions'
+        'verifyLockTransactionExtraConditions',
       );
       verifyLockTxSpy.mockResolvedValueOnce(true);
 
@@ -548,7 +548,7 @@ describe('AbstractChain', () => {
       const network = new TestChainNetwork();
       const getBlockTransactionIdsSpy = vi.spyOn(
         network,
-        'getBlockTransactionIds'
+        'getBlockTransactionIds',
       );
       getBlockTransactionIdsSpy.mockResolvedValueOnce([
         generateRandomId(),
@@ -575,7 +575,7 @@ describe('AbstractChain', () => {
       // mock verifyLockTransactionExtraConditions to return true
       const verifyLockTxSpy = vi.spyOn(
         chain,
-        'verifyLockTransactionExtraConditions'
+        'verifyLockTransactionExtraConditions',
       );
       verifyLockTxSpy.mockResolvedValueOnce(true);
 
@@ -622,7 +622,7 @@ describe('AbstractChain', () => {
       const network = new TestChainNetwork();
       const getBlockTransactionIdsSpy = vi.spyOn(
         network,
-        'getBlockTransactionIds'
+        'getBlockTransactionIds',
       );
       getBlockTransactionIdsSpy.mockResolvedValueOnce([
         generateRandomId(),
@@ -649,7 +649,7 @@ describe('AbstractChain', () => {
       // mock verifyLockTransactionExtraConditions to return true
       const verifyLockTxSpy = vi.spyOn(
         chain,
-        'verifyLockTransactionExtraConditions'
+        'verifyLockTransactionExtraConditions',
       );
       verifyLockTxSpy.mockResolvedValueOnce(true);
 
@@ -685,7 +685,7 @@ describe('AbstractChain', () => {
       const network = new TestChainNetwork();
       const getBlockTransactionIdsSpy = vi.spyOn(
         network,
-        'getBlockTransactionIds'
+        'getBlockTransactionIds',
       );
       getBlockTransactionIdsSpy.mockResolvedValueOnce([
         generateRandomId(),
@@ -712,7 +712,7 @@ describe('AbstractChain', () => {
       // mock verifyLockTransactionExtraConditions to return false
       const verifyLockTxSpy = vi.spyOn(
         chain,
-        'verifyLockTransactionExtraConditions'
+        'verifyLockTransactionExtraConditions',
       );
       verifyLockTxSpy.mockResolvedValueOnce(false);
 
@@ -844,7 +844,7 @@ describe('AbstractChain', () => {
     it('should get address balance of only native token', async () => {
       // arrange
       vi.spyOn(network, 'getAddressAssets').mockResolvedValueOnce(
-        testData.actualBalance
+        testData.actualBalance,
       );
 
       const tokenMap = new TokenMap();
@@ -876,7 +876,7 @@ describe('AbstractChain', () => {
     it('should get address balance of native token and 2 requested tokens, and ignore other tokens', async () => {
       // arrange
       vi.spyOn(network, 'getAddressAssets').mockResolvedValueOnce(
-        testData.actualBalance
+        testData.actualBalance,
       );
 
       const tokenMap = new TokenMap();

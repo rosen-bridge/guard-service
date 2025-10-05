@@ -28,13 +28,13 @@ describe('generateFeeEstimatorWithPsbt', () => {
   it('should generate fee estimator that successfully estimates fee for PSBT targeted to taproot addresses', async () => {
     // mock PaymentTransaction
     const paymentTx = BitcoinRunesTransaction.fromJson(
-      testData.transaction1PaymentTransaction
+      testData.transaction1PaymentTransaction,
     );
     const psbt = Psbt.fromBuffer(Buffer.from(paymentTx.txBytes));
 
     // calculate vSize of the signed version of mocked PaymentTransaction
     const signedTx = Psbt.fromHex(
-      testData.transaction1SignedTxBytesHex
+      testData.transaction1SignedTxBytesHex,
     ).extractTransaction();
     const vSize = signedTx.virtualSize();
 
@@ -65,14 +65,14 @@ describe('generateFeeEstimatorWithPsbt', () => {
     // mock PaymentTransaction
     const paymentTx = BitcoinRunesTransaction.fromJson(
       testData.transaction2Forms.generatePaymentTxString(
-        testData.transaction2Forms.txData.valid
-      )
+        testData.transaction2Forms.txData.valid,
+      ),
     );
     const psbt = Psbt.fromBuffer(Buffer.from(paymentTx.txBytes));
 
     // calculate vSize of the signed version of mocked PaymentTransaction
     const signedTx = Psbt.fromHex(
-      testData.transaction2SignedTxBytesHex
+      testData.transaction2SignedTxBytesHex,
     ).extractTransaction();
     const vSize = signedTx.virtualSize();
 
@@ -101,7 +101,7 @@ describe('splitPaymentOrders', () => {
   it('should return the same order when it does not require splitting', () => {
     const result = splitPaymentOrders(
       testData.transaction1Order,
-      minimumNativeToken
+      minimumNativeToken,
     );
     expect(result).toEqual(testData.transaction1Order);
   });
@@ -118,7 +118,7 @@ describe('splitPaymentOrders', () => {
   it('should successfully split the order', () => {
     const result = splitPaymentOrders(
       testData.mockedColdOrder,
-      minimumNativeToken
+      minimumNativeToken,
     );
     expect(result).toEqual(testData.splittedColdOrder);
   });
@@ -160,7 +160,7 @@ describe('splitPaymentOrders', () => {
       },
     ];
     expect(() => splitPaymentOrders(invalidOrder, minimumNativeToken)).toThrow(
-      Error
+      Error,
     );
   });
 });

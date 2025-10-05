@@ -62,10 +62,10 @@ abstract class AbstractBitcoinRunesNetwork extends AbstractUtxoChainNetwork<
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     offset: number,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    limit: number
+    limit: number,
   ): Promise<Array<BitcoinRunesUtxo>> => {
     throw Error(
-      `The "getAddressBoxes" is not implemented for any network of "BitcoinRunesChain" and should not be used!`
+      `The "getAddressBoxes" is not implemented for any network of "BitcoinRunesChain" and should not be used!`,
     );
   };
 
@@ -81,7 +81,7 @@ abstract class AbstractBitcoinRunesNetwork extends AbstractUtxoChainNetwork<
     address: string,
     runeId: string,
     offset: number,
-    limit: number
+    limit: number,
   ) => Promise<Array<BitcoinRunesUtxo>>;
 
   /**
@@ -90,7 +90,7 @@ abstract class AbstractBitcoinRunesNetwork extends AbstractUtxoChainNetwork<
    * @returns list of boxes
    */
   abstract getAddressBtcBoxes: (
-    address: string
+    address: string,
   ) => Promise<Array<BitcoinRunesUtxo>>;
 
   /**
@@ -104,7 +104,7 @@ abstract class AbstractBitcoinRunesNetwork extends AbstractUtxoChainNetwork<
    */
   abstract getRemainingBoxes: (
     fetchedBoxIds: Array<string>,
-    address: string
+    address: string,
   ) => Promise<Array<BitcoinRunesUtxo>>;
 }
 
