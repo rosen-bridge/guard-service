@@ -1,2 +1,2 @@
-export { default } from './CardanoKoiosNetwork';
-export * from './Constants';
+export { default } from './cardanoKoiosNetwork';
+export * from './constants';

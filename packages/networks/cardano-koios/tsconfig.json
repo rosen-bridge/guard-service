@@ -1,10 +1,9 @@
 {
   "extends": "../../../tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "dist",
-    "rootDir": "./"
+    "outDir": "./dist"
   },
-  "include": ["lib", "tests", "vitest.config.ts"],
+  "include": ["tests", "lib", "vitest.config.ts"],
   "references": [
     { "path": "../../abstract-chain" },
     { "path": "../../chains/cardano" }

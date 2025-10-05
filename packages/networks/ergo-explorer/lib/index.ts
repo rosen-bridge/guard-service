@@ -1,2 +1,2 @@
-export { default } from './ErgoExplorerNetwork';
-export * from './Constants';
+export { default } from './ergoExplorerNetwork';
+export * from './constants';

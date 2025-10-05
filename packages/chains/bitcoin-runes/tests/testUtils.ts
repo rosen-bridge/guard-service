@@ -5,7 +5,7 @@ import {
   BitcoinRunesConfigs,
   TssSignFunction,
 } from '../lib';
-import { TestBitcoinRunesNetwork } from './network/TestBitcoinRunesNetwork';
+import { TestBitcoinRunesNetwork } from './network/testBitcoinRunesNetwork';
 import * as testData from './testData';
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 

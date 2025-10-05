@@ -1,1 +1,1 @@
-export { default } from './BitcoinEsploraNetwork';
+export { default } from './bitcoinEsploraNetwork';

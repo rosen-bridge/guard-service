@@ -1,1 +1,1 @@
-export * from './BitcoinRunesRpcNetwork';
+export * from './bitcoinRunesRpcNetwork';

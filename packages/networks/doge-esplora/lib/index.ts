@@ -1,3 +1,3 @@
-import DogeEsploraNetwork from './DogeEsploraNetwork';
+import DogeEsploraNetwork from './dogeEsploraNetwork';
 
 export { DogeEsploraNetwork };

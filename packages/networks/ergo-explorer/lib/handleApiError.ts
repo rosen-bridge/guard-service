@@ -19,7 +19,7 @@ interface ErrorHandler<HandlerReturnType> {
 const handleApiError = <
   RespondedStateHandlerReturnType = never,
   NotRespondedStateHandlerReturnType = never,
-  UnknownStateHandlerReturnType = never
+  UnknownStateHandlerReturnType = never,
 >(
   error: any,
   baseMessage: string,

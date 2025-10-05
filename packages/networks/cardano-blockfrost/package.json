@@ -4,7 +4,8 @@
   "description": "a package to be used as network api provider for @rosen-chains/cardano package",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rosen-bridge/rosen-chains.git"
+    "url": "git+https://github.com/rosen-bridge/rosen-chains.git",
+    "directory": "packages/networks/cardano-blockfrost"
   },
   "license": "MIT",
   "author": "Rosen Team",
@@ -19,25 +20,18 @@
     "build": "tsc --build tsconfig.build.json",
     "coverage": "npm run test -- --run --coverage",
     "lint": "eslint --fix . && npm run prettify",
-    "prettify": "prettier --write . --ignore-path ./.gitignore",
+    "lint:check": "eslint . && npm run prettify:check",
+    "prettify": "prettier --write . --ignore-path ../../../.gitignore",
+    "prettify:check": "prettier --check . --ignore-path ../../../.gitignore",
     "release": "npm run test -- --run && npm run build && npm publish --access public",
     "test": "NODE_OPTIONS='--import tsx' vitest",
     "type-check": "tsc --noEmit"
   },
   "devDependencies": {
-    "@types/node": "^20.11.9",
-    "@typescript-eslint/eslint-plugin": "^6.7.0",
-    "@typescript-eslint/parser": "^6.7.0",
     "@vitest/coverage-istanbul": "^3.1.4",
-    "eslint": "^8.16.0",
-    "eslint-config-prettier": "^8.5.0",
-    "prettier": "2.7.1",
-    "tsx": "^4.19.4",
-    "typescript": "^5.0.0",
+    "tsx": "^4.20.5",
+    "typescript": "^5.8.3",
     "vitest": "^3.1.4"
-  },
-  "engines": {
-    "node": ">=20.11.0"
   },
   "dependencies": {
     "@blockfrost/blockfrost-js": "^6.0.0",
@@ -46,5 +40,11 @@
     "@rosen-bridge/json-bigint": "^0.2.0",
     "@rosen-chains/abstract-chain": "^14.0.1",
     "@rosen-chains/cardano": "^13.0.1"
-  }
+  },
+  "engines": {
+    "node": ">=22.18.0"
+  },
+  "keywords": [
+    "rosen"
+  ]
 }

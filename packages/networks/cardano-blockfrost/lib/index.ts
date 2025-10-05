@@ -1,2 +1,2 @@
-export { default } from './CardanoBlockFrostNetwork';
+export { default } from './cardanoBlockFrostNetwork';
 export * from './constants';

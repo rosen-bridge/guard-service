@@ -1,7 +1,7 @@
 import { randomBytes } from 'crypto';
 import * as testData from './testData';
 import { DogeChain, DogeConfigs, TssSignFunction } from '../lib';
-import TestDogeNetwork from './network/TestDogeNetwork';
+import TestDogeNetwork from './network/testDogeNetwork';
 import { TokenMap } from '@rosen-bridge/tokens';
 
 export const generateRandomId = (): string => randomBytes(32).toString('hex');

@@ -1,7 +1,7 @@
-export { default as DogeChain } from './DogeChain';
-export { default as AbstractDogeNetwork } from './network/AbstractDogeNetwork';
-export { default as PartialDogeNetwork } from './network/PartialDogeNetwork';
-export { default as CombinedDogeNetwork } from './network/CombinedDogeNetwork';
-export { default as DogeTransaction } from './DogeTransaction';
+export { default as DogeChain } from './dogeChain';
+export { default as AbstractDogeNetwork } from './network/abstractDogeNetwork';
+export { default as PartialDogeNetwork } from './network/partialDogeNetwork';
+export { default as CombinedDogeNetwork } from './network/combinedDogeNetwork';
+export { default as DogeTransaction } from './dogeTransaction';
 export * from './types';
 export * from './constants';

@@ -5,11 +5,13 @@ vi.mock('ethers', async (importOriginal) => {
   const refEthers = ref.ethers;
   return {
     ...ref,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     JsonRpcProvider: vi.fn().mockImplementation((url: string) => {
       return rpcInstance;
     }),
     ethers: {
       ...refEthers,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       Contract: vi.fn().mockImplementation((tokenId, ABI, provider) => {
         return ContractInstance;
       }),

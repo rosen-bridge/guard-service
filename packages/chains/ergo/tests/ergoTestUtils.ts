@@ -1,8 +1,7 @@
-import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 import { RosenTokens } from '@rosen-bridge/tokens';
 import { randomBytes } from 'crypto';
 import * as wasm from 'ergo-lib-wasm-nodejs';
-import TestErgoNetwork from './network/TestErgoNetwork';
+import TestErgoNetwork from './network/testErgoNetwork';
 import { ErgoChain, ErgoConfigs } from '../lib';
 import { transaction2SignedSerialized } from './transactionTestData';
 import { TokenMap } from '@rosen-bridge/tokens';
@@ -154,9 +153,13 @@ export const testLockAddress =
   '9es3xKFSehNNwCpuNpY31ScAubDqeLbSWwaCysjN1ee51bgHKTq';
 
 export const defaultSignFunction = async (
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   tx: wasm.ReducedTransaction,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   requiredSign: number,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   boxes: Array<wasm.ErgoBox>,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   dataBoxes?: Array<wasm.ErgoBox>
 ): Promise<wasm.Transaction> =>
   deserializeTransaction(transaction2SignedSerialized);
