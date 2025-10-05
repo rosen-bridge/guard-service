@@ -327,7 +327,7 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
    * @param transaction the transaction
    */
   submitTransaction = async (transaction: Transaction): Promise<void> => {
-    const txBlob = new Blob([transaction.to_bytes()], {
+    const txBlob = new Blob([transaction.to_bytes().slice()], {
       type: 'application/cbor',
     });
     await this.client.submittx(txBlob);
