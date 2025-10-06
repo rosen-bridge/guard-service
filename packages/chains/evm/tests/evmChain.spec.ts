@@ -2825,9 +2825,9 @@ describe('EvmChain', () => {
       const result = await evmChain.getAddressAssets(TestData.lockAddress, []);
 
       // assert
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      expect(nativeTokenSpy).toHaveBeenCalledOnce();
-      expect(nativeTokenSpy).toHaveBeenLastCalledWith(TestData.lockAddress);
+      expect(nativeTokenSpy).toHaveBeenCalledExactlyOnceWith(
+        TestData.lockAddress,
+      );
       expect(erc20Spy).not.toHaveBeenCalled();
       expect(result).toEqual({
         nativeToken: 1000n,
@@ -2884,9 +2884,9 @@ describe('EvmChain', () => {
       ]);
 
       // assert
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      expect(nativeTokenSpy).toHaveBeenCalledOnce();
-      expect(nativeTokenSpy).toHaveBeenLastCalledWith(TestData.lockAddress);
+      expect(nativeTokenSpy).toHaveBeenCalledExactlyOnceWith(
+        TestData.lockAddress,
+      );
       expect(erc20Spy).toHaveBeenCalledTimes(2);
       expect(erc20Spy).toHaveBeenNthCalledWith(
         1,
