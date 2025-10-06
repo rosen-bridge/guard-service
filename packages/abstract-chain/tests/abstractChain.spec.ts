@@ -272,17 +272,16 @@ describe('AbstractChain', () => {
       expect(result).toEqual(true);
 
       // check if functions got called
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      expect(getBlockTransactionIdsSpy).toHaveBeenCalledWith(
+      expect(getBlockTransactionIdsSpy).toHaveBeenCalledExactlyOnceWith(
         event.sourceBlockId,
       );
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      expect(getTransactionSpy).toHaveBeenCalledWith(
+      expect(getTransactionSpy).toHaveBeenCalledExactlyOnceWith(
         event.sourceTxId,
         event.sourceBlockId,
       );
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      expect(getBlockInfoSpy).toHaveBeenCalledWith(event.sourceBlockId);
+      expect(getBlockInfoSpy).toHaveBeenCalledExactlyOnceWith(
+        event.sourceBlockId,
+      );
     });
 
     /**

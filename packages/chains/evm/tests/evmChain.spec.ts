@@ -566,8 +566,7 @@ describe('EvmChain', () => {
           unsigned,
           signed,
         );
-        // eslint-disable-next-line vitest/valid-expect
-      }).not.rejects;
+      }).not.toThrow();
     });
 
     /**
@@ -2039,7 +2038,7 @@ describe('EvmChain', () => {
      * @expected
      * - it should return true
      */
-    it('should return true when extra conditions are met and eventId is empty', async () => {
+    it('should return true for erc-20 transfer when extra conditions are met and eventId is empty', async () => {
       // mock PaymentTransaction
       const eventId = '';
       const txType = TransactionType.payment;
@@ -2105,8 +2104,7 @@ describe('EvmChain', () => {
      * @expected
      * - it should return true
      */
-    // eslint-disable-next-line vitest/no-identical-title
-    it('should return true when extra conditions are met and eventId is empty', async () => {
+    it('should return true for native-token transfer when extra conditions are met and eventId is empty', async () => {
       // mock PaymentTransaction
       const eventId = '';
       const txType = TransactionType.payment;

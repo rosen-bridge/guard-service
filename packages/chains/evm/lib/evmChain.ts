@@ -203,7 +203,6 @@ abstract class EvmChain extends AbstractChain<Transaction> {
     }
 
     // try to generate transactions
-    let totalGas = 0n;
     const evmTrxs: Array<PaymentTransaction> = [];
     for (const singleOrder of orders) {
       let trx;
@@ -253,8 +252,6 @@ abstract class EvmChain extends AbstractChain<Transaction> {
         estimatedRequiredGas = this.configs.gasLimitCap;
       }
       trx.gasLimit = estimatedRequiredGas * this.configs.gasLimitMultiplier;
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      totalGas += trx.gasLimit;
 
       evmTrxs.push(
         new PaymentTransaction(

@@ -94,8 +94,7 @@ describe('EvmRpcNetwork', () => {
 
       const result = await network.getTxConfirmation(unsignedHash);
       expect(result).toEqual(mockedConfirmation);
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      expect(getTransactionSpy).toHaveBeenCalledWith(signedHash);
+      expect(getTransactionSpy).toHaveBeenCalledExactlyOnceWith(signedHash);
     });
 
     /**
@@ -130,8 +129,7 @@ describe('EvmRpcNetwork', () => {
 
       const result = await network.getTxConfirmation(txId);
       expect(result).toEqual(mockedConfirmation);
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      expect(getTransactionSpy).toHaveBeenCalledWith(txId);
+      expect(getTransactionSpy).toHaveBeenCalledExactlyOnceWith(txId);
     });
 
     /**
@@ -158,8 +156,7 @@ describe('EvmRpcNetwork', () => {
 
       const result = await network.getTxConfirmation(txId);
       expect(result).toEqual(-1);
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      expect(getTransactionSpy).toHaveBeenCalledWith(txId);
+      expect(getTransactionSpy).toHaveBeenCalledExactlyOnceWith(txId);
     });
 
     /**
@@ -207,8 +204,7 @@ describe('EvmRpcNetwork', () => {
 
       const result = await network.getTxConfirmation(unsignedHash);
       expect(result).toEqual(-1);
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      expect(getTransactionSpy).toHaveBeenCalledWith(signedHash);
+      expect(getTransactionSpy).toHaveBeenCalledExactlyOnceWith(signedHash);
     });
 
     /**
@@ -243,8 +239,7 @@ describe('EvmRpcNetwork', () => {
 
       const result = await network.getTxConfirmation(txId);
       expect(result).toEqual(-1);
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      expect(getTransactionSpy).toHaveBeenCalledWith(txId);
+      expect(getTransactionSpy).toHaveBeenCalledExactlyOnceWith(txId);
     });
   });
 
@@ -388,8 +383,9 @@ describe('EvmRpcNetwork', () => {
         testData.tokenId,
       );
       expect(result).toEqual(testData.balance);
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      expect(ContractInstance.balanceOf).toHaveBeenCalledWith(address);
+      expect(ContractInstance.balanceOf).toHaveBeenCalledExactlyOnceWith(
+        address,
+      );
     });
   });
 
@@ -685,10 +681,9 @@ describe('EvmRpcNetwork', () => {
 
       // assert
       expect(txId).toEqual(testData.transaction0Id);
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      expect(getTxByUnsignedHashSpy).toHaveBeenCalledOnce();
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      expect(getTxByUnsignedHashSpy).toHaveBeenCalledWith(unsignedHash);
+      expect(getTxByUnsignedHashSpy).toHaveBeenCalledExactlyOnceWith(
+        unsignedHash,
+      );
     });
 
     /**
@@ -718,10 +713,9 @@ describe('EvmRpcNetwork', () => {
 
       // assert
       expect(txId).toEqual(unsignedHash);
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      expect(getTxByUnsignedHashSpy).toHaveBeenCalledOnce();
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      expect(getTxByUnsignedHashSpy).toHaveBeenCalledWith(unsignedHash);
+      expect(getTxByUnsignedHashSpy).toHaveBeenCalledExactlyOnceWith(
+        unsignedHash,
+      );
     });
 
     /**
@@ -749,10 +743,9 @@ describe('EvmRpcNetwork', () => {
         await network.getActualTxId(unsignedHash);
       }).rejects.toThrow();
 
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      expect(getTxByUnsignedHashSpy).toHaveBeenCalledOnce();
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      expect(getTxByUnsignedHashSpy).toHaveBeenCalledWith(unsignedHash);
+      expect(getTxByUnsignedHashSpy).toHaveBeenCalledExactlyOnceWith(
+        unsignedHash,
+      );
     });
   });
 });

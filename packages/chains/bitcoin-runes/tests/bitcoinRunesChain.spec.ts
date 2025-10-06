@@ -134,8 +134,7 @@ describe('BitcoinRunesChain', () => {
       expect(extractedOrder).toEqual(order);
 
       // getCoveringBoxes should have been called with correct arguments
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      expect(getCovBoxesSpy.fn).toHaveBeenCalledWith(
+      expect(getCovBoxesSpy.fn).toHaveBeenCalledExactlyOnceWith(
         {
           nativeToken: 0n,
           tokens: testData.transaction1Order[0].assets.tokens,
@@ -265,8 +264,7 @@ describe('BitcoinRunesChain', () => {
       expect(extractedOrder).toEqual(order);
 
       // getCoveringBoxes should have been called with correct arguments
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      expect(getCovBoxesSpy.fn).toHaveBeenCalledWith(
+      expect(getCovBoxesSpy.fn).toHaveBeenCalledExactlyOnceWith(
         { nativeToken: 0n, tokens: order[0].assets.tokens },
         expect.any(Array), // Since the argument is mutated, it's not possible to check it here
         new Map(),
@@ -401,8 +399,7 @@ describe('BitcoinRunesChain', () => {
       );
 
       // getCoveringBoxes should have been called with correct arguments
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      expect(getCovBoxesSpy.fn).toHaveBeenCalledWith(
+      expect(getCovBoxesSpy.fn).toHaveBeenCalledExactlyOnceWith(
         {
           nativeToken: 0n,
           tokens: testData.transaction3Order[0].assets.tokens,
@@ -756,8 +753,7 @@ describe('BitcoinRunesChain', () => {
       expect(extractedOrder).toEqual(order);
 
       // getCoveringBoxes should have been called with correct arguments
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      expect(getCovBoxesSpy.fn).toHaveBeenCalledWith(
+      expect(getCovBoxesSpy.fn).toHaveBeenCalledExactlyOnceWith(
         {
           nativeToken: 0n,
           tokens: testData.transaction1Order[0].assets.tokens,
@@ -1935,8 +1931,7 @@ describe('BitcoinRunesChain', () => {
         isValid: true,
         details: undefined,
       });
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      expect(isBoxUnspentAndValidSpy).toHaveBeenCalledWith(
+      expect(isBoxUnspentAndValidSpy).toHaveBeenCalledExactlyOnceWith(
         testData.transaction1Input0BoxId,
       );
     });
@@ -1976,8 +1971,7 @@ describe('BitcoinRunesChain', () => {
           unexpected: false,
         },
       });
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      expect(isBoxUnspentAndValidSpy).toHaveBeenCalledWith(
+      expect(isBoxUnspentAndValidSpy).toHaveBeenCalledExactlyOnceWith(
         testData.transaction1Input0BoxId,
       );
     });

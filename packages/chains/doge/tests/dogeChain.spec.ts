@@ -96,8 +96,7 @@ describe('DogeChain', () => {
         testData.transaction2Order[0].assets,
       );
       expectedRequiredAssets.nativeToken += dogeChain.getMinimumNativeToken();
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      expect(getCovBoxesSpy).toHaveBeenCalledWith(
+      expect(getCovBoxesSpy).toHaveBeenCalledExactlyOnceWith(
         expectedRequiredAssets,
         [],
         new Map(),
@@ -701,9 +700,14 @@ describe('DogeChain', () => {
         isValid: true,
         details: undefined,
       });
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      expect(isBoxUnspentAndValidSpy).toHaveBeenCalledWith(
+      expect(isBoxUnspentAndValidSpy).toHaveBeenCalledTimes(2);
+      expect(isBoxUnspentAndValidSpy).toHaveBeenNthCalledWith(
+        1,
         testData.transaction0Input0BoxId,
+      );
+      expect(isBoxUnspentAndValidSpy).toHaveBeenNthCalledWith(
+        2,
+        testData.transaction0Input1BoxId,
       );
     });
 
@@ -741,8 +745,7 @@ describe('DogeChain', () => {
           unexpected: false,
         },
       });
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      expect(isBoxUnspentAndValidSpy).toHaveBeenCalledWith(
+      expect(isBoxUnspentAndValidSpy).toHaveBeenCalledExactlyOnceWith(
         testData.transaction0Input0BoxId,
       );
     });

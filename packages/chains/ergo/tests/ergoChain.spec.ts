@@ -1429,9 +1429,17 @@ describe('ErgoChain', () => {
       });
 
       // check if function got called
-      transactionTestData.transaction0InputIds.forEach((inputId) =>
-        // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-        expect(isBoxUnspentAndValidSpy).toHaveBeenCalledWith(inputId),
+      expect(isBoxUnspentAndValidSpy).toHaveBeenNthCalledWith(
+        1,
+        transactionTestData.transaction0InputIds[0],
+      );
+      expect(isBoxUnspentAndValidSpy).toHaveBeenNthCalledWith(
+        2,
+        transactionTestData.transaction0InputIds[1],
+      );
+      expect(isBoxUnspentAndValidSpy).toHaveBeenNthCalledWith(
+        3,
+        transactionTestData.transaction0InputIds[2],
       );
     });
 
@@ -1484,8 +1492,7 @@ describe('ErgoChain', () => {
       });
 
       // check if function got called
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      expect(isBoxUnspentAndValidSpy).toHaveBeenCalledWith(
+      expect(isBoxUnspentAndValidSpy).toHaveBeenCalledExactlyOnceWith(
         transactionTestData.transaction0InputIds[0],
       );
     });

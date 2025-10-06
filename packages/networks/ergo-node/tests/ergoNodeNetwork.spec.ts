@@ -314,8 +314,7 @@ describe('ErgoNodeNetwork', () => {
         Transaction.sigma_parse_bytes(Buffer.from(testTransactionBytes, 'hex')),
       );
 
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      expect(sendTransactionAsBytesSpy).toHaveBeenCalledWith(
+      expect(sendTransactionAsBytesSpy).toHaveBeenCalledExactlyOnceWith(
         testTransactionBytes,
       );
     });

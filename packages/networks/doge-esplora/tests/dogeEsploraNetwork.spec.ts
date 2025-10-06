@@ -155,15 +155,13 @@ describe('DogeEsploraNetwork', () => {
         testData.unsignedTxId,
       );
 
-      expect(
-        getSpentTransactionByInputIdSpy,
-        // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      ).toHaveBeenCalledWith(
+      expect(getSpentTransactionByInputIdSpy).toHaveBeenCalledExactlyOnceWith(
         testData.dogeTx.inputs[0].index,
         testData.dogeTx.inputs[0].txId,
       );
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      expect(getTxConfirmationSignedSpy).toHaveBeenCalledWith(testData.txId);
+      expect(getTxConfirmationSignedSpy).toHaveBeenCalledExactlyOnceWith(
+        testData.txId,
+      );
       expect(result).toEqual(testData.txConfirmation);
     });
   });
@@ -612,8 +610,7 @@ describe('DogeEsploraNetwork', () => {
       );
 
       expect(result).toEqual(testData.dogeTx);
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      expect(getTransactionSpy).toHaveBeenCalledWith(
+      expect(getTransactionSpy).toHaveBeenCalledExactlyOnceWith(
         testData.spentResult.txid,
         testData.spentResult.status.block_hash,
       );
@@ -727,10 +724,7 @@ describe('DogeEsploraNetwork', () => {
 
       const result = await customNetwork.getActualTxId(testData.unsignedTxId);
 
-      expect(
-        getSpentTransactionByInputIdSpy,
-        // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      ).toHaveBeenCalledWith(
+      expect(getSpentTransactionByInputIdSpy).toHaveBeenCalledExactlyOnceWith(
         testData.dogeTx.inputs[0].index,
         testData.dogeTx.inputs[0].txId,
       );

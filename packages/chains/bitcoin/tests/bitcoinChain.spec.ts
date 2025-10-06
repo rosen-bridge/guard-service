@@ -93,8 +93,7 @@ describe('BitcoinChain', () => {
       );
       expectedRequiredAssets.nativeToken +=
         bitcoinChain.getMinimumNativeToken();
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      expect(getCovBoxesSpy).toHaveBeenCalledWith(
+      expect(getCovBoxesSpy).toHaveBeenCalledExactlyOnceWith(
         expectedRequiredAssets,
         testData.transaction1InputIds,
         new Map(),
@@ -252,8 +251,7 @@ describe('BitcoinChain', () => {
         BigInt(Math.ceil(SEGWIT_INPUT_WEIGHT_UNIT / 4)),
         bitcoinChain.CHAIN,
       ).amount;
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      expect(getCovBoxesSpy).toHaveBeenCalledWith(
+      expect(getCovBoxesSpy).toHaveBeenCalledExactlyOnceWith(
         ChainUtils.unwrapAssetBalance(
           expectedRequiredAssets,
           tokenMap,
@@ -558,8 +556,7 @@ describe('BitcoinChain', () => {
         isValid: true,
         details: undefined,
       });
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      expect(isBoxUnspentAndValidSpy).toHaveBeenCalledWith(
+      expect(isBoxUnspentAndValidSpy).toHaveBeenCalledExactlyOnceWith(
         testData.transaction0Input0BoxId,
       );
     });
@@ -598,8 +595,7 @@ describe('BitcoinChain', () => {
           unexpected: false,
         },
       });
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      expect(isBoxUnspentAndValidSpy).toHaveBeenCalledWith(
+      expect(isBoxUnspentAndValidSpy).toHaveBeenCalledExactlyOnceWith(
         testData.transaction0Input0BoxId,
       );
     });

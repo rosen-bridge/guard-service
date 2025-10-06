@@ -109,7 +109,7 @@ export const mockTxCbor = (response: TxCborItem) => {
 /**
  * mock `submittx` of cardano koios client
  */
-export const mockSubmittx = () => {
+export const mockSubmitTx = () => {
   vi.mocked(cardanoKoiosClientFactory).mockReturnValueOnce({
     submittx: async () => testData.txId,
   } as any);

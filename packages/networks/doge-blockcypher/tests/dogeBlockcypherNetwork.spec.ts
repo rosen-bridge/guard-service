@@ -185,8 +185,7 @@ describe('DogeBlockcypherNetwork', () => {
       );
 
       expect(getSpentTransactionByInputIdSpy).toHaveBeenCalledTimes(0);
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      expect(getTxConfirmationSignedSpy).toHaveBeenCalledWith(
+      expect(getTxConfirmationSignedSpy).toHaveBeenCalledExactlyOnceWith(
         testData.signedTxId,
       );
       expect(result).toEqual(testData.txConfirmation);
@@ -238,13 +237,13 @@ describe('DogeBlockcypherNetwork', () => {
         testData.unsignedTxId,
       );
 
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      expect(getSpentTransactionByInputIdSpy).toHaveBeenCalledWith(
+      expect(getSpentTransactionByInputIdSpy).toHaveBeenCalledExactlyOnceWith(
         testData.dogeTx.inputs[0].index,
         testData.dogeTx.inputs[0].txId,
       );
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      expect(getTxConfirmationSignedSpy).toHaveBeenCalledWith(testData.txId);
+      expect(getTxConfirmationSignedSpy).toHaveBeenCalledExactlyOnceWith(
+        testData.txId,
+      );
       expect(result).toEqual(testData.txConfirmation);
     });
   });
@@ -761,8 +760,10 @@ describe('DogeBlockcypherNetwork', () => {
       );
 
       expect(result).toEqual(testData.dogeTx);
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      expect(getTransactionSpy).toHaveBeenCalledWith(testData.txId, '');
+      expect(getTransactionSpy).toHaveBeenCalledExactlyOnceWith(
+        testData.txId,
+        '',
+      );
     });
 
     /**
@@ -906,8 +907,7 @@ describe('DogeBlockcypherNetwork', () => {
    * - client should be properly initialized
    */
   it('should initialize properly', () => {
-    // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-    expect(axios.create).toHaveBeenCalledWith({
+    expect(axios.create).toHaveBeenCalledExactlyOnceWith({
       baseURL: 'blockcypher-url',
     });
 
@@ -940,8 +940,7 @@ describe('DogeBlockcypherNetwork', () => {
 
     // Verify the network was created successfully
     expect(customNetwork).toBeInstanceOf(DogeBlockcypherNetwork);
-    // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-    expect(axios.create).toHaveBeenCalledWith({
+    expect(axios.create).toHaveBeenCalledExactlyOnceWith({
       baseURL: 'blockcypher-url',
     });
 
@@ -989,8 +988,7 @@ describe('DogeBlockcypherNetwork', () => {
 
       const result = await customNetwork.getActualTxId(testData.unsignedTxId);
 
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      expect(getSpentTransactionByInputIdSpy).toHaveBeenCalledWith(
+      expect(getSpentTransactionByInputIdSpy).toHaveBeenCalledExactlyOnceWith(
         testData.dogeTx.inputs[0].index,
         testData.dogeTx.inputs[0].txId,
       );

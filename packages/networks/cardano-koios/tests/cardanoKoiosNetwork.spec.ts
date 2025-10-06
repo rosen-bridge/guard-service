@@ -11,7 +11,7 @@ import {
   mockAssetInfo,
   mockBlockInfo,
   mockBlockTxs,
-  mockSubmittx,
+  mockSubmitTx,
   mockTxCbor,
   mockTxStatus,
   mockUtxoValidation,
@@ -330,17 +330,17 @@ describe('CardanoKoiosNetwork', () => {
      * @expected
      * - function execution finish without any error
      */
-    // eslint-disable-next-line vitest/expect-expect
     it('should submit transaction successfully', async () => {
       // mock transaction
       const tx = Transaction.from_hex(testData.txBytes);
 
       // mock client response
-      mockSubmittx();
+      mockSubmitTx();
 
       // run test
       const network = mockNetwork();
-      await network.submitTransaction(tx);
+      const result = network.submitTransaction(tx);
+      await expect(result).resolves.not.toThrow();
     });
   });
 

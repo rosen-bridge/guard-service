@@ -632,8 +632,7 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
         });
         try {
           actualTxId = realTx.extractTransaction(true).getId();
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        } catch (e: any) {
+        } catch {
           const spentTx = await this.getSpentTransactionByInputId(
             realTx.txInputs[0].index,
             Buffer.from(realTx.txInputs[0].hash.reverse()).toString('hex'),

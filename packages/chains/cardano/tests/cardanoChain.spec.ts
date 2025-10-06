@@ -81,16 +81,17 @@ describe('CardanoChain', () => {
       // check inputUtxos
       expect(cardanoTx.inputUtxos.length).toEqual(bankBoxes.length);
       bankBoxes.forEach((utxo) => {
-        expect(
-          cardanoTx.inputUtxos.includes(JsonBI.stringify(utxo)),
-        ).toBeTruthy();
+        expect(cardanoTx.inputUtxos).toContain(JsonBI.stringify(utxo));
       });
       for (let i = 1; i < cardanoTx.inputUtxos.length; i++) {
         const previousUtxo = JsonBigInt.parse(cardanoTx.inputUtxos[i - 1]);
         const utxo = JsonBigInt.parse(cardanoTx.inputUtxos[i]);
         if (utxo.txId === previousUtxo.txId)
-          expect(utxo.index > previousUtxo.index).toBeTruthy();
-        else expect(utxo.txId > previousUtxo.txId).toBeTruthy();
+          expect(utxo.index).toBeGreaterThan(previousUtxo.index);
+        else
+          expect(BigInt(`0x${utxo.txId}`)).toBeGreaterThan(
+            BigInt(`0x${previousUtxo.txId}`),
+          );
       }
 
       // extracted order of generated transaction should be the same as input order
@@ -110,8 +111,7 @@ describe('CardanoChain', () => {
       );
       expectedRequiredAssets.nativeToken +=
         TestUtils.minBoxValue + TestUtils.configs.fee;
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
-      expect(getCovBoxesSpy).toHaveBeenCalledWith(
+      expect(getCovBoxesSpy).toHaveBeenCalledExactlyOnceWith(
         expectedRequiredAssets,
         TestData.transaction1InputIds,
         new Map(),
@@ -181,16 +181,17 @@ describe('CardanoChain', () => {
       // check inputUtxos
       expect(cardanoTx.inputUtxos.length).toEqual(mockedBoxes.length);
       mockedBoxes.forEach((utxo) => {
-        expect(
-          cardanoTx.inputUtxos.includes(JsonBI.stringify(utxo)),
-        ).toBeTruthy();
+        expect(cardanoTx.inputUtxos).toContain(JsonBI.stringify(utxo));
       });
       for (let i = 1; i < cardanoTx.inputUtxos.length; i++) {
         const previousUtxo = JsonBigInt.parse(cardanoTx.inputUtxos[i - 1]);
         const utxo = JsonBigInt.parse(cardanoTx.inputUtxos[i]);
         if (utxo.txId === previousUtxo.txId)
-          expect(utxo.index > previousUtxo.index).toBeTruthy();
-        else expect(utxo.txId > previousUtxo.txId).toBeTruthy();
+          expect(utxo.index).toBeGreaterThan(previousUtxo.index);
+        else
+          expect(BigInt(`0x${utxo.txId}`)).toBeGreaterThan(
+            BigInt(`0x${previousUtxo.txId}`),
+          );
       }
 
       // extracted order of generated transaction should be the same as input order
@@ -342,16 +343,17 @@ describe('CardanoChain', () => {
       // check inputUtxos
       expect(cardanoTx.inputUtxos.length).toEqual(mockedBoxes.length);
       mockedBoxes.forEach((utxo) => {
-        expect(
-          cardanoTx.inputUtxos.includes(JsonBI.stringify(utxo)),
-        ).toBeTruthy();
+        expect(cardanoTx.inputUtxos).toContain(JsonBI.stringify(utxo));
       });
       for (let i = 1; i < cardanoTx.inputUtxos.length; i++) {
         const previousUtxo = JsonBigInt.parse(cardanoTx.inputUtxos[i - 1]);
         const utxo = JsonBigInt.parse(cardanoTx.inputUtxos[i]);
         if (utxo.txId === previousUtxo.txId)
-          expect(utxo.index > previousUtxo.index).toBeTruthy();
-        else expect(utxo.txId > previousUtxo.txId).toBeTruthy();
+          expect(utxo.index).toBeGreaterThan(previousUtxo.index);
+        else
+          expect(BigInt(`0x${utxo.txId}`)).toBeGreaterThan(
+            BigInt(`0x${previousUtxo.txId}`),
+          );
       }
 
       // extracted order of generated transaction should be the same as input order

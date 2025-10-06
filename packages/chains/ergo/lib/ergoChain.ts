@@ -594,8 +594,7 @@ class ErgoChain extends AbstractUtxoChain<wasm.Transaction, wasm.ErgoBox> {
         signingStatus === SigningStatus.Signed
           ? Serializer.signedDeserialize(transaction.txBytes)
           : Serializer.deserialize(transaction.txBytes).unsigned_tx();
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (e) {
+    } catch {
       tx = Serializer.deserialize(transaction.txBytes).unsigned_tx();
     }
 
@@ -661,8 +660,7 @@ class ErgoChain extends AbstractUtxoChain<wasm.Transaction, wasm.ErgoBox> {
         signingStatus === SigningStatus.Signed
           ? Serializer.signedDeserialize(transaction.txBytes)
           : Serializer.deserialize(transaction.txBytes).unsigned_tx();
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (e) {
+    } catch {
       tx = Serializer.deserialize(transaction.txBytes).unsigned_tx();
     }
     // check if any input is spent or invalid
