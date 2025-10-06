@@ -1,3 +1,3 @@
-import DogeBlockcypherNetwork from './DogeBlockcypherNetwork';
+import DogeBlockcypherNetwork from './dogeBlockcypherNetwork';
 
 export { DogeBlockcypherNetwork };

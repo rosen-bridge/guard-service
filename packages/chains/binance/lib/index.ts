@@ -1,2 +1,2 @@
-export { default as BinanceChain } from './BinanceChain';
+export { default as BinanceChain } from './binanceChain';
 export * from './constants';

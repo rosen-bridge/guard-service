@@ -5,7 +5,7 @@ import {
   BitcoinRunesConfigs,
   TssSignFunction,
 } from '../lib';
-import { TestBitcoinRunesNetwork } from './network/TestBitcoinRunesNetwork';
+import { TestBitcoinRunesNetwork } from './network/testBitcoinRunesNetwork';
 import * as testData from './testData';
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 
@@ -46,7 +46,7 @@ export const generateChainObject = async (
   network: TestBitcoinRunesNetwork,
   signFn: TssSignFunction = mockedSignFn,
   tokens = testData.testTokenMap,
-  logger?: AbstractLogger // this is for convenient purposes while debugging the tests
+  logger?: AbstractLogger, // this is for convenient purposes while debugging the tests
 ) => {
   const tokenMap = new TokenMap();
   await tokenMap.updateConfigByJson(tokens);

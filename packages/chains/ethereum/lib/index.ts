@@ -1,2 +1,2 @@
-export { default as EthereumChain } from './EthereumChain';
+export { default as EthereumChain } from './ethereumChain';
 export * from './constants';

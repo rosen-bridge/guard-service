@@ -1,1 +1,1 @@
-export { default } from './EvmRpcNetwork';
+export { default } from './evmRpcNetwork';

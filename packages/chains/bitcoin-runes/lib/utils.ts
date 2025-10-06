@@ -26,7 +26,7 @@ import JsonBigInt from '@rosen-bridge/json-bigint';
  */
 export const generateAssetId = (
   block: number | bigint,
-  txIndex: number | bigint
+  txIndex: number | bigint,
 ) => `${block}:${txIndex}`;
 
 /**
@@ -48,7 +48,7 @@ const estimateTxVsize = (
   inputSize: number,
   opReturnScriptLength: number,
   nativeSegwitOutputSize: number,
-  taprootOutputSize: number
+  taprootOutputSize: number,
 ): number => {
   const txBaseWeight = 40 + 2; // all txs include 40W. P2WPKH txs need additional 2W
   const opReturnWeightUnit =
@@ -72,7 +72,7 @@ const estimateTxVsize = (
  */
 export const generateFeeEstimatorWithPsbt = (
   psbt: Psbt,
-  feeRatio: number
+  feeRatio: number,
 ): FeeEstimator<BitcoinRunesUtxo> => {
   const txId = Transaction.fromBuffer(psbt.data.getTransaction()).getId();
 
@@ -90,13 +90,13 @@ export const generateFeeEstimatorWithPsbt = (
       opReturnOutputs.push(output);
     } else
       throw new ImpossibleBehavior(
-        `Tx [${txId}] has an output with unexpected script [${script}]`
+        `Tx [${txId}] has an output with unexpected script [${script}]`,
       );
   });
 
   if (opReturnOutputs.length > 1)
     throw new ImpossibleBehavior(
-      `Tx [${txId}] has more than one (${opReturnOutputs.length}) OP_RETURN output`
+      `Tx [${txId}] has more than one (${opReturnOutputs.length}) OP_RETURN output`,
     );
   if (opReturnOutputs.length === 0)
     throw new ImpossibleBehavior(`Tx [${txId}] has no OP_RETURN output`);
@@ -107,7 +107,7 @@ export const generateFeeEstimatorWithPsbt = (
     feeRatio,
     0,
     nativeSegwitOutputs.length,
-    taprootOutputs.length
+    taprootOutputs.length,
   );
 };
 
@@ -124,17 +124,17 @@ export const generateFeeEstimatorWithAssumptions = (
   feeRatio: number,
   preSelectedInputCount: number,
   nativeSegwitOutputCount: number,
-  taprootOutputCount: number
+  taprootOutputCount: number,
 ): FeeEstimator<BitcoinRunesUtxo> => {
   return (
     selectedBoxes: Array<BitcoinRunesUtxo>,
-    changeBoxesCount: number
+    changeBoxesCount: number,
   ): bigint => {
     const estimatedVsize = estimateTxVsize(
       selectedBoxes.length + preSelectedInputCount,
       opReturnScriptLength,
       nativeSegwitOutputCount + changeBoxesCount, // There is always a native-segwit change output
-      taprootOutputCount
+      taprootOutputCount,
     );
     return BigInt(Math.ceil(estimatedVsize * feeRatio));
   };
@@ -154,14 +154,14 @@ export const generateFeeEstimatorWithAssumptions = (
  */
 export const splitPaymentOrders = (
   order: PaymentOrder,
-  minimumNativeToken: bigint
+  minimumNativeToken: bigint,
 ): PaymentOrder => {
   return order.reduce((sum: PaymentOrder, order: SinglePayment) => {
     if (order.assets.tokens.length === 0) {
       throw Error(
         `All items of Bitcoin Runes order should have at least one token while order [${JsonBigInt.stringify(
-          order
-        )}] has an item with no token`
+          order,
+        )}] has an item with no token`,
       );
     } else {
       const nativeTokenAmount =
@@ -189,7 +189,7 @@ export const splitPaymentOrders = (
  * @param utxos
  */
 export const sumBitcoinRunesUtxosBalance = (
-  utxos: Array<BitcoinRunesUtxo>
+  utxos: Array<BitcoinRunesUtxo>,
 ): AssetBalance => {
   const balance: AssetBalance = {
     nativeToken: 0n,
@@ -199,7 +199,7 @@ export const sumBitcoinRunesUtxosBalance = (
     balance.nativeToken += utxo.value;
     utxo.runes.forEach((rune) => {
       const targetToken = balance.tokens.find(
-        (token) => token.id === rune.runeId
+        (token) => token.id === rune.runeId,
       );
       if (targetToken) targetToken.value += rune.quantity;
       else balance.tokens.push({ id: rune.runeId, value: rune.quantity });

@@ -4,6 +4,7 @@ import { vi } from 'vitest';
 // Mock axios-rate-limit
 vi.mock('axios-rate-limit', () => {
   return {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     default: vi.fn().mockImplementation((axiosInstance, options) => {
       return axiosInstance;
     }),

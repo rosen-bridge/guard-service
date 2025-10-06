@@ -1,7 +1,7 @@
 import { randomBytes } from 'crypto';
 import * as testData from './testData';
 import { BitcoinChain, BitcoinConfigs, TssSignFunction } from '../lib';
-import TestBitcoinNetwork from './network/TestBitcoinNetwork';
+import TestBitcoinNetwork from './network/testBitcoinNetwork';
 import { TokenMap } from '@rosen-bridge/tokens';
 
 export const generateRandomId = (): string => randomBytes(32).toString('hex');
@@ -39,7 +39,7 @@ export const mockedSignFn = () =>
   });
 export const generateChainObject = async (
   network: TestBitcoinNetwork,
-  signFn: TssSignFunction = mockedSignFn
+  signFn: TssSignFunction = mockedSignFn,
 ) => {
   const tokenMap = new TokenMap();
   await tokenMap.updateConfigByJson(testData.testTokenMap);
@@ -47,7 +47,7 @@ export const generateChainObject = async (
 };
 export const generateChainObjectWithMultiDecimalTokenMap = async (
   network: TestBitcoinNetwork,
-  signFn: TssSignFunction = mockedSignFn
+  signFn: TssSignFunction = mockedSignFn,
 ) => {
   const tokenMap = new TokenMap();
   await tokenMap.updateConfigByJson(testData.multiDecimalTokenMap);

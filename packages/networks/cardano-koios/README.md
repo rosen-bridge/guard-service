@@ -36,7 +36,7 @@ const cardanoKoiosNetwork = new CardanoKoiosNetwork(
   'https://api.koios.rest/api/v0', // koios api url
   'lockAddress', // bridge lock address in Cardano (used in CardanoRosenExtractor)
   tokens, // bridge supported tokens config, provided by `rosen-bridge/contract`
-  loggerFactory('KoiosNetwork') // logger (optional)
+  loggerFactory('KoiosNetwork'), // logger (optional)
 );
 
 const height = await cardanoKoiosNetwork.getHeight();

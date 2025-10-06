@@ -4,7 +4,7 @@ import {
 } from '@rosen-chains/abstract-chain';
 import { PaymentOrder, AssetBalance } from '@rosen-chains/abstract-chain';
 import { Transaction } from 'ethers';
-import { RosenTokens, TokenMap } from '@rosen-bridge/tokens';
+import { RosenTokens } from '@rosen-bridge/tokens';
 
 export const lockAddress = '0xedee4752e5a2f595151c94762fb38e5730357785';
 export const supportedTokens = [
@@ -42,9 +42,9 @@ export const transaction0PaymentTransaction = new PaymentTransaction(
   '',
   Buffer.from(
     '02f0010a841dcd6500850b675899a0825208944606d11ff65b17d29e8c5e4085f9a868a8e5e4f2880149df7b6be0313680c0',
-    'hex'
+    'hex',
   ),
-  TransactionType.manual
+  TransactionType.manual,
 );
 export const transaction0JsonString = `{
   "type": 2,
