@@ -2,6 +2,9 @@
   "name": "@rosen-chains/ethereum",
   "version": "2.1.1",
   "description": "this project contains ethereum chain for Rosen-bridge",
+  "keywords": [
+    "rosen"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rosen-bridge/rosen-chains.git",
@@ -26,23 +29,18 @@
     "release": "npm run clean && npm run build && npm publish --access public",
     "type-check": "tsc --noEmit"
   },
-  "devDependencies": {
-    "@vitest/coverage-istanbul": "^3.1.4",
-    "rimraf": "^6.0.1",
-    "tsx": "^4.20.5",
-    "typescript": "^5.8.3",
-    "vitest": "^3.1.4"
-  },
   "dependencies": {
     "@rosen-bridge/abstract-logger": "^2.1.0",
     "@rosen-bridge/tokens": "^3.2.0",
     "@rosen-chains/abstract-chain": "^14.0.1",
     "@rosen-chains/evm": "^8.2.1"
   },
+  "devDependencies": {
+    "@vitest/coverage-istanbul": "^3.1.4",
+    "tsx": "^4.20.5",
+    "vitest": "^3.1.4"
+  },
   "engines": {
     "node": ">=22.18.0"
-  },
-  "keywords": [
-    "rosen"
-  ]
+  }
 }
