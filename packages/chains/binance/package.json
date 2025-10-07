@@ -18,15 +18,17 @@
   ],
   "scripts": {
     "build": "tsc --build tsconfig.build.json",
+    "clean": "rimraf dist && rimraf tsconfig.build.tsbuildinfo",
     "lint": "eslint --fix . && npm run prettify",
     "lint:check": "eslint . && npm run prettify:check",
     "prettify": "prettier --write . --ignore-path ../../../.gitignore",
     "prettify:check": "prettier --check . --ignore-path ../../../.gitignore",
-    "release": "npm run build && npm publish --access public",
+    "release": "npm run clean && npm run build && npm publish --access public",
     "type-check": "tsc --noEmit"
   },
   "devDependencies": {
     "@vitest/coverage-istanbul": "^3.1.4",
+    "rimraf": "^6.0.1",
     "tsx": "^4.20.5",
     "typescript": "^5.8.3",
     "vitest": "^3.1.4"
