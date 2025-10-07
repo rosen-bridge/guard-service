@@ -2,6 +2,9 @@
   "name": "@rosen-chains/bitcoin-esplora",
   "version": "4.2.1",
   "description": "A package to be used as network api provider for @rosen-chains/bitcoin package",
+  "keywords": [
+    "rosen"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rosen-bridge/rosen-chains.git",
@@ -28,13 +31,6 @@
     "test": "NODE_OPTIONS='--import tsx' vitest",
     "type-check": "tsc --noEmit"
   },
-  "devDependencies": {
-    "@vitest/coverage-istanbul": "^3.1.4",
-    "rimraf": "^6.0.1",
-    "tsx": "^4.20.5",
-    "typescript": "^5.8.3",
-    "vitest": "^3.1.4"
-  },
   "dependencies": {
     "@rosen-bridge/abstract-logger": "^2.1.0",
     "@rosen-bridge/json-bigint": "^0.2.0",
@@ -43,10 +39,12 @@
     "axios": "^1.6.7",
     "bitcoinjs-lib": "^6.1.5"
   },
+  "devDependencies": {
+    "@vitest/coverage-istanbul": "^3.1.4",
+    "tsx": "^4.20.5",
+    "vitest": "^3.1.4"
+  },
   "engines": {
     "node": ">=22.18.0"
-  },
-  "keywords": [
-    "rosen"
-  ]
+  }
 }

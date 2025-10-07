@@ -2,6 +2,9 @@
   "name": "@rosen-chains/cardano-blockfrost-network",
   "version": "8.0.1",
   "description": "a package to be used as network api provider for @rosen-chains/cardano package",
+  "keywords": [
+    "rosen"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rosen-bridge/rosen-chains.git",
@@ -28,13 +31,6 @@
     "test": "NODE_OPTIONS='--import tsx' vitest",
     "type-check": "tsc --noEmit"
   },
-  "devDependencies": {
-    "@vitest/coverage-istanbul": "^3.1.4",
-    "rimraf": "^6.0.1",
-    "tsx": "^4.20.5",
-    "typescript": "^5.8.3",
-    "vitest": "^3.1.4"
-  },
   "dependencies": {
     "@blockfrost/blockfrost-js": "^6.0.0",
     "@emurgo/cardano-serialization-lib-nodejs": "^13.2.0",
@@ -43,10 +39,12 @@
     "@rosen-chains/abstract-chain": "^14.0.1",
     "@rosen-chains/cardano": "^13.0.1"
   },
+  "devDependencies": {
+    "@vitest/coverage-istanbul": "^3.1.4",
+    "tsx": "^4.20.5",
+    "vitest": "^3.1.4"
+  },
   "engines": {
     "node": ">=22.18.0"
-  },
-  "keywords": [
-    "rosen"
-  ]
+  }
 }
