@@ -1,5 +1,6 @@
-import { AssetBalance, BlockInfo, TokenDetail } from '../types';
 import { AbstractLogger, DummyLogger } from '@rosen-bridge/abstract-logger';
+
+import { AssetBalance, BlockInfo, TokenDetail } from '../types';
 
 abstract class AbstractChainNetwork<TxType> {
   logger: AbstractLogger;

@@ -1,11 +1,10 @@
+import JsonBigInt from '@rosen-bridge/json-bigint';
+import { FailedError } from '@rosen-chains/abstract-chain';
+import { ErgoStateContext } from 'ergo-lib-wasm-nodejs';
+import * as ergoLib from 'ergo-lib-wasm-nodejs';
 import { describe, expect, it, vi } from 'vitest';
 
-import { FailedError } from '@rosen-chains/abstract-chain';
-
-import { ErgoStateContext } from 'ergo-lib-wasm-nodejs';
-
 import ErgoExplorerNetwork from '../lib/ergoExplorerNetwork';
-
 import {
   mockApiToThrow,
   mockGetApiV0TransactionsUnconfirmed,
@@ -41,8 +40,6 @@ import {
   testTransactionWithNullSpendingProofBytes,
   tokenId,
 } from './testData';
-import * as ergoLib from 'ergo-lib-wasm-nodejs';
-import JsonBigInt from '@rosen-bridge/json-bigint';
 
 vi.mock('@rosen-clients/ergo-explorer');
 

@@ -1,5 +1,6 @@
 import { AbstractUtxoChainNetwork } from '@rosen-chains/abstract-chain';
 import { Psbt } from 'bitcoinjs-lib';
+
 import { BitcoinRunesTx, BitcoinRunesUtxo } from '../types';
 
 abstract class AbstractBitcoinRunesNetwork extends AbstractUtxoChainNetwork<

@@ -1,8 +1,9 @@
+import { TokenMap } from '@rosen-bridge/tokens';
 import { randomBytes } from 'crypto';
-import * as testData from './testData';
+
 import { BitcoinChain, BitcoinConfigs, TssSignFunction } from '../lib';
 import TestBitcoinNetwork from './network/testBitcoinNetwork';
-import { TokenMap } from '@rosen-bridge/tokens';
+import * as testData from './testData';
 
 export const generateRandomId = (): string => randomBytes(32).toString('hex');
 

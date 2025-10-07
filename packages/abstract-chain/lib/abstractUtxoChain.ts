@@ -1,4 +1,5 @@
 import { AbstractBoxSelection } from '@rosen-bridge/abstract-box-selection';
+
 import AbstractChain from './abstractChain';
 import AbstractUtxoChainNetwork from './network/abstractUtxoChainNetwork';
 

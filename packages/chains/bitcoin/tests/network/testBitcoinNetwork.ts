@@ -1,7 +1,8 @@
-import { AbstractBitcoinNetwork, BitcoinTx, BitcoinUtxo } from '../../lib';
-import { BlockInfo, TokenDetail } from '@rosen-chains/abstract-chain';
 import { BitcoinRosenExtractor } from '@rosen-bridge/rosen-extractor';
 import { TokenMap } from '@rosen-bridge/tokens';
+import { BlockInfo, TokenDetail } from '@rosen-chains/abstract-chain';
+
+import { AbstractBitcoinNetwork, BitcoinTx, BitcoinUtxo } from '../../lib';
 
 class TestBitcoinNetwork extends AbstractBitcoinNetwork {
   extractor = new BitcoinRosenExtractor(

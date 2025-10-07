@@ -1,6 +1,6 @@
+import ErgoUtils from '../lib/ergoUtils';
 import * as boxTestData from './boxTestData';
 import * as ergoTestUtils from './ergoTestUtils';
-import ErgoUtils from '../lib/ergoUtils';
 
 describe('ErgoUtils', () => {
   describe('getBoxAssets', () => {

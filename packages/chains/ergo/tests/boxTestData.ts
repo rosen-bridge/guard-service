@@ -1,4 +1,5 @@
 import { AssetBalance, EventTrigger } from '@rosen-chains/abstract-chain';
+
 import { GuardsPkConfig } from '../lib';
 
 export const ergoBox1 = `{

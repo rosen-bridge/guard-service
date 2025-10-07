@@ -1,11 +1,12 @@
-import { randomBytes } from 'crypto';
-import { CardanoConfigs, CardanoUtxo } from '../lib/types';
 import * as CardanoWasm from '@emurgo/cardano-serialization-lib-nodejs';
-import CardanoUtils from '../lib/cardanoUtils';
 import { TokenMap } from '@rosen-bridge/tokens';
-import { multiDecimalTokenMap, testTokenMap } from './testData';
-import TestCardanoNetwork from './network/testCardanoNetwork';
+import { randomBytes } from 'crypto';
+
 import { CardanoChain } from '../lib';
+import CardanoUtils from '../lib/cardanoUtils';
+import { CardanoConfigs, CardanoUtxo } from '../lib/types';
+import TestCardanoNetwork from './network/testCardanoNetwork';
+import { multiDecimalTokenMap, testTokenMap } from './testData';
 
 export const mockBankBoxes = (): CardanoUtxo[] => {
   const box1: CardanoUtxo = {

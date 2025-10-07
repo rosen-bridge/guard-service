@@ -1,8 +1,9 @@
 import { PsbtTxInput } from 'bitcoinjs-lib';
+import { Psbt } from 'bitcoinjs-lib';
+
 import { DOGE_TX_BASE_SIZE } from './constants';
 import { DOGE_INPUT_SIZE } from './constants';
 import { DOGE_OUTPUT_SIZE } from './constants';
-import { Psbt } from 'bitcoinjs-lib';
 
 /**
  * gets boxId from PsbtTxInput

@@ -1,10 +1,11 @@
 import { RosenTokens } from '@rosen-bridge/tokens';
+import { TokenMap } from '@rosen-bridge/tokens';
 import { randomBytes } from 'crypto';
 import * as wasm from 'ergo-lib-wasm-nodejs';
-import TestErgoNetwork from './network/testErgoNetwork';
+
 import { ErgoChain, ErgoConfigs } from '../lib';
+import TestErgoNetwork from './network/testErgoNetwork';
 import { transaction2SignedSerialized } from './transactionTestData';
-import { TokenMap } from '@rosen-bridge/tokens';
 
 export const testTokenMap: RosenTokens = [];
 export const multiDecimalTokenMap: RosenTokens = [

@@ -1,4 +1,6 @@
+import JsonBigInt from '@rosen-bridge/json-bigint';
 import { TokenMap } from '@rosen-bridge/tokens';
+
 import { AssetBalance, ChainUtils, PaymentOrder, ValueError } from '../lib';
 import {
   actualBalance,
@@ -11,7 +13,6 @@ import {
   unwrappedBalance,
   wrappedBalance,
 } from './testData';
-import JsonBigInt from '@rosen-bridge/json-bigint';
 
 describe('ChainUtils', () => {
   describe('isEqualAssetBalance', () => {

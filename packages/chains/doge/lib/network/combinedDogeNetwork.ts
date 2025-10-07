@@ -1,14 +1,15 @@
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
-import { Psbt } from 'bitcoinjs-lib';
 import {
   AssetBalance,
   BlockInfo,
   ImpossibleBehavior,
 } from '@rosen-chains/abstract-chain';
+import { Psbt } from 'bitcoinjs-lib';
+
 import { DogeTx, DogeUtxo } from '../types';
+import { DogeNetworkFunction } from '../types';
 import AbstractDogeNetwork from './abstractDogeNetwork';
 import PartialDogeNetwork from './partialDogeNetwork';
-import { DogeNetworkFunction } from '../types';
 
 /**
  * This class combines multiple partial network implementations into a single network.

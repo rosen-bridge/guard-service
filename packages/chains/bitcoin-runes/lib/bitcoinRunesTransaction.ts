@@ -2,6 +2,7 @@ import {
   PaymentTransaction,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
+
 import { BITCOIN_RUNES_CHAIN } from './constants';
 import { BitcoinTransactionJsonModel } from './types';
 

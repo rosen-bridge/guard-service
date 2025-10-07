@@ -1,11 +1,12 @@
-import { vi } from 'vitest';
 import {
   BlockFrostAPI,
   BlockfrostServerError,
 } from '@blockfrost/blockfrost-js';
-import * as testData from '../testData';
 import { components } from '@blockfrost/openapi';
+import { vi } from 'vitest';
+
 import { PAGE_ITEM_COUNT } from '../../lib';
+import * as testData from '../testData';
 
 const serverNotFoundError = new BlockfrostServerError({
   status_code: 404,

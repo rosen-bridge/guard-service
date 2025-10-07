@@ -1,13 +1,14 @@
-import { AbstractErgoNetwork } from '../../lib';
 import { ErgoRosenExtractor } from '@rosen-bridge/rosen-extractor';
-import { ErgoBox, ErgoStateContext, Transaction } from 'ergo-lib-wasm-nodejs';
-import { testLockAddress } from '../ergoTestUtils';
+import { TokenMap } from '@rosen-bridge/tokens';
 import {
   AssetBalance,
   BlockInfo,
   TokenDetail,
 } from '@rosen-chains/abstract-chain';
-import { TokenMap } from '@rosen-bridge/tokens';
+import { ErgoBox, ErgoStateContext, Transaction } from 'ergo-lib-wasm-nodejs';
+
+import { AbstractErgoNetwork } from '../../lib';
+import { testLockAddress } from '../ergoTestUtils';
 
 class TestErgoNetwork extends AbstractErgoNetwork {
   extractor = new ErgoRosenExtractor(testLockAddress, new TokenMap());

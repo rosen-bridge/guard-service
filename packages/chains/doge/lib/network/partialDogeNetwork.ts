@@ -1,9 +1,10 @@
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
-import { Psbt } from 'bitcoinjs-lib';
 import { AssetBalance, BlockInfo } from '@rosen-chains/abstract-chain';
+import { Psbt } from 'bitcoinjs-lib';
+
 import { DogeTx, DogeUtxo } from '../types';
-import AbstractDogeNetwork from './abstractDogeNetwork';
 import { DogeNetworkFunction } from '../types';
+import AbstractDogeNetwork from './abstractDogeNetwork';
 
 /**
  * This class provides a partial implementation of the AbstractDogeNetwork.

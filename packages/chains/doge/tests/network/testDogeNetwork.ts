@@ -1,7 +1,8 @@
-import { AbstractDogeNetwork, DogeTx, DogeUtxo } from '../../lib';
-import { BlockInfo, TokenDetail } from '@rosen-chains/abstract-chain';
 import { DogeRosenExtractor } from '@rosen-bridge/rosen-extractor';
 import { TokenMap } from '@rosen-bridge/tokens';
+import { BlockInfo, TokenDetail } from '@rosen-chains/abstract-chain';
+
+import { AbstractDogeNetwork, DogeTx, DogeUtxo } from '../../lib';
 
 class TestDogeNetwork extends AbstractDogeNetwork {
   extractor = new DogeRosenExtractor(

@@ -1,4 +1,5 @@
-import * as testData from './testData';
+import { FailedError } from '@rosen-chains/abstract-chain';
+
 import {
   mockAddresses,
   mockAddressesNotFound,
@@ -17,7 +18,7 @@ import {
   mockTxsUtxosNotFound,
 } from './mocked/blockFrostAPI.mock';
 import { TestCardanoBlockFrostNetwork } from './testCardanoBlockFrostNetwork';
-import { FailedError } from '@rosen-chains/abstract-chain';
+import * as testData from './testData';
 
 describe('CardanoBlockFrostNetwork', () => {
   const mockNetwork = () =>

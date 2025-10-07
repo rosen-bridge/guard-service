@@ -1,4 +1,5 @@
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
+import JsonBigInt from '@rosen-bridge/json-bigint';
 import {
   AssetBalance,
   BlockInfo,
@@ -6,7 +7,6 @@ import {
   TokenDetail,
   UnexpectedApiError,
 } from '@rosen-chains/abstract-chain';
-import JsonBigInt from '@rosen-bridge/json-bigint';
 import {
   AbstractEvmNetwork,
   EvmTxStatus,
@@ -23,6 +23,7 @@ import {
   isCallException,
 } from 'ethers';
 import { DataSource } from 'typeorm';
+
 import AddressTxAction from './addressTxAction';
 
 class EvmRpcNetwork extends AbstractEvmNetwork {

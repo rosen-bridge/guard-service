@@ -1,5 +1,12 @@
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 import {
+  BitcoinBoxSelection,
+  generateFeeEstimator,
+} from '@rosen-bridge/bitcoin-utxo-selection';
+import JsonBigInt from '@rosen-bridge/json-bigint';
+import { DogeRosenExtractor } from '@rosen-bridge/rosen-extractor';
+import { RosenAmount, TokenMap } from '@rosen-bridge/tokens';
+import {
   AbstractUtxoChain,
   BlockInfo,
   ChainUtils,
@@ -14,17 +21,8 @@ import {
   TransactionType,
   ValidityStatus,
 } from '@rosen-chains/abstract-chain';
-import AbstractDogeNetwork from './network/abstractDogeNetwork';
-import DogeTransaction from './dogeTransaction';
-import { DogeConfigs, DogeTx, DogeUtxo, TssSignFunction } from './types';
-import Serializer from './serializer';
 import { Psbt, Transaction, address, script } from 'bitcoinjs-lib';
-import JsonBigInt from '@rosen-bridge/json-bigint';
-import {
-  estimateTxFee,
-  getPsbtTxInputBoxId,
-  isPsbtFinalized,
-} from './dogeUtils';
+
 import {
   DOGE_CHAIN,
   DOGE,
@@ -34,12 +32,15 @@ import {
   DOGE_OUTPUT_SIZE,
   DOGE_TX_BASE_SIZE,
 } from './constants';
-import { DogeRosenExtractor } from '@rosen-bridge/rosen-extractor';
-import { RosenAmount, TokenMap } from '@rosen-bridge/tokens';
+import DogeTransaction from './dogeTransaction';
 import {
-  BitcoinBoxSelection,
-  generateFeeEstimator,
-} from '@rosen-bridge/bitcoin-utxo-selection';
+  estimateTxFee,
+  getPsbtTxInputBoxId,
+  isPsbtFinalized,
+} from './dogeUtils';
+import AbstractDogeNetwork from './network/abstractDogeNetwork';
+import Serializer from './serializer';
+import { DogeConfigs, DogeTx, DogeUtxo, TssSignFunction } from './types';
 
 class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
   declare network: AbstractDogeNetwork;

@@ -1,4 +1,5 @@
 import { FailedError } from '@rosen-chains/abstract-chain';
+
 import { BitcoinRunesRpcNetwork } from '../lib/bitcoinRunesRpcNetwork';
 import {
   ClientType,

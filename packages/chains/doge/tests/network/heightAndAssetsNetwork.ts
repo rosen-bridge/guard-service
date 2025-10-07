@@ -1,5 +1,6 @@
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 import { AssetBalance } from '@rosen-chains/abstract-chain';
+
 import PartialDogeNetwork from '../../lib/network/partialDogeNetwork';
 import { DogeNetworkFunction } from '../../lib/types';
 

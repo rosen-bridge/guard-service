@@ -1,10 +1,12 @@
+import JsonBigInt from '@rosen-bridge/json-bigint';
+import { TokenMap } from '@rosen-bridge/tokens';
 import {
   NotEnoughAssetsError,
   NotEnoughValidBoxesError,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
-import JsonBigInt from '@rosen-bridge/json-bigint';
 import { Psbt } from 'bitcoinjs-lib';
+
 import {
   DOGE_NETWORK,
   DogeChain,
@@ -13,10 +15,9 @@ import {
   TssSignFunction,
 } from '../lib';
 import TestDogeNetwork from './network/testDogeNetwork';
-import { TestDogeChain } from './testDogeChain';
 import * as testData from './testData';
+import { TestDogeChain } from './testDogeChain';
 import * as testUtils from './testUtils';
-import { TokenMap } from '@rosen-bridge/tokens';
 
 describe('DogeChain', () => {
   describe('generateTransaction', () => {

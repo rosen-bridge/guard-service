@@ -1,15 +1,16 @@
 import { ChainMinimumFee } from '@rosen-bridge/minimum-fee';
 import { RosenData } from '@rosen-bridge/rosen-extractor';
-import TestChainNetwork from './network/testChainNetwork';
-import * as testData from './testData';
-import { generateChainObject, generateRandomId } from './testUtils';
+import { TokenMap } from '@rosen-bridge/tokens';
+
 import {
   AssetBalance,
   ConfirmationStatus,
   PaymentTransaction,
   TransactionType,
 } from '../lib';
-import { TokenMap } from '@rosen-bridge/tokens';
+import TestChainNetwork from './network/testChainNetwork';
+import * as testData from './testData';
+import { generateChainObject, generateRandomId } from './testUtils';
 
 describe('AbstractChain', () => {
   describe('generateTransaction', () => {

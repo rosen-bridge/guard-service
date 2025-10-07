@@ -1,7 +1,4 @@
-import * as boxTestData from './boxTestData';
-import * as transactionTestData from './transactionTestData';
-import * as ergoTestUtils from './ergoTestUtils';
-import { ErgoChain } from '../lib';
+import { TokenMap } from '@rosen-bridge/tokens';
 import {
   BlockInfo,
   BoxInfo,
@@ -10,11 +7,15 @@ import {
   SigningStatus,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
-import TestErgoNetwork from './network/testErgoNetwork';
-import { ErgoConfigs } from '../lib';
 import * as wasm from 'ergo-lib-wasm-nodejs';
+
+import { ErgoChain } from '../lib';
+import { ErgoConfigs } from '../lib';
 import ErgoTransaction from '../lib/ergoTransaction';
-import { TokenMap } from '@rosen-bridge/tokens';
+import * as boxTestData from './boxTestData';
+import * as ergoTestUtils from './ergoTestUtils';
+import TestErgoNetwork from './network/testErgoNetwork';
+import * as transactionTestData from './transactionTestData';
 
 describe('ErgoChain', () => {
   describe('generateTransaction', () => {

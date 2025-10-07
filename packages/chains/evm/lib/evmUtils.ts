@@ -1,6 +1,7 @@
-import { transferABI } from './constants';
 import { PaymentOrder, SinglePayment } from '@rosen-chains/abstract-chain';
 import { Contract } from 'ethers';
+
+import { transferABI } from './constants';
 
 /**
  * extracts every SinglePayment from PaymentOrder

@@ -1,4 +1,5 @@
 import { Psbt } from 'bitcoinjs-lib';
+
 import { BitcoinChain } from '../lib';
 
 export class TestBitcoinChain extends BitcoinChain {
