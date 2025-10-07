@@ -1,5 +1,6 @@
-import { TokenMap } from '@rosen-bridge/tokens';
 import { randomBytes } from 'crypto';
+
+import { TokenMap } from '@rosen-bridge/tokens';
 
 import { BitcoinChain, BitcoinConfigs, TssSignFunction } from '../lib';
 import TestBitcoinNetwork from './network/testBitcoinNetwork';

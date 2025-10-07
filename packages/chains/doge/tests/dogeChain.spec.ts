@@ -1,3 +1,5 @@
+import { Psbt } from 'bitcoinjs-lib';
+
 import JsonBigInt from '@rosen-bridge/json-bigint';
 import { TokenMap } from '@rosen-bridge/tokens';
 import {
@@ -5,7 +7,6 @@ import {
   NotEnoughValidBoxesError,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
-import { Psbt } from 'bitcoinjs-lib';
 
 import {
   DOGE_NETWORK,

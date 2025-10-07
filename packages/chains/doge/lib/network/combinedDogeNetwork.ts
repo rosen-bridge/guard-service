@@ -1,10 +1,11 @@
+import { Psbt } from 'bitcoinjs-lib';
+
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 import {
   AssetBalance,
   BlockInfo,
   ImpossibleBehavior,
 } from '@rosen-chains/abstract-chain';
-import { Psbt } from 'bitcoinjs-lib';
 
 import { DogeTx, DogeUtxo } from '../types';
 import { DogeNetworkFunction } from '../types';

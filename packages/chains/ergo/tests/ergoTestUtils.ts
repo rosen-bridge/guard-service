@@ -1,7 +1,8 @@
-import { RosenTokens } from '@rosen-bridge/tokens';
-import { TokenMap } from '@rosen-bridge/tokens';
 import { randomBytes } from 'crypto';
 import * as wasm from 'ergo-lib-wasm-nodejs';
+
+import { RosenTokens } from '@rosen-bridge/tokens';
+import { TokenMap } from '@rosen-bridge/tokens';
 
 import { ErgoChain, ErgoConfigs } from '../lib';
 import TestErgoNetwork from './network/testErgoNetwork';

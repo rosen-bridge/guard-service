@@ -1,5 +1,6 @@
-import { TokenMap } from '@rosen-bridge/tokens';
 import { randomBytes } from 'crypto';
+
+import { TokenMap } from '@rosen-bridge/tokens';
 
 import { ChainConfigs } from '../lib';
 import TestChainNetwork from './network/testChainNetwork';

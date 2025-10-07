@@ -1,3 +1,5 @@
+import * as wasm from 'ergo-lib-wasm-nodejs';
+
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 import { ErgoBoxSelection } from '@rosen-bridge/ergo-box-selection';
 import JsonBI from '@rosen-bridge/json-bigint';
@@ -22,7 +24,6 @@ import {
   TransactionType,
   ValidityStatus,
 } from '@rosen-chains/abstract-chain';
-import * as wasm from 'ergo-lib-wasm-nodejs';
 
 import { ERG, ERGO_CHAIN, NUMBER_OF_BLOCKS_PER_YEAR } from './constants';
 import ErgoTransaction from './ergoTransaction';

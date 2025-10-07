@@ -1,5 +1,6 @@
-import { AssetBalance, TokenInfo } from '@rosen-chains/abstract-chain';
 import { ErgoBox, ErgoBoxCandidate } from 'ergo-lib-wasm-nodejs';
+
+import { AssetBalance, TokenInfo } from '@rosen-chains/abstract-chain';
 
 class ErgoUtils {
   /**

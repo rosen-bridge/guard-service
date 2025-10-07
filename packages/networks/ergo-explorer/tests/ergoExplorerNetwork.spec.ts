@@ -1,8 +1,9 @@
-import JsonBigInt from '@rosen-bridge/json-bigint';
-import { FailedError } from '@rosen-chains/abstract-chain';
 import { ErgoStateContext } from 'ergo-lib-wasm-nodejs';
 import * as ergoLib from 'ergo-lib-wasm-nodejs';
 import { describe, expect, it, vi } from 'vitest';
+
+import JsonBigInt from '@rosen-bridge/json-bigint';
+import { FailedError } from '@rosen-chains/abstract-chain';
 
 import ErgoExplorerNetwork from '../lib/ergoExplorerNetwork';
 import {

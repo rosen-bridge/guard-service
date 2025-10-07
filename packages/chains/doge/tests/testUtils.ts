@@ -1,5 +1,6 @@
-import { TokenMap } from '@rosen-bridge/tokens';
 import { randomBytes } from 'crypto';
+
+import { TokenMap } from '@rosen-bridge/tokens';
 
 import { DogeChain, DogeConfigs, TssSignFunction } from '../lib';
 import TestDogeNetwork from './network/testDogeNetwork';

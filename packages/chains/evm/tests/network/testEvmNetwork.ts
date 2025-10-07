@@ -1,9 +1,10 @@
+import { FeeData, Transaction } from 'ethers';
+
 import {
   BlockInfo,
   AssetBalance,
   TokenDetail,
 } from '@rosen-chains/abstract-chain';
-import { FeeData, Transaction } from 'ethers';
 
 import { AbstractEvmNetwork, EvmTxStatus, TransactionHashes } from '../../lib';
 

@@ -1,6 +1,7 @@
-import { TokenMap, RosenTokens } from '@rosen-bridge/tokens';
 import { FeeData } from 'ethers';
 import { vi } from 'vitest';
+
+import { TokenMap, RosenTokens } from '@rosen-bridge/tokens';
 
 import { AbstractEvmNetwork } from '../lib';
 import EvmChain from '../lib/evmChain';

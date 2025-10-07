@@ -1,4 +1,6 @@
 import { isRunestone, tryDecodeRunestone } from '@magiceden-oss/runestone-lib';
+import { address, Psbt, Transaction } from 'bitcoinjs-lib';
+
 import JsonBigInt from '@rosen-bridge/json-bigint';
 import { TokenMap } from '@rosen-bridge/tokens';
 import {
@@ -7,7 +9,6 @@ import {
   NotEnoughValidBoxesError,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
-import { address, Psbt, Transaction } from 'bitcoinjs-lib';
 
 import {
   BITCOIN_RUNES_CHAIN,

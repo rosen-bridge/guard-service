@@ -1,3 +1,5 @@
+import { Psbt, Transaction, address, payments, script } from 'bitcoinjs-lib';
+
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 import {
   BitcoinBoxSelection,
@@ -21,7 +23,6 @@ import {
   TransactionType,
   ValidityStatus,
 } from '@rosen-chains/abstract-chain';
-import { Psbt, Transaction, address, payments, script } from 'bitcoinjs-lib';
 
 import BitcoinTransaction from './bitcoinTransaction';
 import { estimateTxFee, getPsbtTxInputBoxId } from './bitcoinUtils';

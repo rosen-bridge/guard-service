@@ -1,5 +1,6 @@
-import { DummyLogger } from '@rosen-bridge/abstract-logger';
 import { describe, expect, it } from 'vitest';
+
+import { DummyLogger } from '@rosen-bridge/abstract-logger';
 
 import CombinedDogeNetwork from '../../lib/network/combinedDogeNetwork';
 import { BlockAndUtxoNetwork } from './blockAndUtxoNetwork';

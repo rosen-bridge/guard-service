@@ -1,8 +1,9 @@
+import { blake2b } from 'blakejs';
+
 import { AbstractLogger, DummyLogger } from '@rosen-bridge/abstract-logger';
 import { ChainMinimumFee } from '@rosen-bridge/minimum-fee';
 import { AbstractRosenDataExtractor } from '@rosen-bridge/rosen-extractor';
 import { TokenMap } from '@rosen-bridge/tokens';
-import { blake2b } from 'blakejs';
 
 import ChainUtils from './chainUtils';
 import {

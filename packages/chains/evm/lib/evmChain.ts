@@ -1,3 +1,5 @@
+import { Signature, Transaction } from 'ethers';
+
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 import JSONBigInt from '@rosen-bridge/json-bigint';
 import JsonBigInt from '@rosen-bridge/json-bigint';
@@ -21,7 +23,6 @@ import {
   TokenInfo,
   ValidityStatus,
 } from '@rosen-chains/abstract-chain';
-import { Signature, Transaction } from 'ethers';
 
 import * as EvmUtils from './evmUtils';
 import AbstractEvmNetwork from './network/abstractEvmNetwork';

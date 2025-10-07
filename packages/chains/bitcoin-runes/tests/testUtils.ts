@@ -1,6 +1,7 @@
+import { randomBytes } from 'crypto';
+
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 import { TokenMap } from '@rosen-bridge/tokens';
-import { randomBytes } from 'crypto';
 
 import {
   BitcoinRunesChain,

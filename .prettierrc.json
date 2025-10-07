@@ -1,6 +1,11 @@
 {
   "singleQuote": true,
-  "importOrder": ["<THIRD_PARTY_MODULES>", "^@/(.*)$", "^[.](.*)$"],
+  "importOrder": [
+    "<THIRD_PARTY_MODULES>",
+    "^@rosen(.*)/(.*)$",
+    "^@/(.*)$",
+    "^[.](.*)$"
+  ],
   "importOrderCaseInsensitive": true,
   "importOrderParserPlugins": ["typescript"],
   "importOrderSeparation": true,

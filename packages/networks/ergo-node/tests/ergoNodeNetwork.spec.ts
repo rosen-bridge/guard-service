@@ -1,6 +1,7 @@
-import JsonBigInt from '@rosen-bridge/json-bigint';
 import { ErgoBox, ErgoStateContext, Transaction } from 'ergo-lib-wasm-nodejs';
 import { describe, expect, it, vi } from 'vitest';
+
+import JsonBigInt from '@rosen-bridge/json-bigint';
 
 import ErgoNodeNetwork from '../lib/ergoNodeNetwork';
 import {

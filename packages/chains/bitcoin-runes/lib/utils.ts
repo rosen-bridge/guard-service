@@ -1,3 +1,5 @@
+import { Psbt, PsbtTxOutput, Transaction } from 'bitcoinjs-lib';
+
 import { FeeEstimator } from '@rosen-bridge/abstract-box-selection';
 import { BitcoinRunesUtxo } from '@rosen-bridge/bitcoin-runes-utxo-selection';
 import JsonBigInt from '@rosen-bridge/json-bigint';
@@ -11,7 +13,6 @@ import {
   SEGWIT_INPUT_WEIGHT_UNIT,
   SEGWIT_OUTPUT_WEIGHT_UNIT,
 } from '@rosen-chains/bitcoin';
-import { Psbt, PsbtTxOutput, Transaction } from 'bitcoinjs-lib';
 
 import {
   NATIVE_SEGWIT_SCRIPT_PREFIX,

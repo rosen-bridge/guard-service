@@ -1,9 +1,10 @@
-import { AddressTxsEntity } from '@rosen-bridge/evm-address-tx-extractor';
-import { FailedError } from '@rosen-chains/abstract-chain';
-import { EvmTxStatus } from '@rosen-chains/evm';
 import { randomBytes } from 'crypto';
 import { Repository } from 'typeorm';
 import { vi } from 'vitest';
+
+import { AddressTxsEntity } from '@rosen-bridge/evm-address-tx-extractor';
+import { FailedError } from '@rosen-chains/abstract-chain';
+import { EvmTxStatus } from '@rosen-chains/evm';
 
 import { mockDataSource } from './mocked/dataSource.mock';
 import './mocked/ethers.mock';

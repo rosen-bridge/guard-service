@@ -1,5 +1,6 @@
-import ergoExplorerClientFactory from '@rosen-clients/ergo-explorer';
 import { vi } from 'vitest';
+
+import ergoExplorerClientFactory from '@rosen-clients/ergo-explorer';
 
 import {
   testAddressBalance,

@@ -1,6 +1,7 @@
 import * as CardanoWasm from '@emurgo/cardano-serialization-lib-nodejs';
-import { TokenMap } from '@rosen-bridge/tokens';
 import { randomBytes } from 'crypto';
+
+import { TokenMap } from '@rosen-bridge/tokens';
 
 import { CardanoChain } from '../lib';
 import CardanoUtils from '../lib/cardanoUtils';

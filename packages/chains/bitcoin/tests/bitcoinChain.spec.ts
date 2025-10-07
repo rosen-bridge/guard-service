@@ -1,3 +1,6 @@
+import { Psbt } from 'bitcoinjs-lib';
+import { vi } from 'vitest';
+
 import JsonBigInt from '@rosen-bridge/json-bigint';
 import { TokenMap } from '@rosen-bridge/tokens';
 import {
@@ -6,8 +9,6 @@ import {
   NotEnoughValidBoxesError,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
-import { Psbt } from 'bitcoinjs-lib';
-import { vi } from 'vitest';
 
 import {
   BitcoinChain,

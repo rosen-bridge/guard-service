@@ -1,3 +1,5 @@
+import { ErgoBox, ErgoStateContext, Transaction } from 'ergo-lib-wasm-nodejs';
+
 import { ErgoRosenExtractor } from '@rosen-bridge/rosen-extractor';
 import { TokenMap } from '@rosen-bridge/tokens';
 import {
@@ -5,7 +7,6 @@ import {
   BlockInfo,
   TokenDetail,
 } from '@rosen-chains/abstract-chain';
-import { ErgoBox, ErgoStateContext, Transaction } from 'ergo-lib-wasm-nodejs';
 
 import { AbstractErgoNetwork } from '../../lib';
 import { testLockAddress } from '../ergoTestUtils';
