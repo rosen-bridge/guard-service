@@ -75,6 +75,16 @@ const ChainNativeToken: Record<string, string> = {
   [BITCOIN_RUNES_CHAIN]: BTC,
 };
 
+const ChainConfigKey: Record<string, string> = {
+  [ERGO_CHAIN]: ERGO_CHAIN,
+  [CARDANO_CHAIN]: CARDANO_CHAIN,
+  [BITCOIN_CHAIN]: BITCOIN_CHAIN,
+  [ETHEREUM_CHAIN]: ETHEREUM_CHAIN,
+  [DOGE_CHAIN]: DOGE_CHAIN,
+  [BINANCE_CHAIN]: BINANCE_CHAIN,
+  [BITCOIN_RUNES_CHAIN]: 'bitcoinRunes',
+};
+
 enum OrderStatus {
   pending = 'pending',
   inProcess = 'in-process',
@@ -102,6 +112,7 @@ export {
   RevenueType,
   TssAlgorithms,
   ChainNativeToken,
+  ChainConfigKey,
   OrderStatus,
   ETHEREUM_BLOCK_TIME,
   BINANCE_BLOCK_TIME,

@@ -11,7 +11,7 @@ import DetectionHandler from '../handlers/DetectionHandler';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import BalanceHandler from '../handlers/BalanceHandler';
 import IntervalTimer from '../utils/IntervalTimer';
-import { SUPPORTED_CHAINS } from '../utils/constants';
+import { ChainConfigKey, SUPPORTED_CHAINS } from '../utils/constants';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -147,7 +147,7 @@ const detectionUpdateJob = () => {
 const balanceUpdateJob = () => {
   for (const chain of SUPPORTED_CHAINS) {
     new IntervalTimer(
-      Configs.balanceHandler[chain].updateInterval * 1000, // TODO: fix this for bitcoin-runes!
+      Configs.balanceHandler[ChainConfigKey[chain]].updateInterval * 1000,
       async () => {
         try {
           await BalanceHandler.getInstance().updateChainBalances(chain);

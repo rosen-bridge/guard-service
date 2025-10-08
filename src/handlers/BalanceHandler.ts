@@ -12,7 +12,11 @@ import { chunk } from 'lodash-es';
 
 import { DatabaseAction } from '../db/DatabaseAction';
 import { ChainAddressBalanceEntity } from '../db/entities/ChainAddressBalanceEntity';
-import { ChainNativeToken, SUPPORTED_CHAINS } from '../utils/constants';
+import {
+  ChainConfigKey,
+  ChainNativeToken,
+  SUPPORTED_CHAINS,
+} from '../utils/constants';
 import ChainHandler from './ChainHandler';
 import { TokenHandler } from './tokenHandler';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
@@ -238,7 +242,8 @@ class BalanceHandler {
         await new Promise((r) =>
           setTimeout(
             r,
-            Configs.balanceHandler[chain].updateBatchInterval * 1000 // TODO: fix this for bitcoin-runes!
+            Configs.balanceHandler[ChainConfigKey[chain]].updateBatchInterval *
+              1000
           )
         );
       }
