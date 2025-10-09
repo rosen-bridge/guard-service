@@ -2,6 +2,9 @@
   "name": "@rosen-chains/abstract-chain",
   "version": "14.0.1",
   "description": "this project contains abstract classes to implement any chain for Rosen-bridge",
+  "keywords": [
+    "rosen"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rosen-bridge/rosen-chains.git",
@@ -17,21 +20,16 @@
     "CHANGELOG.md"
   ],
   "scripts": {
+    "build": "tsc --build tsconfig.build.json",
+    "clean": "rimraf dist && rimraf tsconfig.build.tsbuildinfo",
+    "coverage": "npm run test -- --run --coverage",
     "lint": "eslint --fix . && npm run prettify",
     "lint:check": "eslint . && npm run prettify:check",
     "prettify": "prettier --write . --ignore-path ../../.gitignore",
     "prettify:check": "prettier --check . --ignore-path ../../.gitignore",
-    "build": "tsc --build tsconfig.build.json",
-    "type-check": "tsc --noEmit",
+    "release": "npm run test -- --run && npm run clean && npm run build && npm publish --access public",
     "test": "NODE_OPTIONS='--import tsx' vitest",
-    "coverage": "npm run test -- --run --coverage",
-    "release": "npm run test -- --run && npm run build && npm publish --access public"
-  },
-  "devDependencies": {
-    "@vitest/coverage-istanbul": "^3.1.4",
-    "tsx": "^4.20.5",
-    "typescript": "^5.8.3",
-    "vitest": "^3.1.4"
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@rosen-bridge/abstract-box-selection": "^0.3.0",
@@ -43,10 +41,12 @@
     "@rosen-bridge/tokens": "^3.2.0",
     "blakejs": "^1.2.1"
   },
+  "devDependencies": {
+    "@vitest/coverage-istanbul": "^3.1.4",
+    "tsx": "^4.20.5",
+    "vitest": "^3.1.4"
+  },
   "engines": {
     "node": ">=22.18.0"
-  },
-  "keywords": [
-    "rosen"
-  ]
+  }
 }

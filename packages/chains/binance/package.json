@@ -2,6 +2,9 @@
   "name": "@rosen-chains/binance",
   "version": "2.1.1",
   "description": "this project contains binance chain for Rosen-bridge",
+  "keywords": [
+    "rosen"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rosen-bridge/rosen-chains.git",
@@ -18,18 +21,13 @@
   ],
   "scripts": {
     "build": "tsc --build tsconfig.build.json",
+    "clean": "rimraf dist && rimraf tsconfig.build.tsbuildinfo",
     "lint": "eslint --fix . && npm run prettify",
     "lint:check": "eslint . && npm run prettify:check",
     "prettify": "prettier --write . --ignore-path ../../../.gitignore",
     "prettify:check": "prettier --check . --ignore-path ../../../.gitignore",
-    "release": "npm run build && npm publish --access public",
+    "release": "npm run clean && npm run build && npm publish --access public",
     "type-check": "tsc --noEmit"
-  },
-  "devDependencies": {
-    "@vitest/coverage-istanbul": "^3.1.4",
-    "tsx": "^4.20.5",
-    "typescript": "^5.8.3",
-    "vitest": "^3.1.4"
   },
   "dependencies": {
     "@rosen-bridge/abstract-logger": "^2.1.0",
@@ -37,10 +35,12 @@
     "@rosen-chains/abstract-chain": "^14.0.1",
     "@rosen-chains/evm": "^8.2.1"
   },
+  "devDependencies": {
+    "@vitest/coverage-istanbul": "^3.1.4",
+    "tsx": "^4.20.5",
+    "vitest": "^3.1.4"
+  },
   "engines": {
     "node": ">=22.18.0"
-  },
-  "keywords": [
-    "rosen"
-  ]
+  }
 }

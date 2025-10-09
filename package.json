@@ -11,6 +11,7 @@
   },
   "scripts": {
     "build": "npm run build --workspaces",
+    "clean": "npm run clean --workspaces",
     "coverage": "npm run coverage --workspaces",
     "lint": "npm run lint --workspaces",
     "lint:check": "npm run lint:check --workspaces",
@@ -33,7 +34,9 @@
     "globals": "^16.4.0",
     "husky": "^8.0.1",
     "lint-staged": "^13.0.3",
-    "prettier": "^3.2.4"
+    "prettier": "^3.2.4",
+    "rimraf": "^6.0.1",
+    "typescript": "^5.8.3"
   },
   "engines": {
     "node": ">=22.18.0"
