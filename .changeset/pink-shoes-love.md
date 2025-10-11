@@ -20,4 +20,4 @@
 '@rosen-chains/evm': patch
 ---
 
-Integrate @trivago/prettier-plugin-sort-imports and prettier to sort the import statements
+Sort imports
