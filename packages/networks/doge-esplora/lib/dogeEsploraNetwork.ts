@@ -29,7 +29,7 @@ import {
 } from './types';
 
 class DogeEsploraNetwork extends AbstractDogeNetwork {
-  protected client; // TODO: specify the type (local:ergo/rosen-bridge/network-clients#26)
+  protected client; // TODO: specify the type (local:ergo/rosen-bridge/network-client#26)
   private apiPrefix: string;
   private getSavedTransactionById: (
     txId: string,

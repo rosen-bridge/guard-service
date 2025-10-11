@@ -27,7 +27,7 @@ import {
 } from './types';
 
 class BitcoinEsploraNetwork extends AbstractBitcoinNetwork {
-  protected client; // TODO: specify the type (local:ergo/rosen-bridge/network-clients#26)
+  protected client; // TODO: specify the type (local:ergo/rosen-bridge/network-client#26)
   private apiPrefix: string;
 
   constructor(url: string, logger?: AbstractLogger, apiPrefix?: string) {

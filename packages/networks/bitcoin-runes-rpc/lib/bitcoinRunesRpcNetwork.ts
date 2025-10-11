@@ -42,8 +42,8 @@ import {
 } from './types';
 
 export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
-  protected rpcClient; // TODO: specify the type (local:ergo/rosen-bridge/network-clients#26)
-  protected unisatClient; // TODO: specify the type (local:ergo/rosen-bridge/network-clients#26)
+  protected rpcClient; // TODO: specify the type (local:ergo/rosen-bridge/network-client#26)
+  protected unisatClient; // TODO: specify the type (local:ergo/rosen-bridge/network-client#26)
 
   constructor(
     rpcConfig: RpcConfig,

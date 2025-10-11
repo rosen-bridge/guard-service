@@ -27,7 +27,7 @@ import {
 } from './types';
 
 class DogeRpcNetwork extends PartialDogeNetwork {
-  protected client; // TODO: specify the type (local:ergo/rosen-bridge/network-clients#26)
+  protected client; // TODO: specify the type (local:ergo/rosen-bridge/network-client#26)
 
   // List of functions this class implements from DogeNetworkFunction
   readonly implements = [

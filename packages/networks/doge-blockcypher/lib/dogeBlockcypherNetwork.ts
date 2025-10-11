@@ -28,7 +28,7 @@ import {
 } from './types';
 
 class DogeBlockCypherNetwork extends PartialDogeNetwork {
-  protected client; // TODO: specify the type (local:ergo/rosen-bridge/network-clients#26)
+  protected client; // TODO: specify the type (local:ergo/rosen-bridge/network-client#26)
   private getSavedTransactionById: (
     txId: string,
   ) => Promise<PaymentTransaction | undefined>;
