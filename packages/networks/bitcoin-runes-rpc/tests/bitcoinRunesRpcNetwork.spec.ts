@@ -7,7 +7,7 @@ import {
   mockAxiosPost,
   mockAxiosPostToThrow,
   resetAxiosMock,
-} from './mocked/axios.mock';
+} from './mocked/rateLimitedAxios.mock';
 import * as testData from './testData';
 
 describe('BitcoinRunesRpcNetwork', () => {

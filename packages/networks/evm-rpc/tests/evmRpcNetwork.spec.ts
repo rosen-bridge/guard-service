@@ -1,8 +1,8 @@
 import { randomBytes } from 'crypto';
-import { Repository } from 'typeorm';
 import { vi } from 'vitest';
 
 import { AddressTxsEntity } from '@rosen-bridge/evm-address-tx-extractor';
+import { Repository } from '@rosen-bridge/extended-typeorm';
 import { FailedError } from '@rosen-chains/abstract-chain';
 import { EvmTxStatus } from '@rosen-chains/evm';
 

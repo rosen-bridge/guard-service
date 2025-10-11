@@ -1,9 +1,8 @@
-import { DataSource } from 'typeorm';
-
 import {
   AddressTxsEntity,
   migrations,
 } from '@rosen-bridge/evm-address-tx-extractor';
+import { DataSource } from '@rosen-bridge/extended-typeorm';
 
 export const mockDataSource = async () => {
   const testDataSource = new DataSource({

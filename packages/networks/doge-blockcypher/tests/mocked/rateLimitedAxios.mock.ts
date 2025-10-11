@@ -1,5 +1,6 @@
-import axios from 'axios';
 import { vi } from 'vitest';
+
+import RateLimitedAxios from '@rosen-clients/rate-limited-axios';
 
 export const axiosInstance = {
   get: vi.fn(),
@@ -29,5 +30,8 @@ export const mockAxiosGetToThrow = (error: any) => {
  */
 export const resetAxiosMock = () => {
   axiosInstance.get.mockReset();
-  vi.spyOn(axios, 'create').mockReturnValue(axiosInstance as any);
+  axiosInstance.post.mockReset();
+
+  // Mock axios.create to return our mocked instance
+  vi.spyOn(RateLimitedAxios, 'create').mockReturnValue(axiosInstance as any);
 };

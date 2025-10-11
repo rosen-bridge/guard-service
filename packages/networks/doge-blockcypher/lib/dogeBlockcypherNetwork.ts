@@ -1,5 +1,3 @@
-import axios, { AxiosInstance } from 'axios';
-import rateLimit from 'axios-rate-limit';
 import { Psbt } from 'bitcoinjs-lib';
 
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
@@ -20,6 +18,7 @@ import {
   DogeUtxo,
   DOGE_NETWORK,
 } from '@rosen-chains/doge';
+import RateLimitedAxios from '@rosen-clients/rate-limited-axios';
 
 import {
   BlockCypherAddress,
@@ -29,7 +28,7 @@ import {
 } from './types';
 
 class DogeBlockCypherNetwork extends PartialDogeNetwork {
-  protected client: AxiosInstance;
+  protected client; // TODO: specify the type (local:ergo/rosen-bridge/network-clients#26)
   private getSavedTransactionById: (
     txId: string,
   ) => Promise<PaymentTransaction | undefined>;
@@ -58,16 +57,12 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
       txId: string,
     ) => Promise<PaymentTransaction | undefined>,
     logger?: AbstractLogger,
-    maxRPS = 3,
   ) {
     super(logger);
     // Use axios-rate-limit to limit to 3 requests per second
-    this.client = rateLimit(
-      axios.create({
-        baseURL: url,
-      }),
-      { maxRPS },
-    );
+    this.client = RateLimitedAxios.create({
+      baseURL: url,
+    });
     this.getSavedTransactionById = getSavedTransactionById;
   }
 

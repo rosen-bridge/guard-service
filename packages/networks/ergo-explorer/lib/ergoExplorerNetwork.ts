@@ -10,9 +10,10 @@ import {
   UnexpectedApiError,
 } from '@rosen-chains/abstract-chain';
 import { AbstractErgoNetwork } from '@rosen-chains/ergo';
-import ergoExplorerClientFactory from '@rosen-clients/ergo-explorer';
-import { UTransactionInfo } from '@rosen-clients/ergo-explorer/dist/src/v0/types';
-import { TransactionInfo } from '@rosen-clients/ergo-explorer/dist/src/v1/types';
+import ergoExplorerClientFactory, {
+  V0,
+  V1,
+} from '@rosen-clients/ergo-explorer';
 
 import handleApiError from './handleApiError';
 
@@ -204,7 +205,7 @@ class ErgoExplorerNetwork extends AbstractErgoNetwork {
    * converting all `null` values for `spendingProof` to an empty string
    * @param tx
    */
-  private fixMalformedTx = (tx: TransactionInfo) => ({
+  private fixMalformedTx = (tx: V1.TransactionInfo) => ({
     ...tx,
     inputs: tx.inputs?.map((input) => ({
       ...input,
@@ -265,7 +266,7 @@ class ErgoExplorerNetwork extends AbstractErgoNetwork {
    * `spendingProof.proofBytes` to an empty string
    * @param tx
    */
-  private fixMalformedMempoolTx = (tx: UTransactionInfo) => ({
+  private fixMalformedMempoolTx = (tx: V0.UTransactionInfo) => ({
     ...tx,
     inputs: tx.inputs?.map((input) => ({
       ...input,

@@ -1,4 +1,4 @@
-import RateLimitedAxios from '@rosen-bridge/rate-limited-axios';
+import RateLimitedAxios from '@rosen-clients/rate-limited-axios';
 
 import { RPC_URL, UNISAT_URL } from '../testData';
 
@@ -10,37 +10,11 @@ export enum ClientType {
 export const rpcAxiosInstance = {
   get: vi.fn(),
   post: vi.fn(),
-  interceptors: {
-    request: {
-      use: vi.fn(),
-    },
-    response: {
-      use: vi.fn(),
-    },
-  },
-  // Add mock methods for axios-rate-limit
-  getMaxRPS: vi.fn().mockReturnValue(3),
-  setMaxRPS: vi.fn(),
-  setRateLimitOptions: vi.fn(),
-  getQueue: vi.fn().mockReturnValue([]),
 };
 
 export const unisatAxiosInstance = {
   get: vi.fn(),
   post: vi.fn(),
-  interceptors: {
-    request: {
-      use: vi.fn(),
-    },
-    response: {
-      use: vi.fn(),
-    },
-  },
-  // Add mock methods for axios-rate-limit
-  getMaxRPS: vi.fn().mockReturnValue(3),
-  setMaxRPS: vi.fn(),
-  setRateLimitOptions: vi.fn(),
-  getQueue: vi.fn().mockReturnValue([]),
 };
 
 /**

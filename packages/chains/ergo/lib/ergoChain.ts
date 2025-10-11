@@ -2,7 +2,6 @@ import * as wasm from 'ergo-lib-wasm-nodejs';
 
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 import { ErgoBoxSelection } from '@rosen-bridge/ergo-box-selection';
-import JsonBI from '@rosen-bridge/json-bigint';
 import JsonBigInt from '@rosen-bridge/json-bigint';
 import { ErgoRosenExtractor } from '@rosen-bridge/rosen-extractor';
 import { TokenMap } from '@rosen-bridge/tokens';
@@ -152,7 +151,7 @@ class ErgoChain extends AbstractUtxoChain<wasm.Transaction, wasm.ErgoBox> {
     );
     if (!(await this.hasLockAddressEnoughAssets(requiredAssets))) {
       const neededErgs = unwrappedRequiredAssets.nativeToken.toString();
-      const neededTokens = JsonBI.stringify(unwrappedRequiredAssets.tokens);
+      const neededTokens = JsonBigInt.stringify(unwrappedRequiredAssets.tokens);
       throw new NotEnoughAssetsError(
         `Locked assets cannot cover required assets. Erg: ${neededErgs}, Tokens: ${neededTokens}`,
       );
@@ -208,7 +207,7 @@ class ErgoChain extends AbstractUtxoChain<wasm.Transaction, wasm.ErgoBox> {
     // check if boxes covered requirements
     if (!coveredBoxes.covered) {
       const neededErgs = unwrappedRequiredAssets.nativeToken.toString();
-      const neededTokens = JsonBI.stringify(unwrappedRequiredAssets.tokens);
+      const neededTokens = JsonBigInt.stringify(unwrappedRequiredAssets.tokens);
       throw new NotEnoughValidBoxesError(
         `Available boxes didn't cover required assets. Erg: ${neededErgs}, Tokens: ${neededTokens}`,
       );

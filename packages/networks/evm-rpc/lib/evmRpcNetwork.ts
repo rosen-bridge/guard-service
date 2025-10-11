@@ -7,9 +7,9 @@ import {
   FeeData,
   isCallException,
 } from 'ethers';
-import { DataSource } from 'typeorm';
 
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
+import { DataSource } from '@rosen-bridge/extended-typeorm';
 import JsonBigInt from '@rosen-bridge/json-bigint';
 import {
   AssetBalance,

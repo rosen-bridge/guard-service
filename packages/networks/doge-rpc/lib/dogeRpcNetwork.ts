@@ -1,4 +1,3 @@
-import axios, { AxiosInstance } from 'axios';
 import { Psbt } from 'bitcoinjs-lib';
 import { randomBytes } from 'crypto';
 
@@ -17,6 +16,7 @@ import {
   DogeUtxo,
   CONFIRMATION_TARGET,
 } from '@rosen-chains/doge';
+import RateLimitedAxios from '@rosen-clients/rate-limited-axios';
 
 import {
   DogeRpcTransaction,
@@ -27,7 +27,7 @@ import {
 } from './types';
 
 class DogeRpcNetwork extends PartialDogeNetwork {
-  protected client: AxiosInstance;
+  protected client; // TODO: specify the type (local:ergo/rosen-bridge/network-clients#26)
 
   // List of functions this class implements from DogeNetworkFunction
   readonly implements = [
@@ -63,7 +63,7 @@ class DogeRpcNetwork extends PartialDogeNetwork {
           }
         : {};
 
-    this.client = axios.create({
+    this.client = RateLimitedAxios.create({
       baseURL: url,
       headers: headers,
       ...authConfig,
