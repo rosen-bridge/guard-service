@@ -33,13 +33,11 @@
   },
   "dependencies": {
     "@magiceden-oss/runestone-lib": "^1.0.2",
-    "@rosen-bridge/abstract-box-selection": "^0.3.0",
-    "@rosen-bridge/abstract-logger": "^2.1.0",
-    "@rosen-bridge/bitcoin-runes-utxo-selection": "^1.0.3",
-    "@rosen-bridge/json-bigint": "^0.2.0",
-    "@rosen-bridge/rosen-extractor": "^9.0.0",
-    "@rosen-bridge/selection-types": "^0.1.0",
-    "@rosen-bridge/tokens": "^3.2.0",
+    "@rosen-bridge/abstract-logger": "^3.0.0",
+    "@rosen-bridge/bitcoin-runes-utxo-selection": "^2.0.0",
+    "@rosen-bridge/json-bigint": "^1.0.0",
+    "@rosen-bridge/rosen-extractor": "^10.0.0",
+    "@rosen-bridge/tokens": "^4.0.0",
     "@rosen-chains/abstract-chain": "^14.0.1",
     "@rosen-chains/bitcoin": "^8.1.1",
     "bitcoinjs-lib": "^6.1.5"
