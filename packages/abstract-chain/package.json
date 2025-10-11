@@ -32,13 +32,13 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@rosen-bridge/abstract-box-selection": "^0.3.0",
-    "@rosen-bridge/abstract-logger": "^2.1.0",
-    "@rosen-bridge/json-bigint": "^0.2.0",
-    "@rosen-bridge/minimum-fee": "^2.3.0",
-    "@rosen-bridge/rosen-extractor": "^9.0.0",
-    "@rosen-bridge/selection-types": "^0.1.0",
-    "@rosen-bridge/tokens": "^3.2.0",
+    "@rosen-bridge/abstract-box-selection": "^1.0.0",
+    "@rosen-bridge/abstract-logger": "^3.0.0",
+    "@rosen-bridge/json-bigint": "^1.0.0",
+    "@rosen-bridge/minimum-fee": "^3.0.0",
+    "@rosen-bridge/rosen-extractor": "^10.1.0",
+    "@rosen-bridge/selection-types": "^1.0.0",
+    "@rosen-bridge/tokens": "^4.0.0",
     "blakejs": "^1.2.1"
   },
   "devDependencies": {
