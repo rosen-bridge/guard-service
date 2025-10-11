@@ -1,8 +1,10 @@
+import { blake2b } from 'blakejs';
+
 import { AbstractLogger, DummyLogger } from '@rosen-bridge/abstract-logger';
 import { ChainMinimumFee } from '@rosen-bridge/minimum-fee';
 import { AbstractRosenDataExtractor } from '@rosen-bridge/rosen-extractor';
 import { TokenMap } from '@rosen-bridge/tokens';
-import { blake2b } from 'blakejs';
+
 import ChainUtils from './chainUtils';
 import {
   ImpossibleBehavior,
@@ -11,6 +13,7 @@ import {
   ValueError,
 } from './errors';
 import AbstractChainNetwork from './network/abstractChainNetwork';
+import PaymentTransaction from './paymentTransaction';
 import {
   AssetBalance,
   BlockInfo,
@@ -24,7 +27,6 @@ import {
   TransactionType,
   ValidityStatus,
 } from './types';
-import PaymentTransaction from './paymentTransaction';
 
 abstract class AbstractChain<TxType> {
   abstract readonly CHAIN: string;

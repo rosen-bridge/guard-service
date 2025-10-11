@@ -1,4 +1,5 @@
 import { PsbtTxInput } from 'bitcoinjs-lib';
+
 import {
   SEGWIT_INPUT_WEIGHT_UNIT,
   SEGWIT_OUTPUT_WEIGHT_UNIT,

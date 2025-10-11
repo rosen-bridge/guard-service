@@ -1,8 +1,12 @@
+import axios from 'axios';
+import { vi } from 'vitest';
+
 import {
   FailedError,
   PaymentTransaction,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
+
 import DogeBlockcypherNetwork from '../lib/dogeBlockcypherNetwork';
 import {
   mockAxiosGet,
@@ -11,8 +15,6 @@ import {
   axiosInstance,
 } from './mocked/axios.mock';
 import * as testData from './testData';
-import { vi } from 'vitest';
-import axios from 'axios';
 
 describe('DogeBlockcypherNetwork', () => {
   let network: DogeBlockcypherNetwork;

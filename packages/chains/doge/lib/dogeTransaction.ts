@@ -2,7 +2,8 @@ import {
   PaymentTransaction,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
-import { DOGE_CHAIN } from './constants'; // Ensure you define DOGE_CHAIN in your constants file
+
+import { DOGE_CHAIN } from './constants';
 import { DogeTransactionJsonModel } from './types';
 
 class DogeTransaction extends PaymentTransaction {

@@ -1,5 +1,7 @@
-import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 import { Psbt } from 'bitcoinjs-lib';
+
+import { AbstractLogger } from '@rosen-bridge/abstract-logger';
+
 import PartialDogeNetwork from '../../lib/network/partialDogeNetwork';
 import { DogeNetworkFunction, DogeTx } from '../../lib/types';
 

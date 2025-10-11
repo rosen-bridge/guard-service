@@ -1,10 +1,11 @@
+import { Transaction } from 'ethers';
+
+import { RosenTokens } from '@rosen-bridge/tokens';
 import {
   PaymentTransaction,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
 import { PaymentOrder, AssetBalance } from '@rosen-chains/abstract-chain';
-import { Transaction } from 'ethers';
-import { RosenTokens } from '@rosen-bridge/tokens';
 
 export const lockAddress = '0xedee4752e5a2f595151c94762fb38e5730357785';
 export const supportedTokens = [

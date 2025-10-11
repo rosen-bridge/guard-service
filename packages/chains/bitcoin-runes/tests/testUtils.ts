@@ -1,5 +1,8 @@
 import { randomBytes } from 'crypto';
+
+import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 import { TokenMap } from '@rosen-bridge/tokens';
+
 import {
   BitcoinRunesChain,
   BitcoinRunesConfigs,
@@ -7,7 +10,6 @@ import {
 } from '../lib';
 import { TestBitcoinRunesNetwork } from './network/testBitcoinRunesNetwork';
 import * as testData from './testData';
-import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 
 export const generateRandomId = (): string => randomBytes(32).toString('hex');
 

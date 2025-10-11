@@ -1,8 +1,11 @@
+import { vi } from 'vitest';
+
 import {
   FailedError,
   PaymentTransaction,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
+
 import DogeEsploraNetwork from '../lib/dogeEsploraNetwork';
 import {
   mockAxiosGet,
@@ -10,7 +13,6 @@ import {
   resetAxiosMock,
 } from './mocked/axios.mock';
 import * as testData from './testData';
-import { vi } from 'vitest';
 
 describe('DogeEsploraNetwork', () => {
   let network: DogeEsploraNetwork;

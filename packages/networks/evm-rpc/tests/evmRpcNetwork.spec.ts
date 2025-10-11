@@ -1,14 +1,16 @@
-import './mocked/ethers.mock';
-import { vi } from 'vitest';
 import { randomBytes } from 'crypto';
-import { AddressTxsEntity } from '@rosen-bridge/evm-address-tx-extractor';
 import { Repository } from 'typeorm';
+import { vi } from 'vitest';
+
+import { AddressTxsEntity } from '@rosen-bridge/evm-address-tx-extractor';
 import { FailedError } from '@rosen-chains/abstract-chain';
-import { mockDataSource } from './mocked/dataSource.mock';
-import { TestEvmRpcNetwork } from './testEvmRpcNetwork';
-import * as testData from './testData';
-import { ContractInstance } from './mocked/ethers.mock';
 import { EvmTxStatus } from '@rosen-chains/evm';
+
+import { mockDataSource } from './mocked/dataSource.mock';
+import './mocked/ethers.mock';
+import { ContractInstance } from './mocked/ethers.mock';
+import * as testData from './testData';
+import { TestEvmRpcNetwork } from './testEvmRpcNetwork';
 
 describe('EvmRpcNetwork', () => {
   let network: TestEvmRpcNetwork;

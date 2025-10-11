@@ -1,17 +1,19 @@
-import * as testData from './testData';
+import { FeeData } from 'ethers';
+import { vi } from 'vitest';
+
+import { TokenMap, RosenTokens } from '@rosen-bridge/tokens';
+
+import { AbstractEvmNetwork } from '../lib';
+import EvmChain from '../lib/evmChain';
 import {
   EvmConfigs,
   EvmTxStatus,
   TransactionHashes,
   TssSignFunction,
 } from '../lib/types';
-import EvmChain from '../lib/evmChain';
-import { vi } from 'vitest';
-import { AbstractEvmNetwork } from '../lib';
 import TestEvmNetwork from './network/testEvmNetwork';
 import TestChain from './testChain';
-import { FeeData } from 'ethers';
-import { TokenMap, RosenTokens } from '@rosen-bridge/tokens';
+import * as testData from './testData';
 
 const spyOn = vi.spyOn;
 const observationTxConfirmation = 5;

@@ -1,4 +1,5 @@
 import { TokenMap } from '@rosen-bridge/tokens';
+
 import { AbstractEvmNetwork, EvmChain, TssSignFunction } from '../lib';
 
 class TestChain extends EvmChain {

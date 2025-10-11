@@ -1,5 +1,10 @@
-import { TokenMap } from '@rosen-bridge/tokens';
+import { Signature, Transaction } from 'ethers';
+
+import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 import JSONBigInt from '@rosen-bridge/json-bigint';
+import JsonBigInt from '@rosen-bridge/json-bigint';
+import { EvmRosenExtractor } from '@rosen-bridge/rosen-extractor';
+import { TokenMap } from '@rosen-bridge/tokens';
 import {
   AbstractChain,
   ChainUtils,
@@ -18,14 +23,11 @@ import {
   TokenInfo,
   ValidityStatus,
 } from '@rosen-chains/abstract-chain';
-import { EvmRosenExtractor } from '@rosen-bridge/rosen-extractor';
-import AbstractEvmNetwork from './network/abstractEvmNetwork';
-import { EvmConfigs, EvmTxStatus, TssSignFunction } from './types';
-import { Signature, Transaction } from 'ethers';
-import Serializer from './serializer';
+
 import * as EvmUtils from './evmUtils';
-import { AbstractLogger } from '@rosen-bridge/abstract-logger';
-import JsonBigInt from '@rosen-bridge/json-bigint';
+import AbstractEvmNetwork from './network/abstractEvmNetwork';
+import Serializer from './serializer';
+import { EvmConfigs, EvmTxStatus, TssSignFunction } from './types';
 
 abstract class EvmChain extends AbstractChain<Transaction> {
   declare network: AbstractEvmNetwork;

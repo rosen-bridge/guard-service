@@ -1,5 +1,7 @@
-import { AbstractChainNetwork } from '@rosen-chains/abstract-chain';
 import { FeeData, Transaction } from 'ethers';
+
+import { AbstractChainNetwork } from '@rosen-chains/abstract-chain';
+
 import { EvmTxStatus, TransactionHashes } from '../types';
 
 abstract class AbstractEvmNetwork extends AbstractChainNetwork<Transaction> {

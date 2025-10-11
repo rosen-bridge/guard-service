@@ -1,4 +1,15 @@
+import { isRunestone, tryDecodeRunestone } from '@magiceden-oss/runestone-lib';
+import { address, Psbt, Transaction } from 'bitcoinjs-lib';
+
 import JsonBigInt from '@rosen-bridge/json-bigint';
+import { TokenMap } from '@rosen-bridge/tokens';
+import {
+  ChainUtils,
+  NotEnoughAssetsError,
+  NotEnoughValidBoxesError,
+  TransactionType,
+} from '@rosen-chains/abstract-chain';
+
 import {
   BITCOIN_RUNES_CHAIN,
   BitcoinRunesChain,
@@ -6,18 +17,9 @@ import {
   TssSignFunction,
 } from '../lib';
 import { TestBitcoinRunesNetwork } from './network/testBitcoinRunesNetwork';
-import { generateChainObject, generateRandomId } from './testUtils';
 import * as testData from './testData';
+import { generateChainObject, generateRandomId } from './testUtils';
 import * as testUtils from './testUtils';
-import {
-  ChainUtils,
-  NotEnoughAssetsError,
-  NotEnoughValidBoxesError,
-  TransactionType,
-} from '@rosen-chains/abstract-chain';
-import { TokenMap } from '@rosen-bridge/tokens';
-import { isRunestone, tryDecodeRunestone } from '@magiceden-oss/runestone-lib';
-import { address, Psbt, Transaction } from 'bitcoinjs-lib';
 
 describe('BitcoinRunesChain', () => {
   describe('generateTransaction', () => {

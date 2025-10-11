@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
+
 import { DummyLogger } from '@rosen-bridge/abstract-logger';
+
 import CombinedDogeNetwork from '../../lib/network/combinedDogeNetwork';
-import { HeightAndAssetsNetwork } from './heightAndAssetsNetwork';
-import { TransactionNetwork } from './transactionNetwork';
 import { BlockAndUtxoNetwork } from './blockAndUtxoNetwork';
 import { CompleteDogeNetwork } from './completeDogeNetwork';
+import { HeightAndAssetsNetwork } from './heightAndAssetsNetwork';
+import { TransactionNetwork } from './transactionNetwork';
 
 describe('CombinedDogeNetwork', () => {
   const logger = new DummyLogger();

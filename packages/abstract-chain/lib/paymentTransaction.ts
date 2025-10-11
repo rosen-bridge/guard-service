@@ -1,5 +1,6 @@
-import { TransactionType } from './types';
 import JsonBigInt from '@rosen-bridge/json-bigint';
+
+import { TransactionType } from './types';
 
 class PaymentTransaction {
   network: string;

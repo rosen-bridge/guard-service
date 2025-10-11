@@ -1,4 +1,11 @@
+import * as wasm from 'ergo-lib-wasm-nodejs';
+
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
+import { ErgoBoxSelection } from '@rosen-bridge/ergo-box-selection';
+import JsonBI from '@rosen-bridge/json-bigint';
+import JsonBigInt from '@rosen-bridge/json-bigint';
+import { ErgoRosenExtractor } from '@rosen-bridge/rosen-extractor';
+import { TokenMap } from '@rosen-bridge/tokens';
 import {
   AbstractUtxoChain,
   AssetBalance,
@@ -17,18 +24,13 @@ import {
   TransactionType,
   ValidityStatus,
 } from '@rosen-chains/abstract-chain';
-import * as wasm from 'ergo-lib-wasm-nodejs';
+
 import { ERG, ERGO_CHAIN, NUMBER_OF_BLOCKS_PER_YEAR } from './constants';
 import ErgoTransaction from './ergoTransaction';
 import ErgoUtils from './ergoUtils';
 import AbstractErgoNetwork from './network/abstractErgoNetwork';
 import Serializer from './serializer';
 import { ErgoConfigs, GuardsPkConfig } from './types';
-import JsonBI from '@rosen-bridge/json-bigint';
-import JsonBigInt from '@rosen-bridge/json-bigint';
-import { ErgoRosenExtractor } from '@rosen-bridge/rosen-extractor';
-import { TokenMap } from '@rosen-bridge/tokens';
-import { ErgoBoxSelection } from '@rosen-bridge/ergo-box-selection';
 
 class ErgoChain extends AbstractUtxoChain<wasm.Transaction, wasm.ErgoBox> {
   CHAIN = ERGO_CHAIN;

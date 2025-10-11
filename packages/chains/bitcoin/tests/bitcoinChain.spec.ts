@@ -1,12 +1,15 @@
+import { Psbt } from 'bitcoinjs-lib';
 import { vi } from 'vitest';
+
+import JsonBigInt from '@rosen-bridge/json-bigint';
+import { TokenMap } from '@rosen-bridge/tokens';
 import {
   ChainUtils,
   NotEnoughAssetsError,
   NotEnoughValidBoxesError,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
-import JsonBigInt from '@rosen-bridge/json-bigint';
-import { Psbt } from 'bitcoinjs-lib';
+
 import {
   BitcoinChain,
   BitcoinTransaction,
@@ -18,7 +21,6 @@ import TestBitcoinNetwork from './network/testBitcoinNetwork';
 import { TestBitcoinChain } from './testBitcoinChain';
 import * as testData from './testData';
 import * as testUtils from './testUtils';
-import { TokenMap } from '@rosen-bridge/tokens';
 
 describe('BitcoinChain', () => {
   describe('generateTransaction', () => {

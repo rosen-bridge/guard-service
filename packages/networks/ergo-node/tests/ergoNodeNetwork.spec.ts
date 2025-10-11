@@ -1,7 +1,9 @@
+import { ErgoBox, ErgoStateContext, Transaction } from 'ergo-lib-wasm-nodejs';
 import { describe, expect, it, vi } from 'vitest';
 
-import ErgoNodeNetwork from '../lib/ergoNodeNetwork';
+import JsonBigInt from '@rosen-bridge/json-bigint';
 
+import ErgoNodeNetwork from '../lib/ergoNodeNetwork';
 import {
   mockApiToThrow,
   mockGetAddressBalanceTotal,
@@ -17,8 +19,6 @@ import {
   mockGetUnconfirmedTransactions,
   mockSendTransactionAsBytes,
 } from './mocked/ergoNodeClient.mock';
-
-import { ErgoBox, ErgoStateContext, Transaction } from 'ergo-lib-wasm-nodejs';
 import {
   expectedTokenDetail,
   testAddress,
@@ -36,7 +36,6 @@ import {
   testTransactionBytes,
   tokenId,
 } from './testData';
-import JsonBigInt from '@rosen-bridge/json-bigint';
 
 vi.mock('@rosen-clients/ergo-node');
 

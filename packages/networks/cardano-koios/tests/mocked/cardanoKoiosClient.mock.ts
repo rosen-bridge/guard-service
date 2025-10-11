@@ -2,8 +2,9 @@ import cardanoKoiosClientFactory, {
   TxCborItem,
   UtxoInfos,
 } from '@rosen-clients/cardano-koios';
-import * as testData from '../testData';
 import { AddressInfoItemUtxoSetItem } from '@rosen-clients/cardano-koios';
+
+import * as testData from '../testData';
 
 /**
  * mock `tip` of cardano koios client

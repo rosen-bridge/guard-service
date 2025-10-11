@@ -1,4 +1,5 @@
-import { Psbt } from 'bitcoinjs-lib'; // You may need to replace this with a Doge-specific library if available
+import { Psbt } from 'bitcoinjs-lib';
+
 import { DOGE_NETWORK } from './constants';
 
 class Serializer {

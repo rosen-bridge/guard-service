@@ -1,4 +1,7 @@
 import { Transaction } from '@emurgo/cardano-serialization-lib-nodejs';
+
+import JsonBigInt from '@rosen-bridge/json-bigint';
+
 import CardanoKoiosNetwork from '../lib';
 import {
   mockAddressAssets,
@@ -17,7 +20,6 @@ import {
   mockUtxoValidation,
 } from './mocked/cardanoKoiosClient.mock';
 import * as testData from './testData';
-import JsonBigInt from '@rosen-bridge/json-bigint';
 
 vi.mock('@rosen-clients/cardano-koios');
 
