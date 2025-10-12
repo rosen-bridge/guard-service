@@ -123,7 +123,7 @@ class DatabaseHandler {
               `Ignoring new tx [${newTx.txId}] due to higher txId, comparing to [${tx.txId}]`
             );
         } else {
-          logger.warn(
+          throw new Error(
             `Received approval for newTx [${newTx.txId}] where its ${
               event !== null ? `event` : `order`
             } [${eventOrOrderId}] has already an advanced oldTx [${tx.txId}]`
