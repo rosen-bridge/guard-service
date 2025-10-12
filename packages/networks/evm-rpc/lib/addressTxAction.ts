@@ -1,7 +1,6 @@
-import { DataSource, Repository } from 'typeorm';
-
 import { AbstractLogger, DummyLogger } from '@rosen-bridge/abstract-logger';
 import { AddressTxsEntity } from '@rosen-bridge/evm-address-tx-extractor';
+import { DataSource, Repository } from '@rosen-bridge/extended-typeorm';
 
 class AddressTxAction {
   private readonly repository: Repository<AddressTxsEntity>;

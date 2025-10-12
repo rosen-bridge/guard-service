@@ -3,7 +3,6 @@ import { randomBytes } from 'crypto';
 
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 import JsonBigInt from '@rosen-bridge/json-bigint';
-import RateLimitedAxios from '@rosen-bridge/rate-limited-axios';
 import {
   AssetBalance,
   BlockInfo,
@@ -20,6 +19,7 @@ import {
   BitcoinRunesUtxo,
   CONFIRMATION_TARGET,
 } from '@rosen-chains/bitcoin-runes';
+import RateLimitedAxios from '@rosen-clients/rate-limited-axios';
 
 import {
   JsonRpcResult,
@@ -42,8 +42,8 @@ import {
 } from './types';
 
 export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
-  protected rpcClient: RateLimitedAxios;
-  protected unisatClient: RateLimitedAxios;
+  protected rpcClient; // TODO: specify the type (local:ergo/rosen-bridge/network-client#26)
+  protected unisatClient; // TODO: specify the type (local:ergo/rosen-bridge/network-client#26)
 
   constructor(
     rpcConfig: RpcConfig,

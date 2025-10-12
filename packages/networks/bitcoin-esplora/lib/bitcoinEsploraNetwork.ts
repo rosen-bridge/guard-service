@@ -1,4 +1,3 @@
-import axios, { AxiosInstance } from 'axios';
 import { Psbt } from 'bitcoinjs-lib';
 
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
@@ -17,6 +16,7 @@ import {
   BitcoinUtxo,
   CONFIRMATION_TARGET,
 } from '@rosen-chains/bitcoin';
+import RateLimitedAxios from '@rosen-clients/rate-limited-axios';
 
 import {
   EsploraAddress,
@@ -27,12 +27,12 @@ import {
 } from './types';
 
 class BitcoinEsploraNetwork extends AbstractBitcoinNetwork {
-  protected client: AxiosInstance;
+  protected client; // TODO: specify the type (local:ergo/rosen-bridge/network-client#26)
   private apiPrefix: string;
 
   constructor(url: string, logger?: AbstractLogger, apiPrefix?: string) {
     super(logger);
-    this.client = axios.create({
+    this.client = RateLimitedAxios.create({
       baseURL: url,
     });
     this.apiPrefix = apiPrefix || '/api';

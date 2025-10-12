@@ -3,7 +3,7 @@ import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { FailedError, NetworkError } from '@rosen-chains/abstract-chain';
 
 import DogeRpcNetwork from '../lib/dogeRpcNetwork';
-import { resetAxiosMock, axiosInstance } from './mocked/axios.mock';
+import { resetAxiosMock, axiosInstance } from './mocked/rateLimitedAxios.mock';
 import * as testData from './testData';
 
 describe('DogeRpcNetwork', () => {

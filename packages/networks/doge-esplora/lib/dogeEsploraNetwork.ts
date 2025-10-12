@@ -1,4 +1,3 @@
-import axios, { AxiosInstance } from 'axios';
 import { Psbt } from 'bitcoinjs-lib';
 
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
@@ -19,6 +18,7 @@ import {
   CONFIRMATION_TARGET,
   DOGE_NETWORK,
 } from '@rosen-chains/doge';
+import RateLimitedAxios from '@rosen-clients/rate-limited-axios';
 
 import {
   EsploraAddress,
@@ -29,7 +29,7 @@ import {
 } from './types';
 
 class DogeEsploraNetwork extends AbstractDogeNetwork {
-  protected client: AxiosInstance;
+  protected client; // TODO: specify the type (local:ergo/rosen-bridge/network-client#26)
   private apiPrefix: string;
   private getSavedTransactionById: (
     txId: string,
@@ -44,7 +44,7 @@ class DogeEsploraNetwork extends AbstractDogeNetwork {
     apiPrefix?: string,
   ) {
     super(logger);
-    this.client = axios.create({
+    this.client = RateLimitedAxios.create({
       baseURL: url,
     });
     this.getSavedTransactionById = getSavedTransactionById;

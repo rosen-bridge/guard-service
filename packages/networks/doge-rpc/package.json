@@ -36,8 +36,7 @@
     "@rosen-bridge/json-bigint": "^1.0.0",
     "@rosen-chains/abstract-chain": "^14.0.1",
     "@rosen-chains/doge": "^2.2.1",
-    "axios": "^1.6.7",
-    "axios-rate-limit": "^1.4.0",
+    "@rosen-clients/rate-limited-axios": "^1.0.0",
     "bitcoinjs-lib": "^6.1.5"
   },
   "devDependencies": {
