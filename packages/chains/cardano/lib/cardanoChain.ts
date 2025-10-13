@@ -185,10 +185,8 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
       this.configs.minBoxValue,
     );
     if (!coveredBoxes.covered) {
-      const neededAdas = unwrappedRequiredAssets.nativeToken.toString();
-      const neededTokens = JsonBigInt.stringify(unwrappedRequiredAssets.tokens);
       throw new NotEnoughValidBoxesError(
-        `Available boxes didn't cover required assets. ADA: ${neededAdas}, Tokens: ${neededTokens}`,
+        `Available boxes didn't cover required assets. Uncovered assets: ${JsonBigInt.stringify(coveredBoxes.uncoveredAssets)}`,
       );
     }
     const bankBoxes = coveredBoxes.boxes;

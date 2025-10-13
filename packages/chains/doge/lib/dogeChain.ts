@@ -201,9 +201,8 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
       estimateFee,
     );
     if (!coveredBoxes.covered) {
-      const neededDoge = unwrappedRequiredAssets.nativeToken;
       throw new NotEnoughValidBoxesError(
-        `Available boxes didn't cover required assets. DOGE: ${neededDoge.toString()}`,
+        `Available boxes didn't cover required assets. Uncovered DOGE: ${coveredBoxes.uncoveredAssets?.nativeToken.toString()}`,
       );
     }
 

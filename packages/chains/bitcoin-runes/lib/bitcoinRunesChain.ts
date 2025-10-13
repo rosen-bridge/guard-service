@@ -297,8 +297,8 @@ class BitcoinRunesChain extends AbstractUtxoChain<
       );
       if (!coveredRunesBoxes.covered) {
         throw new NotEnoughValidBoxesError(
-          `Available boxes didn't cover required Runes. Required Runes: ${JsonBigInt.stringify(
-            unwrappedRequiredAssets.tokens,
+          `Available boxes didn't cover required Runes. Uncovered assets: ${JsonBigInt.stringify(
+            coveredRunesBoxes.uncoveredAssets,
           )}`,
         );
       }
@@ -369,8 +369,8 @@ class BitcoinRunesChain extends AbstractUtxoChain<
         );
         if (!coveredBtcBoxes.covered) {
           throw new NotEnoughValidBoxesError(
-            `Available boxes didn't cover required BTC. Required BTC: ${JsonBigInt.stringify(
-              unwrappedRequiredAssets.nativeToken,
+            `Available boxes didn't cover required BTC. Uncovered assets: ${JsonBigInt.stringify(
+              coveredBtcBoxes.uncoveredAssets,
             )}`,
           );
         }

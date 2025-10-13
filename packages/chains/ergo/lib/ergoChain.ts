@@ -206,10 +206,8 @@ class ErgoChain extends AbstractUtxoChain<wasm.Transaction, wasm.ErgoBox> {
 
     // check if boxes covered requirements
     if (!coveredBoxes.covered) {
-      const neededErgs = unwrappedRequiredAssets.nativeToken.toString();
-      const neededTokens = JsonBigInt.stringify(unwrappedRequiredAssets.tokens);
       throw new NotEnoughValidBoxesError(
-        `Available boxes didn't cover required assets. Erg: ${neededErgs}, Tokens: ${neededTokens}`,
+        `Available boxes didn't cover required assets. Uncovered assets: ${JsonBigInt.stringify(coveredBoxes.uncoveredAssets)}`,
       );
     }
 
