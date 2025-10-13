@@ -144,9 +144,9 @@ class BitcoinRunesChain extends AbstractUtxoChain<
     );
 
     if (!(await this.hasLockAddressEnoughAssets(requiredAssets))) {
-      // values are wrapped here (TODO: local:ergo/rosen-bridge/rosen-chains#169)
-      const neededBtc = requiredAssets.nativeToken;
-      const neededRunes = JsonBigInt.stringify(requiredAssets.tokens);
+      const unwrappedRequiredAssets = this.unwrapAssetBalance(requiredAssets);
+      const neededBtc = unwrappedRequiredAssets.nativeToken.toString();
+      const neededRunes = JsonBigInt.stringify(unwrappedRequiredAssets.tokens);
       throw new NotEnoughAssetsError(
         `Locked assets cannot cover required assets. BTC: ${neededBtc}, Runes: ${neededRunes}`,
       );
