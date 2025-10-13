@@ -138,12 +138,13 @@ describe('DatabaseHandler', () => {
      * - mock event and two transactions
      * - insert mocked event into db
      * - insert one of the txs into db (with `inSign` status)
-     * - run test (call `insertTx`)
+     * - run test and expect exception thrown
      * - check database
      * @expected
+     * - it should throw Error
      * - tx should NOT be inserted into db
      */
-    it('should NOT insert tx when there is already an advanced tx for the event', async () => {
+    it('should throw Error when there is already an advanced tx for the event', async () => {
       // mock event and two transactions
       const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
@@ -168,7 +169,9 @@ describe('DatabaseHandler', () => {
       await DatabaseHandlerMock.insertTxRecord(tx2, TransactionStatus.inSign);
 
       // run test
-      await DatabaseHandler.insertTx(tx1, requiredSign);
+      await expect(async () => {
+        await DatabaseHandler.insertTx(tx1, requiredSign);
+      }).rejects.toThrow(Error);
 
       // tx should NOT be inserted into db
       const dbTxs = (await DatabaseHandlerMock.allTxRecords()).map(
@@ -186,9 +189,10 @@ describe('DatabaseHandler', () => {
      * - mock order and two transactions
      * - insert mocked order into db
      * - insert one of the txs into db (with `inSign` status)
-     * - run test (call `insertTx`)
+     * - run test and expect exception thrown
      * - check database
      * @expected
+     * - it should throw Error
      * - tx should NOT be inserted into db
      */
     it('should NOT insert tx when there is already an advanced tx for the order', async () => {
@@ -218,7 +222,9 @@ describe('DatabaseHandler', () => {
       await DatabaseHandlerMock.insertTxRecord(tx2, TransactionStatus.inSign);
 
       // run test
-      await DatabaseHandler.insertTx(tx1, requiredSign);
+      await expect(async () => {
+        await DatabaseHandler.insertTx(tx1, requiredSign);
+      }).rejects.toThrow(Error);
 
       // tx should NOT be inserted into db
       const dbTxs = (await DatabaseHandlerMock.allTxRecords()).map(
