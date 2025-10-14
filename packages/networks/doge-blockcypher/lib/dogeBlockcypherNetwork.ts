@@ -109,6 +109,7 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
       );
       if (txInfo.confirmations === 0) return -1;
       return txInfo.confirmations;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get confirmation for tx [${transactionId}] from BlockCypher: `;
       if (e.response && e.response.status === 404) {
@@ -197,6 +198,7 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
 
         hasMore = res.data.txids.length === limit;
         txstart += limit;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (e: any) {
         const baseError = `Failed to get block [${blockId}] transaction ids from BlockCypher: `;
         if (e.response) {
@@ -271,6 +273,7 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
           txInfo,
         )}`,
       );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get transaction [${transactionId}] from BlockCypher: `;
       if (e.response) {
@@ -385,6 +388,7 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
       }
 
       return allUtxos.slice(offset, offset + limit);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get address [${address}] boxes from BlockCypher: `;
       if (e.response) {
@@ -456,6 +460,7 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
       this.logger.debug(
         `requested 'tx' for tx [${txId}]. res: ${JsonBigInt.stringify(txInfo)}`,
       );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get tx [${txId}] Utxos status from BlockCypher: `;
       if (e.response && e.response.status === 404) {
@@ -653,6 +658,7 @@ class DogeBlockCypherNetwork extends PartialDogeNetwork {
           }
         }
       }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get confirmation for tx [${hash}] which was found in the database: `;
       if (e.response) {

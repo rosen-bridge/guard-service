@@ -52,7 +52,7 @@ describe('CardanoChain', () => {
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
       const cardanoChain = await TestUtils.generateChainObject(network);
       const getCovBoxesSpy = vi.spyOn(
-        (cardanoChain as any).boxSelection,
+        (cardanoChain as any).boxSelection, // eslint-disable-line @typescript-eslint/no-explicit-any
         'getCoveringBoxes',
       );
       getCovBoxesSpy.mockResolvedValue({
@@ -151,7 +151,7 @@ describe('CardanoChain', () => {
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
       const cardanoChain = await TestUtils.generateChainObject(network);
       const getCovBoxesSpy = vi.spyOn(
-        (cardanoChain as any).boxSelection,
+        (cardanoChain as any).boxSelection, // eslint-disable-line @typescript-eslint/no-explicit-any
         'getCoveringBoxes',
       );
       const mockedBoxes = bankBoxes.slice(2);
@@ -258,7 +258,7 @@ describe('CardanoChain', () => {
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
       const cardanoChain = await TestUtils.generateChainObject(network);
       const getCovBoxesSpy = vi.spyOn(
-        (cardanoChain as any).boxSelection,
+        (cardanoChain as any).boxSelection, // eslint-disable-line @typescript-eslint/no-explicit-any
         'getCoveringBoxes',
       );
       getCovBoxesSpy.mockResolvedValue({
@@ -313,7 +313,7 @@ describe('CardanoChain', () => {
       const cardanoChain =
         await TestUtils.generateChainObjectWithMultiDecimalTokenMap(network);
       const getCovBoxesSpy = vi.spyOn(
-        (cardanoChain as any).boxSelection,
+        (cardanoChain as any).boxSelection, // eslint-disable-line @typescript-eslint/no-explicit-any
         'getCoveringBoxes',
       );
       const mockedBoxes = bankBoxes.slice(2);
@@ -454,6 +454,7 @@ describe('CardanoChain', () => {
       const cardanoChain = await TestUtils.generateChainObject(network);
 
       // check returned value
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = (cardanoChain as any).getBoxInfo(rawBox);
       expect(result.id).toEqual(rawBox.txId + '.' + rawBox.index);
       expect(result.assets.nativeToken.toString()).toEqual(
@@ -758,7 +759,7 @@ describe('CardanoChain', () => {
       network,
       TestUtils.configs,
       tokenMap,
-      null as any,
+      null as any, // eslint-disable-line @typescript-eslint/no-explicit-any
     );
 
     /**

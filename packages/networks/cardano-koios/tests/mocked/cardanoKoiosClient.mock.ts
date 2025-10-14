@@ -17,7 +17,7 @@ export const mockTip = () => {
         abs_slot: testData.absoluteSlot,
       },
     ],
-  } as any);
+  } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 };
 
 /**
@@ -31,7 +31,7 @@ export const mockTxStatus = (txId: string, confirmation: bigint | null) => {
         num_confirmations: confirmation,
       },
     ],
-  } as any);
+  } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 };
 
 /**
@@ -45,7 +45,7 @@ export const mockAddressAssets = () => {
       },
     ],
     addressAssets: async () => testData.addressAssets,
-  } as any);
+  } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 };
 
 /**
@@ -60,7 +60,7 @@ export const mockEmptyAddressAssets = () => {
       },
     ],
     addressAssets: async () => [],
-  } as any);
+  } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 };
 
 /**
@@ -71,7 +71,7 @@ export const mockNoHistoryAddressAssets = () => {
   vi.mocked(cardanoKoiosClientFactory).mockReturnValueOnce({
     addressInfo: async () => [],
     addressAssets: async () => [],
-  } as any);
+  } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 };
 
 /**
@@ -80,7 +80,7 @@ export const mockNoHistoryAddressAssets = () => {
 export const mockBlockTxs = () => {
   vi.mocked(cardanoKoiosClientFactory).mockReturnValueOnce({
     blockTxs: async () => testData.txHashes,
-  } as any);
+  } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 };
 
 /**
@@ -95,7 +95,7 @@ export const mockBlockInfo = () => {
         parent_hash: testData.parentBlockId,
       },
     ],
-  } as any);
+  } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 };
 
 /**
@@ -104,7 +104,7 @@ export const mockBlockInfo = () => {
 export const mockTxCbor = (response: TxCborItem) => {
   vi.mocked(cardanoKoiosClientFactory).mockReturnValueOnce({
     txCbor: async () => [response],
-  } as any);
+  } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 };
 
 /**
@@ -113,7 +113,7 @@ export const mockTxCbor = (response: TxCborItem) => {
 export const mockSubmitTx = () => {
   vi.mocked(cardanoKoiosClientFactory).mockReturnValueOnce({
     submittx: async () => testData.txId,
-  } as any);
+  } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 };
 
 /**
@@ -126,7 +126,7 @@ export const mockAddressInfo = (utxoSet: AddressInfoItemUtxoSetItem[]) => {
         utxo_set: utxoSet,
       },
     ],
-  } as any);
+  } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 };
 
 /**
@@ -139,7 +139,7 @@ export const mockUtxoValidation = (
   vi.mocked(cardanoKoiosClientFactory).mockReturnValueOnce({
     txCbor: async () => (txCbor ? [txCbor] : []),
     credentialUtxos: async () => credentialUtxos,
-  } as any);
+  } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 };
 
 /**
@@ -149,7 +149,7 @@ export const mockUtxoValidation = (
 export const mockAddressInfoNoHistory = () => {
   vi.mocked(cardanoKoiosClientFactory).mockReturnValueOnce({
     addressInfo: async () => [],
-  } as any);
+  } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 };
 
 /**
@@ -158,7 +158,7 @@ export const mockAddressInfoNoHistory = () => {
 export const mockEpochParams = () => {
   vi.mocked(cardanoKoiosClientFactory).mockReturnValueOnce({
     epochParams: async () => [testData.epochParams],
-  } as any);
+  } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 };
 
 /**
@@ -167,5 +167,5 @@ export const mockEpochParams = () => {
 export const mockAssetInfo = () => {
   vi.mocked(cardanoKoiosClientFactory).mockReturnValueOnce({
     assetInfo: async () => [testData.assetInfo],
-  } as any);
+  } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 };

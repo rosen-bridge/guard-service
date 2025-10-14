@@ -33,6 +33,7 @@ interface CardanoBoxCandidate {
   assets: Array<CardanoAsset>;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type CardanoMetadata = Record<string, string | Record<string, any>>;
 
 interface CardanoTx {

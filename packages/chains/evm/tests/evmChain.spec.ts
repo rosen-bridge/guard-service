@@ -2935,7 +2935,7 @@ describe('EvmChain', () => {
       const evmChain = await testUtils.generateChainObject(network);
       const result = await evmChain.verifyLockTransactionExtraConditions(
         tx,
-        {} as any,
+        {} as any, // eslint-disable-line @typescript-eslint/no-explicit-any
       );
 
       // check returned value
@@ -2966,7 +2966,7 @@ describe('EvmChain', () => {
       const evmChain = await testUtils.generateChainObject(network);
       const result = await evmChain.verifyLockTransactionExtraConditions(
         tx,
-        {} as any,
+        {} as any, // eslint-disable-line @typescript-eslint/no-explicit-any
       );
 
       // check returned value

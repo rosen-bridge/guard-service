@@ -87,6 +87,7 @@ export const testTransactionWithNullSpendingProof = {
   inputs: [
     ...testTransaction.inputs.map((input) => ({
       ...input,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       spendingProof: null as any,
     })),
   ],

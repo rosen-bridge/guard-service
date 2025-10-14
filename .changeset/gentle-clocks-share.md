@@ -3,4 +3,4 @@
 '@rosen-chains/doge-esplora': minor
 ---
 
-Replace `axios` with `@rosen-clients/rate-limited-axios@1.0.0`
+Replace `axios` with `@rosen-clients/rate-limited-axios@1.1.0`

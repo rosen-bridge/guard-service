@@ -123,6 +123,7 @@ class DogeRpcNetwork extends PartialDogeNetwork {
       );
 
       return chainInfo.blocks;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to fetch current height from Dogecoin RPC: `;
       if (e.response) {
@@ -161,6 +162,7 @@ class DogeRpcNetwork extends PartialDogeNetwork {
       );
 
       return blockData.tx;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get block [${blockId}] transaction ids from Dogecoin RPC: `;
       if (e.response) {
@@ -203,6 +205,7 @@ class DogeRpcNetwork extends PartialDogeNetwork {
         parentHash: blockData.previousblockhash,
         height: blockData.height,
       };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get block [${blockId}] info from Dogecoin RPC: `;
       if (e.response) {
@@ -260,6 +263,7 @@ class DogeRpcNetwork extends PartialDogeNetwork {
       };
 
       return dogeTx;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get transaction [${transactionId}] from Dogecoin RPC: `;
       if (e.response) {
@@ -297,6 +301,7 @@ class DogeRpcNetwork extends PartialDogeNetwork {
           response.data,
         )}`,
       );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to submit transaction to Dogecoin RPC: `;
       if (e.response) {
@@ -333,6 +338,7 @@ class DogeRpcNetwork extends PartialDogeNetwork {
 
       // If the result is null, the output is spent
       return listUnspentResponse.data.result !== null;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to check if box [${boxId}] is unspent from Dogecoin RPC: `;
       if (e.response && e.response.data && e.response.data.error) {
@@ -384,6 +390,7 @@ class DogeRpcNetwork extends PartialDogeNetwork {
         index: outputIndex,
         value: this.convertToSatoshis(output.value),
       };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get UTXO [${boxId}] from Dogecoin RPC: `;
       if (e.response) {
@@ -421,6 +428,7 @@ class DogeRpcNetwork extends PartialDogeNetwork {
         )}`,
       );
       return Math.ceil(feeRate);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get fee ratio from Dogecoin RPC: `;
       if (e.response) {
@@ -453,6 +461,7 @@ class DogeRpcNetwork extends PartialDogeNetwork {
 
       // If we get a successful response, the transaction is in the mempool
       return true;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       // If we get a specific error indicating the tx is not in the mempool
       if (e.response && e.response.data && e.response.data.error) {
@@ -495,6 +504,7 @@ class DogeRpcNetwork extends PartialDogeNetwork {
       this.logger?.debug(`Requested transaction hex for txId [${txId}].`);
 
       return txHex;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get transaction hex [${txId}] from Dogecoin RPC: `;
       if (e.response) {

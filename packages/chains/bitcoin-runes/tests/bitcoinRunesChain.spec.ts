@@ -55,7 +55,7 @@ describe('BitcoinRunesChain', () => {
       const bitcoinRunesChain = await testUtils.generateChainObject(network);
       const getCovBoxesSpy = {
         fn: vi.spyOn(
-          (bitcoinRunesChain as any).boxSelection,
+          (bitcoinRunesChain as any).boxSelection, // eslint-disable-line @typescript-eslint/no-explicit-any
           'getCoveringBoxes',
         ),
         callArgs: {
@@ -63,6 +63,7 @@ describe('BitcoinRunesChain', () => {
         },
       };
       const selectedBoxes = testData.lockAddressUtxos.slice(0, 1);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       getCovBoxesSpy.fn.mockImplementation((...args: any[]) => {
         getCovBoxesSpy.callArgs.forbiddenBoxIds.push(structuredClone(args[1]));
         const fee = 215n;
@@ -185,7 +186,7 @@ describe('BitcoinRunesChain', () => {
       const bitcoinRunesChain = await testUtils.generateChainObject(network);
       const getCovBoxesSpy = {
         fn: vi.spyOn(
-          (bitcoinRunesChain as any).boxSelection,
+          (bitcoinRunesChain as any).boxSelection, // eslint-disable-line @typescript-eslint/no-explicit-any
           'getCoveringBoxes',
         ),
         callArgs: {
@@ -193,6 +194,7 @@ describe('BitcoinRunesChain', () => {
         },
       };
       const selectedBoxes = testData.lockAddressUtxos.slice(0, 1);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       getCovBoxesSpy.fn.mockImplementation((...args: any[]) => {
         getCovBoxesSpy.callArgs.forbiddenBoxIds.push(structuredClone(args[1]));
         const fee = 215n;
@@ -317,7 +319,7 @@ describe('BitcoinRunesChain', () => {
       const bitcoinRunesChain = await testUtils.generateChainObject(network);
       const getCovBoxesSpy = {
         fn: vi.spyOn(
-          (bitcoinRunesChain as any).boxSelection,
+          (bitcoinRunesChain as any).boxSelection, // eslint-disable-line @typescript-eslint/no-explicit-any
           'getCoveringBoxes',
         ),
         callArgs: {
@@ -325,6 +327,7 @@ describe('BitcoinRunesChain', () => {
         },
       };
       const selectedBoxes = testData.lockAddressUtxos;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       getCovBoxesSpy.fn.mockImplementation((...args: any[]) => {
         getCovBoxesSpy.callArgs.forbiddenBoxIds.push(structuredClone(args[1]));
         const remainingAsset = ChainUtils.subtractAssetBalance(
@@ -447,7 +450,7 @@ describe('BitcoinRunesChain', () => {
       const bitcoinRunesChain = await testUtils.generateChainObject(network);
       const getCovBoxesSpy = {
         fn: vi.spyOn(
-          (bitcoinRunesChain as any).boxSelection,
+          (bitcoinRunesChain as any).boxSelection, // eslint-disable-line @typescript-eslint/no-explicit-any
           'getCoveringBoxes',
         ),
         callArgs: {
@@ -459,6 +462,7 @@ describe('BitcoinRunesChain', () => {
         testData.realisticLockAddressUtxos.slice(2, 4),
       ];
       const totalSelectedBoxes = selectedBoxesOfEachCall.flat();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       getCovBoxesSpy.fn.mockImplementation((...args: any[]) => {
         const selectedBoxes =
           selectedBoxesOfEachCall[
@@ -615,7 +619,7 @@ describe('BitcoinRunesChain', () => {
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
       const bitcoinRunesChain = await testUtils.generateChainObject(network);
       const getCovBoxesSpy = vi.spyOn(
-        (bitcoinRunesChain as any).boxSelection,
+        (bitcoinRunesChain as any).boxSelection, // eslint-disable-line @typescript-eslint/no-explicit-any
         'getCoveringBoxes',
       );
       getCovBoxesSpy.mockResolvedValue({
@@ -674,7 +678,7 @@ describe('BitcoinRunesChain', () => {
       );
       const getCovBoxesSpy = {
         fn: vi.spyOn(
-          (bitcoinRunesChain as any).boxSelection,
+          (bitcoinRunesChain as any).boxSelection, // eslint-disable-line @typescript-eslint/no-explicit-any
           'getCoveringBoxes',
         ),
         callArgs: {
@@ -682,6 +686,7 @@ describe('BitcoinRunesChain', () => {
         },
       };
       const selectedBoxes = testData.lockAddressUtxos.slice(0, 1);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       getCovBoxesSpy.fn.mockImplementation(async (...args: any[]) => {
         getCovBoxesSpy.callArgs.forbiddenBoxIds.push(structuredClone(args[1]));
         const fee = 215n;
@@ -804,7 +809,7 @@ describe('BitcoinRunesChain', () => {
       const bitcoinRunesChain = await testUtils.generateChainObject(network);
       const getCovBoxesSpy = {
         fn: vi.spyOn(
-          (bitcoinRunesChain as any).boxSelection,
+          (bitcoinRunesChain as any).boxSelection, // eslint-disable-line @typescript-eslint/no-explicit-any
           'getCoveringBoxes',
         ),
         callArgs: {
@@ -815,6 +820,7 @@ describe('BitcoinRunesChain', () => {
         testData.lockAddressUtxos.slice(0, 2),
         testData.lockAddressUtxos.slice(2, 3),
       ];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       getCovBoxesSpy.fn.mockImplementation((...args: any[]) => {
         const callCount = getCovBoxesSpy.callArgs.forbiddenBoxIds.length;
         const selectedBoxes = selectedBoxesList[callCount];

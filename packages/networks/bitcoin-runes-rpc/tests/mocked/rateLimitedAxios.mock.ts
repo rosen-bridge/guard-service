@@ -22,6 +22,7 @@ export const unisatAxiosInstance = {
  * @param client
  * @param result
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const mockAxiosGet = (client: ClientType, result: any) => {
   (client === ClientType.RPC
     ? rpcAxiosInstance
@@ -36,6 +37,7 @@ export const mockAxiosGet = (client: ClientType, result: any) => {
  * @param client
  * @param result
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const mockAxiosPost = (client: ClientType, result: any) => {
   (client === ClientType.RPC
     ? rpcAxiosInstance
@@ -50,6 +52,7 @@ export const mockAxiosPost = (client: ClientType, result: any) => {
  * @param client
  * @param error
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const mockAxiosPostToThrow = (client: ClientType, error: any) => {
   (client === ClientType.RPC
     ? rpcAxiosInstance
@@ -70,8 +73,10 @@ export const resetAxiosMock = () => {
   vi.spyOn(RateLimitedAxios, 'create').mockImplementation((config) => {
     const url = config?.baseURL;
     if (url?.includes(RPC_URL)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return rpcAxiosInstance as any;
     } else if (url?.includes(UNISAT_URL)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return unisatAxiosInstance as any;
     } else {
       throw new Error(`Unknown url: ${url}`);

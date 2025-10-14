@@ -141,13 +141,14 @@ describe('DogeEsploraNetwork', () => {
       );
 
       const getTxConfirmationSignedSpy = vi.spyOn(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         customNetwork as any,
         'getTxConfirmationSigned',
       );
 
       // Mock getSpentTransactionByInputId to return a transaction when called with the correct input
       const getSpentTransactionByInputIdSpy = vi
-        .spyOn(customNetwork as any, 'getSpentTransactionByInputId')
+        .spyOn(customNetwork as any, 'getSpentTransactionByInputId') // eslint-disable-line @typescript-eslint/no-explicit-any
         .mockResolvedValue(testData.dogeTx);
 
       mockAxiosGet(testData.blockHeight);
@@ -606,6 +607,7 @@ describe('DogeEsploraNetwork', () => {
         .spyOn(network, 'getTransaction')
         .mockResolvedValue(testData.dogeTx);
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await (network as any).getSpentTransactionByInputId(
         testData.spentIndex,
         testData.spentTxId,
@@ -632,6 +634,7 @@ describe('DogeEsploraNetwork', () => {
     it('should return undefined when box is unspent', async () => {
       mockAxiosGet(testData.unspentResult);
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await (network as any).getSpentTransactionByInputId(
         testData.unspentIndex,
         testData.unspentTxId,
@@ -719,7 +722,7 @@ describe('DogeEsploraNetwork', () => {
 
       // Mock getSpentTransactionByInputId to return a transaction when called with the correct input
       const getSpentTransactionByInputIdSpy = vi
-        .spyOn(customNetwork as any, 'getSpentTransactionByInputId')
+        .spyOn(customNetwork as any, 'getSpentTransactionByInputId') // eslint-disable-line @typescript-eslint/no-explicit-any
         .mockResolvedValue(testData.dogeTx);
 
       mockAxiosGet(testData.txResponse);

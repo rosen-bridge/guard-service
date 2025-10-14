@@ -61,8 +61,8 @@ export interface DogeRpcTransaction {
 }
 
 export interface JsonRpcResult {
-  result: any;
-  error: any;
+  result: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+  error: any; // eslint-disable-line @typescript-eslint/no-explicit-any
   id: string;
 }
 
@@ -78,7 +78,7 @@ export interface DogeChainInfo {
   chainwork: string;
   size_on_disk: number;
   pruned: boolean;
-  softforks: Record<string, any>;
+  softforks: Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
   warnings: string;
 }
 

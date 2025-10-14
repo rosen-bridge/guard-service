@@ -79,6 +79,7 @@ class BitcoinEsploraNetwork extends AbstractBitcoinNetwork {
       );
       if (txInfo.status.confirmed && txInfo.status.block_height)
         txHeight = txInfo.status.block_height;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get confirmation for tx [${transactionId}] from Esplora: `;
       if (e.response && e.response.status === 404) {
@@ -214,6 +215,7 @@ class BitcoinEsploraNetwork extends AbstractBitcoinNetwork {
           txInfo,
         )}`,
       );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get transaction [${transactionId}] from Esplora: `;
       if (e.response) {
@@ -323,6 +325,7 @@ class BitcoinEsploraNetwork extends AbstractBitcoinNetwork {
           utxosInfo,
         )}`,
       );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get tx [${txId}] Utxos status from Esplora: `;
       if (e.response && e.response.status === 404) {
@@ -366,6 +369,7 @@ class BitcoinEsploraNetwork extends AbstractBitcoinNetwork {
       this.logger.debug(
         `requested 'tx' for tx [${txId}]. res: ${JsonBigInt.stringify(txInfo)}`,
       );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get tx [${txId}] Utxos status from Esplora: `;
       if (e.response) {

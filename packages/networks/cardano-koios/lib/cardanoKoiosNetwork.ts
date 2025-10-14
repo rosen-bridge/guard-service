@@ -130,6 +130,7 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
           addressInfo,
         )}`,
       );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get address [${address}] assets from Koios: `;
       if (e.response) {
@@ -157,6 +158,7 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
           addressAssets,
         )}`,
       );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get address [${address}] assets from Koios: `;
       if (e.response) {
@@ -280,7 +282,7 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
           `No transaction data received for txId [${transactionId}]`,
         );
       })
-      .catch((e: any) => {
+      .catch((e) => {
         const baseError = `Failed to get transaction [${transactionId}] from Koios: `;
         if (e.response) {
           throw new FailedError(baseError + e.response.data.reason);
@@ -404,7 +406,7 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
         }
         return undefined;
       })
-      .catch((e: any) => {
+      .catch((e) => {
         const baseError = `Failed to get transaction [${txId}] UTxOs from Koios: `;
         if (e.response) {
           throw new FailedError(baseError + e.response.data.reason);
@@ -513,7 +515,7 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
           `No transaction data received for txId [${txId}]`,
         );
       })
-      .catch((e: any) => {
+      .catch((e) => {
         const baseError = `Failed to get transaction [${txId}] UTxOs from Koios: `;
         if (e.response) {
           throw new FailedError(baseError + e.response.data.reason);
@@ -638,6 +640,7 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
           tokenDetail,
         )}`,
       );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get asset [${tokenId}] info from Koios: `;
       if (e.response) {

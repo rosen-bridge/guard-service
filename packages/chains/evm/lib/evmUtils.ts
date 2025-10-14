@@ -1,4 +1,4 @@
-import { Contract } from 'ethers';
+import { Contract, Result } from 'ethers';
 
 import { PaymentOrder, SinglePayment } from '@rosen-chains/abstract-chain';
 
@@ -64,6 +64,7 @@ export const isTransfer = (contractAddress: string, data: string): boolean => {
   if (description == null) return false;
   if (description.name !== 'transfer') return false;
   try {
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     description.args[0];
   } catch {
     return false;
@@ -74,14 +75,13 @@ export const isTransfer = (contractAddress: string, data: string): boolean => {
 /**
  * extracts `to` and `value from calldata
  * @param contractAddress the address of the contract
- * @param to the recipient's address
- * @param amount the amount to be transfered
+ * @param calldata
  * @returns the array of [`to`, `amount`], if can't decode, puts error inside the array
  */
 export const decodeTransferCallData = (
   contractAddress: string,
   calldata: string,
-): Array<any> => {
+): Result => {
   const contract = new Contract(contractAddress, transferABI, null);
   return contract.interface.decodeFunctionData('transfer', calldata);
 };

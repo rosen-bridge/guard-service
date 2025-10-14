@@ -99,6 +99,7 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
         )}`,
       );
       txHeight = txInfo.block_height;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get confirmation for tx [${transactionId}] from BlockFrost: `;
       if (e instanceof BlockfrostServerError && e.status_code === 404) {
@@ -246,6 +247,7 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
           txInfo,
         )}`,
       );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get transaction [${transactionId}] from BlockFrost: `;
       if (e instanceof BlockfrostServerError && e.status_code === 404) {
@@ -265,6 +267,7 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
           txUtxos,
         )}`,
       );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get transaction [${transactionId}] utxos from BlockFrost: `;
       if (e instanceof BlockfrostServerError && e.status_code === 404) {
@@ -284,6 +287,7 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
           txMetadata,
         )}`,
       );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get transaction [${transactionId}] metadata from BlockFrost: `;
       if (e instanceof BlockfrostServerError && e.status_code === 404) {
@@ -359,6 +363,7 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
           )}`,
         );
         boxes.push(...addressUtxos);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (e: any) {
         const baseError = `Failed to get address [${address}] UTxOs from BlockFrost: `;
         if (e instanceof BlockfrostServerError && e.status_code === 404) {
@@ -393,6 +398,7 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
           txUtxos,
         )}`,
       );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get transaction [${txId}] utxos from BlockFrost: `;
       if (e instanceof BlockfrostServerError && e.status_code === 404) {
@@ -421,6 +427,7 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
           addressUtxos,
         )}`,
       );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get address [${address}] UTxOs from BlockFrost: `;
       if (e instanceof BlockfrostServerError && e.status_code === 404) {
@@ -486,6 +493,7 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
           txUtxos,
         )}`,
       );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get transaction [${txId}] utxos from BlockFrost: `;
       if (e instanceof BlockfrostServerError && e.status_code === 404) {

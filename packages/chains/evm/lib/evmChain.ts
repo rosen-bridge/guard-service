@@ -126,21 +126,19 @@ abstract class EvmChain extends AbstractChain<Transaction> {
       this.configs.addresses.lock,
     );
     const nonceCount = new Map<number, number>();
-    unsignedTransactions.map((tx) => {
+    unsignedTransactions.forEach((tx) => {
       const nonce = Serializer.deserialize(tx.txBytes).nonce;
       const count = nonceCount.get(nonce);
-      count !== undefined
-        ? nonceCount.set(nonce, count + 1)
-        : nonceCount.set(nonce, 1);
+      if (count !== undefined) nonceCount.set(nonce, count + 1);
+      else nonceCount.set(nonce, 1);
     });
-    serializedSignedTransactions.map((tx) => {
+    serializedSignedTransactions.forEach((tx) => {
       const nonce = Serializer.deserialize(
         Uint8Array.from(Buffer.from(tx, 'hex')),
       ).nonce;
       const count = nonceCount.get(nonce);
-      count !== undefined
-        ? nonceCount.set(nonce, count + 1)
-        : nonceCount.set(nonce, 1);
+      if (count !== undefined) nonceCount.set(nonce, count + 1);
+      else nonceCount.set(nonce, 1);
     });
     while ((nonceCount.get(nextNonce) ?? 0) >= this.configs.maxParallelTx) {
       nextNonce++;

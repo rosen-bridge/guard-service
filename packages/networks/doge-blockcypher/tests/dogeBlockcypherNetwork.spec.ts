@@ -171,7 +171,7 @@ describe('DogeBlockcypherNetwork', () => {
       );
 
       const getTxConfirmationSignedSpy = vi.spyOn(
-        customNetwork as any,
+        customNetwork as any, // eslint-disable-line @typescript-eslint/no-explicit-any
         'getTxConfirmationSigned',
       );
 
@@ -180,7 +180,7 @@ describe('DogeBlockcypherNetwork', () => {
       const result = await customNetwork.getTxConfirmation(testData.signedTxId);
 
       const getSpentTransactionByInputIdSpy = vi.spyOn(
-        customNetwork as any,
+        customNetwork as any, // eslint-disable-line @typescript-eslint/no-explicit-any
         'getSpentTransactionByInputId',
       );
 
@@ -222,13 +222,13 @@ describe('DogeBlockcypherNetwork', () => {
       );
 
       const getTxConfirmationSignedSpy = vi.spyOn(
-        customNetwork as any,
+        customNetwork as any, // eslint-disable-line @typescript-eslint/no-explicit-any
         'getTxConfirmationSigned',
       );
 
       // Mock getSpentTransactionByInputId to return a transaction when called with the correct input
       const getSpentTransactionByInputIdSpy = vi
-        .spyOn(customNetwork as any, 'getSpentTransactionByInputId')
+        .spyOn(customNetwork as any, 'getSpentTransactionByInputId') // eslint-disable-line @typescript-eslint/no-explicit-any
         .mockResolvedValue(testData.dogeTx);
 
       mockAxiosGet(testData.txResponse);
@@ -754,6 +754,7 @@ describe('DogeBlockcypherNetwork', () => {
         .spyOn(network, 'getTransaction')
         .mockResolvedValue(testData.dogeTx);
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await (network as any).getSpentTransactionByInputId(
         testData.spentIndex,
         testData.spentTxId,
@@ -782,6 +783,7 @@ describe('DogeBlockcypherNetwork', () => {
       unspentTx.outputs[testData.unspentIndex].spent_by = '';
       mockAxiosGet(unspentTx);
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await (network as any).getSpentTransactionByInputId(
         testData.unspentIndex,
         testData.unspentTxId,
@@ -930,7 +932,7 @@ describe('DogeBlockcypherNetwork', () => {
 
       // Mock getSpentTransactionByInputId to return a transaction when called with the correct input
       const getSpentTransactionByInputIdSpy = vi
-        .spyOn(customNetwork as any, 'getSpentTransactionByInputId')
+        .spyOn(customNetwork as any, 'getSpentTransactionByInputId') // eslint-disable-line @typescript-eslint/no-explicit-any
         .mockResolvedValue(testData.dogeTx);
 
       mockAxiosGet(testData.txResponse);

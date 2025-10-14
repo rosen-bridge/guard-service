@@ -140,6 +140,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
 
       const chainInfo = response.data.result;
       return chainInfo.blocks;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to fetch current height from Bitcoin RPC: `;
       if (e.response) {
@@ -179,6 +180,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       const tx = response.data.result;
       if (tx.confirmations !== undefined) return tx.confirmations;
       return -1;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get confirmation for tx [${transactionId}] from Bitcoin RPC: `;
       if (e.response) {
@@ -213,6 +215,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       );
 
       balance.nativeToken = BigInt(response.data.data.satoshi);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get address [${address}] BTC balance from Unisat: `;
       if (e.response) {
@@ -242,6 +245,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
           value: BigInt(rune.amount),
         });
       });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get address [${address}] runes from Unisat: `;
       if (e.response) {
@@ -281,6 +285,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
 
       const blockData: BitcoinRpcBlockSummary = response.data.result;
       return blockData.tx;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get block [${blockId}] transaction ids from Bitcoin RPC: `;
       if (e.response) {
@@ -323,6 +328,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
         parentHash: blockData.previousblockhash,
         height: blockData.height,
       };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get block [${blockId}] info from Bitcoin RPC: `;
       if (e.response) {
@@ -366,6 +372,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       );
 
       tx = response.data.result;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get transaction [${transactionId}] from Bitcoin RPC: `;
       if (e.response) {
@@ -420,6 +427,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
           `Unexpected pagination: expected [${txRunes.total}] runes but got [${txRunes.detail.length}]`,
         );
       }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get runes event for tx [${transactionId}] from Unisat: `;
       if (e.response) {
@@ -471,6 +479,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
           response.data,
         )}`,
       );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to submit transaction to Bitcoin RPC: `;
       if (e.response) {
@@ -502,6 +511,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       );
 
       info = response.data.data;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get runes [${tokenId}] info from Unisat: `;
       if (e.response) {
@@ -550,6 +560,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
 
       // If the result is null, the output is spent
       return listUnspentResponse.data.result !== null;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to check if box [${boxId}] is unspent using Bitcoin RPC: `;
       if (e.response) {
@@ -591,6 +602,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
         )}`,
       );
       tx = response.data.result;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get transaction [${txId}] from Bitcoin RPC: `;
       if (e.response) {
@@ -644,6 +656,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       const feeSatoshis = this.convertToSatoshis(response.data.result.feerate);
       const feeRate = Number(feeSatoshis) / 1024;
       return Math.ceil(feeRate);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get fee ratio from Bitcoin RPC: `;
       if (e.response) {
@@ -682,6 +695,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
 
       // If we get a successful response, the transaction is in the mempool
       return true;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       // If we get a specific error indicating the tx is not in the mempool
       if (e.response && e.response.data && e.response.data.error) {
@@ -734,6 +748,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
           quantity: BigInt(rune.amount),
         });
       });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get runes for box [${boxId}] from Unisat: `;
       if (e.response) {
@@ -786,6 +801,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
           quantity: BigInt(rune.amount),
         })),
       }));
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get UTxOs containing rune [${runeId}] for address [${address}] with offset/limit [${offset}/${limit}] from Unisat: `;
       if (e.response) {
@@ -826,6 +842,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
         value: BigInt(utxo.satoshi),
         runes: [],
       }));
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get UTxOs containing BTC only for address [${address}] from Unisat: `;
       if (e.response) {
@@ -878,6 +895,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
             runes: [],
           })),
       );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get UTxOs containing BTC only for address [${address}] from Unisat: `;
       if (e.response) {

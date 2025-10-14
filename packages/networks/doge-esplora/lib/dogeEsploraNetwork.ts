@@ -94,6 +94,7 @@ class DogeEsploraNetwork extends AbstractDogeNetwork {
       );
       if (txInfo.status.confirmed && txInfo.status.block_height)
         txHeight = txInfo.status.block_height;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get confirmation for tx [${transactionId}] from Esplora: `;
       if (e.response && e.response.status === 404) {
@@ -238,6 +239,7 @@ class DogeEsploraNetwork extends AbstractDogeNetwork {
           txInfo,
         )}`,
       );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get transaction [${transactionId}] from Esplora: `;
       if (e.response) {
@@ -347,6 +349,7 @@ class DogeEsploraNetwork extends AbstractDogeNetwork {
           utxosInfo,
         )}`,
       );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get tx [${txId}] Utxos status from Esplora: `;
       if (e.response && e.response.status === 404) {
@@ -390,6 +393,7 @@ class DogeEsploraNetwork extends AbstractDogeNetwork {
       this.logger.debug(
         `requested 'tx' for tx [${txId}]. res: ${JsonBigInt.stringify(txInfo)}`,
       );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get tx [${txId}] Utxos status from Esplora: `;
       if (e.response) {
@@ -543,6 +547,7 @@ class DogeEsploraNetwork extends AbstractDogeNetwork {
           }
         }
       }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get actual txId for tx [${hash}] which was found in the database: `;
       if (e.response) {

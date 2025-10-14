@@ -1,9 +1,9 @@
 import pluginJs from '@eslint/js';
 import typescriptEslint from '@typescript-eslint/eslint-plugin';
 import typescriptParser from '@typescript-eslint/parser';
-import pluginCheckFile from 'eslint-plugin-check-file';
 import vitestPlugin from '@vitest/eslint-plugin';
 import prettier from 'eslint-config-prettier';
+import pluginCheckFile from 'eslint-plugin-check-file';
 import globals from 'globals';
 
 export default [
@@ -38,6 +38,7 @@ export default [
       ],
       // vitest Rules
       ...vitestPlugin.configs.recommended.rules,
+      ...typescriptEslint.configs.recommended.rules,
       'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': ['error'],
     },

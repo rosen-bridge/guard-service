@@ -52,6 +52,7 @@ describe('DogeChain', () => {
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
       const dogeChain = await testUtils.generateChainObject(network);
       const getCovBoxesSpy = vi.spyOn(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (dogeChain as any).boxSelection,
         'getCoveringBoxes',
       );
@@ -132,6 +133,7 @@ describe('DogeChain', () => {
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
       const dogeChain = await testUtils.generateChainObject(network);
       const getCovBoxesSpy = vi.spyOn(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (dogeChain as any).boxSelection,
         'getCoveringBoxes',
       );
@@ -203,9 +205,11 @@ describe('DogeChain', () => {
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
       const dogeChain = await testUtils.generateChainObject(network);
       const getCovBoxesSpy = vi.spyOn(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (dogeChain as any).boxSelection,
         'getCoveringBoxes',
       );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       getCovBoxesSpy.mockImplementation(async (...args: any[]) => {
         const forbiddenBoxIds = args[1] as Array<string>;
         // Only return covered boxes if forbidden box IDs match expected values
@@ -288,6 +292,7 @@ describe('DogeChain', () => {
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
       const dogeChain = await testUtils.generateChainObject(network);
       const getCovBoxesSpy = vi.spyOn(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (dogeChain as any).boxSelection,
         'getCoveringBoxes',
       );
@@ -295,6 +300,7 @@ describe('DogeChain', () => {
         covered: false,
         boxes: [],
       });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       getCovBoxesSpy.mockImplementation(async (...args: any[]) => {
         const forbiddenBoxIds = args[1] as Array<string>;
         // Only return empty boxes if forbidden box IDs match expected values
@@ -385,6 +391,7 @@ describe('DogeChain', () => {
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
       const dogeChain = await testUtils.generateChainObject(network);
       const getCovBoxesSpy = vi.spyOn(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (dogeChain as any).boxSelection,
         'getCoveringBoxes',
       );
@@ -898,7 +905,7 @@ describe('DogeChain', () => {
       network,
       testUtils.configs,
       tokenMap,
-      null as any,
+      null as any, // eslint-disable-line @typescript-eslint/no-explicit-any
     );
 
     /**

@@ -483,7 +483,7 @@ describe('DogeRpcNetwork', () => {
       const network = new DogeRpcNetwork(URL);
       // This should not throw an error
       await expect(
-        network.submitTransaction(mockPsbt as any),
+        network.submitTransaction(mockPsbt as any), // eslint-disable-line @typescript-eslint/no-explicit-any
       ).resolves.not.toThrow();
     });
   });

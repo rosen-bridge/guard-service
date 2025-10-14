@@ -26,6 +26,7 @@ export const mockGetApiV1Networkstate = () =>
         height: testHeight,
       }),
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any);
 
 /**
@@ -38,6 +39,7 @@ export const mockGetApiV1TransactionsP1 = (
     v1: {
       getApiV1TransactionsP1: async () => tx,
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any);
 
 /**
@@ -51,6 +53,7 @@ export const mockGetApiV1AddressesP1BalanceConfirmed = (
     v1: {
       getApiV1AddressesP1BalanceConfirmed: async () => balance,
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any);
 
 /**
@@ -71,6 +74,7 @@ export const mockGetApiV1BlocksP1 = (
         },
       }),
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any);
 
 /**
@@ -84,6 +88,7 @@ export const mockPostApiV0TransactionsSend = () => {
         testTransaction.id,
       ),
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any);
   return postApiV0TransactionsSendSpy;
 };
@@ -108,6 +113,7 @@ export const mockGetApiV0TransactionsUnconfirmed = () =>
         total: testMempoolTransactions.length,
       }),
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any);
 
 /**
@@ -134,6 +140,7 @@ export const mockGetApiV1BoxesUnspentByaddressP1 = (
         total: testAddressBoxes.length,
       }),
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any);
 
 /**
@@ -160,6 +167,7 @@ export const mockGetApiV1BoxesUnspentBytokenidP1 = (
         total: testTokenIdBoxes.length,
       }),
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any);
 
 /**
@@ -181,6 +189,7 @@ export const mockGetApiV1BlocksHeaders = (shouldIncludeItemsField = true) =>
         total: testBlockHeaders.length,
       }),
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any);
 
 /**
@@ -191,6 +200,7 @@ export const mockGetApiV1BoxesP1 = () =>
     v1: {
       getApiV1BoxesP1: async () => testBox,
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any);
 
 /**
@@ -201,6 +211,7 @@ export const mockGetApiV1TokensP1 = () =>
     v1: {
       getApiV1TokensP1: async () => tokenApiResponse,
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any);
 
 type ErgoExplorerClientSchema = ReturnType<typeof ergoExplorerClientFactory>;
@@ -214,11 +225,11 @@ export const mockApiToThrow = <Version extends keyof ErgoExplorerClientSchema>(
   version: Version,
   apiName: keyof ErgoExplorerClientSchema[Version],
   objectToThrow: {
-    [key: string]: any;
+    [key: string]: any; // eslint-disable-line @typescript-eslint/no-explicit-any
   },
 ) =>
   vi.mocked(ergoExplorerClientFactory).mockReturnValueOnce({
     [version]: {
       [apiName]: vi.fn().mockRejectedValueOnce(objectToThrow),
     },
-  } as any);
+  } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
