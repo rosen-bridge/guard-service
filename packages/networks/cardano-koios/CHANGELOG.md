@@ -1,5 +1,22 @@
 # @rosen-chains/cardano-koios-network
 
+## 12.0.0
+
+### Major Changes
+
+- Update node version to 22.18
+
+### Patch Changes
+
+- Follow no-explicit-any eslint rule
+- Sort imports
+- Update dependencies
+  - @rosen-bridge/abstract-logger@3.0.1
+  - @rosen-bridge/tokens@4.0.1
+  - @rosen-chains/cardano@14.0.0
+  - @rosen-chains/abstract-chain@15.0.0
+  - @rosen-clients/cardano-koios@3.1.0
+
 ## 11.0.1
 
 ### Patch Changes

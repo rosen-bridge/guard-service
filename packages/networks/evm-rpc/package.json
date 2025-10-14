@@ -1,6 +1,6 @@
 {
   "name": "@rosen-chains/evm-rpc",
-  "version": "3.1.1",
+  "version": "4.0.0",
   "description": "A package to be used as network api provider for @rosen-chains/evm package",
   "keywords": [
     "rosen"
@@ -36,8 +36,8 @@
     "@rosen-bridge/evm-address-tx-extractor": "1.2.1",
     "@rosen-bridge/extended-typeorm": "^1.0.1",
     "@rosen-bridge/json-bigint": "^1.1.0",
-    "@rosen-chains/abstract-chain": "^14.0.1",
-    "@rosen-chains/evm": "^8.2.1",
+    "@rosen-chains/abstract-chain": "^15.0.0",
+    "@rosen-chains/evm": "^9.0.0",
     "ethers": "6.13.2"
   },
   "devDependencies": {

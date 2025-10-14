@@ -1,5 +1,22 @@
 # @rosen-chains/ergo-node-network
 
+## 10.0.0
+
+### Major Changes
+
+- Update node version to 22.18
+
+### Patch Changes
+
+- Follow no-explicit-any eslint rule
+- Sort imports
+- Update dependencies
+  - @rosen-bridge/abstract-logger@3.0.1
+  - @rosen-bridge/tokens@4.0.1
+  - @rosen-chains/ergo@13.0.0
+  - @rosen-chains/abstract-chain@15.0.0
+  - @rosen-clients/ergo-node@3.1.0
+
 ## 9.1.1
 
 ### Patch Changes

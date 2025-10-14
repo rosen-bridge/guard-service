@@ -1,5 +1,24 @@
 # @rosen-chains/cardano
 
+## 14.0.0
+
+### Major Changes
+
+- Update node version to 22.18
+
+### Patch Changes
+
+- Follow no-explicit-any eslint rule
+- Improve `NotEnoughValidBoxesError` to display uncovered assets instead of required assets
+- Sort imports
+- Update dependencies
+  - @rosen-bridge/abstract-logger@3.0.1
+  - @rosen-bridge/cardano-utxo-selection@3.0.1
+  - @rosen-bridge/json-bigint@1.1.0
+  - @rosen-bridge/rosen-extractor@10.1.1
+  - @rosen-bridge/tokens@4.0.1
+  - @rosen-chains/abstract-chain@15.0.0
+
 ## 13.0.1
 
 ### Patch Changes
