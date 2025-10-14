@@ -46,7 +46,7 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
         `requested 'getNodeInfo'. res: ${JsonBigInt.stringify(nodeInfo)}`,
       );
       return Number(nodeInfo.fullHeight);
-    } catch (error: any) {
+    } catch (error) {
       return handleApiError(error, 'Failed to get height from Ergo Node:');
     }
   };
@@ -64,7 +64,7 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
         )}`,
       );
       return Number(tx.numConfirmations);
-    } catch (error: any) {
+    } catch (error) {
       const baseError = 'Failed to get tx confirmations from Ergo Node:';
       return handleApiError(error, baseError, {
         handleRespondedState: (error) => {
@@ -453,7 +453,7 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
       );
 
       return ergoLib.ErgoBox.from_json(JsonBigInt.stringify(box));
-    } catch (error: any) {
+    } catch (error) {
       return handleApiError(
         error,
         `Failed to get box [${boxId}] from Ergo Node:`,
@@ -479,7 +479,7 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
         name: tokenDetail.name ?? UNKNOWN_TOKEN,
         decimals: tokenDetail.decimals ?? 0,
       };
-    } catch (error: any) {
+    } catch (error) {
       return handleApiError(
         error,
         `Failed to get token [${tokenId}] info from Ergo Node:`,

@@ -58,6 +58,7 @@ abstract class AbstractChainNetwork<TxType> {
    * submits a transaction
    * @param transaction the transaction
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   abstract submitTransaction: (transaction: any) => Promise<void>;
 
   /**

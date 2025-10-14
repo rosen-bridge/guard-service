@@ -92,7 +92,7 @@ describe('EvmRpcNetwork', () => {
         network.getProvider(),
         'getTransaction',
       );
-      getTransactionSpy.mockResolvedValue(transactionInstance as any);
+      getTransactionSpy.mockResolvedValue(transactionInstance as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
       const result = await network.getTxConfirmation(unsignedHash);
       expect(result).toEqual(mockedConfirmation);
@@ -127,7 +127,7 @@ describe('EvmRpcNetwork', () => {
         network.getProvider(),
         'getTransaction',
       );
-      getTransactionSpy.mockResolvedValue(transactionInstance as any);
+      getTransactionSpy.mockResolvedValue(transactionInstance as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
       const result = await network.getTxConfirmation(txId);
       expect(result).toEqual(mockedConfirmation);
@@ -202,7 +202,7 @@ describe('EvmRpcNetwork', () => {
         network.getProvider(),
         'getTransaction',
       );
-      getTransactionSpy.mockResolvedValue(transactionInstance as any);
+      getTransactionSpy.mockResolvedValue(transactionInstance as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
       const result = await network.getTxConfirmation(unsignedHash);
       expect(result).toEqual(-1);
@@ -237,7 +237,7 @@ describe('EvmRpcNetwork', () => {
         network.getProvider(),
         'getTransaction',
       );
-      getTransactionSpy.mockResolvedValue(transactionInstance as any);
+      getTransactionSpy.mockResolvedValue(transactionInstance as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
       const result = await network.getTxConfirmation(txId);
       expect(result).toEqual(-1);
@@ -533,7 +533,7 @@ describe('EvmRpcNetwork', () => {
         network.getProvider(),
         'getTransaction',
       );
-      getTransactionSpy.mockResolvedValue(transactionInstance as any);
+      getTransactionSpy.mockResolvedValue(transactionInstance as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
       const result = await network.getTransactionStatus(hash);
       expect(result).toEqual(EvmTxStatus.succeed);
@@ -563,7 +563,7 @@ describe('EvmRpcNetwork', () => {
         network.getProvider(),
         'getTransaction',
       );
-      getTransactionSpy.mockResolvedValue(transactionInstance as any);
+      getTransactionSpy.mockResolvedValue(transactionInstance as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
       const result = await network.getTransactionStatus(hash);
       expect(result).toEqual(EvmTxStatus.mempool);
@@ -595,7 +595,7 @@ describe('EvmRpcNetwork', () => {
         network.getProvider(),
         'getTransaction',
       );
-      getTransactionSpy.mockResolvedValue(transactionInstance as any);
+      getTransactionSpy.mockResolvedValue(transactionInstance as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
       const result = await network.getTransactionStatus(hash);
       expect(result).toEqual(EvmTxStatus.failed);
@@ -737,7 +737,7 @@ describe('EvmRpcNetwork', () => {
       const unsignedHash = testData.transaction0.unsignedHash;
       const getTxByUnsignedHashSpy = vi
         .spyOn(network.getDbAction(), 'getTxByUnsignedHash')
-        .mockResolvedValue({ signedHash: 'signedHash' } as any);
+        .mockResolvedValue({ signedHash: 'signedHash' } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
       vi.spyOn(network.getProvider(), 'getTransaction').mockResolvedValue(null);
 
       // act and assert

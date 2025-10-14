@@ -19,6 +19,7 @@ describe('BitcoinRunesRpcNetwork', () => {
       { url: 'rpc-url' },
       { url: 'unisat-url' },
     );
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     vi.spyOn(network as any, 'generateRandomId').mockReturnValue(
       testData.requestId,
     );

@@ -142,7 +142,7 @@ describe('ErgoChain', () => {
         ergoTestUtils.defaultSignFunction,
       );
       const getCoveringBoxesSpy = vi.spyOn(
-        (ergoChain as any).boxSelection,
+        (ergoChain as any).boxSelection, // eslint-disable-line @typescript-eslint/no-explicit-any
         'getCoveringBoxes',
       );
       getCoveringBoxesSpy.mockResolvedValue({
@@ -420,7 +420,7 @@ describe('ErgoChain', () => {
         ergoTestUtils.defaultSignFunction,
       );
       const getCoveringBoxesSpy = vi.spyOn(
-        (ergoChain as any).boxSelection,
+        (ergoChain as any).boxSelection, // eslint-disable-line @typescript-eslint/no-explicit-any
         'getCoveringBoxes',
       );
       getCoveringBoxesSpy.mockResolvedValue({
@@ -546,9 +546,10 @@ describe('ErgoChain', () => {
         ergoTestUtils.defaultSignFunction,
       );
       const getCoveringBoxesSpy = vi.spyOn(
-        (ergoChain as any).boxSelection,
+        (ergoChain as any).boxSelection, // eslint-disable-line @typescript-eslint/no-explicit-any
         'getCoveringBoxes',
       );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       getCoveringBoxesSpy.mockImplementation(async (...args: any[]) => {
         const forbiddenBoxIds = args[1] as Array<string>;
         // returns NOT covered when forbiddenBoxIds argument equals to expected value
@@ -682,7 +683,7 @@ describe('ErgoChain', () => {
         ergoTestUtils.defaultSignFunction,
       );
       const getCoveringBoxesSpy = vi.spyOn(
-        (ergoChain as any).boxSelection,
+        (ergoChain as any).boxSelection, // eslint-disable-line @typescript-eslint/no-explicit-any
         'getCoveringBoxes',
       );
       getCoveringBoxesSpy.mockResolvedValue({
@@ -1854,6 +1855,7 @@ describe('ErgoChain', () => {
 
       // run test
       const ergoChain = ergoTestUtils.generateChainObject(network);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = (ergoChain as any).getBoxInfo(box);
 
       // check returned value

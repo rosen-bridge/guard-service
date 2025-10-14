@@ -9,7 +9,7 @@ class TestChain extends EvmChain {
 
   constructor(
     network: AbstractEvmNetwork,
-    configs: any,
+    configs: any, // eslint-disable-line @typescript-eslint/no-explicit-any
     tokens: TokenMap,
     signFunction: TssSignFunction,
     evmTxType: number,

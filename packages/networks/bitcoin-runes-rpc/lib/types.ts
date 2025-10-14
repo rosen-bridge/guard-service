@@ -1,6 +1,6 @@
 export interface JsonRpcResult<Result> {
   result: Result;
-  error: any;
+  error: any; // eslint-disable-line @typescript-eslint/no-explicit-any
   id: string;
 }
 

@@ -3,4 +3,4 @@
 '@rosen-chains/doge-rpc': minor
 ---
 
-Replace `axios` and `axios-rate-limit` with `@rosen-clients/rate-limited-axios@1.0.0`
+Replace `axios` and `axios-rate-limit` with `@rosen-clients/rate-limited-axios@1.1.0`

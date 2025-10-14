@@ -172,6 +172,7 @@ describe('ErgoNodeNetwork', () => {
      * - the api call should throw
      */
     it("should throw when some tokens don't have a `tokenId` or `amount` field", async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockGetAddressBalanceTotal(testAddressBalanceWithInvalidTokens as any);
       const network = getNetwork();
 
@@ -212,6 +213,7 @@ describe('ErgoNodeNetwork', () => {
      * - the method should throw
      */
     it('should throw an error if some transaction ids are undefined', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       mockGetBlockTransactionsById(testPartialTransactionsWithAbsentIds as any);
       const network = getNetwork();
 

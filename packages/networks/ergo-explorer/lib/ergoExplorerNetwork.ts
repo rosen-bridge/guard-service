@@ -51,7 +51,7 @@ class ErgoExplorerNetwork extends AbstractErgoNetwork {
         `requested 'getApiV1Networkstate'. res: ${JsonBigInt.stringify(state)}`,
       );
       return Number(state.height);
-    } catch (error: any) {
+    } catch (error) {
       return handleApiError(error, 'Failed to get height from Ergo Explorer:');
     }
   };
@@ -69,7 +69,7 @@ class ErgoExplorerNetwork extends AbstractErgoNetwork {
         )}`,
       );
       return Number(tx.numConfirmations);
-    } catch (error: any) {
+    } catch (error) {
       const baseError = 'Failed to get tx confirmations from Ergo Explorer:';
       return handleApiError(error, baseError, {
         handleRespondedState: (error) => {
@@ -104,7 +104,7 @@ class ErgoExplorerNetwork extends AbstractErgoNetwork {
             value: token.amount,
           })) ?? [],
       };
-    } catch (error: any) {
+    } catch (error) {
       return handleApiError(
         error,
         'Failed to get address assets from Ergo Explorer:',
@@ -139,7 +139,7 @@ class ErgoExplorerNetwork extends AbstractErgoNetwork {
       );
 
       return txIds;
-    } catch (error: any) {
+    } catch (error) {
       const baseError =
         'Failed to get block transaction ids from Ergo Explorer:';
       return handleApiError(error, baseError, {
@@ -178,7 +178,7 @@ class ErgoExplorerNetwork extends AbstractErgoNetwork {
         parentHash: header.parentId,
         height: Number(header.height),
       };
-    } catch (error: any) {
+    } catch (error) {
       return handleApiError(
         error,
         'Failed to get block info from Ergo Explorer:',
@@ -239,7 +239,7 @@ class ErgoExplorerNetwork extends AbstractErgoNetwork {
       }
 
       return ergoLib.Transaction.from_json(JsonBigInt.stringify(tx));
-    } catch (error: any) {
+    } catch (error) {
       return handleApiError(error, 'Failed to get tx from Ergo Explorer:');
     }
   };
@@ -250,9 +250,9 @@ class ErgoExplorerNetwork extends AbstractErgoNetwork {
    */
   public submitTransaction = async (tx: ergoLib.Transaction) => {
     try {
-      await this.client.v0.postApiV0TransactionsSend(tx);
+      await this.client.v0.postApiV0TransactionsSend(tx.to_js_eip12());
       return;
-    } catch (error: any) {
+    } catch (error) {
       return handleApiError(
         error,
         'Failed to submit transaciton to Ergo Explorer:',
@@ -313,7 +313,7 @@ class ErgoExplorerNetwork extends AbstractErgoNetwork {
       return txs
         .map(this.fixMalformedMempoolTx)
         .map((tx) => ergoLib.Transaction.from_json(JsonBigInt.stringify(tx)));
-    } catch (error: any) {
+    } catch (error) {
       return handleApiError(
         error,
         'Failed to get mempool transactions from Ergo Explorer:',
@@ -356,7 +356,7 @@ class ErgoExplorerNetwork extends AbstractErgoNetwork {
       );
 
       return boxesBytes;
-    } catch (error: any) {
+    } catch (error) {
       return handleApiError(
         error,
         'Failed to get address boxes from Ergo Explorer:',
@@ -399,8 +399,8 @@ class ErgoExplorerNetwork extends AbstractErgoNetwork {
 
         eligibleBoxes.push(
           ...boxesPage.items
-            .filter((box) => box.address === address)
-            .map((box: any) =>
+            .filter((box: V1.OutputInfo) => box.address === address)
+            .map((box: V1.OutputInfo) =>
               ergoLib.ErgoBox.from_json(JsonBigInt.stringify(box)),
             ),
         );
@@ -455,7 +455,7 @@ class ErgoExplorerNetwork extends AbstractErgoNetwork {
       );
 
       return stateContext;
-    } catch (error: any) {
+    } catch (error) {
       const baseError = 'Failed to get state context from Ergo Explorer:';
       return handleApiError(error, baseError, {
         handleUnknownState: (error) => {
@@ -482,7 +482,7 @@ class ErgoExplorerNetwork extends AbstractErgoNetwork {
       );
 
       return !box.spentTransactionId;
-    } catch (error: any) {
+    } catch (error) {
       const baseError =
         'Failed to check if box is unspent and valid using Ergo Explorer:';
       return handleApiError(error, baseError, {
@@ -511,7 +511,7 @@ class ErgoExplorerNetwork extends AbstractErgoNetwork {
       );
 
       return ergoLib.ErgoBox.from_json(JsonBigInt.stringify(box));
-    } catch (error: any) {
+    } catch (error) {
       return handleApiError(
         error,
         `Failed to get box [${boxId}] from Ergo Explorer:`,
@@ -537,7 +537,7 @@ class ErgoExplorerNetwork extends AbstractErgoNetwork {
         name: tokenDetail.name ?? UNKNOWN_TOKEN,
         decimals: tokenDetail.decimals ?? 0,
       };
-    } catch (error: any) {
+    } catch (error) {
       return handleApiError(
         error,
         `Failed to get token [${tokenId}] info from Ergo Explorer:`,

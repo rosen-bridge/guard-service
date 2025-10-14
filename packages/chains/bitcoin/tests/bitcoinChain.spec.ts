@@ -54,7 +54,7 @@ describe('BitcoinChain', () => {
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
       const bitcoinChain = await testUtils.generateChainObject(network);
       const getCovBoxesSpy = vi.spyOn(
-        (bitcoinChain as any).boxSelection,
+        (bitcoinChain as any).boxSelection, // eslint-disable-line @typescript-eslint/no-explicit-any
         'getCoveringBoxes',
       );
       getCovBoxesSpy.mockResolvedValue({
@@ -151,7 +151,7 @@ describe('BitcoinChain', () => {
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
       const bitcoinChain = await testUtils.generateChainObject(network);
       const getCovBoxesSpy = vi.spyOn(
-        (bitcoinChain as any).boxSelection,
+        (bitcoinChain as any).boxSelection, // eslint-disable-line @typescript-eslint/no-explicit-any
         'getCoveringBoxes',
       );
       getCovBoxesSpy.mockResolvedValue({
@@ -205,7 +205,7 @@ describe('BitcoinChain', () => {
       const bitcoinChain =
         await testUtils.generateChainObjectWithMultiDecimalTokenMap(network);
       const getCovBoxesSpy = vi.spyOn(
-        (bitcoinChain as any).boxSelection,
+        (bitcoinChain as any).boxSelection, // eslint-disable-line @typescript-eslint/no-explicit-any
         'getCoveringBoxes',
       );
       getCovBoxesSpy.mockResolvedValue({
@@ -749,7 +749,7 @@ describe('BitcoinChain', () => {
       network,
       testUtils.configs,
       tokenMap,
-      null as any,
+      null as any, // eslint-disable-line @typescript-eslint/no-explicit-any
     );
 
     /**

@@ -27,23 +27,19 @@ class TestChain extends AbstractChain<string> {
   PaymentTransactionFromJson = this.notImplemented;
   rawTxToPaymentTransaction = this.notImplemented;
   verifyPaymentTransaction = this.notImplemented;
-
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  /* eslint-disable @typescript-eslint/no-unused-vars */
   generateMultipleTransactions = (
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     eventId: string,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     txType: TransactionType,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     order: PaymentOrder,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     unsignedTransactions: PaymentTransaction[],
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     serializedSignedTransactions: string[],
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     ...extra: Array<any>
   ): Promise<PaymentTransaction[]> => {
     throw Error('Not mocked');
   };
+  /* eslint-enable */
 
   getTransactionAssets = (
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -203,8 +203,6 @@ export const generateChainObject = (
     minBoxValue: 1000000n,
     eventTxConfirmation: 18,
   };
-  const tokenMap = new TokenMap();
-  tokenMap.updateConfigByJson;
   // mock a sign function to return signed transaction
   return new ErgoChain(network, config, new TokenMap(), signFn);
 };

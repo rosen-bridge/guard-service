@@ -65,6 +65,7 @@ abstract class AbstractChain<TxType> {
     order: PaymentOrder,
     unsignedTransactions: PaymentTransaction[],
     serializedSignedTransactions: string[],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ...extra: Array<any>
   ): Promise<PaymentTransaction> => {
     const txs = await this.generateMultipleTransactions(
@@ -97,6 +98,7 @@ abstract class AbstractChain<TxType> {
     order: PaymentOrder,
     unsignedTransactions: PaymentTransaction[],
     serializedSignedTransactions: string[],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ...extra: Array<any>
   ) => Promise<PaymentTransaction[]>;
 

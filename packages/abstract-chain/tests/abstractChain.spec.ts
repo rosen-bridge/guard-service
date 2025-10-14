@@ -252,10 +252,11 @@ describe('AbstractChain', () => {
       const getBlockInfoSpy = vi.spyOn(network, 'getBlockInfo');
       getBlockInfoSpy.mockResolvedValueOnce({
         height: event.sourceChainHeight,
-      } as any);
+      } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
       // mock rosen-extractor to return event data
       const chain = generateChainObject(network);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const extractorSpy = vi.spyOn((chain as any).extractor, 'get');
       extractorSpy.mockReturnValueOnce(event as unknown as RosenData);
 
@@ -374,13 +375,14 @@ describe('AbstractChain', () => {
       const getBlockInfoSpy = vi.spyOn(network, 'getBlockInfo');
       getBlockInfoSpy.mockResolvedValueOnce({
         height: event.sourceChainHeight,
-      } as any);
+      } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
       // mock rosen-extractor to return event data (expect for a key which
       //   should be wrong)
       const chain = generateChainObject(network);
       const invalidData = event as unknown as RosenData;
       invalidData[key as keyof RosenData] = `fake_${key}`;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const extractorSpy = vi.spyOn((chain as any).extractor, 'get');
       extractorSpy.mockReturnValueOnce(invalidData);
 
@@ -434,10 +436,11 @@ describe('AbstractChain', () => {
       const getBlockInfoSpy = vi.spyOn(network, 'getBlockInfo');
       getBlockInfoSpy.mockResolvedValueOnce({
         height: -1,
-      } as any);
+      } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
       // mock rosen-extractor to return event data
       const chain = generateChainObject(network);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const extractorSpy = vi.spyOn((chain as any).extractor, 'get');
       extractorSpy.mockReturnValueOnce(event as unknown as RosenData);
 
@@ -491,10 +494,11 @@ describe('AbstractChain', () => {
       const getBlockInfoSpy = vi.spyOn(network, 'getBlockInfo');
       getBlockInfoSpy.mockResolvedValueOnce({
         height: event.sourceChainHeight,
-      } as any);
+      } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
       // mock rosen-extractor to return event data
       const chain = generateChainObject(network);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const extractorSpy = vi.spyOn((chain as any).extractor, 'get');
       extractorSpy.mockReturnValueOnce(event as unknown as RosenData);
 
@@ -565,10 +569,11 @@ describe('AbstractChain', () => {
       const getBlockInfoSpy = vi.spyOn(network, 'getBlockInfo');
       getBlockInfoSpy.mockResolvedValueOnce({
         height: event.sourceChainHeight,
-      } as any);
+      } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
       // mock rosen-extractor to return event data
       const chain = generateChainObject(network);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const extractorSpy = vi.spyOn((chain as any).extractor, 'get');
       extractorSpy.mockReturnValueOnce(event as unknown as RosenData);
 
@@ -639,10 +644,11 @@ describe('AbstractChain', () => {
       const getBlockInfoSpy = vi.spyOn(network, 'getBlockInfo');
       getBlockInfoSpy.mockResolvedValueOnce({
         height: event.sourceChainHeight,
-      } as any);
+      } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
       // mock rosen-extractor to return event data
       const chain = generateChainObject(network);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const extractorSpy = vi.spyOn((chain as any).extractor, 'get');
       extractorSpy.mockReturnValueOnce(event as unknown as RosenData);
 
@@ -702,10 +708,11 @@ describe('AbstractChain', () => {
       const getBlockInfoSpy = vi.spyOn(network, 'getBlockInfo');
       getBlockInfoSpy.mockResolvedValueOnce({
         height: event.sourceChainHeight,
-      } as any);
+      } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
       // mock rosen-extractor to return event data
       const chain = generateChainObject(network);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const extractorSpy = vi.spyOn((chain as any).extractor, 'get');
       extractorSpy.mockReturnValueOnce(event as unknown as RosenData);
 

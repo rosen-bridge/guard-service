@@ -5,6 +5,7 @@ import {
 } from '@rosen-chains/abstract-chain';
 
 interface ErrorHandler<HandlerReturnType> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (error: any): HandlerReturnType;
 }
 
@@ -21,6 +22,7 @@ const handleApiError = <
   NotRespondedStateHandlerReturnType = never,
   UnknownStateHandlerReturnType = never,
 >(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   error: any,
   baseMessage: string,
   overrideHandlers?: {
@@ -37,17 +39,17 @@ const handleApiError = <
 
   const handleRespondedState =
     overrideHandlers?.handleRespondedState ??
-    ((error: any) => {
+    ((error) => {
       throw new FailedError(generateErrorMessage(error.response.data.reason));
     });
   const handleNotRespondedState =
     overrideHandlers?.handleNotRespondedState ??
-    ((error: any) => {
+    ((error) => {
       throw new NetworkError(generateErrorMessage(error.message));
     });
   const handleUnknownState =
     overrideHandlers?.handleUnknownState ??
-    ((error: any) => {
+    ((error) => {
       throw new UnexpectedApiError(generateErrorMessage(error.message));
     });
 

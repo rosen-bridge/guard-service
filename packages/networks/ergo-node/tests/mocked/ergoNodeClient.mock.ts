@@ -22,7 +22,7 @@ export const mockGetNodeInfo = () =>
     getNodeInfo: async () => ({
       fullHeight: testHeight,
     }),
-  } as any);
+  } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
 /**
  * mock `getTxById` of ergo node client
@@ -30,7 +30,7 @@ export const mockGetNodeInfo = () =>
 export const mockGetTxById = () =>
   vi.mocked(ergoNodeClientFactory).mockReturnValueOnce({
     getTxById: async () => testTransaction,
-  } as any);
+  } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
 /**
  * mock `getAddressBalanceTotal` of ergo node client
@@ -43,7 +43,7 @@ export const mockGetAddressBalanceTotal = (
     getAddressBalanceTotal: async () => ({
       confirmed: balance,
     }),
-  } as any);
+  } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
 /**
  * mock `getBlockTransactionsById` of ergo node client
@@ -56,7 +56,7 @@ export const mockGetBlockTransactionsById = (
     getBlockTransactionsById: async () => ({
       transactions: txs,
     }),
-  } as any);
+  } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
 /**
  * mock `getBlockHeaderById` of ergo node client
@@ -65,7 +65,7 @@ export const mockGetBlockTransactionsById = (
 export const mockGetBlockHeaderById = () =>
   vi.mocked(ergoNodeClientFactory).mockReturnValueOnce({
     getBlockHeaderById: async () => testBlockHeaders,
-  } as any);
+  } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
 /**
  * mock `getTxById` and `getBlockTransactionsById` of ergo node client together
@@ -77,7 +77,7 @@ export const mockGetTxByIdAndGetBlockTransactionsById = () =>
     getBlockTransactionsById: async () => ({
       transactions: [testTransaction],
     }),
-  } as any);
+  } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
 /**
  * mock `sendTransactionAsBytes` of ergo node client
@@ -88,7 +88,7 @@ export const mockSendTransactionAsBytes = () => {
     sendTransactionAsBytes: sendTransactionAsBytesSpy.mockResolvedValue(
       testTransaction.id,
     ),
-  } as any);
+  } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
   return sendTransactionAsBytesSpy;
 };
 
@@ -104,7 +104,7 @@ export const mockGetUnconfirmedTransactions = () =>
       offset: number;
       limit: number;
     }) => testMempoolTransactions.slice(Number(offset), Number(offset + limit)),
-  } as any);
+  } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
 /**
  * mock `getBoxesByAddressUnspent` of ergo node client
@@ -115,7 +115,7 @@ export const mockGetBoxesByAddressUnspent = () =>
       address: string,
       { offset, limit }: { offset: number; limit: number },
     ) => testAddressBoxes.slice(Number(offset), Number(offset + limit)),
-  } as any);
+  } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
 /**
  * mock `getLastHeaders` of ergo node client
@@ -123,7 +123,7 @@ export const mockGetBoxesByAddressUnspent = () =>
 export const mockGetLastHeaders = () =>
   vi.mocked(ergoNodeClientFactory).mockReturnValueOnce({
     getLastHeaders: async () => testLastBlockHeaders,
-  } as any);
+  } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
 /**
  * mock `getIndexedBoxById` of ergo node client
@@ -131,7 +131,7 @@ export const mockGetLastHeaders = () =>
 export const mockIndexedBoxById = () =>
   vi.mocked(ergoNodeClientFactory).mockReturnValueOnce({
     getIndexedBoxById: async () => testAddressBoxes[0],
-  } as any);
+  } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
 /**
  * mock an api to throw an error
@@ -140,10 +140,12 @@ export const mockIndexedBoxById = () =>
  */
 export const mockApiToThrow = (
   apiName: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   objectToThrow: { [p: string]: any },
 ) =>
   vi.mocked(ergoNodeClientFactory).mockReturnValueOnce({
     [apiName]: vi.fn().mockRejectedValueOnce(objectToThrow),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any);
 
 /**
@@ -152,4 +154,4 @@ export const mockApiToThrow = (
 export const mockGetTokenById = () =>
   vi.mocked(ergoNodeClientFactory).mockReturnValueOnce({
     getTokenById: async () => tokenApiResponse,
-  } as any);
+  } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
