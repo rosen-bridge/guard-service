@@ -175,9 +175,8 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
       estimateFee,
     );
     if (!coveredBoxes.covered) {
-      const neededBtc = unwrappedRequiredAssets.nativeToken;
       throw new NotEnoughValidBoxesError(
-        `Available boxes didn't cover required assets. BTC: ${neededBtc.toString()}`,
+        `Available boxes didn't cover required assets. Uncovered BTC: ${coveredBoxes.uncoveredAssets?.nativeToken.toString()}`,
       );
     }
 

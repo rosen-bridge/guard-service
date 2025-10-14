@@ -197,8 +197,14 @@ abstract class EvmChain extends AbstractChain<Transaction> {
     );
 
     if (!(await this.hasLockAddressEnoughAssets(requiredAssets))) {
-      const neededETH = requiredAssets.nativeToken.toString();
-      const neededTokens = JSONBigInt.stringify(requiredAssets.tokens);
+      const unwrappedRequiredAssets = ChainUtils.unwrapAssetBalance(
+        requiredAssets,
+        this.tokenMap,
+        this.NATIVE_TOKEN_ID,
+        this.CHAIN,
+      );
+      const neededETH = unwrappedRequiredAssets.nativeToken.toString();
+      const neededTokens = JSONBigInt.stringify(unwrappedRequiredAssets.tokens);
       throw new NotEnoughAssetsError(
         `Locked assets cannot cover required assets. native: ${neededETH}, erc-20: ${neededTokens}`,
       );
