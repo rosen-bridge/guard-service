@@ -94,6 +94,7 @@ enum OrderStatus {
   reachedLimit = 'reached-limit',
 }
 
+const ERGO_BLOCK_TIME = 120;
 const ETHEREUM_BLOCK_TIME = 12;
 const BINANCE_BLOCK_TIME = 3;
 
@@ -114,6 +115,7 @@ export {
   ChainNativeToken,
   ChainConfigKey,
   OrderStatus,
+  ERGO_BLOCK_TIME,
   ETHEREUM_BLOCK_TIME,
   BINANCE_BLOCK_TIME,
 };

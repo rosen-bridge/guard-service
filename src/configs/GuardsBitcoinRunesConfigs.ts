@@ -26,6 +26,7 @@ class GuardsBitcoinRunesConfigs {
     rps: config.has('bitcoinRunes.rpc.rps')
       ? config.get<number>('bitcoinRunes.rpc.rps')
       : undefined,
+    timeout: config.get<number>('bitcoinRunes.rpc.timeout'),
   };
   static unisat = {
     url: config.get<string>('bitcoinRunes.unisat.url'),
@@ -35,6 +36,7 @@ class GuardsBitcoinRunesConfigs {
     rps: config.has('bitcoinRunes.unisat.rps')
       ? config.get<number>('bitcoinRunes.unisat.rps')
       : undefined,
+    timeout: config.get<number>('bitcoinRunes.unisat.timeout'),
   };
 
   // the ergo-related contract, addresses and tokens in rosen bridge

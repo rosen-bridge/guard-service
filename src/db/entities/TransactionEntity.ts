@@ -1,4 +1,10 @@
-import { Column, Entity, PrimaryColumn, ManyToOne, Relation } from 'typeorm';
+import {
+  Column,
+  Entity,
+  PrimaryColumn,
+  ManyToOne,
+  Relation,
+} from '@rosen-bridge/extended-typeorm';
 import { ArbitraryEntity } from './ArbitraryEntity';
 import { ConfirmedEventEntity } from './ConfirmedEventEntity';
 

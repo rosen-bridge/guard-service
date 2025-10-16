@@ -5,7 +5,7 @@ import {
   OneToOne,
   PrimaryColumn,
   Relation,
-} from 'typeorm';
+} from '@rosen-bridge/extended-typeorm';
 import { EventTriggerEntity } from '@rosen-bridge/watcher-data-extractor';
 
 @Entity()

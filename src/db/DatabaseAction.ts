@@ -8,7 +8,7 @@ import {
   MoreThanOrEqual,
   Not,
   Repository,
-} from 'typeorm';
+} from '@rosen-bridge/extended-typeorm';
 import { ConfirmedEventEntity } from './entities/ConfirmedEventEntity';
 import { TransactionEntity } from './entities/TransactionEntity';
 import {
@@ -35,12 +35,13 @@ import {
 } from '@rosen-chains/abstract-chain';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { EventView } from './entities/EventView';
-import { BlockEntity, PROCEED } from '@rosen-bridge/scanner';
+import { BlockEntity, PROCEED } from '@rosen-bridge/abstract-scanner';
 import { ArbitraryEntity } from './entities/ArbitraryEntity';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 import { ReprocessEntity } from './entities/ReprocessEntity';
 import { ReprocessStatus } from '../reprocess/Interfaces';
 import { ChainAddressBalanceEntity } from './entities/ChainAddressBalanceEntity';
+import { LastSavedBlock } from '@rosen-bridge/scanner-sync-check/dist/config';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -845,13 +846,17 @@ class DatabaseAction {
    */
   getLastSavedBlockForScanner = async (
     scannerName: string
-  ): Promise<number> => {
+  ): Promise<LastSavedBlock> => {
     const lastBlock = await this.BlockRepository.find({
       where: { status: PROCEED, scanner: scannerName },
       order: { height: 'DESC' },
       take: 1,
     });
-    if (lastBlock.length !== 0) return lastBlock[0].height;
+    if (lastBlock.length !== 0)
+      return {
+        height: lastBlock[0].height,
+        timestamp: lastBlock[0].timestamp,
+      };
     throw new NotFoundError(`No block found in database`);
   };
 

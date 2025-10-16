@@ -55,10 +55,12 @@ bitcoinRunes:
     # password: ''
     # apiKey: ''
     # rps: 5 # request per second for RPC requests
+    timeout: 8
   unisat:
     url: 'https://open-api.unisat.io'
     # apiKey: ''
     rps: 5 # request per second for Unisat API requests
+    timeout: 8
   bankPublicKey: '' # corresponding public key of lock address
   tssChainCode: ''
   derivationPath:

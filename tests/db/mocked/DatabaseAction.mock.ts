@@ -1,9 +1,9 @@
-import { DataSource } from 'typeorm';
+import { DataSource } from '@rosen-bridge/extended-typeorm';
 import {
   BlockEntity,
   PROCEED,
   migrations as scannerMigrations,
-} from '@rosen-bridge/scanner';
+} from '@rosen-bridge/abstract-scanner';
 import {
   CommitmentEntity,
   EventTriggerEntity,

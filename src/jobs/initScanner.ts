@@ -1,5 +1,10 @@
-import { ErgoNetworkType, ErgoScanner } from '@rosen-bridge/scanner';
+import {
+  ErgoExplorerNetwork,
+  ErgoNodeNetwork,
+  ErgoScanner,
+} from '@rosen-bridge/ergo-scanner';
 import { dataSource } from '../db/dataSource';
+import { ErgoNetworkType } from '@rosen-bridge/scanner-interfaces';
 import {
   CommitmentExtractor,
   EventTriggerExtractor,
@@ -11,13 +16,14 @@ import GuardsBitcoinConfigs from '../configs/GuardsBitcoinConfigs';
 import GuardsDogeConfigs from '../configs/GuardsDogeConfigs';
 import Configs from '../configs/Configs';
 import GuardsEthereumConfigs from '../configs/GuardsEthereumConfigs';
-import { EvmRpcScanner } from '@rosen-bridge/evm-rpc-scanner';
+import { EvmRpcNetwork, EvmRpcScanner } from '@rosen-bridge/evm-scanner';
 import { EvmTxExtractor } from '@rosen-bridge/evm-address-tx-extractor';
 import { ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
 import GuardsBinanceConfigs from '../configs/GuardsBinanceConfigs';
 import { BINANCE_CHAIN } from '@rosen-chains/binance';
 import { TokenHandler } from '../handlers/tokenHandler';
 import GuardsBitcoinRunesConfigs from '../configs/GuardsBitcoinRunesConfigs';
+import { NODE_NETWORK } from '@rosen-chains/ergo-node-network';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -162,35 +168,35 @@ const createLoggers = () => ({
  * initialize ergo scanner and extractors
  */
 const initScanner = () => {
-  const scannerConfig =
-    GuardsErgoConfigs.chainNetworkName === ErgoNetworkType.Node
-      ? {
-          type: ErgoNetworkType.Node,
-          url: GuardsErgoConfigs.node.url,
-          timeout: GuardsErgoConfigs.node.timeout * 1000,
-          initialHeight: GuardsErgoConfigs.initialHeight,
-          dataSource,
-        }
-      : {
-          type: ErgoNetworkType.Explorer,
-          url: GuardsErgoConfigs.explorer.url,
-          timeout: GuardsErgoConfigs.explorer.timeout * 1000,
-          initialHeight: GuardsErgoConfigs.initialHeight,
-          dataSource,
-        };
-
   const loggers = createLoggers();
 
-  ergoScanner = new ErgoScanner(scannerConfig, loggers.ergoScannerLogger);
+  const scannerConfig =
+    GuardsErgoConfigs.chainNetworkName === NODE_NETWORK
+      ? {
+          dataSource: dataSource,
+          initialHeight: GuardsErgoConfigs.initialHeight,
+          network: new ErgoNodeNetwork(GuardsErgoConfigs.node.url),
+          logger: loggers.ergoScannerLogger,
+        }
+      : {
+          dataSource: dataSource,
+          initialHeight: GuardsErgoConfigs.initialHeight,
+          network: new ErgoExplorerNetwork(GuardsErgoConfigs.explorer.url),
+          logger: loggers.ergoScannerLogger,
+        };
+
+  ergoScanner = new ErgoScanner(scannerConfig);
 
   const networkType =
-    GuardsErgoConfigs.chainNetworkName === ErgoNetworkType.Node
+    GuardsErgoConfigs.chainNetworkName === NODE_NETWORK
       ? ErgoNetworkType.Node
       : ErgoNetworkType.Explorer;
   const networkUrl =
     networkType === ErgoNetworkType.Node
       ? GuardsErgoConfigs.node.url
       : GuardsErgoConfigs.explorer.url;
+
+  // init Bitcoin extractors
   const bitcoinCommitmentExtractor = new CommitmentExtractor(
     'bitcoinCommitment',
     [GuardsBitcoinConfigs.bitcoinContractConfig.commitmentAddress],
@@ -211,6 +217,7 @@ const initScanner = () => {
     loggers.bitcoinEventTriggerExtractorLogger
   );
 
+  // init Doge extractors
   const dogeCommitmentExtractor = new CommitmentExtractor(
     'dogeCommitment',
     [GuardsDogeConfigs.dogeContractConfig.commitmentAddress],
@@ -232,6 +239,7 @@ const initScanner = () => {
     loggers.dogeEventTriggerExtractorLogger
   );
 
+  // init Cardano extractors
   const cardanoCommitmentExtractor = new CommitmentExtractor(
     'cardanoCommitment',
     [GuardsCardanoConfigs.cardanoContractConfig.commitmentAddress],
@@ -252,6 +260,7 @@ const initScanner = () => {
     loggers.cardanoEventTriggerExtractorLogger
   );
 
+  // init Ergo extractors
   const ergoCommitmentExtractor = new CommitmentExtractor(
     'ergoCommitment',
     [GuardsErgoConfigs.ergoContractConfig.commitmentAddress],
@@ -272,6 +281,7 @@ const initScanner = () => {
     loggers.ergoEventTriggerExtractorLogger
   );
 
+  // init Ethereum extractors
   const ethereumCommitmentExtractor = new CommitmentExtractor(
     'ethereumCommitment',
     [GuardsEthereumConfigs.ethereumContractConfig.commitmentAddress],
@@ -292,6 +302,7 @@ const initScanner = () => {
     loggers.ethereumEventTriggerExtractorLogger
   );
 
+  // init Binance extractors
   const binanceCommitmentExtractor = new CommitmentExtractor(
     'binanceCommitment',
     [GuardsBinanceConfigs.binanceContractConfig.commitmentAddress],
@@ -348,19 +359,19 @@ const initScanner = () => {
 
   ergoScannerJob();
 
+  // init Ethereum scanner
   if (GuardsEthereumConfigs.chainNetworkName === 'rpc') {
     // RPC network requires ethereum scanner
-    ethereumScanner = new EvmRpcScanner(
-      ETHEREUM_CHAIN,
-      {
-        RpcUrl: GuardsEthereumConfigs.rpc.url,
-        timeout: GuardsEthereumConfigs.rpc.timeout,
-        initialHeight: GuardsEthereumConfigs.rpc.initialHeight,
-        dataSource: dataSource,
-      },
-      loggers.ethereumScannerLogger,
-      GuardsEthereumConfigs.rpc.authToken
-    );
+    ethereumScanner = new EvmRpcScanner(ETHEREUM_CHAIN, {
+      dataSource: dataSource,
+      initialHeight: GuardsEthereumConfigs.rpc.initialHeight,
+      network: new EvmRpcNetwork(
+        GuardsEthereumConfigs.rpc.url,
+        GuardsEthereumConfigs.rpc.timeout,
+        GuardsEthereumConfigs.rpc.authToken
+      ),
+      logger: loggers.ethereumScannerLogger,
+    });
     const ethereumAddressTxExtractor = new EvmTxExtractor(
       dataSource,
       'ethereum-lock-address',
@@ -372,19 +383,19 @@ const initScanner = () => {
     ethereumScannerJob();
   }
 
+  // init Binance scanner
   if (GuardsBinanceConfigs.chainNetworkName === 'rpc') {
     // RPC network requires Binance scanner
-    binanceScanner = new EvmRpcScanner(
-      BINANCE_CHAIN,
-      {
-        RpcUrl: GuardsBinanceConfigs.rpc.url,
-        timeout: GuardsBinanceConfigs.rpc.timeout,
-        initialHeight: GuardsBinanceConfigs.rpc.initialHeight,
-        dataSource: dataSource,
-      },
-      loggers.binanceScannerLogger,
-      GuardsBinanceConfigs.rpc.authToken
-    );
+    binanceScanner = new EvmRpcScanner(BINANCE_CHAIN, {
+      dataSource: dataSource,
+      initialHeight: GuardsBinanceConfigs.rpc.initialHeight,
+      network: new EvmRpcNetwork(
+        GuardsBinanceConfigs.rpc.url,
+        GuardsBinanceConfigs.rpc.timeout,
+        GuardsBinanceConfigs.rpc.authToken
+      ),
+      logger: loggers.binanceScannerLogger,
+    });
     const BinanceAddressTxExtractor = new EvmTxExtractor(
       dataSource,
       'Binance-lock-address',

@@ -7,7 +7,7 @@ import {
 import { rosenConfig } from '../configs/RosenConfig';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
-import packageJson from '../../package.json' assert { type: 'json' };
+import packageJson from '../../package.json' with { type: 'json' };
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 

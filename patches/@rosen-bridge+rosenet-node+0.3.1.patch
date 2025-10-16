@@ -1,0 +1,26 @@
+diff --git a/node_modules/@rosen-bridge/rosenet-node/dist/createRoseNetNode.js b/node_modules/@rosen-bridge/rosenet-node/dist/createRoseNetNode.js
+index cc816be..3bb4625 100644
+--- a/node_modules/@rosen-bridge/rosenet-node/dist/createRoseNetNode.js
++++ b/node_modules/@rosen-bridge/rosenet-node/dist/createRoseNetNode.js
+@@ -16,7 +16,7 @@ import restartRelayDiscovery from './libp2p/restart-relay-discovery';
+ import addressService from './address/address-service';
+ import sample from './utils/sample';
+ import RoseNetNodeError from './errors/RoseNetNodeError';
+-import packageJson from '../package.json' assert { type: 'json' };
++import packageJson from '../package.json' with { type: 'json' };
+ const createRoseNetNode = async (config) => {
+     RoseNetNodeContext.init(config);
+     RoseNetNodeContext.logger.debug('RoseNet node config got prepared', {
+diff --git a/node_modules/@rosen-bridge/rosenet-node/lib/createRoseNetNode.ts b/node_modules/@rosen-bridge/rosenet-node/lib/createRoseNetNode.ts
+index d3581af..d028f70 100644
+--- a/node_modules/@rosen-bridge/rosenet-node/lib/createRoseNetNode.ts
++++ b/node_modules/@rosen-bridge/rosenet-node/lib/createRoseNetNode.ts
+@@ -33,7 +33,7 @@ import sample from './utils/sample';
+ 
+ import RoseNetNodeError from './errors/RoseNetNodeError';
+ 
+-import packageJson from '../package.json' assert { type: 'json' };
++import packageJson from '../package.json' with { type: 'json' };
+ 
+ import { PartialRoseNetNodeConfig } from './types';
+ 
