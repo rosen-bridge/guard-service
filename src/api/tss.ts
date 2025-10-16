@@ -1,4 +1,4 @@
-import TssHandler from '../handlers/TssHandler';
+import TssHandler from '../handlers/tssHandler';
 import {
   FastifySeverInstance,
   MessageResponseSchema,
@@ -39,7 +39,7 @@ const signRoute = (server: FastifySeverInstance) => {
         } = request.body;
         if (trustKey !== TssHandler.getTrustKey()) {
           logger.warn(
-            `Received message on Tss tx sign callback with wrong trust key`
+            `Received message on Tss tx sign callback with wrong trust key`,
           );
           reply.status(400).send({ message: 'Trust key is wrong' });
           return;
@@ -50,17 +50,17 @@ const signRoute = (server: FastifySeverInstance) => {
           error,
           message,
           signature,
-          signatureRecovery
+          signatureRecovery,
         );
         reply.send({ message: 'ok' });
       } catch (error) {
         logger.warn(
-          `An error occurred while processing TSS tx sign callback: ${error}`
+          `An error occurred while processing TSS tx sign callback: ${error}`,
         );
         logger.warn(error.stack);
         reply.status(400).send({ message: error.message });
       }
-    }
+    },
   );
 };
 

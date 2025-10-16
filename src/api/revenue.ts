@@ -1,5 +1,5 @@
-import { TokenChartData, TokenData } from '../types/api';
-import { DatabaseAction } from '../db/DatabaseAction';
+import { TokenChartData } from '../types/api';
+import { DatabaseAction } from '../db/databaseAction';
 import { groupBy, reduce } from 'lodash-es';
 import { extractRevenueFromView } from '../utils/revenue';
 import {
@@ -36,7 +36,7 @@ const revenueHistoryRoute = (server: FastifySeverInstance) => {
         limit,
         fromChain,
         toChain,
-        tokenId,
+        tokenId, // eslint-disable-line @typescript-eslint/no-unused-vars
         maxHeight,
         minHeight,
         fromBlockTime,
@@ -53,17 +53,17 @@ const revenueHistoryRoute = (server: FastifySeverInstance) => {
         fromBlockTime,
         toBlockTime,
         offset,
-        limit
+        limit,
       );
       const revenues = await dbAction.getEventsRevenues(
-        eventsRevenues.items.map((row) => row.id)
+        eventsRevenues.items.map((row) => row.id),
       );
 
       reply.status(200).send({
         items: await extractRevenueFromView(eventsRevenues.items, revenues),
         total: eventsRevenues.total,
       });
-    }
+    },
   );
 };
 
@@ -105,10 +105,10 @@ const revenueChartRoute = (server: FastifySeverInstance) => {
             },
           ];
         },
-        []
+        [],
       );
       reply.status(200).send(returnData);
-    }
+    },
   );
 };
 

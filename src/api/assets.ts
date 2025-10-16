@@ -1,6 +1,6 @@
 import { ChainTokenData } from '../types/api';
 import { SUPPORTED_CHAINS, ChainNativeToken } from '../utils/constants';
-import ChainHandler from '../handlers/ChainHandler';
+import ChainHandler from '../handlers/chainHandler';
 import {
   AssetsQuerySchema,
   AssetsResponseSchema,
@@ -42,7 +42,7 @@ const assetsRoute = (server: FastifySeverInstance) => {
           currentChain,
           nativeTokenId,
           currentChain,
-          true
+          true,
         );
         tokenList.push({
           tokenId: nativeTokenId,
@@ -59,10 +59,10 @@ const assetsRoute = (server: FastifySeverInstance) => {
             currentChain,
             token.id,
             currentChain,
-            true
+            true,
           );
           const coldToken = coldAssets.tokens.find(
-            (coldToken) => coldToken.id === token.id
+            (coldToken) => coldToken.id === token.id,
           );
           tokenList.push({
             tokenId: token.id,
@@ -116,7 +116,7 @@ const assetsRoute = (server: FastifySeverInstance) => {
         items: result,
         total: tokenList.length,
       });
-    }
+    },
   );
 };
 

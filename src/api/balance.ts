@@ -4,7 +4,7 @@ import {
   LockBalanceSchema,
   MessageResponseSchema,
 } from './schemas';
-import BalanceHandler from '../handlers/BalanceHandler';
+import BalanceHandler from '../handlers/balanceHandler';
 import { LockBalance } from '../types/api';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
@@ -31,12 +31,10 @@ const getBalanceRoute = (server: FastifySeverInstance) => {
           cold: [],
         };
 
-        balance.hot = await BalanceHandler.getInstance().getAddressAssets(
-          'lock'
-        );
-        balance.cold = await BalanceHandler.getInstance().getAddressAssets(
-          'cold'
-        );
+        balance.hot =
+          await BalanceHandler.getInstance().getAddressAssets('lock');
+        balance.cold =
+          await BalanceHandler.getInstance().getAddressAssets('cold');
 
         reply.status(200).send(balance);
       } catch (error) {
@@ -44,7 +42,7 @@ const getBalanceRoute = (server: FastifySeverInstance) => {
         if (error.stack) logger.error(error.stack);
         reply.status(500).send({ message: error.message });
       }
-    }
+    },
   );
 };
 

@@ -9,20 +9,19 @@ import {
   CommitmentExtractor,
   EventTriggerExtractor,
 } from '@rosen-bridge/watcher-data-extractor';
-import GuardsCardanoConfigs from '../configs/GuardsCardanoConfigs';
-import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
+import GuardsCardanoConfigs from '../configs/guardsCardanoConfigs';
+import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
-import GuardsBitcoinConfigs from '../configs/GuardsBitcoinConfigs';
-import GuardsDogeConfigs from '../configs/GuardsDogeConfigs';
-import Configs from '../configs/Configs';
-import GuardsEthereumConfigs from '../configs/GuardsEthereumConfigs';
+import GuardsBitcoinConfigs from '../configs/guardsBitcoinConfigs';
+import GuardsDogeConfigs from '../configs/guardsDogeConfigs';
+import GuardsEthereumConfigs from '../configs/guardsEthereumConfigs';
 import { EvmRpcNetwork, EvmRpcScanner } from '@rosen-bridge/evm-scanner';
 import { EvmTxExtractor } from '@rosen-bridge/evm-address-tx-extractor';
 import { ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
-import GuardsBinanceConfigs from '../configs/GuardsBinanceConfigs';
+import GuardsBinanceConfigs from '../configs/guardsBinanceConfigs';
 import { BINANCE_CHAIN } from '@rosen-chains/binance';
 import { TokenHandler } from '../handlers/tokenHandler';
-import GuardsBitcoinRunesConfigs from '../configs/GuardsBitcoinRunesConfigs';
+import GuardsBitcoinRunesConfigs from '../configs/guardsBitcoinRunesConfigs';
 import { NODE_NETWORK } from '@rosen-chains/ergo-node-network';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
@@ -38,7 +37,7 @@ const ergoScannerJob = () => {
   ergoScanner
     .update()
     .then(() =>
-      setTimeout(ergoScannerJob, GuardsErgoConfigs.scannerInterval * 1000)
+      setTimeout(ergoScannerJob, GuardsErgoConfigs.scannerInterval * 1000),
     )
     .catch((e) => {
       logger.warn(`An error occurred in Ergo scanner job: ${e}`);
@@ -56,15 +55,15 @@ const ethereumScannerJob = () => {
     .then(() =>
       setTimeout(
         ethereumScannerJob,
-        GuardsEthereumConfigs.rpc.scannerInterval * 1000
-      )
+        GuardsEthereumConfigs.rpc.scannerInterval * 1000,
+      ),
     )
     .catch((e) => {
       logger.warn(`An error occurred in Ethereum scanner job: ${e}`);
       logger.warn(e.stack);
       setTimeout(
         ethereumScannerJob,
-        GuardsEthereumConfigs.rpc.scannerInterval * 1000
+        GuardsEthereumConfigs.rpc.scannerInterval * 1000,
       );
     });
 };
@@ -78,15 +77,15 @@ const binanceScannerJob = () => {
     .then(() =>
       setTimeout(
         binanceScannerJob,
-        GuardsBinanceConfigs.rpc.scannerInterval * 1000
-      )
+        GuardsBinanceConfigs.rpc.scannerInterval * 1000,
+      ),
     )
     .catch((e) => {
       logger.warn(`An error occurred in Binance scanner job: ${e}`);
       logger.warn(e.stack);
       setTimeout(
         binanceScannerJob,
-        GuardsBinanceConfigs.rpc.scannerInterval * 1000
+        GuardsBinanceConfigs.rpc.scannerInterval * 1000,
       );
     });
 };
@@ -100,67 +99,67 @@ const createLoggers = () => ({
     DefaultLoggerFactory.getInstance().getLogger('ergo-scanner'),
   bitcoinCommitmentExtractorLogger:
     DefaultLoggerFactory.getInstance().getLogger(
-      'bitcoin-commitment-extractor'
+      'bitcoin-commitment-extractor',
     ),
   bitcoinEventTriggerExtractorLogger:
     DefaultLoggerFactory.getInstance().getLogger(
-      'bitcoin-event-trigger-extractor'
+      'bitcoin-event-trigger-extractor',
     ),
   cardanoCommitmentExtractorLogger:
     DefaultLoggerFactory.getInstance().getLogger(
-      'cardano-commitment-extractor'
+      'cardano-commitment-extractor',
     ),
   cardanoEventTriggerExtractorLogger:
     DefaultLoggerFactory.getInstance().getLogger(
-      'cardano-event-trigger-extractor'
+      'cardano-event-trigger-extractor',
     ),
   ergoCommitmentExtractorLogger: DefaultLoggerFactory.getInstance().getLogger(
-    'ergo-commitment-extractor'
+    'ergo-commitment-extractor',
   ),
   ergoEventTriggerExtractorLogger: DefaultLoggerFactory.getInstance().getLogger(
-    'ergo-event-trigger-extractor'
+    'ergo-event-trigger-extractor',
   ),
   ethereumCommitmentExtractorLogger:
     DefaultLoggerFactory.getInstance().getLogger(
-      'ethereum-commitment-extractor'
+      'ethereum-commitment-extractor',
     ),
   ethereumEventTriggerExtractorLogger:
     DefaultLoggerFactory.getInstance().getLogger(
-      'ethereum-event-trigger-extractor'
+      'ethereum-event-trigger-extractor',
     ),
   ethereumScannerLogger:
     DefaultLoggerFactory.getInstance().getLogger('ethereum-scanner'),
   ethereumLockAddressTxExtractorLogger:
     DefaultLoggerFactory.getInstance().getLogger(
-      'ethereum-lock-address-tx-extractor'
+      'ethereum-lock-address-tx-extractor',
     ),
   binanceCommitmentExtractorLogger:
     DefaultLoggerFactory.getInstance().getLogger(
-      'binance-commitment-extractor'
+      'binance-commitment-extractor',
     ),
   binanceEventTriggerExtractorLogger:
     DefaultLoggerFactory.getInstance().getLogger(
-      'binance-event-trigger-extractor'
+      'binance-event-trigger-extractor',
     ),
   binanceScannerLogger:
     DefaultLoggerFactory.getInstance().getLogger('binance-scanner'),
   binanceLockAddressTxExtractorLogger:
     DefaultLoggerFactory.getInstance().getLogger(
-      'binance-lock-address-tx-extractor'
+      'binance-lock-address-tx-extractor',
     ),
   dogeCommitmentExtractorLogger: DefaultLoggerFactory.getInstance().getLogger(
-    'doge-commitment-extractor'
+    'doge-commitment-extractor',
   ),
   dogeEventTriggerExtractorLogger: DefaultLoggerFactory.getInstance().getLogger(
-    'doge-event-trigger-extractor'
+    'doge-event-trigger-extractor',
   ),
   bitcoinRunesCommitmentExtractorLogger:
     DefaultLoggerFactory.getInstance().getLogger(
-      'bitcoin-runes-commitment-extractor'
+      'bitcoin-runes-commitment-extractor',
     ),
   bitcoinRunesEventTriggerExtractorLogger:
     DefaultLoggerFactory.getInstance().getLogger(
-      'bitcoin-runes-event-trigger-extractor'
+      'bitcoin-runes-event-trigger-extractor',
     ),
 });
 
@@ -203,7 +202,7 @@ const initScanner = () => {
     GuardsBitcoinConfigs.bitcoinContractConfig.RWTId,
     dataSource,
     TokenHandler.getInstance().getTokenMap(),
-    loggers.bitcoinCommitmentExtractorLogger
+    loggers.bitcoinCommitmentExtractorLogger,
   );
   const bitcoinEventTriggerExtractor = new EventTriggerExtractor(
     'bitcoinEventTrigger',
@@ -214,7 +213,7 @@ const initScanner = () => {
     GuardsBitcoinConfigs.bitcoinContractConfig.RWTId,
     GuardsBitcoinConfigs.bitcoinContractConfig.permitAddress,
     GuardsBitcoinConfigs.bitcoinContractConfig.fraudAddress,
-    loggers.bitcoinEventTriggerExtractorLogger
+    loggers.bitcoinEventTriggerExtractorLogger,
   );
 
   // init Doge extractors
@@ -224,7 +223,7 @@ const initScanner = () => {
     GuardsDogeConfigs.dogeContractConfig.RWTId,
     dataSource,
     TokenHandler.getInstance().getTokenMap(),
-    loggers.dogeCommitmentExtractorLogger
+    loggers.dogeCommitmentExtractorLogger,
   );
 
   const dogeEventTriggerExtractor = new EventTriggerExtractor(
@@ -236,7 +235,7 @@ const initScanner = () => {
     GuardsDogeConfigs.dogeContractConfig.RWTId,
     GuardsDogeConfigs.dogeContractConfig.permitAddress,
     GuardsDogeConfigs.dogeContractConfig.fraudAddress,
-    loggers.dogeEventTriggerExtractorLogger
+    loggers.dogeEventTriggerExtractorLogger,
   );
 
   // init Cardano extractors
@@ -246,7 +245,7 @@ const initScanner = () => {
     GuardsCardanoConfigs.cardanoContractConfig.RWTId,
     dataSource,
     TokenHandler.getInstance().getTokenMap(),
-    loggers.cardanoCommitmentExtractorLogger
+    loggers.cardanoCommitmentExtractorLogger,
   );
   const cardanoEventTriggerExtractor = new EventTriggerExtractor(
     'cardanoEventTrigger',
@@ -257,7 +256,7 @@ const initScanner = () => {
     GuardsCardanoConfigs.cardanoContractConfig.RWTId,
     GuardsCardanoConfigs.cardanoContractConfig.permitAddress,
     GuardsCardanoConfigs.cardanoContractConfig.fraudAddress,
-    loggers.cardanoEventTriggerExtractorLogger
+    loggers.cardanoEventTriggerExtractorLogger,
   );
 
   // init Ergo extractors
@@ -267,7 +266,7 @@ const initScanner = () => {
     GuardsErgoConfigs.ergoContractConfig.RWTId,
     dataSource,
     TokenHandler.getInstance().getTokenMap(),
-    loggers.ergoCommitmentExtractorLogger
+    loggers.ergoCommitmentExtractorLogger,
   );
   const ergoEventTriggerExtractor = new EventTriggerExtractor(
     'ergoEventTrigger',
@@ -278,7 +277,7 @@ const initScanner = () => {
     GuardsErgoConfigs.ergoContractConfig.RWTId,
     GuardsErgoConfigs.ergoContractConfig.permitAddress,
     GuardsErgoConfigs.ergoContractConfig.fraudAddress,
-    loggers.ergoEventTriggerExtractorLogger
+    loggers.ergoEventTriggerExtractorLogger,
   );
 
   // init Ethereum extractors
@@ -288,7 +287,7 @@ const initScanner = () => {
     GuardsEthereumConfigs.ethereumContractConfig.RWTId,
     dataSource,
     TokenHandler.getInstance().getTokenMap(),
-    loggers.ethereumCommitmentExtractorLogger
+    loggers.ethereumCommitmentExtractorLogger,
   );
   const ethereumEventTriggerExtractor = new EventTriggerExtractor(
     'ethereumEventTrigger',
@@ -299,7 +298,7 @@ const initScanner = () => {
     GuardsEthereumConfigs.ethereumContractConfig.RWTId,
     GuardsEthereumConfigs.ethereumContractConfig.permitAddress,
     GuardsEthereumConfigs.ethereumContractConfig.fraudAddress,
-    loggers.ethereumEventTriggerExtractorLogger
+    loggers.ethereumEventTriggerExtractorLogger,
   );
 
   // init Binance extractors
@@ -309,7 +308,7 @@ const initScanner = () => {
     GuardsBinanceConfigs.binanceContractConfig.RWTId,
     dataSource,
     TokenHandler.getInstance().getTokenMap(),
-    loggers.binanceCommitmentExtractorLogger
+    loggers.binanceCommitmentExtractorLogger,
   );
   const binanceEventTriggerExtractor = new EventTriggerExtractor(
     'binanceEventTrigger',
@@ -320,7 +319,7 @@ const initScanner = () => {
     GuardsBinanceConfigs.binanceContractConfig.RWTId,
     GuardsBinanceConfigs.binanceContractConfig.permitAddress,
     GuardsBinanceConfigs.binanceContractConfig.fraudAddress,
-    loggers.binanceEventTriggerExtractorLogger
+    loggers.binanceEventTriggerExtractorLogger,
   );
   const bitcoinRunesCommitmentExtractor = new CommitmentExtractor(
     'bitcoinRunesCommitment',
@@ -328,7 +327,7 @@ const initScanner = () => {
     GuardsBitcoinRunesConfigs.bitcoinRunesContractConfig.RWTId,
     dataSource,
     TokenHandler.getInstance().getTokenMap(),
-    loggers.bitcoinRunesCommitmentExtractorLogger
+    loggers.bitcoinRunesCommitmentExtractorLogger,
   );
   const bitcoinRunesEventTriggerExtractor = new EventTriggerExtractor(
     'bitcoinRunesEventTrigger',
@@ -339,7 +338,7 @@ const initScanner = () => {
     GuardsBitcoinRunesConfigs.bitcoinRunesContractConfig.RWTId,
     GuardsBitcoinRunesConfigs.bitcoinRunesContractConfig.permitAddress,
     GuardsBitcoinRunesConfigs.bitcoinRunesContractConfig.fraudAddress,
-    loggers.bitcoinRunesEventTriggerExtractorLogger
+    loggers.bitcoinRunesEventTriggerExtractorLogger,
   );
 
   ergoScanner.registerExtractor(bitcoinCommitmentExtractor);
@@ -368,7 +367,7 @@ const initScanner = () => {
       network: new EvmRpcNetwork(
         GuardsEthereumConfigs.rpc.url,
         GuardsEthereumConfigs.rpc.timeout,
-        GuardsEthereumConfigs.rpc.authToken
+        GuardsEthereumConfigs.rpc.authToken,
       ),
       logger: loggers.ethereumScannerLogger,
     });
@@ -376,7 +375,7 @@ const initScanner = () => {
       dataSource,
       'ethereum-lock-address',
       GuardsEthereumConfigs.ethereumContractConfig.lockAddress,
-      loggers.ethereumLockAddressTxExtractorLogger
+      loggers.ethereumLockAddressTxExtractorLogger,
     );
     ethereumScanner.registerExtractor(ethereumAddressTxExtractor);
     // run ethereum scanner job
@@ -392,7 +391,7 @@ const initScanner = () => {
       network: new EvmRpcNetwork(
         GuardsBinanceConfigs.rpc.url,
         GuardsBinanceConfigs.rpc.timeout,
-        GuardsBinanceConfigs.rpc.authToken
+        GuardsBinanceConfigs.rpc.authToken,
       ),
       logger: loggers.binanceScannerLogger,
     });
@@ -400,7 +399,7 @@ const initScanner = () => {
       dataSource,
       'Binance-lock-address',
       GuardsBinanceConfigs.binanceContractConfig.lockAddress,
-      loggers.binanceLockAddressTxExtractorLogger
+      loggers.binanceLockAddressTxExtractorLogger,
     );
     binanceScanner.registerExtractor(BinanceAddressTxExtractor);
     // run Binance scanner job

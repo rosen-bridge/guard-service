@@ -1,6 +1,6 @@
 import { HealthStatusLevel } from '@rosen-bridge/health-check';
 import { guardInfo } from './testData';
-import ChainHandlerMock from '../handlers/ChainHandler.mock';
+import ChainHandlerMock from '../handlers/chainHandler.mock';
 import { generalInfoRoute } from '../../src/api/generalInfo';
 import fastify from 'fastify';
 import { FastifySeverInstance } from '../../src/api/schemas';

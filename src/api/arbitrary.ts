@@ -3,8 +3,8 @@ import {
   MessageResponseSchema,
   OrderQuerySchema,
 } from './schemas';
-import Configs from '../configs/Configs';
-import DatabaseHandler from '../db/DatabaseHandler';
+import Configs from '../configs/configs';
+import DatabaseHandler from '../db/databaseHandler';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { DuplicateOrder } from '../utils/errors';
 import { authenticateKey } from '../utils/authentication';
@@ -64,7 +64,7 @@ const orderRoute = (server: FastifySeverInstance) => {
         await DatabaseHandler.insertOrder(
           id,
           chain,
-          ChainUtils.encodeOrder(order)
+          ChainUtils.encodeOrder(order),
         );
         reply.status(200).send({
           message: 'Ok',
@@ -72,7 +72,7 @@ const orderRoute = (server: FastifySeverInstance) => {
       } catch (e) {
         if (e instanceof DuplicateOrder) {
           logger.warn(
-            `Failed to insert arbitrary order due to duplication: ${e}`
+            `Failed to insert arbitrary order due to duplication: ${e}`,
           );
           reply.status(409).send({
             message: `Order is already in database`,
@@ -85,7 +85,7 @@ const orderRoute = (server: FastifySeverInstance) => {
           });
         }
       }
-    }
+    },
   );
 };
 

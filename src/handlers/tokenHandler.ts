@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { RosenTokens, TokenMap } from '@rosen-bridge/tokens';
+import { TokenMap } from '@rosen-bridge/tokens';
 
 class TokenHandler {
   private static instance: TokenHandler;

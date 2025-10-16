@@ -4,15 +4,14 @@ import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
 import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
 import { BITCOIN_CHAIN } from '@rosen-chains/bitcoin';
 
-import ChainHandlerMock from '../handlers/ChainHandler.mock';
+import ChainHandlerMock from '../handlers/chainHandler.mock';
 import { assetRoutes } from '../../src/api/assets';
-import ChainHandler from '../../src/handlers/ChainHandler';
+import ChainHandler from '../../src/handlers/chainHandler';
 import { FastifySeverInstance } from '../../src/api/schemas';
 
 vi.mock('../../src/utils/constants', async (importOriginal) => {
-  const mod = await importOriginal<
-    typeof import('../../src/utils/constants')
-  >();
+  const mod =
+    await importOriginal<typeof import('../../src/utils/constants')>();
   return {
     ...mod,
     SUPPORTED_CHAINS: [ERGO_CHAIN, CARDANO_CHAIN, BITCOIN_CHAIN],
@@ -33,7 +32,7 @@ describe('assets', () => {
 
   const mockBitcoinLockAddressAssets = (
     nativeToken: bigint,
-    tokens: Array<TokenInfo>
+    tokens: Array<TokenInfo>,
   ) => {
     const lockBalance: AssetBalance = {
       nativeToken: nativeToken,
@@ -42,13 +41,13 @@ describe('assets', () => {
     ChainHandlerMock.mockChainFunction(
       BITCOIN_CHAIN,
       'getLockAddressAssets',
-      lockBalance
+      lockBalance,
     );
   };
 
   const mockBitcoinColdAddressAssets = (
     nativeToken: bigint,
-    tokens: Array<TokenInfo>
+    tokens: Array<TokenInfo>,
   ) => {
     const balance: AssetBalance = {
       nativeToken: nativeToken,
@@ -57,13 +56,13 @@ describe('assets', () => {
     ChainHandlerMock.mockChainFunction(
       BITCOIN_CHAIN,
       'getColdAddressAssets',
-      balance
+      balance,
     );
   };
 
   const mockCardanoLockAddressAssets = (
     nativeToken: bigint,
-    tokens: Array<TokenInfo>
+    tokens: Array<TokenInfo>,
   ) => {
     const lockBalance: AssetBalance = {
       nativeToken: nativeToken,
@@ -72,13 +71,13 @@ describe('assets', () => {
     ChainHandlerMock.mockChainFunction(
       CARDANO_CHAIN,
       'getLockAddressAssets',
-      lockBalance
+      lockBalance,
     );
   };
 
   const mockCardanoColdAddressAssets = (
     nativeToken: bigint,
-    tokens: Array<TokenInfo>
+    tokens: Array<TokenInfo>,
   ) => {
     const balance: AssetBalance = {
       nativeToken: nativeToken,
@@ -87,7 +86,7 @@ describe('assets', () => {
     ChainHandlerMock.mockChainFunction(
       CARDANO_CHAIN,
       'getColdAddressAssets',
-      balance
+      balance,
     );
   };
 
@@ -103,7 +102,7 @@ describe('assets', () => {
       });
     ChainHandlerMock.mockErgoFunctionReturnValue(
       'getLockAddressAssets',
-      lockBalance
+      lockBalance,
     );
   };
 
@@ -117,7 +116,7 @@ describe('assets', () => {
     };
     ChainHandlerMock.mockErgoFunctionReturnValue(
       'getColdAddressAssets',
-      balance
+      balance,
     );
   };
 
@@ -181,7 +180,7 @@ describe('assets', () => {
         total: 3,
       });
       expect(ChainHandler.getInstance().getChain).not.toBeCalledWith(
-        CARDANO_CHAIN
+        CARDANO_CHAIN,
       );
       expect(ChainHandler.getInstance().getChain).toBeCalledWith(ERGO_CHAIN);
     });
@@ -237,7 +236,7 @@ describe('assets', () => {
       });
       expect(ChainHandler.getInstance().getChain).toBeCalledWith(CARDANO_CHAIN);
       expect(ChainHandler.getInstance().getChain).not.toBeCalledWith(
-        ERGO_CHAIN
+        ERGO_CHAIN,
       );
     });
 

@@ -1,13 +1,13 @@
-import ChainHandlerMock from '../handlers/ChainHandler.mock';
+import ChainHandlerMock from '../handlers/chainHandler.mock';
 import { TransactionType } from '@rosen-chains/abstract-chain';
 import { CARDANO_CHAIN } from '@rosen-chains/cardano';
 import fastify from 'fastify';
 import { FastifySeverInstance } from '../../src/api/schemas';
 import { signRoute } from '../../src/api/signTx';
 import { mockPaymentTransaction } from '../agreement/testData';
-import DatabaseActionMock from '../db/mocked/DatabaseAction.mock';
+import DatabaseActionMock from '../db/mocked/databaseAction.mock';
 import { TransactionStatus } from '../../src/utils/constants';
-import GuardPkHandler from '../../src/handlers/GuardPkHandler';
+import GuardPkHandler from '../../src/handlers/guardPkHandler';
 
 describe('signTx', () => {
   const requiredSign = 3;
@@ -47,7 +47,7 @@ describe('signTx', () => {
       const paymentTx = mockPaymentTransaction(
         TransactionType.manual,
         CARDANO_CHAIN,
-        ''
+        '',
       );
 
       // mock ChainHandler `getChain`
@@ -58,7 +58,7 @@ describe('signTx', () => {
         chain,
         'rawTxToPaymentTransaction',
         paymentTx,
-        true
+        true,
       );
 
       // send a request to the server
@@ -86,7 +86,7 @@ describe('signTx', () => {
         tx.type,
       ]);
       expect(dbTxs.length).toEqual(1);
-      expect(dbTxs).to.deep.contain([
+      expect(dbTxs).toContain([
         paymentTx.txId,
         null,
         paymentTx.network,
@@ -118,7 +118,7 @@ describe('signTx', () => {
         chain,
         'rawTxToPaymentTransaction',
         new Error(`TestError: failed to parse tx`),
-        true
+        true,
       );
 
       // send a request to the server
@@ -163,7 +163,7 @@ describe('signTx', () => {
       const paymentTx = mockPaymentTransaction(
         TransactionType.manual,
         CARDANO_CHAIN,
-        ''
+        '',
       );
 
       // insert mocked tx into db
@@ -174,7 +174,7 @@ describe('signTx', () => {
         undefined,
         undefined,
         undefined,
-        requiredSign
+        requiredSign,
       );
 
       // mock ChainHandler `getChain`
@@ -185,7 +185,7 @@ describe('signTx', () => {
         chain,
         'rawTxToPaymentTransaction',
         paymentTx,
-        true
+        true,
       );
 
       // send a request to the server
@@ -229,7 +229,7 @@ describe('signTx', () => {
       const paymentTx = mockPaymentTransaction(
         TransactionType.manual,
         CARDANO_CHAIN,
-        ''
+        '',
       );
 
       // insert mocked tx into db
@@ -240,7 +240,7 @@ describe('signTx', () => {
         undefined,
         undefined,
         undefined,
-        requiredSign
+        requiredSign,
       );
 
       // mock ChainHandler `getChain`
@@ -251,7 +251,7 @@ describe('signTx', () => {
         chain,
         'rawTxToPaymentTransaction',
         paymentTx,
-        true
+        true,
       );
 
       // send a request to the server
@@ -279,7 +279,7 @@ describe('signTx', () => {
         tx.requiredSign,
       ]);
       expect(dbTxs.length).toEqual(1);
-      expect(dbTxs).to.deep.contain([paymentTx.txId, newRequiredSign]);
+      expect(dbTxs).toContain([paymentTx.txId, newRequiredSign]);
     });
 
     /**
@@ -301,7 +301,7 @@ describe('signTx', () => {
       const paymentTx = mockPaymentTransaction(
         TransactionType.manual,
         CARDANO_CHAIN,
-        ''
+        '',
       );
 
       // mock ChainHandler `getChain`
@@ -312,7 +312,7 @@ describe('signTx', () => {
         chain,
         'rawTxToPaymentTransaction',
         paymentTx,
-        true
+        true,
       );
 
       // send a request to the server

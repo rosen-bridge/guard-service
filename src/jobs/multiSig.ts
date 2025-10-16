@@ -1,5 +1,5 @@
-import MultiSigHandler from '../handlers/MultiSigHandler';
-import Configs from '../configs/Configs';
+import MultiSigHandler from '../handlers/multiSigHandler';
+import Configs from '../configs/configs';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
@@ -20,7 +20,7 @@ const multiSigTurnJob = () => {
     .getErgoMultiSig()
     .handleMyTurn()
     .then(() =>
-      setTimeout(multiSigTurnJob, Configs.multiSigHandleTurnInterval * 1000)
+      setTimeout(multiSigTurnJob, Configs.multiSigHandleTurnInterval * 1000),
     )
     .catch((e) => {
       logger.error(`MultiSig handle turn job failed with error: ${e}`);

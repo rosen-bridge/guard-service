@@ -1,5 +1,5 @@
-import GuardPkHandler from '../handlers/GuardPkHandler';
-import Configs from '../configs/Configs';
+import GuardPkHandler from '../handlers/guardPkHandler';
+import Configs from '../configs/configs';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);

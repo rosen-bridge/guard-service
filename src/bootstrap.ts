@@ -1,8 +1,8 @@
 import 'reflect-metadata';
-import Configs from './configs/Configs';
+import Configs from './configs/configs';
 import packageJson from '../package.json' with { type: 'json' };
 import WinstonLogger from '@rosen-bridge/winston-logger';
-import { rosenConfig } from './configs/RosenConfig';
+import { rosenConfig } from './configs/rosenConfig';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 
 const winston = new WinstonLogger(Configs.logs);
