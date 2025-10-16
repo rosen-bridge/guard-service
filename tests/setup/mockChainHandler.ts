@@ -1,6 +1,6 @@
-import ChainHandler from '../../src/handlers/ChainHandler';
-import { chainHandlerInstance } from '../handlers/ChainHandler.mock';
+import ChainHandler from '../../src/handlers/chainHandler';
+import { chainHandlerInstance } from '../handlers/chainHandler.mock';
 
 vi.spyOn(ChainHandler, 'getInstance').mockReturnValue(
-  chainHandlerInstance as unknown as ChainHandler
+  chainHandlerInstance as unknown as ChainHandler,
 );

@@ -1,11 +1,11 @@
-import Configs from '../../src/configs/Configs';
-import { DatabaseAction } from '../db/DatabaseAction';
-import ChainHandler from '../../src/handlers/ChainHandler';
+import Configs from '../configs/configs';
+import { DatabaseAction } from '../db/databaseAction';
+import ChainHandler from '../handlers/chainHandler';
 import {
   ImpossibleBehavior,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
-import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
+import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
 import { ERG } from '@rosen-chains/ergo';
 import { RevenueType } from '../utils/constants';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
@@ -21,17 +21,17 @@ const revenueJobFunction = async () => {
   const ergoChain = ChainHandler.getInstance().getErgoChain();
   const currentHeight = await ergoChain.getHeight();
   const requiredConfirmation = ergoChain.getTxRequiredConfirmation(
-    TransactionType.reward
+    TransactionType.reward,
   );
   const unsavedRevenues = await dbAction.getConfirmedUnsavedRevenueEvents(
     currentHeight,
-    requiredConfirmation
+    requiredConfirmation,
   );
 
   for (const event of unsavedRevenues) {
     if (!event.spendTxId || !event.spendBlock)
       throw new ImpossibleBehavior(
-        `Requested spent events from database, but spendTxId [${event.spendTxId}] or spendBlock [${event.spendBlock}] is invalid`
+        `Requested spent events from database, but spendTxId [${event.spendTxId}] or spendBlock [${event.spendBlock}] is invalid`,
       );
 
     const txId = event.spendTxId;
@@ -60,10 +60,10 @@ const revenueJobFunction = async () => {
         payment.assets.nativeToken,
         txId,
         revenueType,
-        event
+        event,
       );
       logger.debug(
-        `inserted revenue [${ERG}] for amount [${payment.assets.nativeToken}] as type [${revenueType}] in tx [${txId}]`
+        `inserted revenue [${ERG}] for amount [${payment.assets.nativeToken}] as type [${revenueType}] in tx [${txId}]`,
       );
       // store other tokens revenue
       for (const asset of payment.assets.tokens) {
@@ -72,10 +72,10 @@ const revenueJobFunction = async () => {
           asset.value,
           txId,
           revenueType,
-          event
+          event,
         );
         logger.debug(
-          `inserted revenue [${asset.id}] for amount [${asset.value}] as type [${revenueType}] in tx [${txId}]`
+          `inserted revenue [${asset.id}] for amount [${asset.value}] as type [${revenueType}] in tx [${txId}]`,
         );
       }
     }

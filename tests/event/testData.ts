@@ -1,4 +1,4 @@
-import TestUtils from '../testUtils/TestUtils';
+import TestUtils from '../testUtils/testUtils';
 import { TestEventTrigger, createEventTrigger } from './eventTestUtils';
 
 export const rsnRatioDivisor = 1000000000000n;
@@ -18,7 +18,7 @@ export const mockEventTrigger = (): TestEventTrigger =>
     'targetToken',
     TestUtils.generateRandomId(),
     '',
-    10000
+    10000,
   );
 
 export const mockToErgoEventTrigger = (): TestEventTrigger =>
@@ -35,7 +35,7 @@ export const mockToErgoEventTrigger = (): TestEventTrigger =>
     'targetToken',
     TestUtils.generateRandomId(),
     '',
-    10000
+    10000,
   );
 
 export const mockFromErgoEventTrigger = (): TestEventTrigger =>
@@ -52,7 +52,7 @@ export const mockFromErgoEventTrigger = (): TestEventTrigger =>
     'targetToken',
     TestUtils.generateRandomId(),
     '',
-    10000
+    10000,
   );
 
 export const mockEventWithAmount = (amount: string): TestEventTrigger =>
@@ -69,7 +69,7 @@ export const mockEventWithAmount = (amount: string): TestEventTrigger =>
     'targetToken',
     TestUtils.generateRandomId(),
     '',
-    10000
+    10000,
   );
 
 export const mockNativeTokenPaymentEvent = (): TestEventTrigger =>
@@ -86,7 +86,7 @@ export const mockNativeTokenPaymentEvent = (): TestEventTrigger =>
     'erg',
     TestUtils.generateRandomId(),
     '',
-    10000
+    10000,
   );
 
 export const mockTokenPaymentEvent = (): TestEventTrigger =>
@@ -103,7 +103,7 @@ export const mockTokenPaymentEvent = (): TestEventTrigger =>
     'b37bfa41c2d9e61b4e478ddfc459a03d25b658a2305ffb428fbc47ad6abbeeaa',
     TestUtils.generateRandomId(),
     '',
-    10000
+    10000,
   );
 
 export const mockTokenPaymentFromErgoEvent = (): TestEventTrigger =>
@@ -120,5 +120,5 @@ export const mockTokenPaymentFromErgoEvent = (): TestEventTrigger =>
     'bb2250e4c589539fd141fbbd2c322d380f1ce2aaef812cd87110d61b.527374434f4d4554565465737432',
     TestUtils.generateRandomId(),
     '',
-    10000
+    10000,
   );

@@ -13,7 +13,7 @@ import { SortRequest } from '../types/api';
 import { HealthStatusLevel } from '@rosen-bridge/health-check';
 
 export type FastifySeverInstance = FastifyInstance<
-  Server<any, any>,
+  Server<any, any>, // eslint-disable-line @typescript-eslint/no-explicit-any
   IncomingMessage,
   ServerResponse<IncomingMessage>,
   FastifyBaseLogger,
@@ -39,7 +39,7 @@ export const AddressBalanceSchema = Type.Object({
 });
 
 export const OutputItemsSchema = <T extends TProperties>(
-  itemType: TObject<T>
+  itemType: TObject<T>,
 ) =>
   Type.Object({
     items: Type.Array(itemType),
@@ -110,14 +110,14 @@ export const RevenueHistoryResponseSchema = OutputItemsSchema(
     timestamp: Type.Number(),
     ergoSideTokenId: Type.String(),
     revenues: Type.Array(SingleRevenueSchema),
-  } as const)
+  } as const),
 );
 
 export const SupportedChainsSchema = Type.Enum(
   SUPPORTED_CHAINS.reduce((map: Record<string, string>, chain: string) => {
     map[chain] = chain;
     return map;
-  }, {})
+  }, {}),
 );
 
 export const BalanceQuerySchema = Type.Object({
@@ -142,7 +142,7 @@ export const AssetsResponseSchema = OutputItemsSchema(
     decimals: Type.Number(),
     chain: SupportedChainsSchema,
     isNativeToken: Type.Boolean(),
-  })
+  }),
 );
 
 export const EventsQuerySchema = Type.Object({
@@ -169,7 +169,7 @@ export const EventsHistoryResponseSchema = OutputItemsSchema(
     rewardTxId: Type.String(),
     status: Type.String(),
     sourceChainToken: TokenDataSchema,
-  } as const)
+  } as const),
 );
 
 export const OngoingEventsResponseSchema = OutputItemsSchema(
@@ -185,7 +185,7 @@ export const OngoingEventsResponseSchema = OutputItemsSchema(
     txId: Type.String(),
     status: Type.String(),
     sourceChainToken: TokenDataSchema,
-  } as const)
+  } as const),
 );
 
 export const RevenueChartQuerySchema = Type.Object({
@@ -200,9 +200,9 @@ export const RevenueChartResponseSchema = Type.Array(
       Type.Object({
         label: Type.String(),
         amount: Type.String(),
-      })
+      }),
     ),
-  })
+  }),
 );
 
 export const SignQuerySchema = Type.Object({

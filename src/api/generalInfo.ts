@@ -1,12 +1,12 @@
-import { getHealthCheck } from '../guard/HealthCheck';
+import { getHealthCheck } from '../guard/healthCheck';
 import {
   FastifySeverInstance,
   InfoResponseSchema,
   MessageResponseSchema,
 } from './schemas';
-import { rosenConfig } from '../configs/RosenConfig';
+import { rosenConfig } from '../configs/rosenConfig';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
-import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
+import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
 import packageJson from '../../package.json' with { type: 'json' };
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
@@ -49,7 +49,7 @@ const infoRoute = (server: FastifySeverInstance) => {
         logger.error(error.stack);
         reply.status(500).send({ message: error.message });
       }
-    }
+    },
   );
 };
 

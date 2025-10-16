@@ -1,10 +1,10 @@
 import { ERGO_CHAIN } from '@rosen-chains/ergo';
 import { RevenueEntity } from '../db/entities/revenueEntity';
 import { RevenueView } from '../db/entities/revenueView';
-import { RevenueHistory, SingleRevenue, TokenData } from '../types/api';
+import { RevenueHistory, TokenData } from '../types/api';
 import { TokenInfo } from '@rosen-chains/abstract-chain';
 import { RevenueType } from './constants';
-import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
+import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
 import { TokenHandler } from '../handlers/tokenHandler';
 /**
  * Extracts the revenue from the revenue view
@@ -12,7 +12,7 @@ import { TokenHandler } from '../handlers/tokenHandler';
  */
 export const extractRevenueFromView = async (
   events: Array<RevenueView>,
-  revenues: Array<RevenueEntity>
+  revenues: Array<RevenueEntity>,
 ): Promise<Array<RevenueHistory>> => {
   const eventRevenuesMap = new Map<
     number,
@@ -88,7 +88,7 @@ export const extractRevenueFromView = async (
           data: fillTokensDetails(eventRevenue.data),
         })),
       };
-    })
+    }),
   );
 };
 

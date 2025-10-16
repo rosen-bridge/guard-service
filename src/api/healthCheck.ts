@@ -1,5 +1,5 @@
 import { Type } from '@sinclair/typebox';
-import { getHealthCheck } from '../guard/HealthCheck';
+import { getHealthCheck } from '../guard/healthCheck';
 import {
   FastifySeverInstance,
   HealthStatusTypeSchema,
@@ -29,7 +29,7 @@ const healthStatusRoute = (server: FastifySeverInstance) => {
         lastTrialErrorTime: status.lastTrialErrorTime?.toISOString(),
       }));
       reply.status(200).send(result);
-    }
+    },
   );
 };
 
@@ -52,18 +52,18 @@ const healthStatusForParameterRoute = (server: FastifySeverInstance) => {
     async (request, reply) => {
       const health = await getHealthCheck();
       const status = await health.getHealthStatusWithParamId(
-        request.params.paramId
+        request.params.paramId,
       );
       if (!status)
         throw new Error(
-          `Health parameter with id '${request.params.paramId}' is not registered.`
+          `Health parameter with id '${request.params.paramId}' is not registered.`,
         );
       reply.status(200).send({
         ...status,
         lastCheck: status.lastCheck?.toISOString(),
         lastTrialErrorTime: status.lastTrialErrorTime?.toISOString(),
       });
-    }
+    },
   );
 };
 
@@ -88,18 +88,18 @@ const updateHealthStatusForParameterRoute = (server: FastifySeverInstance) => {
       const health = await getHealthCheck();
       await health.updateParam(request.params.paramId);
       const status = await health.getHealthStatusWithParamId(
-        request.params.paramId
+        request.params.paramId,
       );
       if (!status)
         throw new Error(
-          `Health parameter with id '${request.params.paramId}' is not registered.`
+          `Health parameter with id '${request.params.paramId}' is not registered.`,
         );
       reply.status(200).send({
         ...status,
         lastCheck: status.lastCheck?.toISOString(),
         lastTrialErrorTime: status.lastTrialErrorTime?.toISOString(),
       });
-    }
+    },
   );
 };
 

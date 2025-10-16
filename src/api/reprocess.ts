@@ -6,7 +6,7 @@ import {
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { authenticateKey } from '../utils/authentication';
 import { NotFoundError } from '@rosen-chains/abstract-chain';
-import EventReprocess from '../reprocess/EventReprocess';
+import EventReprocess from '../reprocess/eventReprocess';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -35,7 +35,7 @@ const reprocessRoute = (server: FastifySeverInstance) => {
       try {
         await EventReprocess.getInstance().sendReprocessRequest(
           eventId,
-          peerIds
+          peerIds,
         );
         reply.status(200).send({
           message: 'Ok',
@@ -48,15 +48,15 @@ const reprocessRoute = (server: FastifySeverInstance) => {
         } else {
           logger.warn(
             `Failed to send reprocess request for event [${eventId}] to peers [${peerIds.join(
-              ','
-            )}]: ${e}`
+              ',',
+            )}]: ${e}`,
           );
           reply.status(400).send({
             message: `Request failed: ${e}`,
           });
         }
       }
-    }
+    },
   );
 };
 

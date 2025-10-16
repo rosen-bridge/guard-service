@@ -5,7 +5,7 @@ import {
   mockBalancesObj,
 } from './testData';
 import { FastifySeverInstance } from '../../src/api/schemas';
-import BalanceHandlerMock from '../handlers/mocked/BalanceHandler.mock';
+import BalanceHandlerMock from '../handlers/mocked/balanceHandler.mock';
 import { balanceRoutes } from '../../src/api/balance';
 
 describe('balanceRoutes', () => {
@@ -38,7 +38,7 @@ describe('balanceRoutes', () => {
       // arrange
       BalanceHandlerMock.mockGetAddressAssets().mockImplementation(
         async (address) =>
-          address === 'lock' ? mockLockBalances : mockColdBalances
+          address === 'lock' ? mockLockBalances : mockColdBalances,
       );
 
       // act

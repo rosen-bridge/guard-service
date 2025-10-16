@@ -1,4 +1,4 @@
-import TestUtils from '../testUtils/TestUtils';
+import TestUtils from '../testUtils/testUtils';
 import {
   PaymentTransaction,
   TransactionType,
@@ -16,7 +16,7 @@ import { ERGO_CHAIN, ErgoTransaction } from '@rosen-chains/ergo';
 export const mockPaymentTransaction = (
   type: string = TransactionType.payment,
   chain: string = CARDANO_CHAIN,
-  eventId: string = TestUtils.generateRandomId()
+  eventId: string = TestUtils.generateRandomId(),
 ): PaymentTransaction => {
   if (chain === ERGO_CHAIN) return mockErgoPaymentTransaction(type, eventId);
   else if (chain === CARDANO_CHAIN)
@@ -28,7 +28,7 @@ export const mockPaymentTransaction = (
       txId,
       eventId,
       Buffer.from('txBytes'),
-      type as TransactionType
+      type as TransactionType,
     );
   }
 };
@@ -41,14 +41,14 @@ export const mockPaymentTransaction = (
  */
 export const mockCardanoTransaction = (
   type: string = TransactionType.payment,
-  eventId: string = TestUtils.generateRandomId()
+  eventId: string = TestUtils.generateRandomId(),
 ): CardanoTransaction =>
   new CardanoTransaction(
     TestUtils.generateRandomId(),
     eventId,
     Buffer.from('txBytes'),
     type as TransactionType,
-    []
+    [],
   );
 
 /**
@@ -59,7 +59,7 @@ export const mockCardanoTransaction = (
  */
 export const mockErgoPaymentTransaction = (
   type: string = TransactionType.payment,
-  eventId: string = TestUtils.generateRandomId()
+  eventId: string = TestUtils.generateRandomId(),
 ): ErgoTransaction =>
   new ErgoTransaction(
     TestUtils.generateRandomId(),
@@ -67,5 +67,5 @@ export const mockErgoPaymentTransaction = (
     Buffer.from('txBytes'),
     type as TransactionType,
     [],
-    []
+    [],
   );

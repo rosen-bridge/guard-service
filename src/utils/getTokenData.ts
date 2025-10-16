@@ -1,5 +1,4 @@
-import Configs from '../configs/Configs';
-import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
+import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
 import { TokenData } from '../types/api';
 import { TokenHandler } from '../handlers/tokenHandler';
 
@@ -16,7 +15,7 @@ export const getTokenData = (
   sourceChain: string,
   sourceChainTokenId: string,
   targetChain: string,
-  returnSignificantDecimal = false
+  returnSignificantDecimal = false,
 ): TokenData => {
   if (sourceChainTokenId === GuardsErgoConfigs.emissionTokenId) {
     return {
@@ -47,7 +46,7 @@ export const getTokenData = (
     } else {
       // cannot fetch token data of another chain if token is not found
       throw Error(
-        `token [${sourceChainTokenId}] of chain [${sourceChain}] is not found in TokenMap`
+        `token [${sourceChainTokenId}] of chain [${sourceChain}] is not found in TokenMap`,
       );
     }
   } else {

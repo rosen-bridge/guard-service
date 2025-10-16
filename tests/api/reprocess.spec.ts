@@ -1,7 +1,7 @@
 import fastify from 'fastify';
 import { FastifySeverInstance } from '../../src/api/schemas';
 import { eventReprocessRoute } from '../../src/api/reprocess';
-import EventReprocessMock from '../reprocess/mocked/EventReprocess.mock';
+import EventReprocessMock from '../reprocess/mocked/eventReprocess.mock';
 import { NotFoundError } from '@rosen-chains/abstract-chain';
 
 describe('reprocess', () => {
@@ -67,7 +67,7 @@ describe('reprocess', () => {
       // mock sendReprocessRequest to throw NotFoundError
       EventReprocessMock.mockSendReprocessRequest(
         true,
-        new NotFoundError(`A not found Error for test`)
+        new NotFoundError(`A not found Error for test`),
       );
 
       // send a request to the server

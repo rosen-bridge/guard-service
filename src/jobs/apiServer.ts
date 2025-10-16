@@ -4,7 +4,7 @@ import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { p2pRoutes } from '../api/p2p';
-import Configs from '../configs/Configs';
+import Configs from '../configs/configs';
 import { generalInfoRoute } from '../api/generalInfo';
 import { eventRoutes } from '../api/events';
 import { revenueRoutes } from '../api/revenue';
@@ -39,13 +39,13 @@ const initApiServer = async () => {
         req: FastifyRequest,
         callback: (
           error: Error | null,
-          corsOptions?: FastifyCorsOptions
-        ) => void
+          corsOptions?: FastifyCorsOptions,
+        ) => void,
       ) => {
         if (
           req.headers.origin &&
           Configs.apiAllowedOrigins.filter((item) =>
-            req.headers.origin?.includes(item)
+            req.headers.origin?.includes(item),
           ).length > 0
         ) {
           callback(null, { origin: true });
@@ -85,7 +85,7 @@ const initApiServer = async () => {
     },
     staticCSP: true,
     transformStaticCSP: (header) => header,
-    transformSpecification: (swaggerObject, request, reply) => {
+    transformSpecification: (swaggerObject) => {
       return swaggerObject;
     },
     transformSpecificationClone: true,

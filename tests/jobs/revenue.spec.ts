@@ -1,12 +1,12 @@
-import DatabaseActionMock from '../db/mocked/DatabaseAction.mock';
+import DatabaseActionMock from '../db/mocked/databaseAction.mock';
 import { revenueJobFunction } from '../../src/jobs/revenue';
-import ChainHandlerMock from '../handlers/ChainHandler.mock';
+import ChainHandlerMock from '../handlers/chainHandler.mock';
 import { mockTokenPaymentEvent } from '../event/testData';
-import TestUtils from '../testUtils/TestUtils';
+import TestUtils from '../testUtils/testUtils';
 import { RevenueType } from '../../src/utils/constants';
 import * as testData from './testData';
 import { ERG } from '@rosen-chains/ergo';
-import GuardsCardanoConfigs from '../../src/configs/GuardsCardanoConfigs';
+import GuardsCardanoConfigs from '../../src/configs/guardsCardanoConfigs';
 import { CARDANO_CHAIN } from '@rosen-chains/cardano';
 
 describe('revenueJobFunction', () => {
@@ -16,7 +16,7 @@ describe('revenueJobFunction', () => {
     ChainHandlerMock.mockErgoFunctionReturnValue('getHeight', 120);
     ChainHandlerMock.mockErgoFunctionReturnValue(
       'getTxRequiredConfirmation',
-      15
+      15,
     );
   });
 
@@ -52,7 +52,7 @@ describe('revenueJobFunction', () => {
       boxSerialized,
       100,
       spendTxId,
-      spendBlockId
+      spendBlockId,
     );
 
     // mock ChainHandler fromChain and ErgoChain
@@ -63,13 +63,13 @@ describe('revenueJobFunction', () => {
     // mock `extractSignedTransactionOrder`
     ChainHandlerMock.mockErgoFunctionReturnValue(
       'extractSignedTransactionOrder',
-      testData.fraudTxOrder
+      testData.fraudTxOrder,
     );
     // mock `getChainConfigs`
     ChainHandlerMock.mockChainFunction(
       chain,
       'getChainConfigs',
-      GuardsCardanoConfigs.chainConfigs
+      GuardsCardanoConfigs.chainConfigs,
     );
 
     // run test
@@ -82,7 +82,7 @@ describe('revenueJobFunction', () => {
         revenue.amount,
         revenue.revenueType,
         revenue.txId,
-      ]
+      ],
     );
     expect(dbRevenues.length).toEqual(2);
     expect(dbRevenues).toContainEqual([
@@ -133,7 +133,7 @@ describe('revenueJobFunction', () => {
       boxSerialized,
       100,
       spendTxId,
-      spendBlockId
+      spendBlockId,
     );
 
     // mock ChainHandler fromChain and ErgoChain
@@ -144,13 +144,13 @@ describe('revenueJobFunction', () => {
     // mock `extractSignedTransactionOrder`
     ChainHandlerMock.mockErgoFunctionReturnValue(
       'extractSignedTransactionOrder',
-      testData.rewardTxOrder
+      testData.rewardTxOrder,
     );
     // mock `getChainConfigs`
     ChainHandlerMock.mockChainFunction(
       chain,
       'getChainConfigs',
-      GuardsCardanoConfigs.chainConfigs
+      GuardsCardanoConfigs.chainConfigs,
     );
 
     // run test
@@ -163,7 +163,7 @@ describe('revenueJobFunction', () => {
         revenue.amount,
         revenue.revenueType,
         revenue.txId,
-      ]
+      ],
     );
     expect(dbRevenues.length).toEqual(6);
     // bridge-fee revenues
@@ -236,7 +236,7 @@ describe('revenueJobFunction', () => {
       boxSerialized,
       113,
       spendTxId,
-      spendBlockId
+      spendBlockId,
     );
 
     // mock ChainHandler.ErgoChain
@@ -248,7 +248,7 @@ describe('revenueJobFunction', () => {
 
     // `getTransaction` should NOT got called
     expect(
-      ChainHandlerMock.getErgoMockedFunction('getTransaction')
+      ChainHandlerMock.getErgoMockedFunction('getTransaction'),
     ).not.toHaveBeenCalled();
   });
 });
