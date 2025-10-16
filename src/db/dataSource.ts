@@ -3,9 +3,9 @@ import Configs from '../configs/Configs';
 
 import {
   BlockEntity,
-  ExtractorStatusEntity,
+ExtractorStatusEntity,
   migrations as scannerMigrations,
-} from '@rosen-bridge/scanner';
+} from '@rosen-bridge/abstract-scanner';
 import {
   CommitmentEntity,
   EventTriggerEntity,

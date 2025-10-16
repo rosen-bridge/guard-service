@@ -8,11 +8,7 @@ import {
 } from '@rosen-bridge/asset-check';
 import { HealthCheck } from '@rosen-bridge/health-check';
 import { ErgoNodeSyncHealthCheckParam } from '@rosen-bridge/node-sync-check';
-import {
-  ErgoExplorerScannerHealthCheck,
-  ErgoNodeScannerHealthCheck,
-  EvmRPCScannerHealthCheck,
-} from '@rosen-bridge/scanner-sync-check';
+import { ScannerSyncHealthCheckParam } from '@rosen-bridge/scanner-sync-check';
 
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
@@ -31,10 +27,10 @@ import {
   EventStatus,
   ETHEREUM_BLOCK_TIME,
   BINANCE_BLOCK_TIME,
+  ERGO_BLOCK_TIME,
 } from '../utils/constants';
 import GuardsBitcoinConfigs from '../configs/GuardsBitcoinConfigs';
 import { BITCOIN_CHAIN, BTC } from '@rosen-chains/bitcoin';
-import { DOGE_CHAIN } from '@rosen-chains/doge';
 import { DatabaseAction } from '../db/DatabaseAction';
 import { NotFoundError } from '@rosen-chains/abstract-chain';
 import { NotificationHandler } from '../handlers/NotificationHandler';
@@ -51,6 +47,7 @@ import {
   EventProgressHealthCheckParam,
 } from '@rosen-bridge/event-progress-check';
 import { BITCOIN_RUNES_CHAIN } from '@rosen-chains/bitcoin-runes';
+import { LastSavedBlock } from '@rosen-bridge/scanner-sync-check/dist/config';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 let healthCheck: HealthCheck | undefined;
@@ -131,11 +128,12 @@ const getHealthCheck = async () => {
     const bitcoinContracts = rosenConfig.contractReader(BITCOIN_CHAIN);
     const ethereumContracts = rosenConfig.contractReader(ETHEREUM_CHAIN);
     const binanceContracts = rosenConfig.contractReader(BINANCE_CHAIN);
-    const dogeContracts = rosenConfig.contractReader(DOGE_CHAIN);
+    // We skipped Doge AssetCheck parameter, so we don't need it's contracts here
     const bitcoinRunesContracts =
       rosenConfig.contractReader(BITCOIN_RUNES_CHAIN);
+
     const generateLastBlockFetcher = (scannerName: string) => {
-      return async () => {
+      return async (): Promise<LastSavedBlock> => {
         try {
           return await DatabaseAction.getInstance().getLastSavedBlockForScanner(
             scannerName
@@ -145,7 +143,10 @@ const getHealthCheck = async () => {
             logger.info(
               `No block found in database. Passing 0 as last height to HealthCheck`
             );
-            return 0;
+            return {
+              height: 0,
+              timestamp: 0,
+            };
           } else throw e;
         }
       };
@@ -175,11 +176,13 @@ const getHealthCheck = async () => {
       healthCheck.register(emissionTokenAssetHealthCheck);
 
       const scannerName = 'ergo-node';
-      const ergoScannerSyncCheck = new ErgoNodeScannerHealthCheck(
+      const ergoScannerSyncCheck = new ScannerSyncHealthCheckParam(
+        ERGO_CHAIN,
         generateLastBlockFetcher(scannerName),
         Configs.ergoScannerWarnDiff,
         Configs.ergoScannerCriticalDiff,
-        GuardsErgoConfigs.node.url
+        ERGO_BLOCK_TIME,
+        GuardsErgoConfigs.scannerInterval
       );
       healthCheck.register(ergoScannerSyncCheck);
 
@@ -216,11 +219,13 @@ const getHealthCheck = async () => {
       healthCheck.register(emissionTokenAssetHealthCheck);
 
       const scannerName = 'ergo-explorer';
-      const ergoScannerSyncCheck = new ErgoExplorerScannerHealthCheck(
+      const ergoScannerSyncCheck = new ScannerSyncHealthCheckParam(
+        ERGO_CHAIN,
         generateLastBlockFetcher(scannerName),
         Configs.ergoScannerWarnDiff,
         Configs.ergoScannerCriticalDiff,
-        GuardsErgoConfigs.explorer.url
+        ERGO_BLOCK_TIME,
+        GuardsErgoConfigs.scannerInterval
       );
       healthCheck.register(ergoScannerSyncCheck);
     }
@@ -258,6 +263,7 @@ const getHealthCheck = async () => {
     if (GuardsBitcoinConfigs.chainNetworkName === 'esplora') {
       // register BTC asset-check on Bitcoin lock address
       const btcAssetHealthCheck = new EsploraAssetHealthCheckParam(
+        BITCOIN_CHAIN,
         BTC,
         bitcoinContracts.lockAddress,
         Configs.btcWarnThreshold,
@@ -268,6 +274,7 @@ const getHealthCheck = async () => {
       healthCheck.register(btcAssetHealthCheck);
       // register BTC asset-check on Bitcoin Runes lock address
       const btcRunesAssetHealthCheck = new EsploraAssetHealthCheckParam(
+        BITCOIN_CHAIN,
         BTC,
         bitcoinRunesContracts.lockAddress,
         Configs.btcWarnThreshold,
@@ -279,6 +286,7 @@ const getHealthCheck = async () => {
     }
     if (GuardsEthereumConfigs.chainNetworkName === 'rpc') {
       const ethAssetHealthCheck = new EvmRpcAssetHealthCheckParam(
+        ETHEREUM_CHAIN,
         ETH,
         ETH,
         ETH,
@@ -293,20 +301,19 @@ const getHealthCheck = async () => {
       healthCheck.register(ethAssetHealthCheck);
 
       const scannerName = 'ethereum-evm-rpc';
-      const ethereumScannerSyncCheck = new EvmRPCScannerHealthCheck(
+      const ethereumScannerSyncCheck = new ScannerSyncHealthCheckParam(
         ETHEREUM_CHAIN,
         generateLastBlockFetcher(scannerName),
         Configs.ethereumScannerWarnDiff,
         Configs.ethereumScannerCriticalDiff,
-        GuardsEthereumConfigs.rpc.url,
         ETHEREUM_BLOCK_TIME,
-        GuardsEthereumConfigs.rpc.authToken,
-        GuardsEthereumConfigs.rpc.timeout
+        GuardsEthereumConfigs.rpc.scannerInterval
       );
       healthCheck.register(ethereumScannerSyncCheck);
     }
     if (GuardsBinanceConfigs.chainNetworkName === 'rpc') {
       const bnbAssetHealthCheck = new EvmRpcAssetHealthCheckParam(
+        BINANCE_CHAIN,
         BNB,
         BNB,
         BNB,
@@ -321,15 +328,13 @@ const getHealthCheck = async () => {
       healthCheck.register(bnbAssetHealthCheck);
 
       const scannerName = 'binance-evm-rpc';
-      const binanceScannerSyncCheck = new EvmRPCScannerHealthCheck(
+      const binanceScannerSyncCheck = new ScannerSyncHealthCheckParam(
         BINANCE_CHAIN,
         generateLastBlockFetcher(scannerName),
         Configs.binanceScannerWarnDiff,
         Configs.binanceScannerCriticalDiff,
-        GuardsBinanceConfigs.rpc.url,
         BINANCE_BLOCK_TIME,
-        GuardsBinanceConfigs.rpc.authToken,
-        GuardsBinanceConfigs.rpc.timeout
+        GuardsBinanceConfigs.rpc.scannerInterval
       );
       healthCheck.register(binanceScannerSyncCheck);
     }

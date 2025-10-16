@@ -5,7 +5,7 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
   Relation,
-} from 'typeorm';
+} from '@rosen-bridge/extended-typeorm';
 import { BigIntValueTransformer } from '../transformers';
 import { EventTriggerEntity } from '@rosen-bridge/watcher-data-extractor';
 

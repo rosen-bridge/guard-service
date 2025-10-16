@@ -1,4 +1,4 @@
-import { RateLimitedAxiosConfig } from '@rosen-bridge/rate-limited-axios';
+import { RateLimitedAxiosConfig } from '@rosen-clients/rate-limited-axios';
 import { AbstractChain } from '@rosen-chains/abstract-chain';
 import {
   AbstractCardanoNetwork,
@@ -419,13 +419,15 @@ class ChainHandler {
           RateLimitedAxiosConfig.addRule(
             GuardsBitcoinRunesConfigs.rpc.url,
             GuardsBitcoinRunesConfigs.rpc.rps,
-            1
+            1,
+            GuardsBitcoinRunesConfigs.rpc.timeout
           );
         if (GuardsBitcoinRunesConfigs.unisat.rps !== undefined)
           RateLimitedAxiosConfig.addRule(
             GuardsBitcoinRunesConfigs.unisat.url,
             GuardsBitcoinRunesConfigs.unisat.rps,
-            1
+            1,
+            GuardsBitcoinRunesConfigs.unisat.timeout
           );
         break;
       }

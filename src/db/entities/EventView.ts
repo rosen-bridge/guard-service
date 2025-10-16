@@ -1,4 +1,4 @@
-import { ViewColumn, ViewEntity } from 'typeorm';
+import { ViewColumn, ViewEntity } from '@rosen-bridge/extended-typeorm';
 
 @(ViewEntity!({
   name: 'event',
