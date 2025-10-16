@@ -1,5 +1,25 @@
 # @rosen-chains/bitcoin-esplora
 
+## 5.0.0
+
+### Major Changes
+
+- Update node version to 22.18
+
+### Minor Changes
+
+- Replace `axios` with `@rosen-clients/rate-limited-axios@1.1.0`
+
+### Patch Changes
+
+- Follow no-explicit-any eslint rule
+- Sort imports
+- Update dependencies
+  - @rosen-bridge/abstract-logger@3.0.1
+  - @rosen-bridge/json-bigint@1.1.0
+  - @rosen-chains/abstract-chain@15.0.0
+  - @rosen-chains/bitcoin@9.0.0
+
 ## 4.2.1
 
 ### Patch Changes

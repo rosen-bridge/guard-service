@@ -1,5 +1,23 @@
 # @rosen-chains/evm-rpc
 
+## 4.0.0
+
+### Major Changes
+
+- Update node version to 22.18
+
+### Patch Changes
+
+- Follow no-explicit-any eslint rule
+- Replace `typeorm` with `@rosen-bridge/extended-typeorm`
+- Sort imports
+- Update dependencies
+  - @rosen-bridge/abstract-logger@3.0.1
+  - @rosen-bridge/evm-address-tx-extractor@1.2.2
+  - @rosen-bridge/tokens@4.0.1
+  - @rosen-chains/abstract-chain@15.0.0
+  - @rosen-chains/evm@9.0.0
+
 ## 3.1.1
 
 ### Patch Changes
