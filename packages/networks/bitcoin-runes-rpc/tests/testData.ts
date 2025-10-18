@@ -909,6 +909,129 @@ export const addressRunesUtxos: BitcoinRunesUtxo[] = [
     ],
   },
 ];
+export const unisatAddressRunesUtxos2 = [
+  {
+    code: 0,
+    data: {
+      height: 919219,
+      start: 0,
+      total: 4,
+      utxo: [
+        {
+          height: 918905,
+          confirmations: 315,
+          address:
+            'bc1px0ad45qrfwc20yfd9wljeytrvfa6tmrcxv6pgxze2svvx00tp7mstj5rpk',
+          satoshi: 532,
+          scriptPk:
+            '512033fadad0034bb0a7912d2bbf2c9163627ba5ec7833341418595418c33deb0fb7',
+          txid: 'tx1',
+          vout: 0,
+          runes: [
+            {
+              rune: 'TESTINGCATAETCH',
+              runeid: '880352:855',
+              spacedRune: 'TESTING•CATA•ETCH',
+              amount: '4492999000',
+              symbol: 'H',
+              divisibility: 2,
+            },
+            {
+              rune: 'ROSENPOCRUNE',
+              runeid: '880887:3052',
+              spacedRune: 'ROSEN•POC•RUNE',
+              amount: '148032',
+              symbol: '$',
+              divisibility: 3,
+            },
+          ],
+        },
+        {
+          height: 904746,
+          confirmations: 14474,
+          address:
+            'bc1px0ad45qrfwc20yfd9wljeytrvfa6tmrcxv6pgxze2svvx00tp7mstj5rpk',
+          satoshi: 2682,
+          scriptPk:
+            '512033fadad0034bb0a7912d2bbf2c9163627ba5ec7833341418595418c33deb0fb7',
+          txid: 'tx2',
+          vout: 1,
+          runes: [
+            {
+              rune: 'ROSENPOCRUNE',
+              runeid: '880887:3052',
+              spacedRune: 'ROSEN•POC•RUNE',
+              amount: '749985',
+              symbol: '$',
+              divisibility: 3,
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    code: 0,
+    data: {
+      height: 919219,
+      start: 2,
+      total: 4,
+      utxo: [
+        {
+          height: 918905,
+          confirmations: 315,
+          address:
+            'bc1px0ad45qrfwc20yfd9wljeytrvfa6tmrcxv6pgxze2svvx00tp7mstj5rpk',
+          satoshi: 532,
+          scriptPk:
+            '512033fadad0034bb0a7912d2bbf2c9163627ba5ec7833341418595418c33deb0fb7',
+          txid: 'tx3',
+          vout: 1,
+          runes: [
+            {
+              rune: 'ROSENPOCRUNE',
+              runeid: '880887:3052',
+              spacedRune: 'ROSEN•POC•RUNE',
+              amount: '800',
+              symbol: '$',
+              divisibility: 3,
+            },
+          ],
+        },
+        {
+          height: 904746,
+          confirmations: 14474,
+          address:
+            'bc1px0ad45qrfwc20yfd9wljeytrvfa6tmrcxv6pgxze2svvx00tp7mstj5rpk',
+          satoshi: 2682,
+          scriptPk:
+            '512033fadad0034bb0a7912d2bbf2c9163627ba5ec7833341418595418c33deb0fb7',
+          txid: 'tx4',
+          vout: 1,
+          runes: [
+            {
+              rune: 'ROSENPOCRUNE',
+              runeid: '880887:3052',
+              spacedRune: 'ROSEN•POC•RUNE',
+              amount: '1000',
+              symbol: '$',
+              divisibility: 3,
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    code: 0,
+    data: {
+      height: 919219,
+      start: 4,
+      total: 4,
+      utxo: [],
+    },
+  },
+];
 
 export const invalidAddress = 'bc1qlhlqd2lvdft9alekqndnplfsq6dj723gh49wrq';
 export const addressRunesUtxosWithInvalidAddress = {
@@ -944,6 +1067,109 @@ export const unisatAddressAvailableUtxoData = {
     ],
   },
 };
+export const unisatAddressAvailableUtxoData2 = [
+  {
+    code: 0,
+    msg: 'ok',
+    data: {
+      cursor: 0,
+      total: 4,
+      utxo: [
+        {
+          confirmations: 10,
+          txid: 'tx1',
+          vout: 0,
+          satoshi: 55133,
+          scriptType: '5120',
+          scriptPk:
+            '512033fadad0034bb0a7912d2bbf2c9163627ba5ec7833341418595418c33deb0fb7',
+          codeType: 9,
+          address:
+            'bc1pjxzw9tm6qatyapu3c409dg8k23p4hjlk4ehwwlsum3emjqsaetrqppyu2z',
+          height: 915891,
+          idx: 669,
+          isOpInRBF: false,
+          isSpent: false,
+          inscriptionsCount: 1,
+          inscriptions: [],
+        },
+        {
+          confirmations: 10,
+          txid: 'tx2',
+          vout: 0,
+          satoshi: 55133,
+          scriptType: '5120',
+          scriptPk:
+            '512033fadad0034bb0a7912d2bbf2c9163627ba5ec7833341418595418c33deb0fb7',
+          codeType: 9,
+          address:
+            'bc1pjxzw9tm6qatyapu3c409dg8k23p4hjlk4ehwwlsum3emjqsaetrqppyu2z',
+          height: 915891,
+          idx: 669,
+          isOpInRBF: false,
+          isSpent: false,
+          inscriptionsCount: 1,
+          inscriptions: [],
+        },
+      ],
+    },
+  },
+  {
+    code: 0,
+    msg: 'ok',
+    data: {
+      cursor: 2,
+      total: 4,
+      utxo: [
+        {
+          confirmations: 10,
+          txid: 'tx3',
+          vout: 0,
+          satoshi: 55133,
+          scriptType: '5120',
+          scriptPk:
+            '512033fadad0034bb0a7912d2bbf2c9163627ba5ec7833341418595418c33deb0fb7',
+          codeType: 9,
+          address:
+            'bc1pjxzw9tm6qatyapu3c409dg8k23p4hjlk4ehwwlsum3emjqsaetrqppyu2z',
+          height: 915891,
+          idx: 669,
+          isOpInRBF: false,
+          isSpent: false,
+          inscriptionsCount: 1,
+          inscriptions: [],
+        },
+        {
+          confirmations: 10,
+          txid: 'tx4',
+          vout: 0,
+          satoshi: 55133,
+          scriptType: '5120',
+          scriptPk:
+            '512033fadad0034bb0a7912d2bbf2c9163627ba5ec7833341418595418c33deb0fb7',
+          codeType: 9,
+          address:
+            'bc1pjxzw9tm6qatyapu3c409dg8k23p4hjlk4ehwwlsum3emjqsaetrqppyu2z',
+          height: 915891,
+          idx: 669,
+          isOpInRBF: false,
+          isSpent: false,
+          inscriptionsCount: 1,
+          inscriptions: [],
+        },
+      ],
+    },
+  },
+  {
+    code: 0,
+    msg: 'ok',
+    data: {
+      cursor: 4,
+      total: 4,
+      utxo: [],
+    },
+  },
+];
 export const btcUtxos: BitcoinRunesUtxo[] = [
   {
     txId: '8ef378b5976a0f098b9ff6a793c80fa154a4ef48f44b22d92d2829b88dcbb19e',
@@ -1084,6 +1310,114 @@ export const unisatAddressAllUtxoData = {
     ],
   },
 };
+export const unisatAddressAllUtxoData2 = [
+  {
+    code: 0,
+    msg: 'ok',
+    data: {
+      cursor: 0,
+      total: 4,
+      totalConfirmed: 4,
+      totalUnconfirmed: 0,
+      totalUnconfirmedSpend: 0,
+      utxo: [
+        {
+          txid: '22b93e565aaa62ab0fa1471fcaabaa7e665a4d3d3623186bd36a241cbe65f850',
+          vout: 0,
+          satoshi: 55133,
+          scriptType: '5120',
+          scriptPk:
+            '512033fadad0034bb0a7912d2bbf2c9163627ba5ec7833341418595418c33deb0fb7',
+          codeType: 9,
+          address:
+            'bc1pjxzw9tm6qatyapu3c409dg8k23p4hjlk4ehwwlsum3emjqsaetrqppyu2z',
+          height: 915891,
+          idx: 669,
+          isOpInRBF: false,
+          isSpent: false,
+          inscriptionsCount: 1,
+          inscriptions: [],
+        },
+        {
+          txid: 'e0e441e42a33126398d2d044599ec9dfcfd86a1e40d1c2836fadb4b53bb5cf29',
+          vout: 1,
+          satoshi: 500,
+          scriptType: '5120',
+          scriptPk:
+            '512033fadad0034bb0a7912d2bbf2c9163627ba5ec7833341418595418c33deb0fb7',
+          codeType: 9,
+          address:
+            'bc1pjxzw9tm6qatyapu3c409dg8k23p4hjlk4ehwwlsum3emjqsaetrqppyu2z',
+          height: 904746,
+          idx: 1071,
+          isOpInRBF: false,
+          isSpent: false,
+          inscriptionsCount: 0,
+          inscriptions: [],
+        },
+      ],
+    },
+  },
+  {
+    code: 0,
+    msg: 'ok',
+    data: {
+      cursor: 2,
+      total: 4,
+      totalConfirmed: 4,
+      totalUnconfirmed: 0,
+      totalUnconfirmedSpend: 0,
+      utxo: [
+        {
+          txid: 'ba9bd0e9c84b2743313d3b7f34777e9dab0688fc85fa9cce8cbb340f8d06ffcb',
+          vout: 0,
+          satoshi: 500,
+          scriptType: '5120',
+          scriptPk:
+            '512033fadad0034bb0a7912d2bbf2c9163627ba5ec7833341418595418c33deb0fb7',
+          codeType: 9,
+          address:
+            'bc1pjxzw9tm6qatyapu3c409dg8k23p4hjlk4ehwwlsum3emjqsaetrqppyu2z',
+          height: 915580,
+          idx: 1029,
+          isOpInRBF: false,
+          isSpent: false,
+          inscriptionsCount: 0,
+          inscriptions: [],
+        },
+        {
+          txid: '7d22bdccbe0bd61aa85b06249e34b4f3c68e7617717022dbb2d7ce0c49e589f0',
+          vout: 1,
+          satoshi: 546,
+          scriptType: '5120',
+          scriptPk:
+            '512033fadad0034bb0a7912d2bbf2c9163627ba5ec7833341418595418c33deb0fb7',
+          codeType: 9,
+          address:
+            'bc1pjxzw9tm6qatyapu3c409dg8k23p4hjlk4ehwwlsum3emjqsaetrqppyu2z',
+          height: 913922,
+          idx: 1206,
+          isOpInRBF: false,
+          isSpent: false,
+          inscriptionsCount: 0,
+          inscriptions: [],
+        },
+      ],
+    },
+  },
+  {
+    code: 0,
+    msg: 'ok',
+    data: {
+      cursor: 4,
+      total: 4,
+      totalConfirmed: 4,
+      totalUnconfirmed: 0,
+      totalUnconfirmedSpend: 0,
+      utxo: [],
+    },
+  },
+];
 export const unisatUtxoRunesBalanceForAllUtxos = [
   {
     code: 0,

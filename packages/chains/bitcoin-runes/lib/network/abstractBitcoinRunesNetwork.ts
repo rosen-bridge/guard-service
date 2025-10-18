@@ -89,10 +89,14 @@ abstract class AbstractBitcoinRunesNetwork extends AbstractUtxoChainNetwork<
   /**
    * gets confirmed and unspent boxes of an address that contains no rune
    * @param address the address
+   * @param offset
+   * @param limit
    * @returns list of boxes
    */
   abstract getAddressBtcBoxes: (
     address: string,
+    offset: number,
+    limit: number,
   ) => Promise<Array<BitcoinRunesUtxo>>;
 
   /**
@@ -102,11 +106,15 @@ abstract class AbstractBitcoinRunesNetwork extends AbstractUtxoChainNetwork<
    * return it nor fetch its Runes balance
    * @param fetchedBoxIds the list of fetched box IDs
    * @param address the address
+   * @param offset
+   * @param limit
    * @returns list of boxes
    */
   abstract getRemainingBoxes: (
     fetchedBoxIds: Array<string>,
     address: string,
+    offset: number,
+    limit: number,
   ) => Promise<Array<BitcoinRunesUtxo>>;
 }
 

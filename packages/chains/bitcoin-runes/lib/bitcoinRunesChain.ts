@@ -341,18 +341,46 @@ class BitcoinRunesChain extends AbstractUtxoChain<
         const getAddressBtcBoxes = this.network.getAddressBtcBoxes;
         const getRemainingBoxes = this.network.getRemainingBoxes;
         const btcUtxoIterator = async function* () {
-          const btcBoxes = await getAddressBtcBoxes(lockAddress);
-          if (btcBoxes.length !== 0) yield* btcBoxes;
+          let offset = 0;
+          const limit = GET_BOX_API_LIMIT;
+          let hasMorePages = true;
+          let hasMoreRemainingPages = true;
+          while (hasMorePages || hasMoreRemainingPages) {
+            if (hasMorePages) {
+              const btcBoxesPage = await getAddressBtcBoxes(
+                lockAddress,
+                offset,
+                limit,
+              );
+              if (btcBoxesPage.length !== 0) yield* btcBoxesPage;
 
-          selectedBoxes.push(...btcBoxes);
-          const fetchedBoxIds = selectedBoxes.map((box) =>
-            generateBoxId(box.txId, box.index),
-          );
-          const remainingBoxes = await getRemainingBoxes(
-            fetchedBoxIds,
-            lockAddress,
-          );
-          if (remainingBoxes.length !== 0) yield* remainingBoxes;
+              if (btcBoxesPage.length < limit) {
+                hasMorePages = false;
+              }
+
+              selectedBoxes.push(...btcBoxesPage);
+            }
+
+            if (hasMoreRemainingPages) {
+              const fetchedBoxIds = selectedBoxes.map((box) =>
+                generateBoxId(box.txId, box.index),
+              );
+              const remainingBoxes = await getRemainingBoxes(
+                fetchedBoxIds,
+                lockAddress,
+                offset,
+                limit,
+              );
+
+              if (remainingBoxes.length !== 0) yield* remainingBoxes;
+
+              if (remainingBoxes.length < limit) {
+                hasMoreRemainingPages = false;
+              }
+
+              offset += limit;
+            }
+          }
 
           return undefined;
         };
