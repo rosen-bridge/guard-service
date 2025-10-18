@@ -81,7 +81,6 @@
     "@rosen-clients/rate-limited-axios": "^1.1.0",
     "@sinclair/typebox": "^0.30.4",
     "await-semaphore": "^0.1.3",
-    "axios": "^1.6.8",
     "blakejs": "^1.2.1",
     "config": "^3.3.7",
     "ergo-lib-wasm-nodejs": "^0.24.1",

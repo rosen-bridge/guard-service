@@ -1,7 +1,6 @@
-import axios from 'axios';
-
 import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
 import { SubscribeChannelWithURL } from '@rosen-bridge/dialer';
+import RateLimitedAxios from '@rosen-clients/rate-limited-axios';
 
 import RoseNetNodeConfig from '../configs/roseNetNodeConfig';
 
@@ -13,7 +12,7 @@ const apiCallBack: SubscribeChannelWithURL['func'] = (
   sender,
   url,
 ) => {
-  const data = axios.post(
+  const data = RateLimitedAxios.post(
     url,
     {
       message: msg,
@@ -29,7 +28,7 @@ const apiCallBack: SubscribeChannelWithURL['func'] = (
     },
   );
   data.catch((error) => {
-    if (axios.isAxiosError(error)) {
+    if (RateLimitedAxios.isAxiosError(error)) {
       logger.warn(`An error occurred while calling api url ${url}: ${error}`);
       if (error.stack) logger.warn(error.stack);
       if (error.response) {
