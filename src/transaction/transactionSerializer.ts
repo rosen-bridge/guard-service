@@ -2,6 +2,7 @@ import {
   PaymentTransaction,
   PaymentTransactionJsonModel,
 } from '@rosen-chains/abstract-chain';
+
 import ChainHandler from '../handlers/chainHandler';
 
 /**

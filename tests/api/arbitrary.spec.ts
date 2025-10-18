@@ -1,14 +1,16 @@
 import fastify from 'fastify';
-import { FastifySeverInstance } from '../../src/api/schemas';
-import DatabaseActionMock from '../db/mocked/databaseAction.mock';
-import { OrderStatus } from '../../src/utils/constants';
+
 import { ERGO_CHAIN } from '@rosen-chains/ergo';
+
+import { arbitraryOrderRoute } from '../../src/api/arbitrary';
+import { FastifySeverInstance } from '../../src/api/schemas';
+import { OrderStatus } from '../../src/utils/constants';
 import {
   arrangedOrderJson,
   disarrangedOrderJson,
   orderJson,
 } from '../arbitrary/testData';
-import { arbitraryOrderRoute } from '../../src/api/arbitrary';
+import DatabaseActionMock from '../db/mocked/databaseAction.mock';
 import { invalidOrderJson } from './testData';
 
 describe('arbitrary', () => {

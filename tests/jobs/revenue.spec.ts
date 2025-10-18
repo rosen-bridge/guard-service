@@ -1,13 +1,14 @@
-import DatabaseActionMock from '../db/mocked/databaseAction.mock';
-import { revenueJobFunction } from '../../src/jobs/revenue';
-import ChainHandlerMock from '../handlers/chainHandler.mock';
-import { mockTokenPaymentEvent } from '../event/testData';
-import TestUtils from '../testUtils/testUtils';
-import { RevenueType } from '../../src/utils/constants';
-import * as testData from './testData';
-import { ERG } from '@rosen-chains/ergo';
-import GuardsCardanoConfigs from '../../src/configs/guardsCardanoConfigs';
 import { CARDANO_CHAIN } from '@rosen-chains/cardano';
+import { ERG } from '@rosen-chains/ergo';
+
+import GuardsCardanoConfigs from '../../src/configs/guardsCardanoConfigs';
+import { revenueJobFunction } from '../../src/jobs/revenue';
+import { RevenueType } from '../../src/utils/constants';
+import DatabaseActionMock from '../db/mocked/databaseAction.mock';
+import { mockTokenPaymentEvent } from '../event/testData';
+import ChainHandlerMock from '../handlers/chainHandler.mock';
+import TestUtils from '../testUtils/testUtils';
+import * as testData from './testData';
 
 describe('revenueJobFunction', () => {
   beforeEach(async () => {

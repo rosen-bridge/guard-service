@@ -1,16 +1,17 @@
 import { describe, it, expect, vi } from 'vitest';
-import { ETH, ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
+
+import { AssetBalance } from '@rosen-chains/abstract-chain';
 import { BINANCE_CHAIN } from '@rosen-chains/binance';
 import { BITCOIN_CHAIN } from '@rosen-chains/bitcoin';
-import { AssetBalance } from '@rosen-chains/abstract-chain';
+import { ETH, ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
 
 import Configs from '../../src/configs/configs';
-import { SUPPORTED_CHAINS } from '../../src/utils/constants';
 import { TokenHandler } from '../../src/handlers/tokenHandler';
 import { TokenData } from '../../src/types/api';
-import TestBalanceHandler from './testBalanceHandler';
-import ChainHandlerMock from './chainHandler.mock';
+import { SUPPORTED_CHAINS } from '../../src/utils/constants';
 import DatabaseActionMock from '../db/mocked/databaseAction.mock';
+import ChainHandlerMock from './chainHandler.mock';
+import TestBalanceHandler from './testBalanceHandler';
 import * as testData from './testData';
 import {
   mockBalanceEntityToAddressBalance,

@@ -1,8 +1,9 @@
 import { blake2b } from 'blakejs';
-import Configs from '../configs/configs';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { HookHandlerDoneFunction } from 'fastify/types/hooks';
 import { toString as uint8ArrayToString } from 'uint8arrays';
+
+import Configs from '../configs/configs';
 
 const authenticateKey = <T extends FastifyRequest, U extends FastifyReply>(
   req: T,

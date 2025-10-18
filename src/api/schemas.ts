@@ -1,7 +1,11 @@
-import { TObject, TProperties, Type } from '@sinclair/typebox';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
+import { TObject, TProperties, Type } from '@sinclair/typebox';
 import { FastifyBaseLogger, FastifyInstance } from 'fastify';
 import { IncomingMessage, Server, ServerResponse } from 'http';
+
+import { HealthStatusLevel } from '@rosen-bridge/health-check';
+
+import { SortRequest } from '../types/api';
 import {
   DefaultApiLimit,
   DefaultAssetApiLimit,
@@ -9,8 +13,6 @@ import {
   RevenuePeriod,
   SUPPORTED_CHAINS,
 } from '../utils/constants';
-import { SortRequest } from '../types/api';
-import { HealthStatusLevel } from '@rosen-bridge/health-check';
 
 export type FastifySeverInstance = FastifyInstance<
   Server<any, any>, // eslint-disable-line @typescript-eslint/no-explicit-any

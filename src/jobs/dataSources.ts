@@ -1,5 +1,6 @@
-import { dataSource } from '../db/dataSource';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+
+import { dataSource } from '../db/dataSource';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 

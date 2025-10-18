@@ -1,28 +1,29 @@
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import {
   ErgoExplorerNetwork,
   ErgoNodeNetwork,
   ErgoScanner,
 } from '@rosen-bridge/ergo-scanner';
-import { dataSource } from '../db/dataSource';
+import { EvmTxExtractor } from '@rosen-bridge/evm-address-tx-extractor';
+import { EvmRpcNetwork, EvmRpcScanner } from '@rosen-bridge/evm-scanner';
 import { ErgoNetworkType } from '@rosen-bridge/scanner-interfaces';
 import {
   CommitmentExtractor,
   EventTriggerExtractor,
 } from '@rosen-bridge/watcher-data-extractor';
-import GuardsCardanoConfigs from '../configs/guardsCardanoConfigs';
-import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
-import GuardsBitcoinConfigs from '../configs/guardsBitcoinConfigs';
-import GuardsDogeConfigs from '../configs/guardsDogeConfigs';
-import GuardsEthereumConfigs from '../configs/guardsEthereumConfigs';
-import { EvmRpcNetwork, EvmRpcScanner } from '@rosen-bridge/evm-scanner';
-import { EvmTxExtractor } from '@rosen-bridge/evm-address-tx-extractor';
-import { ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
-import GuardsBinanceConfigs from '../configs/guardsBinanceConfigs';
 import { BINANCE_CHAIN } from '@rosen-chains/binance';
-import { TokenHandler } from '../handlers/tokenHandler';
-import GuardsBitcoinRunesConfigs from '../configs/guardsBitcoinRunesConfigs';
 import { NODE_NETWORK } from '@rosen-chains/ergo-node-network';
+import { ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
+
+import GuardsBinanceConfigs from '../configs/guardsBinanceConfigs';
+import GuardsBitcoinConfigs from '../configs/guardsBitcoinConfigs';
+import GuardsBitcoinRunesConfigs from '../configs/guardsBitcoinRunesConfigs';
+import GuardsCardanoConfigs from '../configs/guardsCardanoConfigs';
+import GuardsDogeConfigs from '../configs/guardsDogeConfigs';
+import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
+import GuardsEthereumConfigs from '../configs/guardsEthereumConfigs';
+import { dataSource } from '../db/dataSource';
+import { TokenHandler } from '../handlers/tokenHandler';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 

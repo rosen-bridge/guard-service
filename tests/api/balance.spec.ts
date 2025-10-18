@@ -1,12 +1,13 @@
 import fastify from 'fastify';
+
+import { balanceRoutes } from '../../src/api/balance';
+import { FastifySeverInstance } from '../../src/api/schemas';
+import BalanceHandlerMock from '../handlers/mocked/balanceHandler.mock';
 import {
   mockLockBalances,
   mockColdBalances,
   mockBalancesObj,
 } from './testData';
-import { FastifySeverInstance } from '../../src/api/schemas';
-import BalanceHandlerMock from '../handlers/mocked/balanceHandler.mock';
-import { balanceRoutes } from '../../src/api/balance';
 
 describe('balanceRoutes', () => {
   describe('GET /balance', () => {

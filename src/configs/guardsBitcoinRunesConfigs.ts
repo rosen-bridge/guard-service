@@ -1,11 +1,13 @@
 import config from 'config';
-import { getChainNetworkName } from './configs';
-import { rosenConfig } from './rosenConfig';
+
 import {
   BITCOIN_RUNES_CHAIN,
   BitcoinRunesConfigs,
 } from '@rosen-chains/bitcoin-runes';
+
+import { getChainNetworkName } from './configs';
 import GuardsBitcoinConfigs from './guardsBitcoinConfigs';
+import { rosenConfig } from './rosenConfig';
 
 class GuardsBitcoinRunesConfigs {
   // service configs

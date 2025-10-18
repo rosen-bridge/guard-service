@@ -1,9 +1,9 @@
 import '../../src/bootstrap';
+import Configs from '../../src/configs/configs';
+import { TokenHandler } from '../../src/handlers/tokenHandler';
 import DatabaseActionMock from '../db/mocked/databaseAction.mock';
 import TestConfigs from '../testUtils/testConfigs';
 import * as TestTransactionSerializer from '../transaction/testTransactionSerializer';
-import { TokenHandler } from '../../src/handlers/tokenHandler';
-import Configs from '../../src/configs/configs';
 
 // initialize TokenHandler
 await TokenHandler.init(Configs.tokensPath);

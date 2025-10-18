@@ -1,8 +1,10 @@
 import config from 'config';
+
+import { BINANCE_CHAIN } from '@rosen-chains/binance';
+import { EvmConfigs } from '@rosen-chains/evm';
+
 import { getChainNetworkName, getConfigIntKeyOrDefault } from './configs';
 import { rosenConfig } from './rosenConfig';
-import { EvmConfigs } from '@rosen-chains/evm';
-import { BINANCE_CHAIN } from '@rosen-chains/binance';
 
 class GuardsBinanceConfigs {
   // service configs

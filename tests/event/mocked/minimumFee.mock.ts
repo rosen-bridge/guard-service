@@ -1,4 +1,5 @@
 import { ChainMinimumFee } from '@rosen-bridge/minimum-fee';
+
 import MinimumFeeHandler from '../../../src/handlers/minimumFeeHandler';
 
 /**

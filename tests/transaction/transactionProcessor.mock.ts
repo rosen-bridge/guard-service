@@ -1,4 +1,5 @@
 import { MockInstance } from 'vitest';
+
 import TransactionProcessor from '../../src/transaction/transactionProcessor';
 
 class TransactionProcessorMock {

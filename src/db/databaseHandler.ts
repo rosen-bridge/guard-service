@@ -1,18 +1,19 @@
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import {
   ImpossibleBehavior,
   PaymentTransaction,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
-import { ConfirmedEventEntity } from './entities/confirmedEventEntity';
-import { EventStatus, TransactionStatus } from '../utils/constants';
-import { DatabaseAction } from './databaseAction';
 import { ERGO_CHAIN } from '@rosen-chains/ergo';
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
-import { DuplicateOrder, DuplicateTransaction } from '../utils/errors';
+
 import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
-import { ArbitraryEntity } from './entities/arbitraryEntity';
-import { TransactionEntity } from './entities/transactionEntity';
 import { TokenHandler } from '../handlers/tokenHandler';
+import { EventStatus, TransactionStatus } from '../utils/constants';
+import { DuplicateOrder, DuplicateTransaction } from '../utils/errors';
+import { DatabaseAction } from './databaseAction';
+import { ArbitraryEntity } from './entities/arbitraryEntity';
+import { ConfirmedEventEntity } from './entities/confirmedEventEntity';
+import { TransactionEntity } from './entities/transactionEntity';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 

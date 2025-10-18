@@ -1,10 +1,11 @@
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import {
   AbstractNotification,
   NotificationSeverity,
   NotifyWithSeverity,
 } from '@rosen-bridge/abstract-notification';
 import { DiscordNotification } from '@rosen-bridge/discord-notification';
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+
 import Configs from '../configs/configs';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);

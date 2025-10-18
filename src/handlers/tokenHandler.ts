@@ -1,4 +1,5 @@
 import fs from 'fs';
+
 import { TokenMap } from '@rosen-bridge/tokens';
 
 class TokenHandler {

@@ -1,8 +1,10 @@
 import fastify from 'fastify';
-import { FastifySeverInstance } from '../../src/api/schemas';
-import { eventReprocessRoute } from '../../src/api/reprocess';
-import EventReprocessMock from '../reprocess/mocked/eventReprocess.mock';
+
 import { NotFoundError } from '@rosen-chains/abstract-chain';
+
+import { eventReprocessRoute } from '../../src/api/reprocess';
+import { FastifySeverInstance } from '../../src/api/schemas';
+import EventReprocessMock from '../reprocess/mocked/eventReprocess.mock';
 
 describe('reprocess', () => {
   describe('POST /reprocess', () => {

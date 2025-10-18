@@ -1,28 +1,29 @@
-import DatabaseActionMock from '../db/mocked/databaseAction.mock';
 import {
   ConfirmationStatus,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
-import ChainHandlerMock, {
-  chainHandlerInstance,
-} from '../handlers/chainHandler.mock';
-import {
-  mockErgoPaymentTransaction,
-  mockPaymentTransaction,
-} from '../agreement/testData';
+import { CARDANO_CHAIN } from '@rosen-chains/cardano';
+
+import Configs from '../../src/configs/configs';
+import EventSerializer from '../../src/event/eventSerializer';
 import TransactionProcessor from '../../src/transaction/transactionProcessor';
-import TestConfigs from '../testUtils/testConfigs';
 import {
   EventStatus,
   OrderStatus,
   TransactionStatus,
 } from '../../src/utils/constants';
-import Configs from '../../src/configs/configs';
+import {
+  mockErgoPaymentTransaction,
+  mockPaymentTransaction,
+} from '../agreement/testData';
+import DatabaseActionMock from '../db/mocked/databaseAction.mock';
 import * as EventTestData from '../event/testData';
-import EventSerializer from '../../src/event/eventSerializer';
-import TransactionProcessorMock from './transactionProcessor.mock';
+import ChainHandlerMock, {
+  chainHandlerInstance,
+} from '../handlers/chainHandler.mock';
 import NotificationHandlerMock from '../handlers/notificationHandler.mock';
-import { CARDANO_CHAIN } from '@rosen-chains/cardano';
+import TestConfigs from '../testUtils/testConfigs';
+import TransactionProcessorMock from './transactionProcessor.mock';
 
 describe('TransactionProcessor', () => {
   const currentTimeStampSeconds = Math.round(

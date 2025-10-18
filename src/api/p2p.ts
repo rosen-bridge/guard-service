@@ -1,10 +1,12 @@
-import { apiCallBack } from '../communication/callbackUtils';
-import Configs from '../configs/configs';
 import { Type } from '@sinclair/typebox';
-import { FastifySeverInstance, MessageResponseSchema } from './schemas';
+
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
-import RosenDialer from '../communication/rosenDialer';
 import { RosenDialerNode } from '@rosen-bridge/dialer';
+
+import { apiCallBack } from '../communication/callbackUtils';
+import RosenDialer from '../communication/rosenDialer';
+import Configs from '../configs/configs';
+import { FastifySeverInstance, MessageResponseSchema } from './schemas';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 

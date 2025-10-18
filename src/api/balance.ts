@@ -1,12 +1,13 @@
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+
+import BalanceHandler from '../handlers/balanceHandler';
+import { LockBalance } from '../types/api';
 import {
   BalanceQuerySchema,
   FastifySeverInstance,
   LockBalanceSchema,
   MessageResponseSchema,
 } from './schemas';
-import BalanceHandler from '../handlers/balanceHandler';
-import { LockBalance } from '../types/api';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 

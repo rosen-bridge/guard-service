@@ -1,23 +1,24 @@
 import { AssetBalance, TransactionType } from '@rosen-chains/abstract-chain';
+import { BITCOIN_CHAIN } from '@rosen-chains/bitcoin';
+import { CARDANO_CHAIN } from '@rosen-chains/cardano';
+import { ERGO_CHAIN } from '@rosen-chains/ergo';
+
+import ColdStorage from '../../src/coldStorage/coldStorage';
 import { EventStatus, TransactionStatus } from '../../src/utils/constants';
+import TxAgreementMock from '../agreement/mocked/txAgreement.mock';
 import {
   mockErgoPaymentTransaction,
   mockPaymentTransaction,
 } from '../agreement/testData';
 import DatabaseActionMock from '../db/mocked/databaseAction.mock';
+import { mockTokenPaymentFromErgoEvent } from '../event/testData';
 import ChainHandlerMock, {
   chainHandlerInstance,
 } from '../handlers/chainHandler.mock';
-import ColdStorage from '../../src/coldStorage/coldStorage';
-import ColdStorageMock from './coldStorage.mock';
-import { CARDANO_CHAIN } from '@rosen-chains/cardano';
-import TxAgreementMock from '../agreement/mocked/txAgreement.mock';
-import { ERGO_CHAIN } from '@rosen-chains/ergo';
-import { mockGuardTurn } from '../utils/mocked/guardTurn.mock';
 import TestConfigs from '../testUtils/testConfigs';
 import TestUtils from '../testUtils/testUtils';
-import { mockTokenPaymentFromErgoEvent } from '../event/testData';
-import { BITCOIN_CHAIN } from '@rosen-chains/bitcoin';
+import { mockGuardTurn } from '../utils/mocked/guardTurn.mock';
+import ColdStorageMock from './coldStorage.mock';
 
 describe('ColdStorage', () => {
   describe('chainColdStorageProcess', () => {

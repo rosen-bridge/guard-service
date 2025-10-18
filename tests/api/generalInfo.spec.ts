@@ -1,9 +1,11 @@
-import { HealthStatusLevel } from '@rosen-bridge/health-check';
-import { guardInfo } from './testData';
-import ChainHandlerMock from '../handlers/chainHandler.mock';
-import { generalInfoRoute } from '../../src/api/generalInfo';
 import fastify from 'fastify';
+
+import { HealthStatusLevel } from '@rosen-bridge/health-check';
+
+import { generalInfoRoute } from '../../src/api/generalInfo';
 import { FastifySeverInstance } from '../../src/api/schemas';
+import ChainHandlerMock from '../handlers/chainHandler.mock';
+import { guardInfo } from './testData';
 
 describe('generalInfo', () => {
   describe('GET /info', () => {

@@ -1,6 +1,6 @@
 import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
-import { TokenData } from '../types/api';
 import { TokenHandler } from '../handlers/tokenHandler';
+import { TokenData } from '../types/api';
 
 /**
  * gets token data from tokenMap

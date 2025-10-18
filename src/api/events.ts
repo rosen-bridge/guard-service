@@ -1,6 +1,9 @@
+import { TransactionType } from '@rosen-chains/abstract-chain';
+
+import { DatabaseAction } from '../db/databaseAction';
 import { Event, OngoingEvents, TokenData } from '../types/api';
 import { EventStatus } from '../utils/constants';
-import { DatabaseAction } from '../db/databaseAction';
+import { getTokenData } from '../utils/getTokenData';
 import {
   EventsQuerySchema,
   EventsHistoryResponseSchema,
@@ -8,8 +11,6 @@ import {
   MessageResponseSchema,
   OngoingEventsResponseSchema,
 } from './schemas';
-import { TransactionType } from '@rosen-chains/abstract-chain';
-import { getTokenData } from '../utils/getTokenData';
 
 /**
  * setup event history route

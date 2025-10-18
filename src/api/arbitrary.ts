@@ -1,15 +1,16 @@
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+import { ChainUtils } from '@rosen-chains/abstract-chain';
+
+import Configs from '../configs/configs';
+import DatabaseHandler from '../db/databaseHandler';
+import { authenticateKey } from '../utils/authentication';
+import { SUPPORTED_CHAINS } from '../utils/constants';
+import { DuplicateOrder } from '../utils/errors';
 import {
   FastifySeverInstance,
   MessageResponseSchema,
   OrderQuerySchema,
 } from './schemas';
-import Configs from '../configs/configs';
-import DatabaseHandler from '../db/databaseHandler';
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
-import { DuplicateOrder } from '../utils/errors';
-import { authenticateKey } from '../utils/authentication';
-import { SUPPORTED_CHAINS } from '../utils/constants';
-import { ChainUtils } from '@rosen-chains/abstract-chain';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 

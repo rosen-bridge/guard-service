@@ -1,17 +1,19 @@
+import { spawn } from 'child_process';
+import * as crypto from 'crypto';
+
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+import { RosenDialerNode } from '@rosen-bridge/dialer';
 import {
   EcdsaSigner,
   EddsaSigner,
   StatusEnum,
   TssSigner,
 } from '@rosen-bridge/tss';
-import * as crypto from 'crypto';
+
+import RosenDialer from '../communication/rosenDialer';
 import Configs from '../configs/configs';
-import { spawn } from 'child_process';
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { TssAlgorithms } from '../utils/constants';
 import DetectionHandler from './detectionHandler';
-import RosenDialer from '../communication/rosenDialer';
-import { RosenDialerNode } from '@rosen-bridge/dialer';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 

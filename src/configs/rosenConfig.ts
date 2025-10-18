@@ -1,6 +1,7 @@
 import fs from 'fs';
-import Configs from './configs';
+
 import { SUPPORTED_CHAINS } from '../utils/constants';
+import Configs from './configs';
 
 class ContractConfig {
   readonly cleanupNFT: string;

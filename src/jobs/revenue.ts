@@ -1,14 +1,15 @@
-import Configs from '../configs/configs';
-import { DatabaseAction } from '../db/databaseAction';
-import ChainHandler from '../handlers/chainHandler';
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import {
   ImpossibleBehavior,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
-import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
 import { ERG } from '@rosen-chains/ergo';
+
+import Configs from '../configs/configs';
+import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
+import { DatabaseAction } from '../db/databaseAction';
+import ChainHandler from '../handlers/chainHandler';
 import { RevenueType } from '../utils/constants';
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 

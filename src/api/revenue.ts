@@ -1,6 +1,10 @@
-import { TokenChartData } from '../types/api';
-import { DatabaseAction } from '../db/databaseAction';
 import { groupBy, reduce } from 'lodash-es';
+
+import { ERGO_CHAIN } from '@rosen-chains/ergo';
+
+import { DatabaseAction } from '../db/databaseAction';
+import { TokenChartData } from '../types/api';
+import { getTokenData } from '../utils/getTokenData';
 import { extractRevenueFromView } from '../utils/revenue';
 import {
   FastifySeverInstance,
@@ -10,8 +14,6 @@ import {
   RevenueHistoryQuerySchema,
   RevenueHistoryResponseSchema,
 } from './schemas';
-import { ERGO_CHAIN } from '@rosen-chains/ergo';
-import { getTokenData } from '../utils/getTokenData';
 
 /**
  * setup revenue history route

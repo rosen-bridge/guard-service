@@ -1,26 +1,27 @@
-import TestEventSynchronization from './testEventSynchronization';
-import * as EventTestData from '../event/testData';
-import TestConfigs from '../testUtils/testConfigs';
-import DatabaseActionMock from '../db/mocked/databaseAction.mock';
-import { EventStatus, TransactionStatus } from '../../src/utils/constants';
-import {
-  mockIsEventConfirmedEnough,
-  mockVerifyEvent,
-} from '../verification/mocked/eventVerifier.mock';
-import { mockGetEventFeeConfig } from '../event/mocked/minimumFee.mock';
-import EventSerializer from '../../src/event/eventSerializer';
-import GuardPkHandler from '../../src/handlers/guardPkHandler';
-import TestUtils from '../testUtils/testUtils';
-import { mockPaymentTransaction } from '../agreement/testData';
 import {
   ConfirmationStatus,
   PaymentOrder,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
-import { SynchronizationMessageTypes } from '../../src/synchronization/interfaces';
-import ChainHandlerMock from '../handlers/chainHandler.mock';
-import { mockCreateEventPaymentOrder } from '../event/mocked/eventOrder.mock';
+
 import Configs from '../../src/configs/configs';
+import EventSerializer from '../../src/event/eventSerializer';
+import GuardPkHandler from '../../src/handlers/guardPkHandler';
+import { SynchronizationMessageTypes } from '../../src/synchronization/interfaces';
+import { EventStatus, TransactionStatus } from '../../src/utils/constants';
+import { mockPaymentTransaction } from '../agreement/testData';
+import DatabaseActionMock from '../db/mocked/databaseAction.mock';
+import { mockCreateEventPaymentOrder } from '../event/mocked/eventOrder.mock';
+import { mockGetEventFeeConfig } from '../event/mocked/minimumFee.mock';
+import * as EventTestData from '../event/testData';
+import ChainHandlerMock from '../handlers/chainHandler.mock';
+import TestConfigs from '../testUtils/testConfigs';
+import TestUtils from '../testUtils/testUtils';
+import {
+  mockIsEventConfirmedEnough,
+  mockVerifyEvent,
+} from '../verification/mocked/eventVerifier.mock';
+import TestEventSynchronization from './testEventSynchronization';
 
 describe('EventSynchronization', () => {
   describe('addEventToQueue', () => {

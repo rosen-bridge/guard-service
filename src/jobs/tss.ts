@@ -1,5 +1,6 @@
-import Configs from '../configs/configs';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+
+import Configs from '../configs/configs';
 import TssHandler from '../handlers/tssHandler';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);

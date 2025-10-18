@@ -1,4 +1,5 @@
 import config from 'config';
+
 import { getConfigIntKeyOrDefault } from './configs';
 
 class RoseNetNodeConfig {

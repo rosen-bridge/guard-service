@@ -1,8 +1,10 @@
 import config from 'config';
+
+import { ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
+import { EvmConfigs } from '@rosen-chains/evm';
+
 import { getChainNetworkName, getConfigIntKeyOrDefault } from './configs';
 import { rosenConfig } from './rosenConfig';
-import { EvmConfigs } from '@rosen-chains/evm';
-import { ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
 
 class GuardsEthereumConfigs {
   // service configs

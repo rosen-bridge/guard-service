@@ -1,4 +1,5 @@
 import { Mock } from 'vitest';
+
 import { NotificationHandler } from '../../src/handlers/notificationHandler';
 
 class NotificationHandlerMock {

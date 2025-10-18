@@ -1,7 +1,9 @@
+import { Mock } from 'vitest';
+
 import { AbstractChain } from '@rosen-chains/abstract-chain';
 import { CARDANO_CHAIN } from '@rosen-chains/cardano';
 import { ErgoChain, ERGO_CHAIN } from '@rosen-chains/ergo';
-import { Mock } from 'vitest';
+
 import GuardsCardanoConfigs from '../../src/configs/guardsCardanoConfigs';
 import GuardsErgoConfigs from '../../src/configs/guardsErgoConfigs';
 

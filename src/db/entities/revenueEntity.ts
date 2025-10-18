@@ -6,8 +6,9 @@ import {
   PrimaryGeneratedColumn,
   Relation,
 } from '@rosen-bridge/extended-typeorm';
-import { BigIntValueTransformer } from '../transformers';
 import { EventTriggerEntity } from '@rosen-bridge/watcher-data-extractor';
+
+import { BigIntValueTransformer } from '../transformers';
 
 @Entity()
 export class RevenueEntity {

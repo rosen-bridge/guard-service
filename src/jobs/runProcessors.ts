@@ -1,17 +1,18 @@
-import EventProcessor from '../event/eventProcessor';
-import Configs from '../configs/configs';
-import TransactionProcessor from '../transaction/transactionProcessor';
-import GuardTurn from '../utils/guardTurn';
-import ColdStorage from '../coldStorage/coldStorage';
-import ColdStorageConfig from '../coldStorage/coldStorageConfig';
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+
 import TxAgreement from '../agreement/txAgreement';
 import ArbitraryProcessor from '../arbitrary/arbitraryProcessor';
-import EventSynchronization from '../synchronization/eventSynchronization';
-import DetectionHandler from '../handlers/detectionHandler';
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+import ColdStorage from '../coldStorage/coldStorage';
+import ColdStorageConfig from '../coldStorage/coldStorageConfig';
+import Configs from '../configs/configs';
+import EventProcessor from '../event/eventProcessor';
 import BalanceHandler from '../handlers/balanceHandler';
-import IntervalTimer from '../utils/intervalTimer';
+import DetectionHandler from '../handlers/detectionHandler';
+import EventSynchronization from '../synchronization/eventSynchronization';
+import TransactionProcessor from '../transaction/transactionProcessor';
 import { ChainConfigKey, SUPPORTED_CHAINS } from '../utils/constants';
+import GuardTurn from '../utils/guardTurn';
+import IntervalTimer from '../utils/intervalTimer';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 

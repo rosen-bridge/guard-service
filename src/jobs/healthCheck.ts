@@ -1,7 +1,8 @@
-import { HealthCheck } from '@rosen-bridge/health-check';
-import { getHealthCheck } from '../guard/healthCheck';
-import Configs from '../configs/configs';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+import { HealthCheck } from '@rosen-bridge/health-check';
+
+import Configs from '../configs/configs';
+import { getHealthCheck } from '../guard/healthCheck';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 

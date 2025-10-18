@@ -1,7 +1,7 @@
-import DatabaseActionMock from './mocked/databaseAction.mock';
-import DatabaseHandlerMock from './mocked/databaseAction.mock';
-import * as EventTestData from '../event/testData';
+import { TransactionType } from '@rosen-chains/abstract-chain';
 import { ERGO_CHAIN } from '@rosen-chains/ergo';
+
+import { DatabaseAction } from '../../src/db/databaseAction';
 import { SortRequest } from '../../src/types/api';
 import {
   EventStatus,
@@ -9,7 +9,10 @@ import {
   RevenueType,
   TransactionStatus,
 } from '../../src/utils/constants';
-import { DatabaseAction } from '../../src/db/databaseAction';
+import * as TxTestData from '../agreement/testData';
+import * as EventTestData from '../event/testData';
+import TestConfigs from '../testUtils/testConfigs';
+import TestUtils from '../testUtils/testUtils';
 import {
   insertCompletedEvent,
   insertEventsWithAmount,
@@ -17,10 +20,7 @@ import {
   insertRevenueDataWithDifferentNetworks,
   insertRevenueDataWithTimestamps,
 } from './databaseTestUtils';
-import * as TxTestData from '../agreement/testData';
-import { TransactionType } from '@rosen-chains/abstract-chain';
-import TestConfigs from '../testUtils/testConfigs';
-import TestUtils from '../testUtils/testUtils';
+import DatabaseActionMock from './mocked/databaseAction.mock';
 
 describe('DatabaseActions', () => {
   beforeEach(async () => {
@@ -53,7 +53,7 @@ describe('DatabaseActions', () => {
       // insert 6 mocked events
       //  completed event
       const completedEvent = EventTestData.mockEventTrigger().event;
-      await DatabaseHandlerMock.insertEventRecord(
+      await DatabaseActionMock.insertEventRecord(
         completedEvent,
         EventStatus.completed,
         'box_serialized',
@@ -68,19 +68,19 @@ describe('DatabaseActions', () => {
       );
       //  unspent event with timeout status
       const timeoutEvent = EventTestData.mockEventTrigger().event;
-      await DatabaseHandlerMock.insertEventRecord(
+      await DatabaseActionMock.insertEventRecord(
         timeoutEvent,
         EventStatus.timeout,
       );
       //  rejected event
       const rejectedEvent = EventTestData.mockEventTrigger().event;
-      await DatabaseHandlerMock.insertEventRecord(
+      await DatabaseActionMock.insertEventRecord(
         rejectedEvent,
         EventStatus.rejected,
       );
       //  timeout event with spendTxId
       const spentTimeoutEvent = EventTestData.mockEventTrigger().event;
-      await DatabaseHandlerMock.insertEventRecord(
+      await DatabaseActionMock.insertEventRecord(
         spentTimeoutEvent,
         EventStatus.timeout,
         'box_serialized',
@@ -95,13 +95,13 @@ describe('DatabaseActions', () => {
       );
       //  unspent event with pending-payment status
       const unspentEvent = EventTestData.mockEventTrigger().event;
-      await DatabaseHandlerMock.insertEventRecord(
+      await DatabaseActionMock.insertEventRecord(
         unspentEvent,
         EventStatus.pendingPayment,
       );
       //  unconfirmed event
       const unconfirmedEvent = EventTestData.mockEventTrigger().event;
-      await DatabaseHandlerMock.insertOnlyEventDataRecord(unconfirmedEvent);
+      await DatabaseActionMock.insertOnlyEventDataRecord(unconfirmedEvent);
 
       // run test
       const events = await DatabaseAction.getInstance().getEvents(
@@ -144,7 +144,7 @@ describe('DatabaseActions', () => {
       // insert 6 mocked events
       //  completed event
       const completedEvent = EventTestData.mockEventTrigger().event;
-      await DatabaseHandlerMock.insertEventRecord(
+      await DatabaseActionMock.insertEventRecord(
         completedEvent,
         EventStatus.completed,
         'box_serialized',
@@ -159,19 +159,19 @@ describe('DatabaseActions', () => {
       );
       //  unspent event with timeout status
       const timeoutEvent = EventTestData.mockEventTrigger().event;
-      await DatabaseHandlerMock.insertEventRecord(
+      await DatabaseActionMock.insertEventRecord(
         timeoutEvent,
         EventStatus.timeout,
       );
       //  rejected event
       const rejectedEvent = EventTestData.mockEventTrigger().event;
-      await DatabaseHandlerMock.insertEventRecord(
+      await DatabaseActionMock.insertEventRecord(
         rejectedEvent,
         EventStatus.rejected,
       );
       //  timeout event with spendTxId
       const spentTimeoutEvent = EventTestData.mockEventTrigger().event;
-      await DatabaseHandlerMock.insertEventRecord(
+      await DatabaseActionMock.insertEventRecord(
         spentTimeoutEvent,
         EventStatus.timeout,
         'box_serialized',
@@ -186,13 +186,13 @@ describe('DatabaseActions', () => {
       );
       //  unspent event with pending-payment status
       const unspentEvent = EventTestData.mockEventTrigger().event;
-      await DatabaseHandlerMock.insertEventRecord(
+      await DatabaseActionMock.insertEventRecord(
         unspentEvent,
         EventStatus.pendingPayment,
       );
       //  unconfirmed event
       const unconfirmedEvent = EventTestData.mockEventTrigger().event;
-      await DatabaseHandlerMock.insertOnlyEventDataRecord(unconfirmedEvent);
+      await DatabaseActionMock.insertOnlyEventDataRecord(unconfirmedEvent);
 
       // run test
       const events = await DatabaseAction.getInstance().getEvents(

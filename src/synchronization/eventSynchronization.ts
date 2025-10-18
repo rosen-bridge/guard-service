@@ -1,6 +1,10 @@
-import { GuardDetection } from '@rosen-bridge/detection';
 import { Semaphore } from 'await-semaphore';
+import { isEqual, sampleSize, countBy, shuffle } from 'lodash-es';
+
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+import { Communicator } from '@rosen-bridge/communication';
+import { GuardDetection } from '@rosen-bridge/detection';
+import { RosenDialerNode } from '@rosen-bridge/dialer';
 import {
   ConfirmationStatus,
   ImpossibleBehavior,
@@ -8,28 +12,26 @@ import {
   SigningStatus,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
-import { isEqual, sampleSize, countBy, shuffle } from 'lodash-es';
+
+import RosenDialer from '../communication/rosenDialer';
+import Configs from '../configs/configs';
+import { DatabaseAction } from '../db/databaseAction';
+import EventOrder from '../event/eventOrder';
+import EventSerializer from '../event/eventSerializer';
+import ChainHandler from '../handlers/chainHandler';
+import DetectionHandler from '../handlers/detectionHandler';
+import GuardPkHandler from '../handlers/guardPkHandler';
+import MinimumFeeHandler from '../handlers/minimumFeeHandler';
+import * as TransactionSerializer from '../transaction/transactionSerializer';
 import { EventStatus, TransactionStatus } from '../utils/constants';
+import GuardTurn from '../utils/guardTurn';
+import EventVerifier from '../verification/eventVerifier';
 import {
   ActiveSync,
   SynchronizationMessageTypes,
   SyncRequest,
   SyncResponse,
 } from './interfaces';
-import * as TransactionSerializer from '../transaction/transactionSerializer';
-import Configs from '../configs/configs';
-import GuardTurn from '../utils/guardTurn';
-import GuardPkHandler from '../handlers/guardPkHandler';
-import { DatabaseAction } from '../db/databaseAction';
-import EventVerifier from '../verification/eventVerifier';
-import EventSerializer from '../event/eventSerializer';
-import MinimumFeeHandler from '../handlers/minimumFeeHandler';
-import ChainHandler from '../handlers/chainHandler';
-import EventOrder from '../event/eventOrder';
-import DetectionHandler from '../handlers/detectionHandler';
-import { RosenDialerNode } from '@rosen-bridge/dialer';
-import RosenDialer from '../communication/rosenDialer';
-import { Communicator } from '@rosen-bridge/communication';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 

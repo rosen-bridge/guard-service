@@ -1,3 +1,4 @@
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import {
   EsploraAssetHealthCheckParam,
   CardanoBlockFrostAssetHealthCheckParam,
@@ -6,21 +7,39 @@ import {
   ErgoNodeAssetHealthCheckParam,
   EvmRpcAssetHealthCheckParam,
 } from '@rosen-bridge/asset-check';
+import {
+  EventInfo,
+  EventProgressHealthCheckParam,
+} from '@rosen-bridge/event-progress-check';
 import { HealthCheck } from '@rosen-bridge/health-check';
 import { ErgoNodeSyncHealthCheckParam } from '@rosen-bridge/node-sync-check';
 import { ScannerSyncHealthCheckParam } from '@rosen-bridge/scanner-sync-check';
-
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+import { LastSavedBlock } from '@rosen-bridge/scanner-sync-check/dist/config';
+import {
+  TxInfo,
+  TxProgressHealthCheckParam,
+} from '@rosen-bridge/tx-progress-check';
+import { NotFoundError } from '@rosen-chains/abstract-chain';
+import { BINANCE_CHAIN, BNB } from '@rosen-chains/binance';
+import { BITCOIN_CHAIN, BTC } from '@rosen-chains/bitcoin';
+import { BITCOIN_RUNES_CHAIN } from '@rosen-chains/bitcoin-runes';
 import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
 import { BLOCKFROST_NETWORK } from '@rosen-chains/cardano-blockfrost-network';
 import { KOIOS_NETWORK } from '@rosen-chains/cardano-koios-network';
 import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
 import { EXPLORER_NETWORK } from '@rosen-chains/ergo-explorer-network';
 import { NODE_NETWORK } from '@rosen-chains/ergo-node-network';
+import { ETH, ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
+
 import Configs from '../configs/configs';
+import GuardsBinanceConfigs from '../configs/guardsBinanceConfigs';
+import GuardsBitcoinConfigs from '../configs/guardsBitcoinConfigs';
 import GuardsCardanoConfigs from '../configs/guardsCardanoConfigs';
 import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
+import GuardsEthereumConfigs from '../configs/guardsEthereumConfigs';
 import { rosenConfig } from '../configs/rosenConfig';
+import { DatabaseAction } from '../db/databaseAction';
+import { NotificationHandler } from '../handlers/notificationHandler';
 import {
   ADA_DECIMALS,
   ERG_DECIMALS,
@@ -29,25 +48,6 @@ import {
   BINANCE_BLOCK_TIME,
   ERGO_BLOCK_TIME,
 } from '../utils/constants';
-import GuardsBitcoinConfigs from '../configs/guardsBitcoinConfigs';
-import { BITCOIN_CHAIN, BTC } from '@rosen-chains/bitcoin';
-import { DatabaseAction } from '../db/databaseAction';
-import { NotFoundError } from '@rosen-chains/abstract-chain';
-import { NotificationHandler } from '../handlers/notificationHandler';
-import {
-  TxInfo,
-  TxProgressHealthCheckParam,
-} from '@rosen-bridge/tx-progress-check';
-import GuardsEthereumConfigs from '../configs/guardsEthereumConfigs';
-import { ETH, ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
-import GuardsBinanceConfigs from '../configs/guardsBinanceConfigs';
-import { BINANCE_CHAIN, BNB } from '@rosen-chains/binance';
-import {
-  EventInfo,
-  EventProgressHealthCheckParam,
-} from '@rosen-bridge/event-progress-check';
-import { BITCOIN_RUNES_CHAIN } from '@rosen-chains/bitcoin-runes';
-import { LastSavedBlock } from '@rosen-bridge/scanner-sync-check/dist/config';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 let healthCheck: HealthCheck | undefined;

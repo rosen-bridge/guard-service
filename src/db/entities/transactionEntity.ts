@@ -5,6 +5,7 @@ import {
   ManyToOne,
   Relation,
 } from '@rosen-bridge/extended-typeorm';
+
 import { ArbitraryEntity } from './arbitraryEntity';
 import { ConfirmedEventEntity } from './confirmedEventEntity';
 

@@ -1,3 +1,5 @@
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+
 import TssHandler from '../handlers/tssHandler';
 import {
   FastifySeverInstance,
@@ -5,7 +7,6 @@ import {
   TssCallbackParams,
   TssCallbackSchema,
 } from './schemas';
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 

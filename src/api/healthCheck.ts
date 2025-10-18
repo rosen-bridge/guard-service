@@ -1,4 +1,5 @@
 import { Type } from '@sinclair/typebox';
+
 import { getHealthCheck } from '../guard/healthCheck';
 import {
   FastifySeverInstance,

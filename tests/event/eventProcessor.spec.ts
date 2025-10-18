@@ -1,26 +1,27 @@
-import DatabaseActionMock from '../db/mocked/databaseAction.mock';
-import EventProcessor from '../../src/event/eventProcessor';
-import {
-  feeRatioDivisor,
-  mockEventTrigger,
-  mockToErgoEventTrigger,
-  rsnRatioDivisor,
-} from './testData';
-import {
-  mockIsEventConfirmedEnough,
-  mockVerifyEvent,
-} from '../verification/mocked/eventVerifier.mock';
-import { EventStatus, TransactionStatus } from '../../src/utils/constants';
+import { mockPaymentTransaction } from 'tests/agreement/testData';
+
+import { ChainMinimumFee } from '@rosen-bridge/minimum-fee';
 import {
   EventTrigger,
   NotEnoughAssetsError,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
+import { ErgoTransaction } from '@rosen-chains/ergo';
+
 import Configs from '../../src/configs/configs';
+import EventProcessor from '../../src/event/eventProcessor';
 import EventSerializer from '../../src/event/eventSerializer';
-import { ChainMinimumFee } from '@rosen-bridge/minimum-fee';
-import { mockGetEventFeeConfig } from './mocked/minimumFee.mock';
+import { EventStatus, TransactionStatus } from '../../src/utils/constants';
+import TxAgreementMock from '../agreement/mocked/txAgreement.mock';
+import DatabaseActionMock from '../db/mocked/databaseAction.mock';
 import ChainHandlerMock from '../handlers/chainHandler.mock';
+import NotificationHandlerMock from '../handlers/notificationHandler.mock';
+import TestConfigs from '../testUtils/testConfigs';
+import { mockGuardTurn } from '../utils/mocked/guardTurn.mock';
+import {
+  mockIsEventConfirmedEnough,
+  mockVerifyEvent,
+} from '../verification/mocked/eventVerifier.mock';
 import {
   mockGetEventBox,
   mockGetEventValidCommitments,
@@ -30,12 +31,13 @@ import {
   mockEventRewardOrder,
   mockEventSinglePayment,
 } from './mocked/eventOrder.mock';
-import TxAgreementMock from '../agreement/mocked/txAgreement.mock';
-import { ErgoTransaction } from '@rosen-chains/ergo';
-import { mockGuardTurn } from '../utils/mocked/guardTurn.mock';
-import TestConfigs from '../testUtils/testConfigs';
-import { mockPaymentTransaction } from 'tests/agreement/testData';
-import NotificationHandlerMock from '../handlers/notificationHandler.mock';
+import { mockGetEventFeeConfig } from './mocked/minimumFee.mock';
+import {
+  feeRatioDivisor,
+  mockEventTrigger,
+  mockToErgoEventTrigger,
+  rsnRatioDivisor,
+} from './testData';
 
 describe('EventProcessor', () => {
   describe('processScannedEvents', () => {

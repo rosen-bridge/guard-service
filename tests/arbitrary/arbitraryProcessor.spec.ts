@@ -1,20 +1,22 @@
+import { MockInstance } from 'vitest';
+
 import {
   NotEnoughAssetsError,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
-import { MockInstance } from 'vitest';
-import TestArbitraryProcessor from './testArbitraryProcessor';
+import { CARDANO_CHAIN } from '@rosen-chains/cardano';
+import { ErgoTransaction, ERGO_CHAIN } from '@rosen-chains/ergo';
+
+import Configs from '../../src/configs/configs';
 import { OrderStatus } from '../../src/utils/constants';
 import TxAgreementMock from '../agreement/mocked/txAgreement.mock';
 import DatabaseActionMock from '../db/mocked/databaseAction.mock';
+import ChainHandlerMock from '../handlers/chainHandler.mock';
 import NotificationHandlerMock from '../handlers/notificationHandler.mock';
 import TestConfigs from '../testUtils/testConfigs';
 import { mockGuardTurn } from '../utils/mocked/guardTurn.mock';
+import TestArbitraryProcessor from './testArbitraryProcessor';
 import { order, orderJson } from './testData';
-import ChainHandlerMock from '../handlers/chainHandler.mock';
-import { ErgoTransaction, ERGO_CHAIN } from '@rosen-chains/ergo';
-import { CARDANO_CHAIN } from '@rosen-chains/cardano';
-import Configs from '../../src/configs/configs';
 
 describe(`TestArbitraryProcessor`, () => {
   describe(`processArbitraryOrders`, () => {

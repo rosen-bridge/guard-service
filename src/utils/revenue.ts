@@ -1,11 +1,13 @@
+import { TokenInfo } from '@rosen-chains/abstract-chain';
 import { ERGO_CHAIN } from '@rosen-chains/ergo';
+
+import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
 import { RevenueEntity } from '../db/entities/revenueEntity';
 import { RevenueView } from '../db/entities/revenueView';
-import { RevenueHistory, TokenData } from '../types/api';
-import { TokenInfo } from '@rosen-chains/abstract-chain';
-import { RevenueType } from './constants';
-import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
 import { TokenHandler } from '../handlers/tokenHandler';
+import { RevenueHistory, TokenData } from '../types/api';
+import { RevenueType } from './constants';
+
 /**
  * Extracts the revenue from the revenue view
  * @param events

@@ -1,4 +1,5 @@
 import { Mock } from 'vitest';
+
 import BalanceHandler from '../../../src/handlers/balanceHandler';
 
 class BalanceHandlerMock {

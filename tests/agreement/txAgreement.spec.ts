@@ -1,25 +1,27 @@
+import { cloneDeep } from 'lodash-es';
+
 import { TransactionType } from '@rosen-chains/abstract-chain';
-import TestConfigs from '../testUtils/testConfigs';
-import TestTxAgreement from './testTxAgreement';
-import { mockPaymentTransaction } from './testData';
-import GuardTurn from '../../src/utils/guardTurn';
-import RequestVerifier from '../../src/verification/requestVerifier';
-import TestUtils from '../testUtils/testUtils';
-import DatabaseActionMock from '../db/mocked/databaseAction.mock';
+import { CARDANO_CHAIN } from '@rosen-chains/cardano';
+
 import {
   AgreementMessageTypes,
   ApprovedCandidate,
 } from '../../src/agreement/interfaces';
-import * as EventTestData from '../event/testData';
 import EventSerializer from '../../src/event/eventSerializer';
 import {
   EventStatus,
   OrderStatus,
   TransactionStatus,
 } from '../../src/utils/constants';
-import { cloneDeep } from 'lodash-es';
+import GuardTurn from '../../src/utils/guardTurn';
+import RequestVerifier from '../../src/verification/requestVerifier';
 import TransactionVerifier from '../../src/verification/transactionVerifier';
-import { CARDANO_CHAIN } from '@rosen-chains/cardano';
+import DatabaseActionMock from '../db/mocked/databaseAction.mock';
+import * as EventTestData from '../event/testData';
+import TestConfigs from '../testUtils/testConfigs';
+import TestUtils from '../testUtils/testUtils';
+import { mockPaymentTransaction } from './testData';
+import TestTxAgreement from './testTxAgreement';
 
 describe('TxAgreement', () => {
   describe('addTransactionToQueue', () => {

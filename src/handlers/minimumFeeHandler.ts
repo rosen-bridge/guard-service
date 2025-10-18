@@ -1,13 +1,14 @@
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import {
   ChainMinimumFee,
   ErgoNetworkType,
   MinimumFeeBox,
 } from '@rosen-bridge/minimum-fee';
 import { TokenMap } from '@rosen-bridge/tokens';
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { EventTrigger } from '@rosen-chains/abstract-chain';
 import { ERGO_CHAIN } from '@rosen-chains/ergo';
 import { NODE_NETWORK } from '@rosen-chains/ergo-node-network';
+
 import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
 import { rosenConfig } from '../configs/rosenConfig';
 import { TokenHandler } from './tokenHandler';

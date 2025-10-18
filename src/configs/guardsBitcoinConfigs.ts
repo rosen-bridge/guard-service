@@ -1,7 +1,9 @@
 import config from 'config';
+
+import { BITCOIN_CHAIN, BitcoinConfigs } from '@rosen-chains/bitcoin';
+
 import { getChainNetworkName, getConfigIntKeyOrDefault } from './configs';
 import { rosenConfig } from './rosenConfig';
-import { BITCOIN_CHAIN, BitcoinConfigs } from '@rosen-chains/bitcoin';
 
 class GuardsBitcoinConfigs {
   // service configs

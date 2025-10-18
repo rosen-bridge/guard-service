@@ -1,30 +1,31 @@
-import RequestVerifier from '../../src/verification/requestVerifier';
-import {
-  feeRatioDivisor,
-  mockEventTrigger,
-  rsnRatioDivisor,
-} from '../event/testData';
 import {
   ChainUtils,
   PaymentOrder,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
-import { mockPaymentTransaction } from '../agreement/testData';
+
 import EventSerializer from '../../src/event/eventSerializer';
-import { mockGetEventFeeConfig } from '../event/mocked/minimumFee.mock';
-import {
-  mockIsEventConfirmedEnough,
-  mockIsEventPendingToType,
-  mockVerifyEvent,
-} from './mocked/eventVerifier.mock';
-import TransactionVerifier from '../../src/verification/transactionVerifier';
-import DatabaseActionMock from '../db/mocked/databaseAction.mock';
 import {
   EventStatus,
   OrderStatus,
   TransactionStatus,
 } from '../../src/utils/constants';
+import RequestVerifier from '../../src/verification/requestVerifier';
+import TransactionVerifier from '../../src/verification/transactionVerifier';
+import { mockPaymentTransaction } from '../agreement/testData';
+import DatabaseActionMock from '../db/mocked/databaseAction.mock';
+import { mockGetEventFeeConfig } from '../event/mocked/minimumFee.mock';
+import {
+  feeRatioDivisor,
+  mockEventTrigger,
+  rsnRatioDivisor,
+} from '../event/testData';
 import TestUtils from '../testUtils/testUtils';
+import {
+  mockIsEventConfirmedEnough,
+  mockIsEventPendingToType,
+  mockVerifyEvent,
+} from './mocked/eventVerifier.mock';
 
 describe('RequestVerifier', () => {
   describe('verifyEventTransactionRequest', () => {

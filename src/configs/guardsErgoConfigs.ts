@@ -1,9 +1,11 @@
 import config from 'config';
+
+import { ERGO_CHAIN, ErgoConfigs } from '@rosen-chains/ergo';
+import { EXPLORER_NETWORK } from '@rosen-chains/ergo-explorer-network';
+import { NODE_NETWORK } from '@rosen-chains/ergo-node-network';
+
 import { getChainNetworkName, getConfigIntKeyOrDefault } from './configs';
 import { rosenConfig } from './rosenConfig';
-import { ERGO_CHAIN, ErgoConfigs } from '@rosen-chains/ergo';
-import { NODE_NETWORK } from '@rosen-chains/ergo-node-network';
-import { EXPLORER_NETWORK } from '@rosen-chains/ergo-explorer-network';
 
 class GuardsErgoConfigs {
   // service configs

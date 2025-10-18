@@ -1,6 +1,8 @@
-import { EventTrigger } from '@rosen-chains/abstract-chain';
-import TestUtils from '../testUtils/testUtils';
 import { blake2b } from 'blakejs';
+
+import { EventTrigger } from '@rosen-chains/abstract-chain';
+
+import TestUtils from '../testUtils/testUtils';
 
 export type TestEventTrigger = {
   event: EventTrigger;

@@ -1,10 +1,11 @@
-import TestUtils from '../testUtils/testUtils';
 import {
   PaymentTransaction,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
 import { CARDANO_CHAIN, CardanoTransaction } from '@rosen-chains/cardano';
 import { ERGO_CHAIN, ErgoTransaction } from '@rosen-chains/ergo';
+
+import TestUtils from '../testUtils/testUtils';
 
 /**
  * generates a mocked PaymentTransaction object

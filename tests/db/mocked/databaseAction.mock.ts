@@ -1,9 +1,14 @@
-import { DataSource } from '@rosen-bridge/extended-typeorm';
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import {
   BlockEntity,
   PROCEED,
   migrations as scannerMigrations,
 } from '@rosen-bridge/abstract-scanner';
+import {
+  AddressTxsEntity,
+  migrations as addressTxExtractorMigrations,
+} from '@rosen-bridge/evm-address-tx-extractor';
+import { DataSource } from '@rosen-bridge/extended-typeorm';
 import {
   CommitmentEntity,
   EventTriggerEntity,
@@ -11,31 +16,27 @@ import {
   CollateralEntity,
   migrations as watcherDataExtractorMigrations,
 } from '@rosen-bridge/watcher-data-extractor';
-import { ConfirmedEventEntity } from '../../../src/db/entities/confirmedEventEntity';
-import { TransactionEntity } from '../../../src/db/entities/transactionEntity';
-import migrations from '../../../src/db/migrations';
-import Utils from '../../../src/utils/utils';
-import TestUtils from '../../testUtils/testUtils';
 import {
   EventTrigger,
   PaymentTransaction,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
+
 import { DatabaseAction } from '../../../src/db/databaseAction';
-import { RevenueEntity } from '../../../src/db/entities/revenueEntity';
-import { RevenueChartView } from '../../../src/db/entities/revenueChartView';
-import { RevenueView } from '../../../src/db/entities/revenueView';
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
-import { EventView } from '../../../src/db/entities/eventView';
-import { OrderStatus } from '../../../src/utils/constants';
-import {
-  AddressTxsEntity,
-  migrations as addressTxExtractorMigrations,
-} from '@rosen-bridge/evm-address-tx-extractor';
 import { ArbitraryEntity } from '../../../src/db/entities/arbitraryEntity';
-import { ReprocessEntity } from '../../../src/db/entities/reprocessEntity';
-import { ReprocessStatus } from '../../../src/reprocess/interfaces';
 import { ChainAddressBalanceEntity } from '../../../src/db/entities/chainAddressBalanceEntity';
+import { ConfirmedEventEntity } from '../../../src/db/entities/confirmedEventEntity';
+import { EventView } from '../../../src/db/entities/eventView';
+import { ReprocessEntity } from '../../../src/db/entities/reprocessEntity';
+import { RevenueChartView } from '../../../src/db/entities/revenueChartView';
+import { RevenueEntity } from '../../../src/db/entities/revenueEntity';
+import { RevenueView } from '../../../src/db/entities/revenueView';
+import { TransactionEntity } from '../../../src/db/entities/transactionEntity';
+import migrations from '../../../src/db/migrations';
+import { ReprocessStatus } from '../../../src/reprocess/interfaces';
+import { OrderStatus } from '../../../src/utils/constants';
+import Utils from '../../../src/utils/utils';
+import TestUtils from '../../testUtils/testUtils';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 

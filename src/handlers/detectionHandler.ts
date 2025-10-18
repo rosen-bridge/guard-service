@@ -1,8 +1,9 @@
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { GuardDetection } from '@rosen-bridge/detection';
-import Configs from '../configs/configs';
 import { RosenDialerNode } from '@rosen-bridge/dialer';
+
 import RosenDialer from '../communication/rosenDialer';
+import Configs from '../configs/configs';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 

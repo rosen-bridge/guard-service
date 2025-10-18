@@ -1,15 +1,16 @@
-import EventVerifier from '../../src/verification/eventVerifier';
-import { mockEventTrigger } from '../event/testData';
-import ChainHandlerMock from '../handlers/chainHandler.mock';
+import { ChainMinimumFee } from '@rosen-bridge/minimum-fee';
 import {
   ConfirmationStatus,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
+
 import GuardsErgoConfigs from '../../src/configs/guardsErgoConfigs';
-import DatabaseActionMock from '../db/mocked/databaseAction.mock';
-import { ChainMinimumFee } from '@rosen-bridge/minimum-fee';
 import { ConfirmedEventEntity } from '../../src/db/entities/confirmedEventEntity';
 import { EventStatus } from '../../src/utils/constants';
+import EventVerifier from '../../src/verification/eventVerifier';
+import DatabaseActionMock from '../db/mocked/databaseAction.mock';
+import { mockEventTrigger } from '../event/testData';
+import ChainHandlerMock from '../handlers/chainHandler.mock';
 import EventSynchronizationMock from '../synchronization/mocked/eventSynchronization.mock';
 import TestUtils from '../testUtils/testUtils';
 

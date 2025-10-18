@@ -1,6 +1,7 @@
-import MultiSigHandler from '../handlers/multiSigHandler';
-import Configs from '../configs/configs';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+
+import Configs from '../configs/configs';
+import MultiSigHandler from '../handlers/multiSigHandler';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 

@@ -1,3 +1,8 @@
+import { Semaphore } from 'await-semaphore';
+import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
+
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+import { BlockEntity, PROCEED } from '@rosen-bridge/abstract-scanner';
 import {
   And,
   DataSource,
@@ -9,39 +14,36 @@ import {
   Not,
   Repository,
 } from '@rosen-bridge/extended-typeorm';
-import { ConfirmedEventEntity } from './entities/confirmedEventEntity';
-import { TransactionEntity } from './entities/transactionEntity';
-import {
-  EventStatus,
-  OrderStatus,
-  RevenuePeriod,
-  TransactionStatus,
-} from '../utils/constants';
+import { LastSavedBlock } from '@rosen-bridge/scanner-sync-check/dist/config';
 import {
   CommitmentEntity,
   EventTriggerEntity,
 } from '@rosen-bridge/watcher-data-extractor';
-import Utils from '../utils/utils';
-import { Semaphore } from 'await-semaphore';
-import { Page, SortRequest } from '../types/api';
-import { RevenueEntity } from './entities/revenueEntity';
-import { RevenueView } from './entities/revenueView';
-import { RevenueChartView } from './entities/revenueChartView';
 import {
   ImpossibleBehavior,
   NotFoundError,
   PaymentTransaction,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
-import { EventView } from './entities/eventView';
-import { BlockEntity, PROCEED } from '@rosen-bridge/abstract-scanner';
-import { ArbitraryEntity } from './entities/arbitraryEntity';
-import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
-import { ReprocessEntity } from './entities/reprocessEntity';
+
 import { ReprocessStatus } from '../reprocess/interfaces';
+import { Page, SortRequest } from '../types/api';
+import {
+  EventStatus,
+  OrderStatus,
+  RevenuePeriod,
+  TransactionStatus,
+} from '../utils/constants';
+import Utils from '../utils/utils';
+import { ArbitraryEntity } from './entities/arbitraryEntity';
 import { ChainAddressBalanceEntity } from './entities/chainAddressBalanceEntity';
-import { LastSavedBlock } from '@rosen-bridge/scanner-sync-check/dist/config';
+import { ConfirmedEventEntity } from './entities/confirmedEventEntity';
+import { EventView } from './entities/eventView';
+import { ReprocessEntity } from './entities/reprocessEntity';
+import { RevenueChartView } from './entities/revenueChartView';
+import { RevenueEntity } from './entities/revenueEntity';
+import { RevenueView } from './entities/revenueView';
+import { TransactionEntity } from './entities/transactionEntity';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 

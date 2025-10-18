@@ -1,12 +1,13 @@
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+import { NotFoundError } from '@rosen-chains/abstract-chain';
+
+import EventReprocess from '../reprocess/eventReprocess';
+import { authenticateKey } from '../utils/authentication';
 import {
   FastifySeverInstance,
   MessageResponseSchema,
   ReprocessQuerySchema,
 } from './schemas';
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
-import { authenticateKey } from '../utils/authentication';
-import { NotFoundError } from '@rosen-chains/abstract-chain';
-import EventReprocess from '../reprocess/eventReprocess';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 

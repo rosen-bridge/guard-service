@@ -1,4 +1,5 @@
 import { PaymentOrder } from '@rosen-chains/abstract-chain';
+
 import { JsonBI } from '../../src/network/networkModels';
 
 export const order: PaymentOrder = [

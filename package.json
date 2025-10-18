@@ -106,6 +106,7 @@
     "@changesets/cli": "^2.27.1",
     "@eslint/js": "^9.37.0",
     "@rosen-bridge/changeset-formatter": "^2.0.1",
+    "@trivago/prettier-plugin-sort-imports": "^5.2.2",
     "@types/config": "^0.0.41",
     "@types/json-bigint": "^1.0.1",
     "@types/lodash-es": "^4.17.6",

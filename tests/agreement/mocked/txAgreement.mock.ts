@@ -1,6 +1,8 @@
 import { Mock } from 'vitest';
-import TxAgreement from '../../../src/agreement/txAgreement';
+
 import { PaymentTransaction } from '@rosen-chains/abstract-chain';
+
+import TxAgreement from '../../../src/agreement/txAgreement';
 
 class TxAgreementMock {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

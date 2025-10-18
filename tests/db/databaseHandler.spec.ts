@@ -1,20 +1,21 @@
-import DatabaseHandlerMock from './mocked/databaseAction.mock';
-import EventSerializer from '../../src/event/eventSerializer';
-import * as TxTestData from '../agreement/testData';
-import * as EventTestData from '../event/testData';
 import {
   PaymentTransaction,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
+import { CARDANO_CHAIN } from '@rosen-chains/cardano';
+
+import GuardsErgoConfigs from '../../src/configs/guardsErgoConfigs';
+import DatabaseHandler from '../../src/db/databaseHandler';
+import EventSerializer from '../../src/event/eventSerializer';
 import {
   EventStatus,
   OrderStatus,
   TransactionStatus,
 } from '../../src/utils/constants';
-import DatabaseHandler from '../../src/db/databaseHandler';
+import * as TxTestData from '../agreement/testData';
+import * as EventTestData from '../event/testData';
+import DatabaseHandlerMock from './mocked/databaseAction.mock';
 import DatabaseActionMock from './mocked/databaseAction.mock';
-import GuardsErgoConfigs from '../../src/configs/guardsErgoConfigs';
-import { CARDANO_CHAIN } from '@rosen-chains/cardano';
 
 describe('DatabaseHandler', () => {
   const requiredSign = 6;

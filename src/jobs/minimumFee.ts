@@ -1,4 +1,5 @@
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+
 import Configs from '../configs/configs';
 import MinimumFeeHandler from '../handlers/minimumFeeHandler';
 

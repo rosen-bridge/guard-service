@@ -1,4 +1,5 @@
 import { MockInstance } from 'vitest';
+
 import ColdStorage from '../../src/coldStorage/coldStorage';
 
 class ColdStorageMock {

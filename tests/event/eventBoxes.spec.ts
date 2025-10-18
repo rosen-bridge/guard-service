@@ -1,10 +1,11 @@
 import { cloneDeep } from 'lodash-es';
+
 import EventBoxes from '../../src/event/eventBoxes';
 import EventSerializer from '../../src/event/eventSerializer';
-import TestUtils from '../testUtils/testUtils';
-import DatabaseActionMock from '../db/mocked/databaseAction.mock';
-import { mockEventTrigger } from './testData';
 import { EventStatus } from '../../src/utils/constants';
+import DatabaseActionMock from '../db/mocked/databaseAction.mock';
+import TestUtils from '../testUtils/testUtils';
+import { mockEventTrigger } from './testData';
 
 describe('EventBoxes', () => {
   describe('getEventBox', () => {

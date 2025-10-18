@@ -1,12 +1,13 @@
-import { EventTrigger, TransactionType } from '@rosen-chains/abstract-chain';
-import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
-import ChainHandler from '../handlers/chainHandler';
-import { ConfirmationStatus } from '@rosen-chains/abstract-chain';
 import { ChainMinimumFee } from '@rosen-bridge/minimum-fee';
-import EventBoxes from '../event/eventBoxes';
+import { EventTrigger, TransactionType } from '@rosen-chains/abstract-chain';
+import { ConfirmationStatus } from '@rosen-chains/abstract-chain';
+
+import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
 import { ConfirmedEventEntity } from '../db/entities/confirmedEventEntity';
-import { EventStatus } from '../utils/constants';
+import EventBoxes from '../event/eventBoxes';
+import ChainHandler from '../handlers/chainHandler';
 import EventSynchronization from '../synchronization/eventSynchronization';
+import { EventStatus } from '../utils/constants';
 
 class EventVerifier {
   /**

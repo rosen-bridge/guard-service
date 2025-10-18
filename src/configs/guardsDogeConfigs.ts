@@ -1,7 +1,9 @@
 import config from 'config';
+
+import { DOGE_CHAIN, DogeConfigs } from '@rosen-chains/doge';
+
 import { getChainNetworkName, getConfigIntKeyOrDefault } from './configs';
 import { rosenConfig } from './rosenConfig';
-import { DOGE_CHAIN, DogeConfigs } from '@rosen-chains/doge';
 
 class GuardsDogeConfigs {
   // service configs

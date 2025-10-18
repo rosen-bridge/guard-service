@@ -1,3 +1,4 @@
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import {
   AbstractChain,
   ConfirmationStatus,
@@ -6,21 +7,21 @@ import {
   TransactionType,
 } from '@rosen-chains/abstract-chain';
 import { SigningStatus } from '@rosen-chains/abstract-chain';
+import { DOGE_CHAIN } from '@rosen-chains/doge';
 import { ERGO_CHAIN } from '@rosen-chains/ergo';
+
 import Configs from '../configs/configs';
+import GuardsDogeConfigs from '../configs/guardsDogeConfigs';
 import { DatabaseAction } from '../db/databaseAction';
 import { TransactionEntity } from '../db/entities/transactionEntity';
 import ChainHandler from '../handlers/chainHandler';
+import { NotificationHandler } from '../handlers/notificationHandler';
 import {
   EventStatus,
   OrderStatus,
   TransactionStatus,
 } from '../utils/constants';
 import * as TransactionSerializer from './transactionSerializer';
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
-import { NotificationHandler } from '../handlers/notificationHandler';
-import { DOGE_CHAIN } from '@rosen-chains/doge';
-import GuardsDogeConfigs from '../configs/guardsDogeConfigs';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 

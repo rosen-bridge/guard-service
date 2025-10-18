@@ -1,15 +1,16 @@
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import {
   PaymentTransaction,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
+import { ERGO_CHAIN } from '@rosen-chains/ergo';
+
+import { DatabaseAction } from '../db/databaseAction';
 import EventSerializer from '../event/eventSerializer';
-import EventVerifier from './eventVerifier';
 import MinimumFeeHandler from '../handlers/minimumFeeHandler';
 import { EventStatus, OrderStatus } from '../utils/constants';
+import EventVerifier from './eventVerifier';
 import TransactionVerifier from './transactionVerifier';
-import { DatabaseAction } from '../db/databaseAction';
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
-import { ERGO_CHAIN } from '@rosen-chains/ergo';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 

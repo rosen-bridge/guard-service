@@ -1,11 +1,5 @@
-import Utils from '../utils/utils';
-import Configs from '../configs/configs';
-import EventVerifier from '../verification/eventVerifier';
-import EventSerializer from './eventSerializer';
-import EventOrder from './eventOrder';
-import EventBoxes from './eventBoxes';
-import MinimumFeeHandler from '../handlers/minimumFeeHandler';
-import { EventStatus, EventUnexpectedFailsLimit } from '../utils/constants';
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+import { ChainMinimumFee } from '@rosen-bridge/minimum-fee';
 import {
   EventTrigger,
   ImpossibleBehavior,
@@ -13,17 +7,24 @@ import {
   PaymentTransaction,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
-import { ChainMinimumFee } from '@rosen-bridge/minimum-fee';
-import ChainHandler from '../handlers/chainHandler';
 import { ERGO_CHAIN, ErgoChain } from '@rosen-chains/ergo';
-import { rosenConfig } from '../configs/rosenConfig';
+
 import TxAgreement from '../agreement/txAgreement';
-import * as TransactionSerializer from '../transaction/transactionSerializer';
+import Configs from '../configs/configs';
+import { rosenConfig } from '../configs/rosenConfig';
 import { DatabaseAction } from '../db/databaseAction';
-import GuardTurn from '../utils/guardTurn';
+import ChainHandler from '../handlers/chainHandler';
 import GuardPkHandler from '../handlers/guardPkHandler';
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+import MinimumFeeHandler from '../handlers/minimumFeeHandler';
 import { NotificationHandler } from '../handlers/notificationHandler';
+import * as TransactionSerializer from '../transaction/transactionSerializer';
+import { EventStatus, EventUnexpectedFailsLimit } from '../utils/constants';
+import GuardTurn from '../utils/guardTurn';
+import Utils from '../utils/utils';
+import EventVerifier from '../verification/eventVerifier';
+import EventBoxes from './eventBoxes';
+import EventOrder from './eventOrder';
+import EventSerializer from './eventSerializer';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 

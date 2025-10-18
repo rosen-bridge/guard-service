@@ -1,3 +1,4 @@
+import { ChainMinimumFee } from '@rosen-bridge/minimum-fee';
 import {
   AssetBalance,
   EventTrigger,
@@ -5,14 +6,14 @@ import {
   SinglePayment,
   TokenInfo,
 } from '@rosen-chains/abstract-chain';
-import Utils from '../utils/utils';
-import { ChainMinimumFee } from '@rosen-bridge/minimum-fee';
-import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
 import { ERG, ERGO_CHAIN, ErgoChain } from '@rosen-chains/ergo';
+
+import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
 import ChainHandler from '../handlers/chainHandler';
+import { TokenHandler } from '../handlers/tokenHandler';
+import Utils from '../utils/utils';
 import EventBoxes from './eventBoxes';
 import { PermitBoxValue, RewardOrder } from './types';
-import { TokenHandler } from '../handlers/tokenHandler';
 
 class EventOrder {
   /**

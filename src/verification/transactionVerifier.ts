@@ -1,3 +1,6 @@
+import { isEqual } from 'lodash-es';
+
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import {
   ChainUtils,
   EventTrigger,
@@ -7,17 +10,16 @@ import {
   SigningStatus,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
-import ChainHandler from '../handlers/chainHandler';
-import { isEqual } from 'lodash-es';
-import EventOrder from '../event/eventOrder';
-import MinimumFeeHandler from '../handlers/minimumFeeHandler';
+
 import Configs from '../configs/configs';
-import DatabaseHandler from '../db/databaseHandler';
-import { JsonBI } from '../network/networkModels';
 import { DatabaseAction } from '../db/databaseAction';
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
-import { ChainNativeToken } from '../utils/constants';
+import DatabaseHandler from '../db/databaseHandler';
+import EventOrder from '../event/eventOrder';
+import ChainHandler from '../handlers/chainHandler';
+import MinimumFeeHandler from '../handlers/minimumFeeHandler';
+import { JsonBI } from '../network/networkModels';
 import * as TransactionSerializer from '../transaction/transactionSerializer';
+import { ChainNativeToken } from '../utils/constants';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 

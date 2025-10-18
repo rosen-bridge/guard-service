@@ -1,4 +1,5 @@
 import { PaymentTransaction } from '@rosen-chains/abstract-chain';
+
 import EventSynchronization from '../../src/synchronization/eventSynchronization';
 import { ActiveSync } from '../../src/synchronization/interfaces';
 

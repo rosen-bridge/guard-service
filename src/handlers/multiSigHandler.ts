@@ -1,12 +1,13 @@
+import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+import { RosenDialerNode } from '@rosen-bridge/dialer';
 import {
   MultiSigHandler as ErgoMultiSig,
   MultiSigUtils,
 } from '@rosen-bridge/ergo-multi-sig';
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
-import Configs from '../configs/configs';
-import { RosenDialerNode } from '@rosen-bridge/dialer';
-import DetectionHandler from './detectionHandler';
+
 import RosenDialer from '../communication/rosenDialer';
+import Configs from '../configs/configs';
+import DetectionHandler from './detectionHandler';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 

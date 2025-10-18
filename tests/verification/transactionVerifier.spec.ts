@@ -1,4 +1,22 @@
+import {
+  AssetBalance,
+  ChainUtils,
+  PaymentOrder,
+  TransactionType,
+} from '@rosen-chains/abstract-chain';
+import { CARDANO_CHAIN } from '@rosen-chains/cardano';
+import { ERGO_CHAIN } from '@rosen-chains/ergo';
+
+import EventSerializer from '../../src/event/eventSerializer';
+import { EventStatus, TransactionStatus } from '../../src/utils/constants';
 import TransactionVerifier from '../../src/verification/transactionVerifier';
+import { mockPaymentTransaction } from '../agreement/testData';
+import DatabaseActionMock from '../db/mocked/databaseAction.mock';
+import {
+  mockCreateEventPaymentOrder,
+  mockCreateEventRewardOrder,
+} from '../event/mocked/eventOrder.mock';
+import { mockGetEventFeeConfig } from '../event/mocked/minimumFee.mock';
 import {
   feeRatioDivisor,
   mockEventTrigger,
@@ -6,23 +24,6 @@ import {
   rsnRatioDivisor,
 } from '../event/testData';
 import ChainHandlerMock from '../handlers/chainHandler.mock';
-import {
-  AssetBalance,
-  ChainUtils,
-  PaymentOrder,
-  TransactionType,
-} from '@rosen-chains/abstract-chain';
-import { mockPaymentTransaction } from '../agreement/testData';
-import EventSerializer from '../../src/event/eventSerializer';
-import {
-  mockCreateEventPaymentOrder,
-  mockCreateEventRewardOrder,
-} from '../event/mocked/eventOrder.mock';
-import { mockGetEventFeeConfig } from '../event/mocked/minimumFee.mock';
-import { CARDANO_CHAIN } from '@rosen-chains/cardano';
-import DatabaseActionMock from '../db/mocked/databaseAction.mock';
-import { EventStatus, TransactionStatus } from '../../src/utils/constants';
-import { ERGO_CHAIN } from '@rosen-chains/ergo';
 import TestUtils from '../testUtils/testUtils';
 
 describe('TransactionVerifier', () => {

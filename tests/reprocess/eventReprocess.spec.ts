@@ -1,17 +1,18 @@
-import * as EventTestData from '../event/testData';
-import TestConfigs from '../testUtils/testConfigs';
-import DatabaseActionMock from '../db/mocked/databaseAction.mock';
+import { NotFoundError } from '@rosen-chains/abstract-chain';
+
+import RosenDialer from '../../src/communication/rosenDialer';
+import EventSerializer from '../../src/event/eventSerializer';
+import EventReprocess from '../../src/reprocess/eventReprocess';
 import {
   ReprocessMessageTypes,
   ReprocessStatus,
 } from '../../src/reprocess/interfaces';
-import EventReprocess from '../../src/reprocess/eventReprocess';
-import EventSerializer from '../../src/event/eventSerializer';
 import { EventStatus } from '../../src/utils/constants';
-import TestUtils from '../testUtils/testUtils';
-import { NotFoundError } from '@rosen-chains/abstract-chain';
-import RosenDialer from '../../src/communication/rosenDialer';
 import RosenDialerMock from '../communication/mocked/rosenDialer.mock';
+import DatabaseActionMock from '../db/mocked/databaseAction.mock';
+import * as EventTestData from '../event/testData';
+import TestConfigs from '../testUtils/testConfigs';
+import TestUtils from '../testUtils/testUtils';
 
 describe('EventReprocess', async () => {
   beforeAll(async () => {

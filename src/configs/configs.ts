@@ -1,14 +1,16 @@
-import fs from 'fs';
 import config from 'config';
-import { ThresholdConfig } from '../coldStorage/types';
-import { JsonBI } from '../network/networkModels';
-import Utils from '../utils/utils';
-import { ConfigError } from '../utils/errors';
-import { TransportOptions } from '@rosen-bridge/winston-logger';
+import fs from 'fs';
 import { cloneDeep } from 'lodash-es';
+
 import { ECDSA } from '@rosen-bridge/encryption';
+import { TransportOptions } from '@rosen-bridge/winston-logger';
+
+import { ThresholdConfig } from '../coldStorage/types';
 import { TokenHandler } from '../handlers/tokenHandler';
+import { JsonBI } from '../network/networkModels';
 import { BalanceHandlerConfig } from '../types/config';
+import { ConfigError } from '../utils/errors';
+import Utils from '../utils/utils';
 
 /**
  * reads a numerical config, set default value if it does not exits

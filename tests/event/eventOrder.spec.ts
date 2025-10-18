@@ -1,6 +1,10 @@
 import { ChainMinimumFee } from '@rosen-bridge/minimum-fee';
+
 import GuardsCardanoConfigs from '../../src/configs/guardsCardanoConfigs';
+import GuardsErgoConfigs from '../../src/configs/guardsErgoConfigs';
 import EventOrder from '../../src/event/eventOrder';
+import ChainHandlerMock from '../handlers/chainHandler.mock';
+import TestUtils from '../testUtils/testUtils';
 import {
   feeRatioDivisor,
   mockNativeTokenPaymentEvent,
@@ -8,9 +12,6 @@ import {
   mockTokenPaymentFromErgoEvent,
   rsnRatioDivisor,
 } from './testData';
-import TestUtils from '../testUtils/testUtils';
-import GuardsErgoConfigs from '../../src/configs/guardsErgoConfigs';
-import ChainHandlerMock from '../handlers/chainHandler.mock';
 
 describe('EventOrder', () => {
   describe('eventSinglePayment', () => {

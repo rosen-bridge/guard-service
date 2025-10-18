@@ -1,4 +1,5 @@
 import { Mock } from 'vitest';
+
 import EventSynchronization from '../../../src/synchronization/eventSynchronization';
 
 class EventSynchronizationMock {

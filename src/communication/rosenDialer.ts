@@ -1,7 +1,8 @@
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { createDialerNode, RosenDialerNode } from '@rosen-bridge/dialer';
-import RoseNetNodeConfig from '../configs/roseNetNodeConfig';
 import { readPrivateKeyFromFile } from '@rosen-bridge/rosenet-utils';
+
+import RoseNetNodeConfig from '../configs/roseNetNodeConfig';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
