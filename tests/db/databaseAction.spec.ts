@@ -116,10 +116,10 @@ describe('DatabaseActions', () => {
       // check events
       expect(events.total).toEqual(4);
       const eventSourceTxIds = events.items.map((event) => event.sourceTxId);
-      expect(eventSourceTxIds).toContain(completedEvent.sourceTxId);
-      expect(eventSourceTxIds).toContain(timeoutEvent.sourceTxId);
-      expect(eventSourceTxIds).toContain(rejectedEvent.sourceTxId);
-      expect(eventSourceTxIds).toContain(spentTimeoutEvent.sourceTxId);
+      expect(eventSourceTxIds).toContainEqual(completedEvent.sourceTxId);
+      expect(eventSourceTxIds).toContainEqual(timeoutEvent.sourceTxId);
+      expect(eventSourceTxIds).toContainEqual(rejectedEvent.sourceTxId);
+      expect(eventSourceTxIds).toContainEqual(spentTimeoutEvent.sourceTxId);
     });
     /**
      * @target DatabaseAction.getEvents should return ongoing events successfully
@@ -207,8 +207,8 @@ describe('DatabaseActions', () => {
       // check events
       expect(events.total).toEqual(2);
       const eventSourceTxIds = events.items.map((event) => event.sourceTxId);
-      expect(eventSourceTxIds).toContain(unspentEvent.sourceTxId);
-      expect(eventSourceTxIds).toContain(unconfirmedEvent.sourceTxId);
+      expect(eventSourceTxIds).toContainEqual(unspentEvent.sourceTxId);
+      expect(eventSourceTxIds).toContainEqual(unconfirmedEvent.sourceTxId);
     });
 
     /**

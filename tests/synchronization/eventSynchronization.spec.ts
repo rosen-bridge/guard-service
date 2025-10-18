@@ -388,7 +388,7 @@ describe('EventSynchronization', () => {
         (event) => [event.id, event.status],
       );
       expect(dbEvents.length).toEqual(1);
-      expect(dbEvents).toContain([
+      expect(dbEvents).toContainEqual([
         EventSerializer.getId(mockedEvent),
         EventStatus.rejected,
       ]);
@@ -1910,7 +1910,7 @@ describe('EventSynchronization', () => {
         tx.status,
       ]);
       expect(dbTxs.length).toEqual(1);
-      expect(dbTxs).toContain([
+      expect(dbTxs).toContainEqual([
         paymentTx.txId,
         paymentTx.toJson(),
         eventId,
@@ -1922,7 +1922,7 @@ describe('EventSynchronization', () => {
         (event) => [event.id, event.status],
       );
       expect(dbEvents.length).toEqual(1);
-      expect(dbEvents).toContain([eventId, EventStatus.pendingReward]);
+      expect(dbEvents).toContainEqual([eventId, EventStatus.pendingReward]);
 
       // event should be removed from active sync
       expect(eventSync.getActiveSyncMap().size).toEqual(0);

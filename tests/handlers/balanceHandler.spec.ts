@@ -212,9 +212,9 @@ describe('BalanceHandler', () => {
 
       // assert
       expect(result).toHaveLength(2);
-      expect(result).toContain('id2');
-      expect(result).toContain('id3');
-      expect(result).not.toContain(ETH);
+      expect(result).toContainEqual('id2');
+      expect(result).toContainEqual('id3');
+      expect(result).not.toContainEqual(ETH);
     });
 
     /**
@@ -262,8 +262,8 @@ describe('BalanceHandler', () => {
 
       // assert
       expect(result).toHaveLength(1);
-      expect(result).toContain('id1');
-      expect(result).not.toContain('id2');
+      expect(result).toContainEqual('id1');
+      expect(result).not.toContainEqual('id2');
     });
   });
 
