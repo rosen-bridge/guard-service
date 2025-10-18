@@ -33,7 +33,7 @@ describe('generalInfo', () => {
      */
     it('should return general info of the guard correctly', async () => {
       // mock healthCheck
-      vi.mock('../../src/guard/HealthCheck', () => {
+      vi.mock('../../src/guard/healthCheck', () => {
         return {
           getHealthCheck: vi.fn().mockResolvedValue({
             getOverallHealthStatus: vi

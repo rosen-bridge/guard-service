@@ -1378,7 +1378,9 @@ describe('TxAgreement', () => {
       txAgreement.insertTransactionApprovals(paymentTx.txId, approvals);
 
       // get txApprovals
-      const preTestTxApprovals = txAgreement.getTransactionApprovals();
+      const preTestTxApprovals = structuredClone(
+        txAgreement.getTransactionApprovals(),
+      );
 
       // run test
       await txAgreement.processMessage(
@@ -1416,7 +1418,7 @@ describe('TxAgreement', () => {
 
       // memory txs should be empty
       expect(txAgreement.getTransactions().size).toEqual(0);
-      expect(preTestTxApprovals.size).toBeGreaterThan(0);
+      expect(preTestTxApprovals.size).toBeGreaterThan(0); // it should have value before executing the test
       expect(txAgreement.getTransactionApprovals().size).toEqual(0);
       expect(txAgreement.getEventAgreedTransactions().size).toEqual(0);
 

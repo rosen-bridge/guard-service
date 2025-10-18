@@ -12,7 +12,7 @@ await TokenHandler.init(Configs.tokensPath);
 await DatabaseActionMock.initDatabase();
 
 // mock GuardPkHandler
-vi.doMock('../../src/handlers/GuardPkHandler', () => ({
+vi.doMock('../../src/handlers/guardPkHandler', () => ({
   default: {
     getInstance: () => ({
       publicKeys: TestConfigs.guardPublicKeys,
@@ -24,6 +24,6 @@ vi.doMock('../../src/handlers/GuardPkHandler', () => ({
 }));
 
 // mock TransactionSerializer.fromJson
-vi.doMock('../../src/transaction/TransactionSerializer', () => ({
+vi.doMock('../../src/transaction/transactionSerializer', () => ({
   fromJson: TestTransactionSerializer.fromJson,
 }));
