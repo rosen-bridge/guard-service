@@ -124,7 +124,7 @@
     "madge": "^5.0.1",
     "prettier": "^3.6.2",
     "rimraf": "^6.0.1",
-    "tsx": "^4.20.6",
+    "tsx": "^4.19.2",
     "typescript": "^5.9.3",
     "vite-plugin-top-level-await": "^1.4.4",
     "vite-plugin-wasm": "^3.3.0",
