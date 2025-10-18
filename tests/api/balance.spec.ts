@@ -105,7 +105,7 @@ describe('balanceRoutes', () => {
         async (address) => {
           if (address === 'lock') throw new Error('custom_error');
           else return { items: [], total: 0 };
-        }
+        },
       );
 
       // act

@@ -29,7 +29,7 @@ class TestEventSynchronization extends EventSynchronization {
 
   callVerifySynchronizationResponse = (
     tx: PaymentTransaction,
-    actualTxId: string
+    actualTxId: string,
   ) => this.verifySynchronizationResponse(tx, actualTxId);
 
   callSetTxAsApproved = (tx: PaymentTransaction) => this.setTxAsApproved(tx);

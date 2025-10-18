@@ -1036,7 +1036,7 @@ class DatabaseAction {
     chain?: string,
     tokenId?: string,
     offset?: number,
-    limit?: number
+    limit?: number,
   ): Promise<Page<ChainAddressBalanceEntity>> => {
     const [items, total] =
       await this.ChainAddressBalanceRepository.findAndCount({

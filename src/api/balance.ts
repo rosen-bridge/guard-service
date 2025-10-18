@@ -40,14 +40,14 @@ const getBalanceRoute = (server: FastifySeverInstance) => {
           chain,
           tokenId,
           offset,
-          limit
+          limit,
         );
         balance.cold = await BalanceHandler.getInstance().getAddressAssets(
           'cold',
           chain,
           tokenId,
           offset,
-          limit
+          limit,
         );
 
         reply.status(200).send(balance);

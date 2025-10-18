@@ -221,6 +221,7 @@ export const mockBalancesArray = [
   },
 ];
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const mockBalanceEntityToAddressBalance = (balance: any) => ({
   address: balance.address,
   chain: balance.chain,

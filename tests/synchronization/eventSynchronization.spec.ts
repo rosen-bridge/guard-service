@@ -649,7 +649,7 @@ describe('EventSynchronization', () => {
         mockedEvent.toChain,
         'getActualTxId',
         tx.txId,
-        true
+        true,
       );
 
       // run test
@@ -1131,7 +1131,7 @@ describe('EventSynchronization', () => {
         mockedEvent.toChain,
         'getActualTxId',
         tx.txId,
-        true
+        true,
       );
 
       // mock EventOrder.createEventPaymentOrder to return mocked order
@@ -1140,7 +1140,7 @@ describe('EventSynchronization', () => {
       // run test
       const result = await eventSync.callVerifySynchronizationResponse(
         tx,
-        tx.txId
+        tx.txId,
       );
 
       // check returned value
@@ -1232,7 +1232,7 @@ describe('EventSynchronization', () => {
       const eventSync = new TestEventSynchronization();
       const result = await eventSync.callVerifySynchronizationResponse(
         tx,
-        tx.txId
+        tx.txId,
       );
 
       // check returned value
@@ -1332,7 +1332,7 @@ describe('EventSynchronization', () => {
       // run test
       const result = await eventSync.callVerifySynchronizationResponse(
         tx,
-        tx.txId
+        tx.txId,
       );
 
       // check returned value
@@ -1432,7 +1432,7 @@ describe('EventSynchronization', () => {
       // run test
       const result = await eventSync.callVerifySynchronizationResponse(
         tx,
-        tx.txId
+        tx.txId,
       );
 
       // check returned value
@@ -1540,7 +1540,7 @@ describe('EventSynchronization', () => {
       // run test
       const result = await eventSync.callVerifySynchronizationResponse(
         tx,
-        tx.txId
+        tx.txId,
       );
 
       // check returned value
@@ -1640,7 +1640,7 @@ describe('EventSynchronization', () => {
       // run test
       const result = await eventSync.callVerifySynchronizationResponse(
         tx,
-        tx.txId
+        tx.txId,
       );
 
       // check returned value
@@ -1740,7 +1740,7 @@ describe('EventSynchronization', () => {
       // run test
       const result = await eventSync.callVerifySynchronizationResponse(
         tx,
-        tx.txId
+        tx.txId,
       );
 
       // check returned value
@@ -1839,7 +1839,7 @@ describe('EventSynchronization', () => {
         mockedEvent.toChain,
         'getActualTxId',
         tx.txId,
-        true
+        true,
       );
 
       // mock EventOrder.createEventPaymentOrder to return mocked order
@@ -1848,7 +1848,7 @@ describe('EventSynchronization', () => {
       // run test
       const result = await eventSync.callVerifySynchronizationResponse(
         tx,
-        tx.txId
+        tx.txId,
       );
 
       // check returned value

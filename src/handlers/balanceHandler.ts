@@ -138,7 +138,7 @@ class BalanceHandler {
     chain?: string,
     tokenId?: string,
     offset?: number,
-    limit?: number
+    limit?: number,
   ): Promise<Page<AddressBalance>> => {
     const addresses: string[] = [];
 
@@ -156,7 +156,7 @@ class BalanceHandler {
         chain,
         tokenId,
         offset,
-        limit
+        limit,
       );
 
     return {

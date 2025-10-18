@@ -307,7 +307,7 @@ describe('BalanceHandler', () => {
       vi.spyOn(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         balanceHandler as any,
-        'balanceEntityToAddressBalance'
+        'balanceEntityToAddressBalance',
       ).mockImplementation(mockBalanceEntityToAddressBalance);
 
       // act
@@ -316,7 +316,7 @@ describe('BalanceHandler', () => {
         undefined, // chain,
         undefined, // tokenId,
         2, // offset,
-        10 // limit
+        10, // limit
       );
 
       // assert
@@ -327,7 +327,7 @@ describe('BalanceHandler', () => {
             [
               `${ETHEREUM_CHAIN}_mock_cold_address`,
               `${BITCOIN_CHAIN}_mock_cold_address`,
-            ].includes(balance.address)
+            ].includes(balance.address),
           )
           .slice(2)
           .map(mockBalanceEntityToAddressBalance),
@@ -368,7 +368,7 @@ describe('BalanceHandler', () => {
       vi.spyOn(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         balanceHandler as any,
-        'balanceEntityToAddressBalance'
+        'balanceEntityToAddressBalance',
       ).mockImplementation(mockBalanceEntityToAddressBalance);
 
       // act
@@ -377,7 +377,7 @@ describe('BalanceHandler', () => {
         undefined, // chain
         undefined, // tokenId
         1, // offset
-        10 // limit
+        10, // limit
       );
 
       // assert
@@ -388,7 +388,7 @@ describe('BalanceHandler', () => {
             [
               `${ETHEREUM_CHAIN}_mock_lock_address`,
               `${BITCOIN_CHAIN}_mock_lock_address`,
-            ].includes(balance.address)
+            ].includes(balance.address),
           )
           .slice(1, 11)
           .map(mockBalanceEntityToAddressBalance),
@@ -418,7 +418,7 @@ describe('BalanceHandler', () => {
               cold: `${chain}_mock_cold_address`,
             },
           },
-          false
+          false,
         );
       }
 
@@ -427,8 +427,9 @@ describe('BalanceHandler', () => {
       }
 
       vi.spyOn(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         balanceHandler as any,
-        'balanceEntityToAddressBalance'
+        'balanceEntityToAddressBalance',
       ).mockImplementation(mockBalanceEntityToAddressBalance);
 
       // act
@@ -437,7 +438,7 @@ describe('BalanceHandler', () => {
         BITCOIN_CHAIN, // chain
         'btc_token_01', // tokenId
         0, // offset
-        10 // limit
+        10, // limit
       );
 
       // assert
@@ -447,7 +448,7 @@ describe('BalanceHandler', () => {
           .filter(
             (balance) =>
               balance.address === `${BITCOIN_CHAIN}_mock_lock_address` &&
-              balance.tokenId === 'btc_token_01'
+              balance.tokenId === 'btc_token_01',
           )
           .map(mockBalanceEntityToAddressBalance),
       });

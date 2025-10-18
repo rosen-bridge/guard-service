@@ -380,7 +380,7 @@ class EventSynchronization extends Communicator {
   protected processSyncResponse = async (
     tx: PaymentTransaction,
     actualTxId: string,
-    senderIndex: number
+    senderIndex: number,
   ): Promise<void> => {
     if (!(await this.verifySynchronizationResponse(tx, actualTxId))) return;
     logger.info(
@@ -431,7 +431,7 @@ class EventSynchronization extends Communicator {
    */
   protected verifySynchronizationResponse = async (
     tx: PaymentTransaction,
-    actualTxId: string
+    actualTxId: string,
   ): Promise<boolean> => {
     const baseError = `Received tx [${tx.txId}] for syncing event [${tx.eventId}] but `;
     // verify sync request
@@ -479,7 +479,7 @@ class EventSynchronization extends Communicator {
     // check if tx is confirmed enough
     const txConfirmation = await chain.getTxConfirmationStatus(
       actualTxId,
-      tx.txType
+      tx.txType,
     );
     if (txConfirmation === ConfirmationStatus.NotConfirmedEnough) {
       logger.warn(baseError + `tx is not confirmed enough`);

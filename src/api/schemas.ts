@@ -129,7 +129,7 @@ export const BalanceQuerySchema = Type.Object({
   }),
   chain: Type.Optional(SupportedChainsSchema),
   tokenId: Type.Optional(
-    Type.String({ maxLength: 100, pattern: '^[0-9a-z.:]*$' })
+    Type.String({ maxLength: 100, pattern: '^[0-9a-z.:]*$' }),
   ),
 });
 
