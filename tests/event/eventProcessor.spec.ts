@@ -210,7 +210,7 @@ describe('EventProcessor', () => {
       const dbEvents = (await DatabaseActionMock.allEventRecords()).map(
         (event) => [event.id, event.status],
       );
-      expect(dbEvents).toContain([
+      expect(dbEvents).toContainEqual([
         EventSerializer.getId(mockedEvent),
         EventStatus.spent,
       ]);
@@ -415,7 +415,7 @@ describe('EventProcessor', () => {
       const dbEvents = (await DatabaseActionMock.allEventRecords()).map(
         (event) => [event.id, event.status],
       );
-      expect(dbEvents).toContain([
+      expect(dbEvents).toContainEqual([
         EventSerializer.getId(mockedEvent),
         EventStatus.reachedLimit,
       ]);
@@ -723,7 +723,7 @@ describe('EventProcessor', () => {
         (event) => [event.id, event.status],
       );
       expect(dbEvents.length).toEqual(1);
-      expect(dbEvents).toContain([
+      expect(dbEvents).toContainEqual([
         EventSerializer.getId(mockedEvent),
         EventStatus.rejected,
       ]);
@@ -855,7 +855,7 @@ describe('EventProcessor', () => {
         (event) => [event.id, event.status],
       );
       expect(dbEvents.length).toEqual(1);
-      expect(dbEvents).toContain([
+      expect(dbEvents).toContainEqual([
         EventSerializer.getId(mockedEvent),
         EventStatus.paymentWaiting,
       ]);
@@ -1288,7 +1288,7 @@ describe('EventProcessor', () => {
         (event) => [event.id, event.status],
       );
       expect(dbEvents.length).toEqual(1);
-      expect(dbEvents).toContain([
+      expect(dbEvents).toContainEqual([
         EventSerializer.getId(mockedEvent),
         EventStatus.rewardWaiting,
       ]);
@@ -1519,19 +1519,19 @@ describe('EventProcessor', () => {
         (event) => [event.id, event.status],
       );
       expect(dbEvents.length).toEqual(4);
-      expect(dbEvents).toContain([
+      expect(dbEvents).toContainEqual([
         EventSerializer.getId(mockedEvent1),
         EventStatus.pendingReward,
       ]);
-      expect(dbEvents).toContain([
+      expect(dbEvents).toContainEqual([
         EventSerializer.getId(mockedEvent2),
         EventStatus.pendingPayment,
       ]);
-      expect(dbEvents).toContain([
+      expect(dbEvents).toContainEqual([
         EventSerializer.getId(mockedEvent3),
         EventStatus.pendingReward,
       ]);
-      expect(dbEvents).toContain([
+      expect(dbEvents).toContainEqual([
         EventSerializer.getId(mockedEvent4),
         EventStatus.timeout,
       ]);
@@ -1578,11 +1578,11 @@ describe('EventProcessor', () => {
         (event) => [event.id, event.status],
       );
       expect(dbEvents.length).toEqual(2);
-      expect(dbEvents).toContain([
+      expect(dbEvents).toContainEqual([
         EventSerializer.getId(mockedEvent1),
         EventStatus.pendingReward,
       ]);
-      expect(dbEvents).toContain([
+      expect(dbEvents).toContainEqual([
         EventSerializer.getId(mockedEvent2),
         EventStatus.pendingPayment,
       ]);

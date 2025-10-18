@@ -86,7 +86,7 @@ describe('signTx', () => {
         tx.type,
       ]);
       expect(dbTxs.length).toEqual(1);
-      expect(dbTxs).toContain([
+      expect(dbTxs).toContainEqual([
         paymentTx.txId,
         null,
         paymentTx.network,
@@ -279,7 +279,7 @@ describe('signTx', () => {
         tx.requiredSign,
       ]);
       expect(dbTxs.length).toEqual(1);
-      expect(dbTxs).toContain([paymentTx.txId, newRequiredSign]);
+      expect(dbTxs).toContainEqual([paymentTx.txId, newRequiredSign]);
     });
 
     /**

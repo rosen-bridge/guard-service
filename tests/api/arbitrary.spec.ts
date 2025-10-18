@@ -60,7 +60,7 @@ describe('arbitrary', () => {
         (order) => [order.id, order.chain, order.orderJson, order.status],
       );
       expect(dbOrders.length).toEqual(1);
-      expect(dbOrders).toContain([
+      expect(dbOrders).toContainEqual([
         '85b5cb7f4e81e1db4e95803b6144c64983f76e776ff75fd04c0ebfc95ae46e4d',
         ERGO_CHAIN,
         orderJson,
@@ -103,7 +103,7 @@ describe('arbitrary', () => {
         (order) => [order.id, order.chain, order.orderJson, order.status],
       );
       expect(dbOrders.length).toEqual(1);
-      expect(dbOrders).toContain([
+      expect(dbOrders).toContainEqual([
         '85b5cb7f4e81e1db4e95803b6144c64983f76e776ff75fd04c0ebfc95ae46e4d',
         ERGO_CHAIN,
         arrangedOrderJson,

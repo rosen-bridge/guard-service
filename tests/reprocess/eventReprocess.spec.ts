@@ -78,7 +78,7 @@ describe('EventReprocess', async () => {
         (event) => [event.id, event.status],
       );
       expect(dbEvents.length).toEqual(1);
-      expect(dbEvents).toContain([eventId, EventStatus.pendingPayment]);
+      expect(dbEvents).toContainEqual([eventId, EventStatus.pendingPayment]);
 
       // the requests should be inserted into database with the same requestId and timestamp
       const dbRequests = await DatabaseActionMock.allReprocessRecords();
@@ -147,7 +147,7 @@ describe('EventReprocess', async () => {
         (event) => [event.id, event.status],
       );
       expect(dbEvents.length).toEqual(1);
-      expect(dbEvents).toContain([eventId, EventStatus.pendingReward]);
+      expect(dbEvents).toContainEqual([eventId, EventStatus.pendingReward]);
 
       // the requests should be inserted into database with the same requestId and timestamp
       const dbRequests = await DatabaseActionMock.allReprocessRecords();
@@ -262,7 +262,7 @@ describe('EventReprocess', async () => {
         (event) => [event.id, event.status],
       );
       expect(dbEvents.length).toEqual(1);
-      expect(dbEvents).toContain([eventId, EventStatus.inPayment]);
+      expect(dbEvents).toContainEqual([eventId, EventStatus.inPayment]);
 
       // the requests should NOT be inserted into database
       const dbRequests = await DatabaseActionMock.allReprocessRecords();
@@ -337,7 +337,7 @@ describe('EventReprocess', async () => {
         (event) => [event.id, event.status],
       );
       expect(dbEvents.length).toEqual(1);
-      expect(dbEvents).toContain([eventId, EventStatus.pendingPayment]);
+      expect(dbEvents).toContainEqual([eventId, EventStatus.pendingPayment]);
 
       // the request should be added to database
       const dbRequests = await DatabaseActionMock.allReprocessRecords();
@@ -411,7 +411,7 @@ describe('EventReprocess', async () => {
         (event) => [event.id, event.status],
       );
       expect(dbEvents.length).toEqual(1);
-      expect(dbEvents).toContain([eventId, EventStatus.pendingReward]);
+      expect(dbEvents).toContainEqual([eventId, EventStatus.pendingReward]);
 
       // the request should be added to database
       const dbRequests = await DatabaseActionMock.allReprocessRecords();
@@ -551,7 +551,7 @@ describe('EventReprocess', async () => {
         (event) => [event.id, event.status],
       );
       expect(dbEvents.length).toEqual(1);
-      expect(dbEvents).toContain([eventId, EventStatus.timeout]);
+      expect(dbEvents).toContainEqual([eventId, EventStatus.timeout]);
 
       // the request should NOT be added to database
       const dbRequests = await DatabaseActionMock.allReprocessRecords();
@@ -612,7 +612,7 @@ describe('EventReprocess', async () => {
         (event) => [event.id, event.status],
       );
       expect(dbEvents.length).toEqual(1);
-      expect(dbEvents).toContain([eventId, EventStatus.reachedLimit]);
+      expect(dbEvents).toContainEqual([eventId, EventStatus.reachedLimit]);
 
       // the request should NOT be added to database
       const dbRequests = await DatabaseActionMock.allReprocessRecords();

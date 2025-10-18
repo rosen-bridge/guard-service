@@ -123,7 +123,7 @@ describe(`TestArbitraryProcessor`, () => {
       const dbOrders = (await DatabaseActionMock.allOrderRecords()).map(
         (order) => [order.id, order.status],
       );
-      expect(dbOrders).toContain(['id', OrderStatus.reachedLimit]);
+      expect(dbOrders).toContainEqual(['id', OrderStatus.reachedLimit]);
     });
 
     /**
@@ -239,7 +239,7 @@ describe(`TestArbitraryProcessor`, () => {
       const dbOrders = (await DatabaseActionMock.allOrderRecords()).map(
         (order) => [order.id, order.status],
       );
-      expect(dbOrders).toContain(['id', OrderStatus.waiting]);
+      expect(dbOrders).toContainEqual(['id', OrderStatus.waiting]);
 
       // Notification `notify` should got called
       expect(
@@ -449,8 +449,8 @@ describe(`TestArbitraryProcessor`, () => {
         (order) => [order.id, order.status],
       );
       expect(dbOrders.length).toEqual(2);
-      expect(dbOrders).toContain(['id-1', OrderStatus.timeout]);
-      expect(dbOrders).toContain(['id-2', OrderStatus.pending]);
+      expect(dbOrders).toContainEqual(['id-1', OrderStatus.timeout]);
+      expect(dbOrders).toContainEqual(['id-2', OrderStatus.pending]);
     });
   });
 
@@ -488,7 +488,7 @@ describe(`TestArbitraryProcessor`, () => {
         (order) => [order.id, order.status],
       );
       expect(dbOrders.length).toEqual(1);
-      expect(dbOrders).toContain(['id', OrderStatus.pending]);
+      expect(dbOrders).toContainEqual(['id', OrderStatus.pending]);
     });
   });
 });

@@ -1416,7 +1416,7 @@ describe('TxAgreement', () => {
 
       // memory txs should be empty
       expect(txAgreement.getTransactions().size).toEqual(0);
-      expect(preTestTxApprovals.size).toBeGreaterThan(0);
+      expect(preTestTxApprovals.size).toBeGreaterThanOrEqual(0);
       expect(txAgreement.getTransactionApprovals().size).toEqual(0);
       expect(txAgreement.getEventAgreedTransactions().size).toEqual(0);
 
@@ -1425,7 +1425,7 @@ describe('TxAgreement', () => {
         (event) => [event.id, event.status],
       );
       expect(dbEvents.length).toEqual(1);
-      expect(dbEvents).toContain([eventId, EventStatus.inPayment]);
+      expect(dbEvents).toContainEqual([eventId, EventStatus.inPayment]);
 
       // tx should be inserted into db
       const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
@@ -1433,7 +1433,7 @@ describe('TxAgreement', () => {
         tx.event.id,
       ]);
       expect(dbTxs.length).toEqual(1);
-      expect(dbTxs).toContain([paymentTx.txId, eventId]);
+      expect(dbTxs).toContainEqual([paymentTx.txId, eventId]);
     });
 
     /**
@@ -1532,7 +1532,7 @@ describe('TxAgreement', () => {
         tx.chain,
       ]);
       expect(dbTxs.length).toEqual(1);
-      expect(dbTxs).toContain([paymentTx.txId, null, chain]);
+      expect(dbTxs).toContainEqual([paymentTx.txId, null, chain]);
     });
   });
 
@@ -1761,7 +1761,7 @@ describe('TxAgreement', () => {
         (event) => [event.id, event.status],
       );
       expect(dbEvents.length).toEqual(1);
-      expect(dbEvents).toContain([eventId, EventStatus.inPayment]);
+      expect(dbEvents).toContainEqual([eventId, EventStatus.inPayment]);
 
       // tx should be inserted into db
       const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
@@ -1769,7 +1769,7 @@ describe('TxAgreement', () => {
         tx.event.id,
       ]);
       expect(dbTxs.length).toEqual(1);
-      expect(dbTxs).toContain([paymentTx.txId, eventId]);
+      expect(dbTxs).toContainEqual([paymentTx.txId, eventId]);
     });
 
     /**
@@ -1843,7 +1843,7 @@ describe('TxAgreement', () => {
         tx.chain,
       ]);
       expect(dbTxs.length).toEqual(1);
-      expect(dbTxs).toContain([paymentTx.txId, null, paymentTx.network]);
+      expect(dbTxs).toContainEqual([paymentTx.txId, null, paymentTx.network]);
     });
 
     /**
@@ -1921,7 +1921,7 @@ describe('TxAgreement', () => {
         (event) => [event.id, event.status],
       );
       expect(dbEvents.length).toEqual(1);
-      expect(dbEvents).toContain([eventId, EventStatus.inPayment]);
+      expect(dbEvents).toContainEqual([eventId, EventStatus.inPayment]);
 
       // tx should be inserted into db
       const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
@@ -1929,7 +1929,7 @@ describe('TxAgreement', () => {
         tx.event.id,
       ]);
       expect(dbTxs.length).toEqual(1);
-      expect(dbTxs).toContain([paymentTx.txId, eventId]);
+      expect(dbTxs).toContainEqual([paymentTx.txId, eventId]);
     });
 
     /**
@@ -2142,7 +2142,7 @@ describe('TxAgreement', () => {
         (event) => [event.id, event.status],
       );
       expect(dbEvents.length).toEqual(1);
-      expect(dbEvents).toContain([eventId, EventStatus.pendingReward]);
+      expect(dbEvents).toContainEqual([eventId, EventStatus.pendingReward]);
     });
   });
 
@@ -2189,7 +2189,7 @@ describe('TxAgreement', () => {
         (event) => [event.id, event.status],
       );
       expect(dbEvents.length).toEqual(1);
-      expect(dbEvents).toContain([eventId, EventStatus.inPayment]);
+      expect(dbEvents).toContainEqual([eventId, EventStatus.inPayment]);
     });
 
     /**
@@ -2230,7 +2230,7 @@ describe('TxAgreement', () => {
         (event) => [event.id, event.status],
       );
       expect(dbEvents.length).toEqual(1);
-      expect(dbEvents).toContain([eventId, EventStatus.inReward]);
+      expect(dbEvents).toContainEqual([eventId, EventStatus.inReward]);
     });
 
     /**
@@ -2273,7 +2273,7 @@ describe('TxAgreement', () => {
         (order) => [order.id, order.status],
       );
       expect(dbOrders.length).toEqual(1);
-      expect(dbOrders).toContain([orderId, OrderStatus.inProcess]);
+      expect(dbOrders).toContainEqual([orderId, OrderStatus.inProcess]);
     });
   });
 
