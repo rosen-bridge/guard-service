@@ -1,4 +1,4 @@
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
 import {
   ChainUtils,
   NotEnoughAssetsError,
@@ -19,7 +19,7 @@ import * as TransactionSerializer from '../transaction/transactionSerializer';
 import { OrderStatus, OrderUnexpectedFailsLimit } from '../utils/constants';
 import GuardTurn from '../utils/guardTurn';
 
-const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
 
 class ArbitraryProcessor {
   private static instance: ArbitraryProcessor;

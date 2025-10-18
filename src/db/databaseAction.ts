@@ -1,8 +1,8 @@
 import { Semaphore } from 'await-semaphore';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import { BlockEntity, PROCEED } from '@rosen-bridge/abstract-scanner';
+import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
 import {
   And,
   DataSource,
@@ -45,7 +45,7 @@ import { RevenueEntity } from './entities/revenueEntity';
 import { RevenueView } from './entities/revenueView';
 import { TransactionEntity } from './entities/transactionEntity';
 
-const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
 
 class DatabaseAction {
   private static instance: DatabaseAction;

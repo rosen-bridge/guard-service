@@ -5,7 +5,7 @@ import swaggerUi from '@fastify/swagger-ui';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import fastify, { FastifyInstance, FastifyRequest } from 'fastify';
 
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
 
 import { arbitraryOrderRoute } from '../api/arbitrary';
 import { balanceRoutes } from '../api/balance';
@@ -19,7 +19,7 @@ import { signRoute } from '../api/signTx';
 import { tssRoute } from '../api/tss';
 import Configs from '../configs/configs';
 
-const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
 
 /**
  * initialize api server

@@ -1,4 +1,4 @@
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
 
 import TssHandler from '../handlers/tssHandler';
 import {
@@ -8,7 +8,7 @@ import {
   TssCallbackSchema,
 } from './schemas';
 
-const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
 
 /**
  * setups TSS sign route

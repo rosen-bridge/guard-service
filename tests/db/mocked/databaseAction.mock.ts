@@ -1,9 +1,9 @@
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import {
   BlockEntity,
   PROCEED,
   migrations as scannerMigrations,
 } from '@rosen-bridge/abstract-scanner';
+import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
 import {
   AddressTxsEntity,
   migrations as addressTxExtractorMigrations,
@@ -38,7 +38,7 @@ import { OrderStatus } from '../../../src/utils/constants';
 import Utils from '../../../src/utils/utils';
 import TestUtils from '../../testUtils/testUtils';
 
-const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
 
 class DatabaseActionMock {
   static testDataSource = new DataSource({

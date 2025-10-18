@@ -1,4 +1,4 @@
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
 import { ChainMinimumFee } from '@rosen-bridge/minimum-fee';
 import {
   EventTrigger,
@@ -26,7 +26,7 @@ import EventBoxes from './eventBoxes';
 import EventOrder from './eventOrder';
 import EventSerializer from './eventSerializer';
 
-const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
 
 class EventProcessor {
   /**

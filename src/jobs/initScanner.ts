@@ -1,4 +1,4 @@
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
 import {
   ErgoExplorerNetwork,
   ErgoNodeNetwork,
@@ -25,7 +25,7 @@ import GuardsEthereumConfigs from '../configs/guardsEthereumConfigs';
 import { dataSource } from '../db/dataSource';
 import { TokenHandler } from '../handlers/tokenHandler';
 
-const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
 
 let ergoScanner: ErgoScanner;
 let ethereumScanner: EvmRpcScanner;
@@ -97,69 +97,71 @@ const binanceScannerJob = () => {
  */
 const createLoggers = () => ({
   ergoScannerLogger:
-    DefaultLoggerFactory.getInstance().getLogger('ergo-scanner'),
+    CallbackLoggerFactory.getInstance().getLogger('ergo-scanner'),
   bitcoinCommitmentExtractorLogger:
-    DefaultLoggerFactory.getInstance().getLogger(
+    CallbackLoggerFactory.getInstance().getLogger(
       'bitcoin-commitment-extractor',
     ),
   bitcoinEventTriggerExtractorLogger:
-    DefaultLoggerFactory.getInstance().getLogger(
+    CallbackLoggerFactory.getInstance().getLogger(
       'bitcoin-event-trigger-extractor',
     ),
   cardanoCommitmentExtractorLogger:
-    DefaultLoggerFactory.getInstance().getLogger(
+    CallbackLoggerFactory.getInstance().getLogger(
       'cardano-commitment-extractor',
     ),
   cardanoEventTriggerExtractorLogger:
-    DefaultLoggerFactory.getInstance().getLogger(
+    CallbackLoggerFactory.getInstance().getLogger(
       'cardano-event-trigger-extractor',
     ),
-  ergoCommitmentExtractorLogger: DefaultLoggerFactory.getInstance().getLogger(
+  ergoCommitmentExtractorLogger: CallbackLoggerFactory.getInstance().getLogger(
     'ergo-commitment-extractor',
   ),
-  ergoEventTriggerExtractorLogger: DefaultLoggerFactory.getInstance().getLogger(
-    'ergo-event-trigger-extractor',
-  ),
+  ergoEventTriggerExtractorLogger:
+    CallbackLoggerFactory.getInstance().getLogger(
+      'ergo-event-trigger-extractor',
+    ),
   ethereumCommitmentExtractorLogger:
-    DefaultLoggerFactory.getInstance().getLogger(
+    CallbackLoggerFactory.getInstance().getLogger(
       'ethereum-commitment-extractor',
     ),
   ethereumEventTriggerExtractorLogger:
-    DefaultLoggerFactory.getInstance().getLogger(
+    CallbackLoggerFactory.getInstance().getLogger(
       'ethereum-event-trigger-extractor',
     ),
   ethereumScannerLogger:
-    DefaultLoggerFactory.getInstance().getLogger('ethereum-scanner'),
+    CallbackLoggerFactory.getInstance().getLogger('ethereum-scanner'),
   ethereumLockAddressTxExtractorLogger:
-    DefaultLoggerFactory.getInstance().getLogger(
+    CallbackLoggerFactory.getInstance().getLogger(
       'ethereum-lock-address-tx-extractor',
     ),
   binanceCommitmentExtractorLogger:
-    DefaultLoggerFactory.getInstance().getLogger(
+    CallbackLoggerFactory.getInstance().getLogger(
       'binance-commitment-extractor',
     ),
   binanceEventTriggerExtractorLogger:
-    DefaultLoggerFactory.getInstance().getLogger(
+    CallbackLoggerFactory.getInstance().getLogger(
       'binance-event-trigger-extractor',
     ),
   binanceScannerLogger:
-    DefaultLoggerFactory.getInstance().getLogger('binance-scanner'),
+    CallbackLoggerFactory.getInstance().getLogger('binance-scanner'),
   binanceLockAddressTxExtractorLogger:
-    DefaultLoggerFactory.getInstance().getLogger(
+    CallbackLoggerFactory.getInstance().getLogger(
       'binance-lock-address-tx-extractor',
     ),
-  dogeCommitmentExtractorLogger: DefaultLoggerFactory.getInstance().getLogger(
+  dogeCommitmentExtractorLogger: CallbackLoggerFactory.getInstance().getLogger(
     'doge-commitment-extractor',
   ),
-  dogeEventTriggerExtractorLogger: DefaultLoggerFactory.getInstance().getLogger(
-    'doge-event-trigger-extractor',
-  ),
+  dogeEventTriggerExtractorLogger:
+    CallbackLoggerFactory.getInstance().getLogger(
+      'doge-event-trigger-extractor',
+    ),
   bitcoinRunesCommitmentExtractorLogger:
-    DefaultLoggerFactory.getInstance().getLogger(
+    CallbackLoggerFactory.getInstance().getLogger(
       'bitcoin-runes-commitment-extractor',
     ),
   bitcoinRunesEventTriggerExtractorLogger:
-    DefaultLoggerFactory.getInstance().getLogger(
+    CallbackLoggerFactory.getInstance().getLogger(
       'bitcoin-runes-event-trigger-extractor',
     ),
 });

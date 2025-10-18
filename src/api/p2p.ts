@@ -1,6 +1,6 @@
 import { Type } from '@sinclair/typebox';
 
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
 import { RosenDialerNode } from '@rosen-bridge/dialer';
 
 import { apiCallBack } from '../communication/callbackUtils';
@@ -8,7 +8,7 @@ import RosenDialer from '../communication/rosenDialer';
 import Configs from '../configs/configs';
 import { FastifySeverInstance, MessageResponseSchema } from './schemas';
 
-const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
 
 /**
  * setup route for send p2p message

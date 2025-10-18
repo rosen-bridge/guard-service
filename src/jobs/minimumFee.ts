@@ -1,9 +1,9 @@
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
 
 import Configs from '../configs/configs';
 import MinimumFeeHandler from '../handlers/minimumFeeHandler';
 
-const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
 
 /**
  * runs MinimumFee update job

@@ -1,10 +1,10 @@
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
 import { HealthCheck } from '@rosen-bridge/health-check';
 
 import Configs from '../configs/configs';
 import { getHealthCheck } from '../guard/healthCheck';
 
-const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
 
 const healthCheckUpdateJob = async (healthCheck: HealthCheck) => {
   logger.debug(`Updating health status`);

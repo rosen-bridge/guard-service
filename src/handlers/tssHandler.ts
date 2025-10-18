@@ -1,7 +1,7 @@
 import { spawn } from 'child_process';
 import * as crypto from 'crypto';
 
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
 import { RosenDialerNode } from '@rosen-bridge/dialer';
 import {
   EcdsaSigner,
@@ -15,7 +15,7 @@ import Configs from '../configs/configs';
 import { TssAlgorithms } from '../utils/constants';
 import DetectionHandler from './detectionHandler';
 
-const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
 
 class TssHandler {
   private static instance: TssHandler;
@@ -123,7 +123,7 @@ class TssHandler {
       detection: DetectionHandler.getInstance().getDetection(),
       guardsPk: tssPks,
       signPerRoundLimit: Configs.tssParallelSignCount,
-      logger: DefaultLoggerFactory.getInstance().getLogger('tssSigner'),
+      logger: CallbackLoggerFactory.getInstance().getLogger('tssSigner'),
     });
 
     // subscribe to channel
@@ -152,7 +152,7 @@ class TssHandler {
       detection: DetectionHandler.getInstance().getDetection(),
       guardsPk: tssPks,
       signPerRoundLimit: Configs.tssParallelSignCount,
-      logger: DefaultLoggerFactory.getInstance().getLogger('tssSigner'),
+      logger: CallbackLoggerFactory.getInstance().getLogger('tssSigner'),
     });
 
     // subscribe to channel

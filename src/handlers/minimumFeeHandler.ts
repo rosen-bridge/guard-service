@@ -1,4 +1,4 @@
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
 import {
   ChainMinimumFee,
   ErgoNetworkType,
@@ -13,7 +13,7 @@ import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
 import { rosenConfig } from '../configs/rosenConfig';
 import { TokenHandler } from './tokenHandler';
 
-const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
 
 class MinimumFeeHandler {
   private static instance: MinimumFeeHandler;

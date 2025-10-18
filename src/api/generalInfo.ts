@@ -1,4 +1,4 @@
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
 
 import packageJson from '../../package.json' with { type: 'json' };
 import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
@@ -10,7 +10,7 @@ import {
   MessageResponseSchema,
 } from './schemas';
 
-const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
 
 /**
  * Gets the general info of the service

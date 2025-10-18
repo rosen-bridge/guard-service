@@ -1,4 +1,4 @@
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
 import { ChainUtils } from '@rosen-chains/abstract-chain';
 
 import Configs from '../configs/configs';
@@ -12,7 +12,7 @@ import {
   OrderQuerySchema,
 } from './schemas';
 
-const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
 
 /**
  * setup arbitrary order route

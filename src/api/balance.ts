@@ -1,4 +1,4 @@
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
 
 import BalanceHandler from '../handlers/balanceHandler';
 import { LockBalance } from '../types/api';
@@ -9,7 +9,7 @@ import {
   MessageResponseSchema,
 } from './schemas';
 
-const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
 
 /**
  * Gets the balance

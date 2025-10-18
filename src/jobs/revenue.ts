@@ -1,4 +1,4 @@
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
 import {
   ImpossibleBehavior,
   TransactionType,
@@ -11,7 +11,7 @@ import { DatabaseAction } from '../db/databaseAction';
 import ChainHandler from '../handlers/chainHandler';
 import { RevenueType } from '../utils/constants';
 
-const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
 
 /**
  * Fetches revenue details and stores in the database

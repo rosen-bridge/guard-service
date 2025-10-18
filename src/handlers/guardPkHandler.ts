@@ -1,13 +1,13 @@
 import pkg from 'secp256k1';
 
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
 
 import Configs from '../configs/configs';
 import { rosenConfig } from '../configs/rosenConfig';
 import ChainHandler from './chainHandler';
 import MultiSigHandler from './multiSigHandler';
 
-const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
 
 class GuardPkHandler {
   private static instance: GuardPkHandler;

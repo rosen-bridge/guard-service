@@ -1,11 +1,11 @@
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
 import { GuardDetection } from '@rosen-bridge/detection';
 import { RosenDialerNode } from '@rosen-bridge/dialer';
 
 import RosenDialer from '../communication/rosenDialer';
 import Configs from '../configs/configs';
 
-const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
 
 class DetectionHandler {
   private static instance: DetectionHandler;
@@ -17,7 +17,7 @@ class DetectionHandler {
     // generate ECDSA guard detection
     const curvePublicKeys = Configs.tssKeys.pubs.map((pub) => pub.curvePub);
     this.detection = new GuardDetection({
-      logger: DefaultLoggerFactory.getInstance().getLogger('Detection'),
+      logger: CallbackLoggerFactory.getInstance().getLogger('Detection'),
       guardsPublicKey: curvePublicKeys,
       messageEnc: Configs.tssKeys.encryptor,
       submit: this.generateSubmitMessageWrapper(DetectionHandler.CHANNEL),

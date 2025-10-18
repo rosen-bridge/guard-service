@@ -1,6 +1,6 @@
 import { randomBytes } from 'crypto';
 
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
 import { Communicator } from '@rosen-bridge/communication';
 import { RosenDialerNode } from '@rosen-bridge/dialer';
 import { NotFoundError } from '@rosen-chains/abstract-chain';
@@ -17,7 +17,7 @@ import {
   ReprocessStatus,
 } from './interfaces';
 
-const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
 
 class EventReprocess extends Communicator {
   private static instance: EventReprocess;
