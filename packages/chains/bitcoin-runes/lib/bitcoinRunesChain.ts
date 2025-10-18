@@ -341,44 +341,43 @@ class BitcoinRunesChain extends AbstractUtxoChain<
         const getAddressBtcBoxes = this.network.getAddressBtcBoxes;
         const getRemainingBoxes = this.network.getRemainingBoxes;
         const btcUtxoIterator = async function* () {
-          let offset = 0;
           const limit = GET_BOX_API_LIMIT;
-          let hasMorePages = true;
-          let hasMoreRemainingPages = true;
-          while (hasMorePages || hasMoreRemainingPages) {
-            if (hasMorePages) {
-              const btcBoxesPage = await getAddressBtcBoxes(
-                lockAddress,
-                offset,
-                limit,
-              );
-              if (btcBoxesPage.length !== 0) yield* btcBoxesPage;
 
-              if (btcBoxesPage.length < limit) {
-                hasMorePages = false;
-              }
+          let offset = 0;
+          while (true) {
+            const btcBoxesPage = await getAddressBtcBoxes(
+              lockAddress,
+              offset,
+              limit,
+            );
+            if (btcBoxesPage.length !== 0) yield* btcBoxesPage;
 
-              selectedBoxes.push(...btcBoxesPage);
+            offset += limit;
+
+            selectedBoxes.push(...btcBoxesPage);
+
+            if (btcBoxesPage.length < limit) {
+              break;
             }
+          }
 
-            if (hasMoreRemainingPages) {
-              const fetchedBoxIds = selectedBoxes.map((box) =>
-                generateBoxId(box.txId, box.index),
-              );
-              const remainingBoxes = await getRemainingBoxes(
-                fetchedBoxIds,
-                lockAddress,
-                offset,
-                limit,
-              );
+          offset = 0;
+          while (true) {
+            const fetchedBoxIds = selectedBoxes.map((box) =>
+              generateBoxId(box.txId, box.index),
+            );
+            const remainingBoxes = await getRemainingBoxes(
+              fetchedBoxIds,
+              lockAddress,
+              offset,
+              limit,
+            );
+            if (remainingBoxes.length !== 0) yield* remainingBoxes;
 
-              if (remainingBoxes.length !== 0) yield* remainingBoxes;
+            offset += limit;
 
-              if (remainingBoxes.length < limit) {
-                hasMoreRemainingPages = false;
-              }
-
-              offset += limit;
+            if (remainingBoxes.length < limit) {
+              break;
             }
           }
 
