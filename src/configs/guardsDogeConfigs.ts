@@ -18,6 +18,9 @@ class GuardsDogeConfigs {
   static blockcypher = {
     url: config.get<string>('doge.blockcypher.url'),
     timeout: config.get<number>('doge.blockcypher.timeout'), // seconds
+    rps: config.has('doge.blockcypher.rps')
+      ? config.get<number>('doge.blockcypher.rps')
+      : undefined,
   };
   static rpc = {
     url: config.get<string>('doge.rpc.url'),
@@ -30,6 +33,9 @@ class GuardsDogeConfigs {
       : undefined,
     apiKey: config.has('doge.rpc.apiKey')
       ? config.get<string>('doge.rpc.apiKey')
+      : undefined,
+    rps: config.has('doge.rpc.rps')
+      ? config.get<number>('doge.rpc.rps')
       : undefined,
   };
 

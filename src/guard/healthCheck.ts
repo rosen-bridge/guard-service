@@ -15,6 +15,7 @@ import { HealthCheck } from '@rosen-bridge/health-check';
 import { ErgoNodeSyncHealthCheckParam } from '@rosen-bridge/node-sync-check';
 import { ScannerSyncHealthCheckParam } from '@rosen-bridge/scanner-sync-check';
 import { LastSavedBlock } from '@rosen-bridge/scanner-sync-check/dist/config';
+// TODO: fix import (local:ergo/rosen-bridge/health-check#67)
 import {
   TxInfo,
   TxProgressHealthCheckParam,
@@ -241,12 +242,6 @@ const getHealthCheck = async () => {
         GuardsCardanoConfigs.koios.authToken,
       );
       healthCheck.register(adaAssetHealthCheck);
-    }
-    // TODO: Use OGMIOS_NETWORK constant exported from cardano-ogmios-network in rosen-chains
-    // https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/250
-    else if (GuardsCardanoConfigs.chainNetworkName === 'ogmios') {
-      // TODO: Asset health check with ogmios
-      // https://git.ergopool.io/ergo/rosen-bridge/ts-guard-service/-/issues/249
     } else if (GuardsCardanoConfigs.chainNetworkName === BLOCKFROST_NETWORK) {
       const adaAssetHealthCheck = new CardanoBlockFrostAssetHealthCheckParam(
         ADA,

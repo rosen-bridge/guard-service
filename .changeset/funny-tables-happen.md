@@ -3,3 +3,45 @@
 ---
 
 Update dependencies
+
+- @rosen-bridge/abstract-notification@1.0.0
+- @rosen-bridge/abstract-scanner@0.2.1
+- @rosen-bridge/asset-check@6.0.0
+- @rosen-bridge/callback-logger@1.0.1
+- @rosen-bridge/dialer@0.2.1
+- @rosen-bridge/discord-notification@1.0.0
+- @rosen-bridge/ergo-scanner@0.1.2
+- @rosen-bridge/event-progress-check@2.0.0
+- @rosen-bridge/evm-address-tx-extractor@1.2.2
+- @rosen-bridge/evm-scanner@0.1.2
+- @rosen-bridge/extended-typeorm@1.0.1
+- @rosen-bridge/health-check@8.0.0
+- @rosen-bridge/minimum-fee@3.1.0
+- @rosen-bridge/node-sync-check@3.0.0
+- @rosen-bridge/rosenet-utils@0.4.1
+- @rosen-bridge/scanner-interfaces@0.2.1
+- @rosen-bridge/scanner-sync-check@8.0.0
+- @rosen-bridge/tokens@4.0.1
+- @rosen-bridge/tx-progress-check@3.0.0
+- @rosen-bridge/watcher-data-extractor@12.2.2
+- @rosen-bridge/winston-logger@2.0.1
+- @rosen-chains/abstract-chain@15.0.0
+- @rosen-chains/binance@3.0.0
+- @rosen-chains/bitcoin@9.0.0
+- @rosen-chains/bitcoin-esplora@5.0.0
+- @rosen-chains/bitcoin-runes@2.0.0
+- @rosen-chains/bitcoin-runes-rpc@1.0.0
+- @rosen-chains/cardano@14.0.0
+- @rosen-chains/cardano-blockfrost-network@9.0.0
+- @rosen-chains/cardano-koios-network@12.0.0
+- @rosen-chains/doge@3.0.0
+- @rosen-chains/doge-blockcypher@1.0.0
+- @rosen-chains/doge-esplora@2.0.0
+- @rosen-chains/doge-rpc@1.0.0
+- @rosen-chains/ergo@13.0.0
+- @rosen-chains/ergo-explorer-network@10.0.0
+- @rosen-chains/ergo-node-network@10.0.0
+- @rosen-chains/ethereum@3.0.0
+- @rosen-chains/evm@9.0.0
+- @rosen-chains/evm-rpc@4.0.0
+- @rosen-clients/rate-limited-axios@1.1.0

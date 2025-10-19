@@ -259,6 +259,20 @@ class ChainHandler {
           CallbackLoggerFactory.getInstance().getLogger('BlockcypherNetwork'),
         );
         network = new CombinedDogeNetwork([rpc, blockcypher]);
+        if (GuardsDogeConfigs.blockcypher.rps !== undefined)
+          RateLimitedAxiosConfig.addRule(
+            GuardsDogeConfigs.blockcypher.url,
+            GuardsDogeConfigs.blockcypher.rps,
+            1,
+            GuardsDogeConfigs.blockcypher.timeout,
+          );
+        if (GuardsDogeConfigs.rpc.rps !== undefined)
+          RateLimitedAxiosConfig.addRule(
+            GuardsDogeConfigs.rpc.url,
+            GuardsDogeConfigs.rpc.rps,
+            1,
+            GuardsDogeConfigs.rpc.timeout,
+          );
         break;
       }
       default:

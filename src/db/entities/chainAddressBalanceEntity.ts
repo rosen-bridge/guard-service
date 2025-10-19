@@ -1,5 +1,9 @@
-import { BigIntValueTransformer } from '@rosen-bridge/extended-typeorm';
-import { Column, Entity, PrimaryColumn } from '@rosen-bridge/extended-typeorm';
+import {
+  BigIntValueTransformer,
+  Column,
+  Entity,
+  PrimaryColumn,
+} from '@rosen-bridge/extended-typeorm';
 
 @Entity()
 export class ChainAddressBalanceEntity {
