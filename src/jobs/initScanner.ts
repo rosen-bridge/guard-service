@@ -15,6 +15,7 @@ import { BINANCE_CHAIN } from '@rosen-chains/binance';
 import { NODE_NETWORK } from '@rosen-chains/ergo-node-network';
 import { ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
 
+import Configs from '../configs/configs';
 import GuardsBinanceConfigs from '../configs/guardsBinanceConfigs';
 import GuardsBitcoinConfigs from '../configs/guardsBitcoinConfigs';
 import GuardsBitcoinRunesConfigs from '../configs/guardsBitcoinRunesConfigs';
@@ -197,6 +198,7 @@ const initScanner = () => {
     networkType === ErgoNetworkType.Node
       ? GuardsErgoConfigs.node.url
       : GuardsErgoConfigs.explorer.url;
+  const initialization = Configs.initializeEventTriggers;
 
   // init Bitcoin extractors
   const bitcoinCommitmentExtractor = new CommitmentExtractor(
@@ -217,6 +219,7 @@ const initScanner = () => {
     GuardsBitcoinConfigs.bitcoinContractConfig.permitAddress,
     GuardsBitcoinConfigs.bitcoinContractConfig.fraudAddress,
     loggers.bitcoinEventTriggerExtractorLogger,
+    initialization,
   );
 
   // init Doge extractors
@@ -239,6 +242,7 @@ const initScanner = () => {
     GuardsDogeConfigs.dogeContractConfig.permitAddress,
     GuardsDogeConfigs.dogeContractConfig.fraudAddress,
     loggers.dogeEventTriggerExtractorLogger,
+    initialization,
   );
 
   // init Cardano extractors
@@ -260,6 +264,7 @@ const initScanner = () => {
     GuardsCardanoConfigs.cardanoContractConfig.permitAddress,
     GuardsCardanoConfigs.cardanoContractConfig.fraudAddress,
     loggers.cardanoEventTriggerExtractorLogger,
+    initialization,
   );
 
   // init Ergo extractors
@@ -281,6 +286,7 @@ const initScanner = () => {
     GuardsErgoConfigs.ergoContractConfig.permitAddress,
     GuardsErgoConfigs.ergoContractConfig.fraudAddress,
     loggers.ergoEventTriggerExtractorLogger,
+    initialization,
   );
 
   // init Ethereum extractors
@@ -302,6 +308,7 @@ const initScanner = () => {
     GuardsEthereumConfigs.ethereumContractConfig.permitAddress,
     GuardsEthereumConfigs.ethereumContractConfig.fraudAddress,
     loggers.ethereumEventTriggerExtractorLogger,
+    initialization,
   );
 
   // init Binance extractors
@@ -323,6 +330,7 @@ const initScanner = () => {
     GuardsBinanceConfigs.binanceContractConfig.permitAddress,
     GuardsBinanceConfigs.binanceContractConfig.fraudAddress,
     loggers.binanceEventTriggerExtractorLogger,
+    initialization,
   );
   const bitcoinRunesCommitmentExtractor = new CommitmentExtractor(
     'bitcoinRunesCommitment',
@@ -342,6 +350,7 @@ const initScanner = () => {
     GuardsBitcoinRunesConfigs.bitcoinRunesContractConfig.permitAddress,
     GuardsBitcoinRunesConfigs.bitcoinRunesContractConfig.fraudAddress,
     loggers.bitcoinRunesEventTriggerExtractorLogger,
+    initialization,
   );
 
   ergoScanner.registerExtractor(bitcoinCommitmentExtractor);

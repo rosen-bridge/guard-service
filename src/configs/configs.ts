@@ -132,6 +132,12 @@ class Configs {
     43200,
   );
 
+  // extractors
+  static initializeEventTriggers = getOptionalConfig<boolean>(
+    'extractors.initializeEventTriggers',
+    false,
+  );
+
   // guards configs
   static guardMnemonic = config.get<string>('guard.mnemonic');
   static guardSecret = Utils.convertMnemonicToSecretKey(this.guardMnemonic);
