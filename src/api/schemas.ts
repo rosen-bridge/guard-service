@@ -83,7 +83,6 @@ export const RevenueHistoryQuerySchema = Type.Object({
   sort: Type.Optional(Type.Enum(SortRequest)),
   fromChain: Type.Optional(Type.String()),
   toChain: Type.Optional(Type.String()),
-  tokenId: Type.Optional(Type.String()),
   maxHeight: Type.Optional(Type.Number()),
   minHeight: Type.Optional(Type.Number()),
   fromBlockTime: Type.Optional(Type.Number()),

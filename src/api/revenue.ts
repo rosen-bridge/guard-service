@@ -38,7 +38,6 @@ const revenueHistoryRoute = (server: FastifySeverInstance) => {
         limit,
         fromChain,
         toChain,
-        tokenId, // eslint-disable-line @typescript-eslint/no-unused-vars
         maxHeight,
         minHeight,
         fromBlockTime,

@@ -33,7 +33,9 @@ export default [
     rules: {
       'check-file/filename-naming-convention': [
         'error',
-        { '**/*.{js,ts,jsx,tsx}': 'CAMEL_CASE' },
+        {
+          '**/!(*-migration).{js,ts,jsx,tsx}': 'CAMEL_CASE',
+        },
         { ignoreMiddleExtensions: true },
       ],
       // vitest Rules
