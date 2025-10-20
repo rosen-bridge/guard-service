@@ -1,17 +1,18 @@
+import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
+import { ChainUtils } from '@rosen-chains/abstract-chain';
+
+import Configs from '../configs/configs';
+import DatabaseHandler from '../db/databaseHandler';
+import { authenticateKey } from '../utils/authentication';
+import { SUPPORTED_CHAINS } from '../utils/constants';
+import { DuplicateOrder } from '../utils/errors';
 import {
   FastifySeverInstance,
   MessageResponseSchema,
   OrderQuerySchema,
 } from './schemas';
-import Configs from '../configs/Configs';
-import DatabaseHandler from '../db/DatabaseHandler';
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
-import { DuplicateOrder } from '../utils/errors';
-import { authenticateKey } from '../utils/authentication';
-import { SUPPORTED_CHAINS } from '../utils/constants';
-import { ChainUtils } from '@rosen-chains/abstract-chain';
 
-const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
 
 /**
  * setup arbitrary order route
@@ -64,7 +65,7 @@ const orderRoute = (server: FastifySeverInstance) => {
         await DatabaseHandler.insertOrder(
           id,
           chain,
-          ChainUtils.encodeOrder(order)
+          ChainUtils.encodeOrder(order),
         );
         reply.status(200).send({
           message: 'Ok',
@@ -72,7 +73,7 @@ const orderRoute = (server: FastifySeverInstance) => {
       } catch (e) {
         if (e instanceof DuplicateOrder) {
           logger.warn(
-            `Failed to insert arbitrary order due to duplication: ${e}`
+            `Failed to insert arbitrary order due to duplication: ${e}`,
           );
           reply.status(409).send({
             message: `Order is already in database`,
@@ -85,7 +86,7 @@ const orderRoute = (server: FastifySeverInstance) => {
           });
         }
       }
-    }
+    },
   );
 };
 

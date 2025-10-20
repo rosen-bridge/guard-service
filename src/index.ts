@@ -1,32 +1,34 @@
 import './bootstrap';
-import { initDataSources } from './jobs/dataSources';
-import { initializeMultiSigJobs } from './jobs/multiSig';
-import { initApiServer } from './jobs/apiServer';
-import { runProcessors } from './jobs/runProcessors';
-import Configs from './configs/Configs';
-import { initScanner } from './jobs/initScanner';
-import { healthCheckStart } from './jobs/healthCheck';
-import ChainHandler from './handlers/ChainHandler';
-import TxAgreement from './agreement/TxAgreement';
-import MultiSigHandler from './handlers/MultiSigHandler';
-import { configUpdateJob } from './jobs/guardConfigUpdate';
-import { DatabaseAction } from './db/DatabaseAction';
-import { dataSource } from './db/dataSource';
-import { tssUpdateJob } from './jobs/tss';
-import { revenueJob } from './jobs/revenue';
-import GuardPkHandler from './handlers/GuardPkHandler';
-import MinimumFeeHandler from './handlers/MinimumFeeHandler';
-import { minimumFeeUpdateJob } from './jobs/minimumFee';
-import { NotificationHandler } from './handlers/NotificationHandler';
-import RosenDialer from './communication/RosenDialer';
-import EventSynchronization from './synchronization/EventSynchronization';
-import DetectionHandler from './handlers/DetectionHandler';
-import EventReprocess from './reprocess/EventReprocess';
-import ArbitraryProcessor from './arbitrary/ArbitraryProcessor';
-import TssHandler from './handlers/TssHandler';
-import { TokenHandler } from './handlers/tokenHandler';
-import BalanceHandler from './handlers/BalanceHandler';
+
 import { MultiSigUtils } from '@rosen-bridge/ergo-multi-sig';
+
+import TxAgreement from './agreement/txAgreement';
+import ArbitraryProcessor from './arbitrary/arbitraryProcessor';
+import RosenDialer from './communication/rosenDialer';
+import Configs from './configs/configs';
+import { DatabaseAction } from './db/databaseAction';
+import { dataSource } from './db/dataSource';
+import BalanceHandler from './handlers/balanceHandler';
+import ChainHandler from './handlers/chainHandler';
+import DetectionHandler from './handlers/detectionHandler';
+import GuardPkHandler from './handlers/guardPkHandler';
+import MinimumFeeHandler from './handlers/minimumFeeHandler';
+import MultiSigHandler from './handlers/multiSigHandler';
+import { NotificationHandler } from './handlers/notificationHandler';
+import { TokenHandler } from './handlers/tokenHandler';
+import TssHandler from './handlers/tssHandler';
+import { initApiServer } from './jobs/apiServer';
+import { initDataSources } from './jobs/dataSources';
+import { configUpdateJob } from './jobs/guardConfigUpdate';
+import { healthCheckStart } from './jobs/healthCheck';
+import { initScanner } from './jobs/initScanner';
+import { minimumFeeUpdateJob } from './jobs/minimumFee';
+import { initializeMultiSigJobs } from './jobs/multiSig';
+import { revenueJob } from './jobs/revenue';
+import { runProcessors } from './jobs/runProcessors';
+import { tssUpdateJob } from './jobs/tss';
+import EventReprocess from './reprocess/eventReprocess';
+import EventSynchronization from './synchronization/eventSynchronization';
 
 const init = async () => {
   // initialize tokens config
@@ -52,7 +54,7 @@ const init = async () => {
 
   // initialize multiSig utils object
   const multiSigUtils = new MultiSigUtils(() =>
-    ChainHandler.getInstance().getErgoChain().getStateContext()
+    ChainHandler.getInstance().getErgoChain().getStateContext(),
   );
   // initialize tss multiSig object
   await MultiSigHandler.init(multiSigUtils);

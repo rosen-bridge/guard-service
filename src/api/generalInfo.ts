@@ -1,15 +1,16 @@
-import { getHealthCheck } from '../guard/HealthCheck';
+import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
+
+import packageJson from '../../package.json' with { type: 'json' };
+import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
+import { rosenConfig } from '../configs/rosenConfig';
+import { getHealthCheck } from '../guard/healthCheck';
 import {
   FastifySeverInstance,
   InfoResponseSchema,
   MessageResponseSchema,
 } from './schemas';
-import { rosenConfig } from '../configs/RosenConfig';
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
-import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
-import packageJson from '../../package.json' assert { type: 'json' };
 
-const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
 
 /**
  * Gets the general info of the service
@@ -49,7 +50,7 @@ const infoRoute = (server: FastifySeverInstance) => {
         logger.error(error.stack);
         reply.status(500).send({ message: error.message });
       }
-    }
+    },
   );
 };
 

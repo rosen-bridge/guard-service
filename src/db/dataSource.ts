@@ -1,32 +1,30 @@
-import { DataSource } from '@rosen-bridge/extended-typeorm';
-import Configs from '../configs/Configs';
-
 import {
   BlockEntity,
   ExtractorStatusEntity,
   migrations as scannerMigrations,
-} from '@rosen-bridge/scanner';
+} from '@rosen-bridge/abstract-scanner';
+import {
+  AddressTxsEntity,
+  migrations as addressTxExtractorMigrations,
+} from '@rosen-bridge/evm-address-tx-extractor';
+import { DataSource } from '@rosen-bridge/extended-typeorm';
 import {
   CommitmentEntity,
   EventTriggerEntity,
   migrations as watcherDataExtractorMigrations,
 } from '@rosen-bridge/watcher-data-extractor';
 
-import { ConfirmedEventEntity } from './entities/ConfirmedEventEntity';
-import { TransactionEntity } from './entities/TransactionEntity';
-import { RevenueEntity } from './entities/revenueEntity';
+import Configs from '../configs/configs';
+import { ArbitraryEntity } from './entities/arbitraryEntity';
+import { ChainAddressBalanceEntity } from './entities/chainAddressBalanceEntity';
+import { ConfirmedEventEntity } from './entities/confirmedEventEntity';
+import { EventView } from './entities/eventView';
+import { ReprocessEntity } from './entities/reprocessEntity';
 import { RevenueChartView } from './entities/revenueChartView';
+import { RevenueEntity } from './entities/revenueEntity';
 import { RevenueView } from './entities/revenueView';
-
+import { TransactionEntity } from './entities/transactionEntity';
 import migrations from './migrations';
-import { EventView } from './entities/EventView';
-import {
-  AddressTxsEntity,
-  migrations as addressTxExtractorMigrations,
-} from '@rosen-bridge/evm-address-tx-extractor';
-import { ArbitraryEntity } from './entities/ArbitraryEntity';
-import { ReprocessEntity } from './entities/ReprocessEntity';
-import { ChainAddressBalanceEntity } from './entities/ChainAddressBalanceEntity';
 
 const dbType = Configs.dbType as keyof typeof migrations;
 const dbConfigs = {

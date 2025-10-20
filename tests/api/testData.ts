@@ -1,11 +1,12 @@
-import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
-import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
-import { BITCOIN_CHAIN, BTC } from '@rosen-chains/bitcoin';
 import { HealthStatusLevel } from '@rosen-bridge/health-check';
-import GuardsErgoConfigs from '../../src/configs/GuardsErgoConfigs';
-import GuardsCardanoConfigs from '../../src/configs/GuardsCardanoConfigs';
-import { rosenConfig } from '../../src/configs/RosenConfig';
-import GuardsBitcoinConfigs from '../../src/configs/GuardsBitcoinConfigs';
+import { BITCOIN_CHAIN, BTC } from '@rosen-chains/bitcoin';
+import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
+import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
+
+import GuardsBitcoinConfigs from '../../src/configs/guardsBitcoinConfigs';
+import GuardsCardanoConfigs from '../../src/configs/guardsCardanoConfigs';
+import GuardsErgoConfigs from '../../src/configs/guardsErgoConfigs';
+import { rosenConfig } from '../../src/configs/rosenConfig';
 import { AddressBalance, Page } from '../../src/types/api';
 
 export const guardInfo = {

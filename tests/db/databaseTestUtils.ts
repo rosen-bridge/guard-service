@@ -1,13 +1,13 @@
-import DatabaseHandlerMock from './mocked/DatabaseAction.mock';
-import * as EventTestData from '../event/testData';
-import { EventStatus, RevenueType } from '../../src/utils/constants';
-import DatabaseActionMock from './mocked/DatabaseAction.mock';
-import * as TxTestData from '../agreement/testData';
 import { EventTrigger, TransactionType } from '@rosen-chains/abstract-chain';
-import Utils from '../../src/utils/Utils';
-import TestUtils from '../testUtils/TestUtils';
-import { DatabaseAction } from '../../src/db/DatabaseAction';
 import { CARDANO_CHAIN } from '@rosen-chains/cardano';
+
+import { DatabaseAction } from '../../src/db/databaseAction';
+import { EventStatus, RevenueType } from '../../src/utils/constants';
+import Utils from '../../src/utils/utils';
+import * as TxTestData from '../agreement/testData';
+import * as EventTestData from '../event/testData';
+import TestUtils from '../testUtils/testUtils';
+import DatabaseActionMock from './mocked/databaseAction.mock';
 
 /**
  * insert events with different heights to database
@@ -16,11 +16,11 @@ import { CARDANO_CHAIN } from '@rosen-chains/cardano';
  */
 const insertEventsWithHeight = async (
   count: number,
-  status = EventStatus.completed
+  status = EventStatus.completed,
 ) => {
   for (let index = 0; index < count; index++) {
     const mockedEvent = EventTestData.mockEventTrigger().event;
-    await DatabaseHandlerMock.insertEventRecord(
+    await DatabaseActionMock.insertEventRecord(
       mockedEvent,
       status,
       'box_serialized',
@@ -31,7 +31,7 @@ const insertEventsWithHeight = async (
       'spendBlockId',
       'spendTxId',
       'successful',
-      'paymentTxId'
+      'paymentTxId',
     );
   }
 };
@@ -42,7 +42,7 @@ const insertEventsWithHeight = async (
  * @param count number of inserted events
  */
 const insertCompletedEvent = async (mockedEvent: EventTrigger) => {
-  await DatabaseHandlerMock.insertEventRecord(
+  await DatabaseActionMock.insertEventRecord(
     mockedEvent,
     EventStatus.completed,
     'box_serialized',
@@ -53,7 +53,7 @@ const insertCompletedEvent = async (mockedEvent: EventTrigger) => {
     'spendBlockId',
     'spendTxId',
     'successful',
-    'paymentTxId'
+    'paymentTxId',
   );
 };
 
@@ -64,7 +64,7 @@ const insertCompletedEvent = async (mockedEvent: EventTrigger) => {
 const insertEventsWithAmount = async (count: number) => {
   for (let index = 0; index < count; index++) {
     const mockedEvent = EventTestData.mockEventWithAmount(
-      (1000 * index + 10000).toString()
+      (1000 * index + 10000).toString(),
     ).event;
     await insertCompletedEvent(mockedEvent);
   }
@@ -77,7 +77,7 @@ const insertEventsWithAmount = async (count: number) => {
  */
 const insertRevenueDataWithTimestamps = async (
   count: number,
-  timeStep = 604800000
+  timeStep = 604800000,
 ) => {
   for (let index = 0; index < count; index++) {
     const timestamp = 1664229200000 + timeStep * index;
@@ -92,7 +92,7 @@ const insertRevenueDataWithTimestamps = async (
  */
 const insertRevenueDataWithDifferentNetworks = async (
   count: number,
-  timeStep = 604800000
+  timeStep = 604800000,
 ) => {
   for (let index = 0; index < count; index++) {
     const timestamp = 1664229200000 + timeStep * index;
@@ -110,7 +110,7 @@ const insertRevenueDataWithDifferentNetworks = async (
  */
 const insertRevenueDataWithDifferentTokenId = async (
   count: number,
-  timeStep = 604800000
+  timeStep = 604800000,
 ) => {
   for (let index = 0; index < count; index++) {
     const timestamp = 1664229200000 + timeStep * index;
@@ -137,21 +137,21 @@ const insertRevenue = async (
   height = 1000,
   mockedEvent: EventTrigger = EventTestData.mockEventTrigger().event,
   revenueToken = 'tokenId',
-  revenueType: RevenueType = RevenueType.fraud
+  revenueType: RevenueType = RevenueType.fraud,
 ) => {
   // insert block
   const blockId = TestUtils.generateRandomId();
-  await DatabaseHandlerMock.insertBlockRecord(timestamp, blockId, height);
+  await DatabaseActionMock.insertBlockRecord(timestamp, blockId, height);
 
   // mock reward transaction
   const tx = TxTestData.mockPaymentTransaction(
     TransactionType.reward,
     CARDANO_CHAIN,
-    Utils.txIdToEventId(mockedEvent.sourceTxId)
+    Utils.txIdToEventId(mockedEvent.sourceTxId),
   );
 
   // insert event
-  await DatabaseHandlerMock.insertEventRecord(
+  await DatabaseActionMock.insertEventRecord(
     mockedEvent,
     EventStatus.completed,
     'box-serialized',
@@ -160,7 +160,7 @@ const insertRevenue = async (
     12000,
     13000,
     blockId,
-    tx.txId
+    tx.txId,
   );
   const eventRecord = (await DatabaseActionMock.allRawEventRecords()).at(-1)!;
 
@@ -170,7 +170,7 @@ const insertRevenue = async (
     10000n,
     tx.txId,
     revenueType,
-    eventRecord
+    eventRecord,
   );
 };
 

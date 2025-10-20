@@ -1,4 +1,5 @@
 import { EventTriggerEntity } from '@rosen-bridge/watcher-data-extractor';
+
 import { RevenueType } from '../utils/constants';
 
 enum SortRequest {

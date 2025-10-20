@@ -1,6 +1,10 @@
-import { TokenChartData, TokenData } from '../types/api';
-import { DatabaseAction } from '../db/DatabaseAction';
 import { groupBy, reduce } from 'lodash-es';
+
+import { ERGO_CHAIN } from '@rosen-chains/ergo';
+
+import { DatabaseAction } from '../db/databaseAction';
+import { TokenChartData } from '../types/api';
+import { getTokenData } from '../utils/getTokenData';
 import { extractRevenueFromView } from '../utils/revenue';
 import {
   FastifySeverInstance,
@@ -10,8 +14,6 @@ import {
   RevenueHistoryQuerySchema,
   RevenueHistoryResponseSchema,
 } from './schemas';
-import { ERGO_CHAIN } from '@rosen-chains/ergo';
-import { getTokenData } from '../utils/getTokenData';
 
 /**
  * setup revenue history route
@@ -36,7 +38,6 @@ const revenueHistoryRoute = (server: FastifySeverInstance) => {
         limit,
         fromChain,
         toChain,
-        tokenId,
         maxHeight,
         minHeight,
         fromBlockTime,
@@ -53,17 +54,17 @@ const revenueHistoryRoute = (server: FastifySeverInstance) => {
         fromBlockTime,
         toBlockTime,
         offset,
-        limit
+        limit,
       );
       const revenues = await dbAction.getEventsRevenues(
-        eventsRevenues.items.map((row) => row.id)
+        eventsRevenues.items.map((row) => row.id),
       );
 
       reply.status(200).send({
         items: await extractRevenueFromView(eventsRevenues.items, revenues),
         total: eventsRevenues.total,
       });
-    }
+    },
   );
 };
 
@@ -105,10 +106,10 @@ const revenueChartRoute = (server: FastifySeverInstance) => {
             },
           ];
         },
-        []
+        [],
       );
       reply.status(200).send(returnData);
-    }
+    },
   );
 };
 

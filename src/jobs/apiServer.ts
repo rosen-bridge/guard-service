@@ -1,23 +1,25 @@
 import fastifyCors, { FastifyCorsOptions } from '@fastify/cors';
-import fastify, { FastifyInstance, FastifyRequest } from 'fastify';
+import rateLimit from '@fastify/rate-limit';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
-import { p2pRoutes } from '../api/p2p';
-import Configs from '../configs/Configs';
-import { generalInfoRoute } from '../api/generalInfo';
-import { eventRoutes } from '../api/events';
-import { revenueRoutes } from '../api/revenue';
-import { healthRoutes } from '../api/healthCheck';
-import { tssRoute } from '../api/tss';
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
-import { signRoute } from '../api/signTx';
-import rateLimit from '@fastify/rate-limit';
-import { arbitraryOrderRoute } from '../api/arbitrary';
-import { eventReprocessRoute } from '../api/reprocess';
-import { balanceRoutes } from '../api/balance';
+import fastify, { FastifyInstance, FastifyRequest } from 'fastify';
 
-const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
+import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
+
+import { arbitraryOrderRoute } from '../api/arbitrary';
+import { balanceRoutes } from '../api/balance';
+import { eventRoutes } from '../api/events';
+import { generalInfoRoute } from '../api/generalInfo';
+import { healthRoutes } from '../api/healthCheck';
+import { p2pRoutes } from '../api/p2p';
+import { eventReprocessRoute } from '../api/reprocess';
+import { revenueRoutes } from '../api/revenue';
+import { signRoute } from '../api/signTx';
+import { tssRoute } from '../api/tss';
+import Configs from '../configs/configs';
+
+const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
 
 /**
  * initialize api server
@@ -39,13 +41,13 @@ const initApiServer = async () => {
         req: FastifyRequest,
         callback: (
           error: Error | null,
-          corsOptions?: FastifyCorsOptions
-        ) => void
+          corsOptions?: FastifyCorsOptions,
+        ) => void,
       ) => {
         if (
           req.headers.origin &&
           Configs.apiAllowedOrigins.filter((item) =>
-            req.headers.origin?.includes(item)
+            req.headers.origin?.includes(item),
           ).length > 0
         ) {
           callback(null, { origin: true });
@@ -85,7 +87,7 @@ const initApiServer = async () => {
     },
     staticCSP: true,
     transformStaticCSP: (header) => header,
-    transformSpecification: (swaggerObject, request, reply) => {
+    transformSpecification: (swaggerObject) => {
       return swaggerObject;
     },
     transformSpecificationClone: true,

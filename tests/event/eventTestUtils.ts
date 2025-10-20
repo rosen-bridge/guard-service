@@ -1,6 +1,8 @@
-import { EventTrigger } from '@rosen-chains/abstract-chain';
-import TestUtils from '../testUtils/TestUtils';
 import { blake2b } from 'blakejs';
+
+import { EventTrigger } from '@rosen-chains/abstract-chain';
+
+import TestUtils from '../testUtils/testUtils';
 
 export type TestEventTrigger = {
   event: EventTrigger;
@@ -25,7 +27,7 @@ export const createEventTrigger = (
   sourceBlockId: string,
   sourceChainHeight: number,
   WIDsCount = 5,
-  WIDs?: string[]
+  WIDs?: string[],
 ): TestEventTrigger => {
   const eventWIDs = WIDs
     ? WIDs
@@ -33,7 +35,7 @@ export const createEventTrigger = (
         .fill(0)
         .map(() => TestUtils.generateRandomId());
   const WIDsHash = Buffer.from(
-    blake2b(Buffer.from(eventWIDs.join(''), 'hex'), undefined, 32)
+    blake2b(Buffer.from(eventWIDs.join(''), 'hex'), undefined, 32),
   ).toString('hex');
 
   const event: EventTrigger = {

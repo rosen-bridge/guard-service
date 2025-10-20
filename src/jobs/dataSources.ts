@@ -1,7 +1,8 @@
-import { dataSource } from '../db/dataSource';
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
 
-const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
+import { dataSource } from '../db/dataSource';
+
+const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
 
 const initDataSources = async (): Promise<void> => {
   try {

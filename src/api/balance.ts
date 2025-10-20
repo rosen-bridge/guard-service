@@ -1,14 +1,15 @@
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
+
+import BalanceHandler from '../handlers/balanceHandler';
+import { LockBalance } from '../types/api';
 import {
   BalanceQuerySchema,
   FastifySeverInstance,
   LockBalanceSchema,
   MessageResponseSchema,
 } from './schemas';
-import BalanceHandler from '../handlers/BalanceHandler';
-import { LockBalance } from '../types/api';
 
-const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
 
 /**
  * Gets the balance
@@ -40,14 +41,14 @@ const getBalanceRoute = (server: FastifySeverInstance) => {
           chain,
           tokenId,
           offset,
-          limit
+          limit,
         );
         balance.cold = await BalanceHandler.getInstance().getAddressAssets(
           'cold',
           chain,
           tokenId,
           offset,
-          limit
+          limit,
         );
 
         reply.status(200).send(balance);
@@ -56,7 +57,7 @@ const getBalanceRoute = (server: FastifySeverInstance) => {
         if (error.stack) logger.error(error.stack);
         reply.status(500).send({ message: error.message });
       }
-    }
+    },
   );
 };
 

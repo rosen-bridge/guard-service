@@ -5,9 +5,10 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
   Relation,
-} from 'typeorm';
-import { BigIntValueTransformer } from '../transformers';
+} from '@rosen-bridge/extended-typeorm';
 import { EventTriggerEntity } from '@rosen-bridge/watcher-data-extractor';
+
+import { BigIntValueTransformer } from '../transformers';
 
 @Entity()
 export class RevenueEntity {

@@ -1,4 +1,4 @@
-FROM node:20.11
+FROM node:22.18
 
 LABEL maintainer="rosen-bridge team <team@rosen.tech>"
 LABEL description="Docker image for the guard-service owned by rosen-bridge organization."

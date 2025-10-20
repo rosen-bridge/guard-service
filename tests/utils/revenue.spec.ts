@@ -16,7 +16,7 @@ describe('extractRevenueFromView', () => {
   it('should concat revenues for every events with token name and decimals successfully', async () => {
     const result = await extractRevenueFromView(
       testData.mockedView,
-      testData.mockedEntities
+      testData.mockedEntities,
     );
     expect(result).toEqual(testData.revenueHistory);
   });

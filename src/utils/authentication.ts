@@ -1,13 +1,14 @@
 import { blake2b } from 'blakejs';
-import Configs from '../configs/Configs';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { HookHandlerDoneFunction } from 'fastify/types/hooks';
 import { toString as uint8ArrayToString } from 'uint8arrays';
 
+import Configs from '../configs/configs';
+
 const authenticateKey = <T extends FastifyRequest, U extends FastifyReply>(
   req: T,
   res: U,
-  next: HookHandlerDoneFunction
+  next: HookHandlerDoneFunction,
 ) => {
   const api_key: string = req.headers['api-key'] as string;
   if (api_key && isValidApiKey(api_key)) {

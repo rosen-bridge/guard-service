@@ -1,7 +1,8 @@
-image: node:20.11
+image: node:22.18
 
 stages:
   - installation
+  - knip
   - type_check
   - lint
   - test
@@ -16,6 +17,16 @@ installation:
       - node_modules
   script:
     - npm ci
+
+knip:
+  stage: knip
+  cache:
+    key: $CI_COMMIT_REF_NAME
+    policy: pull
+    paths:
+      - node_modules
+  script:
+    - npm run knip
 
 type_check:
   stage: type_check
@@ -35,7 +46,7 @@ lint:
     paths:
       - node_modules
   script:
-    - npm run lint
+    - npm run lint:check
 
 test:
   stage: test

@@ -1,5 +1,6 @@
 import { PaymentOrder } from '@rosen-chains/abstract-chain';
-import GuardsErgoConfigs from '../../src/configs/GuardsErgoConfigs';
+
+import GuardsErgoConfigs from '../../src/configs/guardsErgoConfigs';
 
 export const fraudTxOrder: PaymentOrder = [
   {

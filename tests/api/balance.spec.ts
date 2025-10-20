@@ -1,12 +1,13 @@
 import fastify from 'fastify';
+
+import { balanceRoutes } from '../../src/api/balance';
+import { FastifySeverInstance } from '../../src/api/schemas';
+import BalanceHandlerMock from '../handlers/mocked/balanceHandler.mock';
 import {
   mockLockBalances,
   mockColdBalances,
   mockBalancesObj,
 } from './testData';
-import { FastifySeverInstance } from '../../src/api/schemas';
-import BalanceHandlerMock from '../handlers/mocked/BalanceHandler.mock';
-import { balanceRoutes } from '../../src/api/balance';
 
 describe('balanceRoutes', () => {
   describe('GET /balance', () => {
@@ -38,7 +39,7 @@ describe('balanceRoutes', () => {
       // arrange
       BalanceHandlerMock.mockGetAddressAssets().mockImplementation(
         async (address) =>
-          address === 'lock' ? mockLockBalances : mockColdBalances
+          address === 'lock' ? mockLockBalances : mockColdBalances,
       );
 
       // act
@@ -105,7 +106,7 @@ describe('balanceRoutes', () => {
         async (address) => {
           if (address === 'lock') throw new Error('custom_error');
           else return { items: [], total: 0 };
-        }
+        },
       );
 
       // act

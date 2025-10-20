@@ -1,5 +1,5 @@
+import JsonBigInt from '@rosen-bridge/json-bigint';
 import { PaymentOrder } from '@rosen-chains/abstract-chain';
-import { JsonBI } from '../../src/network/NetworkModels';
 
 export const order: PaymentOrder = [
   {
@@ -22,7 +22,7 @@ export const order: PaymentOrder = [
     },
   },
 ];
-export const orderJson = JsonBI.stringify(order);
+export const orderJson = JsonBigInt.stringify(order);
 
 export const disarrangedOrder: PaymentOrder = [
   {
@@ -58,7 +58,7 @@ export const disarrangedOrder: PaymentOrder = [
     },
   },
 ];
-export const disarrangedOrderJson = JsonBI.stringify(disarrangedOrder);
+export const disarrangedOrderJson = JsonBigInt.stringify(disarrangedOrder);
 export const arrangedOrder: PaymentOrder = [
   {
     address: 'address-2',
@@ -93,4 +93,4 @@ export const arrangedOrder: PaymentOrder = [
     },
   },
 ];
-export const arrangedOrderJson = JsonBI.stringify(arrangedOrder);
+export const arrangedOrderJson = JsonBigInt.stringify(arrangedOrder);
