@@ -1,7 +1,7 @@
 import type { KnipConfig } from 'knip';
 
 const config: KnipConfig = {
-  ignoreDependencies: ['typeorm/*'],
+  ignoreDependencies: ['typeorm/*', 'pg'],
   ignoreBinaries: ['typeorm'],
 };
 

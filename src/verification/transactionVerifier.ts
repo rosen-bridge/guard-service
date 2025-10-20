@@ -1,6 +1,7 @@
 import { isEqual } from 'lodash-es';
 
 import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
+import JsonBigInt from '@rosen-bridge/json-bigint';
 import {
   ChainUtils,
   EventTrigger,
@@ -17,7 +18,6 @@ import DatabaseHandler from '../db/databaseHandler';
 import EventOrder from '../event/eventOrder';
 import ChainHandler from '../handlers/chainHandler';
 import MinimumFeeHandler from '../handlers/minimumFeeHandler';
-import { JsonBI } from '../network/networkModels';
 import * as TransactionSerializer from '../transaction/transactionSerializer';
 import { ChainNativeToken } from '../utils/constants';
 
@@ -166,7 +166,7 @@ class TransactionVerifier {
       logger.debug(
         `Transaction [${
           tx.txId
-        }] is invalid: Tx is transferring forbidden token. Forbidden tokens: ${JsonBI.stringify(
+        }] is invalid: Tx is transferring forbidden token. Forbidden tokens: ${JsonBigInt.stringify(
           forbiddenTokens,
         )}`,
       );

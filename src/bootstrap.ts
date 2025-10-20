@@ -1,5 +1,6 @@
-import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
 import '@rosen-bridge/extended-typeorm/bootstrap';
+
+import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
 import WinstonLogger from '@rosen-bridge/winston-logger';
 
 import packageJson from '../package.json' with { type: 'json' };

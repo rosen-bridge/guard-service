@@ -3,11 +3,11 @@ import fs from 'fs';
 import { cloneDeep } from 'lodash-es';
 
 import { ECDSA } from '@rosen-bridge/encryption';
+import JsonBigInt from '@rosen-bridge/json-bigint';
 import { TransportOptions } from '@rosen-bridge/winston-logger';
 
 import { ThresholdConfig } from '../coldStorage/types';
 import { TokenHandler } from '../handlers/tokenHandler';
-import { JsonBI } from '../network/networkModels';
 import { BalanceHandlerConfig } from '../types/config';
 import { ConfigError } from '../utils/errors';
 import Utils from '../utils/utils';
@@ -160,7 +160,7 @@ class Configs {
       );
     } else {
       const configJson: string = fs.readFileSync(thresholdsPath, 'utf8');
-      thresholds = JsonBI.parse(configJson);
+      thresholds = JsonBigInt.parse(configJson);
     }
     // wrap values
     for (const chain of Object.keys(thresholds)) {
