@@ -1,8 +1,9 @@
+import './bootstrap';
+
 import { MultiSigUtils } from '@rosen-bridge/ergo-multi-sig';
 
 import TxAgreement from './agreement/txAgreement';
 import ArbitraryProcessor from './arbitrary/arbitraryProcessor';
-import './bootstrap';
 import RosenDialer from './communication/rosenDialer';
 import Configs from './configs/configs';
 import { DatabaseAction } from './db/databaseAction';

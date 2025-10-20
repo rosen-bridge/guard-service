@@ -1,7 +1,7 @@
 {
   "singleQuote": true,
   "importOrder": [
-    "@rosen-bridge/extended-typeorm/bootstrap",
+    "^(.*)/bootstrap",
     "<THIRD_PARTY_MODULES>",
     "^@rosen(.*)/(.*)$",
     "^@/(.*)$",
