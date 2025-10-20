@@ -10,5 +10,6 @@ Remove redundant dependencies
 - big-integer
 - cross-env
 - discord.js
-- pg
+- json-bigint
 - process
+- reflect-metadata

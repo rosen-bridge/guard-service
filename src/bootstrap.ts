@@ -1,6 +1,5 @@
-import 'reflect-metadata';
-
 import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
+import '@rosen-bridge/extended-typeorm/bootstrap';
 import WinstonLogger from '@rosen-bridge/winston-logger';
 
 import packageJson from '../package.json' with { type: 'json' };
