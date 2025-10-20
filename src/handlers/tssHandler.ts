@@ -1,5 +1,4 @@
 import { spawn } from 'child_process';
-import * as crypto from 'crypto';
 
 import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
 import { RosenDialerNode } from '@rosen-bridge/dialer';

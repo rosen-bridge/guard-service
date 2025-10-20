@@ -4,15 +4,13 @@ import { DerivationPath, ExtSecretKey, Mnemonic } from 'ergo-lib-wasm-nodejs';
 
 import { EventTrigger } from '@rosen-chains/abstract-chain';
 
-import Encryption from './encryption';
-
 class Utils {
   /**
    * converts sourceTxId to eventId (calculates blake2b hash of it)
    * @param txId
    */
   static txIdToEventId = (txId: string): string => {
-    return Buffer.from(Encryption.blake2bHash(txId)).toString('hex');
+    return Buffer.from(blake2b(txId, undefined, 32)).toString('hex');
   };
 
   /**

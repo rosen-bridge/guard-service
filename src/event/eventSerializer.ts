@@ -1,10 +1,9 @@
-import { Buffer } from 'buffer';
+import { blake2b } from 'blakejs';
 
 import { EventTriggerEntity } from '@rosen-bridge/watcher-data-extractor';
 import { EventTrigger } from '@rosen-chains/abstract-chain';
 
 import { ConfirmedEventEntity } from '../db/entities/confirmedEventEntity';
-import Encryption from '../utils/encryption';
 
 class EventSerializer {
   /**
@@ -12,7 +11,7 @@ class EventSerializer {
    * @returns id of event trigger
    */
   static getId = (event: EventTrigger) => {
-    return Buffer.from(Encryption.blake2bHash(event.sourceTxId)).toString(
+    return Buffer.from(blake2b(event.sourceTxId, undefined, 32)).toString(
       'hex',
     );
   };
