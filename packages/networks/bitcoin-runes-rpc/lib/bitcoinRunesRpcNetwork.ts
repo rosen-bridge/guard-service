@@ -819,17 +819,23 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
   /**
    * gets confirmed and unspent boxes of an address that contains no rune
    * @param address the address
+   * @param offset
+   * @param limit
    * @returns list of boxes
    */
   getAddressBtcBoxes = async (
     address: string,
+    offset: number,
+    limit: number,
   ): Promise<Array<BitcoinRunesUtxo>> => {
     try {
       const response = await this.unisatClient.get<
         UnisatResponse<UnisatAddressBtcUtxos | undefined>
-      >(`/v1/indexer/address/${address}/available-utxo-data`);
+      >(
+        `/v1/indexer/address/${address}/available-utxo-data?cursor=${offset}&size=${limit}`,
+      );
       this.logger.debug(
-        `requested 'available-utxo-data' for address [${address}]. Response: ${JsonBigInt.stringify(
+        `requested 'available-utxo-data?cursor=${offset}&size=${limit}' for address [${address}]. Response: ${JsonBigInt.stringify(
           response.data,
         )}`,
       );
@@ -844,7 +850,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       }));
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
-      const baseError = `Failed to get UTxOs containing BTC only for address [${address}] from Unisat: `;
+      const baseError = `Failed to get UTxOs containing BTC only for address [${address}] with offset/limit [${offset}/${limit}] from Unisat: `;
       if (e.response) {
         throw new FailedError(
           baseError + `${JsonBigInt.stringify(e.response.data)}`,
@@ -864,19 +870,25 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
    * return it nor fetch its Runes balance
    * @param fetchedBoxIds the list of fetched box IDs
    * @param address the address
+   * @param offset
+   * @param limit
    * @returns list of boxes
    */
   getRemainingBoxes = async (
     fetchedBoxIds: Array<string>,
     address: string,
+    offset: number,
+    limit: number,
   ): Promise<Array<BitcoinRunesUtxo>> => {
     const utxos: Array<BitcoinRunesUtxo> = [];
     try {
       const response = await this.unisatClient.get<
         UnisatResponse<UnisatAddressBtcUtxos | undefined>
-      >(`/v1/indexer/address/${address}/all-utxo-data`);
+      >(
+        `/v1/indexer/address/${address}/all-utxo-data?cursor=${offset}&size=${limit}`,
+      );
       this.logger.debug(
-        `requested 'all-utxo-data' for address [${address}]. Response: ${JsonBigInt.stringify(
+        `requested 'all-utxo-data?cursor=${offset}&size=${limit}' for address [${address}]. Response: ${JsonBigInt.stringify(
           response.data,
         )}`,
       );
@@ -897,7 +909,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       );
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
-      const baseError = `Failed to get UTxOs containing BTC only for address [${address}] from Unisat: `;
+      const baseError = `Failed to get UTxOs containing BTC only for address [${address}] with offset/limit [${offset}/${limit}] from Unisat: `;
       if (e.response) {
         throw new FailedError(
           baseError + `${JsonBigInt.stringify(e.response.data)}`,

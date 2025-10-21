@@ -27,7 +27,7 @@ describe('BitcoinRunesRpcNetwork', () => {
 
   describe('getHeight', () => {
     /**
-     * @target `BitcoinEsploraNetwork.getHeight` should return block height successfully
+     * @target `BitcoinRunesRpcNetwork.getHeight` should return block height successfully
      * @dependencies
      * @scenario
      * - mock RPC axios to return 'getblockchaininfo' response
@@ -47,7 +47,7 @@ describe('BitcoinRunesRpcNetwork', () => {
 
   describe('getTxConfirmation', () => {
     /**
-     * @target `BitcoinEsploraNetwork.getTxConfirmation` should return tx confirmation successfully
+     * @target `BitcoinRunesRpcNetwork.getTxConfirmation` should return tx confirmation successfully
      * @dependencies
      * @scenario
      * - mock RPC axios to return 'getrawtransaction' response
@@ -65,7 +65,7 @@ describe('BitcoinRunesRpcNetwork', () => {
     });
 
     /**
-     * @target `BitcoinEsploraNetwork.getTxConfirmation` should return -1
+     * @target `BitcoinRunesRpcNetwork.getTxConfirmation` should return -1
      * when transaction is not found
      * @dependencies
      * @scenario
@@ -86,7 +86,7 @@ describe('BitcoinRunesRpcNetwork', () => {
 
   describe('getAddressAssets', () => {
     /**
-     * @target `BitcoinEsploraNetwork.getAddressAssets` should return address assets successfully
+     * @target `BitcoinRunesRpcNetwork.getAddressAssets` should return address assets successfully
      * @dependencies
      * @scenario
      * - mock Unisat axios to return address balance response
@@ -109,7 +109,7 @@ describe('BitcoinRunesRpcNetwork', () => {
     });
 
     /**
-     * @target `BitcoinEsploraNetwork.getAddressAssets` should return 0 balance
+     * @target `BitcoinRunesRpcNetwork.getAddressAssets` should return 0 balance
      * when address has no BTC
      * @dependencies
      * @scenario
@@ -135,7 +135,7 @@ describe('BitcoinRunesRpcNetwork', () => {
     });
 
     /**
-     * @target `BitcoinEsploraNetwork.getAddressAssets` should return correct balance
+     * @target `BitcoinRunesRpcNetwork.getAddressAssets` should return correct balance
      * when address has only BTC
      * @dependencies
      * @scenario
@@ -164,7 +164,7 @@ describe('BitcoinRunesRpcNetwork', () => {
 
   describe('getBlockTransactionIds', () => {
     /**
-     * @target `BitcoinEsploraNetwork.getBlockTransactionIds` should return block transaction ids successfully
+     * @target `BitcoinRunesRpcNetwork.getBlockTransactionIds` should return block transaction ids successfully
      * @dependencies
      * @scenario
      * - mock RPC axios to return 'getblock' response
@@ -184,7 +184,7 @@ describe('BitcoinRunesRpcNetwork', () => {
 
   describe('getBlockInfo', () => {
     /**
-     * @target `BitcoinEsploraNetwork.getBlockInfo` should return block info successfully
+     * @target `BitcoinRunesRpcNetwork.getBlockInfo` should return block info successfully
      * @dependencies
      * @scenario
      * - mock RPC axios to return 'getblock' response
@@ -204,7 +204,7 @@ describe('BitcoinRunesRpcNetwork', () => {
 
   describe('getTransaction', () => {
     /**
-     * @target `BitcoinEsploraNetwork.getTransaction` should return transaction successfully
+     * @target `BitcoinRunesRpcNetwork.getTransaction` should return transaction successfully
      * @dependencies
      * @scenario
      * - mock RPC axios to return 'getrawtransaction' response
@@ -228,7 +228,7 @@ describe('BitcoinRunesRpcNetwork', () => {
     });
 
     /**
-     * @target `BitcoinEsploraNetwork.getTransaction` should throw error when
+     * @target `BitcoinRunesRpcNetwork.getTransaction` should throw error when
      * block id is not matched with tx block
      * @dependencies
      * @scenario
@@ -250,7 +250,7 @@ describe('BitcoinRunesRpcNetwork', () => {
 
   describe('getTokenDetail', () => {
     /**
-     * @target `BitcoinEsploraNetwork.getTokenDetail` should return token detail successfully
+     * @target `BitcoinRunesRpcNetwork.getTokenDetail` should return token detail successfully
      * @dependencies
      * @scenario
      * - mock Unisat axios to return Runes info
@@ -268,7 +268,7 @@ describe('BitcoinRunesRpcNetwork', () => {
     });
 
     /**
-     * @target `BitcoinEsploraNetwork.getTokenDetail` should throw error when rune is not found
+     * @target `BitcoinRunesRpcNetwork.getTokenDetail` should throw error when rune is not found
      * @dependencies
      * @scenario
      * - mock Unisat axios to return null
@@ -287,7 +287,7 @@ describe('BitcoinRunesRpcNetwork', () => {
 
   describe('isBoxUnspentAndValid', () => {
     /**
-     * @target `BitcoinEsploraNetwork.isBoxUnspentAndValid` should return true when box is unspent
+     * @target `BitcoinRunesRpcNetwork.isBoxUnspentAndValid` should return true when box is unspent
      * @dependencies
      * @scenario
      * - mock RPC axios to return 'gettxout' response
@@ -306,7 +306,7 @@ describe('BitcoinRunesRpcNetwork', () => {
     });
 
     /**
-     * @target `BitcoinEsploraNetwork.isBoxUnspentAndValid` should return false when
+     * @target `BitcoinRunesRpcNetwork.isBoxUnspentAndValid` should return false when
      * box is spent or invalid
      * @dependencies
      * @scenario
@@ -328,7 +328,7 @@ describe('BitcoinRunesRpcNetwork', () => {
 
   describe('getUtxo', () => {
     /**
-     * @target `BitcoinEsploraNetwork.getUtxo` should return utxo successfully
+     * @target `BitcoinRunesRpcNetwork.getUtxo` should return utxo successfully
      * @dependencies
      * @scenario
      * - mock RPC axios to return 'getrawtransaction' response
@@ -348,7 +348,7 @@ describe('BitcoinRunesRpcNetwork', () => {
     });
 
     /**
-     * @target `BitcoinEsploraNetwork.getUtxo` should throw error when
+     * @target `BitcoinRunesRpcNetwork.getUtxo` should throw error when
      * tx is not found
      * @dependencies
      * @scenario
@@ -366,7 +366,7 @@ describe('BitcoinRunesRpcNetwork', () => {
     });
 
     /**
-     * @target `BitcoinEsploraNetwork.getUtxo` should throw error when
+     * @target `BitcoinRunesRpcNetwork.getUtxo` should throw error when
      * box index is more than number of tx outputs
      * @dependencies
      * @scenario
@@ -389,7 +389,7 @@ describe('BitcoinRunesRpcNetwork', () => {
 
   describe('getFeeRatio', () => {
     /**
-     * @target `BitcoinEsploraNetwork.getFeeRatio` should return fee ratio successfully
+     * @target `BitcoinRunesRpcNetwork.getFeeRatio` should return fee ratio successfully
      * @dependencies
      * @scenario
      * - mock RPC axios to return 'estimatesmartfee' response
@@ -409,7 +409,7 @@ describe('BitcoinRunesRpcNetwork', () => {
 
   describe('isTxInMempool', () => {
     /**
-     * @target `BitcoinEsploraNetwork.isTxInMempool` should return true when tx is in mempool
+     * @target `BitcoinRunesRpcNetwork.isTxInMempool` should return true when tx is in mempool
      * @dependencies
      * @scenario
      * - mock RPC axios to return 'getmempoolentry' response
@@ -427,7 +427,7 @@ describe('BitcoinRunesRpcNetwork', () => {
     });
 
     /**
-     * @target `BitcoinEsploraNetwork.isTxInMempool` should return false when tx is not in mempool
+     * @target `BitcoinRunesRpcNetwork.isTxInMempool` should return false when tx is not in mempool
      * @dependencies
      * @scenario
      * - mock RPC axios to throw error
@@ -447,7 +447,7 @@ describe('BitcoinRunesRpcNetwork', () => {
 
   describe('getAddressRunesBoxes', () => {
     /**
-     * @target `BitcoinEsploraNetwork.getAddressRunesBoxes` should return address utxos successfully
+     * @target `BitcoinRunesRpcNetwork.getAddressRunesBoxes` should return address utxos successfully
      * @dependencies
      * @scenario
      * - mock Unisat axios to return address Runes utxos
@@ -470,7 +470,7 @@ describe('BitcoinRunesRpcNetwork', () => {
     });
 
     /**
-     * @target `BitcoinEsploraNetwork.getAddressRunesBoxes` should return empty list
+     * @target `BitcoinRunesRpcNetwork.getAddressRunesBoxes` should return empty list
      * when no utxo is returned
      * @dependencies
      * @scenario
@@ -494,7 +494,7 @@ describe('BitcoinRunesRpcNetwork', () => {
     });
 
     /**
-     * @target `BitcoinEsploraNetwork.getAddressRunesBoxes` should return empty list
+     * @target `BitcoinRunesRpcNetwork.getAddressRunesBoxes` should return empty list
      * when address is invalid
      * @dependencies
      * @scenario
@@ -519,11 +519,52 @@ describe('BitcoinRunesRpcNetwork', () => {
 
       expect(result).toEqual([]);
     });
+
+    /**
+     * @target `BitcoinRunesRpcNetwork.getAddressRunesBoxes` should successfully get all the pages
+     * @dependencies
+     * @scenario
+     * - stub axios.get to return mock sequence of responses
+     * - call getAddressRunesBoxes
+     * - collect the returned utxos
+     * @expected
+     * - 4 utxos should have been returned
+     */
+    it('should successfully get all the pages', async () => {
+      // arrange
+      mockAxiosGet(ClientType.UNISAT, testData.unisatAddressRunesUtxos2[0]);
+      mockAxiosGet(ClientType.UNISAT, testData.unisatAddressRunesUtxos2[1]);
+      mockAxiosGet(ClientType.UNISAT, testData.unisatAddressRunesUtxos2[2]);
+
+      // act
+      const results = [];
+      for (let i = 0; i < 3; i += 1) {
+        const utxos = await network.getAddressRunesBoxes(
+          testData.address,
+          'ROSENPOCRUNE',
+          i * 2,
+          2,
+        );
+
+        for (const utxo of utxos) {
+          results.push(utxo);
+        }
+      }
+
+      // assert
+      expect(results).toHaveLength(4);
+      expect(results.map((r) => r.txId)).toEqual([
+        testData.unisatAddressRunesUtxos2[0].data.utxo[0].txid,
+        testData.unisatAddressRunesUtxos2[0].data.utxo[1].txid,
+        testData.unisatAddressRunesUtxos2[1].data.utxo[0].txid,
+        testData.unisatAddressRunesUtxos2[1].data.utxo[1].txid,
+      ]);
+    });
   });
 
   describe('getAddressBtcBoxes', () => {
     /**
-     * @target `BitcoinEsploraNetwork.getAddressBtcBoxes` should return address utxos successfully
+     * @target `BitcoinRunesRpcNetwork.getAddressBtcBoxes` should return address utxos successfully
      * @dependencies
      * @scenario
      * - mock Unisat axios to return address available utxos
@@ -535,13 +576,13 @@ describe('BitcoinRunesRpcNetwork', () => {
     it('should return address utxos successfully', async () => {
       mockAxiosGet(ClientType.UNISAT, testData.unisatAddressAvailableUtxoData);
 
-      const result = await network.getAddressBtcBoxes(testData.address);
+      const result = await network.getAddressBtcBoxes(testData.address, 0, 100);
 
       expect(result).toEqual(testData.btcUtxos);
     });
 
     /**
-     * @target `BitcoinEsploraNetwork.getAddressBtcBoxes` should return empty list
+     * @target `BitcoinRunesRpcNetwork.getAddressBtcBoxes` should return empty list
      * when no utxo is returned
      * @dependencies
      * @scenario
@@ -557,13 +598,13 @@ describe('BitcoinRunesRpcNetwork', () => {
         testData.unisatAddressEmptyAvailableUtxoData,
       );
 
-      const result = await network.getAddressBtcBoxes(testData.address);
+      const result = await network.getAddressBtcBoxes(testData.address, 0, 100);
 
       expect(result).toEqual([]);
     });
 
     /**
-     * @target `BitcoinEsploraNetwork.getAddressBtcBoxes` should return empty list
+     * @target `BitcoinRunesRpcNetwork.getAddressBtcBoxes` should return empty list
      * when address is invalid
      * @dependencies
      * @scenario
@@ -579,15 +620,68 @@ describe('BitcoinRunesRpcNetwork', () => {
         testData.unisatInvalidAddressAvailableUtxoData,
       );
 
-      const result = await network.getAddressBtcBoxes(testData.invalidAddress);
+      const result = await network.getAddressBtcBoxes(
+        testData.invalidAddress,
+        0,
+        100,
+      );
 
       expect(result).toEqual([]);
+    });
+
+    /**
+     * @target `BitcoinRunesRpcNetwork.getAddressBtcBoxes` should successfully get all the pages
+     * @dependencies
+     * @scenario
+     * - stub axios.get to return mock sequence of responses
+     * - call getAddressBtcBoxes
+     * - collect the returned utxos
+     * @expected
+     * - 4 utxos should have been returned
+     */
+    it('should successfully get all the pages', async () => {
+      // arrange
+      mockAxiosGet(
+        ClientType.UNISAT,
+        testData.unisatAddressAvailableUtxoData2[0],
+      );
+      mockAxiosGet(
+        ClientType.UNISAT,
+        testData.unisatAddressAvailableUtxoData2[1],
+      );
+      mockAxiosGet(
+        ClientType.UNISAT,
+        testData.unisatAddressAvailableUtxoData2[2],
+      );
+
+      // act
+      const results = [];
+      for (let i = 0; i < 3; i += 1) {
+        const utxos = await network.getAddressBtcBoxes(
+          testData.address,
+          i * 2,
+          2,
+        );
+
+        for (const utxo of utxos) {
+          results.push(utxo);
+        }
+      }
+
+      // assert
+      expect(results).toHaveLength(4);
+      expect(results.map((r) => r.txId)).toEqual([
+        testData.unisatAddressAvailableUtxoData2[0].data.utxo[0].txid,
+        testData.unisatAddressAvailableUtxoData2[0].data.utxo[1].txid,
+        testData.unisatAddressAvailableUtxoData2[1].data.utxo[0].txid,
+        testData.unisatAddressAvailableUtxoData2[1].data.utxo[1].txid,
+      ]);
     });
   });
 
   describe('getRemainingBoxes', () => {
     /**
-     * @target `BitcoinEsploraNetwork.getRemainingBoxes` should return remaining utxos successfully
+     * @target `BitcoinRunesRpcNetwork.getRemainingBoxes` should return remaining utxos successfully
      * @dependencies
      * @scenario
      * - mock Unisat axios to return address all utxos
@@ -606,13 +700,15 @@ describe('BitcoinRunesRpcNetwork', () => {
       const result = await network.getRemainingBoxes(
         [testData.alreadyFetchedUtxoId],
         testData.address,
+        0,
+        100,
       );
 
       expect(result).toEqual(testData.remainingUtxos);
     });
 
     /**
-     * @target `BitcoinEsploraNetwork.getRemainingBoxes` should return empty list
+     * @target `BitcoinRunesRpcNetwork.getRemainingBoxes` should return empty list
      * when no utxo is returned
      * @dependencies
      * @scenario
@@ -625,13 +721,18 @@ describe('BitcoinRunesRpcNetwork', () => {
     it('should return empty list when no utxo is returned', async () => {
       mockAxiosGet(ClientType.UNISAT, testData.unisatAddressEmptyAllUtxoData);
 
-      const result = await network.getRemainingBoxes([], testData.address);
+      const result = await network.getRemainingBoxes(
+        [],
+        testData.address,
+        0,
+        100,
+      );
 
       expect(result).toEqual([]);
     });
 
     /**
-     * @target `BitcoinEsploraNetwork.getRemainingBoxes` should return empty list
+     * @target `BitcoinRunesRpcNetwork.getRemainingBoxes` should return empty list
      * when address is invalid
      * @dependencies
      * @scenario
@@ -647,9 +748,69 @@ describe('BitcoinRunesRpcNetwork', () => {
       const result = await network.getRemainingBoxes(
         [],
         testData.invalidAddress,
+        0,
+        100,
       );
 
       expect(result).toEqual([]);
+    });
+
+    /**
+     * @target `BitcoinRunesRpcNetwork.getRemainingBoxes` should successfully get all the pages
+     * @dependencies
+     * @scenario
+     * - mock Unisat axios to return address all utxos
+     * - mock Unisat axios to return utxo Runes balance for all utxos returned in previous API
+     * - call getRemainingBoxes
+     * - collect the returned utxos
+     * @expected
+     * - 4 utxos should have been returned
+     */
+    it('should successfully get all the pages', async () => {
+      // arrange
+      mockAxiosGet(ClientType.UNISAT, testData.unisatAddressAllUtxoData2[0]);
+      mockAxiosGet(
+        ClientType.UNISAT,
+        testData.unisatUtxoRunesBalanceForAllUtxos[0],
+      );
+      mockAxiosGet(
+        ClientType.UNISAT,
+        testData.unisatUtxoRunesBalanceForAllUtxos[1],
+      );
+      mockAxiosGet(ClientType.UNISAT, testData.unisatAddressAllUtxoData2[1]);
+      mockAxiosGet(
+        ClientType.UNISAT,
+        testData.unisatUtxoRunesBalanceForAllUtxos[2],
+      );
+      mockAxiosGet(
+        ClientType.UNISAT,
+        testData.unisatUtxoRunesBalanceForAllUtxos[3],
+      );
+      mockAxiosGet(ClientType.UNISAT, testData.unisatAddressAllUtxoData2[2]);
+
+      // act
+      const results = [];
+      for (let i = 0; i < 3; i += 1) {
+        const utxos = await network.getRemainingBoxes(
+          [],
+          testData.address,
+          i * 2,
+          2,
+        );
+
+        for (const utxo of utxos) {
+          results.push(utxo);
+        }
+      }
+
+      // assert
+      expect(results).toHaveLength(4);
+      expect(results.map((r) => r.txId)).toEqual([
+        testData.unisatAddressAllUtxoData2[0].data.utxo[0].txid,
+        testData.unisatAddressAllUtxoData2[0].data.utxo[1].txid,
+        testData.unisatAddressAllUtxoData2[1].data.utxo[0].txid,
+        testData.unisatAddressAllUtxoData2[1].data.utxo[1].txid,
+      ]);
     });
   });
 });

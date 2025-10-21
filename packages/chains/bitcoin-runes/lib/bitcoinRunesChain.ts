@@ -341,18 +341,45 @@ class BitcoinRunesChain extends AbstractUtxoChain<
         const getAddressBtcBoxes = this.network.getAddressBtcBoxes;
         const getRemainingBoxes = this.network.getRemainingBoxes;
         const btcUtxoIterator = async function* () {
-          const btcBoxes = await getAddressBtcBoxes(lockAddress);
-          if (btcBoxes.length !== 0) yield* btcBoxes;
+          const limit = GET_BOX_API_LIMIT;
 
-          selectedBoxes.push(...btcBoxes);
-          const fetchedBoxIds = selectedBoxes.map((box) =>
-            generateBoxId(box.txId, box.index),
-          );
-          const remainingBoxes = await getRemainingBoxes(
-            fetchedBoxIds,
-            lockAddress,
-          );
-          if (remainingBoxes.length !== 0) yield* remainingBoxes;
+          let offset = 0;
+          while (true) {
+            const btcBoxesPage = await getAddressBtcBoxes(
+              lockAddress,
+              offset,
+              limit,
+            );
+            if (btcBoxesPage.length !== 0) yield* btcBoxesPage;
+
+            offset += limit;
+
+            selectedBoxes.push(...btcBoxesPage);
+
+            if (btcBoxesPage.length < limit) {
+              break;
+            }
+          }
+
+          offset = 0;
+          while (true) {
+            const fetchedBoxIds = selectedBoxes.map((box) =>
+              generateBoxId(box.txId, box.index),
+            );
+            const remainingBoxes = await getRemainingBoxes(
+              fetchedBoxIds,
+              lockAddress,
+              offset,
+              limit,
+            );
+            if (remainingBoxes.length !== 0) yield* remainingBoxes;
+
+            offset += limit;
+
+            if (remainingBoxes.length < limit) {
+              break;
+            }
+          }
 
           return undefined;
         };
