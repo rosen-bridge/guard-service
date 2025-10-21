@@ -1,3 +1,5 @@
+import { exit } from 'process';
+
 import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
 
 import { dataSource } from '../db/dataSource';
@@ -12,6 +14,7 @@ const initDataSources = async (): Promise<void> => {
   } catch (err) {
     logger.error(`An error occurred while initializing datasource: ${err}`);
     logger.error(err.stack);
+    exit(1);
   }
 };
 
