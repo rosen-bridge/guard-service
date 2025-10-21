@@ -1,235 +1,47 @@
-import { ChainConfigs } from '@rosen-chains/abstract-chain';
-import { BINANCE_CHAIN, BNB } from '@rosen-chains/binance';
 import { BITCOIN_CHAIN, BTC } from '@rosen-chains/bitcoin';
-import { ETH, ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
+import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
 
-export const mockLockAddress = 'lock_address';
-export const mockColdAddress = 'cold_address';
+import { ChainAddressBalanceEntity } from '../../src/db/entities/chainAddressBalanceEntity';
 
-export const mockChainConfig: ChainConfigs = {
-  fee: 100n,
-  confirmations: {
-    observation: 1,
-    payment: 1,
-    cold: 1,
-    manual: 1,
-    arbitrary: 1,
-  },
-  addresses: {
-    lock: mockLockAddress,
-    cold: mockColdAddress,
-    permit: 'permit',
-    fraud: 'fraud',
-  },
-  rwtId: 'rwt',
+// COMET cardano tokenId from test tokensMap
+export const cardanoCometTokenId =
+  'bb2250e4c589539fd141fbbd2c322d380f1ce2aaef812cd87110d61b.527374434f4d4554565465737432';
+
+export const cardanoLockAddress = `${CARDANO_CHAIN}_mock_lock_address`;
+export const cardanoColdAddress = `${CARDANO_CHAIN}_mock_cold_address`;
+export const bitcoinColdAddress = `${BITCOIN_CHAIN}_mock_cold_address`;
+
+export const mockBalances: Record<string, Array<ChainAddressBalanceEntity>> = {
+  [BITCOIN_CHAIN]: [
+    {
+      chain: BITCOIN_CHAIN,
+      address: bitcoinColdAddress,
+      tokenId: BTC,
+      lastUpdate: '1643723400',
+      balance: 100n,
+    },
+  ],
+  [CARDANO_CHAIN]: [
+    {
+      chain: CARDANO_CHAIN,
+      address: cardanoColdAddress,
+      tokenId: ADA,
+      lastUpdate: '1643723422',
+      balance: 50000n,
+    },
+    {
+      chain: CARDANO_CHAIN,
+      address: cardanoColdAddress,
+      tokenId: cardanoCometTokenId,
+      lastUpdate: '1643723401',
+      balance: 20000n,
+    },
+    {
+      chain: CARDANO_CHAIN,
+      address: cardanoLockAddress,
+      tokenId: cardanoCometTokenId,
+      lastUpdate: '1643722301',
+      balance: 6666666n,
+    },
+  ],
 };
-
-export const mockTokenMap = {
-  [BITCOIN_CHAIN]: {
-    tokenId: BTC,
-    type: 'native',
-    name: 'BTC',
-    decimals: 9,
-    residency: 'native',
-    extra: {},
-  },
-  [ETHEREUM_CHAIN]: {
-    tokenId: ETH,
-    type: 'native',
-    name: 'ETH',
-    decimals: 8,
-    residency: 'native',
-    extra: {},
-  },
-  [BINANCE_CHAIN]: {
-    tokenId: BNB,
-    type: 'native',
-    name: 'BNB',
-    decimals: 5,
-    residency: 'native',
-    extra: {},
-  },
-};
-
-export const mockBalances = {
-  [ETH]: {
-    chain: ETHEREUM_CHAIN,
-    address: '1',
-    tokenId: ETH,
-    lastUpdate: '1643723400',
-    balance: 1000000000n,
-  },
-  [BNB]: {
-    chain: BINANCE_CHAIN,
-    address: '2',
-    tokenId: BNB,
-    lastUpdate: '1643723401',
-    balance: 500000000n,
-  },
-};
-
-export const mockColdBalance = {
-  chain: ETHEREUM_CHAIN,
-  address: `${ETHEREUM_CHAIN}_mock_cold_address`,
-  tokenId: 'tokenId',
-  lastUpdate: '1',
-  balance: 123n,
-};
-
-export const mockBalancesArray = [
-  // ethereum entries (8) (3 cold) (5 lock)
-  {
-    chain: ETHEREUM_CHAIN,
-    address: `${ETHEREUM_CHAIN}_mock_cold_address`,
-    tokenId: 'eth_token_01',
-    lastUpdate: '1',
-    balance: 5000n,
-  },
-  {
-    chain: ETHEREUM_CHAIN,
-    address: `${ETHEREUM_CHAIN}_mock_cold_address`,
-    tokenId: 'eth_token_02',
-    lastUpdate: '1',
-    balance: 150n,
-  },
-  {
-    chain: ETHEREUM_CHAIN,
-    address: `${ETHEREUM_CHAIN}_mock_cold_address`,
-    tokenId: 'eth_token_03',
-    lastUpdate: '1',
-    balance: 987654321n,
-  },
-  {
-    chain: ETHEREUM_CHAIN,
-    address: `${ETHEREUM_CHAIN}_mock_lock_address`,
-    tokenId: 'eth_token_01',
-    lastUpdate: '1',
-    balance: 0n,
-  },
-  {
-    chain: ETHEREUM_CHAIN,
-    address: `${ETHEREUM_CHAIN}_mock_lock_address`,
-    tokenId: 'eth_token_02',
-    lastUpdate: '1',
-    balance: 42n,
-  },
-  {
-    chain: ETHEREUM_CHAIN,
-    address: `${ETHEREUM_CHAIN}_mock_lock_address`,
-    tokenId: 'eth_token_03',
-    lastUpdate: '1',
-    balance: 123456n,
-  },
-  {
-    chain: ETHEREUM_CHAIN,
-    address: `${ETHEREUM_CHAIN}_mock_lock_address`,
-    tokenId: 'eth_token_04',
-    lastUpdate: '1',
-    balance: 9999n,
-  },
-  {
-    chain: ETHEREUM_CHAIN,
-    address: `${ETHEREUM_CHAIN}_mock_lock_address`,
-    tokenId: 'eth_token_05',
-    lastUpdate: '1',
-    balance: 7777777n,
-  },
-  // bitcoin entries (12) (10 lock) (2 cold)
-  {
-    chain: BITCOIN_CHAIN,
-    address: `${BITCOIN_CHAIN}_mock_cold_address`,
-    tokenId: 'btc_token_01',
-    lastUpdate: '1',
-    balance: 2500n,
-  },
-  {
-    chain: BITCOIN_CHAIN,
-    address: `${BITCOIN_CHAIN}_mock_cold_address`,
-    tokenId: 'btc_token_02',
-    lastUpdate: '1',
-    balance: 10n,
-  },
-  {
-    chain: BITCOIN_CHAIN,
-    address: `${BITCOIN_CHAIN}_mock_lock_address`,
-    tokenId: 'btc_token_01',
-    lastUpdate: '1',
-    balance: 123456789n,
-  },
-  {
-    chain: BITCOIN_CHAIN,
-    address: `${BITCOIN_CHAIN}_mock_lock_address`,
-    tokenId: 'btc_token_02',
-    lastUpdate: '1',
-    balance: 42n,
-  },
-  {
-    chain: BITCOIN_CHAIN,
-    address: `${BITCOIN_CHAIN}_mock_lock_address`,
-    tokenId: 'btc_token_03',
-    lastUpdate: '1',
-    balance: 777n,
-  },
-  {
-    chain: BITCOIN_CHAIN,
-    address: `${BITCOIN_CHAIN}_mock_lock_address`,
-    tokenId: 'btc_token_04',
-    lastUpdate: '1',
-    balance: 999999n,
-  },
-  {
-    chain: BITCOIN_CHAIN,
-    address: `${BITCOIN_CHAIN}_mock_lock_address`,
-    tokenId: 'btc_token_05',
-    lastUpdate: '1',
-    balance: 314159n,
-  },
-  {
-    chain: BITCOIN_CHAIN,
-    address: `${BITCOIN_CHAIN}_mock_lock_address`,
-    tokenId: 'btc_token_06',
-    lastUpdate: '1',
-    balance: 1n,
-  },
-  {
-    chain: BITCOIN_CHAIN,
-    address: `${BITCOIN_CHAIN}_mock_lock_address`,
-    tokenId: 'btc_token_07',
-    lastUpdate: '1',
-    balance: 500n,
-  },
-  {
-    chain: BITCOIN_CHAIN,
-    address: `${BITCOIN_CHAIN}_mock_lock_address`,
-    tokenId: 'btc_token_08',
-    lastUpdate: '1',
-    balance: 2025n,
-  },
-  {
-    chain: BITCOIN_CHAIN,
-    address: `${BITCOIN_CHAIN}_mock_lock_address`,
-    tokenId: 'btc_token_09',
-    lastUpdate: '1',
-    balance: 8888n,
-  },
-  {
-    chain: BITCOIN_CHAIN,
-    address: `${BITCOIN_CHAIN}_mock_lock_address`,
-    tokenId: 'btc_token_10',
-    lastUpdate: '1',
-    balance: 12345n,
-  },
-];
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const mockBalanceEntityToAddressBalance = (balance: any) => ({
-  address: balance.address,
-  chain: balance.chain,
-  balance: {
-    tokenId: balance.tokenId,
-    amount: Number(balance.balance),
-    name: 'name',
-    decimals: 8,
-    isNativeToken: true,
-  },
-});
