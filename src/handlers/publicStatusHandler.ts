@@ -1,4 +1,3 @@
-import axios, { AxiosInstance } from 'axios';
 import { DataSource, Not, Repository } from 'typeorm';
 
 import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
@@ -6,6 +5,7 @@ import {
   ImpossibleBehavior,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
+import axios, { Axios } from '@rosen-clients/rate-limited-axios';
 
 import Configs from '../configs/configs';
 import { TransactionEntity } from '../db/entities/transactionEntity';
@@ -31,7 +31,7 @@ export type UpdateStatusDTO = {
 
 class PublicStatusHandler {
   private static instance?: PublicStatusHandler;
-  readonly axios?: AxiosInstance;
+  readonly axios?: Axios;
   readonly txRepository: Repository<TransactionEntity>;
 
   protected constructor(
