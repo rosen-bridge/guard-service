@@ -243,11 +243,11 @@ class TransactionProcessor {
         if (tx.type === TransactionType.payment && tx.chain !== ERGO_CHAIN) {
           // set event status, to start reward distribution
           await DatabaseAction.getInstance().setEventStatusToPending(
-            tx.event.id,
+            tx.event!.id,
             EventStatus.pendingReward,
           );
           logger.info(
-            `Tx [${tx.txId}] is confirmed. Event [${tx.event.id}] is ready for reward distribution`,
+            `Tx [${tx.txId}] is confirmed. Event [${tx.event?.id}] is ready for reward distribution`,
           );
         } else if (
           tx.type === TransactionType.reward ||
@@ -255,20 +255,20 @@ class TransactionProcessor {
         ) {
           // set event as complete
           await DatabaseAction.getInstance().setEventStatus(
-            tx.event.id,
+            tx.event!.id,
             EventStatus.completed,
           );
           logger.info(
-            `Tx [${tx.txId}] is confirmed. Event [${tx.event.id}] is complete`,
+            `Tx [${tx.txId}] is confirmed. Event [${tx.event?.id}] is complete`,
           );
         } else if (tx.type === TransactionType.arbitrary) {
           // set order as complete
           await DatabaseAction.getInstance().setOrderStatus(
-            tx.order.id,
+            tx.order!.id,
             OrderStatus.completed,
           );
           logger.info(
-            `Tx [${tx.txId}] is confirmed. Order [${tx.order.id}] is complete`,
+            `Tx [${tx.txId}] is confirmed. Order [${tx.order?.id}] is complete`,
           );
         } else {
           // no need to do anything about event, just log that tx confirmed
@@ -358,33 +358,33 @@ class TransactionProcessor {
       switch (tx.type) {
         case TransactionType.payment:
           await DatabaseAction.getInstance().setEventStatus(
-            tx.event.id,
+            tx.event!.id,
             EventStatus.pendingPayment,
             invalidationDetails.unexpected,
           );
           logger.info(
-            `Tx [${tx.txId}] is invalid. Event [${tx.event.id}] is now waiting for payment. Reason: ${invalidationDetails.reason}`,
+            `Tx [${tx.txId}] is invalid. Event [${tx.event?.id}] is now waiting for payment. Reason: ${invalidationDetails.reason}`,
           );
           break;
         case TransactionType.reward:
           await DatabaseAction.getInstance().setEventStatus(
-            tx.event.id,
+            tx.event!.id,
             EventStatus.pendingReward,
             invalidationDetails?.unexpected,
           );
           logger.info(
-            `Tx [${tx.txId}] is invalid. Event [${tx.event.id}] is now waiting for reward distribution. Reason: ${invalidationDetails.reason}`,
+            `Tx [${tx.txId}] is invalid. Event [${tx.event?.id}] is now waiting for reward distribution. Reason: ${invalidationDetails.reason}`,
           );
           break;
         case TransactionType.arbitrary:
           await DatabaseAction.getInstance().setOrderStatus(
-            tx.order.id,
+            tx.order!.id,
             OrderStatus.pending,
             false,
             invalidationDetails?.unexpected,
           );
           logger.info(
-            `Tx [${tx.txId}] is invalid. Order [${tx.order.id}] is now waiting for payment. Reason: ${invalidationDetails.reason}`,
+            `Tx [${tx.txId}] is invalid. Order [${tx.order?.id}] is now waiting for payment. Reason: ${invalidationDetails.reason}`,
           );
           break;
         case TransactionType.coldStorage:

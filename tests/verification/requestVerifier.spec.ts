@@ -10,6 +10,7 @@ import {
   OrderStatus,
   TransactionStatus,
 } from '../../src/utils/constants';
+import Utils from '../../src/utils/utils';
 import RequestVerifier from '../../src/verification/requestVerifier';
 import TransactionVerifier from '../../src/verification/transactionVerifier';
 import { mockPaymentTransaction } from '../agreement/testData';
@@ -20,6 +21,7 @@ import {
   mockEventTrigger,
   rsnRatioDivisor,
 } from '../event/testData';
+import PublicStatusHandlerMock from '../handlers/mocked/publicStatusHandler.mock';
 import TestUtils from '../testUtils/testUtils';
 import {
   mockIsEventConfirmedEnough,
@@ -39,6 +41,8 @@ describe('RequestVerifier', () => {
         rsnRatioDivisor,
         feeRatioDivisor,
       });
+      PublicStatusHandlerMock.resetMock();
+      PublicStatusHandlerMock.mock();
     });
 
     /**
@@ -367,6 +371,7 @@ describe('RequestVerifier', () => {
      * - TransactionVerifier
      * - database
      * @scenario
+     * - stub PublicStatusHandler.updatePublicEventStatus to resolve
      * - mock event and transaction
      * - insert mocked event into db
      * - mock EventVerifier
@@ -378,8 +383,12 @@ describe('RequestVerifier', () => {
      * - verify returned value
      * @expected
      * - returned value should be false
+     * - PublicStatusHandler.updatePublicEventStatus should have been called once
      */
     it('should return false when event is not verified', async () => {
+      const updatePublicEventStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicEventStatus();
+
       // mock event and transaction
       const mockedEvent = mockEventTrigger().event;
       const paymentTx = mockPaymentTransaction(
@@ -410,6 +419,11 @@ describe('RequestVerifier', () => {
 
       // verify returned value
       expect(result).toEqual(false);
+
+      expect(updatePublicEventStatusSpy).toHaveBeenCalledExactlyOnceWith(
+        Utils.txIdToEventId(mockedEvent.sourceTxId),
+        EventStatus.rejected,
+      );
     });
 
     /**

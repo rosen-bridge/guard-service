@@ -59,6 +59,8 @@ class Configs {
   static apiPort = getConfigIntKeyOrDefault('api.port', 8080);
   static apiHost = getOptionalConfig<string>('api.host', 'localhost');
 
+  static publicStatusBaseUrl = config.get<string>('publicStatus.baseUrl');
+
   private static getAllowedOrigins = () => {
     const allowedOrigins = config.get<Array<string>>('api.allowedOrigins');
     if (

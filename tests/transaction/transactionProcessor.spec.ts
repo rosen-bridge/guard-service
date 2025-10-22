@@ -21,6 +21,7 @@ import * as EventTestData from '../event/testData';
 import ChainHandlerMock, {
   chainHandlerInstance,
 } from '../handlers/chainHandler.mock';
+import PublicStatusHandlerMock from '../handlers/mocked/publicStatusHandler.mock';
 import NotificationHandlerMock from '../handlers/notificationHandler.mock';
 import TestConfigs from '../testUtils/testConfigs';
 import TransactionProcessorMock from './transactionProcessor.mock';
@@ -44,6 +45,8 @@ describe('TransactionProcessor', () => {
       await DatabaseActionMock.clearTables();
       ChainHandlerMock.resetMock();
       TransactionProcessorMock.restoreMocks();
+      PublicStatusHandlerMock.resetMock();
+      PublicStatusHandlerMock.mock();
     });
 
     /**
@@ -53,6 +56,7 @@ describe('TransactionProcessor', () => {
      * - database
      * - ChainHandler
      * @scenario
+     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
      * - mock transaction and insert into db as 'approved'
      * - mock ChainHandler `getChain`
      *   - mock `signTransaction`
@@ -62,8 +66,12 @@ describe('TransactionProcessor', () => {
      * @expected
      * - `signTransaction` should got called
      * - tx status should be updated to 'in-sign'
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once
      */
     it('should send approved transactions to sign and update database', async () => {
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
       // mock transaction and insert into db as 'approved'
       const tx = mockPaymentTransaction();
       await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.approved);
@@ -91,6 +99,11 @@ describe('TransactionProcessor', () => {
       expect(dbTxs).toEqual([
         [tx.txId, TransactionStatus.inSign, currentTimeStampSeconds.toString()],
       ]);
+
+      expect(updatePublicTxStatusSpy).toHaveBeenCalledExactlyOnceWith(
+        tx.txId,
+        TransactionStatus.inSign,
+      );
     });
 
     /**
@@ -100,6 +113,7 @@ describe('TransactionProcessor', () => {
      * - database
      * - ChainHandler
      * @scenario
+     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
      * - mock transaction and insert into db as 'approved'
      * - mock ChainHandler `getChain`
      *   - mock `signTransaction`
@@ -111,8 +125,12 @@ describe('TransactionProcessor', () => {
      * @expected
      * - `signTransaction` should got called
      * - `handleSuccessfulSign` should got called
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once
      */
     it('should handle successful sign', async () => {
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
       // mock transaction and insert into db as 'approved'
       const tx = mockPaymentTransaction();
       const signedTx = tx;
@@ -153,6 +171,11 @@ describe('TransactionProcessor', () => {
 
       // `handleSuccessfulSign` should got called
       expect(mockedHandleSuccessfulSign).toHaveBeenCalledWith(signedTx);
+
+      expect(updatePublicTxStatusSpy).toHaveBeenCalledExactlyOnceWith(
+        tx.txId,
+        TransactionStatus.inSign,
+      );
     });
 
     /**
@@ -162,6 +185,7 @@ describe('TransactionProcessor', () => {
      * - database
      * - ChainHandler
      * @scenario
+     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
      * - mock transaction and insert into db as 'approved'
      * - mock ChainHandler `getChain`
      *   - mock `signTransaction`
@@ -173,8 +197,12 @@ describe('TransactionProcessor', () => {
      * @expected
      * - `signTransaction` should got called
      * - `handleFailedSign` should got called
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once
      */
     it('should handle failed sign', async () => {
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
       // mock transaction and insert into db as 'approved'
       const tx = mockPaymentTransaction();
       const signedTx = tx;
@@ -214,6 +242,11 @@ describe('TransactionProcessor', () => {
 
       // `handleFailedSign` should got called
       expect(mockedHandleFailedSign).toHaveBeenCalledOnce();
+
+      expect(updatePublicTxStatusSpy).toHaveBeenCalledExactlyOnceWith(
+        tx.txId,
+        TransactionStatus.inSign,
+      );
     });
   });
 
@@ -222,6 +255,8 @@ describe('TransactionProcessor', () => {
       await DatabaseActionMock.clearTables();
       ChainHandlerMock.resetMock();
       TransactionProcessorMock.restoreMocks();
+      PublicStatusHandlerMock.resetMock();
+      PublicStatusHandlerMock.mock();
     });
 
     /**
@@ -231,6 +266,7 @@ describe('TransactionProcessor', () => {
      * - database
      * - ChainHandler
      * @scenario
+     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
      * - mock transaction and insert into db as 'in-sign'
      * - mock ChainHandler `getChain`
      *   - mock `getHeight`
@@ -239,8 +275,12 @@ describe('TransactionProcessor', () => {
      * - check tx in database
      * @expected
      * - tx status should be updated to 'signed'
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once
      */
     it('should update transaction in database to signed tx', async () => {
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
       // mock transaction and insert into db as 'in-sign'
       const tx = mockPaymentTransaction();
       const signedTx = tx;
@@ -279,6 +319,11 @@ describe('TransactionProcessor', () => {
           mockedCurrentHeight,
         ],
       ]);
+
+      expect(updatePublicTxStatusSpy).toHaveBeenCalledExactlyOnceWith(
+        tx.txId,
+        TransactionStatus.signed,
+      );
     });
   });
 
@@ -286,6 +331,8 @@ describe('TransactionProcessor', () => {
     beforeEach(async () => {
       await DatabaseActionMock.clearTables();
       TransactionProcessorMock.restoreMocks();
+      PublicStatusHandlerMock.resetMock();
+      PublicStatusHandlerMock.mock();
     });
 
     /**
@@ -295,6 +342,7 @@ describe('TransactionProcessor', () => {
      * - database
      * - ChainHandler
      * @scenario
+     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
      * - mock transaction and insert into db as 'in-sign'
      * - run test
      * - check if function got called
@@ -303,8 +351,12 @@ describe('TransactionProcessor', () => {
      * - tx status should be updated to 'sign-failed'
      * - tx signFailedCount should be incremented
      * - tx failedInSign should be updated to true
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once
      */
     it('should update transaction status to sign-failed', async () => {
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
       // mock transaction and insert into db as 'in-sign'
       const tx = mockPaymentTransaction();
       await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.inSign);
@@ -332,6 +384,11 @@ describe('TransactionProcessor', () => {
           1,
         ],
       ]);
+
+      expect(updatePublicTxStatusSpy).toHaveBeenCalledExactlyOnceWith(
+        tx.txId,
+        TransactionStatus.signFailed,
+      );
     });
   });
 
@@ -452,6 +509,8 @@ describe('TransactionProcessor', () => {
       await DatabaseActionMock.clearTables();
       ChainHandlerMock.resetMock();
       TransactionProcessorMock.restoreMocks();
+      PublicStatusHandlerMock.resetMock();
+      PublicStatusHandlerMock.mock();
     });
 
     /**
@@ -562,6 +621,7 @@ describe('TransactionProcessor', () => {
      * - database
      * - ChainHandler
      * @scenario
+     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
      * - mock transaction and insert into db as 'sign-failed'
      * - mock ChainHandler `getChain`
      *   - mock `getTxConfirmationStatus`
@@ -574,8 +634,12 @@ describe('TransactionProcessor', () => {
      * @expected
      * - `signTransaction` should got called
      * - tx status should be updated to 'in-sign'
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once
      */
     it('should resend tx to sign process if tx is still valid', async () => {
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
       // mock transaction and insert into db as 'sign-failed'
       const tx = mockPaymentTransaction();
       await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.signFailed);
@@ -619,6 +683,11 @@ describe('TransactionProcessor', () => {
       expect(dbTxs).toEqual([
         [tx.txId, TransactionStatus.inSign, currentTimeStampSeconds.toString()],
       ]);
+
+      expect(updatePublicTxStatusSpy).toHaveBeenCalledExactlyOnceWith(
+        tx.txId,
+        TransactionStatus.inSign,
+      );
     });
 
     /**
@@ -751,6 +820,8 @@ describe('TransactionProcessor', () => {
       await DatabaseActionMock.clearTables();
       ChainHandlerMock.resetMock();
       TransactionProcessorMock.restoreMocks();
+      PublicStatusHandlerMock.resetMock();
+      PublicStatusHandlerMock.mock();
     });
 
     /**
@@ -760,6 +831,7 @@ describe('TransactionProcessor', () => {
      * - database
      * - ChainHandler
      * @scenario
+     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
      * - mock event and transaction and insert into db
      * - mock ChainHandler `getChain`
      *   - mock `getTxConfirmationStatus`
@@ -768,8 +840,12 @@ describe('TransactionProcessor', () => {
      * @expected
      * - tx status should be updated to 'completed'
      * - event status should be updated to 'pending-reward'
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once
      */
     it('should update tx status to completed and event status to pending-reward when payment tx is confirmed enough', async () => {
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
       // mock event and transaction and insert into db
       const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
@@ -823,6 +899,11 @@ describe('TransactionProcessor', () => {
           currentTimeStampSeconds.toString(),
         ],
       ]);
+
+      expect(updatePublicTxStatusSpy).toHaveBeenCalledExactlyOnceWith(
+        tx.txId,
+        TransactionStatus.completed,
+      );
     });
 
     /**
@@ -832,6 +913,7 @@ describe('TransactionProcessor', () => {
      * - database
      * - ChainHandler
      * @scenario
+     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
      * - mock event and transaction and insert into db
      * - mock ChainHandler `getChain`
      *   - mock `getTxConfirmationStatus`
@@ -840,8 +922,12 @@ describe('TransactionProcessor', () => {
      * @expected
      * - tx status should be updated to 'completed'
      * - event status should be updated to 'completed'
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once
      */
     it('should update tx status and event status to completed when Ergo payment tx is confirmed enough', async () => {
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
       // mock event and transaction and insert into db
       const mockedEvent = EventTestData.mockToErgoEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
@@ -884,6 +970,11 @@ describe('TransactionProcessor', () => {
         (event) => [event.id, event.status],
       );
       expect(dbEvents).toEqual([[eventId, EventStatus.completed]]);
+
+      expect(updatePublicTxStatusSpy).toHaveBeenCalledExactlyOnceWith(
+        tx.txId,
+        TransactionStatus.completed,
+      );
     });
 
     /**
@@ -893,6 +984,7 @@ describe('TransactionProcessor', () => {
      * - database
      * - ChainHandler
      * @scenario
+     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
      * - mock event and transaction and insert into db
      * - mock ChainHandler `getChain`
      *   - mock `getTxConfirmationStatus`
@@ -901,8 +993,12 @@ describe('TransactionProcessor', () => {
      * @expected
      * - tx status should be updated to 'completed'
      * - event status should be updated to 'completed'
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once
      */
     it('should update tx status and event status to completed when reward distribution tx is confirmed enough', async () => {
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
       // mock event and transaction and insert into db
       const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
@@ -945,6 +1041,11 @@ describe('TransactionProcessor', () => {
         (event) => [event.id, event.status],
       );
       expect(dbEvents).toEqual([[eventId, EventStatus.completed]]);
+
+      expect(updatePublicTxStatusSpy).toHaveBeenCalledExactlyOnceWith(
+        tx.txId,
+        TransactionStatus.completed,
+      );
     });
 
     /**
@@ -954,6 +1055,7 @@ describe('TransactionProcessor', () => {
      * - database
      * - ChainHandler
      * @scenario
+     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
      * - mock order and transaction and insert into db
      * - mock ChainHandler `getChain`
      *   - mock `getTxConfirmationStatus`
@@ -962,8 +1064,12 @@ describe('TransactionProcessor', () => {
      * @expected
      * - tx status should be updated to 'completed'
      * - order status should be updated to 'completed'
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once
      */
     it("should update tx status and order status to completed when it's tx is confirmed enough", async () => {
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
       // mock order and transaction and insert into db
       const orderId = 'order-id';
       const chain = CARDANO_CHAIN;
@@ -1007,6 +1113,11 @@ describe('TransactionProcessor', () => {
         (order) => [order.id, order.status],
       );
       expect(dbOrders).toEqual([[orderId, OrderStatus.completed]]);
+
+      expect(updatePublicTxStatusSpy).toHaveBeenCalledExactlyOnceWith(
+        tx.txId,
+        TransactionStatus.completed,
+      );
     });
 
     /**
@@ -1340,6 +1451,8 @@ describe('TransactionProcessor', () => {
       TransactionProcessorMock.restoreMocks();
       NotificationHandlerMock.resetMock();
       NotificationHandlerMock.mock();
+      PublicStatusHandlerMock.resetMock();
+      PublicStatusHandlerMock.mock();
     });
 
     /**
@@ -1349,6 +1462,8 @@ describe('TransactionProcessor', () => {
      * - database
      * - ChainHandler
      * @scenario
+     * - stub PublicStatusHandler.updatePublicEventStatus to resolve
+     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
      * - mock event and transaction and insert into db
      * - mock ChainHandler `getChain`
      *   - mock `getHeight`
@@ -1360,8 +1475,16 @@ describe('TransactionProcessor', () => {
      * - event status should be updated to 'pending-payment'
      * - event firstTry should remain unchanged
      * - event unexpectedFails should remain unchanged
+     * - PublicStatusHandler.updatePublicEventStatus should have been called once
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once
      */
     it('should update tx status to invalid and event status to pending-payment when payment tx is invalid', async () => {
+      const updatePublicEventStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicEventStatus();
+
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
       // mock event and transaction and insert into db
       const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
@@ -1441,6 +1564,16 @@ describe('TransactionProcessor', () => {
       expect(dbEvents).toEqual([
         [eventId, EventStatus.pendingPayment, firstTry, unexpectedFails],
       ]);
+
+      expect(updatePublicEventStatusSpy).toHaveBeenCalledExactlyOnceWith(
+        eventId,
+        EventStatus.pendingPayment,
+      );
+
+      expect(updatePublicTxStatusSpy).toHaveBeenCalledExactlyOnceWith(
+        tx.txId,
+        TransactionStatus.invalid,
+      );
     });
 
     /**
@@ -1450,6 +1583,8 @@ describe('TransactionProcessor', () => {
      * - database
      * - ChainHandler
      * @scenario
+     * - stub PublicStatusHandler.updatePublicEventStatus to resolve
+     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
      * - mock event and transaction and insert into db
      * - mock ChainHandler `getChain`
      *   - mock `getHeight`
@@ -1461,8 +1596,16 @@ describe('TransactionProcessor', () => {
      * - event status should be updated to 'pending-reward'
      * - event firstTry should remain unchanged
      * - event unexpectedFails should remain unchanged
+     * - PublicStatusHandler.updatePublicEventStatus should have been called once
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once
      */
     it('should update tx status to invalid and event status to pending-reward when reward distribution tx is invalid', async () => {
+      const updatePublicEventStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicEventStatus();
+
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
       // mock event and transaction and insert into db
       const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
@@ -1542,6 +1685,16 @@ describe('TransactionProcessor', () => {
       expect(dbEvents).toEqual([
         [eventId, EventStatus.pendingReward, firstTry, unexpectedFails],
       ]);
+
+      expect(updatePublicEventStatusSpy).toHaveBeenCalledExactlyOnceWith(
+        eventId,
+        EventStatus.pendingReward,
+      );
+
+      expect(updatePublicTxStatusSpy).toHaveBeenCalledExactlyOnceWith(
+        tx.txId,
+        TransactionStatus.invalid,
+      );
     });
 
     /**
@@ -1551,6 +1704,7 @@ describe('TransactionProcessor', () => {
      * - database
      * - ChainHandler
      * @scenario
+     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
      * - mock order and transaction and insert into db
      * - mock ChainHandler `getChain`
      *   - mock `getHeight`
@@ -1562,8 +1716,12 @@ describe('TransactionProcessor', () => {
      * - order status should be updated to 'pending'
      * - order firstTry should remain unchanged
      * - order unexpectedFails should remain unchanged
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once
      */
     it("should update tx status to invalid and order status to pending when it's tx is invalid", async () => {
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
       // mock order and transaction and insert into db
       const orderId = 'order-id';
       const chain = CARDANO_CHAIN;
@@ -1636,6 +1794,11 @@ describe('TransactionProcessor', () => {
       expect(dbOrders).toEqual([
         [orderId, OrderStatus.pending, firstTry, unexpectedFails],
       ]);
+
+      expect(updatePublicTxStatusSpy).toHaveBeenCalledExactlyOnceWith(
+        tx.txId,
+        TransactionStatus.invalid,
+      );
     });
 
     /**
@@ -1645,6 +1808,7 @@ describe('TransactionProcessor', () => {
      * - database
      * - ChainHandler
      * @scenario
+     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
      * - mock transaction and insert into db
      * - mock ChainHandler `getChain`
      *   - mock `getHeight`
@@ -1653,8 +1817,12 @@ describe('TransactionProcessor', () => {
      * - check tx in database
      * @expected
      * - tx status should be updated to 'invalid'
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once
      */
     it('should update tx status to invalid when cold storage tx is invalid', async () => {
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
       // mock transaction and insert into db
       const tx = mockPaymentTransaction(
         TransactionType.coldStorage,
@@ -1703,6 +1871,11 @@ describe('TransactionProcessor', () => {
           currentTimeStampSeconds.toString(),
         ],
       ]);
+
+      expect(updatePublicTxStatusSpy).toHaveBeenCalledExactlyOnceWith(
+        tx.txId,
+        TransactionStatus.invalid,
+      );
     });
 
     /**
@@ -1712,6 +1885,7 @@ describe('TransactionProcessor', () => {
      * - database
      * - ChainHandler
      * @scenario
+     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
      * - mock transaction and insert into db
      * - mock ChainHandler `getChain`
      *   - mock `getHeight`
@@ -1720,8 +1894,12 @@ describe('TransactionProcessor', () => {
      * - check tx in database
      * @expected
      * - tx status should be updated to 'invalid'
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once
      */
     it('should update tx status to invalid when manual tx is invalid', async () => {
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
       // mock transaction and insert into db
       const tx = mockPaymentTransaction(TransactionType.manual, 'chain', '');
       await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.sent, 100);
@@ -1766,6 +1944,11 @@ describe('TransactionProcessor', () => {
           currentTimeStampSeconds.toString(),
         ],
       ]);
+
+      expect(updatePublicTxStatusSpy).toHaveBeenCalledExactlyOnceWith(
+        tx.txId,
+        TransactionStatus.invalid,
+      );
     });
 
     /**
@@ -1848,6 +2031,8 @@ describe('TransactionProcessor', () => {
      * - ChainHandler
      * - NotificationHandler
      * @scenario
+     * - stub PublicStatusHandler.updatePublicEventStatus to resolve
+     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
      * - mock event and transaction and insert into db
      * - mock ChainHandler `getChain`
      *   - mock `getHeight`
@@ -1860,8 +2045,16 @@ describe('TransactionProcessor', () => {
      * - event status should be updated to 'pending-payment'
      * - event firstTry should remain unchanged
      * - event unexpectedFails should be incremented
+     * - PublicStatusHandler.updatePublicEventStatus should have been called once
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once
      */
     it('should update tx status to invalid, event status to pending-payment and increment unexpectedFails when payment tx has become invalid unexpectedly', async () => {
+      const updatePublicEventStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicEventStatus();
+
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
       // mock event and transaction and insert into db
       const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
@@ -1944,6 +2137,16 @@ describe('TransactionProcessor', () => {
       expect(dbEvents).toEqual([
         [eventId, EventStatus.pendingPayment, firstTry, unexpectedFails + 1],
       ]);
+
+      expect(updatePublicEventStatusSpy).toHaveBeenCalledExactlyOnceWith(
+        eventId,
+        EventStatus.pendingPayment,
+      );
+
+      expect(updatePublicTxStatusSpy).toHaveBeenCalledExactlyOnceWith(
+        tx.txId,
+        TransactionStatus.invalid,
+      );
     });
 
     /**
@@ -1955,6 +2158,8 @@ describe('TransactionProcessor', () => {
      * - ChainHandler
      * - NotificationHandler
      * @scenario
+     * - stub PublicStatusHandler.updatePublicEventStatus to resolve
+     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
      * - mock event and transaction and insert into db
      * - mock ChainHandler `getChain`
      *   - mock `getHeight`
@@ -1967,8 +2172,16 @@ describe('TransactionProcessor', () => {
      * - event status should be updated to 'pending-reward'
      * - event firstTry should remain unchanged
      * - event unexpectedFails should be incremented
+     * - PublicStatusHandler.updatePublicEventStatus should have been called once
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once
      */
     it('should update tx status to invalid, event status to pending-reward and increment unexpectedFails when reward distribution tx has become invalid unexpectedly', async () => {
+      const updatePublicEventStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicEventStatus();
+
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
       // mock event and transaction and insert into db
       const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
@@ -2051,6 +2264,16 @@ describe('TransactionProcessor', () => {
       expect(dbEvents).toEqual([
         [eventId, EventStatus.pendingReward, firstTry, unexpectedFails + 1],
       ]);
+
+      expect(updatePublicEventStatusSpy).toHaveBeenCalledExactlyOnceWith(
+        eventId,
+        EventStatus.pendingReward,
+      );
+
+      expect(updatePublicTxStatusSpy).toHaveBeenCalledExactlyOnceWith(
+        tx.txId,
+        TransactionStatus.invalid,
+      );
     });
 
     /**
@@ -2061,6 +2284,7 @@ describe('TransactionProcessor', () => {
      * - database
      * - ChainHandler
      * @scenario
+     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
      * - mock order and transaction and insert into db
      * - mock ChainHandler `getChain`
      *   - mock `getHeight`
@@ -2073,8 +2297,12 @@ describe('TransactionProcessor', () => {
      * - order status should be updated to 'pending'
      * - order firstTry should remain unchanged
      * - order unexpectedFails should be incremented
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once
      */
     it("should update tx status to invalid and order status to pending and increment unexpectedFails when it's tx has become invalid unexpectedly", async () => {
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
       // mock order and transaction and insert into db
       const orderId = 'order-id';
       const chain = CARDANO_CHAIN;
@@ -2150,6 +2378,11 @@ describe('TransactionProcessor', () => {
       expect(dbOrders).toEqual([
         [orderId, OrderStatus.pending, firstTry, unexpectedFails + 1],
       ]);
+
+      expect(updatePublicTxStatusSpy).toHaveBeenCalledExactlyOnceWith(
+        tx.txId,
+        TransactionStatus.invalid,
+      );
     });
 
     /**
@@ -2160,6 +2393,8 @@ describe('TransactionProcessor', () => {
      * - ChainHandler
      * - NotificationHandler
      * @scenario
+     * - stub PublicStatusHandler.updatePublicEventStatus to resolve
+     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
      * - mock event and transaction and insert into db
      * - mock ChainHandler `getChain`
      *   - mock `getHeight`
@@ -2169,8 +2404,16 @@ describe('TransactionProcessor', () => {
      * - check if function got called
      * @expected
      * - Notification `notify` should got called
+     * - PublicStatusHandler.updatePublicEventStatus should have been called once
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once
      */
     it('should send notification when tx has become invalid unexpectedly', async () => {
+      const updatePublicEventStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicEventStatus();
+
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
       // mock event and transaction and insert into db
       const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
@@ -2223,6 +2466,16 @@ describe('TransactionProcessor', () => {
       expect(
         NotificationHandlerMock.getNotificationHandlerMockedFunction('notify'),
       ).toHaveBeenCalledOnce();
+
+      expect(updatePublicEventStatusSpy).toHaveBeenCalledExactlyOnceWith(
+        eventId,
+        EventStatus.pendingPayment,
+      );
+
+      expect(updatePublicTxStatusSpy).toHaveBeenCalledExactlyOnceWith(
+        tx.txId,
+        TransactionStatus.invalid,
+      );
     });
   });
 });

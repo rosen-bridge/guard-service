@@ -15,6 +15,7 @@ import { EventStatus, TransactionStatus } from '../../src/utils/constants';
 import TxAgreementMock from '../agreement/mocked/txAgreement.mock';
 import DatabaseActionMock from '../db/mocked/databaseAction.mock';
 import ChainHandlerMock from '../handlers/chainHandler.mock';
+import PublicStatusHandlerMock from '../handlers/mocked/publicStatusHandler.mock';
 import NotificationHandlerMock from '../handlers/notificationHandler.mock';
 import TestConfigs from '../testUtils/testConfigs';
 import { mockGuardTurn } from '../utils/mocked/guardTurn.mock';
@@ -438,6 +439,8 @@ describe('EventProcessor', () => {
       TxAgreementMock.mock();
       NotificationHandlerMock.resetMock();
       NotificationHandlerMock.mock();
+      PublicStatusHandlerMock.resetMock();
+      PublicStatusHandlerMock.mock();
     });
 
     /**
@@ -687,6 +690,7 @@ describe('EventProcessor', () => {
      * - MinimumFee
      * - EventVerifier
      * @scenario
+     * - stub PublicStatusHandler.updatePublicEventStatus to resolve
      * - mock feeConfig
      * - insert a mocked event into db
      * - mock event as unverified
@@ -694,8 +698,12 @@ describe('EventProcessor', () => {
      * - check status of event in db
      * @expected
      * - event status should be updated in db
+     * - PublicStatusHandler.updatePublicEventStatus should have been called once
      */
     it('should set event as rejected when event has not verified', async () => {
+      const updatePublicEventStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicEventStatus();
+
       // mock feeConfig
       const fee: ChainMinimumFee = {
         bridgeFee: 0n,
@@ -729,6 +737,11 @@ describe('EventProcessor', () => {
         EventSerializer.getId(mockedEvent),
         EventStatus.rejected,
       ]);
+
+      expect(updatePublicEventStatusSpy).toHaveBeenCalledExactlyOnceWith(
+        EventSerializer.getId(mockedEvent),
+        EventStatus.rejected,
+      );
     });
 
     /**
@@ -743,6 +756,7 @@ describe('EventProcessor', () => {
      * - EventBoxes
      * - Notification
      * @scenario
+     * - stub PublicStatusHandler.updatePublicEventStatus to resolve
      * - mock feeConfig
      * - insert a mocked event into db
      * - mock event as verified
@@ -764,8 +778,12 @@ describe('EventProcessor', () => {
      * @expected
      * - event status should be updated in db
      * - Notification `notify` should got called
+     * - PublicStatusHandler.updatePublicEventStatus should have been called once
      */
     it('should set event as waiting when there is not enough assets in lock address to create payment', async () => {
+      const updatePublicEventStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicEventStatus();
+
       // mock feeConfig
       const fee: ChainMinimumFee = {
         bridgeFee: 0n,
@@ -866,6 +884,11 @@ describe('EventProcessor', () => {
       expect(
         NotificationHandlerMock.getNotificationHandlerMockedFunction('notify'),
       ).toHaveBeenCalledOnce();
+
+      expect(updatePublicEventStatusSpy).toHaveBeenCalledExactlyOnceWith(
+        EventSerializer.getId(mockedEvent),
+        EventStatus.paymentWaiting,
+      );
     });
 
     /**
@@ -1168,6 +1191,7 @@ describe('EventProcessor', () => {
      * - Notification
      * - GuardTurn
      * @scenario
+     * - stub PublicStatusHandler.updatePublicEventStatus to resolve
      * - mock feeConfig
      * - mock event and insert a mocked payment transaction for it into database
      * - mock ChainHandler `fromChain` and `getErgoChain`
@@ -1189,8 +1213,12 @@ describe('EventProcessor', () => {
      * @expected
      * - event status should be updated in db
      * - Notification `notify` should got called
+     * - PublicStatusHandler.updatePublicEventStatus should have been called once
      */
     it('should set event as waiting when there is not enough assets in lock address to create reward distribution', async () => {
+      const updatePublicEventStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicEventStatus();
+
       // mock feeConfig
       const fee: ChainMinimumFee = {
         bridgeFee: 0n,
@@ -1299,6 +1327,11 @@ describe('EventProcessor', () => {
       expect(
         NotificationHandlerMock.getNotificationHandlerMockedFunction('notify'),
       ).toHaveBeenCalledOnce();
+
+      expect(updatePublicEventStatusSpy).toHaveBeenCalledExactlyOnceWith(
+        EventSerializer.getId(mockedEvent),
+        EventStatus.rewardWaiting,
+      );
     });
 
     /**

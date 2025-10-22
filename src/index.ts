@@ -15,6 +15,7 @@ import GuardPkHandler from './handlers/guardPkHandler';
 import MinimumFeeHandler from './handlers/minimumFeeHandler';
 import MultiSigHandler from './handlers/multiSigHandler';
 import { NotificationHandler } from './handlers/notificationHandler';
+import PublicStatusHandler from './handlers/publicStatusHandler';
 import { TokenHandler } from './handlers/tokenHandler';
 import TssHandler from './handlers/tssHandler';
 import { initApiServer } from './jobs/apiServer';
@@ -42,6 +43,9 @@ const init = async () => {
 
   // initialize DatabaseAction
   DatabaseAction.init(dataSource);
+
+  // initialize PublicStatusHandler
+  PublicStatusHandler.init(dataSource);
 
   // initialize Dialer
   await RosenDialer.init();

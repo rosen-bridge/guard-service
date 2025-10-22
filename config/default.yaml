@@ -10,6 +10,8 @@ api:
   isArbitraryOrderRequestActive: false
   allowedOrigins: [] # List of allowed origins for CORS headers
   maxRequestsPerMinute: 100_000
+publicStatus:
+  baseUrl: ''
 binance:
   chainNetwork: 'rpc' # 'rpc'
   rpc:

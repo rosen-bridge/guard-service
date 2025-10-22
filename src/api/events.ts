@@ -141,7 +141,7 @@ const ongoingEventsRoute = (server: FastifySeverInstance) => {
           case EventStatus.inPayment: {
             const paymentTxStatus = txs.find(
               (tx) =>
-                tx.event.id === event.eventId &&
+                tx.event?.id === event.eventId &&
                 tx.type === TransactionType.payment,
             )!.status;
             status = `${EventStatus.inPayment} (${paymentTxStatus})`;
@@ -150,7 +150,7 @@ const ongoingEventsRoute = (server: FastifySeverInstance) => {
           case EventStatus.inReward: {
             const rewardTxStatus = txs.find(
               (tx) =>
-                tx.event.id === event.eventId &&
+                tx.event?.id === event.eventId &&
                 tx.type === TransactionType.reward,
             )!.status;
             status = `${EventStatus.inReward} (${rewardTxStatus})`;

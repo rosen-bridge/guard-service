@@ -14,6 +14,7 @@ import {
 } from '../../src/utils/constants';
 import * as TxTestData from '../agreement/testData';
 import * as EventTestData from '../event/testData';
+import PublicStatusHandlerMock from '../handlers/mocked/publicStatusHandler.mock';
 import DatabaseHandlerMock from './mocked/databaseAction.mock';
 import DatabaseActionMock from './mocked/databaseAction.mock';
 
@@ -22,6 +23,8 @@ describe('DatabaseHandler', () => {
 
   beforeEach(async () => {
     await DatabaseHandlerMock.clearTables();
+    PublicStatusHandlerMock.resetMock();
+    PublicStatusHandlerMock.mock();
   });
 
   describe('insertTx', () => {
@@ -54,14 +57,19 @@ describe('DatabaseHandler', () => {
      * @dependencies
      * - database
      * @scenario
+     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
      * - mock event and transaction
      * - insert mocked event into db
      * - run test (call `insertTx`)
      * - check database
      * @expected
      * - tx should be inserted into db
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once
      */
     it('should insert tx when there is no other tx for the event', async () => {
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
       // mock event and transaction
       const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
@@ -83,9 +91,14 @@ describe('DatabaseHandler', () => {
       // tx should be inserted into db
       const dbTxs = (await DatabaseHandlerMock.allTxRecords()).map((tx) => [
         tx.txId,
-        tx.event.id,
+        tx.event?.id,
       ]);
       expect(dbTxs).toEqual([[tx.txId, eventId]]);
+
+      expect(updatePublicTxStatusSpy).toHaveBeenCalledExactlyOnceWith(
+        tx.txId,
+        TransactionStatus.approved,
+      );
     });
 
     /**
@@ -94,14 +107,19 @@ describe('DatabaseHandler', () => {
      * @dependencies
      * - database
      * @scenario
+     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
      * - mock order and transaction
      * - insert mocked order into db
      * - run test (call `insertTx`)
      * - check database
      * @expected
      * - tx should be inserted into db
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once
      */
     it('should insert tx when there is no other tx for the order', async () => {
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
       // mock order and transaction
       const orderId = 'order-id';
       const orderChain = CARDANO_CHAIN;
@@ -125,9 +143,14 @@ describe('DatabaseHandler', () => {
       // tx should be inserted into db
       const dbTxs = (await DatabaseHandlerMock.allTxRecords()).map((tx) => [
         tx.txId,
-        tx.order.id,
+        tx.order?.id,
       ]);
       expect(dbTxs).toEqual([[tx.txId, orderId]]);
+
+      expect(updatePublicTxStatusSpy).toHaveBeenCalledExactlyOnceWith(
+        tx.txId,
+        TransactionStatus.approved,
+      );
     });
 
     /**
@@ -240,6 +263,7 @@ describe('DatabaseHandler', () => {
      * @dependencies
      * - database
      * @scenario
+     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
      * - mock event and two transactions
      * - insert mocked event into db
      * - insert tx with higher txId (with `approved` status)
@@ -247,8 +271,12 @@ describe('DatabaseHandler', () => {
      * - check database
      * @expected
      * - tx should be inserted into db
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once
      */
     it('should insert tx when txId is lower than existing approved tx', async () => {
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
       // mock event and two transactions
       const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
@@ -294,6 +322,11 @@ describe('DatabaseHandler', () => {
         (tx) => tx.txId,
       );
       expect(dbTxs).toEqual([lowTx.txId]);
+
+      expect(updatePublicTxStatusSpy).toHaveBeenCalledExactlyOnceWith(
+        lowTx.txId,
+        TransactionStatus.approved,
+      );
     });
 
     /**
@@ -407,13 +440,18 @@ describe('DatabaseHandler', () => {
      * @dependencies
      * - database
      * @scenario
+     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
      * - mock transaction
      * - run test (call `insertTx`)
      * - check database
      * @expected
      * - tx should be inserted into db
+     * - PublicStatusHandler.updatePublicTxStatus should have been called once
      */
     it('should insert tx when tx is not in database', async () => {
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
       // mock transaction
       const chain = 'chain';
       const tx = TxTestData.mockPaymentTransaction(
@@ -432,6 +470,11 @@ describe('DatabaseHandler', () => {
         tx.chain,
       ]);
       expect(dbTxs).toEqual([[tx.txId, null, tx.network]]);
+
+      expect(updatePublicTxStatusSpy).toHaveBeenCalledExactlyOnceWith(
+        tx.txId,
+        TransactionStatus.approved,
+      );
     });
 
     /**
