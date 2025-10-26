@@ -45,3 +45,80 @@ export const mockBalances: Record<string, Array<ChainAddressBalanceEntity>> = {
     },
   ],
 };
+
+export const mockAddressBalance = [
+  {
+    address: 'bitcoin_mock_cold_address',
+    chain: 'bitcoin',
+    balance: {
+      tokenId: 'btc',
+      amount: 100,
+      name: 'BTC',
+      decimals: 8,
+      isNativeToken: true,
+    },
+  },
+  {
+    address: 'cardano_mock_cold_address',
+    chain: 'cardano',
+    balance: {
+      tokenId: 'ada',
+      amount: 50000,
+      name: 'ADA',
+      decimals: 6,
+      isNativeToken: true,
+    },
+  },
+  {
+    address: 'cardano_mock_cold_address',
+    chain: 'cardano',
+    balance: {
+      tokenId:
+        'bb2250e4c589539fd141fbbd2c322d380f1ce2aaef812cd87110d61b.527374434f4d4554565465737432',
+      amount: 20000,
+      name: 'wrapped-comet',
+      decimals: 0,
+      isNativeToken: false,
+    },
+  },
+];
+
+export const mockAddressBalance2 = [
+  {
+    address: 'cardano_mock_lock_address',
+    chain: 'cardano',
+    balance: {
+      tokenId:
+        'bb2250e4c589539fd141fbbd2c322d380f1ce2aaef812cd87110d61b.527374434f4d4554565465737432',
+      amount: 6666666,
+      name: 'wrapped-comet',
+      decimals: 0,
+      isNativeToken: false,
+    },
+  },
+];
+
+export const mockAddressBalance3 = [
+  {
+    address: 'bitcoin_mock_cold_address',
+    chain: 'bitcoin',
+    balance: {
+      tokenId: 'btc',
+      amount: 100,
+      name: 'BTC',
+      decimals: 8,
+      isNativeToken: true,
+    },
+  },
+  {
+    address: 'cardano_mock_cold_address',
+    chain: 'cardano',
+    balance: {
+      tokenId: 'ada',
+      amount: 50000,
+      name: 'ADA',
+      decimals: 6,
+      isNativeToken: true,
+    },
+  },
+];
