@@ -496,7 +496,13 @@ class BitcoinRunesChain extends AbstractUtxoChain<
       this.logger.debug(
         `Fee related info: [is universal change box present: ${isUniversalChangeBoxPresent}, box-selection fee estimation: ${estimatedFee}, tx fee: ${fee}]`,
       );
-      const remainingBtc = additionalAssets.nativeToken + estimatedFee - fee;
+      const remainingBtc =
+        additionalAssets.nativeToken +
+        estimatedFee -
+        fee +
+        (isUniversalChangeBoxPresent
+          ? 0n
+          : MINIMUM_BTC_FOR_NATIVE_SEGWIT_OUTPUT);
       if (remainingBtc <= MINIMUM_BTC_FOR_NATIVE_SEGWIT_OUTPUT)
         throw new ImpossibleBehavior(
           `Remaining BTC does not reach minimum UTxO value [${remainingBtc} < ${MINIMUM_BTC_FOR_NATIVE_SEGWIT_OUTPUT}] while utxo selection covered`,

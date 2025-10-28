@@ -654,8 +654,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       );
 
       const feeSatoshis = this.convertToSatoshis(response.data.result.feerate);
-      const feeRate = Number(feeSatoshis) / 1024;
-      return Math.ceil(feeRate);
+      return Number(feeSatoshis) / 1000;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get fee ratio from Bitcoin RPC: `;
