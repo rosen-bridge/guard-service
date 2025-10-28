@@ -12,7 +12,7 @@ import {
   mockBlocksTxsAll,
   mockEpochsLatestParameters,
   mockTxs,
-  mockTxsMetadata,
+  mockTxsMetadataCbor,
   mockTxsNotFound,
   mockTxsUtxos,
   mockTxsUtxosNotFound,
@@ -265,7 +265,7 @@ describe('CardanoBlockFrostNetwork', () => {
       const network = mockNetwork();
       mockTxs(network.getClient(), testData.noMetadataTransaction);
       mockTxsUtxos(network.getClient(), testData.noMetadataTransactionUtxos);
-      mockTxsMetadata(
+      mockTxsMetadataCbor(
         network.getClient(),
         testData.noMetadataTransactionMetadata,
       );
@@ -297,7 +297,10 @@ describe('CardanoBlockFrostNetwork', () => {
       const network = mockNetwork();
       mockTxs(network.getClient(), testData.rosenTransaction);
       mockTxsUtxos(network.getClient(), testData.rosenTransactionUtxos);
-      mockTxsMetadata(network.getClient(), testData.rosenTransactionMetadata);
+      mockTxsMetadataCbor(
+        network.getClient(),
+        testData.rosenTransactionMetadata,
+      );
 
       // run test
       const result = await network.getTransaction(
@@ -329,7 +332,7 @@ describe('CardanoBlockFrostNetwork', () => {
         network.getClient(),
         testData.differentMetadataTransactionUtxos,
       );
-      mockTxsMetadata(
+      mockTxsMetadataCbor(
         network.getClient(),
         testData.differentMetadataTransactionMetadata,
       );

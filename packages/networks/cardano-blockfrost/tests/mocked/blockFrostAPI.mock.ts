@@ -100,11 +100,11 @@ export const mockTxsUtxosNotFound = (client: BlockFrostAPI) => {
  * mocks `txsMetadata` function of the client to return value
  * @param client
  */
-export const mockTxsMetadata = (
+export const mockTxsMetadataCbor = (
   client: BlockFrostAPI,
-  txMetadata: components['schemas']['tx_content_metadata'],
+  txMetadataCbor: components['schemas']['tx_content_metadata_cbor'],
 ) => {
-  vi.spyOn(client, 'txsMetadata').mockResolvedValue(txMetadata);
+  vi.spyOn(client, 'txsMetadataCbor').mockResolvedValue(txMetadataCbor);
 };
 
 /**

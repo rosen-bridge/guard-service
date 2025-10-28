@@ -689,7 +689,7 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
   };
 
   /**
-   * converts BlockFrost tx input schema to CardanoTxInput
+   * converts CSL tx input schema to CardanoTxInput
    * @param input
    * @returns
    */
@@ -703,7 +703,7 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
   };
 
   /**
-   * converts BlockFrost tx output schema to CardanoBoxCandidate
+   * converts CSL tx output schema to CardanoBoxCandidate
    * @param output
    * @returns
    */
@@ -718,18 +718,21 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
   };
 
   /**
-   * parses metadata object from BlockFrost tx metadata schema
-   * @param output
+   * parses metadata object from CSL tx metadata schema
+   * @param metadata
    * @returns
    */
   protected parseMetadata = (
     metadata: GeneralTransactionMetadata,
   ): CardanoMetadata => {
     const keys = metadata.keys();
-    const result: CardanoMetadata = {};
+    const result: CardanoMetadata = {
+      parsedJson: {},
+      cbor: metadata.to_hex(),
+    };
     for (let i = 0; i < keys.len(); i++) {
       const key = keys.get(i);
-      result[key.to_str()] = JsonBigInt.parse(
+      result.parsedJson[key.to_str()] = JsonBigInt.parse(
         decode_metadatum_to_json_str(
           metadata.get(key)!,
           MetadataJsonSchema.NoConversions,
