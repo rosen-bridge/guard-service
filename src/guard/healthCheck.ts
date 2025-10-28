@@ -176,10 +176,9 @@ const getHealthCheck = async () => {
       );
       healthCheck.register(emissionTokenAssetHealthCheck);
 
-      const scannerName = 'ergo-node';
       const ergoScannerSyncCheck = new ScannerSyncHealthCheckParam(
         ERGO_CHAIN,
-        generateLastBlockFetcher(scannerName),
+        generateLastBlockFetcher(ERGO_CHAIN),
         Configs.ergoScannerWarnDiff,
         Configs.ergoScannerCriticalDiff,
         ERGO_BLOCK_TIME,
@@ -219,10 +218,9 @@ const getHealthCheck = async () => {
         );
       healthCheck.register(emissionTokenAssetHealthCheck);
 
-      const scannerName = 'ergo-explorer';
       const ergoScannerSyncCheck = new ScannerSyncHealthCheckParam(
         ERGO_CHAIN,
-        generateLastBlockFetcher(scannerName),
+        generateLastBlockFetcher(ERGO_CHAIN),
         Configs.ergoScannerWarnDiff,
         Configs.ergoScannerCriticalDiff,
         ERGO_BLOCK_TIME,
@@ -295,10 +293,9 @@ const getHealthCheck = async () => {
       );
       healthCheck.register(ethAssetHealthCheck);
 
-      const scannerName = 'ethereum-evm-rpc';
       const ethereumScannerSyncCheck = new ScannerSyncHealthCheckParam(
         ETHEREUM_CHAIN,
-        generateLastBlockFetcher(scannerName),
+        generateLastBlockFetcher(ETHEREUM_CHAIN),
         Configs.ethereumScannerWarnDiff,
         Configs.ethereumScannerCriticalDiff,
         ETHEREUM_BLOCK_TIME,
@@ -322,10 +319,9 @@ const getHealthCheck = async () => {
       );
       healthCheck.register(bnbAssetHealthCheck);
 
-      const scannerName = 'binance-evm-rpc';
       const binanceScannerSyncCheck = new ScannerSyncHealthCheckParam(
         BINANCE_CHAIN,
-        generateLastBlockFetcher(scannerName),
+        generateLastBlockFetcher(BINANCE_CHAIN),
         Configs.binanceScannerWarnDiff,
         Configs.binanceScannerCriticalDiff,
         BINANCE_BLOCK_TIME,
