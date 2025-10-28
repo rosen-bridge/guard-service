@@ -18,7 +18,6 @@ export type PartialBlockFrostInput = {
 };
 export type BlockFrostOutput =
   components['schemas']['tx_content_utxo']['outputs'][0];
-export type BlockFrostTxMetadata = components['schemas']['tx_content_metadata'];
 export type BlockFrostAddressUtxos =
   components['schemas']['address_utxo_content'];
 

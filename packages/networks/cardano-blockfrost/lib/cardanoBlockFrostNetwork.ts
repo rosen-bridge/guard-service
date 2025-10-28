@@ -4,7 +4,13 @@ import {
   BlockfrostServerError,
 } from '@blockfrost/blockfrost-js';
 import { components } from '@blockfrost/openapi';
-import { Transaction } from '@emurgo/cardano-serialization-lib-nodejs';
+import {
+  BigNum,
+  decode_metadatum_to_json_str,
+  GeneralTransactionMetadata,
+  MetadataJsonSchema,
+  Transaction,
+} from '@emurgo/cardano-serialization-lib-nodejs';
 
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 import JsonBigInt from '@rosen-bridge/json-bigint';
@@ -37,7 +43,6 @@ import {
   PartialBlockFrostInput,
   BlockFrostNullValueError,
   BlockFrostOutput,
-  BlockFrostTxMetadata,
   CardanoBalance,
   BlockFrostAddressUtxos,
 } from './types';
@@ -279,12 +284,12 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
       }
     }
 
-    let txMetadata: components['schemas']['tx_content_metadata'];
+    let txMetadataList: components['schemas']['tx_content_metadata_cbor'];
     try {
-      txMetadata = await this.client.txsMetadata(transactionId);
+      txMetadataList = await this.client.txsMetadataCbor(transactionId);
       this.logger.debug(
-        `requested 'txsMetadata' for txId [${transactionId}]. res: ${JsonBigInt.stringify(
-          txMetadata,
+        `requested 'txsMetadataCbor' for txId [${transactionId}]. res: ${JsonBigInt.stringify(
+          txMetadataList,
         )}`,
       );
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -310,7 +315,7 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
       outputs: txUtxos.outputs.map(this.convertToCardanoBoxCandidate),
       fee: BigInt(txInfo.fees),
     };
-    if (txMetadata.length) tx.metadata = this.parseMetadata(txMetadata);
+    if (txMetadataList.length) tx.metadata = this.parseMetadata(txMetadataList);
 
     return tx;
   };
@@ -608,17 +613,36 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
   };
 
   /**
-   * parses metadata object from BlockFrost tx metadata schema
-   * @param output
+   * parses metadata object from BlockFrost tx cbor metadata schema
+   * @param metadataList
    * @returns
    */
   protected parseMetadata = (
-    metadata: BlockFrostTxMetadata,
+    metadataList: components['schemas']['tx_content_metadata_cbor'],
   ): CardanoMetadata => {
-    return metadata.reduce((result: CardanoMetadata, labelObject) => {
-      result[labelObject.label] = labelObject.json_metadata;
-      return result;
-    }, {});
+    const generalMetadata = GeneralTransactionMetadata.new();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const parsedJson: Record<string, string | Record<string, any>> = {};
+    for (let i = 0; i < metadataList.length; i++) {
+      const metadataCbor = metadataList[i].metadata;
+      if (metadataCbor === null)
+        throw new BlockFrostNullValueError(`Metadata cbor is null`);
+      const metadata = GeneralTransactionMetadata.from_hex(metadataCbor);
+      const label = BigNum.from_str(metadataList[i].label);
+      const labelMetadata = metadata.get(label)!;
+      parsedJson[label.to_str()] = JsonBigInt.parse(
+        decode_metadatum_to_json_str(
+          labelMetadata,
+          MetadataJsonSchema.NoConversions,
+        ),
+      );
+
+      generalMetadata.insert(label, labelMetadata);
+    }
+    return {
+      parsedJson: parsedJson,
+      cbor: generalMetadata.to_hex(),
+    };
   };
 
   /**

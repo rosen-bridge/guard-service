@@ -594,16 +594,19 @@ export const cardanoTx1: CardanoTx = {
   ],
   fee: 268757n,
   metadata: {
-    '0': {
-      to: 'ergo',
-      bridgeFee: '165000000',
-      toAddress: '9g7mqqQAnUG4gWi6pFmic65ZfUrrWiVkMnbsg2hXUx6aVbBSTJ4',
-      networkFee: '175000',
-      fromAddress: [
-        'addr1q9jperhqputlfnfqhteu6eu2xhjwxa9keph08vgrqjg357tthg3xm3n4r6p',
-        'w85a5p6gdqv9v5zd6vmqdpxvl0jrql2aszjgvaj',
-      ],
+    parsedJson: {
+      '0': {
+        to: 'ergo',
+        bridgeFee: '165000000',
+        toAddress: '9g7mqqQAnUG4gWi6pFmic65ZfUrrWiVkMnbsg2hXUx6aVbBSTJ4',
+        networkFee: '175000',
+        fromAddress: [
+          'addr1q9jperhqputlfnfqhteu6eu2xhjwxa9keph08vgrqjg357tthg3xm3n4r6p',
+          'w85a5p6gdqv9v5zd6vmqdpxvl0jrql2aszjgvaj',
+        ],
+      },
     },
+    cbor: 'a100a562746f646572676f69627269646765466565693136353030303030306a6e6574776f726b4665656631373530303069746f4164647265737378333967376d717151416e5547346757693670466d696336355a665572725769566b4d6e6273673268585578366156624253544a346b66726f6d41646472657373827840616464723171396a70657268717075746c666e6671687465753665753278686a777861396b6570683038766772716a673335377474686733786d336e34723670782777383561357036676471763976357a6436766d71647078766c306a72716c3261737a6a6776616a',
   },
 };
 
