@@ -1,5 +1,17 @@
 # @rosen-chains/cardano
 
+## 15.0.0
+
+### Major Changes
+
+- Change the type of `metadata` field in `CardanoTx` interface to combination of parsed JSON and raw CBOR
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-bridge/rosen-extractor@11.0.0
+  - @rosen-chains/abstract-chain@15.0.1
+
 ## 14.0.0
 
 ### Major Changes

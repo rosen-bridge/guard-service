@@ -1,5 +1,17 @@
 # @rosen-chains/bitcoin-runes-rpc
 
+## 2.0.0
+
+### Major Changes
+
+- Add pagination args to getAddressBtcBoxes and getRemainingBoxes
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-chains/bitcoin-runes@3.0.0
+  - @rosen-chains/abstract-chain@15.0.1
+
 ## 1.0.0
 
 ### Major Changes

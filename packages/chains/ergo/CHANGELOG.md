@@ -1,5 +1,13 @@
 # @rosen-chains/ergo
 
+## 13.0.1
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-bridge/rosen-extractor@11.0.0
+  - @rosen-chains/abstract-chain@15.0.1
+
 ## 13.0.0
 
 ### Major Changes
