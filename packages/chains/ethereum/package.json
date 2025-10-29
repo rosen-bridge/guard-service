@@ -1,6 +1,6 @@
 {
   "name": "@rosen-chains/ethereum",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "this project contains ethereum chain for Rosen-bridge",
   "keywords": [
     "rosen"
@@ -32,8 +32,8 @@
   "dependencies": {
     "@rosen-bridge/abstract-logger": "^3.0.1",
     "@rosen-bridge/tokens": "^4.0.1",
-    "@rosen-chains/abstract-chain": "^15.0.0",
-    "@rosen-chains/evm": "^9.0.0"
+    "@rosen-chains/abstract-chain": "^15.0.1",
+    "@rosen-chains/evm": "^9.0.1"
   },
   "devDependencies": {
     "@vitest/coverage-istanbul": "^3.1.4",

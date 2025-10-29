@@ -1,5 +1,17 @@
 # @rosen-chains/cardano-blockfrost-network
 
+## 10.0.0
+
+### Major Changes
+
+- Change the type of `metadata` field in `CardanoTx` interface to combination of parsed JSON and raw CBOR
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-chains/abstract-chain@15.0.1
+  - @rosen-chains/cardano@15.0.0
+
 ## 9.0.0
 
 ### Major Changes

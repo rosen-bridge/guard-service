@@ -1,6 +1,6 @@
 {
   "name": "@rosen-chains/evm",
-  "version": "9.0.0",
+  "version": "9.0.1",
   "description": "this project contains evm chains for Rosen-bridge",
   "keywords": [
     "rosen"
@@ -36,7 +36,7 @@
     "@rosen-bridge/json-bigint": "^1.1.0",
     "@rosen-bridge/rosen-extractor": "^11.0.0",
     "@rosen-bridge/tokens": "^4.0.1",
-    "@rosen-chains/abstract-chain": "^15.0.0",
+    "@rosen-chains/abstract-chain": "^15.0.1",
     "ethers": "6.13.2"
   },
   "devDependencies": {
