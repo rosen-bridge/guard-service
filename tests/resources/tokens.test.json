@@ -96,7 +96,7 @@
       },
       "cardano": {
         "tokenId": "ada",
-        "name": "ada",
+        "name": "ADA",
         "decimals": 6,
         "type": "native",
         "residency": "native",
