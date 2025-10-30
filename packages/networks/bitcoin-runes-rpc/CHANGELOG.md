@@ -1,5 +1,13 @@
 # @rosen-chains/bitcoin-runes-rpc
 
+## 2.0.1
+
+### Patch Changes
+
+- Fix slight error in the `getFeeRatio` function
+- Update dependencies
+  - @rosen-chains/bitcoin-runes@3.0.1
+
 ## 2.0.0
 
 ### Major Changes

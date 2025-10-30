@@ -1,5 +1,11 @@
 # @rosen-chains/bitcoin-runes
 
+## 3.0.1
+
+### Patch Changes
+
+- Fix unexpected high fee in the generated transaction (caused by ignoring the min UTxO value when removing the redundant universal change box)
+
 ## 3.0.0
 
 ### Major Changes

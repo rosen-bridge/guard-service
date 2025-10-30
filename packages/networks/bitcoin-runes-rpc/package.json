@@ -1,6 +1,6 @@
 {
   "name": "@rosen-chains/bitcoin-runes-rpc",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "A package to be used as network api provider for @rosen-chains/bitcoin-runes package",
   "keywords": [
     "rosen"
@@ -35,7 +35,7 @@
     "@rosen-bridge/abstract-logger": "^3.0.1",
     "@rosen-bridge/json-bigint": "^1.1.0",
     "@rosen-chains/abstract-chain": "^15.0.1",
-    "@rosen-chains/bitcoin-runes": "^3.0.0",
+    "@rosen-chains/bitcoin-runes": "^3.0.1",
     "@rosen-clients/rate-limited-axios": "^1.1.0",
     "bitcoinjs-lib": "^6.1.5"
   },

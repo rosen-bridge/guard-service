@@ -1,6 +1,6 @@
 {
   "name": "@rosen-chains/bitcoin-runes",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "this project contains Runes protocol of Bitcoin chain for Rosen-bridge",
   "keywords": [
     "rosen"
