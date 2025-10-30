@@ -5,6 +5,7 @@ import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
 import { ETH, ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
 import { DOGE, DOGE_CHAIN } from '@rosen-chains/doge';
 import { BITCOIN_RUNES_CHAIN } from '@rosen-chains/bitcoin-runes';
+import { HANDSHAKE_CHAIN, HNS } from '@rosen-chains/handshake';
 
 class EventStatus {
   static pendingPayment = 'pending-payment';
@@ -51,6 +52,7 @@ const SUPPORTED_CHAINS = [
   DOGE_CHAIN,
   BINANCE_CHAIN,
   BITCOIN_RUNES_CHAIN,
+  HANDSHAKE_CHAIN,
 ];
 
 enum RevenueType {
@@ -73,6 +75,7 @@ const ChainNativeToken: Record<string, string> = {
   [DOGE_CHAIN]: DOGE,
   [BINANCE_CHAIN]: BNB,
   [BITCOIN_RUNES_CHAIN]: BTC,
+  [HANDSHAKE_CHAIN]: HNS,
 };
 
 enum OrderStatus {

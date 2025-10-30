@@ -5,6 +5,7 @@ import {
   ErgoExplorerAssetHealthCheckParam,
   ErgoNodeAssetHealthCheckParam,
   EvmRpcAssetHealthCheckParam,
+  HandshakeRpcAssetHealthCheckParam,
 } from '@rosen-bridge/asset-check';
 import { HealthCheck } from '@rosen-bridge/health-check';
 import { ErgoNodeSyncHealthCheckParam } from '@rosen-bridge/node-sync-check';
@@ -51,6 +52,8 @@ import {
   EventProgressHealthCheckParam,
 } from '@rosen-bridge/event-progress-check';
 import { BITCOIN_RUNES_CHAIN } from '@rosen-chains/bitcoin-runes';
+import { HANDSHAKE_CHAIN, HNS } from '@rosen-chains/handshake';
+import GuardsHandshakeConfigs from '../configs/GuardsHandshakeConfigs';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 let healthCheck: HealthCheck | undefined;
@@ -134,6 +137,7 @@ const getHealthCheck = async () => {
     const dogeContracts = rosenConfig.contractReader(DOGE_CHAIN);
     const bitcoinRunesContracts =
       rosenConfig.contractReader(BITCOIN_RUNES_CHAIN);
+    const handshakeContracts = rosenConfig.contractReader(HANDSHAKE_CHAIN);
     const generateLastBlockFetcher = (scannerName: string) => {
       return async () => {
         try {
@@ -332,6 +336,17 @@ const getHealthCheck = async () => {
         GuardsBinanceConfigs.rpc.timeout
       );
       healthCheck.register(binanceScannerSyncCheck);
+    }
+    if (GuardsHandshakeConfigs.chainNetworkName === 'rpc') {
+      const hnsAssetHealthCheck = new HandshakeRpcAssetHealthCheckParam(
+        HNS,
+        handshakeContracts.lockAddress,
+        Configs.hnsWarnThreshold,
+        Configs.hnsCriticalThreshold,
+        GuardsHandshakeConfigs.rpc.url,
+        6
+      );
+      healthCheck.register(hnsAssetHealthCheck);
     }
   }
 

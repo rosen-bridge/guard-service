@@ -18,6 +18,7 @@ import GuardsBinanceConfigs from '../configs/GuardsBinanceConfigs';
 import { BINANCE_CHAIN } from '@rosen-chains/binance';
 import { TokenHandler } from '../handlers/tokenHandler';
 import GuardsBitcoinRunesConfigs from '../configs/GuardsBitcoinRunesConfigs';
+import GuardsHandshakeConfigs from '../configs/GuardsHandshakeConfigs';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -155,6 +156,14 @@ const createLoggers = () => ({
   bitcoinRunesEventTriggerExtractorLogger:
     DefaultLoggerFactory.getInstance().getLogger(
       'bitcoin-runes-event-trigger-extractor'
+    ),
+  handshakeCommitmentExtractorLogger:
+    DefaultLoggerFactory.getInstance().getLogger(
+      'handshake-commitment-extractor'
+    ),
+  handshakeEventTriggerExtractorLogger:
+    DefaultLoggerFactory.getInstance().getLogger(
+      'handshake-event-trigger-extractor'
     ),
 });
 
@@ -331,6 +340,26 @@ const initScanner = () => {
     loggers.bitcoinRunesEventTriggerExtractorLogger
   );
 
+  const handshakeCommitmentExtractor = new CommitmentExtractor(
+    'handshakeCommitment',
+    [GuardsHandshakeConfigs.handshakeContractConfig.commitmentAddress],
+    GuardsHandshakeConfigs.handshakeContractConfig.RWTId,
+    dataSource,
+    TokenHandler.getInstance().getTokenMap(),
+    loggers.handshakeCommitmentExtractorLogger
+  );
+  const handshakeEventTriggerExtractor = new EventTriggerExtractor(
+    'handshakeEventTrigger',
+    dataSource,
+    networkType,
+    networkUrl,
+    GuardsHandshakeConfigs.handshakeContractConfig.eventTriggerAddress,
+    GuardsHandshakeConfigs.handshakeContractConfig.RWTId,
+    GuardsHandshakeConfigs.handshakeContractConfig.permitAddress,
+    GuardsHandshakeConfigs.handshakeContractConfig.fraudAddress,
+    loggers.handshakeEventTriggerExtractorLogger
+  );
+
   ergoScanner.registerExtractor(bitcoinCommitmentExtractor);
   ergoScanner.registerExtractor(bitcoinEventTriggerExtractor);
   ergoScanner.registerExtractor(cardanoCommitmentExtractor);
@@ -345,6 +374,8 @@ const initScanner = () => {
   ergoScanner.registerExtractor(binanceEventTriggerExtractor);
   ergoScanner.registerExtractor(bitcoinRunesCommitmentExtractor);
   ergoScanner.registerExtractor(bitcoinRunesEventTriggerExtractor);
+  ergoScanner.registerExtractor(handshakeCommitmentExtractor);
+  ergoScanner.registerExtractor(handshakeEventTriggerExtractor);
 
   ergoScannerJob();
 

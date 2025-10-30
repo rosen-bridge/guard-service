@@ -66,6 +66,26 @@ bitcoinRunes:
   tssChainCode: ''
   derivationPath:
     -
+handshake:
+  networkType: 'mainnet' # Handshake network type [testnet, mainnet]
+  chainNetwork: 'rpc' # 'rpc'
+  rpc:
+    url: ''
+    timeout: 8
+    # username: ''
+    # password: ''
+    # apiKey: ''
+  bankPublicKey: '' # corresponding public key of lock address
+  txFeeSlippage: 10 # allowed slippage percentage for tx fees
+  confirmation: # required block confirmation
+    observation: 6 # an observation transaction (lock transaction) on Handshake get confirmed
+    payment: 6 # a payment transaction on Handshake get confirmed
+    cold: 6 # a cold storage transaction on Handshake get confirmed
+    manual: 6 # a manual transaction on Handshake get confirmed
+    arbitrary: 6 # an arbitrary transaction on Handshake get confirmed
+  tssChainCode: ''
+  derivationPath:
+    -
 doge:
   networkType: 'mainnet' # Doge network type [testnet, mainnet]
   chainNetwork: 'rpc-blockcypher' # [esplora, rpc-blockcypher]
@@ -257,6 +277,9 @@ healthCheck:
     bnb:
       warnThreshold: '5000000000000000' # minimum recommended bnb balance
       criticalThreshold: '1000000000000000' # minimum required bnb balance
+    hns:
+      warnThreshold: 5000000 # minimum recommended hns balance (in dollarydoos/satoshis)
+      criticalThreshold: 1000000 # minimum required hns balance (in dollarydoos/satoshis)
   ergoScanner:
     warnDifference: 5 # warning difference between existing and scanned blocks height
     criticalDifference: 20 # critical difference between existing and scanned blocks height
@@ -320,6 +343,9 @@ balanceHandler:
     tokensPerIteration:
       rpc: 10
   bitcoinRunes:
+    tokensPerIteration:
+      rpc: 9999
+  handshake:
     tokensPerIteration:
       rpc: 9999
 ergoMultiSig:

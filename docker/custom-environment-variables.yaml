@@ -39,5 +39,10 @@ bitcoinRunes:
     apiKey: 'BITCOIN_RUNES_RPC_API_KEY'
   unisat:
     apiKey: 'BITCOIN_RUNES_UNISAT_API_KEY'
+handshake:
+  rpc:
+    username: 'HANDSHAKE_RPC_USERNAME'
+    password: 'HANDSHAKE_RPC_PASSWORD'
+    apiKey: 'HANDSHAKE_RPC_API_KEY'
 overrideLokiBasicAuth: 'OVERRIDE_LOKI_BASIC_AUTH'
 discordWebHookUrl: 'DISCORD_WEBHOOK_URL'

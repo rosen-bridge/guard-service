@@ -56,6 +56,13 @@ import {
 } from '@rosen-chains/bitcoin-runes';
 import { BitcoinRunesRpcNetwork } from '@rosen-chains/bitcoin-runes-rpc';
 import GuardsBitcoinRunesConfigs from '../configs/GuardsBitcoinRunesConfigs';
+import {
+  HandshakeChain,
+  AbstractHandshakeNetwork,
+  HANDSHAKE_CHAIN,
+} from '@rosen-chains/handshake';
+import HandshakeRpcNetwork from '@rosen-chains/handshake-rpc';
+import GuardsHandshakeConfigs from '../configs/GuardsHandshakeConfigs';
 
 const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
 
@@ -68,6 +75,7 @@ class ChainHandler {
   private readonly ethereumChain: EthereumChain;
   private readonly binanceChain: BinanceChain;
   private readonly bitcoinRunesChain: BitcoinRunesChain;
+  private readonly handshakeChain: HandshakeChain;
 
   private constructor() {
     this.ergoChain = this.generateErgoChain();
@@ -77,6 +85,7 @@ class ChainHandler {
     this.ethereumChain = this.generateEthereumChain();
     this.binanceChain = this.generateBinanceChain();
     this.bitcoinRunesChain = this.generateBitcoinRunesChain();
+    this.handshakeChain = this.generateHandshakeChain();
     logger.info('ChainHandler instantiated');
   }
 
@@ -462,6 +471,57 @@ class ChainHandler {
   };
 
   /**
+   * generates Handshake network and chain objects using configs
+   * @returns HandshakeChain object
+   */
+  private generateHandshakeChain = (): HandshakeChain => {
+    let network: AbstractHandshakeNetwork;
+    switch (GuardsHandshakeConfigs.chainNetworkName) {
+      case 'rpc':
+        network = new HandshakeRpcNetwork(
+          GuardsHandshakeConfigs.rpc.url,
+          DefaultLoggerFactory.getInstance().getLogger('HandshakeRpcNetwork'),
+          {
+            username: GuardsHandshakeConfigs.rpc.username,
+            password: GuardsHandshakeConfigs.rpc.password,
+            apiKey: GuardsHandshakeConfigs.rpc.apiKey,
+          }
+        );
+        break;
+      default:
+        throw Error(
+          `No case is defined for network [${GuardsHandshakeConfigs.chainNetworkName}]`
+        );
+    }
+    const chainCode = GuardsHandshakeConfigs.tssChainCode;
+    const derivationPath = GuardsHandshakeConfigs.derivationPath;
+    const curveSign = TssHandler.getInstance().curveSign;
+    const tssSignFunctionWrapper = async (
+      txHash: Uint8Array
+    ): Promise<{
+      signature: string;
+      signatureRecovery: string;
+    }> => {
+      const res = await curveSign(
+        Buffer.from(txHash).toString('hex'),
+        chainCode,
+        derivationPath
+      );
+      return {
+        signature: res.signature,
+        signatureRecovery: res.signatureRecovery!,
+      };
+    };
+    return new HandshakeChain(
+      network,
+      GuardsHandshakeConfigs.chainConfigs,
+      TokenHandler.getInstance().getTokenMap(),
+      tssSignFunctionWrapper,
+      DefaultLoggerFactory.getInstance().getLogger('HandshakeChain')
+    );
+  };
+
+  /**
    * gets chain object by name
    * @param chain chain name
    * @returns chain object
@@ -480,6 +540,8 @@ class ChainHandler {
         return this.ethereumChain;
       case BINANCE_CHAIN:
         return this.binanceChain;
+      case HANDSHAKE_CHAIN:
+        return this.handshakeChain;
       default:
         throw Error(`Chain [${chain}] is not implemented`);
     }

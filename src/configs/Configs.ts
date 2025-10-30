@@ -316,6 +316,12 @@ class Configs {
   static bnbCriticalThreshold = BigInt(
     config.get<string>('healthCheck.asset.bnb.criticalThreshold')
   );
+  static hnsWarnThreshold = BigInt(
+    config.get<string>('healthCheck.asset.hns.warnThreshold'),
+  );
+  static hnsCriticalThreshold = BigInt(
+    config.get<string>('healthCheck.asset.hns.criticalThreshold'),
+  );
   static ergoScannerWarnDiff = getConfigIntKeyOrDefault(
     'healthCheck.ergoScanner.warnDifference',
     5
