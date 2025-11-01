@@ -4,6 +4,11 @@
 
 Update dependencies
 
+- @rosen-bridge/abstract-scanner@0.2.2
+- @rosen-bridge/ergo-scanner@0.1.3
+- @rosen-bridge/evm-address-tx-extractor@1.2.3
+- @rosen-bridge/evm-scanner@0.1.3
+- @rosen-bridge/watcher-data-extractor@12.3.0
 - @rosen-chains/abstract-chain@15.0.1
 - @rosen-chains/binance@3.0.1
 - @rosen-chains/bitcoin@9.0.1
@@ -22,4 +27,4 @@ Update dependencies
 - @rosen-chains/ergo-node-network@10.0.1
 - @rosen-chains/ethereum@3.0.1
 - @rosen-chains/evm@9.0.1
-- @rosen-chains/evm-rpc@4.0.1
+- @rosen-chains/evm-rpc@4.0.2
