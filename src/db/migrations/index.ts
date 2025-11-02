@@ -26,6 +26,8 @@ import { migration1737547742177 } from './sqlite/1737547742177-migration';
 import { migration1737547744177 } from './sqlite/1737547744177-migration';
 import { migration1751451331001 } from './sqlite/1751451331001-migration';
 import { migration1754912680869 } from './sqlite/1754912680869-migration';
+import { migration1761774735000 } from './sqlite/1761774735000-migration';
+import { migration1761774737000 } from './sqlite/1761774737000-migration';
 
 export default {
   sqlite: [
@@ -43,6 +45,8 @@ export default {
     migration1737547744177,
     migration1751451331001,
     migration1754912680869,
+    migration1761774735000,
+    migration1761774737000,
   ],
   postgres: [
     migration1700756107393,
