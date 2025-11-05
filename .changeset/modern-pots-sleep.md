@@ -13,3 +13,4 @@ Remove redundant dependencies
 - json-bigint
 - process
 - reflect-metadata
+- secp256k1
