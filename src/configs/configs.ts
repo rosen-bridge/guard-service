@@ -140,7 +140,8 @@ class Configs {
 
   // guards configs
   static guardMnemonic = config.get<string>('guard.mnemonic');
-  static guardSecret = Utils.convertMnemonicToSecretKey(this.guardMnemonic);
+  static guardSecretHex = Utils.convertMnemonicToSecretKey(this.guardMnemonic);
+  static guardSecretEcdsa = new ECDSA(this.guardSecretHex);
   static guardConfigUpdateInterval = getConfigIntKeyOrDefault(
     'guard.configUpdateInterval',
     180,

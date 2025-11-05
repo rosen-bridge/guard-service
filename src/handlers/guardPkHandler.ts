@@ -1,5 +1,3 @@
-import pkg from 'secp256k1';
-
 import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
 
 import Configs from '../configs/configs';
@@ -48,9 +46,7 @@ class GuardPkHandler {
     this.guardsLen = guardPkConfig.publicKeys.length;
     this.requiredSign = guardPkConfig.requiredSigns;
 
-    const guardPk = Buffer.from(
-      pkg.publicKeyCreate(Buffer.from(Configs.guardSecret, 'hex')),
-    ).toString('hex');
+    const guardPk = await Configs.guardSecretEcdsa.getPk();
     this.guardId = -1;
     for (const [i, value] of this.publicKeys.entries()) {
       if (guardPk == value) {
