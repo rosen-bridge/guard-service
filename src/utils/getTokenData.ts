@@ -1,3 +1,6 @@
+import { BTC } from '@rosen-chains/bitcoin';
+import { BITCOIN_RUNES_CHAIN } from '@rosen-chains/bitcoin-runes';
+
 import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
 import { TokenHandler } from '../handlers/tokenHandler';
 import { TokenData } from '../types/api';
@@ -17,12 +20,24 @@ export const getTokenData = (
   targetChain: string,
   returnSignificantDecimal = false,
 ): TokenData => {
+  // handle emission token
   if (sourceChainTokenId === GuardsErgoConfigs.emissionTokenId) {
     return {
       tokenId: sourceChainTokenId,
       name: GuardsErgoConfigs.emissionTokenName,
       decimals: GuardsErgoConfigs.emissionTokenDecimal,
       isNativeToken: false,
+      amount: 0,
+    };
+  }
+
+  // handle Bitcoin for bitcoin-runes chain
+  if (sourceChain === BITCOIN_RUNES_CHAIN && sourceChainTokenId === BTC) {
+    return {
+      tokenId: sourceChainTokenId,
+      name: 'BTC',
+      decimals: 8,
+      isNativeToken: true,
       amount: 0,
     };
   }
