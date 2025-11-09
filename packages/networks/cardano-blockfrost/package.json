@@ -37,7 +37,8 @@
     "@rosen-bridge/abstract-logger": "^3.0.1",
     "@rosen-bridge/json-bigint": "^1.1.0",
     "@rosen-chains/abstract-chain": "^15.0.1",
-    "@rosen-chains/cardano": "^15.0.0"
+    "@rosen-chains/cardano": "^15.0.0",
+    "@blockfrost/openapi": "0.1.73"
   },
   "devDependencies": {
     "@vitest/coverage-istanbul": "^3.1.4",
