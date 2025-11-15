@@ -1,5 +1,13 @@
 # @rosen-chains/cardano
 
+## 15.0.1
+
+### Patch Changes
+
+- Remove dependency bech32
+- Update dependencies
+  - @rosen-chains/abstract-chain@15.0.2
+
 ## 15.0.0
 
 ### Major Changes

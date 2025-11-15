@@ -1,5 +1,11 @@
 # @rosen-chains/abstract-chain
 
+## 15.0.2
+
+### Patch Changes
+
+- Remove dependency @rosen-bridge/selection-types
+
 ## 15.0.1
 
 ### Patch Changes

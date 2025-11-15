@@ -1,5 +1,14 @@
 # @rosen-chains/cardano-blockfrost-network
 
+## 10.0.1
+
+### Patch Changes
+
+- Add dependency @blockfrost/openapi@0.1.73
+- Update dependencies
+  - @rosen-chains/cardano@15.0.1
+  - @rosen-chains/abstract-chain@15.0.2
+
 ## 10.0.0
 
 ### Major Changes

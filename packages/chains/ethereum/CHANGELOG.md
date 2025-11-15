@@ -1,5 +1,13 @@
 # @rosen-chains/ethereum
 
+## 3.0.2
+
+### Patch Changes
+
+- Remove dependency @rosen-chains/abstract-chain
+- Update dependencies
+  - @rosen-chains/evm@9.0.2
+
 ## 3.0.1
 
 ### Patch Changes

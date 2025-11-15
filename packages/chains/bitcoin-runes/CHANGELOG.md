@@ -1,5 +1,16 @@
 # @rosen-chains/bitcoin-runes
 
+## 3.0.2
+
+### Patch Changes
+
+- Add more logs to the `generateMultipleTransactions` function
+- Fix bug where additional tokens were not calculated correctly
+- Fix bug where a BTC-only box can be selected multiple times while generating multiple transactions
+- Update dependencies
+  - @rosen-chains/abstract-chain@15.0.2
+  - @rosen-chains/bitcoin@9.0.2
+
 ## 3.0.1
 
 ### Patch Changes

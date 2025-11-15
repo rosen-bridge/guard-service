@@ -1,5 +1,13 @@
 # @rosen-chains/bitcoin-runes-rpc
 
+## 2.0.2
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-chains/bitcoin-runes@3.0.2
+  - @rosen-chains/abstract-chain@15.0.2
+
 ## 2.0.1
 
 ### Patch Changes
