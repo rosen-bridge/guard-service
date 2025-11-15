@@ -83,7 +83,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
     this.signingScript = payments.p2pkh({
       hash: Buffer.from(this.lockScript, 'hex').subarray(2),
     }).output!;
-    this.boxSelection = new BitcoinRunesBoxSelection();
+    this.boxSelection = new BitcoinRunesBoxSelection(logger);
   }
 
   /**
@@ -312,7 +312,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
         0n,
       );
       let estimatedFee = feeEstimator(coveredRunesBoxes.boxes, 1);
-      const additionalAssets: AssetBalance = {
+      let additionalAssets: AssetBalance = {
         nativeToken:
           preSelectedBtc - unwrappedRequiredAssets.nativeToken - estimatedFee,
         tokens: coveredRunesBoxes.additionalAssets.aggregated.tokens,
@@ -343,6 +343,9 @@ class BitcoinRunesChain extends AbstractUtxoChain<
         const btcUtxoIterator = async function* () {
           const limit = GET_BOX_API_LIMIT;
 
+          const fetchedBoxIds = selectedBoxes.map((box) =>
+            generateBoxId(box.txId, box.index),
+          );
           let offset = 0;
           while (true) {
             const btcBoxesPage = await getAddressBtcBoxes(
@@ -352,9 +355,10 @@ class BitcoinRunesChain extends AbstractUtxoChain<
             );
             if (btcBoxesPage.length !== 0) yield* btcBoxesPage;
 
+            fetchedBoxIds.push(
+              ...btcBoxesPage.map((box) => generateBoxId(box.txId, box.index)),
+            );
             offset += limit;
-
-            selectedBoxes.push(...btcBoxesPage);
 
             if (btcBoxesPage.length < limit) {
               break;
@@ -363,9 +367,6 @@ class BitcoinRunesChain extends AbstractUtxoChain<
 
           offset = 0;
           while (true) {
-            const fetchedBoxIds = selectedBoxes.map((box) =>
-              generateBoxId(box.txId, box.index),
-            );
             const remainingBoxes = await getRemainingBoxes(
               fetchedBoxIds,
               lockAddress,
@@ -374,6 +375,11 @@ class BitcoinRunesChain extends AbstractUtxoChain<
             );
             if (remainingBoxes.length !== 0) yield* remainingBoxes;
 
+            fetchedBoxIds.push(
+              ...remainingBoxes.map((box) =>
+                generateBoxId(box.txId, box.index),
+              ),
+            );
             offset += limit;
 
             if (remainingBoxes.length < limit) {
@@ -408,8 +414,11 @@ class BitcoinRunesChain extends AbstractUtxoChain<
           forbiddenBoxIds.push(generateBoxId(box.txId, box.index));
         });
         // the fee and additional BTC are only based on the additional assets of the 2nd selection
-        additionalAssets.nativeToken =
-          coveredBtcBoxes.additionalAssets.aggregated.nativeToken;
+        const previousRemainingTokens = additionalAssets.tokens;
+        additionalAssets = ChainUtils.sumAssetBalance(
+          { nativeToken: 0n, tokens: previousRemainingTokens },
+          coveredBtcBoxes.additionalAssets.aggregated,
+        );
         estimatedFee = coveredBtcBoxes.additionalAssets.fee;
       } else {
         this.logger.debug(
@@ -432,24 +441,33 @@ class BitcoinRunesChain extends AbstractUtxoChain<
       let isUniversalChangeBoxPresent = true;
       if (additionalAssets.tokens.length === 0) {
         // no need to add the universal change box
+        this.logger.debug(
+          `No need to add universal change box since no runes remained`,
+        );
         isUniversalChangeBoxPresent = false;
         additionalAssets.nativeToken += MINIMUM_BTC_FOR_NATIVE_SEGWIT_OUTPUT;
       } else {
         const otherRunes = additionalAssets.tokens.filter(
-          (token) => token.id !== order.assets.tokens[0].id,
+          (additionalToken) => additionalToken.id !== token.id,
         );
         if (otherRunes.length > 0) {
           // some other runes are transferred, so the universal change box is required
+          this.logger.debug(
+            `The universal change box is required due to transfer of [${otherRunes.map((token) => token.id).join(', ')}] runes`,
+          );
           psbt.addOutput({
             script: Buffer.from(this.lockScript, 'hex'),
             value: Number(MINIMUM_BTC_FOR_NATIVE_SEGWIT_OUTPUT),
           });
         } else {
           // no other runes is transferred, so no need to add the universal change box
+          this.logger.debug(
+            `No need to add universal change box since no other runes is transferred`,
+          );
           isUniversalChangeBoxPresent = false;
         }
         const remainingTransferringRune = additionalAssets.tokens.find(
-          (token) => token.id === order.assets.tokens[0].id,
+          (additionalToken) => additionalToken.id === token.id,
         );
         if (remainingTransferringRune) {
           // some transferring rune is left, so the change edict is required
