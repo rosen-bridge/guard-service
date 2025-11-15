@@ -1,6 +1,6 @@
 {
   "name": "@rosen-chains/cardano",
-  "version": "15.0.0",
+  "version": "15.0.1",
   "description": "this project contains cardano chain for Rosen-bridge",
   "keywords": [
     "rosen"
@@ -38,7 +38,7 @@
     "@rosen-bridge/json-bigint": "^1.1.0",
     "@rosen-bridge/rosen-extractor": "^11.0.0",
     "@rosen-bridge/tokens": "^4.0.1",
-    "@rosen-chains/abstract-chain": "^15.0.1"
+    "@rosen-chains/abstract-chain": "^15.0.2"
   },
   "devDependencies": {
     "@vitest/coverage-istanbul": "^3.1.4",

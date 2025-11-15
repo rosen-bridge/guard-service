@@ -1,5 +1,12 @@
 # @rosen-chains/ergo
 
+## 13.0.2
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-chains/abstract-chain@15.0.2
+
 ## 13.0.1
 
 ### Patch Changes

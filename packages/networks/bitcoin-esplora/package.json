@@ -1,6 +1,6 @@
 {
   "name": "@rosen-chains/bitcoin-esplora",
-  "version": "5.0.1",
+  "version": "5.0.2",
   "description": "A package to be used as network api provider for @rosen-chains/bitcoin package",
   "keywords": [
     "rosen"
@@ -34,8 +34,8 @@
   "dependencies": {
     "@rosen-bridge/abstract-logger": "^3.0.1",
     "@rosen-bridge/json-bigint": "^1.1.0",
-    "@rosen-chains/abstract-chain": "^15.0.1",
-    "@rosen-chains/bitcoin": "^9.0.1",
+    "@rosen-chains/abstract-chain": "^15.0.2",
+    "@rosen-chains/bitcoin": "^9.0.2",
     "@rosen-clients/rate-limited-axios": "^1.1.0",
     "bitcoinjs-lib": "^6.1.5"
   },
