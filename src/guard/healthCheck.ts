@@ -14,8 +14,7 @@ import {
 import { HealthCheck } from '@rosen-bridge/health-check';
 import { ErgoNodeSyncHealthCheckParam } from '@rosen-bridge/node-sync-check';
 import { ScannerSyncHealthCheckParam } from '@rosen-bridge/scanner-sync-check';
-import { LastSavedBlock } from '@rosen-bridge/scanner-sync-check/dist/config';
-// TODO: fix import (local:ergo/rosen-bridge/health-check#67)
+import { LastSavedBlock } from '@rosen-bridge/scanner-sync-check';
 import {
   TxInfo,
   TxProgressHealthCheckParam,
