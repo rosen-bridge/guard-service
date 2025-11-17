@@ -1,9 +1,11 @@
 import { BINANCE_CHAIN, BNB } from '@rosen-chains/binance';
 import { BITCOIN_CHAIN, BTC } from '@rosen-chains/bitcoin';
+import { BITCOIN_RUNES_CHAIN } from '@rosen-chains/bitcoin-runes';
 import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
+import { DOGE, DOGE_CHAIN } from '@rosen-chains/doge';
 import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
 import { ETH, ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
-import { DOGE, DOGE_CHAIN } from '@rosen-chains/doge';
+
 class EventStatus {
   static pendingPayment = 'pending-payment';
   static pendingReward = 'pending-reward';
@@ -48,6 +50,7 @@ const SUPPORTED_CHAINS = [
   ETHEREUM_CHAIN,
   DOGE_CHAIN,
   BINANCE_CHAIN,
+  BITCOIN_RUNES_CHAIN,
 ];
 
 enum RevenueType {
@@ -69,6 +72,17 @@ const ChainNativeToken: Record<string, string> = {
   [ETHEREUM_CHAIN]: ETH,
   [DOGE_CHAIN]: DOGE,
   [BINANCE_CHAIN]: BNB,
+  [BITCOIN_RUNES_CHAIN]: BTC,
+};
+
+const ChainConfigKey: Record<string, string> = {
+  [ERGO_CHAIN]: ERGO_CHAIN,
+  [CARDANO_CHAIN]: CARDANO_CHAIN,
+  [BITCOIN_CHAIN]: BITCOIN_CHAIN,
+  [ETHEREUM_CHAIN]: ETHEREUM_CHAIN,
+  [DOGE_CHAIN]: DOGE_CHAIN,
+  [BINANCE_CHAIN]: BINANCE_CHAIN,
+  [BITCOIN_RUNES_CHAIN]: 'bitcoinRunes',
 };
 
 enum OrderStatus {
@@ -80,6 +94,7 @@ enum OrderStatus {
   reachedLimit = 'reached-limit',
 }
 
+const ERGO_BLOCK_TIME = 120;
 const ETHEREUM_BLOCK_TIME = 12;
 const BINANCE_BLOCK_TIME = 3;
 
@@ -98,7 +113,9 @@ export {
   RevenueType,
   TssAlgorithms,
   ChainNativeToken,
+  ChainConfigKey,
   OrderStatus,
+  ERGO_BLOCK_TIME,
   ETHEREUM_BLOCK_TIME,
   BINANCE_BLOCK_TIME,
 };

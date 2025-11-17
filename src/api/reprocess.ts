@@ -1,14 +1,15 @@
+import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
+import { NotFoundError } from '@rosen-chains/abstract-chain';
+
+import EventReprocess from '../reprocess/eventReprocess';
+import { authenticateKey } from '../utils/authentication';
 import {
   FastifySeverInstance,
   MessageResponseSchema,
   ReprocessQuerySchema,
 } from './schemas';
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
-import { authenticateKey } from '../utils/authentication';
-import { NotFoundError } from '@rosen-chains/abstract-chain';
-import EventReprocess from '../reprocess/EventReprocess';
 
-const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
 
 /**
  * setup event reprocess route
@@ -35,7 +36,7 @@ const reprocessRoute = (server: FastifySeverInstance) => {
       try {
         await EventReprocess.getInstance().sendReprocessRequest(
           eventId,
-          peerIds
+          peerIds,
         );
         reply.status(200).send({
           message: 'Ok',
@@ -48,15 +49,15 @@ const reprocessRoute = (server: FastifySeverInstance) => {
         } else {
           logger.warn(
             `Failed to send reprocess request for event [${eventId}] to peers [${peerIds.join(
-              ','
-            )}]: ${e}`
+              ',',
+            )}]: ${e}`,
           );
           reply.status(400).send({
             message: `Request failed: ${e}`,
           });
         }
       }
-    }
+    },
   );
 };
 

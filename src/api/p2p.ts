@@ -1,18 +1,21 @@
-import { apiCallBack } from '../communication/CallbackUtils';
-import Dialer from '../communication/Dialer';
-import Configs from '../configs/Configs';
 import { Type } from '@sinclair/typebox';
-import { FastifySeverInstance, MessageResponseSchema } from './schemas';
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 
-const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
+import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
+import { RosenDialerNode } from '@rosen-bridge/dialer';
+
+import { apiCallBack } from '../communication/callbackUtils';
+import RosenDialer from '../communication/rosenDialer';
+import Configs from '../configs/configs';
+import { FastifySeverInstance, MessageResponseSchema } from './schemas';
+
+const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
 
 /**
  * setup route for send p2p message
  * @param server
  * @param dialer
  */
-const sendRoute = (server: FastifySeverInstance, dialer: Dialer) => {
+const sendRoute = (server: FastifySeverInstance, dialer: RosenDialerNode) => {
   const bodySchema = Type.Object({
     channel: Type.String({ maxLength: Configs.MAX_LENGTH_CHANNEL_SIZE }),
     message: Type.String(),
@@ -33,14 +36,14 @@ const sendRoute = (server: FastifySeverInstance, dialer: Dialer) => {
       const { channel, message, receiver } = request.body;
       dialer
         .sendMessage(channel, message, receiver)
-        .then((res) => {
+        .then(() => {
           reply.status(200).send({ message: 'ok' });
         })
         .catch((err) => {
           logger.error(err);
           reply.status(500).send({ message: err });
         });
-    }
+    },
   );
 };
 
@@ -49,7 +52,10 @@ const sendRoute = (server: FastifySeverInstance, dialer: Dialer) => {
  * @param server
  * @param dialer
  */
-const subscribeRoute = (server: FastifySeverInstance, dialer: Dialer) => {
+const subscribeRoute = (
+  server: FastifySeverInstance,
+  dialer: RosenDialerNode,
+) => {
   const bodySchema = Type.Object({
     channel: Type.String({ maxLength: Configs.MAX_LENGTH_CHANNEL_SIZE }),
     url: Type.String(),
@@ -68,29 +74,7 @@ const subscribeRoute = (server: FastifySeverInstance, dialer: Dialer) => {
       const { channel, url } = request.body;
       dialer.subscribeChannel(channel, apiCallBack, url);
       reply.status(200).send({ message: 'ok' });
-    }
-  );
-};
-
-/**
- * setup route for get peerIds
- * @param server
- * @param dialer
- */
-const getPeerIdsRoute = (server: FastifySeverInstance, dialer: Dialer) => {
-  const responseSchema = Type.Array(Type.String());
-  server.get(
-    '/p2p/getPeerIDs',
-    {
-      schema: {
-        response: {
-          200: responseSchema,
-        },
-      },
     },
-    (request, reply) => {
-      reply.status(200).send(dialer.getPeerIds());
-    }
   );
 };
 
@@ -99,7 +83,10 @@ const getPeerIdsRoute = (server: FastifySeverInstance, dialer: Dialer) => {
  * @param server
  * @param dialer
  */
-const getPeerIdRoute = (server: FastifySeverInstance, dialer: Dialer) => {
+const getPeerIdRoute = (
+  server: FastifySeverInstance,
+  dialer: RosenDialerNode,
+) => {
   const responseSchema = Type.Object({
     message: Type.String(),
     status: Type.String(),
@@ -115,7 +102,7 @@ const getPeerIdRoute = (server: FastifySeverInstance, dialer: Dialer) => {
     },
     (request, reply) => {
       reply.status(200).send({ message: dialer.getDialerId(), status: 'ok' });
-    }
+    },
   );
 };
 
@@ -124,10 +111,9 @@ const getPeerIdRoute = (server: FastifySeverInstance, dialer: Dialer) => {
  * @param server
  */
 const p2pRoutes = async (server: FastifySeverInstance) => {
-  const dialer = await Dialer.getInstance();
+  const dialer = RosenDialer.getInstance().getDialer();
   sendRoute(server, dialer);
   subscribeRoute(server, dialer);
-  getPeerIdsRoute(server, dialer);
   getPeerIdRoute(server, dialer);
 };
 

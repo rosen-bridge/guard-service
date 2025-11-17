@@ -1,4 +1,5 @@
 import { EventTriggerEntity } from '@rosen-bridge/watcher-data-extractor';
+
 import { RevenueType } from '../utils/constants';
 
 enum SortRequest {
@@ -34,8 +35,8 @@ interface AddressBalance {
 }
 
 interface LockBalance {
-  hot: Array<AddressBalance>;
-  cold: Array<AddressBalance>;
+  hot: Page<AddressBalance>;
+  cold: Page<AddressBalance>;
 }
 
 interface SingleRevenue {

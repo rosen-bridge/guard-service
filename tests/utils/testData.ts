@@ -1,4 +1,5 @@
 import { EventTrigger } from '@rosen-chains/abstract-chain';
+
 import { RevenueEntity } from '../../src/db/entities/revenueEntity';
 import { RevenueView } from '../../src/db/entities/revenueView';
 import { RevenueHistory } from '../../src/types/api';

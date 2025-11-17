@@ -1,12 +1,32 @@
-import MultiSigHandler from '../guard/multisig/MultiSigHandler';
-import Configs from '../configs/Configs';
+import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
+
+import Configs from '../configs/configs';
+import MultiSigHandler from '../handlers/multiSigHandler';
+
+const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
 
 /**
  * runs MultiSig service cleanUp job
  */
 const multiSigCleanupJob = () => {
-  MultiSigHandler.getInstance().cleanup();
+  MultiSigHandler.getInstance().getErgoMultiSig().cleanup();
   setTimeout(multiSigCleanupJob, Configs.multiSigCleanUpInterval * 1000);
+};
+
+/**
+ * runs MultiSig service handle turn job
+ */
+const multiSigTurnJob = () => {
+  MultiSigHandler.getInstance()
+    .getErgoMultiSig()
+    .handleMyTurn()
+    .then(() =>
+      setTimeout(multiSigTurnJob, Configs.multiSigHandleTurnInterval * 1000),
+    )
+    .catch((e) => {
+      logger.error(`MultiSig handle turn job failed with error: ${e}`);
+      setTimeout(multiSigTurnJob, Configs.multiSigHandleTurnInterval * 1000);
+    });
 };
 
 /**
@@ -14,6 +34,7 @@ const multiSigCleanupJob = () => {
  */
 const initializeMultiSigJobs = () => {
   multiSigCleanupJob();
+  multiSigTurnJob();
 };
 
 export { initializeMultiSigJobs };

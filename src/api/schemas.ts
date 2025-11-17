@@ -1,7 +1,11 @@
-import { TObject, TProperties, Type } from '@sinclair/typebox';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
+import { TObject, TProperties, Type } from '@sinclair/typebox';
 import { FastifyBaseLogger, FastifyInstance } from 'fastify';
 import { IncomingMessage, Server, ServerResponse } from 'http';
+
+import { HealthStatusLevel } from '@rosen-bridge/health-check';
+
+import { SortRequest } from '../types/api';
 import {
   DefaultApiLimit,
   DefaultAssetApiLimit,
@@ -9,11 +13,9 @@ import {
   RevenuePeriod,
   SUPPORTED_CHAINS,
 } from '../utils/constants';
-import { SortRequest } from '../types/api';
-import { HealthStatusLevel } from '@rosen-bridge/health-check';
 
 export type FastifySeverInstance = FastifyInstance<
-  Server<any, any>,
+  Server<any, any>, // eslint-disable-line @typescript-eslint/no-explicit-any
   IncomingMessage,
   ServerResponse<IncomingMessage>,
   FastifyBaseLogger,
@@ -38,18 +40,18 @@ export const AddressBalanceSchema = Type.Object({
   balance: TokenDataSchema,
 });
 
-export const LockBalanceSchema = Type.Object({
-  hot: Type.Array(AddressBalanceSchema),
-  cold: Type.Array(AddressBalanceSchema),
-});
-
 export const OutputItemsSchema = <T extends TProperties>(
-  itemType: TObject<T>
+  itemType: TObject<T>,
 ) =>
   Type.Object({
     items: Type.Array(itemType),
     total: Type.Number(),
   });
+
+export const LockBalanceSchema = Type.Object({
+  hot: OutputItemsSchema(AddressBalanceSchema),
+  cold: OutputItemsSchema(AddressBalanceSchema),
+});
 
 export const InfoResponseSchema = Type.Object({
   versions: Type.Object({
@@ -62,7 +64,6 @@ export const InfoResponseSchema = Type.Object({
   }),
   rsnTokenId: Type.String(),
   emissionTokenId: Type.String(),
-  balances: LockBalanceSchema,
 });
 
 export const HealthStatusTypeSchema = Type.Object({
@@ -82,7 +83,6 @@ export const RevenueHistoryQuerySchema = Type.Object({
   sort: Type.Optional(Type.Enum(SortRequest)),
   fromChain: Type.Optional(Type.String()),
   toChain: Type.Optional(Type.String()),
-  tokenId: Type.Optional(Type.String()),
   maxHeight: Type.Optional(Type.Number()),
   minHeight: Type.Optional(Type.Number()),
   fromBlockTime: Type.Optional(Type.Number()),
@@ -111,22 +111,27 @@ export const RevenueHistoryResponseSchema = OutputItemsSchema(
     timestamp: Type.Number(),
     ergoSideTokenId: Type.String(),
     revenues: Type.Array(SingleRevenueSchema),
-  } as const)
+  } as const),
 );
 
 export const SupportedChainsSchema = Type.Enum(
   SUPPORTED_CHAINS.reduce((map: Record<string, string>, chain: string) => {
     map[chain] = chain;
     return map;
-  }, {})
+  }, {}),
 );
 
-export const AssetsQuerySchema = Type.Object({
-  limit: Type.Number({ default: DefaultAssetApiLimit }),
-  offset: Type.Number({ default: 0 }),
+export const BalanceQuerySchema = Type.Object({
+  offset: Type.Integer({ default: 0, minimum: 0 }),
+  limit: Type.Integer({
+    default: DefaultAssetApiLimit,
+    minimum: 1,
+    maximum: 100,
+  }),
   chain: Type.Optional(SupportedChainsSchema),
-  tokenId: Type.Optional(Type.String()),
-  name: Type.Optional(Type.String()),
+  tokenId: Type.Optional(
+    Type.String({ maxLength: 100, pattern: '^[0-9a-z.:]*$' }),
+  ),
 });
 
 export const AssetsResponseSchema = OutputItemsSchema(
@@ -138,7 +143,7 @@ export const AssetsResponseSchema = OutputItemsSchema(
     decimals: Type.Number(),
     chain: SupportedChainsSchema,
     isNativeToken: Type.Boolean(),
-  })
+  }),
 );
 
 export const EventsQuerySchema = Type.Object({
@@ -165,7 +170,7 @@ export const EventsHistoryResponseSchema = OutputItemsSchema(
     rewardTxId: Type.String(),
     status: Type.String(),
     sourceChainToken: TokenDataSchema,
-  } as const)
+  } as const),
 );
 
 export const OngoingEventsResponseSchema = OutputItemsSchema(
@@ -181,7 +186,7 @@ export const OngoingEventsResponseSchema = OutputItemsSchema(
     txId: Type.String(),
     status: Type.String(),
     sourceChainToken: TokenDataSchema,
-  } as const)
+  } as const),
 );
 
 export const RevenueChartQuerySchema = Type.Object({
@@ -196,9 +201,9 @@ export const RevenueChartResponseSchema = Type.Array(
       Type.Object({
         label: Type.String(),
         amount: Type.String(),
-      })
+      }),
     ),
-  })
+  }),
 );
 
 export const SignQuerySchema = Type.Object({

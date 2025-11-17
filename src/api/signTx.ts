@@ -1,17 +1,18 @@
+import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
+
+import Configs from '../configs/configs';
+import DatabaseHandler from '../db/databaseHandler';
+import ChainHandler from '../handlers/chainHandler';
+import GuardPkHandler from '../handlers/guardPkHandler';
+import { authenticateKey } from '../utils/authentication';
+import { DuplicateTransaction } from '../utils/errors';
 import {
   FastifySeverInstance,
   MessageResponseSchema,
   SignQuerySchema,
 } from './schemas';
-import Configs from '../configs/Configs';
-import ChainHandler from '../handlers/ChainHandler';
-import DatabaseHandler from '../db/DatabaseHandler';
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
-import { DuplicateTransaction } from '../utils/errors';
-import GuardPkHandler from '../handlers/GuardPkHandler';
-import { authenticateKey } from '../utils/authentication';
 
-const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
 
 /**
  * setup sign transaction route
@@ -67,7 +68,7 @@ const signTxRoute = (server: FastifySeverInstance) => {
           });
         } else {
           logger.warn(
-            `Failed to insert manual tx into database for sign: ${e}`
+            `Failed to insert manual tx into database for sign: ${e}`,
           );
           logger.debug(`Requested tx: ${txJson}`);
           reply.status(400).send({
@@ -75,7 +76,7 @@ const signTxRoute = (server: FastifySeverInstance) => {
           });
         }
       }
-    }
+    },
   );
 };
 

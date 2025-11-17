@@ -1,9 +1,10 @@
 import '../../src/bootstrap';
-import DatabaseActionMock from '../db/mocked/DatabaseAction.mock';
-import TestConfigs from '../testUtils/TestConfigs';
-import * as TestTransactionSerializer from '../../tests/transaction/TestTransactionSerializer';
+
+import Configs from '../../src/configs/configs';
 import { TokenHandler } from '../../src/handlers/tokenHandler';
-import Configs from '../../src/configs/Configs';
+import DatabaseActionMock from '../db/mocked/databaseAction.mock';
+import TestConfigs from '../testUtils/testConfigs';
+import * as TestTransactionSerializer from '../transaction/testTransactionSerializer';
 
 // initialize TokenHandler
 await TokenHandler.init(Configs.tokensPath);
@@ -12,7 +13,7 @@ await TokenHandler.init(Configs.tokensPath);
 await DatabaseActionMock.initDatabase();
 
 // mock GuardPkHandler
-vi.doMock('../../src/handlers/GuardPkHandler', () => ({
+vi.doMock('../../src/handlers/guardPkHandler', () => ({
   default: {
     getInstance: () => ({
       publicKeys: TestConfigs.guardPublicKeys,
@@ -24,6 +25,6 @@ vi.doMock('../../src/handlers/GuardPkHandler', () => ({
 }));
 
 // mock TransactionSerializer.fromJson
-vi.doMock('../../src/transaction/TransactionSerializer', () => ({
+vi.doMock('../../src/transaction/transactionSerializer', () => ({
   fromJson: TestTransactionSerializer.fromJson,
 }));

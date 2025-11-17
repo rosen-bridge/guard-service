@@ -9,6 +9,9 @@ database:
   user: 'POSTGRES_USER'
   password: 'POSTGRES_PASSWORD'
   name: 'POSTGRES_DB'
+p2p:
+  host: 'P2P_HOST'
+  port: 'P2P_PORT'
 guard:
   mnemonic: 'MNEMONIC'
 tss:
@@ -29,5 +32,12 @@ doge:
     username: 'DOGE_RPC_USERNAME'
     password: 'DOGE_RPC_PASSWORD'
     apiKey: 'DOGE_RPC_API_KEY'
+bitcoinRunes:
+  rpc:
+    username: 'BITCOIN_RUNES_RPC_USERNAME'
+    password: 'BITCOIN_RUNES_RPC_PASSWORD'
+    apiKey: 'BITCOIN_RUNES_RPC_API_KEY'
+  unisat:
+    apiKey: 'BITCOIN_RUNES_UNISAT_API_KEY'
 overrideLokiBasicAuth: 'OVERRIDE_LOKI_BASIC_AUTH'
 discordWebHookUrl: 'DISCORD_WEBHOOK_URL'

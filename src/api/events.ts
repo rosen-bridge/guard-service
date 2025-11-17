@@ -1,6 +1,9 @@
+import { TransactionType } from '@rosen-chains/abstract-chain';
+
+import { DatabaseAction } from '../db/databaseAction';
 import { Event, OngoingEvents, TokenData } from '../types/api';
 import { EventStatus } from '../utils/constants';
-import { DatabaseAction } from '../db/DatabaseAction';
+import { getTokenData } from '../utils/getTokenData';
 import {
   EventsQuerySchema,
   EventsHistoryResponseSchema,
@@ -8,8 +11,6 @@ import {
   MessageResponseSchema,
   OngoingEventsResponseSchema,
 } from './schemas';
-import { TransactionType } from '@rosen-chains/abstract-chain';
-import { getTokenData } from '../utils/getTokenData';
 
 /**
  * setup event history route
@@ -40,7 +41,7 @@ const eventsHistoryRoute = (server: FastifySeverInstance) => {
         minAmount,
         maxAmount,
         offset,
-        limit
+        limit,
       );
 
       const events = results.items.map((event): Event => {
@@ -48,7 +49,7 @@ const eventsHistoryRoute = (server: FastifySeverInstance) => {
           event.fromChain,
           event.sourceChainTokenId,
           event.fromChain,
-          true
+          true,
         );
 
         const tokenData: TokenData = {
@@ -79,7 +80,7 @@ const eventsHistoryRoute = (server: FastifySeverInstance) => {
         items: events,
         total: results.total,
       });
-    }
+    },
   );
 };
 
@@ -112,11 +113,11 @@ const ongoingEventsRoute = (server: FastifySeverInstance) => {
         minAmount,
         maxAmount,
         offset,
-        limit
+        limit,
       );
 
       const txs = await dbAction.getValidTxsForEvents(
-        results.items.map((event) => event.eventId)
+        results.items.map((event) => event.eventId),
       );
 
       const events = results.items.map((event): OngoingEvents => {
@@ -124,7 +125,7 @@ const ongoingEventsRoute = (server: FastifySeverInstance) => {
           event.fromChain,
           event.sourceChainTokenId,
           event.fromChain,
-          true
+          true,
         );
 
         const tokenData: TokenData = {
@@ -141,7 +142,7 @@ const ongoingEventsRoute = (server: FastifySeverInstance) => {
             const paymentTxStatus = txs.find(
               (tx) =>
                 tx.event.id === event.eventId &&
-                tx.type === TransactionType.payment
+                tx.type === TransactionType.payment,
             )!.status;
             status = `${EventStatus.inPayment} (${paymentTxStatus})`;
             break;
@@ -150,7 +151,7 @@ const ongoingEventsRoute = (server: FastifySeverInstance) => {
             const rewardTxStatus = txs.find(
               (tx) =>
                 tx.event.id === event.eventId &&
-                tx.type === TransactionType.reward
+                tx.type === TransactionType.reward,
             )!.status;
             status = `${EventStatus.inReward} (${rewardTxStatus})`;
             break;
@@ -178,7 +179,7 @@ const ongoingEventsRoute = (server: FastifySeverInstance) => {
         items: events,
         total: results.total,
       });
-    }
+    },
   );
 };
 

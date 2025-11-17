@@ -1,7 +1,10 @@
-import { dataSource } from '../db/dataSource';
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+import { exit } from 'process';
 
-const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
+import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
+
+import { dataSource } from '../db/dataSource';
+
+const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
 
 const initDataSources = async (): Promise<void> => {
   try {
@@ -11,6 +14,7 @@ const initDataSources = async (): Promise<void> => {
   } catch (err) {
     logger.error(`An error occurred while initializing datasource: ${err}`);
     logger.error(err.stack);
+    exit(1);
   }
 };
 

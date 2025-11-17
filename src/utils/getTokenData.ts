@@ -1,7 +1,9 @@
-import Configs from '../configs/Configs';
-import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
-import { TokenData } from '../types/api';
+import { BTC } from '@rosen-chains/bitcoin';
+import { BITCOIN_RUNES_CHAIN } from '@rosen-chains/bitcoin-runes';
+
+import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
 import { TokenHandler } from '../handlers/tokenHandler';
+import { TokenData } from '../types/api';
 
 /**
  * gets token data from tokenMap
@@ -16,14 +18,26 @@ export const getTokenData = (
   sourceChain: string,
   sourceChainTokenId: string,
   targetChain: string,
-  returnSignificantDecimal = false
+  returnSignificantDecimal = false,
 ): TokenData => {
+  // handle emission token
   if (sourceChainTokenId === GuardsErgoConfigs.emissionTokenId) {
     return {
       tokenId: sourceChainTokenId,
       name: GuardsErgoConfigs.emissionTokenName,
       decimals: GuardsErgoConfigs.emissionTokenDecimal,
       isNativeToken: false,
+      amount: 0,
+    };
+  }
+
+  // handle Bitcoin for bitcoin-runes chain
+  if (sourceChain === BITCOIN_RUNES_CHAIN && sourceChainTokenId === BTC) {
+    return {
+      tokenId: sourceChainTokenId,
+      name: 'BTC',
+      decimals: 8,
+      isNativeToken: true,
       amount: 0,
     };
   }
@@ -47,7 +61,7 @@ export const getTokenData = (
     } else {
       // cannot fetch token data of another chain if token is not found
       throw Error(
-        `token [${sourceChainTokenId}] of chain [${sourceChain}] is not found in TokenMap`
+        `token [${sourceChainTokenId}] of chain [${sourceChain}] is not found in TokenMap`,
       );
     }
   } else {

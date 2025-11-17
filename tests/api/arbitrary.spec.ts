@@ -1,14 +1,16 @@
 import fastify from 'fastify';
-import { FastifySeverInstance } from '../../src/api/schemas';
-import DatabaseActionMock from '../db/mocked/DatabaseAction.mock';
-import { OrderStatus } from '../../src/utils/constants';
+
 import { ERGO_CHAIN } from '@rosen-chains/ergo';
+
+import { arbitraryOrderRoute } from '../../src/api/arbitrary';
+import { FastifySeverInstance } from '../../src/api/schemas';
+import { OrderStatus } from '../../src/utils/constants';
 import {
   arrangedOrderJson,
   disarrangedOrderJson,
   orderJson,
 } from '../arbitrary/testData';
-import { arbitraryOrderRoute } from '../../src/api/arbitrary';
+import DatabaseActionMock from '../db/mocked/databaseAction.mock';
 import { invalidOrderJson } from './testData';
 
 describe('arbitrary', () => {
@@ -57,10 +59,10 @@ describe('arbitrary', () => {
 
       // check database
       const dbOrders = (await DatabaseActionMock.allOrderRecords()).map(
-        (order) => [order.id, order.chain, order.orderJson, order.status]
+        (order) => [order.id, order.chain, order.orderJson, order.status],
       );
       expect(dbOrders.length).toEqual(1);
-      expect(dbOrders).to.deep.contain([
+      expect(dbOrders).toContainEqual([
         '85b5cb7f4e81e1db4e95803b6144c64983f76e776ff75fd04c0ebfc95ae46e4d',
         ERGO_CHAIN,
         orderJson,
@@ -100,10 +102,10 @@ describe('arbitrary', () => {
 
       // check database
       const dbOrders = (await DatabaseActionMock.allOrderRecords()).map(
-        (order) => [order.id, order.chain, order.orderJson, order.status]
+        (order) => [order.id, order.chain, order.orderJson, order.status],
       );
       expect(dbOrders.length).toEqual(1);
-      expect(dbOrders).to.deep.contain([
+      expect(dbOrders).toContainEqual([
         '85b5cb7f4e81e1db4e95803b6144c64983f76e776ff75fd04c0ebfc95ae46e4d',
         ERGO_CHAIN,
         arrangedOrderJson,
@@ -163,7 +165,7 @@ describe('arbitrary', () => {
         '85b5cb7f4e81e1db4e95803b6144c64983f76e776ff75fd04c0ebfc95ae46e4d',
         ERGO_CHAIN,
         orderJson,
-        OrderStatus.pending
+        OrderStatus.pending,
       );
 
       // send a request to the server

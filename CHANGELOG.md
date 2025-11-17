@@ -1,5 +1,99 @@
 # guard-service
 
+## 8.0.0
+
+### Major Changes
+
+- Add filters and pagination query parameters to balance API
+- Integrate Bitcoin Runes
+- Integrate Rosenet into the guard-service
+- Integrate `@rosen-bridge/ergo-multi-sig`
+- Move balance section out of `/info` route into a separate `/balance` route
+- Remove assets API
+- Update node version to 22.18
+- Use the actual transaction id of the payment transaction in reward distribution instead of unsigned id (this change affects events targeted to EVM chains and Doge)
+
+### Minor Changes
+
+- Add Balance Handler feature: A new module that periodically fetches assets from lock and cold addresses and stores them in the database
+- Add `actualTxId` to event synchronization response
+- Add RPS configuration for Doge Blockcypher and RPC networks
+- Add `EventTriggerExtractor` initialization to config
+- Remove redundant `networkType` from config of each chain (only name of contract files were using it which are always `mainnet`)
+- Replace default logger with `CallbackLogger`
+- Replace `axios` with `@rosen-clients/rate-limited-axios`
+
+### Patch Changes
+
+- Fix a bug in `DatabaseHandler` while inserting a new transaction where it should throw error if there is an advanced transaction for the event/order of the new transaction
+- Fix bug where service should have stopped when database initialization or migrations are failed
+- Fix `TxAgreement` memory clean up for Arbitrary Order transactions
+- Remove `tokenId` from `/revenue` route query parameter (it had no effect as it was unused)
+- Replace `@rosen-bridge/operation` with `@rosen-bridge/cli` in .github/workflows
+- Sort imports
+- Update winston patch
+- Remove unused health-check parameter packages from dependencies
+  - @rosen-bridge/log-level-check
+  - @rosen-bridge/p2p-network-check
+- Remove redundant dependencies
+  - @blockfrost/blockfrost-js
+  - @emurgo/cardano-serialization-lib-nodejs
+  - axios
+  - big-integer
+  - cross-env
+  - discord.js
+  - json-bigint
+  - process
+  - reflect-metadata
+  - secp256k1
+- Update dependencies
+  - @rosen-bridge/abstract-notification@1.0.0
+  - @rosen-bridge/abstract-scanner@0.2.2
+  - @rosen-bridge/asset-check@6.0.0
+  - @rosen-bridge/callback-logger@1.0.1
+  - @rosen-bridge/communication@2.0.0
+  - @rosen-bridge/detection@2.0.0
+  - @rosen-bridge/dialer@0.2.1
+  - @rosen-bridge/discord-notification@1.0.0
+  - @rosen-bridge/encryption@1.0.0
+  - @rosen-bridge/ergo-multi-sig@2.0.0
+  - @rosen-bridge/ergo-scanner@0.1.3
+  - @rosen-bridge/event-progress-check@2.0.0
+  - @rosen-bridge/evm-address-tx-extractor@1.2.3
+  - @rosen-bridge/evm-scanner@0.1.3
+  - @rosen-bridge/extended-typeorm@1.0.1
+  - @rosen-bridge/health-check@8.0.0
+  - @rosen-bridge/minimum-fee@3.1.0
+  - @rosen-bridge/node-sync-check@3.0.0
+  - @rosen-bridge/rosenet-utils@0.4.1
+  - @rosen-bridge/scanner-interfaces@0.2.1
+  - @rosen-bridge/scanner-sync-check@8.1.0
+  - @rosen-bridge/tokens@4.0.1
+  - @rosen-bridge/tss@5.0.0
+  - @rosen-bridge/tx-progress-check@3.0.0
+  - @rosen-bridge/watcher-data-extractor@12.3.0
+  - @rosen-bridge/winston-logger@2.0.1
+  - @rosen-chains/abstract-chain@15.0.2
+  - @rosen-chains/binance@3.0.2
+  - @rosen-chains/bitcoin@9.0.2
+  - @rosen-chains/bitcoin-esplora@5.0.2
+  - @rosen-chains/bitcoin-runes@3.0.2
+  - @rosen-chains/bitcoin-runes-rpc@2.0.2
+  - @rosen-chains/cardano@15.0.1
+  - @rosen-chains/cardano-blockfrost-network@10.0.1
+  - @rosen-chains/cardano-koios-network@13.0.1
+  - @rosen-chains/doge@3.0.2
+  - @rosen-chains/doge-blockcypher@1.0.2
+  - @rosen-chains/doge-esplora@2.0.2
+  - @rosen-chains/doge-rpc@1.0.2
+  - @rosen-chains/ergo@13.0.2
+  - @rosen-chains/ergo-explorer-network@10.0.2
+  - @rosen-chains/ergo-node-network@10.0.2
+  - @rosen-chains/ethereum@3.0.2
+  - @rosen-chains/evm@9.0.2
+  - @rosen-chains/evm-rpc@4.0.3
+  - @rosen-clients/rate-limited-axios@1.1.0
+
 ## 7.0.1
 
 ### Major Changes

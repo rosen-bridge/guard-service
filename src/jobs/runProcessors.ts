@@ -1,16 +1,20 @@
-import EventProcessor from '../event/EventProcessor';
-import Configs from '../configs/Configs';
-import TransactionProcessor from '../transaction/TransactionProcessor';
-import GuardTurn from '../utils/GuardTurn';
-import ColdStorage from '../coldStorage/ColdStorage';
-import ColdStorageConfig from '../coldStorage/ColdStorageConfig';
-import TxAgreement from '../agreement/TxAgreement';
-import ArbitraryProcessor from '../arbitrary/ArbitraryProcessor';
-import EventSynchronization from '../synchronization/EventSynchronization';
-import DetectionHandler from '../handlers/DetectionHandler';
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
 
-const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
+import TxAgreement from '../agreement/txAgreement';
+import ArbitraryProcessor from '../arbitrary/arbitraryProcessor';
+import ColdStorage from '../coldStorage/coldStorage';
+import ColdStorageConfig from '../coldStorage/coldStorageConfig';
+import Configs from '../configs/configs';
+import EventProcessor from '../event/eventProcessor';
+import BalanceHandler from '../handlers/balanceHandler';
+import DetectionHandler from '../handlers/detectionHandler';
+import EventSynchronization from '../synchronization/eventSynchronization';
+import TransactionProcessor from '../transaction/transactionProcessor';
+import { ChainConfigKey, SUPPORTED_CHAINS } from '../utils/constants';
+import GuardTurn from '../utils/guardTurn';
+import IntervalTimer from '../utils/intervalTimer';
+
+const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
 
 /**
  * sends generated tx to agreement
@@ -33,7 +37,7 @@ const agreementResendJob = async () => {
     txAgreement.resendTransactionRequests();
     setTimeout(
       txAgreement.resendApprovalMessages,
-      Configs.approvalResendDelay * 1000
+      Configs.approvalResendDelay * 1000,
     );
     setTimeout(agreementResendJob, Configs.txResendInterval * 1000);
   }
@@ -48,7 +52,7 @@ const roundJob = async () => {
   // clear generated transactions when turn is over
   setTimeout(
     (await TxAgreement.getInstance()).clearTransactions,
-    GuardTurn.UP_TIME_LENGTH * 1000
+    GuardTurn.UP_TIME_LENGTH * 1000,
   );
   // TODO: There are some concerns about sequential execution of Tx Generation jobs
   //  local:ergo/rosen-bridge/guard-service#317
@@ -70,7 +74,7 @@ const roundJob = async () => {
  */
 const scannedEventsJob = () => {
   EventProcessor.processScannedEvents().then(() =>
-    setTimeout(scannedEventsJob, Configs.scannedEventProcessorInterval * 1000)
+    setTimeout(scannedEventsJob, Configs.scannedEventProcessorInterval * 1000),
   );
 };
 
@@ -88,7 +92,7 @@ const resetJob = async () => {
  */
 const transactionJob = () => {
   TransactionProcessor.processTransactions().then(() =>
-    setTimeout(transactionJob, Configs.txProcessorInterval * 1000)
+    setTimeout(transactionJob, Configs.txProcessorInterval * 1000),
   );
 };
 
@@ -110,7 +114,7 @@ const requeueWaitingEventsJob = async () => {
   await ArbitraryProcessor.getInstance().requeueWaitingOrders();
   setTimeout(
     requeueWaitingEventsJob,
-    Configs.requeueWaitingEventsInterval * 1000
+    Configs.requeueWaitingEventsInterval * 1000,
   );
 };
 
@@ -130,12 +134,33 @@ const detectionUpdateJob = () => {
   DetectionHandler.getInstance()
     .update()
     .then(() =>
-      setTimeout(detectionUpdateJob, Configs.detectionUpdateInterval * 1000)
+      setTimeout(detectionUpdateJob, Configs.detectionUpdateInterval * 1000),
     )
     .catch((e) => {
       logger.error(`Detection update job failed with error: ${e}`);
       setTimeout(detectionUpdateJob, Configs.detectionUpdateInterval * 1000);
     });
+};
+
+/**
+ * runs Balance update job
+ */
+const balanceUpdateJob = () => {
+  for (const chain of SUPPORTED_CHAINS) {
+    new IntervalTimer(
+      Configs.balanceHandler[ChainConfigKey[chain]].updateInterval * 1000,
+      async () => {
+        try {
+          await BalanceHandler.getInstance().updateChainBalances(chain);
+        } catch (error) {
+          logger.error(
+            `Balance update job of chain [${chain}] failed with error: ${error}`,
+          );
+          if (error.stack) logger.error(error.stack);
+        }
+      },
+    ).start();
+  }
 };
 
 /**
@@ -149,10 +174,11 @@ const runProcessors = () => {
   setTimeout(timeoutProcessorJob, Configs.timeoutProcessorInterval * 1000);
   setTimeout(
     requeueWaitingEventsJob,
-    Configs.requeueWaitingEventsInterval * 1000
+    Configs.requeueWaitingEventsInterval * 1000,
   );
   setTimeout(eventSyncJob, Configs.eventSyncInterval * 1000);
   setTimeout(detectionUpdateJob, Configs.detectionUpdateInterval * 1000);
+  balanceUpdateJob();
 };
 
 export { runProcessors };

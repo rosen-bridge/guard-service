@@ -11,7 +11,6 @@ api:
   allowedOrigins: [] # List of allowed origins for CORS headers
   maxRequestsPerMinute: 100_000
 binance:
-  networkType: 'mainnet' # Binance network type [testnet, mainnet]
   chainNetwork: 'rpc' # 'rpc'
   rpc:
     url: ''
@@ -33,7 +32,6 @@ binance:
   derivationPath:
     -
 bitcoin:
-  networkType: 'mainnet' # Bitcoin network type [testnet, mainnet]
   chainNetwork: 'esplora' # 'esplora'
   esplora:
     url: 'https://blockstream.info'
@@ -49,14 +47,32 @@ bitcoin:
   tssChainCode: ''
   derivationPath:
     -
+bitcoinRunes:
+  chainNetwork: 'rpc' # 'rpc'
+  rpc:
+    url: ''
+    # username: ''
+    # password: ''
+    # apiKey: ''
+    # rps: 5 # request per second for RPC requests
+    timeout: 8
+  unisat:
+    url: 'https://open-api.unisat.io'
+    # apiKey: ''
+    rps: 5 # request per second for Unisat API requests
+    timeout: 8
+  bankPublicKey: '' # corresponding public key of lock address
+  tssChainCode: ''
+  derivationPath:
+    -
 doge:
-  networkType: 'mainnet' # Doge network type [testnet, mainnet]
   chainNetwork: 'rpc-blockcypher' # [esplora, rpc-blockcypher]
   esplora:
     url: ''
     timeout: 8
   blockcypher:
     url: 'https://api.blockcypher.com'
+    rps: 3 # request per second for Blockcypher API requests
     timeout: 8
   rpc:
     url: ''
@@ -64,6 +80,7 @@ doge:
     # username: ''
     # password: ''
     # apiKey: ''
+    # rps: 5 # request per second for RPC requests
   bankPublicKey: '' # corresponding public key of lock address
   txFeeSlippage: 20 # allowed slippage percentage for tx fees
   confirmation: # required block confirmation
@@ -79,7 +96,6 @@ doge:
   derivationPath:
     -
 cardano:
-  networkType: 'mainnet' # Cardano network type [testnet, mainnet]
   chainNetwork: 'koios' # 'ogmios', 'koios' or 'blockfrost'
   blockfrost:
     projectId: ''
@@ -98,7 +114,6 @@ cardano:
     arbitrary: 120 # an arbitrary transaction on Cardano get confirmed
   tssChainCode: 'CardanoChainCode'
 ergo:
-  networkType: 'mainnet' # Ergo network type [testnet, mainnet]
   chainNetwork: 'explorer' # 'explorer' or 'node'
   explorer:
     url: 'https://api.ergoplatform.com/'
@@ -119,7 +134,6 @@ ergo:
   initialHeight: 925000 # block scanner starting block height
   scannerInterval: 180 # scanner update interval
 ethereum:
-  networkType: 'mainnet' # Ethereum network type [testnet, mainnet]
   chainNetwork: 'rpc' # 'rpc'
   rpc:
     url: ''
@@ -155,6 +169,8 @@ eventSync:
   timeout: 3600
   interval: 60
 eventReprocessCooldown: 43200
+extractors:
+  initializeEventTriggers: false # if true, all event trigger extractors will be initialized upon starting the service
 tss:
   path: './bin/tss.exe' # path to tss executable file
   configPath: './bin/conf/conf.env'
@@ -167,9 +183,10 @@ tss:
       curveShareId: ''
       edwardShareId: ''
 p2p:
-  addresses: # relay configs
-    - peerId: ''
-      address: ''
+  relays:
+    - ''
+  host: '0.0.0.0'
+  port: 5243
   bootstrapTimeout: 10 # timeout of connecting to bootstrap nodes (which are relays in our case)
   pubsubInterval: 10 # interval of publishing peer ids to the network for peer discovery
   apiCallbackTimeout: 8 # timeout of api calls which happen when subscribing a channel in dialer
@@ -274,3 +291,35 @@ notification:
     hasBeenUnstableForAWhile: 900
     hasBeenUnknownForAWhile: 900
     isStillUnhealthy: 86400 # 1 day
+balanceHandler:
+  default:
+    updateInterval: 300
+    updateBatchInterval: 60
+  ergo:
+    # updateInterval: ...
+    # updateBatchInterval: ...
+    tokensPerIteration:
+      node: 9999
+      explorer: 9999
+  cardano:
+    tokensPerIteration:
+      blockfrost: 9999
+      koios: 9999
+  bitcoin:
+    tokensPerIteration:
+      esplora: 9999
+  doge:
+    tokensPerIteration:
+      esplora: 9999
+      blockcypher: 9999
+  ethereum:
+    tokensPerIteration:
+      rpc: 10
+  binance:
+    tokensPerIteration:
+      rpc: 10
+  bitcoinRunes:
+    tokensPerIteration:
+      rpc: 9999
+ergoMultiSig:
+  turnTime: 60

@@ -1,8 +1,9 @@
-import Configs from '../configs/Configs';
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
-import TssHandler from '../handlers/TssHandler';
+import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
 
-const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
+import Configs from '../configs/configs';
+import TssHandler from '../handlers/tssHandler';
+
+const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
 /**
  * runs Tss service update job
  */

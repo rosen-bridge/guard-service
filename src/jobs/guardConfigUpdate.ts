@@ -1,8 +1,9 @@
-import GuardPkHandler from '../handlers/GuardPkHandler';
-import Configs from '../configs/Configs';
-import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
+import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
 
-const logger = DefaultLoggerFactory.getInstance().getLogger(import.meta.url);
+import Configs from '../configs/configs';
+import GuardPkHandler from '../handlers/guardPkHandler';
+
+const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
 
 /**
  * updates the guard config periodically
