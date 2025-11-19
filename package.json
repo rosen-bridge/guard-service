@@ -1,6 +1,6 @@
 {
   "name": "guard-service",
-  "version": "8.0.0",
+  "version": "8.0.1",
   "description": "",
   "repository": {
     "type": "git",
@@ -69,7 +69,7 @@
     "@rosen-chains/bitcoin": "^9.0.2",
     "@rosen-chains/bitcoin-esplora": "^5.0.2",
     "@rosen-chains/bitcoin-runes": "^3.0.2",
-    "@rosen-chains/bitcoin-runes-rpc": "^2.0.2",
+    "@rosen-chains/bitcoin-runes-rpc": "^2.0.3",
     "@rosen-chains/cardano": "^15.0.1",
     "@rosen-chains/cardano-blockfrost-network": "^10.0.1",
     "@rosen-chains/cardano-koios-network": "^13.0.1",
