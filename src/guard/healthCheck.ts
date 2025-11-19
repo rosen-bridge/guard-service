@@ -266,7 +266,7 @@ const getHealthCheck = async () => {
       healthCheck.register(btcAssetHealthCheck);
       // register BTC asset-check on Bitcoin Runes lock address
       const btcRunesAssetHealthCheck = new EsploraAssetHealthCheckParam(
-        BITCOIN_CHAIN,
+        BITCOIN_RUNES_CHAIN,
         BTC,
         bitcoinRunesContracts.lockAddress,
         Configs.btcWarnThreshold,
