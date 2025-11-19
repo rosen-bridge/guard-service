@@ -1,5 +1,14 @@
 # guard-service
 
+## 8.0.1
+
+### Patch Changes
+
+- Remove public ip access on rosenet for direct message
+- Change Bitcoin Runes asset check label from `bitcoin` to `bitcoin-runes`
+- Update dependencies
+  - @rosen-chains/bitcoin-runes-rpc@2.0.3
+
 ## 8.0.0
 
 ### Major Changes
