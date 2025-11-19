@@ -66,17 +66,36 @@ describe('BitcoinRunesRpcNetwork', () => {
 
     /**
      * @target `BitcoinRunesRpcNetwork.getTxConfirmation` should return -1
+     * when transaction is not found while RPC returns the error instead of throwing it
+     * @dependencies
+     * @scenario
+     * - mock RPC axios to throw error instead of retuning it
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should be -1
+     */
+    it('should return -1 when transaction is not found while RPC returns the error instead of throwing it', async () => {
+      mockAxiosPostToThrow(ClientType.RPC, testData.rawTransactionError);
+
+      const result = await network.getTxConfirmation(testData.txId);
+
+      expect(result).toEqual(-1);
+    });
+
+    /**
+     * @target `BitcoinRunesRpcNetwork.getTxConfirmation` should return -1
      * when transaction is not found
      * @dependencies
      * @scenario
-     * - mock RPC axios to throw error
+     * - mock RPC axios to return error
      * - run test
      * - check returned value
      * @expected
      * - it should be -1
      */
     it('should return -1 when transaction is not found', async () => {
-      mockAxiosPostToThrow(ClientType.RPC, testData.rawTransactionError);
+      mockAxiosPost(ClientType.RPC, testData.rawTransactionError.response.data);
 
       const result = await network.getTxConfirmation(testData.txId);
 
@@ -180,6 +199,23 @@ describe('BitcoinRunesRpcNetwork', () => {
 
       expect(result).toEqual(testData.blockTxIds);
     });
+
+    /**
+     * @target `BitcoinRunesRpcNetwork.getBlockTransactionIds` should throw error when block is not found
+     * @dependencies
+     * @scenario
+     * - mock RPC axios to return error response
+     * - run test and expect exception thrown
+     * @expected
+     * - it should throw FailedError
+     */
+    it('should throw error when block is not found', async () => {
+      mockAxiosPost(ClientType.RPC, testData.blockError.response.data);
+
+      await expect(async () => {
+        await network.getBlockTransactionIds(testData.blockHash);
+      }).rejects.toThrow(FailedError);
+    });
   });
 
   describe('getBlockInfo', () => {
@@ -199,6 +235,23 @@ describe('BitcoinRunesRpcNetwork', () => {
       const result = await network.getBlockInfo(testData.blockHash);
 
       expect(result).toEqual(testData.blockInfo);
+    });
+
+    /**
+     * @target `BitcoinRunesRpcNetwork.getBlockInfo` should throw error when block is not found
+     * @dependencies
+     * @scenario
+     * - mock RPC axios to return error response
+     * - run test and expect exception thrown
+     * @expected
+     * - it should throw FailedError
+     */
+    it('should throw error when block is not found', async () => {
+      mockAxiosPost(ClientType.RPC, testData.blockError.response.data);
+
+      await expect(async () => {
+        await network.getBlockInfo(testData.blockHash);
+      }).rejects.toThrow(FailedError);
     });
   });
 
@@ -244,6 +297,27 @@ describe('BitcoinRunesRpcNetwork', () => {
 
       await expect(async () => {
         await network.getTransaction(testData.lockTxId, testData.blockHash);
+      }).rejects.toThrow(FailedError);
+    });
+
+    /**
+     * @target `BitcoinRunesRpcNetwork.getTransaction` should throw error when
+     * transaction is not found
+     * @dependencies
+     * @scenario
+     * - mock RPC axios to return error response (instead of throw)
+     * - run test and expect exception thrown
+     * @expected
+     * - it should throw FailedError
+     */
+    it('should throw error when transaction is not found', async () => {
+      mockAxiosPost(ClientType.RPC, testData.rawTransactionError.response.data);
+
+      await expect(async () => {
+        await network.getTransaction(
+          testData.lockTxId,
+          testData.lockTxBlockHash,
+        );
       }).rejects.toThrow(FailedError);
     });
   });
@@ -349,7 +423,25 @@ describe('BitcoinRunesRpcNetwork', () => {
 
     /**
      * @target `BitcoinRunesRpcNetwork.getUtxo` should throw error when
-     * tx is not found
+     * transaction is not found while RPC returns the error instead of throwing it
+     * @dependencies
+     * @scenario
+     * - mock RPC axios to throw error instead of returning it
+     * - run test and expect exception thrown
+     * @expected
+     * - it should throw FailedError
+     */
+    it('should throw error when transaction is not found while RPC returns the error instead of throwing it', async () => {
+      mockAxiosPostToThrow(ClientType.RPC, testData.rawTransactionError);
+
+      await expect(async () => {
+        await network.getUtxo(testData.utxoId);
+      }).rejects.toThrow(FailedError);
+    });
+
+    /**
+     * @target `BitcoinRunesRpcNetwork.getUtxo` should throw error when
+     * transaction is not found
      * @dependencies
      * @scenario
      * - mock RPC axios to throw error
@@ -357,8 +449,8 @@ describe('BitcoinRunesRpcNetwork', () => {
      * @expected
      * - it should throw FailedError
      */
-    it('should throw error when tx is not found', async () => {
-      mockAxiosPostToThrow(ClientType.RPC, testData.rawTransactionError);
+    it('should throw error when transaction is not found', async () => {
+      mockAxiosPost(ClientType.RPC, testData.rawTransactionError.response.data);
 
       await expect(async () => {
         await network.getUtxo(testData.utxoId);
@@ -428,16 +520,35 @@ describe('BitcoinRunesRpcNetwork', () => {
 
     /**
      * @target `BitcoinRunesRpcNetwork.isTxInMempool` should return false when tx is not in mempool
+     * while RPC returns the error instead of throwing it
      * @dependencies
      * @scenario
-     * - mock RPC axios to throw error
+     * - mock RPC axios to throw error instead of returning it
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when tx is not in mempool while RPC returns the error instead of throwing it', async () => {
+      mockAxiosPostToThrow(ClientType.RPC, testData.mempoolEntryError);
+
+      const result = await network.isTxInMempool(testData.txId);
+
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target `BitcoinRunesRpcNetwork.isTxInMempool` should return false when tx is not in mempool
+     * @dependencies
+     * @scenario
+     * - mock RPC axios to return error
      * - run test
      * - check returned value
      * @expected
      * - it should return false
      */
     it('should return false when tx is not in mempool', async () => {
-      mockAxiosPostToThrow(ClientType.RPC, testData.mempoolEntryError);
+      mockAxiosPost(ClientType.RPC, testData.mempoolEntryError.response.data);
 
       const result = await network.isTxInMempool(testData.txId);
 

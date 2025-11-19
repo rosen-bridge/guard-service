@@ -105,7 +105,7 @@ export const rawTransactionError = {
         message:
           'No such mempool or blockchain transaction. Use gettransaction for wallet transactions.',
       },
-      id: txId,
+      id: requestId,
     },
   },
 };
@@ -255,6 +255,18 @@ export const blockInfo = {
   parentHash:
     '00000000000000000001f3c3c291a95a70e47dcb89ce88d5b9f8b2a3bdac5d66',
   height: 911620,
+};
+export const blockError = {
+  response: {
+    data: {
+      result: null,
+      error: {
+        code: -5,
+        message: 'Block not found',
+      },
+      id: requestId,
+    },
+  },
 };
 
 export const lockTxId =

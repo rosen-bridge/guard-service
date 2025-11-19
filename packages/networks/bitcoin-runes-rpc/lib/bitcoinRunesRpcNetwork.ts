@@ -177,6 +177,10 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
         )}`,
       );
 
+      if (!response.data.result) {
+        this.logger.debug(`tx [${transactionId}] is not found`);
+        return -1;
+      }
       const tx = response.data.result;
       if (tx.confirmations !== undefined) return tx.confirmations;
       return -1;
@@ -283,6 +287,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
         )}`,
       );
 
+      if (!response.data.result) throw { response };
       const blockData: BitcoinRpcBlockSummary = response.data.result;
       return blockData.tx;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -322,6 +327,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
         )}`,
       );
 
+      if (!response.data.result) throw { response };
       const blockData: BitcoinRpcBlockSummary = response.data.result;
       return {
         hash: blockData.hash,
@@ -371,6 +377,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
         )}`,
       );
 
+      if (!response.data.result) throw { response };
       tx = response.data.result;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
@@ -601,6 +608,8 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
           response.data,
         )}`,
       );
+
+      if (!response.data.result) throw { response };
       tx = response.data.result;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
@@ -692,6 +701,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
         )}`,
       );
 
+      if (!response.data.result) throw { response };
       // If we get a successful response, the transaction is in the mempool
       return true;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
