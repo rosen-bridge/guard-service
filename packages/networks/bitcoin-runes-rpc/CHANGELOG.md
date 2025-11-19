@@ -1,5 +1,11 @@
 # @rosen-chains/bitcoin-runes-rpc
 
+## 2.0.3
+
+### Patch Changes
+
+- Fix bug in the error handling of Bitcoin RPC
+
 ## 2.0.2
 
 ### Patch Changes
