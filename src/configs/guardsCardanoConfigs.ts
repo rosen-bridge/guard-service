@@ -36,23 +36,23 @@ class GuardsCardanoConfigs {
   // confirmation configs
   static observationConfirmation = getConfigIntKeyOrDefault(
     'cardano.confirmation.observation',
-    120,
+    40,
   );
   static paymentConfirmation = getConfigIntKeyOrDefault(
     'cardano.confirmation.payment',
-    120,
+    40,
   );
   static coldTxConfirmation = getConfigIntKeyOrDefault(
     'cardano.confirmation.cold',
-    120,
+    40,
   );
   static manualTxConfirmation = getConfigIntKeyOrDefault(
     'cardano.confirmation.manual',
-    120,
+    40,
   );
   static arbitraryTxConfirmation = getConfigIntKeyOrDefault(
     'cardano.confirmation.arbitrary',
-    120,
+    40,
   );
 
   // the ergo-related contract, addresses and tokens in rosen bridge

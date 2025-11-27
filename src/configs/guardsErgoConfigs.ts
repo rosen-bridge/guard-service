@@ -54,27 +54,27 @@ class GuardsErgoConfigs {
   // confirmation configs
   static observationConfirmation = getConfigIntKeyOrDefault(
     'ergo.confirmation.observation',
-    20,
+    14,
   );
   static eventConfirmation = getConfigIntKeyOrDefault(
     'ergo.confirmation.event',
-    20,
+    5,
   );
   static paymentTxConfirmation = getConfigIntKeyOrDefault(
     'ergo.confirmation.payment',
-    20,
+    14,
   );
   static coldTxConfirmation = getConfigIntKeyOrDefault(
     'ergo.confirmation.cold',
-    20,
+    14,
   );
   static manualTxConfirmation = getConfigIntKeyOrDefault(
     'ergo.confirmation.manual',
-    20,
+    14,
   );
   static arbitraryTxConfirmation = getConfigIntKeyOrDefault(
     'ergo.confirmation.arbitrary',
-    20,
+    14,
   );
 
   // scanner configs
