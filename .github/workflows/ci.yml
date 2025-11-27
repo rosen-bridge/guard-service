@@ -30,7 +30,7 @@ jobs:
         run: npm ci
 
       - name: Knip
-        run: npm run knip
+        run: npx knip --dependencies
 
       - name: Type Check
         run: npm run type-check
