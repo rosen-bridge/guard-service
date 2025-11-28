@@ -37,23 +37,23 @@ class GuardsBinanceConfigs {
   // confirmation configs
   static observationConfirmation = getConfigIntKeyOrDefault(
     'binance.confirmation.observation',
-    200,
+    900,
   );
   static paymentConfirmation = getConfigIntKeyOrDefault(
     'binance.confirmation.payment',
-    200,
+    900,
   );
   static coldTxConfirmation = getConfigIntKeyOrDefault(
     'binance.confirmation.cold',
-    200,
+    900,
   );
   static manualTxConfirmation = getConfigIntKeyOrDefault(
     'binance.confirmation.manual',
-    200,
+    900,
   );
   static arbitraryTxConfirmation = getConfigIntKeyOrDefault(
     'binance.confirmation.arbitrary',
-    200,
+    900,
   );
 
   // the ergo-related contract, addresses and tokens in rosen bridge
