@@ -21,23 +21,23 @@ class GuardsBitcoinConfigs {
   // confirmation configs
   static observationConfirmation = getConfigIntKeyOrDefault(
     'bitcoin.confirmation.observation',
-    6,
+    2,
   );
   static paymentConfirmation = getConfigIntKeyOrDefault(
     'bitcoin.confirmation.payment',
-    6,
+    2,
   );
   static coldTxConfirmation = getConfigIntKeyOrDefault(
     'bitcoin.confirmation.cold',
-    6,
+    2,
   );
   static manualTxConfirmation = getConfigIntKeyOrDefault(
     'bitcoin.confirmation.manual',
-    6,
+    2,
   );
   static arbitraryTxConfirmation = getConfigIntKeyOrDefault(
     'bitcoin.confirmation.arbitrary',
-    6,
+    2,
   );
 
   // the ergo-related contract, addresses and tokens in rosen bridge

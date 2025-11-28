@@ -23,11 +23,11 @@ binance:
   gasLimitMultiplier: 3 # a multiplication of current gas limit will be used in txs
   gasLimitCap: 80000 # the maximum required gas limit that is allowed (the cap is used if required gas is higher)
   confirmation: # required block confirmation
-    observation: 200 # an observation transaction (lock transaction) on Binance get confirmed
-    payment: 200 # a payment transaction on Binance get confirmed
-    cold: 200 # a cold storage transaction on Binance get confirmed
-    manual: 200 # a manual transaction on Binance get confirmed
-    arbitrary: 200 # an arbitrary transaction on Binance get confirmed
+    observation: 900 # an observation transaction (lock transaction) on Binance get confirmed
+    payment: 900 # a payment transaction on Binance get confirmed
+    cold: 900 # a cold storage transaction on Binance get confirmed
+    manual: 900 # a manual transaction on Binance get confirmed
+    arbitrary: 900 # an arbitrary transaction on Binance get confirmed
   tssChainCode: ''
   derivationPath:
     -
@@ -39,11 +39,11 @@ bitcoin:
   bankPublicKey: '' # corresponding public key of lock address
   txFeeSlippage: 10 # allowed slippage percentage for tx fees
   confirmation: # required block confirmation
-    observation: 6 # an observation transaction (lock transaction) on Bitcoin get confirmed
-    payment: 6 # a payment transaction on Bitcoin get confirmed
-    cold: 6 # a cold storage transaction on Bitcoin get confirmed
-    manual: 6 # a manual transaction on Bitcoin get confirmed
-    arbitrary: 6 # an arbitrary transaction on Bitcoin get confirmed
+    observation: 2 # an observation transaction (lock transaction) on Bitcoin get confirmed
+    payment: 2 # a payment transaction on Bitcoin get confirmed
+    cold: 2 # a cold storage transaction on Bitcoin get confirmed
+    manual: 2 # a manual transaction on Bitcoin get confirmed
+    arbitrary: 2 # an arbitrary transaction on Bitcoin get confirmed
   tssChainCode: ''
   derivationPath:
     -
@@ -84,11 +84,11 @@ doge:
   bankPublicKey: '' # corresponding public key of lock address
   txFeeSlippage: 20 # allowed slippage percentage for tx fees
   confirmation: # required block confirmation
-    observation: 40 # an observation transaction (lock transaction) on Doge get confirmed
-    payment: 40 # a payment transaction on Doge get confirmed
-    cold: 40 # a cold storage transaction on Doge get confirmed
-    manual: 40 # a manual transaction on Doge get confirmed
-    arbitrary: 40 # an arbitrary transaction on Doge get confirmed
+    observation: 20 # an observation transaction (lock transaction) on Doge get confirmed
+    payment: 20 # a payment transaction on Doge get confirmed
+    cold: 20 # a cold storage transaction on Doge get confirmed
+    manual: 20 # a manual transaction on Doge get confirmed
+    arbitrary: 20 # an arbitrary transaction on Doge get confirmed
   confirmationCheckPercent:
     signFailedTx: 10
     sentTx: 60
@@ -107,11 +107,11 @@ cardano:
   fee: '400000' # Cardano transaction fee
   txTtl: 9000 # Cardano transaction time-to-live
   confirmation: # required block confirmation
-    observation: 120 # an observation transaction (lock transaction) on Cardano get confirmed
-    payment: 120 # a payment transaction on Cardano get confirmed
-    cold: 120 # a cold storage transaction on Cardano get confirmed
-    manual: 120 # a manual transaction on Cardano get confirmed
-    arbitrary: 120 # an arbitrary transaction on Cardano get confirmed
+    observation: 40 # an observation transaction (lock transaction) on Cardano get confirmed
+    payment: 40 # a payment transaction on Cardano get confirmed
+    cold: 40 # a cold storage transaction on Cardano get confirmed
+    manual: 40 # a manual transaction on Cardano get confirmed
+    arbitrary: 40 # an arbitrary transaction on Cardano get confirmed
   tssChainCode: 'CardanoChainCode'
 ergo:
   chainNetwork: 'explorer' # 'explorer' or 'node'
@@ -125,12 +125,12 @@ ergo:
   additionalErgOnPayment: '0' # additional erg payment for events that are targeted to Ergo
   fee: '1100000' # Ergo transaction fee
   confirmation: # required block confirmation
-    observation: 20 # an observation transaction (lock transaction) on Ergo get confirmed
-    event: 20 # an event trigger box get confirmed
-    payment: 20 # a payment or reward distribution transaction on Ergo get confirmed
-    cold: 20 # a cold storage transaction on Ergo get confirmed
-    manual: 20 # a manual transaction on Ergo get confirmed
-    arbitrary: 20 # an arbitrary transaction on Ergo get confirmed
+    observation: 14 # an observation transaction (lock transaction) on Ergo get confirmed
+    event: 5 # an event trigger box get confirmed
+    payment: 14 # a payment or reward distribution transaction on Ergo get confirmed
+    cold: 14 # a cold storage transaction on Ergo get confirmed
+    manual: 14 # a manual transaction on Ergo get confirmed
+    arbitrary: 14 # an arbitrary transaction on Ergo get confirmed
   initialHeight: 925000 # block scanner starting block height
   scannerInterval: 180 # scanner update interval
 ethereum:
@@ -245,8 +245,8 @@ healthCheck:
       warnThreshold: 2500000000 # minimum recommended ada balance
       criticalThreshold: 200000000 # minimum required ada balance
     btc:
-      warnThreshold: 5000000 # minimum recommended btc balance
-      criticalThreshold: 1000000 # minimum required btc balance
+      warnThreshold: 100000 # minimum recommended btc balance
+      criticalThreshold: 6000 # minimum required btc balance
     doge:
       warnThreshold: 2500000000 # minimum recommended doge balance
       criticalThreshold: 500000000 # minimum required doge balance

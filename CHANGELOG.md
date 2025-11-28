@@ -1,5 +1,26 @@
 # guard-service
 
+## 8.0.2
+
+### Patch Changes
+
+- Adjust default thresholds for BTC asset health check
+- Adjust default transaction confirmations
+  - Bitcoin (6 to 2)
+  - Binance (200 to 900)
+  - Cardano (120 to 40)
+  - Doge (40 to 20)
+  - Ergo
+    - 20 to 5 for event trigger transactions
+    - 20 to 14 for other transactions
+  - Ethereum (50, unchanged)
+- Update dependencies
+  - @rosen-bridge/communication@2.0.1
+  - @rosen-bridge/detection@2.0.1
+  - @rosen-bridge/encryption@1.0.1
+  - @rosen-bridge/ergo-multi-sig@2.1.0
+  - @rosen-bridge/tss@5.0.1
+
 ## 8.0.1
 
 ### Patch Changes
