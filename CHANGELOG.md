@@ -1,5 +1,13 @@
 # guard-service
 
+## 8.1.0
+
+### Minor Changes
+
+- Update contract version to v5.1.0
+  - Add `USE` and `NIGHT` tokens
+  - Add Ethereum and Binance cold addresses
+
 ## 8.0.2
 
 ### Patch Changes
