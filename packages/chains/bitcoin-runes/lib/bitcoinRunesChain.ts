@@ -11,6 +11,7 @@ import {
   AssetBalance,
   BlockInfo,
   ChainUtils,
+  EcdsaSignMediator,
   GET_BOX_API_LIMIT,
   ImpossibleBehavior,
   NotEnoughAssetsError,
@@ -34,12 +35,7 @@ import {
 } from './constants';
 import AbstractBitcoinRunesNetwork from './network/abstractBitcoinRunesNetwork';
 import Serializer from './serializer';
-import {
-  BitcoinRunesConfigs,
-  BitcoinRunesTx,
-  BitcoinRunesUtxo,
-  TssSignFunction,
-} from './types';
+import { BitcoinRunesConfigs, BitcoinRunesTx, BitcoinRunesUtxo } from './types';
 import {
   generateAssetId,
   generateBoxId,
@@ -59,7 +55,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
   NATIVE_TOKEN_ID = BTC;
   extractor: BitcoinRunesRosenExtractor;
   protected boxSelection: BitcoinRunesBoxSelection;
-  protected signFunction: TssSignFunction;
+  protected signMediator: EcdsaSignMediator;
   protected lockScript: string;
   protected signingScript: Buffer;
 
@@ -67,7 +63,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
     network: AbstractBitcoinRunesNetwork,
     configs: BitcoinRunesConfigs,
     tokens: TokenMap,
-    signFunction: TssSignFunction,
+    signMediator: EcdsaSignMediator,
     logger?: AbstractLogger,
   ) {
     super(network, configs, tokens, logger);
@@ -76,7 +72,7 @@ class BitcoinRunesChain extends AbstractUtxoChain<
       tokens,
       logger,
     );
-    this.signFunction = signFunction;
+    this.signMediator = signMediator;
     this.lockScript = address
       .toOutputScript(this.configs.addresses.lock)
       .toString('hex');
@@ -1102,12 +1098,14 @@ class BitcoinRunesChain extends AbstractUtxoChain<
         Transaction.SIGHASH_ALL,
       );
 
-      const signatureHex = this.signFunction(signMessage).then((response) => {
-        this.logger.debug(
-          `Input [${i}] of tx [${bitcoinTx.txId}] is signed. signature: ${response.signature}`,
-        );
-        return response.signature;
-      });
+      const signatureHex = this.signMediator
+        .sign(signMessage)
+        .then((response) => {
+          this.logger.debug(
+            `Input [${i}] of tx [${bitcoinTx.txId}] is signed. signature: ${response.signature}`,
+          );
+          return response.signature;
+        });
       signaturePromises.push(signatureHex);
     }
 
@@ -1128,6 +1126,37 @@ class BitcoinRunesChain extends AbstractUtxoChain<
         bitcoinTx.inputUtxos,
       );
     });
+  };
+
+  /**
+   * checks if the corresponding signer service is signing the transaction or not
+   * @param transaction the transaction
+   * @returns true if the signer is still signing at least one input, otherwise false
+   */
+  isTransactionInSign = async (
+    transaction: PaymentTransaction,
+  ): Promise<boolean> => {
+    const psbt = Serializer.deserialize(transaction.txBytes);
+    const tx = Transaction.fromBuffer(psbt.data.getTransaction());
+    const bitcoinTx = transaction as BitcoinRunesTransaction;
+
+    const signStatuses: boolean[] = [];
+    for (let i = 0; i < bitcoinTx.inputUtxos.length; i++) {
+      const input = JsonBigInt.parse(
+        bitcoinTx.inputUtxos[i],
+      ) as BitcoinRunesUtxo;
+      const signMessage = tx.hashForWitnessV0(
+        i,
+        this.signingScript,
+        Number(input.value),
+        Transaction.SIGHASH_ALL,
+      );
+
+      const isInSign = await this.signMediator.isInSign(signMessage);
+      signStatuses.push(isInSign);
+    }
+
+    return signStatuses.some((status) => status);
   };
 
   /**

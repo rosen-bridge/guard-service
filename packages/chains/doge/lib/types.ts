@@ -55,11 +55,6 @@ export interface CoveringBoxes<BoxType> {
   boxes: Array<BoxType>;
 }
 
-export type TssSignFunction = (txHash: Uint8Array) => Promise<{
-  signature: string;
-  signatureRecovery: string;
-}>;
-
 export enum DogeNetworkFunction {
   // AbstractChainNetwork functions
   getHeight = 'getHeight',

@@ -1,8 +1,9 @@
 import { randomBytes } from 'crypto';
 
 import { TokenMap } from '@rosen-bridge/tokens';
+import { EcdsaSignMediator } from '@rosen-chains/abstract-chain';
 
-import { BitcoinChain, BitcoinConfigs, TssSignFunction } from '../lib';
+import { BitcoinChain, BitcoinConfigs } from '../lib';
 import TestBitcoinNetwork from './network/testBitcoinNetwork';
 import * as testData from './testData';
 
@@ -34,24 +35,23 @@ export const configs: BitcoinConfigs = {
   aggregatedPublicKey: testData.lockAddressPublicKey,
   txFeeSlippage: 10,
 };
-export const mockedSignFn = () =>
-  Promise.resolve({
-    signature: '',
-    signatureRecovery: '',
-  });
+export const mockedSignMediator = {
+  sign: vi.fn(),
+  isInSign: vi.fn().mockResolvedValue(true),
+};
 export const generateChainObject = async (
   network: TestBitcoinNetwork,
-  signFn: TssSignFunction = mockedSignFn,
+  signMediator: EcdsaSignMediator = mockedSignMediator,
 ) => {
   const tokenMap = new TokenMap();
   await tokenMap.updateConfigByJson(testData.testTokenMap);
-  return new BitcoinChain(network, configs, tokenMap, signFn);
+  return new BitcoinChain(network, configs, tokenMap, signMediator);
 };
 export const generateChainObjectWithMultiDecimalTokenMap = async (
   network: TestBitcoinNetwork,
-  signFn: TssSignFunction = mockedSignFn,
+  signMediator: EcdsaSignMediator = mockedSignMediator,
 ) => {
   const tokenMap = new TokenMap();
   await tokenMap.updateConfigByJson(testData.multiDecimalTokenMap);
-  return new BitcoinChain(network, configs, tokenMap, signFn);
+  return new BitcoinChain(network, configs, tokenMap, signMediator);
 };

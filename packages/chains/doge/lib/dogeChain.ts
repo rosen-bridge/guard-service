@@ -12,6 +12,7 @@ import {
   AbstractUtxoChain,
   BlockInfo,
   ChainUtils,
+  EcdsaSignMediator,
   GET_BOX_API_LIMIT,
   NotEnoughAssetsError,
   NotEnoughValidBoxesError,
@@ -41,7 +42,7 @@ import {
 } from './dogeUtils';
 import AbstractDogeNetwork from './network/abstractDogeNetwork';
 import Serializer from './serializer';
-import { DogeConfigs, DogeTx, DogeUtxo, TssSignFunction } from './types';
+import { DogeConfigs, DogeTx, DogeUtxo } from './types';
 
 class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
   declare network: AbstractDogeNetwork;
@@ -50,14 +51,14 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
   NATIVE_TOKEN_ID = DOGE;
   extractor: DogeRosenExtractor;
   protected boxSelection: BitcoinBoxSelection;
-  protected signFunction: TssSignFunction;
+  protected signMediator: EcdsaSignMediator;
   protected lockScript: string;
 
   constructor(
     network: AbstractDogeNetwork,
     configs: DogeConfigs,
     tokens: TokenMap,
-    signFunction: TssSignFunction,
+    signMediator: EcdsaSignMediator,
     logger?: AbstractLogger,
   ) {
     super(network, configs, tokens, logger);
@@ -66,7 +67,7 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
       tokens,
       logger,
     );
-    this.signFunction = signFunction;
+    this.signMediator = signMediator;
     this.lockScript = address
       .toOutputScript(this.configs.addresses.lock, DOGE_NETWORK)
       .toString('hex');
@@ -497,12 +498,14 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
         Transaction.SIGHASH_ALL,
       );
 
-      const signatureHex = this.signFunction(signMessage).then((response) => {
-        this.logger.debug(
-          `Input [${i}] of tx [${dogeTx.txId}] is signed. signature: ${response.signature}`,
-        );
-        return response.signature;
-      });
+      const signatureHex = this.signMediator
+        .sign(signMessage)
+        .then((response) => {
+          this.logger.debug(
+            `Input [${i}] of tx [${dogeTx.txId}] is signed. signature: ${response.signature}`,
+          );
+          return response.signature;
+        });
       signaturePromises.push(signatureHex);
     }
 
@@ -523,6 +526,33 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
         dogeTx.inputUtxos,
       );
     });
+  };
+
+  /**
+   * checks if the corresponding signer service is signing the transaction or not
+   * @param transaction the transaction
+   * @returns true if the signer is still signing at least one input, otherwise false
+   */
+  isTransactionInSign = async (
+    transaction: PaymentTransaction,
+  ): Promise<boolean> => {
+    const psbt = Serializer.deserialize(transaction.txBytes);
+    const tx = Transaction.fromBuffer(psbt.data.getTransaction());
+    const dogeTx = transaction as DogeTransaction;
+
+    const signStatuses: boolean[] = [];
+    for (let i = 0; i < dogeTx.inputUtxos.length; i++) {
+      const signMessage = tx.hashForSignature(
+        i,
+        Buffer.from(this.lockScript, 'hex'),
+        Transaction.SIGHASH_ALL,
+      );
+
+      const isInSign = await this.signMediator.isInSign(signMessage);
+      signStatuses.push(isInSign);
+    }
+
+    return signStatuses.some((status) => status);
   };
 
   /**

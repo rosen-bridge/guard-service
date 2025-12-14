@@ -139,7 +139,7 @@ describe('ErgoChain', () => {
         network,
         config,
         tokenMap,
-        ergoTestUtils.defaultSignFunction,
+        ergoTestUtils.defaultSignMediator,
       );
       const getCoveringBoxesSpy = vi.spyOn(
         (ergoChain as any).boxSelection, // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -315,7 +315,7 @@ describe('ErgoChain', () => {
         network,
         config,
         tokenMap,
-        ergoTestUtils.defaultSignFunction,
+        ergoTestUtils.defaultSignMediator,
       );
       await expect(async () => {
         await ergoChain.generateTransaction(
@@ -417,7 +417,7 @@ describe('ErgoChain', () => {
         network,
         config,
         tokenMap,
-        ergoTestUtils.defaultSignFunction,
+        ergoTestUtils.defaultSignMediator,
       );
       const getCoveringBoxesSpy = vi.spyOn(
         (ergoChain as any).boxSelection, // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -543,7 +543,7 @@ describe('ErgoChain', () => {
         network,
         config,
         tokenMap,
-        ergoTestUtils.defaultSignFunction,
+        ergoTestUtils.defaultSignMediator,
       );
       const getCoveringBoxesSpy = vi.spyOn(
         (ergoChain as any).boxSelection, // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -680,7 +680,7 @@ describe('ErgoChain', () => {
         network,
         config,
         tokenMap,
-        ergoTestUtils.defaultSignFunction,
+        ergoTestUtils.defaultSignMediator,
       );
       const getCoveringBoxesSpy = vi.spyOn(
         (ergoChain as any).boxSelection, // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -889,7 +889,7 @@ describe('ErgoChain', () => {
         network,
         config,
         tokenMap,
-        ergoTestUtils.defaultSignFunction,
+        ergoTestUtils.defaultSignMediator,
       );
       const result = ergoChain.extractTransactionOrder(paymentTx);
 
@@ -935,7 +935,7 @@ describe('ErgoChain', () => {
         network,
         config,
         tokenMap,
-        ergoTestUtils.defaultSignFunction,
+        ergoTestUtils.defaultSignMediator,
       );
       const result = ergoChain.extractTransactionOrder(paymentTx);
 
@@ -997,7 +997,7 @@ describe('ErgoChain', () => {
         network,
         config,
         tokenMap,
-        ergoTestUtils.defaultSignFunction,
+        ergoTestUtils.defaultSignMediator,
       );
       const result = await ergoChain.verifyTransactionFee(paymentTx);
 
@@ -1055,7 +1055,7 @@ describe('ErgoChain', () => {
         network,
         config,
         tokenMap,
-        ergoTestUtils.defaultSignFunction,
+        ergoTestUtils.defaultSignMediator,
       );
       const result = await ergoChain.verifyTransactionFee(paymentTx);
 
@@ -1171,7 +1171,7 @@ describe('ErgoChain', () => {
         network,
         config,
         tokenMap,
-        ergoTestUtils.defaultSignFunction,
+        ergoTestUtils.defaultSignMediator,
       );
       const result =
         await ergoChain.verifyTransactionExtraConditions(paymentTx);
@@ -1220,7 +1220,7 @@ describe('ErgoChain', () => {
         network,
         config,
         tokenMap,
-        ergoTestUtils.defaultSignFunction,
+        ergoTestUtils.defaultSignMediator,
       );
       const result = await ergoChain.verifyTransactionExtraConditions(
         paymentTx,
@@ -1278,7 +1278,7 @@ describe('ErgoChain', () => {
         network,
         config,
         tokenMap,
-        ergoTestUtils.defaultSignFunction,
+        ergoTestUtils.defaultSignMediator,
       );
       const result = await ergoChain.verifyTransactionExtraConditions(
         paymentTx,
@@ -1329,7 +1329,7 @@ describe('ErgoChain', () => {
         network,
         config,
         tokenMap,
-        ergoTestUtils.defaultSignFunction,
+        ergoTestUtils.defaultSignMediator,
       );
       const result =
         await ergoChain.verifyTransactionExtraConditions(paymentTx);
@@ -1378,7 +1378,7 @@ describe('ErgoChain', () => {
         network,
         config,
         tokenMap,
-        ergoTestUtils.defaultSignFunction,
+        ergoTestUtils.defaultSignMediator,
       );
       const result =
         await ergoChain.verifyTransactionExtraConditions(paymentTx);
@@ -1581,7 +1581,7 @@ describe('ErgoChain', () => {
       const ergoChain = ergoTestUtils.generateChainObject(
         new TestErgoNetwork(),
         ergoTestUtils.rwtId,
-        signFunction,
+        { sign: signFunction, isInSign: vi.fn() },
       );
       // mock PaymentTransaction of unsigned transaction
       const paymentTx = new ErgoTransaction(
@@ -1602,6 +1602,87 @@ describe('ErgoChain', () => {
       await expect(async () => {
         await ergoChain.signTransaction(paymentTx, 0);
       }).rejects.toThrow(`TestError: sign failed`);
+    });
+  });
+
+  describe('isTransactionInSign', () => {
+    const ergoChain = ergoTestUtils.generateChainObject(new TestErgoNetwork());
+
+    /**
+     * @target ErgoChain.isTransactionInSign should return true if transaction is in sign
+     * @dependencies
+     * @scenario
+     * - mock PaymentTransaction of unsigned transaction
+     * - run test (ergoChain default signMediator returns true when asked the status for any txId)
+     * - check returned value
+     * @expected
+     * - it should return true
+     */
+    it('should return true if transaction is in sign', async () => {
+      // mock PaymentTransaction of unsigned transaction
+      const paymentTx = new ErgoTransaction(
+        'txId',
+        'eventId',
+        wasm.ReducedTransaction.sigma_parse_bytes(
+          Buffer.from(
+            transactionTestData.transaction2UnsignedSerialized,
+            'hex',
+          ),
+        ).sigma_serialize_bytes(),
+        TransactionType.payment,
+        [],
+        [],
+      );
+
+      // run test
+      const result = await ergoChain.isTransactionInSign(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(true);
+    });
+
+    /**
+     * @target ErgoChain.isTransactionInSign should return false when transaction is not in sign
+     * @dependencies
+     * @scenario
+     * - mock an isinSignFunction to return false
+     * - mock PaymentTransaction of unsigned transaction
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when transaction is not in sign', async () => {
+      // mock an isinSignFunction to return false
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const isInSignFunction = async (txId: string): Promise<boolean> => {
+        return false;
+      };
+      const ergoChain = ergoTestUtils.generateChainObject(
+        new TestErgoNetwork(),
+        ergoTestUtils.rwtId,
+        { sign: vi.fn(), isInSign: isInSignFunction },
+      );
+      // mock PaymentTransaction of unsigned transaction
+      const paymentTx = new ErgoTransaction(
+        'txId',
+        'eventId',
+        wasm.ReducedTransaction.sigma_parse_bytes(
+          Buffer.from(
+            transactionTestData.transaction2UnsignedSerialized,
+            'hex',
+          ),
+        ).sigma_serialize_bytes(),
+        TransactionType.payment,
+        [],
+        [],
+      );
+
+      // run test
+      const result = await ergoChain.isTransactionInSign(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
     });
   });
 
@@ -1643,7 +1724,7 @@ describe('ErgoChain', () => {
     });
 
     /**
-     * @target ErgoChain.isTxInMempool should false when tx is NOT in mempool
+     * @target ErgoChain.isTxInMempool should return false when tx is NOT in mempool
      * @dependencies
      * @scenario
      * - mock list of transactions
@@ -1654,7 +1735,7 @@ describe('ErgoChain', () => {
      * @expected
      * - it should return false
      */
-    it('should false when tx is NOT in mempool', async () => {
+    it('should return false when tx is NOT in mempool', async () => {
       // mock list of transactions
       const transactions = [
         transactionTestData.transaction0,
@@ -2383,7 +2464,7 @@ describe('ErgoChain', () => {
         network,
         config,
         tokenMap,
-        ergoTestUtils.defaultSignFunction,
+        ergoTestUtils.defaultSignMediator,
       );
       const result = ergoChain.extractSignedTransactionOrder(serializedTx);
 
@@ -2432,7 +2513,7 @@ describe('ErgoChain', () => {
         network,
         config,
         tokenMap,
-        ergoTestUtils.defaultSignFunction,
+        ergoTestUtils.defaultSignMediator,
       );
       const result = ergoChain.extractSignedTransactionOrder(serializedTx);
 

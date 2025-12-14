@@ -4,7 +4,7 @@ import * as wasm from 'ergo-lib-wasm-nodejs';
 import { RosenTokens } from '@rosen-bridge/tokens';
 import { TokenMap } from '@rosen-bridge/tokens';
 
-import { ErgoChain, ErgoConfigs } from '../lib';
+import { ErgoChain, ErgoConfigs, ErgoSignMediator } from '../lib';
 import TestErgoNetwork from './network/testErgoNetwork';
 import { transaction2SignedSerialized } from './transactionTestData';
 
@@ -154,17 +154,21 @@ export const wrappedRwtTokenMap: RosenTokens = [
 export const testLockAddress =
   '9es3xKFSehNNwCpuNpY31ScAubDqeLbSWwaCysjN1ee51bgHKTq';
 
-export const defaultSignFunction = async (
+export const defaultSignMediator = {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  tx: wasm.ReducedTransaction,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  requiredSign: number,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  boxes: Array<wasm.ErgoBox>,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  dataBoxes?: Array<wasm.ErgoBox>,
-): Promise<wasm.Transaction> =>
-  deserializeTransaction(transaction2SignedSerialized);
+  isInSign: (txId: string) => Promise.resolve(true),
+  sign: async (
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    tx: wasm.ReducedTransaction,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    requiredSign: number,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    boxes: Array<wasm.ErgoBox>,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    dataBoxes?: Array<wasm.ErgoBox>,
+  ): Promise<wasm.Transaction> =>
+    deserializeTransaction(transaction2SignedSerialized),
+};
 
 export const observationTxConfirmation = 5;
 export const paymentTxConfirmation = 9;
@@ -183,12 +187,7 @@ export const rwtId =
 export const generateChainObject = (
   network: TestErgoNetwork,
   rwt = rwtId,
-  signFn: (
-    tx: wasm.ReducedTransaction,
-    requiredSign: number,
-    boxes: Array<wasm.ErgoBox>,
-    dataBoxes?: Array<wasm.ErgoBox>,
-  ) => Promise<wasm.Transaction> = defaultSignFunction,
+  signMediator: ErgoSignMediator = defaultSignMediator,
 ) => {
   const config: ErgoConfigs = {
     fee: 100n,
@@ -204,7 +203,7 @@ export const generateChainObject = (
     eventTxConfirmation: 18,
   };
   // mock a sign function to return signed transaction
-  return new ErgoChain(network, config, new TokenMap(), signFn);
+  return new ErgoChain(network, config, new TokenMap(), signMediator);
 };
 export const generateDefaultChainObjectWithTokenMap = async (
   network: TestErgoNetwork,
@@ -226,7 +225,7 @@ export const generateDefaultChainObjectWithTokenMap = async (
   const tokenMap = new TokenMap();
   await tokenMap.updateConfigByJson(rosenTokens);
   // mock a sign function to return signed transaction
-  return new ErgoChain(network, config, tokenMap, defaultSignFunction);
+  return new ErgoChain(network, config, tokenMap, defaultSignMediator);
 };
 
 /**

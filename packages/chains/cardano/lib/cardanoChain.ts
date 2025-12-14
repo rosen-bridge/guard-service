@@ -11,6 +11,7 @@ import {
   BlockInfo,
   BoxInfo,
   ChainUtils,
+  EddsaSignMediator,
   GET_BOX_API_LIMIT,
   NotEnoughAssetsError,
   NotEnoughValidBoxesError,
@@ -44,13 +45,13 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
   NATIVE_TOKEN_ID = ADA;
   extractor: CardanoRosenExtractor;
   protected boxSelection: CardanoBoxSelection;
-  protected signFunction: (txHash: Uint8Array) => Promise<string>;
+  protected signMediator: EddsaSignMediator;
 
   constructor(
     network: AbstractCardanoNetwork,
     configs: CardanoConfigs,
     tokens: TokenMap,
-    signFunction: (txHash: Uint8Array) => Promise<string>,
+    signMediator: EddsaSignMediator,
     logger?: AbstractLogger,
   ) {
     super(network, configs, tokens, logger);
@@ -59,7 +60,7 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
       tokens,
       logger,
     );
-    this.signFunction = signFunction;
+    this.signMediator = signMediator;
     this.boxSelection = new CardanoBoxSelection();
   }
 
@@ -363,7 +364,6 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
    * requests the corresponding signer service to sign the transaction
    * @param transaction the transaction
    * @param requiredSign the required number of sign
-   * @param signFunction the function to sign transaction
    * @returns the signed transaction
    */
   signTransaction = (
@@ -373,20 +373,38 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
   ): Promise<PaymentTransaction> => {
     const tx = Serializer.deserialize(transaction.txBytes);
     const cardanoTx = transaction as CardanoTransaction;
-    return this.signFunction(
+    return this.signMediator
+      .sign(
+        CardanoWasm.FixedTransaction.from_hex(tx.to_hex())
+          .transaction_hash()
+          .to_bytes(),
+      )
+      .then((signature: string) => {
+        const signedTx = this.buildSignedTransaction(tx.body(), signature);
+        return new CardanoTransaction(
+          cardanoTx.txId,
+          cardanoTx.eventId,
+          Serializer.serialize(signedTx),
+          cardanoTx.txType,
+          cardanoTx.inputUtxos,
+        );
+      });
+  };
+
+  /**
+   * checks if the corresponding signer service is signing the transaction or not
+   * @param transaction the transaction
+   * @returns true if the signer is still signing it, otherwise false
+   */
+  isTransactionInSign = async (
+    transaction: PaymentTransaction,
+  ): Promise<boolean> => {
+    const tx = Serializer.deserialize(transaction.txBytes);
+    return this.signMediator.isInSign(
       CardanoWasm.FixedTransaction.from_hex(tx.to_hex())
         .transaction_hash()
         .to_bytes(),
-    ).then((signature: string) => {
-      const signedTx = this.buildSignedTransaction(tx.body(), signature);
-      return new CardanoTransaction(
-        cardanoTx.txId,
-        cardanoTx.eventId,
-        Serializer.serialize(signedTx),
-        cardanoTx.txType,
-        cardanoTx.inputUtxos,
-      );
-    });
+    );
   };
 
   /**

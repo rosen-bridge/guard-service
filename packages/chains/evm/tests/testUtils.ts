@@ -2,15 +2,11 @@ import { FeeData } from 'ethers';
 import { vi } from 'vitest';
 
 import { TokenMap, RosenTokens } from '@rosen-bridge/tokens';
+import { EcdsaSignMediator } from '@rosen-chains/abstract-chain';
 
 import { AbstractEvmNetwork } from '../lib';
 import EvmChain from '../lib/evmChain';
-import {
-  EvmConfigs,
-  EvmTxStatus,
-  TransactionHashes,
-  TssSignFunction,
-} from '../lib/types';
+import { EvmConfigs, EvmTxStatus, TransactionHashes } from '../lib/types';
 import TestEvmNetwork from './network/testEvmNetwork';
 import TestChain from './testChain';
 import * as testData from './testData';
@@ -46,11 +42,10 @@ export const configs: EvmConfigs = {
   gasLimitCap: 100000n,
 };
 
-export const mockedSignFn = () =>
-  Promise.resolve({
-    signature: '',
-    signatureRecovery: '',
-  });
+export const mockedSignMediator = {
+  sign: vi.fn(),
+  isInSign: vi.fn().mockResolvedValue(true),
+};
 
 export const mockHasLockAddressEnoughAssets = (
   chain: EvmChain,
@@ -91,13 +86,13 @@ export const mockGetTransactionByNonce = (
 
 export const generateChainObject = async (
   network: TestEvmNetwork,
-  signFn: TssSignFunction = mockedSignFn,
+  signMediator: EcdsaSignMediator = mockedSignMediator,
   evmTxType = 2,
   rosenTokens: RosenTokens = testData.testTokenMap,
 ) => {
   const tokenMap = new TokenMap();
   await tokenMap.updateConfigByJson(rosenTokens);
-  return new TestChain(network, configs, tokenMap, signFn, evmTxType);
+  return new TestChain(network, configs, tokenMap, signMediator, evmTxType);
 };
 
 export const mockGetTransactionStatus = (

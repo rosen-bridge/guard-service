@@ -492,10 +492,10 @@ describe('CardanoChain', () => {
       );
 
       // call the function
-      const cardanoChain = await TestUtils.generateChainObject(
-        network,
-        signFunction,
-      );
+      const cardanoChain = await TestUtils.generateChainObject(network, {
+        sign: signFunction,
+        isInSign: vi.fn(),
+      });
       const result = await cardanoChain.signTransaction(paymentTx, 0);
 
       // check returned value
@@ -528,14 +528,80 @@ describe('CardanoChain', () => {
       );
 
       // call the function
-      const cardanoChain = await TestUtils.generateChainObject(
-        network,
-        signFunction,
-      );
+      const cardanoChain = await TestUtils.generateChainObject(network, {
+        sign: signFunction,
+        isInSign: vi.fn(),
+      });
 
       await expect(async () => {
         await cardanoChain.signTransaction(paymentTx, 0);
       }).rejects.toThrow('TestError: sign failed');
+    });
+  });
+
+  describe('isTransactionInSign', () => {
+    const network = new TestCardanoNetwork();
+
+    /**
+     * @target CardanoChain.isTransactionInSign should return true if transaction is in sign
+     * @dependencies
+     * @scenario
+     * - mock an isinSign function to return true
+     * - mock PaymentTransaction of unsigned transaction
+     * - call the function
+     * - check returned value
+     * @expected
+     * - it should return true
+     */
+    it('should return true if transaction is in sign', async () => {
+      // mock an isinSign function to return true
+      const isInSign = vi.fn().mockResolvedValue(true);
+
+      // mock PaymentTransaction of unsigned transaction
+      const paymentTx = CardanoTransaction.fromJson(
+        TestData.transaction1PaymentTransaction,
+      );
+
+      // call the function
+      const cardanoChain = await TestUtils.generateChainObject(network, {
+        sign: vi.fn(),
+        isInSign: isInSign,
+      });
+      const result = await cardanoChain.isTransactionInSign(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(true);
+    });
+
+    /**
+     * @target CardanoChain.isTransactionInSign should return false if transaction is not in sign
+     * @dependencies
+     * @scenario
+     * - mock an isinSign function to return false
+     * - mock PaymentTransaction of unsigned transaction
+     * - call the function
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false if transaction is not in sign', async () => {
+      // mock an isinSign function to return false
+      const isInSign = vi.fn().mockResolvedValue(false);
+
+      // mock PaymentTransaction of unsigned transaction
+      const paymentTx = CardanoTransaction.fromJson(
+        TestData.transaction1PaymentTransaction,
+      );
+
+      // call the function
+      const cardanoChain = await TestUtils.generateChainObject(network, {
+        sign: vi.fn(),
+        isInSign: isInSign,
+      });
+      const result = await cardanoChain.isTransactionInSign(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
     });
   });
 
@@ -910,7 +976,7 @@ describe('CardanoChain', () => {
     });
 
     /**
-     * @target CardanoChain.isTxInMempool should false when tx is NOT in mempool
+     * @target CardanoChain.isTxInMempool should return false when tx is NOT in mempool
      * @dependencies
      * @scenario
      * - mock getMempoolTransactions
@@ -919,7 +985,7 @@ describe('CardanoChain', () => {
      * @expected
      * - it should return false
      */
-    it('should false when tx is NOT in mempool', async () => {
+    it('should return false when tx is NOT in mempool', async () => {
       //  mock getMempoolTransactions
       const transactions = [TestData.cardanoTx1];
       vi.spyOn(network, 'getMempoolTransactions').mockResolvedValueOnce(
@@ -1236,7 +1302,7 @@ describe('CardanoChain', () => {
         network,
         newConfigs,
         tokenMap,
-        TestUtils.mockedSignFn,
+        TestUtils.mockedSignMediator,
       );
 
       // call the function
