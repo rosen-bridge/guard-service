@@ -120,20 +120,18 @@ interface ValidityStatus {
       };
 }
 
-interface TssSignMediator {
+type TssSignMediator<T> = {
   isInSign: (txHash: Uint8Array) => Promise<boolean>;
+  sign: (txHash: Uint8Array) => Promise<T>;
+};
+
+interface EcdsaSignResponse {
+  signature: string;
+  signatureRecovery: string;
 }
 
-interface EddsaSignMediator extends TssSignMediator {
-  sign: (txHash: Uint8Array) => Promise<string>;
-}
-
-interface EcdsaSignMediator extends TssSignMediator {
-  sign: (txHash: Uint8Array) => Promise<{
-    signature: string;
-    signatureRecovery: string;
-  }>;
-}
+type EddsaSignMediator = TssSignMediator<string>;
+type EcdsaSignMediator = TssSignMediator<EcdsaSignResponse>;
 
 export {
   ConfirmationConfigs,
@@ -154,6 +152,7 @@ export {
   TokenDetail,
   ValidityStatus,
   TssSignMediator,
+  EcdsaSignResponse,
   EddsaSignMediator,
   EcdsaSignMediator,
 };
