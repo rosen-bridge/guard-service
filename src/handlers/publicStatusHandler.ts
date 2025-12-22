@@ -39,12 +39,12 @@ class PublicStatusHandler {
     publicStatusBaseUrl: string | undefined = undefined,
   ) {
     if (publicStatusBaseUrl) {
-      logger.debug('publicStatusBaseUrl exists, initialize axios instance');
+      logger.info('publicStatusBaseUrl exists, initialize axios instance');
       this.axios = axios.create({
         baseURL: publicStatusBaseUrl,
       });
     } else
-      logger.debug(
+      logger.warn(
         'publicStatusBaseUrl does not exist, skipping axios initialization',
       );
     this.txRepository = dataSource.getRepository(TransactionEntity);
@@ -89,6 +89,7 @@ class PublicStatusHandler {
    * @returns a promise that resolves to void
    */
   protected submitRequest = async (dto: UpdateStatusDTO): Promise<void> => {
+    // TODO: improve performance on dormant mode (local:ergo/rosen-bridge/guard-service#475)
     if (!this.axios) {
       logger.debug('axios is not initialized, skipping submitRequest');
       return;
@@ -96,7 +97,7 @@ class PublicStatusHandler {
 
     const signMessage = this.dtoToSignMessage(dto);
 
-    await this.axios!.post('/status', {
+    await this.axios.post('/status', {
       body: {
         ...dto,
         pk: await Configs.tssKeys.encryptor.getPk(),
@@ -150,7 +151,7 @@ class PublicStatusHandler {
       await this.submitRequest(dto);
     } catch (e) {
       logger.error(
-        `An error occurred while submitting status change signal on Event: ${e}`,
+        `An error occurred while submitting status change signal on Event [${eventId}]: ${e}`,
       );
       if (e.stack) logger.error(e.stack);
     }
@@ -203,7 +204,7 @@ class PublicStatusHandler {
       await this.submitRequest(dto);
     } catch (e) {
       logger.error(
-        `An error occurred while submitting status change signal on Transaction: ${e}`,
+        `An error occurred while submitting status change signal on Transaction [${txId}]: ${e}`,
       );
       if (e.stack) logger.error(e.stack);
     }
