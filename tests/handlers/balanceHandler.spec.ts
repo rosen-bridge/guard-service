@@ -1,19 +1,22 @@
+import { TokenMap } from '@rosen-bridge/tokens';
 import { AssetBalance } from '@rosen-chains/abstract-chain';
-import { BINANCE_CHAIN } from '@rosen-chains/binance';
 import { BITCOIN_CHAIN } from '@rosen-chains/bitcoin';
-import { ETH, ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
+import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
+import { DOGE_CHAIN } from '@rosen-chains/doge';
 
 import Configs from '../../src/configs/configs';
 import { TokenHandler } from '../../src/handlers/tokenHandler';
-import { TokenData } from '../../src/types/api';
 import { SUPPORTED_CHAINS } from '../../src/utils/constants';
 import DatabaseActionMock from '../db/mocked/databaseAction.mock';
 import ChainHandlerMock from './chainHandler.mock';
 import TestBalanceHandler from './testBalanceHandler';
-import * as testData from './testData';
 import {
-  mockBalanceEntityToAddressBalance,
-  mockBalancesArray,
+  cardanoCometTokenId,
+  cardanoLockAddress,
+  mockAddressBalance,
+  mockAddressBalance2,
+  mockAddressBalance3,
+  mockBalances,
 } from './testData';
 
 describe('BalanceHandler', () => {
@@ -25,13 +28,15 @@ describe('BalanceHandler', () => {
     });
 
     /**
-     * @target getNativeTokenBalances should return an empty array when repository returns no balances
+     * @target getNativeTokenBalances should return an empty array when database is empty
+     * @dependencies
+     * - DatabaseAction
      * @scenario
      * - call getNativeTokenBalances
      * @expected
      * - getNativeTokenBalances should have resolved to an empty array
      */
-    it('should return an empty array when repository returns no balances', async () => {
+    it('should return an empty array when database is empty', async () => {
       // act
       const result = await balanceHandler.getNativeTokenBalances();
 
@@ -40,250 +45,124 @@ describe('BalanceHandler', () => {
     });
 
     /**
-     * @target getNativeTokenBalances should return balances when repository returns a non empty array
+     * @target getNativeTokenBalances should return balances when database is not empty
+     * @dependencies
+     * - DatabaseAction
      * @scenario
-     * - stub getTokenData to return a mock TokenData
-     * - stub TokenMap.getConfig to return 2 token objects
-     * - insert two balance objects into database
+     * - populate database with 4 mock ChainAddressBalanceEntity objects
      * - call getNativeTokenBalances
      * @expected
-     * - getNativeTokenBalances should have resolved to the mock balance array
+     * - getNativeTokenBalances should have resolved to an array of 2 native token balances for bitcoin and cardano
      */
-    it('should return balances when repository returns a non empty array', async () => {
+    it('should return balances when database is not empty', async () => {
       // arrange
-      vi.mock('../../src/utils/getTokenData', () => ({
-        getTokenData: (
-          sourceChain: string,
-          sourceChainTokenId: string,
-          targetChain: string,
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          returnSignificantDecimal = false,
-        ): TokenData => ({
-          tokenId: sourceChainTokenId,
-          name: sourceChainTokenId.toUpperCase(),
-          amount: 0,
-          decimals: 8,
-          isNativeToken: true,
-        }),
-      }));
-
-      vi.spyOn(TokenHandler, 'getInstance').mockReturnValue({
-        getTokenMap: () => ({
-          getConfig: () => [
-            testData.mockTokenMap[ETHEREUM_CHAIN],
-            testData.mockTokenMap[BINANCE_CHAIN],
-          ],
-        }),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
-
-      await DatabaseActionMock.insertChainAddressBalanceRecord(
-        testData.mockBalances.eth,
-      );
-      await DatabaseActionMock.insertChainAddressBalanceRecord(
-        testData.mockBalances.bnb,
-      );
+      // populate database with mock balance records
+      for (const chain of Object.keys(mockBalances)) {
+        for (const balance of mockBalances[chain]) {
+          await DatabaseActionMock.insertChainAddressBalanceRecord(balance);
+        }
+      }
 
       // act
       const result = await balanceHandler.getNativeTokenBalances();
 
       // assert
-      expect(result).toEqual([
-        {
-          address: testData.mockBalances.eth.address,
-          chain: testData.mockBalances.eth.chain,
-          balance: {
-            tokenId: testData.mockBalances.eth.tokenId,
-            amount: Number(testData.mockBalances.eth.balance),
-            name: testData.mockBalances.eth.tokenId.toUpperCase(),
-            decimals: 8,
-            isNativeToken: true,
-          },
-        },
-        {
-          address: testData.mockBalances.bnb.address,
-          chain: testData.mockBalances.bnb.chain,
-          balance: {
-            tokenId: testData.mockBalances.bnb.tokenId,
-            amount: Number(testData.mockBalances.bnb.balance),
-            name: testData.mockBalances.bnb.tokenId.toUpperCase(),
-            decimals: 8,
-            isNativeToken: true,
-          },
-        },
-      ]);
+      expect(result).toEqual(mockAddressBalance3);
     });
   });
 
-  describe('getChainTokens', () => {
+  describe('getChainTokenIds', () => {
     /**
-     * @target getChainTokens should return empty array when token map is empty
+     * @target getChainTokenIds should return empty array when token map is empty
+     * @dependencies
+     * - TokensMap
      * @scenario
      * - stub TokenMap.getConfig to return empty array
-     * - call getChainTokens with ETHEREUM_CHAIN
+     * - call getChainTokenIds with CARDANO_CHAIN
      * @expected
      * - result should have been an empty array
      */
     it('should return empty array when token map is empty', () => {
       // arrange
-      vi.spyOn(TokenHandler, 'getInstance').mockReturnValue({
-        getTokenMap: () => ({
-          getConfig: () => [],
-        }),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
+      vi.spyOn(TokenHandler.getInstance(), 'getTokenMap').mockReturnValueOnce({
+        getConfig: () => [],
+      } as unknown as TokenMap);
 
       // act
-      const result = balanceHandler.callGetChainTokenIds(ETHEREUM_CHAIN);
+      const result = balanceHandler.callGetChainTokenIds(CARDANO_CHAIN);
 
       // assert
       expect(result).toEqual([]);
     });
 
     /**
-     * @target getChainTokens should return empty array when no tokens exist for specified chain
+     * @target getChainTokenIds should return empty array when no tokens exist for specified chain
+     * @dependencies
+     * - TokensMap
      * @scenario
-     * - stub TokenMap.getConfig to return a token for BITCOIN_CHAIN
-     * - call getChainTokens with ETHEREUM_CHAIN
+     * - call getChainTokenIds with DOGE_CHAIN
      * @expected
      * - result should have been an empty array
      */
     it('should return empty array when no tokens exist for specified chain', () => {
-      // arrange
-      vi.spyOn(TokenHandler, 'getInstance').mockReturnValue({
-        getTokenMap: () => ({
-          getConfig: () => [testData.mockTokenMap[BITCOIN_CHAIN]],
-        }),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
-
       // act
-      const result = balanceHandler.callGetChainTokenIds(ETHEREUM_CHAIN);
+      const result = balanceHandler.callGetChainTokenIds(DOGE_CHAIN);
 
       // assert
       expect(result).toEqual([]);
     });
 
     /**
-     * @target getChainTokens should return non-native token ids when chain has mixed native and non-native tokens
+     * @target getChainTokenIds should return non-native token ids of chain when it has both of the token types
+     * @dependencies
+     * - TokensMap
      * @scenario
-     * - stub TokenMap.getConfig to return a native and 2 non-native tokens
-     * - call getChainTokens with ETHEREUM_CHAIN
+     * - call getChainTokenIds with CARDANO_CHAIN
      * @expected
-     * - result length should have been equal to 2
-     * - result should have contained 'id2'
-     * - result should have contained 'id3'
-     * - result should not have contained ETH
+     * - result length should have been equal to 6
+     * - result should have contained all the other 6 tokens of tokensMap that cardano supports except ada
      */
-    it('should return non-native token ids when chain has mixed native and non-native tokens', () => {
-      // arrange
-      vi.spyOn(TokenHandler, 'getInstance').mockReturnValue({
-        getTokenMap: () => ({
-          getConfig: () => [
-            testData.mockTokenMap[ETHEREUM_CHAIN],
-            {
-              [ETHEREUM_CHAIN]: {
-                tokenId: 'id2',
-                type: 'ERC20',
-                name: '',
-                decimals: 0,
-                residency: '',
-                extra: {},
-              },
-            },
-            {
-              [ETHEREUM_CHAIN]: {
-                tokenId: 'id3',
-                type: 'ERC20',
-                name: '',
-                decimals: 0,
-                residency: '',
-                extra: {},
-              },
-            },
-          ],
-        }),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
-
+    it('should return non-native token ids of chain when it has both of the token types', () => {
       // act
-      const result = balanceHandler.callGetChainTokenIds(ETHEREUM_CHAIN);
+      const result = balanceHandler.callGetChainTokenIds(CARDANO_CHAIN);
 
       // assert
-      expect(result).toHaveLength(2);
-      expect(result).toContainEqual('id2');
-      expect(result).toContainEqual('id3');
-      expect(result).not.toContainEqual(ETH);
-    });
-
-    /**
-     * @target getChainTokens should only return tokens for specified chain when multiple chains exist in token map
-     * @scenario
-     * - stub TokenMap.getConfig to return a non native token for ETHEREUM_CHAIN and BITCOIN_CHAIN
-     * - call getChainTokens with ETHEREUM_CHAIN
-     * @expected
-     * - result length should have been equal to 1
-     * - result should have contained 'id1'
-     * - result should not have contained 'id2'
-     */
-    it('should only return tokens for specified chain when multiple chains exist in token map', () => {
-      // arrange
-      vi.spyOn(TokenHandler, 'getInstance').mockReturnValue({
-        getTokenMap: () => ({
-          getConfig: () => [
-            {
-              [ETHEREUM_CHAIN]: {
-                tokenId: 'id1',
-                type: 'ERC20',
-                name: 'id1',
-                decimals: 0,
-                residency: '',
-                extra: {},
-              },
-            },
-            {
-              [BINANCE_CHAIN]: {
-                tokenId: 'id2',
-                type: 'native',
-                name: '1d2',
-                decimals: 0,
-                residency: '',
-                extra: {},
-              },
-            },
-          ],
-        }),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
-
-      // act
-      const result = balanceHandler.callGetChainTokenIds(ETHEREUM_CHAIN);
-
-      // assert
-      expect(result).toHaveLength(1);
-      expect(result).toContainEqual('id1');
-      expect(result).not.toContainEqual('id2');
+      expect(result).toHaveLength(6);
+      expect(result).toContain(
+        'd2f6eb37450a3d568de93d623e69bd0ba1238daacc883d75736abd23.527374457267565465737432',
+      );
+      expect(result).toContain(
+        'bb2250e4c589539fd141fbbd2c322d380f1ce2aaef812cd87110d61b.527374434f4d4554565465737432',
+      );
+      expect(result).toContain(
+        'a0028f350aaabe0545fdcb56b039bfb08e4bb4d8c4d7c3c7d481c235.484f534b59',
+      );
+      expect(result).toContain(
+        '45fdcb56b039bfba0028f350aaabe0508e4bb4d8c4d7c3c7d481c235.48',
+      );
+      expect(result).toContain(
+        '3122541486c983d637e7ed9330c94e490e1fe4a1758725fab7f6d9e0.72734254432d6c6f656e',
+      );
+      expect(result).toContain(
+        'ac0a478c70238bff24e20107ebe399e7f3a3e854037622427206b024.72734d44546f6b656e2d6c6f656e',
+      );
+      expect(result).not.toContain(ADA);
     });
   });
 
   describe('getAddressAssets', () => {
     beforeEach(async () => {
-      await DatabaseActionMock.clearTables();
       ChainHandlerMock.resetMock();
-    });
 
-    /**
-     * @target getAddressAssets should successfully read balance records of cold addresses from database
-     * @scenario
-     * - stub ChainHandler getChainConfigs to return a mock chainConfig for supported chains
-     * - insert 20 ChainAddressBalanceEntity objects into database for lock and cold addresses
-     * - stub balanceEntityToAddressBalance to return a mock object
-     * - call getAddressAssets
-     * @expected
-     * - getAddressAssets should have resolved to an array of 5 AddressBalance objects corresponding to coldAddress
-     */
-    it('should successfully read balance records of cold addresses from database', async () => {
-      // arrange
+      await DatabaseActionMock.clearTables();
+
+      // populate database with mock balance records
+      for (const chain of Object.keys(mockBalances)) {
+        for (const balance of mockBalances[chain]) {
+          await DatabaseActionMock.insertChainAddressBalanceRecord(balance);
+        }
+      }
+
       for (const chain of SUPPORTED_CHAINS) {
         ChainHandlerMock.mockChainName(chain);
         ChainHandlerMock.mockChainFunction(
@@ -291,200 +170,111 @@ describe('BalanceHandler', () => {
           'getChainConfigs',
           {
             addresses: {
-              cold: `${chain}_mock_cold_address`,
               lock: `${chain}_mock_lock_address`,
+              cold: `${chain}_mock_cold_address`,
             },
           },
           false,
         );
       }
+    });
 
-      for (const mockBalance of mockBalancesArray) {
-        await DatabaseActionMock.insertChainAddressBalanceRecord(mockBalance);
-      }
-
-      vi.spyOn(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        balanceHandler as any,
-        'balanceEntityToAddressBalance',
-      ).mockImplementation(mockBalanceEntityToAddressBalance);
-
+    /**
+     * @target getAddressAssets should successfully read balance records of cold addresses from database
+     * @dependencies
+     * - TokensMap
+     * - ChainHandler
+     * - DatabaseAction
+     * @scenario
+     * - stub ChainHandler getChainConfigs to return a mock chainConfig for supported chains
+     * - populate database with 4 mock ChainAddressBalanceEntity objects for lock and cold addresses
+     * - call getAddressAssets
+     * @expected
+     * - getAddressAssets should have resolved to an array of 3 AddressBalance objects corresponding to cold addresses of cardano and bitcoin
+     */
+    it('should successfully read balance records of cold addresses from database', async () => {
       // act
       const result = await balanceHandler.getAddressAssets(
         'cold',
         undefined, // chain,
         undefined, // tokenId,
-        2, // offset,
+        0, // offset,
         10, // limit
       );
 
       // assert
-      expect(result).toEqual({
-        total: 5,
-        items: mockBalancesArray
-          .filter((balance) =>
-            [
-              `${ETHEREUM_CHAIN}_mock_cold_address`,
-              `${BITCOIN_CHAIN}_mock_cold_address`,
-            ].includes(balance.address),
-          )
-          .slice(2)
-          .map(mockBalanceEntityToAddressBalance),
-      });
+      expect(result.total).toBe(3);
+      expect(result.items).toHaveLength(3);
+      expect(result.items).toEqual(mockAddressBalance);
     });
 
     /**
      * @target getAddressAssets should successfully read balance records of lock addresses from database
+     * @dependencies
+     * - TokensMap
+     * - ChainHandler
+     * - DatabaseAction
      * @scenario
      * - stub ChainHandler getChainConfigs to return a mock chainConfig for supported chains
-     * - insert 20 ChainAddressBalanceEntity objects into database for lock and cold addresses
-     * - stub balanceEntityToAddressBalance to return a mock object
+     * - populate database with 4 mock ChainAddressBalanceEntity objects for lock and cold addresses
      * - call getAddressAssets
      * @expected
-     * - getAddressAssets should have resolved to an array of 15 AddressBalance objects corresponding to lockAddress
+     * - getAddressAssets should have resolved to an array of 1 AddressBalance object corresponding to lockAddress
      */
     it('should successfully read balance records of lock addresses from database', async () => {
-      // arrange
-      for (const chain of SUPPORTED_CHAINS) {
-        ChainHandlerMock.mockChainName(chain);
-        ChainHandlerMock.mockChainFunction(
-          chain,
-          'getChainConfigs',
-          {
-            addresses: {
-              lock: `${chain}_mock_lock_address`,
-              cold: `${chain}_mock_cold_address`,
-            },
-          },
-          false,
-        );
-      }
-
-      for (const mockBalance of mockBalancesArray) {
-        await DatabaseActionMock.insertChainAddressBalanceRecord(mockBalance);
-      }
-
-      vi.spyOn(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        balanceHandler as any,
-        'balanceEntityToAddressBalance',
-      ).mockImplementation(mockBalanceEntityToAddressBalance);
-
       // act
       const result = await balanceHandler.getAddressAssets(
         'lock',
         undefined, // chain
         undefined, // tokenId
-        1, // offset
-        10, // limit
-      );
-
-      // assert
-      expect(result).toEqual({
-        total: 15,
-        items: mockBalancesArray
-          .filter((balance) =>
-            [
-              `${ETHEREUM_CHAIN}_mock_lock_address`,
-              `${BITCOIN_CHAIN}_mock_lock_address`,
-            ].includes(balance.address),
-          )
-          .slice(1, 11)
-          .map(mockBalanceEntityToAddressBalance),
-      });
-    });
-
-    /**
-     * @target getAddressAssets should successfully read a token's balance records of bitcoin lock addresses from database
-     * @scenario
-     * - stub ChainHandler getChainConfigs to return a mock chainConfig for supported chains
-     * - insert 20 ChainAddressBalanceEntity objects into database for lock and cold addresses
-     * - stub balanceEntityToAddressBalance to return a mock object
-     * - call getAddressAssets with BITCOIN_CHAIN and btc_token_01
-     * @expected
-     * - getAddressAssets should have resolved to an array of 1 AddressBalance object corresponding to bitcoin lockAddress and btc_token_01
-     */
-    it("should successfully read a token's balance records of bitcoin lock addresses from database", async () => {
-      // arrange
-      for (const chain of SUPPORTED_CHAINS) {
-        ChainHandlerMock.mockChainName(chain);
-        ChainHandlerMock.mockChainFunction(
-          chain,
-          'getChainConfigs',
-          {
-            addresses: {
-              lock: `${chain}_mock_lock_address`,
-              cold: `${chain}_mock_cold_address`,
-            },
-          },
-          false,
-        );
-      }
-
-      for (const mockBalance of mockBalancesArray) {
-        await DatabaseActionMock.insertChainAddressBalanceRecord(mockBalance);
-      }
-
-      vi.spyOn(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        balanceHandler as any,
-        'balanceEntityToAddressBalance',
-      ).mockImplementation(mockBalanceEntityToAddressBalance);
-
-      // act
-      const result = await balanceHandler.getAddressAssets(
-        'lock',
-        BITCOIN_CHAIN, // chain
-        'btc_token_01', // tokenId
         0, // offset
         10, // limit
       );
 
       // assert
-      expect(result).toEqual({
-        total: 1,
-        items: mockBalancesArray
-          .filter(
-            (balance) =>
-              balance.address === `${BITCOIN_CHAIN}_mock_lock_address` &&
-              balance.tokenId === 'btc_token_01',
-          )
-          .map(mockBalanceEntityToAddressBalance),
-      });
+      expect(result.total).toBe(1);
+      expect(result.items).toHaveLength(1);
+      expect(result.items).toEqual(mockAddressBalance2);
     });
   });
 
   describe('updateChainBatchBalances', () => {
     beforeEach(async () => {
-      await DatabaseActionMock.clearTables();
       ChainHandlerMock.resetMock();
-    });
 
-    const chain = ETHEREUM_CHAIN;
-    const address = '0x123';
-    const tokensBatch = ['token1', 'token2'];
+      await DatabaseActionMock.clearTables();
+
+      // populate database with mock balance records
+      for (const chain of Object.keys(mockBalances)) {
+        for (const balance of mockBalances[chain]) {
+          await DatabaseActionMock.insertChainAddressBalanceRecord(balance);
+        }
+      }
+    });
 
     /**
      * @target updateChainBatchBalances should update batch balances successfully
+     * @dependencies
+     * - TokensMap
+     * - ChainHandler
+     * - DatabaseAction
      * @scenario
-     * - stub ChainHandler.getAddressAssets to resolve to a balance object with 2 non-native tokens
+     * - populate database with 4 mock ChainAddressBalanceEntity objects
+     * - stub ChainHandler.getAddressAssets to resolve to a AssetBalance object with a non-native token
      * - call updateChainBatchBalances
      * @expected
-     * - database should have contained 3 ChainAddressBalanceEntity objects
+     * - database should have contained 5 ChainAddressBalanceEntity objects (4 initial balances + 1 inserted and 1 updated balances)
      */
     it('should update batch balances successfully', async () => {
       // arrange
       const balance: AssetBalance = {
         nativeToken: 123n,
-        tokens: [
-          { id: 'token1', value: 100n },
-          { id: 'token2', value: 200n },
-        ],
+        tokens: [{ id: cardanoCometTokenId, value: 111n }],
       };
 
-      ChainHandlerMock.mockChainName(chain);
+      ChainHandlerMock.mockChainName(CARDANO_CHAIN);
       ChainHandlerMock.mockChainFunction(
-        chain,
+        CARDANO_CHAIN,
         'getAddressAssets',
         balance,
         true,
@@ -492,65 +282,64 @@ describe('BalanceHandler', () => {
 
       // act
       await balanceHandler.updateChainBatchBalances(
-        chain,
-        address,
-        tokensBatch,
+        CARDANO_CHAIN,
+        cardanoLockAddress,
+        [cardanoCometTokenId],
       );
 
       // assert
-      expect(
-        ChainHandlerMock.getChainMockedFunction(chain, 'getAddressAssets'),
-      ).toHaveBeenCalledWith(address, tokensBatch);
+      const mockGetAddressAssets = ChainHandlerMock.getChainMockedFunction(
+        CARDANO_CHAIN,
+        'getAddressAssets',
+      );
+      expect(mockGetAddressAssets).toHaveBeenCalledExactlyOnceWith(
+        cardanoLockAddress,
+        [cardanoCometTokenId],
+      );
 
       const balances = await DatabaseActionMock.allChainAddressBalanceRecords();
-
-      expect(balances).toHaveLength(3);
-      expect(balances[0]).toEqual({
-        chain,
-        address,
-        tokenId: ETH,
+      expect(balances).toHaveLength(5);
+      expect(balances[0]).toEqual(mockBalances[BITCOIN_CHAIN][0]);
+      expect(balances[1]).toEqual(mockBalances[CARDANO_CHAIN][0]);
+      expect(balances[2]).toEqual(mockBalances[CARDANO_CHAIN][1]);
+      expect(balances[3]).toEqual({
+        chain: CARDANO_CHAIN,
+        address: cardanoLockAddress,
+        tokenId: cardanoCometTokenId,
+        lastUpdate: expect.any(String),
+        balance: 111n,
+      });
+      expect(balances[4]).toEqual({
+        chain: CARDANO_CHAIN,
+        address: cardanoLockAddress,
+        tokenId: ADA,
         lastUpdate: expect.any(String),
         balance: 123n,
-      });
-      expect(balances[1]).toEqual({
-        chain,
-        address,
-        tokenId: 'token1',
-        lastUpdate: expect.any(String),
-        balance: 100n,
-      });
-      expect(balances[2]).toEqual({
-        chain,
-        address,
-        tokenId: 'token2',
-        lastUpdate: expect.any(String),
-        balance: 200n,
       });
     });
   });
 
   describe('updateChainBalances', () => {
-    beforeEach(async () => {
+    beforeEach(() => {
       ChainHandlerMock.resetMock();
     });
 
     /**
      * @target updateChainBalances should successfully update all balances of a chain
+     * @dependencies
+     * - TokensMap
+     * - ChainHandler
+     * - DatabaseAction
      * @scenario
      * - stub ChainHandler getChainConfigs to return a mock chainConfig
-     * - stub getChainTokenIds to return a mock array
      * - stub updateChainBatchBalances to resolve
      * - call updateChainBalances
      * @expected
-     * - updateChainBatchBalances should have been called 4 times in this order
-     *  - lockAddress x [token1]
-     *  - lockAddress x [token2]
-     *  - coldAddress x [token1]
-     *  - coldAddress x [token2]
+     * - updateChainBatchBalances should have been called 12 times for 2 addresses and 6 tokens each
      */
     it('should successfully update all balances of a chain', async () => {
       // arrange
-      const chain = ETHEREUM_CHAIN;
+      const chain = CARDANO_CHAIN;
       const lockAddress = `${chain}_mock_lock_address`;
       const coldAddress = `${chain}_mock_cold_address`;
 
@@ -567,12 +356,6 @@ describe('BalanceHandler', () => {
         false,
       );
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      vi.spyOn(balanceHandler as any, 'getChainTokenIds').mockReturnValue([
-        'token1',
-        'token2',
-      ]);
-
       const updateChainBatchBalancesSpy = vi
         .spyOn(balanceHandler as any, 'updateChainBatchBalances') // eslint-disable-line @typescript-eslint/no-explicit-any
         .mockResolvedValue(null);
@@ -584,30 +367,94 @@ describe('BalanceHandler', () => {
       await balanceHandler.updateChainBalances(chain);
 
       // assert
-      expect(updateChainBatchBalancesSpy).toHaveBeenCalledTimes(4);
+      expect(updateChainBatchBalancesSpy).toHaveBeenCalledTimes(12);
       expect(updateChainBatchBalancesSpy).toHaveBeenNthCalledWith(
         1,
         chain,
         lockAddress,
-        ['token1'],
+        [
+          'd2f6eb37450a3d568de93d623e69bd0ba1238daacc883d75736abd23.527374457267565465737432',
+        ],
       );
       expect(updateChainBatchBalancesSpy).toHaveBeenNthCalledWith(
         2,
         chain,
         lockAddress,
-        ['token2'],
+        [
+          'bb2250e4c589539fd141fbbd2c322d380f1ce2aaef812cd87110d61b.527374434f4d4554565465737432',
+        ],
       );
       expect(updateChainBatchBalancesSpy).toHaveBeenNthCalledWith(
         3,
         chain,
-        coldAddress,
-        ['token1'],
+        lockAddress,
+        ['a0028f350aaabe0545fdcb56b039bfb08e4bb4d8c4d7c3c7d481c235.484f534b59'],
       );
       expect(updateChainBatchBalancesSpy).toHaveBeenNthCalledWith(
         4,
         chain,
+        lockAddress,
+        ['45fdcb56b039bfba0028f350aaabe0508e4bb4d8c4d7c3c7d481c235.48'],
+      );
+      expect(updateChainBatchBalancesSpy).toHaveBeenNthCalledWith(
+        5,
+        chain,
+        lockAddress,
+        [
+          '3122541486c983d637e7ed9330c94e490e1fe4a1758725fab7f6d9e0.72734254432d6c6f656e',
+        ],
+      );
+      expect(updateChainBatchBalancesSpy).toHaveBeenNthCalledWith(
+        6,
+        chain,
+        lockAddress,
+        [
+          'ac0a478c70238bff24e20107ebe399e7f3a3e854037622427206b024.72734d44546f6b656e2d6c6f656e',
+        ],
+      );
+      expect(updateChainBatchBalancesSpy).toHaveBeenNthCalledWith(
+        7,
+        chain,
         coldAddress,
-        ['token2'],
+        [
+          'd2f6eb37450a3d568de93d623e69bd0ba1238daacc883d75736abd23.527374457267565465737432',
+        ],
+      );
+      expect(updateChainBatchBalancesSpy).toHaveBeenNthCalledWith(
+        8,
+        chain,
+        coldAddress,
+        [
+          'bb2250e4c589539fd141fbbd2c322d380f1ce2aaef812cd87110d61b.527374434f4d4554565465737432',
+        ],
+      );
+      expect(updateChainBatchBalancesSpy).toHaveBeenNthCalledWith(
+        9,
+        chain,
+        coldAddress,
+        ['a0028f350aaabe0545fdcb56b039bfb08e4bb4d8c4d7c3c7d481c235.484f534b59'],
+      );
+      expect(updateChainBatchBalancesSpy).toHaveBeenNthCalledWith(
+        10,
+        chain,
+        coldAddress,
+        ['45fdcb56b039bfba0028f350aaabe0508e4bb4d8c4d7c3c7d481c235.48'],
+      );
+      expect(updateChainBatchBalancesSpy).toHaveBeenNthCalledWith(
+        11,
+        chain,
+        coldAddress,
+        [
+          '3122541486c983d637e7ed9330c94e490e1fe4a1758725fab7f6d9e0.72734254432d6c6f656e',
+        ],
+      );
+      expect(updateChainBatchBalancesSpy).toHaveBeenNthCalledWith(
+        12,
+        chain,
+        coldAddress,
+        [
+          'ac0a478c70238bff24e20107ebe399e7f3a3e854037622427206b024.72734d44546f6b656e2d6c6f656e',
+        ],
       );
     });
   });

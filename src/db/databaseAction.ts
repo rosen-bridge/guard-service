@@ -15,8 +15,7 @@ import {
   Repository,
   UpdateResult,
 } from '@rosen-bridge/extended-typeorm';
-import { LastSavedBlock } from '@rosen-bridge/scanner-sync-check/dist/config';
-// TODO: fix import (local:ergo/rosen-bridge/health-check#67)
+import { LastSavedBlock } from '@rosen-bridge/scanner-sync-check';
 import {
   CommitmentEntity,
   EventTriggerEntity,

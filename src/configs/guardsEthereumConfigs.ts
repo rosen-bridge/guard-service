@@ -37,23 +37,23 @@ class GuardsEthereumConfigs {
   // confirmation configs
   static observationConfirmation = getConfigIntKeyOrDefault(
     'ethereum.confirmation.observation',
-    200,
+    50,
   );
   static paymentConfirmation = getConfigIntKeyOrDefault(
     'ethereum.confirmation.payment',
-    200,
+    50,
   );
   static coldTxConfirmation = getConfigIntKeyOrDefault(
     'ethereum.confirmation.cold',
-    200,
+    50,
   );
   static manualTxConfirmation = getConfigIntKeyOrDefault(
     'ethereum.confirmation.manual',
-    200,
+    50,
   );
   static arbitraryTxConfirmation = getConfigIntKeyOrDefault(
     'ethereum.confirmation.arbitrary',
-    200,
+    50,
   );
 
   // the ergo-related contract, addresses and tokens in rosen bridge

@@ -1,5 +1,5 @@
 diff --git a/node_modules/@rosen-bridge/rosenet-node/dist/createRoseNetNode.js b/node_modules/@rosen-bridge/rosenet-node/dist/createRoseNetNode.js
-index cc816be..3bb4625 100644
+index cc816be..6e8d322 100644
 --- a/node_modules/@rosen-bridge/rosenet-node/dist/createRoseNetNode.js
 +++ b/node_modules/@rosen-bridge/rosenet-node/dist/createRoseNetNode.js
 @@ -16,7 +16,7 @@ import restartRelayDiscovery from './libp2p/restart-relay-discovery';
@@ -11,6 +11,43 @@ index cc816be..3bb4625 100644
  const createRoseNetNode = async (config) => {
      RoseNetNodeContext.init(config);
      RoseNetNodeContext.logger.debug('RoseNet node config got prepared', {
+@@ -57,7 +57,6 @@ const createRoseNetNode = async (config) => {
+                 ...sampledRelayMultiaddrs.map((multiaddr) => `${multiaddr}/p2p-circuit/p2p/${peerId.toString()}`),
+             ],
+             announce: [
+-                announceMultiaddr,
+                 ...sampledRelayMultiaddrs.map((multiaddr) => `${multiaddr}/p2p-circuit/p2p/${peerId.toString()}`),
+             ],
+         },
+diff --git a/node_modules/@rosen-bridge/rosenet-node/dist/stream/stream-service.js b/node_modules/@rosen-bridge/rosenet-node/dist/stream/stream-service.js
+index 5a66061..743c431 100644
+--- a/node_modules/@rosen-bridge/rosenet-node/dist/stream/stream-service.js
++++ b/node_modules/@rosen-bridge/rosenet-node/dist/stream/stream-service.js
+@@ -78,23 +78,7 @@ async function getRoseNetDirectStreamTo(to, node) {
+                 publicAddresses: publicAddresses.map((address) => address.toString()),
+                 otherAddresses: otherAddresses.map((address) => address.toString()),
+             });
+-            if (publicAddresses) {
+-                try {
+-                    const connection = await node.dial(publicAddresses, {
+-                        signal: AbortSignal.timeout(PUBLIC_MULTIADDR_DIAL_TIMEOUT),
+-                    });
+-                    RoseNetNodeContext.logger.debug(`Public multiaddress dialed successfully`);
+-                    return connection;
+-                }
+-                catch {
+-                    RoseNetNodeContext.logger.debug(`Couldn't dial any public multiaddresses, trying relayed addresses`);
+-                    return await node.dial(otherAddresses);
+-                }
+-            }
+-            else {
+-                RoseNetNodeContext.logger.debug('No public multiaddress found for this peer, trying relayed addresses');
+-                return await node.dial(otherAddresses);
+-            }
++            return await node.dial(otherAddresses);
+         }));
+     RoseNetNodeContext.logger.debug(possibleOpenConnectionToPeer
+         ? `Found an open connection to peer ${to}`
 diff --git a/node_modules/@rosen-bridge/rosenet-node/lib/createRoseNetNode.ts b/node_modules/@rosen-bridge/rosenet-node/lib/createRoseNetNode.ts
 index d3581af..d028f70 100644
 --- a/node_modules/@rosen-bridge/rosenet-node/lib/createRoseNetNode.ts

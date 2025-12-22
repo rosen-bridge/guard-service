@@ -22,7 +22,7 @@ class MultiSigHandler {
       logger: CallbackLoggerFactory.getInstance().getLogger('MultiSig'),
       multiSigUtilsInstance: multiSigUtilsInstance,
       messageEnc: Configs.tssKeys.encryptor,
-      secretHex: Configs.guardSecret,
+      secretHex: Configs.guardSecretHex,
       txSignTimeout: Configs.txSignTimeout,
       multiSigFirstSignDelay: Configs.multiSigFirstSignDelay,
       submit: this.generateSubmitMessageWrapper(MultiSigHandler.CHANNEL),

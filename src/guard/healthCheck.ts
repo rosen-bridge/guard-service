@@ -14,8 +14,7 @@ import {
 import { HealthCheck } from '@rosen-bridge/health-check';
 import { ErgoNodeSyncHealthCheckParam } from '@rosen-bridge/node-sync-check';
 import { ScannerSyncHealthCheckParam } from '@rosen-bridge/scanner-sync-check';
-import { LastSavedBlock } from '@rosen-bridge/scanner-sync-check/dist/config';
-// TODO: fix import (local:ergo/rosen-bridge/health-check#67)
+import { LastSavedBlock } from '@rosen-bridge/scanner-sync-check';
 import {
   TxInfo,
   TxProgressHealthCheckParam,
@@ -176,10 +175,9 @@ const getHealthCheck = async () => {
       );
       healthCheck.register(emissionTokenAssetHealthCheck);
 
-      const scannerName = 'ergo-node';
       const ergoScannerSyncCheck = new ScannerSyncHealthCheckParam(
         ERGO_CHAIN,
-        generateLastBlockFetcher(scannerName),
+        generateLastBlockFetcher(ERGO_CHAIN),
         Configs.ergoScannerWarnDiff,
         Configs.ergoScannerCriticalDiff,
         ERGO_BLOCK_TIME,
@@ -219,10 +217,9 @@ const getHealthCheck = async () => {
         );
       healthCheck.register(emissionTokenAssetHealthCheck);
 
-      const scannerName = 'ergo-explorer';
       const ergoScannerSyncCheck = new ScannerSyncHealthCheckParam(
         ERGO_CHAIN,
-        generateLastBlockFetcher(scannerName),
+        generateLastBlockFetcher(ERGO_CHAIN),
         Configs.ergoScannerWarnDiff,
         Configs.ergoScannerCriticalDiff,
         ERGO_BLOCK_TIME,
@@ -269,7 +266,7 @@ const getHealthCheck = async () => {
       healthCheck.register(btcAssetHealthCheck);
       // register BTC asset-check on Bitcoin Runes lock address
       const btcRunesAssetHealthCheck = new EsploraAssetHealthCheckParam(
-        BITCOIN_CHAIN,
+        BITCOIN_RUNES_CHAIN,
         BTC,
         bitcoinRunesContracts.lockAddress,
         Configs.btcWarnThreshold,
@@ -295,10 +292,9 @@ const getHealthCheck = async () => {
       );
       healthCheck.register(ethAssetHealthCheck);
 
-      const scannerName = 'ethereum-evm-rpc';
       const ethereumScannerSyncCheck = new ScannerSyncHealthCheckParam(
         ETHEREUM_CHAIN,
-        generateLastBlockFetcher(scannerName),
+        generateLastBlockFetcher(ETHEREUM_CHAIN),
         Configs.ethereumScannerWarnDiff,
         Configs.ethereumScannerCriticalDiff,
         ETHEREUM_BLOCK_TIME,
@@ -322,10 +318,9 @@ const getHealthCheck = async () => {
       );
       healthCheck.register(bnbAssetHealthCheck);
 
-      const scannerName = 'binance-evm-rpc';
       const binanceScannerSyncCheck = new ScannerSyncHealthCheckParam(
         BINANCE_CHAIN,
-        generateLastBlockFetcher(scannerName),
+        generateLastBlockFetcher(BINANCE_CHAIN),
         Configs.binanceScannerWarnDiff,
         Configs.binanceScannerCriticalDiff,
         BINANCE_BLOCK_TIME,

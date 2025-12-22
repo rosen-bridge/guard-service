@@ -3,7 +3,6 @@ import { Semaphore } from 'await-semaphore';
 import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
 import { Communicator } from '@rosen-bridge/communication';
 import { RosenDialerNode } from '@rosen-bridge/dialer';
-import { ECDSA } from '@rosen-bridge/encryption';
 import {
   ImpossibleBehavior,
   PaymentTransaction,
@@ -51,7 +50,7 @@ class TxAgreement extends Communicator {
   protected constructor() {
     super(
       logger,
-      new ECDSA(Configs.guardSecret),
+      Configs.guardSecretEcdsa,
       TxAgreement.sendMessageWrapper,
       GuardPkHandler.getInstance().publicKeys,
       GuardTurn.UP_TIME_LENGTH,
