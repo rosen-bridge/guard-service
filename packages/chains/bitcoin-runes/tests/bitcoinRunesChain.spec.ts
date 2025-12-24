@@ -14,7 +14,6 @@ import {
   BITCOIN_RUNES_CHAIN,
   BitcoinRunesChain,
   BitcoinRunesTransaction,
-  TssSignFunction,
 } from '../lib';
 import { TestBitcoinRunesNetwork } from './network/testBitcoinRunesNetwork';
 import * as testData from './testData';
@@ -1517,7 +1516,7 @@ describe('BitcoinRunesChain', () => {
         network,
         newConfigs,
         tokenMap,
-        testUtils.mockedSignFn,
+        testUtils.mockedSignMediator,
       );
 
       // run test
@@ -1557,7 +1556,7 @@ describe('BitcoinRunesChain', () => {
         network,
         newConfigs,
         tokenMap,
-        testUtils.mockedSignFn,
+        testUtils.mockedSignMediator,
       );
 
       // run test
@@ -2003,7 +2002,7 @@ describe('BitcoinRunesChain', () => {
      */
     it('should return PaymentTransaction of the signed transaction', async () => {
       // mock a sign function to return signature
-      const signFunction: TssSignFunction = async (hash: Uint8Array) => {
+      const signFunction = async (hash: Uint8Array) => {
         const hashHex = Buffer.from(hash).toString('hex');
         if (hashHex === testData.transaction1HashMessage0)
           return {
@@ -2022,10 +2021,10 @@ describe('BitcoinRunesChain', () => {
       );
 
       // run test
-      const bitcoinRunesChain = await generateChainObject(
-        network,
-        signFunction,
-      );
+      const bitcoinRunesChain = await generateChainObject(network, {
+        sign: signFunction,
+        isInSign: vi.fn(),
+      });
       const result = await bitcoinRunesChain.signTransaction(paymentTx, 0);
 
       // check returned value
@@ -2051,7 +2050,7 @@ describe('BitcoinRunesChain', () => {
     it('should throw error when at least signing of one message is failed', async () => {
       // mock a sign function to throw error
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const signFunction: TssSignFunction = async (hash: Uint8Array) => {
+      const signFunction = async (hash: Uint8Array) => {
         throw Error(`TestError: sign failed`);
       };
 
@@ -2061,14 +2060,96 @@ describe('BitcoinRunesChain', () => {
       );
 
       // run test
-      const bitcoinRunesChain = await generateChainObject(
-        network,
-        signFunction,
-      );
+      const bitcoinRunesChain = await generateChainObject(network, {
+        sign: signFunction,
+        isInSign: vi.fn(),
+      });
 
       await expect(async () => {
         await bitcoinRunesChain.signTransaction(paymentTx, 0);
       }).rejects.toThrow('TestError: sign failed');
+    });
+  });
+
+  describe('isTransactionInSign', () => {
+    const network = new TestBitcoinRunesNetwork();
+
+    /**
+     * @target BitcoinRunesChain.isTransactionInSign should return true when at least one input is in sign
+     * @dependencies
+     * @scenario
+     * - mock an isinSign function to return true only for one input
+     * - mock PaymentTransaction of unsigned transaction
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return true
+     */
+    it('should return true when at least one input is in sign', async () => {
+      // mock an isinSign function to return true only for one input
+      const isInSignFunction = async (hash: Uint8Array) => {
+        const hashHex = Buffer.from(hash).toString('hex');
+        if (hashHex === testData.transaction2HashMessage0) return false;
+        else if (hashHex === testData.transaction2HashMessage1) return true;
+        else
+          throw Error(
+            `TestError: isInSign function is called with wrong message [${hashHex}]`,
+          );
+      };
+
+      // mock PaymentTransaction of unsigned transaction
+      const paymentTx = BitcoinRunesTransaction.fromJson(
+        testData.transaction2PaymentTransaction,
+      );
+
+      // run test
+      const bitcoinChain = await testUtils.generateChainObject(network, {
+        sign: vi.fn(),
+        isInSign: isInSignFunction,
+      });
+      const result = await bitcoinChain.isTransactionInSign(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(true);
+    });
+
+    /**
+     * @target BitcoinRunesChain.isTransactionInSign should return false when no input is in sign
+     * @dependencies
+     * @scenario
+     * - mock an isinSign function to return false only for one input
+     * - mock PaymentTransaction of unsigned transaction
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when no input is in sign', async () => {
+      // mock an isinSign function to return false only for one input
+      const isInSignFunction = async (hash: Uint8Array) => {
+        const hashHex = Buffer.from(hash).toString('hex');
+        if (hashHex === testData.transaction2HashMessage0) return false;
+        else if (hashHex === testData.transaction2HashMessage1) return false;
+        else
+          throw Error(
+            `TestError: isInSign function is called with wrong message [${hashHex}]`,
+          );
+      };
+
+      // mock PaymentTransaction of unsigned transaction
+      const paymentTx = BitcoinRunesTransaction.fromJson(
+        testData.transaction2PaymentTransaction,
+      );
+
+      // run test
+      const bitcoinChain = await testUtils.generateChainObject(network, {
+        sign: vi.fn(),
+        isInSign: isInSignFunction,
+      });
+      const result = await bitcoinChain.isTransactionInSign(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
     });
   });
 

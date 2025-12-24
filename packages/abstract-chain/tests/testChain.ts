@@ -21,6 +21,7 @@ class TestChain extends AbstractChain<string> {
   verifyTransactionExtraConditions = this.notImplemented;
   isTxValid = this.notImplemented;
   signTransaction = this.notImplemented;
+  isTransactionInSign = this.notImplemented;
   submitTransaction = this.notImplemented;
   isTxInMempool = this.notImplemented;
   getMinimumNativeToken = this.notImplemented;
