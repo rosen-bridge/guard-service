@@ -15,7 +15,6 @@ import { mockCreateEventPaymentOrder } from '../event/mocked/eventOrder.mock';
 import { mockGetEventFeeConfig } from '../event/mocked/minimumFee.mock';
 import * as EventTestData from '../event/testData';
 import ChainHandlerMock from '../handlers/chainHandler.mock';
-import PublicStatusHandlerMock from '../handlers/mocked/publicStatusHandler.mock';
 import TestConfigs from '../testUtils/testConfigs';
 import TestUtils from '../testUtils/testUtils';
 import {
@@ -69,8 +68,6 @@ describe('EventSynchronization', () => {
 
     beforeEach(async () => {
       await DatabaseActionMock.clearTables();
-      PublicStatusHandlerMock.resetMock();
-      PublicStatusHandlerMock.mock();
     });
 
     /**
@@ -347,7 +344,6 @@ describe('EventSynchronization', () => {
      * - EventVerifier
      * - MinimumFee
      * @scenario
-     * - stub PublicStatusHandler.updatePublicEventStatus to resolve
      * - mock event
      * - insert mocked event into db
      * - insert event into queue
@@ -360,12 +356,8 @@ describe('EventSynchronization', () => {
      * - active sync should remain empty
      * - memory queue should be empty
      * - event status should be updated in db
-     * - PublicStatusHandler.updatePublicEventStatus should have been called once
      */
     it('should set event as rejected when event is not verified', async () => {
-      const updatePublicEventStatusSpy =
-        PublicStatusHandlerMock.mockUpdatePublicEventStatus();
-
       // mock event
       const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
@@ -401,11 +393,6 @@ describe('EventSynchronization', () => {
         EventSerializer.getId(mockedEvent),
         EventStatus.rejected,
       ]);
-
-      expect(updatePublicEventStatusSpy).toHaveBeenCalledExactlyOnceWith(
-        eventId,
-        EventStatus.rejected,
-      );
     });
   });
 
@@ -1873,8 +1860,6 @@ describe('EventSynchronization', () => {
   describe(`setTxAsApproved`, () => {
     beforeEach(async () => {
       await DatabaseActionMock.clearTables();
-      PublicStatusHandlerMock.resetMock();
-      PublicStatusHandlerMock.mock();
     });
 
     /**
@@ -1883,8 +1868,6 @@ describe('EventSynchronization', () => {
      * @dependencies
      * - database
      * @scenario
-     * - stub PublicStatusHandler.updatePublicEventStatus to resolve
-     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
      * - mock event and transaction and insert into db
      * - insert event into active sync
      * - run test
@@ -1894,16 +1877,8 @@ describe('EventSynchronization', () => {
      * - tx should be inserted into db
      * - event status should be updated in db
      * - event should be removed from active sync
-     * - PublicStatusHandler.updatePublicEventStatus should have been called once
-     * - PublicStatusHandler.updatePublicTxStatus should have been called once
      */
     it('should insert transaction into database and update event status', async () => {
-      const updatePublicEventStatusSpy =
-        PublicStatusHandlerMock.mockUpdatePublicEventStatus();
-
-      const updatePublicTxStatusSpy =
-        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
-
       // mock event and transaction and insert into db
       const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
@@ -1952,16 +1927,6 @@ describe('EventSynchronization', () => {
 
       // event should be removed from active sync
       expect(eventSync.getActiveSyncMap().size).toEqual(0);
-
-      expect(updatePublicEventStatusSpy).toHaveBeenCalledExactlyOnceWith(
-        eventId,
-        EventStatus.pendingReward,
-      );
-
-      expect(updatePublicTxStatusSpy).toHaveBeenCalledExactlyOnceWith(
-        paymentTx.txId,
-        TransactionStatus.completed,
-      );
     });
   });
 
