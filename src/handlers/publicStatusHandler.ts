@@ -119,6 +119,8 @@ class PublicStatusHandler {
     eventId: string,
     status: EventStatus,
   ): Promise<void> => {
+    if (!this.isActive) return;
+
     try {
       let txDto: UpdateTxStatusDTO | undefined;
 
@@ -151,8 +153,6 @@ class PublicStatusHandler {
         tx: txDto,
       };
 
-      if (!this.isActive) return;
-
       await this.submitRequest(dto);
     } catch (e) {
       logger.error(
@@ -172,6 +172,8 @@ class PublicStatusHandler {
     txId: string,
     txStatus: TransactionStatus,
   ): Promise<void> => {
+    if (!this.isActive) return;
+
     try {
       const tx = await this.txRepository.findOne({
         relations: ['event'],
@@ -206,8 +208,6 @@ class PublicStatusHandler {
           txStatus,
         },
       };
-
-      if (!this.isActive) return;
 
       await this.submitRequest(dto);
     } catch (e) {
