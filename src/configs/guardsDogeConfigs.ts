@@ -93,12 +93,12 @@ class GuardsDogeConfigs {
       arbitrary: this.arbitraryTxConfirmation,
     },
     addresses: {
-      lock: this.dogeContractConfig.lockAddress,
-      cold: this.dogeContractConfig.coldAddress,
-      permit: this.dogeContractConfig.permitAddress,
-      fraud: this.dogeContractConfig.fraudAddress,
+      lock: this.dogeContractConfig.addresses.lock,
+      cold: this.dogeContractConfig.addresses.cold,
+      permit: this.dogeContractConfig.addresses.WatcherPermit,
+      fraud: this.dogeContractConfig.addresses.Fraud,
     },
-    rwtId: this.dogeContractConfig.RWTId,
+    rwtId: this.dogeContractConfig.tokens.RWTId,
     aggregatedPublicKey: this.aggregatedPublicKey,
     txFeeSlippage: this.txFeeSlippage,
   };

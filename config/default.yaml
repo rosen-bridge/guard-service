@@ -203,8 +203,7 @@ txSignTimeout: 300 # timeout for signing transactions
 guard:
   mnemonic: ''
   configUpdateInterval: 180 # guards config box update interval (getting guards configs from the box in Ergo network)
-contracts:
-  addressesBasePath: './config/rosen/'
+contractsPath: './config/contracts.json'
 logs:
   - type: 'file' # [file, console]
     path: './logs/' # path to log files (only for rotateFile type)
@@ -221,7 +220,7 @@ intervals:
   timeoutProcessorInterval: 3600 # interval to check if events got timeout
   requeueWaitingEventsInterval: 21600 # interval for requeue events which are timeout
   minimumFeeUpdateInterval: 300
-tokensPath: './config/rosen/tokens.json' # path to supported tokens of bridge
+tokensPath: './config/tokens.json' # path to supported tokens of bridge
 thresholdsPath: './config/thresholds.json' # path to thresholds of lock address tokens
 database:
   type: 'sqlite' # options: postgres, sqlite

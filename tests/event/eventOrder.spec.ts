@@ -274,7 +274,7 @@ describe('EventOrder', () => {
       );
       for (let index = 0; index < mockedEvent.WIDs.length; index++) {
         expect(result.watchersOrder[index].address).toEqual(
-          GuardsCardanoConfigs.cardanoContractConfig.permitAddress,
+          GuardsCardanoConfigs.cardanoContractConfig.addresses.WatcherPermit,
         );
       }
     });
@@ -362,7 +362,7 @@ describe('EventOrder', () => {
       // verify 5 watcher box
       watchersOrder.slice(0, 5).forEach((watcherOrder, index) => {
         expect(watcherOrder.address).toEqual(
-          GuardsErgoConfigs.ergoContractConfig.permitAddress,
+          GuardsErgoConfigs.ergoContractConfig.addresses.WatcherPermit,
         );
         // ((event.amount * fee.feeRatio) / feeRatioDivisor * watchersSharePercent) / 100 / 6 + permit boxValue
         expect(watcherOrder.assets.nativeToken).toEqual(83333333n + 100000000n);
@@ -378,7 +378,7 @@ describe('EventOrder', () => {
       // verify 1 watcher box
       const unmergedWatcherOrder = watchersOrder[5];
       expect(unmergedWatcherOrder.address).toEqual(
-        GuardsErgoConfigs.ergoContractConfig.permitAddress,
+        GuardsErgoConfigs.ergoContractConfig.addresses.WatcherPermit,
       );
       expect(unmergedWatcherOrder.assets.nativeToken).toEqual(
         83333333n + 200000000n,
@@ -502,7 +502,7 @@ describe('EventOrder', () => {
       // verify 5 watcher box
       watchersOrder.slice(0, 5).forEach((watcherOrder, index) => {
         expect(watcherOrder.address).toEqual(
-          GuardsErgoConfigs.ergoContractConfig.permitAddress,
+          GuardsErgoConfigs.ergoContractConfig.addresses.WatcherPermit,
         );
         expect(watcherOrder.assets.nativeToken).toEqual(10000000n);
         expect(watcherOrder.assets.tokens.length).toEqual(3);
@@ -521,7 +521,7 @@ describe('EventOrder', () => {
       // verify 1 watcher box
       const unmergedWatcherOrder = watchersOrder[5];
       expect(unmergedWatcherOrder.address).toEqual(
-        GuardsErgoConfigs.ergoContractConfig.permitAddress,
+        GuardsErgoConfigs.ergoContractConfig.addresses.WatcherPermit,
       );
       expect(unmergedWatcherOrder.assets.nativeToken).toEqual(2000000000n);
       expect(unmergedWatcherOrder.assets.tokens.length).toEqual(3);
@@ -655,7 +655,7 @@ describe('EventOrder', () => {
       // verify 5 watcher box
       watchersOrder.slice(0, 5).forEach((watcherOrder, index) => {
         expect(watcherOrder.address).toEqual(
-          GuardsErgoConfigs.ergoContractConfig.permitAddress,
+          GuardsErgoConfigs.ergoContractConfig.addresses.WatcherPermit,
         );
         expect(watcherOrder.assets.nativeToken).toEqual(10000000n);
         expect(watcherOrder.assets.tokens.length).toEqual(3);
@@ -674,7 +674,7 @@ describe('EventOrder', () => {
       // verify 1 watcher box
       const unmergedWatcherOrder = watchersOrder[5];
       expect(unmergedWatcherOrder.address).toEqual(
-        GuardsErgoConfigs.ergoContractConfig.permitAddress,
+        GuardsErgoConfigs.ergoContractConfig.addresses.WatcherPermit,
       );
       expect(unmergedWatcherOrder.assets.nativeToken).toEqual(11000000n);
       expect(unmergedWatcherOrder.assets.tokens.length).toEqual(3);
@@ -808,7 +808,7 @@ describe('EventOrder', () => {
       // verify 5 watcher box
       watchersOrder.slice(0, 5).forEach((watcherOrder, index) => {
         expect(watcherOrder.address).toEqual(
-          GuardsErgoConfigs.ergoContractConfig.permitAddress,
+          GuardsErgoConfigs.ergoContractConfig.addresses.WatcherPermit,
         );
         // ((event.amount * fee.feeRatio) / feeRatioDivisor * watchersSharePercent) / 100 / 6 + permit boxValue
         expect(watcherOrder.assets.nativeToken).toEqual(416666666n + 10000000n);
@@ -824,7 +824,7 @@ describe('EventOrder', () => {
       // verify 1 watcher box
       const unmergedWatcherOrder = watchersOrder[5];
       expect(unmergedWatcherOrder.address).toEqual(
-        GuardsErgoConfigs.ergoContractConfig.permitAddress,
+        GuardsErgoConfigs.ergoContractConfig.addresses.WatcherPermit,
       );
       expect(unmergedWatcherOrder.assets.nativeToken).toEqual(
         416666666n + 20000000n,
@@ -942,7 +942,7 @@ describe('EventOrder', () => {
       // verify 5 watcher box
       watchersOrder.slice(0, 5).forEach((watcherOrder, index) => {
         expect(watcherOrder.address).toEqual(
-          GuardsErgoConfigs.ergoContractConfig.permitAddress,
+          GuardsErgoConfigs.ergoContractConfig.addresses.WatcherPermit,
         );
         expect(watcherOrder.assets.nativeToken).toEqual(10000000n);
         expect(watcherOrder.assets.tokens.length).toEqual(2);
@@ -957,7 +957,7 @@ describe('EventOrder', () => {
       // verify 1 watcher box
       const unmergedWatcherOrder = watchersOrder[5];
       expect(unmergedWatcherOrder.address).toEqual(
-        GuardsErgoConfigs.ergoContractConfig.permitAddress,
+        GuardsErgoConfigs.ergoContractConfig.addresses.WatcherPermit,
       );
       expect(unmergedWatcherOrder.assets.nativeToken).toEqual(2000000000n);
       expect(unmergedWatcherOrder.assets.tokens.length).toEqual(2);

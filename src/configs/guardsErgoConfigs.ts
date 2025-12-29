@@ -98,12 +98,12 @@ class GuardsErgoConfigs {
       arbitrary: this.arbitraryTxConfirmation,
     },
     addresses: {
-      lock: this.ergoContractConfig.lockAddress,
-      cold: this.ergoContractConfig.coldAddress,
-      permit: this.ergoContractConfig.permitAddress,
-      fraud: this.ergoContractConfig.fraudAddress,
+      lock: this.ergoContractConfig.addresses.lock,
+      cold: this.ergoContractConfig.addresses.cold,
+      permit: this.ergoContractConfig.addresses.WatcherPermit,
+      fraud: this.ergoContractConfig.addresses.Fraud,
     },
-    rwtId: this.ergoContractConfig.RWTId,
+    rwtId: this.ergoContractConfig.tokens.RWTId,
     minBoxValue: this.minimumErg,
     eventTxConfirmation: this.eventConfirmation,
   };
