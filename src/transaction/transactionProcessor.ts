@@ -235,17 +235,17 @@ class TransactionProcessor {
     );
     switch (txConfirmation) {
       case ConfirmationStatus.ConfirmedEnough: {
-        if (!tx.event)
-          throw new ImpossibleBehavior(
-            `Tx [${tx.txId}] has no event associated with it`,
-          );
-
         // tx confirmed enough, proceed to next process
         await DatabaseAction.getInstance().setTxStatus(
           tx.txId,
           TransactionStatus.completed,
         );
         if (tx.type === TransactionType.payment && tx.chain !== ERGO_CHAIN) {
+          if (!tx.event)
+            throw new ImpossibleBehavior(
+              `Tx [${tx.txId}] has no event associated with it`,
+            );
+
           // set event status, to start reward distribution
           await DatabaseAction.getInstance().setEventStatusToPending(
             tx.event.id,
@@ -258,6 +258,10 @@ class TransactionProcessor {
           tx.type === TransactionType.reward ||
           (tx.type === TransactionType.payment && tx.chain === ERGO_CHAIN)
         ) {
+          if (!tx.event)
+            throw new ImpossibleBehavior(
+              `Tx [${tx.txId}] has no event associated with it`,
+            );
           // set event as complete
           await DatabaseAction.getInstance().setEventStatus(
             tx.event.id,

@@ -1436,6 +1436,7 @@ describe('TxAgreement', () => {
         tx.txId,
         tx.event?.id,
       ]);
+      expect(dbTxs.length).toEqual(1);
       expect(dbTxs).toContainEqual([paymentTx.txId, eventId]);
     });
 
@@ -1534,6 +1535,7 @@ describe('TxAgreement', () => {
         tx.event,
         tx.chain,
       ]);
+      expect(dbTxs.length).toEqual(1);
       expect(dbTxs).toContainEqual([paymentTx.txId, null, chain]);
     });
   });
@@ -1770,6 +1772,7 @@ describe('TxAgreement', () => {
         tx.txId,
         tx.event?.id,
       ]);
+      expect(dbTxs.length).toEqual(1);
       expect(dbTxs).toContainEqual([paymentTx.txId, eventId]);
     });
 
@@ -1843,6 +1846,7 @@ describe('TxAgreement', () => {
         tx.event,
         tx.chain,
       ]);
+      expect(dbTxs.length).toEqual(1);
       expect(dbTxs).toContainEqual([paymentTx.txId, null, paymentTx.network]);
     });
 
@@ -1928,6 +1932,7 @@ describe('TxAgreement', () => {
         tx.txId,
         tx.event?.id,
       ]);
+      expect(dbTxs.length).toEqual(1);
       expect(dbTxs).toContainEqual([paymentTx.txId, eventId]);
     });
 
