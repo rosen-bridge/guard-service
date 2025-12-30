@@ -1,5 +1,3 @@
-import Utils from 'src/utils/utils';
-
 import { EventTriggerEntity } from '@rosen-bridge/watcher-data-extractor';
 import { TransactionType } from '@rosen-chains/abstract-chain';
 import { ERGO_CHAIN } from '@rosen-chains/ergo';
@@ -12,6 +10,7 @@ import {
   RevenueType,
   TransactionStatus,
 } from '../../src/utils/constants';
+import Utils from '../../src/utils/utils';
 import * as TxTestData from '../agreement/testData';
 import * as EventTestData from '../event/testData';
 import PublicStatusHandlerMock from '../handlers/mocked/publicStatusHandler.mock';
@@ -828,13 +827,18 @@ describe('DatabaseActions', () => {
      * @dependencies
      * - database
      * @scenario
+     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
      * - mock transaction and insert into db as 'sign-failed'
      * - run test
      * - check tx
      * @expected
      * - signFailedCount should remain unchanged
+     * - PublicStatusHandler.updatePublicTxStatus should not have been called
      */
     it('should not increment counter when tx status is already sign-failed', async () => {
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
       // mock transaction and insert into db as 'in-sign'
       const tx = TxTestData.mockPaymentTransaction();
       await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.signFailed);
@@ -848,6 +852,7 @@ describe('DatabaseActions', () => {
         tx.signFailedCount,
       ]);
       expect(dbTxs).toEqual([[tx.txId, 0]]);
+      expect(updatePublicTxStatusSpy).not.toBeCalled();
     });
 
     /**
@@ -942,6 +947,36 @@ describe('DatabaseActions', () => {
         EventStatus.pendingReward,
       );
     });
+
+    /**
+     * @target DatabaseAction.setEventStatus should not call updatePublicEventStatus if no records were updated
+     * @dependencies
+     * - database
+     * @scenario
+     * - stub PublicStatusHandler.updatePublicEventStatus to resolve
+     * - define a mock EventTrigger
+     * - call DatabaseAction.setEventStatus
+     * - call ConfirmedEventRepository.findOne with eventId
+     * @expected
+     * - PublicStatusHandler.updatePublicEventStatus should not have been called
+     */
+    it('should not call updatePublicEventStatus if no records were updated', async () => {
+      // arrange
+      const updatePublicEventStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicEventStatus();
+
+      const event = EventTestData.mockEventTrigger().event;
+      const eventId = Utils.txIdToEventId(event.sourceTxId);
+
+      // act
+      await DatabaseActionMock.testDatabase.setEventStatus(
+        eventId,
+        EventStatus.pendingReward,
+      );
+
+      // assert
+      expect(updatePublicEventStatusSpy).not.toHaveBeenCalled();
+    });
   });
 
   describe('setEventStatusToPending', () => {
@@ -993,6 +1028,35 @@ describe('DatabaseActions', () => {
         eventId,
         EventStatus.pendingReward,
       );
+    });
+
+    /**
+     * @target DatabaseAction.setEventStatusToPending should not call updatePublicEventStatus if no records were updated
+     * @dependencies
+     * - database
+     * @scenario
+     * - stub PublicStatusHandler.updatePublicEventStatus to resolve
+     * - define a mock EventTrigger
+     * - call DatabaseAction.setEventStatusToPending
+     * @expected
+     * - PublicStatusHandler.updatePublicEventStatus should not have been called
+     */
+    it('should not call updatePublicEventStatus if no records were updated', async () => {
+      // arrange
+      const updatePublicEventStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicEventStatus();
+
+      const event = EventTestData.mockEventTrigger().event;
+      const eventId = Utils.txIdToEventId(event.sourceTxId);
+
+      // act
+      await DatabaseActionMock.testDatabase.setEventStatusToPending(
+        eventId,
+        EventStatus.pendingReward,
+      );
+
+      // assert
+      expect(updatePublicEventStatusSpy).not.toHaveBeenCalled();
     });
   });
 
@@ -1086,6 +1150,34 @@ describe('DatabaseActions', () => {
         TransactionStatus.approved,
       );
     });
+
+    /**
+     * @target DatabaseAction.setTxStatus should not call updatePublicTxStatus if no records were updated
+     * @dependencies
+     * - database
+     * @scenario
+     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
+     * - define a mock PaymentTransaction
+     * - call DatabaseAction.setTxStatus
+     * @expected
+     * - PublicStatusHandler.updatePublicTxStatus should not have been called
+     */
+    it('should not call updatePublicTxStatus if no records were updated', async () => {
+      // arrange
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
+      const mockTx = TxTestData.mockPaymentTransaction(TransactionType.reward);
+
+      // act
+      await DatabaseActionMock.testDatabase.setTxStatus(
+        mockTx.txId,
+        TransactionStatus.approved,
+      );
+
+      // assert
+      expect(updatePublicTxStatusSpy).not.toHaveBeenCalled();
+    });
   });
 
   describe('updateWithSignedTx', () => {
@@ -1133,6 +1225,36 @@ describe('DatabaseActions', () => {
         TransactionStatus.signed,
       );
     });
+
+    /**
+     * @target DatabaseAction.updateWithSignedTx should not call updatePublicTxStatus if no records were updated
+     * @dependencies
+     * - database
+     * @scenario
+     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
+     * - define a mock PaymentTransaction
+     * - call DatabaseAction.updateWithSignedTx
+     * @expected
+     * - database record should have been updated
+     * - PublicStatusHandler.updatePublicTxStatus should not have been called
+     */
+    it('should not call updatePublicTxStatus if no records were updated', async () => {
+      // arrange
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
+      const mockTx = TxTestData.mockPaymentTransaction(TransactionType.reward);
+
+      // act
+      await DatabaseActionMock.testDatabase.updateWithSignedTx(
+        mockTx.txId,
+        '{}',
+        10,
+      );
+
+      // assert
+      expect(updatePublicTxStatusSpy).not.toHaveBeenCalled();
+    });
   });
 
   describe('replaceTx', () => {
@@ -1177,6 +1299,33 @@ describe('DatabaseActions', () => {
         mockTx2.txId,
         TransactionStatus.approved,
       );
+    });
+
+    /**
+     * @target DatabaseAction.replaceTx should not call updatePublicTxStatus if no records were updated
+     * @dependencies
+     * - database
+     * @scenario
+     * - stub PublicStatusHandler.updatePublicTxStatus to resolve
+     * - define a mock PaymentTransaction
+     * - define a mock PaymentTransaction with a different id
+     * - call DatabaseAction.replaceTx
+     * @expected
+     * - PublicStatusHandler.updatePublicTxStatus should not have been called
+     */
+    it('should not call updatePublicTxStatus if no records were updated', async () => {
+      // arrange
+      const updatePublicTxStatusSpy =
+        PublicStatusHandlerMock.mockUpdatePublicTxStatus();
+
+      const mockTx = TxTestData.mockPaymentTransaction(TransactionType.reward);
+      const mockTx2 = TxTestData.mockPaymentTransaction(TransactionType.reward);
+
+      // act
+      await DatabaseActionMock.testDatabase.replaceTx(mockTx.txId, mockTx2);
+
+      // assert
+      expect(updatePublicTxStatusSpy).not.toHaveBeenCalled();
     });
   });
 
