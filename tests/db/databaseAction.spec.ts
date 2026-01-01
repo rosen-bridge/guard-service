@@ -881,14 +881,15 @@ describe('DatabaseActions', () => {
       // act
       await DatabaseActionMock.testDatabase.setTxAsSignFailed(mockTx.txId);
 
-      const record =
-        await DatabaseActionMock.testDatabase.TransactionRepository.findOneBy({
-          txId: mockTx.txId,
-        });
-
       // assert
-      expect(record).toBeTruthy();
-      expect(record!.status).toBe(TransactionStatus.signFailed);
+      const record =
+        await DatabaseActionMock.testDatabase.TransactionRepository.findOneByOrFail(
+          {
+            txId: mockTx.txId,
+          },
+        );
+
+      expect(record.status).toBe(TransactionStatus.signFailed);
 
       expect(updatePublicTxStatusSpy).toHaveBeenCalledExactlyOnceWith(
         mockTx.txId,
@@ -931,16 +932,15 @@ describe('DatabaseActions', () => {
         EventStatus.pendingReward,
       );
 
+      // assert
       const record =
-        await DatabaseActionMock.testDatabase.ConfirmedEventRepository.findOneBy(
+        await DatabaseActionMock.testDatabase.ConfirmedEventRepository.findOneByOrFail(
           {
             id: eventId,
           },
         );
 
-      // assert
-      expect(record).toBeTruthy();
-      expect(record!.status).toBe(EventStatus.pendingReward);
+      expect(record.status).toBe(EventStatus.pendingReward);
 
       expect(updatePublicEventStatusSpy).toHaveBeenCalledExactlyOnceWith(
         eventId,
@@ -1013,16 +1013,15 @@ describe('DatabaseActions', () => {
         EventStatus.pendingReward,
       );
 
+      // assert
       const record =
-        await DatabaseActionMock.testDatabase.ConfirmedEventRepository.findOneBy(
+        await DatabaseActionMock.testDatabase.ConfirmedEventRepository.findOneByOrFail(
           {
             id: eventId,
           },
         );
 
-      // assert
-      expect(record).toBeTruthy();
-      expect(record!.status).toBe(EventStatus.pendingReward);
+      expect(record.status).toBe(EventStatus.pendingReward);
 
       expect(updatePublicEventStatusSpy).toHaveBeenCalledExactlyOnceWith(
         eventId,
@@ -1088,16 +1087,15 @@ describe('DatabaseActions', () => {
         event as EventTriggerEntity,
       );
 
+      // assert
       const record =
-        await DatabaseActionMock.testDatabase.ConfirmedEventRepository.findOneBy(
+        await DatabaseActionMock.testDatabase.ConfirmedEventRepository.findOneByOrFail(
           {
             id: eventId,
           },
         );
 
-      // assert
-      expect(record).toBeTruthy();
-      expect(record!.status).toBe(EventStatus.pendingPayment);
+      expect(record.status).toBe(EventStatus.pendingPayment);
 
       expect(updatePublicEventStatusSpy).toHaveBeenCalledExactlyOnceWith(
         eventId,
@@ -1136,14 +1134,15 @@ describe('DatabaseActions', () => {
         TransactionStatus.approved,
       );
 
-      const record =
-        await DatabaseActionMock.testDatabase.TransactionRepository.findOneBy({
-          txId: mockTx.txId,
-        });
-
       // assert
-      expect(record).toBeTruthy();
-      expect(record!.status).toBe(TransactionStatus.approved);
+      const record =
+        await DatabaseActionMock.testDatabase.TransactionRepository.findOneByOrFail(
+          {
+            txId: mockTx.txId,
+          },
+        );
+
+      expect(record.status).toBe(TransactionStatus.approved);
 
       expect(updatePublicTxStatusSpy).toHaveBeenCalledExactlyOnceWith(
         mockTx.txId,
@@ -1211,14 +1210,15 @@ describe('DatabaseActions', () => {
         10,
       );
 
-      const record =
-        await DatabaseActionMock.testDatabase.TransactionRepository.findOneBy({
-          txId: mockTx.txId,
-        });
-
       // assert
-      expect(record).toBeTruthy();
-      expect(record!.status).toBe(TransactionStatus.signed);
+      const record =
+        await DatabaseActionMock.testDatabase.TransactionRepository.findOneByOrFail(
+          {
+            txId: mockTx.txId,
+          },
+        );
+
+      expect(record.status).toBe(TransactionStatus.signed);
 
       expect(updatePublicTxStatusSpy).toHaveBeenCalledExactlyOnceWith(
         mockTx.txId,
@@ -1286,14 +1286,15 @@ describe('DatabaseActions', () => {
       // act
       await DatabaseActionMock.testDatabase.replaceTx(mockTx.txId, mockTx2);
 
-      const record =
-        await DatabaseActionMock.testDatabase.TransactionRepository.findOneBy({
-          txId: mockTx2.txId,
-        });
-
       // assert
-      expect(record).toBeTruthy();
-      expect(record!.txId).toBe(mockTx2.txId);
+      const record =
+        await DatabaseActionMock.testDatabase.TransactionRepository.findOneByOrFail(
+          {
+            txId: mockTx2.txId,
+          },
+        );
+
+      expect(record.txId).toBe(mockTx2.txId);
 
       expect(updatePublicTxStatusSpy).toHaveBeenCalledExactlyOnceWith(
         mockTx2.txId,
@@ -1353,14 +1354,15 @@ describe('DatabaseActions', () => {
       // act
       await DatabaseActionMock.testDatabase.insertNewTx(mockTx, null, 2, null);
 
-      const record =
-        await DatabaseActionMock.testDatabase.TransactionRepository.findOneBy({
-          txId: mockTx.txId,
-        });
-
       // assert
-      expect(record).toBeTruthy();
-      expect(record!.txId).toBe(mockTx.txId);
+      const record =
+        await DatabaseActionMock.testDatabase.TransactionRepository.findOneByOrFail(
+          {
+            txId: mockTx.txId,
+          },
+        );
+
+      expect(record.txId).toBe(mockTx.txId);
 
       expect(updatePublicTxStatusSpy).toHaveBeenCalledExactlyOnceWith(
         mockTx.txId,
@@ -1398,14 +1400,15 @@ describe('DatabaseActions', () => {
         null,
       );
 
-      const record =
-        await DatabaseActionMock.testDatabase.TransactionRepository.findOneBy({
-          txId: mockTx.txId,
-        });
-
       // assert
-      expect(record).toBeTruthy();
-      expect(record!.txId).toBe(mockTx.txId);
+      const record =
+        await DatabaseActionMock.testDatabase.TransactionRepository.findOneByOrFail(
+          {
+            txId: mockTx.txId,
+          },
+        );
+
+      expect(record.txId).toBe(mockTx.txId);
 
       expect(updatePublicTxStatusSpy).toHaveBeenCalledExactlyOnceWith(
         mockTx.txId,

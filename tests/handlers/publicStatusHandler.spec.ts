@@ -25,6 +25,7 @@ describe('PublicStatusHandler', () => {
     /**
      * @target PublicStatusHandler.submitRequest should submit successfully
      * @dependencies
+     * - Database
      * @scenario
      * - define a mock PublicStatusHandler with a mock dataSource
      * - define a mock UpdateStatusDTO object
@@ -72,12 +73,13 @@ describe('PublicStatusHandler', () => {
     /**
      * @target PublicStatusHandler.updatePublicEventStatus should call submitRequest with event and tx info when status is "inPayment"
      * @dependencies
+     * - Database
      * @scenario
      * - define a mock PublicStatusHandler with a mock dataSource
      * - define a mock transaction object
      * - insert the tx in database
      * - stub PublicStatusHandler.submitRequest to resolve
-     * - call PublicStatusHandler.updateEventStatus with status set to "inPayment"
+     * - call PublicStatusHandler.updatePublicEventStatus with status set to "inPayment"
      * @expected
      * - PublicStatusHandler.submitRequest should have been called once with the dto
      */
@@ -128,12 +130,13 @@ describe('PublicStatusHandler', () => {
     /**
      * @target PublicStatusHandler.updatePublicEventStatus should call submitRequest with event and tx info when status is "inReward"
      * @dependencies
+     * - Database
      * @scenario
      * - define a mock PublicStatusHandler with a mock dataSource
      * - define a mock transaction object
      * - insert the tx in database
      * - stub PublicStatusHandler.submitRequest to resolve
-     * - call PublicStatusHandler.updateEventStatus with status set to "inReward"
+     * - call PublicStatusHandler.updatePublicEventStatus with status set to "inReward"
      * @expected
      * - PublicStatusHandler.submitRequest should have been called once with the dto
      */
@@ -184,10 +187,11 @@ describe('PublicStatusHandler', () => {
     /**
      * @target PublicStatusHandler.updatePublicEventStatus should call submitRequest with the dto without transaction details when status is neither "inPayment" nor "inReward"
      * @dependencies
+     * - Database
      * @scenario
      * - define a mock PublicStatusHandler with a mock dataSource
      * - stub PublicStatusHandler.submitRequest to resolve
-     * - call PublicStatusHandler.updateEventStatus with status that is not "inPayment" or "inReward"
+     * - call PublicStatusHandler.updatePublicEventStatus with status that is not "inPayment" or "inReward"
      * @expected
      * - PublicStatusHandler.submitRequest should have been called once with the dto
      */
@@ -221,6 +225,7 @@ describe('PublicStatusHandler', () => {
     /**
      * @target PublicStatusHandler.updatePublicTxStatus should call submitRequest with a dto object containing transaction details
      * @dependencies
+     * - Database
      * @scenario
      * - define a mock PublicStatusHandler with a mock dataSource
      * - define a mock TransactionEntity object
@@ -280,6 +285,7 @@ describe('PublicStatusHandler', () => {
     /**
      * @target PublicStatusHandler.dtoToSignMessage should return a sign message without tx information when dto.tx field is undefined
      * @dependencies
+     * - Database
      * @scenario
      * - define a mock PublicStatusHandler with a mock dataSource
      * - define a mock UpdateStatusDTO object
@@ -309,6 +315,7 @@ describe('PublicStatusHandler', () => {
     /**
      * @target PublicStatusHandler.dtoToSignMessage should return a sign message with tx information when dto contains a tx
      * @dependencies
+     * - Database
      * @scenario
      * - define a mock PublicStatusHandler with a mock dataSource
      * - define a mock UpdateStatusDTO object
