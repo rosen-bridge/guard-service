@@ -203,8 +203,8 @@ const initScanner = () => {
   // init Bitcoin extractors
   const bitcoinCommitmentExtractor = new CommitmentExtractor(
     'bitcoinCommitment',
-    [GuardsBitcoinConfigs.bitcoinContractConfig.commitmentAddress],
-    GuardsBitcoinConfigs.bitcoinContractConfig.RWTId,
+    [GuardsBitcoinConfigs.bitcoinContractConfig.addresses.Commitment],
+    GuardsBitcoinConfigs.bitcoinContractConfig.tokens.RWTId,
     dataSource,
     TokenHandler.getInstance().getTokenMap(),
     loggers.bitcoinCommitmentExtractorLogger,
@@ -214,10 +214,10 @@ const initScanner = () => {
     dataSource,
     networkType,
     networkUrl,
-    GuardsBitcoinConfigs.bitcoinContractConfig.eventTriggerAddress,
-    GuardsBitcoinConfigs.bitcoinContractConfig.RWTId,
-    GuardsBitcoinConfigs.bitcoinContractConfig.permitAddress,
-    GuardsBitcoinConfigs.bitcoinContractConfig.fraudAddress,
+    GuardsBitcoinConfigs.bitcoinContractConfig.addresses.WatcherTriggerEvent,
+    GuardsBitcoinConfigs.bitcoinContractConfig.tokens.RWTId,
+    GuardsBitcoinConfigs.bitcoinContractConfig.addresses.WatcherPermit,
+    GuardsBitcoinConfigs.bitcoinContractConfig.addresses.Fraud,
     loggers.bitcoinEventTriggerExtractorLogger,
     initialization,
   );
@@ -225,8 +225,8 @@ const initScanner = () => {
   // init Doge extractors
   const dogeCommitmentExtractor = new CommitmentExtractor(
     'dogeCommitment',
-    [GuardsDogeConfigs.dogeContractConfig.commitmentAddress],
-    GuardsDogeConfigs.dogeContractConfig.RWTId,
+    [GuardsDogeConfigs.dogeContractConfig.addresses.Commitment],
+    GuardsDogeConfigs.dogeContractConfig.tokens.RWTId,
     dataSource,
     TokenHandler.getInstance().getTokenMap(),
     loggers.dogeCommitmentExtractorLogger,
@@ -237,10 +237,10 @@ const initScanner = () => {
     dataSource,
     networkType,
     networkUrl,
-    GuardsDogeConfigs.dogeContractConfig.eventTriggerAddress,
-    GuardsDogeConfigs.dogeContractConfig.RWTId,
-    GuardsDogeConfigs.dogeContractConfig.permitAddress,
-    GuardsDogeConfigs.dogeContractConfig.fraudAddress,
+    GuardsDogeConfigs.dogeContractConfig.addresses.WatcherTriggerEvent,
+    GuardsDogeConfigs.dogeContractConfig.tokens.RWTId,
+    GuardsDogeConfigs.dogeContractConfig.addresses.WatcherPermit,
+    GuardsDogeConfigs.dogeContractConfig.addresses.Fraud,
     loggers.dogeEventTriggerExtractorLogger,
     initialization,
   );
@@ -248,8 +248,8 @@ const initScanner = () => {
   // init Cardano extractors
   const cardanoCommitmentExtractor = new CommitmentExtractor(
     'cardanoCommitment',
-    [GuardsCardanoConfigs.cardanoContractConfig.commitmentAddress],
-    GuardsCardanoConfigs.cardanoContractConfig.RWTId,
+    [GuardsCardanoConfigs.cardanoContractConfig.addresses.Commitment],
+    GuardsCardanoConfigs.cardanoContractConfig.tokens.RWTId,
     dataSource,
     TokenHandler.getInstance().getTokenMap(),
     loggers.cardanoCommitmentExtractorLogger,
@@ -259,10 +259,10 @@ const initScanner = () => {
     dataSource,
     networkType,
     networkUrl,
-    GuardsCardanoConfigs.cardanoContractConfig.eventTriggerAddress,
-    GuardsCardanoConfigs.cardanoContractConfig.RWTId,
-    GuardsCardanoConfigs.cardanoContractConfig.permitAddress,
-    GuardsCardanoConfigs.cardanoContractConfig.fraudAddress,
+    GuardsCardanoConfigs.cardanoContractConfig.addresses.WatcherTriggerEvent,
+    GuardsCardanoConfigs.cardanoContractConfig.tokens.RWTId,
+    GuardsCardanoConfigs.cardanoContractConfig.addresses.WatcherPermit,
+    GuardsCardanoConfigs.cardanoContractConfig.addresses.Fraud,
     loggers.cardanoEventTriggerExtractorLogger,
     initialization,
   );
@@ -270,8 +270,8 @@ const initScanner = () => {
   // init Ergo extractors
   const ergoCommitmentExtractor = new CommitmentExtractor(
     'ergoCommitment',
-    [GuardsErgoConfigs.ergoContractConfig.commitmentAddress],
-    GuardsErgoConfigs.ergoContractConfig.RWTId,
+    [GuardsErgoConfigs.ergoContractConfig.addresses.Commitment],
+    GuardsErgoConfigs.ergoContractConfig.tokens.RWTId,
     dataSource,
     TokenHandler.getInstance().getTokenMap(),
     loggers.ergoCommitmentExtractorLogger,
@@ -281,10 +281,10 @@ const initScanner = () => {
     dataSource,
     networkType,
     networkUrl,
-    GuardsErgoConfigs.ergoContractConfig.eventTriggerAddress,
-    GuardsErgoConfigs.ergoContractConfig.RWTId,
-    GuardsErgoConfigs.ergoContractConfig.permitAddress,
-    GuardsErgoConfigs.ergoContractConfig.fraudAddress,
+    GuardsErgoConfigs.ergoContractConfig.addresses.WatcherTriggerEvent,
+    GuardsErgoConfigs.ergoContractConfig.tokens.RWTId,
+    GuardsErgoConfigs.ergoContractConfig.addresses.WatcherPermit,
+    GuardsErgoConfigs.ergoContractConfig.addresses.Fraud,
     loggers.ergoEventTriggerExtractorLogger,
     initialization,
   );
@@ -292,8 +292,8 @@ const initScanner = () => {
   // init Ethereum extractors
   const ethereumCommitmentExtractor = new CommitmentExtractor(
     'ethereumCommitment',
-    [GuardsEthereumConfigs.ethereumContractConfig.commitmentAddress],
-    GuardsEthereumConfigs.ethereumContractConfig.RWTId,
+    [GuardsEthereumConfigs.ethereumContractConfig.addresses.Commitment],
+    GuardsEthereumConfigs.ethereumContractConfig.tokens.RWTId,
     dataSource,
     TokenHandler.getInstance().getTokenMap(),
     loggers.ethereumCommitmentExtractorLogger,
@@ -303,10 +303,10 @@ const initScanner = () => {
     dataSource,
     networkType,
     networkUrl,
-    GuardsEthereumConfigs.ethereumContractConfig.eventTriggerAddress,
-    GuardsEthereumConfigs.ethereumContractConfig.RWTId,
-    GuardsEthereumConfigs.ethereumContractConfig.permitAddress,
-    GuardsEthereumConfigs.ethereumContractConfig.fraudAddress,
+    GuardsEthereumConfigs.ethereumContractConfig.addresses.WatcherTriggerEvent,
+    GuardsEthereumConfigs.ethereumContractConfig.tokens.RWTId,
+    GuardsEthereumConfigs.ethereumContractConfig.addresses.WatcherPermit,
+    GuardsEthereumConfigs.ethereumContractConfig.addresses.Fraud,
     loggers.ethereumEventTriggerExtractorLogger,
     initialization,
   );
@@ -314,8 +314,8 @@ const initScanner = () => {
   // init Binance extractors
   const binanceCommitmentExtractor = new CommitmentExtractor(
     'binanceCommitment',
-    [GuardsBinanceConfigs.binanceContractConfig.commitmentAddress],
-    GuardsBinanceConfigs.binanceContractConfig.RWTId,
+    [GuardsBinanceConfigs.binanceContractConfig.addresses.Commitment],
+    GuardsBinanceConfigs.binanceContractConfig.tokens.RWTId,
     dataSource,
     TokenHandler.getInstance().getTokenMap(),
     loggers.binanceCommitmentExtractorLogger,
@@ -325,17 +325,17 @@ const initScanner = () => {
     dataSource,
     networkType,
     networkUrl,
-    GuardsBinanceConfigs.binanceContractConfig.eventTriggerAddress,
-    GuardsBinanceConfigs.binanceContractConfig.RWTId,
-    GuardsBinanceConfigs.binanceContractConfig.permitAddress,
-    GuardsBinanceConfigs.binanceContractConfig.fraudAddress,
+    GuardsBinanceConfigs.binanceContractConfig.addresses.WatcherTriggerEvent,
+    GuardsBinanceConfigs.binanceContractConfig.tokens.RWTId,
+    GuardsBinanceConfigs.binanceContractConfig.addresses.WatcherPermit,
+    GuardsBinanceConfigs.binanceContractConfig.addresses.Fraud,
     loggers.binanceEventTriggerExtractorLogger,
     initialization,
   );
   const bitcoinRunesCommitmentExtractor = new CommitmentExtractor(
     'bitcoinRunesCommitment',
-    [GuardsBitcoinRunesConfigs.bitcoinRunesContractConfig.commitmentAddress],
-    GuardsBitcoinRunesConfigs.bitcoinRunesContractConfig.RWTId,
+    [GuardsBitcoinRunesConfigs.bitcoinRunesContractConfig.addresses.Commitment],
+    GuardsBitcoinRunesConfigs.bitcoinRunesContractConfig.tokens.RWTId,
     dataSource,
     TokenHandler.getInstance().getTokenMap(),
     loggers.bitcoinRunesCommitmentExtractorLogger,
@@ -345,10 +345,10 @@ const initScanner = () => {
     dataSource,
     networkType,
     networkUrl,
-    GuardsBitcoinRunesConfigs.bitcoinRunesContractConfig.eventTriggerAddress,
-    GuardsBitcoinRunesConfigs.bitcoinRunesContractConfig.RWTId,
-    GuardsBitcoinRunesConfigs.bitcoinRunesContractConfig.permitAddress,
-    GuardsBitcoinRunesConfigs.bitcoinRunesContractConfig.fraudAddress,
+    GuardsBitcoinRunesConfigs.bitcoinRunesContractConfig.addresses.WatcherTriggerEvent,
+    GuardsBitcoinRunesConfigs.bitcoinRunesContractConfig.tokens.RWTId,
+    GuardsBitcoinRunesConfigs.bitcoinRunesContractConfig.addresses.WatcherPermit,
+    GuardsBitcoinRunesConfigs.bitcoinRunesContractConfig.addresses.Fraud,
     loggers.bitcoinRunesEventTriggerExtractorLogger,
     initialization,
   );
@@ -386,7 +386,7 @@ const initScanner = () => {
     const ethereumAddressTxExtractor = new EvmTxExtractor(
       dataSource,
       'ethereum-lock-address',
-      GuardsEthereumConfigs.ethereumContractConfig.lockAddress,
+      GuardsEthereumConfigs.ethereumContractConfig.addresses.lock,
       loggers.ethereumLockAddressTxExtractorLogger,
     );
     ethereumScanner.registerExtractor(ethereumAddressTxExtractor);
@@ -410,7 +410,7 @@ const initScanner = () => {
     const BinanceAddressTxExtractor = new EvmTxExtractor(
       dataSource,
       'Binance-lock-address',
-      GuardsBinanceConfigs.binanceContractConfig.lockAddress,
+      GuardsBinanceConfigs.binanceContractConfig.addresses.lock,
       loggers.binanceLockAddressTxExtractorLogger,
     );
     binanceScanner.registerExtractor(BinanceAddressTxExtractor);

@@ -10,7 +10,8 @@ dist
 logs
 peer-dialer*.json
 bin
-config/rosen/
+config/contracts*.json
+config/tokens*.json
 config/thresholds.json
 config/production.yaml
 config/local*.yaml

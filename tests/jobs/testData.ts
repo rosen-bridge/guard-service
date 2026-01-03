@@ -4,7 +4,7 @@ import GuardsErgoConfigs from '../../src/configs/guardsErgoConfigs';
 
 export const fraudTxOrder: PaymentOrder = [
   {
-    address: GuardsErgoConfigs.ergoContractConfig.fraudAddress,
+    address: GuardsErgoConfigs.ergoContractConfig.addresses.Fraud,
     assets: {
       nativeToken: 100n,
       tokens: [

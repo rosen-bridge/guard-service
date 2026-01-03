@@ -26,9 +26,10 @@ export const chainHandlerInstance = {
   getChainPermitAddress: (chain: string): string => {
     switch (chain) {
       case CARDANO_CHAIN:
-        return GuardsCardanoConfigs.cardanoContractConfig.permitAddress;
+        return GuardsCardanoConfigs.cardanoContractConfig.addresses
+          .WatcherPermit;
       default:
-        return GuardsErgoConfigs.ergoContractConfig.permitAddress;
+        return GuardsErgoConfigs.ergoContractConfig.addresses.WatcherPermit;
     }
   },
 };

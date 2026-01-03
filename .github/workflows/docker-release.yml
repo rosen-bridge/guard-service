@@ -48,9 +48,9 @@ jobs:
 
       - name: Download Contracts
         run: |
-          mkdir -p ./config/rosen
-          npx @rosen-bridge/cli@${{ vars.ROSEN_CLI_VERSION || 'latest' }} download-assets -c ${{ vars.RELEASE_NAME }} ${{ vars.RELEASE_TAG }} -o ./config/rosen -s mainnet
-          mv ./config/rosen/tokens*.json ./config/rosen/tokens.json
+          mkdir -p ./config
+          npx @rosen-bridge/cli@${{ vars.ROSEN_CLI_VERSION || 'latest' }} download-assets -c ${{ vars.RELEASE_NAME }} ${{ vars.RELEASE_TAG }} -o ./config
+          mv ./config/tokens*.json ./config/tokens.json
 
       - name: Move the Files
         run: |
