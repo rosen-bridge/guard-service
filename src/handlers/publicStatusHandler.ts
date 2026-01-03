@@ -78,9 +78,10 @@ class PublicStatusHandler {
    * @returns string
    */
   protected dtoToSignMessage = (dto: UpdateStatusDTO): string => {
-    return dto.tx
-      ? `${dto.eventId}${dto.status}${dto.tx.txId}${dto.tx.chain}${dto.tx.txType}${dto.tx.txStatus}${dto.date}`
-      : `${dto.eventId}${dto.status}${dto.date}`;
+    const txData = dto.tx
+      ? `${dto.tx.txId}${dto.tx.chain}${dto.tx.txType}${dto.tx.txStatus}`
+      : '';
+    return `${dto.eventId}${dto.status}${txData}${dto.date}`;
   };
 
   /**
