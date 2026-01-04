@@ -63,12 +63,12 @@ class GuardsBitcoinRunesConfigs {
       arbitrary: GuardsBitcoinConfigs.arbitraryTxConfirmation,
     },
     addresses: {
-      lock: this.bitcoinRunesContractConfig.lockAddress,
-      cold: this.bitcoinRunesContractConfig.coldAddress,
-      permit: this.bitcoinRunesContractConfig.permitAddress,
-      fraud: this.bitcoinRunesContractConfig.fraudAddress,
+      lock: this.bitcoinRunesContractConfig.addresses.lock,
+      cold: this.bitcoinRunesContractConfig.addresses.cold,
+      permit: this.bitcoinRunesContractConfig.addresses.WatcherPermit,
+      fraud: this.bitcoinRunesContractConfig.addresses.Fraud,
     },
-    rwtId: this.bitcoinRunesContractConfig.RWTId,
+    rwtId: this.bitcoinRunesContractConfig.tokens.RWTId,
     aggregatedPublicKey: this.aggregatedPublicKey,
     txFeeSlippage: GuardsBitcoinConfigs.txFeeSlippage,
   };

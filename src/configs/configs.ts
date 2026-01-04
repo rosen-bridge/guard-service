@@ -149,7 +149,7 @@ class Configs {
     180,
   );
 
-  static addressesBasePath = config.get<string>('contracts.addressesBasePath');
+  static contractsPath = config.get<string>('contractsPath');
 
   static tokensPath = config.get<string>('tokensPath');
 

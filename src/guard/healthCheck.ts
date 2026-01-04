@@ -156,7 +156,7 @@ const getHealthCheck = async () => {
       const ergAssetHealthCheck = new ErgoNodeAssetHealthCheckParam(
         ERG,
         ERG,
-        ergoContracts.lockAddress,
+        ergoContracts.addresses.lock,
         Configs.ergWarnThreshold,
         Configs.ergCriticalThreshold,
         GuardsErgoConfigs.node.url,
@@ -167,7 +167,7 @@ const getHealthCheck = async () => {
       const emissionTokenAssetHealthCheck = new ErgoNodeAssetHealthCheckParam(
         GuardsErgoConfigs.emissionTokenId,
         GuardsErgoConfigs.emissionTokenName,
-        ergoContracts.lockAddress,
+        ergoContracts.addresses.lock,
         Configs.emissionTokenWarnThreshold,
         Configs.emissionTokenCriticalThreshold,
         GuardsErgoConfigs.node.url,
@@ -197,7 +197,7 @@ const getHealthCheck = async () => {
       const ergAssetHealthCheck = new ErgoExplorerAssetHealthCheckParam(
         ERG,
         ERG,
-        ergoContracts.lockAddress,
+        ergoContracts.addresses.lock,
         Configs.ergWarnThreshold,
         Configs.ergCriticalThreshold,
         GuardsErgoConfigs.explorer.url,
@@ -209,7 +209,7 @@ const getHealthCheck = async () => {
         new ErgoExplorerAssetHealthCheckParam(
           GuardsErgoConfigs.emissionTokenId,
           GuardsErgoConfigs.emissionTokenName,
-          ergoContracts.lockAddress,
+          ergoContracts.addresses.lock,
           Configs.emissionTokenWarnThreshold,
           Configs.emissionTokenCriticalThreshold,
           GuardsErgoConfigs.explorer.url,
@@ -231,7 +231,7 @@ const getHealthCheck = async () => {
       const adaAssetHealthCheck = new CardanoKoiosAssetHealthCheckParam(
         ADA,
         ADA,
-        cardanoContracts.lockAddress,
+        cardanoContracts.addresses.lock,
         Configs.adaWarnThreshold,
         Configs.adaCriticalThreshold,
         GuardsCardanoConfigs.koios.url,
@@ -243,7 +243,7 @@ const getHealthCheck = async () => {
       const adaAssetHealthCheck = new CardanoBlockFrostAssetHealthCheckParam(
         ADA,
         ADA,
-        cardanoContracts.lockAddress,
+        cardanoContracts.addresses.lock,
         Configs.adaWarnThreshold,
         Configs.adaCriticalThreshold,
         GuardsCardanoConfigs.blockfrost.projectId,
@@ -257,7 +257,7 @@ const getHealthCheck = async () => {
       const btcAssetHealthCheck = new EsploraAssetHealthCheckParam(
         BITCOIN_CHAIN,
         BTC,
-        bitcoinContracts.lockAddress,
+        bitcoinContracts.addresses.lock,
         Configs.btcWarnThreshold,
         Configs.btcCriticalThreshold,
         GuardsBitcoinConfigs.esplora.url,
@@ -268,7 +268,7 @@ const getHealthCheck = async () => {
       const btcRunesAssetHealthCheck = new EsploraAssetHealthCheckParam(
         BITCOIN_RUNES_CHAIN,
         BTC,
-        bitcoinRunesContracts.lockAddress,
+        bitcoinRunesContracts.addresses.lock,
         Configs.btcWarnThreshold,
         Configs.btcCriticalThreshold,
         GuardsBitcoinConfigs.esplora.url,
@@ -282,7 +282,7 @@ const getHealthCheck = async () => {
         ETH,
         ETH,
         ETH,
-        ethereumContracts.lockAddress,
+        ethereumContracts.addresses.lock,
         Configs.ethWarnThreshold,
         Configs.ethCriticalThreshold,
         GuardsEthereumConfigs.rpc.url,
@@ -308,7 +308,7 @@ const getHealthCheck = async () => {
         BNB,
         BNB,
         BNB,
-        binanceContracts.lockAddress,
+        binanceContracts.addresses.lock,
         Configs.bnbWarnThreshold,
         Configs.bnbCriticalThreshold,
         GuardsBinanceConfigs.rpc.url,

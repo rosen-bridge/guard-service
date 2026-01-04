@@ -129,8 +129,7 @@ guard:
 txSignTimeout: 1
 p2p:
   peerIdFilePath: './peer-dialer.json'
-contracts:
-  addressesBasePath: 'tests/resources/addresses/'
+contractsPath: 'tests/resources/addresses/contracts.json'
 logs:
   - type: 'console'
     level: 'error'

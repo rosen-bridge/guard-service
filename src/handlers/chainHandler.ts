@@ -320,7 +320,7 @@ class ChainHandler {
           ETHEREUM_CHAIN,
           GuardsEthereumConfigs.rpc.url,
           dataSource,
-          GuardsEthereumConfigs.ethereumContractConfig.lockAddress,
+          GuardsEthereumConfigs.ethereumContractConfig.addresses.lock,
           GuardsEthereumConfigs.rpc.authToken,
           CallbackLoggerFactory.getInstance().getLogger('EthereumRpcNetwork'),
         );
@@ -370,7 +370,7 @@ class ChainHandler {
           BINANCE_CHAIN,
           GuardsBinanceConfigs.rpc.url,
           dataSource,
-          GuardsBinanceConfigs.binanceContractConfig.lockAddress,
+          GuardsBinanceConfigs.binanceContractConfig.addresses.lock,
           GuardsBinanceConfigs.rpc.authToken,
           CallbackLoggerFactory.getInstance().getLogger('BinanceRpcNetwork'),
         );

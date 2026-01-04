@@ -61,12 +61,12 @@ class GuardsBitcoinConfigs {
       arbitrary: this.arbitraryTxConfirmation,
     },
     addresses: {
-      lock: this.bitcoinContractConfig.lockAddress,
-      cold: this.bitcoinContractConfig.coldAddress,
-      permit: this.bitcoinContractConfig.permitAddress,
-      fraud: this.bitcoinContractConfig.fraudAddress,
+      lock: this.bitcoinContractConfig.addresses.lock,
+      cold: this.bitcoinContractConfig.addresses.cold,
+      permit: this.bitcoinContractConfig.addresses.WatcherPermit,
+      fraud: this.bitcoinContractConfig.addresses.Fraud,
     },
-    rwtId: this.bitcoinContractConfig.RWTId,
+    rwtId: this.bitcoinContractConfig.tokens.RWTId,
     aggregatedPublicKey: this.aggregatedPublicKey,
     txFeeSlippage: this.txFeeSlippage,
   };
