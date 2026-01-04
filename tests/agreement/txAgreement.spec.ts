@@ -1434,7 +1434,7 @@ describe('TxAgreement', () => {
       // tx should be inserted into db
       const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
         tx.txId,
-        tx.event.id,
+        tx.event?.id,
       ]);
       expect(dbTxs.length).toEqual(1);
       expect(dbTxs).toContainEqual([paymentTx.txId, eventId]);
@@ -1770,7 +1770,7 @@ describe('TxAgreement', () => {
       // tx should be inserted into db
       const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
         tx.txId,
-        tx.event.id,
+        tx.event?.id,
       ]);
       expect(dbTxs.length).toEqual(1);
       expect(dbTxs).toContainEqual([paymentTx.txId, eventId]);
@@ -1930,7 +1930,7 @@ describe('TxAgreement', () => {
       // tx should be inserted into db
       const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
         tx.txId,
-        tx.event.id,
+        tx.event?.id,
       ]);
       expect(dbTxs.length).toEqual(1);
       expect(dbTxs).toContainEqual([paymentTx.txId, eventId]);

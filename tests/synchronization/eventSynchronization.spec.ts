@@ -1907,7 +1907,7 @@ describe('EventSynchronization', () => {
       const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
         tx.txId,
         tx.txJson,
-        tx.event.id,
+        tx.event?.id,
         tx.status,
       ]);
       expect(dbTxs.length).toEqual(1);

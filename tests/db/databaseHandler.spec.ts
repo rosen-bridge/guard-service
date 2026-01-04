@@ -83,7 +83,7 @@ describe('DatabaseHandler', () => {
       // tx should be inserted into db
       const dbTxs = (await DatabaseHandlerMock.allTxRecords()).map((tx) => [
         tx.txId,
-        tx.event.id,
+        tx.event?.id,
       ]);
       expect(dbTxs).toEqual([[tx.txId, eventId]]);
     });
@@ -125,7 +125,7 @@ describe('DatabaseHandler', () => {
       // tx should be inserted into db
       const dbTxs = (await DatabaseHandlerMock.allTxRecords()).map((tx) => [
         tx.txId,
-        tx.order.id,
+        tx.order?.id,
       ]);
       expect(dbTxs).toEqual([[tx.txId, orderId]]);
     });

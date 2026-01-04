@@ -241,6 +241,11 @@ class TransactionProcessor {
           TransactionStatus.completed,
         );
         if (tx.type === TransactionType.payment && tx.chain !== ERGO_CHAIN) {
+          if (!tx.event)
+            throw new ImpossibleBehavior(
+              `Tx [${tx.txId}] has no event associated with it`,
+            );
+
           // set event status, to start reward distribution
           await DatabaseAction.getInstance().setEventStatusToPending(
             tx.event.id,
@@ -253,6 +258,10 @@ class TransactionProcessor {
           tx.type === TransactionType.reward ||
           (tx.type === TransactionType.payment && tx.chain === ERGO_CHAIN)
         ) {
+          if (!tx.event)
+            throw new ImpossibleBehavior(
+              `Tx [${tx.txId}] has no event associated with it`,
+            );
           // set event as complete
           await DatabaseAction.getInstance().setEventStatus(
             tx.event.id,
@@ -262,6 +271,11 @@ class TransactionProcessor {
             `Tx [${tx.txId}] is confirmed. Event [${tx.event.id}] is complete`,
           );
         } else if (tx.type === TransactionType.arbitrary) {
+          if (!tx.order)
+            throw new ImpossibleBehavior(
+              `Tx [${tx.txId}] has no order associated with it`,
+            );
+
           // set order as complete
           await DatabaseAction.getInstance().setOrderStatus(
             tx.order.id,
@@ -357,6 +371,10 @@ class TransactionProcessor {
       }
       switch (tx.type) {
         case TransactionType.payment:
+          if (!tx.event)
+            throw new ImpossibleBehavior(
+              `Tx [${tx.txId}] has no event associated with it`,
+            );
           await DatabaseAction.getInstance().setEventStatus(
             tx.event.id,
             EventStatus.pendingPayment,
@@ -367,21 +385,30 @@ class TransactionProcessor {
           );
           break;
         case TransactionType.reward:
+          if (!tx.event)
+            throw new ImpossibleBehavior(
+              `Tx [${tx.txId}] has no event associated with it`,
+            );
           await DatabaseAction.getInstance().setEventStatus(
             tx.event.id,
             EventStatus.pendingReward,
-            invalidationDetails?.unexpected,
+            invalidationDetails.unexpected,
           );
           logger.info(
             `Tx [${tx.txId}] is invalid. Event [${tx.event.id}] is now waiting for reward distribution. Reason: ${invalidationDetails.reason}`,
           );
           break;
         case TransactionType.arbitrary:
+          if (!tx.order)
+            throw new ImpossibleBehavior(
+              `Tx [${tx.txId}] has no order associated with it`,
+            );
+
           await DatabaseAction.getInstance().setOrderStatus(
             tx.order.id,
             OrderStatus.pending,
             false,
-            invalidationDetails?.unexpected,
+            invalidationDetails.unexpected,
           );
           logger.info(
             `Tx [${tx.txId}] is invalid. Order [${tx.order.id}] is now waiting for payment. Reason: ${invalidationDetails.reason}`,

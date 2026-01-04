@@ -1,6 +1,7 @@
 import '../../src/bootstrap';
 
 import Configs from '../../src/configs/configs';
+import PublicStatusHandler from '../../src/handlers/publicStatusHandler';
 import { TokenHandler } from '../../src/handlers/tokenHandler';
 import DatabaseActionMock from '../db/mocked/databaseAction.mock';
 import TestConfigs from '../testUtils/testConfigs';
@@ -11,6 +12,9 @@ await TokenHandler.init(Configs.tokensPath);
 
 // mock database
 await DatabaseActionMock.initDatabase();
+
+// init PublicStatusHandler
+await PublicStatusHandler.init(DatabaseActionMock.testDataSource);
 
 // mock GuardPkHandler
 vi.doMock('../../src/handlers/guardPkHandler', () => ({
