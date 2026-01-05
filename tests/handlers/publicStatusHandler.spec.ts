@@ -1,6 +1,5 @@
 import { TransactionType } from '@rosen-chains/abstract-chain';
 
-import Configs from '../../src/configs/configs';
 import { UpdateStatusDTO } from '../../src/handlers/publicStatusHandler';
 import { EventStatus, TransactionStatus } from '../../src/utils/constants';
 import DatabaseActionMock from '../db/mocked/databaseAction.mock';
@@ -9,64 +8,13 @@ import {
   txId,
   chain,
   id0,
-  mockPk,
-  mockSignature,
   mockTx,
-  signMessage,
 } from './publicStatusHandler.testData';
 import TestPublicStatusHandler from './testPublicStatusHandler';
 
 describe('PublicStatusHandler', () => {
   beforeEach(async () => {
     await DatabaseActionMock.clearTables();
-  });
-
-  describe('submitRequest', () => {
-    /**
-     * @target PublicStatusHandler.submitRequest should submit successfully
-     * @dependencies
-     * - Database
-     * @scenario
-     * - define a mock PublicStatusHandler with a mock dataSource
-     * - define a mock UpdateStatusDTO object
-     * - stub encryptor.getPk to resolve to a mock public key
-     * - stub encryptor.sign to resolve to a mock signature
-     * - call PublicStatusHandler.submitRequest with the mock DTO
-     * @expected
-     * - instance.dtoToSignMessageSpy should not have been called since axios is not initialized in tests
-     * - encryptor.sign should not have been called since axios is not initialized in tests
-     */
-    it('should submit successfully', async () => {
-      // arrange
-      const instance = new TestPublicStatusHandler(
-        DatabaseActionMock.testDataSource,
-      );
-
-      const dto: UpdateStatusDTO = {
-        date: 10,
-        eventId,
-        status: EventStatus.inPayment,
-        tx: undefined,
-      };
-
-      vi.spyOn(Configs.tssKeys.encryptor, 'getPk').mockResolvedValue(mockPk);
-
-      const signSpy = vi
-        .spyOn(Configs.tssKeys.encryptor, 'sign')
-        .mockResolvedValue(mockSignature);
-
-      const dtoToSignMessageSpy = vi
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .spyOn(instance as any, 'dtoToSignMessage')
-        .mockReturnValue(signMessage);
-
-      // act
-      await instance.callSubmitRequest(dto);
-
-      // assert
-      expect(dtoToSignMessageSpy).not.toHaveBeenCalled();
-      expect(signSpy).not.toHaveBeenCalled();
-    });
   });
 
   describe('updatePublicEventStatus', () => {

@@ -6,7 +6,7 @@ import PublicStatusHandler, {
 
 class TestPublicStatusHandler extends PublicStatusHandler {
   constructor(dataSource: DataSource) {
-    super(dataSource);
+    super(dataSource, ' ');
   }
 
   callDTOToSignMessage = (dto: UpdateStatusDTO) => this.dtoToSignMessage(dto);

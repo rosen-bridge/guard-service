@@ -33,11 +33,14 @@ class PublicStatusHandler {
   private static instance?: PublicStatusHandler;
   readonly axios?: Axios;
   readonly txRepository: Repository<TransactionEntity>;
+  readonly isActive: boolean;
 
   protected constructor(
     dataSource: DataSource,
     publicStatusBaseUrl: string | undefined = undefined,
   ) {
+    this.isActive = !!publicStatusBaseUrl;
+
     if (publicStatusBaseUrl) {
       logger.info('publicStatusBaseUrl exists, initialize axios instance');
       this.axios = axios.create({
@@ -90,10 +93,10 @@ class PublicStatusHandler {
    * @returns a promise that resolves to void
    */
   protected submitRequest = async (dto: UpdateStatusDTO): Promise<void> => {
-    // TODO: improve performance on dormant mode (local:ergo/rosen-bridge/guard-service#475)
     if (!this.axios) {
-      logger.debug('axios is not initialized, skipping submitRequest');
-      return;
+      throw new ImpossibleBehavior(
+        'axios is not initialized, skipping submitRequest',
+      );
     }
 
     const signMessage = this.dtoToSignMessage(dto);
@@ -117,6 +120,8 @@ class PublicStatusHandler {
     eventId: string,
     status: EventStatus,
   ): Promise<void> => {
+    if (!this.isActive) return;
+
     try {
       let txDto: UpdateTxStatusDTO | undefined;
 
@@ -168,6 +173,8 @@ class PublicStatusHandler {
     txId: string,
     txStatus: TransactionStatus,
   ): Promise<void> => {
+    if (!this.isActive) return;
+
     try {
       const tx = await this.txRepository.findOne({
         relations: ['event'],
@@ -179,15 +186,16 @@ class PublicStatusHandler {
       if (!tx) {
         throw new ImpossibleBehavior(`Tx [${txId}] is not found!`);
       }
-      if (!tx.event) {
-        throw new ImpossibleBehavior(`Event of tx [${txId}] is not found!`);
-      }
 
       if (
         tx.type !== TransactionType.payment &&
         tx.type !== TransactionType.reward
       ) {
         return;
+      }
+
+      if (!tx.event) {
+        throw new ImpossibleBehavior(`Event of tx [${txId}] is not found!`);
       }
 
       const dto: UpdateStatusDTO = {
