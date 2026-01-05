@@ -10,10 +10,10 @@ dist
 logs
 peer-dialer*.json
 bin
-config/contracts*.json
-config/tokens*.json
-config/thresholds.json
-config/production.yaml
-config/local*.yaml
+services/guard-service/config/contracts*.json
+services/guard-service/config/tokens*.json
+services/guard-service/config/thresholds.json
+services/guard-service/config/production.yaml
+services/guard-service/config/local*.yaml
 .env
 .DS_Store
