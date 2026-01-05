@@ -1,18 +1,20 @@
 {
-  "name": "rosen-chains",
+  "name": "rosen-guard-monorepo",
   "private": true,
   "type": "module",
   "workspaces": {
     "packages": [
       "packages/abstract-chain",
       "packages/chains/*",
-      "packages/networks/*"
+      "packages/networks/*",
+      "services/*"
     ]
   },
   "scripts": {
     "build": "npm run build --workspaces",
     "clean": "npm run clean --workspaces",
     "coverage": "npm run coverage --workspaces",
+    "postinstall": "patch-package",
     "lint": "npm run lint --workspaces",
     "lint:check": "npm run lint:check --workspaces",
     "prepare": "husky install",
@@ -44,5 +46,8 @@
   "engines": {
     "node": ">=22.18.0",
     "npm": "11.6.2"
+  },
+  "dependencies": {
+    "patch-package": "^8.0.1"
   }
 }

@@ -1,6 +1,5 @@
-import { DataSource, Not, Repository } from 'typeorm';
-
 import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
+import { DataSource, Not, Repository } from '@rosen-bridge/extended-typeorm';
 import {
   ImpossibleBehavior,
   TransactionType,

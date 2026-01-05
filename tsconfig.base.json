@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "allowJs": false,
     "composite": true,
     "declaration": true,
     "declarationMap": true,
@@ -7,9 +8,12 @@
     "forceConsistentCasingInFileNames": true,
     "inlineSourceMap": true,
     "inlineSources": true,
+    "isolatedModules": false,
     "module": "esnext",
     "moduleResolution": "node",
+    "noFallthroughCasesInSwitch": true,
     "resolveJsonModule": true,
+    "strictPropertyInitialization": false,
     "skipLibCheck": true,
     "strict": true,
     "target": "esnext",

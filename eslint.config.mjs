@@ -13,7 +13,7 @@ export default [
   },
   pluginJs.configs.recommended,
   {
-    files: ['packages/**/**/*.{js,jsx,ts,tsx}'],
+    files: ['**/{packages,services/**}/**/*.{js,ts,jsx,tsx}'],
     languageOptions: {
       // Base Configuration for JS/TS Files
       parser: typescriptParser,
@@ -33,7 +33,9 @@ export default [
     rules: {
       'check-file/filename-naming-convention': [
         'error',
-        { '**/*.{js,ts,jsx,tsx}': 'CAMEL_CASE' },
+        {
+          '**/!(*-migration).{js,ts,jsx,tsx}': 'CAMEL_CASE',
+        },
         { ignoreMiddleExtensions: true },
       ],
       // vitest Rules
