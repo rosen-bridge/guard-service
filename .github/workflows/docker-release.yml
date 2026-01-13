@@ -167,6 +167,6 @@ jobs:
           TAGS: ${{ steps.meta.outputs.tags }}
         run: |
           docker buildx imagetools create \
-            --annotation "index:org.opencontainers.image.description=Rosen Bridge guard service" \
+            --annotation "index:org.opencontainers.image.description=Docker image for the guard-service owned by rosen-bridge organization." \
             $(printf ' -t %s' $TAGS) \
             $(printf '${{ env.IMAGE_NAME }}@sha256:%s ' *)
