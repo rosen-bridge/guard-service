@@ -1,5 +1,6 @@
 {
   "name": "guard-service",
+  "private": true,
   "version": "8.1.0",
   "description": "",
   "repository": {
