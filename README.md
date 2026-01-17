@@ -88,3 +88,5 @@ chown -R 8080:8080 logs
 docker pull ghcr.io/rosen-bridge/guard-service
 docker-compose up
 ```
+
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/rosen-bridge/guard-service)
