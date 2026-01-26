@@ -14,7 +14,7 @@
 
 ## Description
 
-Every blockchain supported by the [guard-service](https://github.com/rosen-bridge/ts-guard-service)
+Every blockchain supported by the [guard-service](https://github.com/rosen-bridge/guard-service)
 in the bridge has some requirements that are defined in abstract classes and structures
 in this project.
 

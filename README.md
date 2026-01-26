@@ -1,3 +1,1 @@
-# rosen-chains
-
-Rosen chain related packages
+# rosen-guard-monorepo
