@@ -1,5 +1,0 @@
-{
-  "$schema": "https://unpkg.com/knip/schema.json",
-  "ignoreBinaries": ["typeorm"],
-  "ignoreDependencies": ["typeorm", "pg"]
-}
