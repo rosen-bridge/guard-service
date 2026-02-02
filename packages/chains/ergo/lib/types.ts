@@ -1,3 +1,5 @@
+import { ErgoBox, ReducedTransaction, Transaction } from 'ergo-lib-wasm-nodejs';
+
 import {
   ChainConfigs,
   PaymentTransactionJsonModel,
@@ -18,4 +20,19 @@ interface GuardsPkConfig {
   requiredSigns: number;
 }
 
-export { ErgoConfigs, ErgoTransactionJsonModel, GuardsPkConfig };
+interface ErgoSignMediator {
+  isInSign: (txId: string) => Promise<boolean>;
+  sign: (
+    tx: ReducedTransaction,
+    requiredSign: number,
+    boxes: Array<ErgoBox>,
+    dataBoxes?: Array<ErgoBox>,
+  ) => Promise<Transaction>;
+}
+
+export {
+  ErgoConfigs,
+  ErgoTransactionJsonModel,
+  GuardsPkConfig,
+  ErgoSignMediator,
+};

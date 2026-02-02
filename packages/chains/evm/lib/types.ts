@@ -8,11 +8,6 @@ export interface EvmConfigs extends ChainConfigs {
   gasLimitCap: bigint;
 }
 
-export type TssSignFunction = (txHash: Uint8Array) => Promise<{
-  signature: string;
-  signatureRecovery: string;
-}>;
-
 export enum EvmTxStatus {
   failed = 'failed',
   succeed = 'succeed',

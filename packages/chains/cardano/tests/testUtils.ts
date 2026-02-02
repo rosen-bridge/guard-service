@@ -2,6 +2,7 @@ import * as CardanoWasm from '@emurgo/cardano-serialization-lib-nodejs';
 import { randomBytes } from 'crypto';
 
 import { TokenMap } from '@rosen-bridge/tokens';
+import { EddsaSignMediator } from '@rosen-chains/abstract-chain';
 
 import { CardanoChain } from '../lib';
 import CardanoUtils from '../lib/cardanoUtils';
@@ -155,20 +156,23 @@ export const configs: CardanoConfigs = {
   aggregatedPublicKey:
     'bcb07faa6c0f19e2f2587aa9ef6f43a68fc0135321216a71dc87c8527af4ca6a',
 };
-export const mockedSignFn = () => Promise.resolve('');
+export const mockedSignMediator = {
+  sign: vi.fn(),
+  isInSign: vi.fn().mockResolvedValue(true),
+};
 export const generateChainObject = async (
   network: TestCardanoNetwork,
-  signFn: (txHash: Uint8Array) => Promise<string> = mockedSignFn,
+  signMediator: EddsaSignMediator = mockedSignMediator,
 ) => {
   const tokenMap = new TokenMap();
   await tokenMap.updateConfigByJson(testTokenMap);
-  return new CardanoChain(network, configs, tokenMap, signFn);
+  return new CardanoChain(network, configs, tokenMap, signMediator);
 };
 export const generateChainObjectWithMultiDecimalTokenMap = async (
   network: TestCardanoNetwork,
-  signFn: (txHash: Uint8Array) => Promise<string> = mockedSignFn,
+  signMediator: EddsaSignMediator = mockedSignMediator,
 ) => {
   const tokenMap = new TokenMap();
   await tokenMap.updateConfigByJson(multiDecimalTokenMap);
-  return new CardanoChain(network, configs, tokenMap, signFn);
+  return new CardanoChain(network, configs, tokenMap, signMediator);
 };
