@@ -20,6 +20,7 @@ on:
 
 env:
   IMAGE_NAME: ghcr.io/rosen-bridge/guard-service
+  SERVICE_DIR: ./services/guard-service
 
 jobs:
   build:
@@ -47,12 +48,14 @@ jobs:
           node-version: ${{ matrix.node-version }}
 
       - name: Download Contracts
+        working-directory: ${{ env.SERVICE_DIR }}
         run: |
           mkdir -p ./config
           npx @rosen-bridge/cli@${{ vars.ROSEN_CLI_VERSION || 'latest' }} download-assets -c ${{ vars.RELEASE_NAME }} ${{ vars.RELEASE_TAG }} -o ./config
           mv ./config/tokens*.json ./config/tokens.json
 
       - name: Move the Files
+        working-directory: ${{ env.SERVICE_DIR }}
         run: |
           npx @rosen-bridge/cli@${{ vars.ROSEN_CLI_VERSION || 'latest' }} download-tss -n linux -r -t tss-api -o ./bin/
           mv ./docker/production.yaml ./config/
@@ -93,6 +96,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          file: ${{ env.SERVICE_DIR }}/Dockerfile
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
@@ -163,5 +167,6 @@ jobs:
           TAGS: ${{ steps.meta.outputs.tags }}
         run: |
           docker buildx imagetools create \
+            --annotation "index:org.opencontainers.image.description=Docker image for the guard-service owned by rosen-bridge organization." \
             $(printf ' -t %s' $TAGS) \
             $(printf '${{ env.IMAGE_NAME }}@sha256:%s ' *)

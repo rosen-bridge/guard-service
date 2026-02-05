@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "outDir": "dist",
+    "useUnknownInCatchVariables": false,
+    "types": ["node", "vitest/globals"]
+  },
+  "include": ["./**/*.ts", "package.json"]
+}
