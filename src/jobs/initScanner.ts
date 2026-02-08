@@ -9,7 +9,6 @@ import GuardsErgoConfigs from '../configs/GuardsErgoConfigs';
 import { DefaultLoggerFactory } from '@rosen-bridge/abstract-logger';
 import GuardsBitcoinConfigs from '../configs/GuardsBitcoinConfigs';
 import GuardsDogeConfigs from '../configs/GuardsDogeConfigs';
-import Configs from '../configs/Configs';
 import GuardsEthereumConfigs from '../configs/GuardsEthereumConfigs';
 import { EvmRpcScanner } from '@rosen-bridge/evm-rpc-scanner';
 import { EvmTxExtractor } from '@rosen-bridge/evm-address-tx-extractor';

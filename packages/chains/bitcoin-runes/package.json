@@ -1,0 +1,54 @@
+{
+  "name": "@rosen-chains/bitcoin-runes",
+  "version": "3.0.2",
+  "description": "this project contains Runes protocol of Bitcoin chain for Rosen-bridge",
+  "keywords": [
+    "rosen"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rosen-bridge/guard-service.git",
+    "directory": "packages/chains/bitcoin-runes"
+  },
+  "license": "MIT",
+  "author": "Rosen Team",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "tsc --build tsconfig.build.json",
+    "clean": "rimraf dist && rimraf tsconfig.build.tsbuildinfo",
+    "coverage": "npm run test -- --run --coverage",
+    "lint": "eslint --fix . && npm run prettify",
+    "lint:check": "eslint . && npm run prettify:check",
+    "prettify": "prettier --write . --ignore-path ../../../.gitignore",
+    "prettify:check": "prettier --check . --ignore-path ../../../.gitignore",
+    "release": "npm run test -- --run && npm run clean && npm run build && npm publish --access public",
+    "test": "NODE_OPTIONS='--import tsx' vitest",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@magiceden-oss/runestone-lib": "^1.0.2",
+    "@rosen-bridge/abstract-logger": "^3.0.1",
+    "@rosen-bridge/bitcoin-runes-utxo-selection": "^2.0.1",
+    "@rosen-bridge/json-bigint": "^1.1.0",
+    "@rosen-bridge/rosen-extractor": "^11.0.0",
+    "@rosen-bridge/tokens": "^4.0.1",
+    "@rosen-chains/abstract-chain": "^15.0.2",
+    "@rosen-chains/bitcoin": "^9.0.2",
+    "bitcoinjs-lib": "^6.1.5"
+  },
+  "devDependencies": {
+    "@vitest/coverage-istanbul": "^3.1.4",
+    "tsx": "^4.20.5",
+    "vitest": "^3.1.4"
+  },
+  "engines": {
+    "node": ">=22.18.0",
+    "npm": "11.6.2"
+  }
+}

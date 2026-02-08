@@ -1,0 +1,84 @@
+import { BTC } from '@rosen-chains/bitcoin';
+import { BITCOIN_RUNES_CHAIN } from '@rosen-chains/bitcoin-runes';
+
+import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
+import { TokenHandler } from '../handlers/tokenHandler';
+import { TokenData } from '../types/api';
+
+/**
+ * gets token data from tokenMap
+ *  returns UnsupportedToken with 0 decimal if token is not found
+ *  reads emission token data from config
+ * @param sourceChain
+ * @param sourceChainTokenId
+ * @param targetChain
+ * @param returnSignificantDecimal if true, returns tokens significant decimals instead of the actual decimals
+ */
+export const getTokenData = (
+  sourceChain: string,
+  sourceChainTokenId: string,
+  targetChain: string,
+  returnSignificantDecimal = false,
+): TokenData => {
+  // handle emission token
+  if (sourceChainTokenId === GuardsErgoConfigs.emissionTokenId) {
+    return {
+      tokenId: sourceChainTokenId,
+      name: GuardsErgoConfigs.emissionTokenName,
+      decimals: GuardsErgoConfigs.emissionTokenDecimal,
+      isNativeToken: false,
+      amount: 0,
+    };
+  }
+
+  // handle Bitcoin for bitcoin-runes chain
+  if (sourceChain === BITCOIN_RUNES_CHAIN && sourceChainTokenId === BTC) {
+    return {
+      tokenId: sourceChainTokenId,
+      name: 'BTC',
+      decimals: 8,
+      isNativeToken: true,
+      amount: 0,
+    };
+  }
+
+  const tokenMapRes = TokenHandler.getInstance()
+    .getTokenMap()
+    .search(sourceChain, {
+      tokenId: sourceChainTokenId,
+    });
+  if (tokenMapRes.length === 0) {
+    // token is not found in token map
+    if (sourceChain === targetChain) {
+      // source and target chain are same, return unsupported token
+      return {
+        tokenId: sourceChainTokenId,
+        name: 'Unsupported token',
+        decimals: 0,
+        isNativeToken: false,
+        amount: 0,
+      };
+    } else {
+      // cannot fetch token data of another chain if token is not found
+      throw Error(
+        `token [${sourceChainTokenId}] of chain [${sourceChain}] is not found in TokenMap`,
+      );
+    }
+  } else {
+    const tokenData = tokenMapRes[0][targetChain];
+    const significantDecimals = TokenHandler.getInstance()
+      .getTokenMap()
+      .getSignificantDecimals(sourceChainTokenId);
+    const decimals =
+      returnSignificantDecimal && significantDecimals !== undefined
+        ? significantDecimals
+        : tokenData.decimals;
+    return {
+      tokenId: tokenData.tokenId,
+      name: tokenData.name,
+      amount: 0,
+      decimals: decimals,
+      isNativeToken: tokenData.type === 'native',
+    };
+  }
+};
