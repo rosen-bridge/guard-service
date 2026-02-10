@@ -27,7 +27,6 @@ const healthCheckUpdateJob = async (healthCheck: HealthCheck) => {
       );
     } else logger.warn(`Health check update job failed: ${e}`);
   }
-  logger.debug('Checking p2p connection status');
 
   setTimeout(
     () => healthCheckUpdateJob(healthCheck),

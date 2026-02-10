@@ -60,7 +60,7 @@ class RosenDialer {
       host: RoseNetNodeConfig.host,
       port: RoseNetNodeConfig.port,
       privateKey,
-      logger: logger,
+      logger: logger.child('DialerNode'),
     });
     logger.info('Rosen Dialer started');
     await dialer._node.start();
