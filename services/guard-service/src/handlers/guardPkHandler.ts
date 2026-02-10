@@ -1,11 +1,11 @@
-import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
+import { DefaultLogger } from '@rosen-bridge/abstract-logger';
 
 import Configs from '../configs/configs';
 import { rosenConfig } from '../configs/rosenConfig';
 import ChainHandler from './chainHandler';
 import MultiSigHandler from './multiSigHandler';
 
-const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = DefaultLogger.getInstance().child(import.meta.url);
 
 class GuardPkHandler {
   private static instance: GuardPkHandler;

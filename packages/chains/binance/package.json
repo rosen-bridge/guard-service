@@ -30,8 +30,8 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@rosen-bridge/abstract-logger": "^3.0.1",
-    "@rosen-bridge/tokens": "^4.0.1",
+    "@rosen-bridge/abstract-logger": "^4.0.0",
+    "@rosen-bridge/tokens": "^5.0.1",
     "@rosen-chains/evm": "^9.0.2"
   },
   "engines": {

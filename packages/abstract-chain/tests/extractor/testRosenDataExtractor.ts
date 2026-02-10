@@ -11,7 +11,7 @@ class TestRosenDataExtractor extends AbstractRosenDataExtractor<string> {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  extractRawData = (tx: string): RosenData | undefined => {
+  extractData = (tx: string): RosenData | undefined => {
     throw Error(`not mocked`);
   };
 }

@@ -1,10 +1,10 @@
-import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
+import { DefaultLogger } from '@rosen-bridge/abstract-logger';
 import { createDialerNode, RosenDialerNode } from '@rosen-bridge/dialer';
 import { readPrivateKeyFromFile } from '@rosen-bridge/rosenet-utils';
 
 import RoseNetNodeConfig from '../configs/roseNetNodeConfig';
 
-const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = DefaultLogger.getInstance().child(import.meta.url);
 
 class RosenDialer {
   private static instance: RosenDialer;

@@ -1,4 +1,4 @@
-import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
+import { DefaultLogger } from '@rosen-bridge/abstract-logger';
 import {
   ImpossibleBehavior,
   PaymentTransaction,
@@ -15,7 +15,7 @@ import { ArbitraryEntity } from './entities/arbitraryEntity';
 import { ConfirmedEventEntity } from './entities/confirmedEventEntity';
 import { TransactionEntity } from './entities/transactionEntity';
 
-const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = DefaultLogger.getInstance().child(import.meta.url);
 
 class DatabaseHandler {
   /**

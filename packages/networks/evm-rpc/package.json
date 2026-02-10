@@ -32,13 +32,13 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@rosen-bridge/abstract-logger": "^3.0.1",
-    "@rosen-bridge/evm-address-tx-extractor": "^1.2.3",
+    "@rosen-bridge/abstract-logger": "^4.0.0",
+    "@rosen-bridge/evm-address-tx-extractor": "^2.0.1",
     "@rosen-bridge/extended-typeorm": "^1.0.1",
     "@rosen-bridge/json-bigint": "^1.1.0",
     "@rosen-chains/abstract-chain": "^15.0.2",
     "@rosen-chains/evm": "^9.0.2",
-    "ethers": "6.13.2"
+    "ethers": "6.16.0"
   },
   "devDependencies": {
     "@vitest/coverage-istanbul": "^3.1.4",

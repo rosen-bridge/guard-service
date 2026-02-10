@@ -33,11 +33,11 @@
   },
   "dependencies": {
     "@emurgo/cardano-serialization-lib-nodejs": "^13.2.0",
-    "@rosen-bridge/abstract-logger": "^3.0.1",
-    "@rosen-bridge/cardano-utxo-selection": "^3.0.1",
+    "@rosen-bridge/abstract-logger": "^4.0.0",
+    "@rosen-bridge/cardano-utxo-selection": "^3.0.3",
     "@rosen-bridge/json-bigint": "^1.1.0",
-    "@rosen-bridge/rosen-extractor": "^11.0.0",
-    "@rosen-bridge/tokens": "^4.0.1",
+    "@rosen-bridge/rosen-extractor": "^11.2.1",
+    "@rosen-bridge/tokens": "^5.0.1",
     "@rosen-chains/abstract-chain": "^15.0.2"
   },
   "devDependencies": {

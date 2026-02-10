@@ -1,6 +1,6 @@
 import { DatabaseAction } from 'src/db/databaseAction';
 
-import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
+import { DefaultLogger } from '@rosen-bridge/abstract-logger';
 import { AbstractChain } from '@rosen-chains/abstract-chain';
 import { BINANCE_CHAIN, BinanceChain } from '@rosen-chains/binance';
 import {
@@ -58,7 +58,7 @@ import MultiSigHandler from './multiSigHandler';
 import { TokenHandler } from './tokenHandler';
 import TssHandler from './tssHandler';
 
-const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = DefaultLogger.getInstance().child(import.meta.url);
 
 class ChainHandler {
   private static instance: ChainHandler;
@@ -103,14 +103,13 @@ class ChainHandler {
       case NODE_NETWORK:
         network = new ErgoNodeNetwork({
           nodeBaseUrl: GuardsErgoConfigs.node.url,
-          logger: CallbackLoggerFactory.getInstance().getLogger('NodeNetwork'),
+          logger: DefaultLogger.getInstance().child('NodeNetwork'),
         });
         break;
       case EXPLORER_NETWORK:
         network = new ErgoExplorerNetwork({
           explorerBaseUrl: GuardsErgoConfigs.explorer.url,
-          logger:
-            CallbackLoggerFactory.getInstance().getLogger('ExplorerNetwork'),
+          logger: DefaultLogger.getInstance().child('ExplorerNetwork'),
         });
         break;
       default:
@@ -125,7 +124,7 @@ class ChainHandler {
       GuardsErgoConfigs.chainConfigs,
       TokenHandler.getInstance().getTokenMap(),
       multiSigSignFunction,
-      CallbackLoggerFactory.getInstance().getLogger('ErgoChain'),
+      DefaultLogger.getInstance().child('ErgoChain'),
     );
   };
 
@@ -140,14 +139,14 @@ class ChainHandler {
         network = new CardanoKoiosNetwork(
           GuardsCardanoConfigs.koios.url,
           GuardsCardanoConfigs.koios.authToken,
-          CallbackLoggerFactory.getInstance().getLogger('KoiosNetwork'),
+          DefaultLogger.getInstance().child('KoiosNetwork'),
         );
         break;
       case BLOCKFROST_NETWORK:
         network = new CardanoBlockFrostNetwork(
           GuardsCardanoConfigs.blockfrost.projectId,
           GuardsCardanoConfigs.blockfrost.url,
-          CallbackLoggerFactory.getInstance().getLogger('BlockFrostNetwork'),
+          DefaultLogger.getInstance().child('BlockFrostNetwork'),
         );
         break;
       default:
@@ -171,7 +170,7 @@ class ChainHandler {
       GuardsCardanoConfigs.chainConfigs,
       TokenHandler.getInstance().getTokenMap(),
       tssSignFunctionWrapper,
-      CallbackLoggerFactory.getInstance().getLogger('CardanoChain'),
+      DefaultLogger.getInstance().child('CardanoChain'),
     );
   };
 
@@ -185,7 +184,7 @@ class ChainHandler {
       case 'esplora':
         network = new BitcoinEsploraNetwork(
           GuardsBitcoinConfigs.esplora.url,
-          CallbackLoggerFactory.getInstance().getLogger('EsploraNetwork'),
+          DefaultLogger.getInstance().child('EsploraNetwork'),
         );
         break;
       default:
@@ -217,7 +216,7 @@ class ChainHandler {
       GuardsBitcoinConfigs.chainConfigs,
       TokenHandler.getInstance().getTokenMap(),
       tssSignFunctionWrapper,
-      CallbackLoggerFactory.getInstance().getLogger('BitcoinChain'),
+      DefaultLogger.getInstance().child('BitcoinChain'),
     );
   };
 
@@ -236,13 +235,13 @@ class ChainHandler {
             if (tx === null) return undefined;
             return TransactionSerializer.fromJson(tx.txJson);
           },
-          CallbackLoggerFactory.getInstance().getLogger('DogeEsploraNetwork'),
+          DefaultLogger.getInstance().child('DogeEsploraNetwork'),
         );
         break;
       case 'rpc-blockcypher': {
         const rpc = new DogeRpcNetwork(
           GuardsDogeConfigs.rpc.url,
-          CallbackLoggerFactory.getInstance().getLogger('DogeRpcNetwork'),
+          DefaultLogger.getInstance().child('DogeRpcNetwork'),
           {
             username: GuardsDogeConfigs.rpc.username,
             password: GuardsDogeConfigs.rpc.password,
@@ -256,7 +255,7 @@ class ChainHandler {
             if (tx === null) return undefined;
             return TransactionSerializer.fromJson(tx.txJson);
           },
-          CallbackLoggerFactory.getInstance().getLogger('BlockcypherNetwork'),
+          DefaultLogger.getInstance().child('BlockcypherNetwork'),
         );
         network = new CombinedDogeNetwork([rpc, blockcypher]);
         if (GuardsDogeConfigs.blockcypher.rps !== undefined)
@@ -304,7 +303,7 @@ class ChainHandler {
       GuardsDogeConfigs.chainConfigs,
       TokenHandler.getInstance().getTokenMap(),
       tssSignFunctionWrapper,
-      CallbackLoggerFactory.getInstance().getLogger('DogeChain'),
+      DefaultLogger.getInstance().child('DogeChain'),
     );
   };
 
@@ -322,7 +321,7 @@ class ChainHandler {
           dataSource,
           GuardsEthereumConfigs.ethereumContractConfig.addresses.lock,
           GuardsEthereumConfigs.rpc.authToken,
-          CallbackLoggerFactory.getInstance().getLogger('EthereumRpcNetwork'),
+          DefaultLogger.getInstance().child('EthereumRpcNetwork'),
         );
         break;
       default:
@@ -354,7 +353,7 @@ class ChainHandler {
       GuardsEthereumConfigs.chainConfigs,
       TokenHandler.getInstance().getTokenMap(),
       tssSignFunctionWrapper,
-      CallbackLoggerFactory.getInstance().getLogger('EthereumChain'),
+      DefaultLogger.getInstance().child('EthereumChain'),
     );
   };
 
@@ -372,7 +371,7 @@ class ChainHandler {
           dataSource,
           GuardsBinanceConfigs.binanceContractConfig.addresses.lock,
           GuardsBinanceConfigs.rpc.authToken,
-          CallbackLoggerFactory.getInstance().getLogger('BinanceRpcNetwork'),
+          DefaultLogger.getInstance().child('BinanceRpcNetwork'),
         );
         break;
       default:
@@ -404,7 +403,7 @@ class ChainHandler {
       GuardsBinanceConfigs.chainConfigs,
       TokenHandler.getInstance().getTokenMap(),
       tssSignFunctionWrapper,
-      CallbackLoggerFactory.getInstance().getLogger('BinanceChain'),
+      DefaultLogger.getInstance().child('BinanceChain'),
     );
   };
 
@@ -427,9 +426,7 @@ class ChainHandler {
             url: GuardsBitcoinRunesConfigs.unisat.url,
             unisatApiKey: GuardsBitcoinRunesConfigs.unisat.apiKey,
           },
-          CallbackLoggerFactory.getInstance().getLogger(
-            'BitcoinRunesRpcNetwork',
-          ),
+          DefaultLogger.getInstance().child('BitcoinRunesRpcNetwork'),
         );
         if (GuardsBitcoinRunesConfigs.rpc.rps !== undefined)
           RateLimitedAxiosConfig.addRule(
@@ -476,7 +473,7 @@ class ChainHandler {
       GuardsBitcoinRunesConfigs.chainConfigs,
       TokenHandler.getInstance().getTokenMap(),
       tssSignFunctionWrapper,
-      CallbackLoggerFactory.getInstance().getLogger('BitcoinRunesChain'),
+      DefaultLogger.getInstance().child('BitcoinRunesChain'),
     );
   };
 

@@ -1,4 +1,4 @@
-import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
+import { DefaultLogger } from '@rosen-bridge/abstract-logger';
 
 import Configs from '../configs/configs';
 import DatabaseHandler from '../db/databaseHandler';
@@ -12,7 +12,7 @@ import {
   SignQuerySchema,
 } from './schemas';
 
-const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = DefaultLogger.getInstance().child(import.meta.url);
 
 /**
  * setup sign transaction route

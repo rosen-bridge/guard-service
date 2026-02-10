@@ -9,7 +9,7 @@ import {
   chain,
   id0,
   mockTx,
-} from './publicStatusHandler.testData';
+} from './publicStatusHandlerTestData';
 import TestPublicStatusHandler from './testPublicStatusHandler';
 
 describe('PublicStatusHandler', () => {

@@ -1,6 +1,6 @@
 import { isEqual } from 'lodash-es';
 
-import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
+import { DefaultLogger } from '@rosen-bridge/abstract-logger';
 import JsonBigInt from '@rosen-bridge/json-bigint';
 import {
   ChainUtils,
@@ -21,7 +21,7 @@ import MinimumFeeHandler from '../handlers/minimumFeeHandler';
 import * as TransactionSerializer from '../transaction/transactionSerializer';
 import { ChainNativeToken } from '../utils/constants';
 
-const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = DefaultLogger.getInstance().child(import.meta.url);
 
 class TransactionVerifier {
   /**

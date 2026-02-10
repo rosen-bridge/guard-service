@@ -1,6 +1,6 @@
 import { Semaphore } from 'await-semaphore';
 
-import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
+import { DefaultLogger } from '@rosen-bridge/abstract-logger';
 import { Communicator } from '@rosen-bridge/communication';
 import { RosenDialerNode } from '@rosen-bridge/dialer';
 import {
@@ -32,7 +32,7 @@ import {
   AgreementMessageTypes,
 } from './interfaces';
 
-const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = DefaultLogger.getInstance().child(import.meta.url);
 
 class TxAgreement extends Communicator {
   private static instance: TxAgreement;

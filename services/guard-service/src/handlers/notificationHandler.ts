@@ -1,14 +1,14 @@
+import { DefaultLogger } from '@rosen-bridge/abstract-logger';
 import {
   AbstractNotification,
   NotificationSeverity,
   NotifyWithSeverity,
 } from '@rosen-bridge/abstract-notification';
-import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
 import { DiscordNotification } from '@rosen-bridge/discord-notification';
 
 import Configs from '../configs/configs';
 
-const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = DefaultLogger.getInstance().child(import.meta.url);
 
 export class NotificationHandler {
   private static instance: NotificationHandler;

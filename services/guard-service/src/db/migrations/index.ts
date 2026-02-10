@@ -12,6 +12,7 @@ import { migration1737785035299 } from './postgres/1737785035299-migration';
 import { migration1737785037299 } from './postgres/1737785037299-migration';
 import { migration1751451331000 } from './postgres/1751451331000-migration';
 import { migration1754912674664 } from './postgres/1754912674664-migration';
+import { Migration1770465377378 } from './postgres/1770465377378-migration';
 import { migration1700755909353 } from './sqlite/1700755909353-migration';
 import { migration1702281318566 } from './sqlite/1702281318566-migration';
 import { migration1703833812339 } from './sqlite/1703833812339-migration';
@@ -28,6 +29,8 @@ import { migration1751451331001 } from './sqlite/1751451331001-migration';
 import { migration1754912680869 } from './sqlite/1754912680869-migration';
 import { migration1761774735000 } from './sqlite/1761774735000-migration';
 import { migration1761774737000 } from './sqlite/1761774737000-migration';
+import { migration1762768663000 } from './sqlite/1762768663000-migration';
+import { migration1762768665000 } from './sqlite/1762768665000-migration';
 
 export default {
   sqlite: [
@@ -47,6 +50,8 @@ export default {
     migration1754912680869,
     migration1761774735000,
     migration1761774737000,
+    migration1762768663000,
+    migration1762768665000,
   ],
   postgres: [
     migration1700756107393,
@@ -63,5 +68,6 @@ export default {
     migration1737785037299,
     migration1751451331000,
     migration1754912674664,
+    Migration1770465377378,
   ],
 };

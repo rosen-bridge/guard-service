@@ -1,6 +1,6 @@
 import { Buffer } from 'buffer';
 
-import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
+import { DefaultLogger } from '@rosen-bridge/abstract-logger';
 import {
   AbstractChain,
   AssetBalance,
@@ -23,7 +23,7 @@ import { SUPPORTED_CHAINS } from '../utils/constants';
 import GuardTurn from '../utils/guardTurn';
 import Utils from '../utils/utils';
 
-const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = DefaultLogger.getInstance().child(import.meta.url);
 
 class ColdStorage {
   /**
