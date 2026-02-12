@@ -1,4 +1,4 @@
-import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
+import { DefaultLogger } from '@rosen-bridge/abstract-logger';
 import { DataSource, Not, Repository } from '@rosen-bridge/extended-typeorm';
 import {
   ImpossibleBehavior,
@@ -10,9 +10,7 @@ import Configs from '../configs/configs';
 import { TransactionEntity } from '../db/entities/transactionEntity';
 import { EventStatus, TransactionStatus } from '../utils/constants';
 
-export const logger = CallbackLoggerFactory.getInstance().getLogger(
-  import.meta.url,
-);
+export const logger = DefaultLogger.getInstance().child(import.meta.url);
 
 export type UpdateTxStatusDTO = {
   txId: string;

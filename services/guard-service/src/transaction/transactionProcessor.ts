@@ -1,4 +1,4 @@
-import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
+import { DefaultLogger } from '@rosen-bridge/abstract-logger';
 import {
   AbstractChain,
   ConfirmationStatus,
@@ -23,7 +23,7 @@ import {
 } from '../utils/constants';
 import * as TransactionSerializer from './transactionSerializer';
 
-const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = DefaultLogger.getInstance().child(import.meta.url);
 
 class TransactionProcessor {
   /**

@@ -1,10 +1,10 @@
-import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
+import { DefaultLogger } from '@rosen-bridge/abstract-logger';
 import { SubscribeChannelWithURL } from '@rosen-bridge/dialer';
 import RateLimitedAxios from '@rosen-clients/rate-limited-axios';
 
 import RoseNetNodeConfig from '../configs/roseNetNodeConfig';
 
-const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = DefaultLogger.getInstance().child(import.meta.url);
 
 const apiCallBack: SubscribeChannelWithURL['func'] = (
   msg,

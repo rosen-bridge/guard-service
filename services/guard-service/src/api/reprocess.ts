@@ -1,4 +1,4 @@
-import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
+import { DefaultLogger } from '@rosen-bridge/abstract-logger';
 import { NotFoundError } from '@rosen-chains/abstract-chain';
 
 import EventReprocess from '../reprocess/eventReprocess';
@@ -9,7 +9,7 @@ import {
   ReprocessQuerySchema,
 } from './schemas';
 
-const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = DefaultLogger.getInstance().child(import.meta.url);
 
 /**
  * setup event reprocess route

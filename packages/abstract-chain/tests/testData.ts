@@ -74,7 +74,7 @@ export const testTokenMap: RosenTokens = [
       residency: 'native',
       extra: {},
     },
-    'test-utxo': {
+    ergo: {
       tokenId: 'wrapped-native-token',
       name: 'wrapped-test-native-token',
       decimals: 1,
@@ -92,7 +92,7 @@ export const testTokenMap: RosenTokens = [
       residency: 'wrapped',
       extra: {},
     },
-    'test-utxo': {
+    ergo: {
       tokenId: 'test-utxo-native-token',
       name: 'test-utxo-native-token',
       decimals: 3,
@@ -110,7 +110,7 @@ export const testTokenMap: RosenTokens = [
       residency: 'native',
       extra: {},
     },
-    'test-utxo': {
+    ergo: {
       tokenId: 'wrapped-multi-decimal-token1',
       name: 'wrapped-multi-decimal-token1',
       decimals: 1,
@@ -128,7 +128,7 @@ export const testTokenMap: RosenTokens = [
       residency: 'wrapped',
       extra: {},
     },
-    'test-utxo': {
+    ergo: {
       tokenId: 'multi-decimal-token2',
       name: 'multi-decimal-token2',
       decimals: 0,
@@ -146,7 +146,7 @@ export const testTokenMap: RosenTokens = [
       residency: 'native',
       extra: {},
     },
-    'test-utxo': {
+    ergo: {
       tokenId: 'wrapped-fixed-decimal-token',
       name: 'wrapped-fixed-decimal-token',
       decimals: 4,

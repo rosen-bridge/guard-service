@@ -1,4 +1,4 @@
-import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
+import { DefaultLogger } from '@rosen-bridge/abstract-logger';
 import { RosenDialerNode } from '@rosen-bridge/dialer';
 import {
   MultiSigHandler as ErgoMultiSig,
@@ -9,7 +9,7 @@ import RosenDialer from '../communication/rosenDialer';
 import Configs from '../configs/configs';
 import DetectionHandler from './detectionHandler';
 
-const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = DefaultLogger.getInstance().child(import.meta.url);
 
 class MultiSigHandler {
   private static instance: MultiSigHandler;
@@ -19,7 +19,7 @@ class MultiSigHandler {
 
   private constructor(multiSigUtilsInstance: MultiSigUtils) {
     this.ergoMultiSig = new ErgoMultiSig({
-      logger: CallbackLoggerFactory.getInstance().getLogger('MultiSig'),
+      logger: DefaultLogger.getInstance().child('MultiSig'),
       multiSigUtilsInstance: multiSigUtilsInstance,
       messageEnc: Configs.tssKeys.encryptor,
       secretHex: Configs.guardSecretHex,

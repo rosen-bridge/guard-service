@@ -8,7 +8,7 @@ import { ViewColumn, ViewEntity } from '@rosen-bridge/extended-typeorm';
       .select('ete."id"', 'id')
       .addSelect('ete."eventId"', 'eventId')
       .addSelect('ete."txId"', 'txId')
-      .addSelect('ete."boxId"', 'boxId')
+      .addSelect('ete."identifier"', 'boxId')
       .addSelect('ete."block"', 'block')
       .addSelect('ete."height"', 'height')
       .addSelect('ete."fromChain"', 'fromChain')
