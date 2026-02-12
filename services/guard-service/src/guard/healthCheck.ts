@@ -30,6 +30,7 @@ import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
 import { EXPLORER_NETWORK } from '@rosen-chains/ergo-explorer-network';
 import { NODE_NETWORK } from '@rosen-chains/ergo-node-network';
 import { ETH, ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
+import { FIRO, FIRO_CHAIN } from '@rosen-chains/firo';
 
 import Configs from '../configs/configs';
 import GuardsBinanceConfigs from '../configs/guardsBinanceConfigs';
@@ -37,6 +38,7 @@ import GuardsBitcoinConfigs from '../configs/guardsBitcoinConfigs';
 import GuardsCardanoConfigs from '../configs/guardsCardanoConfigs';
 import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
 import GuardsEthereumConfigs from '../configs/guardsEthereumConfigs';
+import GuardsFiroConfigs from '../configs/guardsFiroConfigs';
 import { rosenConfig } from '../configs/rosenConfig';
 import { DatabaseAction } from '../db/databaseAction';
 import { NotificationHandler } from '../handlers/notificationHandler';
@@ -126,6 +128,7 @@ const getHealthCheck = async () => {
     const ergoContracts = rosenConfig.contractReader(ERGO_CHAIN);
     const cardanoContracts = rosenConfig.contractReader(CARDANO_CHAIN);
     const bitcoinContracts = rosenConfig.contractReader(BITCOIN_CHAIN);
+    const firoContracts = rosenConfig.contractReader(FIRO_CHAIN);
     const ethereumContracts = rosenConfig.contractReader(ETHEREUM_CHAIN);
     const binanceContracts = rosenConfig.contractReader(BINANCE_CHAIN);
     // We skipped Doge AssetCheck parameter, so we don't need it's contracts here
@@ -275,6 +278,19 @@ const getHealthCheck = async () => {
         8,
       );
       healthCheck.register(btcRunesAssetHealthCheck);
+    }
+    if (GuardsFiroConfigs.chainNetworkName === 'rpc') {
+      // register FIRO asset-check on Firo lock address
+      const firoAssetHealthCheck = new EsploraAssetHealthCheckParam(
+        FIRO_CHAIN,
+        FIRO,
+        firoContracts.addresses.lock,
+        Configs.firoWarnThreshold,
+        Configs.firoCriticalThreshold,
+        GuardsFiroConfigs.rpc.url,
+        8,
+      );
+      healthCheck.register(firoAssetHealthCheck);
     }
     if (GuardsEthereumConfigs.chainNetworkName === 'rpc') {
       const ethAssetHealthCheck = new EvmRpcAssetHealthCheckParam(
