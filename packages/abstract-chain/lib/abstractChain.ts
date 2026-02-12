@@ -303,6 +303,15 @@ abstract class AbstractChain<TxType> {
   ) => Promise<PaymentTransaction>;
 
   /**
+   * checks if the corresponding signer service is signing the transaction or not
+   * @param transaction the transaction
+   * @returns true if the signer is still signing the transaction, otherwise false
+   */
+  abstract isTransactionInSign: (
+    transaction: PaymentTransaction,
+  ) => Promise<boolean>;
+
+  /**
    * @param transactionType type of the transaction
    * @returns required number of confirmation
    */

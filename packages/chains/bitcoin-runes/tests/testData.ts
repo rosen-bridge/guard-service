@@ -459,6 +459,11 @@ export const transaction2InputIds = [
   transaction2Input1BoxId,
 ];
 
+export const transaction2HashMessage0 =
+  '6c4371604cdb25f8e3099942fbfebdd278d6df67e2378a5bd7730b1e0db520ce';
+export const transaction2HashMessage1 =
+  '0b64e1a9514dc25f44f230b2c3a2e16762d41fde9152ea89104885b896f1265b';
+
 export const transaction2Forms = {
   generatePaymentTxString: ({
     txBytes,

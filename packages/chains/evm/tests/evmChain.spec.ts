@@ -39,7 +39,7 @@ describe('EvmChain', () => {
       network,
       testUtils.configs,
       tokenMap,
-      testUtils.mockedSignFn,
+      testUtils.mockedSignMediator,
       2,
     );
     expect(chain.supportedTokens).toEqual([]);
@@ -67,7 +67,7 @@ describe('EvmChain', () => {
         network,
         testUtils.configs,
         tokenMap,
-        testUtils.mockedSignFn,
+        testUtils.mockedSignMediator,
         2,
       );
       expect(chain.extractor?.chain).toEqual(chain.CHAIN);
@@ -91,7 +91,7 @@ describe('EvmChain', () => {
         network,
         testUtils.configs,
         tokenMap,
-        testUtils.mockedSignFn,
+        testUtils.mockedSignMediator,
         2,
       );
       expect(chain.supportedTokens).toEqual(
@@ -2602,10 +2602,10 @@ describe('EvmChain', () => {
           signatureRecovery: TestData.transaction2SignatureRecovery,
         };
       });
-      const evmChain = await testUtils.generateChainObject(
-        network,
-        signFunction,
-      );
+      const evmChain = await testUtils.generateChainObject(network, {
+        sign: signFunction,
+        isInSign: vi.fn(),
+      });
 
       // mock PaymentTransaction of unsigned transaction
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
@@ -2657,10 +2657,10 @@ describe('EvmChain', () => {
       const signFunction = async (txHash: Uint8Array) => {
         throw Error(`TestError: sign failed`);
       };
-      const evmChain = await testUtils.generateChainObject(
-        network,
-        signFunction,
-      );
+      const evmChain = await testUtils.generateChainObject(network, {
+        sign: signFunction,
+        isInSign: vi.fn(),
+      });
 
       // mock PaymentTransaction of unsigned transaction
       const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
@@ -2679,6 +2679,86 @@ describe('EvmChain', () => {
       await expect(async () => {
         await evmChain.signTransaction(paymentTx, 0);
       }).rejects.toThrow('TestError: sign failed');
+    });
+  });
+
+  describe('isTransactionInSign', () => {
+    const network = new TestEvmNetwork();
+
+    /**
+     * @target EvmChain.isTransactionInSign should return true when transaction is in sign
+     * @dependencies
+     * @scenario
+     * - mock an isinSign function to return true
+     * - mock PaymentTransaction of unsigned transaction
+     * - call the function
+     * - check returned value
+     * @expected
+     * - it should return true
+     */
+    it('should return true when transaction is in sign', async () => {
+      // mock an isinSign function to return true
+      const evmChain = await testUtils.generateChainObject(network, {
+        sign: vi.fn(),
+        isInSign: vi.fn().mockResolvedValue(true),
+      });
+
+      // mock PaymentTransaction of unsigned transaction
+      const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+      const txType = TransactionType.payment;
+      const tx = Transaction.from(TestData.transaction2UnsignedTx);
+
+      const paymentTx = new PaymentTransaction(
+        evmChain.CHAIN,
+        tx.unsignedHash,
+        eventId,
+        Serializer.serialize(tx),
+        txType,
+      );
+
+      // call the function
+      const result = await evmChain.isTransactionInSign(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(true);
+    });
+
+    /**
+     * @target EvmChain.isTransactionInSign should return false when transaction is not in sign
+     * @dependencies
+     * @scenario
+     * - mock an isinSign function to return false
+     * - mock PaymentTransaction of unsigned transaction
+     * - call the function
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when transaction is not in sign', async () => {
+      // mock an isinSign function to return false
+      const evmChain = await testUtils.generateChainObject(network, {
+        sign: vi.fn(),
+        isInSign: vi.fn().mockResolvedValue(false),
+      });
+
+      // mock PaymentTransaction of unsigned transaction
+      const eventId = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+      const txType = TransactionType.payment;
+      const tx = Transaction.from(TestData.transaction2UnsignedTx);
+
+      const paymentTx = new PaymentTransaction(
+        evmChain.CHAIN,
+        tx.unsignedHash,
+        eventId,
+        Serializer.serialize(tx),
+        txType,
+      );
+
+      // call the function
+      const result = await evmChain.isTransactionInSign(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
     });
   });
 

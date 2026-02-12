@@ -3,8 +3,8 @@ import { TokenMap } from '@rosen-bridge/tokens';
 import {
   AbstractEvmNetwork,
   EvmChain,
+  EvmChainSignMediator,
   EvmConfigs,
-  TssSignFunction,
 } from '@rosen-chains/evm';
 
 import { ETH, ETHEREUM_CHAIN, ETHEREUM_CHAIN_ID } from './constants';
@@ -18,14 +18,14 @@ class EthereumChain extends EvmChain {
     network: AbstractEvmNetwork,
     configs: EvmConfigs,
     tokens: TokenMap,
-    signFunction: TssSignFunction,
+    signMediator: EvmChainSignMediator,
     logger?: AbstractLogger,
   ) {
     super(
       network,
       configs,
       tokens,
-      signFunction,
+      signMediator,
       ETHEREUM_CHAIN,
       ETH,
       2,
