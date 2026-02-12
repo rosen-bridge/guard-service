@@ -8,6 +8,11 @@ import {
   StatusEnum,
   TssSigner,
 } from '@rosen-bridge/tss';
+import {
+  EcdsaSignMediator,
+  EcdsaSignResponse,
+  EddsaSignMediator,
+} from '@rosen-chains/abstract-chain';
 
 import RosenDialer from '../communication/rosenDialer';
 import Configs from '../configs/configs';
@@ -220,11 +225,56 @@ class TssHandler {
   };
 
   /**
-   * returns curve (ECDSA) signer function
+   * @param chainCode chain code of the chain
+   * @param derivationPath derivation path of the chain
+   * @returns Curve (ECDSA) sign mediator, which has a function to sign
+   * and another to check if a message is in sign or not
    */
-  get curveSign() {
-    return TssHandler.tssCurveSigner.signPromised;
-  }
+  wrapCurveSignMediator = (
+    chainCode: string,
+    derivationPath: number[],
+  ): EcdsaSignMediator => {
+    return {
+      isInSign: async (txHash: Uint8Array) => {
+        return TssHandler.tssCurveSigner.isInSign(
+          Buffer.from(txHash).toString('hex'),
+        );
+      },
+      sign: async (txHash: Uint8Array): Promise<EcdsaSignResponse> => {
+        const res = await TssHandler.tssCurveSigner.signPromised(
+          Buffer.from(txHash).toString('hex'),
+          chainCode,
+          derivationPath,
+        );
+        return {
+          signature: res.signature,
+          signatureRecovery: res.signatureRecovery!,
+        };
+      },
+    };
+  };
+
+  /**
+   * @param chainCode chain code of the chain
+   * @returns Edward (EdDSA) sign mediator, which has a function to sign
+   * and another to check if a message is in sign or not
+   */
+  wrapEdwardSignMediator = (chainCode: string): EddsaSignMediator => {
+    return {
+      isInSign: async (txHash: Uint8Array) => {
+        return TssHandler.tssEdwardSigner.isInSign(
+          Buffer.from(txHash).toString('hex'),
+        );
+      },
+      sign: async (txHash: Uint8Array): Promise<string> => {
+        const res = await TssHandler.tssEdwardSigner.signPromised(
+          Buffer.from(txHash).toString('hex'),
+          chainCode,
+        );
+        return res.signature;
+      },
+    };
+  };
 
   /**
    * returns (EdDSA) signer signer function

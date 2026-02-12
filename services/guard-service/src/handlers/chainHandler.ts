@@ -117,13 +117,15 @@ class ChainHandler {
           `No case is defined for network [${GuardsErgoConfigs.chainNetworkName}]`,
         );
     }
-    const multiSigSignFunction =
-      MultiSigHandler.getInstance().getErgoMultiSig().sign;
+    const ErgoSignMediator = {
+      isInSign: MultiSigHandler.getInstance().getErgoMultiSig().isInSign,
+      sign: MultiSigHandler.getInstance().getErgoMultiSig().sign,
+    };
     return new ErgoChain(
       network,
       GuardsErgoConfigs.chainConfigs,
       TokenHandler.getInstance().getTokenMap(),
-      multiSigSignFunction,
+      ErgoSignMediator,
       DefaultLogger.getInstance().child('ErgoChain'),
     );
   };
@@ -155,21 +157,13 @@ class ChainHandler {
         );
     }
     const chainCode = GuardsCardanoConfigs.tssChainCode;
-    const edwardSign = TssHandler.getInstance().edwardSign;
-    const tssSignFunctionWrapper = async (
-      txHash: Uint8Array,
-    ): Promise<string> => {
-      const res = await edwardSign(
-        Buffer.from(txHash).toString('hex'),
-        chainCode,
-      );
-      return res.signature;
-    };
+    const cardanoSignMediator =
+      TssHandler.getInstance().wrapEdwardSignMediator(chainCode);
     return new CardanoChain(
       network,
       GuardsCardanoConfigs.chainConfigs,
       TokenHandler.getInstance().getTokenMap(),
-      tssSignFunctionWrapper,
+      cardanoSignMediator,
       DefaultLogger.getInstance().child('CardanoChain'),
     );
   };
@@ -194,28 +188,15 @@ class ChainHandler {
     }
     const chainCode = GuardsBitcoinConfigs.tssChainCode;
     const derivationPath = GuardsBitcoinConfigs.derivationPath;
-    const curveSign = TssHandler.getInstance().curveSign;
-    const tssSignFunctionWrapper = async (
-      txHash: Uint8Array,
-    ): Promise<{
-      signature: string;
-      signatureRecovery: string;
-    }> => {
-      const res = await curveSign(
-        Buffer.from(txHash).toString('hex'),
-        chainCode,
-        derivationPath,
-      );
-      return {
-        signature: res.signature,
-        signatureRecovery: res.signatureRecovery!,
-      };
-    };
+    const curveSignMediator = TssHandler.getInstance().wrapCurveSignMediator(
+      chainCode,
+      derivationPath,
+    );
     return new BitcoinChain(
       network,
       GuardsBitcoinConfigs.chainConfigs,
       TokenHandler.getInstance().getTokenMap(),
-      tssSignFunctionWrapper,
+      curveSignMediator,
       DefaultLogger.getInstance().child('BitcoinChain'),
     );
   };
@@ -281,28 +262,15 @@ class ChainHandler {
     }
     const chainCode = GuardsDogeConfigs.tssChainCode;
     const derivationPath = GuardsDogeConfigs.derivationPath;
-    const curveSign = TssHandler.getInstance().curveSign;
-    const tssSignFunctionWrapper = async (
-      txHash: Uint8Array,
-    ): Promise<{
-      signature: string;
-      signatureRecovery: string;
-    }> => {
-      const res = await curveSign(
-        Buffer.from(txHash).toString('hex'),
-        chainCode,
-        derivationPath,
-      );
-      return {
-        signature: res.signature,
-        signatureRecovery: res.signatureRecovery!,
-      };
-    };
+    const curveSignMediator = TssHandler.getInstance().wrapCurveSignMediator(
+      chainCode,
+      derivationPath,
+    );
     return new DogeChain(
       network,
       GuardsDogeConfigs.chainConfigs,
       TokenHandler.getInstance().getTokenMap(),
-      tssSignFunctionWrapper,
+      curveSignMediator,
       DefaultLogger.getInstance().child('DogeChain'),
     );
   };
@@ -331,28 +299,15 @@ class ChainHandler {
     }
     const chainCode = GuardsEthereumConfigs.tssChainCode;
     const derivationPath = GuardsEthereumConfigs.derivationPath;
-    const curveSign = TssHandler.getInstance().curveSign;
-    const tssSignFunctionWrapper = async (
-      txHash: Uint8Array,
-    ): Promise<{
-      signature: string;
-      signatureRecovery: string;
-    }> => {
-      const res = await curveSign(
-        Buffer.from(txHash).toString('hex'),
-        chainCode,
-        derivationPath,
-      );
-      return {
-        signature: res.signature,
-        signatureRecovery: res.signatureRecovery!,
-      };
-    };
+    const curveSignMediator = TssHandler.getInstance().wrapCurveSignMediator(
+      chainCode,
+      derivationPath,
+    );
     return new EthereumChain(
       network,
       GuardsEthereumConfigs.chainConfigs,
       TokenHandler.getInstance().getTokenMap(),
-      tssSignFunctionWrapper,
+      curveSignMediator,
       DefaultLogger.getInstance().child('EthereumChain'),
     );
   };
@@ -381,28 +336,15 @@ class ChainHandler {
     }
     const chainCode = GuardsBinanceConfigs.tssChainCode;
     const derivationPath = GuardsBinanceConfigs.derivationPath;
-    const curveSign = TssHandler.getInstance().curveSign;
-    const tssSignFunctionWrapper = async (
-      txHash: Uint8Array,
-    ): Promise<{
-      signature: string;
-      signatureRecovery: string;
-    }> => {
-      const res = await curveSign(
-        Buffer.from(txHash).toString('hex'),
-        chainCode,
-        derivationPath,
-      );
-      return {
-        signature: res.signature,
-        signatureRecovery: res.signatureRecovery!,
-      };
-    };
+    const curveSignMediator = TssHandler.getInstance().wrapCurveSignMediator(
+      chainCode,
+      derivationPath,
+    );
     return new BinanceChain(
       network,
       GuardsBinanceConfigs.chainConfigs,
       TokenHandler.getInstance().getTokenMap(),
-      tssSignFunctionWrapper,
+      curveSignMediator,
       DefaultLogger.getInstance().child('BinanceChain'),
     );
   };
@@ -451,28 +393,15 @@ class ChainHandler {
     }
     const chainCode = GuardsBitcoinRunesConfigs.tssChainCode;
     const derivationPath = GuardsBitcoinRunesConfigs.derivationPath;
-    const curveSign = TssHandler.getInstance().curveSign;
-    const tssSignFunctionWrapper = async (
-      txHash: Uint8Array,
-    ): Promise<{
-      signature: string;
-      signatureRecovery: string;
-    }> => {
-      const res = await curveSign(
-        Buffer.from(txHash).toString('hex'),
-        chainCode,
-        derivationPath,
-      );
-      return {
-        signature: res.signature,
-        signatureRecovery: res.signatureRecovery!,
-      };
-    };
+    const curveSignMediator = TssHandler.getInstance().wrapCurveSignMediator(
+      chainCode,
+      derivationPath,
+    );
     return new BitcoinRunesChain(
       network,
       GuardsBitcoinRunesConfigs.chainConfigs,
       TokenHandler.getInstance().getTokenMap(),
-      tssSignFunctionWrapper,
+      curveSignMediator,
       DefaultLogger.getInstance().child('BitcoinRunesChain'),
     );
   };

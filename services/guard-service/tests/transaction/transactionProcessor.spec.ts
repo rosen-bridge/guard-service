@@ -4,7 +4,6 @@ import {
 } from '@rosen-chains/abstract-chain';
 import { CARDANO_CHAIN } from '@rosen-chains/cardano';
 
-import Configs from '../../src/configs/configs';
 import EventSerializer from '../../src/event/eventSerializer';
 import TransactionProcessor from '../../src/transaction/transactionProcessor';
 import {
@@ -342,12 +341,14 @@ describe('TransactionProcessor', () => {
 
     /**
      * @target TransactionProcessor.processInSignTx should update status
-     * to sign-failed when enough times is passed from sign request
+     * to sign-failed when signer does not have the tx
      * @dependencies
      * - database
-     * - Date
+     * - ChainHandler
      * @scenario
      * - mock transaction and insert into db as 'in-sign'
+     * - mock ChainHandler `getChain`
+     *   - mock `isTransactionInSign` to return false
      * - run test (call `processTransactions`)
      * - check tx in database
      * @expected
@@ -355,16 +356,20 @@ describe('TransactionProcessor', () => {
      * - tx signFailedCount should be incremented
      * - tx failedInSign should be updated to true
      */
-    it('should update status to sign-failed when enough times is passed from sign request', async () => {
+    it('should update status to sign-failed when signer does not have the tx', async () => {
       // mock transaction and insert into db as 'approved'
       const tx = mockPaymentTransaction();
-      const lastStatusUpdate =
-        currentTimeStampSeconds - Configs.txSignTimeout - 1;
-      await DatabaseActionMock.insertTxRecord(
-        tx,
-        TransactionStatus.inSign,
-        0,
-        lastStatusUpdate.toString(),
+      await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.inSign);
+
+      // mock ChainHandler `getChain`
+      const chain = tx.network;
+      ChainHandlerMock.mockChainName(chain);
+      // mock `isTransactionInSign`
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'isTransactionInSign',
+        false,
+        true,
       );
 
       // run test
@@ -394,9 +399,11 @@ describe('TransactionProcessor', () => {
      * when enough times is not passed from sign request
      * @dependencies
      * - database
-     * - Date
+     * - ChainHandler
      * @scenario
      * - mock transaction and insert into db as 'in-sign'
+     * - mock ChainHandler `getChain`
+     *   - mock `isTransactionInSign` to return true
      * - get database txs
      * - run test (call `processTransactions`)
      * - check tx in database
@@ -406,15 +413,17 @@ describe('TransactionProcessor', () => {
     it('should do nothing when enough times is not passed from sign request', async () => {
       // mock transaction and insert into db as 'in-sign'
       const tx = mockPaymentTransaction();
-      const currentTimeStampSeconds = Math.round(
-        TestConfigs.currentTimeStamp / 1000,
-      );
-      const lastStatusUpdate = currentTimeStampSeconds - Configs.txSignTimeout;
-      await DatabaseActionMock.insertTxRecord(
-        tx,
-        TransactionStatus.inSign,
-        0,
-        lastStatusUpdate.toString(),
+      await DatabaseActionMock.insertTxRecord(tx, TransactionStatus.inSign);
+
+      // mock ChainHandler `getChain`
+      const chain = tx.network;
+      ChainHandlerMock.mockChainName(chain);
+      // mock `isTransactionInSign`
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'isTransactionInSign',
+        true,
+        true,
       );
 
       // get database txs
