@@ -42,11 +42,6 @@
     "@rosen-chains/bitcoin": "^9.0.2",
     "bitcoinjs-lib": "^6.1.5"
   },
-  "devDependencies": {
-    "@vitest/coverage-istanbul": "^3.1.4",
-    "tsx": "^4.20.5",
-    "vitest": "^3.1.4"
-  },
   "engines": {
     "node": ">=22.18.0",
     "npm": "11.6.2"

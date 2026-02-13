@@ -1,9 +1,10 @@
 {
   "extends": "../../../tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "types": ["node", "vitest/globals"]
   },
-  "include": ["lib", "tests", "vitest.config.ts"],
+  "include": ["lib", "tests"],
   "references": [
     { "path": "../../abstract-chain" },
     { "path": "../../chains/ergo" }
