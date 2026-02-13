@@ -11,7 +11,6 @@ const projectSpecific = defineConfig({
       './tests/setup/mockChainHandler.ts',
     ],
     coverage: {
-      reporter: ['cobertura', 'lcov', 'text', 'text-summary'],
       include: ['src'],
     },
   },
