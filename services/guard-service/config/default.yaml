@@ -184,6 +184,9 @@ tss:
     - curvePub: '' # ECDSA
       curveShareId: ''
       edwardShareId: ''
+  curveSignTimeout: 600
+  edwardSignTimeout: 600
+  signCacheTtl: 86400 # 24 hours
 p2p:
   relays:
     - ''
@@ -201,7 +204,6 @@ p2p:
   relayReconnectionInterval: 30 # Interval of tries to re-connect a disconnected relay
   brokenTimeAllowed: 1200 # seconds allowed to be unstable
 eventTimeout: 86400 # timeout for processing events
-txSignTimeout: 300 # timeout for signing transactions
 guard:
   mnemonic: ''
   configUpdateInterval: 180 # guards config box update interval (getting guards configs from the box in Ergo network)
@@ -324,3 +326,4 @@ balanceHandler:
       rpc: 9999
 ergoMultiSig:
   turnTime: 60
+  signTimeout: 600
