@@ -29,7 +29,7 @@ import ErgoTransaction from './ergoTransaction';
 import ErgoUtils from './ergoUtils';
 import AbstractErgoNetwork from './network/abstractErgoNetwork';
 import Serializer from './serializer';
-import { ErgoConfigs, GuardsPkConfig } from './types';
+import { ErgoConfigs, ErgoSignMediator, GuardsPkConfig } from './types';
 
 class ErgoChain extends AbstractUtxoChain<wasm.Transaction, wasm.ErgoBox> {
   CHAIN = ERGO_CHAIN;
@@ -40,23 +40,13 @@ class ErgoChain extends AbstractUtxoChain<wasm.Transaction, wasm.ErgoBox> {
     '1005040004000e36100204a00b08cd0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798ea02d192a39a8cc7a701730073011001020402d19683030193a38cc7b2a57300000193c2b2a57301007473027303830108cdeeac93b1a57304';
   declare network: AbstractErgoNetwork;
   declare configs: ErgoConfigs;
-  protected signFunction: (
-    tx: wasm.ReducedTransaction,
-    requiredSign: number,
-    boxes: Array<wasm.ErgoBox>,
-    dataBoxes?: Array<wasm.ErgoBox>,
-  ) => Promise<wasm.Transaction>;
+  protected signMediator: ErgoSignMediator;
 
   constructor(
     network: AbstractErgoNetwork,
     configs: ErgoConfigs,
     tokens: TokenMap,
-    signFunction: (
-      tx: wasm.ReducedTransaction,
-      requiredSign: number,
-      boxes: Array<wasm.ErgoBox>,
-      dataBoxes?: Array<wasm.ErgoBox>,
-    ) => Promise<wasm.Transaction>,
+    signMediator: ErgoSignMediator,
     logger?: AbstractLogger,
   ) {
     super(network, configs, tokens, logger);
@@ -65,7 +55,7 @@ class ErgoChain extends AbstractUtxoChain<wasm.Transaction, wasm.ErgoBox> {
       tokens,
       logger,
     );
-    this.signFunction = signFunction;
+    this.signMediator = signMediator;
     this.boxSelection = new ErgoBoxSelection();
   }
 
@@ -705,8 +695,9 @@ class ErgoChain extends AbstractUtxoChain<wasm.Transaction, wasm.ErgoBox> {
       wasm.ErgoBox.sigma_parse_bytes(boxBytes),
     );
 
-    return this.signFunction(tx, requiredSign, txInputs, txDataInputs).then(
-      async (signedTx) => {
+    return this.signMediator
+      .sign(tx, requiredSign, txInputs, txDataInputs)
+      .then(async (signedTx) => {
         const inputBoxes = wasm.ErgoBoxes.empty();
         txInputs.forEach((box) => inputBoxes.add(box));
         return new ErgoTransaction(
@@ -717,8 +708,18 @@ class ErgoChain extends AbstractUtxoChain<wasm.Transaction, wasm.ErgoBox> {
           ergoTx.inputBoxes,
           ergoTx.dataInputs,
         );
-      },
-    );
+      });
+  };
+
+  /**
+   * checks if the corresponding signer service is signing the transaction or not
+   * @param transaction the transaction
+   * @returns true if the signer is still signing it, otherwise false
+   */
+  isTransactionInSign = async (
+    transaction: PaymentTransaction,
+  ): Promise<boolean> => {
+    return this.signMediator.isInSign(transaction.txId);
   };
 
   /**

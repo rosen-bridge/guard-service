@@ -1,6 +1,6 @@
 import { TokenMap } from '@rosen-bridge/tokens';
 
-import { AbstractEvmNetwork, EvmChain, TssSignFunction } from '../lib';
+import { AbstractEvmNetwork, EvmChain, EvmChainSignMediator } from '../lib';
 
 class TestChain extends EvmChain {
   CHAIN = 'test';
@@ -11,14 +11,14 @@ class TestChain extends EvmChain {
     network: AbstractEvmNetwork,
     configs: any, // eslint-disable-line @typescript-eslint/no-explicit-any
     tokens: TokenMap,
-    signFunction: TssSignFunction,
+    signMediator: EvmChainSignMediator,
     evmTxType: number,
   ) {
     super(
       network,
       configs,
       tokens,
-      signFunction,
+      signMediator,
       'test',
       'test-native-token',
       evmTxType,
