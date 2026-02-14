@@ -117,7 +117,7 @@ class ChainHandler {
           `No case is defined for network [${GuardsErgoConfigs.chainNetworkName}]`,
         );
     }
-    const ErgoSignMediator = {
+    const ergoSignMediator = {
       isInSign: MultiSigHandler.getInstance().getErgoMultiSig().isInSign,
       sign: MultiSigHandler.getInstance().getErgoMultiSig().sign,
     };
@@ -125,7 +125,7 @@ class ChainHandler {
       network,
       GuardsErgoConfigs.chainConfigs,
       TokenHandler.getInstance().getTokenMap(),
-      ErgoSignMediator,
+      ergoSignMediator,
       DefaultLogger.getInstance().child('ErgoChain'),
     );
   };
@@ -188,7 +188,7 @@ class ChainHandler {
     }
     const chainCode = GuardsBitcoinConfigs.tssChainCode;
     const derivationPath = GuardsBitcoinConfigs.derivationPath;
-    const curveSignMediator = TssHandler.getInstance().wrapCurveSignMediator(
+    const bitcoinSignMediator = TssHandler.getInstance().wrapCurveSignMediator(
       chainCode,
       derivationPath,
     );
@@ -196,7 +196,7 @@ class ChainHandler {
       network,
       GuardsBitcoinConfigs.chainConfigs,
       TokenHandler.getInstance().getTokenMap(),
-      curveSignMediator,
+      bitcoinSignMediator,
       DefaultLogger.getInstance().child('BitcoinChain'),
     );
   };
@@ -262,7 +262,7 @@ class ChainHandler {
     }
     const chainCode = GuardsDogeConfigs.tssChainCode;
     const derivationPath = GuardsDogeConfigs.derivationPath;
-    const curveSignMediator = TssHandler.getInstance().wrapCurveSignMediator(
+    const dogeSignMediator = TssHandler.getInstance().wrapCurveSignMediator(
       chainCode,
       derivationPath,
     );
@@ -270,7 +270,7 @@ class ChainHandler {
       network,
       GuardsDogeConfigs.chainConfigs,
       TokenHandler.getInstance().getTokenMap(),
-      curveSignMediator,
+      dogeSignMediator,
       DefaultLogger.getInstance().child('DogeChain'),
     );
   };
@@ -299,7 +299,7 @@ class ChainHandler {
     }
     const chainCode = GuardsEthereumConfigs.tssChainCode;
     const derivationPath = GuardsEthereumConfigs.derivationPath;
-    const curveSignMediator = TssHandler.getInstance().wrapCurveSignMediator(
+    const ethereumSignMediator = TssHandler.getInstance().wrapCurveSignMediator(
       chainCode,
       derivationPath,
     );
@@ -307,7 +307,7 @@ class ChainHandler {
       network,
       GuardsEthereumConfigs.chainConfigs,
       TokenHandler.getInstance().getTokenMap(),
-      curveSignMediator,
+      ethereumSignMediator,
       DefaultLogger.getInstance().child('EthereumChain'),
     );
   };
@@ -336,7 +336,7 @@ class ChainHandler {
     }
     const chainCode = GuardsBinanceConfigs.tssChainCode;
     const derivationPath = GuardsBinanceConfigs.derivationPath;
-    const curveSignMediator = TssHandler.getInstance().wrapCurveSignMediator(
+    const binanceSignMediator = TssHandler.getInstance().wrapCurveSignMediator(
       chainCode,
       derivationPath,
     );
@@ -344,7 +344,7 @@ class ChainHandler {
       network,
       GuardsBinanceConfigs.chainConfigs,
       TokenHandler.getInstance().getTokenMap(),
-      curveSignMediator,
+      binanceSignMediator,
       DefaultLogger.getInstance().child('BinanceChain'),
     );
   };
@@ -393,15 +393,13 @@ class ChainHandler {
     }
     const chainCode = GuardsBitcoinRunesConfigs.tssChainCode;
     const derivationPath = GuardsBitcoinRunesConfigs.derivationPath;
-    const curveSignMediator = TssHandler.getInstance().wrapCurveSignMediator(
-      chainCode,
-      derivationPath,
-    );
+    const bitcoinRunesSignMediator =
+      TssHandler.getInstance().wrapCurveSignMediator(chainCode, derivationPath);
     return new BitcoinRunesChain(
       network,
       GuardsBitcoinRunesConfigs.chainConfigs,
       TokenHandler.getInstance().getTokenMap(),
-      curveSignMediator,
+      bitcoinRunesSignMediator,
       DefaultLogger.getInstance().child('BitcoinRunesChain'),
     );
   };
