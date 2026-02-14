@@ -9,6 +9,7 @@
     "types": ["node", "vitest/globals"]
   },
   "include": ["./**/*.ts", "package.json"],
+  "exclude": ["./vitest.config.ts"],
   "references": [
     { "path": "../../packages/abstract-chain" },
     { "path": "../../packages/chains/ergo" },
