@@ -97,6 +97,29 @@ doge:
   tssChainCode: ''
   derivationPath:
     -
+firo:
+  chainNetwork: 'rpc'
+  rpc:
+    url: 'https://firo.publicnode.com' # TODO CONFIGURE: Production RPC endpoint (e.g., 'https://firo.publicnode.com' or private node)
+    timeout: 8
+    username: '' # TODO CONFIGURE: RPC username (empty for public nodes)
+    password: '' # TODO CONFIGURE: RPC password (empty for public nodes)
+    # apiKey: ''
+    # rps: 5 # request per second for RPC requests
+  bankPublicKey: '' # TODO REVIEW: TSS-generated aggregated public key corresponding to lock address
+  txFeeSlippage: 20 # TODO REVIEW: Allowed slippage percentage for tx fees (adjust based on requirements)
+  confirmation: # TODO REVIEW: Required block confirmations (validate these meet security requirements)
+    observation: 20 # an observation transaction (lock transaction) on Firo get confirmed
+    payment: 20 # a payment transaction on Firo get confirmed
+    cold: 20 # a cold storage transaction on Firo get confirmed
+    manual: 20 # a manual transaction on Firo get confirmed
+    arbitrary: 20 # an arbitrary transaction on Firo get confirmed
+  confirmationCheckPercent:
+    signFailedTx: 10
+    sentTx: 60
+  tssChainCode: ''
+  derivationPath:
+    -
 cardano:
   chainNetwork: 'koios' # 'ogmios', 'koios' or 'blockfrost'
   blockfrost:
@@ -259,6 +282,9 @@ healthCheck:
     bnb:
       warnThreshold: '5000000000000000' # minimum recommended bnb balance
       criticalThreshold: '1000000000000000' # minimum required bnb balance
+    firo:
+      warnThreshold: 10000000 # REVIEW: Minimum recommended firo balance (0.1 FIRO = 10000000 satoshis)
+      criticalThreshold: 1000000 # REVIEW: Minimum required firo balance (0.01 FIRO = 1000000 satoshis)
   ergoScanner:
     warnDifference: 5 # warning difference between existing and scanned blocks height
     criticalDifference: 20 # critical difference between existing and scanned blocks height
@@ -315,6 +341,10 @@ balanceHandler:
     tokensPerIteration:
       esplora: 9999
       blockcypher: 9999
+  firo:
+    tokensPerIteration:
+      esplora: 9999
+      rpc: 9999
   ethereum:
     tokensPerIteration:
       rpc: 10

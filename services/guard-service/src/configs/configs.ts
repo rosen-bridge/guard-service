@@ -321,6 +321,12 @@ class Configs {
   static dogeCriticalThreshold = BigInt(
     config.get<string>('healthCheck.asset.doge.criticalThreshold'),
   );
+  static firoWarnThreshold = BigInt(
+    config.get<string>('healthCheck.asset.firo.warnThreshold'),
+  );
+  static firoCriticalThreshold = BigInt(
+    config.get<string>('healthCheck.asset.firo.criticalThreshold'),
+  );
   static ethWarnThreshold = BigInt(
     config.get<string>('healthCheck.asset.eth.warnThreshold'),
   );

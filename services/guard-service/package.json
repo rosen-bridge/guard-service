@@ -74,6 +74,8 @@
     "@rosen-chains/doge-blockcypher": "^1.0.2",
     "@rosen-chains/doge-esplora": "^2.0.2",
     "@rosen-chains/doge-rpc": "^1.0.2",
+    "@rosen-chains/firo": "^0.0.0",
+    "@rosen-chains/firo-rpc": "^0.0.0",
     "@rosen-chains/ergo": "^13.0.2",
     "@rosen-chains/ergo-explorer-network": "^10.0.2",
     "@rosen-chains/ergo-node-network": "^10.0.2",

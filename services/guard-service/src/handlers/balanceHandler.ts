@@ -10,6 +10,7 @@ import { DOGE, DOGE_CHAIN } from '@rosen-chains/doge';
 import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
 import { NODE_NETWORK } from '@rosen-chains/ergo-node-network';
 import { ETH, ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
+import { FIRO, FIRO_CHAIN } from '@rosen-chains/firo';
 
 import Configs from '../configs/configs';
 import GuardsCardanoConfigs from '../configs/guardsCardanoConfigs';
@@ -79,6 +80,11 @@ class BalanceHandler {
           this.nativeTokenIds[chain] = BTC;
           this.chainsTokensPerIteration[chain] =
             Configs.balanceHandler.bitcoinRunes.tokensPerIteration.rpc;
+          break;
+        case FIRO_CHAIN:
+          this.nativeTokenIds[chain] = FIRO;
+          this.chainsTokensPerIteration[chain] =
+            Configs.balanceHandler.firo.tokensPerIteration.rpc;
           break;
         default:
           throw Error(`Chain [${chain}] is not implemented`);
