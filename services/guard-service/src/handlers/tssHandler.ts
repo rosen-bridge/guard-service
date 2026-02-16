@@ -127,6 +127,8 @@ class TssHandler {
       detection: DetectionHandler.getInstance().getDetection(),
       guardsPk: tssPks,
       signPerRoundLimit: Configs.tssParallelSignCount,
+      timeoutSeconds: Configs.curveSignTimeout,
+      signCacheTTLSeconds: Configs.signCacheTtl,
       logger: DefaultLogger.getInstance().child('tssSigner'),
     });
 
@@ -156,6 +158,8 @@ class TssHandler {
       detection: DetectionHandler.getInstance().getDetection(),
       guardsPk: tssPks,
       signPerRoundLimit: Configs.tssParallelSignCount,
+      timeoutSeconds: Configs.edwardSignTimeout,
+      signCacheTTLSeconds: Configs.signCacheTtl,
       logger: DefaultLogger.getInstance().child('tssSigner'),
     });
 

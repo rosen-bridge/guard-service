@@ -23,7 +23,7 @@ class MultiSigHandler {
       multiSigUtilsInstance: multiSigUtilsInstance,
       messageEnc: Configs.tssKeys.encryptor,
       secretHex: Configs.guardSecretHex,
-      txSignTimeout: Configs.txSignTimeout,
+      txSignTimeout: Configs.multiSigSignTimeout,
       multiSigFirstSignDelay: Configs.multiSigFirstSignDelay,
       submit: this.generateSubmitMessageWrapper(MultiSigHandler.CHANNEL),
       guardDetection: DetectionHandler.getInstance().getDetection(),
