@@ -54,10 +54,11 @@ describe('TransactionProcessor', () => {
      * @scenario
      * - mock transaction and insert into db as 'approved'
      * - mock ChainHandler `getChain`
-     *   - mock `signTransaction`
+     *   - mock `signTransaction` (lock it's resolution to avoid inconsistency)
      * - run test (call `processTransactions`)
      * - check if function got called
      * - check tx in database
+     * - release `signTransaction` promise
      * @expected
      * - `signTransaction` should got called
      * - tx status should be updated to 'in-sign'
@@ -71,15 +72,24 @@ describe('TransactionProcessor', () => {
       const chain = tx.network;
       ChainHandlerMock.mockChainName(chain);
       // mock `signTransaction`
-      ChainHandlerMock.mockChainFunction(chain, 'signTransaction', null, true);
+      let resolvePromise: (value: unknown) => void;
+      const signTransactionLock = new Promise(
+        (resolve) => (resolvePromise = resolve),
+      );
+      const mockedSignTransaction = ChainHandlerMock.mockAndGetChainFunction(
+        chain,
+        'signTransaction',
+      );
+      mockedSignTransaction.mockImplementation(async () => {
+        await signTransactionLock;
+        return false;
+      });
 
       // run test
       await TransactionProcessor.processTransactions();
 
       // `signTransaction` should got called
-      expect(
-        ChainHandlerMock.getChainMockedFunction(chain, 'signTransaction'),
-      ).toHaveBeenCalledOnce();
+      expect(mockedSignTransaction).toHaveBeenCalledOnce();
 
       // tx status should be updated to 'in-sign'
       const dbTxs = (await DatabaseActionMock.allTxRecords()).map((tx) => [
@@ -90,6 +100,9 @@ describe('TransactionProcessor', () => {
       expect(dbTxs).toEqual([
         [tx.txId, TransactionStatus.inSign, currentTimeStampSeconds.toString()],
       ]);
+
+      // release signTransaction promise
+      resolvePromise!(null);
     });
 
     /**
@@ -576,10 +589,11 @@ describe('TransactionProcessor', () => {
      *   - mock `getTxConfirmationStatus`
      *   - mock `isTxInMempool`
      *   - mock `isTxValid`
-     *   - mock `signTransaction`
+     *   - mock `signTransaction` (lock it's resolution to avoid inconsistency)
      * - run test (call `processTransactions`)
      * - check if function got called
      * - check tx in database
+     * - release `signTransaction` promise
      * @expected
      * - `signTransaction` should got called
      * - tx status should be updated to 'in-sign'
@@ -609,7 +623,18 @@ describe('TransactionProcessor', () => {
         true,
       );
       // mock `signTransaction`
-      ChainHandlerMock.mockChainFunction(chain, 'signTransaction', null, true);
+      let resolvePromise: (value: unknown) => void;
+      const signTransactionLock = new Promise(
+        (resolve) => (resolvePromise = resolve),
+      );
+      const mockedSignTransaction = ChainHandlerMock.mockAndGetChainFunction(
+        chain,
+        'signTransaction',
+      );
+      mockedSignTransaction.mockImplementation(async () => {
+        await signTransactionLock;
+        return false;
+      });
 
       // run test
       await TransactionProcessor.processTransactions();
@@ -628,6 +653,9 @@ describe('TransactionProcessor', () => {
       expect(dbTxs).toEqual([
         [tx.txId, TransactionStatus.inSign, currentTimeStampSeconds.toString()],
       ]);
+
+      // release signTransaction promise
+      resolvePromise!(null);
     });
 
     /**
