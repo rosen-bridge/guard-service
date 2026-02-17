@@ -160,11 +160,16 @@ reward:
   emissionTokenId: ''
   emissionTokenName: ''
   emissionTokenDecimal: 0
-  bridgeFeeRepoAddress: '' # guards address for receiving bridge fee of events
   emissionAddress: '' # guards address for receiving emitted tokens of events
   networkFeeRepoAddress: '' # guards address for receiving network fee of events
   watchersSharePercent: 50 # watchers share for event fees (payed in tokens or native token)
   watchersEmissionSharePercent: 0 # watchers share for event fees (payed in emission token)
+  bridgeFee:
+    defaultAddress: '' # the default address where remaining bridge fee are sent to
+    defaultDistribution: []
+      # - address: '' # guards address for receiving bridge fee of events
+      #   percent: 50
+    # chainX: [] # chain specific bridge fee distribution
 eventSync:
   parallelSyncLimit: 3
   parallelRequestCount: 3

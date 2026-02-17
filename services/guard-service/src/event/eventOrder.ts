@@ -11,6 +11,7 @@ import { ERG, ERGO_CHAIN, ErgoChain } from '@rosen-chains/ergo';
 import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
 import ChainHandler from '../handlers/chainHandler';
 import { TokenHandler } from '../handlers/tokenHandler';
+import { FeeDistribution } from '../types/config';
 import Utils from '../utils/utils';
 import EventBoxes from './eventBoxes';
 import { PermitBoxValue, RewardOrder } from './types';
@@ -239,6 +240,9 @@ class EventOrder {
     const permitAddress = ChainHandler.getInstance()
       .getChain(event.fromChain)
       .getChainConfigs().addresses.permit;
+
+    const bridgeFeeDistribution =
+      GuardsErgoConfigs.chainBridgeFeeDistribution[event.fromChain];
     if (tokenId === ERG)
       return this.eventErgRewardOrder(
         outPermits,
@@ -249,6 +253,7 @@ class EventOrder {
         rwtTokenId,
         rwtCount,
         permitAddress,
+        bridgeFeeDistribution,
       );
     else
       return this.eventTokenRewardOrder(
@@ -261,6 +266,7 @@ class EventOrder {
         rwtTokenId,
         rwtCount,
         permitAddress,
+        bridgeFeeDistribution,
       );
   };
 
@@ -274,6 +280,7 @@ class EventOrder {
    * @param rwtTokenId RWT token id of fromChain
    * @param rwtCount amount RWT token per watcher
    * @param permitAddress
+   * @param bridgeFeeDistribution bridge fee distribution
    */
   protected static eventErgRewardOrder = (
     outPermits: PermitBoxValue[],
@@ -284,6 +291,7 @@ class EventOrder {
     rwtTokenId: string,
     rwtCount: bigint,
     permitAddress: string,
+    bridgeFeeDistribution: FeeDistribution,
   ): RewardOrder => {
     const watchersOrder: PaymentOrder = [];
     const guardsOrder: PaymentOrder = [];
@@ -328,16 +336,31 @@ class EventOrder {
       .getTokenMap()
       .wrapAmount(ERG, GuardsErgoConfigs.minimumErg, ERGO_CHAIN).amount;
     const guardBridgeFeeErgAmount =
-      bridgeFee - BigInt(watchersLen) * watcherErgAmount + minimumErg;
-    const assets: AssetBalance = {
-      nativeToken: guardBridgeFeeErgAmount,
-      tokens: [],
-    };
+      bridgeFee - BigInt(watchersLen) * watcherErgAmount;
+    let distributedBridgeFee = 0n;
+    const bridgeFeeOrder: PaymentOrder = [];
+    for (const bridgeFeeReceiver of bridgeFeeDistribution) {
+      const amount =
+        (guardBridgeFeeErgAmount * BigInt(bridgeFeeReceiver.percent)) / 100n;
+      distributedBridgeFee += amount;
+      bridgeFeeOrder.push({
+        address: bridgeFeeReceiver.address,
+        assets: {
+          nativeToken: amount + minimumErg,
+          tokens: [],
+        },
+      });
+    }
     guardsOrder.push({
-      address: GuardsErgoConfigs.bridgeFeeRepoAddress,
-      assets: assets,
+      address: GuardsErgoConfigs.bridgeFeeDefaultAddress,
+      assets: {
+        nativeToken:
+          guardBridgeFeeErgAmount - distributedBridgeFee + minimumErg,
+        tokens: [],
+      },
       extra: Buffer.from(paymentTxId).toString('hex'),
     });
+    guardsOrder.push(...bridgeFeeOrder);
 
     // add emission to order
     const emissionAmount =
@@ -380,6 +403,7 @@ class EventOrder {
    * @param rwtTokenId RWT token id of fromChain
    * @param rwtCount amount RWT token per watcher
    * @param permitAddress
+   * @param bridgeFeeDistribution bridge fee distribution
    */
   protected static eventTokenRewardOrder = (
     outPermits: PermitBoxValue[],
@@ -391,6 +415,7 @@ class EventOrder {
     rwtTokenId: string,
     rwtCount: bigint,
     permitAddress: string,
+    bridgeFeeDistribution: FeeDistribution,
   ): RewardOrder => {
     const watchersOrder: PaymentOrder = [];
     const guardsOrder: PaymentOrder = [];
@@ -440,23 +465,46 @@ class EventOrder {
       .wrapAmount(ERG, GuardsErgoConfigs.minimumErg, ERGO_CHAIN).amount;
     const guardBridgeFeeTokenAmount =
       bridgeFee - BigInt(watchersLen) * watcherTokenAmount;
-    const guardTokens: TokenInfo[] =
-      guardBridgeFeeTokenAmount > 0
-        ? [
-            {
-              id: tokenId,
-              value: guardBridgeFeeTokenAmount,
-            },
-          ]
-        : [];
+    let distributedBridgeFee = 0n;
+    const bridgeFeeOrder: PaymentOrder = [];
+    for (const bridgeFeeReceiver of bridgeFeeDistribution) {
+      const amount =
+        (guardBridgeFeeTokenAmount * BigInt(bridgeFeeReceiver.percent)) / 100n;
+      distributedBridgeFee += amount;
+      bridgeFeeOrder.push({
+        address: bridgeFeeReceiver.address,
+        assets: {
+          nativeToken: minimumErg,
+          tokens:
+            amount > 0
+              ? [
+                  {
+                    id: tokenId,
+                    value: amount,
+                  },
+                ]
+              : [],
+        },
+      });
+    }
+    const remainingBridgeFee = guardBridgeFeeTokenAmount - distributedBridgeFee;
     guardsOrder.push({
-      address: GuardsErgoConfigs.bridgeFeeRepoAddress,
+      address: GuardsErgoConfigs.bridgeFeeDefaultAddress,
       assets: {
         nativeToken: minimumErg,
-        tokens: guardTokens,
+        tokens:
+          remainingBridgeFee > 0
+            ? [
+                {
+                  id: tokenId,
+                  value: remainingBridgeFee,
+                },
+              ]
+            : [],
       },
       extra: Buffer.from(paymentTxId).toString('hex'),
     });
+    guardsOrder.push(...bridgeFeeOrder);
 
     // add emission to order
     const emissionAmount =

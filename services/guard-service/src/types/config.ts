@@ -8,3 +8,8 @@ export interface BalanceHandlerChainConfig {
 export type BalanceHandlerConfig = Record<string, BalanceHandlerChainConfig>;
 
 export type SupportedChain = (typeof SUPPORTED_CHAINS)[number];
+
+export type FeeDistribution = Array<{
+  address: string;
+  percent: number;
+}>;

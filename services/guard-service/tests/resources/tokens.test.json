@@ -20,6 +20,22 @@
           "policyId": "d2f6eb37450a3d568de93d623e69bd0ba1238daacc883d75736abd23",
           "assetName": "527374457267565465737432"
         }
+      },
+      "ethereum": {
+        "tokenId": "0x96544b7c03c00da7bfddc560351429ee1376f7d8",
+        "name": "rpnERG",
+        "decimals": 9,
+        "type": "ERC-20",
+        "residency": "wrapped",
+        "extra": {}
+      },
+      "binance": {
+        "tokenId": "0xbc152e294a24d777e640e6a491edbd3ca461c51f",
+        "name": "rpnERG",
+        "decimals": 9,
+        "type": "ERC-20",
+        "residency": "wrapped",
+        "extra": {}
       }
     },
     {
@@ -133,6 +149,24 @@
         "type": "native",
         "residency": "native",
         "extra": {}
+      },
+      "ethereum": {
+        "tokenId": "0x0347618c0eec9e7a65d87e161673d77b6171f31f",
+        "name": "rsBTC-loen",
+        "decimals": 8,
+        "metaData": {
+          "type": "ERC-20",
+          "residency": "wrapped"
+        }
+      },
+      "binance": {
+        "tokenId": "0xcd5d9d3ba809cc80224037694158c7217a823bca",
+        "name": "rsBTC-loen",
+        "decimals": 8,
+        "metaData": {
+          "type": "ERC-20",
+          "residency": "wrapped"
+        }
       }
     },
     {

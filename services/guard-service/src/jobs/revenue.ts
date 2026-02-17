@@ -46,7 +46,7 @@ const revenueJobFunction = async () => {
         .getChain(event.fromChain)
         .getChainConfigs().addresses.fraud;
       let revenueType: RevenueType;
-      if (payment.address == GuardsErgoConfigs.bridgeFeeRepoAddress)
+      if (GuardsErgoConfigs.bridgeFeeAddresses.has(payment.address))
         revenueType = RevenueType.bridgeFee;
       else if (payment.address == GuardsErgoConfigs.emissionAddress)
         revenueType = RevenueType.emission;
