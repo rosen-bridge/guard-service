@@ -999,8 +999,8 @@ describe('EventOrder', () => {
     });
 
     /**
-     * @target EventOrder.eventRewardOrder should generate
-     * native token reward distribution successfully
+     * @target EventOrder.eventRewardOrder should generate native token reward distribution
+     * while sending bridge fee to multiple addresses based on the default distribution config
      * @dependencies
      * - tokenMap
      * @scenario
@@ -1152,8 +1152,8 @@ describe('EventOrder', () => {
     });
 
     /**
-     * @target EventOrder.eventRewardOrder should generate
-     * native token reward distribution successfully
+     * @target EventOrder.eventRewardOrder should generate native token reward distribution
+     * while sending bridge fee to multiple addresses based on the source chain
      * @dependencies
      * - tokenMap
      * @scenario
@@ -1318,8 +1318,8 @@ describe('EventOrder', () => {
     });
 
     /**
-     * @target EventOrder.eventRewardOrder should generate
-     * token reward distribution successfully
+     * @target EventOrder.eventRewardOrder should generate token reward distribution
+     * while sending bridge fee to multiple addresses based on the default distribution config
      * @dependencies
      * - tokenMap
      * @scenario
@@ -1489,8 +1489,8 @@ describe('EventOrder', () => {
     });
 
     /**
-     * @target EventOrder.eventRewardOrder should generate
-     * token reward distribution successfully
+     * @target EventOrder.eventRewardOrder should generate token reward distribution
+     * while sending bridge fee to multiple addresses based on the source chain
      * @dependencies
      * - tokenMap
      * @scenario
