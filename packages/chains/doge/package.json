@@ -35,8 +35,8 @@
     "@rosen-bridge/abstract-logger": "^4.0.0",
     "@rosen-bridge/bitcoin-utxo-selection": "^2.0.3",
     "@rosen-bridge/json-bigint": "^1.1.0",
-    "@rosen-bridge/rosen-extractor": "^11.2.1",
-    "@rosen-bridge/tokens": "^5.0.1",
+    "@rosen-bridge/rosen-extractor": "^11.3.0",
+    "@rosen-bridge/tokens": "^6.0.0",
     "@rosen-chains/abstract-chain": "^15.0.2",
     "bitcoinjs-lib": "^6.1.5"
   },
