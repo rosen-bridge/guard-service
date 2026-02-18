@@ -64,11 +64,10 @@ class GuardsErgoConfigs {
         : // if not, use the default distribution
           this.bridgeFeeDefaultDistribution;
       // validate distribution (sum should be less than 100)
-      const sumDistributionPercent =
-        distribution
-          .map((distribution) => distribution.percent)
-          .reduce((a, b) => a + b, 0) >= 100;
-      if (sumDistributionPercent)
+      const sumDistributionPercent = distribution
+        .map((distribution) => distribution.percent)
+        .reduce((a, b) => a + b, 0);
+      if (sumDistributionPercent >= 100)
         throw new Error(
           `Invalid bridge fee distribution for chain [${chain}]: expected sum to be less than 100, found [${sumDistributionPercent}]`,
         );
