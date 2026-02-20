@@ -224,15 +224,15 @@ class HandshakeChain extends AbstractUtxoChain<HandshakeTx, HandshakeUtxo> {
     });
 
     // Estimate fee for final signed transaction
+    // Match the witness structure created by buildSignedTransaction
     const tempMtx = mtx.clone();
     const tempWitness = new Script();
-    tempWitness.pushOp(Script.opcodes.OP_0);
-    // Add all required signatures (for m-of-n multisig where m = requiredSign)
+
+    // Witness structure for TSS: [signature, publicKey]
     // hsd signature: 64 bytes + 1 byte SIGHASH_ALL = 65 bytes
-    for (let j = 0; j < this.configs.requiredSign; j++) {
-      tempWitness.pushData(Buffer.alloc(65, 0));
-    }
-    tempWitness.pushData(this.lockScript);
+    tempWitness.pushData(Buffer.alloc(65, 0)); // Aggregated signature
+    tempWitness.pushData(Buffer.from(this.configs.aggregatedPublicKey, 'hex')); // Aggregated public key
+
     tempWitness.compile();
     const witnessStack = tempWitness.toStack();
     for (let i = 0; i < tempMtx.inputs.length; i++) {
@@ -735,46 +735,40 @@ class HandshakeChain extends AbstractUtxoChain<HandshakeTx, HandshakeUtxo> {
     box.txId + '.' + box.index;
 
   /**
-   * inserts signatures into MTX for P2WSH multisig
+   * inserts signatures into MTX using TSS aggregated signature
    *
-   * Witness structure per input: [OP_0, signature, witnessScript]
-   * - OP_0: dummy element required by OP_CHECKMULTISIG
-   * - signature: aggregated signature from the threshold signature scheme (TSS)
-   * - witnessScript: the m-of-n multisig script (32-byte witness program)
+   * Uses threshold signature scheme (TSS) similar to Doge/Bitcoin chains:
+   * - Single aggregated signature per input (not multiple individual signatures)
+   * - Signature validates against the aggregated public key
+   * - Witness structure: [signature, publicKey] for P2WPKH-like validation
    *
    * @param txBytes serialized transaction
-   * @param signatures generated signatures by signer service (one signature per input from TSS)
+   * @param signatures generated signatures by signer service (one aggregated signature per input from TSS)
    * @returns a signed transaction (in MTX format)
    */
   protected buildSignedTransaction = (
     txBytes: Uint8Array,
-    signatures: string[],
+    signatures: string[], // one aggregated signature per input
   ): MTX => {
-    const mtx = Serializer.deserialize(txBytes);
-    const opcodes = Script.opcodes;
+    const mtx = MTX.fromRaw(Buffer.from(txBytes));
 
-    // P2WSH multisig: each input gets its own witness with its signature(s)
     for (let i = 0; i < signatures.length; i++) {
+      const sigHex = signatures[i];
+
       const witness = new Script();
 
-      // OP_0 (dummy element for OP_CHECKMULTISIG off-by-one bug)
-      witness.pushOp(opcodes.OP_0);
+      // Append SIGHASH_ALL (0x01) to the aggregated signature
+      const signature = Buffer.concat([
+        Buffer.from(sigHex, 'hex'),
+        Buffer.from([0x01]),
+      ]);
 
-      // Check if we have multiple signatures (for m-of-n where m > 1)
-      // Signatures are separated by ':' when multiple
-      const sigParts = signatures[i].split(':');
+      // Push aggregated signature
+      witness.pushData(signature);
 
-      for (const sigHex of sigParts) {
-        // Add signature with SIGHASH_ALL
-        const signature = Buffer.concat([
-          Buffer.from(sigHex, 'hex'),
-          Buffer.from([0x01]), // SIGHASH_ALL
-        ]);
-        witness.pushData(signature);
-      }
+      // Push aggregated public key (from TSS)
+      witness.pushData(Buffer.from(this.configs.aggregatedPublicKey, 'hex'));
 
-      // Add witnessScript (required for P2WSH validation)
-      witness.pushData(this.lockScript);
       witness.compile();
 
       mtx.inputs[i].witness.fromStack(witness.toStack());
