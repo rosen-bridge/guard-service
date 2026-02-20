@@ -1,7 +1,7 @@
 import { Semaphore } from 'await-semaphore';
 import { isEqual, sampleSize, countBy, shuffle } from 'lodash-es';
 
-import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
+import { DefaultLogger } from '@rosen-bridge/abstract-logger';
 import { Communicator } from '@rosen-bridge/communication';
 import { GuardDetection } from '@rosen-bridge/detection';
 import { RosenDialerNode } from '@rosen-bridge/dialer';
@@ -33,7 +33,7 @@ import {
   SyncResponse,
 } from './interfaces';
 
-const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = DefaultLogger.getInstance().child(import.meta.url);
 
 class EventSynchronization extends Communicator {
   private static instance: EventSynchronization;

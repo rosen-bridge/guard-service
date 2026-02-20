@@ -115,6 +115,18 @@ class Configs {
       }>
     >('tss.pubs'),
   };
+  static curveSignTimeout = getConfigIntKeyOrDefault(
+    'tss.curveSignTimeout',
+    10 * 60,
+  ); // seconds
+  static edwardSignTimeout = getConfigIntKeyOrDefault(
+    'tss.edwardSignTimeout',
+    10 * 60,
+  ); // seconds
+  static signCacheTtl = getConfigIntKeyOrDefault(
+    'tss.signCacheTtl',
+    24 * 60 * 60,
+  ); // seconds
 
   // event synchronization
   static parallelSyncLimit = getConfigIntKeyOrDefault(
@@ -188,7 +200,6 @@ class Configs {
   // timeout configs
   static eventTimeout = getConfigIntKeyOrDefault('eventTimeout', 24 * 60 * 60); // seconds
   static orderTimeout = getConfigIntKeyOrDefault('orderTimeout', 48 * 60 * 60); // seconds
-  static txSignTimeout = getConfigIntKeyOrDefault('txSignTimeout', 5 * 60); // seconds
 
   // jobs configs
   static scannedEventProcessorInterval = 120; // seconds, 2 minutes
@@ -419,9 +430,15 @@ class Configs {
   static isStillUnhealthyWindowDuration = config.get<number>(
     'notification.windowDurations.isStillUnhealthy',
   );
+
+  // Ergo MultiSig Configs
   static multiSigTurnTime = config.has('ergoMultiSig.turnTime')
     ? config.get<number>('ergoMultiSig.turnTime')
     : undefined;
+  static multiSigSignTimeout = getConfigIntKeyOrDefault(
+    'ergoMultiSig.signTimeout',
+    10 * 60,
+  ); // seconds
 
   // balance handler configs
   static balanceHandler;

@@ -1,9 +1,9 @@
+import { DefaultLogger } from '@rosen-bridge/abstract-logger';
 import {
   BlockEntity,
   PROCEED,
   migrations as scannerMigrations,
 } from '@rosen-bridge/abstract-scanner';
-import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
 import {
   AddressTxsEntity,
   migrations as addressTxExtractorMigrations,
@@ -38,7 +38,7 @@ import { OrderStatus } from '../../../src/utils/constants';
 import Utils from '../../../src/utils/utils';
 import TestUtils from '../../testUtils/testUtils';
 
-const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = DefaultLogger.getInstance().child(import.meta.url);
 
 class DatabaseActionMock {
   static testDataSource = new DataSource({
@@ -135,7 +135,7 @@ class DatabaseActionMock {
       .insert()
       .values({
         extractor: 'extractor',
-        boxId: TestUtils.generateRandomId(),
+        identifier: TestUtils.generateRandomId(),
         serialized: boxSerialized,
         block: 'blockId',
         height: eventHeight,
@@ -203,7 +203,7 @@ class DatabaseActionMock {
       .insert()
       .values({
         extractor: 'extractor',
-        boxId: TestUtils.generateRandomId(),
+        identifier: TestUtils.generateRandomId(),
         serialized: boxSerialized,
         block: 'blockId',
         height: height,

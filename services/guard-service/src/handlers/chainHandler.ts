@@ -1,6 +1,6 @@
 import { DatabaseAction } from 'src/db/databaseAction';
 
-import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
+import { DefaultLogger } from '@rosen-bridge/abstract-logger';
 import { AbstractChain } from '@rosen-chains/abstract-chain';
 import { BINANCE_CHAIN, BinanceChain } from '@rosen-chains/binance';
 import {
@@ -61,7 +61,7 @@ import MultiSigHandler from './multiSigHandler';
 import { TokenHandler } from './tokenHandler';
 import TssHandler from './tssHandler';
 
-const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = DefaultLogger.getInstance().child(import.meta.url);
 
 class ChainHandler {
   private static instance: ChainHandler;
@@ -108,14 +108,13 @@ class ChainHandler {
       case NODE_NETWORK:
         network = new ErgoNodeNetwork({
           nodeBaseUrl: GuardsErgoConfigs.node.url,
-          logger: CallbackLoggerFactory.getInstance().getLogger('NodeNetwork'),
+          logger: DefaultLogger.getInstance().child('NodeNetwork'),
         });
         break;
       case EXPLORER_NETWORK:
         network = new ErgoExplorerNetwork({
           explorerBaseUrl: GuardsErgoConfigs.explorer.url,
-          logger:
-            CallbackLoggerFactory.getInstance().getLogger('ExplorerNetwork'),
+          logger: DefaultLogger.getInstance().child('ExplorerNetwork'),
         });
         break;
       default:
@@ -123,14 +122,16 @@ class ChainHandler {
           `No case is defined for network [${GuardsErgoConfigs.chainNetworkName}]`,
         );
     }
-    const multiSigSignFunction =
-      MultiSigHandler.getInstance().getErgoMultiSig().sign;
+    const ergoSignMediator = {
+      isInSign: MultiSigHandler.getInstance().getErgoMultiSig().isInSign,
+      sign: MultiSigHandler.getInstance().getErgoMultiSig().sign,
+    };
     return new ErgoChain(
       network,
       GuardsErgoConfigs.chainConfigs,
       TokenHandler.getInstance().getTokenMap(),
-      multiSigSignFunction,
-      CallbackLoggerFactory.getInstance().getLogger('ErgoChain'),
+      ergoSignMediator,
+      DefaultLogger.getInstance().child('ErgoChain'),
     );
   };
 
@@ -145,14 +146,14 @@ class ChainHandler {
         network = new CardanoKoiosNetwork(
           GuardsCardanoConfigs.koios.url,
           GuardsCardanoConfigs.koios.authToken,
-          CallbackLoggerFactory.getInstance().getLogger('KoiosNetwork'),
+          DefaultLogger.getInstance().child('KoiosNetwork'),
         );
         break;
       case BLOCKFROST_NETWORK:
         network = new CardanoBlockFrostNetwork(
           GuardsCardanoConfigs.blockfrost.projectId,
           GuardsCardanoConfigs.blockfrost.url,
-          CallbackLoggerFactory.getInstance().getLogger('BlockFrostNetwork'),
+          DefaultLogger.getInstance().child('BlockFrostNetwork'),
         );
         break;
       default:
@@ -161,22 +162,14 @@ class ChainHandler {
         );
     }
     const chainCode = GuardsCardanoConfigs.tssChainCode;
-    const edwardSign = TssHandler.getInstance().edwardSign;
-    const tssSignFunctionWrapper = async (
-      txHash: Uint8Array,
-    ): Promise<string> => {
-      const res = await edwardSign(
-        Buffer.from(txHash).toString('hex'),
-        chainCode,
-      );
-      return res.signature;
-    };
+    const cardanoSignMediator =
+      TssHandler.getInstance().wrapEdwardSignMediator(chainCode);
     return new CardanoChain(
       network,
       GuardsCardanoConfigs.chainConfigs,
       TokenHandler.getInstance().getTokenMap(),
-      tssSignFunctionWrapper,
-      CallbackLoggerFactory.getInstance().getLogger('CardanoChain'),
+      cardanoSignMediator,
+      DefaultLogger.getInstance().child('CardanoChain'),
     );
   };
 
@@ -190,7 +183,7 @@ class ChainHandler {
       case 'esplora':
         network = new BitcoinEsploraNetwork(
           GuardsBitcoinConfigs.esplora.url,
-          CallbackLoggerFactory.getInstance().getLogger('EsploraNetwork'),
+          DefaultLogger.getInstance().child('EsploraNetwork'),
         );
         break;
       default:
@@ -200,29 +193,16 @@ class ChainHandler {
     }
     const chainCode = GuardsBitcoinConfigs.tssChainCode;
     const derivationPath = GuardsBitcoinConfigs.derivationPath;
-    const curveSign = TssHandler.getInstance().curveSign;
-    const tssSignFunctionWrapper = async (
-      txHash: Uint8Array,
-    ): Promise<{
-      signature: string;
-      signatureRecovery: string;
-    }> => {
-      const res = await curveSign(
-        Buffer.from(txHash).toString('hex'),
-        chainCode,
-        derivationPath,
-      );
-      return {
-        signature: res.signature,
-        signatureRecovery: res.signatureRecovery!,
-      };
-    };
+    const bitcoinSignMediator = TssHandler.getInstance().wrapCurveSignMediator(
+      chainCode,
+      derivationPath,
+    );
     return new BitcoinChain(
       network,
       GuardsBitcoinConfigs.chainConfigs,
       TokenHandler.getInstance().getTokenMap(),
-      tssSignFunctionWrapper,
-      CallbackLoggerFactory.getInstance().getLogger('BitcoinChain'),
+      bitcoinSignMediator,
+      DefaultLogger.getInstance().child('BitcoinChain'),
     );
   };
 
@@ -241,13 +221,13 @@ class ChainHandler {
             if (tx === null) return undefined;
             return TransactionSerializer.fromJson(tx.txJson);
           },
-          CallbackLoggerFactory.getInstance().getLogger('DogeEsploraNetwork'),
+          DefaultLogger.getInstance().child('DogeEsploraNetwork'),
         );
         break;
       case 'rpc-blockcypher': {
         const rpc = new DogeRpcNetwork(
           GuardsDogeConfigs.rpc.url,
-          CallbackLoggerFactory.getInstance().getLogger('DogeRpcNetwork'),
+          DefaultLogger.getInstance().child('DogeRpcNetwork'),
           {
             username: GuardsDogeConfigs.rpc.username,
             password: GuardsDogeConfigs.rpc.password,
@@ -261,7 +241,7 @@ class ChainHandler {
             if (tx === null) return undefined;
             return TransactionSerializer.fromJson(tx.txJson);
           },
-          CallbackLoggerFactory.getInstance().getLogger('BlockcypherNetwork'),
+          DefaultLogger.getInstance().child('BlockcypherNetwork'),
         );
         network = new CombinedDogeNetwork([rpc, blockcypher]);
         if (GuardsDogeConfigs.blockcypher.rps !== undefined)
@@ -287,29 +267,16 @@ class ChainHandler {
     }
     const chainCode = GuardsDogeConfigs.tssChainCode;
     const derivationPath = GuardsDogeConfigs.derivationPath;
-    const curveSign = TssHandler.getInstance().curveSign;
-    const tssSignFunctionWrapper = async (
-      txHash: Uint8Array,
-    ): Promise<{
-      signature: string;
-      signatureRecovery: string;
-    }> => {
-      const res = await curveSign(
-        Buffer.from(txHash).toString('hex'),
-        chainCode,
-        derivationPath,
-      );
-      return {
-        signature: res.signature,
-        signatureRecovery: res.signatureRecovery!,
-      };
-    };
+    const dogeSignMediator = TssHandler.getInstance().wrapCurveSignMediator(
+      chainCode,
+      derivationPath,
+    );
     return new DogeChain(
       network,
       GuardsDogeConfigs.chainConfigs,
       TokenHandler.getInstance().getTokenMap(),
-      tssSignFunctionWrapper,
-      CallbackLoggerFactory.getInstance().getLogger('DogeChain'),
+      dogeSignMediator,
+      DefaultLogger.getInstance().child('DogeChain'),
     );
   };
 
@@ -327,7 +294,7 @@ class ChainHandler {
           dataSource,
           GuardsEthereumConfigs.ethereumContractConfig.addresses.lock,
           GuardsEthereumConfigs.rpc.authToken,
-          CallbackLoggerFactory.getInstance().getLogger('EthereumRpcNetwork'),
+          DefaultLogger.getInstance().child('EthereumRpcNetwork'),
         );
         break;
       default:
@@ -337,29 +304,16 @@ class ChainHandler {
     }
     const chainCode = GuardsEthereumConfigs.tssChainCode;
     const derivationPath = GuardsEthereumConfigs.derivationPath;
-    const curveSign = TssHandler.getInstance().curveSign;
-    const tssSignFunctionWrapper = async (
-      txHash: Uint8Array,
-    ): Promise<{
-      signature: string;
-      signatureRecovery: string;
-    }> => {
-      const res = await curveSign(
-        Buffer.from(txHash).toString('hex'),
-        chainCode,
-        derivationPath,
-      );
-      return {
-        signature: res.signature,
-        signatureRecovery: res.signatureRecovery!,
-      };
-    };
+    const ethereumSignMediator = TssHandler.getInstance().wrapCurveSignMediator(
+      chainCode,
+      derivationPath,
+    );
     return new EthereumChain(
       network,
       GuardsEthereumConfigs.chainConfigs,
       TokenHandler.getInstance().getTokenMap(),
-      tssSignFunctionWrapper,
-      CallbackLoggerFactory.getInstance().getLogger('EthereumChain'),
+      ethereumSignMediator,
+      DefaultLogger.getInstance().child('EthereumChain'),
     );
   };
 
@@ -377,7 +331,7 @@ class ChainHandler {
           dataSource,
           GuardsBinanceConfigs.binanceContractConfig.addresses.lock,
           GuardsBinanceConfigs.rpc.authToken,
-          CallbackLoggerFactory.getInstance().getLogger('BinanceRpcNetwork'),
+          DefaultLogger.getInstance().child('BinanceRpcNetwork'),
         );
         break;
       default:
@@ -387,29 +341,16 @@ class ChainHandler {
     }
     const chainCode = GuardsBinanceConfigs.tssChainCode;
     const derivationPath = GuardsBinanceConfigs.derivationPath;
-    const curveSign = TssHandler.getInstance().curveSign;
-    const tssSignFunctionWrapper = async (
-      txHash: Uint8Array,
-    ): Promise<{
-      signature: string;
-      signatureRecovery: string;
-    }> => {
-      const res = await curveSign(
-        Buffer.from(txHash).toString('hex'),
-        chainCode,
-        derivationPath,
-      );
-      return {
-        signature: res.signature,
-        signatureRecovery: res.signatureRecovery!,
-      };
-    };
+    const binanceSignMediator = TssHandler.getInstance().wrapCurveSignMediator(
+      chainCode,
+      derivationPath,
+    );
     return new BinanceChain(
       network,
       GuardsBinanceConfigs.chainConfigs,
       TokenHandler.getInstance().getTokenMap(),
-      tssSignFunctionWrapper,
-      CallbackLoggerFactory.getInstance().getLogger('BinanceChain'),
+      binanceSignMediator,
+      DefaultLogger.getInstance().child('BinanceChain'),
     );
   };
 
@@ -432,9 +373,7 @@ class ChainHandler {
             url: GuardsBitcoinRunesConfigs.unisat.url,
             unisatApiKey: GuardsBitcoinRunesConfigs.unisat.apiKey,
           },
-          CallbackLoggerFactory.getInstance().getLogger(
-            'BitcoinRunesRpcNetwork',
-          ),
+          DefaultLogger.getInstance().child('BitcoinRunesRpcNetwork'),
         );
         if (GuardsBitcoinRunesConfigs.rpc.rps !== undefined)
           RateLimitedAxiosConfig.addRule(
@@ -459,29 +398,14 @@ class ChainHandler {
     }
     const chainCode = GuardsBitcoinRunesConfigs.tssChainCode;
     const derivationPath = GuardsBitcoinRunesConfigs.derivationPath;
-    const curveSign = TssHandler.getInstance().curveSign;
-    const tssSignFunctionWrapper = async (
-      txHash: Uint8Array,
-    ): Promise<{
-      signature: string;
-      signatureRecovery: string;
-    }> => {
-      const res = await curveSign(
-        Buffer.from(txHash).toString('hex'),
-        chainCode,
-        derivationPath,
-      );
-      return {
-        signature: res.signature,
-        signatureRecovery: res.signatureRecovery!,
-      };
-    };
+    const bitcoinRunesSignMediator =
+      TssHandler.getInstance().wrapCurveSignMediator(chainCode, derivationPath);
     return new BitcoinRunesChain(
       network,
       GuardsBitcoinRunesConfigs.chainConfigs,
       TokenHandler.getInstance().getTokenMap(),
-      tssSignFunctionWrapper,
-      CallbackLoggerFactory.getInstance().getLogger('BitcoinRunesChain'),
+      bitcoinRunesSignMediator,
+      DefaultLogger.getInstance().child('BitcoinRunesChain'),
     );
   };
 

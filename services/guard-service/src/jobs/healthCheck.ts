@@ -1,10 +1,10 @@
-import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
+import { DefaultLogger } from '@rosen-bridge/abstract-logger';
 import { HealthCheck } from '@rosen-bridge/health-check';
 
 import Configs from '../configs/configs';
 import { getHealthCheck } from '../guard/healthCheck';
 
-const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = DefaultLogger.getInstance().child(import.meta.url);
 
 const healthCheckUpdateJob = async (healthCheck: HealthCheck) => {
   logger.debug(`Updating health status`);
@@ -27,7 +27,6 @@ const healthCheckUpdateJob = async (healthCheck: HealthCheck) => {
       );
     } else logger.warn(`Health check update job failed: ${e}`);
   }
-  logger.debug('Checking p2p connection status');
 
   setTimeout(
     () => healthCheckUpdateJob(healthCheck),

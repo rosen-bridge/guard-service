@@ -26,7 +26,7 @@ export const mockTx: TransactionEntity = {
     id: eventId,
     eventData: {
       id: 0,
-      boxId: '',
+      identifier: '',
       block: '',
       height: 0,
       extractor: '',

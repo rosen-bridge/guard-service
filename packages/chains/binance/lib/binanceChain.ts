@@ -4,7 +4,7 @@ import {
   AbstractEvmNetwork,
   EvmChain,
   EvmConfigs,
-  TssSignFunction,
+  EvmChainSignMediator,
 } from '@rosen-chains/evm';
 
 import { BNB, BINANCE_CHAIN, BINANCE_CHAIN_ID } from './constants';
@@ -18,14 +18,14 @@ class BinanceChain extends EvmChain {
     network: AbstractEvmNetwork,
     configs: EvmConfigs,
     tokens: TokenMap,
-    signFunction: TssSignFunction,
+    signMediator: EvmChainSignMediator,
     logger?: AbstractLogger,
   ) {
     super(
       network,
       configs,
       tokens,
-      signFunction,
+      signMediator,
       BINANCE_CHAIN,
       BNB,
       0,

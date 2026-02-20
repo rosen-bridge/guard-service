@@ -22,12 +22,13 @@ import {
   TransactionFormatError,
   TokenInfo,
   ValidityStatus,
+  EcdsaSignMediator,
 } from '@rosen-chains/abstract-chain';
 
 import * as EvmUtils from './evmUtils';
 import AbstractEvmNetwork from './network/abstractEvmNetwork';
 import Serializer from './serializer';
-import { EvmConfigs, EvmTxStatus, TssSignFunction } from './types';
+import { EvmConfigs, EvmTxStatus } from './types';
 
 abstract class EvmChain extends AbstractChain<Transaction> {
   declare network: AbstractEvmNetwork;
@@ -37,13 +38,13 @@ abstract class EvmChain extends AbstractChain<Transaction> {
   extractor: EvmRosenExtractor | undefined;
 
   supportedTokens: Array<string> = [];
-  protected signFunction: TssSignFunction;
+  protected signMediator: EcdsaSignMediator;
 
   constructor(
     network: AbstractEvmNetwork,
     configs: EvmConfigs,
     tokens: TokenMap,
-    signFunction: TssSignFunction,
+    signMediator: EcdsaSignMediator,
     CHAIN: string,
     NATIVE_TOKEN_ID: string,
     evmTxType = 0,
@@ -51,7 +52,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
   ) {
     super(network, configs, tokens, logger);
     this.evmTxType = evmTxType;
-    this.signFunction = signFunction;
+    this.signMediator = signMediator;
     this.extractor = new EvmRosenExtractor(
       this.configs.addresses.lock,
       tokens,
@@ -643,8 +644,9 @@ abstract class EvmChain extends AbstractChain<Transaction> {
       tx.unsignedHash.slice(0, 2) === '0x'
         ? tx.unsignedHash.slice(2)
         : tx.unsignedHash;
-    return this.signFunction(Uint8Array.from(Buffer.from(hash, 'hex'))).then(
-      (res) => {
+    return this.signMediator
+      .sign(Uint8Array.from(Buffer.from(hash, 'hex')))
+      .then((res) => {
         const r = '0x' + res.signature.slice(0, 64);
         const s = '0x' + res.signature.slice(64, 128);
         const yParity = Number(res.signatureRecovery);
@@ -665,7 +667,24 @@ abstract class EvmChain extends AbstractChain<Transaction> {
           Serializer.signedSerialize(tx),
           transaction.txType,
         );
-      },
+      });
+  };
+
+  /**
+   * checks if the corresponding signer service is signing the transaction or not
+   * @param transaction the transaction
+   * @returns true if the signer is still signing it, otherwise false
+   */
+  isTransactionInSign = async (
+    transaction: PaymentTransaction,
+  ): Promise<boolean> => {
+    const tx = Serializer.deserialize(transaction.txBytes);
+    const hash =
+      tx.unsignedHash.slice(0, 2) === '0x'
+        ? tx.unsignedHash.slice(2)
+        : tx.unsignedHash;
+    return this.signMediator.isInSign(
+      Uint8Array.from(Buffer.from(hash, 'hex')),
     );
   };
 

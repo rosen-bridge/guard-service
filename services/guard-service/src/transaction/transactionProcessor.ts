@@ -1,4 +1,4 @@
-import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
+import { DefaultLogger } from '@rosen-bridge/abstract-logger';
 import {
   AbstractChain,
   ConfirmationStatus,
@@ -10,7 +10,6 @@ import { SigningStatus } from '@rosen-chains/abstract-chain';
 import { DOGE_CHAIN } from '@rosen-chains/doge';
 import { ERGO_CHAIN } from '@rosen-chains/ergo';
 
-import Configs from '../configs/configs';
 import GuardsDogeConfigs from '../configs/guardsDogeConfigs';
 import { DatabaseAction } from '../db/databaseAction';
 import { TransactionEntity } from '../db/entities/transactionEntity';
@@ -23,7 +22,7 @@ import {
 } from '../utils/constants';
 import * as TransactionSerializer from './transactionSerializer';
 
-const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = DefaultLogger.getInstance().child(import.meta.url);
 
 class TransactionProcessor {
   /**
@@ -127,12 +126,13 @@ class TransactionProcessor {
    * @param tx transaction record
    */
   static processInSignTx = async (tx: TransactionEntity): Promise<void> => {
-    if (
-      Math.round(Date.now() / 1000) >
-      Number(tx.lastStatusUpdate) + Configs.txSignTimeout
-    ) {
+    const chain = ChainHandler.getInstance().getChain(tx.chain);
+    const paymentTx = TransactionSerializer.fromJson(tx.txJson);
+    if (await chain.isTransactionInSign(paymentTx)) {
+      logger.info(`Signer is still signing tx [${tx.txId}]`);
+    } else {
       logger.warn(
-        `No response received from signer for tx [${tx.txId}]. Updating status to sign-failed`,
+        `Signer does not have tx [${tx.txId}]. Updating status to sign-failed`,
       );
       await DatabaseAction.getInstance().setTxAsSignFailed(tx.txId);
     }

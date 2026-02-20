@@ -33,7 +33,8 @@ export const eventData = {
   eventId: 'a98d6cc7749e7f915f5a0373ecb5b97c2eec5164678d9e74ccc98f2f4bde77b1',
   txId: 'event-creation-tx-id',
   extractor: 'extractor',
-  boxId: '1f2fad80063525dbb2660429be4bbcbcf8eb965cbdc63de1eab118991786c4fa',
+  identifier:
+    '1f2fad80063525dbb2660429be4bbcbcf8eb965cbdc63de1eab118991786c4fa',
   serialized: 'box-serialized',
   block: 'blockId',
   height: 12000,

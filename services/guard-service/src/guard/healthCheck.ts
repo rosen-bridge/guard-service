@@ -1,3 +1,4 @@
+import { DefaultLogger } from '@rosen-bridge/abstract-logger';
 import {
   EsploraAssetHealthCheckParam,
   CardanoBlockFrostAssetHealthCheckParam,
@@ -7,7 +8,6 @@ import {
   EvmRpcAssetHealthCheckParam,
   HandshakeRpcAssetHealthCheckParam,
 } from '@rosen-bridge/asset-check';
-import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
 import {
   EventInfo,
   EventProgressHealthCheckParam,
@@ -53,7 +53,7 @@ import {
   HANDSHAKE_BLOCK_TIME,
 } from '../utils/constants';
 
-const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = DefaultLogger.getInstance().child(import.meta.url);
 let healthCheck: HealthCheck | undefined;
 
 /**

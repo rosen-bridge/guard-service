@@ -12,6 +12,7 @@ import {
   AbstractUtxoChain,
   BlockInfo,
   ChainUtils,
+  EcdsaSignMediator,
   GET_BOX_API_LIMIT,
   NotEnoughAssetsError,
   NotEnoughValidBoxesError,
@@ -34,12 +35,7 @@ import {
 } from './constants';
 import AbstractBitcoinNetwork from './network/abstractBitcoinNetwork';
 import Serializer from './serializer';
-import {
-  BitcoinConfigs,
-  BitcoinTx,
-  BitcoinUtxo,
-  TssSignFunction,
-} from './types';
+import { BitcoinConfigs, BitcoinTx, BitcoinUtxo } from './types';
 
 class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
   declare network: AbstractBitcoinNetwork;
@@ -48,7 +44,7 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
   NATIVE_TOKEN_ID = BTC;
   extractor: BitcoinRosenExtractor;
   protected boxSelection: BitcoinBoxSelection;
-  protected signFunction: TssSignFunction;
+  protected signMediator: EcdsaSignMediator;
   protected lockScript: string;
   protected signingScript: Buffer;
 
@@ -56,7 +52,7 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
     network: AbstractBitcoinNetwork,
     configs: BitcoinConfigs,
     tokens: TokenMap,
-    signFunction: TssSignFunction,
+    signMediator: EcdsaSignMediator,
     logger?: AbstractLogger,
   ) {
     super(network, configs, tokens, logger);
@@ -65,7 +61,7 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
       tokens,
       logger,
     );
-    this.signFunction = signFunction;
+    this.signMediator = signMediator;
     this.lockScript = address
       .toOutputScript(this.configs.addresses.lock)
       .toString('hex');
@@ -475,12 +471,14 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
         Transaction.SIGHASH_ALL,
       );
 
-      const signatureHex = this.signFunction(signMessage).then((response) => {
-        this.logger.debug(
-          `Input [${i}] of tx [${bitcoinTx.txId}] is signed. signature: ${response.signature}`,
-        );
-        return response.signature;
-      });
+      const signatureHex = this.signMediator
+        .sign(signMessage)
+        .then((response) => {
+          this.logger.debug(
+            `Input [${i}] of tx [${bitcoinTx.txId}] is signed. signature: ${response.signature}`,
+          );
+          return response.signature;
+        });
       signaturePromises.push(signatureHex);
     }
 
@@ -501,6 +499,35 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
         bitcoinTx.inputUtxos,
       );
     });
+  };
+
+  /**
+   * checks if the corresponding signer service is signing the transaction or not
+   * @param transaction the transaction
+   * @returns true if the signer is still signing at least one input, otherwise false
+   */
+  isTransactionInSign = async (
+    transaction: PaymentTransaction,
+  ): Promise<boolean> => {
+    const psbt = Serializer.deserialize(transaction.txBytes);
+    const tx = Transaction.fromBuffer(psbt.data.getTransaction());
+    const bitcoinTx = transaction as BitcoinTransaction;
+
+    const signStatuses: boolean[] = [];
+    for (let i = 0; i < bitcoinTx.inputUtxos.length; i++) {
+      const input = JsonBigInt.parse(bitcoinTx.inputUtxos[i]) as BitcoinUtxo;
+      const signMessage = tx.hashForWitnessV0(
+        i,
+        this.signingScript,
+        Number(input.value),
+        Transaction.SIGHASH_ALL,
+      );
+
+      const isInSign = await this.signMediator.isInSign(signMessage);
+      signStatuses.push(isInSign);
+    }
+
+    return signStatuses.some((status) => status);
   };
 
   /**

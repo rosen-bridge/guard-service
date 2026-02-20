@@ -42,8 +42,3 @@ export interface BitcoinRunesTx {
   inputs: BitcoinRunesTxInput[];
   outputs: BitcoinRunesTxOutput[];
 }
-
-export type TssSignFunction = (txHash: Uint8Array) => Promise<{
-  signature: string;
-  signatureRecovery: string;
-}>;

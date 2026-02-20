@@ -1,4 +1,4 @@
-import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
+import { DefaultLogger } from '@rosen-bridge/abstract-logger';
 import {
   ErgoExplorerNetwork,
   ErgoNodeNetwork,
@@ -26,7 +26,7 @@ import GuardsEthereumConfigs from '../configs/guardsEthereumConfigs';
 import { dataSource } from '../db/dataSource';
 import { TokenHandler } from '../handlers/tokenHandler';
 
-const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = DefaultLogger.getInstance().child(import.meta.url);
 
 let ergoScanner: ErgoScanner;
 let ethereumScanner: EvmRpcScanner;
@@ -97,74 +97,57 @@ const binanceScannerJob = () => {
  * @returns loggers object
  */
 const createLoggers = () => ({
-  ergoScannerLogger:
-    CallbackLoggerFactory.getInstance().getLogger('ergo-scanner'),
-  bitcoinCommitmentExtractorLogger:
-    CallbackLoggerFactory.getInstance().getLogger(
-      'bitcoin-commitment-extractor',
-    ),
-  bitcoinEventTriggerExtractorLogger:
-    CallbackLoggerFactory.getInstance().getLogger(
-      'bitcoin-event-trigger-extractor',
-    ),
-  cardanoCommitmentExtractorLogger:
-    CallbackLoggerFactory.getInstance().getLogger(
-      'cardano-commitment-extractor',
-    ),
-  cardanoEventTriggerExtractorLogger:
-    CallbackLoggerFactory.getInstance().getLogger(
-      'cardano-event-trigger-extractor',
-    ),
-  ergoCommitmentExtractorLogger: CallbackLoggerFactory.getInstance().getLogger(
+  ergoScannerLogger: DefaultLogger.getInstance().child('ergo-scanner'),
+  bitcoinCommitmentExtractorLogger: DefaultLogger.getInstance().child(
+    'bitcoin-commitment-extractor',
+  ),
+  bitcoinEventTriggerExtractorLogger: DefaultLogger.getInstance().child(
+    'bitcoin-event-trigger-extractor',
+  ),
+  cardanoCommitmentExtractorLogger: DefaultLogger.getInstance().child(
+    'cardano-commitment-extractor',
+  ),
+  cardanoEventTriggerExtractorLogger: DefaultLogger.getInstance().child(
+    'cardano-event-trigger-extractor',
+  ),
+  ergoCommitmentExtractorLogger: DefaultLogger.getInstance().child(
     'ergo-commitment-extractor',
   ),
-  ergoEventTriggerExtractorLogger:
-    CallbackLoggerFactory.getInstance().getLogger(
-      'ergo-event-trigger-extractor',
-    ),
-  ethereumCommitmentExtractorLogger:
-    CallbackLoggerFactory.getInstance().getLogger(
-      'ethereum-commitment-extractor',
-    ),
-  ethereumEventTriggerExtractorLogger:
-    CallbackLoggerFactory.getInstance().getLogger(
-      'ethereum-event-trigger-extractor',
-    ),
-  ethereumScannerLogger:
-    CallbackLoggerFactory.getInstance().getLogger('ethereum-scanner'),
-  ethereumLockAddressTxExtractorLogger:
-    CallbackLoggerFactory.getInstance().getLogger(
-      'ethereum-lock-address-tx-extractor',
-    ),
-  binanceCommitmentExtractorLogger:
-    CallbackLoggerFactory.getInstance().getLogger(
-      'binance-commitment-extractor',
-    ),
-  binanceEventTriggerExtractorLogger:
-    CallbackLoggerFactory.getInstance().getLogger(
-      'binance-event-trigger-extractor',
-    ),
-  binanceScannerLogger:
-    CallbackLoggerFactory.getInstance().getLogger('binance-scanner'),
-  binanceLockAddressTxExtractorLogger:
-    CallbackLoggerFactory.getInstance().getLogger(
-      'binance-lock-address-tx-extractor',
-    ),
-  dogeCommitmentExtractorLogger: CallbackLoggerFactory.getInstance().getLogger(
+  ergoEventTriggerExtractorLogger: DefaultLogger.getInstance().child(
+    'ergo-event-trigger-extractor',
+  ),
+  ethereumCommitmentExtractorLogger: DefaultLogger.getInstance().child(
+    'ethereum-commitment-extractor',
+  ),
+  ethereumEventTriggerExtractorLogger: DefaultLogger.getInstance().child(
+    'ethereum-event-trigger-extractor',
+  ),
+  ethereumScannerLogger: DefaultLogger.getInstance().child('ethereum-scanner'),
+  ethereumLockAddressTxExtractorLogger: DefaultLogger.getInstance().child(
+    'ethereum-lock-address-tx-extractor',
+  ),
+  binanceCommitmentExtractorLogger: DefaultLogger.getInstance().child(
+    'binance-commitment-extractor',
+  ),
+  binanceEventTriggerExtractorLogger: DefaultLogger.getInstance().child(
+    'binance-event-trigger-extractor',
+  ),
+  binanceScannerLogger: DefaultLogger.getInstance().child('binance-scanner'),
+  binanceLockAddressTxExtractorLogger: DefaultLogger.getInstance().child(
+    'binance-lock-address-tx-extractor',
+  ),
+  dogeCommitmentExtractorLogger: DefaultLogger.getInstance().child(
     'doge-commitment-extractor',
   ),
-  dogeEventTriggerExtractorLogger:
-    CallbackLoggerFactory.getInstance().getLogger(
-      'doge-event-trigger-extractor',
-    ),
-  bitcoinRunesCommitmentExtractorLogger:
-    CallbackLoggerFactory.getInstance().getLogger(
-      'bitcoin-runes-commitment-extractor',
-    ),
-  bitcoinRunesEventTriggerExtractorLogger:
-    CallbackLoggerFactory.getInstance().getLogger(
-      'bitcoin-runes-event-trigger-extractor',
-    ),
+  dogeEventTriggerExtractorLogger: DefaultLogger.getInstance().child(
+    'doge-event-trigger-extractor',
+  ),
+  bitcoinRunesCommitmentExtractorLogger: DefaultLogger.getInstance().child(
+    'bitcoin-runes-commitment-extractor',
+  ),
+  bitcoinRunesEventTriggerExtractorLogger: DefaultLogger.getInstance().child(
+    'bitcoin-runes-event-trigger-extractor',
+  ),
 });
 
 /**

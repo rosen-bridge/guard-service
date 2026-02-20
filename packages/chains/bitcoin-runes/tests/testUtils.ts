@@ -2,12 +2,9 @@ import { randomBytes } from 'crypto';
 
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 import { TokenMap } from '@rosen-bridge/tokens';
+import { EcdsaSignMediator } from '@rosen-chains/abstract-chain';
 
-import {
-  BitcoinRunesChain,
-  BitcoinRunesConfigs,
-  TssSignFunction,
-} from '../lib';
+import { BitcoinRunesChain, BitcoinRunesConfigs } from '../lib';
 import { TestBitcoinRunesNetwork } from './network/testBitcoinRunesNetwork';
 import * as testData from './testData';
 
@@ -39,18 +36,23 @@ export const configs: BitcoinRunesConfigs = {
   aggregatedPublicKey: testData.lockAddressPublicKey,
   txFeeSlippage: 10,
 };
-export const mockedSignFn = () =>
-  Promise.resolve({
-    signature: '',
-    signatureRecovery: '',
-  });
+export const mockedSignMediator = {
+  sign: vi.fn(),
+  isInSign: vi.fn().mockResolvedValue(true),
+};
 export const generateChainObject = async (
   network: TestBitcoinRunesNetwork,
-  signFn: TssSignFunction = mockedSignFn,
+  signMediator: EcdsaSignMediator = mockedSignMediator,
   tokens = testData.testTokenMap,
   logger?: AbstractLogger, // this is for convenient purposes while debugging the tests
 ) => {
   const tokenMap = new TokenMap();
   await tokenMap.updateConfigByJson(tokens);
-  return new BitcoinRunesChain(network, configs, tokenMap, signFn, logger);
+  return new BitcoinRunesChain(
+    network,
+    configs,
+    tokenMap,
+    signMediator,
+    logger,
+  );
 };

@@ -1,4 +1,4 @@
-import { CallbackLoggerFactory } from '@rosen-bridge/callback-logger';
+import { DefaultLogger } from '@rosen-bridge/abstract-logger';
 
 import TxAgreement from '../agreement/txAgreement';
 import ArbitraryProcessor from '../arbitrary/arbitraryProcessor';
@@ -14,7 +14,7 @@ import { ChainConfigKey, SUPPORTED_CHAINS } from '../utils/constants';
 import GuardTurn from '../utils/guardTurn';
 import IntervalTimer from '../utils/intervalTimer';
 
-const logger = CallbackLoggerFactory.getInstance().getLogger(import.meta.url);
+const logger = DefaultLogger.getInstance().child(import.meta.url);
 
 /**
  * sends generated tx to agreement
