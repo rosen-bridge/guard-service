@@ -122,3 +122,71 @@ export const mockTokenPaymentFromErgoEvent = (): TestEventTrigger =>
     '',
     10000,
   );
+
+export const mockErgEventFromEthereum = (): TestEventTrigger =>
+  createEventTrigger(
+    200,
+    'ethereum',
+    'ergo',
+    'fromAddress',
+    'toAddress',
+    '50000000000',
+    '1000000000',
+    '1500000',
+    '0x96544b7c03c00da7bfddc560351429ee1376f7d8',
+    'erg',
+    TestUtils.generateRandomId(),
+    '',
+    10000,
+  );
+
+export const mockTokenEventFromEthereum = (): TestEventTrigger =>
+  createEventTrigger(
+    200,
+    'ethereum',
+    'ergo',
+    'fromAddress',
+    'toAddress',
+    '500000000',
+    '10000000',
+    '15000',
+    '0x0347618c0eec9e7a65d87e161673d77b6171f31f',
+    '98bc813d77b8b938fddb08f75c5c686ffe38cf1d99a887f91403cc6f0c5c76bf',
+    TestUtils.generateRandomId(),
+    '',
+    10000,
+  );
+
+export const mockErgEventFromBinance = (): TestEventTrigger =>
+  createEventTrigger(
+    200,
+    'binance',
+    'ergo',
+    'fromAddress',
+    'toAddress',
+    '50000000000',
+    '1000000000',
+    '1500000',
+    '0xbc152e294a24d777e640e6a491edbd3ca461c51f',
+    'erg',
+    TestUtils.generateRandomId(),
+    '',
+    10000,
+  );
+
+export const mockTokenEventFromBinance = (): TestEventTrigger =>
+  createEventTrigger(
+    200,
+    'binance',
+    'ergo',
+    'fromAddress',
+    'toAddress',
+    '500000000',
+    '10000000',
+    '15000',
+    '0xcd5d9d3ba809cc80224037694158c7217a823bca',
+    '98bc813d77b8b938fddb08f75c5c686ffe38cf1d99a887f91403cc6f0c5c76bf',
+    TestUtils.generateRandomId(),
+    '',
+    10000,
+  );
