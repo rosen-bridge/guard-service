@@ -3,8 +3,7 @@
   "version": "0.1.0",
   "description": "A package to be used as network api provider for @rosen-chains/handshake package using RPC API",
   "keywords": [
-    "rosen",
-    "handshake"
+    "rosen"
   ],
   "repository": {
     "type": "git",
@@ -33,19 +32,15 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@rosen-bridge/abstract-logger": "^3.0.1",
+    "@rosen-bridge/abstract-logger": "^4.0.0",
     "@rosen-bridge/json-bigint": "^1.1.0",
-    "@rosen-chains/abstract-chain": "^15.0.0",
+    "@rosen-chains/abstract-chain": "^15.0.2",
     "@rosen-chains/handshake": "^0.1.0",
     "@rosen-clients/rate-limited-axios": "^1.1.0",
     "hsd": "^8.0.0"
   },
-  "devDependencies": {
-    "@vitest/coverage-istanbul": "^3.1.4",
-    "tsx": "^4.20.5",
-    "vitest": "^3.1.4"
-  },
   "engines": {
-    "node": ">=22.18.0"
+    "node": ">=22.18.0",
+    "npm": "11.6.2"
   }
 }

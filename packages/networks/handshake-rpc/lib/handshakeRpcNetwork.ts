@@ -480,7 +480,7 @@ class HandshakeRpcNetwork extends PartialHandshakeNetwork {
 
       // estimatefee returns -1 if it can't estimate (insufficient historical data)
       if (feeRate === -1 || feeRate <= 0) {
-        // use standard hardcoded value ( https://github.com/kyokan/bob-extension/blob/8fbf7c3ef171df340b05021d6f29de0c2e844b0e/src/ui/pages/SendTx/index.tsx#L20-L24 ) 
+        // use standard hardcoded value ( https://github.com/kyokan/bob-extension/blob/8fbf7c3ef171df340b05021d6f29de0c2e844b0e/src/ui/pages/SendTx/index.tsx#L20-L24 )
         feeRate = 0.05;
       }
 
