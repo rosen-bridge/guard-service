@@ -4,6 +4,8 @@ import { ERGO_CHAIN, ErgoConfigs } from '@rosen-chains/ergo';
 import { EXPLORER_NETWORK } from '@rosen-chains/ergo-explorer-network';
 import { NODE_NETWORK } from '@rosen-chains/ergo-node-network';
 
+import { FeeDistribution } from '../types/config';
+import { SUPPORTED_CHAINS } from '../utils/constants';
 import { getChainNetworkName, getConfigIntKeyOrDefault } from './configs';
 import { rosenConfig } from './rosenConfig';
 
@@ -37,9 +39,6 @@ class GuardsErgoConfigs {
   static emissionTokenDecimal: number = config.get<number>(
     'reward.emissionTokenDecimal',
   );
-  static bridgeFeeRepoAddress: string = config.get<string>(
-    'reward.bridgeFeeRepoAddress',
-  );
   static emissionAddress: string = config.get<string>('reward.emissionAddress');
   static networkFeeRepoAddress: string = config.get<string>(
     'reward.networkFeeRepoAddress',
@@ -49,6 +48,35 @@ class GuardsErgoConfigs {
   );
   static watchersEmissionSharePercent = BigInt(
     getConfigIntKeyOrDefault('reward.watchersEmissionSharePercent', 0),
+  );
+
+  // bridge fee configs
+  static bridgeFeeDefaultAddress: string = config.get<string>(
+    'reward.bridgeFee.defaultAddress',
+  );
+  static bridgeFeeDefaultDistribution: FeeDistribution =
+    config.get<FeeDistribution>('reward.bridgeFee.defaultDistribution');
+  static chainBridgeFeeDistribution: Record<string, FeeDistribution> =
+    SUPPORTED_CHAINS.map((chain) => {
+      // check if there is a specific distribution for the chain
+      const distribution = config.has(`reward.bridgeFee.${chain}`)
+        ? config.get<FeeDistribution>(`reward.bridgeFee.${chain}`)
+        : // if not, use the default distribution
+          this.bridgeFeeDefaultDistribution;
+      // validate distribution (sum should be less than 100)
+      const sumDistributionPercent = distribution
+        .map((distribution) => distribution.percent)
+        .reduce((a, b) => a + b, 0);
+      if (sumDistributionPercent >= 100)
+        throw new Error(
+          `Invalid bridge fee distribution for chain [${chain}]: expected sum to be less than 100, found [${sumDistributionPercent}]`,
+        );
+      return { [chain]: distribution };
+    }).reduce((a, b) => ({ ...a, ...b }), {}); // merge all distributions into one object
+  static bridgeFeeAddresses = new Set<string>(
+    Object.values(this.chainBridgeFeeDistribution)
+      .flatMap((distribution) => distribution.map((address) => address.address))
+      .concat([this.bridgeFeeDefaultAddress]),
   );
 
   // confirmation configs
