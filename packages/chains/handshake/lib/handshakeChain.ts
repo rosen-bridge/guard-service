@@ -66,7 +66,8 @@ class HandshakeChain extends AbstractUtxoChain<HandshakeTx, HandshakeUtxo> {
     this.signMediator = signMediator;
     this.boxSelection = new BitcoinBoxSelection();
     this.lockAddress = Address.fromString(this.configs.addresses.lock);
-    this.lockScript = Buffer.from(this.configs.lockScript, 'hex');
+    // For P2WPKH TSS: derive lock script from the lock address pubkeyhash
+    this.lockScript = Script.fromPubkeyhash(this.lockAddress.hash).encode();
   }
 
   /**
@@ -524,7 +525,7 @@ class HandshakeChain extends AbstractUtxoChain<HandshakeTx, HandshakeUtxo> {
     for (let i = 0; i < handshakeTx.inputUtxos.length; i++) {
       // Create signing hash for this input
       const coin = coins[i];
-      // For P2WSH multisig, use the witnessScript for signature hash calculation
+      // For P2WPKH TSS, use the P2PKH script for signature hash calculation
       const scriptCode = Script.decode(this.lockScript);
       const value = coin.value;
       const type = 0x01; // SIGHASH_ALL
@@ -610,7 +611,7 @@ class HandshakeChain extends AbstractUtxoChain<HandshakeTx, HandshakeUtxo> {
         index: Number(input.index),
       });
 
-      // For P2WSH multisig, use the witnessScript for signature hash calculation
+      // For P2WPKH TSS, use the P2PKH script for signature hash calculation
       const scriptCode = Script.decode(this.lockScript);
       const value = coin.value;
       const type = 0x01; // SIGHASH_ALL

@@ -4,10 +4,8 @@ import {
 } from '@rosen-chains/abstract-chain';
 
 export interface HandshakeConfigs extends ChainConfigs {
-  aggregatedPublicKey: string; // Aggregated public key (TSS threshold signature scheme)
-  txFeeSlippage: number; // Fee verification tolerance
-  lockScript: string; // hex-encoded witnessScript for P2WSH multisig (32-byte witness program, hashed with SHA-256)
-  requiredSign: number; // Number of signatures required for m-of-n multisig
+  aggregatedPublicKey: string; // Aggregated public key from TSS threshold signature scheme
+  txFeeSlippage: number; // Fee verification tolerance (percentage)
 }
 
 export interface HandshakeTransactionJsonModel
