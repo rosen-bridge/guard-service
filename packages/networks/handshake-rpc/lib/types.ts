@@ -88,6 +88,24 @@ export interface HandshakeChainInfo {
 }
 
 /**
+ * Coin object returned by the /coin/address endpoint
+ */
+export interface HandshakeCoin {
+  version: number;
+  height: number;
+  value: number;
+  address: string;
+  covenant: {
+    type: number;
+    action: string;
+    items: string[];
+  };
+  coinbase: boolean;
+  hash: string; // transaction ID
+  index: number; // output index
+}
+
+/**
  * Authentication credentials for Handshake RPC
  */
 export interface RpcAuth {

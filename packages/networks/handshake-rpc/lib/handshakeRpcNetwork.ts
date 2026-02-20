@@ -4,6 +4,7 @@ import { MTX } from 'hsd';
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 import JsonBigInt from '@rosen-bridge/json-bigint';
 import {
+  AssetBalance,
   BlockInfo,
   FailedError,
   NetworkError,
@@ -24,6 +25,7 @@ import {
   HandshakeBlockSummary,
   HandshakeChainInfo,
   RpcAuth,
+  HandshakeCoin,
 } from './types';
 
 class HandshakeRpcNetwork extends PartialHandshakeNetwork {
@@ -33,10 +35,12 @@ class HandshakeRpcNetwork extends PartialHandshakeNetwork {
   readonly implements = [
     HandshakeNetworkFunction.getHeight,
     HandshakeNetworkFunction.getTxConfirmation,
+    HandshakeNetworkFunction.getAddressAssets,
     HandshakeNetworkFunction.getBlockTransactionIds,
     HandshakeNetworkFunction.getBlockInfo,
     HandshakeNetworkFunction.getTransaction,
     HandshakeNetworkFunction.submitTransaction,
+    HandshakeNetworkFunction.getAddressBoxes,
     HandshakeNetworkFunction.isBoxUnspentAndValid,
     HandshakeNetworkFunction.getUtxo,
     HandshakeNetworkFunction.getFeeRatio,
@@ -482,6 +486,102 @@ class HandshakeRpcNetwork extends PartialHandshakeNetwork {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get fee ratio from Handshake RPC: `;
+      if (e.response) {
+        throw new FailedError(
+          baseError + JsonBigInt.stringify(e.response.data),
+        );
+      } else if (e.request) {
+        throw new NetworkError(baseError + e.message);
+      } else {
+        throw new UnexpectedApiError(baseError + e.message);
+      }
+    }
+  };
+
+  /**
+   * gets the amount of each asset in an address
+   * @param address the address
+   * @returns an object containing the amount of each asset
+   */
+  getAddressAssets = async (address: string): Promise<AssetBalance> => {
+    try {
+      const coins = (
+        await this.client.get<Array<HandshakeCoin>>(`/coin/address/${address}`)
+      ).data;
+
+      // Sum only regular coin values (covenant type 0) to get total HNS balance
+      const totalBalance = coins
+        .filter((coin) => coin.covenant.type === 0)
+        .reduce((sum, coin) => sum + this.convertDollarydoos(coin.value), 0n);
+
+      this.logger?.debug(
+        `Requested 'getAddressAssets' for address [${address}]. Balance: ${totalBalance}`,
+      );
+
+      return {
+        nativeToken: totalBalance,
+        tokens: [],
+      };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (e: any) {
+      const baseError = `Failed to get address [${address}] assets from Handshake: `;
+      if (e.response) {
+        throw new FailedError(
+          baseError + JsonBigInt.stringify(e.response.data),
+        );
+      } else if (e.request) {
+        throw new NetworkError(baseError + e.message);
+      } else {
+        throw new UnexpectedApiError(baseError + e.message);
+      }
+    }
+  };
+
+  /**
+   * gets confirmed and unspent boxes of an address
+   * @param address the address
+   * @param offset the offset for pagination
+   * @param limit the limit for pagination
+   * @returns list of boxes
+   */
+  getAddressBoxes = async (
+    address: string,
+    offset: number,
+    limit: number,
+  ): Promise<Array<HandshakeUtxo>> => {
+    try {
+      const coins = (
+        await this.client.get<Array<HandshakeCoin>>(`/coin/address/${address}`)
+      ).data;
+
+      // Filter to only include regular coin outputs (covenant type 0)
+      const boxes: HandshakeUtxo[] = coins
+        .filter((coin) => coin.covenant.type === 0)
+        .map((coin) => ({
+          txId: coin.hash,
+          index: coin.index,
+          value: this.convertDollarydoos(coin.value),
+        }));
+
+      // Sort boxes to keep consistency between calls
+      boxes.sort((a, b) => {
+        if (a.txId < b.txId) return -1;
+        else if (a.txId === b.txId && a.index < b.index) return -1;
+        else if (a.txId === b.txId && a.index === b.index) return 0;
+        else return 1;
+      });
+
+      this.logger?.debug(
+        `Requested 'getAddressBoxes' for address [${address}]. Found ${boxes.length} boxes, returning ${Math.min(
+          limit,
+          Math.max(0, boxes.length - offset),
+        )} boxes (offset: ${offset}, limit: ${limit})`,
+      );
+
+      return boxes.slice(offset, offset + limit);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (e: any) {
+      const baseError = `Failed to get address [${address}] boxes from Handshake: `;
       if (e.response) {
         throw new FailedError(
           baseError + JsonBigInt.stringify(e.response.data),
