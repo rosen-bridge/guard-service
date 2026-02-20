@@ -478,6 +478,30 @@ class HandshakeRpcNetwork extends PartialHandshakeNetwork {
         )}`,
       );
 
+      // estimatefee returns -1 if it can't estimate (insufficient historical data)
+      if (feeRate === -1 || feeRate <= 0) {
+        // Use minimum relay fee as fallback
+        const networkInfoId = this.generateRandomId();
+        const networkInfoResponse = await this.client.post<JsonRpcResult>('', {
+          method: 'getnetworkinfo',
+          id: networkInfoId,
+          params: [],
+        });
+
+        this.validateResponseId(networkInfoId, networkInfoResponse.data.id);
+        const minRelayFee = networkInfoResponse.data.result.relayfee; // HNS/KB
+
+        this.logger?.info(
+          `estimatefee returned ${feeRate}, using minimum relay fee: ${minRelayFee} HNS/KB`,
+        );
+
+        // Convert from HNS/KB to dollarydoos/byte
+        const minFeeDollarydoos = this.convertDollarydoos(minRelayFee);
+        const minFeePerByte = Number(minFeeDollarydoos) / 1024;
+
+        return Math.ceil(minFeePerByte);
+      }
+
       // Convert from HNS/KB to dollarydoos/byte
       const feeDollarydoos = this.convertDollarydoos(feeRate);
       const feePerByte = Number(feeDollarydoos) / 1024;
