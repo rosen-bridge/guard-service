@@ -31,7 +31,7 @@ export const fraudTxOrder: PaymentOrder = [
 
 export const rewardTxOrder: PaymentOrder = [
   {
-    address: GuardsErgoConfigs.bridgeFeeRepoAddress,
+    address: GuardsErgoConfigs.bridgeFeeDefaultAddress,
     assets: {
       nativeToken: 100n,
       tokens: [
