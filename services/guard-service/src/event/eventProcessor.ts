@@ -225,7 +225,12 @@ class EventProcessor {
       await DatabaseAction.getInstance().getUnsignedActiveTxsInChain(
         event.toChain,
       )
-    ).map((txEntity) => TransactionSerializer.fromJson(txEntity.txJson));
+    ).map((txEntity) =>
+      TransactionSerializer.fromJson(
+        txEntity.txJson,
+        ChainHandler.getInstance().getChain,
+      ),
+    );
     // get signed transactions in target chain
     const signedTransactions = (
       await DatabaseAction.getInstance().getSignedActiveTxsInChain(
@@ -233,7 +238,10 @@ class EventProcessor {
       )
     ).map((txEntity) =>
       Buffer.from(
-        TransactionSerializer.fromJson(txEntity.txJson).txBytes,
+        TransactionSerializer.fromJson(
+          txEntity.txJson,
+          ChainHandler.getInstance().getChain,
+        ).txBytes,
       ).toString('hex'),
     );
 
@@ -351,13 +359,21 @@ class EventProcessor {
     ).getChainPendingTransactions(ERGO_CHAIN);
     const unsignedQueueTransactions = (
       await DatabaseAction.getInstance().getUnsignedActiveTxsInChain(ERGO_CHAIN)
-    ).map((txEntity) => TransactionSerializer.fromJson(txEntity.txJson));
+    ).map((txEntity) =>
+      TransactionSerializer.fromJson(
+        txEntity.txJson,
+        ChainHandler.getInstance().getChain,
+      ),
+    );
     // get signed transactions in target chain
     const signedTransactions = (
       await DatabaseAction.getInstance().getSignedActiveTxsInChain(ERGO_CHAIN)
     ).map((txEntity) =>
       Buffer.from(
-        TransactionSerializer.fromJson(txEntity.txJson).txBytes,
+        TransactionSerializer.fromJson(
+          txEntity.txJson,
+          ChainHandler.getInstance().getChain,
+        ).txBytes,
       ).toString('hex'),
     );
 
