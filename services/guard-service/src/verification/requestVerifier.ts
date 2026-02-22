@@ -8,6 +8,7 @@ import { ERGO_CHAIN } from '@rosen-chains/ergo';
 import { DatabaseAction } from '../db/databaseAction';
 import EventSerializer from '../event/eventSerializer';
 import MinimumFeeHandler from '../handlers/minimumFeeHandler';
+import EventSynchronization from '../synchronization/eventSynchronization';
 import { EventStatus, OrderStatus } from '../utils/constants';
 import EventVerifier from './eventVerifier';
 import TransactionVerifier from './transactionVerifier';
@@ -104,6 +105,12 @@ class RequestVerifier {
         baseError +
           `but event status [${eventEntity.status}] is not compatible with requested tx type [${tx.txType}]`,
       );
+      if (
+        eventEntity.status === EventStatus.pendingPayment &&
+        tx.txType === TransactionType.reward
+      ) {
+        EventSynchronization.getInstance().addEventToQueue(eventEntity.id);
+      }
       return false;
     }
 

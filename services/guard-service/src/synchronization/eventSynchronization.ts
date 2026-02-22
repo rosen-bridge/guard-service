@@ -132,6 +132,7 @@ class EventSynchronization extends Communicator {
    */
   addEventToQueue = (eventId: string): void => {
     this.eventQueue.push(eventId);
+    logger.info(`Added event [${eventId}] to synchronization queue`);
   };
 
   /**
