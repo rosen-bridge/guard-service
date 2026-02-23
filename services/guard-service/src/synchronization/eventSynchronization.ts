@@ -132,6 +132,7 @@ class EventSynchronization extends Communicator {
    */
   addEventToQueue = (eventId: string): void => {
     this.eventQueue.push(eventId);
+    logger.info(`Added event [${eventId}] to synchronization queue`);
   };
 
   /**
@@ -290,7 +291,10 @@ class EventSynchronization extends Communicator {
         }
         case SynchronizationMessageTypes.response: {
           const response = payload as SyncResponse;
-          const tx = TransactionSerializer.fromJson(response.txJson);
+          const tx = TransactionSerializer.fromJson(
+            response.txJson,
+            ChainHandler.getInstance().getChain,
+          );
           await this.processSyncResponse(tx, response.actualTxId, senderIndex);
           break;
         }

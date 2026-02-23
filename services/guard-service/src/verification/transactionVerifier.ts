@@ -187,7 +187,10 @@ class TransactionVerifier {
     for (const activeTx of inProgressColdStorageTxs) {
       if (activeTx.txId === tx.txId) continue;
       const activeTxOrder = chain.extractTransactionOrder(
-        TransactionSerializer.fromJson(activeTx.txJson),
+        TransactionSerializer.fromJson(
+          activeTx.txJson,
+          ChainHandler.getInstance().getChain,
+        ),
       );
       if (
         activeTxOrder[0].assets.tokens.some((token) =>

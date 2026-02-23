@@ -6,7 +6,6 @@ import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
 import { ConfirmedEventEntity } from '../db/entities/confirmedEventEntity';
 import EventBoxes from '../event/eventBoxes';
 import ChainHandler from '../handlers/chainHandler';
-import EventSynchronization from '../synchronization/eventSynchronization';
 import { EventStatus } from '../utils/constants';
 
 class EventVerifier {
@@ -78,15 +77,7 @@ class EventVerifier {
       type === TransactionType.reward
     )
       return true;
-    else {
-      if (
-        eventEntity.status === EventStatus.pendingPayment &&
-        type === TransactionType.reward
-      ) {
-        EventSynchronization.getInstance().addEventToQueue(eventEntity.id);
-      }
-      return false;
-    }
+    return false;
   };
 }
 

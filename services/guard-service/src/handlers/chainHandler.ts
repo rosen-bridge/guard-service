@@ -214,7 +214,7 @@ class ChainHandler {
           async (txId: string) => {
             const tx = await DatabaseAction.getInstance().getTxById(txId);
             if (tx === null) return undefined;
-            return TransactionSerializer.fromJson(tx.txJson);
+            return TransactionSerializer.fromJson(tx.txJson, this.getChain);
           },
           DefaultLogger.getInstance().child('DogeEsploraNetwork'),
         );
@@ -234,7 +234,7 @@ class ChainHandler {
           async (txId: string) => {
             const tx = await DatabaseAction.getInstance().getTxById(txId);
             if (tx === null) return undefined;
-            return TransactionSerializer.fromJson(tx.txJson);
+            return TransactionSerializer.fromJson(tx.txJson, this.getChain);
           },
           DefaultLogger.getInstance().child('BlockcypherNetwork'),
         );

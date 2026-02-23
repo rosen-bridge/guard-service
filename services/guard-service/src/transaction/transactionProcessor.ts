@@ -75,7 +75,10 @@ class TransactionProcessor {
     await dbAction.txSignSemaphore.acquire().then(async (release) => {
       try {
         const chain = ChainHandler.getInstance().getChain(tx.chain);
-        const paymentTx = TransactionSerializer.fromJson(tx.txJson);
+        const paymentTx = TransactionSerializer.fromJson(
+          tx.txJson,
+          ChainHandler.getInstance().getChain,
+        );
         await dbAction.setTxStatus(tx.txId, TransactionStatus.inSign);
         chain
           .signTransaction(paymentTx, tx.requiredSign)
@@ -127,7 +130,10 @@ class TransactionProcessor {
    */
   static processInSignTx = async (tx: TransactionEntity): Promise<void> => {
     const chain = ChainHandler.getInstance().getChain(tx.chain);
-    const paymentTx = TransactionSerializer.fromJson(tx.txJson);
+    const paymentTx = TransactionSerializer.fromJson(
+      tx.txJson,
+      ChainHandler.getInstance().getChain,
+    );
     if (await chain.isTransactionInSign(paymentTx)) {
       logger.info(`Signer is still signing tx [${tx.txId}]`);
     } else {
@@ -179,7 +185,10 @@ class TransactionProcessor {
       );
     } else {
       // tx is not found, checking if tx is still valid
-      const paymentTx = TransactionSerializer.fromJson(tx.txJson);
+      const paymentTx = TransactionSerializer.fromJson(
+        tx.txJson,
+        ChainHandler.getInstance().getChain,
+      );
       const validityStatus = await chain.isTxValid(
         paymentTx,
         SigningStatus.UnSigned,
@@ -201,7 +210,10 @@ class TransactionProcessor {
    */
   static processSignedTx = async (tx: TransactionEntity): Promise<void> => {
     const chain = ChainHandler.getInstance().getChain(tx.chain);
-    const paymentTx = TransactionSerializer.fromJson(tx.txJson);
+    const paymentTx = TransactionSerializer.fromJson(
+      tx.txJson,
+      ChainHandler.getInstance().getChain,
+    );
     await chain.submitTransaction(paymentTx);
     await DatabaseAction.getInstance().setTxStatus(
       tx.txId,
@@ -308,7 +320,10 @@ class TransactionProcessor {
           logger.info(`Tx [${tx.txId}] is in mempool`);
         } else {
           // tx is not in mempool, checking if tx is still valid
-          const paymentTx = TransactionSerializer.fromJson(tx.txJson);
+          const paymentTx = TransactionSerializer.fromJson(
+            tx.txJson,
+            ChainHandler.getInstance().getChain,
+          );
           const validityStatus = await chain.isTxValid(
             paymentTx,
             SigningStatus.Signed,
