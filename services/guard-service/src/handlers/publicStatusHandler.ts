@@ -98,7 +98,7 @@ class PublicStatusHandler {
 
     const signMessage = this.dtoToSignMessage(dto);
 
-    await this.axios.post('/status', {
+    await this.axios.post('/v1/status/submit', {
       body: {
         ...dto,
         pk: await Configs.tssKeys.encryptor.getPk(),
