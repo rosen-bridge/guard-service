@@ -1,6 +1,10 @@
 import { TransactionType } from '@rosen-chains/abstract-chain';
+import { AxiosError } from '@rosen-clients/rate-limited-axios';
 
-import { UpdateStatusDTO } from '../../src/handlers/publicStatusHandler';
+import {
+  UpdateStatusDTO,
+  logger,
+} from '../../src/handlers/publicStatusHandler';
 import { EventStatus, TransactionStatus } from '../../src/utils/constants';
 import DatabaseActionMock from '../db/mocked/databaseAction.mock';
 import {
@@ -63,7 +67,6 @@ describe('PublicStatusHandler', () => {
 
       // assert
       expect(submitRequestSpy).toHaveBeenCalledExactlyOnceWith({
-        date: expect.any(Number),
         eventId,
         status: eventStatus,
         tx: {
@@ -120,7 +123,6 @@ describe('PublicStatusHandler', () => {
 
       // assert
       expect(submitRequestSpy).toHaveBeenCalledExactlyOnceWith({
-        date: expect.any(Number),
         eventId,
         status: eventStatus,
         tx: {
@@ -161,11 +163,53 @@ describe('PublicStatusHandler', () => {
 
       // assert
       expect(submitRequestSpy).toHaveBeenCalledExactlyOnceWith({
-        date: expect.any(Number),
         eventId,
         status,
         tx: undefined,
       });
+    });
+
+    /**
+     * @target PublicStatusHandler.updatePublicEventStatus should log AxiosError
+     * response data when submitRequest throws an AxiosError
+     * @dependencies
+     * - Database
+     * @scenario
+     * - define a mock PublicStatusHandler with a mock dataSource
+     * - stub PublicStatusHandler.submitRequest to throw an AxiosError with
+     *   response data
+     * - call PublicStatusHandler.updatePublicEventStatus
+     * @expected
+     * - logger.error should have been called with a message containing the
+     *   response data
+     */
+    it('should log AxiosError response data when submitRequest throws an AxiosError', async () => {
+      // arrange
+      const status = EventStatus.pendingPayment;
+      const responseData = { error: 'invalid signature' };
+
+      const instance = new TestPublicStatusHandler(
+        DatabaseActionMock.testDataSource,
+      );
+
+      const axiosError = new AxiosError('Request failed with status code 400');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (axiosError as any).response = { data: responseData };
+
+      vi
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(instance as any, 'submitRequest')
+        .mockRejectedValue(axiosError);
+
+      const loggerErrorSpy = vi.spyOn(logger, 'error');
+
+      // act
+      await instance.updatePublicEventStatus(eventId, status);
+
+      // assert
+      expect(loggerErrorSpy).toHaveBeenCalledWith(
+        expect.stringContaining(JSON.stringify(responseData)),
+      );
     });
   });
 
@@ -216,7 +260,6 @@ describe('PublicStatusHandler', () => {
 
       // assert
       expect(submitRequestSpy).toHaveBeenCalledExactlyOnceWith({
-        date: expect.any(Number),
         eventId,
         status: eventStatus,
         tx: {
@@ -248,16 +291,15 @@ describe('PublicStatusHandler', () => {
       );
 
       const dto: UpdateStatusDTO = {
-        date: 0,
         eventId: id0,
         status: EventStatus.inPayment,
       };
 
       // act
-      const result = instance.callDTOToSignMessage(dto);
+      const result = instance.callDTOToSignMessage(dto, 0);
 
       // assert
-      expect(result).toBe(`${dto.eventId}${dto.status}${dto.date}`);
+      expect(result).toBe(`${dto.eventId}${dto.status}0`);
     });
 
     /**
@@ -278,7 +320,6 @@ describe('PublicStatusHandler', () => {
       );
 
       const dto: UpdateStatusDTO = {
-        date: 0,
         eventId: id0,
         status: EventStatus.inPayment,
         tx: {
@@ -290,13 +331,13 @@ describe('PublicStatusHandler', () => {
       };
 
       // act
-      const result = instance.callDTOToSignMessage(dto);
+      const result = instance.callDTOToSignMessage(dto, 0);
 
       // assert
       expect(result).toBe(
         `${dto.eventId}${dto.status}${dto.tx!.txId}${dto.tx!.chain}${
           dto.tx!.txType
-        }${dto.tx!.txStatus}${dto.date}`,
+        }${dto.tx!.txStatus}0`,
       );
     });
   });

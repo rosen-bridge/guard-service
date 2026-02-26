@@ -9,7 +9,8 @@ class TestPublicStatusHandler extends PublicStatusHandler {
     super(dataSource, ' ');
   }
 
-  callDTOToSignMessage = (dto: UpdateStatusDTO) => this.dtoToSignMessage(dto);
+  callDTOToSignMessage = (dto: UpdateStatusDTO, date: number) =>
+    this.dtoToSignMessage(dto, date);
 
   callSubmitRequest = (dto: UpdateStatusDTO) => this.submitRequest(dto);
 }
