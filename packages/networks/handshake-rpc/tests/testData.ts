@@ -302,7 +302,7 @@ export const utxo = {
 // estimatefee response - returns just the fee rate (HNS per KB)
 export const estimateFeeResponse = 0.001024; // 0.001024 HNS/KB = 1024 dollarydoos/KB
 
-export const targetFeeEstimation = 1; // Ceil(1024 / 1024) = 1 dollarydoo per byte
+export const targetFeeEstimation = 1.024; // 1024 / 1000 = 1.024 dollarydoo per vB
 
 // Wallet RPC listunspent response
 export const walletListUnspentResponse = [

@@ -458,7 +458,7 @@ class HandshakeRpcNetwork extends PartialHandshakeNetwork {
 
   /**
    * gets the fee ratio
-   * @returns the fee ratio in dollarydoos/byte
+   * @returns the fee ratio in dollarydoos/vB
    */
   getFeeRatio = async (): Promise<number> => {
     const randomId = this.generateRandomId();
@@ -484,11 +484,11 @@ class HandshakeRpcNetwork extends PartialHandshakeNetwork {
         feeRate = 0.05;
       }
 
-      // Convert from HNS/KB to dollarydoos/byte
+      // Convert from HNS/kB (1000 bytes) to dollarydoos/vB.
       const feeDollarydoos = this.convertDollarydoos(feeRate);
-      const feePerByte = Number(feeDollarydoos) / 1024;
+      const feePerVByte = Number(feeDollarydoos) / 1000;
 
-      return Math.ceil(feePerByte);
+      return feePerVByte;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get fee ratio from Handshake RPC: `;

@@ -392,7 +392,7 @@ describe('HandshakeRpcNetwork', () => {
       const network = new HandshakeRpcNetwork(URL);
       const result = await network.getFeeRatio();
 
-      expect(result).toEqual(testData.targetFeeEstimation);
+      expect(result).toBeCloseTo(testData.targetFeeEstimation, 6);
     });
   });
 
