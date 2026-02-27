@@ -1,15 +1,22 @@
+import JsonBigInt from '@rosen-bridge/json-bigint';
 import { TokenMap } from '@rosen-bridge/tokens';
 import {
-  BlockInfo,
+  ChainUtils,
   EcdsaSignMediator,
   NotEnoughAssetsError,
   NotEnoughValidBoxesError,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
 
-import { HandshakeChain, HandshakeTransaction, HandshakeTx } from '../lib';
+import {
+  HandshakeChain,
+  HandshakeTransaction,
+  HandshakeUtxo,
+  Serializer,
+} from '../lib';
 import TestHandshakeNetwork from './network/testHandshakeNetwork';
 import * as testData from './testData';
+import { TestHandshakeChain } from './testHandshakeChain';
 import * as testUtils from './testUtils';
 
 describe('HandshakeChain', () => {
@@ -83,7 +90,20 @@ describe('HandshakeChain', () => {
       expect(extractedOrder).toEqual(order);
 
       // getCoveringBoxes should have been called with correct arguments
-      expect(getCovBoxesSpy).toHaveBeenCalled();
+      const expectedRequiredAssets = structuredClone(
+        testData.transaction2Order[0].assets,
+      );
+      expectedRequiredAssets.nativeToken +=
+        handshakeChain.getMinimumNativeToken();
+      expect(getCovBoxesSpy).toHaveBeenCalledExactlyOnceWith(
+        expectedRequiredAssets,
+        testData.transaction1InputIds,
+        new Map(),
+        expect.any(Object),
+        expect.any(BigInt),
+        undefined,
+        expect.any(Function),
+      );
     });
 
     /**
@@ -155,6 +175,96 @@ describe('HandshakeChain', () => {
         );
       }).rejects.toThrow(NotEnoughValidBoxesError);
     });
+
+    /**
+     * @target HandshakeChain.generateTransaction should generate payment
+     * transaction with wrapped order successfully
+     * @dependencies
+     * @scenario
+     * - mock transaction order, getFeeRatio
+     * - mock getCoveringBoxes, hasLockAddressEnoughAssets
+     * - run test
+     * - check returned value
+     * @expected
+     * - PaymentTransaction txType, eventId, network and inputUtxos should be as
+     *   expected
+     * - extracted order of generated transaction should be the same as input
+     *   order
+     * - getCoveringBoxes should have been called with correct arguments
+     */
+    it('should generate payment transaction with wrapped order successfully', async () => {
+      // mock transaction order
+      const order = testData.transaction2WrappedOrder;
+      const payment1 = HandshakeTransaction.fromJson(
+        testData.transaction2PaymentTransaction,
+      );
+      const getFeeRatioSpy = vi.spyOn(network, 'getFeeRatio');
+      getFeeRatioSpy.mockResolvedValue(1);
+
+      // mock getCoveringBoxes, hasLockAddressEnoughAssets
+      const handshakeChain =
+        await testUtils.generateChainObjectWithMultiDecimalTokenMap(network);
+      const getCovBoxesSpy = vi.spyOn(
+        (handshakeChain as any).boxSelection, // eslint-disable-line @typescript-eslint/no-explicit-any
+        'getCoveringBoxes',
+      );
+      getCovBoxesSpy.mockResolvedValue({
+        covered: true,
+        boxes: testData.lockAddressUtxos,
+      });
+      const hasLockAddressEnoughAssetsSpy = vi.spyOn(
+        handshakeChain,
+        'hasLockAddressEnoughAssets',
+      );
+      hasLockAddressEnoughAssetsSpy.mockResolvedValue(true);
+
+      // run test
+      const result = await handshakeChain.generateTransaction(
+        payment1.eventId,
+        payment1.txType,
+        order,
+        [
+          HandshakeTransaction.fromJson(
+            testData.transaction1PaymentTransaction,
+          ),
+        ],
+        [],
+      );
+      const handshakeTx = result as HandshakeTransaction;
+
+      // check returned value
+      expect(handshakeTx.txType).toEqual(payment1.txType);
+      expect(handshakeTx.eventId).toEqual(payment1.eventId);
+      expect(handshakeTx.network).toEqual(payment1.network);
+      expect(handshakeTx.inputUtxos).toHaveLength(2);
+
+      // extracted order of generated transaction should be the same as input order
+      const extractedOrder =
+        handshakeChain.extractTransactionOrder(handshakeTx);
+      expect(extractedOrder).toEqual(order);
+
+      // getCoveringBoxes should have been called with correct arguments
+      const tokenMap = handshakeChain['tokenMap'];
+      const expectedRequiredAssets = structuredClone(
+        testData.transaction2WrappedOrder[0].assets,
+      );
+      expectedRequiredAssets.nativeToken +=
+        handshakeChain.getMinimumNativeToken();
+      expect(getCovBoxesSpy).toHaveBeenCalledExactlyOnceWith(
+        ChainUtils.unwrapAssetBalance(
+          expectedRequiredAssets,
+          tokenMap,
+          handshakeChain.NATIVE_TOKEN_ID,
+          handshakeChain.CHAIN,
+        ),
+        testData.transaction1InputIds,
+        new Map(),
+        expect.any(Object),
+        expect.any(BigInt),
+        undefined,
+        expect.any(Function),
+      );
+    });
   });
 
   describe('getTransactionAssets', () => {
@@ -183,6 +293,32 @@ describe('HandshakeChain', () => {
       // check returned value
       const result = await handshakeChain.getTransactionAssets(paymentTx);
       expect(result).toEqual(testData.transaction2Assets);
+    });
+
+    /**
+     * @target HandshakeChain.getTransactionAssets should wrap transaction assets
+     * successfully
+     * @dependencies
+     * @scenario
+     * - mock PaymentTransaction
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return mocked transaction assets (both input and output assets)
+     */
+    it('should wrap transaction assets successfully', async () => {
+      // mock PaymentTransaction
+      const paymentTx = HandshakeTransaction.fromJson(
+        testData.transaction2PaymentTransaction,
+      );
+
+      // run test
+      const handshakeChain =
+        await testUtils.generateChainObjectWithMultiDecimalTokenMap(network);
+
+      // check returned value
+      const result = await handshakeChain.getTransactionAssets(paymentTx);
+      expect(result).toEqual(testData.transaction2WrappedAssets);
     });
   });
 
@@ -214,6 +350,70 @@ describe('HandshakeChain', () => {
       // check returned value
       expect(result).toEqual(expectedOrder);
     });
+
+    /**
+     * @target HandshakeChain.extractTransactionOrder should wrap transaction
+     * order successfully
+     * @dependencies
+     * @scenario
+     * - mock PaymentTransaction
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return mocked transaction order
+     */
+    it('should wrap transaction order successfully', async () => {
+      // mock PaymentTransaction
+      const paymentTx = HandshakeTransaction.fromJson(
+        testData.transaction2PaymentTransaction,
+      );
+      const expectedOrder = testData.transaction2WrappedOrder;
+
+      // run test
+      const handshakeChain =
+        await testUtils.generateChainObjectWithMultiDecimalTokenMap(network);
+      const result = handshakeChain.extractTransactionOrder(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(expectedOrder);
+    });
+
+    /**
+     * @target HandshakeChain.extractTransactionOrder should throw error
+     * when an output has no address
+     * @dependencies
+     * @scenario
+     * - mock Serializer.deserialize to return an output with missing address
+     * - run test & check thrown exception
+     * @expected
+     * - it should throw Error
+     */
+    it('should throw error when an output has no address', async () => {
+      const paymentTx = HandshakeTransaction.fromJson(
+        testData.transaction2PaymentTransaction,
+      );
+      const deserializeSpy = vi
+        .spyOn(Serializer, 'deserialize')
+        .mockReturnValue(
+          {
+            outputs: [
+              {
+                getAddress: () => undefined,
+                value: 1,
+              },
+            ],
+          } as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+        );
+
+      try {
+        const handshakeChain = await testUtils.generateChainObject(network);
+        expect(() => {
+          handshakeChain.extractTransactionOrder(paymentTx);
+        }).toThrow(Error);
+      } finally {
+        deserializeSpy.mockRestore();
+      }
+    });
   });
 
   describe('verifyTransactionFee', () => {
@@ -224,7 +424,7 @@ describe('HandshakeChain', () => {
      * difference is less than allowed slippage
      * @dependencies
      * @scenario
-     * - mock PaymentTransaction (tx2: 220 sat fee, 155 vsize)
+     * - mock PaymentTransaction (tx2: 220 dollarydoo fee, ~208 vsize after witness)
      * - mock getFeeRatio to produce estimated fee close to actual fee
      * - run test
      * - check returned value
@@ -236,9 +436,9 @@ describe('HandshakeChain', () => {
         testData.transaction2PaymentTransaction,
       );
       const getFeeRatioSpy = vi.spyOn(network, 'getFeeRatio');
-      // Actual fee: 220 sat, vsize: 155
-      // feeRatio = 220/155 = ~1.42 produces estimated fee close to actual
-      getFeeRatioSpy.mockResolvedValue(1.42);
+      // Actual fee: 220 dollarydoos, signed-vsize estimate: ~208
+      // feeRatio = 220/208 ~= 1.06 produces estimated fee close to actual
+      getFeeRatioSpy.mockResolvedValue(1.06);
 
       const handshakeChain = await testUtils.generateChainObject(network);
       const result = await handshakeChain.verifyTransactionFee(paymentTx);
@@ -338,42 +538,12 @@ describe('HandshakeChain', () => {
     });
   });
 
-  describe('verifyLockTransactionExtraConditions', () => {
-    const network = new TestHandshakeNetwork();
-
-    /**
-     * @target HandshakeChain.verifyLockTransactionExtraConditions should return true
-     * @dependencies
-     * @scenario
-     * - mock a lock transaction and blockInfo
-     * - run test
-     * - check returned value
-     * @expected
-     * - it should return true
-     */
-    it('should return true', async () => {
-      // mock a lock transaction and blockInfo
-      const lockTx = {} as HandshakeTx;
-      const blockInfo = {} as BlockInfo;
-
-      // run test
-      const handshakeChain = await testUtils.generateChainObject(network);
-      const result = await handshakeChain.verifyLockTransactionExtraConditions(
-        lockTx,
-        blockInfo,
-      );
-
-      // check returned value
-      expect(result).toEqual(true);
-    });
-  });
-
   describe('isTxValid', () => {
     const network = new TestHandshakeNetwork();
 
     /**
      * @target HandshakeChain.isTxValid should return true when
-     * all tx inputs are valid and ttl is less than current slot
+     * all tx inputs are valid
      * @dependencies
      * @scenario
      * - mock PaymentTransaction
@@ -456,7 +626,8 @@ describe('HandshakeChain', () => {
      * - check returned value
      * @expected
      * - it should return PaymentTransaction of signed transaction (all fields
-     *   are same as input object, except txBytes which is signed transaction)
+     *   are same as input object, and txBytes should be equal to expected signed
+     *   transaction data)
      */
     it('should return PaymentTransaction of the signed transaction', async () => {
       // mock a sign function to return signature
@@ -474,10 +645,9 @@ describe('HandshakeChain', () => {
               signatureRecovery: '',
             };
           else
-            return {
-              signature: testData.transaction2Signature0,
-              signatureRecovery: '',
-            };
+            throw Error(
+              `TestError: sign function is called with wrong message [${hashHex}]`,
+            );
         },
         isInSign: vi.fn(),
       };
@@ -497,11 +667,11 @@ describe('HandshakeChain', () => {
       // check returned value
       expect(result.txId).toEqual(paymentTx.txId);
       expect(result.eventId).toEqual(paymentTx.eventId);
+      expect(Buffer.from(result.txBytes).toString('hex')).toEqual(
+        testData.transaction2SignedTxBytesHex,
+      );
       expect(result.txType).toEqual(paymentTx.txType);
       expect(result.network).toEqual(paymentTx.network);
-      expect(Buffer.from(result.txBytes).toString('hex')).not.toEqual(
-        Buffer.from(paymentTx.txBytes).toString('hex'),
-      );
     });
 
     /**
@@ -697,6 +867,126 @@ describe('HandshakeChain', () => {
       // check returned value
       expect(result).toEqual(false);
     });
+
+    /**
+     * @target HandshakeChain.verifyPaymentTransaction should return false
+     * when at least one of the utxos is wrong
+     * @dependencies
+     * @scenario
+     * - mock a HandshakeTransaction with changed utxo
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when at least one of the utxos is wrong', async () => {
+      // mock a HandshakeTransaction with changed utxo
+      const paymentTx = HandshakeTransaction.fromJson(
+        testData.transaction2PaymentTransaction,
+      );
+      paymentTx.inputUtxos[1] = JsonBigInt.stringify({
+        txId: testUtils.generateRandomId(),
+        index: 1,
+        value: '5000000',
+      });
+
+      // run test
+      const handshakeChain = await testUtils.generateChainObject(network);
+      const result = await handshakeChain.verifyPaymentTransaction(paymentTx);
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+  });
+
+  describe('getTransactionsBoxMapping', async () => {
+    const network = new TestHandshakeNetwork();
+    const tokenMap = new TokenMap();
+    await tokenMap.updateConfigByJson(testData.testTokenMap);
+    const testInstance = new TestHandshakeChain(
+      network,
+      testUtils.configs,
+      tokenMap,
+      null as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+    );
+
+    /**
+     * @target HandshakeChain.getTransactionsBoxMapping should construct mapping
+     * successfully
+     * @dependencies
+     * @scenario
+     * - mock serialized transactions
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return a map equal to constructed map
+     */
+    it('should construct mapping successfully', () => {
+      // mock serialized transactions
+      const transactions = [testData.transaction2PaymentTransaction].map(
+        (txJson) =>
+          Serializer.deserialize(HandshakeTransaction.fromJson(txJson).txBytes),
+      );
+
+      // run test
+      const result = testInstance.callGetTransactionsBoxMapping(
+        transactions,
+        testUtils.configs.addresses.lock,
+      );
+
+      // check returned value
+      const trackMap = new Map<string, HandshakeUtxo | undefined>();
+      const paymentTx = HandshakeTransaction.fromJson(
+        testData.transaction2PaymentTransaction,
+      );
+      const tx = Serializer.deserialize(paymentTx.txBytes);
+      const trackedOutput = tx.outputs[1];
+      paymentTx.inputUtxos.forEach((utxo) => {
+        const candidate = JsonBigInt.parse(utxo) as HandshakeUtxo;
+        trackMap.set(`${candidate.txId}.${candidate.index}`, {
+          txId: paymentTx.txId,
+          index: 1,
+          value: BigInt(trackedOutput.value),
+        });
+      });
+      expect(result).toEqual(trackMap);
+    });
+
+    /**
+     * @target HandshakeChain.getTransactionsBoxMapping should map inputs to
+     * undefined when no valid output box found
+     * @dependencies
+     * @scenario
+     * - mock serialized transactions
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return a map of each box to undefined
+     */
+    it('should map inputs to undefined when no valid output box found', () => {
+      // mock serialized transactions
+      const transactions = [testData.transaction2PaymentTransaction].map(
+        (txJson) =>
+          Serializer.deserialize(HandshakeTransaction.fromJson(txJson).txBytes),
+      );
+
+      // run test
+      const result = testInstance.callGetTransactionsBoxMapping(
+        transactions,
+        'another address',
+      );
+
+      // check returned value
+      const trackMap = new Map<string, HandshakeUtxo | undefined>();
+      const paymentTx = HandshakeTransaction.fromJson(
+        testData.transaction2PaymentTransaction,
+      );
+      paymentTx.inputUtxos.forEach((utxo) => {
+        const candidate = JsonBigInt.parse(utxo) as HandshakeUtxo;
+        trackMap.set(`${candidate.txId}.${candidate.index}`, undefined);
+      });
+      expect(result).toEqual(trackMap);
+    });
   });
 
   describe('rawTxToPaymentTransaction', () => {
@@ -732,26 +1022,6 @@ describe('HandshakeChain', () => {
       expect(Buffer.from(result.txBytes).toString('hex')).toEqual(
         transaction1.txBytes,
       );
-    });
-  });
-
-  describe('getMinimumNativeToken', () => {
-    const network = new TestHandshakeNetwork();
-
-    /**
-     * @target HandshakeChain.getMinimumNativeToken should return Handshake dust limit
-     * @dependencies
-     * @scenario
-     * - run test
-     * - check returned value
-     * @expected
-     * - it should return 1000 (Handshake dust limit in dollarydoos)
-     */
-    it('should return Handshake dust limit', async () => {
-      const handshakeChain = await testUtils.generateChainObject(network);
-      const result = handshakeChain.getMinimumNativeToken();
-
-      expect(result).toEqual(1000n);
     });
   });
 });

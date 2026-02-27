@@ -50,3 +50,12 @@ export const generateChainObject = async (
   await tokenMap.updateConfigByJson(testData.testTokenMap);
   return new HandshakeChain(network, configs, tokenMap, signMediator);
 };
+
+export const generateChainObjectWithMultiDecimalTokenMap = async (
+  network: TestHandshakeNetwork,
+  signMediator: EcdsaSignMediator = mockedSignMediator,
+) => {
+  const tokenMap = new TokenMap();
+  await tokenMap.updateConfigByJson(testData.multiDecimalTokenMap);
+  return new HandshakeChain(network, configs, tokenMap, signMediator);
+};
