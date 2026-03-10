@@ -290,3 +290,51 @@ export const unusedAddressResponse = {
   final_n_tx: 0,
   txs: [],
 };
+
+// Mock UTXOs for getAddressBoxes test
+export const mockAddressUtxos = [
+  {
+    txid: txId,
+    vout: 0,
+    address: lockAddress,
+    scriptPubKey: lockAddressPublicKey,
+    amount: 10.5,
+    confirmations: 10,
+  },
+  {
+    txid: '2nd-tx-id',
+    vout: 1,
+    address: lockAddress,
+    scriptPubKey: lockAddressPublicKey,
+    amount: 5.25,
+    confirmations: 5,
+  },
+  {
+    txid: '3rd-tx-id',
+    vout: 0,
+    address: lockAddress,
+    scriptPubKey: lockAddressPublicKey,
+    amount: 2.0,
+    confirmations: 3,
+  },
+];
+
+// Expected output for getAddressBoxes test (first 2 UTXOs)
+export const expectedAddressBoxes = [
+  {
+    txId: txId,
+    index: 0,
+    value: 1050000000n, // 10.5 FIRO in satoshis
+  },
+  {
+    txId: '2nd-tx-id',
+    index: 1,
+    value: 525000000n, // 5.25 FIRO in satoshis
+  },
+];
+
+// Expected confirmation count (should match txResponse.result.confirmations)
+export const expectedTxConfirmation = 4351;
+
+// Total balance for address assets (sum of all mock UTXOs)
+export const expectedAddressBalance = 1775000000n; // 17.75 FIRO in satoshis

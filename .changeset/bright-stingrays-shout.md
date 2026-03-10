@@ -2,4 +2,4 @@
 '@rosen-chains/firo-rpc': minor
 ---
 
-Add Firo network
+Initialize the package

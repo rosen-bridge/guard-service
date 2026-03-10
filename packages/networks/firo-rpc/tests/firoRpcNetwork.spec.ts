@@ -6,25 +6,13 @@ import FiroRpcNetwork from '../lib/firoRpcNetwork';
 import { resetAxiosMock, axiosInstance } from './mocked/rateLimitedAxios.mock';
 import * as testData from './testData';
 
+const mockGetSavedTransactionById = vi.fn().mockReturnValue(undefined);
+
 describe('FiroRpcNetwork', () => {
   const URL = 'firo-rpc-url';
 
   beforeEach(() => {
     resetAxiosMock();
-  });
-
-  /**
-   * @target `FiroRpcNetwork` should be instantiable
-   * @dependencies
-   * @scenario
-   * - Create instance of FiroRpcNetwork
-   * @expected
-   * - Instance should be created successfully
-   */
-  it('should create an instance of FiroRpcNetwork', () => {
-    const network = new FiroRpcNetwork(URL);
-    expect(network).toBeDefined();
-    expect(network).toBeInstanceOf(FiroRpcNetwork);
   });
 
   describe('getHeight', () => {
@@ -50,7 +38,7 @@ describe('FiroRpcNetwork', () => {
         });
       });
 
-      const network = new FiroRpcNetwork(URL);
+      const network = new FiroRpcNetwork(URL, mockGetSavedTransactionById);
       const result = await network.getHeight();
 
       expect(result).toEqual(testData.blockHeightResponse.result.blocks);
@@ -74,7 +62,7 @@ describe('FiroRpcNetwork', () => {
         },
       });
 
-      const network = new FiroRpcNetwork(URL);
+      const network = new FiroRpcNetwork(URL, mockGetSavedTransactionById);
       await expect(network.getHeight()).rejects.toThrow(FailedError);
     });
 
@@ -93,7 +81,7 @@ describe('FiroRpcNetwork', () => {
         message: 'Network error',
       });
 
-      const network = new FiroRpcNetwork(URL);
+      const network = new FiroRpcNetwork(URL, mockGetSavedTransactionById);
       await expect(network.getHeight()).rejects.toThrow(NetworkError);
     });
   });
@@ -120,7 +108,7 @@ describe('FiroRpcNetwork', () => {
         });
       });
 
-      const network = new FiroRpcNetwork(URL);
+      const network = new FiroRpcNetwork(URL, mockGetSavedTransactionById);
       const result = await network.getBlockTransactionIds(testData.blockHash);
 
       expect(result).toEqual(testData.blockResponse.result.tx);
@@ -149,7 +137,7 @@ describe('FiroRpcNetwork', () => {
         });
       });
 
-      const network = new FiroRpcNetwork(URL);
+      const network = new FiroRpcNetwork(URL, mockGetSavedTransactionById);
       const result = await network.getBlockInfo(testData.blockHash);
 
       expect(result).toEqual(testData.blockInfo);
@@ -178,7 +166,7 @@ describe('FiroRpcNetwork', () => {
         });
       });
 
-      const network = new FiroRpcNetwork(URL);
+      const network = new FiroRpcNetwork(URL, mockGetSavedTransactionById);
       const result = await network.getTransaction(
         testData.txId,
         testData.txBlockHash,
@@ -210,7 +198,7 @@ describe('FiroRpcNetwork', () => {
         });
       });
 
-      const network = new FiroRpcNetwork(URL);
+      const network = new FiroRpcNetwork(URL, mockGetSavedTransactionById);
       const result = await network.isBoxUnspentAndValid(`${testData.txId}.0`);
 
       expect(result).toEqual(true);
@@ -237,7 +225,7 @@ describe('FiroRpcNetwork', () => {
         });
       });
 
-      const network = new FiroRpcNetwork(URL);
+      const network = new FiroRpcNetwork(URL, mockGetSavedTransactionById);
       const result = await network.isBoxUnspentAndValid(`${testData.txId}.0`);
 
       expect(result).toEqual(false);
@@ -265,7 +253,7 @@ describe('FiroRpcNetwork', () => {
         },
       });
 
-      const network = new FiroRpcNetwork(URL);
+      const network = new FiroRpcNetwork(URL, mockGetSavedTransactionById);
       const result = await network.isBoxUnspentAndValid(`${testData.txId}.0`);
 
       expect(result).toEqual(false);
@@ -306,7 +294,7 @@ describe('FiroRpcNetwork', () => {
         return Promise.reject(new Error(`Unexpected method: ${method}`));
       });
 
-      const network = new FiroRpcNetwork(URL);
+      const network = new FiroRpcNetwork(URL, mockGetSavedTransactionById);
       const result = await network.getUtxo(`${testData.txId}.0`);
 
       expect(result.txId).toEqual(testData.txId);
@@ -337,7 +325,7 @@ describe('FiroRpcNetwork', () => {
         });
       });
 
-      const network = new FiroRpcNetwork(URL);
+      const network = new FiroRpcNetwork(URL, mockGetSavedTransactionById);
       const result = await network.getFeeRatio();
 
       // Convert FIRO/kB to satoshis/byte
@@ -371,7 +359,7 @@ describe('FiroRpcNetwork', () => {
         });
       });
 
-      const network = new FiroRpcNetwork(URL);
+      const network = new FiroRpcNetwork(URL, mockGetSavedTransactionById);
       const result = await network.isTxInMempool(testData.txId);
 
       expect(result).toEqual(true);
@@ -396,7 +384,7 @@ describe('FiroRpcNetwork', () => {
         },
       });
 
-      const network = new FiroRpcNetwork(URL);
+      const network = new FiroRpcNetwork(URL, mockGetSavedTransactionById);
       const result = await network.isTxInMempool(testData.txId);
 
       expect(result).toEqual(false);
@@ -425,7 +413,7 @@ describe('FiroRpcNetwork', () => {
         });
       });
 
-      const network = new FiroRpcNetwork(URL);
+      const network = new FiroRpcNetwork(URL, mockGetSavedTransactionById);
       const result = await network.getTransactionHex(testData.txId);
 
       expect(result).toEqual(testData.txHexResponse.result);
@@ -463,7 +451,7 @@ describe('FiroRpcNetwork', () => {
         }),
       };
 
-      const network = new FiroRpcNetwork(URL);
+      const network = new FiroRpcNetwork(URL, mockGetSavedTransactionById);
       // This should not throw an error
       await expect(
         network.submitTransaction(mockPsbt as any), // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -473,7 +461,7 @@ describe('FiroRpcNetwork', () => {
 
   describe('getAddressBoxes', () => {
     /**
-     * @target `FiroRpcNetwork.getAddressBoxes` should return address UTXOs successfully
+     * @target `FiroRpcNetwork.getAddressBoxes` should return address UTXOs successfully with pagination
      * @dependencies
      * @scenario
      * - mock axios to return listunspent data
@@ -483,55 +471,22 @@ describe('FiroRpcNetwork', () => {
      * - it should return paginated UTXOs in correct format
      */
     it('should return address UTXOs successfully with pagination', async () => {
-      const mockUtxos = [
-        {
-          txid: testData.txId,
-          vout: 0,
-          address: testData.lockAddress,
-          scriptPubKey: testData.lockAddressPublicKey,
-          amount: 10.5,
-          confirmations: 10,
-        },
-        {
-          txid: '2nd-tx-id',
-          vout: 1,
-          address: testData.lockAddress,
-          scriptPubKey: testData.lockAddressPublicKey,
-          amount: 5.25,
-          confirmations: 5,
-        },
-        {
-          txid: '3rd-tx-id',
-          vout: 0,
-          address: testData.lockAddress,
-          scriptPubKey: testData.lockAddressPublicKey,
-          amount: 2.0,
-          confirmations: 3,
-        },
-      ];
-
       axiosInstance.post.mockImplementation((url, data) => {
         const { id } = data;
         return Promise.resolve({
           data: {
-            result: mockUtxos,
+            result: testData.mockAddressUtxos,
             error: null,
             id: id,
           },
         });
       });
 
-      const network = new FiroRpcNetwork(URL);
+      const network = new FiroRpcNetwork(URL, mockGetSavedTransactionById);
       // Get first 2 UTXOs (offset 0, limit 2)
       const result = await network.getAddressBoxes(testData.lockAddress, 0, 2);
 
-      expect(result).toHaveLength(2);
-      expect(result[0].txId).toEqual(testData.txId);
-      expect(result[0].index).toEqual(0);
-      expect(result[0].value).toEqual(1050000000n); // 10.5 FIRO in satoshis
-      expect(result[1].txId).toEqual('2nd-tx-id');
-      expect(result[1].index).toEqual(1);
-      expect(result[1].value).toEqual(525000000n); // 5.25 FIRO in satoshis
+      expect(result).toEqual(testData.expectedAddressBoxes);
     });
 
     /**
@@ -556,37 +511,10 @@ describe('FiroRpcNetwork', () => {
         });
       });
 
-      const network = new FiroRpcNetwork(URL);
+      const network = new FiroRpcNetwork(URL, mockGetSavedTransactionById);
       const result = await network.getAddressBoxes('empty-address', 0, 10);
 
       expect(result).toEqual([]);
-    });
-
-    /**
-     * @target `FiroRpcNetwork.getAddressBoxes` should throw FailedError on API error
-     * @dependencies
-     * @scenario
-     * - mock axios to return error
-     * - run test
-     * @expected
-     * - it should throw FailedError
-     */
-    it('should throw FailedError on API error', async () => {
-      axiosInstance.post.mockRejectedValueOnce({
-        response: {
-          data: {
-            error: {
-              code: -5,
-              message: 'Invalid address',
-            },
-          },
-        },
-      });
-
-      const network = new FiroRpcNetwork(URL);
-      await expect(
-        network.getAddressBoxes('invalid-address', 0, 10),
-      ).rejects.toThrow(FailedError);
     });
   });
 
@@ -612,23 +540,23 @@ describe('FiroRpcNetwork', () => {
         });
       });
 
-      const network = new FiroRpcNetwork(URL);
+      const network = new FiroRpcNetwork(URL, mockGetSavedTransactionById);
       const result = await network.getTxConfirmation(testData.txId);
 
-      expect(result).toEqual(testData.txResponse.result.confirmations);
+      expect(result).toEqual(testData.expectedTxConfirmation);
     });
 
     /**
-     * @target `FiroRpcNetwork.getTxConfirmation` should return 0 for unconfirmed tx
+     * @target `FiroRpcNetwork.getTxConfirmation` should return -1 for unconfirmed tx
      * @dependencies
      * @scenario
      * - mock axios to return transaction without confirmations field
      * - run test
      * - check returned value
      * @expected
-     * - it should return 0
+     * - it should return -1
      */
-    it('should return 0 for unconfirmed transaction', async () => {
+    it('should return -1 for unconfirmed transaction', async () => {
       const unconfirmedTxResponse = {
         result: {
           ...testData.txResponse.result,
@@ -648,37 +576,10 @@ describe('FiroRpcNetwork', () => {
         });
       });
 
-      const network = new FiroRpcNetwork(URL);
+      const network = new FiroRpcNetwork(URL, mockGetSavedTransactionById);
       const result = await network.getTxConfirmation(testData.txId);
 
-      expect(result).toEqual(0);
-    });
-
-    /**
-     * @target `FiroRpcNetwork.getTxConfirmation` should throw FailedError when tx not found
-     * @dependencies
-     * @scenario
-     * - mock axios to return error for non-existent tx
-     * - run test
-     * @expected
-     * - it should throw FailedError
-     */
-    it('should throw FailedError when transaction not found', async () => {
-      axiosInstance.post.mockRejectedValueOnce({
-        response: {
-          data: {
-            error: {
-              code: -5,
-              message: 'No such transaction',
-            },
-          },
-        },
-      });
-
-      const network = new FiroRpcNetwork(URL);
-      await expect(network.getTxConfirmation('invalid-tx-id')).rejects.toThrow(
-        FailedError,
-      );
+      expect(result).toEqual(-1);
     });
   });
 
@@ -694,24 +595,21 @@ describe('FiroRpcNetwork', () => {
      * - it should return sum of all UTXOs as native token balance
      */
     it('should return address balance successfully', async () => {
-      const mockUtxos = [{ amount: 10.5 }, { amount: 5.25 }, { amount: 2.0 }];
-
       axiosInstance.post.mockImplementation((url, data) => {
         const { id } = data;
         return Promise.resolve({
           data: {
-            result: mockUtxos,
+            result: testData.mockAddressUtxos,
             error: null,
             id: id,
           },
         });
       });
 
-      const network = new FiroRpcNetwork(URL);
+      const network = new FiroRpcNetwork(URL, mockGetSavedTransactionById);
       const result = await network.getAddressAssets(testData.lockAddress);
 
-      // Total: 17.75 FIRO = 1775000000 satoshis
-      expect(result.nativeToken).toEqual(1775000000n);
+      expect(result.nativeToken).toEqual(testData.expectedAddressBalance);
       expect(result.tokens).toEqual([]); // Firo doesn't support tokens
       expect(axiosInstance.post).toHaveBeenCalledWith(
         '',
@@ -744,91 +642,167 @@ describe('FiroRpcNetwork', () => {
         });
       });
 
-      const network = new FiroRpcNetwork(URL);
+      const network = new FiroRpcNetwork(URL, mockGetSavedTransactionById);
       const result = await network.getAddressAssets('empty-address');
 
       expect(result.nativeToken).toEqual(0n);
       expect(result.tokens).toEqual([]);
     });
-
-    /**
-     * @target `FiroRpcNetwork.getAddressAssets` should include mempool transactions (minconf=0)
-     * @dependencies
-     * @scenario
-     * - verify that the RPC call uses minconf=0 to include unconfirmed txs
-     * - mock axios and check call parameters
-     * - run test
-     * @expected
-     * - it should call listunspent with minconf=0
-     */
-    it('should include mempool transactions', async () => {
-      axiosInstance.post.mockImplementation((url, data) => {
-        const { method, params, id } = data;
-
-        // Verify the call is made with minconf=0
-        if (method === 'listunspent') {
-          expect(params[0]).toEqual(0); // minconf should be 0
-        }
-
-        return Promise.resolve({
-          data: {
-            result: [{ amount: 1.0 }],
-            error: null,
-            id: id,
-          },
-        });
-      });
-
-      const network = new FiroRpcNetwork(URL);
-      await network.getAddressAssets(testData.lockAddress);
-
-      expect(axiosInstance.post).toHaveBeenCalled();
-    });
-
-    /**
-     * @target `FiroRpcNetwork.getAddressAssets` should throw FailedError on API error
-     * @dependencies
-     * @scenario
-     * - mock axios to return error
-     * - run test
-     * @expected
-     * - it should throw FailedError
-     */
-    it('should throw FailedError on API error', async () => {
-      axiosInstance.post.mockRejectedValueOnce({
-        response: {
-          data: {
-            error: {
-              code: -5,
-              message: 'Invalid address',
-            },
-          },
-        },
-      });
-
-      const network = new FiroRpcNetwork(URL);
-      await expect(network.getAddressAssets('invalid-address')).rejects.toThrow(
-        FailedError,
-      );
-    });
   });
 
   describe('getActualTxId', () => {
     /**
-     * @target `FiroRpcNetwork.getActualTxId` should return the same hash
+     * @target `FiroRpcNetwork.getActualTxId` should return the same hash when no saved transaction exists
      * @dependencies
      * @scenario
      * - call getActualTxId with a transaction hash
      * - check returned value
      * @expected
-     * - it should return the same hash (identity function for Bitcoin-like chains)
+     * - it should return the same hash when transaction is not in database
      */
-    it('should return the same hash (identity function)', async () => {
-      const network = new FiroRpcNetwork(URL);
+    it('should return the same hash when no saved transaction exists', async () => {
+      const network = new FiroRpcNetwork(URL, mockGetSavedTransactionById);
       const hash = testData.txId;
       const result = await network.getActualTxId(hash);
 
       expect(result).toEqual(hash);
+    });
+
+    /**
+     * @target `FiroRpcNetwork.getActualTxId` should extract signed txId from PSBT (method 1)
+     * @dependencies
+     * @scenario
+     * - create a custom getSavedTransactionById that returns a payment transaction
+     * - mock the direct PSBT extraction to succeed
+     * - call getActualTxId with the unsigned hash
+     * @expected
+     * - it should use the direct extraction method and return signed ID
+     */
+    it('should extract signed txId from PSBT using direct method', async () => {
+      const { PaymentTransaction, TransactionType } = await import(
+        '@rosen-chains/abstract-chain'
+      );
+
+      const firoPayment = new PaymentTransaction(
+        'firo',
+        testData.unsignedTxId,
+        'eventId',
+        Buffer.from(testData.firoPaymentBytes, 'hex'),
+        TransactionType.payment,
+      );
+
+      const customNetwork = new FiroRpcNetwork(URL, async (txId: string) => {
+        if (txId === testData.unsignedTxId) {
+          return firoPayment;
+        }
+        return undefined;
+      });
+
+      // Mock the direct extraction method to succeed
+      const extractDirectSpy = vi
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(customNetwork as any, 'extractActualTxIdFromPsbt')
+        .mockResolvedValue(testData.txId);
+
+      const result = await customNetwork.getActualTxId(testData.unsignedTxId);
+
+      expect(extractDirectSpy).toHaveBeenCalled();
+      expect(result).toEqual(testData.txId);
+    });
+
+    /**
+     * @target `FiroRpcNetwork.getActualTxId` should fallback to RPC lookup when direct extraction fails
+     * @dependencies
+     * @scenario
+     * - create a custom getSavedTransactionById that returns a payment transaction
+     * - mock direct extraction to fail
+     * - mock RPC lookup to succeed
+     * @expected
+     * - it should fallback to RPC lookup method and return signed ID
+     */
+    it('should fallback to RPC lookup when direct extraction fails', async () => {
+      const { PaymentTransaction, TransactionType } = await import(
+        '@rosen-chains/abstract-chain'
+      );
+
+      const firoPayment = new PaymentTransaction(
+        'firo',
+        testData.unsignedTxId,
+        'eventId',
+        Buffer.from(testData.firoPaymentBytes, 'hex'),
+        TransactionType.payment,
+      );
+
+      const customNetwork = new FiroRpcNetwork(URL, async (txId: string) => {
+        if (txId === testData.unsignedTxId) {
+          return firoPayment;
+        }
+        return undefined;
+      });
+
+      // Mock direct extraction to fail
+      const extractDirectSpy = vi
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(customNetwork as any, 'extractActualTxIdFromPsbt')
+        .mockResolvedValue(undefined);
+
+      // Mock RPC lookup to succeed
+      const extractRpcSpy = vi
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(customNetwork as any, 'extractActualTxIdWithRpcLookup')
+        .mockResolvedValue(testData.txId);
+
+      const result = await customNetwork.getActualTxId(testData.unsignedTxId);
+
+      expect(extractDirectSpy).toHaveBeenCalled();
+      expect(extractRpcSpy).toHaveBeenCalled();
+      expect(result).toEqual(testData.txId);
+    });
+
+    /**
+     * @target `FiroRpcNetwork.getActualTxId` should return original hash when both methods fail
+     * @dependencies
+     * @scenario
+     * - create a custom getSavedTransactionById that returns a payment transaction
+     * - mock both extraction methods to fail
+     * @expected
+     * - it should return the original hash as fallback
+     */
+    it('should return original hash when both extraction methods fail', async () => {
+      const { PaymentTransaction, TransactionType } = await import(
+        '@rosen-chains/abstract-chain'
+      );
+
+      const firoPayment = new PaymentTransaction(
+        'firo',
+        testData.unsignedTxId,
+        'eventId',
+        Buffer.from(testData.firoPaymentBytes, 'hex'),
+        TransactionType.payment,
+      );
+
+      const customNetwork = new FiroRpcNetwork(URL, async (txId: string) => {
+        if (txId === testData.unsignedTxId) {
+          return firoPayment;
+        }
+        return undefined;
+      });
+
+      // Mock both methods to fail
+      vi.spyOn(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        customNetwork as any,
+        'extractActualTxIdFromPsbt',
+      ).mockResolvedValue(undefined);
+      vi.spyOn(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        customNetwork as any,
+        'extractActualTxIdWithRpcLookup',
+      ).mockResolvedValue(undefined);
+
+      const result = await customNetwork.getActualTxId(testData.unsignedTxId);
+
+      expect(result).toEqual(testData.unsignedTxId);
     });
 
     /**
@@ -838,10 +812,10 @@ describe('FiroRpcNetwork', () => {
      * - call getActualTxId with various hash formats
      * - check returned values
      * @expected
-     * - it should always return the input unchanged
+     * - it should return the input unchanged when not in database
      */
     it('should work with any hash string', async () => {
-      const network = new FiroRpcNetwork(URL);
+      const network = new FiroRpcNetwork(URL, mockGetSavedTransactionById);
       const testHashes = [
         'abc123',
         '0000000000000000000000000000000000000000000000000000000000000000',

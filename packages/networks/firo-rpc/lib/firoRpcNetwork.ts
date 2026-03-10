@@ -8,12 +8,14 @@ import {
   FailedError,
   NetworkError,
   UnexpectedApiError,
+  PaymentTransaction,
 } from '@rosen-chains/abstract-chain';
 import {
   AbstractFiroNetwork,
   FiroTx,
   FiroUtxo,
   CONFIRMATION_TARGET,
+  FIRO_NETWORK,
 } from '@rosen-chains/firo';
 import RateLimitedAxios from '@rosen-clients/rate-limited-axios';
 
@@ -23,13 +25,25 @@ import {
   FiroBlockSummary,
   FiroChainInfo,
   RpcAuth,
+  FiroRpcUtxo,
 } from './types';
 
 class FiroRpcNetwork extends AbstractFiroNetwork {
   protected client; // TODO: specify the type (local:ergo/rosen-bridge/network-client#26)
+  private getSavedTransactionById: (
+    txId: string,
+  ) => Promise<PaymentTransaction | undefined>;
 
-  constructor(url: string, logger?: AbstractLogger, auth?: RpcAuth) {
+  constructor(
+    url: string,
+    getSavedTransactionById: (
+      txId: string,
+    ) => Promise<PaymentTransaction | undefined>,
+    logger?: AbstractLogger,
+    auth?: RpcAuth,
+  ) {
     super(logger);
+    this.getSavedTransactionById = getSavedTransactionById;
 
     const headers = { 'Content-Type': 'application/json' };
 
@@ -101,7 +115,7 @@ class FiroRpcNetwork extends AbstractFiroNetwork {
       this.validateResponseId(randomId, response.data.id);
 
       const chainInfo: FiroChainInfo = response.data.result;
-      this.logger?.debug(
+      this.logger.debug(
         `Requested 'getblockchaininfo'. Response: ${JsonBigInt.stringify(
           chainInfo,
         )}`,
@@ -140,7 +154,7 @@ class FiroRpcNetwork extends AbstractFiroNetwork {
       this.validateResponseId(randomId, response.data.id);
 
       const blockData: FiroBlockSummary = response.data.result;
-      this.logger?.debug(
+      this.logger.debug(
         `Requested 'getblock' for blockId [${blockId}]. Response: ${JsonBigInt.stringify(
           blockData,
         )}`,
@@ -179,7 +193,7 @@ class FiroRpcNetwork extends AbstractFiroNetwork {
       this.validateResponseId(randomId, response.data.id);
 
       const blockData: FiroBlockSummary = response.data.result;
-      this.logger?.debug(
+      this.logger.debug(
         `Requested 'getblock' for blockId [${blockId}]. Response: ${JsonBigInt.stringify(
           blockData,
         )}`,
@@ -227,7 +241,7 @@ class FiroRpcNetwork extends AbstractFiroNetwork {
       this.validateResponseId(randomId, response.data.id);
 
       const tx: FiroRpcTransaction = response.data.result;
-      this.logger?.debug(
+      this.logger.debug(
         `Requested 'getrawtransaction' for txId [${transactionId}]. Response: ${JsonBigInt.stringify(
           tx,
         )}`,
@@ -281,7 +295,7 @@ class FiroRpcNetwork extends AbstractFiroNetwork {
 
       this.validateResponseId(randomId, response.data.id);
 
-      this.logger?.debug(
+      this.logger.debug(
         `Submitted transaction. Response: ${JsonBigInt.stringify(
           response.data,
         )}`,
@@ -407,7 +421,7 @@ class FiroRpcNetwork extends AbstractFiroNetwork {
       const feeSatoshis = this.convertToSatoshis(response.data.result.feerate);
       const feeRate = Number(feeSatoshis) / 1024;
 
-      this.logger?.debug(
+      this.logger.debug(
         `Requested 'estimatesmartfee'. Response: ${JsonBigInt.stringify(
           response.data.result,
         )}`,
@@ -486,7 +500,7 @@ class FiroRpcNetwork extends AbstractFiroNetwork {
       this.validateResponseId(randomId, response.data.id);
 
       const txHex: string = response.data.result;
-      this.logger?.debug(`Requested transaction hex for txId [${txId}].`);
+      this.logger.debug(`Requested transaction hex for txId [${txId}].`);
 
       return txHex;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -527,14 +541,13 @@ class FiroRpcNetwork extends AbstractFiroNetwork {
 
       this.validateResponseId(randomId, response.data.id);
 
-      const utxos: Array<{
-        txid: string;
-        vout: number;
-        address: string;
-        scriptPubKey: string;
-        amount: number;
-        confirmations: number;
-      }> = response.data.result;
+      const utxos: Array<FiroRpcUtxo> = response.data.result;
+
+      this.logger.debug(
+        `Requested 'listunspent' for address [${address}]. Response: ${JsonBigInt.stringify(
+          utxos,
+        )}`,
+      );
 
       // Convert to FiroUtxo format and apply pagination
       const firoUtxos = utxos.slice(offset, offset + limit).map((utxo) => ({
@@ -543,7 +556,7 @@ class FiroRpcNetwork extends AbstractFiroNetwork {
         value: this.convertToSatoshis(utxo.amount),
       }));
 
-      this.logger?.debug(
+      this.logger.debug(
         `Requested 'listunspent' for address [${address}]. Found ${utxos.length} UTXOs, returning ${firoUtxos.length}.`,
       );
 
@@ -564,11 +577,13 @@ class FiroRpcNetwork extends AbstractFiroNetwork {
   };
 
   /**
-   * gets the number of confirmations for a transaction
-   * @param transactionId the transaction id
+   * gets the number of confirmations for a transaction (only supports signed tx id)
+   * @param transactionId the signed transaction id
    * @returns the number of confirmations
    */
-  getTxConfirmation = async (transactionId: string): Promise<number> => {
+  protected getTxConfirmationSigned = async (
+    transactionId: string,
+  ): Promise<number> => {
     const randomId = this.generateRandomId();
     try {
       const response = await this.client.post<JsonRpcResult>('', {
@@ -581,11 +596,23 @@ class FiroRpcNetwork extends AbstractFiroNetwork {
 
       const tx: FiroRpcTransaction = response.data.result;
 
-      return tx.confirmations || 0;
+      this.logger.debug(
+        `Requested 'getrawtransaction' for txId [${transactionId}]. Response: ${JsonBigInt.stringify(
+          tx,
+        )}`,
+      );
+
+      // Return -1 for unconfirmed transactions (confirmations undefined or 0)
+      return tx.confirmations && tx.confirmations > 0 ? tx.confirmations : -1;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get transaction confirmations for [${transactionId}] from Firo RPC: `;
-      if (e.response) {
+      if (e.response && e.response.data && e.response.data.error) {
+        if (e.response.data.error.code === -5) {
+          // Transaction not found
+          this.logger.debug(`tx [${transactionId}] is not found`);
+          return -1;
+        }
         throw new FailedError(
           baseError + JsonBigInt.stringify(e.response.data),
         );
@@ -595,6 +622,16 @@ class FiroRpcNetwork extends AbstractFiroNetwork {
         throw new UnexpectedApiError(baseError + e.message);
       }
     }
+  };
+
+  /**
+   * gets confirmation for a transaction (returns -1 if tx is not mined or found)
+   * @param transactionId the transaction id (supports both real signed tx id and unsigned tx id)
+   * @returns the transaction confirmation (returns -1 if tx is not mined or found)
+   */
+  getTxConfirmation = async (transactionId: string): Promise<number> => {
+    const realTxId = await this.getActualTxId(transactionId);
+    return await this.getTxConfirmationSigned(realTxId);
   };
 
   /**
@@ -621,14 +658,16 @@ class FiroRpcNetwork extends AbstractFiroNetwork {
 
       const utxos: Array<{ amount: number }> = response.data.result;
 
+      this.logger.debug(
+        `Requested 'listunspent' for address [${address}]. Response: ${JsonBigInt.stringify(
+          utxos,
+        )}`,
+      );
+
       // Sum up all UTXO values
       const totalSatoshis = utxos.reduce(
         (sum, utxo) => sum + this.convertToSatoshis(utxo.amount),
         0n,
-      );
-
-      this.logger?.debug(
-        `Requested address assets for [${address}]. Total: ${totalSatoshis} satoshis.`,
       );
 
       return {
@@ -651,13 +690,187 @@ class FiroRpcNetwork extends AbstractFiroNetwork {
   };
 
   /**
+   * Attempts to find which transaction spent a specific UTXO using Firo's address indexing
+   * @param index the output index that was spent
+   * @param txId the transaction ID containing the output
+   * @returns the transaction that spent the UTXO, or undefined if not found
+   */
+  protected getSpentTransactionByInputId = async (
+    index: number,
+    txId: string,
+  ): Promise<FiroTx | undefined> => {
+    try {
+      // Get the original transaction to examine the spent output
+      const originalTx = await this.getTransaction(txId, '');
+      if (!originalTx.outputs[index]) {
+        return undefined;
+      }
+
+      // Get recent mempool transactions that might spend our UTXO
+      const mempoolTxIds = await this.client.post<JsonRpcResult>('', {
+        method: 'getrawmempool',
+        id: this.generateRandomId(),
+        params: [false], // non-verbose
+      });
+
+      const allTxIds: string[] = mempoolTxIds.data.result || [];
+
+      // Check each transaction to see if it spends our UTXO
+      for (const candidateTxId of allTxIds) {
+        try {
+          const candidateTx = await this.getTransaction(candidateTxId, '');
+
+          // Check if any input spends our specific UTXO
+          const spendsOurUtxo = candidateTx.inputs.some(
+            (input) => input.txId === txId && input.index === index,
+          );
+
+          if (spendsOurUtxo) {
+            return candidateTx;
+          }
+        } catch {
+          // Skip transactions we can't fetch
+          continue;
+        }
+      }
+
+      return undefined;
+    } catch (error) {
+      this.logger.debug(
+        `Failed to find spending transaction for UTXO ${txId}:${index} using RPC lookup: ${error}`,
+      );
+      return undefined;
+    }
+  };
+
+  /**
+   * Attempts to extract signed transaction ID directly from PSBT
+   * @param psbt the PSBT containing the transaction
+   * @returns the signed transaction ID, or undefined if extraction fails
+   */
+  protected extractActualTxIdFromPsbt = async (
+    psbt: Psbt,
+  ): Promise<string | undefined> => {
+    try {
+      return psbt.extractTransaction(true).getId();
+    } catch (error) {
+      this.logger.debug(
+        `Failed to extract signed transaction ID from PSBT: ${error}`,
+      );
+      return undefined;
+    }
+  };
+
+  /**
+   * Attempts to find signed transaction ID using RPC lookup of spending transactions
+   * @param psbt the PSBT containing the unsigned transaction
+   * @returns the signed transaction ID, or undefined if not found
+   */
+  protected extractActualTxIdWithRpcLookup = async (
+    psbt: Psbt,
+  ): Promise<string | undefined> => {
+    try {
+      if (psbt.txInputs.length === 0) {
+        return undefined;
+      }
+
+      // Use the first input to find the spending transaction
+      const firstInput = psbt.txInputs[0];
+      const inputTxId = Buffer.from(firstInput.hash.reverse()).toString('hex');
+      const inputIndex = firstInput.index;
+
+      const spentTx = await this.getSpentTransactionByInputId(
+        inputIndex,
+        inputTxId,
+      );
+      if (!spentTx) {
+        return undefined;
+      }
+
+      // Verify this is the same transaction by comparing inputs and outputs
+      const sameInputs = psbt.txInputs.every(
+        (input, i) =>
+          spentTx.inputs[i]?.txId ===
+            Buffer.from(input.hash.reverse()).toString('hex') &&
+          spentTx.inputs[i]?.index === input.index,
+      );
+
+      const sameOutputs = psbt.txOutputs.every(
+        (output, i) =>
+          spentTx.outputs[i]?.scriptPubKey ===
+            Buffer.from(output.script).toString('hex') &&
+          spentTx.outputs[i]?.value === BigInt(output.value),
+      );
+
+      if (sameInputs && sameOutputs) {
+        return spentTx.id;
+      }
+
+      return undefined;
+    } catch (error) {
+      this.logger.debug(
+        `Failed to find signed transaction ID using RPC lookup: ${error}`,
+      );
+      return undefined;
+    }
+  };
+
+  /**
    * gets the actual transaction ID from a transaction hash
-   * For Firo (like Bitcoin), the transaction ID and hash are the same
-   * @param hash the transaction hash
-   * @returns the actual transaction ID
+   * For unsigned transactions, finds the corresponding signed transaction ID
+   *
+   * Uses a two-stage approach:
+   * 1. First attempts direct extraction from PSBT
+   * 2. Falls back to RPC-based lookup using Firo's address indexing
+   *
+   * @param hash the transaction hash (can be unsigned or signed)
+   * @returns the actual signed transaction ID
    */
   getActualTxId = async (hash: string): Promise<string> => {
-    return hash;
+    let actualTxId = hash;
+    try {
+      const realPaymentTx = await this.getSavedTransactionById(hash);
+
+      if (realPaymentTx) {
+        const realTx = Psbt.fromBuffer(Buffer.from(realPaymentTx.txBytes), {
+          network: FIRO_NETWORK,
+        });
+
+        // Method 1: Try direct PSBT extraction
+        const directExtraction = await this.extractActualTxIdFromPsbt(realTx);
+        if (directExtraction) {
+          actualTxId = directExtraction;
+        } else {
+          // Method 2: Fallback to RPC lookup
+          this.logger.debug(
+            `Direct PSBT extraction failed for hash [${hash}], attempting RPC lookup...`,
+          );
+
+          const rpcLookup = await this.extractActualTxIdWithRpcLookup(realTx);
+          if (rpcLookup) {
+            actualTxId = rpcLookup;
+          } else {
+            this.logger.debug(
+              `Both extraction methods failed for hash [${hash}], using original hash as fallback`,
+            );
+          }
+        }
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (e: any) {
+      const baseError = `Failed to get actual txId for tx [${hash}] which was found in the database: `;
+      if (e.response) {
+        throw new FailedError(
+          baseError + JsonBigInt.stringify(e.response.data),
+        );
+      } else if (e.request) {
+        throw new NetworkError(baseError + e.message);
+      } else {
+        throw new UnexpectedApiError(baseError + e.message);
+      }
+    }
+
+    return actualTxId;
   };
 }
 

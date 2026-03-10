@@ -11,7 +11,7 @@
     "directory": "packages/networks/firo-rpc"
   },
   "license": "MIT",
-  "author": "Rosen Team",
+  "author": "Navid Rahimi",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -34,15 +34,10 @@
   "dependencies": {
     "@rosen-bridge/abstract-logger": "^4.0.0",
     "@rosen-bridge/json-bigint": "^1.1.0",
-    "@rosen-chains/abstract-chain": "^15.0.1",
+    "@rosen-chains/abstract-chain": "^15.0.2",
     "@rosen-chains/firo": "^0.0.0",
-    "@rosen-clients/rate-limited-axios": "^1.1.0",
+    "@rosen-clients/rate-limited-axios": "^1.1.1",
     "bitcoinjs-lib": "^6.1.5"
-  },
-  "devDependencies": {
-    "@vitest/coverage-istanbul": "^3.1.4",
-    "tsx": "^4.20.5",
-    "vitest": "^3.1.4"
   },
   "engines": {
     "node": ">=22.18.0",

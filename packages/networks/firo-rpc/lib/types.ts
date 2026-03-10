@@ -95,6 +95,15 @@ export interface FiroUtxo {
   safe: boolean;
 }
 
+export interface FiroRpcUtxo {
+  txid: string;
+  vout: number;
+  address: string;
+  scriptPubKey: string;
+  amount: number;
+  confirmations: number;
+}
+
 /**
  * Authentication credentials for Firocoin RPC
  */

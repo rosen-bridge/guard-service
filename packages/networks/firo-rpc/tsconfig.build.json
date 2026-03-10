@@ -6,6 +6,6 @@
   "exclude": ["tests", "vitest.config.ts"],
   "references": [
     { "path": "../../abstract-chain/tsconfig.build.json" },
-    { "path": "../../chains/doge/tsconfig.build.json" }
+    { "path": "../../chains/firo/tsconfig.build.json" }
   ]
 }
