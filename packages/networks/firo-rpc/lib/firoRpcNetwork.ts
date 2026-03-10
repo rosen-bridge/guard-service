@@ -614,7 +614,7 @@ class FiroRpcNetwork extends AbstractFiroNetwork {
       const response = await this.client.post<JsonRpcResult>('', {
         method: 'listunspent',
         id: randomId,
-        params: [0, 9999999, [address]], // minconf=0 to include mempool
+        params: [1, 9999999, [address]], // minconf=1 to include only confirmed UTXOs
       });
 
       this.validateResponseId(randomId, response.data.id);

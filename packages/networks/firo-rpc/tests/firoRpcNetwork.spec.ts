@@ -713,6 +713,13 @@ describe('FiroRpcNetwork', () => {
       // Total: 17.75 FIRO = 1775000000 satoshis
       expect(result.nativeToken).toEqual(1775000000n);
       expect(result.tokens).toEqual([]); // Firo doesn't support tokens
+      expect(axiosInstance.post).toHaveBeenCalledWith(
+        '',
+        expect.objectContaining({
+          method: 'listunspent',
+          params: [1, 9999999, [testData.lockAddress]],
+        }),
+      );
     });
 
     /**
