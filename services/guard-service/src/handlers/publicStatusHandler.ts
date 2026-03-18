@@ -100,12 +100,18 @@ class PublicStatusHandler {
 
     const signMessage = this.dtoToSignMessage(dto, date);
 
-    await this.axios.post('/v1/status/submit', {
+    const request = {
       ...dto,
       date,
       pk: await Configs.tssKeys.encryptor.getPk(),
       signature: await Configs.tssKeys.encryptor.sign(signMessage),
-    });
+    };
+
+    logger.debug(
+      `Requesting update for status information: ${JSON.stringify(request)}`,
+    );
+
+    await this.axios.post('/v1/status/submit', request);
   };
 
   /**
