@@ -1,5 +1,15 @@
 # @rosen-chains/ergo-node-network
 
+## 10.0.3
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-bridge/abstract-logger@4.0.0
+  - @rosen-chains/abstract-chain@16.0.0
+  - @rosen-chains/ergo@14.0.0
+  - @rosen-clients/ergo-node@3.1.1
+
 ## 10.0.2
 
 ### Patch Changes

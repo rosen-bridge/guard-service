@@ -1,5 +1,15 @@
 # @rosen-chains/bitcoin-runes-rpc
 
+## 2.0.4
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-bridge/abstract-logger@4.0.0
+  - @rosen-chains/abstract-chain@16.0.0
+  - @rosen-chains/bitcoin-runes@4.0.0
+  - @rosen-clients/rate-limited-axios@1.1.1
+
 ## 2.0.3
 
 ### Patch Changes

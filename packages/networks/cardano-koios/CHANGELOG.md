@@ -1,5 +1,15 @@
 # @rosen-chains/cardano-koios-network
 
+## 13.0.2
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-bridge/abstract-logger@4.0.0
+  - @rosen-chains/abstract-chain@16.0.0
+  - @rosen-chains/cardano@16.0.0
+  - @rosen-clients/cardano-koios@3.1.1
+
 ## 13.0.1
 
 ### Patch Changes

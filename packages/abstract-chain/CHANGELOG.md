@@ -1,5 +1,24 @@
 # @rosen-chains/abstract-chain
 
+## 16.0.0
+
+### Major Changes
+
+- Add `isTransactionInSign` function, which checks if the corresponding signer service is signing the transaction or not
+
+### Minor Changes
+
+- Export 3 SignMediator interfaces for common use (the `TssSignMediator`, `EddsaSignMediator` and `EcdsaSignMediator`)
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-bridge/abstract-box-selection@1.0.2
+  - @rosen-bridge/abstract-logger@4.0.0
+  - @rosen-bridge/minimum-fee@3.1.2
+  - @rosen-bridge/rosen-extractor@11.3.0
+  - @rosen-bridge/tokens@6.0.0
+
 ## 15.0.2
 
 ### Patch Changes
