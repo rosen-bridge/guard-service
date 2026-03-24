@@ -4,7 +4,7 @@ import {
   ImpossibleBehavior,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
-import axios, { Axios } from '@rosen-clients/rate-limited-axios';
+import axios, { Axios, AxiosError } from '@rosen-clients/rate-limited-axios';
 
 import Configs from '../configs/configs';
 import { TransactionEntity } from '../db/entities/transactionEntity';
@@ -20,7 +20,6 @@ export type UpdateTxStatusDTO = {
 };
 
 export type UpdateStatusDTO = {
-  date: number;
   eventId: string;
   status: EventStatus;
   tx?: UpdateTxStatusDTO;
@@ -75,13 +74,14 @@ class PublicStatusHandler {
   /**
    * generates sign message from UpdateStatusDTO
    * @param dto
+   * @param date - timestamp in seconds
    * @returns string
    */
-  protected dtoToSignMessage = (dto: UpdateStatusDTO): string => {
+  protected dtoToSignMessage = (dto: UpdateStatusDTO, date: number): string => {
     const txData = dto.tx
       ? `${dto.tx.txId}${dto.tx.chain}${dto.tx.txType}${dto.tx.txStatus}`
       : '';
-    return `${dto.eventId}${dto.status}${txData}${dto.date}`;
+    return `${dto.eventId}${dto.status}${txData}${date}`;
   };
 
   /**
@@ -96,15 +96,22 @@ class PublicStatusHandler {
       );
     }
 
-    const signMessage = this.dtoToSignMessage(dto);
+    const date = Math.floor(Date.now() / 1000);
 
-    await this.axios.post('/status', {
-      body: {
-        ...dto,
-        pk: await Configs.tssKeys.encryptor.getPk(),
-        signature: await Configs.tssKeys.encryptor.sign(signMessage),
-      },
-    });
+    const signMessage = this.dtoToSignMessage(dto, date);
+
+    const request = {
+      ...dto,
+      date,
+      pk: await Configs.tssKeys.encryptor.getPk(),
+      signature: await Configs.tssKeys.encryptor.sign(signMessage),
+    };
+
+    logger.debug(
+      `Requesting update for status information: ${JSON.stringify(request)}`,
+    );
+
+    await this.axios.post('/v1/status/submit', request);
   };
 
   /**
@@ -145,7 +152,6 @@ class PublicStatusHandler {
       }
 
       const dto: UpdateStatusDTO = {
-        date: Date.now(),
         eventId,
         status,
         tx: txDto,
@@ -153,8 +159,12 @@ class PublicStatusHandler {
 
       await this.submitRequest(dto);
     } catch (e) {
+      let responseError = '';
+      if (e instanceof AxiosError && e.response?.data) {
+        responseError = `, response: ${JSON.stringify(e.response.data)}`;
+      }
       logger.error(
-        `An error occurred while submitting status change signal on Event [${eventId}]: ${e}`,
+        `An error occurred while submitting status change signal on Event [${eventId}]: ${e}${responseError}`,
       );
       if (e.stack) logger.error(e.stack);
     }
@@ -196,7 +206,6 @@ class PublicStatusHandler {
       }
 
       const dto: UpdateStatusDTO = {
-        date: Date.now(),
         eventId: tx.event.id,
         status: tx.event.status,
         tx: {
@@ -209,8 +218,12 @@ class PublicStatusHandler {
 
       await this.submitRequest(dto);
     } catch (e) {
+      let responseError = '';
+      if (e instanceof AxiosError && e.response?.data) {
+        responseError = `, response: ${JSON.stringify(e.response.data)}`;
+      }
       logger.error(
-        `An error occurred while submitting status change signal on Transaction [${txId}]: ${e}`,
+        `An error occurred while submitting status change signal on Transaction [${txId}]: ${e}${responseError}`,
       );
       if (e.stack) logger.error(e.stack);
     }
