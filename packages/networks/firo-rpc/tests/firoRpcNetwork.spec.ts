@@ -585,6 +585,101 @@ describe('FiroRpcNetwork', () => {
 
       expect(result).toEqual(-1);
     });
+
+    /**
+     * @target `FiroRpcNetwork.getTxConfirmation` should return -1 when transaction is not found
+     * @dependencies
+     * @scenario
+     * - mock axios to return error code -5 for non-existent tx
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return -1
+     */
+    it('should return -1 when transaction is not found', async () => {
+      axiosInstance.post.mockRejectedValueOnce({
+        response: {
+          data: {
+            result: null,
+            error: {
+              code: -5,
+              message: 'No such transaction',
+            },
+          },
+        },
+      });
+
+      const network = new FiroRpcNetwork(URL, mockGetSavedTransactionById);
+      const result = await network.getTxConfirmation('nonexistent-tx-id');
+
+      expect(result).toEqual(-1);
+    });
+
+    /**
+     * @target `FiroRpcNetwork.getTxConfirmation` should fetch confirmation using unsigned hash successfully
+     * @dependencies
+     * @scenario
+     * - create a custom getSavedTransactionById that returns a payment transaction
+     * - mock extraction methods to resolve the unsigned hash to a signed hash
+     * - mock axios to return transaction with confirmations
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should resolve the unsigned hash and return the correct confirmation count
+     */
+    it('should fetch confirmation using unsigned hash successfully', async () => {
+      const firoPayment = new PaymentTransaction(
+        'firo',
+        testData.unsignedTxId,
+        'eventId',
+        Buffer.from(testData.firoPaymentBytes, 'hex'),
+        TransactionType.payment,
+      );
+
+      const customNetwork = new FiroRpcNetwork(
+        URL,
+        async (txId: string) => {
+          if (txId === testData.unsignedTxId) {
+            return firoPayment;
+          }
+          return undefined;
+        },
+      );
+
+      const getTxConfirmationSignedSpy = vi.spyOn(
+        customNetwork as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+        'getTxConfirmationSigned',
+      );
+
+      // Mock direct extraction to fail, RPC lookup to succeed
+      vi.spyOn(
+        customNetwork as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+        'extractActualTxIdFromPsbt',
+      ).mockResolvedValue(undefined);
+      vi.spyOn(
+        customNetwork as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+        'extractActualTxIdWithRpcLookup',
+      ).mockResolvedValue(testData.firoTx.id);
+
+      axiosInstance.post.mockImplementation((url, data) => {
+        const { id } = data;
+        return Promise.resolve({
+          data: {
+            ...testData.txResponse,
+            id: id,
+          },
+        });
+      });
+
+      const result = await customNetwork.getTxConfirmation(
+        testData.unsignedTxId,
+      );
+
+      expect(getTxConfirmationSignedSpy).toHaveBeenCalledExactlyOnceWith(
+        testData.firoTx.id,
+      );
+      expect(result).toEqual(testData.expectedTxConfirmation);
+    });
   });
 
   describe('getAddressAssets', () => {
