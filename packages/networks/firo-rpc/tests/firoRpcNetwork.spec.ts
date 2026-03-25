@@ -860,6 +860,5 @@ describe('FiroRpcNetwork', () => {
 
       expect(result).toEqual(testData.unsignedTxId);
     });
-
   });
 });

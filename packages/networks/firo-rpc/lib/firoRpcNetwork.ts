@@ -656,7 +656,7 @@ class FiroRpcNetwork extends AbstractFiroNetwork {
 
       this.validateResponseId(randomId, response.data.id);
 
-      const utxos: Array<{ amount: number }> = response.data.result;
+      const utxos: Array<FiroRpcUtxo> = response.data.result;
 
       this.logger.debug(
         `Requested 'listunspent' for address [${address}]. Response: ${JsonBigInt.stringify(

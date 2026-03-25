@@ -83,18 +83,6 @@ export interface FiroChainInfo {
   warnings: string;
 }
 
-export interface FiroUtxo {
-  txid: string;
-  vout: number;
-  address: string;
-  scriptPubKey: string;
-  amount: number;
-  confirmations: number;
-  spendable: boolean;
-  solvable: boolean;
-  safe: boolean;
-}
-
 export interface FiroRpcUtxo {
   txid: string;
   vout: number;

@@ -170,9 +170,6 @@ export const txResponse = {
   error: null,
   id: '19774cdc6bc663926590dc2fe7bfe77ba57a5343aaa16db5ffc377e95663fd4e',
 };
-// Transaction confirmation count
-export const txConfirmation = 3;
-
 // Response for transaction not in mempool
 export const txNotInMempoolResponse = {
   result: null,
@@ -249,7 +246,7 @@ export const firoTx = {
 export const firoUtxo = {
   txId: '19774cdc6bc663926590dc2fe7bfe77ba57a5343aaa16db5ffc377e95663fd4e',
   index: 0,
-  value: 119595114000n, // Value in satoshis (10025.96814264 FIRO)
+  value: 119595114000n, // Value in satoshis (1195.95114 FIRO)
 };
 
 // Include these for compatibility with existing tests
@@ -257,39 +254,6 @@ export const firoPaymentBytes =
   '70736274ff0100b30200000001349ef262b9716ba26f5ddf04f9917e3149e16304a8b8b99de6b1e338dee297850200000000ffffffff030000000000000000356a33000000000005f5e10000000000009896802103e5bedab3f782ef17a73e9bdc41ee0e18c3ab477400f35bcf7caa54171db7ff3600ca9a3b0000000017a914d4c141068ab3a242aed5081a27ac3f10ad99ac9887c8e7ee5f030000001976a914872b67c8270a9eaf5c2abf632af3dea989d2e37188ac00000000000100fd1d010200000001349ef262b9716ba26f5ddf04f9917e3149e16304a8b8b99de6b1e338dee29785020000006a47304402207e4cd2745243257f0749b4a41425c2075dfb199f47072bfbf7db14b02677a8ae02204682c5159737314f7c4ba0f7112876497171a7cee48dddf667dccd59cf8ae1280121022b9ed0a9139042921decc62603a4a07357b444da2e0bd6a96c27155117913037ffffffff030000000000000000356a33000000000005f5e10000000000009896802103e5bedab3f782ef17a73e9bdc41ee0e18c3ab477400f35bcf7caa54171db7ff3600ca9a3b0000000017a914d4c141068ab3a242aed5081a27ac3f10ad99ac9887c8e7ee5f030000001976a914872b67c8270a9eaf5c2abf632af3dea989d2e37188ac0000000000000000';
 
 export const unsignedTxId = 'unsigned_tx_id_placeholder';
-export const addressBalance = 13184394312n;
-
-export const unconfirmedTxResponse = {
-  block_height: -1,
-  block_index: -1,
-  hash: 'f463bf88dbdeb8af5bc26b3ba1beb7e4712303846d73d880c280440dca13e1ef',
-  confirmations: 0,
-};
-
-export const emptyAddressResponse = {
-  address: 'DNEvVDq17mQiV46XQgf5NAQyvQbY92z6cg',
-  total_received: 0,
-  total_sent: 0,
-  balance: 0,
-  unconfirmed_balance: 0,
-  final_balance: 0,
-  n_tx: 0,
-  unconfirmed_n_tx: 0,
-  final_n_tx: 0,
-};
-
-export const unusedAddressResponse = {
-  address: 'D5XR2ByNV9qSNXq4B1krZoGpZ3VXfzwpU6',
-  total_received: 0,
-  total_sent: 0,
-  balance: 0,
-  unconfirmed_balance: 0,
-  final_balance: 0,
-  n_tx: 0,
-  unconfirmed_n_tx: 0,
-  final_n_tx: 0,
-  txs: [],
-};
 
 // Mock UTXOs for getAddressBoxes test
 export const mockAddressUtxos = [
