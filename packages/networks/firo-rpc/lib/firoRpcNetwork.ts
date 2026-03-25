@@ -690,7 +690,7 @@ class FiroRpcNetwork extends AbstractFiroNetwork {
   };
 
   /**
-   * Attempts to find which transaction spent a specific UTXO using Firo's address indexing
+   * Attempts to find which transaction spent a specific UTXO using getspentinfo RPC
    * @param index the output index that was spent
    * @param txId the transaction ID containing the output
    * @returns the transaction that spent the UTXO, or undefined if not found
@@ -700,44 +700,24 @@ class FiroRpcNetwork extends AbstractFiroNetwork {
     txId: string,
   ): Promise<FiroTx | undefined> => {
     try {
-      // Get the original transaction to examine the spent output
-      const originalTx = await this.getTransaction(txId, '');
-      if (!originalTx.outputs[index]) {
+      const randomId = this.generateRandomId();
+      const response = await this.client.post<JsonRpcResult>('', {
+        method: 'getspentinfo',
+        id: randomId,
+        params: [{ txid: txId, index }],
+      });
+
+      this.validateResponseId(randomId, response.data.id);
+
+      const spentInfo = response.data.result;
+      if (!spentInfo || !spentInfo.txid) {
         return undefined;
       }
 
-      // Get recent mempool transactions that might spend our UTXO
-      const mempoolTxIds = await this.client.post<JsonRpcResult>('', {
-        method: 'getrawmempool',
-        id: this.generateRandomId(),
-        params: [false], // non-verbose
-      });
-
-      const allTxIds: string[] = mempoolTxIds.data.result || [];
-
-      // Check each transaction to see if it spends our UTXO
-      for (const candidateTxId of allTxIds) {
-        try {
-          const candidateTx = await this.getTransaction(candidateTxId, '');
-
-          // Check if any input spends our specific UTXO
-          const spendsOurUtxo = candidateTx.inputs.some(
-            (input) => input.txId === txId && input.index === index,
-          );
-
-          if (spendsOurUtxo) {
-            return candidateTx;
-          }
-        } catch {
-          // Skip transactions we can't fetch
-          continue;
-        }
-      }
-
-      return undefined;
+      return this.getTransaction(spentInfo.txid, '');
     } catch (error) {
       this.logger.debug(
-        `Failed to find spending transaction for UTXO ${txId}:${index} using RPC lookup: ${error}`,
+        `Failed to find spending transaction for UTXO ${txId}:${index} using getspentinfo: ${error}`,
       );
       return undefined;
     }

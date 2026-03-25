@@ -6,10 +6,9 @@ import FiroRpcNetwork from '../lib/firoRpcNetwork';
 import { resetAxiosMock, axiosInstance } from './mocked/rateLimitedAxios.mock';
 import * as testData from './testData';
 
-const mockGetSavedTransactionById = vi.fn().mockReturnValue(undefined);
-
 describe('FiroRpcNetwork', () => {
   const URL = 'firo-rpc-url';
+  const mockGetSavedTransactionById = vi.fn().mockReturnValue(undefined);
 
   beforeEach(() => {
     resetAxiosMock();
