@@ -761,7 +761,7 @@ class FiroRpcNetwork extends AbstractFiroNetwork {
 
       // Use the first input to find the spending transaction
       const firstInput = psbt.txInputs[0];
-      const inputTxId = Buffer.from(firstInput.hash.reverse()).toString('hex');
+      const inputTxId = Buffer.from(firstInput.hash).reverse().toString('hex');
       const inputIndex = firstInput.index;
 
       const spentTx = await this.getSpentTransactionByInputId(
@@ -776,7 +776,7 @@ class FiroRpcNetwork extends AbstractFiroNetwork {
       const sameInputs = psbt.txInputs.every(
         (input, i) =>
           spentTx.inputs[i]?.txId ===
-            Buffer.from(input.hash.reverse()).toString('hex') &&
+            Buffer.from(input.hash).reverse().toString('hex') &&
           spentTx.inputs[i]?.index === input.index,
       );
 
