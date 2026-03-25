@@ -1,6 +1,11 @@
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 
-import { FailedError, NetworkError } from '@rosen-chains/abstract-chain';
+import {
+  FailedError,
+  NetworkError,
+  PaymentTransaction,
+  TransactionType,
+} from '@rosen-chains/abstract-chain';
 
 import FiroRpcNetwork from '../lib/firoRpcNetwork';
 import { resetAxiosMock, axiosInstance } from './mocked/rateLimitedAxios.mock';
@@ -649,6 +654,70 @@ describe('FiroRpcNetwork', () => {
     });
   });
 
+  describe('getSpentTransactionByInputId', () => {
+    /**
+     * @target `FiroRpcNetwork.getSpentTransactionByInputId` should return the spent info for a spent utxo
+     * @dependencies
+     * @scenario
+     * - mock axios to return getspentinfo and getrawtransaction data
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return the spending transaction
+     */
+    it('should return the spent info for a spent utxo', async () => {
+      axiosInstance.post.mockImplementation((url, data) => {
+        const { method, id } = data;
+
+        if (method === 'getspentinfo') {
+          return Promise.resolve({
+            data: {
+              ...testData.spentInfoResponse,
+              id: id,
+            },
+          });
+        } else if (method === 'getrawtransaction') {
+          return Promise.resolve({
+            data: {
+              ...testData.txResponse,
+              id: id,
+            },
+          });
+        }
+
+        return Promise.reject(new Error(`Unexpected method: ${method}`));
+      });
+
+      const network = new FiroRpcNetwork(URL, mockGetSavedTransactionById);
+      const result = await (
+        network as any // eslint-disable-line @typescript-eslint/no-explicit-any
+      ).getSpentTransactionByInputId(0, testData.txId);
+
+      expect(result).toEqual(testData.firoTx);
+    });
+
+    /**
+     * @target `FiroRpcNetwork.getSpentTransactionByInputId` should return undefined for an unspent utxo
+     * @dependencies
+     * @scenario
+     * - mock axios to return error for getspentinfo
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return undefined
+     */
+    it('should return undefined for an unspent utxo', async () => {
+      axiosInstance.post.mockRejectedValueOnce(testData.unspentInfoError);
+
+      const network = new FiroRpcNetwork(URL, mockGetSavedTransactionById);
+      const result = await (
+        network as any // eslint-disable-line @typescript-eslint/no-explicit-any
+      ).getSpentTransactionByInputId(0, testData.txId);
+
+      expect(result).toBeUndefined();
+    });
+  });
+
   describe('getActualTxId', () => {
     /**
      * @target `FiroRpcNetwork.getActualTxId` should return the same hash when no saved transaction exists
@@ -678,10 +747,6 @@ describe('FiroRpcNetwork', () => {
      * - it should use the direct extraction method and return signed ID
      */
     it('should extract signed txId from PSBT using direct method', async () => {
-      const { PaymentTransaction, TransactionType } = await import(
-        '@rosen-chains/abstract-chain'
-      );
-
       const firoPayment = new PaymentTransaction(
         'firo',
         testData.unsignedTxId,
@@ -720,10 +785,6 @@ describe('FiroRpcNetwork', () => {
      * - it should fallback to RPC lookup method and return signed ID
      */
     it('should fallback to RPC lookup when direct extraction fails', async () => {
-      const { PaymentTransaction, TransactionType } = await import(
-        '@rosen-chains/abstract-chain'
-      );
-
       const firoPayment = new PaymentTransaction(
         'firo',
         testData.unsignedTxId,
@@ -768,10 +829,6 @@ describe('FiroRpcNetwork', () => {
      * - it should return the original hash as fallback
      */
     it('should return original hash when both extraction methods fail', async () => {
-      const { PaymentTransaction, TransactionType } = await import(
-        '@rosen-chains/abstract-chain'
-      );
-
       const firoPayment = new PaymentTransaction(
         'firo',
         testData.unsignedTxId,
@@ -804,27 +861,5 @@ describe('FiroRpcNetwork', () => {
       expect(result).toEqual(testData.unsignedTxId);
     });
 
-    /**
-     * @target `FiroRpcNetwork.getActualTxId` should work with any hash string
-     * @dependencies
-     * @scenario
-     * - call getActualTxId with various hash formats
-     * - check returned values
-     * @expected
-     * - it should return the input unchanged when not in database
-     */
-    it('should work with any hash string', async () => {
-      const network = new FiroRpcNetwork(URL, mockGetSavedTransactionById);
-      const testHashes = [
-        'abc123',
-        '0000000000000000000000000000000000000000000000000000000000000000',
-        testData.blockHash,
-      ];
-
-      for (const hash of testHashes) {
-        const result = await network.getActualTxId(hash);
-        expect(result).toEqual(hash);
-      }
-    });
   });
 });

@@ -710,6 +710,11 @@ class FiroRpcNetwork extends AbstractFiroNetwork {
       this.validateResponseId(randomId, response.data.id);
 
       const spentInfo = response.data.result;
+      this.logger.debug(
+        `Requested 'getspentinfo' for utxoId [${txId}.${index}]. Response: ${JsonBigInt.stringify(
+          spentInfo,
+        )}`,
+      );
       if (!spentInfo || !spentInfo.txid) {
         return undefined;
       }

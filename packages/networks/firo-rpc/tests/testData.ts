@@ -333,6 +333,31 @@ export const expectedAddressBoxes = [
   },
 ];
 
+// getspentinfo response for a spent UTXO
+export const spentInfoResponse = {
+  result: {
+    txid: '87ce994dacf48d97dcffd30221f70acf8c2b40ba4d5ed9be8615d79daf922c73',
+    index: 0,
+    height: 5693740,
+  },
+  error: null,
+  id: 'getspentinfo_request',
+};
+
+// getspentinfo response for an unspent UTXO (RPC returns error)
+export const unspentInfoError = {
+  response: {
+    data: {
+      result: null,
+      error: {
+        code: -5,
+        message: 'Unable to get spent info',
+      },
+      id: 'getspentinfo_request',
+    },
+  },
+};
+
 // Expected confirmation count (should match txResponse.result.confirmations)
 export const expectedTxConfirmation = 4351;
 
