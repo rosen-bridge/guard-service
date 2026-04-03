@@ -616,6 +616,34 @@ describe('FiroRpcNetwork', () => {
     });
 
     /**
+     * @target `FiroRpcNetwork.getTxConfirmation` should return -1 when RPC resolves with result null
+     * @dependencies
+     * @scenario
+     * - mock axios to return a successful response with result: null
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return -1
+     */
+    it('should return -1 when RPC resolves with result null', async () => {
+      axiosInstance.post.mockImplementation((url, data) => {
+        const { id } = data;
+        return Promise.resolve({
+          data: {
+            result: null,
+            error: null,
+            id: id,
+          },
+        });
+      });
+
+      const network = new FiroRpcNetwork(URL, mockGetSavedTransactionById);
+      const result = await network.getTxConfirmation('nonexistent-tx-id');
+
+      expect(result).toEqual(-1);
+    });
+
+    /**
      * @target `FiroRpcNetwork.getTxConfirmation` should fetch confirmation using unsigned hash successfully
      * @dependencies
      * @scenario
@@ -636,15 +664,12 @@ describe('FiroRpcNetwork', () => {
         TransactionType.payment,
       );
 
-      const customNetwork = new FiroRpcNetwork(
-        URL,
-        async (txId: string) => {
-          if (txId === testData.unsignedTxId) {
-            return firoPayment;
-          }
-          return undefined;
-        },
-      );
+      const customNetwork = new FiroRpcNetwork(URL, async (txId: string) => {
+        if (txId === testData.unsignedTxId) {
+          return firoPayment;
+        }
+        return undefined;
+      });
 
       const getTxConfirmationSignedSpy = vi.spyOn(
         customNetwork as any, // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -784,9 +809,8 @@ describe('FiroRpcNetwork', () => {
       });
 
       const network = new FiroRpcNetwork(URL, mockGetSavedTransactionById);
-      const result = await (
-        network as any // eslint-disable-line @typescript-eslint/no-explicit-any
-      ).getSpentTransactionByInputId(0, testData.txId);
+      const result = await (network as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+        .getSpentTransactionByInputId(0, testData.txId);
 
       expect(result).toEqual(testData.firoTx);
     });
@@ -805,9 +829,8 @@ describe('FiroRpcNetwork', () => {
       axiosInstance.post.mockRejectedValueOnce(testData.unspentInfoError);
 
       const network = new FiroRpcNetwork(URL, mockGetSavedTransactionById);
-      const result = await (
-        network as any // eslint-disable-line @typescript-eslint/no-explicit-any
-      ).getSpentTransactionByInputId(0, testData.txId);
+      const result = await (network as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+        .getSpentTransactionByInputId(0, testData.txId);
 
       expect(result).toBeUndefined();
     });

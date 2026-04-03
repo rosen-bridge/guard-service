@@ -596,6 +596,11 @@ class FiroRpcNetwork extends AbstractFiroNetwork {
 
       this.validateResponseId(randomId, response.data.id);
 
+      if (!response.data.result) {
+        this.logger.debug(`tx [${transactionId}] is not found`);
+        return -1;
+      }
+
       const tx: FiroRpcTransaction = response.data.result;
 
       this.logger.debug(
@@ -722,10 +727,17 @@ class FiroRpcNetwork extends AbstractFiroNetwork {
       }
 
       return this.getTransaction(spentInfo.txid, '');
-    } catch (error) {
-      this.logger.debug(
-        `Failed to find spending transaction for UTXO ${txId}:${index} using getspentinfo: ${error}`,
-      );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      if (error.response?.data?.error?.code === -5) {
+        this.logger.debug(
+          `UTXO ${txId}:${index} is not spent (getspentinfo returned not-found)`,
+        );
+      } else {
+        this.logger.warn(
+          `Unexpected error looking up spending transaction for UTXO ${txId}:${index}: ${error}`,
+        );
+      }
       return undefined;
     }
   };
