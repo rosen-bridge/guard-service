@@ -17,7 +17,9 @@ import {
   CONFIRMATION_TARGET,
   FIRO_NETWORK,
 } from '@rosen-chains/firo';
-import RateLimitedAxios from '@rosen-clients/rate-limited-axios';
+import RateLimitedAxios, {
+  Axios as RateLimitedAxiosClass,
+} from '@rosen-clients/rate-limited-axios';
 
 import {
   FiroRpcTransaction,
@@ -29,7 +31,7 @@ import {
 } from './types';
 
 class FiroRpcNetwork extends AbstractFiroNetwork {
-  protected client; // TODO: specify the type (local:ergo/rosen-bridge/network-client#26)
+  protected client: RateLimitedAxiosClass;
   private getSavedTransactionById: (
     txId: string,
   ) => Promise<PaymentTransaction | undefined>;
