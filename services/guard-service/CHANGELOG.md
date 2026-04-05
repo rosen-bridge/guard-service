@@ -9,7 +9,6 @@
 ### Minor Changes
 
 - Add `curveSignTimeout` for ECDSA signer and `edwardSignTimeout` for EdDSA signer to config
-- Add submit event status functionality
 - Add Sign Status Pulling feature: Now the transaction processor asks the status of sign process for a transaction from the corresponding signer instead of checking the elapsed signing duration
 - Add TSS signature cache TTL to config
 - Remove `txSignTimeout` config
