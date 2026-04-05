@@ -1,5 +1,16 @@
 # @rosen-chains/evm-rpc
 
+## 4.0.4
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-bridge/abstract-logger@4.0.0
+  - @rosen-bridge/evm-address-tx-extractor@2.0.1
+  - @rosen-chains/abstract-chain@16.0.0
+  - @rosen-chains/evm@10.0.0
+  - ethers@6.16.0
+
 ## 4.0.3
 
 ### Patch Changes
