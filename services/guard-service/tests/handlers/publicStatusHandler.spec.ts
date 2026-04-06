@@ -63,7 +63,6 @@ describe('PublicStatusHandler', () => {
 
       // assert
       expect(submitRequestSpy).toHaveBeenCalledExactlyOnceWith({
-        date: expect.any(Number),
         eventId,
         status: eventStatus,
         tx: {
@@ -120,7 +119,6 @@ describe('PublicStatusHandler', () => {
 
       // assert
       expect(submitRequestSpy).toHaveBeenCalledExactlyOnceWith({
-        date: expect.any(Number),
         eventId,
         status: eventStatus,
         tx: {
@@ -161,7 +159,6 @@ describe('PublicStatusHandler', () => {
 
       // assert
       expect(submitRequestSpy).toHaveBeenCalledExactlyOnceWith({
-        date: expect.any(Number),
         eventId,
         status,
         tx: undefined,
@@ -216,7 +213,6 @@ describe('PublicStatusHandler', () => {
 
       // assert
       expect(submitRequestSpy).toHaveBeenCalledExactlyOnceWith({
-        date: expect.any(Number),
         eventId,
         status: eventStatus,
         tx: {
@@ -248,16 +244,15 @@ describe('PublicStatusHandler', () => {
       );
 
       const dto: UpdateStatusDTO = {
-        date: 0,
         eventId: id0,
         status: EventStatus.inPayment,
       };
 
       // act
-      const result = instance.callDTOToSignMessage(dto);
+      const result = instance.callDTOToSignMessage(dto, 0);
 
       // assert
-      expect(result).toBe(`${dto.eventId}${dto.status}${dto.date}`);
+      expect(result).toBe(`${dto.eventId}${dto.status}0`);
     });
 
     /**
@@ -278,7 +273,6 @@ describe('PublicStatusHandler', () => {
       );
 
       const dto: UpdateStatusDTO = {
-        date: 0,
         eventId: id0,
         status: EventStatus.inPayment,
         tx: {
@@ -290,13 +284,13 @@ describe('PublicStatusHandler', () => {
       };
 
       // act
-      const result = instance.callDTOToSignMessage(dto);
+      const result = instance.callDTOToSignMessage(dto, 0);
 
       // assert
       expect(result).toBe(
         `${dto.eventId}${dto.status}${dto.tx!.txId}${dto.tx!.chain}${
           dto.tx!.txType
-        }${dto.tx!.txStatus}${dto.date}`,
+        }${dto.tx!.txStatus}0`,
       );
     });
   });
