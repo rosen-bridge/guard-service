@@ -287,6 +287,11 @@ class ChainHandler {
   private generateFiroChain = (): FiroChain => {
     const network = new FiroRpcNetwork(
       GuardsFiroConfigs.rpc.url,
+      async (txId: string) => {
+        const tx = await DatabaseAction.getInstance().getTxById(txId);
+        if (tx === null) return undefined;
+        return TransactionSerializer.fromJson(tx.txJson, this.getChain);
+      },
       DefaultLogger.getInstance().child('FiroRpcNetwork'),
       {
         username: GuardsFiroConfigs.rpc.username,
