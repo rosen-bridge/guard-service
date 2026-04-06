@@ -358,11 +358,9 @@ const initScanner = () => {
     dataSource,
     networkType,
     networkUrl,
-    GuardsBitcoinRunesConfigs.bitcoinRunesContractConfig.addresses
-      .WatcherTriggerEvent,
+    GuardsBitcoinRunesConfigs.bitcoinRunesContractConfig.addresses.WatcherTriggerEvent,
     GuardsBitcoinRunesConfigs.bitcoinRunesContractConfig.tokens.RWTId,
-    GuardsBitcoinRunesConfigs.bitcoinRunesContractConfig.addresses
-      .WatcherPermit,
+    GuardsBitcoinRunesConfigs.bitcoinRunesContractConfig.addresses.WatcherPermit,
     GuardsBitcoinRunesConfigs.bitcoinRunesContractConfig.addresses.Fraud,
     loggers.bitcoinRunesEventTriggerExtractorLogger,
     initialization,
