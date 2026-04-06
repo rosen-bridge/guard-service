@@ -3,6 +3,7 @@ import { BITCOIN_CHAIN, BTC } from '@rosen-chains/bitcoin';
 import { BITCOIN_RUNES_CHAIN } from '@rosen-chains/bitcoin-runes';
 import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
 import { DOGE, DOGE_CHAIN } from '@rosen-chains/doge';
+import { FIRO, FIRO_CHAIN } from '@rosen-chains/firo';
 import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
 import { ETH, ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
 
@@ -50,6 +51,7 @@ const SUPPORTED_CHAINS = [
   ETHEREUM_CHAIN,
   BINANCE_CHAIN,
   DOGE_CHAIN,
+  FIRO_CHAIN,
   BITCOIN_RUNES_CHAIN,
 ];
 
@@ -71,6 +73,7 @@ const ChainNativeToken: Record<string, string> = {
   [BITCOIN_CHAIN]: BTC,
   [ETHEREUM_CHAIN]: ETH,
   [DOGE_CHAIN]: DOGE,
+  [FIRO_CHAIN]: FIRO,
   [BINANCE_CHAIN]: BNB,
   [BITCOIN_RUNES_CHAIN]: BTC,
 };
@@ -81,6 +84,7 @@ const ChainConfigKey: Record<string, string> = {
   [BITCOIN_CHAIN]: BITCOIN_CHAIN,
   [ETHEREUM_CHAIN]: ETHEREUM_CHAIN,
   [DOGE_CHAIN]: DOGE_CHAIN,
+  [FIRO_CHAIN]: FIRO_CHAIN,
   [BINANCE_CHAIN]: BINANCE_CHAIN,
   [BITCOIN_RUNES_CHAIN]: 'bitcoinRunes',
 };
