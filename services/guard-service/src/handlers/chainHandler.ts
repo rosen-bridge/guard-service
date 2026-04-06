@@ -35,8 +35,6 @@ import {
 import { DogeBlockcypherNetwork } from '@rosen-chains/doge-blockcypher';
 import { DogeEsploraNetwork } from '@rosen-chains/doge-esplora';
 import { DogeRpcNetwork } from '@rosen-chains/doge-rpc';
-import { FIRO_CHAIN, FiroChain } from '@rosen-chains/firo';
-import { FiroRpcNetwork } from '@rosen-chains/firo-rpc';
 import { AbstractErgoNetwork, ERGO_CHAIN, ErgoChain } from '@rosen-chains/ergo';
 import ErgoExplorerNetwork, {
   EXPLORER_NETWORK,
@@ -45,6 +43,8 @@ import ErgoNodeNetwork, { NODE_NETWORK } from '@rosen-chains/ergo-node-network';
 import { ETHEREUM_CHAIN, EthereumChain } from '@rosen-chains/ethereum';
 import { AbstractEvmNetwork } from '@rosen-chains/evm';
 import EvmRpcNetwork from '@rosen-chains/evm-rpc';
+import { FIRO_CHAIN, FiroChain } from '@rosen-chains/firo';
+import { FiroRpcNetwork } from '@rosen-chains/firo-rpc';
 import { RateLimitedAxiosConfig } from '@rosen-clients/rate-limited-axios';
 
 import GuardsBinanceConfigs from '../configs/guardsBinanceConfigs';
@@ -52,8 +52,8 @@ import GuardsBitcoinConfigs from '../configs/guardsBitcoinConfigs';
 import GuardsBitcoinRunesConfigs from '../configs/guardsBitcoinRunesConfigs';
 import GuardsCardanoConfigs from '../configs/guardsCardanoConfigs';
 import GuardsDogeConfigs from '../configs/guardsDogeConfigs';
-import GuardsFiroConfigs from '../configs/guardsFiroConfigs';
 import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
+import GuardsFiroConfigs from '../configs/guardsFiroConfigs';
 import GuardsEthereumConfigs from '../configs/guardsEthereumConfigs';
 import { dataSource } from '../db/dataSource';
 import * as TransactionSerializer from '../transaction/transactionSerializer';
