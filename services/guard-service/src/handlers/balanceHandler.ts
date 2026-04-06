@@ -8,9 +8,9 @@ import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
 import { KOIOS_NETWORK } from '@rosen-chains/cardano-koios-network';
 import { DOGE, DOGE_CHAIN } from '@rosen-chains/doge';
 import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
-import { FIRO, FIRO_CHAIN } from '@rosen-chains/firo';
 import { NODE_NETWORK } from '@rosen-chains/ergo-node-network';
 import { ETH, ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
+import { FIRO, FIRO_CHAIN } from '@rosen-chains/firo';
 
 import Configs from '../configs/configs';
 import GuardsCardanoConfigs from '../configs/guardsCardanoConfigs';

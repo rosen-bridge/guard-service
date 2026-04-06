@@ -22,8 +22,8 @@ import GuardsBitcoinRunesConfigs from '../configs/guardsBitcoinRunesConfigs';
 import GuardsCardanoConfigs from '../configs/guardsCardanoConfigs';
 import GuardsDogeConfigs from '../configs/guardsDogeConfigs';
 import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
-import GuardsFiroConfigs from '../configs/guardsFiroConfigs';
 import GuardsEthereumConfigs from '../configs/guardsEthereumConfigs';
+import GuardsFiroConfigs from '../configs/guardsFiroConfigs';
 import { dataSource } from '../db/dataSource';
 import { TokenHandler } from '../handlers/tokenHandler';
 
@@ -358,9 +358,11 @@ const initScanner = () => {
     dataSource,
     networkType,
     networkUrl,
-    GuardsBitcoinRunesConfigs.bitcoinRunesContractConfig.addresses.WatcherTriggerEvent,
+    GuardsBitcoinRunesConfigs.bitcoinRunesContractConfig.addresses
+      .WatcherTriggerEvent,
     GuardsBitcoinRunesConfigs.bitcoinRunesContractConfig.tokens.RWTId,
-    GuardsBitcoinRunesConfigs.bitcoinRunesContractConfig.addresses.WatcherPermit,
+    GuardsBitcoinRunesConfigs.bitcoinRunesContractConfig.addresses
+      .WatcherPermit,
     GuardsBitcoinRunesConfigs.bitcoinRunesContractConfig.addresses.Fraud,
     loggers.bitcoinRunesEventTriggerExtractorLogger,
     initialization,
