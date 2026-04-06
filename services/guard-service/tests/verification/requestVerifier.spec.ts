@@ -3,6 +3,7 @@ import {
   PaymentOrder,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
+import { ERGO_CHAIN } from '@rosen-chains/ergo';
 
 import EventSerializer from '../../src/event/eventSerializer';
 import {
@@ -10,6 +11,7 @@ import {
   OrderStatus,
   TransactionStatus,
 } from '../../src/utils/constants';
+import Utils from '../../src/utils/utils';
 import RequestVerifier from '../../src/verification/requestVerifier';
 import TransactionVerifier from '../../src/verification/transactionVerifier';
 import { mockPaymentTransaction } from '../agreement/testData';
@@ -20,6 +22,7 @@ import {
   mockEventTrigger,
   rsnRatioDivisor,
 } from '../event/testData';
+import EventSynchronizationMock from '../synchronization/mocked/eventSynchronization.mock';
 import TestUtils from '../testUtils/testUtils';
 import {
   mockIsEventConfirmedEnough,
@@ -39,6 +42,8 @@ describe('RequestVerifier', () => {
         rsnRatioDivisor,
         feeRatioDivisor,
       });
+      EventSynchronizationMock.resetMock();
+      EventSynchronizationMock.mock();
     });
 
     /**
@@ -413,16 +418,18 @@ describe('RequestVerifier', () => {
     });
 
     /**
-     * @target RequestVerifier.verifyEventTransactionRequest should return false
-     * when event has already payment tx and pending reward
+     * @target RequestVerifier.verifyEventTransactionRequest should return false and add event
+     * to synchronization queue when reward transaction is received while event is pending payment transaction
      * @dependencies
      * - EventVerifier
      * - MinimumFee
      * - TransactionVerifier
+     * - EventSynchronization
      * - database
      * @scenario
      * - mock event and transaction
      * - insert mocked event into db
+     * - mock EventSynchronization.addEventToQueue
      * - mock EventVerifier
      *   - mock `isEventConfirmedEnough`
      *   - mock `verifyEvent`
@@ -430,15 +437,18 @@ describe('RequestVerifier', () => {
      * - mock TransactionVerifier.verifyEventTransaction
      * - run test
      * - verify returned value
+     * - check if function got called
      * @expected
      * - returned value should be false
+     * - `addEventToQueue` should got called with the mocked event id
      */
-    it('should return false when event has already payment tx and pending reward', async () => {
+    it('should return false and add event to synchronization queue when reward transaction is received while event is pending payment transaction', async () => {
       // mock event and transaction
       const mockedEvent = mockEventTrigger().event;
+      const mockedEventId = Utils.txIdToEventId(mockedEvent.sourceTxId);
       const paymentTx = mockPaymentTransaction(
-        TransactionType.payment,
-        mockedEvent.toChain,
+        TransactionType.reward,
+        ERGO_CHAIN,
         EventSerializer.getId(mockedEvent),
       );
 
@@ -447,6 +457,9 @@ describe('RequestVerifier', () => {
         mockedEvent,
         EventStatus.pendingPayment,
       );
+
+      // mock EventSynchronization.addEventToQueue
+      EventSynchronizationMock.mockAddEventToQueue();
 
       // mock EventVerifier
       mockIsEventConfirmedEnough(true);
@@ -464,6 +477,11 @@ describe('RequestVerifier', () => {
 
       // verify returned value
       expect(result).toEqual(false);
+
+      // `addEventToQueue` should got called
+      expect(
+        EventSynchronizationMock.getMockedFunction('addEventToQueue'),
+      ).toHaveBeenCalledWith(mockedEventId);
     });
 
     /**

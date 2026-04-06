@@ -169,13 +169,21 @@ class ColdStorage {
     ).getChainPendingTransactions(chainName);
     const unsignedQueueTransactions = (
       await DatabaseAction.getInstance().getUnsignedActiveTxsInChain(chainName)
-    ).map((txEntity) => TransactionSerializer.fromJson(txEntity.txJson));
+    ).map((txEntity) =>
+      TransactionSerializer.fromJson(
+        txEntity.txJson,
+        ChainHandler.getInstance().getChain,
+      ),
+    );
     // get signed transactions in target chain
     const signedTransactions = (
       await DatabaseAction.getInstance().getSignedActiveTxsInChain(chainName)
     ).map((txEntity) =>
       Buffer.from(
-        TransactionSerializer.fromJson(txEntity.txJson).txBytes,
+        TransactionSerializer.fromJson(
+          txEntity.txJson,
+          ChainHandler.getInstance().getChain,
+        ).txBytes,
       ).toString('hex'),
     );
 
