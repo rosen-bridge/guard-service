@@ -32,16 +32,14 @@ import {
   HANDSHAKE_TX_BASE_SIZE,
   HNS,
   MINIMUM_UTXO_VALUE,
+  TSS_SIGNATURE_SIZE,
+  WITNESS_SIGNATURE_SIZE,
 } from './constants';
 import HandshakeTransaction from './handshakeTransaction';
 import { estimateTxFee, getInputBoxId } from './handshakeUtils';
 import AbstractHandshakeNetwork from './network/abstractHandshakeNetwork';
 import Serializer from './serializer';
 import { HandshakeConfigs, HandshakeTx, HandshakeUtxo } from './types';
-
-const TSS_SIGNATURE_SIZE = 64;
-const SIGHASH_ALL_SIZE = 1;
-const WITNESS_SIGNATURE_SIZE = TSS_SIGNATURE_SIZE + SIGHASH_ALL_SIZE;
 
 class HandshakeChain extends AbstractUtxoChain<HandshakeTx, HandshakeUtxo> {
   declare network: AbstractHandshakeNetwork;
