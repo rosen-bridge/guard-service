@@ -1,0 +1,233 @@
+import { DefaultLogger } from '@rosen-bridge/abstract-logger';
+import { DataSource, Not, Repository } from '@rosen-bridge/extended-typeorm';
+import {
+  ImpossibleBehavior,
+  TransactionType,
+} from '@rosen-chains/abstract-chain';
+import axios, { Axios, AxiosError } from '@rosen-clients/rate-limited-axios';
+
+import Configs from '../configs/configs';
+import { TransactionEntity } from '../db/entities/transactionEntity';
+import { EventStatus, TransactionStatus } from '../utils/constants';
+
+export const logger = DefaultLogger.getInstance().child(import.meta.url);
+
+export type UpdateTxStatusDTO = {
+  txId: string;
+  chain: string;
+  txType: string;
+  txStatus: TransactionStatus;
+};
+
+export type UpdateStatusDTO = {
+  eventId: string;
+  status: EventStatus;
+  tx?: UpdateTxStatusDTO;
+};
+
+class PublicStatusHandler {
+  private static instance?: PublicStatusHandler;
+  readonly axios?: Axios;
+  readonly txRepository: Repository<TransactionEntity>;
+  readonly isActive: boolean;
+
+  protected constructor(
+    dataSource: DataSource,
+    publicStatusBaseUrl: string | undefined = undefined,
+  ) {
+    this.isActive = !!publicStatusBaseUrl;
+
+    if (publicStatusBaseUrl) {
+      logger.info('publicStatusBaseUrl exists, initialize axios instance');
+      this.axios = axios.create({
+        baseURL: publicStatusBaseUrl,
+      });
+    } else
+      logger.warn(
+        'publicStatusBaseUrl does not exist, skipping axios initialization',
+      );
+    this.txRepository = dataSource.getRepository(TransactionEntity);
+  }
+
+  /**
+   * initialize PublicStatusHandler
+   */
+  static init = async (dataSource: DataSource) => {
+    PublicStatusHandler.instance = new PublicStatusHandler(
+      dataSource,
+      Configs.publicStatusBaseUrl,
+    );
+  };
+
+  /**
+   * get PublicStatusHandler instance or throw
+   * @returns PublicStatusHandler instance
+   */
+  static getInstance = () => {
+    if (!PublicStatusHandler.instance)
+      throw Error(
+        `PublicStatusHandler should have been initialized before getInstance`,
+      );
+    return PublicStatusHandler.instance;
+  };
+
+  /**
+   * generates sign message from UpdateStatusDTO
+   * @param dto
+   * @param date - timestamp in seconds
+   * @returns string
+   */
+  protected dtoToSignMessage = (dto: UpdateStatusDTO, date: number): string => {
+    const txData = dto.tx
+      ? `${dto.tx.txId}${dto.tx.chain}${dto.tx.txType}${dto.tx.txStatus}`
+      : '';
+    return `${dto.eventId}${dto.status}${txData}${date}`;
+  };
+
+  /**
+   * submits a request with updated status information
+   * @param dto - UpdateStatusDTO containing the update status details
+   * @returns a promise that resolves to void
+   */
+  protected submitRequest = async (dto: UpdateStatusDTO): Promise<void> => {
+    if (!this.axios) {
+      throw new ImpossibleBehavior(
+        'axios is not initialized, skipping submitRequest',
+      );
+    }
+
+    const date = Math.floor(Date.now() / 1000);
+
+    const signMessage = this.dtoToSignMessage(dto, date);
+
+    const request = {
+      ...dto,
+      date,
+      pk: await Configs.tssKeys.encryptor.getPk(),
+      signature: await Configs.tssKeys.encryptor.sign(signMessage),
+    };
+
+    logger.debug(
+      `Requesting update for status information: ${JSON.stringify(request)}`,
+    );
+
+    await this.axios.post('/v1/status/submit', request);
+  };
+
+  /**
+   * sends a request to update public status of an event
+   * @param eventId
+   * @param status
+   * @returns a promise that resolves to void
+   */
+  updatePublicEventStatus = async (
+    eventId: string,
+    status: EventStatus,
+  ): Promise<void> => {
+    if (!this.isActive) return;
+
+    try {
+      let txDto: UpdateTxStatusDTO | undefined;
+
+      if (status === EventStatus.inPayment || status === EventStatus.inReward) {
+        const tx = await this.txRepository.findOne({
+          where: {
+            event: { id: eventId },
+            status: Not(TransactionStatus.invalid),
+          },
+        });
+
+        if (!tx) {
+          throw new ImpossibleBehavior(
+            `No valid tx is found for event [${eventId}]`,
+          );
+        }
+
+        txDto = {
+          txId: tx.txId,
+          chain: tx.chain,
+          txType: tx.type,
+          txStatus: tx.status,
+        };
+      }
+
+      const dto: UpdateStatusDTO = {
+        eventId,
+        status,
+        tx: txDto,
+      };
+
+      await this.submitRequest(dto);
+    } catch (e) {
+      let responseError = '';
+      if (e instanceof AxiosError && e.response?.data) {
+        responseError = `, response: ${JSON.stringify(e.response.data)}`;
+      }
+      logger.error(
+        `An error occurred while submitting status change signal on Event [${eventId}]: ${e}${responseError}`,
+      );
+      if (e.stack) logger.error(e.stack);
+    }
+  };
+
+  /**
+   * sends a request to update public status of a transaction
+   * @param txId
+   * @param txStatus
+   * @returns a promise that resolves to void
+   */
+  updatePublicTxStatus = async (
+    txId: string,
+    txStatus: TransactionStatus,
+  ): Promise<void> => {
+    if (!this.isActive) return;
+
+    try {
+      const tx = await this.txRepository.findOne({
+        relations: ['event'],
+        where: {
+          txId,
+        },
+      });
+
+      if (!tx) {
+        throw new ImpossibleBehavior(`Tx [${txId}] is not found!`);
+      }
+
+      if (
+        tx.type !== TransactionType.payment &&
+        tx.type !== TransactionType.reward
+      ) {
+        return;
+      }
+
+      if (!tx.event) {
+        throw new ImpossibleBehavior(`Event of tx [${txId}] is not found!`);
+      }
+
+      const dto: UpdateStatusDTO = {
+        eventId: tx.event.id,
+        status: tx.event.status,
+        tx: {
+          txId,
+          chain: tx.chain,
+          txType: tx.type,
+          txStatus,
+        },
+      };
+
+      await this.submitRequest(dto);
+    } catch (e) {
+      let responseError = '';
+      if (e instanceof AxiosError && e.response?.data) {
+        responseError = `, response: ${JSON.stringify(e.response.data)}`;
+      }
+      logger.error(
+        `An error occurred while submitting status change signal on Transaction [${txId}]: ${e}${responseError}`,
+      );
+      if (e.stack) logger.error(e.stack);
+    }
+  };
+}
+
+export default PublicStatusHandler;

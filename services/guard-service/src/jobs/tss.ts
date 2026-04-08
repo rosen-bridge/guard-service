@@ -1,0 +1,20 @@
+import { DefaultLogger } from '@rosen-bridge/abstract-logger';
+
+import Configs from '../configs/configs';
+import TssHandler from '../handlers/tssHandler';
+
+const logger = DefaultLogger.getInstance().child(import.meta.url);
+/**
+ * runs Tss service update job
+ */
+const tssUpdateJob = () => {
+  TssHandler.getInstance()
+    .update()
+    .then(() => setTimeout(tssUpdateJob, Configs.tssUpdateInterval * 1000))
+    .catch((e) => {
+      logger.error(`Tss update job failed with error: ${e}`);
+      setTimeout(tssUpdateJob, Configs.tssUpdateInterval * 1000);
+    });
+};
+
+export { tssUpdateJob };

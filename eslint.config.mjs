@@ -13,7 +13,7 @@ export default [
   },
   pluginJs.configs.recommended,
   {
-    files: ['**/*.{js,jsx,ts,tsx}'],
+    files: ['**/{packages,services/**}/**/*.{js,ts,jsx,tsx}'],
     languageOptions: {
       // Base Configuration for JS/TS Files
       parser: typescriptParser,
