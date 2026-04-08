@@ -675,6 +675,101 @@ describe('HandshakeChain', () => {
     });
 
     /**
+     * @target HandshakeChain.signTransaction should throw error when signer returns DER signature
+     * @dependencies
+     * @scenario
+     * - mock a sign function to return DER-encoded signature
+     * - mock PaymentTransaction of unsigned transaction
+     * - run test & check thrown exception
+     * @expected
+     * - it should throw signature format validation error
+     */
+    it('should throw error when signer returns DER-encoded signature', async () => {
+      // mock a sign function to return DER-encoded signatures (invalid for fixed-size 64-byte flow)
+      const signMediator: EcdsaSignMediator = {
+        sign: async (hash: Uint8Array) => {
+          const hashHex = Buffer.from(hash).toString('hex');
+          if (hashHex === testData.transaction2HashMessage0)
+            return {
+              signature:
+                '304402205775ecea4b8e18eb78ae18d77d1e239885cea219ddf9a1147c97ee29106fb010022026ec267183493e900b531761cb4423bac4eee07cc630eedf32df90f7171498b1',
+              signatureRecovery: '',
+            };
+          else if (hashHex === testData.transaction2HashMessage1)
+            return {
+              signature:
+                '3045022100f1e2d3c4b5a697887960504030201001020304050607080900010203040506070220111213141516171819202122232425262728293031323334353637383940414243',
+              signatureRecovery: '',
+            };
+          else
+            throw Error(
+              `TestError: sign function is called with wrong message [${hashHex}]`,
+            );
+        },
+        isInSign: vi.fn(),
+      };
+
+      const paymentTx = HandshakeTransaction.fromJson(
+        testData.transaction2PaymentTransaction,
+      );
+
+      const handshakeChain = await testUtils.generateChainObject(
+        network,
+        signMediator,
+      );
+
+      await expect(async () => {
+        await handshakeChain.signTransaction(paymentTx, 0);
+      }).rejects.toThrow('Invalid TSS signature format');
+    });
+
+    /**
+     * @target HandshakeChain.signTransaction should throw error when signer returns fixed-size signature with 0x prefix
+     * @dependencies
+     * @scenario
+     * - mock a sign function to return fixed-size signatures prefixed by 0x
+     * - mock PaymentTransaction of unsigned transaction
+     * - run test & check thrown exception
+     * @expected
+     * - it should throw signature format validation error
+     */
+    it('should throw error when signer returns fixed-size signature with 0x prefix', async () => {
+      const signMediator: EcdsaSignMediator = {
+        sign: async (hash: Uint8Array) => {
+          const hashHex = Buffer.from(hash).toString('hex');
+          if (hashHex === testData.transaction2HashMessage0)
+            return {
+              signature: `0x${testData.transaction2Signature0}`,
+              signatureRecovery: '',
+            };
+          else if (hashHex === testData.transaction2HashMessage1)
+            return {
+              signature: `0x${testData.transaction2Signature1}`,
+              signatureRecovery: '',
+            };
+          else
+            throw Error(
+              `TestError: sign function is called with wrong message [${hashHex}]`,
+            );
+        },
+        isInSign: vi.fn(),
+      };
+
+      const paymentTx = HandshakeTransaction.fromJson(
+        testData.transaction2PaymentTransaction,
+      );
+
+      const handshakeChain = await testUtils.generateChainObject(
+        network,
+        signMediator,
+      );
+
+      await expect(async () => {
+        await handshakeChain.signTransaction(paymentTx, 0);
+      }).rejects.toThrow('Invalid TSS signature format');
+    });
+
+    /**
      * @target HandshakeChain.signTransaction should throw error when at least signing of one message is failed
      * @dependencies
      * @scenario

@@ -39,6 +39,10 @@ import AbstractHandshakeNetwork from './network/abstractHandshakeNetwork';
 import Serializer from './serializer';
 import { HandshakeConfigs, HandshakeTx, HandshakeUtxo } from './types';
 
+const TSS_SIGNATURE_SIZE = 64;
+const SIGHASH_ALL_SIZE = 1;
+const WITNESS_SIGNATURE_SIZE = TSS_SIGNATURE_SIZE + SIGHASH_ALL_SIZE;
+
 class HandshakeChain extends AbstractUtxoChain<HandshakeTx, HandshakeUtxo> {
   declare network: AbstractHandshakeNetwork;
   declare configs: HandshakeConfigs;
@@ -735,8 +739,8 @@ class HandshakeChain extends AbstractUtxoChain<HandshakeTx, HandshakeUtxo> {
     const feeMtx = mtx.clone();
     const dummyWitness = new Script();
 
-    // Worst-case DER signature (72) + SIGHASH_ALL (1) => 73 bytes.
-    dummyWitness.pushData(Buffer.alloc(73, 0));
+    // TSS signature (64) + SIGHASH_ALL (1) => 65 bytes.
+    dummyWitness.pushData(Buffer.alloc(WITNESS_SIGNATURE_SIZE, 0));
     dummyWitness.pushData(Buffer.from(this.configs.aggregatedPublicKey, 'hex'));
     dummyWitness.compile();
 
@@ -769,11 +773,28 @@ class HandshakeChain extends AbstractUtxoChain<HandshakeTx, HandshakeUtxo> {
     for (let i = 0; i < signatures.length; i++) {
       const sigHex = signatures[i];
 
+      if (
+        sigHex.length !== TSS_SIGNATURE_SIZE * 2 ||
+        sigHex.length % 2 !== 0 ||
+        !/^[0-9a-fA-F]+$/.test(sigHex)
+      ) {
+        throw new Error(
+          `Invalid TSS signature format for input [${i}]: expected ${TSS_SIGNATURE_SIZE}-byte hex signature.`,
+        );
+      }
+
+      const signatureBody = Buffer.from(sigHex, 'hex');
+      if (signatureBody.length !== TSS_SIGNATURE_SIZE) {
+        throw new Error(
+          `Invalid TSS signature size for input [${i}]: expected ${TSS_SIGNATURE_SIZE} bytes, got ${signatureBody.length}.`,
+        );
+      }
+
       const witness = new Script();
 
       // Append SIGHASH_ALL (0x01) to the aggregated signature
       const signature = Buffer.concat([
-        Buffer.from(sigHex, 'hex'),
+        signatureBody,
         Buffer.from([0x01]),
       ]);
 
