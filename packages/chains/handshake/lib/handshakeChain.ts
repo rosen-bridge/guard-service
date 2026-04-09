@@ -791,10 +791,7 @@ class HandshakeChain extends AbstractUtxoChain<HandshakeTx, HandshakeUtxo> {
       const witness = new Script();
 
       // Append SIGHASH_ALL (0x01) to the aggregated signature
-      const signature = Buffer.concat([
-        signatureBody,
-        Buffer.from([0x01]),
-      ]);
+      const signature = Buffer.concat([signatureBody, Buffer.from([0x01])]);
 
       // Push aggregated signature
       witness.pushData(signature);
