@@ -1,5 +1,15 @@
 # @rosen-chains/bitcoin-esplora
 
+## 5.0.3
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-bridge/abstract-logger@4.0.0
+  - @rosen-chains/abstract-chain@16.0.0
+  - @rosen-chains/bitcoin@10.0.0
+  - @rosen-clients/rate-limited-axios@1.1.1
+
 ## 5.0.2
 
 ### Patch Changes
