@@ -1,4 +1,4 @@
-import ParallelBranchProcessor from '../../src/utils/parallelBranchProcessor';
+import { ParallelBranchProcessor } from '../../src/utils/parallelBranchProcessor';
 
 describe('ParallelBranchProcessor', () => {
   beforeEach(() => {
@@ -132,10 +132,10 @@ describe('ParallelBranchProcessor', () => {
      * - define a mock job function that resolves after 10ms
      * - define a mock ParallelBranchProcessor using the job function
      * - add 3 nodes for 2 branches to the processor
-     * - wait for the processing to finish
+     * - wait for the processing of one branch to finish
      * - check the size of tree
      * @expected
-     * - tree should have been empty
+     * - only the finished branch should have been removed from the tree
      */
     it('should clean up a branch after all its nodes are processed', async () => {
       // arrange
@@ -148,12 +148,13 @@ describe('ParallelBranchProcessor', () => {
 
       // act
       processor.addNode('branch-1', 10);
-      processor.addNode('branch-1', 20);
       processor.addNode('branch-2', 11);
-      await vi.advanceTimersByTimeAsync(20);
+      processor.addNode('branch-2', 21);
+      await vi.advanceTimersByTimeAsync(15);
 
       // assert
-      expect(processor.getTree().size).toBe(0);
+      expect(processor.getTree().size).toBe(1);
+      expect(processor.getTree().get('branch-2')).toBeDefined();
     });
 
     /**
@@ -494,13 +495,15 @@ describe('ParallelBranchProcessor', () => {
      * - store the start time
      * - add 3 nodes for 2 branches to the processor
      * - check the size of tree and branches
-     * - call waitForCompletion with 3ms intervals
+     * - call waitForCompletion
+     * - calculate the duration when waitForCompletion resolves
+     * - advance the timers with some extra time (more than the reqiured processing time)
      * - check the duration
      * - check the size of tree
      * - check the mock job function
      * @expected
      * - before waitForCompletion tree size should have been 2 with 1 node queued in a branch
-     * - duration should have been 12ms
+     * - duration should have been 10ms (2 sequential nodes in branch-1 with 5ms processing time)
      * - after waitForCompletion tree size should have been 0
      * - mock job function should have been called 3 times matching the insertion order
      */
@@ -513,24 +516,24 @@ describe('ParallelBranchProcessor', () => {
         );
       const processor = new ParallelBranchProcessor(mockJobFn);
 
-      // act
+      // act and assert
       const start = Date.now();
       processor.addNode('branch-1', 10);
       processor.addNode('branch-2', 11);
       processor.addNode('branch-1', 20);
-      const completionPromise = processor.waitForCompletion(3);
 
-      // assert
       expect(processor.getTree().size).toBe(2);
       expect(processor.getTree().get('branch-1')?.length).toBe(1);
       expect(processor.getTree().get('branch-2')?.length).toBe(0);
 
-      await vi.advanceTimersByTimeAsync(12);
+      let duration: number = 0;
+      processor.waitForCompletion().then(() => {
+        duration = Date.now() - start;
+      });
 
-      await completionPromise;
+      await vi.advanceTimersByTimeAsync(20);
 
-      const duration = Date.now() - start;
-      expect(duration).toBe(12);
+      expect(duration).toBe(10);
 
       expect(processor.getTree().size).toBe(0);
       expect(mockJobFn).toHaveBeenCalledTimes(3);
@@ -546,18 +549,18 @@ describe('ParallelBranchProcessor', () => {
      * - define a mock job function that resolves after 10ms
      * - define a mock ParallelBranchProcessor using the job function
      * - spy on waitForCompletion
-     * - add a node to the processor
-     * - call waitForCompletion 3 times with intervals 5ms, 25ms, 50ms
-     * - advance the timers by 45ms
+     * - add 3 nodes for 2 branches to the processor
+     * - call waitForCompletion 3 times
+     * - advance the timers by 15ms
      * - check the waitForCompletion spies
      * - advance the timers by 5ms
      * - check the waitForCompletion spies
      * - check the mock job function
      * - check the tree size
      * @expected
-     * - after 45ms 2 of the spies should have resolved
-     * - after 50ms all 3 spies should have resolved
-     * - mock job function should have been called once
+     * - after 15ms none of the spies should have resolved
+     * - after an additional 5ms all 3 spies should have resolved
+     * - mock job function should have been called 3 times
      * - tree should have been empty
      */
     it('should handle multiple waitForCompletion calls', async () => {
@@ -571,21 +574,21 @@ describe('ParallelBranchProcessor', () => {
       const waitSpy = vi.spyOn(processor, 'waitForCompletion');
 
       // act and assert
-      processor.addNode('branch-1', 1);
+      processor.addNode('branch-1', 10);
+      processor.addNode('branch-1', 20);
+      processor.addNode('branch-2', 11);
 
-      const promise1 = processor.waitForCompletion(5);
-      const promise2 = processor.waitForCompletion(25);
-      const promise3 = processor.waitForCompletion(50);
+      processor.waitForCompletion();
+      processor.waitForCompletion();
+      processor.waitForCompletion();
 
-      await vi.advanceTimersByTimeAsync(45);
-      expect(waitSpy).toHaveResolvedTimes(2);
+      await vi.advanceTimersByTimeAsync(15);
+      expect(waitSpy).toHaveResolvedTimes(0);
 
       await vi.advanceTimersByTimeAsync(5);
       expect(waitSpy).toHaveResolvedTimes(3);
 
-      await Promise.all([promise1, promise2, promise3]);
-
-      expect(mockJobFn).toHaveBeenCalledTimes(1);
+      expect(mockJobFn).toHaveBeenCalledTimes(3);
       expect(processor.getTree().size).toBe(0);
     });
   });

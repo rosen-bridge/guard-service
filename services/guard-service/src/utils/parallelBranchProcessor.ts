@@ -6,9 +6,10 @@ const logger = DefaultLogger.getInstance().child(import.meta.url);
  * a tree processor that handles multiple branches in parallel,
  * with sequential processing within each branch
  */
-class ParallelBranchProcessor<T> {
-  private tree: Map<string, T[]> = new Map();
+export class ParallelBranchProcessor<T> {
   private jobFn: (payload: T) => Promise<void>;
+  private tree: Map<string, T[]> = new Map();
+  private treePromises: Map<string, Promise<void>> = new Map();
 
   /**
    * @param jobFn - async function that processes a node
@@ -25,7 +26,7 @@ class ParallelBranchProcessor<T> {
    * @param branchId - Unique identifier for the branch
    * @param node - The data to be processed
    */
-  public addNode(branchId: string, node: T): void {
+  public addNode = (branchId: string, node: T): void => {
     const branch = this.tree.get(branchId)!;
 
     // if no process is running (its branch doesn't exist), start immediately
@@ -33,22 +34,27 @@ class ParallelBranchProcessor<T> {
       this.tree.set(branchId, [node]);
       this.processBranch(branchId);
     } else {
-      // queue the item for later processing
+      // queue the node for later processing
       branch.push(node);
     }
-  }
+  };
 
   /**
    * processes all nodes of a single branch
    *
    * @param branchId - unique identifier for the branch
    */
-  private async processBranch(branchId: string): Promise<void> {
+  private processBranch = async (branchId: string) => {
     const branch = this.tree.get(branchId);
     if (!branch) {
       return;
     }
 
+    // store the continuation
+    const { promise, resolve } = Promise.withResolvers<void>();
+    this.treePromises.set(branchId, promise);
+
+    // process all branch nodes in a while loop
     while (branch.length > 0) {
       const nextNode = branch.shift()!;
 
@@ -61,43 +67,33 @@ class ParallelBranchProcessor<T> {
 
     // branch is empty, clean up
     this.tree.delete(branchId);
-  }
+    resolve();
+    this.treePromises.delete(branchId);
+  };
 
   /**
    * waits for all branches to complete processing
-   *
-   * @param interval - interval ms to check the tree size
    */
-  public async waitForCompletion(interval: number = 50): Promise<void> {
+  public waitForCompletion = async (): Promise<void> => {
     if (this.tree.size === 0) return;
-
-    return new Promise((resolve) => {
-      const checkInterval = setInterval(() => {
-        if (this.tree.size === 0) {
-          clearInterval(checkInterval);
-          resolve();
-        }
-      }, interval);
-    });
-  }
+    await Promise.all(this.treePromises.values());
+  };
 
   /**
    * stops all future processes by clearing the tree
    * does not cancel the running promises
    */
-  public stop(): void {
-    for (const key of this.tree.keys()) {
-      const branch = this.tree.get(key)!;
+  public stop = (): void => {
+    for (const branchId of this.tree.keys()) {
+      const branch = this.tree.get(branchId)!;
       while (branch.length) branch.pop();
     }
-  }
+  };
 
   /**
    * returns the tree property
    */
-  public getTree(): Map<string, T[]> {
+  public getTree = (): Map<string, T[]> => {
     return this.tree;
-  }
+  };
 }
-
-export default ParallelBranchProcessor;

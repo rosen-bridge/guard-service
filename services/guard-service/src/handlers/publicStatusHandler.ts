@@ -9,7 +9,7 @@ import axios, { Axios, AxiosError } from '@rosen-clients/rate-limited-axios';
 import Configs from '../configs/configs';
 import { TransactionEntity } from '../db/entities/transactionEntity';
 import { EventStatus, TransactionStatus } from '../utils/constants';
-import ParallelBranchProcessor from '../utils/parallelBranchProcessor';
+import { ParallelBranchProcessor } from '../utils/parallelBranchProcessor';
 
 export const logger = DefaultLogger.getInstance().child(import.meta.url);
 
