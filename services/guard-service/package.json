@@ -51,6 +51,7 @@
     "@rosen-bridge/extended-typeorm": "^1.0.1",
     "@rosen-bridge/health-check": "^8.0.0",
     "@rosen-bridge/json-bigint": "^1.1.0",
+    "@rosen-bridge/log-level-check": "^4.0.0",
     "@rosen-bridge/minimum-fee": "^3.1.2",
     "@rosen-bridge/node-sync-check": "^3.0.1",
     "@rosen-bridge/rosenet-utils": "^0.5.0",
