@@ -18,7 +18,9 @@ import {
   CONFIRMATION_TARGET,
   DOGE_NETWORK,
 } from '@rosen-chains/doge';
-import RateLimitedAxios from '@rosen-clients/rate-limited-axios';
+import RateLimitedAxios, {
+  Axios as RateLimitedAxiosClass,
+} from '@rosen-clients/rate-limited-axios';
 
 import {
   EsploraAddress,
@@ -29,7 +31,7 @@ import {
 } from './types';
 
 class DogeEsploraNetwork extends AbstractDogeNetwork {
-  protected client; // TODO: specify the type (local:ergo/rosen-bridge/network-client#26)
+  protected client: RateLimitedAxiosClass;
   private apiPrefix: string;
   private getSavedTransactionById: (
     txId: string,
