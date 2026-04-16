@@ -95,12 +95,8 @@ describe('FiroChain', () => {
       expect(extractedOrder).toEqual(order);
 
       // getCoveringBoxes should have been called with correct arguments
-      const expectedRequiredAssets = structuredClone(
-        testData.transaction2Order[0].assets,
-      );
-      expectedRequiredAssets.nativeToken += firoChain.getMinimumNativeToken();
       expect(getCovBoxesSpy).toHaveBeenCalledExactlyOnceWith(
-        expectedRequiredAssets,
+        testData.transaction2Order[0].assets,
         [],
         new Map(),
         expect.any(Object),

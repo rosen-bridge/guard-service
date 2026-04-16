@@ -10,12 +10,7 @@ import {
   TransactionType,
 } from '@rosen-chains/abstract-chain';
 
-import {
-  BitcoinChain,
-  BitcoinTransaction,
-  BitcoinUtxo,
-  SEGWIT_INPUT_WEIGHT_UNIT,
-} from '../lib';
+import { BitcoinChain, BitcoinTransaction, BitcoinUtxo } from '../lib';
 import TestBitcoinNetwork from './network/testBitcoinNetwork';
 import { TestBitcoinChain } from './testBitcoinChain';
 import * as testData from './testData';
@@ -89,13 +84,8 @@ describe('BitcoinChain', () => {
       expect(extractedOrder).toEqual(order);
 
       // getCoveringBoxes should have been called with correct arguments
-      const expectedRequiredAssets = structuredClone(
-        testData.transaction2Order[0].assets,
-      );
-      expectedRequiredAssets.nativeToken +=
-        bitcoinChain.getMinimumNativeToken();
       expect(getCovBoxesSpy).toHaveBeenCalledExactlyOnceWith(
-        expectedRequiredAssets,
+        testData.transaction2Order[0].assets,
         testData.transaction1InputIds,
         new Map(),
         expect.any(Object),
@@ -247,11 +237,6 @@ describe('BitcoinChain', () => {
         bitcoinChain.NATIVE_TOKEN_ID,
         bitcoinChain.CHAIN,
       );
-      expectedRequiredAssets.nativeToken += tokenMap.wrapAmount(
-        bitcoinChain.NATIVE_TOKEN_ID,
-        BigInt(Math.ceil(SEGWIT_INPUT_WEIGHT_UNIT / 4)),
-        bitcoinChain.CHAIN,
-      ).amount;
       expect(getCovBoxesSpy).toHaveBeenCalledExactlyOnceWith(
         ChainUtils.unwrapAssetBalance(
           expectedRequiredAssets,
