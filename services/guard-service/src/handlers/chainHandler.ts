@@ -43,6 +43,8 @@ import ErgoNodeNetwork, { NODE_NETWORK } from '@rosen-chains/ergo-node-network';
 import { ETHEREUM_CHAIN, EthereumChain } from '@rosen-chains/ethereum';
 import { AbstractEvmNetwork } from '@rosen-chains/evm';
 import EvmRpcNetwork from '@rosen-chains/evm-rpc';
+import { FIRO_CHAIN, FiroChain } from '@rosen-chains/firo';
+import { FiroRpcNetwork } from '@rosen-chains/firo-rpc';
 import { RateLimitedAxiosConfig } from '@rosen-clients/rate-limited-axios';
 
 import GuardsBinanceConfigs from '../configs/guardsBinanceConfigs';
@@ -52,6 +54,7 @@ import GuardsCardanoConfigs from '../configs/guardsCardanoConfigs';
 import GuardsDogeConfigs from '../configs/guardsDogeConfigs';
 import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
 import GuardsEthereumConfigs from '../configs/guardsEthereumConfigs';
+import GuardsFiroConfigs from '../configs/guardsFiroConfigs';
 import { dataSource } from '../db/dataSource';
 import * as TransactionSerializer from '../transaction/transactionSerializer';
 import MultiSigHandler from './multiSigHandler';
@@ -66,6 +69,7 @@ class ChainHandler {
   private readonly cardanoChain: CardanoChain;
   private readonly bitcoinChain: BitcoinChain;
   private readonly dogeChain: DogeChain;
+  private readonly firoChain: FiroChain;
   private readonly ethereumChain: EthereumChain;
   private readonly binanceChain: BinanceChain;
   private readonly bitcoinRunesChain: BitcoinRunesChain;
@@ -75,6 +79,7 @@ class ChainHandler {
     this.cardanoChain = this.generateCardanoChain();
     this.bitcoinChain = this.generateBitcoinChain();
     this.dogeChain = this.generateDogeChain();
+    this.firoChain = this.generateFiroChain();
     this.ethereumChain = this.generateEthereumChain();
     this.binanceChain = this.generateBinanceChain();
     this.bitcoinRunesChain = this.generateBitcoinRunesChain();
@@ -276,6 +281,47 @@ class ChainHandler {
   };
 
   /**
+   * generates Firo network and chain objects using configs
+   * @returns FiroChain object
+   */
+  private generateFiroChain = (): FiroChain => {
+    const network = new FiroRpcNetwork(
+      GuardsFiroConfigs.rpc.url,
+      async (txId: string) => {
+        const tx = await DatabaseAction.getInstance().getTxById(txId);
+        if (tx === null) return undefined;
+        return TransactionSerializer.fromJson(tx.txJson, this.getChain);
+      },
+      DefaultLogger.getInstance().child('FiroRpcNetwork'),
+      {
+        username: GuardsFiroConfigs.rpc.username,
+        password: GuardsFiroConfigs.rpc.password,
+        apiKey: GuardsFiroConfigs.rpc.apiKey,
+      },
+    );
+    if (GuardsFiroConfigs.rpc.rps !== undefined)
+      RateLimitedAxiosConfig.addRule(
+        GuardsFiroConfigs.rpc.url,
+        GuardsFiroConfigs.rpc.rps,
+        1,
+        GuardsFiroConfigs.rpc.timeout,
+      );
+    const chainCode = GuardsFiroConfigs.tssChainCode;
+    const derivationPath = GuardsFiroConfigs.derivationPath;
+    const firoSignMediator = TssHandler.getInstance().wrapCurveSignMediator(
+      chainCode,
+      derivationPath,
+    );
+    return new FiroChain(
+      network,
+      GuardsFiroConfigs.chainConfigs,
+      TokenHandler.getInstance().getTokenMap(),
+      firoSignMediator,
+      DefaultLogger.getInstance().child('FiroChain'),
+    );
+  };
+
+  /**
    * generates Ethereum network and chain objects using configs
    * @returns EthereumChain object
    */
@@ -420,6 +466,8 @@ class ChainHandler {
         return this.bitcoinChain;
       case DOGE_CHAIN:
         return this.dogeChain;
+      case FIRO_CHAIN:
+        return this.firoChain;
       case ETHEREUM_CHAIN:
         return this.ethereumChain;
       case BINANCE_CHAIN:
