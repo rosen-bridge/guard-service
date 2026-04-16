@@ -411,6 +411,7 @@ class HandshakeChain extends AbstractUtxoChain<HandshakeTx, HandshakeUtxo> {
 
   /**
    * verifies additional conditions for a HandshakeTransaction
+   * - check all output covenants are NONE
    * - check change box
    * @param transaction the PaymentTransaction
    * @param signingStatus the signing status of transaction
@@ -422,6 +423,13 @@ class HandshakeChain extends AbstractUtxoChain<HandshakeTx, HandshakeUtxo> {
     signingStatus: SigningStatus = SigningStatus.UnSigned,
   ): boolean => {
     const mtx = Serializer.deserialize(transaction.txBytes);
+
+    if (mtx.outputs.some((output) => output.covenant.type !== 0)) {
+      this.logger.warn(
+        `Tx [${transaction.txId}] is not verified: Output covenant is not NONE`,
+      );
+      return false;
+    }
 
     // check change box
     const changeBoxIndex = mtx.outputs.length - 1;

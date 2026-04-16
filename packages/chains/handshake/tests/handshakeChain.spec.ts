@@ -502,6 +502,42 @@ describe('HandshakeChain', () => {
 
     /**
      * @target: HandshakeChain.verifyTransactionExtraConditions should return false
+     * when any output covenant is not NONE
+     * @dependencies
+     * @scenario
+     * - mock a payment transaction
+     * - change one output covenant type to a non-zero value
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when an output covenant is not NONE', async () => {
+      // mock a payment transaction
+      const paymentTx = HandshakeTransaction.fromJson(
+        testData.transaction2PaymentTransaction,
+      );
+      const tx = Serializer.deserialize(paymentTx.txBytes);
+      tx.outputs[0].covenant.type = 1;
+      const deserializeSpy = vi
+        .spyOn(Serializer, 'deserialize')
+        .mockReturnValue(tx);
+
+      try {
+        // run test
+        const handshakeChain = await testUtils.generateChainObject(network);
+        const result =
+          handshakeChain.verifyTransactionExtraConditions(paymentTx);
+
+        // check returned value
+        expect(result).toEqual(false);
+      } finally {
+        deserializeSpy.mockRestore();
+      }
+    });
+
+    /**
+     * @target: HandshakeChain.verifyTransactionExtraConditions should return false
      * when change box address is wrong
      * @dependencies
      * @scenario

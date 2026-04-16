@@ -45,6 +45,11 @@ declare module 'hsd' {
 
   export class Output {
     value: number;
+    covenant: {
+      type: number;
+      action: string;
+      items: string[];
+    };
     getAddress(): Address | null;
   }
 
