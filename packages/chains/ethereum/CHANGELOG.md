@@ -1,5 +1,19 @@
 # @rosen-chains/ethereum
 
+## 4.0.0
+
+### Major Changes
+
+- Add `isTransactionInSign` function, which checks if the corresponding signer service is signing the transaction or not
+- Replace `signFunction` argument with `signMediator`, an object with the type of `EvmChainSignMediator` (which is exactly the same as `EcdsaSignMediator`)
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-bridge/abstract-logger@4.0.0
+  - @rosen-bridge/tokens@6.0.0
+  - @rosen-chains/evm@10.0.0
+
 ## 3.0.2
 
 ### Patch Changes

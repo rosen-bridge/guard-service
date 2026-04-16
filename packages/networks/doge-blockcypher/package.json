@@ -1,6 +1,6 @@
 {
   "name": "@rosen-chains/doge-blockcypher",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A package to be used as network api provider for @rosen-chains/doge package using BlockCypher API",
   "keywords": [
     "rosen"
@@ -34,8 +34,8 @@
   "dependencies": {
     "@rosen-bridge/abstract-logger": "^4.0.0",
     "@rosen-bridge/json-bigint": "^1.1.0",
-    "@rosen-chains/abstract-chain": "^15.0.2",
-    "@rosen-chains/doge": "^3.0.2",
+    "@rosen-chains/abstract-chain": "^16.0.0",
+    "@rosen-chains/doge": "^4.0.0",
     "@rosen-clients/rate-limited-axios": "^1.1.1",
     "bitcoinjs-lib": "^6.1.5"
   },

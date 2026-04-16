@@ -8,7 +8,7 @@ import {
   CardanoTx,
   CardanoUtxo,
 } from '../../lib/types';
-import { protocolParameters } from '../testUtils';
+import { protocolParameters } from '../testData';
 
 class TestCardanoNetwork extends AbstractCardanoNetwork {
   extractor = new CardanoRosenExtractor(

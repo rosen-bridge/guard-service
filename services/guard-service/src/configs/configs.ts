@@ -381,11 +381,11 @@ class Configs {
     getConfigIntKeyOrDefault('healthCheck.logs.duration', 600) * 1000;
   static errorLogAllowedCount = getConfigIntKeyOrDefault(
     'healthCheck.logs.maxAllowedErrorCount',
-    1,
+    10,
   );
   static warnLogAllowedCount = getConfigIntKeyOrDefault(
     'healthCheck.logs.maxAllowedWarnCount',
-    10,
+    12,
   );
   static p2pDefectConfirmationTimeWindow = getConfigIntKeyOrDefault(
     'healthCheck.p2p.defectConfirmationTimeWindow',

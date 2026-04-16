@@ -9,7 +9,7 @@ import {
 } from '@rosen-chains/abstract-chain';
 
 import { AbstractErgoNetwork } from '../../lib';
-import { testLockAddress } from '../ergoTestUtils';
+import { testLockAddress } from '../boxTestData';
 
 class TestErgoNetwork extends AbstractErgoNetwork {
   extractor = new ErgoRosenExtractor(testLockAddress, new TokenMap());

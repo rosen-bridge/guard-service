@@ -1,5 +1,23 @@
 # @rosen-chains/bitcoin-runes
 
+## 4.0.0
+
+### Major Changes
+
+- Replace `signFunction` argument with `signMediator`, an object with the type of `EcdsaSignMediator`
+  Remove `TssSignFunction` type
+- Add `isTransactionInSign` function, which checks if the corresponding signer service is signing the transaction or not
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-bridge/abstract-logger@4.0.0
+  - @rosen-bridge/bitcoin-runes-utxo-selection@2.0.3
+  - @rosen-bridge/rosen-extractor@11.3.0
+  - @rosen-bridge/tokens@6.0.0
+  - @rosen-chains/abstract-chain@16.0.0
+  - @rosen-chains/bitcoin@10.0.0
+
 ## 3.0.2
 
 ### Patch Changes
