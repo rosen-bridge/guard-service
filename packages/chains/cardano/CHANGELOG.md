@@ -1,5 +1,21 @@
 # @rosen-chains/cardano
 
+## 16.0.0
+
+### Major Changes
+
+- Add `isTransactionInSign` function, which checks if the corresponding signer service is signing the transaction or not
+- Replace `signFunction` argument with `signMediator`, an object with the type of `EddsaSignMediator`
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-bridge/abstract-logger@4.0.0
+  - @rosen-bridge/cardano-utxo-selection@3.0.3
+  - @rosen-bridge/rosen-extractor@11.3.0
+  - @rosen-bridge/tokens@6.0.0
+  - @rosen-chains/abstract-chain@16.0.0
+
 ## 15.0.1
 
 ### Patch Changes
