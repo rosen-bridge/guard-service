@@ -26,7 +26,7 @@ describe('PublicStatusHandler', () => {
      * - define a mock PublicStatusHandler with a mock dataSource
      * - define a mock transaction object
      * - insert the tx in database
-     * - stub PublicStatusHandler.submitRequest to resolve
+     * - stub PublicStatusHandler.submitRequest (processor.jobFn) to resolve
      * - call PublicStatusHandler.updatePublicEventStatus with status set to "inPayment"
      * @expected
      * - PublicStatusHandler.submitRequest should have been called once with the dto
@@ -55,7 +55,7 @@ describe('PublicStatusHandler', () => {
 
       const submitRequestSpy = vi
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .spyOn(instance as any, 'submitRequest')
+        .spyOn(instance.processor as any, 'jobFn')
         .mockResolvedValue(undefined);
 
       // act
@@ -82,7 +82,7 @@ describe('PublicStatusHandler', () => {
      * - define a mock PublicStatusHandler with a mock dataSource
      * - define a mock transaction object
      * - insert the tx in database
-     * - stub PublicStatusHandler.submitRequest to resolve
+     * - stub PublicStatusHandler.submitRequest (processor.jobFn) to resolve
      * - call PublicStatusHandler.updatePublicEventStatus with status set to "inReward"
      * @expected
      * - PublicStatusHandler.submitRequest should have been called once with the dto
@@ -111,7 +111,7 @@ describe('PublicStatusHandler', () => {
 
       const submitRequestSpy = vi
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .spyOn(instance as any, 'submitRequest')
+        .spyOn(instance.processor as any, 'jobFn')
         .mockResolvedValue(undefined);
 
       // act
@@ -136,7 +136,7 @@ describe('PublicStatusHandler', () => {
      * - Database
      * @scenario
      * - define a mock PublicStatusHandler with a mock dataSource
-     * - stub PublicStatusHandler.submitRequest to resolve
+     * - stub PublicStatusHandler.submitRequest (processor.jobFn) to resolve
      * - call PublicStatusHandler.updatePublicEventStatus with status that is not "inPayment" or "inReward"
      * @expected
      * - PublicStatusHandler.submitRequest should have been called once with the dto
@@ -151,7 +151,7 @@ describe('PublicStatusHandler', () => {
 
       const submitRequestSpy = vi
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .spyOn(instance as any, 'submitRequest')
+        .spyOn(instance.processor as any, 'jobFn')
         .mockResolvedValue(undefined);
 
       // act
@@ -175,7 +175,7 @@ describe('PublicStatusHandler', () => {
      * - define a mock PublicStatusHandler with a mock dataSource
      * - define a mock TransactionEntity object
      * - insert the tx in database
-     * - stub PublicStatusHandler.submitRequest to resolve
+     * - stub PublicStatusHandler.submitRequest (processor.jobFn) to resolve
      * - call PublicStatusHandler.updatePublicTxStatus with the dto
      * @expected
      * - PublicStatusHandler.submitRequest should have been called once with the dto
@@ -205,7 +205,7 @@ describe('PublicStatusHandler', () => {
 
       const submitRequestSpy = vi
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .spyOn(instance as any, 'submitRequest')
+        .spyOn(instance.processor as any, 'jobFn')
         .mockResolvedValue(undefined);
 
       // act
