@@ -1,0 +1,47 @@
+{
+  "name": "@rosen-chains/handshake",
+  "version": "0.0.0",
+  "description": "This project contains Handshake chain for Rosen-bridge",
+  "keywords": [
+    "rosen"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rosen-bridge/guard-service.git",
+    "directory": "packages/chains/handshake"
+  },
+  "license": "MIT",
+  "author": "Aco Šmrkas",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "tsc --build tsconfig.build.json",
+    "clean": "rimraf dist && rimraf tsconfig.build.tsbuildinfo",
+    "coverage": "npm run test -- --run --coverage",
+    "lint": "eslint --fix . && npm run prettify",
+    "lint:check": "eslint . && npm run prettify:check",
+    "prettify": "prettier --write . --ignore-path ../../../.gitignore",
+    "prettify:check": "prettier --check . --ignore-path ../../../.gitignore",
+    "release": "npm run test -- --run && npm run clean && npm run build && npm publish --access public",
+    "test": "NODE_OPTIONS='--import tsx' vitest",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@rosen-bridge/abstract-logger": "^4.0.0",
+    "@rosen-bridge/bitcoin-utxo-selection": "^2.0.3",
+    "@rosen-bridge/json-bigint": "^1.1.0",
+    "@rosen-bridge/rosen-extractor": "^11.3.0",
+    "@rosen-bridge/tokens": "^6.0.0",
+    "@rosen-chains/abstract-chain": "^16.0.0",
+    "hsd": "^8.0.0"
+  },
+  "engines": {
+    "node": ">=22.18.0",
+    "npm": "11.6.2"
+  }
+}
