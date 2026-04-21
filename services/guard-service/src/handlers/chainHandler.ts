@@ -1,6 +1,8 @@
 import { DatabaseAction } from 'src/db/databaseAction';
 
 import { DefaultLogger } from '@rosen-bridge/abstract-logger';
+import { chainDecoders, chainValidators } from '@rosen-bridge/address-codec';
+import { AddressManager } from '@rosen-bridge/address-manager';
 import { AbstractChain } from '@rosen-chains/abstract-chain';
 import { BINANCE_CHAIN, BinanceChain } from '@rosen-chains/binance';
 import {
@@ -75,6 +77,11 @@ class ChainHandler {
   private readonly bitcoinRunesChain: BitcoinRunesChain;
 
   private constructor() {
+    AddressManager.init(
+      chainValidators,
+      chainDecoders,
+      DefaultLogger.getInstance().child('AddressManager'),
+    );
     this.ergoChain = this.generateErgoChain();
     this.cardanoChain = this.generateCardanoChain();
     this.bitcoinChain = this.generateBitcoinChain();
