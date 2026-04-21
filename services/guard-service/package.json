@@ -71,6 +71,8 @@
     "@rosen-chains/cardano": "^16.0.0",
     "@rosen-chains/cardano-blockfrost-network": "^10.0.2",
     "@rosen-chains/cardano-koios-network": "^13.0.2",
+    "@rosen-chains/firo": "^0.0.0",
+    "@rosen-chains/firo-rpc": "^0.0.0",
     "@rosen-chains/doge": "^4.0.0",
     "@rosen-chains/doge-blockcypher": "^1.0.3",
     "@rosen-chains/doge-esplora": "^2.0.3",
