@@ -2,6 +2,7 @@ import { DatabaseAction } from 'src/db/databaseAction';
 
 import { DefaultLogger } from '@rosen-bridge/abstract-logger';
 import { AbstractChain } from '@rosen-chains/abstract-chain';
+import { BASE_CHAIN, BaseChain } from '@rosen-chains/base';
 import { BINANCE_CHAIN, BinanceChain } from '@rosen-chains/binance';
 import {
   AbstractBitcoinNetwork,
@@ -47,6 +48,7 @@ import { FIRO_CHAIN, FiroChain } from '@rosen-chains/firo';
 import { FiroRpcNetwork } from '@rosen-chains/firo-rpc';
 import { RateLimitedAxiosConfig } from '@rosen-clients/rate-limited-axios';
 
+import GuardsBaseConfigs from '../configs/guardsBaseConfigs';
 import GuardsBinanceConfigs from '../configs/guardsBinanceConfigs';
 import GuardsBitcoinConfigs from '../configs/guardsBitcoinConfigs';
 import GuardsBitcoinRunesConfigs from '../configs/guardsBitcoinRunesConfigs';
@@ -68,6 +70,7 @@ class ChainHandler {
   private readonly ergoChain: ErgoChain;
   private readonly cardanoChain: CardanoChain;
   private readonly bitcoinChain: BitcoinChain;
+  private readonly baseChain: BaseChain;
   private readonly dogeChain: DogeChain;
   private readonly firoChain: FiroChain;
   private readonly ethereumChain: EthereumChain;
@@ -78,6 +81,7 @@ class ChainHandler {
     this.ergoChain = this.generateErgoChain();
     this.cardanoChain = this.generateCardanoChain();
     this.bitcoinChain = this.generateBitcoinChain();
+    this.baseChain = this.generateBaseChain();
     this.dogeChain = this.generateDogeChain();
     this.firoChain = this.generateFiroChain();
     this.ethereumChain = this.generateEthereumChain();
@@ -203,6 +207,43 @@ class ChainHandler {
       TokenHandler.getInstance().getTokenMap(),
       bitcoinSignMediator,
       DefaultLogger.getInstance().child('BitcoinChain'),
+    );
+  };
+
+  /**
+   * generates Base network and chain objects using configs
+   * @returns BaseChain object
+   */
+  private generateBaseChain = (): BaseChain => {
+    let network: AbstractEvmNetwork;
+    switch (GuardsBaseConfigs.chainNetworkName) {
+      case 'rpc':
+        network = new EvmRpcNetwork(
+          BASE_CHAIN,
+          GuardsBaseConfigs.rpc.url,
+          dataSource,
+          GuardsBaseConfigs.baseContractConfig.addresses.lock,
+          GuardsBaseConfigs.rpc.authToken,
+          DefaultLogger.getInstance().child('BaseRpcNetwork'),
+        );
+        break;
+      default:
+        throw Error(
+          `No case is defined for network [${GuardsBaseConfigs.chainNetworkName}]`,
+        );
+    }
+    const chainCode = GuardsBaseConfigs.tssChainCode;
+    const derivationPath = GuardsBaseConfigs.derivationPath;
+    const baseSignMediator = TssHandler.getInstance().wrapCurveSignMediator(
+      chainCode,
+      derivationPath,
+    );
+    return new BaseChain(
+      network,
+      GuardsBaseConfigs.chainConfigs,
+      TokenHandler.getInstance().getTokenMap(),
+      baseSignMediator,
+      DefaultLogger.getInstance().child('BaseChain'),
     );
   };
 
@@ -464,6 +505,8 @@ class ChainHandler {
         return this.cardanoChain;
       case BITCOIN_CHAIN:
         return this.bitcoinChain;
+      case BASE_CHAIN:
+        return this.baseChain;
       case DOGE_CHAIN:
         return this.dogeChain;
       case FIRO_CHAIN:

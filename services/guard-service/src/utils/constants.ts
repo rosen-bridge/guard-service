@@ -1,3 +1,4 @@
+import { BASE_CHAIN } from '@rosen-chains/base';
 import { BINANCE_CHAIN, BNB } from '@rosen-chains/binance';
 import { BITCOIN_CHAIN, BTC } from '@rosen-chains/bitcoin';
 import { BITCOIN_RUNES_CHAIN } from '@rosen-chains/bitcoin-runes';
@@ -48,6 +49,7 @@ const SUPPORTED_CHAINS = [
   ERGO_CHAIN,
   CARDANO_CHAIN,
   BITCOIN_CHAIN,
+  BASE_CHAIN,
   ETHEREUM_CHAIN,
   BINANCE_CHAIN,
   DOGE_CHAIN,
@@ -71,6 +73,7 @@ const ChainNativeToken: Record<string, string> = {
   [ERGO_CHAIN]: ERG,
   [CARDANO_CHAIN]: ADA,
   [BITCOIN_CHAIN]: BTC,
+  [BASE_CHAIN]: ETH,
   [ETHEREUM_CHAIN]: ETH,
   [DOGE_CHAIN]: DOGE,
   [FIRO_CHAIN]: FIRO,
@@ -82,6 +85,7 @@ const ChainConfigKey: Record<string, string> = {
   [ERGO_CHAIN]: ERGO_CHAIN,
   [CARDANO_CHAIN]: CARDANO_CHAIN,
   [BITCOIN_CHAIN]: BITCOIN_CHAIN,
+  [BASE_CHAIN]: BASE_CHAIN,
   [ETHEREUM_CHAIN]: ETHEREUM_CHAIN,
   [DOGE_CHAIN]: DOGE_CHAIN,
   [FIRO_CHAIN]: FIRO_CHAIN,
@@ -99,6 +103,7 @@ enum OrderStatus {
 }
 
 const ERGO_BLOCK_TIME = 120;
+const BASE_BLOCK_TIME = 2;
 const ETHEREUM_BLOCK_TIME = 12;
 const BINANCE_BLOCK_TIME = 3;
 
@@ -120,6 +125,7 @@ export {
   ChainConfigKey,
   OrderStatus,
   ERGO_BLOCK_TIME,
+  BASE_BLOCK_TIME,
   ETHEREUM_BLOCK_TIME,
   BINANCE_BLOCK_TIME,
 };

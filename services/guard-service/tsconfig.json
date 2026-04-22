@@ -12,6 +12,7 @@
   "exclude": ["./vitest.config.ts"],
   "references": [
     { "path": "../../packages/abstract-chain" },
+    { "path": "../../packages/chains/base" },
     { "path": "../../packages/chains/ergo" },
     { "path": "../../packages/chains/binance" },
     { "path": "../../packages/chains/bitcoin" },

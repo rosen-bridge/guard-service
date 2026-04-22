@@ -11,11 +11,13 @@ import {
   CommitmentExtractor,
   EventTriggerExtractor,
 } from '@rosen-bridge/watcher-data-extractor';
+import { BASE_CHAIN } from '@rosen-chains/base';
 import { BINANCE_CHAIN } from '@rosen-chains/binance';
 import { NODE_NETWORK } from '@rosen-chains/ergo-node-network';
 import { ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
 
 import Configs from '../configs/configs';
+import GuardsBaseConfigs from '../configs/guardsBaseConfigs';
 import GuardsBinanceConfigs from '../configs/guardsBinanceConfigs';
 import GuardsBitcoinConfigs from '../configs/guardsBitcoinConfigs';
 import GuardsBitcoinRunesConfigs from '../configs/guardsBitcoinRunesConfigs';
@@ -30,6 +32,7 @@ import { TokenHandler } from '../handlers/tokenHandler';
 const logger = DefaultLogger.getInstance().child(import.meta.url);
 
 let ergoScanner: ErgoScanner;
+let baseScanner: EvmRpcScanner;
 let ethereumScanner: EvmRpcScanner;
 let binanceScanner: EvmRpcScanner;
 
@@ -46,6 +49,22 @@ const ergoScannerJob = () => {
       logger.warn(`An error occurred in Ergo scanner job: ${e}`);
       logger.warn(e.stack);
       setTimeout(ergoScannerJob, GuardsErgoConfigs.scannerInterval * 1000);
+    });
+};
+
+/**
+ * runs base block scanner
+ */
+const baseScannerJob = () => {
+  baseScanner
+    .update()
+    .then(() =>
+      setTimeout(baseScannerJob, GuardsBaseConfigs.rpc.scannerInterval * 1000),
+    )
+    .catch((e) => {
+      logger.warn(`An error occurred in Base scanner job: ${e}`);
+      logger.warn(e.stack);
+      setTimeout(baseScannerJob, GuardsBaseConfigs.rpc.scannerInterval * 1000);
     });
 };
 
@@ -116,6 +135,16 @@ const createLoggers = () => ({
   ),
   ergoEventTriggerExtractorLogger: DefaultLogger.getInstance().child(
     'ergo-event-trigger-extractor',
+  ),
+  baseCommitmentExtractorLogger: DefaultLogger.getInstance().child(
+    'base-commitment-extractor',
+  ),
+  baseEventTriggerExtractorLogger: DefaultLogger.getInstance().child(
+    'base-event-trigger-extractor',
+  ),
+  baseScannerLogger: DefaultLogger.getInstance().child('base-scanner'),
+  baseLockAddressTxExtractorLogger: DefaultLogger.getInstance().child(
+    'base-lock-address-tx-extractor',
   ),
   ethereumCommitmentExtractorLogger: DefaultLogger.getInstance().child(
     'ethereum-commitment-extractor',
@@ -302,6 +331,28 @@ const initScanner = () => {
     initialization,
   );
 
+  // init Base extractors
+  const baseCommitmentExtractor = new CommitmentExtractor(
+    'baseCommitment',
+    [GuardsBaseConfigs.baseContractConfig.addresses.Commitment],
+    GuardsBaseConfigs.baseContractConfig.tokens.RWTId,
+    dataSource,
+    TokenHandler.getInstance().getTokenMap(),
+    loggers.baseCommitmentExtractorLogger,
+  );
+  const baseEventTriggerExtractor = new EventTriggerExtractor(
+    'baseEventTrigger',
+    dataSource,
+    networkType,
+    networkUrl,
+    GuardsBaseConfigs.baseContractConfig.addresses.WatcherTriggerEvent,
+    GuardsBaseConfigs.baseContractConfig.tokens.RWTId,
+    GuardsBaseConfigs.baseContractConfig.addresses.WatcherPermit,
+    GuardsBaseConfigs.baseContractConfig.addresses.Fraud,
+    loggers.baseEventTriggerExtractorLogger,
+    initialization,
+  );
+
   // init Ethereum extractors
   const ethereumCommitmentExtractor = new CommitmentExtractor(
     'ethereumCommitment',
@@ -372,6 +423,8 @@ const initScanner = () => {
   ergoScanner.registerExtractor(cardanoEventTriggerExtractor);
   ergoScanner.registerExtractor(ergoCommitmentExtractor);
   ergoScanner.registerExtractor(ergoEventTriggerExtractor);
+  ergoScanner.registerExtractor(baseCommitmentExtractor);
+  ergoScanner.registerExtractor(baseEventTriggerExtractor);
   ergoScanner.registerExtractor(ethereumCommitmentExtractor);
   ergoScanner.registerExtractor(ethereumEventTriggerExtractor);
   ergoScanner.registerExtractor(dogeCommitmentExtractor);
@@ -384,6 +437,28 @@ const initScanner = () => {
   ergoScanner.registerExtractor(bitcoinRunesEventTriggerExtractor);
 
   ergoScannerJob();
+
+  // init Base scanner
+  if (GuardsBaseConfigs.chainNetworkName === 'rpc') {
+    baseScanner = new EvmRpcScanner(BASE_CHAIN, {
+      dataSource: dataSource,
+      initialHeight: GuardsBaseConfigs.rpc.initialHeight,
+      network: new EvmRpcNetwork(
+        GuardsBaseConfigs.rpc.url,
+        GuardsBaseConfigs.rpc.timeout,
+        GuardsBaseConfigs.rpc.authToken,
+      ),
+      logger: loggers.baseScannerLogger,
+    });
+    const baseAddressTxExtractor = new EvmTxExtractor(
+      dataSource,
+      'base-lock-address',
+      GuardsBaseConfigs.baseContractConfig.addresses.lock,
+      loggers.baseLockAddressTxExtractorLogger,
+    );
+    baseScanner.registerExtractor(baseAddressTxExtractor);
+    baseScannerJob();
+  }
 
   // init Ethereum scanner
   if (GuardsEthereumConfigs.chainNetworkName === 'rpc') {

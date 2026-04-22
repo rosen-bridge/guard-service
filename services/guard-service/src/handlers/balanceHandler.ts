@@ -1,6 +1,7 @@
 import { chunk } from 'lodash-es';
 
 import { RosenTokens } from '@rosen-bridge/tokens';
+import { BASE_CHAIN } from '@rosen-chains/base';
 import { BINANCE_CHAIN, BNB } from '@rosen-chains/binance';
 import { BITCOIN_CHAIN, BTC } from '@rosen-chains/bitcoin';
 import { BITCOIN_RUNES_CHAIN } from '@rosen-chains/bitcoin-runes';
@@ -70,6 +71,11 @@ class BalanceHandler {
           this.nativeTokenIds[chain] = FIRO;
           this.chainsTokensPerIteration[chain] =
             Configs.balanceHandler.firo.tokensPerIteration.rpc;
+          break;
+        case BASE_CHAIN:
+          this.nativeTokenIds[chain] = ETH;
+          this.chainsTokensPerIteration[chain] =
+            Configs.balanceHandler.base.tokensPerIteration.rpc;
           break;
         case ETHEREUM_CHAIN:
           this.nativeTokenIds[chain] = ETH;
