@@ -4,5 +4,4 @@
 
 Update dependencies
 
-- @rosen-bridge/abstract-logger@4.0.0
-- @rosen-clients/cardano-koios@3.1.1
+- @rosen-clients/cardano-koios@3.1.2

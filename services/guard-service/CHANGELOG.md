@@ -1,5 +1,67 @@
 # guard-service
 
+## 9.0.0
+
+### Major Changes
+
+- Add Custom Fee Distribution feature: Enables sending the bridge fee to multiple addresses based on the source chain of the event
+
+### Minor Changes
+
+- Add `curveSignTimeout` for ECDSA signer and `edwardSignTimeout` for EdDSA signer to config
+- Add Sign Status Pulling feature: Now the transaction processor asks the status of sign process for a transaction from the corresponding signer instead of checking the elapsed signing duration
+- Add TSS signature cache TTL to config
+- Remove `txSignTimeout` config
+  - The `TransactionProcessor` will use the Sign Status Pulling feature and no longer need sign timeout config
+  - The `MultiSigHandler` has its own sign timeout config (`ergoMultiSig.signTimeout`)
+
+### Patch Changes
+
+- Change default timeout value for all signers (Multisig and TSS) from 5 minutes to 10
+- Update RosenConfig and ContractConfig to support new contracts config format
+- Add dependency
+  - @rosen-bridge/abstract-logger@4.0.0
+- Update dependencies
+  - @rosen-bridge/abstract-scanner@1.0.1
+  - @rosen-bridge/asset-check@6.2.0
+  - @rosen-bridge/callback-logger@2.0.0
+  - @rosen-bridge/communication@2.0.2
+  - @rosen-bridge/detection@2.0.2
+  - @rosen-bridge/dialer@0.3.0
+  - @rosen-bridge/ergo-multi-sig@2.2.0
+  - @rosen-bridge/ergo-scanner@1.0.1
+  - @rosen-bridge/evm-address-tx-extractor@2.0.1
+  - @rosen-bridge/evm-scanner@1.0.1
+  - @rosen-bridge/minimum-fee@3.1.2
+  - @rosen-bridge/node-sync-check@3.0.1
+  - @rosen-bridge/rosenet-utils@0.5.0
+  - @rosen-bridge/scanner-interfaces@0.2.2
+  - @rosen-bridge/scanner-sync-check@8.2.0
+  - @rosen-bridge/tokens@6.0.0
+  - @rosen-bridge/tss@5.1.0
+  - @rosen-bridge/watcher-data-extractor@13.0.3
+  - @rosen-bridge/winston-logger@3.0.0
+  - @rosen-clients/rate-limited-axios@1.1.1
+  - @rosen-chains/abstract-chain@16.0.0
+  - @rosen-chains/binance@4.0.0
+  - @rosen-chains/bitcoin@10.0.0
+  - @rosen-chains/bitcoin-esplora@5.0.3
+  - @rosen-chains/bitcoin-runes@4.0.0
+  - @rosen-chains/bitcoin-runes-rpc@2.0.4
+  - @rosen-chains/cardano@16.0.0
+  - @rosen-chains/cardano-blockfrost-network@10.0.2
+  - @rosen-chains/cardano-koios-network@13.0.2
+  - @rosen-chains/doge@4.0.0
+  - @rosen-chains/doge-blockcypher@1.0.3
+  - @rosen-chains/doge-esplora@2.0.3
+  - @rosen-chains/doge-rpc@1.0.3
+  - @rosen-chains/ergo@14.0.0
+  - @rosen-chains/ergo-explorer-network@10.0.3
+  - @rosen-chains/ergo-node-network@10.0.3
+  - @rosen-chains/ethereum@4.0.0
+  - @rosen-chains/evm@10.0.0
+  - @rosen-chains/evm-rpc@4.0.4
+
 ## 8.1.0
 
 ### Minor Changes

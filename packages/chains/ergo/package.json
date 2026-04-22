@@ -1,6 +1,6 @@
 {
   "name": "@rosen-chains/ergo",
-  "version": "13.0.2",
+  "version": "14.0.0",
   "description": "this project contains ergo chain for Rosen-bridge",
   "keywords": [
     "rosen"
@@ -35,9 +35,9 @@
     "@rosen-bridge/abstract-logger": "^4.0.0",
     "@rosen-bridge/ergo-box-selection": "^2.1.1",
     "@rosen-bridge/json-bigint": "^1.1.0",
-    "@rosen-bridge/rosen-extractor": "^11.3.0",
+    "@rosen-bridge/rosen-extractor": "^12.0.0",
     "@rosen-bridge/tokens": "^6.0.0",
-    "@rosen-chains/abstract-chain": "^15.0.2",
+    "@rosen-chains/abstract-chain": "^16.0.0",
     "ergo-lib-wasm-nodejs": "^0.24.1"
   },
   "engines": {

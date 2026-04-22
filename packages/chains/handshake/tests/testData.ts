@@ -17,6 +17,37 @@ export const lockScript =
 // Test token map
 export const testTokenMap: RosenTokens = [
   {
+    ergo: {
+      tokenId:
+        '1c7435e608ab710c56bbe0f635e2a5e86ddf856f7d3d2d1d4dfefa62fbbfb9b4',
+      name: 'testHNS',
+      decimals: 6,
+      type: 'EIP-004',
+      residency: 'wrapped',
+      extra: {},
+    },
+    handshake: {
+      tokenId: 'hns',
+      name: 'HNS',
+      decimals: 6,
+      type: 'native',
+      residency: 'native',
+      extra: {},
+    },
+  },
+];
+
+export const multiDecimalTokenMap: RosenTokens = [
+  {
+    ergo: {
+      tokenId:
+        '1c7435e608ab710c56bbe0f635e2a5e86ddf856f7d3d2d1d4dfefa62fbbfb9b4',
+      name: 'testHNS',
+      decimals: 3,
+      type: 'EIP-004',
+      residency: 'wrapped',
+      extra: {},
+    },
     handshake: {
       tokenId: 'hns',
       name: 'HNS',
@@ -80,6 +111,16 @@ export const transaction2Order = [
   },
 ];
 
+export const transaction2WrappedOrder = [
+  {
+    address: 'hs1qrk5xfaxdk4mhem8rljr5k0yvkaxn6vzvh7mh04',
+    assets: {
+      nativeToken: 2000n, // 2 HNS with wrapped decimals (3)
+      tokens: [],
+    },
+  },
+];
+
 export const transaction2PaymentTransaction = JSON.stringify({
   network: 'handshake',
   txId: '966bc5def97d7b8817954544bed4c1c487b08a0d1a74dbce565e82da46a79641',
@@ -104,26 +145,37 @@ export const transaction2Assets = {
   },
 };
 
+export const transaction2WrappedAssets = {
+  inputAssets: {
+    nativeToken: 15000n,
+    tokens: [],
+  },
+  outputAssets: {
+    nativeToken: 15000n,
+    tokens: [],
+  },
+};
+
 // Signature test data for TSS signing
 export const transaction2HashMessage0 =
   '34b1fc183ca504deb10ae1746860db7da555ecc0daab2aa147684ebe9dcc87a5';
 export const transaction2Signature0 =
-  '304402205775ecea4b8e18eb78ae18d77d1e239885cea219ddf9a1147c97ee29106fb010022026ec267183493e900b531761cb4423bac4eee07cc630eedf32df90f7171498b1';
+  '5775ecea4b8e18eb78ae18d77d1e239885cea219ddf9a1147c97ee29106fb01026ec267183493e900b531761cb4423bac4eee07cc630eedf32df90f7171498b1';
 
 export const transaction2HashMessage1 =
   '84084e4cede4dbb9ceca6f36a815212bc31ad95e6b1517a122424b4a95b686d6';
 export const transaction2Signature1 =
-  '3045022100f1e2d3c4b5a697887960504030201001020304050607080900010203040506070220111213141516171819202122232425262728293031323334353637383940414243';
+  'f1e2d3c4b5a697887960504030201001020304050607080900010203040506071112131415161718192021222324252627282930313233343536373839404142';
 
 export const transaction2SignedTxBytesHex =
-  '00000000020170246f92140c93bab5428adf905aa9588d4e9ba72c854563e09a58df34fdda0c0000000002473044022' +
-  '05775ecea4b8e18eb78ae18d77d1e239885cea219ddf9a1147c97ee29106fb010022026ec267183493e900b531761cb44' +
-  '23bac4eee07cc630eedf32df90f7171498b1210345307e1165c99d12557bea11f8c8cd0f6bc057fb51952e824bc7c760f' +
-  'da0733500000000bad3fe1da1d8da87ac504769110475b718c1bd9f90a50c6ddfe9c8ebdab9427bac010000000247304502' +
-  '2100f1e2d3c4b5a697887960504030201001020304050607080900010203040506070220111213141516171819202122232' +
-  '425262728293031323334353637383940414243210345307e1165c99d12557bea11f8c8cd0f6bc057fb51952e824bc7c76' +
-  '0fda07335000000000024012000000000000001400cdc1cde2e417b586bd714f64afc3d7def41b6b15000045f60e0100000' +
-  '00014045d7a5c4458e1b989a01c8e1dd5907febaea6f5b000000000000';
+  '0000000002c5dafd34df589ae06345852ca79b4e8d58a95a90df8a42b5ba930c14926f247000000000ffffffffac7b42b9' +
+  'daebc8e9df6dc50a909fbdc18b750411694750ac87d8ada11dfed3ba01000000ffffffff0280841e000000000000141da864' +
+  'f4cdb5777cece3fc874b3c8cb74d3d304c0000645cc60000000000001490ee2f48d5e3db96c75a1efc77dceac1f149a86900' +
+  '000000000002415775ecea4b8e18eb78ae18d77d1e239885cea219ddf9a1147c97ee29106fb01026ec267183493e900b53176' +
+  '1cb4423bac4eee07cc630eedf32df90f7171498b101210345307e1165c99d12557bea11f8c8cd0f6bc057fb51952e824bc7c7' +
+  '60fda073350241f1e2d3c4b5a69788796050403020100102030405060708090001020304050607111213141516171819202122' +
+  '232425262728293031323334353637383940414201210345307e1165c99d12557bea11f8c8cd0f6bc057fb51952e824bc7c760' +
+  'fda07335';
 
 export const transaction0Input0BoxId =
   'aaaaaaa536b3493c08b85f11755f672f2b40beddb8f2b65c6bb1e68074c85baa.0';

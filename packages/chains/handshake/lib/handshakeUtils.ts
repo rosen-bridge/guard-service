@@ -18,7 +18,7 @@ export const getInputBoxId = (input: Input) => {
  * @param feeRatio fee rate in dollarydoos per vB
  */
 export const estimateTxFee = (tx: TX, feeRatio: number): bigint => {
-  // Handshake doesn't use witness discount, use actual size not virtual size
-  const size = tx.getSize();
+  // Handshake uses witness discount like Bitcoin, use virtual size
+  const size = tx.getVirtualSize();
   return BigInt(Math.ceil(size * feeRatio));
 };

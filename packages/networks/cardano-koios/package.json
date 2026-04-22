@@ -1,6 +1,6 @@
 {
   "name": "@rosen-chains/cardano-koios-network",
-  "version": "13.0.1",
+  "version": "13.0.2",
   "description": "cardano koios network package for rosen cardano chain",
   "keywords": [
     "rosen"
@@ -35,9 +35,9 @@
     "@emurgo/cardano-serialization-lib-nodejs": "^13.2.0",
     "@rosen-bridge/abstract-logger": "^4.0.0",
     "@rosen-bridge/json-bigint": "^1.1.0",
-    "@rosen-chains/abstract-chain": "^15.0.2",
-    "@rosen-chains/cardano": "^15.0.1",
-    "@rosen-clients/cardano-koios": "^3.1.1"
+    "@rosen-chains/abstract-chain": "^16.0.0",
+    "@rosen-chains/cardano": "^16.0.0",
+    "@rosen-clients/cardano-koios": "^3.1.2"
   },
   "engines": {
     "node": ">=22.18.0",

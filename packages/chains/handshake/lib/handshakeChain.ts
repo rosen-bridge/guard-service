@@ -1,4 +1,4 @@
-import { MTX, Address, Script, Coin } from 'hsd';
+import { Address, Coin, Input, MTX, Script } from 'hsd';
 
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 import {
@@ -27,11 +27,13 @@ import {
 
 import {
   HANDSHAKE_CHAIN,
-  HNS,
-  HANDSHAKE_TX_BASE_SIZE,
   HANDSHAKE_INPUT_SIZE,
   HANDSHAKE_OUTPUT_SIZE,
+  HANDSHAKE_TX_BASE_SIZE,
+  HNS,
   MINIMUM_UTXO_VALUE,
+  TSS_SIGNATURE_SIZE,
+  WITNESS_SIGNATURE_SIZE,
 } from './constants';
 import HandshakeTransaction from './handshakeTransaction';
 import { estimateTxFee, getInputBoxId } from './handshakeUtils';
@@ -142,14 +144,14 @@ class HandshakeChain extends AbstractUtxoChain<HandshakeTx, HandshakeUtxo> {
     const utxoIterator = generator();
 
     // generate fee estimator for box selection
-    // Handshake: fee = size * feeRatio (no SegWit discount)
+    // Handshake: fee = virtualSize * feeRatio (uses SegWit-style witness discount)
     const estimateFee = generateFeeEstimator(
       1,
       HANDSHAKE_TX_BASE_SIZE,
       HANDSHAKE_INPUT_SIZE,
       HANDSHAKE_OUTPUT_SIZE,
       feeRatio,
-      1, // no SegWit discount for Handshake
+      4, // Handshake uses witness discount like Bitcoin (WITNESS_SCALE_FACTOR = 4)
     );
 
     // fetch input boxes
@@ -224,31 +226,20 @@ class HandshakeChain extends AbstractUtxoChain<HandshakeTx, HandshakeUtxo> {
       value: 0,
     });
 
-    // Estimate fee for final signed transaction
-    // Match the witness structure created by buildSignedTransaction
-    const tempMtx = mtx.clone();
-    const tempWitness = new Script();
-
-    // Witness structure for TSS: [signature, publicKey]
-    // hsd signature: 64 bytes + 1 byte SIGHASH_ALL = 65 bytes
-    tempWitness.pushData(Buffer.alloc(65, 0)); // Aggregated signature
-    tempWitness.pushData(Buffer.from(this.configs.aggregatedPublicKey, 'hex')); // Aggregated public key
-
-    tempWitness.compile();
-    const witnessStack = tempWitness.toStack();
-    for (let i = 0; i < tempMtx.inputs.length; i++) {
-      tempMtx.inputs[i].witness.fromStack(witnessStack);
-    }
-    const estimatedFee = estimateTxFee(tempMtx, feeRatio);
+    // Estimate fee for final signed transaction with expected witness shape.
+    const feeEstimationTx = this.withWitnessForFeeEstimation(mtx);
+    const estimatedFee = estimateTxFee(feeEstimationTx, feeRatio);
     this.logger.debug(
-      `Estimated Fee: ${estimatedFee} (tx size: ${tempMtx.getSize()} bytes, fee ratio: ${feeRatio})`,
+      `Estimated Fee: ${estimatedFee} (tx size: ${feeEstimationTx.getSize()} bytes, fee ratio: ${feeRatio})`,
     );
 
     remainingHns -= estimatedFee;
 
     // IMPORTANT: Ensure remainingHns is positive and safe to convert to Number
-    if (remainingHns < 0n) {
-      throw new Error(`Insufficient funds: fee exceeds remaining balance`);
+    if (remainingHns < BigInt(MINIMUM_UTXO_VALUE)) {
+      throw new Error(
+        `Insufficient funds: remaining HNS cannot cover minimum UTxO value and estimated fee`,
+      );
     }
     if (remainingHns > BigInt(Number.MAX_SAFE_INTEGER)) {
       throw new Error(
@@ -297,13 +288,14 @@ class HandshakeChain extends AbstractUtxoChain<HandshakeTx, HandshakeUtxo> {
       txHns += BigInt(input.value);
     }
 
+    const wrappedValue = this.wrapHns(txHns).amount;
     return {
       inputAssets: {
-        nativeToken: txHns,
+        nativeToken: wrappedValue,
         tokens: [],
       },
       outputAssets: {
-        nativeToken: txHns,
+        nativeToken: wrappedValue,
         tokens: [],
       },
     };
@@ -339,20 +331,26 @@ class HandshakeChain extends AbstractUtxoChain<HandshakeTx, HandshakeUtxo> {
         i === mtx.outputs.length - 1 &&
         outputAddress &&
         outputAddress.toString() === this.lockAddress.toString()
-      )
+      ) {
         continue;
+      }
 
-      if (!outputAddress) continue;
+      if (!outputAddress) {
+        throw new Error(
+          `Handshake output at index [${i}] has no address and cannot be extracted into payment order`,
+        );
+      }
 
       const payment: SinglePayment = {
         address: outputAddress.toString(),
         assets: {
-          nativeToken: BigInt(output.value),
+          nativeToken: this.wrapHns(BigInt(output.value)).amount,
           tokens: [],
         },
       };
       order.push(payment);
     }
+
     return order;
   };
 
@@ -381,7 +379,10 @@ class HandshakeChain extends AbstractUtxoChain<HandshakeTx, HandshakeUtxo> {
     }
 
     const fee = inHns - outHns;
-    const estimatedFee = estimateTxFee(mtx, await this.network.getFeeRatio());
+    const estimatedFee = estimateTxFee(
+      this.withWitnessForFeeEstimation(mtx),
+      await this.network.getFeeRatio(),
+    );
 
     const feeDifferencePercent = Math.abs(
       (Number(fee - estimatedFee) * 100) / Number(fee),
@@ -410,6 +411,7 @@ class HandshakeChain extends AbstractUtxoChain<HandshakeTx, HandshakeUtxo> {
 
   /**
    * verifies additional conditions for a HandshakeTransaction
+   * - check all output covenants are NONE
    * - check change box
    * @param transaction the PaymentTransaction
    * @param signingStatus the signing status of transaction
@@ -421,6 +423,13 @@ class HandshakeChain extends AbstractUtxoChain<HandshakeTx, HandshakeUtxo> {
     signingStatus: SigningStatus = SigningStatus.UnSigned,
   ): boolean => {
     const mtx = Serializer.deserialize(transaction.txBytes);
+
+    if (mtx.outputs.some((output) => output.covenant.type !== 0)) {
+      this.logger.warn(
+        `Tx [${transaction.txId}] is not verified: Output covenant is not NONE`,
+      );
+      return false;
+    }
 
     // check change box
     const changeBoxIndex = mtx.outputs.length - 1;
@@ -703,7 +712,7 @@ class HandshakeChain extends AbstractUtxoChain<HandshakeTx, HandshakeUtxo> {
 
     txs.forEach((mtx) => {
       const txId = mtx.txid();
-      mtx.inputs.forEach((input) => {
+      mtx.inputs.forEach((input: Input) => {
         let trackedBox: HandshakeUtxo | undefined = undefined;
         let index = 0;
         for (index = 0; index < mtx.outputs.length; index++) {
@@ -729,11 +738,25 @@ class HandshakeChain extends AbstractUtxoChain<HandshakeTx, HandshakeUtxo> {
   };
 
   /**
-   * returns box id
-   * @param box
+   * Adds a deterministic dummy witness for unsigned inputs so fee estimation
+   * reflects post-signing virtual size.
    */
-  protected getBoxId = (box: HandshakeUtxo): string =>
-    box.txId + '.' + box.index;
+  protected withWitnessForFeeEstimation = (mtx: MTX): MTX => {
+    const feeMtx = mtx.clone();
+    const dummyWitness = new Script();
+
+    // TSS signature (64) + SIGHASH_ALL (1) => 65 bytes.
+    dummyWitness.pushData(Buffer.alloc(WITNESS_SIGNATURE_SIZE, 0));
+    dummyWitness.pushData(Buffer.from(this.configs.aggregatedPublicKey, 'hex'));
+    dummyWitness.compile();
+
+    const witnessStack = dummyWitness.toStack();
+    for (let i = 0; i < feeMtx.inputs.length; i++) {
+      feeMtx.inputs[i].witness.fromStack(witnessStack);
+    }
+
+    return feeMtx;
+  };
 
   /**
    * inserts signatures into MTX using TSS aggregated signature
@@ -756,13 +779,27 @@ class HandshakeChain extends AbstractUtxoChain<HandshakeTx, HandshakeUtxo> {
     for (let i = 0; i < signatures.length; i++) {
       const sigHex = signatures[i];
 
+      if (
+        sigHex.length !== TSS_SIGNATURE_SIZE * 2 ||
+        sigHex.length % 2 !== 0 ||
+        !/^[0-9a-fA-F]+$/.test(sigHex)
+      ) {
+        throw new Error(
+          `Invalid TSS signature format for input [${i}]: expected ${TSS_SIGNATURE_SIZE}-byte hex signature.`,
+        );
+      }
+
+      const signatureBody = Buffer.from(sigHex, 'hex');
+      if (signatureBody.length !== TSS_SIGNATURE_SIZE) {
+        throw new Error(
+          `Invalid TSS signature size for input [${i}]: expected ${TSS_SIGNATURE_SIZE} bytes, got ${signatureBody.length}.`,
+        );
+      }
+
       const witness = new Script();
 
       // Append SIGHASH_ALL (0x01) to the aggregated signature
-      const signature = Buffer.concat([
-        Buffer.from(sigHex, 'hex'),
-        Buffer.from([0x01]),
-      ]);
+      const signature = Buffer.concat([signatureBody, Buffer.from([0x01])]);
 
       // Push aggregated signature
       witness.pushData(signature);

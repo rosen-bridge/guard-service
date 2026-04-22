@@ -4,9 +4,9 @@
 '@rosen-chains/bitcoin-esplora': patch
 '@rosen-chains/doge-esplora': patch
 '@rosen-chains/doge-rpc': patch
+'@rosen-chains/firo-rpc': patch
 ---
 
 Update dependencies
 
-- @rosen-bridge/abstract-logger@4.0.0
-- @rosen-clients/rate-limited-axios@1.1.1
+- @rosen-clients/rate-limited-axios@2.0.0

@@ -31,31 +31,15 @@ export interface HandshakeTxOutput {
     hash: string;
     string: string;
   };
+  covenant: {
+    type: number;
+    action: string;
+    items: string[];
+  };
 }
 
 export interface HandshakeTx {
   id: string;
   inputs: HandshakeTxInput[];
   outputs: HandshakeTxOutput[];
-}
-
-export enum HandshakeNetworkFunction {
-  // AbstractChainNetwork functions
-  getHeight = 'getHeight',
-  getTxConfirmation = 'getTxConfirmation',
-  getAddressAssets = 'getAddressAssets',
-  getBlockTransactionIds = 'getBlockTransactionIds',
-  getBlockInfo = 'getBlockInfo',
-  getTransaction = 'getTransaction',
-  submitTransaction = 'submitTransaction',
-  getActualTxId = 'getActualTxId',
-
-  // AbstractUtxoChainNetwork functions
-  getAddressBoxes = 'getAddressBoxes',
-  isBoxUnspentAndValid = 'isBoxUnspentAndValid',
-
-  // AbstractHandshakeNetwork specific functions
-  getUtxo = 'getUtxo',
-  getFeeRatio = 'getFeeRatio',
-  getMempoolTxIds = 'getMempoolTxIds',
 }

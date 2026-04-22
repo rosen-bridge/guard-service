@@ -38,7 +38,7 @@ abstract class AbstractHandshakeNetwork extends AbstractUtxoChainNetwork<
 
   /**
    * gets all transactions in mempool (returns empty list if the chain has no mempool)
-   * Note: due to heavy size of transactions in mempool, we ignore getting mempool txs in Handshake
+   * Note: we ignore getting mempool txs in Handshake, as it doesn't affect us
    * @returns empty list
    */
   getMempoolTransactions = async (): Promise<Array<HandshakeTx>> => {
