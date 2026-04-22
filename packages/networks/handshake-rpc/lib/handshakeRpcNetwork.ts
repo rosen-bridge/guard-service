@@ -11,13 +11,14 @@ import {
   UnexpectedApiError,
 } from '@rosen-chains/abstract-chain';
 import {
-  PartialHandshakeNetwork,
-  HandshakeNetworkFunction,
+  AbstractHandshakeNetwork,
   HandshakeTx,
   HandshakeUtxo,
   CONFIRMATION_TARGET,
 } from '@rosen-chains/handshake';
-import RateLimitedAxios from '@rosen-clients/rate-limited-axios';
+import RateLimitedAxios, {
+  Axios as RateLimitedAxiosClass,
+} from '@rosen-clients/rate-limited-axios';
 
 import {
   HandshakeRpcTransaction,
@@ -28,24 +29,8 @@ import {
   HandshakeCoin,
 } from './types';
 
-class HandshakeRpcNetwork extends PartialHandshakeNetwork {
-  protected client; // Node RPC client (port 12037)
-
-  // List of functions this class implements from HandshakeNetworkFunction
-  readonly implements = [
-    HandshakeNetworkFunction.getHeight,
-    HandshakeNetworkFunction.getTxConfirmation,
-    HandshakeNetworkFunction.getAddressAssets,
-    HandshakeNetworkFunction.getBlockTransactionIds,
-    HandshakeNetworkFunction.getBlockInfo,
-    HandshakeNetworkFunction.getTransaction,
-    HandshakeNetworkFunction.submitTransaction,
-    HandshakeNetworkFunction.getAddressBoxes,
-    HandshakeNetworkFunction.isBoxUnspentAndValid,
-    HandshakeNetworkFunction.getUtxo,
-    HandshakeNetworkFunction.getFeeRatio,
-    HandshakeNetworkFunction.getMempoolTxIds,
-  ] as HandshakeNetworkFunction[];
+export class HandshakeRpcNetwork extends AbstractHandshakeNetwork {
+  protected client: RateLimitedAxiosClass; // Node RPC client (port 12037)
 
   constructor(url: string, logger?: AbstractLogger, auth?: RpcAuth) {
     super(logger);
@@ -112,7 +97,9 @@ class HandshakeRpcNetwork extends PartialHandshakeNetwork {
   getHeight = async (): Promise<number> => {
     const randomId = this.generateRandomId();
     try {
-      const response = await this.client.post<JsonRpcResult>('', {
+      const response = await this.client.post<
+        JsonRpcResult<HandshakeChainInfo>
+      >('', {
         method: 'getblockchaininfo',
         id: randomId,
         params: [],
@@ -120,7 +107,7 @@ class HandshakeRpcNetwork extends PartialHandshakeNetwork {
 
       this.validateResponseId(randomId, response.data.id);
 
-      const chainInfo: HandshakeChainInfo = response.data.result;
+      const chainInfo = response.data.result;
       this.logger?.debug(
         `Requested 'getblockchaininfo'. Response: ${JsonBigInt.stringify(
           chainInfo,
@@ -151,7 +138,9 @@ class HandshakeRpcNetwork extends PartialHandshakeNetwork {
   getBlockTransactionIds = async (blockId: string): Promise<Array<string>> => {
     const randomId = this.generateRandomId();
     try {
-      const response = await this.client.post<JsonRpcResult>('', {
+      const response = await this.client.post<
+        JsonRpcResult<HandshakeBlockSummary>
+      >('', {
         method: 'getblock',
         id: randomId,
         params: [blockId, true, false],
@@ -159,7 +148,7 @@ class HandshakeRpcNetwork extends PartialHandshakeNetwork {
 
       this.validateResponseId(randomId, response.data.id);
 
-      const blockData: HandshakeBlockSummary = response.data.result;
+      const blockData = response.data.result;
       this.logger?.debug(
         `Requested 'getblock' for blockId [${blockId}]. Response: ${JsonBigInt.stringify(
           blockData,
@@ -190,7 +179,9 @@ class HandshakeRpcNetwork extends PartialHandshakeNetwork {
   getBlockInfo = async (blockId: string): Promise<BlockInfo> => {
     const randomId = this.generateRandomId();
     try {
-      const response = await this.client.post<JsonRpcResult>('', {
+      const response = await this.client.post<
+        JsonRpcResult<HandshakeBlockSummary>
+      >('', {
         method: 'getblock',
         id: randomId,
         params: [blockId],
@@ -198,7 +189,7 @@ class HandshakeRpcNetwork extends PartialHandshakeNetwork {
 
       this.validateResponseId(randomId, response.data.id);
 
-      const blockData: HandshakeBlockSummary = response.data.result;
+      const blockData = response.data.result;
       this.logger?.debug(
         `Requested 'getblock' for blockId [${blockId}]. Response: ${JsonBigInt.stringify(
           blockData,
@@ -237,7 +228,9 @@ class HandshakeRpcNetwork extends PartialHandshakeNetwork {
   ): Promise<HandshakeTx> => {
     const randomId = this.generateRandomId();
     try {
-      const response = await this.client.post<JsonRpcResult>('', {
+      const response = await this.client.post<
+        JsonRpcResult<HandshakeRpcTransaction>
+      >('', {
         method: 'getrawtransaction',
         id: randomId,
         params: [transactionId, true],
@@ -245,7 +238,7 @@ class HandshakeRpcNetwork extends PartialHandshakeNetwork {
 
       this.validateResponseId(randomId, response.data.id);
 
-      const tx: HandshakeRpcTransaction = response.data.result;
+      const tx = response.data.result;
       this.logger?.debug(
         `Requested 'getrawtransaction' for txId [${transactionId}]. Response: ${JsonBigInt.stringify(
           tx,
@@ -259,34 +252,26 @@ class HandshakeRpcNetwork extends PartialHandshakeNetwork {
         );
       }
 
-      // Filter outputs (only keep covenant type 0 = NONE and 7 = UPDATE)
       // Transform the RPC transaction to the expected HandshakeTx format
       const handshakeTx: HandshakeTx = {
         id: tx.txid,
-        inputs: tx.vin
-          .filter((input) => !input.coinbase)
-          .map((input) => ({
-            txId: input.txid,
-            index: input.vout,
-          })),
-        outputs: tx.vout
-          .filter(
-            (output) =>
-              output.covenant.type === 7 || output.covenant.type === 0,
-          ) // Only 7 covenant (UPDATE) and 0 covenant (HNS)
-          .map((output) => ({
-            value: this.convertDollarydoos(output.value),
-            address: output.address || {
-              version: 0,
-              hash: '',
-              string: '',
-            },
-            covenant: output.covenant || {
-              type: 0,
-              action: 'NONE',
-              items: [],
-            },
-          })),
+        inputs: tx.vin.map((input) => ({
+          txId: input.txid,
+          index: input.vout,
+        })),
+        outputs: tx.vout.map((output) => ({
+          value: this.convertDollarydoos(output.value),
+          address: output.address || {
+            version: 0,
+            hash: '',
+            string: '',
+          },
+          covenant: output.covenant || {
+            type: 0,
+            action: 'NONE',
+            items: [],
+          },
+        })),
       };
 
       return handshakeTx;
@@ -320,7 +305,7 @@ class HandshakeRpcNetwork extends PartialHandshakeNetwork {
 
     const randomId = this.generateRandomId();
     try {
-      const response = await this.client.post<JsonRpcResult>('', {
+      const response = await this.client.post<JsonRpcResult<string>>('', {
         method: 'sendrawtransaction',
         id: randomId,
         params: [txHex],
@@ -360,7 +345,9 @@ class HandshakeRpcNetwork extends PartialHandshakeNetwork {
     const randomId = this.generateRandomId();
     try {
       // Check if the output is spent
-      const listUnspentResponse = await this.client.post<JsonRpcResult>('', {
+      const listUnspentResponse = await this.client.post<
+        JsonRpcResult<HandshakeRpcTransaction['vout'][number] | null>
+      >('', {
         method: 'gettxout',
         id: randomId,
         params: [txId, outputIndex, false], // txid, n, include_mempool
@@ -368,15 +355,8 @@ class HandshakeRpcNetwork extends PartialHandshakeNetwork {
 
       this.validateResponseId(randomId, listUnspentResponse.data.id);
 
-      // If the result is null, the output is spent
-      // Also check if it's a coin output (covenant type 0)
-      const result = listUnspentResponse.data.result;
-      if (result === null) return false;
-
-      // Check if it's a regular coin output (not a name-related covenant)
-      if (result.covenant && result.covenant.type !== 0) return false;
-
-      return true;
+      // If the result is null, the output is spent.
+      return listUnspentResponse.data.result !== null;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to check if box [${boxId}] is unspent from Handshake RPC: `;
@@ -406,9 +386,12 @@ class HandshakeRpcNetwork extends PartialHandshakeNetwork {
     const outputIndex = parseInt(outputIndexStr);
 
     const randomId = this.generateRandomId();
+    let tx: HandshakeRpcTransaction;
     try {
       // Get the transaction to extract the UTXO information
-      const txResponse = await this.client.post<JsonRpcResult>('', {
+      const txResponse = await this.client.post<
+        JsonRpcResult<HandshakeRpcTransaction>
+      >('', {
         method: 'getrawtransaction',
         id: randomId,
         params: [txId, true],
@@ -416,33 +399,9 @@ class HandshakeRpcNetwork extends PartialHandshakeNetwork {
 
       this.validateResponseId(randomId, txResponse.data.id);
 
-      const tx: HandshakeRpcTransaction = txResponse.data.result;
-
-      if (!tx || outputIndex >= tx.vout.length) {
-        throw new FailedError(`UTXO with boxId [${boxId}] not found`);
-      }
-
-      const output = tx.vout[outputIndex];
-
-      // Only return coin outputs (covenant type 0)
-      if (output.covenant.type !== 0) {
-        throw new FailedError(
-          `UTXO with boxId [${boxId}] is not a coin output (covenant type: ${output.covenant.type})`,
-        );
-      }
-
-      return {
-        txId: txId,
-        index: outputIndex,
-        value: this.convertDollarydoos(output.value),
-      };
+      tx = txResponse.data.result;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
-      // Re-throw if it's already a FailedError (from validation above)
-      if (e instanceof FailedError) {
-        throw e;
-      }
-
       const baseError = `Failed to get UTXO [${boxId}] from Handshake RPC: `;
       if (e.response) {
         throw new FailedError(
@@ -454,6 +413,24 @@ class HandshakeRpcNetwork extends PartialHandshakeNetwork {
         throw new UnexpectedApiError(baseError + e.message);
       }
     }
+
+    if (!tx || outputIndex >= tx.vout.length) {
+      throw new FailedError(`UTXO with boxId [${boxId}] not found`);
+    }
+
+    const output = tx.vout[outputIndex];
+
+    if (output.covenant.type !== 0) {
+      throw new FailedError(
+        `UTXO with boxId [${boxId}] is not a coin output (covenant type: ${output.covenant.type})`,
+      );
+    }
+
+    return {
+      txId: txId,
+      index: outputIndex,
+      value: this.convertDollarydoos(output.value),
+    };
   };
 
   /**
@@ -463,7 +440,7 @@ class HandshakeRpcNetwork extends PartialHandshakeNetwork {
   getFeeRatio = async (): Promise<number> => {
     const randomId = this.generateRandomId();
     try {
-      const response = await this.client.post<JsonRpcResult>('', {
+      const response = await this.client.post<JsonRpcResult<number>>('', {
         method: 'estimatefee',
         id: randomId,
         params: [CONFIRMATION_TARGET], // Number of blocks to target for confirmation
@@ -515,14 +492,16 @@ class HandshakeRpcNetwork extends PartialHandshakeNetwork {
         await this.client.get<Array<HandshakeCoin>>(`/coin/address/${address}`)
       ).data;
 
+      this.logger?.debug(
+        `Requested '/coin/address' for address [${address}]. Response: ${JsonBigInt.stringify(
+          coins,
+        )}`,
+      );
+
       // Sum only regular coin values (covenant type 0) to get total HNS balance
       const totalBalance = coins
         .filter((coin) => coin.covenant.type === 0)
         .reduce((sum, coin) => sum + this.convertDollarydoos(coin.value), 0n);
-
-      this.logger?.debug(
-        `Requested 'getAddressAssets' for address [${address}]. Balance: ${totalBalance}`,
-      );
 
       return {
         nativeToken: totalBalance,
@@ -560,6 +539,12 @@ class HandshakeRpcNetwork extends PartialHandshakeNetwork {
         await this.client.get<Array<HandshakeCoin>>(`/coin/address/${address}`)
       ).data;
 
+      this.logger?.debug(
+        `Requested '/coin/address' for address [${address}]. Response: ${JsonBigInt.stringify(
+          coins,
+        )}`,
+      );
+
       // Filter to only include regular coin outputs (covenant type 0)
       const boxes: HandshakeUtxo[] = coins
         .filter((coin) => coin.covenant.type === 0)
@@ -568,21 +553,6 @@ class HandshakeRpcNetwork extends PartialHandshakeNetwork {
           index: coin.index,
           value: this.convertDollarydoos(coin.value),
         }));
-
-      // Sort boxes to keep consistency between calls
-      boxes.sort((a, b) => {
-        if (a.txId < b.txId) return -1;
-        else if (a.txId === b.txId && a.index < b.index) return -1;
-        else if (a.txId === b.txId && a.index === b.index) return 0;
-        else return 1;
-      });
-
-      this.logger?.debug(
-        `Requested 'getAddressBoxes' for address [${address}]. Found ${boxes.length} boxes, returning ${Math.min(
-          limit,
-          Math.max(0, boxes.length - offset),
-        )} boxes (offset: ${offset}, limit: ${limit})`,
-      );
 
       return boxes.slice(offset, offset + limit);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -607,15 +577,18 @@ class HandshakeRpcNetwork extends PartialHandshakeNetwork {
   getMempoolTxIds = async (): Promise<Array<string>> => {
     const randomId = this.generateRandomId();
     try {
-      const response = await this.client.post<JsonRpcResult>('', {
-        method: 'getrawmempool',
-        id: randomId,
-        params: [false], // verbose = false, just return tx ids
-      });
+      const response = await this.client.post<JsonRpcResult<Array<string>>>(
+        '',
+        {
+          method: 'getrawmempool',
+          id: randomId,
+          params: [false], // verbose = false, just return tx ids
+        },
+      );
 
       this.validateResponseId(randomId, response.data.id);
 
-      const txIds: string[] = response.data.result;
+      const txIds = response.data.result;
       this.logger?.debug(
         `Requested 'getrawmempool'. Found ${txIds.length} transactions`,
       );
@@ -646,7 +619,9 @@ class HandshakeRpcNetwork extends PartialHandshakeNetwork {
     try {
       const currentHeight = await this.getHeight();
 
-      const response = await this.client.post<JsonRpcResult>('', {
+      const response = await this.client.post<
+        JsonRpcResult<HandshakeRpcTransaction>
+      >('', {
         method: 'getrawtransaction',
         id: randomId,
         params: [transactionId, true],
@@ -654,7 +629,7 @@ class HandshakeRpcNetwork extends PartialHandshakeNetwork {
 
       this.validateResponseId(randomId, response.data.id);
 
-      const tx: HandshakeRpcTransaction = response.data.result;
+      const tx = response.data.result;
 
       // If tx is not in a block, return -1
       if (!tx.blockheight) return -1;
@@ -662,21 +637,13 @@ class HandshakeRpcNetwork extends PartialHandshakeNetwork {
       return currentHeight - tx.blockheight + 1;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
-      // If transaction is not found (404 or code -5), return -1
-      if (e.response && e.response.status === 404) {
-        return -1;
-      }
-      if (
-        e.response &&
-        e.response.data &&
-        e.response.data.error &&
-        e.response.data.error.code === -5
-      ) {
-        return -1;
-      }
-
       const baseError = `Failed to get tx confirmation for [${transactionId}] from Handshake RPC: `;
       if (e.response) {
+        // If transaction is not found (404 or code -5), return -1
+        if (e.response.status === 404 || e.response.data?.error?.code === -5) {
+          return -1;
+        }
+
         throw new FailedError(
           baseError + JsonBigInt.stringify(e.response.data),
         );
@@ -688,5 +655,3 @@ class HandshakeRpcNetwork extends PartialHandshakeNetwork {
     }
   };
 }
-
-export default HandshakeRpcNetwork;

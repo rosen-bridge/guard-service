@@ -4,5 +4,9 @@
     "outDir": "./dist",
     "types": ["node", "vitest/globals"]
   },
-  "include": ["tests", "lib"]
+  "include": ["tests", "lib"],
+  "references": [
+    { "path": "../../abstract-chain" },
+    { "path": "../../chains/handshake" }
+  ]
 }

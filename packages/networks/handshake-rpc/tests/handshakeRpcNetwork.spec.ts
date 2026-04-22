@@ -1,6 +1,6 @@
 import { FailedError } from '@rosen-chains/abstract-chain';
 
-import HandshakeRpcNetwork from '../lib/handshakeRpcNetwork';
+import { HandshakeRpcNetwork } from '../lib/handshakeRpcNetwork';
 import {
   mockAxiosPost,
   mockAxiosPostToThrow,
@@ -174,25 +174,25 @@ describe('HandshakeRpcNetwork', () => {
     });
 
     /**
-     * @target `HandshakeRpcNetwork.getTransaction` should filter out name covenant outputs
+     * @target `HandshakeRpcNetwork.getTransaction` should return the transaction with non-zero covenant outputs successfully
      * @dependencies
      * @scenario
-     * - mock axios to return transaction with name covenant
+     * - mock axios to return transaction with a non-zero covenant output
      * - run test
      * - check returned value
      * @expected
-     * - it should filter out outputs with covenant type != 0
+     * - it should return the transaction with non-zero covenant outputs successfully
      */
-    it('should filter out name covenant outputs', async () => {
-      mockAxiosPost(testData.rpcTxWithNameCovenant);
+    it('should return the transaction with non-zero covenant outputs successfully', async () => {
+      mockAxiosPost(testData.rpcTxWithNonZeroCovenant);
 
       const network = new HandshakeRpcNetwork(URL);
       const result = await network.getTransaction(
-        testData.rpcTxWithNameCovenant.txid,
+        testData.rpcTxWithNonZeroCovenant.txid,
         testData.txBlockHash,
       );
 
-      expect(result).toEqual(testData.handshakeTxWithFilteredCovenant);
+      expect(result).toEqual(testData.handshakeTxWithNonZeroCovenant);
     });
 
     /**
@@ -261,24 +261,24 @@ describe('HandshakeRpcNetwork', () => {
     });
 
     /**
-     * @target `HandshakeRpcNetwork.isBoxUnspentAndValid` should return false when
-     * box has name covenant (not a coin)
+     * @target `HandshakeRpcNetwork.isBoxUnspentAndValid` should return true when
+     * box has a non-zero covenant but is still unspent
      * @dependencies
      * @scenario
-     * - mock axios to return getTxOut response with name covenant
+     * - mock axios to return getTxOut response with a non-zero covenant
      * - run test
      * - check returned value
      * @expected
-     * - it should be false (we only support coin transactions)
+     * - it should be true because this function only checks unspent status
      */
-    it('should return false when box has name covenant', async () => {
-      mockAxiosPost(testData.getTxOutResponseWithNameCovenant);
+    it('should return true when box has a non-zero covenant but is unspent', async () => {
+      mockAxiosPost(testData.getTxOutResponseWithNonZeroCovenant);
 
       const network = new HandshakeRpcNetwork(URL);
       const boxId = `${testData.txId}.0`;
       const result = await network.isBoxUnspentAndValid(boxId);
 
-      expect(result).toEqual(false);
+      expect(result).toEqual(true);
     });
 
     /**
@@ -401,11 +401,11 @@ describe('HandshakeRpcNetwork', () => {
      * @target `HandshakeRpcNetwork.getMempoolTxIds` should return mempool tx ids successfully
      * @dependencies
      * @scenario
-     * - mock axios to return tx ids
+     * - mock axios to return mempool tx ids
      * - run test
      * - check returned value
      * @expected
-     * - it should be mocked tx ids
+     * - it should be mocked mempool tx ids
      */
     it('should return mempool tx ids successfully', async () => {
       mockAxiosPost(testData.txIds);
@@ -414,60 +414,6 @@ describe('HandshakeRpcNetwork', () => {
       const result = await network.getMempoolTxIds();
 
       expect(result).toEqual(testData.txIds);
-    });
-  });
-
-  describe('submitTransaction', () => {
-    /**
-     * @target `HandshakeRpcNetwork.submitTransaction` should submit transaction successfully
-     * @dependencies
-     * @scenario
-     * - mock axios to return success
-     * - create a mock MTX transaction
-     * - run test
-     * - check no error is thrown
-     * @expected
-     * - it should complete without throwing
-     */
-    it('should submit transaction successfully', async () => {
-      mockAxiosPost('transaction-hash');
-
-      const network = new HandshakeRpcNetwork(URL);
-      // Create a minimal mock MTX
-      const mockMTX = {
-        toRaw: () => Buffer.from('mock-tx-bytes'),
-      } as any; // eslint-disable-line @typescript-eslint/no-explicit-any
-
-      await expect(network.submitTransaction(mockMTX)).resolves.not.toThrow();
-    });
-
-    /**
-     * @target `HandshakeRpcNetwork.submitTransaction` should throw error when
-     * submission fails
-     * @dependencies
-     * @scenario
-     * - mock axios to throw error
-     * - create a mock MTX transaction
-     * - run test and expect exception thrown
-     * @expected
-     * - it should throw error
-     */
-    it('should throw error when submission fails', async () => {
-      mockAxiosPostToThrow({
-        response: {
-          status: 400,
-          data: { error: { message: 'Invalid transaction' } },
-        },
-      });
-
-      const network = new HandshakeRpcNetwork(URL);
-      const mockMTX = {
-        toRaw: () => Buffer.from('mock-tx-bytes'),
-      } as any; // eslint-disable-line @typescript-eslint/no-explicit-any
-
-      await expect(async () => {
-        await network.submitTransaction(mockMTX);
-      }).rejects.toThrow();
     });
   });
 });

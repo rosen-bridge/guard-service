@@ -1,2 +1,2 @@
-export { default as HandshakeRpcNetwork } from './handshakeRpcNetwork';
+export { HandshakeRpcNetwork } from './handshakeRpcNetwork';
 export * from './types';

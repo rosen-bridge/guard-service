@@ -56,6 +56,11 @@ export const blockInfo = {
   height: 150000,
 };
 
+export const txIds = [
+  '0dbf4436b3493c08b85f11755f672f2b40beddb8f2b65c6bb1e68074c85b53f3',
+  'c5dafd34df589ae06345852ca79b4e8d58a95a90df8a42b5ba930c14926f2470',
+];
+
 export const txId =
   '0dbf4436b3493c08b85f11755f672f2b40beddb8f2b65c6bb1e68074c85b53f3';
 export const txBlockHash =
@@ -124,8 +129,8 @@ export const rpcTxResponse = {
   blockheight: 150000,
 };
 
-// Transaction with name covenant (should be filtered out)
-export const rpcTxWithNameCovenant = {
+// Transaction with non-zero covenant output
+export const rpcTxWithNonZeroCovenant = {
   txid: 'aaaa4436b3493c08b85f11755f672f2b40beddb8f2b65c6bb1e68074c85b53aa',
   hash: 'aaaa4436b3493c08b85f11755f672f2b40beddb8f2b65c6bb1e68074c85b53aa',
   version: 0,
@@ -162,7 +167,7 @@ export const rpcTxWithNameCovenant = {
       },
     },
     {
-      value: 0.0, // Name output
+      value: 0.0, // Non-coin covenant output
       n: 1,
       address: {
         version: 0,
@@ -170,7 +175,7 @@ export const rpcTxWithNameCovenant = {
         string: 'hs1pght6t3z93cde3xspersa6kg8l6aw5m6m77r3hd',
       },
       covenant: {
-        type: 2, // OPEN (name-related covenant, should be filtered)
+        type: 2, // OPEN (example non-zero covenant)
         action: 'OPEN',
         items: ['6e616d65', '00000001'],
       },
@@ -224,8 +229,8 @@ export const handshakeTx = {
   ],
 };
 
-// Expected HandshakeTx with filtered covenant (only coin output)
-export const handshakeTxWithFilteredCovenant = {
+// Expected HandshakeTx with non-zero covenant preserved
+export const handshakeTxWithNonZeroCovenant = {
   id: 'aaaa4436b3493c08b85f11755f672f2b40beddb8f2b65c6bb1e68074c85b53aa',
   inputs: [
     {
@@ -247,6 +252,19 @@ export const handshakeTxWithFilteredCovenant = {
         type: 0,
       },
     },
+    {
+      value: 0n,
+      address: {
+        version: 0,
+        hash: '45d7a5c4458e1b989a01c8e1dd5907febaea6f5b',
+        string: 'hs1pght6t3z93cde3xspersa6kg8l6aw5m6m77r3hd',
+      },
+      covenant: {
+        action: 'OPEN',
+        items: ['6e616d65', '00000001'],
+        type: 2,
+      },
+    },
   ],
 };
 
@@ -258,12 +276,6 @@ export const unconfirmedRpcTxResponse = {
   confirmations: 0,
   blockheight: undefined,
 };
-
-export const txIds = [
-  '716587ea99237f4e1bf6f959b3f8f4227f42c593a91356fa3fb5c49b310caa49',
-  'd67242cb1be722aa50d6802a2d9f2ee9948836ec3d9278658f5a1573fcacc5aa',
-  'be36bc00ea47873fb6067f779cb5bd988dddbf50193e2311a0773133083eea33',
-];
 
 // gettxout response (for unspent box)
 export const getTxOutResponse = {
@@ -283,8 +295,8 @@ export const getTxOutResponse = {
   coinbase: false,
 };
 
-// gettxout response for name covenant (should return false for isBoxUnspentAndValid)
-export const getTxOutResponseWithNameCovenant = {
+// gettxout response for non-zero covenant (still unspent)
+export const getTxOutResponseWithNonZeroCovenant = {
   ...getTxOutResponse,
   covenant: {
     type: 2, // OPEN
@@ -343,7 +355,7 @@ export const addressUtxos = [
 
 export const addressBalance = 29989744n; // 600 + 29989144
 
-// Wallet RPC response with mixed coin and name covenants
+// Wallet RPC response with mixed coin and non-zero covenant outputs
 export const walletListUnspentWithNamesResponse = [
   {
     txid: '7c53537a189f91e74a4a9c56f1655827ac358187573bd644b1e974ebef374a5c',

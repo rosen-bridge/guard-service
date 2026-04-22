@@ -65,8 +65,8 @@ export interface HandshakeRpcTransaction {
   blockheight?: number;
 }
 
-export interface JsonRpcResult {
-  result: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+export interface JsonRpcResult<Result> {
+  result: Result;
   error: any; // eslint-disable-line @typescript-eslint/no-explicit-any
   id: string;
 }
@@ -82,7 +82,7 @@ export interface HandshakeChainInfo {
   verificationprogress: number;
   chainwork: string;
   pruned: boolean;
-  softforks: Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+  softforks: Record<string, unknown>;
   deflationary: boolean;
   pruneheight: number | null;
 }
