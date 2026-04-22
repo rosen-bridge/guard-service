@@ -4,7 +4,7 @@ import {
   ImpossibleBehavior,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
-import axios, { Axios, AxiosError } from '@rosen-clients/rate-limited-axios';
+import axios, { Axios, isAxiosError } from '@rosen-clients/rate-limited-axios';
 
 import Configs from '../configs/configs';
 import { TransactionEntity } from '../db/entities/transactionEntity';
@@ -118,7 +118,7 @@ class PublicStatusHandler {
       await this.axios.post('/v1/status/submit', request);
     } catch (e) {
       let responseError = '';
-      if (e instanceof AxiosError && e.response?.data) {
+      if (isAxiosError(e) && e.response?.data) {
         responseError = `, response: ${JSON.stringify(e.response.data)}`;
       }
       logger.error(
