@@ -76,11 +76,14 @@ class TransactionVerifier {
    * conditions:
    * - tx order is equal to expected event order
    * @param tx the created payment transaction
+   * @param event the event trigger
+   * @param eventTxId the trigger transaction id
    * @returns true if conditions are met
    */
   static verifyEventTransaction = async (
     tx: PaymentTransaction,
     event: EventTrigger,
+    eventTxId: string,
   ): Promise<boolean> => {
     const chain = ChainHandler.getInstance().getChain(tx.network);
     const dbAction = DatabaseAction.getInstance();
@@ -95,6 +98,7 @@ class TransactionVerifier {
     if (tx.txType === TransactionType.payment)
       expectedOrder = await EventOrder.createEventPaymentOrder(
         event,
+        eventTxId,
         feeConfig,
         eventWIDs,
       );
@@ -113,6 +117,7 @@ class TransactionVerifier {
         .getActualTxId(eventTxs[0].txId);
       expectedOrder = await EventOrder.createEventRewardOrder(
         event,
+        eventTxId,
         feeConfig,
         paymentTxId,
         eventWIDs,

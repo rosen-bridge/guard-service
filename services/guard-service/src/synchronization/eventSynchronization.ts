@@ -25,7 +25,6 @@ import MinimumFeeHandler from '../handlers/minimumFeeHandler';
 import * as TransactionSerializer from '../transaction/transactionSerializer';
 import { EventStatus, TransactionStatus } from '../utils/constants';
 import GuardTurn from '../utils/guardTurn';
-import EventVerifier from '../verification/eventVerifier';
 import {
   ActiveSync,
   SynchronizationMessageTypes,
@@ -166,31 +165,11 @@ class EventSynchronization extends Communicator {
         continue;
       }
 
-      // get event from database
+      // get event from database (ConfirmedEventEntity)
       const eventEntity =
         await DatabaseAction.getInstance().getEventById(eventId);
       if (eventEntity === null) {
         logger.warn(baseError + `event is not found`);
-        continue;
-      }
-      const event = EventSerializer.fromConfirmedEntity(eventEntity);
-
-      // check if event is confirmed enough
-      if (!(await EventVerifier.isEventConfirmedEnough(event))) {
-        logger.warn(baseError + `event is not confirmed enough`);
-        continue;
-      }
-
-      // get minimum-fee and verify event
-      const feeConfig = MinimumFeeHandler.getEventFeeConfig(event);
-
-      // verify event
-      if (!(await EventVerifier.verifyEvent(event, feeConfig))) {
-        logger.warn(baseError + `but event hasn't verified`);
-        await DatabaseAction.getInstance().setEventStatus(
-          eventId,
-          EventStatus.rejected,
-        );
         continue;
       }
 
@@ -474,6 +453,7 @@ class EventSynchronization extends Communicator {
     const txOrder = chain.extractTransactionOrder(tx);
     const expectedOrder = await EventOrder.createEventPaymentOrder(
       event,
+      eventEntity.eventData.txId,
       feeConfig,
       [],
     );

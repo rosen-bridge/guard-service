@@ -27,6 +27,7 @@ import { ArbitraryEntity } from '../../../src/db/entities/arbitraryEntity';
 import { ChainAddressBalanceEntity } from '../../../src/db/entities/chainAddressBalanceEntity';
 import { ConfirmedEventEntity } from '../../../src/db/entities/confirmedEventEntity';
 import { EventView } from '../../../src/db/entities/eventView';
+import { RejectedEventEntity } from '../../../src/db/entities/rejectedEventEntity';
 import { ReprocessEntity } from '../../../src/db/entities/reprocessEntity';
 import { RevenueChartView } from '../../../src/db/entities/revenueChartView';
 import { RevenueEntity } from '../../../src/db/entities/revenueEntity';
@@ -60,6 +61,7 @@ class DatabaseActionMock {
       PermitEntity,
       CollateralEntity,
       ChainAddressBalanceEntity,
+      RejectedEventEntity,
     ],
     migrations: [
       ...scannerMigrations.sqlite,
@@ -95,6 +97,7 @@ class DatabaseActionMock {
     await this.testDatabase.RevenueRepository.clear();
     await this.testDatabase.CommitmentRepository.clear();
     await this.testDatabase.TransactionRepository.clear();
+    await this.testDatabase.RejectedEventRepository.clear();
     await this.testDatabase.ConfirmedEventRepository.clear();
     await this.testDatabase.EventRepository.clear();
     await this.testDatabase.ArbitraryRepository.clear();
@@ -188,6 +191,7 @@ class DatabaseActionMock {
    * @param spendBlock
    * @param result
    * @param paymentTxId
+   * @returns id of the record
    */
   static insertOnlyEventDataRecord = async (
     event: EventTrigger,
@@ -197,8 +201,68 @@ class DatabaseActionMock {
     spendBlock?: string,
     result?: string,
     paymentTxId?: string,
-  ) => {
+  ): Promise<number> => {
     const height = 300;
+    const queryResult =
+      await this.testDatabase.EventRepository.createQueryBuilder()
+        .insert()
+        .values({
+          extractor: 'extractor',
+          identifier: TestUtils.generateRandomId(),
+          serialized: boxSerialized,
+          block: 'blockId',
+          height: height,
+          fromChain: event.fromChain,
+          toChain: event.toChain,
+          fromAddress: event.fromAddress,
+          toAddress: event.toAddress,
+          amount: event.amount,
+          bridgeFee: event.bridgeFee,
+          networkFee: event.networkFee,
+          sourceChainTokenId: event.sourceChainTokenId,
+          targetChainTokenId: event.targetChainTokenId,
+          sourceTxId: event.sourceTxId,
+          sourceBlockId: event.sourceBlockId,
+          sourceChainHeight: event.sourceChainHeight,
+          spendHeight: spendHeight,
+          spendTxId: spendTxId,
+          result: result,
+          paymentTxId: paymentTxId,
+          spendBlock: spendBlock,
+          WIDsHash: event.WIDsHash,
+          WIDsCount: event.WIDsCount,
+          txId: 'event-creation-tx-id',
+          eventId: Utils.txIdToEventId(event.sourceTxId),
+        })
+        .execute();
+    return queryResult.identifiers[0].id;
+  };
+
+  /**
+   * inserts a record to Event and RejectedEvent tables in db
+   * @param event
+   * @param reason
+   * @param boxSerialized
+   * @param sourceChainHeight
+   * @param eventHeight
+   * @param spendHeight
+   * @param spendBlockId
+   * @param spendTxId
+   * @param result
+   * @param paymentTxId
+   */
+  static insertRejectedEventRecord = async (
+    event: EventTrigger,
+    reason?: string,
+    boxSerialized = 'boxSerialized',
+    sourceChainHeight = 300,
+    eventHeight = 200,
+    spendHeight?: number,
+    spendBlockId = 'blockId',
+    spendTxId?: string,
+    result?: string,
+    paymentTxId?: string,
+  ) => {
     await this.testDatabase.EventRepository.createQueryBuilder()
       .insert()
       .values({
@@ -206,7 +270,7 @@ class DatabaseActionMock {
         identifier: TestUtils.generateRandomId(),
         serialized: boxSerialized,
         block: 'blockId',
-        height: height,
+        height: eventHeight,
         fromChain: event.fromChain,
         toChain: event.toChain,
         fromAddress: event.fromAddress,
@@ -218,15 +282,29 @@ class DatabaseActionMock {
         targetChainTokenId: event.targetChainTokenId,
         sourceTxId: event.sourceTxId,
         sourceBlockId: event.sourceBlockId,
-        sourceChainHeight: event.sourceChainHeight,
+        WIDsHash: event.WIDsHash,
+        WIDsCount: event.WIDsCount,
+        sourceChainHeight: sourceChainHeight,
         spendHeight: spendHeight,
+        spendBlock: spendBlockId,
         spendTxId: spendTxId,
         result: result,
         paymentTxId: paymentTxId,
-        spendBlock: spendBlock,
-        WIDsHash: event.WIDsHash,
-        WIDsCount: event.WIDsCount,
         txId: 'event-creation-tx-id',
+        eventId: Utils.txIdToEventId(event.sourceTxId),
+      })
+      .execute();
+    const eventData =
+      await this.testDatabase.EventRepository.createQueryBuilder()
+        .select()
+        .where('sourceTxId = :id', { id: event.sourceTxId })
+        .getOne();
+    await this.testDatabase.RejectedEventRepository.createQueryBuilder()
+      .insert()
+      .values({
+        id: Utils.txIdToEventId(event.sourceTxId),
+        eventData: eventData!,
+        reason: reason,
       })
       .execute();
   };
@@ -382,7 +460,7 @@ class DatabaseActionMock {
   /**
    * inserts a record to Reprocess table in
    * @param requestId
-   * @param eventId
+   * @param eventTxId
    * @param senderId
    * @param receiverId
    * @param status
@@ -390,7 +468,7 @@ class DatabaseActionMock {
    */
   static insertReprocessRecord = async (
     requestId: string,
-    eventId: string,
+    eventTxId: string,
     senderId: string,
     receiverId: string,
     status: ReprocessStatus,
@@ -400,7 +478,7 @@ class DatabaseActionMock {
       .insert()
       .values({
         requestId: requestId,
-        eventId: eventId,
+        eventTxId: eventTxId,
         sender: senderId,
         receiver: receiverId,
         status: status,
@@ -419,12 +497,21 @@ class DatabaseActionMock {
   };
 
   /**
-   * returns all records in Event table in database
+   * returns all records in Confirmed Event table in database
    */
   static allEventRecords = async () => {
-    return await this.testDatabase.ConfirmedEventRepository.createQueryBuilder()
-      .select()
-      .getMany();
+    return await this.testDatabase.ConfirmedEventRepository.find({
+      relations: ['eventData'],
+    });
+  };
+
+  /**
+   * returns all records in Rejected Event table in database
+   */
+  static allRejectedEventRecords = async () => {
+    return await this.testDatabase.RejectedEventRepository.find({
+      relations: ['eventData'],
+    });
   };
 
   /**

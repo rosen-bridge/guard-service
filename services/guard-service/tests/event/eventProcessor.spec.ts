@@ -41,78 +41,171 @@ import {
 
 describe('EventProcessor', () => {
   describe('processScannedEvents', () => {
+    const boxSerialized = 'box-serialized';
+
     beforeEach(async () => {
       await DatabaseActionMock.clearTables();
     });
 
     /**
-     * @target EventProcessor.processScannedEvents should insert confirmed
-     * events into ConfirmedEvent table with pending-payment status
+     * @target EventProcessor.processScannedEvents should insert event into ConfirmedEvent
+     * table when it is confirmed and verified
      * @dependencies
      * - database
+     * - MinimumFee
      * - EventVerifier
      * @scenario
      * - insert a mocked event into db
-     * - mock event as confirmed
+     * - mock feeConfig
+     * - mock EventVerifier
+     *   - to return confirmed
+     *   - to return verified
      * - run test
-     * - verify event insertion into db
+     * - check events in db
      * @expected
      * - mocked event should be in ConfirmedEvent table
      * - event status should be pending-payment
+     * - no event should be in RejectedEvent table
      */
-    it('should insert confirmed events into ConfirmedEvent table', async () => {
+    it('should insert event into ConfirmedEvent table when it is confirmed and verified', async () => {
       // insert a mocked event into db
       const mockedEvent = mockEventTrigger().event;
-      const boxSerialized = 'boxSerialized';
       await DatabaseActionMock.insertOnlyEventDataRecord(
         mockedEvent,
         boxSerialized,
       );
 
-      // mock event as confirmed
+      // mock feeConfig
+      const fee: ChainMinimumFee = {
+        bridgeFee: 0n,
+        networkFee: 0n,
+        rsnRatio: 0n,
+        feeRatio: 0n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
+      };
+      mockGetEventFeeConfig(fee);
+
+      // mock EventVerifier
       mockIsEventConfirmedEnough(true);
+      mockVerifyEvent(true);
 
       // run test
       await EventProcessor.processScannedEvents();
 
-      // verify event insertion into db
+      // check events in db
       const dbEvents = await DatabaseActionMock.allEventRecords();
       expect(dbEvents.length).toEqual(1);
       expect(dbEvents[0].status).toEqual(EventStatus.pendingPayment);
+      const rejectedEvents = await DatabaseActionMock.allRejectedEventRecords();
+      expect(rejectedEvents.length).toEqual(0);
     });
 
     /**
-     * @target EventProcessor.processScannedEvents should NOT insert unconfirmed
-     * events into ConfirmedEvent table
+     * @target EventProcessor.processScannedEvents should do nothing when
+     * event is not confirmed enough
      * @dependencies
      * - database
+     * - MinimumFee
      * - EventVerifier
      * @scenario
      * - insert a mocked event into db
-     * - mock event as unconfirmed
+     * - mock feeConfig
+     * - mock EventVerifier
+     *   - to return unconfirmed
+     *   - to return verified
      * - run test
-     * - verify no event inserted into db
+     * - check events in db
      * @expected
      * - no event should be in ConfirmedEvent table
+     * - no event should be in RejectedEvent table
      */
-    it('should NOT insert unconfirmed events into ConfirmedEvent table', async () => {
+    it('should do nothing when event is not confirmed enough', async () => {
       // insert a mocked event into db
       const mockedEvent = mockEventTrigger().event;
-      const boxSerialized = 'boxSerialized';
       await DatabaseActionMock.insertOnlyEventDataRecord(
         mockedEvent,
         boxSerialized,
       );
 
-      // mock event as unconfirmed
+      // mock feeConfig
+      const fee: ChainMinimumFee = {
+        bridgeFee: 0n,
+        networkFee: 0n,
+        rsnRatio: 0n,
+        feeRatio: 0n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
+      };
+      mockGetEventFeeConfig(fee);
+
+      // mock EventVerifier
       mockIsEventConfirmedEnough(false);
+      mockVerifyEvent(true);
 
       // run test
       await EventProcessor.processScannedEvents();
 
-      // verify no event inserted into db
+      // check events in db
       const dbEvents = await DatabaseActionMock.allEventRecords();
       expect(dbEvents.length).to.equal(0);
+      const rejectedEvents = await DatabaseActionMock.allRejectedEventRecords();
+      expect(rejectedEvents.length).toEqual(0);
+    });
+
+    /**
+     * @target EventProcessor.processPaymentEvent should insert event into RejectedEvent
+     * table when it's not verified
+     * @dependencies
+     * - database
+     * - MinimumFee
+     * - EventVerifier
+     * @scenario
+     * - mock feeConfig
+     * - insert a mocked event into db
+     * - mock EventVerifier
+     *   - to return confirmed
+     *   - to return unverified (invalid)
+     * - run test
+     * - check events in db
+     * @expected
+     * - no event should be in ConfirmedEvent table
+     * - mocked event should be in RejectedEvent table
+     */
+    it("should insert event into RejectedEvent table when it's not verified", async () => {
+      // mock feeConfig
+      const fee: ChainMinimumFee = {
+        bridgeFee: 0n,
+        networkFee: 0n,
+        rsnRatio: 0n,
+        feeRatio: 0n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
+      };
+      mockGetEventFeeConfig(fee);
+
+      // insert a mocked event into db
+      const { event: mockedEvent } = mockEventTrigger();
+      const id = await DatabaseActionMock.insertOnlyEventDataRecord(
+        mockedEvent,
+        boxSerialized,
+      );
+
+      // mock EventVerifier
+      mockIsEventConfirmedEnough(true);
+      mockVerifyEvent(false);
+
+      // run test
+      await EventProcessor.processScannedEvents();
+
+      // check events in db
+      const dbEvents = await DatabaseActionMock.allEventRecords();
+      expect(dbEvents.length).toEqual(0);
+      const rejectedEvents = await DatabaseActionMock.allRejectedEventRecords();
+      expect(rejectedEvents.length).toEqual(1);
+      expect(rejectedEvents[0].eventDataId).toEqual(id);
+      expect(rejectedEvents[0].eventData.id).toEqual(id);
+      expect(rejectedEvents[0].reason).toEqual('unknown');
     });
 
     /**
@@ -120,30 +213,46 @@ describe('EventProcessor', () => {
      * per sourceTxId into ConfirmedEvent table
      * @dependencies
      * - database
+     * - MinimumFee
      * - EventVerifier
      * @scenario
      * - insert a mocked event into db twice
-     * - mock event as confirmed
+     * - mock feeConfig
+     * - mock EventVerifier
+     *   - to return confirmed
+     *   - to return verified
      * - run test
      * - verify event insertion into db
      * @expected
-     * - only one event should be in ConfirmedEvent table
+     * - 1st trigger should be in ConfirmedEvent table
+     * - 2nd trigger should be in RejectedEvent table
      */
     it('should only inserts one event per sourceTxId into ConfirmedEvent table', async () => {
       // insert a mocked event into db twice
       const mockedEvent = mockEventTrigger().event;
-      const boxSerialized = 'boxSerialized';
-      await DatabaseActionMock.insertOnlyEventDataRecord(
+      const id1 = await DatabaseActionMock.insertOnlyEventDataRecord(
         mockedEvent,
-        boxSerialized,
+        boxSerialized + '-0',
       );
-      await DatabaseActionMock.insertOnlyEventDataRecord(
+      const id2 = await DatabaseActionMock.insertOnlyEventDataRecord(
         mockedEvent,
-        boxSerialized,
+        boxSerialized + '-1',
       );
 
-      // mock event as confirmed
+      // mock feeConfig
+      const fee: ChainMinimumFee = {
+        bridgeFee: 0n,
+        networkFee: 0n,
+        rsnRatio: 0n,
+        feeRatio: 0n,
+        rsnRatioDivisor,
+        feeRatioDivisor,
+      };
+      mockGetEventFeeConfig(fee);
+
+      // mock EventVerifier
       mockIsEventConfirmedEnough(true);
+      mockVerifyEvent(true);
 
       // run test
       await EventProcessor.processScannedEvents();
@@ -151,6 +260,12 @@ describe('EventProcessor', () => {
       // verify event insertion into db
       const dbEvents = await DatabaseActionMock.allEventRecords();
       expect(dbEvents.length).toEqual(1);
+      expect(dbEvents[0].eventData.id).toEqual(id1);
+      const rejectedEvents = await DatabaseActionMock.allRejectedEventRecords();
+      expect(rejectedEvents.length).toEqual(1);
+      expect(rejectedEvents[0].eventDataId).toEqual(id2);
+      expect(rejectedEvents[0].eventData.id).toEqual(id2);
+      expect(rejectedEvents[0].reason).toEqual('duplicate-trigger');
     });
   });
 
@@ -564,7 +679,7 @@ describe('EventProcessor', () => {
       mockGuardTurn(TestConfigs.guardIndex);
 
       // run test
-      await EventProcessor.processPaymentEvent(mockedEvent);
+      await EventProcessor.processPaymentEvent(mockedEvent, 'event-box-tx-id');
 
       // `addTransactionToQueue` should got called
       expect(
@@ -671,64 +786,12 @@ describe('EventProcessor', () => {
       mockGuardTurn(TestConfigs.guardIndex);
 
       // run test
-      await EventProcessor.processPaymentEvent(mockedEvent);
+      await EventProcessor.processPaymentEvent(mockedEvent, 'event-box-tx-id');
 
       // `addTransactionToQueue` should got called
       expect(
         TxAgreementMock.getMockedFunction('addTransactionToQueue'),
       ).toHaveBeenCalledOnce();
-    });
-
-    /**
-     * @target EventProcessor.processPaymentEvent should set event as rejected
-     * when event has not verified
-     * @dependencies
-     * - database
-     * - MinimumFee
-     * - EventVerifier
-     * @scenario
-     * - mock feeConfig
-     * - insert a mocked event into db
-     * - mock event as unverified
-     * - run test
-     * - check status of event in db
-     * @expected
-     * - event status should be updated in db
-     */
-    it('should set event as rejected when event has not verified', async () => {
-      // mock feeConfig
-      const fee: ChainMinimumFee = {
-        bridgeFee: 0n,
-        networkFee: 0n,
-        rsnRatio: 0n,
-        feeRatio: 0n,
-        rsnRatioDivisor,
-        feeRatioDivisor,
-      };
-      mockGetEventFeeConfig(fee);
-
-      // insert a mocked event into db
-      const { event: mockedEvent } = mockEventTrigger();
-      await DatabaseActionMock.insertEventRecord(
-        mockedEvent,
-        EventStatus.pendingPayment,
-      );
-
-      // mock event as unverified
-      mockVerifyEvent(false);
-
-      // run test
-      await EventProcessor.processPaymentEvent(mockedEvent);
-
-      // event status should be updated in db
-      const dbEvents = (await DatabaseActionMock.allEventRecords()).map(
-        (event) => [event.id, event.status],
-      );
-      expect(dbEvents.length).toEqual(1);
-      expect(dbEvents).toContainEqual([
-        EventSerializer.getId(mockedEvent),
-        EventStatus.rejected,
-      ]);
     });
 
     /**
@@ -850,7 +913,7 @@ describe('EventProcessor', () => {
       NotificationHandlerMock.mockNotify();
 
       // run test
-      await EventProcessor.processPaymentEvent(mockedEvent);
+      await EventProcessor.processPaymentEvent(mockedEvent, 'event-box-tx-id');
 
       // event status should be updated in db
       const dbEvents = (await DatabaseActionMock.allEventRecords()).map(
@@ -992,7 +1055,7 @@ describe('EventProcessor', () => {
       mockGuardTurn(TestConfigs.guardIndex + 1);
 
       // run test
-      await EventProcessor.processPaymentEvent(mockedEvent);
+      await EventProcessor.processPaymentEvent(mockedEvent, 'event-box-tx-id');
 
       // `addTransactionToQueue` should NOT got called
       expect(
@@ -1148,7 +1211,7 @@ describe('EventProcessor', () => {
       );
 
       // run test
-      await EventProcessor.processRewardEvent(mockedEvent);
+      await EventProcessor.processRewardEvent(mockedEvent, 'event-box-tx-id');
 
       // `addTransactionToQueue` should got called
       expect(
@@ -1283,7 +1346,7 @@ describe('EventProcessor', () => {
       );
 
       // run test
-      await EventProcessor.processRewardEvent(mockedEvent);
+      await EventProcessor.processRewardEvent(mockedEvent, 'event-box-tx-id');
 
       // event status should be updated in db
       const dbEvents = (await DatabaseActionMock.allEventRecords()).map(
@@ -1436,7 +1499,7 @@ describe('EventProcessor', () => {
       mockGuardTurn(TestConfigs.guardIndex + 1);
 
       // run test
-      await EventProcessor.processRewardEvent(mockedEvent);
+      await EventProcessor.processRewardEvent(mockedEvent, 'event-box-tx-id');
 
       // `addTransactionToQueue` should NOT got called
       expect(
