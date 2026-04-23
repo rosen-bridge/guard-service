@@ -4,6 +4,8 @@ import { DerivationPath, ExtSecretKey, Mnemonic } from 'ergo-lib-wasm-nodejs';
 
 import { EventTrigger } from '@rosen-chains/abstract-chain';
 
+import { RevenuePeriod } from './constants';
+
 class Utils {
   /**
    * converts sourceTxId to eventId (calculates blake2b hash of it)
@@ -67,6 +69,40 @@ class Utils {
       Buffer.from(WID, 'hex'),
     ]);
     return Buffer.from(blake2b(content, undefined, 32)).toString('hex');
+  };
+
+  /**
+   * converts timestamp to label based on the given period
+   *
+   * this is essential to create a consistence revenue chart
+   * @param timestamp in seconds
+   * @param period year, month or week
+   * @returns label in milliseconds
+   */
+  static convertTimestampToLabel = (
+    timestamp: number,
+    period: RevenuePeriod,
+  ): number => {
+    const date = new Date(timestamp * 1000);
+    date.setUTCHours(0);
+    date.setUTCMinutes(0);
+    date.setUTCSeconds(0);
+    switch (period) {
+      case RevenuePeriod.year: {
+        date.setUTCMonth(0);
+        date.setUTCDate(1);
+        break;
+      }
+      case RevenuePeriod.month: {
+        date.setUTCDate(1);
+        break;
+      }
+      case RevenuePeriod.week: {
+        date.setUTCDate(date.getUTCDate() - date.getUTCDay());
+        break;
+      }
+    }
+    return date.getTime();
   };
 }
 

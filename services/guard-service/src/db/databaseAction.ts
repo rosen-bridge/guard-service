@@ -858,10 +858,12 @@ class DatabaseAction {
   /**
    * Returns chart data with the specified period
    * @param period
-   * @param offset
-   * @param limit
+   * @param minTimestamp minimum timestamp (in seconds)
    */
-  getRevenueChartData = async (period: RevenuePeriod) => {
+  getRevenueChartData = async (
+    period: RevenuePeriod,
+    minTimestamp?: number,
+  ) => {
     const query = this.RevenueChartView.createQueryBuilder();
     query
       .select('"tokenId"')
@@ -869,6 +871,8 @@ class DatabaseAction {
       .addSelect('MIN(timestamp)', 'label')
       .groupBy('"tokenId"')
       .orderBy('label', 'DESC');
+    if (minTimestamp)
+      query.where('"timestamp" >= :timestamp', { timestamp: minTimestamp });
     if (period === RevenuePeriod.year) {
       query.addGroupBy('year');
     } else if (period === RevenuePeriod.month) {

@@ -36,6 +36,12 @@ enum RevenuePeriod {
   month = 'month',
   week = 'week',
 }
+const RevenuePeriodWindow: Record<RevenuePeriod, number | undefined> = {
+  [RevenuePeriod.year]: undefined,
+  [RevenuePeriod.month]: 33_696_000, // 13 months
+  [RevenuePeriod.week]: 5_443_000, // 9 weeks
+};
+
 const EventUnexpectedFailsLimit = 2;
 const OrderUnexpectedFailsLimit = 1;
 const DefaultApiLimit = 100;
@@ -106,6 +112,7 @@ export {
   EventStatus,
   TransactionStatus,
   RevenuePeriod,
+  RevenuePeriodWindow,
   EventUnexpectedFailsLimit,
   OrderUnexpectedFailsLimit,
   DefaultApiLimit,
