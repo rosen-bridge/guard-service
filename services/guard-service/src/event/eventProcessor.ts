@@ -20,7 +20,6 @@ import { NotificationHandler } from '../handlers/notificationHandler';
 import * as TransactionSerializer from '../transaction/transactionSerializer';
 import { EventStatus, EventUnexpectedFailsLimit } from '../utils/constants';
 import GuardTurn from '../utils/guardTurn';
-import Utils from '../utils/utils';
 import EventVerifier from '../verification/eventVerifier';
 import EventBoxes from './eventBoxes';
 import EventOrder from './eventOrder';
@@ -34,26 +33,44 @@ class EventProcessor {
    */
   static processScannedEvents = async (): Promise<void> => {
     logger.info('Processing scanned events');
-    const rawEvents = await DatabaseAction.getInstance().getUnconfirmedEvents();
+    const dbAction = DatabaseAction.getInstance();
+    const rawEvents = await dbAction.getUnconfirmedEvents();
     for (const event of rawEvents) {
       try {
-        const eventId = Utils.txIdToEventId(event.sourceTxId);
-        const confirmedEvent =
-          await DatabaseAction.getInstance().getEventById(eventId);
+        // check if event is confirmed enough
         if (
-          confirmedEvent === null &&
-          (await EventVerifier.isEventConfirmedEnough(
+          await EventVerifier.isEventConfirmedEnough(
             EventSerializer.fromEntity(event),
-          ))
+          )
         ) {
-          logger.info(
-            `Event [${eventId}] with txId [${event.sourceTxId}] confirmed`,
-          );
-          await DatabaseAction.getInstance().insertConfirmedEvent(event);
-        }
+          // check if any other valid trigger is confirmed and verified for this event
+          const eventEntity = await dbAction.getEventById(event.eventId);
+          if (eventEntity && eventEntity.eventData.id !== event.id) {
+            logger.warn(
+              `Event [${event.eventId}] is already confirmed and verified in tx [${eventEntity.eventData.txId}]. Marking trigger tx [${event.txId}] as rejected`,
+            );
+            await dbAction.insertRejectedEvent(event, 'duplicate-trigger');
+          } else {
+            // get minimum-fee and verify event
+            const feeConfig = MinimumFeeHandler.getEventFeeConfig(event);
+            // verify event
+            if (await EventVerifier.verifyEvent(event, event.txId, feeConfig)) {
+              logger.info(
+                `Event [${event.eventId}] with txId [${event.sourceTxId}] is confirmed and verified`,
+              );
+              await dbAction.insertConfirmedEvent(event);
+            } else {
+              logger.warn(`Event [${event.eventId}] hasn't verified`);
+              await dbAction.insertRejectedEvent(
+                event,
+                'unknown', // TODO: update rosen-chains to return reason
+              );
+            }
+          }
+        } else logger.debug(`Event [${event.eventId}] is not confirmed yet`);
       } catch (e) {
         logger.warn(
-          `An error occurred while processing event txId [${event.sourceTxId}]: ${e}`,
+          `An error occurred while processing event triggered in tx [${event.sourceTxId}]: ${e}`,
         );
         logger.warn(e.stack);
       }
@@ -103,10 +120,12 @@ class EventProcessor {
         if (event.status === EventStatus.pendingPayment)
           await this.processPaymentEvent(
             EventSerializer.fromConfirmedEntity(event),
+            event.eventData.txId,
           );
         else if (event.status === EventStatus.pendingReward)
           await this.processRewardEvent(
             EventSerializer.fromConfirmedEntity(event),
+            event.eventData.txId,
           );
         else
           logger.warn(
@@ -128,27 +147,21 @@ class EventProcessor {
    *  2. create transaction
    *  3. start agreement process on transaction
    * @param event the event trigger
+   * @param eventTxId the trigger transaction id
    */
-  static processPaymentEvent = async (event: EventTrigger): Promise<void> => {
+  static processPaymentEvent = async (
+    event: EventTrigger,
+    eventTxId: string,
+  ): Promise<void> => {
     const eventId = EventSerializer.getId(event);
     logger.info(`Processing event [${eventId}] for payment`);
 
     // get minimum-fee and verify event
     const feeConfig = MinimumFeeHandler.getEventFeeConfig(event);
 
-    // verify event
-    if (!(await EventVerifier.verifyEvent(event, feeConfig))) {
-      logger.warn(`Event [${eventId}] hasn't verified`);
-      await DatabaseAction.getInstance().setEventStatus(
-        eventId,
-        EventStatus.rejected,
-      );
-      return;
-    }
-
     // create payment
     try {
-      const tx = await this.createEventPayment(event, feeConfig);
+      const tx = await this.createEventPayment(event, eventTxId, feeConfig);
       if (GuardTurn.guardTurn() === GuardPkHandler.getInstance().guardId)
         (await TxAgreement.getInstance()).addTransactionToQueue(tx);
       else
@@ -175,11 +188,13 @@ class EventProcessor {
   /**
    * creates an unsigned transaction for payment on target chain
    * @param event the event trigger
+   * @param eventTxId the trigger transaction id
    * @param feeConfig minimum fee and rsn ratio config for the event
    * @returns created unsigned transaction
    */
   protected static createEventPayment = async (
     event: EventTrigger,
+    eventTxId: string,
     feeConfig: ChainMinimumFee,
   ): Promise<PaymentTransaction> => {
     const targetChain = ChainHandler.getInstance().getChain(event.toChain);
@@ -188,11 +203,12 @@ class EventProcessor {
     const eventWIDs: string[] = [];
 
     // add reward order if target chain is ergo
+    let eventBox: string | undefined;
     if (event.toChain === ERGO_CHAIN) {
       const ergoChain = targetChain as ErgoChain;
 
       // get event and commitment boxes
-      const eventBox = await EventBoxes.getEventBox(event);
+      eventBox = await EventBoxes.getEventBox(eventTxId);
       const rwtCount = ergoChain.getBoxRWT(eventBox) / BigInt(event.WIDsCount);
 
       eventWIDs.push(...(await EventBoxes.getEventWIDs(event)));
@@ -213,6 +229,7 @@ class EventProcessor {
     // add payment order
     const order = await EventOrder.createEventPaymentOrder(
       event,
+      eventTxId,
       feeConfig,
       eventWIDs,
     );
@@ -259,8 +276,12 @@ class EventProcessor {
   /**
    * processes the event trigger to create reward distribution transaction
    * @param event the event trigger
+   * @param eventTxId the trigger transaction id
    */
-  static processRewardEvent = async (event: EventTrigger): Promise<void> => {
+  static processRewardEvent = async (
+    event: EventTrigger,
+    eventTxId: string,
+  ): Promise<void> => {
     const eventId = EventSerializer.getId(event);
     logger.info(`Processing event [${eventId}] for reward distribution`);
 
@@ -288,6 +309,7 @@ class EventProcessor {
     try {
       const tx = await this.createEventRewardDistribution(
         event,
+        eventTxId,
         feeConfig,
         paymentTxId,
       );
@@ -319,19 +341,21 @@ class EventProcessor {
   /**
    * creates an unsigned transaction for event reward distribution on ergo chain
    * @param event the event trigger
+   * @param eventTxId the trigger transaction id
    * @param feeConfig minimum fee and rsn ratio config for the event
    * @param paymentTxId the payment transaction of the event
    * @returns created unsigned transaction
    */
   protected static createEventRewardDistribution = async (
     event: EventTrigger,
+    eventTxId: string,
     feeConfig: ChainMinimumFee,
     paymentTxId: string,
   ): Promise<PaymentTransaction> => {
     const ergoChain = ChainHandler.getInstance().getErgoChain();
 
     // get event and commitment boxes
-    const eventBox = await EventBoxes.getEventBox(event);
+    const eventBox = await EventBoxes.getEventBox(eventTxId);
     const rwtCount = ergoChain.getBoxRWT(eventBox) / BigInt(event.WIDsCount);
 
     const eventWIDs = await EventBoxes.getEventWIDs(event);
@@ -348,6 +372,7 @@ class EventProcessor {
     // generate reward order
     const order = await EventOrder.createEventRewardOrder(
       event,
+      eventTxId,
       feeConfig,
       paymentTxId,
       eventWIDs,

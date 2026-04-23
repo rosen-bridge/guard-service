@@ -131,6 +131,7 @@ describe('EventVerifier', () => {
   });
 
   describe('verifyEvent', () => {
+    const eventTxId = 'event-creation-tx-id';
     const fee: ChainMinimumFee = {
       bridgeFee: 0n,
       networkFee: 0n,
@@ -178,7 +179,11 @@ describe('EventVerifier', () => {
       ChainHandlerMock.mockChainFunction(fromChain, 'getRWTToken', 'rwt');
 
       // run test
-      const result = await EventVerifier.verifyEvent(mockedEvent, fee);
+      const result = await EventVerifier.verifyEvent(
+        mockedEvent,
+        eventTxId,
+        fee,
+      );
 
       // verify returned value
       expect(result).toEqual(true);
@@ -218,7 +223,11 @@ describe('EventVerifier', () => {
       ChainHandlerMock.mockChainFunction(fromChain, 'getRWTToken', 'rwt');
 
       // run test
-      const result = await EventVerifier.verifyEvent(mockedEvent, fee);
+      const result = await EventVerifier.verifyEvent(
+        mockedEvent,
+        eventTxId,
+        fee,
+      );
 
       // verify returned value
       expect(result).toEqual(false);
@@ -258,7 +267,11 @@ describe('EventVerifier', () => {
       ChainHandlerMock.mockChainFunction(fromChain, 'getRWTToken', 'rwt');
 
       // run test
-      const result = await EventVerifier.verifyEvent(mockedEvent, fee);
+      const result = await EventVerifier.verifyEvent(
+        mockedEvent,
+        eventTxId,
+        fee,
+      );
 
       // verify returned value
       expect(result).toEqual(false);

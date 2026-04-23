@@ -7,7 +7,6 @@ import { ERGO_CHAIN } from '@rosen-chains/ergo';
 
 import { DatabaseAction } from '../db/databaseAction';
 import EventSerializer from '../event/eventSerializer';
-import MinimumFeeHandler from '../handlers/minimumFeeHandler';
 import EventSynchronization from '../synchronization/eventSynchronization';
 import { EventStatus, OrderStatus } from '../utils/constants';
 import EventVerifier from './eventVerifier';
@@ -20,8 +19,6 @@ class RequestVerifier {
    * verifies the transaction request sent by other guards
    * conditions:
    * - transaction is compatible with the event
-   * - event is confirmed enough
-   * - event is verified
    * - event has no active transaction for requested tx type
    * - event status is compatible with requested tx type
    * - requested tx is compatible with event and not malicious
@@ -67,25 +64,6 @@ class RequestVerifier {
       return false;
     }
 
-    // check if event is confirmed enough
-    if (!(await EventVerifier.isEventConfirmedEnough(event))) {
-      logger.warn(baseError + `event is not confirmed enough`);
-      return false;
-    }
-
-    // get minimum-fee and verify event
-    const feeConfig = MinimumFeeHandler.getEventFeeConfig(event);
-
-    // verify event
-    if (!(await EventVerifier.verifyEvent(event, feeConfig))) {
-      logger.warn(baseError + `but event hasn't verified`);
-      await DatabaseAction.getInstance().setEventStatus(
-        eventId,
-        EventStatus.rejected,
-      );
-      return false;
-    }
-
     // check if event has any active tx for requested tx type
     const eventTxs = await DatabaseAction.getInstance().getEventValidTxsByType(
       eventId,
@@ -115,7 +93,13 @@ class RequestVerifier {
     }
 
     // verify requested tx
-    if (!(await TransactionVerifier.verifyEventTransaction(tx, event))) {
+    if (
+      !(await TransactionVerifier.verifyEventTransaction(
+        tx,
+        event,
+        eventEntity.eventData.txId,
+      ))
+    ) {
       logger.warn(baseError + `but tx hasn't verified`);
       return false;
     }

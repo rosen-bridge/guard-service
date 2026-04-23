@@ -23,6 +23,8 @@ describe('EventReprocess', async () => {
   });
 
   describe('sendReprocessRequest', () => {
+    const eventTxId = 'event-creation-tx-id';
+
     beforeAll(() => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date(TestConfigs.currentTimeStamp));
@@ -72,7 +74,7 @@ describe('EventReprocess', async () => {
 
       // run test
       const peers = ['peer0', 'peer1', 'peer2', 'peer3'];
-      await eventReprocess.sendReprocessRequest(eventId, peers);
+      await eventReprocess.sendReprocessRequest(eventTxId, peers);
 
       // event status should be updated in db
       const dbEvents = (await DatabaseActionMock.allEventRecords()).map(
@@ -89,7 +91,7 @@ describe('EventReprocess', async () => {
         expect(dbRequests[i]).toEqual({
           id: expect.any(Number),
           requestId: requestId,
-          eventId: eventId,
+          eventTxId: eventTxId,
           sender: 'dialer-peer-id',
           receiver: peers[i],
           status: ReprocessStatus.noResponse,
@@ -99,7 +101,75 @@ describe('EventReprocess', async () => {
       // `sendMessage` should got called with expected arguments
       expect(sendMessageSpy).toHaveBeenCalledWith(
         ReprocessMessageTypes.request,
-        { requestId: requestId, eventId: eventId },
+        { requestId: requestId, eventTxId: eventTxId },
+        peers,
+        TestConfigs.currentTimeStamp / 1000,
+      );
+    });
+
+    /**
+     * @target EventReprocess.sendReprocessRequest should send request messages
+     * to other guards without any changes for itself when event status is not allowed for reprocess
+     * @dependencies
+     * - database
+     * - Date
+     * @scenario
+     * - mock event and insert into db
+     * - mock EventReprocess.sendMessage
+     * - run test and expect exception thrown
+     * - check database
+     * - check if function got called
+     * @expected
+     * - the event status should remain unchanged
+     * - the requests should NOT be inserted into database
+     * - `sendMessage` should NOT got called
+     */
+    it('should send request messages to other guards without any changes for itself when event status is not allowed for reprocess', async () => {
+      // mock event and insert into db
+      const mockedEvent = EventTestData.mockEventTrigger().event;
+      const eventId = EventSerializer.getId(mockedEvent);
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent,
+        EventStatus.inPayment,
+      );
+
+      // mock EventReprocess.sendMessage
+      const eventReprocess = EventReprocess.getInstance();
+      const mockedSendMessage = vi.fn();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const sendMessageSpy = vi.spyOn(eventReprocess as any, 'sendMessage');
+      sendMessageSpy.mockImplementation(mockedSendMessage);
+
+      // run test and expect exception thrown
+      const peers = ['peer0', 'peer1', 'peer2', 'peer3'];
+      await eventReprocess.sendReprocessRequest(eventTxId, peers);
+
+      // the event status should remain unchanged
+      const dbEvents = (await DatabaseActionMock.allEventRecords()).map(
+        (event) => [event.id, event.status],
+      );
+      expect(dbEvents.length).toEqual(1);
+      expect(dbEvents).toContainEqual([eventId, EventStatus.inPayment]);
+
+      // the requests should be inserted into database with the same requestId and timestamp
+      const dbRequests = await DatabaseActionMock.allReprocessRecords();
+      const requestId = dbRequests[0].requestId;
+      expect(dbRequests.length).toEqual(peers.length);
+      for (let i = 0; i < peers.length; i++)
+        expect(dbRequests[i]).toEqual({
+          id: expect.any(Number),
+          requestId: requestId,
+          eventTxId: eventTxId,
+          sender: 'dialer-peer-id',
+          receiver: peers[i],
+          status: ReprocessStatus.noResponse,
+          timestamp: TestConfigs.currentTimeStamp / 1000,
+        });
+
+      // `sendMessage` should got called with expected arguments
+      expect(sendMessageSpy).toHaveBeenCalledWith(
+        ReprocessMessageTypes.request,
+        { requestId: requestId, eventTxId: eventTxId },
         peers,
         TestConfigs.currentTimeStamp / 1000,
       );
@@ -141,7 +211,7 @@ describe('EventReprocess', async () => {
 
       // run test
       const peers = ['peer0', 'peer1', 'peer2', 'peer3'];
-      await eventReprocess.sendReprocessRequest(eventId, peers);
+      await eventReprocess.sendReprocessRequest(eventTxId, peers);
 
       // event status should be updated in db
       const dbEvents = (await DatabaseActionMock.allEventRecords()).map(
@@ -158,7 +228,7 @@ describe('EventReprocess', async () => {
         expect(dbRequests[i]).toEqual({
           id: expect.any(Number),
           requestId: requestId,
-          eventId: eventId,
+          eventTxId: eventTxId,
           sender: 'dialer-peer-id',
           receiver: peers[i],
           status: ReprocessStatus.noResponse,
@@ -168,7 +238,72 @@ describe('EventReprocess', async () => {
       // `sendMessage` should got called with expected arguments
       expect(sendMessageSpy).toHaveBeenCalledWith(
         ReprocessMessageTypes.request,
-        { requestId: requestId, eventId: eventId },
+        { requestId: requestId, eventTxId: eventTxId },
+        peers,
+        TestConfigs.currentTimeStamp / 1000,
+      );
+    });
+
+    /**
+     * @target EventReprocess.sendReprocessRequest should remove the event
+     * from the RejectedEvent table
+     * @dependencies
+     * - database
+     * - Date
+     * @scenario
+     * - mock event and insert into db
+     * - mock EventReprocess.sendMessage
+     * - run test
+     * - check database
+     * - check if function got called
+     * @expected
+     * - the event should NOT be in db
+     * - the requests should be inserted into database with the same
+     *   request id and timestamp
+     * - `sendMessage` should got called with expected arguments
+     */
+    it('should remove the event from the RejectedEvent table', async () => {
+      // mock event and insert into db
+      const mockedEvent = EventTestData.mockEventTrigger().event;
+      await DatabaseActionMock.insertRejectedEventRecord(
+        mockedEvent,
+        'unknown',
+      );
+
+      // mock EventReprocess.sendMessage
+      const eventReprocess = EventReprocess.getInstance();
+      const mockedSendMessage = vi.fn();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const sendMessageSpy = vi.spyOn(eventReprocess as any, 'sendMessage');
+      sendMessageSpy.mockImplementation(mockedSendMessage);
+
+      // run test
+      const peers = ['peer0', 'peer1', 'peer2', 'peer3'];
+      await eventReprocess.sendReprocessRequest(eventTxId, peers);
+
+      // the event should NOT be in db
+      const rejectedEvents = await DatabaseActionMock.allRejectedEventRecords();
+      expect(rejectedEvents.length).toEqual(0);
+
+      // the requests should be inserted into database with the same requestId and timestamp
+      const dbRequests = await DatabaseActionMock.allReprocessRecords();
+      const requestId = dbRequests[0].requestId;
+      expect(dbRequests.length).toEqual(peers.length);
+      for (let i = 0; i < peers.length; i++)
+        expect(dbRequests[i]).toEqual({
+          id: expect.any(Number),
+          requestId: requestId,
+          eventTxId: eventTxId,
+          sender: 'dialer-peer-id',
+          receiver: peers[i],
+          status: ReprocessStatus.noResponse,
+          timestamp: TestConfigs.currentTimeStamp / 1000,
+        });
+
+      // `sendMessage` should got called with expected arguments
+      expect(sendMessageSpy).toHaveBeenCalledWith(
+        ReprocessMessageTypes.request,
+        { requestId: requestId, eventTxId: eventTxId },
         peers,
         TestConfigs.currentTimeStamp / 1000,
       );
@@ -193,8 +328,6 @@ describe('EventReprocess', async () => {
      */
     it('should throw NotFoundError when event is not found', async () => {
       // mock event
-      const mockedEvent = EventTestData.mockEventTrigger().event;
-      const eventId = EventSerializer.getId(mockedEvent);
 
       // mock EventReprocess.sendMessage
       const eventReprocess = EventReprocess.getInstance();
@@ -205,7 +338,10 @@ describe('EventReprocess', async () => {
 
       // run test and expect exception thrown
       await expect(async () => {
-        await eventReprocess.sendReprocessRequest(eventId, ['peer0', 'peer1']);
+        await eventReprocess.sendReprocessRequest(eventTxId, [
+          'peer0',
+          'peer1',
+        ]);
       }).rejects.toThrow(NotFoundError);
 
       // event table should remain unchanged
@@ -219,62 +355,11 @@ describe('EventReprocess', async () => {
       // `sendMessage` should NOT got called
       expect(sendMessageSpy).not.toHaveBeenCalledWith();
     });
-
-    /**
-     * @target EventReprocess.sendReprocessRequest should throw Error when
-     * event status is unexpected
-     * @dependencies
-     * - database
-     * - Date
-     * @scenario
-     * - mock event and insert into db
-     * - mock EventReprocess.sendMessage
-     * - run test and expect exception thrown
-     * - check database
-     * - check if function got called
-     * @expected
-     * - the event status should remain unchanged
-     * - the requests should NOT be inserted into database
-     * - `sendMessage` should NOT got called
-     */
-    it('should throw Error when event status is unexpected', async () => {
-      // mock event and insert into db
-      const mockedEvent = EventTestData.mockEventTrigger().event;
-      const eventId = EventSerializer.getId(mockedEvent);
-      await DatabaseActionMock.insertEventRecord(
-        mockedEvent,
-        EventStatus.inPayment,
-      );
-
-      // mock EventReprocess.sendMessage
-      const eventReprocess = EventReprocess.getInstance();
-      const mockedSendMessage = vi.fn();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const sendMessageSpy = vi.spyOn(eventReprocess as any, 'sendMessage');
-      sendMessageSpy.mockImplementation(mockedSendMessage);
-
-      // run test and expect exception thrown
-      await expect(async () => {
-        await eventReprocess.sendReprocessRequest(eventId, ['peer0', 'peer1']);
-      }).rejects.toThrow(Error);
-
-      // the event status should remain unchanged
-      const dbEvents = (await DatabaseActionMock.allEventRecords()).map(
-        (event) => [event.id, event.status],
-      );
-      expect(dbEvents.length).toEqual(1);
-      expect(dbEvents).toContainEqual([eventId, EventStatus.inPayment]);
-
-      // the requests should NOT be inserted into database
-      const dbRequests = await DatabaseActionMock.allReprocessRecords();
-      expect(dbRequests.length).toEqual(0);
-
-      // `sendMessage` should NOT got called
-      expect(sendMessageSpy).not.toHaveBeenCalledWith();
-    });
   });
 
   describe('processReprocessRequest', () => {
+    const eventTxId = 'event-creation-tx-id';
+
     beforeAll(() => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date(TestConfigs.currentTimeStamp));
@@ -326,7 +411,7 @@ describe('EventReprocess', async () => {
       // run test
       await EventReprocess.getInstance().processMessage(
         ReprocessMessageTypes.request,
-        { requestId: requestId, eventId: eventId },
+        { requestId: requestId, eventTxId: eventTxId },
         'signature',
         0,
         'peer0',
@@ -346,7 +431,7 @@ describe('EventReprocess', async () => {
       expect(dbRequests[0]).toEqual({
         id: expect.any(Number),
         requestId: requestId,
-        eventId: eventId,
+        eventTxId: eventTxId,
         sender: 'peer0',
         receiver: 'dialer-peer-id',
         status: ReprocessStatus.noResponse,
@@ -400,7 +485,7 @@ describe('EventReprocess', async () => {
       // run test
       await EventReprocess.getInstance().processMessage(
         ReprocessMessageTypes.request,
-        { requestId: requestId, eventId: eventId },
+        { requestId: requestId, eventTxId: eventTxId },
         'signature',
         0,
         'peer0',
@@ -420,7 +505,77 @@ describe('EventReprocess', async () => {
       expect(dbRequests[0]).toEqual({
         id: expect.any(Number),
         requestId: requestId,
-        eventId: eventId,
+        eventTxId: eventTxId,
+        sender: 'peer0',
+        receiver: 'dialer-peer-id',
+        status: ReprocessStatus.noResponse,
+        timestamp: timestamp,
+      });
+
+      // `sendMessage` should got called with expected arguments
+      expect(sendMessageSpy).toHaveBeenCalledWith(
+        ReprocessMessageTypes.response,
+        { requestId: requestId, ok: true },
+        ['peer0'],
+        timestamp,
+      );
+    });
+
+    /**
+     * @target EventReprocess.processReprocessRequest should remove the event from
+     * the RejectedEvent table when all conditions are met
+     * @dependencies
+     * - database
+     * - Date
+     * @scenario
+     * - mock event and insert into db
+     * - mock EventReprocess.sendMessage
+     * - run test
+     * - check database
+     * - check if function got called
+     * @expected
+     * - the event should NOT be in db
+     * - the request should be added to database
+     * - `sendMessage` should got called with expected arguments
+     */
+    it('should remove the event from the RejectedEvent table when all conditions are met', async () => {
+      // mock event and insert into db
+      const mockedEvent = EventTestData.mockEventTrigger().event;
+      const requestId = '3d547d6f962c7356';
+      const timestamp = TestConfigs.currentTimeStamp / 1000 - 100;
+      await DatabaseActionMock.insertRejectedEventRecord(
+        mockedEvent,
+        'unknown',
+      );
+
+      // mock EventReprocess.sendMessage
+      const eventReprocess = EventReprocess.getInstance();
+      const mockedSendMessage = vi.fn();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const sendMessageSpy = vi.spyOn(eventReprocess as any, 'sendMessage');
+      sendMessageSpy.mockImplementation(mockedSendMessage);
+
+      // run test
+      await EventReprocess.getInstance().processMessage(
+        ReprocessMessageTypes.request,
+        { requestId: requestId, eventTxId: eventTxId },
+        'signature',
+        0,
+        'peer0',
+        timestamp,
+      );
+
+      // the event should NOT be in db
+      const rejectedEvents = await DatabaseActionMock.allRejectedEventRecords();
+      expect(rejectedEvents.length).toEqual(0);
+
+      // the request should be added to database
+      const dbRequests = await DatabaseActionMock.allReprocessRecords();
+      expect(dbRequests.length).toEqual(1);
+      expect(dbRequests[0]).toEqual({
+        id: expect.any(Number),
+        requestId: requestId,
+        eventTxId: eventTxId,
         sender: 'peer0',
         receiver: 'dialer-peer-id',
         status: ReprocessStatus.noResponse,
@@ -455,8 +610,6 @@ describe('EventReprocess', async () => {
      */
     it('should do nothing when event is not found', async () => {
       // mock event
-      const mockedEvent = EventTestData.mockEventTrigger().event;
-      const eventId = EventSerializer.getId(mockedEvent);
       const requestId = '3d547d6f962c7356';
       const timestamp = TestConfigs.currentTimeStamp / 1000 - 100;
 
@@ -470,7 +623,7 @@ describe('EventReprocess', async () => {
       // run test
       await EventReprocess.getInstance().processMessage(
         ReprocessMessageTypes.request,
-        { requestId: requestId, eventId: eventId },
+        { requestId: requestId, eventTxId: eventTxId },
         'signature',
         0,
         'peer0',
@@ -540,7 +693,7 @@ describe('EventReprocess', async () => {
       // run test
       await EventReprocess.getInstance().processMessage(
         ReprocessMessageTypes.request,
-        { requestId: requestId, eventId: eventId },
+        { requestId: requestId, eventTxId: eventTxId },
         'signature',
         0,
         peerId,
@@ -565,7 +718,7 @@ describe('EventReprocess', async () => {
 
     /**
      * @target EventReprocess.processReprocessRequest should do nothing
-     * when event status does not allow reprocess
+     * when event status is not allowed for reprocess
      * @dependencies
      * - database
      * - Date
@@ -580,7 +733,7 @@ describe('EventReprocess', async () => {
      * - the request should NOT be added to database
      * - `sendMessage` should NOT got called
      */
-    it('should do nothing when event status does not allow reprocess', async () => {
+    it('should do nothing when event status is not allowed for reprocess', async () => {
       // mock event and insert into db
       const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
@@ -601,7 +754,7 @@ describe('EventReprocess', async () => {
       // run test
       await EventReprocess.getInstance().processMessage(
         ReprocessMessageTypes.request,
-        { requestId: requestId, eventId: eventId },
+        { requestId: requestId, eventTxId: eventTxId },
         'signature',
         0,
         'peer0',
@@ -625,6 +778,8 @@ describe('EventReprocess', async () => {
   });
 
   describe('processReprocessResponse', () => {
+    const eventTxId = 'event-creation-tx-id';
+
     beforeEach(async () => {
       await DatabaseActionMock.clearTables();
     });
@@ -646,11 +801,10 @@ describe('EventReprocess', async () => {
       const requestId = '3d547d6f962c7356';
       const timestamp = TestConfigs.currentTimeStamp / 1000;
       const peers = ['peer0', 'peer1'];
-      const eventId = 'event-id';
       for (const peerId of peers) {
         await DatabaseActionMock.insertReprocessRecord(
           requestId,
-          eventId,
+          eventTxId,
           'dialer-peer-id',
           peerId,
           ReprocessStatus.noResponse,
@@ -674,7 +828,7 @@ describe('EventReprocess', async () => {
       expect(dbRequests[0]).toEqual({
         id: expect.any(Number),
         requestId: requestId,
-        eventId: eventId,
+        eventTxId: eventTxId,
         sender: 'dialer-peer-id',
         receiver: peers[0],
         status: ReprocessStatus.accepted,
@@ -683,7 +837,7 @@ describe('EventReprocess', async () => {
       expect(dbRequests[1]).toEqual({
         id: expect.any(Number),
         requestId: requestId,
-        eventId: eventId,
+        eventTxId: eventTxId,
         sender: 'dialer-peer-id',
         receiver: peers[1],
         status: ReprocessStatus.noResponse,

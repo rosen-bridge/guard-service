@@ -35,15 +35,17 @@ class EventVerifier {
   /**
    * conforms event data with lock transaction in source chain
    * @param event the trigger event
+   * @param eventTxId the trigger transaction id
    * @param feeConfig minimum fee and rsn ratio config for the event
    * @returns true if event data verified
    */
   static verifyEvent = async (
     event: EventTrigger,
+    eventTxId: string,
     feeConfig: ChainMinimumFee,
   ): Promise<boolean> => {
     // get event box
-    const eventBox = await EventBoxes.getEventBox(event);
+    const eventBox = await EventBoxes.getEventBox(eventTxId);
 
     // verify event data
     const fromChain = ChainHandler.getInstance().getChain(event.fromChain);

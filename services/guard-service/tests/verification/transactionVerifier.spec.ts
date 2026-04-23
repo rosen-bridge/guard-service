@@ -304,6 +304,8 @@ describe('TransactionVerifier', () => {
   });
 
   describe('verifyEventTransaction', () => {
+    const eventTxId = 'event-creation-tx-id';
+
     beforeEach(async () => {
       ChainHandlerMock.resetMock();
       await DatabaseActionMock.clearTables();
@@ -371,6 +373,7 @@ describe('TransactionVerifier', () => {
       const result = await TransactionVerifier.verifyEventTransaction(
         paymentTx,
         mockedEvent,
+        eventTxId,
       );
 
       // verify returned value
@@ -398,7 +401,7 @@ describe('TransactionVerifier', () => {
      * - check if function got called
      * @expected
      * - returned value should be true
-     * - `createEventPaymentOrder` should got called with actual payment tx id
+     * - `createEventRewardOrder` should got called with actual payment tx id
      */
     it('should return true when all conditions for reward distribution tx are met', async () => {
       // mock event and transaction
@@ -473,14 +476,16 @@ describe('TransactionVerifier', () => {
       const result = await TransactionVerifier.verifyEventTransaction(
         rewardTx,
         mockedEvent.event,
+        eventTxId,
       );
 
       // verify returned value
       expect(result).toEqual(true);
 
-      //
+      // `mockCreateEventRewardOrder` should got called with actual payment tx id
       expect(mockedCreateEventRewardOrder).toHaveBeenCalledWith(
         mockedEvent.event,
+        eventTxId,
         expect.any(Object),
         paymentTxActualId,
         expect.any(Array),
@@ -550,6 +555,7 @@ describe('TransactionVerifier', () => {
       const result = await TransactionVerifier.verifyEventTransaction(
         paymentTx,
         mockedEvent,
+        eventTxId,
       );
 
       // verify returned value

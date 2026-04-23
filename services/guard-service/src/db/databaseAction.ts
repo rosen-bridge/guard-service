@@ -41,6 +41,7 @@ import { ArbitraryEntity } from './entities/arbitraryEntity';
 import { ChainAddressBalanceEntity } from './entities/chainAddressBalanceEntity';
 import { ConfirmedEventEntity } from './entities/confirmedEventEntity';
 import { EventView } from './entities/eventView';
+import { RejectedEventEntity } from './entities/rejectedEventEntity';
 import { ReprocessEntity } from './entities/reprocessEntity';
 import { RevenueChartView } from './entities/revenueChartView';
 import { RevenueEntity } from './entities/revenueEntity';
@@ -56,6 +57,7 @@ class DatabaseAction {
   CommitmentRepository: Repository<CommitmentEntity>;
   EventRepository: Repository<EventTriggerEntity>;
   ConfirmedEventRepository: Repository<ConfirmedEventEntity>;
+  RejectedEventRepository: Repository<RejectedEventEntity>;
   TransactionRepository: Repository<TransactionEntity>;
   RevenueRepository: Repository<RevenueEntity>;
   RevenueView: Repository<RevenueView>;
@@ -74,6 +76,8 @@ class DatabaseAction {
     this.EventRepository = this.dataSource.getRepository(EventTriggerEntity);
     this.ConfirmedEventRepository =
       this.dataSource.getRepository(ConfirmedEventEntity);
+    this.RejectedEventRepository =
+      this.dataSource.getRepository(RejectedEventEntity);
     this.TransactionRepository =
       this.dataSource.getRepository(TransactionEntity);
     this.RevenueRepository = this.dataSource.getRepository(RevenueEntity);
@@ -479,7 +483,9 @@ class DatabaseAction {
   getUnconfirmedEvents = async (): Promise<EventTriggerEntity[]> => {
     return await this.EventRepository.createQueryBuilder('event')
       .leftJoin('confirmed_event_entity', 'cee', 'event.id = cee.eventDataId')
+      .leftJoin('rejected_event_entity', 'ree', 'event.id = ree.eventDataId')
       .where('cee.eventDataId IS NULL')
+      .andWhere('ree.eventDataId IS NULL')
       .getMany();
   };
 
@@ -501,6 +507,29 @@ class DatabaseAction {
     });
 
     PublicStatusHandler.getInstance().updatePublicEventStatus(eventId, status);
+  };
+
+  /**
+   * inserts a rejected event into table
+   * @param eventData
+   * @param reason
+   */
+  insertRejectedEvent = async (
+    eventData: EventTriggerEntity,
+    reason: string,
+  ): Promise<void> => {
+    const eventId = Utils.txIdToEventId(eventData.sourceTxId);
+
+    await this.RejectedEventRepository.insert({
+      id: eventId,
+      eventData: eventData,
+      reason,
+    });
+
+    PublicStatusHandler.getInstance().updatePublicEventStatus(
+      eventId,
+      EventStatus.rejected,
+    );
   };
 
   /**
@@ -985,21 +1014,21 @@ class DatabaseAction {
    * inserts reprocess request into db
    * @param senderId
    * @param requestId
-   * @param eventId
+   * @param eventTxId
    * @param timestamp
    * @param peerIds
    */
   insertReprocessRequests = async (
     senderId: string,
     requestId: string,
-    eventId: string,
+    eventTxId: string,
     timestamp: number,
     peerIds: string[],
   ) => {
     await this.ReprocessRepository.insert(
       peerIds.map((peerId) => ({
         requestId: requestId,
-        eventId: eventId,
+        eventTxId: eventTxId,
         sender: senderId,
         receiver: peerId,
         status: ReprocessStatus.noResponse,
@@ -1106,6 +1135,39 @@ class DatabaseAction {
       'address',
       'tokenId',
     ]);
+  };
+
+  /**
+   * @param eventTxId the trigger transaction id
+   * @return the event trigger
+   */
+  getEventByTriggerId = async (
+    eventTxId: string,
+  ): Promise<EventTriggerEntity | null> => {
+    return await this.EventRepository.findOne({
+      where: {
+        txId: eventTxId,
+      },
+    });
+  };
+
+  /**
+   * deletes an event from RejectedEventEntity by it's trigger transaction id
+   * @param eventTxId the trigger transaction id
+   */
+  deleteRejectedEventByTriggerId = async (
+    eventTxId: string,
+  ): Promise<number> => {
+    const rejectedEvents = await this.RejectedEventRepository.find({
+      relations: ['eventData'],
+      where: {
+        eventData: { txId: eventTxId },
+      },
+    });
+    const result = await this.RejectedEventRepository.delete({
+      eventDataId: In(rejectedEvents.map((event) => event.eventDataId)),
+    });
+    return result.affected ?? 0;
   };
 }
 
