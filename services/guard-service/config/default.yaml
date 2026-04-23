@@ -15,7 +15,7 @@ publicStatus:
 base:
   chainNetwork: 'rpc' # 'rpc'
   rpc:
-    url: 'https://mainnet.base.org'
+    url: '' # use a production provider; the public Base endpoint is rate-limited
     timeout: 8
     initialHeight: -1
     scannerInterval: 20
