@@ -146,6 +146,10 @@ class PublicStatusHandler {
       if (status === EventStatus.inPayment || status === EventStatus.inReward) {
         const tx = await this.txRepository.findOne({
           where: {
+            type:
+              status === EventStatus.inPayment
+                ? TransactionType.payment
+                : TransactionType.reward,
             event: { id: eventId },
             status: Not(TransactionStatus.invalid),
           },
