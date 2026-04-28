@@ -1,6 +1,7 @@
 import { DefaultLogger } from '@rosen-bridge/abstract-logger';
 
 import BalanceHandler from '../handlers/balanceHandler';
+import ChainHandler from '../handlers/chainHandler';
 import { LockBalance } from '../types/api';
 import {
   BalanceQuerySchema,
@@ -36,20 +37,27 @@ const getBalanceRoute = (server: FastifySeverInstance) => {
           cold: { items: [], total: 0 },
         };
 
-        balance.hot = await BalanceHandler.getInstance().getAddressAssets(
-          'lock',
+        const balances = await BalanceHandler.getInstance().getAddressAssets(
+          ['lock', 'cold'],
           chain,
           tokenId,
           offset,
           limit,
         );
-        balance.cold = await BalanceHandler.getInstance().getAddressAssets(
-          'cold',
-          chain,
-          tokenId,
-          offset,
-          limit,
-        );
+
+        for (const addressBalance of balances.items) {
+          const chainConfig = ChainHandler.getInstance()
+            .getChain(addressBalance.chain)
+            .getChainConfigs();
+
+          if (chainConfig.addresses.cold === addressBalance.address) {
+            balance.cold.items.push(addressBalance);
+            balance.cold.total += 1;
+          } else {
+            balance.hot.items.push(addressBalance);
+            balance.hot.total += 1;
+          }
+        }
 
         reply.status(200).send(balance);
       } catch (error) {

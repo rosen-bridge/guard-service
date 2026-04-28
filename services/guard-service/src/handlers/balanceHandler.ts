@@ -132,8 +132,8 @@ class BalanceHandler {
   };
 
   /**
-   * get cold or lock address assets of supported chains
-   * @param address
+   * get address assets of supported chains
+   * @param addressTypes
    * @param chain
    * @param tokenId
    * @param offset
@@ -141,25 +141,34 @@ class BalanceHandler {
    * @returns a promise of Page AddressBalance object
    */
   getAddressAssets = async (
-    address: 'cold' | 'lock',
+    addressTypes: ('cold' | 'lock')[],
     chain?: string,
     tokenId?: string,
     offset?: number,
     limit?: number,
   ): Promise<Page<AddressBalance>> => {
-    const addresses: string[] = [];
+    if (addressTypes.length === 0)
+      return {
+        items: [],
+        total: 0,
+      };
+
+    const addresses: Set<string> = new Set();
 
     const chains = chain ? [chain] : SUPPORTED_CHAINS;
     for (const chain of chains) {
       const chainConfig = ChainHandler.getInstance()
         .getChain(chain)
         .getChainConfigs();
-      addresses.push(chainConfig.addresses[address]);
+
+      for (const addressType of addressTypes) {
+        addresses.add(chainConfig.addresses[addressType]);
+      }
     }
 
     const balances =
       await DatabaseAction.getInstance().getChainAddressBalanceByAddresses(
-        addresses,
+        [...addresses],
         chain,
         tokenId,
         offset,

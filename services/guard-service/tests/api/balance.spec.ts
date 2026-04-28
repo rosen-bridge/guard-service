@@ -2,6 +2,9 @@ import fastify from 'fastify';
 
 import { balanceRoutes } from '../../src/api/balance';
 import { FastifySeverInstance } from '../../src/api/schemas';
+import { rosenConfig } from '../../src/configs/rosenConfig';
+import { SUPPORTED_CHAINS } from '../../src/utils/constants';
+import ChainHandlerMock from '../handlers/chainHandler.mock';
 import BalanceHandlerMock from '../handlers/mocked/balanceHandler.mock';
 import {
   mockLockBalances,
@@ -19,6 +22,23 @@ describe('balanceRoutes', () => {
 
       BalanceHandlerMock.resetMock();
       BalanceHandlerMock.mock();
+
+      ChainHandlerMock.resetMock();
+
+      for (const chain of SUPPORTED_CHAINS) {
+        ChainHandlerMock.mockChainName(chain);
+        ChainHandlerMock.mockChainFunction(
+          chain,
+          'getChainConfigs',
+          {
+            addresses: {
+              lock: rosenConfig.contractReader(chain).addresses.lock,
+              cold: rosenConfig.contractReader(chain).addresses.cold,
+            },
+          },
+          false,
+        );
+      }
     });
 
     afterEach(() => {
@@ -38,8 +58,10 @@ describe('balanceRoutes', () => {
     it('should return lock balance with hot and cold arrays populated', async () => {
       // arrange
       BalanceHandlerMock.mockGetAddressAssets().mockImplementation(
-        async (address) =>
-          address === 'lock' ? mockLockBalances : mockColdBalances,
+        async () => ({
+          items: [...mockLockBalances.items, ...mockColdBalances.items],
+          total: mockLockBalances.total + mockColdBalances.total,
+        }),
       );
 
       // act
@@ -94,7 +116,7 @@ describe('balanceRoutes', () => {
      * @target fastifyServer[GET /balance] should return error response when an exception is thrown during balance retrieval
      * @dependencies
      * @scenario
-     * - stub BalanceHandler.getAddressAssets to reject for lock address and return mock balances for cold address
+     * - stub BalanceHandler.getAddressAssets to throw
      * - call handler
      * @expected
      * - response status should have been 500
@@ -102,12 +124,9 @@ describe('balanceRoutes', () => {
      */
     it('should return error response when an exception is thrown during balance retrieval', async () => {
       // arrange
-      BalanceHandlerMock.mockGetAddressAssets().mockImplementation(
-        async (address) => {
-          if (address === 'lock') throw new Error('custom_error');
-          else return { items: [], total: 0 };
-        },
-      );
+      BalanceHandlerMock.mockGetAddressAssets().mockImplementation(async () => {
+        throw new Error('custom_error');
+      });
 
       // act
       const result = await mockedServer.inject({

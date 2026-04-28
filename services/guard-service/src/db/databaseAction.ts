@@ -1117,6 +1117,9 @@ class DatabaseAction {
         },
         ...(Number.isFinite(offset) ? { skip: offset } : {}),
         ...(Number.isFinite(limit) ? { take: limit } : {}),
+        order: {
+          address: 'ASC',
+        },
       });
 
     return {

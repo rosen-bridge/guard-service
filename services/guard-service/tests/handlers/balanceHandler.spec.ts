@@ -195,7 +195,7 @@ describe('BalanceHandler', () => {
     it('should successfully read balance records of cold addresses from database', async () => {
       // act
       const result = await balanceHandler.getAddressAssets(
-        'cold',
+        ['cold'],
         undefined, // chain,
         undefined, // tokenId,
         0, // offset,
@@ -224,7 +224,7 @@ describe('BalanceHandler', () => {
     it('should successfully read balance records of lock addresses from database', async () => {
       // act
       const result = await balanceHandler.getAddressAssets(
-        'lock',
+        ['lock'],
         undefined, // chain
         undefined, // tokenId
         0, // offset
