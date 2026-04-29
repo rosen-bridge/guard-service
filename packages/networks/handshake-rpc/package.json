@@ -36,7 +36,7 @@
     "@rosen-bridge/json-bigint": "^1.1.0",
     "@rosen-chains/abstract-chain": "^16.0.0",
     "@rosen-chains/handshake": "^0.0.0",
-    "@rosen-clients/rate-limited-axios": "^1.1.1",
+    "@rosen-clients/rate-limited-axios": "^2.0.0",
     "hsd": "^8.0.0"
   },
   "engines": {
