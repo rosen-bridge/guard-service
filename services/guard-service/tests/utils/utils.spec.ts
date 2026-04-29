@@ -1,3 +1,4 @@
+import { RevenuePeriod } from '../../src/utils/constants';
 import Utils from '../../src/utils/utils';
 import * as testData from './testData';
 
@@ -44,6 +45,80 @@ describe('Utils', () => {
       );
 
       expect(result).toEqual(testData.expectedCommitment);
+    });
+  });
+
+  describe('convertTimestampToLabel', () => {
+    /**
+     * @target Utils.convertTimestampToLabel should return first day of year successfully
+     * @dependencies
+     * @scenario
+     * - mock time: Wednesday, April 22, 2026 at 11:57:46 AM
+     * - run test
+     * - verify returned value
+     * @expected
+     * - returned value should be: Thursday, January 1, 2026 at 12:00:00 AM
+     */
+    it('should return first day of year successfully', () => {
+      const result = Utils.convertTimestampToLabel(
+        1776859066,
+        RevenuePeriod.year,
+      );
+      expect(result).toEqual(1767225600000);
+    });
+
+    /**
+     * @target Utils.convertTimestampToLabel should return first day of month successfully
+     * @dependencies
+     * @scenario
+     * - mock time: Wednesday, April 22, 2026 at 11:57:46 AM
+     * - run test
+     * - verify returned value
+     * @expected
+     * - returned value should be: Thursday, April 1, 2026 at 12:00:00 AM
+     */
+    it('should return first day of month successfully', () => {
+      const result = Utils.convertTimestampToLabel(
+        1776859066,
+        RevenuePeriod.month,
+      );
+      expect(result).toEqual(1775001600000);
+    });
+
+    /**
+     * @target Utils.convertTimestampToLabel should return first day of week successfully
+     * @dependencies
+     * @scenario
+     * - mock time: Wednesday, April 22, 2026 at 11:57:46 AM
+     * - run test
+     * - verify returned value
+     * @expected
+     * - returned value should be: Sunday, April 19, 2026 at 12:00:00 AM
+     */
+    it('should return first day of week successfully', () => {
+      const result = Utils.convertTimestampToLabel(
+        1776859066,
+        RevenuePeriod.week,
+      );
+      expect(result).toEqual(1776556800000);
+    });
+
+    /**
+     * @target Utils.convertTimestampToLabel should return first day of week even when it's on the previous month
+     * @dependencies
+     * @scenario
+     * - mock time: Thursday, April 2, 2026 at 11:57:46 AM
+     * - run test
+     * - verify returned value
+     * @expected
+     * - returned value should be: Sunday, March 29, 2026 at 12:00:00 AM
+     */
+    it("should return first day of week even when it's on the previous month", () => {
+      const result = Utils.convertTimestampToLabel(
+        1775131066,
+        RevenuePeriod.week,
+      );
+      expect(result).toEqual(1774742400000);
     });
   });
 });
