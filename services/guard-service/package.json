@@ -63,7 +63,7 @@
     "@rosen-bridge/tss": "^5.1.0",
     "@rosen-bridge/tx-progress-check": "^3.0.0",
     "@rosen-bridge/watcher-data-extractor": "^13.0.5",
-    "@rosen-bridge/winston-logger": "^3.0.0",
+    "@rosen-bridge/winston-logger": "^3.0.1",
     "@rosen-chains/abstract-chain": "^16.0.0",
     "@rosen-chains/binance": "^4.0.0",
     "@rosen-chains/bitcoin": "^10.0.0",
