@@ -219,6 +219,15 @@ class PublicStatusHandler {
         throw new ImpossibleBehavior(`Event of tx [${txId}] is not found!`);
       }
 
+      if (
+        (tx.type === TransactionType.payment &&
+          tx.event.status !== EventStatus.inPayment) ||
+        (tx.type === TransactionType.reward &&
+          tx.event.status !== EventStatus.inReward)
+      ) {
+        return;
+      }
+
       const dto: UpdateStatusDTO = {
         eventId: tx.event.id,
         status: tx.event.status,

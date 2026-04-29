@@ -1,15 +1,12 @@
 import { TransactionType } from '@rosen-chains/abstract-chain';
 
+import EventSerializer from '../../src/event/eventSerializer';
 import { UpdateStatusDTO } from '../../src/handlers/publicStatusHandler';
 import { EventStatus, TransactionStatus } from '../../src/utils/constants';
+import * as TxTestData from '../agreement/testData';
 import DatabaseActionMock from '../db/mocked/databaseAction.mock';
-import {
-  eventId,
-  txId1,
-  txId2,
-  chain,
-  mockTx,
-} from './publicStatusHandlerTestData';
+import * as EventTestData from '../event/testData';
+import TestUtils from '../testUtils/testUtils';
 import TestPublicStatusHandler from './testPublicStatusHandler';
 
 describe('PublicStatusHandler', () => {
@@ -24,12 +21,12 @@ describe('PublicStatusHandler', () => {
      * - Database
      * @scenario
      * - define a mock PublicStatusHandler with a mock dataSource
-     * - define a mock transaction object
-     * - insert the tx in database
+     * - insert a mock event with "pendingPayment" status in database
+     * - insert a mock "payment" transaction in database
      * - stub PublicStatusHandler.submitRequest (processor.jobFn) to resolve
      * - call PublicStatusHandler.updatePublicEventStatus with status set to "inPayment"
      * @expected
-     * - PublicStatusHandler.submitRequest should have been called once with the dto
+     * - PublicStatusHandler.submitRequest should have been called once with the dto containing the payment tx
      */
     it('should call submitRequest with event and tx info when status is "inPayment"', async () => {
       // arrange
@@ -37,21 +34,35 @@ describe('PublicStatusHandler', () => {
         DatabaseActionMock.testDataSource,
       );
 
-      const eventStatus = EventStatus.inPayment;
-      const txType = TransactionType.payment;
-      const txStatus = TransactionStatus.sent;
+      const mockedEvent = EventTestData.mockEventTrigger().event;
+      const eventId = EventSerializer.getId(mockedEvent);
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent,
+        EventStatus.pendingPayment,
+      );
+      const event =
+        await DatabaseActionMock.testDatabase.ConfirmedEventRepository.findOneOrFail(
+          {
+            relations: ['eventData'],
+            where: { id: eventId },
+          },
+        );
 
-      await DatabaseActionMock.testDatabase.EventRepository.insert(
-        mockTx.event!.eventData,
+      const paymentTx = TxTestData.mockPaymentTransaction(
+        TransactionType.payment,
+        event.eventData.toChain,
+        eventId,
       );
-      await DatabaseActionMock.testDatabase.ConfirmedEventRepository.insert(
-        mockTx.event!,
+      await DatabaseActionMock.insertTxRecord(
+        paymentTx,
+        TransactionStatus.approved,
       );
-      await DatabaseActionMock.testDatabase.TransactionRepository.insert({
-        ...mockTx,
-        type: txType,
-        status: txStatus,
-      });
+      const tx =
+        await DatabaseActionMock.testDatabase.TransactionRepository.findOneOrFail(
+          {
+            where: { txId: paymentTx.txId },
+          },
+        );
 
       const submitRequestSpy = vi
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -59,64 +70,80 @@ describe('PublicStatusHandler', () => {
         .mockResolvedValue(undefined);
 
       // act
-      await instance.updatePublicEventStatus(eventId, eventStatus);
+      const newEventStatus = EventStatus.inPayment;
+      await instance.updatePublicEventStatus(eventId, newEventStatus);
 
       // assert
       expect(submitRequestSpy).toHaveBeenCalledExactlyOnceWith({
         eventId,
-        status: eventStatus,
+        status: newEventStatus,
         tx: {
-          txId: txId1,
-          chain,
-          txType,
-          txStatus,
+          txId: tx.txId,
+          chain: tx.chain,
+          txType: tx.type,
+          txStatus: tx.status,
         },
       });
     });
 
     /**
-     * @target PublicStatusHandler.updatePublicEventStatus should call submitRequest with a payment tx when event status is inPayment
+     * @target PublicStatusHandler.updatePublicEventStatus should call submitRequest with a valid payment tx when event status is inPayment
      * @dependencies
      * - Database
      * @scenario
      * - define a mock PublicStatusHandler with a mock dataSource
-     * - define a mock transaction object with "payment" type
-     * - define a mock transaction object with "reward" type
-     * - insert the txs in database
-     * - insert a mock event with "pendingPayment" status
+     * - insert a mock event with "pendingPayment" status in database
+     * - insert 2 mock "payment" transactions with "invalid" and "completed" statuses in database
      * - stub PublicStatusHandler.submitRequest (processor.jobFn) to resolve
      * - call PublicStatusHandler.updatePublicEventStatus with status set to "inPayment"
      * @expected
-     * - PublicStatusHandler.submitRequest should have been called once with the "payment" tx
+     * - PublicStatusHandler.submitRequest should have been called once with the valid "payment" tx
      */
-    it('should call submitRequest with a payment tx when event status is inPayment', async () => {
+    it('should call submitRequest with a valid payment tx when event status is inPayment', async () => {
       // arrange
       const instance = new TestPublicStatusHandler(
         DatabaseActionMock.testDataSource,
       );
 
-      const eventStatus = EventStatus.inPayment;
-      const tx1 = {
-        ...mockTx,
-        type: TransactionType.payment,
-        status: TransactionStatus.completed,
-      };
-      const tx2 = {
-        ...mockTx,
-        txId: txId2,
-        type: TransactionType.reward,
-        status: TransactionStatus.approved,
-      };
-
-      await DatabaseActionMock.testDatabase.EventRepository.insert(
-        mockTx.event!.eventData,
+      const mockedEvent = EventTestData.mockEventTrigger().event;
+      const eventId = EventSerializer.getId(mockedEvent);
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent,
+        EventStatus.pendingPayment,
       );
-      await DatabaseActionMock.testDatabase.ConfirmedEventRepository.insert({
-        ...mockTx.event!,
-        status: EventStatus.pendingPayment,
-      });
-      await DatabaseActionMock.testDatabase.TransactionRepository.insert(tx1);
-      await DatabaseActionMock.testDatabase.TransactionRepository.insert(tx2);
+      const event =
+        await DatabaseActionMock.testDatabase.ConfirmedEventRepository.findOneOrFail(
+          {
+            relations: ['eventData'],
+            where: { id: eventId },
+          },
+        );
+
+      const paymentTx1 = TxTestData.mockPaymentTransaction(
+        TransactionType.payment,
+        event.eventData.toChain,
+        eventId,
+      );
+      await DatabaseActionMock.insertTxRecord(
+        paymentTx1,
+        TransactionStatus.invalid,
+      );
+
+      const paymentTx2 = TxTestData.mockPaymentTransaction(
+        TransactionType.payment,
+        event.eventData.toChain,
+        eventId,
+      );
+      await DatabaseActionMock.insertTxRecord(
+        paymentTx2,
+        TransactionStatus.completed,
+      );
+      const tx2 =
+        await DatabaseActionMock.testDatabase.TransactionRepository.findOneOrFail(
+          {
+            where: { txId: paymentTx2.txId },
+          },
+        );
 
       const submitRequestSpy = vi
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -124,17 +151,18 @@ describe('PublicStatusHandler', () => {
         .mockResolvedValue(undefined);
 
       // act
-      await instance.updatePublicEventStatus(eventId, eventStatus);
+      const newEventStatus = EventStatus.inPayment;
+      await instance.updatePublicEventStatus(eventId, newEventStatus);
 
       // assert
       expect(submitRequestSpy).toHaveBeenCalledExactlyOnceWith({
         eventId,
-        status: eventStatus,
+        status: newEventStatus,
         tx: {
-          txId: tx1.txId,
-          chain: tx1.chain,
-          txType: tx1.type,
-          txStatus: tx1.status,
+          txId: tx2.txId,
+          chain: tx2.chain,
+          txType: tx2.type,
+          txStatus: tx2.status,
         },
       });
     });
@@ -145,10 +173,8 @@ describe('PublicStatusHandler', () => {
      * - Database
      * @scenario
      * - define a mock PublicStatusHandler with a mock dataSource
-     * - define a mock transaction object with "payment" type
-     * - define a mock transaction object with "reward" type
-     * - insert the txs in database
-     * - insert a mock event with "inPayment" status
+     * - insert a mock event with "inPayment" status in database
+     * - insert 2 mock transactions with "payment" and "reward" types in database
      * - stub PublicStatusHandler.submitRequest (processor.jobFn) to resolve
      * - call PublicStatusHandler.updatePublicEventStatus with status set to "inReward"
      * @expected
@@ -160,28 +186,45 @@ describe('PublicStatusHandler', () => {
         DatabaseActionMock.testDataSource,
       );
 
-      const eventStatus = EventStatus.inReward;
-      const tx1 = {
-        ...mockTx,
-        type: TransactionType.payment,
-        status: TransactionStatus.completed,
-      };
-      const tx2 = {
-        ...mockTx,
-        txId: txId2,
-        type: TransactionType.reward,
-        status: TransactionStatus.approved,
-      };
-
-      await DatabaseActionMock.testDatabase.EventRepository.insert(
-        mockTx.event!.eventData,
+      const mockedEvent = EventTestData.mockEventTrigger().event;
+      const eventId = EventSerializer.getId(mockedEvent);
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent,
+        EventStatus.inPayment,
       );
-      await DatabaseActionMock.testDatabase.ConfirmedEventRepository.insert({
-        ...mockTx.event!,
-        status: EventStatus.inPayment,
-      });
-      await DatabaseActionMock.testDatabase.TransactionRepository.insert(tx1);
-      await DatabaseActionMock.testDatabase.TransactionRepository.insert(tx2);
+      const event =
+        await DatabaseActionMock.testDatabase.ConfirmedEventRepository.findOneOrFail(
+          {
+            relations: ['eventData'],
+            where: { id: eventId },
+          },
+        );
+
+      const paymentTx1 = TxTestData.mockPaymentTransaction(
+        TransactionType.payment,
+        event.eventData.toChain,
+        eventId,
+      );
+      await DatabaseActionMock.insertTxRecord(
+        paymentTx1,
+        TransactionStatus.completed,
+      );
+
+      const paymentTx2 = TxTestData.mockPaymentTransaction(
+        TransactionType.reward,
+        event.eventData.toChain,
+        eventId,
+      );
+      await DatabaseActionMock.insertTxRecord(
+        paymentTx2,
+        TransactionStatus.approved,
+      );
+      const tx2 =
+        await DatabaseActionMock.testDatabase.TransactionRepository.findOneOrFail(
+          {
+            where: { txId: paymentTx2.txId },
+          },
+        );
 
       const submitRequestSpy = vi
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -189,12 +232,13 @@ describe('PublicStatusHandler', () => {
         .mockResolvedValue(undefined);
 
       // act
-      await instance.updatePublicEventStatus(eventId, eventStatus);
+      const newEventStatus = EventStatus.inReward;
+      await instance.updatePublicEventStatus(eventId, newEventStatus);
 
       // assert
       expect(submitRequestSpy).toHaveBeenCalledExactlyOnceWith({
         eventId,
-        status: eventStatus,
+        status: newEventStatus,
         tx: {
           txId: tx2.txId,
           chain: tx2.chain,
@@ -205,23 +249,24 @@ describe('PublicStatusHandler', () => {
     });
 
     /**
-     * @target PublicStatusHandler.updatePublicEventStatus should call submitRequest with the dto without transaction details when status is neither "inPayment" nor "inReward"
+     * @target PublicStatusHandler.updatePublicEventStatus should call submitRequest without transaction details when status is neither "inPayment" nor "inReward"
      * @dependencies
      * - Database
      * @scenario
      * - define a mock PublicStatusHandler with a mock dataSource
+     * - define a mock eventId
      * - stub PublicStatusHandler.submitRequest (processor.jobFn) to resolve
      * - call PublicStatusHandler.updatePublicEventStatus with status that is not "inPayment" or "inReward"
      * @expected
-     * - PublicStatusHandler.submitRequest should have been called once with the dto
+     * - PublicStatusHandler.submitRequest should have been called once without a transaction property
      */
-    it('should call submitRequest with the dto without transaction details when status is neither "inPayment" nor "inReward"', async () => {
+    it('should call submitRequest without transaction details when status is neither "inPayment" nor "inReward"', async () => {
       // arrange
-      const status = EventStatus.pendingPayment;
-
       const instance = new TestPublicStatusHandler(
         DatabaseActionMock.testDataSource,
       );
+
+      const eventId = TestUtils.generateRandomId();
 
       const submitRequestSpy = vi
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -229,6 +274,7 @@ describe('PublicStatusHandler', () => {
         .mockResolvedValue(undefined);
 
       // act
+      const status = EventStatus.pendingPayment;
       await instance.updatePublicEventStatus(eventId, status);
 
       // assert
@@ -247,12 +293,12 @@ describe('PublicStatusHandler', () => {
      * - Database
      * @scenario
      * - define a mock PublicStatusHandler with a mock dataSource
-     * - define a mock TransactionEntity object
-     * - insert the tx in database
+     * - insert a mock event with "inReward" status in database
+     * - insert a mock "reward" transaction in database
      * - stub PublicStatusHandler.submitRequest (processor.jobFn) to resolve
-     * - call PublicStatusHandler.updatePublicTxStatus with the dto
+     * - call PublicStatusHandler.updatePublicTxStatus with a new tx status
      * @expected
-     * - PublicStatusHandler.submitRequest should have been called once with the dto
+     * - PublicStatusHandler.submitRequest should have been called once with the new tx status
      */
     it('should call submitRequest with a dto object containing transaction details', async () => {
       // arrange
@@ -260,22 +306,35 @@ describe('PublicStatusHandler', () => {
         DatabaseActionMock.testDataSource,
       );
 
-      const eventStatus = EventStatus.inReward;
-      const txType = TransactionType.reward;
-      const txStatus = TransactionStatus.inSign;
-      const newTxStatus = TransactionStatus.signed;
+      const mockedEvent = EventTestData.mockEventTrigger().event;
+      const eventId = EventSerializer.getId(mockedEvent);
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent,
+        EventStatus.inReward,
+      );
+      const event =
+        await DatabaseActionMock.testDatabase.ConfirmedEventRepository.findOneOrFail(
+          {
+            relations: ['eventData'],
+            where: { id: eventId },
+          },
+        );
 
-      await DatabaseActionMock.testDatabase.EventRepository.insert(
-        mockTx.event!.eventData,
+      const paymentTx = TxTestData.mockPaymentTransaction(
+        TransactionType.reward,
+        event.eventData.toChain,
+        eventId,
       );
-      await DatabaseActionMock.testDatabase.ConfirmedEventRepository.insert(
-        mockTx.event!,
+      await DatabaseActionMock.insertTxRecord(
+        paymentTx,
+        TransactionStatus.inSign,
       );
-      await DatabaseActionMock.testDatabase.TransactionRepository.insert({
-        ...mockTx,
-        type: txType,
-        status: txStatus,
-      });
+      const tx =
+        await DatabaseActionMock.testDatabase.TransactionRepository.findOneOrFail(
+          {
+            where: { txId: paymentTx.txId },
+          },
+        );
 
       const submitRequestSpy = vi
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -283,16 +342,17 @@ describe('PublicStatusHandler', () => {
         .mockResolvedValue(undefined);
 
       // act
-      await instance.updatePublicTxStatus(txId1, newTxStatus);
+      const newTxStatus = TransactionStatus.signed;
+      await instance.updatePublicTxStatus(tx.txId, newTxStatus);
 
       // assert
       expect(submitRequestSpy).toHaveBeenCalledExactlyOnceWith({
         eventId,
-        status: eventStatus,
+        status: event.status,
         tx: {
-          txId: txId1,
-          chain,
-          txType,
+          txId: tx.txId,
+          chain: tx.chain,
+          txType: tx.type,
           txStatus: newTxStatus,
         },
       });
@@ -318,7 +378,7 @@ describe('PublicStatusHandler', () => {
       );
 
       const dto: UpdateStatusDTO = {
-        eventId,
+        eventId: TestUtils.generateRandomId(),
         status: EventStatus.inPayment,
       };
 
@@ -347,7 +407,7 @@ describe('PublicStatusHandler', () => {
       );
 
       const dto: UpdateStatusDTO = {
-        eventId,
+        eventId: TestUtils.generateRandomId(),
         status: EventStatus.inPayment,
         tx: {
           txId: 'txId',
