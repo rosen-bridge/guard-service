@@ -21,7 +21,7 @@ describe('PublicStatusHandler', () => {
      * - Database
      * @scenario
      * - define a mock PublicStatusHandler with a mock dataSource
-     * - insert a mock event with "pendingPayment" status in database
+     * - insert a mock event with "inPayment" status in database
      * - insert a mock "payment" transaction in database
      * - stub PublicStatusHandler.submitRequest (processor.jobFn) to resolve
      * - call PublicStatusHandler.updatePublicEventStatus with status set to "inPayment"
@@ -38,7 +38,7 @@ describe('PublicStatusHandler', () => {
       const eventId = EventSerializer.getId(mockedEvent);
       await DatabaseActionMock.insertEventRecord(
         mockedEvent,
-        EventStatus.pendingPayment,
+        EventStatus.inPayment,
       );
       const event =
         await DatabaseActionMock.testDatabase.ConfirmedEventRepository.findOneOrFail(
@@ -70,13 +70,12 @@ describe('PublicStatusHandler', () => {
         .mockResolvedValue(undefined);
 
       // act
-      const newEventStatus = EventStatus.inPayment;
-      await instance.updatePublicEventStatus(eventId, newEventStatus);
+      await instance.updatePublicEventStatus(eventId, event.status);
 
       // assert
       expect(submitRequestSpy).toHaveBeenCalledExactlyOnceWith({
         eventId,
-        status: newEventStatus,
+        status: event.status,
         tx: {
           txId: tx.txId,
           chain: tx.chain,
@@ -92,8 +91,8 @@ describe('PublicStatusHandler', () => {
      * - Database
      * @scenario
      * - define a mock PublicStatusHandler with a mock dataSource
-     * - insert a mock event with "pendingPayment" status in database
-     * - insert 2 mock "payment" transactions with "invalid" and "completed" statuses in database
+     * - insert a mock event with "inPayment" status in database
+     * - insert 2 mock "payment" transactions with "invalid" and "approved" statuses in database
      * - stub PublicStatusHandler.submitRequest (processor.jobFn) to resolve
      * - call PublicStatusHandler.updatePublicEventStatus with status set to "inPayment"
      * @expected
@@ -109,7 +108,7 @@ describe('PublicStatusHandler', () => {
       const eventId = EventSerializer.getId(mockedEvent);
       await DatabaseActionMock.insertEventRecord(
         mockedEvent,
-        EventStatus.pendingPayment,
+        EventStatus.inPayment,
       );
       const event =
         await DatabaseActionMock.testDatabase.ConfirmedEventRepository.findOneOrFail(
@@ -136,7 +135,7 @@ describe('PublicStatusHandler', () => {
       );
       await DatabaseActionMock.insertTxRecord(
         paymentTx2,
-        TransactionStatus.completed,
+        TransactionStatus.approved,
       );
       const tx2 =
         await DatabaseActionMock.testDatabase.TransactionRepository.findOneOrFail(
@@ -151,13 +150,12 @@ describe('PublicStatusHandler', () => {
         .mockResolvedValue(undefined);
 
       // act
-      const newEventStatus = EventStatus.inPayment;
-      await instance.updatePublicEventStatus(eventId, newEventStatus);
+      await instance.updatePublicEventStatus(eventId, event.status);
 
       // assert
       expect(submitRequestSpy).toHaveBeenCalledExactlyOnceWith({
         eventId,
-        status: newEventStatus,
+        status: event.status,
         tx: {
           txId: tx2.txId,
           chain: tx2.chain,
@@ -173,7 +171,7 @@ describe('PublicStatusHandler', () => {
      * - Database
      * @scenario
      * - define a mock PublicStatusHandler with a mock dataSource
-     * - insert a mock event with "inPayment" status in database
+     * - insert a mock event with "inReward" status in database
      * - insert 2 mock transactions with "payment" and "reward" types in database
      * - stub PublicStatusHandler.submitRequest (processor.jobFn) to resolve
      * - call PublicStatusHandler.updatePublicEventStatus with status set to "inReward"
@@ -190,7 +188,7 @@ describe('PublicStatusHandler', () => {
       const eventId = EventSerializer.getId(mockedEvent);
       await DatabaseActionMock.insertEventRecord(
         mockedEvent,
-        EventStatus.inPayment,
+        EventStatus.inReward,
       );
       const event =
         await DatabaseActionMock.testDatabase.ConfirmedEventRepository.findOneOrFail(
@@ -232,13 +230,12 @@ describe('PublicStatusHandler', () => {
         .mockResolvedValue(undefined);
 
       // act
-      const newEventStatus = EventStatus.inReward;
-      await instance.updatePublicEventStatus(eventId, newEventStatus);
+      await instance.updatePublicEventStatus(eventId, event.status);
 
       // assert
       expect(submitRequestSpy).toHaveBeenCalledExactlyOnceWith({
         eventId,
-        status: newEventStatus,
+        status: event.status,
         tx: {
           txId: tx2.txId,
           chain: tx2.chain,
@@ -296,9 +293,9 @@ describe('PublicStatusHandler', () => {
      * - insert a mock event with "inReward" status in database
      * - insert a mock "reward" transaction in database
      * - stub PublicStatusHandler.submitRequest (processor.jobFn) to resolve
-     * - call PublicStatusHandler.updatePublicTxStatus with a new tx status
+     * - call PublicStatusHandler.updatePublicTxStatus with the tx status
      * @expected
-     * - PublicStatusHandler.submitRequest should have been called once with the new tx status
+     * - PublicStatusHandler.submitRequest should have been called once with the tx details
      */
     it('should call submitRequest with a dto object containing transaction details', async () => {
       // arrange
@@ -342,8 +339,7 @@ describe('PublicStatusHandler', () => {
         .mockResolvedValue(undefined);
 
       // act
-      const newTxStatus = TransactionStatus.signed;
-      await instance.updatePublicTxStatus(tx.txId, newTxStatus);
+      await instance.updatePublicTxStatus(tx.txId, tx.status);
 
       // assert
       expect(submitRequestSpy).toHaveBeenCalledExactlyOnceWith({
@@ -353,7 +349,7 @@ describe('PublicStatusHandler', () => {
           txId: tx.txId,
           chain: tx.chain,
           txType: tx.type,
-          txStatus: newTxStatus,
+          txStatus: tx.status,
         },
       });
     });
