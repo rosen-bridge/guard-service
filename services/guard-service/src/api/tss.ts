@@ -1,8 +1,8 @@
 import { DefaultLogger } from '@rosen-bridge/abstract-logger';
+import { FastifyWithZod } from '@rosen-bridge/fastify-enhanced';
 
 import TssHandler from '../handlers/tssHandler';
 import {
-  FastifySeverInstance,
   MessageResponseSchema,
   TssCallbackParams,
   TssCallbackSchema,
@@ -14,7 +14,7 @@ const logger = DefaultLogger.getInstance().child(import.meta.url);
  * setups TSS sign route
  * @param server
  */
-const signRoute = (server: FastifySeverInstance) => {
+const signRoute = (server: FastifyWithZod) => {
   server.post(
     '/tss/sign/:algorithm',
     {
@@ -65,7 +65,7 @@ const signRoute = (server: FastifySeverInstance) => {
   );
 };
 
-const tssRoute = async (server: FastifySeverInstance) => {
+const tssRoute = async (server: FastifyWithZod) => {
   signRoute(server);
 };
 

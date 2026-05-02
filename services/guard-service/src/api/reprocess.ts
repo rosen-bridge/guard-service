@@ -1,13 +1,10 @@
 import { DefaultLogger } from '@rosen-bridge/abstract-logger';
+import { FastifyWithZod } from '@rosen-bridge/fastify-enhanced';
 import { NotFoundError } from '@rosen-chains/abstract-chain';
 
 import EventReprocess from '../reprocess/eventReprocess';
 import { authenticateKey } from '../utils/authentication';
-import {
-  FastifySeverInstance,
-  MessageResponseSchema,
-  ReprocessQuerySchema,
-} from './schemas';
+import { MessageResponseSchema, ReprocessQuerySchema } from './schemas';
 
 const logger = DefaultLogger.getInstance().child(import.meta.url);
 
@@ -15,7 +12,7 @@ const logger = DefaultLogger.getInstance().child(import.meta.url);
  * setup event reprocess route
  * @param server
  */
-const reprocessRoute = (server: FastifySeverInstance) => {
+const reprocessRoute = (server: FastifyWithZod) => {
   server.post(
     '/reprocess',
     {
@@ -61,7 +58,7 @@ const reprocessRoute = (server: FastifySeverInstance) => {
   );
 };
 
-const eventReprocessRoute = async (server: FastifySeverInstance) => {
+const eventReprocessRoute = async (server: FastifyWithZod) => {
   reprocessRoute(server);
 };
 
