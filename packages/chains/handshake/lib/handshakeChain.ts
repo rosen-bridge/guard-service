@@ -1,4 +1,10 @@
-import { Address, Coin, Input, MTX, Script } from 'hsd';
+import hsd from 'hsd';
+import type {
+  Address as HsdAddress,
+  Coin as HsdCoin,
+  Input as HsdInput,
+  MTX as HsdMTX,
+} from 'hsd';
 
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 import {
@@ -41,6 +47,8 @@ import AbstractHandshakeNetwork from './network/abstractHandshakeNetwork';
 import Serializer from './serializer';
 import { HandshakeConfigs, HandshakeTx, HandshakeUtxo } from './types';
 
+const { Address, Coin, MTX, Script } = hsd;
+
 class HandshakeChain extends AbstractUtxoChain<HandshakeTx, HandshakeUtxo> {
   declare network: AbstractHandshakeNetwork;
   declare configs: HandshakeConfigs;
@@ -49,7 +57,7 @@ class HandshakeChain extends AbstractUtxoChain<HandshakeTx, HandshakeUtxo> {
   extractor: HandshakeRosenExtractor;
   protected boxSelection: BitcoinBoxSelection;
   protected signMediator: EcdsaSignMediator;
-  protected lockAddress: Address;
+  protected lockAddress: HsdAddress;
   protected lockScript: Buffer;
 
   constructor(
@@ -512,7 +520,7 @@ class HandshakeChain extends AbstractUtxoChain<HandshakeTx, HandshakeUtxo> {
     const handshakeTx = transaction as HandshakeTransaction;
 
     // Add UTXO information to the MTX view for signature hash calculation
-    const coins: Coin[] = [];
+    const coins: HsdCoin[] = [];
     for (let i = 0; i < handshakeTx.inputUtxos.length; i++) {
       const input = JsonBigInt.parse(
         handshakeTx.inputUtxos[i],
@@ -705,14 +713,14 @@ class HandshakeChain extends AbstractUtxoChain<HandshakeTx, HandshakeUtxo> {
    * @returns a Map from input box id to output box
    */
   protected getTransactionsBoxMapping = (
-    txs: MTX[],
+    txs: HsdMTX[],
     address: string,
   ): Map<string, HandshakeUtxo | undefined> => {
     const trackMap = new Map<string, HandshakeUtxo | undefined>();
 
     txs.forEach((mtx) => {
       const txId = mtx.txid();
-      mtx.inputs.forEach((input: Input) => {
+      mtx.inputs.forEach((input: HsdInput) => {
         let trackedBox: HandshakeUtxo | undefined = undefined;
         let index = 0;
         for (index = 0; index < mtx.outputs.length; index++) {
@@ -741,7 +749,7 @@ class HandshakeChain extends AbstractUtxoChain<HandshakeTx, HandshakeUtxo> {
    * Adds a deterministic dummy witness for unsigned inputs so fee estimation
    * reflects post-signing virtual size.
    */
-  protected withWitnessForFeeEstimation = (mtx: MTX): MTX => {
+  protected withWitnessForFeeEstimation = (mtx: HsdMTX): HsdMTX => {
     const feeMtx = mtx.clone();
     const dummyWitness = new Script();
 
@@ -773,7 +781,7 @@ class HandshakeChain extends AbstractUtxoChain<HandshakeTx, HandshakeUtxo> {
   protected buildSignedTransaction = (
     txBytes: Uint8Array,
     signatures: string[], // one aggregated signature per input
-  ): MTX => {
+  ): HsdMTX => {
     const mtx = MTX.fromRaw(Buffer.from(txBytes));
 
     for (let i = 0; i < signatures.length; i++) {

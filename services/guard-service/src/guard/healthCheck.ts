@@ -129,7 +129,7 @@ const getHealthCheck = async () => {
     const bitcoinContracts = rosenConfig.contractReader(BITCOIN_CHAIN);
     const ethereumContracts = rosenConfig.contractReader(ETHEREUM_CHAIN);
     const binanceContracts = rosenConfig.contractReader(BINANCE_CHAIN);
-    // We skipped Doge and Firo AssetCheck parameters, so we don't need their contracts here
+    // We skipped Doge, Firo and Handshake AssetCheck parameters, so we don't need their contracts here
     const bitcoinRunesContracts =
       rosenConfig.contractReader(BITCOIN_RUNES_CHAIN);
 

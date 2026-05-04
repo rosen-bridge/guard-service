@@ -85,6 +85,8 @@
     "@rosen-chains/evm-rpc": "^4.0.4",
     "@rosen-chains/firo": "^0.0.0",
     "@rosen-chains/firo-rpc": "^0.0.0",
+    "@rosen-chains/handshake": "^0.0.0",
+    "@rosen-chains/handshake-rpc": "^0.0.0",
     "@rosen-clients/rate-limited-axios": "^2.0.0",
     "@sinclair/typebox": "^0.30.4",
     "await-semaphore": "^0.1.3",

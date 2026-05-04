@@ -6,6 +6,7 @@ import { DOGE, DOGE_CHAIN } from '@rosen-chains/doge';
 import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
 import { ETH, ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
 import { FIRO, FIRO_CHAIN } from '@rosen-chains/firo';
+import { HANDSHAKE_CHAIN, HNS } from '@rosen-chains/handshake';
 
 class EventStatus {
   static pendingPayment = 'pending-payment';
@@ -58,6 +59,7 @@ const SUPPORTED_CHAINS = [
   BINANCE_CHAIN,
   DOGE_CHAIN,
   FIRO_CHAIN,
+  HANDSHAKE_CHAIN,
   BITCOIN_RUNES_CHAIN,
 ];
 
@@ -80,6 +82,7 @@ const ChainNativeToken: Record<string, string> = {
   [ETHEREUM_CHAIN]: ETH,
   [DOGE_CHAIN]: DOGE,
   [FIRO_CHAIN]: FIRO,
+  [HANDSHAKE_CHAIN]: HNS,
   [BINANCE_CHAIN]: BNB,
   [BITCOIN_RUNES_CHAIN]: BTC,
 };
@@ -91,6 +94,7 @@ const ChainConfigKey: Record<string, string> = {
   [ETHEREUM_CHAIN]: ETHEREUM_CHAIN,
   [DOGE_CHAIN]: DOGE_CHAIN,
   [FIRO_CHAIN]: FIRO_CHAIN,
+  [HANDSHAKE_CHAIN]: HANDSHAKE_CHAIN,
   [BINANCE_CHAIN]: BINANCE_CHAIN,
   [BITCOIN_RUNES_CHAIN]: 'bitcoinRunes',
 };
