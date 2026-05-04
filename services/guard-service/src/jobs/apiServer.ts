@@ -30,9 +30,18 @@ const logger = DefaultLogger.getInstance().child(import.meta.url);
  */
 let apiServer: FastifyWithZod;
 const initApiServer = async () => {
-  apiServer = await makeFastify(undefined, {
-    bodyLimit: Configs.apiBodyLimit,
-  });
+  apiServer = await makeFastify(
+    {
+      path: '/swagger',
+      title: 'api',
+      description: '',
+      version: '0.0.1',
+      enableCSP: true,
+    },
+    {
+      bodyLimit: Configs.apiBodyLimit,
+    },
+  );
 
   if (Configs.apiAllowedOrigins.includes('*')) {
     await apiServer.register(fastifyCors, {});
