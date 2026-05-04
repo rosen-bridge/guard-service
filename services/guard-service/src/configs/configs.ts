@@ -327,6 +327,12 @@ class Configs {
   static dogeCriticalThreshold = BigInt(
     config.get<string>('healthCheck.asset.doge.criticalThreshold'),
   );
+  static baseWarnThreshold = BigInt(
+    config.get<string>('healthCheck.asset.base.warnThreshold'),
+  );
+  static baseCriticalThreshold = BigInt(
+    config.get<string>('healthCheck.asset.base.criticalThreshold'),
+  );
   static ethWarnThreshold = BigInt(
     config.get<string>('healthCheck.asset.eth.warnThreshold'),
   );
@@ -346,6 +352,14 @@ class Configs {
   static ergoScannerCriticalDiff = getConfigIntKeyOrDefault(
     'healthCheck.ergoScanner.criticalDifference',
     20,
+  );
+  static baseScannerWarnDiff = getConfigIntKeyOrDefault(
+    'healthCheck.baseScanner.warnDifference',
+    20,
+  );
+  static baseScannerCriticalDiff = getConfigIntKeyOrDefault(
+    'healthCheck.baseScanner.criticalDifference',
+    100,
   );
   static ethereumScannerWarnDiff = getConfigIntKeyOrDefault(
     'healthCheck.ethereumScanner.warnDifference',

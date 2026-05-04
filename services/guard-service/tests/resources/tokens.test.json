@@ -189,6 +189,24 @@
           "assetName": "72734d44546f6b656e2d6c6f656e"
         }
       }
+    },
+    {
+      "ethereum": {
+        "tokenId": "eth",
+        "name": "ETH",
+        "decimals": 18,
+        "type": "native",
+        "residency": "native",
+        "extra": {}
+      },
+      "base": {
+        "tokenId": "eth",
+        "name": "ETH",
+        "decimals": 18,
+        "type": "native",
+        "residency": "native",
+        "extra": {}
+      }
     }
   ]
 }

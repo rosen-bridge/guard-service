@@ -21,6 +21,7 @@ import {
   TxProgressHealthCheckParam,
 } from '@rosen-bridge/tx-progress-check';
 import { NotFoundError } from '@rosen-chains/abstract-chain';
+import { BASE_CHAIN, ETH as BASE_ETH } from '@rosen-chains/base';
 import { BINANCE_CHAIN, BNB } from '@rosen-chains/binance';
 import { BITCOIN_CHAIN, BTC } from '@rosen-chains/bitcoin';
 import { BITCOIN_RUNES_CHAIN } from '@rosen-chains/bitcoin-runes';
@@ -33,6 +34,7 @@ import { NODE_NETWORK } from '@rosen-chains/ergo-node-network';
 import { ETH, ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
 
 import Configs from '../configs/configs';
+import GuardsBaseConfigs from '../configs/guardsBaseConfigs';
 import GuardsBinanceConfigs from '../configs/guardsBinanceConfigs';
 import GuardsBitcoinConfigs from '../configs/guardsBitcoinConfigs';
 import GuardsCardanoConfigs from '../configs/guardsCardanoConfigs';
@@ -43,6 +45,7 @@ import { DatabaseAction } from '../db/databaseAction';
 import { NotificationHandler } from '../handlers/notificationHandler';
 import {
   ADA_DECIMALS,
+  BASE_BLOCK_TIME,
   ERG_DECIMALS,
   EventStatus,
   ETHEREUM_BLOCK_TIME,
@@ -127,6 +130,7 @@ const getHealthCheck = async () => {
     const ergoContracts = rosenConfig.contractReader(ERGO_CHAIN);
     const cardanoContracts = rosenConfig.contractReader(CARDANO_CHAIN);
     const bitcoinContracts = rosenConfig.contractReader(BITCOIN_CHAIN);
+    const baseContracts = rosenConfig.contractReader(BASE_CHAIN);
     const ethereumContracts = rosenConfig.contractReader(ETHEREUM_CHAIN);
     const binanceContracts = rosenConfig.contractReader(BINANCE_CHAIN);
     // We skipped Doge and Firo AssetCheck parameters, so we don't need their contracts here
@@ -276,6 +280,32 @@ const getHealthCheck = async () => {
         8,
       );
       healthCheck.register(btcRunesAssetHealthCheck);
+    }
+    if (GuardsBaseConfigs.chainNetworkName === 'rpc') {
+      const baseAssetHealthCheck = new EvmRpcAssetHealthCheckParam(
+        BASE_CHAIN,
+        BASE_ETH,
+        BASE_ETH,
+        BASE_ETH,
+        baseContracts.addresses.lock,
+        Configs.baseWarnThreshold,
+        Configs.baseCriticalThreshold,
+        GuardsBaseConfigs.rpc.url,
+        8,
+        GuardsBaseConfigs.rpc.authToken,
+        18,
+      );
+      healthCheck.register(baseAssetHealthCheck);
+
+      const baseScannerSyncCheck = new ScannerSyncHealthCheckParam(
+        BASE_CHAIN,
+        generateLastBlockFetcher(BASE_CHAIN),
+        Configs.baseScannerWarnDiff,
+        Configs.baseScannerCriticalDiff,
+        BASE_BLOCK_TIME,
+        GuardsBaseConfigs.rpc.scannerInterval,
+      );
+      healthCheck.register(baseScannerSyncCheck);
     }
     if (GuardsEthereumConfigs.chainNetworkName === 'rpc') {
       const ethAssetHealthCheck = new EvmRpcAssetHealthCheckParam(

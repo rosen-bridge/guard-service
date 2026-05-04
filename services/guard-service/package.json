@@ -80,6 +80,7 @@
     "@rosen-chains/ergo": "^14.0.0",
     "@rosen-chains/ergo-explorer-network": "^10.0.3",
     "@rosen-chains/ergo-node-network": "^10.0.3",
+    "@rosen-chains/base": "^0.0.0",
     "@rosen-chains/ethereum": "^4.0.0",
     "@rosen-chains/evm": "^10.0.0",
     "@rosen-chains/evm-rpc": "^4.0.4",

@@ -12,6 +12,27 @@ api:
   maxRequestsPerMinute: 100_000
 publicStatus:
   baseUrl: ''
+base:
+  chainNetwork: 'rpc' # 'rpc'
+  rpc:
+    url: '' # use a production provider; the public Base endpoint is rate-limited
+    timeout: 8
+    initialHeight: -1
+    scannerInterval: 20
+  maxParallelTx: 2 # maximum number of txs to be processed with the same nonce (note that only one of these transactions will be succeed)
+  gasPriceSlippage: 50 # allowed slippage percentage for gas price
+  gasLimitSlippage: 50 # allowed slippage percentage for gas limit
+  gasLimitMultiplier: 3 # a multiplication of current gas limit will be used in txs
+  gasLimitCap: 80000 # the maximum required gas limit that is allowed (the cap is used if required gas is higher)
+  confirmation: # required block confirmation
+    observation: 20 # an observation transaction (lock transaction) on Base get confirmed
+    payment: 20 # a payment transaction on Base get confirmed
+    cold: 20 # a cold storage transaction on Base get confirmed
+    manual: 20 # a manual transaction on Base get confirmed
+    arbitrary: 20 # an arbitrary transaction on Base get confirmed
+  tssChainCode: ''
+  derivationPath:
+    -
 binance:
   chainNetwork: 'rpc' # 'rpc'
   rpc:
@@ -281,6 +302,9 @@ healthCheck:
     doge:
       warnThreshold: 2500000000 # minimum recommended doge balance
       criticalThreshold: 500000000 # minimum required doge balance
+    base:
+      warnThreshold: '20000000000000000' # minimum recommended base eth balance
+      criticalThreshold: '4000000000000000' # minimum required base eth balance
     eth:
       warnThreshold: '20000000000000000' # minimum recommended eth balance
       criticalThreshold: '4000000000000000' # minimum required eth balance
@@ -290,6 +314,9 @@ healthCheck:
   ergoScanner:
     warnDifference: 5 # warning difference between existing and scanned blocks height
     criticalDifference: 20 # critical difference between existing and scanned blocks height
+  baseScanner:
+    warnDifference: 20 # warning difference between existing and scanned blocks height
+    criticalDifference: 100 # critical difference between existing and scanned blocks height
   ethereumScanner:
     warnDifference: 50 # warning difference between existing and scanned blocks height
     criticalDifference: 200 # critical difference between existing and scanned blocks height
@@ -347,6 +374,9 @@ balanceHandler:
       esplora: 9999
       blockcypher: 9999
   ethereum:
+    tokensPerIteration:
+      rpc: 10
+  base:
     tokensPerIteration:
       rpc: 10
   binance:
