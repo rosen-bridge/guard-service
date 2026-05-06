@@ -1,5 +1,11 @@
 # guard-service
 
+## 9.1.0
+
+### Minor Changes
+
+- Update contract version to v7.0.0
+
 ## 9.0.0
 
 ### Major Changes
