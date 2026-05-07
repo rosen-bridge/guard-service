@@ -1,14 +1,11 @@
 import { DefaultLogger } from '@rosen-bridge/abstract-logger';
+import { FastifyWithZod } from '@rosen-bridge/fastify-enhanced';
 
 import packageJson from '../../package.json' with { type: 'json' };
 import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
 import { rosenConfig } from '../configs/rosenConfig';
 import { getHealthCheck } from '../guard/healthCheck';
-import {
-  FastifySeverInstance,
-  InfoResponseSchema,
-  MessageResponseSchema,
-} from './schemas';
+import { InfoResponseSchema, MessageResponseSchema } from './schemas';
 
 const logger = DefaultLogger.getInstance().child(import.meta.url);
 
@@ -16,7 +13,7 @@ const logger = DefaultLogger.getInstance().child(import.meta.url);
  * Gets the general info of the service
  * @param server
  */
-const infoRoute = (server: FastifySeverInstance) => {
+const infoRoute = (server: FastifyWithZod) => {
   server.get(
     '/info',
     {
@@ -54,7 +51,7 @@ const infoRoute = (server: FastifySeverInstance) => {
   );
 };
 
-const generalInfoRoute = async (server: FastifySeverInstance) => {
+const generalInfoRoute = async (server: FastifyWithZod) => {
   infoRoute(server);
 };
 

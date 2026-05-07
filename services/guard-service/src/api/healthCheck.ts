@@ -1,23 +1,21 @@
-import { Type } from '@sinclair/typebox';
+import z from 'zod';
+
+import { FastifyWithZod } from '@rosen-bridge/fastify-enhanced';
 
 import { getHealthCheck } from '../guard/healthCheck';
-import {
-  FastifySeverInstance,
-  HealthStatusTypeSchema,
-  MessageResponseSchema,
-} from './schemas';
+import { HealthStatusTypeSchema, MessageResponseSchema } from './schemas';
 
 /**
  * setup health status route
  * @param server
  */
-const healthStatusRoute = (server: FastifySeverInstance) => {
+const healthStatusRoute = (server: FastifyWithZod) => {
   server.get(
     '/health/status',
     {
       schema: {
         response: {
-          200: Type.Array(HealthStatusTypeSchema),
+          200: z.array(HealthStatusTypeSchema),
           500: MessageResponseSchema,
         },
       },
@@ -38,12 +36,12 @@ const healthStatusRoute = (server: FastifySeverInstance) => {
  * setup parameter health status route
  * @param server
  */
-const healthStatusForParameterRoute = (server: FastifySeverInstance) => {
+const healthStatusForParameterRoute = (server: FastifyWithZod) => {
   server.get(
     '/health/parameter/:paramId',
     {
       schema: {
-        params: Type.Object({ paramId: Type.String() }),
+        params: z.object({ paramId: z.string() }),
         response: {
           200: HealthStatusTypeSchema,
           500: MessageResponseSchema,
@@ -72,12 +70,12 @@ const healthStatusForParameterRoute = (server: FastifySeverInstance) => {
  * setup update parameter health status route
  * @param server
  */
-const updateHealthStatusForParameterRoute = (server: FastifySeverInstance) => {
+const updateHealthStatusForParameterRoute = (server: FastifyWithZod) => {
   server.put(
     '/health/parameter/:paramId',
     {
       schema: {
-        params: Type.Object({ paramId: Type.String() }),
+        params: z.object({ paramId: z.string() }),
         response: {
           200: HealthStatusTypeSchema,
           500: MessageResponseSchema,
@@ -104,7 +102,7 @@ const updateHealthStatusForParameterRoute = (server: FastifySeverInstance) => {
   );
 };
 
-const healthRoutes = async (server: FastifySeverInstance) => {
+const healthRoutes = async (server: FastifyWithZod) => {
   healthStatusRoute(server);
   healthStatusForParameterRoute(server);
   updateHealthStatusForParameterRoute(server);

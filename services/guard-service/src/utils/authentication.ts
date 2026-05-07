@@ -1,7 +1,11 @@
 import { blake2b } from 'blakejs';
-import { FastifyReply, FastifyRequest } from 'fastify';
-import { HookHandlerDoneFunction } from 'fastify/types/hooks';
 import { toString as uint8ArrayToString } from 'uint8arrays';
+
+import {
+  FastifyReply,
+  FastifyRequest,
+  HookHandlerDoneFunction,
+} from '@rosen-bridge/fastify-enhanced';
 
 import Configs from '../configs/configs';
 
