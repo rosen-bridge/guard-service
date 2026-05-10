@@ -39,11 +39,13 @@ import {
   UnisatRunesInfo,
   RpcConfig,
   UnisatConfig,
+  UnisatBoxDetail,
 } from './types';
 
 export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
   protected rpcClient; // TODO: specify the type (local:ergo/rosen-bridge/network-client#26)
   protected unisatClient; // TODO: specify the type (local:ergo/rosen-bridge/network-client#26)
+  protected readonly PAGE_SIZE = 500;
 
   constructor(
     rpcConfig: RpcConfig,
@@ -233,22 +235,38 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       }
     }
     try {
-      const response = await this.unisatClient.get<
+      let response = await this.unisatClient.get<
         UnisatResponse<UnisatAddressRunesBalance>
       >(`/v1/indexer/address/${address}/runes/balance-list`);
       this.logger.debug(
-        `requested 'address/:address/runes/balance-list' for address [${address}]. Response: ${JsonBigInt.stringify(
+        `requested 'address/:address/runes/balance-list' for address [${address}] (fetching total runes). Response: ${JsonBigInt.stringify(
           response.data,
         )}`,
       );
-
-      const runes = response.data.data.detail;
-      runes.forEach((rune) => {
-        balance.tokens.push({
-          id: rune.runeid,
-          value: BigInt(rune.amount),
+      const total = response.data.data.total;
+      let offset = 0;
+      while (true) {
+        const runes = response.data.data.detail;
+        if (runes.length === 0) break;
+        runes.forEach((rune) => {
+          balance.tokens.push({
+            id: rune.runeid,
+            value: BigInt(rune.amount),
+          });
         });
-      });
+        offset += this.PAGE_SIZE;
+        if (offset > total) break;
+        response = await this.unisatClient.get<
+          UnisatResponse<UnisatAddressRunesBalance>
+        >(
+          `/v1/indexer/address/${address}/runes/balance-list?start=${offset}&limit=${this.PAGE_SIZE}`,
+        );
+        this.logger.debug(
+          `requested 'address/:address/runes/balance-list?start=${offset}&limit=${this.PAGE_SIZE}' for address [${address}]. Response: ${JsonBigInt.stringify(
+            response.data,
+          )}`,
+        );
+      }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (e: any) {
       const baseError = `Failed to get address [${address}] runes from Unisat: `;
@@ -416,22 +434,32 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
     const blockInfo = await this.getBlockInfo(blockId);
 
     // get the runes transfers of the transaction from Unisat
-    let txRunes: UnisatTxRunes;
+    let txRunes: UnisatBoxDetail[] = [];
     try {
-      const response = await this.unisatClient.get<
-        UnisatResponse<UnisatTxRunes>
-      >(`/v1/indexer/runes/event?txid=${transactionId}`);
+      let response = await this.unisatClient.get<UnisatResponse<UnisatTxRunes>>(
+        `/v1/indexer/runes/event?txid=${transactionId}`,
+      );
       this.logger.debug(
         `requested 'indexer/runes/event' filtering txId [${transactionId}]. Response: ${JsonBigInt.stringify(
           response.data,
         )}`,
       );
-
-      txRunes = response.data.data;
-      this.validateResponseHeight(blockInfo.height, txRunes.height);
-      if (txRunes.detail.length !== txRunes.total) {
-        throw Error(
-          `Unexpected pagination: expected [${txRunes.total}] runes but got [${txRunes.detail.length}]`,
+      const total = response.data.data.total;
+      let offset = 0;
+      while (true) {
+        const runes = response.data.data;
+        this.validateResponseHeight(blockInfo.height, runes.height);
+        if (runes.detail.length === 0) break;
+        txRunes.push(...response.data.data.detail);
+        offset += this.PAGE_SIZE;
+        if (offset > total) break;
+        response = await this.unisatClient.get<UnisatResponse<UnisatTxRunes>>(
+          `/v1/indexer/runes/event?txid=${transactionId}&start=${offset}&limit=${this.PAGE_SIZE}`,
+        );
+        this.logger.debug(
+          `requested 'indexer/runes/event' filtering txId [${transactionId}] on offset|limit [${offset}|${this.PAGE_SIZE}]. Response: ${JsonBigInt.stringify(
+            response.data,
+          )}`,
         );
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -448,7 +476,7 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       }
     }
 
-    for (const transfer of txRunes.detail) {
+    for (const transfer of txRunes) {
       if (transfer.txid !== transactionId) {
         throw new ImpossibleBehavior(
           `Fetched runes event for tx [${transactionId}] but got a transfer with txId [${transfer.txid}]`,
