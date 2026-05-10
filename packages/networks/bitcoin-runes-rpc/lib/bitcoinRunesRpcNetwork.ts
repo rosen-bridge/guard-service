@@ -235,16 +235,18 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
       }
     }
     try {
+      let offset = 0;
       let response = await this.unisatClient.get<
         UnisatResponse<UnisatAddressRunesBalance>
-      >(`/v1/indexer/address/${address}/runes/balance-list`);
+      >(
+        `/v1/indexer/address/${address}/runes/balance-list?start=${offset}&limit=${this.PAGE_SIZE}`,
+      );
       this.logger.debug(
-        `requested 'address/:address/runes/balance-list' for address [${address}] (fetching total runes). Response: ${JsonBigInt.stringify(
+        `requested 'address/:address/runes/balance-list?start=${offset}&limit=${this.PAGE_SIZE}' for address [${address}]. Response: ${JsonBigInt.stringify(
           response.data,
         )}`,
       );
       const total = response.data.data.total;
-      let offset = 0;
       while (true) {
         const runes = response.data.data.detail;
         if (runes.length === 0) break;
@@ -436,16 +438,16 @@ export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
     // get the runes transfers of the transaction from Unisat
     let txRunes: UnisatBoxDetail[] = [];
     try {
+      let offset = 0;
       let response = await this.unisatClient.get<UnisatResponse<UnisatTxRunes>>(
-        `/v1/indexer/runes/event?txid=${transactionId}`,
+        `/v1/indexer/runes/event?txid=${transactionId}&start=${offset}&limit=${this.PAGE_SIZE}`,
       );
       this.logger.debug(
-        `requested 'indexer/runes/event' filtering txId [${transactionId}]. Response: ${JsonBigInt.stringify(
+        `requested 'indexer/runes/event' filtering txId [${transactionId}] on offset|limit [${offset}|${this.PAGE_SIZE}]. Response: ${JsonBigInt.stringify(
           response.data,
         )}`,
       );
       const total = response.data.data.total;
-      let offset = 0;
       while (true) {
         const runes = response.data.data;
         this.validateResponseHeight(blockInfo.height, runes.height);
