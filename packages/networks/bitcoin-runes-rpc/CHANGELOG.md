@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- Fix bug where pagination were ignored while fetching address or transaction runes"
+- Fix bug where pagination was ignored while fetching address or transaction runes
 
 ## 2.0.4
 
