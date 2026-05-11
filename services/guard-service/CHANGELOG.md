@@ -1,5 +1,12 @@
 # guard-service
 
+## 9.1.1
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-chains/bitcoin-runes-rpc@2.0.5
+
 ## 9.1.0
 
 ### Minor Changes
