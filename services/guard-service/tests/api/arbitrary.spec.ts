@@ -1,9 +1,7 @@
-import fastify from 'fastify';
-
+import { FastifyWithZod, makeFastify } from '@rosen-bridge/fastify-enhanced';
 import { ERGO_CHAIN } from '@rosen-chains/ergo';
 
 import { arbitraryOrderRoute } from '../../src/api/arbitrary';
-import { FastifySeverInstance } from '../../src/api/schemas';
 import { OrderStatus } from '../../src/utils/constants';
 import {
   arrangedOrderJson,
@@ -15,10 +13,10 @@ import { invalidOrderJson } from './testData';
 
 describe('arbitrary', () => {
   describe('POST /order', () => {
-    let mockedServer: FastifySeverInstance;
+    let mockedServer: FastifyWithZod;
 
     beforeEach(async () => {
-      mockedServer = fastify();
+      mockedServer = await makeFastify();
       mockedServer.register(arbitraryOrderRoute);
       await DatabaseActionMock.clearTables();
     });

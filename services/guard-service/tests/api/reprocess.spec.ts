@@ -1,17 +1,15 @@
-import fastify from 'fastify';
-
+import { FastifyWithZod, makeFastify } from '@rosen-bridge/fastify-enhanced';
 import { NotFoundError } from '@rosen-chains/abstract-chain';
 
 import { eventReprocessRoute } from '../../src/api/reprocess';
-import { FastifySeverInstance } from '../../src/api/schemas';
 import EventReprocessMock from '../reprocess/mocked/eventReprocess.mock';
 
 describe('reprocess', () => {
   describe('POST /reprocess', () => {
-    let mockedServer: FastifySeverInstance;
+    let mockedServer: FastifyWithZod;
 
     beforeEach(async () => {
-      mockedServer = fastify();
+      mockedServer = await makeFastify();
       mockedServer.register(eventReprocessRoute);
       EventReprocessMock.resetMock();
       EventReprocessMock.mock();

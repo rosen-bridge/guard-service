@@ -1,4 +1,5 @@
 import { DefaultLogger } from '@rosen-bridge/abstract-logger';
+import { FastifyWithZod } from '@rosen-bridge/fastify-enhanced';
 import { ChainUtils } from '@rosen-chains/abstract-chain';
 
 import Configs from '../configs/configs';
@@ -6,11 +7,7 @@ import DatabaseHandler from '../db/databaseHandler';
 import { authenticateKey } from '../utils/authentication';
 import { SUPPORTED_CHAINS } from '../utils/constants';
 import { DuplicateOrder } from '../utils/errors';
-import {
-  FastifySeverInstance,
-  MessageResponseSchema,
-  OrderQuerySchema,
-} from './schemas';
+import { MessageResponseSchema, OrderQuerySchema } from './schemas';
 
 const logger = DefaultLogger.getInstance().child(import.meta.url);
 
@@ -18,7 +15,7 @@ const logger = DefaultLogger.getInstance().child(import.meta.url);
  * setup arbitrary order route
  * @param server
  */
-const orderRoute = (server: FastifySeverInstance) => {
+const orderRoute = (server: FastifyWithZod) => {
   server.post(
     '/order',
     {
@@ -90,7 +87,7 @@ const orderRoute = (server: FastifySeverInstance) => {
   );
 };
 
-const arbitraryOrderRoute = async (server: FastifySeverInstance) => {
+const arbitraryOrderRoute = async (server: FastifyWithZod) => {
   orderRoute(server);
 };
 

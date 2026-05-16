@@ -1,9 +1,7 @@
-import fastify from 'fastify';
-
+import { FastifyWithZod, makeFastify } from '@rosen-bridge/fastify-enhanced';
 import { TransactionType } from '@rosen-chains/abstract-chain';
 import { CARDANO_CHAIN } from '@rosen-chains/cardano';
 
-import { FastifySeverInstance } from '../../src/api/schemas';
 import { signRoute } from '../../src/api/signTx';
 import GuardPkHandler from '../../src/handlers/guardPkHandler';
 import { TransactionStatus } from '../../src/utils/constants';
@@ -15,10 +13,10 @@ describe('signTx', () => {
   const requiredSign = 3;
 
   describe('POST /sign', () => {
-    let mockedServer: FastifySeverInstance;
+    let mockedServer: FastifyWithZod;
 
     beforeEach(async () => {
-      mockedServer = fastify();
+      mockedServer = await makeFastify();
       mockedServer.register(signRoute);
       ChainHandlerMock.resetMock();
       await DatabaseActionMock.clearTables();

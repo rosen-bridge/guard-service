@@ -1,3 +1,4 @@
+import { FastifyWithZod } from '@rosen-bridge/fastify-enhanced';
 import { TransactionType } from '@rosen-chains/abstract-chain';
 
 import { DatabaseAction } from '../db/databaseAction';
@@ -7,7 +8,6 @@ import { getTokenData } from '../utils/getTokenData';
 import {
   EventsQuerySchema,
   EventsHistoryResponseSchema,
-  FastifySeverInstance,
   MessageResponseSchema,
   OngoingEventsResponseSchema,
 } from './schemas';
@@ -16,7 +16,7 @@ import {
  * setup event history route
  * @param server
  */
-const eventsHistoryRoute = (server: FastifySeverInstance) => {
+const eventsHistoryRoute = (server: FastifyWithZod) => {
   server.get(
     '/event/history',
     {
@@ -88,7 +88,7 @@ const eventsHistoryRoute = (server: FastifySeverInstance) => {
  * setup event history route
  * @param server
  */
-const ongoingEventsRoute = (server: FastifySeverInstance) => {
+const ongoingEventsRoute = (server: FastifyWithZod) => {
   server.get(
     '/event/ongoing',
     {
@@ -183,7 +183,7 @@ const ongoingEventsRoute = (server: FastifySeverInstance) => {
   );
 };
 
-const eventRoutes = async (server: FastifySeverInstance) => {
+const eventRoutes = async (server: FastifyWithZod) => {
   eventsHistoryRoute(server);
   ongoingEventsRoute(server);
 };

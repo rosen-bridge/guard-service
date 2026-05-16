@@ -1,4 +1,5 @@
 import { DefaultLogger } from '@rosen-bridge/abstract-logger';
+import { FastifyWithZod } from '@rosen-bridge/fastify-enhanced';
 
 import Configs from '../configs/configs';
 import DatabaseHandler from '../db/databaseHandler';
@@ -6,11 +7,7 @@ import ChainHandler from '../handlers/chainHandler';
 import GuardPkHandler from '../handlers/guardPkHandler';
 import { authenticateKey } from '../utils/authentication';
 import { DuplicateTransaction } from '../utils/errors';
-import {
-  FastifySeverInstance,
-  MessageResponseSchema,
-  SignQuerySchema,
-} from './schemas';
+import { MessageResponseSchema, SignQuerySchema } from './schemas';
 
 const logger = DefaultLogger.getInstance().child(import.meta.url);
 
@@ -18,7 +15,7 @@ const logger = DefaultLogger.getInstance().child(import.meta.url);
  * setup sign transaction route
  * @param server
  */
-const signTxRoute = (server: FastifySeverInstance) => {
+const signTxRoute = (server: FastifyWithZod) => {
   server.post(
     '/sign',
     {
@@ -80,7 +77,7 @@ const signTxRoute = (server: FastifySeverInstance) => {
   );
 };
 
-const signRoute = async (server: FastifySeverInstance) => {
+const signRoute = async (server: FastifyWithZod) => {
   signTxRoute(server);
 };
 

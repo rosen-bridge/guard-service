@@ -146,6 +146,10 @@ class PublicStatusHandler {
       if (status === EventStatus.inPayment || status === EventStatus.inReward) {
         const tx = await this.txRepository.findOne({
           where: {
+            type:
+              status === EventStatus.inPayment
+                ? TransactionType.payment
+                : TransactionType.reward,
             event: { id: eventId },
             status: Not(TransactionStatus.invalid),
           },
@@ -213,6 +217,15 @@ class PublicStatusHandler {
 
       if (!tx.event) {
         throw new ImpossibleBehavior(`Event of tx [${txId}] is not found!`);
+      }
+
+      if (
+        (tx.type === TransactionType.payment &&
+          tx.event.status !== EventStatus.inPayment) ||
+        (tx.type === TransactionType.reward &&
+          tx.event.status !== EventStatus.inReward)
+      ) {
+        return;
       }
 
       const dto: UpdateStatusDTO = {
