@@ -298,6 +298,9 @@ healthCheck:
     firo:
       warnThreshold: 2500000000 # minimum recommended firo balance
       criticalThreshold: 500000000 # minimum required firo balance
+    hns:
+      warnThreshold: 25000000 # minimum recommended hns balance
+      criticalThreshold: 5000000 # minimum required hns balance
     doge:
       warnThreshold: 2500000000 # minimum recommended doge balance
       criticalThreshold: 500000000 # minimum required doge balance
