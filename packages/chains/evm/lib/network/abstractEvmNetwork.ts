@@ -72,6 +72,12 @@ abstract class AbstractEvmNetwork extends AbstractChainNetwork<Transaction> {
    * @returns the transaction id and unsigned hash
    */
   abstract getTransactionByNonce: (nonce: number) => Promise<TransactionHashes>;
+
+  /**
+   * gets the finalized block height (used for l2 chains)
+   * @returns height of the finalized block
+   */
+  abstract getFinalizedBlockHeight: () => Promise<number>;
 }
 
 export default AbstractEvmNetwork;

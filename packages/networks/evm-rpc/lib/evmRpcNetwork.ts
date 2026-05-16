@@ -482,6 +482,14 @@ class EvmRpcNetwork extends AbstractEvmNetwork {
 
     return txId;
   };
+
+  /**
+   * gets the finalized block height (used for l2 chains)
+   * @returns zero
+   */
+  getFinalizedBlockHeight = async (): Promise<number> => {
+    return 0;
+  };
 }
 
 export default EvmRpcNetwork;

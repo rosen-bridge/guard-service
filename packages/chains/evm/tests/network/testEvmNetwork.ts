@@ -97,6 +97,10 @@ class TestEvmNetwork extends AbstractEvmNetwork {
   getActualTxId = (hash: string): Promise<string> => {
     throw Error('Not mocked');
   };
+
+  getFinalizedBlockHeight = (): Promise<number> => {
+    throw Error('Not mocked');
+  };
 }
 
 export default TestEvmNetwork;
