@@ -32,6 +32,11 @@ firo:
     username: 'FIRO_RPC_USERNAME'
     password: 'FIRO_RPC_PASSWORD'
     apiKey: 'FIRO_RPC_API_KEY'
+handshake:
+  rpc:
+    username: 'HANDSHAKE_RPC_USERNAME'
+    password: 'HANDSHAKE_RPC_PASSWORD'
+    apiKey: 'HANDSHAKE_RPC_API_KEY'
 doge:
   rpc:
     username: 'DOGE_RPC_USERNAME'

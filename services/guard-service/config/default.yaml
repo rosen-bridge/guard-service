@@ -87,6 +87,26 @@ firo:
   tssChainCode: ''
   derivationPath:
     -
+handshake:
+  chainNetwork: 'rpc' # 'rpc'
+  rpc:
+    url: ''
+    timeout: 8
+    # username: ''
+    # password: ''
+    # apiKey: ''
+    # rps: 5 # request per second for RPC requests
+  bankPublicKey: '' # corresponding public key of lock address
+  txFeeSlippage: 20 # allowed slippage percentage for tx fees
+  confirmation: # required block confirmation
+    observation: 2 # an observation transaction (lock transaction) on Handshake get confirmed
+    payment: 2 # a payment transaction on Handshake get confirmed
+    cold: 2 # a cold storage transaction on Handshake get confirmed
+    manual: 2 # a manual transaction on Handshake get confirmed
+    arbitrary: 2 # an arbitrary transaction on Handshake get confirmed
+  tssChainCode: ''
+  derivationPath:
+    -
 doge:
   chainNetwork: 'rpc-blockcypher' # [esplora, rpc-blockcypher]
   esplora:
@@ -278,6 +298,9 @@ healthCheck:
     firo:
       warnThreshold: 2500000000 # minimum recommended firo balance
       criticalThreshold: 500000000 # minimum required firo balance
+    hns:
+      warnThreshold: 25000000 # minimum recommended hns balance
+      criticalThreshold: 5000000 # minimum required hns balance
     doge:
       warnThreshold: 2500000000 # minimum recommended doge balance
       criticalThreshold: 500000000 # minimum required doge balance
@@ -340,6 +363,9 @@ balanceHandler:
     tokensPerIteration:
       esplora: 9999
   firo:
+    tokensPerIteration:
+      rpc: 9999
+  handshake:
     tokensPerIteration:
       rpc: 9999
   doge:

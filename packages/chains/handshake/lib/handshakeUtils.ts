@@ -1,4 +1,4 @@
-import { Input, TX } from 'hsd';
+import type { Input, TX } from 'hsd';
 
 /**
  * gets boxId from Handshake Input

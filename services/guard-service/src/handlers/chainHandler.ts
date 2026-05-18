@@ -47,6 +47,8 @@ import { AbstractEvmNetwork } from '@rosen-chains/evm';
 import EvmRpcNetwork from '@rosen-chains/evm-rpc';
 import { FIRO_CHAIN, FiroChain } from '@rosen-chains/firo';
 import { FiroRpcNetwork } from '@rosen-chains/firo-rpc';
+import { HANDSHAKE_CHAIN, HandshakeChain } from '@rosen-chains/handshake';
+import { HandshakeRpcNetwork } from '@rosen-chains/handshake-rpc';
 import { RateLimitedAxiosConfig } from '@rosen-clients/rate-limited-axios';
 
 import GuardsBinanceConfigs from '../configs/guardsBinanceConfigs';
@@ -57,6 +59,7 @@ import GuardsDogeConfigs from '../configs/guardsDogeConfigs';
 import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
 import GuardsEthereumConfigs from '../configs/guardsEthereumConfigs';
 import GuardsFiroConfigs from '../configs/guardsFiroConfigs';
+import GuardsHandshakeConfigs from '../configs/guardsHandshakeConfigs';
 import { dataSource } from '../db/dataSource';
 import * as TransactionSerializer from '../transaction/transactionSerializer';
 import MultiSigHandler from './multiSigHandler';
@@ -72,6 +75,7 @@ class ChainHandler {
   private readonly bitcoinChain: BitcoinChain;
   private readonly dogeChain: DogeChain;
   private readonly firoChain: FiroChain;
+  private readonly handshakeChain: HandshakeChain;
   private readonly ethereumChain: EthereumChain;
   private readonly binanceChain: BinanceChain;
   private readonly bitcoinRunesChain: BitcoinRunesChain;
@@ -87,6 +91,7 @@ class ChainHandler {
     this.bitcoinChain = this.generateBitcoinChain();
     this.dogeChain = this.generateDogeChain();
     this.firoChain = this.generateFiroChain();
+    this.handshakeChain = this.generateHandshakeChain();
     this.ethereumChain = this.generateEthereumChain();
     this.binanceChain = this.generateBinanceChain();
     this.bitcoinRunesChain = this.generateBitcoinRunesChain();
@@ -329,6 +334,40 @@ class ChainHandler {
   };
 
   /**
+   * generates Handshake network and chain objects using configs
+   * @returns HandshakeChain object
+   */
+  private generateHandshakeChain = (): HandshakeChain => {
+    const network = new HandshakeRpcNetwork(
+      GuardsHandshakeConfigs.rpc.url,
+      DefaultLogger.getInstance().child('HandshakeRpcNetwork'),
+      {
+        username: GuardsHandshakeConfigs.rpc.username,
+        password: GuardsHandshakeConfigs.rpc.password,
+        apiKey: GuardsHandshakeConfigs.rpc.apiKey,
+      },
+    );
+    if (GuardsHandshakeConfigs.rpc.rps !== undefined)
+      RateLimitedAxiosConfig.addRule(
+        GuardsHandshakeConfigs.rpc.url,
+        GuardsHandshakeConfigs.rpc.rps,
+        1,
+        GuardsHandshakeConfigs.rpc.timeout,
+      );
+    const chainCode = GuardsHandshakeConfigs.tssChainCode;
+    const derivationPath = GuardsHandshakeConfigs.derivationPath;
+    const handshakeSignMediator =
+      TssHandler.getInstance().wrapCurveSignMediator(chainCode, derivationPath);
+    return new HandshakeChain(
+      network,
+      GuardsHandshakeConfigs.chainConfigs,
+      TokenHandler.getInstance().getTokenMap(),
+      handshakeSignMediator,
+      DefaultLogger.getInstance().child('HandshakeChain'),
+    );
+  };
+
+  /**
    * generates Ethereum network and chain objects using configs
    * @returns EthereumChain object
    */
@@ -475,6 +514,8 @@ class ChainHandler {
         return this.dogeChain;
       case FIRO_CHAIN:
         return this.firoChain;
+      case HANDSHAKE_CHAIN:
+        return this.handshakeChain;
       case ETHEREUM_CHAIN:
         return this.ethereumChain;
       case BINANCE_CHAIN:
