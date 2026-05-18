@@ -13,10 +13,13 @@ import TestBalanceHandler from './testBalanceHandler';
 import {
   cardanoCometTokenId,
   cardanoLockAddress,
+  cardanoTokenIds,
   mockAddressBalance,
   mockAddressBalance2,
   mockAddressBalance3,
   mockBalances,
+  mockCardanoBalances,
+  mockCardanoLockBalances,
 } from './testData';
 
 describe('BalanceHandler', () => {
@@ -332,7 +335,7 @@ describe('BalanceHandler', () => {
      * - DatabaseAction
      * @scenario
      * - stub ChainHandler getChainConfigs to return a mock chainConfig
-     * - stub updateChainBatchBalances to resolve
+     * - stub updateChainBatchBalances to resolve to an empty array
      * - call updateChainBalances
      * @expected
      * - updateChainBatchBalances should have been called 12 times for 2 addresses and 6 tokens each
@@ -357,8 +360,8 @@ describe('BalanceHandler', () => {
       );
 
       const updateChainBatchBalancesSpy = vi
-        .spyOn(balanceHandler as any, 'updateChainBatchBalances') // eslint-disable-line @typescript-eslint/no-explicit-any
-        .mockResolvedValue(null);
+        .spyOn(balanceHandler, 'updateChainBatchBalances')
+        .mockResolvedValue([]);
 
       balanceHandler['chainsTokensPerIteration'][chain] = 1;
       Configs.balanceHandler[chain].updateBatchInterval = 0;
@@ -456,6 +459,119 @@ describe('BalanceHandler', () => {
           'ac0a478c70238bff24e20107ebe399e7f3a3e854037622427206b024.72734d44546f6b656e2d6c6f656e',
         ],
       );
+    });
+
+    /**
+     * @target updateChainBalances should skip updating empty addresses
+     * @dependencies
+     * - TokensMap
+     * - ChainHandler
+     * - DatabaseAction
+     * @scenario
+     * - stub ChainHandler getChainConfigs to return a mock chainConfig containing an empty cold address
+     * - stub updateChainBatchBalances to resolve to an empty array
+     * - call updateChainBalances
+     * @expected
+     * - updateChainBatchBalances should have been called once for lock address only
+     */
+    it('should skip updating empty addresses', async () => {
+      // arrange
+      const chain = CARDANO_CHAIN;
+      const lockAddress = `${chain}_mock_lock_address`;
+      const coldAddress = '';
+
+      ChainHandlerMock.mockChainName(chain);
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'getChainConfigs',
+        {
+          addresses: {
+            lock: lockAddress,
+            cold: coldAddress,
+          },
+        },
+        false,
+      );
+
+      const updateChainBatchBalancesSpy = vi
+        .spyOn(balanceHandler, 'updateChainBatchBalances')
+        .mockResolvedValue([]);
+
+      balanceHandler['chainsTokensPerIteration'][chain] = 100;
+      Configs.balanceHandler[chain].updateBatchInterval = 0;
+
+      // act
+      await balanceHandler.updateChainBalances(chain);
+
+      // assert
+      expect(updateChainBatchBalancesSpy).toHaveBeenCalledExactlyOnceWith(
+        chain,
+        lockAddress,
+        cardanoTokenIds,
+      );
+    });
+
+    /**
+     * @target updateChainBalances should remove outdated balance records from database
+     * @dependencies
+     * - TokensMap
+     * - ChainHandler
+     * - DatabaseAction
+     * @scenario
+     * - spy on DatabaseAction.removeChainAddressBalances
+     * - stub ChainHandler getChainConfigs to return a mock chainConfig
+     * - insert 12 mock balance objects for lock and cold addresses into database
+     * - stub updateChainBatchBalances to resolve to 4 mock objects for lock address only
+     * - call updateChainBalances
+     * @expected
+     * - DatabaseAction.removeChainAddressBalances should have been called once
+     * - database should have contained the 4 mock objects
+     */
+    it('should remove outdated balance records from database', async () => {
+      // arrange
+      const chain = CARDANO_CHAIN;
+      const lockAddress = `${chain}_mock_lock_address`;
+      const coldAddress = `${chain}_mock_cold_address`;
+
+      const removeSpy = vi.spyOn(
+        DatabaseActionMock.testDatabase,
+        'removeChainAddressBalances',
+      );
+
+      for (const balance of mockCardanoBalances) {
+        await DatabaseActionMock.insertChainAddressBalanceRecord(balance);
+      }
+
+      ChainHandlerMock.mockChainName(chain);
+      ChainHandlerMock.mockChainFunction(
+        chain,
+        'getChainConfigs',
+        {
+          addresses: {
+            lock: lockAddress,
+            cold: coldAddress,
+          },
+        },
+        false,
+      );
+
+      vi.spyOn(balanceHandler, 'updateChainBatchBalances').mockImplementation(
+        async (chain, address) => {
+          if (address === lockAddress) return mockCardanoLockBalances;
+          return [];
+        },
+      );
+
+      balanceHandler['chainsTokensPerIteration'][chain] = 100;
+      Configs.balanceHandler[chain].updateBatchInterval = 0;
+
+      // act
+      await balanceHandler.updateChainBalances(chain);
+
+      // assert
+      expect(removeSpy).toHaveBeenCalledOnce();
+      const records = await DatabaseActionMock.allChainAddressBalanceRecords();
+      expect(records).toEqual(expect.arrayContaining(mockCardanoLockBalances));
     });
   });
 });

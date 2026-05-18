@@ -227,6 +227,13 @@ class BalanceHandler {
    * @returns promise of void
    */
   updateChainBalances = async (chain: string) => {
+    const savedBalances =
+      await DatabaseAction.getInstance().getChainAddressBalanceByChain(chain);
+    const balancesMap: Map<string, ChainAddressBalanceEntity> = new Map();
+    savedBalances.forEach((balance) =>
+      balancesMap.set(`${balance.address}-${balance.tokenId}`, balance),
+    );
+
     const chainConfig = ChainHandler.getInstance()
       .getChain(chain)
       .getChainConfigs();
@@ -243,8 +250,17 @@ class BalanceHandler {
       chainConfig.addresses.lock,
       chainConfig.addresses.cold,
     ]) {
+      if (address === '') continue;
+
       for (const tokensBatch of tokensBatches) {
-        await this.updateChainBatchBalances(chain, address, tokensBatch);
+        const balances = await this.updateChainBatchBalances(
+          chain,
+          address,
+          tokensBatch,
+        );
+        balances.forEach((balance) =>
+          balancesMap.delete(`${balance.address}-${balance.tokenId}`),
+        );
 
         await new Promise((r) =>
           setTimeout(
@@ -255,9 +271,17 @@ class BalanceHandler {
         );
       }
       if (supportedTokenIds.length === 0) {
-        await this.updateChainBatchBalances(chain, address);
+        const balances = await this.updateChainBatchBalances(chain, address);
+        balances.forEach((balance) =>
+          balancesMap.delete(`${balance.address}-${balance.tokenId}`),
+        );
       }
     }
+
+    // remove outdated balance entities from database
+    await DatabaseAction.getInstance().removeChainAddressBalances([
+      ...balancesMap.values(),
+    ]);
   };
 
   /**
@@ -265,7 +289,7 @@ class BalanceHandler {
    * @param chain
    * @param address
    * @param tokensBatch
-   * @returns promise of void
+   * @returns promise of ChainAddressBalanceEntity array
    */
   updateChainBatchBalances = async (
     chain: string,
@@ -274,25 +298,31 @@ class BalanceHandler {
   ) => {
     // get address assets
     const abstractChain = ChainHandler.getInstance().getChain(chain);
-    const balance = await abstractChain.getAddressAssets(address, tokensBatch);
-
-    // upsert batch tokens balances
-    await DatabaseAction.getInstance().upsertChainAddressBalances([
+    const addressAssets = await abstractChain.getAddressAssets(
+      address,
+      tokensBatch,
+    );
+    const balances: ChainAddressBalanceEntity[] = [
       {
         chain,
         address,
         tokenId: this.nativeTokenIds[chain],
         lastUpdate: String(Math.floor(Date.now() / 1000)),
-        balance: balance.nativeToken,
+        balance: addressAssets.nativeToken,
       },
-      ...balance.tokens.map((token) => ({
+      ...addressAssets.tokens.map((token) => ({
         chain,
         address,
         tokenId: token.id,
         lastUpdate: String(Math.floor(Date.now() / 1000)),
         balance: token.value,
       })),
-    ]);
+    ];
+
+    // upsert batch tokens balances
+    await DatabaseAction.getInstance().upsertChainAddressBalances(balances);
+
+    return balances;
   };
 }
 

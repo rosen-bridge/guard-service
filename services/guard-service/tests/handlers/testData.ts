@@ -6,6 +6,16 @@ import { ChainAddressBalanceEntity } from '../../src/db/entities/chainAddressBal
 // COMET cardano tokenId from test tokensMap
 export const cardanoCometTokenId =
   'bb2250e4c589539fd141fbbd2c322d380f1ce2aaef812cd87110d61b.527374434f4d4554565465737432';
+const cardanoErgTokenId =
+  'd2f6eb37450a3d568de93d623e69bd0ba1238daacc883d75736abd23.527374457267565465737432';
+const cardanoHoskyTokenId =
+  'a0028f350aaabe0545fdcb56b039bfb08e4bb4d8c4d7c3c7d481c235.484f534b59';
+const cardanoRSNTokenId =
+  '45fdcb56b039bfba0028f350aaabe0508e4bb4d8c4d7c3c7d481c235.48';
+const cardanoBTCTokenId =
+  '3122541486c983d637e7ed9330c94e490e1fe4a1758725fab7f6d9e0.72734254432d6c6f656e';
+const cardanoMDTokenTokenId =
+  'ac0a478c70238bff24e20107ebe399e7f3a3e854037622427206b024.72734d44546f6b656e2d6c6f656e';
 
 export const cardanoLockAddress = `${CARDANO_CHAIN}_mock_lock_address`;
 export const cardanoColdAddress = `${CARDANO_CHAIN}_mock_cold_address`;
@@ -122,3 +132,30 @@ export const mockAddressBalance3 = [
     },
   },
 ];
+
+export const cardanoTokenIds = [
+  cardanoErgTokenId,
+  cardanoCometTokenId,
+  cardanoHoskyTokenId,
+  cardanoRSNTokenId,
+  cardanoBTCTokenId,
+  cardanoMDTokenTokenId,
+];
+
+export const mockCardanoBalances = (() => {
+  const records: ChainAddressBalanceEntity[] = [];
+  for (const address of [cardanoLockAddress, cardanoColdAddress]) {
+    for (const token of cardanoTokenIds) {
+      records.push({
+        chain: CARDANO_CHAIN,
+        address: address,
+        tokenId: token,
+        lastUpdate: '1643723422',
+        balance: 10000n,
+      });
+    }
+  }
+  return records;
+})();
+
+export const mockCardanoLockBalances = mockCardanoBalances.slice(0, 4);
