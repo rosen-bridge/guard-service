@@ -16,7 +16,9 @@ import {
   BitcoinUtxo,
   CONFIRMATION_TARGET,
 } from '@rosen-chains/bitcoin';
-import RateLimitedAxios from '@rosen-clients/rate-limited-axios';
+import RateLimitedAxios, {
+  Axios as RateLimitedAxiosClass,
+} from '@rosen-clients/rate-limited-axios';
 
 import {
   EsploraAddress,
@@ -27,7 +29,7 @@ import {
 } from './types';
 
 class BitcoinEsploraNetwork extends AbstractBitcoinNetwork {
-  protected client; // TODO: specify the type (local:ergo/rosen-bridge/network-client#26)
+  protected client: RateLimitedAxiosClass;
   private apiPrefix: string;
 
   constructor(url: string, logger?: AbstractLogger, apiPrefix?: string) {

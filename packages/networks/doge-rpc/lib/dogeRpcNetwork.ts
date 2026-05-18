@@ -16,7 +16,9 @@ import {
   DogeUtxo,
   CONFIRMATION_TARGET,
 } from '@rosen-chains/doge';
-import RateLimitedAxios from '@rosen-clients/rate-limited-axios';
+import RateLimitedAxios, {
+  Axios as RateLimitedAxiosClass,
+} from '@rosen-clients/rate-limited-axios';
 
 import {
   DogeRpcTransaction,
@@ -27,7 +29,7 @@ import {
 } from './types';
 
 class DogeRpcNetwork extends PartialDogeNetwork {
-  protected client; // TODO: specify the type (local:ergo/rosen-bridge/network-client#26)
+  protected client: RateLimitedAxiosClass;
 
   // List of functions this class implements from DogeNetworkFunction
   readonly implements = [

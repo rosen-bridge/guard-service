@@ -60,13 +60,17 @@ class ColdStorage {
         return;
       }
 
-      const thresholds = Configs.thresholds()[chainName].tokens;
-      if (Object.keys(thresholds).length === 0) {
+      const thresholdsConfig = Configs.thresholds()[chainName];
+      if (
+        !thresholdsConfig ||
+        Object.keys(thresholdsConfig.tokens).length === 0
+      ) {
         logger.info(
           `Abort cold storage process on chain [${chainName}] since no thresholds is set for it`,
         );
         return;
       }
+      const thresholds = thresholdsConfig.tokens;
 
       const chain = ChainHandler.getInstance().getChain(chainName);
       const lockedAssets = await chain.getLockAddressAssets();
@@ -169,13 +173,21 @@ class ColdStorage {
     ).getChainPendingTransactions(chainName);
     const unsignedQueueTransactions = (
       await DatabaseAction.getInstance().getUnsignedActiveTxsInChain(chainName)
-    ).map((txEntity) => TransactionSerializer.fromJson(txEntity.txJson));
+    ).map((txEntity) =>
+      TransactionSerializer.fromJson(
+        txEntity.txJson,
+        ChainHandler.getInstance().getChain,
+      ),
+    );
     // get signed transactions in target chain
     const signedTransactions = (
       await DatabaseAction.getInstance().getSignedActiveTxsInChain(chainName)
     ).map((txEntity) =>
       Buffer.from(
-        TransactionSerializer.fromJson(txEntity.txJson).txBytes,
+        TransactionSerializer.fromJson(
+          txEntity.txJson,
+          ChainHandler.getInstance().getChain,
+        ).txBytes,
       ).toString('hex'),
     );
 

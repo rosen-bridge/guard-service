@@ -1,13 +1,15 @@
 import { groupBy, reduce } from 'lodash-es';
 
+import { FastifyWithZod } from '@rosen-bridge/fastify-enhanced';
 import { ERGO_CHAIN } from '@rosen-chains/ergo';
 
 import { DatabaseAction } from '../db/databaseAction';
 import { TokenChartData } from '../types/api';
+import { RevenuePeriod, RevenuePeriodWindow } from '../utils/constants';
 import { getTokenData } from '../utils/getTokenData';
 import { extractRevenueFromView } from '../utils/revenue';
+import Utils from '../utils/utils';
 import {
-  FastifySeverInstance,
   MessageResponseSchema,
   RevenueChartQuerySchema,
   RevenueChartResponseSchema,
@@ -19,7 +21,7 @@ import {
  * setup revenue history route
  * @param server
  */
-const revenueHistoryRoute = (server: FastifySeverInstance) => {
+const revenueHistoryRoute = (server: FastifyWithZod) => {
   server.get(
     '/revenue/history',
     {
@@ -68,7 +70,7 @@ const revenueHistoryRoute = (server: FastifySeverInstance) => {
   );
 };
 
-const revenueChartRoute = (server: FastifySeverInstance) => {
+const revenueChartRoute = (server: FastifyWithZod) => {
   server.get(
     '/revenue/chart',
     {
@@ -84,8 +86,26 @@ const revenueChartRoute = (server: FastifySeverInstance) => {
       const { count, period } = request.query;
 
       const dbAction = DatabaseAction.getInstance();
-      const results = await dbAction.getRevenueChartData(period);
-      const resultsGroupedByTokenId = groupBy(results, 'tokenId');
+      const minTimestamp =
+        period !== RevenuePeriod.year
+          ? Math.floor(Date.now() / 1000) - RevenuePeriodWindow[period]!
+          : undefined;
+      const results = await dbAction.getRevenueChartData(period, minTimestamp);
+
+      const polishedResult = results.map((revenue) => {
+        return {
+          ...revenue,
+          label: Utils.convertTimestampToLabel(revenue.label, period),
+        };
+      });
+      const minLabel = Math.min(
+        ...polishedResult.map((revenue) => revenue.label),
+      );
+
+      const resultsGroupedByTokenId = groupBy(
+        polishedResult.filter((revenue) => revenue.label > minLabel),
+        'tokenId',
+      );
       const returnData = reduce<
         typeof resultsGroupedByTokenId,
         TokenChartData[]
@@ -99,7 +119,7 @@ const revenueChartRoute = (server: FastifySeverInstance) => {
               title: tokenData,
               data: data
                 .map((datum) => ({
-                  label: (datum.label * 1000).toString(),
+                  label: datum.label.toString(),
                   amount: datum.amount,
                 }))
                 .slice(0, count),
@@ -113,7 +133,7 @@ const revenueChartRoute = (server: FastifySeverInstance) => {
   );
 };
 
-const revenueRoutes = async (server: FastifySeverInstance) => {
+const revenueRoutes = async (server: FastifyWithZod) => {
   revenueHistoryRoute(server);
   revenueChartRoute(server);
 };

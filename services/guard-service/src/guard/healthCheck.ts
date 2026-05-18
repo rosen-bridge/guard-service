@@ -11,7 +11,8 @@ import {
   EventInfo,
   EventProgressHealthCheckParam,
 } from '@rosen-bridge/event-progress-check';
-import { HealthCheck } from '@rosen-bridge/health-check';
+import { HealthCheck, HealthStatusLevel } from '@rosen-bridge/health-check';
+import { LogLevelHealthCheck } from '@rosen-bridge/log-level-check';
 import { ErgoNodeSyncHealthCheckParam } from '@rosen-bridge/node-sync-check';
 import { ScannerSyncHealthCheckParam } from '@rosen-bridge/scanner-sync-check';
 import { LastSavedBlock } from '@rosen-bridge/scanner-sync-check';
@@ -128,7 +129,7 @@ const getHealthCheck = async () => {
     const bitcoinContracts = rosenConfig.contractReader(BITCOIN_CHAIN);
     const ethereumContracts = rosenConfig.contractReader(ETHEREUM_CHAIN);
     const binanceContracts = rosenConfig.contractReader(BINANCE_CHAIN);
-    // We skipped Doge AssetCheck parameter, so we don't need it's contracts here
+    // We skipped Doge and Firo AssetCheck parameters, so we don't need their contracts here
     const bitcoinRunesContracts =
       rosenConfig.contractReader(BITCOIN_RUNES_CHAIN);
 
@@ -329,6 +330,22 @@ const getHealthCheck = async () => {
       healthCheck.register(binanceScannerSyncCheck);
     }
   }
+
+  // add LogLevel param
+  const warnLogCheck = new LogLevelHealthCheck(
+    HealthStatusLevel.UNSTABLE,
+    Configs.warnLogAllowedCount,
+    Configs.logDuration,
+    'warn',
+  );
+  healthCheck.register(warnLogCheck);
+  const errorLogCheck = new LogLevelHealthCheck(
+    HealthStatusLevel.UNSTABLE,
+    Configs.errorLogAllowedCount,
+    Configs.logDuration,
+    'error',
+  );
+  healthCheck.register(errorLogCheck);
 
   return healthCheck;
 };

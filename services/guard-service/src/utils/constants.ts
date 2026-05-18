@@ -5,6 +5,7 @@ import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
 import { DOGE, DOGE_CHAIN } from '@rosen-chains/doge';
 import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
 import { ETH, ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
+import { FIRO, FIRO_CHAIN } from '@rosen-chains/firo';
 
 class EventStatus {
   static pendingPayment = 'pending-payment';
@@ -35,6 +36,12 @@ enum RevenuePeriod {
   month = 'month',
   week = 'week',
 }
+const RevenuePeriodWindow: Record<RevenuePeriod, number | undefined> = {
+  [RevenuePeriod.year]: undefined,
+  [RevenuePeriod.month]: 33_696_000, // 13 months
+  [RevenuePeriod.week]: 5_443_000, // 9 weeks
+};
+
 const EventUnexpectedFailsLimit = 2;
 const OrderUnexpectedFailsLimit = 1;
 const DefaultApiLimit = 100;
@@ -48,8 +55,9 @@ const SUPPORTED_CHAINS = [
   CARDANO_CHAIN,
   BITCOIN_CHAIN,
   ETHEREUM_CHAIN,
-  DOGE_CHAIN,
   BINANCE_CHAIN,
+  DOGE_CHAIN,
+  FIRO_CHAIN,
   BITCOIN_RUNES_CHAIN,
 ];
 
@@ -71,6 +79,7 @@ const ChainNativeToken: Record<string, string> = {
   [BITCOIN_CHAIN]: BTC,
   [ETHEREUM_CHAIN]: ETH,
   [DOGE_CHAIN]: DOGE,
+  [FIRO_CHAIN]: FIRO,
   [BINANCE_CHAIN]: BNB,
   [BITCOIN_RUNES_CHAIN]: BTC,
 };
@@ -81,6 +90,7 @@ const ChainConfigKey: Record<string, string> = {
   [BITCOIN_CHAIN]: BITCOIN_CHAIN,
   [ETHEREUM_CHAIN]: ETHEREUM_CHAIN,
   [DOGE_CHAIN]: DOGE_CHAIN,
+  [FIRO_CHAIN]: FIRO_CHAIN,
   [BINANCE_CHAIN]: BINANCE_CHAIN,
   [BITCOIN_RUNES_CHAIN]: 'bitcoinRunes',
 };
@@ -102,6 +112,7 @@ export {
   EventStatus,
   TransactionStatus,
   RevenuePeriod,
+  RevenuePeriodWindow,
   EventUnexpectedFailsLimit,
   OrderUnexpectedFailsLimit,
   DefaultApiLimit,

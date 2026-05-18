@@ -111,8 +111,7 @@ describe('CardanoChain', () => {
       const expectedRequiredAssets = structuredClone(
         TestData.transaction1Order[0].assets,
       );
-      expectedRequiredAssets.nativeToken +=
-        TestUtils.minBoxValue + TestUtils.configs.fee;
+      expectedRequiredAssets.nativeToken += TestUtils.configs.fee;
       expect(getCovBoxesSpy).toHaveBeenCalledExactlyOnceWith(
         expectedRequiredAssets,
         TestData.transaction1InputIds,

@@ -124,7 +124,8 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
       .map((order) => order.assets)
       .reduce(ChainUtils.sumAssetBalance, {
         nativeToken:
-          this.getMinimumNativeToken() +
+          // only fee is added to the required assets. the min ADA for change output
+          // is considered by the selection package
           this.tokenMap.wrapAmount(this.NATIVE_TOKEN_ID, fee, this.CHAIN)
             .amount,
         tokens: [],

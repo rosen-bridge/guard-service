@@ -10,16 +10,14 @@ import EventSerializer from './eventSerializer';
 
 class EventBoxes {
   /**
-   * @param event the event trigger model
+   * @param eventTxId the trigger transaction id
    * @returns the serialized string (hex format) of corresponding event trigger box
    */
-  static getEventBox = async (event: EventTrigger): Promise<string> => {
-    const eventId = EventSerializer.getId(event);
-    const eventData = (await DatabaseAction.getInstance().getEventById(eventId))
-      ?.eventData;
-    if (eventData === undefined)
-      throw new Error(`event [${eventId}] not found`);
-
+  static getEventBox = async (eventTxId: string): Promise<string> => {
+    const eventData =
+      await DatabaseAction.getInstance().getEventByTriggerId(eventTxId);
+    if (eventData === null)
+      throw new Error(`No event found with trigger tx [${eventTxId}]`);
     return Buffer.from(eventData.serialized, 'base64').toString('hex');
   };
 

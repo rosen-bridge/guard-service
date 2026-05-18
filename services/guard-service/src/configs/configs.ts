@@ -315,6 +315,12 @@ class Configs {
   static btcCriticalThreshold = BigInt(
     config.get<string>('healthCheck.asset.btc.criticalThreshold'),
   );
+  static firoWarnThreshold = BigInt(
+    config.get<string>('healthCheck.asset.firo.warnThreshold'),
+  );
+  static firoCriticalThreshold = BigInt(
+    config.get<string>('healthCheck.asset.firo.criticalThreshold'),
+  );
   static dogeWarnThreshold = BigInt(
     config.get<string>('healthCheck.asset.doge.warnThreshold'),
   );
@@ -375,11 +381,11 @@ class Configs {
     getConfigIntKeyOrDefault('healthCheck.logs.duration', 600) * 1000;
   static errorLogAllowedCount = getConfigIntKeyOrDefault(
     'healthCheck.logs.maxAllowedErrorCount',
-    1,
+    10,
   );
   static warnLogAllowedCount = getConfigIntKeyOrDefault(
     'healthCheck.logs.maxAllowedWarnCount',
-    10,
+    12,
   );
   static p2pDefectConfirmationTimeWindow = getConfigIntKeyOrDefault(
     'healthCheck.p2p.defectConfirmationTimeWindow',

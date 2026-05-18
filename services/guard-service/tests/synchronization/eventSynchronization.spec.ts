@@ -17,10 +17,6 @@ import * as EventTestData from '../event/testData';
 import ChainHandlerMock from '../handlers/chainHandler.mock';
 import TestConfigs from '../testUtils/testConfigs';
 import TestUtils from '../testUtils/testUtils';
-import {
-  mockIsEventConfirmedEnough,
-  mockVerifyEvent,
-} from '../verification/mocked/eventVerifier.mock';
 import TestEventSynchronization from './testEventSynchronization';
 
 describe('EventSynchronization', () => {
@@ -71,20 +67,15 @@ describe('EventSynchronization', () => {
     });
 
     /**
-     * @target EventSynchronization.processSyncQueue should add event to active sync
-     * when event is verified
+     * @target EventSynchronization.processSyncQueue should add event to active sync successfully
      * @dependencies
      * - Date
      * - database
-     * - EventVerifier
      * - MinimumFee
      * @scenario
      * - mock event
      * - insert mocked event into db
      * - insert event into queue
-     * - mock EventVerifier
-     *   - mock `isEventConfirmedEnough`
-     *   - mock `verifyEvent`
      * - run test
      * - check active syncs in memory
      * @expected
@@ -92,7 +83,7 @@ describe('EventSynchronization', () => {
      * - mocked event sync responses should be initiated
      * - memory queue should be empty
      */
-    it('should add event to active sync when event is verified', async () => {
+    it('should add event to active sync successfully', async () => {
       // mock event
       const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
@@ -106,10 +97,6 @@ describe('EventSynchronization', () => {
       // insert event into queue
       const eventSync = new TestEventSynchronization();
       eventSync.addEventToQueue(eventId);
-
-      // mock EventVerifier
-      mockIsEventConfirmedEnough(true);
-      mockVerifyEvent(true);
 
       // run test
       await eventSync.processSyncQueue();
@@ -129,16 +116,12 @@ describe('EventSynchronization', () => {
      * @dependencies
      * - Date
      * - database
-     * - EventVerifier
      * - MinimumFee
      * @scenario
      * - mock event
      * - insert mocked event into db
      * - insert event into queue
      * - insert 3 events into active sync
-     * - mock EventVerifier
-     *   - mock `isEventConfirmedEnough`
-     *   - mock `verifyEvent`
      * - run test
      * - check active syncs in memory
      * @expected
@@ -168,10 +151,6 @@ describe('EventSynchronization', () => {
         });
       }
 
-      // mock EventVerifier
-      mockIsEventConfirmedEnough(true);
-      mockVerifyEvent(true);
-
       // run test
       await eventSync.processSyncQueue();
 
@@ -187,15 +166,11 @@ describe('EventSynchronization', () => {
      * @dependencies
      * - Date
      * - database
-     * - EventVerifier
      * - MinimumFee
      * @scenario
      * - mock event
      * - insert mocked event into db
      * - insert event into queue and active sync
-     * - mock EventVerifier
-     *   - mock `isEventConfirmedEnough`
-     *   - mock `verifyEvent`
      * - run test
      * - check active syncs in memory
      * @expected
@@ -227,10 +202,6 @@ describe('EventSynchronization', () => {
         responses: responses,
       });
 
-      // mock EventVerifier
-      mockIsEventConfirmedEnough(true);
-      mockVerifyEvent(true);
-
       // run test
       await eventSync.processSyncQueue();
 
@@ -246,25 +217,21 @@ describe('EventSynchronization', () => {
 
     /**
      * @target EventSynchronization.processSyncQueue should skip event when event
-     * is not in the database
+     * is not in the ConfirmedEvent table
      * @dependencies
      * - Date
      * - database
-     * - EventVerifier
      * - MinimumFee
      * @scenario
      * - mock event
      * - insert event into queue
-     * - mock EventVerifier
-     *   - mock `isEventConfirmedEnough`
-     *   - mock `verifyEvent`
      * - run test
      * - check active syncs in memory
      * @expected
      * - active sync should remain empty
      * - memory queue should be empty
      */
-    it('should skip event when event is not in the database', async () => {
+    it('should skip event when event is not in the ConfirmedEvent table', async () => {
       // mock event
       const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
@@ -273,10 +240,6 @@ describe('EventSynchronization', () => {
       const eventSync = new TestEventSynchronization();
       eventSync.addEventToQueue(eventId);
 
-      // mock EventVerifier
-      mockIsEventConfirmedEnough(true);
-      mockVerifyEvent(true);
-
       // run test
       await eventSync.processSyncQueue();
 
@@ -284,115 +247,6 @@ describe('EventSynchronization', () => {
       const activeSyncs = eventSync.getActiveSyncMap();
       expect(activeSyncs.size).toEqual(0);
       expect(eventSync.getEventQueue().length).toEqual(0);
-    });
-
-    /**
-     * @target EventSynchronization.processSyncQueue should skip event when event
-     * is not confirmed enough
-     * @dependencies
-     * - Date
-     * - database
-     * - EventVerifier
-     * - MinimumFee
-     * @scenario
-     * - mock event
-     * - insert mocked event into db
-     * - insert event into queue
-     * - mock EventVerifier
-     *   - mock `isEventConfirmedEnough` to return false
-     *   - mock `verifyEvent`
-     * - run test
-     * - check active syncs in memory
-     * @expected
-     * - active sync should remain empty
-     * - memory queue should be empty
-     */
-    it('should skip event when event is not confirmed enough', async () => {
-      // mock event
-      const mockedEvent = EventTestData.mockEventTrigger().event;
-      const eventId = EventSerializer.getId(mockedEvent);
-
-      // insert mocked event into db
-      await DatabaseActionMock.insertEventRecord(
-        mockedEvent,
-        EventStatus.pendingPayment,
-      );
-
-      // insert event into queue
-      const eventSync = new TestEventSynchronization();
-      eventSync.addEventToQueue(eventId);
-
-      // mock EventVerifier
-      mockIsEventConfirmedEnough(false);
-      mockVerifyEvent(true);
-
-      // run test
-      await eventSync.processSyncQueue();
-
-      // check active syncs in memory
-      const activeSyncs = eventSync.getActiveSyncMap();
-      expect(activeSyncs.size).toEqual(0);
-      expect(eventSync.getEventQueue().length).toEqual(0);
-    });
-
-    /**
-     * @target EventSynchronization.processSyncQueue should set event as rejected when event
-     * is not verified
-     * @dependencies
-     * - Date
-     * - database
-     * - EventVerifier
-     * - MinimumFee
-     * @scenario
-     * - mock event
-     * - insert mocked event into db
-     * - insert event into queue
-     * - mock EventVerifier
-     *   - mock `isEventConfirmedEnough`
-     *   - mock `verifyEvent` to return false
-     * - run test
-     * - check active syncs in memory
-     * @expected
-     * - active sync should remain empty
-     * - memory queue should be empty
-     * - event status should be updated in db
-     */
-    it('should set event as rejected when event is not verified', async () => {
-      // mock event
-      const mockedEvent = EventTestData.mockEventTrigger().event;
-      const eventId = EventSerializer.getId(mockedEvent);
-
-      // insert mocked event into db
-      await DatabaseActionMock.insertEventRecord(
-        mockedEvent,
-        EventStatus.pendingPayment,
-      );
-
-      // insert event into queue
-      const eventSync = new TestEventSynchronization();
-      eventSync.addEventToQueue(eventId);
-
-      // mock EventVerifier
-      mockIsEventConfirmedEnough(true);
-      mockVerifyEvent(false);
-
-      // run test
-      await eventSync.processSyncQueue();
-
-      // check active syncs in memory
-      const activeSyncs = eventSync.getActiveSyncMap();
-      expect(activeSyncs.size).toEqual(0);
-      expect(eventSync.getEventQueue().length).toEqual(0);
-
-      // event status should be updated in db
-      const dbEvents = (await DatabaseActionMock.allEventRecords()).map(
-        (event) => [event.id, event.status],
-      );
-      expect(dbEvents.length).toEqual(1);
-      expect(dbEvents).toContainEqual([
-        EventSerializer.getId(mockedEvent),
-        EventStatus.rejected,
-      ]);
     });
   });
 

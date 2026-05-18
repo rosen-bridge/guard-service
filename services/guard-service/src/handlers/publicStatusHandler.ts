@@ -4,11 +4,12 @@ import {
   ImpossibleBehavior,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
-import axios, { Axios, AxiosError } from '@rosen-clients/rate-limited-axios';
+import axios, { Axios, isAxiosError } from '@rosen-clients/rate-limited-axios';
 
 import Configs from '../configs/configs';
 import { TransactionEntity } from '../db/entities/transactionEntity';
 import { EventStatus, TransactionStatus } from '../utils/constants';
+import { ParallelBranchProcessor } from '../utils/parallelBranchProcessor';
 
 export const logger = DefaultLogger.getInstance().child(import.meta.url);
 
@@ -30,6 +31,7 @@ class PublicStatusHandler {
   readonly axios?: Axios;
   readonly txRepository: Repository<TransactionEntity>;
   readonly isActive: boolean;
+  readonly processor: ParallelBranchProcessor<UpdateStatusDTO>;
 
   protected constructor(
     dataSource: DataSource,
@@ -47,6 +49,7 @@ class PublicStatusHandler {
         'publicStatusBaseUrl does not exist, skipping axios initialization',
       );
     this.txRepository = dataSource.getRepository(TransactionEntity);
+    this.processor = new ParallelBranchProcessor(this.submitRequest);
   }
 
   /**
@@ -96,22 +99,33 @@ class PublicStatusHandler {
       );
     }
 
-    const date = Math.floor(Date.now() / 1000);
+    try {
+      const date = Math.floor(Date.now() / 1000);
 
-    const signMessage = this.dtoToSignMessage(dto, date);
+      const signMessage = this.dtoToSignMessage(dto, date);
 
-    const request = {
-      ...dto,
-      date,
-      pk: await Configs.tssKeys.encryptor.getPk(),
-      signature: await Configs.tssKeys.encryptor.sign(signMessage),
-    };
+      const request = {
+        ...dto,
+        date,
+        pk: await Configs.tssKeys.encryptor.getPk(),
+        signature: await Configs.tssKeys.encryptor.sign(signMessage),
+      };
 
-    logger.debug(
-      `Requesting update for status information: ${JSON.stringify(request)}`,
-    );
+      logger.debug(
+        `Requesting update for status information: ${JSON.stringify(request)}`,
+      );
 
-    await this.axios.post('/v1/status/submit', request);
+      await this.axios.post('/v1/status/submit', request);
+    } catch (e) {
+      let responseError = '';
+      if (isAxiosError(e) && e.response?.data) {
+        responseError = `, response: ${JSON.stringify(e.response.data)}`;
+      }
+      logger.error(
+        `An error occurred while submitting status change signal on Event [${dto.eventId}]: ${e}${responseError}`,
+      );
+      if (e.stack) logger.error(e.stack);
+    }
   };
 
   /**
@@ -132,6 +146,10 @@ class PublicStatusHandler {
       if (status === EventStatus.inPayment || status === EventStatus.inReward) {
         const tx = await this.txRepository.findOne({
           where: {
+            type:
+              status === EventStatus.inPayment
+                ? TransactionType.payment
+                : TransactionType.reward,
             event: { id: eventId },
             status: Not(TransactionStatus.invalid),
           },
@@ -157,14 +175,10 @@ class PublicStatusHandler {
         tx: txDto,
       };
 
-      await this.submitRequest(dto);
+      this.processor.addNode(eventId, dto);
     } catch (e) {
-      let responseError = '';
-      if (e instanceof AxiosError && e.response?.data) {
-        responseError = `, response: ${JSON.stringify(e.response.data)}`;
-      }
       logger.error(
-        `An error occurred while submitting status change signal on Event [${eventId}]: ${e}${responseError}`,
+        `An error occurred while submitting status change signal on Event [${eventId}]: ${e}`,
       );
       if (e.stack) logger.error(e.stack);
     }
@@ -205,6 +219,15 @@ class PublicStatusHandler {
         throw new ImpossibleBehavior(`Event of tx [${txId}] is not found!`);
       }
 
+      if (
+        (tx.type === TransactionType.payment &&
+          tx.event.status !== EventStatus.inPayment) ||
+        (tx.type === TransactionType.reward &&
+          tx.event.status !== EventStatus.inReward)
+      ) {
+        return;
+      }
+
       const dto: UpdateStatusDTO = {
         eventId: tx.event.id,
         status: tx.event.status,
@@ -216,14 +239,10 @@ class PublicStatusHandler {
         },
       };
 
-      await this.submitRequest(dto);
+      this.processor.addNode(tx.event.id, dto);
     } catch (e) {
-      let responseError = '';
-      if (e instanceof AxiosError && e.response?.data) {
-        responseError = `, response: ${JSON.stringify(e.response.data)}`;
-      }
       logger.error(
-        `An error occurred while submitting status change signal on Transaction [${txId}]: ${e}${responseError}`,
+        `An error occurred while submitting status change signal on Transaction [${txId}]: ${e}`,
       );
       if (e.stack) logger.error(e.stack);
     }

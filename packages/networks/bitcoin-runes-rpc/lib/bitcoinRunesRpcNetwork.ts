@@ -19,7 +19,9 @@ import {
   BitcoinRunesUtxo,
   CONFIRMATION_TARGET,
 } from '@rosen-chains/bitcoin-runes';
-import RateLimitedAxios from '@rosen-clients/rate-limited-axios';
+import RateLimitedAxios, {
+  Axios as RateLimitedAxiosClass,
+} from '@rosen-clients/rate-limited-axios';
 
 import {
   JsonRpcResult,
@@ -43,8 +45,8 @@ import {
 } from './types';
 
 export class BitcoinRunesRpcNetwork extends AbstractBitcoinRunesNetwork {
-  protected rpcClient; // TODO: specify the type (local:ergo/rosen-bridge/network-client#26)
-  protected unisatClient; // TODO: specify the type (local:ergo/rosen-bridge/network-client#26)
+  protected rpcClient: RateLimitedAxiosClass;
+  protected unisatClient: RateLimitedAxiosClass;
   protected readonly PAGE_SIZE = 500;
 
   constructor(

@@ -98,11 +98,10 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
     const feeRatio = await this.network.getFeeRatio();
 
     // calculate required assets
-    const minUtxoValue = this.getMinimumNativeToken();
     const requiredAssets = order
       .map((order) => order.assets)
       .reduce(ChainUtils.sumAssetBalance, {
-        nativeToken: minUtxoValue,
+        nativeToken: 0n, // the min DOGE for change output is considered by the selection package
         tokens: [],
       });
     this.logger.debug(
