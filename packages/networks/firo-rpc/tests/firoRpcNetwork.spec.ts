@@ -334,7 +334,7 @@ describe('FiroRpcNetwork', () => {
 
       // Convert FIRO/kB to satoshis/byte
       const expectedFeeRate = Math.ceil(
-        (testData.estimateSmartFeeResponse.result.feerate * 100000000) / 1024,
+        (testData.estimateSmartFeeResponse.result.feerate * 100000000) / 1000,
       );
       expect(result).toEqual(expectedFeeRate);
     });

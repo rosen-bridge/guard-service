@@ -421,7 +421,7 @@ class FiroRpcNetwork extends AbstractFiroNetwork {
 
       this.validateResponseId(randomId, response.data.id);
       const feeSatoshis = this.convertToSatoshis(response.data.result.feerate);
-      const feeRate = Number(feeSatoshis) / 1024;
+      const feeRate = Number(feeSatoshis) / 1000;
 
       this.logger.debug(
         `Requested 'estimatesmartfee'. Response: ${JsonBigInt.stringify(
