@@ -1,5 +1,11 @@
 # @rosen-chains/bitcoin-runes-rpc
 
+## 2.0.5
+
+### Patch Changes
+
+- Fix bug where pagination was ignored while fetching address or transaction runes
+
 ## 2.0.4
 
 ### Patch Changes
