@@ -197,7 +197,7 @@ export const RevenueChartResponseSchema = z.array(
 export const SignQuerySchema = z.object({
   chain: z.string(),
   txJson: z.string(),
-  requiredSign: z.number(),
+  requiredSign: z.coerce.number(),
   overwrite: z.optional(z.boolean()),
 });
 
