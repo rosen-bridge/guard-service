@@ -421,7 +421,7 @@ class FiroRpcNetwork extends AbstractFiroNetwork {
 
       this.validateResponseId(randomId, response.data.id);
       const feeSatoshis = this.convertToSatoshis(response.data.result.feerate);
-      const feeRate = Number(feeSatoshis) / 1024;
+      const feeRate = Number(feeSatoshis) / 1000;
 
       this.logger.debug(
         `Requested 'estimatesmartfee'. Response: ${JsonBigInt.stringify(
@@ -536,9 +536,9 @@ class FiroRpcNetwork extends AbstractFiroNetwork {
     try {
       // Get list of unspent outputs for the address
       const response = await this.client.post<JsonRpcResult>('', {
-        method: 'listunspent',
+        method: 'getaddressutxos',
         id: randomId,
-        params: [1, 9999999, [address]], // minconf, maxconf, addresses
+        params: [{ addresses: [address] }],
       });
 
       this.validateResponseId(randomId, response.data.id);
@@ -546,20 +546,23 @@ class FiroRpcNetwork extends AbstractFiroNetwork {
       const utxos: Array<FiroRpcUtxo> = response.data.result;
 
       this.logger.debug(
-        `Requested 'listunspent' for address [${address}]. Response: ${JsonBigInt.stringify(
+        `Requested 'getaddressutxos' for address [${address}]. Response: ${JsonBigInt.stringify(
           utxos,
         )}`,
       );
 
-      // Convert to FiroUtxo format and apply pagination
-      const firoUtxos = utxos.slice(offset, offset + limit).map((utxo) => ({
-        txId: utxo.txid,
-        index: utxo.vout,
-        value: this.convertToSatoshis(utxo.amount),
-      }));
+      // Filter out unconfirmed UTXOs (height=0), then convert + paginate
+      const firoUtxos = utxos
+        .filter((utxo) => utxo.height > 0)
+        .slice(offset, offset + limit)
+        .map((utxo) => ({
+          txId: utxo.txid,
+          index: utxo.outputIndex,
+          value: BigInt(utxo.satoshis),
+        }));
 
       this.logger.debug(
-        `Requested 'listunspent' for address [${address}]. Found ${utxos.length} UTXOs, returning ${firoUtxos.length}.`,
+        `Requested 'getaddressutxos' for address [${address}]. Found ${utxos.length} UTXOs, returning ${firoUtxos.length}.`,
       );
 
       return firoUtxos;
@@ -656,9 +659,9 @@ class FiroRpcNetwork extends AbstractFiroNetwork {
     try {
       // Get list of unspent outputs for the address
       const response = await this.client.post<JsonRpcResult>('', {
-        method: 'listunspent',
+        method: 'getaddressutxos',
         id: randomId,
-        params: [1, 9999999, [address]], // minconf=1 to include only confirmed UTXOs
+        params: [{ addresses: [address] }],
       });
 
       this.validateResponseId(randomId, response.data.id);
@@ -666,16 +669,15 @@ class FiroRpcNetwork extends AbstractFiroNetwork {
       const utxos: Array<FiroRpcUtxo> = response.data.result;
 
       this.logger.debug(
-        `Requested 'listunspent' for address [${address}]. Response: ${JsonBigInt.stringify(
+        `Requested 'getaddressutxos' for address [${address}]. Response: ${JsonBigInt.stringify(
           utxos,
         )}`,
       );
 
-      // Sum up all UTXO values
-      const totalSatoshis = utxos.reduce(
-        (sum, utxo) => sum + this.convertToSatoshis(utxo.amount),
-        0n,
-      );
+      // Sum up all confirmed UTXO values
+      const totalSatoshis = utxos
+        .filter((utxo) => utxo.height > 0)
+        .reduce((sum, utxo) => sum + BigInt(utxo.satoshis), 0n);
 
       return {
         nativeToken: totalSatoshis,

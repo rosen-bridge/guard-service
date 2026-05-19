@@ -84,12 +84,12 @@ export interface FiroChainInfo {
 }
 
 export interface FiroRpcUtxo {
-  txid: string;
-  vout: number;
   address: string;
-  scriptPubKey: string;
-  amount: number;
-  confirmations: number;
+  txid: string;
+  outputIndex: number;
+  script: string;
+  satoshis: number;
+  height: number;
 }
 
 /**

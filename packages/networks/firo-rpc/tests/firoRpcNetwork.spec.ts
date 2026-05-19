@@ -334,7 +334,7 @@ describe('FiroRpcNetwork', () => {
 
       // Convert FIRO/kB to satoshis/byte
       const expectedFeeRate = Math.ceil(
-        (testData.estimateSmartFeeResponse.result.feerate * 100000000) / 1024,
+        (testData.estimateSmartFeeResponse.result.feerate * 100000000) / 1000,
       );
       expect(result).toEqual(expectedFeeRate);
     });
@@ -468,7 +468,7 @@ describe('FiroRpcNetwork', () => {
      * @target `FiroRpcNetwork.getAddressBoxes` should return address UTXOs successfully with pagination
      * @dependencies
      * @scenario
-     * - mock axios to return listunspent data
+     * - mock axios to return getaddressutxos data
      * - run test with pagination parameters
      * - check returned value
      * @expected
@@ -712,7 +712,7 @@ describe('FiroRpcNetwork', () => {
      * @target `FiroRpcNetwork.getAddressAssets` should return address balance successfully
      * @dependencies
      * @scenario
-     * - mock axios to return listunspent with multiple UTXOs
+     * - mock axios to return getaddressutxos with multiple UTXOs
      * - run test
      * - check returned value
      * @expected
@@ -738,8 +738,8 @@ describe('FiroRpcNetwork', () => {
       expect(axiosInstance.post).toHaveBeenCalledWith(
         '',
         expect.objectContaining({
-          method: 'listunspent',
-          params: [1, 9999999, [testData.lockAddress]],
+          method: 'getaddressutxos',
+          params: [{ addresses: [testData.lockAddress] }],
         }),
       );
     });
