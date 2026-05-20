@@ -24,6 +24,7 @@ const rpcInstance = {
   estimateGas: vi.fn(),
   getBlock: vi.fn(),
   getFeeData: vi.fn(),
+  getTransaction: vi.fn(),
   _getConnection: () => {
     return {
       timeout: 0,

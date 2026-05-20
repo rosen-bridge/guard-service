@@ -41,7 +41,7 @@ export const getBlockResponse = new Block(
 
 export const lockAddress = '0x8c41E9904498505B49b0B9eE1e551F538A464E8f';
 
-const transaction0Response = new TransactionResponse(
+export const tx0Response = new TransactionResponse(
   {
     blockNumber: 19195927,
     blockHash:
@@ -72,7 +72,7 @@ const transaction0Response = new TransactionResponse(
   },
   new JsonRpcProvider(),
 );
-export const transaction0 = Transaction.from(transaction0Response);
+export const tx0 = Transaction.from(tx0Response);
 
 export const l1GasUsed = 1234n;
 export const estimatedGas = 2345n;

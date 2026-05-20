@@ -1,5 +1,5 @@
 ---
-'@rosen-chains/evm-l2-rpc': minor
+'@rosen-chains/evm-op-stack-rpc': minor
 ---
 
 Initialize package

@@ -1,14 +1,16 @@
+import { EvmTxStatus } from '@rosen-chains/evm';
+
 import { mockDataSource } from './mocked/dataSource.mock';
 import * as ethersMock from './mocked/ethers.mock';
 import * as testData from './testData';
-import { TestEvmL2RpcNetwork } from './testEvmL2RpcNetwork';
+import { TestEvmOpStackRpcNetwork } from './testEvmOpStackRpcNetwork';
 
-describe('EvmL2RpcNetwork', () => {
-  let network: TestEvmL2RpcNetwork;
+describe('EvmOpStackRpcNetwork', () => {
+  let network: TestEvmOpStackRpcNetwork;
 
   beforeEach(async () => {
     const dataSource = await mockDataSource();
-    network = new TestEvmL2RpcNetwork(
+    network = new TestEvmOpStackRpcNetwork(
       'test',
       'custom-url',
       dataSource,
@@ -16,16 +18,57 @@ describe('EvmL2RpcNetwork', () => {
     );
   });
 
-  describe('estimateL1Gas', () => {
+  describe('getTxConfirmation', () => {
     /**
-     * @target `EvmL2RpcNetwork.estimateL1Gas` should fetch estimated l1 gas successfully
+     * @target `EvmOpStackRpcNetwork.getTxConfirmation` should fetch tx confirmation count successfully
      * @dependencies
      * @scenario
-     * - mock Contract `getL1GasUsed` function
+     * - stub dbAction.getTxByUnsignedHash to resolve to null
+     * - stub provider.getTransaction to resolve to a mock tx object
+     * - stub getStatus to resolve to EvmTxStatus.succeed
+     * - stub getBlock to resolve to a mock block object
      * - run test
      * - check returned value
      * @expected
-     * - it should be the mocked value
+     * - it should be the mock block height - tx block number
+     */
+    it('should fetch tx confirmation count successfully', async () => {
+      // arrange
+      vi.spyOn(network.getDbAction(), 'getTxByUnsignedHash').mockResolvedValue(
+        null,
+      );
+      vi.spyOn(network.getProvider(), 'getTransaction').mockResolvedValue(
+        testData.tx0Response,
+      );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.spyOn(network as any, 'getStatus').mockResolvedValue(
+        EvmTxStatus.succeed,
+      );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.spyOn(network as any, 'getBlock').mockResolvedValue(
+        testData.getBlockResponse,
+      );
+
+      // act
+      const result = await network.getTxConfirmation(testData.tx0.hash!);
+
+      // assert
+      expect(result).toEqual(
+        testData.getBlockResponse.number - testData.tx0Response.blockNumber!,
+      );
+    });
+  });
+
+  describe('estimateL1Gas', () => {
+    /**
+     * @target `EvmOpStackRpcNetwork.estimateL1Gas` should fetch estimated l1 gas successfully
+     * @dependencies
+     * @scenario
+     * - stub Contract.getL1GasUsed to resolve to a mock value
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should match the mock value
      */
     it('should fetch estimated l1 gas successfully', async () => {
       // arrange
@@ -34,7 +77,7 @@ describe('EvmL2RpcNetwork', () => {
       );
 
       // act
-      const result = await network.estimateL1Gas(testData.transaction0);
+      const result = await network.callEstimateL1Gas(testData.tx0);
 
       // assert
       expect(result).toEqual(testData.l1GasUsed);
@@ -43,14 +86,14 @@ describe('EvmL2RpcNetwork', () => {
 
   describe('estimateL2Gas', () => {
     /**
-     * @target `EvmL2RpcNetwork.estimateL2Gas` should fetch estimated l2 gas successfully
+     * @target `EvmOpStackRpcNetwork.estimateL2Gas` should fetch estimated l2 gas successfully
      * @dependencies
      * @scenario
-     * - mock rpc method `estimateGas`
+     * - stub provider.estimateGas to resolve to a mock value
      * - run test
      * - check returned value
      * @expected
-     * - it should be the mocked value
+     * - it should match the mock value
      */
     it('should fetch estimated l2 gas successfully', async () => {
       // arrange
@@ -59,7 +102,7 @@ describe('EvmL2RpcNetwork', () => {
       );
 
       // act
-      const result = await network.estimateL2Gas(testData.transaction0);
+      const result = await network.callEstimateL2Gas(testData.tx0);
 
       // assert
       expect(result).toEqual(testData.estimatedGas);
@@ -68,11 +111,11 @@ describe('EvmL2RpcNetwork', () => {
 
   describe('getGasRequired', () => {
     /**
-     * @target `EvmL2RpcNetwork.getGasRequired` should return gas estimation successfully
+     * @target `EvmOpStackRpcNetwork.getGasRequired` should return gas estimation successfully
      * @dependencies
      * @scenario
-     * - stub provider.`estimateGas` to return a mock value
-     * - stub contract.`getL1GasUsed` to return a mock value
+     * - stub provider.estimateGas to resolve to a mock value
+     * - stub contract.getL1GasUsed to resolve to a mock value
      * - run test
      * - check returned value
      * @expected
@@ -88,7 +131,7 @@ describe('EvmL2RpcNetwork', () => {
       );
 
       // act
-      const result = await network.getGasRequired(testData.transaction0);
+      const result = await network.getGasRequired(testData.tx0);
 
       // assert
       expect(result).toEqual(testData.estimatedGas + testData.l1GasUsed);
@@ -97,16 +140,16 @@ describe('EvmL2RpcNetwork', () => {
 
   describe('getBlock', () => {
     /**
-     * @target `EvmL2RpcNetwork.getBlock` should return the block object successfully
+     * @target `EvmOpStackRpcNetwork.getBlock` should return the block object successfully
      * @dependencies
      * @scenario
-     * - mock provider.`getBlock` to return info
+     * - stub provider.getBlock to resolve to a mock block object
      * - run test
      * - check getBlock spy
      * - check returned value
      * @expected
      * - getBlock should be called once with 'finalized' block tag
-     * - it should be the mocked block object
+     * - it should match the mock block object
      */
     it('should return the block object successfully', async () => {
       // arrange
@@ -115,7 +158,7 @@ describe('EvmL2RpcNetwork', () => {
         .mockResolvedValue(testData.getBlockResponse);
 
       // act
-      const result = await network.getBlock('finalized');
+      const result = await network.callGetBlock('finalized');
 
       // assert
       expect(getBlockSpy).toHaveBeenCalledExactlyOnceWith('finalized');
@@ -125,11 +168,11 @@ describe('EvmL2RpcNetwork', () => {
 
   describe('getFeeData', () => {
     /**
-     * @target `EvmL2RpcNetwork.getFeeData` should return fee data successfully
+     * @target `EvmOpStackRpcNetwork.getFeeData` should return fee data successfully
      * @dependencies
      * @scenario
-     * - stub provider.`getFeeData` to a mock fee data
-     * - stub provider.`getBlock` to a mock block
+     * - stub provider.getFeeData to resolve to a mock fee data object
+     * - stub provider.getBlock to resolve to a mock block object
      * - run test
      * - check getBlock spy
      * - check returned value
@@ -152,34 +195,6 @@ describe('EvmL2RpcNetwork', () => {
       // assert
       expect(getBlockSpy).toHaveBeenCalledExactlyOnceWith('latest');
       expect(result).toEqual(testData.feeDataResponse);
-    });
-  });
-
-  describe('getFinalizedBlockHeight', () => {
-    /**
-     * @target `EvmL2RpcNetwork.getFinalizedBlockHeight` should return the finalized block height successfully
-     * @dependencies
-     * @scenario
-     * - mock provider.`getBlock` to return info
-     * - run test
-     * - check getBlock spy
-     * - check returned value
-     * @expected
-     * - getBlock should be called once with 'finalized' block tag
-     * - it should be the mocked finalized block height
-     */
-    it('should return the finalized block height successfully', async () => {
-      // arrange
-      const getBlockSpy = vi
-        .spyOn(network.getProvider(), 'getBlock')
-        .mockResolvedValue(testData.getBlockResponse);
-
-      // act
-      const result = await network.getFinalizedBlockHeight();
-
-      // assert
-      expect(getBlockSpy).toHaveBeenCalledExactlyOnceWith('finalized');
-      expect(result).toEqual(testData.getBlockResponse.number);
     });
   });
 });

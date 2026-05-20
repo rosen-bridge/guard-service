@@ -1,14 +1,14 @@
 {
-  "name": "@rosen-chains/evm-l2-rpc",
+  "name": "@rosen-chains/evm-op-stack-rpc",
   "version": "0.0.0",
-  "description": "A package to be used as network api provider for @rosen-chains/evm package",
+  "description": "A package to be used as network api provider for any OP-Stack based chains that are built on the @rosen-chains/evm package",
   "keywords": [
     "rosen"
   ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rosen-bridge/guard-service.git",
-    "directory": "packages/networks/evm-l2-rpc"
+    "directory": "packages/networks/evm-op-stack-rpc"
   },
   "license": "MIT",
   "author": "Rosen Team",
@@ -36,6 +36,7 @@
     "@rosen-bridge/extended-typeorm": "^1.0.1",
     "@rosen-bridge/json-bigint": "^1.1.0",
     "@rosen-chains/abstract-chain": "^16.0.0",
+    "@rosen-chains/evm": "^10.0.0",
     "@rosen-chains/evm-rpc": "^4.0.4",
     "ethers": "6.16.0"
   },

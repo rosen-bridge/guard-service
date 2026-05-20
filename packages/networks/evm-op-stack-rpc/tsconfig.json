@@ -5,5 +5,12 @@
     "types": ["node", "vitest/globals"]
   },
   "include": ["tests", "lib"],
-  "references": [{ "path": "../evm-rpc" }]
+  "references": [
+    {
+      "path": "../evm-rpc"
+    },
+    {
+      "path": "../../chains/evm"
+    }
+  ]
 }
