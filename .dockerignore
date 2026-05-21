@@ -1,4 +1,7 @@
 .idea
+.changeset
+.github
+.gitlab
 **/node_modules
 .nyc_output
 **/coverage
@@ -13,9 +16,9 @@ docker*
 **/.env
 .git*
 .eslintignore
-**/README.md
+**/*.md
 .husky
-.lintstagedrc.js
+.lintstagedrc.*js
 .prettierrc.json
 **/vitest.config.ts
 **/peer-dialer*.json
