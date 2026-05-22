@@ -92,9 +92,6 @@ jobs:
         with:
           path: /tmp/cache-mounts
           key: buildkit-cache-mounts-${{ runner.os }}-${{ env.PLATFORM_PAIR }}-${{ github.ref_name }}-${{ hashFiles('services/guard-service/Dockerfile', 'package-lock.json') }}
-          restore-keys: |
-            buildkit-cache-mounts-${{ runner.os }}-${{ env.PLATFORM_PAIR }}-${{ github.ref_name }}-
-            buildkit-cache-mounts-${{ runner.os }}-${{ env.PLATFORM_PAIR }}-
 
       - name: Restore Docker cache mounts
         uses: reproducible-containers/buildkit-cache-dance@v3
