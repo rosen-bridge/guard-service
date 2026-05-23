@@ -11,6 +11,7 @@ COPY --parents \
     package.json \
     package-lock.json \
     .npmrc \
+    .nvmrc\
     patches \
     packages/**/package.json \
     services/**/package.json \
@@ -43,6 +44,7 @@ COPY --parents \
     package.json \
     package-lock.json \
     .npmrc \
+    .nvmrc \
     patches \
     packages/**/package.json \
     services/**/package.json \
