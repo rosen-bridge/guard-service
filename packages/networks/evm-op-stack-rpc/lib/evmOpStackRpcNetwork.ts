@@ -1,7 +1,6 @@
 import {
   Block,
   ethers,
-  FeeData,
   isCallException,
   Transaction,
   TransactionResponse,
@@ -42,54 +41,6 @@ class EvmOpStackRpcNetwork extends EvmRpcNetwork {
     ]);
 
     return l1Gas + l2Gas;
-  };
-
-  /**
-   * gets fee-related values associated with the network
-   * - the legacy gas price
-   * - the maximum fee to pay per gas
-   * - the additional amount to pay per gas to miner
-   * it includes all the values
-   * @returns fee-related values as bigint or null
-   */
-  override getFeeData = async (): Promise<FeeData> => {
-    const baseError = `Failed to get fee data of ${this.chain} RPC: `;
-    let feeData: FeeData;
-    try {
-      feeData = await this.provider.getFeeData();
-      this.logger.debug(
-        `requested 'getFeeData' of ${
-          this.chain
-        } RPC. res: ${JsonBigInt.stringify(feeData)}`,
-      );
-    } catch (e: unknown) {
-      throw new UnexpectedApiError(baseError + `${e}`);
-    }
-
-    if (feeData.maxPriorityFeePerGas === null)
-      throw new UnexpectedApiError(baseError + `maxPriorityFeePerGas is null`);
-
-    const block = await this.getBlock('latest');
-
-    if (typeof block.baseFeePerGas !== 'bigint')
-      throw new UnexpectedApiError(
-        baseError +
-          `expected bigint "block.baseFeePerGas", got ${typeof block.baseFeePerGas}`,
-      );
-
-    // max fees per gas
-    const baseFeeMultiplier = 1.2;
-    const multiply = (base: bigint) =>
-      (base * BigInt(Math.ceil(baseFeeMultiplier * 10))) / BigInt(10);
-
-    const baseFeePerGas = multiply(block.baseFeePerGas);
-    const maxFeePerGas = baseFeePerGas + feeData.maxPriorityFeePerGas;
-
-    return new FeeData(
-      feeData.gasPrice,
-      maxFeePerGas,
-      feeData.maxPriorityFeePerGas,
-    );
   };
 
   /**
@@ -167,18 +118,8 @@ class EvmOpStackRpcNetwork extends EvmRpcNetwork {
         partialGasPriceOracleAbi,
         this.provider,
       );
-      const tx = Transaction.from({
-        chainId: transaction.chainId,
-        to: transaction.to,
-        data: transaction.data,
-        type: transaction.type,
-        gasLimit: 300_000n,
-        maxFeePerGas: 5_000_000_000n,
-        maxPriorityFeePerGas: 1_000_000_000n,
-        nonce: 1,
-      });
       const estimateOfL1Gas = await contract.getL1GasUsed(
-        tx.unsignedSerialized,
+        transaction.unsignedSerialized,
       );
       this.logger.debug(
         `requested 'getL1GasUsed' method of Gas Price Oracle contract of ${

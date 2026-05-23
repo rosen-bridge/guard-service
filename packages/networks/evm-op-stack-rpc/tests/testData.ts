@@ -1,6 +1,5 @@
 import {
   Block,
-  FeeData,
   JsonRpcProvider,
   Signature,
   Transaction,
@@ -76,13 +75,3 @@ export const tx0 = Transaction.from(tx0Response);
 
 export const l1GasUsed = 1234n;
 export const estimatedGas = 2345n;
-
-const gasPrice = 16137943919n;
-const maxPriorityFeePerGas = 1000000n;
-const maxFeePerGas =
-  maxPriorityFeePerGas + (getBlockResponse.baseFeePerGas! * 12n) / 10n;
-export const feeDataResponse = new FeeData(
-  gasPrice,
-  maxFeePerGas,
-  maxPriorityFeePerGas,
-);

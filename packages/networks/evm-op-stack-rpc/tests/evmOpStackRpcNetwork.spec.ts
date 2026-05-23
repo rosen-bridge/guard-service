@@ -165,36 +165,4 @@ describe('EvmOpStackRpcNetwork', () => {
       expect(result).toEqual(testData.getBlockResponse);
     });
   });
-
-  describe('getFeeData', () => {
-    /**
-     * @target `EvmOpStackRpcNetwork.getFeeData` should return fee data successfully
-     * @dependencies
-     * @scenario
-     * - stub provider.getFeeData to resolve to a mock fee data object
-     * - stub provider.getBlock to resolve to a mock block object
-     * - run test
-     * - check getBlock spy
-     * - check returned value
-     * @expected
-     * - getBlock should be called once with 'latest' block tag
-     * - it should be the correct fee data values
-     */
-    it('should return fee data successfully', async () => {
-      // arrange
-      vi.spyOn(network.getProvider(), 'getFeeData').mockResolvedValue(
-        testData.feeDataResponse,
-      );
-      const getBlockSpy = vi
-        .spyOn(network.getProvider(), 'getBlock')
-        .mockResolvedValue(testData.getBlockResponse);
-
-      // act
-      const result = await network.getFeeData();
-
-      // assert
-      expect(getBlockSpy).toHaveBeenCalledExactlyOnceWith('latest');
-      expect(result).toEqual(testData.feeDataResponse);
-    });
-  });
 });

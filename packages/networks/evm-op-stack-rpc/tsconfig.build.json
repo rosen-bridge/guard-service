@@ -10,6 +10,9 @@
     },
     {
       "path": "../../chains/evm/tsconfig.build.json"
+    },
+    {
+      "path": "../../abstract-chain/tsconfig.build.json"
     }
   ]
 }

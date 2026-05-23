@@ -11,6 +11,7 @@ export const mockDataSource = async () => {
   });
 
   await testDataSource.initialize();
+  await testDataSource.runMigrations();
 
   return testDataSource;
 };
