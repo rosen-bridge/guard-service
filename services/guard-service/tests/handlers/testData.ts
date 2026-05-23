@@ -142,20 +142,17 @@ export const cardanoTokenIds = [
   cardanoMDTokenTokenId,
 ];
 
-export const mockCardanoBalances = (() => {
-  const records: ChainAddressBalanceEntity[] = [];
-  for (const address of [cardanoLockAddress, cardanoColdAddress]) {
-    for (const token of cardanoTokenIds) {
-      records.push({
-        chain: CARDANO_CHAIN,
-        address: address,
-        tokenId: token,
-        lastUpdate: '1643723422',
-        balance: 10000n,
-      });
-    }
-  }
-  return records;
-})();
+export const mockCardanoBalances: ChainAddressBalanceEntity[] = [
+  cardanoLockAddress,
+  cardanoColdAddress,
+].flatMap((address) =>
+  cardanoTokenIds.map((token: string) => ({
+    chain: CARDANO_CHAIN,
+    address: address,
+    tokenId: token,
+    lastUpdate: '1643723422',
+    balance: 10000n,
+  })),
+);
 
-export const mockCardanoLockBalances = mockCardanoBalances.slice(0, 4);
+export const mockCardanoBalancesTest1 = mockCardanoBalances.slice(0, 4);

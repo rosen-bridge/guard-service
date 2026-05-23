@@ -19,7 +19,7 @@ import {
   mockAddressBalance3,
   mockBalances,
   mockCardanoBalances,
-  mockCardanoLockBalances,
+  mockCardanoBalancesTest1,
 } from './testData';
 
 describe('BalanceHandler', () => {
@@ -323,8 +323,10 @@ describe('BalanceHandler', () => {
   });
 
   describe('updateChainBalances', () => {
-    beforeEach(() => {
+    beforeEach(async () => {
       ChainHandlerMock.resetMock();
+
+      await DatabaseActionMock.clearTables();
     });
 
     /**
@@ -557,7 +559,7 @@ describe('BalanceHandler', () => {
 
       vi.spyOn(balanceHandler, 'updateChainBatchBalances').mockImplementation(
         async (chain, address) => {
-          if (address === lockAddress) return mockCardanoLockBalances;
+          if (address === lockAddress) return mockCardanoBalancesTest1;
           return [];
         },
       );
@@ -571,7 +573,7 @@ describe('BalanceHandler', () => {
       // assert
       expect(removeSpy).toHaveBeenCalledOnce();
       const records = await DatabaseActionMock.allChainAddressBalanceRecords();
-      expect(records).toEqual(expect.arrayContaining(mockCardanoLockBalances));
+      expect(records).toEqual(mockCardanoBalancesTest1);
     });
   });
 });
