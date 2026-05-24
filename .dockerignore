@@ -22,3 +22,4 @@ docker*
 .prettierrc.json
 **/vitest.config.ts
 **/peer-dialer*.json
+scratch

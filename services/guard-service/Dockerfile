@@ -3,7 +3,9 @@
 FROM node:22.18-bookworm-slim AS builder
 
 WORKDIR /app
-RUN --mount=type=cache,target=/root/.npm npm i -g npm@11.6.2 && \
+RUN --mount=type=cache,target=/root/.npm \
+    --mount=type=cache,target=/tmp/node-compile-cache \
+    npm i -g npm@11.6.2 && \
     apt-get update && \
     apt-get install -y --no-install-recommends python3 build-essential
 
@@ -11,12 +13,15 @@ COPY --parents \
     package.json \
     package-lock.json \
     .npmrc \
-    .nvmrc\
+    .nvmrc \
     patches \
     packages/**/package.json \
     services/**/package.json \
     ./
-RUN --mount=type=cache,target=/root/.npm npm ci
+RUN --mount=type=cache,target=/root/.npm \
+    --mount=type=cache,target=/root/.cache \
+    --mount=type=cache,target=/tmp/node-compile-cache \
+    npm ci
 COPY --parents tsconfig*.json packages ./
 RUN npm run build
 
@@ -31,10 +36,12 @@ LABEL maintainer="rosen-bridge team <team@rosen.tech>"
 LABEL description="Docker image for the guard-service owned by rosen-bridge organization."
 LABEL org.label-schema.vcs-url="https://github.com/rosen-bridge/guard-service"
 
-RUN --mount=type=cache,target=/root/.npm npm i -g npm@11.6.2 && \
-    adduser --disabled-password --home /app --uid 8080 --gecos "ErgoPlatform" ergo && \
+RUN --mount=type=cache,target=/root/.npm \
+    --mount=type=cache,target=/tmp/node-compile-cache \
+    npm i -g npm@11.6.2 && \
+    adduser --disabled-password --home /app --no-create-home --uid 8080 --gecos "ErgoPlatform" ergo && \
     install -m 0740 -o ergo -g ergo -d ${SERVICE_DIR}/peer-dialer ${SERVICE_DIR}/logs ${SERVICE_DIR}/tss-api/logs ${SERVICE_DIR}/tss-api/home && \
-    chown -R ergo:ergo /app/ && umask 0077 && \
+    umask 0077 && \
     apt-get update && \
     apt-get install -y --no-install-recommends python3 build-essential && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -50,7 +57,10 @@ COPY --parents \
     services/**/package.json \
     ./
 ENV NODE_ENV=production
-RUN --mount=type=cache,target=/root/.npm npm ci && chown -R ergo:ergo /app/
+RUN --mount=type=cache,target=/root/.npm \
+    --mount=type=cache,target=/root/.cache \
+    --mount=type=cache,target=/tmp/node-compile-cache \
+    npm ci && chown -R ergo:ergo /app/
 COPY --chmod=700 --chown=ergo:ergo . .
 COPY --from=builder --chown=ergo:ergo /tmp/artifacts/app/ /app/
 WORKDIR ${SERVICE_DIR}
