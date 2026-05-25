@@ -155,4 +155,4 @@ export const mockCardanoBalances: ChainAddressBalanceEntity[] = [
   })),
 );
 
-export const mockCardanoBalancesTest1 = mockCardanoBalances.slice(0, 4);
+export const mockPartialCardanoBalances = mockCardanoBalances.slice(0, 4);

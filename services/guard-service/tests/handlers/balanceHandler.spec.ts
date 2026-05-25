@@ -4,7 +4,6 @@ import { BITCOIN_CHAIN } from '@rosen-chains/bitcoin';
 import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
 import { DOGE_CHAIN } from '@rosen-chains/doge';
 
-import Configs from '../../src/configs/configs';
 import { TokenHandler } from '../../src/handlers/tokenHandler';
 import { SUPPORTED_CHAINS } from '../../src/utils/constants';
 import DatabaseActionMock from '../db/mocked/databaseAction.mock';
@@ -19,7 +18,7 @@ import {
   mockAddressBalance3,
   mockBalances,
   mockCardanoBalances,
-  mockCardanoBalancesTest1,
+  mockPartialCardanoBalances,
 } from './testData';
 
 describe('BalanceHandler', () => {
@@ -366,7 +365,6 @@ describe('BalanceHandler', () => {
         .mockResolvedValue([]);
 
       balanceHandler['chainsTokensPerIteration'][chain] = 1;
-      Configs.balanceHandler[chain].updateBatchInterval = 0;
 
       // act
       await balanceHandler.updateChainBalances(chain);
@@ -500,7 +498,6 @@ describe('BalanceHandler', () => {
         .mockResolvedValue([]);
 
       balanceHandler['chainsTokensPerIteration'][chain] = 100;
-      Configs.balanceHandler[chain].updateBatchInterval = 0;
 
       // act
       await balanceHandler.updateChainBalances(chain);
@@ -559,13 +556,12 @@ describe('BalanceHandler', () => {
 
       vi.spyOn(balanceHandler, 'updateChainBatchBalances').mockImplementation(
         async (chain, address) => {
-          if (address === lockAddress) return mockCardanoBalancesTest1;
+          if (address === lockAddress) return mockPartialCardanoBalances;
           return [];
         },
       );
 
       balanceHandler['chainsTokensPerIteration'][chain] = 100;
-      Configs.balanceHandler[chain].updateBatchInterval = 0;
 
       // act
       await balanceHandler.updateChainBalances(chain);
@@ -573,7 +569,7 @@ describe('BalanceHandler', () => {
       // assert
       expect(removeSpy).toHaveBeenCalledOnce();
       const records = await DatabaseActionMock.allChainAddressBalanceRecords();
-      expect(records).toEqual(mockCardanoBalancesTest1);
+      expect(records).toEqual(mockPartialCardanoBalances);
     });
   });
 });
