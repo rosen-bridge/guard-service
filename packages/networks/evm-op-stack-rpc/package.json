@@ -1,6 +1,7 @@
 {
   "name": "@rosen-chains/evm-op-stack-rpc",
   "version": "0.0.0",
+  "private": true,
   "description": "A package to be used as network api provider for any OP-Stack based chains that are built on the @rosen-chains/evm package",
   "keywords": [
     "rosen"
