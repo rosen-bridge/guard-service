@@ -43,7 +43,7 @@ RUN --mount=type=cache,target=/root/.npm \
     install -m 0740 -o ergo -g ergo -d ${SERVICE_DIR}/peer-dialer ${SERVICE_DIR}/logs ${SERVICE_DIR}/tss-api/logs ${SERVICE_DIR}/tss-api/home && \
     umask 0077 && \
     apt-get update && \
-    apt-get install -y --no-install-recommends python3 build-essential && \
+    apt-get install -y --no-install-recommends python3 build-essential curl && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
