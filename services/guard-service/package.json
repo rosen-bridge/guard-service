@@ -92,7 +92,8 @@
     "pg": "^8.16.3",
     "sqlite3": "^5.0.8",
     "uint8arrays": "^3.1.0",
-    "zod": "^3.25.76"
+    "zod": "^3.25.76",
+    "tsx": "^4.20.5"
   },
   "devDependencies": {
     "@types/config": "^0.0.41",
