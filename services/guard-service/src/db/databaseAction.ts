@@ -1130,7 +1130,28 @@ class DatabaseAction {
   };
 
   /**
-   * upserts array of ChainAddressBalanceEntity objects
+   * gets all ChainAddressBalanceEntity objects by chain name
+   * @param chain
+   * @returns array of ChainAddressBalanceEntity objects
+   */
+  getChainAddressBalanceByChain = async (
+    chain: string,
+  ): Promise<ChainAddressBalanceEntity[]> => {
+    return this.ChainAddressBalanceRepository.findBy({
+      chain,
+    });
+  };
+
+  /**
+   * removes an array of ChainAddressBalanceEntity objects
+   * @param records
+   */
+  removeChainAddressBalances = async (records: ChainAddressBalanceEntity[]) => {
+    return await this.ChainAddressBalanceRepository.remove(records);
+  };
+
+  /**
+   * upserts an array of ChainAddressBalanceEntity objects
    * @param records
    */
   upsertChainAddressBalances = async (records: ChainAddressBalanceEntity[]) => {

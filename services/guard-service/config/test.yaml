@@ -166,3 +166,6 @@ coldStorage:
   endHour: 19
 tokensPath: 'tests/resources/tokens.test.json'
 thresholdsPath: 'tests/resources/threshold.test.json'
+balanceHandler:
+  default:
+    updateBatchInterval: 0
