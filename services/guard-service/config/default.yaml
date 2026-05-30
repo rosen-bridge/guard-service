@@ -69,14 +69,10 @@ bitcoinRunes:
   derivationPath:
     -
 firo:
-  chainNetwork: 'rpc' # 'rpc'
-  rpc:
-    url: ''
-    timeout: 8
-    # username: ''
-    # password: ''
-    # apiKey: ''
-    # rps: 5 # request per second for RPC requests
+  electrumx:
+    host: '127.0.0.1'
+    port: 50001
+    timeout: 30
   bankPublicKey: '' # corresponding public key of lock address
   txFeeSlippage: 20 # allowed slippage percentage for tx fees
   confirmation: # required block confirmation
@@ -342,7 +338,7 @@ balanceHandler:
       esplora: 9999
   firo:
     tokensPerIteration:
-      rpc: 9999
+      electrumx: 9999
   doge:
     tokensPerIteration:
       esplora: 9999

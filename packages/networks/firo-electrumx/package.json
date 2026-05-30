@@ -1,14 +1,14 @@
 {
-  "name": "@rosen-chains/firo-rpc",
+  "name": "@rosen-chains/firo-electrumx",
   "version": "0.0.0",
-  "description": "A package to be used as network api provider for @rosen-chains/firo package using RPC API",
+  "description": "A package to be used as network api provider for @rosen-chains/firo package using ElectrumX TCP API",
   "keywords": [
     "rosen"
   ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rosen-bridge/guard-service.git",
-    "directory": "packages/networks/firo-rpc"
+    "directory": "packages/networks/firo-electrumx"
   },
   "license": "MIT",
   "author": "Navid Rahimi",
@@ -33,10 +33,8 @@
   },
   "dependencies": {
     "@rosen-bridge/abstract-logger": "^4.0.0",
-    "@rosen-bridge/json-bigint": "^1.1.0",
     "@rosen-chains/abstract-chain": "^16.0.0",
     "@rosen-chains/firo": "^0.0.0",
-    "@rosen-clients/rate-limited-axios": "^2.0.1",
     "bitcoinjs-lib": "^6.1.5"
   },
   "engines": {

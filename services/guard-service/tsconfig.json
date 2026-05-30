@@ -25,7 +25,7 @@
     { "path": "../../packages/networks/bitcoin-runes-rpc" },
     { "path": "../../packages/networks/cardano-blockfrost" },
     { "path": "../../packages/networks/cardano-koios" },
-    { "path": "../../packages/networks/firo-rpc" },
+    { "path": "../../packages/networks/firo-electrumx" },
     { "path": "../../packages/networks/doge-blockcypher" },
     { "path": "../../packages/networks/doge-esplora" },
     { "path": "../../packages/networks/doge-rpc" },

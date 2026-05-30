@@ -2,27 +2,21 @@ import config from 'config';
 
 import { FIRO_CHAIN, FiroConfigs } from '@rosen-chains/firo';
 
-import { getChainNetworkName, getConfigIntKeyOrDefault } from './configs';
+import { getConfigIntKeyOrDefault } from './configs';
 import { rosenConfig } from './rosenConfig';
 
 class GuardsFiroConfigs {
   // service configs
-  static chainNetworkName = getChainNetworkName('firo.chainNetwork', ['rpc']);
-  static rpc = {
-    url: config.get<string>('firo.rpc.url'),
-    timeout: config.get<number>('firo.rpc.timeout'), // seconds
-    username: config.has('firo.rpc.username')
-      ? config.get<string>('firo.rpc.username')
-      : undefined,
-    password: config.has('firo.rpc.password')
-      ? config.get<string>('firo.rpc.password')
-      : undefined,
-    apiKey: config.has('firo.rpc.apiKey')
-      ? config.get<string>('firo.rpc.apiKey')
-      : undefined,
-    rps: config.has('firo.rpc.rps')
-      ? config.get<number>('firo.rpc.rps')
-      : undefined,
+  static electrumx = {
+    host: config.has('firo.electrumx.host')
+      ? config.get<string>('firo.electrumx.host')
+      : '127.0.0.1',
+    port: config.has('firo.electrumx.port')
+      ? config.get<number>('firo.electrumx.port')
+      : 50001,
+    timeout: config.has('firo.electrumx.timeout')
+      ? config.get<number>('firo.electrumx.timeout')
+      : 30,
   };
 
   // value configs
