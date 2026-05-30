@@ -20,6 +20,15 @@ import {
 const BASE58_ALPHABET =
   '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
 
+// Current Firo prefixes plus legacy D-address P2PKH used by Rosen configs.
+const FIRO_P2PKH_PREFIXES = new Set([
+  0x1e,
+  0x41,
+  0x42,
+  FIRO_NETWORK.pubKeyHash,
+]);
+const FIRO_P2SH_PREFIXES = new Set([FIRO_NETWORK.scriptHash, 0xb2, 0xb3]);
+
 function base58Decode(encoded: string): Buffer {
   const bytes: number[] = [];
   for (let i = 0; i < encoded.length; i++) {
@@ -47,17 +56,46 @@ function base58Decode(encoded: string): Buffer {
   return Buffer.from(bytes.reverse());
 }
 
-function addressToScripthash(address: string): string {
+export function addressToScripthash(address: string): string {
   const decoded = base58Decode(address);
-  const pubkeyHash = decoded.subarray(1, 21);
-  // P2PKH script: OP_DUP OP_HASH160 <20 bytes> OP_EQUALVERIFY OP_CHECKSIG
-  const script = Buffer.concat([
-    Buffer.from([0x76, 0xa9, 0x14]),
-    pubkeyHash,
-    Buffer.from([0x88, 0xac]),
-  ]);
-  const hash = crypto.createHash('sha256').update(script).digest();
-  return hash.reverse().toString('hex');
+  if (decoded.length !== 25) {
+    throw new Error(`Invalid Firo address length: ${decoded.length}`);
+  }
+
+  const payload = decoded.subarray(0, 21);
+  const checksum = decoded.subarray(21);
+  const expectedChecksum = doubleSha256(payload).subarray(0, 4);
+  if (!checksum.equals(expectedChecksum)) {
+    throw new Error('Invalid Firo address checksum');
+  }
+
+  const version = payload[0];
+  if (version === undefined) {
+    throw new Error('Invalid Firo address version');
+  }
+
+  const payloadHash = payload.subarray(1);
+  let script: Buffer;
+  if (FIRO_P2PKH_PREFIXES.has(version)) {
+    // P2PKH script: OP_DUP OP_HASH160 <20 bytes> OP_EQUALVERIFY OP_CHECKSIG
+    script = Buffer.concat([
+      Buffer.from([0x76, 0xa9, 0x14]),
+      payloadHash,
+      Buffer.from([0x88, 0xac]),
+    ]);
+  } else if (FIRO_P2SH_PREFIXES.has(version)) {
+    // P2SH script: OP_HASH160 <20 bytes> OP_EQUAL
+    script = Buffer.concat([
+      Buffer.from([0xa9, 0x14]),
+      payloadHash,
+      Buffer.from([0x87]),
+    ]);
+  } else {
+    throw new Error(`Unsupported Firo address version: ${version}`);
+  }
+
+  const scriptHash = crypto.createHash('sha256').update(script).digest();
+  return scriptHash.reverse().toString('hex');
 }
 
 function reverseHex(hex: string): string {
@@ -67,7 +105,7 @@ function reverseHex(hex: string): string {
 
 function doubleSha256(data: Buffer): Buffer {
   return crypto.createHash('sha256').update(
-    crypto.createHash('sha256').update(data).digest()
+    crypto.createHash('sha256').update(data).digest(),
   ).digest();
 }
 

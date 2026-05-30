@@ -8,7 +8,9 @@ import {
 } from '@rosen-chains/abstract-chain';
 
 import { setMockResponses, resetMock } from './mocked/electrumxSocket.mock';
-import FiroElectrumXNetwork from '../lib/firoElectrumxNetwork';
+import FiroElectrumXNetwork, {
+  addressToScripthash,
+} from '../lib/firoElectrumxNetwork';
 import * as testData from './testData';
 
 describe('FiroElectrumXNetwork', () => {
@@ -20,6 +22,32 @@ describe('FiroElectrumXNetwork', () => {
     resetMock();
     mockGetSavedTransactionById.mockReset();
     mockGetSavedTransactionById.mockReturnValue(undefined);
+  });
+
+  describe('addressToScripthash', () => {
+    it('should produce correct scripthash for P2PKH address', () => {
+      const scripthash = addressToScripthash(testData.lockAddress);
+
+      expect(scripthash).toBe(
+        '53787b5ebd3152e257d1ed402ca773aa83fca5981ed9c3b02bf9e5299dd36960',
+      );
+    });
+
+    it('should produce correct scripthash for P2SH address', () => {
+      const scripthash = addressToScripthash(
+        '2EdAinnuw3zCy8arpSKRwQYQK2MBC5VMXu9',
+      );
+
+      expect(scripthash).toBe(
+        '7914236249d96d4931978817b2fe3c9071e8b4daf4decd3087dbba955fd7f66f',
+      );
+    });
+
+    it('should throw for invalid checksum', () => {
+      expect(() =>
+        addressToScripthash('THzVvKwY5dAD6gM5z4Mz3jG9RbqhkS8h7W'),
+      ).toThrow('checksum');
+    });
   });
 
   describe('getHeight', () => {
