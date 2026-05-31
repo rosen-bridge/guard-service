@@ -1,5 +1,5 @@
-import { vi } from 'vitest';
 import { EventEmitter } from 'events';
+import { vi } from 'vitest';
 
 let mockResponses: Array<unknown> = [];
 
@@ -34,15 +34,16 @@ function createMockSocket() {
       try {
         const req = JSON.parse(line);
         if (req.method === 'server.version') {
-          setTimeout(() =>
-            socket.emit(
-              'data',
-              JSON.stringify({
-                jsonrpc: '2.0',
-                id: req.id,
-                result: ['guard-service', '1.4'],
-              }) + '\n',
-            ),
+          setTimeout(
+            () =>
+              socket.emit(
+                'data',
+                JSON.stringify({
+                  jsonrpc: '2.0',
+                  id: req.id,
+                  result: ['guard-service', '1.4'],
+                }) + '\n',
+              ),
             0,
           );
         } else {
@@ -53,15 +54,16 @@ function createMockSocket() {
               'error' in resp &&
               resp.error !== null &&
               resp.error !== undefined;
-            setTimeout(() =>
-              socket.emit(
-                'data',
-                JSON.stringify({
-                  jsonrpc: '2.0',
-                  id: req.id,
-                  [isError ? 'error' : 'result']: isError ? resp.error : resp,
-                }) + '\n',
-              ),
+            setTimeout(
+              () =>
+                socket.emit(
+                  'data',
+                  JSON.stringify({
+                    jsonrpc: '2.0',
+                    id: req.id,
+                    [isError ? 'error' : 'result']: isError ? resp.error : resp,
+                  }) + '\n',
+                ),
               0,
             );
           }

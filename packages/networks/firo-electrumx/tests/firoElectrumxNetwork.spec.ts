@@ -7,16 +7,18 @@ import {
   TransactionType,
 } from '@rosen-chains/abstract-chain';
 
-import { setMockResponses, resetMock } from './mocked/electrumxSocket.mock';
 import FiroElectrumXNetwork, {
   addressToScripthash,
 } from '../lib/firoElectrumxNetwork';
+import { setMockResponses, resetMock } from './mocked/electrumxSocket.mock';
 import * as testData from './testData';
 
 describe('FiroElectrumXNetwork', () => {
   const HOST = '127.0.0.1';
   const PORT = 50001;
   const mockGetSavedTransactionById = vi.fn().mockReturnValue(undefined);
+  const createNetwork = () =>
+    new FiroElectrumXNetwork(HOST, PORT, mockGetSavedTransactionById);
 
   beforeEach(() => {
     resetMock();
@@ -65,7 +67,7 @@ describe('FiroElectrumXNetwork', () => {
     it('should return block height successfully', async () => {
       setMockResponses([testData.blockHeightResponse]);
 
-      const network = new FiroElectrumXNetwork(HOST, PORT, mockGetSavedTransactionById);
+      const network = createNetwork();
       const result = await network.getHeight();
 
       expect(result).toEqual(testData.blockHeightResponse.height);
@@ -86,7 +88,7 @@ describe('FiroElectrumXNetwork', () => {
         throw new Error('Connection refused');
       });
 
-      const network = new FiroElectrumXNetwork(HOST, PORT, mockGetSavedTransactionById);
+      const network = createNetwork();
       await expect(network.getHeight()).rejects.toThrow(NetworkError);
     });
   });
@@ -105,7 +107,7 @@ describe('FiroElectrumXNetwork', () => {
     it('should return block tx ids successfully', async () => {
       setMockResponses([testData.blockTxIds]); // only blockchain.block.txids is called
 
-      const network = new FiroElectrumXNetwork(HOST, PORT, mockGetSavedTransactionById);
+      const network = createNetwork();
       // Pre-populate the height cache so resolveHeight returns immediately
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (network as any).hashToHeight.set(testData.blockHash, 42);
@@ -133,9 +135,12 @@ describe('FiroElectrumXNetwork', () => {
         testData.blockHeaderHex, // blockchain.block.header response
       ]);
 
-      const network = new FiroElectrumXNetwork(HOST, PORT, mockGetSavedTransactionById);
+      const network = createNetwork();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (network as any).hashToHeight.set(testData.blockHash, testData.blockInfo.height);
+      (network as any).hashToHeight.set(
+        testData.blockHash,
+        testData.blockInfo.height,
+      );
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (network as any).lastKnownHeight = testData.blockInfo.height;
 
@@ -159,7 +164,7 @@ describe('FiroElectrumXNetwork', () => {
     it('should return transaction successfully', async () => {
       setMockResponses([testData.txHex]);
 
-      const network = new FiroElectrumXNetwork(HOST, PORT, mockGetSavedTransactionById);
+      const network = createNetwork();
       const result = await network.getTransaction(
         testData.txId,
         testData.txBlockHash,
@@ -168,7 +173,9 @@ describe('FiroElectrumXNetwork', () => {
       expect(result.id).toEqual(testData.txId);
       expect(result.inputs.length).toEqual(testData.firoTx.inputs.length);
       expect(result.outputs.length).toEqual(testData.firoTx.outputs.length);
-      expect(result.outputs[0]!.value).toEqual(testData.firoTx.outputs[0]!.value);
+      expect(result.outputs[0]!.value).toEqual(
+        testData.firoTx.outputs[0]!.value,
+      );
       expect(result.outputs[0]!.scriptPubKey).toEqual(
         testData.firoTx.outputs[0]!.scriptPubKey,
       );
@@ -177,7 +184,7 @@ describe('FiroElectrumXNetwork', () => {
     it('should parse a version 3 Firo transaction with packed type', async () => {
       setMockResponses([testData.txHexV3Typed]);
 
-      const network = new FiroElectrumXNetwork(HOST, PORT, mockGetSavedTransactionById);
+      const network = createNetwork();
       const result = await network.getTransaction(
         testData.txId,
         testData.txBlockHash,
@@ -186,7 +193,9 @@ describe('FiroElectrumXNetwork', () => {
       expect(result.id).toEqual(testData.txId);
       expect(result.inputs.length).toEqual(testData.firoTx.inputs.length);
       expect(result.outputs.length).toEqual(testData.firoTx.outputs.length);
-      expect(result.outputs[0]!.value).toEqual(testData.firoTx.outputs[0]!.value);
+      expect(result.outputs[0]!.value).toEqual(
+        testData.firoTx.outputs[0]!.value,
+      );
       expect(result.outputs[1]!.scriptPubKey).toEqual(
         testData.firoTx.outputs[1]!.scriptPubKey,
       );
@@ -206,10 +215,17 @@ describe('FiroElectrumXNetwork', () => {
     it('should return true for unspent output', async () => {
       setMockResponses([
         testData.txHex,
-        [{ tx_hash: testData.txId, tx_pos: 0, height: 42, value: 119595114000 }],
+        [
+          {
+            tx_hash: testData.txId,
+            tx_pos: 0,
+            height: 42,
+            value: 119595114000,
+          },
+        ],
       ]);
 
-      const network = new FiroElectrumXNetwork(HOST, PORT, mockGetSavedTransactionById);
+      const network = createNetwork();
       const result = await network.isBoxUnspentAndValid(`${testData.txId}.0`);
 
       expect(result).toEqual(true);
@@ -230,7 +246,7 @@ describe('FiroElectrumXNetwork', () => {
         [], // empty listunspent means output is spent
       ]);
 
-      const network = new FiroElectrumXNetwork(HOST, PORT, mockGetSavedTransactionById);
+      const network = createNetwork();
       const result = await network.isBoxUnspentAndValid(`${testData.txId}.0`);
 
       expect(result).toEqual(false);
@@ -247,13 +263,13 @@ describe('FiroElectrumXNetwork', () => {
      */
     it("should return false when transaction doesn't exist", async () => {
       // Simulate error by providing no response (the mock will time out)
-      // Actually, the mock handles this by having sendRequest reject for missing response
+      // The mock handles this by rejecting missing responses.
       // Better approach: use a real error response from ElectrumX
       setMockResponses([
         { error: { message: 'No such transaction', code: -5 } },
       ]);
 
-      const network = new FiroElectrumXNetwork(HOST, PORT, mockGetSavedTransactionById);
+      const network = createNetwork();
       const result = await network.isBoxUnspentAndValid(`nonexistent.0`);
 
       expect(result).toEqual(false);
@@ -273,7 +289,7 @@ describe('FiroElectrumXNetwork', () => {
     it('should return UTXO data successfully', async () => {
       setMockResponses([testData.txHex]);
 
-      const network = new FiroElectrumXNetwork(HOST, PORT, mockGetSavedTransactionById);
+      const network = createNetwork();
       const result = await network.getUtxo(`${testData.txId}.0`);
 
       expect(result.txId).toEqual(testData.txId);
@@ -293,7 +309,7 @@ describe('FiroElectrumXNetwork', () => {
     it('should throw FailedError for invalid output index', async () => {
       setMockResponses([testData.txHex]);
 
-      const network = new FiroElectrumXNetwork(HOST, PORT, mockGetSavedTransactionById);
+      const network = createNetwork();
       await expect(network.getUtxo(`${testData.txId}.999`)).rejects.toThrow(
         FailedError,
       );
@@ -313,7 +329,7 @@ describe('FiroElectrumXNetwork', () => {
     it('should return fee ratio successfully', async () => {
       setMockResponses([testData.estimatedFee]);
 
-      const network = new FiroElectrumXNetwork(HOST, PORT, mockGetSavedTransactionById);
+      const network = createNetwork();
       const result = await network.getFeeRatio();
 
       const expectedFeeRate = Math.ceil(
@@ -334,11 +350,9 @@ describe('FiroElectrumXNetwork', () => {
      * - it should return true
      */
     it('should return true when tx is in mempool', async () => {
-      setMockResponses([
-        { hex: testData.txHex },
-      ]);
+      setMockResponses([{ hex: testData.txHex }]);
 
-      const network = new FiroElectrumXNetwork(HOST, PORT, mockGetSavedTransactionById);
+      const network = createNetwork();
       const result = await network.isTxInMempool(testData.txId);
 
       expect(result).toEqual(true);
@@ -362,7 +376,7 @@ describe('FiroElectrumXNetwork', () => {
         },
       ]);
 
-      const network = new FiroElectrumXNetwork(HOST, PORT, mockGetSavedTransactionById);
+      const network = createNetwork();
       const result = await network.isTxInMempool(testData.txId);
 
       expect(result).toEqual(false);
@@ -378,11 +392,9 @@ describe('FiroElectrumXNetwork', () => {
      * - it should return false
      */
     it('should return false when tx is not found', async () => {
-      setMockResponses([
-        { error: { message: 'not found', code: -1 } },
-      ]);
+      setMockResponses([{ error: { message: 'not found', code: -1 } }]);
 
-      const network = new FiroElectrumXNetwork(HOST, PORT, mockGetSavedTransactionById);
+      const network = createNetwork();
       const result = await network.isTxInMempool(testData.txId);
 
       expect(result).toEqual(false);
@@ -402,7 +414,7 @@ describe('FiroElectrumXNetwork', () => {
     it('should return transaction hex successfully', async () => {
       setMockResponses([testData.txHex]);
 
-      const network = new FiroElectrumXNetwork(HOST, PORT, mockGetSavedTransactionById);
+      const network = createNetwork();
       const result = await network.getTransactionHex(testData.txId);
 
       expect(result).toEqual(testData.txHex);
@@ -430,7 +442,7 @@ describe('FiroElectrumXNetwork', () => {
         }),
       };
 
-      const network = new FiroElectrumXNetwork(HOST, PORT, mockGetSavedTransactionById);
+      const network = createNetwork();
       await expect(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         network.submitTransaction(mockPsbt as any),
@@ -451,7 +463,7 @@ describe('FiroElectrumXNetwork', () => {
     it('should return address UTXOs successfully with pagination', async () => {
       setMockResponses([testData.mockAddressUtxos]);
 
-      const network = new FiroElectrumXNetwork(HOST, PORT, mockGetSavedTransactionById);
+      const network = createNetwork();
       const result = await network.getAddressBoxes(testData.lockAddress, 0, 2);
 
       expect(result).toEqual(testData.expectedAddressBoxes);
@@ -469,7 +481,7 @@ describe('FiroElectrumXNetwork', () => {
     it('should handle empty address', async () => {
       setMockResponses([[]]);
 
-      const network = new FiroElectrumXNetwork(HOST, PORT, mockGetSavedTransactionById);
+      const network = createNetwork();
       const result = await network.getAddressBoxes('empty-address', 0, 10);
 
       expect(result).toEqual([]);
@@ -495,7 +507,7 @@ describe('FiroElectrumXNetwork', () => {
         },
       ]);
 
-      const network = new FiroElectrumXNetwork(HOST, PORT, mockGetSavedTransactionById);
+      const network = createNetwork();
       const result = await network.getTxConfirmation(testData.txId);
 
       expect(result).toEqual(testData.expectedTxConfirmation);
@@ -511,11 +523,9 @@ describe('FiroElectrumXNetwork', () => {
      * - it should return -1
      */
     it('should return -1 for unconfirmed transaction', async () => {
-      setMockResponses([
-        { hex: testData.txHex },
-      ]);
+      setMockResponses([{ hex: testData.txHex }]);
 
-      const network = new FiroElectrumXNetwork(HOST, PORT, mockGetSavedTransactionById);
+      const network = createNetwork();
       const result = await network.getTxConfirmation(testData.txId);
 
       expect(result).toEqual(-1);
@@ -531,11 +541,9 @@ describe('FiroElectrumXNetwork', () => {
      * - it should return -1
      */
     it('should return -1 when transaction is not found', async () => {
-      setMockResponses([
-        { error: { message: 'not found', code: -1 } },
-      ]);
+      setMockResponses([{ error: { message: 'not found', code: -1 } }]);
 
-      const network = new FiroElectrumXNetwork(HOST, PORT, mockGetSavedTransactionById);
+      const network = createNetwork();
       const result = await network.getTxConfirmation('nonexistent-tx-id');
 
       expect(result).toEqual(-1);
@@ -561,12 +569,16 @@ describe('FiroElectrumXNetwork', () => {
         TransactionType.payment,
       );
 
-      const customNetwork = new FiroElectrumXNetwork(HOST, PORT, async (txId: string) => {
-        if (txId === testData.unsignedTxId) {
-          return firoPayment;
-        }
-        return undefined;
-      });
+      const customNetwork = new FiroElectrumXNetwork(
+        HOST,
+        PORT,
+        async (txId: string) => {
+          if (txId === testData.unsignedTxId) {
+            return firoPayment;
+          }
+          return undefined;
+        },
+      );
 
       const getTxConfirmationSignedSpy = vi.spyOn(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -588,7 +600,9 @@ describe('FiroElectrumXNetwork', () => {
         },
       ]);
 
-      const result = await customNetwork.getTxConfirmation(testData.unsignedTxId);
+      const result = await customNetwork.getTxConfirmation(
+        testData.unsignedTxId,
+      );
 
       expect(getTxConfirmationSignedSpy).toHaveBeenCalledExactlyOnceWith(
         testData.txId,
@@ -610,7 +624,7 @@ describe('FiroElectrumXNetwork', () => {
     it('should return address balance successfully', async () => {
       setMockResponses([testData.balanceResponse]);
 
-      const network = new FiroElectrumXNetwork(HOST, PORT, mockGetSavedTransactionById);
+      const network = createNetwork();
       const result = await network.getAddressAssets(testData.lockAddress);
 
       expect(result.nativeToken).toEqual(testData.expectedAddressBalance);
@@ -629,7 +643,7 @@ describe('FiroElectrumXNetwork', () => {
     it('should return 0 for empty address', async () => {
       setMockResponses([{ confirmed: 0, unconfirmed: 0 }]);
 
-      const network = new FiroElectrumXNetwork(HOST, PORT, mockGetSavedTransactionById);
+      const network = createNetwork();
       const result = await network.getAddressAssets('empty-address');
 
       expect(result.nativeToken).toEqual(0n);
@@ -648,7 +662,7 @@ describe('FiroElectrumXNetwork', () => {
      * - it should return undefined
      */
     it('should return undefined (no getspentinfo in ElectrumX)', async () => {
-      const network = new FiroElectrumXNetwork(HOST, PORT, mockGetSavedTransactionById);
+      const network = createNetwork();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await (network as any).getSpentTransactionByInputId(
         0,
@@ -670,7 +684,7 @@ describe('FiroElectrumXNetwork', () => {
      * - it should return the same hash
      */
     it('should return the same hash when no saved transaction exists', async () => {
-      const network = new FiroElectrumXNetwork(HOST, PORT, mockGetSavedTransactionById);
+      const network = createNetwork();
       const result = await network.getActualTxId(testData.txId);
 
       expect(result).toEqual(testData.txId);
@@ -695,12 +709,16 @@ describe('FiroElectrumXNetwork', () => {
         TransactionType.payment,
       );
 
-      const customNetwork = new FiroElectrumXNetwork(HOST, PORT, async (txId: string) => {
-        if (txId === testData.unsignedTxId) {
-          return firoPayment;
-        }
-        return undefined;
-      });
+      const customNetwork = new FiroElectrumXNetwork(
+        HOST,
+        PORT,
+        async (txId: string) => {
+          if (txId === testData.unsignedTxId) {
+            return firoPayment;
+          }
+          return undefined;
+        },
+      );
 
       const extractDirectSpy = vi
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -731,12 +749,16 @@ describe('FiroElectrumXNetwork', () => {
         TransactionType.payment,
       );
 
-      const customNetwork = new FiroElectrumXNetwork(HOST, PORT, async (txId: string) => {
-        if (txId === testData.unsignedTxId) {
-          return firoPayment;
-        }
-        return undefined;
-      });
+      const customNetwork = new FiroElectrumXNetwork(
+        HOST,
+        PORT,
+        async (txId: string) => {
+          if (txId === testData.unsignedTxId) {
+            return firoPayment;
+          }
+          return undefined;
+        },
+      );
 
       vi.spyOn(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
