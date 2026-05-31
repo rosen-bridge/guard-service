@@ -11,7 +11,7 @@ export function resetMock() {
   mockResponses = [];
 }
 
-function createMockSocket() {
+export function createMockSocket() {
   const socket = new EventEmitter() as EventEmitter & {
     written: string[];
     destroyed: boolean;
@@ -87,14 +87,3 @@ function createMockSocket() {
 
   return socket;
 }
-
-// Mock the 'net' module
-vi.mock('net', () => {
-  return {
-    createConnection: vi.fn(() => {
-      const socket = createMockSocket();
-      setTimeout(() => socket.emit('connect'), 0);
-      return socket;
-    }),
-  };
-});

@@ -1,6 +1,6 @@
 import { Psbt } from 'bitcoinjs-lib';
 import * as crypto from 'crypto';
-import * as net from 'net';
+import * as tls from 'tls';
 
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 import {
@@ -133,7 +133,7 @@ class FiroElectrumXNetwork extends AbstractFiroNetwork {
     txId: string,
   ) => Promise<PaymentTransaction | undefined>;
 
-  private socket: net.Socket | null = null;
+  private socket: tls.TLSSocket | null = null;
   private responseBuffer = '';
   private pendingRequests: Map<
     number,
@@ -165,7 +165,11 @@ class FiroElectrumXNetwork extends AbstractFiroNetwork {
 
   private doConnect = (): Promise<void> => {
     return new Promise((resolve, reject) => {
-      const socket = net.createConnection(this.port, this.host);
+      const socket = tls.connect({
+        host: this.host,
+        port: this.port,
+        servername: this.host,
+      });
       socket.setEncoding('utf-8');
       socket.setNoDelay(true);
       socket.setTimeout(this.timeout);
@@ -204,7 +208,7 @@ class FiroElectrumXNetwork extends AbstractFiroNetwork {
         });
       });
 
-      socket.once('connect', () => {
+      socket.once('secureConnect', () => {
         // Send server.version handshake
         socket.write(
           JSON.stringify({
@@ -234,7 +238,7 @@ class FiroElectrumXNetwork extends AbstractFiroNetwork {
     });
   };
 
-  private setupSocketListeners = (socket: net.Socket) => {
+  private setupSocketListeners = (socket: tls.TLSSocket) => {
     socket.on('data', (data: string) => {
       this.responseBuffer += data;
       const lines = this.responseBuffer.split('\n');
@@ -268,21 +272,21 @@ class FiroElectrumXNetwork extends AbstractFiroNetwork {
       this.socket = null;
       this.serverVersionSent = false;
       this.rejectAllPending(
-        new NetworkError(`TCP socket error: ${err.message}`),
+        new NetworkError(`TLS socket error: ${err.message}`),
       );
     });
 
     socket.on('close', () => {
       this.socket = null;
       this.serverVersionSent = false;
-      this.rejectAllPending(new NetworkError('TCP connection closed'));
+      this.rejectAllPending(new NetworkError('TLS connection closed'));
     });
 
     socket.on('timeout', () => {
       socket.destroy();
       this.socket = null;
       this.serverVersionSent = false;
-      this.rejectAllPending(new NetworkError('TCP connection timeout'));
+      this.rejectAllPending(new NetworkError('TLS connection timeout'));
     });
   };
 

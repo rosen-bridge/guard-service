@@ -39,7 +39,7 @@ bitcoin:
 firo:
   electrumx:
     host: '127.0.0.1'
-    port: 50001
+    port: 50002
     timeout: 30
   bankPublicKey: 'bcb07faa6c0f19e2f2587aa9ef6f43a68fc0135321216a71dc87c8527af4ca6a'
   txFeeSlippage: 20

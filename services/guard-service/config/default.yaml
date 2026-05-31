@@ -71,7 +71,7 @@ bitcoinRunes:
 firo:
   electrumx:
     host: '127.0.0.1'
-    port: 50001
+    port: 50002
     timeout: 30
   bankPublicKey: '' # corresponding public key of lock address
   txFeeSlippage: 20 # allowed slippage percentage for tx fees

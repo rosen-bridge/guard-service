@@ -13,7 +13,7 @@ class GuardsFiroConfigs {
       : '127.0.0.1',
     port: config.has('firo.electrumx.port')
       ? config.get<number>('firo.electrumx.port')
-      : 50001,
+      : 50002,
     timeout: config.has('firo.electrumx.timeout')
       ? config.get<number>('firo.electrumx.timeout')
       : 30,

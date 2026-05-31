@@ -9,7 +9,7 @@
 
 ## Introduction
 
-A package to be used as network api provider for @rosen-chains/firo package, using ElectrumX TCP JSON-RPC protocol.
+A package to be used as network api provider for @rosen-chains/firo package, using ElectrumX TLS JSON-RPC protocol.
 
 ## Installation
 
