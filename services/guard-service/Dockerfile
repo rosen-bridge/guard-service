@@ -26,7 +26,7 @@ COPY --parents tsconfig*.json packages ./
 RUN npm run build
 
 RUN mkdir -p /tmp/artifacts && \
-    find /app/packages /app/services -type d -name dist -not -path '*/node_modules/*' \
+    find /app/packages -type d -name dist -not -path '*/node_modules/*' \
     -exec cp -a --parents {} /tmp/artifacts \;
 
 FROM node:22.18-bookworm-slim AS prod
