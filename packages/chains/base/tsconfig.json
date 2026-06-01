@@ -1,0 +1,12 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist"
+  },
+  "include": ["tests", "lib"],
+  "references": [
+    {
+      "path": "../evm"
+    }
+  ]
+}
