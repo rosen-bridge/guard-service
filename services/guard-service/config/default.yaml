@@ -10,6 +10,11 @@ api:
   isArbitraryOrderRequestActive: false
   allowedOrigins: [] # List of allowed origins for CORS headers
   maxRequestsPerMinute: 100_000
+  rateLimits:
+    tokenValidation: 10
+    arbitrary: 10
+    reprocess: 10
+    signTx: 10
 publicStatus:
   baseUrl: ''
 binance:

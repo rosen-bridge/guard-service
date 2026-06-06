@@ -1,7 +1,10 @@
+import rateLimit from '@fastify/rate-limit';
+
 import { FastifyWithZod, makeFastify } from '@rosen-bridge/fastify-enhanced';
 import { ERGO_CHAIN } from '@rosen-chains/ergo';
 
 import { arbitraryOrderRoute } from '../../src/api/arbitrary';
+import Configs from '../../src/configs/configs';
 import { OrderStatus } from '../../src/utils/constants';
 import {
   arrangedOrderJson,
@@ -17,6 +20,10 @@ describe('arbitrary', () => {
 
     beforeEach(async () => {
       mockedServer = await makeFastify();
+      await mockedServer.register(rateLimit, {
+        max: Configs.apiMaxRequestsPerMinute,
+        timeWindow: '1 minute',
+      });
       mockedServer.register(arbitraryOrderRoute);
       await DatabaseActionMock.clearTables();
     });
@@ -293,6 +300,57 @@ describe('arbitrary', () => {
       });
       // check the result
       expect(result.statusCode).toEqual(403);
+    });
+
+    /**
+     * @target fastifyServer[POST /order] should respond with error when rate limit is triggered
+     * @dependencies
+     * @scenario
+     * - send multiple requests to the server until rate limit is triggered
+     * - check the response after each request
+     * @expected
+     * - it should respond with 429 when rate limit is triggered
+     */
+    it('should respond with error when rate limit is triggered', async () => {
+      // act and assert
+      for (let i = 1; i <= Configs.apiArbitraryRateLimit; i += 1) {
+        const result = await mockedServer.inject({
+          method: 'POST',
+          url: '/order',
+          body: {
+            id: '85b5cb7f4e81e1db4e95803b6144c64983f76e776ff75fd04c0ebfc95ae46e4d',
+            chain: ERGO_CHAIN,
+            orderJson: orderJson,
+          },
+          headers: {
+            'Api-Key': 'hello',
+          },
+        });
+
+        expect(result.statusCode).not.toEqual(429);
+        expect(result.headers['x-ratelimit-remaining']).toEqual(
+          `${Configs.apiArbitraryRateLimit - i}`,
+        );
+        expect(result.headers['x-ratelimit-limit']).toEqual(
+          `${Configs.apiArbitraryRateLimit}`,
+        );
+      }
+
+      const result = await mockedServer.inject({
+        method: 'POST',
+        url: '/order',
+        body: {
+          id: '85b5cb7f4e81e1db4e95803b6144c64983f76e776ff75fd04c0ebfc95ae46e4d',
+          chain: ERGO_CHAIN,
+          orderJson: orderJson,
+        },
+        headers: {
+          'Api-Key': 'hello',
+        },
+      });
+
+      expect(result.statusCode).toEqual(429);
+      expect(result.headers['x-ratelimit-remaining']).toEqual('0');
     });
   });
 });

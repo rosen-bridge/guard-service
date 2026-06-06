@@ -1,7 +1,10 @@
+import rateLimit from '@fastify/rate-limit';
+
 import { FastifyWithZod, makeFastify } from '@rosen-bridge/fastify-enhanced';
 import { NotFoundError } from '@rosen-chains/abstract-chain';
 
 import { eventReprocessRoute } from '../../src/api/reprocess';
+import Configs from '../../src/configs/configs';
 import EventReprocessMock from '../reprocess/mocked/eventReprocess.mock';
 
 describe('reprocess', () => {
@@ -10,6 +13,10 @@ describe('reprocess', () => {
 
     beforeEach(async () => {
       mockedServer = await makeFastify();
+      await mockedServer.register(rateLimit, {
+        max: Configs.apiMaxRequestsPerMinute,
+        timeWindow: '1 minute',
+      });
       mockedServer.register(eventReprocessRoute);
       EventReprocessMock.resetMock();
       EventReprocessMock.mock();
@@ -119,6 +126,57 @@ describe('reprocess', () => {
 
       // check the result
       expect(result.statusCode).toEqual(400);
+    });
+
+    /**
+     * @target fastifyServer[POST /reprocess] should respond with error when rate limit is triggered
+     * @dependencies
+     * @scenario
+     * - send multiple requests to the server until rate limit is triggered
+     * - check the response after each request
+     * @expected
+     * - it should respond with 429 when rate limit is triggered
+     */
+    it('should respond with error when rate limit is triggered', async () => {
+      // act and assert
+      for (let i = 1; i <= Configs.apiReprocessRateLimit; i += 1) {
+        const result = await mockedServer.inject({
+          method: 'POST',
+          url: '/reprocess',
+          body: {
+            eventId:
+              '85b5cb7f4e81e1db4e95803b6144c64983f76e776ff75fd04c0ebfc95ae46e4d',
+            peerIds: ['peer0', 'peer1'],
+          },
+          headers: {
+            'Api-Key': 'hello',
+          },
+        });
+
+        expect(result.statusCode).not.toEqual(429);
+        expect(result.headers['x-ratelimit-remaining']).toEqual(
+          `${Configs.apiReprocessRateLimit - i}`,
+        );
+        expect(result.headers['x-ratelimit-limit']).toEqual(
+          `${Configs.apiReprocessRateLimit}`,
+        );
+      }
+
+      const result = await mockedServer.inject({
+        method: 'POST',
+        url: '/reprocess',
+        body: {
+          eventId:
+            '85b5cb7f4e81e1db4e95803b6144c64983f76e776ff75fd04c0ebfc95ae46e4d',
+          peerIds: ['peer0', 'peer1'],
+        },
+        headers: {
+          'Api-Key': 'hello',
+        },
+      });
+
+      expect(result.statusCode).toEqual(429);
+      expect(result.headers['x-ratelimit-remaining']).toEqual('0');
     });
   });
 });

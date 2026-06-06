@@ -9,6 +9,7 @@ import {
 } from '@rosen-bridge/fastify-enhanced';
 
 import { arbitraryOrderRoute } from '../api/arbitrary';
+import { authRoutes } from '../api/auth';
 import { balanceRoutes } from '../api/balance';
 import { eventRoutes } from '../api/events';
 import { generalInfoRoute } from '../api/generalInfo';
@@ -72,6 +73,7 @@ const initApiServer = async () => {
     timeWindow: '1 minute',
   });
 
+  await apiServer.register(authRoutes);
   await apiServer.register(p2pRoutes);
   await apiServer.register(tssRoute);
   await apiServer.register(generalInfoRoute);

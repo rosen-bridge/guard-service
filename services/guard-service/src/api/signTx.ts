@@ -19,6 +19,11 @@ const signTxRoute = (server: FastifyWithZod) => {
   server.post(
     '/sign',
     {
+      config: {
+        rateLimit: {
+          max: Configs.apiSignTxRateLimit,
+        },
+      },
       schema: {
         body: SignQuerySchema,
         response: {
