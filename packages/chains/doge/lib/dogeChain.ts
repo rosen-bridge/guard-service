@@ -65,13 +65,15 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
     this.extractor = new DogeRosenExtractor(
       configs.addresses.lock,
       tokens,
-      logger,
+      logger?.child(`dogeRosenExtractor`),
     );
     this.signMediator = signMediator;
     this.lockScript = address
       .toOutputScript(this.configs.addresses.lock, DOGE_NETWORK)
       .toString('hex');
-    this.boxSelection = new BitcoinBoxSelection();
+    this.boxSelection = new BitcoinBoxSelection(
+      logger?.child(`bitcoinBoxSelection`),
+    );
   }
 
   /**
