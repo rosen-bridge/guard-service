@@ -60,6 +60,15 @@ const eventsHistoryRoute = (server: FastifyWithZod) => {
           isNativeToken: token.isNativeToken,
         };
 
+        let status = '';
+        if (event.status) {
+          status = event.reason ? 'multiple-flows' : event.status;
+        } else if (event.reason) {
+          status = 'rejected';
+        } else {
+          status = 'waiting-for-confirmation';
+        }
+
         return {
           eventId: event.eventId,
           fromChain: event.fromChain,
@@ -72,7 +81,7 @@ const eventsHistoryRoute = (server: FastifyWithZod) => {
           sourceTxId: event.sourceTxId,
           paymentTxId: event.paymentTxId ?? '',
           rewardTxId: event.spendTxId ?? '',
-          status: event.result ?? event.status ?? 'not confirmed yet',
+          status,
         };
       });
 
@@ -136,28 +145,27 @@ const ongoingEventsRoute = (server: FastifyWithZod) => {
           isNativeToken: token.isNativeToken,
         };
 
-        let status = '';
-        switch (event.status) {
-          case EventStatus.inPayment: {
-            const paymentTxStatus = txs.find(
+        let status = event.status;
+        if (status) {
+          if (event.reason) {
+            status = 'multiple-flows';
+          } else if (
+            [EventStatus.inPayment, EventStatus.inReward].includes(status)
+          ) {
+            const txStatus = txs.find(
               (tx) =>
                 tx.event?.id === event.eventId &&
-                tx.type === TransactionType.payment,
+                tx.type ===
+                  (status === EventStatus.inPayment
+                    ? TransactionType.payment
+                    : TransactionType.reward),
             )!.status;
-            status = `${EventStatus.inPayment} (${paymentTxStatus})`;
-            break;
+            status = `${status} (${txStatus})`;
           }
-          case EventStatus.inReward: {
-            const rewardTxStatus = txs.find(
-              (tx) =>
-                tx.event?.id === event.eventId &&
-                tx.type === TransactionType.reward,
-            )!.status;
-            status = `${EventStatus.inReward} (${rewardTxStatus})`;
-            break;
-          }
-          default:
-            status = event.status;
+        } else if (event.reason) {
+          status = 'rejected';
+        } else {
+          status = 'waiting-for-confirmation';
         }
 
         return {
@@ -171,7 +179,7 @@ const ongoingEventsRoute = (server: FastifyWithZod) => {
           networkFee: event.networkFee,
           sourceChainToken: tokenData,
           sourceTxId: event.sourceTxId,
-          status: status,
+          status,
         };
       });
 
