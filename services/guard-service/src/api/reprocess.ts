@@ -19,7 +19,7 @@ const reprocessRoute = (server: FastifyWithZod) => {
     {
       config: {
         rateLimit: {
-          max: Configs.apiReprocessRateLimit,
+          max: Configs.apiMaxRequestsPerMinutePostRoutes,
         },
       },
       schema: {

@@ -21,7 +21,7 @@ const signTxRoute = (server: FastifyWithZod) => {
     {
       config: {
         rateLimit: {
-          max: Configs.apiSignTxRateLimit,
+          max: Configs.apiMaxRequestsPerMinutePostRoutes,
         },
       },
       schema: {

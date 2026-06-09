@@ -132,15 +132,30 @@ describe('reprocess', () => {
      * @target fastifyServer[POST /reprocess] should respond with error when rate limit is triggered
      * @dependencies
      * @scenario
-     * - send multiple requests to the server until rate limit is triggered
-     * - check the response after each request
+     * - in the test config set rate limit of this route to 2
+     * - send 3 requests to the server
+     * - check the responses
      * @expected
-     * - it should respond with 429 when rate limit is triggered
+     * - all 3 responses should contain x-ratelimit-limit header with the value of 2
+     * - for the first request
+     *   - response status should not be 429
+     *   - response header x-ratelimit-remaining should be 1
+     * - for the second request
+     *   - response status should not be 429
+     *   - response header x-ratelimit-remaining should be 0
+     * - for the third request
+     *   - response status should be 429
+     *   - response header x-ratelimit-remaining should be 0
      */
     it('should respond with error when rate limit is triggered', async () => {
-      // act and assert
-      for (let i = 1; i <= Configs.apiReprocessRateLimit; i += 1) {
-        const result = await mockedServer.inject({
+      // act
+      const responses = [];
+      for (
+        let i = 1;
+        i <= Configs.apiMaxRequestsPerMinutePostRoutes + 1;
+        i += 1
+      ) {
+        const response = await mockedServer.inject({
           method: 'POST',
           url: '/reprocess',
           body: {
@@ -153,30 +168,21 @@ describe('reprocess', () => {
           },
         });
 
-        expect(result.statusCode).not.toEqual(429);
-        expect(result.headers['x-ratelimit-remaining']).toEqual(
-          `${Configs.apiReprocessRateLimit - i}`,
-        );
-        expect(result.headers['x-ratelimit-limit']).toEqual(
-          `${Configs.apiReprocessRateLimit}`,
-        );
+        responses.push(response);
       }
 
-      const result = await mockedServer.inject({
-        method: 'POST',
-        url: '/reprocess',
-        body: {
-          eventId:
-            '85b5cb7f4e81e1db4e95803b6144c64983f76e776ff75fd04c0ebfc95ae46e4d',
-          peerIds: ['peer0', 'peer1'],
-        },
-        headers: {
-          'Api-Key': 'hello',
-        },
-      });
+      // assert
+      expect(responses[0].statusCode).not.toEqual(429);
+      expect(responses[0].headers['x-ratelimit-remaining']).toEqual('1');
+      expect(responses[0].headers['x-ratelimit-limit']).toEqual('2');
 
-      expect(result.statusCode).toEqual(429);
-      expect(result.headers['x-ratelimit-remaining']).toEqual('0');
+      expect(responses[1].statusCode).not.toEqual(429);
+      expect(responses[1].headers['x-ratelimit-remaining']).toEqual('0');
+      expect(responses[1].headers['x-ratelimit-limit']).toEqual('2');
+
+      expect(responses[2].statusCode).toEqual(429);
+      expect(responses[2].headers['x-ratelimit-remaining']).toEqual('0');
+      expect(responses[2].headers['x-ratelimit-limit']).toEqual('2');
     });
   });
 });

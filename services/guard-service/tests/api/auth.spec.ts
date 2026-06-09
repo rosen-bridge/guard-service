@@ -6,7 +6,7 @@ import { authRoutes } from '../../src/api/auth';
 import Configs from '../../src/configs/configs';
 
 describe('auth', () => {
-  describe('GET /auth', () => {
+  describe('POST /auth', () => {
     let mockedServer: FastifyWithZod;
 
     beforeEach(async () => {
@@ -23,7 +23,7 @@ describe('auth', () => {
     });
 
     /**
-     * @target fastifyServer[GET /auth] should respond with success message when api key is correct
+     * @target fastifyServer[POST /auth] should respond with success message when api key is correct
      * @dependencies
      * @scenario
      * - send a request to the server
@@ -34,7 +34,7 @@ describe('auth', () => {
     it('should respond with success message when api key is correct', async () => {
       // act
       const result = await mockedServer.inject({
-        method: 'GET',
+        method: 'POST',
         url: '/auth',
         headers: {
           'Api-Key': 'hello',
@@ -47,7 +47,7 @@ describe('auth', () => {
     });
 
     /**
-     * @target fastifyServer[GET /auth] should respond with error when api key is incorrect
+     * @target fastifyServer[POST /auth] should respond with error when api key is incorrect
      * @dependencies
      * @scenario
      * - send a request to the server
@@ -58,7 +58,7 @@ describe('auth', () => {
     it('should respond with error when api key is incorrect', async () => {
       // act
       const result = await mockedServer.inject({
-        method: 'GET',
+        method: 'POST',
         url: '/auth',
         headers: {
           'Api-Key': 'hello-wrong',
@@ -73,7 +73,7 @@ describe('auth', () => {
     });
 
     /**
-     * @target fastifyServer[GET /auth] should respond with error when api key is missing
+     * @target fastifyServer[POST /auth] should respond with error when api key is missing
      * @dependencies
      * @scenario
      * - send a request to the server
@@ -84,7 +84,7 @@ describe('auth', () => {
     it('should respond with error when api key is missing', async () => {
       // act
       const result = await mockedServer.inject({
-        method: 'GET',
+        method: 'POST',
         url: '/auth',
       });
 
@@ -96,44 +96,55 @@ describe('auth', () => {
     });
 
     /**
-     * @target fastifyServer[GET /auth] should respond with error when rate limit is triggered
+     * @target fastifyServer[POST /auth] should respond with error when rate limit is triggered
      * @dependencies
      * @scenario
-     * - send multiple requests to the server until rate limit is triggered
-     * - check the response after each request
+     * - in the test config set rate limit of this route to 2
+     * - send 3 requests to the server
+     * - check the responses
      * @expected
-     * - it should respond with 429 when rate limit is triggered
+     * - all 3 responses should contain x-ratelimit-limit header with the value of 2
+     * - for the first request
+     *   - response status should not be 429
+     *   - response header x-ratelimit-remaining should be 1
+     * - for the second request
+     *   - response status should not be 429
+     *   - response header x-ratelimit-remaining should be 0
+     * - for the third request
+     *   - response status should be 429
+     *   - response header x-ratelimit-remaining should be 0
      */
     it('should respond with error when rate limit is triggered', async () => {
-      // act and assert
-      for (let i = 1; i <= Configs.apiTokeValidationRateLimit; i += 1) {
-        const result = await mockedServer.inject({
-          method: 'GET',
+      // act
+      const responses = [];
+      for (
+        let i = 1;
+        i <= Configs.apiMaxRequestsPerMinutePostRoutes + 1;
+        i += 1
+      ) {
+        const response = await mockedServer.inject({
+          method: 'POST',
           url: '/auth',
           headers: {
             'Api-Key': 'hello',
           },
         });
 
-        expect(result.statusCode).not.toEqual(429);
-        expect(result.headers['x-ratelimit-remaining']).toEqual(
-          `${Configs.apiTokeValidationRateLimit - i}`,
-        );
-        expect(result.headers['x-ratelimit-limit']).toEqual(
-          `${Configs.apiTokeValidationRateLimit}`,
-        );
+        responses.push(response);
       }
 
-      const result = await mockedServer.inject({
-        method: 'GET',
-        url: '/auth',
-        headers: {
-          'Api-Key': 'hello',
-        },
-      });
+      // assert
+      expect(responses[0].statusCode).not.toEqual(429);
+      expect(responses[0].headers['x-ratelimit-remaining']).toEqual('1');
+      expect(responses[0].headers['x-ratelimit-limit']).toEqual('2');
 
-      expect(result.statusCode).toEqual(429);
-      expect(result.headers['x-ratelimit-remaining']).toEqual('0');
+      expect(responses[1].statusCode).not.toEqual(429);
+      expect(responses[1].headers['x-ratelimit-remaining']).toEqual('0');
+      expect(responses[1].headers['x-ratelimit-limit']).toEqual('2');
+
+      expect(responses[2].statusCode).toEqual(429);
+      expect(responses[2].headers['x-ratelimit-remaining']).toEqual('0');
+      expect(responses[2].headers['x-ratelimit-limit']).toEqual('2');
     });
   });
 });

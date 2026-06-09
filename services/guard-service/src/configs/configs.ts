@@ -95,12 +95,10 @@ class Configs {
     false,
   );
 
-  static apiTokeValidationRateLimit = config.get<number>(
-    'api.rateLimits.tokenValidation',
+  static apiMaxRequestsPerMinutePostRoutes = getConfigIntKeyOrDefault(
+    'api.maxRequestsPerMinutePostRoutes',
+    10,
   );
-  static apiArbitraryRateLimit = config.get<number>('api.rateLimits.arbitrary');
-  static apiReprocessRateLimit = config.get<number>('api.rateLimits.reprocess');
-  static apiSignTxRateLimit = config.get<number>('api.rateLimits.signTx');
 
   // config of API's route
   static MAX_LENGTH_CHANNEL_SIZE = 200;

@@ -21,7 +21,7 @@ const orderRoute = (server: FastifyWithZod) => {
     {
       config: {
         rateLimit: {
-          max: Configs.apiArbitraryRateLimit,
+          max: Configs.apiMaxRequestsPerMinutePostRoutes,
         },
       },
       schema: {

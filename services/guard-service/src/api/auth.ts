@@ -9,12 +9,12 @@ import { MessageResponseSchema } from './schemas';
  * @param server
  */
 const tokenValidationRoute = (server: FastifyWithZod) => {
-  server.get(
+  server.post(
     '/auth',
     {
       config: {
         rateLimit: {
-          max: Configs.apiTokeValidationRateLimit,
+          max: Configs.apiMaxRequestsPerMinutePostRoutes,
         },
       },
       schema: {
