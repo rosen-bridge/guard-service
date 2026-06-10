@@ -75,6 +75,7 @@ describe('PublicStatusHandler', () => {
       // assert
       expect(submitRequestSpy).toHaveBeenCalledExactlyOnceWith({
         eventId,
+        triggerTxId: event.eventData.txId,
         status: event.status,
         tx: {
           txId: tx.txId,
@@ -155,6 +156,7 @@ describe('PublicStatusHandler', () => {
       // assert
       expect(submitRequestSpy).toHaveBeenCalledExactlyOnceWith({
         eventId,
+        triggerTxId: event.eventData.txId,
         status: event.status,
         tx: {
           txId: tx2.txId,
@@ -235,6 +237,7 @@ describe('PublicStatusHandler', () => {
       // assert
       expect(submitRequestSpy).toHaveBeenCalledExactlyOnceWith({
         eventId,
+        triggerTxId: event.eventData.txId,
         status: event.status,
         tx: {
           txId: tx2.txId,
@@ -251,9 +254,9 @@ describe('PublicStatusHandler', () => {
      * - Database
      * @scenario
      * - define a mock PublicStatusHandler with a mock dataSource
-     * - define a mock eventId
+     * - insert a mock event with "paymentWaiting" status in database
      * - stub PublicStatusHandler.submitRequest (processor.jobFn) to resolve
-     * - call PublicStatusHandler.updatePublicEventStatus with status that is not "inPayment" or "inReward"
+     * - call PublicStatusHandler.updatePublicEventStatus with "pendingPayment" status
      * @expected
      * - PublicStatusHandler.submitRequest should have been called once without a transaction property
      */
@@ -263,7 +266,19 @@ describe('PublicStatusHandler', () => {
         DatabaseActionMock.testDataSource,
       );
 
-      const eventId = TestUtils.generateRandomId();
+      const mockedEvent = EventTestData.mockEventTrigger().event;
+      const eventId = EventSerializer.getId(mockedEvent);
+      await DatabaseActionMock.insertEventRecord(
+        mockedEvent,
+        EventStatus.paymentWaiting,
+      );
+      const event =
+        await DatabaseActionMock.testDatabase.ConfirmedEventRepository.findOneOrFail(
+          {
+            relations: ['eventData'],
+            where: { id: eventId },
+          },
+        );
 
       const submitRequestSpy = vi
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -277,6 +292,7 @@ describe('PublicStatusHandler', () => {
       // assert
       expect(submitRequestSpy).toHaveBeenCalledExactlyOnceWith({
         eventId,
+        triggerTxId: event.eventData.txId,
         status,
         tx: undefined,
       });
@@ -344,6 +360,7 @@ describe('PublicStatusHandler', () => {
       // assert
       expect(submitRequestSpy).toHaveBeenCalledExactlyOnceWith({
         eventId,
+        triggerTxId: event.eventData.txId,
         status: event.status,
         tx: {
           txId: tx.txId,
@@ -375,6 +392,7 @@ describe('PublicStatusHandler', () => {
 
       const dto: UpdateStatusDTO = {
         eventId: TestUtils.generateRandomId(),
+        triggerTxId: TestUtils.generateRandomId(),
         status: EventStatus.inPayment,
       };
 
@@ -382,7 +400,7 @@ describe('PublicStatusHandler', () => {
       const result = instance.callDTOToSignMessage(dto, 0);
 
       // assert
-      expect(result).toBe(`${dto.eventId}${dto.status}0`);
+      expect(result).toBe(`${dto.triggerTxId}${dto.eventId}${dto.status}0`);
     });
 
     /**
@@ -404,6 +422,7 @@ describe('PublicStatusHandler', () => {
 
       const dto: UpdateStatusDTO = {
         eventId: TestUtils.generateRandomId(),
+        triggerTxId: TestUtils.generateRandomId(),
         status: EventStatus.inPayment,
         tx: {
           txId: 'txId',
@@ -418,7 +437,7 @@ describe('PublicStatusHandler', () => {
 
       // assert
       expect(result).toBe(
-        `${dto.eventId}${dto.status}${dto.tx!.txId}${dto.tx!.chain}${
+        `${dto.triggerTxId}${dto.eventId}${dto.status}${dto.tx!.txId}${dto.tx!.chain}${
           dto.tx!.txType
         }${dto.tx!.txStatus}0`,
       );
