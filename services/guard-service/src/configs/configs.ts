@@ -95,6 +95,11 @@ class Configs {
     false,
   );
 
+  static apiMaxRequestsPerMinutePostRoutes = getConfigIntKeyOrDefault(
+    'api.maxRequestsPerMinutePostRoutes',
+    10,
+  );
+
   // config of API's route
   static MAX_LENGTH_CHANNEL_SIZE = 200;
 

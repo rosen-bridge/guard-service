@@ -1,14 +1,12 @@
 import rateLimit from '@fastify/rate-limit';
 
 import { FastifyWithZod, makeFastify } from '@rosen-bridge/fastify-enhanced';
-import { NotFoundError } from '@rosen-chains/abstract-chain';
 
-import { eventReprocessRoute } from '../../src/api/reprocess';
+import { authRoutes } from '../../src/api/auth';
 import Configs from '../../src/configs/configs';
-import EventReprocessMock from '../reprocess/mocked/eventReprocess.mock';
 
-describe('reprocess', () => {
-  describe('POST /reprocess', () => {
+describe('auth', () => {
+  describe('POST /auth', () => {
     let mockedServer: FastifyWithZod;
 
     beforeEach(async () => {
@@ -17,9 +15,7 @@ describe('reprocess', () => {
         max: Configs.apiMaxRequestsPerMinute,
         timeWindow: '1 minute',
       });
-      mockedServer.register(eventReprocessRoute);
-      EventReprocessMock.resetMock();
-      EventReprocessMock.mock();
+      mockedServer.register(authRoutes);
     });
 
     afterEach(() => {
@@ -27,109 +23,80 @@ describe('reprocess', () => {
     });
 
     /**
-     * @target fastifyServer[POST /reprocess] should call sendReprocessRequest successfully
+     * @target fastifyServer[POST /auth] should respond with success message when api key is correct
      * @dependencies
-     * - EventReprocess
      * @scenario
-     * - mock successful sendReprocessRequest
      * - send a request to the server
      * - check the result
      * @expected
      * - it should return status code 200
      */
-    it('should call sendReprocessRequest successfully', async () => {
-      // mock successful sendReprocessRequest
-      EventReprocessMock.mockSendReprocessRequest(false);
-
-      // send a request to the server
+    it('should respond with success message when api key is correct', async () => {
+      // act
       const result = await mockedServer.inject({
         method: 'POST',
-        url: '/reprocess',
-        body: {
-          eventId:
-            '85b5cb7f4e81e1db4e95803b6144c64983f76e776ff75fd04c0ebfc95ae46e4d',
-          peerIds: ['peer0', 'peer1'],
-        },
+        url: '/auth',
         headers: {
           'Api-Key': 'hello',
         },
       });
 
-      // check the result
+      // assert
       expect(result.statusCode).toEqual(200);
+      expect(result.json().message).toEqual('ok');
     });
 
     /**
-     * @target fastifyServer[POST /reprocess] should return 404 when event is not found
+     * @target fastifyServer[POST /auth] should respond with error when api key is incorrect
      * @dependencies
-     * - EventReprocess
      * @scenario
-     * - mock sendReprocessRequest to throw NotFoundError
      * - send a request to the server
      * - check the result
      * @expected
-     * - it should return status code 404
+     * - it should return status code 403
      */
-    it('should return 404 when event is not found', async () => {
-      // mock sendReprocessRequest to throw NotFoundError
-      EventReprocessMock.mockSendReprocessRequest(
-        true,
-        new NotFoundError(`A not found Error for test`),
+    it('should respond with error when api key is incorrect', async () => {
+      // act
+      const result = await mockedServer.inject({
+        method: 'POST',
+        url: '/auth',
+        headers: {
+          'Api-Key': 'hello-wrong',
+        },
+      });
+
+      // assert
+      expect(result.statusCode).toEqual(403);
+      expect(result.json().message).toEqual(
+        "Api-Key doesn't exist or it's wrong",
       );
-
-      // send a request to the server
-      const result = await mockedServer.inject({
-        method: 'POST',
-        url: '/reprocess',
-        body: {
-          eventId:
-            '85b5cb7f4e81e1db4e95803b6144c64983f76e776ff75fd04c0ebfc95ae46e4d',
-          peerIds: ['peer0', 'peer1'],
-        },
-        headers: {
-          'Api-Key': 'hello',
-        },
-      });
-
-      // check the result
-      expect(result.statusCode).toEqual(404);
     });
 
     /**
-     * @target fastifyServer[POST /reprocess] should return 400 when an error occurred while sending requests
+     * @target fastifyServer[POST /auth] should respond with error when api key is missing
      * @dependencies
-     * - EventReprocess
      * @scenario
-     * - mock sendReprocessRequest to throw NotFoundError
      * - send a request to the server
      * - check the result
      * @expected
-     * - it should return status code 400
+     * - it should return status code 403
      */
-    it('should return 400 when an error occurred while sending requests', async () => {
-      // mock sendReprocessRequest to throw NotFoundError
-      EventReprocessMock.mockSendReprocessRequest(true);
-
-      // send a request to the server
+    it('should respond with error when api key is missing', async () => {
+      // act
       const result = await mockedServer.inject({
         method: 'POST',
-        url: '/reprocess',
-        body: {
-          eventId:
-            '85b5cb7f4e81e1db4e95803b6144c64983f76e776ff75fd04c0ebfc95ae46e4d',
-          peerIds: ['peer0', 'peer1'],
-        },
-        headers: {
-          'Api-Key': 'hello',
-        },
+        url: '/auth',
       });
 
-      // check the result
-      expect(result.statusCode).toEqual(400);
+      // assert
+      expect(result.statusCode).toEqual(403);
+      expect(result.json().message).toEqual(
+        "Api-Key doesn't exist or it's wrong",
+      );
     });
 
     /**
-     * @target fastifyServer[POST /reprocess] should respond with error when rate limit is triggered
+     * @target fastifyServer[POST /auth] should respond with error when rate limit is triggered
      * @dependencies
      * @scenario
      * - in the test config set rate limit of this route to 2
@@ -157,12 +124,7 @@ describe('reprocess', () => {
       ) {
         const response = await mockedServer.inject({
           method: 'POST',
-          url: '/reprocess',
-          body: {
-            eventId:
-              '85b5cb7f4e81e1db4e95803b6144c64983f76e776ff75fd04c0ebfc95ae46e4d',
-            peerIds: ['peer0', 'peer1'],
-          },
+          url: '/auth',
           headers: {
             'Api-Key': 'hello',
           },
