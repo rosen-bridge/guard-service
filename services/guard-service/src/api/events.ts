@@ -62,7 +62,9 @@ const eventsHistoryRoute = (server: FastifyWithZod) => {
 
         let status = '';
         if (event.status) {
-          status = event.reason ? 'multiple-flows' : event.status;
+          status = event.reason
+            ? `multiple-flows (${event.status})`
+            : event.status;
         } else if (event.reason) {
           status = 'rejected';
         } else {
@@ -148,7 +150,7 @@ const ongoingEventsRoute = (server: FastifyWithZod) => {
         let status = event.status;
         if (status) {
           if (event.reason) {
-            status = 'multiple-flows';
+            status = `multiple-flows (${event.status})`;
           } else if (
             [EventStatus.inPayment, EventStatus.inReward].includes(status)
           ) {

@@ -93,8 +93,8 @@ export class EventView {
   paymentTxId!: string | null;
 
   @ViewColumn()
-  status?: string;
+  status!: string | null;
 
   @ViewColumn()
-  reason?: string;
+  reason!: string | null;
 }
