@@ -254,7 +254,7 @@ describe('PublicStatusHandler', () => {
      * - Database
      * @scenario
      * - define a mock PublicStatusHandler with a mock dataSource
-     * - insert a mock event with "paymentWaiting" status in database
+     * - insert a mock event with "pendingPayment" status in database
      * - stub PublicStatusHandler.submitRequest (processor.jobFn) to resolve
      * - call PublicStatusHandler.updatePublicEventStatus with "pendingPayment" status
      * @expected
@@ -266,12 +266,11 @@ describe('PublicStatusHandler', () => {
         DatabaseActionMock.testDataSource,
       );
 
+      const status = EventStatus.pendingPayment;
+
       const mockedEvent = EventTestData.mockEventTrigger().event;
       const eventId = EventSerializer.getId(mockedEvent);
-      await DatabaseActionMock.insertEventRecord(
-        mockedEvent,
-        EventStatus.paymentWaiting,
-      );
+      await DatabaseActionMock.insertEventRecord(mockedEvent, status);
       const event =
         await DatabaseActionMock.testDatabase.ConfirmedEventRepository.findOneOrFail(
           {
@@ -286,7 +285,6 @@ describe('PublicStatusHandler', () => {
         .mockResolvedValue(undefined);
 
       // act
-      const status = EventStatus.pendingPayment;
       await instance.updatePublicEventStatus(eventId, status);
 
       // assert
