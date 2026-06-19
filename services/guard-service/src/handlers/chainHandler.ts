@@ -301,7 +301,7 @@ class ChainHandler {
         return TransactionSerializer.fromJson(tx.txJson, this.getChain);
       },
       DefaultLogger.getInstance().child('FiroElectrumXNetwork'),
-      GuardsFiroConfigs.electrumx.timeout * 1000,
+      GuardsFiroConfigs.electrumx.timeout,
     );
     const chainCode = GuardsFiroConfigs.tssChainCode;
     const derivationPath = GuardsFiroConfigs.derivationPath;

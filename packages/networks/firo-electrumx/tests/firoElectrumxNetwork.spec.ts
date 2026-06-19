@@ -7,23 +7,18 @@ import {
   TransactionType,
 } from '@rosen-chains/abstract-chain';
 
-import FiroElectrumXNetwork, {
-  addressToScripthash,
-} from '../lib/firoElectrumxNetwork';
+import FiroElectrumXNetwork from '../lib/firoElectrumxNetwork';
 import {
-  createMockSocket,
+  getMockConstructors,
   setMockResponses,
   resetMock,
 } from './mocked/electrumxSocket.mock';
 import * as testData from './testData';
 
-vi.mock('tls', () => ({
-  connect: vi.fn(() => {
-    const socket = createMockSocket();
-    setTimeout(() => socket.emit('secureConnect'), 0);
-    return socket;
-  }),
-}));
+vi.mock('@rosen-bridge/firo-scanner/dist/network/electrumXSocket', async () => {
+  const mock = await import('./mocked/electrumxSocket.mock');
+  return { ElectrumXSocket: mock.ElectrumXSocket };
+});
 
 describe('FiroElectrumXNetwork', () => {
   const HOST = '127.0.0.1';
@@ -38,29 +33,16 @@ describe('FiroElectrumXNetwork', () => {
     mockGetSavedTransactionById.mockReturnValue(undefined);
   });
 
-  describe('addressToScripthash', () => {
-    it('should produce correct scripthash for P2PKH address', () => {
-      const scripthash = addressToScripthash(testData.lockAddress);
+  describe('constructor', () => {
+    it('should instantiate and setup ElectrumXSocket', () => {
+      createNetwork();
 
-      expect(scripthash).toBe(
-        '53787b5ebd3152e257d1ed402ca773aa83fca5981ed9c3b02bf9e5299dd36960',
-      );
-    });
-
-    it('should produce correct scripthash for P2SH address', () => {
-      const scripthash = addressToScripthash(
-        '2EdAinnuw3zCy8arpSKRwQYQK2MBC5VMXu9',
-      );
-
-      expect(scripthash).toBe(
-        '7914236249d96d4931978817b2fe3c9071e8b4daf4decd3087dbba955fd7f66f',
-      );
-    });
-
-    it('should throw for invalid checksum', () => {
-      expect(() =>
-        addressToScripthash('THzVvKwY5dAD6gM5z4Mz3jG9RbqhkS8h7W'),
-      ).toThrow('checksum');
+      expect(getMockConstructors()[0]).toMatchObject({
+        host: HOST,
+        port: PORT,
+        reconnectDelay: 5,
+        timeout: 30,
+      });
     });
   });
 
@@ -68,7 +50,7 @@ describe('FiroElectrumXNetwork', () => {
     /**
      * @target `FiroElectrumXNetwork.getHeight` should return block height successfully
      * @dependencies
-     * - tls
+     * - ElectrumXSocket
      * @scenario
      * - mock ElectrumX blockchain.headers.subscribe response
      * - create new instance of FiroElectrumXNetwork
@@ -86,19 +68,16 @@ describe('FiroElectrumXNetwork', () => {
     });
 
     /**
-     * @target `FiroElectrumXNetwork.getHeight` should throw NetworkError on TLS error
+     * @target `FiroElectrumXNetwork.getHeight` should throw NetworkError on socket error
      * @dependencies
-     * - tls
+     * - ElectrumXSocket
      * @scenario
      * - mock TLS connection to fail
      * @expected
      * - it should throw NetworkError
      */
-    it('should throw NetworkError on TLS error', async () => {
-      const { connect } = await import('tls');
-      vi.mocked(connect).mockImplementationOnce(() => {
-        throw new Error('Connection refused');
-      });
+    it('should throw NetworkError on socket error', async () => {
+      setMockResponses([new Error('Connection refused')]);
 
       const network = createNetwork();
       await expect(network.getHeight()).rejects.toThrow(NetworkError);
@@ -109,7 +88,7 @@ describe('FiroElectrumXNetwork', () => {
     /**
      * @target `FiroElectrumXNetwork.getBlockTransactionIds` should return block tx ids
      * @dependencies
-     * - tls
+     * - ElectrumXSocket
      * @scenario
      * - mock ElectrumX blockchain.block.txids response
      * - pre-populate hash→height cache via getBlockInfo/resolveHeight
@@ -135,7 +114,7 @@ describe('FiroElectrumXNetwork', () => {
     /**
      * @target `FiroElectrumXNetwork.getBlockInfo` should return block info
      * @dependencies
-     * - tls
+     * - ElectrumXSocket
      * @scenario
      * - mock ElectrumX blockchain.block.header response
      * - pre-populate hash→height cache
@@ -174,7 +153,9 @@ describe('FiroElectrumXNetwork', () => {
      * - it should return parsed FiroTx
      */
     it('should return transaction successfully', async () => {
-      setMockResponses([testData.txHex]);
+      setMockResponses([
+        { hex: testData.txHex, blockhash: testData.txBlockHash },
+      ]);
 
       const network = createNetwork();
       const result = await network.getTransaction(
@@ -194,7 +175,9 @@ describe('FiroElectrumXNetwork', () => {
     });
 
     it('should parse a version 3 Firo transaction with packed type', async () => {
-      setMockResponses([testData.txHexV3Typed]);
+      setMockResponses([
+        { hex: testData.txHexV3Typed, blockhash: testData.txBlockHash },
+      ]);
 
       const network = createNetwork();
       const result = await network.getTransaction(
@@ -212,13 +195,33 @@ describe('FiroElectrumXNetwork', () => {
         testData.firoTx.outputs[1]!.scriptPubKey,
       );
     });
+
+    it('should throw FailedError when transaction is not found', async () => {
+      setMockResponses([{ error: { message: 'not found', code: -1 } }]);
+
+      const network = createNetwork();
+      await expect(
+        network.getTransaction('not-found', testData.txBlockHash),
+      ).rejects.toThrow(FailedError);
+    });
+
+    it('should throw FailedError when transaction blockId is wrong', async () => {
+      setMockResponses([
+        { hex: testData.txHex, blockhash: 'wrong-block-hash' },
+      ]);
+
+      const network = createNetwork();
+      await expect(
+        network.getTransaction(testData.txId, testData.txBlockHash),
+      ).rejects.toThrow(FailedError);
+    });
   });
 
   describe('isBoxUnspentAndValid', () => {
     /**
      * @target `FiroElectrumXNetwork.isBoxUnspentAndValid` should return true for unspent output
      * @dependencies
-     * - tls
+     * - ElectrumXSocket
      * @scenario
      * - mock transaction hex and listunspent containing the box
      * @expected
@@ -246,7 +249,7 @@ describe('FiroElectrumXNetwork', () => {
     /**
      * @target `FiroElectrumXNetwork.isBoxUnspentAndValid` should return false for spent output
      * @dependencies
-     * - tls
+     * - ElectrumXSocket
      * @scenario
      * - mock transaction hex but listunspent not containing the box
      * @expected
@@ -267,16 +270,13 @@ describe('FiroElectrumXNetwork', () => {
     /**
      * @target `FiroElectrumXNetwork.isBoxUnspentAndValid` should return false when tx doesn't exist
      * @dependencies
-     * - tls
+     * - ElectrumXSocket
      * @scenario
      * - mock ElectrumX to return error for non-existent tx
      * @expected
      * - it should return false
      */
     it("should return false when transaction doesn't exist", async () => {
-      // Simulate error by providing no response (the mock will time out)
-      // The mock handles this by rejecting missing responses.
-      // Better approach: use a real error response from ElectrumX
       setMockResponses([
         { error: { message: 'No such transaction', code: -5 } },
       ]);
@@ -292,7 +292,7 @@ describe('FiroElectrumXNetwork', () => {
     /**
      * @target `FiroElectrumXNetwork.getUtxo` should return UTXO data
      * @dependencies
-     * - tls
+     * - ElectrumXSocket
      * @scenario
      * - mock transaction hex with the requested output
      * @expected
@@ -312,7 +312,7 @@ describe('FiroElectrumXNetwork', () => {
     /**
      * @target `FiroElectrumXNetwork.getUtxo` should throw FailedError for invalid output index
      * @dependencies
-     * - tls
+     * - ElectrumXSocket
      * @scenario
      * - mock transaction hex, request non-existent output index
      * @expected
@@ -332,7 +332,7 @@ describe('FiroElectrumXNetwork', () => {
     /**
      * @target `FiroElectrumXNetwork.getFeeRatio` should return fee ratio
      * @dependencies
-     * - tls
+     * - ElectrumXSocket
      * @scenario
      * - mock ElectrumX blockchain.estimatefee response
      * @expected
@@ -355,7 +355,7 @@ describe('FiroElectrumXNetwork', () => {
     /**
      * @target `FiroElectrumXNetwork.isTxInMempool` should return true when tx is in mempool
      * @dependencies
-     * - tls
+     * - ElectrumXSocket
      * @scenario
      * - mock verbose get to return an existing tx without confirmations
      * @expected
@@ -373,7 +373,7 @@ describe('FiroElectrumXNetwork', () => {
     /**
      * @target `FiroElectrumXNetwork.isTxInMempool` should return false when tx is confirmed
      * @dependencies
-     * - tls
+     * - ElectrumXSocket
      * @scenario
      * - mock verbose get to return a positive confirmation count
      * @expected
@@ -397,7 +397,7 @@ describe('FiroElectrumXNetwork', () => {
     /**
      * @target `FiroElectrumXNetwork.isTxInMempool` should return false when tx is not found
      * @dependencies
-     * - tls
+     * - ElectrumXSocket
      * @scenario
      * - mock verbose get to fail
      * @expected
@@ -417,7 +417,7 @@ describe('FiroElectrumXNetwork', () => {
     /**
      * @target `FiroElectrumXNetwork.getTransactionHex` should return transaction hex
      * @dependencies
-     * - tls
+     * - ElectrumXSocket
      * @scenario
      * - mock ElectrumX blockchain.transaction.get response
      * @expected
@@ -466,7 +466,7 @@ describe('FiroElectrumXNetwork', () => {
     /**
      * @target `FiroElectrumXNetwork.getAddressBoxes` should return address UTXOs with pagination
      * @dependencies
-     * - tls
+     * - ElectrumXSocket
      * @scenario
      * - mock ElectrumX listunspent response
      * @expected
@@ -484,7 +484,7 @@ describe('FiroElectrumXNetwork', () => {
     /**
      * @target `FiroElectrumXNetwork.getAddressBoxes` should handle empty address
      * @dependencies
-     * - tls
+     * - ElectrumXSocket
      * @scenario
      * - mock empty listunspent response
      * @expected
@@ -504,7 +504,7 @@ describe('FiroElectrumXNetwork', () => {
     /**
      * @target `FiroElectrumXNetwork.getTxConfirmation` should return confirmation count
      * @dependencies
-     * - tls
+     * - ElectrumXSocket
      * @scenario
      * - mock verbose get to return Firo Core confirmation count
      * @expected
@@ -528,7 +528,7 @@ describe('FiroElectrumXNetwork', () => {
     /**
      * @target `FiroElectrumXNetwork.getTxConfirmation` should return -1 for unconfirmed tx
      * @dependencies
-     * - tls
+     * - ElectrumXSocket
      * @scenario
      * - mock verbose get to return an existing tx without confirmations
      * @expected
