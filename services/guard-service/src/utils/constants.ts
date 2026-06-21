@@ -59,7 +59,7 @@ const SUPPORTED_CHAINS = [
   DOGE_CHAIN,
   FIRO_CHAIN,
   BITCOIN_RUNES_CHAIN,
-];
+] as const;
 
 enum RevenueType {
   fraud = 'fraud',

@@ -29,7 +29,8 @@ import {
 
 import PublicStatusHandler from '../handlers/publicStatusHandler';
 import { ReprocessStatus } from '../reprocess/interfaces';
-import { Page, SortRequest } from '../types/api';
+import { AddressType, Page, SortRequest } from '../types/api';
+import { SupportedChain } from '../types/config';
 import {
   EventStatus,
   OrderStatus,
@@ -37,6 +38,7 @@ import {
   TransactionStatus,
 } from '../utils/constants';
 import Utils from '../utils/utils';
+import { AddressEntity } from './entities/addressEntity';
 import { ArbitraryEntity } from './entities/arbitraryEntity';
 import { ChainAddressBalanceEntity } from './entities/chainAddressBalanceEntity';
 import { ConfirmedEventEntity } from './entities/confirmedEventEntity';
@@ -66,6 +68,7 @@ class DatabaseAction {
   ArbitraryRepository: Repository<ArbitraryEntity>;
   ReprocessRepository: Repository<ReprocessEntity>;
   ChainAddressBalanceRepository: Repository<ChainAddressBalanceEntity>;
+  AddressRepository: Repository<AddressEntity>;
 
   txSignSemaphore = new Semaphore(1);
 
@@ -89,6 +92,7 @@ class DatabaseAction {
     this.ChainAddressBalanceRepository = this.dataSource.getRepository(
       ChainAddressBalanceEntity,
     );
+    this.AddressRepository = this.dataSource.getRepository(AddressEntity);
   }
 
   /**
@@ -1081,6 +1085,38 @@ class DatabaseAction {
         status: status,
       },
     );
+  };
+
+  /**
+   * gets AddressEntity records
+   * @param chain
+   * @param type
+   * @param offset
+   * @param limit
+   * @returns a promise of paginated AddressEntity objects
+   */
+  getAddresses = async (
+    chain?: SupportedChain,
+    type?: AddressType,
+    offset?: number,
+    limit?: number,
+  ): Promise<Page<AddressEntity>> => {
+    const [items, total] = await this.AddressRepository.findAndCount({
+      where: {
+        ...(chain ? { chain } : {}),
+        ...(type ? { type } : {}),
+      },
+      ...(Number.isFinite(offset) ? { skip: offset } : {}),
+      ...(Number.isFinite(limit) ? { take: limit } : {}),
+      order: {
+        id: 'ASC',
+      },
+    });
+
+    return {
+      items,
+      total,
+    };
   };
 
   /**

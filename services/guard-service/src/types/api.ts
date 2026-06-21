@@ -102,6 +102,11 @@ interface Page<T> {
   total: number;
 }
 
+enum AddressType {
+  Hot = 'hot',
+  Cold = 'cold',
+}
+
 export {
   SortRequest,
   TokenChartData,
@@ -114,4 +119,5 @@ export {
   Event,
   OngoingEvents,
   Page,
+  AddressType,
 };

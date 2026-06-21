@@ -15,6 +15,7 @@ import {
 } from '@rosen-bridge/watcher-data-extractor';
 
 import Configs from '../configs/configs';
+import { AddressEntity } from './entities/addressEntity';
 import { ArbitraryEntity } from './entities/arbitraryEntity';
 import { ChainAddressBalanceEntity } from './entities/chainAddressBalanceEntity';
 import { ConfirmedEventEntity } from './entities/confirmedEventEntity';
@@ -44,6 +45,7 @@ const dbConfigs = {
     ArbitraryEntity,
     ReprocessEntity,
     ChainAddressBalanceEntity,
+    AddressEntity,
     RejectedEventEntity,
   ],
   migrations: [

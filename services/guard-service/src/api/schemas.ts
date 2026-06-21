@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 import { HealthStatusLevel } from '@rosen-bridge/health-check';
 
-import { SortRequest } from '../types/api';
+import { AddressType, SortRequest } from '../types/api';
 import {
   DefaultApiLimit,
   DefaultAssetApiLimit,
@@ -54,6 +54,14 @@ export const InfoResponseSchema = z.object({
   rsnTokenId: z.string(),
   emissionTokenId: z.string(),
 });
+
+export const AddressSchema = z.object({
+  chain: z.string(),
+  address: z.string(),
+  type: z.string(),
+});
+
+export const AddressResponseSchema = OutputItemsSchema(AddressSchema);
 
 export const HealthStatusTypeSchema = z.object({
   id: z.string(),
@@ -109,6 +117,13 @@ export const SupportedChainsSchema = z.nativeEnum(
     return map;
   }, {}),
 );
+
+export const AddressQuerySchema = z.object({
+  offset: z.coerce.number().int().min(0).default(0),
+  limit: z.coerce.number().int().min(1).max(100).default(DefaultAssetApiLimit),
+  chain: z.optional(z.enum(SUPPORTED_CHAINS)),
+  type: z.optional(z.nativeEnum(AddressType)),
+});
 
 export const BalanceQuerySchema = z.object({
   offset: z.coerce.number().int().min(0).default(0),
@@ -216,7 +231,7 @@ export const TssCallbackSchema = z.object({
 
 export const OrderQuerySchema = z.object({
   id: z.string(),
-  chain: z.string(),
+  chain: z.enum(SUPPORTED_CHAINS),
   orderJson: z.string(),
 });
 

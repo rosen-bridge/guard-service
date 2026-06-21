@@ -23,6 +23,7 @@ import {
 } from '@rosen-chains/abstract-chain';
 
 import { DatabaseAction } from '../../../src/db/databaseAction';
+import { AddressEntity } from '../../../src/db/entities/addressEntity';
 import { ArbitraryEntity } from '../../../src/db/entities/arbitraryEntity';
 import { ChainAddressBalanceEntity } from '../../../src/db/entities/chainAddressBalanceEntity';
 import { ConfirmedEventEntity } from '../../../src/db/entities/confirmedEventEntity';
@@ -61,6 +62,7 @@ class DatabaseActionMock {
       PermitEntity,
       CollateralEntity,
       ChainAddressBalanceEntity,
+      AddressEntity,
       RejectedEventEntity,
     ],
     migrations: [
@@ -104,6 +106,7 @@ class DatabaseActionMock {
     await this.testDatabase.ReprocessRepository.clear();
     await this.testDataSource.getRepository(BlockEntity).clear();
     await this.testDatabase.ChainAddressBalanceRepository.clear();
+    await this.testDatabase.AddressRepository.clear();
   };
 
   /**
@@ -566,6 +569,17 @@ class DatabaseActionMock {
     return await this.testDatabase.ChainAddressBalanceRepository.createQueryBuilder()
       .select()
       .getMany();
+  };
+
+  /**
+   * inserts a record to Address table in database
+   * @param record
+   */
+  static insertAddressRecord = async (record: AddressEntity) => {
+    await this.testDatabase.AddressRepository.createQueryBuilder()
+      .insert()
+      .values(record)
+      .execute();
   };
 
   /**
