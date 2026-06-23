@@ -9,8 +9,7 @@ export class Migration1781955545309 implements MigrationInterface {
         "id" integer PRIMARY KEY AUTOINCREMENT NOT NULL,
         "chain" varchar NOT NULL,
         "address" varchar NOT NULL,
-        "type" varchar NOT NULL,
-        CONSTRAINT "UQ_acfbbc2c7ee9ea245e3c3q13c312" UNIQUE ("chain", "address")
+        "type" varchar NOT NULL
       )
     `);
   }

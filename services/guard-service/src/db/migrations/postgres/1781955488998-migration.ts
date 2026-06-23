@@ -6,11 +6,11 @@ export class Migration1781955488998 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
       CREATE TABLE "address_entity" (
-        "id" integer PRIMARY KEY AUTOINCREMENT NOT NULL,
-        "chain" varchar NOT NULL,
-        "address" varchar NOT NULL,
-        "type" varchar NOT NULL,
-        CONSTRAINT "UQ_acfbbc2c7ee9ea245e3c313c312" UNIQUE ("chain", "address")
+        "id" SERIAL NOT NULL,
+        "chain" character varying NOT NULL,
+        "address" character varying NOT NULL,
+        "type" character varying NOT NULL,
+        CONSTRAINT "PK_9caf3f954ed5bc66e3fa35eb7e9" PRIMARY KEY ("id")
       )
     `);
   }

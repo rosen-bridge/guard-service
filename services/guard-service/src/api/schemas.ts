@@ -4,6 +4,7 @@ import { HealthStatusLevel } from '@rosen-bridge/health-check';
 
 import { AddressType, SortRequest } from '../types/api';
 import {
+  DefaultAddressApiLimit,
   DefaultApiLimit,
   DefaultAssetApiLimit,
   DefaultRevenueApiCount,
@@ -120,7 +121,12 @@ export const SupportedChainsSchema = z.nativeEnum(
 
 export const AddressQuerySchema = z.object({
   offset: z.coerce.number().int().min(0).default(0),
-  limit: z.coerce.number().int().min(1).max(100).default(DefaultAssetApiLimit),
+  limit: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(100)
+    .default(DefaultAddressApiLimit),
   chain: z.optional(z.enum(SUPPORTED_CHAINS)),
   type: z.optional(z.nativeEnum(AddressType)),
 });
