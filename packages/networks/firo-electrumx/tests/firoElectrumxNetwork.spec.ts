@@ -10,6 +10,7 @@ import {
 import FiroElectrumXNetwork from '../lib/firoElectrumxNetwork';
 import {
   getMockConstructors,
+  getMockRequests,
   setMockResponses,
   resetMock,
 } from './mocked/electrumxSocket.mock';
@@ -90,23 +91,27 @@ describe('FiroElectrumXNetwork', () => {
      * @dependencies
      * - ElectrumXSocket
      * @scenario
-     * - mock ElectrumX blockchain.block.txids response
-     * - pre-populate hash→height cache via getBlockInfo/resolveHeight
+     * - mock ElectrumX blockchain.block.height and blockchain.block.txids responses
      * @expected
      * - it should return mocked tx ids
      */
     it('should return block tx ids successfully', async () => {
-      setMockResponses([testData.blockTxIds]); // only blockchain.block.txids is called
+      setMockResponses([testData.blockInfo.height, testData.blockTxIds]);
 
       const network = createNetwork();
-      // Pre-populate the height cache so resolveHeight returns immediately
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (network as any).hashToHeight.set(testData.blockHash, 42);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (network as any).lastKnownHeight = 43;
-
       const result = await network.getBlockTransactionIds(testData.blockHash);
+
       expect(result).toEqual(testData.blockTxIds);
+      expect(getMockRequests()).toEqual([
+        {
+          method: 'blockchain.block.height',
+          params: [testData.blockHash],
+        },
+        {
+          method: 'blockchain.block.txids',
+          params: [testData.blockInfo.height],
+        },
+      ]);
     });
   });
 
@@ -116,29 +121,32 @@ describe('FiroElectrumXNetwork', () => {
      * @dependencies
      * - ElectrumXSocket
      * @scenario
-     * - mock ElectrumX blockchain.block.header response
-     * - pre-populate hash→height cache
+     * - mock ElectrumX blockchain.block.height and blockchain.block.header responses
      * @expected
      * - it should return correct hash, parentHash, and height
      */
     it('should return block info successfully', async () => {
       setMockResponses([
+        testData.blockInfo.height, // blockchain.block.height response
         testData.blockHeaderHex, // blockchain.block.header response
       ]);
 
       const network = createNetwork();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (network as any).hashToHeight.set(
-        testData.blockHash,
-        testData.blockInfo.height,
-      );
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (network as any).lastKnownHeight = testData.blockInfo.height;
-
       const result = await network.getBlockInfo(testData.blockHash);
+
       expect(result.hash).toBe(testData.blockInfo.hash);
       expect(result.parentHash).toBe(testData.blockInfo.parentHash);
       expect(result.height).toBe(testData.blockInfo.height);
+      expect(getMockRequests()).toEqual([
+        {
+          method: 'blockchain.block.height',
+          params: [testData.blockHash],
+        },
+        {
+          method: 'blockchain.block.header',
+          params: [testData.blockInfo.height],
+        },
+      ]);
     });
   });
 

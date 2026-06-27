@@ -39,9 +39,6 @@ class FiroElectrumXNetwork extends AbstractFiroNetwork {
     txId: string,
   ) => Promise<PaymentTransaction | undefined>;
 
-  private hashToHeight = new Map<string, number>();
-  private lastKnownHeight = 0;
-
   constructor(
     host: string,
     port: number,
@@ -71,7 +68,6 @@ class FiroElectrumXNetwork extends AbstractFiroNetwork {
           'blockchain.headers.subscribe',
           [],
         );
-      this.lastKnownHeight = result.height;
       this.logger.debug(`Current height: ${result.height}`);
       return result.height;
     } catch (e) {
@@ -110,7 +106,6 @@ class FiroElectrumXNetwork extends AbstractFiroNetwork {
         [height],
       );
       const blockInfo = parseBlockHeader(headerHex, height);
-      this.hashToHeight.set(blockInfo.hash, height);
 
       this.logger.debug(
         `Block [${blockId}] at height [${height}]: ` +
@@ -458,34 +453,9 @@ class FiroElectrumXNetwork extends AbstractFiroNetwork {
   };
 
   private resolveHeight = async (blockHash: string): Promise<number> => {
-    const cached = this.hashToHeight.get(blockHash);
-    if (cached !== undefined) return cached;
-
-    const searchStart =
-      this.lastKnownHeight > 0
-        ? this.lastKnownHeight
-        : (
-            await this.client.sendRequest<BlockchainHeaderSubscribeResult>(
-              'blockchain.headers.subscribe',
-              [],
-            )
-          ).height;
-    this.lastKnownHeight = searchStart;
-
-    for (let h = searchStart; h > searchStart - 1000 && h > 0; h--) {
-      const headerHex = await this.client.sendRequest<string>(
-        'blockchain.block.header',
-        [h],
-      );
-      const blockInfo = parseBlockHeader(headerHex, h);
-      this.hashToHeight.set(blockInfo.hash, h);
-      if (blockInfo.hash === blockHash) return h;
-    }
-
-    throw new FailedError(
-      `Block [${blockHash}] not found within 1000 blocks ` +
-        `of height ${searchStart}`,
-    );
+    return await this.client.sendRequest<number>('blockchain.block.height', [
+      blockHash,
+    ]);
   };
 
   private isNotFoundError = (e: unknown): boolean => {
