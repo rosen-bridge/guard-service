@@ -46,6 +46,7 @@ const EventUnexpectedFailsLimit = 2;
 const OrderUnexpectedFailsLimit = 1;
 const DefaultApiLimit = 100;
 const DefaultAssetApiLimit = 10;
+const DefaultAddressApiLimit = 50;
 const DefaultRevenueApiCount = 10;
 const ADA_DECIMALS = 6;
 const ERG_DECIMALS = 9;
@@ -59,7 +60,7 @@ const SUPPORTED_CHAINS = [
   DOGE_CHAIN,
   FIRO_CHAIN,
   BITCOIN_RUNES_CHAIN,
-];
+] as const;
 
 enum RevenueType {
   fraud = 'fraud',
@@ -118,6 +119,7 @@ export {
   DefaultApiLimit,
   DefaultRevenueApiCount,
   DefaultAssetApiLimit,
+  DefaultAddressApiLimit,
   ADA_DECIMALS,
   ERG_DECIMALS,
   SUPPORTED_CHAINS,
