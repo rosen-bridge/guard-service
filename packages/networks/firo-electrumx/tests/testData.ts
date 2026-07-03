@@ -24,6 +24,11 @@ export const blockInfo = {
   height: 42,
 };
 
+export const blockInfoWithoutHeight = {
+  hash: blockInfo.hash,
+  parentHash: blockInfo.parentHash,
+};
+
 // Transaction IDs
 export const txId =
   '87ce994dacf48d97dcffd30221f70acf8c2b40ba4d5ed9be8615d79daf922c73';
@@ -61,6 +66,11 @@ export const firoTx = {
   ],
 };
 
+export const firoTxWithoutId = {
+  inputs: firoTx.inputs,
+  outputs: firoTx.outputs,
+};
+
 // UTXO
 export const firoUtxo = {
   txId: txId,
@@ -78,6 +88,13 @@ export const mockAddressUtxos = [
   { tx_hash: '2nd-tx-id', tx_pos: 1, height: 5693740, value: 525000000 },
   { tx_hash: '3rd-tx-id', tx_pos: 0, height: 5693738, value: 200000000 },
 ];
+
+export const unspentOutput = {
+  tx_hash: txId,
+  tx_pos: 0,
+  height: 42,
+  value: 119595114000,
+};
 
 export const expectedAddressBoxes = [
   { txId: txId, index: 0, value: 1050000000n },

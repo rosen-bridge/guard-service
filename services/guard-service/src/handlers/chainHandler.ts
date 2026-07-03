@@ -300,8 +300,9 @@ class ChainHandler {
         if (tx === null) return undefined;
         return TransactionSerializer.fromJson(tx.txJson, this.getChain);
       },
-      DefaultLogger.getInstance().child('FiroElectrumXNetwork'),
+      GuardsFiroConfigs.electrumx.reconnectDelay,
       GuardsFiroConfigs.electrumx.timeout,
+      DefaultLogger.getInstance().child('FiroElectrumXNetwork'),
     );
     const chainCode = GuardsFiroConfigs.tssChainCode;
     const derivationPath = GuardsFiroConfigs.derivationPath;

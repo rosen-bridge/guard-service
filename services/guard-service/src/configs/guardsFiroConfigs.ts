@@ -14,6 +14,9 @@ class GuardsFiroConfigs {
     port: config.has('firo.electrumx.port')
       ? config.get<number>('firo.electrumx.port')
       : 50002,
+    reconnectDelay: config.has('firo.electrumx.reconnectDelay')
+      ? config.get<number>('firo.electrumx.reconnectDelay')
+      : 5,
     timeout: config.has('firo.electrumx.timeout')
       ? config.get<number>('firo.electrumx.timeout')
       : 30,

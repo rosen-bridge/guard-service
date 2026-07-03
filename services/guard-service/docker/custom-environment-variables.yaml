@@ -27,11 +27,6 @@ ethereum:
 binance:
   rpc:
     authToken: 'BINANCE_RPC_AUTH_TOKEN'
-firo:
-  electrumx:
-    host: 'FIRO_ELECTRUMX_HOST'
-    port: 'FIRO_ELECTRUMX_PORT'
-    timeout: 'FIRO_ELECTRUMX_TIMEOUT'
 doge:
   rpc:
     username: 'DOGE_RPC_USERNAME'

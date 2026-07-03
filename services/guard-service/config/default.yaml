@@ -69,9 +69,11 @@ bitcoinRunes:
   derivationPath:
     -
 firo:
+  chainNetwork: 'electrumx'
   electrumx:
     host: '127.0.0.1'
     port: 50002
+    reconnectDelay: 5
     timeout: 30
   bankPublicKey: '' # corresponding public key of lock address
   txFeeSlippage: 20 # allowed slippage percentage for tx fees
