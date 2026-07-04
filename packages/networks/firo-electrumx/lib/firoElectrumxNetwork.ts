@@ -26,6 +26,7 @@ import {
 import {
   BlockchainHeaderSubscribeResult,
   FiroBalanceResponse,
+  FiroHistoryEntry,
   FiroUnspentOutput,
   FiroVerboseTransaction,
 } from './types';
@@ -168,6 +169,9 @@ class FiroElectrumXNetwork extends AbstractFiroNetwork {
 
       return { id: transactionId, ...parseTransactionHex(tx.hex) };
     } catch (e) {
+      if (this.isNotFoundError(e)) {
+        throw new FailedError(`Transaction [${transactionId}] is not found`);
+      }
       throw this.wrapError(
         `Failed to get transaction [${transactionId}] from Firo ElectrumX`,
         e,
@@ -355,7 +359,6 @@ class FiroElectrumXNetwork extends AbstractFiroNetwork {
         value: tx.outputs[outputIndex]!.value,
       };
     } catch (e) {
-      if (e instanceof FailedError) throw e;
       throw this.wrapError(
         `Failed to get UTXO [${boxId}] from Firo ElectrumX`,
         e,
@@ -468,19 +471,6 @@ class FiroElectrumXNetwork extends AbstractFiroNetwork {
     }
   };
 
-  /* eslint-disable @typescript-eslint/no-unused-vars */
-  /**
-   * Gets a spent transaction by input id.
-   * @returns undefined because ElectrumX has no equivalent getspentinfo API
-   */
-  protected getSpentTransactionByInputId = async (
-    _index: number,
-    _txId: string,
-  ): Promise<FiroTx | undefined> => {
-    return undefined;
-  };
-  /* eslint-enable @typescript-eslint/no-unused-vars */
-
   /**
    * Resolves a saved unsigned transaction hash to its signed transaction id.
    * @param hash unsigned transaction hash or signed transaction id
@@ -496,7 +486,36 @@ class FiroElectrumXNetwork extends AbstractFiroNetwork {
           network: FIRO_NETWORK,
         });
 
-        actualTxId = realTx.extractTransaction(true).getId();
+        try {
+          actualTxId = realTx.extractTransaction(true).getId();
+        } catch {
+          const spentTx = await this.getTransactionSpendingInput(
+            realTx.txInputs[0].index,
+            this.inputHashToTxId(realTx.txInputs[0].hash),
+          );
+          if (spentTx) {
+            const sameInputs = realTx.txInputs.every((input, i) => {
+              const spentInput = spentTx.inputs[i];
+              return (
+                spentInput !== undefined &&
+                spentInput.txId === this.inputHashToTxId(input.hash) &&
+                spentInput.index === input.index
+              );
+            });
+            const sameOutputs = realTx.txOutputs.every((output, i) => {
+              const spentOutput = spentTx.outputs[i];
+              return (
+                spentOutput !== undefined &&
+                spentOutput.scriptPubKey ===
+                  Buffer.from(output.script).toString('hex') &&
+                spentOutput.value === BigInt(output.value)
+              );
+            });
+            if (sameInputs && sameOutputs) {
+              actualTxId = spentTx.id;
+            }
+          }
+        }
       }
     } catch (e) {
       throw this.wrapError(
@@ -509,6 +528,46 @@ class FiroElectrumXNetwork extends AbstractFiroNetwork {
   };
 
   /**
+   * Finds a transaction that spends the requested output using ElectrumX history.
+   * @param index spent output index
+   * @param txId spent transaction id
+   * @returns spending transaction when found
+   */
+  private getTransactionSpendingInput = async (
+    index: number,
+    txId: string,
+  ): Promise<FiroTx | undefined> => {
+    const txHex = await this.getTransactionHex(txId);
+    const tx = parseTransactionHex(txHex);
+    const spentOutput = tx.outputs[index];
+    if (spentOutput === undefined) {
+      return undefined;
+    }
+
+    const history = await this.client.sendRequest<Array<FiroHistoryEntry>>(
+      'blockchain.scripthash.get_history',
+      [scriptPubKeyToScripthash(spentOutput.scriptPubKey)],
+    );
+
+    for (const historyItem of history) {
+      if (historyItem.tx_hash === txId) {
+        continue;
+      }
+
+      const candidate = await this.getTransaction(historyItem.tx_hash, '');
+      if (
+        candidate.inputs.some(
+          (input) => input.txId === txId && input.index === index,
+        )
+      ) {
+        return candidate;
+      }
+    }
+
+    return undefined;
+  };
+
+  /**
    * Resolves a block hash to its height.
    * @param blockHash block hash
    * @returns block height
@@ -518,6 +577,14 @@ class FiroElectrumXNetwork extends AbstractFiroNetwork {
       blockHash,
     ]);
   };
+
+  /**
+   * Converts a PSBT input hash to display-order transaction id.
+   * @param hash little-endian input hash
+   * @returns transaction id
+   */
+  private inputHashToTxId = (hash: Buffer): string =>
+    Buffer.from(hash).reverse().toString('hex');
 
   /**
    * Checks whether an ElectrumX response means the target transaction is absent.
@@ -580,7 +647,9 @@ class FiroElectrumXNetwork extends AbstractFiroNetwork {
       e !== null &&
       ('message' in e || 'code' in e)
     ) {
-      return new FailedError(`${baseMessage}: ${this.getErrorMessage(e)}`);
+      return new UnexpectedApiError(
+        `${baseMessage}: ${this.getErrorMessage(e)}`,
+      );
     }
     return new UnexpectedApiError(`${baseMessage}: Unknown error`);
   };

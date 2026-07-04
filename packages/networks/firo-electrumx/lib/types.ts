@@ -20,3 +20,8 @@ export type FiroUnspentOutput = {
   height: number;
   value: number;
 };
+
+export type FiroHistoryEntry = {
+  tx_hash: string;
+  height: number;
+};

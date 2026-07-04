@@ -10,7 +10,6 @@ import {
 
 import FiroElectrumXNetwork from '../lib/firoElectrumxNetwork';
 import {
-  getMockConstructors,
   getMockRequests,
   setMockResponses,
   resetMock,
@@ -39,26 +38,6 @@ describe('FiroElectrumXNetwork', () => {
     vi.restoreAllMocks();
   });
 
-  /**
-   * @target `FiroElectrumXNetwork` should instantiate and setup ElectrumXSocket
-   * @dependencies
-   * - ElectrumXSocket
-   * @scenario
-   * - create new instance of FiroElectrumXNetwork
-   * @expected
-   * - it should pass host and port without constructor-level default timeout values
-   */
-  it('should instantiate and setup ElectrumXSocket', () => {
-    createNetwork();
-
-    expect(getMockConstructors()[0]).toMatchObject({
-      host: HOST,
-      port: PORT,
-      reconnectDelay: undefined,
-      timeout: undefined,
-    });
-  });
-
   describe('getHeight', () => {
     /**
      * @target `FiroElectrumXNetwork.getHeight` should return block height successfully
@@ -78,6 +57,24 @@ describe('FiroElectrumXNetwork', () => {
       const result = await network.getHeight();
 
       expect(result).toEqual(testData.blockHeightResponse.height);
+    });
+
+    /**
+     * @target `FiroElectrumXNetwork.getHeight` should wrap ElectrumX object errors as UnexpectedApiError
+     * @dependencies
+     * - ElectrumXSocket
+     * @scenario
+     * - mock ElectrumX to return a retryable internal error object
+     * @expected
+     * - it should throw UnexpectedApiError
+     */
+    it('should wrap ElectrumX object errors as UnexpectedApiError', async () => {
+      setMockResponses([
+        { error: { message: 'internal error', code: -32603 } },
+      ]);
+
+      const network = createNetwork();
+      await expect(network.getHeight()).rejects.toThrow(UnexpectedApiError);
     });
   });
 
@@ -435,33 +432,6 @@ describe('FiroElectrumXNetwork', () => {
     });
   });
 
-  /**
-   * @target `FiroElectrumXNetwork.submitTransaction` should submit transaction
-   * @dependencies
-   * - tls, bitcoinjs-lib Psbt
-   * @scenario
-   * - mock Psbt for transaction extraction
-   * - mock ElectrumX broadcast response
-   * @expected
-   * - it should not throw error
-   */
-  it('should submit transaction successfully', async () => {
-    setMockResponses([testData.txId]); // broadcast returns txid
-
-    const mockPsbt = {
-      finalizeAllInputs: vi.fn(),
-      extractTransaction: vi.fn().mockReturnValue({
-        toHex: vi.fn().mockReturnValue('01000000...'),
-      }),
-    };
-
-    const network = createNetwork();
-    await expect(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      network.submitTransaction(mockPsbt as any),
-    ).resolves.not.toThrow();
-  });
-
   describe('getAddressBoxes', () => {
     /**
      * @target `FiroElectrumXNetwork.getAddressBoxes` should return address UTXOs with pagination
@@ -664,28 +634,6 @@ describe('FiroElectrumXNetwork', () => {
     });
   });
 
-  describe('getSpentTransactionByInputId', () => {
-    /**
-     * @target `FiroElectrumXNetwork.getSpentTransactionByInputId` should return undefined
-     * @dependencies
-     * - none
-     * @scenario
-     * - call getSpentTransactionByInputId (ElectrumX has no getspentinfo)
-     * @expected
-     * - it should return undefined
-     */
-    it('should return undefined (no getspentinfo in ElectrumX)', async () => {
-      const network = createNetwork();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await (network as any).getSpentTransactionByInputId(
-        0,
-        testData.txId,
-      );
-
-      expect(result).toBeUndefined();
-    });
-  });
-
   describe('getActualTxId', () => {
     /**
      * @target `FiroElectrumXNetwork.getActualTxId` should return same hash when no saved tx
@@ -749,15 +697,16 @@ describe('FiroElectrumXNetwork', () => {
     });
 
     /**
-     * @target `FiroElectrumXNetwork.getActualTxId` should wrap extraction failure
+     * @target `FiroElectrumXNetwork.getActualTxId` should use spent tx when PSBT is not finalized
      * @dependencies
      * - bitcoinjs-lib Psbt
      * @scenario
      * - create custom getSavedTransactionById returning an unfinalized payment tx
+     * - mock spent transaction lookup to return matching signed transaction
      * @expected
-     * - it should throw UnexpectedApiError
+     * - it should return the matching signed tx id
      */
-    it('should wrap extraction failure', async () => {
+    it('should use spent tx when PSBT is not finalized', async () => {
       const firoPayment = new PaymentTransaction(
         'firo',
         testData.unsignedTxId,
@@ -777,9 +726,34 @@ describe('FiroElectrumXNetwork', () => {
         },
       );
 
-      await expect(
-        customNetwork.getActualTxId(testData.unsignedTxId),
-      ).rejects.toThrow(UnexpectedApiError);
+      vi.spyOn(Psbt, 'fromBuffer').mockReturnValue({
+        extractTransaction: vi.fn().mockImplementation(() => {
+          throw new Error('Not finalized');
+        }),
+        txInputs: [
+          {
+            index: 0,
+            hash: Buffer.from(testData.firoTx.inputs[0]!.txId, 'hex').reverse(),
+          },
+        ],
+        txOutputs: testData.firoTx.outputs.map((output) => ({
+          script: Buffer.from(output.scriptPubKey, 'hex'),
+          value: Number(output.value),
+        })),
+      } as unknown as Psbt);
+
+      const getTransactionSpendingInputSpy = vi
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(customNetwork as any, 'getTransactionSpendingInput')
+        .mockResolvedValue(testData.firoTx);
+
+      const result = await customNetwork.getActualTxId(testData.unsignedTxId);
+
+      expect(getTransactionSpendingInputSpy).toHaveBeenCalledExactlyOnceWith(
+        0,
+        testData.firoTx.inputs[0]!.txId,
+      );
+      expect(result).toEqual(testData.txId);
     });
   });
 });

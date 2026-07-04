@@ -36,7 +36,8 @@
     "@rosen-bridge/firo-scanner": "^0.2.0",
     "@rosen-chains/abstract-chain": "^16.0.0",
     "@rosen-chains/firo": "^0.0.0",
-    "bitcoinjs-lib": "^6.1.5"
+    "bitcoinjs-lib": "^6.1.5",
+    "bs58check": "^3.0.1"
   },
   "engines": {
     "node": ">=22.18.0",

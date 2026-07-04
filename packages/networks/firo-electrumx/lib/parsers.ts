@@ -1,3 +1,4 @@
+import bs58check from 'bs58check';
 import { createHash } from 'crypto';
 
 import {
@@ -7,9 +8,6 @@ import {
 import { BlockInfo } from '@rosen-chains/abstract-chain';
 import { FiroTx, FIRO_NETWORK } from '@rosen-chains/firo';
 
-const BASE58_ALPHABET =
-  '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
-
 // Current Firo prefixes plus legacy D-address P2PKH used by Rosen configs.
 const FIRO_P2PKH_PREFIXES = new Set([
   0x1e,
@@ -18,39 +16,8 @@ const FIRO_P2PKH_PREFIXES = new Set([
   FIRO_NETWORK.pubKeyHash,
 ]);
 const FIRO_P2SH_PREFIXES = new Set([FIRO_NETWORK.scriptHash, 0xb2, 0xb3]);
-
-/**
- * Decodes a base58 string into raw bytes.
- * @param encoded base58-encoded text
- * @returns decoded bytes
- */
-const base58Decode = (encoded: string): Buffer => {
-  const bytes: number[] = [];
-  for (let i = 0; i < encoded.length; i++) {
-    const c = encoded[i];
-    if (c === undefined) continue;
-    let carry = BASE58_ALPHABET.indexOf(c);
-    if (carry < 0) throw new Error(`Invalid base58 character: ${c}`);
-    for (let j = 0; j < bytes.length; j++) {
-      const b = bytes[j];
-      if (b === undefined) continue;
-      carry += b * 58;
-      bytes[j] = carry & 0xff;
-      carry >>= 8;
-    }
-    while (carry > 0) {
-      bytes.push(carry & 0xff);
-      carry >>= 8;
-    }
-  }
-
-  for (const ch of encoded) {
-    if (ch === '1') bytes.push(0);
-    else break;
-  }
-
-  return Buffer.from(bytes.reverse());
-};
+const FIRO_DECIMALS = 8;
+const FIRO_FACTOR = 100000000n;
 
 /**
  * Reverses the byte order of a hex string.
@@ -63,32 +30,14 @@ export const reverseHex = (hex: string): string => {
 };
 
 /**
- * Calculates Bitcoin-style double SHA-256.
- * @param data bytes to hash
- * @returns double SHA-256 digest
- */
-export const doubleSha256 = (data: Buffer): Buffer => {
-  return createHash('sha256')
-    .update(createHash('sha256').update(data).digest())
-    .digest();
-};
-
-/**
  * Converts a Firo base58 address into an ElectrumX scripthash.
  * @param address Firo P2PKH or P2SH address
  * @returns ElectrumX-compatible script hash
  */
 export const addressToScripthash = (address: string): string => {
-  const decoded = base58Decode(address);
-  if (decoded.length !== 25) {
-    throw new Error(`Invalid Firo address length: ${decoded.length}`);
-  }
-
-  const payload = decoded.subarray(0, 21);
-  const checksum = decoded.subarray(21);
-  const expectedChecksum = doubleSha256(payload).subarray(0, 4);
-  if (!checksum.equals(expectedChecksum)) {
-    throw new Error('Invalid Firo address checksum');
+  const payload = Buffer.from(bs58check.decode(address));
+  if (payload.length !== 21) {
+    throw new Error(`Invalid Firo address length: ${payload.length}`);
   }
 
   const version = payload[0];
@@ -144,6 +93,22 @@ export const parseBlockHeader = (
 };
 
 /**
+ * Converts a decimal FIRO amount to satoshis using a normalized decimal string.
+ * @param value FIRO amount from scanner parser
+ * @returns amount in satoshis
+ */
+const firoAmountToSatoshi = (value: number | string): bigint => {
+  const decimal =
+    typeof value === 'number' ? value.toFixed(FIRO_DECIMALS) : value;
+  const [integerPart, fractionPart = ''] = decimal.split('.');
+  const normalizedFraction = fractionPart
+    .padEnd(FIRO_DECIMALS, '0')
+    .slice(0, FIRO_DECIMALS);
+
+  return BigInt(integerPart) * FIRO_FACTOR + BigInt(normalizedFraction);
+};
+
+/**
  * Parses a raw Firo transaction hex without assigning a transaction id.
  * @param hex hex-encoded raw transaction
  * @returns Firo transaction inputs and outputs
@@ -162,7 +127,7 @@ export const parseTransactionHex = (hex: string): Omit<FiroTx, 'id'> => {
       };
     }),
     outputs: tx.vout.map((output) => ({
-      value: BigInt(Math.round(output.value * 100000000)),
+      value: firoAmountToSatoshi(output.value),
       scriptPubKey: output.scriptPubKey.hex,
     })),
   };
