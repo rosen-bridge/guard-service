@@ -71,7 +71,7 @@ bitcoinRunes:
 firo:
   chainNetwork: 'electrumx'
   electrumx:
-    host: '127.0.0.1'
+    host: ''
     port: 50002
     reconnectDelay: 5
     timeout: 30
