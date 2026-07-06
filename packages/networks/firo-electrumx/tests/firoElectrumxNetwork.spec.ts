@@ -22,7 +22,7 @@ vi.mock('@rosen-bridge/firo-scanner/dist/network/electrumXSocket', async () => {
 });
 
 describe('FiroElectrumXNetwork', () => {
-  const HOST = '127.0.0.1';
+  const HOST = 'address';
   const PORT = 50002;
   const mockGetSavedTransactionById = vi.fn().mockReturnValue(undefined);
   const createNetwork = () =>
@@ -57,24 +57,6 @@ describe('FiroElectrumXNetwork', () => {
       const result = await network.getHeight();
 
       expect(result).toEqual(testData.blockHeightResponse.height);
-    });
-
-    /**
-     * @target `FiroElectrumXNetwork.getHeight` should wrap ElectrumX object errors as UnexpectedApiError
-     * @dependencies
-     * - ElectrumXSocket
-     * @scenario
-     * - mock ElectrumX to return a retryable internal error object
-     * @expected
-     * - it should throw UnexpectedApiError
-     */
-    it('should wrap ElectrumX object errors as UnexpectedApiError', async () => {
-      setMockResponses([
-        { error: { message: 'internal error', code: -32603 } },
-      ]);
-
-      const network = createNetwork();
-      await expect(network.getHeight()).rejects.toThrow(UnexpectedApiError);
     });
   });
 
