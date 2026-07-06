@@ -46,7 +46,7 @@ import { ETHEREUM_CHAIN, EthereumChain } from '@rosen-chains/ethereum';
 import { AbstractEvmNetwork } from '@rosen-chains/evm';
 import EvmRpcNetwork from '@rosen-chains/evm-rpc';
 import { FIRO_CHAIN, FiroChain } from '@rosen-chains/firo';
-import { FiroRpcNetwork } from '@rosen-chains/firo-rpc';
+import { FiroElectrumXNetwork } from '@rosen-chains/firo-electrumx';
 import { RateLimitedAxiosConfig } from '@rosen-clients/rate-limited-axios';
 
 import GuardsBinanceConfigs from '../configs/guardsBinanceConfigs';
@@ -292,27 +292,18 @@ class ChainHandler {
    * @returns FiroChain object
    */
   private generateFiroChain = (): FiroChain => {
-    const network = new FiroRpcNetwork(
-      GuardsFiroConfigs.rpc.url,
+    const network = new FiroElectrumXNetwork(
+      GuardsFiroConfigs.electrumx.host,
+      GuardsFiroConfigs.electrumx.port,
       async (txId: string) => {
         const tx = await DatabaseAction.getInstance().getTxById(txId);
         if (tx === null) return undefined;
         return TransactionSerializer.fromJson(tx.txJson, this.getChain);
       },
-      DefaultLogger.getInstance().child('FiroRpcNetwork'),
-      {
-        username: GuardsFiroConfigs.rpc.username,
-        password: GuardsFiroConfigs.rpc.password,
-        apiKey: GuardsFiroConfigs.rpc.apiKey,
-      },
+      GuardsFiroConfigs.electrumx.reconnectDelay,
+      GuardsFiroConfigs.electrumx.timeout,
+      DefaultLogger.getInstance().child('FiroElectrumXNetwork'),
     );
-    if (GuardsFiroConfigs.rpc.rps !== undefined)
-      RateLimitedAxiosConfig.addRule(
-        GuardsFiroConfigs.rpc.url,
-        GuardsFiroConfigs.rpc.rps,
-        1,
-        GuardsFiroConfigs.rpc.timeout,
-      );
     const chainCode = GuardsFiroConfigs.tssChainCode;
     const derivationPath = GuardsFiroConfigs.derivationPath;
     const firoSignMediator = TssHandler.getInstance().wrapCurveSignMediator(
