@@ -19,6 +19,13 @@ class GuardsEthereumConfigs {
     timeout: config.get<number>('ethereum.rpc.timeout'), // seconds
     scannerInterval: config.get<number>('ethereum.rpc.scannerInterval'),
     initialHeight: config.get<number>('ethereum.rpc.initialHeight'),
+    fastForward: {
+      isEnabled: config.get<boolean>('ethereum.rpc.fastForward.isEnabled'),
+      batchSize: config.get<number>('ethereum.rpc.fastForward.batchSize'),
+      checkNonceAtHeight: config.get<boolean>(
+        'ethereum.rpc.fastForward.checkNonceAtHeight',
+      ),
+    },
   };
 
   // value configs

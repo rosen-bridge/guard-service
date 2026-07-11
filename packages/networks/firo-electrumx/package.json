@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "@rosen-bridge/abstract-logger": "^4.0.0",
-    "@rosen-bridge/firo-scanner": "^0.2.0",
+    "@rosen-bridge/firo-scanner": "^0.2.2",
     "@rosen-chains/abstract-chain": "^16.0.0",
     "@rosen-chains/firo": "^0.0.0",
     "bitcoinjs-lib": "^6.1.5",

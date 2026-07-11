@@ -19,6 +19,13 @@ class GuardsBinanceConfigs {
     timeout: config.get<number>('binance.rpc.timeout'), // seconds
     scannerInterval: config.get<number>('binance.rpc.scannerInterval'),
     initialHeight: config.get<number>('binance.rpc.initialHeight'),
+    fastForward: {
+      isEnabled: config.get<boolean>('binance.rpc.fastForward.isEnabled'),
+      batchSize: config.get<number>('binance.rpc.fastForward.batchSize'),
+      checkNonceAtHeight: config.get<boolean>(
+        'binance.rpc.fastForward.checkNonceAtHeight',
+      ),
+    },
   };
 
   // value configs

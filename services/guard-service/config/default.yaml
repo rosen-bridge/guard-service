@@ -19,7 +19,11 @@ binance:
     url: ''
     timeout: 8
     initialHeight: -1
-    scannerInterval: 10
+    scannerInterval: 60
+    fastForward:
+      isEnabled: true # enables fast-forward feature; i.e., scans a block batch only if a related transaction might be found in it
+      batchSize: 1500 # number of blocks in each batch in fast-forward feature (doesn't matter if `isEnabled` is false)
+      checkNonceAtHeight: false # checks the address nonce at the batch height. Enable this only when your RPC API supports historical requests (doesn't matter if `isEnabled` is false)
   maxParallelTx: 2 # maximum number of txs to be processed with the same nonce (note that only one of these transactions will be succeed)
   gasPriceSlippage: 50 # allowed slippage percentage for gas price
   gasLimitSlippage: 50 # allowed slippage percentage for gas limit
@@ -160,7 +164,11 @@ ethereum:
     url: ''
     timeout: 8
     initialHeight: -1
-    scannerInterval: 20
+    scannerInterval: 60
+    fastForward:
+      isEnabled: true # enables fast-forward feature; i.e., scans a block batch only if a related transaction might be found in it
+      batchSize: 100 # number of blocks in each batch in fast-forward feature (doesn't matter if `isEnabled` is false)
+      checkNonceAtHeight: false # checks the address nonce at the batch height. Enable this only when your RPC API supports historical requests (doesn't matter if `isEnabled` is false)
   maxParallelTx: 2 # maximum number of txs to be processed with the same nonce (note that only one of these transactions will be succeed)
   gasPriceSlippage: 50 # allowed slippage percentage for gas price
   gasLimitSlippage: 50 # allowed slippage percentage for gas limit
