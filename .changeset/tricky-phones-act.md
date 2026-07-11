@@ -12,5 +12,5 @@
 
 Update dependencies
 
-- @rosen-bridge/rosen-extractor@12.1.0
+- @rosen-bridge/rosen-extractor@12.1.1
 - @rosen-bridge/tokens@6.0.2

@@ -4,7 +4,7 @@ import { createHash } from 'crypto';
 import {
   parseBlockHeader as parseScannerBlockHeader,
   parseTransaction,
-} from '@rosen-bridge/firo-scanner/dist/network/parsers';
+} from '@rosen-bridge/firo-scanner';
 import { BlockInfo } from '@rosen-chains/abstract-chain';
 import { FiroTx, FIRO_NETWORK } from '@rosen-chains/firo';
 

@@ -16,9 +16,11 @@ import {
 } from './mocked/electrumxSocket.mock';
 import * as testData from './testData';
 
-vi.mock('@rosen-bridge/firo-scanner/dist/network/electrumXSocket', async () => {
+vi.mock('@rosen-bridge/firo-scanner', async (importOriginal) => {
+  const ref =
+    await importOriginal<typeof import('@rosen-bridge/firo-scanner')>();
   const mock = await import('./mocked/electrumxSocket.mock');
-  return { ElectrumXSocket: mock.ElectrumXSocket };
+  return { ...ref, ElectrumXSocket: mock.ElectrumXSocket };
 });
 
 describe('FiroElectrumXNetwork', () => {

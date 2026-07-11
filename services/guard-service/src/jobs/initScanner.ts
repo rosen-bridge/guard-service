@@ -396,12 +396,18 @@ const initScanner = () => {
         GuardsEthereumConfigs.rpc.timeout,
         GuardsEthereumConfigs.rpc.authToken,
       ),
+      heightGap: GuardsEthereumConfigs.rpc.fastForward.isEnabled
+        ? GuardsEthereumConfigs.rpc.fastForward.heightGap
+        : undefined,
       logger: loggers.ethereumScannerLogger,
     });
     const ethereumAddressTxExtractor = new EvmTxExtractor(
       dataSource,
       'ethereum-lock-address',
       GuardsEthereumConfigs.ethereumContractConfig.addresses.lock,
+      GuardsEthereumConfigs.rpc.url,
+      GuardsEthereumConfigs.rpc.authToken,
+      GuardsEthereumConfigs.rpc.fastForward.checkNonceAtHeight,
       loggers.ethereumLockAddressTxExtractorLogger,
     );
     ethereumScanner.registerExtractor(ethereumAddressTxExtractor);
@@ -420,12 +426,18 @@ const initScanner = () => {
         GuardsBinanceConfigs.rpc.timeout,
         GuardsBinanceConfigs.rpc.authToken,
       ),
+      heightGap: GuardsBinanceConfigs.rpc.fastForward.isEnabled
+        ? GuardsBinanceConfigs.rpc.fastForward.heightGap
+        : undefined,
       logger: loggers.binanceScannerLogger,
     });
     const BinanceAddressTxExtractor = new EvmTxExtractor(
       dataSource,
       'Binance-lock-address',
       GuardsBinanceConfigs.binanceContractConfig.addresses.lock,
+      GuardsBinanceConfigs.rpc.url,
+      GuardsBinanceConfigs.rpc.authToken,
+      GuardsBinanceConfigs.rpc.fastForward.checkNonceAtHeight,
       loggers.binanceLockAddressTxExtractorLogger,
     );
     binanceScanner.registerExtractor(BinanceAddressTxExtractor);

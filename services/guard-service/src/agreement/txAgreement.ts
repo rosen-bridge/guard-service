@@ -1,8 +1,7 @@
-import { Semaphore } from 'await-semaphore';
-
 import { DefaultLogger } from '@rosen-bridge/abstract-logger';
 import { Communicator } from '@rosen-bridge/communication';
 import { RosenDialerNode } from '@rosen-bridge/dialer';
+import { Semaphore } from '@rosen-bridge/semaphore';
 import {
   ImpossibleBehavior,
   PaymentTransaction,

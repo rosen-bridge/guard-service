@@ -4,5 +4,5 @@
 
 Update dependencies
 
-- @rosen-bridge/evm-address-tx-extractor@2.0.5
+- @rosen-bridge/evm-address-tx-extractor@3.0.1
 - @rosen-bridge/extended-typeorm@1.1.0

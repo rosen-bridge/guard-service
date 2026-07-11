@@ -36,7 +36,7 @@
     "@rosen-bridge/abstract-logger": "^4.0.0",
     "@rosen-bridge/json-bigint": "^1.1.0",
     "@rosen-bridge/minimum-fee": "^4.0.1",
-    "@rosen-bridge/rosen-extractor": "^12.1.0",
+    "@rosen-bridge/rosen-extractor": "^12.1.1",
     "@rosen-bridge/tokens": "^6.0.2",
     "blakejs": "^1.2.1"
   },
