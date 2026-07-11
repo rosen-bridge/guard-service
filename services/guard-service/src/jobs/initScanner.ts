@@ -397,7 +397,7 @@ const initScanner = () => {
         GuardsEthereumConfigs.rpc.authToken,
       ),
       heightGap: GuardsEthereumConfigs.rpc.fastForward.isEnabled
-        ? GuardsEthereumConfigs.rpc.fastForward.batchSize
+        ? GuardsEthereumConfigs.rpc.fastForward.heightGap
         : undefined,
       logger: loggers.ethereumScannerLogger,
     });
@@ -427,7 +427,7 @@ const initScanner = () => {
         GuardsBinanceConfigs.rpc.authToken,
       ),
       heightGap: GuardsBinanceConfigs.rpc.fastForward.isEnabled
-        ? GuardsBinanceConfigs.rpc.fastForward.batchSize
+        ? GuardsBinanceConfigs.rpc.fastForward.heightGap
         : undefined,
       logger: loggers.binanceScannerLogger,
     });

@@ -21,7 +21,7 @@ class GuardsBinanceConfigs {
     initialHeight: config.get<number>('binance.rpc.initialHeight'),
     fastForward: {
       isEnabled: config.get<boolean>('binance.rpc.fastForward.isEnabled'),
-      batchSize: config.get<number>('binance.rpc.fastForward.batchSize'),
+      heightGap: config.get<number>('binance.rpc.fastForward.heightGap'),
       checkNonceAtHeight: config.get<boolean>(
         'binance.rpc.fastForward.checkNonceAtHeight',
       ),

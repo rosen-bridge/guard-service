@@ -1,4 +1,3 @@
-import { Semaphore } from 'await-semaphore';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 
 import { DefaultLogger } from '@rosen-bridge/abstract-logger';
@@ -16,6 +15,7 @@ import {
   UpdateResult,
 } from '@rosen-bridge/extended-typeorm';
 import { LastSavedBlock } from '@rosen-bridge/scanner-sync-check';
+import { Semaphore } from '@rosen-bridge/semaphore';
 import {
   CommitmentEntity,
   EventTriggerEntity,

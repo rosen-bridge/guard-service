@@ -21,7 +21,7 @@ class GuardsEthereumConfigs {
     initialHeight: config.get<number>('ethereum.rpc.initialHeight'),
     fastForward: {
       isEnabled: config.get<boolean>('ethereum.rpc.fastForward.isEnabled'),
-      batchSize: config.get<number>('ethereum.rpc.fastForward.batchSize'),
+      heightGap: config.get<number>('ethereum.rpc.fastForward.heightGap'),
       checkNonceAtHeight: config.get<boolean>(
         'ethereum.rpc.fastForward.checkNonceAtHeight',
       ),
