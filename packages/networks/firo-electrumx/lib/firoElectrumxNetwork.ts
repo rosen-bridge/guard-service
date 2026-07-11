@@ -1,8 +1,7 @@
 import { Psbt } from 'bitcoinjs-lib';
 
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
-import { ElectrumXSocket } from '@rosen-bridge/firo-scanner/dist/network/electrumXSocket';
-import { TimeoutError } from '@rosen-bridge/firo-scanner/dist/network/types';
+import { ElectrumXSocket, TimeoutError } from '@rosen-bridge/firo-scanner';
 import {
   BlockInfo,
   FailedError,
