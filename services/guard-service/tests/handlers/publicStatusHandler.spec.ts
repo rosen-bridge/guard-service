@@ -295,6 +295,54 @@ describe('PublicStatusHandler', () => {
         tx: undefined,
       });
     });
+
+    /**
+     * @target PublicStatusHandler.updatePublicEventStatus should read the event data from RejectedEventEntity table when status is rejected
+     * @dependencies
+     * - Database
+     * @scenario
+     * - define a mock PublicStatusHandler with a mock dataSource
+     * - insert a mock event with "rejected" status in database
+     * - stub PublicStatusHandler.submitRequest (processor.jobFn) to resolve
+     * - call PublicStatusHandler.updatePublicEventStatus with "rejected" status
+     * @expected
+     * - PublicStatusHandler.submitRequest should have been called once without a transaction property
+     */
+    it('should read the event data from RejectedEventEntity table when status is rejected', async () => {
+      // arrange
+      const instance = new TestPublicStatusHandler(
+        DatabaseActionMock.testDataSource,
+      );
+
+      const status = EventStatus.rejected;
+
+      const mockedEvent = EventTestData.mockEventTrigger().event;
+      const eventId = EventSerializer.getId(mockedEvent);
+      await DatabaseActionMock.insertRejectedEventRecord(mockedEvent, '');
+      const event =
+        await DatabaseActionMock.testDatabase.RejectedEventRepository.findOneOrFail(
+          {
+            relations: ['eventData'],
+            where: { id: eventId },
+          },
+        );
+
+      const submitRequestSpy = vi
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(instance.processor as any, 'jobFn')
+        .mockResolvedValue(undefined);
+
+      // act
+      await instance.updatePublicEventStatus(eventId, status);
+
+      // assert
+      expect(submitRequestSpy).toHaveBeenCalledExactlyOnceWith({
+        eventId,
+        triggerTxId: event.eventData.txId,
+        status,
+        tx: undefined,
+      });
+    });
   });
 
   describe('updatePublicTxStatus', () => {
