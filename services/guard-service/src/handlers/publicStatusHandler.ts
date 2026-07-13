@@ -8,6 +8,7 @@ import axios, { Axios, isAxiosError } from '@rosen-clients/rate-limited-axios';
 
 import Configs from '../configs/configs';
 import { ConfirmedEventEntity } from '../db/entities/confirmedEventEntity';
+import { RejectedEventEntity } from '../db/entities/rejectedEventEntity';
 import { TransactionEntity } from '../db/entities/transactionEntity';
 import { EventStatus, TransactionStatus } from '../utils/constants';
 import { ParallelBranchProcessor } from '../utils/parallelBranchProcessor';
@@ -32,6 +33,7 @@ class PublicStatusHandler {
   private static instance?: PublicStatusHandler;
   readonly axios?: Axios;
   readonly eventRepository: Repository<ConfirmedEventEntity>;
+  readonly rejectedEventRepository: Repository<RejectedEventEntity>;
   readonly txRepository: Repository<TransactionEntity>;
   readonly isActive: boolean;
   readonly processor: ParallelBranchProcessor<UpdateStatusDTO>;
@@ -52,6 +54,8 @@ class PublicStatusHandler {
         'publicStatusBaseUrl does not exist, skipping axios initialization',
       );
     this.eventRepository = dataSource.getRepository(ConfirmedEventEntity);
+    this.rejectedEventRepository =
+      dataSource.getRepository(RejectedEventEntity);
     this.txRepository = dataSource.getRepository(TransactionEntity);
     this.processor = new ParallelBranchProcessor(this.submitRequest);
   }
@@ -145,14 +149,23 @@ class PublicStatusHandler {
     if (!this.isActive) return;
 
     try {
-      const event = await this.eventRepository.findOne({
-        relations: {
-          eventData: true,
-        },
-        where: {
-          id: eventId,
-        },
-      });
+      const event = await (status !== EventStatus.rejected
+        ? this.eventRepository.findOne({
+            relations: {
+              eventData: true,
+            },
+            where: {
+              id: eventId,
+            },
+          })
+        : this.rejectedEventRepository.findOne({
+            relations: {
+              eventData: true,
+            },
+            where: {
+              id: eventId,
+            },
+          }));
 
       if (!event) {
         throw new ImpossibleBehavior(`Event [${eventId}] is not found!`);
