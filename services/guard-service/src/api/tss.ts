@@ -2,6 +2,7 @@ import { DefaultLogger } from '@rosen-bridge/abstract-logger';
 import { FastifyWithZod } from '@rosen-bridge/fastify-enhanced';
 
 import TssHandler from '../handlers/tssHandler';
+import { validateTrustKey } from '../utils/authentication';
 import {
   MessageResponseSchema,
   TssCallbackParams,
@@ -26,25 +27,13 @@ const signRoute = (server: FastifyWithZod) => {
           400: MessageResponseSchema,
         },
       },
+      preHandler: [validateTrustKey],
     },
     async (request, reply) => {
       try {
         const { algorithm } = request.params;
-        const {
-          status,
-          error,
-          message,
-          signature,
-          signatureRecovery,
-          trustKey,
-        } = request.body;
-        if (trustKey !== TssHandler.getTrustKey()) {
-          logger.warn(
-            `Received message on Tss tx sign callback with wrong trust key`,
-          );
-          reply.status(400).send({ message: 'Trust key is wrong' });
-          return;
-        }
+        const { status, error, message, signature, signatureRecovery } =
+          request.body;
         await TssHandler.getInstance().handleSignData(
           algorithm,
           status,
