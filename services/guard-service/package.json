@@ -1,7 +1,7 @@
 {
   "name": "guard-service",
-  "private": true,
   "version": "9.1.1",
+  "private": true,
   "description": "",
   "repository": {
     "type": "git",
@@ -54,6 +54,7 @@
     "@rosen-bridge/log-level-check": "^4.0.0",
     "@rosen-bridge/minimum-fee": "^4.0.1",
     "@rosen-bridge/node-sync-check": "^3.0.3",
+    "@rosen-bridge/query-params": "^0.0.0",
     "@rosen-bridge/rosenet-utils": "^0.5.0",
     "@rosen-bridge/scanner-interfaces": "^1.0.0",
     "@rosen-bridge/scanner-sync-check": "^8.2.0",

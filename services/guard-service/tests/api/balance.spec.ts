@@ -1,12 +1,12 @@
 import { FastifyWithZod, makeFastify } from '@rosen-bridge/fastify-enhanced';
+import { ERGO_CHAIN } from '@rosen-bridge/tokens';
+import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
+import { DOGE } from '@rosen-chains/doge';
 
 import { balanceRoutes } from '../../src/api/balance';
-import BalanceHandlerMock from '../handlers/mocked/balanceHandler.mock';
-import {
-  mockLockBalances,
-  mockColdBalances,
-  mockBalancesObj,
-} from './testData';
+import BalanceHandler from '../../src/handlers/balanceHandler';
+import DatabaseActionMock from '../db/mocked/databaseAction.mock';
+import { mockAddresses, mockBalances, mockBalancesResponse } from './testData';
 
 describe('balanceRoutes', () => {
   describe('GET /balance', () => {
@@ -16,8 +16,9 @@ describe('balanceRoutes', () => {
       mockedServer = await makeFastify();
       mockedServer.register(balanceRoutes);
 
-      BalanceHandlerMock.resetMock();
-      BalanceHandlerMock.mock();
+      await DatabaseActionMock.clearTables();
+
+      BalanceHandler.init();
     });
 
     afterEach(() => {
@@ -25,21 +26,25 @@ describe('balanceRoutes', () => {
     });
 
     /**
-     * @target fastifyServer[GET /balance] should return lock balance with hot and cold arrays populated
+     * @target fastifyServer[GET /balance] should respond with all balances when no queries are specified
      * @dependencies
+     * - database
      * @scenario
-     * - stub BalanceHandler.getAddressAssets to return mock balances for both lock and cold addresses
+     * - populate database with mock address records
+     * - populate database with mock balance records
      * - call handler
+     * - check the returned response
      * @expected
      * - response status should have been 200
-     * - response should have matched hot and cold balances from mockBalances
+     * - response items should have contained all the mock balances
      */
-    it('should return lock balance with hot and cold arrays populated', async () => {
+    it('should respond with all balance records when no queries are specified', async () => {
       // arrange
-      BalanceHandlerMock.mockGetAddressAssets().mockImplementation(
-        async (address) =>
-          address === 'lock' ? mockLockBalances : mockColdBalances,
-      );
+      for (const address of mockAddresses)
+        await DatabaseActionMock.insertAddressRecord(address);
+
+      for (const balance of mockBalances)
+        await DatabaseActionMock.insertChainAddressBalanceRecord(balance);
 
       // act
       const result = await mockedServer.inject({
@@ -48,27 +53,304 @@ describe('balanceRoutes', () => {
       });
 
       // assert
-      expect(result.json()).toEqual(mockBalancesObj);
       expect(result.statusCode).toEqual(200);
+      expect(result.json()).toEqual(mockBalancesResponse);
     });
 
     /**
-     * @target fastifyServer[GET /balance] should return empty lock balance when no balances are returned
+     * @target fastifyServer[GET /balance] should respond with balances of specified chain when chain query is used
+     * @dependencies
+     * - database
+     * @scenario
+     * - populate database with mock address records
+     * - populate database with mock balance records
+     * - call handler with chain="cardano"
+     * - call handler with chain="ergo"
+     * - call handler with chain="doge"
+     * - call handler with chain="aaa"
+     * - check the returned responses
+     * @expected
+     * - status of first 3 responses should have been 200
+     * - first response items should have matched the cardano balances
+     * - second response items should have matched the ergo balances
+     * - third response items should have matched an empty items array
+     * - status of the last response should have been 400 indicating an invalid chain name
+     */
+    it('should respond with balances of specified chain when chain query is used', async () => {
+      // arrange
+      for (const address of mockAddresses)
+        await DatabaseActionMock.insertAddressRecord(address);
+
+      for (const balance of mockBalances)
+        await DatabaseActionMock.insertChainAddressBalanceRecord(balance);
+
+      // act
+      const firstResult = await mockedServer.inject({
+        method: 'GET',
+        url: '/balance',
+        query: {
+          chain: 'cardano',
+        },
+      });
+      const secondResult = await mockedServer.inject({
+        method: 'GET',
+        url: '/balance',
+        query: {
+          chain: 'ergo',
+        },
+      });
+      const thirdResult = await mockedServer.inject({
+        method: 'GET',
+        url: '/balance',
+        query: {
+          chain: 'doge',
+        },
+      });
+      const fourthResult = await mockedServer.inject({
+        method: 'GET',
+        url: '/balance',
+        query: {
+          chain: 'aaa',
+        },
+      });
+
+      // assert
+      expect(firstResult.statusCode).toEqual(200);
+      expect(firstResult.json()).toEqual({
+        total: 7,
+        items: mockBalancesResponse.items.filter(
+          (record) => record.chain === 'cardano',
+        ),
+      });
+
+      expect(secondResult.statusCode).toEqual(200);
+      expect(secondResult.json()).toEqual({
+        total: 1,
+        items: mockBalancesResponse.items.filter(
+          (record) => record.chain === 'ergo',
+        ),
+      });
+
+      expect(thirdResult.statusCode).toEqual(200);
+      expect(thirdResult.json()).toEqual({
+        total: 0,
+        items: [],
+      });
+
+      expect(fourthResult.statusCode).toEqual(400);
+      expect(fourthResult.json()).toEqual({
+        message: `Error: Invalid value for the 'chain' field`,
+      });
+    });
+
+    /**
+     * @target fastifyServer[GET /balance] should respond with balances of the specified tokenId when tokenId query is used
+     * @dependencies
+     * - database
+     * @scenario
+     * - populate database with mock address records
+     * - populate database with mock balance records
+     * - call handler with tokenId="ada"
+     * - call handler with tokenId="ba"
+     * - call handler with tokenId="doge"
+     * - check the returned responses
+     * @expected
+     * - response statuses should have been 200
+     * - first response items should have contained the "ada" balance with total of 1
+     * - second response items should have contained balances containing "ba" in their tokenId with total of 2
+     * - third response items should have contained empty response with total of 0
+     */
+    it('should respond with balances of the specified tokenId when tokenId query is used', async () => {
+      // arrange
+      for (const address of mockAddresses)
+        await DatabaseActionMock.insertAddressRecord(address);
+
+      for (const balance of mockBalances)
+        await DatabaseActionMock.insertChainAddressBalanceRecord(balance);
+
+      // act
+      const firstResult = await mockedServer.inject({
+        method: 'GET',
+        url: `/balance?tokenId*=${ADA}`,
+      });
+      const secondResult = await mockedServer.inject({
+        method: 'GET',
+        url: `/balance?tokenId*=ba`,
+      });
+      const thirdResult = await mockedServer.inject({
+        method: 'GET',
+        url: `/balance?tokenId*=${DOGE}`,
+      });
+
+      // assert
+      expect(firstResult.statusCode).toEqual(200);
+      expect(firstResult.json()).toEqual({
+        total: 1,
+        items: mockBalancesResponse.items.filter(
+          (record) => record.token.id === ADA,
+        ),
+      });
+
+      expect(secondResult.statusCode).toEqual(200);
+      expect(secondResult.json()).toEqual({
+        total: 2,
+        items: mockBalancesResponse.items.filter((record) =>
+          record.token.id.includes('ba'),
+        ),
+      });
+
+      expect(thirdResult.statusCode).toEqual(200);
+      expect(thirdResult.json()).toEqual({
+        total: 0,
+        items: [],
+      });
+    });
+
+    /**
+     * @target fastifyServer[GET /balance] should respond with balances of the specified chain and tokenId when both queries are used
+     * @dependencies
+     * - database
+     * @scenario
+     * - populate database with mock address records
+     * - populate database with mock balance records
+     * - call handler with tokenId="ada" and chain="cardano"
+     * - call handler with tokenId="ba" and chain="ergo"
+     * - call handler with tokenId="er" and chain="ergo"
+     * - check the returned responses
+     * @expected
+     * - response statuses should have been 200
+     * - first response items should have contained balances with "cardano" as chain and containing "ada" in its tokenId with total of 1
+     * - second response items should have been an empty array with total of 0
+     * - third response items should have contained balances with "ergo" as chain and containing "er" in its tokenId with total of 1
+     */
+    it('should respond with balances of the specified chain and tokenId when both queries are used', async () => {
+      // arrange
+      for (const address of mockAddresses)
+        await DatabaseActionMock.insertAddressRecord(address);
+
+      for (const balance of mockBalances)
+        await DatabaseActionMock.insertChainAddressBalanceRecord(balance);
+
+      // act
+      const adaResult = await mockedServer.inject({
+        method: 'GET',
+        url: `/balance?tokenId*=${ADA}&chain=${CARDANO_CHAIN}`,
+      });
+      const baResult = await mockedServer.inject({
+        method: 'GET',
+        url: `/balance?tokenId*=ba&chain=${ERGO_CHAIN}`,
+      });
+      const erResult = await mockedServer.inject({
+        method: 'GET',
+        url: `/balance?tokenId*=er&chain=${ERGO_CHAIN}`,
+      });
+
+      // assert
+      expect(adaResult.statusCode).toEqual(200);
+      expect(adaResult.json()).toEqual({
+        total: 1,
+        items: mockBalancesResponse.items.filter(
+          (record) => record.token.id === ADA && record.chain === CARDANO_CHAIN,
+        ),
+      });
+
+      expect(baResult.statusCode).toEqual(200);
+      expect(baResult.json()).toEqual({
+        total: 0,
+        items: [],
+      });
+
+      expect(erResult.statusCode).toEqual(200);
+      expect(erResult.json()).toEqual({
+        total: 1,
+        items: mockBalancesResponse.items.filter(
+          (record) =>
+            record.token.id.includes('er') && record.chain === ERGO_CHAIN,
+        ),
+      });
+    });
+
+    /**
+     * @target fastifyServer[GET /balance] should respond with balances respecting the pagination query
+     * @dependencies
+     * - database
+     * @scenario
+     * - populate database with mock address records
+     * - populate database with 9 mock balance records
+     * - call handler with offset=0 and limit=5
+     * - call handler with offset=4 and limit=10
+     * - call handler with offset=10 and limit=10
+     * - check the returned responses
+     * @expected
+     * - response statuses should have been 200
+     * - first response items should have contained 5 balances with total of 9
+     * - second response items should have contained 4 balances with total of 9
+     * - third response items should have contained 0 balances with total of 9
+     */
+    it('should respond with balances respecting the pagination query', async () => {
+      // arrange
+      for (const address of mockAddresses)
+        await DatabaseActionMock.insertAddressRecord(address);
+
+      for (const balance of mockBalances)
+        await DatabaseActionMock.insertChainAddressBalanceRecord(balance);
+
+      // act
+      const firstResult = await mockedServer.inject({
+        method: 'GET',
+        url: '/balance',
+        query: {
+          offset: '0',
+          limit: '5',
+        },
+      });
+      const secondResult = await mockedServer.inject({
+        method: 'GET',
+        url: '/balance',
+        query: {
+          offset: '4',
+          limit: '10',
+        },
+      });
+      const thirdResult = await mockedServer.inject({
+        method: 'GET',
+        url: '/balance',
+        query: {
+          offset: '10',
+          limit: '10',
+        },
+      });
+
+      // assert
+      expect(firstResult.statusCode).toEqual(200);
+      expect(firstResult.json()).toEqual({
+        total: 9,
+        items: mockBalancesResponse.items.slice(0, 5),
+      });
+
+      expect(secondResult.statusCode).toEqual(200);
+      expect(secondResult.json()).toEqual({
+        total: 9,
+        items: mockBalancesResponse.items.slice(4),
+      });
+
+      expect(thirdResult.statusCode).toEqual(200);
+      expect(thirdResult.json()).toEqual({
+        total: 9,
+        items: [],
+      });
+    });
+
+    /**
+     * @target fastifyServer[GET /balance] should return empty response object when no balances are available
      * @dependencies
      * @scenario
-     * - stub BalanceHandler.getAddressAssets to return empty array for both lock and cold addresses
      * - call handler
      * @expected
      * - response status should have been 200
-     * - response balance arrays should have been an empty
+     * - response items should have been an empty array with total of 0
      */
-    it('should return empty lock balance when no balances are returned', async () => {
-      // arrange
-      BalanceHandlerMock.mockGetAddressAssets().mockResolvedValue({
-        items: [],
-        total: 0,
-      });
-
+    it('should return empty response object when no balances are available', async () => {
       // act
       const result = await mockedServer.inject({
         method: 'GET',
@@ -78,35 +360,79 @@ describe('balanceRoutes', () => {
       // assert
       expect(result.statusCode).toEqual(200);
       expect(result.json()).toEqual({
-        hot: {
-          items: [],
-          total: 0,
-        },
-        cold: {
-          items: [],
-          total: 0,
-        },
+        items: [],
+        total: 0,
+      });
+    });
+
+    /**
+     * @target fastifyServer[GET /balance] should respond with balances sorted by chain
+     * @dependencies
+     * - database
+     * @scenario
+     * - populate database with mock address records
+     * - populate database with mock balance records
+     * - call handler with sort option chain=DESC
+     * - call handler with sort option chain=ASC
+     * - check the returned responses
+     * @expected
+     * - response statuses should have been 200
+     * - first response items should have contained the mock balance records sorted by DESC chain
+     * - second response items should have contained the mock balance records sorted by ASC chain
+     */
+    it('should respond with balances sorted by chain', async () => {
+      // arrange
+      for (const address of mockAddresses)
+        await DatabaseActionMock.insertAddressRecord(address);
+
+      for (const balance of mockBalances)
+        await DatabaseActionMock.insertChainAddressBalanceRecord(balance);
+
+      // act
+      const descResult = await mockedServer.inject({
+        method: 'GET',
+        url: '/balance?sorts=chain-DESC',
+      });
+      const ascResult = await mockedServer.inject({
+        method: 'GET',
+        url: '/balance?sorts=chain-ASC',
+      });
+
+      // assert
+      expect(descResult.statusCode).toEqual(200);
+      expect(descResult.json()).toEqual({
+        total: mockBalancesResponse.total,
+        items: mockBalancesResponse.items.toSorted((a, b) =>
+          b.chain.localeCompare(a.chain),
+        ),
+      });
+
+      expect(ascResult.statusCode).toEqual(200);
+      expect(ascResult.json()).toEqual({
+        total: mockBalancesResponse.total,
+        items: mockBalancesResponse.items.toSorted((a, b) =>
+          a.chain.localeCompare(b.chain),
+        ),
       });
     });
 
     /**
      * @target fastifyServer[GET /balance] should return error response when an exception is thrown during balance retrieval
      * @dependencies
+     * - database
      * @scenario
-     * - stub BalanceHandler.getAddressAssets to reject for lock address and return mock balances for cold address
+     * - stub DatabaseAction.getChainAddressBalanceTokenIds to reject with a mock error message
      * - call handler
      * @expected
      * - response status should have been 500
-     * - response should have matched the correct error message
+     * - response should have matched the mock error message
      */
     it('should return error response when an exception is thrown during balance retrieval', async () => {
       // arrange
-      BalanceHandlerMock.mockGetAddressAssets().mockImplementation(
-        async (address) => {
-          if (address === 'lock') throw new Error('custom_error');
-          else return { items: [], total: 0 };
-        },
-      );
+      vi.spyOn(
+        DatabaseActionMock.testDatabase,
+        'getChainAddressBalanceTokenIds',
+      ).mockRejectedValueOnce(new Error('custom_error'));
 
       // act
       const result = await mockedServer.inject({

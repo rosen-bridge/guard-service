@@ -5,6 +5,7 @@ import { BlockEntity, PROCEED } from '@rosen-bridge/abstract-scanner';
 import {
   And,
   DataSource,
+  FindOptionsOrder,
   In,
   IsNull,
   LessThan,
@@ -12,8 +13,10 @@ import {
   MoreThanOrEqual,
   Not,
   Repository,
+  SelectQueryBuilder,
   UpdateResult,
 } from '@rosen-bridge/extended-typeorm';
+import { FilterSort } from '@rosen-bridge/query-params';
 import { LastSavedBlock } from '@rosen-bridge/scanner-sync-check';
 import { Semaphore } from '@rosen-bridge/semaphore';
 import {
@@ -1120,43 +1123,30 @@ class DatabaseAction {
   };
 
   /**
-   * gets all ChainAddressBalanceEntity by array of tokenIds
+   * gets all ChainAddressBalanceEntity records
    * @param tokenIds
-   * @returns array of ChainAddressBalanceEntity
-   */
-  getChainAddressBalanceByTokenIds = async (
-    tokenIds: string[],
-  ): Promise<ChainAddressBalanceEntity[]> => {
-    return await this.ChainAddressBalanceRepository.findBy({
-      tokenId: In(tokenIds),
-    });
-  };
-
-  /**
-   * gets all ChainAddressBalanceEntity by array of addresses
-   * @param addresses
-   * @param chain
-   * @param tokenId
-   * @param offset
-   * @param limit
+   * @param sorts
    * @returns a promise of Page ChainAddressBalanceEntity object
    */
-  getChainAddressBalanceByAddresses = async (
-    addresses: string[],
-    chain?: string,
-    tokenId?: string,
-    offset?: number,
-    limit?: number,
+  getChainAddressBalances = async (
+    tokenIds?: string[],
+    sorts?: FilterSort[],
   ): Promise<Page<ChainAddressBalanceEntity>> => {
+    const order: FindOptionsOrder<ChainAddressBalanceEntity> = {};
+
+    for (const sort of sorts ?? []) {
+      if (sort.key === 'chain') order.address = { chain: sort.order };
+    }
+
     const [items, total] =
       await this.ChainAddressBalanceRepository.findAndCount({
-        where: {
-          address: In(addresses),
-          ...(chain ? { chain } : {}),
-          ...(tokenId ? { tokenId } : {}),
+        relations: {
+          address: true,
         },
-        ...(Number.isFinite(offset) ? { skip: offset } : {}),
-        ...(Number.isFinite(limit) ? { take: limit } : {}),
+        where: {
+          ...(tokenIds ? { tokenId: In(tokenIds) } : {}),
+        },
+        order,
       });
 
     return {
@@ -1166,16 +1156,72 @@ class DatabaseAction {
   };
 
   /**
-   * gets all ChainAddressBalanceEntity objects by chain name
+   * gets distinct tokenIds from ChainAddressBalanceEntity records
    * @param chain
-   * @returns array of ChainAddressBalanceEntity objects
+   * @param tokenId
+   * @param offset
+   * @param limit
+   * @param sorts
+   * @returns a promise of tokenId array and the total count
    */
-  getChainAddressBalanceByChain = async (
-    chain: string,
-  ): Promise<ChainAddressBalanceEntity[]> => {
-    return this.ChainAddressBalanceRepository.findBy({
-      chain,
-    });
+  getChainAddressBalanceTokenIds = async (
+    chain?: SupportedChain,
+    tokenId?: string,
+    offset?: number,
+    limit?: number,
+    sorts?: FilterSort[],
+  ): Promise<Page<string>> => {
+    let queryBuilder = this.ChainAddressBalanceRepository.createQueryBuilder(
+      'balance',
+    ).leftJoin(
+      this.AddressRepository.metadata.tableName,
+      'address',
+      'balance."addressId" = address."id"',
+    );
+
+    if (chain !== undefined) {
+      queryBuilder = queryBuilder.andWhere('address."chain" = :chain', {
+        chain,
+      });
+    }
+    if (tokenId) {
+      queryBuilder = queryBuilder.andWhere(
+        `balance."tokenId" LIKE '%' || :tokenId || '%'`,
+        {
+          tokenId,
+        },
+      );
+    }
+
+    const countQuery = new SelectQueryBuilder(queryBuilder);
+
+    if (offset !== undefined) {
+      queryBuilder = queryBuilder.offset(offset);
+    }
+
+    if (limit !== undefined) {
+      queryBuilder = queryBuilder.limit(limit);
+    }
+
+    for (const sort of sorts ?? []) {
+      let key = '';
+      if (sort.key === 'chain') key = 'address.chain';
+      queryBuilder = queryBuilder.addOrderBy(key, sort.order);
+    }
+
+    const recordsResult = await queryBuilder
+      .distinct(true)
+      .select('tokenId')
+      .getRawMany();
+
+    const { total } = await countQuery
+      .select('COUNT(DISTINCT tokenId)', 'total')
+      .getRawOne();
+
+    return {
+      items: recordsResult.map((record) => record.tokenId),
+      total,
+    };
   };
 
   /**
@@ -1183,7 +1229,13 @@ class DatabaseAction {
    * @param records
    */
   removeChainAddressBalances = async (records: ChainAddressBalanceEntity[]) => {
-    return await this.ChainAddressBalanceRepository.remove(records);
+    if (!records.length) return;
+    return this.ChainAddressBalanceRepository.delete(
+      records.map(({ addressId, tokenId }) => ({
+        addressId,
+        tokenId,
+      })),
+    );
   };
 
   /**
@@ -1191,9 +1243,8 @@ class DatabaseAction {
    * @param records
    */
   upsertChainAddressBalances = async (records: ChainAddressBalanceEntity[]) => {
-    return await this.ChainAddressBalanceRepository.upsert(records, [
-      'chain',
-      'address',
+    return this.ChainAddressBalanceRepository.upsert(records, [
+      'addressId',
       'tokenId',
     ]);
   };

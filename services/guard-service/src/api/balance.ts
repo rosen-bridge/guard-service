@@ -1,11 +1,21 @@
+import { groupBy, keyBy } from 'lodash-es';
+import z from 'zod';
+
 import { DefaultLogger } from '@rosen-bridge/abstract-logger';
 import { FastifyWithZod } from '@rosen-bridge/fastify-enhanced';
-
-import BalanceHandler from '../handlers/balanceHandler';
-import { LockBalance } from '../types/api';
 import {
-  BalanceQuerySchema,
-  LockBalanceSchema,
+  Filter,
+  FilterParser,
+  StringFilterField,
+} from '@rosen-bridge/query-params';
+
+import { DatabaseAction } from '../db/databaseAction';
+import { SupportedChain } from '../types/config';
+import { getTokenData } from '../utils/getTokenData';
+import {
+  AddressBalanceSchema,
+  BALANCE_ROUTE_PARSER_SCHEMA,
+  BalanceResponseSchema,
   MessageResponseSchema,
 } from './schemas';
 
@@ -16,42 +26,85 @@ const logger = DefaultLogger.getInstance().child(import.meta.url);
  * @param server
  */
 const getBalanceRoute = (server: FastifyWithZod) => {
+  const filterParser = new FilterParser(BALANCE_ROUTE_PARSER_SCHEMA);
+
   server.get(
     '/balance',
     {
       schema: {
-        querystring: BalanceQuerySchema,
         response: {
-          200: LockBalanceSchema,
+          200: BalanceResponseSchema,
+          400: MessageResponseSchema,
           500: MessageResponseSchema,
         },
       },
     },
     async (request, reply) => {
-      const { offset, limit, chain, tokenId } = request.query;
+      let filter: Filter;
+      let queryFilter: Record<string, StringFilterField | undefined>;
 
       try {
-        const balance: LockBalance = {
-          hot: { items: [], total: 0 },
-          cold: { items: [], total: 0 },
-        };
+        // TODO: `http://localhost` should be removed (local:ergo/rosen-bridge/utils/356)
+        filter = filterParser.parse(`http://localhost${request.url}`);
 
-        balance.hot = await BalanceHandler.getInstance().getAddressAssets(
-          'lock',
-          chain,
-          tokenId,
-          offset,
-          limit,
+        queryFilter = keyBy<StringFilterField | undefined>(
+          (filter.fields as StringFilterField[]) ?? [],
+          'key',
         );
-        balance.cold = await BalanceHandler.getInstance().getAddressAssets(
-          'cold',
-          chain,
-          tokenId,
-          offset,
-          limit,
+      } catch (error) {
+        reply.status(400).send({
+          message: `${error}`,
+        });
+        return;
+      }
+
+      try {
+        const { items: tokenIds, total } =
+          await DatabaseAction.getInstance().getChainAddressBalanceTokenIds(
+            queryFilter.chain?.value as SupportedChain,
+            queryFilter.tokenId?.value,
+            filter.pagination!.offset,
+            filter.pagination!.limit,
+            filter.sorts,
+          );
+
+        const { items: balances } =
+          await DatabaseAction.getInstance().getChainAddressBalances(
+            tokenIds,
+            filter.sorts,
+          );
+
+        const items = Object.values(groupBy(balances, 'tokenId')).map(
+          (balances) => {
+            const tokenData = getTokenData(
+              balances[0].address.chain,
+              balances[0].tokenId,
+              balances[0].address.chain,
+              true,
+            );
+
+            const result: z.infer<typeof AddressBalanceSchema> = {
+              chain: balances[0].address.chain,
+              token: {
+                id: tokenData.tokenId,
+                name: tokenData.name!,
+                decimals: tokenData.decimals,
+                isNativeToken: tokenData.isNativeToken,
+              },
+            };
+
+            balances.forEach((record) => {
+              result[record.address.type] = {
+                address: record.address.address,
+                amount: record.balance.toString(),
+              };
+            });
+
+            return result;
+          },
         );
 
-        reply.status(200).send(balance);
+        reply.status(200).send({ items, total });
       } catch (error) {
         logger.error(`An error occurred while fetching balance: ${error}`);
         if (error.stack) logger.error(error.stack);
