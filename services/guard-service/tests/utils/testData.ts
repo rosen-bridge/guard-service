@@ -1,9 +1,15 @@
+import { RosenChainToken, RosenTokens } from '@rosen-bridge/tokens';
 import { EventTrigger } from '@rosen-chains/abstract-chain';
+import { BTC } from '@rosen-chains/bitcoin';
 
+import GuardsErgoConfigs from '../../src/configs/guardsErgoConfigs';
 import { RevenueEntity } from '../../src/db/entities/revenueEntity';
 import { RevenueView } from '../../src/db/entities/revenueView';
+import { TokenEntity } from '../../src/db/entities/tokenEntity';
 import { RevenueHistory } from '../../src/types/api';
+import { SupportedChain } from '../../src/types/config';
 import { RevenueType } from '../../src/utils/constants';
+import tokenMapJson from '../resources/tokens.test.json';
 
 export const mockedView: Array<RevenueView> = [
   {
@@ -157,3 +163,85 @@ export const WID =
   '245341e0dda895feca93adbd2db9e643a74c50a1b3702db4c2535f23f1c72e6e';
 export const expectedCommitment =
   '32d5595a12048a13a7807505b26b11e4eae4c69a0c87c39ff7555600708bd23a';
+
+export const mapTokenSet = (
+  tokenSet: Record<string, RosenChainToken>,
+): TokenEntity[] => {
+  const significantDecimals = Math.min(
+    ...Object.keys(tokenSet).map((chain) => tokenSet[chain].decimals),
+  );
+
+  return Object.keys(tokenSet).map((chain) => {
+    const { tokenId, extra, ...rest } = tokenSet[chain];
+    return {
+      ...rest,
+      id: tokenId,
+      chain: chain as SupportedChain,
+      significantDecimals,
+      extra: JSON.stringify(extra),
+    };
+  });
+};
+
+export const mockTokens = [
+  {
+    id: GuardsErgoConfigs.emissionTokenId,
+    chain: 'ergo',
+    name: GuardsErgoConfigs.emissionTokenName,
+    decimals: GuardsErgoConfigs.emissionTokenDecimal,
+    significantDecimals: GuardsErgoConfigs.emissionTokenDecimal,
+    residency: 'wrapped',
+    type: 'EIP-004',
+    extra: '{}',
+  },
+  {
+    id: BTC,
+    chain: 'bitcoin-runes',
+    name: 'BTC',
+    decimals: 8,
+    significantDecimals: 8,
+    residency: 'native',
+    type: 'Runes',
+    extra: '{}',
+  },
+  ...(tokenMapJson.tokens as RosenTokens).flatMap(mapTokenSet),
+];
+
+export const mockTokenSet = {
+  ergo: {
+    tokenId: '003bd19d0187117f130b62e1bcab0939929ff5c7709f843c5c4dd158949285d0',
+    name: 'SigRSV',
+    decimals: 0,
+    type: 'EIP-004',
+    residency: 'native',
+    extra: {},
+  },
+  cardano: {
+    tokenId:
+      'e6e5dbd69a741e73b0d89d50c23c96dff38a60ab26dcd40077e23704.7273536967525356',
+    name: 'rsSigRSV',
+    decimals: 0,
+    type: 'CIP26',
+    residency: 'wrapped',
+    extra: {
+      policyId: 'e6e5dbd69a741e73b0d89d50c23c96dff38a60ab26dcd40077e23704',
+      assetName: '7273536967525356',
+    },
+  },
+  ethereum: {
+    tokenId: '0xe90f17b6d888bc986609eb9607556894a165e2dc',
+    name: 'rsSigRSV',
+    decimals: 0,
+    type: 'ERC-20',
+    residency: 'wrapped',
+    extra: {},
+  },
+  binance: {
+    tokenId: '0xa3e1ba3397fa7388ad11206935b08514dd729264',
+    name: 'rsSigRSV',
+    decimals: 0,
+    type: 'ERC-20',
+    residency: 'wrapped',
+    extra: {},
+  },
+};

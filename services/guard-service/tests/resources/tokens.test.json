@@ -154,19 +154,17 @@
         "tokenId": "0x0347618c0eec9e7a65d87e161673d77b6171f31f",
         "name": "rsBTC-loen",
         "decimals": 8,
-        "metaData": {
-          "type": "ERC-20",
-          "residency": "wrapped"
-        }
+        "type": "ERC-20",
+        "residency": "wrapped",
+        "extra": {}
       },
       "binance": {
         "tokenId": "0xcd5d9d3ba809cc80224037694158c7217a823bca",
         "name": "rsBTC-loen",
         "decimals": 8,
-        "metaData": {
-          "type": "ERC-20",
-          "residency": "wrapped"
-        }
+        "type": "ERC-20",
+        "residency": "wrapped",
+        "extra": {}
       }
     },
     {

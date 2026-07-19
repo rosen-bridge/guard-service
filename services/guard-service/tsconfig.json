@@ -8,7 +8,7 @@
     "useUnknownInCatchVariables": false,
     "types": ["node", "vitest/globals"]
   },
-  "include": ["./**/*.ts", "package.json"],
+  "include": ["./**/*.ts", "package.json", "tests/resources/tokens.test.json"],
   "exclude": ["./vitest.config.ts"],
   "references": [
     { "path": "../../packages/abstract-chain" },

@@ -5,6 +5,7 @@ import { DOGE } from '@rosen-chains/doge';
 import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
 
 import { DatabaseAction } from '../../src/db/databaseAction';
+import { TokenHandler } from '../../src/handlers/tokenHandler';
 import { SortRequest } from '../../src/types/api';
 import {
   EventStatus,
@@ -12,6 +13,7 @@ import {
   RevenueType,
   TransactionStatus,
 } from '../../src/utils/constants';
+import { fillTokenEntity } from '../../src/utils/fillTokenEntity';
 import Utils from '../../src/utils/utils';
 import * as TxTestData from '../agreement/testData';
 import * as EventTestData from '../event/testData';
@@ -29,6 +31,7 @@ import DatabaseActionMock from './mocked/databaseAction.mock';
 import {
   cardanoErgTokenId,
   cardanoRSNTokenId,
+  getTokenName,
   mockAddresses,
   mockBalances,
 } from './testData';
@@ -1430,7 +1433,9 @@ describe('DatabaseActions', () => {
      * @target DatabaseAction.getChainAddressBalances should return ChainAddressBalanceEntity records of all chains
      * @dependencies
      * - database
+     * - TokenHandler
      * @scenario
+     * - populate database with mock token records
      * - populate database with mock address records
      * - populate database with mock balance records
      * - call DatabaseAction.getChainAddressBalances
@@ -1440,6 +1445,9 @@ describe('DatabaseActions', () => {
      */
     it('should return ChainAddressBalanceEntity records of all chains', async () => {
       // arrange
+      const tokenMap = TokenHandler.getInstance().getTokenMap().getRawConfig();
+      await fillTokenEntity(DatabaseActionMock.testDataSource, tokenMap);
+
       for (const address of mockAddresses)
         await DatabaseActionMock.insertAddressRecord(address);
 
@@ -1451,17 +1459,16 @@ describe('DatabaseActions', () => {
         await DatabaseActionMock.testDatabase.getChainAddressBalances();
 
       // assert
-      expect(result).toEqual({
-        total: mockBalances.length,
-        items: mockBalances,
-      });
+      expect(result).toEqual(mockBalances);
     });
 
     /**
      * @target DatabaseAction.getChainAddressBalances should return ChainAddressBalanceEntity records of ergo chain tokenIds when tokenIds filter is applied
      * @dependencies
      * - database
+     * - TokenHandler
      * @scenario
+     * - populate database with mock token records
      * - populate database with mock address records
      * - populate database with mock balance records
      * - call DatabaseAction.getChainAddressBalances with tokenIds filter set to ergo chain tokenIds
@@ -1471,6 +1478,9 @@ describe('DatabaseActions', () => {
      */
     it('should return ChainAddressBalanceEntity records of ergo chain tokenIds when tokenIds filter is applied', async () => {
       // arrange
+      const tokenMap = TokenHandler.getInstance().getTokenMap().getRawConfig();
+      await fillTokenEntity(DatabaseActionMock.testDataSource, tokenMap);
+
       for (const address of mockAddresses)
         await DatabaseActionMock.insertAddressRecord(address);
 
@@ -1486,19 +1496,19 @@ describe('DatabaseActions', () => {
         );
 
       // assert
-      expect(result).toEqual({
-        total: 2,
-        items: mockBalances.filter(
-          (balance) => balance.address.chain === 'ergo',
-        ),
-      });
+      expect(result).toHaveLength(2);
+      expect(result).toEqual(
+        mockBalances.filter((balance) => balance.address.chain === 'ergo'),
+      );
     });
 
     /**
      * @target DatabaseAction.getChainAddressBalances should return ChainAddressBalanceEntity records of cardano erg tokenId when tokenIds filter is applied
      * @dependencies
      * - database
+     * - TokenHandler
      * @scenario
+     * - populate database with mock token records
      * - populate database with mock address records
      * - populate database with mock balance records
      * - call DatabaseAction.getChainAddressBalances with tokenIds filter set to cardano erg tokenId
@@ -1508,6 +1518,9 @@ describe('DatabaseActions', () => {
      */
     it('should return ChainAddressBalanceEntity records of cardano erg tokenId when tokenIds filter is applied', async () => {
       // arrange
+      const tokenMap = TokenHandler.getInstance().getTokenMap().getRawConfig();
+      await fillTokenEntity(DatabaseActionMock.testDataSource, tokenMap);
+
       for (const address of mockAddresses)
         await DatabaseActionMock.insertAddressRecord(address);
 
@@ -1521,12 +1534,10 @@ describe('DatabaseActions', () => {
         ]);
 
       // assert
-      expect(result).toEqual({
-        total: 2,
-        items: mockBalances.filter(
-          (balance) => balance.tokenId === cardanoErgTokenId,
-        ),
-      });
+      expect(result).toHaveLength(2);
+      expect(result).toEqual(
+        mockBalances.filter((balance) => balance.tokenId === cardanoErgTokenId),
+      );
     });
   });
 
@@ -1556,9 +1567,9 @@ describe('DatabaseActions', () => {
         await DatabaseActionMock.testDatabase.getChainAddressBalanceTokenIds(
           undefined,
           undefined,
+          undefined,
           0,
           10,
-          undefined,
         );
 
       // assert
@@ -1596,9 +1607,9 @@ describe('DatabaseActions', () => {
         await DatabaseActionMock.testDatabase.getChainAddressBalanceTokenIds(
           'cardano',
           undefined,
+          undefined,
           0,
           10,
-          undefined,
         );
 
       // assert
@@ -1640,9 +1651,9 @@ describe('DatabaseActions', () => {
         await DatabaseActionMock.testDatabase.getChainAddressBalanceTokenIds(
           undefined,
           'ba',
+          undefined,
           0,
           10,
-          undefined,
         );
 
       // assert
@@ -1677,9 +1688,9 @@ describe('DatabaseActions', () => {
         await DatabaseActionMock.testDatabase.getChainAddressBalanceTokenIds(
           undefined,
           cardanoErgTokenId,
+          undefined,
           0,
           10,
-          undefined,
         );
 
       // assert
@@ -1714,9 +1725,9 @@ describe('DatabaseActions', () => {
         await DatabaseActionMock.testDatabase.getChainAddressBalanceTokenIds(
           undefined,
           DOGE,
+          undefined,
           0,
           10,
-          undefined,
         );
 
       // assert
@@ -1751,15 +1762,86 @@ describe('DatabaseActions', () => {
         await DatabaseActionMock.testDatabase.getChainAddressBalanceTokenIds(
           ERGO_CHAIN,
           'e',
+          undefined,
           0,
           10,
-          undefined,
         );
 
       // assert
       expect(result).toEqual({
         total: 1,
         items: [ERG],
+      });
+    });
+
+    /**
+     * @target DatabaseAction.getChainAddressBalanceTokenIds should return distinct tokenIds of all chains sorted by tokenName
+     * @dependencies
+     * - database
+     * - TokenHandler
+     * @scenario
+     * - populate database with mock token records
+     * - populate database with mock address records
+     * - populate database with mock balance records
+     * - call DatabaseAction.getChainAddressBalanceTokenIds sorted by tokenName=DESC
+     * - call DatabaseAction.getChainAddressBalanceTokenIds sorted by tokenName=ASC
+     * - check returned value
+     * @expected
+     * - first returned items should match the distinct tokenIds of the inserted mock balance records sorted by tokenName=DESC and their count
+     * - second returned items should match the distinct tokenIds of the inserted mock balance records sorted by tokenName=ASC and their count
+     */
+    it('should return distinct tokenIds of all chains sorted by tokenName', async () => {
+      // arrange
+      const tokenMap = TokenHandler.getInstance().getTokenMap().getRawConfig();
+      await fillTokenEntity(DatabaseActionMock.testDataSource, tokenMap);
+
+      for (const address of mockAddresses)
+        await DatabaseActionMock.insertAddressRecord(address);
+
+      for (const balance of mockBalances)
+        await DatabaseActionMock.insertChainAddressBalanceRecord(balance);
+
+      // act
+      const descResult =
+        await DatabaseActionMock.testDatabase.getChainAddressBalanceTokenIds(
+          undefined,
+          undefined,
+          undefined,
+          0,
+          10,
+          [{ key: 'tokenName', order: 'DESC' }],
+        );
+      const ascResult =
+        await DatabaseActionMock.testDatabase.getChainAddressBalanceTokenIds(
+          undefined,
+          undefined,
+          undefined,
+          0,
+          10,
+          [{ key: 'tokenName', order: 'ASC' }],
+        );
+
+      // assert
+      const tokenIds = [
+        ...new Set(mockBalances.map((balance) => balance.tokenId)),
+      ];
+
+      expect(descResult).toEqual({
+        total: tokenIds.length,
+        items: tokenIds.toSorted((a, b) =>
+          getTokenName(b).localeCompare(getTokenName(a), undefined, {
+            caseFirst: 'lower',
+          }),
+        ),
+      });
+
+      expect(ascResult).toEqual({
+        total: tokenIds.length,
+        items: tokenIds.toSorted((a, b) =>
+          getTokenName(a).localeCompare(getTokenName(b), undefined, {
+            caseFirst: 'lower',
+          }),
+        ),
       });
     });
 
@@ -1786,6 +1868,7 @@ describe('DatabaseActions', () => {
       // act
       const result =
         await DatabaseActionMock.testDatabase.getChainAddressBalanceTokenIds(
+          undefined,
           undefined,
           undefined,
           0,

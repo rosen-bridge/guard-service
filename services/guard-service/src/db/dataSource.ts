@@ -25,6 +25,7 @@ import { ReprocessEntity } from './entities/reprocessEntity';
 import { RevenueChartView } from './entities/revenueChartView';
 import { RevenueEntity } from './entities/revenueEntity';
 import { RevenueView } from './entities/revenueView';
+import { TokenEntity } from './entities/tokenEntity';
 import { TransactionEntity } from './entities/transactionEntity';
 import migrations from './migrations';
 
@@ -47,6 +48,7 @@ const dbConfigs = {
     ChainAddressBalanceEntity,
     AddressEntity,
     RejectedEventEntity,
+    TokenEntity,
   ],
   migrations: [
     ...scannerMigrations[dbType],

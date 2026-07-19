@@ -6,7 +6,6 @@ import { ERGO_CHAIN } from '@rosen-chains/ergo';
 import { DatabaseAction } from '../db/databaseAction';
 import { TokenChartData } from '../types/api';
 import { RevenuePeriod, RevenuePeriodWindow } from '../utils/constants';
-import { getTokenData } from '../utils/getTokenData';
 import { extractRevenueFromView } from '../utils/revenue';
 import Utils from '../utils/utils';
 import {
@@ -106,28 +105,37 @@ const revenueChartRoute = (server: FastifyWithZod) => {
         polishedResult.filter((revenue) => revenue.label > minLabel),
         'tokenId',
       );
-      const returnData = reduce<
+
+      const promises = reduce<
         typeof resultsGroupedByTokenId,
-        TokenChartData[]
+        Promise<TokenChartData>[]
       >(
         resultsGroupedByTokenId,
         (acc, data, tokenId) => {
-          const tokenData = getTokenData(ERGO_CHAIN, tokenId, ERGO_CHAIN, true);
           return [
             ...acc,
-            {
-              title: tokenData,
-              data: data
-                .map((datum) => ({
-                  label: datum.label.toString(),
-                  amount: datum.amount,
-                }))
-                .slice(0, count),
-            },
+            (async () => {
+              const tokenData = await dbAction.getTokenData(
+                tokenId,
+                ERGO_CHAIN,
+              );
+              return {
+                title: tokenData,
+                data: data
+                  .map((datum) => ({
+                    label: datum.label.toString(),
+                    amount: datum.amount,
+                  }))
+                  .slice(0, count),
+              };
+            })(),
           ];
         },
         [],
       );
+
+      const returnData = await Promise.all(promises);
+
       reply.status(200).send(returnData);
     },
   );

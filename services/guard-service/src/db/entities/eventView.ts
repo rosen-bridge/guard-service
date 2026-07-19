@@ -27,9 +27,17 @@ import { ViewColumn, ViewEntity } from '@rosen-bridge/extended-typeorm';
       .addSelect('ete."paymentTxId"', 'paymentTxId')
       .addSelect('cee."status"', 'status')
       .addSelect('ree."reason"', 'reason')
+      .addSelect('te."name"', 'tokenName')
+      .addSelect('te."significantDecimals"', 'tokenSignificantDecimals')
+      .addSelect('te."residency"', 'tokenResidency')
       .from('event_trigger_entity', 'ete')
       .leftJoin('confirmed_event_entity', 'cee', 'ete."id" = cee."eventDataId"')
-      .leftJoin('rejected_event_entity', 'ree', 'ete."id" = ree."eventDataId"'),
+      .leftJoin('rejected_event_entity', 'ree', 'ete."id" = ree."eventDataId"')
+      .leftJoin(
+        'token_entity',
+        'te',
+        'te."id" = ete."sourceChainTokenId" AND te."chain" = ete."fromChain"',
+      ),
 }))
 export class EventView {
   @ViewColumn()
@@ -97,4 +105,13 @@ export class EventView {
 
   @ViewColumn()
   reason!: string | null;
+
+  @ViewColumn()
+  tokenName!: string;
+
+  @ViewColumn()
+  tokenSignificantDecimals!: number;
+
+  @ViewColumn()
+  tokenResidency!: string;
 }

@@ -5,7 +5,10 @@ import { DOGE } from '@rosen-chains/doge';
 
 import { balanceRoutes } from '../../src/api/balance';
 import BalanceHandler from '../../src/handlers/balanceHandler';
+import { TokenHandler } from '../../src/handlers/tokenHandler';
+import { fillTokenEntity } from '../../src/utils/fillTokenEntity';
 import DatabaseActionMock from '../db/mocked/databaseAction.mock';
+import { getTokenName } from '../db/testData';
 import { mockAddresses, mockBalances, mockBalancesResponse } from './testData';
 
 describe('balanceRoutes', () => {
@@ -29,7 +32,9 @@ describe('balanceRoutes', () => {
      * @target fastifyServer[GET /balance] should respond with all balances when no queries are specified
      * @dependencies
      * - database
+     * - TokenHandler
      * @scenario
+     * - populate database with mock token records
      * - populate database with mock address records
      * - populate database with mock balance records
      * - call handler
@@ -40,6 +45,9 @@ describe('balanceRoutes', () => {
      */
     it('should respond with all balance records when no queries are specified', async () => {
       // arrange
+      const tokenMap = TokenHandler.getInstance().getTokenMap().getRawConfig();
+      await fillTokenEntity(DatabaseActionMock.testDataSource, tokenMap);
+
       for (const address of mockAddresses)
         await DatabaseActionMock.insertAddressRecord(address);
 
@@ -61,7 +69,9 @@ describe('balanceRoutes', () => {
      * @target fastifyServer[GET /balance] should respond with balances of specified chain when chain query is used
      * @dependencies
      * - database
+     * - TokenHandler
      * @scenario
+     * - populate database with mock token records
      * - populate database with mock address records
      * - populate database with mock balance records
      * - call handler with chain="cardano"
@@ -78,6 +88,9 @@ describe('balanceRoutes', () => {
      */
     it('should respond with balances of specified chain when chain query is used', async () => {
       // arrange
+      const tokenMap = TokenHandler.getInstance().getTokenMap().getRawConfig();
+      await fillTokenEntity(DatabaseActionMock.testDataSource, tokenMap);
+
       for (const address of mockAddresses)
         await DatabaseActionMock.insertAddressRecord(address);
 
@@ -147,7 +160,9 @@ describe('balanceRoutes', () => {
      * @target fastifyServer[GET /balance] should respond with balances of the specified tokenId when tokenId query is used
      * @dependencies
      * - database
+     * - TokenHandler
      * @scenario
+     * - populate database with mock token records
      * - populate database with mock address records
      * - populate database with mock balance records
      * - call handler with tokenId="ada"
@@ -162,6 +177,9 @@ describe('balanceRoutes', () => {
      */
     it('should respond with balances of the specified tokenId when tokenId query is used', async () => {
       // arrange
+      const tokenMap = TokenHandler.getInstance().getTokenMap().getRawConfig();
+      await fillTokenEntity(DatabaseActionMock.testDataSource, tokenMap);
+
       for (const address of mockAddresses)
         await DatabaseActionMock.insertAddressRecord(address);
 
@@ -210,7 +228,9 @@ describe('balanceRoutes', () => {
      * @target fastifyServer[GET /balance] should respond with balances of the specified chain and tokenId when both queries are used
      * @dependencies
      * - database
+     * - TokenHandler
      * @scenario
+     * - populate database with mock token records
      * - populate database with mock address records
      * - populate database with mock balance records
      * - call handler with tokenId="ada" and chain="cardano"
@@ -225,6 +245,9 @@ describe('balanceRoutes', () => {
      */
     it('should respond with balances of the specified chain and tokenId when both queries are used', async () => {
       // arrange
+      const tokenMap = TokenHandler.getInstance().getTokenMap().getRawConfig();
+      await fillTokenEntity(DatabaseActionMock.testDataSource, tokenMap);
+
       for (const address of mockAddresses)
         await DatabaseActionMock.insertAddressRecord(address);
 
@@ -274,7 +297,9 @@ describe('balanceRoutes', () => {
      * @target fastifyServer[GET /balance] should respond with balances respecting the pagination query
      * @dependencies
      * - database
+     * - TokenHandler
      * @scenario
+     * - populate database with mock token records
      * - populate database with mock address records
      * - populate database with 9 mock balance records
      * - call handler with offset=0 and limit=5
@@ -289,6 +314,9 @@ describe('balanceRoutes', () => {
      */
     it('should respond with balances respecting the pagination query', async () => {
       // arrange
+      const tokenMap = TokenHandler.getInstance().getTokenMap().getRawConfig();
+      await fillTokenEntity(DatabaseActionMock.testDataSource, tokenMap);
+
       for (const address of mockAddresses)
         await DatabaseActionMock.insertAddressRecord(address);
 
@@ -366,10 +394,80 @@ describe('balanceRoutes', () => {
     });
 
     /**
+     * @target fastifyServer[GET /balance] should respond with balances sorted by tokenName
+     * @dependencies
+     * - database
+     * - TokenHandler
+     * @scenario
+     * - populate database with mock token records
+     * - populate database with mock address records
+     * - populate database with mock balance records
+     * - call handler with sort option tokenName=DESC
+     * - call handler with sort option tokenName=ASC
+     * - check the returned responses
+     * @expected
+     * - response statuses should have been 200
+     * - first response items should have contained the mock balance records sorted by DESC tokenName
+     * - second response items should have contained the mock balance records sorted by ASC tokenName
+     */
+    it('should respond with balances sorted by tokenName', async () => {
+      // arrange
+      const tokenMap = TokenHandler.getInstance().getTokenMap().getRawConfig();
+      await fillTokenEntity(DatabaseActionMock.testDataSource, tokenMap);
+
+      for (const address of mockAddresses)
+        await DatabaseActionMock.insertAddressRecord(address);
+
+      for (const balance of mockBalances)
+        await DatabaseActionMock.insertChainAddressBalanceRecord(balance);
+
+      // act
+      const descResult = await mockedServer.inject({
+        method: 'GET',
+        url: '/balance?sorts=tokenName-DESC',
+      });
+      const ascResult = await mockedServer.inject({
+        method: 'GET',
+        url: '/balance?sorts=tokenName-ASC',
+      });
+
+      // assert
+      expect(descResult.statusCode).toEqual(200);
+      expect(descResult.json()).toEqual({
+        total: mockBalancesResponse.total,
+        items: mockBalancesResponse.items.toSorted((a, b) =>
+          getTokenName(b.token.id).localeCompare(
+            getTokenName(a.token.id),
+            undefined,
+            {
+              caseFirst: 'lower',
+            },
+          ),
+        ),
+      });
+
+      expect(ascResult.statusCode).toEqual(200);
+      expect(ascResult.json()).toEqual({
+        total: mockBalancesResponse.total,
+        items: mockBalancesResponse.items.toSorted((a, b) =>
+          getTokenName(a.token.id).localeCompare(
+            getTokenName(b.token.id),
+            undefined,
+            {
+              caseFirst: 'lower',
+            },
+          ),
+        ),
+      });
+    });
+
+    /**
      * @target fastifyServer[GET /balance] should respond with balances sorted by chain
      * @dependencies
      * - database
+     * - TokenHandler
      * @scenario
+     * - populate database with mock token records
      * - populate database with mock address records
      * - populate database with mock balance records
      * - call handler with sort option chain=DESC
@@ -382,6 +480,9 @@ describe('balanceRoutes', () => {
      */
     it('should respond with balances sorted by chain', async () => {
       // arrange
+      const tokenMap = TokenHandler.getInstance().getTokenMap().getRawConfig();
+      await fillTokenEntity(DatabaseActionMock.testDataSource, tokenMap);
+
       for (const address of mockAddresses)
         await DatabaseActionMock.insertAddressRecord(address);
 
@@ -412,6 +513,56 @@ describe('balanceRoutes', () => {
         total: mockBalancesResponse.total,
         items: mockBalancesResponse.items.toSorted((a, b) =>
           a.chain.localeCompare(b.chain),
+        ),
+      });
+    });
+
+    /**
+     * @target fastifyServer[GET /balance] should respond with balances sorted by both chain and tokenName
+     * @dependencies
+     * - database
+     * - TokenHandler
+     * @scenario
+     * - populate database with mock token records
+     * - populate database with mock address records
+     * - populate database with mock balance records
+     * - call handler with sort option chain=DESC and tokenName=ASC
+     * - check the returned response
+     * @expected
+     * - response status should have been 200
+     * - response items should have contained the mock balance records sorted by DESC chain and ASC tokenName
+     */
+    it('should respond with balances sorted by both chain and tokenName', async () => {
+      // arrange
+      const tokenMap = TokenHandler.getInstance().getTokenMap().getRawConfig();
+      await fillTokenEntity(DatabaseActionMock.testDataSource, tokenMap);
+
+      for (const address of mockAddresses)
+        await DatabaseActionMock.insertAddressRecord(address);
+
+      for (const balance of mockBalances)
+        await DatabaseActionMock.insertChainAddressBalanceRecord(balance);
+
+      // act
+      const result = await mockedServer.inject({
+        method: 'GET',
+        url: '/balance?sorts=chain-DESC,tokenName-ASC',
+      });
+
+      // assert
+      expect(result.statusCode).toEqual(200);
+      expect(result.json()).toEqual({
+        total: mockBalancesResponse.total,
+        items: mockBalancesResponse.items.toSorted((a, b) =>
+          a.chain !== b.chain
+            ? b.chain.localeCompare(a.chain)
+            : getTokenName(a.token.id).localeCompare(
+                getTokenName(b.token.id),
+                undefined,
+                {
+                  caseFirst: 'lower',
+                },
+              ),
         ),
       });
     });

@@ -4,7 +4,6 @@ import { TransactionType } from '@rosen-chains/abstract-chain';
 import { DatabaseAction } from '../db/databaseAction';
 import { Event, OngoingEvents, TokenData } from '../types/api';
 import { EventStatus } from '../utils/constants';
-import { getTokenData } from '../utils/getTokenData';
 import {
   EventsQuerySchema,
   EventsHistoryResponseSchema,
@@ -44,51 +43,46 @@ const eventsHistoryRoute = (server: FastifyWithZod) => {
         limit,
       );
 
-      const events = results.items.map((event): Event => {
-        const token = getTokenData(
-          event.fromChain,
-          event.sourceChainTokenId,
-          event.fromChain,
-          true,
-        );
+      const eventsPromises = results.items.map(
+        async (event): Promise<Event> => {
+          const tokenData: TokenData = {
+            tokenId: event.sourceChainTokenId,
+            amount: Number(event.amount),
+            name: event.tokenName,
+            decimals: event.tokenSignificantDecimals,
+            isNativeToken: event.tokenResidency === 'native',
+          };
 
-        const tokenData: TokenData = {
-          tokenId: event.sourceChainTokenId,
-          amount: Number(event.amount),
-          name: token.name,
-          decimals: token.decimals,
-          isNativeToken: token.isNativeToken,
-        };
+          let status = '';
+          if (event.status) {
+            status = event.reason
+              ? `multiple-flows (${event.status})`
+              : event.status;
+          } else if (event.reason) {
+            status = 'rejected';
+          } else {
+            status = 'waiting-for-confirmation';
+          }
 
-        let status = '';
-        if (event.status) {
-          status = event.reason
-            ? `multiple-flows (${event.status})`
-            : event.status;
-        } else if (event.reason) {
-          status = 'rejected';
-        } else {
-          status = 'waiting-for-confirmation';
-        }
-
-        return {
-          eventId: event.eventId,
-          fromChain: event.fromChain,
-          toChain: event.toChain,
-          fromAddress: event.fromAddress,
-          toAddress: event.toAddress,
-          bridgeFee: event.bridgeFee,
-          networkFee: event.networkFee,
-          sourceChainToken: tokenData,
-          sourceTxId: event.sourceTxId,
-          paymentTxId: event.paymentTxId ?? '',
-          rewardTxId: event.spendTxId ?? '',
-          status,
-        };
-      });
+          return {
+            eventId: event.eventId,
+            fromChain: event.fromChain,
+            toChain: event.toChain,
+            fromAddress: event.fromAddress,
+            toAddress: event.toAddress,
+            bridgeFee: event.bridgeFee,
+            networkFee: event.networkFee,
+            sourceChainToken: tokenData,
+            sourceTxId: event.sourceTxId,
+            paymentTxId: event.paymentTxId ?? '',
+            rewardTxId: event.spendTxId ?? '',
+            status,
+          };
+        },
+      );
 
       reply.status(200).send({
-        items: events,
+        items: await Promise.all(eventsPromises),
         total: results.total,
       });
     },
@@ -131,62 +125,57 @@ const ongoingEventsRoute = (server: FastifyWithZod) => {
         results.items.map((event) => event.eventId),
       );
 
-      const events = results.items.map((event): OngoingEvents => {
-        const token = getTokenData(
-          event.fromChain,
-          event.sourceChainTokenId,
-          event.fromChain,
-          true,
-        );
+      const eventsPromises = results.items.map(
+        async (event): Promise<OngoingEvents> => {
+          const tokenData: TokenData = {
+            tokenId: event.sourceChainTokenId,
+            amount: Number(event.amount),
+            name: event.tokenName,
+            decimals: event.tokenSignificantDecimals,
+            isNativeToken: event.tokenResidency === 'native',
+          };
 
-        const tokenData: TokenData = {
-          tokenId: event.sourceChainTokenId,
-          amount: Number(event.amount),
-          name: token.name,
-          decimals: token.decimals,
-          isNativeToken: token.isNativeToken,
-        };
-
-        let status = event.status;
-        if (status) {
-          if (event.reason) {
-            status = `multiple-flows (${event.status})`;
-          } else if (
-            [EventStatus.inPayment, EventStatus.inReward].includes(status)
-          ) {
-            const txStatus = txs.find(
-              (tx) =>
-                tx.event?.id === event.eventId &&
-                tx.type ===
-                  (status === EventStatus.inPayment
-                    ? TransactionType.payment
-                    : TransactionType.reward),
-            )!.status;
-            status = `${status} (${txStatus})`;
+          let status = event.status;
+          if (status) {
+            if (event.reason) {
+              status = `multiple-flows (${event.status})`;
+            } else if (
+              [EventStatus.inPayment, EventStatus.inReward].includes(status)
+            ) {
+              const txStatus = txs.find(
+                (tx) =>
+                  tx.event?.id === event.eventId &&
+                  tx.type ===
+                    (status === EventStatus.inPayment
+                      ? TransactionType.payment
+                      : TransactionType.reward),
+              )!.status;
+              status = `${status} (${txStatus})`;
+            }
+          } else if (event.reason) {
+            status = 'rejected';
+          } else {
+            status = 'waiting-for-confirmation';
           }
-        } else if (event.reason) {
-          status = 'rejected';
-        } else {
-          status = 'waiting-for-confirmation';
-        }
 
-        return {
-          eventId: event.eventId,
-          txId: event.txId,
-          fromChain: event.fromChain,
-          toChain: event.toChain,
-          fromAddress: event.fromAddress,
-          toAddress: event.toAddress,
-          bridgeFee: event.bridgeFee,
-          networkFee: event.networkFee,
-          sourceChainToken: tokenData,
-          sourceTxId: event.sourceTxId,
-          status,
-        };
-      });
+          return {
+            eventId: event.eventId,
+            txId: event.txId,
+            fromChain: event.fromChain,
+            toChain: event.toChain,
+            fromAddress: event.fromAddress,
+            toAddress: event.toAddress,
+            bridgeFee: event.bridgeFee,
+            networkFee: event.networkFee,
+            sourceChainToken: tokenData,
+            sourceTxId: event.sourceTxId,
+            status,
+          };
+        },
+      );
 
       reply.status(200).send({
-        items: events,
+        items: await Promise.all(eventsPromises),
         total: results.total,
       });
     },

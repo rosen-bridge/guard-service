@@ -33,6 +33,7 @@ import { ReprocessEntity } from '../../../src/db/entities/reprocessEntity';
 import { RevenueChartView } from '../../../src/db/entities/revenueChartView';
 import { RevenueEntity } from '../../../src/db/entities/revenueEntity';
 import { RevenueView } from '../../../src/db/entities/revenueView';
+import { TokenEntity } from '../../../src/db/entities/tokenEntity';
 import { TransactionEntity } from '../../../src/db/entities/transactionEntity';
 import migrations from '../../../src/db/migrations';
 import { ReprocessStatus } from '../../../src/reprocess/interfaces';
@@ -64,6 +65,7 @@ class DatabaseActionMock {
       ChainAddressBalanceEntity,
       AddressEntity,
       RejectedEventEntity,
+      TokenEntity,
     ],
     migrations: [
       ...scannerMigrations.sqlite,
@@ -107,6 +109,7 @@ class DatabaseActionMock {
     await this.testDataSource.getRepository(BlockEntity).clear();
     await this.testDatabase.ChainAddressBalanceRepository.clear();
     await this.testDatabase.AddressRepository.clear();
+    await this.testDatabase.TokenRepository.clear();
   };
 
   /**

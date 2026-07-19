@@ -142,7 +142,7 @@ class BalanceHandler {
     const savedBalances =
       await DatabaseAction.getInstance().getChainAddressBalances(allTokenIds);
     const balancesMap: Map<string, ChainAddressBalanceEntity> = new Map();
-    savedBalances.items.forEach((balance) =>
+    savedBalances.forEach((balance) =>
       balancesMap.set(`${balance.addressId}-${balance.tokenId}`, balance),
     );
 

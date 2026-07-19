@@ -30,6 +30,7 @@ import { runProcessors } from './jobs/runProcessors';
 import { tssUpdateJob } from './jobs/tss';
 import EventReprocess from './reprocess/eventReprocess';
 import EventSynchronization from './synchronization/eventSynchronization';
+import { fillTokenEntity } from './utils/fillTokenEntity';
 
 const init = async () => {
   // initialize tokens config
@@ -107,6 +108,12 @@ const init = async () => {
 
   // run revenue job
   await revenueJob();
+
+  // add tokens from token map to database
+  await fillTokenEntity(
+    dataSource,
+    TokenHandler.getInstance().getTokenMap().getRawConfig(),
+  );
 };
 
 init().then(() => null);

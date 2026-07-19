@@ -5,7 +5,6 @@ import { BlockEntity, PROCEED } from '@rosen-bridge/abstract-scanner';
 import {
   And,
   DataSource,
-  FindOptionsOrder,
   In,
   IsNull,
   LessThan,
@@ -32,7 +31,7 @@ import {
 
 import PublicStatusHandler from '../handlers/publicStatusHandler';
 import { ReprocessStatus } from '../reprocess/interfaces';
-import { AddressType, Page, SortRequest } from '../types/api';
+import { AddressType, Page, SortRequest, TokenData } from '../types/api';
 import { SupportedChain } from '../types/config';
 import {
   EventStatus,
@@ -51,6 +50,7 @@ import { ReprocessEntity } from './entities/reprocessEntity';
 import { RevenueChartView } from './entities/revenueChartView';
 import { RevenueEntity } from './entities/revenueEntity';
 import { RevenueView } from './entities/revenueView';
+import { TokenEntity } from './entities/tokenEntity';
 import { TransactionEntity } from './entities/transactionEntity';
 
 const logger = DefaultLogger.getInstance().child(import.meta.url);
@@ -72,6 +72,7 @@ class DatabaseAction {
   ReprocessRepository: Repository<ReprocessEntity>;
   ChainAddressBalanceRepository: Repository<ChainAddressBalanceEntity>;
   AddressRepository: Repository<AddressEntity>;
+  TokenRepository: Repository<TokenEntity>;
 
   txSignSemaphore = new Semaphore(1);
 
@@ -96,6 +97,7 @@ class DatabaseAction {
       ChainAddressBalanceEntity,
     );
     this.AddressRepository = this.dataSource.getRepository(AddressEntity);
+    this.TokenRepository = this.dataSource.getRepository(TokenEntity);
   }
 
   /**
@@ -1091,6 +1093,37 @@ class DatabaseAction {
   };
 
   /**
+   * gets a TokenData
+   * @param tokenId
+   * @param chain
+   * @returns a promise that resolves to a TokenEntity if it exists and maps it to TokenData
+   */
+  getTokenData = async (
+    tokenId: string,
+    chain: SupportedChain,
+  ): Promise<TokenData> => {
+    const token = await this.TokenRepository.findOne({
+      where: {
+        id: tokenId,
+        chain,
+      },
+    });
+
+    if (!token) {
+      throw Error(
+        `token [${tokenId}] of chain [${chain}] is not found in database`,
+      );
+    }
+
+    return {
+      tokenId,
+      amount: 0,
+      decimals: token.significantDecimals,
+      isNativeToken: token.residency === 'native',
+    };
+  };
+
+  /**
    * gets AddressEntity records
    * @param chain
    * @param type
@@ -1126,39 +1159,55 @@ class DatabaseAction {
    * gets all ChainAddressBalanceEntity records
    * @param tokenIds
    * @param sorts
-   * @returns a promise of Page ChainAddressBalanceEntity object
+   * @returns a promise that resolves to an array of ChainAddressBalanceEntity and its related token data
    */
   getChainAddressBalances = async (
     tokenIds?: string[],
     sorts?: FilterSort[],
-  ): Promise<Page<ChainAddressBalanceEntity>> => {
-    const order: FindOptionsOrder<ChainAddressBalanceEntity> = {};
+  ): Promise<(ChainAddressBalanceEntity & { token: TokenEntity })[]> => {
+    let queryBuilder = this.ChainAddressBalanceRepository.createQueryBuilder(
+      'balance',
+    )
+      .leftJoinAndMapOne(
+        'balance.address',
+        this.AddressRepository.metadata.tableName,
+        'address',
+        'balance."addressId" = address."id"',
+      )
+      .leftJoinAndMapOne(
+        'balance.token',
+        this.TokenRepository.metadata.tableName,
+        'token',
+        'balance."tokenId" = token."id" AND address."chain" = token."chain"',
+      );
+
+    if (tokenIds)
+      queryBuilder = queryBuilder.andWhere(
+        'balance."tokenId" In (:...tokenIds)',
+        {
+          tokenIds,
+        },
+      );
 
     for (const sort of sorts ?? []) {
-      if (sort.key === 'chain') order.address = { chain: sort.order };
+      let key = '';
+      if (sort.key === 'tokenName') key = 'LOWER(token."name")';
+      else if (sort.key === 'chain') key = 'address."chain"';
+      queryBuilder = queryBuilder.addOrderBy(key, sort.order);
     }
 
-    const [items, total] =
-      await this.ChainAddressBalanceRepository.findAndCount({
-        relations: {
-          address: true,
-        },
-        where: {
-          ...(tokenIds ? { tokenId: In(tokenIds) } : {}),
-        },
-        order,
-      });
-
-    return {
-      items,
-      total,
-    };
+    return queryBuilder.getMany() as Promise<
+      (ChainAddressBalanceEntity & {
+        token: TokenEntity;
+      })[]
+    >;
   };
 
   /**
    * gets distinct tokenIds from ChainAddressBalanceEntity records
    * @param chain
    * @param tokenId
+   * @param tokenName
    * @param offset
    * @param limit
    * @param sorts
@@ -1167,28 +1216,43 @@ class DatabaseAction {
   getChainAddressBalanceTokenIds = async (
     chain?: SupportedChain,
     tokenId?: string,
+    tokenName?: string,
     offset?: number,
     limit?: number,
     sorts?: FilterSort[],
   ): Promise<Page<string>> => {
     let queryBuilder = this.ChainAddressBalanceRepository.createQueryBuilder(
       'balance',
-    ).leftJoin(
-      this.AddressRepository.metadata.tableName,
-      'address',
-      'balance."addressId" = address."id"',
-    );
+    )
+      .leftJoin(
+        this.AddressRepository.metadata.tableName,
+        'address',
+        'balance."addressId" = address."id"',
+      )
+      .leftJoin(
+        this.TokenRepository.metadata.tableName,
+        'token',
+        'balance."tokenId" = token."id" AND address."chain" = token."chain"',
+      );
 
     if (chain !== undefined) {
       queryBuilder = queryBuilder.andWhere('address."chain" = :chain', {
         chain,
       });
     }
-    if (tokenId) {
+    if (tokenId !== undefined) {
       queryBuilder = queryBuilder.andWhere(
         `balance."tokenId" LIKE '%' || :tokenId || '%'`,
         {
           tokenId,
+        },
+      );
+    }
+    if (tokenName !== undefined) {
+      queryBuilder = queryBuilder.andWhere(
+        `token."name" LIKE '%' || :tokenName || '%'`,
+        {
+          tokenName,
         },
       );
     }
@@ -1205,7 +1269,8 @@ class DatabaseAction {
 
     for (const sort of sorts ?? []) {
       let key = '';
-      if (sort.key === 'chain') key = 'address.chain';
+      if (sort.key === 'tokenName') key = 'LOWER(token."name")';
+      else if (sort.key === 'chain') key = 'address."chain"';
       queryBuilder = queryBuilder.addOrderBy(key, sort.order);
     }
 

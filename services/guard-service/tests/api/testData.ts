@@ -199,11 +199,7 @@ export const mockBalances: ChainAddressBalanceEntity[] = [
     lastUpdate: '1700000000',
     balance: BigInt(200),
   },
-].toSorted((a, b) =>
-  a.tokenId !== b.tokenId
-    ? a.tokenId.localeCompare(b.tokenId)
-    : a.addressId - b.addressId,
-);
+];
 
 export const mockBalancesResponse: z.infer<typeof BalanceResponseSchema> = {
   items: [
@@ -277,7 +273,7 @@ export const mockBalancesResponse: z.infer<typeof BalanceResponseSchema> = {
         id: cardanoHoskyTokenId,
         name: 'Hosky',
         decimals: 0,
-        isNativeToken: false,
+        isNativeToken: true,
       },
       hot: {
         address: `${CARDANO_CHAIN}_hot`,

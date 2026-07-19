@@ -11,7 +11,6 @@ import {
 
 import { DatabaseAction } from '../db/databaseAction';
 import { SupportedChain } from '../types/config';
-import { getTokenData } from '../utils/getTokenData';
 import {
   AddressBalanceSchema,
   BALANCE_ROUTE_PARSER_SCHEMA,
@@ -63,12 +62,13 @@ const getBalanceRoute = (server: FastifyWithZod) => {
           await DatabaseAction.getInstance().getChainAddressBalanceTokenIds(
             queryFilter.chain?.value as SupportedChain,
             queryFilter.tokenId?.value,
+            queryFilter.tokenName?.value,
             filter.pagination!.offset,
             filter.pagination!.limit,
             filter.sorts,
           );
 
-        const { items: balances } =
+        const balances =
           await DatabaseAction.getInstance().getChainAddressBalances(
             tokenIds,
             filter.sorts,
@@ -76,20 +76,13 @@ const getBalanceRoute = (server: FastifyWithZod) => {
 
         const items = Object.values(groupBy(balances, 'tokenId')).map(
           (balances) => {
-            const tokenData = getTokenData(
-              balances[0].address.chain,
-              balances[0].tokenId,
-              balances[0].address.chain,
-              true,
-            );
-
             const result: z.infer<typeof AddressBalanceSchema> = {
               chain: balances[0].address.chain,
               token: {
-                id: tokenData.tokenId,
-                name: tokenData.name!,
-                decimals: tokenData.decimals,
-                isNativeToken: tokenData.isNativeToken,
+                id: balances[0].token.id,
+                name: balances[0].token.name!,
+                decimals: balances[0].token.significantDecimals,
+                isNativeToken: balances[0].token.residency === 'native',
               },
             };
 
