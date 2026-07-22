@@ -4,6 +4,7 @@
 
 ### Patch Changes
 
+- Update the `getTransaction` function to throw `FailedError` if transaction is failed on network
 - Update dependencies
   - @rosen-chains/abstract-chain@16.0.1
   - @rosen-chains/cardano@16.0.1

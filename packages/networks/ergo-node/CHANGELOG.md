@@ -7,7 +7,7 @@
 - Update dependencies
   - @rosen-chains/abstract-chain@16.0.1
   - @rosen-chains/ergo@14.1.0
-  - @rosen-clients/ergo-node@3.1.2
+  - @rosen-clients/ergo-node@3.2.0
 
 ## 10.0.3
 
