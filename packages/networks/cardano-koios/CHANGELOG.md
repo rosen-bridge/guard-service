@@ -4,10 +4,12 @@
 
 ### Patch Changes
 
+- Update the `getTransaction` and `getUtxo` functions to throw `FailedError` if transaction is failed on network
+- Update the `isBoxUnspentAndValid` function to return false if transaction is failed on network
 - Update dependencies
   - @rosen-chains/abstract-chain@16.0.1
   - @rosen-chains/cardano@16.0.1
-  - @rosen-clients/cardano-koios@3.1.3
+  - @rosen-clients/cardano-koios@3.2.0
 
 ## 13.0.2
 
