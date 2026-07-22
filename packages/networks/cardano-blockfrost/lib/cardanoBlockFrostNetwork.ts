@@ -263,6 +263,10 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
         throw new UnexpectedApiError(baseError + e.message);
       }
     }
+    if (txInfo.valid_contract === false)
+      throw new FailedError(
+        `Transaction [${transactionId}] is failed on-chain`,
+      );
 
     let txUtxos: components['schemas']['tx_content_utxo'];
     try {

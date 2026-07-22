@@ -1,6 +1,6 @@
 {
   "name": "@rosen-chains/doge",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "this project contains doge chain for Rosen-bridge",
   "keywords": [
     "rosen"
@@ -37,7 +37,7 @@
     "@rosen-bridge/json-bigint": "^1.1.0",
     "@rosen-bridge/rosen-extractor": "^12.1.1",
     "@rosen-bridge/tokens": "^6.0.2",
-    "@rosen-chains/abstract-chain": "^16.0.0",
+    "@rosen-chains/abstract-chain": "^16.0.1",
     "bitcoinjs-lib": "^6.1.5"
   },
   "engines": {

@@ -1,6 +1,7 @@
 import { Transaction } from '@emurgo/cardano-serialization-lib-nodejs';
 
 import JsonBigInt from '@rosen-bridge/json-bigint';
+import { FailedError } from '@rosen-chains/abstract-chain';
 
 import CardanoKoiosNetwork from '../lib';
 import {
@@ -311,13 +312,37 @@ describe('CardanoKoiosNetwork', () => {
       const network = mockNetwork();
       const result = await network.getTransaction(
         testData.differentMetadataTxId,
-        testData.differentnoMetadataTxBlockId,
+        testData.differentMetadataTxBlockId,
       );
 
       // check returned value
       expect(JsonBigInt.stringify(result)).toEqual(
         testData.expectedDifferentMetadataTxResponse,
       );
+    });
+
+    /**
+     * @target `CardanoKoiosNetwork.getTransaction` should throw FailedError
+     * when transaction is failed on chain
+     * @dependencies
+     * @scenario
+     * - mock `txCbor` of cardano koios client
+     * - run test & check thrown exception
+     * @expected
+     * - it should throw FailedError
+     */
+    it('should throw FailedError when transaction is failed on chain', async () => {
+      // mock client response
+      mockTxCbor(testData.failedOnChainTxKoiosResponse);
+
+      // run test & check thrown exception
+      const network = mockNetwork();
+      await expect(async () => {
+        await network.getTransaction(
+          testData.failedOnChainTxId,
+          testData.failedOnChainTxBlockId,
+        );
+      }).rejects.toThrow(FailedError);
     });
   });
 
@@ -379,7 +404,7 @@ describe('CardanoKoiosNetwork', () => {
      */
     it('should return address Utxos', async () => {
       // mock client response
-      mockAddressInfo(testData.addressUtxoSet);
+      mockAddressInfo(testData.addressUtxoSet as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
       // run test
       const network = mockNetwork();
@@ -450,7 +475,7 @@ describe('CardanoKoiosNetwork', () => {
      */
     it('should return empty list when offset is more than boxes', async () => {
       // mock client response
-      mockAddressInfo(testData.addressUtxoSet);
+      mockAddressInfo(testData.addressUtxoSet as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
       // run test
       const network = mockNetwork();
@@ -536,6 +561,31 @@ describe('CardanoKoiosNetwork', () => {
       // check returned value
       expect(result).toEqual(false);
     });
+
+    /**
+     * @target `CardanoKoiosNetwork.isBoxUnspentAndValid` should return false
+     * when the origin transaction is failed on chain
+     * @dependencies
+     * @scenario
+     * - mock `txCbor` of cardano koios client
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should be false
+     */
+    it('should return false when the origin transaction is failed on chain', async () => {
+      // mock client response
+      mockTxCbor(testData.failedOnChainTxKoiosResponse);
+
+      // run test
+      const network = mockNetwork();
+      const result = await network.isBoxUnspentAndValid(
+        testData.failedOnChainTxId + '.0',
+      );
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
   });
 
   describe('currentSlot', () => {
@@ -583,6 +633,27 @@ describe('CardanoKoiosNetwork', () => {
 
       // check returned value
       expect(result).toEqual(testData.expectedUtxo);
+    });
+
+    /**
+     * @target `CardanoKoiosNetwork.getUtxo` should throw FailedError
+     * when transaction is failed on chain
+     * @dependencies
+     * @scenario
+     * - mock `txCbor` of cardano koios client
+     * - run test & check thrown exception
+     * @expected
+     * - it should throw FailedError
+     */
+    it('should throw FailedError when transaction is failed on chain', async () => {
+      // mock client response
+      mockTxCbor(testData.failedOnChainTxKoiosResponse);
+
+      // run test & check thrown exception
+      const network = mockNetwork();
+      await expect(async () => {
+        await network.getUtxo(testData.failedOnChainTxId + '.0');
+      }).rejects.toThrow(FailedError);
     });
   });
 

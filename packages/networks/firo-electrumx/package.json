@@ -1,6 +1,6 @@
 {
   "name": "@rosen-chains/firo-electrumx",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "A package to be used as network api provider for @rosen-chains/firo package using ElectrumX TLS API",
   "keywords": [
     "rosen"
@@ -34,8 +34,8 @@
   "dependencies": {
     "@rosen-bridge/abstract-logger": "^4.0.0",
     "@rosen-bridge/firo-scanner": "^0.2.3",
-    "@rosen-chains/abstract-chain": "^16.0.0",
-    "@rosen-chains/firo": "^0.0.0",
+    "@rosen-chains/abstract-chain": "^16.0.1",
+    "@rosen-chains/firo": "^0.1.0",
     "bitcoinjs-lib": "^6.1.5",
     "bs58check": "^3.0.1"
   },

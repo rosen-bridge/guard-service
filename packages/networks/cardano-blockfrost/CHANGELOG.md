@@ -1,5 +1,14 @@
 # @rosen-chains/cardano-blockfrost-network
 
+## 10.0.3
+
+### Patch Changes
+
+- Update the `getTransaction` function to throw `FailedError` if transaction is failed on network
+- Update dependencies
+  - @rosen-chains/abstract-chain@16.0.1
+  - @rosen-chains/cardano@16.0.1
+
 ## 10.0.2
 
 ### Patch Changes
