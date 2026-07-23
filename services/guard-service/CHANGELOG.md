@@ -1,5 +1,12 @@
 # guard-service
 
+## 10.0.1
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-chains/firo-electrumx@0.1.1
+
 ## 10.0.0
 
 ### Major Changes
