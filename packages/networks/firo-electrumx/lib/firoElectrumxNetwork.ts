@@ -593,6 +593,7 @@ class FiroElectrumXNetwork extends AbstractFiroNetwork {
   private isNotFoundError = (e: unknown): boolean => {
     const message = this.getErrorMessage(e).toLowerCase();
     return (
+      message.includes('no such mempool or blockchain transaction') ||
       message.includes('no such transaction') ||
       message.includes('not found') ||
       message.includes('not exist')
