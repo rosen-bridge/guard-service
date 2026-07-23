@@ -1,4 +1,3 @@
-import { Semaphore } from 'await-semaphore';
 import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity';
 
 import { DefaultLogger } from '@rosen-bridge/abstract-logger';
@@ -16,6 +15,7 @@ import {
   UpdateResult,
 } from '@rosen-bridge/extended-typeorm';
 import { LastSavedBlock } from '@rosen-bridge/scanner-sync-check';
+import { Semaphore } from '@rosen-bridge/semaphore';
 import {
   CommitmentEntity,
   EventTriggerEntity,
@@ -29,7 +29,8 @@ import {
 
 import PublicStatusHandler from '../handlers/publicStatusHandler';
 import { ReprocessStatus } from '../reprocess/interfaces';
-import { Page, SortRequest } from '../types/api';
+import { AddressType, Page, SortRequest } from '../types/api';
+import { SupportedChain } from '../types/config';
 import {
   EventStatus,
   OrderStatus,
@@ -37,10 +38,12 @@ import {
   TransactionStatus,
 } from '../utils/constants';
 import Utils from '../utils/utils';
+import { AddressEntity } from './entities/addressEntity';
 import { ArbitraryEntity } from './entities/arbitraryEntity';
 import { ChainAddressBalanceEntity } from './entities/chainAddressBalanceEntity';
 import { ConfirmedEventEntity } from './entities/confirmedEventEntity';
 import { EventView } from './entities/eventView';
+import { RejectedEventEntity } from './entities/rejectedEventEntity';
 import { ReprocessEntity } from './entities/reprocessEntity';
 import { RevenueChartView } from './entities/revenueChartView';
 import { RevenueEntity } from './entities/revenueEntity';
@@ -56,6 +59,7 @@ class DatabaseAction {
   CommitmentRepository: Repository<CommitmentEntity>;
   EventRepository: Repository<EventTriggerEntity>;
   ConfirmedEventRepository: Repository<ConfirmedEventEntity>;
+  RejectedEventRepository: Repository<RejectedEventEntity>;
   TransactionRepository: Repository<TransactionEntity>;
   RevenueRepository: Repository<RevenueEntity>;
   RevenueView: Repository<RevenueView>;
@@ -64,6 +68,7 @@ class DatabaseAction {
   ArbitraryRepository: Repository<ArbitraryEntity>;
   ReprocessRepository: Repository<ReprocessEntity>;
   ChainAddressBalanceRepository: Repository<ChainAddressBalanceEntity>;
+  AddressRepository: Repository<AddressEntity>;
 
   txSignSemaphore = new Semaphore(1);
 
@@ -74,6 +79,8 @@ class DatabaseAction {
     this.EventRepository = this.dataSource.getRepository(EventTriggerEntity);
     this.ConfirmedEventRepository =
       this.dataSource.getRepository(ConfirmedEventEntity);
+    this.RejectedEventRepository =
+      this.dataSource.getRepository(RejectedEventEntity);
     this.TransactionRepository =
       this.dataSource.getRepository(TransactionEntity);
     this.RevenueRepository = this.dataSource.getRepository(RevenueEntity);
@@ -85,6 +92,7 @@ class DatabaseAction {
     this.ChainAddressBalanceRepository = this.dataSource.getRepository(
       ChainAddressBalanceEntity,
     );
+    this.AddressRepository = this.dataSource.getRepository(AddressEntity);
   }
 
   /**
@@ -479,7 +487,9 @@ class DatabaseAction {
   getUnconfirmedEvents = async (): Promise<EventTriggerEntity[]> => {
     return await this.EventRepository.createQueryBuilder('event')
       .leftJoin('confirmed_event_entity', 'cee', 'event.id = cee.eventDataId')
+      .leftJoin('rejected_event_entity', 'ree', 'event.id = ree.eventDataId')
       .where('cee.eventDataId IS NULL')
+      .andWhere('ree.eventDataId IS NULL')
       .getMany();
   };
 
@@ -501,6 +511,29 @@ class DatabaseAction {
     });
 
     PublicStatusHandler.getInstance().updatePublicEventStatus(eventId, status);
+  };
+
+  /**
+   * inserts a rejected event into table
+   * @param eventData
+   * @param reason
+   */
+  insertRejectedEvent = async (
+    eventData: EventTriggerEntity,
+    reason: string,
+  ): Promise<void> => {
+    const eventId = Utils.txIdToEventId(eventData.sourceTxId);
+
+    await this.RejectedEventRepository.insert({
+      id: eventId,
+      eventData: eventData,
+      reason,
+    });
+
+    PublicStatusHandler.getInstance().updatePublicEventStatus(
+      eventId,
+      EventStatus.rejected,
+    );
   };
 
   /**
@@ -829,10 +862,12 @@ class DatabaseAction {
   /**
    * Returns chart data with the specified period
    * @param period
-   * @param offset
-   * @param limit
+   * @param minTimestamp minimum timestamp (in seconds)
    */
-  getRevenueChartData = async (period: RevenuePeriod) => {
+  getRevenueChartData = async (
+    period: RevenuePeriod,
+    minTimestamp?: number,
+  ) => {
     const query = this.RevenueChartView.createQueryBuilder();
     query
       .select('"tokenId"')
@@ -840,6 +875,8 @@ class DatabaseAction {
       .addSelect('MIN(timestamp)', 'label')
       .groupBy('"tokenId"')
       .orderBy('label', 'DESC');
+    if (minTimestamp)
+      query.where('"timestamp" >= :timestamp', { timestamp: minTimestamp });
     if (period === RevenuePeriod.year) {
       query.addGroupBy('year');
     } else if (period === RevenuePeriod.month) {
@@ -985,21 +1022,21 @@ class DatabaseAction {
    * inserts reprocess request into db
    * @param senderId
    * @param requestId
-   * @param eventId
+   * @param eventTxId
    * @param timestamp
    * @param peerIds
    */
   insertReprocessRequests = async (
     senderId: string,
     requestId: string,
-    eventId: string,
+    eventTxId: string,
     timestamp: number,
     peerIds: string[],
   ) => {
     await this.ReprocessRepository.insert(
       peerIds.map((peerId) => ({
         requestId: requestId,
-        eventId: eventId,
+        eventTxId: eventTxId,
         sender: senderId,
         receiver: peerId,
         status: ReprocessStatus.noResponse,
@@ -1051,6 +1088,38 @@ class DatabaseAction {
   };
 
   /**
+   * gets AddressEntity records
+   * @param chain
+   * @param type
+   * @param offset
+   * @param limit
+   * @returns a promise of paginated AddressEntity objects
+   */
+  getAddresses = async (
+    chain?: SupportedChain,
+    type?: AddressType,
+    offset?: number,
+    limit?: number,
+  ): Promise<Page<AddressEntity>> => {
+    const [items, total] = await this.AddressRepository.findAndCount({
+      where: {
+        ...(chain ? { chain } : {}),
+        ...(type ? { type } : {}),
+      },
+      ...(Number.isFinite(offset) ? { skip: offset } : {}),
+      ...(Number.isFinite(limit) ? { take: limit } : {}),
+      order: {
+        id: 'ASC',
+      },
+    });
+
+    return {
+      items,
+      total,
+    };
+  };
+
+  /**
    * gets all ChainAddressBalanceEntity by array of tokenIds
    * @param tokenIds
    * @returns array of ChainAddressBalanceEntity
@@ -1097,7 +1166,28 @@ class DatabaseAction {
   };
 
   /**
-   * upserts array of ChainAddressBalanceEntity objects
+   * gets all ChainAddressBalanceEntity objects by chain name
+   * @param chain
+   * @returns array of ChainAddressBalanceEntity objects
+   */
+  getChainAddressBalanceByChain = async (
+    chain: string,
+  ): Promise<ChainAddressBalanceEntity[]> => {
+    return this.ChainAddressBalanceRepository.findBy({
+      chain,
+    });
+  };
+
+  /**
+   * removes an array of ChainAddressBalanceEntity objects
+   * @param records
+   */
+  removeChainAddressBalances = async (records: ChainAddressBalanceEntity[]) => {
+    return await this.ChainAddressBalanceRepository.remove(records);
+  };
+
+  /**
+   * upserts an array of ChainAddressBalanceEntity objects
    * @param records
    */
   upsertChainAddressBalances = async (records: ChainAddressBalanceEntity[]) => {
@@ -1106,6 +1196,39 @@ class DatabaseAction {
       'address',
       'tokenId',
     ]);
+  };
+
+  /**
+   * @param eventTxId the trigger transaction id
+   * @return the event trigger
+   */
+  getEventByTriggerId = async (
+    eventTxId: string,
+  ): Promise<EventTriggerEntity | null> => {
+    return await this.EventRepository.findOne({
+      where: {
+        txId: eventTxId,
+      },
+    });
+  };
+
+  /**
+   * deletes an event from RejectedEventEntity by it's trigger transaction id
+   * @param eventTxId the trigger transaction id
+   */
+  deleteRejectedEventByTriggerId = async (
+    eventTxId: string,
+  ): Promise<number> => {
+    const rejectedEvents = await this.RejectedEventRepository.find({
+      relations: ['eventData'],
+      where: {
+        eventData: { txId: eventTxId },
+      },
+    });
+    const result = await this.RejectedEventRepository.delete({
+      eventDataId: In(rejectedEvents.map((event) => event.eventDataId)),
+    });
+    return result.affected ?? 0;
   };
 }
 

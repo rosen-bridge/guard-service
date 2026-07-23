@@ -1,7 +1,6 @@
-import fastify from 'fastify';
+import { FastifyWithZod, makeFastify } from '@rosen-bridge/fastify-enhanced';
 
 import { balanceRoutes } from '../../src/api/balance';
-import { FastifySeverInstance } from '../../src/api/schemas';
 import BalanceHandlerMock from '../handlers/mocked/balanceHandler.mock';
 import {
   mockLockBalances,
@@ -11,10 +10,10 @@ import {
 
 describe('balanceRoutes', () => {
   describe('GET /balance', () => {
-    let mockedServer: FastifySeverInstance;
+    let mockedServer: FastifyWithZod;
 
-    beforeEach(() => {
-      mockedServer = fastify();
+    beforeEach(async () => {
+      mockedServer = await makeFastify();
       mockedServer.register(balanceRoutes);
 
       BalanceHandlerMock.resetMock();

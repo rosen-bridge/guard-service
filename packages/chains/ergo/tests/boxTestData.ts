@@ -270,3 +270,6 @@ export const invalidEvent: EventTrigger = {
   WIDsHash: '300a544b041a6f48c411c463d4c33c6fb650471d5ebd0332459b8855eeba14cd',
   WIDsCount: 3,
 };
+
+export const testLockAddress =
+  '9es3xKFSehNNwCpuNpY31ScAubDqeLbSWwaCysjN1ee51bgHKTq';

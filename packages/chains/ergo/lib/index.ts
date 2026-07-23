@@ -4,3 +4,4 @@ export { default as ErgoTransaction } from './ergoTransaction';
 
 export * from './constants';
 export * from './types';
+export { decodeRegister } from './ergoUtils';

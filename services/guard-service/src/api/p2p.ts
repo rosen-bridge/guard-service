@@ -1,12 +1,13 @@
-import { Type } from '@sinclair/typebox';
+import { z } from 'zod';
 
 import { DefaultLogger } from '@rosen-bridge/abstract-logger';
 import { RosenDialerNode } from '@rosen-bridge/dialer';
+import { FastifyWithZod } from '@rosen-bridge/fastify-enhanced';
 
 import { apiCallBack } from '../communication/callbackUtils';
 import RosenDialer from '../communication/rosenDialer';
 import Configs from '../configs/configs';
-import { FastifySeverInstance, MessageResponseSchema } from './schemas';
+import { MessageResponseSchema } from './schemas';
 
 const logger = DefaultLogger.getInstance().child(import.meta.url);
 
@@ -15,11 +16,11 @@ const logger = DefaultLogger.getInstance().child(import.meta.url);
  * @param server
  * @param dialer
  */
-const sendRoute = (server: FastifySeverInstance, dialer: RosenDialerNode) => {
-  const bodySchema = Type.Object({
-    channel: Type.String({ maxLength: Configs.MAX_LENGTH_CHANNEL_SIZE }),
-    message: Type.String(),
-    receiver: Type.Optional(Type.String()),
+const sendRoute = (server: FastifyWithZod, dialer: RosenDialerNode) => {
+  const bodySchema = z.object({
+    channel: z.string().max(Configs.MAX_LENGTH_CHANNEL_SIZE),
+    message: z.string(),
+    receiver: z.optional(z.string()),
   });
   server.post(
     '/p2p/send',
@@ -52,13 +53,10 @@ const sendRoute = (server: FastifySeverInstance, dialer: RosenDialerNode) => {
  * @param server
  * @param dialer
  */
-const subscribeRoute = (
-  server: FastifySeverInstance,
-  dialer: RosenDialerNode,
-) => {
-  const bodySchema = Type.Object({
-    channel: Type.String({ maxLength: Configs.MAX_LENGTH_CHANNEL_SIZE }),
-    url: Type.String(),
+const subscribeRoute = (server: FastifyWithZod, dialer: RosenDialerNode) => {
+  const bodySchema = z.object({
+    channel: z.string().max(Configs.MAX_LENGTH_CHANNEL_SIZE),
+    url: z.string(),
   });
   server.post(
     '/p2p/channel/subscribe',
@@ -83,13 +81,10 @@ const subscribeRoute = (
  * @param server
  * @param dialer
  */
-const getPeerIdRoute = (
-  server: FastifySeverInstance,
-  dialer: RosenDialerNode,
-) => {
-  const responseSchema = Type.Object({
-    message: Type.String(),
-    status: Type.String(),
+const getPeerIdRoute = (server: FastifyWithZod, dialer: RosenDialerNode) => {
+  const responseSchema = z.object({
+    message: z.string(),
+    status: z.string(),
   });
   server.get(
     '/p2p/getPeerID',
@@ -110,7 +105,7 @@ const getPeerIdRoute = (
  * plugin to setup p2p routes
  * @param server
  */
-const p2pRoutes = async (server: FastifySeverInstance) => {
+const p2pRoutes = async (server: FastifyWithZod) => {
   const dialer = RosenDialer.getInstance().getDialer();
   sendRoute(server, dialer);
   subscribeRoute(server, dialer);

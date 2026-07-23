@@ -980,7 +980,7 @@ describe('ErgoChain', () => {
         fee: 1200000n,
         confirmations: ergoTestUtils.defaultConfirmations,
         addresses: {
-          lock: ergoTestUtils.testLockAddress,
+          lock: boxTestData.testLockAddress,
           cold: 'cold_addr',
           permit: 'permit_addr',
           fraud: 'fraud_addr',
@@ -1038,7 +1038,7 @@ describe('ErgoChain', () => {
         fee: 100n,
         confirmations: ergoTestUtils.defaultConfirmations,
         addresses: {
-          lock: ergoTestUtils.testLockAddress,
+          lock: boxTestData.testLockAddress,
           cold: 'cold_addr',
           permit: 'permit_addr',
           fraud: 'fraud_addr',
@@ -2203,7 +2203,7 @@ describe('ErgoChain', () => {
       const ergoChain = ergoTestUtils.generateChainObject(network);
       const result = await ergoChain.getGuardsConfigBox(
         guardNFT,
-        ergoTestUtils.testLockAddress,
+        boxTestData.testLockAddress,
       );
 
       // check returned value
@@ -2236,7 +2236,7 @@ describe('ErgoChain', () => {
       await expect(async () => {
         await ergoChain.getGuardsConfigBox(
           guardNFT,
-          ergoTestUtils.testLockAddress,
+          boxTestData.testLockAddress,
         );
       }).rejects.toThrow(Error);
     });
@@ -2272,7 +2272,7 @@ describe('ErgoChain', () => {
       await expect(async () => {
         await ergoChain.getGuardsConfigBox(
           guardNFT,
-          ergoTestUtils.testLockAddress,
+          boxTestData.testLockAddress,
         );
       }).rejects.toThrow(Error);
     });
@@ -2380,7 +2380,7 @@ describe('ErgoChain', () => {
       const ergoChain = ergoTestUtils.generateChainObject(network);
       const result = await ergoChain.getGuardsPkConfig(
         guardNFT,
-        ergoTestUtils.testLockAddress,
+        boxTestData.testLockAddress,
       );
 
       // check returned value
@@ -2414,7 +2414,7 @@ describe('ErgoChain', () => {
       await expect(async () => {
         await ergoChain.getGuardsPkConfig(
           guardNFT,
-          ergoTestUtils.testLockAddress,
+          boxTestData.testLockAddress,
         );
       }).rejects.toThrow(Error);
     });

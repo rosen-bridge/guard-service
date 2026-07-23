@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "./lib"
+  },
+  "exclude": ["tests", "vitest.config.ts"],
+  "references": [
+    {
+      "path": "../evm-rpc/tsconfig.build.json"
+    },
+    {
+      "path": "../../chains/evm/tsconfig.build.json"
+    },
+    {
+      "path": "../../abstract-chain/tsconfig.build.json"
+    }
+  ]
+}

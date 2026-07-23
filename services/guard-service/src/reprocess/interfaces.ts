@@ -1,6 +1,6 @@
 export interface ReprocessRequest {
   requestId: string;
-  eventId: string;
+  eventTxId: string;
 }
 
 export interface ReprocessResponse {

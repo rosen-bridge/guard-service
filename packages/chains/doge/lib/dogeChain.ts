@@ -65,13 +65,15 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
     this.extractor = new DogeRosenExtractor(
       configs.addresses.lock,
       tokens,
-      logger,
+      logger?.child(`dogeRosenExtractor`),
     );
     this.signMediator = signMediator;
     this.lockScript = address
       .toOutputScript(this.configs.addresses.lock, DOGE_NETWORK)
       .toString('hex');
-    this.boxSelection = new BitcoinBoxSelection();
+    this.boxSelection = new BitcoinBoxSelection(
+      logger?.child(`bitcoinBoxSelection`),
+    );
   }
 
   /**
@@ -98,11 +100,10 @@ class DogeChain extends AbstractUtxoChain<DogeTx, DogeUtxo> {
     const feeRatio = await this.network.getFeeRatio();
 
     // calculate required assets
-    const minUtxoValue = this.getMinimumNativeToken();
     const requiredAssets = order
       .map((order) => order.assets)
       .reduce(ChainUtils.sumAssetBalance, {
-        nativeToken: minUtxoValue,
+        nativeToken: 0n, // the min DOGE for change output is considered by the selection package
         tokens: [],
       });
     this.logger.debug(

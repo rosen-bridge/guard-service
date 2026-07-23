@@ -474,6 +474,37 @@ export const differentMetadataTransactionInCardanoTx: CardanoTx = {
   },
 };
 
+export const failedOnChainTransaction = {
+  hash: 'c04ba08bdb667387e8d2d932a24d40fccb32fc050d425d4c4eeee0f958b194a8',
+  block: '3f9906de0b36e99e8bf2455352183f25ee4e4c029bbbfcf0b09a139d4d3d46e6',
+  block_height: 13706216,
+  block_time: 1784630143,
+  slot: 193063852,
+  index: 15,
+  output_amount: [
+    {
+      unit: 'lovelace',
+      quantity: '62002390',
+    },
+  ],
+  fees: '697500',
+  deposit: '0',
+  size: 1040,
+  invalid_before: null,
+  invalid_hereafter: '193067432',
+  utxo_count: 2,
+  withdrawal_count: 0,
+  mir_cert_count: 0,
+  delegation_count: 0,
+  stake_cert_count: 0,
+  pool_update_count: 0,
+  pool_retire_count: 0,
+  asset_mint_or_burn_count: 0,
+  redeemer_count: 0,
+  valid_contract: false,
+  treasury_donation: '0',
+};
+
 export const addressBalance = 99000000n;
 export const addressAssets = [
   {

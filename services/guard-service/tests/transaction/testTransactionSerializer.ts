@@ -1,4 +1,5 @@
 import {
+  AbstractChain,
   PaymentTransaction,
   PaymentTransactionJsonModel,
   TransactionType,
@@ -9,9 +10,14 @@ import { ERGO_CHAIN, ErgoTransaction } from '@rosen-chains/ergo';
 /**
  * converts json string to PaymentTransaction
  * @param jsonString
+ * @param getChain the `ChainHandler.getChain` function
  * @returns
  */
-export const fromJson = (jsonString: string): PaymentTransaction => {
+export const fromJson = (
+  jsonString: string,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  getChain: (chain: string) => AbstractChain<unknown>,
+): PaymentTransaction => {
   const network = (JSON.parse(jsonString) as PaymentTransactionJsonModel)
     .network;
   if (network === ERGO_CHAIN) return ErgoTransaction.fromJson(jsonString);

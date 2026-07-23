@@ -1,8 +1,7 @@
-import { Semaphore } from 'await-semaphore';
-
 import { DefaultLogger } from '@rosen-bridge/abstract-logger';
 import { Communicator } from '@rosen-bridge/communication';
 import { RosenDialerNode } from '@rosen-bridge/dialer';
+import { Semaphore } from '@rosen-bridge/semaphore';
 import {
   ImpossibleBehavior,
   PaymentTransaction,
@@ -13,6 +12,7 @@ import RosenDialer from '../communication/rosenDialer';
 import Configs from '../configs/configs';
 import { DatabaseAction } from '../db/databaseAction';
 import DatabaseHandler from '../db/databaseHandler';
+import ChainHandler from '../handlers/chainHandler';
 import GuardPkHandler from '../handlers/guardPkHandler';
 import * as TransactionSerializer from '../transaction/transactionSerializer';
 import {
@@ -127,7 +127,12 @@ class TxAgreement extends Communicator {
     txs
       .filter((tx) => tx.type !== TransactionType.manual)
       .forEach((tx) =>
-        this.transactionQueue.push(TransactionSerializer.fromJson(tx.txJson)),
+        this.transactionQueue.push(
+          TransactionSerializer.fromJson(
+            tx.txJson,
+            ChainHandler.getInstance().getChain,
+          ),
+        ),
       );
   };
 
@@ -202,7 +207,10 @@ class TxAgreement extends Communicator {
       switch (type) {
         case AgreementMessageTypes.request: {
           const candidate = payload as TransactionRequest;
-          const tx = TransactionSerializer.fromJson(candidate.txJson);
+          const tx = TransactionSerializer.fromJson(
+            candidate.txJson,
+            ChainHandler.getInstance().getChain,
+          );
           await this.processTransactionRequest(
             tx,
             senderIndex,
@@ -223,7 +231,10 @@ class TxAgreement extends Communicator {
         }
         case AgreementMessageTypes.approval: {
           const approval = payload as TransactionApproved;
-          const tx = TransactionSerializer.fromJson(approval.txJson);
+          const tx = TransactionSerializer.fromJson(
+            approval.txJson,
+            ChainHandler.getInstance().getChain,
+          );
           await this.processApprovalMessage(
             tx,
             senderIndex,

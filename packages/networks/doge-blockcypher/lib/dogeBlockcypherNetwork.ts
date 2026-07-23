@@ -18,7 +18,9 @@ import {
   DogeUtxo,
   DOGE_NETWORK,
 } from '@rosen-chains/doge';
-import RateLimitedAxios from '@rosen-clients/rate-limited-axios';
+import RateLimitedAxios, {
+  Axios as RateLimitedAxiosClass,
+} from '@rosen-clients/rate-limited-axios';
 
 import {
   BlockCypherAddress,
@@ -28,7 +30,7 @@ import {
 } from './types';
 
 class DogeBlockCypherNetwork extends PartialDogeNetwork {
-  protected client; // TODO: specify the type (local:ergo/rosen-bridge/network-client#26)
+  protected client: RateLimitedAxiosClass;
   private getSavedTransactionById: (
     txId: string,
   ) => Promise<PaymentTransaction | undefined>;

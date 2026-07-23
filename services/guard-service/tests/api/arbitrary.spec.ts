@@ -1,9 +1,10 @@
-import fastify from 'fastify';
+import rateLimit from '@fastify/rate-limit';
 
+import { FastifyWithZod, makeFastify } from '@rosen-bridge/fastify-enhanced';
 import { ERGO_CHAIN } from '@rosen-chains/ergo';
 
 import { arbitraryOrderRoute } from '../../src/api/arbitrary';
-import { FastifySeverInstance } from '../../src/api/schemas';
+import Configs from '../../src/configs/configs';
 import { OrderStatus } from '../../src/utils/constants';
 import {
   arrangedOrderJson,
@@ -15,10 +16,14 @@ import { invalidOrderJson } from './testData';
 
 describe('arbitrary', () => {
   describe('POST /order', () => {
-    let mockedServer: FastifySeverInstance;
+    let mockedServer: FastifyWithZod;
 
     beforeEach(async () => {
-      mockedServer = fastify();
+      mockedServer = await makeFastify();
+      await mockedServer.register(rateLimit, {
+        max: Configs.apiMaxRequestsPerMinute,
+        timeWindow: '1 minute',
+      });
       mockedServer.register(arbitraryOrderRoute);
       await DatabaseActionMock.clearTables();
     });
@@ -295,6 +300,63 @@ describe('arbitrary', () => {
       });
       // check the result
       expect(result.statusCode).toEqual(403);
+    });
+
+    /**
+     * @target fastifyServer[POST /order] should respond with error when rate limit is triggered
+     * @dependencies
+     * @scenario
+     * - in the test config set rate limit of this route to 2
+     * - send 3 requests to the server
+     * - check the responses
+     * @expected
+     * - all 3 responses should contain x-ratelimit-limit header with the value of 2
+     * - for the first request
+     *   - response status should not be 429
+     *   - response header x-ratelimit-remaining should be 1
+     * - for the second request
+     *   - response status should not be 429
+     *   - response header x-ratelimit-remaining should be 0
+     * - for the third request
+     *   - response status should be 429
+     *   - response header x-ratelimit-remaining should be 0
+     */
+    it('should respond with error when rate limit is triggered', async () => {
+      // act
+      const responses = [];
+      for (
+        let i = 1;
+        i <= Configs.apiMaxRequestsPerMinutePostRoutes + 1;
+        i += 1
+      ) {
+        const response = await mockedServer.inject({
+          method: 'POST',
+          url: '/order',
+          body: {
+            id: '85b5cb7f4e81e1db4e95803b6144c64983f76e776ff75fd04c0ebfc95ae46e4d',
+            chain: ERGO_CHAIN,
+            orderJson: orderJson,
+          },
+          headers: {
+            'Api-Key': 'hello',
+          },
+        });
+
+        responses.push(response);
+      }
+
+      // assert
+      expect(responses[0].statusCode).not.toEqual(429);
+      expect(responses[0].headers['x-ratelimit-remaining']).toEqual('1');
+      expect(responses[0].headers['x-ratelimit-limit']).toEqual('2');
+
+      expect(responses[1].statusCode).not.toEqual(429);
+      expect(responses[1].headers['x-ratelimit-remaining']).toEqual('0');
+      expect(responses[1].headers['x-ratelimit-limit']).toEqual('2');
+
+      expect(responses[2].statusCode).toEqual(429);
+      expect(responses[2].headers['x-ratelimit-remaining']).toEqual('0');
+      expect(responses[2].headers['x-ratelimit-limit']).toEqual('2');
     });
   });
 });

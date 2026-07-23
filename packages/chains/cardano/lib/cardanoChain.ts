@@ -58,10 +58,12 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
     this.extractor = new CardanoRosenExtractor(
       configs.addresses.lock,
       tokens,
-      logger,
+      logger?.child(`cardanoRosenExtractor`),
     );
     this.signMediator = signMediator;
-    this.boxSelection = new CardanoBoxSelection();
+    this.boxSelection = new CardanoBoxSelection(
+      logger?.child(`cardanoBoxSelection`),
+    );
   }
 
   /**
@@ -124,7 +126,8 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
       .map((order) => order.assets)
       .reduce(ChainUtils.sumAssetBalance, {
         nativeToken:
-          this.getMinimumNativeToken() +
+          // only fee is added to the required assets. the min ADA for change output
+          // is considered by the selection package
           this.tokenMap.wrapAmount(this.NATIVE_TOKEN_ID, fee, this.CHAIN)
             .amount,
         tokens: [],

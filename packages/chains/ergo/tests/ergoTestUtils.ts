@@ -5,6 +5,7 @@ import { RosenTokens } from '@rosen-bridge/tokens';
 import { TokenMap } from '@rosen-bridge/tokens';
 
 import { ErgoChain, ErgoConfigs, ErgoSignMediator } from '../lib';
+import { testLockAddress } from './boxTestData';
 import TestErgoNetwork from './network/testErgoNetwork';
 import { transaction2SignedSerialized } from './transactionTestData';
 
@@ -150,9 +151,6 @@ export const wrappedRwtTokenMap: RosenTokens = [
     },
   },
 ];
-
-export const testLockAddress =
-  '9es3xKFSehNNwCpuNpY31ScAubDqeLbSWwaCysjN1ee51bgHKTq';
 
 export const defaultSignMediator = {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

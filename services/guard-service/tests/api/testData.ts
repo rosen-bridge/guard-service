@@ -7,7 +7,8 @@ import GuardsBitcoinConfigs from '../../src/configs/guardsBitcoinConfigs';
 import GuardsCardanoConfigs from '../../src/configs/guardsCardanoConfigs';
 import GuardsErgoConfigs from '../../src/configs/guardsErgoConfigs';
 import { rosenConfig } from '../../src/configs/rosenConfig';
-import { AddressBalance, Page } from '../../src/types/api';
+import { AddressEntity } from '../../src/db/entities/addressEntity';
+import { AddressBalance, AddressType, Page } from '../../src/types/api';
 
 export const guardInfo = {
   versions: {
@@ -24,6 +25,64 @@ export const guardInfo = {
 
 export const invalidOrderJson =
   '[{"address":"address-1","assets":{"nativeToken":100,"tokens":[]}},{"address":"address-2","assets":{"nativeToken":200,"tokens":[{"id":"token-1","value":10000}]}]';
+
+export const mockAddresses: AddressEntity[] = [
+  {
+    id: 0,
+    chain: 'ergo',
+    address: 'ergo_hot',
+    type: AddressType.Hot,
+  },
+  {
+    id: 1,
+    chain: 'ergo',
+    address: 'ergo_cold',
+    type: AddressType.Cold,
+  },
+  {
+    id: 2,
+    chain: 'bitcoin',
+    address: 'bitcoin_hot',
+    type: AddressType.Hot,
+  },
+  {
+    id: 3,
+    chain: 'cardano',
+    address: 'cardano_hot',
+    type: AddressType.Hot,
+  },
+  {
+    id: 4,
+    chain: 'cardano',
+    address: 'cardano_cold',
+    type: AddressType.Cold,
+  },
+  {
+    id: 5,
+    chain: 'ethereum',
+    address: 'ethereum_hot',
+    type: AddressType.Hot,
+  },
+  {
+    id: 6,
+    chain: 'ethereum',
+    address: 'ethereum_cold',
+    type: AddressType.Cold,
+  },
+  {
+    id: 7,
+    chain: 'binance',
+    address: 'binance_hot',
+    type: AddressType.Hot,
+  },
+];
+
+export const mockPartialAddresses: Omit<AddressEntity, 'id'>[] =
+  mockAddresses.map((record) => ({
+    chain: record.chain,
+    address: record.address,
+    type: record.type,
+  }));
 
 export const mockLockBalances: Page<AddressBalance> = {
   items: [

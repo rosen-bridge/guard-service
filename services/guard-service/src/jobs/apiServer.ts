@@ -1,13 +1,16 @@
 import fastifyCors, { FastifyCorsOptions } from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
-import swagger from '@fastify/swagger';
-import swaggerUi from '@fastify/swagger-ui';
-import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
-import fastify, { FastifyInstance, FastifyRequest } from 'fastify';
 
 import { DefaultLogger } from '@rosen-bridge/abstract-logger';
+import {
+  makeFastify,
+  FastifyWithZod,
+  FastifyRequest,
+} from '@rosen-bridge/fastify-enhanced';
 
+import { addressRoutes } from '../api/address';
 import { arbitraryOrderRoute } from '../api/arbitrary';
+import { authRoutes } from '../api/auth';
 import { balanceRoutes } from '../api/balance';
 import { eventRoutes } from '../api/events';
 import { generalInfoRoute } from '../api/generalInfo';
@@ -27,11 +30,20 @@ const logger = DefaultLogger.getInstance().child(import.meta.url);
  * register all routers
  * then start it
  */
-let apiServer: FastifyInstance;
+let apiServer: FastifyWithZod;
 const initApiServer = async () => {
-  apiServer = fastify({
-    bodyLimit: Configs.apiBodyLimit,
-  }).withTypeProvider<TypeBoxTypeProvider>();
+  apiServer = await makeFastify(
+    {
+      path: '/swagger',
+      title: 'api',
+      description: '',
+      version: '0.0.1',
+      enableCSP: true,
+    },
+    {
+      bodyLimit: Configs.apiBodyLimit,
+    },
+  );
 
   if (Configs.apiAllowedOrigins.includes('*')) {
     await apiServer.register(fastifyCors, {});
@@ -57,47 +69,13 @@ const initApiServer = async () => {
     });
   }
 
-  await apiServer.register(swagger, {
-    openapi: {
-      components: {
-        securitySchemes: {
-          apiKey: {
-            type: 'apiKey',
-            name: 'Api-Key',
-            in: 'header',
-          },
-        },
-      },
-    },
-  });
-
-  await apiServer.register(swaggerUi, {
-    routePrefix: '/swagger',
-    uiConfig: {
-      docExpansion: 'full',
-      deepLinking: false,
-    },
-    uiHooks: {
-      onRequest: function (request, reply, next) {
-        next();
-      },
-      preHandler: function (request, reply, next) {
-        next();
-      },
-    },
-    staticCSP: true,
-    transformStaticCSP: (header) => header,
-    transformSpecification: (swaggerObject) => {
-      return swaggerObject;
-    },
-    transformSpecificationClone: true,
-  });
-
   await apiServer.register(rateLimit, {
     max: Configs.apiMaxRequestsPerMinute,
     timeWindow: '1 minute',
   });
 
+  await apiServer.register(authRoutes);
+  await apiServer.register(addressRoutes);
   await apiServer.register(p2pRoutes);
   await apiServer.register(tssRoute);
   await apiServer.register(generalInfoRoute);

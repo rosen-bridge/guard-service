@@ -1,18 +1,16 @@
-import fastify from 'fastify';
-
+import { FastifyWithZod, makeFastify } from '@rosen-bridge/fastify-enhanced';
 import { HealthStatusLevel } from '@rosen-bridge/health-check';
 
 import { generalInfoRoute } from '../../src/api/generalInfo';
-import { FastifySeverInstance } from '../../src/api/schemas';
 import ChainHandlerMock from '../handlers/chainHandler.mock';
 import { guardInfo } from './testData';
 
 describe('generalInfo', () => {
   describe('GET /info', () => {
-    let mockedServer: FastifySeverInstance;
+    let mockedServer: FastifyWithZod;
 
-    beforeEach(() => {
-      mockedServer = fastify();
+    beforeEach(async () => {
+      mockedServer = await makeFastify();
       mockedServer.register(generalInfoRoute);
       ChainHandlerMock.resetMock();
     });

@@ -1,5 +1,6 @@
 import fs from 'fs';
 
+import { SupportedChain } from '../types/config';
 import { AllChainsConfigs } from '../types/contract';
 import { SUPPORTED_CHAINS } from '../utils/constants';
 import Configs from './configs';
@@ -35,7 +36,7 @@ class RosenConfig {
    * Returns the ContractConfig of the related network
    * @param network
    */
-  contractReader = (network: string) => {
+  contractReader = (network: SupportedChain) => {
     const contracts = this.contract[network];
     if (!contracts) {
       throw Error(`${network} contracts and token config is not set`);

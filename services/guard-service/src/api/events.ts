@@ -1,3 +1,4 @@
+import { FastifyWithZod } from '@rosen-bridge/fastify-enhanced';
 import { TransactionType } from '@rosen-chains/abstract-chain';
 
 import { DatabaseAction } from '../db/databaseAction';
@@ -7,7 +8,6 @@ import { getTokenData } from '../utils/getTokenData';
 import {
   EventsQuerySchema,
   EventsHistoryResponseSchema,
-  FastifySeverInstance,
   MessageResponseSchema,
   OngoingEventsResponseSchema,
 } from './schemas';
@@ -16,7 +16,7 @@ import {
  * setup event history route
  * @param server
  */
-const eventsHistoryRoute = (server: FastifySeverInstance) => {
+const eventsHistoryRoute = (server: FastifyWithZod) => {
   server.get(
     '/event/history',
     {
@@ -60,6 +60,17 @@ const eventsHistoryRoute = (server: FastifySeverInstance) => {
           isNativeToken: token.isNativeToken,
         };
 
+        let status = '';
+        if (event.status) {
+          status = event.reason
+            ? `multiple-flows (${event.status})`
+            : event.status;
+        } else if (event.reason) {
+          status = 'rejected';
+        } else {
+          status = 'waiting-for-confirmation';
+        }
+
         return {
           eventId: event.eventId,
           fromChain: event.fromChain,
@@ -72,7 +83,7 @@ const eventsHistoryRoute = (server: FastifySeverInstance) => {
           sourceTxId: event.sourceTxId,
           paymentTxId: event.paymentTxId ?? '',
           rewardTxId: event.spendTxId ?? '',
-          status: event.result ?? event.status ?? 'not confirmed yet',
+          status,
         };
       });
 
@@ -88,7 +99,7 @@ const eventsHistoryRoute = (server: FastifySeverInstance) => {
  * setup event history route
  * @param server
  */
-const ongoingEventsRoute = (server: FastifySeverInstance) => {
+const ongoingEventsRoute = (server: FastifyWithZod) => {
   server.get(
     '/event/ongoing',
     {
@@ -136,28 +147,27 @@ const ongoingEventsRoute = (server: FastifySeverInstance) => {
           isNativeToken: token.isNativeToken,
         };
 
-        let status = '';
-        switch (event.status) {
-          case EventStatus.inPayment: {
-            const paymentTxStatus = txs.find(
+        let status = event.status;
+        if (status) {
+          if (event.reason) {
+            status = `multiple-flows (${event.status})`;
+          } else if (
+            [EventStatus.inPayment, EventStatus.inReward].includes(status)
+          ) {
+            const txStatus = txs.find(
               (tx) =>
                 tx.event?.id === event.eventId &&
-                tx.type === TransactionType.payment,
+                tx.type ===
+                  (status === EventStatus.inPayment
+                    ? TransactionType.payment
+                    : TransactionType.reward),
             )!.status;
-            status = `${EventStatus.inPayment} (${paymentTxStatus})`;
-            break;
+            status = `${status} (${txStatus})`;
           }
-          case EventStatus.inReward: {
-            const rewardTxStatus = txs.find(
-              (tx) =>
-                tx.event?.id === event.eventId &&
-                tx.type === TransactionType.reward,
-            )!.status;
-            status = `${EventStatus.inReward} (${rewardTxStatus})`;
-            break;
-          }
-          default:
-            status = event.status;
+        } else if (event.reason) {
+          status = 'rejected';
+        } else {
+          status = 'waiting-for-confirmation';
         }
 
         return {
@@ -171,7 +181,7 @@ const ongoingEventsRoute = (server: FastifySeverInstance) => {
           networkFee: event.networkFee,
           sourceChainToken: tokenData,
           sourceTxId: event.sourceTxId,
-          status: status,
+          status,
         };
       });
 
@@ -183,7 +193,7 @@ const ongoingEventsRoute = (server: FastifySeverInstance) => {
   );
 };
 
-const eventRoutes = async (server: FastifySeverInstance) => {
+const eventRoutes = async (server: FastifyWithZod) => {
   eventsHistoryRoute(server);
   ongoingEventsRoute(server);
 };

@@ -1,4 +1,4 @@
-import { ErgoBox, ErgoBoxCandidate } from 'ergo-lib-wasm-nodejs';
+import { Constant, ErgoBox, ErgoBoxCandidate } from 'ergo-lib-wasm-nodejs';
 
 import { AssetBalance, TokenInfo } from '@rosen-chains/abstract-chain';
 
@@ -24,5 +24,13 @@ class ErgoUtils {
     };
   };
 }
+
+/**
+ * decodes Ergo box register value from encoded ErgoTree hex string
+ * @param register
+ */
+export const decodeRegister = (register: string) => {
+  return Constant.decode_from_base16(register).to_js();
+};
 
 export default ErgoUtils;

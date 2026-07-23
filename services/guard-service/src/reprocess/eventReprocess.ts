@@ -3,6 +3,7 @@ import { randomBytes } from 'crypto';
 import { DefaultLogger } from '@rosen-bridge/abstract-logger';
 import { Communicator } from '@rosen-bridge/communication';
 import { RosenDialerNode } from '@rosen-bridge/dialer';
+import { EventTriggerEntity } from '@rosen-bridge/watcher-data-extractor';
 import { NotFoundError } from '@rosen-chains/abstract-chain';
 
 import RosenDialer from '../communication/rosenDialer';
@@ -89,56 +90,39 @@ class EventReprocess extends Communicator {
 
   /**
    * updates event status and sends reprocess request to other guards
+   * @param eventTxId
+   * @param peerIds
    */
   sendReprocessRequest = async (
-    eventId: string,
+    eventTxId: string,
     peerIds: string[],
   ): Promise<void> => {
     const requestId = randomBytes(8).toString('hex');
     const timestamp = Math.round(Date.now() / 1000);
     // get event from database
     const dbAction = DatabaseAction.getInstance();
-    const eventEntity = await dbAction.getEventById(eventId);
-    if (eventEntity === null) {
-      throw new NotFoundError(`Event [${eventId}] is not found`);
+    const eventData = await dbAction.getEventByTriggerId(eventTxId);
+    if (eventData === null) {
+      throw new NotFoundError(`No event found with trigger tx [${eventTxId}]`);
     }
 
     // check event status
-    if (
-      [
-        EventStatus.rejected,
-        EventStatus.timeout,
-        EventStatus.paymentWaiting,
-      ].includes(eventEntity.status)
-    ) {
-      logger.info(`Event [${eventId}] is queued for payment again`);
-      await dbAction.setEventStatusToPending(
-        eventId,
-        EventStatus.pendingPayment,
-      );
-    } else if (eventEntity.status === EventStatus.rewardWaiting) {
-      logger.info(`Event [${eventId}] is queued for reward distribution again`);
-      await dbAction.setEventStatusToPending(
-        eventId,
-        EventStatus.pendingReward,
-      );
-    } else {
-      throw Error(
-        `Event [${eventId}] status is unexpected (${eventEntity.status})`,
-      );
-    }
+    await this.checkAndApplyReprocess(
+      eventData,
+      `Only sending reprocess to other guards as `,
+    );
 
-    await DatabaseAction.getInstance().insertReprocessRequests(
+    await dbAction.insertReprocessRequests(
       EventReprocess.dialer.getDialerId(),
       requestId,
-      eventId,
+      eventTxId,
       timestamp,
       peerIds,
     );
 
     const payload: ReprocessRequest = {
       requestId: requestId,
-      eventId: eventId,
+      eventTxId: eventTxId,
     };
     await this.sendMessage(
       ReprocessMessageTypes.request,
@@ -171,7 +155,7 @@ class EventReprocess extends Communicator {
           const request = payload as ReprocessRequest;
           await this.processReprocessRequest(
             request.requestId,
-            request.eventId,
+            request.eventTxId,
             timestamp,
             peerId,
           );
@@ -203,22 +187,22 @@ class EventReprocess extends Communicator {
    * checks if event status is allowed to reprocess
    * sends ok and updates the status, otherwise does nothing
    * @param requestId
-   * @param eventId
+   * @param eventTxId
    * @param timestamp
    * @param peerId the guard who sent the request
    */
   protected processReprocessRequest = async (
     requestId: string,
-    eventId: string,
+    eventTxId: string,
     timestamp: number,
     peerId: string,
   ): Promise<void> => {
-    const baseError = `Reprocess request [${requestId}] is received for event [${eventId}] but `;
+    const baseError = `Reprocess request [${requestId}] is received for event triggered in tx [${eventTxId}] but `;
     // get event from database
     const dbAction = DatabaseAction.getInstance();
-    const eventEntity = await dbAction.getEventById(eventId);
-    if (eventEntity === null) {
-      logger.warn(baseError + `event is not found`);
+    const eventData = await dbAction.getEventByTriggerId(eventTxId);
+    if (eventData === null) {
+      logger.warn(baseError + `no event found with trigger tx [${eventTxId}]`);
       return;
     }
 
@@ -238,37 +222,14 @@ class EventReprocess extends Communicator {
     }
 
     // check event status
-    if (
-      [
-        EventStatus.rejected,
-        EventStatus.timeout,
-        EventStatus.paymentWaiting,
-      ].includes(eventEntity.status)
-    ) {
-      logger.info(`Event [${eventId}] is queued for payment again`);
-      await dbAction.setEventStatusToPending(
-        eventId,
-        EventStatus.pendingPayment,
-      );
-    } else if (eventEntity.status === EventStatus.rewardWaiting) {
-      logger.info(`Event [${eventId}] is queued for reward distribution again`);
-      await dbAction.setEventStatusToPending(
-        eventId,
-        EventStatus.pendingReward,
-      );
-    } else {
-      logger.warn(
-        baseError +
-          `event reprocess is not allowed for status [${eventEntity.status}]`,
-      );
-      return;
-    }
+    const result = await this.checkAndApplyReprocess(eventData, baseError);
+    if (!result) return;
 
     // add request to database
     await dbAction.insertReprocessRequests(
       peerId,
       requestId,
-      eventId,
+      eventTxId,
       timestamp,
       [EventReprocess.dialer.getDialerId()],
     );
@@ -306,6 +267,66 @@ class EventReprocess extends Communicator {
       peerId,
       ReprocessStatus.accepted,
     );
+  };
+
+  /**
+   * checks and apply the request if the event status is allowed for reprocess
+   * otherwise logs the given message
+   * @param eventData
+   * @param messageOnDenial the message to be logged if the status is not allowed for reprocess
+   * @returns if reprocess is applied
+   */
+  protected checkAndApplyReprocess = async (
+    eventData: EventTriggerEntity,
+    messageOnDenial?: string,
+  ): Promise<boolean> => {
+    const dbAction = DatabaseAction.getInstance();
+    const eventId = eventData.eventId;
+    const eventEntity = await dbAction.getEventById(eventData.eventId);
+    if (eventEntity) {
+      // trigger is verified. checking it's status for update
+      // check event status
+      if (
+        [
+          EventStatus.rejected,
+          EventStatus.timeout,
+          EventStatus.paymentWaiting,
+        ].includes(eventEntity.status)
+      ) {
+        logger.info(`Event [${eventId}] is queued for payment again`);
+        await dbAction.setEventStatusToPending(
+          eventId,
+          EventStatus.pendingPayment,
+        );
+        return true;
+      } else if (eventEntity.status === EventStatus.rewardWaiting) {
+        logger.info(
+          `Event [${eventId}] is queued for reward distribution again`,
+        );
+        await dbAction.setEventStatusToPending(
+          eventId,
+          EventStatus.pendingReward,
+        );
+        return true;
+      } else {
+        logger.warn(
+          (messageOnDenial ? messageOnDenial : `No status is changed as `) +
+            `event reprocess is not allowed for status [${eventEntity.status}]`,
+        );
+        return false;
+      }
+    } else {
+      const result = await dbAction.deleteRejectedEventByTriggerId(
+        eventData.txId,
+      );
+      if (result) {
+        logger.info(`Event [${eventId}] is queued for payment again`);
+        return true;
+      } else {
+        logger.info(`Event [${eventId}] is not yet verified nor confirmed`);
+        return false;
+      }
+    }
   };
 }
 

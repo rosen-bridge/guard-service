@@ -10,6 +10,7 @@ import { DOGE, DOGE_CHAIN } from '@rosen-chains/doge';
 import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
 import { NODE_NETWORK } from '@rosen-chains/ergo-node-network';
 import { ETH, ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
+import { FIRO, FIRO_CHAIN } from '@rosen-chains/firo';
 
 import Configs from '../configs/configs';
 import GuardsCardanoConfigs from '../configs/guardsCardanoConfigs';
@@ -64,6 +65,11 @@ class BalanceHandler {
             GuardsDogeConfigs.chainNetworkName === 'rpc-blockcypher'
               ? Configs.balanceHandler.doge.tokensPerIteration.blockcypher
               : Configs.balanceHandler.doge.tokensPerIteration.esplora;
+          break;
+        case FIRO_CHAIN:
+          this.nativeTokenIds[chain] = FIRO;
+          this.chainsTokensPerIteration[chain] =
+            Configs.balanceHandler.firo.tokensPerIteration.rpc;
           break;
         case ETHEREUM_CHAIN:
           this.nativeTokenIds[chain] = ETH;
@@ -221,6 +227,13 @@ class BalanceHandler {
    * @returns promise of void
    */
   updateChainBalances = async (chain: string) => {
+    const savedBalances =
+      await DatabaseAction.getInstance().getChainAddressBalanceByChain(chain);
+    const balancesMap: Map<string, ChainAddressBalanceEntity> = new Map();
+    savedBalances.forEach((balance) =>
+      balancesMap.set(`${balance.address}-${balance.tokenId}`, balance),
+    );
+
     const chainConfig = ChainHandler.getInstance()
       .getChain(chain)
       .getChainConfigs();
@@ -237,8 +250,17 @@ class BalanceHandler {
       chainConfig.addresses.lock,
       chainConfig.addresses.cold,
     ]) {
+      if (address === '') continue;
+
       for (const tokensBatch of tokensBatches) {
-        await this.updateChainBatchBalances(chain, address, tokensBatch);
+        const balances = await this.updateChainBatchBalances(
+          chain,
+          address,
+          tokensBatch,
+        );
+        balances.forEach((balance) =>
+          balancesMap.delete(`${balance.address}-${balance.tokenId}`),
+        );
 
         await new Promise((r) =>
           setTimeout(
@@ -249,9 +271,17 @@ class BalanceHandler {
         );
       }
       if (supportedTokenIds.length === 0) {
-        await this.updateChainBatchBalances(chain, address);
+        const balances = await this.updateChainBatchBalances(chain, address);
+        balances.forEach((balance) =>
+          balancesMap.delete(`${balance.address}-${balance.tokenId}`),
+        );
       }
     }
+
+    // remove outdated balance entities from database
+    await DatabaseAction.getInstance().removeChainAddressBalances([
+      ...balancesMap.values(),
+    ]);
   };
 
   /**
@@ -259,7 +289,7 @@ class BalanceHandler {
    * @param chain
    * @param address
    * @param tokensBatch
-   * @returns promise of void
+   * @returns promise of ChainAddressBalanceEntity array
    */
   updateChainBatchBalances = async (
     chain: string,
@@ -268,25 +298,31 @@ class BalanceHandler {
   ) => {
     // get address assets
     const abstractChain = ChainHandler.getInstance().getChain(chain);
-    const balance = await abstractChain.getAddressAssets(address, tokensBatch);
-
-    // upsert batch tokens balances
-    await DatabaseAction.getInstance().upsertChainAddressBalances([
+    const addressAssets = await abstractChain.getAddressAssets(
+      address,
+      tokensBatch,
+    );
+    const balances: ChainAddressBalanceEntity[] = [
       {
         chain,
         address,
         tokenId: this.nativeTokenIds[chain],
         lastUpdate: String(Math.floor(Date.now() / 1000)),
-        balance: balance.nativeToken,
+        balance: addressAssets.nativeToken,
       },
-      ...balance.tokens.map((token) => ({
+      ...addressAssets.tokens.map((token) => ({
         chain,
         address,
         tokenId: token.id,
         lastUpdate: String(Math.floor(Date.now() / 1000)),
         balance: token.value,
       })),
-    ]);
+    ];
+
+    // upsert batch tokens balances
+    await DatabaseAction.getInstance().upsertChainAddressBalances(balances);
+
+    return balances;
   };
 }
 

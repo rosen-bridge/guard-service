@@ -1,6 +1,8 @@
 import { DatabaseAction } from 'src/db/databaseAction';
 
 import { DefaultLogger } from '@rosen-bridge/abstract-logger';
+import { chainDecoders, chainValidators } from '@rosen-bridge/address-codec';
+import { AddressManager } from '@rosen-bridge/address-manager';
 import { AbstractChain } from '@rosen-chains/abstract-chain';
 import { BINANCE_CHAIN, BinanceChain } from '@rosen-chains/binance';
 import {
@@ -43,6 +45,8 @@ import ErgoNodeNetwork, { NODE_NETWORK } from '@rosen-chains/ergo-node-network';
 import { ETHEREUM_CHAIN, EthereumChain } from '@rosen-chains/ethereum';
 import { AbstractEvmNetwork } from '@rosen-chains/evm';
 import EvmRpcNetwork from '@rosen-chains/evm-rpc';
+import { FIRO_CHAIN, FiroChain } from '@rosen-chains/firo';
+import { FiroElectrumXNetwork } from '@rosen-chains/firo-electrumx';
 import { RateLimitedAxiosConfig } from '@rosen-clients/rate-limited-axios';
 
 import GuardsBinanceConfigs from '../configs/guardsBinanceConfigs';
@@ -52,6 +56,7 @@ import GuardsCardanoConfigs from '../configs/guardsCardanoConfigs';
 import GuardsDogeConfigs from '../configs/guardsDogeConfigs';
 import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
 import GuardsEthereumConfigs from '../configs/guardsEthereumConfigs';
+import GuardsFiroConfigs from '../configs/guardsFiroConfigs';
 import { dataSource } from '../db/dataSource';
 import * as TransactionSerializer from '../transaction/transactionSerializer';
 import MultiSigHandler from './multiSigHandler';
@@ -66,15 +71,22 @@ class ChainHandler {
   private readonly cardanoChain: CardanoChain;
   private readonly bitcoinChain: BitcoinChain;
   private readonly dogeChain: DogeChain;
+  private readonly firoChain: FiroChain;
   private readonly ethereumChain: EthereumChain;
   private readonly binanceChain: BinanceChain;
   private readonly bitcoinRunesChain: BitcoinRunesChain;
 
   private constructor() {
+    AddressManager.init(
+      chainValidators,
+      chainDecoders,
+      DefaultLogger.getInstance().child('AddressManager'),
+    );
     this.ergoChain = this.generateErgoChain();
     this.cardanoChain = this.generateCardanoChain();
     this.bitcoinChain = this.generateBitcoinChain();
     this.dogeChain = this.generateDogeChain();
+    this.firoChain = this.generateFiroChain();
     this.ethereumChain = this.generateEthereumChain();
     this.binanceChain = this.generateBinanceChain();
     this.bitcoinRunesChain = this.generateBitcoinRunesChain();
@@ -103,13 +115,13 @@ class ChainHandler {
       case NODE_NETWORK:
         network = new ErgoNodeNetwork({
           nodeBaseUrl: GuardsErgoConfigs.node.url,
-          logger: DefaultLogger.getInstance().child('NodeNetwork'),
+          logger: DefaultLogger.getInstance().child('nodeNetwork'),
         });
         break;
       case EXPLORER_NETWORK:
         network = new ErgoExplorerNetwork({
           explorerBaseUrl: GuardsErgoConfigs.explorer.url,
-          logger: DefaultLogger.getInstance().child('ExplorerNetwork'),
+          logger: DefaultLogger.getInstance().child('explorerNetwork'),
         });
         break;
       default:
@@ -126,7 +138,7 @@ class ChainHandler {
       GuardsErgoConfigs.chainConfigs,
       TokenHandler.getInstance().getTokenMap(),
       ergoSignMediator,
-      DefaultLogger.getInstance().child('ErgoChain'),
+      DefaultLogger.getInstance().child('ergoChain'),
     );
   };
 
@@ -141,14 +153,14 @@ class ChainHandler {
         network = new CardanoKoiosNetwork(
           GuardsCardanoConfigs.koios.url,
           GuardsCardanoConfigs.koios.authToken,
-          DefaultLogger.getInstance().child('KoiosNetwork'),
+          DefaultLogger.getInstance().child('koiosNetwork'),
         );
         break;
       case BLOCKFROST_NETWORK:
         network = new CardanoBlockFrostNetwork(
           GuardsCardanoConfigs.blockfrost.projectId,
           GuardsCardanoConfigs.blockfrost.url,
-          DefaultLogger.getInstance().child('BlockFrostNetwork'),
+          DefaultLogger.getInstance().child('blockFrostNetwork'),
         );
         break;
       default:
@@ -164,7 +176,7 @@ class ChainHandler {
       GuardsCardanoConfigs.chainConfigs,
       TokenHandler.getInstance().getTokenMap(),
       cardanoSignMediator,
-      DefaultLogger.getInstance().child('CardanoChain'),
+      DefaultLogger.getInstance().child('cardanoChain'),
     );
   };
 
@@ -178,7 +190,7 @@ class ChainHandler {
       case 'esplora':
         network = new BitcoinEsploraNetwork(
           GuardsBitcoinConfigs.esplora.url,
-          DefaultLogger.getInstance().child('EsploraNetwork'),
+          DefaultLogger.getInstance().child('esploraNetwork'),
         );
         break;
       default:
@@ -197,7 +209,7 @@ class ChainHandler {
       GuardsBitcoinConfigs.chainConfigs,
       TokenHandler.getInstance().getTokenMap(),
       bitcoinSignMediator,
-      DefaultLogger.getInstance().child('BitcoinChain'),
+      DefaultLogger.getInstance().child('bitcoinChain'),
     );
   };
 
@@ -214,15 +226,15 @@ class ChainHandler {
           async (txId: string) => {
             const tx = await DatabaseAction.getInstance().getTxById(txId);
             if (tx === null) return undefined;
-            return TransactionSerializer.fromJson(tx.txJson);
+            return TransactionSerializer.fromJson(tx.txJson, this.getChain);
           },
-          DefaultLogger.getInstance().child('DogeEsploraNetwork'),
+          DefaultLogger.getInstance().child('dogeEsploraNetwork'),
         );
         break;
       case 'rpc-blockcypher': {
         const rpc = new DogeRpcNetwork(
           GuardsDogeConfigs.rpc.url,
-          DefaultLogger.getInstance().child('DogeRpcNetwork'),
+          DefaultLogger.getInstance().child('dogeRpcNetwork'),
           {
             username: GuardsDogeConfigs.rpc.username,
             password: GuardsDogeConfigs.rpc.password,
@@ -234,9 +246,9 @@ class ChainHandler {
           async (txId: string) => {
             const tx = await DatabaseAction.getInstance().getTxById(txId);
             if (tx === null) return undefined;
-            return TransactionSerializer.fromJson(tx.txJson);
+            return TransactionSerializer.fromJson(tx.txJson, this.getChain);
           },
-          DefaultLogger.getInstance().child('BlockcypherNetwork'),
+          DefaultLogger.getInstance().child('blockcypherNetwork'),
         );
         network = new CombinedDogeNetwork([rpc, blockcypher]);
         if (GuardsDogeConfigs.blockcypher.rps !== undefined)
@@ -271,7 +283,39 @@ class ChainHandler {
       GuardsDogeConfigs.chainConfigs,
       TokenHandler.getInstance().getTokenMap(),
       dogeSignMediator,
-      DefaultLogger.getInstance().child('DogeChain'),
+      DefaultLogger.getInstance().child('dogeChain'),
+    );
+  };
+
+  /**
+   * generates Firo network and chain objects using configs
+   * @returns FiroChain object
+   */
+  private generateFiroChain = (): FiroChain => {
+    const network = new FiroElectrumXNetwork(
+      GuardsFiroConfigs.electrumx.host,
+      GuardsFiroConfigs.electrumx.port,
+      async (txId: string) => {
+        const tx = await DatabaseAction.getInstance().getTxById(txId);
+        if (tx === null) return undefined;
+        return TransactionSerializer.fromJson(tx.txJson, this.getChain);
+      },
+      GuardsFiroConfigs.electrumx.reconnectDelay,
+      GuardsFiroConfigs.electrumx.timeout,
+      DefaultLogger.getInstance().child('firoElectrumXNetwork'),
+    );
+    const chainCode = GuardsFiroConfigs.tssChainCode;
+    const derivationPath = GuardsFiroConfigs.derivationPath;
+    const firoSignMediator = TssHandler.getInstance().wrapCurveSignMediator(
+      chainCode,
+      derivationPath,
+    );
+    return new FiroChain(
+      network,
+      GuardsFiroConfigs.chainConfigs,
+      TokenHandler.getInstance().getTokenMap(),
+      firoSignMediator,
+      DefaultLogger.getInstance().child('firoChain'),
     );
   };
 
@@ -289,7 +333,7 @@ class ChainHandler {
           dataSource,
           GuardsEthereumConfigs.ethereumContractConfig.addresses.lock,
           GuardsEthereumConfigs.rpc.authToken,
-          DefaultLogger.getInstance().child('EthereumRpcNetwork'),
+          DefaultLogger.getInstance().child('ethereumRpcNetwork'),
         );
         break;
       default:
@@ -308,7 +352,7 @@ class ChainHandler {
       GuardsEthereumConfigs.chainConfigs,
       TokenHandler.getInstance().getTokenMap(),
       ethereumSignMediator,
-      DefaultLogger.getInstance().child('EthereumChain'),
+      DefaultLogger.getInstance().child('ethereumChain'),
     );
   };
 
@@ -326,7 +370,7 @@ class ChainHandler {
           dataSource,
           GuardsBinanceConfigs.binanceContractConfig.addresses.lock,
           GuardsBinanceConfigs.rpc.authToken,
-          DefaultLogger.getInstance().child('BinanceRpcNetwork'),
+          DefaultLogger.getInstance().child('binanceRpcNetwork'),
         );
         break;
       default:
@@ -345,7 +389,7 @@ class ChainHandler {
       GuardsBinanceConfigs.chainConfigs,
       TokenHandler.getInstance().getTokenMap(),
       binanceSignMediator,
-      DefaultLogger.getInstance().child('BinanceChain'),
+      DefaultLogger.getInstance().child('binanceChain'),
     );
   };
 
@@ -368,7 +412,7 @@ class ChainHandler {
             url: GuardsBitcoinRunesConfigs.unisat.url,
             unisatApiKey: GuardsBitcoinRunesConfigs.unisat.apiKey,
           },
-          DefaultLogger.getInstance().child('BitcoinRunesRpcNetwork'),
+          DefaultLogger.getInstance().child('bitcoinRunesRpcNetwork'),
         );
         if (GuardsBitcoinRunesConfigs.rpc.rps !== undefined)
           RateLimitedAxiosConfig.addRule(
@@ -400,7 +444,7 @@ class ChainHandler {
       GuardsBitcoinRunesConfigs.chainConfigs,
       TokenHandler.getInstance().getTokenMap(),
       bitcoinRunesSignMediator,
-      DefaultLogger.getInstance().child('BitcoinRunesChain'),
+      DefaultLogger.getInstance().child('bitcoinRunesChain'),
     );
   };
 
@@ -420,6 +464,8 @@ class ChainHandler {
         return this.bitcoinChain;
       case DOGE_CHAIN:
         return this.dogeChain;
+      case FIRO_CHAIN:
+        return this.firoChain;
       case ETHEREUM_CHAIN:
         return this.ethereumChain;
       case BINANCE_CHAIN:

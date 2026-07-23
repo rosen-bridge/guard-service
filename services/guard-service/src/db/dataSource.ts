@@ -15,10 +15,12 @@ import {
 } from '@rosen-bridge/watcher-data-extractor';
 
 import Configs from '../configs/configs';
+import { AddressEntity } from './entities/addressEntity';
 import { ArbitraryEntity } from './entities/arbitraryEntity';
 import { ChainAddressBalanceEntity } from './entities/chainAddressBalanceEntity';
 import { ConfirmedEventEntity } from './entities/confirmedEventEntity';
 import { EventView } from './entities/eventView';
+import { RejectedEventEntity } from './entities/rejectedEventEntity';
 import { ReprocessEntity } from './entities/reprocessEntity';
 import { RevenueChartView } from './entities/revenueChartView';
 import { RevenueEntity } from './entities/revenueEntity';
@@ -43,6 +45,8 @@ const dbConfigs = {
     ArbitraryEntity,
     ReprocessEntity,
     ChainAddressBalanceEntity,
+    AddressEntity,
+    RejectedEventEntity,
   ],
   migrations: [
     ...scannerMigrations[dbType],

@@ -1,12 +1,13 @@
 import { DefaultLogger } from '@rosen-bridge/abstract-logger';
 import {
   ChainMinimumFee,
-  ErgoNetworkType,
   MinimumFeeBox,
+  MinimumFeeExplorerNetwork,
+  MinimumFeeNodeNetwork,
 } from '@rosen-bridge/minimum-fee';
 import { TokenMap } from '@rosen-bridge/tokens';
 import { EventTrigger } from '@rosen-chains/abstract-chain';
-import { ERGO_CHAIN } from '@rosen-chains/ergo';
+import { decodeRegister, ERGO_CHAIN } from '@rosen-chains/ergo';
 import { NODE_NETWORK } from '@rosen-chains/ergo-node-network';
 
 import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
@@ -33,27 +34,27 @@ class MinimumFeeHandler {
     MinimumFeeHandler.instance = new MinimumFeeHandler();
     logger.debug('MinimumFeeHandler instantiated');
 
+    const network =
+      GuardsErgoConfigs.chainNetworkName === NODE_NETWORK
+        ? new MinimumFeeNodeNetwork(
+            GuardsErgoConfigs.node.url,
+            logger.child(`minimumFeeNodeNetwork`),
+          )
+        : new MinimumFeeExplorerNetwork(
+            GuardsErgoConfigs.explorer.url,
+            logger.child(`minimumFeeExplorerNetwork`),
+          );
     // TODO: A function to apply token map updates is required for here
     // local:ergo/rosen-bridge/guard-service#430
     const promises = tokenMap.getConfig().map((chainToken) => {
       const token = chainToken[ERGO_CHAIN];
       const tokenId = token.tokenId;
 
-      const { networkType, url } =
-        GuardsErgoConfigs.chainNetworkName === NODE_NETWORK
-          ? {
-              networkType: ErgoNetworkType.node,
-              url: GuardsErgoConfigs.node.url,
-            }
-          : {
-              networkType: ErgoNetworkType.explorer,
-              url: GuardsErgoConfigs.explorer.url,
-            };
       const tokenMinimumFeeBox = new MinimumFeeBox(
         tokenId,
         rosenConfig.minFeeNFT,
-        networkType,
-        url,
+        network,
+        decodeRegister,
         logger,
       );
       MinimumFeeHandler.instance.minimumFees.set(tokenId, tokenMinimumFeeBox);

@@ -59,7 +59,7 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
     this.extractor = new BitcoinRosenExtractor(
       configs.addresses.lock,
       tokens,
-      logger,
+      logger?.child(`bitcoinRosenExtractor`),
     );
     this.signMediator = signMediator;
     this.lockScript = address
@@ -68,7 +68,9 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
     this.signingScript = payments.p2pkh({
       hash: Buffer.from(this.lockScript, 'hex').subarray(2),
     }).output!;
-    this.boxSelection = new BitcoinBoxSelection();
+    this.boxSelection = new BitcoinBoxSelection(
+      logger?.child(`bitcoinBoxSelection`),
+    );
   }
 
   /**
@@ -93,13 +95,10 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
     const feeRatio = await this.network.getFeeRatio();
 
     // calculate required assets
-    const minUtxoValue = this.wrapBtc(
-      this.minimumMeaningfulSatoshi(feeRatio),
-    ).amount;
     const requiredAssets = order
       .map((order) => order.assets)
       .reduce(ChainUtils.sumAssetBalance, {
-        nativeToken: minUtxoValue,
+        nativeToken: 0n, // the min BTC for change output is considered by the selection package
         tokens: [],
       });
     this.logger.debug(

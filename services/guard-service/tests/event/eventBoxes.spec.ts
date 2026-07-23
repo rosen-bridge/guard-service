@@ -9,6 +9,8 @@ import { mockEventTrigger } from './testData';
 
 describe('EventBoxes', () => {
   describe('getEventBox', () => {
+    const eventTxId = 'event-creation-tx-id';
+
     beforeEach(async () => {
       await DatabaseActionMock.clearTables();
     });
@@ -35,7 +37,7 @@ describe('EventBoxes', () => {
       );
 
       // run test
-      const result = await EventBoxes.getEventBox(mockedEvent);
+      const result = await EventBoxes.getEventBox(eventTxId);
 
       // verify returned value
       expect(result).toEqual(boxSerialized.toString('hex'));
@@ -47,18 +49,14 @@ describe('EventBoxes', () => {
      * @dependencies
      * - database
      * @scenario
-     * - mock an event
      * - run test and expect exception thrown
      * @expected
      * - it should throw error
      */
     it('should throw error when event is not found in database', async () => {
-      // mock an event
-      const mockedEvent = mockEventTrigger().event;
-
       // run test and expect exception thrown
       await expect(async () => {
-        await EventBoxes.getEventBox(mockedEvent);
+        await EventBoxes.getEventBox(eventTxId);
       }).rejects.toThrow(Error);
     });
   });

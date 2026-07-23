@@ -1,5 +1,15 @@
 # @rosen-chains/doge-esplora
 
+## 2.0.4
+
+### Patch Changes
+
+- Specify the client type
+- Update dependencies
+  - @rosen-chains/abstract-chain@16.0.1
+  - @rosen-chains/doge@4.0.1
+  - @rosen-clients/rate-limited-axios@2.0.1
+
 ## 2.0.3
 
 ### Patch Changes

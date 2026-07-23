@@ -143,13 +143,21 @@ class ArbitraryProcessor {
     ).getChainPendingTransactions(chain);
     const unsignedQueueTransactions = (
       await DatabaseAction.getInstance().getUnsignedActiveTxsInChain(chain)
-    ).map((txEntity) => TransactionSerializer.fromJson(txEntity.txJson));
+    ).map((txEntity) =>
+      TransactionSerializer.fromJson(
+        txEntity.txJson,
+        ChainHandler.getInstance().getChain,
+      ),
+    );
     // get signed transactions in target chain
     const signedTransactions = (
       await DatabaseAction.getInstance().getSignedActiveTxsInChain(chain)
     ).map((txEntity) =>
       Buffer.from(
-        TransactionSerializer.fromJson(txEntity.txJson).txBytes,
+        TransactionSerializer.fromJson(
+          txEntity.txJson,
+          ChainHandler.getInstance().getChain,
+        ).txBytes,
       ).toString('hex'),
     );
 

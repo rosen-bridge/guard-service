@@ -19,7 +19,7 @@ on:
         type: string
 
 env:
-  IMAGE_NAME: ghcr.io/rosen-bridge/guard-service
+  IMAGE_NAME: ghcr.io/${{ github.repository_owner }}/guard-service
   SERVICE_DIR: ./services/guard-service
 
 jobs:
@@ -37,13 +37,13 @@ jobs:
 
     steps:
       - name: Checkout the Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.branch || github.ref }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
 
@@ -65,15 +65,16 @@ jobs:
 
       - name: Set up QEMU
         if: contains(matrix.platform, 'arm')
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
         with:
           platforms: arm64,arm
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        id: setup-buildx
+        uses: docker/setup-buildx-action@v4
 
       - name: Login to GHCR Docker Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -85,22 +86,38 @@ jobs:
           platform='${{ matrix.platform }}'
           echo "PLATFORM_PAIR=${platform//\//-}" >> "$GITHUB_ENV"
 
+      - name: Restore BuildKit cache mounts
+        id: buildkit-cache
+        uses: actions/cache@v5
+        with:
+          path: /tmp/cache-mounts
+          key: buildkit-cache-mounts-${{ runner.os }}-${{ env.PLATFORM_PAIR }}-${{ github.ref_name }}-${{ hashFiles('services/guard-service/Dockerfile', 'package-lock.json') }}
+
+      - name: Restore Docker cache mounts
+        uses: reproducible-containers/buildkit-cache-dance@v3
+        with:
+          builder: ${{ steps.setup-buildx.outputs.name }}
+          cache-dir: /tmp/cache-mounts
+          dockerfile: ${{ env.SERVICE_DIR }}/Dockerfile
+          skip-extraction: ${{ steps.buildkit-cache.outputs.cache-hit }}
+
       - name: Docker Metadata action
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         id: meta
         with:
           images: ${{ env.IMAGE_NAME }}
 
       - name: Build and push by digest
         id: build
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
+          pull: true
           file: ${{ env.SERVICE_DIR }}/Dockerfile
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=${{ runner.os }}-${{ github.ref_name }}-${{ env.PLATFORM_PAIR }}
+          cache-to: type=gha,mode=max,scope=${{ runner.os }}-${{ github.ref_name }}-${{ env.PLATFORM_PAIR }}
           outputs: type=image,name=${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
 
       - name: Export digest file
@@ -111,7 +128,7 @@ jobs:
           touch "${{ runner.temp }}/digests/${digest#sha256:}"
 
       - name: Upload digest artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: digests-${{ env.PLATFORM_PAIR }}
           path: ${{ runner.temp }}/digests/*
@@ -125,14 +142,14 @@ jobs:
 
     steps:
       - name: Download digests
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           path: ${{ runner.temp }}/digests
           pattern: digests-*
           merge-multiple: true
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Set image tag for workflow_dispatch
         id: set-tag
@@ -144,7 +161,7 @@ jobs:
           echo "tag=${branch}-${{ github.event.inputs.environment }}" >> "$GITHUB_OUTPUT"
 
       - name: Docker Metadata action
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         id: meta
         with:
           images: ${{ env.IMAGE_NAME }}
@@ -154,7 +171,7 @@ jobs:
             type=raw,value=${{ steps.set-tag.outputs.tag }},enable=${{ github.event_name == 'workflow_dispatch' }}
 
       - name: Login to GHCR Docker Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}

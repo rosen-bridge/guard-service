@@ -1,6 +1,6 @@
 {
   "name": "@rosen-chains/abstract-chain",
-  "version": "16.0.0",
+  "version": "16.0.1",
   "description": "this project contains abstract classes to implement any chain for Rosen-bridge",
   "keywords": [
     "rosen"
@@ -35,9 +35,9 @@
     "@rosen-bridge/abstract-box-selection": "^1.0.2",
     "@rosen-bridge/abstract-logger": "^4.0.0",
     "@rosen-bridge/json-bigint": "^1.1.0",
-    "@rosen-bridge/minimum-fee": "^3.1.2",
-    "@rosen-bridge/rosen-extractor": "^11.3.0",
-    "@rosen-bridge/tokens": "^6.0.0",
+    "@rosen-bridge/minimum-fee": "^4.0.1",
+    "@rosen-bridge/rosen-extractor": "^12.1.1",
+    "@rosen-bridge/tokens": "^6.0.2",
     "blakejs": "^1.2.1"
   },
   "engines": {

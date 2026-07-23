@@ -1,10 +1,10 @@
 import { DefaultLogger } from '@rosen-bridge/abstract-logger';
+import { FastifyWithZod } from '@rosen-bridge/fastify-enhanced';
 
 import BalanceHandler from '../handlers/balanceHandler';
 import { LockBalance } from '../types/api';
 import {
   BalanceQuerySchema,
-  FastifySeverInstance,
   LockBalanceSchema,
   MessageResponseSchema,
 } from './schemas';
@@ -15,7 +15,7 @@ const logger = DefaultLogger.getInstance().child(import.meta.url);
  * Gets the balance
  * @param server
  */
-const getBalanceRoute = (server: FastifySeverInstance) => {
+const getBalanceRoute = (server: FastifyWithZod) => {
   server.get(
     '/balance',
     {
@@ -61,7 +61,7 @@ const getBalanceRoute = (server: FastifySeverInstance) => {
   );
 };
 
-const balanceRoutes = async (server: FastifySeverInstance) => {
+const balanceRoutes = async (server: FastifyWithZod) => {
   getBalanceRoute(server);
 };
 

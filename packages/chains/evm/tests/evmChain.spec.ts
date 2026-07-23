@@ -2633,7 +2633,7 @@ describe('EvmChain', () => {
       expect(signedTx.hash).toEqual(TestData.transaction2TxId);
 
       // `signFunction` should have been called with unsigned hash without '0x'
-      // eslint-disable-next-line vitest/prefer-called-exactly-once-with
+
       expect(signFunction).toHaveBeenCalledOnce();
       const callArguments = signFunction.mock.lastCall as Uint8Array[];
       expect(Buffer.from(callArguments[0]).toString('hex')).toEqual(

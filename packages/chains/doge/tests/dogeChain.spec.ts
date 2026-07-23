@@ -89,12 +89,8 @@ describe('DogeChain', () => {
       expect(extractedOrder).toEqual(order);
 
       // getCoveringBoxes should have been called with correct arguments
-      const expectedRequiredAssets = structuredClone(
-        testData.transaction2Order[0].assets,
-      );
-      expectedRequiredAssets.nativeToken += dogeChain.getMinimumNativeToken();
       expect(getCovBoxesSpy).toHaveBeenCalledExactlyOnceWith(
-        expectedRequiredAssets,
+        testData.transaction2Order[0].assets,
         [],
         new Map(),
         expect.any(Object),
@@ -114,6 +110,7 @@ describe('DogeChain', () => {
      * - check returned value
      * @expected
      * - PaymentTransaction txType, eventId, network and inputUtxos should be as expected
+     * - getCoveringBoxes should have been called with correct arguments
      */
     it('should generate payment transaction successfully with signed transaction outputs', async () => {
       // mock transaction order
@@ -169,10 +166,15 @@ describe('DogeChain', () => {
       expect(extractedOrder).toEqual(order);
 
       // getCoveringBoxes should have been called with correct arguments
-      const expectedRequiredAssets = structuredClone(
+      expect(getCovBoxesSpy).toHaveBeenCalledExactlyOnceWith(
         testData.transaction2Order[0].assets,
+        [],
+        testData.transaction0BoxMapping,
+        expect.any(Object),
+        expect.any(BigInt),
+        undefined,
+        expect.any(Function),
       );
-      expectedRequiredAssets.nativeToken += dogeChain.getMinimumNativeToken();
     });
 
     /**
@@ -186,6 +188,7 @@ describe('DogeChain', () => {
      * - check returned value
      * @expected
      * - PaymentTransaction txType, eventId, network and inputUtxos should be as expected
+     * - getCoveringBoxes should have been called with correct arguments
      */
     it('should successfully generate payment transaction while considering forbidden boxes caused by a signed transaction without signature', async () => {
       // mock transaction order
@@ -209,12 +212,8 @@ describe('DogeChain', () => {
         // Only return covered boxes if forbidden box IDs match expected values
         if (
           forbiddenBoxIds.length === 2 &&
-          forbiddenBoxIds.includes(
-            'a2623a8e6358b44df7c672cee5a6ff1df2b45721b2f506d22ef59a0634f7641d.0',
-          ) &&
-          forbiddenBoxIds.includes(
-            'f7fdbfcb582dd9e34997df257bfff291c1ea98a5622ba18400794f3337113b0e.2',
-          )
+          forbiddenBoxIds.includes(testData.transaction3InputIds[0]) &&
+          forbiddenBoxIds.includes(testData.transaction3InputIds[1])
         ) {
           return {
             covered: true,
@@ -233,16 +232,15 @@ describe('DogeChain', () => {
       hasLockAddressEnoughAssetsSpy.mockResolvedValue(true);
 
       // run test
-      const faultyTx = Buffer.from(
-        DogeTransaction.fromJson(testData.transaction0PaymentTransaction)
-          .txBytes,
-      ).toString('hex');
       const result = await dogeChain.generateTransaction(
         payment1.eventId,
         payment1.txType,
         order,
         [],
-        [testData.transaction0SignedTxBytesHex, faultyTx],
+        [
+          testData.transaction0SignedTxBytesHex,
+          testData.transaction3UnsignedHex,
+        ],
       );
       const dogeTx = result as DogeTransaction;
 
@@ -257,10 +255,15 @@ describe('DogeChain', () => {
       expect(extractedOrder).toEqual(order);
 
       // getCoveringBoxes should have been called with correct arguments
-      const expectedRequiredAssets = structuredClone(
+      expect(getCovBoxesSpy).toHaveBeenCalledExactlyOnceWith(
         testData.transaction2Order[0].assets,
+        testData.transaction3InputIds,
+        testData.transaction0BoxMapping,
+        expect.any(Object),
+        expect.any(BigInt),
+        undefined,
+        expect.any(Function),
       );
-      expectedRequiredAssets.nativeToken += dogeChain.getMinimumNativeToken();
     });
 
     /**

@@ -8,6 +8,9 @@ import {
 } from '@rosen-bridge/extended-typeorm';
 import { EventTriggerEntity } from '@rosen-bridge/watcher-data-extractor';
 
+// After the addition of RejectedEventEntity, this table is VerifiedEventEntity
+// but for avoiding redundant affection in migration, queries and dozen classes
+// the renaming is omitted.
 @Entity()
 export class ConfirmedEventEntity {
   @PrimaryColumn('varchar')

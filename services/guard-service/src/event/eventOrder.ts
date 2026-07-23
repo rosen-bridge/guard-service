@@ -20,11 +20,13 @@ class EventOrder {
   /**
    * generates user payment order for an event
    * @param event the event trigger
+   * @param eventTxId the trigger transaction id
    * @param feeConfig minimum fee and rsn ratio config for the event
    * @param eventWIDs WID of commitments that are merged into the event trigger
    */
   static createEventPaymentOrder = async (
     event: EventTrigger,
+    eventTxId: string,
     feeConfig: ChainMinimumFee,
     eventWIDs: string[],
   ): Promise<PaymentOrder> => {
@@ -41,7 +43,7 @@ class EventOrder {
       const ergoChain = targetChain as ErgoChain;
 
       // get event and commitment boxes
-      const eventBox = await EventBoxes.getEventBox(event);
+      const eventBox = await EventBoxes.getEventBox(eventTxId);
       const rwtTokenId = ChainHandler.getInstance()
         .getChain(event.fromChain)
         .getRWTToken();
@@ -92,12 +94,14 @@ class EventOrder {
   /**
    * generates reward distribution order for an event
    * @param event the event trigger
+   * @param eventTxId the trigger transaction id
    * @param feeConfig minimum fee and rsn ratio config for the event
    * @param paymentTxId the payment transaction of the event
    * @param eventWIDs WID of commitments that are merged into the event trigger
    */
   static createEventRewardOrder = async (
     event: EventTrigger,
+    eventTxId: string,
     feeConfig: ChainMinimumFee,
     paymentTxId: string,
     eventWIDs: string[],
@@ -105,7 +109,7 @@ class EventOrder {
     const ergoChain = ChainHandler.getInstance().getErgoChain();
 
     // get event and commitment boxes
-    const eventBox = await EventBoxes.getEventBox(event);
+    const eventBox = await EventBoxes.getEventBox(eventTxId);
     const rwtTokenId = ChainHandler.getInstance()
       .getChain(event.fromChain)
       .getRWTToken();

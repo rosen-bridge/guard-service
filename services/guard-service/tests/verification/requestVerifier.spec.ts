@@ -3,6 +3,7 @@ import {
   PaymentOrder,
   TransactionType,
 } from '@rosen-chains/abstract-chain';
+import { ERGO_CHAIN } from '@rosen-chains/ergo';
 
 import EventSerializer from '../../src/event/eventSerializer';
 import {
@@ -10,6 +11,7 @@ import {
   OrderStatus,
   TransactionStatus,
 } from '../../src/utils/constants';
+import Utils from '../../src/utils/utils';
 import RequestVerifier from '../../src/verification/requestVerifier';
 import TransactionVerifier from '../../src/verification/transactionVerifier';
 import { mockPaymentTransaction } from '../agreement/testData';
@@ -20,12 +22,9 @@ import {
   mockEventTrigger,
   rsnRatioDivisor,
 } from '../event/testData';
+import EventSynchronizationMock from '../synchronization/mocked/eventSynchronization.mock';
 import TestUtils from '../testUtils/testUtils';
-import {
-  mockIsEventConfirmedEnough,
-  mockIsEventPendingToType,
-  mockVerifyEvent,
-} from './mocked/eventVerifier.mock';
+import { mockIsEventPendingToType } from './mocked/eventVerifier.mock';
 
 describe('RequestVerifier', () => {
   describe('verifyEventTransactionRequest', () => {
@@ -39,6 +38,8 @@ describe('RequestVerifier', () => {
         rsnRatioDivisor,
         feeRatioDivisor,
       });
+      EventSynchronizationMock.resetMock();
+      EventSynchronizationMock.mock();
     });
 
     /**
@@ -53,8 +54,6 @@ describe('RequestVerifier', () => {
      * - mock event and transaction
      * - insert mocked event into db
      * - mock EventVerifier
-     *   - mock `isEventConfirmedEnough`
-     *   - mock `verifyEvent`
      *   - mock `isEventPendingToType`
      * - mock TransactionVerifier.verifyEventTransaction
      * - run test
@@ -78,8 +77,6 @@ describe('RequestVerifier', () => {
       );
 
       // mock EventVerifier
-      mockIsEventConfirmedEnough(true);
-      mockVerifyEvent(true);
       mockIsEventPendingToType(true);
 
       // mock TransactionVerifier.verifyEventTransaction
@@ -106,8 +103,6 @@ describe('RequestVerifier', () => {
      * @scenario
      * - mock event and transaction
      * - mock EventVerifier
-     *   - mock `isEventConfirmedEnough`
-     *   - mock `verifyEvent`
      *   - mock `isEventPendingToType`
      * - mock TransactionVerifier.verifyEventTransaction
      * - run test
@@ -125,8 +120,6 @@ describe('RequestVerifier', () => {
       );
 
       // mock EventVerifier
-      mockIsEventConfirmedEnough(true);
-      mockVerifyEvent(true);
       mockIsEventPendingToType(true);
 
       // mock TransactionVerifier.verifyEventTransaction
@@ -154,8 +147,6 @@ describe('RequestVerifier', () => {
      * - mock event and transaction
      * - insert mocked event into db
      * - mock EventVerifier
-     *   - mock `isEventConfirmedEnough`
-     *   - mock `verifyEvent`
      *   - mock `isEventPendingToType`
      * - mock TransactionVerifier.verifyEventTransaction
      * - run test
@@ -179,8 +170,6 @@ describe('RequestVerifier', () => {
       );
 
       // mock EventVerifier
-      mockIsEventConfirmedEnough(true);
-      mockVerifyEvent(true);
       mockIsEventPendingToType(true);
 
       // mock TransactionVerifier.verifyEventTransaction
@@ -208,8 +197,6 @@ describe('RequestVerifier', () => {
      * - mock event and transaction
      * - insert mocked event into db
      * - mock EventVerifier
-     *   - mock `isEventConfirmedEnough`
-     *   - mock `verifyEvent`
      *   - mock `isEventPendingToType`
      * - mock TransactionVerifier.verifyEventTransaction
      * - run test
@@ -233,8 +220,6 @@ describe('RequestVerifier', () => {
       );
 
       // mock EventVerifier
-      mockIsEventConfirmedEnough(true);
-      mockVerifyEvent(true);
       mockIsEventPendingToType(true);
 
       // mock TransactionVerifier.verifyEventTransaction
@@ -287,8 +272,6 @@ describe('RequestVerifier', () => {
       );
 
       // mock EventVerifier
-      mockIsEventConfirmedEnough(true);
-      mockVerifyEvent(true);
       mockIsEventPendingToType(true);
 
       // mock TransactionVerifier.verifyEventTransaction
@@ -305,32 +288,35 @@ describe('RequestVerifier', () => {
     });
 
     /**
-     * @target RequestVerifier.verifyEventTransactionRequest should return false
-     * when event is not confirmed enough
+     * @target RequestVerifier.verifyEventTransactionRequest should return false and add event
+     * to synchronization queue when reward transaction is received while event is pending payment transaction
      * @dependencies
      * - EventVerifier
      * - MinimumFee
      * - TransactionVerifier
+     * - EventSynchronization
      * - database
      * @scenario
      * - mock event and transaction
      * - insert mocked event into db
+     * - mock EventSynchronization.addEventToQueue
      * - mock EventVerifier
-     *   - mock `isEventConfirmedEnough`
-     *   - mock `verifyEvent`
      *   - mock `isEventPendingToType`
      * - mock TransactionVerifier.verifyEventTransaction
      * - run test
      * - verify returned value
+     * - check if function got called
      * @expected
      * - returned value should be false
+     * - `addEventToQueue` should got called with the mocked event id
      */
-    it('should return false when event is not confirmed enough', async () => {
+    it('should return false and add event to synchronization queue when reward transaction is received while event is pending payment transaction', async () => {
       // mock event and transaction
       const mockedEvent = mockEventTrigger().event;
+      const mockedEventId = Utils.txIdToEventId(mockedEvent.sourceTxId);
       const paymentTx = mockPaymentTransaction(
-        TransactionType.payment,
-        mockedEvent.toChain,
+        TransactionType.reward,
+        ERGO_CHAIN,
         EventSerializer.getId(mockedEvent),
       );
 
@@ -340,117 +326,10 @@ describe('RequestVerifier', () => {
         EventStatus.pendingPayment,
       );
 
-      // mock EventVerifier
-      mockIsEventConfirmedEnough(false);
-      mockVerifyEvent(true);
-      mockIsEventPendingToType(true);
-
-      // mock TransactionVerifier.verifyEventTransaction
-      vi.spyOn(TransactionVerifier, 'verifyEventTransaction').mockResolvedValue(
-        true,
-      );
-
-      // run test
-      const result =
-        await RequestVerifier.verifyEventTransactionRequest(paymentTx);
-
-      // verify returned value
-      expect(result).toEqual(false);
-    });
-
-    /**
-     * @target RequestVerifier.verifyEventTransactionRequest should return false
-     * when event is not verified
-     * @dependencies
-     * - EventVerifier
-     * - MinimumFee
-     * - TransactionVerifier
-     * - database
-     * @scenario
-     * - mock event and transaction
-     * - insert mocked event into db
-     * - mock EventVerifier
-     *   - mock `isEventConfirmedEnough`
-     *   - mock `verifyEvent`
-     *   - mock `isEventPendingToType`
-     * - mock TransactionVerifier.verifyEventTransaction
-     * - run test
-     * - verify returned value
-     * @expected
-     * - returned value should be false
-     */
-    it('should return false when event is not verified', async () => {
-      // mock event and transaction
-      const mockedEvent = mockEventTrigger().event;
-      const paymentTx = mockPaymentTransaction(
-        TransactionType.payment,
-        mockedEvent.toChain,
-        EventSerializer.getId(mockedEvent),
-      );
-
-      // insert mocked event into db
-      await DatabaseActionMock.insertEventRecord(
-        mockedEvent,
-        EventStatus.pendingPayment,
-      );
+      // mock EventSynchronization.addEventToQueue
+      EventSynchronizationMock.mockAddEventToQueue();
 
       // mock EventVerifier
-      mockIsEventConfirmedEnough(true);
-      mockVerifyEvent(false);
-      mockIsEventPendingToType(true);
-
-      // mock TransactionVerifier.verifyEventTransaction
-      vi.spyOn(TransactionVerifier, 'verifyEventTransaction').mockResolvedValue(
-        true,
-      );
-
-      // run test
-      const result =
-        await RequestVerifier.verifyEventTransactionRequest(paymentTx);
-
-      // verify returned value
-      expect(result).toEqual(false);
-    });
-
-    /**
-     * @target RequestVerifier.verifyEventTransactionRequest should return false
-     * when event has already payment tx and pending reward
-     * @dependencies
-     * - EventVerifier
-     * - MinimumFee
-     * - TransactionVerifier
-     * - database
-     * @scenario
-     * - mock event and transaction
-     * - insert mocked event into db
-     * - mock EventVerifier
-     *   - mock `isEventConfirmedEnough`
-     *   - mock `verifyEvent`
-     *   - mock `isEventPendingToType`
-     * - mock TransactionVerifier.verifyEventTransaction
-     * - run test
-     * - verify returned value
-     * @expected
-     * - returned value should be false
-     */
-    it('should return false when event has already payment tx and pending reward', async () => {
-      // mock event and transaction
-      const mockedEvent = mockEventTrigger().event;
-      const paymentTx = mockPaymentTransaction(
-        TransactionType.payment,
-        mockedEvent.toChain,
-        EventSerializer.getId(mockedEvent),
-      );
-
-      // insert mocked event into db
-      await DatabaseActionMock.insertEventRecord(
-        mockedEvent,
-        EventStatus.pendingPayment,
-      );
-
-      // mock EventVerifier
-      mockIsEventConfirmedEnough(true);
-      mockVerifyEvent(true);
       mockIsEventPendingToType(false);
 
       // mock TransactionVerifier.verifyEventTransaction
@@ -464,6 +343,11 @@ describe('RequestVerifier', () => {
 
       // verify returned value
       expect(result).toEqual(false);
+
+      // `addEventToQueue` should got called
+      expect(
+        EventSynchronizationMock.getMockedFunction('addEventToQueue'),
+      ).toHaveBeenCalledWith(mockedEventId);
     });
 
     /**
@@ -478,8 +362,6 @@ describe('RequestVerifier', () => {
      * - mock event and two transactions
      * - insert mocked event and transaction into db
      * - mock EventVerifier
-     *   - mock `isEventConfirmedEnough`
-     *   - mock `verifyEvent`
      *   - mock `isEventPendingToType`
      * - mock TransactionVerifier.verifyEventTransaction
      * - run test
@@ -512,8 +394,6 @@ describe('RequestVerifier', () => {
       );
 
       // mock EventVerifier
-      mockIsEventConfirmedEnough(true);
-      mockVerifyEvent(true);
       mockIsEventPendingToType(true);
 
       // mock TransactionVerifier.verifyEventTransaction
@@ -541,8 +421,6 @@ describe('RequestVerifier', () => {
      * - mock event and transaction
      * - insert mocked event into db
      * - mock EventVerifier
-     *   - mock `isEventConfirmedEnough`
-     *   - mock `verifyEvent`
      *   - mock `isEventPendingToType`
      * - mock TransactionVerifier.verifyEventTransaction
      * - run test
@@ -566,8 +444,6 @@ describe('RequestVerifier', () => {
       );
 
       // mock EventVerifier
-      mockIsEventConfirmedEnough(true);
-      mockVerifyEvent(true);
       mockIsEventPendingToType(true);
 
       // mock TransactionVerifier.verifyEventTransaction

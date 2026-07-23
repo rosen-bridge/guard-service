@@ -23,6 +23,7 @@ import GuardsCardanoConfigs from '../configs/guardsCardanoConfigs';
 import GuardsDogeConfigs from '../configs/guardsDogeConfigs';
 import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
 import GuardsEthereumConfigs from '../configs/guardsEthereumConfigs';
+import GuardsFiroConfigs from '../configs/guardsFiroConfigs';
 import { dataSource } from '../db/dataSource';
 import { TokenHandler } from '../handlers/tokenHandler';
 
@@ -142,6 +143,12 @@ const createLoggers = () => ({
   dogeEventTriggerExtractorLogger: DefaultLogger.getInstance().child(
     'doge-event-trigger-extractor',
   ),
+  firoCommitmentExtractorLogger: DefaultLogger.getInstance().child(
+    'firo-commitment-extractor',
+  ),
+  firoEventTriggerExtractorLogger: DefaultLogger.getInstance().child(
+    'firo-event-trigger-extractor',
+  ),
   bitcoinRunesCommitmentExtractorLogger: DefaultLogger.getInstance().child(
     'bitcoin-runes-commitment-extractor',
   ),
@@ -225,6 +232,29 @@ const initScanner = () => {
     GuardsDogeConfigs.dogeContractConfig.addresses.WatcherPermit,
     GuardsDogeConfigs.dogeContractConfig.addresses.Fraud,
     loggers.dogeEventTriggerExtractorLogger,
+    initialization,
+  );
+
+  // init Firo extractors
+  const firoCommitmentExtractor = new CommitmentExtractor(
+    'firoCommitment',
+    [GuardsFiroConfigs.firoContractConfig.addresses.Commitment],
+    GuardsFiroConfigs.firoContractConfig.tokens.RWTId,
+    dataSource,
+    TokenHandler.getInstance().getTokenMap(),
+    loggers.firoCommitmentExtractorLogger,
+  );
+
+  const firoEventTriggerExtractor = new EventTriggerExtractor(
+    'firoEventTrigger',
+    dataSource,
+    networkType,
+    networkUrl,
+    GuardsFiroConfigs.firoContractConfig.addresses.WatcherTriggerEvent,
+    GuardsFiroConfigs.firoContractConfig.tokens.RWTId,
+    GuardsFiroConfigs.firoContractConfig.addresses.WatcherPermit,
+    GuardsFiroConfigs.firoContractConfig.addresses.Fraud,
+    loggers.firoEventTriggerExtractorLogger,
     initialization,
   );
 
@@ -346,6 +376,8 @@ const initScanner = () => {
   ergoScanner.registerExtractor(ethereumEventTriggerExtractor);
   ergoScanner.registerExtractor(dogeCommitmentExtractor);
   ergoScanner.registerExtractor(dogeEventTriggerExtractor);
+  ergoScanner.registerExtractor(firoCommitmentExtractor);
+  ergoScanner.registerExtractor(firoEventTriggerExtractor);
   ergoScanner.registerExtractor(binanceCommitmentExtractor);
   ergoScanner.registerExtractor(binanceEventTriggerExtractor);
   ergoScanner.registerExtractor(bitcoinRunesCommitmentExtractor);
@@ -364,12 +396,18 @@ const initScanner = () => {
         GuardsEthereumConfigs.rpc.timeout,
         GuardsEthereumConfigs.rpc.authToken,
       ),
+      heightGap: GuardsEthereumConfigs.rpc.fastForward.isEnabled
+        ? GuardsEthereumConfigs.rpc.fastForward.heightGap
+        : undefined,
       logger: loggers.ethereumScannerLogger,
     });
     const ethereumAddressTxExtractor = new EvmTxExtractor(
       dataSource,
       'ethereum-lock-address',
       GuardsEthereumConfigs.ethereumContractConfig.addresses.lock,
+      GuardsEthereumConfigs.rpc.url,
+      GuardsEthereumConfigs.rpc.authToken,
+      GuardsEthereumConfigs.rpc.fastForward.checkNonceAtHeight,
       loggers.ethereumLockAddressTxExtractorLogger,
     );
     ethereumScanner.registerExtractor(ethereumAddressTxExtractor);
@@ -388,12 +426,18 @@ const initScanner = () => {
         GuardsBinanceConfigs.rpc.timeout,
         GuardsBinanceConfigs.rpc.authToken,
       ),
+      heightGap: GuardsBinanceConfigs.rpc.fastForward.isEnabled
+        ? GuardsBinanceConfigs.rpc.fastForward.heightGap
+        : undefined,
       logger: loggers.binanceScannerLogger,
     });
     const BinanceAddressTxExtractor = new EvmTxExtractor(
       dataSource,
       'Binance-lock-address',
       GuardsBinanceConfigs.binanceContractConfig.addresses.lock,
+      GuardsBinanceConfigs.rpc.url,
+      GuardsBinanceConfigs.rpc.authToken,
+      GuardsBinanceConfigs.rpc.fastForward.checkNonceAtHeight,
       loggers.binanceLockAddressTxExtractorLogger,
     );
     binanceScanner.registerExtractor(BinanceAddressTxExtractor);

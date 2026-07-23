@@ -13,7 +13,7 @@ export class ReprocessEntity {
   requestId: string;
 
   @Column('varchar')
-  eventId: string;
+  eventTxId: string;
 
   @Column('varchar')
   sender: string;

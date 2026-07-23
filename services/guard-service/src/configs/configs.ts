@@ -95,6 +95,11 @@ class Configs {
     false,
   );
 
+  static apiMaxRequestsPerMinutePostRoutes = getConfigIntKeyOrDefault(
+    'api.maxRequestsPerMinutePostRoutes',
+    10,
+  );
+
   // config of API's route
   static MAX_LENGTH_CHANNEL_SIZE = 200;
 
@@ -260,7 +265,11 @@ class Configs {
           log.maxSize != undefined &&
           typeof log.maxSize === 'string' &&
           log.maxFiles != undefined &&
-          typeof log.maxFiles === 'string';
+          typeof log.maxFiles === 'string' &&
+          (log.format ? typeof log.format === 'string' : true) &&
+          (log.createSymlink ? typeof log.createSymlink === 'boolean' : true) &&
+          (log.symlinkName ? typeof log.symlinkName === 'string' : true) &&
+          (log.serviceName ? typeof log.serviceName === 'string' : true);
       }
       return !(loggerChecks && logTypeValidation);
     });
@@ -314,6 +323,12 @@ class Configs {
   );
   static btcCriticalThreshold = BigInt(
     config.get<string>('healthCheck.asset.btc.criticalThreshold'),
+  );
+  static firoWarnThreshold = BigInt(
+    config.get<string>('healthCheck.asset.firo.warnThreshold'),
+  );
+  static firoCriticalThreshold = BigInt(
+    config.get<string>('healthCheck.asset.firo.criticalThreshold'),
   );
   static dogeWarnThreshold = BigInt(
     config.get<string>('healthCheck.asset.doge.warnThreshold'),
@@ -375,11 +390,11 @@ class Configs {
     getConfigIntKeyOrDefault('healthCheck.logs.duration', 600) * 1000;
   static errorLogAllowedCount = getConfigIntKeyOrDefault(
     'healthCheck.logs.maxAllowedErrorCount',
-    1,
+    10,
   );
   static warnLogAllowedCount = getConfigIntKeyOrDefault(
     'healthCheck.logs.maxAllowedWarnCount',
-    10,
+    12,
   );
   static p2pDefectConfirmationTimeWindow = getConfigIntKeyOrDefault(
     'healthCheck.p2p.defectConfirmationTimeWindow',
