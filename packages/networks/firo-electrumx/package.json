@@ -1,6 +1,6 @@
 {
   "name": "@rosen-chains/firo-electrumx",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A package to be used as network api provider for @rosen-chains/firo package using ElectrumX TLS API",
   "keywords": [
     "rosen"

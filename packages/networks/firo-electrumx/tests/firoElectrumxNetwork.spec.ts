@@ -507,7 +507,14 @@ describe('FiroElectrumXNetwork', () => {
      * - it should return -1
      */
     it('should return -1 when transaction is not found', async () => {
-      setMockResponses([{ error: { message: 'not found', code: -1 } }]);
+      setMockResponses([
+        {
+          error: {
+            message: `"daemon error: DaemonError({'code': -5, 'message': 'No such mempool or blockchain transaction. Use gettransaction for wallet transactions.'})"`,
+            code: 2,
+          },
+        },
+      ]);
 
       const network = createNetwork();
       const result = await network.getTxConfirmation('nonexistent-tx-id');
