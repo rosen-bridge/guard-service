@@ -1,5 +1,89 @@
 # guard-service
 
+## 10.0.1
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-chains/firo-electrumx@0.1.1
+
+## 10.0.0
+
+### Major Changes
+
+- Integrate Firo
+- The `EventReprocess` now works with the trigger transaction ID instead of the event ID
+
+### Minor Changes
+
+- Add log level health-check parameter
+- Integrate Public Event Status feature: guard now can send status of events and their txs to Rosen app, makes the event progress publicly available
+- Integrate Fast-Forward feature for EVM scanners: scanner now scans a block batch only when it might have a related transaction
+- Replace fastify with `@rosen-bridge/fastify-enhanced` for API functionality, Replace TypeBox with zod for validations
+- Add `format`, `serviceName`, `createSymlink`, and `symlinkName` options to the file log configuration
+- Add a new API route for validating an API key
+- Guard now stores the rejected (invalid) events in a separate table, fixing a bug that events with multiple trigger boxes were not processed if the first trigger was rejected
+- Implement `AddressEntity` and `address` API
+- Add rate limit config for `arbitrary`, `reprocess` and `signTx` API routes
+- Improve the size of Docker image:
+  - improve GA for using cache while building the image
+  - improve Docker build to use cache as much as possible and avoid storing unneeded files in the image
+
+### Patch Changes
+
+- Use trigger tx id for tracking public status records
+- Fix circular dependency between `transactionSerializer` and `ChainHandler` modules
+- Fix circular dependency between `EventVerifier` and `EventSynchronization` modules
+- Use `RejectedEventEntity` in `PublicStatusHandler` when event status is set to rejected
+- Fix `/revenue/chart` API data
+- Replace `await-semaphore` with `@rosen-bridge/semaphore` package
+- Update `EventView` and event APIs to use `RejectedEventEntity` for status calculation of API response schema
+- Improve the `ColdStorage` module to ignore a chain even when it's not included in the `thresholds.json` config file
+- Integrate and initialize the `AddressManager` which is required in the new version of Rosen extractor packages (used in all chains to verify events)
+- Add coerce to number fields in querystring schemas of API
+- Fix updating balances of an empty address, removing outdated balance records from database
+- Add `|| true` for husky in prepare to work with `NODE_ENV=production` set before `npm ci`
+- Move `tsx` from `devDependencies` to `dependencies`
+- Update dependencies
+  - @rosen-bridge/abstract-scanner@2.0.3
+  - @rosen-bridge/address-codec@2.1.0
+  - @rosen-bridge/asset-check@6.2.2
+  - @rosen-bridge/ergo-multi-sig@2.2.1
+  - @rosen-bridge/ergo-scanner@1.1.3
+  - @rosen-bridge/evm-address-tx-extractor@3.0.2
+  - @rosen-bridge/evm-scanner@1.1.3
+  - @rosen-bridge/extended-typeorm@1.1.0
+  - @rosen-bridge/fastify-enhanced@3.3.0
+  - @rosen-bridge/minimum-fee@4.0.1
+  - @rosen-bridge/node-sync-check@3.0.3
+  - @rosen-bridge/scanner-interfaces@1.0.0
+  - @rosen-bridge/tokens@6.0.2
+  - @rosen-bridge/tss@5.2.0
+  - @rosen-bridge/watcher-data-extractor@13.0.10
+  - @rosen-bridge/winston-logger@3.1.0
+  - @rosen-chains/abstract-chain@16.0.1
+  - @rosen-chains/binance@4.0.1
+  - @rosen-chains/bitcoin@10.0.1
+  - @rosen-chains/bitcoin-esplora@5.0.4
+  - @rosen-chains/bitcoin-runes@4.0.1
+  - @rosen-chains/bitcoin-runes-rpc@2.0.6
+  - @rosen-chains/cardano@16.0.1
+  - @rosen-chains/cardano-koios-network@13.0.3
+  - @rosen-chains/cardano-blockfrost-network@10.0.3
+  - @rosen-chains/doge@4.0.1
+  - @rosen-chains/doge-blockcypher@1.0.4
+  - @rosen-chains/doge-esplora@2.0.4
+  - @rosen-chains/doge-rpc@1.0.4
+  - @rosen-chains/ergo@14.1.0
+  - @rosen-chains/ergo-explorer-network@10.0.4
+  - @rosen-chains/ergo-node-network@10.0.4
+  - @rosen-chains/ethereum@4.0.1
+  - @rosen-chains/evm@10.0.1
+  - @rosen-chains/evm-rpc@4.0.5
+  - @rosen-chains/firo@0.1.0
+  - @rosen-chains/firo-electrumx@0.1.0
+  - @rosen-clients/rate-limited-axios@2.0.1
+
 ## 9.1.1
 
 ### Patch Changes

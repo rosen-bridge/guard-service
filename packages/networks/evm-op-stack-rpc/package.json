@@ -36,9 +36,9 @@
     "@rosen-bridge/abstract-logger": "^4.0.0",
     "@rosen-bridge/extended-typeorm": "^1.1.0",
     "@rosen-bridge/json-bigint": "^1.1.0",
-    "@rosen-chains/abstract-chain": "^16.0.0",
-    "@rosen-chains/evm": "^10.0.0",
-    "@rosen-chains/evm-rpc": "^4.0.4",
+    "@rosen-chains/abstract-chain": "^16.0.1",
+    "@rosen-chains/evm": "^10.0.1",
+    "@rosen-chains/evm-rpc": "^4.0.5",
     "ethers": "6.16.0"
   },
   "engines": {

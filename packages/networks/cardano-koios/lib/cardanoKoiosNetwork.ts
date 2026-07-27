@@ -39,7 +39,7 @@ import cardanoKoiosClientFactory, {
 } from '@rosen-clients/cardano-koios';
 import {
   TxInfoItemInputsItem,
-  TxInfoItemInputsItemAssetListAnyOfItem,
+  TxInfoItemInputsItemAssetListItem,
 } from '@rosen-clients/cardano-koios';
 
 import { KoiosNullValueError } from './types';
@@ -267,7 +267,7 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     blockId: string,
   ): Promise<CardanoTx> => {
-    const cborTx = await this.client
+    const txCborResponse = await this.client
       .txCbor({ _tx_hashes: [transactionId] })
       .then((res) => {
         this.logger.debug(
@@ -275,8 +275,8 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
             res,
           )}`,
         );
-        if (res.length > 0 && res[0].cbor) {
-          return res[0].cbor;
+        if (res.length > 0) {
+          return res[0];
         }
         throw new FailedError(
           `No transaction data received for txId [${transactionId}]`,
@@ -292,8 +292,19 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
           throw new UnexpectedApiError(baseError + e.message);
         }
       });
+    if (!txCborResponse.cbor)
+      throw new KoiosNullValueError(`Transaction cbor is null`);
+    else if (txCborResponse.valid_contract === false)
+      throw new FailedError(
+        `Transaction [${transactionId}] is failed on-chain`,
+      );
+    else if (!txCborResponse.valid_contract)
+      throw new UnexpectedApiError(
+        `Failed to get transaction [${transactionId}]: Expected response to contain "valid_contract"`,
+      );
+
     // Parse CBOR transaction
-    const tx = Transaction.from_hex(cborTx);
+    const tx = Transaction.from_hex(txCborResponse.cbor);
 
     // Extract metadata
     const metadata = tx.auxiliary_data()?.metadata()
@@ -316,7 +327,9 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
     const fee = BigInt(txBody.fee().to_str());
 
     // Generate txId
-    const txId = FixedTransaction.from_hex(cborTx).transaction_hash().to_hex();
+    const txId = FixedTransaction.from_hex(txCborResponse.cbor)
+      .transaction_hash()
+      .to_hex();
     return {
       id: txId,
       inputs,
@@ -393,7 +406,7 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
   isBoxUnspentAndValid = async (boxId: string): Promise<boolean> => {
     const [txId, index] = boxId.split('.');
 
-    const cborTx = await this.client
+    const txCborResponse = await this.client
       .txCbor({ _tx_hashes: [txId] })
       .then((res) => {
         this.logger.debug(
@@ -401,10 +414,9 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
             res,
           )}`,
         );
-        if (res.length > 0 && res[0].cbor) {
-          return res[0].cbor;
+        if (res.length > 0) {
+          return res[0];
         }
-        return undefined;
       })
       .catch((e) => {
         const baseError = `Failed to get transaction [${txId}] UTxOs from Koios: `;
@@ -416,13 +428,25 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
           throw new UnexpectedApiError(baseError + e.message);
         }
       });
-    if (!cborTx) {
+    if (!txCborResponse) {
       this.logger.debug(
         `Utxo [${boxId}] is invalid. Tx [${txId}] is not found`,
       );
       return false;
     }
-    const tx = Transaction.from_hex(cborTx);
+    if (!txCborResponse.cbor)
+      throw new KoiosNullValueError(`Transaction cbor is null`);
+    else if (txCborResponse.valid_contract === false) {
+      this.logger.debug(
+        `Utxo [${boxId}] is invalid. Tx [${txId}] is failed on network`,
+      );
+      return false;
+    } else if (!txCborResponse.valid_contract)
+      throw new UnexpectedApiError(
+        `Failed to get transaction [${txId}]: Expected response to contain "valid_contract"`,
+      );
+
+    const tx = Transaction.from_hex(txCborResponse.cbor);
     const boxAddressCred = tx
       .body()
       .outputs()
@@ -500,7 +524,7 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
   getUtxo = async (boxId: string): Promise<CardanoUtxo> => {
     const [txId, index] = boxId.split('.');
 
-    const cborTx = await this.client
+    const txCborResponse = await this.client
       .txCbor({ _tx_hashes: [txId] })
       .then((res) => {
         this.logger.debug(
@@ -508,8 +532,8 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
             res,
           )}`,
         );
-        if (res.length > 0 && res[0].cbor) {
-          return res[0].cbor;
+        if (res.length > 0) {
+          return res[0];
         }
         throw new FailedError(
           `No transaction data received for txId [${txId}]`,
@@ -525,7 +549,15 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
           throw new UnexpectedApiError(baseError + e.message);
         }
       });
-    const tx = Transaction.from_hex(cborTx);
+    if (!txCborResponse.cbor)
+      throw new KoiosNullValueError(`Transaction cbor is null`);
+    else if (txCborResponse.valid_contract === false)
+      throw new FailedError(`Transaction [${txId}] is failed on-chain`);
+    else if (!txCborResponse.valid_contract)
+      throw new UnexpectedApiError(
+        `Failed to get transaction [${txId}]: Expected response to contain "valid_contract"`,
+      );
+    const tx = Transaction.from_hex(txCborResponse.cbor);
     const txOutputs = tx.body().outputs();
     if (txOutputs.len() <= Number(index))
       throw new FailedError(
@@ -549,7 +581,7 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
    * @returns CardanoAssets object
    */
   private parseAssetList = (
-    asset: TxInfoItemInputsItemAssetListAnyOfItem,
+    asset: TxInfoItemInputsItemAssetListItem,
   ): CardanoAsset => {
     if (
       !(

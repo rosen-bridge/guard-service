@@ -1,5 +1,13 @@
 # @rosen-chains/ethereum
 
+## 4.0.1
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-bridge/tokens@6.0.2
+  - @rosen-chains/evm@10.0.1
+
 ## 4.0.0
 
 ### Major Changes
