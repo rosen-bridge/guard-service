@@ -1,6 +1,8 @@
 import { EventTriggerEntity } from '@rosen-bridge/watcher-data-extractor';
 import { TransactionType } from '@rosen-chains/abstract-chain';
-import { ERGO_CHAIN } from '@rosen-chains/ergo';
+import { CARDANO_CHAIN } from '@rosen-chains/cardano';
+import { DOGE } from '@rosen-chains/doge';
+import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
 
 import { DatabaseAction } from '../../src/db/databaseAction';
 import { SortRequest } from '../../src/types/api';
@@ -24,6 +26,12 @@ import {
   insertRevenueDataWithTimestamps,
 } from './databaseTestUtils';
 import DatabaseActionMock from './mocked/databaseAction.mock';
+import {
+  cardanoErgTokenId,
+  cardanoRSNTokenId,
+  mockAddresses,
+  mockBalances,
+} from './testData';
 
 describe('DatabaseActions', () => {
   beforeEach(async () => {
@@ -1414,6 +1422,390 @@ describe('DatabaseActions', () => {
         mockTx.txId,
         TransactionStatus.completed,
       );
+    });
+  });
+
+  describe('getChainAddressBalances', () => {
+    /**
+     * @target DatabaseAction.getChainAddressBalances should return ChainAddressBalanceEntity records of all chains
+     * @dependencies
+     * - database
+     * @scenario
+     * - populate database with mock address records
+     * - populate database with mock balance records
+     * - call DatabaseAction.getChainAddressBalances
+     * - check returned records
+     * @expected
+     * - returned records should match the inserted mock balance records and their count
+     */
+    it('should return ChainAddressBalanceEntity records of all chains', async () => {
+      // arrange
+      for (const address of mockAddresses)
+        await DatabaseActionMock.insertAddressRecord(address);
+
+      for (const balance of mockBalances)
+        await DatabaseActionMock.insertChainAddressBalanceRecord(balance);
+
+      // act
+      const result =
+        await DatabaseActionMock.testDatabase.getChainAddressBalances();
+
+      // assert
+      expect(result).toEqual({
+        total: mockBalances.length,
+        items: mockBalances,
+      });
+    });
+
+    /**
+     * @target DatabaseAction.getChainAddressBalances should return ChainAddressBalanceEntity records of ergo chain tokenIds when tokenIds filter is applied
+     * @dependencies
+     * - database
+     * @scenario
+     * - populate database with mock address records
+     * - populate database with mock balance records
+     * - call DatabaseAction.getChainAddressBalances with tokenIds filter set to ergo chain tokenIds
+     * - check returned records
+     * @expected
+     * - returned records should match the 2 mock ergo balance records
+     */
+    it('should return ChainAddressBalanceEntity records of ergo chain tokenIds when tokenIds filter is applied', async () => {
+      // arrange
+      for (const address of mockAddresses)
+        await DatabaseActionMock.insertAddressRecord(address);
+
+      for (const balance of mockBalances)
+        await DatabaseActionMock.insertChainAddressBalanceRecord(balance);
+
+      // act
+      const result =
+        await DatabaseActionMock.testDatabase.getChainAddressBalances(
+          mockBalances
+            .filter((balance) => balance.address.chain === 'ergo')
+            .map((balance) => balance.tokenId),
+        );
+
+      // assert
+      expect(result).toEqual({
+        total: 2,
+        items: mockBalances.filter(
+          (balance) => balance.address.chain === 'ergo',
+        ),
+      });
+    });
+
+    /**
+     * @target DatabaseAction.getChainAddressBalances should return ChainAddressBalanceEntity records of cardano erg tokenId when tokenIds filter is applied
+     * @dependencies
+     * - database
+     * @scenario
+     * - populate database with mock address records
+     * - populate database with mock balance records
+     * - call DatabaseAction.getChainAddressBalances with tokenIds filter set to cardano erg tokenId
+     * - check returned records
+     * @expected
+     * - returned records should match the 2 mock cardano balance records for the erg tokenId
+     */
+    it('should return ChainAddressBalanceEntity records of cardano erg tokenId when tokenIds filter is applied', async () => {
+      // arrange
+      for (const address of mockAddresses)
+        await DatabaseActionMock.insertAddressRecord(address);
+
+      for (const balance of mockBalances)
+        await DatabaseActionMock.insertChainAddressBalanceRecord(balance);
+
+      // act
+      const result =
+        await DatabaseActionMock.testDatabase.getChainAddressBalances([
+          cardanoErgTokenId,
+        ]);
+
+      // assert
+      expect(result).toEqual({
+        total: 2,
+        items: mockBalances.filter(
+          (balance) => balance.tokenId === cardanoErgTokenId,
+        ),
+      });
+    });
+  });
+
+  describe('getChainAddressBalanceTokenIds', () => {
+    /**
+     * @target DatabaseAction.getChainAddressBalanceTokenIds should return distinct tokenIds of all chains
+     * @dependencies
+     * - database
+     * @scenario
+     * - populate database with mock address records
+     * - populate database with mock balance records
+     * - call DatabaseAction.getChainAddressBalanceTokenIds
+     * - check returned value
+     * @expected
+     * - returned items should match the distinct tokenIds of the inserted mock balance records and their count
+     */
+    it('should return distinct tokenIds of all chains', async () => {
+      // arrange
+      for (const address of mockAddresses)
+        await DatabaseActionMock.insertAddressRecord(address);
+
+      for (const balance of mockBalances)
+        await DatabaseActionMock.insertChainAddressBalanceRecord(balance);
+
+      // act
+      const result =
+        await DatabaseActionMock.testDatabase.getChainAddressBalanceTokenIds(
+          undefined,
+          undefined,
+          0,
+          10,
+          undefined,
+        );
+
+      // assert
+      const tokenIds = [
+        ...new Set(mockBalances.map((balance) => balance.tokenId)),
+      ];
+      expect(result).toEqual({
+        total: tokenIds.length,
+        items: tokenIds,
+      });
+    });
+
+    /**
+     * @target DatabaseAction.getChainAddressBalanceTokenIds should return distinct tokenIds of the requested chain when chain filter is applied
+     * @dependencies
+     * - database
+     * @scenario
+     * - populate database with mock address records
+     * - populate database with mock balance records
+     * - call DatabaseAction.getChainAddressBalanceTokenIds with chain=cardano
+     * - check returned tokenIds
+     * @expected
+     * - returned items should contain all the cardano tokenIds
+     */
+    it('should return distinct tokenIds of the requested chain when chain filter is applied', async () => {
+      // arrange
+      for (const address of mockAddresses)
+        await DatabaseActionMock.insertAddressRecord(address);
+
+      for (const balance of mockBalances)
+        await DatabaseActionMock.insertChainAddressBalanceRecord(balance);
+
+      // act
+      const result =
+        await DatabaseActionMock.testDatabase.getChainAddressBalanceTokenIds(
+          'cardano',
+          undefined,
+          0,
+          10,
+          undefined,
+        );
+
+      // assert
+      const cardanoTokenIds = [
+        ...new Set(
+          mockBalances
+            .filter((balance) => balance.address.chain === CARDANO_CHAIN)
+            .map((balance) => balance.tokenId),
+        ),
+      ];
+      expect(result).toEqual({
+        items: cardanoTokenIds,
+        total: cardanoTokenIds.length,
+      });
+    });
+
+    /**
+     * @target DatabaseAction.getChainAddressBalanceTokenIds should return distinct tokenIds when requesting a partial tokenId
+     * @dependencies
+     * - database
+     * @scenario
+     * - populate database with mock address records
+     * - populate database with mock balance records
+     * - call DatabaseAction.getChainAddressBalanceTokenIds with tokenId ="ba"
+     * - check returned tokenIds
+     * @expected
+     * - returned items should be cardanoRSNTokenId, and cardanoErgTokenId
+     */
+    it('should return distinct tokenIds when requesting a partial tokenId', async () => {
+      // arrange
+      for (const address of mockAddresses)
+        await DatabaseActionMock.insertAddressRecord(address);
+
+      for (const balance of mockBalances)
+        await DatabaseActionMock.insertChainAddressBalanceRecord(balance);
+
+      // act
+      const result =
+        await DatabaseActionMock.testDatabase.getChainAddressBalanceTokenIds(
+          undefined,
+          'ba',
+          0,
+          10,
+          undefined,
+        );
+
+      // assert
+      expect(result).toEqual({
+        total: 2,
+        items: [cardanoRSNTokenId, cardanoErgTokenId],
+      });
+    });
+
+    /**
+     * @target DatabaseAction.getChainAddressBalanceTokenIds should return a tokenId when requesting an existing exact tokenId
+     * @dependencies
+     * - database
+     * @scenario
+     * - populate database with mock address records
+     * - populate database with mock balance records
+     * - call DatabaseAction.getChainAddressBalanceTokenIds with tokenId=cardanoErgTokenId
+     * - check returned tokenIds
+     * @expected
+     * - returned items should contain cardanoErgTokenId with total of 1
+     */
+    it('should return a tokenId when requesting an existing exact tokenId', async () => {
+      // arrange
+      for (const address of mockAddresses)
+        await DatabaseActionMock.insertAddressRecord(address);
+
+      for (const balance of mockBalances)
+        await DatabaseActionMock.insertChainAddressBalanceRecord(balance);
+
+      // act
+      const result =
+        await DatabaseActionMock.testDatabase.getChainAddressBalanceTokenIds(
+          undefined,
+          cardanoErgTokenId,
+          0,
+          10,
+          undefined,
+        );
+
+      // assert
+      expect(result).toEqual({
+        total: 1,
+        items: [cardanoErgTokenId],
+      });
+    });
+
+    /**
+     * @target DatabaseAction.getChainAddressBalanceTokenIds should return an empty response when requesting an undefined tokenId
+     * @dependencies
+     * - database
+     * @scenario
+     * - populate database with mock address records
+     * - populate database with mock balance records
+     * - call DatabaseAction.getChainAddressBalanceTokenIds with tokenId="some undefined tokenId"
+     * - check returned tokenIds
+     * @expected
+     * - returned items should be an empty array with total of 0
+     */
+    it('should return an empty response when requesting an undefined tokenId', async () => {
+      // arrange
+      for (const address of mockAddresses)
+        await DatabaseActionMock.insertAddressRecord(address);
+
+      for (const balance of mockBalances)
+        await DatabaseActionMock.insertChainAddressBalanceRecord(balance);
+
+      // act
+      const result =
+        await DatabaseActionMock.testDatabase.getChainAddressBalanceTokenIds(
+          undefined,
+          DOGE,
+          0,
+          10,
+          undefined,
+        );
+
+      // assert
+      expect(result).toEqual({
+        total: 0,
+        items: [],
+      });
+    });
+
+    /**
+     * @target DatabaseAction.getChainAddressBalanceTokenIds should return distinct tokenIds when requesting a partial tokenId and a chain
+     * @dependencies
+     * - database
+     * @scenario
+     * - populate database with mock address records
+     * - populate database with mock balance records
+     * - call DatabaseAction.getChainAddressBalanceTokenIds with tokenId="e" and chain="ergo"
+     * - check returned tokenIds
+     * @expected
+     * - returned items should contain ERG tokenId with total of 1
+     */
+    it('should return distinct tokenIds when requesting a partial tokenId and a chain', async () => {
+      // arrange
+      for (const address of mockAddresses)
+        await DatabaseActionMock.insertAddressRecord(address);
+
+      for (const balance of mockBalances)
+        await DatabaseActionMock.insertChainAddressBalanceRecord(balance);
+
+      // act
+      const result =
+        await DatabaseActionMock.testDatabase.getChainAddressBalanceTokenIds(
+          ERGO_CHAIN,
+          'e',
+          0,
+          10,
+          undefined,
+        );
+
+      // assert
+      expect(result).toEqual({
+        total: 1,
+        items: [ERG],
+      });
+    });
+
+    /**
+     * @target DatabaseAction.getChainAddressBalanceTokenIds should return distinct tokenIds of all chains sorted by DESC chain
+     * @dependencies
+     * - database
+     * @scenario
+     * - populate database with mock address records
+     * - populate database with mock balance records
+     * - call DatabaseAction.getChainAddressBalanceTokenIds sorted by chain=DESC
+     * - check returned value
+     * @expected
+     * - returned items should match the distinct tokenIds of the inserted mock balance records sorted by chain=DESC and their count
+     */
+    it('should return distinct tokenIds of all chains sorted by DESC chain', async () => {
+      // arrange
+      for (const address of mockAddresses)
+        await DatabaseActionMock.insertAddressRecord(address);
+
+      for (const balance of mockBalances)
+        await DatabaseActionMock.insertChainAddressBalanceRecord(balance);
+
+      // act
+      const result =
+        await DatabaseActionMock.testDatabase.getChainAddressBalanceTokenIds(
+          undefined,
+          undefined,
+          0,
+          10,
+          [{ key: 'chain', order: 'DESC' }],
+        );
+
+      // assert
+      const tokenIds = [
+        ...new Set(
+          mockBalances
+            .toSorted((a, b) => b.address.chain.localeCompare(a.address.chain))
+            .map((balance) => balance.tokenId),
+        ),
+      ];
+
+      expect(result).toEqual({
+        total: tokenIds.length,
+        items: tokenIds,
+      });
     });
   });
 });

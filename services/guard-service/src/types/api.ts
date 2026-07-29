@@ -23,22 +23,6 @@ interface TokenData {
   isNativeToken: boolean;
 }
 
-interface ChainTokenData extends TokenData {
-  coldAmount: number;
-  chain: string;
-}
-
-interface AddressBalance {
-  address: string;
-  chain: string;
-  balance: TokenData;
-}
-
-interface LockBalance {
-  hot: Page<AddressBalance>;
-  cold: Page<AddressBalance>;
-}
-
 interface SingleRevenue {
   revenueType: RevenueType;
   data: TokenData;
@@ -111,9 +95,6 @@ export {
   SortRequest,
   TokenChartData,
   TokenData,
-  ChainTokenData,
-  AddressBalance,
-  LockBalance,
   SingleRevenue,
   RevenueHistory,
   Event,

@@ -45,7 +45,6 @@ const RevenuePeriodWindow: Record<RevenuePeriod, number | undefined> = {
 const EventUnexpectedFailsLimit = 2;
 const OrderUnexpectedFailsLimit = 1;
 const DefaultApiLimit = 100;
-const DefaultAssetApiLimit = 10;
 const DefaultAddressApiLimit = 50;
 const DefaultRevenueApiCount = 10;
 const ADA_DECIMALS = 6;
@@ -118,7 +117,6 @@ export {
   OrderUnexpectedFailsLimit,
   DefaultApiLimit,
   DefaultRevenueApiCount,
-  DefaultAssetApiLimit,
   DefaultAddressApiLimit,
   ADA_DECIMALS,
   ERG_DECIMALS,

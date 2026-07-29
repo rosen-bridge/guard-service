@@ -1,12 +1,12 @@
 import { z } from 'zod';
 
 import { HealthStatusLevel } from '@rosen-bridge/health-check';
+import { FilterConfig } from '@rosen-bridge/query-params';
 
 import { AddressType, SortRequest } from '../types/api';
 import {
   DefaultAddressApiLimit,
   DefaultApiLimit,
-  DefaultAssetApiLimit,
   DefaultRevenueApiCount,
   RevenuePeriod,
   SUPPORTED_CHAINS,
@@ -24,12 +24,6 @@ export const TokenDataSchema = z.object({
   isNativeToken: z.boolean(),
 });
 
-export const AddressBalanceSchema = z.object({
-  address: z.string(),
-  chain: z.string(),
-  balance: TokenDataSchema,
-});
-
 export const OutputItemsSchema = <T extends z.ZodRawShape>(
   itemType: z.ZodObject<T>,
 ) =>
@@ -38,10 +32,29 @@ export const OutputItemsSchema = <T extends z.ZodRawShape>(
     total: z.number(),
   });
 
-export const LockBalanceSchema = z.object({
-  hot: OutputItemsSchema(AddressBalanceSchema),
-  cold: OutputItemsSchema(AddressBalanceSchema),
+export const AddressBalanceSchema = z.object({
+  chain: z.string(),
+  token: z.object({
+    id: z.string(),
+    name: z.string(),
+    decimals: z.number(),
+    isNativeToken: z.boolean(),
+  }),
+  hot: z.optional(
+    z.object({
+      address: z.string(),
+      amount: z.string(),
+    }),
+  ),
+  cold: z.optional(
+    z.object({
+      address: z.string(),
+      amount: z.string(),
+    }),
+  ),
 });
+
+export const BalanceResponseSchema = OutputItemsSchema(AddressBalanceSchema);
 
 export const InfoResponseSchema = z.object({
   versions: z.object({
@@ -129,18 +142,6 @@ export const AddressQuerySchema = z.object({
     .default(DefaultAddressApiLimit),
   chain: z.optional(z.enum(SUPPORTED_CHAINS)),
   type: z.optional(z.nativeEnum(AddressType)),
-});
-
-export const BalanceQuerySchema = z.object({
-  offset: z.coerce.number().int().min(0).default(0),
-  limit: z.coerce.number().int().min(1).max(100).default(DefaultAssetApiLimit),
-  chain: z.optional(SupportedChainsSchema),
-  tokenId: z.optional(
-    z
-      .string()
-      .max(100)
-      .regex(/^[0-9a-z.:]*$/),
-  ),
 });
 
 export const AssetsResponseSchema = OutputItemsSchema(
@@ -245,3 +246,51 @@ export const ReprocessQuerySchema = z.object({
   eventId: z.string(),
   peerIds: z.array(z.string()),
 });
+
+export const BALANCE_ROUTE_PARSER_SCHEMA: FilterConfig = {
+  fields: {
+    enable: true,
+    items: [
+      {
+        key: 'chain',
+        type: 'string',
+        operators: ['equal', 'notEqual'],
+        values: SUPPORTED_CHAINS.slice(),
+      },
+      {
+        key: 'tokenId',
+        type: 'string',
+        operators: ['contains'],
+      },
+      {
+        key: 'tokenName',
+        type: 'string',
+        operators: ['contains'],
+      },
+    ],
+  },
+  pagination: {
+    enable: true,
+    limit: {
+      min: 1,
+      max: 100,
+      default: 50,
+    },
+    offset: {
+      min: 0,
+      default: 0,
+    },
+  },
+  sorts: {
+    enable: true,
+    items: [
+      {
+        key: 'tokenName',
+        defaultOrder: 'ASC',
+      },
+      {
+        key: 'chain',
+      },
+    ],
+  },
+};

@@ -1,9 +1,11 @@
 import { BITCOIN_CHAIN, BTC } from '@rosen-chains/bitcoin';
 import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
 
+import { AddressEntity } from '../../src/db/entities/addressEntity';
 import { ChainAddressBalanceEntity } from '../../src/db/entities/chainAddressBalanceEntity';
+import { AddressType } from '../../src/types/api';
 
-// COMET cardano tokenId from test tokensMap
+// cardano tokenIds from test tokensMap
 export const cardanoCometTokenId =
   'bb2250e4c589539fd141fbbd2c322d380f1ce2aaef812cd87110d61b.527374434f4d4554565465737432';
 const cardanoErgTokenId =
@@ -17,15 +19,66 @@ const cardanoBTCTokenId =
 const cardanoMDTokenTokenId =
   'ac0a478c70238bff24e20107ebe399e7f3a3e854037622427206b024.72734d44546f6b656e2d6c6f656e';
 
-export const cardanoLockAddress = `${CARDANO_CHAIN}_mock_lock_address`;
-export const cardanoColdAddress = `${CARDANO_CHAIN}_mock_cold_address`;
-export const bitcoinColdAddress = `${BITCOIN_CHAIN}_mock_cold_address`;
+export const mockAddresses: AddressEntity[] = [
+  {
+    id: 0,
+    chain: 'ergo',
+    address: 'ergo_hot',
+    type: AddressType.Hot,
+  },
+  {
+    id: 1,
+    chain: 'ergo',
+    address: 'ergo_cold',
+    type: AddressType.Cold,
+  },
+  {
+    id: 2,
+    chain: 'bitcoin',
+    address: 'bitcoin_hot',
+    type: AddressType.Hot,
+  },
+  {
+    id: 3,
+    chain: 'cardano',
+    address: 'cardano_hot',
+    type: AddressType.Hot,
+  },
+  {
+    id: 4,
+    chain: 'cardano',
+    address: 'cardano_cold',
+    type: AddressType.Cold,
+  },
+  {
+    id: 5,
+    chain: 'ethereum',
+    address: 'ethereum_hot',
+    type: AddressType.Hot,
+  },
+  {
+    id: 6,
+    chain: 'ethereum',
+    address: 'ethereum_cold',
+    type: AddressType.Cold,
+  },
+  {
+    id: 7,
+    chain: 'binance',
+    address: 'binance_hot',
+    type: AddressType.Hot,
+  },
+];
+
+export const mockCardanoHotAddress = mockAddresses[3];
+export const mockCardanoColdAddress = mockAddresses[4];
+export const mockBitcoinHotAddress = mockAddresses[2];
 
 export const mockBalances: Record<string, Array<ChainAddressBalanceEntity>> = {
   [BITCOIN_CHAIN]: [
     {
-      chain: BITCOIN_CHAIN,
-      address: bitcoinColdAddress,
+      addressId: mockBitcoinHotAddress.id,
+      address: mockBitcoinHotAddress,
       tokenId: BTC,
       lastUpdate: '1643723400',
       balance: 100n,
@@ -33,105 +86,28 @@ export const mockBalances: Record<string, Array<ChainAddressBalanceEntity>> = {
   ],
   [CARDANO_CHAIN]: [
     {
-      chain: CARDANO_CHAIN,
-      address: cardanoColdAddress,
+      addressId: mockCardanoColdAddress.id,
+      address: mockCardanoColdAddress,
       tokenId: ADA,
       lastUpdate: '1643723422',
       balance: 50000n,
     },
     {
-      chain: CARDANO_CHAIN,
-      address: cardanoColdAddress,
+      addressId: mockCardanoColdAddress.id,
+      address: mockCardanoColdAddress,
       tokenId: cardanoCometTokenId,
       lastUpdate: '1643723401',
       balance: 20000n,
     },
     {
-      chain: CARDANO_CHAIN,
-      address: cardanoLockAddress,
+      addressId: mockCardanoHotAddress.id,
+      address: mockCardanoHotAddress,
       tokenId: cardanoCometTokenId,
       lastUpdate: '1643722301',
       balance: 6666666n,
     },
   ],
 };
-
-export const mockAddressBalance = [
-  {
-    address: 'bitcoin_mock_cold_address',
-    chain: 'bitcoin',
-    balance: {
-      tokenId: 'btc',
-      amount: 100,
-      name: 'BTC',
-      decimals: 8,
-      isNativeToken: true,
-    },
-  },
-  {
-    address: 'cardano_mock_cold_address',
-    chain: 'cardano',
-    balance: {
-      tokenId: 'ada',
-      amount: 50000,
-      name: 'ADA',
-      decimals: 6,
-      isNativeToken: true,
-    },
-  },
-  {
-    address: 'cardano_mock_cold_address',
-    chain: 'cardano',
-    balance: {
-      tokenId:
-        'bb2250e4c589539fd141fbbd2c322d380f1ce2aaef812cd87110d61b.527374434f4d4554565465737432',
-      amount: 20000,
-      name: 'wrapped-comet',
-      decimals: 0,
-      isNativeToken: false,
-    },
-  },
-];
-
-export const mockAddressBalance2 = [
-  {
-    address: 'cardano_mock_lock_address',
-    chain: 'cardano',
-    balance: {
-      tokenId:
-        'bb2250e4c589539fd141fbbd2c322d380f1ce2aaef812cd87110d61b.527374434f4d4554565465737432',
-      amount: 6666666,
-      name: 'wrapped-comet',
-      decimals: 0,
-      isNativeToken: false,
-    },
-  },
-];
-
-export const mockAddressBalance3 = [
-  {
-    address: 'bitcoin_mock_cold_address',
-    chain: 'bitcoin',
-    balance: {
-      tokenId: 'btc',
-      amount: 100,
-      name: 'BTC',
-      decimals: 8,
-      isNativeToken: true,
-    },
-  },
-  {
-    address: 'cardano_mock_cold_address',
-    chain: 'cardano',
-    balance: {
-      tokenId: 'ada',
-      amount: 50000,
-      name: 'ADA',
-      decimals: 6,
-      isNativeToken: true,
-    },
-  },
-];
 
 export const cardanoTokenIds = [
   cardanoErgTokenId,
@@ -143,11 +119,11 @@ export const cardanoTokenIds = [
 ];
 
 export const mockCardanoBalances: ChainAddressBalanceEntity[] = [
-  cardanoLockAddress,
-  cardanoColdAddress,
+  mockCardanoHotAddress,
+  mockCardanoColdAddress,
 ].flatMap((address) =>
   cardanoTokenIds.map((token: string) => ({
-    chain: CARDANO_CHAIN,
+    addressId: address.id,
     address: address,
     tokenId: token,
     lastUpdate: '1643723422',

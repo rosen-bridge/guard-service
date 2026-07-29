@@ -1,34 +1,12 @@
-import z from 'zod';
-
-import { HealthStatusLevel } from '@rosen-bridge/health-check';
 import { BINANCE_CHAIN } from '@rosen-chains/binance';
 import { BITCOIN_CHAIN, BTC } from '@rosen-chains/bitcoin';
 import { ADA, CARDANO_CHAIN } from '@rosen-chains/cardano';
 import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
 import { ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
 
-import { BalanceResponseSchema } from '../../src/api/schemas';
-import GuardsErgoConfigs from '../../src/configs/guardsErgoConfigs';
-import { rosenConfig } from '../../src/configs/rosenConfig';
 import { AddressEntity } from '../../src/db/entities/addressEntity';
 import { ChainAddressBalanceEntity } from '../../src/db/entities/chainAddressBalanceEntity';
 import { AddressType } from '../../src/types/api';
-
-export const guardInfo = {
-  versions: {
-    app: expect.any(String),
-    contract: rosenConfig.contractVersion,
-  },
-  health: {
-    status: HealthStatusLevel.HEALTHY,
-    trialErrors: [],
-  },
-  rsnTokenId: rosenConfig.RSN,
-  emissionTokenId: GuardsErgoConfigs.emissionTokenId,
-};
-
-export const invalidOrderJson =
-  '[{"address":"address-1","assets":{"nativeToken":100,"tokens":[]}},{"address":"address-2","assets":{"nativeToken":200,"tokens":[{"id":"token-1","value":10000}]}]';
 
 export const mockAddresses: AddressEntity[] = [
   {
@@ -81,23 +59,17 @@ export const mockAddresses: AddressEntity[] = [
   },
 ];
 
-export const mockPartialAddresses: Omit<AddressEntity, 'id'>[] =
-  mockAddresses.map(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    ({ id, ...record }) => record,
-  );
-
-const cardanoCometTokenId =
+export const cardanoCometTokenId =
   'bb2250e4c589539fd141fbbd2c322d380f1ce2aaef812cd87110d61b.527374434f4d4554565465737432';
-const cardanoErgTokenId =
+export const cardanoErgTokenId =
   'd2f6eb37450a3d568de93d623e69bd0ba1238daacc883d75736abd23.527374457267565465737432';
-const cardanoHoskyTokenId =
+export const cardanoHoskyTokenId =
   'a0028f350aaabe0545fdcb56b039bfb08e4bb4d8c4d7c3c7d481c235.484f534b59';
-const cardanoRSNTokenId =
+export const cardanoRSNTokenId =
   '45fdcb56b039bfba0028f350aaabe0508e4bb4d8c4d7c3c7d481c235.48';
-const cardanoBTCTokenId =
+export const cardanoBTCTokenId =
   '3122541486c983d637e7ed9330c94e490e1fe4a1758725fab7f6d9e0.72734254432d6c6f656e';
-const cardanoMDTokenTokenId =
+export const cardanoMDTokenTokenId =
   'ac0a478c70238bff24e20107ebe399e7f3a3e854037622427206b024.72734d44546f6b656e2d6c6f656e';
 
 export const mockBalances: ChainAddressBalanceEntity[] = [
@@ -204,146 +176,3 @@ export const mockBalances: ChainAddressBalanceEntity[] = [
     ? a.tokenId.localeCompare(b.tokenId)
     : a.addressId - b.addressId,
 );
-
-export const mockBalancesResponse: z.infer<typeof BalanceResponseSchema> = {
-  items: [
-    {
-      chain: ERGO_CHAIN,
-      token: {
-        id: ERG,
-        name: 'erg',
-        decimals: 9,
-        isNativeToken: true,
-      },
-      hot: {
-        address: `${ERGO_CHAIN}_hot`,
-        amount: '10',
-      },
-      cold: {
-        address: `${ERGO_CHAIN}_cold`,
-        amount: '100',
-      },
-    },
-    {
-      chain: CARDANO_CHAIN,
-      token: {
-        id: ADA,
-        name: 'ADA',
-        decimals: 6,
-        isNativeToken: true,
-      },
-      hot: {
-        address: `${CARDANO_CHAIN}_hot`,
-        amount: '20',
-      },
-      cold: {
-        address: `${CARDANO_CHAIN}_cold`,
-        amount: '200',
-      },
-    },
-    {
-      chain: CARDANO_CHAIN,
-      token: {
-        id: cardanoCometTokenId,
-        name: 'wrapped-comet',
-        decimals: 0,
-        isNativeToken: false,
-      },
-      hot: {
-        address: `${CARDANO_CHAIN}_hot`,
-        amount: '230',
-      },
-    },
-    {
-      chain: CARDANO_CHAIN,
-      token: {
-        id: cardanoErgTokenId,
-        name: 'wrapped-erg',
-        decimals: 9,
-        isNativeToken: false,
-      },
-      hot: {
-        address: `${CARDANO_CHAIN}_hot`,
-        amount: '2560',
-      },
-      cold: {
-        address: `${CARDANO_CHAIN}_cold`,
-        amount: '2460',
-      },
-    },
-    {
-      chain: CARDANO_CHAIN,
-      token: {
-        id: cardanoHoskyTokenId,
-        name: 'Hosky',
-        decimals: 0,
-        isNativeToken: false,
-      },
-      hot: {
-        address: `${CARDANO_CHAIN}_hot`,
-        amount: '1230',
-      },
-      cold: {
-        address: `${CARDANO_CHAIN}_cold`,
-        amount: '530',
-      },
-    },
-    {
-      chain: CARDANO_CHAIN,
-      token: {
-        id: cardanoRSNTokenId,
-        name: 'H',
-        decimals: 3,
-        isNativeToken: false,
-      },
-      hot: {
-        address: `${CARDANO_CHAIN}_hot`,
-        amount: '660',
-      },
-      cold: {
-        address: `${CARDANO_CHAIN}_cold`,
-        amount: '630',
-      },
-    },
-    {
-      chain: CARDANO_CHAIN,
-      token: {
-        id: cardanoBTCTokenId,
-        name: 'rsBTC-loen',
-        decimals: 8,
-        isNativeToken: false,
-      },
-      cold: {
-        address: `${CARDANO_CHAIN}_cold`,
-        amount: '6230',
-      },
-    },
-    {
-      chain: CARDANO_CHAIN,
-      token: {
-        id: cardanoMDTokenTokenId,
-        name: 'rsMDToken-loen',
-        decimals: 1,
-        isNativeToken: false,
-      },
-      cold: {
-        address: `${CARDANO_CHAIN}_cold`,
-        amount: '33',
-      },
-    },
-    {
-      chain: BITCOIN_CHAIN,
-      token: {
-        id: BTC,
-        name: 'BTC',
-        decimals: 8,
-        isNativeToken: true,
-      },
-      hot: {
-        address: `${BITCOIN_CHAIN}_hot`,
-        amount: '30',
-      },
-    },
-  ].toSorted((a, b) => a.token.id.localeCompare(b.token.id)),
-  total: 9,
-};

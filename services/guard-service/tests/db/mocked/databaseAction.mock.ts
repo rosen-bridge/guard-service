@@ -566,9 +566,9 @@ class DatabaseActionMock {
    * returns all records in ChainAddressBalance table in database
    */
   static allChainAddressBalanceRecords = async () => {
-    return await this.testDatabase.ChainAddressBalanceRepository.createQueryBuilder()
-      .select()
-      .getMany();
+    return await this.testDatabase.ChainAddressBalanceRepository.find({
+      relations: ['address'],
+    });
   };
 
   /**
