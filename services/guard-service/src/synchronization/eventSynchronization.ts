@@ -1,10 +1,10 @@
-import { Semaphore } from 'await-semaphore';
 import { isEqual, sampleSize, countBy, shuffle } from 'lodash-es';
 
 import { DefaultLogger } from '@rosen-bridge/abstract-logger';
 import { Communicator } from '@rosen-bridge/communication';
 import { GuardDetection } from '@rosen-bridge/detection';
 import { RosenDialerNode } from '@rosen-bridge/dialer';
+import { Semaphore } from '@rosen-bridge/semaphore';
 import {
   ConfirmationStatus,
   ImpossibleBehavior,

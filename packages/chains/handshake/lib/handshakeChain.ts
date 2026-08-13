@@ -71,10 +71,12 @@ class HandshakeChain extends AbstractUtxoChain<HandshakeTx, HandshakeUtxo> {
     this.extractor = new HandshakeRosenExtractor(
       configs.addresses.lock,
       tokens,
-      logger,
+      logger?.child(`handshakeRosenExtractor`),
     );
     this.signMediator = signMediator;
-    this.boxSelection = new BitcoinBoxSelection();
+    this.boxSelection = new BitcoinBoxSelection(
+      logger?.child(`bitcoinBoxSelection`),
+    );
     this.lockAddress = Address.fromString(this.configs.addresses.lock);
     // For P2WPKH TSS: derive lock script from the lock address pubkeyhash
     this.lockScript = Script.fromPubkeyhash(this.lockAddress.hash).encode();

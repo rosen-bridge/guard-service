@@ -53,10 +53,10 @@ class ErgoChain extends AbstractUtxoChain<wasm.Transaction, wasm.ErgoBox> {
     this.extractor = new ErgoRosenExtractor(
       configs.addresses.lock,
       tokens,
-      logger,
+      logger?.child(`ergoRosenExtractor`),
     );
     this.signMediator = signMediator;
-    this.boxSelection = new ErgoBoxSelection();
+    this.boxSelection = new ErgoBoxSelection(logger?.child(`ergoBoxSelection`));
   }
 
   /**

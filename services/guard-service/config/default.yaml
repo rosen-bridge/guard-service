@@ -10,6 +10,7 @@ api:
   isArbitraryOrderRequestActive: false
   allowedOrigins: [] # List of allowed origins for CORS headers
   maxRequestsPerMinute: 100_000
+  maxRequestsPerMinutePostRoutes: 10
 publicStatus:
   baseUrl: ''
 binance:
@@ -18,7 +19,11 @@ binance:
     url: ''
     timeout: 8
     initialHeight: -1
-    scannerInterval: 10
+    scannerInterval: 60
+    fastForward:
+      isEnabled: true # enables fast-forward feature; i.e., scans a block batch only if a related transaction might be found in it
+      heightGap: 1600 # number of blocks in each batch in fast-forward feature (it has no effect if `isEnabled` is false)
+      checkNonceAtHeight: false # checks the address nonce at the batch height. Enable this only when your RPC API supports historical requests (it has no effect if `isEnabled` is false)
   maxParallelTx: 2 # maximum number of txs to be processed with the same nonce (note that only one of these transactions will be succeed)
   gasPriceSlippage: 50 # allowed slippage percentage for gas price
   gasLimitSlippage: 50 # allowed slippage percentage for gas limit
@@ -68,14 +73,12 @@ bitcoinRunes:
   derivationPath:
     -
 firo:
-  chainNetwork: 'rpc' # 'rpc'
-  rpc:
-    url: ''
-    timeout: 8
-    # username: ''
-    # password: ''
-    # apiKey: ''
-    # rps: 5 # request per second for RPC requests
+  chainNetwork: 'electrumx'
+  electrumx:
+    host: ''
+    port: 50002
+    reconnectDelay: 5
+    timeout: 30
   bankPublicKey: '' # corresponding public key of lock address
   txFeeSlippage: 20 # allowed slippage percentage for tx fees
   confirmation: # required block confirmation
@@ -181,7 +184,11 @@ ethereum:
     url: ''
     timeout: 8
     initialHeight: -1
-    scannerInterval: 20
+    scannerInterval: 60
+    fastForward:
+      isEnabled: true # enables fast-forward feature; i.e., scans a block batch only if a related transaction might be found in it
+      heightGap: 100 # number of blocks in each batch in fast-forward feature (it has no effect if `isEnabled` is false)
+      checkNonceAtHeight: false # checks the address nonce at the batch height. Enable this only when your RPC API supports historical requests (it has no effect if `isEnabled` is false)
   maxParallelTx: 2 # maximum number of txs to be processed with the same nonce (note that only one of these transactions will be succeed)
   gasPriceSlippage: 50 # allowed slippage percentage for gas price
   gasLimitSlippage: 50 # allowed slippage percentage for gas limit
@@ -259,6 +266,10 @@ logs:
     maxSize: '20m' # maximum size of each log file (20 MB) (only for rotateFile type)
     maxFiles: '14d' # maximum number of log files (14 days) (only for rotateFile type)
     level: 'info' # [debug, info, warn, error]
+    # format: 'plain' # format of log file lines [plain or json]
+    # createSymlink: false # create tailable file symlink to last log file
+    # symlinkName: 'current.log' # name of tailable file
+    # serviceName: '' # service name for each log line
   - type: 'console'
     level: 'info'
 coldStorage:
@@ -364,7 +375,7 @@ balanceHandler:
       esplora: 9999
   firo:
     tokensPerIteration:
-      rpc: 9999
+      electrumx: 9999
   handshake:
     tokensPerIteration:
       rpc: 9999

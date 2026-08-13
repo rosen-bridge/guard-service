@@ -345,6 +345,30 @@ describe('CardanoBlockFrostNetwork', () => {
       // check returned value
       expect(result).toEqual(testData.differentMetadataTransactionInCardanoTx);
     });
+
+    /**
+     * @target `CardanoBlockFrostNetwork.getTransaction` should throw FailedError
+     * when transaction is failed on chain
+     * @dependencies
+     * @scenario
+     * - mock `BlockFrostAPI.txs`
+     * - run test & check thrown exception
+     * @expected
+     * - it should throw FailedError
+     */
+    it('should throw FailedError when transaction is failed on chain', async () => {
+      // mock client response
+      const network = mockNetwork();
+      mockTxs(network.getClient(), testData.failedOnChainTransaction);
+
+      // run test
+      await expect(async () => {
+        await network.getTransaction(
+          testData.failedOnChainTransaction.hash,
+          testData.failedOnChainTransaction.block,
+        );
+      }).rejects.toThrow(FailedError);
+    });
   });
 
   describe('getAddressBoxes', () => {

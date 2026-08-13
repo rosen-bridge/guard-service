@@ -1,5 +1,17 @@
 # @rosen-chains/doge
 
+## 4.0.1
+
+### Patch Changes
+
+- Fix mismatch between required assets and covering assets where the minimum utxo value were considered twice
+- Enable the selection class logs
+- Rename the logger name for the Rosen extractor class
+- Update dependencies
+  - @rosen-bridge/rosen-extractor@12.1.1
+  - @rosen-bridge/tokens@6.0.2
+  - @rosen-chains/abstract-chain@16.0.1
+
 ## 4.0.0
 
 ### Major Changes

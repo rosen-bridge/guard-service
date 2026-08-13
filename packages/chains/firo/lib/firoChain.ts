@@ -65,13 +65,15 @@ class FiroChain extends AbstractUtxoChain<FiroTx, FiroUtxo> {
     this.extractor = new FiroRosenExtractor(
       configs.addresses.lock,
       tokens,
-      logger?.child('FiroRosenExtractor'),
+      logger?.child('firoRosenExtractor'),
     );
     this.signMediator = signMediator;
     this.lockScript = address
       .toOutputScript(this.configs.addresses.lock, FIRO_NETWORK)
       .toString('hex');
-    this.boxSelection = new BitcoinBoxSelection();
+    this.boxSelection = new BitcoinBoxSelection(
+      logger?.child(`bitcoinBoxSelection`),
+    );
   }
 
   /**

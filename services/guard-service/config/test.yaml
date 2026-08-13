@@ -3,6 +3,7 @@ api:
   isManualTxRequestActive: true
   isArbitraryOrderRequestActive: true
   apiKeyHash: '324dcf027dd4a30a932c441f365a25e86b173defa4b8e58948253471b81b72cf'
+  maxRequestsPerMinutePostRoutes: 2
 publicStatus:
   baseUrl: ''
 binance:
@@ -36,10 +37,12 @@ bitcoin:
     - 0
     - 0
 firo:
-  chainNetwork: 'rpc'
-  rpc:
-    url: ''
-    timeout: 8
+  chainNetwork: 'electrumx'
+  electrumx:
+    host: '127.0.0.1'
+    port: 50002
+    reconnectDelay: 5
+    timeout: 30
   bankPublicKey: 'bcb07faa6c0f19e2f2587aa9ef6f43a68fc0135321216a71dc87c8527af4ca6a'
   txFeeSlippage: 20
   confirmation:
@@ -184,3 +187,6 @@ coldStorage:
   endHour: 19
 tokensPath: 'tests/resources/tokens.test.json'
 thresholdsPath: 'tests/resources/threshold.test.json'
+balanceHandler:
+  default:
+    updateBatchInterval: 0

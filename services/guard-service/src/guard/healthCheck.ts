@@ -329,23 +329,23 @@ const getHealthCheck = async () => {
       );
       healthCheck.register(binanceScannerSyncCheck);
     }
-  }
 
-  // add LogLevel param
-  const warnLogCheck = new LogLevelHealthCheck(
-    HealthStatusLevel.UNSTABLE,
-    Configs.warnLogAllowedCount,
-    Configs.logDuration,
-    'warn',
-  );
-  healthCheck.register(warnLogCheck);
-  const errorLogCheck = new LogLevelHealthCheck(
-    HealthStatusLevel.UNSTABLE,
-    Configs.errorLogAllowedCount,
-    Configs.logDuration,
-    'error',
-  );
-  healthCheck.register(errorLogCheck);
+    // add LogLevel param
+    const warnLogCheck = new LogLevelHealthCheck(
+      HealthStatusLevel.UNSTABLE,
+      Configs.warnLogAllowedCount,
+      Configs.logDuration,
+      'warn',
+    );
+    healthCheck.register(warnLogCheck);
+    const errorLogCheck = new LogLevelHealthCheck(
+      HealthStatusLevel.UNSTABLE,
+      Configs.errorLogAllowedCount,
+      Configs.logDuration,
+      'error',
+    );
+    healthCheck.register(errorLogCheck);
+  }
 
   return healthCheck;
 };

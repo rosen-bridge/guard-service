@@ -58,10 +58,12 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
     this.extractor = new CardanoRosenExtractor(
       configs.addresses.lock,
       tokens,
-      logger,
+      logger?.child(`cardanoRosenExtractor`),
     );
     this.signMediator = signMediator;
-    this.boxSelection = new CardanoBoxSelection();
+    this.boxSelection = new CardanoBoxSelection(
+      logger?.child(`cardanoBoxSelection`),
+    );
   }
 
   /**

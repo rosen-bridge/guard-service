@@ -58,7 +58,7 @@ abstract class EvmChain extends AbstractChain<Transaction> {
       tokens,
       CHAIN,
       NATIVE_TOKEN_ID,
-      logger,
+      logger?.child(`evmRosenExtractor`),
     );
     const updateSupportedTokens = () => {
       const supportedTokens = tokens

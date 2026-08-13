@@ -95,6 +95,11 @@ class Configs {
     false,
   );
 
+  static apiMaxRequestsPerMinutePostRoutes = getConfigIntKeyOrDefault(
+    'api.maxRequestsPerMinutePostRoutes',
+    10,
+  );
+
   // config of API's route
   static MAX_LENGTH_CHANNEL_SIZE = 200;
 
@@ -260,7 +265,11 @@ class Configs {
           log.maxSize != undefined &&
           typeof log.maxSize === 'string' &&
           log.maxFiles != undefined &&
-          typeof log.maxFiles === 'string';
+          typeof log.maxFiles === 'string' &&
+          (log.format ? typeof log.format === 'string' : true) &&
+          (log.createSymlink ? typeof log.createSymlink === 'boolean' : true) &&
+          (log.symlinkName ? typeof log.symlinkName === 'string' : true) &&
+          (log.serviceName ? typeof log.serviceName === 'string' : true);
       }
       return !(loggerChecks && logTypeValidation);
     });

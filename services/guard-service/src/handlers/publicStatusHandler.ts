@@ -7,6 +7,8 @@ import {
 import axios, { Axios, isAxiosError } from '@rosen-clients/rate-limited-axios';
 
 import Configs from '../configs/configs';
+import { ConfirmedEventEntity } from '../db/entities/confirmedEventEntity';
+import { RejectedEventEntity } from '../db/entities/rejectedEventEntity';
 import { TransactionEntity } from '../db/entities/transactionEntity';
 import { EventStatus, TransactionStatus } from '../utils/constants';
 import { ParallelBranchProcessor } from '../utils/parallelBranchProcessor';
@@ -21,6 +23,7 @@ export type UpdateTxStatusDTO = {
 };
 
 export type UpdateStatusDTO = {
+  triggerTxId: string;
   eventId: string;
   status: EventStatus;
   tx?: UpdateTxStatusDTO;
@@ -29,6 +32,8 @@ export type UpdateStatusDTO = {
 class PublicStatusHandler {
   private static instance?: PublicStatusHandler;
   readonly axios?: Axios;
+  readonly eventRepository: Repository<ConfirmedEventEntity>;
+  readonly rejectedEventRepository: Repository<RejectedEventEntity>;
   readonly txRepository: Repository<TransactionEntity>;
   readonly isActive: boolean;
   readonly processor: ParallelBranchProcessor<UpdateStatusDTO>;
@@ -48,6 +53,9 @@ class PublicStatusHandler {
       logger.warn(
         'publicStatusBaseUrl does not exist, skipping axios initialization',
       );
+    this.eventRepository = dataSource.getRepository(ConfirmedEventEntity);
+    this.rejectedEventRepository =
+      dataSource.getRepository(RejectedEventEntity);
     this.txRepository = dataSource.getRepository(TransactionEntity);
     this.processor = new ParallelBranchProcessor(this.submitRequest);
   }
@@ -84,7 +92,7 @@ class PublicStatusHandler {
     const txData = dto.tx
       ? `${dto.tx.txId}${dto.tx.chain}${dto.tx.txType}${dto.tx.txStatus}`
       : '';
-    return `${dto.eventId}${dto.status}${txData}${date}`;
+    return `${dto.triggerTxId}${dto.eventId}${dto.status}${txData}${date}`;
   };
 
   /**
@@ -141,6 +149,28 @@ class PublicStatusHandler {
     if (!this.isActive) return;
 
     try {
+      const event = await (status !== EventStatus.rejected
+        ? this.eventRepository.findOne({
+            relations: {
+              eventData: true,
+            },
+            where: {
+              id: eventId,
+            },
+          })
+        : this.rejectedEventRepository.findOne({
+            relations: {
+              eventData: true,
+            },
+            where: {
+              id: eventId,
+            },
+          }));
+
+      if (!event) {
+        throw new ImpossibleBehavior(`Event [${eventId}] is not found!`);
+      }
+
       let txDto: UpdateTxStatusDTO | undefined;
 
       if (status === EventStatus.inPayment || status === EventStatus.inReward) {
@@ -170,12 +200,13 @@ class PublicStatusHandler {
       }
 
       const dto: UpdateStatusDTO = {
+        triggerTxId: event.eventData.txId,
         eventId,
         status,
         tx: txDto,
       };
 
-      this.processor.addNode(eventId, dto);
+      this.processor.addNode(dto.triggerTxId, dto);
     } catch (e) {
       logger.error(
         `An error occurred while submitting status change signal on Event [${eventId}]: ${e}`,
@@ -198,7 +229,11 @@ class PublicStatusHandler {
 
     try {
       const tx = await this.txRepository.findOne({
-        relations: ['event'],
+        relations: {
+          event: {
+            eventData: true,
+          },
+        },
         where: {
           txId,
         },
@@ -219,18 +254,13 @@ class PublicStatusHandler {
         throw new ImpossibleBehavior(`Event of tx [${txId}] is not found!`);
       }
 
-      if (
-        (tx.type === TransactionType.payment &&
-          tx.event.status !== EventStatus.inPayment) ||
-        (tx.type === TransactionType.reward &&
-          tx.event.status !== EventStatus.inReward)
-      ) {
-        return;
-      }
-
       const dto: UpdateStatusDTO = {
+        triggerTxId: tx.event.eventData.txId,
         eventId: tx.event.id,
-        status: tx.event.status,
+        status:
+          tx.type === TransactionType.payment
+            ? EventStatus.inPayment
+            : EventStatus.inReward,
         tx: {
           txId,
           chain: tx.chain,
@@ -239,7 +269,7 @@ class PublicStatusHandler {
         },
       };
 
-      this.processor.addNode(tx.event.id, dto);
+      this.processor.addNode(dto.triggerTxId, dto);
     } catch (e) {
       logger.error(
         `An error occurred while submitting status change signal on Transaction [${txId}]: ${e}`,

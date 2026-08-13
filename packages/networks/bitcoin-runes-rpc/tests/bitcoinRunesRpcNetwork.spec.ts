@@ -128,6 +128,45 @@ describe('BitcoinRunesRpcNetwork', () => {
     });
 
     /**
+     * @target `BitcoinRunesRpcNetwork.getAddressAssets` should successfully get all pages
+     * @dependencies
+     * @scenario
+     * - mock a network with low page size (3)
+     * - mock Unisat axios to return address balance response
+     * - mock Unisat axios to return address Runes balance pages response
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should be expected BTC balance and Runes
+     */
+    it('should successfully get all pages', async () => {
+      network = new BitcoinRunesRpcNetwork(
+        { url: 'rpc-url' },
+        { url: 'unisat-url' },
+      );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.spyOn(network as any, 'generateRandomId').mockReturnValue(
+        testData.requestId,
+      );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (network as any).PAGE_SIZE = 3;
+
+      mockAxiosGet(ClientType.UNISAT, testData.unisatAddressBalanceReponse);
+      mockAxiosGet(
+        ClientType.UNISAT,
+        testData.unisatAddressRunesBalancePage1Reponse,
+      );
+      mockAxiosGet(
+        ClientType.UNISAT,
+        testData.unisatAddressRunesBalancePage2Reponse,
+      );
+
+      const result = await network.getAddressAssets(testData.address);
+
+      expect(result).toEqual(testData.addressMultiPagesBalance);
+    });
+
+    /**
      * @target `BitcoinRunesRpcNetwork.getAddressAssets` should return 0 balance
      * when address has no BTC
      * @dependencies
@@ -278,6 +317,43 @@ describe('BitcoinRunesRpcNetwork', () => {
       );
 
       expect(result).toEqual(testData.lockTx);
+    });
+
+    /**
+     * @target `BitcoinRunesRpcNetwork.getTransaction` should successfully get all pages of runes transfer in the tx
+     * @dependencies
+     * @scenario
+     * - mock a network with low page size (3)
+     * - mock RPC axios to return 'getrawtransaction' response
+     * - mock Unisat axios to return Runes event
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should be mocked tx in BitcoinTx format
+     */
+    it('should successfully get all pages of runes transfer in the tx', async () => {
+      network = new BitcoinRunesRpcNetwork(
+        { url: 'rpc-url' },
+        { url: 'unisat-url' },
+      );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.spyOn(network as any, 'generateRandomId').mockReturnValue(
+        testData.requestId,
+      );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (network as any).PAGE_SIZE = 3;
+
+      mockAxiosPost(ClientType.RPC, testData.userTxRawTransactionResponse);
+      mockAxiosPost(ClientType.RPC, testData.userTxMockedBlockInfoResponse);
+      mockAxiosGet(ClientType.UNISAT, testData.userTxRunesEventPage1Response);
+      mockAxiosGet(ClientType.UNISAT, testData.userTxRunesEventPage2Response);
+
+      const result = await network.getTransaction(
+        testData.userTxId,
+        testData.userTxBlockHash,
+      );
+
+      expect(result).toEqual(testData.userTx);
     });
 
     /**

@@ -59,7 +59,7 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
     this.extractor = new BitcoinRosenExtractor(
       configs.addresses.lock,
       tokens,
-      logger,
+      logger?.child(`bitcoinRosenExtractor`),
     );
     this.signMediator = signMediator;
     this.lockScript = address
@@ -68,7 +68,9 @@ class BitcoinChain extends AbstractUtxoChain<BitcoinTx, BitcoinUtxo> {
     this.signingScript = payments.p2pkh({
       hash: Buffer.from(this.lockScript, 'hex').subarray(2),
     }).output!;
-    this.boxSelection = new BitcoinBoxSelection();
+    this.boxSelection = new BitcoinBoxSelection(
+      logger?.child(`bitcoinBoxSelection`),
+    );
   }
 
   /**

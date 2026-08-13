@@ -26,12 +26,10 @@ import { ViewColumn, ViewEntity } from '@rosen-bridge/extended-typeorm';
       .addSelect('ete."result"', 'result')
       .addSelect('ete."paymentTxId"', 'paymentTxId')
       .addSelect('cee."status"', 'status')
+      .addSelect('ree."reason"', 'reason')
       .from('event_trigger_entity', 'ete')
-      .leftJoin(
-        'confirmed_event_entity',
-        'cee',
-        'ete."id" = cee."eventDataId"',
-      ),
+      .leftJoin('confirmed_event_entity', 'cee', 'ete."id" = cee."eventDataId"')
+      .leftJoin('rejected_event_entity', 'ree', 'ete."id" = ree."eventDataId"'),
 }))
 export class EventView {
   @ViewColumn()
@@ -95,5 +93,8 @@ export class EventView {
   paymentTxId!: string | null;
 
   @ViewColumn()
-  status!: string;
+  status!: string | null;
+
+  @ViewColumn()
+  reason!: string | null;
 }

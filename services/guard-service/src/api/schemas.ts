@@ -2,8 +2,9 @@ import { z } from 'zod';
 
 import { HealthStatusLevel } from '@rosen-bridge/health-check';
 
-import { SortRequest } from '../types/api';
+import { AddressType, SortRequest } from '../types/api';
 import {
+  DefaultAddressApiLimit,
   DefaultApiLimit,
   DefaultAssetApiLimit,
   DefaultRevenueApiCount,
@@ -55,6 +56,14 @@ export const InfoResponseSchema = z.object({
   emissionTokenId: z.string(),
 });
 
+export const AddressSchema = z.object({
+  chain: z.string(),
+  address: z.string(),
+  type: z.string(),
+});
+
+export const AddressResponseSchema = OutputItemsSchema(AddressSchema);
+
 export const HealthStatusTypeSchema = z.object({
   id: z.string(),
   title: z.string(),
@@ -67,15 +76,15 @@ export const HealthStatusTypeSchema = z.object({
 });
 
 export const RevenueHistoryQuerySchema = z.object({
-  limit: z.number().default(DefaultApiLimit),
-  offset: z.number().default(0),
+  limit: z.coerce.number().default(DefaultApiLimit),
+  offset: z.coerce.number().default(0),
   sort: z.optional(z.nativeEnum(SortRequest)),
   fromChain: z.optional(z.string()),
   toChain: z.optional(z.string()),
-  maxHeight: z.optional(z.number()),
-  minHeight: z.optional(z.number()),
-  fromBlockTime: z.optional(z.number()),
-  toBlockTime: z.optional(z.number()),
+  maxHeight: z.optional(z.coerce.number()),
+  minHeight: z.optional(z.coerce.number()),
+  fromBlockTime: z.optional(z.coerce.number()),
+  toBlockTime: z.optional(z.coerce.number()),
 });
 
 export const SingleRevenueSchema = z.object({
@@ -110,9 +119,21 @@ export const SupportedChainsSchema = z.nativeEnum(
   }, {}),
 );
 
+export const AddressQuerySchema = z.object({
+  offset: z.coerce.number().int().min(0).default(0),
+  limit: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(100)
+    .default(DefaultAddressApiLimit),
+  chain: z.optional(z.enum(SUPPORTED_CHAINS)),
+  type: z.optional(z.nativeEnum(AddressType)),
+});
+
 export const BalanceQuerySchema = z.object({
-  offset: z.number().int().min(0).default(0),
-  limit: z.number().int().min(1).max(100).default(DefaultAssetApiLimit),
+  offset: z.coerce.number().int().min(0).default(0),
+  limit: z.coerce.number().int().min(1).max(100).default(DefaultAssetApiLimit),
   chain: z.optional(SupportedChainsSchema),
   tokenId: z.optional(
     z
@@ -135,8 +156,8 @@ export const AssetsResponseSchema = OutputItemsSchema(
 );
 
 export const EventsQuerySchema = z.object({
-  limit: z.number().default(DefaultApiLimit),
-  offset: z.number().default(0),
+  limit: z.coerce.number().default(DefaultApiLimit),
+  offset: z.coerce.number().default(0),
   sort: z.optional(z.nativeEnum(SortRequest)),
   fromChain: z.optional(z.string()),
   toChain: z.optional(z.string()),
@@ -178,7 +199,7 @@ export const OngoingEventsResponseSchema = OutputItemsSchema(
 );
 
 export const RevenueChartQuerySchema = z.object({
-  count: z.number().default(DefaultRevenueApiCount),
+  count: z.coerce.number().default(DefaultRevenueApiCount),
   period: z.nativeEnum(RevenuePeriod),
 });
 
@@ -197,7 +218,7 @@ export const RevenueChartResponseSchema = z.array(
 export const SignQuerySchema = z.object({
   chain: z.string(),
   txJson: z.string(),
-  requiredSign: z.number(),
+  requiredSign: z.coerce.number(),
   overwrite: z.optional(z.boolean()),
 });
 
@@ -216,7 +237,7 @@ export const TssCallbackSchema = z.object({
 
 export const OrderQuerySchema = z.object({
   id: z.string(),
-  chain: z.string(),
+  chain: z.enum(SUPPORTED_CHAINS),
   orderJson: z.string(),
 });
 

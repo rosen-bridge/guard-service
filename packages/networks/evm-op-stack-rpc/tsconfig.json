@@ -1,0 +1,19 @@
+{
+  "extends": "../../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "types": ["node", "vitest/globals"]
+  },
+  "include": ["tests", "lib"],
+  "references": [
+    {
+      "path": "../evm-rpc"
+    },
+    {
+      "path": "../../chains/evm"
+    },
+    {
+      "path": "../../abstract-chain"
+    }
+  ]
+}
