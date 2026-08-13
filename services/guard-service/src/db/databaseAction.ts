@@ -747,13 +747,9 @@ class DatabaseAction {
       .leftJoin('revenue_entity', 're', 'event."id" = re."eventDataId"')
       .where('event."spendTxId" IS NOT NULL')
       .andWhere('re."eventDataId" IS NULL')
-      .andWhere(
-        'event."spendHeight" < :currentHeight - :requiredConfirmation',
-        {
-          currentHeight,
-          requiredConfirmation,
-        },
-      )
+      .andWhere('event."spendHeight" < :spendHeight', {
+        spendHeight: currentHeight - requiredConfirmation,
+      })
       .getMany();
   };
 
