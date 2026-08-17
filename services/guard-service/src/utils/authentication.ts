@@ -14,28 +14,6 @@ import TssHandler from '../handlers/tssHandler';
 const logger = DefaultLogger.getInstance().child(import.meta.url);
 
 /**
- * validates api-key header for authentication
- * @param request
- * @param replay
- * @param next
- */
-export const authenticateKey = <
-  T extends FastifyRequest,
-  U extends FastifyReply,
->(
-  request: T,
-  replay: U,
-  next: HookHandlerDoneFunction,
-) => {
-  const api_key: string = request.headers['api-key'] as string;
-  if (api_key && isValidApiKey(api_key)) {
-    next();
-  } else {
-    replay.status(403).send({ message: "Api-Key doesn't exist or it's wrong" });
-  }
-};
-
-/**
  * checks api_key according to old method (pure hash) and salted hash
  * @param api_key
  */
@@ -60,28 +38,71 @@ const isValidApiKey = (api_key: string) => {
 };
 
 /**
- * validates trust key provided in the body of request with TssHandler trust key
+ * validates the `api-key` header against a predicate, replying with 403 and
+ * logging when it doesn't hold
+ * @param request
+ * @param replay
+ * @param next
+ * @param isValid predicate the header value must satisfy
+ * @param errorMessage message sent back (and logged) when validation fails
+ */
+const validateKeyHeader = (
+  request: FastifyRequest,
+  replay: FastifyReply,
+  next: HookHandlerDoneFunction,
+  isValid: (key: string) => boolean,
+  errorMessage: string,
+): void => {
+  const key = request.headers['api-key'] as string;
+  if (key && isValid(key)) {
+    next();
+  } else {
+    logger.warn(`${errorMessage} on route [${request.routeOptions.url}]`);
+    replay.status(403).send({ message: errorMessage });
+  }
+};
+
+/**
+ * validates api-key header for authentication
  * @param request
  * @param replay
  * @param next
  */
-export const validateTrustKey = <
+export const authenticateKey = <
   T extends FastifyRequest,
   U extends FastifyReply,
 >(
   request: T,
   replay: U,
   next: HookHandlerDoneFunction,
-): void => {
-  // TODO: it may be possible to handle the body in Fastify preHandler
-  //  and avoid type casting (local:ergo/rosen-bridge/guard-service#563)
-  const { trustKey } = request.body as { trustKey: string };
-  if (trustKey !== TssHandler.getTrustKey()) {
-    logger.warn(
-      `Received message with wrong trust key on route [${request.routeOptions.url}]`,
-    );
-    replay.status(403).send({ message: 'Trust key is wrong' });
-    return;
-  }
-  next();
-};
+): void =>
+  validateKeyHeader(
+    request,
+    replay,
+    next,
+    isValidApiKey,
+    "Api-Key doesn't exist or it's wrong",
+  );
+
+/**
+ * validates api-key header against TssHandler trust key, for routes only
+ * meant to be called back by the local tss/dialer processes
+ * @param request
+ * @param replay
+ * @param next
+ */
+export const authenticateTrustKey = <
+  T extends FastifyRequest,
+  U extends FastifyReply,
+>(
+  request: T,
+  replay: U,
+  next: HookHandlerDoneFunction,
+): void =>
+  validateKeyHeader(
+    request,
+    replay,
+    next,
+    (key) => key === TssHandler.getTrustKey(),
+    'Trust key is wrong',
+  );

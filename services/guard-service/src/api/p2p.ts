@@ -7,7 +7,7 @@ import { FastifyWithZod } from '@rosen-bridge/fastify-enhanced';
 import { apiCallBack } from '../communication/callbackUtils';
 import RosenDialer from '../communication/rosenDialer';
 import Configs from '../configs/configs';
-import { validateTrustKey } from '../utils/authentication';
+import { authenticateTrustKey } from '../utils/authentication';
 import { MessageResponseSchema } from './schemas';
 
 const logger = DefaultLogger.getInstance().child(import.meta.url);
@@ -32,8 +32,9 @@ const sendRoute = (server: FastifyWithZod, dialer: RosenDialerNode) => {
           200: MessageResponseSchema,
           500: MessageResponseSchema,
         },
+        security: [{ apiKey: [] }],
       },
-      preHandler: [validateTrustKey],
+      preHandler: [authenticateTrustKey],
     },
     (request, reply) => {
       const { channel, message, receiver } = request.body;
@@ -68,8 +69,9 @@ const subscribeRoute = (server: FastifyWithZod, dialer: RosenDialerNode) => {
         response: {
           200: MessageResponseSchema,
         },
+        security: [{ apiKey: [] }],
       },
-      preHandler: [validateTrustKey],
+      preHandler: [authenticateTrustKey],
     },
     (request, reply) => {
       const { channel, url } = request.body;
@@ -96,8 +98,9 @@ const getPeerIdRoute = (server: FastifyWithZod, dialer: RosenDialerNode) => {
         response: {
           200: responseSchema,
         },
+        security: [{ apiKey: [] }],
       },
-      preHandler: [validateTrustKey],
+      preHandler: [authenticateTrustKey],
     },
     (request, reply) => {
       reply.status(200).send({ message: dialer.getDialerId(), status: 'ok' });

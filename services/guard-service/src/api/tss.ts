@@ -2,7 +2,7 @@ import { DefaultLogger } from '@rosen-bridge/abstract-logger';
 import { FastifyWithZod } from '@rosen-bridge/fastify-enhanced';
 
 import TssHandler from '../handlers/tssHandler';
-import { validateTrustKey } from '../utils/authentication';
+import { authenticateTrustKey } from '../utils/authentication';
 import {
   MessageResponseSchema,
   TssCallbackParams,
@@ -26,8 +26,9 @@ const signRoute = (server: FastifyWithZod) => {
           200: MessageResponseSchema,
           400: MessageResponseSchema,
         },
+        security: [{ apiKey: [] }],
       },
-      preHandler: [validateTrustKey],
+      preHandler: [authenticateTrustKey],
     },
     async (request, reply) => {
       try {
