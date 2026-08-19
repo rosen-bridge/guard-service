@@ -85,13 +85,13 @@ export const authenticateKey = <
   );
 
 /**
- * validates api-key header against TssHandler trust key, for routes only
+ * validates api-key header against Tss Api-Key, for routes only
  * meant to be called back by the local tss/dialer processes
  * @param request
  * @param replay
  * @param next
  */
-export const authenticateTrustKey = <
+export const authenticateTssApiKey = <
   T extends FastifyRequest,
   U extends FastifyReply,
 >(
@@ -103,6 +103,6 @@ export const authenticateTrustKey = <
     request,
     replay,
     next,
-    (key) => key === TssHandler.getTrustKey(),
-    'Trust key is wrong',
+    (key) => key === TssHandler.getTssApiKey(),
+    'Tss Api-Key is wrong',
   );
