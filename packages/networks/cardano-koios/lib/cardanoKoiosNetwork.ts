@@ -294,11 +294,7 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
       });
     if (!txCborResponse.cbor)
       throw new KoiosNullValueError(`Transaction cbor is null`);
-    else if (txCborResponse.valid_contract === false)
-      throw new FailedError(
-        `Transaction [${transactionId}] is failed on-chain`,
-      );
-    else if (!txCborResponse.valid_contract)
+    else if (typeof txCborResponse.valid_contract !== 'boolean')
       throw new UnexpectedApiError(
         `Failed to get transaction [${transactionId}]: Expected response to contain "valid_contract"`,
       );
@@ -336,6 +332,7 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
       outputs,
       fee,
       metadata,
+      isValid: txCborResponse.valid_contract,
     };
   };
 
@@ -436,31 +433,31 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
     }
     if (!txCborResponse.cbor)
       throw new KoiosNullValueError(`Transaction cbor is null`);
-    else if (txCborResponse.valid_contract === false) {
-      this.logger.debug(
-        `Utxo [${boxId}] is invalid. Tx [${txId}] is failed on network`,
-      );
-      return false;
-    } else if (!txCborResponse.valid_contract)
+    else if (typeof txCborResponse.valid_contract !== 'boolean')
       throw new UnexpectedApiError(
         `Failed to get transaction [${txId}]: Expected response to contain "valid_contract"`,
       );
 
     const tx = Transaction.from_hex(txCborResponse.cbor);
-    const boxAddressCred = tx
-      .body()
-      .outputs()
-      .get(Number(index))
+    const output = this.getEffectiveOutput(
+      tx,
+      txCborResponse.valid_contract,
+      Number(index),
+    );
+    if (!output) {
+      this.logger.debug(
+        `Utxo [${boxId}] is invalid. Tx [${txId}] is failed on network and utxo is not the collateral return output`,
+      );
+      return false;
+    }
+    const boxAddressCred = output
       .address()
       .payment_cred()
       ?.to_keyhash()
       ?.to_hex();
     if (!boxAddressCred)
       throw new UnexpectedApiError(
-        `Failed to extract address credential: ${tx
-          .body()
-          .outputs()
-          .get(Number(index))
+        `Failed to extract address credential: ${output
           .address()
           .payment_cred()
           ?.to_json()}`,
@@ -551,22 +548,24 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
       });
     if (!txCborResponse.cbor)
       throw new KoiosNullValueError(`Transaction cbor is null`);
-    else if (txCborResponse.valid_contract === false)
-      throw new FailedError(`Transaction [${txId}] is failed on-chain`);
-    else if (!txCborResponse.valid_contract)
+    else if (typeof txCborResponse.valid_contract !== 'boolean')
       throw new UnexpectedApiError(
         `Failed to get transaction [${txId}]: Expected response to contain "valid_contract"`,
       );
     const tx = Transaction.from_hex(txCborResponse.cbor);
-    const txOutputs = tx.body().outputs();
-    if (txOutputs.len() <= Number(index))
+    const output = this.getEffectiveOutput(
+      tx,
+      txCborResponse.valid_contract,
+      Number(index),
+    );
+    if (!output)
       throw new FailedError(
-        `Tx [${txId}] has only [${txOutputs.len()}] outputs but requested index [${index}]`,
+        txCborResponse.valid_contract
+          ? `Tx [${txId}] has only [${tx.body().outputs().len()}] outputs but requested index [${index}]`
+          : `Tx [${txId}] is failed on-chain and utxo [${index}] is not the collateral return output`,
       );
 
-    const boxCandidate = this.convertToCardanoBoxCandidate(
-      txOutputs.get(Number(index)),
-    );
+    const boxCandidate = this.convertToCardanoBoxCandidate(output);
     return {
       txId: txId,
       index: Number(index),
@@ -747,6 +746,36 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
       value: BigInt(output.amount().coin().to_str()),
       assets: this.convertAssetList(output.amount().multiasset()),
     };
+  };
+
+  /**
+   * gets the effective output of a transaction at the given index
+   * - for a valid (successful) transaction, this is simply the regular
+   *   output at that index
+   * - for a transaction failed on-chain (phase-2 validation failure), only
+   *   its collateral is applied: the regular inputs/outputs are never
+   *   created, and if a collateral return output is specified, it is the
+   *   only output created, at an index equal to the number of the
+   *   transaction's regular outputs (per the Cardano ledger rules)
+   * @param tx the parsed transaction
+   * @param isValid whether the transaction succeeded on-chain
+   * @param index the requested output index
+   * @returns the effective output, or undefined if no such output was
+   * actually created on-chain
+   */
+  protected getEffectiveOutput = (
+    tx: Transaction,
+    isValid: boolean,
+    index: number,
+  ): TransactionOutput | undefined => {
+    const outputs = tx.body().outputs();
+    if (isValid) return index < outputs.len() ? outputs.get(index) : undefined;
+
+    const collateralReturn = tx.body().collateral_return();
+    const collateralReturnIndex = outputs.len();
+    return collateralReturn && index === collateralReturnIndex
+      ? collateralReturn
+      : undefined;
   };
 
   /**

@@ -1220,6 +1220,62 @@ describe('CardanoChain', () => {
     });
   });
 
+  describe('verifyLockTransactionExtraConditions', () => {
+    const network = new TestCardanoNetwork();
+
+    /**
+     * @target CardanoChain.verifyLockTransactionExtraConditions should return
+     * true when lock tx is valid on-chain
+     * @dependencies
+     * @scenario
+     * - mock a CardanoTx with isValid: true
+     * - call the function
+     * - check returned value
+     * @expected
+     * - it should return true
+     */
+    it('should return true when lock tx is valid on-chain', async () => {
+      // mock a CardanoTx with isValid: true
+      const tx = { ...TestData.cardanoTx1, isValid: true };
+
+      // call the function
+      const cardanoChain = await TestUtils.generateChainObject(network);
+      const result = await cardanoChain.verifyLockTransactionExtraConditions(
+        tx,
+        {} as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+      );
+
+      // check returned value
+      expect(result).toEqual(true);
+    });
+
+    /**
+     * @target CardanoChain.verifyLockTransactionExtraConditions should return
+     * false when lock tx is failed on-chain
+     * @dependencies
+     * @scenario
+     * - mock a CardanoTx with isValid: false
+     * - call the function
+     * - check returned value
+     * @expected
+     * - it should return false
+     */
+    it('should return false when lock tx is failed on-chain', async () => {
+      // mock a CardanoTx with isValid: false
+      const tx = { ...TestData.cardanoTx1, isValid: false };
+
+      // call the function
+      const cardanoChain = await TestUtils.generateChainObject(network);
+      const result = await cardanoChain.verifyLockTransactionExtraConditions(
+        tx,
+        {} as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+      );
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+  });
+
   describe('verifyTransactionExtraConditions', () => {
     const network = new TestCardanoNetwork();
 

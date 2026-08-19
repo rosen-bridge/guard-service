@@ -347,27 +347,36 @@ describe('CardanoBlockFrostNetwork', () => {
     });
 
     /**
-     * @target `CardanoBlockFrostNetwork.getTransaction` should throw FailedError
-     * when transaction is failed on chain
+     * @target `CardanoBlockFrostNetwork.getTransaction` should return transaction
+     * with isValid false when transaction is failed on chain
      * @dependencies
      * @scenario
      * - mock `BlockFrostAPI.txs`
-     * - run test & check thrown exception
+     * - mock `BlockFrostAPI.txsUtxos`
+     * - mock `BlockFrostAPI.txsMetadata`
+     * - run test
+     * - check returned value
      * @expected
-     * - it should throw FailedError
+     * - it should be mocked transaction with `isValid: false`
      */
-    it('should throw FailedError when transaction is failed on chain', async () => {
+    it('should return transaction with isValid false when transaction is failed on chain', async () => {
       // mock client response
       const network = mockNetwork();
       mockTxs(network.getClient(), testData.failedOnChainTransaction);
+      mockTxsUtxos(network.getClient(), testData.failedOnChainTransactionUtxos);
+      mockTxsMetadataCbor(
+        network.getClient(),
+        testData.failedOnChainTransactionMetadata,
+      );
 
       // run test
-      await expect(async () => {
-        await network.getTransaction(
-          testData.failedOnChainTransaction.hash,
-          testData.failedOnChainTransaction.block,
-        );
-      }).rejects.toThrow(FailedError);
+      const result = await network.getTransaction(
+        testData.failedOnChainTransaction.hash,
+        testData.failedOnChainTransaction.block,
+      );
+
+      // check returned value
+      expect(result).toEqual(testData.failedOnChainTransactionInCardanoTx);
     });
   });
 
@@ -516,6 +525,63 @@ describe('CardanoBlockFrostNetwork', () => {
       // check returned value
       expect(result).toEqual(false);
     });
+
+    /**
+     * @target `CardanoBlockFrostNetwork.isBoxUnspentAndValid` should return false
+     * when the origin transaction is failed on chain and the requested index
+     * is not the collateral return output's `output_index`
+     * @dependencies
+     * @scenario
+     * - mock `BlockFrostAPI.txsUtxos`
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should be false
+     */
+    it('should return false when the origin transaction is failed on chain and utxo is not the collateral return output', async () => {
+      // mock client response
+      const network = mockNetwork();
+      mockTxsUtxos(network.getClient(), testData.failedOnChainTransactionUtxos);
+
+      // run test
+      const result = await network.isBoxUnspentAndValid(
+        testData.failedOnChainTransactionNonExistentBoxId,
+      );
+
+      // check returned value
+      expect(result).toEqual(false);
+    });
+
+    /**
+     * @target `CardanoBlockFrostNetwork.isBoxUnspentAndValid` should return true
+     * when the origin transaction is failed on chain but the requested index
+     * matches the unspent collateral return output's `output_index`
+     * @dependencies
+     * @scenario
+     * - mock `BlockFrostAPI.txsUtxos`
+     * - mock `BlockFrostAPI.addressesUtxosAll`
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should be true
+     */
+    it('should return true when the origin transaction is failed on chain and utxo is the unspent collateral return output', async () => {
+      // mock client response
+      const network = mockNetwork();
+      mockTxsUtxos(network.getClient(), testData.failedOnChainTransactionUtxos);
+      mockAddressesUtxosAll(
+        network.getClient(),
+        testData.failedOnChainTransactionCollateralReturnAddressUtxos,
+      );
+
+      // run test
+      const result = await network.isBoxUnspentAndValid(
+        testData.failedOnChainTransactionCollateralReturnBoxId,
+      );
+
+      // check returned value
+      expect(result).toEqual(true);
+    });
   });
 
   describe('currentSlot', () => {
@@ -584,6 +650,58 @@ describe('CardanoBlockFrostNetwork', () => {
       await expect(async () => {
         await network.getUtxo(testData.unspentBoxId);
       }).rejects.toThrow(FailedError);
+    });
+
+    /**
+     * @target `CardanoBlockFrostNetwork.getUtxo` should throw FailedError
+     * when transaction is failed on chain and requested index is not the
+     * collateral return output's `output_index`
+     * @dependencies
+     * @scenario
+     * - mock `BlockFrostAPI.txsUtxos`
+     * - call the function and expect error
+     * @expected
+     * - it should throw FailedError
+     */
+    it('should throw FailedError when transaction is failed on chain and utxo is not the collateral return output', async () => {
+      // mock client response
+      const network = mockNetwork();
+      mockTxsUtxos(network.getClient(), testData.failedOnChainTransactionUtxos);
+
+      // call the function and expect error
+      await expect(async () => {
+        await network.getUtxo(
+          testData.failedOnChainTransactionNonExistentBoxId,
+        );
+      }).rejects.toThrow(FailedError);
+    });
+
+    /**
+     * @target `CardanoBlockFrostNetwork.getUtxo` should return the collateral
+     * return utxo when transaction is failed on chain and requested index
+     * matches its `output_index`
+     * @dependencies
+     * @scenario
+     * - mock `BlockFrostAPI.txsUtxos`
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should be the collateral return utxo
+     */
+    it('should return the collateral return utxo when transaction is failed on chain', async () => {
+      // mock client response
+      const network = mockNetwork();
+      mockTxsUtxos(network.getClient(), testData.failedOnChainTransactionUtxos);
+
+      // run test
+      const result = await network.getUtxo(
+        testData.failedOnChainTransactionCollateralReturnBoxId,
+      );
+
+      // check returned value
+      expect(result).toEqual(
+        testData.expectedFailedOnChainTransactionCollateralReturnUtxo,
+      );
     });
   });
 
