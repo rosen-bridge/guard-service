@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 
 import {
   addressToScripthash,
+  firoAmountToSatoshi,
   parseBlockHeader,
   parseTransactionHex,
   scriptPubKeyToScripthash,
@@ -105,5 +106,26 @@ describe('Firo ElectrumX parsers', () => {
     expect(scriptPubKeyToScripthash(testData.lockAddressPublicKey)).toBe(
       '53787b5ebd3152e257d1ed402ca773aa83fca5981ed9c3b02bf9e5299dd36960',
     );
+  });
+
+  describe('firoAmountToSatoshi', () => {
+    /**
+     * @target `firoAmountToSatoshi` should convert decimal FIRO amounts exactly
+     * @dependencies
+     * @scenario
+     * - convert amounts whose product with 1e8 is not exactly representable as
+     *   a float (e.g. `1e-5 * 1e8` is `1000.0000000000001`)
+     * @expected
+     * - it should return the exact satoshi amount, with no rounding error
+     */
+    it.each([
+      [9.99e-6, 999n],
+      [1e-5, 1000n],
+      [2e-5, 2000n],
+      [0.01001657, 1001657n],
+      ['0.00001', 1000n],
+    ])('should convert %p to satoshis exactly', (amount, expected) => {
+      expect(firoAmountToSatoshi(amount)).toEqual(expected);
+    });
   });
 });
