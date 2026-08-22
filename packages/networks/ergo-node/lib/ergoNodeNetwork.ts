@@ -68,9 +68,14 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
       const baseError = 'Failed to get tx confirmations from Ergo Node:';
       return handleApiError(error, baseError, {
         handleRespondedState: (error) => {
-          if (error.response.status === 404) return -1;
+          if (error.response.status === 404) {
+            this.logger.debug(
+              `tx [${txId}] not found on Ergo Node, returning -1 confirmations`,
+            );
+            return -1;
+          }
           throw new FailedError(
-            `${baseError} [${error.response.status}] ${error.response.data.reason}`,
+            `${baseError} [${error.response.status}] ${JsonBigInt.stringify(error.response.data)}`,
           );
         },
       });
@@ -91,6 +96,9 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
       );
       const confirmed = balance.confirmed;
       if (!confirmed) {
+        this.logger.warn(
+          `address [${address}] has no confirmed balance data from Ergo Node, returning zero balance`,
+        );
         return {
           nativeToken: 0n,
           tokens: [],
@@ -149,9 +157,14 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
       const baseError = 'Failed to get block transaction ids from Ergo Node:';
       return handleApiError(error, baseError, {
         handleRespondedState: (error) => {
-          if (error.response.status === 404) return [] as string[];
+          if (error.response.status === 404) {
+            this.logger.debug(
+              `block [${blockId}] not found on Ergo Node, returning empty tx id list`,
+            );
+            return [] as string[];
+          }
           throw new FailedError(
-            `${baseError} [${error.response.status}] ${error.response.data.reason}`,
+            `${baseError} [${error.response.status}] ${JsonBigInt.stringify(error.response.data)}`,
           );
         },
       });
@@ -222,14 +235,16 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
    * @param tx the transaction
    */
   public submitTransaction = async (tx: ergoLib.Transaction) => {
+    const txId = tx.id().to_str();
     try {
       await this.client.sendTransactionAsBytes(
         Buffer.from(tx.sigma_serialize_bytes()).toString('hex'),
       );
+      this.logger.debug(`submitted tx [${txId}] to Ergo Node successfully`);
     } catch (error) {
       return handleApiError(
         error,
-        'Failed to submit transaciton to Ergo Node:',
+        `Failed to submit transaction [${txId}] to Ergo Node:`,
       );
     }
   };
@@ -267,9 +282,15 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
           txs.map((tx) => tx.id),
         )}`,
       );
-      return txs
-        .filter((tx) => tx.id)
-        .map((tx) => ergoLib.Transaction.from_json(JsonBigInt.stringify(tx)));
+      const txsWithId = txs.filter((tx) => tx.id);
+      if (txsWithId.length !== txs.length) {
+        this.logger.warn(
+          `${txs.length - txsWithId.length} mempool transaction(s) missing an id were dropped`,
+        );
+      }
+      return txsWithId.map((tx) =>
+        ergoLib.Transaction.from_json(JsonBigInt.stringify(tx)),
+      );
     } catch (error) {
       return handleApiError(
         error,
@@ -321,9 +342,14 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
       const baseError = 'Failed to get address boxes from Ergo Node:';
       return handleApiError(error, baseError, {
         handleRespondedState: (error) => {
-          if (error.response.status === 400) return [];
+          if (error.response.status === 400) {
+            this.logger.debug(
+              `address [${address}] returned 400 from Ergo Node (likely invalid), returning empty box list`,
+            );
+            return [];
+          }
           throw new FailedError(
-            `${baseError} [${error.response.status}] ${error.response.data.reason}`,
+            `${baseError} [${error.response.status}] ${JsonBigInt.stringify(error.response.data)}`,
           );
         },
       });
@@ -372,9 +398,14 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
       const baseError = 'Failed to get boxes by token id from Ergo Node:';
       return handleApiError(error, baseError, {
         handleRespondedState: (error) => {
-          if (error.response.status === 400) return [];
+          if (error.response.status === 400) {
+            this.logger.debug(
+              `address [${address}] returned 400 from Ergo Node while searching for token [${tokenId}], returning empty box list`,
+            );
+            return [];
+          }
           throw new FailedError(
-            `${baseError} [${error.response.status}] ${error.response.data.reason}`,
+            `${baseError} [${error.response.status}] ${JsonBigInt.stringify(error.response.data)}`,
           );
         },
       });
@@ -429,9 +460,14 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
         'Failed to check if box is unspent and valid using Ergo Node:';
       return handleApiError(error, baseError, {
         handleRespondedState: (error) => {
-          if (error.response.status === 404) return false;
+          if (error.response.status === 404) {
+            this.logger.debug(
+              `box [${boxId}] not found on Ergo Node, returning false`,
+            );
+            return false;
+          }
           throw new FailedError(
-            `${baseError} [${error.response.status}] ${error.response.data.reason}`,
+            `${baseError} [${error.response.status}] ${JsonBigInt.stringify(error.response.data)}`,
           );
         },
       });
@@ -469,10 +505,16 @@ class ErgoNodeNetwork extends AbstractErgoNetwork {
     try {
       const tokenDetail = await this.client.getTokenById(tokenId);
       this.logger.debug(
-        `requested 'getTokenById' for boxId [${tokenId}]. res: ${JsonBigInt.stringify(
+        `requested 'getTokenById' for tokenId [${tokenId}]. res: ${JsonBigInt.stringify(
           tokenDetail,
         )}`,
       );
+
+      if (tokenDetail.name == null || tokenDetail.decimals == null) {
+        this.logger.warn(
+          `token [${tokenId}] is missing name/decimals in Ergo Node response, using fallback values`,
+        );
+      }
 
       return {
         tokenId: tokenId,
