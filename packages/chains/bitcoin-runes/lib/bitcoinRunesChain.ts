@@ -443,7 +443,6 @@ class BitcoinRunesChain extends AbstractUtxoChain<
           `No need to add universal change box since no runes remained`,
         );
         isUniversalChangeBoxPresent = false;
-        additionalAssets.nativeToken += MINIMUM_BTC_FOR_NATIVE_SEGWIT_OUTPUT;
       } else {
         const otherRunes = additionalAssets.tokens.filter(
           (additionalToken) => additionalToken.id !== token.id,
@@ -512,6 +511,8 @@ class BitcoinRunesChain extends AbstractUtxoChain<
       this.logger.debug(
         `Fee related info: [is universal change box present: ${isUniversalChangeBoxPresent}, box-selection fee estimation: ${estimatedFee}, tx fee: ${fee}]`,
       );
+      // the required assets reserved BTC for the universal change box, so in case
+      // it is not present, the reserved amount is refunded to the BTC change (exactly once)
       const remainingBtc =
         additionalAssets.nativeToken +
         estimatedFee -
