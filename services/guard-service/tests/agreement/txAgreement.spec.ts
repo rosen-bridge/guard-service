@@ -8,6 +8,7 @@ import {
   ApprovedCandidate,
 } from '../../src/agreement/interfaces';
 import EventSerializer from '../../src/event/eventSerializer';
+import * as TransactionSerializer from '../../src/transaction/transactionSerializer';
 import {
   EventStatus,
   OrderStatus,
@@ -181,13 +182,14 @@ describe('TxAgreement', () => {
       );
 
       // mocked tx should be in memory
-      const candidateTx = txAgreement.getTransactions().get(paymentTx.txId);
+      const txDataHash = TransactionSerializer.getTxDataHash(paymentTx);
+      const candidateTx = txAgreement.getTransactions().get(txDataHash);
       expect(candidateTx?.tx.txId).toEqual(paymentTx.txId);
       expect(candidateTx?.timestamp).toEqual(timestamp);
 
       // mocked tx approvals should be initiated
       expect(
-        txAgreement.getTransactionApprovals().get(paymentTx.txId)?.length,
+        txAgreement.getTransactionApprovals().get(txDataHash)?.length,
       ).toEqual(5);
 
       // memory queue should be empty
@@ -247,7 +249,7 @@ describe('TxAgreement', () => {
       // memory event map should contain mocked tx
       expect(
         txAgreement.getEventAgreedTransactions().get(paymentTx.eventId),
-      ).toEqual(paymentTx.txId);
+      ).toEqual(TransactionSerializer.getTxDataHash(paymentTx));
     });
 
     /**
@@ -300,7 +302,7 @@ describe('TxAgreement', () => {
       // memory chain cold storage map should contain mocked tx
       expect(
         txAgreement.getAgreedColdStorageTransactions().get(paymentTx.network),
-      ).toEqual(paymentTx.txId);
+      ).toEqual(TransactionSerializer.getTxDataHash(paymentTx));
     });
 
     /**
@@ -354,7 +356,7 @@ describe('TxAgreement', () => {
       // memory order map should contain mocked tx
       expect(
         txAgreement.getOrderAgreedTransactions().get(paymentTx.eventId),
-      ).toEqual(paymentTx.txId);
+      ).toEqual(TransactionSerializer.getTxDataHash(paymentTx));
     });
 
     /**
@@ -555,10 +557,8 @@ describe('TxAgreement', () => {
 
       // insert a random txId into eventAgreedTransactions map
       const txAgreement = new TestTxAgreement();
-      txAgreement.insertEventAgreedTransactions(
-        paymentTx.eventId,
-        paymentTx.txId,
-      );
+      const txDataHash = TransactionSerializer.getTxDataHash(paymentTx);
+      txAgreement.insertEventAgreedTransactions(paymentTx.eventId, txDataHash);
 
       // mock RequestVerifier.verifyEventTransactionRequest
       vi.spyOn(
@@ -579,7 +579,7 @@ describe('TxAgreement', () => {
       expect(txAgreement.getEventAgreedTransactions().size).toEqual(1);
       expect(
         txAgreement.getEventAgreedTransactions().get(paymentTx.eventId),
-      ).toEqual(paymentTx.txId);
+      ).toEqual(txDataHash);
     });
 
     /**
@@ -729,9 +729,10 @@ describe('TxAgreement', () => {
 
       // insert a random txId into eventAgreedTransactions map
       const txAgreement = new TestTxAgreement();
+      const txDataHash = TransactionSerializer.getTxDataHash(paymentTx);
       txAgreement.insertAgreedColdStorageTransactions(
         paymentTx.network,
-        paymentTx.txId,
+        txDataHash,
       );
 
       // mock RequestVerifier.verifyColdStorageTransactionRequest
@@ -752,7 +753,7 @@ describe('TxAgreement', () => {
       // memory cold storage chain map should contain mocked tx
       expect(
         txAgreement.getAgreedColdStorageTransactions().get(paymentTx.network),
-      ).toEqual(paymentTx.txId);
+      ).toEqual(txDataHash);
     });
 
     /**
@@ -902,10 +903,8 @@ describe('TxAgreement', () => {
 
       // insert a random txId into orderAgreedTransactions map
       const txAgreement = new TestTxAgreement();
-      txAgreement.insertOrderAgreedTransactions(
-        paymentTx.eventId,
-        paymentTx.txId,
-      );
+      const txDataHash = TransactionSerializer.getTxDataHash(paymentTx);
+      txAgreement.insertOrderAgreedTransactions(paymentTx.eventId, txDataHash);
 
       // mock RequestVerifier.verifyArbitraryTransactionRequest
       vi.spyOn(
@@ -926,7 +925,7 @@ describe('TxAgreement', () => {
       expect(txAgreement.getOrderAgreedTransactions().size).toEqual(1);
       expect(
         txAgreement.getOrderAgreedTransactions().get(paymentTx.eventId),
-      ).toEqual(paymentTx.txId);
+      ).toEqual(txDataHash);
     });
 
     /**
@@ -1069,7 +1068,8 @@ describe('TxAgreement', () => {
       );
 
       // `sendMessage` should got called with correct arguments
-      const agreementPayload = { txId: paymentTx.txId };
+      const txDataHash = TransactionSerializer.getTxDataHash(paymentTx);
+      const agreementPayload = { txDataHash };
       expect(mockedSendMessage).toHaveBeenCalledWith(
         AgreementMessageTypes.response,
         agreementPayload,
@@ -1078,7 +1078,7 @@ describe('TxAgreement', () => {
       );
 
       // mocked tx should be in memory
-      const candidateTx = txAgreement.getTransactions().get(paymentTx.txId);
+      const candidateTx = txAgreement.getTransactions().get(txDataHash);
       expect(candidateTx?.tx.txId).toEqual(paymentTx.txId);
       expect(candidateTx?.timestamp).toEqual(timestamp);
     });
@@ -1163,7 +1163,9 @@ describe('TxAgreement', () => {
       // mock testdata
       const type = AgreementMessageTypes.response;
       const paymentTx = mockPaymentTransaction();
-      const payload = { txId: paymentTx.txId };
+      const payload = {
+        txDataHash: TransactionSerializer.getTxDataHash(paymentTx),
+      };
       const senderIndex = 0;
       const peerId = 'peerId';
       const timestamp = Math.round(TestConfigs.currentTimeStamp / 1000);
@@ -1215,7 +1217,8 @@ describe('TxAgreement', () => {
       // mock testdata
       const type = AgreementMessageTypes.response;
       const paymentTx = mockPaymentTransaction();
-      const payload = { txId: paymentTx.txId };
+      const txDataHash = TransactionSerializer.getTxDataHash(paymentTx);
+      const payload = { txDataHash };
       const senderIndex = 0;
       const peerId = 'peerId';
       const timestamp = Math.round(TestConfigs.currentTimeStamp / 1000);
@@ -1230,13 +1233,13 @@ describe('TxAgreement', () => {
       // insert mocked tx into memory (with different timestamp
       const mockedTimestamp =
         Math.round(TestConfigs.currentTimeStamp / 1000) + 10;
-      txAgreement.insertTransactions(paymentTx.txId, {
+      txAgreement.insertTransactions(txDataHash, {
         tx: paymentTx,
         timestamp: mockedTimestamp,
       });
       const approvals = Array(TestConfigs.guardPublicKeys.length).fill('');
       approvals[TestConfigs.guardIndex] = 'signature-1';
-      txAgreement.insertTransactionApprovals(paymentTx.txId, approvals);
+      txAgreement.insertTransactionApprovals(txDataHash, approvals);
 
       // get txApprovals
       const txApprovals = txAgreement.getTransactionApprovals();
@@ -1277,7 +1280,8 @@ describe('TxAgreement', () => {
       // mock testdata
       const type = AgreementMessageTypes.response;
       const paymentTx = mockPaymentTransaction();
-      const payload = { txId: paymentTx.txId };
+      const txDataHash = TransactionSerializer.getTxDataHash(paymentTx);
+      const payload = { txDataHash };
       const senderIndex = 0;
       const peerId = 'peerId';
       const timestamp = Math.round(TestConfigs.currentTimeStamp / 1000);
@@ -1290,13 +1294,13 @@ describe('TxAgreement', () => {
       sendMessageSpy.mockImplementation(mockedSendMessage);
 
       // insert mocked tx into memory
-      txAgreement.insertTransactions(paymentTx.txId, {
+      txAgreement.insertTransactions(txDataHash, {
         tx: paymentTx,
         timestamp: timestamp,
       });
       const approvals = Array(TestConfigs.guardPublicKeys.length).fill('');
       approvals[TestConfigs.guardIndex] = 'signature-1';
-      txAgreement.insertTransactionApprovals(paymentTx.txId, approvals);
+      txAgreement.insertTransactionApprovals(txDataHash, approvals);
 
       // run test
       await txAgreement.processMessage(
@@ -1312,9 +1316,7 @@ describe('TxAgreement', () => {
       expect(mockedSendMessage).not.toHaveBeenCalled();
 
       // should store signature in txApprovals
-      const txApprovals = txAgreement
-        .getTransactionApprovals()
-        .get(paymentTx.txId);
+      const txApprovals = txAgreement.getTransactionApprovals().get(txDataHash);
       expect(txApprovals).toBeDefined();
       expect(txApprovals![TestConfigs.guardIndex]).toEqual('signature-1');
       expect(txApprovals![senderIndex]).toEqual('signature');
@@ -1351,7 +1353,8 @@ describe('TxAgreement', () => {
         mockedEvent.toChain,
         eventId,
       );
-      const payload = { txId: paymentTx.txId };
+      const txDataHash = TransactionSerializer.getTxDataHash(paymentTx);
+      const payload = { txDataHash };
       const senderIndex = 0;
       const peerId = 'peerId';
       const timestamp = Math.round(TestConfigs.currentTimeStamp / 1000);
@@ -1370,14 +1373,14 @@ describe('TxAgreement', () => {
       sendMessageSpy.mockImplementation(mockedSendMessage);
 
       // insert mocked tx into memory
-      txAgreement.insertTransactions(paymentTx.txId, {
+      txAgreement.insertTransactions(txDataHash, {
         tx: paymentTx,
         timestamp: timestamp,
       });
       const approvals = Array(TestConfigs.guardPublicKeys.length).fill('');
       approvals[TestConfigs.guardIndex] = 'signature-1';
       approvals[2] = 'signature-2';
-      txAgreement.insertTransactionApprovals(paymentTx.txId, approvals);
+      txAgreement.insertTransactionApprovals(txDataHash, approvals);
 
       // get txApprovals
       const preTestTxApprovals = structuredClone(
@@ -1468,7 +1471,8 @@ describe('TxAgreement', () => {
         chain,
         '',
       );
-      const payload = { txId: paymentTx.txId };
+      const txDataHash = TransactionSerializer.getTxDataHash(paymentTx);
+      const payload = { txDataHash };
       const senderIndex = 0;
       const peerId = 'peerId';
       const timestamp = Math.round(TestConfigs.currentTimeStamp / 1000);
@@ -1481,14 +1485,14 @@ describe('TxAgreement', () => {
       sendMessageSpy.mockImplementation(mockedSendMessage);
 
       // insert mocked tx into memory
-      txAgreement.insertTransactions(paymentTx.txId, {
+      txAgreement.insertTransactions(txDataHash, {
         tx: paymentTx,
         timestamp: timestamp,
       });
       const approvals = Array(TestConfigs.guardPublicKeys.length).fill('');
       approvals[TestConfigs.guardIndex] = 'signature-1';
       approvals[2] = 'signature-2';
-      txAgreement.insertTransactionApprovals(paymentTx.txId, approvals);
+      txAgreement.insertTransactionApprovals(txDataHash, approvals);
 
       // run test
       await txAgreement.processMessage(
@@ -1736,14 +1740,12 @@ describe('TxAgreement', () => {
       vi.spyOn(txAgreement.getSigner(), 'verify').mockResolvedValue(true);
 
       // insert mocked tx into memory
-      txAgreement.insertTransactions(paymentTx.txId, {
+      const txDataHash = TransactionSerializer.getTxDataHash(paymentTx);
+      txAgreement.insertTransactions(txDataHash, {
         tx: paymentTx,
         timestamp: timestamp,
       });
-      txAgreement.insertEventAgreedTransactions(
-        paymentTx.eventId,
-        paymentTx.txId,
-      );
+      txAgreement.insertEventAgreedTransactions(paymentTx.eventId, txDataHash);
 
       // run test
       await txAgreement.processMessage(
@@ -1816,13 +1818,14 @@ describe('TxAgreement', () => {
       vi.spyOn(txAgreement.getSigner(), 'verify').mockResolvedValue(true);
 
       // insert mocked tx into memory
-      txAgreement.insertTransactions(paymentTx.txId, {
+      const txDataHash = TransactionSerializer.getTxDataHash(paymentTx);
+      txAgreement.insertTransactions(txDataHash, {
         tx: paymentTx,
         timestamp: timestamp,
       });
       txAgreement.insertAgreedColdStorageTransactions(
         paymentTx.network,
-        paymentTx.txId,
+        txDataHash,
       );
 
       // run test
@@ -2066,13 +2069,15 @@ describe('TxAgreement', () => {
         mockedEvent.toChain,
         eventId,
       );
-      txAgreement.insertTransactions(otherPaymentTx.txId, {
+      const otherTxDataHash =
+        TransactionSerializer.getTxDataHash(otherPaymentTx);
+      txAgreement.insertTransactions(otherTxDataHash, {
         tx: otherPaymentTx,
         timestamp: timestamp,
       });
       txAgreement.insertEventAgreedTransactions(
         otherPaymentTx.eventId,
-        otherPaymentTx.eventId,
+        otherTxDataHash,
       );
 
       // mock txAgreement.setTxAsApproved
@@ -2304,21 +2309,23 @@ describe('TxAgreement', () => {
 
       // insert mocked tx into memory
       const txAgreement = new TestTxAgreement();
-      txAgreement.insertTransactions(paymentTx1.txId, {
+      const txDataHash1 = TransactionSerializer.getTxDataHash(paymentTx1);
+      txAgreement.insertTransactions(txDataHash1, {
         tx: paymentTx1,
         timestamp: timestamp1,
       });
       const approvals1 = Array(TestConfigs.guardPublicKeys.length).fill('');
       approvals1[TestConfigs.guardIndex] = 'signature-1-1';
-      txAgreement.insertTransactionApprovals(paymentTx1.txId, approvals1);
+      txAgreement.insertTransactionApprovals(txDataHash1, approvals1);
 
-      txAgreement.insertTransactions(paymentTx2.txId, {
+      const txDataHash2 = TransactionSerializer.getTxDataHash(paymentTx2);
+      txAgreement.insertTransactions(txDataHash2, {
         tx: paymentTx2,
         timestamp: timestamp2,
       });
       const approvals2 = Array(TestConfigs.guardPublicKeys.length).fill('');
       approvals2[TestConfigs.guardIndex] = 'signature-2-1';
-      txAgreement.insertTransactionApprovals(paymentTx2.txId, approvals2);
+      txAgreement.insertTransactionApprovals(txDataHash2, approvals2);
 
       // mock txAgreement.sendMessage
       const mockedSendMessage = vi.fn();
@@ -2464,21 +2471,33 @@ describe('TxAgreement', () => {
       // insert mocked txs into memory
       const txAgreement = new TestTxAgreement();
       txAgreement.addTransactionToQueue(queuePaymentTx);
-      txAgreement.insertTransactions(paymentTx1.txId, {
-        tx: paymentTx1,
-        timestamp: timestamp1,
-      });
+      txAgreement.insertTransactions(
+        TransactionSerializer.getTxDataHash(paymentTx1),
+        {
+          tx: paymentTx1,
+          timestamp: timestamp1,
+        },
+      );
       const approvals1 = Array(TestConfigs.guardPublicKeys.length).fill('');
       approvals1[TestConfigs.guardIndex] = 'signature-1-1';
-      txAgreement.insertTransactionApprovals(paymentTx1.txId, approvals1);
+      txAgreement.insertTransactionApprovals(
+        TransactionSerializer.getTxDataHash(paymentTx1),
+        approvals1,
+      );
 
-      txAgreement.insertTransactions(paymentTx2.txId, {
-        tx: paymentTx2,
-        timestamp: timestamp2,
-      });
+      txAgreement.insertTransactions(
+        TransactionSerializer.getTxDataHash(paymentTx2),
+        {
+          tx: paymentTx2,
+          timestamp: timestamp2,
+        },
+      );
       const approvals2 = Array(TestConfigs.guardPublicKeys.length).fill('');
       approvals2[TestConfigs.guardIndex] = 'signature-2-1';
-      txAgreement.insertTransactionApprovals(paymentTx2.txId, approvals2);
+      txAgreement.insertTransactionApprovals(
+        TransactionSerializer.getTxDataHash(paymentTx2),
+        approvals2,
+      );
 
       txAgreement.insertApprovedTransactions({
         tx: approvedPaymentTx,
@@ -2520,31 +2539,40 @@ describe('TxAgreement', () => {
 
       // insert mocked txs into memory
       const txAgreement = new TestTxAgreement();
-      txAgreement.insertTransactions(paymentTx1.txId, {
-        tx: paymentTx1,
-        timestamp: timestamp1,
-      });
+      txAgreement.insertTransactions(
+        TransactionSerializer.getTxDataHash(paymentTx1),
+        {
+          tx: paymentTx1,
+          timestamp: timestamp1,
+        },
+      );
       txAgreement.insertEventAgreedTransactions(
         paymentTx1.eventId,
-        paymentTx1.txId,
+        TransactionSerializer.getTxDataHash(paymentTx1),
       );
 
-      txAgreement.insertTransactions(paymentTx2.txId, {
-        tx: paymentTx2,
-        timestamp: timestamp2,
-      });
+      txAgreement.insertTransactions(
+        TransactionSerializer.getTxDataHash(paymentTx2),
+        {
+          tx: paymentTx2,
+          timestamp: timestamp2,
+        },
+      );
       txAgreement.insertAgreedColdStorageTransactions(
         paymentTx2.network,
-        paymentTx2.txId,
+        TransactionSerializer.getTxDataHash(paymentTx2),
       );
 
-      txAgreement.insertTransactions(paymentTx3.txId, {
-        tx: paymentTx3,
-        timestamp: timestamp3,
-      });
+      txAgreement.insertTransactions(
+        TransactionSerializer.getTxDataHash(paymentTx3),
+        {
+          tx: paymentTx3,
+          timestamp: timestamp3,
+        },
+      );
       txAgreement.insertOrderAgreedTransactions(
         paymentTx3.network,
-        paymentTx3.txId,
+        TransactionSerializer.getTxDataHash(paymentTx3),
       );
 
       // run test
@@ -2587,21 +2615,33 @@ describe('TxAgreement', () => {
 
       // insert mocked txs into memory
       const txAgreement = new TestTxAgreement();
-      txAgreement.insertTransactions(paymentTx1.txId, {
-        tx: paymentTx1,
-        timestamp: timestamp,
-      });
+      txAgreement.insertTransactions(
+        TransactionSerializer.getTxDataHash(paymentTx1),
+        {
+          tx: paymentTx1,
+          timestamp: timestamp,
+        },
+      );
       const approvals1 = Array(TestConfigs.guardPublicKeys.length).fill('');
       approvals1[TestConfigs.guardIndex] = 'signature-1-1';
-      txAgreement.insertTransactionApprovals(paymentTx1.txId, approvals1);
+      txAgreement.insertTransactionApprovals(
+        TransactionSerializer.getTxDataHash(paymentTx1),
+        approvals1,
+      );
 
-      txAgreement.insertTransactions(paymentTx2.txId, {
-        tx: paymentTx2,
-        timestamp: timestamp,
-      });
+      txAgreement.insertTransactions(
+        TransactionSerializer.getTxDataHash(paymentTx2),
+        {
+          tx: paymentTx2,
+          timestamp: timestamp,
+        },
+      );
       const approvals2 = Array(TestConfigs.guardPublicKeys.length).fill('');
       approvals2[TestConfigs.guardIndex] = 'signature-2-1';
-      txAgreement.insertTransactionApprovals(paymentTx2.txId, approvals2);
+      txAgreement.insertTransactionApprovals(
+        TransactionSerializer.getTxDataHash(paymentTx2),
+        approvals2,
+      );
 
       // run test
       const result = txAgreement.getChainPendingTransactions(chain2);
