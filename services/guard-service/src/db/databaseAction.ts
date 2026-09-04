@@ -747,7 +747,9 @@ class DatabaseAction {
       .leftJoin('revenue_entity', 're', 'event."id" = re."eventDataId"')
       .where('event."spendTxId" IS NOT NULL')
       .andWhere('re."eventDataId" IS NULL')
-      .andWhere(`event."spendHeight" < ${currentHeight - requiredConfirmation}`)
+      .andWhere('event."spendHeight" < :spendHeight', {
+        spendHeight: currentHeight - requiredConfirmation,
+      })
       .getMany();
   };
 
@@ -912,8 +914,8 @@ class DatabaseAction {
         'commitment."eventId" = cee."id"',
       )
       .leftJoin('event_trigger_entity', 'ete', 'ete."id" = cee."eventDataId"')
-      .where(`commitment."eventId"='${eventId}'`)
-      .andWhere(`commitment."spendTxId"=ete."txId"`)
+      .where('commitment."eventId" = :eventId', { eventId })
+      .andWhere('commitment."spendTxId" = ete."txId"')
       .orderBy('commitment."spendIndex"', 'ASC')
       .getMany();
   };

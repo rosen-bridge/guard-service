@@ -73,9 +73,14 @@ class ErgoExplorerNetwork extends AbstractErgoNetwork {
       const baseError = 'Failed to get tx confirmations from Ergo Explorer:';
       return handleApiError(error, baseError, {
         handleRespondedState: (error) => {
-          if (error.response.status === 404) return -1;
+          if (error.response.status === 404) {
+            this.logger.debug(
+              `tx [${txId}] not found in Ergo Explorer, returning -1 confirmations`,
+            );
+            return -1;
+          }
           throw new FailedError(
-            `${baseError} [${error.response.status}] ${error.response.data.reason}`,
+            `${baseError} [${error.response.status}] ${JsonBigInt.stringify(error.response.data)}`,
           );
         },
       });
@@ -144,9 +149,14 @@ class ErgoExplorerNetwork extends AbstractErgoNetwork {
         'Failed to get block transaction ids from Ergo Explorer:';
       return handleApiError(error, baseError, {
         handleRespondedState: (error) => {
-          if (error.response.status === 404) return [] as string[];
+          if (error.response.status === 404) {
+            this.logger.debug(
+              `block [${blockId}] not found in Ergo Explorer, returning empty tx id list`,
+            );
+            return [] as string[];
+          }
           throw new FailedError(
-            `${baseError} [${error.response.status}] ${error.response.data.reason}`,
+            `${baseError} [${error.response.status}] ${JsonBigInt.stringify(error.response.data)}`,
           );
         },
         handleUnknownState: (error) => {
@@ -249,13 +259,15 @@ class ErgoExplorerNetwork extends AbstractErgoNetwork {
    * @param tx the transaction
    */
   public submitTransaction = async (tx: ergoLib.Transaction) => {
+    const txId = tx.id().to_str();
     try {
       await this.client.v0.postApiV0TransactionsSend(tx.to_js_eip12());
+      this.logger.debug(`submitted tx [${txId}] to Ergo Explorer successfully`);
       return;
     } catch (error) {
       return handleApiError(
         error,
-        'Failed to submit transaciton to Ergo Explorer:',
+        `Failed to submit transaction [${txId}] to Ergo Explorer:`,
       );
     }
   };
@@ -348,6 +360,9 @@ class ErgoExplorerNetwork extends AbstractErgoNetwork {
       const boxes = res.items;
 
       if (!boxes) {
+        this.logger.warn(
+          `Ergo Explorer returned no 'items' for unspent boxes of address [${address}] (offset=${offset}, limit=${limit})`,
+        );
         return [];
       }
 
@@ -487,9 +502,14 @@ class ErgoExplorerNetwork extends AbstractErgoNetwork {
         'Failed to check if box is unspent and valid using Ergo Explorer:';
       return handleApiError(error, baseError, {
         handleRespondedState: (error) => {
-          if (error.response.status === 404) return false;
+          if (error.response.status === 404) {
+            this.logger.debug(
+              `box [${boxId}] not found in Ergo Explorer, returning false`,
+            );
+            return false;
+          }
           throw new FailedError(
-            `${baseError} [${error.response.status}] ${error.response.data.reason}`,
+            `${baseError} [${error.response.status}] ${JsonBigInt.stringify(error.response.data)}`,
           );
         },
       });
@@ -531,6 +551,12 @@ class ErgoExplorerNetwork extends AbstractErgoNetwork {
           tokenDetail,
         )}`,
       );
+
+      if (tokenDetail.name == null || tokenDetail.decimals == null) {
+        this.logger.warn(
+          `token [${tokenId}] is missing name/decimals in Ergo Explorer response, using fallback values`,
+        );
+      }
 
       return {
         tokenId: tokenId,
