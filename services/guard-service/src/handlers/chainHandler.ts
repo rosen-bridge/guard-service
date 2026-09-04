@@ -331,7 +331,7 @@ class ChainHandler {
   private generateHandshakeChain = (): HandshakeChain => {
     const network = new HandshakeRpcNetwork(
       GuardsHandshakeConfigs.rpc.url,
-      DefaultLogger.getInstance().child('HandshakeRpcNetwork'),
+      DefaultLogger.getInstance().child('handshakeRpcNetwork'),
       {
         username: GuardsHandshakeConfigs.rpc.username,
         password: GuardsHandshakeConfigs.rpc.password,
@@ -354,7 +354,7 @@ class ChainHandler {
       GuardsHandshakeConfigs.chainConfigs,
       TokenHandler.getInstance().getTokenMap(),
       handshakeSignMediator,
-      DefaultLogger.getInstance().child('HandshakeChain'),
+      DefaultLogger.getInstance().child('handshakeChain'),
     );
   };
 
