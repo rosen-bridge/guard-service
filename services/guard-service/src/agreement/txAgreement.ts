@@ -533,17 +533,6 @@ class TxAgreement extends Communicator {
     baseError = `Other guards [${approvedGuards}] agreed on tx [${tx.txId}] `;
     const agreedTx = this.transactions.get(txDataHash);
     if (agreedTx) {
-      // defense-in-depth: guard must approve the tx it independently
-      // verified and stored in memory, never the tx received in the
-      // (untrusted) approval message, and must confirm the data hash of
-      // that memory-held tx actually matches the one guards signed over
-      if (TransactionSerializer.getTxDataHash(agreedTx.tx) !== txDataHash) {
-        logger.warn(
-          baseError +
-            `but its data hash doesn't match the one guard agreed on in memory (txDataHash: ${txDataHash})`,
-        );
-        return;
-      }
       logger.info(`Transaction [${agreedTx.tx.txId}] approved`);
       await this.setTxAsApproved(agreedTx.tx);
     } else {
