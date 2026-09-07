@@ -36,6 +36,7 @@ const logger = DefaultLogger.getInstance().child(import.meta.url);
 
 class TxAgreement extends Communicator {
   private static instance: TxAgreement;
+  protected readonly protocolVersion = '1.0.0';
   protected static CHANNEL = 'tx-agreement';
   protected static dialer: RosenDialerNode;
   protected transactionQueue: PaymentTransaction[];
