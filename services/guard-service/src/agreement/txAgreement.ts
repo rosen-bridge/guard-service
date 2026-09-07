@@ -39,11 +39,11 @@ class TxAgreement extends Communicator {
   protected static CHANNEL = 'tx-agreement';
   protected static dialer: RosenDialerNode;
   protected transactionQueue: PaymentTransaction[];
-  protected transactions: Map<string, CandidateTransaction>;
-  protected eventAgreedTransactions: Map<string, string>; // eventId -> txId
-  protected orderAgreedTransactions: Map<string, string>; // orderId -> txId
-  protected agreedColdStorageTransactions: Map<string, string>; // chainName -> txId
-  protected transactionApprovals: Map<string, string[]>; // txId -> signatures
+  protected transactions: Map<string, CandidateTransaction>; // txDataHash -> candidate tx
+  protected eventAgreedTransactions: Map<string, string>; // eventId -> txDataHash
+  protected orderAgreedTransactions: Map<string, string>; // orderId -> txDataHash
+  protected agreedColdStorageTransactions: Map<string, string>; // chainName -> txDataHash
+  protected transactionApprovals: Map<string, string[]>; // txDataHash -> signatures
   protected approvedTransactions: ApprovedCandidate[];
   protected approvalSemaphore: Semaphore;
 
@@ -145,15 +145,19 @@ class TxAgreement extends Communicator {
       tx = this.transactionQueue.pop()!;
       try {
         const timestamp = Math.round(Date.now() / 1000);
+        const txDataHash = TransactionSerializer.getTxDataHash(tx);
 
         // broadcast the transaction
         await this.broadcastTransactionRequest(tx, timestamp);
-        const signature = await this.signCandidateMessage(tx.txId, timestamp);
+        const signature = await this.signCandidateMessage(
+          txDataHash,
+          timestamp,
+        );
 
         const approvals = Array(this.guardPks.length).fill('');
         approvals[this.index] = signature;
-        this.transactions.set(tx.txId, { tx, timestamp });
-        this.transactionApprovals.set(tx.txId, approvals);
+        this.transactions.set(txDataHash, { tx, timestamp });
+        this.transactionApprovals.set(txDataHash, approvals);
         logger.info(`Started agreement process for tx [${tx.txId}]`);
       } catch (e) {
         logger.warn(
@@ -222,7 +226,7 @@ class TxAgreement extends Communicator {
         case AgreementMessageTypes.response: {
           const response = payload as GuardResponse;
           await this.processAgreementResponse(
-            response.txId,
+            response.txDataHash,
             senderIndex,
             signature,
             timestamp,
@@ -276,8 +280,9 @@ class TxAgreement extends Communicator {
     if (!(await this.verifyTransactionRequest(tx, creatorId))) return;
 
     // agree to transaction
-    this.transactions.set(tx.txId, { tx, timestamp });
-    const agreementPayload: GuardResponse = { txId: tx.txId };
+    const txDataHash = TransactionSerializer.getTxDataHash(tx);
+    this.transactions.set(txDataHash, { tx, timestamp });
+    const agreementPayload: GuardResponse = { txDataHash };
 
     // send response to creator guard
     await this.sendMessage(
@@ -298,6 +303,8 @@ class TxAgreement extends Communicator {
     tx: PaymentTransaction,
     creatorId: number,
   ): Promise<boolean> => {
+    const txDataHash = TransactionSerializer.getTxDataHash(tx);
+
     // verify general conditions
     const guardTurn = GuardTurn.guardTurn();
     if (guardTurn !== creatorId) {
@@ -322,14 +329,12 @@ class TxAgreement extends Communicator {
       // verify if agreed to other txs
       if (
         this.eventAgreedTransactions.has(eventId) &&
-        this.eventAgreedTransactions.get(eventId) !== tx.txId
+        this.eventAgreedTransactions.get(eventId) !== txDataHash
       ) {
         logger.warn(
-          `Received tx [${
-            tx.txId
-          }] for event [${eventId}] but already agreed to tx [${this.eventAgreedTransactions.get(
+          `Received tx [${tx.txId}] for event [${eventId}] but already agreed to a different tx for this event (txDataHash: ${this.eventAgreedTransactions.get(
             eventId,
-          )}]`,
+          )})`,
         );
         return false;
       }
@@ -338,19 +343,17 @@ class TxAgreement extends Communicator {
         return false;
 
       logger.info(`Agreed with tx [${tx.txId}] for event [${eventId}]`);
-      this.eventAgreedTransactions.set(eventId, tx.txId);
+      this.eventAgreedTransactions.set(eventId, txDataHash);
     } else if (tx.txType === TransactionType.coldStorage) {
       // verify if agreed to other txs
       if (
         this.agreedColdStorageTransactions.has(tx.network) &&
-        this.agreedColdStorageTransactions.get(tx.network) !== tx.txId
+        this.agreedColdStorageTransactions.get(tx.network) !== txDataHash
       ) {
         logger.warn(
-          `Received cold storage tx [${
-            tx.txId
-          }] but already agreed to tx [${this.agreedColdStorageTransactions.get(
+          `Received cold storage tx [${tx.txId}] but already agreed to a different tx for this chain (txDataHash: ${this.agreedColdStorageTransactions.get(
             tx.network,
-          )}]`,
+          )})`,
         );
         return false;
       }
@@ -359,20 +362,18 @@ class TxAgreement extends Communicator {
         return false;
 
       logger.info(`Agreed with cold storage tx [${tx.txId}]`);
-      this.agreedColdStorageTransactions.set(tx.network, tx.txId);
+      this.agreedColdStorageTransactions.set(tx.network, txDataHash);
     } else if (tx.txType === TransactionType.arbitrary) {
       const orderId = tx.eventId;
       // verify if agreed to other txs
       if (
         this.orderAgreedTransactions.has(orderId) &&
-        this.orderAgreedTransactions.get(orderId) !== tx.txId
+        this.orderAgreedTransactions.get(orderId) !== txDataHash
       ) {
         logger.warn(
-          `Received tx [${
-            tx.txId
-          }] for order [${orderId}] but already agreed to tx [${this.orderAgreedTransactions.get(
+          `Received tx [${tx.txId}] for order [${orderId}] but already agreed to a different tx for this order (txDataHash: ${this.orderAgreedTransactions.get(
             orderId,
-          )}]`,
+          )})`,
         );
         return false;
       }
@@ -383,7 +384,7 @@ class TxAgreement extends Communicator {
       logger.info(
         `Agreed with tx [${tx.txId}] for arbitrary order [${orderId}]`,
       );
-      this.orderAgreedTransactions.set(orderId, tx.txId);
+      this.orderAgreedTransactions.set(orderId, txDataHash);
     } else {
       logger.info(
         `Received tx [${tx.txId}] but type [${tx.txType}] is not supported`,
@@ -396,45 +397,49 @@ class TxAgreement extends Communicator {
 
   /**
    * verifies the agreement response sent by other guards, save their signature if they agreed
-   * @param txId the payment transaction id
+   * @param txDataHash hash of the serialized payment transaction guards agreed on
    * @param signerIndex index of the guard that sent the response
    * @param signature signature of creator guard over request data
    * @param timestamp
    */
   protected processAgreementResponse = async (
-    txId: string,
+    txDataHash: string,
     signerIndex: number,
     signature: string,
     timestamp: number,
   ): Promise<void> => {
-    const candidateTx = this.transactions.get(txId);
+    const candidateTx = this.transactions.get(txDataHash);
     if (candidateTx === undefined) return;
     if (candidateTx.timestamp !== timestamp) {
       logger.debug(
-        `Received guard [${signerIndex}] agreement for txId [${txId}] but timestamp is wrong [${candidateTx.timestamp} !== ${timestamp}]`,
+        `Received guard [${signerIndex}] agreement for tx [${candidateTx.tx.txId}] but timestamp is wrong [${candidateTx.timestamp} !== ${timestamp}]`,
       );
       return;
     }
 
-    logger.info(`Guard [${signerIndex}] Agreed with transaction [${txId}]`);
-    const txApprovals = this.transactionApprovals.get(txId);
+    logger.info(
+      `Guard [${signerIndex}] Agreed with transaction [${candidateTx.tx.txId}]`,
+    );
+    const txApprovals = this.transactionApprovals.get(txDataHash);
     if (!txApprovals)
-      throw new ImpossibleBehavior(`no approval found for tx [${txId}]`);
+      throw new ImpossibleBehavior(
+        `no approval found for tx [${candidateTx.tx.txId}]`,
+      );
     else txApprovals[signerIndex] = signature;
 
     await this.approvalSemaphore.acquire().then(async (release) => {
       try {
-        const txApprovals = this.transactionApprovals.get(txId);
+        const txApprovals = this.transactionApprovals.get(txDataHash);
         if (
           txApprovals &&
           txApprovals.filter((signature) => signature !== '').length >=
             GuardPkHandler.getInstance().requiredSign
         ) {
           logger.info(
-            `The majority of guards agreed with transaction [${txId}]`,
+            `The majority of guards agreed with transaction [${candidateTx.tx.txId}]`,
           );
 
-          const approvals = this.transactionApprovals.get(txId)!;
+          const approvals = this.transactionApprovals.get(txDataHash)!;
           const approvedTx: ApprovedCandidate = {
             tx: candidateTx.tx,
             signatures: approvals,
@@ -444,7 +449,7 @@ class TxAgreement extends Communicator {
           await this.broadcastApprovalMessage(approvedTx);
           if (
             !this.approvedTransactions.find(
-              (approvedTx) => approvedTx.tx.txId === txId,
+              (approvedTx) => approvedTx.tx.txId === candidateTx.tx.txId,
             )
           )
             this.approvedTransactions.push(approvedTx);
@@ -494,12 +499,13 @@ class TxAgreement extends Communicator {
     timestamp: number,
     sender: string,
   ): Promise<void> => {
+    const txDataHash = TransactionSerializer.getTxDataHash(tx);
     let baseError = `Received approval message for tx [${tx.txId}] from sender [${sender}] `;
     let signs = 0;
     const approvedGuards: number[] = [];
     for (let i = 0; i < signatures.length; i++) {
       if (signatures[i] === '') continue;
-      const message = `${JSON.stringify({ txId: tx.txId })}${timestamp}${
+      const message = `${JSON.stringify({ txDataHash })}${timestamp}${
         this.guardPks[i]
       }`;
       if (
@@ -525,13 +531,15 @@ class TxAgreement extends Communicator {
     }
 
     baseError = `Other guards [${approvedGuards}] agreed on tx [${tx.txId}] `;
-    const agreedTx = this.transactions.get(tx.txId);
+    const agreedTx = this.transactions.get(txDataHash);
     if (agreedTx) {
-      logger.info(`Transaction [${tx.txId}] approved`);
-      await this.setTxAsApproved(tx);
+      logger.info(`Transaction [${agreedTx.tx.txId}] approved`);
+      await this.setTxAsApproved(agreedTx.tx);
     } else {
-      const currentAgreedTxId = this.eventAgreedTransactions.get(tx.eventId);
-      if (currentAgreedTxId === undefined) {
+      const currentAgreedTxDataHash = this.eventAgreedTransactions.get(
+        tx.eventId,
+      );
+      if (currentAgreedTxDataHash === undefined) {
         if (!(await this.verifyTransactionRequest(tx, senderIndex))) {
           logger.warn(baseError + `but tx doesn't verified`);
           return;
@@ -539,15 +547,15 @@ class TxAgreement extends Communicator {
           logger.info(`Transaction [${tx.txId}] verified and approved`);
           await this.setTxAsApproved(tx);
         }
-      } else if (currentAgreedTxId !== tx.txId) {
+      } else if (currentAgreedTxDataHash !== txDataHash) {
         logger.warn(
           baseError +
-            `but already agreed to tx [${currentAgreedTxId}] for event [${tx.eventId}]`,
+            `but already agreed to a different tx for event [${tx.eventId}] (txDataHash: ${currentAgreedTxDataHash})`,
         );
         return;
       } else
         throw new ImpossibleBehavior(
-          `found tx [${tx.txId}] for event [ ${tx.eventId}] but the tx itself doesn't found`,
+          `Guards agreed on tx [${tx.txId}] for event [${tx.eventId}] but the tx itself wasn't found in memory (txDataHash: ${txDataHash})`,
         );
     }
   };
@@ -580,8 +588,9 @@ class TxAgreement extends Communicator {
           );
         }
       }
-      this.transactions.delete(tx.txId);
-      this.transactionApprovals.delete(tx.txId);
+      const txDataHash = TransactionSerializer.getTxDataHash(tx);
+      this.transactions.delete(txDataHash);
+      this.transactionApprovals.delete(txDataHash);
       if (this.eventAgreedTransactions.has(tx.eventId))
         this.eventAgreedTransactions.delete(tx.eventId);
       if (this.agreedColdStorageTransactions.has(tx.network))
@@ -631,15 +640,17 @@ class TxAgreement extends Communicator {
 
   /**
    * signs an agreement message
-   * @param txId
+   * @param txDataHash hash of the serialized payment transaction being agreed on
    * @param timestamp
    */
   protected signCandidateMessage = async (
-    txId: string,
+    txDataHash: string,
     timestamp: number,
   ): Promise<string> => {
     return await this.messageEnc.sign(
-      `${JSON.stringify({ txId })}${timestamp}${this.guardPks[this.index]}`,
+      `${JSON.stringify({ txDataHash })}${timestamp}${
+        this.guardPks[this.index]
+      }`,
     );
   };
 

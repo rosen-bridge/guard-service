@@ -10,7 +10,7 @@ interface TransactionRequest {
 }
 
 interface GuardResponse {
-  txId: string;
+  txDataHash: string;
 }
 
 interface TransactionApproved {

@@ -28,7 +28,13 @@ vi.doMock('../../src/handlers/guardPkHandler', () => ({
   },
 }));
 
-// mock TransactionSerializer.fromJson
-vi.doMock('../../src/transaction/transactionSerializer', () => ({
-  fromJson: TestTransactionSerializer.fromJson,
-}));
+// mock TransactionSerializer.fromJson (keep other exports, e.g. getTxDataHash, real)
+vi.doMock('../../src/transaction/transactionSerializer', async () => {
+  const actual = await vi.importActual<
+    typeof import('../../src/transaction/transactionSerializer')
+  >('../../src/transaction/transactionSerializer');
+  return {
+    ...actual,
+    fromJson: TestTransactionSerializer.fromJson,
+  };
+});
