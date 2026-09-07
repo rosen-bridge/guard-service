@@ -501,14 +501,17 @@ class TxAgreement extends Communicator {
     sender: string,
   ): Promise<void> => {
     const txDataHash = TransactionSerializer.getTxDataHash(tx);
-    let baseError = `Received approval message for tx [${tx.txId}] from sender [${sender}] `;
+    let baseError = `Received approval message for tx [${tx.txId}] (with data hash [${txDataHash}]) from sender [${sender}] `;
     let signs = 0;
     const approvedGuards: number[] = [];
     for (let i = 0; i < signatures.length; i++) {
       if (signatures[i] === '') continue;
-      const message = `${JSON.stringify({ txDataHash })}${timestamp}${
-        this.guardPks[i]
-      }`;
+      const message = Communicator.generatePayloadToSign(
+        { txDataHash },
+        timestamp,
+        this.guardPks[i],
+        this.protocolVersion,
+      );
       if (
         !(await this.messageEnc.verify(
           message,
@@ -530,13 +533,16 @@ class TxAgreement extends Communicator {
       );
       return;
     }
+    logger.info(
+      `Guards [${approvedGuards}] agreed on tx [${tx.txId}] (with data hash [${txDataHash}])`,
+    );
 
-    baseError = `Other guards [${approvedGuards}] agreed on tx [${tx.txId}] `;
     const agreedTx = this.transactions.get(txDataHash);
     if (agreedTx) {
       logger.info(`Transaction [${agreedTx.tx.txId}] approved`);
       await this.setTxAsApproved(agreedTx.tx);
     } else {
+      baseError = `Other guards [${approvedGuards}] agreed on tx [${tx.txId}] `;
       const currentAgreedTxDataHash = this.eventAgreedTransactions.get(
         tx.eventId,
       );
@@ -649,9 +655,12 @@ class TxAgreement extends Communicator {
     timestamp: number,
   ): Promise<string> => {
     return await this.messageEnc.sign(
-      `${JSON.stringify({ txDataHash })}${timestamp}${
-        this.guardPks[this.index]
-      }`,
+      Communicator.generatePayloadToSign(
+        { txDataHash },
+        timestamp,
+        this.guardPks[this.index],
+        this.protocolVersion,
+      ),
     );
   };
 
