@@ -22,6 +22,7 @@ const logger = DefaultLogger.getInstance().child(import.meta.url);
 
 class EventReprocess extends Communicator {
   private static instance: EventReprocess;
+  protected readonly protocolVersion = '1.0.0';
   protected static CHANNEL = 'event-reprocess';
   protected static dialer: RosenDialerNode;
   protected reprocessCooldown: number;
