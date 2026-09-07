@@ -1,5 +1,43 @@
 # guard-service
 
+## 11.0.0
+
+### Major Changes
+
+- `TxAgreement`, `EventReprocess` and `EventSynchronization` now each declare a `protocolVersion`, 1.0.0, and signed/enforced by `Communicator`
+- Guards now sign (and verify) a hash of the serialized `PaymentTransaction` (`txDataHash`) instead of `txId`, and approve the transaction they independently verified and hold in memory instead of the one included in the received approval message, verifying its data hash matches beforehand
+- Add trust key validation to all P2P routes and the TSS sign callback route. The trust key must be provided via the `Api-Key` request header (the same header used for API-key authentication) instead of the request body.
+
+### Patch Changes
+
+- Improve `getConfirmedUnsavedRevenueEvents` and `getEventCommitments` methods in `DatabaseAction` to use parameterized queries instead of string interpolation/concatenation
+- Update dependencies
+  - @rosen-bridge/communication@3.0.0
+  - @rosen-bridge/detection@3.0.0
+  - @rosen-bridge/ergo-multi-sig@3.0.0
+  - @rosen-bridge/tss@6.0.0
+  - @rosen-chains/bitcoin-runes@5.0.0
+  - @rosen-chains/abstract-chain@17.0.0
+  - @rosen-chains/bitcoin@11.0.0
+  - @rosen-chains/cardano@17.0.0
+  - @rosen-chains/doge@5.0.0
+  - @rosen-chains/ergo@15.0.0
+  - @rosen-chains/firo@1.0.0
+  - @rosen-chains/ergo-explorer-network@10.0.5
+  - @rosen-chains/ergo-node-network@10.0.5
+  - @rosen-chains/firo-electrumx@0.1.2
+  - @rosen-chains/bitcoin-runes-rpc@2.0.7
+  - @rosen-chains/evm@10.0.2
+  - @rosen-chains/bitcoin-esplora@5.0.5
+  - @rosen-chains/cardano-blockfrost-network@10.0.4
+  - @rosen-chains/cardano-koios-network@13.0.4
+  - @rosen-chains/doge-blockcypher@1.0.5
+  - @rosen-chains/doge-esplora@2.0.5
+  - @rosen-chains/doge-rpc@1.0.5
+  - @rosen-chains/evm-rpc@4.0.6
+  - @rosen-chains/binance@4.0.2
+  - @rosen-chains/ethereum@4.0.2
+
 ## 10.0.1
 
 ### Patch Changes

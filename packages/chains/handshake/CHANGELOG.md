@@ -1,4 +1,4 @@
-# @rosen-chains/firo
+# @rosen-chains/handshake
 
 ## 1.0.0
 
@@ -10,9 +10,3 @@
 
 - Update dependencies
   - @rosen-chains/abstract-chain@17.0.0
-
-## 0.1.0
-
-### Minor Changes
-
-- Initialize the package
