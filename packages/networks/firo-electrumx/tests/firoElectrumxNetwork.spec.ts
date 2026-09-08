@@ -327,11 +327,56 @@ describe('FiroElectrumXNetwork', () => {
       const network = createNetwork();
       const result = await network.getFeeRatio();
 
-      const expectedFeeRate = Math.ceil(
-        Math.ceil(testData.estimatedFee * 100000000) / 1000,
-      );
-      expect(result).toEqual(expectedFeeRate);
+      // 0.01001657 FIRO/kB = 1001657 sat/kB = 1001.657 sat/byte
+      expect(result).toBeCloseTo(1001.657, 10);
     });
+
+    /**
+     * @target `FiroElectrumXNetwork.getFeeRatio` should not round up fee rates
+     *   that are not exactly representable as floats
+     * @dependencies
+     * - ElectrumXSocket
+     * @scenario
+     * - mock ElectrumX blockchain.estimatefee with rates around Firo's default
+     *   min relay fee, where `rate * 1e8` carries binary representation error
+     * @expected
+     * - it should return the exact fee ratio in satoshis/byte, without the
+     *   sub-satoshi error being amplified into a whole satoshi per byte
+     */
+    it.each([
+      [testData.lowEstimatedFee, 0.999],
+      [testData.minRelayEstimatedFee, 1],
+      [testData.doubleMinRelayEstimatedFee, 2],
+    ])('should return exact fee ratio for rate %p', async (rate, expected) => {
+      setMockResponses([rate]);
+
+      const network = createNetwork();
+      const result = await network.getFeeRatio();
+
+      expect(result).toBeCloseTo(expected, 10);
+    });
+
+    /**
+     * @target `FiroElectrumXNetwork.getFeeRatio` should fall back when the node
+     *   cannot estimate a fee
+     * @dependencies
+     * - ElectrumXSocket
+     * @scenario
+     * - mock ElectrumX blockchain.estimatefee to return a non-positive rate
+     * @expected
+     * - it should return the 10 sat/byte fallback
+     */
+    it.each([0, -1])(
+      'should return fallback fee ratio for rate %p',
+      async (rate) => {
+        setMockResponses([rate]);
+
+        const network = createNetwork();
+        const result = await network.getFeeRatio();
+
+        expect(result).toEqual(10);
+      },
+    );
   });
 
   describe('isTxInMempool', () => {

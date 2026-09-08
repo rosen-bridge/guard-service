@@ -1,3 +1,4 @@
+import JsonBigInt from '@rosen-bridge/json-bigint';
 import {
   FailedError,
   NetworkError,
@@ -40,7 +41,11 @@ const handleApiError = <
   const handleRespondedState =
     overrideHandlers?.handleRespondedState ??
     ((error) => {
-      throw new FailedError(generateErrorMessage(error.response.data.reason));
+      throw new FailedError(
+        generateErrorMessage(
+          `[${error.response.status}] ${JsonBigInt.stringify(error.response.data)}`,
+        ),
+      );
     });
   const handleNotRespondedState =
     overrideHandlers?.handleNotRespondedState ??

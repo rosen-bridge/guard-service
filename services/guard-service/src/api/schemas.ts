@@ -232,7 +232,6 @@ export const TssCallbackSchema = z.object({
   message: z.string(),
   signature: z.optional(z.string()),
   signatureRecovery: z.optional(z.string()),
-  trustKey: z.string(),
 });
 
 export const OrderQuerySchema = z.object({

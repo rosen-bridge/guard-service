@@ -1,5 +1,18 @@
 # @rosen-chains/bitcoin-runes
 
+## 5.0.0
+
+### Major Changes
+
+- Change transaction object toJson to sort object keys before stringifying
+
+### Patch Changes
+
+- Fix BTC change calculation in transaction generation, which refunded the value reserved for the universal change box twice when no runes remained as change, resulting in a negative fee whenever the intended fee was below 294 Satoshi
+- Update dependencies
+  - @rosen-chains/abstract-chain@17.0.0
+  - @rosen-chains/bitcoin@11.0.0
+
 ## 4.0.1
 
 ### Patch Changes

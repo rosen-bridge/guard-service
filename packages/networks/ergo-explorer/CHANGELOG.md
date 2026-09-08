@@ -1,5 +1,14 @@
 # @rosen-chains/ergo-explorer-network
 
+## 10.0.5
+
+### Patch Changes
+
+- Add missing debug/warn logs to fallback-return code paths (e.g. tx/box not found, submitted transaction success) and include the full stringified API error response instead of just its `reason` field when throwing errors, in `ErgoExplorerNetwork` and `ErgoNodeNetwork`
+- Update dependencies
+  - @rosen-chains/abstract-chain@17.0.0
+  - @rosen-chains/ergo@15.0.0
+
 ## 10.0.4
 
 ### Patch Changes
