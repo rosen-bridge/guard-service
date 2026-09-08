@@ -1,5 +1,14 @@
 # @rosen-chains/firo-electrumx
 
+## 0.1.2
+
+### Patch Changes
+
+- Fix fee ratio rounding in `getFeeRatio`
+- Update dependencies
+  - @rosen-chains/abstract-chain@17.0.0
+  - @rosen-chains/firo@1.0.0
+
 ## 0.1.1
 
 ### Patch Changes
