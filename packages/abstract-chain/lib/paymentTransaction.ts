@@ -1,5 +1,3 @@
-import JsonBigInt from '@rosen-bridge/json-bigint';
-
 import { TransactionType } from './types';
 
 class PaymentTransaction {
@@ -27,14 +25,16 @@ class PaymentTransaction {
    * converts PaymentTransaction to json
    * @returns json representation of the payment transaction
    */
-  toJson = (): string =>
-    JsonBigInt.stringify({
+  toJson = (): string => {
+    const obj = {
       network: this.network,
       eventId: this.eventId,
       txBytes: Buffer.from(this.txBytes).toString('hex'),
       txId: this.txId,
       txType: this.txType,
-    });
+    };
+    return JSON.stringify(obj, Object.keys(obj).sort());
+  };
 }
 
 export default PaymentTransaction;

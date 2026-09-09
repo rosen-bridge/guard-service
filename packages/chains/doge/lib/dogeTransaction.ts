@@ -40,14 +40,15 @@ class DogeTransaction extends PaymentTransaction {
    * @returns json representation of the payment transaction
    */
   toJson = (): string => {
-    return JSON.stringify({
+    const obj = {
       network: this.network,
       eventId: this.eventId,
       txBytes: this.getTxHexString(),
       txId: this.txId,
       txType: this.txType,
       inputUtxos: this.inputUtxos,
-    });
+    };
+    return JSON.stringify(obj, Object.keys(obj).sort());
   };
 
   /**

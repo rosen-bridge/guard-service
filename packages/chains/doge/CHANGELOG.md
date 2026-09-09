@@ -1,5 +1,16 @@
 # @rosen-chains/doge
 
+## 5.0.0
+
+### Major Changes
+
+- Change transaction object toJson to sort object keys before stringifying
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-chains/abstract-chain@17.0.0
+
 ## 4.0.1
 
 ### Patch Changes

@@ -44,7 +44,7 @@ class ErgoTransaction extends PaymentTransaction {
    * @returns json representation of the payment transaction
    */
   toJson = (): string => {
-    return JSON.stringify({
+    const obj = {
       network: this.network,
       txId: this.txId,
       eventId: this.eventId,
@@ -52,7 +52,8 @@ class ErgoTransaction extends PaymentTransaction {
       txType: this.txType,
       inputBoxes: this.getInputBoxesString(),
       dataInputs: this.getDataInputsString(),
-    });
+    };
+    return JSON.stringify(obj, Object.keys(obj).sort());
   };
 
   /**

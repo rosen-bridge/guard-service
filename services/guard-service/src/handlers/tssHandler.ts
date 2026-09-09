@@ -30,7 +30,7 @@ class TssHandler {
   protected static tssCurveSigner: TssSigner;
   protected static tssEdwardSigner: TssSigner;
   protected static dialer: RosenDialerNode;
-  protected static trustKey: string;
+  protected static tssApiKey: string;
 
   protected constructor() {
     // do nothing.
@@ -46,15 +46,15 @@ class TssHandler {
   };
 
   /**
-   * @returns the trust key
+   * @returns the TSS Api-Key
    */
-  static getTrustKey = (): string => TssHandler.trustKey;
+  static getTssApiKey = (): string => TssHandler.tssApiKey;
 
   /**
    * runs tss binary file
    */
   protected static runBinary = (): void => {
-    TssHandler.trustKey = crypto.randomUUID();
+    TssHandler.tssApiKey = crypto.randomUUID();
     const args = [
       '-configFile',
       Configs.tssConfigPath,
@@ -62,8 +62,8 @@ class TssHandler {
       `http://${Configs.apiHost}:${Configs.apiPort}`,
       '-host',
       `${Configs.tssUrl}:${Configs.tssPort}`,
-      '-trustKey',
-      TssHandler.trustKey,
+      '-apiKey',
+      TssHandler.tssApiKey,
     ];
     spawn(Configs.tssExecutionPath, args, {
       detached: false,

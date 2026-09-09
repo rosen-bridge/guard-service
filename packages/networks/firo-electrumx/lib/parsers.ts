@@ -97,7 +97,7 @@ export const parseBlockHeader = (
  * @param value FIRO amount from scanner parser
  * @returns amount in satoshis
  */
-const firoAmountToSatoshi = (value: number | string): bigint => {
+export const firoAmountToSatoshi = (value: number | string): bigint => {
   const decimal =
     typeof value === 'number' ? value.toFixed(FIRO_DECIMALS) : value;
   const [integerPart, fractionPart = ''] = decimal.split('.');

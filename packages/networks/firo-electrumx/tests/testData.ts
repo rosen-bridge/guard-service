@@ -114,5 +114,10 @@ export const blockTxIds = [
   '6891a81de933788e1ca8f4735054a86ec4ddf5d768a9dc9057c8d707ea1a9a30',
 ];
 
-// Fee estimation (BTC/kB)
+// Fee estimation (FIRO/kB)
 export const estimatedFee = 0.01001657;
+// Low fee rates around Firo's default min relay fee, where float conversion of
+// the `estimatefee` result rounds whole satoshis up
+export const lowEstimatedFee = 9.99e-6;
+export const minRelayEstimatedFee = 1e-5;
+export const doubleMinRelayEstimatedFee = 2e-5;

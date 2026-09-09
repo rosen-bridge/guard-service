@@ -18,6 +18,7 @@ import {
 
 import {
   addressToScripthash,
+  firoAmountToSatoshi,
   parseBlockHeader,
   parseTransactionHex,
   scriptPubKeyToScripthash,
@@ -367,7 +368,11 @@ class FiroElectrumXNetwork extends AbstractFiroNetwork {
 
   /**
    * Estimates the Firo fee ratio in satoshis per byte.
-   * @returns fee ratio
+   *
+   * The ElectrumX `estimatefee` result is a decimal FIRO amount per kB. It is
+   * converted through an exact decimal string, since multiplying it by 1e8 as a
+   * float rounds whole satoshis up (e.g. `1e-5 * 1e8` is `1000.0000000000001`).
+   * @returns fee ratio, possibly fractional
    */
   getFeeRatio = async (): Promise<number> => {
     try {
@@ -382,8 +387,8 @@ class FiroElectrumXNetwork extends AbstractFiroNetwork {
         );
         return 10;
       }
-      const feeSatoshis = Math.ceil(feeRate * 100000000);
-      const feePerByte = Math.ceil(feeSatoshis / 1000);
+      const feeSatoshisPerKb = firoAmountToSatoshi(feeRate);
+      const feePerByte = Number(feeSatoshisPerKb) / 1000;
       this.logger.debug(`Fee ratio: ${feePerByte} sat/byte`);
       return feePerByte;
     } catch (e) {

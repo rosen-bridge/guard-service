@@ -1,5 +1,12 @@
 # @rosen-chains/ethereum
 
+## 4.0.2
+
+### Patch Changes
+
+- Update dependencies
+  - @rosen-chains/evm@10.0.2
+
 ## 4.0.1
 
 ### Patch Changes

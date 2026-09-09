@@ -37,6 +37,7 @@ describe('BitcoinRunesChain', () => {
      * - PaymentTransaction txType, eventId, network and inputUtxos should be as
      *   expected
      * - transaction artifact should be a Runestone
+     * - transaction fee should be positive and match the estimated fee
      * - extracted order of generated transaction should be the same as input
      *   order
      * - getCoveringBoxes should have been called with correct arguments
@@ -47,8 +48,9 @@ describe('BitcoinRunesChain', () => {
       const payment1 = BitcoinRunesTransaction.fromJson(
         testData.transaction1PaymentTransaction,
       );
+      const feeRatio = 1;
       const getFeeRatioSpy = vi.spyOn(network, 'getFeeRatio');
-      getFeeRatioSpy.mockResolvedValue(1);
+      getFeeRatioSpy.mockResolvedValue(feeRatio);
 
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
       const bitcoinRunesChain = await testUtils.generateChainObject(network);
@@ -130,6 +132,9 @@ describe('BitcoinRunesChain', () => {
       expect(runestone).toBeDefined();
       expect(isRunestone(runestone!)).toEqual(true);
 
+      // transaction fee should be positive and match the estimation
+      testUtils.expectValidTxFee(bitcoinTx, feeRatio);
+
       // extracted order of generated transaction should be the same as input order
       const extractedOrder =
         bitcoinRunesChain.extractTransactionOrder(bitcoinTx);
@@ -167,6 +172,7 @@ describe('BitcoinRunesChain', () => {
      * - PaymentTransaction txType, eventId, network and inputUtxos should be as
      *   expected
      * - transaction artifact should be a Runestone
+     * - transaction fee should be positive and match the estimated fee
      * - extracted order of generated transaction should be the same as input
      *   order
      * - getCoveringBoxes should have been called with correct arguments
@@ -178,8 +184,9 @@ describe('BitcoinRunesChain', () => {
       const payment1 = BitcoinRunesTransaction.fromJson(
         testData.transaction1PaymentTransaction,
       );
+      const feeRatio = 1;
       const getFeeRatioSpy = vi.spyOn(network, 'getFeeRatio');
-      getFeeRatioSpy.mockResolvedValue(1);
+      getFeeRatioSpy.mockResolvedValue(feeRatio);
 
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
       const bitcoinRunesChain = await testUtils.generateChainObject(network);
@@ -261,6 +268,9 @@ describe('BitcoinRunesChain', () => {
       expect(runestone).toBeDefined();
       expect(isRunestone(runestone!)).toEqual(true);
 
+      // transaction fee should be positive and match the estimation
+      testUtils.expectValidTxFee(bitcoinTx, feeRatio);
+
       // extracted order of generated transaction should be the same as input order
       const extractedOrder =
         bitcoinRunesChain.extractTransactionOrder(bitcoinTx);
@@ -295,6 +305,7 @@ describe('BitcoinRunesChain', () => {
      * - PaymentTransaction txType, eventId, network and inputUtxos should be as
      *   expected
      * - transaction artifact should be a Runestone
+     * - transaction fee should be positive and match the estimated fee
      * - extracted order of generated transaction should be the same as input
      *   order
      * - address/script of each utxo should be as expected
@@ -311,8 +322,9 @@ describe('BitcoinRunesChain', () => {
       const payment1 = BitcoinRunesTransaction.fromJson(
         testData.transaction3PaymentTransaction,
       );
+      const feeRatio = 1;
       const getFeeRatioSpy = vi.spyOn(network, 'getFeeRatio');
-      getFeeRatioSpy.mockResolvedValue(1);
+      getFeeRatioSpy.mockResolvedValue(feeRatio);
 
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
       const bitcoinRunesChain = await testUtils.generateChainObject(network);
@@ -381,6 +393,9 @@ describe('BitcoinRunesChain', () => {
       expect(runestone).toBeDefined();
       expect(isRunestone(runestone!)).toEqual(true);
 
+      // transaction fee should be positive and match the estimation
+      testUtils.expectValidTxFee(bitcoinTx, feeRatio);
+
       // extracted order of generated transaction should be the same as input order
       const extractedOrder =
         bitcoinRunesChain.extractTransactionOrder(bitcoinTx);
@@ -432,6 +447,7 @@ describe('BitcoinRunesChain', () => {
      * - PaymentTransaction txType, eventId, network and inputUtxos should be as
      *   expected
      * - transaction artifact should be a Runestone
+     * - transaction fee should be positive and match the estimated fee
      * - extracted order of generated transaction should be the same as input
      *   order
      * - getCoveringBoxes should have been called twice with correct arguments
@@ -442,8 +458,9 @@ describe('BitcoinRunesChain', () => {
       const payment1 = BitcoinRunesTransaction.fromJson(
         testData.transaction1PaymentTransaction,
       );
+      const feeRatio = 1;
       const getFeeRatioSpy = vi.spyOn(network, 'getFeeRatio');
-      getFeeRatioSpy.mockResolvedValue(1);
+      getFeeRatioSpy.mockResolvedValue(feeRatio);
 
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
       const bitcoinRunesChain = await testUtils.generateChainObject(network);
@@ -533,6 +550,9 @@ describe('BitcoinRunesChain', () => {
       });
       expect(runestone).toBeDefined();
       expect(isRunestone(runestone!)).toEqual(true);
+
+      // transaction fee should be positive and match the estimation
+      testUtils.expectValidTxFee(bitcoinTx, feeRatio);
 
       // extracted order of generated transaction should be the same as input order
       const extractedOrder =
@@ -656,6 +676,7 @@ describe('BitcoinRunesChain', () => {
      * - PaymentTransaction txType, eventId, network and inputUtxos should be as
      *   expected
      * - transaction artifact should be a Runestone
+     * - transaction fee should be positive and match the estimated fee
      * - extracted order of generated transaction should be the same as input
      *   order
      * - getCoveringBoxes should have been called with correct arguments
@@ -666,8 +687,9 @@ describe('BitcoinRunesChain', () => {
       const payment1 = BitcoinRunesTransaction.fromJson(
         testData.transaction1PaymentTransaction,
       );
+      const feeRatio = 1;
       const getFeeRatioSpy = vi.spyOn(network, 'getFeeRatio');
-      getFeeRatioSpy.mockResolvedValue(1);
+      getFeeRatioSpy.mockResolvedValue(feeRatio);
 
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
       const bitcoinRunesChain = await testUtils.generateChainObject(
@@ -753,6 +775,9 @@ describe('BitcoinRunesChain', () => {
       expect(runestone).toBeDefined();
       expect(isRunestone(runestone!)).toEqual(true);
 
+      // transaction fee should be positive and match the estimation
+      testUtils.expectValidTxFee(bitcoinTx, feeRatio);
+
       // extracted order of generated transaction should be the same as input order
       const extractedOrder =
         bitcoinRunesChain.extractTransactionOrder(bitcoinTx);
@@ -795,14 +820,16 @@ describe('BitcoinRunesChain', () => {
      *   - PaymentTransaction txType, eventId, network and inputUtxos should be as
      *     expected
      *   - transaction artifact should be a Runestone
+     *   - transaction fee should be positive and match the estimated fee
      *   - extracted order of it should only contain one rune and be as expected
      * - getCoveringBoxes should have been called twice with correct arguments
      */
     it('should generate multiple transactions when order demands transfer of multiple runes', async () => {
       // mock transaction order
       const order = testData.mockedColdOrder;
+      const feeRatio = 1;
       const getFeeRatioSpy = vi.spyOn(network, 'getFeeRatio');
-      getFeeRatioSpy.mockResolvedValue(1);
+      getFeeRatioSpy.mockResolvedValue(feeRatio);
 
       // mock getCoveringBoxes, hasLockAddressEnoughAssets
       const bitcoinRunesChain = await testUtils.generateChainObject(network);
@@ -869,6 +896,9 @@ describe('BitcoinRunesChain', () => {
         });
         expect(runestone).toBeDefined();
         expect(isRunestone(runestone!)).toEqual(true);
+
+        // transaction fee should be positive and match the estimation
+        testUtils.expectValidTxFee(bitcoinTx, feeRatio);
       });
       expect(result[0].inputUtxos).toEqual(
         selectedBoxesList[0].map((utxo) => JsonBigInt.stringify(utxo)),

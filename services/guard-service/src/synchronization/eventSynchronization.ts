@@ -36,6 +36,7 @@ const logger = DefaultLogger.getInstance().child(import.meta.url);
 
 class EventSynchronization extends Communicator {
   private static instance: EventSynchronization;
+  protected readonly protocolVersion = '1.0.0';
   protected static CHANNEL = 'event-synchronization';
   protected static dialer: RosenDialerNode;
   protected detection: GuardDetection;
