@@ -66,4 +66,18 @@ declare module 'hsd' {
       index: number;
     }): Coin;
   }
+
+  const hsd: {
+    MTX: typeof MTX;
+    TX: typeof TX;
+    Input: typeof Input;
+    Output: typeof Output;
+    Outpoint: typeof Outpoint;
+    Witness: typeof Witness;
+    Address: typeof Address;
+    Script: typeof Script;
+    Coin: typeof Coin;
+  };
+
+  export default hsd;
 }

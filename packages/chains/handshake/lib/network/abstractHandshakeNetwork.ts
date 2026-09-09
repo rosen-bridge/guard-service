@@ -1,4 +1,4 @@
-import { MTX } from 'hsd';
+import type { MTX } from 'hsd';
 
 import {
   AbstractUtxoChainNetwork,

@@ -1,5 +1,5 @@
 import { randomBytes } from 'crypto';
-import { MTX } from 'hsd';
+import type { MTX } from 'hsd';
 
 import { AbstractLogger } from '@rosen-bridge/abstract-logger';
 import JsonBigInt from '@rosen-bridge/json-bigint';

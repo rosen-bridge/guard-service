@@ -11,6 +11,7 @@ import { ERG, ERGO_CHAIN } from '@rosen-chains/ergo';
 import { NODE_NETWORK } from '@rosen-chains/ergo-node-network';
 import { ETH, ETHEREUM_CHAIN } from '@rosen-chains/ethereum';
 import { FIRO, FIRO_CHAIN } from '@rosen-chains/firo';
+import { HANDSHAKE_CHAIN, HNS } from '@rosen-chains/handshake';
 
 import Configs from '../configs/configs';
 import GuardsCardanoConfigs from '../configs/guardsCardanoConfigs';
@@ -70,6 +71,11 @@ class BalanceHandler {
           this.nativeTokenIds[chain] = FIRO;
           this.chainsTokensPerIteration[chain] =
             Configs.balanceHandler.firo.tokensPerIteration.rpc;
+          break;
+        case HANDSHAKE_CHAIN:
+          this.nativeTokenIds[chain] = HNS;
+          this.chainsTokensPerIteration[chain] =
+            Configs.balanceHandler.handshake.tokensPerIteration.rpc;
           break;
         case ETHEREUM_CHAIN:
           this.nativeTokenIds[chain] = ETH;

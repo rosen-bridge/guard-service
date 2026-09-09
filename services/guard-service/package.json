@@ -84,6 +84,8 @@
     "@rosen-chains/evm-rpc": "^4.0.6",
     "@rosen-chains/firo": "^1.0.0",
     "@rosen-chains/firo-electrumx": "^0.1.2",
+    "@rosen-chains/handshake": "^1.0.0",
+    "@rosen-chains/handshake-rpc": "^0.0.1",
     "@rosen-clients/rate-limited-axios": "^2.0.1",
     "blakejs": "^1.2.1",
     "config": "^3.3.7",

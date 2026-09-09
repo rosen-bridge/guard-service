@@ -24,6 +24,7 @@ import GuardsDogeConfigs from '../configs/guardsDogeConfigs';
 import GuardsErgoConfigs from '../configs/guardsErgoConfigs';
 import GuardsEthereumConfigs from '../configs/guardsEthereumConfigs';
 import GuardsFiroConfigs from '../configs/guardsFiroConfigs';
+import GuardsHandshakeConfigs from '../configs/guardsHandshakeConfigs';
 import { dataSource } from '../db/dataSource';
 import { TokenHandler } from '../handlers/tokenHandler';
 
@@ -149,6 +150,12 @@ const createLoggers = () => ({
   firoEventTriggerExtractorLogger: DefaultLogger.getInstance().child(
     'firo-event-trigger-extractor',
   ),
+  handshakeCommitmentExtractorLogger: DefaultLogger.getInstance().child(
+    'handshake-commitment-extractor',
+  ),
+  handshakeEventTriggerExtractorLogger: DefaultLogger.getInstance().child(
+    'handshake-event-trigger-extractor',
+  ),
   bitcoinRunesCommitmentExtractorLogger: DefaultLogger.getInstance().child(
     'bitcoin-runes-commitment-extractor',
   ),
@@ -255,6 +262,29 @@ const initScanner = () => {
     GuardsFiroConfigs.firoContractConfig.addresses.WatcherPermit,
     GuardsFiroConfigs.firoContractConfig.addresses.Fraud,
     loggers.firoEventTriggerExtractorLogger,
+    initialization,
+  );
+
+  // init Handshake extractors
+  const handshakeCommitmentExtractor = new CommitmentExtractor(
+    'handshakeCommitment',
+    [GuardsHandshakeConfigs.handshakeContractConfig.addresses.Commitment],
+    GuardsHandshakeConfigs.handshakeContractConfig.tokens.RWTId,
+    dataSource,
+    TokenHandler.getInstance().getTokenMap(),
+    loggers.handshakeCommitmentExtractorLogger,
+  );
+
+  const handshakeEventTriggerExtractor = new EventTriggerExtractor(
+    'handshakeEventTrigger',
+    dataSource,
+    networkType,
+    networkUrl,
+    GuardsHandshakeConfigs.handshakeContractConfig.addresses.WatcherTriggerEvent,
+    GuardsHandshakeConfigs.handshakeContractConfig.tokens.RWTId,
+    GuardsHandshakeConfigs.handshakeContractConfig.addresses.WatcherPermit,
+    GuardsHandshakeConfigs.handshakeContractConfig.addresses.Fraud,
+    loggers.handshakeEventTriggerExtractorLogger,
     initialization,
   );
 
@@ -378,6 +408,8 @@ const initScanner = () => {
   ergoScanner.registerExtractor(dogeEventTriggerExtractor);
   ergoScanner.registerExtractor(firoCommitmentExtractor);
   ergoScanner.registerExtractor(firoEventTriggerExtractor);
+  ergoScanner.registerExtractor(handshakeCommitmentExtractor);
+  ergoScanner.registerExtractor(handshakeEventTriggerExtractor);
   ergoScanner.registerExtractor(binanceCommitmentExtractor);
   ergoScanner.registerExtractor(binanceEventTriggerExtractor);
   ergoScanner.registerExtractor(bitcoinRunesCommitmentExtractor);

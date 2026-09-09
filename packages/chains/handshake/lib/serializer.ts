@@ -1,4 +1,7 @@
-import { MTX } from 'hsd';
+import hsd from 'hsd';
+import type { MTX } from 'hsd';
+
+const { MTX: HsdMTX } = hsd;
 
 class Serializer {
   /**
@@ -16,7 +19,7 @@ class Serializer {
    * @returns the transaction in HSD MTX format
    */
   static deserialize = (txBytes: Uint8Array): MTX => {
-    return MTX.fromRaw(Buffer.from(txBytes));
+    return HsdMTX.fromRaw(Buffer.from(txBytes));
   };
 }
 
