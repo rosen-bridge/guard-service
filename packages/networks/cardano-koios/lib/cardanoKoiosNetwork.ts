@@ -446,7 +446,7 @@ class CardanoKoiosNetwork extends AbstractCardanoNetwork {
     );
     if (!output) {
       this.logger.debug(
-        `Utxo [${boxId}] is invalid. Tx [${txId}] is failed on network and utxo is not the collateral return output`,
+        `Utxo [${boxId}] is invalid. Tx [${txId}] is failed on network and index [${index}] is not pointing to the collateral return output`,
       );
       return false;
     }
