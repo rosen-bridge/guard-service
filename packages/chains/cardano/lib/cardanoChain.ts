@@ -592,16 +592,20 @@ class CardanoChain extends AbstractUtxoChain<CardanoTx, CardanoUtxo> {
 
   /**
    * verifies additional conditions for a event lock transaction
+   * - the lock transaction should not be failed on-chain
    * @param transaction the lock transaction
    * @param blockInfo
    * @returns true if the transaction is verified
    */
   verifyLockTransactionExtraConditions = async (
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     transaction: CardanoTx,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     blockInfo: BlockInfo,
   ): Promise<boolean> => {
+    if (!transaction.isValid) {
+      this.logger.error(`Lock tx [${transaction.id}] is failed on-chain`);
+      return false;
+    }
     return true;
   };
 

@@ -263,11 +263,6 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
         throw new UnexpectedApiError(baseError + e.message);
       }
     }
-    if (txInfo.valid_contract === false)
-      throw new FailedError(
-        `Transaction [${transactionId}] is failed on-chain`,
-      );
-
     let txUtxos: components['schemas']['tx_content_utxo'];
     try {
       txUtxos = await this.client.txsUtxos(transactionId);
@@ -318,6 +313,7 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
       inputs: txUtxos.inputs.map(this.convertToCardanoTxInput),
       outputs: txUtxos.outputs.map(this.convertToCardanoBoxCandidate),
       fee: BigInt(txInfo.fees),
+      isValid: txInfo.valid_contract,
     };
     if (txMetadataList.length) tx.metadata = this.parseMetadata(txMetadataList);
 
@@ -421,13 +417,20 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
         throw new UnexpectedApiError(baseError + e.message);
       }
     }
-    if (txUtxos.outputs.length <= Number(index)) {
+    // look up by the output's own `output_index` rather than its position in
+    // the array: for a transaction failed on-chain, BlockFrost only returns
+    // the collateral return output (if any), whose `output_index` is the
+    // number of the transaction's regular outputs, not 0
+    const output = txUtxos.outputs.find(
+      (o) => o.output_index === Number(index),
+    );
+    if (!output) {
       this.logger.debug(
         `Utxo [${boxId}] is invalid: Transaction [${txId}] doesn't have index [${index}]`,
       );
       return false;
     }
-    const address = txUtxos.outputs[Number(index)].address;
+    const address = output.address;
     let addressUtxos: BlockFrostAddressUtxos;
     try {
       addressUtxos = await this.client.addressesUtxosAll(address);
@@ -516,16 +519,21 @@ class CardanoBlockFrostNetwork extends AbstractCardanoNetwork {
       }
     }
 
-    if (txUtxos.outputs.length <= Number(index)) {
+    // look up by the output's own `output_index` rather than its position in
+    // the array: for a transaction failed on-chain, BlockFrost only returns
+    // the collateral return output (if any), whose `output_index` is the
+    // number of the transaction's regular outputs, not 0
+    const output = txUtxos.outputs.find(
+      (o) => o.output_index === Number(index),
+    );
+    if (!output) {
       throw new FailedError(
         baseFailedError +
           `Transaction [${txId}] outputs does not have index [${index}]`,
       );
     }
 
-    const boxCandidate = this.convertToCardanoBoxCandidate(
-      txUtxos.outputs[Number(index)],
-    );
+    const boxCandidate = this.convertToCardanoBoxCandidate(output);
     return {
       txId: txId,
       index: Number(index),

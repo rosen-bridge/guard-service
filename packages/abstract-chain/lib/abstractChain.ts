@@ -189,6 +189,12 @@ abstract class AbstractChain<TxType> {
         event.sourceBlockId,
       );
       const blockInfo = await this.network.getBlockInfo(event.sourceBlockId);
+      if (!(await this.verifyLockTransactionExtraConditions(tx, blockInfo))) {
+        this.logger.info(
+          `Event [${eventId}] is not valid, lock tx [${event.sourceTxId}] is not verified`,
+        );
+        return false;
+      }
       const data = this.extractor.get(this.serializeTx(tx));
       if (!data) {
         this.logger.info(
@@ -232,17 +238,8 @@ abstract class AbstractChain<TxType> {
             `Failed in comparing event amount to fees: ${e}`,
           );
         }
-        if (await this.verifyLockTransactionExtraConditions(tx, blockInfo)) {
-          this.logger.info(
-            `Event [${eventId}] has been successfully validated`,
-          );
-          return true;
-        } else {
-          this.logger.info(
-            `Event [${eventId}] is not valid, lock tx [${event.sourceTxId}] is not verified`,
-          );
-          return false;
-        }
+        this.logger.info(`Event [${eventId}] has been successfully validated`);
+        return true;
       } else {
         this.logger.info(
           `Event [${eventId}] is not valid, event data does not match with lock tx [${event.sourceTxId}]`,
