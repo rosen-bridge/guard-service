@@ -2,8 +2,9 @@ import { FailedError } from '@rosen-chains/abstract-chain';
 
 import { HandshakeRpcNetwork } from '../lib/handshakeRpcNetwork';
 import {
+  mockAxiosGet,
   mockAxiosPost,
-  mockAxiosPostToThrow,
+  mockAxiosPostRpcError,
   resetAxiosMock,
 } from './mocked/rateLimitedAxios.mock';
 import * as testData from './testData';
@@ -41,15 +42,13 @@ describe('HandshakeRpcNetwork', () => {
      * @target `HandshakeRpcNetwork.getTxConfirmation` should return tx confirmation successfully
      * @dependencies
      * @scenario
-     * - mock axios to return blockchain info (height)
      * - mock axios to return transaction
      * - run test
      * - check returned value
      * @expected
-     * - it should be mocked height minus mocked tx height
+     * - it should be the confirmations reported by the node
      */
     it('should return tx confirmation successfully', async () => {
-      mockAxiosPost(testData.chainInfo);
       mockAxiosPost(testData.rpcTxResponse);
 
       const network = new HandshakeRpcNetwork(URL);
@@ -63,21 +62,17 @@ describe('HandshakeRpcNetwork', () => {
      * when transaction is not found
      * @dependencies
      * @scenario
-     * - mock axios to return blockchain info
-     * - mock axios to throw not found error
+     * - mock axios to return a failed rpc call
      * - run test
      * - check returned value
      * @expected
      * - it should be -1
      */
     it('should return -1 when transaction is not found', async () => {
-      mockAxiosPost(testData.chainInfo);
-      mockAxiosPostToThrow({
-        response: {
-          status: 404,
-          data: { error: { message: 'Transaction not found' } },
-        },
-      });
+      mockAxiosPostRpcError(
+        testData.txNotFoundRpcError.code,
+        testData.txNotFoundRpcError.message,
+      );
 
       const network = new HandshakeRpcNetwork(URL);
       const result = await network.getTxConfirmation(testData.txId);
@@ -90,7 +85,6 @@ describe('HandshakeRpcNetwork', () => {
      * when transaction is unconfirmed
      * @dependencies
      * @scenario
-     * - mock axios to return blockchain info
      * - mock axios to return unconfirmed tx
      * - run test
      * - check returned value
@@ -98,7 +92,6 @@ describe('HandshakeRpcNetwork', () => {
      * - it should be -1
      */
     it('should return -1 when transaction is unconfirmed', async () => {
-      mockAxiosPost(testData.chainInfo);
       mockAxiosPost(testData.unconfirmedRpcTxResponse);
 
       const network = new HandshakeRpcNetwork(URL);
@@ -286,19 +279,14 @@ describe('HandshakeRpcNetwork', () => {
      * tx is not found
      * @dependencies
      * @scenario
-     * - mock axios to throw not found error
+     * - mock axios to return a null result
      * - run test
      * - check returned value
      * @expected
      * - it should be false
      */
     it('should return false when tx is not found', async () => {
-      mockAxiosPostToThrow({
-        response: {
-          status: 404,
-          data: { error: { code: -5, message: 'Transaction not found' } },
-        },
-      });
+      mockAxiosPost(null);
 
       const network = new HandshakeRpcNetwork(URL);
       const boxId = `${testData.txId}.0`;
@@ -334,18 +322,16 @@ describe('HandshakeRpcNetwork', () => {
      * tx is not found
      * @dependencies
      * @scenario
-     * - mock axios to throw not found error
+     * - mock axios to return a failed rpc call
      * - run test and expect exception thrown
      * @expected
      * - it should throw FailedError
      */
     it('should throw error when tx is not found', async () => {
-      mockAxiosPostToThrow({
-        response: {
-          status: 404,
-          data: { error: { message: 'Transaction not found' } },
-        },
-      });
+      mockAxiosPostRpcError(
+        testData.txNotFoundRpcError.code,
+        testData.txNotFoundRpcError.message,
+      );
 
       const network = new HandshakeRpcNetwork(URL);
       const boxId = `${testData.txId}.0`;
@@ -394,6 +380,26 @@ describe('HandshakeRpcNetwork', () => {
 
       expect(result).toBeCloseTo(testData.targetFeeEstimation, 6);
     });
+
+    /**
+     * @target `HandshakeRpcNetwork.getFeeRatio` should not return a ratio below
+     * the relay minimum
+     * @dependencies
+     * @scenario
+     * - mock axios to return a fee estimate below the relay minimum
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should be the relay minimum, so that built txs are relayable
+     */
+    it('should not return a ratio below the relay minimum', async () => {
+      mockAxiosPost(testData.belowMinimumEstimateFeeResponse);
+
+      const network = new HandshakeRpcNetwork(URL);
+      const result = await network.getFeeRatio();
+
+      expect(result).toEqual(testData.minimumFeeEstimation);
+    });
   });
 
   describe('getMempoolTxIds', () => {
@@ -414,6 +420,71 @@ describe('HandshakeRpcNetwork', () => {
       const result = await network.getMempoolTxIds();
 
       expect(result).toEqual(testData.txIds);
+    });
+  });
+  describe('getAddressAssets', () => {
+    /**
+     * @target `HandshakeRpcNetwork.getAddressAssets` should return address assets successfully
+     * @dependencies
+     * @scenario
+     * - mock axios to return address coins
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should be the sum of the confirmed coin values, in dollarydoos
+     * - it should exclude the name covenant and the mempool coin
+     */
+    it('should return address assets successfully', async () => {
+      mockAxiosGet(testData.addressCoins);
+
+      const network = new HandshakeRpcNetwork(URL);
+      const result = await network.getAddressAssets(testData.lockAddress);
+
+      expect(result).toEqual({
+        nativeToken: testData.addressBalance,
+        tokens: [],
+      });
+    });
+  });
+
+  describe('getAddressBoxes', () => {
+    /**
+     * @target `HandshakeRpcNetwork.getAddressBoxes` should return address boxes successfully
+     * @dependencies
+     * @scenario
+     * - mock axios to return address coins
+     * - run test
+     * - check returned value
+     * @expected
+     * - it should be the confirmed coin outputs, valued in dollarydoos
+     * - it should exclude the name covenant and the mempool coin
+     */
+    it('should return address boxes successfully', async () => {
+      mockAxiosGet(testData.addressCoins);
+
+      const network = new HandshakeRpcNetwork(URL);
+      const result = await network.getAddressBoxes(testData.lockAddress, 0, 10);
+
+      expect(result).toEqual(testData.addressUtxos);
+    });
+
+    /**
+     * @target `HandshakeRpcNetwork.getAddressBoxes` should apply offset and limit
+     * @dependencies
+     * @scenario
+     * - mock axios to return address coins
+     * - run test with an offset and a limit
+     * - check returned value
+     * @expected
+     * - it should be the requested slice of the confirmed coin outputs
+     */
+    it('should apply offset and limit', async () => {
+      mockAxiosGet(testData.addressCoins);
+
+      const network = new HandshakeRpcNetwork(URL);
+      const result = await network.getAddressBoxes(testData.lockAddress, 1, 1);
+
+      expect(result).toEqual([testData.addressUtxos[1]]);
     });
   });
 });
