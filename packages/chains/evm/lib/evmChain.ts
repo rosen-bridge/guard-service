@@ -416,7 +416,6 @@ abstract class EvmChain extends AbstractChain<Transaction> {
    * - gasLimit must be as expected
    * - for type 2 transactions
    *   - maxFeePerGas shouldn't be different than current network condition by more than slippage
-   *   - maxPriorityFeePerGas shouldn't be different than current network condition by more than slippage
    * - for type 0 transactions
    *   - gasPrice shouldn't be different than current network condition by more than slippage
    * @param transaction the PaymentTransaction
@@ -481,12 +480,9 @@ abstract class EvmChain extends AbstractChain<Transaction> {
         throw new ImpossibleBehavior(
           "Type 2 transaction can't have null maxFeePerGas or maxPriorityFeePerGas",
         );
-      if (
-        feeData.maxFeePerGas === null ||
-        feeData.maxPriorityFeePerGas === null
-      )
+      if (feeData.maxFeePerGas === null)
         throw new ImpossibleBehavior(
-          'Chain is using type 2 transactions but network is replying with null maxFeePerGas or maxPriorityFeePerGas',
+          'Chain is using type 2 transactions but network is replying with null maxFeePerGas',
         );
 
       const networkMaxFee = feeData.maxFeePerGas;
@@ -501,22 +497,6 @@ abstract class EvmChain extends AbstractChain<Transaction> {
         this.logger.warn(
           baseError +
             `Transaction max fee [${tx.maxFeePerGas}] is too far from network's max fee [${networkMaxFee}]`,
-        );
-        return false;
-      }
-
-      const networkMaxPriorityFee = feeData.maxPriorityFeePerGas;
-      const priorityFeeSlippage =
-        (networkMaxPriorityFee * this.configs.gasPriceSlippage) / 100n;
-      const maxPriorityFeeDifference =
-        tx.maxPriorityFeePerGas >= networkMaxPriorityFee
-          ? tx.maxPriorityFeePerGas - networkMaxPriorityFee
-          : networkMaxPriorityFee - tx.maxPriorityFeePerGas;
-
-      if (maxPriorityFeeDifference > priorityFeeSlippage) {
-        this.logger.warn(
-          baseError +
-            `Transaction max priority fee [${tx.maxPriorityFeePerGas}] is too far from network's max priority fee [${networkMaxPriorityFee}]`,
         );
         return false;
       }
