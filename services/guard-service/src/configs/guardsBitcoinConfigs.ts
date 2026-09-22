@@ -17,6 +17,7 @@ class GuardsBitcoinConfigs {
 
   // value configs
   static txFeeSlippage = config.get<number>('bitcoin.txFeeSlippage');
+  static txMaxFee = BigInt(config.get<number>('bitcoin.txMaxFee'));
 
   // confirmation configs
   static observationConfirmation = getConfigIntKeyOrDefault(
@@ -69,6 +70,7 @@ class GuardsBitcoinConfigs {
     rwtId: this.bitcoinContractConfig.tokens.RWTId,
     aggregatedPublicKey: this.aggregatedPublicKey,
     txFeeSlippage: this.txFeeSlippage,
+    txMaxFee: this.txMaxFee,
   };
 }
 

@@ -44,7 +44,8 @@ bitcoin:
     url: 'https://blockstream.info'
     timeout: 8
   bankPublicKey: '' # corresponding public key of lock address
-  txFeeSlippage: 10 # allowed slippage percentage for tx fees
+  txFeeSlippage: 300 # allowed slippage percentage for tx fees
+  txMaxFee: 10000 # absolute cap (in satoshis) on tx fee; tx is rejected if fee exceeds this, regardless of slippage
   confirmation: # required block confirmation
     observation: 2 # an observation transaction (lock transaction) on Bitcoin get confirmed
     payment: 2 # a payment transaction on Bitcoin get confirmed
